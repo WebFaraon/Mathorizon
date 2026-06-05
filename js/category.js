@@ -1,0 +1,466 @@
+/* ============================================================
+   BACMath — Category Page Logic
+   ============================================================ */
+
+(function() {
+  'use strict';
+
+  let currentCategory = null;
+  let currentSubcat   = null;
+  let currentFilter   = 'all';
+  let allExercises    = [];
+  let filtered        = [];
+
+  /* ---- Init ---- */
+  function init() {
+    const catId = BM.getParam('id');
+    if (!catId) { window.location.href = 'index.html'; return; }
+
+    currentCategory = BM.getCategoryById(catId);
+    if (!currentCategory) { window.location.href = 'index.html'; return; }
+
+    allExercises = BM.EXERCISES.filter(e => e.categoryId === catId);
+
+    renderHeader();
+    initPanelBtns();
+    BM.Storage.recordVisit();
+
+    const subParam = BM.getParam('sub');
+    if (subParam) {
+      showExercisesView(subParam);
+    } else {
+      showCardsView();
+    }
+  }
+
+  /* ---- Header ---- */
+  function renderHeader() {
+    const cat  = currentCategory;
+    const prog = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
+
+    document.title = `${cat.name} — Mathorizon`;
+
+    const header = document.getElementById('catHeader');
+    if (!header) return;
+    header.innerHTML = `
+      <div class="container">
+        <div class="cat-header__inner">
+          <div class="cat-header__icon" style="color:${cat.color};background:${cat.color}1a;border-color:${cat.color}33">
+            ${BM.esc(cat.symbol)}
+          </div>
+          <div class="cat-header__info">
+            <a class="cat-header__back" href="index.html">← Înapoi la capitole</a>
+            <h1 class="cat-header__name">${BM.esc(cat.name)}</h1>
+            <p class="cat-header__desc">${BM.esc(cat.description)}</p>
+            <div class="cat-stats-row">
+              <div class="cat-stat">
+                <div class="cat-stat__num">${prog.total}</div>
+                <div class="cat-stat__lbl">Exerciții</div>
+              </div>
+              <div class="cat-stat__sep"></div>
+              <div class="cat-stat">
+                <div class="cat-stat__num" style="color:var(--green)" id="hdr-solved">${prog.solved}</div>
+                <div class="cat-stat__lbl">Rezolvate</div>
+              </div>
+              <div class="cat-stat__sep"></div>
+              <div class="cat-stat">
+                <div class="cat-stat__num" style="color:${cat.color}" id="hdr-pct">${prog.percent}%</div>
+                <div class="cat-stat__lbl">Completat</div>
+              </div>
+            </div>
+            <div class="cat-progress-wrap">
+              <div class="cat-progress-track">
+                <div class="cat-progress-fill" id="catProgressFill"
+                     style="background:linear-gradient(90deg,${cat.color},${cat.color}99);box-shadow:0 0 16px ${cat.color}66"></div>
+              </div>
+              <div class="cat-progress-label">
+                <span id="hdr-progress-txt">${prog.solved} din ${prog.total} exerciții rezolvate</span>
+                <span style="color:${cat.color};font-weight:700" id="hdr-progress-pct">${prog.percent}%</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
+
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      const fill = document.getElementById('catProgressFill');
+      if (fill) fill.style.width = prog.percent + '%';
+    }));
+  }
+
+  /* ============================================================
+     VIEW: Subcategory Cards
+     ============================================================ */
+  function showCardsView() {
+    currentSubcat = null;
+    document.getElementById('subcatCardsSection').style.display = '';
+    document.getElementById('exercisesSection').style.display   = 'none';
+    renderSubcatCards();
+  }
+
+  function renderSubcatCards() {
+    const cat    = currentCategory;
+    const grid   = document.getElementById('subcatCardsGrid');
+    if (!grid) return;
+
+    const solved = BM.Storage.getSolved();
+
+    grid.innerHTML = cat.subcategories.map((sub, i) => {
+      const exs    = allExercises.filter(e => e.subcategoryId === sub.id);
+      const count  = exs.length;
+      const done   = exs.filter(e => solved[e.id]).length;
+      const pct    = count > 0 ? Math.round((done / count) * 100) : 0;
+      const empty  = count === 0;
+
+      return `
+        <div class="subcat-card${empty ? ' subcat-card--empty' : ''}"
+             ${empty ? '' : `onclick="selectSubcat('${sub.id}')"`}
+             style="--sc-color:${sub.color};animation-delay:${i * 0.04}s">
+          <div class="subcat-card__top">
+            <div class="subcat-card__icon"
+                 style="color:${sub.color};background:${sub.color}22;border-color:${sub.color}33">
+              ${BM.esc(sub.symbol)}
+            </div>
+            ${empty
+              ? '<span class="subcat-card__soon">În curând</span>'
+              : `<div class="subcat-card__count"
+                      style="color:${sub.color};border-color:${sub.color}44;background:${sub.color}15">
+                   ${count} ex.
+                 </div>`
+            }
+          </div>
+          <div class="subcat-card__name">${BM.esc(sub.name)}</div>
+          ${!empty ? `
+            <div class="subcat-card__footer">
+              <div class="subcat-card__track">
+                <div class="subcat-card__bar"
+                     style="width:${pct}%;background:linear-gradient(90deg,${sub.color},${sub.color}cc)"></div>
+              </div>
+              <div class="subcat-card__prog">
+                ${done}/${count}
+                <span style="color:${sub.color};font-weight:600">${pct}%</span>
+              </div>
+            </div>
+          ` : ''}
+        </div>
+      `;
+    }).join('');
+  }
+
+  window.selectSubcat = function(subcatId) {
+    showExercisesView(subcatId);
+  };
+
+  /* ============================================================
+     VIEW: Exercises
+     ============================================================ */
+  function showExercisesView(subcatId) {
+    currentSubcat = subcatId;
+    currentFilter = 'all';
+
+    document.getElementById('subcatCardsSection').style.display = 'none';
+    document.getElementById('exercisesSection').style.display   = '';
+
+    const sub = BM.getSubcategoryById(currentCategory.id, subcatId);
+    renderBreadcrumb(sub);
+    renderFilterBar();
+    applyFilters();
+
+    const exParam = BM.getParam('ex');
+    if (exParam) handleTargetExercise(exParam);
+  }
+
+  window.goBackToCards = function() {
+    showCardsView();
+  };
+
+  function renderBreadcrumb(sub) {
+    const cat = currentCategory;
+    const el  = document.getElementById('subcatBreadcrumb');
+    if (!el) return;
+    el.innerHTML = `
+      <div class="container">
+        <div class="subcat-bc__inner">
+          <button class="subcat-bc__back" onclick="goBackToCards()">
+            ← ${BM.esc(cat.name)}
+          </button>
+          <span class="subcat-bc__sep">›</span>
+          <span class="subcat-bc__current" style="color:${sub ? sub.color : 'var(--accent-light)'}">
+            ${sub ? BM.esc(sub.name) : subcatId}
+          </span>
+        </div>
+      </div>
+    `;
+  }
+
+  /* ---- Filter Bar ---- */
+  function renderFilterBar() {
+    const bar = document.getElementById('filterBar');
+    if (!bar) return;
+    bar.innerHTML = `
+      <span class="filter-label">Filtrare:</span>
+      <button class="filter-chip active" onclick="setFilter('all', this)">Toate</button>
+      <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
+      <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
+      <div class="filter-sep"></div>
+      <button class="filter-chip easy"   onclick="setFilter('usor', this)">Ușor</button>
+      <button class="filter-chip medium" onclick="setFilter('mediu', this)">Mediu</button>
+      <button class="filter-chip hard"   onclick="setFilter('greu', this)">Greu</button>
+      <div style="margin-left:auto">
+        <button class="btn btn--ghost" onclick="randomSet()" style="font-size:0.82rem;padding:6px 14px">
+          🎲 Set aleatoriu
+        </button>
+      </div>
+    `;
+  }
+
+  window.setFilter = function(f, btn) {
+    currentFilter = f;
+    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+    if (btn) btn.classList.add('active');
+    applyFilters();
+  };
+
+  /* ---- Apply Filters ---- */
+  function applyFilters() {
+    const solved   = BM.Storage.getSolved();
+    const subExs   = currentSubcat
+      ? allExercises.filter(e => e.subcategoryId === currentSubcat)
+      : allExercises;
+
+    filtered = subExs.filter(e => {
+      if (currentFilter === 'solved'   && !solved[e.id]) return false;
+      if (currentFilter === 'unsolved' &&  solved[e.id]) return false;
+      if (currentFilter === 'usor'  && e.difficulty !== 'usor')  return false;
+      if (currentFilter === 'mediu' && e.difficulty !== 'mediu') return false;
+      if (currentFilter === 'greu'  && e.difficulty !== 'greu')  return false;
+      return true;
+    });
+
+    renderExercises();
+  }
+
+  /* ---- Render exercises ---- */
+  function renderExercises() {
+    const container = document.getElementById('exercisesContainer');
+    if (!container) return;
+
+    if (filtered.length === 0) {
+      container.innerHTML = `
+        <div class="no-results">
+          <div class="no-results__icon">🔍</div>
+          <p>Niciun exercițiu găsit cu filtrele selectate.</p>
+          <p style="margin-top:8px;font-size:0.85rem;color:var(--text-muted)">
+            Încearcă să schimbi filtrele.
+          </p>
+        </div>`;
+      return;
+    }
+
+    const solved = BM.Storage.getSolved();
+    const favs   = BM.Storage.getFavorites();
+    const cat    = currentCategory;
+
+    container.innerHTML = filtered.map(ex => {
+      const isSolved = !!solved[ex.id];
+      const isFav    = favs.includes(ex.id);
+      const sub      = BM.getSubcategoryById(cat.id, ex.subcategoryId);
+      const preview  = BM.plainPreview(ex.statement);
+
+      return `
+        <div class="ex-card ${isSolved ? 'solved' : ''}" id="card-${ex.id}" data-diff="${ex.difficulty}">
+          <div class="ex-card__head" onclick="toggleCard('${ex.id}')">
+            <div class="ex-card__left">
+              <div class="ex-card__meta">
+                ${BM.diffBadge(ex.difficulty)}
+                <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+                <span class="source-text">${BM.esc(ex.source)}</span>
+              </div>
+              <div class="ex-card__title">${BM.esc(ex.title)}</div>
+            </div>
+            <div class="ex-card__actions" onclick="event.stopPropagation()">
+              <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
+                      onclick="toggleFav('${ex.id}', this)"
+                      title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">
+                ${isFav ? '♥' : '♡'}
+              </button>
+              <button class="ex-action-btn solved ${isSolved ? 'active' : ''}"
+                      onclick="toggleSolved('${ex.id}', this)"
+                      title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">
+                ${isSolved ? '✓' : '○'}
+              </button>
+              <button class="ex-action-btn ex-card__expand" onclick="toggleCard('${ex.id}')">↓</button>
+            </div>
+          </div>
+
+          <div class="ex-card__body" id="body-${ex.id}">
+            <div class="ex-card__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            <div class="ex-card__solution math-content" id="sol-${ex.id}"></div>
+            <div class="ex-card__foot">
+              <button class="btn btn--ghost" onclick="toggleSolution('${ex.id}')">💡 Arată soluția</button>
+              <button class="btn btn--success ${isSolved ? 'active' : ''}"
+                      id="solveBtn-${ex.id}"
+                      onclick="toggleSolved('${ex.id}', document.querySelector('#card-${ex.id} .ex-action-btn.solved'))">
+                ${isSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+
+    if (window.renderMathInElement) BM.renderMath(container);
+  }
+
+  /* ---- Card toggle ---- */
+  window.toggleCard = function(id) {
+    const card = document.getElementById(`card-${id}`);
+    if (!card) return;
+    card.classList.toggle('open');
+    const btn = card.querySelector('.ex-card__expand');
+    if (btn) btn.textContent = card.classList.contains('open') ? '↑' : '↓';
+  };
+
+  /* ---- Solution toggle ---- */
+  window.toggleSolution = function(id) {
+    const sol = document.getElementById(`sol-${id}`);
+    const ex  = BM.EXERCISES.find(e => e.id === id);
+    if (!sol || !ex) return;
+    if (sol.classList.contains('visible')) {
+      sol.classList.remove('visible');
+      sol.innerHTML = '';
+      const btn = sol.parentElement.querySelector('button');
+      if (btn) btn.textContent = '💡 Arată soluția';
+    } else {
+      sol.innerHTML = BM.trustedNl2br(ex.solution);
+      sol.classList.add('visible');
+      BM.renderMath(sol);
+      const btn = sol.parentElement.querySelector('button');
+      if (btn) btn.textContent = '🙈 Ascunde soluția';
+    }
+  };
+
+  /* ---- Solved toggle ---- */
+  window.toggleSolved = function(id, actionBtn) {
+    const nowSolved = BM.Storage.toggleSolved(id);
+    const card      = document.getElementById(`card-${id}`);
+    const solveBtn  = document.getElementById(`solveBtn-${id}`);
+
+    if (card) card.classList.toggle('solved', nowSolved);
+    if (actionBtn) {
+      actionBtn.classList.toggle('active', nowSolved);
+      actionBtn.textContent = nowSolved ? '✓' : '○';
+      actionBtn.title = nowSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat';
+    }
+    if (solveBtn) {
+      solveBtn.classList.toggle('active', nowSolved);
+      solveBtn.textContent = nowSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
+    }
+    BM.toast(
+      nowSolved ? 'Exercițiu marcat ca rezolvat! 🎉' : 'Exercițiu marcat ca nerezolvat.',
+      nowSolved ? 'success' : 'info'
+    );
+    refreshHeader();
+  };
+
+  /* ---- Favorite toggle ---- */
+  window.toggleFav = function(id, btn) {
+    const nowFav = BM.Storage.toggleFavorite(id);
+    if (btn) {
+      btn.classList.toggle('active', nowFav);
+      btn.textContent = nowFav ? '♥' : '♡';
+      btn.title = nowFav ? 'Elimină din favorite' : 'Adaugă la favorite';
+    }
+    BM.toast(nowFav ? 'Adăugat la favorite! ♥' : 'Eliminat din favorite.',
+             nowFav ? 'success' : 'info');
+  };
+
+  /* ---- Refresh header progress ---- */
+  function refreshHeader() {
+    const prog   = BM.Storage.getProgressForCategory(currentCategory.id, BM.EXERCISES);
+    const fill   = document.getElementById('catProgressFill');
+    if (fill)    fill.style.width = prog.percent + '%';
+    const elS    = document.getElementById('hdr-solved');
+    if (elS)     elS.textContent = prog.solved;
+    const elP    = document.getElementById('hdr-pct');
+    if (elP)     elP.textContent = prog.percent + '%';
+    const elTxt  = document.getElementById('hdr-progress-txt');
+    if (elTxt)   elTxt.textContent = `${prog.solved} din ${prog.total} exerciții rezolvate`;
+    const elPLbl = document.getElementById('hdr-progress-pct');
+    if (elPLbl)  elPLbl.textContent = prog.percent + '%';
+  }
+
+  /* ---- Random set ---- */
+  window.randomSet = function() {
+    const pool = BM.shuffle(filtered).slice(0, 5);
+    const ids  = pool.map(e => e.id);
+    document.querySelectorAll('.ex-card').forEach(card => {
+      const id = card.id.replace('card-', '');
+      card.style.display = ids.includes(id) ? '' : 'none';
+    });
+    BM.toast(`Set aleatoriu de ${pool.length} exerciții generat! 🎲`, 'success');
+
+    const container = document.getElementById('exercisesContainer');
+    if (container && !document.getElementById('resetRandBtn')) {
+      const wrap = document.createElement('div');
+      wrap.id = 'resetRandBtn';
+      wrap.style.marginBottom = '16px';
+      wrap.innerHTML = `<button class="btn btn--surface" onclick="resetRandom(this)" style="font-size:0.85rem">Arată toate exercițiile</button>`;
+      container.parentElement.insertBefore(wrap, container);
+    }
+  };
+
+  window.resetRandom = function(btn) {
+    document.querySelectorAll('.ex-card').forEach(c => c.style.display = '');
+    btn?.parentElement?.remove();
+  };
+
+  /* ---- Handle target exercise from search ---- */
+  function handleTargetExercise(exId) {
+    setTimeout(() => {
+      const card = document.getElementById(`card-${exId}`);
+      if (card) {
+        card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        card.classList.add('open');
+        card.style.borderColor = 'var(--accent)';
+        setTimeout(() => { card.style.borderColor = ''; }, 2000);
+      }
+    }, 300);
+  }
+
+  /* ---- Panel buttons ---- */
+  function initPanelBtns() {
+    document.getElementById('favBtn')?.addEventListener('click', openFavPanel);
+  }
+
+  function openFavPanel() {
+    const favIds  = BM.Storage.getFavorites();
+    const list    = document.getElementById('favList');
+    if (!list) return;
+    const catFavs = favIds
+      .map(id => BM.EXERCISES.find(e => e.id === id && e.categoryId === currentCategory.id))
+      .filter(Boolean);
+
+    if (catFavs.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">♡</div><p>Niciun favorit în acest capitol.</p></div>`;
+    } else {
+      list.innerHTML = catFavs.map(ex => `
+        <div class="panel-ex-item" onclick="selectSubcat('${ex.subcategoryId}');BM.closeAllPanels()">
+          <div class="panel-ex-item__info">
+            <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
+            <div class="panel-ex-item__meta">${BM.diffBadge(ex.difficulty)}</div>
+          </div>
+        </div>`).join('');
+    }
+    BM.openPanel('fav');
+  }
+
+  /* ---- Start ---- */
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', init);
+  } else {
+    init();
+  }
+
+})();

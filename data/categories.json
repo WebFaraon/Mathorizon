@@ -1,0 +1,70 @@
+[
+  {
+    "id": "algebra",
+    "name": "Algebră",
+    "symbol": "α",
+    "color": "#7c3aed",
+    "description": "Ecuații, inecuații, matrice, polinoame, numere complexe",
+    "subcategories": [
+      { "id": "ecuatii-gr1",     "name": "Ecuații de gradul 1" },
+      { "id": "ecuatii-gr2",     "name": "Ecuații de gradul 2" },
+      { "id": "inecuatii",       "name": "Inecuații" },
+      { "id": "determinanti",    "name": "Determinanți" },
+      { "id": "matrice",         "name": "Matrice" },
+      { "id": "polinoame",       "name": "Polinoame" },
+      { "id": "complexe",        "name": "Numere complexe" },
+      { "id": "puteri-radicali", "name": "Puteri și radicali" }
+    ]
+  },
+  {
+    "id": "exponential-log",
+    "name": "Logaritmi",
+    "symbol": "log",
+    "color": "#06b6d4",
+    "description": "Funcții exponențiale și logaritmice, ecuații și inecuații",
+    "subcategories": [
+      { "id": "ec-exp",    "name": "Ecuații exponențiale" },
+      { "id": "ec-log",    "name": "Ecuații logaritmice" },
+      { "id": "inec-exp",  "name": "Inecuații exponențiale" },
+      { "id": "inec-log",  "name": "Inecuații logaritmice" }
+    ]
+  },
+  {
+    "id": "trigonometrie",
+    "name": "Trigonometrie",
+    "symbol": "sin",
+    "color": "#10b981",
+    "description": "Funcții trigonometrice, formule și ecuații trigonometrice",
+    "subcategories": [
+      { "id": "val-trig",  "name": "Valori trigonometrice" },
+      { "id": "ec-trig",   "name": "Ecuații trigonometrice" },
+      { "id": "form-trig", "name": "Formule trigonometrice" }
+    ]
+  },
+  {
+    "id": "analiza",
+    "name": "Analiză Matematică",
+    "symbol": "∫",
+    "color": "#f59e0b",
+    "description": "Limite, derivate, integrale, șiruri și progresii",
+    "subcategories": [
+      { "id": "limite",    "name": "Limite" },
+      { "id": "derivate",  "name": "Derivate" },
+      { "id": "integrale", "name": "Integrale" },
+      { "id": "siruri",    "name": "Șiruri" },
+      { "id": "progresii", "name": "Progresii" }
+    ]
+  },
+  {
+    "id": "geometrie",
+    "name": "Geometrie",
+    "symbol": "△",
+    "color": "#ec4899",
+    "description": "Geometrie plană, analitică și în spațiu",
+    "subcategories": [
+      { "id": "geo-plana",     "name": "Geometrie plană" },
+      { "id": "geo-analitica", "name": "Geometrie analitică" },
+      { "id": "geo-spatiu",    "name": "Geometrie în spațiu" }
+    ]
+  }
+]

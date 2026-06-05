@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>🎯 Antrenament Rapid — BACMath</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    .training-layout {
+      min-height: calc(100vh - var(--nav-h));
+    }
+    /* Pulse animation for start button */
+    @keyframes pulse-btn {
+      0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.35); }
+      50% { box-shadow: 0 0 40px rgba(124,58,237,0.7); }
+    }
+    #startBtn { animation: pulse-btn 2.5s ease-in-out infinite; }
+    #startBtn:hover { animation: none; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <div class="nav__icon">Σ</div>
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+      <div class="nav__actions">
+        <a class="btn btn--surface" href="index.html" style="font-size:0.88rem">
+          ← Capitole
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- LAYOUT -->
+  <div class="training-layout" style="display:flex">
+
+    <!-- LEFT: Config panel -->
+    <aside class="training-config" id="configView">
+      <h2 class="training-config__title">🎯 Antrenament Rapid</h2>
+      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:28px">
+        Configurează sesiunea de antrenament și generează un mini-test personalizat.
+      </p>
+
+      <!-- Number of exercises -->
+      <div class="config-section">
+        <div class="config-label">Număr de exerciții</div>
+        <div class="config-chips" id="countChips"></div>
+      </div>
+
+      <!-- Difficulty -->
+      <div class="config-section">
+        <div class="config-label">Dificultate</div>
+        <div class="config-chips" id="diffChips"></div>
+      </div>
+
+      <!-- Chapters -->
+      <div class="config-section">
+        <div class="config-label">Capitole</div>
+        <div class="config-chapter-list" id="chapterList"></div>
+      </div>
+
+      <!-- Start button -->
+      <button id="startBtn" class="btn btn--primary btn--lg btn--full" onclick="startTraining()">
+        🚀 Începe Antrenamentul
+      </button>
+    </aside>
+
+    <!-- RIGHT: Session / Results -->
+    <div class="training-main" style="flex:1">
+
+      <!-- Session view (hidden initially) -->
+      <div id="sessionView" style="display:none">
+
+        <!-- Progress -->
+        <div class="session-progress">
+          <div class="session-progress__top">
+            <span class="session-progress__label">Progres sesiune</span>
+            <span class="session-progress__counter" id="sessionCounter">1 / 10</span>
+          </div>
+          <div class="session-progress__bar">
+            <div class="session-progress__fill" id="sessionFill" style="width:0%"></div>
+          </div>
+        </div>
+
+        <!-- Current exercise card -->
+        <div id="sessionCard">
+          <!-- Populated by training.js -->
+        </div>
+
+        <!-- Navigation -->
+        <div class="session-nav">
+          <button class="btn btn--surface" id="prevBtn" onclick="prevExercise()">
+            ← Precedent
+          </button>
+          <button class="btn btn--primary" id="nextBtn" onclick="nextExercise()">
+            Următorul →
+          </button>
+        </div>
+      </div>
+
+      <!-- Results view (hidden initially) -->
+      <div id="resultsView" class="training-results">
+        <!-- Populated by training.js on finish -->
+      </div>
+
+      <!-- Empty state (visible when config is shown) -->
+      <div id="emptyState" style="text-align:center;padding:80px 40px;color:var(--text-muted)">
+        <div style="font-size:4rem;margin-bottom:24px;opacity:0.3">🎯</div>
+        <h3 style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:12px">
+          Gata să exersezi?
+        </h3>
+        <p style="font-size:1rem;margin-bottom:8px">
+          Configurează sesiunea de antrenament și apasă <strong>Începe Antrenamentul</strong>.
+        </p>
+        <p style="font-size:0.88rem">
+          Poți selecta numărul de exerciții, capitolele și dificultatea dorită.
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/training.js"></script>
+
+  <script>
+    /* Hide empty state when session starts */
+    const _origStart = window.startTraining;
+    window.startTraining = function() {
+      document.getElementById('emptyState').style.display = 'none';
+      _origStart();
+    };
+  </script>
+</body>
+</html>

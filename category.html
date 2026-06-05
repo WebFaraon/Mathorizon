@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Capitol — Mathorizon</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <div class="nav__icon">Σ</div>
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+      <div class="nav__actions">
+        <button class="icon-btn" id="favBtn" title="Favorite în acest capitol">♡</button>
+        <a class="btn btn--ghost" href="training.html" style="font-size:0.88rem">
+          🎯 Antrenament
+        </a>
+        <a class="btn btn--surface" href="index.html" style="font-size:0.88rem">
+          ← Capitole
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CATEGORY HEADER -->
+  <div class="cat-header" id="catHeader">
+    <div class="container">
+      <div class="cat-header__inner">
+        <div class="cat-header__icon" style="opacity:0.3">…</div>
+        <div class="cat-header__info">
+          <div class="loading-card" style="height:24px;width:200px;margin-bottom:8px"></div>
+          <div class="loading-card" style="height:16px;width:300px"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- VIEW: Subcategory Cards -->
+  <div id="subcatCardsSection" class="main container">
+    <div class="subcat-cards-grid" id="subcatCardsGrid">
+      <div class="loading-card" style="height:140px"></div>
+      <div class="loading-card" style="height:140px"></div>
+      <div class="loading-card" style="height:140px"></div>
+      <div class="loading-card" style="height:140px"></div>
+    </div>
+  </div>
+
+  <!-- VIEW: Exercises (hidden until subcategory selected) -->
+  <div id="exercisesSection" style="display:none">
+
+    <!-- Sticky breadcrumb -->
+    <div class="subcat-breadcrumb" id="subcatBreadcrumb">
+      <!-- Injected by JS -->
+    </div>
+
+    <!-- Filter + Exercises -->
+    <main class="main container">
+      <div class="filter-bar" id="filterBar"></div>
+      <div class="exercises-container" id="exercisesContainer">
+        <div class="loading-card" style="height:80px"></div>
+        <div class="loading-card" style="height:80px"></div>
+        <div class="loading-card" style="height:80px"></div>
+      </div>
+    </main>
+
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="BM.closeAllPanels()"></div>
+
+  <!-- PANEL: Favorites -->
+  <aside class="panel" id="panel-fav">
+    <div class="panel__head">
+      <h3>♥ Favorite în capitol</h3>
+      <button class="icon-btn" onclick="BM.closeAllPanels()">✕</button>
+    </div>
+    <div class="panel__body" id="favList"></div>
+  </aside>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/category.js"></script>
+</body>
+</html>

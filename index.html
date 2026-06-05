@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mathorizon — Centrul tău de antrenament</title>
+  <meta name="description" content="Platformă modernă de pregătire pentru BAC la matematică. Exerciții organizate pe tipuri, cu progres, favorite și antrenament rapid.">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <style>
+    /* Particle background subtle */
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+    }
+    .nav__brand:hover { opacity: 0.8; }
+  </style>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <div class="nav__icon">Σ</div>
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+
+      <div class="nav__actions">
+        <button class="icon-btn" id="favBtn" title="Exerciții favorite">
+          ♡
+          <span class="badge-count" id="favBadge" style="display:none">0</span>
+        </button>
+        <button class="icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
+        <a class="btn btn--primary" href="training.html">
+          <span>🎯</span>
+          <span>Antrenament Rapid</span>
+        </a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <section class="hero">
+    <div class="container">
+      <h1 class="hero__title">
+        Centrul tău de antrenament
+        <span class="gradient">pentru BAC</span>
+      </h1>
+      <p class="hero__sub">Exersează inteligent. Progresează rapid. Ia BAC-ul cu 10.</p>
+
+      <div class="search-wrap">
+        <div class="search-box">
+          <span class="search-icon">⌕</span>
+          <input
+            class="search-input"
+            id="searchInput"
+            type="text"
+            placeholder="Caută exerciții — ecuații, logaritmi, integrale, derivate..."
+            autocomplete="off"
+            spellcheck="false"
+          >
+          <button class="search-clear" id="searchClear" style="display:none" title="Șterge căutarea">✕</button>
+        </div>
+        <div class="search-dropdown" id="searchDropdown"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STATS BAR -->
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats">
+        <div class="stat">
+          <div class="stat__val" id="sTotal">—</div>
+          <div class="stat__lbl">Total exerciții</div>
+        </div>
+        <div class="stat__sep" style="width:1px;height:40px;background:var(--border)"></div>
+        <div class="stat">
+          <div class="stat__val accent" id="sSolved">—</div>
+          <div class="stat__lbl">Rezolvate</div>
+        </div>
+        <div class="stat__sep" style="width:1px;height:40px;background:var(--border)"></div>
+        <div class="stat">
+          <div class="stat__ring">
+            <svg viewBox="0 0 44 44" width="50" height="50">
+              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3.5"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="3.5"
+                      stroke-dasharray="113.1" stroke-dashoffset="113.1"
+                      stroke-linecap="round" transform="rotate(-90 22 22)"
+                      id="progressRing" style="transition:stroke-dashoffset 1.2s cubic-bezier(0.4,0,0.2,1)"/>
+            </svg>
+            <span id="sPercent" style="position:absolute;font-size:0.75rem;font-weight:800">0%</span>
+          </div>
+          <div class="stat__lbl">Completat</div>
+        </div>
+        <div class="stat__sep" style="width:1px;height:40px;background:var(--border)"></div>
+        <div class="stat">
+          <div class="stat__val" id="sStreak">🔥 0</div>
+          <div class="stat__lbl">Zile consecutive</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <main class="main container">
+    <div class="section-head">
+      <div>
+        <h2 class="section-title">Capitole</h2>
+        <p class="section-sub">Alege un capitol pentru a exersa exercițiile</p>
+      </div>
+      <a href="training.html" class="btn btn--ghost" style="font-size:0.88rem">
+        🎯 Antrenament personalizat
+      </a>
+    </div>
+
+    <div class="chapters-grid" id="chaptersGrid">
+      <!-- Chapter cards injected by app.js -->
+      <div class="loading-card"></div>
+      <div class="loading-card"></div>
+      <div class="loading-card"></div>
+      <div class="loading-card"></div>
+      <div class="loading-card"></div>
+    </div>
+  </main>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="BM.closeAllPanels()"></div>
+
+  <!-- PANEL: Favorite -->
+  <aside class="panel" id="panel-fav">
+    <div class="panel__head">
+      <h3>♥ Exerciții Favorite</h3>
+      <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+    </div>
+    <div class="panel__body" id="favList">
+      <div class="empty-state">
+        <div class="empty-icon">♡</div>
+        <p>Niciun exercițiu favorit încă.</p>
+        <p class="text-muted">Apasă ♥ pe un exercițiu pentru a-l adăuga.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PANEL: Istoric -->
+  <aside class="panel" id="panel-hist">
+    <div class="panel__head">
+      <h3>◷ Istoric Rezolvări</h3>
+      <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+    </div>
+    <div class="panel__body" id="histList">
+      <div class="empty-state">
+        <div class="empty-icon">◷</div>
+        <p>Nu ai rezolvat niciun exercițiu.</p>
+        <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p>
+      </div>
+    </div>
+  </aside>
+
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
