@@ -247,11 +247,6 @@
       <button class="filter-chip easy"   onclick="setFilter('usor', this)">Ușor</button>
       <button class="filter-chip medium" onclick="setFilter('mediu', this)">Mediu</button>
       <button class="filter-chip hard"   onclick="setFilter('greu', this)">Greu</button>
-      <div style="margin-left:auto">
-        <button class="btn btn--ghost" onclick="randomSet()" style="font-size:0.82rem;padding:6px 14px">
-          🎲 Set aleatoriu
-        </button>
-      </div>
     `;
   }
 
@@ -532,6 +527,32 @@
   /* ---- Panel buttons ---- */
   function initPanelBtns() {
     document.getElementById('favBtn')?.addEventListener('click', openFavPanel);
+    document.getElementById('histBtn')?.addEventListener('click', openHistory);
+  }
+
+  function openHistory() {
+    const hist = BM.Storage.getHistory();
+    const list = document.getElementById('histList');
+    if (!list) return;
+    if (hist.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
+    } else {
+      list.innerHTML = hist.slice(0, 50).map(h => {
+        const ex = BM.EXERCISES.find(e => e.id === h.id);
+        if (!ex) return '';
+        const cat = BM.getCategoryById(ex.categoryId);
+        return `
+          <div class="panel-ex-item" onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
+            <span style="font-size:1.3rem">${BM.esc(cat?.symbol || '?')}</span>
+            <div class="panel-ex-item__info">
+              <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
+              <div class="panel-ex-item__meta">${BM.esc(cat?.name || '')} · ${BM.diffBadge(ex.difficulty)}</div>
+            </div>
+            <span class="panel-ex-item__date">${BM.formatDate(h.ts)}</span>
+          </div>`;
+      }).join('');
+    }
+    BM.openPanel('hist');
   }
 
   function openFavPanel() {
