@@ -278,6 +278,148 @@ BM.EXERCISES = [
     solution: '$$\\frac{1}{\\log_5 7} = \\log_7 5 \\quad\\text{(proprietatea inversului)}$$\n\n$$49^{\\log_7 5} = (7^2)^{\\log_7 5} = 7^{2\\log_7 5} = \\left(7^{\\log_7 5}\\right)^2 = 5^2 = 25$$\n\n$$81^{1/4} = (3^4)^{1/4} = 3$$\n\n$$25 - 3 = \\boxed{22}$$'
   },
 
+  {
+    id: 'ca-031', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi cu baze complementare (½ și 4)',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{2}} 6 + \\log_4 144$$',
+    solution: 'Observăm că $\\dfrac{1}{2} = 2^{-1}$, deci $\\log_{\\frac{1}{2}} 6 = -\\log_2 6 = -2\\log_4 6$.\n\nPentru al doilea termen:\n$$\\log_4 144 = \\log_4(4 \\cdot 36) = 1 + \\log_4 6^2 = 1 + 2\\log_4 6$$\n\nSumăm:\n$$-2\\log_4 6 + 1 + 2\\log_4 6 = \\boxed{1}$$'
+  },
+  {
+    id: 'ca-032', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Puteri cu exponenți zecimali și negativi',
+    statement: 'Calculați valoarea expresiei:\n$$8^{\\frac{2}{3}} + \\left(\\frac{1}{32}\\right)^{-0{,}2} - 0{,}5^{-1}$$',
+    solution: '**Primul termen:**\n$$8^{2/3} = (2^3)^{2/3} = 2^2 = 4$$\n\n**Al doilea termen:**\n$$\\left(\\frac{1}{32}\\right)^{-0{,}2} = 32^{0{,}2} = (2^5)^{\\frac{1}{5}} = 2$$\n\n**Al treilea termen:**\n$$0{,}5^{-1} = \\frac{1}{0{,}5} = 2$$\n\n$$4 + 2 - 2 = \\boxed{4}$$'
+  },
+  {
+    id: 'ca-033', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Logaritmi cu baze radical și rezultate negative',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_3 \\frac{1}{27} + \\log_{\\sqrt{2}} \\frac{1}{8}$$',
+    solution: '$$\\log_3 \\frac{1}{27} = \\log_3 3^{-3} = -3$$\n\n$$\\log_{\\sqrt{2}} \\frac{1}{8} = \\log_{2^{1/2}} 2^{-3} = \\frac{-3}{\\dfrac{1}{2}} = -6$$\n\n$$-3 + (-6) = \\boxed{-9}$$'
+  },
+  {
+    id: 'ca-034', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 din 0,008 și fracție la putere negativă',
+    statement: 'Calculați valoarea expresiei:\n$$0{,}008^{\\frac{1}{3}} + \\left(\\frac{25}{16}\\right)^{-0{,}5}$$',
+    solution: '$$0{,}008 = \\frac{8}{1000} = \\left(\\frac{2}{10}\\right)^3 \\Rightarrow 0{,}008^{1/3} = \\frac{2}{10} = \\frac{1}{5}$$\n\n$$\\left(\\frac{25}{16}\\right)^{-0{,}5} = \\left(\\frac{16}{25}\\right)^{1/2} = \\frac{4}{5}$$\n\n$$\\frac{1}{5} + \\frac{4}{5} = \\boxed{1}$$'
+  },
+  {
+    id: 'ca-035', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 dintr-o fracție negativă',
+    statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} - 3^{-1}$$',
+    solution: '$$\\sqrt[3]{-\\frac{8}{27}} = -\\sqrt[3]{\\frac{2^3}{3^3}} = -\\frac{2}{3}$$\n\n$$3^{-1} = \\frac{1}{3}$$\n\n$$-\\frac{2}{3} - \\frac{1}{3} = \\boxed{-1}$$'
+  },
+  {
+    id: 'ca-036', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Combinație de logaritmi cu trei baze diferite',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}25} 16 + \\log_3 36 - \\log_{\\sqrt{3}} 2$$',
+    solution: '$$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = \\frac{4}{-2} = -2$$\n\n$$\\log_3 36 = \\log_3(4 \\cdot 9) = 2\\log_3 2 + 2$$\n\n$$\\log_{\\sqrt{3}} 2 = \\log_{3^{1/2}} 2 = 2\\log_3 2$$\n\nSumăm:\n$$-2 + 2\\log_3 2 + 2 - 2\\log_3 2 = \\boxed{0}$$'
+  },
+  {
+    id: 'ca-037', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere negativă și fracție cu simplificare',
+    statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{1}{27}\\right)^{-\\frac{1}{3}} + 25\\left(\\frac{5}{2}\\right)^{-2} - 16^{0{,}25}$$',
+    solution: '$$\\left(\\frac{1}{27}\\right)^{-1/3} = 27^{1/3} = 3$$\n\n$$25\\left(\\frac{5}{2}\\right)^{-2} = 25 \\cdot \\frac{4}{25} = 4$$\n\n$$16^{0{,}25} = (2^4)^{1/4} = 2$$\n\n$$3 + 4 - 2 = \\boxed{5}$$'
+  },
+  {
+    id: 'ca-038', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent 0,2 dintr-un număr mic',
+    statement: 'Calculați valoarea expresiei:\n$$0{,}00032^{0{,}2} + \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} + 17^0$$',
+    solution: '$$0{,}00032 = \\frac{32}{100000} = \\left(\\frac{2}{10}\\right)^5 \\Rightarrow 0{,}00032^{0{,}2} = \\frac{2}{10} = \\frac{1}{5}$$\n\n$$\\left(\\frac{25}{16}\\right)^{-1/2} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$\n\n$$17^0 = 1$$\n\n$$\\frac{1}{5} + \\frac{4}{5} + 1 = \\boxed{2}$$'
+  },
+  {
+    id: 'ca-039', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi cu rezultat fracționar',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_{25} 125 + \\log_2(2\\sqrt{2})$$',
+    solution: '$$\\log_{25} 125 = \\log_{5^2} 5^3 = \\frac{3}{2}$$\n\n$$2\\sqrt{2} = 2^1 \\cdot 2^{1/2} = 2^{3/2} \\Rightarrow \\log_2 2^{3/2} = \\frac{3}{2}$$\n\n$$\\frac{3}{2} + \\frac{3}{2} = \\boxed{3}$$'
+  },
+  {
+    id: 'ca-040', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Radical de radical și puteri simple',
+    statement: 'Calculați valoarea expresiei:\n$$\\sqrt{\\sqrt{16}} + \\sqrt{0{,}25} + 2^{-1}$$',
+    solution: '$$\\sqrt{\\sqrt{16}} = \\sqrt{4} = 2$$\n\n$$\\sqrt{0{,}25} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$\n\n$$2^{-1} = \\frac{1}{2}$$\n\n$$2 + \\frac{1}{2} + \\frac{1}{2} = \\boxed{3}$$'
+  },
+
+  {
+    id: 'ca-041', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 din fracție și putere negativă',
+    statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{\\dfrac{8}{27}} + 0{,}5\\left(\\dfrac{3}{2}\\right)^{-1}$$',
+    solution: '$$\\sqrt[3]{\\frac{8}{27}} = \\sqrt[3]{\\frac{2^3}{3^3}} = \\frac{2}{3}$$\n\n$$0{,}5 \\cdot \\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{2} \\cdot \\frac{2}{3} = \\frac{1}{3}$$\n\n$$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$'
+  },
+  {
+    id: 'ca-042', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Logaritm reciproc și sumă de logaritmi cu baze diferite',
+    statement: 'Calculați valoarea expresiei:\n$$\\frac{1}{\\log_3 6} + \\log_6 12 - \\log_3 1$$',
+    solution: '$$\\log_3 1 = 0$$\n\nFolosim proprietatea $\\dfrac{1}{\\log_3 6} = \\log_6 3$:\n$$\\log_6 3 + \\log_6 12 = \\log_6(3 \\cdot 12) = \\log_6 36 = \\log_6 6^2 = \\boxed{2}$$'
+  },
+  {
+    id: 'ca-043', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Fracție la putere rațională, putere zero și radical la putere negativă',
+    statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{16}{81}\\right)^{0{,}25} - 4^0 + \\sqrt{3}^{-2}$$',
+    solution: '$$\\left(\\frac{16}{81}\\right)^{1/4} = \\frac{2}{3}$$\n\n$$4^0 = 1$$\n\n$$(\\sqrt{3})^{-2} = (3^{1/2})^{-2} = 3^{-1} = \\frac{1}{3}$$\n\n$$\\frac{2}{3} - 1 + \\frac{1}{3} = 1 - 1 = \\boxed{0}$$'
+  },
+  {
+    id: 'ca-044', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Logaritm negativ și logaritm cu bază radical',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_4 \\frac{1}{64} + 0{,}25\\log_{\\sqrt{9}} 81$$',
+    solution: '$$\\log_4 \\frac{1}{64} = \\log_4 4^{-3} = -3$$\n\n$$\\sqrt{9} = 3,\\quad \\log_3 81 = \\log_3 3^4 = 4$$\n$$0{,}25 \\cdot 4 = 1$$\n\n$$-3 + 1 = \\boxed{-2}$$'
+  },
+  {
+    id: 'ca-045', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical de ordin 5 dintr-un produs cu puteri',
+    statement: 'Calculați valoarea expresiei:\n$$\\sqrt[5]{27^{\\frac{2}{3}}\\left(\\frac{9}{32}\\right)^{-1}}$$',
+    solution: '$$27^{2/3} = (3^3)^{2/3} = 3^2 = 9$$\n\n$$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$\n\n$$9 \\cdot \\frac{32}{9} = 32 = 2^5$$\n\n$$\\sqrt[5]{2^5} = \\boxed{2}$$'
+  },
+  {
+    id: 'ca-046', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 dintr-un produs cu putere negativă',
+    statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-243\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2}}$$',
+    solution: '$$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\left(\\frac{\\sqrt{8}}{3}\\right)^2 = \\frac{8}{9}$$\n\n$$-243 \\cdot \\frac{8}{9} = -27 \\cdot 8 = -216$$\n\n$$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = \\boxed{-6}$$'
+  },
+  {
+    id: 'ca-047', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Produs cu putere negativă și putere rațională',
+    statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} + 9^{1{,}5}$$',
+    solution: '$$\\left(\\frac{13}{2}\\right)^{-1} = \\frac{2}{13}, \\quad 169^{0{,}5} = \\sqrt{169} = 13$$\n$$\\frac{2}{13} \\cdot 13 = 2$$\n\n$$9^{1{,}5} = (3^2)^{3/2} = 3^3 = 27$$\n\n$$2 + 27 = \\boxed{29}$$'
+  },
+  {
+    id: 'ca-048', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere a lui 10 cu exponent logaritmic negativ',
+    statement: 'Calculați valoarea expresiei:\n$$10^{-\\lg 3} + \\log_{27} 9 - \\lg 100$$',
+    solution: '$$10^{-\\lg 3} = 10^{\\lg 3^{-1}} = 3^{-1} = \\frac{1}{3}$$\n\n$$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$\n\n$$\\lg 100 = 2$$\n\n$$\\frac{1}{3} + \\frac{2}{3} - 2 = 1 - 2 = \\boxed{-1}$$'
+  },
+  {
+    id: 'ca-049', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Combinație de patru logaritmi cu baze diferite',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_4 32 - \\log_9 27 + \\log_3 6 - \\log_3 2$$',
+    solution: '$$\\log_4 32 = \\log_{2^2} 2^5 = \\frac{5}{2}$$\n\n$$\\log_9 27 = \\log_{3^2} 3^3 = \\frac{3}{2}$$\n\n$$\\log_3 6 - \\log_3 2 = \\log_3 \\frac{6}{2} = \\log_3 3 = 1$$\n\n$$\\frac{5}{2} - \\frac{3}{2} + 1 = 1 + 1 = \\boxed{2}$$'
+  },
+  {
+    id: 'ca-050', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi în baza 6 cu coeficienți',
+    statement: 'Calculați valoarea expresiei:\n$$2\\log_6 2 + 0{,}5\\log_6 81$$',
+    solution: '$$2\\log_6 2 = \\log_6 4$$\n\n$$0{,}5\\log_6 81 = \\log_6 81^{1/2} = \\log_6 9$$\n\n$$\\log_6 4 + \\log_6 9 = \\log_6 36 = \\log_6 6^2 = \\boxed{2}$$'
+  },
+
   /* ============================================================
      ALGEBRĂ — Inecuații
      ============================================================ */
