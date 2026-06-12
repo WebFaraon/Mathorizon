@@ -54,7 +54,7 @@
             <p class="cat-header__desc">${BM.esc(cat.description)}</p>
             <div class="cat-stats-row">
               <div class="cat-stat">
-                <div class="cat-stat__num">${prog.total}</div>
+                <div class="cat-stat__num" id="hdr-total">${prog.total}</div>
                 <div class="cat-stat__lbl">Exerciții</div>
               </div>
               <div class="cat-stat__sep"></div>
@@ -246,7 +246,7 @@
       <div class="filter-sep"></div>
       <button class="filter-chip easy"   onclick="setFilter('usor', this)">Ușor</button>
       <button class="filter-chip medium" onclick="setFilter('mediu', this)">Mediu</button>
-      <button class="filter-chip hard"   onclick="setFilter('greu', this)">Greu</button>
+      <button class="filter-chip hard"   onclick="setFilter('dificil', this)">Greu</button>
     `;
   }
 
@@ -269,7 +269,7 @@
       if (currentFilter === 'unsolved' &&  solved[e.id]) return false;
       if (currentFilter === 'usor'  && e.difficulty !== 'usor')  return false;
       if (currentFilter === 'mediu' && e.difficulty !== 'mediu') return false;
-      if (currentFilter === 'greu'  && e.difficulty !== 'greu')  return false;
+      if (currentFilter === 'dificil' && e.difficulty !== 'dificil') return false;
       return true;
     });
 
@@ -476,6 +476,8 @@
 
     const fill   = document.getElementById('catProgressFill');
     if (fill)    fill.style.width = prog.percent + '%';
+    const elT    = document.getElementById('hdr-total');
+    if (elT)     elT.textContent = prog.total;
     const elS    = document.getElementById('hdr-solved');
     if (elS)     elS.textContent = prog.solved;
     const elP    = document.getElementById('hdr-pct');

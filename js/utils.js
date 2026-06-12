@@ -41,8 +41,8 @@ BM.formatDate = function(ts) {
 };
 
 /* ---- Difficulty label ---- */
-BM.diffLabel = { usor: 'Ușor', mediu: 'Mediu', greu: 'Greu' };
-BM.diffClass = { usor: 'usor', mediu: 'mediu', greu: 'greu' };
+BM.diffLabel = { usor: 'Ușor', mediu: 'Mediu', dificil: 'Greu' };
+BM.diffClass = { usor: 'usor', mediu: 'mediu', dificil: 'dificil' };
 
 BM.diffBadge = function(difficulty) {
   return `<span class="diff-badge ${BM.diffClass[difficulty] || ''}">${BM.diffLabel[difficulty] || difficulty}</span>`;
