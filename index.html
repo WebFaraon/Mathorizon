@@ -7,16 +7,18 @@
   <meta name="description" content="Platformă modernă de pregătire pentru BAC la matematică. Exerciții organizate pe tipuri, cu progres, favorite și antrenament rapid.">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
   <style>
-    /* Particle background subtle */
     .hero::after {
       content: '';
       position: absolute;
       bottom: 0; left: 0; right: 0;
       height: 1px;
-      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      background: var(--border);
     }
-    .nav__brand:hover { opacity: 0.8; }
   </style>
 </head>
 <body>
@@ -34,7 +36,8 @@
           ♡
           <span class="badge-count" id="favBadge" style="display:none">0</span>
         </button>
-        <button class="icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
+        <button class="icon-btn" id="histBtn" title="Istoric rezolvări">⏱</button>
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">🌙</button>
         <a class="btn btn--primary" href="training.html">
           <span>🎯</span>
           <span>Antrenament Rapid</span>
@@ -45,6 +48,51 @@
 
   <!-- HERO -->
   <section class="hero">
+
+    <!-- Mathematical visual identity: coordinate system + curves + symbols -->
+    <svg class="hero__math-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 280"
+         preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
+      <!-- Left: coordinate axes + parabola -->
+      <g fill="none" stroke="#1B4A8A">
+        <line x1="30" y1="185" x2="310" y2="185" stroke-width="0.9" opacity="0.13"/>
+        <line x1="165" y1="28"  x2="165" y2="265" stroke-width="0.9" opacity="0.13"/>
+        <polyline points="306,181 313,185 306,189" stroke-width="0.9" opacity="0.13"/>
+        <polyline points="161,32 165,25 169,32"    stroke-width="0.9" opacity="0.13"/>
+        <line x1="105" y1="182" x2="105" y2="188" stroke-width="0.9" opacity="0.10"/>
+        <line x1="225" y1="182" x2="225" y2="188" stroke-width="0.9" opacity="0.10"/>
+        <line x1="285" y1="182" x2="285" y2="188" stroke-width="0.9" opacity="0.10"/>
+        <line x1="162" y1="125" x2="168" y2="125" stroke-width="0.9" opacity="0.10"/>
+        <line x1="162" y1="245" x2="168" y2="245" stroke-width="0.9" opacity="0.10"/>
+        <path d="M 65 260 Q 165 48 265 260" stroke-width="1.4" opacity="0.11"/>
+      </g>
+      <!-- Right: sine wave on axis -->
+      <g fill="none" stroke="#1B4A8A">
+        <line x1="1080" y1="140" x2="1415" y2="140" stroke-width="0.9" opacity="0.11"/>
+        <polyline points="1411,136 1418,140 1411,144"  stroke-width="0.9" opacity="0.11"/>
+        <path d="M 1080 140 C 1116 72 1148 72 1184 140 C 1220 208 1252 208 1288 140
+                 C 1324 72 1356 72 1392 140 C 1414 190 1428 205 1440 200"
+              stroke-width="1.4" opacity="0.095"/>
+      </g>
+      <!-- Floating symbols -->
+      <g fill="#1B4A8A" font-family="Georgia, 'Times New Roman', serif">
+        <text x="348" y="88"  font-size="52" opacity="0.046">∑</text>
+        <text x="548" y="218" font-size="42" opacity="0.040">∫</text>
+        <text x="692" y="76"  font-size="22" opacity="0.038">lim</text>
+        <text x="700" y="97"  font-size="13" opacity="0.032">x→∞</text>
+        <text x="808" y="240" font-size="38" opacity="0.044">π</text>
+        <text x="930" y="100" font-size="19" opacity="0.030">f(x) = ax² + bx + c</text>
+        <text x="988" y="212" font-size="46" opacity="0.038">Δ</text>
+        <text x="455" y="198" font-size="16" opacity="0.028">aₙ = a₁ + (n−1)d</text>
+        <text x="610" y="142" font-size="15" opacity="0.026">∀ε&gt;0 ∃δ&gt;0</text>
+      </g>
+      <!-- Small geometric sketch: circle + tangent line (bottom right) -->
+      <g fill="none" stroke="#1B4A8A" opacity="0.08">
+        <circle cx="1340" cy="220" r="38" stroke-width="1"/>
+        <line x1="1302" y1="220" x2="1270" y2="270" stroke-width="0.9"/>
+        <circle cx="1302" cy="220" r="2.5" fill="#1B4A8A"/>
+      </g>
+    </svg>
+
     <div class="container">
       <h1 class="hero__title">
         Centrul tău de antrenament
@@ -87,7 +135,7 @@
         <div class="stat">
           <div class="stat__ring">
             <svg viewBox="0 0 44 44" width="50" height="50">
-              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(255,255,255,0.07)" stroke-width="3.5"/>
+              <circle cx="22" cy="22" r="18" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="3.5"/>
               <circle cx="22" cy="22" r="18" fill="none" stroke="var(--accent)" stroke-width="3.5"
                       stroke-dasharray="113.1" stroke-dashoffset="113.1"
                       stroke-linecap="round" transform="rotate(-90 22 22)"
@@ -113,9 +161,6 @@
         <h2 class="section-title">Capitole</h2>
         <p class="section-sub">Alege un capitol pentru a exersa exercițiile</p>
       </div>
-      <a href="training.html" class="btn btn--ghost" style="font-size:0.88rem">
-        🎯 Antrenament personalizat
-      </a>
     </div>
 
     <div class="chapters-grid" id="chaptersGrid">

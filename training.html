@@ -6,17 +6,14 @@
   <title>🎯 Antrenament Rapid — BACMath</title>
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
   <style>
     .training-layout {
       min-height: calc(100vh - var(--nav-h));
     }
-    /* Pulse animation for start button */
-    @keyframes pulse-btn {
-      0%, 100% { box-shadow: 0 0 20px rgba(124,58,237,0.35); }
-      50% { box-shadow: 0 0 40px rgba(124,58,237,0.7); }
-    }
-    #startBtn { animation: pulse-btn 2.5s ease-in-out infinite; }
-    #startBtn:hover { animation: none; }
   </style>
 </head>
 <body>
@@ -29,6 +26,7 @@
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
       <div class="nav__actions">
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">🌙</button>
         <a class="btn btn--surface" href="index.html" style="font-size:0.88rem">
           ← Capitole
         </a>

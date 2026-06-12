@@ -11,17 +11,17 @@ BM.CATEGORIES = [
     gradient: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: '#7c3aed',
     description: 'Ecuații, inecuații, polinoame, numere complexe, exponențiale, logaritmi, trigonometrie',
     subcategories: [
-      { id: 'calcul-algebric',  name: 'Calcul Algebric',           symbol: 'ax',   color: '#7c3aed' },
-      { id: 'polinoame',        name: 'Polinoame',                 symbol: 'P(x)', color: '#6366f1' },
-      { id: 'complexe',         name: 'Numere Complexe',           symbol: 'ℂ',    color: '#a855f7' },
-      { id: 'ec-irationale',    name: 'Ecuații Iraționale',        symbol: '√=',   color: '#0ea5e9' },
-      { id: 'ec-exp',           name: 'Ecuații Exponențiale',      symbol: 'aˣ',   color: '#06b6d4' },
-      { id: 'ec-log',           name: 'Ecuații Logaritmice',       symbol: 'log',  color: '#0891b2' },
-      { id: 'inec-rationale',   name: 'Inecuații Raționale',       symbol: '≤',    color: '#10b981' },
-      { id: 'inec-irationale',  name: 'Inecuații Iraționale',      symbol: '√<',   color: '#059669' },
-      { id: 'inec-exp',         name: 'Inecuații Exponențiale',    symbol: 'aˣ>',  color: '#f59e0b' },
-      { id: 'inec-log',         name: 'Inecuații Logaritmice',     symbol: 'lg>',  color: '#d97706' },
-      { id: 'trigonometrie',    name: 'Trigonometrie',             symbol: 'sin',  color: '#ec4899' }
+      { id: 'calcul-algebric',  name: 'Calcul Algebric',           symbol: 'ax',   color: '#7c3aed', description: 'Radicali, puteri, expresii algebrice' },
+      { id: 'polinoame',        name: 'Polinoame',                 symbol: 'P(x)', color: '#6366f1', description: 'Împărțire, rădăcini, descompunere' },
+      { id: 'complexe',         name: 'Numere Complexe',           symbol: 'ℂ',    color: '#a855f7', description: 'Forma algebrică și trigonometrică' },
+      { id: 'ec-irationale',    name: 'Ecuații Iraționale',        symbol: '√=',   color: '#0ea5e9', description: 'Ecuații cu radicali' },
+      { id: 'ec-exp',           name: 'Ecuații Exponențiale',      symbol: 'aˣ',   color: '#06b6d4', description: 'Ecuații cu baze și exponenți' },
+      { id: 'ec-log',           name: 'Ecuații Logaritmice',       symbol: 'log',  color: '#0891b2', description: 'Logaritmi în baze diverse' },
+      { id: 'inec-rationale',   name: 'Inecuații Raționale',       symbol: '≤',    color: '#10b981', description: 'Inecuații cu fracții algebrice' },
+      { id: 'inec-irationale',  name: 'Inecuații Iraționale',      symbol: '√<',   color: '#059669', description: 'Inecuații cu radicali' },
+      { id: 'inec-exp',         name: 'Inecuații Exponențiale',    symbol: 'aˣ>',  color: '#f59e0b', description: 'Inecuații cu funcții exponențiale' },
+      { id: 'inec-log',         name: 'Inecuații Logaritmice',     symbol: 'lg>',  color: '#d97706', description: 'Inecuații cu funcții logaritmice' },
+      { id: 'trigonometrie',    name: 'Trigonometrie',             symbol: 'sin',  color: '#ec4899', description: 'Funcții trigonometrice, identități' }
     ]
   },
   {
@@ -29,9 +29,9 @@ BM.CATEGORIES = [
     gradient: 'linear-gradient(135deg,#be185d,#9d174d)', color: '#ec4899',
     description: 'Geometrie plană, analitică și în spațiu',
     subcategories: [
-      { id: 'geo-plana',     name: 'Geometrie Plană',     symbol: '△',   color: '#f43f5e' },
-      { id: 'geo-analitica', name: 'Geometrie Analitică', symbol: 'Oxy', color: '#ec4899' },
-      { id: 'geo-spatiu',    name: 'Geometrie în Spațiu', symbol: '⬡',   color: '#be185d' }
+      { id: 'geo-plana',     name: 'Geometrie Plană',     symbol: '△',   color: '#f43f5e', description: 'Triunghiuri, cercuri, poligoane' },
+      { id: 'geo-analitica', name: 'Geometrie Analitică', symbol: 'Oxy', color: '#ec4899', description: 'Drepte, distanțe, arii în plan' },
+      { id: 'geo-spatiu',    name: 'Geometrie în Spațiu', symbol: '⬡',   color: '#be185d', description: 'Poliedre, sfere, volume' }
     ]
   },
   {
@@ -39,11 +39,11 @@ BM.CATEGORIES = [
     gradient: 'linear-gradient(135deg,#d97706,#92400e)', color: '#f59e0b',
     description: 'Limite, derivate, integrale, șiruri și progresii',
     subcategories: [
-      { id: 'limite',    name: 'Limite',    symbol: 'lim', color: '#f59e0b' },
-      { id: 'derivate',  name: 'Derivate',  symbol: "f'",  color: '#d97706' },
-      { id: 'integrale', name: 'Integrale', symbol: '∫',   color: '#ea580c' },
-      { id: 'siruri',    name: 'Șiruri',    symbol: 'aₙ',  color: '#dc2626' },
-      { id: 'progresii', name: 'Progresii', symbol: '∑',   color: '#b91c1c' }
+      { id: 'limite',    name: 'Limite',    symbol: 'lim', color: '#f59e0b', description: 'Limite de funcții și șiruri' },
+      { id: 'derivate',  name: 'Derivate',  symbol: "f'",  color: '#d97706', description: 'Reguli de derivare, monotonie' },
+      { id: 'integrale', name: 'Integrale', symbol: '∫',   color: '#ea580c', description: 'Integrale definite și nedefinite' },
+      { id: 'siruri',    name: 'Șiruri',    symbol: 'aₙ',  color: '#dc2626', description: 'Convergență, limite de șiruri' },
+      { id: 'progresii', name: 'Progresii', symbol: '∑',   color: '#b91c1c', description: 'Aritmetice și geometrice' }
     ]
   },
   {
@@ -51,11 +51,11 @@ BM.CATEGORIES = [
     gradient: 'linear-gradient(135deg,#059669,#065f46)', color: '#10b981',
     description: 'Permutări, aranjamente, combinări, probabilitate și statistică',
     subcategories: [
-      { id: 'permutari',     name: 'Permutări',     symbol: 'Pₙ',  color: '#10b981' },
-      { id: 'aranjamente',   name: 'Aranjamente',   symbol: 'Aₙᵏ', color: '#059669' },
-      { id: 'combinari',     name: 'Combinări',     symbol: 'Cₙᵏ', color: '#047857' },
-      { id: 'probabilitate', name: 'Probabilitate', symbol: 'P',   color: '#0ea5e9' },
-      { id: 'statistica',    name: 'Statistică',    symbol: 'σ',   color: '#0284c7' }
+      { id: 'permutari',     name: 'Permutări',     symbol: 'Pₙ',  color: '#10b981', description: 'Aranjamente fără repetiție' },
+      { id: 'aranjamente',   name: 'Aranjamente',   symbol: 'Aₙᵏ', color: '#059669', description: 'Selecții ordonate de k elemente' },
+      { id: 'combinari',     name: 'Combinări',     symbol: 'Cₙᵏ', color: '#047857', description: 'Selecții neordonate, binomul lui Newton' },
+      { id: 'probabilitate', name: 'Probabilitate', symbol: 'P',   color: '#0ea5e9', description: 'Evenimente, probabilități clasice' },
+      { id: 'statistica',    name: 'Statistică',    symbol: 'σ',   color: '#0284c7', description: 'Medie, dispersie, frecvențe' }
     ]
   }
 ];
@@ -76,7 +76,7 @@ BM.EXERCISES = [
     id: 'ca-002', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor cu baze reciproce',
-    statement: 'Calculați suma numerelor $\\log_3 75$ și $2\\log_{\\frac{1}{3}} 5$.',
+    statement: 'Calculați valoarea expresiei:\n$$\\log_3 75 + 2\\log_{\\frac{1}{3}} 5$$',
     solution: 'Observăm că $\\dfrac{1}{3} = 3^{-1}$, deci $\\log_{\\frac{1}{3}} 5 = -\\log_3 5$.\n\n$$\\log_3 75 + 2(-\\log_3 5) = \\log_3 75 - \\log_3 5^2 = \\log_3 75 - \\log_3 25$$\n\n$$= \\log_3 \\frac{75}{25} = \\log_3 3$$\n\n$$\\boxed{= 1}$$'
   },
   {

@@ -71,7 +71,7 @@
             <div class="cat-progress-wrap">
               <div class="cat-progress-track">
                 <div class="cat-progress-fill" id="catProgressFill"
-                     style="background:linear-gradient(90deg,${cat.color},${cat.color}99);box-shadow:0 0 16px ${cat.color}66"></div>
+                     style="background:${cat.color}"></div>
               </div>
               <div class="cat-progress-label">
                 <span id="hdr-progress-txt">${prog.solved} din ${prog.total} exerciții rezolvate</span>
@@ -96,7 +96,44 @@
     currentSubcat = null;
     document.getElementById('subcatCardsSection').style.display = '';
     document.getElementById('exercisesSection').style.display   = 'none';
+    resetHeaderToCategory();
     renderSubcatCards();
+    refreshHeader(); /* reface statisticile la nivel de categorie */
+  }
+
+  /* ---- Header helpers: swap between category and subcategory ---- */
+  function updateHeaderForSubcat(sub) {
+    if (!sub) return;
+    const header = document.getElementById('catHeader');
+    if (!header) return;
+    const nameEl = header.querySelector('.cat-header__name');
+    const iconEl = header.querySelector('.cat-header__icon');
+    const descEl = header.querySelector('.cat-header__desc');
+    if (nameEl) nameEl.textContent = sub.name;
+    if (iconEl) {
+      iconEl.textContent     = sub.symbol;
+      iconEl.style.color       = sub.color;
+      iconEl.style.background  = sub.color + '22';
+      iconEl.style.borderColor = sub.color + '44';
+    }
+    if (descEl) descEl.textContent = sub.description || currentCategory.description;
+  }
+
+  function resetHeaderToCategory() {
+    const cat    = currentCategory;
+    const header = document.getElementById('catHeader');
+    if (!header) return;
+    const nameEl = header.querySelector('.cat-header__name');
+    const iconEl = header.querySelector('.cat-header__icon');
+    const descEl = header.querySelector('.cat-header__desc');
+    if (nameEl) nameEl.textContent = cat.name;
+    if (iconEl) {
+      iconEl.textContent     = cat.symbol;
+      iconEl.style.color       = cat.color;
+      iconEl.style.background  = cat.color + '1a';
+      iconEl.style.borderColor = cat.color + '33';
+    }
+    if (descEl) descEl.textContent = cat.description;
   }
 
   function renderSubcatCards() {
@@ -131,15 +168,16 @@
             }
           </div>
           <div class="subcat-card__name">${BM.esc(sub.name)}</div>
+          ${sub.description ? `<div class="subcat-card__desc">${BM.esc(sub.description)}</div>` : ''}
           ${!empty ? `
             <div class="subcat-card__footer">
               <div class="subcat-card__track">
                 <div class="subcat-card__bar"
-                     style="width:${pct}%;background:linear-gradient(90deg,${sub.color},${sub.color}cc)"></div>
+                     style="width:${pct}%;background:${sub.color}"></div>
               </div>
               <div class="subcat-card__prog">
-                ${done}/${count}
-                <span style="color:${sub.color};font-weight:600">${pct}%</span>
+                <span>${done} / ${count} exerciții</span>
+                <span style="color:${sub.color};font-weight:700">${pct}%</span>
               </div>
             </div>
           ` : ''}
@@ -163,9 +201,11 @@
     document.getElementById('exercisesSection').style.display   = '';
 
     const sub = BM.getSubcategoryById(currentCategory.id, subcatId);
+    updateHeaderForSubcat(sub);
     renderBreadcrumb(sub);
     renderFilterBar();
     applyFilters();
+    refreshHeader(); /* actualizează statisticile pentru subcategorie */
 
     const exParam = BM.getParam('ex');
     if (exParam) handleTargetExercise(exParam);
@@ -241,6 +281,14 @@
     renderExercises();
   }
 
+  function getMathPreview(statement) {
+    const display = statement.match(/\$\$([\s\S]*?)\$\$/);
+    if (display) return '$$' + display[1].trim() + '$$';
+    const inline = statement.match(/\$([^$\n]+)\$/);
+    if (inline) return '$$' + inline[1].trim() + '$$';
+    return '';
+  }
+
   /* ---- Render exercises ---- */
   function renderExercises() {
     const container = document.getElementById('exercisesContainer');
@@ -262,15 +310,17 @@
     const favs   = BM.Storage.getFavorites();
     const cat    = currentCategory;
 
-    container.innerHTML = filtered.map(ex => {
-      const isSolved = !!solved[ex.id];
-      const isFav    = favs.includes(ex.id);
-      const sub      = BM.getSubcategoryById(cat.id, ex.subcategoryId);
-      const preview  = BM.plainPreview(ex.statement);
+    container.innerHTML = filtered.map((ex, idx) => {
+      const isSolved   = !!solved[ex.id];
+      const isFav      = favs.includes(ex.id);
+      const sub        = BM.getSubcategoryById(cat.id, ex.subcategoryId);
+      const mathPrev   = getMathPreview(ex.statement);
+      const num        = String(idx + 1).padStart(2, '0');
 
       return `
         <div class="ex-card ${isSolved ? 'solved' : ''}" id="card-${ex.id}" data-diff="${ex.difficulty}">
           <div class="ex-card__head" onclick="toggleCard('${ex.id}')">
+            <div class="ex-card__num">${num}</div>
             <div class="ex-card__left">
               <div class="ex-card__meta">
                 ${BM.diffBadge(ex.difficulty)}
@@ -278,6 +328,7 @@
                 <span class="source-text">${BM.esc(ex.source)}</span>
               </div>
               <div class="ex-card__title">${BM.esc(ex.title)}</div>
+              ${mathPrev ? `<div class="ex-card__math-preview math-content">${mathPrev}</div>` : ''}
             </div>
             <div class="ex-card__actions" onclick="event.stopPropagation()">
               <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
@@ -288,7 +339,7 @@
               <button class="ex-action-btn solved ${isSolved ? 'active' : ''}"
                       onclick="toggleSolved('${ex.id}', this)"
                       title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">
-                ${isSolved ? '✓' : '○'}
+                ${isSolved ? '✓' : '☐'}
               </button>
               <button class="ex-action-btn ex-card__expand" onclick="toggleCard('${ex.id}')">↓</button>
             </div>
@@ -313,13 +364,33 @@
     if (window.renderMathInElement) BM.renderMath(container);
   }
 
-  /* ---- Card toggle ---- */
+  /* ---- Card toggle (accordion: max 1 deschis odată) ---- */
   window.toggleCard = function(id) {
     const card = document.getElementById(`card-${id}`);
     if (!card) return;
-    card.classList.toggle('open');
-    const btn = card.querySelector('.ex-card__expand');
-    if (btn) btn.textContent = card.classList.contains('open') ? '↑' : '↓';
+    const wasOpen = card.classList.contains('open');
+
+    /* Închide toate cardurile deschise */
+    document.querySelectorAll('.ex-card.open').forEach(c => {
+      c.classList.remove('open');
+      const b = c.querySelector('.ex-card__expand');
+      if (b) b.textContent = '↓';
+    });
+
+    /* Dacă nu era deschis, îl deschidem */
+    if (!wasOpen) {
+      card.classList.add('open');
+      const btn = card.querySelector('.ex-card__expand');
+      if (btn) btn.textContent = '↑';
+
+      const sol = document.getElementById(`sol-${id}`);
+      if (sol && !sol.classList.contains('visible')) {
+        toggleSolution(id);
+      }
+
+      /* Scroll smooth la card */
+      setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
+    }
   };
 
   /* ---- Solution toggle ---- */
@@ -350,13 +421,22 @@
     if (card) card.classList.toggle('solved', nowSolved);
     if (actionBtn) {
       actionBtn.classList.toggle('active', nowSolved);
-      actionBtn.textContent = nowSolved ? '✓' : '○';
+      actionBtn.textContent = nowSolved ? '✓' : '☐';
       actionBtn.title = nowSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat';
     }
     if (solveBtn) {
       solveBtn.classList.toggle('active', nowSolved);
       solveBtn.textContent = nowSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
     }
+
+    /* Animație puls pe cardul întregului exercițiu */
+    if (card) {
+      card.classList.remove('anim-solved', 'anim-fav');
+      void card.offsetWidth; /* forțează reflow pentru restart animație */
+      if (nowSolved) card.classList.add('anim-solved');
+      card.addEventListener('animationend', () => card.classList.remove('anim-solved', 'anim-fav'), { once: true });
+    }
+
     BM.toast(
       nowSolved ? 'Exercițiu marcat ca rezolvat! 🎉' : 'Exercițiu marcat ca nerezolvat.',
       nowSolved ? 'success' : 'info'
@@ -372,13 +452,33 @@
       btn.textContent = nowFav ? '♥' : '♡';
       btn.title = nowFav ? 'Elimină din favorite' : 'Adaugă la favorite';
     }
+
+    /* Animație puls pe cardul întregului exercițiu */
+    const card = document.getElementById(`card-${id}`);
+    if (card) {
+      card.classList.remove('anim-solved', 'anim-fav');
+      void card.offsetWidth;
+      if (nowFav) card.classList.add('anim-fav');
+      card.addEventListener('animationend', () => card.classList.remove('anim-solved', 'anim-fav'), { once: true });
+    }
+
     BM.toast(nowFav ? 'Adăugat la favorite! ♥' : 'Eliminat din favorite.',
              nowFav ? 'success' : 'info');
   };
 
-  /* ---- Refresh header progress ---- */
+  /* ---- Refresh header progress (categorie sau subcategorie) ---- */
   function refreshHeader() {
-    const prog   = BM.Storage.getProgressForCategory(currentCategory.id, BM.EXERCISES);
+    let prog;
+    if (currentSubcat) {
+      const subExs     = allExercises.filter(e => e.subcategoryId === currentSubcat);
+      const solvedMap  = BM.Storage.getSolved();
+      const solvedCnt  = subExs.filter(e => solvedMap[e.id]).length;
+      const total      = subExs.length;
+      prog = { solved: solvedCnt, total, percent: total > 0 ? Math.round((solvedCnt / total) * 100) : 0 };
+    } else {
+      prog = BM.Storage.getProgressForCategory(currentCategory.id, BM.EXERCISES);
+    }
+
     const fill   = document.getElementById('catProgressFill');
     if (fill)    fill.style.width = prog.percent + '%';
     const elS    = document.getElementById('hdr-solved');
