@@ -19,6 +19,7 @@
     /* Select all categories by default */
     BM.CATEGORIES.forEach(c => selectedCats.add(c.id));
     updateChapterUI();
+    BM.initScrollTop();
   }
 
   /* ---- Render config panel ---- */

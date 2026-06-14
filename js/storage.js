@@ -71,6 +71,8 @@ BM.Storage = (function() {
     set(KEY.history, hist.slice(0, 200));
   }
 
+  function clearHistory() { set(KEY.history, []); }
+
   /* ---- Streak ---- */
   function getStreak() {
     const s = get(KEY.streak);
@@ -125,7 +127,7 @@ BM.Storage = (function() {
   return {
     getSolved, isSolved, toggleSolved,
     getFavorites, isFavorite, toggleFavorite,
-    getHistory, addToHistory,
+    getHistory, addToHistory, clearHistory,
     getStreak, updateStreak,
     getStats, getProgressForCategory,
     recordVisit, clearAll

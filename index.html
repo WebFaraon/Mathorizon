@@ -32,16 +32,17 @@
       </a>
 
       <div class="nav__actions">
-        <button class="icon-btn" id="favBtn" title="Exerciții favorite">
-          ♡
+        <button class="nav-label-btn" id="favBtn" title="Exerciții favorite">
+          <span class="nav-label-btn__icon">♡</span>
+          <span class="nav-label-btn__text">Favorite</span>
           <span class="badge-count" id="favBadge" style="display:none">0</span>
         </button>
-        <button class="icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
+        <button class="nav-label-btn" id="histBtn" title="Istoric rezolvări">
+          <span class="nav-label-btn__icon">◷</span>
+          <span class="nav-label-btn__text">Istoric</span>
+        </button>
         <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <a class="btn btn--primary" href="training.html">
-          <span>🎯</span>
-          <span>Antrenament Rapid</span>
-        </a>
+        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
       </div>
     </div>
   </nav>
@@ -52,44 +53,51 @@
     <!-- Mathematical visual identity: coordinate system + curves + symbols -->
     <svg class="hero__math-bg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 280"
          preserveAspectRatio="xMidYMid slice" aria-hidden="true" focusable="false">
-      <!-- Left: coordinate axes + parabola -->
+      <!-- Left: coordinate axes + parabola (origin at 168,196 = 6×28, 7×28) -->
       <g fill="none" stroke="#1B4A8A">
-        <line x1="30" y1="185" x2="310" y2="185" stroke-width="0.9" opacity="0.13"/>
-        <line x1="165" y1="28"  x2="165" y2="265" stroke-width="0.9" opacity="0.13"/>
-        <polyline points="306,181 313,185 306,189" stroke-width="0.9" opacity="0.13"/>
-        <polyline points="161,32 165,25 169,32"    stroke-width="0.9" opacity="0.13"/>
-        <line x1="105" y1="182" x2="105" y2="188" stroke-width="0.9" opacity="0.10"/>
-        <line x1="225" y1="182" x2="225" y2="188" stroke-width="0.9" opacity="0.10"/>
-        <line x1="285" y1="182" x2="285" y2="188" stroke-width="0.9" opacity="0.10"/>
-        <line x1="162" y1="125" x2="168" y2="125" stroke-width="0.9" opacity="0.10"/>
-        <line x1="162" y1="245" x2="168" y2="245" stroke-width="0.9" opacity="0.10"/>
-        <path d="M 65 260 Q 165 48 265 260" stroke-width="1.4" opacity="0.11"/>
+        <line x1="28"  y1="196" x2="305" y2="196" stroke-width="1.2" opacity="0.28"/>
+        <line x1="168" y1="252" x2="168" y2="33"  stroke-width="1.2" opacity="0.28"/>
+        <polyline points="300,192 309,196 300,200" stroke-width="1.2" opacity="0.26"/>
+        <polyline points="164,38  168,30  172,38"  stroke-width="1.2" opacity="0.26"/>
+        <line x1="112" y1="193" x2="112" y2="199" stroke-width="1.0" opacity="0.22"/>
+        <line x1="140" y1="193" x2="140" y2="199" stroke-width="1.0" opacity="0.22"/>
+        <line x1="196" y1="193" x2="196" y2="199" stroke-width="1.0" opacity="0.22"/>
+        <line x1="224" y1="193" x2="224" y2="199" stroke-width="1.0" opacity="0.22"/>
+        <line x1="252" y1="193" x2="252" y2="199" stroke-width="1.0" opacity="0.22"/>
+        <line x1="165" y1="140" x2="171" y2="140" stroke-width="1.0" opacity="0.22"/>
+        <line x1="165" y1="168" x2="171" y2="168" stroke-width="1.0" opacity="0.22"/>
+        <line x1="165" y1="224" x2="171" y2="224" stroke-width="1.0" opacity="0.22"/>
+        <!-- Parabola: peak at (168,168)=6×28,6×28 -->
+        <path d="M 56 252 Q 168 84 280 252" stroke-width="2.0" opacity="0.24"/>
       </g>
-      <!-- Right: sine wave on axis -->
+      <!-- Right: sine wave (half-period=56=2×28, amplitude=56=2×28, axis y=140=5×28) -->
       <g fill="none" stroke="#1B4A8A">
-        <line x1="1080" y1="140" x2="1415" y2="140" stroke-width="0.9" opacity="0.11"/>
-        <polyline points="1411,136 1418,140 1411,144"  stroke-width="0.9" opacity="0.11"/>
-        <path d="M 1080 140 C 1116 72 1148 72 1184 140 C 1220 208 1252 208 1288 140
-                 C 1324 72 1356 72 1392 140 C 1414 190 1428 205 1440 200"
-              stroke-width="1.4" opacity="0.095"/>
+        <line x1="1064" y1="140" x2="1313" y2="140" stroke-width="1.2" opacity="0.26"/>
+        <polyline points="1308,136 1317,140 1308,144" stroke-width="1.2" opacity="0.24"/>
+        <path d="M 1064 140
+                 C 1078 84,  1106 84,  1120 140
+                 C 1134 196, 1162 196, 1176 140
+                 C 1190 84,  1218 84,  1232 140
+                 C 1246 196, 1274 196, 1288 140"
+              stroke-width="2.0" opacity="0.22"/>
       </g>
-      <!-- Floating symbols -->
+      <!-- Floating math symbols -->
       <g fill="#1B4A8A" font-family="Georgia, 'Times New Roman', serif">
-        <text x="348" y="88"  font-size="52" opacity="0.046">∑</text>
-        <text x="548" y="218" font-size="42" opacity="0.040">∫</text>
-        <text x="692" y="76"  font-size="22" opacity="0.038">lim</text>
-        <text x="700" y="97"  font-size="13" opacity="0.032">x→∞</text>
-        <text x="808" y="240" font-size="38" opacity="0.044">π</text>
-        <text x="930" y="100" font-size="19" opacity="0.030">f(x) = ax² + bx + c</text>
-        <text x="988" y="212" font-size="46" opacity="0.038">Δ</text>
-        <text x="455" y="198" font-size="16" opacity="0.028">aₙ = a₁ + (n−1)d</text>
-        <text x="610" y="142" font-size="15" opacity="0.026">∀ε&gt;0 ∃δ&gt;0</text>
+        <text x="348" y="88"  font-size="52" opacity="0.10">∑</text>
+        <text x="548" y="218" font-size="42" opacity="0.09">∫</text>
+        <text x="692" y="76"  font-size="22" opacity="0.085">lim</text>
+        <text x="700" y="97"  font-size="13" opacity="0.075">x→∞</text>
+        <text x="808" y="240" font-size="38" opacity="0.10">π</text>
+        <text x="930" y="100" font-size="19" opacity="0.075">f(x) = ax² + bx + c</text>
+        <text x="988" y="212" font-size="46" opacity="0.09">Δ</text>
+        <text x="455" y="198" font-size="16" opacity="0.070">aₙ = a₁ + (n−1)d</text>
+        <text x="610" y="142" font-size="15" opacity="0.065">∀ε&gt;0 ∃δ&gt;0</text>
       </g>
-      <!-- Small geometric sketch: circle + tangent line (bottom right) -->
-      <g fill="none" stroke="#1B4A8A" opacity="0.08">
-        <circle cx="1340" cy="220" r="38" stroke-width="1"/>
-        <line x1="1302" y1="220" x2="1270" y2="270" stroke-width="0.9"/>
-        <circle cx="1302" cy="220" r="2.5" fill="#1B4A8A"/>
+      <!-- Circle + tangent (cx=1344=48×28, cy=224=8×28, r=56=2×28) -->
+      <g fill="none" stroke="#1B4A8A" opacity="0.20">
+        <circle cx="1344" cy="224" r="56" stroke-width="1.3"/>
+        <line x1="1288" y1="224" x2="1260" y2="280" stroke-width="1.1"/>
+        <circle cx="1288" cy="224" r="3" fill="#1B4A8A" opacity="1"/>
       </g>
     </svg>
 
@@ -156,13 +164,6 @@
 
   <!-- MAIN CONTENT -->
   <main class="main container">
-    <div class="section-head">
-      <div>
-        <h2 class="section-title">Capitole</h2>
-        <p class="section-sub">Alege un capitol pentru a exersa exercițiile</p>
-      </div>
-    </div>
-
     <div class="chapters-grid" id="chaptersGrid">
       <!-- Chapter cards injected by app.js -->
       <div class="loading-card"></div>
@@ -182,7 +183,7 @@
   <!-- PANEL: Favorite -->
   <aside class="panel" id="panel-fav">
     <div class="panel__head">
-      <h3>♥ Exerciții Favorite</h3>
+      <h3>Exerciții Favorite</h3>
       <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
     </div>
     <div class="panel__body" id="favList">
@@ -197,8 +198,11 @@
   <!-- PANEL: Istoric -->
   <aside class="panel" id="panel-hist">
     <div class="panel__head">
-      <h3>◷ Istoric Rezolvări</h3>
-      <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+      <h3>Istoric Rezolvări</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn--surface" style="font-size:0.75rem;padding:4px 10px;height:32px" onclick="clearHistory()" title="Șterge istoricul">Șterge tot</button>
+        <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+      </div>
     </div>
     <div class="panel__body" id="histList">
       <div class="empty-state">
@@ -208,6 +212,8 @@
       </div>
     </div>
   </aside>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
 
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>

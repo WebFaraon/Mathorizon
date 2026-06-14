@@ -21,16 +21,17 @@
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
       <div class="nav__actions">
-        <button class="icon-btn" id="favBtn" title="Favorite în acest capitol">
-          ♡
+        <button class="nav-label-btn" id="favBtn" title="Favorite în acest capitol">
+          <span class="nav-label-btn__icon">♡</span>
+          <span class="nav-label-btn__text">Favorite</span>
           <span class="badge-count" id="favBadge" style="display:none">0</span>
         </button>
-        <button class="icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
+        <button class="nav-label-btn" id="histBtn" title="Istoric rezolvări">
+          <span class="nav-label-btn__icon">◷</span>
+          <span class="nav-label-btn__text">Istoric</span>
+        </button>
         <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <a class="btn btn--primary" href="training.html">
-          <span>🎯</span>
-          <span>Antrenament Rapid</span>
-        </a>
+        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
       </div>
     </div>
   </nav>
@@ -87,7 +88,7 @@
   <!-- PANEL: Favorites -->
   <aside class="panel" id="panel-fav">
     <div class="panel__head">
-      <h3>♥ Favorite în capitol</h3>
+      <h3>Favorite în capitol</h3>
       <button class="icon-btn" onclick="BM.closeAllPanels()">✕</button>
     </div>
     <div class="panel__body" id="favList"></div>
@@ -96,8 +97,11 @@
   <!-- PANEL: Istoric -->
   <aside class="panel" id="panel-hist">
     <div class="panel__head">
-      <h3>◷ Istoric Rezolvări</h3>
-      <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+      <h3>Istoric Rezolvări</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn--surface" style="font-size:0.75rem;padding:4px 10px;height:32px" onclick="clearHistory()" title="Șterge istoricul">Șterge tot</button>
+        <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+      </div>
     </div>
     <div class="panel__body" id="histList">
       <div class="empty-state">
@@ -107,6 +111,8 @@
       </div>
     </div>
   </aside>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>

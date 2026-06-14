@@ -13,6 +13,7 @@
     initPanelBtns();
     BM.Storage.recordVisit();
     BM.Storage.updateStreak();
+    BM.initScrollTop();
   }
 
   /* ---- Stats ---- */
@@ -231,6 +232,18 @@
     }
     BM.openPanel('hist');
   }
+
+  window.clearHistory = function() {
+    BM.Storage.clearHistory();
+    const list = document.getElementById('histList');
+    if (list) list.innerHTML = `
+      <div class="empty-state">
+        <div class="empty-icon">◷</div>
+        <p>Nu ai rezolvat niciun exercițiu.</p>
+        <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p>
+      </div>`;
+    BM.toast('Istoricul a fost șters.', 'info');
+  };
 
   function renderPanelItem(ex, ts) {
     const cat = BM.getCategoryById(ex.categoryId);

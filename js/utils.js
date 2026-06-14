@@ -145,3 +145,15 @@ BM.gotoCategory = function(categoryId, subcategoryId, exerciseId) {
   if (exerciseId) url += `&ex=${exerciseId}`;
   window.location.href = url;
 };
+
+/* ---- Scroll-to-top button ---- */
+BM.initScrollTop = function() {
+  const btn = document.getElementById('scrollTopBtn');
+  if (!btn) return;
+  window.addEventListener('scroll', function() {
+    btn.classList.toggle('visible', window.scrollY > 350);
+  }, { passive: true });
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+};

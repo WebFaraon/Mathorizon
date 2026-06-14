@@ -31,6 +31,7 @@
     } else {
       showCardsView();
     }
+    BM.initScrollTop();
   }
 
   /* ---- Header ---- */
@@ -43,6 +44,37 @@
     const header = document.getElementById('catHeader');
     if (!header) return;
     header.innerHTML = `
+      <svg class="cat-header__math-bg" xmlns="http://www.w3.org/2000/svg"
+           viewBox="0 0 1440 200" preserveAspectRatio="xMidYMid slice"
+           aria-hidden="true" focusable="false">
+        <!-- All decorations in right half (x>720) to avoid overlapping text content -->
+        <!-- Sine wave: axis y=112=4×28, x=728(26×28)→1064(38×28), half-period=56, amplitude=28 -->
+        <g fill="none" stroke="${cat.color}">
+          <line x1="728" y1="112" x2="1092" y2="112" stroke-width="1.0" opacity="0.18"/>
+          <polyline points="1087,108 1095,112 1087,116" stroke-width="1.0" opacity="0.16"/>
+          <path d="M 728 112 C 742 84,770 84,784 112 C 798 140,826 140,840 112
+                   C 854 84,882 84,896 112 C 910 140,938 140,952 112
+                   C 966 84,994 84,1008 112 C 1022 140,1050 140,1064 112"
+                stroke-width="1.6" opacity="0.17"/>
+        </g>
+        <!-- Floating symbols, right zone -->
+        <g fill="${cat.color}" font-family="Georgia,'Times New Roman',serif">
+          <text x="756"  y="68"  font-size="44" opacity="0.08">∑</text>
+          <text x="868"  y="180" font-size="34" opacity="0.075">∫</text>
+          <text x="980"  y="60"  font-size="30" opacity="0.08">π</text>
+          <text x="1040" y="174" font-size="13" opacity="0.065">f(x) = ax² + bx + c</text>
+          <text x="1148" y="64"  font-size="38" opacity="0.08">Δ</text>
+        </g>
+        <!-- Coordinate axes + parabola, far right (origin 1288=46×28, 140=5×28) -->
+        <g fill="none" stroke="${cat.color}">
+          <line x1="1176" y1="140" x2="1412" y2="140" stroke-width="1.1" opacity="0.20"/>
+          <line x1="1288" y1="28"  x2="1288" y2="180" stroke-width="1.1" opacity="0.20"/>
+          <polyline points="1407,136 1415,140 1407,144" stroke-width="1.1" opacity="0.18"/>
+          <polyline points="1284,33  1288,25  1292,33"  stroke-width="1.1" opacity="0.18"/>
+          <!-- Parabola: M 1232 168 Q 1288 56 1344 168, peak at (1288,112)=46×28,4×28 -->
+          <path d="M 1232 168 Q 1288 56 1344 168" stroke-width="1.7" opacity="0.17"/>
+        </g>
+      </svg>
       <div class="container">
         <div class="cat-header__inner">
           <div class="cat-header__icon" style="color:${cat.color};background:${cat.color}1a;border-color:${cat.color}33">
@@ -279,8 +311,18 @@
   function getMathPreview(statement) {
     const display = statement.match(/\$\$([\s\S]*?)\$\$/);
     if (display) return '$$' + display[1].trim() + '$$';
-    const inline = statement.match(/\$([^$\n]+)\$/);
-    if (inline) return '$$' + inline[1].trim() + '$$';
+    /* Among all inline math containing '=', pick the longest (most informative) */
+    const allEq = [...statement.matchAll(/\$([^$\n]*=[^$\n]*)\$/g)];
+    if (allEq.length > 0) {
+      const best = allEq.reduce((a, b) => a[1].length >= b[1].length ? a : b);
+      return '$$' + best[1].trim() + '$$';
+    }
+    /* Fallback: pick the longest inline math (handles ≥, ≤, etc.) */
+    const allInline = [...statement.matchAll(/\$([^$\n]+)\$/g)];
+    if (allInline.length > 0) {
+      const best = allInline.reduce((a, b) => a[1].length >= b[1].length ? a : b);
+      return '$$' + best[1].trim() + '$$';
+    }
     return '';
   }
 
@@ -344,7 +386,7 @@
             <div class="ex-card__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
             <div class="ex-card__solution math-content" id="sol-${ex.id}"></div>
             <div class="ex-card__foot">
-              <button class="btn btn--ghost" onclick="toggleSolution('${ex.id}')">💡 Arată soluția</button>
+              <button class="btn btn--ghost" onclick="toggleSolution('${ex.id}')">Arată soluția</button>
               <button class="btn btn--success ${isSolved ? 'active' : ''}"
                       id="solveBtn-${ex.id}"
                       onclick="toggleSolved('${ex.id}', document.querySelector('#card-${ex.id} .ex-action-btn.solved'))">
@@ -365,23 +407,27 @@
     if (!card) return;
     const wasOpen = card.classList.contains('open');
 
-    /* Închide toate cardurile deschise */
+    /* Închide toate cardurile deschise și resetează soluțiile */
     document.querySelectorAll('.ex-card.open').forEach(c => {
       c.classList.remove('open');
       const b = c.querySelector('.ex-card__expand');
       if (b) b.textContent = '↓';
+      /* Ascunde soluția la închidere */
+      const cId = c.id.replace('card-', '');
+      const cSol = document.getElementById(`sol-${cId}`);
+      if (cSol && cSol.classList.contains('visible')) {
+        cSol.classList.remove('visible');
+        cSol.innerHTML = '';
+        const cBtn = cSol.parentElement?.querySelector('.btn--ghost');
+        if (cBtn) cBtn.textContent = 'Arată soluția';
+      }
     });
 
-    /* Dacă nu era deschis, îl deschidem */
+    /* Dacă nu era deschis, îl deschidem — soluția rămâne ascunsă */
     if (!wasOpen) {
       card.classList.add('open');
       const btn = card.querySelector('.ex-card__expand');
       if (btn) btn.textContent = '↑';
-
-      const sol = document.getElementById(`sol-${id}`);
-      if (sol && !sol.classList.contains('visible')) {
-        toggleSolution(id);
-      }
 
       /* Scroll smooth la card */
       setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
@@ -396,14 +442,14 @@
     if (sol.classList.contains('visible')) {
       sol.classList.remove('visible');
       sol.innerHTML = '';
-      const btn = sol.parentElement.querySelector('button');
-      if (btn) btn.textContent = '💡 Arată soluția';
+      const btn = sol.parentElement.querySelector('.btn--ghost');
+      if (btn) btn.textContent = 'Arată soluția';
     } else {
       sol.innerHTML = BM.trustedNl2br(ex.solution);
       sol.classList.add('visible');
       BM.renderMath(sol);
-      const btn = sol.parentElement.querySelector('button');
-      if (btn) btn.textContent = '🙈 Ascunde soluția';
+      const btn = sol.parentElement.querySelector('.btn--ghost');
+      if (btn) btn.textContent = 'Ascunde soluția';
     }
   };
 
@@ -531,6 +577,13 @@
     document.getElementById('favBtn')?.addEventListener('click', openFavPanel);
     document.getElementById('histBtn')?.addEventListener('click', openHistory);
   }
+
+  window.clearHistory = function() {
+    BM.Storage.clearHistory();
+    const list = document.getElementById('histList');
+    if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
+    BM.toast('Istoricul a fost șters.', 'info');
+  };
 
   function openHistory() {
     const hist = BM.Storage.getHistory();
