@@ -41,8 +41,8 @@
         <h3 class="prof-modal__title">${title}</h3>
         <p class="prof-modal__body">${body}</p>
         <div class="prof-modal__actions">
-          <button class="btn btn--surface" id="profModalCancel">${cancelLabel}</button>
-          <button class="btn btn--danger" id="profModalConfirm">${confirmLabel}</button>
+          <button class="btn btn--surface" data-action="cancel">${cancelLabel}</button>
+          <button class="btn btn--danger"  data-action="confirm">${confirmLabel}</button>
         </div>
       </div>`;
     document.body.appendChild(ov);
@@ -50,17 +50,22 @@
 
     const close = () => {
       ov.classList.remove('prof-modal-overlay--in');
-      setTimeout(() => ov.remove(), 200);
+      setTimeout(() => ov.remove(), 180);
     };
-    ov.addEventListener('click', e => { if (e.target === ov) close(); });
-    document.getElementById('profModalCancel')?.addEventListener('click', close);
-    document.addEventListener('keydown', function onEsc(e) {
+
+    ov.addEventListener('click', e => {
+      if (e.target === ov) close();
+    });
+    ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    ov.querySelector('[data-action="confirm"]').addEventListener('click', async () => {
+      ov.remove(); // remove immediately, don't wait for animation
+      await onConfirm();
+    });
+
+    function onEsc(e) {
       if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
-    });
-    document.getElementById('profModalConfirm')?.addEventListener('click', () => {
-      close();
-      onConfirm();
-    });
+    }
+    document.addEventListener('keydown', onEsc);
   }
 
   function _gradeColor(g) {
@@ -330,10 +335,19 @@
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
         onConfirm: async () => {
+          /* 1. Graceful signout via Supabase SDK */
           try {
             const client = window.BMAuth?.supabase || sb;
-            if (client) await client.auth.signOut();
-          } catch (e) { console.error('[Profile] signOut:', e); }
+            if (client) await client.auth.signOut({ scope: 'local' });
+          } catch (e) { console.warn('[Profile] signOut SDK error:', e); }
+
+          /* 2. Belt-and-suspenders: clear Supabase session from localStorage */
+          Object.keys(localStorage).forEach(k => {
+            if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+          });
+          localStorage.setItem(BM.TOKEN_KEY, '0');
+
+          /* 3. Navigate away */
           window.location.replace('index.html');
         }
       });
