@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Simulare BAC — Mathorizon</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+      <div class="nav__actions" id="navActions">
+        <button class="nav-label-btn" id="favBtn" title="Exerciții favorite" onclick="BM.toast('Favoritele sunt disponibile pe pagina principală.','info')">
+          <span class="nav-label-btn__icon">♡</span>
+          <span class="nav-label-btn__text">Favorite</span>
+        </button>
+        <button class="nav-label-btn" id="histBtn" title="Istoric rezolvări" onclick="BM.toast('Istoricul este disponibil pe pagina principală.','info')">
+          <span class="nav-label-btn__icon">◷</span>
+          <span class="nav-label-btn__text">Istoric</span>
+        </button>
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
+        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- SETUP VIEW -->
+  <div id="setupView">
+    <div class="bac-setup-page">
+
+      <!-- LEFT: hero -->
+      <div class="bac-setup-left">
+        <div class="bac-setup-deco" aria-hidden="true">
+          <span style="--sz:140px;--t:2%;--l:62%">π</span>
+          <span style="--sz:110px;--t:50%;--l:2%">∑</span>
+          <span style="--sz:170px;--t:66%;--l:70%">∫</span>
+          <span style="--sz:95px;--t:16%;--l:24%">Δ</span>
+          <span style="--sz:120px;--t:80%;--l:34%">α</span>
+          <span style="--sz:80px;--t:33%;--l:76%">∞</span>
+        </div>
+
+        <a class="bac-back-btn" href="index.html" id="bacBackBtn">Capitole</a>
+
+        <div class="bac-setup-badge">🎓 BAC Moldova — Structură Oficială 2022+</div>
+        <h1 class="bac-setup-title">Simulare <em>BAC</em><br><span>Matematică</span></h1>
+        <div class="bac-title-rule"></div>
+        <p class="bac-setup-desc">
+          12 exerciții generate aleator, câte unul per tip, fără repetare de teme.
+          Lucrezi 3 ore ca la examen real. La final te autoevaluezi și primești nota.
+        </p>
+
+        <div class="bac-setup-chips">
+          <div class="bac-chip bac-chip--blue">
+            <div class="bac-chip__val">12</div>
+            <div class="bac-chip__lbl">Exerciții</div>
+          </div>
+          <div class="bac-chip bac-chip--amber">
+            <div class="bac-chip__val">100</div>
+            <div class="bac-chip__lbl">Puncte</div>
+          </div>
+          <div class="bac-chip bac-chip--teal">
+            <div class="bac-chip__val">3h</div>
+            <div class="bac-chip__lbl">Timp</div>
+          </div>
+        </div>
+
+        <button class="bac-start-btn" onclick="startExam()">
+          🚀 Pornește Simularea BAC
+        </button>
+      </div>
+
+      <!-- RIGHT: structure + history -->
+      <div class="bac-setup-right">
+        <div class="bac-struct-table">
+          <div class="bac-struct-head">
+            <span>Structura examenului</span>
+            <span>Dificultate</span>
+            <span>Punctaj</span>
+          </div>
+          <div class="bac-struct-rows">
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 1</span>
+              <span class="bac-struct-desc">Calcul Algebric</span>
+              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
+              <span class="bac-struct-pts">5p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 2</span>
+              <span class="bac-struct-desc">Algebră — aleator (Complexe, Polinoame, Exp., Inec.)</span>
+              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
+              <span class="bac-struct-pts">5p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 3</span>
+              <span class="bac-struct-desc">Ecuații / Inecuații — aleator, fără repetare</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 4</span>
+              <span class="bac-struct-desc">Ecuații / Trigonometrie — aleator, fără repetare</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 5</span>
+              <span class="bac-struct-desc">Trigonometrie / Inecuații Raționale</span>
+              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 6</span>
+              <span class="bac-struct-desc">Geometrie plană / analitică / spațiu</span>
+              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
+              <span class="bac-struct-pts">5p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 7</span>
+              <span class="bac-struct-desc">Geometrie plană / analitică / spațiu</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 8</span>
+              <span class="bac-struct-desc">Geometrie plană / analitică / spațiu</span>
+              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 9</span>
+              <span class="bac-struct-desc">Șiruri și Progresii</span>
+              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
+              <span class="bac-struct-pts">5p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 10a</span>
+              <span class="bac-struct-desc">Derivate — monotonie, inflexiune, tangentă</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 10b</span>
+              <span class="bac-struct-desc">Limite / Integrale / Asimptote</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 10c</span>
+              <span class="bac-struct-desc">Limite / Integrale — tip diferit față de 10b</span>
+              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 11</span>
+              <span class="bac-struct-desc">Probabilitate</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+            <div class="bac-struct-row">
+              <span class="bac-struct-num">Ex. 12</span>
+              <span class="bac-struct-desc">Binomul lui Newton</span>
+              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
+              <span class="bac-struct-pts">8p</span>
+            </div>
+          </div>
+          <div class="bac-struct-total">
+            <span>Total</span>
+            <span></span>
+            <span>100p</span>
+          </div>
+        </div>
+
+        <div id="bacHistory"></div>
+
+        <div class="bac-tips">
+          <div class="bac-tips__head">Sfaturi pentru succes</div>
+          <div class="bac-tips__grid">
+            <div class="bac-tip">
+              <span class="bac-tip__icon">⏱</span>
+              <div>
+                <div class="bac-tip__title">Gestionează timpul</div>
+                <div class="bac-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</div>
+              </div>
+            </div>
+            <div class="bac-tip">
+              <span class="bac-tip__icon">📖</span>
+              <div>
+                <div class="bac-tip__title">Citește atent enunțul</div>
+                <div class="bac-tip__desc">Înțelege ce se cere înainte de a calcula.</div>
+              </div>
+            </div>
+            <div class="bac-tip">
+              <span class="bac-tip__icon">✏️</span>
+              <div>
+                <div class="bac-tip__title">Notează toți pașii</div>
+                <div class="bac-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</div>
+              </div>
+            </div>
+            <div class="bac-tip">
+              <span class="bac-tip__icon">🎯</span>
+              <div>
+                <div class="bac-tip__title">Începe cu ce știi</div>
+                <div class="bac-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXAM VIEW -->
+  <div id="examView" style="display:none">
+    <div class="bac-exam-wrap">
+      <!-- Sidebar: item navigator -->
+      <aside class="bac-sidebar" id="itemNav"></aside>
+
+      <!-- Main: current exercise -->
+      <main class="bac-main">
+        <div class="bac-exam-topbar">
+          <div id="slotMeta"></div>
+          <div class="bac-topbar-controls">
+            <button class="bac-flag-btn" id="flagBtn" onclick="toggleFlag()" title="Marchează pentru revizuire">☆</button>
+            <span class="bac-timer" id="navTimer">03:00:00</span>
+            <button class="btn btn--danger bac-finish-btn" onclick="finishExam()">Finalizează</button>
+          </div>
+        </div>
+        <div id="slotContent"></div>
+        <div class="bac-slot-nav">
+          <button class="bac-slot-btn bac-slot-btn--prev" id="prevSlotBtn" onclick="prevSlot()">Anterior</button>
+          <div class="bac-progress-dots" id="progressDots"></div>
+          <button class="bac-slot-btn bac-slot-btn--next" id="nextSlotBtn" onclick="nextSlot()">Următor</button>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <!-- RESULTS VIEW -->
+  <div id="resultsView" style="display:none">
+    <div class="bac-results-wrap" id="resultsContent"></div>
+  </div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/bac.js"></script>
+</body>
+</html>

@@ -14,10 +14,11 @@
   let solvedInSession   = new Set();
 
   /* ---- Init ---- */
+  const UNLOCKED_CATS = new Set(['algebra']);
+
   function init() {
     renderConfig();
-    /* Select all categories by default */
-    BM.CATEGORIES.forEach(c => selectedCats.add(c.id));
+    UNLOCKED_CATS.forEach(id => selectedCats.add(id));
     updateChapterUI();
     BM.initScrollTop();
   }
@@ -65,21 +66,27 @@
     const chList = document.getElementById('chapterList');
     if (chList) {
       BM.CATEGORIES.forEach(cat => {
+        const locked = !UNLOCKED_CATS.has(cat.id);
         const item = document.createElement('div');
-        item.className = 'config-chapter-item selected';
+        item.className = 'config-chapter-item' + (locked ? ' config-chapter-item--locked' : ' selected');
         item.id = `cat-item-${cat.id}`;
         item.innerHTML = `
           <span class="config-chapter-icon" style="color:${cat.color}">${BM.esc(cat.symbol)}</span>
           <span class="config-chapter-name">${BM.esc(cat.name)}</span>
-          <span class="config-chapter-check">✓</span>
+          ${locked
+            ? '<span class="config-chapter-lock">🔒</span><span class="config-chapter-soon">În curând</span>'
+            : '<span class="config-chapter-check">✓</span>'}
         `;
-        item.onclick = () => toggleCat(cat.id, item);
+        item.onclick = locked
+          ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
+          : () => toggleCat(cat.id, item);
         chList.appendChild(item);
       });
     }
   }
 
   function toggleCat(id, el) {
+    if (!UNLOCKED_CATS.has(id)) return;
     if (selectedCats.has(id)) {
       if (selectedCats.size <= 1) {
         BM.toast('Selectează cel puțin un capitol.', 'error');

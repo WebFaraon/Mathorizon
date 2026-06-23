@@ -4,11 +4,12 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>🎯 Antrenament Rapid — BACMath</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="js/theme.js"></script>
   <style>
     .training-layout {
@@ -16,20 +17,26 @@
     }
   </style>
 </head>
-<body>
+<body class="training-page">
 
   <!-- NAVBAR -->
   <nav class="nav">
     <div class="nav__inner container">
       <a class="nav__brand" href="index.html">
-        <div class="nav__icon">Σ</div>
+        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
       <div class="nav__actions">
+        <button class="nav-label-btn" title="Exerciții favorite" onclick="BM.toast('Favoritele sunt disponibile pe pagina principală.','info')">
+          <span class="nav-label-btn__icon">♡</span>
+          <span class="nav-label-btn__text">Favorite</span>
+        </button>
+        <button class="nav-label-btn" title="Istoric rezolvări" onclick="BM.toast('Istoricul este disponibil pe pagina principală.','info')">
+          <span class="nav-label-btn__icon">◷</span>
+          <span class="nav-label-btn__text">Istoric</span>
+        </button>
         <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">🌙</button>
-        <a class="btn btn--surface" href="index.html" style="font-size:0.88rem">
-          ← Capitole
-        </a>
+        <a class="btn btn--accent" href="training.html" onclick="event.preventDefault()">Antrenament Rapid</a>
       </div>
     </div>
   </nav>
@@ -40,7 +47,7 @@
     <!-- LEFT: Config panel -->
     <aside class="training-config" id="configView">
       <h2 class="training-config__title">🎯 Antrenament Rapid</h2>
-      <p style="color:var(--text-secondary);font-size:0.88rem;margin-bottom:28px">
+      <p class="training-config__sub">
         Configurează sesiunea de antrenament și generează un mini-test personalizat.
       </p>
 

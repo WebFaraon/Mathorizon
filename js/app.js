@@ -94,8 +94,11 @@
       `;
     }).join('');
 
-    /* Animate progress bars after DOM */
+    /* Stagger chapter card entry + animate progress bars */
     requestAnimationFrame(() => {
+      grid.querySelectorAll('.chapter-card').forEach((card, i) => {
+        card.style.animationDelay = `${i * 60}ms`;
+      });
       grid.querySelectorAll('.progress-bar').forEach(bar => {
         const w = bar.style.width;
         bar.style.width = '0';

@@ -1448,6 +1448,112 @@ BM.EXERCISES = [
     solution: '**Domeniu:** Baza: $x-1 > 0$ și $x-1 \\neq 1 \\Rightarrow x > 1$, $x \\neq 2$. Argument: $5-x > 0 \\Rightarrow x < 5$. Numitor: $x(x-3) \\neq 0 \\Rightarrow x \\neq 3$.\n\nDomeniu: $(1,2)\\cup(2,3)\\cup(3,5)$.\n\n**Numărătorul** $[\\log_{x-1}(5-x)]^2 \\geq 0$ mereu; $= 0$ iff $\\log_{x-1}(5-x) = 0 \\iff 5-x = 1 \\iff x = 4$.\n\n**Semnul numitorului** $x(x-3)$:\n- $x \\in (1,2)$: $x > 0$, $x-3 < 0$ ⟹ numitor $< 0$\n- $x \\in (2,3)$: $x > 0$, $x-3 < 0$ ⟹ numitor $< 0$\n- $x \\in (3,5)$: $x > 0$, $x-3 > 0$ ⟹ numitor $> 0$\n\n**Fracție $\\leq 0$:**\n- Num $> 0$ și denom $< 0$: $x \\in (1,2)\\cup(2,3)$ ✓\n- Num $= 0$ ($x = 4$) și denom $> 0$: fracție $= 0$ ✓\n\n$$\\boxed{x \\in (1,\\,2)\\cup(2,\\,3)\\cup\\{4\\}}$$'
   },
 
+  {
+    id: 'rat-in-028', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu modul la numărător și logaritm subunitar la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x|}{\\log_{0{,}2}(2x+3)} \\geq 0$$',
+    solution: '**Domeniu:** $2x+3 > 0 \\Rightarrow x > -\\tfrac{3}{2}$; numitor $\\neq 0$: $2x+3 \\neq 1 \\Rightarrow x \\neq -1$.\n\nDomeniu: $\\left(-\\tfrac{3}{2},\\,+\\infty\\right)\\setminus\\{-1\\}$.\n\n$|x| \\geq 0$ mereu; $= 0$ când $x = 0$.\n\nBaza $0{,}2 < 1$, deci $\\log_{0{,}2}$ este descrescător:\n$\\log_{0{,}2}(2x+3) > 0 \\iff 2x+3 < 1 \\iff x < -1$.\n$\\log_{0{,}2}(2x+3) < 0 \\iff x > -1$.\n\nÎn domeniu:\n- $x \\in (-\\tfrac{3}{2},\\,-1)$: num $\\geq 0$, denom $> 0$ ⟹ fracție $\\geq 0$ ✓\n- $x = 0$: num $= 0$ ⟹ fracție $= 0$ ✓\n- $x \\in (-1,\\,0)$ sau $x > 0$: num $> 0$, denom $< 0$ ⟹ fracție $< 0$ ✗\n\n$$\\boxed{x \\in \\left(-\\dfrac{3}{2},\\,-1\\right) \\cup \\{0\\}}$$'
+  },
+  {
+    id: 'rat-in-029', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu x la numărător și numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$x \\geq \\frac{4}{x}$$',
+    solution: '**Domeniu:** $x \\neq 0$.\n\n$$x - \\frac{4}{x} \\geq 0 \\iff \\frac{x^2-4}{x} \\geq 0 \\iff \\frac{(x-2)(x+2)}{x} \\geq 0$$\n\nTabel de semne:\n\n| $x$ | $(-\\infty,-2)$ | $-2$ | $(-2,0)$ | $0$ | $(0,2)$ | $2$ | $(2,+\\infty)$ |\n|---|---|---|---|---|---|---|---|\n| $x+2$ | $-$ | $0$ | $+$ | $+$ | $+$ | $+$ | $+$ |\n| $x-2$ | $-$ | $-$ | $-$ | $-$ | $-$ | $0$ | $+$ |\n| $x$ | $-$ | $-$ | $-$ | ND | $+$ | $+$ | $+$ |\n| raport | $-$ | $0$ | $+$ | ND | $-$ | $0$ | $+$ |\n\n$$\\boxed{x \\in [-2,\\,0) \\cup [2,\\,+\\infty)}$$'
+  },
+  {
+    id: 'rat-in-030', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu modul pătratic la numărător și expresie exponențială la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|4-x^2|}{4^x-2^{x+1}-8} \\geq 0$$',
+    solution: '**Numitorul:** $4^x - 2\\cdot 2^x - 8$. Fie $t = 2^x > 0$: $t^2-2t-8 = (t-4)(t+2)$.\nDeoarece $t > 0$, $t+2 > 0$ mereu, deci semnul numitorului $=$ semnul lui $t-4 = 2^x-4$.\n\n- $x < 2$: $2^x < 4$ ⟹ numitor $< 0$; $x = 2$: numitor $= 0$ (exclus).\n- $x > 2$: numitor $> 0$.\n\n**Numărătorul** $|4-x^2| \\geq 0$ mereu; $= 0$ când $x = \\pm 2$.\n\nFracție $\\geq 0$:\n- $x = -2$: num $= 0$, denom $< 0$ ⟹ fracție $= 0$ ✓\n- $x = 2$: exclus din domeniu ✗\n- $x > 2$: num $> 0$, denom $> 0$ ⟹ fracție $> 0$ ✓\n- $x < 2$, $x \\neq -2$: num $> 0$, denom $< 0$ ⟹ fracție $< 0$ ✗\n\n$$\\boxed{x \\in \\{-2\\} \\cup (2,\\,+\\infty)}$$'
+  },
+  {
+    id: 'rat-in-031', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu fracție și termen pătratic (II)',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{2}{x-1} \\leq x$$',
+    solution: '**Domeniu:** $x \\neq 1$.\n\n$$\\frac{2}{x-1} - x \\leq 0 \\iff \\frac{2-x(x-1)}{x-1} \\leq 0 \\iff \\frac{-x^2+x+2}{x-1} \\leq 0 \\iff \\frac{(x-2)(x+1)}{x-1} \\geq 0$$\n\nTabel de semne:\n\n| $x$ | $(-\\infty,-1)$ | $-1$ | $(-1,1)$ | $1$ | $(1,2)$ | $2$ | $(2,+\\infty)$ |\n|---|---|---|---|---|---|---|---|\n| $x+1$ | $-$ | $0$ | $+$ | $+$ | $+$ | $+$ | $+$ |\n| $x-2$ | $-$ | $-$ | $-$ | $-$ | $-$ | $0$ | $+$ |\n| $x-1$ | $-$ | $-$ | $-$ | ND | $+$ | $+$ | $+$ |\n| raport | $-$ | $0$ | $+$ | ND | $-$ | $0$ | $+$ |\n\n$$\\boxed{x \\in [-1,\\,1) \\cup [2,\\,+\\infty)}$$'
+  },
+  {
+    id: 'rat-in-032', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu modul la numărător și trinomul exponențial la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x-1|}{9\\cdot 4^x-13\\cdot 6^x+4\\cdot 9^x} < 0$$',
+    solution: '$|x-1| \\geq 0$ mereu; pentru fracție $< 0$ trebuie num $> 0$ (deci $x \\neq 1$) și denom $< 0$.\n\n**Semnul numitorului:** Împărțim prin $4^x > 0$, fie $t = \\left(\\dfrac{3}{2}\\right)^x > 0$:\n$$4t^2-13t+9 = (4t-9)(t-1) = 0 \\Rightarrow t = 1 \\Rightarrow x = 0 \\quad \\text{sau}\\quad t = \\tfrac{9}{4} \\Rightarrow x = 2$$\n\nSemnul $(4t-9)(t-1)$:\n- $x < 0$: $t < 1$, ambii factori negativi ⟹ $> 0$\n- $0 < x < 2$: $1 < t < \\tfrac{9}{4}$, $(4t-9) < 0$, $(t-1) > 0$ ⟹ $< 0$\n- $x > 2$: $t > \\tfrac{9}{4}$, ambii factori pozitivi ⟹ $> 0$\n\nDenominator $< 0$ pentru $x \\in (0,\\,2)$.\n\nFracție $< 0$: $x \\in (0,\\,2)$ și $x \\neq 1$.\n\n$$\\boxed{x \\in (0,\\,1) \\cup (1,\\,2)}$$'
+  },
+  {
+    id: 'rat-in-033', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu modul la numărător și pătrat de logaritm la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x-1|}{\\log_3^2 x - 2\\log_3 x - 3} < 0$$',
+    solution: '**Domeniu:** $x > 0$; numitor $\\neq 0$.\n\nFie $t = \\log_3 x$: $t^2-2t-3 = (t-3)(t+1) = 0 \\Rightarrow x = 27$ sau $x = \\tfrac{1}{3}$ (excluse).\n\nSemnul numitorului $(t-3)(t+1)$:\n- $x \\in (0,\\,\\tfrac{1}{3})$: $t < -1$, ambii negativi ⟹ $> 0$\n- $x \\in (\\tfrac{1}{3},\\,27)$: $-1 < t < 3$, $(t-3)<0$, $(t+1)>0$ ⟹ $< 0$\n- $x > 27$: $t > 3$, ambii pozitivi ⟹ $> 0$\n\nPentru fracție $< 0$: num $> 0$ (deci $x \\neq 1$) și denom $< 0$: $x \\in \\left(\\tfrac{1}{3},\\,27\\right)$, $x \\neq 1$.\n\n$$\\boxed{x \\in \\left(\\dfrac{1}{3},\\,1\\right) \\cup (1,\\,27)}$$'
+  },
+  {
+    id: 'rat-in-034', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație simplă cu fracție și termen întreg',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{4}{x} \\leq 1$$',
+    solution: '**Domeniu:** $x \\neq 0$.\n\n$$\\frac{4}{x} - 1 \\leq 0 \\iff \\frac{4-x}{x} \\leq 0$$\n\nTabel de semne:\n\n| $x$ | $(-\\infty,0)$ | $0$ | $(0,4)$ | $4$ | $(4,+\\infty)$ |\n|---|---|---|---|---|---|\n| $4-x$ | $+$ | $+$ | $+$ | $0$ | $-$ |\n| $x$ | $-$ | ND | $+$ | $+$ | $+$ |\n| raport | $-$ | ND | $+$ | $0$ | $-$ |\n\n$$\\boxed{x \\in (-\\infty,\\,0) \\cup [4,\\,+\\infty)}$$'
+  },
+  {
+    id: 'rat-in-035', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu pătrat de logaritm la numărător și radical la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_2^2(2x)-3\\log_2 x-3}{\\sqrt{x^2-2x+1}} \\leq 0$$',
+    solution: '**Domeniu:** $x^2-2x+1 = (x-1)^2 > 0 \\Rightarrow x \\neq 1$; $x > 0$ (pentru logaritm).\n\nNumitorul $\\sqrt{(x-1)^2} = |x-1| > 0$ în domeniu, deci fracție $\\leq 0 \\iff$ numărătorul $\\leq 0$.\n\n$\\log_2(2x) = 1 + \\log_2 x$. Fie $t = \\log_2 x$:\n$$(1+t)^2 - 3t - 3 = t^2 - t - 2 = (t-2)(t+1)$$\n\n$(t-2)(t+1) \\leq 0 \\iff -1 \\leq t \\leq 2 \\iff \\tfrac{1}{2} \\leq x \\leq 4$.\n\nIntersecție cu domeniu ($x > 0$, $x \\neq 1$):\n\n$$\\boxed{x \\in \\left[\\dfrac{1}{2},\\,1\\right) \\cup (1,\\,4]}$$'
+  },
+  {
+    id: 'rat-in-036', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu radical dintr-un logaritm la numărător și pătratic la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{\\log_{\\frac{1}{2}}(x^2-x+2)+2}}{x^2-3} \\geq 0$$',
+    solution: '**Domeniu:** $x^2-x+2 > 0$ (mereu, $\\Delta < 0$); radicand $\\geq 0$: $\\log_{1/2}(x^2-x+2) \\geq -2$.\n\nDeoarece baza $\\tfrac{1}{2} < 1$: $\\log_{1/2}(\\cdot) \\geq -2 \\iff x^2-x+2 \\leq \\left(\\tfrac{1}{2}\\right)^{-2} = 4 \\iff x^2-x-2 \\leq 0 \\iff (x-2)(x+1) \\leq 0$.\n\nDeci $-1 \\leq x \\leq 2$; numitor $\\neq 0$: $x \\neq \\pm\\sqrt{3}$; în $[-1,2]$, excludem $x = \\sqrt{3} \\approx 1{,}73$.\n\nDomeniu: $[-1,\\,2]\\setminus\\{\\sqrt{3}\\}$.\n\nNumărătorul $= 0$ la $x = -1$ și $x = 2$ (unde $x^2-x+2 = 4$); $> 0$ în interior.\n\nSemnul numitorului $x^2-3$:\n- $x \\in [-1,\\,\\sqrt{3})$: $x^2 < 3$ ⟹ $< 0$\n- $x \\in (\\sqrt{3},\\,2]$: $x^2 > 3$ ⟹ $> 0$\n\nFracție $\\geq 0$:\n- $x = -1$: $\\frac{0}{-2} = 0$ ✓\n- $x \\in (-1,\\sqrt{3})$: $+/-\\ < 0$ ✗\n- $x \\in (\\sqrt{3},\\,2)$: $+/+\\ > 0$ ✓\n- $x = 2$: $\\frac{0}{1} = 0$ ✓\n\n$$\\boxed{x \\in \\{-1\\} \\cup (\\sqrt{3},\\,2]}$$'
+  },
+  {
+    id: 'rat-in-037', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu fracție și termen întreg (III)',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x}{x+1} \\geq 2$$',
+    solution: '**Domeniu:** $x \\neq -1$.\n\n$$\\frac{x}{x+1} - 2 \\geq 0 \\iff \\frac{x-2(x+1)}{x+1} \\geq 0 \\iff \\frac{-x-2}{x+1} \\geq 0 \\iff \\frac{x+2}{x+1} \\leq 0$$\n\nTabel de semne:\n\n| $x$ | $(-\\infty,-2)$ | $-2$ | $(-2,-1)$ | $-1$ | $(-1,+\\infty)$ |\n|---|---|---|---|---|---|\n| $x+2$ | $-$ | $0$ | $+$ | $+$ | $+$ |\n| $x+1$ | $-$ | $-$ | $-$ | ND | $+$ |\n| raport | $+$ | $0$ | $-$ | ND | $+$ |\n\n$$\\boxed{x \\in [-2,\\,-1)}$$'
+  },
+  {
+    id: 'rat-in-038', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu pătrat de logaritm și modul la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_2^2 x + \\log_2 x^2}{|x-3|} \\leq 0$$',
+    solution: '**Domeniu:** $x > 0$, $x \\neq 3$.\n\nNumitorul $|x-3| > 0$ în domeniu, deci fracție $\\leq 0 \\iff$ numărătorul $\\leq 0$.\n\n$\\log_2 x^2 = 2\\log_2 x$ (pentru $x > 0$). Fie $t = \\log_2 x$:\n$$t^2 + 2t = t(t+2) \\leq 0 \\iff -2 \\leq t \\leq 0 \\iff \\frac{1}{4} \\leq x \\leq 1$$\n\nIntersecție cu domeniu ($x > 0$, $x \\neq 3$): intervalul $[\\tfrac{1}{4},1]$ nu conține $3$.\n\n$$\\boxed{x \\in \\left[\\dfrac{1}{4},\\,1\\right]}$$'
+  },
+  {
+    id: 'rat-in-039', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu expresie exponențială la numărător și pătrat la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x \\cdot 2^{1-x}-16x}{(x+3)^2} \\geq 0$$',
+    solution: '**Domeniu:** $(x+3)^2 \\neq 0 \\Rightarrow x \\neq -3$.\n\nNumărătorul: $x\\cdot 2^{1-x}-16x = x\\bigl(2^{1-x}-16\\bigr)$.\n\n$2^{1-x} = 16 = 2^4 \\iff 1-x = 4 \\iff x = -3$ (exclus din domeniu).\n\nSemnul $2^{1-x}-16$: $2^{1-x} > 16 \\iff 1-x > 4 \\iff x < -3$, deci:\n- $x < -3$: $> 0$;\\ $x > -3$: $< 0$.\n\nNumitorul $(x+3)^2 > 0$ mereu (în domeniu), deci fracție $\\geq 0 \\iff$ numărătorul $\\geq 0$:\n\n$x\\bigl(2^{1-x}-16\\bigr) \\geq 0$:\n- $x < -3$: $x < 0$ și $2^{1-x}-16 > 0$ ⟹ $(-)(+) < 0$ ✗\n- $x \\in (-3,\\,0)$: $x < 0$ și $2^{1-x}-16 < 0$ ⟹ $(-)(-)= + \\geq 0$ ✓\n- $x = 0$: $0 \\cdot (\\ldots) = 0$ ✓\n- $x > 0$: $x > 0$ și $2^{1-x}-16 < 0$ ⟹ $(+)(-) < 0$ ✗\n\n$$\\boxed{x \\in (-3,\\,0]}$$'
+  },
+  {
+    id: 'rat-in-040', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu modul pătratic la numărător și logaritm subunitar la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x^2-9|}{\\log_{0{,}5}(3x+6)} \\geq 0$$',
+    solution: '**Domeniu:** $3x+6 > 0 \\Rightarrow x > -2$; numitor $\\neq 0$: $3x+6 \\neq 1 \\Rightarrow x \\neq -\\tfrac{5}{3}$.\n\nDomeniu: $(-2,\\,+\\infty)\\setminus\\left\\{-\\tfrac{5}{3}\\right\\}$.\n\n$|x^2-9| \\geq 0$ mereu; $= 0$ când $x = \\pm 3$; în domeniu, zero la $x = 3$.\n\nBaza $0{,}5 < 1$: $\\log_{0{,}5}(3x+6) > 0 \\iff 3x+6 < 1 \\iff x < -\\tfrac{5}{3}$.\n\nÎn domeniu ($x > -2$):\n- $x \\in (-2,\\,-\\tfrac{5}{3})$: denom $> 0$, num $\\geq 0$ ⟹ fracție $\\geq 0$ ✓\n- $x = 3$: num $= 0$ ⟹ fracție $= 0$ ✓\n- $x \\in (-\\tfrac{5}{3},\\,+\\infty)$, $x \\neq 3$: num $> 0$, denom $< 0$ ⟹ fracție $< 0$ ✗\n\n$$\\boxed{x \\in \\left(-2,\\,-\\dfrac{5}{3}\\right) \\cup \\{3\\}}$$'
+  },
+  {
+    id: 'rat-in-041', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu pătrat perfect la numărător și trinomul exponențial la numitor',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x^2-6x+9}{25^x-6\\cdot 5^x+5} \\leq 0$$',
+    solution: 'Numărătorul $(x-3)^2 \\geq 0$ mereu.\n\nNumitorul: $25^x-6\\cdot5^x+5$. Fie $t = 5^x > 0$: $t^2-6t+5 = (t-5)(t-1) = 0 \\Rightarrow x = 0$ sau $x = 1$.\n\nSemnul $(t-5)(t-1)$:\n- $x < 0$: $t < 1$, ambii negativi ⟹ $> 0$\n- $0 < x < 1$: $1 < t < 5$, $(t-1)>0$, $(t-5)<0$ ⟹ $< 0$\n- $x > 1$: $t > 5$, ambii pozitivi ⟹ $> 0$\n\nFracție $\\leq 0$:\n- $(x-3)^2 > 0$ și denom $< 0$: $x \\in (0,\\,1)$, $x \\neq 3$ (3 nu e în $(0,1)$) ✓\n- $(x-3)^2 = 0$ ($x = 3$) și denom $> 0$: fracție $= 0$ ✓\n\n$$\\boxed{x \\in (0,\\,1) \\cup \\{3\\}}$$'
+  },
+  {
+    id: 'rat-in-042', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Inecuație cu fracție și termen dublu',
+    statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x}{x+2} \\leq 2x$$',
+    solution: '**Domeniu:** $x \\neq -2$.\n\n$$\\frac{x}{x+2}-2x \\leq 0 \\iff \\frac{x-2x(x+2)}{x+2} \\leq 0 \\iff \\frac{-2x^2-3x}{x+2} \\leq 0 \\iff \\frac{x(2x+3)}{x+2} \\geq 0$$\n\nTabel de semne (zerouri: $x = -\\tfrac{3}{2}$, $x = 0$; pol: $x = -2$):\n\n| $x$ | $(-\\infty,-2)$ | $-2$ | $(-2,-\\tfrac{3}{2})$ | $-\\tfrac{3}{2}$ | $(-\\tfrac{3}{2},0)$ | $0$ | $(0,+\\infty)$ |\n|---|---|---|---|---|---|---|---|\n| $x$ | $-$ | $-$ | $-$ | $-$ | $-$ | $0$ | $+$ |\n| $2x+3$ | $-$ | $-$ | $-$ | $0$ | $+$ | $+$ | $+$ |\n| $x+2$ | $-$ | ND | $+$ | $+$ | $+$ | $+$ | $+$ |\n| raport | $-$ | ND | $+$ | $0$ | $-$ | $0$ | $+$ |\n\n$$\\boxed{x \\in \\left(-2,\\,-\\dfrac{3}{2}\\right] \\cup [0,\\,+\\infty)}$$'
+  },
+
   /* ============================================================
      ALGEBRĂ — Polinoame
      ============================================================ */
@@ -3821,10 +3927,10 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-012', categoryId: 'algebra', subcategoryId: 'ec-log',
-    difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
-    title: 'Ecuație pătratică în logaritm baza 3',
-    statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$-2\\log_3(x^2) + \\log_3^2\\!\\left(\\dfrac{-x}{3}\\right) - 4 = 0$$',
-    solution: '**Domeniu:** $\\dfrac{-x}{3} > 0 \\Rightarrow x < 0$ (și $x^2 > 0$ ✓).\n\n**Notăm** $t = \\log_3(-x)$:\n$$\\log_3(x^2) = \\log_3(-x)^2 = 2t$$\n$$\\log_3\\frac{-x}{3} = \\log_3(-x) - \\log_3 3 = t - 1$$\n\n$$-2(2t) + (t-1)^2 - 4 = 0$$\n$$-4t + t^2 - 2t + 1 - 4 = 0 \\Rightarrow t^2 - 6t - 3 = 0$$\n$$\\Delta = 36 + 12 = 48 \\Rightarrow t = 3 \\pm 2\\sqrt{3}$$\n\n$$x_1 = -3^{\\,3+2\\sqrt{3}}, \\qquad x_2 = -3^{\\,3-2\\sqrt{3}}$$\n\n(ambele $< 0$ ✓)\n\n$$\\boxed{x \\in \\bigl\\{-3^{3+2\\sqrt{3}},\\; -3^{3-2\\sqrt{3}}\\bigr\\}}$$'
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Ecuație logaritmică cu fracție și termen dublu',
+    statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3 \\dfrac{x^2}{3} - 2\\log_3(3x^2) = -4$$',
+    solution: '**Domeniu:** $x \\neq 0$.\n\nDescompunem fiecare termen:\n$$\\log_3\\frac{x^2}{3} = \\log_3 x^2 - \\log_3 3 = \\log_3 x^2 - 1$$\n$$2\\log_3(3x^2) = 2(\\log_3 3 + \\log_3 x^2) = 2 + 2\\log_3 x^2$$\n\nSubstituim:\n$$(\\log_3 x^2 - 1) - (2 + 2\\log_3 x^2) = -4$$\n$$-\\log_3 x^2 - 3 = -4 \\Rightarrow \\log_3 x^2 = 1$$\n$$x^2 = 3 \\Rightarrow x = \\pm\\sqrt{3}$$\n\nVerificare: $x = \\pm\\sqrt{3} \\neq 0$ ✓\n\n$$\\boxed{x \\in \\{-\\sqrt{3},\\;\\sqrt{3}\\}}$$'
   },
 
   {
@@ -3980,6 +4086,14 @@ BM.EXERCISES = [
     title: 'Ecuație logaritmică baza 1/2 cu exponent negativ',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{\\frac{1}{2}}(x^2-4x-1) = -2$$',
     solution: '**Domeniu:** $x^2-4x-1 > 0$; rădăcini: $x = 2 \\pm \\sqrt{5}$.\n\nDomeniu: $x < 2-\\sqrt{5}$ sau $x > 2+\\sqrt{5}$.\n\n$$x^2-4x-1 = \\left(\\tfrac{1}{2}\\right)^{-2} = 4 \\Rightarrow x^2-4x-5 = 0 \\Rightarrow (x-5)(x+1) = 0$$\n\n$x = 5 > 2+\\sqrt{5} \\approx 4{,}24$ ✓\n\n$x = -1 < 2-\\sqrt{5} \\approx -0{,}24$ ✓\n\nVerificare: $25-20-1 = 4 = \\left(\\tfrac{1}{2}\\right)^{-2}$ ✓;\\ $1+4-1 = 4$ ✓\n\n$$\\boxed{x \\in \\{-1,\\; 5\\}}$$'
+  },
+
+  {
+    id: 'log-el-035', categoryId: 'algebra', subcategoryId: 'ec-log',
+    difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
+    title: 'Ecuație logaritmică cu pătrat de logaritm și termen dublu',
+    statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$2\\log_2 x^2 + \\log_2^2(-x) = 12$$',
+    solution: '**Domeniu:** $x^2 > 0$ (mereu) și $-x > 0 \\Rightarrow x < 0$.\n\nFie $t = \\log_2(-x)$. Deoarece $x < 0$: $\\log_2 x^2 = \\log_2(-x)^2 = 2\\log_2(-x) = 2t$.\n\nSubstituim:\n$$2 \\cdot 2t + t^2 = 12 \\Rightarrow t^2 + 4t - 12 = 0 \\Rightarrow (t+6)(t-2) = 0$$\n\n$t = 2 \\Rightarrow \\log_2(-x) = 2 \\Rightarrow -x = 4 \\Rightarrow x = -4$ ✓\n\n$t = -6 \\Rightarrow \\log_2(-x) = -6 \\Rightarrow -x = \\dfrac{1}{64} \\Rightarrow x = -\\dfrac{1}{64}$ ✓\n\n$$\\boxed{x \\in \\left\\{-4,\\;-\\dfrac{1}{64}\\right\\}}$$'
   },
 
   /* ============================================================

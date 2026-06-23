@@ -5,11 +5,34 @@
 (function() {
   'use strict';
 
-  let currentCategory = null;
-  let currentSubcat   = null;
-  let currentFilter   = 'all';
-  let allExercises    = [];
-  let filtered        = [];
+  let currentCategory  = null;
+  let currentSubcat    = null;
+  let currentFilter    = 'all';
+  let allExercises     = [];
+  let filtered         = [];
+  let viewInitialized  = false;
+
+  /* ---- View transition helper ---- */
+  function switchView(hideEl, showEl, renderFn) {
+    const doShow = () => {
+      hideEl.style.display = 'none';
+      hideEl.classList.remove('view-exiting');
+      renderFn();
+      showEl.style.display = '';
+      void showEl.offsetWidth; // force reflow so animation restarts
+      showEl.classList.add('view-entering');
+      showEl.addEventListener('animationend', () => showEl.classList.remove('view-entering'), { once: true });
+      viewInitialized = true;
+    };
+
+    if (viewInitialized && hideEl.style.display !== 'none') {
+      hideEl.classList.add('view-exiting');
+      setTimeout(doShow, 160);
+    } else {
+      hideEl.style.display = 'none';
+      doShow();
+    }
+  }
 
   /* ---- Init ---- */
   function init() {
@@ -81,7 +104,6 @@
             ${BM.esc(cat.symbol)}
           </div>
           <div class="cat-header__info">
-            <a class="cat-header__back" href="index.html">← Înapoi la capitole</a>
             <h1 class="cat-header__name">${BM.esc(cat.name)}</h1>
             <p class="cat-header__desc">${BM.esc(cat.description)}</p>
             <div class="cat-stats-row">
@@ -91,7 +113,7 @@
               </div>
               <div class="cat-stat__sep"></div>
               <div class="cat-stat">
-                <div class="cat-stat__num" style="color:var(--green)" id="hdr-solved">${prog.solved}</div>
+                <div class="cat-stat__num" style="color:var(--solved)" id="hdr-solved">${prog.solved}</div>
                 <div class="cat-stat__lbl">Rezolvate</div>
               </div>
               <div class="cat-stat__sep"></div>
@@ -126,11 +148,13 @@
      ============================================================ */
   function showCardsView() {
     currentSubcat = null;
-    document.getElementById('subcatCardsSection').style.display = '';
-    document.getElementById('exercisesSection').style.display   = 'none';
-    resetHeaderToCategory();
-    renderSubcatCards();
-    refreshHeader(); /* reface statisticile la nivel de categorie */
+    const cardsEl = document.getElementById('subcatCardsSection');
+    const exEl    = document.getElementById('exercisesSection');
+    switchView(exEl, cardsEl, () => {
+      resetHeaderToCategory();
+      renderSubcatCards();
+      refreshHeader();
+    });
   }
 
   /* ---- Header helpers: swap between category and subcategory ---- */
@@ -228,19 +252,18 @@
   function showExercisesView(subcatId) {
     currentSubcat = subcatId;
     currentFilter = 'all';
-
-    document.getElementById('subcatCardsSection').style.display = 'none';
-    document.getElementById('exercisesSection').style.display   = '';
-
-    const sub = BM.getSubcategoryById(currentCategory.id, subcatId);
-    updateHeaderForSubcat(sub);
-    renderBreadcrumb(sub);
-    renderFilterBar();
-    applyFilters();
-    refreshHeader(); /* actualizează statisticile pentru subcategorie */
-
-    const exParam = BM.getParam('ex');
-    if (exParam) handleTargetExercise(exParam);
+    const cardsEl = document.getElementById('subcatCardsSection');
+    const exEl    = document.getElementById('exercisesSection');
+    switchView(cardsEl, exEl, () => {
+      const sub = BM.getSubcategoryById(currentCategory.id, subcatId);
+      updateHeaderForSubcat(sub);
+      renderBreadcrumb(sub);
+      renderFilterBar();
+      applyFilters();
+      refreshHeader();
+      const exParam = BM.getParam('ex');
+      if (exParam) handleTargetExercise(exParam);
+    });
   }
 
   window.goBackToCards = function() {
@@ -382,14 +405,14 @@
             </div>
           </div>
 
-          <div class="ex-card__body" id="body-${ex.id}">
+          <div class="ex-card__body" id="body-${ex.id}" onclick="toggleCard('${ex.id}')">
             <div class="ex-card__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
             <div class="ex-card__solution math-content" id="sol-${ex.id}"></div>
             <div class="ex-card__foot">
-              <button class="btn btn--ghost" onclick="toggleSolution('${ex.id}')">Arată soluția</button>
+              <button class="btn btn--ghost" onclick="event.stopPropagation(); toggleSolution('${ex.id}')">Arată soluția</button>
               <button class="btn btn--success ${isSolved ? 'active' : ''}"
                       id="solveBtn-${ex.id}"
-                      onclick="toggleSolved('${ex.id}', document.querySelector('#card-${ex.id} .ex-action-btn.solved'))">
+                      onclick="event.stopPropagation(); toggleSolved('${ex.id}', document.querySelector('#card-${ex.id} .ex-action-btn.solved'))">
                 ${isSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat'}
               </button>
             </div>
@@ -397,6 +420,16 @@
         </div>
       `;
     }).join('');
+
+    /* Stagger entry animation — class removed after animationend so reflows don't restart it */
+    container.querySelectorAll('.ex-card').forEach((card, i) => {
+      card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
+      card.classList.add('ex-entering');
+      card.addEventListener('animationend', () => {
+        card.classList.remove('ex-entering');
+        card.style.animationDelay = '';
+      }, { once: true });
+    });
 
     if (window.renderMathInElement) BM.renderMath(container);
   }
