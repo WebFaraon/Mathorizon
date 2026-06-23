@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profilul meu — Mathorizon</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
+</head>
+<body>
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+      <div class="nav__actions">
+        <a class="nav-label-btn" href="index.html">
+          <span class="nav-label-btn__icon">⌂</span>
+          <span class="nav-label-btn__text">Acasă</span>
+        </a>
+        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
+      </div>
+      <div class="nav__right">
+        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
+          <span class="token-widget__icon">🎟</span>
+          <span class="token-widget__count" data-token-count>—</span>
+          <span class="token-widget__label">Tokenuri</span>
+        </div>
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
+        <button class="nav-profile-btn" id="navProfileBtn" title="Profilul meu">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- CONTENT -->
+  <main class="main container">
+
+    <!-- Skeleton / loading -->
+    <div id="profileSkeleton" class="prof-skeleton">
+      <div class="prof-skeleton-header">
+        <div class="loading-card" style="width:88px;height:88px;border-radius:50%;flex-shrink:0"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
+          <div class="loading-card" style="height:28px;width:200px"></div>
+          <div class="loading-card" style="height:18px;width:280px"></div>
+        </div>
+      </div>
+      <div class="prof-skeleton-grid">
+        <div class="loading-card" style="height:180px"></div>
+        <div class="loading-card" style="height:180px"></div>
+        <div class="loading-card" style="height:180px"></div>
+        <div class="loading-card" style="height:180px"></div>
+      </div>
+    </div>
+
+    <!-- Actual content (injected by profile-page.js) -->
+    <div id="profileContent" style="display:none"></div>
+
+  </main>
+
+  <div class="toast-container" id="toastContainer"></div>
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/profile-page.js"></script>
+</body>
+</html>

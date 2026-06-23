@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Autentificare — Mathorizon</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
+</head>
+<body class="auth-pg">
+
+  <div class="auth-pg-layout">
+
+    <!-- LEFT: branding -->
+    <div class="auth-pg-left">
+      <div class="auth-pg-left__deco" aria-hidden="true">
+        <span style="--sz:130px;--t:8%;--l:60%">π</span>
+        <span style="--sz:100px;--t:52%;--l:4%">∑</span>
+        <span style="--sz:160px;--t:68%;--l:66%">∫</span>
+        <span style="--sz:88px;--t:18%;--l:22%">Δ</span>
+        <span style="--sz:110px;--t:82%;--l:30%">α</span>
+        <span style="--sz:75px;--t:36%;--l:78%">∞</span>
+      </div>
+
+      <a class="auth-pg-back" href="index.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><polyline points="15 18 9 12 15 6"/></svg>
+        Înapoi la site
+      </a>
+
+      <div class="auth-pg-brand">
+        <img src="assets/images/MathorizonLogo.png" alt="Mathorizon" class="auth-pg-logo">
+        <span class="auth-pg-brand-name">Math<b>orizon</b></span>
+      </div>
+
+      <h1 class="auth-pg-title">Bine ai venit!</h1>
+      <p class="auth-pg-sub">
+        Platformă modernă de pregătire<br>pentru BAC la matematică.
+      </p>
+
+      <div class="auth-pg-chips">
+        <div class="auth-pg-chip">📚 Sute de exerciții</div>
+        <div class="auth-pg-chip">🎯 Antrenament rapid</div>
+        <div class="auth-pg-chip">📋 Simulare BAC</div>
+      </div>
+    </div>
+
+    <!-- RIGHT: auth form -->
+    <div class="auth-pg-right">
+      <div class="auth-pg-card">
+
+        <div id="authMsg" class="auth-msg" style="display:none"></div>
+
+        <!-- TABS -->
+        <div class="auth-tabs" role="tablist">
+          <button class="auth-tab auth-tab--active" data-tab="login"  onclick="switchTab('login')"  role="tab">Conectare</button>
+          <button class="auth-tab"                  data-tab="signup" onclick="switchTab('signup')" role="tab">Înregistrare</button>
+        </div>
+
+        <!-- LOGIN FORM -->
+        <form id="fLogin" class="auth-form" novalidate onsubmit="onLogin(event)">
+          <div class="auth-field">
+            <label class="auth-label" for="lEmail">Email</label>
+            <input class="auth-input" id="lEmail" type="email" placeholder="adresa@email.com" autocomplete="email" required>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="lPass">Parolă</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="lPass" type="password" placeholder="Parola ta" autocomplete="current-password" required>
+              <button type="button" class="auth-eye" data-target="lPass" onclick="togglePw(this)" aria-label="Arată parola">👁</button>
+            </div>
+          </div>
+          <div class="auth-row-right">
+            <button type="button" class="auth-link" onclick="switchTab('reset')">Ai uitat parola?</button>
+          </div>
+          <button type="submit" class="auth-submit" id="btnLogin">
+            <span>Conectare</span><span class="auth-spin" style="display:none"></span>
+          </button>
+        </form>
+
+        <!-- SIGNUP FORM -->
+        <form id="fSignup" class="auth-form" style="display:none" novalidate onsubmit="onSignup(event)">
+          <div class="auth-field">
+            <label class="auth-label" for="sName">Nume complet</label>
+            <input class="auth-input" id="sName" type="text" placeholder="Ion Popescu" autocomplete="name" required>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="sEmail">Email</label>
+            <input class="auth-input" id="sEmail" type="email" placeholder="adresa@email.com" autocomplete="email" required>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="sPass">Parolă</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="sPass" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
+              <button type="button" class="auth-eye" data-target="sPass" onclick="togglePw(this)" aria-label="Arată parola">👁</button>
+            </div>
+          </div>
+          <div class="auth-field">
+            <label class="auth-label" for="sConf">Confirmă parola</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="sConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
+              <button type="button" class="auth-eye" data-target="sConf" onclick="togglePw(this)" aria-label="Arată parola">👁</button>
+            </div>
+          </div>
+          <button type="submit" class="auth-submit" id="btnSignup">
+            <span>Creează cont</span><span class="auth-spin" style="display:none"></span>
+          </button>
+          <p class="auth-terms">La înregistrare primești <strong>3 ExamTokenuri</strong> gratuite 🎟</p>
+        </form>
+
+        <!-- RESET FORM -->
+        <form id="fReset" class="auth-form" style="display:none" novalidate onsubmit="onReset(event)">
+          <p class="auth-reset-hint">Introdu emailul contului tău și îți trimitem un link pentru resetarea parolei.</p>
+          <div class="auth-field">
+            <label class="auth-label" for="rEmail">Email</label>
+            <input class="auth-input" id="rEmail" type="email" placeholder="adresa@email.com" autocomplete="email" required>
+          </div>
+          <button type="submit" class="auth-submit" id="btnReset">
+            <span>Trimite link</span><span class="auth-spin" style="display:none"></span>
+          </button>
+          <button type="button" class="auth-back" onclick="switchTab('login')">← Înapoi la conectare</button>
+        </form>
+
+        <!-- DIVIDER + GOOGLE -->
+        <div class="auth-divider" id="authDivider"><span>sau</span></div>
+        <button class="auth-google" id="authGoogle" type="button" onclick="onGoogle()">
+          <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M17.64 9.2a10.34 10.34 0 0 0-.16-1.84H9v3.48h4.84a4.14 4.14 0 0 1-1.8 2.72v2.26h2.92A8.78 8.78 0 0 0 17.64 9.2z" fill="#4285F4"/>
+            <path d="M9 18a8.6 8.6 0 0 0 5.96-2.18l-2.91-2.26A5.43 5.43 0 0 1 9 14.54 5.38 5.38 0 0 1 3.92 11H.93v2.34A9 9 0 0 0 9 18z" fill="#34A853"/>
+            <path d="M3.92 11A5.27 5.27 0 0 1 3.64 9c0-.69.12-1.36.28-2L.93 4.66A9 9 0 0 0 0 9c0 1.45.35 2.82.93 4.06L3.92 11z" fill="#FBBC05"/>
+            <path d="M9 3.58a4.86 4.86 0 0 1 3.44 1.35l2.58-2.58A8.65 8.65 0 0 0 9 0 9 9 0 0 0 .93 4.66L3.9 7A5.38 5.38 0 0 1 9 3.58z" fill="#EA4335"/>
+          </svg>
+          Continuă cu Google
+        </button>
+
+      </div>
+    </div>
+
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth-page.js"></script>
+</body>
+</html>
