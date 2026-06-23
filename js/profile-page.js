@@ -330,8 +330,11 @@
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
         onConfirm: async () => {
-          try { await sb.auth.signOut(); } catch (e) { console.error('[Profile] signOut:', e); }
-          window.location.href = 'index.html';
+          try {
+            const client = window.BMAuth?.supabase || sb;
+            if (client) await client.auth.signOut();
+          } catch (e) { console.error('[Profile] signOut:', e); }
+          window.location.replace('index.html');
         }
       });
     };
