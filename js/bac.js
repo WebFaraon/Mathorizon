@@ -270,7 +270,7 @@
   /* ================================================================
      START EXAM
   ================================================================ */
-  window.startExam = function () {
+  function doStartExam() {
     exam = {
       slots: generateExam(),
       startTs: Date.now(),
@@ -281,7 +281,62 @@
     saveExam();
     showExamView();
     startTimer();
+  }
+
+  window.startExam = function () {
+    const tokens = BM.getTokens();
+
+    if (tokens <= 0) {
+      showTokenDialog({
+        icon: '🔒',
+        title: 'Nu mai ai ExamTokenuri',
+        body: `Ai folosit toate cele <strong>${BM.TOKEN_DEFAULT}</strong> simulări gratuite.<br>
+               Achiziționează ExamTokenuri pentru a continua să exersezi.`,
+        confirmLabel: 'Achiziționează tokenuri',
+        confirmClass: 'btn--primary',
+        onConfirm: () => BM.toast('Funcționalitate disponibilă în curând.', 'info'),
+        cancelLabel: 'Închide'
+      });
+      return;
+    }
+
+    showTokenDialog({
+      icon: '🎟',
+      title: 'Pornești simularea BAC?',
+      body: `Dacă confirmi, <strong>1 ExamToken</strong> va fi scăzut din contul tău.
+             Vei rămâne cu <strong>${tokens - 1}</strong> token${tokens - 1 === 1 ? '' : 'uri'}.
+             <br><br>
+             <span class="exam-start-warn">⚠ Dacă ieși din pagină în timpul examenului, tokenul nu va fi restituit.</span>`,
+      confirmLabel: '🚀 Pornește examenul',
+      confirmClass: 'btn--primary',
+      onConfirm: () => {
+        if (!BM.consumeToken()) return;
+        doStartExam();
+      },
+      cancelLabel: 'Anulează'
+    });
   };
+
+  function showTokenDialog({ icon, title, body, confirmLabel, confirmClass, onConfirm, cancelLabel }) {
+    const ov = document.createElement('div');
+    ov.className = 'bac-confirm-overlay';
+    ov.innerHTML = `
+      <div class="bac-confirm-modal exam-start-modal" role="dialog" aria-modal="true">
+        <div class="bac-confirm-icon">${icon}</div>
+        <div class="bac-confirm-title">${title}</div>
+        <div class="exam-start-body">${body}</div>
+        <div class="bac-confirm-actions">
+          <button class="btn btn--surface" id="tkn-cancel">${cancelLabel}</button>
+          <button class="btn ${confirmClass}" id="tkn-ok">${confirmLabel}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 220); };
+    ov.querySelector('#tkn-cancel').onclick = close;
+    ov.querySelector('#tkn-ok').onclick = () => { close(); onConfirm(); };
+    ov.onclick = e => { if (e.target === ov) close(); };
+    requestAnimationFrame(() => ov.classList.add('open'));
+  }
 
   /* ================================================================
      EXAM VIEW

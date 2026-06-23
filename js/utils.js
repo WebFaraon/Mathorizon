@@ -146,6 +146,41 @@ BM.gotoCategory = function(categoryId, subcategoryId, exerciseId) {
   window.location.href = url;
 };
 
+/* ---- ExamToken system ---- */
+BM.TOKEN_KEY     = 'bac_exam_tokens';
+BM.TOKEN_DEFAULT = 3;
+
+BM.getTokens = function () {
+  const v = localStorage.getItem(BM.TOKEN_KEY);
+  if (v === null) {
+    localStorage.setItem(BM.TOKEN_KEY, String(BM.TOKEN_DEFAULT));
+    return BM.TOKEN_DEFAULT;
+  }
+  return Math.max(0, parseInt(v, 10) || 0);
+};
+
+BM.consumeToken = function () {
+  const n = BM.getTokens();
+  if (n <= 0) return false;
+  localStorage.setItem(BM.TOKEN_KEY, String(n - 1));
+  BM.refreshTokenWidgets();
+  return true;
+};
+
+BM.refreshTokenWidgets = function () {
+  const n = BM.getTokens();
+  document.querySelectorAll('[data-token-count]').forEach(el => { el.textContent = n; });
+  const w = document.getElementById('tokenWidget');
+  if (!w) return;
+  w.classList.toggle('token-widget--low',   n === 1);
+  w.classList.toggle('token-widget--empty', n === 0);
+  w.title = n === 0
+    ? 'Nu mai ai ExamTokenuri. Achiziționează pentru a continua.'
+    : `${n} ExamToken${n === 1 ? '' : 'uri'} disponibil${n === 1 ? '' : 'e'}`;
+};
+
+document.addEventListener('DOMContentLoaded', BM.refreshTokenWidgets);
+
 /* ---- Scroll-to-top button ---- */
 BM.initScrollTop = function() {
   const btn = document.getElementById('scrollTopBtn');

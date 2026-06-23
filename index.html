@@ -42,8 +42,20 @@
           <span class="nav-label-btn__icon">◷</span>
           <span class="nav-label-btn__text">Istoric</span>
         </button>
-        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
         <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
+      </div>
+      <div class="nav__right">
+        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
+          <span class="token-widget__icon">🎟</span>
+          <span class="token-widget__count" data-token-count>—</span>
+          <span class="token-widget__label">Tokenuri</span>
+        </div>
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
+        <button class="nav-profile-btn" id="navProfileBtn" title="Conectează-te">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
       </div>
     </div>
   </nav>
@@ -71,28 +83,16 @@
         <!-- Parabola: peak at (168,168)=6×28,6×28 -->
         <path d="M 56 252 Q 168 84 280 252" stroke-width="2.0" opacity="0.24"/>
       </g>
-      <!-- Right: sine wave (half-period=56=2×28, amplitude=56=2×28, axis y=140=5×28) -->
+      <!-- Right: sine wave -->
       <g fill="none" stroke="#1B4A8A">
         <line x1="1064" y1="140" x2="1313" y2="140" stroke-width="1.2" opacity="0.26"/>
         <polyline points="1308,136 1317,140 1308,144" stroke-width="1.2" opacity="0.24"/>
-        <path d="M 1064 140
+        <path id="hero-sine" d="M 1064 140
                  C 1078 84,  1106 84,  1120 140
                  C 1134 196, 1162 196, 1176 140
                  C 1190 84,  1218 84,  1232 140
                  C 1246 196, 1274 196, 1288 140"
-              stroke-width="2.0" opacity="0.22"/>
-      </g>
-      <!-- Floating math symbols -->
-      <g fill="#1B4A8A" font-family="Georgia, 'Times New Roman', serif">
-        <text x="348" y="88"  font-size="52" opacity="0.10">∑</text>
-        <text x="548" y="218" font-size="42" opacity="0.09">∫</text>
-        <text x="692" y="76"  font-size="22" opacity="0.085">lim</text>
-        <text x="700" y="97"  font-size="13" opacity="0.075">x→∞</text>
-        <text x="808" y="240" font-size="38" opacity="0.10">π</text>
-        <text x="930" y="100" font-size="19" opacity="0.075">f(x) = ax² + bx + c</text>
-        <text x="988" y="212" font-size="46" opacity="0.09">Δ</text>
-        <text x="455" y="198" font-size="16" opacity="0.070">aₙ = a₁ + (n−1)d</text>
-        <text x="610" y="142" font-size="15" opacity="0.065">∀ε&gt;0 ∃δ&gt;0</text>
+              stroke-width="2.0"/>
       </g>
       <!-- Circle + tangent (cx=1344=48×28, cy=224=8×28, r=56=2×28) -->
       <g fill="none" stroke="#1B4A8A" opacity="0.20">
@@ -101,6 +101,18 @@
         <circle cx="1288" cy="224" r="3" fill="#1B4A8A" opacity="1"/>
       </g>
     </svg>
+
+    <!-- Floating math symbols as HTML for GPU-composited transform -->
+    <div class="hero-syms" aria-hidden="true">
+      <span class="hero-sym" style="left:24%;top:22%;font-size:3.4rem;opacity:0.10">∑</span>
+      <span class="hero-sym" style="left:38%;top:66%;font-size:2.8rem;opacity:0.09">∫</span>
+      <span class="hero-sym hero-sym--stack" style="left:48%;top:18%;opacity:0.085">lim<small>x→∞</small></span>
+      <span class="hero-sym" style="left:56%;top:74%;font-size:2.4rem;opacity:0.10">π</span>
+      <span class="hero-sym hero-sym--formula" style="left:65%;top:28%;opacity:0.075">f(x) = ax² + bx + c</span>
+      <span class="hero-sym" style="left:68.5%;top:68%;font-size:3rem;opacity:0.09">Δ</span>
+      <span class="hero-sym hero-sym--formula" style="left:31.5%;top:62%;opacity:0.070">aₙ = a₁ + (n−1)d</span>
+      <span class="hero-sym hero-sym--formula" style="left:42%;top:44%;opacity:0.065">∀ε&gt;0 ∃δ&gt;0</span>
+    </div>
 
     <div class="container">
       <h1 class="hero__title">
@@ -232,9 +244,11 @@
 
   <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
 
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
