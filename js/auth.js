@@ -73,7 +73,7 @@
 (function () {
   'use strict';
 
-  const SUPABASE_URL  = 'https://tffipivehrzmklvcyhe.supabase.co';
+  const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
   let sb          = null;
@@ -483,13 +483,13 @@
   }
 
   function _roError(msg) {
+    console.error('[Auth] Supabase error:', msg);
     if (!msg) return 'A apărut o eroare. Încearcă din nou.';
     if (msg.includes('Invalid login credentials'))  return 'Email sau parolă incorectă.';
     if (msg.includes('Email not confirmed'))        return 'Emailul nu a fost confirmat. Verifică inbox-ul.';
     if (msg.includes('User already registered'))    return 'Există deja un cont cu acest email.';
     if (msg.includes('Password should be'))         return 'Parola trebuie să aibă cel puțin 6 caractere.';
     if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit')) return 'Prea multe încercări. Încearcă mai târziu.';
-    if (msg.includes('Failed to fetch') || msg.includes('network')) return 'Eroare de rețea. Verifică conexiunea.';
     return msg;
   }
 
