@@ -31,6 +31,38 @@
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
+  /* ---- Confirmation modal ---- */
+  function _showConfirm({ icon, title, body, confirmLabel, cancelLabel, onConfirm }) {
+    const ov = document.createElement('div');
+    ov.className = 'prof-modal-overlay';
+    ov.innerHTML = `
+      <div class="prof-modal" role="dialog" aria-modal="true">
+        <div class="prof-modal__icon">${icon}</div>
+        <h3 class="prof-modal__title">${title}</h3>
+        <p class="prof-modal__body">${body}</p>
+        <div class="prof-modal__actions">
+          <button class="btn btn--surface" id="profModalCancel">${cancelLabel}</button>
+          <button class="btn btn--danger" id="profModalConfirm">${confirmLabel}</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
+
+    const close = () => {
+      ov.classList.remove('prof-modal-overlay--in');
+      setTimeout(() => ov.remove(), 200);
+    };
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    document.getElementById('profModalCancel')?.addEventListener('click', close);
+    document.addEventListener('keydown', function onEsc(e) {
+      if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); }
+    });
+    document.getElementById('profModalConfirm')?.addEventListener('click', () => {
+      close();
+      onConfirm();
+    });
+  }
+
   function _gradeColor(g) {
     if (g >= 9) return 'var(--green)';
     if (g >= 7) return 'var(--solved)';
@@ -109,7 +141,7 @@
         <div class="prof-hist-empty">
           <span style="font-size:2rem">📋</span>
           <p>Nicio simulare finalizată încă.</p>
-          <a class="btn btn--primary btn--sm" href="bac.html" style="margin-top:12px">Pornește prima simulare →</a>
+          <a class="btn btn--primary btn--sm" href="bac.html" style="margin-top:12px">Pornește prima simulare</a>
         </div>`;
     } else {
       const rows = hist.map(entry => {
@@ -214,7 +246,7 @@
               </div>
             </div>
             <a class="btn btn--primary btn--sm prof-token-btn" href="bac.html?new=1">
-              Pornește simulare BAC →
+              Pornește simulare BAC
             </a>
           </div>
         </div>
@@ -290,10 +322,20 @@
     content.style.display  = '';
 
     /* ---- Event bindings ---- */
-    document.getElementById('btnLogout')?.addEventListener('click', async () => {
-      await sb.auth.signOut();
-      window.location.href = 'index.html';
-    });
+    const _doLogout = () => {
+      _showConfirm({
+        icon: '🔓',
+        title: 'Deconectare',
+        body: 'Ești sigur că vrei să te deconectezi din contul tău?',
+        confirmLabel: 'Da, deconectează-mă',
+        cancelLabel: 'Anulează',
+        onConfirm: async () => {
+          try { await sb.auth.signOut(); } catch (e) { console.error('[Profile] signOut:', e); }
+          window.location.href = 'index.html';
+        }
+      });
+    };
+    document.getElementById('btnLogout')?.addEventListener('click', _doLogout);
 
     document.getElementById('btnClearHist')?.addEventListener('click', () => {
       if (!confirm('Ștergi tot istoricul de simulări BAC?')) return;

@@ -284,19 +284,31 @@
   }
 
   window.startExam = function () {
-    const tokens = BM.getTokens();
+    const tokens    = BM.getTokens();
+    const loggedIn  = !!window.BMAuth?.user;
 
     if (tokens <= 0) {
-      showTokenDialog({
-        icon: '🔒',
-        title: 'Nu mai ai ExamTokenuri',
-        body: `Ai folosit toate cele <strong>${BM.TOKEN_DEFAULT}</strong> simulări gratuite.<br>
-               Achiziționează ExamTokenuri pentru a continua să exersezi.`,
-        confirmLabel: 'Achiziționează tokenuri',
-        confirmClass: 'btn--primary',
-        onConfirm: () => BM.toast('Funcționalitate disponibilă în curând.', 'info'),
-        cancelLabel: 'Închide'
-      });
+      if (!loggedIn) {
+        showTokenDialog({
+          icon: '🔑',
+          title: 'Cont necesar',
+          body: `Creează un cont gratuit și primești <strong>3 ExamTokenuri</strong> pentru simulări BAC.`,
+          confirmLabel: 'Conectează-te',
+          confirmClass: 'btn--primary',
+          onConfirm: () => { window.location.href = 'auth.html?from=bac.html'; },
+          cancelLabel: 'Anulează'
+        });
+      } else {
+        showTokenDialog({
+          icon: '🔒',
+          title: 'Nu mai ai ExamTokenuri',
+          body: `Ai folosit toate simulările disponibile.<br>Achiziționează ExamTokenuri pentru a continua să exersezi.`,
+          confirmLabel: 'Achiziționează tokenuri',
+          confirmClass: 'btn--primary',
+          onConfirm: () => BM.toast('Funcționalitate disponibilă în curând.', 'info'),
+          cancelLabel: 'Închide'
+        });
+      }
       return;
     }
 

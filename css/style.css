@@ -5292,3 +5292,139 @@ img { display: block; max-width: 100%; }
 
 [data-theme="dark"] .prof-hist-card { background: #1c1c1c; }
 [data-theme="dark"] .prof-token-dot--empty { border-color: #444; }
+
+/* ============================================================
+   PROFILE PAGE — Enhanced button styles & header sizing
+   ============================================================ */
+
+/* Bigger header text */
+.prof-name  { font-size: 1.65rem; letter-spacing: -0.4px; }
+.prof-email { font-size: 0.93rem; margin-bottom: 12px; }
+.prof-badge { padding: 4px 12px; font-size: 0.75rem; }
+.prof-meta-item { font-size: 0.84rem; }
+
+/* Modern profile buttons — gradient + lift + glow */
+.prof-card .btn--primary,
+.prof-hist-empty .btn--primary {
+  background: linear-gradient(135deg, #1e3f72 0%, var(--accent) 60%, var(--accent-2) 100%);
+  border-color: transparent;
+  color: #fff;
+  letter-spacing: 0.25px;
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.22s ease,
+              background 0.22s ease;
+}
+.prof-card .btn--primary::after,
+.prof-hist-empty .btn--primary::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(255,255,255,0.12) 0%, transparent 60%);
+  opacity: 0;
+  transition: opacity 0.22s ease;
+  pointer-events: none;
+}
+.prof-card .btn--primary:hover,
+.prof-hist-empty .btn--primary:hover {
+  transform: translateY(-3px) scale(1.01);
+  box-shadow: 0 10px 28px rgba(58, 107, 173, 0.38);
+  background: linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 100%);
+}
+.prof-card .btn--primary:hover::after,
+.prof-hist-empty .btn--primary:hover::after { opacity: 1; }
+.prof-card .btn--primary:active,
+.prof-hist-empty .btn--primary:active {
+  transform: translateY(-1px) scale(1.00);
+  box-shadow: 0 4px 12px rgba(58, 107, 173, 0.25);
+  transition-duration: 0.08s;
+}
+
+/* Danger buttons in profile — lift + glow */
+.prof-card .btn--danger-outline,
+.prof-hist-footer .btn--danger-outline {
+  transition: transform 0.2s cubic-bezier(0.34,1.56,0.64,1),
+              box-shadow 0.2s ease,
+              background 0.2s ease,
+              color 0.2s ease,
+              border-color 0.2s ease;
+}
+.prof-card .btn--danger-outline:hover,
+.prof-hist-footer .btn--danger-outline:hover {
+  background: var(--red);
+  color: #fff;
+  border-color: var(--red);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 18px rgba(220, 38, 38, 0.28);
+}
+.prof-card .btn--danger-outline:active,
+.prof-hist-footer .btn--danger-outline:active {
+  transform: translateY(0);
+  box-shadow: none;
+  transition-duration: 0.08s;
+}
+
+/* ---- Profile confirmation modal ---- */
+.prof-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9000;
+  padding: 24px;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+.prof-modal-overlay--in { opacity: 1; }
+
+.prof-modal {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 36px 32px 28px;
+  max-width: 400px;
+  width: 100%;
+  text-align: center;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.18);
+  transform: scale(0.92) translateY(8px);
+  transition: transform 0.22s cubic-bezier(0.34,1.56,0.64,1);
+}
+.prof-modal-overlay--in .prof-modal {
+  transform: scale(1) translateY(0);
+}
+
+.prof-modal__icon {
+  font-size: 2.4rem;
+  margin-bottom: 14px;
+  line-height: 1;
+}
+.prof-modal__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+  margin-bottom: 10px;
+}
+.prof-modal__body {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.prof-modal__actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.prof-modal__actions .btn {
+  flex: 1;
+  justify-content: center;
+  padding: 10px 16px;
+  font-size: 0.86rem;
+}
+
+[data-theme="dark"] .prof-modal { background: #1e1e1e; border-color: #333; }

@@ -148,7 +148,7 @@ BM.gotoCategory = function(categoryId, subcategoryId, exerciseId) {
 
 /* ---- ExamToken system ---- */
 BM.TOKEN_KEY     = 'bac_exam_tokens';
-BM.TOKEN_DEFAULT = 3;
+BM.TOKEN_DEFAULT = 0;
 
 BM.getTokens = function () {
   const v = localStorage.getItem(BM.TOKEN_KEY);

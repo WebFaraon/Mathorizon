@@ -24,7 +24,10 @@
       currentUser = session?.user ?? null;
       _updateProfileBtn();
       if (event === 'SIGNED_IN')  await _syncTokens();
-      if (event === 'SIGNED_OUT') BM.refreshTokenWidgets();
+      if (event === 'SIGNED_OUT') {
+        localStorage.setItem(BM.TOKEN_KEY, '0');
+        BM.refreshTokenWidgets();
+      }
     });
 
     const { data: { session } } = await sb.auth.getSession();
