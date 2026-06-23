@@ -5150,3 +5150,145 @@ img { display: block; max-width: 100%; }
 [data-theme="dark"] .auth-pg-right { background: var(--bg); }
 [data-theme="dark"] .prof-card { background: #1c1c1c; }
 [data-theme="dark"] .prof-header { background: #1c1c1c; }
+
+/* ---- Profile header meta row ---- */
+.prof-header-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 10px;
+}
+.prof-meta-item { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
+.prof-meta-sep  { font-size: 0.8rem; color: var(--border); }
+
+/* ---- Avatar upload overlay ---- */
+.prof-avatar-wrap {
+  position: relative;
+  width: 88px;
+  height: 88px;
+  flex-shrink: 0;
+}
+.prof-avatar-wrap .prof-avatar-lg {
+  width: 100%;
+  height: 100%;
+}
+.prof-avatar-edit {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  cursor: pointer;
+  transition: opacity 0.18s;
+}
+.prof-avatar-wrap:hover .prof-avatar-edit { opacity: 1; }
+.prof-avatar-edit svg { color: #fff; pointer-events: none; }
+
+/* ---- Token dots bar ---- */
+.prof-token-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.prof-token-dot {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  flex-shrink: 0;
+  transition: transform 0.15s;
+}
+.prof-token-dot--filled { background: var(--accent); }
+.prof-token-dot--low    { background: var(--yellow);  border-color: var(--yellow); }
+.prof-token-dot--empty  { background: transparent;    border-color: var(--border); }
+.prof-token-extra       { font-size: 0.82rem; font-weight: 700; color: var(--accent); margin-left: 2px; }
+
+/* ---- Token card layout ---- */
+.prof-token-main {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+.prof-token-info { display: flex; flex-direction: column; gap: 3px; }
+.prof-token-lbl  { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.prof-token-hint { font-size: 0.8rem; color: var(--text-muted); line-height: 1.4; margin-bottom: 0; }
+.prof-token-btn  { width: 100%; justify-content: center; }
+
+/* ---- BAC History card ---- */
+.prof-hist-card {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-top: 16px;
+  animation: card-up-in 0.32s 0.14s cubic-bezier(0.22,1,0.36,1) both;
+}
+
+.prof-hist-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.prof-hist-table thead tr {
+  background: var(--surface);
+}
+.prof-hist-table th {
+  padding: 10px 20px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-secondary);
+  text-align: left;
+  border-bottom: 1px solid var(--border);
+}
+.prof-hist-table th:last-child { text-align: right; }
+.prof-hist-table td {
+  padding: 11px 20px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  border-bottom: 1px solid var(--border);
+}
+.prof-hist-table tbody tr:last-child td { border-bottom: none; }
+.prof-hist-table td:last-child { text-align: right; }
+.prof-hist-grade {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.3px;
+}
+.prof-hist-footer {
+  display: flex;
+  justify-content: flex-end;
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+.prof-hist-empty {
+  padding: 40px 20px;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.6;
+}
+
+/* ---- Responsive updates ---- */
+@media (max-width: 768px) {
+  .prof-avatar-wrap { width: 72px; height: 72px; }
+  .prof-header-meta { margin-top: 8px; }
+  .prof-hist-table th,
+  .prof-hist-table td { padding: 9px 12px; font-size: 0.78rem; }
+}
+
+[data-theme="dark"] .prof-hist-card { background: #1c1c1c; }
+[data-theme="dark"] .prof-token-dot--empty { border-color: #444; }

@@ -5,6 +5,9 @@
 (function () {
   'use strict';
 
+  const AVATAR_LS_KEY = 'prof_avatar_v1';
+  const HIST_KEY      = 'bac-history';
+
   function _waitForAuth() {
     return new Promise(resolve => {
       if (window.BMAuth?.supabase) return resolve(window.BMAuth);
@@ -14,10 +17,10 @@
 
   function _roError(msg) {
     if (!msg) return 'A apărut o eroare.';
-    if (msg.includes('Password should be'))          return 'Parola trebuie să aibă cel puțin 6 caractere.';
-    if (msg.includes('same_password'))               return 'Noua parolă trebuie să fie diferită de cea actuală.';
-    if (msg.includes('Invalid login credentials'))   return 'Parola curentă este incorectă.';
-    if (msg.includes('rate limit'))                  return 'Prea multe încercări. Încearcă mai târziu.';
+    if (msg.includes('Password should be'))        return 'Parola trebuie să aibă cel puțin 6 caractere.';
+    if (msg.includes('same_password'))             return 'Noua parolă trebuie să fie diferită de cea actuală.';
+    if (msg.includes('Invalid login credentials')) return 'Parola curentă este incorectă.';
+    if (msg.includes('rate limit'))                return 'Prea multe încercări. Încearcă mai târziu.';
     return msg;
   }
 
@@ -26,63 +29,141 @@
     return new Date(iso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
   }
 
+  function pad(n) { return String(n).padStart(2, '0'); }
+
+  function _gradeColor(g) {
+    if (g >= 9) return 'var(--green)';
+    if (g >= 7) return 'var(--solved)';
+    if (g >= 5) return 'var(--yellow)';
+    return 'var(--red)';
+  }
+
+  function _loadHistory() {
+    try { return JSON.parse(localStorage.getItem(HIST_KEY) || '[]'); }
+    catch { return []; }
+  }
+
+  /* Compress image to data URL (max 200px, JPEG 0.85) */
+  function _compressImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const MAX = 200;
+          let w = img.width, h = img.height;
+          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
+          else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+          resolve(canvas.toDataURL('image/jpeg', 0.85));
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
   /* ---- Render profile ---- */
   async function renderProfile(user, sb) {
     const content  = document.getElementById('profileContent');
     const skeleton = document.getElementById('profileSkeleton');
     if (!content || !skeleton) return;
 
-    const name      = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
-    const email     = user.email || '';
-    const avatarUrl = user.user_metadata?.avatar_url || null;
+    const name        = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
+    const email       = user.email || '';
+    const googleAv    = user.user_metadata?.avatar_url || null;
+    const localAv     = localStorage.getItem(AVATAR_LS_KEY);
+    const avatarUrl   = localAv || googleAv;
     const memberSince = _formatDate(user.created_at);
-    const tokens    = parseInt(localStorage.getItem('bac_exam_tokens') ?? '3', 10);
-    const verified  = user.email_confirmed_at ? true : false;
+    const tokens      = parseInt(localStorage.getItem('bac_exam_tokens') ?? '3', 10);
+    const verified    = !!user.email_confirmed_at;
+    const isGoogle    = user.app_metadata?.provider === 'google';
+    const hist        = _loadHistory();
 
-    /* initials */
-    const parts = name.split(/\s+/).filter(Boolean);
+    const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : name.slice(0, 2).toUpperCase() || '?';
 
+    /* Token dots visualization (max 10) */
+    const MAX_DOTS = 10;
+    let tokenDots = '';
+    for (let i = 0; i < MAX_DOTS; i++) {
+      if (i < tokens) {
+        tokenDots += `<span class="prof-token-dot ${tokens <= 1 ? 'prof-token-dot--low' : 'prof-token-dot--filled'}"></span>`;
+      } else {
+        tokenDots += `<span class="prof-token-dot prof-token-dot--empty"></span>`;
+      }
+    }
+    const tokenExtra = tokens > MAX_DOTS
+      ? `<span class="prof-token-extra">+${tokens - MAX_DOTS}</span>` : '';
+
+    /* BAC history rows */
+    let histContent;
+    if (!hist.length) {
+      histContent = `
+        <div class="prof-hist-empty">
+          <span style="font-size:2rem">📋</span>
+          <p>Nicio simulare finalizată încă.</p>
+          <a class="btn btn--primary btn--sm" href="bac.html" style="margin-top:12px">Pornește prima simulare →</a>
+        </div>`;
+    } else {
+      const rows = hist.map(entry => {
+        const d  = new Date(entry.ts).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' });
+        const dH = Math.floor(entry.durationSec / 3600);
+        const dM = Math.floor((entry.durationSec % 3600) / 60);
+        return `<tr>
+          <td>${d}</td>
+          <td>${entry.earned}/${entry.maxPts}p</td>
+          <td>${dH}h ${pad(dM)}m</td>
+          <td><span class="prof-hist-grade" style="color:${_gradeColor(entry.grade)}">${entry.grade.toFixed(2)}</span></td>
+        </tr>`;
+      }).join('');
+      histContent = `
+        <table class="prof-hist-table">
+          <thead><tr><th>Data</th><th>Puncte</th><th>Timp</th><th>Notă</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="prof-hist-footer">
+          <button class="btn btn--sm btn--danger-outline" id="btnClearHist">Șterge tot istoricul</button>
+        </div>`;
+    }
+
     content.innerHTML = `
       <!-- PROFILE HEADER -->
       <div class="prof-header">
-        <div class="prof-avatar-lg">
-          ${avatarUrl
-            ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
-            : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+        <div class="prof-avatar-wrap">
+          <div class="prof-avatar-lg">
+            ${avatarUrl
+              ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
+              : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+          </div>
+          <label class="prof-avatar-edit" title="Schimbă poza de profil">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <input type="file" id="avatarInput" accept="image/*" style="display:none">
+          </label>
         </div>
         <div class="prof-header-info">
           <h1 class="prof-name">${BM.esc(name)}</h1>
           <p class="prof-email">${BM.esc(email)}</p>
           <div class="prof-badges">
             <span class="prof-badge prof-badge--blue">Elev</span>
-            ${verified ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>' : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>'}
+            ${verified
+              ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>'
+              : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>'}
+            ${isGoogle ? '<span class="prof-badge prof-badge--blue">🌐 Google</span>' : ''}
           </div>
-        </div>
-        <button class="btn btn--danger-outline prof-logout-btn" id="profLogout">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-          Deconectare
-        </button>
-      </div>
-
-      <!-- STATS ROW -->
-      <div class="prof-stats">
-        <div class="prof-stat">
-          <div class="prof-stat__val">${tokens}</div>
-          <div class="prof-stat__lbl">ExamTokenuri</div>
-          <div class="prof-stat__sub">disponibile</div>
-        </div>
-        <div class="prof-stat">
-          <div class="prof-stat__val">${memberSince}</div>
-          <div class="prof-stat__lbl">Membru din</div>
-          <div class="prof-stat__sub">&nbsp;</div>
-        </div>
-        <div class="prof-stat" id="profExamsStatBox">
-          <div class="prof-stat__val" id="profExamCount">—</div>
-          <div class="prof-stat__lbl">Simulări BAC</div>
-          <div class="prof-stat__sub">efectuate</div>
+          <div class="prof-header-meta">
+            <span class="prof-meta-item">📅 Membru din ${memberSince}</span>
+            <span class="prof-meta-sep">·</span>
+            <span class="prof-meta-item">🎟 ${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}</span>
+            <span class="prof-meta-sep">·</span>
+            <span class="prof-meta-item">📋 ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
+          </div>
         </div>
       </div>
 
@@ -110,7 +191,7 @@
             </div>
             <div class="prof-field-row">
               <span class="prof-field-lbl">Provider</span>
-              <span class="prof-field-val">${user.app_metadata?.provider === 'google' ? '🌐 Google' : '📧 Email / Parolă'}</span>
+              <span class="prof-field-val">${isGoogle ? '🌐 Google' : '📧 Email / Parolă'}</span>
             </div>
           </div>
         </div>
@@ -122,53 +203,51 @@
             <span class="prof-card__title">ExamTokenuri</span>
           </div>
           <div class="prof-card__body">
-            <div class="prof-token-display">
+            <div class="prof-token-bar">${tokenDots}${tokenExtra}</div>
+            <div class="prof-token-main">
               <span class="prof-token-count ${tokens === 0 ? 'prof-token-count--empty' : tokens === 1 ? 'prof-token-count--low' : ''}">${tokens}</span>
-              <span class="prof-token-lbl">token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}</span>
+              <div class="prof-token-info">
+                <span class="prof-token-lbl">token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}</span>
+                <span class="prof-token-hint">
+                  ${tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? '⚠ Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
+                </span>
+              </div>
             </div>
-            <p class="prof-token-hint">
-              ${tokens === 0
-                ? 'Ai folosit toate tokenurile. Achiziționează mai multe pentru a continua simulările BAC.'
-                : tokens === 1
-                  ? 'Ai rămas cu un singur token. Folosește-l cu grijă!'
-                  : `Poți efectua ${tokens} simulări BAC cu tokenurile tale.`}
-            </p>
-            <a class="btn btn--primary btn--sm" href="bac.html?new=1">
-              Începe simulare BAC →
+            <a class="btn btn--primary btn--sm prof-token-btn" href="bac.html?new=1">
+              Pornește simulare BAC →
             </a>
           </div>
         </div>
 
         <!-- Card: Schimbă parola -->
-        <div class="prof-card" id="cardPassword">
+        <div class="prof-card">
           <div class="prof-card__head">
             <span class="prof-card__icon">🔐</span>
             <span class="prof-card__title">Schimbă parola</span>
           </div>
           <div class="prof-card__body">
-            ${user.app_metadata?.provider === 'google'
+            ${isGoogle
               ? '<p class="prof-hint-muted">Contul tău folosește autentificarea Google. Parola se gestionează din contul Google.</p>'
-              : `
-              <div id="pwMsg" class="auth-msg" style="display:none"></div>
-              <form id="fPassword" novalidate>
-                <div class="auth-field" style="margin-bottom:12px">
-                  <label class="auth-label" for="pwNew">Parolă nouă</label>
-                  <div class="auth-input-wrap">
-                    <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
-                    <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">👁</button>
-                  </div>
-                </div>
-                <div class="auth-field" style="margin-bottom:16px">
-                  <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
-                  <div class="auth-input-wrap">
-                    <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
-                    <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">👁</button>
-                  </div>
-                </div>
-                <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
-                  <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
-                </button>
-              </form>`}
+              : `<div id="pwMsg" class="auth-msg" style="display:none"></div>
+                 <form id="fPassword" novalidate>
+                   <div class="auth-field" style="margin-bottom:12px">
+                     <label class="auth-label" for="pwNew">Parolă nouă</label>
+                     <div class="auth-input-wrap">
+                       <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
+                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">👁</button>
+                     </div>
+                   </div>
+                   <div class="auth-field" style="margin-bottom:16px">
+                     <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
+                     <div class="auth-input-wrap">
+                       <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
+                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">👁</button>
+                     </div>
+                   </div>
+                   <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
+                     <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
+                   </button>
+                 </form>`}
           </div>
         </div>
 
@@ -187,7 +266,7 @@
               <span class="prof-field-lbl">Ultima autentificare</span>
               <span class="prof-field-val">${_formatDate(user.last_sign_in_at)}</span>
             </div>
-            <button class="btn btn--danger-outline btn--sm" id="btnLogout2" style="margin-top:16px;width:100%">
+            <button class="btn btn--danger-outline btn--sm" id="btnLogout" style="margin-top:16px;width:100%">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
               Deconectare
             </button>
@@ -195,23 +274,52 @@
         </div>
 
       </div>
+
+      <!-- BAC HISTORY -->
+      <div class="prof-hist-card">
+        <div class="prof-card__head">
+          <span class="prof-card__icon">📋</span>
+          <span class="prof-card__title">Simulări BAC anterioare</span>
+          ${hist.length ? `<span class="bac-hist__toggle-count" style="margin-left:auto;margin-right:0">${hist.length}</span>` : ''}
+        </div>
+        <div id="profHistBody">${histContent}</div>
+      </div>
     `;
 
     skeleton.style.display = 'none';
     content.style.display  = '';
 
     /* ---- Event bindings ---- */
-    const doLogout = async () => {
+    document.getElementById('btnLogout')?.addEventListener('click', async () => {
       await sb.auth.signOut();
       window.location.href = 'index.html';
-    };
-    document.getElementById('profLogout')?.addEventListener('click', doLogout);
-    document.getElementById('btnLogout2')?.addEventListener('click', doLogout);
+    });
+
+    document.getElementById('btnClearHist')?.addEventListener('click', () => {
+      if (!confirm('Ștergi tot istoricul de simulări BAC?')) return;
+      localStorage.removeItem(HIST_KEY);
+      window.location.reload();
+    });
+
+    /* Avatar upload */
+    document.getElementById('avatarInput')?.addEventListener('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      try {
+        const dataUrl = await _compressImage(file);
+        localStorage.setItem(AVATAR_LS_KEY, dataUrl);
+        const wrap = document.querySelector('.prof-avatar-lg');
+        if (wrap) wrap.innerHTML = `<img src="${dataUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`;
+        const navBtn = document.getElementById('navProfileBtn');
+        if (navBtn) navBtn.innerHTML = `<img src="${dataUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
+        BM.toast('Poza de profil actualizată!', 'success');
+      } catch { BM.toast('Nu am putut procesa imaginea.', 'error'); }
+    });
 
     /* Password form */
     const fPw = document.getElementById('fPassword');
     if (fPw) {
-      fPw.onsubmit = async (e) => {
+      fPw.onsubmit = async e => {
         e.preventDefault();
         const pwMsg  = document.getElementById('pwMsg');
         const newPw  = document.getElementById('pwNew')?.value;
@@ -242,15 +350,6 @@
       };
     }
 
-    /* Load exam count from localStorage */
-    try {
-      const histKey = 'bac_history';
-      const hist = JSON.parse(localStorage.getItem(histKey) || '[]');
-      const el = document.getElementById('profExamCount');
-      if (el) el.textContent = hist.length || '0';
-    } catch (_) {}
-
-    /* Password toggle (shared with auth-page) */
     window.togglePw = function(btn) {
       const inp = document.getElementById(btn.dataset.target);
       if (!inp) return;

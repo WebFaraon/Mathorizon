@@ -78,7 +78,9 @@
   }
 
   function _avatarUrl() {
-    return currentUser?.user_metadata?.avatar_url ?? null;
+    return localStorage.getItem('prof_avatar_v1')
+        || currentUser?.user_metadata?.avatar_url
+        || null;
   }
 
   function _initials() {
