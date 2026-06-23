@@ -334,20 +334,14 @@
         body: 'Ești sigur că vrei să te deconectezi din contul tău?',
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
-        onConfirm: async () => {
-          /* 1. Graceful signout via Supabase SDK */
-          try {
-            const client = window.BMAuth?.supabase || sb;
-            if (client) await client.auth.signOut({ scope: 'local' });
-          } catch (e) { console.warn('[Profile] signOut SDK error:', e); }
-
-          /* 2. Belt-and-suspenders: clear Supabase session from localStorage */
-          Object.keys(localStorage).forEach(k => {
-            if (k.startsWith('sb-') || k.includes('supabase')) localStorage.removeItem(k);
+        onConfirm: () => {
+          /* Clear Supabase session keys directly — bypasses SDK */
+          [localStorage, sessionStorage].forEach(store => {
+            Object.keys(store).forEach(k => {
+              if (k.startsWith('sb-') || k.startsWith('supabase-')) store.removeItem(k);
+            });
           });
           localStorage.setItem(BM.TOKEN_KEY, '0');
-
-          /* 3. Navigate away */
           window.location.replace('index.html');
         }
       });
