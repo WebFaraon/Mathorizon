@@ -21,6 +21,7 @@
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
 
     sb.auth.onAuthStateChange(async (event, session) => {
+      console.log('[BMAuth] onAuthStateChange:', event, !!session?.user);
       currentUser = session?.user ?? null;
       _updateProfileBtn();
       if (event === 'SIGNED_IN') {
@@ -29,6 +30,7 @@
         document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
       }
       if (event === 'SIGNED_OUT') {
+        console.warn('[BMAuth] SIGNED_OUT — ștergem tokenuri locale');
         localStorage.setItem(BM.TOKEN_KEY, '0');
         localStorage.removeItem('bm_solved');
         localStorage.removeItem('bm_streak');
@@ -37,6 +39,7 @@
     });
 
     const { data: { session } } = await sb.auth.getSession();
+    console.log('[BMAuth] getSession:', !!session?.user);
     currentUser = session?.user ?? null;
     _updateProfileBtn();
     if (currentUser) {
@@ -105,30 +108,36 @@
      ============================================================ */
   async function _syncTokens() {
     if (!sb || !currentUser) return;
-    const { data, error } = await sb
-      .from('exam_tokens').select('count')
-      .eq('user_id', currentUser.id).maybeSingle();
+    try {
+      const { data, error } = await sb
+        .from('exam_tokens').select('count')
+        .eq('user_id', currentUser.id).maybeSingle();
 
-    if (data != null) {
-      /* Rând găsit — valoarea din DB e sursa de adevăr */
-      localStorage.setItem(BM.TOKEN_KEY, String(data.count));
-      BM.refreshTokenWidgets();
-      return;
-    }
+      console.log('[BMAuth] syncTokens →', { data, error });
 
-    if (error) {
-      /* Eroare DB (tabela lipsă, RLS blocat etc.) — fallback: 3 tokenuri */
+      if (data != null) {
+        localStorage.setItem(BM.TOKEN_KEY, String(data.count));
+        BM.refreshTokenWidgets();
+        return;
+      }
+      if (error) {
+        console.error('[BMAuth] syncTokens DB error — fallback 3:', error.message);
+        localStorage.setItem(BM.TOKEN_KEY, '3');
+        BM.refreshTokenWidgets();
+        return;
+      }
+      /* Niciun rând — utilizator nou, inserăm 3 tokenuri */
+      const { error: insErr } = await sb
+        .from('exam_tokens')
+        .insert({ user_id: currentUser.id, count: 3 });
+      if (insErr) console.error('[BMAuth] syncTokens insert error:', insErr.message);
       localStorage.setItem(BM.TOKEN_KEY, '3');
       BM.refreshTokenWidgets();
-      return;
+    } catch (e) {
+      console.error('[BMAuth] syncTokens exception:', e);
+      localStorage.setItem(BM.TOKEN_KEY, '3');
+      BM.refreshTokenWidgets();
     }
-
-    /* Niciun rând și nicio eroare — utilizator nou, acordăm 3 tokenuri */
-    await sb.from('exam_tokens')
-      .insert({ user_id: currentUser.id, count: 3 });
-    /* Indiferent dacă insert-ul reușește sau nu, setăm 3 */
-    localStorage.setItem(BM.TOKEN_KEY, '3');
-    BM.refreshTokenWidgets();
   }
 
   /* ============================================================
@@ -137,65 +146,66 @@
   async function _syncProgress() {
     if (!sb || !currentUser) return;
     const uid = currentUser.id;
+    try {
+      /* ---- Exerciții rezolvate ---- */
+      const { data: dbSolved, error: solvedErr } = await sb
+        .from('user_solved')
+        .select('exercise_id, solved_at')
+        .eq('user_id', uid);
 
-    /* ---- Exerciții rezolvate ---- */
-    const { data: dbSolved } = await sb
-      .from('user_solved')
-      .select('exercise_id, solved_at')
-      .eq('user_id', uid);
+      if (solvedErr) {
+        console.error('[BMAuth] syncProgress user_solved error:', solvedErr.message);
+      } else if (dbSolved) {
+        const localSolved = BM.Storage.getSolved();
+        const dbMap = Object.fromEntries(dbSolved.map(r => [r.exercise_id, r.solved_at]));
 
-    if (dbSolved) {
-      const localSolved = BM.Storage.getSolved();
-      const dbMap = Object.fromEntries(dbSolved.map(r => [r.exercise_id, r.solved_at]));
-
-      /* Adăugăm în local exercițiile din DB care lipsesc */
-      let changed = false;
-      dbSolved.forEach(r => {
-        if (!localSolved[r.exercise_id]) {
-          localSolved[r.exercise_id] = r.solved_at;
-          changed = true;
+        let changed = false;
+        dbSolved.forEach(r => {
+          if (!localSolved[r.exercise_id]) { localSolved[r.exercise_id] = r.solved_at; changed = true; }
+        });
+        if (changed) {
+          try { localStorage.setItem('bm_solved', JSON.stringify(localSolved)); } catch {}
         }
-      });
-      if (changed) {
-        try { localStorage.setItem('bm_solved', JSON.stringify(localSolved)); } catch {}
+
+        const localOnly = Object.entries(localSolved)
+          .filter(([id]) => !dbMap[id])
+          .map(([exercise_id, solved_at]) => ({ user_id: uid, exercise_id, solved_at }));
+        if (localOnly.length > 0) {
+          const { error: upErr } = await sb.from('user_solved')
+            .upsert(localOnly, { onConflict: 'user_id,exercise_id' });
+          if (upErr) console.error('[BMAuth] syncProgress upsert solved error:', upErr.message);
+        }
       }
 
-      /* Urcăm în DB exercițiile locale care lipsesc */
-      const localOnly = Object.entries(localSolved)
-        .filter(([id]) => !dbMap[id])
-        .map(([exercise_id, solved_at]) => ({ user_id: uid, exercise_id, solved_at }));
-      if (localOnly.length > 0) {
-        await sb.from('user_solved')
-          .upsert(localOnly, { onConflict: 'user_id,exercise_id' });
-      }
-    }
+      /* ---- Streak ---- */
+      const { data: dbStreak, error: streakErr } = await sb
+        .from('user_streak')
+        .select('count, last_date')
+        .eq('user_id', uid)
+        .maybeSingle();
 
-    /* ---- Streak ---- */
-    const { data: dbStreak } = await sb
-      .from('user_streak')
-      .select('count, last_date')
-      .eq('user_id', uid)
-      .maybeSingle();
-
-    const localStreak = BM.Storage.getStreak();
-
-    if (dbStreak) {
-      const dbTs    = new Date(dbStreak.last_date  || '1970-01-01').getTime();
-      const localTs = new Date(localStreak.lastDate || '1970-01-01').getTime();
-      if (dbTs > localTs || (dbTs === localTs && dbStreak.count > localStreak.count)) {
-        /* DB-ul e mai recent — actualizăm localul */
-        try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: dbStreak.last_date })); } catch {}
+      if (streakErr) {
+        console.error('[BMAuth] syncProgress user_streak error:', streakErr.message);
       } else {
-        /* Localul e mai recent — urcăm în DB */
-        await sb.from('user_streak')
-          .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
-                  { onConflict: 'user_id' });
+        const localStreak = BM.Storage.getStreak();
+        if (dbStreak) {
+          const dbTs    = new Date(dbStreak.last_date  || '1970-01-01').getTime();
+          const localTs = new Date(localStreak.lastDate || '1970-01-01').getTime();
+          if (dbTs > localTs || (dbTs === localTs && dbStreak.count > localStreak.count)) {
+            try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: dbStreak.last_date })); } catch {}
+          } else {
+            await sb.from('user_streak')
+              .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
+                      { onConflict: 'user_id' });
+          }
+        } else if (localStreak.count > 0) {
+          await sb.from('user_streak')
+            .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
+                    { onConflict: 'user_id' });
+        }
       }
-    } else if (localStreak.count > 0) {
-      /* Nu există rând în DB — creăm cu datele locale */
-      await sb.from('user_streak')
-        .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
-                { onConflict: 'user_id' });
+    } catch (e) {
+      console.error('[BMAuth] syncProgress exception:', e);
     }
   }
 
