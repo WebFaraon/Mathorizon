@@ -23,9 +23,15 @@
     sb.auth.onAuthStateChange(async (event, session) => {
       currentUser = session?.user ?? null;
       _updateProfileBtn();
-      if (event === 'SIGNED_IN')  await _syncTokens();
+      if (event === 'SIGNED_IN') {
+        await _syncTokens();
+        await _syncProgress();
+        document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
+      }
       if (event === 'SIGNED_OUT') {
         localStorage.setItem(BM.TOKEN_KEY, '0');
+        localStorage.removeItem('bm_solved');
+        localStorage.removeItem('bm_streak');
         BM.refreshTokenWidgets();
       }
     });
@@ -33,9 +39,13 @@
     const { data: { session } } = await sb.auth.getSession();
     currentUser = session?.user ?? null;
     _updateProfileBtn();
-    if (currentUser) await _syncTokens();
+    if (currentUser) {
+      await _syncTokens();
+      await _syncProgress();
+      document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
+    }
 
-    /* Override BM.consumeToken — sync with DB in background */
+    /* Override BM.consumeToken — sync cu DB în background */
     BM.consumeToken = function () {
       const n = BM.getTokens();
       if (n <= 0) return false;
@@ -52,6 +62,41 @@
       return true;
     };
 
+    /* Override BM.Storage.toggleSolved — sync cu DB în background */
+    const _origToggleSolved = BM.Storage.toggleSolved;
+    BM.Storage.toggleSolved = function (id) {
+      const nowSolved = _origToggleSolved(id);
+      if (sb && currentUser) {
+        if (nowSolved) {
+          const ts = BM.Storage.getSolved()[id] || Date.now();
+          sb.from('user_solved')
+            .upsert({ user_id: currentUser.id, exercise_id: id, solved_at: ts },
+                    { onConflict: 'user_id,exercise_id' })
+            .then(() => {});
+        } else {
+          sb.from('user_solved')
+            .delete()
+            .eq('user_id', currentUser.id)
+            .eq('exercise_id', id)
+            .then(() => {});
+        }
+      }
+      return nowSolved;
+    };
+
+    /* Override BM.Storage.updateStreak — sync cu DB în background */
+    const _origUpdateStreak = BM.Storage.updateStreak;
+    BM.Storage.updateStreak = function () {
+      _origUpdateStreak();
+      if (sb && currentUser) {
+        const s = BM.Storage.getStreak();
+        sb.from('user_streak')
+          .upsert({ user_id: currentUser.id, count: s.count, last_date: s.lastDate },
+                  { onConflict: 'user_id' })
+          .then(() => {});
+      }
+    };
+
     document.dispatchEvent(new CustomEvent('bmauth:ready', { detail: { user: currentUser } }));
   }
 
@@ -62,10 +107,87 @@
     if (!sb || !currentUser) return;
     const { data, error } = await sb
       .from('exam_tokens').select('count')
-      .eq('user_id', currentUser.id).single();
-    if (!error && data) {
+      .eq('user_id', currentUser.id).maybeSingle();
+    if (data) {
       localStorage.setItem(BM.TOKEN_KEY, String(data.count));
       BM.refreshTokenWidgets();
+    } else if (!error) {
+      /* Niciun rând — utilizator nou, acordăm 3 tokenuri gratuite */
+      const { error: insErr } = await sb
+        .from('exam_tokens')
+        .insert({ user_id: currentUser.id, count: 3 });
+      if (!insErr) {
+        localStorage.setItem(BM.TOKEN_KEY, '3');
+        BM.refreshTokenWidgets();
+      }
+    }
+  }
+
+  /* ============================================================
+     PROGRESS SYNC (exerciții rezolvate + streak)
+     ============================================================ */
+  async function _syncProgress() {
+    if (!sb || !currentUser) return;
+    const uid = currentUser.id;
+
+    /* ---- Exerciții rezolvate ---- */
+    const { data: dbSolved } = await sb
+      .from('user_solved')
+      .select('exercise_id, solved_at')
+      .eq('user_id', uid);
+
+    if (dbSolved) {
+      const localSolved = BM.Storage.getSolved();
+      const dbMap = Object.fromEntries(dbSolved.map(r => [r.exercise_id, r.solved_at]));
+
+      /* Adăugăm în local exercițiile din DB care lipsesc */
+      let changed = false;
+      dbSolved.forEach(r => {
+        if (!localSolved[r.exercise_id]) {
+          localSolved[r.exercise_id] = r.solved_at;
+          changed = true;
+        }
+      });
+      if (changed) {
+        try { localStorage.setItem('bm_solved', JSON.stringify(localSolved)); } catch {}
+      }
+
+      /* Urcăm în DB exercițiile locale care lipsesc */
+      const localOnly = Object.entries(localSolved)
+        .filter(([id]) => !dbMap[id])
+        .map(([exercise_id, solved_at]) => ({ user_id: uid, exercise_id, solved_at }));
+      if (localOnly.length > 0) {
+        await sb.from('user_solved')
+          .upsert(localOnly, { onConflict: 'user_id,exercise_id' });
+      }
+    }
+
+    /* ---- Streak ---- */
+    const { data: dbStreak } = await sb
+      .from('user_streak')
+      .select('count, last_date')
+      .eq('user_id', uid)
+      .maybeSingle();
+
+    const localStreak = BM.Storage.getStreak();
+
+    if (dbStreak) {
+      const dbTs    = new Date(dbStreak.last_date  || '1970-01-01').getTime();
+      const localTs = new Date(localStreak.lastDate || '1970-01-01').getTime();
+      if (dbTs > localTs || (dbTs === localTs && dbStreak.count > localStreak.count)) {
+        /* DB-ul e mai recent — actualizăm localul */
+        try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: dbStreak.last_date })); } catch {}
+      } else {
+        /* Localul e mai recent — urcăm în DB */
+        await sb.from('user_streak')
+          .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
+                  { onConflict: 'user_id' });
+      }
+    } else if (localStreak.count > 0) {
+      /* Nu există rând în DB — creăm cu datele locale */
+      await sb.from('user_streak')
+        .upsert({ user_id: uid, count: localStreak.count, last_date: localStreak.lastDate },
+                { onConflict: 'user_id' });
     }
   }
 
@@ -81,8 +203,9 @@
   }
 
   function _avatarUrl() {
-    return localStorage.getItem('prof_avatar_v1')
-        || currentUser?.user_metadata?.avatar_url
+    if (!currentUser) return null;
+    return currentUser.user_metadata?.custom_avatar_url
+        || currentUser.user_metadata?.avatar_url
         || null;
   }
 

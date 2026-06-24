@@ -665,6 +665,36 @@
     BM.openPanel('fav');
   }
 
+  /* ---- Re-render după sync cu DB ---- */
+  document.addEventListener('bmauth:synced', () => {
+    if (!currentCategory) return;
+    const solved = BM.Storage.getSolved();
+
+    /* Actualizăm starea vizuală a fiecărui card de exercițiu */
+    document.querySelectorAll('.ex-card').forEach(card => {
+      const id       = card.id.replace('card-', '');
+      const isSolved = !!solved[id];
+      card.classList.toggle('solved', isSolved);
+
+      const aBtn = card.querySelector('.ex-action-btn.solved');
+      if (aBtn) {
+        aBtn.classList.toggle('active', isSolved);
+        aBtn.textContent = isSolved ? '✓' : '☐';
+        aBtn.title = isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat';
+      }
+      const sBtn = document.getElementById(`solveBtn-${id}`);
+      if (sBtn) {
+        sBtn.classList.toggle('active', isSolved);
+        sBtn.textContent = isSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
+      }
+    });
+
+    /* Dacă suntem în view-ul cu carduri de subcategorii, le re-renderizăm */
+    if (!currentSubcat) renderSubcatCards();
+
+    refreshHeader();
+  });
+
   /* ---- Start ---- */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

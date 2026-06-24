@@ -112,11 +112,11 @@
 
     const name        = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
     const email       = user.email || '';
-    const googleAv    = user.user_metadata?.avatar_url || null;
-    const localAv     = localStorage.getItem(AVATAR_LS_KEY);
-    const avatarUrl   = localAv || googleAv;
+    const avatarUrl   = user.user_metadata?.custom_avatar_url
+        || user.user_metadata?.avatar_url
+        || null;
     const memberSince = _formatDate(user.created_at);
-    const tokens      = parseInt(localStorage.getItem('bac_exam_tokens') ?? '3', 10);
+    const tokens      = BM.getTokens();
     const verified    = !!user.email_confirmed_at;
     const isGoogle    = user.app_metadata?.provider === 'google';
     const hist        = _loadHistory();
@@ -334,14 +334,8 @@
         body: 'Ești sigur că vrei să te deconectezi din contul tău?',
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
-        onConfirm: () => {
-          /* Clear Supabase session keys directly — bypasses SDK */
-          [localStorage, sessionStorage].forEach(store => {
-            Object.keys(store).forEach(k => {
-              if (k.startsWith('sb-') || k.startsWith('supabase-')) store.removeItem(k);
-            });
-          });
-          localStorage.setItem(BM.TOKEN_KEY, '0');
+        onConfirm: async () => {
+          await sb.auth.signOut();
           window.location.replace('index.html');
         }
       });
@@ -354,19 +348,40 @@
       window.location.reload();
     });
 
-    /* Avatar upload */
+    /* Avatar upload — Supabase Storage */
     document.getElementById('avatarInput')?.addEventListener('change', async e => {
       const file = e.target.files?.[0];
       if (!file) return;
+      const lbl = e.target.closest('label');
+      if (lbl) lbl.style.opacity = '0.5';
       try {
-        const dataUrl = await _compressImage(file);
-        localStorage.setItem(AVATAR_LS_KEY, dataUrl);
+        const dataUrl  = await _compressImage(file);
+        const blob     = await (await fetch(dataUrl)).blob();
+        const filePath = `${user.id}.jpg`;
+
+        const { error: uploadErr } = await sb.storage
+          .from('avatars')
+          .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+        if (uploadErr) throw uploadErr;
+
+        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+
+        const { error: updErr } = await sb.auth.updateUser({ data: { custom_avatar_url: publicUrl } });
+        if (updErr) throw updErr;
+
+        /* Ștergem cache-ul vechi din localStorage */
+        localStorage.removeItem(AVATAR_LS_KEY);
+
         const wrap = document.querySelector('.prof-avatar-lg');
-        if (wrap) wrap.innerHTML = `<img src="${dataUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`;
+        if (wrap) wrap.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`;
         const navBtn = document.getElementById('navProfileBtn');
-        if (navBtn) navBtn.innerHTML = `<img src="${dataUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
+        if (navBtn) navBtn.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
         BM.toast('Poza de profil actualizată!', 'success');
-      } catch { BM.toast('Nu am putut procesa imaginea.', 'error'); }
+      } catch {
+        BM.toast('Nu am putut salva imaginea. Verifică conexiunea.', 'error');
+      } finally {
+        if (lbl) lbl.style.opacity = '';
+      }
     });
 
     /* Password form */

@@ -274,6 +274,12 @@
     }
   }
 
+  /* ---- Re-render după sync cu DB ---- */
+  document.addEventListener('bmauth:synced', () => {
+    renderStats();
+    renderChapters();
+  });
+
   /* ---- Start ---- */
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', init);

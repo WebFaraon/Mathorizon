@@ -43,28 +43,75 @@
     if (spn) spn.style.display = on ? ''  : 'none';
   }
 
-  /* ---- Tab switching ---- */
+  /* ---- Tab switching (cu animație smooth) ---- */
+  let _switching = false;
   function switchTab(tab) {
+    if (_switching || tab === _tab) return;
+    _switching = true;
+    const prev = _tab;
     _tab = tab;
+
     const map = { login: 'fLogin', signup: 'fSignup', reset: 'fReset' };
-    Object.entries(map).forEach(([key, id]) => {
-      const f = document.getElementById(id);
-      if (f) f.style.display = key === tab ? '' : 'none';
-    });
-    document.querySelectorAll('.auth-tab').forEach(t => {
-      t.classList.toggle('auth-tab--active', t.dataset.tab === tab);
-    });
+    const prevEl = document.getElementById(map[prev]);
+    const nextEl = document.getElementById(map[tab]);
+
     const isReset = tab === 'reset';
     const tabRow  = document.querySelector('.auth-tabs');
     const divider = document.getElementById('authDivider');
     const google  = document.getElementById('authGoogle');
-    if (tabRow)  tabRow.style.display  = isReset ? 'none' : '';
-    if (divider) divider.style.display = isReset ? 'none' : '';
-    if (google)  google.style.display  = isReset ? 'none' : '';
+
+    /* Actualizăm tab-urile active imediat */
+    document.querySelectorAll('.auth-tab').forEach(t => {
+      t.classList.toggle('auth-tab--active', t.dataset.tab === tab);
+    });
+
+    if (prevEl && prevEl.style.display !== 'none') {
+      /* Fade-out formul curent */
+      prevEl.classList.add('auth-form--exiting');
+      prevEl.addEventListener('animationend', () => {
+        prevEl.style.display = 'none';
+        prevEl.classList.remove('auth-form--exiting');
+
+        /* Ascunde/arată elemente care depind de tab */
+        if (tabRow)  tabRow.style.display  = isReset ? 'none' : '';
+        if (divider) divider.style.display = isReset ? 'none' : '';
+        if (google)  google.style.display  = isReset ? 'none' : '';
+
+        /* Fade-in formulul nou */
+        if (nextEl) {
+          nextEl.style.display = '';
+          nextEl.classList.add('auth-form--entering');
+          nextEl.addEventListener('animationend', () => {
+            nextEl.classList.remove('auth-form--entering');
+            _switching = false;
+          }, { once: true });
+        } else {
+          _switching = false;
+        }
+
+        const focus = { login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab];
+        setTimeout(() => document.getElementById(focus)?.focus(), 40);
+      }, { once: true });
+    } else {
+      /* Nu există un formular vizibil curent — arată direct */
+      if (tabRow)  tabRow.style.display  = isReset ? 'none' : '';
+      if (divider) divider.style.display = isReset ? 'none' : '';
+      if (google)  google.style.display  = isReset ? 'none' : '';
+      if (nextEl) {
+        nextEl.style.display = '';
+        nextEl.classList.add('auth-form--entering');
+        nextEl.addEventListener('animationend', () => {
+          nextEl.classList.remove('auth-form--entering');
+          _switching = false;
+        }, { once: true });
+      } else {
+        _switching = false;
+      }
+      const focus = { login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab];
+      setTimeout(() => document.getElementById(focus)?.focus(), 40);
+    }
+
     _clearMsg();
-    const focus = { login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab];
-    setTimeout(() => document.getElementById(focus)?.focus(), 60);
-    /* sync URL without reload */
     const url = new URL(window.location.href);
     url.searchParams.set('tab', tab);
     history.replaceState(null, '', url);
