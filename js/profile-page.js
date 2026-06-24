@@ -344,14 +344,15 @@
         body: 'Ești sigur că vrei să te deconectezi din contul tău?',
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
-        onConfirm: async () => {
-          try { await sb.auth.signOut(); } catch {}
-          /* Curățăm manual sesiunea și datele locale ca fallback */
-          try {
-            Object.keys(localStorage).forEach(k => {
-              if (k.startsWith('sb-')) localStorage.removeItem(k);
+        onConfirm: () => {
+          /* signOut în background — nu așteptăm, redirectăm imediat */
+          try { sb.auth.signOut(); } catch {}
+          /* Curățăm manual toate cheile de sesiune Supabase */
+          [localStorage, sessionStorage].forEach(store => {
+            Object.keys(store).forEach(k => {
+              if (k.startsWith('sb-') || k.startsWith('supabase')) store.removeItem(k);
             });
-          } catch {}
+          });
           localStorage.setItem(BM.TOKEN_KEY, '0');
           localStorage.removeItem('bm_solved');
           localStorage.removeItem('bm_streak');
@@ -403,8 +404,8 @@
         const navBtn = document.getElementById('navProfileBtn');
         if (navBtn) navBtn.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
         BM.toast('Poza de profil actualizată!', 'success');
-      } catch {
-        /* eroarea specifică deja afișată mai sus dacă e de la upload */
+      } catch (err) {
+        BM.toast('Eroare: ' + (err?.message || 'necunoscută'), 'error');
       } finally {
         if (lbl) lbl.style.opacity = '';
       }
