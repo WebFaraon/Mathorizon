@@ -104,6 +104,16 @@
     });
   }
 
+  /* Convertește un data URL în Blob fără fetch() */
+  function _dataUrlToBlob(dataUrl) {
+    const [header, b64] = dataUrl.split(',');
+    const mime   = (header.match(/:(.*?);/) || [])[1] || 'image/jpeg';
+    const binary = atob(b64);
+    const arr    = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) arr[i] = binary.charCodeAt(i);
+    return new Blob([arr], { type: mime });
+  }
+
   /* ---- Render profile ---- */
   async function renderProfile(user, sb) {
     const content  = document.getElementById('profileContent');
@@ -335,7 +345,16 @@
         confirmLabel: 'Da, deconectează-mă',
         cancelLabel: 'Anulează',
         onConfirm: async () => {
-          await sb.auth.signOut();
+          try { await sb.auth.signOut(); } catch {}
+          /* Curățăm manual sesiunea și datele locale ca fallback */
+          try {
+            Object.keys(localStorage).forEach(k => {
+              if (k.startsWith('sb-')) localStorage.removeItem(k);
+            });
+          } catch {}
+          localStorage.setItem(BM.TOKEN_KEY, '0');
+          localStorage.removeItem('bm_solved');
+          localStorage.removeItem('bm_streak');
           window.location.replace('index.html');
         }
       });
@@ -356,20 +375,27 @@
       if (lbl) lbl.style.opacity = '0.5';
       try {
         const dataUrl  = await _compressImage(file);
-        const blob     = await (await fetch(dataUrl)).blob();
+        const blob     = _dataUrlToBlob(dataUrl);
         const filePath = `${user.id}.jpg`;
 
         const { error: uploadErr } = await sb.storage
           .from('avatars')
           .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
-        if (uploadErr) throw uploadErr;
+        if (uploadErr) {
+          const msg = uploadErr.message || '';
+          if (msg.toLowerCase().includes('bucket')) {
+            BM.toast('Bucket-ul "avatars" nu există în Supabase Storage. Creează-l din dashboard.', 'error');
+          } else {
+            BM.toast('Upload eșuat: ' + msg, 'error');
+          }
+          throw uploadErr;
+        }
 
         const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
 
         const { error: updErr } = await sb.auth.updateUser({ data: { custom_avatar_url: publicUrl } });
         if (updErr) throw updErr;
 
-        /* Ștergem cache-ul vechi din localStorage */
         localStorage.removeItem(AVATAR_LS_KEY);
 
         const wrap = document.querySelector('.prof-avatar-lg');
@@ -378,7 +404,7 @@
         if (navBtn) navBtn.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
         BM.toast('Poza de profil actualizată!', 'success');
       } catch {
-        BM.toast('Nu am putut salva imaginea. Verifică conexiunea.', 'error');
+        /* eroarea specifică deja afișată mai sus dacă e de la upload */
       } finally {
         if (lbl) lbl.style.opacity = '';
       }

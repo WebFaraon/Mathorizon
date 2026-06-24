@@ -108,19 +108,27 @@
     const { data, error } = await sb
       .from('exam_tokens').select('count')
       .eq('user_id', currentUser.id).maybeSingle();
-    if (data) {
+
+    if (data != null) {
+      /* Rând găsit — valoarea din DB e sursa de adevăr */
       localStorage.setItem(BM.TOKEN_KEY, String(data.count));
       BM.refreshTokenWidgets();
-    } else if (!error) {
-      /* Niciun rând — utilizator nou, acordăm 3 tokenuri gratuite */
-      const { error: insErr } = await sb
-        .from('exam_tokens')
-        .insert({ user_id: currentUser.id, count: 3 });
-      if (!insErr) {
-        localStorage.setItem(BM.TOKEN_KEY, '3');
-        BM.refreshTokenWidgets();
-      }
+      return;
     }
+
+    if (error) {
+      /* Eroare DB (tabela lipsă, RLS blocat etc.) — fallback: 3 tokenuri */
+      localStorage.setItem(BM.TOKEN_KEY, '3');
+      BM.refreshTokenWidgets();
+      return;
+    }
+
+    /* Niciun rând și nicio eroare — utilizator nou, acordăm 3 tokenuri */
+    await sb.from('exam_tokens')
+      .insert({ user_id: currentUser.id, count: 3 });
+    /* Indiferent dacă insert-ul reușește sau nu, setăm 3 */
+    localStorage.setItem(BM.TOKEN_KEY, '3');
+    BM.refreshTokenWidgets();
   }
 
   /* ============================================================
