@@ -17,11 +17,18 @@
   }
 
   /* ---- Stats ---- */
-  function renderStats() {
+  function renderStats(animated = true) {
     const stats = BM.Storage.getStats(BM.EXERCISES);
 
-    animateCount('sTotal', stats.total);
-    animateCount('sSolved', stats.solvedCount);
+    if (animated) {
+      animateCount('sTotal', stats.total);
+      animateCount('sSolved', stats.solvedCount);
+    } else {
+      const tEl = document.getElementById('sTotal');
+      const sEl = document.getElementById('sSolved');
+      if (tEl) tEl.textContent = stats.total;
+      if (sEl) sEl.textContent = stats.solvedCount;
+    }
 
     const pctEl = document.getElementById('sPercent');
     if (pctEl) pctEl.textContent = stats.percent + '%';
@@ -62,7 +69,7 @@
              style="--card-color: ${cat.color}">
           <div class="chapter-card__top">
             <div class="chapter-card__icon" style="color:${cat.color};background:${cat.color}1a">
-              ${BM.esc(cat.symbol)}
+              ${cat.symbol}
             </div>
             <div class="chapter-card__count">
               ${prog.total} exerciții
@@ -103,6 +110,15 @@
         const w = bar.style.width;
         bar.style.width = '0';
         requestAnimationFrame(() => { bar.style.width = w; });
+      });
+    });
+
+    /* Mouse-follow glow */
+    grid.querySelectorAll('.chapter-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
       });
     });
   }
@@ -175,7 +191,7 @@
         <div class="search-result-item"
              onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
           <span class="sri-badge" style="background:${cat?.color}1a;color:${cat?.color}">
-            ${BM.esc(cat?.symbol || '?')}
+            ${cat?.symbol || '?'}
           </span>
           <div class="sri-text">
             <div class="sri-title">${BM.esc(ex.title)}</div>
@@ -211,7 +227,6 @@
       const exs = favIds.map(id => BM.EXERCISES.find(e => e.id === id)).filter(Boolean);
       list.innerHTML = exs.map(ex => renderPanelItem(ex)).join('');
     }
-    updateFavBadge();
     BM.openPanel('fav');
   }
 
@@ -253,7 +268,7 @@
     return `
       <div class="panel-ex-item"
            onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-        <span style="font-size:1.3rem">${BM.esc(cat?.symbol || '?')}</span>
+        <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
         <div class="panel-ex-item__info">
           <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
           <div class="panel-ex-item__meta">
@@ -265,19 +280,26 @@
     `;
   }
 
-  function updateFavBadge() {
-    const count = BM.Storage.getFavorites().length;
-    const badge = document.getElementById('favBadge');
-    if (badge) {
-      badge.textContent = count;
-      badge.style.display = count > 0 ? '' : 'none';
-    }
-  }
 
   /* ---- Re-render după sync cu DB ---- */
   document.addEventListener('bmauth:synced', () => {
-    renderStats();
-    renderChapters();
+    renderStats(false);
+    /* Actualizăm progresul cardurilor în-place — fără re-render, fără animație */
+    const grid = document.getElementById('chaptersGrid');
+    if (grid) {
+      const cards = grid.querySelectorAll('.chapter-card');
+      BM.CATEGORIES.forEach((cat, i) => {
+        const card = cards[i];
+        if (!card) return;
+        const prog = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
+        const bar   = card.querySelector('.progress-bar');
+        const label = card.querySelector('.progress-label');
+        if (bar)   bar.style.width   = prog.percent + '%';
+        if (label) label.innerHTML   =
+          `<span>${prog.solved} / ${prog.total} rezolvate</span>` +
+          `<span>${prog.percent}%</span>`;
+      });
+    }
   });
 
   /* ---- Start ---- */

@@ -10,8 +10,12 @@
 
   function _waitForAuth() {
     return new Promise(resolve => {
-      if (window.BMAuth?.supabase) return resolve(window.BMAuth);
-      document.addEventListener('bmauth:ready', () => resolve(window.BMAuth), { once: true });
+      if (window._bmAuthReady) return resolve(window.BMAuth);
+      const timer = setTimeout(() => resolve(window.BMAuth), 6000);
+      document.addEventListener('bmauth:ready', () => {
+        clearTimeout(timer);
+        resolve(window.BMAuth);
+      }, { once: true });
     });
   }
 
@@ -131,23 +135,28 @@
     const isGoogle    = user.app_metadata?.provider === 'google';
     const hist        = _loadHistory();
 
+    const role   = window.BMAuth?.role   || 'elev';
+    const status = window.BMAuth?.status || 'active';
+
     const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : name.slice(0, 2).toUpperCase() || '?';
 
-    /* Token dots visualization (max 10) */
-    const MAX_DOTS = 10;
-    let tokenDots = '';
-    for (let i = 0; i < MAX_DOTS; i++) {
-      if (i < tokens) {
-        tokenDots += `<span class="prof-token-dot ${tokens <= 1 ? 'prof-token-dot--low' : 'prof-token-dot--filled'}"></span>`;
-      } else {
-        tokenDots += `<span class="prof-token-dot prof-token-dot--empty"></span>`;
-      }
+    /* Token visual — up to 5 ticket emojis + "+N" badge, no empty slots */
+    const MAX_SHOWN = 5;
+    let tokenVisual;
+    if (tokens === 0) {
+      tokenVisual = `<span style="font-size:1.5rem;opacity:0.25">🎟</span>
+                     <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Niciun token disponibil</span>`;
+    } else {
+      const shown = Math.min(tokens, MAX_SHOWN);
+      const extra = tokens > MAX_SHOWN ? tokens - MAX_SHOWN : 0;
+      tokenVisual = Array(shown).fill(null).map(() =>
+        `<span style="font-size:1.45rem;line-height:1;filter:${tokens <= 1 ? 'grayscale(0.4) sepia(0.3)' : 'none'}"
+               title="${tokens} token${tokens === 1 ? '' : 'uri'}">🎟</span>`
+      ).join('') + (extra ? `<span class="prof-token-extra">+${extra}</span>` : '');
     }
-    const tokenExtra = tokens > MAX_DOTS
-      ? `<span class="prof-token-extra">+${tokens - MAX_DOTS}</span>` : '';
 
     /* BAC history rows */
     let histContent;
@@ -180,7 +189,31 @@
         </div>`;
     }
 
+    const pendingBanner = role === 'profesor' && status === 'pending' ? `
+      <div class="prof-pending-banner">
+        <span class="prof-pending-banner__icon">⏳</span>
+        <div>
+          <div class="prof-pending-banner__title">Cont de profesor în așteptare</div>
+          <div class="prof-pending-banner__body">
+            Cererea ta de înregistrare ca profesor a fost primită și urmează să fie analizată.
+            Vei putea accesa funcționalitățile pentru profesori după ce adminul îți aprobă contul.
+          </div>
+        </div>
+      </div>` : '';
+
+    const rejectedBanner = role === 'profesor' && status === 'rejected' ? `
+      <div class="prof-rejected-banner">
+        <span class="prof-pending-banner__icon">❌</span>
+        <div>
+          <div class="prof-pending-banner__title">Cerere de profesor respinsă</div>
+          <div class="prof-pending-banner__body">
+            Cererea ta de cont de profesor a fost respinsă. Contactează adminul pentru mai multe detalii.
+          </div>
+        </div>
+      </div>` : '';
+
     content.innerHTML = `
+      ${pendingBanner}${rejectedBanner}
       <!-- PROFILE HEADER -->
       <div class="prof-header">
         <div class="prof-avatar-wrap">
@@ -198,7 +231,15 @@
           <h1 class="prof-name">${BM.esc(name)}</h1>
           <p class="prof-email">${BM.esc(email)}</p>
           <div class="prof-badges">
-            <span class="prof-badge prof-badge--blue">Elev</span>
+            ${role === 'admin'
+              ? '<span class="prof-badge prof-badge--red">⚙️ Admin</span>'
+              : role === 'profesor'
+                ? (status === 'pending'
+                  ? '<span class="prof-badge prof-badge--amber">⏳ Profesor (în așteptare)</span>'
+                  : status === 'rejected'
+                    ? '<span class="prof-badge prof-badge--red">✗ Profesor (respins)</span>'
+                    : '<span class="prof-badge prof-badge--purple">👨‍🏫 Profesor</span>')
+                : '<span class="prof-badge prof-badge--blue">Elev</span>'}
             ${verified
               ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>'
               : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>'}
@@ -211,6 +252,10 @@
             <span class="prof-meta-sep">·</span>
             <span class="prof-meta-item">📋 ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
           </div>
+          ${role === 'admin' ? `
+          <a href="admin.html" class="btn btn--primary btn--sm" style="margin-top:14px;display:inline-flex;gap:8px;align-items:center">
+            ⚙️ Panou Admin
+          </a>` : ''}
         </div>
       </div>
 
@@ -250,7 +295,7 @@
             <span class="prof-card__title">ExamTokenuri</span>
           </div>
           <div class="prof-card__body">
-            <div class="prof-token-bar">${tokenDots}${tokenExtra}</div>
+            <div class="prof-token-bar">${tokenVisual}</div>
             <div class="prof-token-main">
               <span class="prof-token-count ${tokens === 0 ? 'prof-token-count--empty' : tokens === 1 ? 'prof-token-count--low' : ''}">${tokens}</span>
               <div class="prof-token-info">

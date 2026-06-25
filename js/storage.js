@@ -5,6 +5,11 @@
 window.BM = window.BM || {};
 
 BM.Storage = (function() {
+  /* Returns local date as "YYYY-MM-DD" — consistent with what Supabase date columns return */
+  function _isoDate(d = new Date()) {
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }
+
   const KEY = {
     solved:    'bm_solved',
     favorites: 'bm_favorites',
@@ -76,19 +81,25 @@ BM.Storage = (function() {
   /* ---- Streak ---- */
   function getStreak() {
     const s = get(KEY.streak);
-    return s || { count: 0, lastDate: null };
+    if (!s) return { count: 0, lastDate: null };
+    /* Normalize legacy toDateString() format ("Tue Jun 24 2026") → ISO ("2026-06-24") */
+    if (s.lastDate) {
+      const normalized = _isoDate(new Date(s.lastDate));
+      if (normalized !== s.lastDate) { s.lastDate = normalized; set(KEY.streak, s); }
+    }
+    return s;
   }
 
   function updateStreak() {
-    const today = new Date().toDateString();
+    const today = _isoDate();
     const s = getStreak();
 
     if (s.lastDate === today) return;
 
-    const yesterday = new Date(Date.now() - 86400000).toDateString();
+    const yesterday = _isoDate(new Date(Date.now() - 86400000));
     if (s.lastDate === yesterday) {
       s.count += 1;
-    } else if (s.lastDate !== today) {
+    } else {
       s.count = 1;
     }
     s.lastDate = today;

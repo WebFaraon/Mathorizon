@@ -4,6 +4,33 @@
 
 window.BM = window.BM || {};
 
+/* ---- Hamburger menu ---- */
+document.addEventListener('DOMContentLoaded', function () {
+  const hamburger = document.getElementById('navHamburger');
+  const menu      = document.getElementById('navMobileMenu');
+  if (!hamburger || !menu) return;
+
+  hamburger.addEventListener('click', function (e) {
+    e.stopPropagation();
+    const isOpen = menu.classList.toggle('open');
+    hamburger.classList.toggle('open', isOpen);
+  });
+
+  document.addEventListener('click', function (e) {
+    if (!hamburger.contains(e.target) && !menu.contains(e.target)) {
+      menu.classList.remove('open');
+      hamburger.classList.remove('open');
+    }
+  });
+
+  menu.querySelectorAll('.nav__mobile-link').forEach(function (link) {
+    link.addEventListener('click', function () {
+      menu.classList.remove('open');
+      hamburger.classList.remove('open');
+    });
+  });
+});
+
 /* ---- Debounce ---- */
 BM.debounce = function(fn, delay) {
   let timer;

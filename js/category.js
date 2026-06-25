@@ -101,7 +101,7 @@
       <div class="container">
         <div class="cat-header__inner">
           <div class="cat-header__icon" style="color:${cat.color};background:${cat.color}1a;border-color:${cat.color}33">
-            ${BM.esc(cat.symbol)}
+            ${cat.symbol}
           </div>
           <div class="cat-header__info">
             <h1 class="cat-header__name">${BM.esc(cat.name)}</h1>
@@ -167,7 +167,7 @@
     const descEl = header.querySelector('.cat-header__desc');
     if (nameEl) nameEl.textContent = sub.name;
     if (iconEl) {
-      iconEl.textContent     = sub.symbol;
+      iconEl.innerHTML         = sub.symbol;
       iconEl.style.color       = sub.color;
       iconEl.style.background  = sub.color + '22';
       iconEl.style.borderColor = sub.color + '44';
@@ -184,7 +184,7 @@
     const descEl = header.querySelector('.cat-header__desc');
     if (nameEl) nameEl.textContent = cat.name;
     if (iconEl) {
-      iconEl.textContent     = cat.symbol;
+      iconEl.innerHTML         = cat.symbol;
       iconEl.style.color       = cat.color;
       iconEl.style.background  = cat.color + '1a';
       iconEl.style.borderColor = cat.color + '33';
@@ -213,7 +213,7 @@
           <div class="subcat-card__top">
             <div class="subcat-card__icon"
                  style="color:${sub.color};background:${sub.color}22;border-color:${sub.color}33">
-              ${BM.esc(sub.symbol)}
+              ${sub.symbol}
             </div>
             ${empty
               ? '<span class="subcat-card__soon">În curând</span>'
@@ -240,6 +240,14 @@
         </div>
       `;
     }).join('');
+
+    grid.querySelectorAll('.subcat-card').forEach(card => {
+      card.addEventListener('mousemove', e => {
+        const r = card.getBoundingClientRect();
+        card.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+        card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+      });
+    });
   }
 
   window.selectSubcat = function(subcatId) {
@@ -631,7 +639,7 @@
         const cat = BM.getCategoryById(ex.categoryId);
         return `
           <div class="panel-ex-item" onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-            <span style="font-size:1.3rem">${BM.esc(cat?.symbol || '?')}</span>
+            <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
             <div class="panel-ex-item__info">
               <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
               <div class="panel-ex-item__meta">${BM.esc(cat?.name || '')} · ${BM.diffBadge(ex.difficulty)}</div>
@@ -689,8 +697,27 @@
       }
     });
 
-    /* Dacă suntem în view-ul cu carduri de subcategorii, le re-renderizăm */
-    if (!currentSubcat) renderSubcatCards();
+    /* Dacă suntem în view-ul cu carduri de subcategorii, actualizăm progresul în-place */
+    if (!currentSubcat) {
+      const grid = document.getElementById('subcatCardsGrid');
+      if (grid) {
+        const cards = grid.querySelectorAll('.subcat-card');
+        currentCategory.subcategories.forEach((sub, i) => {
+          const card = cards[i];
+          if (!card) return;
+          const exs   = allExercises.filter(e => e.subcategoryId === sub.id);
+          const count = exs.length;
+          const done  = exs.filter(e => solved[e.id]).length;
+          const pct   = count > 0 ? Math.round((done / count) * 100) : 0;
+          const bar   = card.querySelector('.subcat-card__bar');
+          const prog  = card.querySelector('.subcat-card__prog');
+          if (bar)  bar.style.width = pct + '%';
+          if (prog) prog.innerHTML  =
+            `<span>${done} / ${count} exerciții</span>` +
+            `<span style="color:${sub.color};font-weight:700">${pct}%</span>`;
+        });
+      }
+    }
 
     refreshHeader();
   });

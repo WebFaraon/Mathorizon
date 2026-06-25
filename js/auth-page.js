@@ -9,8 +9,9 @@
   const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
-  let sb   = null;
-  let _tab = 'login';
+  let sb        = null;
+  let _tab      = 'login';
+  let _role     = 'elev';
 
   function _getFrom() {
     const from = new URLSearchParams(window.location.search).get('from') || 'index.html';
@@ -118,6 +119,14 @@
   }
   window.switchTab = switchTab;
 
+  /* ---- Role selection ---- */
+  window.selectRole = function(role) {
+    _role = role;
+    document.querySelectorAll('.auth-role-btn').forEach(btn => {
+      btn.classList.toggle('auth-role-btn--active', btn.dataset.role === role);
+    });
+  };
+
   /* ---- Password visibility ---- */
   window.togglePw = function(btn) {
     const inp = document.getElementById(btn.dataset.target);
@@ -165,11 +174,15 @@
     _setLoading('btnSignup', true);
     const { error } = await sb.auth.signUp({
       email, password: pass,
-      options: { data: { full_name: name } }
+      options: { data: { full_name: name, role: _role } }
     });
     _setLoading('btnSignup', false);
     if (error) return _showMsg(_roError(error.message), true);
-    _showMsg('Cont creat! Verifică emailul pentru confirmare, apoi conectează-te.', false);
+    if (_role === 'profesor') {
+      _showMsg('Cont creat! Verifică emailul pentru confirmare. Contul tău de profesor va fi activat după aprobarea adminului.', false);
+    } else {
+      _showMsg('Cont creat! Verifică emailul pentru confirmare, apoi conectează-te.', false);
+    }
   }
   window.onSignup = onSignup;
 

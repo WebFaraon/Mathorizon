@@ -71,7 +71,7 @@
         item.className = 'config-chapter-item' + (locked ? ' config-chapter-item--locked' : ' selected');
         item.id = `cat-item-${cat.id}`;
         item.innerHTML = `
-          <span class="config-chapter-icon" style="color:${cat.color}">${BM.esc(cat.symbol)}</span>
+          <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
           <span class="config-chapter-name">${BM.esc(cat.name)}</span>
           ${locked
             ? '<span class="config-chapter-lock">🔒</span><span class="config-chapter-soon">În curând</span>'

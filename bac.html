@@ -21,17 +21,14 @@
         <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
-      <div class="nav__actions" id="navActions">
-        <button class="nav-label-btn" id="favBtn" title="Exerciții favorite" onclick="BM.toast('Favoritele sunt disponibile pe pagina principală.','info')">
-          <span class="nav-label-btn__icon">♡</span>
-          <span class="nav-label-btn__text">Favorite</span>
-        </button>
-        <button class="nav-label-btn" id="histBtn" title="Istoric rezolvări" onclick="BM.toast('Istoricul este disponibil pe pagina principală.','info')">
-          <span class="nav-label-btn__icon">◷</span>
-          <span class="nav-label-btn__text">Istoric</span>
-        </button>
-        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
+      <div class="nav__links">
+        <a class="nav__link" href="index.html">Capitole</a>
+        <a class="nav__link nav__link--active" href="bac.html?new=1">Simulare BAC</a>
+        <a class="nav__link" href="training.html">Antrenament Rapid</a>
       </div>
+      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="nav__right">
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
           <span class="token-widget__icon">🎟</span>
@@ -45,6 +42,11 @@
           </svg>
         </button>
       </div>
+    </div>
+    <div class="nav__mobile-menu" id="navMobileMenu">
+      <a class="nav__mobile-link" href="index.html">Capitole</a>
+      <a class="nav__mobile-link nav__mobile-link--active" href="bac.html?new=1">Simulare BAC</a>
+      <a class="nav__mobile-link" href="training.html">Antrenament Rapid</a>
     </div>
   </nav>
 
@@ -62,8 +64,6 @@
           <span style="--sz:120px;--t:80%;--l:34%">α</span>
           <span style="--sz:80px;--t:33%;--l:76%">∞</span>
         </div>
-
-        <a class="bac-back-btn" href="index.html" id="bacBackBtn">Capitole</a>
 
         <div class="bac-setup-badge">🎓 BAC Moldova — Structură Oficială 2022+</div>
         <h1 class="bac-setup-title">Simulare <em>BAC</em><br><span>Matematică</span></h1>

@@ -12,16 +12,17 @@ BM.CATEGORIES = [
     description: 'Ecuații, inecuații, polinoame, numere complexe, exponențiale, logaritmi, trigonometrie',
     subcategories: [
       { id: 'calcul-algebric',  name: 'Calcul Algebric',           symbol: 'ax',   color: '#7c3aed', description: 'Radicali, puteri, expresii algebrice' },
-      { id: 'polinoame',        name: 'Polinoame',                 symbol: 'P(X)', color: '#6366f1', description: 'Împărțire, rădăcini, descompunere' },
-      { id: 'complexe',         name: 'Numere Complexe',           symbol: 'ℂ',    color: '#a855f7', description: 'Forma algebrică și trigonometrică' },
+      { id: 'polinoame',        name: 'Polinoame',                 symbol: 'P(X)', color: '#2563eb', description: 'Împărțire, rădăcini, descompunere' },
+      { id: 'complexe',         name: 'Numere Complexe',           symbol: 'ℂ',    color: '#c026d3', description: 'Forma algebrică și trigonometrică' },
       { id: 'ec-irationale',    name: 'Ecuații Iraționale',        symbol: '√=',   color: '#0ea5e9', description: 'Ecuații cu radicali' },
-      { id: 'ec-exp',           name: 'Ecuații Exponențiale',      symbol: 'aˣ',   color: '#06b6d4', description: 'Ecuații cu baze și exponenți' },
-      { id: 'ec-log',           name: 'Ecuații Logaritmice',       symbol: 'log',  color: '#0891b2', description: 'Logaritmi în baze diverse' },
+      { id: 'ec-exp',           name: 'Ecuații Exponențiale',      symbol: 'aˣ',   color: '#0d9488', description: 'Ecuații cu baze și exponenți' },
+      { id: 'ec-log',           name: 'Ecuații Logaritmice',       symbol: 'log',  color: '#4f46e5', description: 'Logaritmi în baze diverse' },
       { id: 'inec-rationale',   name: 'Inecuații Raționale',       symbol: '≤',    color: '#10b981', description: 'Inecuații cu fracții algebrice' },
-      { id: 'inec-irationale',  name: 'Inecuații Iraționale',      symbol: '√<',   color: '#059669', description: 'Inecuații cu radicali' },
+      { id: 'inec-irationale',  name: 'Inecuații Iraționale',      symbol: '√<',   color: '#0284c7', description: 'Inecuații cu radicali' },
       { id: 'inec-exp',         name: 'Inecuații Exponențiale',    symbol: 'aˣ>',  color: '#f59e0b', description: 'Inecuații cu funcții exponențiale' },
       { id: 'inec-log',         name: 'Inecuații Logaritmice',     symbol: 'lg>',  color: '#d97706', description: 'Inecuații cu funcții logaritmice' },
-      { id: 'trigonometrie',    name: 'Trigonometrie',             symbol: 'sin',  color: '#ec4899', description: 'Funcții trigonometrice, identități' }
+      { id: 'trigonometrie',    name: 'Trigonometrie',             symbol: 'sin',  color: '#ec4899', description: 'Funcții trigonometrice, identități' },
+      { id: 'matrici',          name: 'Matrici Inversabile',       symbol: 'A⁻¹',  color: '#e11d48', description: 'Matrici, determinanți, sisteme Cramer' }
     ]
   },
   {
@@ -47,13 +48,13 @@ BM.CATEGORIES = [
     ]
   },
   {
-    id: 'combinatorica', name: 'Combinatorică și Probabilitate', symbol: 'Cₙᵏ',
+    id: 'combinatorica', name: 'Combinatorică și Probabilitate', symbol: 'C<span class="sym-nb"><sup>k</sup><sub>n</sub></span>',
     gradient: 'linear-gradient(135deg,#059669,#065f46)', color: '#10b981',
     description: 'Permutări, aranjamente, combinări, probabilitate și statistică',
     subcategories: [
       { id: 'permutari',     name: 'Permutări',     symbol: 'Pₙ',  color: '#10b981', description: 'Aranjamente fără repetiție' },
-      { id: 'aranjamente',   name: 'Aranjamente',   symbol: 'Aₙᵏ', color: '#059669', description: 'Selecții ordonate de k elemente' },
-      { id: 'combinari',     name: 'Combinări',     symbol: 'Cₙᵏ', color: '#047857', description: 'Selecții neordonate, binomul lui Newton' },
+      { id: 'aranjamente',   name: 'Aranjamente',   symbol: 'A<span class="sym-nb"><sup>k</sup><sub>n</sub></span>', color: '#059669', description: 'Selecții ordonate de k elemente' },
+      { id: 'combinari',     name: 'Combinări',     symbol: 'C<span class="sym-nb"><sup>k</sup><sub>n</sub></span>', color: '#047857', description: 'Selecții neordonate, binomul lui Newton' },
       { id: 'probabilitate', name: 'Probabilitate', symbol: 'P',   color: '#0ea5e9', description: 'Evenimente, probabilități clasice' },
       { id: 'statistica',    name: 'Statistică',    symbol: 'σ',   color: '#0284c7', description: 'Medie, dispersie, frecvențe' }
     ]

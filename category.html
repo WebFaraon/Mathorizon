@@ -21,18 +21,14 @@
         <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
-      <div class="nav__actions">
-        <button class="nav-label-btn" id="favBtn" title="Favorite în acest capitol">
-          <span class="nav-label-btn__icon">♡</span>
-          <span class="nav-label-btn__text">Favorite</span>
-          <span class="badge-count" id="favBadge" style="display:none">0</span>
-        </button>
-        <button class="nav-label-btn" id="histBtn" title="Istoric rezolvări">
-          <span class="nav-label-btn__icon">◷</span>
-          <span class="nav-label-btn__text">Istoric</span>
-        </button>
-        <a class="btn btn--accent" href="training.html">Antrenament Rapid</a>
+      <div class="nav__links">
+        <a class="nav__link nav__link--active" href="index.html">Capitole</a>
+        <a class="nav__link" href="bac.html?new=1">Simulare BAC</a>
+        <a class="nav__link" href="training.html">Antrenament Rapid</a>
       </div>
+      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
+        <span></span><span></span><span></span>
+      </button>
       <div class="nav__right">
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
           <span class="token-widget__icon">🎟</span>
@@ -46,6 +42,11 @@
           </svg>
         </button>
       </div>
+    </div>
+    <div class="nav__mobile-menu" id="navMobileMenu">
+      <a class="nav__mobile-link nav__mobile-link--active" href="index.html">Capitole</a>
+      <a class="nav__mobile-link" href="bac.html?new=1">Simulare BAC</a>
+      <a class="nav__mobile-link" href="training.html">Antrenament Rapid</a>
     </div>
   </nav>
 
@@ -62,8 +63,22 @@
     </div>
   </div>
 
+  <!-- PANEL BUTTONS: Favorite / Istoric -->
+  <div class="cat-context-bar">
+    <div class="container">
+      <button class="cat-context-btn" id="favBtn" title="Favorite în acest capitol">
+        ♡ <span>Favorite</span>
+      </button>
+      <button class="cat-context-btn" id="histBtn" title="Istoric rezolvări">
+        ◷ <span>Istoric</span>
+      </button>
+    </div>
+  </div>
+
   <!-- VIEW: Subcategory Cards -->
   <div id="subcatCardsSection" class="main container">
+    <div class="main-blob main-blob--pink" aria-hidden="true"></div>
+    <div class="main-blob main-blob--blue" aria-hidden="true"></div>
     <div class="subcat-cards-grid" id="subcatCardsGrid">
       <div class="loading-card" style="height:140px"></div>
       <div class="loading-card" style="height:140px"></div>

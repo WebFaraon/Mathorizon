@@ -147,6 +147,21 @@
               <button type="button" class="auth-eye" data-target="sConf" onclick="togglePw(this)" aria-label="Arată parola">👁</button>
             </div>
           </div>
+          <div class="auth-field">
+            <label class="auth-label">Rol</label>
+            <div class="auth-role-select" id="roleSelect">
+              <button type="button" class="auth-role-btn auth-role-btn--active" data-role="elev" onclick="selectRole('elev')">
+                <span class="auth-role-icon">📚</span>
+                <span class="auth-role-name">Elev</span>
+                <span class="auth-role-desc">Acces complet la exerciții și simulări BAC</span>
+              </button>
+              <button type="button" class="auth-role-btn" data-role="profesor" onclick="selectRole('profesor')">
+                <span class="auth-role-icon">👨‍🏫</span>
+                <span class="auth-role-name">Profesor</span>
+                <span class="auth-role-desc">Necesită aprobare din partea adminului</span>
+              </button>
+            </div>
+          </div>
           <button type="submit" class="auth-submit" id="btnSignup">
             <span>Creează cont</span><span class="auth-spin" style="display:none"></span>
           </button>

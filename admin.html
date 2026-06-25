@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profilul meu — Mathorizon</title>
+  <title>Admin — Mathorizon</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -49,40 +49,64 @@
     </div>
   </nav>
 
-  <!-- CONTENT -->
   <main class="main container">
+    <div class="admin-wrap" id="adminWrap" style="display:none">
 
-    <!-- Skeleton / loading -->
-    <div id="profileSkeleton" class="prof-skeleton">
-      <div class="prof-skeleton-header">
-        <div class="loading-card" style="width:88px;height:88px;border-radius:50%;flex-shrink:0"></div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-          <div class="loading-card" style="height:28px;width:200px"></div>
-          <div class="loading-card" style="height:18px;width:280px"></div>
-          <div class="loading-card" style="height:14px;width:360px;margin-top:6px"></div>
+      <div style="display:flex;align-items:center;gap:12px;margin-bottom:6px">
+        <a href="profile.html" class="btn btn--surface btn--sm">← Profil</a>
+        <h1 class="admin-title" style="margin-bottom:0">Panou Admin</h1>
+      </div>
+      <p class="admin-sub">Gestionează conturile de profesor și monitorizează platforma.</p>
+
+      <!-- Stats -->
+      <div class="admin-stats-grid" id="adminStats">
+        <div class="admin-stat-card">
+          <div class="admin-stat-val" id="statPending">—</div>
+          <div class="admin-stat-lbl">Cereri în așteptare</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-val" id="statApproved">—</div>
+          <div class="admin-stat-lbl">Profesori aprobați</div>
+        </div>
+        <div class="admin-stat-card">
+          <div class="admin-stat-val" id="statRejected">—</div>
+          <div class="admin-stat-lbl">Cereri respinse</div>
         </div>
       </div>
-      <div class="prof-skeleton-grid">
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
+
+      <!-- Pending professors -->
+      <div class="admin-section-title">⏳ Cereri în așteptare</div>
+      <div id="pendingList">
+        <div class="admin-empty">Se încarcă…</div>
       </div>
-      <div class="loading-card" style="height:220px;margin-top:16px"></div>
+
+      <!-- Approved / rejected professors -->
+      <div class="admin-section-title" style="margin-top:32px">👨‍🏫 Toți profesorii</div>
+      <div id="allProfList">
+        <div class="admin-empty">Se încarcă…</div>
+      </div>
+
     </div>
 
-    <!-- Actual content (injected by profile-page.js) -->
-    <div id="profileContent" style="display:none"></div>
+    <!-- Access denied / loading -->
+    <div id="adminDenied" style="display:none;text-align:center;padding:80px 20px">
+      <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+      <h2 style="font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:8px">Acces interzis</h2>
+      <p style="color:var(--text-muted)">Această pagină este disponibilă doar pentru administratori.</p>
+      <a href="index.html" class="btn btn--primary" style="margin-top:20px">Înapoi la pagina principală</a>
+    </div>
 
+    <div id="adminLoading" style="text-align:center;padding:80px 20px;color:var(--text-muted)">
+      Se verifică accesul…
+    </div>
   </main>
 
   <div class="toast-container" id="toastContainer"></div>
-  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/profile-page.js"></script>
+  <script src="js/admin-page.js"></script>
 </body>
 </html>

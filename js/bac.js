@@ -1020,6 +1020,7 @@
       list.unshift(entry);
       if (list.length > 20) list.length = 20;
       localStorage.setItem('bac-history', JSON.stringify(list));
+      if (window.BMAuth?.saveBacSimulation) BMAuth.saveBacSimulation(entry);
     } catch (e) { /* storage full */ }
   }
 
