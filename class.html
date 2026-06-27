@@ -3,9 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profilul meu — Mathorizon</title>
+  <title>Clasă — Mathorizon</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -24,7 +25,7 @@
         <a class="nav__link" href="index.html">Capitole</a>
         <a class="nav__link" href="bac.html?new=1">Simulare BAC</a>
         <a class="nav__link" href="training.html">Antrenament Rapid</a>
-        <a class="nav__link" href="classes.html">Clase</a>
+        <a class="nav__link nav__link--active" href="classes.html">Clase</a>
         <a class="nav__link" href="#">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
@@ -39,7 +40,7 @@
         <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite">♡</button>
         <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
         <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <button class="nav-profile-btn" id="navProfileBtn" title="Profilul meu">
+        <button class="nav-profile-btn" id="navProfileBtn" title="Conectează-te">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
@@ -50,45 +51,33 @@
       <a class="nav__mobile-link" href="index.html">Capitole</a>
       <a class="nav__mobile-link" href="bac.html?new=1">Simulare BAC</a>
       <a class="nav__mobile-link" href="training.html">Antrenament Rapid</a>
-      <a class="nav__mobile-link" href="classes.html">Clase</a>
+      <a class="nav__mobile-link nav__mobile-link--active" href="classes.html">Clase</a>
       <a class="nav__mobile-link" href="#">Pachete</a>
     </div>
   </nav>
 
-  <!-- CONTENT -->
-  <main class="main container">
-
-    <!-- Skeleton / loading -->
-    <div id="profileSkeleton" class="prof-skeleton">
-      <div class="prof-skeleton-header">
-        <div class="loading-card" style="width:88px;height:88px;border-radius:50%;flex-shrink:0"></div>
-        <div style="flex:1;display:flex;flex-direction:column;gap:10px">
-          <div class="loading-card" style="height:28px;width:200px"></div>
-          <div class="loading-card" style="height:18px;width:280px"></div>
-          <div class="loading-card" style="height:14px;width:360px;margin-top:6px"></div>
-        </div>
-      </div>
-      <div class="prof-skeleton-grid">
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
-        <div class="loading-card" style="height:180px"></div>
-      </div>
-      <div class="loading-card" style="height:220px;margin-top:16px"></div>
+  <!-- CONTENT: rendered by class-page.js -->
+  <div id="classRoot">
+    <div class="classes-loading">
+      <div class="classes-spinner"></div>
+      <p>Se verifică accesul...</p>
     </div>
+  </div>
 
-    <!-- Actual content (injected by profile-page.js) -->
-    <div id="profileContent" style="display:none"></div>
-
-  </main>
-
+  <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
+
   <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+  <script src="https://cdn.jsdelivr.net/npm/flatpickr/dist/l10n/ro.js"></script>
+  <script src="js/data.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
-  <script src="js/profile-page.js"></script>
+  <script src="js/panels.js"></script>
+  <script src="js/push.js"></script>
+  <script src="js/class-page.js"></script>
 </body>
 </html>

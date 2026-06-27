@@ -26,15 +26,24 @@
 
     sb.auth.onAuthStateChange(async (event, session) => {
       console.log('[BMAuth] onAuthStateChange:', event, !!session?.user);
-      currentUser    = session?.user    ?? null;
-      currentSession = session          ?? null;
+      const incomingUser = session?.user ?? null;
+      const userChanged  = incomingUser?.id !== currentUser?.id;
+      currentUser    = incomingUser;
+      currentSession = session ?? null;
       _updateProfileBtn();
-      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentUser && !_syncDone) {
-        _syncDone = true;
-        await _syncUserProfile();
-        await _syncTokens();
-        await _syncProgress();
-        document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
+      if ((event === 'SIGNED_IN' || event === 'INITIAL_SESSION') && currentUser) {
+        if (userChanged && _syncDone) {
+          /* Alt user s-a logat fără SIGNED_OUT — curățăm datele celui vechi */
+          _syncDone = false;
+          BM.Storage.clearAll();
+        }
+        if (!_syncDone) {
+          _syncDone = true;
+          await _syncUserProfile();
+          await _syncTokens();
+          await _syncProgress();
+          document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
+        }
       }
       if (event === 'SIGNED_OUT') {
         _syncDone = false;

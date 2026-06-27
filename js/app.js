@@ -14,6 +14,15 @@
     BM.Storage.recordVisit();
     BM.Storage.updateStreak();
     BM.initScrollTop();
+    openPanelFromUrl();
+  }
+
+  function openPanelFromUrl() {
+    const p = new URLSearchParams(location.search).get('panel');
+    if (!p) return;
+    history.replaceState(null, '', location.pathname);
+    if (p === 'fav')  openFavorites();
+    if (p === 'hist') openHistory();
   }
 
   /* ---- Stats ---- */
