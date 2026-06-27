@@ -423,7 +423,7 @@
     });
 
     const sidebar = document.getElementById('fluxSidebar');
-    if (sidebar) sidebar.innerHTML = renderFluxSidebar(posts.length, memberCount);
+    if (sidebar) sidebar.innerHTML = renderFluxSidebar(posts.length, memberCount, isTeacher);
 
     if (!isTeacher) BMPush?.init(classData.id);
   }
@@ -842,7 +842,7 @@
   }
 
   /* ─── Sidebar renderers ─────────────────────────────────────────── */
-  function renderFluxSidebar(postCount, memberCount) {
+  function renderFluxSidebar(postCount, memberCount, isTeacher) {
     const nameParts = classData.name.split(' · ');
     const subject   = nameParts[0];
     const schedule  = nameParts.slice(1).join(' · ');
@@ -904,6 +904,11 @@
               <span class="cd-info-card__stat-lbl">elevi</span>
             </div>
           </div>
+          ${!isTeacher && ('Notification' in window) ? `
+          <div class="cd-info-card__sep"></div>
+          <button class="cd-notif-btn" id="cdNotifBtn" onclick="BMPush?.resubscribe('${classData.id}')">
+            🔔 Gestionează notificările
+          </button>` : ''}
         </div>
       </div>
     `;
