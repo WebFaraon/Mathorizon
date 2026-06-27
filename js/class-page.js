@@ -904,13 +904,12 @@
               <span class="cd-info-card__stat-lbl">elevi</span>
             </div>
           </div>
-          ${!isTeacher && ('Notification' in window) ? `
-          <div class="cd-info-card__sep"></div>
-          <button class="cd-notif-btn" id="cdNotifBtn" onclick="BMPush?.resubscribe('${classData.id}')">
-            🔔 Gestionează notificările
-          </button>` : ''}
         </div>
       </div>
+      ${!isTeacher && ('Notification' in window) ? `
+      <button class="cd-notif-btn" onclick="BMPush?.resubscribe('${classData.id}')">
+        🔔 Gestionează notificările
+      </button>` : ''}
     `;
   }
 
