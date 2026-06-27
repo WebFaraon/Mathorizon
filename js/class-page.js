@@ -217,39 +217,50 @@
 
   /* ─── Real-time subscriptions ───────────────────────────────────── */
   let _realtimeChannel = null;
+  let _reloadFluxTimer = null;
+  let _reloadTemeTimer = null;
+
+  function _debouncedFlux() {
+    clearTimeout(_reloadFluxTimer);
+    _reloadFluxTimer = setTimeout(() => { if (activeTab === 'flux') loadFluxTab(); }, 350);
+  }
+
+  function _debouncedTeme() {
+    clearTimeout(_reloadTemeTimer);
+    _reloadTemeTimer = setTimeout(() => { if (activeTab === 'teme') loadTemeTab(); }, 350);
+  }
 
   function _setupRealtime() {
-    if (_realtimeChannel) {
-      BMAuth.supabase.removeChannel(_realtimeChannel);
-    }
+    if (_realtimeChannel) BMAuth.supabase.removeChannel(_realtimeChannel);
 
     _realtimeChannel = BMAuth.supabase
       .channel('class-live-' + classData.id)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'class_posts',
         filter: 'class_id=eq.' + classData.id
-      }, () => {
-        if (activeTab === 'flux') loadFluxTab();
-      })
+      }, _debouncedFlux)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'post_reactions'
-      }, () => {
-        if (activeTab === 'flux') loadFluxTab();
-      })
+      }, _debouncedFlux)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'assignments',
         filter: 'class_id=eq.' + classData.id
-      }, () => {
-        if (activeTab === 'teme') loadTemeTab();
-      })
-      .subscribe((status) => {
-        console.log('[Realtime] status:', status);
-      });
+      }, _debouncedTeme)
+      .subscribe();
 
     window.addEventListener('beforeunload', () => {
       BMAuth.supabase.removeChannel(_realtimeChannel);
     }, { once: true });
   }
+
+  /* Reîncarcă datele și reconectează realtime când pagina revine în prim-plan */
+  document.addEventListener('visibilitychange', () => {
+    if (!document.hidden) {
+      _setupRealtime();
+      if (activeTab === 'flux') loadFluxTab();
+      else if (activeTab === 'teme') loadTemeTab();
+    }
+  });
 
   /* ─── Tab switching ─────────────────────────────────────────────── */
   function switchTab(tabId) {
