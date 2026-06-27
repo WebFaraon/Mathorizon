@@ -232,12 +232,19 @@
         if (activeTab === 'flux') loadFluxTab();
       })
       .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'post_reactions'
+      }, () => {
+        if (activeTab === 'flux') loadFluxTab();
+      })
+      .on('postgres_changes', {
         event: '*', schema: 'public', table: 'assignments',
         filter: 'class_id=eq.' + classData.id
       }, () => {
         if (activeTab === 'teme') loadTemeTab();
       })
-      .subscribe();
+      .subscribe((status) => {
+        console.log('[Realtime] status:', status);
+      });
 
     window.addEventListener('beforeunload', () => {
       BMAuth.supabase.removeChannel(_realtimeChannel);
