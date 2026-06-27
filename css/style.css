@@ -269,10 +269,12 @@ img { display: block; max-width: 100%; }
 .nav__mobile-link:hover { background: rgba(255,255,255,0.09); color: #fff; }
 .nav__mobile-link--active { color: #fff; background: rgba(255,255,255,0.13); }
 .nav__mobile-link--action { width: 100%; text-align: left; border: none; background: none; font: inherit; cursor: pointer; color: rgba(255,255,255,0.75); }
+.nav__mobile-divider { height: 1px; background: rgba(255,255,255,0.10); margin: 6px 0; }
 
-/* Show mobile fav/hist only when nav-icon-btns are hidden */
+/* Hide action buttons on desktop where the real icons are already visible */
 @media (min-width: 1151px) {
   .nav__mobile-link--action { display: none; }
+  .nav__mobile-divider { display: none; }
 }
 
 /* ---- Chapter-level action buttons (Favorite / Istoric in page body) ---- */
@@ -2841,7 +2843,6 @@ img { display: block; max-width: 100%; }
 @media (max-width: 400px) {
   .nav__logo { height: 36px; }
   .subcat-cards-grid { grid-template-columns: 1fr; }
-  .stat { flex: 1 1 100%; }
   .hero__title { font-size: 1.4rem; }
   .chapter-card { padding: 18px 14px; }
   .cat-stat__num { font-size: 1.25rem; }
