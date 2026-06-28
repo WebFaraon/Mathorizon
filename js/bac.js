@@ -287,6 +287,11 @@
     const tokens    = BM.getTokens();
     const loggedIn  = !!window.BMAuth?.user;
 
+    if (window.BMAuth?.role === 'admin') {
+      doStartExam();
+      return;
+    }
+
     if (tokens <= 0) {
       if (!loggedIn) {
         showTokenDialog({
