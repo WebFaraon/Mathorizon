@@ -130,6 +130,15 @@
         card.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
       });
     });
+
+    const bacCard = document.getElementById('bacSimCard');
+    if (bacCard) {
+      bacCard.addEventListener('mousemove', e => {
+        const r = bacCard.getBoundingClientRect();
+        bacCard.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
+        bacCard.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
+      });
+    }
   }
 
   /* ---- Search ---- */

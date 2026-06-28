@@ -246,6 +246,9 @@
         event: '*', schema: 'public', table: 'assignments',
         filter: 'class_id=eq.' + classData.id
       }, _debouncedTeme)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'homework_submissions'
+      }, _debouncedTeme)
       .subscribe();
 
     window.addEventListener('beforeunload', () => {
@@ -422,7 +425,13 @@
     const sidebar = document.getElementById('fluxSidebar');
     if (sidebar) sidebar.innerHTML = renderFluxSidebar(posts.length, memberCount, isTeacher);
 
-    if (!isTeacher) BMPush?.init(classData.id);
+    if (isTeacher) {
+      BMAuth.supabase.from('push_subscriptions')
+        .delete().eq('user_id', BMAuth.user.id).eq('class_id', classData.id)
+        .then(() => {});
+    } else {
+      BMPush?.init(classData.id);
+    }
   }
 
   function fluxEmpty(isTeacher) {
@@ -858,7 +867,6 @@
     const grade    = classData.school_grade;
 
     const detailsHTML = (maxEl || grade || lvl) ? `
-      <div class="cd-info-card__sep"></div>
       <div class="cd-info-card__details">
         ${grade ? `
         <div class="cd-info-card__detail">
@@ -889,8 +897,6 @@
             <div class="cd-info-card__subject">${BM.esc(subject)}</div>
             ${schedule ? `<div class="cd-info-card__schedule">🗓 ${BM.esc(schedule)}</div>` : ''}
           </div>
-          ${detailsHTML}
-          <div class="cd-info-card__sep"></div>
           <div class="cd-info-card__stats">
             <div class="cd-info-card__stat">
               <span class="cd-info-card__stat-val">${postCount}</span>
@@ -901,6 +907,7 @@
               <span class="cd-info-card__stat-lbl">elevi</span>
             </div>
           </div>
+          ${detailsHTML}
         </div>
       </div>
       ${!isTeacher && ('Notification' in window) ? `
