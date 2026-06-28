@@ -8,6 +8,8 @@
   const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
+  let _activeTab = 'profs';
+
   function _waitForAuth() {
     return new Promise(resolve => {
       if (window._bmAuthReady) return resolve(window.BMAuth);
@@ -52,77 +54,101 @@
   }
 
   function _parseClass(cls) {
-    const parts = (cls.name || '').split('·').map(s => s.trim());
-    const subjectIcons = {
-      'matematică': '📐', 'fizică': '⚛️', 'chimie': '🧪', 'biologie': '🌿',
-      'informatică': '💻', 'istorie': '📜', 'geografie': '🌍',
-      'română': '📖', 'limba română': '📖', 'engleză': '🇬🇧',
-      'limba engleză': '🇬🇧', 'franceză': '🇫🇷'
-    };
-    const subject = parts[0] || cls.name;
-    const icon    = subjectIcons[(subject || '').toLowerCase()] || '📚';
-    const mathLevelMap = {
-      '9-10': { label: 'Foarte bun', cls: 'tag--green' },
-      '7-8':  { label: 'OK',         cls: 'tag--blue'  },
-      '6-7':  { label: 'Mediocru',   cls: 'tag--amber' },
-      '5-6':  { label: 'Slab',       cls: 'tag--red'   },
-    };
-    const lvl = cls.math_level ? mathLevelMap[cls.math_level] : null;
-    return { subject, icon, day: parts[1] || '', time: parts[2] || '', lvl };
+    const parts = (cls.name || cls.class_name || '').split('·').map(s => s.trim());
+    const icons  = { 'matematică':'📐','fizică':'⚛️','chimie':'🧪','biologie':'🌿','informatică':'💻','istorie':'📜','geografie':'🌍','română':'📖','limba română':'📖','engleză':'🇬🇧','limba engleză':'🇬🇧','franceză':'🇫🇷' };
+    const subject = parts[0] || cls.name || cls.class_name;
+    return { subject, icon: icons[(subject||'').toLowerCase()] || '📚', day: parts[1]||'', time: parts[2]||'' };
   }
 
+  const mathLevelMap = {
+    '9-10': { label:'Foarte bun', cls:'tag--green' },
+    '7-8':  { label:'OK',         cls:'tag--blue'  },
+    '6-7':  { label:'Mediocru',   cls:'tag--amber' },
+    '5-6':  { label:'Slab',       cls:'tag--red'   },
+  };
+
+  /* ── Professor section ── */
   function _classCard(cls) {
-    const { subject, icon, day, time, lvl } = _parseClass(cls);
+    const { subject, icon, day, time } = _parseClass(cls);
     const enrolled = Number(cls.member_count) || 0;
     const maxEl    = cls.max_students;
-    const grade    = cls.school_grade;
+    const lvl      = cls.math_level ? mathLevelMap[cls.math_level] : null;
     const full     = maxEl && enrolled >= maxEl;
-
     return `
       <div class="admin-class-mini">
         <div class="admin-class-mini__subject">${icon} ${BM.esc(subject)}</div>
-        ${(day || time) ? `<div class="admin-class-mini__schedule">${BM.esc([day, time].filter(Boolean).join(' · '))}</div>` : ''}
+        ${(day||time) ? `<div class="admin-class-mini__schedule">${BM.esc([day,time].filter(Boolean).join(' · '))}</div>` : ''}
         <div class="admin-class-mini__tags">
-          <span class="admin-class-mini__tag${full ? ' admin-class-mini__tag--red' : ''}">
-            👥 ${enrolled}${maxEl ? ' / ' + maxEl : ''} elevi
-          </span>
-          ${grade ? `<span class="admin-class-mini__tag admin-class-mini__tag--muted">Cls. ${BM.esc(grade)}</span>` : ''}
-          ${lvl    ? `<span class="admin-class-mini__tag admin-class-mini__${lvl.cls}">${BM.esc(cls.math_level)} · ${lvl.label}</span>` : ''}
+          <span class="admin-class-mini__tag${full?' admin-class-mini__tag--red':''}">👥 ${enrolled}${maxEl?' / '+maxEl:''} elevi</span>
+          ${cls.school_grade ? `<span class="admin-class-mini__tag admin-class-mini__tag--muted">Cls. ${BM.esc(cls.school_grade)}</span>` : ''}
+          ${lvl ? `<span class="admin-class-mini__tag admin-class-mini__${lvl.cls}">${BM.esc(cls.math_level)} · ${lvl.label}</span>` : ''}
         </div>
       </div>`;
   }
 
   function _profRow(prof, classes) {
-    const uid        = prof.user_id;
-    const statusMap  = { active: ['active', 'Aprobat'], pending: ['pending', 'În așteptare'], rejected: ['rejected', 'Respins'] };
-    const [sCls, sLbl] = statusMap[prof.status] || ['pending', '—'];
-    const nClase     = classes.length;
-
+    const uid = prof.user_id;
+    const statusMap = { active:['active','Aprobat'], pending:['pending','În așteptare'], rejected:['rejected','Respins'] };
+    const [sCls, sLbl] = statusMap[prof.status] || ['pending','—'];
     return `
-      <div class="admin-prof-block" id="pblock-${uid}">
-        <div class="admin-prof-row" onclick="toggleProfClasses('${uid}')">
+      <div class="admin-prof-block" id="pblock-${uid}" data-name="${BM.esc((prof.full_name||'').toLowerCase())}">
+        <div class="admin-prof-row" onclick="toggleAdminExpand('prof','${uid}')">
           <div class="admin-prof-avatar">${_initials(prof.full_name)}</div>
           <div class="admin-prof-info">
-            <div class="admin-prof-name">${BM.esc(prof.full_name || '—')}</div>
-            <div class="admin-prof-email">${BM.esc(prof.email || '')}</div>
+            <div class="admin-prof-name">${BM.esc(prof.full_name||'—')}</div>
+            <div class="admin-prof-email">${BM.esc(prof.email||'')}</div>
           </div>
           <div class="admin-prof-meta">
-            <span class="admin-class-count">${nClase} ${nClase === 1 ? 'clasă' : 'clase'}</span>
+            <span class="admin-class-count">${classes.length} ${classes.length===1?'clasă':'clase'}</span>
             <span class="admin-approved-badge admin-approved-badge--${sCls}">${sLbl}</span>
           </div>
-          <span class="admin-expand-icon" id="expand-icon-${uid}">▼</span>
+          <span class="admin-expand-icon" id="expand-icon-prof-${uid}">▼</span>
         </div>
-        <div class="admin-prof-classes" id="prof-classes-${uid}">
-          ${nClase === 0
+        <div class="admin-prof-classes" id="expand-panel-prof-${uid}">
+          ${!classes.length
             ? '<div class="admin-empty" style="padding:16px">Nicio clasă creată.</div>'
             : `<div class="admin-class-grid">${classes.map(_classCard).join('')}</div>`}
         </div>
       </div>`;
   }
 
-  window.toggleProfClasses = function(uid) {
-    const panel = document.getElementById(`prof-classes-${uid}`);
-    const icon  = document.getElementById(`expand-icon-${uid}`);
+  /* ── Student section ── */
+  function _studentClassChip(cls) {
+    const { subject, icon, day, time } = _parseClass(cls);
+    const schedule = [day, time].filter(Boolean).join(' · ');
+    return `<span class="admin-stud-chip" title="${BM.esc(cls.teacher_name||'')}">
+      ${icon} ${BM.esc(subject)}${schedule ? ' · ' + BM.esc(schedule) : ''}
+    </span>`;
+  }
+
+  function _studentRow(student, classes) {
+    const uid = student.user_id;
+    return `
+      <div class="admin-prof-block" id="sblock-${uid}" data-name="${BM.esc((student.full_name||'').toLowerCase())}">
+        <div class="admin-prof-row" onclick="toggleAdminExpand('stud','${uid}')">
+          <div class="admin-prof-avatar">${_initials(student.full_name)}</div>
+          <div class="admin-prof-info">
+            <div class="admin-prof-name">${BM.esc(student.full_name||'—')}</div>
+            <div class="admin-prof-email">${BM.esc(student.email||'')}</div>
+          </div>
+          <div class="admin-prof-meta">
+            <span class="admin-class-count">${classes.length} ${classes.length===1?'clasă':'clase'}</span>
+            <span class="admin-student-date-badge">${_formatDate(student.created_at)}</span>
+          </div>
+          <span class="admin-expand-icon" id="expand-icon-stud-${uid}">▼</span>
+        </div>
+        <div class="admin-prof-classes" id="expand-panel-stud-${uid}">
+          ${!classes.length
+            ? '<div class="admin-empty" style="padding:16px">Neînscris în nicio clasă.</div>'
+            : `<div class="admin-stud-chips">${classes.map(_studentClassChip).join('')}</div>`}
+        </div>
+      </div>`;
+  }
+
+  /* ── Toggle expand ── */
+  window.toggleAdminExpand = function(type, uid) {
+    const panel = document.getElementById(`expand-panel-${type}-${uid}`);
+    const icon  = document.getElementById(`expand-icon-${type}-${uid}`);
     const row   = panel?.previousElementSibling;
     if (!panel) return;
     const open = panel.classList.toggle('open');
@@ -130,19 +156,44 @@
     if (row)  row.classList.toggle('open', open);
   };
 
+  /* ── Tab switching ── */
+  window.switchAdminTab = function(tab) {
+    _activeTab = tab;
+    document.getElementById('panelProfs').style.display = tab === 'profs' ? '' : 'none';
+    document.getElementById('panelStuds').style.display = tab === 'studs'  ? '' : 'none';
+    document.getElementById('tabProfs').classList.toggle('admin-tab--active', tab === 'profs');
+    document.getElementById('tabStuds').classList.toggle('admin-tab--active', tab === 'studs');
+    const searchEl = document.getElementById('adminSearch');
+    if (searchEl) { searchEl.value = ''; adminFilterSearch(); }
+  };
+
+  /* ── Search / filter ── */
+  window.adminFilterSearch = function() {
+    const q       = (document.getElementById('adminSearch')?.value || '').toLowerCase().trim();
+    const panelId = _activeTab === 'profs' ? 'panelProfs' : 'panelStuds';
+    const panel   = document.getElementById(panelId);
+    if (!panel) return;
+    panel.querySelectorAll('.admin-prof-block').forEach(el => {
+      const name = el.dataset.name || '';
+      el.style.display = (!q || name.includes(q)) ? '' : 'none';
+    });
+  };
+
+  /* ── Main render ── */
   async function renderAdmin(session) {
     const loading = document.getElementById('adminLoading');
     const denied  = document.getElementById('adminDenied');
     const wrap    = document.getElementById('adminWrap');
     if (loading) loading.style.display = 'none';
 
-    let pending = [], allProfs = [], allClasses = [], allStudents = [];
+    let pending = [], allProfs = [], allClasses = [], allStudents = [], studentClasses = [];
     try {
-      [pending, allProfs, allClasses, allStudents] = await Promise.all([
-        _rpc('get_pending_professors',  {}, session).catch(() => []),
-        _rpc('get_all_professors',      {}, session).catch(() => []),
-        _rpc('get_all_classes_admin',   {}, session).catch(() => []),
-        _rpc('get_all_students',        {}, session).catch(() => []),
+      [pending, allProfs, allClasses, allStudents, studentClasses] = await Promise.all([
+        _rpc('get_pending_professors',       {}, session).catch(() => []),
+        _rpc('get_all_professors',           {}, session).catch(() => []),
+        _rpc('get_all_classes_admin',        {}, session).catch(() => []),
+        _rpc('get_all_students',             {}, session).catch(() => []),
+        _rpc('get_all_student_classes_admin',{}, session).catch(() => []),
       ]);
     } catch (e) {
       console.error('[Admin] error:', e.message);
@@ -153,24 +204,26 @@
     if (wrap) wrap.style.display = '';
 
     /* Stats */
-    const approved = (allProfs || []).filter(p => p.status === 'active').length;
-    const rejected = (allProfs || []).filter(p => p.status === 'rejected').length;
-    _setText('statPending',  (pending      || []).length);
+    const approved = (allProfs||[]).filter(p => p.status === 'active').length;
+    const rejected = (allProfs||[]).filter(p => p.status === 'rejected').length;
+    _setText('statPending',  (pending||[]).length);
     _setText('statApproved', approved);
     _setText('statRejected', rejected);
-    _setText('statStudents', (allStudents  || []).length);
+    _setText('statStudents', (allStudents||[]).length);
+    _setText('tabProfCount', (allProfs||[]).length);
+    _setText('tabStudCount', (allStudents||[]).length);
 
     /* Pending list */
     const pendingEl = document.getElementById('pendingList');
     if (pendingEl) {
-      pendingEl.innerHTML = !(pending || []).length
+      pendingEl.innerHTML = !(pending||[]).length
         ? '<div class="admin-empty">Nu există cereri în așteptare.</div>'
-        : (pending || []).map(p => `
+        : (pending||[]).map(p => `
             <div class="admin-prof-card" id="pcard-${p.user_id}">
               <div class="admin-prof-avatar">${_initials(p.full_name)}</div>
               <div class="admin-prof-info">
-                <div class="admin-prof-name">${BM.esc(p.full_name || '—')}</div>
-                <div class="admin-prof-email">${BM.esc(p.email || '')}</div>
+                <div class="admin-prof-name">${BM.esc(p.full_name||'—')}</div>
+                <div class="admin-prof-email">${BM.esc(p.email||'')}</div>
                 <div class="admin-prof-date">Cerere trimisă: ${_formatDate(p.created_at)}</div>
               </div>
               <div class="admin-prof-actions">
@@ -182,33 +235,32 @@
             </div>`).join('');
     }
 
-    /* Professors with classes */
+    /* Professors panel */
     const classesMap = {};
-    (allClasses || []).forEach(c => {
+    (allClasses||[]).forEach(c => {
       if (!classesMap[c.teacher_id]) classesMap[c.teacher_id] = [];
       classesMap[c.teacher_id].push(c);
     });
 
-    const allEl = document.getElementById('allProfList');
-    if (allEl) {
-      allEl.innerHTML = !(allProfs || []).length
+    const profPanel = document.getElementById('panelProfs');
+    if (profPanel) {
+      profPanel.innerHTML = !(allProfs||[]).length
         ? '<div class="admin-empty">Nu există conturi de profesor.</div>'
-        : (allProfs || []).map(p => _profRow(p, classesMap[p.user_id] || [])).join('');
+        : (allProfs||[]).map(p => _profRow(p, classesMap[p.user_id]||[])).join('');
     }
 
-    /* Students */
-    const studEl = document.getElementById('allStudentList');
-    if (studEl) {
-      studEl.innerHTML = !(allStudents || []).length
+    /* Students panel */
+    const studClassMap = {};
+    (studentClasses||[]).forEach(r => {
+      if (!studClassMap[r.student_id]) studClassMap[r.student_id] = [];
+      studClassMap[r.student_id].push(r);
+    });
+
+    const studPanel = document.getElementById('panelStuds');
+    if (studPanel) {
+      studPanel.innerHTML = !(allStudents||[]).length
         ? '<div class="admin-empty">Nu există elevi înregistrați.</div>'
-        : `<div class="admin-student-list">${(allStudents || []).map(s => `
-            <div class="admin-student-row">
-              <div class="admin-student-avatar">${_initials(s.full_name)}</div>
-              <span class="admin-student-name">${BM.esc(s.full_name || '—')}</span>
-              <span class="admin-student-email">${BM.esc(s.email || '')}</span>
-              <span class="admin-student-date">${_formatDate(s.created_at)}</span>
-            </div>`).join('')}
-          </div>`;
+        : (allStudents||[]).map(s => _studentRow(s, studClassMap[s.user_id]||[])).join('');
     }
 
     window._adminSession = session;
@@ -226,9 +278,8 @@
       await _rpc('set_professor_status', { target_user_id: userId, new_status: 'active' }, window._adminSession);
       const card = document.getElementById(`pcard-${userId}`);
       if (card) {
-        card.style.opacity = '0.5';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => { card.remove(); _delta('statPending', -1); _delta('statApproved', 1); }, 300);
+        card.style.opacity = '0.5'; card.style.pointerEvents = 'none';
+        setTimeout(() => { card.remove(); _delta('statPending',-1); _delta('statApproved',1); }, 300);
       }
       BM.toast('Profesor aprobat!', 'success');
     } catch (e) {
@@ -243,9 +294,8 @@
       await _rpc('set_professor_status', { target_user_id: userId, new_status: 'rejected' }, window._adminSession);
       const card = document.getElementById(`pcard-${userId}`);
       if (card) {
-        card.style.opacity = '0.5';
-        card.style.pointerEvents = 'none';
-        setTimeout(() => { card.remove(); _delta('statPending', -1); _delta('statRejected', 1); }, 300);
+        card.style.opacity = '0.5'; card.style.pointerEvents = 'none';
+        setTimeout(() => { card.remove(); _delta('statPending',-1); _delta('statRejected',1); }, 300);
       }
       BM.toast('Cerere respinsă.', 'success');
     } catch (e) {
@@ -255,7 +305,7 @@
 
   function _delta(id, delta) {
     const el = document.getElementById(id);
-    if (el) el.textContent = Math.max(0, parseInt(el.textContent || '0') + delta);
+    if (el) el.textContent = Math.max(0, parseInt(el.textContent||'0') + delta);
     if (id === 'statPending') {
       const list = document.getElementById('pendingList');
       if (list && !list.querySelector('.admin-prof-card'))
