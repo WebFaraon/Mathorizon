@@ -269,6 +269,12 @@
         try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: normDate })); } catch {}
       } else {
         try { localStorage.setItem('bm_streak', JSON.stringify({ count: 0, lastDate: null })); } catch {}
+        /* Utilizator nou — inițializează rândul în DB ca să nu apară valori greșite */
+        _dbFetch('user_streak', {
+          method: 'POST',
+          body: JSON.stringify({ user_id: uid, count: 0, last_date: null }),
+          headers: { 'Prefer': 'resolution=ignore-duplicates,return=minimal' }
+        }).catch(() => {});
       }
 
       /* ---- Favorite ---- */

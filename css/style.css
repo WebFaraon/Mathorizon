@@ -8995,6 +8995,7 @@ img { display: block; max-width: 100%; }
   }
   .cd-info-card__stat { min-width: 54px; padding: 8px 8px 6px; }
   .cd-info-card__stat-val { font-size: 1.2rem; }
+  .cd-info-card__details { display: none; }
 }
 
 @media (max-width: 600px) {

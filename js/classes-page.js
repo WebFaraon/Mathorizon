@@ -217,7 +217,7 @@
           </div>
         </div>
         <div class="class-card__footer">
-          <span class="class-card__members">👥 ${memberCount} ${plural}</span>
+          <span class="class-card__members">👥 ${memberCount}${cls.max_students ? `/${cls.max_students}` : ''} ${plural}</span>
           <span class="class-card__date">${relDate(cls.created_at)}</span>
         </div>
       </div>

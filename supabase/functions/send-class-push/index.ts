@@ -129,7 +129,7 @@ serve(async (req) => {
   if (req.method !== 'POST')   return new Response('Method not allowed', { status: 405 });
 
   try {
-    const { class_id, type, teacher_name } = await req.json();
+    const { class_id, type, teacher_name, exclude_user_id } = await req.json();
 
     const labels: Record<string, { title: string; body: string }> = {
       announcement: { title: 'Anunț nou 📢', body: `${teacher_name} a publicat un anunț nou!` },
@@ -138,8 +138,9 @@ serve(async (req) => {
     const msg = labels[type] ?? labels.announcement;
 
     const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-    const { data: subs, error } = await sb
-      .from('push_subscriptions').select('subscription').eq('class_id', class_id);
+    let query = sb.from('push_subscriptions').select('subscription').eq('class_id', class_id);
+    if (exclude_user_id) query = query.neq('user_id', exclude_user_id);
+    const { data: subs, error } = await query;
     if (error) throw error;
 
     const expiredEndpoints: string[] = [];

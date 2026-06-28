@@ -131,7 +131,7 @@
     if (!BMAuth.supabase) return;
     try {
       await BMAuth.supabase.functions.invoke('send-class-push', {
-        body: { class_id: classId, type, teacher_name: BMAuth.displayName() }
+        body: { class_id: classId, type, teacher_name: BMAuth.displayName(), exclude_user_id: BMAuth.user?.id }
       });
     } catch (e) {
       console.warn('[Push] send error:', e);

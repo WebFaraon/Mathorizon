@@ -372,15 +372,12 @@
           .select('*')
           .eq('class_id', classData.id)
           .order('created_at', { ascending: false }),
-        BMAuth.supabase
-          .from('class_members')
-          .select('*', { count: 'exact', head: true })
-          .eq('class_id', classData.id),
+        BMAuth.supabase.rpc('get_class_member_count', { p_class_id: classData.id }),
         reactionsQ
       ]);
       if (postsRes.error) throw postsRes.error;
       posts = postsRes.data || [];
-      memberCount = membersRes.count ?? 0;
+      memberCount = membersRes.data ?? 0;
 
       const reactions = reactionsRes.data || [];
       const postIdSet = new Set(posts.map(p => p.id));
@@ -824,9 +821,9 @@
               ? `<span class="teme-sub-counter">📤 ${a._subInfo?.count ?? 0}/${a._subInfo?.total ?? 0} predate</span>`
               : a._subInfo
                 ? a._subInfo.grade_confirmed
-                  ? `<span class="teme-sub-badge teme-sub-badge--graded">⭐ Notă: ${a._subInfo.grade}</span>`
-                  : `<span class="teme-sub-badge teme-sub-badge--done">✅ Predată</span>`
-                : `<span class="teme-sub-badge teme-sub-badge--none">📤 Nepredată</span>`
+                  ? `<span class="teme-sub-badge teme-sub-badge--graded" data-sub-badge="${a.id}">⭐ Notă: ${a._subInfo.grade}</span>`
+                  : `<span class="teme-sub-badge teme-sub-badge--done" data-sub-badge="${a.id}">✅ Predată</span>`
+                : `<span class="teme-sub-badge teme-sub-badge--none" data-sub-badge="${a.id}">📤 Nepredată</span>`
             }
           </div>
           ${isTeacher ? `
@@ -873,7 +870,7 @@
         <div class="cd-info-card__detail">
           <span class="cd-info-card__detail-icon">👥</span>
           <span class="cd-info-card__detail-lbl">Mărime grupă</span>
-          <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `max ${maxEl} elevi`}</span>
+          <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `${maxEl} elevi`}</span>
         </div>` : ''}
         ${lvl ? `
         <div class="cd-info-card__detail">
@@ -1209,6 +1206,8 @@
           }, { onConflict: 'assignment_id,student_id' });
         if (error) throw error;
         BM.toast('Tema a fost predată!', 'success');
+        const badge = document.querySelector(`[data-sub-badge="${assignmentId}"]`);
+        if (badge) { badge.className = 'teme-sub-badge teme-sub-badge--done'; badge.textContent = '✅ Predată'; }
         _loadStudentSubmission(assignmentId, section);
       } catch (e) {
         BM.toast('Eroare: ' + e.message, 'error');
