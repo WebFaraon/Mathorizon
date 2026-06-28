@@ -4,7 +4,8 @@ self.addEventListener('push', event => {
   event.waitUntil(
     self.registration.showNotification(title, {
       body,
-      icon: '/assets/images/MathorizonLogo.png',
+      icon: '/assets/images/icon-192.png',
+      badge: '/assets/images/badge-96.png',
       vibrate: [200, 100, 200],
       data: { url: url || '/classes.html' }
     })
