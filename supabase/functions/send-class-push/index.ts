@@ -117,7 +117,9 @@ async function sendPush(
     body,
   });
   if (!res.ok && res.status !== 201) {
-    throw new Error(`HTTP ${res.status}: ${await res.text().catch(() => '')}`);
+    const err = new Error(`HTTP ${res.status}: ${await res.text().catch(() => '')}`);
+    (err as Error & { status: number }).status = res.status;
+    throw err;
   }
 }
 
@@ -140,11 +142,26 @@ serve(async (req) => {
       .from('push_subscriptions').select('subscription').eq('class_id', class_id);
     if (error) throw error;
 
+    const expiredEndpoints: string[] = [];
+    const payload = JSON.stringify({ ...msg, url: `/class.html?id=${class_id}` });
+
     const results = await Promise.allSettled(
-      (subs ?? []).map((r: { subscription: { endpoint: string; keys: { auth: string; p256dh: string } } }) =>
-        sendPush(r.subscription, JSON.stringify({ ...msg, url: `/class.html?id=${class_id}` }))
-      )
+      (subs ?? []).map(async (r: { subscription: { endpoint: string; keys: { auth: string; p256dh: string } } }) => {
+        try {
+          await sendPush(r.subscription, payload);
+        } catch (e) {
+          const status = (e as Error & { status?: number }).status;
+          if (status === 410 || status === 404) expiredEndpoints.push(r.subscription.endpoint);
+          throw e;
+        }
+      })
     );
+
+    /* Clean up subscriptions the push service has invalidated */
+    if (expiredEndpoints.length > 0) {
+      await sb.from('push_subscriptions').delete().in('endpoint', expiredEndpoints);
+      console.log(`[push] removed ${expiredEndpoints.length} expired subscription(s)`);
+    }
 
     const sent   = results.filter(r => r.status === 'fulfilled').length;
     const errors = (results.filter(r => r.status === 'rejected') as PromiseRejectedResult[])

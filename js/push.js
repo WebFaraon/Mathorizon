@@ -24,8 +24,8 @@
     const { error } = await BMAuth.supabase
       .from('push_subscriptions')
       .upsert(
-        { user_id: BMAuth.user.id, class_id: classId, subscription: sub.toJSON() },
-        { onConflict: 'user_id,class_id' }
+        { user_id: BMAuth.user.id, class_id: classId, endpoint: sub.endpoint, subscription: sub.toJSON() },
+        { onConflict: 'user_id,class_id,endpoint' }
       );
     if (error) console.warn('[Push] save error:', error.message);
     return !error;
@@ -110,9 +110,17 @@
     if (!BMAuth.user) return;
     try {
       const reg = await _getReg();
-      /* Unsubscribe existing first to get a fresh subscription */
       const old = await reg.pushManager.getSubscription();
-      if (old) await old.unsubscribe();
+      if (old) {
+        /* Remove old endpoint from DB before unsubscribing browser */
+        await BMAuth.supabase
+          .from('push_subscriptions')
+          .delete()
+          .eq('user_id', BMAuth.user.id)
+          .eq('class_id', classId)
+          .eq('endpoint', old.endpoint);
+        await old.unsubscribe();
+      }
       await _subscribe(classId, reg, null);
     } catch (e) {
       console.warn('[Push] resubscribe error:', e);
