@@ -4537,7 +4537,7 @@ img { display: block; max-width: 100%; }
 .bac-stat-chip--flag .bac-stat-chip__val { color: #f59e0b; }
 
 /* ---- Exam overlays (fullscreen warning + nav guard) ---- */
-#fsWarnOverlay, #navGuardModal {
+#fsWarnOverlay, #navGuardModal, #terminateModal, #finishConfirmModal {
   position: fixed;
   inset: 0;
   z-index: 99999;

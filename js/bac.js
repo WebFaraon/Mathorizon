@@ -238,14 +238,29 @@
     clearInterval(timerInterval);
     _navGuardOff();
     _hideFsWarning();
+    _exitFullscreen();
     sessionStorage.removeItem('bac-exam');
     sessionStorage.removeItem('bac-current');
     exam = null;
+
+    const ov = document.createElement('div');
+    ov.id = 'terminateModal';
+    ov.innerHTML = `
+      <div class="fs-warn-box">
+        <div class="fs-warn-icon">❌</div>
+        <div class="fs-warn-title">Examen anulat</div>
+        <div class="fs-warn-body">
+          Ai ieșit din fullscreen de <strong>două ori</strong> în timpul simulării.<br><br>
+          Examenul a fost <strong>închis automat</strong> fără rezultate, fără notă și fără analiză.<br>
+          <span style="color:var(--red);font-weight:700">Tokenul utilizat nu va fi restituit.</span>
+        </div>
+        <button class="btn btn--primary" onclick="
+          document.getElementById('terminateModal').remove();
+          document.getElementById('setupView').scrollIntoView();
+        ">Înțeleg</button>
+      </div>`;
+    document.body.appendChild(ov);
     showView('setupView');
-    _exitFullscreen();
-    setTimeout(() => {
-      BM.toast('Examenul a fost închis automat — ai ieșit din fullscreen de două ori.', 'error');
-    }, 300);
   }
 
   document.addEventListener('fullscreenchange',       _onFsChange);
@@ -927,7 +942,29 @@
      FINISH EXAM
   ================================================================ */
   window.finishExam = function () {
-    if (!confirm('Ești sigur că vrei să finalizezi simularea? Exercițiile fără răspuns confirmat vor primi 0 puncte.')) return;
+    if (document.getElementById('finishConfirmModal')) return;
+    const ov = document.createElement('div');
+    ov.id = 'finishConfirmModal';
+    ov.innerHTML = `
+      <div class="nav-guard-box">
+        <div class="nav-guard-icon">🎓</div>
+        <div class="nav-guard-title" style="color:var(--text)">Finalizezi simularea?</div>
+        <div class="nav-guard-body">
+          Exercițiile fără răspuns confirmat vor primi <strong>0 puncte</strong>.<br>
+          Această acțiune este ireversibilă.
+        </div>
+        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+          <button class="btn btn--surface" onclick="document.getElementById('finishConfirmModal').remove()">Înapoi la examen</button>
+          <button class="btn btn--danger" onclick="
+            document.getElementById('finishConfirmModal').remove();
+            BMBac.confirmFinish();
+          ">Da, finalizează</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+  };
+
+  window.BMBac.confirmFinish = function() {
     clearInterval(timerInterval);
     _navGuardOff();
     _hideFsWarning();
