@@ -4532,12 +4532,47 @@ img { display: block; max-width: 100%; }
   color: var(--text-muted);
   white-space: nowrap;
 }
-.bac-stat-chip--done .bac-stat-chip__icon { color: var(--solved); }
-.bac-stat-chip--done .bac-stat-chip__val  { color: var(--solved); }
-.bac-stat-chip--rem  .bac-stat-chip__icon { color: var(--text-muted); }
-.bac-stat-chip--rem  .bac-stat-chip__val  { color: var(--text-secondary); }
-.bac-stat-chip--flag .bac-stat-chip__icon { color: #f59e0b; }
-.bac-stat-chip--flag .bac-stat-chip__val  { color: #f59e0b; }
+.bac-stat-chip--done .bac-stat-chip__val { color: var(--solved); }
+.bac-stat-chip--rem  .bac-stat-chip__val { color: var(--text-secondary); }
+.bac-stat-chip--flag .bac-stat-chip__val { color: #f59e0b; }
+
+/* ---- Exam overlays (fullscreen warning + nav guard) ---- */
+#fsWarnOverlay, #navGuardModal {
+  position: fixed;
+  inset: 0;
+  z-index: 99999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0,0,0,0.82);
+  backdrop-filter: blur(4px);
+}
+.fs-warn-box, .nav-guard-box {
+  background: var(--card);
+  border: 2px solid var(--red);
+  border-radius: var(--radius);
+  padding: 36px 40px;
+  max-width: 460px;
+  width: 90%;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+.nav-guard-box { border-color: var(--accent); }
+.fs-warn-icon, .nav-guard-icon { font-size: 2.6rem; line-height: 1; }
+.fs-warn-title, .nav-guard-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  color: var(--red);
+}
+.nav-guard-title { color: var(--accent); }
+.fs-warn-body, .nav-guard-body {
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+}
 
 /* ---- Motivational message ---- */
 .bac-sidebar__motiv {

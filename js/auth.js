@@ -234,6 +234,7 @@
       document.dispatchEvent(new CustomEvent('bmauth:profile', {
         detail: { role: _userRole, status: _userStatus }
       }));
+      BM.refreshTokenWidgets();
     } catch (e) {
       console.error('[BMAuth] syncUserProfile error:', e.message);
     }

@@ -193,6 +193,129 @@
   let current = 0;
   let timerEl = null;
   let timerInterval = null;
+  let _fsWarnings   = 0;
+  let _navGuardOn   = false;
+
+  /* ---- Fullscreen helpers ---- */
+  function _enterFullscreen() {
+    const el = document.documentElement;
+    (el.requestFullscreen || el.webkitRequestFullscreen || el.mozRequestFullScreen || el.msRequestFullscreen || (() => {})).call(el);
+  }
+  function _exitFullscreen() {
+    (document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen || (() => {})).call(document);
+  }
+  function _isFullscreen() {
+    return !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement);
+  }
+
+  function _showFsWarning() {
+    if (document.getElementById('fsWarnOverlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'fsWarnOverlay';
+    ov.innerHTML = `
+      <div class="fs-warn-box">
+        <div class="fs-warn-icon">⚠️</div>
+        <div class="fs-warn-title">Ai ieșit din fullscreen!</div>
+        <div class="fs-warn-body">
+          Nu ai voie să ieși din fullscreen în timpul examenului.<br>
+          <strong>Dacă mai ieși o dată, examenul se închide automat</strong> fără rezultate, notă sau analiză.<br>
+          Tokenul utilizat <strong>nu va fi restituit</strong>.
+        </div>
+        <button class="btn btn--primary" onclick="BMBac.returnFullscreen()">↑ Reintră în fullscreen</button>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+  function _hideFsWarning() {
+    document.getElementById('fsWarnOverlay')?.remove();
+  }
+
+  window.BMBac = window.BMBac || {};
+  window.BMBac.returnFullscreen = function() {
+    _enterFullscreen();
+  };
+
+  function _terminateNoResults() {
+    clearInterval(timerInterval);
+    _navGuardOff();
+    _hideFsWarning();
+    sessionStorage.removeItem('bac-exam');
+    sessionStorage.removeItem('bac-current');
+    exam = null;
+    showView('setupView');
+    _exitFullscreen();
+    setTimeout(() => {
+      BM.toast('Examenul a fost închis automat — ai ieșit din fullscreen de două ori.', 'error');
+    }, 300);
+  }
+
+  document.addEventListener('fullscreenchange',       _onFsChange);
+  document.addEventListener('webkitfullscreenchange', _onFsChange);
+  document.addEventListener('mozfullscreenchange',    _onFsChange);
+  function _onFsChange() {
+    if (_isFullscreen()) { _hideFsWarning(); return; }
+    if (!exam || exam.phase !== 'exam') return;
+    _fsWarnings++;
+    if (_fsWarnings === 1) {
+      _showFsWarning();
+    } else {
+      _terminateNoResults();
+    }
+  }
+
+  /* ---- Navigation guard ---- */
+  function _guardClick(e) {
+    const link = e.currentTarget;
+    if (link.href && link.href.includes('#')) return;
+    e.preventDefault();
+    e.stopImmediatePropagation();
+    _showNavGuardModal();
+  }
+
+  function _onBeforeUnload(e) {
+    e.preventDefault();
+    e.returnValue = '';
+  }
+
+  function _navGuardOn_fn() {
+    if (_navGuardOn) return;
+    _navGuardOn = true;
+    document.querySelectorAll('.nav__link, .nav__mobile-link, .nav__brand, .nav-profile-btn, .nav-icon-btn')
+      .forEach(el => el.addEventListener('click', _guardClick, true));
+    window.addEventListener('beforeunload', _onBeforeUnload);
+    history.pushState(null, '', location.href);
+    window.addEventListener('popstate', _onPopState);
+  }
+
+  function _navGuardOff() {
+    if (!_navGuardOn) return;
+    _navGuardOn = false;
+    document.querySelectorAll('.nav__link, .nav__mobile-link, .nav__brand, .nav-profile-btn, .nav-icon-btn')
+      .forEach(el => el.removeEventListener('click', _guardClick, true));
+    window.removeEventListener('beforeunload', _onBeforeUnload);
+    window.removeEventListener('popstate', _onPopState);
+  }
+
+  function _onPopState() {
+    history.pushState(null, '', location.href);
+    _showNavGuardModal();
+  }
+
+  function _showNavGuardModal() {
+    if (document.getElementById('navGuardModal')) return;
+    const ov = document.createElement('div');
+    ov.id = 'navGuardModal';
+    ov.innerHTML = `
+      <div class="nav-guard-box">
+        <div class="nav-guard-icon">🔒</div>
+        <div class="nav-guard-title">Examen în desfășurare</div>
+        <div class="nav-guard-body">
+          Nu poți naviga în altă parte în timp ce examenul este activ.<br>
+          Finalizează simularea apăsând butonul <strong style="color:var(--red)">Finalizează</strong>.
+        </div>
+        <button class="btn btn--primary" onclick="document.getElementById('navGuardModal').remove()">Înapoi la examen</button>
+      </div>`;
+    document.body.appendChild(ov);
+  }
 
   /* ---- Init ---- */
   function init() {
@@ -278,9 +401,12 @@
       phase: 'exam'
     };
     current = 0;
+    _fsWarnings = 0;
     saveExam();
     showExamView();
     startTimer();
+    _enterFullscreen();
+    _navGuardOn_fn();
   }
 
   window.startExam = function () {
@@ -435,17 +561,14 @@
         <div class="bac-sidebar__exam-title">Simulare BAC</div>
         <div class="bac-sidebar__stats-grid">
           <div class="bac-stat-chip bac-stat-chip--done">
-            <span class="bac-stat-chip__icon">✓</span>
             <span class="bac-stat-chip__val">${doneCount}</span>
             <span class="bac-stat-chip__lbl">Rezolvate</span>
           </div>
           <div class="bac-stat-chip bac-stat-chip--rem">
-            <span class="bac-stat-chip__icon">○</span>
             <span class="bac-stat-chip__val">${remaining}</span>
             <span class="bac-stat-chip__lbl">Rămase</span>
           </div>
           <div class="bac-stat-chip bac-stat-chip--flag">
-            <span class="bac-stat-chip__icon">★</span>
             <span class="bac-stat-chip__val">${flagCount}</span>
             <span class="bac-stat-chip__lbl">Marcate</span>
           </div>
@@ -806,6 +929,9 @@
   window.finishExam = function () {
     if (!confirm('Ești sigur că vrei să finalizezi simularea? Exercițiile fără răspuns confirmat vor primi 0 puncte.')) return;
     clearInterval(timerInterval);
+    _navGuardOff();
+    _hideFsWarning();
+    _exitFullscreen();
     doFinish();
   };
 

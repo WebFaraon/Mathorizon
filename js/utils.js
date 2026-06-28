@@ -195,13 +195,16 @@ BM.consumeToken = function () {
 };
 
 BM.refreshTokenWidgets = function () {
+  const isAdmin = window.BMAuth?.role === 'admin';
   const n = BM.getTokens();
-  document.querySelectorAll('[data-token-count]').forEach(el => { el.textContent = n; });
+  document.querySelectorAll('[data-token-count]').forEach(el => {
+    el.textContent = isAdmin ? '∞' : n;
+  });
   const w = document.getElementById('tokenWidget');
   if (!w) return;
-  w.classList.toggle('token-widget--low',   n === 1);
-  w.classList.toggle('token-widget--empty', n === 0);
-  w.title = n === 0
+  w.classList.toggle('token-widget--low',   !isAdmin && n === 1);
+  w.classList.toggle('token-widget--empty', !isAdmin && n === 0);
+  w.title = isAdmin ? 'Tokenuri nelimitate (cont admin)' : n === 0
     ? 'Nu mai ai ExamTokenuri. Achiziționează pentru a continua.'
     : `${n} ExamToken${n === 1 ? '' : 'uri'} disponibil${n === 1 ? '' : 'e'}`;
 };
