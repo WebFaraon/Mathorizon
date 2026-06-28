@@ -6634,6 +6634,95 @@ img { display: block; max-width: 100%; }
 [data-theme="dark"] .prof-modal { background: #1e1e1e; border-color: #333; }
 
 /* ============================================================
+   ADMIN — MOBILE RESPONSIVE
+   ============================================================ */
+@media (max-width: 600px) {
+  /* Prof/Student row: grid layout — avatar left, info+meta stacked, expand top-right */
+  .admin-prof-row {
+    display: grid;
+    grid-template-columns: 38px 1fr 24px;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 6px;
+    padding: 12px 14px;
+    align-items: start;
+  }
+  .admin-prof-avatar {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+    width: 38px;
+    height: 38px;
+    font-size: 0.9rem;
+  }
+  .admin-prof-info {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+  }
+  .admin-prof-name {
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-prof-meta {
+    grid-column: 2;
+    grid-row: 2;
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+  .admin-expand-icon {
+    grid-column: 3;
+    grid-row: 1;
+    justify-self: end;
+  }
+
+  /* Student row: same grid approach */
+  .admin-student-row {
+    display: grid;
+    grid-template-columns: 32px 1fr auto;
+    grid-template-rows: auto auto;
+    column-gap: 10px;
+    row-gap: 2px;
+    padding: 10px 0;
+    align-items: start;
+  }
+  .admin-student-avatar {
+    grid-column: 1;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+  .admin-student-name {
+    grid-column: 2;
+    grid-row: 1;
+    white-space: normal;
+    font-size: 0.84rem;
+  }
+  .admin-student-email {
+    grid-column: 2;
+    grid-row: 2;
+    white-space: normal;
+    font-size: 0.74rem;
+    word-break: break-all;
+  }
+  .admin-student-date {
+    grid-column: 3;
+    grid-row: 1;
+    font-size: 0.72rem;
+  }
+
+  /* Class mini grid: single column on mobile */
+  .admin-class-grid { grid-template-columns: 1fr; }
+
+  /* Tabs: shrink text */
+  .admin-tab { font-size: 0.82rem; padding: 7px 12px; }
+
+  /* Stat cards: 2 columns */
+  .admin-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+}
+
+/* ============================================================
    CLASE PAGE
    ============================================================ */
 .classes-page {
