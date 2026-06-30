@@ -8133,23 +8133,24 @@ img { display: block; max-width: 100%; }
 .cd-back {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--accent);
+  gap: 5px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-secondary);
   text-transform: uppercase;
-  letter-spacing: 0.07em;
+  letter-spacing: 0.06em;
   margin-bottom: 20px;
-  padding: 6px 12px 6px 8px;
-  background: rgba(58,107,173,0.12);
-  border: 1.5px solid rgba(58,107,173,0.25);
-  border-radius: 20px;
-  transition: background 0.15s, border-color 0.15s, gap 0.15s;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: 0;
+  transition: color 0.15s, gap 0.15s;
 }
-.cd-back:hover { background: rgba(58,107,173,0.20); border-color: rgba(58,107,173,0.45); gap: 9px; }
-.cd-back svg { flex-shrink: 0; }
-[data-theme="dark"] .cd-back { background: rgba(58,107,173,0.18); border-color: rgba(58,107,173,0.35); }
-[data-theme="dark"] .cd-back:hover { background: rgba(58,107,173,0.30); }
+.cd-back:hover { color: var(--accent); gap: 8px; background: none; border: none; }
+.cd-back svg { flex-shrink: 0; opacity: 0.7; }
+.cd-back:hover svg { opacity: 1; }
+[data-theme="dark"] .cd-back { background: none; border: none; }
+[data-theme="dark"] .cd-back:hover { background: none; }
 
 .cd-header__body {
   display: flex;
@@ -8170,14 +8171,14 @@ img { display: block; max-width: 100%; }
 .cd-subject-chip {
   display: inline-block;
   font-size: 0.72rem;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.09em;
+  letter-spacing: 0.08em;
   padding: 3px 10px;
-  border-radius: 20px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  border: 1px solid rgba(58,107,173,0.2);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
 }
 
 /* Title with left accent bar */
@@ -8377,7 +8378,7 @@ img { display: block; max-width: 100%; }
    CATALOG ELECTRONIC — Membri tab
 ═══════════════════════════════════════════════════════════════ */
 
-.catalog-wrap { padding: 24px 0; }
+.catalog-wrap { padding: 0; }
 
 /* Stats bar */
 .catalog-statsbar {
@@ -8671,8 +8672,9 @@ img { display: block; max-width: 100%; }
 }
 
 [data-theme="dark"] .cd-subject-chip {
-  background: rgba(58,107,173,0.15);
-  border-color: rgba(58,107,173,0.3);
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-secondary);
 }
 
 /* ── Responsive ─────────────────────────────────────────── */
@@ -9002,7 +9004,7 @@ img { display: block; max-width: 100%; }
 
 .cd-info-card__stats {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 8px;
   order: 10;
   border-top: 1px solid var(--border);
