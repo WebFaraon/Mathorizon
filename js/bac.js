@@ -139,6 +139,9 @@
     }
   ];
 
+  // Active slot definitions — SLOTS for BAC, overridden for lectie exam
+  let _slotDefs = SLOTS;
+
   /* ---- Answer extraction utilities ---- */
   function extractBoxedAnswer(solution) {
     if (!solution) return null;
@@ -351,15 +354,25 @@
     if (saved) {
       exam = saved;
       current = parseInt(sessionStorage.getItem('bac-current') || '0', 10);
-      if (exam.phase === 'exam') {
-        showExamView();
-        startTimer();
-      } else if (exam.phase === 'assess') {
-        // Legacy phase — auto-grade and show results
-        doFinish();
-      } else if (exam.phase === 'done') {
-        renderResults();
-        showView('resultsView');
+      if (exam.type === 'lectie') {
+        _slotDefs = exam.slots.map((s, i) => ({
+          id: s.slotId, label: s.label || ('Ex. ' + (i + 1)),
+          points: s.points, group: String(i + 1),
+          desc: s.exercise ? (s.exercise.subcategoryId || '') : ''
+        }));
+        if (exam.phase === 'exam') { showExamView(); _startLectieTimer(); }
+        else if (exam.phase === 'done') { renderResults(); showView('resultsView'); }
+        else doFinish();
+      } else {
+        if (exam.phase === 'exam') {
+          showExamView();
+          startTimer();
+        } else if (exam.phase === 'assess') {
+          doFinish();
+        } else if (exam.phase === 'done') {
+          renderResults();
+          showView('resultsView');
+        }
       }
     } else {
       showSetupView();
@@ -367,8 +380,134 @@
   }
 
   function showSetupView() {
+    _slotDefs = SLOTS;
+    clearInterval(_lectieTimerInterval);
     showView('setupView');
+    _showSetupPanel('choose');
     renderHistory();
+  }
+
+  /* ---- Setup sub-panels (choose / bac / lectie) ---- */
+  function _showSetupPanel(panel) {
+    const choose  = document.getElementById('simChoose');
+    const bacExp  = document.getElementById('bacSetupExpanded');
+    const lectExp = document.getElementById('lectieSetupExpanded');
+    if (!choose) return;
+    choose.style.display  = panel === 'choose'  ? '' : 'none';
+    bacExp.style.display  = panel === 'bac'     ? '' : 'none';
+    lectExp.style.display = panel === 'lectie'  ? '' : 'none';
+  }
+
+  window.selectSimType = function (type) {
+    _showSetupPanel(type);
+    if (type === 'bac') renderHistory();
+  };
+
+  window.backToChoose = function (e) {
+    if (e) e.preventDefault();
+    _showSetupPanel('choose');
+  };
+
+  /* ---- Lectie de Proba: grade selection & exam ---- */
+  let _lectieGrade = null;
+  const LECTIE_DURATION = 50 * 60; // 3000 seconds
+
+  window.selectGrade = function (grade) {
+    _lectieGrade = grade;
+    document.querySelectorAll('.lectie-grade-btn').forEach(btn => btn.classList.remove('selected'));
+    const btns = document.querySelectorAll('.lectie-grade-btn');
+    btns.forEach(btn => { if (btn.textContent.trim() === 'Cls. ' + grade) btn.classList.add('selected'); });
+    const chip = document.getElementById('lectieChipGrade');
+    if (chip) chip.textContent = grade + 'a';
+    const startBtn = document.getElementById('lectieStartBtn');
+    if (startBtn) startBtn.disabled = false;
+  };
+
+  window.startLectieExam = function () {
+    if (!_lectieGrade) return;
+    _doStartLectieExam(_lectieGrade);
+  };
+
+  function _doStartLectieExam(grade) {
+    const pool = _buildLectiePool(grade);
+    if (pool.length === 0) {
+      BM.toast && BM.toast('Nu există exerciții disponibile pentru această clasă.', 'warn');
+      return;
+    }
+    const slots = _pickLectieSlots(pool);
+    const lectieExam = {
+      type: 'lectie',
+      grade,
+      slots,
+      startTs: Date.now(),
+      endTs: null,
+      phase: 'exam'
+    };
+    sessionStorage.setItem('lectie-exam', JSON.stringify(lectieExam));
+    sessionStorage.setItem('lectie-current', '0');
+    _runLectieExam(lectieExam);
+  }
+
+  function _buildLectiePool(grade) {
+    const all = BM.EXERCISES || [];
+    const easy   = all.filter(e => e.difficulty === 'usor');
+    const medium = all.filter(e => e.difficulty === 'mediu');
+    const hard   = all.filter(e => e.difficulty === 'dificil');
+    const pickN = (arr, n) => BM.shuffle([...arr]).slice(0, n);
+    const picked = [
+      ...pickN(easy,   3).map(e => ({ exercise: e, targetDiff: 'usor',   score: null, work: '', flagged: false, confirmedAnswer: null })),
+      ...pickN(medium, 3).map(e => ({ exercise: e, targetDiff: 'mediu',  score: null, work: '', flagged: false, confirmedAnswer: null })),
+      ...pickN(hard,   2).map(e => ({ exercise: e, targetDiff: 'dificil',score: null, work: '', flagged: false, confirmedAnswer: null }))
+    ];
+    return BM.shuffle(picked);
+  }
+
+  function _pickLectieSlots(pool) {
+    return pool.map((item, i) => ({
+      slotId: 'lp' + (i + 1),
+      label: 'Ex. ' + (i + 1),
+      points: item.targetDiff === 'usor' ? 5 : item.targetDiff === 'mediu' ? 8 : 10,
+      exercise: item.exercise,
+      score: null,
+      work: '',
+      flagged: false,
+      confirmedAnswer: null
+    }));
+  }
+
+  function _runLectieExam(lectieExam) {
+    exam = lectieExam;
+    current = 0;
+    _fsWarnings = 0;
+    _slotDefs = exam.slots.map((s, i) => ({
+      id: s.slotId,
+      label: s.label || ('Ex. ' + (i + 1)),
+      points: s.points,
+      group: String(i + 1),
+      desc: s.exercise ? (s.exercise.subcategoryId || '') : ''
+    }));
+    showExamView();
+    _startLectieTimer();
+    _enterFullscreen();
+    _navGuardOn_fn();
+  }
+
+  let _lectieTimerInterval = null;
+  let _lectieTimeLeft = LECTIE_DURATION;
+
+  function _startLectieTimer() {
+    _lectieTimeLeft = LECTIE_DURATION;
+    clearInterval(_lectieTimerInterval);
+    _lectieTimerInterval = setInterval(() => {
+      _lectieTimeLeft--;
+      updateTimerDisplay(_lectieTimeLeft);
+      if (_lectieTimeLeft <= 300 && timerEl) timerEl.classList.add('bac-timer--warn');
+      if (_lectieTimeLeft <= 60  && timerEl) timerEl.classList.add('bac-timer--danger');
+      if (_lectieTimeLeft <= 0) {
+        clearInterval(_lectieTimerInterval);
+        doFinish();
+      }
+    }, 1000);
   }
 
   /* ---- Show/hide views ---- */
@@ -517,7 +656,7 @@
 
   function renderNavigator() {
     const nav = document.getElementById('itemNav');
-    const total        = SLOTS.length;
+    const total        = _slotDefs.length;
     const doneCount    = exam.slots.filter(s => s.confirmedAnswer !== null).length;
     const flagCount    = exam.slots.filter(s => s.flagged).length;
     const unavailCount = exam.slots.filter(s => !s.exercise).length;
@@ -535,7 +674,7 @@
     let itemsHtml = '';
     let lastGroup = null;
 
-    SLOTS.forEach((slot, i) => {
+    _slotDefs.forEach((slot, i) => {
       const item = exam.slots[i];
       const isDone        = item.confirmedAnswer !== null;
       const isCurrent     = i === current;
@@ -604,9 +743,9 @@
   }
 
   function renderCurrentSlot() {
-    const slot  = SLOTS[current];
+    const slot  = _slotDefs[current];
     const item  = exam.slots[current];
-    const total = SLOTS.length;
+    const total = _slotDefs.length;
 
     const sub = item.exercise
       ? BM.getSubcategoryById(item.exercise.categoryId, item.exercise.subcategoryId)
@@ -631,7 +770,7 @@
     }
 
     // Progress dots
-    const dots = SLOTS.map((_, i) => {
+    const dots = _slotDefs.map((_, i) => {
       let cls = 'bac-dot';
       if (i === current)                    cls += ' current';
       else if (exam.slots[i].confirmedAnswer !== null) cls += ' done';
@@ -871,7 +1010,7 @@
   };
 
   window.prevSlot = function () { if (current > 0) gotoSlot(current - 1); };
-  window.nextSlot = function () { if (current < SLOTS.length - 1) gotoSlot(current + 1); };
+  window.nextSlot = function () { if (current < _slotDefs.length - 1) gotoSlot(current + 1); };
 
   window.saveWork = function (i, val) {
     if (exam?.slots[i]) {
@@ -966,6 +1105,7 @@
 
   window.BMBac.confirmFinish = function() {
     clearInterval(timerInterval);
+    clearInterval(_lectieTimerInterval);
     _navGuardOff();
     _hideFsWarning();
     _exitFullscreen();
@@ -981,17 +1121,17 @@
       if (item.confirmedAnswer === null) { item.score = 0; return; }
       const sol = item.exercise.solution;
       if (isProofExercise(sol)) {
-        item.score = item.confirmedAnswer === '__PROOF__' ? SLOTS[i].points : 0;
+        item.score = item.confirmedAnswer === '__PROOF__' ? _slotDefs[i].points : 0;
         return;
       }
       const correct = normalizeAnswer(extractBoxedAnswer(sol));
       const student = normalizeAnswer(item.confirmedAnswer);
-      item.score = (correct && student && correct === student) ? SLOTS[i].points : 0;
+      item.score = (correct && student && correct === student) ? _slotDefs[i].points : 0;
     });
     current = 0;
     saveExam();
     updateNavbarForExam(false);
-    saveToHistory();
+    if (exam.type !== 'lectie') saveToHistory();
     renderResults();
     showView('resultsView');
   }
@@ -1025,7 +1165,7 @@
   }
 
   function renderResults() {
-    const maxPts = SLOTS.reduce((s, slot) => s + slot.points, 0);
+    const maxPts = _slotDefs.reduce((s, slot) => s + slot.points, 0);
     const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
     const grade  = (earned / maxPts * 10);
     const gradeDisplay = grade.toFixed(2);
@@ -1040,9 +1180,10 @@
     const gradeLabel = grade >= 9 ? 'Excelent!' : grade >= 7 ? 'Bine!' :
                        grade >= 5 ? 'Promovat' : 'Nepromovat';
 
+    const _examDuration = exam.type === 'lectie' ? LECTIE_DURATION : DURATION;
     let durationSec = exam.endTs
       ? Math.floor((exam.endTs - exam.startTs) / 1000)
-      : DURATION;
+      : _examDuration;
     const dH = Math.floor(durationSec / 3600);
     const dM = Math.floor((durationSec % 3600) / 60);
 
@@ -1050,7 +1191,7 @@
     const wrongCount      = exam.slots.filter(item => item.exercise && item.confirmedAnswer && (item.score || 0) === 0).length;
     const unansweredCount = exam.slots.filter(item => item.exercise && !item.confirmedAnswer).length;
 
-    const breakdown = SLOTS.map((slot, i) => {
+    const breakdown = _slotDefs.map((slot, i) => {
       const item = exam.slots[i];
       const s    = item.score || 0;
       const max  = slot.points;
@@ -1164,7 +1305,7 @@
   ================================================================ */
   function saveToHistory() {
     try {
-      const maxPts = SLOTS.reduce((s, slot) => s + slot.points, 0);
+      const maxPts = _slotDefs.reduce((s, slot) => s + slot.points, 0);
       const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
       const durationSec = exam.endTs
         ? Math.floor((exam.endTs - exam.startTs) / 1000)
@@ -1175,7 +1316,7 @@
         earned,
         maxPts,
         durationSec,
-        breakdown: SLOTS.map((slot, i) => ({
+        breakdown: _slotDefs.map((slot, i) => ({
           label: slot.label,
           desc:  slot.desc,
           score: exam.slots[i].score || 0,

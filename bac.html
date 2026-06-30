@@ -25,7 +25,7 @@
       </a>
       <div class="nav__links">
         <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link nav__link--active" href="bac.html?new=1">Simulare BAC</a>
+        <a class="nav__link nav__link--active" href="bac.html?new=1">Simulare</a>
         <a class="nav__link" href="training.html">Antrenament Rapid</a>
         <a class="nav__link" href="classes.html">Clase</a>
         <a class="nav__link" href="#">Pachete</a>
@@ -51,7 +51,7 @@
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
       <a class="nav__mobile-link" href="index.html">Capitole</a>
-      <a class="nav__mobile-link nav__mobile-link--active" href="bac.html?new=1">Simulare BAC</a>
+      <a class="nav__mobile-link nav__mobile-link--active" href="bac.html?new=1">Simulare</a>
       <a class="nav__mobile-link" href="training.html">Antrenament Rapid</a>
       <a class="nav__mobile-link" href="classes.html">Clase</a>
       <a class="nav__mobile-link" href="#">Pachete</a>
@@ -63,10 +63,63 @@
 
   <!-- SETUP VIEW -->
   <div id="setupView">
-    <div class="bac-setup-page">
+
+    <!-- STEP 1: Choose simulation type -->
+    <div class="sim-choose" id="simChoose">
+      <!-- BAC Card -->
+      <div class="sim-card sim-card--bac" id="simCardBac" onclick="selectSimType('bac')" role="button" tabindex="0" aria-label="Selectează Simulare BAC">
+        <div class="sim-card-deco" aria-hidden="true">
+          <span style="--sz:130px;--t:4%;--l:58%">π</span>
+          <span style="--sz:100px;--t:52%;--l:4%">∑</span>
+          <span style="--sz:160px;--t:64%;--l:66%">∫</span>
+          <span style="--sz:88px;--t:18%;--l:22%">Δ</span>
+        </div>
+        <div class="sim-card-content">
+          <div class="sim-card-badge">🎓 BAC Moldova — 2022+</div>
+          <h2 class="sim-card-title">Simulare <em>BAC</em><br><span>Matematică</span></h2>
+          <div class="sim-card-rule"></div>
+          <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 3 ore ca la examenul real.</p>
+          <div class="sim-card-chips">
+            <div class="sim-chip sim-chip--blue"><span class="sim-chip__val">12</span><span class="sim-chip__lbl">Exerciții</span></div>
+            <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
+            <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">3h</span><span class="sim-chip__lbl">Timp</span></div>
+          </div>
+          <div class="sim-card-cta">Selectează Simulare BAC <span class="sim-card-arrow">→</span></div>
+        </div>
+      </div>
+
+      <!-- Divider -->
+      <div class="sim-choose-divider"><span>sau</span></div>
+
+      <!-- Lectie de Proba Card -->
+      <div class="sim-card sim-card--lectie" id="simCardLectie" onclick="selectSimType('lectie')" role="button" tabindex="0" aria-label="Selectează Simulare Lecție de Probă">
+        <div class="sim-card-deco" aria-hidden="true">
+          <span style="--sz:120px;--t:6%;--l:60%">√</span>
+          <span style="--sz:95px;--t:55%;--l:3%">x²</span>
+          <span style="--sz:150px;--t:62%;--l:68%">∞</span>
+          <span style="--sz:80px;--t:20%;--l:20%">±</span>
+        </div>
+        <div class="sim-card-content">
+          <div class="sim-card-badge">📋 Evaluare inițială</div>
+          <h2 class="sim-card-title">Lecție de <em>Probă</em><br><span>Test Nivel</span></h2>
+          <div class="sim-card-rule"></div>
+          <p class="sim-card-desc">Test personalizat pe clasă, cu exerciții de la nota 5 la nota 10. Evaluăm nivelul elevului nou la prima lecție.</p>
+          <div class="sim-card-chips">
+            <div class="sim-chip sim-chip--purple"><span class="sim-chip__val">Cls. 5–12</span><span class="sim-chip__lbl">Nivel</span></div>
+            <div class="sim-chip sim-chip--rose"><span class="sim-chip__val">8</span><span class="sim-chip__lbl">Exerciții</span></div>
+            <div class="sim-chip sim-chip--indigo"><span class="sim-chip__val">50 min</span><span class="sim-chip__lbl">Timp</span></div>
+          </div>
+          <div class="sim-card-cta">Selectează Lecție de Probă <span class="sim-card-arrow">→</span></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2a: BAC expanded setup -->
+    <div class="bac-setup-page" id="bacSetupExpanded" style="display:none">
 
       <!-- LEFT: hero -->
       <div class="bac-setup-left">
+        <a class="bac-back-btn" href="#" onclick="backToChoose(event)">← Înapoi</a>
         <div class="bac-setup-deco" aria-hidden="true">
           <span style="--sz:140px;--t:2%;--l:62%">π</span>
           <span style="--sz:110px;--t:50%;--l:2%">∑</span>
@@ -240,6 +293,134 @@
         </div>
       </div>
     </div>
+
+    <!-- STEP 2b: Lectie de Proba expanded setup -->
+    <div class="lectie-setup-page" id="lectieSetupExpanded" style="display:none">
+
+      <!-- LEFT: hero -->
+      <div class="lectie-setup-left">
+        <a class="bac-back-btn" href="#" onclick="backToChoose(event)">← Înapoi</a>
+        <div class="lectie-setup-deco" aria-hidden="true">
+          <span style="--sz:130px;--t:4%;--l:58%">√</span>
+          <span style="--sz:100px;--t:52%;--l:3%">x²</span>
+          <span style="--sz:155px;--t:64%;--l:66%">∞</span>
+          <span style="--sz:85px;--t:18%;--l:20%">±</span>
+          <span style="--sz:110px;--t:78%;--l:36%">Σ</span>
+          <span style="--sz:75px;--t:35%;--l:74%">θ</span>
+        </div>
+
+        <div class="lectie-setup-badge">📋 Evaluare Inițială</div>
+        <h1 class="lectie-setup-title">Lecție de <em>Probă</em><br><span>Test Nivel</span></h1>
+        <div class="lectie-title-rule"></div>
+        <p class="lectie-setup-desc">
+          Test personalizat pe clasă, cu exerciții de la nota 5 la nota 10.
+          Evaluăm nivelul elevului nou înainte de a începe cursurile.
+        </p>
+
+        <div class="lectie-grade-label">Selectează clasa elevului:</div>
+        <div class="lectie-grade-grid" id="lectieGradeGrid">
+          <button class="lectie-grade-btn" onclick="selectGrade(5)">Cls. 5</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(6)">Cls. 6</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(7)">Cls. 7</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(8)">Cls. 8</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(9)">Cls. 9</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(10)">Cls. 10</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(11)">Cls. 11</button>
+          <button class="lectie-grade-btn" onclick="selectGrade(12)">Cls. 12</button>
+        </div>
+
+        <div class="lectie-setup-chips">
+          <div class="lectie-chip lectie-chip--purple">
+            <div class="lectie-chip__val" id="lectieChipGrade">—</div>
+            <div class="lectie-chip__lbl">Clasă</div>
+          </div>
+          <div class="lectie-chip lectie-chip--rose">
+            <div class="lectie-chip__val">8</div>
+            <div class="lectie-chip__lbl">Exerciții</div>
+          </div>
+          <div class="lectie-chip lectie-chip--indigo">
+            <div class="lectie-chip__val">50 min</div>
+            <div class="lectie-chip__lbl">Timp</div>
+          </div>
+        </div>
+
+        <button class="lectie-start-btn" id="lectieStartBtn" onclick="startLectieExam()" disabled>
+          🎯 Pornește Testul de Nivel
+        </button>
+      </div>
+
+      <!-- RIGHT: details -->
+      <div class="lectie-setup-right">
+        <div class="lectie-info-card">
+          <div class="lectie-info-head">Structura testului</div>
+          <div class="lectie-info-rows">
+            <div class="lectie-info-row">
+              <span class="lectie-info-icon">🟢</span>
+              <div>
+                <div class="lectie-info-title">Exerciții Ușoare — Nota 5–6</div>
+                <div class="lectie-info-desc">3 exerciții de bază din programa clasei selectate. Testează cunoștințele fundamentale.</div>
+              </div>
+              <span class="lectie-info-pts">3 ex.</span>
+            </div>
+            <div class="lectie-info-row">
+              <span class="lectie-info-icon">🟡</span>
+              <div>
+                <div class="lectie-info-title">Exerciții Medii — Nota 7–8</div>
+                <div class="lectie-info-desc">3 exerciții de dificultate medie. Testează înțelegerea și aplicarea conceptelor.</div>
+              </div>
+              <span class="lectie-info-pts">3 ex.</span>
+            </div>
+            <div class="lectie-info-row">
+              <span class="lectie-info-icon">🔴</span>
+              <div>
+                <div class="lectie-info-title">Exerciții Grele — Nota 9–10</div>
+                <div class="lectie-info-desc">2 exerciții avansate. Testează capacitatea de raționament și rezolvare complexă.</div>
+              </div>
+              <span class="lectie-info-pts">2 ex.</span>
+            </div>
+          </div>
+          <div class="lectie-info-total">
+            <span>Total</span>
+            <span>8 exerciții · 50 minute</span>
+          </div>
+        </div>
+
+        <div class="lectie-tips">
+          <div class="lectie-tips__head">Cum funcționează</div>
+          <div class="lectie-tips__grid">
+            <div class="lectie-tip">
+              <span class="lectie-tip__icon">🔒</span>
+              <div>
+                <div class="lectie-tip__title">Examen blocat</div>
+                <div class="lectie-tip__desc">Elevul nu poate ieși din test sau accesa alte pagini.</div>
+              </div>
+            </div>
+            <div class="lectie-tip">
+              <span class="lectie-tip__icon">📊</span>
+              <div>
+                <div class="lectie-tip__title">Rezultate instant</div>
+                <div class="lectie-tip__desc">La final primești raportul complet cu nivelul evaluat.</div>
+              </div>
+            </div>
+            <div class="lectie-tip">
+              <span class="lectie-tip__icon">🎯</span>
+              <div>
+                <div class="lectie-tip__title">Adaptat pe clasă</div>
+                <div class="lectie-tip__desc">Exercițiile sunt selectate din programa clasei alese.</div>
+              </div>
+            </div>
+            <div class="lectie-tip">
+              <span class="lectie-tip__icon">⏱</span>
+              <div>
+                <div class="lectie-tip__title">Timp limitat</div>
+                <div class="lectie-tip__desc">50 de minute — suficient pentru a evalua nivelul real.</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- EXAM VIEW -->
