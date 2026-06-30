@@ -678,7 +678,7 @@
 
       const { error: joinErr } = await BMAuth.supabase
         .from('class_members')
-        .insert({ class_id: found.id, student_id: BMAuth.user.id });
+        .insert({ class_id: found.id, student_id: BMAuth.user.id, student_name: BMAuth.displayName() });
 
       if (joinErr) {
         if (joinErr.code === '23505') {

@@ -913,10 +913,6 @@
               <span class="cd-info-card__stat-val">${postCount}</span>
               <span class="cd-info-card__stat-lbl">anunțuri</span>
             </div>
-            <div class="cd-info-card__stat">
-              <span class="cd-info-card__stat-val">${memberCount}</span>
-              <span class="cd-info-card__stat-lbl">elevi</span>
-            </div>
           </div>
           ${detailsHTML}
         </div>
@@ -1007,13 +1003,21 @@
     const isTeacher = BMAuth.role === 'profesor';
 
     try {
-      /* 1. Class members */
-      const { data: members, error: memErr } = await BMAuth.supabase
+      /* 1. Class members — try to include student_name (column may not exist yet) */
+      let { data: members, error: memErr } = await BMAuth.supabase
         .from('class_members')
-        .select('student_id, joined_at')
+        .select('student_id, student_name, joined_at')
         .eq('class_id', classData.id)
         .order('joined_at', { ascending: true });
-      if (memErr) throw memErr;
+      if (memErr) {
+        /* Fallback: column doesn't exist yet — select without it */
+        ({ data: members, error: memErr } = await BMAuth.supabase
+          .from('class_members')
+          .select('student_id, joined_at')
+          .eq('class_id', classData.id)
+          .order('joined_at', { ascending: true }));
+        if (memErr) throw memErr;
+      }
 
       if (!members || members.length === 0) {
         content.innerHTML = `
@@ -1025,15 +1029,27 @@
         return;
       }
 
+      /* 2. Build nameMap — primary: class_members.student_name */
+      const nameMap = {};
+      members.forEach(m => { if (m.student_name) nameMap[m.student_id] = m.student_name; });
+
       const studentIds = members.map(m => m.student_id);
 
-      /* 2. Names from user_profiles */
-      const nameMap = {};
-      const { data: profiles } = await BMAuth.supabase
-        .from('user_profiles')
-        .select('user_id, full_name')
-        .in('user_id', studentIds);
-      (profiles || []).forEach(p => { if (p.full_name) nameMap[p.user_id] = p.full_name; });
+      /* Supplement from post_reactions (covers members who joined before student_name was stored) */
+      const { data: classPosts } = await BMAuth.supabase
+        .from('class_posts')
+        .select('id')
+        .eq('class_id', classData.id);
+      if (classPosts && classPosts.length > 0) {
+        const postIds = classPosts.map(p => p.id);
+        const { data: reactions } = await BMAuth.supabase
+          .from('post_reactions')
+          .select('user_id, user_name')
+          .in('post_id', postIds);
+        (reactions || []).forEach(r => {
+          if (!nameMap[r.user_id] && r.user_name) nameMap[r.user_id] = r.user_name;
+        });
+      }
 
       /* 3. Assignments for this class */
       const { data: rawAssign, error: aErr } = await BMAuth.supabase
@@ -1059,8 +1075,26 @@
         });
       }
 
+      /* Compute catalog-level stats */
+      const allConfirmedGrades = [];
+      members.forEach(m => {
+        assignments.forEach(a => {
+          const sub = (subMatrix[m.student_id] || {})[a.id];
+          if (sub?.grade_confirmed) allConfirmedGrades.push(parseFloat(sub.grade));
+        });
+      });
+      const classAvg = allConfirmedGrades.length
+        ? (allConfirmedGrades.reduce((t, g) => t + g, 0) / allConfirmedGrades.length).toFixed(1)
+        : null;
+
+      const catalogStats = {
+        memberCount: members.length,
+        assignmentCount: assignments.length,
+        classAvg
+      };
+
       if (isTeacher) {
-        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix);
+        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats);
       } else {
         content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id]);
       }
@@ -1075,7 +1109,7 @@
     }
   }
 
-  function renderCatalogTeacher(members, nameMap, assignments, subMatrix) {
+  function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}) {
     /* Per-assignment stats (confirmed grades only) */
     const aStats = {};
     assignments.forEach(a => {
@@ -1142,6 +1176,20 @@
 
     return `
       <div class="catalog-wrap">
+        <div class="catalog-statsbar">
+          <div class="catalog-stat-card">
+            <div class="catalog-stat-card__val">${stats.memberCount ?? members.length}</div>
+            <div class="catalog-stat-card__lbl">Elevi</div>
+          </div>
+          <div class="catalog-stat-card">
+            <div class="catalog-stat-card__val">${stats.assignmentCount ?? assignments.length}</div>
+            <div class="catalog-stat-card__lbl">Teme</div>
+          </div>
+          <div class="catalog-stat-card ${stats.classAvg ? 'catalog-stat-card--avg' : ''}">
+            <div class="catalog-stat-card__val">${stats.classAvg || '—'}</div>
+            <div class="catalog-stat-card__lbl">Medie clasă</div>
+          </div>
+        </div>
         <div class="catalog-legend">
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Notat</span>
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--submitted"></span>Predat, nenotat</span>
