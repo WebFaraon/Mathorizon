@@ -396,9 +396,9 @@
     if (panel === 'choose') {
       choose.classList.remove('sim-choose--exiting');
     }
-    choose.style.display  = panel === 'choose'  ? '' : 'none';
-    bacExp.style.display  = panel === 'bac'     ? '' : 'none';
-    lectExp.style.display = panel === 'lectie'  ? '' : 'none';
+    choose.style.display  = panel === 'choose'  ? 'flex' : 'none';
+    bacExp.style.display  = panel === 'bac'     ? 'flex' : 'none';
+    lectExp.style.display = panel === 'lectie'  ? 'flex' : 'none';
   }
 
   window.selectSimType = function (type) {

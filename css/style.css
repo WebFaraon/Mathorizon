@@ -3344,12 +3344,6 @@ img { display: block; max-width: 100%; }
    SIM-CHOOSE — two-card picker (initial view)
 ================================================================ */
 
-/* Prevent flash: hide expanded panels before JS runs */
-#bacSetupExpanded,
-#lectieSetupExpanded {
-  display: none;
-}
-
 /* Panel entry animation (added via JS class) */
 @keyframes sim-panel-fade-in {
   from { opacity: 0; transform: translateY(10px); }
