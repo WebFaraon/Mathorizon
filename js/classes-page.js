@@ -57,10 +57,11 @@
         </div>
       `;
 
-      const close = (result) => { overlay.remove(); resolve(result); };
+      const close = (result) => { overlay.remove(); document.body.style.overflow = ''; resolve(result); };
       overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
       overlay.querySelector('#confirmNo').addEventListener('click',  () => close(false));
       overlay.querySelector('#confirmYes').addEventListener('click', () => close(true));
+      document.body.style.overflow = 'hidden';
       document.body.appendChild(overlay);
       overlay.querySelector('#confirmNo').focus();
     });
@@ -126,8 +127,45 @@
   /* ═══════════════════════════════════════════════════════════════
      TEACHER VIEW
   ═══════════════════════════════════════════════════════════════ */
+  function _teacherCacheKey() { return 'bm_cls_t_' + BMAuth.user.id; }
+
+  function _applyTeacherUI(classes, memberCounts) {
+    setRootContent(`
+      <div class="classes-page">
+        <div class="classes-header">
+          <div class="classes-header__info">
+            <h1 class="classes-title">Clasele Mele</h1>
+            <p class="classes-subtitle">Creează clase și partajează codurile de invitație cu elevii tăi.</p>
+          </div>
+          <button class="btn btn--primary" id="createClassBtn">+ Creează Clasă</button>
+        </div>
+        ${classes.length === 0
+          ? teacherEmpty()
+          : `<div class="classes-grid" id="classesGrid">
+               ${classes.map(c => teacherCard(c, memberCounts[c.id] || 0)).join('')}
+             </div>`
+        }
+      </div>
+      ${createModalHTML()}
+    `);
+    document.getElementById('createClassBtn')?.addEventListener('click', openCreateModal);
+    document.querySelectorAll('.class-card__delete').forEach(btn => {
+      btn.addEventListener('click', () => deleteClass(btn.dataset.id, btn.dataset.name));
+    });
+    attachMouseGlow('classesGrid');
+    _initCustomSelects();
+  }
+
   async function renderTeacherView() {
-    setRootContent(`<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă...</p></div>`);
+    /* Show cached content immediately if available */
+    let hasCached = false;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(_teacherCacheKey()) || 'null');
+      if (cached) { hasCached = true; _applyTeacherUI(cached.classes, cached.memberCounts); }
+    } catch {}
+    if (!hasCached) {
+      setRootContent(`<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă...</p></div>`);
+    }
 
     let classes = [];
     try {
@@ -156,31 +194,8 @@
       }));
     }
 
-    setRootContent(`
-      <div class="classes-page">
-        <div class="classes-header">
-          <div class="classes-header__info">
-            <h1 class="classes-title">Clasele Mele</h1>
-            <p class="classes-subtitle">Creează clase și partajează codurile de invitație cu elevii tăi.</p>
-          </div>
-          <button class="btn btn--primary" id="createClassBtn">+ Creează Clasă</button>
-        </div>
-        ${classes.length === 0
-          ? teacherEmpty()
-          : `<div class="classes-grid" id="classesGrid">
-               ${classes.map(c => teacherCard(c, memberCounts[c.id] || 0)).join('')}
-             </div>`
-        }
-      </div>
-      ${createModalHTML()}
-    `);
-
-    document.getElementById('createClassBtn')?.addEventListener('click', openCreateModal);
-    document.querySelectorAll('.class-card__delete').forEach(btn => {
-      btn.addEventListener('click', () => deleteClass(btn.dataset.id, btn.dataset.name));
-    });
-    attachMouseGlow('classesGrid');
-    _initCustomSelects();
+    try { sessionStorage.setItem(_teacherCacheKey(), JSON.stringify({ classes, memberCounts })); } catch {}
+    _applyTeacherUI(classes, memberCounts);
   }
 
   function teacherEmpty() {
@@ -548,22 +563,9 @@
   /* ═══════════════════════════════════════════════════════════════
      STUDENT VIEW
   ═══════════════════════════════════════════════════════════════ */
-  async function renderStudentView() {
-    setRootContent(`<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă...</p></div>`);
+  function _studentCacheKey() { return 'bm_cls_s_' + BMAuth.user.id; }
 
-    let classes = [];
-    try {
-      const { data, error } = await BMAuth.supabase
-        .from('class_members')
-        .select(`joined_at, classes ( id, name, description, teacher_name, created_at )`)
-        .eq('student_id', BMAuth.user.id)
-        .order('joined_at', { ascending: false });
-      if (error) throw error;
-      classes = (data || []).map(row => ({ ...row.classes, joined_at: row.joined_at }));
-    } catch (e) {
-      BM.toast('Eroare la încărcarea claselor: ' + e.message, 'error');
-    }
-
+  function _applyStudentUI(classes) {
     setRootContent(`
       <div class="classes-page">
         <div class="classes-header">
@@ -598,16 +600,42 @@
         }
       </div>
     `);
-
-    const joinBtn  = document.getElementById('joinClassBtn');
+    const joinBtn   = document.getElementById('joinClassBtn');
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
     codeInput?.addEventListener('keydown', e => { if (e.key === 'Enter') joinClass(); });
-
     document.querySelectorAll('.class-card__leave').forEach(btn => {
       btn.addEventListener('click', () => leaveClass(btn.dataset.id, btn.dataset.name));
     });
     attachMouseGlow('classesGrid');
+  }
+
+  async function renderStudentView() {
+    /* Show cached content immediately if available */
+    let hasCached = false;
+    try {
+      const cached = JSON.parse(sessionStorage.getItem(_studentCacheKey()) || 'null');
+      if (cached) { hasCached = true; _applyStudentUI(cached.classes); }
+    } catch {}
+    if (!hasCached) {
+      setRootContent(`<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă...</p></div>`);
+    }
+
+    let classes = [];
+    try {
+      const { data, error } = await BMAuth.supabase
+        .from('class_members')
+        .select(`joined_at, classes ( id, name, description, teacher_name, created_at )`)
+        .eq('student_id', BMAuth.user.id)
+        .order('joined_at', { ascending: false });
+      if (error) throw error;
+      classes = (data || []).map(row => ({ ...row.classes, joined_at: row.joined_at }));
+    } catch (e) {
+      BM.toast('Eroare la încărcarea claselor: ' + e.message, 'error');
+    }
+
+    try { sessionStorage.setItem(_studentCacheKey(), JSON.stringify({ classes })); } catch {}
+    _applyStudentUI(classes);
   }
 
   function studentEmpty() {

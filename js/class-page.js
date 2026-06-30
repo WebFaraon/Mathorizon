@@ -2165,10 +2165,11 @@
           </div>
         </div>
       `;
-      const close = result => { overlay.remove(); resolve(result); };
+      const close = result => { overlay.remove(); document.body.style.overflow = ''; resolve(result); };
       overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
       overlay.querySelector('#cdConfirmNo').addEventListener('click',  () => close(false));
       overlay.querySelector('#cdConfirmYes').addEventListener('click', () => close(true));
+      document.body.style.overflow = 'hidden';
       document.body.appendChild(overlay);
       overlay.querySelector('#cdConfirmNo').focus();
     });

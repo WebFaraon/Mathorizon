@@ -28,7 +28,7 @@ body {
 /* Page-to-page navigation transition (see js/page-transition.js) */
 @keyframes page-fade-in {
   from { opacity: 0; transform: translateY(8px); }
-  to   { opacity: 1; transform: translateY(0); }
+  to   { opacity: 1; }
 }
 @keyframes page-fade-out {
   from { opacity: 1; transform: translateY(0); }
