@@ -199,7 +199,10 @@
       <div class="class-card class-card--clickable"
            onclick="window.location.href='class.html?id=${cls.id}'">
         <div class="class-card__header">
-          <div class="class-card__name">${BM.esc(cls.name)}</div>
+          <div>
+            <div class="class-card__name">${BM.esc(cls.name)}</div>
+            ${cls.school_grade ? `<span class="class-card__grade">Clasa ${BM.esc(cls.school_grade)}</span>` : ''}
+          </div>
           <button class="class-card__delete"
                   data-id="${cls.id}"
                   data-name="${BM.esc(cls.name)}"
@@ -217,7 +220,10 @@
           </div>
         </div>
         <div class="class-card__footer">
-          <span class="class-card__members">👥 ${memberCount}${cls.max_students ? `/${cls.max_students}` : ''} ${plural}</span>
+          <span class="class-card__members">
+            <span class="class-card__members-count">${memberCount}${cls.max_students ? `/${cls.max_students}` : ''}</span>
+            ${plural}
+          </span>
           <span class="class-card__date">${relDate(cls.created_at)}</span>
         </div>
       </div>

@@ -393,39 +393,45 @@
     const bacExp  = document.getElementById('bacSetupExpanded');
     const lectExp = document.getElementById('lectieSetupExpanded');
     if (!choose) return;
-    if (panel === 'choose') {
-      choose.classList.remove('sim-choose--exiting');
-    }
+    choose.classList.remove('sim-fade-out');
     choose.style.display  = panel === 'choose'  ? 'flex' : 'none';
     bacExp.style.display  = panel === 'bac'     ? 'flex' : 'none';
     lectExp.style.display = panel === 'lectie'  ? 'flex' : 'none';
   }
 
-  window.selectSimType = function (type) {
-    const choose = document.getElementById('simChoose');
-    if (!choose) { _showSetupPanel(type); return; }
-    choose.classList.add('sim-choose--exiting');
+  // Fade `outEl` out, swap panels, then fade `inEl` in. Shared by
+  // selectSimType (choose -> bac/lectie) and backToChoose (bac/lectie -> choose)
+  // so the transition looks identical in both directions.
+  function _switchPanel(outEl, panel, inElId, afterShow) {
+    if (!outEl) { _showSetupPanel(panel); return; }
+    outEl.classList.add('sim-fade-out');
     setTimeout(function () {
-      _showSetupPanel(type);
-      if (type === 'bac') renderHistory();
-      var panelId = type === 'bac' ? 'bacSetupExpanded' : 'lectieSetupExpanded';
-      var panelCls = type === 'bac' ? 'bac-setup-page--entering' : 'lectie-setup-page--entering';
-      var panel = document.getElementById(panelId);
-      if (panel) {
-        panel.classList.add(panelCls);
-        panel.addEventListener('animationend', function () { panel.classList.remove(panelCls); }, { once: true });
+      _showSetupPanel(panel);
+      if (afterShow) afterShow();
+      var inEl = document.getElementById(inElId);
+      if (inEl) {
+        inEl.classList.add('sim-fade-in');
+        inEl.addEventListener('animationend', function () { inEl.classList.remove('sim-fade-in'); }, { once: true });
       }
     }, 220);
+  }
+
+  window.selectSimType = function (type) {
+    var choose = document.getElementById('simChoose');
+    var panelId = type === 'bac' ? 'bacSetupExpanded' : 'lectieSetupExpanded';
+    _switchPanel(choose, type, panelId, function () {
+      if (type === 'bac') renderHistory();
+    });
   };
 
   window.backToChoose = function (e) {
     if (e) e.preventDefault();
-    _showSetupPanel('choose');
-    var choose = document.getElementById('simChoose');
-    if (choose) {
-      choose.classList.remove('sim-choose--exiting');
-      choose.style.opacity = '';
-    }
+    var bacExp  = document.getElementById('bacSetupExpanded');
+    var lectExp = document.getElementById('lectieSetupExpanded');
+    var activePanel = (bacExp && bacExp.style.display !== 'none') ? bacExp
+                     : (lectExp && lectExp.style.display !== 'none') ? lectExp
+                     : null;
+    _switchPanel(activePanel, 'choose', 'simChoose');
   };
 
   /* ---- Lectie de Proba: grade selection & exam ---- */

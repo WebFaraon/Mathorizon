@@ -22,6 +22,21 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
+  animation: page-fade-in 0.3s ease both;
+}
+
+/* Page-to-page navigation transition (see js/page-transition.js) */
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes page-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+body.page-fade-out {
+  animation: page-fade-out 0.18s ease forwards;
+  pointer-events: none;
 }
 
 a { color: inherit; text-decoration: none; }
@@ -3344,22 +3359,22 @@ img { display: block; max-width: 100%; }
    SIM-CHOOSE — two-card picker (initial view)
 ================================================================ */
 
-/* Panel entry animation (added via JS class) */
-@keyframes sim-panel-fade-in {
+/* Panel switch animation (added via JS class) — reused for both
+   choose <-> bac/lectie directions, so "back" mirrors "select" */
+@keyframes sim-fade-in {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-@keyframes sim-choose-fade-out {
-  from { opacity: 1; }
-  to   { opacity: 0; }
+@keyframes sim-fade-out {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
 }
-.sim-choose--exiting {
-  animation: sim-choose-fade-out 0.22s ease forwards;
+.sim-fade-out {
+  animation: sim-fade-out 0.22s ease forwards;
   pointer-events: none;
 }
-.bac-setup-page--entering,
-.lectie-setup-page--entering {
-  animation: sim-panel-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+.sim-fade-in {
+  animation: sim-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 
 .sim-choose {
@@ -3787,7 +3802,7 @@ img { display: block; max-width: 100%; }
 }
 .lectie-info-row {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 12px;
   padding: 14px 16px;
   border-bottom: 1px solid var(--border);
@@ -3796,6 +3811,7 @@ img { display: block; max-width: 100%; }
 .lectie-info-row:last-child { border-bottom: none; }
 .lectie-info-row:hover { background: var(--surface); }
 .lectie-info-icon { font-size: 1.1rem; line-height: 1.6; flex-shrink: 0; }
+.lectie-info-body { flex: 1 1 auto; min-width: 0; }
 .lectie-info-title {
   font-size: 0.83rem;
   font-weight: 700;
@@ -3808,11 +3824,12 @@ img { display: block; max-width: 100%; }
   line-height: 1.5;
 }
 .lectie-info-pts {
-  font-size: 0.80rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--accent);
   flex-shrink: 0;
-  margin-top: 2px;
+  min-width: 50px;
+  text-align: center;
 }
 .lectie-info-total {
   display: flex;
@@ -7419,6 +7436,17 @@ img { display: block; max-width: 100%; }
   line-height: 1.3;
 }
 
+.class-card__grade {
+  display: inline-block;
+  margin-top: 6px;
+  padding: 2px 9px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border-radius: var(--radius-sm);
+}
+
 .class-card__delete {
   flex-shrink: 0;
   width: 28px;
@@ -7516,10 +7544,19 @@ img { display: block; max-width: 100%; }
 .class-card__members {
   display: flex;
   align-items: center;
-  gap: 5px;
-  font-size: 0.95rem;
-  font-weight: 700;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
   color: var(--text-secondary);
+}
+
+.class-card__members-count {
+  padding: 2px 8px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--green);
+  background: var(--green-dim);
+  border-radius: var(--radius-sm);
 }
 
 /* ── Leave button ─────────────────────────────────────────── */
@@ -8029,7 +8066,7 @@ img { display: block; max-width: 100%; }
 }
 
 [data-theme="dark"] .confirm-dialog {
-  background: #1a1a2e;
+  background: var(--surface);
   border-color: rgba(255,255,255,0.12);
 }
 
