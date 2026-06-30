@@ -219,6 +219,7 @@
   let _realtimeChannel = null;
   let _reloadFluxTimer = null;
   let _reloadTemeTimer = null;
+  let _reloadMembriTimer = null;
 
   function _debouncedFlux() {
     clearTimeout(_reloadFluxTimer);
@@ -228,6 +229,11 @@
   function _debouncedTeme() {
     clearTimeout(_reloadTemeTimer);
     _reloadTemeTimer = setTimeout(() => { if (activeTab === 'teme') loadTemeTab(); }, 350);
+  }
+
+  function _debouncedMembri() {
+    clearTimeout(_reloadMembriTimer);
+    _reloadMembriTimer = setTimeout(() => { if (activeTab === 'membri') loadMembriTab(); }, 500);
   }
 
   function _setupRealtime() {
@@ -248,7 +254,11 @@
       }, _debouncedTeme)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'homework_submissions'
-      }, _debouncedTeme)
+      }, e => { _debouncedTeme(); _debouncedMembri(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'class_members',
+        filter: 'class_id=eq.' + classData.id
+      }, _debouncedMembri)
       .subscribe();
 
     window.addEventListener('beforeunload', () => {
@@ -262,6 +272,7 @@
       _setupRealtime();
       if (activeTab === 'flux') loadFluxTab();
       else if (activeTab === 'teme') loadTemeTab();
+      else if (activeTab === 'membri') loadMembriTab();
     }
   });
 
@@ -328,19 +339,19 @@
         </div>`;
     }
 
+    if (tabId === 'membri') {
+      requestAnimationFrame(() => loadMembriTab());
+      return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă catalogul...</p></div>`;
+    }
+
     const isTeacher = BMAuth.role === 'profesor';
-    const placeholders = {
+    const p = {
       simulari: {
         icon: '🎯', title: 'Simulări',
         desc: isTeacher ? 'Organizează simulări BAC pentru clasă.' : 'Simulări BAC organizate de profesor.'
-      },
-      membri: {
-        icon: '👥', title: 'Membri',
-        desc: isTeacher ? 'Elevii înscriși în clasă.' : 'Ceilalți elevi din clasă.'
       }
-    };
+    }[tabId];
 
-    const p = placeholders[tabId];
     return `
       <div class="cd-placeholder">
         <div class="cd-placeholder__icon">${p.icon}</div>
@@ -977,6 +988,239 @@
         </div>
       ` : ''}
     `;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     MEMBRI TAB — electronic gradebook catalog
+  ═══════════════════════════════════════════════════════════════ */
+
+  function _catalogInitials(name) {
+    const parts = (name || '').split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+    return (name || '?').slice(0, 2).toUpperCase();
+  }
+
+  async function loadMembriTab() {
+    const content = document.getElementById('cdContent');
+    if (!content) return;
+
+    const isTeacher = BMAuth.role === 'profesor';
+
+    try {
+      /* 1. Class members */
+      const { data: members, error: memErr } = await BMAuth.supabase
+        .from('class_members')
+        .select('student_id, joined_at')
+        .eq('class_id', classData.id)
+        .order('joined_at', { ascending: true });
+      if (memErr) throw memErr;
+
+      if (!members || members.length === 0) {
+        content.innerHTML = `
+          <div class="cd-placeholder">
+            <div class="cd-placeholder__icon">👥</div>
+            <h3 class="cd-placeholder__title">Niciun elev</h3>
+            <p class="cd-placeholder__desc">Partajează codul de invitație pentru a adăuga elevi în clasă.</p>
+          </div>`;
+        return;
+      }
+
+      const studentIds = members.map(m => m.student_id);
+
+      /* 2. Names from user_profiles */
+      const nameMap = {};
+      const { data: profiles } = await BMAuth.supabase
+        .from('user_profiles')
+        .select('user_id, full_name')
+        .in('user_id', studentIds);
+      (profiles || []).forEach(p => { if (p.full_name) nameMap[p.user_id] = p.full_name; });
+
+      /* 3. Assignments for this class */
+      const { data: rawAssign, error: aErr } = await BMAuth.supabase
+        .from('assignments')
+        .select('id, title, due_date, points')
+        .eq('class_id', classData.id)
+        .order('due_date', { ascending: true });
+      if (aErr) throw aErr;
+      const assignments = rawAssign || [];
+
+      /* 4. All submissions */
+      const subMatrix = {}; /* [studentId][assignmentId] */
+      if (assignments.length > 0) {
+        const aIds = assignments.map(a => a.id);
+        const { data: subs } = await BMAuth.supabase
+          .from('homework_submissions')
+          .select('assignment_id, student_id, student_name, grade, grade_confirmed, submitted_at')
+          .in('assignment_id', aIds);
+        (subs || []).forEach(s => {
+          if (!nameMap[s.student_id] && s.student_name) nameMap[s.student_id] = s.student_name;
+          if (!subMatrix[s.student_id]) subMatrix[s.student_id] = {};
+          subMatrix[s.student_id][s.assignment_id] = s;
+        });
+      }
+
+      if (isTeacher) {
+        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix);
+      } else {
+        content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id]);
+      }
+
+    } catch (e) {
+      content.innerHTML = `
+        <div class="cd-placeholder">
+          <div class="cd-placeholder__icon">⚠️</div>
+          <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
+          <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
+        </div>`;
+    }
+  }
+
+  function renderCatalogTeacher(members, nameMap, assignments, subMatrix) {
+    /* Per-assignment stats (confirmed grades only) */
+    const aStats = {};
+    assignments.forEach(a => {
+      const grades = members
+        .map(m => (subMatrix[m.student_id] || {})[a.id])
+        .filter(s => s?.grade_confirmed)
+        .map(s => parseFloat(s.grade));
+      aStats[a.id] = grades.length
+        ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
+        : '—';
+    });
+
+    const headerCells = assignments.map(a => {
+      const [y, mo, d] = a.due_date.split('-').map(Number);
+      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+      const title = a.title.length > 20 ? a.title.slice(0, 18) + '…' : a.title;
+      return `
+        <div class="catalog-th" title="${BM.esc(a.title)}">
+          <span class="catalog-th__title">${BM.esc(title)}</span>
+          <span class="catalog-th__date">${ds}</span>
+        </div>`;
+    }).join('');
+
+    const studentRows = members.map((m, idx) => {
+      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
+      const mySubs = subMatrix[m.student_id] || {};
+
+      const cells = assignments.map(a => {
+        const sub = mySubs[a.id];
+        if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
+        if (sub.grade_confirmed) {
+          const g = parseFloat(sub.grade);
+          const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+          return `<div class="catalog-td catalog-td--grade catalog-td--${cls}" title="Notă: ${sub.grade}">${sub.grade}</div>`;
+        }
+        return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
+      }).join('');
+
+      const myGrades = assignments
+        .map(a => (mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null))
+        .filter(g => g !== null);
+      const avg = myGrades.length
+        ? (myGrades.reduce((t, g) => t + g, 0) / myGrades.length).toFixed(1)
+        : '—';
+      const avgCls = avg !== '—' ? (parseFloat(avg) >= 5 ? 'catalog-td--avg-ok' : 'catalog-td--avg-lo') : '';
+
+      return `
+        <div class="catalog-row">
+          <div class="catalog-td catalog-td--name">
+            <span class="catalog-avatar">${_catalogInitials(name)}</span>
+            <span class="catalog-name-text">${BM.esc(name)}</span>
+          </div>
+          ${cells}
+          <div class="catalog-td catalog-td--avg ${avgCls}">${avg}</div>
+        </div>`;
+    }).join('');
+
+    const statsRow = `
+      <div class="catalog-row catalog-row--stats">
+        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie clasă</div>
+        ${assignments.map(a => `<div class="catalog-td catalog-td--stat">${aStats[a.id]}</div>`).join('')}
+        <div class="catalog-td catalog-td--avg"></div>
+      </div>`;
+
+    return `
+      <div class="catalog-wrap">
+        <div class="catalog-legend">
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Notat</span>
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--submitted"></span>Predat, nenotat</span>
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Nepredat</span>
+        </div>
+        <div class="catalog-scroll">
+          <div class="catalog-table">
+            <div class="catalog-head">
+              <div class="catalog-th catalog-th--name">Elev</div>
+              ${headerCells}
+              <div class="catalog-th catalog-th--avg">Medie</div>
+            </div>
+            <div class="catalog-body">
+              ${studentRows}
+              ${assignments.length > 0 ? statsRow : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderCatalogStudent(assignments, mySubs, myName) {
+    const gradedGrades = assignments
+      .map(a => mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null)
+      .filter(g => g !== null);
+    const avg = gradedGrades.length
+      ? (gradedGrades.reduce((t, g) => t + g, 0) / gradedGrades.length).toFixed(1)
+      : null;
+    const submitted = Object.keys(mySubs).length;
+    const graded    = gradedGrades.length;
+
+    const rows = assignments.map((a, idx) => {
+      const sub = mySubs[a.id];
+      const [y, mo, d] = a.due_date.split('-').map(Number);
+      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+
+      let gradeEl = '';
+      if (!sub) {
+        gradeEl = `<span class="cs-badge cs-badge--none">Nepredat</span>`;
+      } else if (sub.grade_confirmed) {
+        const g = parseFloat(sub.grade);
+        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+        gradeEl = `<span class="cs-grade cs-grade--${cls}">${sub.grade}<small>/10</small></span>`;
+      } else {
+        gradeEl = `<span class="cs-badge cs-badge--submitted">Predat</span>`;
+      }
+
+      return `
+        <div class="cs-row">
+          <div class="cs-idx">${idx + 1}</div>
+          <div class="cs-info">
+            <div class="cs-title">${BM.esc(a.title)}</div>
+            <div class="cs-date">📅 ${ds}</div>
+          </div>
+          <div class="cs-grade-col">${gradeEl}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="catalog-wrap">
+        <div class="cs-stats">
+          <div class="cs-stat">
+            <div class="cs-stat__val${avg ? ' cs-stat__val--grade' : ''}">${avg || '—'}</div>
+            <div class="cs-stat__lbl">Medie generală</div>
+          </div>
+          <div class="cs-stat">
+            <div class="cs-stat__val">${submitted}<span class="cs-stat__total">/${assignments.length}</span></div>
+            <div class="cs-stat__lbl">Teme predate</div>
+          </div>
+          <div class="cs-stat">
+            <div class="cs-stat__val">${graded}</div>
+            <div class="cs-stat__lbl">Note primite</div>
+          </div>
+        </div>
+        ${assignments.length === 0
+          ? '<p class="cs-empty">Profesorul nu a adăugat teme încă.</p>'
+          : `<div class="cs-list">${rows}</div>`
+        }
+      </div>`;
   }
 
   /* ═══════════════════════════════════════════════════════════════
