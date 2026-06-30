@@ -393,19 +393,39 @@
     const bacExp  = document.getElementById('bacSetupExpanded');
     const lectExp = document.getElementById('lectieSetupExpanded');
     if (!choose) return;
+    if (panel === 'choose') {
+      choose.classList.remove('sim-choose--exiting');
+    }
     choose.style.display  = panel === 'choose'  ? '' : 'none';
     bacExp.style.display  = panel === 'bac'     ? '' : 'none';
     lectExp.style.display = panel === 'lectie'  ? '' : 'none';
   }
 
   window.selectSimType = function (type) {
-    _showSetupPanel(type);
-    if (type === 'bac') renderHistory();
+    const choose = document.getElementById('simChoose');
+    if (!choose) { _showSetupPanel(type); return; }
+    choose.classList.add('sim-choose--exiting');
+    setTimeout(function () {
+      _showSetupPanel(type);
+      if (type === 'bac') renderHistory();
+      var panelId = type === 'bac' ? 'bacSetupExpanded' : 'lectieSetupExpanded';
+      var panelCls = type === 'bac' ? 'bac-setup-page--entering' : 'lectie-setup-page--entering';
+      var panel = document.getElementById(panelId);
+      if (panel) {
+        panel.classList.add(panelCls);
+        panel.addEventListener('animationend', function () { panel.classList.remove(panelCls); }, { once: true });
+      }
+    }, 220);
   };
 
   window.backToChoose = function (e) {
     if (e) e.preventDefault();
     _showSetupPanel('choose');
+    var choose = document.getElementById('simChoose');
+    if (choose) {
+      choose.classList.remove('sim-choose--exiting');
+      choose.style.opacity = '';
+    }
   };
 
   /* ---- Lectie de Proba: grade selection & exam ---- */

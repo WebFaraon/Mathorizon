@@ -3343,10 +3343,36 @@ img { display: block; max-width: 100%; }
 /* ================================================================
    SIM-CHOOSE — two-card picker (initial view)
 ================================================================ */
+
+/* Prevent flash: hide expanded panels before JS runs */
+#bacSetupExpanded,
+#lectieSetupExpanded {
+  display: none;
+}
+
+/* Panel entry animation (added via JS class) */
+@keyframes sim-panel-fade-in {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+@keyframes sim-choose-fade-out {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+.sim-choose--exiting {
+  animation: sim-choose-fade-out 0.22s ease forwards;
+  pointer-events: none;
+}
+.bac-setup-page--entering,
+.lectie-setup-page--entering {
+  animation: sim-panel-fade-in 0.35s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
 .sim-choose {
   display: flex;
   height: calc(100vh - var(--nav-h));
   overflow: hidden;
+  transition: background 0.3s ease;
 }
 
 /* Each half-card */
@@ -3386,16 +3412,18 @@ img { display: block; max-width: 100%; }
 
 /* BAC card — blue gradient */
 .sim-card--bac {
-  background: linear-gradient(160deg, #1a3664 0%, #3A6BAD 100%);
-  border-right: 1px solid rgba(255,255,255,0.08);
+  background: linear-gradient(160deg, #1e3e78 0%, #3A6BAD 100%);
+  border-right: 1px solid rgba(255,255,255,0.10);
+  transition: background 0.35s ease;
 }
-.sim-card--bac:hover { background: linear-gradient(160deg, #1e3e78 0%, #4278c4 100%); }
+.sim-card--bac:hover { background: linear-gradient(160deg, #244896 0%, #4a7fc5 100%); }
 
 /* Lectie card — purple gradient */
 .sim-card--lectie {
-  background: linear-gradient(160deg, #2d1b5e 0%, #6c3fc7 100%);
+  background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
+  transition: background 0.35s ease;
 }
-.sim-card--lectie:hover { background: linear-gradient(160deg, #35216e 0%, #7d4fe0 100%); }
+.sim-card--lectie:hover { background: linear-gradient(160deg, #481e99 0%, #7d4fe0 100%); }
 
 /* Card inner content */
 .sim-card-content {
@@ -3404,8 +3432,8 @@ img { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  padding: 40px 48px;
-  max-width: 460px;
+  padding: 52px 52px;
+  max-width: 480px;
   width: 100%;
   animation: bac-slide-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
@@ -3419,46 +3447,46 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.65);
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.20);
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
   border-radius: 20px;
-  padding: 4px 12px;
-  margin-bottom: 18px;
+  padding: 5px 14px;
+  margin-bottom: 26px;
   width: fit-content;
 }
 .sim-card-title {
-  font-size: 2.4rem;
+  font-size: 2.6rem;
   font-weight: 800;
   color: #fff;
   line-height: 1.08;
   letter-spacing: -1px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
 }
 .sim-card-title em { font-style: normal; color: #93c5fd; }
 .sim-card--lectie .sim-card-title em { color: #c4b5fd; }
-.sim-card-title span { color: rgba(255,255,255,0.55); font-weight: 300; }
+.sim-card-title span { color: rgba(255,255,255,0.52); font-weight: 300; }
 .sim-card-rule {
-  width: 40px;
+  width: 44px;
   height: 3px;
   background: linear-gradient(90deg, #93c5fd, rgba(147,197,253,0));
   border-radius: 2px;
-  margin: 12px 0 16px;
+  margin: 18px 0 22px;
 }
 .sim-card--lectie .sim-card-rule { background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0)); }
 .sim-card-desc {
-  font-size: 0.86rem;
-  color: rgba(255,255,255,0.60);
-  line-height: 1.65;
-  margin-bottom: 24px;
-  max-width: 340px;
+  font-size: 0.88rem;
+  color: rgba(255,255,255,0.62);
+  line-height: 1.7;
+  margin-bottom: 32px;
+  max-width: 360px;
 }
 
 /* Mini chips inside each card */
 .sim-card-chips {
   display: flex;
-  gap: 8px;
-  margin-bottom: 28px;
+  gap: 10px;
+  margin-bottom: 36px;
   flex-wrap: wrap;
 }
 .sim-chip {
@@ -3555,13 +3583,15 @@ img { display: block; max-width: 100%; }
 
 .lectie-setup-left {
   flex: 0 0 42%;
-  background: linear-gradient(160deg, #2d1b5e 0%, #6c3fc7 100%);
-  padding: 44px 48px;
+  background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
+  padding: 56px 52px 52px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   position: relative;
   overflow: hidden;
+  overflow-y: auto;
+  transition: background 0.35s ease;
   animation: bac-slide-left 0.48s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
 .lectie-setup-deco {
@@ -3595,12 +3625,12 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   letter-spacing: 1.2px;
   text-transform: uppercase;
-  color: rgba(255,255,255,0.65);
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.20);
+  color: rgba(255,255,255,0.72);
+  background: rgba(255,255,255,0.12);
+  border: 1px solid rgba(255,255,255,0.22);
   border-radius: 20px;
-  padding: 4px 12px;
-  margin-bottom: 18px;
+  padding: 5px 14px;
+  margin-bottom: 26px;
   width: fit-content;
   animation: bac-fade-up 0.36s 0.22s both;
 }
@@ -3610,23 +3640,23 @@ img { display: block; max-width: 100%; }
   color: #fff;
   line-height: 1.08;
   letter-spacing: -1px;
-  margin-bottom: 12px;
+  margin-bottom: 0;
   animation: bac-fade-up 0.36s 0.30s both;
 }
 .lectie-setup-title em { font-style: normal; color: #c4b5fd; }
-.lectie-setup-title span { color: rgba(255,255,255,0.55); font-weight: 300; }
+.lectie-setup-title span { color: rgba(255,255,255,0.52); font-weight: 300; }
 .lectie-title-rule {
   width: 44px;
   height: 3px;
   background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0));
   border-radius: 2px;
-  margin: 12px 0 16px;
+  margin: 18px 0 22px;
 }
 .lectie-setup-desc {
   font-size: 0.88rem;
-  color: rgba(255,255,255,0.60);
-  line-height: 1.65;
-  margin-bottom: 20px;
+  color: rgba(255,255,255,0.62);
+  line-height: 1.70;
+  margin-bottom: 30px;
   max-width: 360px;
   animation: bac-fade-up 0.36s 0.36s both;
 }
@@ -3635,15 +3665,15 @@ img { display: block; max-width: 100%; }
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  color: rgba(255,255,255,0.50);
-  margin-bottom: 10px;
+  color: rgba(255,255,255,0.52);
+  margin-bottom: 12px;
   animation: bac-fade-up 0.36s 0.40s both;
 }
 .lectie-grade-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
   gap: 8px;
-  margin-bottom: 22px;
+  margin-bottom: 28px;
   animation: bac-fade-up 0.36s 0.44s both;
 }
 .lectie-grade-btn {
@@ -3654,7 +3684,7 @@ img { display: block; max-width: 100%; }
   font-family: inherit;
   font-size: 0.80rem;
   font-weight: 600;
-  padding: 9px 4px;
+  padding: 11px 6px;
   cursor: pointer;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
   letter-spacing: 0.2px;
@@ -3673,7 +3703,7 @@ img { display: block; max-width: 100%; }
 .lectie-setup-chips {
   display: flex;
   gap: 10px;
-  margin-bottom: 26px;
+  margin-bottom: 34px;
   animation: bac-fade-up 0.36s 0.48s both;
 }
 .lectie-chip {
@@ -3708,28 +3738,29 @@ img { display: block; max-width: 100%; }
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%);
+  background: linear-gradient(135deg, #16A34A 0%, #15803d 100%);
   color: #fff;
   border: none;
   border-radius: var(--radius);
-  padding: 15px 28px;
+  padding: 16px 28px;
   font-size: 1.05rem;
   font-weight: 700;
   font-family: inherit;
   cursor: pointer;
   letter-spacing: 0.2px;
-  box-shadow: 0 4px 20px rgba(124,58,237,0.40);
+  box-shadow: 0 4px 20px rgba(22,163,74,0.40), 0 0 0 0 rgba(22,163,74,0);
   transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease, opacity 0.2s ease;
   animation: bac-fade-up 0.36s 0.52s both;
 }
 .lectie-start-btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #6d28d9 0%, #4c1d95 100%);
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
   transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(124,58,237,0.55);
+  box-shadow: 0 8px 30px rgba(22,163,74,0.55);
 }
 .lectie-start-btn:disabled {
-  opacity: 0.45;
+  opacity: 0.40;
   cursor: not-allowed;
+  filter: grayscale(0.3);
 }
 
 /* Lectie right panel */
@@ -3885,6 +3916,35 @@ img { display: block; max-width: 100%; }
   .lectie-grade-btn { font-size: 0.68rem; }
   .lectie-chip { padding: 10px 6px; }
   .lectie-chip__val { font-size: 1.1rem; }
+}
+
+/* ================================================================
+   THEME VARIANTS — dark mode deepens the colored panels
+================================================================ */
+
+/* Sim-choose cards: deeper & moodier in dark mode */
+[data-theme="dark"] .sim-card--bac {
+  background: linear-gradient(160deg, #0d1f42 0%, #1b3870 100%);
+  border-right-color: rgba(255,255,255,0.05);
+}
+[data-theme="dark"] .sim-card--bac:hover {
+  background: linear-gradient(160deg, #112550 0%, #204285 100%);
+}
+[data-theme="dark"] .sim-card--lectie {
+  background: linear-gradient(160deg, #16083a 0%, #341880 100%);
+}
+[data-theme="dark"] .sim-card--lectie:hover {
+  background: linear-gradient(160deg, #1c0a4a 0%, #3e1d97 100%);
+}
+
+/* BAC expanded left panel in dark mode */
+[data-theme="dark"] .bac-setup-left {
+  background: linear-gradient(160deg, #0d1f42 0%, #1b3870 100%);
+}
+
+/* Lectie expanded left panel in dark mode */
+[data-theme="dark"] .lectie-setup-left {
+  background: linear-gradient(160deg, #16083a 0%, #341880 100%);
 }
 
 /* Setup page — left fixed, right scrolls */
