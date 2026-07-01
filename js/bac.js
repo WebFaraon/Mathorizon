@@ -769,6 +769,11 @@
   }
 
   function renderCurrentSlot() {
+    if (window._activeDrawingCanvas) {
+      window._activeDrawingCanvas.destroy();
+      window._activeDrawingCanvas = null;
+    }
+
     const slot  = _slotDefs[current];
     const item  = exam.slots[current];
     const total = _slotDefs.length;
@@ -823,8 +828,7 @@
       `;
     } else {
       const ex = item.exercise;
-      const diffClass    = `bac-card--${ex.difficulty || 'mediu'}`;
-      const wasCollapsed = 'collapsed';
+      const diffClass = `bac-card--${ex.difficulty || 'mediu'}`;
       container.innerHTML = `
         <div class="bac-exercise-card ${diffClass}">
           <div class="bac-card-stripe"></div>
@@ -833,21 +837,29 @@
             <div class="bac-statement math-content">${BM.trustedNl2br(ex.statement)}</div>
           </div>
         </div>
-        <div class="bac-notes-card ${wasCollapsed}" id="notesCard">
+        <div class="bac-notes-card" id="notesCard">
           <div class="bac-notes-header" onclick="toggleNotes()">
             <span class="bac-notes-icon">✏️</span>
             <span class="bac-notes-label">Notițe de lucru</span>
             <span class="bac-notes-toggle">▾</span>
           </div>
-          <div class="bac-notes-body">
-            <textarea class="bac-work-textarea"
-                      placeholder="Notează pași intermediari, calcule, observații…"
-                      oninput="saveWork(${current}, this.value)">${BM.esc(item.work || '')}</textarea>
-          </div>
+          <div class="bac-notes-body bac-notes-body--canvas" id="drawingCanvasMount"></div>
         </div>
         ${renderAnswerCard(ex, item, current)}
       `;
       if (window.renderMathInElement) BM.renderMath(container);
+
+      const dcMount = document.getElementById('drawingCanvasMount');
+      if (dcMount && window.DrawingCanvas) {
+        const _cur = current;
+        window._activeDrawingCanvas = new DrawingCanvas(dcMount, {
+          onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
+          initialData: item.work || null
+        });
+        window.getCanvasImage = function () {
+          return window._activeDrawingCanvas ? window._activeDrawingCanvas.getCanvasImage() : null;
+        };
+      }
     }
 
     // Nav buttons

@@ -10217,3 +10217,222 @@ img { display: block; max-width: 100%; }
   border-color: rgba(255,255,255,0.12) !important;
   box-shadow: 0 12px 40px rgba(0,0,0,0.55) !important;
 }
+
+/* ================================================================
+   Drawing Canvas
+   ================================================================ */
+
+.bac-notes-body--canvas {
+  padding: 0;
+  overflow: hidden;
+  border-radius: 0 0 14px 14px;
+}
+
+/* Notes card stays open (no collapsed) when canvas is inside */
+.bac-notes-card:has(.dc-wrap) .bac-notes-toggle { display: none; }
+
+.dc-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+/* ---- Toolbar ---- */
+.dc-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.dc-tool-group {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.dc-tool-group + .dc-tool-group {
+  padding-left: 8px;
+  border-left: 1px solid var(--border);
+  margin-left: 2px;
+}
+
+.dc-tool-group--right {
+  margin-left: auto;
+}
+
+/* Tool buttons */
+.dc-tool-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+
+.dc-tool-btn svg {
+  width: 15px;
+  height: 15px;
+  display: block;
+}
+
+.dc-tool-btn:hover {
+  background: var(--card-hover);
+  color: var(--text);
+  border-color: var(--border);
+}
+
+.dc-tool-btn--active {
+  background: var(--accent);
+  color: #fff;
+  border-color: transparent;
+}
+
+.dc-tool-btn--active:hover {
+  background: var(--accent-2);
+}
+
+/* Colour swatches */
+.dc-color-btn {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 2.5px solid transparent;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: transform 0.14s, border-color 0.14s, box-shadow 0.14s;
+}
+
+.dc-color-btn:hover {
+  transform: scale(1.18);
+}
+
+.dc-color-btn--active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-dim, rgba(74,158,255,0.25));
+  transform: scale(1.18);
+}
+
+/* Width selector */
+.dc-width-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.14s, border-color 0.14s;
+}
+
+.dc-width-btn:hover {
+  background: var(--card-hover);
+  border-color: var(--border);
+}
+
+.dc-width-btn--active {
+  background: var(--card-hover);
+  border-color: var(--accent);
+}
+
+.dc-width-dot {
+  display: block;
+  background: var(--text-secondary);
+  border-radius: 50%;
+}
+
+.dc-width-btn--active .dc-width-dot {
+  background: var(--accent);
+}
+
+/* Action buttons */
+.dc-action-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px;
+  transition: background 0.14s, color 0.14s, border-color 0.14s;
+}
+
+.dc-action-btn svg {
+  width: 14px;
+  height: 14px;
+  display: block;
+}
+
+.dc-action-btn:hover {
+  background: var(--card-hover);
+  color: var(--text);
+}
+
+.dc-action-btn--danger:hover {
+  background: rgba(220, 38, 38, 0.12);
+  color: #ef4444;
+  border-color: rgba(220, 38, 38, 0.35);
+}
+
+/* ---- Canvas area ---- */
+.dc-canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 600px;
+  overflow: hidden;
+  line-height: 0; /* prevent phantom space below canvas */
+}
+
+.dc-grid-canvas,
+.dc-draw-canvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: block;
+}
+
+.dc-grid-canvas { z-index: 0; }
+
+.dc-draw-canvas {
+  z-index: 1;
+  cursor: crosshair;
+}
+
+/* ---- Mobile: toolbar slides to bottom ---- */
+@media (max-width: 640px) {
+  .dc-wrap {
+    flex-direction: column-reverse;
+  }
+
+  .dc-toolbar {
+    border-bottom: none;
+    border-top: 1px solid var(--border);
+    padding: 10px 12px 14px; /* extra bottom padding for safe area */
+  }
+
+  .dc-tool-group--right {
+    margin-left: 0;
+  }
+
+  .dc-canvas-wrap {
+    min-height: 65vh;
+  }
+}
