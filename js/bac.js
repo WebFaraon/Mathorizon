@@ -1318,6 +1318,18 @@
         <button class="btn btn--primary btn--lg" onclick="newSimulation()">🔄 Simulare Nouă</button>
         <a class="btn btn--surface btn--lg" href="index.html">Capitole</a>
       </div>
+
+      <div class="ai-section" id="aiSection">
+        <div class="ai-section__intro">
+          <div class="ai-section__icon">🤖</div>
+          <div>
+            <div class="ai-section__title">Evaluare AI cu Gemini</div>
+            <div class="ai-section__desc">Analizează rezolvările tale manuscrise și le compară cu baremul oficial.</div>
+          </div>
+          <button class="btn btn--ai" id="aiVerifyBtn" onclick="verifyExam()">Evaluează</button>
+        </div>
+        <div id="aiResultsSection"></div>
+      </div>
     `;
 
     requestAnimationFrame(() => {
@@ -1325,6 +1337,156 @@
       if (bar) requestAnimationFrame(() => { bar.style.width = bar.dataset.width + '%'; });
     });
   }
+
+  /* ================================================================
+     AI EXAM VERIFICATION
+  ================================================================ */
+
+  function compositeOnWhite(strokesDataUrl) {
+    return new Promise(function (resolve) {
+      if (!strokesDataUrl || !strokesDataUrl.startsWith('data:image/png;base64,')) {
+        resolve(null);
+        return;
+      }
+      const img = new Image();
+      img.onload = function () {
+        const MAX_W = 1200;
+        const scale = img.naturalWidth > MAX_W ? MAX_W / img.naturalWidth : 1;
+        const w = Math.round(img.naturalWidth  * scale);
+        const h = Math.round(img.naturalHeight * scale);
+        const off = document.createElement('canvas');
+        off.width  = w;
+        off.height = h;
+        const ctx = off.getContext('2d');
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(off.toDataURL('image/png'));
+      };
+      img.onerror = function () { resolve(null); };
+      img.src = strokesDataUrl;
+    });
+  }
+
+  function renderAiLoading(total) {
+    return `
+      <div class="ai-loading">
+        <div class="ai-loading__spinner"></div>
+        <div class="ai-loading__text">Se evaluează ${total} exerciții cu Gemini AI…</div>
+        <div class="ai-loading__hint">Poate dura 30–60 de secunde</div>
+      </div>`;
+  }
+
+  function renderAiResultsHTML(results, examTotalMaxim) {
+    const totalAcordat = results.reduce((s, r) => s + (r.total_acordat || 0), 0);
+    const totalMaxim   = examTotalMaxim || results.reduce((s, r) => s + (r.total_maxim || 0), 0);
+    const pct = totalMaxim > 0 ? Math.round(totalAcordat / totalMaxim * 100) : 0;
+    const scoreColor = pct >= 90 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
+
+    const itemsHtml = results.map(r => {
+      const itemPct = r.total_maxim > 0 ? r.total_acordat / r.total_maxim : 0;
+      const pill    = itemPct >= 0.8 ? 'correct' : itemPct > 0 ? 'partial' : 'wrong';
+
+      const pasiHtml = (r.pasi || []).map(p => {
+        const cls = p.corect ? 'correct' : p.puncte_acordate > 0 ? 'partial' : 'wrong';
+        return `
+          <div class="ai-step ai-step--${cls}">
+            <span class="ai-step__dot"></span>
+            <span class="ai-step__desc">${BM.esc(p.descriere)}</span>
+            <span class="ai-step__pts">${p.puncte_acordate}/${p.puncte_maxime}p</span>
+          </div>`;
+      }).join('');
+
+      return `
+        <div class="ai-item${r.error ? ' ai-item--error' : ''}">
+          <div class="ai-item__header">
+            <span class="ai-item__label">${BM.esc(r.label)}</span>
+            <span class="ai-score-pill ai-score-pill--${pill}">${r.total_acordat}/${r.total_maxim}p</span>
+          </div>
+          ${pasiHtml ? `<div class="ai-item__steps">${pasiHtml}</div>` : ''}
+          ${r.observatii ? `<p class="ai-item__obs">${BM.esc(r.observatii)}</p>` : ''}
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="ai-results">
+        <div class="ai-results__summary">
+          <span class="ai-results__grade" style="color:${scoreColor}">${totalAcordat}p</span>
+          <span class="ai-results__sub">din ${totalMaxim} puncte — ${pct}%</span>
+        </div>
+        <div class="ai-items">${itemsHtml}</div>
+        <p class="ai-results__disclaimer">Evaluarea AI are caracter orientativ. Pot apărea inexactități în interpretarea scrisului de mână.</p>
+      </div>`;
+  }
+
+  window.verifyExam = async function () {
+    const btn     = document.getElementById('aiVerifyBtn');
+    const section = document.getElementById('aiResultsSection');
+    if (!btn || !section) return;
+
+    btn.disabled    = true;
+    btn.textContent = 'Se evaluează…';
+
+    // Flush the last active canvas so its latest state is in item.work
+    if (window._activeDrawingCanvas) window._activeDrawingCanvas.flush();
+
+    const eligibleSlots = _slotDefs.filter((_, i) => exam.slots[i]?.exercise);
+    section.innerHTML = renderAiLoading(eligibleSlots.length);
+
+    try {
+      // Build payload — composite each slot's strokes on white background
+      const items = await Promise.all(_slotDefs.map(async (slot, i) => {
+        const item = exam.slots[i];
+        if (!item?.exercise) return null;
+
+        const composite   = await compositeOnWhite(item.work || null);
+        const canvasBase64 = composite ? composite.split(',')[1] : null;
+
+        return {
+          label:          slot.label,
+          enunt:          item.exercise.statement   || '',
+          solutieOficiala: item.exercise.solution   || '',
+          puncteMaxime:   slot.points,
+          canvasBase64
+        };
+      }));
+
+      const payload = items.filter(Boolean);
+
+      const resp = await fetch('/api/verify-exam', {
+        method:  'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body:    JSON.stringify(payload)
+      });
+
+      if (!resp.ok) {
+        const err = await resp.json().catch(() => ({ error: `HTTP ${resp.status}` }));
+        throw new Error(err.error || `Server error ${resp.status}`);
+      }
+
+      const results = await resp.json();
+      const examTotalMaxim = _slotDefs.reduce((s, sl) => s + (sl.points || 0), 0);
+      section.innerHTML = renderAiResultsHTML(results, examTotalMaxim);
+      if (window.renderMathInElement) {
+        renderMathInElement(section, {
+          delimiters: [
+            { left: '$$', right: '$$', display: true },
+            { left: '$',  right: '$',  display: false },
+            { left: '\\(', right: '\\)', display: false }
+          ],
+          throwOnError: false
+        });
+      }
+
+    } catch (e) {
+      section.innerHTML = `
+        <div class="ai-error">
+          <strong>Evaluarea AI a eșuat.</strong><br>${BM.esc(e.message)}
+        </div>`;
+      btn.disabled    = false;
+      btn.textContent = 'Reîncearcă';
+    }
+  };
 
   window.newSimulation = function () {
     if (!confirm('Ești sigur că vrei să începi o simulare nouă? Rezultatele curente vor fi șterse.')) return;

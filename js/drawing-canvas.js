@@ -448,6 +448,13 @@
     return off.toDataURL('image/png');
   };
 
+  DrawingCanvas.prototype.flush = function () {
+    if (this._destroyed || !this._onSave) return;
+    clearTimeout(this._saveTimer);
+    this._saveTimer = null;
+    this._onSave(this._strokesDataUrl());
+  };
+
   DrawingCanvas.prototype.destroy = function () {
     this._destroyed = true;
     // Flush any unsaved stroke before teardown
