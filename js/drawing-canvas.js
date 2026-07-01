@@ -23,7 +23,7 @@
       </button>
     </div>
     <div class="dc-tool-group">
-      <button class="dc-color-btn dc-color-btn--active" data-color="#1a1a1a" title="Negru" aria-label="Culoare negru"></button>
+      <button class="dc-color-btn dc-color-btn--active" data-color="#1a1a1a" data-adaptive title="Negru" aria-label="Culoare negru"></button>
       <button class="dc-color-btn" data-color="#1d4ed8" title="Albastru" aria-label="Culoare albastru"></button>
       <button class="dc-color-btn" data-color="#dc2626" title="Roșu" aria-label="Culoare roșu"></button>
     </div>
@@ -79,6 +79,7 @@
     // Defer resize so the DOM has laid out
     var self = this;
     requestAnimationFrame(function () {
+      self._adaptColors();
       self._resize();
       if (self._initialData && self._initialData.startsWith('data:image/png;base64,')) {
         self._loadImage(self._initialData);
@@ -94,8 +95,7 @@
     toolbar.className = 'dc-toolbar';
     toolbar.innerHTML = TOOLBAR_HTML;
 
-    // Set colour swatches background
-    toolbar.querySelector('[data-color="#1a1a1a"]').style.background = '#1a1a1a';
+    // Set colour swatches background (adaptive swatch applied later in _adaptColors)
     toolbar.querySelector('[data-color="#1d4ed8"]').style.background = '#1d4ed8';
     toolbar.querySelector('[data-color="#dc2626"]').style.background = '#dc2626';
 
@@ -162,31 +162,40 @@
   };
 
   DrawingCanvas.prototype._drawGrid = function () {
-    var ctx  = this._gridCtx;
-    var w    = this._width;
-    var h    = this._height;
-    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var canvas = this._gridCanvas;
+    var ctx    = this._gridCtx;
+    var dpr    = this._dpr || window.devicePixelRatio || 1;
+    // Use physical pixel dimensions — immune to any accumulated ctx transform.
+    var pw     = canvas.width;
+    var ph     = canvas.height;
+    var dark   = document.documentElement.getAttribute('data-theme') === 'dark';
+
+    // Reset transform so fillRect(0,0,pw,ph) always covers the entire canvas.
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
 
     ctx.fillStyle = dark ? '#161616' : '#f7f5ef';
-    ctx.fillRect(0, 0, w, h);
+    ctx.fillRect(0, 0, pw, ph);
 
-    var cell = 24; // px between grid lines
+    var cell = 24 * dpr; // 24 CSS-px grid in physical pixels
 
     // Fine grid
     ctx.strokeStyle = dark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.055)';
     ctx.lineWidth   = 0.5;
     ctx.beginPath();
-    for (var x = 0; x <= w; x += cell) { ctx.moveTo(x, 0); ctx.lineTo(x, h); }
-    for (var y = 0; y <= h; y += cell) { ctx.moveTo(0, y); ctx.lineTo(w, y); }
+    for (var x = 0; x <= pw; x += cell) { ctx.moveTo(x, 0); ctx.lineTo(x, ph); }
+    for (var y = 0; y <= ph; y += cell) { ctx.moveTo(0, y); ctx.lineTo(pw, y); }
     ctx.stroke();
 
     // Major grid every 5 cells
     ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.10)';
     ctx.lineWidth   = 0.5;
     ctx.beginPath();
-    for (var x2 = 0; x2 <= w; x2 += cell * 5) { ctx.moveTo(x2, 0); ctx.lineTo(x2, h); }
-    for (var y2 = 0; y2 <= h; y2 += cell * 5) { ctx.moveTo(0, y2); ctx.lineTo(w, y2); }
+    for (var x2 = 0; x2 <= pw; x2 += cell * 5) { ctx.moveTo(x2, 0); ctx.lineTo(x2, ph); }
+    for (var y2 = 0; y2 <= ph; y2 += cell * 5) { ctx.moveTo(0, y2); ctx.lineTo(pw, y2); }
     ctx.stroke();
+
+    ctx.restore();
   };
 
   DrawingCanvas.prototype._bindEvents = function () {
@@ -235,8 +244,8 @@
       this._ro.observe(this._canvasWrap);
     }
 
-    // Redraw grid on theme change
-    this._mo = new MutationObserver(function () { self._drawGrid(); });
+    // Redraw grid and adapt palette on theme change
+    this._mo = new MutationObserver(function () { self._drawGrid(); self._adaptColors(); });
     this._mo.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
   };
 
@@ -379,9 +388,44 @@
     var self = this;
     var img  = new Image();
     img.onload = function () {
-      self._ctx.drawImage(img, 0, 0, self._width, self._height);
+      var dpr  = self._dpr || window.devicePixelRatio || 1;
+      // Draw at the PNG's own CSS-equivalent dimensions, not self._width/height.
+      // The PNG was saved at (physicalW × physicalH), so dividing by dpr gives
+      // the original CSS dimensions. Drawing at these CSS coords with scale(dpr,dpr)
+      // active maps 1:1 to physical pixels — no squishing even if the canvas was
+      // resized between saves.
+      var cssW = img.naturalWidth  / dpr;
+      var cssH = img.naturalHeight / dpr;
+      self._ctx.drawImage(img, 0, 0, cssW, cssH);
     };
     img.src = dataUrl;
+  };
+
+  DrawingCanvas.prototype._adaptColors = function () {
+    var dark  = document.documentElement.getAttribute('data-theme') === 'dark';
+    var color = dark ? '#f0f0f0' : '#1a1a1a';
+    var label = dark ? 'Alb'    : 'Negru';
+    var btn   = this._toolbar.querySelector('[data-adaptive]');
+    if (!btn) return;
+
+    var wasActive = btn.classList.contains('dc-color-btn--active');
+    btn.dataset.color      = color;
+    btn.style.background   = color;
+    btn.title              = label;
+    btn.setAttribute('aria-label', 'Culoare ' + label.toLowerCase());
+
+    if (wasActive) {
+      this._color = color;
+    }
+  };
+
+  DrawingCanvas.prototype._strokesDataUrl = function () {
+    // Save only the draw canvas (transparent bg + strokes).
+    // getCanvasImage() composites the grid background on top for export/AI,
+    // but we must NOT save the grid into item.work — that would bake the
+    // current theme's background onto the draw canvas on reload, breaking
+    // theme switching.
+    return this._canvas.toDataURL('image/png');
   };
 
   DrawingCanvas.prototype._scheduleSave = function () {
@@ -389,7 +433,8 @@
     var self = this;
     clearTimeout(this._saveTimer);
     this._saveTimer = setTimeout(function () {
-      self._onSave(self.getCanvasImage());
+      self._saveTimer = null; // must reset BEFORE calling onSave so destroy()
+      self._onSave(self._strokesDataUrl()); // knows no pending save remains
     }, 400);
   };
 
@@ -409,7 +454,7 @@
     if (this._saveTimer && this._onSave) {
       clearTimeout(this._saveTimer);
       this._saveTimer = null;
-      this._onSave(this.getCanvasImage());
+      this._onSave(this._strokesDataUrl());
     } else {
       clearTimeout(this._saveTimer);
     }
