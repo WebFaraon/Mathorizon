@@ -7,22 +7,9 @@ const model  = genAI.getGenerativeModel({
   generationConfig: { temperature: 0 }
 });
 
-const SYSTEM_PROMPT = `Ești un profesor de matematică care corectează o lucrare de examen BAC Moldova.
-Evaluezi rezolvarea unui elev scrisă de mână, bazându-te EXCLUSIV pe baremul oficial furnizat.
-Reguli obligatorii:
-- Acordă puncte parțiale dacă elevul a rezolvat corect unii pași
-- Dacă elevul a folosit o metodă diferită dar corect matematică, acordă punctele integrale
-- Nu penaliza greșelile de notație sau ortografie, ci doar greșelile matematice
-- Dacă imaginea este goală sau complet ilizibilă, returnează 0 puncte
-- Distribui punctajul maxim al exercițiului între pașii identificați
-- Acordă NUMAI puncte întregi (1, 2, 3... nu 0.5 sau 1.5) — puncte_acordate și puncte_maxime sunt întotdeauna numere întregi
-- În câmpul "descriere" al fiecărui pas, folosește notație LaTeX cu delimitatori $...$ pentru orice expresie matematică (ex: $27^{\frac{2}{3}}$, $\sqrt{x}$, $\frac{a}{b}$)
-- Răspunde STRICT cu un obiect JSON valid, fără text suplimentar, fără markdown`;
-
 function extractBarem(solution, totalPoints) {
   if (!solution) return null;
 
-  // Try explicit **Pasul N.** markers
   const stepRx = /\*\*Pasul\s+\d+[.:]\*\*\s*([\s\S]*?)(?=\*\*Pasul\s+\d+[.:]\*\*|$)/g;
   const steps = [];
   let m;
@@ -31,7 +18,6 @@ function extractBarem(solution, totalPoints) {
     if (text) steps.push(text);
   }
 
-  // Fallback: split on double newlines (each paragraph = one step)
   if (steps.length === 0) {
     solution.split(/\n\n+/).forEach(p => {
       const text = p.replace(/\*\*/g, '').replace(/\n/g, ' ').trim();
@@ -41,16 +27,19 @@ function extractBarem(solution, totalPoints) {
 
   if (steps.length === 0) return null;
 
-  const base = Math.floor(totalPoints / steps.length);
+  const base  = Math.floor(totalPoints / steps.length);
   const extra = totalPoints - base * steps.length;
-  return steps.map((descriere, i) => ({
-    descriere,
+  return steps.map((_, i) => ({
     puncte_maxime: base + (i === steps.length - 1 ? extra : 0)
   }));
 }
 
 async function verifyItem(item) {
-  const { canvasBase64, enunt, solutieOficiala, puncteMaxime, label, barem: baremFixed } = item;
+  const {
+    canvasBase64, enunt, solutieOficiala,
+    puncteMaxime, label, barem: baremFixed,
+    raspunsCorect, raspunsElev
+  } = item;
 
   if (!canvasBase64) {
     return {
@@ -63,63 +52,52 @@ async function verifyItem(item) {
   }
 
   const barem = baremFixed || extractBarem(solutieOficiala, puncteMaxime);
+  const nrPasi = barem ? barem.length : null;
 
-  let prompt;
-  if (barem && barem.length > 0) {
-    const baremJson = JSON.stringify(barem, null, 2);
-    prompt = `${SYSTEM_PROMPT}
+  const finalAnswerBlock = raspunsCorect
+    ? `\nRĂSPUNS FINAL CORECT: ${raspunsCorect}
+RĂSPUNS SCRIS DE ELEV (în casetă): ${raspunsElev || '(necompletat)'}
+IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul pas (calculul final) este GREȘIT și primește 0 puncte.`
+    : '';
 
-EXERCIȚIU — ${label}:
-${enunt}
+  const baremBlock = nrPasi
+    ? `\nBAREMUL ARE EXACT ${nrPasi} PAȘI cu punctaje: ${barem.map((b, i) => `pasul ${i+1} = ${b.puncte_maxime}p`).join(', ')}.
+Identifică în imagine EXACT ${nrPasi} pași și evaluează fiecare.`
+    : `\nÎmparte punctajul de ${puncteMaxime}p între pașii logici pe care îi identifici în imagine.`;
 
-BAREM OFICIAL FIX (folosește EXACT acești pași și aceste puncte maxime, nu inventa alții):
-${baremJson}
+  const prompt = `Ești un corector strict de examene BAC Moldova. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
 
-Analizează imaginea atașată și verifică dacă elevul a efectuat fiecare pas din barem.
-Returnează EXCLUSIV un obiect JSON (fără alt text):
-
-{
-  "pasi": [
-    { "descriere": "<copiază exact descrierea din barem>", "puncte_acordate": 0, "puncte_maxime": 0, "corect": false }
-  ],
-  "total_acordat": 0,
-  "total_maxim": ${puncteMaxime},
-  "observatii": "feedback scurt pentru elev în română"
-}
-
-Reguli stricte:
-- pasi[] trebuie să conțină EXACT aceiași pași ca în barem (același număr, aceeași ordine, aceeași descriere)
-- puncte_maxime din fiecare pas = exact valoarea din barem
-- suma punctelor_acordate = total_acordat
-- corect: true doar dacă pasul e complet corect
-- TOATE punctele sunt numere întregi`;
-  } else {
-    prompt = `${SYSTEM_PROMPT}
+REGULI CRITICE — CITEȘTE CU ATENȚIE:
+1. Citește cu atenție FIECARE calcul din imagine. Verifică dacă rezultatele numerice sunt corecte.
+2. Dacă elevul scrie o egalitate greșită (ex: $\\log_2 4 = 3$ în loc de $\\log_2 4 = 2$), acel pas este GREȘIT — 0 puncte.
+3. NU acorda puncte pentru pași pe care NU îi poți vedea clar în imagine.
+4. NU presupune că elevul a rezolvat corect — verifică fiecare calcul matematic din imagine.
+5. Dacă imaginea conține erori matematice, marchează pașii respectivi ca greșiți.
+6. Acordă NUMAI puncte întregi (0, 1, 2, 3...) — NICIODATĂ zecimale.
+7. Folosește notație LaTeX cu $...$ în câmpul "descriere".
+${finalAnswerBlock}
 
 EXERCIȚIU — ${label} (${puncteMaxime} puncte total):
 ${enunt}
 
-SOLUȚIE OFICIALĂ:
+SOLUȚIE OFICIALĂ (pentru referință — verifică dacă elevul a urmat pași similari):
 ${solutieOficiala}
+${baremBlock}
 
-Analizează imaginea atașată cu rezolvarea elevului.
-Returnează EXCLUSIV un obiect JSON (fără alt text):
-
+Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown):
 {
   "pasi": [
-    { "descriere": "descriere scurtă pas", "puncte_acordate": 0, "puncte_maxime": 0, "corect": false }
+    { "descriere": "ce a scris elevul la acest pas (LaTeX)", "puncte_acordate": 0, "puncte_maxime": 0, "corect": false }
   ],
   "total_acordat": 0,
   "total_maxim": ${puncteMaxime},
-  "observatii": "feedback util pentru elev în română"
+  "observatii": "feedback concret pentru elev în română, menționând greșelile specifice"
 }
 
-Reguli:
+Reguli JSON:
 - suma punctelor_maxime din pasi = exact ${puncteMaxime}
-- suma punctelor_acordate = total_acordat
-- corect: true doar dacă pasul e complet corect
-- TOATE punctele sunt numere întregi`;
-  }
+- total_acordat = suma punctelor_acordate din pasi
+- corect: true NUMAI dacă pasul e 100% corect matematic`;
 
   const result = await model.generateContent([
     { text: prompt },

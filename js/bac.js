@@ -1443,10 +1443,12 @@
         const canvasBase64 = composite ? composite.split(',')[1] : null;
 
         return {
-          label:          slot.label,
-          enunt:          item.exercise.statement   || '',
-          solutieOficiala: item.exercise.solution   || '',
-          puncteMaxime:   slot.points,
+          label:           slot.label,
+          enunt:           item.exercise.statement || '',
+          solutieOficiala: item.exercise.solution  || '',
+          raspunsCorect:   extractBoxedAnswer(item.exercise.solution) || '',
+          raspunsElev:     item.confirmedAnswer || '',
+          puncteMaxime:    slot.points,
           canvasBase64
         };
       }));
