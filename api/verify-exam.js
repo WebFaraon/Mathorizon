@@ -88,17 +88,19 @@ IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul
     : '';
 
   const baremHasCriteria = barem && barem.every(b => b.descriere);
-  // Only call it "official" when it's the untouched hand-transcribed barem —
-  // once rescaled to a different point total, or when it's a heuristic split
-  // (baremEstimat: true, not verified against a real BAC document), the wording
-  // shouldn't overclaim authority the data doesn't have.
-  const baremLabel = (baremFixed && barem === baremFixed && !baremEstimat)
-    ? 'BAREMUL OFICIAL'
-    : 'CRITERIILE DE EVALUARE';
+  // Only treat it as the untouched hand-transcribed barem when it wasn't
+  // rescaled and isn't a heuristic split (baremEstimat: true) — those step
+  // boundaries aren't verified against a real BAC document, so neither the
+  // "official" label nor row-by-row strictness would be honest to apply.
+  const isVerifiedOfficial = baremFixed && barem === baremFixed && !baremEstimat;
+  const baremLabel = isVerifiedOfficial ? 'BAREMUL OFICIAL' : 'CRITERIILE DE EVALUARE';
+  const gradingInstruction = isVerifiedOfficial
+    ? 'Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a scris exact ce se cere la acel item; altfel 0p pentru acel item. Nu inventa alte criterii.'
+    : 'Această împărțire pe itemi este orientativă (nu un document oficial verificat) — dacă elevul combină doi itemi într-un singur calcul dar rezultatul intermediar corect e vizibil implicit în ce a scris, acordă punctajul pentru toți itemii acoperiți de acel calcul. Acordă 0p unui item doar dacă rezultatul lui lipsește sau e greșit, nu doar pentru că nu a fost scris pe un rând separat.';
   const baremBlock = baremHasCriteria
     ? `\n${baremLabel} ARE EXACT ${nrPasi} ITEMI DE PUNCTAJ:
 ${barem.map((b, i) => `- Itemul ${i+1} (${b.puncte_maxime}p): ${b.descriere}`).join('\n')}
-Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a scris exact ce se cere la acel item; altfel 0p pentru acel item. Nu inventa alte criterii.`
+${gradingInstruction}`
     : nrPasi
     ? `\nEVALUAREA ARE EXACT ${nrPasi} PAȘI cu punctaje: ${barem.map((b, i) => `pasul ${i+1} = ${b.puncte_maxime}p`).join(', ')}.
 Identifică în imagine EXACT ${nrPasi} pași și evaluează fiecare.`
