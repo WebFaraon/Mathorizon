@@ -5409,94 +5409,140 @@ img { display: block; max-width: 100%; }
 
 /* Hero card */
 .res-hero {
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 36px 32px 28px;
-  text-align: center;
-  margin-bottom: 16px;
   position: relative;
   overflow: hidden;
+  text-align: center;
+  margin-bottom: 20px;
+  padding: 40px 32px 32px;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background:
+    radial-gradient(130% 110% at 50% -25%, var(--card-hover) 0%, transparent 62%),
+    var(--card);
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.10), 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 .res-hero::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(27,74,138,0.06) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(27,74,138,0.06) 1px, transparent 1px);
-  background-size: 28px 28px;
+    linear-gradient(rgba(27, 74, 138, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 74, 138, 0.05) 1px, transparent 1px);
+  background-size: 30px 30px;
+  -webkit-mask-image: radial-gradient(circle at 50% 28%, #000 0%, transparent 72%);
+          mask-image: radial-gradient(circle at 50% 28%, #000 0%, transparent 72%);
   pointer-events: none;
 }
+.res-hero > * { position: relative; }
+
 .res-hero__grade {
-  font-size: 5.5rem;
+  font-size: 5.75rem;
   font-weight: 800;
   letter-spacing: -3px;
   line-height: 1;
-  margin-bottom: 6px;
-  position: relative;
+  margin-bottom: 14px;
+  text-shadow: 0 6px 30px color-mix(in srgb, currentColor 35%, transparent);
 }
 .res-hero__label {
-  font-size: 1.1rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 18px;
+  margin-bottom: 26px;
+  font-size: 0.95rem;
   font-weight: 700;
-  margin-bottom: 22px;
-  position: relative;
+  border-radius: 999px;
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  border: 1px solid color-mix(in srgb, currentColor 28%, transparent);
 }
+
 .res-score-bar {
   width: 100%;
-  max-width: 420px;
-  margin: 0 auto 6px;
-  height: 7px;
-  background: var(--border);
-  border-radius: 4px;
+  max-width: 440px;
+  margin: 0 auto 10px;
+  height: 12px;
+  padding: 2px;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 999px;
   overflow: hidden;
-  position: relative;
 }
 .res-score-bar__fill {
   height: 100%;
-  border-radius: 4px;
   width: 0;
+  border-radius: 999px;
   transition: width 1.3s cubic-bezier(0.22, 1, 0.36, 1);
 }
 .res-score-label {
-  font-size: 0.80rem;
+  font-size: 0.82rem;
+  font-weight: 500;
   color: var(--text-muted);
-  margin-bottom: 22px;
-  position: relative;
+  margin-bottom: 28px;
 }
+
 .res-stats {
-  display: inline-flex;
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  overflow: hidden;
-  position: relative;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  max-width: 520px;
+  margin: 0 auto;
 }
 .res-stat {
+  position: relative;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
-  padding: 10px 20px;
-  border-right: 1px solid var(--border);
+  gap: 6px;
+  padding: 17px 10px 14px;
+  border-radius: 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.res-stat:last-child { border-right: none; }
+.res-stat::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--border);
+}
+.res-stat:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.10);
+}
 .res-stat__val {
-  font-size: 1.45rem;
+  font-size: 1.7rem;
   font-weight: 800;
   line-height: 1;
   letter-spacing: -0.5px;
+  white-space: nowrap;
 }
 .res-stat__lbl {
   font-size: 0.62rem;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.6px;
   color: var(--text-muted);
 }
+.res-stat--correct { border-color: color-mix(in srgb, var(--green) 35%, var(--border)); }
+.res-stat--correct::before { background: var(--green); }
 .res-stat--correct .res-stat__val { color: var(--green); }
-.res-stat--wrong   .res-stat__val { color: var(--red); }
-.res-stat--empty   .res-stat__val { color: var(--text-muted); }
-.res-stat--time    .res-stat__val { color: var(--accent); font-size: 1.1rem; }
+.res-stat--wrong { border-color: color-mix(in srgb, var(--red) 35%, var(--border)); }
+.res-stat--wrong::before { background: var(--red); }
+.res-stat--wrong .res-stat__val { color: var(--red); }
+.res-stat--empty::before { background: var(--text-muted); }
+.res-stat--empty .res-stat__val { color: var(--text); }
+.res-stat--time { border-color: color-mix(in srgb, var(--accent) 35%, var(--border)); }
+.res-stat--time::before { background: var(--accent); }
+.res-stat--time .res-stat__val { color: var(--accent); font-size: 1.35rem; }
+
+@media (max-width: 520px) {
+  .res-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); max-width: 320px; }
+  .res-hero__grade { font-size: 4.75rem; }
+}
 
 /* Results table */
 .res-table {
@@ -10397,47 +10443,30 @@ img { display: block; max-width: 100%; }
 .dc-inputmode-btn--stylus .dc-icon-any { display: none; }
 .dc-inputmode-btn--stylus .dc-icon-pen { display: block; }
 
-/* ---- Persistent "stylus only" badge over the canvas ---- */
+/* ---- Persistent "stylus only" badge (inline pill in the toolbar) ---- */
 .dc-mode-badge {
-  position: absolute;
-  top: 12px;
-  left: 50%;
-  transform: translateX(-50%) translateY(-8px);
-  z-index: 3;
-  display: flex;
+  display: none;
   align-items: center;
   gap: 6px;
-  max-width: calc(100% - 24px);
-  padding: 6px 12px;
+  margin-left: 4px;
+  padding: 5px 12px;
   border-radius: 999px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: 11.5px;
+  font-weight: 600;
   line-height: 1.3;
   color: #fff;
   background: var(--accent);
   border: 1px solid var(--accent-2, var(--accent));
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  opacity: 0;
-  visibility: hidden;
-  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
 }
 
-.dc-mode-badge--show {
-  opacity: 1;
-  visibility: visible;
-  transform: translateX(-50%) translateY(0);
-}
+.dc-mode-badge--show { display: inline-flex; }
 
 /* ---- Transient "use the stylus" hint ---- */
 .dc-input-hint {
   position: absolute;
-  bottom: 16px;
+  top: 12px;
   left: 50%;
-  transform: translateX(-50%) translateY(8px);
+  transform: translateX(-50%) translateY(-8px);
   z-index: 3;
   max-width: calc(100% - 24px);
   padding: 8px 16px;

@@ -1229,54 +1229,6 @@
     const wrongCount      = exam.slots.filter(item => item.exercise && item.confirmedAnswer && (item.score || 0) === 0).length;
     const unansweredCount = exam.slots.filter(item => item.exercise && !item.confirmedAnswer).length;
 
-    const breakdown = _slotDefs.map((slot, i) => {
-      const item = exam.slots[i];
-      const s    = item.score || 0;
-      const max  = slot.points;
-      const na   = !item.exercise;
-
-      let studentDisplay = 'Nerăspuns';
-      let correctDisplay = '';
-      let statusClass    = 'empty';
-
-      if (!na && item.exercise) {
-        const confirmed = item.confirmedAnswer;
-        if (confirmed !== null) {
-          if (confirmed === '__PROOF__') {
-            studentDisplay = 'Demonstrat';
-          } else {
-            studentDisplay = truncateStr(confirmed, 28);
-          }
-          statusClass = s === max ? 'correct' : 'wrong';
-        }
-        if (s !== max && !isProofExercise(item.exercise.solution)) {
-          const raw = extractBoxedAnswer(item.exercise.solution);
-          if (raw) correctDisplay = truncateStr(cleanDisplayAnswer(normalizeAnswer(raw)), 28);
-        }
-      }
-
-      const scoreClass = na ? '' : s === max ? 'res-score--correct' : 'res-score--wrong';
-
-      return `
-        <div class="res-row${na ? ' res-row--na' : ''}">
-          <div class="res-row__left">
-            <span class="res-row__label">${slot.label}</span>
-            <span class="res-row__desc">${BM.esc(slot.desc)}</span>
-          </div>
-          <div class="res-row__mid">
-            ${na
-              ? '<span class="res-answer res-answer--na">Indisponibil</span>'
-              : `<span class="res-answer res-answer--${statusClass}" title="${BM.esc(item.confirmedAnswer || '')}">${BM.esc(studentDisplay)}</span>
-                 ${correctDisplay ? `<span class="res-arrow">→</span><span class="res-correct" title="${BM.esc(correctDisplay)}">${BM.esc(correctDisplay)}</span>` : ''}`
-            }
-          </div>
-          <div class="res-row__score ${scoreClass}">
-            ${na ? '—' : `${s} / ${max}p`}
-          </div>
-        </div>
-      `;
-    }).join('');
-
     document.getElementById('resultsContent').innerHTML = `
       <div class="res-hero">
         <div class="res-hero__grade" style="color:${gradeColor}">${gradeDisplay}</div>
@@ -1303,15 +1255,6 @@
             <span class="res-stat__lbl">Timp</span>
           </div>
         </div>
-      </div>
-
-      <div class="res-table">
-        <div class="res-table__head">
-          <span>Exercițiu</span>
-          <span>Răspunsul tău → Corect</span>
-          <span style="text-align:right">Scor</span>
-        </div>
-        ${breakdown}
       </div>
 
       <div class="res-actions">

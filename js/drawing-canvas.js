@@ -51,6 +51,7 @@
           <path d="m15 5 4 4"/>
         </svg>
       </button>
+      <span class="dc-mode-badge" role="status">Mod stilou activ — doar pixul digital este acceptat</span>
     </div>
     <div class="dc-tool-group dc-tool-group--right">
       <button class="dc-action-btn" id="dc-undo-btn" title="Anulează (Ctrl+Z)">
@@ -84,6 +85,8 @@
     this._maxUndo     = 40;
     this._isDrawing   = false;
     this._points      = [];
+    this._pointers    = {};    // active touch pointers → { y } for scroll gestures
+    this._scrolling   = false; // true while a finger/two-finger scroll is in progress
     this._saveTimer   = null;
     this._resizeTimer = null;
     this._destroyed   = false;
@@ -127,13 +130,7 @@
     this._canvas.setAttribute('role', 'img');
     this._canvas.setAttribute('aria-label', 'Zonă de desen');
 
-    // Persistent badge shown while "Stylus only" mode is active
-    var badge = document.createElement('div');
-    badge.className = 'dc-mode-badge';
-    badge.setAttribute('role', 'status');
-    badge.textContent = 'Mod stilou activ — doar pixul digital este acceptat';
-
-    // Transient hint shown when a blocked input (finger/mouse) tries to draw
+    // Transient hint shown when a blocked input (mouse) tries to draw
     var hint = document.createElement('div');
     hint.className = 'dc-input-hint';
     hint.setAttribute('role', 'status');
@@ -142,9 +139,7 @@
 
     canvasWrap.appendChild(this._gridCanvas);
     canvasWrap.appendChild(this._canvas);
-    canvasWrap.appendChild(badge);
     canvasWrap.appendChild(hint);
-    this._modeBadge = badge;
     this._inputHint = hint;
 
     wrap.appendChild(toolbar);
@@ -154,6 +149,7 @@
     this._wrap       = wrap;
     this._canvasWrap = canvasWrap;
     this._toolbar    = toolbar;
+    this._modeBadge  = toolbar.querySelector('.dc-mode-badge');
 
     this._ctx     = this._canvas.getContext('2d');
     this._gridCtx = this._gridCanvas.getContext('2d');
@@ -297,8 +293,17 @@
   DrawingCanvas.prototype._onDown = function (e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
-    // Input-mode gate: in "pen" mode only a digital stylus may draw.
-    if (!this._isInputAllowed(e.pointerType)) {
+    if (e.pointerType === 'touch') {
+      this._pointers[e.pointerId] = { y: e.clientY };
+      // Scroll gestures: two fingers always scroll the page; in stylus-only
+      // mode a single finger scrolls too (it can't draw anyway).
+      if (this._touchCount() >= 2 || this._inputMode === 'pen') {
+        this._beginScroll(e);
+        return;
+      }
+      // one finger in "any" mode → draw (fall through)
+    } else if (!this._isInputAllowed(e.pointerType)) {
+      // pen is always allowed; a blocked mouse gets the hint.
       this._showInputHint();
       return;
     }
@@ -321,6 +326,23 @@
   };
 
   DrawingCanvas.prototype._onMove = function (e) {
+    if (this._scrolling) {
+      if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+        this._pointers[e.pointerId].y = e.clientY;
+      }
+      e.preventDefault();
+      if (this._scrollEl) {
+        this._scrollEl.scrollTop = this._scrollStartTop - (this._avgTouchY() - this._scrollStartY);
+      }
+      return;
+    }
+
+    // Keep the tracked finger position fresh so a two-finger scroll that starts
+    // mid-stroke baselines from where the finger actually is (no jump).
+    if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+      this._pointers[e.pointerId].y = e.clientY;
+    }
+
     if (!this._isDrawing) return;
     e.preventDefault();
 
@@ -377,10 +399,70 @@
   };
 
   DrawingCanvas.prototype._onUp = function (e) {
+    var isLeave = e.type === 'pointerleave';
+    if (!isLeave && e.pointerType === 'touch') delete this._pointers[e.pointerId];
+
+    if (this._scrolling) {
+      if (isLeave) return; // ignore boundary events mid-scroll
+      if (this._touchCount() === 0) this._scrolling = false;
+      else this._rebaselineScroll(); // a finger lifted, others remain → avoid a jump
+      return;
+    }
+
     if (!this._isDrawing) return;
     this._isDrawing = false;
     this._points    = [];
     this._scheduleSave();
+  };
+
+  /* ---- Touch scroll helpers ---- */
+
+  DrawingCanvas.prototype._touchCount = function () {
+    return Object.keys(this._pointers).length;
+  };
+
+  DrawingCanvas.prototype._avgTouchY = function () {
+    var ids = Object.keys(this._pointers);
+    if (!ids.length) return this._scrollStartY || 0;
+    var sum = 0;
+    for (var i = 0; i < ids.length; i++) sum += this._pointers[ids[i]].y;
+    return sum / ids.length;
+  };
+
+  DrawingCanvas.prototype._getScrollParent = function (node) {
+    var el = node.parentElement;
+    while (el) {
+      var oy = getComputedStyle(el).overflowY;
+      if ((oy === 'auto' || oy === 'scroll' || oy === 'overlay') && el.scrollHeight > el.clientHeight) {
+        return el;
+      }
+      el = el.parentElement;
+    }
+    // Fallback: the document scroller (works for full-page window scrolling).
+    return document.scrollingElement || document.documentElement;
+  };
+
+  DrawingCanvas.prototype._rebaselineScroll = function () {
+    this._scrollStartTop = this._scrollEl ? this._scrollEl.scrollTop : 0;
+    this._scrollStartY   = this._avgTouchY();
+  };
+
+  DrawingCanvas.prototype._beginScroll = function (e) {
+    this._scrolling = true;
+    this._cancelActiveStroke(); // discard any accidental mark from the first finger
+    this._scrollEl  = this._getScrollParent(this._canvas);
+    try { this._canvas.setPointerCapture(e.pointerId); } catch (err) {}
+    this._rebaselineScroll();
+  };
+
+  DrawingCanvas.prototype._cancelActiveStroke = function () {
+    if (!this._isDrawing) return;
+    this._isDrawing = false;
+    this._points    = [];
+    // Undo the snapshot pushed in _onDown so the aborted stroke leaves no trace.
+    if (this._undoStack.length) {
+      this._ctx.putImageData(this._undoStack.pop(), 0, 0);
+    }
   };
 
   DrawingCanvas.prototype._saveState = function () {
