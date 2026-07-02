@@ -6,6 +6,8 @@
 (function (global) {
   'use strict';
 
+  var INPUT_MODE_KEY = 'mathorizon:dc-input-mode'; // 'any' | 'pen' — persists across exercises
+
   var TOOLBAR_HTML = `
     <div class="dc-tool-group">
       <button class="dc-tool-btn dc-tool-btn--active" data-tool="pen" title="Stilou (P)">
@@ -38,6 +40,18 @@
         <span class="dc-width-dot" style="width:9px;height:9px"></span>
       </button>
     </div>
+    <div class="dc-tool-group">
+      <button class="dc-tool-btn dc-inputmode-btn" id="dc-inputmode-btn" aria-pressed="false" title="Mod de scriere: orice input">
+        <svg class="dc-icon-any" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="5" y="2" width="14" height="20" rx="7"/>
+          <path d="M12 6v4"/>
+        </svg>
+        <svg class="dc-icon-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+          <path d="m15 5 4 4"/>
+        </svg>
+      </button>
+    </div>
     <div class="dc-tool-group dc-tool-group--right">
       <button class="dc-action-btn" id="dc-undo-btn" title="Anulează (Ctrl+Z)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -63,6 +77,7 @@
     this._initialData = options.initialData || null;
 
     this._tool        = 'pen';
+    this._inputMode   = this._loadInputMode(); // 'any' (default) | 'pen'
     this._color       = '#1a1a1a';
     this._strokeWidth = 2;
     this._undoStack   = [];
@@ -75,6 +90,7 @@
 
     this._build();
     this._bindEvents();
+    this._applyInputMode(); // reflect persisted preference in UI
 
     // Defer resize so the DOM has laid out
     var self = this;
@@ -111,8 +127,25 @@
     this._canvas.setAttribute('role', 'img');
     this._canvas.setAttribute('aria-label', 'Zonă de desen');
 
+    // Persistent badge shown while "Stylus only" mode is active
+    var badge = document.createElement('div');
+    badge.className = 'dc-mode-badge';
+    badge.setAttribute('role', 'status');
+    badge.textContent = 'Mod stilou activ — doar pixul digital este acceptat';
+
+    // Transient hint shown when a blocked input (finger/mouse) tries to draw
+    var hint = document.createElement('div');
+    hint.className = 'dc-input-hint';
+    hint.setAttribute('role', 'status');
+    hint.setAttribute('aria-live', 'polite');
+    hint.textContent = 'Folosește pixul digital pentru a scrie';
+
     canvasWrap.appendChild(this._gridCanvas);
     canvasWrap.appendChild(this._canvas);
+    canvasWrap.appendChild(badge);
+    canvasWrap.appendChild(hint);
+    this._modeBadge = badge;
+    this._inputHint = hint;
 
     wrap.appendChild(toolbar);
     wrap.appendChild(canvasWrap);
@@ -208,8 +241,10 @@
       var widthBtn  = e.target.closest('[data-width]');
       var undoBtn   = e.target.closest('#dc-undo-btn');
       var clearBtn  = e.target.closest('#dc-clear-btn');
+      var modeBtn   = e.target.closest('#dc-inputmode-btn');
 
-      if (toolBtn)  self._setTool(toolBtn.dataset.tool);
+      if (modeBtn)  self._toggleInputMode();
+      else if (toolBtn)  self._setTool(toolBtn.dataset.tool);
       else if (colorBtn) self._setColor(colorBtn.dataset.color);
       else if (widthBtn) self._setWidth(parseInt(widthBtn.dataset.width, 10));
       else if (undoBtn)  self._undo();
@@ -261,6 +296,13 @@
 
   DrawingCanvas.prototype._onDown = function (e) {
     if (e.pointerType === 'mouse' && e.button !== 0) return;
+
+    // Input-mode gate: in "pen" mode only a digital stylus may draw.
+    if (!this._isInputAllowed(e.pointerType)) {
+      this._showInputHint();
+      return;
+    }
+
     e.preventDefault();
     this._canvas.setPointerCapture(e.pointerId);
 
@@ -384,6 +426,59 @@
     });
   };
 
+  /* ---- Input mode (stylus-only vs. any input) ---- */
+
+  DrawingCanvas.prototype._loadInputMode = function () {
+    try {
+      return localStorage.getItem(INPUT_MODE_KEY) === 'pen' ? 'pen' : 'any';
+    } catch (err) {
+      return 'any'; // private mode / storage blocked → safe default
+    }
+  };
+
+  // pen: always allowed. touch/mouse: only in "any" mode.
+  DrawingCanvas.prototype._isInputAllowed = function (pointerType) {
+    if (pointerType === 'pen') return true;
+    return this._inputMode === 'any';
+  };
+
+  DrawingCanvas.prototype._toggleInputMode = function () {
+    this._inputMode = (this._inputMode === 'pen') ? 'any' : 'pen';
+    try { localStorage.setItem(INPUT_MODE_KEY, this._inputMode); } catch (err) {}
+    this._applyInputMode();
+  };
+
+  DrawingCanvas.prototype._applyInputMode = function () {
+    var stylusOnly = this._inputMode === 'pen';
+    var btn = this._toolbar.querySelector('#dc-inputmode-btn');
+    if (btn) {
+      btn.classList.toggle('dc-inputmode-btn--stylus', stylusOnly);
+      btn.classList.toggle('dc-tool-btn--active', stylusOnly);
+      btn.setAttribute('aria-pressed', String(stylusOnly));
+      btn.title = stylusOnly
+        ? 'Mod stilou: doar pixul digital (apasă pentru orice input)'
+        : 'Mod de scriere: orice input (apasă pentru doar stilou)';
+    }
+    if (this._modeBadge) {
+      this._modeBadge.classList.toggle('dc-mode-badge--show', stylusOnly);
+    }
+    // Leaving stylus-only mode clears any lingering "use the stylus" hint.
+    if (!stylusOnly) this._hideInputHint();
+  };
+
+  DrawingCanvas.prototype._showInputHint = function () {
+    if (!this._inputHint) return;
+    this._inputHint.classList.add('dc-input-hint--show');
+    clearTimeout(this._hintTimer);
+    var self = this;
+    this._hintTimer = setTimeout(function () { self._hideInputHint(); }, 2200);
+  };
+
+  DrawingCanvas.prototype._hideInputHint = function () {
+    clearTimeout(this._hintTimer);
+    if (this._inputHint) this._inputHint.classList.remove('dc-input-hint--show');
+  };
+
   DrawingCanvas.prototype._loadImage = function (dataUrl) {
     var self = this;
     var img  = new Image();
@@ -466,6 +561,7 @@
       clearTimeout(this._saveTimer);
     }
     clearTimeout(this._resizeTimer);
+    clearTimeout(this._hintTimer);
     window.removeEventListener('keydown', this._keyHandler);
     if (this._ro) this._ro.disconnect();
     if (this._mo) this._mo.disconnect();

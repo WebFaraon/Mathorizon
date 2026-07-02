@@ -4742,7 +4742,7 @@ img { display: block; max-width: 100%; }
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  padding: 16px 0 22px;
+  padding: 10px 0 12px;
   border-top: 1.5px solid var(--border);
   margin-top: auto;
   background: var(--bg);
@@ -4780,7 +4780,7 @@ img { display: block; max-width: 100%; }
   border: 1px solid var(--border);
   box-shadow: 0 4px 24px rgba(0,0,0,0.07), 0 1px 6px rgba(0,0,0,0.04);
   overflow: hidden;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
   animation: bac-card-appear 0.32s cubic-bezier(0.22,1,0.36,1) both;
   transition: box-shadow 0.22s ease, transform 0.22s ease;
 }
@@ -4792,13 +4792,13 @@ img { display: block; max-width: 100%; }
 .bac-exercise-card.bac-card--usor    .bac-card-stripe { background: var(--green); }
 .bac-exercise-card.bac-card--mediu   .bac-card-stripe { background: #f59e0b; }
 .bac-exercise-card.bac-card--dificil .bac-card-stripe { background: var(--red); }
-.bac-card-body { padding: 24px 28px 26px; }
+.bac-card-body { padding: 16px 28px 18px; }
 .bac-card-body .bac-slot-title {
   font-size: 1.08rem;
   font-weight: 800;
-  padding-bottom: 16px;
+  padding-bottom: 12px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 20px;
+  margin-bottom: 14px;
   line-height: 1.3;
   color: var(--text);
 }
@@ -4808,7 +4808,7 @@ img { display: block; max-width: 100%; }
   padding: 0;
   margin-bottom: 0;
   font-size: 0.95rem;
-  line-height: 2.1;
+  line-height: 1.75;
   text-align: center;
 }
 
@@ -10390,6 +10390,76 @@ img { display: block; max-width: 100%; }
   background: rgba(220, 38, 38, 0.12);
   color: #ef4444;
   border-color: rgba(220, 38, 38, 0.35);
+}
+
+/* ---- Input mode toggle (stylus-only vs. any input) ---- */
+.dc-inputmode-btn .dc-icon-pen { display: none; }
+.dc-inputmode-btn--stylus .dc-icon-any { display: none; }
+.dc-inputmode-btn--stylus .dc-icon-pen { display: block; }
+
+/* ---- Persistent "stylus only" badge over the canvas ---- */
+.dc-mode-badge {
+  position: absolute;
+  top: 12px;
+  left: 50%;
+  transform: translateX(-50%) translateY(-8px);
+  z-index: 3;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  max-width: calc(100% - 24px);
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: #fff;
+  background: var(--accent);
+  border: 1px solid var(--accent-2, var(--accent));
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.28);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.18s ease, transform 0.18s ease, visibility 0.18s;
+}
+
+.dc-mode-badge--show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ---- Transient "use the stylus" hint ---- */
+.dc-input-hint {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%) translateY(8px);
+  z-index: 3;
+  max-width: calc(100% - 24px);
+  padding: 8px 16px;
+  border-radius: 10px;
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.3;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.32);
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.16s ease, transform 0.16s ease, visibility 0.16s;
+}
+
+.dc-input-hint--show {
+  opacity: 1;
+  visibility: visible;
+  transform: translateX(-50%) translateY(0);
 }
 
 /* ---- Canvas area ---- */
