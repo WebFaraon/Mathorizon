@@ -90,18 +90,82 @@ IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul
   const baremHasCriteria = barem && barem.every(b => b.descriere);
   // Only treat it as the untouched hand-transcribed barem when it wasn't
   // rescaled and isn't a heuristic split (baremEstimat: true) — those step
-  // boundaries aren't verified against a real BAC document, so neither the
-  // "official" label nor row-by-row strictness would be honest to apply.
+  // boundaries aren't verified against a real BAC document, so the "official"
+  // label wouldn't be honest to apply (the grading itself is equally strict
+  // either way — see the shared "indeplinit" instruction below).
   const isVerifiedOfficial = baremFixed && barem === baremFixed && !baremEstimat;
   const baremLabel = isVerifiedOfficial ? 'BAREMUL OFICIAL' : 'CRITERIILE DE EVALUARE';
-  const gradingInstruction = isVerifiedOfficial
-    ? 'Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a demonstrat corect rezultatul cerut de acel item (eventual printr-o metodă alternativă validă, vezi regula 8 — nu trebuie să copieze exact pașii soluției de referință); altfel 0p pentru acel item. Nu inventa alte criterii.'
-    : 'Această împărțire pe itemi este orientativă (nu un document oficial verificat) — dacă elevul combină doi itemi într-un singur calcul dar rezultatul intermediar corect e vizibil implicit în ce a scris, acordă punctajul pentru toți itemii acoperiți de acel calcul. Acordă 0p unui item doar dacă rezultatul lui lipsește sau e greșit, nu doar pentru că nu a fost scris pe un rând separat.';
-  const baremBlock = baremHasCriteria
-    ? `\n${baremLabel} ARE EXACT ${nrPasi} ITEMI DE PUNCTAJ:
-${barem.map((b, i) => `- Itemul ${i+1} (${b.puncte_maxime}p): ${b.descriere}`).join('\n')}
-${gradingInstruction}`
-    : nrPasi
+
+  if (baremHasCriteria) {
+    // Fixed-criteria path: the criterion text and point values always come
+    // from our own barem (data.js, or deterministically derived from the
+    // static solution text) — never from Gemini. Gemini only judges, per
+    // criterion, whether the student demonstrated it; it never writes or
+    // rewrites the criterion wording, so the displayed barem is identical
+    // for every student instead of being re-described each time.
+    const prompt = `Ești un corector strict de examene BAC Moldova. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
+
+REGULI CRITICE — CITEȘTE CU ATENȚIE:
+1. Citește cu atenție FIECARE calcul din imagine. Verifică dacă rezultatele numerice sunt corecte.
+2. Dacă elevul scrie o egalitate greșită (ex: $\\log_2 4 = 3$ în loc de $\\log_2 4 = 2$), criteriul respectiv NU e îndeplinit.
+3. NU marca un criteriu ca îndeplinit pentru ceva ce NU poți vedea clar în imagine.
+4. NU presupune că elevul a rezolvat corect — verifică fiecare calcul matematic din imagine.
+5. Acordă NUMAI puncte întregi — fiecare criteriu e ori complet îndeplinit (punctajul lui maxim), ori 0. NU acorda punctaj parțial în interiorul unui criteriu.
+6. REGULĂ OFICIALĂ BAC: dacă în item nu este indicată metoda de rezolvare, orice altă metodă de rezolvare CORECTĂ din punct de vedere matematic se acceptă — chiar dacă elevul a folosit o identitate/proprietate diferită de cea din soluția de referință (ex: $\\frac{1}{\\log_a b} = \\log_b a$ în loc de a calcula $\\log_a b$ direct și a-l inversa). Marchează criteriul ca îndeplinit dacă elevul a ajuns, printr-o metodă validă, la rezultatul cerut de acel criteriu — nu trebuie să copieze exact pașii soluției de referință.
+7. Dacă elevul combină mai multe criterii într-un singur calcul, dar rezultatul intermediar corect pentru fiecare e vizibil implicit în ce a scris, marchează toate criteriile acoperite ca îndeplinite — nu penaliza doar pentru că nu a scris pe rânduri separate.
+${finalAnswerBlock}
+
+EXERCIȚIU — ${label} (${puncteMaxime} puncte total):
+${enunt}
+
+SOLUȚIE OFICIALĂ (o metodă de referință — NU singura metodă acceptată, vezi regula 6):
+${solutieOficiala}
+
+${baremLabel} ARE EXACT ${nrPasi} ITEMI DE PUNCTAJ:
+${barem.map((b, i) => `${i + 1}. (${b.puncte_maxime}p) ${b.descriere}`).join('\n')}
+
+Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown), cu EXACT ${nrPasi} elemente în "verificari" — câte unul pentru fiecare item de mai sus, ÎN ACEEAȘI ORDINE, fără să incluzi textul criteriului:
+{
+  "verificari": [
+    { "indeplinit": false }
+  ],
+  "observatii": "feedback concret pentru elev în română, menționând greșelile specifice — folosește notație LaTeX cu $...$"
+}`;
+
+    const result = await model.generateContent([
+      { text: prompt },
+      { inlineData: { mimeType: 'image/png', data: canvasBase64 } }
+    ]);
+
+    const raw     = result.response.text().trim();
+    const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+    const parsed  = JSON.parse(jsonStr);
+    const verificari = Array.isArray(parsed.verificari) ? parsed.verificari : [];
+
+    // The displayed criteria always come from our fixed `barem` array —
+    // Gemini's response only supplies the per-index pass/fail verdict.
+    const pasi = barem.map((b, i) => {
+      const met = !!(verificari[i] && verificari[i].indeplinit);
+      return {
+        descriere:       b.descriere,
+        puncte_maxime:   b.puncte_maxime,
+        puncte_acordate: met ? b.puncte_maxime : 0,
+        corect:          met
+      };
+    });
+
+    return {
+      label,
+      pasi,
+      total_acordat: pasi.reduce((s, p) => s + p.puncte_acordate, 0),
+      total_maxim:   puncteMaxime,
+      observatii:    parsed.observatii || ''
+    };
+  }
+
+  // Fallback path — no fixed criteria to anchor to (empty/missing solution
+  // text), so Gemini identifies its own logical steps and point split.
+  const baremBlock = nrPasi
     ? `\nEVALUAREA ARE EXACT ${nrPasi} PAȘI cu punctaje: ${barem.map((b, i) => `pasul ${i+1} = ${b.puncte_maxime}p`).join(', ')}.
 Identifică în imagine EXACT ${nrPasi} pași și evaluează fiecare.`
     : `\nÎmparte punctajul de ${puncteMaxime}p între pașii logici pe care îi identifici în imagine.`;
@@ -116,7 +180,7 @@ REGULI CRITICE — CITEȘTE CU ATENȚIE:
 5. Dacă imaginea conține erori matematice, marchează pașii respectivi ca greșiți.
 6. Acordă NUMAI puncte întregi (0, 1, 2, 3...) — NICIODATĂ zecimale.
 7. Folosește notație LaTeX cu $...$ în câmpul "descriere".
-8. REGULĂ OFICIALĂ BAC: dacă în item nu este indicată metoda de rezolvare, orice altă metodă de rezolvare CORECTĂ din punct de vedere matematic se acceptă și se punctează corespunzător criteriului echivalent — chiar dacă elevul a folosit o identitate/proprietate diferită de cea din soluția de referință (ex: $\\frac{1}{\\log_a b} = \\log_b a$ în loc de a calcula $\\log_a b$ direct și a-l inversa). NU penaliza o metodă alternativă doar pentru că nu se potrivește cu pașii soluției oficiale — verifică dacă e matematic validă și dacă rezultatul ei parțial e corect.
+8. REGULĂ OFICIALĂ BAC: dacă în item nu este indicată metoda de rezolvare, orice altă metodă de rezolvare CORECTĂ din punct de vedere matematic se acceptă și se punctează corespunzător criteriului echivalent — chiar dacă elevul a folosit o identitate/proprietate diferită de cea din soluția de referință. NU penaliza o metodă alternativă doar pentru că nu se potrivește cu pașii soluției oficiale.
 ${finalAnswerBlock}
 
 EXERCIȚIU — ${label} (${puncteMaxime} puncte total):

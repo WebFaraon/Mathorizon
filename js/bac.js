@@ -1321,7 +1321,7 @@
     });
   }
 
-  function compositeOnWhite(strokesDataUrl) {
+  function compositeOnBackground(strokesDataUrl, bgColor) {
     return new Promise(function (resolve) {
       if (!strokesDataUrl || !strokesDataUrl.startsWith('data:image/png;base64,')) {
         resolve(null);
@@ -1337,7 +1337,7 @@
         off.width  = w;
         off.height = h;
         const ctx = off.getContext('2d');
-        ctx.fillStyle = '#ffffff';
+        ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, w, h);
         ctx.drawImage(img, 0, 0, w, h);
         resolve(off.toDataURL('image/png'));
@@ -1345,6 +1345,51 @@
       img.onerror = function () { resolve(null); };
       img.src = strokesDataUrl;
     });
+  }
+
+  function compositeOnWhite(strokesDataUrl) {
+    return compositeOnBackground(strokesDataUrl, '#ffffff');
+  }
+
+  // The stroke color depends on the theme active while drawing (dark theme
+  // uses a near-white pen) — compositing that ink onto white for the AI
+  // payload is fine for Gemini's OCR, but is illegible to a human viewer.
+  // Sample the ink's average luminance and pick a contrasting background for
+  // the read-only display snapshot.
+  function detectInkIsLight(strokesDataUrl) {
+    return new Promise(function (resolve) {
+      if (!strokesDataUrl) { resolve(false); return; }
+      const img = new Image();
+      img.onload = function () {
+        const SAMPLE = 200; // small sample is enough to estimate ink color
+        const scale  = img.naturalWidth > SAMPLE ? SAMPLE / img.naturalWidth : 1;
+        const w = Math.max(1, Math.round(img.naturalWidth  * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const c   = document.createElement('canvas');
+        c.width   = w;
+        c.height  = h;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        let data;
+        try { data = ctx.getImageData(0, 0, w, h).data; }
+        catch (e) { resolve(false); return; }
+        let sum = 0, count = 0;
+        for (let i = 0; i < data.length; i += 4) {
+          if (data[i + 3] > 30) {
+            sum += 0.299 * data[i] + 0.587 * data[i + 1] + 0.114 * data[i + 2];
+            count++;
+          }
+        }
+        resolve(count > 0 && (sum / count) > 128);
+      };
+      img.onerror = function () { resolve(false); };
+      img.src = strokesDataUrl;
+    });
+  }
+
+  async function compositeForDisplay(strokesDataUrl) {
+    const isLight = await detectInkIsLight(strokesDataUrl);
+    return compositeOnBackground(strokesDataUrl, isLight ? '#1a1a1a' : '#ffffff');
   }
 
   function renderAiLoading(total) {
@@ -1431,6 +1476,10 @@
         const blank        = await isBlankStrokes(item.work || null);
         const composite    = blank ? null : await compositeOnWhite(item.work);
         const canvasBase64 = composite ? composite.split(',')[1] : null;
+        // Separate, contrast-aware snapshot for the read-only display below
+        // each result — the Gemini payload always uses a white background,
+        // but ink drawn in dark theme (near-white) would be invisible on it.
+        const displayImg   = blank ? null : await compositeForDisplay(item.work);
 
         return {
           label:           slot.label,
@@ -1446,11 +1495,20 @@
           // true for baremes we generated heuristically (not a transcribed
           // official document) — tells the server not to call them "oficial".
           baremEstimat:    !!item.exercise.baremEstimat,
-          canvasBase64
+          canvasBase64,
+          displayImg
         };
       }));
 
-      const payload = items.filter(Boolean);
+      const eligibleItems = items.filter(Boolean);
+      const images  = eligibleItems.map(it => it.displayImg);
+      // Strip the display-only image before sending — it's not needed by the
+      // server and would roughly double the request payload size.
+      const payload = eligibleItems.map(function (it) {
+        const rest = Object.assign({}, it);
+        delete rest.displayImg;
+        return rest;
+      });
 
       const resp = await fetch('/api/verify-exam', {
         method:  'POST',
@@ -1465,7 +1523,6 @@
 
       const results = await resp.json();
       const examTotalMaxim = _slotDefs.reduce((s, sl) => s + (sl.points || 0), 0);
-      const images = payload.map(it => it.canvasBase64 ? 'data:image/png;base64,' + it.canvasBase64 : null);
       section.innerHTML = renderAiResultsHTML(results, examTotalMaxim, images);
       if (window.renderMathInElement) {
         renderMathInElement(section, {
