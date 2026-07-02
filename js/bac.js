@@ -1356,13 +1356,13 @@
       </div>`;
   }
 
-  function renderAiResultsHTML(results, examTotalMaxim) {
+  function renderAiResultsHTML(results, examTotalMaxim, images) {
     const totalAcordat = results.reduce((s, r) => s + (r.total_acordat || 0), 0);
     const totalMaxim   = examTotalMaxim || results.reduce((s, r) => s + (r.total_maxim || 0), 0);
     const pct = totalMaxim > 0 ? Math.round(totalAcordat / totalMaxim * 100) : 0;
     const scoreColor = pct >= 90 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
 
-    const itemsHtml = results.map(r => {
+    const itemsHtml = results.map((r, idx) => {
       const itemPct = r.total_maxim > 0 ? r.total_acordat / r.total_maxim : 0;
       const pill    = itemPct >= 0.8 ? 'correct' : itemPct > 0 ? 'partial' : 'wrong';
 
@@ -1376,6 +1376,10 @@
           </div>`;
       }).join('');
 
+      // Read-only snapshot of exactly what was sent to Gemini for this
+      // exercise, so the student can compare their handwriting to the verdict.
+      const img = images && images[idx];
+
       return `
         <div class="ai-item${r.error ? ' ai-item--error' : ''}">
           <div class="ai-item__header">
@@ -1384,6 +1388,11 @@
           </div>
           ${pasiHtml ? `<div class="ai-item__steps">${pasiHtml}</div>` : ''}
           ${r.observatii ? `<p class="ai-item__obs">${BM.esc(r.observatii)}</p>` : ''}
+          ${img ? `
+          <details class="ai-item__canvas-wrap">
+            <summary>Vezi lucrarea ta</summary>
+            <img class="ai-item__canvas" src="${img}" alt="Lucrarea manuscrisă pentru ${BM.esc(r.label)}">
+          </details>` : ''}
         </div>`;
     }).join('');
 
@@ -1391,7 +1400,6 @@
       <div class="ai-results">
         <div class="ai-results__summary">
           <span class="ai-results__grade" style="color:${scoreColor}">${totalAcordat}p</span>
-          <span class="ai-results__sub">din ${totalMaxim} puncte — ${pct}%</span>
         </div>
         <div class="ai-items">${itemsHtml}</div>
         <p class="ai-results__disclaimer">Evaluarea AI are caracter orientativ. Pot apărea inexactități în interpretarea scrisului de mână.</p>
@@ -1457,7 +1465,8 @@
 
       const results = await resp.json();
       const examTotalMaxim = _slotDefs.reduce((s, sl) => s + (sl.points || 0), 0);
-      section.innerHTML = renderAiResultsHTML(results, examTotalMaxim);
+      const images = payload.map(it => it.canvasBase64 ? 'data:image/png;base64,' + it.canvasBase64 : null);
+      section.innerHTML = renderAiResultsHTML(results, examTotalMaxim, images);
       if (window.renderMathInElement) {
         renderMathInElement(section, {
           delimiters: [
@@ -1468,6 +1477,11 @@
           throwOnError: false
         });
       }
+
+      // Success path was leaving the button stuck on "Se evaluează…" forever —
+      // re-enable it so the student can re-run after updating their work.
+      btn.disabled    = false;
+      btn.textContent = 'Reevaluează';
 
     } catch (e) {
       section.innerHTML = `

@@ -95,7 +95,7 @@ IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul
   const isVerifiedOfficial = baremFixed && barem === baremFixed && !baremEstimat;
   const baremLabel = isVerifiedOfficial ? 'BAREMUL OFICIAL' : 'CRITERIILE DE EVALUARE';
   const gradingInstruction = isVerifiedOfficial
-    ? 'Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a scris exact ce se cere la acel item; altfel 0p pentru acel item. Nu inventa alte criterii.'
+    ? 'Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a demonstrat corect rezultatul cerut de acel item (eventual printr-o metodă alternativă validă, vezi regula 8 — nu trebuie să copieze exact pașii soluției de referință); altfel 0p pentru acel item. Nu inventa alte criterii.'
     : 'Această împărțire pe itemi este orientativă (nu un document oficial verificat) — dacă elevul combină doi itemi într-un singur calcul dar rezultatul intermediar corect e vizibil implicit în ce a scris, acordă punctajul pentru toți itemii acoperiți de acel calcul. Acordă 0p unui item doar dacă rezultatul lui lipsește sau e greșit, nu doar pentru că nu a fost scris pe un rând separat.';
   const baremBlock = baremHasCriteria
     ? `\n${baremLabel} ARE EXACT ${nrPasi} ITEMI DE PUNCTAJ:
@@ -116,12 +116,13 @@ REGULI CRITICE — CITEȘTE CU ATENȚIE:
 5. Dacă imaginea conține erori matematice, marchează pașii respectivi ca greșiți.
 6. Acordă NUMAI puncte întregi (0, 1, 2, 3...) — NICIODATĂ zecimale.
 7. Folosește notație LaTeX cu $...$ în câmpul "descriere".
+8. REGULĂ OFICIALĂ BAC: dacă în item nu este indicată metoda de rezolvare, orice altă metodă de rezolvare CORECTĂ din punct de vedere matematic se acceptă și se punctează corespunzător criteriului echivalent — chiar dacă elevul a folosit o identitate/proprietate diferită de cea din soluția de referință (ex: $\\frac{1}{\\log_a b} = \\log_b a$ în loc de a calcula $\\log_a b$ direct și a-l inversa). NU penaliza o metodă alternativă doar pentru că nu se potrivește cu pașii soluției oficiale — verifică dacă e matematic validă și dacă rezultatul ei parțial e corect.
 ${finalAnswerBlock}
 
 EXERCIȚIU — ${label} (${puncteMaxime} puncte total):
 ${enunt}
 
-SOLUȚIE OFICIALĂ (pentru referință — verifică dacă elevul a urmat pași similari):
+SOLUȚIE OFICIALĂ (o metodă de referință — NU singura metodă acceptată, vezi regula 8):
 ${solutieOficiala}
 ${baremBlock}
 

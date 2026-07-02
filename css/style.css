@@ -22,7 +22,11 @@ body {
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  animation: page-fade-in 0.3s ease both;
+  /* No fill-mode: with 'both'/'forwards' the browser keeps applying an
+     implicit transform (matrix identity, since the 'to' keyframe omits
+     transform) even after the animation ends — and any transform on body,
+     even a visual no-op, breaks position:fixed for descendants like .nav. */
+  animation: page-fade-in 0.3s ease;
 }
 
 /* Page-to-page navigation transition (see js/page-transition.js) */
@@ -10759,6 +10763,44 @@ img { display: block; max-width: 100%; }
   font-style: italic;
   line-height: 1.5;
   padding-top: 4px;
+}
+
+/* ---- Read-only work snapshot ---- */
+.ai-item__canvas-wrap {
+  margin-top: 10px;
+}
+
+.ai-item__canvas-wrap summary {
+  cursor: pointer;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--accent);
+  list-style: none;
+  user-select: none;
+}
+
+.ai-item__canvas-wrap summary::-webkit-details-marker { display: none; }
+
+.ai-item__canvas-wrap summary::before {
+  content: '▸';
+  display: inline-block;
+  margin-right: 5px;
+  transition: transform 0.16s ease;
+}
+
+.ai-item__canvas-wrap[open] summary::before {
+  transform: rotate(90deg);
+}
+
+.ai-item__canvas {
+  display: block;
+  width: 100%;
+  max-width: 640px;
+  margin-top: 8px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  pointer-events: none;
+  user-select: none;
 }
 
 /* ---- Disclaimer ---- */
