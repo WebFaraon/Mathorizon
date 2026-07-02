@@ -29,15 +29,37 @@ function extractBarem(solution, totalPoints) {
 
   const base  = Math.floor(totalPoints / steps.length);
   const extra = totalPoints - base * steps.length;
-  return steps.map((_, i) => ({
+  return steps.map((text, i) => ({
+    descriere:     text,
     puncte_maxime: base + (i === steps.length - 1 ? extra : 0)
   }));
+}
+
+// A hand-transcribed barem's point split reflects one specific exercise slot
+// (e.g. an official 8p item). The same exercise can be drawn into a slot worth
+// a different total (e.g. 5p — see SLOTS pools in bac.js, where a 'mediu'
+// exercițiu de complexe/polinoame can land in a 5p or 8p exercise). Rescale
+// the fixed barem proportionally so it always sums to this run's actual total,
+// preserving the original weighting between steps.
+function scaleBarem(barem, totalPoints) {
+  const sum = barem.reduce((s, b) => s + (b.puncte_maxime || 0), 0);
+  if (sum <= 0 || sum === totalPoints) return barem;
+
+  const scaled = barem.map(b => Math.max(0, Math.round(b.puncte_maxime / sum * totalPoints)));
+  let diff = totalPoints - scaled.reduce((s, v) => s + v, 0);
+  while (diff !== 0) {
+    let idx = 0;
+    for (let i = 1; i < scaled.length; i++) if (scaled[i] > scaled[idx]) idx = i;
+    scaled[idx] = Math.max(0, scaled[idx] + Math.sign(diff));
+    diff -= Math.sign(diff);
+  }
+  return barem.map((b, i) => ({ ...b, puncte_maxime: scaled[i] }));
 }
 
 async function verifyItem(item) {
   const {
     canvasBase64, enunt, solutieOficiala,
-    puncteMaxime, label, barem: baremFixed,
+    puncteMaxime, label, barem: baremFixed, baremEstimat,
     raspunsCorect, raspunsElev
   } = item;
 
@@ -51,7 +73,12 @@ async function verifyItem(item) {
     };
   }
 
-  const barem = baremFixed || extractBarem(solutieOficiala, puncteMaxime);
+  // Fixed baremes are transcribed against one specific point total and must be
+  // rescaled if this exercise landed in a slot worth a different total; baremes
+  // extracted fresh from the solution are already computed against puncteMaxime.
+  const barem = baremFixed
+    ? scaleBarem(baremFixed, puncteMaxime)
+    : extractBarem(solutieOficiala, puncteMaxime);
   const nrPasi = barem ? barem.length : null;
 
   const finalAnswerBlock = raspunsCorect
@@ -60,8 +87,20 @@ RĂSPUNS SCRIS DE ELEV (în casetă): ${raspunsElev || '(necompletat)'}
 IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul pas (calculul final) este GREȘIT și primește 0 puncte.`
     : '';
 
-  const baremBlock = nrPasi
-    ? `\nBAREMUL ARE EXACT ${nrPasi} PAȘI cu punctaje: ${barem.map((b, i) => `pasul ${i+1} = ${b.puncte_maxime}p`).join(', ')}.
+  const baremHasCriteria = barem && barem.every(b => b.descriere);
+  // Only call it "official" when it's the untouched hand-transcribed barem —
+  // once rescaled to a different point total, or when it's a heuristic split
+  // (baremEstimat: true, not verified against a real BAC document), the wording
+  // shouldn't overclaim authority the data doesn't have.
+  const baremLabel = (baremFixed && barem === baremFixed && !baremEstimat)
+    ? 'BAREMUL OFICIAL'
+    : 'CRITERIILE DE EVALUARE';
+  const baremBlock = baremHasCriteria
+    ? `\n${baremLabel} ARE EXACT ${nrPasi} ITEMI DE PUNCTAJ:
+${barem.map((b, i) => `- Itemul ${i+1} (${b.puncte_maxime}p): ${b.descriere}`).join('\n')}
+Acordă punctajul STRICT conform acestor criterii — un item primește punctajul maxim NUMAI dacă elevul a scris exact ce se cere la acel item; altfel 0p pentru acel item. Nu inventa alte criterii.`
+    : nrPasi
+    ? `\nEVALUAREA ARE EXACT ${nrPasi} PAȘI cu punctaje: ${barem.map((b, i) => `pasul ${i+1} = ${b.puncte_maxime}p`).join(', ')}.
 Identifică în imagine EXACT ${nrPasi} pași și evaluează fiecare.`
     : `\nÎmparte punctajul de ${puncteMaxime}p între pașii logici pe care îi identifici în imagine.`;
 

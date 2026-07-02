@@ -1285,6 +1285,42 @@
      AI EXAM VERIFICATION
   ================================================================ */
 
+  // A stray tap on the canvas saves a fully-transparent PNG to item.work, which
+  // would otherwise be composited onto white and sent to Gemini as if answered.
+  // Return true when the strokes layer has no meaningful ink so we can skip it.
+  function isBlankStrokes(strokesDataUrl) {
+    return new Promise(function (resolve) {
+      if (!strokesDataUrl || !strokesDataUrl.startsWith('data:image/png;base64,')) {
+        resolve(true);
+        return;
+      }
+      const img = new Image();
+      img.onload = function () {
+        const c   = document.createElement('canvas');
+        c.width   = img.naturalWidth;
+        c.height  = img.naturalHeight;
+        const ctx = c.getContext('2d');
+        ctx.drawImage(img, 0, 0);
+        let data;
+        try {
+          data = ctx.getImageData(0, 0, c.width, c.height).data;
+        } catch (e) {
+          resolve(false); // can't inspect pixels → assume it has content
+          return;
+        }
+        let ink = 0;
+        for (let i = 3; i < data.length; i += 4) {
+          if (data[i] > 12) {            // alpha above a small threshold = ink
+            if (++ink > 40) { resolve(false); return; }
+          }
+        }
+        resolve(true);                    // ≤40 non-transparent pixels → effectively blank
+      };
+      img.onerror = function () { resolve(true); };
+      img.src = strokesDataUrl;
+    });
+  }
+
   function compositeOnWhite(strokesDataUrl) {
     return new Promise(function (resolve) {
       if (!strokesDataUrl || !strokesDataUrl.startsWith('data:image/png;base64,')) {
@@ -1382,7 +1418,10 @@
         const item = exam.slots[i];
         if (!item?.exercise) return null;
 
-        const composite   = await compositeOnWhite(item.work || null);
+        // Treat an effectively-blank canvas (e.g. from a stray tap) as unanswered,
+        // so it gets the "nerezolvat" path instead of a full barem evaluation.
+        const blank        = await isBlankStrokes(item.work || null);
+        const composite    = blank ? null : await compositeOnWhite(item.work);
         const canvasBase64 = composite ? composite.split(',')[1] : null;
 
         return {
@@ -1392,6 +1431,13 @@
           raspunsCorect:   extractBoxedAnswer(item.exercise.solution) || '',
           raspunsElev:     item.confirmedAnswer || '',
           puncteMaxime:    slot.points,
+          // Official BAC barem for this exercise, when transcribed — overrides
+          // the auto-derived equal split so Gemini grades against the exact
+          // per-step criteria instead of guessing the point breakdown.
+          barem:           item.exercise.barem || null,
+          // true for baremes we generated heuristically (not a transcribed
+          // official document) — tells the server not to call them "oficial".
+          baremEstimat:    !!item.exercise.baremEstimat,
           canvasBase64
         };
       }));
