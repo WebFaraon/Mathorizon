@@ -265,7 +265,7 @@
         ">Înțeleg</button>
       </div>`;
     document.body.appendChild(ov);
-    showView('setupView');
+    showSetupView();
   }
 
   document.addEventListener('fullscreenchange',       _onFsChange);
@@ -393,6 +393,12 @@
   function showSetupView() {
     _slotDefs = SLOTS;
     clearInterval(_lectieTimerInterval);
+    // Defensive, not just for the normal finish/new-simulation paths: the
+    // anti-cheat termination flow and a timed-out exam both land here too,
+    // and without this the navbar stayed permanently hidden (bac-exam-mode
+    // never got removed) and stray click/back-button guards stayed armed.
+    updateNavbarForExam(false);
+    _navGuardOff();
     showView('setupView');
     _showSetupPanel('choose');
     renderHistory();
@@ -1059,15 +1065,22 @@
   };
 
   window.BMBac.confirmFinish = function() {
+    doFinish();
+  };
+
+  function doFinish() {
+    // Was only done in confirmFinish() (the "Finalizează" button path) —
+    // the timeout paths (tick(), _startLectieTimer()) call doFinish()
+    // directly and skipped all of this, leaving the nav-guard (blocks clicks
+    // + traps the back button) and fullscreen armed indefinitely even after
+    // the exam had already ended. Doing it here covers every path that ends
+    // an exam, not just the explicit-finish one.
     clearInterval(timerInterval);
     clearInterval(_lectieTimerInterval);
     _navGuardOff();
     _hideFsWarning();
     _exitFullscreen();
-    doFinish();
-  };
 
-  function doFinish() {
     exam.endTs = Date.now();
     exam.phase = 'done';
     // Grading now comes entirely from the AI evaluation of the canvas — mark
@@ -1450,6 +1463,10 @@
           raspunsCorect:   extractBoxedAnswer(item.exercise.solution) || '',
           raspunsElev:     '',
           puncteMaxime:    slot.points,
+          // Lets the server give type-specific grading reminders (domain
+          // conditions for logs/radicals, extraneous-root checks, etc.) that
+          // apply regardless of whether this exercise has a transcribed barem.
+          subcategoryId:   item.exercise.subcategoryId || '',
           // Official BAC barem for this exercise, when transcribed — overrides
           // the auto-derived equal split so Gemini grades against the exact
           // per-step criteria instead of guessing the point breakdown.

@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="ro">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pachete — Mathorizon</title>
+  <meta name="description" content="Alege planul potrivit pentru pregătirea ta la BAC — Free, Standard sau Premium — sau cumpără tokenuri suplimentare de simulare oricând.">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="js/theme.js"></script>
+  <script src="js/page-transition.js"></script>
+</head>
+<body class="pachete-page">
+
+  <!-- NAVBAR -->
+  <nav class="nav">
+    <div class="nav__inner container">
+      <a class="nav__brand" href="index.html">
+        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
+        <span class="nav__name">Math<b>orizon</b></span>
+      </a>
+      <div class="nav__links">
+        <a class="nav__link" href="index.html">Capitole</a>
+        <a class="nav__link" href="bac.html?new=1">Simulare</a>
+        <a class="nav__link" href="training.html">Antrenament</a>
+        <a class="nav__link" href="classes.html">Clase</a>
+        <a class="nav__link nav__link--active" href="pachete.html">Pachete</a>
+      </div>
+      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="nav__right">
+        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
+          <span class="token-widget__icon">🎟</span>
+          <span class="token-widget__count" data-token-count>—</span>
+          <span class="token-widget__label">Tokenuri</span>
+        </div>
+        <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite">♡</button>
+        <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
+        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
+        <button class="nav-profile-btn" id="navProfileBtn" title="Conectează-te">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+    <div class="nav__mobile-menu" id="navMobileMenu">
+      <a class="nav__mobile-link" href="index.html">Capitole</a>
+      <a class="nav__mobile-link" href="bac.html?new=1">Simulare</a>
+      <a class="nav__mobile-link" href="training.html">Antrenament</a>
+      <a class="nav__mobile-link" href="classes.html">Clase</a>
+      <a class="nav__mobile-link nav__mobile-link--active" href="pachete.html">Pachete</a>
+      <div class="nav__mobile-divider"></div>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">&#9825; Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">&#9711; Istoric rezolvări</button>
+    </div>
+  </nav>
+
+  <!-- PRICING HERO -->
+  <section class="pricing-hero">
+    <div class="pricing-hero-orbs" aria-hidden="true">
+      <div class="pricing-hero-orb pricing-hero-orb--blue"></div>
+      <div class="pricing-hero-orb pricing-hero-orb--purple"></div>
+    </div>
+    <div class="container">
+      <div class="pricing-hero__badge">💎 Planuri &amp; Tokenuri</div>
+      <h1 class="pricing-hero__title">Alege planul potrivit pentru tine</h1>
+      <p class="pricing-hero__sub">
+        Deblochează tot potențialul pregătirii pentru BAC — mai multe exerciții pe subcapitol,
+        simulări suplimentare și acces complet la Antrenament Rapid.
+      </p>
+
+      <div class="billing-toggle" id="billingToggle" role="tablist" aria-label="Interval de facturare">
+        <button class="billing-toggle__btn billing-toggle__btn--active" data-billing="monthly" role="tab" aria-selected="true">Lunar</button>
+        <button class="billing-toggle__btn" data-billing="yearly" role="tab" aria-selected="false">
+          Anual <span class="billing-toggle__save">-15%</span>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <!-- PRICING CARDS -->
+  <section class="pricing-section">
+    <div class="container">
+      <div class="pricing-grid">
+
+        <!-- FREE -->
+        <div class="pricing-card">
+          <div class="pricing-card__head">
+            <div class="pricing-card__name">Free</div>
+            <div class="pricing-card__desc">Pentru a începe, fără costuri.</div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__price-val">0</span>
+              <span class="pricing-card__price-cur">lei</span>
+            </div>
+            <div class="pricing-card__price-note">&nbsp;</div>
+          </div>
+          <ul class="pricing-card__features">
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>3 tokenuri simulare BAC <em>(o singură dată, la înregistrare)</em></span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>10 exerciții per subcapitol</span>
+            </li>
+            <li class="pricing-feature pricing-feature--excluded">
+              <span class="pricing-feature__icon pricing-feature__icon--lock">🔒</span>
+              <span>Antrenament Rapid</span>
+            </li>
+          </ul>
+          <button class="btn btn--surface btn--full pricing-card__cta" disabled>Planul tău actual</button>
+        </div>
+
+        <!-- STANDARD — featured -->
+        <div class="pricing-card pricing-card--featured">
+          <div class="pricing-card__badge">Recomandat</div>
+          <div class="pricing-card__head">
+            <div class="pricing-card__name">Standard</div>
+            <div class="pricing-card__desc">Pentru elevii serioși în pregătire.</div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__price-val" data-monthly="150" data-yearly="127">150</span>
+              <span class="pricing-card__price-cur">lei<span class="pricing-card__price-period">/lună</span></span>
+            </div>
+            <div class="pricing-card__price-note" data-yearly-note>&nbsp;</div>
+          </div>
+          <ul class="pricing-card__features">
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span><strong>+10</strong> tokenuri simulare BAC <em>(cumulativ cu cele din Free)</em></span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>40 exerciții per subcapitol</span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>Acces complet Antrenament Rapid</span>
+            </li>
+          </ul>
+          <button class="btn btn--accent btn--full pricing-card__cta" data-plan="Standard">Alege Standard</button>
+        </div>
+
+        <!-- PREMIUM -->
+        <div class="pricing-card">
+          <div class="pricing-card__head">
+            <div class="pricing-card__name">Premium</div>
+            <div class="pricing-card__desc">Pregătire completă, fără limite.</div>
+            <div class="pricing-card__price">
+              <span class="pricing-card__price-val" data-monthly="300" data-yearly="255">300</span>
+              <span class="pricing-card__price-cur">lei<span class="pricing-card__price-period">/lună</span></span>
+            </div>
+            <div class="pricing-card__price-note" data-yearly-note>&nbsp;</div>
+          </div>
+          <ul class="pricing-card__features">
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span><strong>+15</strong> tokenuri simulare BAC <em>(cumulativ)</em></span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>Acces la <strong>toate</strong> exercițiile, fără limită</span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>Acces complet Antrenament Rapid</span>
+            </li>
+            <li class="pricing-feature">
+              <span class="pricing-feature__icon pricing-feature__icon--check">✓</span>
+              <span>Prioritate la funcționalități noi <span class="pricing-soon-badge">În curând</span></span>
+            </li>
+          </ul>
+          <button class="btn btn--surface btn--full pricing-card__cta" data-plan="Premium">Alege Premium</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TOKEN PACKAGES -->
+  <section class="token-section">
+    <div class="container">
+      <div class="token-section__head">
+        <h2 class="token-section__title">Ai nevoie de mai multe simulări?</h2>
+        <p class="token-section__sub">Cumpără tokenuri suplimentare oricând, fără abonament.</p>
+      </div>
+      <div class="token-grid">
+
+        <div class="token-pack-card">
+          <div class="token-pack-card__amount">5</div>
+          <div class="token-pack-card__label">tokenuri</div>
+          <div class="token-pack-card__price">75 lei</div>
+          <div class="token-pack-card__unit">15 lei / token</div>
+          <button class="btn btn--surface btn--full" data-tokens="5">Cumpără</button>
+        </div>
+
+        <div class="token-pack-card">
+          <div class="token-pack-card__amount">10</div>
+          <div class="token-pack-card__label">tokenuri</div>
+          <div class="token-pack-card__price">130 lei</div>
+          <div class="token-pack-card__unit">13 lei / token</div>
+          <button class="btn btn--surface btn--full" data-tokens="10">Cumpără</button>
+        </div>
+
+        <div class="token-pack-card token-pack-card--popular">
+          <div class="token-pack-card__badge">Cel mai popular</div>
+          <div class="token-pack-card__amount">20</div>
+          <div class="token-pack-card__label">tokenuri</div>
+          <div class="token-pack-card__price">240 lei</div>
+          <div class="token-pack-card__unit">12 lei / token</div>
+          <button class="btn btn--accent btn--full" data-tokens="20">Cumpără</button>
+        </div>
+
+        <div class="token-pack-card token-pack-card--best">
+          <div class="token-pack-card__badge token-pack-card__badge--best">Cea mai bună valoare</div>
+          <div class="token-pack-card__amount">50</div>
+          <div class="token-pack-card__label">tokenuri</div>
+          <div class="token-pack-card__price">550 lei</div>
+          <div class="token-pack-card__unit">11 lei / token</div>
+          <button class="btn btn--surface btn--full" data-tokens="50">Cumpără</button>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- FAQ -->
+  <section class="faq-section">
+    <div class="container">
+      <h2 class="faq-section__title">Întrebări frecvente</h2>
+      <div class="faq-list" id="faqList">
+
+        <div class="faq-item">
+          <button class="faq-item__q" aria-expanded="false">
+            <span>Pot schimba planul oricând?</span>
+            <span class="faq-item__chevron">▾</span>
+          </button>
+          <div class="faq-item__a">
+            <p>Da. Poți trece de la Free la Standard sau Premium (sau invers) oricând, direct din această
+              pagină. Modificarea se aplică imediat, iar beneficiile suplimentare — exerciții și tokenuri —
+              devin disponibile din momentul confirmării.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-item__q" aria-expanded="false">
+            <span>Tokenurile expiră?</span>
+            <span class="faq-item__chevron">▾</span>
+          </button>
+          <div class="faq-item__a">
+            <p>Nu. Tokenurile de simulare BAC, indiferent dacă provin din planul tău sau dintr-un pachet
+              cumpărat separat, rămân în contul tău fără limită de timp și se folosesc doar atunci când
+              pornești o simulare.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-item__q" aria-expanded="false">
+            <span>Ce metode de plată veți accepta?</span>
+            <span class="faq-item__chevron">▾</span>
+          </button>
+          <div class="faq-item__a">
+            <p>Lucrăm la integrarea plăților online prin card bancar (Visa/Mastercard). Până la lansare,
+              butoanele de pe această pagină doar te informează — nu se efectuează nicio tranzacție reală.</p>
+          </div>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-item__q" aria-expanded="false">
+            <span>Pot anula abonamentul?</span>
+            <span class="faq-item__chevron">▾</span>
+          </button>
+          <div class="faq-item__a">
+            <p>Da, oricând, fără penalizări. Un abonament anulat rămâne activ până la finalul perioadei deja
+              plătite, apoi contul revine automat la planul Free — fără să pierzi progresul sau exercițiile
+              deja rezolvate.</p>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/panels.js"></script>
+  <script src="js/pachete-page.js"></script>
+</body>
+</html>
