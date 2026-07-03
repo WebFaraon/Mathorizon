@@ -10677,7 +10677,8 @@ body.bac-exam-mode .nav.nav--peek {
 body.dc-fullscreen-active .bac-sidebar-wrap,
 body.dc-fullscreen-active .bac-exam-topbar,
 body.dc-fullscreen-active .bac-slot-nav,
-body.dc-fullscreen-active #slotContent > .bac-exercise-card {
+body.dc-fullscreen-active #slotContent > .bac-exercise-card,
+body.dc-fullscreen-active .bac-notes-header {
   display: none !important;
 }
 body.dc-fullscreen-active .bac-main {

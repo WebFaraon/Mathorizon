@@ -202,6 +202,19 @@
     var h   = Math.round(baseH * this._zoom);
     var dpr = window.devicePixelRatio || 1;
 
+    // Cap the physical (device-pixel) canvas size. Fullscreen mode already
+    // makes baseW/baseH viewport-sized; stacking a high devicePixelRatio and
+    // zoom on top of that compounds fast (e.g. 1900 CSS px × 2 dpr × 1.5
+    // zoom ≈ 5700 physical px) and that's exactly what made drawing laggy at
+    // fullscreen + 150%+ zoom — browsers rasterize strokes noticeably slower
+    // past a few thousand physical pixels per side. Scale dpr down first
+    // (2x is already imperceptible for ink strokes on a drawing canvas),
+    // never below 1x since that would visibly blur the strokes.
+    var MAX_PHYSICAL = 4096;
+    dpr = Math.min(dpr, 2);
+    var longestPhysical = Math.max(w, h) * dpr;
+    if (longestPhysical > MAX_PHYSICAL) dpr = Math.max(1, dpr * (MAX_PHYSICAL / longestPhysical));
+
     var setSize = function (canvas, ctx) {
       canvas.width  = w * dpr;
       canvas.height = h * dpr;
