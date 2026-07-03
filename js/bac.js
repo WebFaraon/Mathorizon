@@ -871,6 +871,10 @@
         window._activeDrawingCanvas = new DrawingCanvas(dcMount, {
           onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
           initialData: item.work || null,
+          toolbarExtras: `
+            <span class="dc-toolbar-timer" id="dcToolbarTimer">${timerEl ? timerEl.textContent : ''}</span>
+            <button class="dc-tool-btn" id="dcToolbarExerciseBtn" type="button" title="Arată/ascunde exercițiul">📄</button>
+          `,
           onMaximizeChange: function (isMax) { _toggleMiniExerciseCard(isMax, ex); }
         });
         window.getCanvasImage = function () {
@@ -896,16 +900,15 @@
   }
 
   // Fired when the canvas toggles fullscreen (DrawingCanvas has no idea about
-  // the exercise statement or the timer — both live outside it). Shows a mini
-  // read-only exercise card top-right, and floats the timer so it's never
-  // covered by the fullscreen canvas overlay.
+  // the exercise statement or the timer — both live outside it). The timer
+  // and the exercise-panel toggle button live in the canvas toolbar itself
+  // (via toolbarExtras, shown only while maximized); this just wires them up
+  // and shows the actual read-only exercise panel, floating top-right.
   function _toggleMiniExerciseCard(isMax, ex) {
     document.body.classList.toggle('dc-fullscreen-active', isMax);
     let mini = document.getElementById('miniExerciseCard');
-    let floatTimer = document.getElementById('floatingTimerBadge');
     if (!isMax) {
       if (mini) mini.remove();
-      if (floatTimer) floatTimer.remove();
       return;
     }
     if (!mini) {
@@ -915,21 +918,24 @@
       document.body.appendChild(mini);
     }
     mini.innerHTML = `
-      <div class="dc-mini-exercise__toggle" onclick="this.parentElement.classList.toggle('collapsed')">📄</div>
-      <div class="dc-mini-exercise__body">
-        <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
-        <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
-      </div>
+      <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
+      <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
     `;
     if (window.renderMathInElement) BM.renderMath(mini);
 
-    if (!floatTimer) {
-      floatTimer = document.createElement('div');
-      floatTimer.id = 'floatingTimerBadge';
-      floatTimer.className = 'dc-float-timer';
-      document.body.appendChild(floatTimer);
+    const exerciseBtn = document.getElementById('dcToolbarExerciseBtn');
+    if (exerciseBtn) {
+      exerciseBtn.classList.add('dc-tool-btn--active');
+      exerciseBtn.onclick = function () {
+        const card = document.getElementById('miniExerciseCard');
+        if (!card) return;
+        const hidden = card.classList.toggle('hidden');
+        exerciseBtn.classList.toggle('dc-tool-btn--active', !hidden);
+      };
     }
-    floatTimer.textContent = timerEl ? timerEl.textContent : '';
+
+    const toolbarTimer = document.getElementById('dcToolbarTimer');
+    if (toolbarTimer && timerEl) toolbarTimer.textContent = timerEl.textContent;
   }
 
   window.gotoSlot = function (i) {
@@ -1007,13 +1013,13 @@
       timerEl.textContent = str;
       timerEl.className = 'bac-timer' + (cls ? ' ' + cls : '');
     }
-    // The canvas fullscreen overlay covers the exam topbar (and its timer) —
-    // mirror the countdown into the floating badge shown in that mode so the
-    // timer stays visible regardless of navbar/canvas state, as required.
-    const floatTimer = document.getElementById('floatingTimerBadge');
-    if (floatTimer) {
-      floatTimer.textContent = str;
-      floatTimer.className = 'dc-float-timer' + (cls ? ' ' + cls : '');
+    // Fullscreen hides the exam topbar (and its timer) — mirror the countdown
+    // into the toolbar-integrated timer shown in that mode so it stays
+    // visible regardless of navbar/canvas state, as required.
+    const toolbarTimer = document.getElementById('dcToolbarTimer');
+    if (toolbarTimer) {
+      toolbarTimer.textContent = str;
+      toolbarTimer.className = 'dc-toolbar-timer' + (cls ? ' ' + cls : '');
     }
   }
 

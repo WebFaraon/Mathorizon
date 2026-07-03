@@ -9,6 +9,7 @@
   var INPUT_MODE_KEY = 'mathorizon:dc-input-mode'; // 'any' | 'pen' — persists across exercises
 
   var TOOLBAR_HTML = `
+    <div class="dc-tool-group dc-tool-group--extras" id="dc-extras-slot"></div>
     <div class="dc-tool-group">
       <button class="dc-tool-btn dc-tool-btn--active" data-tool="pen" title="Stilou (P)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -104,6 +105,11 @@
     this._onSave     = options.onSave  || null;
     this._initialData = options.initialData || null;
     this._onMaximizeChange = options.onMaximizeChange || null;
+    // Arbitrary host HTML (e.g. a live timer, an exercise-statement toggle)
+    // injected into a reserved toolbar slot — only shown while maximized, so
+    // the host's fullscreen-only chrome lives inside the toolbar itself
+    // instead of a separately positioned overlay that can collide with it.
+    this._toolbarExtras = options.toolbarExtras || '';
 
     this._tool        = 'pen';
     this._inputMode   = this._loadInputMode(); // 'any' (default) | 'pen'
@@ -154,6 +160,11 @@
     toolbar.querySelector('[data-color="#1d4ed8"]').style.background = '#1d4ed8';
     toolbar.querySelector('[data-color="#dc2626"]').style.background = '#dc2626';
 
+    if (this._toolbarExtras) {
+      var extrasSlot = toolbar.querySelector('#dc-extras-slot');
+      if (extrasSlot) extrasSlot.innerHTML = this._toolbarExtras;
+    }
+
     var canvasWrap = document.createElement('div');
     canvasWrap.className = 'dc-canvas-wrap';
 
@@ -200,20 +211,24 @@
     var baseH = Math.max(600, this._canvasWrap.offsetHeight || 600);
     var w   = Math.round(baseW * this._zoom);
     var h   = Math.round(baseH * this._zoom);
-    var dpr = window.devicePixelRatio || 1;
+    var dpr = Math.min(window.devicePixelRatio || 1, 2);
 
-    // Cap the physical (device-pixel) canvas size. Fullscreen mode already
-    // makes baseW/baseH viewport-sized; stacking a high devicePixelRatio and
-    // zoom on top of that compounds fast (e.g. 1900 CSS px × 2 dpr × 1.5
-    // zoom ≈ 5700 physical px) and that's exactly what made drawing laggy at
-    // fullscreen + 150%+ zoom — browsers rasterize strokes noticeably slower
-    // past a few thousand physical pixels per side. Scale dpr down first
-    // (2x is already imperceptible for ink strokes on a drawing canvas),
-    // never below 1x since that would visibly blur the strokes.
-    var MAX_PHYSICAL = 4096;
-    dpr = Math.min(dpr, 2);
-    var longestPhysical = Math.max(w, h) * dpr;
-    if (longestPhysical > MAX_PHYSICAL) dpr = Math.max(1, dpr * (MAX_PHYSICAL / longestPhysical));
+    // Cap physical canvas AREA relative to what zoom=1 already costs on this
+    // device, instead of a fixed pixel guess — un-zoomed fullscreen is always
+    // fast (there's no separate "is this device fast enough" question to
+    // answer), so scale the zoomed budget from that known-good baseline
+    // rather than a hardcoded number that's wrong for some screens/dprs.
+    // A fixed longest-side cap tried here first wasn't tight enough — area
+    // (which scales with zoom²) is what actually drives rasterization cost,
+    // and that's what was still laggy at 150%+. Budget = 1.6× baseline keeps
+    // 100–125% completely untouched (full sharpness) while 150%/200% get
+    // scaled down toward that same ceiling instead of growing quadratically.
+    var baseArea   = baseW * baseH * dpr * dpr;
+    var targetArea = w * h * dpr * dpr;
+    var budget     = baseArea * 1.6;
+    if (targetArea > budget) {
+      dpr = Math.max(1, dpr * Math.sqrt(budget / targetArea));
+    }
 
     var setSize = function (canvas, ctx) {
       canvas.width  = w * dpr;
