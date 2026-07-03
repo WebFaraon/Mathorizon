@@ -10664,15 +10664,35 @@ body.bac-exam-mode .nav.nav--peek {
 #dc-maximize-btn.dc-action-btn--active .dc-icon-expand   { display: none; }
 #dc-maximize-btn.dc-action-btn--active .dc-icon-collapse { display: block; }
 
-.dc-wrap--maximized {
-  position: fixed;
-  inset: 0;
-  z-index: 5000;
-  background: var(--bg);
-  border-radius: 0;
+/* Deliberately NOT position:fixed here: .bac-notes-card (an ancestor of
+   .dc-wrap) has `animation: bac-card-appear ... both`, whose end keyframe
+   sets transform: translateY(0) and — with fill-mode "both" — keeps that
+   transform applied forever after the animation finishes. Any non-`none`
+   transform on an ancestor makes IT the containing block for fixed-position
+   descendants, so a fixed .dc-wrap would only ever fill .bac-notes-card's
+   own box, not the real viewport. Instead, fullscreen hides every sibling
+   (sidebar, exam topbar, exercise card, prev/next bar) via the body class
+   below and lets the existing flex:1 chain (#slotContent → .bac-notes-card)
+   naturally expand .dc-wrap to fill the freed space. */
+body.dc-fullscreen-active .bac-sidebar-wrap,
+body.dc-fullscreen-active .bac-exam-topbar,
+body.dc-fullscreen-active .bac-slot-nav,
+body.dc-fullscreen-active #slotContent > .bac-exercise-card {
+  display: none !important;
 }
-.dc-wrap--maximized .dc-canvas-wrap {
-  min-height: 0; /* the fixed-position wrap already fills the viewport */
+body.dc-fullscreen-active .bac-main {
+  padding: 0 !important;
+}
+body.dc-fullscreen-active #slotContent {
+  padding: 0 !important;
+  margin: 0 !important;
+}
+body.dc-fullscreen-active .bac-notes-card {
+  margin: 0 !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  height: 100%;
 }
 
 /* ---- Mini exercise card shown top-right while the canvas is fullscreen ---- */

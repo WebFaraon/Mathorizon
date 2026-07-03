@@ -655,8 +655,12 @@
       btn.title = this._maximized ? 'Ieși din ecran complet (Esc)' : 'Ecran complet pentru canvas';
       btn.classList.toggle('dc-action-btn--active', this._maximized);
     }
+    // The host page (bac.js) hides the sidebar/topbar/exercise card via this
+    // callback — that's what actually makes the canvas fill the screen; see
+    // the .dc-wrap--maximized comment in style.css for why this isn't done
+    // with position:fixed here.
     if (this._onMaximizeChange) this._onMaximizeChange(this._maximized);
-    // Let the layout settle (position:fixed swap) before measuring/redrawing.
+    // Let the layout settle (siblings hidden, container resized) before redrawing.
     var self = this;
     requestAnimationFrame(function () { self._resize(); });
   };

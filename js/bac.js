@@ -900,6 +900,7 @@
   // read-only exercise card top-right, and floats the timer so it's never
   // covered by the fullscreen canvas overlay.
   function _toggleMiniExerciseCard(isMax, ex) {
+    document.body.classList.toggle('dc-fullscreen-active', isMax);
     let mini = document.getElementById('miniExerciseCard');
     let floatTimer = document.getElementById('floatingTimerBadge');
     if (!isMax) {
