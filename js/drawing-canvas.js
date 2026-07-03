@@ -52,7 +52,7 @@
           <path d="m15 5 4 4"/>
         </svg>
       </button>
-      <span class="dc-mode-badge" role="status">Mod stilou activ — doar pixul digital este acceptat</span>
+      <span class="dc-mode-badge" role="status">Mod stilou activ</span>
     </div>
     <div class="dc-tool-group">
       <button class="dc-action-btn" id="dc-zoomout-btn" title="Micșorează">

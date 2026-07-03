@@ -923,9 +923,15 @@
     `;
     if (window.renderMathInElement) BM.renderMath(mini);
 
+    // On phones it covered a big chunk of the already-tight screen — start
+    // hidden there and let the toolbar button reveal it on demand. Desktop
+    // keeps the previous default (shown immediately).
+    const startHidden = window.innerWidth <= 640;
+    mini.classList.toggle('hidden', startHidden);
+
     const exerciseBtn = document.getElementById('dcToolbarExerciseBtn');
     if (exerciseBtn) {
-      exerciseBtn.classList.add('dc-tool-btn--active');
+      exerciseBtn.classList.toggle('dc-tool-btn--active', !startHidden);
       exerciseBtn.onclick = function () {
         const card = document.getElementById('miniExerciseCard');
         if (!card) return;

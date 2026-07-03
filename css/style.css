@@ -10466,6 +10466,13 @@ body.bac-exam-mode .nav.nav--peek {
   margin-left: 2px;
 }
 .dc-toolbar-timer {
+  display: inline-block;
+  /* font-variant-numeric alone isn't reliable here — Josefin Sans may not
+     expose tabular-figure metrics, so digits still shift width per-glyph.
+     A fixed min-width (min-width is a no-op on inline elements, hence
+     display:inline-block above) stops that from reflowing the toolbar. */
+  min-width: 86px;
+  text-align: center;
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--accent);
@@ -10708,19 +10715,41 @@ body.dc-fullscreen-active #slotContent > .bac-exercise-card,
 body.dc-fullscreen-active .bac-notes-header {
   display: none !important;
 }
+/* !important throughout this block because the mobile layout (≤768px, see
+   above) reverts .bac-main/#slotContent to natural document-flow scrolling
+   (height:auto / overflow:visible / flex:none) — without overriding that,
+   fullscreen never actually locks to the viewport on phones/tablets, which
+   is exactly what pushed the toolbar off-screen there. */
 body.dc-fullscreen-active .bac-main {
   padding: 0 !important;
+  height: 100vh !important;
+  overflow: hidden !important;
 }
 body.dc-fullscreen-active #slotContent {
   padding: 0 !important;
   margin: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 !important;
+  overflow: hidden !important;
+}
+body.dc-fullscreen-active #slotContent > .bac-notes-card:has(.dc-wrap) {
+  flex: 1 !important;
+  min-height: 0 !important;
 }
 body.dc-fullscreen-active .bac-notes-card {
   margin: 0 !important;
   border: none !important;
   border-radius: 0 !important;
   box-shadow: none !important;
-  height: 100%;
+  height: 100% !important;
+}
+body.dc-fullscreen-active .dc-canvas-wrap {
+  flex: 1 !important;
+  min-height: 0 !important;
+}
+body.dc-fullscreen-active .dc-wrap {
+  height: 100% !important;
 }
 
 /* ---- Mini exercise card shown top-right while the canvas is fullscreen ----
@@ -10787,6 +10816,34 @@ body.dc-fullscreen-active .bac-notes-card {
 
   .dc-canvas-wrap {
     min-height: 65vh;
+  }
+
+  /* The exercise panel was eating almost the whole screen on phones
+     (max-height was a desktop-sized 46vh, width nearly full viewport). */
+  .dc-mini-exercise {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 28vh;
+    padding: 10px 12px;
+  }
+  .dc-mini-exercise__statement { font-size: 0.74rem; }
+
+  /* Toolbar extras (timer + exercise toggle) are the first thing that needs
+     to fit on a narrow phone toolbar row — let them wrap onto their own
+     line above the rest of the tools instead of squeezing everything. */
+  .dc-tool-group--extras {
+    flex-basis: 100%;
+    justify-content: space-between;
+    padding-bottom: 8px;
+    margin-bottom: 4px;
+    border-bottom: 1px solid var(--border);
+  }
+  .dc-wrap--maximized .dc-tool-group--extras + .dc-tool-group {
+    border-left: none;
+    padding-left: 0;
+    margin-left: 0;
   }
 }
 
