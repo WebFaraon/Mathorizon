@@ -157,40 +157,6 @@
     return content || null;
   }
 
-  function normalizeAnswer(raw) {
-    if (raw === null || raw === undefined) return '';
-    let s = String(raw).trim();
-    s = s.replace(/^[=\s]+/, '');
-    s = s.replace(/\{,\}/g, '.');                                              // LaTeX decimal comma
-    s = s.replace(/\\(?:d|t)?frac\{([^{}]+)\}\{([^{}]+)\}/g, '$1/$2');       // \frac{a}{b} → a/b
-    // LaTeX → Unicode
-    s = s.replace(/\\in\b/g, '∈');
-    s = s.replace(/\\notin\b/g, '∉');
-    s = s.replace(/\\cup\b/g, '∪');
-    s = s.replace(/\\cap\b/g, '∩');
-    s = s.replace(/\\emptyset\b/g, '∅');
-    s = s.replace(/\\mathbb\{R\}/g, 'ℝ');
-    s = s.replace(/\\mathbb\{Z\}/g, 'ℤ');
-    s = s.replace(/\\mathbb\{N\}/g, 'ℕ');
-    s = s.replace(/\\[+-]?infty\b/g, '∞');
-    s = s.replace(/\+\\infty/g, '∞');
-    s = s.replace(/\\leq\b/g, '≤');
-    s = s.replace(/\\geq\b/g, '≥');
-    s = s.replace(/\\neq\b/g, '≠');
-    s = s.replace(/\\pi\b/g, 'π');
-    s = s.replace(/\\circ\b/g, '°');
-    s = s.replace(/\^\{?2\}?/g, '²');
-    s = s.replace(/\^\{?3\}?/g, '³');
-    s = s.replace(/\\[a-zA-Z]+\*?/g, '');   // strip remaining LaTeX commands
-    s = s.replace(/[{}\s]/g, '');            // strip braces and whitespace
-    s = s.replace(/;/g, ',');               // interval semicolons → commas
-    return s.toLowerCase();
-  }
-
-  function isProofExercise(solution) {
-    return !solution.includes('\\boxed{') && solution.includes('\\blacksquare');
-  }
-
   /* ---- State ---- */
   let exam    = null;
   let current = 0;
@@ -397,7 +363,7 @@
           desc: s.exercise ? (s.exercise.subcategoryId || '') : ''
         }));
         if (exam.phase === 'exam') { showExamView(); _startLectieTimer(); }
-        else if (exam.phase === 'done') { renderResults(); showView('resultsView'); }
+        else if (exam.phase === 'done') { _showRestoredResults(); }
         else doFinish();
       } else {
         if (exam.phase === 'exam') {
@@ -406,13 +372,22 @@
         } else if (exam.phase === 'assess') {
           doFinish();
         } else if (exam.phase === 'done') {
-          renderResults();
-          showView('resultsView');
+          _showRestoredResults();
         }
       }
     } else {
       showSetupView();
     }
+  }
+
+  // Reloading mid-grading (AI request in flight when the page unloaded)
+  // leaves some slots' scores null — resume grading instead of showing a
+  // results page with those exercises stuck at 0.
+  function _showRestoredResults() {
+    showView('resultsView');
+    const pending = exam.slots.some(item => item.exercise && item.score === null);
+    if (pending) _runAiVerification();
+    else renderResults();
   }
 
   function showSetupView() {
@@ -517,9 +492,9 @@
     const hard   = all.filter(e => e.difficulty === 'dificil');
     const pickN = (arr, n) => BM.shuffle([...arr]).slice(0, n);
     const picked = [
-      ...pickN(easy,   3).map(e => ({ exercise: e, targetDiff: 'usor',   score: null, work: '', flagged: false, confirmedAnswer: null })),
-      ...pickN(medium, 3).map(e => ({ exercise: e, targetDiff: 'mediu',  score: null, work: '', flagged: false, confirmedAnswer: null })),
-      ...pickN(hard,   2).map(e => ({ exercise: e, targetDiff: 'dificil',score: null, work: '', flagged: false, confirmedAnswer: null }))
+      ...pickN(easy,   3).map(e => ({ exercise: e, targetDiff: 'usor',   score: null, work: '', flagged: false })),
+      ...pickN(medium, 3).map(e => ({ exercise: e, targetDiff: 'mediu',  score: null, work: '', flagged: false })),
+      ...pickN(hard,   2).map(e => ({ exercise: e, targetDiff: 'dificil',score: null, work: '', flagged: false }))
     ];
     return BM.shuffle(picked);
   }
@@ -532,8 +507,7 @@
       exercise: item.exercise,
       score: null,
       work: '',
-      flagged: false,
-      confirmedAnswer: null
+      flagged: false
     }));
   }
 
@@ -599,10 +573,10 @@
 
         const ex = BM.shuffle([...candidates])[0];
         usedSubcats.add(pool.subcat);
-        return { slotId: slot.id, exercise: ex, usedSubcat: pool.subcat, score: null, work: '', flagged: false, confirmedAnswer: null };
+        return { slotId: slot.id, exercise: ex, usedSubcat: pool.subcat, score: null, work: '', flagged: false };
       }
 
-      return { slotId: slot.id, exercise: null, usedSubcat: null, score: null, work: '', flagged: false, confirmedAnswer: null };
+      return { slotId: slot.id, exercise: null, usedSubcat: null, score: null, work: '', flagged: false };
     });
   }
 
@@ -725,7 +699,7 @@
   function renderNavigator() {
     const nav = document.getElementById('itemNav');
     const total        = _slotDefs.length;
-    const doneCount    = exam.slots.filter(s => s.confirmedAnswer !== null).length;
+    const doneCount    = exam.slots.filter(s => !!s.work).length;
     const flagCount    = exam.slots.filter(s => s.flagged).length;
     const unavailCount = exam.slots.filter(s => !s.exercise).length;
     const remaining    = Math.max(0, total - doneCount - unavailCount);
@@ -744,7 +718,7 @@
 
     _slotDefs.forEach((slot, i) => {
       const item = exam.slots[i];
-      const isDone        = item.confirmedAnswer !== null;
+      const isDone        = !!item.work;
       const isCurrent     = i === current;
       const isUnavailable = !item.exercise;
       const isFlagged     = !!item.flagged;
@@ -847,7 +821,7 @@
     const dots = _slotDefs.map((_, i) => {
       let cls = 'bac-dot';
       if (i === current)                    cls += ' current';
-      else if (exam.slots[i].confirmedAnswer !== null) cls += ' done';
+      else if (exam.slots[i].work) cls += ' done';
       else if (exam.slots[i].flagged)        cls += ' flagged';
       return `<div class="${cls}" title="Item ${i + 1}"></div>`;
     }).join('');
@@ -883,12 +857,11 @@
         <div class="bac-notes-card" id="notesCard">
           <div class="bac-notes-header" onclick="toggleNotes()">
             <span class="bac-notes-icon">✏️</span>
-            <span class="bac-notes-label">Notițe de lucru</span>
+            <span class="bac-notes-label">Spațiu de rezolvare</span>
             <span class="bac-notes-toggle">▾</span>
           </div>
           <div class="bac-notes-body bac-notes-body--canvas" id="drawingCanvasMount"></div>
         </div>
-        ${renderAnswerCard(ex, item, current)}
       `;
       if (window.renderMathInElement) BM.renderMath(container);
 
@@ -897,7 +870,8 @@
         const _cur = current;
         window._activeDrawingCanvas = new DrawingCanvas(dcMount, {
           onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
-          initialData: item.work || null
+          initialData: item.work || null,
+          onMaximizeChange: function (isMax) { _toggleMiniExerciseCard(isMax, ex); }
         });
         window.getCanvasImage = function () {
           return window._activeDrawingCanvas ? window._activeDrawingCanvas.getCanvasImage() : null;
@@ -921,163 +895,41 @@
     renderNavigator();
   }
 
-  function renderAnswerCard(ex, item, idx) {
-    const isProof     = isProofExercise(ex.solution);
-    const isConfirmed = item.confirmedAnswer !== null;
-
-    if (isProof) {
-      const isDemoConfirmed = isConfirmed;
-      return `
-        <div class="bac-answer-card ${isDemoConfirmed ? 'bac-answer-card--confirmed' : ''}">
-          <div class="bac-answer-header">
-            <span class="bac-answer-icon">📋</span>
-            <span class="bac-answer-label">Confirmare demonstrație</span>
-            ${isDemoConfirmed ? '<span class="bac-answer-header-badge">✓ Confirmat</span>' : ''}
-          </div>
-          <div class="bac-answer-body">
-            <p class="bac-answer-hint" style="margin-bottom:14px">Exercițiu de demonstrație — redactează pașii complet în notițe, apoi confirmă.</p>
-            ${isDemoConfirmed
-              ? `<div class="bac-answer-confirmed-badge">✓ Demonstrația a fost înregistrată. Vei afla rezultatul la final.</div>`
-              : `<button class="bac-answer-btn" onclick="confirmProof(${idx})">Am redactat demonstrația</button>`}
-          </div>
-        </div>`;
+  // Fired when the canvas toggles fullscreen (DrawingCanvas has no idea about
+  // the exercise statement or the timer — both live outside it). Shows a mini
+  // read-only exercise card top-right, and floats the timer so it's never
+  // covered by the fullscreen canvas overlay.
+  function _toggleMiniExerciseCard(isMax, ex) {
+    let mini = document.getElementById('miniExerciseCard');
+    let floatTimer = document.getElementById('floatingTimerBadge');
+    if (!isMax) {
+      if (mini) mini.remove();
+      if (floatTimer) floatTimer.remove();
+      return;
     }
+    if (!mini) {
+      mini = document.createElement('div');
+      mini.id = 'miniExerciseCard';
+      mini.className = 'dc-mini-exercise';
+      document.body.appendChild(mini);
+    }
+    mini.innerHTML = `
+      <div class="dc-mini-exercise__toggle" onclick="this.parentElement.classList.toggle('collapsed')">📄</div>
+      <div class="dc-mini-exercise__body">
+        <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
+        <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+      </div>
+    `;
+    if (window.renderMathInElement) BM.renderMath(mini);
 
-    const displayVal = isConfirmed
-      ? BM.esc(item.confirmedAnswer)
-      : '';
-
-    const SYMBOLS = [
-      { sym: '∈', tip: 'aparține' }, { sym: '∉', tip: 'nu aparține' },
-      { sym: '∪', tip: 'reuniune' }, { sym: '∩', tip: 'intersecție' },
-      { sym: '∅', tip: 'mulțime vidă' }, { sym: 'ℝ', tip: 'mulțimea numerelor reale' },
-      { sym: '∞', tip: 'infinit' }, { sym: '≤', tip: 'mai mic sau egal' },
-      { sym: '≥', tip: 'mai mare sau egal' }, { sym: '≠', tip: 'diferit' },
-      { sym: 'π', tip: 'pi' }, { sym: '°', tip: 'grade' },
-      { sym: '²', tip: 'la pătrat' }, { sym: '³', tip: 'la cub' },
-    ];
-    const symbolBar = isConfirmed ? '' : `
-      <div class="bac-symbols-wrap">
-        <button class="bac-symbols-toggle" type="button" onclick="toggleSymbols(this)">
-          Simboluri speciale <span class="bac-symbols-chevron">▾</span>
-        </button>
-        <div class="bac-answer-symbols" style="display:none">
-          ${SYMBOLS.map(({ sym, tip }) =>
-            `<button class="bac-sym-btn" type="button" title="${tip}" onclick="insertAnswerSymbol('${sym}')">${sym}</button>`
-          ).join('')}
-        </div>
-      </div>`;
-
-    return `
-      <div class="bac-answer-card ${isConfirmed ? 'bac-answer-card--confirmed' : ''}">
-        <div class="bac-answer-header">
-          <span class="bac-answer-icon">✍</span>
-          <span class="bac-answer-label">Răspunsul final</span>
-          ${isConfirmed ? '<span class="bac-answer-header-badge">✓ Confirmat</span>' : ''}
-        </div>
-        <div class="bac-answer-body">
-          <div class="bac-answer-row">
-            <input class="bac-answer-input${isConfirmed ? ' bac-answer-input--confirmed' : ''}"
-                   id="answerInput"
-                   type="text"
-                   placeholder="ex: 4, -3/2, x∈(-∞;-2)∪(3;+∞)"
-                   value="${displayVal}"
-                   ${isConfirmed ? 'disabled' : ''}
-                   onkeydown="if(event.key==='Enter')confirmAnswer(${idx})">
-            ${isConfirmed
-              ? ''
-              : `<button class="bac-answer-btn" onclick="confirmAnswer(${idx})">Confirmă răspunsul</button>`}
-          </div>
-          ${symbolBar}
-          <div class="bac-answer-hint">
-            ${isConfirmed
-              ? 'Răspunsul a fost înregistrat. Vei afla dacă este corect după finalizarea examenului.'
-              : 'Odată confirmat, răspunsul nu mai poate fi modificat până la finalul examenului.'}
-          </div>
-        </div>
-      </div>`;
+    if (!floatTimer) {
+      floatTimer = document.createElement('div');
+      floatTimer.id = 'floatingTimerBadge';
+      floatTimer.className = 'dc-float-timer';
+      document.body.appendChild(floatTimer);
+    }
+    floatTimer.textContent = timerEl ? timerEl.textContent : '';
   }
-
-  function showAnswerConfirmDialog(answer, onConfirm) {
-    const ov = document.createElement('div');
-    ov.className = 'bac-confirm-overlay';
-    ov.innerHTML = `
-      <div class="bac-confirm-modal" role="dialog" aria-modal="true">
-        <div class="bac-confirm-icon">✍</div>
-        <div class="bac-confirm-title">Confirmi răspunsul?</div>
-        <div class="bac-confirm-sub">Odată confirmat, nu mai poate fi modificat până la finalul examenului.</div>
-        <div class="bac-confirm-answer">${BM.esc(answer)}</div>
-        <div class="bac-confirm-actions">
-          <button class="btn btn--surface" id="bac-cfm-cancel">Anulează</button>
-          <button class="btn btn--primary" id="bac-cfm-ok">Confirmă răspunsul</button>
-        </div>
-      </div>`;
-    document.body.appendChild(ov);
-    const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 220); };
-    ov.querySelector('#bac-cfm-cancel').onclick = close;
-    ov.querySelector('#bac-cfm-ok').onclick = () => { close(); onConfirm(); };
-    ov.onclick = (e) => { if (e.target === ov) close(); };
-    requestAnimationFrame(() => ov.classList.add('open'));
-  }
-
-  window.confirmAnswer = function (i) {
-    if (!exam?.slots[i] || exam.slots[i].confirmedAnswer !== null) return;
-    const inputEl = document.getElementById('answerInput');
-    if (!inputEl) return;
-    const val = inputEl.value.trim();
-    if (!val) { BM.toast('Introdu un răspuns înainte de confirmare.', 'info'); return; }
-
-    showAnswerConfirmDialog(val, () => {
-      exam.slots[i].confirmedAnswer = val;
-      saveExam();
-      const card = inputEl.closest('.bac-answer-card');
-      if (card) {
-        card.classList.add('bac-answer-card--confirmed');
-        inputEl.disabled = true;
-        inputEl.classList.add('bac-answer-input--confirmed');
-        inputEl.value = val;
-        card.querySelector('.bac-answer-btn')?.remove();
-        const symWrap = card.querySelector('.bac-symbols-wrap');
-        if (symWrap) symWrap.style.display = 'none';
-        const hint = card.querySelector('.bac-answer-hint');
-        if (hint) hint.textContent = 'Răspunsul a fost înregistrat. Vei afla dacă este corect după finalizarea examenului.';
-        const label = card.querySelector('.bac-answer-label');
-        if (label && !card.querySelector('.bac-answer-header-badge')) {
-          const badge = document.createElement('span');
-          badge.className = 'bac-answer-header-badge';
-          badge.textContent = '✓ Confirmat';
-          label.after(badge);
-        }
-      }
-      renderNavigator();
-      BM.toast('Răspuns confirmat și blocat.', 'success');
-    });
-  };
-
-  window.toggleSymbols = function (btn) {
-    const bar = btn.nextElementSibling;
-    const isOpen = bar.style.display !== 'none';
-    bar.style.display = isOpen ? 'none' : 'flex';
-    btn.querySelector('.bac-symbols-chevron').textContent = isOpen ? '▾' : '▴';
-  };
-
-  window.insertAnswerSymbol = function (sym) {
-    const input = document.getElementById('answerInput');
-    if (!input || input.disabled) return;
-    const s = input.selectionStart, e = input.selectionEnd;
-    input.value = input.value.substring(0, s) + sym + input.value.substring(e);
-    input.selectionStart = input.selectionEnd = s + sym.length;
-    input.focus();
-  };
-
-  window.confirmProof = function (i) {
-    if (!exam?.slots[i] || exam.slots[i].confirmedAnswer !== null) return;
-    exam.slots[i].confirmedAnswer = '__PROOF__';
-    saveExam();
-    renderCurrentSlot();
-    renderNavigator();
-    BM.toast('Demonstrație confirmată și blocată.', 'success');
-  };
 
   window.gotoSlot = function (i) {
     const container = document.getElementById('slotContent');
@@ -1154,6 +1006,14 @@
       timerEl.textContent = str;
       timerEl.className = 'bac-timer' + (cls ? ' ' + cls : '');
     }
+    // The canvas fullscreen overlay covers the exam topbar (and its timer) —
+    // mirror the countdown into the floating badge shown in that mode so the
+    // timer stays visible regardless of navbar/canvas state, as required.
+    const floatTimer = document.getElementById('floatingTimerBadge');
+    if (floatTimer) {
+      floatTimer.textContent = str;
+      floatTimer.className = 'dc-float-timer' + (cls ? ' ' + cls : '');
+    }
   }
 
   function pad(n) { return String(n).padStart(2, '0'); }
@@ -1170,7 +1030,8 @@
         <div class="nav-guard-icon">🎓</div>
         <div class="nav-guard-title" style="color:var(--text)">Finalizezi simularea?</div>
         <div class="nav-guard-body">
-          Exercițiile fără răspuns confirmat vor primi <strong>0 puncte</strong>.<br>
+          Vei fi evaluat automat de AI pe baza a ceea ce ai scris pe canvas.
+          Exercițiile necompletate vor primi <strong>0 puncte</strong>.<br>
           Această acțiune este ireversibilă.
         </div>
         <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
@@ -1196,25 +1057,15 @@
   function doFinish() {
     exam.endTs = Date.now();
     exam.phase = 'done';
-    // Auto-grade all slots
-    exam.slots.forEach((item, i) => {
-      if (!item.exercise) { item.score = 0; return; }
-      if (item.confirmedAnswer === null) { item.score = 0; return; }
-      const sol = item.exercise.solution;
-      if (isProofExercise(sol)) {
-        item.score = item.confirmedAnswer === '__PROOF__' ? _slotDefs[i].points : 0;
-        return;
-      }
-      const correct = normalizeAnswer(extractBoxedAnswer(sol));
-      const student = normalizeAnswer(item.confirmedAnswer);
-      item.score = (correct && student && correct === student) ? _slotDefs[i].points : 0;
-    });
+    // Grading now comes entirely from the AI evaluation of the canvas — mark
+    // exercises with no exercise assigned as 0, leave the rest pending (null)
+    // until _runAiVerification() fills them in.
+    exam.slots.forEach(item => { item.score = item.exercise ? null : 0; });
     current = 0;
     saveExam();
     updateNavbarForExam(false);
-    if (exam.type !== 'lectie') saveToHistory();
-    renderResults();
     showView('resultsView');
+    _runAiVerification();
   }
 
   /* ================================================================
@@ -1245,12 +1096,15 @@
     return str.length > len ? str.slice(0, len) + '…' : str;
   }
 
-  function renderResults() {
+  // status: 'pending' while the AI grading request is in flight, 'error' if it
+  // failed, or omitted for the final render once scores are in (item.score is
+  // null on every graded slot until _runAiVerification() fills it in).
+  function renderResults(status) {
     const maxPts = _slotDefs.reduce((s, slot) => s + slot.points, 0);
     const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
-    const grade  = (earned / maxPts * 10);
+    const grade  = maxPts > 0 ? (earned / maxPts * 10) : 0;
     const gradeDisplay = grade.toFixed(2);
-    const pctEarned = Math.round(earned / maxPts * 100);
+    const pctEarned = maxPts > 0 ? Math.round(earned / maxPts * 100) : 0;
 
     const gradeColor = grade >= 9   ? 'var(--green)'
                      : grade >= 7   ? 'var(--solved)'
@@ -1268,12 +1122,17 @@
     const dH = Math.floor(durationSec / 3600);
     const dM = Math.floor((durationSec % 3600) / 60);
 
-    const correctCount    = exam.slots.filter(item => item.exercise && (item.score || 0) > 0).length;
-    const wrongCount      = exam.slots.filter(item => item.exercise && item.confirmedAnswer && (item.score || 0) === 0).length;
-    const unansweredCount = exam.slots.filter(item => item.exercise && !item.confirmedAnswer).length;
+    const correctCount    = exam.slots.filter((item, i) => item.exercise && item.work && item.score === _slotDefs[i].points).length;
+    const wrongCount      = exam.slots.filter((item, i) => item.exercise && item.work && item.score !== _slotDefs[i].points).length;
+    const unansweredCount = exam.slots.filter(item => item.exercise && !item.work).length;
 
-    document.getElementById('resultsContent').innerHTML = `
-      <div class="res-hero">
+    const heroBody = status === 'pending' ? `
+        <div class="res-hero__grade res-hero__grade--pending">🤖</div>
+        <div class="res-hero__label">Se evaluează cu AI…</div>
+      ` : status === 'error' ? `
+        <div class="res-hero__grade res-hero__grade--pending">⚠️</div>
+        <div class="res-hero__label">Evaluarea AI a eșuat</div>
+      ` : `
         <div class="res-hero__grade" style="color:${gradeColor}">${gradeDisplay}</div>
         <div class="res-hero__label" style="color:${gradeColor}">${gradeEmoji} ${gradeLabel}</div>
         <div class="res-score-bar">
@@ -1298,12 +1157,10 @@
             <span class="res-stat__lbl">Timp</span>
           </div>
         </div>
-      </div>
+      `;
 
-      <div class="res-actions">
-        <button class="btn btn--primary btn--lg" onclick="newSimulation()">🔄 Simulare Nouă</button>
-        <a class="btn btn--surface btn--lg" href="index.html">Capitole</a>
-      </div>
+    document.getElementById('resultsContent').innerHTML = `
+      <div class="res-hero">${heroBody}</div>
 
       <div class="ai-section" id="aiSection">
         <div class="ai-section__intro">
@@ -1312,16 +1169,22 @@
             <div class="ai-section__title">Evaluare AI cu Gemini</div>
             <div class="ai-section__desc">Analizează rezolvările tale manuscrise și le compară cu baremul oficial.</div>
           </div>
-          <button class="btn btn--ai" id="aiVerifyBtn" onclick="verifyExam()">Evaluează</button>
         </div>
         <div id="aiResultsSection"></div>
       </div>
+
+      <div class="res-actions">
+        <button class="btn btn--primary btn--lg" onclick="newSimulation()">🔄 Simulare Nouă</button>
+        <a class="btn btn--surface btn--lg" href="index.html">Capitole</a>
+      </div>
     `;
 
-    requestAnimationFrame(() => {
-      const bar = document.querySelector('.res-score-bar__fill');
-      if (bar) requestAnimationFrame(() => { bar.style.width = bar.dataset.width + '%'; });
-    });
+    if (!status) {
+      requestAnimationFrame(() => {
+        const bar = document.querySelector('.res-score-bar__fill');
+        if (bar) requestAnimationFrame(() => { bar.style.width = bar.dataset.width + '%'; });
+      });
+    }
   }
 
   /* ================================================================
@@ -1364,6 +1227,39 @@
     });
   }
 
+  // Bounding box (in the source image's own pixel space) of the non-transparent
+  // ink, padded a bit and clamped to the image bounds. Null if there's no ink
+  // (caller falls back to the full canvas). Used so the composited image sent
+  // to Gemini / shown in results is cropped to what was actually drawn instead
+  // of the whole (mostly blank) canvas.
+  function _getInkBBox(ctx, width, height) {
+    let data;
+    try { data = ctx.getImageData(0, 0, width, height).data; }
+    catch (e) { return null; }
+    let minX = width, minY = height, maxX = -1, maxY = -1;
+    for (let y = 0; y < height; y++) {
+      const row = y * width;
+      for (let x = 0; x < width; x++) {
+        if (data[(row + x) * 4 + 3] > 12) {
+          if (x < minX) minX = x;
+          if (x > maxX) maxX = x;
+          if (y < minY) minY = y;
+          if (y > maxY) maxY = y;
+        }
+      }
+    }
+    if (maxX < 0) return null;
+    const PAD = 28;
+    const x0 = Math.max(0, minX - PAD);
+    const y0 = Math.max(0, minY - PAD);
+    return {
+      x: x0,
+      y: y0,
+      w: Math.min(width,  maxX + PAD) - x0,
+      h: Math.min(height, maxY + PAD) - y0
+    };
+  }
+
   function compositeOnBackground(strokesDataUrl, bgColor) {
     return new Promise(function (resolve) {
       if (!strokesDataUrl || !strokesDataUrl.startsWith('data:image/png;base64,')) {
@@ -1372,17 +1268,24 @@
       }
       const img = new Image();
       img.onload = function () {
+        const full = document.createElement('canvas');
+        full.width  = img.naturalWidth;
+        full.height = img.naturalHeight;
+        const fullCtx = full.getContext('2d');
+        fullCtx.drawImage(img, 0, 0);
+        const bbox = _getInkBBox(fullCtx, full.width, full.height) || { x: 0, y: 0, w: full.width, h: full.height };
+
         const MAX_W = 1200;
-        const scale = img.naturalWidth > MAX_W ? MAX_W / img.naturalWidth : 1;
-        const w = Math.round(img.naturalWidth  * scale);
-        const h = Math.round(img.naturalHeight * scale);
+        const scale = bbox.w > MAX_W ? MAX_W / bbox.w : 1;
+        const w = Math.round(bbox.w * scale);
+        const h = Math.round(bbox.h * scale);
         const off = document.createElement('canvas');
         off.width  = w;
         off.height = h;
         const ctx = off.getContext('2d');
         ctx.fillStyle = bgColor;
         ctx.fillRect(0, 0, w, h);
-        ctx.drawImage(img, 0, 0, w, h);
+        ctx.drawImage(full, bbox.x, bbox.y, bbox.w, bbox.h, 0, 0, w, h);
         resolve(off.toDataURL('image/png'));
       };
       img.onerror = function () { resolve(null); };
@@ -1491,28 +1394,31 @@
         </div>
         <div class="ai-items">${itemsHtml}</div>
         <p class="ai-results__disclaimer">Evaluarea AI are caracter orientativ. Pot apărea inexactități în interpretarea scrisului de mână.</p>
+        <div style="text-align:center;margin-top:10px">
+          <button class="btn btn--surface" onclick="verifyExam()">↻ Reevaluează</button>
+        </div>
       </div>`;
   }
 
-  window.verifyExam = async function () {
-    const btn     = document.getElementById('aiVerifyBtn');
-    const section = document.getElementById('aiResultsSection');
-    if (!btn || !section) return;
-
-    btn.disabled    = true;
-    btn.textContent = 'Se evaluează…';
-
+  // Runs automatically right after Finalizează (from doFinish()) since AI
+  // grading of the canvas is now the only way exercises get scored. Also
+  // callable again via the "Reevaluează"/"Reîncearcă" buttons in the results.
+  async function _runAiVerification() {
     // Flush the last active canvas so its latest state is in item.work
     if (window._activeDrawingCanvas) window._activeDrawingCanvas.flush();
 
-    const eligibleSlots = _slotDefs.filter((_, i) => exam.slots[i]?.exercise);
-    section.innerHTML = renderAiLoading(eligibleSlots.length);
+    const eligibleIndices = [];
+    _slotDefs.forEach((_, i) => { if (exam.slots[i]?.exercise) eligibleIndices.push(i); });
+
+    renderResults('pending');
+    let section = document.getElementById('aiResultsSection');
+    if (section) section.innerHTML = renderAiLoading(eligibleIndices.length);
 
     try {
       // Build payload — composite each slot's strokes on white background
-      const items = await Promise.all(_slotDefs.map(async (slot, i) => {
+      const items = await Promise.all(eligibleIndices.map(async (i) => {
+        const slot = _slotDefs[i];
         const item = exam.slots[i];
-        if (!item?.exercise) return null;
 
         // Treat an effectively-blank canvas (e.g. from a stray tap) as unanswered,
         // so it gets the "nerezolvat" path instead of a full barem evaluation.
@@ -1529,7 +1435,7 @@
           enunt:           item.exercise.statement || '',
           solutieOficiala: item.exercise.solution  || '',
           raspunsCorect:   extractBoxedAnswer(item.exercise.solution) || '',
-          raspunsElev:     item.confirmedAnswer || '',
+          raspunsElev:     '',
           puncteMaxime:    slot.points,
           // Official BAC barem for this exercise, when transcribed — overrides
           // the auto-derived equal split so Gemini grades against the exact
@@ -1543,11 +1449,10 @@
         };
       }));
 
-      const eligibleItems = items.filter(Boolean);
-      const images  = eligibleItems.map(it => it.displayImg);
+      const images  = items.map(it => it.displayImg);
       // Strip the display-only image before sending — it's not needed by the
       // server and would roughly double the request payload size.
-      const payload = eligibleItems.map(function (it) {
+      const payload = items.map(function (it) {
         const rest = Object.assign({}, it);
         delete rest.displayImg;
         return rest;
@@ -1565,33 +1470,49 @@
       }
 
       const results = await resp.json();
+      // Map each AI result back onto the exam slot it graded (eligibleIndices
+      // was built in the same order the payload was sent), then finalize the
+      // official score/grade/history from those numbers.
+      results.forEach((r, k) => {
+        const slotIdx = eligibleIndices[k];
+        const capped  = Math.max(0, Math.min(Math.round(r.total_acordat || 0), _slotDefs[slotIdx].points));
+        exam.slots[slotIdx].score = capped;
+      });
+      saveExam();
+      if (exam.type !== 'lectie') saveToHistory();
+
+      renderResults();
+      section = document.getElementById('aiResultsSection');
       const examTotalMaxim = _slotDefs.reduce((s, sl) => s + (sl.points || 0), 0);
-      section.innerHTML = renderAiResultsHTML(results, examTotalMaxim, images);
-      if (window.renderMathInElement) {
-        renderMathInElement(section, {
-          delimiters: [
-            { left: '$$', right: '$$', display: true },
-            { left: '$',  right: '$',  display: false },
-            { left: '\\(', right: '\\)', display: false }
-          ],
-          throwOnError: false
-        });
+      if (section) {
+        section.innerHTML = renderAiResultsHTML(results, examTotalMaxim, images);
+        if (window.renderMathInElement) {
+          renderMathInElement(section, {
+            delimiters: [
+              { left: '$$', right: '$$', display: true },
+              { left: '$',  right: '$',  display: false },
+              { left: '\\(', right: '\\)', display: false }
+            ],
+            throwOnError: false
+          });
+        }
       }
 
-      // Success path was leaving the button stuck on "Se evaluează…" forever —
-      // re-enable it so the student can re-run after updating their work.
-      btn.disabled    = false;
-      btn.textContent = 'Reevaluează';
-
     } catch (e) {
-      section.innerHTML = `
-        <div class="ai-error">
-          <strong>Evaluarea AI a eșuat.</strong><br>${BM.esc(e.message)}
-        </div>`;
-      btn.disabled    = false;
-      btn.textContent = 'Reîncearcă';
+      renderResults('error');
+      section = document.getElementById('aiResultsSection');
+      if (section) {
+        section.innerHTML = `
+          <div class="ai-error">
+            <strong>Evaluarea AI a eșuat.</strong><br>${BM.esc(e.message)}
+          </div>
+          <div style="text-align:center;margin-top:14px">
+            <button class="btn btn--ai" onclick="verifyExam()">Reîncearcă</button>
+          </div>`;
+      }
     }
-  };
+  }
+  window.verifyExam = _runAiVerification;
 
   window.newSimulation = function () {
     if (!confirm('Ești sigur că vrei să începi o simulare nouă? Rezultatele curente vor fi șterse.')) return;
@@ -1738,8 +1659,7 @@
           usedSubcat:      item.usedSubcat,
           score:           item.score,
           work:            item.work || '',
-          flagged:         item.flagged || false,
-          confirmedAnswer: item.confirmedAnswer !== undefined ? item.confirmedAnswer : null
+          flagged:         item.flagged || false
         }))
       };
       sessionStorage.setItem('bac-exam', JSON.stringify(payload));
@@ -1755,8 +1675,7 @@
       saved.slots = saved.slots.map(item => ({
         ...item,
         exercise:        item.exerciseId ? (BM.EXERCISES.find(e => e.id === item.exerciseId) || null) : null,
-        flagged:         item.flagged || false,
-        confirmedAnswer: item.confirmedAnswer !== undefined ? item.confirmedAnswer : null
+        flagged:         item.flagged || false
       }));
       return saved;
     } catch (e) { return null; }

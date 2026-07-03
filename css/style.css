@@ -5569,6 +5569,15 @@ body.bac-exam-mode .nav.nav--peek {
   margin-bottom: 14px;
   text-shadow: 0 6px 30px color-mix(in srgb, currentColor 35%, transparent);
 }
+.res-hero__grade--pending {
+  letter-spacing: normal;
+  color: var(--text);
+  animation: res-hero-pulse 1.6s ease-in-out infinite;
+}
+@keyframes res-hero-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%      { opacity: 1; }
+}
 .res-hero__label {
   display: inline-flex;
   align-items: center;
@@ -10629,9 +10638,108 @@ body.bac-exam-mode .nav.nav--peek {
   width: 100%;
   flex: 1;
   min-height: 420px;
-  overflow: hidden;
+  /* auto (not hidden): zoom grows the canvas past this box's own size, and
+     this is also what _getScrollParent() latches onto to pan via 2-finger drag. */
+  overflow: auto;
   line-height: 0; /* prevent phantom space below canvas */
 }
+
+/* ---- Zoom controls ---- */
+.dc-zoom-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 38px;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+  user-select: none;
+}
+.dc-action-btn:disabled { opacity: 0.35; cursor: default; }
+.dc-action-btn:disabled:hover { background: transparent; color: var(--text-secondary); }
+
+/* ---- Fullscreen canvas toggle ---- */
+.dc-action-btn--active { background: var(--accent); color: #fff; border-color: transparent; }
+.dc-action-btn--active:hover { background: var(--accent-2); color: #fff; }
+.dc-icon-collapse { display: none; }
+#dc-maximize-btn.dc-action-btn--active .dc-icon-expand   { display: none; }
+#dc-maximize-btn.dc-action-btn--active .dc-icon-collapse { display: block; }
+
+.dc-wrap--maximized {
+  position: fixed;
+  inset: 0;
+  z-index: 5000;
+  background: var(--bg);
+  border-radius: 0;
+}
+.dc-wrap--maximized .dc-canvas-wrap {
+  min-height: 0; /* the fixed-position wrap already fills the viewport */
+}
+
+/* ---- Mini exercise card shown top-right while the canvas is fullscreen ---- */
+.dc-mini-exercise {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  z-index: 5001;
+  width: min(360px, calc(100vw - 32px));
+  max-height: 46vh;
+  overflow-y: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 36px rgba(0,0,0,0.22);
+  padding: 14px 16px;
+}
+.dc-mini-exercise.collapsed { padding: 8px; width: auto; max-height: none; overflow: visible; }
+.dc-mini-exercise.collapsed .dc-mini-exercise__body { display: none; }
+.dc-mini-exercise__toggle {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+.dc-mini-exercise.collapsed .dc-mini-exercise__toggle { position: static; }
+.dc-mini-exercise__toggle:hover { background: var(--card-hover); color: var(--text); }
+.dc-mini-exercise__title {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 26px 8px 0;
+  line-height: 1.3;
+}
+.dc-mini-exercise__statement {
+  font-size: 0.78rem;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+
+/* ---- Floating timer shown while the canvas is fullscreen ---- */
+.dc-float-timer {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  z-index: 5001;
+  padding: 8px 16px;
+  border-radius: 20px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+  font-weight: 700;
+  font-size: 1rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 1.5px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.22);
+}
+.dc-float-timer.warning { background: rgba(251,191,36,0.18); color: #b45309; border-color: rgba(251,191,36,0.6); }
+.dc-float-timer.danger  { background: rgba(248,113,113,0.18); color: #dc2626; border-color: rgba(248,113,113,0.6); }
 
 .dc-grid-canvas,
 .dc-draw-canvas {

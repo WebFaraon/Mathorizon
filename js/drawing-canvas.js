@@ -53,7 +53,30 @@
       </button>
       <span class="dc-mode-badge" role="status">Mod stilou activ — doar pixul digital este acceptat</span>
     </div>
+    <div class="dc-tool-group">
+      <button class="dc-action-btn" id="dc-zoomout-btn" title="Micșorează">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>
+        </svg>
+      </button>
+      <span class="dc-zoom-label" id="dc-zoom-label">100%</span>
+      <button class="dc-action-btn" id="dc-zoomin-btn" title="Mărește">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>
+        </svg>
+      </button>
+    </div>
     <div class="dc-tool-group dc-tool-group--right">
+      <button class="dc-action-btn" id="dc-maximize-btn" title="Ecran complet pentru canvas">
+        <svg class="dc-icon-expand" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/>
+          <path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>
+        </svg>
+        <svg class="dc-icon-collapse" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M8 3v3a2 2 0 0 1-2 2H3"/><path d="M21 8h-3a2 2 0 0 1-2-2V3"/>
+          <path d="M3 16h3a2 2 0 0 1 2 2v3"/><path d="M16 21v-3a2 2 0 0 1 2-2h3"/>
+        </svg>
+      </button>
       <button class="dc-action-btn" id="dc-undo-btn" title="Anulează (Ctrl+Z)">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M3 7v6h6"/>
@@ -71,22 +94,35 @@
     </div>
   `;
 
+  var MIN_ZOOM = 1;
+  var MAX_ZOOM = 2;
+  var ZOOM_STEP = 0.25;
+
   function DrawingCanvas(container, options) {
     options = options || {};
     this._container  = container;
     this._onSave     = options.onSave  || null;
     this._initialData = options.initialData || null;
+    this._onMaximizeChange = options.onMaximizeChange || null;
 
     this._tool        = 'pen';
     this._inputMode   = this._loadInputMode(); // 'any' (default) | 'pen'
     this._color       = '#1a1a1a';
     this._strokeWidth = 2;
-    this._undoStack   = [];
-    this._maxUndo     = 40;
+    // Strokes are kept as vector data (points, not pixels) so resizing the
+    // canvas (e.g. collapsing/expanding the exam sidebar) can redraw them at
+    // the new size instead of cropping a raster snapshot to the old bounds.
+    this._strokes        = [];
+    this._currentStroke  = null;
+    this._bgImage        = null; // raster image loaded from a previous session (item.work)
+    this._bgImageCssW    = 0;
+    this._bgImageCssH    = 0;
     this._isDrawing   = false;
     this._points      = [];
-    this._pointers    = {};    // active touch pointers → { y } for scroll gestures
+    this._pointers    = {};    // active touch pointers → { x, y } for scroll/pan gestures
     this._scrolling   = false; // true while a finger/two-finger scroll is in progress
+    this._zoom        = 1;     // bounded [MIN_ZOOM, MAX_ZOOM] — grows the raster, not a CSS scale
+    this._maximized   = false;
     this._saveTimer   = null;
     this._resizeTimer = null;
     this._destroyed   = false;
@@ -158,15 +194,13 @@
   DrawingCanvas.prototype._resize = function () {
     if (this._destroyed) return;
 
-    var w   = this._canvasWrap.offsetWidth  || 800;
-    var h   = Math.max(600, this._canvasWrap.offsetHeight || 600);
+    // The container's own box never grows with zoom — only the canvases
+    // inside it do, via .dc-canvas-wrap's overflow:auto (scroll to pan).
+    var baseW = this._canvasWrap.offsetWidth  || 800;
+    var baseH = Math.max(600, this._canvasWrap.offsetHeight || 600);
+    var w   = Math.round(baseW * this._zoom);
+    var h   = Math.round(baseH * this._zoom);
     var dpr = window.devicePixelRatio || 1;
-
-    // Snapshot current drawing before resizing
-    var snap = null;
-    if (this._canvas.width > 0 && this._canvas.height > 0 && this._width) {
-      snap = this._ctx.getImageData(0, 0, this._canvas.width, this._canvas.height);
-    }
 
     var setSize = function (canvas, ctx) {
       canvas.width  = w * dpr;
@@ -184,9 +218,64 @@
     this._dpr    = dpr;
 
     this._drawGrid();
+    // Setting canvas.width/height above wipes the bitmap — rebuild it from
+    // vector stroke data instead of a raster snapshot, so content that was
+    // outside the previous (narrower) bounds isn't cropped away for good.
+    this._redrawAll();
+  };
 
-    if (snap) {
-      this._ctx.putImageData(snap, 0, 0);
+  // Replays the loaded background image (if any) plus every recorded stroke
+  // onto the current canvas. Called after every resize and after undo/clear
+  // so the visible bitmap always matches the vector source of truth.
+  DrawingCanvas.prototype._redrawAll = function () {
+    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    if (this._bgImage) {
+      this._ctx.drawImage(this._bgImage, 0, 0, this._bgImageCssW, this._bgImageCssH);
+    }
+    for (var i = 0; i < this._strokes.length; i++) {
+      this._drawStroke(this._strokes[i]);
+    }
+  };
+
+  DrawingCanvas.prototype._drawStroke = function (stroke) {
+    var pts = stroke.points;
+    var n   = pts.length;
+    if (n === 0) return;
+
+    if (stroke.type === 'eraser') {
+      var r = stroke.width * 5;
+      for (var i = 0; i < n; i++) {
+        this._ctx.clearRect(pts[i].x - r, pts[i].y - r, r * 2, r * 2);
+      }
+      return;
+    }
+
+    var ctx = this._ctx;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+    ctx.strokeStyle = stroke.color;
+    ctx.globalCompositeOperation = 'source-over';
+
+    if (n === 2) {
+      ctx.lineWidth = stroke.width * (0.6 + pts[1].pressure * 1.2);
+      ctx.beginPath();
+      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.lineTo(pts[1].x, pts[1].y);
+      ctx.stroke();
+      return;
+    }
+
+    // Same midpoint-smoothing used for live rendering, replayed for the
+    // whole stroke so the redrawn shape matches what was originally drawn.
+    for (var j = 2; j < n; j++) {
+      var p0 = pts[j - 2], p1 = pts[j - 1], p2 = pts[j];
+      var mx1 = (p0.x + p1.x) / 2, my1 = (p0.y + p1.y) / 2;
+      var mx2 = (p1.x + p2.x) / 2, my2 = (p1.y + p2.y) / 2;
+      ctx.lineWidth = stroke.width * (0.6 + p2.pressure * 1.2);
+      ctx.beginPath();
+      ctx.moveTo(mx1, my1);
+      ctx.quadraticCurveTo(p1.x, p1.y, mx2, my2);
+      ctx.stroke();
     }
   };
 
@@ -232,12 +321,15 @@
 
     // Toolbar clicks
     this._toolbar.addEventListener('click', function (e) {
-      var toolBtn   = e.target.closest('[data-tool]');
-      var colorBtn  = e.target.closest('[data-color]');
-      var widthBtn  = e.target.closest('[data-width]');
-      var undoBtn   = e.target.closest('#dc-undo-btn');
-      var clearBtn  = e.target.closest('#dc-clear-btn');
-      var modeBtn   = e.target.closest('#dc-inputmode-btn');
+      var toolBtn    = e.target.closest('[data-tool]');
+      var colorBtn   = e.target.closest('[data-color]');
+      var widthBtn   = e.target.closest('[data-width]');
+      var undoBtn    = e.target.closest('#dc-undo-btn');
+      var clearBtn   = e.target.closest('#dc-clear-btn');
+      var modeBtn    = e.target.closest('#dc-inputmode-btn');
+      var zoomInBtn  = e.target.closest('#dc-zoomin-btn');
+      var zoomOutBtn = e.target.closest('#dc-zoomout-btn');
+      var maxBtn     = e.target.closest('#dc-maximize-btn');
 
       if (modeBtn)  self._toggleInputMode();
       else if (toolBtn)  self._setTool(toolBtn.dataset.tool);
@@ -245,6 +337,9 @@
       else if (widthBtn) self._setWidth(parseInt(widthBtn.dataset.width, 10));
       else if (undoBtn)  self._undo();
       else if (clearBtn) self._confirmClear();
+      else if (zoomInBtn)  self._setZoom(self._zoom + ZOOM_STEP);
+      else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
+      else if (maxBtn)     self._toggleMaximize();
     });
 
     // Canvas pointer events
@@ -263,6 +358,7 @@
       }
       if (e.key === 'p' || e.key === 'P') self._setTool('pen');
       if (e.key === 'e' || e.key === 'E') self._setTool('eraser');
+      if (e.key === 'Escape' && self._maximized) self._toggleMaximize();
     };
     window.addEventListener('keydown', this._keyHandler);
 
@@ -294,7 +390,7 @@
     if (e.pointerType === 'mouse' && e.button !== 0) return;
 
     if (e.pointerType === 'touch') {
-      this._pointers[e.pointerId] = { y: e.clientY };
+      this._pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
       // Scroll gestures: two fingers always scroll the page; in stylus-only
       // mode a single finger scrolls too (it can't draw anyway).
       if (this._touchCount() >= 2 || this._inputMode === 'pen') {
@@ -311,12 +407,19 @@
     e.preventDefault();
     this._canvas.setPointerCapture(e.pointerId);
 
-    this._saveState();
     this._isDrawing = true;
 
     var pos = this._getPos(e);
     this._points = [pos];
     this._lastPos = pos;
+    // _points is the same array referenced here, so later pushes to it
+    // during _onMove are automatically reflected in the recorded stroke.
+    this._currentStroke = {
+      type:   this._tool === 'eraser' ? 'eraser' : 'pen',
+      color:  this._color,
+      width:  this._strokeWidth,
+      points: this._points
+    };
 
     if (this._tool === 'pen') {
       var ctx = this._ctx;
@@ -328,11 +431,15 @@
   DrawingCanvas.prototype._onMove = function (e) {
     if (this._scrolling) {
       if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+        this._pointers[e.pointerId].x = e.clientX;
         this._pointers[e.pointerId].y = e.clientY;
       }
       e.preventDefault();
       if (this._scrollEl) {
-        this._scrollEl.scrollTop = this._scrollStartTop - (this._avgTouchY() - this._scrollStartY);
+        this._scrollEl.scrollTop  = this._scrollStartTop  - (this._avgTouchY() - this._scrollStartY);
+        // Horizontal pan only matters when zoomed in (canvas wider than its
+        // container) — at zoom 1 scrollLeft has nowhere to go, so this is a no-op.
+        this._scrollEl.scrollLeft = this._scrollStartLeft - (this._avgTouchX() - this._scrollStartX);
       }
       return;
     }
@@ -340,6 +447,7 @@
     // Keep the tracked finger position fresh so a two-finger scroll that starts
     // mid-stroke baselines from where the finger actually is (no jump).
     if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+      this._pointers[e.pointerId].x = e.clientX;
       this._pointers[e.pointerId].y = e.clientY;
     }
 
@@ -351,6 +459,7 @@
     if (this._tool === 'eraser') {
       var r = this._strokeWidth * 5;
       this._ctx.clearRect(pos.x - r, pos.y - r, r * 2, r * 2);
+      this._points.push(pos);
     } else {
       this._points.push(pos);
       this._renderStroke();
@@ -411,6 +520,14 @@
 
     if (!this._isDrawing) return;
     this._isDrawing = false;
+    // A tap with no movement (points.length === 1) never rendered anything
+    // live either — dropping it here keeps that behavior on redraw, and
+    // keeps isBlankStrokes() in bac.js correctly treating a stray tap as
+    // unanswered instead of leaving a stored dot to redraw later.
+    if (this._currentStroke && this._currentStroke.points.length > 1) {
+      this._strokes.push(this._currentStroke);
+    }
+    this._currentStroke = null;
     this._points    = [];
     this._scheduleSave();
   };
@@ -429,13 +546,21 @@
     return sum / ids.length;
   };
 
+  DrawingCanvas.prototype._avgTouchX = function () {
+    var ids = Object.keys(this._pointers);
+    if (!ids.length) return this._scrollStartX || 0;
+    var sum = 0;
+    for (var i = 0; i < ids.length; i++) sum += this._pointers[ids[i]].x;
+    return sum / ids.length;
+  };
+
   DrawingCanvas.prototype._getScrollParent = function (node) {
     var el = node.parentElement;
     while (el) {
-      var oy = getComputedStyle(el).overflowY;
-      if ((oy === 'auto' || oy === 'scroll' || oy === 'overlay') && el.scrollHeight > el.clientHeight) {
-        return el;
-      }
+      var cs = getComputedStyle(el);
+      var scrollableY = (cs.overflowY === 'auto' || cs.overflowY === 'scroll' || cs.overflowY === 'overlay') && el.scrollHeight > el.clientHeight;
+      var scrollableX = (cs.overflowX === 'auto' || cs.overflowX === 'scroll' || cs.overflowX === 'overlay') && el.scrollWidth  > el.clientWidth;
+      if (scrollableY || scrollableX) return el;
       el = el.parentElement;
     }
     // Fallback: the document scroller (works for full-page window scrolling).
@@ -443,8 +568,10 @@
   };
 
   DrawingCanvas.prototype._rebaselineScroll = function () {
-    this._scrollStartTop = this._scrollEl ? this._scrollEl.scrollTop : 0;
-    this._scrollStartY   = this._avgTouchY();
+    this._scrollStartTop  = this._scrollEl ? this._scrollEl.scrollTop  : 0;
+    this._scrollStartLeft = this._scrollEl ? this._scrollEl.scrollLeft : 0;
+    this._scrollStartY    = this._avgTouchY();
+    this._scrollStartX    = this._avgTouchX();
   };
 
   DrawingCanvas.prototype._beginScroll = function (e) {
@@ -459,28 +586,23 @@
     if (!this._isDrawing) return;
     this._isDrawing = false;
     this._points    = [];
-    // Undo the snapshot pushed in _onDown so the aborted stroke leaves no trace.
-    if (this._undoStack.length) {
-      this._ctx.putImageData(this._undoStack.pop(), 0, 0);
-    }
-  };
-
-  DrawingCanvas.prototype._saveState = function () {
-    var snap = this._ctx.getImageData(0, 0, this._canvas.width, this._canvas.height);
-    this._undoStack.push(snap);
-    if (this._undoStack.length > this._maxUndo) this._undoStack.shift();
+    // The in-progress stroke was never pushed to _strokes, so redrawing from
+    // the committed stroke list naturally leaves no trace of it.
+    this._currentStroke = null;
+    this._redrawAll();
   };
 
   DrawingCanvas.prototype._undo = function () {
-    if (this._undoStack.length === 0) return;
-    var snap = this._undoStack.pop();
-    this._ctx.putImageData(snap, 0, 0);
+    if (this._strokes.length === 0) return;
+    this._strokes.pop();
+    this._redrawAll();
     this._scheduleSave();
   };
 
   DrawingCanvas.prototype._confirmClear = function () {
     if (!confirm('Ștergi toate notițele? Acțiunea nu poate fi anulată.')) return;
-    this._undoStack = [];
+    this._strokes = [];
+    this._bgImage = null;
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     this._scheduleSave();
   };
@@ -506,6 +628,37 @@
     this._toolbar.querySelectorAll('[data-width]').forEach(function (btn) {
       btn.classList.toggle('dc-width-btn--active', parseInt(btn.dataset.width, 10) === w);
     });
+  };
+
+  /* ---- Zoom (grows the raster + scroll-to-pan; bounded, not infinite) ---- */
+
+  DrawingCanvas.prototype._setZoom = function (z) {
+    z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
+    if (z === this._zoom) return;
+    this._zoom = z;
+    var label = this._toolbar.querySelector('#dc-zoom-label');
+    if (label) label.textContent = Math.round(z * 100) + '%';
+    var zoomOutBtn = this._toolbar.querySelector('#dc-zoomout-btn');
+    var zoomInBtn  = this._toolbar.querySelector('#dc-zoomin-btn');
+    if (zoomOutBtn) zoomOutBtn.disabled = z <= MIN_ZOOM;
+    if (zoomInBtn)  zoomInBtn.disabled  = z >= MAX_ZOOM;
+    this._resize();
+  };
+
+  /* ---- Fullscreen canvas mode ---- */
+
+  DrawingCanvas.prototype._toggleMaximize = function () {
+    this._maximized = !this._maximized;
+    this._wrap.classList.toggle('dc-wrap--maximized', this._maximized);
+    var btn = this._toolbar.querySelector('#dc-maximize-btn');
+    if (btn) {
+      btn.title = this._maximized ? 'Ieși din ecran complet (Esc)' : 'Ecran complet pentru canvas';
+      btn.classList.toggle('dc-action-btn--active', this._maximized);
+    }
+    if (this._onMaximizeChange) this._onMaximizeChange(this._maximized);
+    // Let the layout settle (position:fixed swap) before measuring/redrawing.
+    var self = this;
+    requestAnimationFrame(function () { self._resize(); });
   };
 
   /* ---- Input mode (stylus-only vs. any input) ---- */
@@ -571,9 +724,12 @@
       // the original CSS dimensions. Drawing at these CSS coords with scale(dpr,dpr)
       // active maps 1:1 to physical pixels — no squishing even if the canvas was
       // resized between saves.
-      var cssW = img.naturalWidth  / dpr;
-      var cssH = img.naturalHeight / dpr;
-      self._ctx.drawImage(img, 0, 0, cssW, cssH);
+      // Kept as the base layer (not baked into a stroke) so later resizes can
+      // redraw it via _redrawAll() instead of relying on a one-time paint.
+      self._bgImage     = img;
+      self._bgImageCssW = img.naturalWidth  / dpr;
+      self._bgImageCssH = img.naturalHeight / dpr;
+      self._redrawAll();
     };
     img.src = dataUrl;
   };
@@ -634,6 +790,9 @@
 
   DrawingCanvas.prototype.destroy = function () {
     this._destroyed = true;
+    // Navigating away while the canvas is fullscreen shouldn't leave the
+    // host page's mini-exercise overlay orphaned.
+    if (this._maximized && this._onMaximizeChange) this._onMaximizeChange(false);
     // Flush any unsaved stroke before teardown
     if (this._saveTimer && this._onSave) {
       clearTimeout(this._saveTimer);
