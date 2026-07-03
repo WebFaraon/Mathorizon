@@ -17,6 +17,9 @@
 </head>
 <body>
 
+  <!-- Hover zone: peeks the navbar back in during exam mode -->
+  <div class="bac-nav-hover-zone" id="navHoverZone"></div>
+
   <!-- NAVBAR -->
   <nav class="nav">
     <div class="nav__inner container">
@@ -428,7 +431,12 @@
   <div id="examView" style="display:none">
     <div class="bac-exam-wrap">
       <!-- Sidebar: item navigator -->
-      <aside class="bac-sidebar" id="itemNav"></aside>
+      <div class="bac-sidebar-wrap" id="sidebarWrap">
+        <aside class="bac-sidebar" id="itemNav"></aside>
+        <button class="bac-sidebar-toggle" id="sidebarToggle" onclick="BMBac.toggleSidebar()" title="Restrânge/extinde panoul" aria-label="Restrânge panoul lateral">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
+        </button>
+      </div>
 
       <!-- Main: current exercise -->
       <main class="bac-main">

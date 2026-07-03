@@ -237,6 +237,42 @@
     _enterFullscreen();
   };
 
+  /* ---- Sidebar collapse ---- */
+  const SIDEBAR_COLLAPSE_KEY = 'bac-sidebar-collapsed';
+
+  window.BMBac.toggleSidebar = function () {
+    const wrap = document.getElementById('sidebarWrap');
+    if (!wrap) return;
+    const collapsed = wrap.classList.toggle('collapsed');
+    try { localStorage.setItem(SIDEBAR_COLLAPSE_KEY, collapsed ? '1' : '0'); } catch (e) {}
+  };
+
+  function _restoreSidebarCollapsed() {
+    const wrap = document.getElementById('sidebarWrap');
+    if (!wrap) return;
+    let collapsed = false;
+    try { collapsed = localStorage.getItem(SIDEBAR_COLLAPSE_KEY) === '1'; } catch (e) {}
+    wrap.classList.toggle('collapsed', collapsed);
+  }
+
+  /* ---- Navbar auto-hide (exam mode) ---- */
+  function _initNavAutoHide() {
+    const nav  = document.querySelector('.nav');
+    const zone = document.getElementById('navHoverZone');
+    if (!nav || !zone || nav._bacAutoHideBound) return;
+    nav._bacAutoHideBound = true;
+    const show = () => nav.classList.add('nav--peek');
+    const hide = (e) => {
+      const to = e.relatedTarget;
+      if (to && (nav.contains(to) || to === zone)) return;
+      nav.classList.remove('nav--peek');
+    };
+    zone.addEventListener('mouseenter', show);
+    nav.addEventListener('mouseenter', show);
+    nav.addEventListener('mouseleave', hide);
+    zone.addEventListener('mouseleave', hide);
+  }
+
   function _terminateNoResults() {
     clearInterval(timerInterval);
     _navGuardOff();
@@ -667,6 +703,8 @@
   function showExamView() {
     showView('examView');
     updateNavbarForExam(true);
+    _restoreSidebarCollapsed();
+    _initNavAutoHide();
     renderNavigator();
     renderCurrentSlot();
   }
@@ -674,9 +712,13 @@
   function updateNavbarForExam(show) {
     const backBtn = document.getElementById('bacBackBtn');
     if (backBtn) backBtn.style.display = show ? 'none' : '';
+    document.body.classList.toggle('bac-exam-mode', show);
     if (show) {
       timerEl = document.getElementById('navTimer');
       BM.applyTheme && BM.applyTheme();
+    } else {
+      const nav = document.querySelector('.nav');
+      if (nav) nav.classList.remove('nav--peek');
     }
   }
 
@@ -727,6 +769,7 @@
              ${clickAttr} ${keyAttr}
              title="${slot.label} — ${slot.desc} (${slot.points}p)">
           <span class="bac-nav-item__status">${statusIcon}</span>
+          <span class="bac-nav-item__short">${slot.label.replace('Ex. ', '')}</span>
           <span class="bac-nav-item__label">${slot.label.replace('Ex. ', 'Item ')}</span>
           ${isCurrent
             ? '<span class="bac-nav-badge">\xCEn lucru</span>'

@@ -157,6 +157,30 @@ img { display: block; max-width: 100%; }
   overflow: visible;
 }
 
+/* ---- Auto-hide navbar during BAC exam ---- */
+.bac-nav-hover-zone {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 10px;
+  z-index: 321;
+}
+body.bac-exam-mode {
+  --nav-h: 0px;
+}
+body.bac-exam-mode .bac-nav-hover-zone {
+  display: block;
+}
+body.bac-exam-mode .nav {
+  transform: translateY(-100%);
+  transition: transform 0.3s ease;
+}
+body.bac-exam-mode .nav.nav--peek {
+  transform: translateY(0);
+}
+
 .nav__inner {
   display: flex;
   align-items: center;
@@ -4476,6 +4500,10 @@ img { display: block; max-width: 100%; }
   min-height: calc(100vh - var(--nav-h));
   align-items: flex-start;
 }
+.bac-sidebar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
 .bac-sidebar {
   width: 262px;
   flex-shrink: 0;
@@ -4488,7 +4516,87 @@ img { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   animation: bac-slide-left 0.42s cubic-bezier(0.22,1,0.36,1) both;
+  transition: width 0.3s ease;
 }
+
+/* ---- Sidebar collapse toggle ---- */
+.bac-sidebar-toggle {
+  position: absolute;
+  top: 50%;
+  right: -13px;
+  transform: translateY(-50%);
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 5;
+  box-shadow: var(--shadow-sm);
+  transition: background 0.15s ease, color 0.15s ease, right 0.3s ease;
+}
+.bac-sidebar-toggle:hover { background: var(--card-hover); color: var(--accent); border-color: var(--accent); }
+.bac-sidebar-toggle svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
+.bac-sidebar-wrap.collapsed .bac-sidebar-toggle svg { transform: rotate(180deg); }
+
+/* ---- Sidebar collapsed state ---- */
+.bac-sidebar-wrap.collapsed .bac-sidebar { width: 60px; }
+.bac-sidebar-wrap.collapsed .bac-sidebar__exam-title,
+.bac-sidebar-wrap.collapsed .bac-sidebar__stats-grid,
+.bac-sidebar-wrap.collapsed .bac-sidebar__progress-row,
+.bac-sidebar-wrap.collapsed .bac-sidebar__track,
+.bac-sidebar-wrap.collapsed .bac-sidebar__motiv,
+.bac-sidebar-wrap.collapsed .bac-sidebar__section-label { display: none; }
+.bac-sidebar-wrap.collapsed .bac-sidebar__header { padding: 10px 6px; }
+.bac-sidebar-wrap.collapsed .bac-sidebar__nav {
+  flex-direction: row;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 8px 6px;
+  gap: 6px;
+}
+.bac-sidebar-wrap.collapsed .bac-nav-item {
+  position: relative;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  gap: 0;
+  justify-content: center;
+  border-left-width: 1px;
+}
+.bac-sidebar-wrap.collapsed .bac-nav-item__status,
+.bac-sidebar-wrap.collapsed .bac-nav-item__pts,
+.bac-sidebar-wrap.collapsed .bac-nav-item__label,
+.bac-sidebar-wrap.collapsed .bac-nav-badge,
+.bac-sidebar-wrap.collapsed .bac-nav-flag { display: none; }
+.bac-sidebar-wrap.collapsed .bac-nav-item__short {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.bac-sidebar-wrap.collapsed .bac-nav-item.current { background: var(--accent); border-color: var(--accent); }
+.bac-sidebar-wrap.collapsed .bac-nav-item.current .bac-nav-item__short { color: #fff; }
+.bac-sidebar-wrap.collapsed .bac-nav-item.done .bac-nav-item__short { color: var(--solved); }
+.bac-sidebar-wrap.collapsed .bac-nav-item.done::after,
+.bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after {
+  content: '';
+  position: absolute;
+  top: 3px;
+  right: 3px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+.bac-sidebar-wrap.collapsed .bac-nav-item.done::after    { background: var(--solved); }
+.bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after { background: #f59e0b; }
+/* flagged+done: show flag color (takes priority) */
+.bac-sidebar-wrap.collapsed .bac-nav-item.done.flagged::after { background: #f59e0b; }
+.bac-nav-item__short { display: none; }
 .bac-sidebar__header {
   flex-shrink: 0;
   padding: 12px 12px 12px;
@@ -4619,7 +4727,19 @@ img { display: block; max-width: 100%; }
   /* allow card box-shadows to show near the edges */
   padding-right: 4px;
   margin-right: -4px;
+  display: flex;
+  flex-direction: column;
 }
+/* Exercise statement stays compact; the canvas card grows to fill
+   whatever vertical space the collapsed sidebar / hidden navbar free up. */
+#slotContent > .bac-exercise-card { flex-shrink: 0; }
+#slotContent > .bac-notes-card:has(.dc-wrap) {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 420px;
+}
+#slotContent > .bac-answer-card { flex-shrink: 0; }
 .bac-exam-topbar {
   flex-shrink: 0;
   display: flex;
@@ -4857,6 +4977,7 @@ img { display: block; max-width: 100%; }
 .bac-notes-card.collapsed .bac-notes-toggle { transform: rotate(-90deg); }
 .bac-notes-body  { padding: 14px 16px; background: var(--surface); }
 .bac-notes-card.collapsed .bac-notes-body { display: none; }
+.bac-notes-card:has(.dc-wrap) .bac-notes-body--canvas { flex: 1; display: flex; }
 .bac-notes-body .bac-work-textarea {
   background: var(--card);
   min-height: 120px;
@@ -5689,7 +5810,11 @@ img { display: block; max-width: 100%; }
   .bac-nav-item__pts { font-size: 0.64rem; }
   .bac-topbar-controls .bac-timer { min-width: auto; }
   .bac-main { padding: 16px 16px 0; height: auto; overflow: visible; animation: none; }
-  #slotContent { flex: none; overflow-y: visible; padding-right: 0; margin-right: 0; }
+  #slotContent { flex: none; overflow-y: visible; padding-right: 0; margin-right: 0; display: block; }
+  #slotContent > .bac-notes-card:has(.dc-wrap) { flex: none; min-height: 0; }
+  .bac-sidebar-toggle { display: none; }
+  .bac-sidebar-wrap.collapsed .bac-sidebar { width: 100%; }
+  .dc-canvas-wrap { min-height: 65vh; flex: none; }
   .bac-slot-nav { margin-top: 16px; padding-bottom: 36px; }
   .bac-exam-topbar { margin-bottom: 14px; padding-bottom: 14px; }
   .bac-topbar-controls { gap: 6px; }
@@ -10285,6 +10410,8 @@ img { display: block; max-width: 100%; }
   display: flex;
   flex-direction: column;
   width: 100%;
+  flex: 1;
+  min-height: 0;
   user-select: none;
   -webkit-user-select: none;
 }
@@ -10499,7 +10626,8 @@ img { display: block; max-width: 100%; }
 .dc-canvas-wrap {
   position: relative;
   width: 100%;
-  min-height: 600px;
+  flex: 1;
+  min-height: 420px;
   overflow: hidden;
   line-height: 0; /* prevent phantom space below canvas */
 }
