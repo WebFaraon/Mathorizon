@@ -316,7 +316,7 @@
 
       ${r.duplicat?.este_duplicat ? `
       <div style="padding:12px 14px;border:1px solid #f59e0b;border-radius:10px;background:rgba(245,158,11,0.08);color:#f59e0b;margin-bottom:16px;font-size:0.88rem">
-        ⚠️ Posibil duplicat al exercițiului existent „${BM.esc(r.duplicat.titlu_similar || '')}" din acest subcapitol. ${BM.esc(r.duplicat.motiv || '')} Verifică înainte de a confirma.
+        ⚠️ Posibil duplicat al exercițiului „${BM.esc(r.duplicat.titlu_similar || '')}". Verifică înainte de a confirma.
       </div>` : ''}
 
       <h3 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px">${BM.esc(r.titlu || '(fără titlu)')}</h3>
