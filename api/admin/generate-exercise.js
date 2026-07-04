@@ -29,17 +29,23 @@ async function requireAdmin(accessToken) {
 }
 
 function buildPrompt(context) {
-  const { grade, categoryName, subcategoryName, difficulty } = context;
+  const { grade, categoryName, subcategoryName, difficulty, punctajTotal } = context;
+  const totalBlock = punctajTotal
+    ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
+    : `Estimează punctajul total ca într-un barem oficial BAC Moldova.`;
+
   return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Mathorizon (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
+
+${totalBlock}
 
 Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar):
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
   "raspuns_final": "răspunsul final (LaTeX)",
-  "punctaj_total": 7,
+  "punctaj_total": ${punctajTotal || 7},
   "pasi_barem": [
     { "nr": 1, "descriere": "ce trebuie demonstrat/calculat la acest pas", "operatie_katex": "calculul propriu-zis, LaTeX", "puncte_maxime": 3, "puncte_partiale": false, "nota_evaluare": "ce trebuie verificat strict la acest pas" }
   ],

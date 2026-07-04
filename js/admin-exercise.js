@@ -31,7 +31,7 @@
   function openAddExerciseModal() {
     ae = {
       step: 1,
-      grade: '', categoryId: '', subcategoryId: '', difficulty: '',
+      grade: '', categoryId: '', subcategoryId: '', difficulty: '', punctajTotal: '',
       file: null, mimeType: '', imageBase64: '', previewUrl: '',
       aiResult: null
     };
@@ -42,6 +42,72 @@
   document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('openAddExerciseBtn')?.addEventListener('click', openAddExerciseModal);
   });
+
+  /* ---- Custom select (replaces native <select> — matches classes-page.js's .cls-csel) ---- */
+  function _makeCustomSelect(sel) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cls-csel';
+
+    const trigger = document.createElement('div');
+    trigger.className = 'cls-csel__trigger';
+
+    const display = document.createElement('span');
+    display.className = 'cls-csel__display';
+    const selectedOpt = sel.options[sel.selectedIndex] || sel.options[0];
+    display.textContent = selectedOpt?.text || '';
+    if (selectedOpt?.value) display.setAttribute('data-has-value', '');
+
+    const arrow = document.createElement('span');
+    arrow.className = 'cls-csel__arrow';
+    arrow.innerHTML = `<svg width="11" height="7" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>`;
+
+    trigger.appendChild(display);
+    trigger.appendChild(arrow);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'cls-csel__dropdown';
+
+    [...sel.options].forEach(opt => {
+      const item = document.createElement('div');
+      item.className = 'cls-csel__option' + (!opt.value ? ' cls-csel__option--placeholder' : '');
+      if (opt.value && opt.value === sel.value) item.classList.add('cls-csel__option--sel');
+      item.dataset.value = opt.value;
+      item.textContent = opt.text;
+      item.addEventListener('click', e => {
+        e.stopPropagation();
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        display.textContent = opt.text;
+        if (opt.value) display.setAttribute('data-has-value', ''); else display.removeAttribute('data-has-value');
+        dropdown.querySelectorAll('.cls-csel__option--sel').forEach(el => el.classList.remove('cls-csel__option--sel'));
+        if (opt.value) item.classList.add('cls-csel__option--sel');
+        _closeAllCsels();
+      });
+      dropdown.appendChild(item);
+    });
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(dropdown);
+
+    trigger.addEventListener('click', e => {
+      e.stopPropagation();
+      const wasOpen = wrapper.classList.contains('cls-csel--open');
+      _closeAllCsels();
+      if (!wasOpen) wrapper.classList.add('cls-csel--open');
+    });
+
+    sel.style.display = 'none';
+    sel.parentNode.insertBefore(wrapper, sel);
+  }
+
+  function _closeAllCsels() {
+    document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
+  }
+  document.addEventListener('click', _closeAllCsels);
+
+  function _aeInitCustomSelects(body) {
+    body.querySelectorAll('.cls-form-select').forEach(sel => _makeCustomSelect(sel));
+  }
 
   /* ---- Modal shell ---- */
   function _aeShowModal() {
@@ -119,44 +185,53 @@
     return `
       <div class="cls-form-field">
         <label class="cls-form-label">Clasă *</label>
-        <select id="aeGrade" class="cls-form-input">
+        <select id="aeGrade" class="cls-form-input cls-form-select">
           <option value="">Alege clasa…</option>
           ${GRADES.map(g => `<option value="${g.id}" ${ae.grade === g.id ? 'selected' : ''}>${g.label}</option>`).join('')}
         </select>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Capitol *</label>
-        <select id="aeCategory" class="cls-form-input">
+        <select id="aeCategory" class="cls-form-input cls-form-select">
           <option value="">Alege capitolul…</option>
           ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${ae.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
         </select>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Subcapitol *</label>
-        <select id="aeSubcategory" class="cls-form-input" ${!cat ? 'disabled' : ''}>
+        <select id="aeSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
           <option value="">${cat ? 'Alege subcapitolul…' : 'Alege mai întâi capitolul'}</option>
           ${subs.map(s => `<option value="${s.id}" ${ae.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
         </select>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Dificultate *</label>
-        <select id="aeDifficulty" class="cls-form-input">
+        <select id="aeDifficulty" class="cls-form-input cls-form-select">
           <option value="">Alege dificultatea…</option>
           ${DIFFICULTIES.map(d => `<option value="${d.id}" ${ae.difficulty === d.id ? 'selected' : ''}>${d.label}</option>`).join('')}
         </select>
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Punctaj total exercițiu *</label>
+        <input type="number" min="1" id="aePunctajTotalStep1" class="cls-form-input" style="max-width:120px"
+               placeholder="ex: 5" value="${BM.esc(ae.punctajTotal || '')}">
+        <span class="cls-form-hint">Punctajul oficial al exercițiului — AI-ul va construi baremul să însumeze exact atât.</span>
       </div>`;
   }
 
   function _aeBindStep1(body) {
-    body.querySelector('#aeGrade').onchange       = e => { ae.grade = e.target.value; };
-    body.querySelector('#aeDifficulty').onchange  = e => { ae.difficulty = e.target.value; };
-    body.querySelector('#aeSubcategory').onchange = e => { ae.subcategoryId = e.target.value; };
+    body.querySelector('#aeGrade').onchange              = e => { ae.grade = e.target.value; };
+    body.querySelector('#aeDifficulty').onchange         = e => { ae.difficulty = e.target.value; };
+    body.querySelector('#aeSubcategory').onchange        = e => { ae.subcategoryId = e.target.value; };
+    body.querySelector('#aePunctajTotalStep1').oninput   = e => { ae.punctajTotal = e.target.value; };
     body.querySelector('#aeCategory').onchange = e => {
       ae.categoryId = e.target.value;
       ae.subcategoryId = '';
       body.innerHTML = _aeStep1();
       _aeBindStep1(body);
+      _aeInitCustomSelects(body);
     };
+    _aeInitCustomSelects(body);
   }
 
   /* ---- Step 2 — Fotografie ---- */
@@ -373,7 +448,7 @@
 
   async function _aeNext() {
     if (ae.step === 1) {
-      if (!ae.grade || !ae.categoryId || !ae.subcategoryId || !ae.difficulty) {
+      if (!ae.grade || !ae.categoryId || !ae.subcategoryId || !ae.difficulty || !Number(ae.punctajTotal)) {
         BM.toast('Completează toate câmpurile.', 'error'); return;
       }
       ae.step = 2; _aeRender(); return;
@@ -418,14 +493,15 @@
             grade: ae.grade,
             categoryId: ae.categoryId, categoryName: cat?.name || ae.categoryId,
             subcategoryId: ae.subcategoryId, subcategoryName: sub?.name || ae.subcategoryId,
-            difficulty: ae.difficulty
+            difficulty: ae.difficulty,
+            punctajTotal: Number(ae.punctajTotal) || undefined
           }
         })
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Eroare AI');
 
-      ae.aiResult = Object.assign(_blankAiResult(), data);
+      ae.aiResult = Object.assign(_blankAiResult(), data, { punctaj_total: Number(ae.punctajTotal) || data.punctaj_total });
       ae.step = 3;
       _aeRender();
     } catch (e) {
