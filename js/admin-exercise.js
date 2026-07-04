@@ -139,7 +139,10 @@
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
 
-    modal.querySelector('#aeBackdrop').onclick = _aeClose;
+    // Deliberately NOT wired to close on backdrop click — a stray click
+    // outside the dialog must not discard an in-progress exercise (a Gemini
+    // call may already have been spent on it). Only the explicit ✕ button
+    // (or a successful save) closes the wizard.
     modal.querySelector('#aeCloseBtn').onclick  = _aeClose;
     modal.querySelector('#aeBackBtn').onclick   = _aeBack;
     modal.querySelector('#aeNextBtn').onclick   = _aeNext;
