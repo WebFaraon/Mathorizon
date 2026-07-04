@@ -11242,7 +11242,11 @@ body.dc-fullscreen-active .dc-wrap {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 24px;
-  align-items: start;
+  /* stretch (not start): Free and Premium should match each other's height
+     regardless of feature-list length — only Standard stands out, and that's
+     done with a pure transform below so it doesn't change the grid's row
+     height (transforms are visual-only, they don't affect layout sizing). */
+  align-items: stretch;
   max-width: 1080px;
   margin: 0 auto;
 }
@@ -11267,11 +11271,11 @@ body.dc-fullscreen-active .dc-wrap {
 .pricing-card--featured {
   border-color: var(--accent);
   box-shadow: 0 0 0 4px var(--accent-dim), var(--shadow);
-  transform: scale(1.035);
+  transform: translateY(-14px) scale(1.035);
   z-index: 1;
 }
 .pricing-card--featured:hover {
-  transform: scale(1.035) translateY(-4px);
+  transform: translateY(-18px) scale(1.035);
 }
 
 .pricing-card__badge {
@@ -11372,21 +11376,6 @@ body.dc-fullscreen-active .dc-wrap {
   color: var(--text-muted);
   border: 1px solid var(--border);
   font-size: 0.62rem;
-}
-
-.pricing-soon-badge {
-  display: inline-block;
-  font-size: 0.6rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  color: var(--yellow);
-  background: var(--yellow-dim);
-  border: 1px solid var(--yellow-border);
-  border-radius: 10px;
-  padding: 1px 7px;
-  margin-left: 4px;
-  vertical-align: middle;
 }
 
 .pricing-card__cta { margin-top: auto; }

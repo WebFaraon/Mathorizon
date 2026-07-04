@@ -408,10 +408,18 @@
     };
     document.getElementById('btnLogout')?.addEventListener('click', _doLogout);
 
-    document.getElementById('btnClearHist')?.addEventListener('click', () => {
+    document.getElementById('btnClearHist')?.addEventListener('click', async () => {
       if (!confirm('Ștergi tot istoricul de simulări BAC?')) return;
-      localStorage.removeItem(HIST_KEY);
-      window.location.reload();
+      try {
+        // Must finish before reload — the page re-syncs 'bac-history' from
+        // the DB on load, so a not-yet-deleted row there would just get
+        // pulled back into localStorage, undoing the clear.
+        if (window.BMAuth?.clearBacHistory) await BMAuth.clearBacHistory();
+        localStorage.removeItem(HIST_KEY);
+        window.location.reload();
+      } catch (e) {
+        BM.toast('Ștergerea istoricului a eșuat. Încearcă din nou.', 'error');
+      }
     });
 
     /* Avatar upload — Supabase Storage */

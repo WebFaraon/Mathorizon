@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node -e ' *)",
+      "Bash(node --check d:/SomeMath/js/profile-page.js)"
+    ]
+  }
+}

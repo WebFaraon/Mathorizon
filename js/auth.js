@@ -392,6 +392,17 @@
         }),
         headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
       }).catch(() => {});
+    },
+    // Deletes every bac_simulations row for this user. Returns a promise so
+    // the caller can await it before reloading — _syncProgress() (above)
+    // treats the DB as the source of truth and repopulates localStorage's
+    // 'bac-history' from it on every load, so clearing only the local copy
+    // without this made "Șterge tot istoricul" look like it did nothing.
+    clearBacHistory: () => {
+      if (!currentUser) return Promise.resolve();
+      return _dbFetch(`bac_simulations?user_id=eq.${currentUser.id}`, {
+        method: 'DELETE'
+      });
     }
   };
 
