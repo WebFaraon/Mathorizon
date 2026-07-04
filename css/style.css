@@ -1939,6 +1939,12 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
 }
 
+.type-badge--custom {
+  background: var(--yellow-dim);
+  color: var(--yellow);
+  border-color: var(--yellow-border);
+}
+
 .ex-card__title {
   font-size: 0.9rem;
   font-weight: 600;

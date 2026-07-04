@@ -19,7 +19,10 @@
       "Bash(netstat -ano)",
       "PowerShell(Stop-Process -Id 12416 -Force -ErrorAction SilentlyContinue)",
       "PowerShell(Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue)",
-      "PowerShell(Stop-Process -Id 26496 -Force)"
+      "PowerShell(Stop-Process -Id 26496 -Force)",
+      "Bash(node --check js/category.js)",
+      "Bash(node --check js/training.js)",
+      "Bash(node --check js/app.js)"
     ]
   }
 }

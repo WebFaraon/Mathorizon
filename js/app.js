@@ -240,7 +240,7 @@
             ${cat?.symbol || '?'}
           </span>
           <div class="sri-text">
-            <div class="sri-title">${BM.esc(ex.title)}</div>
+            <div class="sri-title">${BM.esc(ex.title)}${ex._custom ? ' <span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨</span>' : ''}</div>
             <div class="sri-cat">${BM.esc(cat?.name || '')} · ${BM.esc(sub?.name || ex.subcategoryId)}</div>
           </div>
           <div class="sri-diff">${BM.diffBadge(ex.difficulty)}</div>

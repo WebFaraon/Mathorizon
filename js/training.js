@@ -166,6 +166,7 @@
             <div class="ex-card__meta">
               ${BM.diffBadge(ex.difficulty)}
               <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+              ${ex._custom ? '<span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨ Adăugat</span>' : ''}
               <span class="source-text">${BM.esc(ex.source)}</span>
               ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
             </div>
