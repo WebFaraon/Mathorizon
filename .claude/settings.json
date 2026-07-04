@@ -14,7 +14,11 @@
       "Bash(curl -s -o /dev/null -w \"admin-exercise.js: %{http_code}\\\\n\" http://localhost:8080/js/admin-exercise.js)",
       "Bash(curl -s -X POST http://localhost:8080/api/admin/generate-exercise -H \"Content-Type: application/json\" -d '{\"accessToken\":\"bogus\"}')",
       "Bash(pkill -f \"node server.js\")",
-      "Bash(node -e \"require.resolve\\('playwright'\\)\")"
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")",
+      "Bash(pkill -9 -f \"node server.js\")",
+      "Bash(netstat -ano)",
+      "PowerShell(Stop-Process -Id 12416 -Force -ErrorAction SilentlyContinue)",
+      "PowerShell(Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue)"
     ]
   }
 }

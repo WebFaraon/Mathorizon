@@ -1,4 +1,6 @@
 'use strict';
+const fs = require('fs');
+const path = require('path');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 
 const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
@@ -11,6 +13,21 @@ const model  = genAI.getGenerativeModel({
 });
 
 const GRADE_LABELS = { '9': 'a IX-a', 'bac': 'a XII-a (BAC)' };
+
+// Real, hand-transcribed BAC Moldova baremuri (only calcul-algebric has these
+// today — see js/data.js) used as few-shot style examples so Gemini matches
+// the official granularity/phrasing for every chapter, not just this one.
+const OFFICIAL_EXAMPLES = JSON.parse(
+  fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'official-barem-examples.json'), 'utf8')
+);
+
+function buildExamplesBlock() {
+  return OFFICIAL_EXAMPLES.map((ex, i) => {
+    const pasi = ex.pasi.map(p => `   Pasul ${p.nr} (${p.puncte_maxime}p): ${p.descriere}`).join('\n');
+    return `${i + 1}. "${ex.titlu}" — enunț: ${ex.enunt.replace(/\n/g, ' ')} — total ${ex.punctaj_total}p\n${pasi}`;
+  }).join('\n\n');
+}
+const EXAMPLES_BLOCK = buildExamplesBlock();
 
 async function requireAdmin(accessToken) {
   if (!accessToken) throw new Error('missing accessToken');
@@ -40,14 +57,18 @@ Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inlin
 
 ${totalBlock}
 
-Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar):
+IATĂ ${OFFICIAL_EXAMPLES.length} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (transcrise manual din documente oficiale) — construiește baremul noului exercițiu EXACT în acest stil: fiecare pas combină explicația și calculul matematic într-un singur câmp "descriere" (nu le separa), punctajul se împarte pe pași de calcul logici, nu pe fiecare linie:
+
+${EXAMPLES_BLOCK}
+
+Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar), cu EXACT această structură (fără câmpuri suplimentare):
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
-  "raspuns_final": "răspunsul final (LaTeX)",
+  "raspuns_final": "răspunsul final (LaTeX, fără text în plus)",
   "punctaj_total": ${punctajTotal || 7},
   "pasi_barem": [
-    { "nr": 1, "descriere": "ce trebuie demonstrat/calculat la acest pas", "operatie_katex": "calculul propriu-zis, LaTeX", "puncte_maxime": 3, "puncte_partiale": false, "nota_evaluare": "ce trebuie verificat strict la acest pas" }
+    { "nr": 1, "descriere": "explicația și calculul acestui pas, cu LaTeX $...$/$$...$$ inclus direct în text", "puncte_maxime": 3 }
   ],
   "metode_alternative": [
     { "nume": "Metodă alternativă (nume scurt)", "descriere": "rezumat al altei metode valide" }
@@ -56,7 +77,7 @@ Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimenta
 
 Reguli:
 - suma puncte_maxime din pasi_barem = exact punctaj_total
-- împarte pașii logic, ca într-un barem oficial BAC Moldova
+- fiecare "descriere" este text final, gata de afișat elevilor — nu adăuga alte câmpuri
 - metode_alternative poate fi listă goală dacă nu există altă metodă validă`;
 }
 

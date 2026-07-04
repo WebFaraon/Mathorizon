@@ -175,7 +175,12 @@
 
     if (ae.step === 1) { body.innerHTML = _aeStep1(); _aeBindStep1(body); }
     if (ae.step === 2) { body.innerHTML = _aeStep2(); _aeBindStep2(body); }
-    if (ae.step === 3) { body.innerHTML = _aeStep3(); _aeBindStep3(body); }
+    if (ae.step === 3) {
+      body.innerHTML = _aeStep3(); _aeBindStep3(body);
+      const r = ae.aiResult;
+      const baremSum = (r.pasi_barem || []).reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
+      nextBtn.disabled = !!(ae.punctajTotal && baremSum !== Number(ae.punctajTotal));
+    }
   }
 
   /* ---- Step 1 — Detalii ---- */
@@ -286,159 +291,91 @@
     reader.readAsDataURL(file);
   }
 
-  /* ---- Step 3 — Verificare ---- */
+  /* ---- Step 3 — Verificare (preview read-only, generat de AI) ---- */
   function _aeStep3() {
     const r = ae.aiResult;
-    const total = (r.pasi_barem || []).reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
+    const baremSum = (r.pasi_barem || []).reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
+    const mismatch = ae.punctajTotal && baremSum !== Number(ae.punctajTotal);
+    const alts = r.metode_alternative || [];
     return `
       <button class="btn btn--surface btn--sm" id="aeRegenerate" style="margin-bottom:16px">🔄 Regenerează</button>
 
+      ${mismatch ? `
+      <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
+        ⚠️ Suma pașilor din barem (${baremSum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}p). Apasă „Regenerează" — nu se poate confirma cu punctaje diferite.
+      </div>` : ''}
+
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px">${BM.esc(r.titlu || '(fără titlu)')}</h3>
+
       <div class="cls-form-field">
-        <label class="cls-form-label">Titlu</label>
-        <input type="text" id="aeTitlu" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
+        <label class="cls-form-label">Enunț</label>
+        <div id="aeEnuntPreview" class="ae-preview-box"></div>
       </div>
 
       <div class="cls-form-field">
-        <label class="cls-form-label">Enunț (previzualizare)</label>
-        <div id="aeEnuntPreview" style="padding:14px;border:1px solid var(--border);border-radius:10px;background:var(--surface)"></div>
-        <textarea id="aeEnuntKatex" class="cls-form-input cls-form-textarea" rows="3" style="margin-top:8px">${BM.esc(r.enunt_katex || '')}</textarea>
-        <span class="cls-form-hint">Editează textul de mai sus — folosește $...$ / $$...$$ pentru formule.</span>
+        <label class="cls-form-label">Barem (${baremSum} puncte)</label>
+        ${_aeBaremStepsHtml(r.pasi_barem || [])}
       </div>
 
       <div class="cls-form-field">
         <label class="cls-form-label">Răspuns final</label>
-        <input type="text" id="aeRaspunsFinal" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
+        <div id="aeRaspunsPreview" class="ae-preview-box"></div>
       </div>
 
-      <div class="cls-form-field">
-        <label class="cls-form-label">Punctaj total exercițiu *</label>
-        <input type="number" min="1" id="aePunctajTotal" class="cls-form-input" style="max-width:120px" value="${Number(r.punctaj_total) || total || ''}">
-        <span class="cls-form-hint">Corectează aici dacă AI-ul a ghicit greșit punctajul oficial al exercițiului.</span>
-      </div>
-
-      <div class="cls-form-field">
-        <label class="cls-form-label">Barem — suma pașilor: <span id="aeBaremTotal">${total}</span></label>
-        <div id="aeBaremRows">${_aeBaremRowsHtml(r.pasi_barem || [])}</div>
-        <button class="btn btn--surface btn--sm" id="aeAddPas" style="margin-top:8px">+ Adaugă pas</button>
-      </div>
-
+      ${alts.length ? `
       <div class="cls-form-field">
         <label class="cls-form-label">Metode alternative</label>
-        <div id="aeAltRows">${_aeAltRowsHtml(r.metode_alternative || [])}</div>
-        <button class="btn btn--surface btn--sm" id="aeAddAlt" style="margin-top:8px">+ Adaugă metodă</button>
-      </div>
+        ${_aeAltMethodsHtml(alts)}
+      </div>` : ''}
     `;
   }
 
-  function _aeBaremRowsHtml(pasi) {
-    if (!pasi.length) return '<p class="cls-form-hint">Niciun pas — adaugă unul mai jos.</p>';
+  function _aeBaremStepsHtml(pasi) {
     return pasi.map((p, i) => `
-      <div class="ae-barem-row" data-idx="${i}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;padding:12px;border:1px solid var(--border);border-radius:10px">
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          <textarea class="cls-form-input cls-form-textarea ae-pas-descriere" rows="2" placeholder="Descriere pas">${BM.esc(p.descriere || '')}</textarea>
-          <textarea class="cls-form-input cls-form-textarea ae-pas-operatie" rows="2" placeholder="Calcul (LaTeX)">${BM.esc(p.operatie_katex || '')}</textarea>
-          <div class="ae-pas-preview" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:0.88rem"></div>
+      <div class="ae-pas-view" style="margin-bottom:10px;padding:12px 14px;border:1px solid var(--border);border-radius:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+          <strong style="color:var(--accent)">Pasul ${p.nr || i + 1}</strong>
+          <span style="background:var(--accent-dim);color:var(--accent);padding:2px 10px;border-radius:20px;font-size:0.78rem;font-weight:700">${Number(p.puncte_maxime) || 0}p</span>
         </div>
-        <input type="number" min="0" class="cls-form-input ae-pas-puncte" value="${Number(p.puncte_maxime) || 0}" style="width:70px">
-        <button class="icon-btn ae-pas-remove" title="Șterge pasul">✕</button>
+        <div class="ae-pas-preview" data-idx="${i}"></div>
       </div>`).join('');
   }
 
-  function _aeAltRowsHtml(alts) {
-    if (!alts.length) return '<p class="cls-form-hint">Nicio metodă alternativă.</p>';
+  function _aeAltMethodsHtml(alts) {
     return alts.map((m, i) => `
-      <div class="ae-alt-row" data-idx="${i}" style="display:flex;gap:8px;align-items:flex-start;margin-bottom:10px;padding:12px;border:1px solid var(--border);border-radius:10px">
-        <div style="flex:1;display:flex;flex-direction:column;gap:6px">
-          <input type="text" class="cls-form-input ae-alt-nume" placeholder="Nume metodă" value="${BM.esc(m.nume || '')}">
-          <textarea class="cls-form-input cls-form-textarea ae-alt-descriere" rows="2" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
-        </div>
-        <button class="icon-btn ae-alt-remove" title="Șterge metoda">✕</button>
+      <div style="margin-bottom:10px;padding:12px 14px;border:1px solid var(--border);border-radius:10px">
+        <strong style="color:var(--text)">${BM.esc(m.nume || '')}</strong>
+        <div class="ae-alt-preview" data-idx="${i}" style="margin-top:6px"></div>
       </div>`).join('');
   }
 
   function _aeBindStep3(body) {
-    const previewEl = body.querySelector('#aeEnuntPreview');
-    const renderPreview = () => {
-      const txt = body.querySelector('#aeEnuntKatex').value;
-      previewEl.innerHTML = BM.trustedNl2br(txt);
-      BM.renderMath(previewEl);
-    };
-    renderPreview();
-    body.querySelector('#aeEnuntKatex').addEventListener('input', renderPreview);
+    const r = ae.aiResult;
 
-    const renderPasPreview = row => {
-      const descriere = row.querySelector('.ae-pas-descriere').value;
-      const operatie   = row.querySelector('.ae-pas-operatie').value;
-      const previewEl  = row.querySelector('.ae-pas-preview');
-      previewEl.innerHTML = BM.trustedNl2br(descriere + (operatie ? '<br>$$' + operatie + '$$' : ''));
-      BM.renderMath(previewEl);
-    };
-    body.querySelectorAll('.ae-barem-row').forEach(row => {
-      renderPasPreview(row);
-      row.querySelector('.ae-pas-descriere').addEventListener('input', () => renderPasPreview(row));
-      row.querySelector('.ae-pas-operatie').addEventListener('input', () => renderPasPreview(row));
+    const enuntEl = body.querySelector('#aeEnuntPreview');
+    enuntEl.innerHTML = BM.trustedNl2br(r.enunt_katex || '');
+    BM.renderMath(enuntEl);
+
+    const raspunsEl = body.querySelector('#aeRaspunsPreview');
+    raspunsEl.innerHTML = BM.trustedNl2br(r.raspuns_final || '');
+    BM.renderMath(raspunsEl);
+
+    body.querySelectorAll('.ae-pas-preview').forEach(el => {
+      const p = (r.pasi_barem || [])[Number(el.dataset.idx)];
+      el.innerHTML = BM.trustedNl2br(p?.descriere || '');
+      BM.renderMath(el);
     });
 
-    const recomputeTotal = () => {
-      const total  = Array.from(body.querySelectorAll('.ae-pas-puncte')).reduce((s, el) => s + (Number(el.value) || 0), 0);
-      const target = Number(body.querySelector('#aePunctajTotal')?.value) || 0;
-      const totalEl = body.querySelector('#aeBaremTotal');
-      totalEl.textContent = total;
-      totalEl.style.color = (target && total !== target) ? '#ef4444' : '#16a34a';
-      totalEl.style.fontWeight = '700';
-    };
-    body.querySelectorAll('.ae-pas-puncte').forEach(el => el.addEventListener('input', recomputeTotal));
-    body.querySelector('#aePunctajTotal').addEventListener('input', recomputeTotal);
-    recomputeTotal();
-
-    body.querySelectorAll('.ae-pas-remove').forEach(btn => btn.addEventListener('click', () => {
-      _aeCollectReview(body);
-      const idx = Number(btn.closest('.ae-barem-row').dataset.idx);
-      ae.aiResult.pasi_barem.splice(idx, 1);
-      _aeRender();
-    }));
-
-    body.querySelector('#aeAddPas').addEventListener('click', () => {
-      _aeCollectReview(body);
-      ae.aiResult.pasi_barem.push({ nr: ae.aiResult.pasi_barem.length + 1, descriere: '', operatie_katex: '', puncte_maxime: 0 });
-      _aeRender();
-    });
-
-    body.querySelectorAll('.ae-alt-remove').forEach(btn => btn.addEventListener('click', () => {
-      _aeCollectReview(body);
-      const idx = Number(btn.closest('.ae-alt-row').dataset.idx);
-      ae.aiResult.metode_alternative.splice(idx, 1);
-      _aeRender();
-    }));
-
-    body.querySelector('#aeAddAlt').addEventListener('click', () => {
-      _aeCollectReview(body);
-      ae.aiResult.metode_alternative.push({ nume: '', descriere: '' });
-      _aeRender();
+    body.querySelectorAll('.ae-alt-preview').forEach(el => {
+      const m = (r.metode_alternative || [])[Number(el.dataset.idx)];
+      el.innerHTML = BM.trustedNl2br(m?.descriere || '');
+      BM.renderMath(el);
     });
 
     body.querySelector('#aeRegenerate').addEventListener('click', async () => {
-      if (!confirm('Regenerezi cu AI? Modificările curente se pierd.')) return;
+      if (!confirm('Regenerezi cu AI? Rezultatul curent se pierde.')) return;
       await _aeAnalyze();
     });
-  }
-
-  function _aeCollectReview(body) {
-    if (!ae.aiResult) return;
-    ae.aiResult.titlu         = body.querySelector('#aeTitlu')?.value.trim() || '';
-    ae.aiResult.enunt_katex   = body.querySelector('#aeEnuntKatex')?.value || '';
-    ae.aiResult.raspuns_final = body.querySelector('#aeRaspunsFinal')?.value.trim() || '';
-    ae.aiResult.punctaj_total = Number(body.querySelector('#aePunctajTotal')?.value) || 0;
-    ae.aiResult.pasi_barem = Array.from(body.querySelectorAll('.ae-barem-row')).map((row, i) => ({
-      nr: i + 1,
-      descriere:      row.querySelector('.ae-pas-descriere').value,
-      operatie_katex: row.querySelector('.ae-pas-operatie').value,
-      puncte_maxime:  Number(row.querySelector('.ae-pas-puncte').value) || 0
-    }));
-    ae.aiResult.metode_alternative = Array.from(body.querySelectorAll('.ae-alt-row')).map(row => ({
-      nume:      row.querySelector('.ae-alt-nume').value,
-      descriere: row.querySelector('.ae-alt-descriere').value
-    }));
   }
 
   /* ---- Navigation ---- */
@@ -459,8 +396,6 @@
       return;
     }
     if (ae.step === 3) {
-      const body = document.getElementById('aeBody');
-      _aeCollectReview(body);
       await _aeSave();
     }
   }
@@ -514,26 +449,22 @@
   async function _aeSave() {
     const r = ae.aiResult;
     if (!r.titlu || !r.enunt_katex || !r.pasi_barem.length) {
-      BM.toast('Completează titlul, enunțul și cel puțin un pas din barem.', 'error'); return;
+      BM.toast('Rezultatul AI e incomplet — apasă Regenerează.', 'error'); return;
     }
 
     const baremSum = r.pasi_barem.reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
-    if (r.punctaj_total && baremSum !== r.punctaj_total) {
-      const proceed = confirm(
-        `Suma pașilor din barem (${baremSum}) nu corespunde cu punctajul total declarat (${r.punctaj_total}). Salvezi oricum?`
-      );
-      if (!proceed) return;
+    if (ae.punctajTotal && baremSum !== Number(ae.punctajTotal)) {
+      BM.toast(`Suma pașilor (${baremSum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}). Apasă Regenerează.`, 'error');
+      return;
     }
 
     const cat = BM.getCategoryById(ae.categoryId);
     const barem = r.pasi_barem.map(p => ({
-      descriere: p.operatie_katex ? `${p.descriere}: $$${p.operatie_katex}$$` : p.descriere,
+      descriere: p.descriere,
       puncte_maxime: Number(p.puncte_maxime) || 0
     }));
 
-    const solutionParts = r.pasi_barem.map(p =>
-      `**Pasul ${p.nr}.** ${p.descriere}${p.operatie_katex ? `\n$$${p.operatie_katex}$$` : ''}`
-    );
+    const solutionParts = r.pasi_barem.map(p => `**Pasul ${p.nr}.** ${p.descriere}`);
     if (r.raspuns_final) solutionParts.push(`$$\\boxed{${r.raspuns_final}}$$`);
     if (r.metode_alternative.length) {
       solutionParts.push('**Metode alternative:**');

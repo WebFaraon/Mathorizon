@@ -1,0 +1,502 @@
+[
+  {
+    "titlu": "Putere cu exponent fracționar minus număr întreg",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 32^{\\frac{3}{5}} - 8$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$32^{3/5} = (2^5)^{3/5} = 2^3 = 8$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $0$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Fracție de radicali și puteri ale lui 3",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{\\frac{1}{6}}}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\sqrt[3]{81} = 9^{2/3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$9^{2/3} : 9^{1/6} = 9^{1/2}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii expresiei, egală cu $3$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Logaritm în baza radical din 2 minus 4",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 4 - 4$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\sqrt{2}} 4 = 2\\log_2 4 = 4$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Calcularea valorii diferenței",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere negativă a lui 27 minus fracție",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 27^{-\\frac{2}{3}} - \\frac{10}{9}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$27^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $-1$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Radical de ordinul 3 din 81 împărțit la putere a lui 9",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{1/6}}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\sqrt[3]{81} = 9^{2/3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$9^{2/3} : 9^{1/6} = 9^{1/2}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii expresiei, egală cu $3$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Număr zecimal plus logaritm în baza 2 din radical",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 1{,}5 + \\log_2 \\sqrt{8}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_2 \\sqrt{8} = \\frac{1}{2}\\log_2 8 = \\frac{3}{2}$",
+        "puncte_maxime": 4
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $3$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Logaritm în baza 81 din 27 plus putere negativă",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{81} 27 + 4^{-1}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{81} 27 = \\frac{3}{4}$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $1$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Suma logaritmilor în baze reciproce 5 și 1/5",
+    "enunt": "Calculați suma numerelor:\n$$\\log_5 50 \\text{ și } \\log_{\\frac{1}{5}} 2$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\frac{1}{5}} 2 = -\\log_5 2$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\log_5 50 - \\log_5 2 = \\log_5 25$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "$\\log_5 25 = 2$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Radical din putere zecimală minus număr",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt{9^{1{,}5} - 2}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$9^{1{,}5} = 27$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $5$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Logaritm în baza 3 din 36 minus logaritm dublu",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_3 36 - 2\\log_3 2$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$2\\log_3 2 = \\log_3 4$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "titlu": "Logaritm în baza 1/2 minus logaritm în baza 2",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\frac{1}{2}} \\frac{4}{5} - \\log_2 5$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\frac{1}{2}} \\frac{4}{5} - \\log_2 5 = \\log_2 \\frac{5}{4} - \\log_2 5$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$= \\log_2 \\frac{1}{4}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "$= -2$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Radical de ordinul 3 dintr-un produs cu putere fracționară",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-128 \\cdot 0{,}125^{\\frac{1}{3}}}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$0{,}125^{\\frac{1}{3}} = 0{,}5$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $-4$",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "titlu": "Diferență de logaritmi în baze reciproce 3 și 1/3",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_{\\frac{1}{3}} 0{,}5$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\frac{1}{3}} 0{,}5 = -\\log_3 0{,}5$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\log_3 54 + \\log_3 0{,}5 = \\log_3 27$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "$\\log_3 27 = 3$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere cu exponent 0,25 a fracției 16/81 minus fracție",
+    "enunt": "Calculați valoarea expresiei:\n$$E = -\\frac{5}{3} + \\left(\\frac{16}{81}\\right)^{0{,}25}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Scrierea numitorului și numărătorului ca puteri a lui 2 și 3, respectiv: $16=2^4$, $81=3^4$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Aplicarea proprietății puterilor: $(a^m)^n = a^{mn}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii expresiei, egală cu $-1$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Radical de ordinul 3 din putere zecimală minus număr",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{32^{0{,}4} - 12}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$32^{0{,}4} = (2^5)^{0{,}4} = 2^2 = 4$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $-2$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere negativă a fracției 27/125 minus fracție",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{27}{125}\\right)^{-1/3} - \\frac{2}{3}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\frac{27}{125} = \\left(\\frac{3}{5}\\right)^3$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\left(\\frac{27}{125}\\right)^{-1/3} = \\frac{5}{3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Obținerea răspunsului corect, egal cu $1$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Logaritm în baza radical cubic din 5 minus inversul unei fracții",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt[3]{5}} 25 - \\left(\\frac{1}{6}\\right)^{-1}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\sqrt[3]{5}} 25 = 6$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea valorii expresiei, egală cu $0$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere cu exponent 1/4 a lui 0,0081 plus inversul unui număr mixt",
+    "enunt": "Calculați valoarea expresiei:\n$$E = (0{,}0081)^{1/4} + \\left(1\\frac{3}{7}\\right)^{-1}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$(0{,}0081)^{1/4} = (0{,}3^4)^{1/4} = 0{,}3$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\left(1\\frac{3}{7}\\right)^{-1} = \\frac{7}{10}$ și calcularea valorii expresiei, egală cu $1$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere cu exponent 1,5 a fracției înmulțită cu puterea lui -5",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{4}{25}\\right)^{1{,}5} \\cdot (-5)^3$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\frac{4}{25} = \\left(\\frac{2}{5}\\right)^2$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\left(\\left(\\frac{2}{5}\\right)^2\\right)^{1{,}5} = \\left(\\frac{2}{5}\\right)^3 = \\frac{8}{125}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "$(-5)^3 = -125$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "Determinarea valorii expresiei, egală cu $-8$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Radical de ordinul 3 din număr mixt negativ plus putere negativă",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-2\\dfrac{10}{27}} + 9^{-0{,}5}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\sqrt[3]{-2\\frac{10}{27}} = -\\frac{4}{3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$9^{-0{,}5} = \\frac{1}{3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii expresiei, egală cu $-1$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Produs de puteri cu exponenți fracționari din fracții neparfecte",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{189}{4}\\right)^{\\frac{1}{4}} \\cdot \\left(\\frac{7}{12}\\right)^{-0{,}25}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\left(\\frac{7}{12}\\right)^{-0{,}25} = \\left(\\frac{12}{7}\\right)^{1/4}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\left(\\frac{189}{4}\\right)^{1/4} \\cdot \\left(\\frac{12}{7}\\right)^{1/4} = \\left(\\frac{189}{4} \\cdot \\frac{12}{7}\\right)^{1/4} = 81^{1/4}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii expresiei, egală cu $3$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere cu exponent logaritm negativ în baza 4",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 2^{-\\log_4 9}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_4 9 = \\log_{2^2} 3^2 = \\log_2 3$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "$2^{-\\log_2 3} = 2^{\\log_2 \\frac{1}{3}} = \\frac{1}{3}$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Suma logaritmilor în baze reciproce 7 și 1/7",
+    "enunt": "Calculați valoarea expresiei:\n$$E = \\log_7 2 + \\log_{\\frac{1}{7}} 98$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\log_{\\frac{1}{7}} 98 = -\\log_7 98$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\log_7 2 - \\log_7 98 = \\log_7 \\frac{1}{49}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "$\\log_7 \\frac{1}{49} = -2$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Putere negativă a lui 2 plus radical de ordinul 3 dintr-o diferență",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\frac{3}{64} - 2}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\frac{3}{64} - 2 = -\\frac{125}{64}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\sqrt[3]{-\\frac{125}{64}} = -\\frac{5}{4}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "$2^{-2} = \\frac{1}{4}$ și calcularea valorii sumei, egală cu $-1$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Număr zecimal plus radical de ordinul 3 dintr-o diferență de fracții",
+    "enunt": "Calculați valoarea expresiei:\n$$E = 0{,}2 + \\sqrt[3]{\\frac{34}{125} - 2}$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\frac{34}{125} - 2 = -\\frac{216}{125}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\sqrt[3]{-\\frac{216}{125}} = -\\frac{6}{5}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "$0{,}2 = \\frac{1}{5}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "Determinarea valorii expresiei, egală cu $-1$",
+        "puncte_maxime": 1
+      }
+    ]
+  }
+]

@@ -9902,6 +9902,12 @@ body.bac-exam-mode .nav.nav--peek {
 .av-dialog {
   max-width: 680px !important;
 }
+.ae-preview-box {
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+}
 .av-body {
   max-height: 60vh;
   overflow-y: auto;
