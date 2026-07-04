@@ -1,15 +1,68 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
 
 const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
+// Structured-output schema — forces Gemini's constrained JSON-mode decoder to
+// emit syntactically valid JSON (correctly escaped backslashes) instead of
+// relying on the model to remember JSON string-escaping rules while writing
+// LaTeX-heavy text (\frac, \boxed, \right...). This is the root-cause fix for
+// the "Bad escaped character in JSON" failures — the try/catch repair below
+// is kept only as a defensive fallback, not the primary defense anymore.
+const RESPONSE_SCHEMA = {
+  type: SchemaType.OBJECT,
+  properties: {
+    titlu:          { type: SchemaType.STRING },
+    enunt_katex:    { type: SchemaType.STRING },
+    raspuns_final:  { type: SchemaType.STRING },
+    punctaj_total:  { type: SchemaType.INTEGER },
+    pasi_barem: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          nr:             { type: SchemaType.INTEGER },
+          descriere:      { type: SchemaType.STRING },
+          puncte_maxime:  { type: SchemaType.INTEGER }
+        },
+        required: ['nr', 'descriere', 'puncte_maxime']
+      }
+    },
+    metode_alternative: {
+      type: SchemaType.ARRAY,
+      items: {
+        type: SchemaType.OBJECT,
+        properties: {
+          nume:      { type: SchemaType.STRING },
+          descriere: { type: SchemaType.STRING }
+        },
+        required: ['nume', 'descriere']
+      }
+    },
+    duplicat: {
+      type: SchemaType.OBJECT,
+      properties: {
+        este_duplicat: { type: SchemaType.BOOLEAN },
+        titlu_similar: { type: SchemaType.STRING },
+        motiv:         { type: SchemaType.STRING }
+      },
+      required: ['este_duplicat', 'titlu_similar', 'motiv']
+    }
+  },
+  required: ['titlu', 'enunt_katex', 'raspuns_final', 'punctaj_total', 'pasi_barem', 'metode_alternative', 'duplicat']
+};
+
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
   model: 'gemini-2.5-flash',
-  generationConfig: { temperature: 0 }
+  generationConfig: {
+    temperature: 0,
+    responseMimeType: 'application/json',
+    responseSchema: RESPONSE_SCHEMA
+  }
 });
 
 const GRADE_LABELS = { '9': 'a IX-a', 'bac': 'a XII-a (BAC)' };
