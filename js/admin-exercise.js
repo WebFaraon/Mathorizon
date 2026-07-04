@@ -25,7 +25,7 @@
   let ae = null;
 
   function _blankAiResult() {
-    return { titlu: '', enunt_katex: '', raspuns_final: '', pasi_barem: [], metode_alternative: [] };
+    return { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], metode_alternative: [] };
   }
 
   function openAddExerciseModal() {
@@ -236,7 +236,13 @@
       </div>
 
       <div class="cls-form-field">
-        <label class="cls-form-label">Barem (<span id="aeBaremTotal">${total}</span> puncte)</label>
+        <label class="cls-form-label">Punctaj total exercițiu *</label>
+        <input type="number" min="1" id="aePunctajTotal" class="cls-form-input" style="max-width:120px" value="${Number(r.punctaj_total) || total || ''}">
+        <span class="cls-form-hint">Corectează aici dacă AI-ul a ghicit greșit punctajul oficial al exercițiului.</span>
+      </div>
+
+      <div class="cls-form-field">
+        <label class="cls-form-label">Barem — suma pașilor: <span id="aeBaremTotal">${total}</span></label>
         <div id="aeBaremRows">${_aeBaremRowsHtml(r.pasi_barem || [])}</div>
         <button class="btn btn--surface btn--sm" id="aeAddPas" style="margin-top:8px">+ Adaugă pas</button>
       </div>
@@ -256,6 +262,7 @@
         <div style="flex:1;display:flex;flex-direction:column;gap:6px">
           <textarea class="cls-form-input cls-form-textarea ae-pas-descriere" rows="2" placeholder="Descriere pas">${BM.esc(p.descriere || '')}</textarea>
           <textarea class="cls-form-input cls-form-textarea ae-pas-operatie" rows="2" placeholder="Calcul (LaTeX)">${BM.esc(p.operatie_katex || '')}</textarea>
+          <div class="ae-pas-preview" style="padding:10px 12px;border:1px solid var(--border);border-radius:8px;background:var(--surface);font-size:0.88rem"></div>
         </div>
         <input type="number" min="0" class="cls-form-input ae-pas-puncte" value="${Number(p.puncte_maxime) || 0}" style="width:70px">
         <button class="icon-btn ae-pas-remove" title="Șterge pasul">✕</button>
@@ -284,11 +291,30 @@
     renderPreview();
     body.querySelector('#aeEnuntKatex').addEventListener('input', renderPreview);
 
+    const renderPasPreview = row => {
+      const descriere = row.querySelector('.ae-pas-descriere').value;
+      const operatie   = row.querySelector('.ae-pas-operatie').value;
+      const previewEl  = row.querySelector('.ae-pas-preview');
+      previewEl.innerHTML = BM.trustedNl2br(descriere + (operatie ? '<br>$$' + operatie + '$$' : ''));
+      BM.renderMath(previewEl);
+    };
+    body.querySelectorAll('.ae-barem-row').forEach(row => {
+      renderPasPreview(row);
+      row.querySelector('.ae-pas-descriere').addEventListener('input', () => renderPasPreview(row));
+      row.querySelector('.ae-pas-operatie').addEventListener('input', () => renderPasPreview(row));
+    });
+
     const recomputeTotal = () => {
-      const total = Array.from(body.querySelectorAll('.ae-pas-puncte')).reduce((s, el) => s + (Number(el.value) || 0), 0);
-      body.querySelector('#aeBaremTotal').textContent = total;
+      const total  = Array.from(body.querySelectorAll('.ae-pas-puncte')).reduce((s, el) => s + (Number(el.value) || 0), 0);
+      const target = Number(body.querySelector('#aePunctajTotal')?.value) || 0;
+      const totalEl = body.querySelector('#aeBaremTotal');
+      totalEl.textContent = total;
+      totalEl.style.color = (target && total !== target) ? '#ef4444' : '#16a34a';
+      totalEl.style.fontWeight = '700';
     };
     body.querySelectorAll('.ae-pas-puncte').forEach(el => el.addEventListener('input', recomputeTotal));
+    body.querySelector('#aePunctajTotal').addEventListener('input', recomputeTotal);
+    recomputeTotal();
 
     body.querySelectorAll('.ae-pas-remove').forEach(btn => btn.addEventListener('click', () => {
       _aeCollectReview(body);
@@ -327,6 +353,7 @@
     ae.aiResult.titlu         = body.querySelector('#aeTitlu')?.value.trim() || '';
     ae.aiResult.enunt_katex   = body.querySelector('#aeEnuntKatex')?.value || '';
     ae.aiResult.raspuns_final = body.querySelector('#aeRaspunsFinal')?.value.trim() || '';
+    ae.aiResult.punctaj_total = Number(body.querySelector('#aePunctajTotal')?.value) || 0;
     ae.aiResult.pasi_barem = Array.from(body.querySelectorAll('.ae-barem-row')).map((row, i) => ({
       nr: i + 1,
       descriere:      row.querySelector('.ae-pas-descriere').value,
@@ -412,6 +439,14 @@
     const r = ae.aiResult;
     if (!r.titlu || !r.enunt_katex || !r.pasi_barem.length) {
       BM.toast('Completează titlul, enunțul și cel puțin un pas din barem.', 'error'); return;
+    }
+
+    const baremSum = r.pasi_barem.reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
+    if (r.punctaj_total && baremSum !== r.punctaj_total) {
+      const proceed = confirm(
+        `Suma pașilor din barem (${baremSum}) nu corespunde cu punctajul total declarat (${r.punctaj_total}). Salvezi oricum?`
+      );
+      if (!proceed) return;
     }
 
     const cat = BM.getCategoryById(ae.categoryId);
