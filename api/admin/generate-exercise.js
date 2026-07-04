@@ -107,7 +107,17 @@ async function generateExercise({ imageBase64, mimeType, context, existingExerci
 
   const raw     = result.response.text().trim();
   const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-  return JSON.parse(jsonStr);
+  try {
+    return JSON.parse(jsonStr);
+  } catch {
+    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left...)
+    // that it forgot to double per JSON string-escaping rules (a literal "\"
+    // must be written "\\"). Any backslash not already starting a valid JSON
+    // escape (\" \\ \/ \b \f \n \r \t \u) is almost certainly one of these —
+    // double it and retry instead of failing the whole request.
+    const repaired = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+    return JSON.parse(repaired);
+  }
 }
 
 module.exports = async function handler(req, res) {

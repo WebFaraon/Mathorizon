@@ -31,6 +31,7 @@ window.BM = window.BM || {};
           solution:      row.solution,
           barem:         row.barem,
           baremEstimat:  row.barem_estimat,
+          puncteTotal:   row.punctaj_total,
           _custom:       true
         });
       });

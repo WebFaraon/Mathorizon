@@ -511,6 +511,7 @@
       category_id: ae.categoryId,
       subcategory_id: ae.subcategoryId,
       difficulty: ae.difficulty,
+      punctaj_total: Number(ae.punctajTotal) || baremSum,
       source: `${GRADE_LABEL[ae.grade] || ae.grade} — ${cat?.name || ae.categoryId}`,
       title: r.titlu,
       statement: r.enunt_katex,
