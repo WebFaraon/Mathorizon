@@ -327,10 +327,14 @@
   };
 
   /* ---- Start ---- */
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
+  const start = async () => {
+    await (BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve());
     init();
+  };
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', start);
+  } else {
+    start();
   }
 
 })();

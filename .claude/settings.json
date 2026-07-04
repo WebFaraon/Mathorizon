@@ -2,7 +2,19 @@
   "permissions": {
     "allow": [
       "Bash(node -e ' *)",
-      "Bash(node --check d:/SomeMath/js/profile-page.js)"
+      "Bash(node --check d:/SomeMath/js/profile-page.js)",
+      "Bash(grep -E \"^server.js$|^\\\\.env$\")",
+      "Bash(echo \"exit:$?\")",
+      "Bash(node --check api/admin/generate-exercise.js)",
+      "Bash(node --check js/admin-exercise.js)",
+      "Bash(node --check js/custom-exercises.js)",
+      "Bash(curl -s -o /dev/null -w \"admin.html: %{http_code}\\\\n\" http://localhost:8080/admin.html)",
+      "Bash(curl -s -X POST http://localhost:8080/api/admin/generate-exercise -H \"Content-Type: application/json\" -d '{}')",
+      "Bash(curl -s -o /dev/null -w \"custom-exercises.js: %{http_code}\\\\n\" http://localhost:8080/js/custom-exercises.js)",
+      "Bash(curl -s -o /dev/null -w \"admin-exercise.js: %{http_code}\\\\n\" http://localhost:8080/js/admin-exercise.js)",
+      "Bash(curl -s -X POST http://localhost:8080/api/admin/generate-exercise -H \"Content-Type: application/json\" -d '{\"accessToken\":\"bogus\"}')",
+      "Bash(pkill -f \"node server.js\")",
+      "Bash(node -e \"require.resolve\\('playwright'\\)\")"
     ]
   }
 }
