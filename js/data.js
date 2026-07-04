@@ -234,12 +234,12 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-014', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Pătrat perfect cu exponent expresie logaritmică',
     statement: 'Arătați că valoarea expresiei\n$$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9}$$\neste un pătrat perfect.',
-    solution: '**Pasul 1.** Transformarea expresiei: $$\\left(\\frac{1}{2}\right)^{-2-\\log_2 9} = 2^{-\\left(-2-\\log_2 9\\right)} = 2^{2+\\log_2 9}$$\n\n**Pasul 2.** Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$\n\n**Pasul 3.** Calcularea valorii expresiei: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$\n\n**Pasul 4.** Verificarea dacă valoarea este un pătrat perfect: $$36 = 6^2$$\n$$\\boxed{\\text{Valoarea expresiei este un pătrat perfect}}$$',
+    solution: '**Pasul 1.** Transformarea expresiei: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{-\\left(-2-\\log_2 9\\right)} = 2^{2+\\log_2 9}$$\n\n**Pasul 2.** Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$\n\n**Pasul 3.** Calcularea valorii expresiei: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$\n\n**Pasul 4.** Verificarea dacă valoarea este un pătrat perfect: $$36 = 6^2$$\n$$\\boxed{\\text{Valoarea expresiei este un pătrat perfect}}$$',
     barem: [
       { descriere: 'Transformarea expresiei: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{2+\\log_2 9}$$', puncte_maxime: 2 },
       { descriere: 'Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$', puncte_maxime: 1 },
@@ -262,14 +262,14 @@ BM.EXERCISES = [
     baremEstimat: true
   },
 
-    {
+        {
     id: 'ca-016', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție la putere rațională',
     statement: 'Calculați valoarea expresiei:\n$$-\\frac{11}{4} + \\left(\\frac{81}{256}\\right)^{0{,}25}$$',
-    solution: '**Pasul 1.** Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\right)^{0{,}25} = \\left(rac{81}{256}\right)^{1/4} = \\left(rac{3^4}{4^4}\right)^{1/4} = \\frac{3}{4}$$ \n\n**Pasul 2.** Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = -\\frac{8}{4} = \\boxed{-2}$$',
+    solution: '**Pasul 1.** Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\\right)^{0{,}25} = \\left(\\frac{81}{256}\\right)^{1/4} = \\left(\\frac{3^4}{4^4}\\right)^{1/4} = \\frac{3}{4}$$ \n\n**Pasul 2.** Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = -\\frac{8}{4} = \\boxed{-2}$$',
     barem: [
-      { descriere: 'Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\right)^{0{,}25} = \\left(rac{81}{256}\right)^{1/4} = \\left(rac{3^4}{4^4}\right)^{1/4} = \\frac{3}{4}$$', puncte_maxime: 3 },
+      { descriere: 'Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\\right)^{0{,}25} = \\left(\\frac{81}{256}\\right)^{1/4} = \\left(\\frac{3^4}{4^4}\\right)^{1/4} = \\frac{3}{4}$$', puncte_maxime: 3 },
       { descriere: 'Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = -\\frac{8}{4} = \\boxed{-2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
@@ -328,7 +328,7 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-021', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor unor expresii conjugate',
@@ -336,7 +336,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicăm proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ pentru primii doi termeni și formula $(a-b)(a+b) = a^2-b^2$: $$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) = \\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$\n\n**Pasul 2.** Continuăm calculul folosind aceeași proprietate a logaritmilor și simplificăm pentru a determina valoarea finală a expresiei: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = 2$$\n$$\\boxed{2}$$',
     barem: [
       { descriere: 'Aplicarea proprietății logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și a formulei $(a-b)(a+b) = a^2-b^2$ pentru a obține: $$\\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$', puncte_maxime: 3 },
-      { descriere: 'Continuarea calculului folosind proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și determinarea valorii finale a expresiei, egală cu $2$: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\right) = \\log_3 9 = \\log_3 3^2 = 2$$', puncte_maxime: 2 }
+      { descriere: 'Continuarea calculului folosind proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și determinarea valorii finale a expresiei, egală cu $2$: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = 2$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1377,14 +1377,14 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-100', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu bază fracție irațională minus inversul unui logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} - \\left(\\log_3 27\\right)^{-1}$$',
-    solution: '**Pasul 1.** Calcularea valorii primului termen al expresiei: $$\\left(\\frac{\\sqrt{3}}{2}\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\right)^2 = \\frac{4}{3}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3 \\Rightarrow \\left(\\log_3 27\\right)^{-1} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\frac{3}{3} = \\boxed{1}$$',
+    solution: '**Pasul 1.** Calcularea valorii primului termen al expresiei: $$\\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\\right)^2 = \\frac{4}{3}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3 \\Rightarrow \\left(\\log_3 27\\right)^{-1} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\frac{3}{3} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\left(\\frac{\\sqrt{3}}{2}\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\right)^2 = \\frac{4}{3}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea valorii primului termen: $$\\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\\right)^2 = \\frac{4}{3}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\left(\\log_3 27\\right)^{-1} = 3^{-1} = \\frac{1}{3}$$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\frac{3}{3} = \\boxed{1}$$', puncte_maxime: 1 }
     ],
@@ -1427,15 +1427,15 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-116', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Produs de două fracții la puteri reciproce',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{14}{3}\\right)^{\\frac{3}{2}}\\cdot\\left(\\frac{7}{6}\\right)^{-1{,}5}$$',
-    solution: '**Pasul 1.** Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\right)^{\\frac{3}{2}}$$ \n\n**Pasul 2.** Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\right)^{\\frac{3}{2}} = \\left(\\frac{2\\cdot 7}{3}\\cdot\\frac{2\\cdot 3}{7}\right)^{\\frac{3}{2}} = (2\\cdot 2)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = (2^2)^{\\frac{3}{2}} = 2^3 = \\boxed{8}$$',
+    solution: '**Pasul 1.** Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\\right)^{\\frac{3}{2}}$$ \n\n**Pasul 2.** Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\\right)^{\\frac{3}{2}} = \\left(\\frac{2\\cdot 7}{3}\\cdot\\frac{2\\cdot 3}{7}\\right)^{\\frac{3}{2}} = (2\\cdot 2)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = (2^2)^{\\frac{3}{2}} = 2^3 = \\boxed{8}$$',
     barem: [
-      { descriere: 'Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\right)^{-1{,}5} = \\left(\\frac{6}{7}\right)^{\\frac{3}{2}}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\right)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = \\boxed{8}$$', puncte_maxime: 2 }
+      { descriere: 'Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\\right)^{\\frac{3}{2}}$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\\right)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = \\boxed{8}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1762,15 +1762,15 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-142', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Sumă de radicali de ordinul 3 la puteri fracționare',
     statement: 'Determinați valoarea expresiei:\n$$E = \\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} + \\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}}$$',
-    solution: '**Pasul 1.** Calcularea primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 9 + 8 = \\boxed{17}$$',
+    solution: '**Pasul 1.** Calcularea primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 9 + 8 = \\boxed{17}$$',
     barem: [
       { descriere: 'Calcularea primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorii finale a expresiei: $$E = 9 + 8 = \\boxed{17}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
@@ -1788,14 +1788,14 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-144', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din sumă de putere fracționară și putere negativă a fracției',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{81^{\\frac{3}{4}} + \\left(\\frac{1}{3}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$',
     barem: [
-      { descriere: 'Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\right)^{-2} = 9$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$', puncte_maxime: 3 },
       { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = 6$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
@@ -1957,16 +1957,16 @@ BM.EXERCISES = [
     ],
     baremEstimat: true
   },
-    {
+        {
     id: 'ca-110', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Logaritm, radical dintr-o fracție mixtă și putere cu exponent logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}}$$',
-    solution: '**Pasul 1.** Calcularea primei componente: $$\\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$\n\n**Pasul 3.** Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\right)^2 = \\frac{1}{2}$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = \\boxed{1}$$',
+    solution: '**Pasul 1.** Calcularea primei componente: $$\\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$\n\n**Pasul 3.** Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = \\boxed{1}$$',
     barem: [
       { descriere: 'Calcularea primei componente: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\right)^2 = \\frac{1}{2}$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 1 },
       { descriere: 'Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = 1$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
