@@ -45,7 +45,18 @@ async function requireAdmin(accessToken) {
   if (!Array.isArray(rows) || rows[0]?.role !== 'admin') throw new Error('forbidden');
 }
 
-function buildPrompt(context) {
+function buildDuplicatesBlock(existingExercises) {
+  if (!Array.isArray(existingExercises) || !existingExercises.length) {
+    return 'Nu există alte exerciții deja introduse în acest subcapitol — câmpul "duplicat" va fi mereu { "este_duplicat": false, "titlu_similar": "", "motiv": "" }.';
+  }
+  const list = existingExercises.map((e, i) =>
+    `${i + 1}. "${e.title || ''}" — ${(e.statement || '').replace(/\n/g, ' ')}`
+  ).join('\n');
+  return `IATĂ EXERCIȚIILE DEJA EXISTENTE ÎN ACEST SUBCAPITOL (verifică dacă noul exercițiu din fotografie e identic sau o variantă trivială — aceleași numere/structură — a vreunuia dintre ele; enunțuri diferite ca formă dar cu aceeași idee matematică NU sunt duplicat):
+${list}`;
+}
+
+function buildPrompt(context, existingExercises) {
   const { grade, categoryName, subcategoryName, difficulty, punctajTotal } = context;
   const totalBlock = punctajTotal
     ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
@@ -61,30 +72,34 @@ IATĂ ${OFFICIAL_EXAMPLES.length} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (
 
 ${EXAMPLES_BLOCK}
 
+${buildDuplicatesBlock(existingExercises)}
+
 Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar), cu EXACT această structură (fără câmpuri suplimentare):
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
-  "raspuns_final": "răspunsul final (LaTeX, fără text în plus)",
+  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$)",
   "punctaj_total": ${punctajTotal || 7},
   "pasi_barem": [
     { "nr": 1, "descriere": "explicația și calculul acestui pas, cu LaTeX $...$/$$...$$ inclus direct în text", "puncte_maxime": 3 }
   ],
   "metode_alternative": [
     { "nume": "Metodă alternativă (nume scurt)", "descriere": "rezumat al altei metode valide" }
-  ]
+  ],
+  "duplicat": { "este_duplicat": false, "titlu_similar": "", "motiv": "" }
 }
 
 Reguli:
 - suma puncte_maxime din pasi_barem = exact punctaj_total
 - fiecare "descriere" este text final, gata de afișat elevilor — nu adăuga alte câmpuri
-- metode_alternative poate fi listă goală dacă nu există altă metodă validă`;
+- metode_alternative poate fi listă goală dacă nu există altă metodă validă
+- "duplicat.este_duplicat" = true DOAR dacă noul exercițiu e practic identic (aceleași numere/aceeași structură) cu unul din lista de mai sus; altfel false`;
 }
 
-async function generateExercise({ imageBase64, mimeType, context }) {
+async function generateExercise({ imageBase64, mimeType, context, existingExercises }) {
   if (!imageBase64) throw new Error('missing imageBase64');
 
-  const prompt = buildPrompt(context || {});
+  const prompt = buildPrompt(context || {}, existingExercises);
   const result = await model.generateContent([
     { text: prompt },
     { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
@@ -104,10 +119,10 @@ module.exports = async function handler(req, res) {
   if (req.method !== 'POST')    { res.status(405).json({ error: 'Method not allowed' }); return; }
 
   try {
-    const { accessToken, imageBase64, mimeType, context } = req.body || {};
+    const { accessToken, imageBase64, mimeType, context, existingExercises } = req.body || {};
     await requireAdmin(accessToken);
 
-    const parsed = await generateExercise({ imageBase64, mimeType, context });
+    const parsed = await generateExercise({ imageBase64, mimeType, context, existingExercises });
     res.status(200).json(parsed);
   } catch (e) {
     const status = e.message === 'forbidden' ? 403 : 400;

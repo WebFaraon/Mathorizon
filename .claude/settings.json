@@ -18,7 +18,8 @@
       "Bash(pkill -9 -f \"node server.js\")",
       "Bash(netstat -ano)",
       "PowerShell(Stop-Process -Id 12416 -Force -ErrorAction SilentlyContinue)",
-      "PowerShell(Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue)"
+      "PowerShell(Get-NetTCPConnection -LocalPort 8080 -ErrorAction SilentlyContinue)",
+      "PowerShell(Stop-Process -Id 26496 -Force)"
     ]
   }
 }

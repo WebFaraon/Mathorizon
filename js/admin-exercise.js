@@ -24,8 +24,15 @@
 
   let ae = null;
 
+  // Gemini sometimes wraps raspuns_final in its own $...$/$$...$$ even though
+  // the prompt asks for bare LaTeX — strip it so we can safely nest it inside
+  // our own $$\boxed{...}$$ without producing unparseable nested delimiters.
+  function _stripMathDelims(s) {
+    return String(s || '').trim().replace(/^\$\$?(.*?)\$\$?$/s, '$1').trim();
+  }
+
   function _blankAiResult() {
-    return { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], metode_alternative: [] };
+    return { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], metode_alternative: [], duplicat: null };
   }
 
   function openAddExerciseModal() {
@@ -234,7 +241,6 @@
       ae.subcategoryId = '';
       body.innerHTML = _aeStep1();
       _aeBindStep1(body);
-      _aeInitCustomSelects(body);
     };
     _aeInitCustomSelects(body);
   }
@@ -305,6 +311,11 @@
         ⚠️ Suma pașilor din barem (${baremSum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}p). Apasă „Regenerează" — nu se poate confirma cu punctaje diferite.
       </div>` : ''}
 
+      ${r.duplicat?.este_duplicat ? `
+      <div style="padding:12px 14px;border:1px solid #f59e0b;border-radius:10px;background:rgba(245,158,11,0.08);color:#f59e0b;margin-bottom:16px;font-size:0.88rem">
+        ⚠️ Posibil duplicat al exercițiului existent „${BM.esc(r.duplicat.titlu_similar || '')}" din acest subcapitol. ${BM.esc(r.duplicat.motiv || '')} Verifică înainte de a confirma.
+      </div>` : ''}
+
       <h3 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px">${BM.esc(r.titlu || '(fără titlu)')}</h3>
 
       <div class="cls-form-field">
@@ -357,7 +368,7 @@
     BM.renderMath(enuntEl);
 
     const raspunsEl = body.querySelector('#aeRaspunsPreview');
-    raspunsEl.innerHTML = BM.trustedNl2br(r.raspuns_final || '');
+    raspunsEl.innerHTML = r.raspuns_final ? BM.trustedNl2br(`$$${_stripMathDelims(r.raspuns_final)}$$`) : '';
     BM.renderMath(raspunsEl);
 
     body.querySelectorAll('.ae-pas-preview').forEach(el => {
@@ -400,6 +411,28 @@
     }
   }
 
+  // Existing exercises for THIS subcapitol only (per user's request — not the
+  // whole pool) so Gemini can flag likely duplicates. Combines the static
+  // BM.EXERCISES pool (data.js) with already-saved custom_exercises rows for
+  // the same category/subcategory (admin.html doesn't load custom-exercises.js,
+  // so those aren't in BM.EXERCISES here — fetched separately).
+  async function _aeGetExistingForSubcat() {
+    const fromStatic = (BM.EXERCISES || [])
+      .filter(e => e.categoryId === ae.categoryId && e.subcategoryId === ae.subcategoryId)
+      .map(e => ({ title: e.title, statement: e.statement }));
+
+    let fromCustom = [];
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/custom_exercises?category_id=eq.${encodeURIComponent(ae.categoryId)}&subcategory_id=eq.${encodeURIComponent(ae.subcategoryId)}&select=title,statement`,
+        { headers: { apikey: SUPABASE_ANON } }
+      );
+      if (res.ok) fromCustom = await res.json();
+    } catch { /* best-effort — don't block analysis on this */ }
+
+    return [...fromStatic, ...fromCustom];
+  }
+
   async function _aeAnalyze() {
     const body = document.getElementById('aeBody');
     const nextBtn = document.getElementById('aeNextBtn');
@@ -417,6 +450,7 @@
 
     try {
       const session = window._adminSession || (await window.BMAuth.supabase.auth.getSession()).data.session;
+      const existingExercises = await _aeGetExistingForSubcat();
       const res = await fetch('/api/admin/generate-exercise', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -424,6 +458,7 @@
           accessToken: session?.access_token,
           imageBase64: ae.imageBase64,
           mimeType: ae.mimeType,
+          existingExercises,
           context: {
             grade: ae.grade,
             categoryId: ae.categoryId, categoryName: cat?.name || ae.categoryId,
@@ -465,7 +500,7 @@
     }));
 
     const solutionParts = r.pasi_barem.map(p => `**Pasul ${p.nr}.** ${p.descriere}`);
-    if (r.raspuns_final) solutionParts.push(`$$\\boxed{${r.raspuns_final}}$$`);
+    if (r.raspuns_final) solutionParts.push(`$$\\boxed{${_stripMathDelims(r.raspuns_final)}}$$`);
     if (r.metode_alternative.length) {
       solutionParts.push('**Metode alternative:**');
       r.metode_alternative.forEach(m => solutionParts.push(`**${m.nume}.** ${m.descriere}`));
