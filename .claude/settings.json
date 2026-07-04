@@ -24,7 +24,10 @@
       "Bash(node --check js/training.js)",
       "Bash(node --check js/app.js)",
       "Bash(node \"C:\\\\Users\\\\Dragos\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SomeMath\\\\13180a0e-4fbf-4a78-bd01-fa90280c52b2\\\\scratchpad\\\\test-json-repair.js\")",
-      "Bash(rm \"C:\\\\Users\\\\Dragos\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SomeMath\\\\13180a0e-4fbf-4a78-bd01-fa90280c52b2\\\\scratchpad\\\\test-json-repair.js\")"
+      "Bash(rm \"C:\\\\Users\\\\Dragos\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SomeMath\\\\13180a0e-4fbf-4a78-bd01-fa90280c52b2\\\\scratchpad\\\\test-json-repair.js\")",
+      "Bash(node \"C:\\\\Users\\\\Dragos\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SomeMath\\\\13180a0e-4fbf-4a78-bd01-fa90280c52b2\\\\scratchpad\\\\test-json-repair2.js\")",
+      "Bash(node \"C:\\\\Users\\\\Dragos\\\\AppData\\\\Local\\\\Temp\\\\claude\\\\d--SomeMath\\\\13180a0e-4fbf-4a78-bd01-fa90280c52b2\\\\scratchpad\\\\test-json-repair3.js\")",
+      "Bash(git status *)"
     ]
   }
 }

@@ -110,12 +110,16 @@ async function generateExercise({ imageBase64, mimeType, context, existingExerci
   try {
     return JSON.parse(jsonStr);
   } catch {
-    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left...)
-    // that it forgot to double per JSON string-escaping rules (a literal "\"
-    // must be written "\\"). Any backslash not already starting a valid JSON
-    // escape (\" \\ \/ \b \f \n \r \t \u) is almost certainly one of these —
-    // double it and retry instead of failing the whole request.
-    const repaired = jsonStr.replace(/\\(?!["\\/bfnrtu])/g, '\\\\');
+    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left,
+    // \frac, \boxed, \notin, \right, \tan, \underline...) that it forgot to
+    // double per JSON string-escaping rules (a literal "\" must be written
+    // "\\"). Note: \b \f \n \r \t \u are technically valid single-char JSON
+    // escapes too, but in this LaTeX-transcription context a backslash
+    // followed by one of THOSE letters is essentially always the start of a
+    // LaTeX command (\boxed, \frac, \notin, \right, \tan, \underline), not a
+    // real control character — so only "\" "/ and a genuine \uXXXX (4 hex
+    // digits) are treated as already-valid; everything else gets doubled.
+    const repaired = jsonStr.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, '\\\\');
     return JSON.parse(repaired);
   }
 }
