@@ -983,6 +983,53 @@
     renderNavigator();
   }
 
+  // Lets the floating exercise panel (shown while the canvas is maximized)
+  // be dragged out of a corner the student needs to write in — mouse on
+  // desktop, touch on phone/tablet, both handled uniformly via PointerEvents.
+  // handleEl is just the title row; moveEl (the whole card) is what's repositioned.
+  function _makeDraggable(handleEl, moveEl) {
+    let dragging = false, pointerId = null, startX = 0, startY = 0, startLeft = 0, startTop = 0;
+
+    handleEl.addEventListener('pointerdown', function (e) {
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      dragging = true;
+      pointerId = e.pointerId;
+      const rect = moveEl.getBoundingClientRect();
+      startX = e.clientX;
+      startY = e.clientY;
+      startLeft = rect.left;
+      startTop  = rect.top;
+      // Freeze the current box before dragging — the default CSS anchors via
+      // top/right (and stretches full-width on phones), both of which would
+      // otherwise fight with an explicit left/top once dragging starts.
+      moveEl.style.left  = startLeft + 'px';
+      moveEl.style.top   = startTop + 'px';
+      moveEl.style.right = 'auto';
+      moveEl.style.width = rect.width + 'px';
+      moveEl.classList.add('dc-mini-exercise--dragging');
+      try { handleEl.setPointerCapture(pointerId); } catch (err) {}
+      e.preventDefault();
+    });
+
+    handleEl.addEventListener('pointermove', function (e) {
+      if (!dragging || e.pointerId !== pointerId) return;
+      const dx = e.clientX - startX;
+      const dy = e.clientY - startY;
+      const maxLeft = window.innerWidth  - moveEl.offsetWidth  - 4;
+      const maxTop  = window.innerHeight - moveEl.offsetHeight - 4;
+      moveEl.style.left = Math.max(4, Math.min(startLeft + dx, maxLeft)) + 'px';
+      moveEl.style.top  = Math.max(4, Math.min(startTop  + dy, maxTop))  + 'px';
+    });
+
+    const endDrag = function (e) {
+      if (e.pointerId !== pointerId) return;
+      dragging = false;
+      moveEl.classList.remove('dc-mini-exercise--dragging');
+    };
+    handleEl.addEventListener('pointerup', endDrag);
+    handleEl.addEventListener('pointercancel', endDrag);
+  }
+
   // Fired when the canvas toggles fullscreen (DrawingCanvas has no idea about
   // the exercise statement or the timer — both live outside it). The timer
   // and the exercise-panel toggle button live in the canvas toolbar itself
@@ -1002,10 +1049,14 @@
       document.body.appendChild(mini);
     }
     mini.innerHTML = `
-      <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
+      <div class="dc-mini-exercise__title" title="Trage pentru a muta">${BM.esc(ex.title)}</div>
       <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
     `;
     if (window.renderMathInElement) BM.renderMath(mini);
+    // Drag handle is the title row only — the statement body below it can be
+    // long enough to need its own touch-scrolling on phones (max-height +
+    // overflow-y: auto), which a whole-card drag surface would hijack.
+    _makeDraggable(mini.querySelector('.dc-mini-exercise__title'), mini);
 
     // On phones it covered a big chunk of the already-tight screen — start
     // hidden there and let the toolbar button reveal it on demand. Desktop

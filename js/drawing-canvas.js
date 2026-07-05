@@ -9,8 +9,8 @@
   var INPUT_MODE_KEY   = 'mathorizon:dc-input-mode';   // 'any' | 'pen' — persists across exercises
   var GRID_VISIBLE_KEY = 'mathorizon:dc-grid-visible'; // persists across exercises
 
-  var HIGHLIGHTER_OPACITY    = 0.45;
-  var HIGHLIGHTER_WIDTH_MULT = 1.8;
+  var HIGHLIGHTER_OPACITY    = 0.28;
+  var HIGHLIGHTER_WIDTH_MULT = 2.2;
 
   var TOOLBAR_HTML = `
     <div class="dc-tool-group dc-tool-group--extras" id="dc-extras-slot"></div>
@@ -314,21 +314,31 @@
     }
 
     var ctx = this._ctx;
-    var isHighlighter = stroke.type === 'highlighter';
-    var widthMult = isHighlighter ? HIGHLIGHTER_WIDTH_MULT : 1;
     ctx.lineJoin    = 'round';
     ctx.lineCap     = 'round';
     ctx.strokeStyle = stroke.color;
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
+
+    if (stroke.type === 'highlighter') {
+      // One continuous path, one stroke() call, fixed width (no pressure) —
+      // a real felt-tip marker doesn't get thinner/thicker with pressure
+      // either. Per-segment stroking (like the pen path below) would
+      // double the alpha at every joint, showing up as visible dark dots
+      // wherever points are far apart (e.g. a fast swipe).
+      ctx.globalAlpha = HIGHLIGHTER_OPACITY;
+      ctx.lineWidth   = stroke.width * HIGHLIGHTER_WIDTH_MULT;
+      this._buildSmoothPath(pts);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      return;
+    }
 
     if (n === 2) {
-      ctx.lineWidth = stroke.width * widthMult * (0.6 + pts[1].pressure * 1.2);
+      ctx.lineWidth = stroke.width * (0.6 + pts[1].pressure * 1.2);
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       ctx.lineTo(pts[1].x, pts[1].y);
       ctx.stroke();
-      ctx.globalAlpha = 1;
       return;
     }
 
@@ -338,13 +348,35 @@
       var p0 = pts[j - 2], p1 = pts[j - 1], p2 = pts[j];
       var mx1 = (p0.x + p1.x) / 2, my1 = (p0.y + p1.y) / 2;
       var mx2 = (p1.x + p2.x) / 2, my2 = (p1.y + p2.y) / 2;
-      ctx.lineWidth = stroke.width * widthMult * (0.6 + p2.pressure * 1.2);
+      ctx.lineWidth = stroke.width * (0.6 + p2.pressure * 1.2);
       ctx.beginPath();
       ctx.moveTo(mx1, my1);
       ctx.quadraticCurveTo(p1.x, p1.y, mx2, my2);
       ctx.stroke();
     }
-    ctx.globalAlpha = 1;
+  };
+
+  // Builds ONE continuous path (beginPath through the final point, no
+  // intermediate stroke() calls) using the same midpoint-quadratic smoothing
+  // as the pen — used for the highlighter, where per-segment stroking would
+  // double-blend the semi-transparent ink at every joint.
+  DrawingCanvas.prototype._buildSmoothPath = function (pts) {
+    var ctx = this._ctx;
+    ctx.beginPath();
+    if (pts.length < 2) return;
+    if (pts.length === 2) {
+      ctx.moveTo(pts[0].x, pts[0].y);
+      ctx.lineTo(pts[1].x, pts[1].y);
+      return;
+    }
+    ctx.moveTo(pts[0].x, pts[0].y);
+    for (var i = 1; i < pts.length - 1; i++) {
+      var mx = (pts[i].x + pts[i + 1].x) / 2;
+      var my = (pts[i].y + pts[i + 1].y) / 2;
+      ctx.quadraticCurveTo(pts[i].x, pts[i].y, mx, my);
+    }
+    var last = pts[pts.length - 1];
+    ctx.lineTo(last.x, last.y);
   };
 
   DrawingCanvas.prototype._drawGrid = function () {
@@ -541,6 +573,9 @@
       var r = this._strokeWidth * 5;
       this._ctx.clearRect(pos.x - r, pos.y - r, r * 2, r * 2);
       this._points.push(pos);
+    } else if (this._tool === 'highlighter') {
+      this._points.push(pos);
+      this._renderHighlighterLive();
     } else {
       this._points.push(pos);
       this._renderStroke();
@@ -556,24 +591,20 @@
 
     var ctx      = this._ctx;
     var pressure = pts[n - 1].pressure;
-    var isHighlighter = this._tool === 'highlighter';
-    // Map pressure [0,1] → width multiplier [0.6, 1.8], plus a flat multiplier
-    // for the highlighter so it reads as a wider marker at any width setting.
-    var width    = this._strokeWidth * (isHighlighter ? HIGHLIGHTER_WIDTH_MULT : 1) * (0.6 + pressure * 1.2);
+    // Map pressure [0,1] → width multiplier [0.6, 1.8]
+    var width    = this._strokeWidth * (0.6 + pressure * 1.2);
 
     ctx.lineJoin    = 'round';
     ctx.lineCap     = 'round';
     ctx.strokeStyle = this._color;
     ctx.lineWidth   = width;
     ctx.globalCompositeOperation = 'source-over';
-    ctx.globalAlpha = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
 
     if (n === 2) {
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       ctx.lineTo(pts[1].x, pts[1].y);
       ctx.stroke();
-      ctx.globalAlpha = 1;
       return;
     }
 
@@ -589,6 +620,26 @@
     ctx.beginPath();
     ctx.moveTo(mx1, my1);
     ctx.quadraticCurveTo(p1.x, p1.y, mx2, my2);
+    ctx.stroke();
+  };
+
+  // Unlike the pen's incremental per-segment append, the highlighter redraws
+  // the base layer plus the WHOLE in-progress path as one continuous stroke
+  // every frame — appending semi-transparent segments one at a time would
+  // double the alpha at each joint (visible dots wherever points are spaced
+  // apart, e.g. a fast swipe). Cost is a full _redrawAll() per pointermove,
+  // acceptable for the stroke counts a BAC answer canvas actually has.
+  DrawingCanvas.prototype._renderHighlighterLive = function () {
+    if (this._points.length < 2) return;
+    this._redrawAll();
+    var ctx = this._ctx;
+    ctx.lineJoin    = 'round';
+    ctx.lineCap     = 'round';
+    ctx.strokeStyle = this._color;
+    ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = HIGHLIGHTER_OPACITY;
+    ctx.lineWidth   = this._strokeWidth * HIGHLIGHTER_WIDTH_MULT;
+    this._buildSmoothPath(this._points);
     ctx.stroke();
     ctx.globalAlpha = 1;
   };
