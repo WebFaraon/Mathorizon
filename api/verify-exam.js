@@ -7,6 +7,27 @@ const model  = genAI.getGenerativeModel({
   generationConfig: { temperature: 0 }
 });
 
+// Gemini is told to return ONLY a JSON object, but occasionally wraps it in
+// stray prose despite that instruction. A hard JSON.parse() failure used to
+// take down the whole item — falling into the generic catch in the handler
+// below, which zeroed its score with no useful explanation ever reaching the
+// student (the observatii text wasn't even rendered client-side; see bac.js).
+// Falling back to the outermost {...} block recovers the common case instead
+// of discarding a real evaluation over a stray sentence before/after it.
+function extractJson(raw) {
+  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch (e) {
+    const start = cleaned.indexOf('{');
+    const end   = cleaned.lastIndexOf('}');
+    if (start !== -1 && end > start) {
+      return JSON.parse(cleaned.slice(start, end + 1));
+    }
+    throw e;
+  }
+}
+
 function extractBarem(solution, totalPoints) {
   if (!solution) return null;
 
@@ -184,8 +205,7 @@ Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown), cu
     ]);
 
     const raw     = result.response.text().trim();
-    const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-    const parsed  = JSON.parse(jsonStr);
+    const parsed  = extractJson(raw);
     const verificari = Array.isArray(parsed.verificari) ? parsed.verificari : [];
 
     // The displayed criteria always come from our fixed `barem` array —
@@ -253,12 +273,11 @@ Reguli JSON:
 
   const result = await model.generateContent([
     { text: prompt },
-    { inlineData: { mimeType: 'image/png', data: canvasBase64 } }
+    { inlineData: { mimeType: imageMimeType, data: canvasBase64 } }
   ]);
 
   const raw     = result.response.text().trim();
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-  const parsed  = JSON.parse(jsonStr);
+  const parsed  = extractJson(raw);
   parsed.label  = label;
   parsed.total_maxim   = puncteMaxime;
   parsed.total_acordat = Math.min(Math.max(Math.round(parsed.total_acordat || 0), 0), puncteMaxime);

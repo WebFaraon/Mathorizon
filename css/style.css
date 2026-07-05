@@ -11280,6 +11280,19 @@ body.dc-fullscreen-active .dc-wrap {
 }
 
 /* ---- Step list ---- */
+.ai-item__feedback {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin-bottom: 8px;
+}
+.ai-item--error .ai-item__feedback {
+  color: var(--red);
+  font-style: normal;
+  font-weight: 600;
+}
+
 .ai-item__steps {
   display: flex;
   flex-direction: column;

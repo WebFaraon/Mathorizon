@@ -1532,6 +1532,7 @@
             <span class="ai-item__label">${BM.esc(r.label)}</span>
             <span class="ai-score-pill ai-score-pill--${pill}">${r.total_acordat}/${r.total_maxim}p</span>
           </div>
+          ${r.observatii ? `<div class="ai-item__feedback">${BM.esc(r.observatii)}</div>` : ''}
           ${pasiHtml ? `<div class="ai-item__steps">${pasiHtml}</div>` : ''}
           ${img ? `
           <details class="ai-item__canvas-wrap">
