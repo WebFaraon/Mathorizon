@@ -424,6 +424,13 @@
     if (!outEl) { _showSetupPanel(panel); return; }
     outEl.classList.add('sim-fade-out');
     setTimeout(function () {
+      // Never removed otherwise — left on outEl it lingers past this hide,
+      // and the next time this same panel is shown again it stacks with the
+      // freshly-added sim-fade-in. sim-fade-in "wins" first (shorter, so its
+      // animationend fires first and un-sets it), but the still-present
+      // sim-fade-out then kicks in on its own and fades the panel to
+      // opacity:0 with fill-mode forwards — a permanently blank panel.
+      outEl.classList.remove('sim-fade-out');
       _showSetupPanel(panel);
       if (afterShow) afterShow();
       var inEl = document.getElementById(inElId);

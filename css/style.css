@@ -4152,7 +4152,11 @@ body.bac-exam-mode .nav.nav--peek {
   box-shadow: 0 8px 30px rgba(22,163,74,0.55);
 }
 .bac-start-btn:disabled {
-  opacity: 0.40;
+  /* !important: the entrance animation (bac-fade-up, fill-mode both) holds
+     opacity:1 after it finishes, and animations outrank normal author rules
+     in the cascade regardless of selector specificity — without this the
+     button never visibly dims while disabled. */
+  opacity: 0.40 !important;
   cursor: not-allowed;
   filter: grayscale(0.3);
   transform: none;
@@ -4346,7 +4350,9 @@ body.bac-exam-mode .nav.nav--peek {
 .bac-setup-title { animation: bac-fade-up 0.36s 0.30s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-setup-desc  { animation: bac-fade-up 0.36s 0.36s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-setup-chips { animation: bac-fade-up 0.36s 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.bac-start-btn   { animation: bac-fade-up 0.36s 0.48s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.bac-method-label { animation: bac-fade-up 0.36s 0.46s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.bac-method-grid  { animation: bac-fade-up 0.36s 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
+.bac-start-btn   { animation: bac-fade-up 0.36s 0.56s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-struct-table { animation: bac-fade-up 0.36s 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-hist         { animation: bac-fade-up 0.36s 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-tips         { animation: bac-fade-up 0.36s 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
