@@ -210,10 +210,10 @@
     const ov = document.createElement('div');
     ov.id = 'fsResumeOverlay';
     ov.innerHTML = `
-      <div class="fs-warn-box">
-        <div class="fs-warn-icon">🖥️</div>
-        <div class="fs-warn-title">Revino la ecran complet</div>
-        <div class="fs-warn-body">
+      <div class="fs-resume-box">
+        <div class="fs-resume-icon">🖥️</div>
+        <div class="fs-resume-title">Revino la ecran complet</div>
+        <div class="fs-resume-body">
           Browserul a ieșit din modul ecran complet când ai deschis camera/selectorul de fișiere — e normal, nu contează ca abatere.
         </div>
         <button class="btn btn--primary" onclick="BMBac.resumeFullscreenAfterPicker()">↑ Revino la ecran complet</button>
