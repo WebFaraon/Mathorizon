@@ -1526,14 +1526,23 @@
       // exercise, so the student can compare their handwriting to the verdict.
       const img = images && images[idx];
 
+      const feedbackHtml = r.observatii ? `
+          <div class="ai-item__feedback">
+            <span class="ai-item__feedback-icon">${r.error ? '⚠️' : '💡'}</span>
+            <div>
+              <div class="ai-item__feedback-label">${r.error ? 'Eroare evaluare' : 'Observație AI'}</div>
+              <div class="ai-item__feedback-text">${BM.esc(r.observatii)}</div>
+            </div>
+          </div>` : '';
+
       return `
         <div class="ai-item${r.error ? ' ai-item--error' : ''}">
           <div class="ai-item__header">
             <span class="ai-item__label">${BM.esc(r.label)}</span>
             <span class="ai-score-pill ai-score-pill--${pill}">${r.total_acordat}/${r.total_maxim}p</span>
           </div>
-          ${r.observatii ? `<div class="ai-item__feedback">${BM.esc(r.observatii)}</div>` : ''}
           ${pasiHtml ? `<div class="ai-item__steps">${pasiHtml}</div>` : ''}
+          ${feedbackHtml}
           ${img ? `
           <details class="ai-item__canvas-wrap">
             <summary>Vezi lucrarea ta</summary>

@@ -76,6 +76,11 @@
   <!-- HERO -->
   <section class="hero">
 
+    <!-- Purely decorative background layer — clips itself so orbs/SVG/symbols
+         never spill past the section, without clipping real content (like
+         the search dropdown below) that needs to extend past the hero box. -->
+    <div class="hero-bg-decor" aria-hidden="true">
+
     <!-- Ambient glow orbs -->
     <div class="hero-orbs" aria-hidden="true">
       <div class="hero-orb hero-orb--blue"></div>
@@ -120,6 +125,8 @@
       <span class="hero-sym" style="left:4%;top:68%;font-size:4rem;opacity:0.09">Δ</span>
       <span class="hero-sym hero-sym--formula" style="left:75%;top:30%;opacity:0.09;font-size:1rem">aₙ = a₁ + (n−1)d</span>
       <span class="hero-sym" style="left:92%;top:22%;font-size:3.5rem;opacity:0.10">∞</span>
+    </div>
+
     </div>
 
     <div class="container">

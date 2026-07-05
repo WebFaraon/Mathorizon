@@ -688,11 +688,23 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
   position: relative;
   background-color: var(--bg);
+}
+
+/* Decorative-only layer (orbs, math SVG, floating symbols, grid overlay) —
+   this clips itself so nothing bleeds past the hero section, without
+   clipping real content. .hero itself used to have overflow:hidden for
+   this, which also cut off the search dropdown below whenever it was
+   taller than the hero's own box (a real, interactive element getting
+   clipped by decoration-only overflow control). */
+.hero-bg-decor {
+  position: absolute;
+  inset: 0;
   overflow: hidden;
+  pointer-events: none;
 }
 
 /* Coordinate-grid overlay in hero */
-.hero::before {
+.hero-bg-decor::before {
   content: '';
   position: absolute;
   inset: 0;
@@ -700,7 +712,17 @@ body.bac-exam-mode .nav.nav--peek {
     linear-gradient(rgba(27, 74, 138, 0.08) 1px, transparent 1px),
     linear-gradient(90deg, rgba(27, 74, 138, 0.08) 1px, transparent 1px);
   background-size: 28px 28px;
-  pointer-events: none;
+}
+
+/* DOM order already puts .container after .hero-bg-decor, but make the
+   stacking explicit so the search dropdown reliably paints above it.
+   z-index: 10, not 1 — `.main > *` (line ~1116) already puts every direct
+   child of the chapters section's <main> at z-index: 1, and since that
+   section comes after .hero in the DOM, a tied z-index there would resolve
+   in ITS favor, putting the chapters grid back on top of the dropdown. */
+.hero > .container {
+  position: relative;
+  z-index: 10;
 }
 
 /* Bottom rule */
@@ -11228,7 +11250,7 @@ body.dc-fullscreen-active .dc-wrap {
 }
 
 .ai-item {
-  padding: 14px 24px;
+  padding: 18px 24px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -11241,7 +11263,7 @@ body.dc-fullscreen-active .dc-wrap {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  margin-bottom: 8px;
+  margin-bottom: 12px;
 }
 
 .ai-item__label {
@@ -11280,24 +11302,11 @@ body.dc-fullscreen-active .dc-wrap {
 }
 
 /* ---- Step list ---- */
-.ai-item__feedback {
-  font-size: 0.78rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-  font-style: italic;
-  margin-bottom: 8px;
-}
-.ai-item--error .ai-item__feedback {
-  color: var(--red);
-  font-style: normal;
-  font-weight: 600;
-}
-
 .ai-item__steps {
   display: flex;
   flex-direction: column;
-  gap: 5px;
-  margin-bottom: 8px;
+  gap: 7px;
+  margin-bottom: 14px;
 }
 
 .ai-step {
@@ -11335,9 +11344,47 @@ body.dc-fullscreen-active .dc-wrap {
 .ai-step--partial .ai-step__pts { color: var(--yellow); }
 .ai-step--wrong   .ai-step__pts { color: var(--red); }
 
+/* ---- AI feedback card — set apart from the barem list above it so a
+   student scanning the item lands on a distinct, clearly-labeled box
+   instead of an unbroken run of text. ---- */
+.ai-item__feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--accent);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+.ai-item__feedback-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1.5;
+}
+.ai-item__feedback-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  color: var(--accent);
+  margin-bottom: 3px;
+}
+.ai-item__feedback-text {
+  font-size: 0.82rem;
+  line-height: 1.55;
+  color: var(--text-secondary);
+}
+.ai-item--error .ai-item__feedback {
+  background: var(--red-dim, rgba(220,38,38,0.08));
+  border-left-color: var(--red);
+}
+.ai-item--error .ai-item__feedback-label { color: var(--red); }
+.ai-item--error .ai-item__feedback-text  { color: var(--red); font-weight: 600; }
+
 /* ---- Read-only work snapshot ---- */
 .ai-item__canvas-wrap {
-  margin-top: 10px;
+  margin-top: 14px;
 }
 
 .ai-item__canvas-wrap summary {
