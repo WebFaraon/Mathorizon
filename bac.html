@@ -156,7 +156,21 @@
           </div>
         </div>
 
-        <button class="bac-start-btn" onclick="startExam()">
+        <div class="bac-method-label">Cum vei rezolva exercițiile?</div>
+        <div class="bac-method-grid" id="bacMethodGrid">
+          <button class="bac-method-btn" type="button" data-method="canvas" onclick="selectAnswerMethod('canvas')">
+            <span class="bac-method-btn__icon">✏️</span>
+            <span class="bac-method-btn__title">Canvas digital</span>
+            <span class="bac-method-btn__desc">Scrie direct în aplicație cu mouse/stylus/deget</span>
+          </button>
+          <button class="bac-method-btn" type="button" data-method="photo" onclick="selectAnswerMethod('photo')">
+            <span class="bac-method-btn__icon">📷</span>
+            <span class="bac-method-btn__title">Încarcă poze</span>
+            <span class="bac-method-btn__desc">Rezolvă pe foaie și încarcă poza rezolvării</span>
+          </button>
+        </div>
+
+        <button class="bac-start-btn" id="bacStartBtn" onclick="startExam()" disabled>
           🚀 Pornește Simularea BAC
         </button>
       </div>
@@ -475,6 +489,7 @@
   <script src="js/auth.js"></script>
   <script src="js/panels.js"></script>
   <script src="js/drawing-canvas.js"></script>
+  <script src="js/photo-upload.js"></script>
   <script src="js/bac.js"></script>
 </body>
 </html>

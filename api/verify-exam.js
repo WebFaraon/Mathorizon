@@ -102,8 +102,9 @@ async function verifyItem(item) {
   const {
     canvasBase64, enunt, solutieOficiala,
     puncteMaxime, label, barem: baremFixed, baremEstimat,
-    raspunsCorect, raspunsElev, subcategoryId
+    raspunsCorect, raspunsElev, subcategoryId, mimeType
   } = item;
+  const imageMimeType = mimeType || 'image/png';
 
   const subcatHint = SUBCAT_HINTS[subcategoryId] || '';
   const subcatBlock = subcatHint ? `\nATENȚIE SPECIFICĂ PENTRU ACEST TIP DE EXERCIȚIU: ${subcatHint}\n` : '';
@@ -179,7 +180,7 @@ Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown), cu
 
     const result = await model.generateContent([
       { text: prompt },
-      { inlineData: { mimeType: 'image/png', data: canvasBase64 } }
+      { inlineData: { mimeType: imageMimeType, data: canvasBase64 } }
     ]);
 
     const raw     = result.response.text().trim();

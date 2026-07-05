@@ -164,6 +164,7 @@
   let timerInterval = null;
   let _fsWarnings   = 0;
   let _navGuardOn   = false;
+  let _activeAnswerWidget = null; // active DrawingCanvas or PhotoUpload instance
 
   /* ---- Fullscreen helpers ---- */
   function _enterFullscreen() {
@@ -451,6 +452,18 @@
     _switchPanel(activePanel, 'choose', 'simChoose');
   };
 
+  /* ---- BAC: answer method selection (canvas vs photo upload) ---- */
+  let _answerMethod = null;
+
+  window.selectAnswerMethod = function (method) {
+    _answerMethod = method;
+    document.querySelectorAll('.bac-method-btn').forEach(btn => {
+      btn.classList.toggle('selected', btn.dataset.method === method);
+    });
+    const startBtn = document.getElementById('bacStartBtn');
+    if (startBtn) startBtn.disabled = false;
+  };
+
   /* ---- Lectie de Proba: grade selection & exam ---- */
   let _lectieGrade = null;
   const LECTIE_DURATION = 50 * 60; // 3000 seconds
@@ -594,7 +607,8 @@
       slots: generateExam(),
       startTs: Date.now(),
       endTs: null,
-      phase: 'exam'
+      phase: 'exam',
+      answerMethod: _answerMethod || 'canvas'
     };
     current = 0;
     _fsWarnings = 0;
@@ -792,14 +806,15 @@
   }
 
   function renderCurrentSlot() {
-    if (window._activeDrawingCanvas) {
-      window._activeDrawingCanvas.destroy();
-      window._activeDrawingCanvas = null;
+    if (_activeAnswerWidget) {
+      _activeAnswerWidget.destroy();
+      _activeAnswerWidget = null;
     }
 
     const slot  = _slotDefs[current];
     const item  = exam.slots[current];
     const total = _slotDefs.length;
+    const answerMethod = exam.answerMethod || 'canvas';
 
     const sub = item.exercise
       ? BM.getSubcategoryById(item.exercise.categoryId, item.exercise.subcategoryId)
@@ -866,15 +881,23 @@
             <span class="bac-notes-label">Spațiu de rezolvare</span>
             <span class="bac-notes-toggle">▾</span>
           </div>
-          <div class="bac-notes-body bac-notes-body--canvas" id="drawingCanvasMount"></div>
+          <div class="bac-notes-body bac-notes-body--${answerMethod === 'photo' ? 'upload' : 'canvas'}" id="drawingCanvasMount"></div>
         </div>
       `;
       if (window.renderMathInElement) BM.renderMath(container);
 
       const dcMount = document.getElementById('drawingCanvasMount');
-      if (dcMount && window.DrawingCanvas) {
+      if (answerMethod === 'photo') {
+        if (dcMount && window.PhotoUpload) {
+          const _cur = current;
+          _activeAnswerWidget = new PhotoUpload(dcMount, {
+            onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
+            initialData: item.work || null
+          });
+        }
+      } else if (dcMount && window.DrawingCanvas) {
         const _cur = current;
-        window._activeDrawingCanvas = new DrawingCanvas(dcMount, {
+        _activeAnswerWidget = new DrawingCanvas(dcMount, {
           onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
           initialData: item.work || null,
           toolbarExtras: `
@@ -884,7 +907,7 @@
           onMaximizeChange: function (isMax) { _toggleMiniExerciseCard(isMax, ex); }
         });
         window.getCanvasImage = function () {
-          return window._activeDrawingCanvas ? window._activeDrawingCanvas.getCanvasImage() : null;
+          return _activeAnswerWidget ? _activeAnswerWidget.getCanvasImage() : null;
         };
       }
     }
@@ -1200,7 +1223,7 @@
       </div>
 
       <div class="res-actions">
-        <button class="btn btn--primary btn--lg" onclick="newSimulation()">🔄 Simulare Nouă</button>
+        <button class="btn btn--primary btn--lg" onclick="newSimulation()">Simulare Nouă</button>
         <a class="btn btn--surface btn--lg" href="index.html">Capitole</a>
       </div>
     `;
@@ -1404,7 +1427,6 @@
             <span class="ai-score-pill ai-score-pill--${pill}">${r.total_acordat}/${r.total_maxim}p</span>
           </div>
           ${pasiHtml ? `<div class="ai-item__steps">${pasiHtml}</div>` : ''}
-          ${r.observatii ? `<p class="ai-item__obs">${BM.esc(r.observatii)}</p>` : ''}
           ${img ? `
           <details class="ai-item__canvas-wrap">
             <summary>Vezi lucrarea ta</summary>
@@ -1430,9 +1452,10 @@
   // grading of the canvas is now the only way exercises get scored. Also
   // callable again via the "Reevaluează"/"Reîncearcă" buttons in the results.
   async function _runAiVerification() {
-    // Flush the last active canvas so its latest state is in item.work
-    if (window._activeDrawingCanvas) window._activeDrawingCanvas.flush();
+    // Flush the last active widget so its latest state is in item.work
+    if (_activeAnswerWidget) _activeAnswerWidget.flush();
 
+    const answerMethod = exam.answerMethod || 'canvas';
     const eligibleIndices = [];
     _slotDefs.forEach((_, i) => { if (exam.slots[i]?.exercise) eligibleIndices.push(i); });
 
@@ -1446,15 +1469,26 @@
         const slot = _slotDefs[i];
         const item = exam.slots[i];
 
-        // Treat an effectively-blank canvas (e.g. from a stray tap) as unanswered,
-        // so it gets the "nerezolvat" path instead of a full barem evaluation.
-        const blank        = await isBlankStrokes(item.work || null);
-        const composite    = blank ? null : await compositeOnWhite(item.work);
-        const canvasBase64 = composite ? composite.split(',')[1] : null;
-        // Separate, contrast-aware snapshot for the read-only display below
-        // each result — the Gemini payload always uses a white background,
-        // but ink drawn in dark theme (near-white) would be invisible on it.
-        const displayImg   = blank ? null : await compositeForDisplay(item.work);
+        let blank, canvasBase64, displayImg, mimeType;
+        if (answerMethod === 'photo') {
+          // A photo is already an opaque JPEG of the actual solved page — no
+          // stroke transparency to blank-check or composite onto a background.
+          blank        = !item.work;
+          canvasBase64 = blank ? null : item.work.split(',')[1];
+          displayImg   = blank ? null : item.work;
+          mimeType     = 'image/jpeg';
+        } else {
+          // Treat an effectively-blank canvas (e.g. from a stray tap) as unanswered,
+          // so it gets the "nerezolvat" path instead of a full barem evaluation.
+          blank        = await isBlankStrokes(item.work || null);
+          const composite = blank ? null : await compositeOnWhite(item.work);
+          canvasBase64 = composite ? composite.split(',')[1] : null;
+          // Separate, contrast-aware snapshot for the read-only display below
+          // each result — the Gemini payload always uses a white background,
+          // but ink drawn in dark theme (near-white) would be invisible on it.
+          displayImg   = blank ? null : await compositeForDisplay(item.work);
+          mimeType     = 'image/png';
+        }
 
         return {
           label:           slot.label,
@@ -1475,7 +1509,8 @@
           // official document) — tells the server not to call them "oficial".
           baremEstimat:    !!item.exercise.baremEstimat,
           canvasBase64,
-          displayImg
+          displayImg,
+          mimeType
         };
       }));
 
@@ -1683,6 +1718,7 @@
         startTs: exam.startTs,
         endTs:   exam.endTs,
         phase:   exam.phase,
+        answerMethod: exam.answerMethod || 'canvas',
         slots: exam.slots.map(item => ({
           slotId:          item.slotId,
           exerciseId:      item.exercise?.id || null,
