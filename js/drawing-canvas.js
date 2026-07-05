@@ -974,6 +974,13 @@
   };
 
   DrawingCanvas.prototype._strokesDataUrl = function () {
+    // A cleared/blank canvas' toDataURL() is still a non-empty data URL (a
+    // valid, fully-transparent PNG) — saving that would make item.work a
+    // truthy string forever, permanently marking the item "Rezolvat" in the
+    // sidebar even right after "Șterge tot". Save '' instead whenever there's
+    // nothing left to show (no strokes AND no loaded background image), so
+    // it's treated as unanswered again, same as a freshly generated item.
+    if (this._strokes.length === 0 && !this._bgImage) return '';
     // Save only the draw canvas (transparent bg + strokes).
     // getCanvasImage() composites the grid background on top for export/AI,
     // but we must NOT save the grid into item.work — that would bake the

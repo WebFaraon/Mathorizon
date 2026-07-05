@@ -1049,14 +1049,12 @@
       document.body.appendChild(mini);
     }
     mini.innerHTML = `
-      <div class="dc-mini-exercise__title" title="Trage pentru a muta">${BM.esc(ex.title)}</div>
+      <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
       <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
     `;
     if (window.renderMathInElement) BM.renderMath(mini);
-    // Drag handle is the title row only — the statement body below it can be
-    // long enough to need its own touch-scrolling on phones (max-height +
-    // overflow-y: auto), which a whole-card drag surface would hijack.
-    _makeDraggable(mini.querySelector('.dc-mini-exercise__title'), mini);
+    // Whole card is the drag surface — grab it from anywhere.
+    _makeDraggable(mini, mini);
 
     // On phones it covered a big chunk of the already-tight screen — start
     // hidden there and let the toolbar button reveal it on demand. Desktop

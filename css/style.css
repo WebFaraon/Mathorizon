@@ -5357,7 +5357,7 @@ body.bac-exam-mode .nav.nav--peek {
   justify-content: center;
   flex-shrink: 0;
   padding: 0;
-  opacity: 0;
+  opacity: 0.4;
   line-height: 1;
 }
 .bac-nav-item:hover .bac-nav-flag,
@@ -10917,23 +10917,24 @@ body.dc-fullscreen-active .dc-wrap {
   border-radius: 12px;
   box-shadow: 0 10px 36px rgba(0,0,0,0.22);
   padding: 14px 16px;
+  /* Whole card is the drag surface (see _makeDraggable in bac.js) — grab it
+     from anywhere, not just the title. */
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
 }
 .dc-mini-exercise.hidden { display: none; }
 /* Dragging swaps top/right anchoring for explicit inline left/top (see
    _makeDraggable in bac.js) — disable the entrance/appear transition while
    that's happening so the panel tracks the pointer instead of easing to it. */
-.dc-mini-exercise--dragging { transition: none; opacity: 0.94; }
+.dc-mini-exercise--dragging { transition: none; opacity: 0.94; cursor: grabbing; }
 .dc-mini-exercise__title {
   font-size: 0.82rem;
   font-weight: 700;
   color: var(--text);
   margin: 0 0 8px 0;
   line-height: 1.3;
-  cursor: grab;
-  touch-action: none; /* this row is the drag handle, not a scroll target */
-  user-select: none;
 }
-.dc-mini-exercise--dragging .dc-mini-exercise__title { cursor: grabbing; }
 .dc-mini-exercise__statement {
   font-size: 0.78rem;
   line-height: 1.6;
