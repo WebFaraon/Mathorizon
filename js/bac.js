@@ -199,8 +199,53 @@
     document.getElementById('fsWarnOverlay')?.remove();
   }
 
+  // Non-punitive counterpart to _showFsWarning() — opening the native photo/
+  // camera picker forces a fullscreen exit that _fsGuardSuspended already
+  // excludes from the strike count, so this never mentions the exam being
+  // at risk. Shown only if the silent re-entry attempt in _resumeFsGuard()
+  // didn't take (some browsers won't grant requestFullscreen() outside a
+  // direct-enough user gesture).
+  function _showFsResumePrompt() {
+    if (document.getElementById('fsResumeOverlay')) return;
+    const ov = document.createElement('div');
+    ov.id = 'fsResumeOverlay';
+    ov.innerHTML = `
+      <div class="fs-warn-box">
+        <div class="fs-warn-icon">🖥️</div>
+        <div class="fs-warn-title">Revino la ecran complet</div>
+        <div class="fs-warn-body">
+          Browserul a ieșit din modul ecran complet când ai deschis camera/selectorul de fișiere — e normal, nu contează ca abatere.
+        </div>
+        <button class="btn btn--primary" onclick="BMBac.resumeFullscreenAfterPicker()">↑ Revino la ecran complet</button>
+      </div>`;
+    document.body.appendChild(ov);
+  }
+  function _hideFsResumePrompt() {
+    document.getElementById('fsResumeOverlay')?.remove();
+  }
+
+  // Suspends the fullscreen anti-cheat guard for one expected exit (opening
+  // the native photo/camera picker) and resumes it once the picker closes,
+  // attempting to silently restore fullscreen — falling back to a (non-strike)
+  // prompt if the browser didn't allow that. Wired into PhotoUpload via
+  // onPickerOpen/onPickerClose in renderCurrentSlot().
+  let _fsGuardSuspended = false;
+  function _suspendFsGuard() { _fsGuardSuspended = true; }
+  function _resumeFsGuard() {
+    _fsGuardSuspended = false;
+    if (!exam || exam.phase !== 'exam' || _isFullscreen()) return;
+    _enterFullscreen();
+    setTimeout(() => {
+      if (exam && exam.phase === 'exam' && !_isFullscreen()) _showFsResumePrompt();
+    }, 400);
+  }
+
   window.BMBac = window.BMBac || {};
   window.BMBac.returnFullscreen = function() {
+    _enterFullscreen();
+  };
+  window.BMBac.resumeFullscreenAfterPicker = function () {
+    _hideFsResumePrompt();
     _enterFullscreen();
   };
 
@@ -273,8 +318,9 @@
   document.addEventListener('webkitfullscreenchange', _onFsChange);
   document.addEventListener('mozfullscreenchange',    _onFsChange);
   function _onFsChange() {
-    if (_isFullscreen()) { _hideFsWarning(); return; }
+    if (_isFullscreen()) { _hideFsWarning(); _hideFsResumePrompt(); return; }
     if (!exam || exam.phase !== 'exam') return;
+    if (_fsGuardSuspended) return; // expected exit — opening the photo/camera picker
     _fsWarnings++;
     if (_fsWarnings === 1) {
       _showFsWarning();
@@ -899,7 +945,9 @@
           const _cur = current;
           _activeAnswerWidget = new PhotoUpload(dcMount, {
             onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
-            initialData: item.work || null
+            initialData: item.work || null,
+            onPickerOpen: _suspendFsGuard,
+            onPickerClose: _resumeFsGuard
           });
         }
       } else if (dcMount && window.DrawingCanvas) {

@@ -15,6 +15,13 @@
     this._container  = container;
     this._onSave      = options.onSave || null;
     this._initialData = options.initialData || null;
+    // Opening the native file/camera picker forces the browser out of
+    // Fullscreen API mode — an expected, unavoidable side effect, not the
+    // student leaving the exam. bac.js uses these to suspend its fullscreen
+    // anti-cheat guard for that one expected exit and resume it afterward.
+    this._onPickerOpen  = options.onPickerOpen  || null;
+    this._onPickerClose = options.onPickerClose || null;
+    this._pendingPickerFinish = null;
     this._destroyed   = false;
 
     this._build();
@@ -69,11 +76,18 @@
   PhotoUpload.prototype._bindEvents = function () {
     var self = this;
 
-    this._dropzone.addEventListener('click', function () { self._fileInput.click(); });
-    this._dropzone.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); self._fileInput.click(); }
+    this._dropzone.addEventListener('click', function () {
+      self._triggerPicker(function () { self._fileInput.click(); });
     });
-    this._cameraBtn.addEventListener('click', function () { self._cameraInput.click(); });
+    this._dropzone.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        self._triggerPicker(function () { self._fileInput.click(); });
+      }
+    });
+    this._cameraBtn.addEventListener('click', function () {
+      self._triggerPicker(function () { self._cameraInput.click(); });
+    });
 
     this._fileInput.addEventListener('change', function (e) {
       var file = e.target.files && e.target.files[0];
@@ -115,6 +129,38 @@
       }
     };
     document.addEventListener('paste', this._pasteHandler);
+  };
+
+  // Wraps a call that opens the native file/camera picker. Notifies the host
+  // immediately (so it can suspend its fullscreen guard before the OS dialog
+  // forces an exit), then watches for the picker closing — either a file was
+  // chosen or the dialog was cancelled, both of which return focus/visibility
+  // to the page — to notify the host again so it can resume the guard.
+  PhotoUpload.prototype._triggerPicker = function (openFn) {
+    var self = this;
+    if (this._pendingPickerFinish) this._pendingPickerFinish(); // don't overlap a prior one
+    if (this._onPickerOpen) this._onPickerOpen();
+    openFn();
+
+    var settled = false;
+    var onFocus   = function () { finish(); };
+    var onVisible = function () { if (document.visibilityState === 'visible') finish(); };
+    function finish() {
+      if (settled) return;
+      settled = true;
+      window.removeEventListener('focus', onFocus);
+      document.removeEventListener('visibilitychange', onVisible);
+      self._pendingPickerFinish = null;
+      // Small delay so a 'change' event from a picked file lands first, and
+      // gives the browser a moment to settle before the host tries to
+      // silently re-request fullscreen.
+      setTimeout(function () {
+        if (self._onPickerClose) self._onPickerClose();
+      }, 300);
+    }
+    window.addEventListener('focus', onFocus);
+    document.addEventListener('visibilitychange', onVisible);
+    this._pendingPickerFinish = finish;
   };
 
   PhotoUpload.prototype._handleFile = function (file) {
@@ -202,6 +248,10 @@
   PhotoUpload.prototype.destroy = function () {
     this._destroyed = true;
     document.removeEventListener('paste', this._pasteHandler);
+    // If a picker is still open when this widget gets torn down (e.g. the
+    // exam item changed), resolve it now so the host's suspended fullscreen
+    // guard isn't left stuck suspended for the rest of the exam.
+    if (this._pendingPickerFinish) this._pendingPickerFinish();
     if (this._wrap && this._wrap.parentNode) this._wrap.parentNode.removeChild(this._wrap);
   };
 

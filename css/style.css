@@ -4152,13 +4152,15 @@ body.bac-exam-mode .nav.nav--peek {
   box-shadow: 0 8px 30px rgba(22,163,74,0.55);
 }
 .bac-start-btn:disabled {
-  /* !important: the entrance animation (bac-fade-up, fill-mode both) holds
-     opacity:1 after it finishes, and animations outrank normal author rules
-     in the cascade regardless of selector specificity — without this the
-     button never visibly dims while disabled. */
-  opacity: 0.40 !important;
+  /* Dim via filter, not opacity: the entrance animation (bac-fade-up) both
+     drives and fills opacity (0 during its delay, 1 after) — an opacity
+     override here would either fight it (losing, since animations outrank
+     normal author rules) or win and cancel the delay's backwards-fill,
+     making the button flash visible immediately instead of appearing in
+     its place in the staggered sequence. filter isn't touched by the
+     animation, so it composes with either phase with no conflict. */
   cursor: not-allowed;
-  filter: grayscale(0.3);
+  filter: grayscale(0.7) brightness(0.75);
   transform: none;
   box-shadow: none;
 }
