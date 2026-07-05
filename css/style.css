@@ -10783,9 +10783,45 @@ body.bac-exam-mode .nav.nav--peek {
 /* ---- Fullscreen canvas toggle ---- */
 .dc-action-btn--active { background: var(--accent); color: #fff; border-color: transparent; }
 .dc-action-btn--active:hover { background: var(--accent-2); color: #fff; }
-.dc-icon-collapse { display: none; }
+/* Specificity note: .dc-action-btn svg (1 class + 1 type) below in the
+   toolbar-icon-sizing rule outranks a bare .dc-icon-collapse class alone,
+   so the default state never actually hid the collapse icon — both the
+   expand and collapse glyphs rendered stacked on top of each other. Scoping
+   to #dc-maximize-btn (matching the two override rules below it) fixes it. */
+#dc-maximize-btn .dc-icon-collapse { display: none; }
 #dc-maximize-btn.dc-action-btn--active .dc-icon-expand   { display: none; }
 #dc-maximize-btn.dc-action-btn--active .dc-icon-collapse { display: block; }
+.dc-icon-mirror { transform: scaleX(-1); }
+
+/* ---- Auto-save flash ---- */
+.dc-save-indicator {
+  position: absolute;
+  top: 10px;
+  right: 14px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border-radius: 20px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  opacity: 0;
+  transform: translateY(-4px);
+  transition: opacity 0.25s ease, transform 0.25s ease;
+  pointer-events: none;
+  z-index: 4;
+}
+.dc-save-indicator--show {
+  opacity: 1;
+  transform: translateY(0);
+}
+.dc-save-indicator__icon {
+  color: var(--green);
+  font-weight: 800;
+}
 
 /* Deliberately NOT position:fixed here: .bac-notes-card (an ancestor of
    .dc-wrap) has `animation: bac-card-appear ... both`, whose end keyframe

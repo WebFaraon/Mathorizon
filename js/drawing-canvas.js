@@ -6,7 +6,11 @@
 (function (global) {
   'use strict';
 
-  var INPUT_MODE_KEY = 'mathorizon:dc-input-mode'; // 'any' | 'pen' — persists across exercises
+  var INPUT_MODE_KEY   = 'mathorizon:dc-input-mode';   // 'any' | 'pen' — persists across exercises
+  var GRID_VISIBLE_KEY = 'mathorizon:dc-grid-visible'; // persists across exercises
+
+  var HIGHLIGHTER_OPACITY    = 0.45;
+  var HIGHLIGHTER_WIDTH_MULT = 1.8;
 
   var TOOLBAR_HTML = `
     <div class="dc-tool-group dc-tool-group--extras" id="dc-extras-slot"></div>
@@ -15,6 +19,12 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <path d="M12 20h9"/>
           <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>
+        </svg>
+      </button>
+      <button class="dc-tool-btn" data-tool="highlighter" title="Marker (H)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/>
+          <path d="m13.5 6.5 4 4"/>
         </svg>
       </button>
       <button class="dc-tool-btn" data-tool="eraser" title="Radieră (E)">
@@ -84,6 +94,18 @@
           <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
         </svg>
       </button>
+      <button class="dc-action-btn" id="dc-redo-btn" title="Reface (Ctrl+Y)">
+        <svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 7v6h6"/>
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>
+        </svg>
+      </button>
+      <button class="dc-action-btn dc-action-btn--active" id="dc-grid-btn" aria-pressed="true" title="Ascunde grila">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>
+        </svg>
+      </button>
       <button class="dc-action-btn dc-action-btn--danger" id="dc-clear-btn" title="Șterge tot">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
           <polyline points="3 6 5 6 21 6"/>
@@ -119,10 +141,12 @@
     // canvas (e.g. collapsing/expanding the exam sidebar) can redraw them at
     // the new size instead of cropping a raster snapshot to the old bounds.
     this._strokes        = [];
+    this._redoStack      = []; // strokes popped by _undo(); cleared on any new stroke/clear
     this._currentStroke  = null;
     this._bgImage        = null; // raster image loaded from a previous session (item.work)
     this._bgImageCssW    = 0;
     this._bgImageCssH    = 0;
+    this._gridVisible = this._loadGridVisible();
     this._isDrawing   = false;
     this._points      = [];
     this._pointers    = {};    // active touch pointers → { x, y } for scroll/pan gestures
@@ -135,7 +159,9 @@
 
     this._build();
     this._bindEvents();
-    this._applyInputMode(); // reflect persisted preference in UI
+    this._applyInputMode();      // reflect persisted preference in UI
+    this._applyGridVisible();    // reflect persisted grid preference in UI
+    this._updateUndoRedoButtons();
 
     // Defer resize so the DOM has laid out
     var self = this;
@@ -184,10 +210,19 @@
     hint.setAttribute('aria-live', 'polite');
     hint.textContent = 'Folosește pixul digital pentru a scrie';
 
+    // Transient "Salvat" flash shown briefly after each debounced auto-save —
+    // absolutely positioned over the canvas so it never reflows the toolbar.
+    var saveIndicator = document.createElement('div');
+    saveIndicator.className = 'dc-save-indicator';
+    saveIndicator.setAttribute('aria-live', 'polite');
+    saveIndicator.innerHTML = '<span class="dc-save-indicator__icon">✓</span><span class="dc-save-indicator__text">Salvat</span>';
+
     canvasWrap.appendChild(this._gridCanvas);
     canvasWrap.appendChild(this._canvas);
     canvasWrap.appendChild(hint);
-    this._inputHint = hint;
+    canvasWrap.appendChild(saveIndicator);
+    this._inputHint     = hint;
+    this._saveIndicator = saveIndicator;
 
     wrap.appendChild(toolbar);
     wrap.appendChild(canvasWrap);
@@ -279,17 +314,21 @@
     }
 
     var ctx = this._ctx;
+    var isHighlighter = stroke.type === 'highlighter';
+    var widthMult = isHighlighter ? HIGHLIGHTER_WIDTH_MULT : 1;
     ctx.lineJoin    = 'round';
     ctx.lineCap     = 'round';
     ctx.strokeStyle = stroke.color;
     ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
 
     if (n === 2) {
-      ctx.lineWidth = stroke.width * (0.6 + pts[1].pressure * 1.2);
+      ctx.lineWidth = stroke.width * widthMult * (0.6 + pts[1].pressure * 1.2);
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       ctx.lineTo(pts[1].x, pts[1].y);
       ctx.stroke();
+      ctx.globalAlpha = 1;
       return;
     }
 
@@ -299,12 +338,13 @@
       var p0 = pts[j - 2], p1 = pts[j - 1], p2 = pts[j];
       var mx1 = (p0.x + p1.x) / 2, my1 = (p0.y + p1.y) / 2;
       var mx2 = (p1.x + p2.x) / 2, my2 = (p1.y + p2.y) / 2;
-      ctx.lineWidth = stroke.width * (0.6 + p2.pressure * 1.2);
+      ctx.lineWidth = stroke.width * widthMult * (0.6 + p2.pressure * 1.2);
       ctx.beginPath();
       ctx.moveTo(mx1, my1);
       ctx.quadraticCurveTo(p1.x, p1.y, mx2, my2);
       ctx.stroke();
     }
+    ctx.globalAlpha = 1;
   };
 
   DrawingCanvas.prototype._drawGrid = function () {
@@ -323,23 +363,27 @@
     ctx.fillStyle = dark ? '#161616' : '#f7f5ef';
     ctx.fillRect(0, 0, pw, ph);
 
-    var cell = 24 * dpr; // 24 CSS-px grid in physical pixels
+    // Grid toggle only affects these lines — the background fill above always
+    // stays, so hiding the grid never leaves a transparent hole behind strokes.
+    if (this._gridVisible) {
+      var cell = 24 * dpr; // 24 CSS-px grid in physical pixels
 
-    // Fine grid
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.055)';
-    ctx.lineWidth   = 0.5;
-    ctx.beginPath();
-    for (var x = 0; x <= pw; x += cell) { ctx.moveTo(x, 0); ctx.lineTo(x, ph); }
-    for (var y = 0; y <= ph; y += cell) { ctx.moveTo(0, y); ctx.lineTo(pw, y); }
-    ctx.stroke();
+      // Fine grid
+      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.055)';
+      ctx.lineWidth   = 0.5;
+      ctx.beginPath();
+      for (var x = 0; x <= pw; x += cell) { ctx.moveTo(x, 0); ctx.lineTo(x, ph); }
+      for (var y = 0; y <= ph; y += cell) { ctx.moveTo(0, y); ctx.lineTo(pw, y); }
+      ctx.stroke();
 
-    // Major grid every 5 cells
-    ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.10)';
-    ctx.lineWidth   = 0.5;
-    ctx.beginPath();
-    for (var x2 = 0; x2 <= pw; x2 += cell * 5) { ctx.moveTo(x2, 0); ctx.lineTo(x2, ph); }
-    for (var y2 = 0; y2 <= ph; y2 += cell * 5) { ctx.moveTo(0, y2); ctx.lineTo(pw, y2); }
-    ctx.stroke();
+      // Major grid every 5 cells
+      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.10)';
+      ctx.lineWidth   = 0.5;
+      ctx.beginPath();
+      for (var x2 = 0; x2 <= pw; x2 += cell * 5) { ctx.moveTo(x2, 0); ctx.lineTo(x2, ph); }
+      for (var y2 = 0; y2 <= ph; y2 += cell * 5) { ctx.moveTo(0, y2); ctx.lineTo(pw, y2); }
+      ctx.stroke();
+    }
 
     ctx.restore();
   };
@@ -353,6 +397,8 @@
       var colorBtn   = e.target.closest('[data-color]');
       var widthBtn   = e.target.closest('[data-width]');
       var undoBtn    = e.target.closest('#dc-undo-btn');
+      var redoBtn    = e.target.closest('#dc-redo-btn');
+      var gridBtn    = e.target.closest('#dc-grid-btn');
       var clearBtn   = e.target.closest('#dc-clear-btn');
       var modeBtn    = e.target.closest('#dc-inputmode-btn');
       var zoomInBtn  = e.target.closest('#dc-zoomin-btn');
@@ -364,6 +410,8 @@
       else if (colorBtn) self._setColor(colorBtn.dataset.color);
       else if (widthBtn) self._setWidth(parseInt(widthBtn.dataset.width, 10));
       else if (undoBtn)  self._undo();
+      else if (redoBtn)  self._redo();
+      else if (gridBtn)  self._toggleGrid();
       else if (clearBtn) self._confirmClear();
       else if (zoomInBtn)  self._setZoom(self._zoom + ZOOM_STEP);
       else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
@@ -384,7 +432,12 @@
         e.preventDefault();
         self._undo();
       }
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        e.preventDefault();
+        self._redo();
+      }
       if (e.key === 'p' || e.key === 'P') self._setTool('pen');
+      if (e.key === 'h' || e.key === 'H') self._setTool('highlighter');
       if (e.key === 'e' || e.key === 'E') self._setTool('eraser');
       if (e.key === 'Escape' && self._maximized) self._toggleMaximize();
     };
@@ -443,13 +496,13 @@
     // _points is the same array referenced here, so later pushes to it
     // during _onMove are automatically reflected in the recorded stroke.
     this._currentStroke = {
-      type:   this._tool === 'eraser' ? 'eraser' : 'pen',
+      type:   this._tool === 'eraser' ? 'eraser' : this._tool, // 'pen' | 'highlighter'
       color:  this._color,
       width:  this._strokeWidth,
       points: this._points
     };
 
-    if (this._tool === 'pen') {
+    if (this._tool === 'pen' || this._tool === 'highlighter') {
       var ctx = this._ctx;
       ctx.beginPath();
       ctx.moveTo(pos.x, pos.y);
@@ -503,20 +556,24 @@
 
     var ctx      = this._ctx;
     var pressure = pts[n - 1].pressure;
-    // Map pressure [0,1] → width multiplier [0.6, 1.8]
-    var width    = this._strokeWidth * (0.6 + pressure * 1.2);
+    var isHighlighter = this._tool === 'highlighter';
+    // Map pressure [0,1] → width multiplier [0.6, 1.8], plus a flat multiplier
+    // for the highlighter so it reads as a wider marker at any width setting.
+    var width    = this._strokeWidth * (isHighlighter ? HIGHLIGHTER_WIDTH_MULT : 1) * (0.6 + pressure * 1.2);
 
     ctx.lineJoin    = 'round';
     ctx.lineCap     = 'round';
     ctx.strokeStyle = this._color;
     ctx.lineWidth   = width;
     ctx.globalCompositeOperation = 'source-over';
+    ctx.globalAlpha = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
 
     if (n === 2) {
       ctx.beginPath();
       ctx.moveTo(pts[0].x, pts[0].y);
       ctx.lineTo(pts[1].x, pts[1].y);
       ctx.stroke();
+      ctx.globalAlpha = 1;
       return;
     }
 
@@ -533,6 +590,7 @@
     ctx.moveTo(mx1, my1);
     ctx.quadraticCurveTo(p1.x, p1.y, mx2, my2);
     ctx.stroke();
+    ctx.globalAlpha = 1;
   };
 
   DrawingCanvas.prototype._onUp = function (e) {
@@ -554,6 +612,10 @@
     // unanswered instead of leaving a stored dot to redraw later.
     if (this._currentStroke && this._currentStroke.points.length > 1) {
       this._strokes.push(this._currentStroke);
+      // A new stroke after undoing invalidates whatever redo branch existed —
+      // standard undo/redo behavior (same rule most editors use).
+      this._redoStack = [];
+      this._updateUndoRedoButtons();
     }
     this._currentStroke = null;
     this._points    = [];
@@ -622,17 +684,66 @@
 
   DrawingCanvas.prototype._undo = function () {
     if (this._strokes.length === 0) return;
-    this._strokes.pop();
+    this._redoStack.push(this._strokes.pop());
     this._redrawAll();
     this._scheduleSave();
+    this._updateUndoRedoButtons();
   };
 
-  DrawingCanvas.prototype._confirmClear = function () {
-    if (!confirm('Ștergi toate notițele? Acțiunea nu poate fi anulată.')) return;
-    this._strokes = [];
-    this._bgImage = null;
-    this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+  DrawingCanvas.prototype._redo = function () {
+    if (this._redoStack.length === 0) return;
+    this._strokes.push(this._redoStack.pop());
+    this._redrawAll();
     this._scheduleSave();
+    this._updateUndoRedoButtons();
+  };
+
+  DrawingCanvas.prototype._updateUndoRedoButtons = function () {
+    var undoBtn = this._toolbar.querySelector('#dc-undo-btn');
+    var redoBtn = this._toolbar.querySelector('#dc-redo-btn');
+    if (undoBtn) undoBtn.disabled = this._strokes.length === 0;
+    if (redoBtn) redoBtn.disabled = this._redoStack.length === 0;
+  };
+
+  // A native confirm() forces the browser out of Fullscreen API mode, just
+  // like opening a file/camera picker — during an exam that's read as the
+  // student leaving fullscreen and counts as an anti-cheat strike. Uses the
+  // same .bac-confirm-overlay/.bac-confirm-modal markup as the rest of the
+  // app's confirm dialogs (e.g. bac.js's showTokenDialog) so it stays an
+  // in-page element instead of a native, fullscreen-breaking dialog.
+  DrawingCanvas.prototype._confirmClear = function () {
+    var self = this;
+    if (document.getElementById('dcClearConfirmOverlay')) return;
+    var ov = document.createElement('div');
+    ov.className = 'bac-confirm-overlay';
+    ov.id = 'dcClearConfirmOverlay';
+    ov.innerHTML = `
+      <div class="bac-confirm-modal" role="dialog" aria-modal="true">
+        <div class="bac-confirm-icon">🗑️</div>
+        <div class="bac-confirm-title">Ștergi toate notițele?</div>
+        <div class="bac-confirm-sub">Acțiunea nu poate fi anulată.</div>
+        <div class="bac-confirm-actions">
+          <button class="btn btn--surface" id="dc-clear-cancel">Anulează</button>
+          <button class="btn btn--danger" id="dc-clear-confirm">Șterge</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    var close = function () {
+      ov.classList.remove('open');
+      setTimeout(function () { ov.remove(); }, 220);
+    };
+    ov.querySelector('#dc-clear-cancel').onclick = close;
+    ov.querySelector('#dc-clear-confirm').onclick = function () {
+      close();
+      self._strokes = [];
+      self._redoStack = [];
+      self._bgImage = null;
+      self._ctx.clearRect(0, 0, self._canvas.width, self._canvas.height);
+      self._scheduleSave();
+      self._updateUndoRedoButtons();
+    };
+    ov.onclick = function (e) { if (e.target === ov) close(); };
+    requestAnimationFrame(function () { ov.classList.add('open'); });
   };
 
   DrawingCanvas.prototype._setTool = function (tool) {
@@ -733,6 +844,33 @@
     if (!stylusOnly) this._hideInputHint();
   };
 
+  /* ---- Grid background toggle ---- */
+
+  DrawingCanvas.prototype._loadGridVisible = function () {
+    try {
+      var v = localStorage.getItem(GRID_VISIBLE_KEY);
+      return v === null ? true : v === '1'; // default: visible
+    } catch (err) {
+      return true;
+    }
+  };
+
+  DrawingCanvas.prototype._toggleGrid = function () {
+    this._gridVisible = !this._gridVisible;
+    try { localStorage.setItem(GRID_VISIBLE_KEY, this._gridVisible ? '1' : '0'); } catch (err) {}
+    this._applyGridVisible();
+    this._drawGrid(); // background-only repaint — strokes on the draw canvas are untouched
+  };
+
+  DrawingCanvas.prototype._applyGridVisible = function () {
+    var btn = this._toolbar.querySelector('#dc-grid-btn');
+    if (btn) {
+      btn.classList.toggle('dc-action-btn--active', this._gridVisible);
+      btn.setAttribute('aria-pressed', String(this._gridVisible));
+      btn.title = this._gridVisible ? 'Ascunde grila' : 'Arată grila';
+    }
+  };
+
   DrawingCanvas.prototype._showInputHint = function () {
     if (!this._inputHint) return;
     this._inputHint.classList.add('dc-input-hint--show');
@@ -800,7 +938,20 @@
     this._saveTimer = setTimeout(function () {
       self._saveTimer = null; // must reset BEFORE calling onSave so destroy()
       self._onSave(self._strokesDataUrl()); // knows no pending save remains
+      self._flashSavedIndicator();
     }, 400);
+  };
+
+  // Brief "Salvat" flash after each debounced auto-save — not shown on
+  // flush() (an explicit, not user-visible, save at teardown/submission).
+  DrawingCanvas.prototype._flashSavedIndicator = function () {
+    if (!this._saveIndicator) return;
+    clearTimeout(this._saveIndicatorTimer);
+    this._saveIndicator.classList.add('dc-save-indicator--show');
+    var self = this;
+    this._saveIndicatorTimer = setTimeout(function () {
+      self._saveIndicator.classList.remove('dc-save-indicator--show');
+    }, 1600);
   };
 
   DrawingCanvas.prototype.getCanvasImage = function () {
@@ -835,6 +986,7 @@
     }
     clearTimeout(this._resizeTimer);
     clearTimeout(this._hintTimer);
+    clearTimeout(this._saveIndicatorTimer);
     window.removeEventListener('keydown', this._keyHandler);
     if (this._ro) this._ro.disconnect();
     if (this._mo) this._mo.disconnect();
