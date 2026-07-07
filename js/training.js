@@ -8,10 +8,18 @@
   let selectedCount     = 10;
   let selectedCats      = new Set();
   let selectedDiff      = 'all';
-  let sessionExercises  = [];
-  let currentIndex      = 0;
+
+  let sessionExercises  = [];   // [ex, ex, ...] for the current session
+  let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'self-correct'|'self-incorrect' }
+  let revealedCount     = 0;
+  let currentStreak     = 0;
+  let bestStreakSession  = 0;
+  let sessionXp         = 0;
+  let activeCardIndex   = null;
   let startTime         = null;
-  let solvedInSession   = new Set();
+
+  const XP_BASE = { usor: 10, mediu: 20, dificil: 35 };
+  const MILESTONES = [3, 5, 8];
 
   /* ---- Init ---- */
   const UNLOCKED_CATS = new Set(['algebra']);
@@ -45,13 +53,13 @@
     const diffBox = document.getElementById('diffChips');
     if (diffBox) {
       [
-        { id: 'all',   label: 'Toate' },
-        { id: 'usor',  label: 'Ușor' },
-        { id: 'mediu', label: 'Mediu' },
-        { id: 'greu',  label: 'Greu' }
+        { id: 'all',     label: 'Toate' },
+        { id: 'usor',    label: 'Ușor',  cls: 'config-chip--usor' },
+        { id: 'mediu',   label: 'Mediu', cls: 'config-chip--mediu' },
+        { id: 'dificil', label: 'Greu',  cls: 'config-chip--dificil' }
       ].forEach(d => {
         const btn = document.createElement('button');
-        btn.className = 'config-chip' + (d.id === selectedDiff ? ' selected' : '');
+        btn.className = 'config-chip' + (d.cls ? ` ${d.cls}` : '') + (d.id === selectedDiff ? ' selected' : '');
         btn.textContent = d.label;
         btn.onclick = () => {
           selectedDiff = d.id;
@@ -128,146 +136,376 @@
 
     pool = BM.shuffle(pool);
     sessionExercises = pool.slice(0, Math.min(selectedCount, pool.length));
-    currentIndex = 0;
-    solvedInSession = new Set();
-    startTime = Date.now();
+    cardStates       = sessionExercises.map(ex => ({ ex, status: 'hidden' }));
+    revealedCount    = 0;
+    currentStreak    = 0;
+    bestStreakSession = 0;
+    sessionXp        = 0;
+    activeCardIndex  = null;
+    startTime        = Date.now();
 
-    document.getElementById('configView').classList.add('hidden');
-    document.getElementById('sessionView').classList.remove('hidden');
+    document.getElementById('configView').style.display = 'none';
+    document.getElementById('sessionView').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
+    closeRevealOverlay(true);
 
-    renderSessionExercise();
+    renderHud();
+    renderFlipGrid();
   };
 
-  /* ---- Render current exercise ---- */
-  function renderSessionExercise() {
-    const total = sessionExercises.length;
-    const idx   = currentIndex;
-    const ex    = sessionExercises[idx];
-    if (!ex) { finishSession(); return; }
+  /* ---- Card grid ---- */
+  function renderFlipGrid() {
+    const total = cardStates.length;
+    document.getElementById('sessionCounter').textContent = `${revealedCount} / ${total}`;
+    document.getElementById('sessionFill').style.width = total ? `${Math.round((revealedCount / total) * 100)}%` : '0%';
 
-    /* Progress */
-    const pct = Math.round(((idx) / total) * 100);
-    document.getElementById('sessionCounter').textContent = `${idx + 1} / ${total}`;
-    document.getElementById('sessionFill').style.width = pct + '%';
-
-    const cat = BM.getCategoryById(ex.categoryId);
-    const sub = BM.getSubcategoryById(ex.categoryId, ex.subcategoryId);
-    const isSolvedGlobal = BM.Storage.isSolved(ex.id);
-    const isSolvedNow    = solvedInSession.has(ex.id);
-
-    const card = document.getElementById('sessionCard');
-    if (!card) return;
-
-    card.innerHTML = `
-      <div class="ex-card ${isSolvedGlobal ? 'solved' : ''}" id="tr-card-${ex.id}">
-        <div class="ex-card__head" style="cursor:default">
-          <div class="ex-card__left">
-            <div class="ex-card__meta">
-              ${BM.diffBadge(ex.difficulty)}
-              <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
-              ${ex._custom ? '<span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨ Adăugat</span>' : ''}
-              <span class="source-text">${BM.esc(ex.source)}</span>
-              ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
+    const grid = document.getElementById('flipGrid');
+    if (!grid) return;
+    grid.innerHTML = cardStates.map((cs, i) => {
+      const done   = cs.status !== 'hidden';
+      const good   = cs.status === 'correct' || cs.status === 'self-correct';
+      const diffAttr = done ? ` data-diff="${cs.ex.difficulty}"` : '';
+      return `
+        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" onclick="trOpenCard(${i})">
+          <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
+            <div class="flip-card__face flip-card__face--back">
+              <span class="flip-card__logo">∑</span>
             </div>
-            <div class="ex-card__title">${BM.esc(ex.title)}</div>
+            <div class="flip-card__face flip-card__face--front"${diffAttr}>
+              ${done
+                ? `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${good ? '✓' : '✗'}</span>
+                   <span class="flip-card__num">#${i + 1}</span>`
+                : `<span class="flip-card__num">#${i + 1}</span>`}
+            </div>
           </div>
-          <div class="ex-card__actions">
-            <button class="ex-action-btn fav ${BM.Storage.isFavorite(ex.id) ? 'active' : ''}"
-                    onclick="trToggleFav('${ex.id}', this)" title="Favorite">
-              ${BM.Storage.isFavorite(ex.id) ? '♥' : '♡'}
-            </button>
-          </div>
-        </div>
-
-        <div style="padding:0 20px 20px">
-          <div class="ex-card__statement math-content" id="tr-stmt-${ex.id}">${BM.trustedNl2br(ex.statement)}</div>
-          <div class="ex-card__solution math-content" id="tr-sol-${ex.id}"></div>
-          <div class="ex-card__foot" style="margin-top:0">
-            <button class="btn btn--ghost" onclick="trToggleSolution('${ex.id}')">
-              💡 Arată soluția
-            </button>
-            <button class="btn btn--success ${(isSolvedGlobal || isSolvedNow) ? 'active' : ''}"
-                    id="tr-solve-${ex.id}"
-                    onclick="trToggleSolved('${ex.id}', this)">
-              ${(isSolvedGlobal || isSolvedNow) ? '✓ Rezolvat' : 'Marchează ca rezolvat'}
-            </button>
-          </div>
-        </div>
-      </div>
-    `;
-
-    /* Randăm math în cardul curent */
-    BM.renderMath(card);
-
-    /* Nav buttons */
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    if (prevBtn) prevBtn.disabled = idx === 0;
-    if (nextBtn) nextBtn.textContent = idx === total - 1 ? '🏁 Finalizează' : 'Următorul →';
+        </div>`;
+    }).join('');
   }
 
-  window.trToggleSolution = function(id) {
-    const sol = document.getElementById(`tr-sol-${id}`);
-    const ex  = BM.EXERCISES.find(e => e.id === id);
-    if (!sol || !ex) return;
-    if (sol.classList.contains('visible')) {
-      sol.classList.remove('visible'); sol.innerHTML = '';
+  window.trOpenCard = function(idx) {
+    const cs = cardStates[idx];
+    if (!cs || cs.status !== 'hidden' || activeCardIndex !== null) return;
+    activeCardIndex = idx;
+
+    const cardEl = document.querySelector(`.flip-card[data-idx="${idx}"]`);
+    if (!cardEl) { renderRevealOverlay(idx); return; }
+
+    cardEl.classList.add('flip-card--selecting');
+    setTimeout(() => {
+      cardEl.querySelector('.flip-card__inner').classList.add('flip-card--flipped');
+      setTimeout(() => renderRevealOverlay(idx), 480);
+    }, 200);
+  };
+
+  /* ---- Reveal overlay ---- */
+  function renderRevealOverlay(idx) {
+    const cs = cardStates[idx];
+    const ex = cs.ex;
+    const cat = BM.getCategoryById(ex.categoryId);
+    const sub = BM.getSubcategoryById(ex.categoryId, ex.subcategoryId);
+    const expected = extractBoxedAnswer(ex.solution);
+    cs._expected = expected;
+
+    const modal = document.getElementById('revealModal');
+    modal.innerHTML = `
+      <div class="ex-card__meta" style="margin-bottom:10px">
+        ${BM.diffBadge(ex.difficulty)}
+        <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+        ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
+      </div>
+      <div class="reveal-title">${BM.esc(ex.title)}</div>
+      <div class="reveal-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
+      <div id="revealAnswerZone">
+        ${expected
+          ? `
+          <div class="reveal-answer-row">
+            <input type="text" id="revealAnswerInput" class="cls-form-input reveal-answer-input" placeholder="Scrie răspunsul tău aici…" autocomplete="off">
+            <button class="btn btn--primary" id="revealSubmitBtn">Verifică răspunsul</button>
+          </div>`
+          : `
+          <p class="reveal-selfcheck-hint">💭 Acest exercițiu se autoevaluează — rezolvă-l pe hârtie, apoi confirmă mai jos.</p>
+          <button class="btn btn--surface btn--full" id="revealShowSelfBtn">Am o soluție — arată răspunsul</button>`}
+      </div>
+      <div id="revealResultZone"></div>
+    `;
+
+    BM.renderMath(modal);
+
+    const overlay = document.getElementById('revealOverlay');
+    overlay.classList.add('open');
+
+    if (expected) {
+      const input = document.getElementById('revealAnswerInput');
+      const submit = () => trSubmitAnswer(idx);
+      document.getElementById('revealSubmitBtn').onclick = submit;
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+      input.focus();
     } else {
-      sol.innerHTML = BM.trustedNl2br(ex.solution);
-      sol.classList.add('visible');
-      BM.renderMath(sol);
+      document.getElementById('revealShowSelfBtn').onclick = () => showSelfAssessPrompt(idx);
     }
+  }
+
+  function showSelfAssessPrompt(idx) {
+    const ex = cardStates[idx].ex;
+    const zone = document.getElementById('revealAnswerZone');
+    zone.innerHTML = `
+      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
+      <p class="reveal-selfcheck-hint">Ai rezolvat corect?</p>
+      <div class="reveal-self-actions">
+        <button class="btn btn--success" id="selfYesBtn">✅ Am rezolvat corect</button>
+        <button class="btn btn--danger-outline" id="selfNoBtn">❌ Nu am rezolvat</button>
+      </div>
+    `;
+    BM.renderMath(zone);
+    document.getElementById('selfYesBtn').onclick = () => trSelfAssess(idx, true);
+    document.getElementById('selfNoBtn').onclick  = () => trSelfAssess(idx, false);
+  }
+
+  window.trSubmitAnswer = function(idx) {
+    const cs = cardStates[idx];
+    const input = document.getElementById('revealAnswerInput');
+    if (!input || cs.status !== 'hidden') return;
+    const isCorrect = compareAnswers(input.value, cs._expected);
+    input.disabled = true;
+    document.getElementById('revealSubmitBtn').disabled = true;
+    gradeCard(idx, isCorrect);
   };
 
-  window.trToggleSolved = function(id, btn) {
-    const nowSolved = BM.Storage.toggleSolved(id);
-    if (nowSolved) {
-      solvedInSession.add(id);
+  window.trSelfAssess = function(idx, isCorrect) {
+    if (cardStates[idx].status !== 'hidden') return;
+    gradeCard(idx, isCorrect);
+  };
+
+  /* ---- Grading ---- */
+  function gradeCard(idx, isCorrect) {
+    const cs = cardStates[idx];
+    const ex = cs.ex;
+    const selfPath = cs._expected == null;
+    cs.status = isCorrect ? (selfPath ? 'self-correct' : 'correct') : (selfPath ? 'self-incorrect' : 'incorrect');
+    revealedCount++;
+
+    if (isCorrect) {
+      currentStreak++;
+      bestStreakSession = Math.max(bestStreakSession, currentStreak);
+      if (MILESTONES.includes(currentStreak) || (currentStreak > 8 && (currentStreak - 8) % 5 === 0)) {
+        celebrateMilestone(currentStreak);
+      }
+      const best = BM.Storage.getBestCombo();
+      if (currentStreak > best) BM.Storage.setBestCombo(currentStreak);
+      if (!BM.Storage.isSolved(ex.id)) BM.Storage.toggleSolved(ex.id);
     } else {
-      solvedInSession.delete(id);
+      currentStreak = 0;
     }
-    if (btn) {
-      btn.classList.toggle('active', nowSolved);
-      btn.textContent = nowSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
-    }
-    BM.toast(nowSolved ? '✓ Rezolvat!' : 'Marcat ca nerezolvat.', nowSolved ? 'success' : 'info');
-  };
 
-  window.trToggleFav = function(id, btn) {
-    const nowFav = BM.Storage.toggleFavorite(id);
-    if (btn) {
-      btn.classList.toggle('active', nowFav);
-      btn.textContent = nowFav ? '♥' : '♡';
-    }
-    BM.toast(nowFav ? 'Adăugat la favorite! ♥' : 'Eliminat din favorite.', 'info');
-  };
+    const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);
+    sessionXp += xpGain;
+    renderHud();
 
-  /* ---- Navigation ---- */
-  window.prevExercise = function() {
-    if (currentIndex > 0) {
-      currentIndex--;
-      renderSessionExercise();
-    }
-  };
-
-  window.nextExercise = function() {
-    if (currentIndex < sessionExercises.length - 1) {
-      currentIndex++;
-      renderSessionExercise();
+    /* Reveal result banner + solution (self-assess path already shows the solution) */
+    const resultZone = document.getElementById('revealResultZone');
+    const answerZone = document.getElementById('revealAnswerZone');
+    if (!selfPath) {
+      resultZone.innerHTML = `
+        <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
+          ${isCorrect ? '✓ Corect!' : `✗ Greșit — răspunsul corect: ${BM.esc(cs._expected)}`}
+        </div>
+        <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
+      `;
+      BM.renderMath(resultZone);
     } else {
+      resultZone.innerHTML = `
+        <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
+          ${isCorrect ? '✓ Notat ca rezolvat corect!' : '✗ Notat ca nerezolvat.'}
+        </div>
+      `;
+    }
+    resultZone.insertAdjacentHTML('beforeend', `
+      <div style="text-align:right;margin-top:14px">
+        <button class="btn btn--primary" id="revealContinueBtn">Continuă</button>
+      </div>
+    `);
+    document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
+    if (answerZone && !selfPath) {
+      const row = answerZone.querySelector('.reveal-answer-row');
+      if (row) row.style.opacity = '0.5';
+    }
+
+    /* Update the grid card underneath so it flips-revealed with its difficulty color when we return */
+    renderFlipGrid();
+  }
+
+  function closeRevealOverlay(silent) {
+    document.getElementById('revealOverlay').classList.remove('open');
+    const wasIdx = activeCardIndex;
+    activeCardIndex = null;
+    if (silent) return;
+    if (wasIdx !== null && revealedCount >= sessionExercises.length && sessionExercises.length > 0) {
       finishSession();
     }
-  };
+  }
+
+  /* ---- HUD ---- */
+  function renderHud() {
+    const streakEl = document.getElementById('hudStreakVal');
+    const xpEl     = document.getElementById('hudXpVal');
+    const recordEl = document.getElementById('hudRecord');
+    if (streakEl) {
+      streakEl.textContent = currentStreak;
+      const wrap = document.getElementById('hudStreak');
+      wrap.classList.remove('session-hud__streak--pulse');
+      void wrap.offsetWidth;
+      wrap.classList.add('session-hud__streak--pulse');
+    }
+    if (xpEl) xpEl.textContent = sessionXp;
+    if (recordEl) {
+      const best = BM.Storage.getBestCombo();
+      recordEl.textContent = best > 0 ? `🏆 Record: ${best}` : '';
+    }
+  }
+
+  /* ---- XP & celebrations ---- */
+  function calcXp(difficulty, isCorrect, streakAtGrade) {
+    const base = XP_BASE[difficulty] || 15;
+    if (!isCorrect) return Math.round(base * 0.2);
+    const multiplier = 1 + Math.min(streakAtGrade, 10) * 0.1;
+    return Math.round(base * multiplier);
+  }
+
+  function celebrateMilestone(streakCount) {
+    BM.toast(`🔥 ${streakCount} răspunsuri corecte la rând!`, 'success', 3200);
+    fireConfetti();
+  }
+
+  function fireConfetti() {
+    const layer = document.getElementById('confettiLayer');
+    if (!layer) return;
+    const colors = ['#3A6BAD', '#16A34A', '#D97706', '#DC2626'];
+    const particles = [];
+    for (let i = 0; i < 30; i++) {
+      const p = document.createElement('div');
+      p.className = 'confetti-particle';
+      p.style.left = `${Math.random() * 100}%`;
+      p.style.background = colors[i % colors.length];
+      p.style.animationDelay = `${Math.random() * 0.3}s`;
+      p.style.transform = `rotate(${Math.random() * 360}deg)`;
+      layer.appendChild(p);
+      particles.push(p);
+    }
+    setTimeout(() => particles.forEach(p => p.remove()), 1900);
+  }
+
+  /* ---- Answer extraction / normalization / comparison ---- */
+  function extractBoxedAnswer(solutionStr) {
+    const str = String(solutionStr || '');
+    const marker = '\\boxed{';
+    let lastContent = null;
+    let searchFrom = 0;
+    while (true) {
+      const start = str.indexOf(marker, searchFrom);
+      if (start === -1) break;
+      const contentStart = start + marker.length;
+      let depth = 1;
+      let i = contentStart;
+      for (; i < str.length; i++) {
+        if (str[i] === '{') depth++;
+        else if (str[i] === '}') {
+          depth--;
+          if (depth === 0) break;
+        }
+      }
+      if (depth === 0) {
+        lastContent = str.slice(contentStart, i);
+        searchFrom = i + 1;
+      } else {
+        break; // unbalanced — stop scanning
+      }
+    }
+    if (lastContent == null) return null;
+    /* Reject content that looks like prose (proof conclusions etc.) rather than a short
+       symbolic answer — a run of 4+ letters NOT immediately preceded by "\" (so LaTeX
+       command names like \frac, \sqrt, \log don't trigger a false positive). */
+    if (/\\blacksquare|\\text\{|(?<!\\)[a-zA-ZăâîșțĂÂÎȘȚ]{4,}/.test(lastContent)) return null;
+    const normalized = normalizeAnswer(lastContent);
+    if (!normalized) return null;
+    return lastContent.trim();
+  }
+
+  function normalizeAnswer(str) {
+    let s = String(str || '');
+    /* Romanian LaTeX decimal comma: "0{,}5" -> "0,5" (must run before generic brace stripping) */
+    s = s.replace(/(\d)\{,\}(\d)/g, '$1,$2');
+    s = s.trim().replace(/^=\s*/, '');
+    s = s.replace(/\\left|\\right/g, '');
+    /* \frac{a}{b} / \dfrac{a}{b} / \tfrac{a}{b} -> a/b (brace-aware, handles nesting) */
+    s = stripFracCommands(s);
+    s = s.replace(/[{}]/g, '');
+    s = s.replace(/\s+/g, '');
+    s = s.toLowerCase();
+    return s;
+  }
+
+  /* Replaces every \frac{a}{b} / \dfrac{a}{b} / \tfrac{a}{b} occurrence (wherever it
+     appears in the string, brace-aware so nested fractions are handled) with "a/b" */
+  function stripFracCommands(s) {
+    const cmdRe = /\\(?:d|t)?frac\{/;
+    let guard = 0;
+    let m;
+    /* Innermost-first: process the LAST "\frac{" occurrence each pass so a nested
+       fraction resolves to a parenthesized sub-value before it's spliced into its
+       parent, instead of flattening "a/(b/c)" into the ambiguous "a/b/c". */
+    while ((m = lastMatch(s, cmdRe)) && guard++ < 30) {
+      const cmdStart  = m.index;
+      const openBrace  = cmdStart + m[0].length - 1; // index of the numerator's "{"
+      const numClose   = matchBrace(s, openBrace);
+      if (numClose === -1) break; // unbalanced — stop rather than loop forever
+      const numContent = s.slice(openBrace + 1, numClose);
+      let denContent = '';
+      let afterIdx = numClose + 1;
+      if (s[afterIdx] === '{') {
+        const denClose = matchBrace(s, afterIdx);
+        if (denClose === -1) break;
+        denContent = s.slice(afterIdx + 1, denClose);
+        afterIdx = denClose + 1;
+      }
+      const wrap = x => x.includes('/') ? `(${x})` : x;
+      const replacement = denContent ? `${wrap(numContent)}/${wrap(denContent)}` : numContent;
+      s = s.slice(0, cmdStart) + replacement + s.slice(afterIdx);
+    }
+    return s;
+  }
+
+  /* Like regex.exec but returns the LAST match in the string instead of the first */
+  function lastMatch(s, re) {
+    const g = new RegExp(re.source, 'g');
+    let m, last = null;
+    while ((m = g.exec(s))) last = m;
+    return last;
+  }
+
+  function matchBrace(s, openIdx) {
+    let depth = 1;
+    for (let i = openIdx + 1; i < s.length; i++) {
+      if (s[i] === '{') depth++;
+      else if (s[i] === '}') { depth--; if (depth === 0) return i; }
+    }
+    return -1;
+  }
+
+  function compareAnswers(userRaw, expectedRaw) {
+    return normalizeAnswer(userRaw) === normalizeAnswer(expectedRaw);
+  }
 
   /* ---- Finish ---- */
   function finishSession() {
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     const total   = sessionExercises.length;
-    const solved  = solvedInSession.size;
+    const solved  = cardStates.filter(cs => cs.status === 'correct' || cs.status === 'self-correct').length;
     const pct     = total > 0 ? Math.round((solved / total) * 100) : 0;
+    const isPerfect = total > 0 && solved === total;
+    const allTimeBest = BM.Storage.getBestCombo();
+    const newRecord = bestStreakSession > 0 && bestStreakSession >= allTimeBest;
 
-    document.getElementById('sessionView').classList.add('hidden');
+    document.getElementById('sessionView').style.display = 'none';
     const resView = document.getElementById('resultsView');
     resView.classList.add('active');
 
@@ -284,6 +522,11 @@
     const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
     resView.innerHTML = `
+      ${isPerfect ? `
+      <div class="results-perfect-banner">🏅 Sesiune perfectă! Ai rezolvat toate exercițiile corect.</div>` : ''}
+      ${newRecord ? `
+      <div class="results-record-banner">🏆 Record nou de streak: ${bestStreakSession} răspunsuri corecte la rând!</div>` : ''}
+
       <div class="results-header">
         <div class="results-icon">${icon}</div>
         <div class="results-title">${title}</div>
@@ -303,6 +546,14 @@
           <div class="result-stat__num" style="color:var(--accent-light)">${pct}%</div>
           <div class="result-stat__lbl">Scor</div>
         </div>
+        <div class="result-stat">
+          <div class="result-stat__num" style="color:var(--yellow)">${sessionXp}</div>
+          <div class="result-stat__lbl">XP câștigat</div>
+        </div>
+        <div class="result-stat">
+          <div class="result-stat__num">🔥 ${bestStreakSession}</div>
+          <div class="result-stat__lbl">Streak maxim</div>
+        </div>
       </div>
 
       <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;margin-bottom:28px">
@@ -318,13 +569,27 @@
         </a>
       </div>
     `;
+
+    if (isPerfect) fireConfetti();
   }
 
   window.restartTraining = function() {
-    document.getElementById('configView').classList.remove('hidden');
-    document.getElementById('sessionView').classList.add('hidden');
+    closeRevealOverlay(true);
+    document.getElementById('flipGrid').innerHTML = '';
+    document.getElementById('confettiLayer').innerHTML = '';
+    sessionExercises = [];
+    cardStates = [];
+    revealedCount = 0;
+    currentStreak = 0;
+    bestStreakSession = 0;
+    sessionXp = 0;
+
+    document.getElementById('configView').style.display = '';
+    document.getElementById('sessionView').style.display = 'none';
     document.getElementById('resultsView').classList.remove('active');
     document.getElementById('resultsView').innerHTML = '';
+    const empty = document.getElementById('emptyState');
+    if (empty) empty.style.display = '';
   };
 
   /* ---- Start ---- */

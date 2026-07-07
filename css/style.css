@@ -2249,6 +2249,17 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: var(--accent);
 }
 
+/* Difficulty chips — colored to match the difficulty badges used across chapters/exercises */
+.config-chip--usor    { color: var(--green);  border-color: var(--green-border); }
+.config-chip--mediu   { color: var(--yellow); border-color: var(--yellow-border); }
+.config-chip--dificil { color: var(--red);    border-color: var(--red-border); }
+.config-chip--usor:hover    { background: var(--green-dim); }
+.config-chip--mediu:hover   { background: var(--yellow-dim); }
+.config-chip--dificil:hover { background: var(--red-dim); }
+.config-chip--usor.selected    { background: var(--green);  border-color: var(--green);  color: #fff; }
+.config-chip--mediu.selected   { background: var(--yellow); border-color: var(--yellow); color: #fff; }
+.config-chip--dificil.selected { background: var(--red);    border-color: var(--red);    color: #fff; }
+
 .config-chapter-list {
   display: flex;
   flex-direction: column;
@@ -2494,6 +2505,244 @@ body.bac-exam-mode .nav.nav--peek {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   font-weight: 600;
+}
+
+.results-perfect-banner,
+.results-record-banner {
+  text-align: center;
+  font-weight: 700;
+  font-size: 0.92rem;
+  padding: 12px 18px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  border: 1.5px solid;
+}
+.results-perfect-banner {
+  background: var(--yellow-dim);
+  color: var(--yellow);
+  border-color: var(--yellow-border);
+}
+.results-record-banner {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+/* ---- Antrenament: "Pachet Standard" teaser badge (cosmetic only, not enforced) ---- */
+.plan-teaser-badge {
+  display: inline-block;
+  background: var(--yellow-dim);
+  color: var(--yellow);
+  border: 1px solid var(--yellow-border);
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  white-space: nowrap;
+}
+
+/* ---- Antrenament: session HUD (streak + XP) ---- */
+.session-hud {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 18px;
+}
+.session-hud__streak,
+.session-hud__xp {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 6px 14px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+.session-hud__streak { color: var(--accent); }
+.session-hud__xp { color: var(--yellow); }
+.session-hud__record {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+@keyframes hudPulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.18); }
+  100% { transform: scale(1); }
+}
+.session-hud__streak--pulse { animation: hudPulse 0.35s ease; }
+
+/* ---- Antrenament: face-down flip-card grid ---- */
+.flip-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 16px;
+}
+.flip-card {
+  position: relative;
+  min-height: 150px;
+  perspective: 900px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.flip-card--selecting { transform: scale(1.06); z-index: 2; }
+.flip-card--done { cursor: default; }
+.flip-card__inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  transform-style: preserve-3d;
+  transition: transform 0.5s cubic-bezier(0.22,1,0.36,1);
+}
+.flip-card--flipped { transform: rotateY(180deg); }
+.flip-card__face {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
+}
+.flip-card__face--back {
+  background: repeating-linear-gradient(135deg, var(--accent) 0 14px, var(--accent-2) 14px 28px);
+}
+.flip-card:not(.flip-card--done):hover .flip-card__face--back {
+  box-shadow: 0 8px 24px rgba(0,0,0,0.18);
+  transform: translateY(-2px);
+}
+.flip-card__logo {
+  font-size: 2rem;
+  font-weight: 800;
+  color: rgba(255,255,255,0.85);
+}
+.flip-card__face--front {
+  background: var(--card);
+  transform: rotateY(180deg);
+}
+.flip-card__face--front[data-diff="usor"]    { border-color: var(--green);  background: var(--green-dim); }
+.flip-card__face--front[data-diff="mediu"]   { border-color: var(--yellow); background: var(--yellow-dim); }
+.flip-card__face--front[data-diff="dificil"] { border-color: var(--red);    background: var(--red-dim); }
+.flip-card__num {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+.flip-card__result-badge {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
+}
+.flip-card__result-badge--good { background: var(--green); }
+.flip-card__result-badge--bad  { background: var(--red); }
+
+/* ---- Antrenament: reveal overlay (mirrors .bac-confirm-overlay) ---- */
+.reveal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  opacity: 0;
+  pointer-events: none;
+  padding: 20px;
+  transition: opacity 0.2s ease;
+}
+.reveal-overlay.open { opacity: 1; pointer-events: auto; }
+.reveal-modal {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 26px;
+  max-width: 640px;
+  width: 92%;
+  max-height: 86vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+  transform: translateY(12px) scale(0.97);
+  transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
+}
+.reveal-overlay.open .reveal-modal { transform: translateY(0) scale(1); }
+.reveal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.reveal-statement, .reveal-solution { margin-bottom: 16px; }
+.reveal-answer-row {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.reveal-answer-input { flex: 1; }
+.reveal-selfcheck-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+.reveal-self-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.reveal-result-banner {
+  text-align: center;
+  font-weight: 700;
+  padding: 12px 16px;
+  border-radius: var(--radius);
+  margin-bottom: 14px;
+  border: 1.5px solid;
+}
+.reveal-result-banner--correct {
+  background: var(--green-dim);
+  color: var(--green);
+  border-color: var(--green-border);
+}
+.reveal-result-banner--incorrect {
+  background: var(--red-dim);
+  color: var(--red);
+  border-color: var(--red-border);
+}
+
+/* ---- Antrenament: confetti ---- */
+#confettiLayer {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  overflow: hidden;
+  z-index: 10000;
+}
+.confetti-particle {
+  position: absolute;
+  top: -10px;
+  width: 9px;
+  height: 9px;
+  animation: confetti-fall 1.5s ease-in forwards;
+}
+@keyframes confetti-fall {
+  0%   { transform: translateY(0) rotate(0deg);    opacity: 1; }
+  100% { transform: translateY(100vh) rotate(540deg); opacity: 0; }
 }
 
 /* 16. EMPTY STATE
@@ -2743,11 +2992,13 @@ body.bac-exam-mode .nav.nav--peek {
 /* Large tablets / small desktops: 3 chapter columns */
 @media (max-width: 1200px) {
   .chapters-grid { grid-template-columns: repeat(3, 1fr); }
+  .flip-grid { grid-template-columns: repeat(4, 1fr); }
 }
 
 /* Tablets landscape */
 @media (max-width: 900px) {
   .chapters-grid { grid-template-columns: repeat(2, 1fr); }
+  .flip-grid { grid-template-columns: repeat(3, 1fr); }
   .training-layout { flex-direction: column; }
   .training-config {
     width: 100%;
@@ -2852,6 +3103,9 @@ body.bac-exam-mode .nav.nav--peek {
   /* ---- Chapter cards ---- */
   .chapters-grid { grid-template-columns: 1fr; gap: 10px; }
   .chapter-card { min-height: auto; padding: 20px 18px; }
+
+  /* ---- Antrenament flip-card grid ---- */
+  .flip-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
 
   /* ---- Category header ---- */
   .cat-header { padding: 16px 0; }

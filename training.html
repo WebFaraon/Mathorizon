@@ -72,7 +72,10 @@
 
     <!-- LEFT: Config panel -->
     <aside class="training-config" id="configView">
-      <h2 class="training-config__title">🎯 Antrenament Rapid</h2>
+      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
+        <h2 class="training-config__title" style="margin-bottom:0">🎯 Antrenament Rapid</h2>
+        <span class="plan-teaser-badge">🔒 Pachet Standard</span>
+      </div>
       <p class="training-config__sub">
         Configurează sesiunea de antrenament și generează un mini-test personalizat.
       </p>
@@ -111,28 +114,39 @@
         <div class="session-progress">
           <div class="session-progress__top">
             <span class="session-progress__label">Progres sesiune</span>
-            <span class="session-progress__counter" id="sessionCounter">1 / 10</span>
+            <span class="session-progress__counter" id="sessionCounter">0 / 10</span>
           </div>
           <div class="session-progress__bar">
             <div class="session-progress__fill" id="sessionFill" style="width:0%"></div>
           </div>
         </div>
 
-        <!-- Current exercise card -->
-        <div id="sessionCard">
-          <!-- Populated by training.js -->
+        <!-- HUD: streak + XP -->
+        <div class="session-hud" id="sessionHud">
+          <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând">
+            <span>🔥</span><span id="hudStreakVal">0</span>
+          </div>
+          <div class="session-hud__xp" id="hudXp" title="Puncte de experiență câștigate în această sesiune">
+            <span>⭐</span><span id="hudXpVal">0</span> XP
+          </div>
+          <div class="session-hud__record" id="hudRecord"></div>
         </div>
 
-        <!-- Navigation -->
-        <div class="session-nav">
-          <button class="btn btn--surface" id="prevBtn" onclick="prevExercise()">
-            ← Precedent
-          </button>
-          <button class="btn btn--primary" id="nextBtn" onclick="nextExercise()">
-            Următorul →
-          </button>
+        <!-- Face-down card grid -->
+        <div class="flip-grid" id="flipGrid">
+          <!-- Populated by training.js -->
         </div>
       </div>
+
+      <!-- Reveal overlay (opens when a card is picked) -->
+      <div class="reveal-overlay" id="revealOverlay">
+        <div class="reveal-modal" id="revealModal">
+          <!-- Populated by training.js -->
+        </div>
+      </div>
+
+      <!-- Confetti layer -->
+      <div id="confettiLayer"></div>
 
       <!-- Results view (hidden initially) -->
       <div id="resultsView" class="training-results">

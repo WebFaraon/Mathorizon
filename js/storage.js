@@ -11,11 +11,12 @@ BM.Storage = (function() {
   }
 
   const KEY = {
-    solved:    'bm_solved',
-    favorites: 'bm_favorites',
-    history:   'bm_history',
-    streak:    'bm_streak',
-    lastVisit: 'bm_last_visit'
+    solved:     'bm_solved',
+    favorites:  'bm_favorites',
+    history:    'bm_history',
+    streak:     'bm_streak',
+    lastVisit:  'bm_last_visit',
+    bestCombo:  'bm_training_best_combo'
   };
 
   function get(key) {
@@ -134,6 +135,11 @@ BM.Storage = (function() {
     };
   }
 
+  /* ---- Training combo streak (best-of, session-local streak lives in training.js —
+     unrelated to the calendar-based daily streak above) ---- */
+  function getBestCombo() { return get(KEY.bestCombo) || 0; }
+  function setBestCombo(n) { set(KEY.bestCombo, n); }
+
   /* ---- Last Visit ---- */
   function recordVisit() { set(KEY.lastVisit, new Date().toDateString()); }
 
@@ -147,6 +153,7 @@ BM.Storage = (function() {
     getFavorites, isFavorite, toggleFavorite,
     getHistory, addToHistory, clearHistory,
     getStreak, updateStreak,
+    getBestCombo, setBestCombo,
     getStats, getProgressForCategory,
     recordVisit, clearAll
   };
