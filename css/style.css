@@ -2351,21 +2351,33 @@ body.bac-exam-mode .nav.nav--peek {
 
 .config-subcat-actions {
   display: flex;
-  gap: 10px;
-  margin-bottom: 6px;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 .config-subcat-action {
-  font-size: 0.68rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.7rem;
   font-weight: 700;
-  color: var(--accent);
-  background: none;
-  border: none;
+  color: var(--text-secondary);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 11px;
   cursor: pointer;
-  padding: 2px 0;
-  text-decoration: underline;
-  text-underline-offset: 2px;
+  transition: all var(--transition);
 }
-.config-subcat-action:hover { color: var(--accent-2); }
+.config-subcat-action--select:hover {
+  color: var(--green);
+  border-color: var(--green-border);
+  background: var(--green-dim);
+}
+.config-subcat-action--clear:hover {
+  color: var(--red);
+  border-color: var(--red-border);
+  background: var(--red-dim);
+}
 
 .config-subcat-grid {
   display: flex;

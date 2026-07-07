@@ -26,10 +26,11 @@
   const UNLOCKED_CATS = new Set(['algebra']);
 
   function init() {
+    /* Subcategories start deselected — the student picks what to train on,
+       rather than everything being pre-selected for them. */
     BM.CATEGORIES.forEach(cat => {
       if (!UNLOCKED_CATS.has(cat.id)) return;
       expandedCats.add(cat.id);
-      cat.subcategories.forEach(s => selectedSubcats.add(s.id));
     });
     renderConfig();
     BM.initScrollTop();
@@ -136,8 +137,8 @@
     const actions = document.createElement('div');
     actions.className = 'config-subcat-actions';
     actions.innerHTML = `
-      <button type="button" class="config-subcat-action">Selectează tot</button>
-      <button type="button" class="config-subcat-action">Deselectează tot</button>
+      <button type="button" class="config-subcat-action config-subcat-action--select">✓ Selectează tot</button>
+      <button type="button" class="config-subcat-action config-subcat-action--clear">✕ Deselectează tot</button>
     `;
     const [selectAllBtn, clearAllBtn] = actions.querySelectorAll('button');
     selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); };
@@ -200,6 +201,10 @@
     });
     const subIds = Object.keys(bySubcat);
 
+    if (selectedSubcats.size === 0) {
+      BM.toast('Selectează cel puțin un subcapitol pentru a începe.', 'error');
+      return;
+    }
     if (subIds.length === 0) {
       BM.toast('Niciun exercițiu disponibil cu filtrele selectate!', 'error');
       return;
