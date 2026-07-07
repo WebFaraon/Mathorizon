@@ -6,7 +6,8 @@
   'use strict';
 
   let selectedCount     = 10;
-  let selectedCats      = new Set();
+  let selectedSubcats   = new Set();
+  let expandedCats      = new Set();
   let selectedDiff      = 'all';
 
   let sessionExercises  = [];   // [ex, ex, ...] for the current session
@@ -25,9 +26,12 @@
   const UNLOCKED_CATS = new Set(['algebra']);
 
   function init() {
+    BM.CATEGORIES.forEach(cat => {
+      if (!UNLOCKED_CATS.has(cat.id)) return;
+      expandedCats.add(cat.id);
+      cat.subcategories.forEach(s => selectedSubcats.add(s.id));
+    });
     renderConfig();
-    UNLOCKED_CATS.forEach(id => selectedCats.add(id));
-    updateChapterUI();
     BM.initScrollTop();
   }
 
@@ -70,72 +74,152 @@
       });
     }
 
-    /* Chapter list */
-    const chList = document.getElementById('chapterList');
-    if (chList) {
-      BM.CATEGORIES.forEach(cat => {
-        const locked = !UNLOCKED_CATS.has(cat.id);
-        const item = document.createElement('div');
-        item.className = 'config-chapter-item' + (locked ? ' config-chapter-item--locked' : ' selected');
-        item.id = `cat-item-${cat.id}`;
-        item.innerHTML = `
-          <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
-          <span class="config-chapter-name">${BM.esc(cat.name)}</span>
-          ${locked
-            ? '<span class="config-chapter-lock">🔒</span><span class="config-chapter-soon">În curând</span>'
-            : '<span class="config-chapter-check">✓</span>'}
-        `;
-        item.onclick = locked
-          ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
-          : () => toggleCat(cat.id, item);
-        chList.appendChild(item);
-      });
-    }
+    renderChapterList();
   }
 
-  function toggleCat(id, el) {
-    if (!UNLOCKED_CATS.has(id)) return;
-    if (selectedCats.has(id)) {
-      if (selectedCats.size <= 1) {
-        BM.toast('Selectează cel puțin un capitol.', 'error');
+  /* Rebuilds only the chapter/subcategory picker — called on every expand/collapse
+     or subcategory toggle. Kept separate from renderConfig() so the count/difficulty
+     chips (built once, append-only) never get re-appended and duplicated. */
+  function renderChapterList() {
+    const chList = document.getElementById('chapterList');
+    if (!chList) return;
+    chList.innerHTML = '';
+    BM.CATEGORIES.forEach(cat => chList.appendChild(renderChapterBlock(cat)));
+  }
+
+  function chapterSelectedCount(cat) {
+    return cat.subcategories.filter(s => selectedSubcats.has(s.id)).length;
+  }
+
+  function renderChapterBlock(cat) {
+    const locked = !UNLOCKED_CATS.has(cat.id);
+    const wrap = document.createElement('div');
+    wrap.className = 'config-chapter-block';
+
+    const item = document.createElement('div');
+    const selCount = locked ? 0 : chapterSelectedCount(cat);
+    item.className = 'config-chapter-item'
+      + (locked ? ' config-chapter-item--locked' : '')
+      + (selCount > 0 ? ' selected' : '')
+      + (expandedCats.has(cat.id) ? ' expanded' : '');
+    item.id = `cat-item-${cat.id}`;
+    item.innerHTML = `
+      <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
+      <span class="config-chapter-name">${BM.esc(cat.name)}</span>
+      ${locked
+        ? '<span class="config-chapter-lock">🔒</span><span class="config-chapter-soon">În curând</span>'
+        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>
+           <span class="config-chapter-chevron">▾</span>`}
+    `;
+    item.onclick = locked
+      ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
+      : () => toggleChapterExpanded(cat.id);
+    wrap.appendChild(item);
+
+    if (!locked) {
+      wrap.appendChild(renderSubcatPanel(cat));
+    }
+    return wrap;
+  }
+
+  function toggleChapterExpanded(id) {
+    if (expandedCats.has(id)) expandedCats.delete(id);
+    else expandedCats.add(id);
+    renderChapterList();
+  }
+
+  function renderSubcatPanel(cat) {
+    const panel = document.createElement('div');
+    panel.className = 'config-subcat-panel' + (expandedCats.has(cat.id) ? '' : ' collapsed');
+    panel.id = `subcat-panel-${cat.id}`;
+
+    const actions = document.createElement('div');
+    actions.className = 'config-subcat-actions';
+    actions.innerHTML = `
+      <button type="button" class="config-subcat-action">Selectează tot</button>
+      <button type="button" class="config-subcat-action">Deselectează tot</button>
+    `;
+    const [selectAllBtn, clearAllBtn] = actions.querySelectorAll('button');
+    selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); };
+    clearAllBtn.onclick  = e => { e.stopPropagation(); clearAllSubcats(cat); };
+    panel.appendChild(actions);
+
+    const grid = document.createElement('div');
+    grid.className = 'config-subcat-grid';
+    cat.subcategories.forEach(sub => {
+      const chip = document.createElement('div');
+      const isSel = selectedSubcats.has(sub.id);
+      chip.className = 'config-subcat-chip' + (isSel ? ' selected' : '');
+      chip.innerHTML = `
+        <span class="config-subcat-icon" style="color:${sub.color}">${sub.symbol}</span>
+        <span class="config-subcat-name">${BM.esc(sub.name)}</span>
+        <span class="config-subcat-check">✓</span>
+      `;
+      chip.onclick = e => { e.stopPropagation(); toggleSubcat(sub.id, cat); };
+      grid.appendChild(chip);
+    });
+    panel.appendChild(grid);
+
+    return panel;
+  }
+
+  function toggleSubcat(id, cat) {
+    if (selectedSubcats.has(id)) {
+      if (selectedSubcats.size <= 1) {
+        BM.toast('Selectează cel puțin un subcapitol.', 'error');
         return;
       }
-      selectedCats.delete(id);
-      el.classList.remove('selected');
-      el.querySelector('.config-chapter-check').textContent = '';
+      selectedSubcats.delete(id);
     } else {
-      selectedCats.add(id);
-      el.classList.add('selected');
-      el.querySelector('.config-chapter-check').textContent = '✓';
+      selectedSubcats.add(id);
     }
+    renderChapterList();
   }
 
-  function updateChapterUI() {
-    BM.CATEGORIES.forEach(cat => {
-      const item = document.getElementById(`cat-item-${cat.id}`);
-      if (!item) return;
-      if (selectedCats.has(cat.id)) {
-        item.classList.add('selected');
-        item.querySelector('.config-chapter-check').textContent = '✓';
-      }
-    });
+  function clearAllSubcats(cat) {
+    const catSubIds = new Set(cat.subcategories.map(s => s.id));
+    const otherSelected = [...selectedSubcats].filter(id => !catSubIds.has(id)).length;
+    if (otherSelected === 0) {
+      BM.toast('Selectează cel puțin un subcapitol.', 'error');
+      return;
+    }
+    cat.subcategories.forEach(s => selectedSubcats.delete(s.id));
+    renderChapterList();
   }
 
   /* ---- Start training ---- */
   window.startTraining = function() {
-    let pool = BM.EXERCISES.filter(e => {
-      if (!selectedCats.has(e.categoryId)) return false;
-      if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return false;
-      return true;
+    /* Group by subcategory (not a flat pooled shuffle) so that when several
+       subcategories are selected, the session round-robins across all of them
+       instead of possibly drawing every card from just one by chance. */
+    const bySubcat = {};
+    BM.EXERCISES.forEach(e => {
+      if (!selectedSubcats.has(e.subcategoryId)) return;
+      if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
+      (bySubcat[e.subcategoryId] = bySubcat[e.subcategoryId] || []).push(e);
     });
+    const subIds = Object.keys(bySubcat);
 
-    if (pool.length === 0) {
+    if (subIds.length === 0) {
       BM.toast('Niciun exercițiu disponibil cu filtrele selectate!', 'error');
       return;
     }
 
-    pool = BM.shuffle(pool);
-    sessionExercises = pool.slice(0, Math.min(selectedCount, pool.length));
+    subIds.forEach(id => { bySubcat[id] = BM.shuffle(bySubcat[id]); });
+
+    const picked = [];
+    let exhausted = false;
+    while (picked.length < selectedCount && !exhausted) {
+      exhausted = true;
+      for (const id of subIds) {
+        if (picked.length >= selectedCount) break;
+        if (bySubcat[id].length) {
+          picked.push(bySubcat[id].shift());
+          exhausted = false;
+        }
+      }
+    }
+    sessionExercises = BM.shuffle(picked);
     cardStates       = sessionExercises.map(ex => ({ ex, status: 'hidden' }));
     revealedCount    = 0;
     currentStreak    = 0;
