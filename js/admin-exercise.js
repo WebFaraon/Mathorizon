@@ -100,17 +100,44 @@
       e.stopPropagation();
       const wasOpen = wrapper.classList.contains('cls-csel--open');
       _closeAllCsels();
-      if (!wasOpen) wrapper.classList.add('cls-csel--open');
+      if (!wasOpen) {
+        wrapper.classList.add('cls-csel--open');
+        _positionCselDropdown(trigger, dropdown);
+      }
     });
 
     sel.style.display = 'none';
     sel.parentNode.insertBefore(wrapper, sel);
   }
 
+  /* Fixed-position the dropdown off the trigger's viewport rect so it escapes
+     clipping by the wizard's scrollable .wz-body (an absolutely-positioned
+     dropdown was cut off whenever its field sat near the bottom of the
+     scroll area, e.g. "Dificultate" in step 1). Flips upward if there's no
+     room below. */
+  function _positionCselDropdown(trigger, dropdown) {
+    const rect   = trigger.getBoundingClientRect();
+    const maxH   = 216;
+    const below  = window.innerHeight - rect.bottom;
+    const openUp = below < maxH + 8 && rect.top > below;
+    dropdown.style.position = 'fixed';
+    dropdown.style.left     = rect.left + 'px';
+    dropdown.style.width    = rect.width + 'px';
+    dropdown.style.right    = 'auto';
+    if (openUp) {
+      dropdown.style.top    = 'auto';
+      dropdown.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+    } else {
+      dropdown.style.bottom = 'auto';
+      dropdown.style.top    = (rect.bottom + 5) + 'px';
+    }
+  }
+
   function _closeAllCsels() {
     document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
   }
   document.addEventListener('click', _closeAllCsels);
+  document.addEventListener('scroll', _closeAllCsels, true);
 
   function _aeInitCustomSelects(body) {
     body.querySelectorAll('.cls-form-select').forEach(sel => _makeCustomSelect(sel));

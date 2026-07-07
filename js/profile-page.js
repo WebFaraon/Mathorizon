@@ -136,8 +136,9 @@
     const isGoogle    = user.app_metadata?.provider === 'google';
     const hist        = _loadHistory();
 
-    const role   = window.BMAuth?.role   || 'elev';
-    const status = window.BMAuth?.status || 'active';
+    const role    = window.BMAuth?.role   || 'elev';
+    const status  = window.BMAuth?.status || 'active';
+    const isAdmin = role === 'admin';
 
     const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
@@ -147,7 +148,10 @@
     /* Token visual — up to 5 ticket emojis + "+N" badge, no empty slots */
     const MAX_SHOWN = 5;
     let tokenVisual;
-    if (tokens === 0) {
+    if (isAdmin) {
+      tokenVisual = `<span style="font-size:1.45rem;line-height:1" title="Tokenuri nelimitate (cont admin)">🎟</span>
+                     <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Tokenuri nelimitate</span>`;
+    } else if (tokens === 0) {
       tokenVisual = `<span style="font-size:1.5rem;opacity:0.25">🎟</span>
                      <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Niciun token disponibil</span>`;
     } else {
@@ -249,7 +253,7 @@
           <div class="prof-header-meta">
             <span class="prof-meta-item">📅 Membru din ${memberSince}</span>
             <span class="prof-meta-sep">·</span>
-            <span class="prof-meta-item">🎟 ${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}</span>
+            <span class="prof-meta-item">🎟 ${isAdmin ? '∞ tokenuri (nelimitat)' : `${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
             <span class="prof-meta-sep">·</span>
             <span class="prof-meta-item">📋 ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
           </div>
@@ -283,8 +287,10 @@
               <span class="prof-field-val">${memberSince}</span>
             </div>
             <div class="prof-field-row">
-              <span class="prof-field-lbl">Provider</span>
-              <span class="prof-field-val">${isGoogle ? '🌐 Google' : '📧 Email / Parolă'}</span>
+              <span class="prof-field-lbl">Autentificare</span>
+              <span class="prof-field-val" title="${isGoogle
+                ? 'Te conectezi la cont folosind contul tău Google.'
+                : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? '🌐 Cont Google' : '📧 Email + parolă'}</span>
             </div>
           </div>
         </div>
@@ -298,11 +304,11 @@
           <div class="prof-card__body">
             <div class="prof-token-bar">${tokenVisual}</div>
             <div class="prof-token-main">
-              <span class="prof-token-count ${tokens === 0 ? 'prof-token-count--empty' : tokens === 1 ? 'prof-token-count--low' : ''}">${tokens}</span>
+              <span class="prof-token-count ${!isAdmin && tokens === 0 ? 'prof-token-count--empty' : !isAdmin && tokens === 1 ? 'prof-token-count--low' : ''}">${isAdmin ? '∞' : tokens}</span>
               <div class="prof-token-info">
-                <span class="prof-token-lbl">token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}</span>
+                <span class="prof-token-lbl">${isAdmin ? 'tokenuri nelimitate' : `token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
                 <span class="prof-token-hint">
-                  ${tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? '⚠ Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
+                  ${isAdmin ? 'Cont admin — acces nelimitat la simulări BAC.' : tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? '⚠ Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
                 </span>
               </div>
             </div>
