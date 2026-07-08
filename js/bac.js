@@ -143,20 +143,6 @@
   let _slotDefs = SLOTS;
 
   /* ---- Answer extraction utilities ---- */
-  function extractBoxedAnswer(solution) {
-    if (!solution) return null;
-    const marker = '\\boxed{';
-    const idx = solution.lastIndexOf(marker);
-    if (idx === -1) return null;
-    let depth = 1, content = '';
-    for (let i = idx + marker.length; i < solution.length; i++) {
-      if      (solution[i] === '{') { depth++; content += '{'; }
-      else if (solution[i] === '}') { if (--depth === 0) break; content += '}'; }
-      else                            content += solution[i];
-    }
-    return content || null;
-  }
-
   /* ---- State ---- */
   let exam    = null;
   let current = 0;
@@ -1608,7 +1594,7 @@
           label:           slot.label,
           enunt:           item.exercise.statement || '',
           solutieOficiala: item.exercise.solution  || '',
-          raspunsCorect:   extractBoxedAnswer(item.exercise.solution) || '',
+          raspunsCorect:   BM.extractBoxedAnswer(item.exercise.solution) || '',
           raspunsElev:     '',
           puncteMaxime:    slot.points,
           // Lets the server give type-specific grading reminders (domain

@@ -101,6 +101,21 @@ BM.nl2br = function(str) {
   return BM.esc(str).replace(/\n/g, '<br>');
 };
 
+/* ---- Extract the last \boxed{...} value out of a solution string (brace-depth aware) ---- */
+BM.extractBoxedAnswer = function(solution) {
+  if (!solution) return null;
+  const marker = '\\boxed{';
+  const idx = solution.lastIndexOf(marker);
+  if (idx === -1) return null;
+  let depth = 1, content = '';
+  for (let i = idx + marker.length; i < solution.length; i++) {
+    if      (solution[i] === '{') { depth++; content += '{'; }
+    else if (solution[i] === '}') { if (--depth === 0) break; content += '}'; }
+    else                            content += solution[i];
+  }
+  return content || null;
+};
+
 /* ---- Render KaTeX math în element ---- */
 BM.renderMath = function(el) {
   if (!el || !window.renderMathInElement) return;

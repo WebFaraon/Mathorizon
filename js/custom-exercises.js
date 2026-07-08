@@ -13,7 +13,11 @@ window.BM = window.BM || {};
   const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
   const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
-  const ready = fetch(`${SUPABASE_URL}/rest/v1/custom_exercises?select=*`, {
+  // Only grades '9'/'bac' reach the sitewide pool (trainer/category/BAC
+  // simulator) — preserves today's exact behavior. Grades '5'-'8'/'10'/'11'/'12'
+  // (added by teachers building class Simulări) stay out of this pool; the
+  // Simulări exercise picker queries custom_exercises directly instead.
+  const ready = fetch(`${SUPABASE_URL}/rest/v1/custom_exercises?grade=in.(9,bac)&select=*`, {
     headers: { apikey: SUPABASE_ANON }
   })
     .then(r => r.ok ? r.json() : [])

@@ -256,6 +256,14 @@ body.bac-exam-mode .nav.nav--peek {
 /* Short labels — no longer used; hamburger takes over on mobile */
 .nav__link-short { display: none; }
 
+/* ---- Disabled nav link (feature temporarily unavailable) ---- */
+.nav__link--disabled,
+.nav__mobile-link--disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
 /* ---- Hamburger button ---- */
 .nav__hamburger {
   display: none;
@@ -9355,6 +9363,221 @@ body.bac-exam-mode .nav.nav--peek {
 [data-theme="dark"] .catalog-row:nth-child(even) .catalog-td--name { background: rgba(255,255,255,0.025); }
 [data-theme="dark"] .catalog-row:hover .catalog-td,
 [data-theme="dark"] .catalog-row:hover .catalog-td--name { background: rgba(255,255,255,0.05); }
+
+/* ════════════════════════════════════════════════════════════
+   SIMULĂRI — class-specific timed test
+   ════════════════════════════════════════════════════════════ */
+
+.sim-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+.sim-badge--programata { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+.sim-badge--activa     { background: rgba(16,185,129,0.12); color: var(--green); }
+.sim-badge--incheiata  { background: var(--accent-dim); color: var(--accent); }
+.sim-badge--locked     { background: var(--surface); color: var(--text-muted); border: 1px solid var(--border); }
+
+.sim-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.sim-card {
+  padding: 18px 20px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  transition: background var(--transition), border-color var(--transition);
+}
+.sim-card--clickable { cursor: pointer; }
+.sim-card--clickable:hover { border-color: var(--accent); background: var(--surface); }
+.sim-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 8px;
+}
+.sim-card__title { font-size: 1rem; font-weight: 700; color: var(--text); }
+.sim-card__meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.sim-card__meta-item--grade { color: var(--green); font-weight: 700; }
+.sim-card__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Membri catalog — simulation columns */
+.catalog-th--sim { background: rgba(58,107,173,0.05); }
+.catalog-td--sim { background: rgba(58,107,173,0.03); }
+.cs-row--sim { background: rgba(58,107,173,0.03); }
+.cs-list--sim { margin-top: 14px; }
+.cs-grade--sim small { color: var(--accent); }
+
+/* Live view (teacher) */
+.sim-live-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-live-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.sim-live-row__name { font-weight: 600; color: var(--text); }
+
+/* Wizard — item list (step 2) */
+.sim-wz-item-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-wz-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.sim-wz-item__idx {
+  width: 26px; height: 26px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.75rem;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.sim-wz-item__body { flex: 1; min-width: 0; }
+.sim-wz-item__title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
+.sim-wz-item__meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+.sim-wz-item__actions { display: flex; gap: 2px; flex-shrink: 0; }
+
+/* Exercise picker (nested modal) */
+.sim-picker-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sim-picker-tab {
+  padding: 10px 14px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-weight: 700;
+  font-size: 0.86rem;
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+}
+.sim-picker-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
+.sim-picker-results {
+  max-height: 260px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  margin-bottom: 16px;
+}
+.sim-picker-result {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+}
+.sim-picker-result:last-child { border-bottom: none; }
+.sim-picker-result:hover { background: var(--surface); }
+.sim-picker-result__title { font-size: 0.86rem; color: var(--text); }
+.sim-picker-confirm__statement {
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  margin-bottom: 14px;
+  font-size: 0.9rem;
+}
+
+/* Student exam — answer input + symbol toolbar */
+.sim-answer-block { margin: 18px 0; }
+.sim-answer-input {
+  width: 100%;
+  padding: 12px 14px;
+  font-size: 1rem;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  margin-bottom: 10px;
+}
+.sim-answer-input:focus { outline: none; border-color: var(--accent); }
+.sim-symbol-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+.sim-symbol-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+.sim-symbol-btn:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+
+/* Student results */
+.sim-results-wrap { max-width: 720px; margin: 0 auto; padding: 24px 0; }
+.sim-result-summary {
+  display: flex;
+  align-items: baseline;
+  gap: 16px;
+  padding: 20px 24px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  margin-bottom: 20px;
+}
+.sim-result-summary__grade { font-size: 2.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
+.sim-result-summary__pts { font-size: 0.92rem; color: var(--text-muted); }
+.sim-result-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-result-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.sim-result-row--ok { border-left: 3px solid var(--green); }
+.sim-result-row--no { border-left: 3px solid var(--red); }
+.sim-result-row__idx { width: 24px; font-weight: 700; color: var(--text-muted); }
+.sim-result-row__answer { flex: 1; min-width: 0; color: var(--text); word-break: break-word; }
+.sim-result-row__pts { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.sim-result-row__mark { font-weight: 800; }
+.sim-result-row--ok .sim-result-row__mark { color: var(--green); }
+.sim-result-row--no .sim-result-row__mark { color: var(--red); }
+
+[data-theme="dark"] .catalog-th--sim { background: rgba(255,255,255,0.03); }
+[data-theme="dark"] .catalog-td--sim { background: rgba(255,255,255,0.02); }
 
 /* ── Dark mode ──────────────────────────────────────────── */
 [data-theme="dark"] .cd-header {

@@ -18,6 +18,9 @@
   let activeTab  = 'flux';
   let temeCache  = [];
   let wz         = null;
+  let simCache   = [];
+  let simWiz     = null;
+  let simPicker  = null;
 
   /* ─── Bootstrap ─────────────────────────────────────────────────── */
   function init() {
@@ -220,6 +223,7 @@
   let _reloadFluxTimer = null;
   let _reloadTemeTimer = null;
   let _reloadMembriTimer = null;
+  let _reloadSimulariTimer = null;
 
   function _debouncedFlux() {
     clearTimeout(_reloadFluxTimer);
@@ -234,6 +238,11 @@
   function _debouncedMembri() {
     clearTimeout(_reloadMembriTimer);
     _reloadMembriTimer = setTimeout(() => { if (activeTab === 'membri') loadMembriTab(); }, 500);
+  }
+
+  function _debouncedSimulari() {
+    clearTimeout(_reloadSimulariTimer);
+    _reloadSimulariTimer = setTimeout(() => { if (activeTab === 'simulari') loadSimulariTab(); }, 350);
   }
 
   function _setupRealtime() {
@@ -259,6 +268,16 @@
         event: '*', schema: 'public', table: 'class_members',
         filter: 'class_id=eq.' + classData.id
       }, _debouncedMembri)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'simulations',
+        filter: 'class_id=eq.' + classData.id
+      }, _debouncedSimulari)
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'simulation_attempts'
+      }, e => { _debouncedSimulari(); _debouncedMembri(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'simulation_answers'
+      }, _debouncedSimulari)
       .subscribe();
 
     window.addEventListener('beforeunload', () => {
@@ -273,6 +292,7 @@
       if (activeTab === 'flux') loadFluxTab();
       else if (activeTab === 'teme') loadTemeTab();
       else if (activeTab === 'membri') loadMembriTab();
+      else if (activeTab === 'simulari') loadSimulariTab();
     }
   });
 
@@ -344,22 +364,8 @@
       return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă catalogul...</p></div>`;
     }
 
-    const isTeacher = BMAuth.role === 'profesor';
-    const p = {
-      simulari: {
-        icon: '🎯', title: 'Simulări',
-        desc: isTeacher ? 'Organizează simulări BAC pentru clasă.' : 'Simulări BAC organizate de profesor.'
-      }
-    }[tabId];
-
-    return `
-      <div class="cd-placeholder">
-        <div class="cd-placeholder__icon">${p.icon}</div>
-        <h3 class="cd-placeholder__title">${p.title}</h3>
-        <p class="cd-placeholder__desc">${p.desc}</p>
-        <span class="cd-placeholder__badge">În curând</span>
-      </div>
-    `;
+    requestAnimationFrame(() => loadSimulariTab());
+    return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă simulările...</p></div>`;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -1075,12 +1081,37 @@
         });
       }
 
+      /* 5. Simulări — finished attempts merge into the same Medie averages */
+      const { data: rawSims } = await BMAuth.supabase
+        .from('simulations').select('id, title, created_at').eq('class_id', classData.id)
+        .order('created_at', { ascending: true });
+      const sims = rawSims || [];
+
+      const simMatrix = {}; /* [studentId][simulationId] */
+      if (sims.length > 0) {
+        const simIds = sims.map(s => s.id);
+        const { data: simAttempts } = await BMAuth.supabase
+          .from('simulation_attempts')
+          .select('simulation_id, student_id, student_name, grade_10, status')
+          .eq('status', 'finalizata')
+          .in('simulation_id', simIds);
+        (simAttempts || []).forEach(a => {
+          if (!nameMap[a.student_id] && a.student_name) nameMap[a.student_id] = a.student_name;
+          if (!simMatrix[a.student_id]) simMatrix[a.student_id] = {};
+          simMatrix[a.student_id][a.simulation_id] = a;
+        });
+      }
+
       /* Compute catalog-level stats */
       const allConfirmedGrades = [];
       members.forEach(m => {
         assignments.forEach(a => {
           const sub = (subMatrix[m.student_id] || {})[a.id];
           if (sub?.grade_confirmed) allConfirmedGrades.push(parseFloat(sub.grade));
+        });
+        sims.forEach(s => {
+          const att = (simMatrix[m.student_id] || {})[s.id];
+          if (att?.grade_10 != null) allConfirmedGrades.push(parseFloat(att.grade_10));
         });
       });
       const classAvg = allConfirmedGrades.length
@@ -1094,9 +1125,9 @@
       };
 
       if (isTeacher) {
-        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats);
+        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix);
       } else {
-        content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id]);
+        content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
       }
 
     } catch (e) {
@@ -1109,7 +1140,7 @@
     }
   }
 
-  function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}) {
+  function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}, sims = [], simMatrix = {}) {
     /* Per-assignment stats (confirmed grades only) */
     const aStats = {};
     assignments.forEach(a => {
@@ -1118,6 +1149,18 @@
         .filter(s => s?.grade_confirmed)
         .map(s => parseFloat(s.grade));
       aStats[a.id] = grades.length
+        ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
+        : '—';
+    });
+
+    /* Per-simulation stats (finished attempts only) */
+    const sStats = {};
+    sims.forEach(s => {
+      const grades = members
+        .map(m => (simMatrix[m.student_id] || {})[s.id])
+        .filter(a => a?.grade_10 != null)
+        .map(a => parseFloat(a.grade_10));
+      sStats[s.id] = grades.length
         ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
         : '—';
     });
@@ -1133,9 +1176,18 @@
         </div>`;
     }).join('');
 
+    const simHeaderCells = sims.map(s => {
+      const title = s.title.length > 20 ? s.title.slice(0, 18) + '…' : s.title;
+      return `
+        <div class="catalog-th catalog-th--sim" title="${BM.esc(s.title)}">
+          <span class="catalog-th__title">🎯 ${BM.esc(title)}</span>
+        </div>`;
+    }).join('');
+
     const studentRows = members.map((m, idx) => {
       const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
       const mySubs = subMatrix[m.student_id] || {};
+      const mySims = simMatrix[m.student_id] || {};
 
       const cells = assignments.map(a => {
         const sub = mySubs[a.id];
@@ -1148,9 +1200,18 @@
         return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
       }).join('');
 
+      const simCells = sims.map(s => {
+        const att = mySims[s.id];
+        if (!att) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
+        const g = parseFloat(att.grade_10);
+        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+        return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls}" title="Notă simulare: ${att.grade_10}">${att.grade_10}</div>`;
+      }).join('');
+
       const myGrades = assignments
         .map(a => (mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null))
-        .filter(g => g !== null);
+        .filter(g => g !== null)
+        .concat(sims.map(s => mySims[s.id]?.grade_10 != null ? parseFloat(mySims[s.id].grade_10) : null).filter(g => g !== null));
       const avg = myGrades.length
         ? (myGrades.reduce((t, g) => t + g, 0) / myGrades.length).toFixed(1)
         : '—';
@@ -1163,6 +1224,7 @@
             <span class="catalog-name-text">${BM.esc(name)}</span>
           </div>
           ${cells}
+          ${simCells}
           <div class="catalog-td catalog-td--avg ${avgCls}">${avg}</div>
         </div>`;
     }).join('');
@@ -1171,6 +1233,7 @@
       <div class="catalog-row catalog-row--stats">
         <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie clasă</div>
         ${assignments.map(a => `<div class="catalog-td catalog-td--stat">${aStats[a.id]}</div>`).join('')}
+        ${sims.map(s => `<div class="catalog-td catalog-td--stat catalog-td--sim">${sStats[s.id]}</div>`).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>`;
 
@@ -1200,21 +1263,23 @@
             <div class="catalog-head">
               <div class="catalog-th catalog-th--name">Elev</div>
               ${headerCells}
+              ${simHeaderCells}
               <div class="catalog-th catalog-th--avg">Medie</div>
             </div>
             <div class="catalog-body">
               ${studentRows}
-              ${assignments.length > 0 ? statsRow : ''}
+              ${(assignments.length > 0 || sims.length > 0) ? statsRow : ''}
             </div>
           </div>
         </div>
       </div>`;
   }
 
-  function renderCatalogStudent(assignments, mySubs, myName) {
+  function renderCatalogStudent(assignments, mySubs, myName, sims = [], mySimAttempts = {}) {
     const gradedGrades = assignments
       .map(a => mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null)
-      .filter(g => g !== null);
+      .filter(g => g !== null)
+      .concat(sims.map(s => mySimAttempts[s.id]?.grade_10 != null ? parseFloat(mySimAttempts[s.id].grade_10) : null).filter(g => g !== null));
     const avg = gradedGrades.length
       ? (gradedGrades.reduce((t, g) => t + g, 0) / gradedGrades.length).toFixed(1)
       : null;
@@ -1248,6 +1313,25 @@
         </div>`;
     }).join('');
 
+    const simRows = sims.map((s, idx) => {
+      const att = mySimAttempts[s.id];
+      let gradeEl = '';
+      if (!att) gradeEl = `<span class="cs-badge cs-badge--none">Neparticipat</span>`;
+      else if (att.grade_10 != null) {
+        const g = parseFloat(att.grade_10);
+        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+        gradeEl = `<span class="cs-grade cs-grade--sim cs-grade--${cls}">${att.grade_10}<small>/10</small></span>`;
+      }
+      return `
+        <div class="cs-row cs-row--sim">
+          <div class="cs-idx">🎯</div>
+          <div class="cs-info">
+            <div class="cs-title">${BM.esc(s.title)}</div>
+          </div>
+          <div class="cs-grade-col">${gradeEl}</div>
+        </div>`;
+    }).join('');
+
     return `
       <div class="catalog-wrap">
         <div class="cs-stats">
@@ -1268,6 +1352,7 @@
           ? '<p class="cs-empty">Profesorul nu a adăugat teme încă.</p>'
           : `<div class="cs-list">${rows}</div>`
         }
+        ${sims.length > 0 ? `<div class="cs-list cs-list--sim">${simRows}</div>` : ''}
       </div>`;
   }
 
@@ -2173,6 +2258,889 @@
       document.body.appendChild(overlay);
       overlay.querySelector('#cdConfirmNo').focus();
     });
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SIMULĂRI TAB
+  ═══════════════════════════════════════════════════════════════ */
+
+  const SIM_STATUS_LABEL = { programata: 'Programată', activa: 'Activă', incheiata: 'Încheiată' };
+
+  // classData.school_grade is a free string like "a 5-a" / "a 9-a" / "a 12-a"
+  // (see classes-page.js's grade <select>); custom_exercises.grade uses short
+  // codes '5'..'12'/'bac'. 12th grade maps to 'bac' since that's the existing
+  // convention for the whole BAC-chapter exercise pool (BM.CATEGORIES has no
+  // separate "grade 12" track — it IS the BAC track).
+  function _gradeCodeFromSchoolGrade(schoolGrade) {
+    const m = /(\d+)/.exec(schoolGrade || '');
+    if (!m) return null;
+    return m[1] === '12' ? 'bac' : m[1];
+  }
+
+  function simStatusBadge(status) {
+    return `<span class="sim-badge sim-badge--${status}">${SIM_STATUS_LABEL[status] || status}</span>`;
+  }
+
+  function formatSimDateTime(iso) {
+    if (!iso) return 'Fără dată programată';
+    const d = new Date(iso);
+    return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }) +
+           ' · ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function loadSimulariTab() {
+    const content = document.getElementById('cdContent');
+    if (!content) return;
+    const isTeacher = BMAuth.role === 'profesor';
+
+    try {
+      const { data: sims, error } = await BMAuth.supabase
+        .from('simulations').select('*').eq('class_id', classData.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+
+      const simList = sims || [];
+      const simIds  = simList.map(s => s.id);
+
+      let attemptsBySim = {};
+      let myAttempts    = {};
+      let memberCount   = 0;
+
+      if (simIds.length > 0) {
+        if (isTeacher) {
+          const [{ data: attempts }, { count: mc }] = await Promise.all([
+            BMAuth.supabase.from('simulation_attempts').select('simulation_id, student_id, status, grade_10').in('simulation_id', simIds),
+            BMAuth.supabase.from('class_members').select('*', { count: 'exact', head: true }).eq('class_id', classData.id)
+          ]);
+          memberCount = mc || 0;
+          (attempts || []).forEach(a => {
+            (attemptsBySim[a.simulation_id] = attemptsBySim[a.simulation_id] || []).push(a);
+          });
+        } else {
+          const { data: mine } = await BMAuth.supabase.from('simulation_attempts')
+            .select('*').eq('student_id', BMAuth.user.id).in('simulation_id', simIds);
+          (mine || []).forEach(a => { myAttempts[a.simulation_id] = a; });
+        }
+      }
+
+      simCache = simList;
+      const visible = isTeacher ? simList : simList.filter(s => s.status !== 'programata');
+
+      content.innerHTML = `
+        ${isTeacher ? `
+          <div class="teme-toolbar">
+            <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
+          </div>` : ''}
+        <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
+          ${visible.length === 0
+            ? simEmpty(isTeacher)
+            : visible.map(s => isTeacher
+                ? simCardTeacher(s, attemptsBySim[s.id] || [], memberCount)
+                : simCardStudent(s, myAttempts[s.id] || null)
+              ).join('')}
+        </div>`;
+
+      document.getElementById('newSimBtn')?.addEventListener('click', () => openSimulationWizard());
+
+      if (isTeacher) {
+        content.querySelectorAll('[data-sim-start]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); startSimulation(btn.dataset.simStart); }));
+        content.querySelectorAll('[data-sim-end]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); endSimulation(btn.dataset.simEnd); }));
+        content.querySelectorAll('[data-sim-reopen]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); reopenSimulation(btn.dataset.simReopen); }));
+        content.querySelectorAll('[data-sim-edit]').forEach(btn => btn.addEventListener('click', e => {
+          e.stopPropagation();
+          const s = simCache.find(x => x.id === btn.dataset.simEdit);
+          if (s) openSimulationWizard(s);
+        }));
+        content.querySelectorAll('[data-sim-delete]').forEach(btn => btn.addEventListener('click', e => {
+          e.stopPropagation();
+          deleteSimulation(btn.dataset.simDelete, btn.dataset.simTitle);
+        }));
+        content.querySelectorAll('.sim-card--clickable').forEach(card => card.addEventListener('click', () => {
+          const s = simCache.find(x => x.id === card.dataset.id);
+          if (s) openSimulationLiveView(s);
+        }));
+      } else {
+        content.querySelectorAll('[data-sim-begin]').forEach(btn => btn.addEventListener('click', () => _openSimForStudent(btn.dataset.simBegin)));
+        content.querySelectorAll('[data-sim-results]').forEach(btn => btn.addEventListener('click', () => _openSimForStudent(btn.dataset.simResults)));
+      }
+    } catch (e) {
+      content.innerHTML = `
+        <div class="cd-placeholder">
+          <div class="cd-placeholder__icon">⚠️</div>
+          <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
+          <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
+        </div>`;
+    }
+  }
+
+  function simEmpty(isTeacher) {
+    return `
+      <div class="teme-empty">
+        <div class="teme-empty__icon">🎯</div>
+        <h3>${isTeacher ? 'Nicio simulare creată' : 'Nicio simulare disponibilă'}</h3>
+        <p>${isTeacher ? 'Creează prima simulare pentru clasă.' : 'Profesorul nu a pornit nicio simulare încă.'}</p>
+      </div>`;
+  }
+
+  function simCardTeacher(s, attempts, memberCount) {
+    const finishedCount = attempts.filter(a => a.status === 'finalizata').length;
+    return `
+      <div class="sim-card sim-card--clickable" data-id="${s.id}">
+        <div class="sim-card__top">
+          <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
+          ${simStatusBadge(s.status)}
+        </div>
+        <div class="sim-card__meta">
+          <span class="sim-card__meta-item">📅 ${formatSimDateTime(s.scheduled_at)}</span>
+          <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
+          <span class="sim-card__meta-item">👥 ${finishedCount}/${memberCount} finalizat</span>
+        </div>
+        <div class="sim-card__actions">
+          ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">▶ Pornește acum</button>` : ''}
+          ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">■ Încheie</button>` : ''}
+          ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">↻ Redeschide</button>` : ''}
+          <button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">✎</button>
+          <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">✕</button>
+        </div>
+      </div>`;
+  }
+
+  function simCardStudent(s, attempt) {
+    let action;
+    if (attempt?.status === 'finalizata') {
+      action = `<button class="btn btn--surface btn--sm" data-sim-results="${s.id}">📊 Vezi rezultatul</button>`;
+    } else if (attempt?.status === 'in_progres') {
+      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">▶ Continuă</button>`;
+    } else if (s.status === 'activa') {
+      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">▶ Începe simularea</button>`;
+    } else {
+      action = `<span class="sim-badge sim-badge--locked">Nu ai participat</span>`;
+    }
+    return `
+      <div class="sim-card" data-id="${s.id}">
+        <div class="sim-card__top">
+          <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
+          ${simStatusBadge(s.status)}
+        </div>
+        <div class="sim-card__meta">
+          <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
+          ${attempt?.status === 'finalizata' ? `<span class="sim-card__meta-item sim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10}</span>` : ''}
+        </div>
+        <div class="sim-card__actions">${action}</div>
+      </div>`;
+  }
+
+  async function _openSimForStudent(simId) {
+    const sim = simCache.find(s => s.id === simId);
+    if (!sim) return;
+    window.onSimulareExamClosed = () => loadSimulariTab();
+    await window.SimulareExam.start(sim);
+  }
+
+  /* ─── Teacher actions ────────────────────────────────────────────── */
+  async function startSimulation(id) {
+    try {
+      const { error } = await BMAuth.supabase.from('simulations')
+        .update({ status: 'activa', started_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      BM.toast('Simularea a fost pornită!', 'success');
+      await loadSimulariTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  async function endSimulation(id) {
+    const ok = await showConfirmDialog({
+      icon: '■', title: 'Încheie simularea?',
+      message: 'Elevii care nu au început nu vor mai putea participa (poți redeschide oricând).',
+      confirmText: 'Încheie'
+    });
+    if (!ok) return;
+    try {
+      const { error } = await BMAuth.supabase.from('simulations').update({ status: 'incheiata' }).eq('id', id);
+      if (error) throw error;
+      BM.toast('Simularea a fost încheiată.', 'info');
+      await loadSimulariTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  async function reopenSimulation(id) {
+    try {
+      const { error } = await BMAuth.supabase.from('simulations').update({ status: 'activa' }).eq('id', id);
+      if (error) throw error;
+      BM.toast('Simularea a fost redeschisă.', 'success');
+      await loadSimulariTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  async function deleteSimulation(id, title) {
+    const ok = await showConfirmDialog({
+      icon: '🗑️', title: 'Ștergi simularea?',
+      message: '„' + title + '" va fi ștearsă definitiv, împreună cu toate rezultatele elevilor.',
+      confirmText: 'Șterge'
+    });
+    if (!ok) return;
+    try {
+      const { error } = await BMAuth.supabase.from('simulations').delete().eq('id', id);
+      if (error) throw error;
+      BM.toast('Simularea a fost ștearsă.', 'info');
+      await loadSimulariTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  /* ─── Teacher live view ──────────────────────────────────────────── */
+  async function openSimulationLiveView(s) {
+    document.getElementById('simLiveModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'simLiveModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog">
+        <div class="classes-modal__head">
+          <h3>${BM.esc(s.title)}</h3>
+          <button class="icon-btn" id="simLiveCloseBtn">✕</button>
+        </div>
+        <div class="classes-modal__body" id="simLiveBody">
+          <div class="classes-loading"><div class="classes-spinner"></div></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('.classes-modal__backdrop').onclick = () => modal.remove();
+    modal.querySelector('#simLiveCloseBtn').onclick = () => modal.remove();
+
+    await _refreshSimLiveBody(s.id);
+  }
+
+  async function _refreshSimLiveBody(simId) {
+    const body = document.getElementById('simLiveBody');
+    if (!body) return;
+
+    const [{ data: members }, { data: attempts }] = await Promise.all([
+      BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id),
+      BMAuth.supabase.from('simulation_attempts').select('*').eq('simulation_id', simId)
+    ]);
+    const attemptMap = {};
+    (attempts || []).forEach(a => { attemptMap[a.student_id] = a; });
+
+    const rows = (members || []).map(m => {
+      const a = attemptMap[m.student_id];
+      let statusHtml;
+      if (!a) statusHtml = `<span class="sim-badge sim-badge--locked">Nepornit</span>`;
+      else if (a.status === 'in_progres') statusHtml = `<span class="sim-badge sim-badge--activa">În lucru</span>`;
+      else statusHtml = `<span class="sim-badge sim-badge--incheiata">Finalizat · ${a.grade_10 ?? '—'}</span>`;
+      return `<div class="sim-live-row"><span class="sim-live-row__name">${BM.esc(m.student_name || 'Elev')}</span>${statusHtml}</div>`;
+    }).join('');
+
+    body.innerHTML = `<div class="sim-live-list">${rows || '<p>Niciun elev în clasă.</p>'}</div>`;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SIMULATION-BUILDER WIZARD
+  ═══════════════════════════════════════════════════════════════ */
+
+  async function openSimulationWizard(existing = null) {
+    document.getElementById('simWizard')?.remove();
+
+    let items = [];
+    if (existing) {
+      const { data: simItems } = await BMAuth.supabase
+        .from('simulation_items').select('*').eq('simulation_id', existing.id).order('position');
+      if (simItems?.length) {
+        const ids = simItems.map(i => i.id);
+        const { data: keys } = await BMAuth.supabase.from('simulation_answer_keys').select('*').in('simulation_item_id', ids);
+        const keyMap = {};
+        (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
+        items = simItems.map(i => ({
+          exercise_source: i.exercise_source, source_exercise_id: i.source_exercise_id,
+          title: i.title, statement: i.statement, difficulty: i.difficulty, points: i.points,
+          correct_answer: keyMap[i.id] || ''
+        }));
+      }
+    }
+
+    simWiz = {
+      existingId: existing?.id || null,
+      step: 1,
+      title: existing?.title || '',
+      scheduledAt: existing?.scheduled_at || '',
+      timeLimitMinutes: existing?.time_limit_minutes || 30,
+      startMode: existing?.status === 'activa' ? 'now' : 'schedule',
+      items
+    };
+    _simWzShowModal();
+  }
+
+  function _simWzShowModal() {
+    const modal = document.createElement('div');
+    modal.id = 'simWizard';
+    modal.className = 'wz-overlay';
+    modal.innerHTML = `
+      <div class="wz-backdrop" id="simWzBackdrop"></div>
+      <div class="wz-dialog" role="dialog">
+        <div class="wz-head">
+          <span class="wz-head__title">${simWiz.existingId ? 'Editează Simularea' : 'Simulare Nouă'}</span>
+          <div class="wz-steps" id="simWzSteps"></div>
+          <button class="icon-btn" id="simWzCloseBtn">✕</button>
+        </div>
+        <div class="wz-body" id="simWzBody"></div>
+        <div class="wz-foot">
+          <button class="btn btn--surface" id="simWzBackBtn">← Înapoi</button>
+          <button class="btn btn--primary" id="simWzNextBtn">Continuă →</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+
+    modal.querySelector('#simWzBackdrop').onclick = _simWzClose;
+    modal.querySelector('#simWzCloseBtn').onclick  = _simWzClose;
+    modal.querySelector('#simWzBackBtn').onclick   = _simWzBack;
+    modal.querySelector('#simWzNextBtn').onclick   = _simWzNext;
+
+    _simWzRender();
+  }
+
+  function _simWzClose() {
+    document.getElementById('simWizard')?.remove();
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
+    simWiz = null;
+  }
+
+  function _simWzRender() {
+    const body    = document.getElementById('simWzBody');
+    const steps   = document.getElementById('simWzSteps');
+    const backBtn = document.getElementById('simWzBackBtn');
+    const nextBtn = document.getElementById('simWzNextBtn');
+    if (!body || !steps || !backBtn || !nextBtn) return;
+
+    const labels = ['Detalii', 'Exerciții', 'Revizuire'];
+    steps.innerHTML = labels.map((l, i) => `
+      <div class="wz-step-item">
+        <div class="wz-step-dot${i + 1 < simWiz.step ? ' wz-step-dot--done' : ''}${i + 1 === simWiz.step ? ' wz-step-dot--active' : ''}">
+          ${i + 1 < simWiz.step ? '✓' : i + 1}
+        </div>
+        <span class="wz-step-label">${l}</span>
+      </div>
+      ${i < 2 ? '<div class="wz-step-line"></div>' : ''}
+    `).join('');
+
+    backBtn.style.visibility = simWiz.step === 1 ? 'hidden' : '';
+    nextBtn.textContent = simWiz.step === 3 ? (simWiz.existingId ? 'Salvează' : 'Salvează Simularea') : 'Continuă →';
+
+    if (simWiz.step === 1) { body.innerHTML = _simWzStep1(); _simWzBindStep1(body); }
+    if (simWiz.step === 2) { body.innerHTML = _simWzStep2(); _simWzBindStep2(body); }
+    if (simWiz.step === 3) { body.innerHTML = _simWzStep3(); }
+  }
+
+  function _simWzStep1() {
+    return `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Titlu simulare *</label>
+        <input type="text" id="simWzTitle" class="cls-form-input" maxlength="150"
+               placeholder="ex: Simulare Logaritmi - Noiembrie" value="${BM.esc(simWiz.title)}">
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Timp limită (minute) *</label>
+        <input type="number" id="simWzTimeLimit" class="cls-form-input" min="1" style="max-width:140px" value="${BM.esc(simWiz.timeLimitMinutes)}">
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Pornire</label>
+        <div class="wz-vis-row">
+          <label class="wz-radio">
+            <input type="radio" name="simWzStart" value="schedule" ${simWiz.startMode !== 'now' ? 'checked' : ''}>
+            <span class="wz-radio__dot"></span>
+            <span>Programează pentru mai târziu</span>
+          </label>
+          <label class="wz-radio">
+            <input type="radio" name="simWzStart" value="now" ${simWiz.startMode === 'now' ? 'checked' : ''}>
+            <span class="wz-radio__dot"></span>
+            <span>Pornește imediat ce salvez</span>
+          </label>
+        </div>
+      </div>
+      <div class="cls-form-field" id="simWzScheduleField" style="${simWiz.startMode === 'now' ? 'display:none' : ''}">
+        <label class="cls-form-label">Data și ora programată</label>
+        <input type="text" id="simWzScheduledAt" class="cls-form-input" placeholder="Alege data și ora">
+      </div>`;
+  }
+
+  function _simWzBindStep1(body) {
+    body.querySelector('#simWzTitle').oninput      = e => { simWiz.title = e.target.value; };
+    body.querySelector('#simWzTimeLimit').oninput  = e => { simWiz.timeLimitMinutes = e.target.value; };
+    body.querySelectorAll('input[name="simWzStart"]').forEach(r => {
+      r.onchange = e => {
+        simWiz.startMode = e.target.value;
+        const field = document.getElementById('simWzScheduleField');
+        if (field) field.style.display = simWiz.startMode === 'now' ? 'none' : '';
+      };
+    });
+
+    const dateEl = body.querySelector('#simWzScheduledAt');
+    if (dateEl && window.flatpickr) {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      flatpickr(dateEl, {
+        locale: window.flatpickr.l10ns?.ro || 'default',
+        enableTime: true,
+        dateFormat: 'Y-m-d H:i',
+        defaultDate: simWiz.scheduledAt || null,
+        disableMobile: true,
+        allowInput: false,
+        theme: isDark ? 'dark' : 'light',
+        onChange(selectedDates) { simWiz.scheduledAt = selectedDates[0] ? selectedDates[0].toISOString() : ''; }
+      });
+    }
+  }
+
+  function _simWzStep2() {
+    const totalPoints = simWiz.items.reduce((s, i) => s + (Number(i.points) || 0), 0);
+    return `
+      <p class="wz-subtitle">Exerciții adăugate (${simWiz.items.length}) — total ${totalPoints} puncte</p>
+      <div class="sim-wz-item-list">
+        ${simWiz.items.length === 0
+          ? `<div class="wz-soon-msg"><span>📚</span><p>Niciun exercițiu adăugat încă.</p></div>`
+          : simWiz.items.map((it, idx) => `
+            <div class="sim-wz-item" data-idx="${idx}">
+              <span class="sim-wz-item__idx">${idx + 1}</span>
+              <div class="sim-wz-item__body">
+                <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
+                <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''}</div>
+              </div>
+              <div class="sim-wz-item__actions">
+                <button type="button" class="dc-tool-btn" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="Mută sus">▲</button>
+                <button type="button" class="dc-tool-btn" data-move-down="${idx}" ${idx === simWiz.items.length - 1 ? 'disabled' : ''} title="Mută jos">▼</button>
+                <button type="button" class="dc-tool-btn" data-remove-item="${idx}" title="Elimină">✕</button>
+              </div>
+            </div>`).join('')}
+      </div>
+      <button class="btn btn--surface" id="simWzAddExerciseBtn" style="margin-top:14px">+ Adaugă exercițiu</button>`;
+  }
+
+  function _simWzBindStep2(body) {
+    body.querySelectorAll('[data-move-up]').forEach(btn => btn.onclick = () => {
+      const i = Number(btn.dataset.moveUp);
+      if (i > 0) { [simWiz.items[i - 1], simWiz.items[i]] = [simWiz.items[i], simWiz.items[i - 1]]; _simWzRender(); }
+    });
+    body.querySelectorAll('[data-move-down]').forEach(btn => btn.onclick = () => {
+      const i = Number(btn.dataset.moveDown);
+      if (i < simWiz.items.length - 1) { [simWiz.items[i + 1], simWiz.items[i]] = [simWiz.items[i], simWiz.items[i + 1]]; _simWzRender(); }
+    });
+    body.querySelectorAll('[data-remove-item]').forEach(btn => btn.onclick = () => {
+      simWiz.items.splice(Number(btn.dataset.removeItem), 1);
+      _simWzRender();
+    });
+    body.querySelector('#simWzAddExerciseBtn').onclick = () => openSimExercisePicker();
+  }
+
+  function _simWzStep3() {
+    const totalPoints = simWiz.items.reduce((s, i) => s + (Number(i.points) || 0), 0);
+    return `
+      <h3 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px">${BM.esc(simWiz.title || '(fără titlu)')}</h3>
+      <p class="wz-subtitle">${simWiz.items.length} exerciții · ${totalPoints} puncte · ${simWiz.timeLimitMinutes} minute</p>
+      <p class="wz-subtitle">${simWiz.startMode === 'now' ? 'Va porni imediat ce salvezi.' : ('Programată pentru: ' + (simWiz.scheduledAt ? formatSimDateTime(simWiz.scheduledAt) : 'nespecificat'))}</p>`;
+  }
+
+  function _simWzBack() { if (simWiz.step > 1) { simWiz.step--; _simWzRender(); } }
+
+  function _simWzNext() {
+    if (simWiz.step === 1) {
+      if (!simWiz.title.trim()) { BM.toast('Introdu titlul simulării.', 'error'); return; }
+      if (!Number(simWiz.timeLimitMinutes) || Number(simWiz.timeLimitMinutes) <= 0) { BM.toast('Introdu un timp limită valid.', 'error'); return; }
+      if (simWiz.startMode === 'schedule' && !simWiz.scheduledAt) { BM.toast('Alege data și ora programată, sau alege pornire imediată.', 'error'); return; }
+      simWiz.step = 2; _simWzRender(); return;
+    }
+    if (simWiz.step === 2) {
+      if (simWiz.items.length === 0) { BM.toast('Adaugă cel puțin un exercițiu.', 'error'); return; }
+      simWiz.step = 3; _simWzRender(); return;
+    }
+    if (simWiz.step === 3) _simWzSave();
+  }
+
+  async function _simWzSave() {
+    const btn = document.getElementById('simWzNextBtn');
+    btn.disabled = true; btn.textContent = 'Se salvează…';
+    try {
+      const status = simWiz.startMode === 'now' ? 'activa' : 'programata';
+      const payload = {
+        class_id: classData.id,
+        title: simWiz.title.trim(),
+        time_limit_minutes: Number(simWiz.timeLimitMinutes),
+        status,
+        scheduled_at: simWiz.startMode === 'now' ? null : (simWiz.scheduledAt || null),
+        started_at: status === 'activa' ? new Date().toISOString() : null
+      };
+
+      let simId = simWiz.existingId;
+      if (simId) {
+        const { error } = await BMAuth.supabase.from('simulations').update(payload).eq('id', simId);
+        if (error) throw error;
+        await BMAuth.supabase.from('simulation_items').delete().eq('simulation_id', simId);
+      } else {
+        const { data, error } = await BMAuth.supabase.from('simulations')
+          .insert(Object.assign({ created_by: BMAuth.user.id }, payload))
+          .select('id').single();
+        if (error) throw error;
+        simId = data.id;
+      }
+
+      // Inserted sequentially (not a single bulk insert) so each item's
+      // returned id can be paired with its own answer key without relying
+      // on the order of a multi-row INSERT ... RETURNING matching input order.
+      for (let idx = 0; idx < simWiz.items.length; idx++) {
+        const it = simWiz.items[idx];
+        const { data: itemRow, error: itemErr } = await BMAuth.supabase.from('simulation_items').insert({
+          simulation_id: simId, position: idx,
+          exercise_source: it.exercise_source, source_exercise_id: it.source_exercise_id || null,
+          title: it.title, statement: it.statement, difficulty: it.difficulty || null,
+          points: Number(it.points) || 1
+        }).select('id').single();
+        if (itemErr) throw itemErr;
+
+        const { error: keyErr } = await BMAuth.supabase.from('simulation_answer_keys').insert({
+          simulation_item_id: itemRow.id, correct_answer: String(it.correct_answer || '').trim()
+        });
+        if (keyErr) throw keyErr;
+      }
+
+      BM.toast(simWiz.existingId ? 'Simularea a fost actualizată!' : 'Simularea a fost creată!', 'success');
+      _simWzClose();
+      await loadSimulariTab();
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+      btn.disabled = false;
+      btn.textContent = simWiz.existingId ? 'Salvează' : 'Salvează Simularea';
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     NESTED EXERCISE PICKER — "Din bancă" / "Adaugă exercițiu nou din poză"
+  ═══════════════════════════════════════════════════════════════ */
+
+  function openSimExercisePicker() {
+    document.getElementById('simPickerModal')?.remove();
+    const gradeCode = _gradeCodeFromSchoolGrade(classData.school_grade);
+    const useBacTaxonomy = gradeCode === '9' || gradeCode === 'bac';
+
+    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', results: [], photo: {} };
+
+    const modal = document.createElement('div');
+    modal.id = 'simPickerModal';
+    modal.className = 'wz-overlay';
+    modal.innerHTML = `
+      <div class="wz-backdrop" id="simPickerBackdrop"></div>
+      <div class="wz-dialog" role="dialog">
+        <div class="wz-head">
+          <span class="wz-head__title">Adaugă exercițiu</span>
+          <button class="icon-btn" id="simPickerCloseBtn">✕</button>
+        </div>
+        <div class="wz-body">
+          <div class="sim-picker-tabs">
+            <button type="button" class="sim-picker-tab sim-picker-tab--active" data-picker-tab="bank">Din bancă</button>
+            <button type="button" class="sim-picker-tab" data-picker-tab="photo">Adaugă exercițiu nou din poză</button>
+          </div>
+          <div id="simPickerBody"></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#simPickerBackdrop').onclick = _simPickerClose;
+    modal.querySelector('#simPickerCloseBtn').onclick  = _simPickerClose;
+    modal.querySelectorAll('.sim-picker-tab').forEach(btn => btn.onclick = () => {
+      simPicker.tab = btn.dataset.pickerTab;
+      modal.querySelectorAll('.sim-picker-tab').forEach(b => b.classList.toggle('sim-picker-tab--active', b === btn));
+      _simPickerRenderBody();
+    });
+
+    _simPickerRenderBody();
+  }
+
+  function _simPickerClose() {
+    document.getElementById('simPickerModal')?.remove();
+    simPicker = null;
+  }
+
+  function _simPickerRenderBody() {
+    const body = document.getElementById('simPickerBody');
+    if (!body) return;
+    if (simPicker.tab === 'bank') { body.innerHTML = _simPickerBankHtml(); _simPickerBindBank(body); }
+    else                          { body.innerHTML = _simPickerPhotoHtml(); _simPickerBindPhoto(body); }
+  }
+
+  function _simPickerBankHtml() {
+    if (simPicker.useBacTaxonomy) {
+      const cat  = BM.getCategoryById(simPicker.categoryId);
+      const subs = cat ? cat.subcategories : [];
+      return `
+        <div class="cls-form-field">
+          <label class="cls-form-label">Capitol</label>
+          <select id="simPickCategory" class="cls-form-input cls-form-select">
+            <option value="">Toate capitolele</option>
+            ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${simPicker.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Subcapitol</label>
+          <select id="simPickSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
+            <option value="">Toate subcapitolele</option>
+            ${subs.map(s => `<option value="${s.id}" ${simPicker.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div id="simPickResults" class="sim-picker-results"></div>
+        <div id="simPickConfirm"></div>`;
+    }
+    return `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Caută exercițiu</label>
+        <input type="text" id="simPickSearch" class="cls-form-input" placeholder="Caută după titlu…">
+      </div>
+      <div id="simPickResults" class="sim-picker-results"></div>
+      <div id="simPickConfirm"></div>`;
+  }
+
+  async function _simPickerBindBank(body) {
+    const catSel = body.querySelector('#simPickCategory');
+    const subSel = body.querySelector('#simPickSubcategory');
+    const searchInput = body.querySelector('#simPickSearch');
+
+    if (catSel) {
+      catSel.onchange = e => {
+        simPicker.categoryId = e.target.value;
+        simPicker.subcategoryId = '';
+        _simPickerRenderBody();
+      };
+    }
+    if (subSel) subSel.onchange = e => { simPicker.subcategoryId = e.target.value; _simPickerRunBankSearch(); };
+    if (searchInput) searchInput.oninput = BM.debounce(e => { simPicker.query = e.target.value; _simPickerRunBankSearch(); }, 300);
+
+    await _simPickerRunBankSearch();
+  }
+
+  async function _simPickerRunBankSearch() {
+    const resultsEl = document.getElementById('simPickResults');
+    if (!resultsEl) return;
+    resultsEl.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div></div>`;
+
+    let results = [];
+    if (simPicker.useBacTaxonomy) {
+      const staticMatches = (BM.EXERCISES || []).filter(ex => {
+        if (simPicker.categoryId && ex.categoryId !== simPicker.categoryId) return false;
+        if (simPicker.subcategoryId && ex.subcategoryId !== simPicker.subcategoryId) return false;
+        return true;
+      }).slice(0, 40);
+
+      let customQuery = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode);
+      if (simPicker.categoryId)    customQuery = customQuery.eq('category_id', simPicker.categoryId);
+      if (simPicker.subcategoryId) customQuery = customQuery.eq('subcategory_id', simPicker.subcategoryId);
+      const { data: customMatches } = await customQuery.limit(40);
+
+      results = [
+        ...staticMatches.map(ex => Object.assign({}, ex, { _source: 'bank' })),
+        ...(customMatches || []).map(row => ({
+          id: row.id, categoryId: row.category_id, subcategoryId: row.subcategory_id,
+          difficulty: row.difficulty, title: row.title, statement: row.statement, solution: row.solution,
+          puncteTotal: row.punctaj_total, _source: 'custom'
+        }))
+      ];
+    } else {
+      let q = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode);
+      if (simPicker.query) q = q.ilike('title', `%${simPicker.query}%`);
+      const { data } = await q.limit(40);
+      results = (data || []).map(row => ({
+        id: row.id, categoryId: row.category_id, subcategoryId: row.subcategory_id,
+        difficulty: row.difficulty, title: row.title, statement: row.statement, solution: row.solution,
+        puncteTotal: row.punctaj_total, _source: 'custom'
+      }));
+    }
+
+    simPicker.results = results;
+    resultsEl.innerHTML = results.length === 0
+      ? `<p class="wz-subtitle">Niciun exercițiu găsit.</p>`
+      : results.map((ex, idx) => `
+          <div class="sim-picker-result" data-idx="${idx}">
+            <span class="sim-picker-result__title">${BM.esc(ex.title)}</span>
+            ${ex.difficulty ? BM.diffBadge(ex.difficulty) : ''}
+          </div>`).join('');
+
+    resultsEl.querySelectorAll('.sim-picker-result').forEach(row => {
+      row.onclick = () => _simPickerSelectExercise(simPicker.results[Number(row.dataset.idx)]);
+    });
+  }
+
+  function _simPickerSelectExercise(ex) {
+    const suggested = BM.extractBoxedAnswer(ex.solution) || '';
+    const confirmEl = document.getElementById('simPickConfirm');
+    if (!confirmEl) return;
+    const defaultPoints = ex.puncteTotal || (ex.barem || []).reduce((s, p) => s + (p.puncte_maxime || 0), 0) || 5;
+
+    confirmEl.innerHTML = `
+      <div class="sim-picker-confirm">
+        <div class="sim-picker-confirm__statement math-content" id="simPickStatementPreview"></div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Punctaj *</label>
+          <input type="number" id="simPickPoints" class="cls-form-input" min="1" style="max-width:120px" value="${defaultPoints}">
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Răspuns corect *</label>
+          <input type="text" id="simPickAnswer" class="cls-form-input" value="${BM.esc(suggested)}" placeholder="ex: -1, x=3, {1,2}">
+          <span class="cls-form-hint">${suggested ? 'Extras automat din soluție — verifică înainte de a confirma.' : 'Nu am putut extrage automat un răspuns — introdu-l manual.'}</span>
+        </div>
+        <button class="btn btn--primary" id="simPickConfirmBtn">+ Adaugă la simulare</button>
+      </div>`;
+
+    const stEl = document.getElementById('simPickStatementPreview');
+    stEl.innerHTML = BM.trustedNl2br(ex.statement || '');
+    BM.renderMath(stEl);
+
+    document.getElementById('simPickConfirmBtn').onclick = () => {
+      const points = Number(document.getElementById('simPickPoints').value) || 1;
+      const answer = document.getElementById('simPickAnswer').value.trim();
+      if (!answer) { BM.toast('Introdu răspunsul corect.', 'error'); return; }
+      simWiz.items.push({
+        exercise_source: ex._source === 'custom' ? 'custom' : 'bank',
+        source_exercise_id: String(ex.id),
+        title: ex.title, statement: ex.statement, difficulty: ex.difficulty || null,
+        points, correct_answer: answer
+      });
+      BM.toast('Exercițiu adăugat.', 'success');
+      _simPickerClose();
+      _simWzRender();
+    };
+  }
+
+  function _simPickerPhotoHtml() {
+    const photo = simPicker.photo || {};
+    return `
+      <p class="wz-subtitle">Încarcă o fotografie a exercițiului din culegere.</p>
+      <div class="wz-upload-zone">
+        <input type="file" id="simPickFileInput" class="wz-file-input" accept="image/jpeg,image/png,image/heic,image/heif">
+        ${photo.previewUrl
+          ? `<img src="${photo.previewUrl}" alt="Previzualizare" style="max-width:100%;max-height:280px;border-radius:10px;border:1px solid var(--border);display:block;margin:0 auto">`
+          : `<label for="simPickFileInput" class="wz-upload-drop">
+               <span class="wz-upload-drop__icon">⬆</span>
+               <span class="wz-upload-drop__main">Trage fotografia aici sau <u>alege din calculator</u></span>
+               <span class="wz-upload-drop__hint">JPG, PNG, HEIC</span>
+             </label>`}
+      </div>
+      ${photo.previewUrl ? `
+        <button class="btn btn--surface btn--sm" id="simPickReplacePhoto" style="margin-top:12px">Schimbă fotografia</button>
+        <button class="btn btn--primary" id="simPickAnalyzeBtn" style="margin-top:12px">Analizează cu AI →</button>` : ''}
+      <div id="simPickPhotoResult"></div>`;
+  }
+
+  function _simPickerBindPhoto(body) {
+    const fi = body.querySelector('#simPickFileInput');
+    fi.onchange = () => { if (fi.files[0]) _simPickerLoadPhoto(fi.files[0]); };
+    body.querySelector('#simPickReplacePhoto')?.addEventListener('click', () => {
+      simPicker.photo = {};
+      _simPickerRenderBody();
+    });
+    body.querySelector('#simPickAnalyzeBtn')?.addEventListener('click', () => _simPickerAnalyzePhoto());
+  }
+
+  function _simPickerLoadPhoto(file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      simPicker.photo = {
+        file, mimeType: file.type,
+        previewUrl: reader.result,
+        imageBase64: String(reader.result).split(',')[1] || ''
+      };
+      _simPickerRenderBody();
+    };
+    reader.readAsDataURL(file);
+  }
+
+  async function _simPickerAnalyzePhoto() {
+    const resultEl = document.getElementById('simPickPhotoResult');
+    resultEl.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>AI-ul analizează exercițiul…</p></div>`;
+    try {
+      const { data: { session } } = await BMAuth.supabase.auth.getSession();
+      const cat = BM.getCategoryById(simPicker.categoryId);
+      const res = await fetch('/api/class/generate-simulation-exercise', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          accessToken: session?.access_token,
+          imageBase64: simPicker.photo.imageBase64,
+          mimeType: simPicker.photo.mimeType,
+          context: { grade: simPicker.gradeCode, categoryName: cat?.name }
+        })
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Eroare AI');
+      _simPickerRenderPhotoReview(data);
+    } catch (e) {
+      resultEl.innerHTML = `<p style="color:#ef4444">Eroare: ${BM.esc(e.message)}</p>`;
+    }
+  }
+
+  function _simPickerRenderPhotoReview(r) {
+    const resultEl = document.getElementById('simPickPhotoResult');
+    resultEl.innerHTML = `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Titlu</label>
+        <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Enunț (LaTeX)</label>
+        <textarea id="simPickAiStatement" class="cls-form-input cls-form-textarea" rows="4">${BM.esc(r.enunt_katex || '')}</textarea>
+        <div class="ae-preview-box" id="simPickAiStatementPreview" style="margin-top:8px"></div>
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Răspuns final</label>
+        <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
+      </div>
+      <div class="cls-form-field">
+        <label class="cls-form-label">Punctaj *</label>
+        <input type="number" id="simPickAiPoints" class="cls-form-input" min="1" style="max-width:120px" value="5">
+      </div>
+      <button class="btn btn--primary" id="simPickAiConfirmBtn">+ Adaugă la simulare</button>`;
+
+    const preview = document.getElementById('simPickAiStatementPreview');
+    const updatePreview = () => {
+      preview.innerHTML = BM.trustedNl2br(document.getElementById('simPickAiStatement').value || '');
+      BM.renderMath(preview);
+    };
+    updatePreview();
+    document.getElementById('simPickAiStatement').oninput = updatePreview;
+    document.getElementById('simPickAiConfirmBtn').onclick = () => _simPickerConfirmAdhoc();
+  }
+
+  async function _simPickerConfirmAdhoc() {
+    const title     = document.getElementById('simPickAiTitle').value.trim();
+    const statement = document.getElementById('simPickAiStatement').value.trim();
+    const answer    = document.getElementById('simPickAiAnswer').value.trim();
+    const points    = Number(document.getElementById('simPickAiPoints').value) || 1;
+
+    if (!title || !statement || !answer) { BM.toast('Completează toate câmpurile.', 'error'); return; }
+
+    const btn = document.getElementById('simPickAiConfirmBtn');
+    btn.disabled = true; btn.textContent = 'Se salvează…';
+
+    // Persist to custom_exercises for reuse in future simulations — best-effort,
+    // adding to THIS simulation must still succeed even if this insert fails.
+    let savedId = null;
+    try {
+      const { data, error } = await BMAuth.supabase.from('custom_exercises').insert({
+        grade: simPicker.gradeCode,
+        category_id: simPicker.categoryId || null,
+        subcategory_id: simPicker.subcategoryId || null,
+        difficulty: 'mediu',
+        source: `Profesor — ${classData.name}`,
+        title, statement,
+        solution: `$$\\boxed{${answer}}$$`,
+        barem: null, barem_estimat: false,
+        punctaj_total: points
+      }).select('id').single();
+      if (!error) savedId = data.id;
+    } catch { /* best-effort */ }
+
+    simWiz.items.push({
+      exercise_source: 'adhoc', source_exercise_id: savedId,
+      title, statement, difficulty: null, points, correct_answer: answer
+    });
+    BM.toast('Exercițiu adăugat.', 'success');
+    _simPickerClose();
+    _simWzRender();
   }
 
   /* ─── Helpers ───────────────────────────────────────────────────── */
