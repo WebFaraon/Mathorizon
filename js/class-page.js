@@ -82,11 +82,22 @@
       try {
         const { data: membership } = await BMAuth.supabase
           .from('class_members')
-          .select('id')
+          .select('id, student_name')
           .eq('class_id', classId)
           .eq('student_id', BMAuth.user.id)
           .maybeSingle();
         if (!membership) { hardRedirect(); return; }
+
+        /* Self-heal: some older memberships predate the student_name column
+           (or were added before BMAuth.displayName() was captured at join
+           time) and show up as "Elev N" in the Membri catalog. Backfill it
+           silently whenever a student with a missing name visits their class. */
+        if (!membership.student_name) {
+          BMAuth.supabase.from('class_members')
+            .update({ student_name: BMAuth.displayName() })
+            .eq('class_id', classId).eq('student_id', BMAuth.user.id)
+            .then(() => {}, () => {});
+        }
       } catch {
         hardRedirect();
         return;
@@ -274,10 +285,10 @@
       }, _debouncedSimulari)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulation_attempts'
-      }, e => { _debouncedSimulari(); _debouncedMembri(); })
+      }, e => { _debouncedSimulari(); _debouncedMembri(); _debouncedSimLive(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulation_answers'
-      }, _debouncedSimulari)
+      }, e => { _debouncedSimulari(); _debouncedSimLive(); })
       .subscribe();
 
     window.addEventListener('beforeunload', () => {
@@ -1083,7 +1094,7 @@
 
       /* 5. Simulări — finished attempts merge into the same Medie averages */
       const { data: rawSims } = await BMAuth.supabase
-        .from('simulations').select('id, title, created_at').eq('class_id', classData.id)
+        .from('simulations').select('id, title, created_at, started_at, scheduled_at').eq('class_id', classData.id)
         .order('created_at', { ascending: true });
       const sims = rawSims || [];
 
@@ -1170,17 +1181,19 @@
       const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
       const title = a.title.length > 20 ? a.title.slice(0, 18) + '…' : a.title;
       return `
-        <div class="catalog-th" title="${BM.esc(a.title)}">
-          <span class="catalog-th__title">${BM.esc(title)}</span>
+        <div class="catalog-th" title="${BM.esc(a.title)} — temă">
+          <span class="catalog-th__title">📝 ${BM.esc(title)}</span>
           <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');
 
     const simHeaderCells = sims.map(s => {
       const title = s.title.length > 20 ? s.title.slice(0, 18) + '…' : s.title;
+      const ds = _simColDate(s);
       return `
-        <div class="catalog-th catalog-th--sim" title="${BM.esc(s.title)}">
+        <div class="catalog-th catalog-th--sim" title="${BM.esc(s.title)} — simulare">
           <span class="catalog-th__title">🎯 ${BM.esc(title)}</span>
+          <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');
 
@@ -1257,6 +1270,8 @@
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Notat</span>
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--submitted"></span>Predat, nenotat</span>
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Nepredat</span>
+          ${(assignments.length > 0 && sims.length > 0) ? `
+          <span class="catalog-legend-item catalog-legend-item--sep">📝 Notă din temă · 🎯 Notă din simulare</span>` : ''}
         </div>
         <div class="catalog-scroll">
           <div class="catalog-table">
@@ -1322,11 +1337,14 @@
         const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
         gradeEl = `<span class="cs-grade cs-grade--sim cs-grade--${cls}">${att.grade_10}<small>/10</small></span>`;
       }
+      const simDateIso = s.started_at || s.scheduled_at || s.created_at;
+      const simDs = simDateIso ? new Date(simDateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
       return `
         <div class="cs-row cs-row--sim">
           <div class="cs-idx">🎯</div>
           <div class="cs-info">
             <div class="cs-title">${BM.esc(s.title)}</div>
+            ${simDs ? `<div class="cs-date">📅 ${simDs}</div>` : ''}
           </div>
           <div class="cs-grade-col">${gradeEl}</div>
         </div>`;
@@ -2288,6 +2306,21 @@
            ' · ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
   }
 
+  // Short "d mon" label for a catalog column header — prefers the date the
+  // simulation actually ran (started_at), falling back to when it was
+  // scheduled for, then to when it was created.
+  function _simColDate(s) {
+    const iso = s.started_at || s.scheduled_at || s.created_at;
+    if (!iso) return '';
+    return new Date(iso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+  }
+
+  function _fmtDuration(ms) {
+    const totalSec = Math.max(0, Math.round(ms / 1000));
+    const m = Math.floor(totalSec / 60), s = totalSec % 60;
+    return `${m}:${String(s).padStart(2, '0')}`;
+  }
+
   async function loadSimulariTab() {
     const content = document.getElementById('cdContent');
     if (!content) return;
@@ -2488,16 +2521,32 @@
   }
 
   /* ─── Teacher live view ──────────────────────────────────────────── */
-  async function openSimulationLiveView(s) {
+  let _openLiveSimId = null;
+  let _reloadSimLiveTimer = null;
+
+  function _debouncedSimLive() {
+    if (!_openLiveSimId) return;
+    clearTimeout(_reloadSimLiveTimer);
+    _reloadSimLiveTimer = setTimeout(() => _refreshSimLiveBody(_openLiveSimId), 350);
+  }
+
+  function _closeSimLiveModal() {
     document.getElementById('simLiveModal')?.remove();
+    _openLiveSimId = null;
+  }
+
+  async function openSimulationLiveView(s) {
+    _closeSimLiveModal();
+    _openLiveSimId = s.id;
+
     const modal = document.createElement('div');
     modal.id = 'simLiveModal';
     modal.className = 'classes-modal';
     modal.innerHTML = `
       <div class="classes-modal__backdrop"></div>
-      <div class="classes-modal__dialog">
+      <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
-          <h3>${BM.esc(s.title)}</h3>
+          <h3>🎯 ${BM.esc(s.title)}</h3>
           <button class="icon-btn" id="simLiveCloseBtn">✕</button>
         </div>
         <div class="classes-modal__body" id="simLiveBody">
@@ -2505,8 +2554,8 @@
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = () => modal.remove();
-    modal.querySelector('#simLiveCloseBtn').onclick = () => modal.remove();
+    modal.querySelector('.classes-modal__backdrop').onclick = _closeSimLiveModal;
+    modal.querySelector('#simLiveCloseBtn').onclick = _closeSimLiveModal;
 
     await _refreshSimLiveBody(s.id);
   }
@@ -2522,13 +2571,32 @@
     const attemptMap = {};
     (attempts || []).forEach(a => { attemptMap[a.student_id] = a; });
 
-    const rows = (members || []).map(m => {
+    const rows = (members || []).map((m, idx) => {
       const a = attemptMap[m.student_id];
-      let statusHtml;
-      if (!a) statusHtml = `<span class="sim-badge sim-badge--locked">Nepornit</span>`;
-      else if (a.status === 'in_progres') statusHtml = `<span class="sim-badge sim-badge--activa">În lucru</span>`;
-      else statusHtml = `<span class="sim-badge sim-badge--incheiata">Finalizat · ${a.grade_10 ?? '—'}</span>`;
-      return `<div class="sim-live-row"><span class="sim-live-row__name">${BM.esc(m.student_name || 'Elev')}</span>${statusHtml}</div>`;
+      const name = m.student_name || a?.student_name || ('Elev ' + (idx + 1));
+
+      let statusBadge, statsHtml = '';
+      if (!a) {
+        statusBadge = `<span class="sim-badge sim-badge--locked">Nepornit</span>`;
+      } else if (a.status === 'in_progres') {
+        statusBadge = `<span class="sim-badge sim-badge--activa">În lucru</span>`;
+      } else {
+        const dur = _fmtDuration(new Date(a.finished_at) - new Date(a.started_at));
+        statusBadge = `<span class="sim-badge sim-badge--incheiata">Finalizat</span>`;
+        statsHtml = `
+          <span class="sim-live-row__stat" title="Timp de rezolvare">⏱ ${dur}</span>
+          <span class="sim-live-row__stat" title="Puncte obținute">🎯 ${a.earned_points}/${a.total_points}p</span>
+          <span class="sim-live-row__stat sim-live-row__stat--grade" title="Notă">⭐ ${a.grade_10 ?? '—'}</span>`;
+      }
+
+      return `
+        <div class="sim-live-row">
+          <span class="sim-live-row__name">${BM.esc(name)}</span>
+          <div class="sim-live-row__right">
+            ${statsHtml}
+            ${statusBadge}
+          </div>
+        </div>`;
     }).join('');
 
     body.innerHTML = `<div class="sim-live-list">${rows || '<p>Niciun elev în clasă.</p>'}</div>`;

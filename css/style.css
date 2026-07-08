@@ -9171,7 +9171,12 @@ body.bac-exam-mode .nav.nav--peek {
   z-index: 2;
 }
 
-/* Cells */
+/* Cells — width (not just min-width) so header and body cells of the same
+   column are forced to identical size regardless of content length; without
+   this, a longer header label (e.g. a simulation title) renders wider than
+   the short grade underneath it in the row below, visibly misaligning the
+   whole column since .catalog-head and .catalog-row are separate flex
+   containers with no shared grid tying their cell widths together. */
 .catalog-th, .catalog-td {
   padding: 10px 14px;
   font-size: 0.82rem;
@@ -9179,11 +9184,19 @@ body.bac-exam-mode .nav.nav--peek {
   align-items: center;
   justify-content: center;
   border-right: 1px solid var(--border);
+  width: 90px;
   min-width: 90px;
   text-align: center;
   flex-shrink: 0;
+  overflow: hidden;
 }
 .catalog-th:last-child, .catalog-td:last-child { border-right: none; }
+.catalog-th__title, .catalog-th__date {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 
 /* Name column — wider, left-aligned */
 .catalog-th--name, .catalog-td--name {
@@ -9210,6 +9223,7 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* Average column */
 .catalog-th--avg, .catalog-td--avg {
+  width: 76px;
   min-width: 76px;
   font-weight: 700;
   background: var(--surface);
@@ -9427,17 +9441,34 @@ body.bac-exam-mode .nav.nav--peek {
 .cs-grade--sim small { color: var(--accent); }
 
 /* Live view (teacher) */
-.sim-live-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-live-dialog { max-width: 640px; }
+.sim-live-list { display: flex; flex-direction: column; gap: 10px; }
 .sim-live-row {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 10px 14px;
+  gap: 16px;
+  padding: 12px 16px;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
   background: var(--surface);
 }
-.sim-live-row__name { font-weight: 600; color: var(--text); }
+.sim-live-row__name { font-weight: 700; color: var(--text); }
+.sim-live-row__right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.sim-live-row__stat { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.sim-live-row__stat--grade { color: var(--accent); font-weight: 700; }
+
+.catalog-legend-item--sep {
+  margin-left: auto;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+}
 
 /* Wizard — item list (step 2) */
 .sim-wz-item-list { display: flex; flex-direction: column; gap: 8px; }
