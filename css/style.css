@@ -9400,29 +9400,35 @@ body.bac-exam-mode .nav.nav--peek {
   flex-direction: column;
   gap: 14px;
 }
-.sim-card {
+/* Named csim-card (not sim-card) — bac.html already has an unrelated
+   .sim-card component (the BAC/Lecție de Probă chooser) with its own
+   background rules; reusing the same base class name silently overrode its
+   gradient background in light theme (equal specificity, later in the
+   cascade) while leaving its higher-specificity :hover rules intact, which
+   is why only the hover state still looked right. */
+.csim-card {
   padding: 18px 20px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   background: var(--card);
   transition: background var(--transition), border-color var(--transition);
 }
-.sim-card--clickable { cursor: pointer; }
-.sim-card--clickable:hover { border-color: var(--accent); background: var(--surface); }
+.csim-card--clickable { cursor: pointer; }
+.csim-card--clickable:hover { border-color: var(--accent); background: var(--surface); }
 
 /* Single row: title + badge + meta items + action, all vertically centered
    with uniform gaps; wraps gracefully on narrow screens instead of stacking
    into unevenly-spaced blocks. */
-.sim-card__row {
+.csim-card__row {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
 }
-.sim-card__title { font-size: 1rem; font-weight: 700; color: var(--text); }
-.sim-card__meta-item { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
-.sim-card__meta-item--grade { color: var(--green); font-weight: 700; }
-.sim-card__actions {
+.csim-card__title { font-size: 1rem; font-weight: 700; color: var(--text); }
+.csim-card__meta-item { font-size: 0.82rem; color: var(--text-muted); white-space: nowrap; }
+.csim-card__meta-item--grade { color: var(--green); font-weight: 700; }
+.csim-card__actions {
   display: flex;
   align-items: center;
   gap: 8px;
@@ -9625,18 +9631,50 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* Student results */
 .sim-results-wrap { max-width: 720px; margin: 0 auto; padding: 24px 0; }
+
 .sim-result-summary {
   display: flex;
-  align-items: baseline;
-  gap: 16px;
-  padding: 20px 24px;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  padding: 28px 24px;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
-  background: var(--card);
-  margin-bottom: 20px;
+  background: linear-gradient(180deg, var(--card) 0%, var(--surface) 100%);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  margin-bottom: 24px;
 }
-.sim-result-summary__grade { font-size: 2.4rem; font-weight: 800; color: var(--accent); line-height: 1; }
-.sim-result-summary__pts { font-size: 0.92rem; color: var(--text-muted); }
+.sim-result-summary__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 120px;
+}
+.sim-result-summary__divider {
+  width: 1px;
+  align-self: stretch;
+  background: var(--border);
+}
+.sim-result-summary__val {
+  font-size: 2.6rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+.sim-result-summary__val-sep { color: var(--text-muted); font-weight: 400; margin: 0 2px; }
+.sim-result-summary__val--hi  { color: var(--green);  }
+.sim-result-summary__val--ok  { color: var(--accent); }
+.sim-result-summary__val--mid { color: #d97706; }
+.sim-result-summary__val--lo  { color: var(--red);    }
+.sim-result-summary__lbl {
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
 .sim-result-list { display: flex; flex-direction: column; gap: 14px; }
 
 .sim-result-card {

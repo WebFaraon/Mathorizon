@@ -113,6 +113,10 @@ BM.extractBoxedAnswer = function(solution) {
     else if (solution[i] === '}') { if (--depth === 0) break; content += '}'; }
     else                            content += solution[i];
   }
+  // Some exercises write "\boxed{= 4}" (equals sign included) instead of
+  // "\boxed{4}" — an inconsistency in the source content. Strip a leading
+  // "=" so the extracted value is always just the answer itself.
+  content = content.trim().replace(/^=\s*/, '');
   return content || null;
 };
 

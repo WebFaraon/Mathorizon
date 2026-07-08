@@ -2471,7 +2471,7 @@
           e.stopPropagation();
           deleteSimulation(btn.dataset.simDelete, btn.dataset.simTitle);
         }));
-        content.querySelectorAll('.sim-card--clickable').forEach(card => card.addEventListener('click', () => {
+        content.querySelectorAll('.csim-card--clickable').forEach(card => card.addEventListener('click', () => {
           const s = simCache.find(x => x.id === card.dataset.id);
           if (s) openSimulationLiveView(s);
         }));
@@ -2501,14 +2501,14 @@
   function simCardTeacher(s, attempts, memberCount) {
     const finishedCount = attempts.filter(a => a.status === 'finalizata').length;
     return `
-      <div class="sim-card sim-card--clickable" data-id="${s.id}">
-        <div class="sim-card__row">
-          <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
+      <div class="csim-card csim-card--clickable" data-id="${s.id}">
+        <div class="csim-card__row">
+          <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-          <span class="sim-card__meta-item">📅 ${formatSimDateTime(s.scheduled_at)}</span>
-          <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
-          <span class="sim-card__meta-item">👥 ${finishedCount}/${memberCount} finalizat</span>
-          <div class="sim-card__actions">
+          <span class="csim-card__meta-item">📅 ${formatSimDateTime(s.scheduled_at)}</span>
+          <span class="csim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
+          <span class="csim-card__meta-item">👥 ${finishedCount}/${memberCount} finalizat</span>
+          <div class="csim-card__actions">
             ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">▶ Pornește acum</button>` : ''}
             ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">■ Încheie</button>` : ''}
             ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">↻ Redeschide</button>` : ''}
@@ -2531,13 +2531,13 @@
       action = `<span class="sim-badge sim-badge--locked">Nu ai participat</span>`;
     }
     return `
-      <div class="sim-card" data-id="${s.id}">
-        <div class="sim-card__row">
-          <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
+      <div class="csim-card" data-id="${s.id}">
+        <div class="csim-card__row">
+          <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-          <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
-          ${attempt?.status === 'finalizata' ? `<span class="sim-card__meta-item sim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10}</span>` : ''}
-          <div class="sim-card__actions">${action}</div>
+          <span class="csim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
+          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10}</span>` : ''}
+          <div class="csim-card__actions">${action}</div>
         </div>
       </div>`;
   }

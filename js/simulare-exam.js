@@ -311,11 +311,21 @@ window.BM = window.BM || {};
         </div>`;
     }).join('');
 
+    const grade = state.attempt.grade_10 != null ? parseFloat(state.attempt.grade_10) : null;
+    const gradeCls = grade == null ? '' : grade >= 9 ? 'hi' : grade >= 7 ? 'ok' : grade >= 5 ? 'mid' : 'lo';
+
     mount.innerHTML = `
       <div class="sim-results-wrap">
         <div class="sim-result-summary">
-          <div class="sim-result-summary__grade">${state.attempt.grade_10 ?? '—'}</div>
-          <div class="sim-result-summary__pts">${state.attempt.earned_points}/${state.attempt.total_points} puncte</div>
+          <div class="sim-result-summary__stat">
+            <div class="sim-result-summary__val sim-result-summary__val--${gradeCls}">${state.attempt.grade_10 ?? '—'}</div>
+            <div class="sim-result-summary__lbl">Notă</div>
+          </div>
+          <div class="sim-result-summary__divider"></div>
+          <div class="sim-result-summary__stat">
+            <div class="sim-result-summary__val">${state.attempt.earned_points}<span class="sim-result-summary__val-sep">/</span>${state.attempt.total_points}</div>
+            <div class="sim-result-summary__lbl">Punctaj acumulat</div>
+          </div>
         </div>
         <div class="sim-result-list">${rows}</div>
         <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
