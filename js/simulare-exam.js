@@ -268,25 +268,46 @@ window.BM = window.BM || {};
     }
   }
 
-  /* ---- Own results (never shows other students' data — RLS-enforced too) ---- */
+  /* ---- Own results (never shows other students' data — RLS-enforced too) ----
+     The correct answer is only readable once this attempt is 'finalizata'
+     (see the sim_keys_student_select_after_finish policy) — fetching it here
+     is safe precisely because _renderResults only ever runs for a finished
+     attempt. */
   async function _renderResults() {
     const mount = document.getElementById('cdContent');
     mount.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă rezultatul...</p></div>`;
 
-    const { data: answers } = await BMAuth.supabase.from('simulation_answers')
-      .select('*').eq('attempt_id', state.attempt.id);
+    const itemIds = state.items.map(it => it.id);
+    const [{ data: answers }, { data: keys }] = await Promise.all([
+      BMAuth.supabase.from('simulation_answers').select('*').eq('attempt_id', state.attempt.id),
+      BMAuth.supabase.from('simulation_answer_keys').select('*').in('simulation_item_id', itemIds)
+    ]);
     const answerMap = {};
     (answers || []).forEach(a => { answerMap[a.simulation_item_id] = a; });
+    const keyMap = {};
+    (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
 
     const rows = state.items.map((it, idx) => {
       const a = answerMap[it.id];
       const correct = !!a?.is_correct;
       return `
-        <div class="sim-result-row sim-result-row--${correct ? 'ok' : 'no'}">
-          <span class="sim-result-row__idx">${idx + 1}</span>
-          <span class="sim-result-row__answer">${BM.esc(a?.answer_text || '(fără răspuns)')}</span>
-          <span class="sim-result-row__pts">${a?.points_earned ?? 0}/${it.points}p</span>
-          <span class="sim-result-row__mark">${correct ? '✓' : '✕'}</span>
+        <div class="sim-result-card sim-result-card--${correct ? 'ok' : 'no'}">
+          <div class="sim-result-card__head">
+            <span class="sim-result-card__idx">${idx + 1}</span>
+            <span class="sim-result-card__pts">${a?.points_earned ?? 0}/${it.points}p</span>
+            <span class="sim-result-card__mark">${correct ? '✓' : '✕'}</span>
+          </div>
+          <div class="sim-result-card__statement math-content" id="simResultStatement${idx}"></div>
+          <div class="sim-result-card__answers">
+            <div class="sim-result-answer">
+              <span class="sim-result-answer__lbl">Răspunsul tău</span>
+              <span class="sim-result-answer__val">${BM.esc(a?.answer_text || '(fără răspuns)')}</span>
+            </div>
+            <div class="sim-result-answer sim-result-answer--correct">
+              <span class="sim-result-answer__lbl">Răspuns corect</span>
+              <span class="sim-result-answer__val">${BM.esc(keyMap[it.id] || '—')}</span>
+            </div>
+          </div>
         </div>`;
     }).join('');
 
@@ -299,6 +320,13 @@ window.BM = window.BM || {};
         <div class="sim-result-list">${rows}</div>
         <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
       </div>`;
+
+    state.items.forEach((it, idx) => {
+      const el = document.getElementById('simResultStatement' + idx);
+      if (!el) return;
+      el.innerHTML = BM.trustedNl2br(it.statement || '');
+      BM.renderMath(el);
+    });
 
     document.getElementById('simResultsCloseBtn').onclick = _close;
   }

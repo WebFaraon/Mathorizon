@@ -1139,6 +1139,7 @@
         content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix);
       } else {
         content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
+        _wireCsSimViewToggle(content);
       }
 
     } catch (e) {
@@ -1335,7 +1336,9 @@
       else if (att.grade_10 != null) {
         const g = parseFloat(att.grade_10);
         const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
-        gradeEl = `<span class="cs-grade cs-grade--sim cs-grade--${cls}">${att.grade_10}<small>/10</small></span>`;
+        gradeEl = `
+          <span class="cs-grade cs-grade--sim cs-grade--${cls}">${att.grade_10}<small>/10</small></span>
+          <span class="cs-sim-pts">${att.earned_points}/${att.total_points}p</span>`;
       }
       const simDateIso = s.started_at || s.scheduled_at || s.created_at;
       const simDs = simDateIso ? new Date(simDateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
@@ -1370,7 +1373,87 @@
           ? '<p class="cs-empty">Profesorul nu a adăugat teme încă.</p>'
           : `<div class="cs-list">${rows}</div>`
         }
-        ${sims.length > 0 ? `<div class="cs-list cs-list--sim">${simRows}</div>` : ''}
+        ${sims.length > 0 ? `
+        <div class="cs-sim-section">
+          <div class="cs-sim-section__head">
+            <h4 class="cs-sim-section__title">🎯 Rezultate simulări</h4>
+            <div class="cs-view-toggle" id="csSimViewToggle">
+              <button type="button" class="cs-view-toggle__btn cs-view-toggle__btn--active" data-view="list">☰ Listă</button>
+              <button type="button" class="cs-view-toggle__btn" data-view="chart">📊 Grafic</button>
+            </div>
+          </div>
+          <div class="cs-list cs-list--sim" id="csSimListView">${simRows}</div>
+          <div class="cs-sim-chart-wrap" id="csSimChartView" style="display:none">${renderSimChart(sims, mySimAttempts)}</div>
+        </div>` : ''}
+      </div>`;
+  }
+
+  function _wireCsSimViewToggle(content) {
+    const toggle = content.querySelector('#csSimViewToggle');
+    if (!toggle) return;
+    const listView  = content.querySelector('#csSimListView');
+    const chartView = content.querySelector('#csSimChartView');
+    toggle.querySelectorAll('.cs-view-toggle__btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        toggle.querySelectorAll('.cs-view-toggle__btn').forEach(b => b.classList.remove('cs-view-toggle__btn--active'));
+        btn.classList.add('cs-view-toggle__btn--active');
+        const isChart = btn.dataset.view === 'chart';
+        listView.style.display  = isChart ? 'none' : '';
+        chartView.style.display = isChart ? '' : 'none';
+      });
+    });
+  }
+
+  // Single-series bar chart (one series = no legend needed, per dataviz
+  // conventions) of grade over time — only finished simulations are plottable.
+  // Real pixel dimensions (not a stretched percent viewBox) so bars keep a
+  // fixed, comfortable width and the wrapper scrolls horizontally instead of
+  // squeezing every bar when there are many simulations.
+  function renderSimChart(sims, mySimAttempts) {
+    const finished = sims
+      .map(s => ({ sim: s, att: mySimAttempts[s.id] }))
+      .filter(x => x.att?.grade_10 != null)
+      .sort((a, b) => new Date(a.sim.started_at || a.sim.created_at) - new Date(b.sim.started_at || b.sim.created_at));
+
+    if (finished.length === 0) {
+      return `<p class="cs-empty">Nicio simulare finalizată încă.</p>`;
+    }
+
+    const H = 220, padTop = 30, padBottom = 34, padSide = 24;
+    const bandW = 70, barW = 24;
+    const plotH = H - padTop - padBottom;
+    const totalW = padSide * 2 + bandW * finished.length;
+
+    const gridLines = [0, 2, 4, 6, 8, 10].map(v => {
+      const y = padTop + plotH - (v / 10) * plotH;
+      return `
+        <line x1="${padSide}" y1="${y}" x2="${totalW - padSide}" y2="${y}" class="sim-chart-grid"/>
+        <text x="4" y="${y + 3}" class="sim-chart-tick">${v}</text>`;
+    }).join('');
+
+    const bars = finished.map((x, i) => {
+      const cx = padSide + bandW * i + bandW / 2;
+      const grade = parseFloat(x.att.grade_10);
+      const barH = Math.max((grade / 10) * plotH, 2);
+      const y = padTop + plotH - barH;
+      const dateLabel = new Date(x.sim.started_at || x.sim.created_at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+      const tooltip = `${x.sim.title} · ${dateLabel} · ${x.att.earned_points}/${x.att.total_points}p`;
+      return `
+        <g>
+          <rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" rx="4" class="sim-chart-bar">
+            <title>${BM.esc(tooltip)}</title>
+          </rect>
+          <text x="${cx}" y="${Math.max(y - 8, 14)}" class="sim-chart-value">${grade}</text>
+          <text x="${cx}" y="${H - 12}" class="sim-chart-label">${dateLabel}</text>
+        </g>`;
+    }).join('');
+
+    return `
+      <div class="sim-chart-scroll">
+        <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" class="sim-chart" role="img" aria-label="Grafic note simulări în timp">
+          ${gridLines}
+          ${bars}
+        </svg>
       </div>`;
   }
 
@@ -2419,21 +2502,19 @@
     const finishedCount = attempts.filter(a => a.status === 'finalizata').length;
     return `
       <div class="sim-card sim-card--clickable" data-id="${s.id}">
-        <div class="sim-card__top">
+        <div class="sim-card__row">
           <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-        </div>
-        <div class="sim-card__meta">
           <span class="sim-card__meta-item">📅 ${formatSimDateTime(s.scheduled_at)}</span>
           <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
           <span class="sim-card__meta-item">👥 ${finishedCount}/${memberCount} finalizat</span>
-        </div>
-        <div class="sim-card__actions">
-          ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">▶ Pornește acum</button>` : ''}
-          ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">■ Încheie</button>` : ''}
-          ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">↻ Redeschide</button>` : ''}
-          <button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">✎</button>
-          <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">✕</button>
+          <div class="sim-card__actions">
+            ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">▶ Pornește acum</button>` : ''}
+            ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">■ Încheie</button>` : ''}
+            ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">↻ Redeschide</button>` : ''}
+            <button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">✎</button>
+            <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">✕</button>
+          </div>
         </div>
       </div>`;
   }
@@ -2451,15 +2532,13 @@
     }
     return `
       <div class="sim-card" data-id="${s.id}">
-        <div class="sim-card__top">
+        <div class="sim-card__row">
           <h3 class="sim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-        </div>
-        <div class="sim-card__meta">
           <span class="sim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
           ${attempt?.status === 'finalizata' ? `<span class="sim-card__meta-item sim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10}</span>` : ''}
+          <div class="sim-card__actions">${action}</div>
         </div>
-        <div class="sim-card__actions">${action}</div>
       </div>`;
   }
 
