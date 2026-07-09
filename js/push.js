@@ -127,11 +127,11 @@
     }
   }
 
-  async function sendClassPush(classId, type) {
+  async function sendClassPush(classId, type, extra) {
     if (!BMAuth.supabase) return;
     try {
       await BMAuth.supabase.functions.invoke('send-class-push', {
-        body: { class_id: classId, type, teacher_name: BMAuth.displayName(), exclude_user_id: BMAuth.user?.id }
+        body: { class_id: classId, type, teacher_name: BMAuth.displayName(), exclude_user_id: BMAuth.user?.id, extra }
       });
     } catch (e) {
       console.warn('[Push] send error:', e);

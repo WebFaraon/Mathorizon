@@ -129,11 +129,19 @@ serve(async (req) => {
   if (req.method !== 'POST')   return new Response('Method not allowed', { status: 405 });
 
   try {
-    const { class_id, type, teacher_name, exclude_user_id } = await req.json();
+    const { class_id, type, teacher_name, exclude_user_id, extra } = await req.json();
 
     const labels: Record<string, { title: string; body: string }> = {
       announcement: { title: 'Anunț nou 📢', body: `${teacher_name} a publicat un anunț nou!` },
       assignment:   { title: 'Temă nouă 📚', body: `${teacher_name} a adăugat o temă nouă!`  },
+      simulare_scheduled: {
+        title: '🎯 Simulare programată',
+        body: `${teacher_name} a programat simularea${extra?.sim_title ? ` "${extra.sim_title}"` : ''}${extra?.when ? ` — ${extra.when}` : ''}`,
+      },
+      simulare_started: {
+        title: '🎯 Simulare activă acum!',
+        body: `Simularea${extra?.sim_title ? ` "${extra.sim_title}"` : ''} a pornit — intră în clasă pentru a o rezolva.`,
+      },
     };
     const msg = labels[type] ?? labels.announcement;
 

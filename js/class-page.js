@@ -262,7 +262,7 @@
 
   function _debouncedSimulari() {
     clearTimeout(_reloadSimulariTimer);
-    _reloadSimulariTimer = setTimeout(() => { if (activeTab === 'simulari') loadSimulariTab(); }, 350);
+    _reloadSimulariTimer = setTimeout(() => { if (activeTab === 'simulari' && !_simExamActive) loadSimulariTab(); }, 350);
   }
 
   function _setupRealtime() {
@@ -312,7 +312,7 @@
       if (activeTab === 'flux') loadFluxTab();
       else if (activeTab === 'teme') loadTemeTab();
       else if (activeTab === 'membri') loadMembriTab();
-      else if (activeTab === 'simulari') loadSimulariTab();
+      else if (activeTab === 'simulari' && !_simExamActive) loadSimulariTab();
     }
   });
 
@@ -944,11 +944,48 @@
         </div>
       </div>
       ${!isTeacher && ('Notification' in window) ? `
-      <button class="cd-notif-btn" onclick="BMPush?.resubscribe('${classData.id}')">
+      <button class="cd-notif-btn" onclick="cdOpenNotifInfo('${classData.id}')">
         🔔 Gestionează notificările
       </button>` : ''}
     `;
   }
+
+  window.cdOpenNotifInfo = function (classId) {
+    document.getElementById('notifInfoModal')?.remove();
+    const blocked = ('Notification' in window) && Notification.permission === 'denied';
+    const modal = document.createElement('div');
+    modal.id = 'notifInfoModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog">
+        <div class="classes-modal__head">
+          <h3>🔔 Notificări pentru această clasă</h3>
+          <button class="icon-btn" id="notifInfoCloseBtn">✕</button>
+        </div>
+        <div class="classes-modal__body">
+          <p class="notif-info__p">Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când profesorul:</p>
+          <ul class="notif-info__list">
+            <li>📢 postează un anunț nou în clasă</li>
+            <li>📝 adaugă o temă nouă</li>
+            <li>🎯 programează sau pornește o simulare</li>
+          </ul>
+          <p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>
+          ${blocked ? `
+          <p class="notif-info__p notif-info__p--warn">⚠️ Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
+        </div>
+        <div class="classes-modal__foot">
+          <button class="btn btn--surface" id="notifInfoCancelBtn">Închide</button>
+          <button class="btn btn--primary" id="notifInfoConfirmBtn">Activează notificările</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('.classes-modal__backdrop').onclick = close;
+    modal.querySelector('#notifInfoCloseBtn').onclick = close;
+    modal.querySelector('#notifInfoCancelBtn').onclick = close;
+    modal.querySelector('#notifInfoConfirmBtn').onclick = () => { close(); window.BMPush?.resubscribe(classId); };
+  };
 
   function renderTemeSidebar(assignments) {
     const today = new Date();
@@ -1027,6 +1064,12 @@
     if (!content) return;
 
     const isTeacher = BMAuth.role === 'profesor';
+
+    // Settle any simulation whose time limit has already elapsed before
+    // reading grades — there's no server-side cron, so this is the lazy
+    // "next viewer finalizes it" checkpoint. Best-effort: a failure here
+    // shouldn't block loading whatever grades already exist.
+    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts'); } catch (e) {}
 
     try {
       /* 1. Class members — try to include student_name (column may not exist yet) */
@@ -1149,6 +1192,7 @@
       } else {
         content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
         _wireCsSimViewToggle(content);
+        _wireNotesChartTooltip(content);
       }
 
     } catch (e) {
@@ -1300,63 +1344,66 @@
       </div>`;
   }
 
+  // Persists across re-renders (realtime reloads, visibilitychange, tab
+  // revisits) so switching to the chart view doesn't silently snap back to
+  // the list the next time loadMembriTab() re-runs in the background.
+  let _csNotesView = 'list';
+
+  function _buildStudentNotes(assignments, mySubs, sims, mySimAttempts) {
+    const notes = [];
+    assignments.forEach(a => {
+      const sub = mySubs[a.id];
+      notes.push({
+        type: 'tema', title: a.title, dateIso: a.due_date,
+        grade: sub?.grade_confirmed ? parseFloat(sub.grade) : null,
+        status: !sub ? 'none' : sub.grade_confirmed ? 'graded' : 'submitted'
+      });
+    });
+    sims.forEach(s => {
+      const att = mySimAttempts[s.id];
+      notes.push({
+        type: 'simulare', title: s.title, dateIso: s.started_at || s.scheduled_at || s.created_at,
+        grade: att?.grade_10 != null ? parseFloat(att.grade_10) : null,
+        points: att ? { earned: att.earned_points, total: att.total_points } : null,
+        status: !att ? 'none' : att.grade_10 != null ? 'graded' : 'pending'
+      });
+    });
+    return notes;
+  }
+
   function renderCatalogStudent(assignments, mySubs, myName, sims = [], mySimAttempts = {}) {
-    const gradedGrades = assignments
-      .map(a => mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null)
-      .filter(g => g !== null)
-      .concat(sims.map(s => mySimAttempts[s.id]?.grade_10 != null ? parseFloat(mySimAttempts[s.id].grade_10) : null).filter(g => g !== null));
-    const avg = gradedGrades.length
-      ? (gradedGrades.reduce((t, g) => t + g, 0) / gradedGrades.length).toFixed(1)
+    const notes = _buildStudentNotes(assignments, mySubs, sims, mySimAttempts);
+    const gradedNotes = notes.filter(n => n.grade != null);
+    const avg = gradedNotes.length
+      ? (gradedNotes.reduce((t, n) => t + n.grade, 0) / gradedNotes.length).toFixed(1)
       : null;
     const submitted = Object.keys(mySubs).length;
-    const graded    = gradedGrades.length;
+    const graded    = gradedNotes.length;
 
-    const rows = assignments.map((a, idx) => {
-      const sub = mySubs[a.id];
-      const [y, mo, d] = a.due_date.split('-').map(Number);
-      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+    const sortedNotes = notes.slice().sort((a, b) => new Date(b.dateIso) - new Date(a.dateIso));
+
+    const noteRows = sortedNotes.map(n => {
+      const ds = new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+      const icon = n.type === 'simulare' ? '🎯' : '📝';
 
       let gradeEl = '';
-      if (!sub) {
-        gradeEl = `<span class="cs-badge cs-badge--none">Nepredat</span>`;
-      } else if (sub.grade_confirmed) {
-        const g = parseFloat(sub.grade);
-        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
-        gradeEl = `<span class="cs-grade cs-grade--${cls}">${sub.grade}<small>/10</small></span>`;
+      if (n.status === 'none') {
+        gradeEl = `<span class="cs-badge cs-badge--none">${n.type === 'simulare' ? 'Neparticipat' : 'Nepredat'}</span>`;
+      } else if (n.status === 'submitted' || n.status === 'pending') {
+        gradeEl = `<span class="cs-badge cs-badge--submitted">${n.type === 'simulare' ? 'În lucru' : 'Predat'}</span>`;
       } else {
-        gradeEl = `<span class="cs-badge cs-badge--submitted">Predat</span>`;
-      }
-
-      return `
-        <div class="cs-row">
-          <div class="cs-idx">${idx + 1}</div>
-          <div class="cs-info">
-            <div class="cs-title">${BM.esc(a.title)}</div>
-            <div class="cs-date">📅 ${ds}</div>
-          </div>
-          <div class="cs-grade-col">${gradeEl}</div>
-        </div>`;
-    }).join('');
-
-    const simRows = sims.map((s, idx) => {
-      const att = mySimAttempts[s.id];
-      let gradeEl = '';
-      if (!att) gradeEl = `<span class="cs-badge cs-badge--none">Neparticipat</span>`;
-      else if (att.grade_10 != null) {
-        const g = parseFloat(att.grade_10);
-        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+        const cls = n.grade >= 9 ? 'hi' : n.grade >= 7 ? 'ok' : n.grade >= 5 ? 'mid' : 'lo';
         gradeEl = `
-          <span class="cs-grade cs-grade--sim cs-grade--${cls}">${att.grade_10}<small>/10</small></span>
-          <span class="cs-sim-pts">${att.earned_points}/${att.total_points}p</span>`;
+          <span class="cs-grade cs-grade--${cls}">${n.grade}<small>/10</small></span>
+          ${n.points ? `<span class="cs-note-pts">${n.points.earned}/${n.points.total}p</span>` : ''}`;
       }
-      const simDateIso = s.started_at || s.scheduled_at || s.created_at;
-      const simDs = simDateIso ? new Date(simDateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }) : '';
+
       return `
-        <div class="cs-row cs-row--sim">
-          <div class="cs-idx">🎯</div>
+        <div class="cs-note-row">
+          <span class="cs-note-row__icon" title="${n.type === 'simulare' ? 'Simulare' : 'Temă'}">${icon}</span>
           <div class="cs-info">
-            <div class="cs-title">${BM.esc(s.title)}</div>
-            ${simDs ? `<div class="cs-date">📅 ${simDs}</div>` : ''}
+            <div class="cs-title">${BM.esc(n.title)}</div>
+            <div class="cs-date">📅 ${ds}</div>
           </div>
           <div class="cs-grade-col">${gradeEl}</div>
         </div>`;
@@ -1378,22 +1425,22 @@
             <div class="cs-stat__lbl">Note primite</div>
           </div>
         </div>
-        ${assignments.length === 0
-          ? '<p class="cs-empty">Profesorul nu a adăugat teme încă.</p>'
-          : `<div class="cs-list">${rows}</div>`
-        }
-        ${sims.length > 0 ? `
         <div class="cs-sim-section">
           <div class="cs-sim-section__head">
-            <h4 class="cs-sim-section__title">🎯 Rezultate simulări</h4>
+            <h4 class="cs-sim-section__title">Note curente</h4>
+            ${notes.length > 0 ? `
             <div class="cs-view-toggle" id="csSimViewToggle">
-              <button type="button" class="cs-view-toggle__btn cs-view-toggle__btn--active" data-view="list">☰ Listă</button>
-              <button type="button" class="cs-view-toggle__btn" data-view="chart">📊 Grafic</button>
-            </div>
+              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'list' ? ' cs-view-toggle__btn--active' : ''}" data-view="list">☰ Listă</button>
+              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'chart' ? ' cs-view-toggle__btn--active' : ''}" data-view="chart">📊 Grafic</button>
+            </div>` : ''}
           </div>
-          <div class="cs-list cs-list--sim" id="csSimListView">${simRows}</div>
-          <div class="cs-sim-chart-wrap" id="csSimChartView" style="display:none">${renderSimChart(sims, mySimAttempts)}</div>
-        </div>` : ''}
+          ${notes.length === 0
+            ? '<p class="cs-empty">Profesorul nu a adăugat teme sau simulări încă.</p>'
+            : `
+              <div class="cs-list" id="csSimListView" style="${_csNotesView === 'chart' ? 'display:none' : ''}">${noteRows}</div>
+              <div class="cs-sim-chart-wrap" id="csSimChartView" style="${_csNotesView === 'chart' ? '' : 'display:none'}">${renderNotesChart(notes)}</div>
+            `}
+        </div>
       </div>`;
   }
 
@@ -1404,66 +1451,97 @@
     const chartView = content.querySelector('#csSimChartView');
     toggle.querySelectorAll('.cs-view-toggle__btn').forEach(btn => {
       btn.addEventListener('click', () => {
+        _csNotesView = btn.dataset.view;
         toggle.querySelectorAll('.cs-view-toggle__btn').forEach(b => b.classList.remove('cs-view-toggle__btn--active'));
         btn.classList.add('cs-view-toggle__btn--active');
-        const isChart = btn.dataset.view === 'chart';
+        const isChart = _csNotesView === 'chart';
         listView.style.display  = isChart ? 'none' : '';
         chartView.style.display = isChart ? '' : 'none';
       });
     });
   }
 
-  // Single-series bar chart (one series = no legend needed, per dataviz
-  // conventions) of grade over time — only finished simulations are plottable.
+  // Single-hue bar chart (one measure — grade over time — so per dataviz
+  // convention no legend is needed; temă vs simulare is called out with a
+  // small icon + a custom tooltip instead of a second chart color).
   // Real pixel dimensions (not a stretched percent viewBox) so bars keep a
   // fixed, comfortable width and the wrapper scrolls horizontally instead of
-  // squeezing every bar when there are many simulations.
-  function renderSimChart(sims, mySimAttempts) {
-    const finished = sims
-      .map(s => ({ sim: s, att: mySimAttempts[s.id] }))
-      .filter(x => x.att?.grade_10 != null)
-      .sort((a, b) => new Date(a.sim.started_at || a.sim.created_at) - new Date(b.sim.started_at || b.sim.created_at));
+  // squeezing every bar when there are many entries.
+  function renderNotesChart(notes) {
+    const graded = notes
+      .filter(n => n.grade != null)
+      .sort((a, b) => new Date(a.dateIso) - new Date(b.dateIso));
 
-    if (finished.length === 0) {
-      return `<p class="cs-empty">Nicio simulare finalizată încă.</p>`;
+    if (graded.length === 0) {
+      return `<p class="cs-empty">Nicio notă primită încă.</p>`;
     }
 
-    const H = 220, padTop = 30, padBottom = 34, padSide = 24;
-    const bandW = 70, barW = 24;
+    const H = 260, padTop = 36, padBottom = 44, padLeft = 34, padRight = 20;
+    const bandW = 76, barW = 26;
     const plotH = H - padTop - padBottom;
-    const totalW = padSide * 2 + bandW * finished.length;
+    const totalW = padLeft + padRight + bandW * graded.length;
 
-    const gridLines = [0, 2, 4, 6, 8, 10].map(v => {
+    const gridLines = [2, 4, 6, 8, 10].map(v => {
       const y = padTop + plotH - (v / 10) * plotH;
       return `
-        <line x1="${padSide}" y1="${y}" x2="${totalW - padSide}" y2="${y}" class="sim-chart-grid"/>
-        <text x="4" y="${y + 3}" class="sim-chart-tick">${v}</text>`;
+        <line x1="${padLeft}" y1="${y}" x2="${totalW - padRight}" y2="${y}" class="sim-chart-grid"/>
+        <text x="${padLeft - 10}" y="${y + 4}" class="sim-chart-tick">${v}</text>`;
     }).join('');
 
-    const bars = finished.map((x, i) => {
-      const cx = padSide + bandW * i + bandW / 2;
-      const grade = parseFloat(x.att.grade_10);
-      const barH = Math.max((grade / 10) * plotH, 2);
-      const y = padTop + plotH - barH;
-      const dateLabel = new Date(x.sim.started_at || x.sim.created_at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      const tooltip = `${x.sim.title} · ${dateLabel} · ${x.att.earned_points}/${x.att.total_points}p`;
+    // Baseline (0) and y-axis get their own bolder, fully-opaque stroke so
+    // they read as the chart's axes instead of blending into the gridlines.
+    const baselineY = padTop + plotH;
+    const axisLines = `
+      <line x1="${padLeft}" y1="${padTop - 8}" x2="${padLeft}" y2="${baselineY}" class="sim-chart-axis"/>
+      <line x1="${padLeft}" y1="${baselineY}" x2="${totalW - padRight}" y2="${baselineY}" class="sim-chart-axis"/>
+      <text x="${padLeft - 10}" y="${baselineY + 4}" class="sim-chart-tick">0</text>`;
+
+    const bars = graded.map((n, i) => {
+      const cx = padLeft + bandW * i + bandW / 2;
+      const barH = Math.max((n.grade / 10) * plotH, 2);
+      const y = baselineY - barH;
+      const dateLabel = new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+      const icon = n.type === 'simulare' ? '🎯' : '📝';
       return `
-        <g>
-          <rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" rx="4" class="sim-chart-bar">
-            <title>${BM.esc(tooltip)}</title>
-          </rect>
-          <text x="${cx}" y="${Math.max(y - 8, 14)}" class="sim-chart-value">${grade}</text>
-          <text x="${cx}" y="${H - 12}" class="sim-chart-label">${dateLabel}</text>
+        <g class="sim-chart-bar-group" data-title="${BM.esc(n.title)}" data-date="${BM.esc(new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}"
+           data-grade="${n.grade}" data-pts="${n.points ? `${n.points.earned}/${n.points.total}p` : ''}" data-type="${n.type === 'simulare' ? 'Simulare' : 'Temă'}">
+          <rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" rx="4" class="sim-chart-bar"></rect>
+          <text x="${cx}" y="${Math.max(y - 10, 20)}" class="sim-chart-value">${n.grade}</text>
+          <text x="${cx}" y="${H - 22}" class="sim-chart-icon">${icon}</text>
+          <text x="${cx}" y="${H - 6}" class="sim-chart-label">${dateLabel}</text>
         </g>`;
     }).join('');
 
     return `
       <div class="sim-chart-scroll">
-        <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" class="sim-chart" role="img" aria-label="Grafic note simulări în timp">
+        <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" class="sim-chart" role="img" aria-label="Grafic note în timp">
           ${gridLines}
+          ${axisLines}
           ${bars}
         </svg>
+        <div class="sim-chart-tooltip" id="simChartTooltip"></div>
       </div>`;
+  }
+
+  function _wireNotesChartTooltip(content) {
+    const wrap = content.querySelector('.sim-chart-scroll');
+    const tip = content.querySelector('#simChartTooltip');
+    if (!wrap || !tip) return;
+    wrap.querySelectorAll('.sim-chart-bar-group').forEach(g => {
+      g.addEventListener('mouseenter', () => {
+        tip.innerHTML = `
+          <div class="sim-chart-tooltip__type">${BM.esc(g.dataset.type)}</div>
+          <div class="sim-chart-tooltip__title">${BM.esc(g.dataset.title)}</div>
+          <div class="sim-chart-tooltip__date">${BM.esc(g.dataset.date)}</div>
+          <div class="sim-chart-tooltip__grade">Notă: <strong>${g.dataset.grade}</strong>${g.dataset.pts ? ` · ${BM.esc(g.dataset.pts)}` : ''}</div>`;
+        tip.classList.add('visible');
+        const rect = g.getBoundingClientRect();
+        const wrapRect = wrap.getBoundingClientRect();
+        tip.style.left = (rect.left - wrapRect.left + wrap.scrollLeft + rect.width / 2) + 'px';
+        tip.style.top = (rect.top - wrapRect.top) + 'px';
+      });
+      g.addEventListener('mouseleave', () => tip.classList.remove('visible'));
+    });
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -2418,6 +2496,8 @@
     if (!content) return;
     const isTeacher = BMAuth.role === 'profesor';
 
+    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts'); } catch (e) {}
+
     try {
       const { data: sims, error } = await BMAuth.supabase
         .from('simulations').select('*').eq('class_id', classData.id)
@@ -2551,10 +2631,13 @@
       </div>`;
   }
 
+  let _simExamActive = false;
+
   async function _openSimForStudent(simId) {
     const sim = simCache.find(s => s.id === simId);
     if (!sim) return;
-    window.onSimulareExamClosed = () => loadSimulariTab();
+    _simExamActive = true;
+    window.onSimulareExamClosed = () => { _simExamActive = false; loadSimulariTab(); };
     await window.SimulareExam.start(sim);
   }
 
@@ -2564,6 +2647,8 @@
       const { error } = await BMAuth.supabase.from('simulations')
         .update({ status: 'activa', started_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
+      const sim = simCache.find(s => s.id === id);
+      window.BMPush?.sendClassPush(classData.id, 'simulare_started', { sim_title: sim?.title || '' });
       BM.toast('Simularea a fost pornită!', 'success');
       await loadSimulariTab();
     } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
@@ -2651,6 +2736,8 @@
   async function _refreshSimLiveBody(simId) {
     const body = document.getElementById('simLiveBody');
     if (!body) return;
+
+    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts', { p_simulation_id: simId }); } catch (e) {}
 
     const [{ data: members }, { data: attempts }] = await Promise.all([
       BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id),
@@ -2956,6 +3043,13 @@
           simulation_item_id: itemRow.id, correct_answer: String(it.correct_answer || '').trim()
         });
         if (keyErr) throw keyErr;
+      }
+
+      if (!simWiz.existingId) {
+        window.BMPush?.sendClassPush(classData.id, status === 'activa' ? 'simulare_started' : 'simulare_scheduled', {
+          sim_title: payload.title,
+          when: status === 'activa' ? '' : formatSimDateTime(payload.scheduled_at)
+        });
       }
 
       BM.toast(simWiz.existingId ? 'Simularea a fost actualizată!' : 'Simularea a fost creată!', 'success');

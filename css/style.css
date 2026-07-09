@@ -5849,7 +5849,7 @@ body.bac-exam-mode .nav.nav--peek {
 .bac-stat-chip--flag .bac-stat-chip__val { color: #f59e0b; }
 
 /* ---- Exam overlays (fullscreen warning + nav guard) ---- */
-#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal {
+#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal, #simFsPrompt {
   position: fixed;
   inset: 0;
   z-index: 99999;
@@ -8558,6 +8558,24 @@ body.bac-exam-mode .nav.nav--peek {
 
 .classes-modal__body { padding: 24px; }
 
+.notif-info__p { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 14px; }
+.notif-info__p--warn { color: #d97706; }
+.notif-info__list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.notif-info__list li {
+  font-size: 0.88rem;
+  color: var(--text);
+  padding: 8px 12px;
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+}
+
 .classes-modal__foot {
   display: flex;
   align-items: center;
@@ -9318,26 +9336,30 @@ body.bac-exam-mode .nav.nav--peek {
   border-radius: var(--radius);
   overflow: hidden;
 }
-.cs-row {
+.cs-note-row {
   display: flex;
   align-items: center;
   gap: 14px;
   padding: 14px 18px;
   border-bottom: 1px solid var(--border);
   background: var(--card);
-  transition: background var(--transition);
+  transition: background var(--transition), transform var(--transition), box-shadow var(--transition);
+  position: relative;
 }
-.cs-row:last-child { border-bottom: none; }
-.cs-row:hover { background: var(--surface); }
+.cs-note-row:last-child { border-bottom: none; }
+.cs-note-row:hover {
+  background: var(--surface);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.06);
+  z-index: 1;
+}
 
-.cs-idx {
+.cs-note-row__icon {
   width: 28px; height: 28px;
   border-radius: 50%;
   background: var(--surface);
   border: 1.5px solid var(--border);
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: var(--text-muted);
+  font-size: 0.95rem;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -9436,13 +9458,10 @@ body.bac-exam-mode .nav.nav--peek {
   margin-left: auto;
 }
 
-/* Membri catalog — simulation columns */
+/* Membri catalog — simulation columns (teacher table) */
 .catalog-th--sim { background: rgba(58,107,173,0.05); }
 .catalog-td--sim { background: rgba(58,107,173,0.03); }
-.cs-row--sim { background: rgba(58,107,173,0.03); }
-.cs-list--sim { margin-top: 14px; }
-.cs-grade--sim small { color: var(--accent); }
-.cs-sim-pts { display: block; font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 2px; }
+.cs-note-pts { display: block; font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 2px; }
 
 .cs-sim-section { margin-top: 22px; }
 .cs-sim-section__head {
@@ -9471,29 +9490,76 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .cs-view-toggle__btn--active { background: var(--accent-dim); color: var(--accent); }
 
-/* Chart — single series (grade over time), no legend needed; real pixel
-   sizing so bars stay a fixed width and the wrapper scrolls instead of
-   squeezing marks when there are many simulations. */
-.sim-chart-scroll { overflow-x: auto; }
+/* Chart — single hue (grade over time), no legend needed per dataviz
+   convention for one measure; temă vs simulare is called out with a small
+   icon + custom tooltip instead of a second chart color. Real pixel sizing
+   so bars stay a fixed width and the wrapper scrolls instead of squeezing
+   marks when there are many entries. */
+.sim-chart-scroll { position: relative; overflow-x: auto; padding: 4px 0; }
 .sim-chart { display: block; }
-.sim-chart-grid { stroke: var(--border); stroke-width: 1; }
+/* Gridlines stay recessive (barely-there reference lines); the axis lines
+   below get a bolder, fully-opaque stroke so they read as the chart's
+   frame instead of blending into the grid. */
+.sim-chart-grid { stroke: var(--border); stroke-width: 1; opacity: 0.55; }
+.sim-chart-axis { stroke: var(--text-muted); stroke-width: 1.5; }
 .sim-chart-tick {
-  font-size: 9px;
+  font-size: 12px;
   fill: var(--text-muted);
-  text-anchor: start;
+  text-anchor: end;
+  font-variant-numeric: tabular-nums;
 }
-.sim-chart-bar { fill: var(--accent); }
+.sim-chart-bar-group { cursor: pointer; }
+.sim-chart-bar { fill: var(--accent); transition: opacity var(--transition); }
+.sim-chart-bar-group:hover .sim-chart-bar { opacity: 0.8; }
 .sim-chart-value {
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 15px;
+  font-weight: 800;
   fill: var(--text);
+  text-anchor: middle;
+  font-variant-numeric: tabular-nums;
+}
+.sim-chart-icon {
+  font-size: 13px;
   text-anchor: middle;
 }
 .sim-chart-label {
-  font-size: 10px;
+  font-size: 12px;
   fill: var(--text-muted);
   text-anchor: middle;
 }
+
+/* Custom hover tooltip — richer than a native SVG <title>, shows the full
+   name (never truncated) plus date, grade and points. */
+.sim-chart-tooltip {
+  position: absolute;
+  bottom: 100%;
+  transform: translate(-50%, -10px);
+  min-width: 160px;
+  padding: 10px 14px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.16);
+  pointer-events: none;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.12s ease;
+  z-index: 5;
+  white-space: normal;
+}
+.sim-chart-tooltip.visible { opacity: 1; visibility: visible; }
+.sim-chart-tooltip__type {
+  font-size: 0.66rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 3px;
+}
+.sim-chart-tooltip__title { font-size: 0.86rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
+.sim-chart-tooltip__date  { font-size: 0.74rem; color: var(--text-muted); margin-bottom: 4px; }
+.sim-chart-tooltip__grade { font-size: 0.8rem; color: var(--text); }
+.sim-chart-tooltip__grade strong { color: var(--accent); }
 
 /* Live view (teacher) */
 .sim-live-dialog { max-width: 640px; }
@@ -9613,6 +9679,24 @@ body.bac-exam-mode .nav.nav--peek {
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid var(--border);
+}
+
+/* Full-viewport exam overlay — appended to <body>, independent of the class
+   page's tab content, so a background tab reload can never rip the student
+   out of an in-progress exam or results screen. Combined with body.bac-exam-mode
+   (existing BAC rule: hides the navbar, zeroes --nav-h) this goes truly
+   edge-to-edge like the real BAC simulator. */
+.sim-exam-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  background: var(--bg);
+  overflow-y: auto;
+}
+.sim-results-overlay-body {
+  min-height: 100vh;
+  box-sizing: border-box;
+  padding: 24px 20px 60px;
 }
 
 /* Student exam — answer input + symbol toolbar */
@@ -11225,7 +11309,7 @@ body.bac-exam-mode .nav.nav--peek {
   .cs-sim-section__head { flex-wrap: wrap; gap: 10px; }
   .cs-view-toggle { width: 100%; }
   .cs-view-toggle__btn { flex: 1; }
-  .cs-row--sim { flex-wrap: wrap; row-gap: 8px; }
+  .cs-note-row { flex-wrap: wrap; row-gap: 8px; }
   .cs-grade-col { display: flex; flex-direction: column; align-items: flex-end; }
 
   /* Own-results screen — stack the answer comparison instead of squeezing it */
