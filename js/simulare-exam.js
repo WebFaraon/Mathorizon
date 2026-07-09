@@ -279,7 +279,7 @@ window.BM = window.BM || {};
         <input type="text" class="sim-answer-input" id="simAnswerInput" autocomplete="off"
                value="${BM.esc(state.answers[item.id] || '')}">
         <div class="sim-symbol-toolbar">
-          ${['∈','∉','∩','∪','∅','⊂','≤','≥','≠','√','∞','π','²','³','±']
+          ${['(', ')', 'x', '∈','∉','∩','∪','∅','⊂','≤','≥','≠','√','∞','π','²','³','⁴','⁵','⁶','±']
             .map(s => `<button type="button" class="sim-symbol-btn" data-sym="${BM.esc(s)}">${s}</button>`).join('')}
         </div>
       </div>`;

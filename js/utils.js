@@ -334,7 +334,15 @@ BM._closeAllCsels = function() {
   document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
 };
 document.addEventListener('click', () => BM._closeAllCsels());
-document.addEventListener('scroll', () => BM._closeAllCsels(), true);
+// Scrolling INSIDE an open dropdown's own option list also fires a native
+// 'scroll' event — since capture-phase listeners see it regardless of
+// bubbling, a plain document-level listener can't tell that apart from the
+// page/modal scrolling underneath it, and was closing the dropdown the
+// instant you tried to scroll through its options.
+document.addEventListener('scroll', (e) => {
+  if (e.target?.closest && e.target.closest('.cls-csel__dropdown')) return;
+  BM._closeAllCsels();
+}, true);
 
 BM.initCustomSelects = function(container) {
   (container || document).querySelectorAll('.cls-form-select').forEach(sel => BM.makeCustomSelect(sel));
