@@ -1,5 +1,6 @@
 'use strict';
 const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateContentWithRetry } = require('./_gemini-retry');
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
 // "no longer available") even though some 2.x entries still show up in
@@ -206,7 +207,7 @@ Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown), cu
   "observatii": "feedback concret pentru elev în română, menționând greșelile specifice — folosește notație LaTeX cu $...$"
 }`;
 
-    const result = await model.generateContent([
+    const result = await generateContentWithRetry(model, [
       { text: prompt },
       { inlineData: { mimeType: imageMimeType, data: canvasBase64 } }
     ]);
@@ -278,7 +279,7 @@ Reguli JSON:
 - total_acordat = suma punctelor_acordate din pasi
 - corect: true NUMAI dacă pasul e 100% corect matematic`;
 
-  const result = await model.generateContent([
+  const result = await generateContentWithRetry(model, [
     { text: prompt },
     { inlineData: { mimeType: imageMimeType, data: canvasBase64 } }
   ]);

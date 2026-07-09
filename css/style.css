@@ -9686,6 +9686,28 @@ body.bac-exam-mode .nav.nav--peek {
   border-bottom: 2px solid transparent;
 }
 .sim-picker-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
+
+/* Wider dialog + two-column layout: results list on the left, selected-exercise
+   preview on the right, so confirming an exercise never requires scrolling
+   past the results list to see what was picked. */
+.sim-picker-dialog { max-width: 960px; }
+.sim-picker-bank-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px;
+}
+@media (min-width: 760px) {
+  .sim-picker-bank-grid { grid-template-columns: 1fr 1fr; }
+  .sim-picker-bank-col--confirm {
+    border-left: 1px solid var(--border);
+    padding-left: 24px;
+  }
+}
+.sim-picker-confirm-placeholder {
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  padding: 12px 0;
+}
 .sim-picker-results {
   max-height: 260px;
   overflow-y: auto;

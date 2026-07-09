@@ -3104,7 +3104,7 @@
     modal.className = 'wz-overlay';
     modal.innerHTML = `
       <div class="wz-backdrop" id="simPickerBackdrop"></div>
-      <div class="wz-dialog" role="dialog">
+      <div class="wz-dialog sim-picker-dialog" role="dialog">
         <div class="wz-head">
           <span class="wz-head__title">Adaugă exercițiu</span>
           <button class="icon-btn" id="simPickerCloseBtn">✕</button>
@@ -3158,36 +3158,45 @@
   }
 
   function _simPickerBankHtml() {
+    const confirmPlaceholder = `<div id="simPickConfirm"><p class="sim-picker-confirm-placeholder">Selectează un exercițiu din listă pentru a-l previzualiza aici.</p></div>`;
     if (simPicker.useBacTaxonomy) {
       const cat  = BM.getCategoryById(simPicker.categoryId);
       const subs = cat ? cat.subcategories : [];
       return `
-        <div class="cls-form-field">
-          <label class="cls-form-label">Capitol</label>
-          <select id="simPickCategory" class="cls-form-input cls-form-select">
-            <option value="">Toate capitolele</option>
-            ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${simPicker.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
-          </select>
-        </div>
-        <div class="cls-form-field">
-          <label class="cls-form-label">Subcapitol</label>
-          <select id="simPickSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
-            <option value="">Toate subcapitolele</option>
-            ${subs.map(s => `<option value="${s.id}" ${simPicker.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
-          </select>
-        </div>
-        ${_simSortSelectHtml()}
-        <div id="simPickResults" class="sim-picker-results"></div>
-        <div id="simPickConfirm"></div>`;
+        <div class="sim-picker-bank-grid">
+          <div class="sim-picker-bank-col">
+            <div class="cls-form-field">
+              <label class="cls-form-label">Capitol</label>
+              <select id="simPickCategory" class="cls-form-input cls-form-select">
+                <option value="">Toate capitolele</option>
+                ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${simPicker.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+              </select>
+            </div>
+            <div class="cls-form-field">
+              <label class="cls-form-label">Subcapitol</label>
+              <select id="simPickSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
+                <option value="">Toate subcapitolele</option>
+                ${subs.map(s => `<option value="${s.id}" ${simPicker.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
+              </select>
+            </div>
+            ${_simSortSelectHtml()}
+            <div id="simPickResults" class="sim-picker-results"></div>
+          </div>
+          <div class="sim-picker-bank-col sim-picker-bank-col--confirm">${confirmPlaceholder}</div>
+        </div>`;
     }
     return `
-      <div class="cls-form-field">
-        <label class="cls-form-label">Caută exercițiu</label>
-        <input type="text" id="simPickSearch" class="cls-form-input" placeholder="Caută după titlu…">
-      </div>
-      ${_simSortSelectHtml()}
-      <div id="simPickResults" class="sim-picker-results"></div>
-      <div id="simPickConfirm"></div>`;
+      <div class="sim-picker-bank-grid">
+        <div class="sim-picker-bank-col">
+          <div class="cls-form-field">
+            <label class="cls-form-label">Caută exercițiu</label>
+            <input type="text" id="simPickSearch" class="cls-form-input" placeholder="Caută după titlu…">
+          </div>
+          ${_simSortSelectHtml()}
+          <div id="simPickResults" class="sim-picker-results"></div>
+        </div>
+        <div class="sim-picker-bank-col sim-picker-bank-col--confirm">${confirmPlaceholder}</div>
+      </div>`;
   }
 
   async function _simPickerBindBank(body) {

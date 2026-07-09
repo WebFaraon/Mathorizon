@@ -2,6 +2,7 @@
 const fs = require('fs');
 const path = require('path');
 const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
+const { generateContentWithRetry } = require('../_gemini-retry');
 
 const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
@@ -160,7 +161,7 @@ async function generateExercise({ imageBase64, mimeType, context, existingExerci
   if (!imageBase64) throw new Error('missing imageBase64');
 
   const prompt = buildPrompt(context || {}, existingExercises);
-  const result = await model.generateContent([
+  const result = await generateContentWithRetry(model, [
     { text: prompt },
     { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
   ]);
