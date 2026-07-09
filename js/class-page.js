@@ -3271,7 +3271,11 @@
   }
 
   function _simPickerSelectExercise(ex) {
-    const suggested = BM.extractBoxedAnswer(ex.solution) || '';
+    // extractBoxedAnswer pulls the raw LaTeX out of the solution (e.g.
+    // "\frac{3}{2}") — converted here into the plain/Unicode form a student
+    // would actually type with the answer toolbar (e.g. "3/2"), since exact
+    // grading compares literal text, not LaTeX meaning.
+    const suggested = BM.latexToPlain(BM.extractBoxedAnswer(ex.solution) || '');
     const confirmEl = document.getElementById('simPickConfirm');
     if (!confirmEl) return;
     const defaultPoints = ex.puncteTotal || (ex.barem || []).reduce((s, p) => s + (p.puncte_maxime || 0), 0) || 5;
@@ -3286,7 +3290,7 @@
         <div class="cls-form-field">
           <label class="cls-form-label">Răspuns corect *</label>
           <input type="text" id="simPickAnswer" class="cls-form-input" value="${BM.esc(suggested)}" placeholder="ex: -1, x=3, {1,2}">
-          <span class="cls-form-hint">${suggested ? 'Extras automat din soluție — verifică înainte de a confirma.' : 'Nu am putut extrage automat un răspuns — introdu-l manual.'}</span>
+          <span class="cls-form-hint">${suggested ? 'Extras automat din soluție — verifică înainte de a confirma.' : 'Nu am putut extrage automat un răspuns — introdu-l manual.'} Scrie-l cum l-ar tasta elevul (cu simbolurile ∈ √ etc.), nu cod LaTeX — altfel nu se va potrivi la corectare.</span>
         </div>
         <button class="btn btn--primary" id="simPickConfirmBtn">+ Adaugă la simulare</button>
       </div>`;
@@ -3397,11 +3401,14 @@
         </div>
         <div class="cls-form-field">
           <label class="cls-form-label">Enunț</label>
-          <div class="ae-preview-box" id="simPickAiStatementPreview"></div>
+          <textarea id="simPickAiStatement" class="cls-form-input cls-form-textarea" rows="3">${BM.esc(r.enunt_katex || '')}</textarea>
+          <span class="cls-form-hint">Poți edita textul (ex: șterge numărul exercițiului sau litera subpunctului preluate din poză). Mai jos vezi exact cum va apărea elevului.</span>
+          <div class="ae-preview-box" id="simPickAiStatementPreview" style="margin-top:8px"></div>
         </div>
         <div class="cls-form-field">
           <label class="cls-form-label">Răspuns final</label>
-          <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
+          <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(BM.latexToPlain(r.raspuns_final || ''))}">
+          <span class="cls-form-hint">Gemini întoarce LaTeX brut — l-am convertit în text simplu (√, ∈, etc.), dar verifică-l înainte de a confirma.</span>
         </div>
         <div class="cls-form-field">
           <label class="cls-form-label">Punctaj *</label>
@@ -3411,15 +3418,20 @@
       </div>`;
 
     const preview = document.getElementById('simPickAiStatementPreview');
-    preview.innerHTML = BM.trustedNl2br(r.enunt_katex || '');
-    BM.renderMath(preview);
+    const statementInput = document.getElementById('simPickAiStatement');
+    const updatePreview = () => {
+      preview.innerHTML = BM.trustedNl2br(statementInput.value || '');
+      BM.renderMath(preview);
+    };
+    updatePreview();
+    statementInput.addEventListener('input', BM.debounce(updatePreview, 200));
 
     document.getElementById('simPickAiConfirmBtn').onclick = () => _simPickerConfirmAdhoc();
   }
 
   async function _simPickerConfirmAdhoc() {
     const title     = document.getElementById('simPickAiTitle').value.trim();
-    const statement = (simPicker.photo.aiResult?.enunt_katex || '').trim();
+    const statement = document.getElementById('simPickAiStatement').value.trim();
     const answer    = document.getElementById('simPickAiAnswer').value.trim();
     const points    = Number(document.getElementById('simPickAiPoints').value) || 1;
 

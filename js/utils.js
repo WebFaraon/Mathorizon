@@ -120,6 +120,63 @@ BM.extractBoxedAnswer = function(solution) {
   return content || null;
 };
 
+/* ---- Convert a raw-LaTeX final answer (from \boxed{...} or Gemini's
+   raspuns_final) into the plain, Unicode-symbol form a student would
+   actually type with the Simulări answer toolbar — e.g. "\frac{3}{2}" -> "3/2",
+   "\sqrt{5}" -> "√5". Without this, a teacher who accepts the AI/bank
+   suggestion as-is stores a correct_answer no real student's plain-text
+   input could ever match, even when mathematically identical. Best-effort:
+   covers the LaTeX that shows up in this app's own exercises/AI output, not
+   arbitrary LaTeX. ---- */
+BM.latexToPlain = function(str) {
+  if (!str) return '';
+  let s = String(str).trim();
+
+  // Gemini sometimes wraps raspuns_final in its own $...$/$$...$$ even
+  // though the prompt asks for bare LaTeX (same quirk admin-exercise.js
+  // works around) — strip a surrounding pair before converting, or a stray
+  // "$" would otherwise end up sitting in the plain-text answer.
+  s = s.replace(/^\$\$?(.*?)\$\$?$/s, '$1').trim();
+
+  s = s.replace(/\\left|\\right/g, '');
+  s = s.replace(/\\sqrt\[(\d+)\]\{([^{}]*)\}/g, (m, n, x) => {
+    const rootGlyph = { '2': '√', '3': '∛', '4': '∜' }[n];
+    return rootGlyph ? rootGlyph + x : `${x}^(1/${n})`;
+  });
+  s = s.replace(/\\sqrt\{([^{}]*)\}/g, '√$1');
+  s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1/$2');
+  // A few frac/sqrt args are themselves simple enough to only need one more
+  // pass (nested one level deep, e.g. \frac{1}{2}-style fractions inside a
+  // \sqrt already replaced above) — safe to run twice since a plain (no
+  // remaining braces) input is a no-op on the second pass.
+  s = s.replace(/\\frac\{([^{}]*)\}\{([^{}]*)\}/g, '$1/$2');
+
+  const SYMBOLS = {
+    '\\cdot': '·', '\\times': '×', '\\pm': '±', '\\mp': '∓',
+    '\\pi': 'π', '\\infty': '∞',
+    '\\neq': '≠', '\\leq': '≤', '\\geq': '≥', '\\le': '≤', '\\ge': '≥',
+    '\\in': '∈', '\\notin': '∉', '\\subset': '⊂', '\\subseteq': '⊆',
+    '\\cup': '∪', '\\cap': '∩', '\\emptyset': '∅', '\\varnothing': '∅',
+    '\\alpha': 'α', '\\beta': 'β', '\\gamma': 'γ', '\\theta': 'θ'
+  };
+  for (const [cmd, glyph] of Object.entries(SYMBOLS)) {
+    s = s.split(cmd).join(glyph);
+  }
+
+  const SUPERSCRIPT = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹' };
+  s = s.replace(/\^\{(-?\d+)\}/g, (m, n) => [...n].map(c => c === '-' ? '⁻' : (SUPERSCRIPT[c] || c)).join(''));
+  s = s.replace(/\^(-?\d)/g,      (m, n) => [...n].map(c => c === '-' ? '⁻' : (SUPERSCRIPT[c] || c)).join(''));
+
+  // \{ / \} are LaTeX's escaped literal braces (set notation, e.g. \{1,2\})
+  // — protect them before stripping the *unescaped* braces that are just
+  // LaTeX grouping syntax (like the ones \frac/\sqrt left behind above).
+  s = s.replace(/\\\{/g, '\x01').replace(/\\\}/g, '\x02');
+  s = s.replace(/[{}]/g, '');
+  s = s.replace(/\x01/g, '{').replace(/\x02/g, '}');
+
+  return s.trim();
+};
+
 /* ---- Render KaTeX math în element ---- */
 BM.renderMath = function(el) {
   if (!el || !window.renderMathInElement) return;
