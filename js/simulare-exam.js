@@ -1,13 +1,18 @@
 /* ============================================================
    Mathorizon — Simulări: student exam-taking screen
-   Renders as a fixed, full-viewport overlay appended directly to
-   <body> — deliberately NOT inside #cdContent, so a class-page.js
-   tab reload (realtime update, visibilitychange, etc.) can never
-   clobber an in-progress exam or its results screen out from
-   under the student. Reuses bac.js's exam shell CSS classes and
-   its body.bac-exam-mode convention (hides the navbar, zeroes
-   --nav-h so the shell goes edge-to-edge) plus the same Fullscreen
-   API enforcement as the real BAC simulator.
+   The exam itself renders as a fixed, full-viewport overlay appended
+   directly to <body> (with fullscreen + navbar-hiding enforcement,
+   same convention as the real BAC simulator) — deliberately NOT
+   inside #cdContent, so a class-page.js tab reload (realtime update,
+   visibilitychange, etc.) can never clobber an in-progress exam out
+   from under the student.
+
+   Once finished (or when simply reviewing an already-completed
+   attempt), the fullscreen takeover is released and results render
+   back inside the normal class page (#cdContent, navbar visible) —
+   there's nothing left to protect from cheating once it's over, and
+   staying "inside the class" reads much more naturally than a second
+   full-page takeover for what is just a read-only summary.
 
    Grading itself happens server-side via the start_simulation_attempt /
    submit_simulation_answer / finish_simulation_attempt RPC functions —
@@ -20,6 +25,7 @@ window.BM = window.BM || {};
   'use strict';
 
   let state = null;
+  let _simRealtimeChannel = null;
 
   window.SimulareExam = { start };
 
@@ -90,14 +96,29 @@ window.BM = window.BM || {};
     zone.addEventListener('mouseleave', hide);
   }
 
-  async function start(simulation) {
-    document.getElementById('simExamOverlay')?.remove();
-    const overlay = document.createElement('div');
-    overlay.id = 'simExamOverlay';
-    overlay.className = 'sim-exam-overlay';
-    overlay.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă simularea...</p></div>`;
-    document.body.appendChild(overlay);
+  /* Watches this specific simulation's own row — if the teacher hits
+     "Încheie" while the student is still mid-exam, force-finish them
+     immediately with whatever's been answered so far, instead of letting
+     them keep solving a simulation that's no longer active. */
+  function _watchSimulationStatus(simulationId) {
+    _unwatchSimulationStatus();
+    _simRealtimeChannel = BMAuth.supabase
+      .channel('sim-watch-' + simulationId)
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'simulations', filter: 'id=eq.' + simulationId
+      }, (payload) => {
+        if (payload.new?.status === 'incheiata' && state && !state.finished) {
+          BM.toast('Profesorul a încheiat simularea — se finalizează cu răspunsurile tale curente.', 'info');
+          _finish();
+        }
+      })
+      .subscribe();
+  }
+  function _unwatchSimulationStatus() {
+    if (_simRealtimeChannel) { BMAuth.supabase.removeChannel(_simRealtimeChannel); _simRealtimeChannel = null; }
+  }
 
+  async function start(simulation) {
     try {
       // Look for an attempt of ours first — covers "resume" and "view result"
       // without ever touching start_simulation_attempt (which only succeeds
@@ -107,6 +128,25 @@ window.BM = window.BM || {};
         .from('simulation_attempts').select('*')
         .eq('simulation_id', simulation.id).eq('student_id', BMAuth.user.id)
         .maybeSingle();
+
+      if (existing?.status === 'finalizata') {
+        // Already finished — show the results right inside the class page.
+        // No fullscreen/overlay takeover: there's nothing left to protect
+        // from cheating once it's over.
+        const { data: items, error: itemsErr } = await BMAuth.supabase
+          .from('simulation_items').select('*').eq('simulation_id', simulation.id).order('position');
+        if (itemsErr) throw itemsErr;
+        state = { simulation, items: items || [], attempt: existing, answers: {}, finished: true };
+        await _renderResults();
+        return;
+      }
+
+      document.getElementById('simExamOverlay')?.remove();
+      const overlay = document.createElement('div');
+      overlay.id = 'simExamOverlay';
+      overlay.className = 'sim-exam-overlay';
+      overlay.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă simularea...</p></div>`;
+      document.body.appendChild(overlay);
 
       let attempt = existing || null;
       if (!attempt) {
@@ -122,39 +162,31 @@ window.BM = window.BM || {};
         .from('simulation_items').select('*').eq('simulation_id', simulation.id).order('position');
       if (itemsErr) throw itemsErr;
 
-      let answers = {};
-      if (attempt.status !== 'finalizata') {
-        const { data: rows } = await BMAuth.supabase.from('simulation_answers')
-          .select('*').eq('attempt_id', attempt.id);
-        (rows || []).forEach(a => { answers[a.simulation_item_id] = a.answer_text || ''; });
-      }
+      const answers = {};
+      const { data: rows } = await BMAuth.supabase.from('simulation_answers')
+        .select('*').eq('attempt_id', attempt.id);
+      (rows || []).forEach(a => { answers[a.simulation_item_id] = a.answer_text || ''; });
 
-      state = { simulation, items: items || [], attempt, answers, current: 0, timerInterval: null, lastFocusedInput: null, finished: attempt.status === 'finalizata' };
+      state = { simulation, items: items || [], attempt, answers, current: 0, timerInterval: null, lastFocusedInput: null, finished: false };
 
       document.body.classList.add('bac-exam-mode');
       _initNavAutoHide();
       window.addEventListener('beforeunload', _beforeUnload);
-
-      if (state.finished) { await _renderResults(); return; }
+      _watchSimulationStatus(simulation.id);
 
       _enterFullscreen();
       _renderShell();
       _renderItem(0);
       _startTimer();
     } catch (e) {
-      overlay.innerHTML = `
-        <div class="cd-placeholder">
-          <div class="cd-placeholder__icon">⚠️</div>
-          <h3 class="cd-placeholder__title">Nu s-a putut porni simularea</h3>
-          <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
-          <button class="btn btn--surface" id="simErrorCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
-        </div>`;
-      document.getElementById('simErrorCloseBtn').onclick = _close;
+      document.getElementById('simExamOverlay')?.remove();
+      BM.toast('Nu s-a putut porni simularea: ' + e.message, 'error');
     }
   }
 
   function _close() {
     clearInterval(state?.timerInterval);
+    _unwatchSimulationStatus();
     window.removeEventListener('beforeunload', _beforeUnload);
     document.body.classList.remove('bac-exam-mode');
     _hideFsPrompt();
@@ -350,6 +382,7 @@ window.BM = window.BM || {};
 
   async function _finish(alreadyFinalized) {
     clearInterval(state.timerInterval);
+    _unwatchSimulationStatus();
     try {
       if (!alreadyFinalized) {
         const { data, error } = await BMAuth.supabase.rpc('finish_simulation_attempt', { p_attempt_id: state.attempt.id });
@@ -360,6 +393,15 @@ window.BM = window.BM || {};
         state.attempt = data;
       }
       state.finished = true;
+
+      // Release the exam takeover now — results render back inside the
+      // normal class page, not as a second fullscreen overlay.
+      window.removeEventListener('beforeunload', _beforeUnload);
+      document.body.classList.remove('bac-exam-mode');
+      _hideFsPrompt();
+      _exitFullscreen();
+      document.getElementById('simExamOverlay')?.remove();
+
       await _renderResults();
     } catch (e) {
       BM.toast('Eroare la finalizare: ' + e.message, 'error');
@@ -370,18 +412,12 @@ window.BM = window.BM || {};
      The correct answer is only readable once this attempt is 'finalizata'
      (see the sim_keys_student_select_after_finish policy) — fetching it here
      is safe precisely because _renderResults only ever runs for a finished
-     attempt. */
+     attempt. Renders into #cdContent — normal class page, navbar visible —
+     never the fullscreen exam overlay. */
   async function _renderResults() {
-    const overlay = document.getElementById('simExamOverlay');
-    overlay.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă rezultatul...</p></div>`;
-
-    // Finished (whether by the student clicking Finalizează or by timeout) —
-    // release fullscreen/navbar-hiding immediately; only the results screen
-    // itself stays up until the student explicitly closes it.
-    _hideFsPrompt();
-    _exitFullscreen();
-    document.body.classList.remove('bac-exam-mode');
-    window.removeEventListener('beforeunload', _beforeUnload);
+    const mount = document.getElementById('cdContent');
+    if (!mount) return;
+    mount.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă rezultatul...</p></div>`;
 
     const itemIds = state.items.map(it => it.id);
     const [{ data: answers }, { data: keys }] = await Promise.all([
@@ -420,23 +456,21 @@ window.BM = window.BM || {};
     const grade = state.attempt.grade_10 != null ? parseFloat(state.attempt.grade_10) : null;
     const gradeCls = grade == null ? '' : grade >= 9 ? 'hi' : grade >= 7 ? 'ok' : grade >= 5 ? 'mid' : 'lo';
 
-    overlay.innerHTML = `
-      <div class="sim-results-overlay-body">
-        <div class="sim-results-wrap">
-          <div class="sim-result-summary">
-            <div class="sim-result-summary__stat">
-              <div class="sim-result-summary__val sim-result-summary__val--${gradeCls}">${state.attempt.grade_10 ?? '—'}</div>
-              <div class="sim-result-summary__lbl">Notă</div>
-            </div>
-            <div class="sim-result-summary__divider"></div>
-            <div class="sim-result-summary__stat">
-              <div class="sim-result-summary__val">${state.attempt.earned_points}<span class="sim-result-summary__val-sep">/</span>${state.attempt.total_points}</div>
-              <div class="sim-result-summary__lbl">Punctaj acumulat</div>
-            </div>
+    mount.innerHTML = `
+      <div class="sim-results-wrap">
+        <div class="sim-result-summary">
+          <div class="sim-result-summary__stat">
+            <div class="sim-result-summary__val sim-result-summary__val--${gradeCls}">${state.attempt.grade_10 ?? '—'}</div>
+            <div class="sim-result-summary__lbl">Notă</div>
           </div>
-          <div class="sim-result-list">${rows}</div>
-          <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
+          <div class="sim-result-summary__divider"></div>
+          <div class="sim-result-summary__stat">
+            <div class="sim-result-summary__val">${state.attempt.earned_points}<span class="sim-result-summary__val-sep">/</span>${state.attempt.total_points}</div>
+            <div class="sim-result-summary__lbl">Punctaj acumulat</div>
+          </div>
         </div>
+        <div class="sim-result-list">${rows}</div>
+        <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
       </div>`;
 
     state.items.forEach((it, idx) => {

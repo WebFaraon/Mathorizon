@@ -9500,8 +9500,8 @@ body.bac-exam-mode .nav.nav--peek {
 /* Gridlines stay recessive (barely-there reference lines); the axis lines
    below get a bolder, fully-opaque stroke so they read as the chart's
    frame instead of blending into the grid. */
-.sim-chart-grid { stroke: var(--border); stroke-width: 1; opacity: 0.55; }
-.sim-chart-axis { stroke: var(--text-muted); stroke-width: 1.5; }
+.sim-chart-grid { stroke: var(--border); stroke-width: 1; opacity: 0.5; }
+.sim-chart-axis { stroke: var(--text); stroke-width: 2.5; stroke-linecap: round; }
 .sim-chart-tick {
   font-size: 12px;
   fill: var(--text-muted);
@@ -9692,11 +9692,6 @@ body.bac-exam-mode .nav.nav--peek {
   z-index: 400;
   background: var(--bg);
   overflow-y: auto;
-}
-.sim-results-overlay-body {
-  min-height: 100vh;
-  box-sizing: border-box;
-  padding: 24px 20px 60px;
 }
 
 /* Student exam — answer input + symbol toolbar */

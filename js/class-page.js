@@ -1193,6 +1193,7 @@
         content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
         _wireCsSimViewToggle(content);
         _wireNotesChartTooltip(content);
+        _finalizeNotesChart(content);
       }
 
     } catch (e) {
@@ -1457,17 +1458,26 @@
         const isChart = _csNotesView === 'chart';
         listView.style.display  = isChart ? 'none' : '';
         chartView.style.display = isChart ? '' : 'none';
+        if (isChart) _finalizeNotesChart(content);
       });
     });
   }
+
+  // Cached so the post-render width fix-up (below) can rebuild the chart
+  // against a wider viewBox without re-fetching/recomputing the notes.
+  let _lastChartNotes = [];
 
   // Single-hue bar chart (one measure — grade over time — so per dataviz
   // convention no legend is needed; temă vs simulare is called out with a
   // small icon + a custom tooltip instead of a second chart color).
   // Real pixel dimensions (not a stretched percent viewBox) so bars keep a
-  // fixed, comfortable width and the wrapper scrolls horizontally instead of
-  // squeezing every bar when there are many entries.
-  function renderNotesChart(notes) {
+  // fixed width — but the gridlines/axis always span at least minTotalW
+  // (the actual on-screen container width, filled in after insertion by
+  // _finalizeNotesChart) so a handful of bars don't leave the right side of
+  // the card looking empty; once there are enough bars to exceed that width
+  // the wrapper scrolls horizontally instead of squeezing them.
+  function renderNotesChart(notes, minTotalW) {
+    _lastChartNotes = notes;
     const graded = notes
       .filter(n => n.grade != null)
       .sort((a, b) => new Date(a.dateIso) - new Date(b.dateIso));
@@ -1477,11 +1487,12 @@
     }
 
     const H = 260, padTop = 36, padBottom = 44, padLeft = 34, padRight = 20;
-    const bandW = 76, barW = 26;
+    const bandW = 52, barW = 20;
     const plotH = H - padTop - padBottom;
-    const totalW = padLeft + padRight + bandW * graded.length;
+    const contentW = padLeft + padRight + bandW * graded.length;
+    const totalW = Math.max(contentW, minTotalW || 0);
 
-    const gridLines = [2, 4, 6, 8, 10].map(v => {
+    const gridLines = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => {
       const y = padTop + plotH - (v / 10) * plotH;
       return `
         <line x1="${padLeft}" y1="${y}" x2="${totalW - padRight}" y2="${y}" class="sim-chart-grid"/>
@@ -1489,7 +1500,8 @@
     }).join('');
 
     // Baseline (0) and y-axis get their own bolder, fully-opaque stroke so
-    // they read as the chart's axes instead of blending into the gridlines.
+    // they read as the chart's axes instead of blending into the gridlines —
+    // and always stretch to totalW, not just to the last bar.
     const baselineY = padTop + plotH;
     const axisLines = `
       <line x1="${padLeft}" y1="${padTop - 8}" x2="${padLeft}" y2="${baselineY}" class="sim-chart-axis"/>
@@ -1513,7 +1525,7 @@
     }).join('');
 
     return `
-      <div class="sim-chart-scroll">
+      <div class="sim-chart-scroll" data-content-w="${contentW}">
         <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" class="sim-chart" role="img" aria-label="Grafic note în timp">
           ${gridLines}
           ${axisLines}
@@ -1521,6 +1533,22 @@
         </svg>
         <div class="sim-chart-tooltip" id="simChartTooltip"></div>
       </div>`;
+  }
+
+  // The chart is first built against its own content width (bars only take
+  // as much room as they need); once it's actually in the DOM we know how
+  // wide the card really is, so if there's spare room, rebuild once with the
+  // gridlines/axis stretched to fill it instead of stopping short.
+  function _finalizeNotesChart(content) {
+    const chartWrapEl = content.querySelector('#csSimChartView');
+    const scrollEl = chartWrapEl?.querySelector('.sim-chart-scroll');
+    if (!chartWrapEl || !scrollEl) return;
+    const contentW = Number(scrollEl.dataset.contentW || 0);
+    const containerW = chartWrapEl.clientWidth;
+    if (containerW > contentW) {
+      chartWrapEl.innerHTML = renderNotesChart(_lastChartNotes, containerW);
+      _wireNotesChartTooltip(content);
+    }
   }
 
   function _wireNotesChartTooltip(content) {
