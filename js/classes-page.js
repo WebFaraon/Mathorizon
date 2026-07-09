@@ -377,20 +377,16 @@
                 <option value="Biologie">Biologie</option>
               </select>
             </div>
-            <div class="cls-form-row">
-              <div class="cls-form-field">
-                <label class="cls-form-label">Ziua</label>
-                <select id="classZiuaInput" class="cls-form-input cls-form-select">
-                  <option value="">— Ziua —</option>
-                  <option value="Luni">Luni</option>
-                  <option value="Marți">Marți</option>
-                  <option value="Miercuri">Miercuri</option>
-                  <option value="Joi">Joi</option>
-                  <option value="Vineri">Vineri</option>
-                  <option value="Sâmbătă">Sâmbătă</option>
-                  <option value="Duminică">Duminică</option>
-                </select>
+            <div class="cls-form-field">
+              <label class="cls-form-label">Ziua</label>
+              <div class="cls-day-picker" id="classZiuaPicker">
+                ${['Luni','Marți','Miercuri','Joi','Vineri','Sâmbătă','Duminică'].map(d => `
+                  <button type="button" class="cls-day-chip" data-day="${d}">${d}</button>
+                `).join('')}
               </div>
+              <span class="cls-form-hint">Poți alege 2 zile dacă grupa are lecții de două ori pe săptămână</span>
+            </div>
+            <div class="cls-form-row">
               <div class="cls-form-field">
                 <label class="cls-form-label">Ora</label>
                 <select id="classOraInput" class="cls-form-input cls-form-select">
@@ -398,8 +394,6 @@
                   ${buildTimeOptions()}
                 </select>
               </div>
-            </div>
-            <div class="cls-form-row">
               <div class="cls-form-field">
                 <label class="cls-form-label">Nr. maxim elevi</label>
                 <select id="classMaxEleviInput" class="cls-form-input cls-form-select">
@@ -412,6 +406,8 @@
                   <option value="1">Individual (1 elev)</option>
                 </select>
               </div>
+            </div>
+            <div class="cls-form-row">
               <div class="cls-form-field">
                 <label class="cls-form-label">Clasa</label>
                 <select id="classGradeInput" class="cls-form-input cls-form-select">
@@ -426,16 +422,16 @@
                   <option value="a 12-a">a 12-a</option>
                 </select>
               </div>
-            </div>
-            <div class="cls-form-field">
-              <label class="cls-form-label">Nivel matematică</label>
-              <select id="classMathLevelInput" class="cls-form-input cls-form-select">
-                <option value="">— Nivel —</option>
-                <option value="9-10">9-10 · Foarte bun</option>
-                <option value="7-8">7-8 · OK</option>
-                <option value="6-7">6-7 · Așa și așa</option>
-                <option value="5-6">5-6 · Slab</option>
-              </select>
+              <div class="cls-form-field">
+                <label class="cls-form-label">Nivel matematică</label>
+                <select id="classMathLevelInput" class="cls-form-input cls-form-select">
+                  <option value="">— Nivel —</option>
+                  <option value="9-10">9-10 · Foarte bun</option>
+                  <option value="7-8">7-8 · OK</option>
+                  <option value="6-7">6-7 · Așa și așa</option>
+                  <option value="5-6">5-6 · Slab</option>
+                </select>
+              </div>
             </div>
             <div class="cls-name-preview">
               <span class="cls-name-preview__label">Denumire:</span>
@@ -451,9 +447,22 @@
     `;
   }
 
+  const DAY_ORDER = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
+
+  // Reads selection straight off the chips' DOM state rather than keeping a
+  // parallel JS array — the day picker has no hidden <select>, this *is*
+  // its source of truth. Always returned in weekday order regardless of
+  // click order, so "Marți/Joi" never renders as "Joi/Marți".
+  function _getSelectedDays() {
+    const picker = document.getElementById('classZiuaPicker');
+    if (!picker) return [];
+    const selected = [...picker.querySelectorAll('.cls-day-chip--sel')].map(b => b.dataset.day);
+    return DAY_ORDER.filter(d => selected.includes(d));
+  }
+
   function buildGeneratedName() {
     const mat = document.getElementById('classMaterieInput')?.value || '';
-    const zi  = document.getElementById('classZiuaInput')?.value || '';
+    const zi  = _getSelectedDays().join('/');
     const ora = document.getElementById('classOraInput')?.value || '';
     if (!mat && !zi && !ora) return '—';
     const parts = [mat, zi, ora].filter(Boolean);
@@ -465,6 +474,24 @@
     if (el) el.textContent = buildGeneratedName();
   }
 
+  function _wireDayPicker() {
+    const picker = document.getElementById('classZiuaPicker');
+    if (!picker || picker._wired) return;
+    picker._wired = true;
+    picker.querySelectorAll('.cls-day-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const isSelected = chip.classList.contains('cls-day-chip--sel');
+        const selectedCount = picker.querySelectorAll('.cls-day-chip--sel').length;
+        if (!isSelected && selectedCount >= 2) {
+          BM.toast('Poți selecta cel mult 2 zile pe săptămână.', 'info');
+          return;
+        }
+        chip.classList.toggle('cls-day-chip--sel');
+        updateNamePreview();
+      });
+    });
+  }
+
   function openCreateModal() {
     const modal = document.getElementById('classesModal');
     if (!modal) return;
@@ -474,19 +501,22 @@
     document.getElementById('cancelCreateBtn').onclick       = closeCreateModal;
     document.getElementById('classesModalBackdrop').onclick  = closeCreateModal;
     document.getElementById('confirmCreateBtn').onclick      = confirmCreateClass;
-    ['classMaterieInput', 'classZiuaInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'].forEach(id => {
+    ['classMaterieInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'].forEach(id => {
       document.getElementById(id)?.addEventListener('change', updateNamePreview);
     });
+    _wireDayPicker();
   }
 
   function closeCreateModal() {
     const modal = document.getElementById('classesModal');
     if (!modal) return;
     modal.style.display = 'none';
-    ['classMaterieInput', 'classZiuaInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'].forEach(id => {
+    ['classMaterieInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'].forEach(id => {
       const el = document.getElementById(id);
       if (el) { el.value = ''; _cselReset(el); }
     });
+    document.getElementById('classZiuaPicker')?.querySelectorAll('.cls-day-chip--sel')
+      .forEach(c => c.classList.remove('cls-day-chip--sel'));
     const preview = document.getElementById('classNamePreview');
     if (preview) preview.textContent = '—';
     _closeAllCsels();
@@ -495,14 +525,14 @@
   async function confirmCreateClass() {
     const name      = buildGeneratedName();
     const materie   = document.getElementById('classMaterieInput')?.value;
-    const ziua      = document.getElementById('classZiuaInput')?.value;
+    const ziua      = _getSelectedDays().join('/');
     const ora       = document.getElementById('classOraInput')?.value;
     const maxElevi  = document.getElementById('classMaxEleviInput')?.value;
     const grade     = document.getElementById('classGradeInput')?.value;
     const mathLevel = document.getElementById('classMathLevelInput')?.value;
 
     if (!materie || !ziua || !ora) {
-      BM.toast('Selectează materia, ziua și ora.', 'error');
+      BM.toast('Selectează materia, ziua (cel puțin una) și ora.', 'error');
       return;
     }
     if (!maxElevi) {

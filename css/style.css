@@ -8388,6 +8388,41 @@ body.bac-exam-mode .nav.nav--peek {
 
 .cls-form-select { display: none; } /* replaced by .cls-csel */
 
+/* ── Day picker — multi-select chips (up to 2 days/week) ─── */
+.cls-day-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.cls-day-chip {
+  padding: 9px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.12s ease, box-shadow 0.16s ease;
+}
+.cls-day-chip:hover {
+  border-color: var(--accent);
+  transform: translateY(-1px);
+}
+.cls-day-chip--sel {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 3px 10px rgba(58,107,173,0.35);
+}
+.cls-day-chip--sel:hover { transform: translateY(-1px); }
+[data-theme="dark"] .cls-day-chip { background: rgba(255,255,255,0.05); }
+/* Needs to out-rank the rule above on specificity, or a selected chip in
+   dark mode keeps its unselected background and just wears the accent
+   border/glow — reading as an outline instead of a filled pill. */
+[data-theme="dark"] .cls-day-chip--sel { background: var(--accent); }
+
 /* ── Custom styled select ─────────────────────────────────── */
 .cls-csel {
   position: relative;
