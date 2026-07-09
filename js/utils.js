@@ -241,3 +241,101 @@ BM.initScrollTop = function() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 };
+
+/* ============================================================
+   Custom select — replaces a native <select class="cls-form-select">
+   (hidden globally via CSS, `.cls-form-select { display: none; }`) with
+   a styled dropdown. Any such <select> MUST be passed through
+   BM.initCustomSelects() after being added to the DOM, or it stays
+   invisible/unusable.
+   ============================================================ */
+BM.makeCustomSelect = function(sel) {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'cls-csel';
+
+  const trigger = document.createElement('div');
+  trigger.className = 'cls-csel__trigger';
+
+  const display = document.createElement('span');
+  display.className = 'cls-csel__display';
+  const selectedOpt = sel.options[sel.selectedIndex] || sel.options[0];
+  display.textContent = selectedOpt?.text || '';
+  if (selectedOpt?.value) display.setAttribute('data-has-value', '');
+
+  const arrow = document.createElement('span');
+  arrow.className = 'cls-csel__arrow';
+  arrow.innerHTML = `<svg width="11" height="7" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>`;
+
+  trigger.appendChild(display);
+  trigger.appendChild(arrow);
+
+  const dropdown = document.createElement('div');
+  dropdown.className = 'cls-csel__dropdown';
+
+  [...sel.options].forEach(opt => {
+    const item = document.createElement('div');
+    item.className = 'cls-csel__option' + (!opt.value ? ' cls-csel__option--placeholder' : '');
+    if (opt.value && opt.value === sel.value) item.classList.add('cls-csel__option--sel');
+    item.dataset.value = opt.value;
+    item.textContent = opt.text;
+    item.addEventListener('click', e => {
+      e.stopPropagation();
+      sel.value = opt.value;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+      display.textContent = opt.text;
+      if (opt.value) display.setAttribute('data-has-value', ''); else display.removeAttribute('data-has-value');
+      dropdown.querySelectorAll('.cls-csel__option--sel').forEach(el => el.classList.remove('cls-csel__option--sel'));
+      if (opt.value) item.classList.add('cls-csel__option--sel');
+      BM._closeAllCsels();
+    });
+    dropdown.appendChild(item);
+  });
+
+  wrapper.appendChild(trigger);
+  wrapper.appendChild(dropdown);
+
+  trigger.addEventListener('click', e => {
+    e.stopPropagation();
+    const wasOpen = wrapper.classList.contains('cls-csel--open');
+    BM._closeAllCsels();
+    if (!wasOpen) {
+      wrapper.classList.add('cls-csel--open');
+      BM._positionCselDropdown(trigger, dropdown);
+    }
+  });
+
+  sel.style.display = 'none';
+  sel.parentNode.insertBefore(wrapper, sel);
+};
+
+/* Fixed-position the dropdown off the trigger's viewport rect so it escapes
+   clipping by a scrollable modal body (an absolutely-positioned dropdown
+   was cut off whenever its field sat near the bottom of the scroll area).
+   Flips upward if there's no room below. */
+BM._positionCselDropdown = function(trigger, dropdown) {
+  const rect   = trigger.getBoundingClientRect();
+  const maxH   = 216;
+  const below  = window.innerHeight - rect.bottom;
+  const openUp = below < maxH + 8 && rect.top > below;
+  dropdown.style.position = 'fixed';
+  dropdown.style.left     = rect.left + 'px';
+  dropdown.style.width    = rect.width + 'px';
+  dropdown.style.right    = 'auto';
+  if (openUp) {
+    dropdown.style.top    = 'auto';
+    dropdown.style.bottom = (window.innerHeight - rect.top + 5) + 'px';
+  } else {
+    dropdown.style.bottom = 'auto';
+    dropdown.style.top    = (rect.bottom + 5) + 'px';
+  }
+};
+
+BM._closeAllCsels = function() {
+  document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
+};
+document.addEventListener('click', () => BM._closeAllCsels());
+document.addEventListener('scroll', () => BM._closeAllCsels(), true);
+
+BM.initCustomSelects = function(container) {
+  (container || document).querySelectorAll('.cls-form-select').forEach(sel => BM.makeCustomSelect(sel));
+};

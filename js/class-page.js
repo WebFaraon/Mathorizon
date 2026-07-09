@@ -14,6 +14,15 @@
     { id: 'membri',   label: 'Membri',    icon: '👥' }
   ];
 
+  // The "membri" tab has grown into a results/gradebook view that reads very
+  // differently for each role — a full class roster for the teacher vs. just
+  // your own progress for a student — so its tab label is role-aware even
+  // though the id/hash stays "membri" for routing.
+  function _tabLabel(t) {
+    if (t.id === 'membri') return BMAuth.role === 'profesor' ? 'Catalog' : 'Cabinet Personal';
+    return t.label;
+  }
+
   let classData  = null;
   let activeTab  = 'flux';
   let temeCache  = [];
@@ -204,7 +213,7 @@
                 <button class="cd-tab${t.id === activeTab ? ' cd-tab--active' : ''}"
                         data-tab="${t.id}" role="tab"
                         aria-selected="${t.id === activeTab}">
-                  ${t.label}
+                  ${_tabLabel(t)}
                 </button>
               `).join('')}
             </nav>
@@ -1103,7 +1112,7 @@
         const simIds = sims.map(s => s.id);
         const { data: simAttempts } = await BMAuth.supabase
           .from('simulation_attempts')
-          .select('simulation_id, student_id, student_name, grade_10, status')
+          .select('simulation_id, student_id, student_name, grade_10, status, earned_points, total_points')
           .eq('status', 'finalizata')
           .in('simulation_id', simIds);
         (simAttempts || []).forEach(a => {
@@ -2968,7 +2977,7 @@
     const gradeCode = _gradeCodeFromSchoolGrade(classData.school_grade);
     const useBacTaxonomy = gradeCode === '9' || gradeCode === 'bac';
 
-    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', results: [], photo: {} };
+    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', sort: '', results: [], photo: {} };
 
     const modal = document.createElement('div');
     modal.id = 'simPickerModal';
@@ -3012,6 +3021,22 @@
     else                          { body.innerHTML = _simPickerPhotoHtml(); _simPickerBindPhoto(body); }
   }
 
+  const SIM_SORT_OPTIONS = [
+    { id: '',        label: 'Implicit' },
+    { id: 'diff-asc',  label: 'Dificultate: ușor → greu' },
+    { id: 'diff-desc', label: 'Dificultate: greu → ușor' }
+  ];
+
+  function _simSortSelectHtml() {
+    return `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Sortează după</label>
+        <select id="simPickSort" class="cls-form-input cls-form-select">
+          ${SIM_SORT_OPTIONS.map(o => `<option value="${o.id}" ${simPicker.sort === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}
+        </select>
+      </div>`;
+  }
+
   function _simPickerBankHtml() {
     if (simPicker.useBacTaxonomy) {
       const cat  = BM.getCategoryById(simPicker.categoryId);
@@ -3031,6 +3056,7 @@
             ${subs.map(s => `<option value="${s.id}" ${simPicker.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
           </select>
         </div>
+        ${_simSortSelectHtml()}
         <div id="simPickResults" class="sim-picker-results"></div>
         <div id="simPickConfirm"></div>`;
     }
@@ -3039,13 +3065,15 @@
         <label class="cls-form-label">Caută exercițiu</label>
         <input type="text" id="simPickSearch" class="cls-form-input" placeholder="Caută după titlu…">
       </div>
+      ${_simSortSelectHtml()}
       <div id="simPickResults" class="sim-picker-results"></div>
       <div id="simPickConfirm"></div>`;
   }
 
   async function _simPickerBindBank(body) {
-    const catSel = body.querySelector('#simPickCategory');
-    const subSel = body.querySelector('#simPickSubcategory');
+    const catSel  = body.querySelector('#simPickCategory');
+    const subSel  = body.querySelector('#simPickSubcategory');
+    const sortSel = body.querySelector('#simPickSort');
     const searchInput = body.querySelector('#simPickSearch');
 
     if (catSel) {
@@ -3056,8 +3084,10 @@
       };
     }
     if (subSel) subSel.onchange = e => { simPicker.subcategoryId = e.target.value; _simPickerRunBankSearch(); };
+    if (sortSel) sortSel.onchange = e => { simPicker.sort = e.target.value; _simPickerRunBankSearch(); };
     if (searchInput) searchInput.oninput = BM.debounce(e => { simPicker.query = e.target.value; _simPickerRunBankSearch(); }, 300);
 
+    BM.initCustomSelects(body);
     await _simPickerRunBankSearch();
   }
 
@@ -3096,6 +3126,12 @@
         difficulty: row.difficulty, title: row.title, statement: row.statement, solution: row.solution,
         puncteTotal: row.punctaj_total, _source: 'custom'
       }));
+    }
+
+    if (simPicker.sort === 'diff-asc' || simPicker.sort === 'diff-desc') {
+      const rank = { usor: 0, mediu: 1, dificil: 2 };
+      const dir = simPicker.sort === 'diff-asc' ? 1 : -1;
+      results = results.slice().sort((a, b) => dir * ((rank[a.difficulty] ?? 99) - (rank[b.difficulty] ?? 99)));
     }
 
     simPicker.results = results;
@@ -3168,8 +3204,10 @@
              </label>`}
       </div>
       ${photo.previewUrl ? `
-        <button class="btn btn--surface btn--sm" id="simPickReplacePhoto" style="margin-top:12px">Schimbă fotografia</button>
-        <button class="btn btn--primary" id="simPickAnalyzeBtn" style="margin-top:12px">Analizează cu AI →</button>` : ''}
+        <div class="sim-picker-photo-actions">
+          <button class="btn btn--surface btn--sm" id="simPickReplacePhoto">Schimbă fotografia</button>
+          ${!photo.aiResult ? `<button class="btn btn--primary" id="simPickAnalyzeBtn">Analizează cu AI →</button>` : ''}
+        </div>` : ''}
       <div id="simPickPhotoResult"></div>`;
   }
 
@@ -3181,6 +3219,9 @@
       _simPickerRenderBody();
     });
     body.querySelector('#simPickAnalyzeBtn')?.addEventListener('click', () => _simPickerAnalyzePhoto());
+    // Restores the review fields after any full re-render (tab switch, or
+    // right after a fresh analysis) without re-spending an AI call.
+    if (simPicker.photo?.aiResult) _simPickerRenderPhotoReview(simPicker.photo.aiResult);
   }
 
   function _simPickerLoadPhoto(file) {
@@ -3189,7 +3230,8 @@
       simPicker.photo = {
         file, mimeType: file.type,
         previewUrl: reader.result,
-        imageBase64: String(reader.result).split(',')[1] || ''
+        imageBase64: String(reader.result).split(',')[1] || '',
+        aiResult: null
       };
       _simPickerRenderBody();
     };
@@ -3214,7 +3256,10 @@
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Eroare AI');
-      _simPickerRenderPhotoReview(data);
+      simPicker.photo.aiResult = data;
+      // Full re-render (not just the result box) so the "Analizează cu AI"
+      // button disappears now that this photo has already been analyzed.
+      _simPickerRenderBody();
     } catch (e) {
       resultEl.innerHTML = `<p style="color:#ef4444">Eroare: ${BM.esc(e.message)}</p>`;
     }
@@ -3223,38 +3268,36 @@
   function _simPickerRenderPhotoReview(r) {
     const resultEl = document.getElementById('simPickPhotoResult');
     resultEl.innerHTML = `
-      <div class="cls-form-field">
-        <label class="cls-form-label">Titlu</label>
-        <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Enunț (LaTeX)</label>
-        <textarea id="simPickAiStatement" class="cls-form-input cls-form-textarea" rows="4">${BM.esc(r.enunt_katex || '')}</textarea>
-        <div class="ae-preview-box" id="simPickAiStatementPreview" style="margin-top:8px"></div>
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Răspuns final</label>
-        <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Punctaj *</label>
-        <input type="number" id="simPickAiPoints" class="cls-form-input" min="1" style="max-width:120px" value="5">
-      </div>
-      <button class="btn btn--primary" id="simPickAiConfirmBtn">+ Adaugă la simulare</button>`;
+      <div class="sim-picker-photo-review">
+        <div class="cls-form-field">
+          <label class="cls-form-label">Titlu</label>
+          <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Enunț</label>
+          <div class="ae-preview-box" id="simPickAiStatementPreview"></div>
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Răspuns final</label>
+          <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Punctaj *</label>
+          <input type="number" id="simPickAiPoints" class="cls-form-input" min="1" style="max-width:120px" value="5">
+        </div>
+        <button class="btn btn--primary" id="simPickAiConfirmBtn">+ Adaugă la simulare</button>
+      </div>`;
 
     const preview = document.getElementById('simPickAiStatementPreview');
-    const updatePreview = () => {
-      preview.innerHTML = BM.trustedNl2br(document.getElementById('simPickAiStatement').value || '');
-      BM.renderMath(preview);
-    };
-    updatePreview();
-    document.getElementById('simPickAiStatement').oninput = updatePreview;
+    preview.innerHTML = BM.trustedNl2br(r.enunt_katex || '');
+    BM.renderMath(preview);
+
     document.getElementById('simPickAiConfirmBtn').onclick = () => _simPickerConfirmAdhoc();
   }
 
   async function _simPickerConfirmAdhoc() {
     const title     = document.getElementById('simPickAiTitle').value.trim();
-    const statement = document.getElementById('simPickAiStatement').value.trim();
+    const statement = (simPicker.photo.aiResult?.enunt_katex || '').trim();
     const answer    = document.getElementById('simPickAiAnswer').value.trim();
     const points    = Number(document.getElementById('simPickAiPoints').value) || 1;
 
