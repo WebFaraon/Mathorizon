@@ -16,9 +16,14 @@ const RESPONSE_SCHEMA = {
   required: ['titlu', 'enunt_katex', 'raspuns_final']
 };
 
+// Google retired the entire Gemini 2.x generation from generateContent (404
+// "no longer available") — gemini-3-flash-preview is the current working
+// replacement (confirmed directly against the API). Being a "-preview" name
+// it may get renamed later — check https://ai.google.dev/gemini-api/docs/models
+// if this starts 404ing again.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
-  model: 'gemini-2.5-flash',
+  model: 'gemini-3-flash-preview',
   generationConfig: {
     temperature: 0,
     responseMimeType: 'application/json',
