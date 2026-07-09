@@ -9596,6 +9596,10 @@ body.bac-exam-mode .nav.nav--peek {
   text-anchor: middle;
 }
 
+/* Evolution line chart (Simulări tab) */
+.sim-evo-line { stroke: var(--accent); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.sim-evo-point { fill: var(--accent); stroke: var(--card); stroke-width: 2; cursor: pointer; }
+
 /* Custom hover tooltip — richer than a native SVG <title>, shows the full
    name (never truncated) plus date, grade and points. */
 .sim-chart-tooltip {
@@ -9652,6 +9656,35 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-live-row__stat { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 .sim-live-row__stat--grade { color: var(--accent); font-weight: 700; }
+.sim-live-row--clickable { cursor: pointer; transition: border-color 0.15s, background 0.15s; }
+.sim-live-row--clickable:hover { border-color: var(--accent); background: var(--accent-dim); }
+.sim-violation-badge {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: #d97706;
+  background: rgba(245,158,11,0.12);
+  padding: 3px 8px;
+  border-radius: 6px;
+  white-space: nowrap;
+}
+
+/* Template picker list */
+.sim-tpl-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-tpl-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+.sim-tpl-row:hover { border-color: var(--accent); background: var(--accent-dim); }
+.sim-tpl-row__title { font-weight: 700; color: var(--text); }
+.sim-tpl-row__meta { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
 
 .catalog-legend-item--sep {
   margin-left: auto;
@@ -9685,6 +9718,8 @@ body.bac-exam-mode .nav.nav--peek {
 .sim-wz-item__body { flex: 1; min-width: 0; }
 .sim-wz-item__title { font-size: 0.88rem; font-weight: 700; color: var(--text); }
 .sim-wz-item__meta { font-size: 0.75rem; color: var(--text-muted); display: flex; gap: 6px; align-items: center; }
+.sim-wz-item__answer { font-size: 0.75rem; color: var(--text-muted); margin-top: 2px; }
+.sim-wz-item__answer strong { color: var(--text); }
 .sim-wz-item__actions { display: flex; gap: 2px; flex-shrink: 0; }
 
 /* Exercise picker (nested modal) */
@@ -9922,6 +9957,35 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-result-answer__val { font-weight: 700; color: var(--text); word-break: break-word; }
 .sim-result-card--ok .sim-result-answer:not(.sim-result-answer--correct) { background: var(--green-dim); }
+.sim-result-feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--text);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+
+/* Teacher feedback entry (student-detail modal) */
+.sim-detail-feedback { margin-top: 12px; }
+.sim-detail-feedback__view {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  background: var(--accent-dim);
+  color: var(--text);
+  font-size: 0.86rem;
+  line-height: 1.4;
+}
+.sim-detail-feedback__text { flex: 1; }
+.sim-detail-feedback__editbtn {
+  border: none; background: none; cursor: pointer;
+  color: var(--accent); font-size: 0.78rem; font-weight: 700; flex-shrink: 0;
+}
+.sim-detail-feedback__form { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
 
 [data-theme="dark"] .catalog-th--sim { background: rgba(255,255,255,0.03); }
 [data-theme="dark"] .catalog-td--sim { background: rgba(255,255,255,0.02); }
@@ -10524,11 +10588,15 @@ body.bac-exam-mode .nav.nav--peek {
 .teme-feed { padding-top: 4px; min-width: 0; overflow: hidden; }
 
 .teme-toolbar {
+  display: flex;
+  gap: 10px;
   margin-bottom: 24px;
 }
 .teme-toolbar .btn {
-  width: 100%;
   justify-content: center;
+}
+.teme-toolbar .btn:only-child {
+  width: 100%;
 }
 
 .teme-list {
@@ -10965,6 +11033,80 @@ body.bac-exam-mode .nav.nav--peek {
   background: #fff;
 }
 
+.wz-toggle {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  cursor: pointer;
+  font-size: 0.88rem;
+  color: var(--text);
+  user-select: none;
+}
+.wz-toggle input { display: none; }
+.wz-toggle__track {
+  width: 38px; height: 22px;
+  border-radius: 11px;
+  background: rgba(0,0,0,0.15);
+  flex-shrink: 0;
+  position: relative;
+  transition: background 0.15s;
+}
+.wz-toggle__thumb {
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  transition: transform 0.15s;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.25);
+}
+.wz-toggle input:checked ~ .wz-toggle__track { background: var(--accent); }
+.wz-toggle input:checked ~ .wz-toggle__track .wz-toggle__thumb { transform: translateX(16px); }
+
+/* Multiple-choice options builder (wizard/picker) */
+.sim-opt-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
+.sim-opt-row { display: flex; align-items: center; gap: 8px; }
+.sim-opt-row__letter {
+  width: 22px; height: 22px;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.72rem;
+  font-weight: 800;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sim-opt-row__radio { flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
+.sim-opt-row__input { flex: 1; min-width: 0; }
+
+/* Multiple-choice option cards — student exam UI */
+.sim-option-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 14px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+  margin-bottom: 10px;
+}
+.sim-option-card:hover { border-color: var(--accent); }
+.sim-option-card--selected { border-color: var(--accent); background: var(--accent-dim); }
+.sim-option-card__letter {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-weight: 800;
+  font-size: 0.85rem;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+}
+.sim-option-card--selected .sim-option-card__letter { background: var(--accent); color: #fff; }
+.sim-option-card__label { flex: 1; font-size: 0.95rem; color: var(--text); }
+
 /* ── Dark mode – wizard ──────────────────────────────────── */
 [data-theme="dark"] .wz-dialog { border: 1px solid rgba(255,255,255,0.09); }
 [data-theme="dark"] .wz-type-card {
@@ -10983,6 +11125,7 @@ body.bac-exam-mode .nav.nav--peek {
 [data-theme="dark"] .wz-file-item { background: rgba(255,255,255,0.05); border-color: rgba(255,255,255,0.09); }
 [data-theme="dark"] .teme-block-chip { background: rgba(58,107,173,0.12); border-color: rgba(58,107,173,0.25); }
 [data-theme="dark"] .wz-radio__dot  { border-color: rgba(255,255,255,0.25); }
+[data-theme="dark"] .wz-toggle__track { background: rgba(255,255,255,0.16); }
 
 /* ── Responsive – wizard ─────────────────────────────────── */
 @media (max-width: 600px) {

@@ -44,6 +44,7 @@ window.BM = window.BM || {};
   function _onFsChange() {
     if (!state || state.finished) return;
     if (_isFullscreen()) { _hideFsPrompt(); return; }
+    _logViolation();
     _showFsPrompt();
   }
   document.addEventListener('fullscreenchange',       _onFsChange);
@@ -118,6 +119,29 @@ window.BM = window.BM || {};
     if (_simRealtimeChannel) { BMAuth.supabase.removeChannel(_simRealtimeChannel); _simRealtimeChannel = null; }
   }
 
+  // options[itemId] = [{id, label, position}, ...] — only fetched for items
+  // that actually have any (free-text items simply get an empty array).
+  async function _fetchOptions(items) {
+    const itemIds = items.filter(it => it.answer_type === 'grila').map(it => it.id);
+    if (!itemIds.length) return {};
+    const { data } = await BMAuth.supabase
+      .from('simulation_item_options').select('*').in('simulation_item_id', itemIds).order('position');
+    const byItem = {};
+    (data || []).forEach(o => { (byItem[o.simulation_item_id] = byItem[o.simulation_item_id] || []).push(o); });
+    return byItem;
+  }
+
+  /* ---- Mod supravegheat: silent violation logging (teacher-only, never
+     shown to the student — see simulation_attempt_flags' RLS). Only wired
+     up when the simulation itself has supervised === true. ---- */
+  function _logViolation() {
+    if (!state || state.finished || !state.simulation.supervised) return;
+    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id }).catch(() => {});
+  }
+  document.addEventListener('visibilitychange', () => {
+    if (document.hidden) _logViolation();
+  });
+
   async function start(simulation) {
     try {
       // Look for an attempt of ours first — covers "resume" and "view result"
@@ -136,7 +160,8 @@ window.BM = window.BM || {};
         const { data: items, error: itemsErr } = await BMAuth.supabase
           .from('simulation_items').select('*').eq('simulation_id', simulation.id).order('position');
         if (itemsErr) throw itemsErr;
-        state = { simulation, items: items || [], attempt: existing, answers: {}, finished: true };
+        const options = await _fetchOptions(items || []);
+        state = { simulation, items: items || [], options, attempt: existing, answers: {}, finished: true };
         await _renderResults();
         return;
       }
@@ -161,13 +186,14 @@ window.BM = window.BM || {};
       const { data: items, error: itemsErr } = await BMAuth.supabase
         .from('simulation_items').select('*').eq('simulation_id', simulation.id).order('position');
       if (itemsErr) throw itemsErr;
+      const options = await _fetchOptions(items || []);
 
       const answers = {};
       const { data: rows } = await BMAuth.supabase.from('simulation_answers')
         .select('*').eq('attempt_id', attempt.id);
       (rows || []).forEach(a => { answers[a.simulation_item_id] = a.answer_text || ''; });
 
-      state = { simulation, items: items || [], attempt, answers, current: 0, timerInterval: null, lastFocusedInput: null, finished: false };
+      state = { simulation, items: items || [], options, attempt, answers, current: 0, timerInterval: null, lastFocusedInput: null, finished: false };
 
       document.body.classList.add('bac-exam-mode');
       _initNavAutoHide();
@@ -266,6 +292,10 @@ window.BM = window.BM || {};
     const content = document.getElementById('simSlotContent');
     if (!content) return;
 
+    const isGrila = item.answer_type === 'grila';
+    const letters = 'ABCDEFGH';
+    const options = state.options[item.id] || [];
+
     content.innerHTML = `
       <div class="bac-exercise-card">
         <div class="bac-card-stripe"></div>
@@ -274,30 +304,48 @@ window.BM = window.BM || {};
           <div class="bac-statement math-content" id="simStatement"></div>
         </div>
       </div>
+      ${isGrila ? `
+      <div class="sim-answer-block">
+        ${options.map((o, i) => `
+          <div class="sim-option-card${state.answers[item.id] === o.id ? ' sim-option-card--selected' : ''}" data-opt-id="${o.id}">
+            <span class="sim-option-card__letter">${letters[i] || i + 1}</span>
+            <span class="sim-option-card__label">${BM.esc(o.label)}</span>
+          </div>`).join('')}
+      </div>` : `
       <div class="sim-answer-block">
         <label class="cls-form-label">Răspuns final</label>
-        <input type="text" class="sim-answer-input" id="simAnswerInput" autocomplete="off"
+        <input type="text" class="sim-answer-input" id="simAnswerInput" autocomplete="off" maxlength="300"
                value="${BM.esc(state.answers[item.id] || '')}">
         <div class="sim-symbol-toolbar">
           ${['(', ')', 'x', '∈','∉','∩','∪','∅','⊂','≤','≥','≠','√','∞','π','²','³','⁴','⁵','⁶','±']
             .map(s => `<button type="button" class="sim-symbol-btn" data-sym="${BM.esc(s)}">${s}</button>`).join('')}
         </div>
-      </div>`;
+      </div>`}`;
 
     const stEl = document.getElementById('simStatement');
     stEl.innerHTML = BM.trustedNl2br(item.statement || '');
     BM.renderMath(stEl);
 
-    const input = document.getElementById('simAnswerInput');
-    state.lastFocusedInput = input;
-    const debouncedSave = BM.debounce(() => _saveAnswer(item.id, input.value), 500);
-    input.addEventListener('focus', () => { state.lastFocusedInput = input; });
-    input.addEventListener('input', debouncedSave);
-    input.addEventListener('blur', () => _saveAnswer(item.id, input.value));
+    if (isGrila) {
+      content.querySelectorAll('.sim-option-card').forEach(card => {
+        card.addEventListener('click', () => {
+          content.querySelectorAll('.sim-option-card').forEach(c => c.classList.remove('sim-option-card--selected'));
+          card.classList.add('sim-option-card--selected');
+          _saveAnswer(item.id, card.dataset.optId);
+        });
+      });
+    } else {
+      const input = document.getElementById('simAnswerInput');
+      state.lastFocusedInput = input;
+      const debouncedSave = BM.debounce(() => _saveAnswer(item.id, input.value), 500);
+      input.addEventListener('focus', () => { state.lastFocusedInput = input; });
+      input.addEventListener('input', debouncedSave);
+      input.addEventListener('blur', () => _saveAnswer(item.id, input.value));
 
-    content.querySelectorAll('.sim-symbol-btn').forEach(btn => {
-      btn.addEventListener('click', () => _insertSymbol(btn.dataset.sym));
-    });
+      content.querySelectorAll('.sim-symbol-btn').forEach(btn => {
+        btn.addEventListener('click', () => _insertSymbol(btn.dataset.sym));
+      });
+    }
 
     document.getElementById('simPrevBtn').disabled = idx === 0;
     document.getElementById('simNextBtn').disabled = idx === state.items.length - 1;
@@ -385,6 +433,22 @@ window.BM = window.BM || {};
     _unwatchSimulationStatus();
     try {
       if (!alreadyFinalized) {
+        // The visible input's own debounce (500ms) or blur handler may not
+        // have fired yet — e.g. the timer hit 0 mid-keystroke, with nothing
+        // to blur it. Flush whatever's currently typed directly (bypassing
+        // the debounce) before finishing, so the last edit is never lost.
+        // Best-effort: if this fails (already finished, network hiccup),
+        // finishing still proceeds with whatever was already saved.
+        const curInput = document.getElementById('simAnswerInput');
+        const curItem  = state.items[state.current];
+        if (curInput && curItem) {
+          try {
+            await BMAuth.supabase.rpc('submit_simulation_answer', {
+              p_attempt_id: state.attempt.id, p_item_id: curItem.id, p_answer_text: curInput.value
+            });
+          } catch (e) { /* best-effort flush */ }
+        }
+
         const { data, error } = await BMAuth.supabase.rpc('finish_simulation_attempt', { p_attempt_id: state.attempt.id });
         if (error) throw error;
         state.attempt = data;
@@ -424,14 +488,23 @@ window.BM = window.BM || {};
       BMAuth.supabase.from('simulation_answers').select('*').eq('attempt_id', state.attempt.id),
       BMAuth.supabase.from('simulation_answer_keys').select('*').in('simulation_item_id', itemIds)
     ]);
+    if (!state.options) state.options = await _fetchOptions(state.items);
     const answerMap = {};
     (answers || []).forEach(a => { answerMap[a.simulation_item_id] = a; });
     const keyMap = {};
     (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
 
+    // For grilă items, both the student's answer and the key are option ids
+    // — resolve each to its label text so results show something readable
+    // instead of a raw uuid.
+    const optLabel = (itemId, optionId) => (state.options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+
     const rows = state.items.map((it, idx) => {
       const a = answerMap[it.id];
       const correct = !!a?.is_correct;
+      const isGrila = it.answer_type === 'grila';
+      const yourAnswer = isGrila ? (a?.answer_text ? optLabel(it.id, a.answer_text) : '(fără răspuns)') : (a?.answer_text || '(fără răspuns)');
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
       return `
         <div class="sim-result-card sim-result-card--${correct ? 'ok' : 'no'}">
           <div class="sim-result-card__head">
@@ -443,13 +516,15 @@ window.BM = window.BM || {};
           <div class="sim-result-card__answers">
             <div class="sim-result-answer">
               <span class="sim-result-answer__lbl">Răspunsul tău</span>
-              <span class="sim-result-answer__val">${BM.esc(a?.answer_text || '(fără răspuns)')}</span>
+              <span class="sim-result-answer__val">${BM.esc(yourAnswer)}</span>
             </div>
             <div class="sim-result-answer sim-result-answer--correct">
               <span class="sim-result-answer__lbl">Răspuns corect</span>
-              <span class="sim-result-answer__val">${BM.esc(keyMap[it.id] || '—')}</span>
+              <span class="sim-result-answer__val">${BM.esc(correctAnswer)}</span>
             </div>
           </div>
+          ${a?.feedback_text ? `
+          <div class="sim-result-feedback">💬 ${BM.esc(a.feedback_text)}</div>` : ''}
         </div>`;
     }).join('');
 
