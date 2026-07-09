@@ -1234,20 +1234,18 @@
     const headerCells = assignments.map(a => {
       const [y, mo, d] = a.due_date.split('-').map(Number);
       const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      const title = a.title.length > 20 ? a.title.slice(0, 18) + '…' : a.title;
       return `
         <div class="catalog-th" title="${BM.esc(a.title)} — temă">
-          <span class="catalog-th__title">📝 ${BM.esc(title)}</span>
+          <span class="catalog-th__title">📝 ${BM.esc(a.title)}</span>
           <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');
 
     const simHeaderCells = sims.map(s => {
-      const title = s.title.length > 20 ? s.title.slice(0, 18) + '…' : s.title;
       const ds = _simColDate(s);
       return `
         <div class="catalog-th catalog-th--sim" title="${BM.esc(s.title)} — simulare">
-          <span class="catalog-th__title">🎯 ${BM.esc(title)}</span>
+          <span class="catalog-th__title">🎯 ${BM.esc(s.title)}</span>
           <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');

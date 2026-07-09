@@ -61,6 +61,7 @@ img { display: block; max-width: 100%; }
   --border: #D2CAB5;
   --border-hover: #1B4A8A;
   --border-active: #1B4A8A;
+  --catalog-line: #B7AB8C; /* stronger than --border — the Catalog grid needs to read as a table, not just faint separators */
 
   --accent: #3A6BAD;
   --accent-2: #4A7BBD;
@@ -3367,6 +3368,7 @@ body.bac-exam-mode .nav.nav--peek {
   --border: rgba(255,255,255,0.09);
   --border-hover: rgba(96,165,250,0.5);
   --border-active: rgba(96,165,250,0.7);
+  --catalog-line: rgba(255,255,255,0.22);
 
   --accent: #4a9eff;
   --accent-2: #60a5fa;
@@ -9206,7 +9208,7 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-scroll {
   overflow-x: auto;
   border-radius: var(--radius);
-  border: 1.5px solid var(--border);
+  border: 1.5px solid var(--catalog-line);
   box-shadow: 0 2px 12px rgba(0,0,0,0.06);
 }
 
@@ -9216,9 +9218,11 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: stretch;
 }
+.catalog-row { border-bottom: 1.5px solid var(--catalog-line); }
+.catalog-row:last-child { border-bottom: none; }
 .catalog-head {
   background: var(--surface);
-  border-bottom: 2px solid var(--border);
+  border-bottom: 2.5px solid var(--catalog-line);
   position: sticky;
   top: 0;
   z-index: 2;
@@ -9229,22 +9233,32 @@ body.bac-exam-mode .nav.nav--peek {
    this, a longer header label (e.g. a simulation title) renders wider than
    the short grade underneath it in the row below, visibly misaligning the
    whole column since .catalog-head and .catalog-row are separate flex
-   containers with no shared grid tying their cell widths together. */
+   containers with no shared grid tying their cell widths together.
+   Wider than before (140px, up from 90px) so the full assignment/simulation
+   name has room to wrap in the header instead of being cut short with "…" —
+   the column is what tells you the date and what the grade was for, so it
+   needs to stay legible without hovering for a tooltip. */
 .catalog-th, .catalog-td {
   padding: 10px 14px;
   font-size: 0.82rem;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-right: 1px solid var(--border);
-  width: 90px;
-  min-width: 90px;
+  border-right: 1.5px solid var(--catalog-line);
+  width: 140px;
+  min-width: 140px;
   text-align: center;
   flex-shrink: 0;
   overflow: hidden;
 }
 .catalog-th:last-child, .catalog-td:last-child { border-right: none; }
-.catalog-th__title, .catalog-th__date {
+.catalog-th__title {
+  white-space: normal;
+  overflow-wrap: break-word;
+  max-width: 100%;
+  line-height: 1.25;
+}
+.catalog-th__date {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -9300,9 +9314,9 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 700;
   color: var(--text-secondary);
   font-size: 0.80rem;
-  border-top: 2px solid var(--border);
+  border-top: 2.5px solid var(--catalog-line);
 }
-.catalog-td--stats-lbl { color: var(--text-muted); font-style: italic; }
+.catalog-td--stats-lbl { color: var(--text-muted); }
 .catalog-td--stat { color: var(--text); }
 
 /* Row zebra + hover */
