@@ -2517,119 +2517,6 @@
     return `${m}:${String(s).padStart(2, '0')}`;
   }
 
-  /* ═══════════════════════════════════════════════════════════════
-     GRADE EVOLUTION CHART — line chart across simulations, chronological.
-     Teacher default series = class average per simulation, togglable to
-     one student's own line. Student view: always just their own line.
-     Reuses the .sim-chart-grid/-axis/-tick/-value/-label visual system
-     already built for renderNotesChart (bar chart) — just a polyline
-     instead of bars.
-  ═══════════════════════════════════════════════════════════════ */
-  function _simEvolutionSectionHtml(isTeacher, chronoSims, classMembers) {
-    return `
-      <div class="cs-sim-section" style="margin-bottom:20px">
-        <div class="cs-sim-section__head">
-          <h4 class="cs-sim-section__title">Evoluție note</h4>
-          ${isTeacher ? `
-            <select id="simEvoSelect" class="cls-form-input cls-form-select" style="max-width:220px">
-              <option value="">Media clasei</option>
-              ${classMembers.map(m => `<option value="${m.student_id}">${BM.esc(m.student_name || 'Elev')}</option>`).join('')}
-            </select>` : ''}
-        </div>
-        <div id="simEvoChartWrap">${_simEvolutionLoadingHtml()}</div>
-      </div>`;
-  }
-
-  function _simEvolutionLoadingHtml() {
-    return `<p class="cs-empty">—</p>`;
-  }
-
-  function _wireSimEvolutionTeacher(chronoSims, attemptsBySim, classMembers) {
-    const wrap = document.getElementById('simEvoChartWrap');
-    const select = document.getElementById('simEvoSelect');
-    if (!wrap) return;
-
-    const render = (studentId) => {
-      const values = chronoSims.map(s => {
-        const atts = (attemptsBySim[s.id] || []).filter(a => a.status === 'finalizata' && a.grade_10 != null);
-        if (studentId) {
-          const mine = atts.find(a => a.student_id === studentId);
-          return mine ? parseFloat(mine.grade_10) : null;
-        }
-        if (!atts.length) return null;
-        return atts.reduce((sum, a) => sum + parseFloat(a.grade_10), 0) / atts.length;
-      });
-      wrap.innerHTML = renderSimEvolutionChart(chronoSims, values);
-    };
-
-    render('');
-    if (select) select.onchange = e => render(e.target.value);
-  }
-
-  function _wireSimEvolutionStudent(chronoSims, myAttempts) {
-    const wrap = document.getElementById('simEvoChartWrap');
-    if (!wrap) return;
-    const values = chronoSims.map(s => {
-      const a = myAttempts[s.id];
-      return (a?.status === 'finalizata' && a.grade_10 != null) ? parseFloat(a.grade_10) : null;
-    });
-    wrap.innerHTML = renderSimEvolutionChart(chronoSims, values);
-  }
-
-  function renderSimEvolutionChart(sims, values) {
-    const points = sims.map((s, i) => ({
-      title: s.title, dateIso: s.started_at || s.scheduled_at || s.created_at, grade: values[i]
-    })).filter(p => p.grade != null);
-
-    if (points.length === 0) return `<p class="cs-empty">Nicio notă de simulare încă.</p>`;
-
-    const H = 220, padTop = 30, padBottom = 40, padLeft = 34, padRight = 24, bandW = 80;
-    const plotH = H - padTop - padBottom;
-    const usableW = Math.max(bandW * (points.length - 1), 0);
-    const totalW = padLeft + padRight + usableW + 40;
-    const baselineY = padTop + plotH;
-
-    const gridLines = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => {
-      const y = padTop + plotH - (v / 10) * plotH;
-      return `
-        <line x1="${padLeft}" y1="${y}" x2="${totalW - padRight}" y2="${y}" class="sim-chart-grid"/>
-        <text x="${padLeft - 10}" y="${y + 4}" class="sim-chart-tick">${v}</text>`;
-    }).join('');
-
-    const axisLines = `
-      <line x1="${padLeft}" y1="${padTop - 8}" x2="${padLeft}" y2="${baselineY}" class="sim-chart-axis"/>
-      <line x1="${padLeft}" y1="${baselineY}" x2="${totalW - padRight}" y2="${baselineY}" class="sim-chart-axis"/>
-      <text x="${padLeft - 10}" y="${baselineY + 4}" class="sim-chart-tick">0</text>`;
-
-    const coords = points.map((p, i) => ({
-      ...p,
-      cx: points.length === 1 ? padLeft + 20 + usableW / 2 : padLeft + 20 + i * bandW,
-      cy: baselineY - (Math.min(Math.max(p.grade, 0), 10) / 10) * plotH
-    }));
-
-    const linePath = coords.map((c, i) => `${i === 0 ? 'M' : 'L'} ${c.cx} ${c.cy}`).join(' ');
-
-    const dots = coords.map(c => {
-      const dateLabel = new Date(c.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      return `
-        <g>
-          <circle cx="${c.cx}" cy="${c.cy}" r="5" class="sim-evo-point"><title>${BM.esc(c.title)} — ${BM.esc(dateLabel)}: ${c.grade.toFixed(1)}</title></circle>
-          <text x="${c.cx}" y="${Math.max(c.cy - 12, 16)}" class="sim-chart-value">${c.grade.toFixed(1)}</text>
-          <text x="${c.cx}" y="${H - 6}" class="sim-chart-label">${dateLabel}</text>
-        </g>`;
-    }).join('');
-
-    return `
-      <div class="sim-chart-scroll">
-        <svg width="${totalW}" height="${H}" viewBox="0 0 ${totalW} ${H}" class="sim-chart" role="img" aria-label="Evoluție note simulări">
-          ${gridLines}
-          ${axisLines}
-          <path d="${linePath}" class="sim-evo-line" fill="none"/>
-          ${dots}
-        </svg>
-      </div>`;
-  }
-
   async function loadSimulariTab() {
     const content = document.getElementById('cdContent');
     if (!content) return;
@@ -2650,15 +2537,13 @@
       let myAttempts    = {};
       let memberCount   = 0;
 
-      let classMembers = [];
       if (simIds.length > 0) {
         if (isTeacher) {
           const [{ data: attempts }, { data: members }] = await Promise.all([
             BMAuth.supabase.from('simulation_attempts').select('simulation_id, student_id, student_name, status, grade_10').in('simulation_id', simIds),
             BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id)
           ]);
-          classMembers = members || [];
-          memberCount = classMembers.length;
+          memberCount = (members || []).length;
           (attempts || []).forEach(a => {
             (attemptsBySim[a.simulation_id] = attemptsBySim[a.simulation_id] || []).push(a);
           });
@@ -2671,16 +2556,13 @@
 
       simCache = simList;
       const visible = isTeacher ? simList : simList.filter(s => s.status !== 'programata');
-      const chronoSims = simList.slice().sort((a, b) =>
-        new Date(a.started_at || a.scheduled_at || a.created_at) - new Date(b.started_at || b.scheduled_at || b.created_at));
 
       content.innerHTML = `
         ${isTeacher ? `
-          <div class="teme-toolbar">
+          <div class="teme-toolbar sim-toolbar">
             <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
             <button class="btn btn--surface" id="simFromTemplateBtn">📋 Din șablon</button>
           </div>` : ''}
-        ${chronoSims.length > 0 ? _simEvolutionSectionHtml(isTeacher, chronoSims, classMembers) : ''}
         <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
           ${visible.length === 0
             ? simEmpty(isTeacher)
@@ -2692,11 +2574,6 @@
 
       document.getElementById('newSimBtn')?.addEventListener('click', () => openSimulationWizard());
       document.getElementById('simFromTemplateBtn')?.addEventListener('click', () => openSimTemplatePicker());
-
-      if (chronoSims.length > 0) {
-        if (isTeacher) _wireSimEvolutionTeacher(chronoSims, attemptsBySim, classMembers);
-        else _wireSimEvolutionStudent(chronoSims, myAttempts);
-      }
 
       if (isTeacher) {
         content.querySelectorAll('[data-sim-start]').forEach(btn => btn.addEventListener('click', e => { e.stopPropagation(); startSimulation(btn.dataset.simStart); }));
@@ -2980,11 +2857,18 @@
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = () => modal.remove();
-    modal.querySelector('#simDetailCloseBtn').onclick = () => modal.remove();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const closeModal = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#simDetailCloseBtn').onclick = closeModal;
 
     const { data: attempt } = await BMAuth.supabase.from('simulation_attempts').select('*').eq('id', attemptId).single();
-    if (!attempt) { modal.remove(); return; }
+    if (!attempt) { closeModal(); return; }
     const sim = simCache.find(s => s.id === attempt.simulation_id);
 
     const { data: items } = await BMAuth.supabase
@@ -3136,8 +3020,15 @@
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = () => modal.remove();
-    modal.querySelector('#simSaveTplCloseBtn').onclick = () => modal.remove();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const closeModal = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#simSaveTplCloseBtn').onclick = closeModal;
     modal.querySelector('#simSaveTplConfirmBtn').onclick = () => _saveAsTemplate(sim, modal);
   }
 
@@ -3192,6 +3083,8 @@
       }
       BM.toast('Șablon salvat!', 'success');
       modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
       btn.disabled = false; btn.textContent = 'Salvează';
@@ -3215,8 +3108,15 @@
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = () => modal.remove();
-    modal.querySelector('#simTplCloseBtn').onclick = () => modal.remove();
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const closeModal = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#simTplCloseBtn').onclick = closeModal;
 
     const { data: templates } = await BMAuth.supabase
       .from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false });
@@ -3263,11 +3163,11 @@
 
     document.getElementById('simTemplateModal')?.remove();
     simWiz = {
-      existingId: null, step: 1, title: '', scheduledAt: '',
+      existingId: null, step: 1, title: tpl.title, scheduledAt: '',
       timeLimitMinutes: tpl.time_limit_minutes, supervised: tpl.supervised,
       startMode: 'schedule', items
     };
-    BM.toast('Șablon încărcat — completează titlul și revizuiește exercițiile înainte de a salva.', 'success');
+    BM.toast('Șablon încărcat — revizuiește detaliile și exercițiile înainte de a salva.', 'success');
     _simWzShowModal();
   }
 
