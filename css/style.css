@@ -8432,7 +8432,7 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* ── Day-of-week filter (Clasele Mele) — quiet icon trigger, not a
    prominent control; only reveals its purpose on hover/open. ─── */
-.cls-day-filter { position: relative; flex-shrink: 0; }
+.cls-day-filter { position: relative; flex-shrink: 0; margin-right: 10px; }
 .cls-day-filter__btn {
   position: relative;
   display: flex;
@@ -8461,7 +8461,7 @@ body.bac-exam-mode .nav.nav--peek {
   top: calc(100% + 8px);
   right: 0;
   z-index: 40;
-  min-width: 220px;
+  width: 248px;
   padding: 12px;
   background: var(--card);
   border: 1.5px solid var(--border);
@@ -8477,27 +8477,31 @@ body.bac-exam-mode .nav.nav--peek {
   transform: translateY(0);
   pointer-events: all;
 }
+/* 4 columns → 7 days lay out 4+3, evenly filling the row's width, instead
+   of flex-wrap leaving a single lonely chip on its own last row. */
 .cls-day-filter__chips {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
   gap: 6px;
   margin-bottom: 10px;
 }
-.cls-day-chip--sm { padding: 6px 11px; font-size: 0.76rem; }
+.cls-day-chip--sm { padding: 7px 0; font-size: 0.76rem; text-align: center; }
 .cls-day-filter__clear {
+  display: block;
   width: 100%;
-  padding: 7px;
-  border: none;
-  border-top: 1px solid var(--border);
-  background: none;
-  color: var(--text-muted);
+  padding: 8px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
   font-size: 0.78rem;
-  font-weight: 600;
+  font-weight: 700;
   font-family: inherit;
   cursor: pointer;
-  transition: color 0.15s ease;
+  transition: color 0.15s ease, border-color 0.15s ease, background 0.15s ease;
 }
-.cls-day-filter__clear:hover { color: var(--accent); }
+.cls-day-filter__clear:hover { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+[data-theme="dark"] .cls-day-filter__clear { background: rgba(255,255,255,0.05); }
 [data-theme="dark"] .cls-day-filter__btn { background: rgba(255,255,255,0.05); }
 
 /* ── Custom styled select ─────────────────────────────────── */
@@ -9356,8 +9360,10 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* Sortable column headers — Medie + each simulation column. Cycles
    desc → asc → default (unsorted) on repeated clicks; see catalogSortState
-   in class-page.js. */
-.catalog-th--sortable { cursor: pointer; user-select: none; }
+   in class-page.js. Hover kept here (unlike the rest of the table) because
+   these cells are actually clickable. */
+.catalog-th--sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
+.catalog-th--sortable:hover { background: var(--accent-dim); }
 .catalog-th__sort-arrow {
   margin-left: 4px;
   color: var(--accent);
@@ -9423,9 +9429,12 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-td--none { color: var(--text-muted); font-size: 0.9rem; }
 
 /* Simulation grade cells open the quick-view modal — dash/"none" cells
-   deliberately never get this class, so they stay non-interactive. Cursor
-   alone signals "clickable" here; no hover color/brightness shift. */
-.catalog-td--clickable { cursor: pointer; }
+   deliberately never get this class, so they stay non-interactive. Hover
+   kept here (unlike the rest of the table) because these cells are
+   actually clickable. */
+.catalog-td--clickable { cursor: pointer; transition: filter 0.15s; }
+.catalog-td--clickable:hover { filter: brightness(0.94); }
+[data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.2); }
 
 /* Text-only version of the same tiers — used on the Medie column and the
    Medie clasă row, which already have their own background treatment
