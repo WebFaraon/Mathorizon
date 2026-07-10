@@ -4,9 +4,17 @@
   function injectPanelHTML() {
     if (document.getElementById('panel-fav')) return;
 
+    // id must be "overlay" — BM.openPanel/closeAllPanels (js/utils.js) look
+    // up getElementById('overlay'), not 'panelOverlay'. On pages that ship
+    // a static #overlay in their HTML (category.html, index.html) this
+    // never mattered since injectPanelHTML() just early-returns there; on
+    // every other page (class.html, classes.html, pachete.html, bac.html —
+    // no static panel markup at all) the mismatched id meant the overlay
+    // was created but never actually found/toggled, so the backdrop dim
+    // and click-blocking silently never activated.
     const overlay = document.createElement('div');
     overlay.className = 'overlay';
-    overlay.id = 'panelOverlay';
+    overlay.id = 'overlay';
     overlay.onclick = () => BM.closeAllPanels();
     document.body.appendChild(overlay);
 
@@ -42,6 +50,17 @@
         </div>
       </aside>
     `);
+
+    // Forces the browser to commit the just-inserted elements' initial
+    // style (translateX(100%), opacity:0) in their own paint before
+    // whatever calls BM.openPanel() right after this adds .open — without
+    // this, insertion and the .open toggle land in the same style
+    // recalculation and the slide-in/fade-in transition gets skipped
+    // entirely (panel just snaps straight to its open state). Pages with
+    // a static panel already in their HTML at load time never hit this,
+    // since injectPanelHTML() early-returns for them — only first-open on
+    // pages where this function actually creates the panel needed it.
+    void overlay.offsetHeight;
   }
 
   function renderPanelItem(ex, ts) {

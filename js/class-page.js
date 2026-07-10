@@ -1395,10 +1395,6 @@
 
     return `
       <div class="catalog-wrap">
-        <div class="catalog-toolbar">
-          <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">📄 Exportă PDF</button>
-          <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">📊 Exportă Excel</button>
-        </div>
         <div class="catalog-statsbar">
           <div class="catalog-stat-card">
             <div class="catalog-stat-card__val">${stats.memberCount ?? members.length}</div>
@@ -1433,6 +1429,10 @@
               ${(assignments.length > 0 || sims.length > 0) ? statsRow : ''}
             </div>
           </div>
+        </div>
+        <div class="catalog-toolbar">
+          <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">📄 Exportă PDF</button>
+          <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">📊 Exportă Excel</button>
         </div>
       </div>`;
   }

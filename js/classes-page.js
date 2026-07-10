@@ -7,6 +7,23 @@
 (function () {
   'use strict';
 
+  const DAY_ORDER = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
+
+  // Persists across renderTeacherView() re-renders (create/delete a class)
+  // within the same visit, same convention as other in-session-only filter/
+  // sort state elsewhere in the app.
+  let _dayFilterSelected = [];
+
+  // Class names are always machine-generated as "Materie · Zi[/Zi2] · Oră"
+  // (see buildGeneratedName/_getSelectedDays below — there's no free-text
+  // override and no separate "days" column in the classes table), so the
+  // day(s) a class meets on can be reliably recovered straight from the
+  // name instead of needing a schema change just for this filter.
+  function _parseClassDays(name) {
+    const dayPart = String(name || '').split(' · ')[1] || '';
+    return dayPart.split('/').map(d => d.trim()).filter(d => DAY_ORDER.includes(d));
+  }
+
   /* ─── Init ─────────────────────────────────────────────────────── */
   function init() {
     BM.initScrollTop();
@@ -137,12 +154,20 @@
             <h1 class="classes-title">Clasele Mele</h1>
             <p class="classes-subtitle">Creează clase și partajează codurile de invitație cu elevii tăi.</p>
           </div>
-          <button class="btn btn--primary" id="createClassBtn">+ Creează Clasă</button>
+          <div class="classes-header__actions">
+            ${classes.length > 0 ? _dayFilterHTML() : ''}
+            <button class="btn btn--primary" id="createClassBtn">+ Creează Clasă</button>
+          </div>
         </div>
         ${classes.length === 0
           ? teacherEmpty()
           : `<div class="classes-grid" id="classesGrid">
                ${classes.map(c => teacherCard(c, memberCounts[c.id] || 0)).join('')}
+             </div>
+             <div class="classes-empty classes-empty--filtered" id="classesFilterEmpty" style="display:none">
+               <div class="classes-empty__icon">📭</div>
+               <h3>Nicio clasă în ziua selectată</h3>
+               <p>Încearcă altă zi sau șterge filtrul.</p>
              </div>`
         }
       </div>
@@ -154,6 +179,90 @@
     });
     attachMouseGlow('classesGrid');
     _initCustomSelects();
+    if (classes.length > 0) { _wireDayFilter(); _applyDayFilter(); }
+  }
+
+  /* ── Day-of-week filter — quiet icon-only trigger next to "+ Creează
+     Clasă", not a prominent control; a teacher only needs it once they
+     have enough classes that scanning the grid by eye stops being faster. */
+  function _dayFilterHTML() {
+    return `
+      <div class="cls-day-filter" id="clsDayFilter">
+        <button type="button" class="cls-day-filter__btn${_dayFilterSelected.length ? ' cls-day-filter__btn--active' : ''}"
+                id="dayFilterBtn" title="Filtrează după zi" aria-label="Filtrează după zi">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="4.5" width="18" height="16" rx="2.5"/>
+            <path d="M3 9.5h18M8 2.5v4M16 2.5v4"/>
+          </svg>
+          ${_dayFilterSelected.length ? `<span class="cls-day-filter__dot"></span>` : ''}
+        </button>
+        <div class="cls-day-filter__pop" id="dayFilterPop">
+          <div class="cls-day-filter__chips">
+            ${DAY_ORDER.map(d => `
+              <button type="button" class="cls-day-chip cls-day-chip--sm${_dayFilterSelected.includes(d) ? ' cls-day-chip--sel' : ''}" data-day="${d}">${d.slice(0, 3)}</button>
+            `).join('')}
+          </div>
+          <button type="button" class="cls-day-filter__clear" id="dayFilterClear">Arată toate</button>
+        </div>
+      </div>`;
+  }
+
+  function _wireDayFilter() {
+    const wrap  = document.getElementById('clsDayFilter');
+    const btn   = document.getElementById('dayFilterBtn');
+    const pop   = document.getElementById('dayFilterPop');
+    if (!wrap || !btn || !pop) return;
+
+    btn.addEventListener('click', e => {
+      e.stopPropagation();
+      wrap.classList.toggle('cls-day-filter--open');
+    });
+    pop.addEventListener('click', e => e.stopPropagation());
+    document.addEventListener('click', () => wrap.classList.remove('cls-day-filter--open'));
+
+    pop.querySelectorAll('[data-day]').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const day = chip.dataset.day;
+        _dayFilterSelected = _dayFilterSelected.includes(day)
+          ? _dayFilterSelected.filter(d => d !== day)
+          : [..._dayFilterSelected, day];
+        chip.classList.toggle('cls-day-chip--sel');
+        btn.classList.toggle('cls-day-filter__btn--active', _dayFilterSelected.length > 0);
+        let dot = btn.querySelector('.cls-day-filter__dot');
+        if (_dayFilterSelected.length && !dot) {
+          btn.insertAdjacentHTML('beforeend', '<span class="cls-day-filter__dot"></span>');
+        } else if (!_dayFilterSelected.length && dot) {
+          dot.remove();
+        }
+        _applyDayFilter();
+      });
+    });
+
+    document.getElementById('dayFilterClear')?.addEventListener('click', () => {
+      _dayFilterSelected = [];
+      pop.querySelectorAll('.cls-day-chip--sel').forEach(c => c.classList.remove('cls-day-chip--sel'));
+      btn.classList.remove('cls-day-filter__btn--active');
+      btn.querySelector('.cls-day-filter__dot')?.remove();
+      _applyDayFilter();
+    });
+  }
+
+  // Matches if ANY of the class's own days is among the selected filter
+  // days — a Marți/Joi class stays visible when only "Joi" is picked.
+  function _applyDayFilter() {
+    const grid = document.getElementById('classesGrid');
+    if (!grid) return;
+    const cards = [...grid.querySelectorAll('.class-card')];
+    let visibleCount = 0;
+    cards.forEach(card => {
+      const days = (card.dataset.days || '').split(',').filter(Boolean);
+      const match = _dayFilterSelected.length === 0 || days.some(d => _dayFilterSelected.includes(d));
+      card.style.display = match ? '' : 'none';
+      if (match) visibleCount++;
+    });
+    const emptyMsg = document.getElementById('classesFilterEmpty');
+    if (emptyMsg) emptyMsg.style.display = visibleCount === 0 ? '' : 'none';
+    grid.style.display = visibleCount === 0 ? 'none' : '';
   }
 
   async function renderTeacherView() {
@@ -212,6 +321,7 @@
     const plural = memberCount !== 1 ? 'elevi' : 'elev';
     return `
       <div class="class-card class-card--clickable"
+           data-days="${_parseClassDays(cls.name).join(',')}"
            onclick="window.location.href='class.html?id=${cls.id}'">
         <div class="class-card__header">
           <div>
@@ -457,8 +567,6 @@
       </div>
     `;
   }
-
-  const DAY_ORDER = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
   // Reads selection straight off the chips' DOM state rather than keeping a
   // parallel JS array — the day picker has no hidden <select>, this *is*

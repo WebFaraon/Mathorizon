@@ -8074,6 +8074,11 @@ body.bac-exam-mode .nav.nav--peek {
   margin-bottom: 36px;
   flex-wrap: wrap;
 }
+.classes-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
 
 .classes-title {
   font-size: 2rem;
@@ -8424,6 +8429,76 @@ body.bac-exam-mode .nav.nav--peek {
    dark mode keeps its unselected background and just wears the accent
    border/glow — reading as an outline instead of a filled pill. */
 [data-theme="dark"] .cls-day-chip--sel { background: var(--accent); }
+
+/* ── Day-of-week filter (Clasele Mele) — quiet icon trigger, not a
+   prominent control; only reveals its purpose on hover/open. ─── */
+.cls-day-filter { position: relative; flex-shrink: 0; }
+.cls-day-filter__btn {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border: 1.5px solid var(--border);
+  border-radius: 999px;
+  background: var(--card);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.16s ease, border-color 0.16s ease, background 0.16s ease;
+}
+.cls-day-filter__btn:hover { color: var(--text); border-color: var(--accent); }
+.cls-day-filter__btn--active { color: var(--accent); border-color: var(--accent); background: var(--accent-dim); }
+.cls-day-filter__dot {
+  position: absolute;
+  top: 6px; right: 6px;
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.cls-day-filter__pop {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 40;
+  min-width: 220px;
+  padding: 12px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: 0 12px 32px rgba(0,0,0,0.14);
+  opacity: 0;
+  transform: translateY(-6px);
+  pointer-events: none;
+  transition: opacity 0.16s ease, transform 0.16s ease;
+}
+.cls-day-filter--open .cls-day-filter__pop {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+}
+.cls-day-filter__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-bottom: 10px;
+}
+.cls-day-chip--sm { padding: 6px 11px; font-size: 0.76rem; }
+.cls-day-filter__clear {
+  width: 100%;
+  padding: 7px;
+  border: none;
+  border-top: 1px solid var(--border);
+  background: none;
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: color 0.15s ease;
+}
+.cls-day-filter__clear:hover { color: var(--accent); }
+[data-theme="dark"] .cls-day-filter__btn { background: rgba(255,255,255,0.05); }
 
 /* ── Custom styled select ─────────────────────────────────── */
 .cls-csel {
@@ -9158,12 +9233,12 @@ body.bac-exam-mode .nav.nav--peek {
 
 .catalog-wrap { padding: 0; }
 
-/* Export buttons */
+/* Export buttons — secondary action, below the table rather than above it */
 .catalog-toolbar {
   display: flex;
   justify-content: flex-end;
   gap: 10px;
-  margin-bottom: 14px;
+  margin-top: 14px;
 }
 
 /* Stats bar */
@@ -10709,14 +10784,15 @@ body.bac-exam-mode .nav.nav--peek {
   width: 100%;
 }
 
+/* Stacked, not side-by-side — "+ Simulare Nouă" is the primary action on
+   its own row up top, "Din șablon" a secondary one below, both spanning
+   the full width so neither reads as the "smaller" option. */
 .sim-toolbar {
   width: 100%;
+  flex-direction: column;
 }
 .sim-toolbar .btn {
-  flex: 1 1 0;
-}
-.sim-toolbar #newSimBtn {
-  flex: 2 1 0;
+  width: 100%;
 }
 
 .teme-list {
