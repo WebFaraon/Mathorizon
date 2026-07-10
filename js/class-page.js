@@ -1152,14 +1152,22 @@
         .order('created_at', { ascending: true });
       const sims = rawSims || [];
 
-      const simMatrix = {}; /* [studentId][simulationId] */
+      const simMatrix = {}; /* [studentId][simulationId] — latest finalized attempt only */
       if (sims.length > 0) {
         const simIds = sims.map(s => s.id);
+        // A student can have multiple finalized attempts for the same
+        // simulation after a teacher reopens + they retake it — order
+        // ascending so each forEach iteration below overwrites with a
+        // newer row, leaving only the LATEST attempt per (student,
+        // simulation) pair by the time the loop finishes. This is what
+        // makes a retake's grade replace the old one in Catalog/averages
+        // without ever deleting the older simulation_attempts row itself.
         const { data: simAttempts } = await BMAuth.supabase
           .from('simulation_attempts')
-          .select('simulation_id, student_id, student_name, grade_10, status, earned_points, total_points')
+          .select('id, simulation_id, student_id, student_name, grade_10, status, earned_points, total_points, started_at')
           .eq('status', 'finalizata')
-          .in('simulation_id', simIds);
+          .in('simulation_id', simIds)
+          .order('started_at', { ascending: true });
         (simAttempts || []).forEach(a => {
           if (!nameMap[a.student_id] && a.student_name) nameMap[a.student_id] = a.student_name;
           if (!simMatrix[a.student_id]) simMatrix[a.student_id] = {};
@@ -1191,6 +1199,9 @@
 
       if (isTeacher) {
         content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix);
+        content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
+          cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
+        });
       } else {
         content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
         _wireCsSimViewToggle(content);
@@ -1273,7 +1284,7 @@
         if (!att) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
         const g = parseFloat(att.grade_10);
         const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
-        return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls}" title="Notă simulare: ${att.grade_10}">${att.grade_10}</div>`;
+        return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls} catalog-td--clickable" data-quick-view-attempt="${att.id}" title="Vezi detalii rapide">${att.grade_10}</div>`;
       }).join('');
 
       const myGrades = assignments
@@ -2544,16 +2555,27 @@
       if (simIds.length > 0) {
         if (isTeacher) {
           const [{ data: attempts }, { data: members }] = await Promise.all([
-            BMAuth.supabase.from('simulation_attempts').select('simulation_id, student_id, student_name, status, grade_10').in('simulation_id', simIds),
+            BMAuth.supabase.from('simulation_attempts')
+              .select('simulation_id, student_id, student_name, status, grade_10, started_at')
+              .in('simulation_id', simIds).order('started_at', { ascending: true }),
             BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id)
           ]);
           memberCount = (members || []).length;
+          // A retake after reopen means a student can have several rows for
+          // the same simulation — keep only the latest per (simulation,
+          // student) so "x/y finalizat" counts students, not attempts, and
+          // the card shows current status/grade, not a stale one.
+          const latestBySimStudent = {};
           (attempts || []).forEach(a => {
-            (attemptsBySim[a.simulation_id] = attemptsBySim[a.simulation_id] || []).push(a);
+            (latestBySimStudent[a.simulation_id] = latestBySimStudent[a.simulation_id] || {})[a.student_id] = a;
+          });
+          Object.keys(latestBySimStudent).forEach(simId => {
+            attemptsBySim[simId] = Object.values(latestBySimStudent[simId]);
           });
         } else {
           const { data: mine } = await BMAuth.supabase.from('simulation_attempts')
-            .select('*').eq('student_id', BMAuth.user.id).in('simulation_id', simIds);
+            .select('*').eq('student_id', BMAuth.user.id).in('simulation_id', simIds)
+            .order('started_at', { ascending: true });
           (mine || []).forEach(a => { myAttempts[a.simulation_id] = a; });
         }
       }
@@ -2709,9 +2731,20 @@
 
   async function reopenSimulation(id) {
     try {
-      const { error } = await BMAuth.supabase.from('simulations').update({ status: 'activa' }).eq('id', id);
+      // Resetting started_at (not just status) matters for two reasons:
+      // 1. The pg_cron expiry sweep closes any 'activa' simulation once
+      //    started_at + time_limit_minutes has passed — without this, an
+      //    old simulation reopened days after its original deadline would
+      //    get auto-closed again within the next minute.
+      // 2. simulare-exam.js's start() uses "did my last finalized attempt
+      //    finish before this reopen?" (finished_at vs started_at) to
+      //    decide whether a student gets a fresh retake or just sees their
+      //    existing results — that comparison only works if started_at
+      //    actually reflects the reopen time.
+      const { error } = await BMAuth.supabase.from('simulations')
+        .update({ status: 'activa', started_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
-      BM.toast('Simularea a fost redeschisă.', 'success');
+      BM.toast('Simularea a fost redeschisă — elevii care au finalizat-o deja o pot relua.', 'success');
       await loadSimulariTab();
     } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
   }
@@ -2782,7 +2815,10 @@
     const sim = simCache.find(s => s.id === simId);
     const [{ data: members }, { data: attempts }] = await Promise.all([
       BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id),
-      BMAuth.supabase.from('simulation_attempts').select('*').eq('simulation_id', simId)
+      // Ascending order + overwrite-on-forEach below means attemptMap ends
+      // up holding only each student's LATEST attempt — relevant once a
+      // reopen + retake can leave a student with more than one row here.
+      BMAuth.supabase.from('simulation_attempts').select('*').eq('simulation_id', simId).order('started_at', { ascending: true })
     ]);
     const attemptMap = {};
     (attempts || []).forEach(a => { attemptMap[a.student_id] = a; });
@@ -2843,6 +2879,105 @@
     const byItem = {};
     (data || []).forEach(o => { (byItem[o.simulation_item_id] = byItem[o.simulation_item_id] || []).push(o); });
     return byItem;
+  }
+
+  /* ─── Catalog quick view: compact per-exercise summary, no full enunț ───
+     Opened from a Catalog grade cell — a fast lookup, not a review tool.
+     Deliberately skips fetching simulation_items.statement (no KaTeX render
+     needed) and skips the feedback-editing UI from openSimStudentDetail —
+     "Vezi detaliat" below hands off to that full view for anything beyond
+     a quick glance. */
+  async function openSimQuickView(attemptId) {
+    document.getElementById('simQvModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'simQvModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog sim-qv-dialog">
+        <div class="classes-modal__head">
+          <h3 id="simQvTitle">Se încarcă…</h3>
+          <button class="icon-btn" id="simQvCloseBtn">✕</button>
+        </div>
+        <div class="classes-modal__body" id="simQvBody">
+          <div class="classes-loading"><div class="classes-spinner"></div></div>
+        </div>
+        <div class="classes-modal__foot">
+          <button class="btn btn--surface btn--sm" id="simQvDetailBtn">Vezi detaliat →</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const closeModal = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#simQvCloseBtn').onclick = closeModal;
+    modal.querySelector('#simQvDetailBtn').onclick = () => { closeModal(); openSimStudentDetail(attemptId); };
+
+    const { data: attempt } = await BMAuth.supabase.from('simulation_attempts').select('*').eq('id', attemptId).single();
+    if (!attempt) { closeModal(); return; }
+    const { data: sim } = await BMAuth.supabase.from('simulations').select('title, supervised').eq('id', attempt.simulation_id).single();
+
+    // No `statement` in the select — this view never renders the enunț.
+    const { data: items } = await BMAuth.supabase
+      .from('simulation_items').select('id, position, title, points, answer_type')
+      .eq('simulation_id', attempt.simulation_id).order('position');
+    const itemIds = (items || []).map(i => i.id);
+
+    const [{ data: keys }, { data: answers }, flagRow] = await Promise.all([
+      BMAuth.supabase.from('simulation_answer_keys').select('*').in('simulation_item_id', itemIds),
+      BMAuth.supabase.from('simulation_answers').select('*').eq('attempt_id', attemptId),
+      sim?.supervised
+        ? BMAuth.supabase.from('simulation_attempt_flags').select('*').eq('attempt_id', attemptId).maybeSingle()
+        : Promise.resolve({ data: null })
+    ]);
+    const options = await _simFetchOptionsFor(items || []);
+
+    const keyMap = {}; (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
+    const answerMap = {}; (answers || []).forEach(a => { answerMap[a.simulation_item_id] = a; });
+    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+
+    document.getElementById('simQvTitle').textContent = `${attempt.student_name || 'Elev'} — ${sim?.title || ''}`;
+
+    const violations = flagRow?.data?.tab_switch_count || 0;
+    const dur = attempt.finished_at ? _fmtDuration(new Date(attempt.finished_at) - new Date(attempt.started_at)) : '—';
+    const grade = attempt.grade_10 != null ? parseFloat(attempt.grade_10) : null;
+    const gradeCls = grade == null ? '' : grade >= 9 ? 'hi' : grade >= 7 ? 'ok' : grade >= 5 ? 'mid' : 'lo';
+
+    const rows = (items || []).map((it, idx) => {
+      const a = answerMap[it.id];
+      const correct = !!a?.is_correct;
+      const isGrila = it.answer_type === 'grila';
+      const yourAnswer = isGrila ? (a?.answer_text ? optLabel(it.id, a.answer_text) : '(fără răspuns)') : (a?.answer_text || '(fără răspuns)');
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
+      const compareLbl = isGrila ? 'Alese' : 'Al tău';
+      return `
+        <div class="sim-qv-row sim-qv-row--${correct ? 'ok' : 'no'}">
+          <div class="sim-qv-row__top">
+            <span class="sim-qv-row__idx">${idx + 1}. ${BM.esc(it.title || '')}</span>
+            <span class="sim-qv-row__mark">${correct ? '✓' : '✗'}</span>
+            <span class="sim-qv-row__pts">${a?.points_earned ?? 0}/${it.points}p</span>
+          </div>
+          <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} — Corect: ${BM.esc(correctAnswer)}</div>
+          ${a?.feedback_text ? `<div class="sim-qv-row__fb">💬 ${BM.esc(a.feedback_text)}</div>` : ''}
+        </div>`;
+    }).join('');
+
+    const body = document.getElementById('simQvBody');
+    body.innerHTML = `
+      <div class="sim-qv-summary">
+        <div class="sim-qv-grade sim-qv-grade--${gradeCls}">${attempt.grade_10 ?? '—'}</div>
+        <div class="sim-qv-meta">
+          <span class="sim-qv-meta__item">🎯 ${attempt.earned_points}/${attempt.total_points}p</span>
+          <span class="sim-qv-meta__item">⏱ ${dur}</span>
+          ${violations > 0 ? `<span class="sim-violation-badge">⚠ A părăsit fereastra de ${violations} ori</span>` : ''}
+        </div>
+      </div>
+      <div class="sim-qv-list">${rows || '<p class="cs-empty">Niciun exercițiu.</p>'}</div>`;
   }
 
   /* ─── Per-student detail: per-exercise breakdown + teacher feedback ─── */
@@ -3044,6 +3179,14 @@
     const btn = document.getElementById('simSaveTplConfirmBtn');
     btn.disabled = true; btn.textContent = 'Se salvează…';
     try {
+      const { data: dupe } = await BMAuth.supabase.from('simulation_templates')
+        .select('id').eq('created_by', BMAuth.user.id).ilike('title', title).maybeSingle();
+      if (dupe) {
+        BM.toast('Ai deja un șablon cu această denumire — alege alta.', 'error');
+        btn.disabled = false; btn.textContent = 'Salvează';
+        return;
+      }
+
       const { data: items } = await BMAuth.supabase.from('simulation_items').select('*').eq('simulation_id', sim.id).order('position');
       const itemIds = (items || []).map(i => i.id);
       const [{ data: keys }, { data: opts }] = await Promise.all([
@@ -3092,7 +3235,13 @@
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
     } catch (e) {
-      BM.toast('Eroare: ' + e.message, 'error');
+      // 23505 = unique_violation — the pre-check above already covers the
+      // common case, this is the final guard against a race between two
+      // near-simultaneous saves (e.g. two tabs) slipping past it.
+      const msg = e.code === '23505' || /duplicate key/i.test(e.message || '')
+        ? 'Ai deja un șablon cu această denumire — alege alta.'
+        : 'Eroare: ' + e.message;
+      BM.toast(msg, 'error');
       btn.disabled = false; btn.textContent = 'Salvează';
     }
   }

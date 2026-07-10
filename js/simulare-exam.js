@@ -97,10 +97,19 @@ window.BM = window.BM || {};
     zone.addEventListener('mouseleave', hide);
   }
 
-  /* Watches this specific simulation's own row — if the teacher hits
-     "Încheie" while the student is still mid-exam, force-finish them
-     immediately with whatever's been answered so far, instead of letting
-     them keep solving a simulation that's no longer active. */
+  /* Watches this specific simulation's own row for two opposite events:
+     - Teacher hits "Încheie" while the student is still mid-exam → force-
+       finish them immediately with whatever's been answered so far.
+     - Teacher hits "Redeschide" while the student is sitting on their OLD
+       results screen (_renderResults doesn't take over fullscreen, so
+       there's nothing else stopping them from just staying there) → without
+       this, they'd have no way to know a retake is available short of
+       manually navigating away and back to the Simulări tab. Only offer
+       the retake if the reopen happened AFTER this attempt finished —
+       reusing the same started_at-vs-finished_at comparison as start(),
+       so a student who's simply looking at a still-current result (sim
+       reopened, then they retook it and are viewing THAT result) doesn't
+       get an incorrect "you can retake" prompt for their own latest score. */
   function _watchSimulationStatus(simulationId) {
     _unwatchSimulationStatus();
     _simRealtimeChannel = BMAuth.supabase
@@ -111,6 +120,10 @@ window.BM = window.BM || {};
         if (payload.new?.status === 'incheiata' && state && !state.finished) {
           BM.toast('Profesorul a încheiat simularea — se finalizează cu răspunsurile tale curente.', 'info');
           _finish();
+        } else if (payload.new?.status === 'activa' && state?.finished && state.attempt?.finished_at
+          && new Date(state.attempt.finished_at).getTime() < new Date(payload.new.started_at).getTime()) {
+          BM.toast('Profesorul a redeschis simularea — o poți relua acum.', 'info');
+          start(Object.assign({}, state.simulation, payload.new));
         }
       })
       .subscribe();
@@ -144,16 +157,28 @@ window.BM = window.BM || {};
 
   async function start(simulation) {
     try {
-      // Look for an attempt of ours first — covers "resume" and "view result"
-      // without ever touching start_simulation_attempt (which only succeeds
-      // while the simulation is 'activa', and would wrongly block resuming/
-      // reviewing an attempt after a teacher later ends or reopens it).
-      const { data: existing } = await BMAuth.supabase
+      // A student can now have several attempt rows for the same
+      // simulation (one per retake after a teacher reopens it) — only the
+      // most recent one is ever relevant, so always take the latest.
+      const { data: existingList } = await BMAuth.supabase
         .from('simulation_attempts').select('*')
         .eq('simulation_id', simulation.id).eq('student_id', BMAuth.user.id)
-        .maybeSingle();
+        .order('started_at', { ascending: false }).limit(1);
+      const existing = existingList?.[0] || null;
 
-      if (existing?.status === 'finalizata') {
+      // A finalized attempt only means "just show past results" if it's
+      // still current — i.e. the simulation hasn't been reopened SINCE
+      // this attempt finished. reopenSimulation() resets simulations.
+      // started_at to the reopen time specifically so this comparison
+      // works: finished_at < started_at means "stale, reopened after I
+      // finished" → the student gets a fresh retake instead. Without this
+      // check, a student who simply finished early while the exam was
+      // still active for classmates would get wrongly forced into a new
+      // attempt every time they revisit their own results.
+      const canRetake = simulation.status === 'activa' && existing?.status === 'finalizata'
+        && new Date(existing.finished_at).getTime() < new Date(simulation.started_at).getTime();
+
+      if (existing?.status === 'finalizata' && !canRetake) {
         // Already finished — show the results right inside the class page.
         // No fullscreen/overlay takeover: there's nothing left to protect
         // from cheating once it's over.
@@ -173,7 +198,11 @@ window.BM = window.BM || {};
       overlay.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă simularea...</p></div>`;
       document.body.appendChild(overlay);
 
-      let attempt = existing || null;
+      // Only an in-progress attempt can be resumed as-is — a finalized one
+      // (first-time-finished-but-stale-after-reopen, i.e. canRetake) must
+      // go through start_simulation_attempt to get a genuinely fresh row;
+      // it never reuses an old finalized attempt.
+      let attempt = existing?.status === 'in_progres' ? existing : null;
       if (!attempt) {
         const { data, error } = await BMAuth.supabase.rpc('start_simulation_attempt', {
           p_simulation_id: simulation.id,
@@ -556,5 +585,13 @@ window.BM = window.BM || {};
     });
 
     document.getElementById('simResultsCloseBtn').onclick = _close;
+
+    // Covers both paths that lead here: a student who just finished
+    // normally (via _finish, which already unwatched before calling this)
+    // and one revisiting an old result from the Simulări list (start()'s
+    // early-return branch) — either way, results being on screen shouldn't
+    // mean losing track of the teacher reopening the simulation for a
+    // retake (see _watchSimulationStatus).
+    _watchSimulationStatus(state.simulation.id);
   }
 })();

@@ -9330,6 +9330,12 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-td--submitted { color: var(--accent); font-size: 1rem; }
 .catalog-td--none { color: var(--text-muted); font-size: 0.9rem; }
 
+/* Simulation grade cells open the quick-view modal — dash/"none" cells
+   deliberately never get this class, so they stay non-interactive. */
+.catalog-td--clickable { cursor: pointer; transition: filter 0.15s; }
+.catalog-td--clickable:hover { filter: brightness(0.94); }
+[data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.2); }
+
 .catalog-td--avg-ok { color: var(--green);  font-weight: 700; }
 .catalog-td--avg-lo { color: var(--red);    font-weight: 700; }
 
@@ -9672,6 +9678,77 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 3px 8px;
   border-radius: 6px;
   white-space: nowrap;
+}
+
+/* Catalog quick view — compact per-exercise summary, opened from a grade
+   cell. Deliberately smaller/denser than .sim-result-card (the full
+   openSimStudentDetail view): no room reserved for a rendered enunț, one
+   row per exercise instead of a padded card. */
+.sim-qv-dialog { max-width: 460px; }
+.sim-qv-summary {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding-bottom: 14px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+.sim-qv-grade {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: var(--text);
+  flex-shrink: 0;
+}
+.sim-qv-grade--hi  { color: var(--green); }
+.sim-qv-grade--ok  { color: var(--accent); }
+.sim-qv-grade--mid { color: #d97706; }
+.sim-qv-grade--lo  { color: var(--red); }
+.sim-qv-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+}
+.sim-qv-meta__item { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+
+.sim-qv-list { display: flex; flex-direction: column; gap: 8px; }
+.sim-qv-row {
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border-left: 3px solid var(--border);
+  background: var(--surface);
+}
+.sim-qv-row--ok { border-left-color: var(--green); }
+.sim-qv-row--no { border-left-color: var(--red); }
+.sim-qv-row__top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.sim-qv-row__idx {
+  flex: 1;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sim-qv-row__mark { font-weight: 700; }
+.sim-qv-row--ok .sim-qv-row__mark { color: var(--green); }
+.sim-qv-row--no .sim-qv-row__mark { color: var(--red); }
+.sim-qv-row__pts { font-size: 0.76rem; color: var(--text-muted); white-space: nowrap; }
+.sim-qv-row__ans {
+  margin-top: 3px;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  overflow-wrap: break-word;
+}
+.sim-qv-row__fb {
+  margin-top: 5px;
+  font-size: 0.78rem;
+  color: var(--accent);
+  overflow-wrap: break-word;
 }
 
 /* Template picker list */
