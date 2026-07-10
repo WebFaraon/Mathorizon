@@ -3551,15 +3551,19 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: rgba(255,255,255,0.15);
 }
 
+/* Solid/opaque, same as light mode's #edf7f2 — not a low-alpha overlay.
+   An rgba background here lets the page behind it show through, which on
+   a dark background reads as "the card went transparent" rather than
+   "the card turned green". */
 [data-theme="dark"] .ex-card.solved {
-  background: rgba(5, 150, 105, 0.14);
+  background: #0f2a21;
 }
 [data-theme="dark"] .ex-card.solved .ex-card__math-preview {
-  background: rgba(5, 150, 105, 0.18);
-  border-color: rgba(5, 150, 105, 0.30);
+  background: #173d31;
+  border-color: rgba(16, 185, 129, 0.30);
 }
 [data-theme="dark"] .ex-card.solved:hover .ex-card__math-preview {
-  background: rgba(5, 150, 105, 0.24);
+  background: #1c4a3c;
 }
 
 /* Nav icon buttons (Favorite, Istoric) */
