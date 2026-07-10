@@ -9357,8 +9357,7 @@ body.bac-exam-mode .nav.nav--peek {
 /* Sortable column headers — Medie + each simulation column. Cycles
    desc → asc → default (unsorted) on repeated clicks; see catalogSortState
    in class-page.js. */
-.catalog-th--sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
-.catalog-th--sortable:hover { background: var(--accent-dim); }
+.catalog-th--sortable { cursor: pointer; user-select: none; }
 .catalog-th__sort-arrow {
   margin-left: 4px;
   color: var(--accent);
@@ -9410,10 +9409,6 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-head .catalog-th--avg {
   border-right: 1.5px solid var(--catalog-line);
 }
-.catalog-row:nth-child(even) .catalog-td--avg,
-.catalog-row:hover .catalog-td--avg {
-  background: var(--surface);
-}
 
 /* Grade cells — red/amber/green by value: <5 lo, 5–6.9 mid, 7–10 hi. Same
    three tiers (and same --green/--yellow/--red tokens already used for
@@ -9428,10 +9423,9 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-td--none { color: var(--text-muted); font-size: 0.9rem; }
 
 /* Simulation grade cells open the quick-view modal — dash/"none" cells
-   deliberately never get this class, so they stay non-interactive. */
-.catalog-td--clickable { cursor: pointer; transition: filter 0.15s; }
-.catalog-td--clickable:hover { filter: brightness(0.94); }
-[data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.2); }
+   deliberately never get this class, so they stay non-interactive. Cursor
+   alone signals "clickable" here; no hover color/brightness shift. */
+.catalog-td--clickable { cursor: pointer; }
 
 /* Text-only version of the same tiers — used on the Medie column and the
    Medie clasă row, which already have their own background treatment
@@ -9452,11 +9446,15 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-td--stats-lbl { color: var(--text-muted); }
 .catalog-td--stat { color: var(--text); }
 
-/* Row zebra + hover */
-.catalog-row:nth-child(even) .catalog-td { background: rgba(0,0,0,0.015); }
-.catalog-row:nth-child(even) .catalog-td--name { background: rgba(0,0,0,0.015); }
-.catalog-row:hover .catalog-td { background: var(--surface); }
-.catalog-row:hover .catalog-td--name { background: var(--surface); }
+/* Row zebra — solid, opaque colors on the ROW itself (not per-cell) so a
+   plain cell (no data, no grade tier) just lets its row's own background
+   show through instead of needing its own copy of the same rule; a cell
+   that DOES set its own background (grade tier chips, the sticky Elev/
+   Medie columns) simply paints over it, no specificity fights involved.
+   No hover state — this table doesn't need one. */
+.catalog-row { background: var(--card); }
+.catalog-row:nth-child(even) { background: var(--surface); }
+.catalog-row:nth-child(even) .catalog-td--name { background: var(--surface); }
 
 /* Avatar pill */
 .catalog-avatar {
@@ -9574,13 +9572,11 @@ body.bac-exam-mode .nav.nav--peek {
 .cs-badge--submitted { background: var(--accent-dim); color: var(--accent); }
 .cs-empty { text-align: center; color: var(--text-muted); padding: 40px; font-size: 0.88rem; }
 
-/* Dark mode */
+/* Dark mode — --card/--surface are already theme-aware custom properties
+   (see :root vs [data-theme="dark"] token definitions), so the zebra rows
+   and sticky Elev column above need no separate dark-mode overrides. */
 [data-theme="dark"] .catalog-th--name { background: var(--surface); }
 [data-theme="dark"] .catalog-td--name { background: var(--card); }
-[data-theme="dark"] .catalog-row:nth-child(even) .catalog-td { background: rgba(255,255,255,0.025); }
-[data-theme="dark"] .catalog-row:nth-child(even) .catalog-td--name { background: rgba(255,255,255,0.025); }
-[data-theme="dark"] .catalog-row:hover .catalog-td,
-[data-theme="dark"] .catalog-row:hover .catalog-td--name { background: rgba(255,255,255,0.05); }
 
 /* ════════════════════════════════════════════════════════════
    SIMULĂRI — class-specific timed test
