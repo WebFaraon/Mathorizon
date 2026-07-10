@@ -32,6 +32,12 @@ const RESPONSE_SCHEMA = {
         required: ['nr', 'descriere', 'puncte_maxime']
       }
     },
+    // Same-call, zero-extra-cost self-check (see generate-simulation-exercise.js
+    // for the rationale) — placed after pasi_barem so the model cross-checks
+    // raspuns_final against an independent numeric substitution, not just
+    // against its own step derivation.
+    verificare_numerica: { type: SchemaType.STRING },
+    verificat:            { type: SchemaType.BOOLEAN },
     metode_alternative: {
       type: SchemaType.ARRAY,
       items: {
@@ -53,7 +59,7 @@ const RESPONSE_SCHEMA = {
       required: ['este_duplicat', 'titlu_similar', 'motiv']
     }
   },
-  required: ['titlu', 'enunt_katex', 'raspuns_final', 'punctaj_total', 'pasi_barem', 'metode_alternative', 'duplicat']
+  required: ['titlu', 'enunt_katex', 'raspuns_final', 'punctaj_total', 'pasi_barem', 'verificare_numerica', 'verificat', 'metode_alternative', 'duplicat']
 };
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
@@ -135,15 +141,19 @@ ${EXAMPLES_BLOCK}
 
 ${buildDuplicatesBlock(existingExercises)}
 
+După ce stabilești raspuns_final și pasi_barem, VERIFICĂ independent rezultatul — de exemplu prin substituirea unei valori numerice concrete în enunțul original și recalculare, sau printr-o metodă diferită de cea folosită în barem. Dacă verificarea arată o discrepanță, corectează raspuns_final și pasi_barem înainte de a răspunde — nu trimite un rezultat neconsistent.
+
 Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar), cu EXACT această structură (fără câmpuri suplimentare):
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
-  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$)",
+  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$) — deja verificat",
   "punctaj_total": ${punctajTotal || 7},
   "pasi_barem": [
     { "nr": 1, "descriere": "explicația și calculul acestui pas, cu LaTeX $...$/$$...$$ inclus direct în text", "puncte_maxime": 3 }
   ],
+  "verificare_numerica": "rezumat scurt al verificării făcute: ce valoare/metodă ai folosit și ce ai obținut (ex: 'la x=2, enunțul evaluat dă -122, iar rezultatul evaluat la x=2 dă tot -122')",
+  "verificat": true doar dacă verificarea de mai sus a confirmat rezultatul fără nicio discrepanță, altfel false,
   "metode_alternative": [
     { "nume": "Metodă alternativă (nume scurt)", "descriere": "rezumat al altei metode valide" }
   ],

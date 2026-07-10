@@ -1066,10 +1066,12 @@
     const isTeacher = BMAuth.role === 'profesor';
 
     // Settle any simulation whose time limit has already elapsed before
-    // reading grades — there's no server-side cron, so this is the lazy
-    // "next viewer finalizes it" checkpoint. Best-effort: a failure here
+    // reading grades. A pg_cron job (see the "expiry_sweep_cron" migration)
+    // already does this every minute regardless of any page being open —
+    // this call is just a defensive fallback in case that job isn't
+    // available on this Supabase plan. Best-effort: a failure here
     // shouldn't block loading whatever grades already exist.
-    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts'); } catch (e) {}
+    try { await BMAuth.supabase.rpc('run_simulation_expiry_sweep'); } catch (e) {}
 
     try {
       /* 1. Class members — try to include student_name (column may not exist yet) */
@@ -2522,7 +2524,9 @@
     if (!content) return;
     const isTeacher = BMAuth.role === 'profesor';
 
-    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts'); } catch (e) {}
+    // Defensive fallback — the pg_cron sweep already closes expired
+    // simulations every minute regardless of any page being open.
+    try { await BMAuth.supabase.rpc('run_simulation_expiry_sweep'); } catch (e) {}
 
     try {
       const { data: sims, error } = await BMAuth.supabase
@@ -2771,7 +2775,9 @@
     const body = document.getElementById('simLiveBody');
     if (!body) return;
 
-    try { await BMAuth.supabase.rpc('finalize_expired_simulation_attempts', { p_simulation_id: simId }); } catch (e) {}
+    // Defensive fallback — the pg_cron sweep already closes expired
+    // simulations every minute regardless of any page being open.
+    try { await BMAuth.supabase.rpc('run_simulation_expiry_sweep'); } catch (e) {}
 
     const sim = simCache.find(s => s.id === simId);
     const [{ data: members }, { data: attempts }] = await Promise.all([
@@ -3914,6 +3920,12 @@
     _simOptBuilderInit();
     resultEl.innerHTML = `
       <div class="sim-picker-photo-review">
+        ${r.verificat === false ? `
+        <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
+          ⚠️ AI-ul nu și-a putut confirma singur rezultatul la verificare — recalculează manual înainte de a confirma.
+        </div>` : ''}
+        ${r.verificare_numerica ? `
+        <div class="cls-form-hint" style="margin-bottom:14px">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</div>` : ''}
         <div class="cls-form-field">
           <label class="cls-form-label">Titlu</label>
           <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">

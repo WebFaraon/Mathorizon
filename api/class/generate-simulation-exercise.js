@@ -7,14 +7,21 @@ const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFz
 
 // Trimmed-down schema — no barem/pasi/metode_alternative/duplicat, since
 // Simulări grading is exact-final-answer-match only, not step-by-step barem.
+// verificare_numerica/verificat: a same-call, zero-extra-cost self-check —
+// placed BEFORE raspuns_final so the model derives the check first instead
+// of rationalizing one after the fact (structured JSON mode fills fields in
+// schema order). Catches the class of arithmetic slip where Gemini invents
+// the reference answer itself with no barem to cross-check against.
 const RESPONSE_SCHEMA = {
   type: SchemaType.OBJECT,
   properties: {
-    titlu:         { type: SchemaType.STRING },
-    enunt_katex:   { type: SchemaType.STRING },
-    raspuns_final: { type: SchemaType.STRING }
+    titlu:                { type: SchemaType.STRING },
+    enunt_katex:          { type: SchemaType.STRING },
+    verificare_numerica:  { type: SchemaType.STRING },
+    raspuns_final:        { type: SchemaType.STRING },
+    verificat:            { type: SchemaType.BOOLEAN }
   },
-  required: ['titlu', 'enunt_katex', 'raspuns_final']
+  required: ['titlu', 'enunt_katex', 'verificare_numerica', 'raspuns_final', 'verificat']
 };
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
@@ -64,13 +71,15 @@ function buildPrompt(context) {
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
 
-Acest exercițiu va fi notat prin comparație EXACTĂ cu răspunsul final (fără barem pe pași) — determină și tu răspunsul final corect al exercițiului.
+Acest exercițiu va fi notat prin comparație EXACTĂ cu răspunsul final (fără barem pe pași) — determină și tu răspunsul final corect al exercițiului. Rezolvă-l cu atenție, apoi VERIFICĂ independent rezultatul înainte de a-l finaliza — de exemplu prin substituirea unei valori numerice concrete în enunțul original și recalculare, sau printr-o metodă diferită de cea folosită prima dată. Dacă verificarea arată o discrepanță, recalculează până obții un rezultat consistent — raspuns_final trebuie să fie deja varianta corectată.
 
 Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimentar), cu EXACT această structură:
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
-  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$; sau x=3, sau {1,2})"
+  "verificare_numerica": "rezumat scurt al verificării făcute: ce valoare/metodă ai folosit și ce ai obținut (ex: 'la x=2, enunțul evaluat dă -122, iar rezultatul evaluat la x=2 dă tot -122')",
+  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$; sau x=3, sau {1,2}) — deja verificat",
+  "verificat": true doar dacă verificarea de mai sus a confirmat rezultatul fără nicio discrepanță, altfel false
 }`;
 }
 

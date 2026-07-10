@@ -32,7 +32,7 @@
   }
 
   function _blankAiResult() {
-    return { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], metode_alternative: [], duplicat: null };
+    return { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], verificare_numerica: '', verificat: null, metode_alternative: [], duplicat: null };
   }
 
   function openAddExerciseModal() {
@@ -260,6 +260,11 @@
         ⚠️ Posibil duplicat al exercițiului „${BM.esc(r.duplicat.titlu_similar || '')}". Verifică înainte de a confirma.
       </div>` : ''}
 
+      ${r.verificat === false ? `
+      <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
+        ⚠️ AI-ul nu și-a putut confirma singur răspunsul final la verificare — recalculează manual înainte de a confirma.
+      </div>` : ''}
+
       <h3 style="font-size:1.1rem;font-weight:700;color:var(--text);margin-bottom:14px">${BM.esc(r.titlu || '(fără titlu)')}</h3>
 
       <div class="cls-form-field">
@@ -275,6 +280,7 @@
       <div class="cls-form-field">
         <label class="cls-form-label">Răspuns final</label>
         <div id="aeRaspunsPreview" class="ae-preview-box"></div>
+        ${r.verificare_numerica ? `<span class="cls-form-hint">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</span>` : ''}
       </div>
 
       ${alts.length ? `
