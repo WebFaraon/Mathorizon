@@ -157,6 +157,19 @@ window.BM = window.BM || {};
 
   async function start(simulation) {
     try {
+      // Shouldn't happen going forward (the wizard now only activates a
+      // simulation after its items are saved), but an old/broken row could
+      // still exist — checked up front, before creating any attempt or
+      // entering fullscreen, so a student never gets stuck with a fresh
+      // 'in_progres' row for a simulation that has nothing to answer.
+      const { count: itemCount, error: itemCountErr } = await BMAuth.supabase
+        .from('simulation_items').select('id', { count: 'exact', head: true }).eq('simulation_id', simulation.id);
+      if (itemCountErr) throw itemCountErr;
+      if (!itemCount) {
+        BM.toast('Această simulare nu are niciun exercițiu — anunță profesorul.', 'error');
+        return;
+      }
+
       // A student can now have several attempt rows for the same
       // simulation (one per retake after a teacher reopens it) — only the
       // most recent one is ever relevant, so always take the latest.

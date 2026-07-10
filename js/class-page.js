@@ -1359,7 +1359,11 @@
 
       const simCells = sims.map(s => {
         const att = mySims[s.id];
-        if (!att) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
+        // grade_10 can be null on a finalized attempt for a simulation that
+        // ended up with 0 items (now fixed at creation time, but old/broken
+        // rows can still exist) — falls back to the same dash as "didn't
+        // take it" instead of literally printing "null".
+        if (!att || att.grade_10 == null) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
         const g = parseFloat(att.grade_10);
         const cls = _catalogGradeTier(g);
         return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls} catalog-td--clickable" data-quick-view-attempt="${att.id}" title="Vezi detalii rapide">${att.grade_10}</div>`;
@@ -2863,7 +2867,7 @@
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
           <span class="csim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
-          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10}</span>` : ''}
+          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10 ?? '—'}</span>` : ''}
           <div class="csim-card__actions">${action}</div>
         </div>
       </div>`;
@@ -3756,15 +3760,25 @@
     const btn = document.getElementById('simWzNextBtn');
     btn.disabled = true; btn.textContent = 'Se salvează…';
     try {
-      const status = simWiz.startMode === 'now' ? 'activa' : 'programata';
+      const wantsActive = simWiz.startMode === 'now';
+      // simulation_items/simulation_answer_keys can only be inserted/edited/
+      // deleted while the parent simulation is still 'programata' (see
+      // sim_items_teacher_insert/update/delete RLS, added to stop a teacher
+      // from wiping items out from under students mid-exam) — so ALWAYS
+      // create/update the simulation row as 'programata' first, do every
+      // item/key write, and only THEN flip it to 'activa' as its own final
+      // step once the items actually exist. Doing it in the original order
+      // (status='activa' up front) made the very first item insert violate
+      // that same policy, silently producing an empty, unsolvable simulation
+      // whenever "Pornește imediat ce salvez" was chosen.
       const payload = {
         class_id: classData.id,
         title: simWiz.title.trim(),
         time_limit_minutes: Number(simWiz.timeLimitMinutes),
-        status,
+        status: 'programata',
         supervised: !!simWiz.supervised,
-        scheduled_at: simWiz.startMode === 'now' ? null : (simWiz.scheduledAt || null),
-        started_at: status === 'activa' ? new Date().toISOString() : null
+        scheduled_at: wantsActive ? null : (simWiz.scheduledAt || null),
+        started_at: null
       };
 
       let simId = simWiz.existingId;
@@ -3816,10 +3830,17 @@
         if (keyErr) throw keyErr;
       }
 
+      // All items/keys exist now — safe to flip the simulation live.
+      if (wantsActive) {
+        const { error: activateErr } = await BMAuth.supabase.from('simulations')
+          .update({ status: 'activa', started_at: new Date().toISOString() }).eq('id', simId);
+        if (activateErr) throw activateErr;
+      }
+
       if (!simWiz.existingId) {
-        window.BMPush?.sendClassPush(classData.id, status === 'activa' ? 'simulare_started' : 'simulare_scheduled', {
+        window.BMPush?.sendClassPush(classData.id, wantsActive ? 'simulare_started' : 'simulare_scheduled', {
           sim_title: payload.title,
-          when: status === 'activa' ? '' : formatSimDateTime(payload.scheduled_at)
+          when: wantsActive ? '' : formatSimDateTime(payload.scheduled_at)
         });
       }
 

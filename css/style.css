@@ -9432,9 +9432,14 @@ body.bac-exam-mode .nav.nav--peek {
    deliberately never get this class, so they stay non-interactive. Hover
    kept here (unlike the rest of the table) because these cells are
    actually clickable. */
-.catalog-td--clickable { cursor: pointer; transition: filter 0.15s; }
-.catalog-td--clickable:hover { filter: brightness(0.94); }
-[data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.2); }
+.catalog-td--clickable { cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
+/* currentColor picks up whatever tier color (green/amber/red) is already
+   set on this specific cell, so one rule rings every grade in its own
+   color instead of needing a separate hover per tier. brightness(0.94) on
+   its own was too subtle to read as "this is interactive" — the ring is
+   the part that actually reads as a hover state. */
+.catalog-td--clickable:hover { filter: brightness(0.94); box-shadow: inset 0 0 0 2px currentColor; }
+[data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.25); }
 
 /* Text-only version of the same tiers — used on the Medie column and the
    Medie clasă row, which already have their own background treatment
