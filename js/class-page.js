@@ -30,6 +30,10 @@
   let simCache   = [];
   let simWiz     = null;
   let simPicker  = null;
+  // Persists across loadMembriTab() reloads (e.g. realtime-triggered ones)
+  // within the same visit so a teacher's chosen sort doesn't reset itself;
+  // key is 'avg' or a simulation id, dir is 'desc' | 'asc' | null.
+  let catalogSortState = { key: null, dir: null };
 
   /* ─── Bootstrap ─────────────────────────────────────────────────── */
   function init() {
@@ -1059,6 +1063,14 @@
     return (name || '?').slice(0, 2).toUpperCase();
   }
 
+  // Shared red/amber/green tiering for any displayed grade value (single
+  // grade cells, per-student Medie, per-column Medie clasă) — one place so
+  // the three tiers (and their thresholds) can't drift apart between them.
+  function _catalogGradeTier(g) {
+    if (g == null || isNaN(g)) return null;
+    return g >= 7 ? 'hi' : g >= 5 ? 'mid' : 'lo';
+  }
+
   async function loadMembriTab() {
     const content = document.getElementById('cdContent');
     if (!content) return;
@@ -1197,17 +1209,33 @@
         classAvg
       };
 
-      if (isTeacher) {
-        content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix);
-        content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
-          cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
-        });
-      } else {
-        content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
-        _wireCsSimViewToggle(content);
-        _wireNotesChartTooltip(content);
-        _finalizeNotesChart(content);
-      }
+      const renderCatalog = () => {
+        if (isTeacher) {
+          content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState);
+          content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
+            cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
+          });
+          // Re-sorts by re-rendering from the SAME already-fetched data — no
+          // refetch, and members/assignments/sims/simMatrix themselves are
+          // never mutated, only the order rows are displayed in.
+          content.querySelectorAll('[data-sort-key]').forEach(th => {
+            th.addEventListener('click', () => {
+              const key = th.dataset.sortKey;
+              if (catalogSortState.key !== key) catalogSortState = { key, dir: 'desc' };
+              else if (catalogSortState.dir === 'desc') catalogSortState = { key, dir: 'asc' };
+              else catalogSortState = { key: null, dir: null };
+              renderCatalog();
+            });
+          });
+          _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
+        } else {
+          content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
+          _wireCsSimViewToggle(content);
+          _wireNotesChartTooltip(content);
+          _finalizeNotesChart(content);
+        }
+      };
+      renderCatalog();
 
     } catch (e) {
       content.innerHTML = `
@@ -1219,8 +1247,50 @@
     }
   }
 
-  function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}, sims = [], simMatrix = {}) {
-    /* Per-assignment stats (confirmed grades only) */
+  function _catalogSortArrow(key, sortState) {
+    if (!sortState || sortState.key !== key) return '';
+    return `<span class="catalog-th__sort-arrow">${sortState.dir === 'asc' ? '▲' : '▼'}</span>`;
+  }
+
+  // Shared by renderCatalogTeacher (on-screen) and the PDF/Excel export —
+  // one source of truth for per-student averages and sort order, so an
+  // export can never silently drift from what's actually on screen.
+  function _catalogBuildRows(members, nameMap, assignments, sims, subMatrix, simMatrix) {
+    return members.map((m, idx) => {
+      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
+      const mySubs = subMatrix[m.student_id] || {};
+      const mySims = simMatrix[m.student_id] || {};
+      const myGrades = assignments
+        .map(a => (mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null))
+        .filter(g => g !== null)
+        .concat(sims.map(s => mySims[s.id]?.grade_10 != null ? parseFloat(mySims[s.id].grade_10) : null).filter(g => g !== null));
+      const avgNum = myGrades.length ? myGrades.reduce((t, g) => t + g, 0) / myGrades.length : null;
+      return { m, idx, name, mySubs, mySims, avgNum };
+    });
+  }
+
+  function _catalogSortRows(rows, sortState) {
+    if (!sortState?.key || !sortState.dir) return rows;
+    const valueFor = row => sortState.key === 'avg'
+      ? row.avgNum
+      : (row.mySims[sortState.key]?.grade_10 != null ? parseFloat(row.mySims[sortState.key].grade_10) : null);
+    // Stable: rows with no value for this column always sink to the bottom
+    // (in either direction), ties otherwise keep their relative (original)
+    // order.
+    return rows
+      .map((row, i) => ({ row, i, v: valueFor(row) }))
+      .sort((a, b) => {
+        if (a.v == null && b.v == null) return a.i - b.i;
+        if (a.v == null) return 1;
+        if (b.v == null) return -1;
+        return sortState.dir === 'asc' ? a.v - b.v : b.v - a.v;
+      })
+      .map(x => x.row);
+  }
+
+  // Shared by renderCatalogTeacher and the export functions — the "Medie
+  // clasă" row's per-column averages.
+  function _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix) {
     const aStats = {};
     assignments.forEach(a => {
       const grades = members
@@ -1231,8 +1301,6 @@
         ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
         : '—';
     });
-
-    /* Per-simulation stats (finished attempts only) */
     const sStats = {};
     sims.forEach(s => {
       const grades = members
@@ -1243,6 +1311,11 @@
         ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
         : '—';
     });
+    return { aStats, sStats };
+  }
+
+  function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}, sims = [], simMatrix = {}, sortState = {}) {
+    const { aStats, sStats } = _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix);
 
     const headerCells = assignments.map(a => {
       const [y, mo, d] = a.due_date.split('-').map(Number);
@@ -1257,23 +1330,28 @@
     const simHeaderCells = sims.map(s => {
       const ds = _simColDate(s);
       return `
-        <div class="catalog-th catalog-th--sim" title="${BM.esc(s.title)} — simulare">
-          <span class="catalog-th__title">🎯 ${BM.esc(s.title)}</span>
+        <div class="catalog-th catalog-th--sim catalog-th--sortable" data-sort-key="${s.id}" title="${BM.esc(s.title)} — simulare — click pentru sortare">
+          <span class="catalog-th__title">🎯 ${BM.esc(s.title)}${_catalogSortArrow(s.id, sortState)}</span>
           <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');
 
-    const studentRows = members.map((m, idx) => {
-      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
-      const mySubs = subMatrix[m.student_id] || {};
-      const mySims = simMatrix[m.student_id] || {};
+    // Sorting only ever reorders this array — subMatrix/simMatrix/members
+    // themselves are never touched, so nothing about the underlying data
+    // changes, and PDF/Excel export reuses the exact same two calls to
+    // guarantee it reflects the same order shown on screen.
+    const rows = _catalogSortRows(
+      _catalogBuildRows(members, nameMap, assignments, sims, subMatrix, simMatrix),
+      sortState
+    );
 
+    const studentRows = rows.map(({ name, mySubs, mySims, avgNum }) => {
       const cells = assignments.map(a => {
         const sub = mySubs[a.id];
         if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
         if (sub.grade_confirmed) {
           const g = parseFloat(sub.grade);
-          const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+          const cls = _catalogGradeTier(g);
           return `<div class="catalog-td catalog-td--grade catalog-td--${cls}" title="Notă: ${sub.grade}">${sub.grade}</div>`;
         }
         return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
@@ -1283,18 +1361,13 @@
         const att = mySims[s.id];
         if (!att) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
         const g = parseFloat(att.grade_10);
-        const cls = g >= 9 ? 'hi' : g >= 7 ? 'ok' : g >= 5 ? 'mid' : 'lo';
+        const cls = _catalogGradeTier(g);
         return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls} catalog-td--clickable" data-quick-view-attempt="${att.id}" title="Vezi detalii rapide">${att.grade_10}</div>`;
       }).join('');
 
-      const myGrades = assignments
-        .map(a => (mySubs[a.id]?.grade_confirmed ? parseFloat(mySubs[a.id].grade) : null))
-        .filter(g => g !== null)
-        .concat(sims.map(s => mySims[s.id]?.grade_10 != null ? parseFloat(mySims[s.id].grade_10) : null).filter(g => g !== null));
-      const avg = myGrades.length
-        ? (myGrades.reduce((t, g) => t + g, 0) / myGrades.length).toFixed(1)
-        : '—';
-      const avgCls = avg !== '—' ? (parseFloat(avg) >= 5 ? 'catalog-td--avg-ok' : 'catalog-td--avg-lo') : '';
+      const avg = avgNum != null ? avgNum.toFixed(1) : '—';
+      const avgTier = avgNum != null ? _catalogGradeTier(avgNum) : null;
+      const avgCls = avgTier ? `catalog-td--tone-${avgTier}` : '';
 
       return `
         <div class="catalog-row">
@@ -1308,16 +1381,24 @@
         </div>`;
     }).join('');
 
+    const _statToneCls = val => {
+      const tier = val !== '—' ? _catalogGradeTier(parseFloat(val)) : null;
+      return tier ? ` catalog-td--tone-${tier}` : '';
+    };
     const statsRow = `
       <div class="catalog-row catalog-row--stats">
         <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie clasă</div>
-        ${assignments.map(a => `<div class="catalog-td catalog-td--stat">${aStats[a.id]}</div>`).join('')}
-        ${sims.map(s => `<div class="catalog-td catalog-td--stat catalog-td--sim">${sStats[s.id]}</div>`).join('')}
+        ${assignments.map(a => `<div class="catalog-td catalog-td--stat${_statToneCls(aStats[a.id])}">${aStats[a.id]}</div>`).join('')}
+        ${sims.map(s => `<div class="catalog-td catalog-td--stat catalog-td--sim${_statToneCls(sStats[s.id])}">${sStats[s.id]}</div>`).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>`;
 
     return `
       <div class="catalog-wrap">
+        <div class="catalog-toolbar">
+          <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">📄 Exportă PDF</button>
+          <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">📊 Exportă Excel</button>
+        </div>
         <div class="catalog-statsbar">
           <div class="catalog-stat-card">
             <div class="catalog-stat-card__val">${stats.memberCount ?? members.length}</div>
@@ -1345,7 +1426,7 @@
               <div class="catalog-th catalog-th--name">Elev</div>
               ${headerCells}
               ${simHeaderCells}
-              <div class="catalog-th catalog-th--avg">Medie</div>
+              <div class="catalog-th catalog-th--avg catalog-th--sortable" data-sort-key="avg" title="Click pentru sortare">Medie${_catalogSortArrow('avg', sortState)}</div>
             </div>
             <div class="catalog-body">
               ${studentRows}
@@ -1354,6 +1435,103 @@
           </div>
         </div>
       </div>`;
+  }
+
+  /* ─── Catalog export (PDF / Excel) — reuses the exact same row-building
+     and sorting as the on-screen table (_catalogBuildRows/_catalogSortRows)
+     so an export can never show different numbers or a different order
+     than what the teacher is currently looking at. jsPDF+autoTable and
+     SheetJS (xlsx) are loaded via CDN <script> tags in class.html, matching
+     how every other third-party library in this project is loaded (no npm
+     bundling on the frontend) — nothing else in the codebase already does
+     PDF/Excel export to reuse. ─── */
+  function _catalogExportColumns(assignments, sims) {
+    const cols = [{ label: 'Elev', kind: 'name' }];
+    assignments.forEach(a => cols.push({ label: a.title, kind: 'assignment', id: a.id }));
+    sims.forEach(s => cols.push({ label: s.title, kind: 'sim', id: s.id }));
+    cols.push({ label: 'Medie', kind: 'avg' });
+    return cols;
+  }
+
+  function _catalogExportCellValue(col, row) {
+    if (col.kind === 'name') return row.name;
+    if (col.kind === 'avg') return row.avgNum != null ? Number(row.avgNum.toFixed(1)) : '';
+    if (col.kind === 'assignment') {
+      const sub = row.mySubs[col.id];
+      if (!sub) return '';
+      return sub.grade_confirmed ? Number(parseFloat(sub.grade).toFixed(1)) : '✓';
+    }
+    const att = row.mySims[col.id];
+    return att?.grade_10 != null ? Number(parseFloat(att.grade_10).toFixed(1)) : '';
+  }
+
+  function _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, stats, sortState) {
+    const pdfBtn  = document.getElementById('catalogExportPdfBtn');
+    const xlsxBtn = document.getElementById('catalogExportXlsxBtn');
+    if (!pdfBtn || !xlsxBtn) return;
+
+    const cols = _catalogExportColumns(assignments, sims);
+    const buildRows = () => _catalogSortRows(
+      _catalogBuildRows(members, nameMap, assignments, sims, subMatrix, simMatrix),
+      sortState
+    );
+    // Same "Medie clasă" row shown at the bottom of the on-screen table —
+    // per-column averages, not just the single overall stat-card number.
+    const buildStatsLine = () => {
+      const { aStats, sStats } = _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix);
+      return cols.map(col => {
+        if (col.kind === 'name') return 'Medie clasă';
+        if (col.kind === 'assignment') return aStats[col.id] === '—' ? '' : Number(aStats[col.id]);
+        if (col.kind === 'sim') return sStats[col.id] === '—' ? '' : Number(sStats[col.id]);
+        return stats?.classAvg ? Number(stats.classAvg) : '';
+      });
+    };
+    const fileBase = `Catalog - ${classData.name} - ${new Date().toLocaleDateString('ro-RO')}`.replace(/[\\/:*?"<>|]/g, '');
+
+    pdfBtn.onclick = () => {
+      const jsPDFCtor = window.jspdf?.jsPDF;
+      if (!jsPDFCtor || !jsPDFCtor.API?.autoTable) {
+        BM.toast('Exportul PDF nu s-a putut încărca — verifică conexiunea și încearcă din nou.', 'error');
+        return;
+      }
+      const rows = buildRows();
+      const doc = new jsPDFCtor({ orientation: cols.length > 6 ? 'landscape' : 'portrait' });
+
+      doc.setFontSize(14);
+      doc.text(classData.name, 14, 16);
+      doc.setFontSize(9);
+      doc.setTextColor(120);
+      doc.text(`Catalog — generat pe ${new Date().toLocaleDateString('ro-RO')}`, 14, 22);
+
+      doc.autoTable({
+        startY: 28,
+        head: [cols.map(c => c.label)],
+        body: rows.map(row => cols.map(col => String(_catalogExportCellValue(col, row) ?? ''))),
+        foot: [buildStatsLine().map(v => String(v ?? ''))],
+        styles: { fontSize: 8, cellPadding: 3 },
+        headStyles: { fillColor: [58, 107, 173] },
+        footStyles: { fillColor: [240, 240, 240], textColor: [40, 40, 40], fontStyle: 'bold' },
+        columnStyles: { 0: { fontStyle: 'bold' } }
+      });
+
+      doc.save(`${fileBase}.pdf`);
+    };
+
+    xlsxBtn.onclick = () => {
+      if (!window.XLSX) {
+        BM.toast('Exportul Excel nu s-a putut încărca — verifică conexiunea și încearcă din nou.', 'error');
+        return;
+      }
+      const rows = buildRows();
+      const aoa = [cols.map(c => c.label)];
+      rows.forEach(row => aoa.push(cols.map(col => _catalogExportCellValue(col, row))));
+      aoa.push(buildStatsLine());
+      const ws = XLSX.utils.aoa_to_sheet(aoa);
+      ws['!cols'] = cols.map(c => ({ wch: c.kind === 'name' ? 22 : 16 }));
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Catalog');
+      XLSX.writeFile(wb, `${fileBase}.xlsx`);
+    };
   }
 
   // Persists across re-renders (realtime reloads, visibilitychange, tab

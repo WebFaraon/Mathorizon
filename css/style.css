@@ -9158,6 +9158,14 @@ body.bac-exam-mode .nav.nav--peek {
 
 .catalog-wrap { padding: 0; }
 
+/* Export buttons */
+.catalog-toolbar {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
 /* Stats bar */
 .catalog-statsbar {
   display: flex;
@@ -9271,6 +9279,17 @@ body.bac-exam-mode .nav.nav--peek {
   max-width: 100%;
 }
 
+/* Sortable column headers — Medie + each simulation column. Cycles
+   desc → asc → default (unsorted) on repeated clicks; see catalogSortState
+   in class-page.js. */
+.catalog-th--sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
+.catalog-th--sortable:hover { background: var(--accent-dim); }
+.catalog-th__sort-arrow {
+  margin-left: 4px;
+  color: var(--accent);
+  font-size: 0.7em;
+}
+
 /* Name column — wider, left-aligned */
 .catalog-th--name, .catalog-td--name {
   min-width: 200px;
@@ -9321,11 +9340,14 @@ body.bac-exam-mode .nav.nav--peek {
   background: var(--surface);
 }
 
-/* Grade cells */
+/* Grade cells — red/amber/green by value: <5 lo, 5–6.9 mid, 7–10 hi. Same
+   three tiers (and same --green/--yellow/--red tokens already used for
+   difficulty badges elsewhere) drive .catalog-td--tone-* below, so a grade's
+   color means the same thing everywhere in Catalog, not just in this one
+   chip style. */
 .catalog-td--grade { font-weight: 700; border-radius: 0; }
 .catalog-td--hi   { color: var(--green);  background: var(--green-dim); }
-.catalog-td--ok   { color: var(--accent); background: var(--accent-dim); }
-.catalog-td--mid  { color: #d97706; background: rgba(245,158,11,0.09); }
+.catalog-td--mid  { color: var(--yellow); background: var(--yellow-dim); }
 .catalog-td--lo   { color: var(--red);    background: var(--red-dim); }
 .catalog-td--submitted { color: var(--accent); font-size: 1rem; }
 .catalog-td--none { color: var(--text-muted); font-size: 0.9rem; }
@@ -9336,8 +9358,13 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-td--clickable:hover { filter: brightness(0.94); }
 [data-theme="dark"] .catalog-td--clickable:hover { filter: brightness(1.2); }
 
-.catalog-td--avg-ok { color: var(--green);  font-weight: 700; }
-.catalog-td--avg-lo { color: var(--red);    font-weight: 700; }
+/* Text-only version of the same tiers — used on the Medie column and the
+   Medie clasă row, which already have their own background treatment
+   (sticky surface / stats-row surface) so a chip-style background here
+   would fight with that instead of just tinting the number. */
+.catalog-td--tone-hi  { color: var(--green); }
+.catalog-td--tone-mid { color: var(--yellow); }
+.catalog-td--tone-lo  { color: var(--red); }
 
 /* Stats row */
 .catalog-row--stats .catalog-td {
