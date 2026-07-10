@@ -108,6 +108,17 @@ img { display: block; max-width: 100%; }
   --transition-slow: 0.25s ease;
 }
 
+/* Dark/light toggle (js/theme.js) briefly adds this to <html> so a whole
+   page's worth of cards don't all animate their background/border-color/
+   box-shadow at once when the theme's CSS variables flip — one instant
+   repaint instead of dozens of elements each independently transitioning
+   a paint-heavy property. Doesn't affect any other transition; the class
+   is removed again a couple frames later. */
+.theme-switching,
+.theme-switching * {
+  transition: none !important;
+}
+
 /* 3. CUSTOM SCROLLBAR
    ============================================================ */
 ::-webkit-scrollbar {
