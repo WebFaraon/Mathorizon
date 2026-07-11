@@ -9959,8 +9959,13 @@ body.bac-exam-mode .nav.nav--peek {
    preview on the right, so confirming an exercise never requires scrolling
    past the results list to see what was picked. Uses most of the viewport
    width (not just a large max-width) since on narrower windows the max-width
-   was never actually the limiting factor. */
-.sim-picker-dialog { max-width: min(94vw, 1600px); }
+   was never actually the limiting factor.
+   NOTE: must be at least as specific as .wz-dialog (below) — both are
+   single-class selectors targeting the same element, and .wz-dialog's own
+   max-width:660px is declared later in this file, so with a tied-specificity
+   selector here it would win the cascade and silently cap the dialog back
+   down to 660px no matter what's set on this rule. */
+.wz-dialog.sim-picker-dialog { max-width: min(94vw, 1600px); }
 /* Scoped override — this modal alone gets tighter outer breathing room than
    the default .wz-overlay padding, to reclaim a bit more usable width. */
 #simPickerModal.wz-overlay { padding: 12px; }
