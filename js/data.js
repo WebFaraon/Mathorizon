@@ -2788,7 +2788,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate',
     statement: 'Fie polinomul $P(X) = X^3 - 2X^2 + (m+1)X - 4$. Determinați valoarea reală a lui $m$ pentru care $P(X)$ este divizibil prin $Q(X) = X - 2$.',
-    solution: 'Dacă $P(X)$ este divizibil prin $(X-2)$, atunci $X = 2$ este rădăcină, deci $P(2) = 0$.\n\n$$P(2) = 8 - 8 + 2(m+1) - 4 = 0$$\n\n$$2m + 2 - 4 = 0 \\Rightarrow 2m = 2 \\Rightarrow \\boxed{m = 1}$$',
+    solution: '**Pasul 1.** Calcularea valorii $P(2)$:\nDeoarece $P(X)$ este divizibil prin $X-2$, rezultă că $P(2) = 0$. Calculăm expresia pentru $P(2)$:\n$$P(2) = 8 - 8 + 2(m+1) - 4 = 2m + 2 - 4 = 2m - 2$$\n\n**Pasul 2.** Egalarea valorii $P(2)$ cu zero conform condiției de divizibilitate:\n$$2m - 2 = 0$$\n\n**Pasul 3.** Rezolvarea ecuației pentru a determina valoarea reală a lui $m$:\n$$2m = 2 \\Rightarrow \\boxed{m = 1}$$',
     barem: [
       { descriere: 'P(2) = 2m - 2', puncte_maxime: 2 },
       { descriere: '2m - 2 = 0', puncte_maxime: 2 },
@@ -2802,7 +2802,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului și a celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = X^3 + X^2 + aX - 12$. Se știe că $X = -2$ este rădăcină a polinomului. Determinați celelalte rădăcini.',
-    solution: '$P(-2) = 0$:\n$$-8 + 4 - 2a - 12 = 0 \\Rightarrow -2a = 16 \\Rightarrow a = -8$$\n\nDeci $P(X) = X^3 + X^2 - 8X - 12$. Împărțim prin $(X+2)$ (schema Horner):\n\n$$\\begin{array}{c|cccc} -2 & 1 & 1 & -8 & -12 \\\\ & & -2 & 2 & 12 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$$P(X) = (X+2)(X^2 - X - 6) = (X+2)(X-3)(X+2) = (X+2)^2(X-3)$$\n\nRădăcinile sunt $\\boxed{X = -2 \\text{ (dublă)},\\ X = 3}$',
+    solution: '**Pasul 1.** Determinarea valorii parametrului $a$:\n$P(-2) = 0$:\n$$-8 + 4 - 2a - 12 = 0 \\Rightarrow -2a = 16 \\Rightarrow a = -8$$\n\n**Pasul 2.** Determinarea câtului împărțirii prin $(X+2)$:\nDeci $P(X) = X^3 + X^2 - 8X - 12$. Împărțim prin $(X+2)$ (schema Horner):\n$$\\begin{array}{c|cccc} -2 & 1 & 1 & -8 & -12 \\\\ & & -2 & 2 & 12 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n**Pasul 3.** Determinarea rădăcinilor câtului și a soluțiilor finale:\n$$P(X) = (X+2)(X^2 - X - 6) = (X+2)(X-3)(X+2) = (X+2)^2(X-3)$$\n\n$$\\boxed{X = -2 \\text{ (dublă)},\\ X = 3}$$',
     barem: [
       { descriere: 'Obținerea $P(-2) = 0$ și $a = -8$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X + 2)$', puncte_maxime: 4 },
@@ -2816,7 +2816,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcinile reale ale unui polinom definit printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} -1 & X & 2 \\\\ X & 2 & -1 \\\\ 2 & -1 & X \\end{vmatrix}$$\nDeterminați rădăcinile reale ale polinomului.',
-    solution: 'Dezvoltăm determinantul după primul rând:\n\n$$P(X) = -1(2X-1) - X(X^2+2) + 2(-X-4)$$\n\n$$= -2X+1-X^3-2X-2X-8 = -X^3-6X-7$$\n\nVerificăm $X = -1$: $\\quad P(-1) = 1+6-7 = 0$ ✓\n\nÎmpărțim prin $(X+1)$:\n$$P(X) = -(X+1)(X^2-X+7)$$\n\n$\\Delta = 1 - 28 = -27 < 0$, deci $X^2-X+7$ nu are rădăcini reale.\n\n$$\\boxed{X = -1}$$',
+    solution: '**Pasul 1.** Calcularea determinantului:\n$$P(X) = -1(2X-1) - X(X^2+2) + 2(-X-4) = -2X+1-X^3-2X-2X-8$$\n$$P(X) = -X^3-6X-7$$\n\n**Pasul 2.** Verificarea rădăcinii $X=-1$:\n$$P(-1) = 1+6-7 = 0 \\checkmark$$\n\n**Pasul 3.** Determinarea câtului prin împărțire la $(X+1)$:\n$$P(X) = -(X+1)(X^2-X+7)$$\n\n**Pasul 4.** Analiza câtului și scrierea răspunsului:\n$\\Delta = 1 - 28 = -27 < 0$, deci $X^2-X+7$ nu are rădăcini reale.\n$$\\boxed{X = -1}$$',
     barem: [
       { descriere: 'Calcularea determinantului $P(X) = -X^3 - 6X - 7$', puncte_maxime: 2 },
       { descriere: 'Obținerea $P(-1) = 0$', puncte_maxime: 2 },
@@ -2832,7 +2832,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Câtul și restul împărțirii unui polinom de grad 4 la grad 2',
     statement: 'Determinați câtul și restul împărțirii polinomului $P(X) = X^4 - 5X^2 + 3X - 2$ la polinomul $Q(X) = X^2 + 1$.',
-    solution: 'Împărțim prin algoritmul împărțirii:\n\n$X^4 \\div X^2 = X^2$; $\\quad X^2(X^2+1) = X^4+X^2$; rest: $-6X^2+3X-2$\n\n$-6X^2 \\div X^2 = -6$; $\\quad -6(X^2+1) = -6X^2-6$; rest: $3X+4$\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
+    solution: '**Pasul 1.** Determinăm câtul $C(X)$ prin algoritmul împărțirii:\n$$X^4 \\div X^2 = X^2; \\quad -6X^2 \\div X^2 = -6$$\n\n**Pasul 2.** Determinăm restul $R(X)$ prin algoritmul împărțirii:\n$$X^2(X^2+1) = X^4+X^2; \\text{ rest: } -6X^2+3X-2$$\n$$-6(X^2+1) = -6X^2-6; \\text{ rest: } 3X+4$$\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
     barem: [
       { descriere: 'Obținerea câtului $C(X) = X^2 - 6$', puncte_maxime: 2 },
       { descriere: 'Obținerea restului $R(X) = 3X + 4$', puncte_maxime: 3 }
@@ -2844,7 +2844,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcină dublă — determinarea coeficienților și a celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = X^4 - 5X^3 + aX^2 + bX - 18$. Știind că $X = 3$ este rădăcină dublă a polinomului $P(X)$, să se determine celelalte rădăcini.',
-    solution: 'Deoarece $X=3$ este rădăcină dublă: $P(3)=0$ și $P\'(3)=0$.\n\n$$P(3)=0:\\quad 81-135+9a+3b-18=0 \\Rightarrow 3a+b=24 \\quad(1)$$\n\n$$P\'(X)=4X^3-15X^2+2aX+b \\Rightarrow P\'(3)=108-135+6a+b=0 \\Rightarrow 6a+b=27 \\quad(2)$$\n\n$(2)-(1):\\; 3a=3 \\Rightarrow a=1,\\; b=21$\n\n$P(X)=(X-3)^2(X^2+X-2)=(X-3)^2(X-1)(X+2)$\n\n$$\\boxed{X=1,\\quad X=-2}$$',
+    solution: '**Pasul 1.** Scrierea condițiilor pentru rădăcina dublă:\nDeoarece $X=3$ este rădăcină dublă a polinomului $P(X)$, avem:\n$$P(3)=0 \\text{ și } P\'(3)=0$$\n\n**Pasul 2.** Determinarea valorilor parametrilor $a$ și $b$:\n$$P(3)=0:\\quad 81-135+9a+3b-18=0 \\Rightarrow 3a+b=24 \\quad(1)$$\n$$P\'(X)=4X^3-15X^2+2aX+b \\Rightarrow P\'(3)=108-135+6a+b=0 \\Rightarrow 6a+b=27 \\quad(2)$$\n$$(2)-(1):\\; 3a=3 \\Rightarrow a=1,\\; b=21$$\n\n**Pasul 3.** Determinarea câtului împărțirii lui $P(X)$ la $(X-3)^2$:\n$$P(X)=(X-3)^2(X^2+X-2)$$\n\n**Pasul 4.** Determinarea celorlalte rădăcini ale polinomului:\n$$P(X)=(X-3)^2(X-1)(X+2)$$\n$$\\boxed{X=1,\\quad X=-2}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P\'(3) = 0$', puncte_maxime: 2 },
       { descriere: 'Obținerea valorilor $a = 1, b = 21$', puncte_maxime: 2 },
@@ -2858,7 +2858,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului din condiția restului la împărțire',
     statement: 'Fie polinomul $P(X) = 4X^3 + (a-2)X^2 + (1-a)X + 6$. Determinați valorile reale ale lui $a$, astfel încât restul împărțirii polinomului la $Q(X) = X + 1$ să fie egal cu $5$.',
-    solution: 'Prin teorema lui Bézout, restul împărțirii lui $P(X)$ la $(X+1)$ este $P(-1)$.\n\n$$P(-1) = -4 + (a-2) - (1-a) + 6 = 2a - 1$$\n\n$$2a - 1 = 5 \\Rightarrow 2a = 6 \\Rightarrow \\boxed{a = 3}$$',
+    solution: '**Pasul 1.** Stabilirea condiției pentru rest conform teoremei lui Bézout:\nPrin teorema lui Bézout, restul împărțirii lui $P(X)$ la $(X+1)$ este $P(-1)$, deci:\n$$P(-1) = 5$$\n\n**Pasul 2.** Calcularea valorii $P(-1)$ în funcție de parametrul $a$:\n$$P(-1) = -4 + (a-2) - (1-a) + 6 = 2a - 1$$\n\n**Pasul 3.** Rezolvarea ecuației pentru determinarea valorii lui $a$:\n$$2a - 1 = 5 \\Rightarrow 2a = 6$$\n\n$$\\boxed{a = 3}$$',
     barem: [
       { descriere: 'P(-1) = 5', puncte_maxime: 2 },
       { descriere: 'P(-1) = 2a - 1', puncte_maxime: 2 },
@@ -2871,7 +2871,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Câtul împărțirii folosind suma coeficienților',
     statement: 'Determinați câtul împărțirii polinomului $P(X) = X^3 - aX^2 + (2a-1)X - 5$ la binomul $Q(X) = X + 2$, dacă se cunoaște că suma coeficienților lui $P(X)$ este $0$.',
-    solution: 'Suma coeficienților $= P(1) = 0$:\n$$1 - a + (2a-1) - 5 = a - 5 = 0 \\Rightarrow a = 5$$\n\n$P(X) = X^3 - 5X^2 + 9X - 5$. Schema Horner pentru $X = -2$:\n\n$$\\begin{array}{c|cccc} -2 & 1 & -5 & 9 & -5 \\\\ & & -2 & 14 & -46 \\\\ \\hline & 1 & -7 & 23 & -51 \\end{array}$$\n\n$$\\boxed{C(X) = X^2 - 7X + 23}, \\quad R = -51$$',
+    solution: '**Pasul 1.** Condiția pentru suma coeficienților:\n$$P(1) = 0$$\n\n**Pasul 2.** Determinarea parametrului $a$:\n$$1 - a + (2a-1) - 5 = a - 5 = 0 \\Rightarrow a = 5$$\n\n**Pasul 3.** Împărțirea polinomului $P(X) = X^3 - 5X^2 + 9X - 5$ la $X + 2$:\nSchema Horner pentru $X = -2$:\n$$\\begin{array}{c|cccc} -2 & 1 & -5 & 9 & -5 \\\\ & & -2 & 14 & -46 \\\\ \\hline & 1 & -7 & 23 & -51 \\end{array}$$\n\n**Pasul 4.** Obținerea câtului $C(X)$:\n$$\\boxed{C(X) = X^2 - 7X + 23}, \\quad R = -51$$',
     barem: [
       { descriere: 'P(1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 5', puncte_maxime: 2 },
@@ -2885,7 +2885,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la un binom',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 3X^3 + 2X^2 - X - 3$ la binomul $X + 3$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-3)$:\n\n$$P(-3) = 81 - 81 + 18 + 3 - 3 = \\boxed{18}$$',
+    solution: '**Pasul 1.** Identificarea restului conform teoremei lui Bézout:\n$$R = P(-3)$$\n\n**Pasul 2.** Calcularea valorii numerice a polinomului în $-3$:\n$$P(-3) = 81 - 81 + 18 + 3 - 3$$\n\n**Pasul 3.** Scrierea rezultatului final:\n$$\\boxed{18}$$',
     barem: [
       { descriere: 'R = P(-3)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-3) = 18', puncte_maxime: 2 },
@@ -2899,7 +2899,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcină dublă dată',
     statement: 'Descompuneți în factori ireductibili polinomul $P(X) = X^4 - 5X^3 + X^2 + 21X - 18$, știind că $X = 3$ este o rădăcină dublă a polinomului.',
-    solution: '$(X-3)^2 = X^2-6X+9$ divide $P(X)$. Împărțim:\n\n$$P(X) = (X-3)^2(X^2+X-2) = (X-3)^2(X-1)(X+2)$$\n\n$$\\boxed{P(X) = (X-3)^2(X-1)(X+2)}$$',
+    solution: '**Pasul 1.** Identificarea divizorului corespunzător rădăcinii duble $X=3$:\n$$(X-3)^2 = X^2 - 6X + 9$$\n\n**Pasul 2.** Obținerea câtului împărțirii polinomului $P(X)$ la $(X-3)^2$:\n$$X^2 + X - 2$$\n\n**Pasul 3.** Scrierea descompunerii în factori ireductibili:\n$$P(X) = (X-3)^2(X^2+X-2) = (X-3)^2(X-1)(X+2)$$\n\n$$\\boxed{P(X) = (X-3)^2(X-1)(X+2)}$$',
     barem: [
       { descriere: 'Obținerea $(X-3)^2 = X^2 - 6X + 9$', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 + X - 2$', puncte_maxime: 3 },
@@ -2912,7 +2912,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă necunoscută',
     statement: 'Descompuneți în factori ireductibili polinomul $P(X) = X^4 - X^3 - aX^2 - (a+8)X - 10$, știind că $X = -1$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: '$P(-1) = 1+1-a+(a+8)-10 = 0$ (adevărat $\\forall a$)\n\n$P\'(X) = 4X^3-3X^2-2aX-(a+8)$\n$$P\'(-1) = -4-3+2a-a-8 = a-15 = 0 \\Rightarrow a = 15$$\n\n$P(X) = X^4-X^3-15X^2-23X-10$. Împărțim prin $(X+1)^2 = X^2+2X+1$:\n$$P(X) = (X+1)^2(X^2-3X-10) = (X+1)^2(X-5)(X+2)$$\n\n$$\\boxed{P(X) = (X+1)^2(X-5)(X+2)}$$',
+    solution: '**Pasul 1.** Utilizarea condiției de rădăcină dublă:\nVerificăm $P(-1) = 1+1-a+(a+8)-10 = 0$ (adevărat $\\forall a$). Deoarece $X = -1$ este o rădăcină dublă a polinomului $P(X)$, rezultă că $P\'(-1) = 0$. Calculăm derivata:\n$$P\'(X) = 4X^3-3X^2-2aX-(a+8)$$\n$$P\'(-1) = -4-3+2a-a-8 = a-15$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\nDin condiția $P\'(-1) = 0$, obținem:\n$$a - 15 = 0 \\Rightarrow a = 15$$\n\n**Pasul 3.** Determinarea câtului împărțirii prin $(X+1)^2$:\nPentru $a = 15$, polinomul este $P(X) = X^4-X^3-15X^2-23X-10$. Împărțim $P(X)$ prin $(X+1)^2 = X^2+2X+1$:\n$$P(X) = (X+1)^2(X^2-3X-10)$$\n\n**Pasul 4.** Scrierea descompunerii în factori ireductibili:\nDescompunem factorul de gradul al doilea $X^2-3X-10 = (X-5)(X+2)$ și obținem:\n$$\\boxed{P(X) = (X+1)^2(X-5)(X+2)}$$',
     barem: [
       { descriere: 'P\'(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 15', puncte_maxime: 2 },
@@ -2927,7 +2927,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Verificarea unei rădăcini și determinarea celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = 2X^3 - 9X^2 + 7X + 6$. Arătați că $X = 3$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.',
-    solution: '$$P(3) = 54 - 81 + 21 + 6 = 0 \\checkmark$$\n\nSchema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 2 & -9 & 7 & 6 \\\\ & & 6 & -9 & -6 \\\\ \\hline & 2 & -3 & -2 & 0 \\end{array}$$\n\n$$P(X) = (X-3)(2X^2-3X-2) = (X-3)(2X+1)(X-2)$$\n\n$$\\boxed{X = 2, \\quad X = -\\tfrac{1}{2}}$$',
+    solution: '**Pasul 1.** Verificăm dacă $X = 3$ este rădăcină a polinomului $P(X)$:\n$$P(3) = 54 - 81 + 21 + 6 = 0$$\n\n**Pasul 2.** Determinăm câtul $2X^2 - 3X - 2$ folosind schema lui Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 2 & -9 & 7 & 6 \\\\ & & 6 & -9 & -6 \\\\ \\hline & 2 & -3 & -2 & 0 \\end{array}$$\n\n**Pasul 3.** Determinăm celelalte rădăcini ale polinomului:\n$$P(X) = (X-3)(2X^2-3X-2) = (X-3)(2X+1)(X-2)$$\n\n$$\\boxed{X = 2, \\quad X = -\\tfrac{1}{2}}$$',
     barem: [
       { descriere: 'Obținerea $P(3) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $2X^2 - 3X - 2$', puncte_maxime: 4 },
@@ -2941,7 +2941,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini cunoscute',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 3X^3 - 4X^2 - 3X + 7$ la $Q(X) = X^2 - 1$.',
-    solution: '$R(X) = aX+b$. Deoarece $X^2-1 = (X-1)(X+1)$, evaluăm în $X=1$ și $X=-1$:\n\n$$P(1) = 3-4-3+7 = 3 = a+b$$\n$$P(-1) = -3-4+3+7 = 3 = -a+b$$\n\nDin sistem: $a = 0,\\; b = 3$\n\n$$\\boxed{R(X) = 3}$$',
+    solution: '**Pasul 1.** Calculăm valorile $P(1)$ și $P(-1)$, utilizând faptul că $X^2 - 1 = (X - 1)(X + 1)$: \n$$P(1) = 3 - 4 - 3 + 7 = 3$$\n$$P(-1) = -3 - 4 + 3 + 7 = 3$$\n\n**Pasul 2.** Scriem sistemul de ecuații pentru restul de forma $R(X) = aX + b$:\n$$a + b = 3$$\n$$-a + b = 3$$\n\n**Pasul 3.** Rezolvăm sistemul și determinăm restul:\n$$a = 0, \\; b = 3$$\n\n$$\\boxed{R(X) = 3}$$',
     barem: [
       { descriere: 'P(1) = 3 și P(-1) = 3', puncte_maxime: 2 },
       { descriere: 'a + b = 3 și -a + b = 3', puncte_maxime: 2 },
@@ -2954,7 +2954,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui m și restul la un polinom de grad 2',
     statement: 'Fie $P(X) = X^4 + 2X^3 + mX^2 + 5X + 4$. Determinați $m$, astfel încât $X = -1$ să fie rădăcină, apoi aflați restul împărțirii lui $P(X)$ la $X^2 - 2$.',
-    solution: '$$P(-1) = 1-2+m-5+4 = m-2 = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4+2X^3+2X^2+5X+4$. $R(X) = aX+b$:\n\nEvaluăm în $X = \\sqrt{2}$ și $X = -\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4+4\\sqrt{2}+4+5\\sqrt{2}+4 = 12+9\\sqrt{2} = a\\sqrt{2}+b$$\n$$P(-\\sqrt{2}) = 4-4\\sqrt{2}+4-5\\sqrt{2}+4 = 12-9\\sqrt{2} = -a\\sqrt{2}+b$$\n\n$a = 9,\\; b = 12$\n\n$$\\boxed{R(X) = 9X+12}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = -1$ să fie rădăcină a polinomului:\n$$P(-1) = 1 - 2 + m - 5 + 4 = m - 2 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $m$:\n$$m = 2$$\n\n**Pasul 3.** Calcularea valorilor $P(\\sqrt{2})$ și $P(-\\sqrt{2})$ pentru $P(X) = X^4 + 2X^3 + 2X^2 + 5X + 4$:\n$$P(\\sqrt{2}) = 4 + 4\\sqrt{2} + 4 + 5\\sqrt{2} + 4 = 12 + 9\\sqrt{2}$$\n$$P(-\\sqrt{2}) = 4 - 4\\sqrt{2} + 4 - 5\\sqrt{2} + 4 = 12 - 9\\sqrt{2}$$\n\n**Pasul 4.** Determinarea restului $R(X) = aX + b$:\n$$a\\sqrt{2} + b = 12 + 9\\sqrt{2}$$\n$$-a\\sqrt{2} + b = 12 - 9\\sqrt{2}$$\n$$a = 9,\\; b = 12$$\n\n$$\\boxed{R(X) = 9X+12}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea m = 2', puncte_maxime: 2 },
@@ -2969,7 +2969,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că o rădăcină dată este rădăcină a polinomului',
     statement: 'Determinați $a \\in \\mathbb{R}$, pentru care $X = \\dfrac{1}{2}$ este rădăcină a polinomului:\n$$P(X) = 8X^3 + (a+2)X - 5X + a$$',
-    solution: '$P(X) = 8X^3 + (a-3)X + a$\n\n$$P\\!\\left(\\tfrac{1}{2}\\right) = 8 \\cdot \\tfrac{1}{8} + (a-3)\\cdot\\tfrac{1}{2} + a = 1 + \\frac{a-3}{2} + a = 0$$\n\n$$2 + (a-3) + 2a = 0 \\Rightarrow 3a = 1 \\Rightarrow \\boxed{a = \\dfrac{1}{3}}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = \\frac{1}{2}$ să fie rădăcină a polinomului:\n$$P(X) = 8X^3 + (a-3)X + a \\Rightarrow P\\!\\left(\\tfrac{1}{2}\\right) = 0$$\n\n**Pasul 2.** Substituirea valorii în polinom și obținerea ecuației în $a$:\n$$8 \\cdot \\tfrac{1}{8} + (a-3)\\cdot\\tfrac{1}{2} + a = 1 + \\frac{a-3}{2} + a = 0$$\n\n**Pasul 3.** Rezolvarea ecuației pentru determinarea valorii lui $a$:\n$$2 + (a-3) + 2a = 0 \\Rightarrow 3a = 1$$\n\n$$\\boxed{a = \\dfrac{1}{3}}$$',
     barem: [
       { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
       { descriere: '1 + (a-3)/2 + a = 0', puncte_maxime: 2 },
@@ -2982,7 +2982,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunerea completă a unui polinom de grad 4',
     statement: 'Fie polinomul $P(X) = X^4 - 6X^3 - 3X^2 + 52X - 60$. Descompuneți în factori polinomul.',
-    solution: 'Testăm $X=2$: $P(2) = 16-48-12+104-60 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|ccccc} 2 & 1 & -6 & -3 & 52 & -60 \\\\ & & 2 & -8 & -22 & 60 \\\\ \\hline & 1 & -4 & -11 & 30 & 0 \\end{array}$$\n\nTestăm $X=2$ în $X^3-4X^2-11X+30$: $8-16-22+30=0$ ✓\n\n$$X^3-4X^2-11X+30 = (X-2)(X^2-2X-15) = (X-2)(X-5)(X+3)$$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+3)}$$',
+    solution: '**Pasul 1.** Identificarea unei rădăcini a polinomului:\nTestăm $X=2$:\n$P(2) = 16-48-12+104-60 = 0$\n\n**Pasul 2.** Determinarea câtului de gradul al treilea prin schema Horner:\n$$\\begin{array}{c|ccccc} 2 & 1 & -6 & -3 & 52 & -60 \\\\ & & 2 & -8 & -22 & 60 \\\\ \\hline & 1 & -4 & -11 & 30 & 0 \\end{array}$$\nCâtul obținut este $X^3-4X^2-11X+30$.\n\n**Pasul 3.** Determinarea câtului de gradul al doilea:\nTestăm $X=2$ în $X^3-4X^2-11X+30$: $8-16-22+30=0$\n$$X^3-4X^2-11X+30 = (X-2)(X^2-2X-15)$$\n\n**Pasul 4.** Scrierea descompunerii finale a polinomului:\n$$(X-2)(X^2-2X-15) = (X-2)(X-5)(X+3)$$\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+3)}$$',
     barem: [
       { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $X^3 - 4X^2 - 11X + 30$', puncte_maxime: 2 },
@@ -2997,7 +2997,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului la un binom',
     statement: 'Fie polinomul $P(X) = X^3 + (a+1)X^2 - a^2X - 2$. Determinați $a \\in \\mathbb{R}$, știind că restul împărțirii la $X - 2$ este $10$.',
-    solution: 'Prin teorema lui Bézout: $P(2) = 10$.\n\n$$8 + 4(a+1) - 2a^2 - 2 = 10$$\n$$10 + 4a - 2a^2 = 10$$\n$$4a - 2a^2 = 0 \\Rightarrow 2a(2-a) = 0$$\n\n$$\\boxed{a = 0 \\quad \\text{sau} \\quad a = 2}$$',
+    solution: '**Pasul 1.** Aplicarea teoremei restului:\nPrin teorema lui Bézout, restul împărțirii polinomului $P(X)$ la $X - 2$ este egal cu valoarea polinomului în $2$:\n$$P(2) = 10$$\n\n**Pasul 2.** Obținerea ecuației în parametrul $a$:\nÎnlocuim $X = 2$ în expresia polinomului și egalăm cu restul dat:\n$$8 + 4(a+1) - 2a^2 - 2 = 10$$\n$$10 + 4a - 2a^2 = 10$$\n$$4a - 2a^2 = 0$$\n\n**Pasul 3.** Determinarea valorilor lui $a$:\nRezolvăm ecuația prin factorizare:\n$$2a(2-a) = 0$$\n\n$$\\boxed{a = 0 \\quad \\text{sau} \\quad a = 2}$$',
     barem: [
       { descriere: 'P(2) = 10', puncte_maxime: 2 },
       { descriere: 'Obținerea ecuației 4a - 2a^2 = 0 (sau echivalent)', puncte_maxime: 2 },
@@ -3011,7 +3011,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini 0 și 1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 2X^4 + 3X^3 - X + 1$ la $Q(X) = X^2 - X$.',
-    solution: '$R(X) = aX+b$. Deoarece $X^2-X = X(X-1)$, evaluăm în $X=0$ și $X=1$:\n\n$$P(0) = 1 = b$$\n$$P(1) = 2+3-1+1 = 5 = a+b = a+1 \\Rightarrow a = 4$$\n\n$$\\boxed{R(X) = 4X+1}$$',
+    solution: '**Pasul 1.** Identificarea formei restului și a relațiilor matematice:\nRestul împărțirii la $Q(X) = X^2 - X = X(X - 1)$ este de forma $R(X) = aX + b$. Evaluăm în $X = 0$ și $X = 1$:\n$$P(0) = b \\text{ și } P(1) = a + b$$\n\n**Pasul 2.** Calcularea valorilor $P(0)$ și $P(1)$:\n$$P(0) = 1$$\n$$P(1) = 2 + 3 - 1 + 1 = 5$$\n\n**Pasul 3.** Determinarea restului $R(X)$:\nDin $b = 1$ și $a + 1 = 5 \\Rightarrow a = 4$, obținem:\n$$\\boxed{R(X) = 4X + 1}$$',
     barem: [
       { descriere: 'P(0) = b și P(1) = a + b', puncte_maxime: 2 },
       { descriere: 'Calcularea P(0) = 1 și P(1) = 5', puncte_maxime: 2 },
@@ -3026,7 +3026,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=1',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 + 5X^3 - X^2 - 17X + 12$$\ndacă $X = 1$ este rădăcină dublă.',
-    solution: '$P(1) = 1+5-1-17+12 = 0$ ✓ și $P\'(1) = 4+15-2-17 = 0$ ✓\n\nÎmpărțim prin $(X-1)^2 = X^2-2X+1$:\n$$P(X) = (X-1)^2(X^2+7X+12) = (X-1)^2(X+3)(X+4)$$\n\n$$\\boxed{P(X) = (X-1)^2(X+3)(X+4)}$$',
+    solution: '**Pasul 1.** Verificarea condițiilor pentru rădăcină dublă:\n$$P(1) = 1+5-1-17+12 = 0$$\n$$P\'(1) = 4+15-2-17 = 0$$\n\n**Pasul 2.** Determinarea câtului împărțirii lui $P(X)$ la $(X-1)^2 = X^2-2X+1$:\n$$P(X) = (X-1)^2(X^2+7X+12)$$\n\n**Pasul 3.** Factorizarea trinomului de gradul al doilea:\n$$X^2+7X+12 = (X+3)(X+4)$$\n\n**Pasul 4.** Scrierea polinomului ca produs de factori ireductibili:\n$$\\boxed{P(X) = (X-1)^2(X+3)(X+4)}$$',
     barem: [
       { descriere: '$P(1)=0$ și $P\'(1)=0$ (sau utilizarea schemei Horner)', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 + 7X + 12$', puncte_maxime: 2 },
@@ -3040,7 +3040,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −10',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = aX^4 - 7X^3 + 3X^2 + (a-3)X + 4$$\nla binomul $Q(X) = X - 2$, este egal cu $-10$.',
-    solution: '$P(2) = -10$:\n$$16a - 56 + 12 + 2(a-3) + 4 = -10$$\n$$18a - 46 = -10 \\Rightarrow 18a = 36 \\Rightarrow \\boxed{a = 2}$$',
+    solution: '**Pasul 1.** Aplicăm teorema restului pentru a stabili egalitatea $P(2) = -10$:\n$$P(2) = -10$$\n\n**Pasul 2.** Înlocuim $X=2$ în expresia polinomului și simplificăm ecuația:\n$$16a - 56 + 12 + 2(a-3) + 4 = -10$$\n$$18a - 46 = -10$$\n\n**Pasul 3.** Rezolvăm ecuația obținută pentru a determina valoarea lui $a$:\n$$18a = 36$$\n$$\\boxed{a = 2}$$',
     barem: [
       { descriere: 'P(2) = -10', puncte_maxime: 2 },
       { descriere: '18a - 46 = -10', puncte_maxime: 2 },
@@ -3053,7 +3053,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la X+2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = 3X^4 - 6X^3 + X^2 - 3X + 4$$\nla polinomul $Q(X) = X + 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n\n$$P(-2) = 3(16) - 6(-8) + 4 - 3(-2) + 4 = 48 + 48 + 4 + 6 + 4 = \\boxed{110}$$',
+    solution: '**Pasul 1.** Identificarea restului conform teoremei lui Bézout:\nPrin teorema lui Bézout, restul împărțirii polinomului $P(X)$ la $X + 2$ este:\n$$R = P(-2)$$\n\n**Pasul 2.** Calcularea valorii numerice a polinomului:\n$$P(-2) = 3(16) - 6(-8) + 4 - 3(-2) + 4 = 48 + 48 + 4 + 6 + 4$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{110}$$',
     barem: [
       { descriere: 'R = P(-2)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-2) = 110', puncte_maxime: 2 },
@@ -3066,7 +3066,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților a și b din condiția rădăcinii duble',
     statement: 'Fie polinomul $P(X) = X^4 + 6X^3 + 9X^2 + 2aX - b$. Determinați numerele reale $a$ și $b$, pentru care $X = 2$ este rădăcină dublă.',
-    solution: '$X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n\n$$P\'(X) = 4X^3+18X^2+18X+2a \\Rightarrow P\'(2) = 140+2a = 0 \\Rightarrow a = -70$$\n\n$$P(2) = 100 + 4(-70) - b = 0 \\Rightarrow b = -180$$\n\n$$P(X) = (X-2)^2(X^2+10X+45)$$\n\n$$\\boxed{a = -70, \\quad b = -180}$$',
+    solution: '$X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n\n**Pasul 1.** Calcularea derivatei $P\'(X)$:\n$$P\'(X) = 4X^3+18X^2+18X+2a$$\n\n**Pasul 2.** Obținerea valorii lui $a$ din $P\'(2)=0$:\n$$P\'(2) = 140+2a = 0 \\Rightarrow a = -70$$\n\n**Pasul 3.** Scrierea condiției $P(2) = 0$:\n$$P(2) = 100 + 4(-70) - b = 0$$\n\n**Pasul 4.** Obținerea valorii lui $b$:\n$$b = -180$$\n\n$$P(X) = (X-2)^2(X^2+10X+45)$$\n\n$$\\boxed{a = -70, \\quad b = -180}$$',
     barem: [
       { descriere: 'P\'(X) = 4X^3 + 18X^2 + 18X + 2a', puncte_maxime: 2 },
       { descriere: 'P\'(2) = 140 + 2a = 0 \\Rightarrow a = -70', puncte_maxime: 2 },
@@ -3081,7 +3081,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea parametrului a din condiția restului egal cu 6',
     statement: 'Determinați valorile parametrului real $a$, pentru care restul împărțirii polinomului\n$$P(X) = aX^4 - 6X^3 - 2X^2 - 2aX - 2$$\nla $Q(X) = X - 2$, este egal cu $6$.',
-    solution: '$P(2) = 6$:\n$$16a - 48 - 8 - 4a - 2 = 6$$\n$$12a - 58 = 6 \\Rightarrow 12a = 64 \\Rightarrow \\boxed{a = \\dfrac{16}{3}}$$',
+    solution: '**Pasul 1.** Aplicăm teorema restului pentru a stabili relația dintre polinom și rest:\n$$P(2) = 6$$\n\n**Pasul 2.** Înlocuim $X = 2$ în expresia polinomului și obținem ecuația în $a$:\n$$16a - 48 - 8 - 4a - 2 = 6$$\n$$12a - 58 = 6$$\n\n**Pasul 3.** Rezolvăm ecuația pentru a determina valoarea parametrului $a$:\n$$12a = 64$$\n$$\\boxed{a = \\dfrac{16}{3}}$$',
     barem: [
       { descriere: 'P(2) = 6', puncte_maxime: 2 },
       { descriere: '12a - 58 = 6', puncte_maxime: 2 },
@@ -3094,7 +3094,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 27',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 3X^4 - 2aX^3 - 12X^2 + 8X - a - 2$$\nla $Q(X) = X + 2$, este egal cu $27$.',
-    solution: '$P(-2) = 27$:\n$$48 + 16a - 48 - 16 - a - 2 = 27$$\n$$15a - 18 = 27 \\Rightarrow 15a = 45 \\Rightarrow \\boxed{a = 3}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului pentru a stabili relația dintre $P(-2)$ și restul dat:\n$$P(-2) = 27$$\n\n**Pasul 2.** Calcularea valorii $P(-2)$ și obținerea ecuației în $a$:\n$$48 + 16a - 48 - 16 - a - 2 = 27$$\n$$15a - 18 = 27$$\n\n**Pasul 3.** Rezolvarea ecuației și determinarea valorii lui $a$:\n$$15a = 45$$\n\n$$\\boxed{a = 3}$$',
     barem: [
       { descriere: 'P(-2) = 27', puncte_maxime: 2 },
       { descriere: '15a - 18 = 27', puncte_maxime: 2 },
@@ -3107,7 +3107,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^5 + 3X^3 - (m+1)X^2 + (m-1)X + 6 + m$. Determinați valorile reale ale lui $m$, pentru care polinomul $P(X)$ se divide cu $Q(X) = X + 1$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-2 - 3 - (m+1) - (m-1) + 6 + m = 0$$\n$$1 - m = 0 \\Rightarrow \\boxed{m = 1}$$',
+    solution: '**Pasul 1.** Utilizarea condiției de divizibilitate:\nDacă polinomul $P(X)$ este divizibil cu $(X+1)$, atunci restul împărțirii este zero, deci:\n$$P(-1) = 0$$\n\n**Pasul 2.** Calcularea valorii $P(-1)$:\nÎnlocuim $X = -1$ în expresia polinomului și reducem termenii asemenea:\n$$P(-1) = -2 - 3 - (m+1) - (m-1) + 6 + m = 1 - m$$\n\n**Pasul 3.** Determinarea valorii lui $m$:\nDin condiția $P(-1) = 0$, obținem ecuația:\n$$1 - m = 0$$\n\n$$\\boxed{m = 1}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'P(-1) = 1 - m', puncte_maxime: 2 },
@@ -3120,7 +3120,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X²−2 din condiție la X=2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 2X - 2 - a$, la polinomul $Q(X) = X^2 - 2$, dacă restul împărțirii la $X = 2$ este egal cu $8$.',
-    solution: 'Din $P(2) = 8$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n$P(X) = X^4 + 2X - 12$. Scriem $R(X) = bX + c$ și evaluăm în $X = \\pm\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4 + 2\\sqrt{2} - 12 = -8 + 2\\sqrt{2} = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = 4 - 2\\sqrt{2} - 12 = -8 - 2\\sqrt{2} = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -8$\n\n$$\\boxed{R(X) = 2X - 8}$$',
+    solution: '**Pasul 1.** Utilizăm teorema restului pentru condiția dată:\n$$P(2) = 8$$\n\n**Pasul 2.** Determinăm valoarea parametrului $a$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n**Pasul 3.** Scriem forma generală a restului împărțirii la $Q(X) = X^2 - 2$:\n$$R(X) = bX + c$$\n\n**Pasul 4.** Evaluăm polinomul $P(X) = X^4 + 2X - 12$ în rădăcinile $X = \\pm\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4 + 2\\sqrt{2} - 12 = -8 + 2\\sqrt{2} = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = 4 - 2\\sqrt{2} - 12 = -8 - 2\\sqrt{2} = -b\\sqrt{2} + c$$\n\n**Pasul 5.** Identificăm coeficienții $b, c$ și scriem restul $R(X)$:\n$$b = 2,\\; c = -8$$\n$$\\boxed{R(X) = 2X - 8}$$',
     barem: [
       { descriere: 'P(2) = 8', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 10', puncte_maxime: 1 },
@@ -3135,7 +3135,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −13',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = (a+3)X^5 - 2X^3 + (9+a)X^2 + 2X + 7 - a$$\nla $Q(X) = X - 2$, este egal cu $-13$.',
-    solution: '$P(2) = -13$:\n$$(a+3)(32) - 16 + (9+a)(4) + 4 + 7 - a = -13$$\n$$32a + 96 - 16 + 36 + 4a + 4 + 7 - a = -13$$\n$$35a + 127 = -13 \\Rightarrow 35a = -140 \\Rightarrow \\boxed{a = -4}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului:\n$$P(2) = -13$$\n\n**Pasul 2.** Înlocuirea în polinom și simplificarea ecuației:\n$$(a+3)(32) - 16 + (9+a)(4) + 4 + 7 - a = -13$$\n$$32a + 96 - 16 + 36 + 4a + 4 + 7 - a = -13$$\n$$35a + 127 = -13$$\n\n**Pasul 3.** Rezolvarea ecuației obținute:\n$$35a = -140$$\n\n$$\\boxed{a = -4}$$',
     barem: [
       { descriere: 'P(2) = -13', puncte_maxime: 2 },
       { descriere: '35a + 127 = -13', puncte_maxime: 2 },
@@ -3148,7 +3148,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 3 la X−1',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 2aX^4 - 7X^3 + 2X^2 - 10X + a$$\nla $Q(X) = X - 1$, este egal cu $3$.',
-    solution: '$P(1) = 3$:\n$$2a - 7 + 2 - 10 + a = 3$$\n$$3a - 15 = 3 \\Rightarrow 3a = 18 \\Rightarrow \\boxed{a = 6}$$',
+    solution: '**Pasul 1.** Aplicarea teoremei restului pentru a stabili relația dintre polinom și rest:\n$$P(1) = 3$$\n\n**Pasul 2.** Substituirea în expresia polinomului și obținerea ecuației simplificate:\n$$2a - 7 + 2 - 10 + a = 3$$\n$$3a - 15 = 3$$\n\n**Pasul 3.** Rezolvarea ecuației pentru a determina valoarea parametrului $a$:\n$$3a = 18$$\n$$\\boxed{a = 6}$$',
     barem: [
       { descriere: 'P(1) = 3', puncte_maxime: 2 },
       { descriere: '3a - 15 = 3', puncte_maxime: 2 },
@@ -3162,7 +3162,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=−2',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 + 7X^3 + 12X^2 - 4X - 16$$\ndacă $X = -2$ este rădăcină dublă.',
-    solution: '$P(-2) = 16-56+48+8-16 = 0$ ✓ și $P\'(-2) = -32+84-48-4 = 0$ ✓\n\nÎmpărțim prin $(X+2)^2 = X^2+4X+4$:\n$$P(X) = (X+2)^2(X^2+3X-4) = (X+2)^2(X+4)(X-1)$$\n\n$$\\boxed{P(X) = (X+2)^2(X+4)(X-1)}$$',
+    solution: '**Pasul 1.** Identificarea factorului asociat rădăcinii duble:\n$P(-2) = 16-56+48+8-16 = 0$ și $P\'(-2) = -32+84-48-4 = 0$. Deoarece $X = -2$ este rădăcină dublă, polinomul se divide prin:\n$$(X+2)^2 = X^2+4X+4$$\n\n**Pasul 2.** Determinarea câtului împărțirii:\nÎmpărțim polinomul $P(X)$ prin $X^2+4X+4$ pentru a obține câtul:\n$$P(X) = (X+2)^2(X^2+3X-4)$$\n\n**Pasul 3.** Descompunerea câtului în factori:\nDescompunem trinomul de gradul al doilea obținut anterior:\n$$X^2+3X-4 = (X+4)(X-1)$$\n\n**Pasul 4.** Scrierea formei finale a polinomului:\nCombinăm toți factorii pentru a obține descompunerea în factori ireductibili:\n$$\\boxed{P(X) = (X+2)^2(X+4)(X-1)}$$',
     barem: [
       { descriere: '$(X+2)^2 = X^2+4X+4$', puncte_maxime: 2 },
       { descriere: 'C(X) = X^2+3X-4', puncte_maxime: 3 },
@@ -3178,7 +3178,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiții de divizibilitate și rest, apoi restul la X+2',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + bX - 6$, $a, b \\in \\mathbb{R}$. Se știe că $P(X)$ se divide cu binomul $X - 3$, iar prin împărțirea la binomul $X - 2$ dă restul $-16$. Determinați restul împărțirii polinomului $P(X)$ la binomul $X + 2$.',
-    solution: 'Din condiția de divizibilitate cu $(X-3)$: $P(3) = 0$\n$$27 + 9a + 3b - 6 = 0 \\Rightarrow 3a + b = -7 \\quad (1)$$\n\nDin restul la $(X-2)$: $P(2) = -16$\n$$8 + 4a + 2b - 6 = -16 \\Rightarrow 2a + b = -9 \\quad (2)$$\n\n$(1)-(2):\\; a = 2,\\; b = -13$\n\n$P(X) = X^3 + 2X^2 - 13X - 6$\n\nRestul la $(X+2)$: $P(-2) = -8 + 8 + 26 - 6 = \\boxed{20}$',
+    solution: '**Pasul 1.** Scrierea condițiilor pentru valorile polinomului:\nDin condiția de divizibilitate cu $(X-3)$ avem $P(3) = 0$, iar din restul la $(X-2)$ avem $P(2) = -16$.\n\n**Pasul 2.** Obținerea sistemului de ecuații:\n$$27 + 9a + 3b - 6 = 0 \\Rightarrow 3a + b = -7 \\quad (1)$$\n$$8 + 4a + 2b - 6 = -16 \\Rightarrow 2a + b = -9 \\quad (2)$$\n\n**Pasul 3.** Rezolvarea sistemului și determinarea valorilor $a$ și $b$:\n$$(1)-(2):\\; a = 2,\\; b = -13$$\n\n**Pasul 4.** Calcularea restului împărțirii la binomul $X+2$:\n$P(X) = X^3 + 2X^2 - 13X - 6$\n$$P(-2) = -8 + 8 + 26 - 6$$\n$$\\boxed{20}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -16$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 3a + b = -7 \\\\ 2a + b = -9 \\end{cases}$ (câte 1p pentru fiecare ecuație)', puncte_maxime: 2 },
@@ -3192,7 +3192,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X+3',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 + 5X - 3$, unde $a \\in \\mathbb{R}$. Știind că $P(2) = 7$, să se afle restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X + 3$.',
-    solution: 'Din $P(2) = 7$:\n$$8 + 4a + 10 - 3 = 7 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 + 5X - 3$\n\nRestul la $(X+3)$: $P(-3) = -27 - 18 - 15 - 3 = \\boxed{-63}$',
+    solution: '**Pasul 1.** Calculăm valoarea $P(2)$ în funcție de parametrul $a$:\n$$P(2) = 2^3 + a \\cdot 2^2 + 5 \\cdot 2 - 3 = 8 + 4a + 10 - 3 = 4a + 15$$\n\n**Pasul 2.** Determinăm valoarea lui $a$ folosind condiția $P(2) = 7$:\n$$4a + 15 = 7 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n**Pasul 3.** Utilizăm teorema restului pentru a exprima restul împărțirii la $Q(X) = X + 3$:\n$$P(X) = X^3 - 2X^2 + 5X - 3 \\Rightarrow R = P(-3)$$\n\n**Pasul 4.** Calculăm valoarea numerică a restului:\n$$P(-3) = -27 - 18 - 15 - 3$$\n\n$$\\boxed{-63}$$',
     barem: [
       { descriere: 'P(2) = 4a + 15', puncte_maxime: 1 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
@@ -3206,7 +3206,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de rădăcină și restul la X−4',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 - 5X + 6$, unde $a \\in \\mathbb{R}$. Știind că $X = -2$ este rădăcină a polinomului $P(X)$, să se afle restul împărțirii polinomului $P(X)$ la binomul $X - 4$.',
-    solution: 'Din $P(-2) = 0$:\n$$-8 + 4a + 10 + 6 = 0 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 - 5X + 6$\n\nRestul la $(X-4)$: $P(4) = 64 - 32 - 20 + 6 = \\boxed{18}$',
+    solution: '**Pasul 1.** Utilizarea condiției că $X = -2$ este rădăcină a polinomului:\n$$P(-2) = 0 \\Rightarrow -8 + 4a + 10 + 6 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\n$$4a = -8 \\Rightarrow a = -2$$\nAstfel, $P(X) = X^3 - 2X^2 - 5X + 6$.\n\n**Pasul 3.** Calcularea restului împărțirii la binomul $X - 4$:\n$$P(4) = 64 - 32 - 20 + 6$$\n\n$$\\boxed{18}$$',
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
@@ -3219,7 +3219,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea polinomului P(X) din câtul și restul împărțirii la X²−1',
     statement: 'Polinomul $P(X)$ se împarte la polinomul $Q(X) = X^2 - 1$, obținându-se câtul\n$$C(X) = X^3 - X + 1$$\nDeterminați polinomul $P(X)$, știind că $P(2) = 6$ și $P(-2) = 2$.',
-    solution: '$P(X) = (X^2-1)(X^3-X+1) + R(X)$, unde $R(X) = bX+c$.\n\n$(X^2-1)(X^3-X+1) = X^5-2X^3+X^2+X-1$\n\nDin $P(2) = 6$:\n$$21 + (2b+c) = 6 \\Rightarrow 2b+c = -15 \\quad (1)$$\n\nDin $P(-2) = 2$:\n$$3(-5) + (-2b+c) = 2 \\Rightarrow -2b+c = 17 \\quad (2)$$\n\nDin $(1)+(2)$: $2c = 2 \\Rightarrow c = 1,\\; b = -8$, deci $R(X) = -8X+1$\n\n$$\\boxed{P(X) = X^5 - 2X^3 + X^2 - 7X}$$',
+    solution: '**Pasul 1.** Scrierea identității împărțirii cu rest:\nConform teoremei împărțirii cu rest, avem $P(X) = Q(X) \\cdot C(X) + R(X)$, unde gradul restului $R(X)$ este mai mic decât gradul împărțitorului $Q(X) = X^2 - 1$. Astfel, $R(X) = bX + c$:\n$$P(X) = (X^2-1)(X^3-X+1) + bX+c$$\n\n**Pasul 2.** Obținerea sistemului de ecuații pentru coeficienții restului:\nUtilizăm condițiile $P(2) = 6$ și $P(-2) = 2$:\nDin $P(2) = 6 \\Rightarrow 21 + (2b+c) = 6 \\Rightarrow 2b+c = -15$\nDin $P(-2) = 2 \\Rightarrow 3(-5) + (-2b+c) = 2 \\Rightarrow -2b+c = 17$\nObținem sistemul:\n$$\\begin{cases} 2b+c = -15 \\\\ -2b+c = 17 \\end{cases}$$\n\n**Pasul 3.** Determinarea valorilor $b$ și $c$:\nRezolvăm sistemul prin adunarea ecuațiilor:\n$$(2b+c) + (-2b+c) = -15 + 17 \\Rightarrow 2c = 2 \\Rightarrow c = 1$$\nÎnlocuind $c=1$ în prima ecuație, obținem $2b + 1 = -15 \\Rightarrow 2b = -16 \\Rightarrow b = -8$.\n\n**Pasul 4.** Obținerea formei finale a polinomului $P(X)$:\nCalculăm produsul $(X^2-1)(X^3-X+1) = X^5-2X^3+X^2+X-1$ și adunăm restul $R(X) = -8X+1$:\n$P(X) = (X^5-2X^3+X^2+X-1) + (-8X+1)$\n$$\\boxed{P(X) = X^5 - 2X^3 + X^2 - 7X}$$',
     barem: [
       { descriere: 'Scrierea identității $P(X) = (X^2-1)(X^3-X+1) + bX+c$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 2b+c = -15 \\\\ -2b+c = 17 \\end{cases}$', puncte_maxime: 2 },
@@ -3233,7 +3233,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiția de rest egal și rădăcinile polinomului',
     statement: 'Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 12$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X - 3$ este egal cu restul împărțirii polinomului $P(X)$ la binomul $X + 1$ și este egal cu $15$, să se afle rădăcinile polinomului $P(X)$.',
-    solution: 'Din $P(3) = 15$:\n$$54 + 9a + 3b + 12 = 15 \\Rightarrow 3a + b = -17 \\quad (1)$$\n\nDin $P(-1) = 15$:\n$$-2 + a - b + 12 = 15 \\Rightarrow a - b = 5 \\quad (2)$$\n\nDin $(1)+(2)$: $4a = -12 \\Rightarrow a = -3,\\; b = -8$\n\n$P(X) = 2X^3 - 3X^2 - 8X + 12$. Testăm $X = 2$: $16 - 12 - 16 + 12 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|cccc} 2 & 2 & -3 & -8 & 12 \\\\ & & 4 & 2 & -12 \\\\ \\hline & 2 & 1 & -6 & 0 \\end{array}$$\n\n$P(X) = (X-2)(2X^2+X-6) = (X-2)(2X-3)(X+2)$\n\n$$\\boxed{X = 2,\\quad X = \\tfrac{3}{2},\\quad X = -2}$$',
+    solution: '**Pasul 1.** Scrierea condițiilor $P(3) = 15$ și $P(-1) = 15$:\n$$54 + 9a + 3b + 12 = 15 \\quad \\text{și} \\quad -2 + a - b + 12 = 15$$\n\n**Pasul 2.** Obținerea sistemului:\n$$\\begin{cases} 3a + b = -17 \\\\ a - b = 5 \\end{cases}$$\n\n**Pasul 3.** Rezolvarea sistemului:\n$$\\text{Din } (1)+(2): \\; 4a = -12 \\Rightarrow a = -3,\\; b = -8$$\n\n**Pasul 4.** Determinarea rădăcinilor polinomului și scrierea răspunsului:\n$P(X) = 2X^3 - 3X^2 - 8X + 12$. Testăm $X = 2$: $16 - 12 - 16 + 12 = 0$ ✓\n$$\\begin{array}{c|cccc} 2 & 2 & -3 & -8 & 12 \\\\ & & 4 & 2 & -12 \\\\ \\hline & 2 & 1 & -6 & 0 \\end{array}$$\n$$P(X) = (X-2)(2X^2+X-6) = (X-2)(2X-3)(X+2)$$\n$$\\boxed{X = 2,\\quad X = \\tfrac{3}{2},\\quad X = -2}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(3) = 15$ și $P(-1) = 15$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 3a+b=-17 \\\\ a-b=5 \\end{cases}$', puncte_maxime: 2 },
@@ -3248,7 +3248,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la un polinom de grad 2 din resturile cunoscute la factorii săi',
     statement: 'Să se afle restul împărțirii polinomului $P(X)$, de grad cel puțin $2$, la polinomul\n$$Q(X) = X^2 - X - 6$$\nștiind că resturile împărțirii lui $P(X)$ la $X - 3$ și $X + 2$ sunt $7$ și respectiv $-8$.',
-    solution: '$Q(X) = X^2-X-6 = (X-3)(X+2)$, cu rădăcinile $X = 3$ și $X = -2$.\n\n$R(X) = bX + c$. Din $P(3) = R(3)$ și $P(-2) = R(-2)$:\n\n$$3b + c = 7 \\quad (1)$$\n$$-2b + c = -8 \\quad (2)$$\n\n$(1)-(2)$: $5b = 15 \\Rightarrow b = 3,\\; c = -2$\n\n$$\\boxed{R(X) = 3X - 2}$$',
+    solution: '**Pasul 1.** Identificarea formei restului și scrierea sistemului de ecuații:\nDeoarece $Q(X) = X^2 - X - 6 = (X - 3)(X + 2)$, restul este de forma $R(X) = bX + c$. Din $P(3) = R(3)$ și $P(-2) = R(-2)$, obținem sistemul:\n$$\\begin{cases} 3b + c = 7 \\\\ -2b + c = -8 \\end{cases}$$\n\n**Pasul 2.** Rezolvarea sistemului pentru a afla valorile $b$ și $c$:\nPrin scăderea ecuațiilor obținem:\n$$5b = 15 \\Rightarrow b = 3, \\; c = -2$$\n\n**Pasul 3.** Scrierea restului $R(X)$:\n$$\\boxed{R(X) = 3X - 2}$$',
     barem: [
       { descriere: 'Identificarea formei restului $R(X) = bX + c$ și scrierea sistemului \\\\begin{cases} 3b + c = 7 \\\\\\\\ -2b + c = -8 \\\\end{cases}', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului și obținerea valorilor $b = 3$ și $c = -2$', puncte_maxime: 2 },
@@ -3261,7 +3261,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=3 este rădăcină',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 9X - 9$. Să se determine $a \\in \\mathbb{R}$ pentru care $X = 3$ este rădăcină a polinomului $P(X)$.',
-    solution: '$P(3) = 0$:\n$$27 + 9a + 27 - 9 = 0 \\Rightarrow 9a = -45 \\Rightarrow \\boxed{a = -5}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = 3$ să fie rădăcină a polinomului $P(X)$:\n$$P(3) = 0$$\n\n**Pasul 2.** Înlocuirea valorii în expresia polinomului și obținerea ecuației în $a$:\n$$27 + 9a + 27 - 9 = 0 \\Rightarrow 9a + 45 = 0$$\n\n**Pasul 3.** Rezolvarea ecuației pentru determinarea valorii lui $a$:\n$$9a = -45$$\n\n$$\\boxed{a = -5}$$',
     barem: [
       { descriere: 'P(3) = 0', puncte_maxime: 2 },
       { descriere: '9a + 45 = 0', puncte_maxime: 2 },
@@ -3275,7 +3275,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Aflarea restului la X+3 din condiția restului la X−2',
     statement: 'Aflați restul împărțirii polinomului $P(X) = 2X^3 - 3X^2 + mX + 1$ la binomul $X + 3$, știind că împărțit la binomul $X - 2$ dă restul $15$.',
-    solution: 'Din $P(2) = 15$:\n$$16 - 12 + 2m + 1 = 15 \\Rightarrow 2m = 10 \\Rightarrow m = 5$$\n\n$P(X) = 2X^3 - 3X^2 + 5X + 1$\n\nRestul la $(X+3)$: $P(-3) = -54 - 27 - 15 + 1 = \\boxed{-95}$',
+    solution: '**Pasul 1.** Utilizăm condiția $P(2) = 15$ conform teoremei restului:\n$$16 - 12 + 2m + 1 = 15$$\n\n**Pasul 2.** Determinăm valoarea parametrului $m$:\n$$2m = 10 \\Rightarrow m = 5$$\n\n**Pasul 3.** Calculăm restul împărțirii polinomului $P(X) = 2X^3 - 3X^2 + 5X + 1$ la $X + 3$:\n$$P(-3) = -54 - 27 - 15 + 1$$\n\n$$\\boxed{-95}$$',
     barem: [
       { descriere: '$P(2) = 15$', puncte_maxime: 2 },
       { descriere: 'Obținerea $m = 5$', puncte_maxime: 1 },
@@ -3289,7 +3289,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Rădăcinile unui polinom de grad 3 care se divide cu X+2',
     statement: 'Să se afle rădăcinile polinomului $P(X) = 2X^3 - X^2 + aX - 6$, $a \\in \\mathbb{R}$, știind că el se divide cu polinomul $Q(X) = X + 2$.',
-    solution: 'Din $P(-2) = 0$:\n$$-16 - 4 - 2a - 6 = 0 \\Rightarrow -2a = 26 \\Rightarrow a = -13$$\n\n$P(X) = 2X^3 - X^2 - 13X - 6$. Schema Horner pentru $X = -2$:\n$$\\begin{array}{c|cccc} -2 & 2 & -1 & -13 & -6 \\\\ & & -4 & 10 & 6 \\\\ \\hline & 2 & -5 & -3 & 0 \\end{array}$$\n\n$P(X) = (X+2)(2X^2-5X-3) = (X+2)(2X+1)(X-3)$\n\n$$\\boxed{X = -2,\\quad X = -\\tfrac{1}{2},\\quad X = 3}$$',
+    solution: '**Pasul 1.** Determinarea parametrului $a$:\nDin $P(-2) = 0$:\n$$-16 - 4 - 2a - 6 = 0 \\Rightarrow -2a = 26 \\Rightarrow a = -13$$\n\n**Pasul 2.** Determinarea câtului împărțirii:\n$P(X) = 2X^3 - X^2 - 13X - 6$. Schema Horner pentru $X = -2$:\n$$\\begin{array}{c|cccc} -2 & 2 & -1 & -13 & -6 \\\\ & & -4 & 10 & 6 \\\\ \\hline & 2 & -5 & -3 & 0 \\end{array}$$\nCâtul obținut este $2X^2 - 5X - 3$.\n\n**Pasul 3.** Determinarea rădăcinilor:\n$$P(X) = (X+2)(2X^2-5X-3) = (X+2)(2X+1)(X-3)$$\n$$\\boxed{X = -2,\\quad X = -\\tfrac{1}{2},\\quad X = 3}$$',
     barem: [
       { descriere: 'P(-2) = 0 și obținerea a = -13', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului 2X^2 - 5X - 3', puncte_maxime: 4 },
@@ -3302,7 +3302,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și calculul P(2)',
     statement: 'Fie polinomul $P(X) = X^2 + aX - 7$. Știind că $P(1) = -2$, aflați $P(2)$.',
-    solution: 'Din $P(1) = -2$:\n$$1 + a - 7 = -2 \\Rightarrow a = 4$$\n\n$P(X) = X^2 + 4X - 7$\n\n$$P(2) = 4 + 8 - 7 = \\boxed{5}$$',
+    solution: '**Pasul 1.** Utilizarea condiției $P(1) = -2$ pentru a scrie ecuația:\n$$1 + a - 7 = -2$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\n$$a = 4$$\n\n**Pasul 3.** Calcularea valorii $P(2)$:\n$P(X) = X^2 + 4X - 7$\n$$P(2) = 4 + 8 - 7$$\n\n$$\\boxed{5}$$',
     barem: [
       { descriere: '1 + a - 7 = -2', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
@@ -3316,7 +3316,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunerea în factori cu rădăcina X=3 dată',
     statement: 'Se consideră polinomul $P(X) = 2X^3 - aX^2 + 3X - 9$. Dacă $X = 3$ este rădăcină a polinomului $P(X)$, să se descompună $P(X)$ în factori.',
-    solution: 'Din $P(3) = 0$:\n$$54 - 9a + 9 - 9 = 0 \\Rightarrow 9a = 54 \\Rightarrow a = 6$$\n\n$P(X) = 2X^3 - 6X^2 + 3X - 9$. Grupăm termenii:\n$$= 2X^2(X-3) + 3(X-3) = (X-3)(2X^2+3)$$\n\n$2X^2+3 > 0$ pentru orice $X \\in \\mathbb{R}$, deci nu are rădăcini reale.\n\n$$\\boxed{P(X) = (X-3)(2X^2+3)}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = 3$ să fie rădăcină a polinomului:\n$$P(3) = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\n$$54 - 9a + 9 - 9 = 0 \\Rightarrow 9a = 54 \\Rightarrow a = 6$$\n\n**Pasul 3.** Determinarea câtului împărțirii lui $P(X)$ la $(X-3)$ prin gruparea termenilor:\n$$P(X) = 2X^3 - 6X^2 + 3X - 9 = 2X^2(X-3) + 3(X-3)$$\n\n**Pasul 4.** Scrierea formei descompuse a polinomului $P(X)$:\n$2X^2+3 > 0$ pentru orice $X \\in \\mathbb{R}$, deci nu are rădăcini reale.\n$$\\boxed{P(X) = (X-3)(2X^2+3)}$$',
     barem: [
       { descriere: 'P(3) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 6', puncte_maxime: 2 },
@@ -3331,7 +3331,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori în mulțimea R',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 2X + b$. Știind că $P(2) = -6$ și că $X = 3$ este rădăcină a polinomului, să descompună $P(X)$ în factori în mulțimea $\\mathbb{R}$.',
-    solution: 'Din $P(3) = 0$:\n$$27 + 9a + 6 + b = 0 \\Rightarrow 9a + b = -33 \\quad (1)$$\n\nDin $P(2) = -6$:\n$$8 + 4a + 4 + b = -6 \\Rightarrow 4a + b = -18 \\quad (2)$$\n\n$(1)-(2)$: $5a = -15 \\Rightarrow a = -3,\\; b = -6$\n\n$P(X) = X^3 - 3X^2 + 2X - 6$. Schema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 1 & -3 & 2 & -6 \\\\ & & 3 & 0 & 6 \\\\ \\hline & 1 & 0 & 2 & 0 \\end{array}$$\n\n$X^2+2$ nu are rădăcini reale ($\\Delta = -8 < 0$).\n\n$$\\boxed{P(X) = (X-3)(X^2+2)}$$',
+    solution: '**Pasul 1.** Scrierea condițiilor $P(3) = 0$ și $P(2) = -6$:\nDin faptul că $X = 3$ este rădăcină, avem $P(3) = 0$:\n$$27 + 9a + 6 + b = 0$$\nDin condiția $P(2) = -6$, avem:\n$$8 + 4a + 4 + b = -6$$\n\n**Pasul 2.** Obținerea sistemului de ecuații:\nDin relațiile de mai sus, obținem sistemul:\n$$\\begin{cases} 9a + b = -33 \\ 4a + b = -18 \\end{cases}$$\n\n**Pasul 3.** Determinarea valorilor $a$ și $b$:\nScăzând cele două ecuații, obținem:\n$$5a = -15 \\Rightarrow a = -3, \\; b = -6$$\n\n**Pasul 4.** Obținerea descompunerii în factori:\nPolinomul devine $P(X) = X^3 - 3X^2 + 2X - 6$. Aplicăm schema lui Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 1 & -3 & 2 & -6 \\\\ & & 3 & 0 & 6 \\\\ \\hline & 1 & 0 & 2 & 0 \\end{array}$$\nDeoarece $X^2+2$ nu are rădăcini reale ($\\Delta = -8 < 0$):\n$$\\boxed{P(X) = (X-3)(X^2+2)}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -6$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 9a+b=-33 \\\\ 4a+b=-18 \\end{cases}$', puncte_maxime: 2 },
@@ -3346,7 +3346,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din egalitatea resturilor și rădăcinile polinomului',
     statement: 'Determinați rădăcinile polinomului $P(X) = X^3 + 2aX^2 - 5X - a - 9$, $a \\in \\mathbb{R}$, știind că restul împărțirii polinomului $P(X)$ la binomul $X - 2$ este egal cu restul împărțirii lui $P(X)$ la binomul $X + 1$.',
-    solution: '$P(2) = P(-1)$:\n$$8 + 8a - 10 - a - 9 = -1 + 2a + 5 - a - 9$$\n$$7a - 11 = a - 5 \\Rightarrow 6a = 6 \\Rightarrow a = 1$$\n\n$P(X) = X^3 + 2X^2 - 5X - 10$. Grupăm:\n$$= X^2(X+2) - 5(X+2) = (X+2)(X^2-5)$$\n\n$$\\boxed{X = -2,\\quad X = \\sqrt{5},\\quad X = -\\sqrt{5}}$$',
+    solution: '**Pasul 1.** Scrierea egalității resturilor $P(2) = P(-1)$:\n$$8 + 8a - 10 - a - 9 = -1 + 2a + 5 - a - 9$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\n$$7a - 11 = a - 5 \\Rightarrow 6a = 6 \\Rightarrow a = 1$$\n\n**Pasul 3.** Descompunerea în factori a polinomului $P(X) = X^3 + 2X^2 - 5X - 10$:\n$$X^2(X+2) - 5(X+2) = (X+2)(X^2-5)$$\n\n**Pasul 4.** Determinarea rădăcinilor polinomului:\n$$\\boxed{X = -2,\\quad X = \\sqrt{5},\\quad X = -\\sqrt{5}}$$',
     barem: [
       { descriere: 'P(2) = P(-1)', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 1', puncte_maxime: 2 },
@@ -3360,7 +3360,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a, b ∈ Z astfel încât X=1 să fie rădăcină',
     statement: 'Fie polinomul $P(X) = a^2X^4 - 2abX^3 + b^2X^2 + a^2X - 2a + 1$. Să se determine $a, b \\in \\mathbb{Z}$, astfel încât $P(X)$ să admită ca rădăcină $X = 1$.',
-    solution: '$P(1) = 0$:\n$$a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0$$\n\nRegrupăm:\n$$(a-b)^2 + (a-1)^2 = 0$$\n\nO sumă de două pătrate este zero dacă și numai dacă ambii termeni sunt zero:\n$$a - b = 0 \\Rightarrow b = a \\qquad \\text{și} \\qquad a - 1 = 0 \\Rightarrow a = 1$$\n\n$$\\boxed{a = 1,\\quad b = 1}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X=1$ să fie rădăcină:\n$$P(1) = 0$$\n\n**Pasul 2.** Substituirea valorii în expresia polinomului:\n$$a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0$$\n\n**Pasul 3.** Gruparea termenilor sub formă de pătrate perfecte:\n$$(a-b)^2 + (a-1)^2 = 0$$\n\n**Pasul 4.** Determinarea valorilor $a$ și $b$:\nO sumă de două pătrate este zero dacă și numai dacă ambii termeni sunt zero:\n$$a - b = 0 \\Rightarrow b = a \\qquad \\text{și} \\qquad a - 1 = 0 \\Rightarrow a = 1$$\n\n$$\\boxed{a = 1,\\quad b = 1}$$',
     barem: [
       { descriere: 'P(1) = 0', puncte_maxime: 2 },
       { descriere: 'a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0', puncte_maxime: 2 },
@@ -3374,7 +3374,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −3 la X−1',
     statement: 'Să se afle $a \\in \\mathbb{R}$, știind că restul împărțirii polinomului\n$$P(X) = X^3 - 2X^2 + aX - 7$$\nla binomul $X - 1$ este egal cu $-3$.',
-    solution: '$P(1) = -3$:\n$$1 - 2 + a - 7 = -3 \\Rightarrow a - 8 = -3 \\Rightarrow \\boxed{a = 5}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului pentru a stabili relația dintre $P(1)$ și rest:\n$$P(1) = -3$$\n\n**Pasul 2.** Înlocuirea în expresia polinomului și obținerea ecuației în $a$:\n$$1 - 2 + a - 7 = -3 \\Rightarrow a - 8 = -3$$\n\n**Pasul 3.** Determinarea valorii parametrului $a$:\n$$\\boxed{a = 5}$$',
     barem: [
       { descriere: 'P(1) = -3', puncte_maxime: 2 },
       { descriere: 'Obținerea a - 8 = -3', puncte_maxime: 1 },
@@ -3388,7 +3388,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția restului la X−√2',
     statement: 'Determinați $m \\in \\mathbb{R}$, astfel încât restul împărțirii polinomului\n$$P(X) = 2X^3 + mX^2 + mX + 2$$\nla binomul $Q(X) = X - \\sqrt{2}$ să fie egal cu $4\\sqrt{2}$.',
-    solution: 'Prin teorema lui Bézout: $P(\\sqrt{2}) = 4\\sqrt{2}$\n\n$$2(\\sqrt{2})^3 + m(\\sqrt{2})^2 + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$4\\sqrt{2} + 2m + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$2m + m\\sqrt{2} + 2 = 0$$\n$$m(2 + \\sqrt{2}) = -2$$\n$$m = \\frac{-2}{2+\\sqrt{2}} = \\frac{-2(2-\\sqrt{2})}{(2+\\sqrt{2})(2-\\sqrt{2})} = \\frac{-2(2-\\sqrt{2})}{2}$$\n\n$$\\boxed{m = \\sqrt{2} - 2}$$',
+    solution: '**Pasul 1.** Aplicăm teorema lui Bézout pentru a stabili relația dintre rest și valoarea polinomului:\n$$P(\\sqrt{2}) = 4\\sqrt{2}$$\n\n**Pasul 2.** Înlocuim $X = \\sqrt{2}$ în expresia polinomului și simplificăm ecuația obținută:\n$$2(\\sqrt{2})^3 + m(\\sqrt{2})^2 + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$4\\sqrt{2} + 2m + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$2m + m\\sqrt{2} + 2 = 0$$\n\n**Pasul 3.** Rezolvăm ecuația în raport cu $m$:\n$$m(2 + \\sqrt{2}) = -2$$\n$$m = \\frac{-2}{2+\\sqrt{2}} = \\frac{-2(2-\\sqrt{2})}{(2+\\sqrt{2})(2-\\sqrt{2})} = \\frac{-2(2-\\sqrt{2})}{2}$$\n\n$$\\boxed{m = \\sqrt{2} - 2}$$',
     barem: [
       { descriere: 'P(√2) = 4√2', puncte_maxime: 2 },
       { descriere: '2m + m√2 + 2 = 0', puncte_maxime: 2 },
@@ -3402,7 +3402,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X−3 din condiția restului la X+2',
     statement: 'Restul împărțirii polinomului $P(X) = X^3 + 3X^2 + aX + 5$ la binomul $X + 2$ este egal cu $13$. Să se afle restul împărțirii lui $P(X)$ la binomul $X - 3$.',
-    solution: 'Din $P(-2) = 13$:\n$$-8 + 12 - 2a + 5 = 13 \\Rightarrow -2a = 4 \\Rightarrow a = -2$$\n\n$P(X) = X^3 + 3X^2 - 2X + 5$\n\nRestul la $(X-3)$: $P(3) = 27 + 27 - 6 + 5 = \\boxed{53}$',
+    solution: '**Pasul 1.** Aplicăm teorema restului pentru împărțirea la binomul $X + 2$:\n$$P(-2) = 13$$\n\n**Pasul 2.** Determinăm valoarea parametrului $a$:\n$$-8 + 12 - 2a + 5 = 13 \\Rightarrow -2a = 4 \\Rightarrow a = -2$$\n$$P(X) = X^3 + 3X^2 - 2X + 5$$\n\n**Pasul 3.** Identificăm restul împărțirii la binomul $X - 3$:\n$$R = P(3)$$\n\n**Pasul 4.** Calculăm valoarea restului $P(3)$:\n$$P(3) = 27 + 27 - 6 + 5$$\n\n$$\\boxed{53}$$',
     barem: [
       { descriere: 'P(-2) = 13', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
@@ -3417,7 +3417,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori cu rădăcina X=2',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 3X + b$. Știind că $X = 2$ este rădăcină a polinomului și că $P(3) = 12$, descompuneți $P(X)$ în factori pe mulțimea $\\mathbb{R}$.',
-    solution: 'Din $P(2) = 0$:\n$$8 + 4a + 6 + b = 0 \\Rightarrow 4a + b = -14 \\quad (1)$$\n\nDin $P(3) = 12$:\n$$27 + 9a + 9 + b = 12 \\Rightarrow 9a + b = -24 \\quad (2)$$\n\n$(2)-(1)$: $5a = -10 \\Rightarrow a = -2,\\; b = -6$\n\n$P(X) = X^3 - 2X^2 + 3X - 6$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 1 & -2 & 3 & -6 \\\\ & & 2 & 0 & 6 \\\\ \\hline & 1 & 0 & 3 & 0 \\end{array}$$\n\n$X^2+3$ nu are rădăcini reale ($\\Delta = -12 < 0$).\n\n$$\\boxed{P(X) = (X-2)(X^2+3)}$$',
+    solution: '**Pasul 1.** Utilizarea condițiilor $P(2) = 0$ și $P(3) = 12$:\nDin $P(2) = 0$:\n$$8 + 4a + 6 + b = 0 \\Rightarrow 4a + b = -14$$\nDin $P(3) = 12$:\n$$27 + 9a + 9 + b = 12 \\Rightarrow 9a + b = -24$$\n\n**Pasul 2.** Obținerea sistemului de ecuații:\nDin relațiile de mai sus, obținem sistemul:\n$$\\begin{cases} 4a + b = -14 \\\\ 9a + b = -24 \\end{cases}$$\n\n**Pasul 3.** Determinarea valorilor parametrilor $a$ și $b$:\nScăzând prima ecuație din a doua, obținem:\n$$5a = -10 \\Rightarrow a = -2, \\; b = -6$$\n\n**Pasul 4.** Descompunerea polinomului în factori:\n$P(X) = X^3 - 2X^2 + 3X - 6$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 1 & -2 & 3 & -6 \\\\ & & 2 & 0 & 6 \\\\ \\hline & 1 & 0 & 3 & 0 \\end{array}$$\n$X^2+3$ nu are rădăcini reale ($\\Delta = -12 < 0$).\n\n$$\\boxed{P(X) = (X-2)(X^2+3)}$$',
     barem: [
       { descriere: '$P(2) = 0$ și $P(3) = 12$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 4a+b=-14 \\\\ 9a+b=-24 \\end{cases}$', puncte_maxime: 2 },
@@ -3433,7 +3433,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate și restul la X−5',
     statement: 'Polinomul $P(X) = -X^3 - 3X^2 + (a+3)X + (2a+1)$ este divizibil prin binomul $X + 1$. Determinați restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X - 5$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-(-1)^3 - 3(-1)^2 + (a+3)(-1) + (2a+1) = 0$$\n$$1 - 3 - a - 3 + 2a + 1 = 0 \\Rightarrow a = 4$$\n\n$P(X) = -X^3 - 3X^2 + 7X + 9$\n\nRestul la $(X-5)$: $P(5) = -125 - 75 + 35 + 9 = \\boxed{-156}$',
+    solution: '**Pasul 1.** Scrierea condiției $P(-1) = 0$:\n$$-(-1)^3 - 3(-1)^2 + (a+3)(-1) + (2a+1) = 0$$\n\n**Pasul 2.** Obținerea valorii lui $a$:\n$$1 - 3 - a - 3 + 2a + 1 = 0 \\Rightarrow a = 4$$\n\n**Pasul 3.** Calcularea restului $P(5)$:\n$P(X) = -X^3 - 3X^2 + 7X + 9$\n$$P(5) = -125 - 75 + 35 + 9 = \\boxed{-156}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
@@ -3446,7 +3446,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=1 și coeficient necunoscut a',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 3X^3 - aX^2 + (3a+2)X - 6$$\nștiind că $X = 1$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: 'Din $P(1) = 0$: $\\quad 1 - 3 - a + 3a + 2 - 6 = 2a - 6 = 0 \\Rightarrow a = 3$\n\nVerificăm $P\'(1) = 0$: $P\'(X) = 4X^3-9X^2-6X+11 \\Rightarrow P\'(1) = 4-9-6+11 = 0$ ✓\n\n$P(X) = X^4-3X^3-3X^2+11X-6$. Împărțim de două ori prin $(X-1)$:\n$$\\begin{array}{c|ccccc} 1 & 1 & -3 & -3 & 11 & -6 \\\\ & & 1 & -2 & -5 & 6 \\\\ \\hline & 1 & -2 & -5 & 6 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 1 & 1 & -2 & -5 & 6 \\\\ & & 1 & -1 & -6 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$X^2-X-6 = (X-3)(X+2)$\n\n$$\\boxed{P(X) = (X-1)^2(X-3)(X+2)}$$',
+    solution: '**Pasul 1.** Determinarea valorii parametrului $a$:\nDin $P(1) = 0$: $\\quad 1 - 3 - a + 3a + 2 - 6 = 2a - 6 = 0 \\Rightarrow a = 3$\nVerificăm $P\'(1) = 0$: $P\'(X) = 4X^3-9X^2-6X+11 \\Rightarrow P\'(1) = 4-9-6+11 = 0$ ✓\n\n**Pasul 2.** Determinarea primului cât al împărțirii prin $(X-1)$:\nPentru $a=3$, avem $P(X) = X^4-3X^3-3X^2+11X-6$. Împărțim prin $(X-1)$:\n$$\\begin{array}{c|ccccc} 1 & 1 & -3 & -3 & 11 & -6 \\\\ & & 1 & -2 & -5 & 6 \\\\ \\hline & 1 & -2 & -5 & 6 & 0 \\end{array}$$\n\n**Pasul 3.** Determinarea celui de-al doilea cât al împărțirii prin $(X-1)$:\nÎmpărțim rezultatul obținut anterior din nou prin $(X-1)$:\n$$\\begin{array}{c|cccc} 1 & 1 & -2 & -5 & 6 \\\\ & & 1 & -1 & -6 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n**Pasul 4.** Descompunerea finală a polinomului în factori ireductibili:\n$$X^2-X-6 = (X-3)(X+2)$$\n\n$$\\boxed{P(X) = (X-1)^2(X-3)(X+2)}$$',
     barem: [
       { descriere: 'P(1) = 0 \\Rightarrow a = 3', puncte_maxime: 2 },
       { descriere: 'C_1(X) = X^3 - 2X^2 - 5X + 6', puncte_maxime: 2 },
@@ -3460,7 +3460,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=2',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 8X^3 + 15X^2 + 4X - 20$$\nștiind că $X = 2$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: '$P(2) = 16-64+60+8-20 = 0$ ✓ și $P\'(2) = 32-96+60+4 = 0$ ✓\n\nÎmpărțim de două ori prin $(X-2)$:\n$$\\begin{array}{c|ccccc} 2 & 1 & -8 & 15 & 4 & -20 \\\\ & & 2 & -12 & 6 & 20 \\\\ \\hline & 1 & -6 & 3 & 10 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 2 & 1 & -6 & 3 & 10 \\\\ & & 2 & -8 & -10 \\\\ \\hline & 1 & -4 & -5 & 0 \\end{array}$$\n\n$X^2-4X-5 = (X-5)(X+1)$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+1)}$$',
+    solution: '$P(2) = 16-64+60+8-20 = 0$ ✓ și $P\'(2) = 32-96+60+4 = 0$ ✓ (deci $X=2$ e rădăcină dublă)\n\n**Pasul 1.** Prima împărțire prin $(X-2)$:\n$$\\begin{array}{c|ccccc} 2 & 1 & -8 & 15 & 4 & -20 \\\\ & & 2 & -12 & 6 & 20 \\\\ \\hline & 1 & -6 & 3 & 10 & 0 \\end{array}$$\nObținem câtul $X^3 - 6X^2 + 3X + 10$.\n\n**Pasul 2.** A doua împărțire prin $(X-2)$:\n$$\\begin{array}{c|cccc} 2 & 1 & -6 & 3 & 10 \\\\ & & 2 & -8 & -10 \\\\ \\hline & 1 & -4 & -5 & 0 \\end{array}$$\nObținem câtul $X^2 - 4X - 5$.\n\n**Pasul 3.** Determinarea rădăcinilor lui $X^2-4X-5$:\n$$X^2-4X-5 = (X-5)(X+1) \\Rightarrow x_1 = -1,\\; x_2 = 5$$\n\n**Pasul 4.** Scrierea descompunerii finale:\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+1)}$$',
     barem: [
       { descriere: 'Obținerea câtului $X^3 - 6X^2 + 3X + 10$ (prin prima împărțire la $X-2$)', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 - 4X - 5$ (prin a doua împărțire la $X-2$)', puncte_maxime: 2 },
@@ -3475,7 +3475,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = X^3 - 6X^2 - 2$$\nla polinomul $Q(X) = X^2 - 2$.',
-    solution: '$R(X) = bX+c$. Rădăcinile lui $X^2-2$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 2\\sqrt{2} - 12 - 2 = 2\\sqrt{2} - 14 = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = -2\\sqrt{2} - 12 - 2 = -2\\sqrt{2} - 14 = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -14$\n\n$$\\boxed{R(X) = 2X - 14}$$',
+    solution: '**Pasul 1.** Stabilirea formei generale a restului:\nDeoarece gradul împărțitorului $Q(X) = X^2 - 2$ este 2, restul este un polinom de grad cel mult 1:\n$$R(X) = bX + c$$\n\n**Pasul 2.** Determinarea coeficienților $b$ și $c$:\nRădăcinile lui $X^2 - 2$ sunt $X = \\pm\\sqrt{2}$. Calculăm valorile polinomului în aceste puncte:\n$$P(\\sqrt{2}) = 2\\sqrt{2} - 12 - 2 = 2\\sqrt{2} - 14 = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = -2\\sqrt{2} - 12 - 2 = -2\\sqrt{2} - 14 = -b\\sqrt{2} + c$$\nDin sistemul de ecuații obținem:\n$$b = 2,\\; c = -14$$\n\n**Pasul 3.** Scrierea polinomului rest:\n$$\\boxed{R(X) = 2X - 14}$$',
     barem: [
       { descriere: 'R(X) = bX + c', puncte_maxime: 2 },
       { descriere: 'Obținerea valorilor b = 2 și c = -14', puncte_maxime: 2 },
@@ -3488,7 +3488,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^3 + 3X^2 - (a+1)X + 2$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X + 1$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$2(-1)^3 + 3(-1)^2 - (a+1)(-1) + 2 = 0$$\n$$-2 + 3 + (a+1) + 2 = 0$$\n$$a + 4 = 0 \\Rightarrow \\boxed{a = -4}$$',
+    solution: '**Pasul 1.** Utilizarea condiției de divizibilitate $P(-1) = 0$:\nDacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$2(-1)^3 + 3(-1)^2 - (a+1)(-1) + 2 = 0$$\n\n**Pasul 2.** Simplificarea expresiei și obținerea ecuației:\n$$-2 + 3 + (a+1) + 2 = 0$$\n$$a + 4 = 0$$\n\n**Pasul 3.** Determinarea valorii lui $a$:\n$$\\boxed{a = -4}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'a + 4 = 0', puncte_maxime: 2 },
@@ -3501,7 +3501,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=−3 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$ pentru care $X = -3$ este rădăcină a polinomului\n$$P(X) = X^3 + (a-1)X^2 - 5X + 3$$',
-    solution: '$P(-3) = 0$:\n$$-27 + 9(a-1) + 15 + 3 = 0$$\n$$9a - 18 = 0 \\Rightarrow \\boxed{a = 2}$$',
+    solution: '**Pasul 1.** Scrierea condiției $P(-3) = 0$:\n$$-27 + 9(a-1) + 15 + 3 = 0$$\n\n**Pasul 2.** Simplificarea expresiei:\n$$9a - 18 = 0$$\n\n**Pasul 3.** Obținerea răspunsului corect:\n$$\\boxed{a = 2}$$',
     barem: [
       { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
       { descriere: '$P(-3) = 9a - 18$', puncte_maxime: 2 },
@@ -3515,7 +3515,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²+2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = 2X^3 + X^2 - 2$$\nla polinomul $Q(X) = X^2 + 2$.',
-    solution: '$X^2+2$ nu are rădăcini reale, deci împărțim direct cu rest:\n\n$2X^3 \\div X^2 = 2X$; $\\quad 2X(X^2+2) = 2X^3+4X$; rest: $X^2-4X-2$\n\n$X^2 \\div X^2 = 1$; $\\quad 1(X^2+2) = X^2+2$; rest: $-4X-4$\n\n$$P(X) = (X^2+2)(2X+1) + (-4X-4)$$\n\n$$\\boxed{R(X) = -4X - 4}$$',
+    solution: '**Pasul 1.** Determinarea câtului împărțirii:\n$X^2+2$ nu are rădăcini reale, deci împărțim direct:\n$$2X^3 \\div X^2 = 2X; \\quad 2X(X^2+2) = 2X^3+4X; \\text{ rest: } X^2-4X-2$$\n$$X^2 \\div X^2 = 1; \\quad 1(X^2+2) = X^2+2; \\text{ rest: } -4X-4$$\nCâtul este $2X + 1$.\n\n**Pasul 2.** Obținerea restului $R(X)$:\nFolosind rezultatele împărțirii, scriem forma finală a polinomului:\n$$P(X) = (X^2+2)(2X+1) + (-4X-4)$$\n\n$$\\boxed{R(X) = -4X - 4}$$',
     barem: [
       { descriere: 'Identificarea câtului $2X + 1$', puncte_maxime: 2 },
       { descriere: 'Obținerea restului $-4X - 4$', puncte_maxime: 3 }
@@ -3528,7 +3528,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului — ecuație de grad 2',
     statement: 'Fie polinomul $P(X) = 3X^3 + (a+3)X^2 - a^2X - 5$. Știind că restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X + 2$ este egal cu $13$, determinați valorile lui $a$.',
-    solution: 'Din $P(-2) = 13$:\n$$3(-8) + (a+3)(4) - a^2(-2) - 5 = 13$$\n$$-24 + 4a + 12 + 2a^2 - 5 = 13$$\n$$2a^2 + 4a - 30 = 0 \\Rightarrow a^2 + 2a - 15 = 0$$\n$$(a+5)(a-3) = 0$$\n$$\\boxed{a = -5 \\quad \\text{sau} \\quad a = 3}$$',
+    solution: '**Pasul 1.** Aplicarea teoremei restului:\n$$P(-2) = 13$$\n\n**Pasul 2.** Obținerea ecuației în raport cu $a$:\n$$3(-8) + (a+3)(4) - a^2(-2) - 5 = 13$$\n$$-24 + 4a + 12 + 2a^2 - 5 = 13$$\n$$2a^2 + 4a - 30 = 0$$\n\n**Pasul 3.** Determinarea valorilor lui $a$:\n$$a^2 + 2a - 15 = 0$$\n$$(a+5)(a-3) = 0$$\n$$\\boxed{a = -5 \\quad \\text{sau} \\quad a = 3}$$',
     barem: [
       { descriere: 'P(-2) = 13', puncte_maxime: 2 },
       { descriere: 'Obținerea ecuației 2a^2 + 4a - 30 = 0 (sau echivalent)', puncte_maxime: 2 },
@@ -3541,7 +3541,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui 5X³−2X²+X−4 la X+2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 5X^3 - 2X^2 + X - 4$ la binomul $X + 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n$$P(-2) = 5(-8) - 2(4) + (-2) - 4 = -40 - 8 - 2 - 4 = \\boxed{-54}$$',
+    solution: '**Pasul 1.** Identificarea restului prin teorema lui Bézout:\nPrin teorema lui Bézout, restul împărțirii polinomului $P(X)$ la binomul $X + 2$ este:\n$$R = P(-2)$$\n\n**Pasul 2.** Calcularea valorii $P(-2)$:\n$$P(-2) = 5(-8) - 2(4) + (-2) - 4 = -40 - 8 - 2 - 4$$\n\n**Pasul 3.** Scrierea valorii restului:\n$$\\boxed{-54}$$',
     barem: [
       { descriere: 'R = P(-2)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-2) = -54', puncte_maxime: 2 },
@@ -3554,7 +3554,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Aflarea lui a știind că X=2 este rădăcină a polinomului',
     statement: 'Fie polinomul $P(X) = X^3 - aX^2 + X + a$. Aflați numărul real $a$, dacă $X = 2$ este rădăcină a polinomului $P(X)$.',
-    solution: 'Din $P(2) = 0$:\n$$8 - 4a + 2 + a = 0$$\n$$10 - 3a = 0 \\Rightarrow \\boxed{a = \\dfrac{10}{3}}$$',
+    solution: '**Pasul 1.** Utilizarea condiției $P(2) = 0$:\n$$P(2) = 0 \\Rightarrow 8 - 4a + 2 + a = 0$$\n\n**Pasul 2.** Reducerea termenilor asemenea și obținerea ecuației în $a$:\n$$10 - 3a = 0$$\n\n**Pasul 3.** Determinarea valorii parametrului $a$:\n$$\\boxed{a = \\dfrac{10}{3}}$$',
     barem: [
       { descriere: 'P(2) = 0', puncte_maxime: 2 },
       { descriere: '10 - 3a = 0', puncte_maxime: 2 },
@@ -3567,7 +3567,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui b din condiția restului egal cu 3 la X+1',
     statement: 'Fie polinomul $P(X) = 7X^3 - 6X^2 + bX + 1$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X + 1$ este egal cu $3$, aflați numărul real $b$.',
-    solution: 'Din $P(-1) = 3$:\n$$-7 - 6 - b + 1 = 3$$\n$$-12 - b = 3 \\Rightarrow \\boxed{b = -15}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului pentru a stabili relația dintre polinom și rest:\n$$P(-1) = 3$$\n\n**Pasul 2.** Substituirea lui $X = -1$ în expresia polinomului și obținerea ecuației în $b$:\n$$-7 - 6 - b + 1 = 3$$\n$$-12 - b = 3$$\n\n**Pasul 3.** Rezolvarea ecuației pentru a determina valoarea lui $b$:\n$$\\boxed{b = -15}$$',
     barem: [
       { descriere: 'P(-1) = 3', puncte_maxime: 2 },
       { descriere: 'Obținerea -12 - b = 3', puncte_maxime: 2 },
@@ -3580,7 +3580,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 4 la X−2',
     statement: 'Fie polinomul $P(X) = 2X^3 + (a-2)X^2 - 3aX + 10$. Determinați valorile reale ale lui $a$, știind că restul împărțirii polinomului la binomul $Q(X) = X - 2$ este egal cu $4$.',
-    solution: 'Din $P(2) = 4$:\n$$16 + (a-2)(4) - 6a + 10 = 4$$\n$$16 + 4a - 8 - 6a + 10 = 4$$\n$$-2a + 18 = 4 \\Rightarrow \\boxed{a = 7}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului:\n$$P(2) = 4$$\n\n**Pasul 2.** Calcularea valorii $P(2)$ și obținerea expresiei în $a$:\n$$P(2) = 16 + (a-2)(4) - 6a + 10 = 16 + 4a - 8 - 6a + 10 = -2a + 18$$\n\n**Pasul 3.** Rezolvarea ecuației pentru determinarea lui $a$:\n$$-2a + 18 = 4 \\Rightarrow \\boxed{a = 7}$$',
     barem: [
       { descriere: 'P(2) = 4', puncte_maxime: 2 },
       { descriere: 'P(2) = -2a + 18', puncte_maxime: 2 },
@@ -3594,7 +3594,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=−1 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$, pentru care $X = -1$ este rădăcină a polinomului\n$$P(X) = X^3 - X^2 + (a-2)X + 1$$',
-    solution: '$P(-1) = 0$:\n$$-1 - 1 + (a-2)(-1) + 1 = 0$$\n$$-1 - 1 - a + 2 + 1 = 1 - a = 0 \\Rightarrow \\boxed{a = 1}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $-1$ să fie rădăcină a polinomului:\n$$P(-1) = 0$$\n\n**Pasul 2.** Calcularea valorii $P(-1)$ prin înlocuirea lui $X$ cu $-1$:\n$$P(-1) = -1 - 1 + (a-2)(-1) + 1 = -1 - 1 - a + 2 + 1 = 1 - a$$\n\n**Pasul 3.** Rezolvarea ecuației obținute pentru a determina valoarea lui $a$:\n$$1 - a = 0$$\n\n$$\\boxed{a = 1}$$',
     barem: [
       { descriere: '$P(-1) = 0$', puncte_maxime: 2 },
       { descriere: '$P(-1) = -a + 1$', puncte_maxime: 2 },
@@ -3607,7 +3607,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui 2X³+X²−5X+1 la X−2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 2X^3 + X^2 - 5X + 1$ la binomul $X - 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(2)$:\n$$P(2) = 16 + 4 - 10 + 1 = \\boxed{11}$$',
+    solution: '**Pasul 1.** Identificarea restului conform teoremei lui Bézout:\n$$R = P(2)$$\n\n**Pasul 2.** Calcularea valorii $P(2)$:\n$$P(2) = 16 + 4 - 10 + 1$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{11}$$',
     barem: [
       { descriere: '$R = P(2)$', puncte_maxime: 2 },
       { descriere: 'Calcularea $P(2) = 11$', puncte_maxime: 2 },
@@ -3620,7 +3620,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui X³−2X²+16 la X²−1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^3 - 2X^2 + 16$ la polinomul $Q(X) = X^2 - 1$.',
-    solution: 'Împărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$ (restul va avea gradul $< 2$, deci forma $bX+c$).\n\nPasul 1: $X^3 : X^2 = X$. Înmulțim $X \\cdot (X^2-1) = X^3 - X$ și scădem:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n\nPasul 2: $-2X^2 : X^2 = -2$. Înmulțim $-2 \\cdot (X^2-1) = -2X^2 + 2$ și scădem:\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\n\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
+    solution: '**Pasul 1.** Determinarea câtului $C(X)$:\nÎmpărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$. Calculăm termenii câtului: $X^3 : X^2 = X$ și $-2X^2 : X^2 = -2$.\n$$C(X) = X - 2$$\n\n**Pasul 2.** Determinarea restului $R(X)$:\nRestul va avea gradul $< 2$, deci forma $bX+c$. Efectuăm scăderile succesive:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
     barem: [
       { descriere: 'Identificarea câtului $X - 2$', puncte_maxime: 2 },
       { descriere: 'Obținerea și scrierea restului $X + 14$', puncte_maxime: 3 }
@@ -3632,7 +3632,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate cu X−2',
     statement: 'Fie polinomul $P(X) = X^3 - 4X^2 - aX - 4$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X - 2$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X-2)$, atunci $P(2) = 0$:\n$$8 - 16 - 2a - 4 = 0$$\n$$-12 - 2a = 0 \\Rightarrow \\boxed{a = -6}$$',
+    solution: '**Pasul 1.** Calcularea valorii $P(2)$:\n$$P(2) = 8 - 16 - 2a - 4 = -12 - 2a$$\n\n**Pasul 2.** Aplicarea condiției de divizibilitate $P(2) = 0$:\n$$-12 - 2a = 0$$\n\n**Pasul 3.** Determinarea valorii parametrului $a$:\n$$\\boxed{a = -6}$$',
     barem: [
       { descriere: '$P(2) = -2a - 12$', puncte_maxime: 2 },
       { descriere: '$-2a - 12 = 0$', puncte_maxime: 2 },
@@ -3645,7 +3645,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Demonstrarea divizibilității unui polinom dat printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} X & 3 & 0 \\\\ -1 & X & 3 \\\\ 2X & 6 & X-2 \\end{vmatrix}$$\nArătați că $P(X)$ este divizibil cu $X - 2$.',
-    solution: 'Dezvoltăm determinantul după primul rând:\n$$P(X) = X(X(X-2)-18) - 3(-(X-2)-6X)$$\n$$= X(X^2-2X-18) - 3(-7X+2)$$\n$$= X^3-2X^2-18X+21X-6$$\n$$= X^3-2X^2+3X-6$$\n\nFactorizăm prin grupare:\n$$P(X) = X^2(X-2)+3(X-2) = (X-2)(X^2+3)$$\n\nDeoarece $P(X) = (X-2)(X^2+3)$, $P(X)$ este divizibil cu $X-2$. $\\blacksquare$',
+    solution: '**Pasul 1.** Dezvoltarea determinantului după primul rând:\n$$P(X) = X(X(X-2)-18) - 3(-(X-2)-6X)$$\n\n**Pasul 2.** Obținerea formei dezvoltate a polinomului:\n$$P(X) = X(X^2-2X-18) - 3(-7X+2) = X^3-2X^2-18X+21X-6$$\n$$P(X) = X^3-2X^2+3X-6$$\n\n**Pasul 3.** Factorizarea prin grupare:\n$$P(X) = X^2(X-2)+3(X-2) = (X-2)(X^2+3)$$\n\n**Pasul 4.** Finalizarea demonstrației:\nDeoarece $P(X) = (X-2)(X^2+3)$, rezultă că $P(X)$ este divizibil cu $X-2$. $\\blacksquare$',
     barem: [
       { descriere: 'Calculul determinantului (dezvoltarea după o linie/coloană)', puncte_maxime: 3 },
       { descriere: 'Obținerea formei $P(X) = X^3 - 2X^2 + 3X - 6$', puncte_maxime: 2 },
@@ -3659,7 +3659,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate și restul la X²+3',
     statement: 'Fie polinomul $P(X) = X^4 + (m+1)X^3 + 2X^2 + 7X + 3$, care este divizibil la binomul $(X + 3)$. Determinați valoarea reală a lui $m$ și restul împărțirii lui $P(X)$ la polinomul $Q(X) = X^2 + 3$.',
-    solution: 'Din $P(-3) = 0$:\n$$81 - 27(m+1) + 18 - 21 + 3 = 0$$\n$$54 - 27m = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4 + 3X^3 + 2X^2 + 7X + 3$. Împărțim la $X^2+3$:\n\n$X^4 \\div X^2 = X^2$; rest: $3X^3-X^2+7X+3$\n\n$3X^3 \\div X^2 = 3X$; rest: $-X^2-2X+3$\n\n$-X^2 \\div X^2 = -1$; rest: $-2X+6$\n\n$$\\boxed{m = 2, \\quad R(X) = -2X + 6}$$',
+    solution: '**Pasul 1.** Utilizarea condiției de divizibilitate $P(-3) = 0$:\n$$81 - 27(m+1) + 18 - 21 + 3 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $m$:\n$$54 - 27m = 0 \\Rightarrow m = 2$$\n\n**Pasul 3.** Împărțirea polinomului $P(X)$ la $Q(X) = X^2 + 3$:\n$P(X) = X^4 + 3X^3 + 2X^2 + 7X + 3$. Împărțim la $X^2+3$:\n\n$X^4 \\div X^2 = X^2$; rest: $3X^3-X^2+7X+3$\n\n$3X^3 \\div X^2 = 3X$; rest: $-X^2-2X+3$\n\n$-X^2 \\div X^2 = -1$; rest: $-2X+6$\n\n$$\\boxed{m = 2, \\quad R(X) = -2X + 6}$$',
     barem: [
       { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
       { descriere: 'Obținerea $m = 2$', puncte_maxime: 2 },
@@ -3672,7 +3672,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Demonstrarea că X=2 este rădăcină și determinarea celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = 4X^3 - 16X^2 + 19X - 6$. Arătați că $X = 2$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.',
-    solution: '$P(2) = 32 - 64 + 38 - 6 = 0$ ✓\n\nSchema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 4 & -16 & 19 & -6 \\\\ & & 8 & -16 & 6 \\\\ \\hline & 4 & -8 & 3 & 0 \\end{array}$$\n\n$P(X) = (X-2)(4X^2-8X+3) = (X-2)(2X-1)(2X-3)$\n\n$$\\boxed{X = \\tfrac{1}{2}, \\quad X = \\tfrac{3}{2}}$$',
+    solution: '**Pasul 1.** Verificăm dacă $X = 2$ este rădăcină a polinomului $P(X)$:\n$$P(2) = 32 - 64 + 38 - 6 = 0$$\n\n**Pasul 2.** Determinăm câtul împărțirii polinomului $P(X)$ la $(X-2)$ folosind schema lui Horner:\n$$\\begin{array}{c|cccc} 2 & 4 & -16 & 19 & -6 \\\\ & & 8 & -16 & 6 \\\\ \\hline & 4 & -8 & 3 & 0 \\end{array}$$\n\n**Pasul 3.** Determinăm celelalte rădăcini ale polinomului:\n$$P(X) = (X-2)(4X^2-8X+3) = (X-2)(2X-1)(2X-3)$$\n\n$$\\boxed{X = \\tfrac{1}{2}, \\quad X = \\tfrac{3}{2}}$$',
     barem: [
       { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X-2)$', puncte_maxime: 4 },
@@ -3685,7 +3685,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea câtului împărțirii la X−2 din două condiții simultane',
     statement: 'Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 2$, $a, b \\in \\mathbb{R}$. Determinați câtul împărțirii lui $P(X)$ la binomul $X - 2$, dacă se știe că $X = 2$ este rădăcină a polinomului $P(X)$, iar restul împărțirii lui $P(X)$ la $(X + 1)$ este egal cu $3$.',
-    solution: 'Condițiile din enunț: $P(2) = 0$ și $P(-1) = 3$.\n\nObținem sistemul:\n$$16 + 4a + 2b + 2 = 0 \\quad \\text{și} \\quad -2 + a - b + 2 = 3$$\n$$\\begin{cases} 4a + 2b + 18 = 0 \\\\ a - b = 3 \\end{cases}$$\n\nRezolvăm sistemul: din a doua ecuație, $a = b+3$. Înlocuim în prima:\n$$4(b+3) + 2b + 18 = 0 \\Rightarrow 6b + 30 = 0 \\Rightarrow b = -5,\\; a = -2$$\n\n$P(X) = 2X^3 - 2X^2 - 5X + 2$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 2 & -2 & -5 & 2 \\\\ & & 4 & 4 & -2 \\\\ \\hline & 2 & 2 & -1 & 0 \\end{array}$$\n\n$$\\boxed{C(X) = 2X^2 + 2X - 1}$$',
+    solution: '**Pasul 1.** Stabilirea condițiilor pentru rădăcină și rest:\nUtilizăm faptul că $X = 2$ este rădăcină a polinomului $P(X)$ și teorema restului pentru împărțirea la $(X + 1)$:\n$$P(2) = 0 \\quad \\text{și} \\quad P(-1) = 3$$\n\n**Pasul 2.** Obținerea sistemului de ecuații în $a$ și $b$:\nÎnlocuim valorile în expresia polinomului $P(X) = 2X^3 + aX^2 + bX + 2$:\n$$16 + 4a + 2b + 2 = 0 \\quad \\text{și} \\quad -2 + a - b + 2 = 3$$\n$$\\begin{cases} 4a + 2b + 18 = 0 \\\\ a - b = 3 \\end{cases}$$\n\n**Pasul 3.** Rezolvarea sistemului pentru determinarea coeficienților:\nDin a doua ecuație, $a = b + 3$. Înlocuim în prima ecuație:\n$$4(b + 3) + 2b + 18 = 0 \\Rightarrow 6b + 30 = 0 \\Rightarrow b = -5, \\; a = -2$$\nPolinomul este $P(X) = 2X^3 - 2X^2 - 5X + 2$.\n\n**Pasul 4.** Determinarea câtului împărțirii lui $P(X)$ la binomul $X - 2$:\nUtilizăm schema lui Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 2 & -2 & -5 & 2 \\\\ & & 4 & 4 & -2 \\\\ \\hline & 2 & 2 & -1 & 0 \\end{array}$$\n\n$$\\boxed{C(X) = 2X^2 + 2X - 1}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(2) = 0$ și $P(-1) = 3$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$ (câte 1p pentru fiecare condiție)', puncte_maxime: 2 },
@@ -3699,7 +3699,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția restului egal cu 4 la X+2',
     statement: 'Fie polinomul $P(X) = X^3 - 6X^2 + mX - 6$. Determinați valorile reale a lui $m$ pentru care restul împărțirii polinomului $P(X)$ la $(X + 2)$ este egal cu $4$.',
-    solution: 'Din $P(-2) = 4$:\n$$-8 - 24 - 2m - 6 = 4$$\n$$-38 - 2m = 4 \\Rightarrow -2m = 42 \\Rightarrow \\boxed{m = -21}$$',
+    solution: '**Pasul 1.** Utilizarea teoremei restului:\n$$P(-2) = 4$$\n\n**Pasul 2.** Înlocuirea în expresia polinomului și obținerea ecuației:\n$$-8 - 24 - 2m - 6 = 4$$\n$$-38 - 2m = 4$$\n\n**Pasul 3.** Rezolvarea ecuației și determinarea valorii lui $m$:\n$$-2m = 42$$\n$$\\boxed{m = -21}$$',
     barem: [
       { descriere: '$P(-2) = 4$', puncte_maxime: 2 },
       { descriere: 'Obținerea $-38 - 2m = 4$', puncte_maxime: 1 },
@@ -3712,7 +3712,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=−2 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$, știind că $X = -2$ este rădăcină a polinomului $P(X) = 2X^3 + 4X + a$.',
-    solution: '$P(-2) = 0$:\n$$2(-8) + 4(-2) + a = 0$$\n$$-16 - 8 + a = 0 \\Rightarrow \\boxed{a = 24}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $-2$ să fie rădăcină a polinomului:\n$$P(-2) = 0$$\n\n**Pasul 2.** Calcularea valorii $P(-2)$ și obținerea expresiei în $a$:\n$$P(-2) = 2(-8) + 4(-2) + a = -16 - 8 + a = a - 24$$\n\n**Pasul 3.** Determinarea valorii parametrului $a$:\n$$-16 - 8 + a = 0 \\Rightarrow \\boxed{a = 24}$$',
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: 'P(-2) = a - 24', puncte_maxime: 2 },
@@ -3725,7 +3725,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=1/2 este rădăcină',
     statement: 'Să se afle valoarea parametrului real $a$ pentru care $X = \\dfrac{1}{2}$ este rădăcină a polinomului $P(X) = 4X^3 - 22X^2 + aX - 14$.',
-    solution: '$P\\!\\left(\\dfrac{1}{2}\\right) = 0$:\n$$4 \\cdot \\frac{1}{8} - 22 \\cdot \\frac{1}{4} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{1}{2} - \\frac{11}{2} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{a - 10}{2} = 14 \\Rightarrow a - 10 = 28 \\Rightarrow \\boxed{a = 38}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = \\frac{1}{2}$ să fie rădăcină a polinomului $P(X)$:\n$$P\\left(\\frac{1}{2}\\right) = 0$$\n\n**Pasul 2.** Substituirea valorii în expresia polinomului și simplificarea:\n$$4 \\cdot \\frac{1}{8} - 22 \\cdot \\frac{1}{4} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{1}{2} - \\frac{11}{2} + \\frac{a}{2} - 14 = 0$$\n\n**Pasul 3.** Rezolvarea ecuației pentru determinarea valorii parametrului $a$:\n$$\\frac{a - 10}{2} = 14 \\Rightarrow a - 10 = 28 \\Rightarrow \\boxed{a = 38}$$',
     barem: [
       { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
       { descriere: 'P(1/2) = a/2 - 19 (sau echivalent)', puncte_maxime: 2 },
@@ -3739,7 +3739,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m ∈ ℝ știind că X=1 este rădăcină a unui polinom de grad 4',
     statement: 'Fie polinomul $P(X) = 4X^4 + 4mX^3 + (m^2+7)X^2 + 4mX + 4$, unde $m \\in \\mathbb{R}$. Determinați $m \\in \\mathbb{R}$, știind că $X = 1$ este o rădăcină a polinomului $P(X)$.',
-    solution: '$P(1) = 0$:\n$$4 + 4m + (m^2+7) + 4m + 4 = 0$$\n$$m^2 + 8m + 15 = 0$$\n$$(m+3)(m+5) = 0$$\n$$\\boxed{m = -3 \\quad \\text{sau} \\quad m = -5}$$',
+    solution: '**Pasul 1.** Utilizarea condiției $P(1) = 0$:\n$$4 + 4m + (m^2+7) + 4m + 4 = 0$$\n\n**Pasul 2.** Obținerea ecuației de gradul al doilea în $m$:\n$$m^2 + 8m + 15 = 0$$\n\n**Pasul 3.** Rezolvarea ecuației și determinarea valorilor lui $m$:\n$$(m+3)(m+5) = 0$$\n\n$$\\boxed{m = -3 \\quad \\text{sau} \\quad m = -5}$$',
     barem: [
       { descriere: '$P(1) = 0$', puncte_maxime: 2 },
       { descriere: '$m^2 + 8m + 15 = 0$', puncte_maxime: 2 },
@@ -3753,7 +3753,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Aflați restul împărțirii $P(X) = 3X^3 - 4X^2 + 5X - 1$ la $Q(X) = X^2 - 2$.',
-    solution: '$R(X) = aX+b$. Rădăcinile lui $Q$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 6\\sqrt{2} - 8 + 5\\sqrt{2} - 1 = 11\\sqrt{2} - 9 = a\\sqrt{2} + b$$\n$$P(-\\sqrt{2}) = -6\\sqrt{2} - 8 - 5\\sqrt{2} - 1 = -11\\sqrt{2} - 9 = -a\\sqrt{2} + b$$\n\n$a = 11,\\; b = -9$\n\n$$\\boxed{R(X) = 11X - 9}$$',
+    solution: '**Pasul 1.** Stabilirea formei restului:\nDeoarece gradul împărțitorului $Q(X) = X^2 - 2$ este 2, restul este de forma:\n$$R(X) = aX + b$$\n\n**Pasul 2.** Calcularea valorilor polinomului în rădăcinile $X = \\pm\\sqrt{2}$ ale lui $Q(X)$:\n$$P(\\sqrt{2}) = 6\\sqrt{2} - 8 + 5\\sqrt{2} - 1 = 11\\sqrt{2} - 9 = a\\sqrt{2} + b$$\n$$P(-\\sqrt{2}) = -6\\sqrt{2} - 8 - 5\\sqrt{2} - 1 = -11\\sqrt{2} - 9 = -a\\sqrt{2} + b$$\n\n**Pasul 3.** Determinarea coeficienților și a restului:\n$$a = 11,\\; b = -9$$\n\n$$\\boxed{R(X) = 11X - 9}$$',
     barem: [
       { descriere: '$R(X) = aX + b$', puncte_maxime: 2 },
       { descriere: '$P(\\sqrt{2}) = 11\\sqrt{2} - 9$', puncte_maxime: 2 },
@@ -3767,7 +3767,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din resturile la X−1 și X+2, apoi restul la X−2',
     statement: 'Împărțind polinomul $P(X) = X^3 + aX^2 + bX + 3$ la binomul $X - 1$ și la binomul $X + 2$, se obțin resturile $5$, respectiv $17$. Aflați restul împărțirii polinomului $P(X)$ la $X - 2$.',
-    solution: 'Din $P(1) = 5$:\n$$1 + a + b + 3 = 5 \\Rightarrow a + b = 1 \\quad (1)$$\n\nDin $P(-2) = 17$:\n$$-8 + 4a - 2b + 3 = 17 \\Rightarrow 2a - b = 11 \\quad (2)$$\n\nDin $(1)+(2)$: $3a = 12 \\Rightarrow a = 4,\\; b = -3$\n\n$P(X) = X^3 + 4X^2 - 3X + 3$\n\nRestul la $(X-2)$: $P(2) = 8 + 16 - 6 + 3 = \\boxed{21}$',
+    solution: '**Pasul 1.** Scrierea condițiilor $P(1) = 5$ și $P(-2) = 17$:\n$$1 + a + b + 3 = 5 \\quad \\text{și} \\quad -8 + 4a - 2b + 3 = 17$$\n\n**Pasul 2.** Obținerea sistemului:\n$$\\begin{cases} a+b=1 \\\\ 2a-b=11 \\end{cases}$$\n\n**Pasul 3.** Rezolvarea sistemului:\n$$\\text{Din } (1)+(2): \\; 3a = 12 \\Rightarrow a = 4,\\; b = -3$$\n\n**Pasul 4.** Calcularea restului și scrierea răspunsului corect:\n$P(X) = X^3 + 4X^2 - 3X + 3$\n$$P(2) = 8 + 16 - 6 + 3 = \\boxed{21}$$',
     barem: [
       { descriere: 'Scrierea condițiilor $P(1) = 5$ și $P(-2) = 17$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} a+b=1 \\\\ 2a-b=11 \\end{cases}$', puncte_maxime: 2 },
@@ -3782,7 +3782,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la X−2 cunoscând că X=−1 este rădăcină',
     statement: 'Aflați restul împărțirii polinomului $P(X) = 3X^3 + aX^2 - 2aX + 7$ la binomul $X - 2$, știind că $X = -1$ este rădăcină a acestui polinom.',
-    solution: 'Din $P(-1) = 0$:\n$$-3 + a + 2a + 7 = 0 \\Rightarrow 3a + 4 = 0 \\Rightarrow a = -\\dfrac{4}{3}$$\n\nRestul la $(X-2)$: $P(2) = 3(8) + a(4) - 2a(2) + 7 = 24 + 4a - 4a + 7 = 31$\n\n(Termenii cu $a$ se anulează!)\n\n$$\\boxed{\\text{Restul} = 31}$$',
+    solution: '**Pasul 1.** Utilizarea condiției că $X = -1$ este rădăcină a polinomului:\nDeoarece $X = -1$ este rădăcină, avem $P(-1) = 0$:\n$$-3 + a + 2a + 7 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $a$:\n$$3a + 4 = 0 \\Rightarrow a = -\\dfrac{4}{3}$$\n\n**Pasul 3.** Calcularea restului împărțirii la binomul $X - 2$:\nRestul este egal cu $P(2)$:\n$$P(2) = 3(8) + a(4) - 2a(2) + 7 = 24 + 4a - 4a + 7 = 31$$\n(Termenii cu $a$ se anulează!)\n\n$$\\boxed{\\text{Restul} = 31}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -4/3', puncte_maxime: 1 },
@@ -3796,7 +3796,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și b din resturile la X+2 și X+3',
     statement: 'Împărțind polinomul $P(X) = X^3 + aX^2 + bX + 3$ la binomul $X + 2$, se obține restul $1$, iar la binomul $X + 3$, se obține restul $-3$. Determinați $a, b \\in \\mathbb{R}$.',
-    solution: 'Din $P(-2) = 1$:\n$$-8 + 4a - 2b + 3 = 1 \\Rightarrow 2a - b = 3 \\quad (1)$$\n\nDin $P(-3) = -3$:\n$$-27 + 9a - 3b + 3 = -3 \\Rightarrow 3a - b = 7 \\quad (2)$$\n\nDin $(2)-(1)$: $a = 4$, înlocuim în $(1)$: $b = 5$\n\nVerificare: $P(-2) = -8+16-10+3 = 1$ ✓, $P(-3) = -27+36-15+3 = -3$ ✓\n\n$$\\boxed{a = 4, \\quad b = 5}$$',
+    solution: '**Pasul 1.** Identificarea valorilor polinomului conform teoremei restului:\n$$P(-2) = 1 \\text{ și } P(-3) = -3$$\n\n**Pasul 2.** Obținerea sistemului de ecuații în $a$ și $b$:\n$$-8 + 4a - 2b + 3 = 1 \\Rightarrow 2a - b = 3 \\quad (1)$$\n$$-27 + 9a - 3b + 3 = -3 \\Rightarrow 3a - b = 7 \\quad (2)$$\n$$\\begin{cases} 2a - b = 3 \\\\ 3a - b = 7 \\end{cases}$$\n\n**Pasul 3.** Determinarea valorilor $a$ și $b$:\nDin $(2)-(1)$: $a = 4$, înlocuim în $(1)$: $b = 5$.\nVerificare: $P(-2) = -8+16-10+3 = 1$ ✓, $P(-3) = -27+36-15+3 = -3$ ✓\n\n$$\\boxed{a = 4, \\quad b = 5}$$',
     barem: [
       { descriere: '$P(-2) = 1$ și $P(-3) = -3$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 2a - b = 3 \\\\ 3a - b = 7 \\end{cases}$', puncte_maxime: 2 },
@@ -3809,7 +3809,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+2',
     statement: 'Să se afle valorile parametrului real $m$ pentru care polinomul $P(X) = 2X^5 + 5X^2 - m$ se divide cu binomul $X + 2$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+2)$, atunci $P(-2) = 0$:\n$$2(-32) + 5(4) - m = 0$$\n$$-64 + 20 - m = 0$$\n$$-44 = m$$\n$$\\boxed{m = -44}$$',
+    solution: '**Pasul 1.** Utilizarea condiției de divizibilitate:\nDacă $P(X)$ este divizibil cu $(X+2)$, atunci restul împărțirii este zero:\n$$P(-2) = 0$$\n\n**Pasul 2.** Calcularea valorii $P(-2)$ și obținerea ecuației:\n$$2(-32) + 5(4) - m = 0$$\n$$-64 + 20 - m = 0$$\n\n**Pasul 3.** Determinarea valorii parametrului $m$:\n$$-44 = m$$\n$$\\boxed{m = -44}$$',
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: '-44 - m = 0', puncte_maxime: 2 },
@@ -3822,7 +3822,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și b din condiția de rădăcină dublă X=2',
     statement: 'Determinați valorile reale ale lui $a$ și $b$, pentru care $X = 2$ este rădăcină dublă a polinomului\n$$P(X) = X^4 - 2X^3 + aX + b$$',
-    solution: '$X=2$ este rădăcină dublă $\\Rightarrow$ $X=2$ este rădăcină a lui $P(X)$, iar câtul împărțirii lui $P(X)$ la $(X-2)$ are tot $X=2$ ca rădăcină.\n\nDin $P(2) = 0$:\n$$16 - 16 + 2a + b = 0 \\Rightarrow 2a + b = 0 \\Rightarrow b = -2a$$\n\nÎmpărțim $P(X)$ la $(X-2)$ (schema Horner, cu $b=-2a$):\n$$\\begin{array}{c|ccccc} 2 & 1 & -2 & 0 & a & -2a \\\\ & & 2 & 0 & 0 & 2a \\\\ \\hline & 1 & 0 & 0 & a & 0 \\end{array}$$\n$$P(X) = (X-2)(X^3+a)$$\n\nPentru ca $X=2$ să fie rădăcină dublă a lui $P(X)$, $X=2$ trebuie să fie rădăcină și a câtului $Q(X) = X^3+a$:\n$$Q(2) = 0 \\Rightarrow 8 + a = 0 \\Rightarrow a = -8$$\n\nDin $b = -2a$: $b = 16$.\n\n$$\\boxed{a = -8, \\quad b = 16}$$\n\n**Metodă alternativă (prin derivată):** $X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n$$P\'(X) = 4X^3 - 6X^2 + a \\Rightarrow P\'(2) = 32 - 24 + a = 0 \\Rightarrow a = -8$$\nDin $P(2)=0$: $b = -2a = 16$ (același rezultat).',
+    solution: '**Pasul 1.** Utilizarea condiției $P(2) = 0$:\n$X=2$ este rădăcină a lui $P(X) \\Rightarrow P(2) = 0$:\n$$16 - 16 + 2a + b = 0 \\Rightarrow 2a + b = 0 \\Rightarrow b = -2a$$\n\n**Pasul 2.** Determinarea câtului împărțirii lui $P(X)$ la $(X-2)$:\nÎmpărțim $P(X)$ la $(X-2)$ (schema Horner, cu $b=-2a$):\n$$\\begin{array}{c|ccccc} 2 & 1 & -2 & 0 & a & -2a \\\\ & & 2 & 0 & 0 & 2a \\\\ \\hline & 1 & 0 & 0 & a & 0 \\end{array}$$\n$$P(X) = (X-2)(X^3+a)$$\n\n**Pasul 3.** Condiția ca $X=2$ să fie rădăcină a câtului $Q(X)$:\nPentru ca $X=2$ să fie rădăcină dublă a lui $P(X)$, $X=2$ trebuie să fie rădăcină și a câtului $Q(X) = X^3+a$:\n$$Q(2) = 0 \\Rightarrow 8 + a = 0$$\n\n**Pasul 4.** Calcularea valorilor finale $a$ și $b$:\n$$8 + a = 0 \\Rightarrow a = -8$$\nDin $b = -2a$: $b = 16$.\n$$\\boxed{a = -8, \\quad b = 16}$$\n\n**Metodă alternativă (prin derivată):**\n$X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n$$P\'(X) = 4X^3 - 6X^2 + a \\Rightarrow P\'(2) = 32 - 24 + a = 0 \\Rightarrow a = -8$$\nDin $P(2)=0$: $b = -2a = 16$ (același rezultat).',
     barem: [
       { descriere: '$P(2) = 0 \\Rightarrow b = -2a$', puncte_maxime: 2 },
       { descriere: '$P(X) = (X-2)(X^3+a)$', puncte_maxime: 2 },
