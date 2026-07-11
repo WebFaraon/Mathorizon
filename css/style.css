@@ -9957,18 +9957,24 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* Wider dialog + two-column layout: results list on the left, selected-exercise
    preview on the right, so confirming an exercise never requires scrolling
-   past the results list to see what was picked. */
-.sim-picker-dialog { max-width: 1320px; }
+   past the results list to see what was picked. Uses most of the viewport
+   width (not just a large max-width) since on narrower windows the max-width
+   was never actually the limiting factor. */
+.sim-picker-dialog { max-width: min(94vw, 1600px); }
+/* Scoped override — this modal alone gets tighter outer breathing room than
+   the default .wz-overlay padding, to reclaim a bit more usable width. */
+#simPickerModal.wz-overlay { padding: 12px; }
 .sim-picker-bank-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 28px;
 }
 @media (min-width: 760px) {
-  /* Left column (filters + results) only needs to fit a list; give the
-     confirm column — statement preview, punctaj, answer builder — the
-     bulk of the extra width so it doesn't feel cramped. */
-  .sim-picker-bank-grid { grid-template-columns: minmax(260px, 360px) 1fr; }
+  /* Left column (filters + results) only needs to fit a list at a fixed,
+     comfortable width — the confirm column (statement preview, punctaj,
+     answer builder) is what actually needs the room, so it takes every
+     bit of space left over instead of splitting evenly. */
+  .sim-picker-bank-grid { grid-template-columns: 320px 1fr; }
   .sim-picker-bank-col--confirm {
     border-left: 1px solid var(--border);
     padding-left: 28px;
