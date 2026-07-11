@@ -498,5 +498,208 @@
         "puncte_maxime": 1
       }
     ]
+  },
+  {
+    "titlu": "Determinarea lui a din condiția că X=−1 este rădăcină",
+    "enunt": "Determinați valorile reale ale lui $a$, pentru care $X = -1$ este rădăcină a polinomului\n$$P(X) = X^3 - X^2 + (a-2)X + 1$$",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$P(-1) = 0$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$P(-1) = -a + 1$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Obținerea $a = 1$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Restul împărțirii lui 2X³+X²−5X+1 la X−2",
+    "enunt": "Determinați restul împărțirii polinomului $P(X) = 2X^3 + X^2 - 5X + 1$ la binomul $X - 2$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$R = P(2)$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Calcularea $P(2) = 11$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Scrierea răspunsului corect",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Restul împărțirii lui X³−2X²+16 la X²−1",
+    "enunt": "Determinați restul împărțirii polinomului $P(X) = X^3 - 2X^2 + 16$ la polinomul $Q(X) = X^2 - 1$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Identificarea câtului $X - 2$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea și scrierea restului $X + 14$",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "titlu": "Determinarea lui a din condiția de divizibilitate cu X−2",
+    "enunt": "Fie polinomul $P(X) = X^3 - 4X^2 - aX - 4$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X - 2$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$P(2) = -2a - 12$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$-2a - 12 = 0$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Obținerea răspunsului corect $a = -6$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "titlu": "Determinarea lui m din condiția de divizibilitate și restul la X²+3",
+    "enunt": "Fie polinomul $P(X) = X^4 + (m+1)X^3 + 2X^2 + 7X + 3$, care este divizibil la binomul $(X + 3)$. Determinați valoarea reală a lui $m$ și restul împărțirii lui $P(X)$ la polinomul $Q(X) = X^2 + 3$.",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$P(-3) = 0$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea $m = 2$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Împărțirea polinomului $P(X)$ la $Q(X)$ și scrierea răspunsului corect",
+        "puncte_maxime": 4
+      }
+    ]
+  },
+  {
+    "titlu": "Demonstrarea că X=2 este rădăcină și determinarea celorlalte rădăcini",
+    "enunt": "Fie polinomul $P(X) = 4X^3 - 16X^2 + 19X - 6$. Arătați că $X = 2$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Obținerea $P(2) = 0$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea câtului împărțirii polinomului $P(X)$ la $(X-2)$",
+        "puncte_maxime": 4
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea rădăcinilor polinomului obținut și scrierea răspunsului corect",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Determinarea câtului împărțirii la X−2 din două condiții simultane",
+    "enunt": "Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 2$, $a, b \\in \\mathbb{R}$. Determinați câtul împărțirii lui $P(X)$ la binomul $X - 2$, dacă se știe că $X = 2$ este rădăcină a polinomului $P(X)$, iar restul împărțirii lui $P(X)$ la $(X + 1)$ este egal cu $3$.",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Scrierea condițiilor $P(2) = 0$ și $P(-1) = 3$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$ (câte 1p pentru fiecare condiție)",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Rezolvarea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 4,
+        "descriere": "Determinarea câtului împărțirii lui $P(X)$ la $X-2$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Determinarea lui m din condiția restului egal cu 4 la X+2",
+    "enunt": "Fie polinomul $P(X) = X^3 - 6X^2 + mX - 6$. Determinați valorile reale a lui $m$ pentru care restul împărțirii polinomului $P(X)$ la $(X + 2)$ este egal cu $4$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$P(-2) = 4$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea $-38 - 2m = 4$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii lui $m$",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "titlu": "Determinarea lui a și b din condiția de rădăcină dublă X=2",
+    "enunt": "Determinați valorile reale ale lui $a$ și $b$, pentru care $X = 2$ este rădăcină dublă a polinomului\n$$P(X) = X^4 - 2X^3 + aX + b$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$P(2) = 0 \\Rightarrow b = -2a$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$P(X) = (X-2)(X^3+a)$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Condiția că $X = 2$ este rădăcină simplă a polinomului $Q(X) = X^3+a$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 4,
+        "descriere": "Obținerea $a = -8,\\ b = 16$",
+        "puncte_maxime": 2
+      }
+    ]
   }
 ]

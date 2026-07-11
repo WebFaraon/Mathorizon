@@ -2784,6 +2784,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-001', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate',
@@ -2798,6 +2799,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-002', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului și a celorlalte rădăcini',
@@ -2813,6 +2815,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-003', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcinile reale ale unui polinom definit printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} -1 & X & 2 \\\\ X & 2 & -1 \\\\ 2 & -1 & X \\end{vmatrix}$$\nDeterminați rădăcinile reale ale polinomului.',
@@ -2828,11 +2831,12 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-004', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Câtul și restul împărțirii unui polinom de grad 4 la grad 2',
     statement: 'Determinați câtul și restul împărțirii polinomului $P(X) = X^4 - 5X^2 + 3X - 2$ la polinomul $Q(X) = X^2 + 1$.',
-    solution: '**Pasul 1.** Determinăm câtul $C(X)$ prin algoritmul împărțirii:\n$$X^4 \\div X^2 = X^2; \\quad -6X^2 \\div X^2 = -6$$\n\n**Pasul 2.** Determinăm restul $R(X)$ prin algoritmul împărțirii:\n$$X^2(X^2+1) = X^4+X^2; \\text{ rest: } -6X^2+3X-2$$\n$$-6(X^2+1) = -6X^2-6; \\text{ rest: } 3X+4$$\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
+    solution: '**Pasul 1.** Prima iterație a împărțirii — determinăm primul termen al câtului și scădem:\n$$X^4 \\div X^2 = X^2; \\quad X^2(X^2+1) = X^4+X^2$$\n$$(X^4-5X^2+3X-2) - (X^4+X^2) = -6X^2+3X-2$$\n\n**Pasul 2.** A doua iterație — împărțim restul obținut și scădem din nou:\n$$-6X^2 \\div X^2 = -6; \\quad -6(X^2+1) = -6X^2-6$$\n$$(-6X^2+3X-2) - (-6X^2-6) = 3X+4$$\nGradul restului ($1$) e mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
     barem: [
       { descriere: 'Obținerea câtului $C(X) = X^2 - 6$', puncte_maxime: 2 },
       { descriere: 'Obținerea restului $R(X) = 3X + 4$', puncte_maxime: 3 }
@@ -2841,6 +2845,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-005', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcină dublă — determinarea coeficienților și a celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = X^4 - 5X^3 + aX^2 + bX - 18$. Știind că $X = 3$ este rădăcină dublă a polinomului $P(X)$, să se determine celelalte rădăcini.',
@@ -2855,6 +2860,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-006', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului din condiția restului la împărțire',
     statement: 'Fie polinomul $P(X) = 4X^3 + (a-2)X^2 + (1-a)X + 6$. Determinați valorile reale ale lui $a$, astfel încât restul împărțirii polinomului la $Q(X) = X + 1$ să fie egal cu $5$.',
@@ -2868,6 +2874,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-007', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Câtul împărțirii folosind suma coeficienților',
     statement: 'Determinați câtul împărțirii polinomului $P(X) = X^3 - aX^2 + (2a-1)X - 5$ la binomul $Q(X) = X + 2$, dacă se cunoaște că suma coeficienților lui $P(X)$ este $0$.',
@@ -2882,6 +2889,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-008', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la un binom',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 3X^3 + 2X^2 - X - 3$ la binomul $X + 3$.',
@@ -2895,6 +2903,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-009', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcină dublă dată',
@@ -2909,6 +2918,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-010', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă necunoscută',
     statement: 'Descompuneți în factori ireductibili polinomul $P(X) = X^4 - X^3 - aX^2 - (a+8)X - 10$, știind că $X = -1$ este o rădăcină dublă a polinomului $P(X)$.',
@@ -2923,6 +2933,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-011', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Verificarea unei rădăcini și determinarea celorlalte rădăcini',
@@ -2937,34 +2948,37 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-012', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini cunoscute',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 3X^3 - 4X^2 - 3X + 7$ la $Q(X) = X^2 - 1$.',
-    solution: '**Pasul 1.** Calculăm valorile $P(1)$ și $P(-1)$, utilizând faptul că $X^2 - 1 = (X - 1)(X + 1)$: \n$$P(1) = 3 - 4 - 3 + 7 = 3$$\n$$P(-1) = -3 - 4 + 3 + 7 = 3$$\n\n**Pasul 2.** Scriem sistemul de ecuații pentru restul de forma $R(X) = aX + b$:\n$$a + b = 3$$\n$$-a + b = 3$$\n\n**Pasul 3.** Rezolvăm sistemul și determinăm restul:\n$$a = 0, \\; b = 3$$\n\n$$\\boxed{R(X) = 3}$$',
+    solution: '**Pasul 1.** Prima etapă a împărțirii în coloniță:\n$$3X^3 : X^2 = 3X; \\quad 3X(X^2-1) = 3X^3-3X$$\n$$(3X^3-4X^2-3X+7) - (3X^3-3X) = -4X^2+7$$\n\n**Pasul 2.** A doua etapă a împărțirii:\n$$-4X^2 : X^2 = -4; \\quad -4(X^2-1) = -4X^2+4$$\n$$(-4X^2+7) - (-4X^2+4) = 3$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{R(X) = 3}$$',
     barem: [
-      { descriere: 'P(1) = 3 și P(-1) = 3', puncte_maxime: 2 },
-      { descriere: 'a + b = 3 și -a + b = 3', puncte_maxime: 2 },
+      { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 3X și a restului -4X²+7', puncte_maxime: 2 },
+      { descriere: 'A doua etapă: obținerea restului final 3', puncte_maxime: 2 },
       { descriere: 'R(X) = 3', puncte_maxime: 1 }
     ]
   },
   {
     id: 'alg-pol-013', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui m și restul la un polinom de grad 2',
     statement: 'Fie $P(X) = X^4 + 2X^3 + mX^2 + 5X + 4$. Determinați $m$, astfel încât $X = -1$ să fie rădăcină, apoi aflați restul împărțirii lui $P(X)$ la $X^2 - 2$.',
-    solution: '**Pasul 1.** Utilizarea condiției ca $X = -1$ să fie rădăcină a polinomului:\n$$P(-1) = 1 - 2 + m - 5 + 4 = m - 2 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $m$:\n$$m = 2$$\n\n**Pasul 3.** Calcularea valorilor $P(\\sqrt{2})$ și $P(-\\sqrt{2})$ pentru $P(X) = X^4 + 2X^3 + 2X^2 + 5X + 4$:\n$$P(\\sqrt{2}) = 4 + 4\\sqrt{2} + 4 + 5\\sqrt{2} + 4 = 12 + 9\\sqrt{2}$$\n$$P(-\\sqrt{2}) = 4 - 4\\sqrt{2} + 4 - 5\\sqrt{2} + 4 = 12 - 9\\sqrt{2}$$\n\n**Pasul 4.** Determinarea restului $R(X) = aX + b$:\n$$a\\sqrt{2} + b = 12 + 9\\sqrt{2}$$\n$$-a\\sqrt{2} + b = 12 - 9\\sqrt{2}$$\n$$a = 9,\\; b = 12$$\n\n$$\\boxed{R(X) = 9X+12}$$',
+    solution: '**Pasul 1.** Utilizarea condiției ca $X = -1$ să fie rădăcină a polinomului:\n$$P(-1) = 1 - 2 + m - 5 + 4 = m - 2 = 0$$\n\n**Pasul 2.** Determinarea valorii parametrului $m$:\n$$m = 2$$\n\n**Pasul 3.** Împărțirea în coloniță a lui $P(X) = X^4 + 2X^3 + 2X^2 + 5X + 4$ la $X^2 - 2$:\n$$X^4 : X^2 = X^2; \\quad X^2(X^2-2) = X^4-2X^2$$\n$$(X^4+2X^3+2X^2+5X+4) - (X^4-2X^2) = 2X^3+4X^2+5X+4$$\n$$2X^3 : X^2 = 2X; \\quad 2X(X^2-2) = 2X^3-4X$$\n$$(2X^3+4X^2+5X+4) - (2X^3-4X) = 4X^2+9X+4$$\n$$4X^2 : X^2 = 4; \\quad 4(X^2-2) = 4X^2-8$$\n$$(4X^2+9X+4) - (4X^2-8) = 9X+12$$\n\n**Pasul 4.** Scrierea câtului și a restului:\n$$C(X) = X^2+2X+4$$\n$$\\boxed{R(X) = 9X+12}$$',
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea m = 2', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorilor P(√2) și P(-√2)', puncte_maxime: 2 },
-      { descriere: 'Obținerea restului R(X) = 9X + 12', puncte_maxime: 2 }
+      { descriere: 'Efectuarea împărțirii în coloniță a lui P(X) la X²-2', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului X²+2X+4 și a restului R(X) = 9X + 12', puncte_maxime: 2 }
     ]
   },
   {
     id: 'alg-pol-014', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că o rădăcină dată este rădăcină a polinomului',
@@ -2979,6 +2993,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-015', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunerea completă a unui polinom de grad 4',
     statement: 'Fie polinomul $P(X) = X^4 - 6X^3 - 3X^2 + 52X - 60$. Descompuneți în factori polinomul.',
@@ -2993,6 +3008,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-016', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului la un binom',
@@ -3007,14 +3023,15 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-017', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini 0 și 1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 2X^4 + 3X^3 - X + 1$ la $Q(X) = X^2 - X$.',
-    solution: '**Pasul 1.** Identificarea formei restului și a relațiilor matematice:\nRestul împărțirii la $Q(X) = X^2 - X = X(X - 1)$ este de forma $R(X) = aX + b$. Evaluăm în $X = 0$ și $X = 1$:\n$$P(0) = b \\text{ și } P(1) = a + b$$\n\n**Pasul 2.** Calcularea valorilor $P(0)$ și $P(1)$:\n$$P(0) = 1$$\n$$P(1) = 2 + 3 - 1 + 1 = 5$$\n\n**Pasul 3.** Determinarea restului $R(X)$:\nDin $b = 1$ și $a + 1 = 5 \\Rightarrow a = 4$, obținem:\n$$\\boxed{R(X) = 4X + 1}$$',
+    solution: '**Pasul 1.** Prima etapă a împărțirii în coloniță:\n$$2X^4 : X^2 = 2X^2; \\quad 2X^2(X^2-X) = 2X^4-2X^3$$\n$$(2X^4+3X^3-X+1) - (2X^4-2X^3) = 5X^3-X+1$$\n\n**Pasul 2.** Etapele următoare ale împărțirii:\n$$5X^3 : X^2 = 5X; \\quad 5X(X^2-X) = 5X^3-5X^2$$\n$$(5X^3-X+1) - (5X^3-5X^2) = 5X^2-X+1$$\n$$5X^2 : X^2 = 5; \\quad 5(X^2-X) = 5X^2-5X$$\n$$(5X^2-X+1) - (5X^2-5X) = 4X+1$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{R(X) = 4X+1}$$',
     barem: [
-      { descriere: 'P(0) = b și P(1) = a + b', puncte_maxime: 2 },
-      { descriere: 'Calcularea P(0) = 1 și P(1) = 5', puncte_maxime: 2 },
+      { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 2X² și a restului 5X³-X+1', puncte_maxime: 2 },
+      { descriere: 'Etapele următoare: obținerea restului final 4X+1', puncte_maxime: 2 },
       { descriere: 'Obținerea răspunsului corect R(X) = 4X + 1', puncte_maxime: 1 }
     ]
   },
@@ -3022,6 +3039,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-018', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=1',
@@ -3037,6 +3055,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-019', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −10',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = aX^4 - 7X^3 + 3X^2 + (a-3)X + 4$$\nla binomul $Q(X) = X - 2$, este egal cu $-10$.',
@@ -3050,6 +3069,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-020', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la X+2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = 3X^4 - 6X^3 + X^2 - 3X + 4$$\nla polinomul $Q(X) = X + 2$.',
@@ -3063,6 +3083,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-021', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților a și b din condiția rădăcinii duble',
     statement: 'Fie polinomul $P(X) = X^4 + 6X^3 + 9X^2 + 2aX - b$. Determinați numerele reale $a$ și $b$, pentru care $X = 2$ este rădăcină dublă.',
@@ -3077,6 +3098,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-022', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea parametrului a din condiția restului egal cu 6',
@@ -3091,6 +3113,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-023', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 27',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 3X^4 - 2aX^3 - 12X^2 + 8X - a - 2$$\nla $Q(X) = X + 2$, este egal cu $27$.',
@@ -3104,6 +3127,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-024', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^5 + 3X^3 - (m+1)X^2 + (m-1)X + 6 + m$. Determinați valorile reale ale lui $m$, pentru care polinomul $P(X)$ se divide cu $Q(X) = X + 1$.',
@@ -3117,21 +3141,22 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-025', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X²−2 din condiție la X=2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 2X - 2 - a$, la polinomul $Q(X) = X^2 - 2$, dacă restul împărțirii la $X = 2$ este egal cu $8$.',
-    solution: '**Pasul 1.** Utilizăm teorema restului pentru condiția dată:\n$$P(2) = 8$$\n\n**Pasul 2.** Determinăm valoarea parametrului $a$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n**Pasul 3.** Scriem forma generală a restului împărțirii la $Q(X) = X^2 - 2$:\n$$R(X) = bX + c$$\n\n**Pasul 4.** Evaluăm polinomul $P(X) = X^4 + 2X - 12$ în rădăcinile $X = \\pm\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4 + 2\\sqrt{2} - 12 = -8 + 2\\sqrt{2} = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = 4 - 2\\sqrt{2} - 12 = -8 - 2\\sqrt{2} = -b\\sqrt{2} + c$$\n\n**Pasul 5.** Identificăm coeficienții $b, c$ și scriem restul $R(X)$:\n$$b = 2,\\; c = -8$$\n$$\\boxed{R(X) = 2X - 8}$$',
+    solution: '**Pasul 1.** Utilizăm teorema restului pentru condiția dată:\n$$P(2) = 8$$\n\n**Pasul 2.** Determinăm valoarea parametrului $a$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n**Pasul 3.** Împărțirea în coloniță a lui $P(X) = X^4 + 2X - 12$ la $X^2 - 2$:\n$$X^4 : X^2 = X^2; \\quad X^2(X^2-2) = X^4-2X^2$$\n$$(X^4+2X-12) - (X^4-2X^2) = 2X^2+2X-12$$\n$$2X^2 : X^2 = 2; \\quad 2(X^2-2) = 2X^2-4$$\n$$(2X^2+2X-12) - (2X^2-4) = 2X-8$$\n\n**Pasul 4.** Scrierea câtului și a restului:\n$$C(X) = X^2+2$$\n$$\\boxed{R(X) = 2X-8}$$',
     barem: [
       { descriere: 'P(2) = 8', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 10', puncte_maxime: 1 },
-      { descriere: 'R(X) = bX + c', puncte_maxime: 1 },
-      { descriere: 'P(\\sqrt{2}) = -8 + 2\\sqrt{2} \\text{ și } P(-\\sqrt{2}) = -8 - 2\\sqrt{2}', puncte_maxime: 2 },
-      { descriere: 'Obținerea b = 2, c = -8 și scrierea restului R(X) = 2X - 8', puncte_maxime: 2 }
+      { descriere: 'Efectuarea împărțirii în coloniță a lui P(X) la X²-2', puncte_maxime: 3 },
+      { descriere: 'Obținerea câtului X²+2 și a restului R(X) = 2X-8', puncte_maxime: 2 }
     ]
   },
   {
     id: 'alg-pol-026', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −13',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = (a+3)X^5 - 2X^3 + (9+a)X^2 + 2X + 7 - a$$\nla $Q(X) = X - 2$, este egal cu $-13$.',
@@ -3145,6 +3170,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-027', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 3 la X−1',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 2aX^4 - 7X^3 + 2X^2 - 10X + a$$\nla $Q(X) = X - 1$, este egal cu $3$.',
@@ -3158,6 +3184,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-028', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=−2',
@@ -3174,6 +3201,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-029', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiții de divizibilitate și rest, apoi restul la X+2',
@@ -3189,6 +3217,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-030', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X+3',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 + 5X - 3$, unde $a \\in \\mathbb{R}$. Știind că $P(2) = 7$, să se afle restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X + 3$.',
@@ -3203,6 +3232,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-031', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de rădăcină și restul la X−4',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 - 5X + 6$, unde $a \\in \\mathbb{R}$. Știind că $X = -2$ este rădăcină a polinomului $P(X)$, să se afle restul împărțirii polinomului $P(X)$ la binomul $X - 4$.',
@@ -3216,6 +3246,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-032', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea polinomului P(X) din câtul și restul împărțirii la X²−1',
     statement: 'Polinomul $P(X)$ se împarte la polinomul $Q(X) = X^2 - 1$, obținându-se câtul\n$$C(X) = X^3 - X + 1$$\nDeterminați polinomul $P(X)$, știind că $P(2) = 6$ și $P(-2) = 2$.',
@@ -3230,6 +3261,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-033', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiția de rest egal și rădăcinile polinomului',
     statement: 'Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 12$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X - 3$ este egal cu restul împărțirii polinomului $P(X)$ la binomul $X + 1$ și este egal cu $15$, să se afle rădăcinile polinomului $P(X)$.',
@@ -3244,6 +3276,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-034', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la un polinom de grad 2 din resturile cunoscute la factorii săi',
@@ -3258,6 +3291,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-035', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=3 este rădăcină',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 9X - 9$. Să se determine $a \\in \\mathbb{R}$ pentru care $X = 3$ este rădăcină a polinomului $P(X)$.',
@@ -3271,6 +3305,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-036', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Aflarea restului la X+3 din condiția restului la X−2',
@@ -3285,6 +3320,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-037', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Rădăcinile unui polinom de grad 3 care se divide cu X+2',
@@ -3299,6 +3335,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-038', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și calculul P(2)',
     statement: 'Fie polinomul $P(X) = X^2 + aX - 7$. Știind că $P(1) = -2$, aflați $P(2)$.',
@@ -3312,6 +3349,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-039', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunerea în factori cu rădăcina X=3 dată',
@@ -3327,6 +3365,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-040', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori în mulțimea R',
@@ -3342,6 +3381,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-041', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din egalitatea resturilor și rădăcinile polinomului',
@@ -3357,6 +3397,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-042', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a, b ∈ Z astfel încât X=1 să fie rădăcină',
     statement: 'Fie polinomul $P(X) = a^2X^4 - 2abX^3 + b^2X^2 + a^2X - 2a + 1$. Să se determine $a, b \\in \\mathbb{Z}$, astfel încât $P(X)$ să admită ca rădăcină $X = 1$.',
@@ -3371,6 +3412,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-043', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −3 la X−1',
     statement: 'Să se afle $a \\in \\mathbb{R}$, știind că restul împărțirii polinomului\n$$P(X) = X^3 - 2X^2 + aX - 7$$\nla binomul $X - 1$ este egal cu $-3$.',
@@ -3384,6 +3426,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-044', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția restului la X−√2',
@@ -3398,6 +3441,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-045', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X−3 din condiția restului la X+2',
@@ -3413,6 +3457,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-046', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori cu rădăcina X=2',
@@ -3429,6 +3474,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-047', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate și restul la X−5',
@@ -3443,6 +3489,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-048', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=1 și coeficient necunoscut a',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 3X^3 - aX^2 + (3a+2)X - 6$$\nștiind că $X = 1$ este o rădăcină dublă a polinomului $P(X)$.',
@@ -3457,6 +3504,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-049', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=2',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 8X^3 + 15X^2 + 4X - 20$$\nștiind că $X = 2$ este o rădăcină dublă a polinomului $P(X)$.',
@@ -3471,20 +3519,22 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-050', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = X^3 - 6X^2 - 2$$\nla polinomul $Q(X) = X^2 - 2$.',
-    solution: '**Pasul 1.** Stabilirea formei generale a restului:\nDeoarece gradul împărțitorului $Q(X) = X^2 - 2$ este 2, restul este un polinom de grad cel mult 1:\n$$R(X) = bX + c$$\n\n**Pasul 2.** Determinarea coeficienților $b$ și $c$:\nRădăcinile lui $X^2 - 2$ sunt $X = \\pm\\sqrt{2}$. Calculăm valorile polinomului în aceste puncte:\n$$P(\\sqrt{2}) = 2\\sqrt{2} - 12 - 2 = 2\\sqrt{2} - 14 = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = -2\\sqrt{2} - 12 - 2 = -2\\sqrt{2} - 14 = -b\\sqrt{2} + c$$\nDin sistemul de ecuații obținem:\n$$b = 2,\\; c = -14$$\n\n**Pasul 3.** Scrierea polinomului rest:\n$$\\boxed{R(X) = 2X - 14}$$',
+    solution: '**Pasul 1.** Prima etapă a împărțirii în coloniță:\n$$X^3 : X^2 = X; \\quad X(X^2-2) = X^3-2X$$\n$$(X^3-6X^2-2) - (X^3-2X) = -6X^2+2X-2$$\n\n**Pasul 2.** A doua etapă a împărțirii:\n$$-6X^2 : X^2 = -6; \\quad -6(X^2-2) = -6X^2+12$$\n$$(-6X^2+2X-2) - (-6X^2+12) = 2X-14$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{R(X) = 2X - 14}$$',
     barem: [
-      { descriere: 'R(X) = bX + c', puncte_maxime: 2 },
-      { descriere: 'Obținerea valorilor b = 2 și c = -14', puncte_maxime: 2 },
+      { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial X și a restului -6X²+2X-2', puncte_maxime: 2 },
+      { descriere: 'A doua etapă: obținerea restului final 2X-14', puncte_maxime: 2 },
       { descriere: 'R(X) = 2X - 14', puncte_maxime: 1 }
     ]
   },
   {
     id: 'alg-pol-051', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^3 + 3X^2 - (a+1)X + 2$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X + 1$.',
@@ -3498,6 +3548,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-052', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=−3 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$ pentru care $X = -3$ este rădăcină a polinomului\n$$P(X) = X^3 + (a-1)X^2 - 5X + 3$$',
@@ -3511,6 +3562,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-053', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²+2',
@@ -3524,6 +3576,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-054', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului — ecuație de grad 2',
@@ -3538,6 +3591,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-055', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui 5X³−2X²+X−4 la X+2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 5X^3 - 2X^2 + X - 4$ la binomul $X + 2$.',
@@ -3551,6 +3605,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-056', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Aflarea lui a știind că X=2 este rădăcină a polinomului',
     statement: 'Fie polinomul $P(X) = X^3 - aX^2 + X + a$. Aflați numărul real $a$, dacă $X = 2$ este rădăcină a polinomului $P(X)$.',
@@ -3564,6 +3619,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-057', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui b din condiția restului egal cu 3 la X+1',
     statement: 'Fie polinomul $P(X) = 7X^3 - 6X^2 + bX + 1$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X + 1$ este egal cu $3$, aflați numărul real $b$.',
@@ -3577,6 +3633,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-058', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 4 la X−2',
     statement: 'Fie polinomul $P(X) = 2X^3 + (a-2)X^2 - 3aX + 10$. Determinați valorile reale ale lui $a$, știind că restul împărțirii polinomului la binomul $Q(X) = X - 2$ este egal cu $4$.',
@@ -3620,7 +3677,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui X³−2X²+16 la X²−1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^3 - 2X^2 + 16$ la polinomul $Q(X) = X^2 - 1$.',
-    solution: '**Pasul 1.** Determinarea câtului $C(X)$:\nÎmpărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$. Calculăm termenii câtului: $X^3 : X^2 = X$ și $-2X^2 : X^2 = -2$.\n$$C(X) = X - 2$$\n\n**Pasul 2.** Determinarea restului $R(X)$:\nRestul va avea gradul $< 2$, deci forma $bX+c$. Efectuăm scăderile succesive:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
+    solution: 'Împărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$ (restul va avea gradul $< 2$, deci forma $bX+c$).\n\n**Pasul 1.** $X^3 : X^2 = X$. Înmulțim $X \\cdot (X^2-1) = X^3 - X$ și scădem:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n\n**Pasul 2.** $-2X^2 : X^2 = -2$. Înmulțim $-2 \\cdot (X^2-1) = -2X^2 + 2$ și scădem:\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
     barem: [
       { descriere: 'Identificarea câtului $X - 2$', puncte_maxime: 2 },
       { descriere: 'Obținerea și scrierea restului $X + 14$', puncte_maxime: 3 }
@@ -3642,6 +3699,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-063', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Demonstrarea divizibilității unui polinom dat printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} X & 3 & 0 \\\\ -1 & X & 3 \\\\ 2X & 6 & X-2 \\end{vmatrix}$$\nArătați că $P(X)$ este divizibil cu $X - 2$.',
@@ -3709,6 +3767,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-068', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=−2 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$, știind că $X = -2$ este rădăcină a polinomului $P(X) = 2X^3 + 4X + a$.',
@@ -3722,6 +3781,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-069', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=1/2 este rădăcină',
     statement: 'Să se afle valoarea parametrului real $a$ pentru care $X = \\dfrac{1}{2}$ este rădăcină a polinomului $P(X) = 4X^3 - 22X^2 + aX - 14$.',
@@ -3735,6 +3795,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-070', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m ∈ ℝ știind că X=1 este rădăcină a unui polinom de grad 4',
@@ -3749,20 +3810,22 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-071', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Aflați restul împărțirii $P(X) = 3X^3 - 4X^2 + 5X - 1$ la $Q(X) = X^2 - 2$.',
-    solution: '**Pasul 1.** Stabilirea formei restului:\nDeoarece gradul împărțitorului $Q(X) = X^2 - 2$ este 2, restul este de forma:\n$$R(X) = aX + b$$\n\n**Pasul 2.** Calcularea valorilor polinomului în rădăcinile $X = \\pm\\sqrt{2}$ ale lui $Q(X)$:\n$$P(\\sqrt{2}) = 6\\sqrt{2} - 8 + 5\\sqrt{2} - 1 = 11\\sqrt{2} - 9 = a\\sqrt{2} + b$$\n$$P(-\\sqrt{2}) = -6\\sqrt{2} - 8 - 5\\sqrt{2} - 1 = -11\\sqrt{2} - 9 = -a\\sqrt{2} + b$$\n\n**Pasul 3.** Determinarea coeficienților și a restului:\n$$a = 11,\\; b = -9$$\n\n$$\\boxed{R(X) = 11X - 9}$$',
+    solution: '**Pasul 1.** Prima etapă a împărțirii în coloniță:\n$$3X^3 : X^2 = 3X; \\quad 3X(X^2-2) = 3X^3-6X$$\n$$(3X^3-4X^2+5X-1) - (3X^3-6X) = -4X^2+11X-1$$\n\n**Pasul 2.** A doua etapă a împărțirii:\n$$-4X^2 : X^2 = -4; \\quad -4(X^2-2) = -4X^2+8$$\n$$(-4X^2+11X-1) - (-4X^2+8) = 11X-9$$\n\n**Pasul 3.** Scrierea răspunsului corect:\n$$\\boxed{R(X) = 11X - 9}$$',
     barem: [
-      { descriere: '$R(X) = aX + b$', puncte_maxime: 2 },
-      { descriere: '$P(\\sqrt{2}) = 11\\sqrt{2} - 9$', puncte_maxime: 2 },
-      { descriere: '$R(X) = 11X - 9$', puncte_maxime: 1 }
+      { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 3X și a restului -4X²+11X-1', puncte_maxime: 2 },
+      { descriere: 'A doua etapă: obținerea restului final 11X-9', puncte_maxime: 2 },
+      { descriere: 'R(X) = 11X - 9', puncte_maxime: 1 }
     ]
   },
   {
     id: 'alg-pol-072', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 8,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din resturile la X−1 și X+2, apoi restul la X−2',
@@ -3778,6 +3841,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-073', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la X−2 cunoscând că X=−1 este rădăcină',
@@ -3792,6 +3856,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-074', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și b din resturile la X+2 și X+3',
@@ -3806,6 +3871,7 @@ BM.EXERCISES = [
   {
     id: 'alg-pol-075', categoryId: 'algebra', subcategoryId: 'polinoame',
     puncteTotal: 5,
+    baremEstimat: true,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+2',
     statement: 'Să se afle valorile parametrului real $m$ pentru care polinomul $P(X) = 2X^5 + 5X^2 - m$ se divide cu binomul $X + 2$.',
