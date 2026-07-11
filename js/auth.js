@@ -263,10 +263,13 @@
       );
       const dbStreak = Array.isArray(streakRows) ? streakRows[0] || null : null;
       if (dbStreak) {
-        const normDate = dbStreak.last_date
-          ? new Date(dbStreak.last_date).toLocaleDateString('sv')
-          : null;
-        try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: normDate })); } catch {}
+        // dbStreak.last_date is already "YYYY-MM-DD" (a Postgres `date`
+        // column, echoed verbatim by PostgREST) — the exact format
+        // _isoDate() writes. Do NOT round-trip it through `new Date(...)`:
+        // a date-only string parses as UTC midnight, so reformatting it
+        // back with a local-time formatter shifts the date by a day for
+        // any user west of UTC.
+        try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: dbStreak.last_date })); } catch {}
       } else {
         try { localStorage.setItem('bm_streak', JSON.stringify({ count: 0, lastDate: null })); } catch {}
         /* Utilizator nou — inițializează rândul în DB ca să nu apară valori greșite */
@@ -405,6 +408,33 @@
       });
     }
   };
+
+  /* ============================================================
+     DAILY STREAK — bump once per calendar day. Runs on every page
+     (this file loads everywhere), not just the homepage, so a day
+     only used to count as "visited" if the user opened index.html
+     or solved an exercise there — every other page load silently
+     skipped the bump and broke the "consecutive days" chain even on
+     days the user genuinely logged in.
+     Waits for the sync to resolve (or confirmation there's no
+     session) before bumping — bumping immediately would race the
+     override installed above and get clobbered once _syncProgress
+     restores yesterday's row from the DB ("DB e sursa de adevăr").
+     ============================================================ */
+  (function () {
+    let done = false;
+    const run = () => {
+      if (done) return;
+      done = true;
+      BM.Storage.updateStreak();
+      document.dispatchEvent(new CustomEvent('bmauth:streak-updated'));
+    };
+    document.addEventListener('bmauth:synced', run, { once: true });
+    document.addEventListener('bmauth:ready', (e) => {
+      if (!e.detail?.user) run(); // no session → nothing will sync, safe now
+    }, { once: true });
+    setTimeout(run, 2500);
+  })();
 
   document.addEventListener('DOMContentLoaded', init);
 })();

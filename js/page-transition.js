@@ -19,6 +19,7 @@
     var a = e.target.closest('a');
     if (!isTransitionable(a)) return;
     var href = a.getAttribute('href');
+    if (a.href === window.location.href) { e.preventDefault(); return; }
     e.preventDefault();
     document.body.classList.add('page-fade-out');
     setTimeout(function () { window.location.href = href; }, 180);

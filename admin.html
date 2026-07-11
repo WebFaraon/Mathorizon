@@ -40,6 +40,8 @@
           <span class="token-widget__count" data-token-count>—</span>
           <span class="token-widget__label">Tokenuri</span>
         </div>
+        <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite">♡</button>
+        <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări">◷</button>
         <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
         <button class="nav-profile-btn" id="navProfileBtn" title="Profilul meu">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -55,8 +57,8 @@
       <a class="nav__mobile-link" href="classes.html">Clase</a>
       <a class="nav__mobile-link" href="pachete.html">Pachete</a>
       <div class="nav__mobile-divider"></div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">&#9825; Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">&#9711; Istoric rezolvări</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">♡ Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">◷ Istoric rezolvări</button>
     </div>
   </nav>
 

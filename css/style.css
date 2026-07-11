@@ -3056,7 +3056,11 @@ body.bac-exam-mode .nav.nav--peek {
   position: fixed;
   bottom: 20px;
   right: 20px;
-  z-index: 500;
+  /* Must outrank every modal/backdrop layer in the app (wz-overlay,
+     classes-modal, prof-modal-overlay, exam fullscreen guards, etc.) so
+     validation errors triggered from inside an open modal are actually
+     visible instead of rendering behind its blurred backdrop. */
+  z-index: 100000;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -9954,17 +9958,20 @@ body.bac-exam-mode .nav.nav--peek {
 /* Wider dialog + two-column layout: results list on the left, selected-exercise
    preview on the right, so confirming an exercise never requires scrolling
    past the results list to see what was picked. */
-.sim-picker-dialog { max-width: 1140px; }
+.sim-picker-dialog { max-width: 1320px; }
 .sim-picker-bank-grid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 24px;
+  gap: 28px;
 }
 @media (min-width: 760px) {
-  .sim-picker-bank-grid { grid-template-columns: 1fr 1fr; }
+  /* Left column (filters + results) only needs to fit a list; give the
+     confirm column — statement preview, punctaj, answer builder — the
+     bulk of the extra width so it doesn't feel cramped. */
+  .sim-picker-bank-grid { grid-template-columns: minmax(260px, 360px) 1fr; }
   .sim-picker-bank-col--confirm {
     border-left: 1px solid var(--border);
-    padding-left: 24px;
+    padding-left: 28px;
   }
 }
 .sim-picker-confirm-placeholder {
@@ -11285,20 +11292,56 @@ body.bac-exam-mode .nav.nav--peek {
 .wz-toggle input:checked ~ .wz-toggle__track .wz-toggle__thumb { transform: translateX(16px); }
 
 /* Multiple-choice options builder (wizard/picker) */
-.sim-opt-list { display: flex; flex-direction: column; gap: 8px; margin-top: 6px; }
-.sim-opt-row { display: flex; align-items: center; gap: 8px; }
-.sim-opt-row__letter {
-  width: 22px; height: 22px;
-  border-radius: 50%;
+.sim-opt-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.sim-opt-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  background: var(--card);
+  transition: border-color 0.15s, background 0.15s;
+}
+.sim-opt-row:focus-within { border-color: var(--accent); }
+.sim-opt-row:has(.sim-opt-row__radio:checked) {
+  border-color: var(--accent);
   background: var(--accent-dim);
-  color: var(--accent);
+}
+.sim-opt-row__letter {
+  width: 24px; height: 24px;
+  border-radius: 50%;
+  background: var(--surface);
+  color: var(--text-secondary);
   font-size: 0.72rem;
   font-weight: 800;
   display: flex; align-items: center; justify-content: center;
   flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
 }
-.sim-opt-row__radio { flex-shrink: 0; width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer; }
-.sim-opt-row__input { flex: 1; min-width: 0; }
+.sim-opt-row:has(.sim-opt-row__radio:checked) .sim-opt-row__letter {
+  background: var(--accent);
+  color: #fff;
+}
+.sim-opt-row__radio { flex-shrink: 0; width: 17px; height: 17px; accent-color: var(--accent); cursor: pointer; }
+.sim-opt-row__input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 4px 2px;
+  box-shadow: none;
+}
+.sim-opt-row__input:focus { outline: none; border: none; }
+
+/* Fade the answer-type field in when swapping between "liber" (single
+   answer input) and "grilă" (options builder), instead of the abrupt
+   display:none jump-cut. */
+@keyframes sim-answer-fade-in {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.sim-answer-fade-in { animation: sim-answer-fade-in 0.22s ease; }
 
 /* Multiple-choice option cards — student exam UI */
 .sim-option-card {

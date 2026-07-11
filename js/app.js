@@ -12,37 +12,12 @@
     initSearch();
     initPanelBtns();
     BM.Storage.recordVisit();
-    _updateStreakWhenReady();
+    // The daily streak bump itself now runs globally in auth.js (every
+    // page, not just this one) — just refresh the displayed count once
+    // it lands.
+    document.addEventListener('bmauth:streak-updated', () => renderStats(false), { once: true });
     BM.initScrollTop();
     openPanelFromUrl();
-  }
-
-  // Calling BM.Storage.updateStreak() immediately (as this used to) raced
-  // auth.js's DB sync: auth.js only swaps in the DB-syncing version of
-  // updateStreak() after an async getSession() call, and _syncProgress()
-  // ("DB e sursa de adevăr, suprascrie localul") then overwrites
-  // localStorage with whatever's still in the DB — which, for a logged-in
-  // user, is still yesterday's row, since today's local bump ran through
-  // the original localStorage-only updateStreak before the override got
-  // installed. Net effect: the streak silently reverted every single day,
-  // looking permanently stuck. Wait for the sync to actually resolve (or
-  // confirm there's no session to sync against) before updating.
-  function _updateStreakWhenReady() {
-    let done = false;
-    const run = () => {
-      if (done) return;
-      done = true;
-      BM.Storage.updateStreak();
-      renderStats(false);
-    };
-    document.addEventListener('bmauth:synced', run, { once: true });
-    document.addEventListener('bmauth:ready', (e) => {
-      if (!e.detail?.user) run(); // no session → nothing will sync, safe now
-    }, { once: true });
-    // Fallback in case auth.js never loads/initializes (e.g. the Supabase
-    // CDN script failed) — don't leave the streak stuck waiting forever on
-    // an event that will never fire.
-    setTimeout(run, 2500);
   }
 
   function openPanelFromUrl() {

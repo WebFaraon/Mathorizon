@@ -3932,6 +3932,18 @@
     _simOptBuilder = { answerType: 'liber', options: [{ label: '', isCorrect: true }, { label: '', isCorrect: false }] };
   }
 
+  // Swaps which of the two answer-type fields is visible, fading the one
+  // that appears in instead of an abrupt display:none jump-cut.
+  function _simSwapAnswerType(type, answerWrap, optionsWrap) {
+    const showEl = type === 'grila' ? optionsWrap : answerWrap;
+    const hideEl = type === 'grila' ? answerWrap  : optionsWrap;
+    hideEl.style.display = 'none';
+    showEl.style.display = '';
+    showEl.classList.remove('sim-answer-fade-in');
+    void showEl.offsetWidth; // restart the animation if it's already run once
+    showEl.classList.add('sim-answer-fade-in');
+  }
+
   function _simAnswerTypeRadioHtml(prefix) {
     return `
       <div class="cls-form-field">
@@ -4161,8 +4173,7 @@
     _simOptBuilderBind(optionsWrap);
     confirmEl.querySelectorAll('input[name="simPickAnswerType"]').forEach(r => r.onchange = e => {
       _simOptBuilder.answerType = e.target.value;
-      answerWrap.style.display  = e.target.value === 'grila' ? 'none' : '';
-      optionsWrap.style.display = e.target.value === 'grila' ? '' : 'none';
+      _simSwapAnswerType(e.target.value, answerWrap, optionsWrap);
     });
 
     document.getElementById('simPickConfirmBtn').onclick = () => {
@@ -4312,8 +4323,7 @@
     _simOptBuilderBind(optionsWrap);
     resultEl.querySelectorAll('input[name="simPickAiAnswerType"]').forEach(rad => rad.onchange = e => {
       _simOptBuilder.answerType = e.target.value;
-      answerWrap.style.display  = e.target.value === 'grila' ? 'none' : '';
-      optionsWrap.style.display = e.target.value === 'grila' ? '' : 'none';
+      _simSwapAnswerType(e.target.value, answerWrap, optionsWrap);
     });
 
     document.getElementById('simPickAiConfirmBtn').onclick = () => _simPickerConfirmAdhoc();
