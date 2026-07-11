@@ -1966,6 +1966,33 @@ body.bac-exam-mode .nav.nav--peek {
 .diff-badge.mediu { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow-border); }
 .diff-badge.dificil { background: var(--red-dim);    color: var(--red);    border-color: var(--red-border); }
 
+/* Difficulty filter chips (exercise picker) — same colors as .diff-badge,
+   but clickable and outlined-only until selected, since three filled
+   badges side by side reads as noise rather than a control. */
+.sim-diff-chips { display: flex; gap: 8px; flex-wrap: wrap; }
+.diff-chip {
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  border: 1.5px solid;
+  background: transparent;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s, background 0.15s, transform 0.1s;
+  font-family: inherit;
+}
+.diff-chip:hover { opacity: 0.9; }
+.diff-chip--active { opacity: 1; }
+.diff-chip--usor    { color: var(--green);  border-color: var(--green-border); }
+.diff-chip--mediu   { color: var(--yellow); border-color: var(--yellow-border); }
+.diff-chip--dificil { color: var(--red);    border-color: var(--red-border); }
+.diff-chip--usor.diff-chip--active    { background: var(--green-dim); }
+.diff-chip--mediu.diff-chip--active   { background: var(--yellow-dim); }
+.diff-chip--dificil.diff-chip--active { background: var(--red-dim); }
+
 .type-badge {
   padding: 1px 7px;
   border-radius: var(--radius-sm);
@@ -9965,7 +9992,7 @@ body.bac-exam-mode .nav.nav--peek {
    max-width:660px is declared later in this file, so with a tied-specificity
    selector here it would win the cascade and silently cap the dialog back
    down to 660px no matter what's set on this rule. */
-.wz-dialog.sim-picker-dialog { max-width: min(94vw, 1600px); }
+.wz-dialog.sim-picker-dialog { max-width: min(84vw, 1320px); }
 /* Scoped override — this modal alone gets tighter outer breathing room than
    the default .wz-overlay padding, to reclaim a bit more usable width. */
 #simPickerModal.wz-overlay { padding: 12px; }

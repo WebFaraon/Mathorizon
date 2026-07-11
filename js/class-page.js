@@ -3863,7 +3863,7 @@
     const gradeCode = _gradeCodeFromSchoolGrade(classData.school_grade);
     const useBacTaxonomy = gradeCode === '9' || gradeCode === 'bac';
 
-    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', sort: '', results: [], photo: {} };
+    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', difficulty: '', results: [], photo: {} };
 
     const modal = document.createElement('div');
     modal.id = 'simPickerModal';
@@ -3907,19 +3907,20 @@
     else                          { body.innerHTML = _simPickerPhotoHtml(); _simPickerBindPhoto(body); }
   }
 
-  const SIM_SORT_OPTIONS = [
-    { id: '',        label: 'Implicit' },
-    { id: 'diff-asc',  label: 'Dificultate: ușor → greu' },
-    { id: 'diff-desc', label: 'Dificultate: greu → ușor' }
+  const SIM_DIFF_CHIPS = [
+    { id: 'usor',    label: 'Ușor' },
+    { id: 'mediu',   label: 'Mediu' },
+    { id: 'dificil', label: 'Greu' }
   ];
 
-  function _simSortSelectHtml() {
+  function _simDiffChipsHtml() {
     return `
       <div class="cls-form-field">
-        <label class="cls-form-label">Sortează după</label>
-        <select id="simPickSort" class="cls-form-input cls-form-select">
-          ${SIM_SORT_OPTIONS.map(o => `<option value="${o.id}" ${simPicker.sort === o.id ? 'selected' : ''}>${o.label}</option>`).join('')}
-        </select>
+        <label class="cls-form-label">Dificultate</label>
+        <div class="sim-diff-chips">
+          ${SIM_DIFF_CHIPS.map(d => `
+            <button type="button" class="diff-chip diff-chip--${d.id} ${simPicker.difficulty === d.id ? 'diff-chip--active' : ''}" data-diff-chip="${d.id}">${d.label}</button>`).join('')}
+        </div>
       </div>`;
   }
 
@@ -4038,7 +4039,7 @@
                 ${subs.map(s => `<option value="${s.id}" ${simPicker.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
               </select>
             </div>
-            ${_simSortSelectHtml()}
+            ${_simDiffChipsHtml()}
             <div id="simPickResults" class="sim-picker-results"></div>
           </div>
           <div class="sim-picker-bank-col sim-picker-bank-col--confirm">${confirmPlaceholder}</div>
@@ -4051,7 +4052,7 @@
             <label class="cls-form-label">Caută exercițiu</label>
             <input type="text" id="simPickSearch" class="cls-form-input" placeholder="Caută după titlu…">
           </div>
-          ${_simSortSelectHtml()}
+          ${_simDiffChipsHtml()}
           <div id="simPickResults" class="sim-picker-results"></div>
         </div>
         <div class="sim-picker-bank-col sim-picker-bank-col--confirm">${confirmPlaceholder}</div>
@@ -4061,7 +4062,6 @@
   async function _simPickerBindBank(body) {
     const catSel  = body.querySelector('#simPickCategory');
     const subSel  = body.querySelector('#simPickSubcategory');
-    const sortSel = body.querySelector('#simPickSort');
     const searchInput = body.querySelector('#simPickSearch');
 
     if (catSel) {
@@ -4072,7 +4072,16 @@
       };
     }
     if (subSel) subSel.onchange = e => { simPicker.subcategoryId = e.target.value; _simPickerRunBankSearch(); };
-    if (sortSel) sortSel.onchange = e => { simPicker.sort = e.target.value; _simPickerRunBankSearch(); };
+    body.querySelectorAll('[data-diff-chip]').forEach(chip => {
+      chip.onclick = () => {
+        const id = chip.dataset.diffChip;
+        simPicker.difficulty = simPicker.difficulty === id ? '' : id;
+        body.querySelectorAll('[data-diff-chip]').forEach(c => {
+          c.classList.toggle('diff-chip--active', c.dataset.diffChip === simPicker.difficulty);
+        });
+        _simPickerRunBankSearch();
+      };
+    });
     if (searchInput) searchInput.oninput = BM.debounce(e => { simPicker.query = e.target.value; _simPickerRunBankSearch(); }, 300);
 
     BM.initCustomSelects(body);
@@ -4082,19 +4091,32 @@
   async function _simPickerRunBankSearch() {
     const resultsEl = document.getElementById('simPickResults');
     if (!resultsEl) return;
+
+    // Bac-taxonomy view spans hundreds of exercises across every chapter —
+    // dumping an arbitrary slice of them (always the same first chapter)
+    // before the user has picked anything is more confusing than helpful.
+    // Wait for at least a Capitol before querying.
+    if (simPicker.useBacTaxonomy && !simPicker.categoryId) {
+      simPicker.results = [];
+      resultsEl.innerHTML = `<p class="sim-picker-confirm-placeholder">Alege un capitol pentru a vedea exercițiile disponibile.</p>`;
+      return;
+    }
+
     resultsEl.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div></div>`;
 
     let results = [];
     if (simPicker.useBacTaxonomy) {
       const staticMatches = (BM.EXERCISES || []).filter(ex => {
-        if (simPicker.categoryId && ex.categoryId !== simPicker.categoryId) return false;
+        if (ex.categoryId !== simPicker.categoryId) return false;
         if (simPicker.subcategoryId && ex.subcategoryId !== simPicker.subcategoryId) return false;
+        if (simPicker.difficulty && ex.difficulty !== simPicker.difficulty) return false;
         return true;
       }).slice(0, 40);
 
-      let customQuery = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode);
-      if (simPicker.categoryId)    customQuery = customQuery.eq('category_id', simPicker.categoryId);
+      let customQuery = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode)
+        .eq('category_id', simPicker.categoryId);
       if (simPicker.subcategoryId) customQuery = customQuery.eq('subcategory_id', simPicker.subcategoryId);
+      if (simPicker.difficulty)    customQuery = customQuery.eq('difficulty', simPicker.difficulty);
       const { data: customMatches } = await customQuery.limit(40);
 
       results = [
@@ -4107,19 +4129,14 @@
       ];
     } else {
       let q = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode);
-      if (simPicker.query) q = q.ilike('title', `%${simPicker.query}%`);
+      if (simPicker.query)      q = q.ilike('title', `%${simPicker.query}%`);
+      if (simPicker.difficulty) q = q.eq('difficulty', simPicker.difficulty);
       const { data } = await q.limit(40);
       results = (data || []).map(row => ({
         id: row.id, categoryId: row.category_id, subcategoryId: row.subcategory_id,
         difficulty: row.difficulty, title: row.title, statement: row.statement, solution: row.solution,
         puncteTotal: row.punctaj_total, _source: 'custom'
       }));
-    }
-
-    if (simPicker.sort === 'diff-asc' || simPicker.sort === 'diff-desc') {
-      const rank = { usor: 0, mediu: 1, dificil: 2 };
-      const dir = simPicker.sort === 'diff-asc' ? 1 : -1;
-      results = results.slice().sort((a, b) => dir * ((rank[a.difficulty] ?? 99) - (rank[b.difficulty] ?? 99)));
     }
 
     simPicker.results = results;
