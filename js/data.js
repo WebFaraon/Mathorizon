@@ -68,6 +68,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'ca-001', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-o putere',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{25^{1{,}5} - 61}$$',
@@ -80,6 +81,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-002', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor cu baze reciproce',
     statement: 'Calculați valoarea expresiei:\n$$\\log_3 75 + 2\\log_{\\frac{1}{3}} 5$$',
@@ -93,6 +95,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ca-003', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza 16 și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{16}\\!\\left(64^2\\right) \\cdot \\left(\\frac{3}{2}\\right)^{-1}$$',
@@ -106,6 +109,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ca-004', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm și radical de ordin 3',
     statement: 'Calculați valoarea expresiei:\n$$2^{\\log_{0{,}5} 2} + 5\\sqrt[3]{0{,}008}$$',
@@ -119,6 +123,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ca-005', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere rațională și logaritm zecimal',
     statement: 'Determinați valoarea expresiei:\n$$64^{\\frac{1}{3}} + \\left(\\frac{1}{\\lg 100}\\right)^{-2}$$',
@@ -134,6 +139,7 @@ BM.EXERCISES = [
 
   {
     id: 'ca-006', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Număr pătrat perfect cu radical și logaritm',
     statement: 'Arătați că numărul\n$$a = \\sqrt[3]{81^{\\frac{3}{4}} + 4^{\\log_2 \\sqrt{37}}}$$\neste un pătrat perfect.',
@@ -147,6 +153,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-007', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 0,25',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}25} 16 + 2$$',
@@ -159,6 +166,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-008', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent rațional negativ',
     statement: 'Calculați valoarea expresiei:\n$$-125^{-\\frac{1}{3}} - \\frac{9}{5}$$',
@@ -171,6 +179,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-009', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție cu puteri și radicali',
     statement: 'Calculați valoarea expresiei:\n$$\\frac{27^{-\\frac{2}{3}} \\cdot \\sqrt{9^3}}{\\sqrt[4]{81^{-1}}}$$',
@@ -186,6 +195,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-010', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent expresie cu logaritm',
     statement: 'Calculați valoarea expresiei:\n$$2^{3 - \\log_2 3} - \\frac{2}{3}$$',
@@ -198,6 +208,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-011', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Logaritm compus (logaritm dintr-un logaritm)',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{9}}\\!\\left(\\log_3 \\sqrt{729}\\right)$$',
@@ -210,6 +221,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-012', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Logaritm în baza 1/2 înmulțit cu 5',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{2}}\\!\\left(\\sqrt{2 \\cdot \\sqrt[5]{2}}\\right) \\cdot 5$$',
@@ -223,6 +235,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-013', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\sqrt[4]{4}} 32 - \\left(\\frac{2}{15}\\right)^{-1}$$',
@@ -236,6 +249,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-014', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Pătrat perfect cu exponent expresie logaritmică',
     statement: 'Arătați că valoarea expresiei\n$$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9}$$\neste un pătrat perfect.',
@@ -250,6 +264,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-015', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent rațional și număr mixt',
     statement: 'Calculați valoarea expresiei:\n$$(0{,}0016)^{\\frac{1}{4}} + \\left(1\\dfrac{1}{4}\\right)^{-1}$$',
@@ -264,6 +279,7 @@ BM.EXERCISES = [
 
         {
     id: 'ca-016', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție la putere rațională',
     statement: 'Calculați valoarea expresiei:\n$$-\\frac{11}{4} + \\left(\\frac{81}{256}\\right)^{0{,}25}$$',
@@ -276,6 +292,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-017', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm compus și radical dintr-un logaritm',
     statement: 'Calculați valoarea expresiei:\n$$\\log_2\\!\\left(\\log_3 81\\right) + \\sqrt{\\log_5 625}$$',
@@ -291,6 +308,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-018', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-un număr negativ și putere',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-0{,}125} + 16^{-0{,}25}$$',
@@ -304,6 +322,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-019', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Proprietățile logaritmului zecimal',
     statement: 'Calculați valoarea expresiei:\n$$\\lg 400 - 2\\lg 2$$',
@@ -317,6 +336,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-020', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-un număr mixt',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-4\\dfrac{17}{27}} + 36^{-0{,}5}$$',
@@ -330,6 +350,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-021', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor unor expresii conjugate',
     statement: 'Calculați valoarea expresiei:\n$$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) + \\log_3\\frac{1}{2}$$',
@@ -342,6 +363,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-022', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm zecimal și radical de ordin 5',
     statement: 'Calculați valoarea expresiei:\n$$100^{\\lg 2} + \\sqrt[5]{-243}$$',
@@ -355,6 +377,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-023', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție cu radicali și puteri negative',
     statement: 'Calculați valoarea expresiei:\n$$\\frac{\\sqrt[3]{49}}{7^{-1/3}}$$',
@@ -368,6 +391,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-024', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza 0,5 și număr zecimal',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}5}\\sqrt[4]{8} + 0{,}75$$',
@@ -381,6 +405,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-025', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Putere cu exponent diferență de logaritmi',
     statement: 'Calculați valoarea expresiei:\n$$49^{\\log_7 10 - \\log_{49} 25}$$',
@@ -394,6 +419,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-026', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Combinație de logaritmi zecimali și în baza 0,1',
     statement: 'Calculați valoarea expresiei:\n$$\\lg 250 - \\log_{0{,}1} 4 + \\lg 10^{-1}$$',
@@ -407,6 +433,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-027', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza 2 dintr-un radical de radical',
     statement: 'Calculați valoarea expresiei:\n$$0{,}25 + \\log_2\\!\\left(\\sqrt{2\\sqrt{2}}\\right)$$',
@@ -420,6 +447,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-028', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Produs cu putere rațională și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$0{,}04^{\\frac{1}{2}} \\cdot \\left(\\frac{\\sqrt{5}}{10}\\right)^{-2}$$',
@@ -433,6 +461,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-029', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritmi zecimali și în baza 0,1',
     statement: 'Calculați valoarea expresiei:\n$$2\\lg\\sqrt{5} + \\log_{0{,}1} 50$$',
@@ -446,6 +475,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-030', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm și putere rațională',
     statement: 'Calculați valoarea expresiei:\n$$49^{\\frac{1}{\\log_5 7}} - 81^{\\frac{1}{4}}$$',
@@ -461,6 +491,7 @@ BM.EXERCISES = [
 
     {
     id: 'ca-031', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Sumă de logaritmi cu baze complementare (½ și 4)',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{2}} 6 + \\log_4 144$$',
@@ -474,6 +505,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-032', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Puteri cu exponenți zecimali și negativi',
     statement: 'Calculați valoarea expresiei:\n$$8^{\\frac{2}{3}} + \\left(\\frac{1}{32}\\right)^{-0{,}2} - 0{,}5^{-1}$$',
@@ -488,6 +520,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-033', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritmi cu baze radical și rezultate negative',
     statement: 'Calculați valoarea expresiei:\n$$\\log_3 \\frac{1}{27} + \\log_{\\sqrt{2}} \\frac{1}{8}$$',
@@ -501,6 +534,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-034', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 din 0,008 și fracție la putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$0{,}008^{\\frac{1}{3}} + \\left(\\frac{25}{16}\\right)^{-0{,}5}$$',
@@ -514,6 +548,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-035', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-o fracție negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} - 3^{-1}$$',
@@ -527,6 +562,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-036', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Combinație de logaritmi cu trei baze diferite',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}25} 16 + \\log_3 36 - \\log_{\\sqrt{3}} 2$$',
@@ -541,6 +577,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-037', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă și fracție cu simplificare',
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{1}{27}\\right)^{-\\frac{1}{3}} + 25\\left(\\frac{5}{2}\\right)^{-2} - 16^{0{,}25}$$',
@@ -555,6 +592,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-038', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent 0,2 dintr-un număr mic',
     statement: 'Calculați valoarea expresiei:\n$$0{,}00032^{0{,}2} + \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} + 17^0$$',
@@ -569,6 +607,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-039', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Sumă de logaritmi cu rezultat fracționar',
     statement: 'Calculați valoarea expresiei:\n$$\\log_{25} 125 + \\log_2(2\\sqrt{2})$$',
@@ -582,6 +621,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-040', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de radical și puteri simple',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt{\\sqrt{16}} + \\sqrt{0{,}25} + 2^{-1}$$',
@@ -597,6 +637,7 @@ BM.EXERCISES = [
 
     {
     id: 'ca-041', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 din fracție și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{\\dfrac{8}{27}} + 0{,}5\\left(\\dfrac{3}{2}\\right)^{-1}$$',
@@ -610,6 +651,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-042', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm reciproc și sumă de logaritmi cu baze diferite',
     statement: 'Calculați valoarea expresiei:\n$$\\frac{1}{\\log_3 6} + \\log_6 12 - \\log_3 1$$',
@@ -624,6 +666,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-043', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție la putere rațională, putere zero și radical la putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{16}{81}\\right)^{0{,}25} - 4^0 + \\sqrt{3}^{-2}$$',
@@ -638,6 +681,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-044', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm negativ și logaritm cu bază radical',
     statement: 'Calculați valoarea expresiei:\n$$\\log_4 \\frac{1}{64} + 0{,}25\\log_{\\sqrt{9}} 81$$',
@@ -651,6 +695,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-045', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordin 5 dintr-un produs cu puteri',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[5]{27^{\\frac{2}{3}}\\left(\\frac{9}{32}\\right)^{-1}}$$',
@@ -665,6 +710,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-046', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-un produs cu putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-243\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2}}$$',
@@ -678,6 +724,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-047', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs cu putere negativă și putere rațională',
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} + 9^{1{,}5}$$',
@@ -691,6 +738,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-048', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere a lui 10 cu exponent logaritmic negativ',
     statement: 'Calculați valoarea expresiei:\n$$10^{-\\lg 3} + \\log_{27} 9 - \\lg 100$$',
@@ -705,6 +753,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-049', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Combinație de patru logaritmi cu baze diferite',
     statement: 'Calculați valoarea expresiei:\n$$\\log_4 32 - \\log_9 27 + \\log_3 6 - \\log_3 2$$',
@@ -719,6 +768,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-050', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Sumă de logaritmi în baza 6 cu coeficienți',
     statement: 'Calculați valoarea expresiei:\n$$2\\log_6 2 + 0{,}5\\log_6 81$$',
@@ -732,6 +782,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-051', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical dintr-un logaritm negativ și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{-\\log_{\\frac{1}{2}} 16 - 8^{-\\frac{2}{3}}}$$',
@@ -746,6 +797,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-052', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție de logaritmi zecimali și putere cu exponent irațional',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{2\\lg 2 + \\lg 3}{\\lg 48 - \\lg 4} + \\left(2^{\\sqrt{3}}\\right)^{\\sqrt{3}}$$',
@@ -761,6 +813,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-053', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 cu identitate trigonometrică',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{\\sin^2 43^\\circ + \\cos^2 43^\\circ - (27)^{\\frac{2}{3}}}$$',
@@ -774,6 +827,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-054', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Suma a doi logaritmi cu baze reciproce',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2 36 + \\log_{\\frac{1}{2}} 9$$',
@@ -786,6 +840,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-055', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent negativ și logaritm dintr-un radical',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{2}{7}\\right)^{-1} + \\log_3 \\sqrt{27}$$',
@@ -799,6 +854,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-056', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordinul 4 înmulțit cu putere fracționară',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} - \\left(\\frac{3}{2}\\right)^{-2}$$',
@@ -812,6 +868,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-057', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent rațional negativ minus logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\sqrt{8}\\right)^{-\\frac{2}{3}} - \\log_{25} 5$$',
@@ -825,6 +882,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-058', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Putere negativă plus radical de ordinul 3 cu logaritm și putere',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{1}{3}\\right)^{-2} + \\sqrt[3]{\\log_3 \\frac{1}{9} - \\left(\\frac{1}{\\sqrt{6}}\\right)^{-2}}$$',
@@ -840,6 +898,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-059', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 27 plus putere cu exponent negativ',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{27} 9 + \\left(\\frac{4}{3}\\right)^{-1}$$',
@@ -853,6 +912,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-060', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm minus radical de ordinul 5',
     statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\log_5 3} - 32^{\\frac{1}{5}}$$',
@@ -866,6 +926,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-061', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Doi logaritmi cu baze reciproce plus putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_6 96 + \\log_{\\frac{1}{6}} 16 + \\left(\\frac{1}{\\sqrt{3}}\\right)^{-2}$$',
@@ -880,6 +941,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-062', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Trei puteri cu exponenți fracționari și negativi',
     statement: 'Calculați valoarea expresiei:\n$$E = 27^{-\\frac{2}{3}} + 81^{\\frac{3}{4}} + (0{,}25)^{-2}$$',
@@ -894,6 +956,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-063', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi în baza 36 plus radical de ordinul 3',
     statement: 'Să se afle valoarea expresiei:\n$$E = \\log_{36} 84 - \\log_{36} 14 + \\sqrt[3]{-27}$$',
@@ -907,6 +970,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-064', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali conjugați cu iradical în interior',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\sqrt{65}-7}\\cdot\\sqrt{\\sqrt{65}+7}$$',
@@ -920,6 +984,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-065', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Combinație de logaritmi zecimali și pătrat al unui radical',
     statement: 'Calculați valoarea expresiei:\n$$E = 3\\lg 5 + \\frac{1}{2}\\lg 64 - \\left(\\sqrt[3]{-8}\\right)^2$$',
@@ -934,6 +999,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-066', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali de ordinul 3 conjugați',
     statement: 'Aflați valoarea expresiei:\n$$E = \\sqrt[3]{7-\\sqrt{22}}\\cdot\\sqrt[3]{7+\\sqrt{22}}$$',
@@ -948,6 +1014,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-067', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr zecimal plus logaritm dintr-un radical',
     statement: 'Calculați valoarea expresiei:\n$$E = 3{,}5 + \\log_3 \\sqrt{27}$$',
@@ -960,6 +1027,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-068', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție de puteri cu radicali și exponenți fracționari',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{16}\\cdot 4^{\\frac{1}{3}}}{\\sqrt{8}}$$',
@@ -973,6 +1041,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-069', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Suma a doi logaritmi cu baze reciproce în baza 3',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 24 + \\log_{\\frac{1}{3}} 8$$',
@@ -985,6 +1054,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-070', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 16 minus putere cu exponent negativ',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{16} 32 - 2^{-2}$$',
@@ -998,6 +1068,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-071', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 dintr-o fracție minus putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{1+\\frac{61}{64}} - 2^{-2}$$',
@@ -1012,6 +1083,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-072', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent rațional negativ minus logaritm dintr-un radical',
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} - \\log_2 \\sqrt{2}$$',
@@ -1025,6 +1097,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-073', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Produs de două puteri cu exponenți fracționari mari',
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{\\frac{5}{3}}\\cdot\\left(\\sqrt[3]{9}\\right)^{\\frac{9}{2}}$$',
@@ -1039,6 +1112,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-074', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi în baza 36 minus radical dintr-o putere',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{36} 84 - \\log_{36} 14 - \\sqrt{2^{-2}}$$',
@@ -1052,6 +1126,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-075', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Sumă de logaritmi zecimali cu coeficienți',
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\lg 5 + \\frac{1}{2}\\lg 16$$',
@@ -1065,6 +1140,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-076', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi plus inversul unui număr zecimal',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2 18 - \\log_2 9 + (1{,}5)^{-1}$$',
@@ -1078,6 +1154,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-077', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 dintr-o expresie cu radical pătratic',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-3-(2\\sqrt{6})^2}$$',
@@ -1090,6 +1167,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-078', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi în baza 5 minus radical dintr-o putere',
     statement: 'Să se afle valoarea expresiei:\n$$E = \\log_5 80 - \\log_5 16 - \\sqrt{3^{-2}}$$',
@@ -1103,6 +1181,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-079', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție de puteri ale lui 3 cu exponenți negativi și fracționari',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{3^{-1{,}5}\\cdot 9^2}{\\sqrt{27}}$$',
@@ -1116,6 +1195,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-080', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a diferenței de logaritmi în baza 25',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\log_{25} 75 - \\log_{25} 3\\right)^{-15}$$',
@@ -1128,6 +1208,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-081', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent negativ plus logaritm dintr-un sinus',
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} + \\log_2\\!\\left(\\sin\\frac{\\pi}{6}\\right)$$',
@@ -1141,6 +1222,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-082', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent rațional plus inversul unui logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = 4^{-\\frac{3}{2}} + \\left(\\log_2\\frac{1}{16}\\right)^{-1}$$',
@@ -1155,6 +1237,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-083', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali de ordinul 3 conjugați cu radicali interiori',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{12-\\sqrt{80}}\\cdot\\sqrt[3]{12+\\sqrt{80}}$$',
@@ -1167,6 +1250,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-084', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 dintr-o fracție mixtă plus logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{2\\tfrac{3}{8} - \\tfrac{9}{4}} + \\log_3\\sqrt{3}$$',
@@ -1181,6 +1265,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-085', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență a doi logaritmi cu coeficient în baza 3',
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 6 - \\log_3 4$$',
@@ -1194,6 +1279,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-086', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali conjugați cu radicali și multipli',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\sqrt{70}-3\\sqrt{5}}\\cdot\\sqrt{\\sqrt{70}+3\\sqrt{5}}$$',
@@ -1207,6 +1293,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-087', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr periodic plus logaritm în baza 27',
     statement: 'Calculați valoarea expresiei:\n$$E = 1{,}(6) + \\log_{27} 9$$',
@@ -1220,6 +1307,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-088', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent fracționar plus putere negativă a unui zecimal',
     statement: 'Calculați valoarea expresiei:\n$$E = 81^{\\frac{3}{4}} + (0{,}25)^{-2}$$',
@@ -1233,6 +1321,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-089', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Sumă de logaritmi zecimali fără termen suplimentar',
     statement: 'Calculați valoarea expresiei:\n$$E = 3\\lg 5 + \\frac{1}{2}\\lg 64$$',
@@ -1247,6 +1336,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-090', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical minus logaritm în baza 2',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 12 - \\log_2 9$$',
@@ -1259,6 +1349,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-091', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere negativă a sumei de trei puteri cu exponenți fracționari',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(27^{\\frac{2}{3}} + 125^{\\frac{1}{3}} + 8^{\\frac{1}{3}}\\right)^{-\\frac{1}{4}}$$',
@@ -1272,6 +1363,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-092', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 4 dintr-un radical minus radical de ordinul 3',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_4\\sqrt{2} - \\sqrt[3]{\\frac{1}{64}}$$',
@@ -1285,6 +1377,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-093', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Sumă de număr periodic și putere cu exponent negativ',
     statement: 'Calculați valoarea expresiei:\n$$E = 0{,}(5) + (1{,}5)^{-2}$$',
@@ -1298,6 +1391,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-094', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical din logaritmul unei diferențe de puteri',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\log_2\\!\\left[\\left(\\frac{1}{4}\\right)^{-2} - (2\\sqrt{3})^2\\right]}$$',
@@ -1312,6 +1406,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-095', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere negativă a sumei de trei puteri cu radicali',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left[8^{\\frac{2}{3}} + \\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} + \\sqrt{125^{\\frac{2}{3}}}\\right]^{-\\frac{1}{2}}$$',
@@ -1327,6 +1422,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-096', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical 2 minus putere cu bază fracție irațională',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 8 - \\left(\\frac{1}{3\\sqrt{2}}\\right)^{-2}$$',
@@ -1340,6 +1436,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-097', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție de puteri împărțită la puterea unui logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{9^{-3}\\cdot 27^2}{\\left(\\log_{\\sqrt{2}} 2\\right)^{-2}}$$',
@@ -1354,6 +1451,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-098', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali de ordinul 3 cu radicali conjugați pătratici',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{9-\\sqrt{17}}\\cdot\\sqrt[3]{9+\\sqrt{17}}$$',
@@ -1366,6 +1464,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-099', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical 3 minus logaritm în baza 3',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 18 - \\log_3 4$$',
@@ -1379,6 +1478,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-100', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu bază fracție irațională minus inversul unui logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} - \\left(\\log_3 27\\right)^{-1}$$',
@@ -1392,6 +1492,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-113', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent fracționar minus număr întreg',
     statement: 'Calculați valoarea expresiei:\n$$E = 32^{\\frac{3}{5}} - 8$$',
@@ -1403,6 +1504,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-114', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Sumă de puteri cu exponenți logaritmici în baze diferite',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{3+\\log_2 5} + 3^{\\log_9 16}$$',
@@ -1416,6 +1518,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-115', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Diferență de puteri cu exponenți logaritmici compuși',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{2+\\log_4 25} - 2^{\\frac{3}{\\log_5 2}}$$',
@@ -1429,6 +1532,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-116', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Produs de două fracții la puteri reciproce',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{14}{3}\\right)^{\\frac{3}{2}}\\cdot\\left(\\frac{7}{6}\\right)^{-1{,}5}$$',
@@ -1441,6 +1545,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-117', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 16 plus putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{16} 8 + 2^{-2}$$',
@@ -1454,6 +1559,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-118', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă plus radical de ordinul 3 minus număr întreg',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\frac{27}{64}} - 2$$',
@@ -1467,6 +1573,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-119', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție de radicali și puteri ale lui 3',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{\\frac{1}{6}}}$$',
@@ -1479,6 +1586,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-120', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Radical de ordinul 4 dintr-un produs cu exponent irațional',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[4]{3^{(\\sqrt{3}-1)^2}\\cdot 9^{\\sqrt{3}}}$$',
@@ -1492,6 +1600,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-121', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical din sumă complexă de puteri cu exponenți fracționari',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{1}{10}\\right)^{-2} + \\left(16^{\\frac{3}{4}}\\right)^2\\cdot 81^{\\frac{1}{2}}}$$',
@@ -1507,6 +1616,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-122', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical din diferența a două expresii cu puteri negative',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} - \\left(\\frac{3}{\\sqrt{7}}\\right)^{-2}}$$',
@@ -1520,6 +1630,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-123', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm minus radical dintr-un zecimal',
     statement: 'Calculați valoarea expresiei:\n$$E = 3^{\\log_{27} 8} - \\sqrt[3]{0{,}027}$$',
@@ -1533,6 +1644,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-124', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Media aritmetică a două expresii combinate',
     statement: 'Calculați media aritmetică a numerelor $a$ și $b$:\n$$a = \\sqrt{81}+\\sqrt[3]{-64}+16^{\\frac{3}{4}}, \\quad b = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_3\\frac{1}{2}}$$\n$$E = \\dfrac{a+b}{2}$$',
@@ -1546,6 +1658,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-125', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm zecimal cu coeficient plus logaritm în baza 0,1',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{1}{2}\\lg 36 + \\log_{0{,}1} 60$$',
@@ -1559,6 +1672,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-126', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm plus logaritmi — verificare pătrat perfect',
     statement: 'Arătați că numărul $a$ este un pătrat perfect:\n$$a = 4^{\\log_2\\sqrt{7}} + \\log_5 75 - \\log_5 3$$',
@@ -1572,6 +1686,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-127', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Sumă de puteri cu exponenți ce conțin logaritmi',
     statement: 'Calculați valoarea expresiei:\n$$a = 49^{1-\\log_7 2} + 5^{-\\log_5 4}$$',
@@ -1585,6 +1700,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-128', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical minus număr întreg',
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 9 - 9$$',
@@ -1597,6 +1713,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-129', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție minus putere cu exponent rațional negativ',
     statement: 'Determinați valoarea expresiei:\n$$E = \\frac{7}{8} - 16^{-\\frac{3}{4}}$$',
@@ -1609,6 +1726,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-130', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Fracție de radical de ordinul 5 și putere negativă',
     statement: 'Determinați valoarea expresiei:\n$$E = \\frac{\\sqrt[5]{625}}{25^{-\\frac{1}{10}}}$$',
@@ -1621,6 +1739,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-131', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere minus putere negativă a inversului unui logaritm',
     statement: 'Determinați valoarea expresiei:\n$$E = 81^{\\frac{3}{4}} - \\left(\\frac{1}{\\log_3 27}\\right)^{-3}$$',
@@ -1634,6 +1753,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-132', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 9 dintr-un radical minus număr zecimal',
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_9\\sqrt{27} - 0{,}75$$',
@@ -1646,6 +1766,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-133', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical din diferența a două puteri',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{1}{13}\\right)^{-2} - 125^{\\frac{2}{3}}}$$',
@@ -1659,6 +1780,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-134', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 36 dintr-o putere minus putere negativă',
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_{36} 216^{\\frac{1}{2}} - 2^{-2}$$',
@@ -1672,6 +1794,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-135', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm plus logaritm în baza 1/5',
     statement: 'Determinați valoarea expresiei:\n$$E = 9^{\\log_3 7} + \\log_{\\frac{1}{5}} 125$$',
@@ -1685,6 +1808,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-136', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din sumă de putere fracționară și logaritm negativ',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{64^{\\frac{1}{3}} + \\log_2 \\frac{1}{16}}$$',
@@ -1698,6 +1822,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-137', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm plus putere negativă — verificare număr întreg',
     statement: 'Arătați că numărul $a$ este întreg:\n$$a = \\log_{16} 64 + 8^{-\\frac{1}{3}}$$',
@@ -1711,6 +1836,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-138', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical dintr-un pătrat cu radical minus radical și număr întreg',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{(\\sqrt{3}-1)^2} - \\sqrt{27} + 1$$',
@@ -1724,6 +1850,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-139', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 dintr-un produs cu exponent irațional de baza 2',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt[3]{2^{(\\sqrt{2}-1)^2}\\cdot 4^{\\sqrt{2}}}$$',
@@ -1738,6 +1865,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-140', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm dintr-o funcție trigonometrică',
     statement: 'Determinați valoarea expresiei:\n$$E = 3^{\\log_{\\sqrt{3}} \\text{tg}\\,60^\\circ}$$',
@@ -1751,6 +1879,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-141', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Putere cu exponent sumă de inversul unui logaritm și 1',
     statement: 'Determinați valoarea expresiei:\n$$E = 8^{\\frac{1}{\\log_5 4}+1}$$',
@@ -1764,6 +1893,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-142', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Sumă de radicali de ordinul 3 la puteri fracționare',
     statement: 'Determinați valoarea expresiei:\n$$E = \\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} + \\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}}$$',
@@ -1777,6 +1907,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-143', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a fracției minus putere cu exponent fracționar',
     statement: 'Determinați valoarea expresiei:\n$$E = \\left(-\\frac{1}{5}\\right)^{-2} - 125^{\\frac{2}{3}}$$',
@@ -1790,6 +1921,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-144', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din sumă de putere fracționară și putere negativă a fracției',
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{81^{\\frac{3}{4}} + \\left(\\frac{1}{3}\\right)^{-2}}$$',
@@ -1802,6 +1934,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-145', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent ce conține logaritm — verificare pătrat perfect',
     statement: 'Arătați că valoarea expresiei $25^{1+\\log_5 2}$ este un pătrat perfect.',
@@ -1816,6 +1949,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-146', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Media aritmetică a doi logaritmi cu argumente conjugate',
     statement: 'Calculați media aritmetică a numerelor $a$ și $b$:\n$$E = \\dfrac{a+b}{2}, \\quad a = \\log_2(6-2\\sqrt{5}), \\quad b = \\log_2(6+2\\sqrt{5})$$',
@@ -1828,6 +1962,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-147', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm în baza 36 plus logaritm în baza 3',
     statement: 'Calculați valoarea expresiei:\n$$E = 6^{\\log_{36} 49} + \\log_3 27$$',
@@ -1842,6 +1977,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-101', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Fracție de puteri ale lui 3 cu exponenți negativi și fracționari',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{9^{-2}\\cdot 81^{\\frac{3}{4}}}{\\left(\\dfrac{1}{3}\\right)^{-1}}$$',
@@ -1855,6 +1991,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-102', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical 3 minus logaritm în baza 9 al unei puteri',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 24 - \\log_9 4^6$$',
@@ -1868,6 +2005,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-103', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali conjugați cu radicali în interior',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{7+2\\sqrt{10}}\\cdot\\sqrt{7-2\\sqrt{10}}$$',
@@ -1880,6 +2018,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-104', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm iterativ plus logaritm dintr-un radical',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_4\\!\\left(\\log_9 81\\right) + \\log_3\\sqrt{3}$$',
@@ -1894,6 +2033,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-105', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi în baza 3 plus putere cu bază fracție irațională',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_3 6 + \\left(\\frac{1}{\\sqrt{2}}\\right)^{-2}$$',
@@ -1907,6 +2047,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-106', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Radical din sumă de puteri cu exponenți logaritmici',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{25^{\\frac{1}{2}\\log_5 12} + 7^{2\\log_7 2}}$$',
@@ -1920,6 +2061,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-107', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs de radicali de ordinul 4 cu radicali conjugați',
     statement: 'Aflați valoarea expresiei:\n$$E = \\sqrt[4]{7-\\sqrt{33}}\\cdot\\sqrt[4]{7+\\sqrt{33}}$$',
@@ -1933,6 +2075,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-108', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Combinație de trei logaritmi în aceeași bază',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_6 60 - \\log_6 5 + \\log_6 3$$',
@@ -1946,6 +2089,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-109', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi cu argumente sub formă de puteri',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2\\!\\left(16^{\\frac{1}{2}}\\right) - \\log_3\\!\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}$$',
@@ -1959,6 +2103,7 @@ BM.EXERCISES = [
   },
         {
     id: 'ca-110', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Logaritm, radical dintr-o fracție mixtă și putere cu exponent logaritm',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}}$$',
@@ -1973,6 +2118,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-111', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferența dintre doi logaritmi cu baze și argumente diferite',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{27}} 3 - \\frac{1}{3}\\log_3 \\frac{1}{81}$$',
@@ -1986,6 +2132,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-112', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Media aritmetică a doi logaritmi cu baze radicale',
     statement: 'Calculați media aritmetică a expresiilor:\n$$E = \\dfrac{\\log_{\\sqrt[3]{16}} 2 + \\dfrac{2}{\\log_8 4}}{2}$$',
@@ -2000,6 +2147,7 @@ BM.EXERCISES = [
 
     {
     id: 'ca-148', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical din 2 minus 4',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 4 - 4$$',
@@ -2011,6 +2159,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-149', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a lui 27 minus fracție',
     statement: 'Calculați valoarea expresiei:\n$$E = 27^{-\\frac{2}{3}} - \\frac{10}{9}$$',
@@ -2022,6 +2171,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-150', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 din 81 împărțit la putere a lui 9',
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{1/6}}$$',
@@ -2034,6 +2184,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-151', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr zecimal plus logaritm în baza 2 din radical',
     statement: 'Calculați valoarea expresiei:\n$$E = 1{,}5 + \\log_2 \\sqrt{8}$$',
@@ -2045,6 +2196,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-152', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a lui 2 plus radical de ordinul 3 minus număr',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\dfrac{27}{64}} - 2$$',
@@ -2058,6 +2210,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-153', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 81 din 27 plus putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{81} 27 + 4^{-1}$$',
@@ -2069,6 +2222,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-154', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor în baze reciproce 5 și 1/5',
     statement: 'Calculați suma numerelor:\n$$\\log_5 50 \\text{ și } \\log_{\\frac{1}{5}} 2$$',
@@ -2081,6 +2235,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-155', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical din putere zecimală minus număr',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{9^{1{,}5} - 2}$$',
@@ -2092,6 +2247,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-156', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Logaritm în baza 3 din 36 minus logaritm dublu',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 36 - 2\\log_3 2$$',
@@ -2103,6 +2259,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-157', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza 1/2 minus logaritm în baza 2',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\frac{1}{2}} \\frac{4}{5} - \\log_2 5$$',
@@ -2115,6 +2272,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-158', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 dintr-un produs cu putere fracționară',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-128 \\cdot 0{,}125^{\\frac{1}{3}}}$$',
@@ -2126,6 +2284,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-159', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Diferență de logaritmi în baze reciproce 3 și 1/3',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_{\\frac{1}{3}} 0{,}5$$',
@@ -2138,6 +2297,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-160', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere cu exponent 0,25 a fracției 16/81 minus fracție',
     statement: 'Calculați valoarea expresiei:\n$$E = -\\frac{5}{3} + \\left(\\frac{16}{81}\\right)^{0{,}25}$$',
@@ -2150,6 +2310,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-161', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 din putere zecimală minus număr',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{32^{0{,}4} - 12}$$',
@@ -2161,6 +2322,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-162', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a fracției 27/125 minus fracție',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{27}{125}\\right)^{-1/3} - \\frac{2}{3}$$',
@@ -2173,6 +2335,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-163', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Logaritm în baza radical cubic din 5 minus inversul unei fracții',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt[3]{5}} 25 - \\left(\\frac{1}{6}\\right)^{-1}$$',
@@ -2184,6 +2347,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-164', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent 1/4 a lui 0,0081 plus inversul unui număr mixt',
     statement: 'Calculați valoarea expresiei:\n$$E = (0{,}0081)^{1/4} + \\left(1\\frac{3}{7}\\right)^{-1}$$',
@@ -2195,6 +2359,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-165', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Putere cu exponent 1,5 a fracției înmulțită cu puterea lui -5',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{4}{25}\\right)^{1{,}5} \\cdot (-5)^3$$',
@@ -2208,6 +2373,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-166', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical de ordinul 3 din număr mixt negativ plus putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-2\\dfrac{10}{27}} + 9^{-0{,}5}$$',
@@ -2220,6 +2386,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-167', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Produs de puteri cu exponenți fracționari din fracții neparfecte',
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{189}{4}\\right)^{\\frac{1}{4}} \\cdot \\left(\\frac{7}{12}\\right)^{-0{,}25}$$',
@@ -2232,6 +2399,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-168', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Putere cu exponent logaritm negativ în baza 4',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-\\log_4 9}$$',
@@ -2243,6 +2411,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-169', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Suma logaritmilor în baze reciproce 7 și 1/7',
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_7 2 + \\log_{\\frac{1}{7}} 98$$',
@@ -2255,6 +2424,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-170', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Putere negativă a lui 2 plus radical de ordinul 3 dintr-o diferență',
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\frac{3}{64} - 2}$$',
@@ -2267,6 +2437,7 @@ BM.EXERCISES = [
   },
     {
     id: 'ca-171', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr zecimal plus radical de ordinul 3 dintr-o diferență de fracții',
     statement: 'Calculați valoarea expresiei:\n$$E = 0{,}2 + \\sqrt[3]{\\frac{34}{125} - 2}$$',
@@ -2284,6 +2455,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'rat-in-001', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu fracții și numitor comun 1−x²',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{1}{x+1} < \\frac{2x+3}{x-1}+\\frac{x}{1-x^2}$$',
@@ -2305,6 +2477,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-004', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu numitor logaritmic și numărător cubic',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x^3-4x}{\\ln(x+5)-\\ln 3} \\leq 0$$',
@@ -2312,6 +2485,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-005', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul la numărător și logaritm la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x^2-9|}{\\log_{0{,}5} x} \\geq 0$$',
@@ -2319,6 +2493,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-006', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical la numărător și expresie exponențială la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{x+3}}{4^x-6\\cdot 2^x+8} \\leq 0$$',
@@ -2340,6 +2515,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-009', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul la numărător și logaritm la numitor (baza subunitară)',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x-2|}{\\log_{0{,}4}(3x+1)} < 0$$',
@@ -2354,6 +2530,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-011', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu logaritmi de baze reciproce la numărător',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_2(x+1)-\\log_{0{,}5}(x-1)}{x^2-4} > 0$$',
@@ -2375,6 +2552,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-014', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu logaritm compus și pătrat de logaritm',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_{0{,}2}\\!\\left(\\dfrac{25}{x}\\right)+\\log_5^2(x)}{x-26} > 0$$',
@@ -2382,6 +2560,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-015', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu numărător pătratic și numitor exponențial',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x^2-3x+2}{4^{x+1}+2^x-5} \\leq 0$$',
@@ -2389,6 +2568,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-016', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu logaritm din modul la numărător',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{-1+\\log_2|2x+6|}{x^2+6x} < 0$$',
@@ -2396,6 +2576,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-017', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical la numărător și expresie exponențială la numitor (II)',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{-3x^2+10x-7}}{4^x-2^{2+x}} > 0$$',
@@ -2403,6 +2584,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-018', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu numărător exponențial combinat și numitor x',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{5\\cdot 4^x-7\\cdot 10^x+2\\cdot 25^x}{x} \\geq 0$$',
@@ -2417,6 +2599,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-020', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radicali la numărător și la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{x^2-4x-5}}{\\sqrt{x^2-1}-\\sqrt{3}} \\leq 0$$',
@@ -2424,6 +2607,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-021', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical dintr-un logaritm și numitor pătrat perfect exponențial',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{\\log_3(x-1)-3}}{4^x-8\\cdot 2^x+16} > 0$$',
@@ -2432,6 +2616,7 @@ BM.EXERCISES = [
 
   {
     id: 'rat-in-022', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație rațională cu parametru din determinantul unui produs de matrice complexe',
     statement: 'Fie matricele $A = \\begin{pmatrix}1+i & 1-i \\\\ i & 1\\end{pmatrix}$ și $B = \\begin{pmatrix}1-i & 1+i \\\\ -i & 2\\end{pmatrix}$, iar $d = \\det(A \\cdot B)$. Determinați toate soluțiile întregi ale inecuației\n$$\\frac{x^2+d}{x^2-4} < d$$',
@@ -2439,6 +2624,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-023', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical la numărător și logaritm minus 1 la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{x-5}}{\\log_{\\sqrt{2}}(x-4)-1} \\geq 0$$',
@@ -2446,6 +2632,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-024', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical și logaritm de expresie pătratică la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{2x-3}}{\\log_{\\sqrt{2}}(x^2-3x+3)} \\geq 0$$',
@@ -2453,6 +2640,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-025', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical dintr-un logaritm la numărător',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{\\log_2(x-1)}}{x^2-3x-4} \\geq 0$$',
@@ -2460,6 +2648,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-026', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu logaritm la numărător și radical de trinăm pătratic la numitor',
     statement: 'Să se rezolve în $\\mathbb{R}$ inecuația\n$$\\frac{2-4\\cdot\\log_9 x}{\\sqrt{2x^2-x-6}} \\geq 0$$',
@@ -2467,6 +2656,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-027', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu pătratul unui logaritm cu bază variabilă la numărător',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ inecuația\n$$\\frac{\\log^2_{x-1}(5-x)}{x^2-3x} \\leq 0$$',
@@ -2489,6 +2679,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-030', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul pătratic la numărător și expresie exponențială la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|4-x^2|}{4^x-2^{x+1}-8} \\geq 0$$',
@@ -2503,6 +2694,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-032', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul la numărător și trinomul exponențial la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x-1|}{9\\cdot 4^x-13\\cdot 6^x+4\\cdot 9^x} < 0$$',
@@ -2510,6 +2702,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-033', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul la numărător și pătrat de logaritm la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x-1|}{\\log_3^2 x - 2\\log_3 x - 3} < 0$$',
@@ -2524,6 +2717,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-035', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu pătrat de logaritm la numărător și radical la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_2^2(2x)-3\\log_2 x-3}{\\sqrt{x^2-2x+1}} \\leq 0$$',
@@ -2531,6 +2725,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-036', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu radical dintr-un logaritm la numărător și pătratic la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\sqrt{\\log_{\\frac{1}{2}}(x^2-x+2)+2}}{x^2-3} \\geq 0$$',
@@ -2545,6 +2740,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-038', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu pătrat de logaritm și modul la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{\\log_2^2 x + \\log_2 x^2}{|x-3|} \\leq 0$$',
@@ -2552,6 +2748,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-039', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu expresie exponențială la numărător și pătrat la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x \\cdot 2^{1-x}-16x}{(x+3)^2} \\geq 0$$',
@@ -2559,6 +2756,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-040', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu modul pătratic la numărător și logaritm subunitar la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{|x^2-9|}{\\log_{0{,}5}(3x+6)} \\geq 0$$',
@@ -2566,6 +2764,7 @@ BM.EXERCISES = [
   },
   {
     id: 'rat-in-041', categoryId: 'algebra', subcategoryId: 'inec-rationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Inecuație cu pătrat perfect la numărător și trinomul exponențial la numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația\n$$\\frac{x^2-6x+9}{25^x-6\\cdot 5^x+5} \\leq 0$$',
@@ -2584,539 +2783,1052 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'alg-pol-001', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate',
     statement: 'Fie polinomul $P(X) = X^3 - 2X^2 + (m+1)X - 4$. Determinați valoarea reală a lui $m$ pentru care $P(X)$ este divizibil prin $Q(X) = X - 2$.',
-    solution: 'Dacă $P(X)$ este divizibil prin $(X-2)$, atunci $X = 2$ este rădăcină, deci $P(2) = 0$.\n\n$$P(2) = 8 - 8 + 2(m+1) - 4 = 0$$\n\n$$2m + 2 - 4 = 0 \\Rightarrow 2m = 2 \\Rightarrow \\boxed{m = 1}$$'
+    solution: 'Dacă $P(X)$ este divizibil prin $(X-2)$, atunci $X = 2$ este rădăcină, deci $P(2) = 0$.\n\n$$P(2) = 8 - 8 + 2(m+1) - 4 = 0$$\n\n$$2m + 2 - 4 = 0 \\Rightarrow 2m = 2 \\Rightarrow \\boxed{m = 1}$$',
+    barem: [
+      { descriere: 'P(2) = 2m - 2', puncte_maxime: 2 },
+      { descriere: '2m - 2 = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea m = 1', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-002', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului și a celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = X^3 + X^2 + aX - 12$. Se știe că $X = -2$ este rădăcină a polinomului. Determinați celelalte rădăcini.',
-    solution: '$P(-2) = 0$:\n$$-8 + 4 - 2a - 12 = 0 \\Rightarrow -2a = 16 \\Rightarrow a = -8$$\n\nDeci $P(X) = X^3 + X^2 - 8X - 12$. Împărțim prin $(X+2)$ (schema Horner):\n\n$$\\begin{array}{c|cccc} -2 & 1 & 1 & -8 & -12 \\\\ & & -2 & 2 & 12 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$$P(X) = (X+2)(X^2 - X - 6) = (X+2)(X-3)(X+2) = (X+2)^2(X-3)$$\n\nRădăcinile sunt $\\boxed{X = -2 \\text{ (dublă)},\\ X = 3}$'
+    solution: '$P(-2) = 0$:\n$$-8 + 4 - 2a - 12 = 0 \\Rightarrow -2a = 16 \\Rightarrow a = -8$$\n\nDeci $P(X) = X^3 + X^2 - 8X - 12$. Împărțim prin $(X+2)$ (schema Horner):\n\n$$\\begin{array}{c|cccc} -2 & 1 & 1 & -8 & -12 \\\\ & & -2 & 2 & 12 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$$P(X) = (X+2)(X^2 - X - 6) = (X+2)(X-3)(X+2) = (X+2)^2(X-3)$$\n\nRădăcinile sunt $\\boxed{X = -2 \\text{ (dublă)},\\ X = 3}$',
+    barem: [
+      { descriere: 'Obținerea $P(-2) = 0$ și $a = -8$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X + 2)$', puncte_maxime: 4 },
+      { descriere: 'Determinarea rădăcinilor câtului și scrierea răspunsului corect', puncte_maxime: 2 }
+    ]
   },
 
   {
     id: 'alg-pol-003', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcinile reale ale unui polinom definit printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} -1 & X & 2 \\\\ X & 2 & -1 \\\\ 2 & -1 & X \\end{vmatrix}$$\nDeterminați rădăcinile reale ale polinomului.',
-    solution: 'Dezvoltăm determinantul după primul rând:\n\n$$P(X) = -1(2X-1) - X(X^2+2) + 2(-X-4)$$\n\n$$= -2X+1-X^3-2X-2X-8 = -X^3-6X-7$$\n\nVerificăm $X = -1$: $\\quad P(-1) = 1+6-7 = 0$ ✓\n\nÎmpărțim prin $(X+1)$:\n$$P(X) = -(X+1)(X^2-X+7)$$\n\n$\\Delta = 1 - 28 = -27 < 0$, deci $X^2-X+7$ nu are rădăcini reale.\n\n$$\\boxed{X = -1}$$'
+    solution: 'Dezvoltăm determinantul după primul rând:\n\n$$P(X) = -1(2X-1) - X(X^2+2) + 2(-X-4)$$\n\n$$= -2X+1-X^3-2X-2X-8 = -X^3-6X-7$$\n\nVerificăm $X = -1$: $\\quad P(-1) = 1+6-7 = 0$ ✓\n\nÎmpărțim prin $(X+1)$:\n$$P(X) = -(X+1)(X^2-X+7)$$\n\n$\\Delta = 1 - 28 = -27 < 0$, deci $X^2-X+7$ nu are rădăcini reale.\n\n$$\\boxed{X = -1}$$',
+    barem: [
+      { descriere: 'Calcularea determinantului $P(X) = -X^3 - 6X - 7$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $P(-1) = 0$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului $X^2 - X + 7$', puncte_maxime: 3 },
+      { descriere: '$Δ < 0$ și scrierea răspunsului corect $X = -1$', puncte_maxime: 1 }
+    ]
   },
 
   {
     id: 'alg-pol-004', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Câtul și restul împărțirii unui polinom de grad 4 la grad 2',
     statement: 'Determinați câtul și restul împărțirii polinomului $P(X) = X^4 - 5X^2 + 3X - 2$ la polinomul $Q(X) = X^2 + 1$.',
-    solution: 'Împărțim prin algoritmul împărțirii:\n\n$X^4 \\div X^2 = X^2$; $\\quad X^2(X^2+1) = X^4+X^2$; rest: $-6X^2+3X-2$\n\n$-6X^2 \\div X^2 = -6$; $\\quad -6(X^2+1) = -6X^2-6$; rest: $3X+4$\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$'
+    solution: 'Împărțim prin algoritmul împărțirii:\n\n$X^4 \\div X^2 = X^2$; $\\quad X^2(X^2+1) = X^4+X^2$; rest: $-6X^2+3X-2$\n\n$-6X^2 \\div X^2 = -6$; $\\quad -6(X^2+1) = -6X^2-6$; rest: $3X+4$\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
+    barem: [
+      { descriere: 'Obținerea câtului $C(X) = X^2 - 6$', puncte_maxime: 2 },
+      { descriere: 'Obținerea restului $R(X) = 3X + 4$', puncte_maxime: 3 }
+    ]
   },
   {
     id: 'alg-pol-005', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Rădăcină dublă — determinarea coeficienților și a celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = X^4 - 5X^3 + aX^2 + bX - 18$. Știind că $X = 3$ este rădăcină dublă a polinomului $P(X)$, să se determine celelalte rădăcini.',
-    solution: 'Deoarece $X=3$ este rădăcină dublă: $P(3)=0$ și $P\'(3)=0$.\n\n$$P(3)=0:\\quad 81-135+9a+3b-18=0 \\Rightarrow 3a+b=24 \\quad(1)$$\n\n$$P\'(X)=4X^3-15X^2+2aX+b \\Rightarrow P\'(3)=108-135+6a+b=0 \\Rightarrow 6a+b=27 \\quad(2)$$\n\n$(2)-(1):\\; 3a=3 \\Rightarrow a=1,\\; b=21$\n\n$P(X)=(X-3)^2(X^2+X-2)=(X-3)^2(X-1)(X+2)$\n\n$$\\boxed{X=1,\\quad X=-2}$$'
+    solution: 'Deoarece $X=3$ este rădăcină dublă: $P(3)=0$ și $P\'(3)=0$.\n\n$$P(3)=0:\\quad 81-135+9a+3b-18=0 \\Rightarrow 3a+b=24 \\quad(1)$$\n\n$$P\'(X)=4X^3-15X^2+2aX+b \\Rightarrow P\'(3)=108-135+6a+b=0 \\Rightarrow 6a+b=27 \\quad(2)$$\n\n$(2)-(1):\\; 3a=3 \\Rightarrow a=1,\\; b=21$\n\n$P(X)=(X-3)^2(X^2+X-2)=(X-3)^2(X-1)(X+2)$\n\n$$\\boxed{X=1,\\quad X=-2}$$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P\'(3) = 0$', puncte_maxime: 2 },
+      { descriere: 'Obținerea valorilor $a = 1, b = 21$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului $X^2 + X - 2$', puncte_maxime: 2 },
+      { descriere: 'Obținerea rădăcinilor $X = 1, X = -2$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-006', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea coeficientului din condiția restului la împărțire',
     statement: 'Fie polinomul $P(X) = 4X^3 + (a-2)X^2 + (1-a)X + 6$. Determinați valorile reale ale lui $a$, astfel încât restul împărțirii polinomului la $Q(X) = X + 1$ să fie egal cu $5$.',
-    solution: 'Prin teorema lui Bézout, restul împărțirii lui $P(X)$ la $(X+1)$ este $P(-1)$.\n\n$$P(-1) = -4 + (a-2) - (1-a) + 6 = 2a - 1$$\n\n$$2a - 1 = 5 \\Rightarrow 2a = 6 \\Rightarrow \\boxed{a = 3}$$'
+    solution: 'Prin teorema lui Bézout, restul împărțirii lui $P(X)$ la $(X+1)$ este $P(-1)$.\n\n$$P(-1) = -4 + (a-2) - (1-a) + 6 = 2a - 1$$\n\n$$2a - 1 = 5 \\Rightarrow 2a = 6 \\Rightarrow \\boxed{a = 3}$$',
+    barem: [
+      { descriere: 'P(-1) = 5', puncte_maxime: 2 },
+      { descriere: 'P(-1) = 2a - 1', puncte_maxime: 2 },
+      { descriere: 'Obținerea valorii a = 3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-007', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Câtul împărțirii folosind suma coeficienților',
     statement: 'Determinați câtul împărțirii polinomului $P(X) = X^3 - aX^2 + (2a-1)X - 5$ la binomul $Q(X) = X + 2$, dacă se cunoaște că suma coeficienților lui $P(X)$ este $0$.',
-    solution: 'Suma coeficienților $= P(1) = 0$:\n$$1 - a + (2a-1) - 5 = a - 5 = 0 \\Rightarrow a = 5$$\n\n$P(X) = X^3 - 5X^2 + 9X - 5$. Schema Horner pentru $X = -2$:\n\n$$\\begin{array}{c|cccc} -2 & 1 & -5 & 9 & -5 \\\\ & & -2 & 14 & -46 \\\\ \\hline & 1 & -7 & 23 & -51 \\end{array}$$\n\n$$\\boxed{C(X) = X^2 - 7X + 23}, \\quad R = -51$$'
+    solution: 'Suma coeficienților $= P(1) = 0$:\n$$1 - a + (2a-1) - 5 = a - 5 = 0 \\Rightarrow a = 5$$\n\n$P(X) = X^3 - 5X^2 + 9X - 5$. Schema Horner pentru $X = -2$:\n\n$$\\begin{array}{c|cccc} -2 & 1 & -5 & 9 & -5 \\\\ & & -2 & 14 & -46 \\\\ \\hline & 1 & -7 & 23 & -51 \\end{array}$$\n\n$$\\boxed{C(X) = X^2 - 7X + 23}, \\quad R = -51$$',
+    barem: [
+      { descriere: 'P(1) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 5', puncte_maxime: 2 },
+      { descriere: 'Împărțirea polinomului P(X) la X + 2', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului C(X) = X^2 - 7X + 23', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-008', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la un binom',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 3X^3 + 2X^2 - X - 3$ la binomul $X + 3$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-3)$:\n\n$$P(-3) = 81 - 81 + 18 + 3 - 3 = \\boxed{18}$$'
+    solution: 'Prin teorema lui Bézout, restul este $P(-3)$:\n\n$$P(-3) = 81 - 81 + 18 + 3 - 3 = \\boxed{18}$$',
+    barem: [
+      { descriere: 'R = P(-3)', puncte_maxime: 2 },
+      { descriere: 'Calcularea P(-3) = 18', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-009', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcină dublă dată',
     statement: 'Descompuneți în factori ireductibili polinomul $P(X) = X^4 - 5X^3 + X^2 + 21X - 18$, știind că $X = 3$ este o rădăcină dublă a polinomului.',
-    solution: '$(X-3)^2 = X^2-6X+9$ divide $P(X)$. Împărțim:\n\n$$P(X) = (X-3)^2(X^2+X-2) = (X-3)^2(X-1)(X+2)$$\n\n$$\\boxed{P(X) = (X-3)^2(X-1)(X+2)}$$'
+    solution: '$(X-3)^2 = X^2-6X+9$ divide $P(X)$. Împărțim:\n\n$$P(X) = (X-3)^2(X^2+X-2) = (X-3)^2(X-1)(X+2)$$\n\n$$\\boxed{P(X) = (X-3)^2(X-1)(X+2)}$$',
+    barem: [
+      { descriere: 'Obținerea $(X-3)^2 = X^2 - 6X + 9$', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului $X^2 + X - 2$', puncte_maxime: 3 },
+      { descriere: 'Scrierea descompunerii $P(X) = (X-3)^2(X-1)(X+2)$', puncte_maxime: 3 }
+    ]
   },
   {
     id: 'alg-pol-010', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă necunoscută',
     statement: 'Descompuneți în factori ireductibili polinomul $P(X) = X^4 - X^3 - aX^2 - (a+8)X - 10$, știind că $X = -1$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: '$P(-1) = 1+1-a+(a+8)-10 = 0$ (adevărat $\\forall a$)\n\n$P\'(X) = 4X^3-3X^2-2aX-(a+8)$\n$$P\'(-1) = -4-3+2a-a-8 = a-15 = 0 \\Rightarrow a = 15$$\n\n$P(X) = X^4-X^3-15X^2-23X-10$. Împărțim prin $(X+1)^2 = X^2+2X+1$:\n$$P(X) = (X+1)^2(X^2-3X-10) = (X+1)^2(X-5)(X+2)$$\n\n$$\\boxed{P(X) = (X+1)^2(X-5)(X+2)}$$'
+    solution: '$P(-1) = 1+1-a+(a+8)-10 = 0$ (adevărat $\\forall a$)\n\n$P\'(X) = 4X^3-3X^2-2aX-(a+8)$\n$$P\'(-1) = -4-3+2a-a-8 = a-15 = 0 \\Rightarrow a = 15$$\n\n$P(X) = X^4-X^3-15X^2-23X-10$. Împărțim prin $(X+1)^2 = X^2+2X+1$:\n$$P(X) = (X+1)^2(X^2-3X-10) = (X+1)^2(X-5)(X+2)$$\n\n$$\\boxed{P(X) = (X+1)^2(X-5)(X+2)}$$',
+    barem: [
+      { descriere: 'P\'(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 15', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului X^2 - 3X - 10', puncte_maxime: 2 },
+      { descriere: 'Scrierea descompunerii P(X) = (X+1)^2(X-5)(X+2)', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-011', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Verificarea unei rădăcini și determinarea celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = 2X^3 - 9X^2 + 7X + 6$. Arătați că $X = 3$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.',
-    solution: '$$P(3) = 54 - 81 + 21 + 6 = 0 \\checkmark$$\n\nSchema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 2 & -9 & 7 & 6 \\\\ & & 6 & -9 & -6 \\\\ \\hline & 2 & -3 & -2 & 0 \\end{array}$$\n\n$$P(X) = (X-3)(2X^2-3X-2) = (X-3)(2X+1)(X-2)$$\n\n$$\\boxed{X = 2, \\quad X = -\\tfrac{1}{2}}$$'
+    solution: '$$P(3) = 54 - 81 + 21 + 6 = 0 \\checkmark$$\n\nSchema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 2 & -9 & 7 & 6 \\\\ & & 6 & -9 & -6 \\\\ \\hline & 2 & -3 & -2 & 0 \\end{array}$$\n\n$$P(X) = (X-3)(2X^2-3X-2) = (X-3)(2X+1)(X-2)$$\n\n$$\\boxed{X = 2, \\quad X = -\\tfrac{1}{2}}$$',
+    barem: [
+      { descriere: 'Obținerea $P(3) = 0$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului $2X^2 - 3X - 2$', puncte_maxime: 4 },
+      { descriere: 'Obținerea rădăcinilor $X = 2$ și $X = -\\frac{1}{2}$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-012', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini cunoscute',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 3X^3 - 4X^2 - 3X + 7$ la $Q(X) = X^2 - 1$.',
-    solution: '$R(X) = aX+b$. Deoarece $X^2-1 = (X-1)(X+1)$, evaluăm în $X=1$ și $X=-1$:\n\n$$P(1) = 3-4-3+7 = 3 = a+b$$\n$$P(-1) = -3-4+3+7 = 3 = -a+b$$\n\nDin sistem: $a = 0,\\; b = 3$\n\n$$\\boxed{R(X) = 3}$$'
+    solution: '$R(X) = aX+b$. Deoarece $X^2-1 = (X-1)(X+1)$, evaluăm în $X=1$ și $X=-1$:\n\n$$P(1) = 3-4-3+7 = 3 = a+b$$\n$$P(-1) = -3-4+3+7 = 3 = -a+b$$\n\nDin sistem: $a = 0,\\; b = 3$\n\n$$\\boxed{R(X) = 3}$$',
+    barem: [
+      { descriere: 'P(1) = 3 și P(-1) = 3', puncte_maxime: 2 },
+      { descriere: 'a + b = 3 și -a + b = 3', puncte_maxime: 2 },
+      { descriere: 'R(X) = 3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-013', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui m și restul la un polinom de grad 2',
     statement: 'Fie $P(X) = X^4 + 2X^3 + mX^2 + 5X + 4$. Determinați $m$, astfel încât $X = -1$ să fie rădăcină, apoi aflați restul împărțirii lui $P(X)$ la $X^2 - 2$.',
-    solution: '$$P(-1) = 1-2+m-5+4 = m-2 = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4+2X^3+2X^2+5X+4$. $R(X) = aX+b$:\n\nEvaluăm în $X = \\sqrt{2}$ și $X = -\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4+4\\sqrt{2}+4+5\\sqrt{2}+4 = 12+9\\sqrt{2} = a\\sqrt{2}+b$$\n$$P(-\\sqrt{2}) = 4-4\\sqrt{2}+4-5\\sqrt{2}+4 = 12-9\\sqrt{2} = -a\\sqrt{2}+b$$\n\n$a = 9,\\; b = 12$\n\n$$\\boxed{R(X) = 9X+12}$$'
+    solution: '$$P(-1) = 1-2+m-5+4 = m-2 = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4+2X^3+2X^2+5X+4$. $R(X) = aX+b$:\n\nEvaluăm în $X = \\sqrt{2}$ și $X = -\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4+4\\sqrt{2}+4+5\\sqrt{2}+4 = 12+9\\sqrt{2} = a\\sqrt{2}+b$$\n$$P(-\\sqrt{2}) = 4-4\\sqrt{2}+4-5\\sqrt{2}+4 = 12-9\\sqrt{2} = -a\\sqrt{2}+b$$\n\n$a = 9,\\; b = 12$\n\n$$\\boxed{R(X) = 9X+12}$$',
+    barem: [
+      { descriere: 'P(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea m = 2', puncte_maxime: 2 },
+      { descriere: 'Calcularea valorilor P(√2) și P(-√2)', puncte_maxime: 2 },
+      { descriere: 'Obținerea restului R(X) = 9X + 12', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-014', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că o rădăcină dată este rădăcină a polinomului',
     statement: 'Determinați $a \\in \\mathbb{R}$, pentru care $X = \\dfrac{1}{2}$ este rădăcină a polinomului:\n$$P(X) = 8X^3 + (a+2)X - 5X + a$$',
-    solution: '$P(X) = 8X^3 + (a-3)X + a$\n\n$$P\\!\\left(\\tfrac{1}{2}\\right) = 8 \\cdot \\tfrac{1}{8} + (a-3)\\cdot\\tfrac{1}{2} + a = 1 + \\frac{a-3}{2} + a = 0$$\n\n$$2 + (a-3) + 2a = 0 \\Rightarrow 3a = 1 \\Rightarrow \\boxed{a = \\dfrac{1}{3}}$$'
+    solution: '$P(X) = 8X^3 + (a-3)X + a$\n\n$$P\\!\\left(\\tfrac{1}{2}\\right) = 8 \\cdot \\tfrac{1}{8} + (a-3)\\cdot\\tfrac{1}{2} + a = 1 + \\frac{a-3}{2} + a = 0$$\n\n$$2 + (a-3) + 2a = 0 \\Rightarrow 3a = 1 \\Rightarrow \\boxed{a = \\dfrac{1}{3}}$$',
+    barem: [
+      { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
+      { descriere: '1 + (a-3)/2 + a = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 1/3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-015', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunerea completă a unui polinom de grad 4',
     statement: 'Fie polinomul $P(X) = X^4 - 6X^3 - 3X^2 + 52X - 60$. Descompuneți în factori polinomul.',
-    solution: 'Testăm $X=2$: $P(2) = 16-48-12+104-60 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|ccccc} 2 & 1 & -6 & -3 & 52 & -60 \\\\ & & 2 & -8 & -22 & 60 \\\\ \\hline & 1 & -4 & -11 & 30 & 0 \\end{array}$$\n\nTestăm $X=2$ în $X^3-4X^2-11X+30$: $8-16-22+30=0$ ✓\n\n$$X^3-4X^2-11X+30 = (X-2)(X^2-2X-15) = (X-2)(X-5)(X+3)$$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+3)}$$'
+    solution: 'Testăm $X=2$: $P(2) = 16-48-12+104-60 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|ccccc} 2 & 1 & -6 & -3 & 52 & -60 \\\\ & & 2 & -8 & -22 & 60 \\\\ \\hline & 1 & -4 & -11 & 30 & 0 \\end{array}$$\n\nTestăm $X=2$ în $X^3-4X^2-11X+30$: $8-16-22+30=0$ ✓\n\n$$X^3-4X^2-11X+30 = (X-2)(X^2-2X-15) = (X-2)(X-5)(X+3)$$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+3)}$$',
+    barem: [
+      { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului $X^3 - 4X^2 - 11X + 30$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului $X^2 - 2X - 15$', puncte_maxime: 2 },
+      { descriere: 'Scrierea descompunerii finale $P(X) = (X-2)^2(X-5)(X+3)$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-016', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului la un binom',
     statement: 'Fie polinomul $P(X) = X^3 + (a+1)X^2 - a^2X - 2$. Determinați $a \\in \\mathbb{R}$, știind că restul împărțirii la $X - 2$ este $10$.',
-    solution: 'Prin teorema lui Bézout: $P(2) = 10$.\n\n$$8 + 4(a+1) - 2a^2 - 2 = 10$$\n$$10 + 4a - 2a^2 = 10$$\n$$4a - 2a^2 = 0 \\Rightarrow 2a(2-a) = 0$$\n\n$$\\boxed{a = 0 \\quad \\text{sau} \\quad a = 2}$$'
+    solution: 'Prin teorema lui Bézout: $P(2) = 10$.\n\n$$8 + 4(a+1) - 2a^2 - 2 = 10$$\n$$10 + 4a - 2a^2 = 10$$\n$$4a - 2a^2 = 0 \\Rightarrow 2a(2-a) = 0$$\n\n$$\\boxed{a = 0 \\quad \\text{sau} \\quad a = 2}$$',
+    barem: [
+      { descriere: 'P(2) = 10', puncte_maxime: 2 },
+      { descriere: 'Obținerea ecuației 4a - 2a^2 = 0 (sau echivalent)', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor a = 0 și a = 2', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-017', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii la un polinom de grad 2 cu rădăcini 0 și 1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 2X^4 + 3X^3 - X + 1$ la $Q(X) = X^2 - X$.',
-    solution: '$R(X) = aX+b$. Deoarece $X^2-X = X(X-1)$, evaluăm în $X=0$ și $X=1$:\n\n$$P(0) = 1 = b$$\n$$P(1) = 2+3-1+1 = 5 = a+b = a+1 \\Rightarrow a = 4$$\n\n$$\\boxed{R(X) = 4X+1}$$'
+    solution: '$R(X) = aX+b$. Deoarece $X^2-X = X(X-1)$, evaluăm în $X=0$ și $X=1$:\n\n$$P(0) = 1 = b$$\n$$P(1) = 2+3-1+1 = 5 = a+b = a+1 \\Rightarrow a = 4$$\n\n$$\\boxed{R(X) = 4X+1}$$',
+    barem: [
+      { descriere: 'P(0) = b și P(1) = a + b', puncte_maxime: 2 },
+      { descriere: 'Calcularea P(0) = 1 și P(1) = 5', puncte_maxime: 2 },
+      { descriere: 'Obținerea răspunsului corect R(X) = 4X + 1', puncte_maxime: 1 }
+    ]
   },
 
   {
     id: 'alg-pol-018', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=1',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 + 5X^3 - X^2 - 17X + 12$$\ndacă $X = 1$ este rădăcină dublă.',
-    solution: '$P(1) = 1+5-1-17+12 = 0$ ✓ și $P\'(1) = 4+15-2-17 = 0$ ✓\n\nÎmpărțim prin $(X-1)^2 = X^2-2X+1$:\n$$P(X) = (X-1)^2(X^2+7X+12) = (X-1)^2(X+3)(X+4)$$\n\n$$\\boxed{P(X) = (X-1)^2(X+3)(X+4)}$$'
+    solution: '$P(1) = 1+5-1-17+12 = 0$ ✓ și $P\'(1) = 4+15-2-17 = 0$ ✓\n\nÎmpărțim prin $(X-1)^2 = X^2-2X+1$:\n$$P(X) = (X-1)^2(X^2+7X+12) = (X-1)^2(X+3)(X+4)$$\n\n$$\\boxed{P(X) = (X-1)^2(X+3)(X+4)}$$',
+    barem: [
+      { descriere: '$P(1)=0$ și $P\'(1)=0$ (sau utilizarea schemei Horner)', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului $X^2 + 7X + 12$', puncte_maxime: 2 },
+      { descriere: 'Factorizarea trinomului $X^2 + 7X + 12 = (X+3)(X+4)$', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect $P(X) = (X-1)^2(X+3)(X+4)$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-019', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −10',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = aX^4 - 7X^3 + 3X^2 + (a-3)X + 4$$\nla binomul $Q(X) = X - 2$, este egal cu $-10$.',
-    solution: '$P(2) = -10$:\n$$16a - 56 + 12 + 2(a-3) + 4 = -10$$\n$$18a - 46 = -10 \\Rightarrow 18a = 36 \\Rightarrow \\boxed{a = 2}$$'
+    solution: '$P(2) = -10$:\n$$16a - 56 + 12 + 2(a-3) + 4 = -10$$\n$$18a - 46 = -10 \\Rightarrow 18a = 36 \\Rightarrow \\boxed{a = 2}$$',
+    barem: [
+      { descriere: 'P(2) = -10', puncte_maxime: 2 },
+      { descriere: '18a - 46 = -10', puncte_maxime: 2 },
+      { descriere: 'a = 2', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-020', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 4 la X+2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = 3X^4 - 6X^3 + X^2 - 3X + 4$$\nla polinomul $Q(X) = X + 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n\n$$P(-2) = 3(16) - 6(-8) + 4 - 3(-2) + 4 = 48 + 48 + 4 + 6 + 4 = \\boxed{110}$$'
+    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n\n$$P(-2) = 3(16) - 6(-8) + 4 - 3(-2) + 4 = 48 + 48 + 4 + 6 + 4 = \\boxed{110}$$',
+    barem: [
+      { descriere: 'R = P(-2)', puncte_maxime: 2 },
+      { descriere: 'Calcularea P(-2) = 110', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-021', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților a și b din condiția rădăcinii duble',
     statement: 'Fie polinomul $P(X) = X^4 + 6X^3 + 9X^2 + 2aX - b$. Determinați numerele reale $a$ și $b$, pentru care $X = 2$ este rădăcină dublă.',
-    solution: '$X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n\n$$P\'(X) = 4X^3+18X^2+18X+2a \\Rightarrow P\'(2) = 140+2a = 0 \\Rightarrow a = -70$$\n\n$$P(2) = 100 + 4(-70) - b = 0 \\Rightarrow b = -180$$\n\n$$P(X) = (X-2)^2(X^2+10X+45)$$\n\n$$\\boxed{a = -70, \\quad b = -180}$$'
+    solution: '$X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n\n$$P\'(X) = 4X^3+18X^2+18X+2a \\Rightarrow P\'(2) = 140+2a = 0 \\Rightarrow a = -70$$\n\n$$P(2) = 100 + 4(-70) - b = 0 \\Rightarrow b = -180$$\n\n$$P(X) = (X-2)^2(X^2+10X+45)$$\n\n$$\\boxed{a = -70, \\quad b = -180}$$',
+    barem: [
+      { descriere: 'P\'(X) = 4X^3 + 18X^2 + 18X + 2a', puncte_maxime: 2 },
+      { descriere: 'P\'(2) = 140 + 2a = 0 \\Rightarrow a = -70', puncte_maxime: 2 },
+      { descriere: 'P(2) = 100 + 4a - b = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea b = -180', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-022', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea parametrului a din condiția restului egal cu 6',
     statement: 'Determinați valorile parametrului real $a$, pentru care restul împărțirii polinomului\n$$P(X) = aX^4 - 6X^3 - 2X^2 - 2aX - 2$$\nla $Q(X) = X - 2$, este egal cu $6$.',
-    solution: '$P(2) = 6$:\n$$16a - 48 - 8 - 4a - 2 = 6$$\n$$12a - 58 = 6 \\Rightarrow 12a = 64 \\Rightarrow \\boxed{a = \\dfrac{16}{3}}$$'
+    solution: '$P(2) = 6$:\n$$16a - 48 - 8 - 4a - 2 = 6$$\n$$12a - 58 = 6 \\Rightarrow 12a = 64 \\Rightarrow \\boxed{a = \\dfrac{16}{3}}$$',
+    barem: [
+      { descriere: 'P(2) = 6', puncte_maxime: 2 },
+      { descriere: '12a - 58 = 6', puncte_maxime: 2 },
+      { descriere: 'a = 16/3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-023', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 27',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 3X^4 - 2aX^3 - 12X^2 + 8X - a - 2$$\nla $Q(X) = X + 2$, este egal cu $27$.',
-    solution: '$P(-2) = 27$:\n$$48 + 16a - 48 - 16 - a - 2 = 27$$\n$$15a - 18 = 27 \\Rightarrow 15a = 45 \\Rightarrow \\boxed{a = 3}$$'
+    solution: '$P(-2) = 27$:\n$$48 + 16a - 48 - 16 - a - 2 = 27$$\n$$15a - 18 = 27 \\Rightarrow 15a = 45 \\Rightarrow \\boxed{a = 3}$$',
+    barem: [
+      { descriere: 'P(-2) = 27', puncte_maxime: 2 },
+      { descriere: '15a - 18 = 27', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-024', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^5 + 3X^3 - (m+1)X^2 + (m-1)X + 6 + m$. Determinați valorile reale ale lui $m$, pentru care polinomul $P(X)$ se divide cu $Q(X) = X + 1$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-2 - 3 - (m+1) - (m-1) + 6 + m = 0$$\n$$1 - m = 0 \\Rightarrow \\boxed{m = 1}$$'
+    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-2 - 3 - (m+1) - (m-1) + 6 + m = 0$$\n$$1 - m = 0 \\Rightarrow \\boxed{m = 1}$$',
+    barem: [
+      { descriere: 'P(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'P(-1) = 1 - m', puncte_maxime: 2 },
+      { descriere: 'm = 1', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-025', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X²−2 din condiție la X=2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^4 + 2X - 2 - a$, la polinomul $Q(X) = X^2 - 2$, dacă restul împărțirii la $X = 2$ este egal cu $8$.',
-    solution: 'Din $P(2) = 8$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n$P(X) = X^4 + 2X - 12$. Scriem $R(X) = bX + c$ și evaluăm în $X = \\pm\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4 + 2\\sqrt{2} - 12 = -8 + 2\\sqrt{2} = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = 4 - 2\\sqrt{2} - 12 = -8 - 2\\sqrt{2} = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -8$\n\n$$\\boxed{R(X) = 2X - 8}$$'
+    solution: 'Din $P(2) = 8$:\n$$16 + 4 - 2 - a = 8 \\Rightarrow a = 10$$\n\n$P(X) = X^4 + 2X - 12$. Scriem $R(X) = bX + c$ și evaluăm în $X = \\pm\\sqrt{2}$:\n$$P(\\sqrt{2}) = 4 + 2\\sqrt{2} - 12 = -8 + 2\\sqrt{2} = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = 4 - 2\\sqrt{2} - 12 = -8 - 2\\sqrt{2} = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -8$\n\n$$\\boxed{R(X) = 2X - 8}$$',
+    barem: [
+      { descriere: 'P(2) = 8', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 10', puncte_maxime: 1 },
+      { descriere: 'R(X) = bX + c', puncte_maxime: 1 },
+      { descriere: 'P(\\sqrt{2}) = -8 + 2\\sqrt{2} \\text{ și } P(-\\sqrt{2}) = -8 - 2\\sqrt{2}', puncte_maxime: 2 },
+      { descriere: 'Obținerea b = 2, c = -8 și scrierea restului R(X) = 2X - 8', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-026', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −13',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = (a+3)X^5 - 2X^3 + (9+a)X^2 + 2X + 7 - a$$\nla $Q(X) = X - 2$, este egal cu $-13$.',
-    solution: '$P(2) = -13$:\n$$(a+3)(32) - 16 + (9+a)(4) + 4 + 7 - a = -13$$\n$$32a + 96 - 16 + 36 + 4a + 4 + 7 - a = -13$$\n$$35a + 127 = -13 \\Rightarrow 35a = -140 \\Rightarrow \\boxed{a = -4}$$'
+    solution: '$P(2) = -13$:\n$$(a+3)(32) - 16 + (9+a)(4) + 4 + 7 - a = -13$$\n$$32a + 96 - 16 + 36 + 4a + 4 + 7 - a = -13$$\n$$35a + 127 = -13 \\Rightarrow 35a = -140 \\Rightarrow \\boxed{a = -4}$$',
+    barem: [
+      { descriere: 'P(2) = -13', puncte_maxime: 2 },
+      { descriere: '35a + 127 = -13', puncte_maxime: 2 },
+      { descriere: 'a = -4', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-027', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 3 la X−1',
     statement: 'Determinați valorile reale ale lui $a$, pentru care restul împărțirii polinomului\n$$P(X) = 2aX^4 - 7X^3 + 2X^2 - 10X + a$$\nla $Q(X) = X - 1$, este egal cu $3$.',
-    solution: '$P(1) = 3$:\n$$2a - 7 + 2 - 10 + a = 3$$\n$$3a - 15 = 3 \\Rightarrow 3a = 18 \\Rightarrow \\boxed{a = 6}$$'
+    solution: '$P(1) = 3$:\n$$2a - 7 + 2 - 10 + a = 3$$\n$$3a - 15 = 3 \\Rightarrow 3a = 18 \\Rightarrow \\boxed{a = 6}$$',
+    barem: [
+      { descriere: 'P(1) = 3', puncte_maxime: 2 },
+      { descriere: '3a - 15 = 3', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 6', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-028', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunere în factori ireductibili cu rădăcină dublă X=−2',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 + 7X^3 + 12X^2 - 4X - 16$$\ndacă $X = -2$ este rădăcină dublă.',
-    solution: '$P(-2) = 16-56+48+8-16 = 0$ ✓ și $P\'(-2) = -32+84-48-4 = 0$ ✓\n\nÎmpărțim prin $(X+2)^2 = X^2+4X+4$:\n$$P(X) = (X+2)^2(X^2+3X-4) = (X+2)^2(X+4)(X-1)$$\n\n$$\\boxed{P(X) = (X+2)^2(X+4)(X-1)}$$'
+    solution: '$P(-2) = 16-56+48+8-16 = 0$ ✓ și $P\'(-2) = -32+84-48-4 = 0$ ✓\n\nÎmpărțim prin $(X+2)^2 = X^2+4X+4$:\n$$P(X) = (X+2)^2(X^2+3X-4) = (X+2)^2(X+4)(X-1)$$\n\n$$\\boxed{P(X) = (X+2)^2(X+4)(X-1)}$$',
+    barem: [
+      { descriere: '$(X+2)^2 = X^2+4X+4$', puncte_maxime: 2 },
+      { descriere: 'C(X) = X^2+3X-4', puncte_maxime: 3 },
+      { descriere: 'X^2+3X-4 = (X+4)(X-1)', puncte_maxime: 2 },
+      { descriere: 'P(X) = (X+2)^2(X+4)(X-1)', puncte_maxime: 1 }
+    ]
   },
 
   {
     id: 'alg-pol-029', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiții de divizibilitate și rest, apoi restul la X+2',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + bX - 6$, $a, b \\in \\mathbb{R}$. Se știe că $P(X)$ se divide cu binomul $X - 3$, iar prin împărțirea la binomul $X - 2$ dă restul $-16$. Determinați restul împărțirii polinomului $P(X)$ la binomul $X + 2$.',
-    solution: 'Din condiția de divizibilitate cu $(X-3)$: $P(3) = 0$\n$$27 + 9a + 3b - 6 = 0 \\Rightarrow 3a + b = -7 \\quad (1)$$\n\nDin restul la $(X-2)$: $P(2) = -16$\n$$8 + 4a + 2b - 6 = -16 \\Rightarrow 2a + b = -9 \\quad (2)$$\n\n$(1)-(2):\\; a = 2,\\; b = -13$\n\n$P(X) = X^3 + 2X^2 - 13X - 6$\n\nRestul la $(X+2)$: $P(-2) = -8 + 8 + 26 - 6 = \\boxed{20}$'
+    solution: 'Din condiția de divizibilitate cu $(X-3)$: $P(3) = 0$\n$$27 + 9a + 3b - 6 = 0 \\Rightarrow 3a + b = -7 \\quad (1)$$\n\nDin restul la $(X-2)$: $P(2) = -16$\n$$8 + 4a + 2b - 6 = -16 \\Rightarrow 2a + b = -9 \\quad (2)$$\n\n$(1)-(2):\\; a = 2,\\; b = -13$\n\n$P(X) = X^3 + 2X^2 - 13X - 6$\n\nRestul la $(X+2)$: $P(-2) = -8 + 8 + 26 - 6 = \\boxed{20}$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -16$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 3a + b = -7 \\\\ 2a + b = -9 \\end{cases}$ (câte 1p pentru fiecare ecuație)', puncte_maxime: 2 },
+      { descriere: 'Rezolvarea sistemului și obținerea valorilor $a = 2, b = -13$', puncte_maxime: 2 },
+      { descriere: 'Calcularea restului $P(-2) = 20$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-030', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X+3',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 + 5X - 3$, unde $a \\in \\mathbb{R}$. Știind că $P(2) = 7$, să se afle restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X + 3$.',
-    solution: 'Din $P(2) = 7$:\n$$8 + 4a + 10 - 3 = 7 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 + 5X - 3$\n\nRestul la $(X+3)$: $P(-3) = -27 - 18 - 15 - 3 = \\boxed{-63}$'
+    solution: 'Din $P(2) = 7$:\n$$8 + 4a + 10 - 3 = 7 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 + 5X - 3$\n\nRestul la $(X+3)$: $P(-3) = -27 - 18 - 15 - 3 = \\boxed{-63}$',
+    barem: [
+      { descriere: 'P(2) = 4a + 15', puncte_maxime: 1 },
+      { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
+      { descriere: 'R = P(-3)', puncte_maxime: 1 },
+      { descriere: 'Calcularea valorii P(-3) = -63', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-031', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de rădăcină și restul la X−4',
     statement: 'Se consideră polinomul $P(X) = X^3 + aX^2 - 5X + 6$, unde $a \\in \\mathbb{R}$. Știind că $X = -2$ este rădăcină a polinomului $P(X)$, să se afle restul împărțirii polinomului $P(X)$ la binomul $X - 4$.',
-    solution: 'Din $P(-2) = 0$:\n$$-8 + 4a + 10 + 6 = 0 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 - 5X + 6$\n\nRestul la $(X-4)$: $P(4) = 64 - 32 - 20 + 6 = \\boxed{18}$'
+    solution: 'Din $P(-2) = 0$:\n$$-8 + 4a + 10 + 6 = 0 \\Rightarrow 4a = -8 \\Rightarrow a = -2$$\n\n$P(X) = X^3 - 2X^2 - 5X + 6$\n\nRestul la $(X-4)$: $P(4) = 64 - 32 - 20 + 6 = \\boxed{18}$',
+    barem: [
+      { descriere: 'P(-2) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
+      { descriere: 'Calcularea P(4) = 18', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-032', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea polinomului P(X) din câtul și restul împărțirii la X²−1',
     statement: 'Polinomul $P(X)$ se împarte la polinomul $Q(X) = X^2 - 1$, obținându-se câtul\n$$C(X) = X^3 - X + 1$$\nDeterminați polinomul $P(X)$, știind că $P(2) = 6$ și $P(-2) = 2$.',
-    solution: '$P(X) = (X^2-1)(X^3-X+1) + R(X)$, unde $R(X) = bX+c$.\n\n$(X^2-1)(X^3-X+1) = X^5-2X^3+X^2+X-1$\n\nDin $P(2) = 6$:\n$$21 + (2b+c) = 6 \\Rightarrow 2b+c = -15 \\quad (1)$$\n\nDin $P(-2) = 2$:\n$$3(-5) + (-2b+c) = 2 \\Rightarrow -2b+c = 17 \\quad (2)$$\n\nDin $(1)+(2)$: $2c = 2 \\Rightarrow c = 1,\\; b = -8$, deci $R(X) = -8X+1$\n\n$$\\boxed{P(X) = X^5 - 2X^3 + X^2 - 7X}$$'
+    solution: '$P(X) = (X^2-1)(X^3-X+1) + R(X)$, unde $R(X) = bX+c$.\n\n$(X^2-1)(X^3-X+1) = X^5-2X^3+X^2+X-1$\n\nDin $P(2) = 6$:\n$$21 + (2b+c) = 6 \\Rightarrow 2b+c = -15 \\quad (1)$$\n\nDin $P(-2) = 2$:\n$$3(-5) + (-2b+c) = 2 \\Rightarrow -2b+c = 17 \\quad (2)$$\n\nDin $(1)+(2)$: $2c = 2 \\Rightarrow c = 1,\\; b = -8$, deci $R(X) = -8X+1$\n\n$$\\boxed{P(X) = X^5 - 2X^3 + X^2 - 7X}$$',
+    barem: [
+      { descriere: 'Scrierea identității $P(X) = (X^2-1)(X^3-X+1) + bX+c$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 2b+c = -15 \\\\ -2b+c = 17 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor $b = -8$ și $c = 1$', puncte_maxime: 2 },
+      { descriere: 'Obținerea răspunsului corect $P(X) = X^5 - 2X^3 + X^2 - 7X$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-033', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din condiția de rest egal și rădăcinile polinomului',
     statement: 'Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 12$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X - 3$ este egal cu restul împărțirii polinomului $P(X)$ la binomul $X + 1$ și este egal cu $15$, să se afle rădăcinile polinomului $P(X)$.',
-    solution: 'Din $P(3) = 15$:\n$$54 + 9a + 3b + 12 = 15 \\Rightarrow 3a + b = -17 \\quad (1)$$\n\nDin $P(-1) = 15$:\n$$-2 + a - b + 12 = 15 \\Rightarrow a - b = 5 \\quad (2)$$\n\nDin $(1)+(2)$: $4a = -12 \\Rightarrow a = -3,\\; b = -8$\n\n$P(X) = 2X^3 - 3X^2 - 8X + 12$. Testăm $X = 2$: $16 - 12 - 16 + 12 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|cccc} 2 & 2 & -3 & -8 & 12 \\\\ & & 4 & 2 & -12 \\\\ \\hline & 2 & 1 & -6 & 0 \\end{array}$$\n\n$P(X) = (X-2)(2X^2+X-6) = (X-2)(2X-3)(X+2)$\n\n$$\\boxed{X = 2,\\quad X = \\tfrac{3}{2},\\quad X = -2}$$'
+    solution: 'Din $P(3) = 15$:\n$$54 + 9a + 3b + 12 = 15 \\Rightarrow 3a + b = -17 \\quad (1)$$\n\nDin $P(-1) = 15$:\n$$-2 + a - b + 12 = 15 \\Rightarrow a - b = 5 \\quad (2)$$\n\nDin $(1)+(2)$: $4a = -12 \\Rightarrow a = -3,\\; b = -8$\n\n$P(X) = 2X^3 - 3X^2 - 8X + 12$. Testăm $X = 2$: $16 - 12 - 16 + 12 = 0$ ✓\n\nSchema Horner:\n$$\\begin{array}{c|cccc} 2 & 2 & -3 & -8 & 12 \\\\ & & 4 & 2 & -12 \\\\ \\hline & 2 & 1 & -6 & 0 \\end{array}$$\n\n$P(X) = (X-2)(2X^2+X-6) = (X-2)(2X-3)(X+2)$\n\n$$\\boxed{X = 2,\\quad X = \\tfrac{3}{2},\\quad X = -2}$$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(3) = 15$ și $P(-1) = 15$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 3a+b=-17 \\\\ a-b=5 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Rezolvarea sistemului și obținerea $a = -3, b = -8$', puncte_maxime: 2 },
+      { descriere: 'Determinarea rădăcinilor $2, \\frac{3}{2}, -2$ și scrierea răspunsului', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-034', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la un polinom de grad 2 din resturile cunoscute la factorii săi',
     statement: 'Să se afle restul împărțirii polinomului $P(X)$, de grad cel puțin $2$, la polinomul\n$$Q(X) = X^2 - X - 6$$\nștiind că resturile împărțirii lui $P(X)$ la $X - 3$ și $X + 2$ sunt $7$ și respectiv $-8$.',
-    solution: '$Q(X) = X^2-X-6 = (X-3)(X+2)$, cu rădăcinile $X = 3$ și $X = -2$.\n\n$R(X) = bX + c$. Din $P(3) = R(3)$ și $P(-2) = R(-2)$:\n\n$$3b + c = 7 \\quad (1)$$\n$$-2b + c = -8 \\quad (2)$$\n\n$(1)-(2)$: $5b = 15 \\Rightarrow b = 3,\\; c = -2$\n\n$$\\boxed{R(X) = 3X - 2}$$'
+    solution: '$Q(X) = X^2-X-6 = (X-3)(X+2)$, cu rădăcinile $X = 3$ și $X = -2$.\n\n$R(X) = bX + c$. Din $P(3) = R(3)$ și $P(-2) = R(-2)$:\n\n$$3b + c = 7 \\quad (1)$$\n$$-2b + c = -8 \\quad (2)$$\n\n$(1)-(2)$: $5b = 15 \\Rightarrow b = 3,\\; c = -2$\n\n$$\\boxed{R(X) = 3X - 2}$$',
+    barem: [
+      { descriere: 'Identificarea formei restului $R(X) = bX + c$ și scrierea sistemului \\\\begin{cases} 3b + c = 7 \\\\\\\\ -2b + c = -8 \\\\end{cases}', puncte_maxime: 2 },
+      { descriere: 'Rezolvarea sistemului și obținerea valorilor $b = 3$ și $c = -2$', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect $R(X) = 3X - 2$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-035', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=3 este rădăcină',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 9X - 9$. Să se determine $a \\in \\mathbb{R}$ pentru care $X = 3$ este rădăcină a polinomului $P(X)$.',
-    solution: '$P(3) = 0$:\n$$27 + 9a + 27 - 9 = 0 \\Rightarrow 9a = -45 \\Rightarrow \\boxed{a = -5}$$'
+    solution: '$P(3) = 0$:\n$$27 + 9a + 27 - 9 = 0 \\Rightarrow 9a = -45 \\Rightarrow \\boxed{a = -5}$$',
+    barem: [
+      { descriere: 'P(3) = 0', puncte_maxime: 2 },
+      { descriere: '9a + 45 = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = -5', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-036', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Aflarea restului la X+3 din condiția restului la X−2',
     statement: 'Aflați restul împărțirii polinomului $P(X) = 2X^3 - 3X^2 + mX + 1$ la binomul $X + 3$, știind că împărțit la binomul $X - 2$ dă restul $15$.',
-    solution: 'Din $P(2) = 15$:\n$$16 - 12 + 2m + 1 = 15 \\Rightarrow 2m = 10 \\Rightarrow m = 5$$\n\n$P(X) = 2X^3 - 3X^2 + 5X + 1$\n\nRestul la $(X+3)$: $P(-3) = -54 - 27 - 15 + 1 = \\boxed{-95}$'
+    solution: 'Din $P(2) = 15$:\n$$16 - 12 + 2m + 1 = 15 \\Rightarrow 2m = 10 \\Rightarrow m = 5$$\n\n$P(X) = 2X^3 - 3X^2 + 5X + 1$\n\nRestul la $(X+3)$: $P(-3) = -54 - 27 - 15 + 1 = \\boxed{-95}$',
+    barem: [
+      { descriere: '$P(2) = 15$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $m = 5$', puncte_maxime: 1 },
+      { descriere: 'Calcularea restului $P(-3) = -95$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-037', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Rădăcinile unui polinom de grad 3 care se divide cu X+2',
     statement: 'Să se afle rădăcinile polinomului $P(X) = 2X^3 - X^2 + aX - 6$, $a \\in \\mathbb{R}$, știind că el se divide cu polinomul $Q(X) = X + 2$.',
-    solution: 'Din $P(-2) = 0$:\n$$-16 - 4 - 2a - 6 = 0 \\Rightarrow -2a = 26 \\Rightarrow a = -13$$\n\n$P(X) = 2X^3 - X^2 - 13X - 6$. Schema Horner pentru $X = -2$:\n$$\\begin{array}{c|cccc} -2 & 2 & -1 & -13 & -6 \\\\ & & -4 & 10 & 6 \\\\ \\hline & 2 & -5 & -3 & 0 \\end{array}$$\n\n$P(X) = (X+2)(2X^2-5X-3) = (X+2)(2X+1)(X-3)$\n\n$$\\boxed{X = -2,\\quad X = -\\tfrac{1}{2},\\quad X = 3}$$'
+    solution: 'Din $P(-2) = 0$:\n$$-16 - 4 - 2a - 6 = 0 \\Rightarrow -2a = 26 \\Rightarrow a = -13$$\n\n$P(X) = 2X^3 - X^2 - 13X - 6$. Schema Horner pentru $X = -2$:\n$$\\begin{array}{c|cccc} -2 & 2 & -1 & -13 & -6 \\\\ & & -4 & 10 & 6 \\\\ \\hline & 2 & -5 & -3 & 0 \\end{array}$$\n\n$P(X) = (X+2)(2X^2-5X-3) = (X+2)(2X+1)(X-3)$\n\n$$\\boxed{X = -2,\\quad X = -\\tfrac{1}{2},\\quad X = 3}$$',
+    barem: [
+      { descriere: 'P(-2) = 0 și obținerea a = -13', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului 2X^2 - 5X - 3', puncte_maxime: 4 },
+      { descriere: 'Determinarea rădăcinilor X = 3, X = -1/2 și scrierea răspunsului', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-038', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a și calculul P(2)',
     statement: 'Fie polinomul $P(X) = X^2 + aX - 7$. Știind că $P(1) = -2$, aflați $P(2)$.',
-    solution: 'Din $P(1) = -2$:\n$$1 + a - 7 = -2 \\Rightarrow a = 4$$\n\n$P(X) = X^2 + 4X - 7$\n\n$$P(2) = 4 + 8 - 7 = \\boxed{5}$$'
+    solution: 'Din $P(1) = -2$:\n$$1 + a - 7 = -2 \\Rightarrow a = 4$$\n\n$P(X) = X^2 + 4X - 7$\n\n$$P(2) = 4 + 8 - 7 = \\boxed{5}$$',
+    barem: [
+      { descriere: '1 + a - 7 = -2', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
+      { descriere: 'Calcularea P(2) = 5', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-039', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Descompunerea în factori cu rădăcina X=3 dată',
     statement: 'Se consideră polinomul $P(X) = 2X^3 - aX^2 + 3X - 9$. Dacă $X = 3$ este rădăcină a polinomului $P(X)$, să se descompună $P(X)$ în factori.',
-    solution: 'Din $P(3) = 0$:\n$$54 - 9a + 9 - 9 = 0 \\Rightarrow 9a = 54 \\Rightarrow a = 6$$\n\n$P(X) = 2X^3 - 6X^2 + 3X - 9$. Grupăm termenii:\n$$= 2X^2(X-3) + 3(X-3) = (X-3)(2X^2+3)$$\n\n$2X^2+3 > 0$ pentru orice $X \\in \\mathbb{R}$, deci nu are rădăcini reale.\n\n$$\\boxed{P(X) = (X-3)(2X^2+3)}$$'
+    solution: 'Din $P(3) = 0$:\n$$54 - 9a + 9 - 9 = 0 \\Rightarrow 9a = 54 \\Rightarrow a = 6$$\n\n$P(X) = 2X^3 - 6X^2 + 3X - 9$. Grupăm termenii:\n$$= 2X^2(X-3) + 3(X-3) = (X-3)(2X^2+3)$$\n\n$2X^2+3 > 0$ pentru orice $X \\in \\mathbb{R}$, deci nu are rădăcini reale.\n\n$$\\boxed{P(X) = (X-3)(2X^2+3)}$$',
+    barem: [
+      { descriere: 'P(3) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 6', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului împărțirii lui P(X) la (X - 3)', puncte_maxime: 2 },
+      { descriere: 'Scrierea formei descompuse P(X) = (X - 3)(2X^2 + 3)', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-040', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori în mulțimea R',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 2X + b$. Știind că $P(2) = -6$ și că $X = 3$ este rădăcină a polinomului, să descompună $P(X)$ în factori în mulțimea $\\mathbb{R}$.',
-    solution: 'Din $P(3) = 0$:\n$$27 + 9a + 6 + b = 0 \\Rightarrow 9a + b = -33 \\quad (1)$$\n\nDin $P(2) = -6$:\n$$8 + 4a + 4 + b = -6 \\Rightarrow 4a + b = -18 \\quad (2)$$\n\n$(1)-(2)$: $5a = -15 \\Rightarrow a = -3,\\; b = -6$\n\n$P(X) = X^3 - 3X^2 + 2X - 6$. Schema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 1 & -3 & 2 & -6 \\\\ & & 3 & 0 & 6 \\\\ \\hline & 1 & 0 & 2 & 0 \\end{array}$$\n\n$X^2+2$ nu are rădăcini reale ($\\Delta = -8 < 0$).\n\n$$\\boxed{P(X) = (X-3)(X^2+2)}$$'
+    solution: 'Din $P(3) = 0$:\n$$27 + 9a + 6 + b = 0 \\Rightarrow 9a + b = -33 \\quad (1)$$\n\nDin $P(2) = -6$:\n$$8 + 4a + 4 + b = -6 \\Rightarrow 4a + b = -18 \\quad (2)$$\n\n$(1)-(2)$: $5a = -15 \\Rightarrow a = -3,\\; b = -6$\n\n$P(X) = X^3 - 3X^2 + 2X - 6$. Schema Horner pentru $X = 3$:\n$$\\begin{array}{c|cccc} 3 & 1 & -3 & 2 & -6 \\\\ & & 3 & 0 & 6 \\\\ \\hline & 1 & 0 & 2 & 0 \\end{array}$$\n\n$X^2+2$ nu are rădăcini reale ($\\Delta = -8 < 0$).\n\n$$\\boxed{P(X) = (X-3)(X^2+2)}$$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -6$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 9a+b=-33 \\\\ 4a+b=-18 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor $a = -3$ și $b = -6$', puncte_maxime: 2 },
+      { descriere: 'Obținerea descompunerii $P(X) = (X-3)(X^2+2)$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-041', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din egalitatea resturilor și rădăcinile polinomului',
     statement: 'Determinați rădăcinile polinomului $P(X) = X^3 + 2aX^2 - 5X - a - 9$, $a \\in \\mathbb{R}$, știind că restul împărțirii polinomului $P(X)$ la binomul $X - 2$ este egal cu restul împărțirii lui $P(X)$ la binomul $X + 1$.',
-    solution: '$P(2) = P(-1)$:\n$$8 + 8a - 10 - a - 9 = -1 + 2a + 5 - a - 9$$\n$$7a - 11 = a - 5 \\Rightarrow 6a = 6 \\Rightarrow a = 1$$\n\n$P(X) = X^3 + 2X^2 - 5X - 10$. Grupăm:\n$$= X^2(X+2) - 5(X+2) = (X+2)(X^2-5)$$\n\n$$\\boxed{X = -2,\\quad X = \\sqrt{5},\\quad X = -\\sqrt{5}}$$'
+    solution: '$P(2) = P(-1)$:\n$$8 + 8a - 10 - a - 9 = -1 + 2a + 5 - a - 9$$\n$$7a - 11 = a - 5 \\Rightarrow 6a = 6 \\Rightarrow a = 1$$\n\n$P(X) = X^3 + 2X^2 - 5X - 10$. Grupăm:\n$$= X^2(X+2) - 5(X+2) = (X+2)(X^2-5)$$\n\n$$\\boxed{X = -2,\\quad X = \\sqrt{5},\\quad X = -\\sqrt{5}}$$',
+    barem: [
+      { descriere: 'P(2) = P(-1)', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 1', puncte_maxime: 2 },
+      { descriere: 'Descompunerea în factori a polinomului P(X)', puncte_maxime: 2 },
+      { descriere: 'Determinarea rădăcinilor și scrierea răspunsului corect', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-042', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui a, b ∈ Z astfel încât X=1 să fie rădăcină',
     statement: 'Fie polinomul $P(X) = a^2X^4 - 2abX^3 + b^2X^2 + a^2X - 2a + 1$. Să se determine $a, b \\in \\mathbb{Z}$, astfel încât $P(X)$ să admită ca rădăcină $X = 1$.',
-    solution: '$P(1) = 0$:\n$$a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0$$\n\nRegrupăm:\n$$(a-b)^2 + (a-1)^2 = 0$$\n\nO sumă de două pătrate este zero dacă și numai dacă ambii termeni sunt zero:\n$$a - b = 0 \\Rightarrow b = a \\qquad \\text{și} \\qquad a - 1 = 0 \\Rightarrow a = 1$$\n\n$$\\boxed{a = 1,\\quad b = 1}$$'
+    solution: '$P(1) = 0$:\n$$a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0$$\n\nRegrupăm:\n$$(a-b)^2 + (a-1)^2 = 0$$\n\nO sumă de două pătrate este zero dacă și numai dacă ambii termeni sunt zero:\n$$a - b = 0 \\Rightarrow b = a \\qquad \\text{și} \\qquad a - 1 = 0 \\Rightarrow a = 1$$\n\n$$\\boxed{a = 1,\\quad b = 1}$$',
+    barem: [
+      { descriere: 'P(1) = 0', puncte_maxime: 2 },
+      { descriere: 'a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0', puncte_maxime: 2 },
+      { descriere: '(a - b)^2 + (a - 1)^2 = 0', puncte_maxime: 2 },
+      { descriere: 'a = 1, b = 1', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-043', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu −3 la X−1',
     statement: 'Să se afle $a \\in \\mathbb{R}$, știind că restul împărțirii polinomului\n$$P(X) = X^3 - 2X^2 + aX - 7$$\nla binomul $X - 1$ este egal cu $-3$.',
-    solution: '$P(1) = -3$:\n$$1 - 2 + a - 7 = -3 \\Rightarrow a - 8 = -3 \\Rightarrow \\boxed{a = 5}$$'
+    solution: '$P(1) = -3$:\n$$1 - 2 + a - 7 = -3 \\Rightarrow a - 8 = -3 \\Rightarrow \\boxed{a = 5}$$',
+    barem: [
+      { descriere: 'P(1) = -3', puncte_maxime: 2 },
+      { descriere: 'Obținerea a - 8 = -3', puncte_maxime: 1 },
+      { descriere: 'Obținerea a = 5', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-044', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția restului la X−√2',
     statement: 'Determinați $m \\in \\mathbb{R}$, astfel încât restul împărțirii polinomului\n$$P(X) = 2X^3 + mX^2 + mX + 2$$\nla binomul $Q(X) = X - \\sqrt{2}$ să fie egal cu $4\\sqrt{2}$.',
-    solution: 'Prin teorema lui Bézout: $P(\\sqrt{2}) = 4\\sqrt{2}$\n\n$$2(\\sqrt{2})^3 + m(\\sqrt{2})^2 + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$4\\sqrt{2} + 2m + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$2m + m\\sqrt{2} + 2 = 0$$\n$$m(2 + \\sqrt{2}) = -2$$\n$$m = \\frac{-2}{2+\\sqrt{2}} = \\frac{-2(2-\\sqrt{2})}{(2+\\sqrt{2})(2-\\sqrt{2})} = \\frac{-2(2-\\sqrt{2})}{2}$$\n\n$$\\boxed{m = \\sqrt{2} - 2}$$'
+    solution: 'Prin teorema lui Bézout: $P(\\sqrt{2}) = 4\\sqrt{2}$\n\n$$2(\\sqrt{2})^3 + m(\\sqrt{2})^2 + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$4\\sqrt{2} + 2m + m\\sqrt{2} + 2 = 4\\sqrt{2}$$\n$$2m + m\\sqrt{2} + 2 = 0$$\n$$m(2 + \\sqrt{2}) = -2$$\n$$m = \\frac{-2}{2+\\sqrt{2}} = \\frac{-2(2-\\sqrt{2})}{(2+\\sqrt{2})(2-\\sqrt{2})} = \\frac{-2(2-\\sqrt{2})}{2}$$\n\n$$\\boxed{m = \\sqrt{2} - 2}$$',
+    barem: [
+      { descriere: 'P(√2) = 4√2', puncte_maxime: 2 },
+      { descriere: '2m + m√2 + 2 = 0', puncte_maxime: 2 },
+      { descriere: 'm = √2 - 2', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-045', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și restul la X−3 din condiția restului la X+2',
     statement: 'Restul împărțirii polinomului $P(X) = X^3 + 3X^2 + aX + 5$ la binomul $X + 2$ este egal cu $13$. Să se afle restul împărțirii lui $P(X)$ la binomul $X - 3$.',
-    solution: 'Din $P(-2) = 13$:\n$$-8 + 12 - 2a + 5 = 13 \\Rightarrow -2a = 4 \\Rightarrow a = -2$$\n\n$P(X) = X^3 + 3X^2 - 2X + 5$\n\nRestul la $(X-3)$: $P(3) = 27 + 27 - 6 + 5 = \\boxed{53}$'
+    solution: 'Din $P(-2) = 13$:\n$$-8 + 12 - 2a + 5 = 13 \\Rightarrow -2a = 4 \\Rightarrow a = -2$$\n\n$P(X) = X^3 + 3X^2 - 2X + 5$\n\nRestul la $(X-3)$: $P(3) = 27 + 27 - 6 + 5 = \\boxed{53}$',
+    barem: [
+      { descriere: 'P(-2) = 13', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
+      { descriere: 'R = P(3)', puncte_maxime: 1 },
+      { descriere: 'Calcularea P(3) = 53', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-046', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților și descompunerea în factori cu rădăcina X=2',
     statement: 'Fie polinomul $P(X) = X^3 + aX^2 + 3X + b$. Știind că $X = 2$ este rădăcină a polinomului și că $P(3) = 12$, descompuneți $P(X)$ în factori pe mulțimea $\\mathbb{R}$.',
-    solution: 'Din $P(2) = 0$:\n$$8 + 4a + 6 + b = 0 \\Rightarrow 4a + b = -14 \\quad (1)$$\n\nDin $P(3) = 12$:\n$$27 + 9a + 9 + b = 12 \\Rightarrow 9a + b = -24 \\quad (2)$$\n\n$(2)-(1)$: $5a = -10 \\Rightarrow a = -2,\\; b = -6$\n\n$P(X) = X^3 - 2X^2 + 3X - 6$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 1 & -2 & 3 & -6 \\\\ & & 2 & 0 & 6 \\\\ \\hline & 1 & 0 & 3 & 0 \\end{array}$$\n\n$X^2+3$ nu are rădăcini reale ($\\Delta = -12 < 0$).\n\n$$\\boxed{P(X) = (X-2)(X^2+3)}$$'
+    solution: 'Din $P(2) = 0$:\n$$8 + 4a + 6 + b = 0 \\Rightarrow 4a + b = -14 \\quad (1)$$\n\nDin $P(3) = 12$:\n$$27 + 9a + 9 + b = 12 \\Rightarrow 9a + b = -24 \\quad (2)$$\n\n$(2)-(1)$: $5a = -10 \\Rightarrow a = -2,\\; b = -6$\n\n$P(X) = X^3 - 2X^2 + 3X - 6$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 1 & -2 & 3 & -6 \\\\ & & 2 & 0 & 6 \\\\ \\hline & 1 & 0 & 3 & 0 \\end{array}$$\n\n$X^2+3$ nu are rădăcini reale ($\\Delta = -12 < 0$).\n\n$$\\boxed{P(X) = (X-2)(X^2+3)}$$',
+    barem: [
+      { descriere: '$P(2) = 0$ și $P(3) = 12$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 4a+b=-14 \\\\ 9a+b=-24 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor $a = -2$ și $b = -6$', puncte_maxime: 2 },
+      { descriere: 'Obținerea descompunerii $P(X) = (X-2)(X^2+3)$', puncte_maxime: 2 }
+    ]
   },
 
   {
     id: 'alg-pol-047', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate și restul la X−5',
     statement: 'Polinomul $P(X) = -X^3 - 3X^2 + (a+3)X + (2a+1)$ este divizibil prin binomul $X + 1$. Determinați restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X - 5$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-(-1)^3 - 3(-1)^2 + (a+3)(-1) + (2a+1) = 0$$\n$$1 - 3 - a - 3 + 2a + 1 = 0 \\Rightarrow a = 4$$\n\n$P(X) = -X^3 - 3X^2 + 7X + 9$\n\nRestul la $(X-5)$: $P(5) = -125 - 75 + 35 + 9 = \\boxed{-156}$'
+    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$-(-1)^3 - 3(-1)^2 + (a+3)(-1) + (2a+1) = 0$$\n$$1 - 3 - a - 3 + 2a + 1 = 0 \\Rightarrow a = 4$$\n\n$P(X) = -X^3 - 3X^2 + 7X + 9$\n\nRestul la $(X-5)$: $P(5) = -125 - 75 + 35 + 9 = \\boxed{-156}$',
+    barem: [
+      { descriere: 'P(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
+      { descriere: 'Calcularea P(5) = -156', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-048', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=1 și coeficient necunoscut a',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 3X^3 - aX^2 + (3a+2)X - 6$$\nștiind că $X = 1$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: 'Din $P(1) = 0$: $\\quad 1 - 3 - a + 3a + 2 - 6 = 2a - 6 = 0 \\Rightarrow a = 3$\n\nVerificăm $P\'(1) = 0$: $P\'(X) = 4X^3-9X^2-6X+11 \\Rightarrow P\'(1) = 4-9-6+11 = 0$ ✓\n\n$P(X) = X^4-3X^3-3X^2+11X-6$. Împărțim de două ori prin $(X-1)$:\n$$\\begin{array}{c|ccccc} 1 & 1 & -3 & -3 & 11 & -6 \\\\ & & 1 & -2 & -5 & 6 \\\\ \\hline & 1 & -2 & -5 & 6 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 1 & 1 & -2 & -5 & 6 \\\\ & & 1 & -1 & -6 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$X^2-X-6 = (X-3)(X+2)$\n\n$$\\boxed{P(X) = (X-1)^2(X-3)(X+2)}$$'
+    solution: 'Din $P(1) = 0$: $\\quad 1 - 3 - a + 3a + 2 - 6 = 2a - 6 = 0 \\Rightarrow a = 3$\n\nVerificăm $P\'(1) = 0$: $P\'(X) = 4X^3-9X^2-6X+11 \\Rightarrow P\'(1) = 4-9-6+11 = 0$ ✓\n\n$P(X) = X^4-3X^3-3X^2+11X-6$. Împărțim de două ori prin $(X-1)$:\n$$\\begin{array}{c|ccccc} 1 & 1 & -3 & -3 & 11 & -6 \\\\ & & 1 & -2 & -5 & 6 \\\\ \\hline & 1 & -2 & -5 & 6 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 1 & 1 & -2 & -5 & 6 \\\\ & & 1 & -1 & -6 \\\\ \\hline & 1 & -1 & -6 & 0 \\end{array}$$\n\n$X^2-X-6 = (X-3)(X+2)$\n\n$$\\boxed{P(X) = (X-1)^2(X-3)(X+2)}$$',
+    barem: [
+      { descriere: 'P(1) = 0 \\Rightarrow a = 3', puncte_maxime: 2 },
+      { descriere: 'C_1(X) = X^3 - 2X^2 - 5X + 6', puncte_maxime: 2 },
+      { descriere: 'C_2(X) = X^2 - X - 6', puncte_maxime: 2 },
+      { descriere: 'P(X) = (X-1)^2(X-3)(X+2)', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-049', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Descompunere în factori cu rădăcina dublă X=2',
     statement: 'Descompuneți în factori ireductibili polinomul\n$$P(X) = X^4 - 8X^3 + 15X^2 + 4X - 20$$\nștiind că $X = 2$ este o rădăcină dublă a polinomului $P(X)$.',
-    solution: '$P(2) = 16-64+60+8-20 = 0$ ✓ și $P\'(2) = 32-96+60+4 = 0$ ✓\n\nÎmpărțim de două ori prin $(X-2)$:\n$$\\begin{array}{c|ccccc} 2 & 1 & -8 & 15 & 4 & -20 \\\\ & & 2 & -12 & 6 & 20 \\\\ \\hline & 1 & -6 & 3 & 10 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 2 & 1 & -6 & 3 & 10 \\\\ & & 2 & -8 & -10 \\\\ \\hline & 1 & -4 & -5 & 0 \\end{array}$$\n\n$X^2-4X-5 = (X-5)(X+1)$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+1)}$$'
+    solution: '$P(2) = 16-64+60+8-20 = 0$ ✓ și $P\'(2) = 32-96+60+4 = 0$ ✓\n\nÎmpărțim de două ori prin $(X-2)$:\n$$\\begin{array}{c|ccccc} 2 & 1 & -8 & 15 & 4 & -20 \\\\ & & 2 & -12 & 6 & 20 \\\\ \\hline & 1 & -6 & 3 & 10 & 0 \\end{array}$$\n$$\\begin{array}{c|cccc} 2 & 1 & -6 & 3 & 10 \\\\ & & 2 & -8 & -10 \\\\ \\hline & 1 & -4 & -5 & 0 \\end{array}$$\n\n$X^2-4X-5 = (X-5)(X+1)$\n\n$$\\boxed{P(X) = (X-2)^2(X-5)(X+1)}$$',
+    barem: [
+      { descriere: 'Obținerea câtului $X^3 - 6X^2 + 3X + 10$ (prin prima împărțire la $X-2$)', puncte_maxime: 2 },
+      { descriere: 'Obținerea câtului $X^2 - 4X - 5$ (prin a doua împărțire la $X-2$)', puncte_maxime: 2 },
+      { descriere: 'Determinarea rădăcinilor $x_1 = -1$ și $x_2 = 5$ ale polinomului $X^2 - 4X - 5$', puncte_maxime: 2 },
+      { descriere: 'Scrierea descompunerii finale $P(X) = (X-2)^2(X+1)(X-5)$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-050', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = X^3 - 6X^2 - 2$$\nla polinomul $Q(X) = X^2 - 2$.',
-    solution: '$R(X) = bX+c$. Rădăcinile lui $X^2-2$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 2\\sqrt{2} - 12 - 2 = 2\\sqrt{2} - 14 = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = -2\\sqrt{2} - 12 - 2 = -2\\sqrt{2} - 14 = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -14$\n\n$$\\boxed{R(X) = 2X - 14}$$'
+    solution: '$R(X) = bX+c$. Rădăcinile lui $X^2-2$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 2\\sqrt{2} - 12 - 2 = 2\\sqrt{2} - 14 = b\\sqrt{2} + c$$\n$$P(-\\sqrt{2}) = -2\\sqrt{2} - 12 - 2 = -2\\sqrt{2} - 14 = -b\\sqrt{2} + c$$\n\n$b = 2,\\; c = -14$\n\n$$\\boxed{R(X) = 2X - 14}$$',
+    barem: [
+      { descriere: 'R(X) = bX + c', puncte_maxime: 2 },
+      { descriere: 'Obținerea valorilor b = 2 și c = -14', puncte_maxime: 2 },
+      { descriere: 'R(X) = 2X - 14', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-051', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate cu X+1',
     statement: 'Fie polinomul $P(X) = 2X^3 + 3X^2 - (a+1)X + 2$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X + 1$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$2(-1)^3 + 3(-1)^2 - (a+1)(-1) + 2 = 0$$\n$$-2 + 3 + (a+1) + 2 = 0$$\n$$a + 4 = 0 \\Rightarrow \\boxed{a = -4}$$'
+    solution: 'Dacă $P(X)$ este divizibil cu $(X+1)$, atunci $P(-1) = 0$:\n$$2(-1)^3 + 3(-1)^2 - (a+1)(-1) + 2 = 0$$\n$$-2 + 3 + (a+1) + 2 = 0$$\n$$a + 4 = 0 \\Rightarrow \\boxed{a = -4}$$',
+    barem: [
+      { descriere: 'P(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'a + 4 = 0', puncte_maxime: 2 },
+      { descriere: 'a = -4', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-052', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=−3 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$ pentru care $X = -3$ este rădăcină a polinomului\n$$P(X) = X^3 + (a-1)X^2 - 5X + 3$$',
-    solution: '$P(-3) = 0$:\n$$-27 + 9(a-1) + 15 + 3 = 0$$\n$$9a - 18 = 0 \\Rightarrow \\boxed{a = 2}$$'
+    solution: '$P(-3) = 0$:\n$$-27 + 9(a-1) + 15 + 3 = 0$$\n$$9a - 18 = 0 \\Rightarrow \\boxed{a = 2}$$',
+    barem: [
+      { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
+      { descriere: '$P(-3) = 9a - 18$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $a = 2$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-053', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²+2',
     statement: 'Determinați restul împărțirii polinomului\n$$P(X) = 2X^3 + X^2 - 2$$\nla polinomul $Q(X) = X^2 + 2$.',
-    solution: '$X^2+2$ nu are rădăcini reale, deci împărțim direct cu rest:\n\n$2X^3 \\div X^2 = 2X$; $\\quad 2X(X^2+2) = 2X^3+4X$; rest: $X^2-4X-2$\n\n$X^2 \\div X^2 = 1$; $\\quad 1(X^2+2) = X^2+2$; rest: $-4X-4$\n\n$$P(X) = (X^2+2)(2X+1) + (-4X-4)$$\n\n$$\\boxed{R(X) = -4X - 4}$$'
+    solution: '$X^2+2$ nu are rădăcini reale, deci împărțim direct cu rest:\n\n$2X^3 \\div X^2 = 2X$; $\\quad 2X(X^2+2) = 2X^3+4X$; rest: $X^2-4X-2$\n\n$X^2 \\div X^2 = 1$; $\\quad 1(X^2+2) = X^2+2$; rest: $-4X-4$\n\n$$P(X) = (X^2+2)(2X+1) + (-4X-4)$$\n\n$$\\boxed{R(X) = -4X - 4}$$',
+    barem: [
+      { descriere: 'Identificarea câtului $2X + 1$', puncte_maxime: 2 },
+      { descriere: 'Obținerea restului $-4X - 4$', puncte_maxime: 3 }
+    ]
   },
   {
     id: 'alg-pol-054', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului — ecuație de grad 2',
     statement: 'Fie polinomul $P(X) = 3X^3 + (a+3)X^2 - a^2X - 5$. Știind că restul împărțirii polinomului $P(X)$ la binomul $Q(X) = X + 2$ este egal cu $13$, determinați valorile lui $a$.',
-    solution: 'Din $P(-2) = 13$:\n$$3(-8) + (a+3)(4) - a^2(-2) - 5 = 13$$\n$$-24 + 4a + 12 + 2a^2 - 5 = 13$$\n$$2a^2 + 4a - 30 = 0 \\Rightarrow a^2 + 2a - 15 = 0$$\n$$(a+5)(a-3) = 0$$\n$$\\boxed{a = -5 \\quad \\text{sau} \\quad a = 3}$$'
+    solution: 'Din $P(-2) = 13$:\n$$3(-8) + (a+3)(4) - a^2(-2) - 5 = 13$$\n$$-24 + 4a + 12 + 2a^2 - 5 = 13$$\n$$2a^2 + 4a - 30 = 0 \\Rightarrow a^2 + 2a - 15 = 0$$\n$$(a+5)(a-3) = 0$$\n$$\\boxed{a = -5 \\quad \\text{sau} \\quad a = 3}$$',
+    barem: [
+      { descriere: 'P(-2) = 13', puncte_maxime: 2 },
+      { descriere: 'Obținerea ecuației 2a^2 + 4a - 30 = 0 (sau echivalent)', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor a = -5 și a = 3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-055', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui 5X³−2X²+X−4 la X+2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 5X^3 - 2X^2 + X - 4$ la binomul $X + 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n$$P(-2) = 5(-8) - 2(4) + (-2) - 4 = -40 - 8 - 2 - 4 = \\boxed{-54}$$'
+    solution: 'Prin teorema lui Bézout, restul este $P(-2)$:\n$$P(-2) = 5(-8) - 2(4) + (-2) - 4 = -40 - 8 - 2 - 4 = \\boxed{-54}$$',
+    barem: [
+      { descriere: 'R = P(-2)', puncte_maxime: 2 },
+      { descriere: 'Calcularea P(-2) = -54', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-056', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Aflarea lui a știind că X=2 este rădăcină a polinomului',
     statement: 'Fie polinomul $P(X) = X^3 - aX^2 + X + a$. Aflați numărul real $a$, dacă $X = 2$ este rădăcină a polinomului $P(X)$.',
-    solution: 'Din $P(2) = 0$:\n$$8 - 4a + 2 + a = 0$$\n$$10 - 3a = 0 \\Rightarrow \\boxed{a = \\dfrac{10}{3}}$$'
+    solution: 'Din $P(2) = 0$:\n$$8 - 4a + 2 + a = 0$$\n$$10 - 3a = 0 \\Rightarrow \\boxed{a = \\dfrac{10}{3}}$$',
+    barem: [
+      { descriere: 'P(2) = 0', puncte_maxime: 2 },
+      { descriere: '10 - 3a = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 10/3', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-057', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui b din condiția restului egal cu 3 la X+1',
     statement: 'Fie polinomul $P(X) = 7X^3 - 6X^2 + bX + 1$. Știind că restul împărțirii polinomului $P(X)$ la binomul $X + 1$ este egal cu $3$, aflați numărul real $b$.',
-    solution: 'Din $P(-1) = 3$:\n$$-7 - 6 - b + 1 = 3$$\n$$-12 - b = 3 \\Rightarrow \\boxed{b = -15}$$'
+    solution: 'Din $P(-1) = 3$:\n$$-7 - 6 - b + 1 = 3$$\n$$-12 - b = 3 \\Rightarrow \\boxed{b = -15}$$',
+    barem: [
+      { descriere: 'P(-1) = 3', puncte_maxime: 2 },
+      { descriere: 'Obținerea -12 - b = 3', puncte_maxime: 2 },
+      { descriere: 'Obținerea răspunsului corect b = -15', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-058', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția restului egal cu 4 la X−2',
     statement: 'Fie polinomul $P(X) = 2X^3 + (a-2)X^2 - 3aX + 10$. Determinați valorile reale ale lui $a$, știind că restul împărțirii polinomului la binomul $Q(X) = X - 2$ este egal cu $4$.',
-    solution: 'Din $P(2) = 4$:\n$$16 + (a-2)(4) - 6a + 10 = 4$$\n$$16 + 4a - 8 - 6a + 10 = 4$$\n$$-2a + 18 = 4 \\Rightarrow \\boxed{a = 7}$$'
+    solution: 'Din $P(2) = 4$:\n$$16 + (a-2)(4) - 6a + 10 = 4$$\n$$16 + 4a - 8 - 6a + 10 = 4$$\n$$-2a + 18 = 4 \\Rightarrow \\boxed{a = 7}$$',
+    barem: [
+      { descriere: 'P(2) = 4', puncte_maxime: 2 },
+      { descriere: 'P(2) = -2a + 18', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 7', puncte_maxime: 1 }
+    ]
   },
 
   {
     id: 'alg-pol-059', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția că X=−1 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$, pentru care $X = -1$ este rădăcină a polinomului\n$$P(X) = X^3 - X^2 + (a-2)X + 1$$',
     solution: '$P(-1) = 0$:\n$$-1 - 1 + (a-2)(-1) + 1 = 0$$\n$$-1 - 1 - a + 2 + 1 = 1 - a = 0 \\Rightarrow \\boxed{a = 1}$$',
     barem: [
-      { descriere: 'Scrierea condiției $P(-1) = 0$', puncte_maxime: 2 },
-      { descriere: 'Calcularea $P(-1) = -a + 1$', puncte_maxime: 2 },
+      { descriere: '$P(-1) = 0$', puncte_maxime: 2 },
+      { descriere: '$P(-1) = -a + 1$', puncte_maxime: 2 },
       { descriere: 'Obținerea $a = 1$', puncte_maxime: 1 }
     ]
   },
   {
     id: 'alg-pol-060', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui 2X³+X²−5X+1 la X−2',
     statement: 'Determinați restul împărțirii polinomului $P(X) = 2X^3 + X^2 - 5X + 1$ la binomul $X - 2$.',
-    solution: 'Prin teorema lui Bézout, restul este $P(2)$:\n$$P(2) = 16 + 4 - 10 + 1 = \\boxed{11}$$'
+    solution: 'Prin teorema lui Bézout, restul este $P(2)$:\n$$P(2) = 16 + 4 - 10 + 1 = \\boxed{11}$$',
+    barem: [
+      { descriere: '$R = P(2)$', puncte_maxime: 2 },
+      { descriere: 'Calcularea $P(2) = 11$', puncte_maxime: 2 },
+      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-061', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii lui X³−2X²+16 la X²−1',
     statement: 'Determinați restul împărțirii polinomului $P(X) = X^3 - 2X^2 + 16$ la polinomul $Q(X) = X^2 - 1$.',
-    solution: '$R(X) = bX+c$. Deoarece $X^2-1 = (X-1)(X+1)$, evaluăm în $X=1$ și $X=-1$:\n\n$$P(1) = 1 - 2 + 16 = 15 = b + c \\quad (1)$$\n$$P(-1) = -1 - 2 + 16 = 13 = -b + c \\quad (2)$$\n\nDin $(1)+(2)$: $2c = 28 \\Rightarrow c = 14,\\; b = 1$\n\n$$\\boxed{R(X) = X + 14}$$'
+    solution: 'Împărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$ (restul va avea gradul $< 2$, deci forma $bX+c$).\n\nPasul 1: $X^3 : X^2 = X$. Înmulțim $X \\cdot (X^2-1) = X^3 - X$ și scădem:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n\nPasul 2: $-2X^2 : X^2 = -2$. Înmulțim $-2 \\cdot (X^2-1) = -2X^2 + 2$ și scădem:\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\n\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
+    barem: [
+      { descriere: 'Identificarea câtului $X - 2$', puncte_maxime: 2 },
+      { descriere: 'Obținerea și scrierea restului $X + 14$', puncte_maxime: 3 }
+    ]
   },
   {
     id: 'alg-pol-062', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a din condiția de divizibilitate cu X−2',
     statement: 'Fie polinomul $P(X) = X^3 - 4X^2 - aX - 4$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X - 2$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X-2)$, atunci $P(2) = 0$:\n$$8 - 16 - 2a - 4 = 0$$\n$$-12 - 2a = 0 \\Rightarrow \\boxed{a = -6}$$'
+    solution: 'Dacă $P(X)$ este divizibil cu $(X-2)$, atunci $P(2) = 0$:\n$$8 - 16 - 2a - 4 = 0$$\n$$-12 - 2a = 0 \\Rightarrow \\boxed{a = -6}$$',
+    barem: [
+      { descriere: '$P(2) = -2a - 12$', puncte_maxime: 2 },
+      { descriere: '$-2a - 12 = 0$', puncte_maxime: 2 },
+      { descriere: 'Obținerea răspunsului corect $a = -6$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-063', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Demonstrarea divizibilității unui polinom dat printr-un determinant',
     statement: 'Fie polinomul\n$$P(X) = \\begin{vmatrix} X & 3 & 0 \\\\ -1 & X & 3 \\\\ 2X & 6 & X-2 \\end{vmatrix}$$\nArătați că $P(X)$ este divizibil cu $X - 2$.',
-    solution: 'Dezvoltăm determinantul după primul rând:\n$$P(X) = X(X(X-2)-18) - 3(-(X-2)-6X)$$\n$$= X(X^2-2X-18) - 3(-7X+2)$$\n$$= X^3-2X^2-18X+21X-6$$\n$$= X^3-2X^2+3X-6$$\n\nFactorizăm prin grupare:\n$$P(X) = X^2(X-2)+3(X-2) = (X-2)(X^2+3)$$\n\nDeoarece $P(X) = (X-2)(X^2+3)$, $P(X)$ este divizibil cu $X-2$. $\\blacksquare$'
+    solution: 'Dezvoltăm determinantul după primul rând:\n$$P(X) = X(X(X-2)-18) - 3(-(X-2)-6X)$$\n$$= X(X^2-2X-18) - 3(-7X+2)$$\n$$= X^3-2X^2-18X+21X-6$$\n$$= X^3-2X^2+3X-6$$\n\nFactorizăm prin grupare:\n$$P(X) = X^2(X-2)+3(X-2) = (X-2)(X^2+3)$$\n\nDeoarece $P(X) = (X-2)(X^2+3)$, $P(X)$ este divizibil cu $X-2$. $\\blacksquare$',
+    barem: [
+      { descriere: 'Calculul determinantului (dezvoltarea după o linie/coloană)', puncte_maxime: 3 },
+      { descriere: 'Obținerea formei $P(X) = X^3 - 2X^2 + 3X - 6$', puncte_maxime: 2 },
+      { descriere: 'Factorizarea $P(X) = (X-2)(X^2+3)$', puncte_maxime: 2 },
+      { descriere: 'Finalizarea demonstrației', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-064', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate și restul la X²+3',
     statement: 'Fie polinomul $P(X) = X^4 + (m+1)X^3 + 2X^2 + 7X + 3$, care este divizibil la binomul $(X + 3)$. Determinați valoarea reală a lui $m$ și restul împărțirii lui $P(X)$ la polinomul $Q(X) = X^2 + 3$.',
-    solution: 'Din $P(-3) = 0$:\n$$81 - 27(m+1) + 18 - 21 + 3 = 0$$\n$$54 - 27m = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4 + 3X^3 + 2X^2 + 7X + 3$. Împărțim la $X^2+3$:\n\n$X^4 \\div X^2 = X^2$; rest: $3X^3-X^2+7X+3$\n\n$3X^3 \\div X^2 = 3X$; rest: $-X^2-2X+3$\n\n$-X^2 \\div X^2 = -1$; rest: $-2X+6$\n\n$$\\boxed{m = 2, \\quad R(X) = -2X + 6}$$'
+    solution: 'Din $P(-3) = 0$:\n$$81 - 27(m+1) + 18 - 21 + 3 = 0$$\n$$54 - 27m = 0 \\Rightarrow m = 2$$\n\n$P(X) = X^4 + 3X^3 + 2X^2 + 7X + 3$. Împărțim la $X^2+3$:\n\n$X^4 \\div X^2 = X^2$; rest: $3X^3-X^2+7X+3$\n\n$3X^3 \\div X^2 = 3X$; rest: $-X^2-2X+3$\n\n$-X^2 \\div X^2 = -1$; rest: $-2X+6$\n\n$$\\boxed{m = 2, \\quad R(X) = -2X + 6}$$',
+    barem: [
+      { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $m = 2$', puncte_maxime: 2 },
+      { descriere: 'Împărțirea polinomului $P(X)$ la $Q(X)$ și scrierea răspunsului corect', puncte_maxime: 4 }
+    ]
   },
   {
     id: 'alg-pol-065', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Demonstrarea că X=2 este rădăcină și determinarea celorlalte rădăcini',
     statement: 'Fie polinomul $P(X) = 4X^3 - 16X^2 + 19X - 6$. Arătați că $X = 2$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.',
-    solution: '$P(2) = 32 - 64 + 38 - 6 = 0$ ✓\n\nSchema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 4 & -16 & 19 & -6 \\\\ & & 8 & -16 & 6 \\\\ \\hline & 4 & -8 & 3 & 0 \\end{array}$$\n\n$P(X) = (X-2)(4X^2-8X+3) = (X-2)(2X-1)(2X-3)$\n\n$$\\boxed{X = \\tfrac{1}{2}, \\quad X = \\tfrac{3}{2}}$$'
+    solution: '$P(2) = 32 - 64 + 38 - 6 = 0$ ✓\n\nSchema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 4 & -16 & 19 & -6 \\\\ & & 8 & -16 & 6 \\\\ \\hline & 4 & -8 & 3 & 0 \\end{array}$$\n\n$P(X) = (X-2)(4X^2-8X+3) = (X-2)(2X-1)(2X-3)$\n\n$$\\boxed{X = \\tfrac{1}{2}, \\quad X = \\tfrac{3}{2}}$$',
+    barem: [
+      { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X-2)$', puncte_maxime: 4 },
+      { descriere: 'Determinarea rădăcinilor polinomului obținut și scrierea răspunsului corect', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-066', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Determinarea câtului împărțirii la X−2 din două condiții simultane',
     statement: 'Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 2$, $a, b \\in \\mathbb{R}$. Determinați câtul împărțirii lui $P(X)$ la binomul $X - 2$, dacă se știe că $X = 2$ este rădăcină a polinomului $P(X)$, iar restul împărțirii lui $P(X)$ la $(X + 1)$ este egal cu $3$.',
-    solution: 'Din $P(2) = 0$:\n$$16 + 4a + 2b + 2 = 0 \\Rightarrow 2a + b = -9 \\quad (1)$$\n\nDin $P(-1) = 3$:\n$$-2 + a - b + 2 = 3 \\Rightarrow a - b = 3 \\quad (2)$$\n\nDin $(1)+(2)$: $3a = -6 \\Rightarrow a = -2,\\; b = -5$\n\n$P(X) = 2X^3 - 2X^2 - 5X + 2$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 2 & -2 & -5 & 2 \\\\ & & 4 & 4 & -2 \\\\ \\hline & 2 & 2 & -1 & 0 \\end{array}$$\n\n$$\\boxed{C(X) = 2X^2 + 2X - 1}$$'
+    solution: 'Condițiile din enunț: $P(2) = 0$ și $P(-1) = 3$.\n\nObținem sistemul:\n$$16 + 4a + 2b + 2 = 0 \\quad \\text{și} \\quad -2 + a - b + 2 = 3$$\n$$\\begin{cases} 4a + 2b + 18 = 0 \\\\ a - b = 3 \\end{cases}$$\n\nRezolvăm sistemul: din a doua ecuație, $a = b+3$. Înlocuim în prima:\n$$4(b+3) + 2b + 18 = 0 \\Rightarrow 6b + 30 = 0 \\Rightarrow b = -5,\\; a = -2$$\n\n$P(X) = 2X^3 - 2X^2 - 5X + 2$. Schema Horner pentru $X = 2$:\n$$\\begin{array}{c|cccc} 2 & 2 & -2 & -5 & 2 \\\\ & & 4 & 4 & -2 \\\\ \\hline & 2 & 2 & -1 & 0 \\end{array}$$\n\n$$\\boxed{C(X) = 2X^2 + 2X - 1}$$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(2) = 0$ și $P(-1) = 3$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$ (câte 1p pentru fiecare condiție)', puncte_maxime: 2 },
+      { descriere: 'Rezolvarea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Determinarea câtului împărțirii lui $P(X)$ la $X-2$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-067', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția restului egal cu 4 la X+2',
     statement: 'Fie polinomul $P(X) = X^3 - 6X^2 + mX - 6$. Determinați valorile reale a lui $m$ pentru care restul împărțirii polinomului $P(X)$ la $(X + 2)$ este egal cu $4$.',
-    solution: 'Din $P(-2) = 4$:\n$$-8 - 24 - 2m - 6 = 4$$\n$$-38 - 2m = 4 \\Rightarrow -2m = 42 \\Rightarrow \\boxed{m = -21}$$'
+    solution: 'Din $P(-2) = 4$:\n$$-8 - 24 - 2m - 6 = 4$$\n$$-38 - 2m = 4 \\Rightarrow -2m = 42 \\Rightarrow \\boxed{m = -21}$$',
+    barem: [
+      { descriere: '$P(-2) = 4$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $-38 - 2m = 4$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii lui $m$', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-068', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=−2 este rădăcină',
     statement: 'Determinați valorile reale ale lui $a$, știind că $X = -2$ este rădăcină a polinomului $P(X) = 2X^3 + 4X + a$.',
-    solution: '$P(-2) = 0$:\n$$2(-8) + 4(-2) + a = 0$$\n$$-16 - 8 + a = 0 \\Rightarrow \\boxed{a = 24}$$'
+    solution: '$P(-2) = 0$:\n$$2(-8) + 4(-2) + a = 0$$\n$$-16 - 8 + a = 0 \\Rightarrow \\boxed{a = 24}$$',
+    barem: [
+      { descriere: 'P(-2) = 0', puncte_maxime: 2 },
+      { descriere: 'P(-2) = a - 24', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 24', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-069', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui a știind că X=1/2 este rădăcină',
     statement: 'Să se afle valoarea parametrului real $a$ pentru care $X = \\dfrac{1}{2}$ este rădăcină a polinomului $P(X) = 4X^3 - 22X^2 + aX - 14$.',
-    solution: '$P\\!\\left(\\dfrac{1}{2}\\right) = 0$:\n$$4 \\cdot \\frac{1}{8} - 22 \\cdot \\frac{1}{4} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{1}{2} - \\frac{11}{2} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{a - 10}{2} = 14 \\Rightarrow a - 10 = 28 \\Rightarrow \\boxed{a = 38}$$'
+    solution: '$P\\!\\left(\\dfrac{1}{2}\\right) = 0$:\n$$4 \\cdot \\frac{1}{8} - 22 \\cdot \\frac{1}{4} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{1}{2} - \\frac{11}{2} + \\frac{a}{2} - 14 = 0$$\n$$\\frac{a - 10}{2} = 14 \\Rightarrow a - 10 = 28 \\Rightarrow \\boxed{a = 38}$$',
+    barem: [
+      { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
+      { descriere: 'P(1/2) = a/2 - 19 (sau echivalent)', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = 38', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-070', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui m ∈ ℝ știind că X=1 este rădăcină a unui polinom de grad 4',
     statement: 'Fie polinomul $P(X) = 4X^4 + 4mX^3 + (m^2+7)X^2 + 4mX + 4$, unde $m \\in \\mathbb{R}$. Determinați $m \\in \\mathbb{R}$, știind că $X = 1$ este o rădăcină a polinomului $P(X)$.',
-    solution: '$P(1) = 0$:\n$$4 + 4m + (m^2+7) + 4m + 4 = 0$$\n$$m^2 + 8m + 15 = 0$$\n$$(m+3)(m+5) = 0$$\n$$\\boxed{m = -3 \\quad \\text{sau} \\quad m = -5}$$'
+    solution: '$P(1) = 0$:\n$$4 + 4m + (m^2+7) + 4m + 4 = 0$$\n$$m^2 + 8m + 15 = 0$$\n$$(m+3)(m+5) = 0$$\n$$\\boxed{m = -3 \\quad \\text{sau} \\quad m = -5}$$',
+    barem: [
+      { descriere: '$P(1) = 0$', puncte_maxime: 2 },
+      { descriere: '$m^2 + 8m + 15 = 0$', puncte_maxime: 2 },
+      { descriere: '$m = -3, m = -5$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-071', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul împărțirii unui polinom de grad 3 la X²−2',
     statement: 'Aflați restul împărțirii $P(X) = 3X^3 - 4X^2 + 5X - 1$ la $Q(X) = X^2 - 2$.',
-    solution: '$R(X) = aX+b$. Rădăcinile lui $Q$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 6\\sqrt{2} - 8 + 5\\sqrt{2} - 1 = 11\\sqrt{2} - 9 = a\\sqrt{2} + b$$\n$$P(-\\sqrt{2}) = -6\\sqrt{2} - 8 - 5\\sqrt{2} - 1 = -11\\sqrt{2} - 9 = -a\\sqrt{2} + b$$\n\n$a = 11,\\; b = -9$\n\n$$\\boxed{R(X) = 11X - 9}$$'
+    solution: '$R(X) = aX+b$. Rădăcinile lui $Q$: $X = \\pm\\sqrt{2}$.\n\n$$P(\\sqrt{2}) = 6\\sqrt{2} - 8 + 5\\sqrt{2} - 1 = 11\\sqrt{2} - 9 = a\\sqrt{2} + b$$\n$$P(-\\sqrt{2}) = -6\\sqrt{2} - 8 - 5\\sqrt{2} - 1 = -11\\sqrt{2} - 9 = -a\\sqrt{2} + b$$\n\n$a = 11,\\; b = -9$\n\n$$\\boxed{R(X) = 11X - 9}$$',
+    barem: [
+      { descriere: '$R(X) = aX + b$', puncte_maxime: 2 },
+      { descriere: '$P(\\sqrt{2}) = 11\\sqrt{2} - 9$', puncte_maxime: 2 },
+      { descriere: '$R(X) = 11X - 9$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-072', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea coeficienților din resturile la X−1 și X+2, apoi restul la X−2',
     statement: 'Împărțind polinomul $P(X) = X^3 + aX^2 + bX + 3$ la binomul $X - 1$ și la binomul $X + 2$, se obțin resturile $5$, respectiv $17$. Aflați restul împărțirii polinomului $P(X)$ la $X - 2$.',
-    solution: 'Din $P(1) = 5$:\n$$1 + a + b + 3 = 5 \\Rightarrow a + b = 1 \\quad (1)$$\n\nDin $P(-2) = 17$:\n$$-8 + 4a - 2b + 3 = 17 \\Rightarrow 2a - b = 11 \\quad (2)$$\n\nDin $(1)+(2)$: $3a = 12 \\Rightarrow a = 4,\\; b = -3$\n\n$P(X) = X^3 + 4X^2 - 3X + 3$\n\nRestul la $(X-2)$: $P(2) = 8 + 16 - 6 + 3 = \\boxed{21}$'
+    solution: 'Din $P(1) = 5$:\n$$1 + a + b + 3 = 5 \\Rightarrow a + b = 1 \\quad (1)$$\n\nDin $P(-2) = 17$:\n$$-8 + 4a - 2b + 3 = 17 \\Rightarrow 2a - b = 11 \\quad (2)$$\n\nDin $(1)+(2)$: $3a = 12 \\Rightarrow a = 4,\\; b = -3$\n\n$P(X) = X^3 + 4X^2 - 3X + 3$\n\nRestul la $(X-2)$: $P(2) = 8 + 16 - 6 + 3 = \\boxed{21}$',
+    barem: [
+      { descriere: 'Scrierea condițiilor $P(1) = 5$ și $P(-2) = 17$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} a+b=1 \\\\ 2a-b=11 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorilor $a = 4$ și $b = -3$', puncte_maxime: 2 },
+      { descriere: 'Calcularea $P(2) = 21$ și scrierea răspunsului corect', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-073', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Restul la X−2 cunoscând că X=−1 este rădăcină',
     statement: 'Aflați restul împărțirii polinomului $P(X) = 3X^3 + aX^2 - 2aX + 7$ la binomul $X - 2$, știind că $X = -1$ este rădăcină a acestui polinom.',
-    solution: 'Din $P(-1) = 0$:\n$$-3 + a + 2a + 7 = 0 \\Rightarrow 3a + 4 = 0 \\Rightarrow a = -\\dfrac{4}{3}$$\n\nRestul la $(X-2)$: $P(2) = 3(8) + a(4) - 2a(2) + 7 = 24 + 4a - 4a + 7 = 31$\n\n(Termenii cu $a$ se anulează!)\n\n$$\\boxed{\\text{Restul} = 31}$$'
+    solution: 'Din $P(-1) = 0$:\n$$-3 + a + 2a + 7 = 0 \\Rightarrow 3a + 4 = 0 \\Rightarrow a = -\\dfrac{4}{3}$$\n\nRestul la $(X-2)$: $P(2) = 3(8) + a(4) - 2a(2) + 7 = 24 + 4a - 4a + 7 = 31$\n\n(Termenii cu $a$ se anulează!)\n\n$$\\boxed{\\text{Restul} = 31}$$',
+    barem: [
+      { descriere: 'P(-1) = 0', puncte_maxime: 2 },
+      { descriere: 'Obținerea a = -4/3', puncte_maxime: 1 },
+      { descriere: 'Calcularea restului P(2) = 31', puncte_maxime: 2 }
+    ]
   },
   {
     id: 'alg-pol-074', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
+    puncteEstimat: true,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinarea lui a și b din resturile la X+2 și X+3',
     statement: 'Împărțind polinomul $P(X) = X^3 + aX^2 + bX + 3$ la binomul $X + 2$, se obține restul $1$, iar la binomul $X + 3$, se obține restul $-3$. Determinați $a, b \\in \\mathbb{R}$.',
-    solution: 'Din $P(-2) = 1$:\n$$-8 + 4a - 2b + 3 = 1 \\Rightarrow 2a - b = 3 \\quad (1)$$\n\nDin $P(-3) = -3$:\n$$-27 + 9a - 3b + 3 = -3 \\Rightarrow 3a - b = 7 \\quad (2)$$\n\nDin $(2)-(1)$: $a = 4$, înlocuim în $(1)$: $b = 5$\n\nVerificare: $P(-2) = -8+16-10+3 = 1$ ✓, $P(-3) = -27+36-15+3 = -3$ ✓\n\n$$\\boxed{a = 4, \\quad b = 5}$$'
+    solution: 'Din $P(-2) = 1$:\n$$-8 + 4a - 2b + 3 = 1 \\Rightarrow 2a - b = 3 \\quad (1)$$\n\nDin $P(-3) = -3$:\n$$-27 + 9a - 3b + 3 = -3 \\Rightarrow 3a - b = 7 \\quad (2)$$\n\nDin $(2)-(1)$: $a = 4$, înlocuim în $(1)$: $b = 5$\n\nVerificare: $P(-2) = -8+16-10+3 = 1$ ✓, $P(-3) = -27+36-15+3 = -3$ ✓\n\n$$\\boxed{a = 4, \\quad b = 5}$$',
+    barem: [
+      { descriere: '$P(-2) = 1$ și $P(-3) = -3$', puncte_maxime: 2 },
+      { descriere: 'Obținerea sistemului $\\begin{cases} 2a - b = 3 \\\\ 3a - b = 7 \\end{cases}$', puncte_maxime: 2 },
+      { descriere: 'Obținerea valorilor $a = 4$ și $b = 5$', puncte_maxime: 1 }
+    ]
   },
   {
     id: 'alg-pol-075', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui m din condiția de divizibilitate cu X+2',
     statement: 'Să se afle valorile parametrului real $m$ pentru care polinomul $P(X) = 2X^5 + 5X^2 - m$ se divide cu binomul $X + 2$.',
-    solution: 'Dacă $P(X)$ este divizibil cu $(X+2)$, atunci $P(-2) = 0$:\n$$2(-32) + 5(4) - m = 0$$\n$$-64 + 20 - m = 0$$\n$$-44 = m$$\n$$\\boxed{m = -44}$$'
+    solution: 'Dacă $P(X)$ este divizibil cu $(X+2)$, atunci $P(-2) = 0$:\n$$2(-32) + 5(4) - m = 0$$\n$$-64 + 20 - m = 0$$\n$$-44 = m$$\n$$\\boxed{m = -44}$$',
+    barem: [
+      { descriere: 'P(-2) = 0', puncte_maxime: 2 },
+      { descriere: '-44 - m = 0', puncte_maxime: 2 },
+      { descriere: 'm = -44', puncte_maxime: 1 }
+    ]
+  },
+  {
+    id: 'alg-pol-076', categoryId: 'algebra', subcategoryId: 'polinoame',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Determinarea lui a și b din condiția de rădăcină dublă X=2',
+    statement: 'Determinați valorile reale ale lui $a$ și $b$, pentru care $X = 2$ este rădăcină dublă a polinomului\n$$P(X) = X^4 - 2X^3 + aX + b$$',
+    solution: '$X=2$ este rădăcină dublă $\\Rightarrow$ $X=2$ este rădăcină a lui $P(X)$, iar câtul împărțirii lui $P(X)$ la $(X-2)$ are tot $X=2$ ca rădăcină.\n\nDin $P(2) = 0$:\n$$16 - 16 + 2a + b = 0 \\Rightarrow 2a + b = 0 \\Rightarrow b = -2a$$\n\nÎmpărțim $P(X)$ la $(X-2)$ (schema Horner, cu $b=-2a$):\n$$\\begin{array}{c|ccccc} 2 & 1 & -2 & 0 & a & -2a \\\\ & & 2 & 0 & 0 & 2a \\\\ \\hline & 1 & 0 & 0 & a & 0 \\end{array}$$\n$$P(X) = (X-2)(X^3+a)$$\n\nPentru ca $X=2$ să fie rădăcină dublă a lui $P(X)$, $X=2$ trebuie să fie rădăcină și a câtului $Q(X) = X^3+a$:\n$$Q(2) = 0 \\Rightarrow 8 + a = 0 \\Rightarrow a = -8$$\n\nDin $b = -2a$: $b = 16$.\n\n$$\\boxed{a = -8, \\quad b = 16}$$\n\n**Metodă alternativă (prin derivată):** $X=2$ rădăcină dublă $\\Rightarrow P(2)=0$ și $P\'(2)=0$.\n$$P\'(X) = 4X^3 - 6X^2 + a \\Rightarrow P\'(2) = 32 - 24 + a = 0 \\Rightarrow a = -8$$\nDin $P(2)=0$: $b = -2a = 16$ (același rezultat).',
+    barem: [
+      { descriere: '$P(2) = 0 \\Rightarrow b = -2a$', puncte_maxime: 2 },
+      { descriere: '$P(X) = (X-2)(X^3+a)$', puncte_maxime: 2 },
+      { descriere: 'Condiția că $X = 2$ este rădăcină simplă a polinomului $Q(X) = X^3+a$', puncte_maxime: 2 },
+      { descriere: 'Obținerea $a = -8,\\ b = 16$', puncte_maxime: 2 }
+    ]
   },
 
   /* ============================================================
@@ -3131,6 +3843,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-002', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produsul părților reală și imaginară',
     statement: 'Determinați produsul dintre partea reală și partea imaginară a numărului complex\n$$z = 3 + \\frac{2+3i}{3-2i}$$\nunde $i^2 = -1$.',
@@ -3138,6 +3851,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-003', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex dat printr-un determinant',
     statement: 'Determinați conjugatul numărului complex\n$$z = \\begin{vmatrix} -3-2i & 5 \\\\ -2i & 3+i \\end{vmatrix}$$\nunde $i^2 = -1$.',
@@ -3152,6 +3866,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-005', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară în ℂ',
     statement: 'Rezolvați în $\\mathbb{C}$ ecuația\n$$(4+3i)z = 2-i$$',
@@ -3159,6 +3874,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-006', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat ca produs',
     statement: 'Determinați modulul numărului complex\n$$z = -\\frac{(1-5i)(3+2i)}{13}$$',
@@ -3180,6 +3896,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-009', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex cu puteri ale lui i',
     statement: 'Determinați modulul numărului complex\n$$z = \\frac{10}{1+3i} + 3i^{10}$$',
@@ -3201,6 +3918,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-012', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui determinant cu puteri ale lui i',
     statement: 'Determinați conjugatul numărului complex\n$$z = \\begin{vmatrix} i^{101} & 1+i \\\\ 2-i & i^{50} \\end{vmatrix}$$',
@@ -3215,6 +3933,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-014', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produsul părților reală și imaginară',
     statement: 'Determinați produsul dintre partea reală și partea imaginară a numărului complex\n$$z = \\frac{50}{1-7i}+3$$',
@@ -3222,6 +3941,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-015', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară în ℂ',
     statement: 'Rezolvați în $\\mathbb{C}$ ecuația\n$$(2+i)z = 5+5i$$',
@@ -3229,6 +3949,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-016', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație în ℂ cu determinant de ordinul 3',
     statement: 'Fie\n$$D(z) = \\begin{vmatrix} z-1 & 2 & 0 \\\\ -2 & z-1 & 0 \\\\ 5 & 7 & z-i \\end{vmatrix}$$\nunde $i^2 = -1$. Rezolvați în $\\mathbb{C}$ ecuația $D(z) = 0$.',
@@ -3250,6 +3971,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-019', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Condiție ca un număr complex să fie real',
     statement: 'Fie $a \\in \\mathbb{R}$ și\n$$z = \\frac{a+2i}{2+ai}$$\nDeterminați $a$, pentru care $z \\in \\mathbb{R}$.',
@@ -3264,6 +3986,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-021', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Rezolvare ecuație cu conjugat în ℂ',
     statement: 'Să se rezolve în $\\mathbb{C}$ ecuația\n$$2z+3\\bar{z} = 15-2i$$',
@@ -3278,6 +4001,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-023', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul lui z din ecuație liniară',
     statement: 'Determinați conjugatul lui $z$, pentru care\n$$(1-3i)z = 10i$$',
@@ -3313,6 +4037,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-028', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat printr-un determinant',
     statement: 'Calculați modulul numărului complex\n$$z = \\begin{vmatrix} 3+2i & 2i^3 \\\\ 1 & 1+i \\end{vmatrix}$$\nunde $i^2 = -1$.',
@@ -3320,6 +4045,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-029', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui cât de numere complexe',
     statement: 'Determinați modulul numărului complex\n$$z = \\frac{3+2i}{2-3i}$$\nunde $i^2 = -1$.',
@@ -3341,6 +4067,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-032', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Raportul Im/Re al unui număr complex',
     statement: 'Fie numărul complex\n$$z = (1-3i)(3-4i)+6+2i^3$$\nunde $i^2 = -1$. Calculați $\\dfrac{\\text{Im}\\,z}{\\text{Re}\\,z}$.',
@@ -3355,6 +4082,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-034', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinantul unei matrice cu puteri ale lui i',
     statement: 'Calculați determinantul matricei\n$$A = \\begin{pmatrix} i^3 & 2-4i \\\\ 1-3i & 4-i \\end{pmatrix}$$\nunde $i^2 = -1$.',
@@ -3369,6 +4097,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-036', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex dat ca fracție',
     statement: 'Determinați conjugatul numărului complex\n$$z = \\frac{2-9i}{4-i}$$\nunde $i^2 = -1$.',
@@ -3390,6 +4119,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-039', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat printr-un determinant',
     statement: 'Fie numărul complex\n$$z = \\begin{vmatrix} 2+2i & 6 \\\\ 1 & 5-i \\end{vmatrix}$$\nunde $i^2 = -1$. Calculați modulul lui $z$.',
@@ -3397,6 +4127,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-040', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Diferența Re−Im pentru un număr complex',
     statement: 'Fie numărul complex\n$$z = (3-5i)(1+42i)-6+7i^{13}$$\nunde $i^2 = -1$. Calculați diferența dintre partea reală și partea imaginară.',
@@ -3404,6 +4135,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-041', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Raportul Re/Im pentru un determinant de ordinul 3',
     statement: 'Fie numărul complex\n$$z = \\begin{vmatrix} 1 & 2-i & 0 \\\\ 1+i & 1 & 2 \\\\ 3 & 1-i & -1 \\end{vmatrix}$$\nunde $i^2 = -1$. Aflați $\\dfrac{\\text{Re}\\,z}{\\text{Im}\\,z}$.',
@@ -3418,6 +4150,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-043', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Raportul Im/Re al unui număr complex',
     statement: 'Fie numărul complex\n$$z = (3+2i)(6-i)-6+2i^7$$\nunde $i^2 = -1$. Calculați $\\dfrac{\\text{Im}\\,z}{\\text{Re}\\,z}$.',
@@ -3432,6 +4165,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-045', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex',
     statement: 'Fie numărul complex\n$$z = (2i-5)(1+4i)+1-13i^7$$\nunde $i^2 = -1$. Calculați modulul numărului complex $z$.',
@@ -3439,6 +4173,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-046', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Inversul unui număr complex',
     statement: 'Fie numărul complex\n$$z = 1+2i$$\nunde $i^2 = -1$. Calculați inversul numărului complex $z$.',
@@ -3446,6 +4181,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-047', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinantul unei matrice cu puteri ale lui i',
     statement: 'Calculați determinantul matricei\n$$A = \\begin{pmatrix} 1+i & i^5 \\\\ 2 & 1-2i \\end{pmatrix}$$\nunde $i^2 = -1$.',
@@ -3453,6 +4189,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-048', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat ca produs minus putere de i',
     statement: 'Determinați modulul numărului complex\n$$z = (2-i)(2+i)-12i^3$$\nunde $i^2 = -1$.',
@@ -3460,6 +4197,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-049', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui cât cu produs la numitor',
     statement: 'Aflați modulul numărului complex\n$$z = \\frac{5+i}{(1+i)(2-3i)}$$',
@@ -3467,6 +4205,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-050', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară în mulțimea numerelor complexe',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(4-3i) \\cdot z = 2+i$$',
@@ -3474,6 +4213,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-051', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație cu conjugat în mulțimea numerelor complexe',
     statement: 'Să se rezolve în mulțimea $\\mathbb{C}$ ecuația\n$$z + 2 \\cdot \\bar{z} = 3-2i$$\nunde $\\bar{z}$ reprezintă conjugatul numărului complex $z$.',
@@ -3502,6 +4242,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-055', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Formă algebrică a unui număr complex cu funcții trigonometrice',
     statement: 'Să se scrie în formă algebrică numărul complex\n$$z = \\frac{\\sin x + i\\cos x}{\\sin x - i\\cos x} + \\frac{-\\sin x + i\\cos x}{\\sin x + i\\cos x}$$\n$x \\in \\mathbb{R}$.',
@@ -3523,6 +4264,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-058', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui cât de numere complexe',
     statement: 'Aflați modulul numărului complex\n$$z = \\frac{5+8i}{8-5i}$$',
@@ -3531,6 +4273,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-059', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Suma dintre partea reală și imaginară',
     statement: 'Fie numărul complex\n$$z = (3-i)^2 + 2i^5 - 4$$\nDeterminați suma dintre partea reală și partea imaginară a numărului $z$.',
@@ -3547,6 +4290,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-061', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(3+2i)z = 5+i$$',
@@ -3563,6 +4307,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-063', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație bicuadrată în ℂ prin substituție',
     statement: 'Să se rezolve în mulțimea $\\mathbb{C}$ ecuația\n$$(z^2-3z)^2 + 3(z^2-3z) - 28 = 0$$',
@@ -3571,6 +4316,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-064', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unei combinații de numere complexe',
     statement: 'Fie numerele complexe $z_1 = 2+i$ și $z_2 = 1+2i$. Să se afle conjugatul numărului complex\n$$z = z_1 + z_2 + z_1 \\cdot z_2$$',
@@ -3579,6 +4325,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-065', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Numere reale din egalitate de numere complexe',
     statement: 'Aflați numerele reale $x$ și $y$ din egalitatea\n$$2+5ix-3iy = 14i+3x-5y$$',
@@ -3595,6 +4342,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-067', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Să se rezolve în mulțimea $\\mathbb{C}$ ecuația\n$$(3-2i)z = 3+i$$',
@@ -3603,6 +4351,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-068', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Demonstrație că un număr complex este real',
     statement: 'Arătați că numărul\n$$z = \\frac{1}{1+2i}+\\frac{1}{1-2i}$$\neste real.',
@@ -3611,6 +4360,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-069', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex dat printr-o expresie',
     statement: 'Aflați conjugatul numărului complex\n$$z = (2+3i)(1-i)+i+3i^2$$',
@@ -3619,6 +4369,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-070', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Formă algebrică a unui raport de puteri ale lui i',
     statement: 'Determinați numerele reale $a$ și $b$, astfel încât\n$$\\frac{2i-i^2}{3i+i^2} = a+bi$$',
@@ -3627,6 +4378,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-071', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Numere reale din egalitate de numere complexe',
     statement: 'Să se afle numerele reale $x$ și $y$ din egalitatea\n$$3xi-(10x+2yi) = -5y+3i$$',
@@ -3635,6 +4387,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-072', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(2-3i) \\cdot z = -1-5i$$',
@@ -3651,6 +4404,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-074', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui produs de numere complexe',
     statement: 'Să se afle conjugatul numărului complex\n$$z = (1+i)(2+3i)$$',
@@ -3659,6 +4413,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-075', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex în formă trigonometrică',
     statement: 'Aflați modulul numărului complex\n$$z = \\cos\\frac{\\pi}{4} - i\\sin\\frac{\\pi}{4}$$',
@@ -3667,6 +4422,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-076', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Egalitatea a două numere complexe',
     statement: 'Determinați pentru care valori reale ale lui $m$ numerele complexe\n$$z_1 = (m^2-7)+2i \\quad \\text{și} \\quad z_2 = 2+(m-1)i$$\nsunt egale.',
@@ -3691,6 +4447,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-079', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unei combinații liniare de numere complexe',
     statement: 'Fie numerele complexe $z_1 = 2+i$ și $z_2 = 1+2i$. Calculați modulul numărului complex\n$$z = 3z_1-2z_2$$',
@@ -3699,6 +4456,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-080', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(1+i)z = 1-i$$',
@@ -3707,6 +4465,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-081', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Numere reale din egalitate de numere complexe',
     statement: 'Determinați numerele reale $x$ și $y$, știind că\n$$(2x+yi)-(y+3xi) = 3-5i$$',
@@ -3731,6 +4490,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-084', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat printr-o expresie',
     statement: 'Fie numărul complex\n$$z = (-2+3i)(1-4i)-5+i$$\nSă se determine $|z|$.',
@@ -3747,6 +4507,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-086', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui cât de produse de numere complexe',
     statement: 'Să se afle modulul numărului complex\n$$z = \\frac{(1+2i)(2+i)}{1+i}$$',
@@ -3755,6 +4516,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-087', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Numere reale din egalitate de numere complexe',
     statement: 'Determinați numerele reale $x$ și $y$ din relația\n$$(4-i)x+(2+5i)y = 8+5i$$',
@@ -3763,6 +4525,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-088', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex definit printr-o relație',
     statement: 'Determinați conjugatul numărului complex $z$, pentru care\n$$\\frac{z}{1+i} = 2-i^3$$',
@@ -3779,6 +4542,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-090', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Suma dintre partea reală și imaginară',
     statement: 'Fie\n$$z = 4i^3+(3+i)^2-5$$\nDeterminați suma dintre partea reală și partea imaginară a numărului complex $z$.',
@@ -3795,6 +4559,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-092', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Parametru real din condiția de modul',
     statement: 'Determinați valorile reale ale lui $a$ pentru care numărul complex\n$$z = a+3i$$\nare modulul egal cu $5$.',
@@ -3803,6 +4568,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-093', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Să se rezolve în mulțimea $\\mathbb{C}$ ecuația\n$$(3-i)z = 2+3i$$',
@@ -3851,6 +4617,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-099', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Condiție de realitate pentru o expresie complexă',
     statement: 'Se consideră numărul complex $z = 2+(2a-3)i$, unde $a \\in \\mathbb{R}$. Determinați $a$, astfel încât numărul $z+iz$ să fie real.',
@@ -3859,6 +4626,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-100', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Parametru pozitiv din condiția de modul',
     statement: 'Determinați numărul real pozitiv $m$, știind că modulul numărului complex\n$$z = 3+mi$$\neste egal cu $5$.',
@@ -3867,6 +4635,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-101', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Numere complexe reciproc conjugate cu expresii logaritmice',
     statement: 'Determinați valorile reale ale lui $x$ pentru care numerele complexe\n$$z_1 = \\lg(2x^2+x+1)+i\\cdot 4^x \\quad \\text{și} \\quad z_2 = \\lg(x^2+1)+i\\cdot(2^{x+1}-3)$$\nsunt reciproc conjugate.',
@@ -3875,6 +4644,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-102', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(3+2i)z = 20-4i$$',
@@ -3883,6 +4653,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-103', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinantul unei matrice cu elemente complexe',
     statement: 'Calculați determinantul matricei\n$$A = \\begin{pmatrix} 2+5i & -3 \\\\ i^5 & 2-5i \\end{pmatrix}, \\quad i^2 = -1$$',
@@ -3891,6 +4662,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-104', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat printr-o expresie',
     statement: 'Determinați modulul numărului complex\n$$z = (7+3i)^2+33i^7, \\quad i^2 = -1$$',
@@ -3899,6 +4671,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-105', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Demonstrație că o expresie complexă este număr natural',
     statement: 'Fie numerele complexe $z_1 = 1+2i$ și $z_2 = 1-i$. Arătați că numărul\n$$w = z_1^2+4z_2$$\neste un număr natural.',
@@ -3907,6 +4680,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-106', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr complex din expresia conjugatului',
     statement: 'Fie $\\bar{z} = (3+5i)(3-5i)+2-7i^3$, unde $\\bar{z}$ este conjugatul numărului complex $z$. Determinați numărul complex $z$.',
@@ -3931,6 +4705,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-109', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară cu coeficient complex',
     statement: 'Rezolvați în mulțimea $\\mathbb{C}$ ecuația\n$$(5-i)z = 13$$',
@@ -3939,6 +4714,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-110', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex dat printr-o expresie',
     statement: 'Determinați modulul numărului complex\n$$z = (5-3i)^2-42i^3, \\quad i^2 = -1$$',
@@ -3947,6 +4723,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-111', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex definit ca determinant',
     statement: 'Determinați conjugatul numărului complex\n$$z = \\begin{vmatrix} 3-2i & i \\\\ 5 & 3+2i \\end{vmatrix}, \\quad i^2 = -1$$',
@@ -3979,6 +4756,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-115', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Raportul dintre partea imaginară și cea reală',
     statement: 'Fie numărul complex\n$$z = \\frac{15+20i}{2+i}$$\nDeterminați numărul $w = \\dfrac{\\text{Im}\\,z}{\\text{Re}\\,z}$.',
@@ -4003,6 +4781,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-118', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui cât de numere complexe',
     statement: 'Determinați modulul numărului complex\n$$z = \\frac{3+4i}{2+i}, \\quad i^2 = -1$$',
@@ -4011,6 +4790,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-119', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Numere reale din determinant egal cu număr complex dat',
     statement: 'Fie\n$$z = \\begin{vmatrix} 2x+yi & 3x-yi \\\\ -i^3 & 1 \\end{vmatrix}$$\nAflați numerele reale $x$ și $y$, astfel încât $z = 3-5i$, unde $i^2 = -1$.',
@@ -4035,6 +4815,7 @@ BM.EXERCISES = [
 
   {
     id: 'alg-cx-122', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Partea reală a unui număr complex definit ca determinant',
     statement: 'Determinați partea reală a numărului complex\n$$z = \\begin{vmatrix} 2i & 2i-3 \\\\ 2i+3 & 5 \\end{vmatrix}, \\quad i^2 = -1$$',
@@ -4055,6 +4836,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-124', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex — expresie cu puteri de i',
     statement: 'Determinați modulul numărului complex\n$$z = (2+2i)(2-2i)+6i^3,$$\nunde $i^2 = -1$.',
@@ -4062,6 +4844,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-125', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Conjugatul unui număr complex definit printr-un determinant',
     statement: 'Determinați conjugatul numărului complex\n$$z = \\begin{vmatrix} 2-i & 2 \\\\ i & 2+i \\end{vmatrix},$$\nunde $i^2 = -1$.',
@@ -4076,6 +4859,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-127', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație liniară în ℂ',
     statement: 'Rezolvați în $\\mathbb{C}$ ecuația\n$$(2+i)z = 5.$$',
@@ -4083,6 +4867,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-128', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produsul Re·Im pentru un număr complex fracționar',
     statement: 'Determinați produsul dintre partea reală și partea imaginară a numărului complex\n$$z = \\frac{2-4i}{1+i},$$\nunde $i^2 = -1$.',
@@ -4104,6 +4889,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-131', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinantul unei matrice cu intrări complexe',
     statement: 'Calculați determinantul matricei\n$$A = \\begin{pmatrix} 1+3i & -6 \\\\ i^3 & 1+3i \\end{pmatrix},$$\nunde $i^2 = -1$.',
@@ -4125,6 +4911,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-134', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Determinarea lui z din conjugatul său',
     statement: 'Determinați numerele complexe $z$, dacă\n$$\\bar{z} = (1+i)(2-i)+3i^5,$$\nunde $i^2 = -1$, iar $\\bar{z}$ este conjugatul numărului $z$.',
@@ -4132,6 +4919,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-135', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produsul Re·Im pentru o expresie cu fracție complexă',
     statement: 'Determinați produsul dintre partea reală și partea imaginară a numărului complex\n$$z = \\frac{26}{3-2i}-6,$$\nunde $i^2 = -1$.',
@@ -4146,6 +4934,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-137', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Modulul unui număr complex',
     statement: 'Fie numărul complex $z = (1-3i)^2+12i$, unde $i^2 = -1$. Determinați modulul numărului $z$.',
@@ -4160,6 +4949,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-139', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație complexă provenită dintr-un determinant',
     statement: 'Fie\n$$D(z) = \\begin{vmatrix} z & 3-i \\\\ -1 & iz+2+3i \\end{vmatrix},$$\nunde $i^2 = -1$. Rezolvați în $\\mathbb{C}$ ecuația $D(z) = 0$.',
@@ -4167,6 +4957,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-140', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Partea reală a inversului unui număr complex',
     statement: 'Determinați partea reală a inversului numărului complex $z = 2+i$, unde $i^2 = -1$.',
@@ -4174,6 +4965,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-141', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Demonstrarea că un număr complex este pur imaginar',
     statement: 'Fie $z = \\dfrac{3-i}{1+3i}$, unde $i^2 = -1$. Arătați că $z$ este un număr complex pur imaginar.',
@@ -4181,6 +4973,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-142', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Număr complex definit printr-un determinant nul',
     statement: 'Determinați numerele complexe $z$, pentru care\n$$\\begin{vmatrix} 1 & i^3 \\\\ z & z-4 \\end{vmatrix} = 0,$$\nunde $i^2 = -1$.',
@@ -4188,6 +4981,7 @@ BM.EXERCISES = [
   },
   {
     id: 'alg-cx-143', categoryId: 'algebra', subcategoryId: 'complexe',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Forma trigonometrică și putere mare a unui număr complex',
     statement: 'Fie numărul complex $z = \\dfrac{1}{2}-\\dfrac{\\sqrt{3}}{2}\\,i$, $i^2 = -1$. Scrieți numărul $z$ sub formă trigonometrică și calculați $z^{2026}$.',
@@ -4213,6 +5007,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'ira-001', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație cu radical și condiție de semn pe membrul drept',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3x+18} = -x$.',
@@ -4220,6 +5015,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-002', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație cu radicali egali și polinom de grad 5',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2x^5+3x-2} = \\sqrt{5x^3-2}$.',
@@ -4227,6 +5023,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-003', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical imbriocat — două ridicări succesive la pătrat',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2+\\sqrt{3-x}} = \\sqrt{x+1}$.',
@@ -4234,6 +5031,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-004', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Diferența a doi radicali egală cu 1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2x+3} - \\sqrt{x+1} = 1$.',
@@ -4241,6 +5039,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-005', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație cu radical de ordinul 3 — ridicare la cub',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt[3]{7x+1} - x = 1$.',
@@ -4248,6 +5047,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-006', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu expresie liniară — condiție suplimentară',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația: $3 + \\sqrt{x-1} = 2x$.',
@@ -4255,6 +5055,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-007', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație irațională cu soluție unică — pătrat perfect',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația: $2\\sqrt{x-5} = x-4$.',
@@ -4262,6 +5063,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-008', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu expresie liniară — o soluție extransă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația: $\\sqrt{x-1} = x-3$.',
@@ -4269,6 +5071,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-009', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical cu coeficient 2 egal cu expresie liniară',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația: $2\\sqrt{x+1} = x-2$.',
@@ -4276,6 +5079,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-010', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație produs cu radical — principiul zero al produsului',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $(16-x^2)\\sqrt{3-x} = 0$.',
@@ -4283,6 +5087,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-011', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinant de ordinul 2 egal cu un radical',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\det A = \\sqrt{4-x}$, unde $\\det A$ reprezintă determinantul matricei\n$$A = \\begin{pmatrix} 1 & x+1 \\\\ 2 & 3x \\end{pmatrix}.$$',
@@ -4290,6 +5095,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-012', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Sumă de radicali imbricați — soluție interval',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{x+2\\sqrt{x-1}} + \\sqrt{x-2\\sqrt{x-1}} = 2$.',
@@ -4297,6 +5103,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-013', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinant 2×2 egal cu radical — domeniu negativ',
     statement: 'Fie determinantul\n$$d = \\begin{vmatrix} x & 2 \\\\ x+1 & 1 \\end{vmatrix}.$$\nRezolvați în $\\mathbb{R}$ ecuația $d = \\sqrt{4+x}$.',
@@ -4304,6 +5111,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-014', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinant 2×2 egal cu radical — condiție dublă de domeniu',
     statement: 'Fie determinantul\n$$d = \\begin{vmatrix} 1 & x+1 \\\\ 2 & 3x \\end{vmatrix}.$$\nRezolvați în $\\mathbb{R}$ ecuația $d = \\sqrt{4-x}$.',
@@ -4311,6 +5119,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-015', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical cu radical în interior — două ridicări la pătrat',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{5+\\sqrt{x-1}} = 3$.',
@@ -4318,6 +5127,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-016', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație irațională cu soluție negativă',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{7-3x} = x+7$.',
@@ -4325,6 +5135,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-017', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Determinant cu element sub radical — condiție de domeniu',
     statement: 'Se consideră determinantul\n$$D(x) = \\begin{vmatrix} \\sqrt{5-x^2} & x \\\\ 1 & 1 \\end{vmatrix}.$$\nRezolvați în mulțimea $\\mathbb{R}$ ecuația $D(x) = 1$.',
@@ -4332,6 +5143,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-018', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație cu valoare absolută sub radical',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{|x-3|+2} = 3$.',
@@ -4339,6 +5151,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-019', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical imbriocat simplu — soluție unică',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{7-\\sqrt{x+1}} = 2$.',
@@ -4346,6 +5159,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-020', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu expresie liniară — domeniu de semn',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{4-x} = x-2$.',
@@ -4353,6 +5167,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-021', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Două radicale egale — reducere prin ridicare la pătrat',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x^3-3x-1} = \\sqrt{x-1}$.',
@@ -4360,6 +5175,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-022', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu x — condiție de semn obligatorie',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{4x+12} = x$.',
@@ -4367,6 +5183,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-023', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Produs de radicale egal cu constantă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{-x} \\cdot \\sqrt{-5x+12} = 3$.',
@@ -4374,6 +5191,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-024', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu expresie liniară în 2x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2x+1} = 2x-1$.',
@@ -4381,6 +5199,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-025', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical cu expresie pătratică — membrul drept negativ',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $2\\sqrt{1-2x^2} = -x$.',
@@ -4388,6 +5207,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-026', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Diferență de radicale — ridicare la pătrat de două ori',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2x} = \\sqrt{x-1}+1$.',
@@ -4395,6 +5215,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-027', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Produs nul cu radical și polinoam de gradul 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{1-x}\\,(x^2+7x-18) = 0$.',
@@ -4402,6 +5223,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-028', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical cu polinoam pătratic egal cu expresie liniară',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3x^2-x} = 3+x$.',
@@ -4409,6 +5231,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-029', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Radical cu coeficient egal cu expresie în paranteze',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $2\\sqrt{5-x}-3(x+2) = 0$.',
@@ -4416,6 +5239,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-030', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical plus x egal cu constantă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{15+3x}+x = 1$.',
@@ -4423,6 +5247,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-031', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din x plus constantă egal cu x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x}+2 = x$.',
@@ -4430,6 +5255,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-032', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație irațională rezolvată prin substituție',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $6\\sqrt{x}-x = -16$.',
@@ -4437,6 +5263,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-033', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu expresie liniară pozitivă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3-x} = 2x$.',
@@ -4444,6 +5271,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-034', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical minus 2x egal cu 1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x+1}-2x = 1$.',
@@ -4451,6 +5279,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-035', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu x — formă cu diferență nulă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x+2}-x = 0$.',
@@ -4458,6 +5287,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-036', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical minus x egal cu constantă negativă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x-1}-x = -7$.',
@@ -4465,6 +5295,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-037', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din expresie pătratică egal cu constantă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x^2-1} = 2$.',
@@ -4472,6 +5303,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-038', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical din polinoam pătratic egal cu 1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3-2x^2} = 1$.',
@@ -4479,6 +5311,7 @@ BM.EXERCISES = [
   },
   {
     id: 'ira-039', categoryId: 'algebra', subcategoryId: 'ec-irationale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical egal cu zero — soluție directă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{6x-4} = 0$.',
@@ -4490,6 +5323,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'log-ee-005', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită printr-un determinant',
     statement: 'Fie $D(x) = \\begin{vmatrix} 9^x & 3 \\\\ 27 & 3^{3x} \\end{vmatrix}$. Rezolvați în $\\mathbb{R}$ ecuația $D(x) = 0$.',
@@ -4497,6 +5331,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-006', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu substituție — coeficienți de 3',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $3^{x+1} + 6 \\cdot 3^{-x+1} = 29$.',
@@ -4504,6 +5339,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-007', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 4 — ecuație cu 16 și 0,25',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $16^{1-x} = 0{,}25^{-2x}$.',
@@ -4511,6 +5347,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-008', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială omogenă — împărțire la 36ˣ',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $3 \\cdot 16^x + 2 \\cdot 81^x = 5 \\cdot 36^x$.',
@@ -4518,6 +5355,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-009', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la aceeași bază — 1,25 și 0,8',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $(1{,}25)^{x-1} \\cdot (0{,}8)^{2x-7} = \\dfrac{5}{4}$.',
@@ -4525,6 +5363,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-010', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu baze conjugate',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(5+\\sqrt{24}\\right)^x + \\left(5-\\sqrt{24}\\right)^x = 98$.',
@@ -4532,6 +5371,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-011', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație cu exponenți logaritmici — simetrie',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $x^{\\lg(x-3)} + (x-3)^{\\lg x} = 2x^2$.',
@@ -4539,6 +5379,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-012', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație cu exponent logaritmic în baza 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $x^{\\log_2 x + 4} = 32$.',
@@ -4546,6 +5387,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-013', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită printr-un determinant de ordinul 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\begin{vmatrix} 2^x & 2^{x+1}-2 \\\\ 2^x-1 & 2^x+8 \\end{vmatrix} = 30$.',
@@ -4553,6 +5395,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-014', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 5 — ecuație cu 0,2 și 25',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $0{,}2^{x+1} = 25^{x-4}$.',
@@ -4560,6 +5403,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-015', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la aceeași bază — ecuație pătratică în exponent',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(\\dfrac{2}{3}\\right)^{2x-4} \\cdot \\left(\\dfrac{9}{4}\\right)^2 = \\left(\\dfrac{8}{27}\\right)^{-x^2}$.',
@@ -4567,6 +5411,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-016', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant 2×2 cu baze mixte',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\begin{vmatrix} 4^{x+1} & 3^x \\\\ 13 \\cdot 2^x - 3^{x+2} & 1 \\end{vmatrix} = 0$.',
@@ -4574,6 +5419,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-017', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $2^{x^2-2x} = 8$.',
@@ -4581,6 +5427,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-018', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită printr-un determinant cu baza 2',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\begin{vmatrix} 3 \\cdot 2^x & 2^x \\\\ 2 & 2 \\end{vmatrix} = 32$.',
@@ -4588,6 +5435,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-019', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu valoare absolută — baza 5',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $5^{|4x-6|} = 25^{3x-4}$.',
@@ -4595,6 +5443,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-020', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație definită prin determinant D(x) — baze 3 și 9',
     statement: 'Fie $D(x) = \\begin{vmatrix} 3^{x-1} & 27 \\\\ 9 & 9^x \\end{vmatrix}$. Rezolvați în $\\mathbb{R}$ ecuația $D(x) = 0$.',
@@ -4602,6 +5451,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-021', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — baze 9 și 3',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $\\begin{vmatrix} 9^x & -1 \\\\ 2 & 3^x \\end{vmatrix} = 11$.',
@@ -4609,6 +5459,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-022', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu valoare absolută — baza 3 și 9',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $3^{|3x-4|} = 9^{2x-2}$.',
@@ -4616,6 +5467,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-023', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent trigonometric în valoare absolută',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $3^{|\\sin x - 1|} = 9$.',
@@ -4623,6 +5475,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-024', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — coloane identice cu 3^x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\begin{vmatrix} 3^x & -2 \\\\ 3^x & 4 \\end{vmatrix} = 54$.',
@@ -4630,6 +5483,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-025', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent logaritmic — substituție',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $4^{\\log_9 x} - 6 \\cdot 2^{\\log_9 x} + 2^{\\log_3 27} = 0$.',
@@ -4637,6 +5491,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-026', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 2 — produs cu 8 și rezultat 16',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $8 \\cdot 2^{x-4} = 16$.',
@@ -4644,6 +5499,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-027', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — baze 2 și 4',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\begin{vmatrix} 2^x & 12 \\\\ 4 & 4^x \\end{vmatrix} = 16$.',
@@ -4651,6 +5507,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-028', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponenți trigonometrici și substituție',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $9^{\\sin^2 x} - 3 \\cdot \\left(\\dfrac{1}{3}\\right)^{\\cos^2 x} = 6$.',
@@ -4658,6 +5515,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-029', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — baza 3, rezultat 29',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\begin{vmatrix} 3^x & -2 \\\\ 1 & 9 \\end{vmatrix} = 29$.',
@@ -4665,6 +5523,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-030', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — baze 4 și 2',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $\\begin{vmatrix} 4^x & 2 \\\\ 3 & 2^x \\end{vmatrix} = 10$.',
@@ -4672,6 +5531,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-031', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la aceeași bază — 2/3 și 1,5',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\left(\\dfrac{2}{3}\\right)^{-x} = (1{,}5)^3$.',
@@ -4679,6 +5539,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-032', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 2 — 1/8 înmulțit cu 4^x',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\dfrac{1}{8} \\cdot 4^x = \\dfrac{1}{16}$.',
@@ -4686,6 +5547,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-033', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponenți zecimali — grupare și raport',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $5^{\\lg x} - 3^{\\lg x - 1} = 3^{\\lg x + 1} - 5^{\\lg x - 1}$.',
@@ -4693,6 +5555,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-034', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent fracționar în logaritm',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $2^{\\dfrac{3}{\\log_2 x}} = \\dfrac{1}{64}$.',
@@ -4700,6 +5563,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-035', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent cubic',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $2^{x^3-1} = \\left(\\dfrac{1}{2}\\right)^{1-x}$.',
@@ -4707,6 +5571,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-036', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Calcul de expresie exponențială din condiție dată',
     statement: 'Calculați $E = 2^x + 2^{-x}$, știind că $4^x + 4^{-x} = 23$.',
@@ -4714,6 +5579,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-037', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu bază cosinus',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\left(\\cos\\dfrac{\\pi}{6}\\right)^{2x-2} = 1\\dfrac{7}{9}$.',
@@ -4721,6 +5587,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-038', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu bază sinus',
     statement: 'Să se rezolve în mulțimea $\\mathbb{R}$ ecuația $\\left(\\sin\\dfrac{5\\pi}{6}\\right)^{3x-4} = \\sqrt{8}$.',
@@ -4728,6 +5595,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-039', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 5 — produs 5·25^{2x}',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $5 \\cdot 25^{2x} = 0{,}04$.',
@@ -4735,6 +5603,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-040', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație definită prin determinant D(x) — baze 2 și 4',
     statement: 'Fie $D(x) = \\begin{vmatrix} 2^{x-1} & 4 \\\\ 8 & 4^x \\end{vmatrix}$. Rezolvați în $\\mathbb{R}$ ecuația $D(x) = 0$.',
@@ -4742,6 +5611,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-041', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic — soluții întregi',
     statement: 'Determinați soluțiile întregi ale ecuației $125^{x^2} = 25^{x+4}$.',
@@ -4749,6 +5619,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-042', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la aceeași bază — 2,5 și 0,4',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $(2{,}5)^{-3x+4} \\cdot (0{,}4)^{5x-2} = \\dfrac{4}{25}$.',
@@ -4756,6 +5627,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-043', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 5 — 25 și 1/5',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $25^{x-3} = \\left(\\dfrac{1}{5}\\right)^{-x}$.',
@@ -4763,6 +5635,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-044', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent radical — substituție',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(\\dfrac{4}{25}\\right)^{-x+2} = 2{,}5^{-\\sqrt{x}} \\cdot 0{,}4$.',
@@ -4770,6 +5643,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-045', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic — baza 1/5',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(\\dfrac{1}{5}\\right)^{x+3-x^2} - 125 = 0$.',
@@ -4777,6 +5651,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-046', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic — baza 2',
     statement: 'Determinați soluțiile reale ale ecuației $2^{x^2+3x} = 16$.',
@@ -4784,6 +5659,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-047', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic — baza 0,5',
     statement: 'Determinați soluțiile reale ale ecuației $(0{,}5)^{-x^2+3} = 0{,}25$.',
@@ -4791,6 +5667,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-048', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 2 — produs cu 8',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $4^{-3x-6} = 2^{-x} \\cdot 8$.',
@@ -4798,6 +5675,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-049', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la baza 10 — produs 2·5 cu exponent pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $2^{x^2-1} \\cdot 5^{x^2-1} = 0{,}001 \\cdot (10^{x+2})^3$.',
@@ -4805,6 +5683,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-050', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la baza 2 — fracție cu putere în numitor',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $(0{,}25)^x = \\dfrac{128}{2^{x-1}}$.',
@@ -4812,6 +5691,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-051', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent pătratic — soluții iraționale',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $(0{,}5)^{x^2} \\cdot 2^{2x+3} = 64^{-1}$.',
@@ -4819,6 +5699,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-052', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la aceeași bază cu raport de logaritmi',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(\\dfrac{4}{9}\\right)^x \\cdot \\left(\\dfrac{27}{8}\\right)^{x-1} = \\dfrac{\\lg 4}{\\lg 8}$.',
@@ -4826,6 +5707,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-053', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație exponențială cu exponent fracționar pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\left(\\dfrac{1}{8}\\right)^{\\frac{2x^2}{3}} = 4^{-x} \\cdot 8^{-4}$.',
@@ -4833,6 +5715,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-054', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Reducere la baza 3/5 cu exponent pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $0{,}6 \\cdot \\left(\\dfrac{25}{9}\\right)^{x^2-12} = \\left(\\dfrac{27}{125}\\right)^3$.',
@@ -4840,6 +5723,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-055', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC — Algebră',
     title: 'Suma soluțiilor ecuației exponențiale — baza 5/3',
     statement: 'Să se afle suma soluțiilor reale ale ecuației $\\left(\\dfrac{5}{3}\\right)^{x+1} \\cdot \\left(\\dfrac{9}{25}\\right)^{x^2+2x-11} = \\left(\\dfrac{3}{5}\\right)^{-9}$.',
@@ -4847,6 +5731,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-056', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Reducere la baza 3 — 9 la putere cu 1/27',
     statement: 'Să se rezolve în $\\mathbb{R}$ ecuația $9^{-4x-5} = 3^{-x} \\cdot \\dfrac{1}{27}$.',
@@ -4854,6 +5739,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-057', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație definită prin determinant D(x) — baze 3 și 9 (exponent mare)',
     statement: 'Fie $D(x) = \\begin{vmatrix} 3^{2x+8} & 27 \\\\ 3 & 9^{x+6} \\end{vmatrix}$. Rezolvați în $\\mathbb{R}$ ecuația $D(x) = 0$.',
@@ -4861,6 +5747,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-058', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Inecuație exponențială cu exponent pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ inecuația $\\left(\\dfrac{9}{2}\\right)^{x^2+x} \\geq \\left(\\dfrac{4}{81}\\right)^{2x-7}$.',
@@ -4868,6 +5755,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-059', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Ecuație exponențială definită prin determinant — baza 2, termen constant',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\begin{vmatrix} 2^x+16 & 2^x \\\\ 2 & 1 \\end{vmatrix} = 0$.',
@@ -4875,6 +5763,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-ee-060', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație definită prin determinant D(x) — baze 3 și 9 (versiune 2)',
     statement: 'Fie $D(x) = \\begin{vmatrix} 3^{3x-1} & 3 \\\\ 27 & 9^x \\end{vmatrix}$. Rezolvați în $\\mathbb{R}$ ecuația $D(x) = 0$.',
@@ -4886,6 +5775,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'log-el-001', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu substituție exponențială',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_2(6 \\cdot 2^x - 4) = 2x + 1$$',
@@ -4893,6 +5783,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-002', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație cu logaritmi în baze reciproce',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_5(25x) + \\log_x 5 = 4$$',
@@ -4900,6 +5791,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-003', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu fracție și radical',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\lg \\dfrac{\\sqrt{3-x}}{3x+5} = 0$$',
@@ -4907,6 +5799,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-004', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație cu radical dintr-un logaritm',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\sqrt{\\log_2 x} + \\log_2 \\sqrt{x} = 4$$',
@@ -4914,6 +5807,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-005', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație pătratică în logaritm zecimal',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\lg^2(-x) - \\lg\\dfrac{x^2}{10} - 4 = 0$$',
@@ -4921,6 +5815,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-006', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu diferență de logaritmi',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$1 + \\lg x = \\lg(x+1)$$',
@@ -4928,6 +5823,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-007', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Sumă de logaritmi în baza 9',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_9(x-6) + \\log_9(2x-3) = 2$$',
@@ -4935,6 +5831,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-008', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Diferență de logaritmi egală cu zero',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3(x+6) - \\log_3(x^2-36) = 0$$',
@@ -4942,6 +5839,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-009', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Sumă de logaritmi în baza 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_2(x+1) + \\log_2(x-2) = 2$$',
@@ -4949,6 +5847,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-010', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu baza variabilă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_x(4x^2 - 3x) = 3$$',
@@ -4956,6 +5855,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-011', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Sumă de logaritmi în baza 6',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_6(2x-1) + \\log_6(x-6) = 1$$',
@@ -4963,6 +5863,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-012', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu fracție și termen dublu',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3 \\dfrac{x^2}{3} - 2\\log_3(3x^2) = -4$$',
@@ -4971,6 +5872,7 @@ BM.EXERCISES = [
 
   {
     id: 'log-el-013', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație pătratică în lg cu coeficienți iraționali',
     statement: 'Să se rezolve în $\\mathbb{R}$ ecuația\n$$2\\lg^2 x + \\left(1-\\sqrt{2}\\right)\\lg x^2 = 2\\sqrt{2}$$',
@@ -4978,6 +5880,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-014', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație cu radical dintr-un logaritm baza 3',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$3\\sqrt{\\log_3 x} - \\log_3(3x) - 1 = 0$$',
@@ -4985,6 +5888,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-015', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu baza radical din 3',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{\\sqrt{3}}\\!(x^2 - 5x - 3) = 2$$',
@@ -4992,6 +5896,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-016', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Sistem de ecuații logaritmice în baza 3',
     statement: 'Rezolvați în $\\mathbb{R}\\times\\mathbb{R}$ sistemul de ecuații\n$$\\begin{cases} \\log_3 x + \\log_3 y = 2+\\log_3 2 \\\\ \\log_3(x+y) = 2 \\end{cases}$$',
@@ -4999,6 +5904,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-017', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu polinom pătratic în baza 2',
     statement: 'Să se rezolve în $\\mathbb{R}$ ecuația\n$$\\log_2(x^2 - 3x + 10) = 3$$',
@@ -5006,6 +5912,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-018', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică compusă cu putere de 7',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3\\!\\sqrt{130 - 7^{\\log_x(6-x)}} = 2$$',
@@ -5013,6 +5920,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-019', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație cu radical dintr-un logaritm baza 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$3\\sqrt{\\log_2 x} - \\log_2(8x) + 1 = 0$$',
@@ -5020,6 +5928,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-020', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu radical în argument',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$0{,}5\\,\\lg(8-x) = \\lg\\!\\left(1+\\sqrt{x+5}\\right)$$',
@@ -5027,6 +5936,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-021', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu termen exponențial mixt',
     statement: 'Să se rezolve în $\\mathbb{R}$ ecuația\n$$\\lg\\!\\left(3\\cdot 5^x+24\\cdot 20^x\\right) = x+\\lg 18$$',
@@ -5034,6 +5944,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-022', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică zecimală cu polinom pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\lg(x^2-x+8)=1$$',
@@ -5041,6 +5952,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-023', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Aflarea lui x din relație cu proprietăți de logaritmi',
     statement: 'Să se afle $x$, știind că\n$$\\log_5 x = 2\\cdot\\log_5 3+\\frac{1}{2}\\cdot\\log_5 49-\\frac{1}{3}\\cdot\\log_5 27$$',
@@ -5048,6 +5960,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-024', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație pătratică în log baza 3 cu argument negativ',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3^2(-x) - 2\\log_3\\!\\left(\\dfrac{x^2}{27}\\right) - 6 = 0$$',
@@ -5055,6 +5968,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-025', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație cu modulul logaritmului natural',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\ln^2 x + 2|\\ln x| - 3 = 0$$',
@@ -5062,6 +5976,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-026', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Sumă de logaritmi în baza 2 egală cu 1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_2(x-1) + \\log_2(x-2) = 1$$',
@@ -5069,6 +5984,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-027', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică ce se reduce la pătratică',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3(x+2) = 2\\log_3 x$$',
@@ -5076,6 +5992,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-028', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu baza variabilă x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_x(-3x+4) = 2$$',
@@ -5083,6 +6000,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-029', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu baza x−1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{x-1}(x+19) = 2$$',
@@ -5090,6 +6008,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-030', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică baza 3 cu argument pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_3(x^2-1) = 1$$',
@@ -5097,6 +6016,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-031', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică baza 5 cu argument pătratic',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_5(x^2+1) = 1$$',
@@ -5104,6 +6024,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-032', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu baza radical din 6',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{\\sqrt{6}}(x^2-5) = 2$$',
@@ -5111,6 +6032,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-033', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică baza 1/2 fără soluție reală',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{\\frac{1}{2}}(x^2+1) = 2$$',
@@ -5118,6 +6040,7 @@ BM.EXERCISES = [
   },
   {
     id: 'log-el-034', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică baza 1/2 cu exponent negativ',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$\\log_{\\frac{1}{2}}(x^2-4x-1) = -2$$',
@@ -5126,6 +6049,7 @@ BM.EXERCISES = [
 
   {
     id: 'log-el-035', categoryId: 'algebra', subcategoryId: 'ec-log',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'Culegere de matematică, clasa a XI-a',
     title: 'Ecuație logaritmică cu pătrat de logaritm și termen dublu',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația\n$$2\\log_2 x^2 + \\log_2^2(-x) = 12$$',
@@ -5155,6 +6079,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'trig-v-001', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2022, Varianta 3',
     title: 'Calcul cu valori trigonometrice exacte',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sin\\frac{\\pi}{6} + \\cos\\frac{\\pi}{3} - 2\\sin\\frac{\\pi}{2}$$',
@@ -5162,6 +6087,7 @@ BM.EXERCISES = [
   },
   {
     id: 'trig-v-002', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2021, Varianta 28',
     title: 'Formula sinusului sumei',
     statement: 'Calculați $\\sin 75°$ folosind formula sinusului sumei.',
@@ -5169,6 +6095,7 @@ BM.EXERCISES = [
   },
   {
     id: 'trig-v-003', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2023, Varianta 22',
     title: 'Identitate trigonometrică — demonstrație',
     statement: 'Demonstrați că pentru orice $x \\in \\mathbb{R}$:\n$$(\\sin x - \\cos x)^2 = 1 - \\sin 2x$$',
@@ -5180,6 +6107,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'trig-ec-001', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2022, Varianta 21',
     title: 'Ecuație trigonometrică — cos x = 1/2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația:\n$$\\cos x = \\frac{1}{2}$$',
@@ -5187,6 +6115,7 @@ BM.EXERCISES = [
   },
   {
     id: 'trig-ec-002', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2023, Varianta 16',
     title: 'Ecuație trigonometrică de gradul 2 în cos x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația:\n$$2\\cos^2 x - \\cos x - 1 = 0$$',
@@ -5194,6 +6123,7 @@ BM.EXERCISES = [
   },
   {
     id: 'trig-ec-003', categoryId: 'algebra', subcategoryId: 'trigonometrie',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC 2022, Varianta 32',
     title: 'Ecuație cu sin x + cos x',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația:\n$$\\sin x + \\cos x = 1$$',
@@ -5205,6 +6135,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'an-lim-001', categoryId: 'analiza', subcategoryId: 'limite',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2023, Varianta 20',
     title: 'Limită la infinit — funcție rațională',
     statement: 'Calculați:\n$$\\lim_{x \\to \\infty} \\frac{3x^2 + 2x - 1}{2x^2 - 5}$$',
@@ -5212,6 +6143,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-lim-002', categoryId: 'analiza', subcategoryId: 'limite',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2022, Varianta 6',
     title: 'Limită — nedeterminare 0/0 prin factorizare',
     statement: 'Calculați:\n$$\\lim_{x \\to 3} \\frac{x^2 - 9}{x - 3}$$',
@@ -5219,6 +6151,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-lim-003', categoryId: 'analiza', subcategoryId: 'limite',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2021, Varianta 9',
     title: 'Limita remarcabilă $\\sin x / x$',
     statement: 'Calculați:\n$$\\lim_{x \\to 0} \\frac{\\sin 5x}{3x}$$',
@@ -5226,6 +6159,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-lim-004', categoryId: 'analiza', subcategoryId: 'limite',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC 2023, Varianta 35',
     title: 'Limită cu radical — forma $\\infty - \\infty$',
     statement: 'Calculați:\n$$\\lim_{x \\to \\infty} \\left(\\sqrt{x+3} - \\sqrt{x}\\right)$$',
@@ -5233,6 +6167,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-lim-005', categoryId: 'analiza', subcategoryId: 'limite',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC 2022, Varianta 13',
     title: 'Limita lui $e$ — varianta exponențială',
     statement: 'Calculați:\n$$\\lim_{x \\to 0} \\frac{e^{2x} - 1}{3x}$$',
@@ -5244,6 +6179,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'an-der-001', categoryId: 'analiza', subcategoryId: 'derivate',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2022, Varianta 17',
     title: 'Derivata unui polinom',
     statement: 'Calculați derivata funcției:\n$$f(x) = x^4 - 3x^2 + 2x - 7$$',
@@ -5251,6 +6187,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-der-002', categoryId: 'analiza', subcategoryId: 'derivate',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2023, Varianta 14',
     title: 'Derivata unui produs (regula produsului)',
     statement: 'Calculați derivata funcției:\n$$f(x) = x^2 \\cdot e^x$$',
@@ -5258,6 +6195,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-der-003', categoryId: 'analiza', subcategoryId: 'derivate',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2021, Varianta 18',
     title: 'Derivata funcției compuse',
     statement: 'Calculați derivata funcției:\n$$f(x) = \\ln(x^2 + 1)$$',
@@ -5265,6 +6203,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-der-004', categoryId: 'analiza', subcategoryId: 'derivate',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2022, Varianta 26',
     title: 'Ecuația tangentei la o curbă',
     statement: 'Determinați ecuația tangentei la graficul lui $f(x) = x^2 - 3x + 2$ în punctul de abscisă $x_0 = 1$.',
@@ -5272,6 +6211,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-der-005', categoryId: 'analiza', subcategoryId: 'derivate',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC 2023, Varianta 8',
     title: 'Punctele de extrem ale unei funcții',
     statement: 'Determinați punctele de extrem ale funcției:\n$$f(x) = x^3 - 6x^2 + 9x + 1$$',
@@ -5283,6 +6223,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'an-int-001', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2022, Varianta 2',
     title: 'Integrala unui polinom',
     statement: 'Calculați:\n$$\\int (3x^2 - 4x + 2)\\, dx$$',
@@ -5290,6 +6231,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-int-002', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
     difficulty: 'usor', source: 'BAC 2023, Varianta 11',
     title: 'Integrală definită',
     statement: 'Calculați:\n$$\\int_0^2 (2x + 1)\\, dx$$',
@@ -5297,6 +6239,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-int-003', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2021, Varianta 7',
     title: 'Integrală cu funcție exponențială',
     statement: 'Calculați:\n$$\\int_0^1 e^x\\, dx$$',
@@ -5304,6 +6247,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-int-004', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC 2022, Varianta 34',
     title: 'Integrare prin substituție',
     statement: 'Calculați:\n$$\\int 2x\\,e^{x^2}\\, dx$$',
@@ -5311,6 +6255,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-int-005', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
     difficulty: 'dificil', source: 'BAC 2023, Varianta 19',
     title: 'Integrare prin părți',
     statement: 'Calculați:\n$$\\int x\\sin x\\, dx$$',
@@ -5322,6 +6267,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'an-sir-001', categoryId: 'analiza', subcategoryId: 'siruri',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2022, Varianta 5',
     title: 'Termenul general al unui șir aritmetic',
     statement: 'Determinați formula termenului general al șirului:\n$$2,\\; 5,\\; 8,\\; 11,\\; 14,\\; \\ldots$$',
@@ -5329,6 +6275,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-sir-002', categoryId: 'analiza', subcategoryId: 'siruri',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC 2023, Varianta 24',
     title: 'Limita unui șir',
     statement: 'Calculați:\n$$\\lim_{n \\to \\infty} \\frac{2n^2 + n - 1}{n^2 + 3n}$$',
@@ -5340,6 +6287,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'an-prog-001', categoryId: 'analiza', subcategoryId: 'progresii',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2022, Varianta 10',
     title: 'Suma termenilor progresiei aritmetice',
     statement: 'O progresie aritmetică are $a_1 = 4$ și $r = 3$. Calculați $S_{10}$.',
@@ -5347,6 +6295,7 @@ BM.EXERCISES = [
   },
   {
     id: 'an-prog-002', categoryId: 'analiza', subcategoryId: 'progresii',
+    puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC 2021, Varianta 23',
     title: 'Termenul și suma progresiei geometrice',
     statement: 'O progresie geometrică are $b_1 = 3$ și $q = 2$. Calculați $b_6$ și $S_6$.',
@@ -5358,6 +6307,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'geo-p-001', categoryId: 'geometrie', subcategoryId: 'geo-plana',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2022, Varianta 18',
     title: 'Teorema lui Pitagora — latură și arie',
     statement: 'Un triunghi dreptunghic are catetele $a = 5\\,\\text{cm}$ și $b = 12\\,\\text{cm}$. Calculați ipotenuza și aria.',
@@ -5365,6 +6315,7 @@ BM.EXERCISES = [
   },
   {
     id: 'geo-p-002', categoryId: 'geometrie', subcategoryId: 'geo-plana',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2023, Varianta 3',
     title: 'Raza și aria unui cerc din perimetru',
     statement: 'Un cerc are perimetrul $20\\pi\\,\\text{cm}$. Calculați raza și aria.',
@@ -5390,6 +6341,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'geo-a-001', categoryId: 'geometrie', subcategoryId: 'geo-analitica',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2022, Varianta 25',
     title: 'Distanța dintre două puncte',
     statement: 'Calculați distanța dintre $A(1,\\,2)$ și $B(4,\\,6)$.',
@@ -5422,6 +6374,7 @@ BM.EXERCISES = [
      ============================================================ */
   {
     id: 'geo-s-001', categoryId: 'geometrie', subcategoryId: 'geo-spatiu',
+    puncteTotal: 5,
     difficulty: 'usor', source: 'BAC 2022, Varianta 20',
     title: 'Diagonalele unui cub',
     statement: 'Un cub are latura $a = 4\\,\\text{cm}$. Calculați diagonala feței și diagonala spațiului.',

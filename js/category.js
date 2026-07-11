@@ -392,6 +392,7 @@
             <div class="ex-card__left">
               <div class="ex-card__meta">
                 ${BM.diffBadge(ex.difficulty)}
+                ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
                 <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
                 ${ex._custom ? '<span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨ Adăugat</span>' : ''}
                 <span class="source-text">${BM.esc(ex.source)}</span>

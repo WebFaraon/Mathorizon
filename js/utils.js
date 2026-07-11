@@ -75,6 +75,22 @@ BM.diffBadge = function(difficulty) {
   return `<span class="diff-badge ${BM.diffClass[difficulty] || ''}">${BM.diffLabel[difficulty] || difficulty}</span>`;
 };
 
+/* ---- Points badge ---- */
+// Renders nothing when puncteTotal isn't set yet (most non-calcul-algebric
+// exercises still don't have one assigned — see [[ai-grading-barem-coverage]])
+// rather than showing a misleading placeholder. When puncteEstimat is true,
+// the value wasn't derived from the exam's fixed slot structure or an
+// official barem — Gemini judged it from the solution's complexity — so it
+// renders with a distinct dashed style + tooltip instead of looking equally
+// certain as a confirmed one.
+BM.pointsBadge = function(puncteTotal, puncteEstimat) {
+  if (!puncteTotal) return '';
+  if (puncteEstimat) {
+    return `<span class="points-badge points-badge--estimat" title="Punctaj estimat de AI pe baza complexității — neconfirmat oficial">${puncteTotal}p ?</span>`;
+  }
+  return `<span class="points-badge">${puncteTotal}p</span>`;
+};
+
 /* ---- Escape HTML ---- */
 BM.esc = function(str) {
   return String(str)

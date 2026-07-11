@@ -1966,6 +1966,24 @@ body.bac-exam-mode .nav.nav--peek {
 .diff-badge.mediu { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow-border); }
 .diff-badge.dificil { background: var(--red-dim);    color: var(--red);    border-color: var(--red-border); }
 
+/* Points badge — neutral (accent) color since it's a different axis of
+   information from difficulty, not a severity level. */
+.points-badge {
+  padding: 2px 9px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: 1px solid var(--accent-border, var(--border));
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.points-badge--estimat {
+  border-style: dashed;
+  background: transparent;
+  opacity: 0.75;
+  cursor: help;
+}
+
 /* Difficulty filter chips (exercise picker) — same colors as .diff-badge,
    but clickable and outlined-only until selected, since three filled
    badges side by side reads as noise rather than a control. */

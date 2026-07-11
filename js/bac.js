@@ -623,9 +623,16 @@
       for (const pool of shuffledPools) {
         if (usedSubcats.has(pool.subcat)) continue;
 
+        // Once an exercise has a fixed puncteTotal (see [[ai-grading-barem-coverage]]),
+        // it can only be drawn into a slot worth that many points — a 5p
+        // exercise no longer scores differently depending on which slot
+        // pulled it. Exercises not yet tagged (still being backfilled)
+        // fall back to the old subcat+difficulty-only pooling so nothing
+        // breaks mid-migration.
         const candidates = BM.EXERCISES.filter(e =>
           e.subcategoryId === pool.subcat &&
-          pool.diff.includes(e.difficulty)
+          pool.diff.includes(e.difficulty) &&
+          (e.puncteTotal == null || e.puncteTotal === slot.points)
         );
         if (candidates.length === 0) continue;
 

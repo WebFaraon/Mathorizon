@@ -299,6 +299,7 @@
     modal.innerHTML = `
       <div class="ex-card__meta" style="margin-bottom:10px">
         ${BM.diffBadge(ex.difficulty)}
+        ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
         <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
         ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
       </div>
