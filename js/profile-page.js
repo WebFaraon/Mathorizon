@@ -521,5 +521,11 @@
       return;
     }
     await renderProfile(auth.user, auth.supabase);
+    // role/status come from a separate, slower DB round-trip
+    // (_syncUserProfile in auth.js) that's still pending at this point —
+    // if it lands after this page already painted with the 'elev' fallback,
+    // a profesor account would be stuck showing "Elev" forever. Re-render
+    // once the real role arrives.
+    document.addEventListener('bmauth:profile', () => renderProfile(auth.user, auth.supabase), { once: true });
   });
 })();
