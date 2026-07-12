@@ -24,15 +24,26 @@ const model  = genAI.getGenerativeModel({
 // of discarding a real evaluation over a stray sentence before/after it.
 function extractJson(raw) {
   const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const start = cleaned.indexOf('{');
+  const end   = cleaned.lastIndexOf('}');
+  const candidate = (start !== -1 && end > start) ? cleaned.slice(start, end + 1) : cleaned;
   try {
-    return JSON.parse(cleaned);
+    return JSON.parse(candidate);
   } catch (e) {
-    const start = cleaned.indexOf('{');
-    const end   = cleaned.lastIndexOf('}');
-    if (start !== -1 && end > start) {
-      return JSON.parse(cleaned.slice(start, end + 1));
-    }
-    throw e;
+    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left,
+    // \frac, \boxed, \notin, \right, \tan, \underline...) that it forgot to
+    // double per JSON string-escaping rules (a literal "\" must be written
+    // "\\") — this is the "Bad escaped character in JSON" failure, which used
+    // to zero the whole exercise on a pure formatting slip. Same fix already
+    // applied in api/admin/generate-exercise.js. \b \f \n \r \t \u are
+    // technically valid single-char JSON escapes too, but in this
+    // LaTeX-transcription context a backslash followed by one of those
+    // letters is essentially always the start of a LaTeX command (\boxed,
+    // \frac, \notin, \right, \tan, \underline), not a real control character
+    // — so only "\" "/ and a genuine \uXXXX are treated as already-valid;
+    // everything else gets doubled.
+    const repaired = candidate.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, '\\\\');
+    return JSON.parse(repaired);
   }
 }
 
@@ -131,7 +142,7 @@ async function verifyItem(item) {
   const {
     canvasBase64, enunt, solutieOficiala,
     puncteMaxime, label, barem: baremFixed, baremEstimat,
-    raspunsCorect, raspunsElev, subcategoryId, mimeType
+    raspunsCorect, subcategoryId, mimeType
   } = item;
   const imageMimeType = mimeType || 'image/png';
 
@@ -156,10 +167,18 @@ async function verifyItem(item) {
     : extractBarem(solutieOficiala, puncteMaxime);
   const nrPasi = barem ? barem.length : null;
 
+  // NOTE: there is no separate "answer box" UI anywhere in the exam — the
+  // canvas drawing is the only place a student ever writes anything. An
+  // earlier version of this block referenced a "răspuns scris în casetă"
+  // that the client never actually populated (js/bac.js always sent an
+  // empty string for it), so this instruction was unconditionally telling
+  // Gemini the box was empty on every single graded exercise, risking a
+  // wrongful zero on the final-answer criterion regardless of what was
+  // correctly drawn on canvas. Ground truth for cross-checking now comes
+  // purely from what's visible in the image, consistent with rules 1 and 3.
   const finalAnswerBlock = raspunsCorect
-    ? `\nRĂSPUNS FINAL CORECT: ${raspunsCorect}
-RĂSPUNS SCRIS DE ELEV (în casetă): ${raspunsElev || '(necompletat)'}
-IMPORTANT: Dacă răspunsul final al elevului NU coincide cu cel corect, ultimul pas (calculul final) este GREȘIT și primește 0 puncte.`
+    ? `\nRĂSPUNSUL FINAL CORECT AL EXERCIȚIULUI ESTE: ${raspunsCorect}
+Verifică ÎN IMAGINE dacă elevul a ajuns la acest rezultat (sau o formă echivalentă). Dacă rezultatul final scris de elev pe canvas NU coincide cu cel corect, criteriul care cere explicit răspunsul final este GREȘIT și primește 0 puncte — dar dacă elevul a scris corect rezultatul (chiar dacă nu într-o casetă separată), criteriul e îndeplinit.`
     : '';
 
   const baremHasCriteria = barem && barem.every(b => b.descriere);

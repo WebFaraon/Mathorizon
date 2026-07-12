@@ -1,0 +1,39 @@
+-- ============================================================
+-- Archive/purge for homework assignments — lets a teacher free up
+-- Storage space after a deadline passes and grading is done, while
+-- keeping every student's grade in the Catalog tab forever.
+--
+-- Catalog only ever reads assignment_id, student_id, student_name,
+-- grade, grade_confirmed, submitted_at from homework_submissions
+-- (see loadMembriTab in js/class-page.js) — it never reads `files`,
+-- so clearing `files` doesn't affect grades shown there.
+--
+-- Actual Storage object deletion (the `assignment-files` bucket)
+-- can't be done from plain SQL/pg_cron — Storage objects are only
+-- reachable through the Storage API, not by deleting rows from a
+-- regular table with ON DELETE CASCADE. This project also has no
+-- server-side/service-role Supabase client anywhere (`.env` only
+-- has GEMINI_API_KEY) — every privileged write today happens
+-- straight from the browser under RLS (see _wzSave, deleteAssignment,
+-- _loadTeacherSubmissions in js/class-page.js). So the purge flow is
+-- a teacher-triggered client action (archiveAssignment() in
+-- js/class-page.js) that calls storage.remove() directly, then
+-- clears the DB rows below — not a cron job.
+--
+-- archived_at just marks "files are gone, this is now grade-only"
+-- for the UI (assignmentCard / openAssignmentView).
+-- ============================================================
+
+alter table assignments add column if not exists archived_at timestamptz;
+
+-- ── Manual verification needed ──────────────────────────────
+-- The `assignment-files` bucket's storage policies were configured
+-- via the Supabase dashboard (not tracked in this repo), so it can't
+-- be confirmed from migrations whether a class's TEACHER currently
+-- has DELETE rights on objects a STUDENT uploaded under
+-- submissions/{assignment_id}/{student_id}/... — only that a student
+-- can delete their own resubmitted files (js/class-page.js:1976-1982).
+-- Test archiveAssignment() against a real student submission before
+-- relying on it; if storage.remove() throws a permission error for
+-- the teacher, add a DELETE policy on storage.objects for bucket_id
+-- = 'assignment-files' scoped to teachers of the owning class.

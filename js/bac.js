@@ -1602,7 +1602,6 @@
           enunt:           item.exercise.statement || '',
           solutieOficiala: item.exercise.solution  || '',
           raspunsCorect:   BM.extractBoxedAnswer(item.exercise.solution) || '',
-          raspunsElev:     '',
           puncteMaxime:    slot.points,
           // Lets the server give type-specific grading reminders (domain
           // conditions for logs/radicals, extraneous-root checks, etc.) that

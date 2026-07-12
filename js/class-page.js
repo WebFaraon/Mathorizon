@@ -780,6 +780,11 @@
         deleteAssignment(btn.dataset.id, btn.dataset.title));
     });
 
+    container.querySelectorAll('.teme-assignment__archive').forEach(btn => {
+      btn.addEventListener('click', () =>
+        archiveAssignment(btn.dataset.id, btn.dataset.title));
+    });
+
     container.querySelector('#temeList')?.addEventListener('click', e => {
       if (e.target.closest('.teme-assignment__actions')) return;
       const card = e.target.closest('.teme-assignment--clickable');
@@ -848,7 +853,7 @@
       return `<span class="teme-block-chip" title="${BM.esc(label)}">${icon} ${BM.esc(label)}</span>`;
     }).join('');
 
-    const desc = a.instructions || a.description || '';
+    const desc = a.archived_at ? '' : (a.instructions || a.description || '');
 
     const typeIcon = typeIconMap[blocks[0]?.type] || '📋';
 
@@ -860,7 +865,7 @@
             <h3 class="teme-assignment__title">${BM.esc(a.title)}</h3>
             <span class="teme-assignment__type-icon">${typeIcon}</span>
           </div>
-          ${blockChips ? `<div class="teme-assignment__chips">${blockChips}</div>` : ''}
+          ${!a.archived_at && blockChips ? `<div class="teme-assignment__chips">${blockChips}</div>` : ''}
           ${desc ? `<p class="teme-assignment__desc">${BM.esc(desc).replace(/\n/g, '<br>')}</p>` : ''}
         </div>
         <div class="teme-assignment__footer teme-assignment__footer--${badge.cls}">
@@ -876,13 +881,21 @@
                 : `<span class="teme-sub-badge teme-sub-badge--none" data-sub-badge="${a.id}">📤 Nepredată</span>`
             }
           </div>
-          ${isTeacher ? `
+          ${isTeacher ? (a.archived_at ? `
             <div class="teme-assignment__actions">
+              <span class="teme-assignment__archived-label" title="Fișierele au fost șterse, notele rămân în catalog">📦 Arhivată — doar note</span>
+            </div>
+          ` : `
+            <div class="teme-assignment__actions">
+              ${badge.cls === 'overdue' ? `
+                <button class="teme-assignment__archive" data-id="${a.id}"
+                        data-title="${BM.esc(a.title)}" title="Arhivează (șterge fișierele, păstrează notele)">🗑️ Arhivează</button>
+              ` : ''}
               <button class="teme-assignment__edit" data-id="${a.id}" title="Editează">✎</button>
               <button class="teme-assignment__delete" data-id="${a.id}"
                       data-title="${BM.esc(a.title)}" title="Șterge">✕</button>
             </div>
-          ` : ''}
+          `) : ''}
         </div>
       </div>
     `;
@@ -1793,7 +1806,9 @@
           <button class="icon-btn" id="avCloseBtn">✕</button>
         </div>
         <div class="classes-modal__body av-body">
-          ${blocks.length ? blocks.map(renderBlockView).join('') : '<p class="av-empty">Niciun conținut adăugat.</p>'}
+          ${a.archived_at
+            ? '<p class="av-empty">📦 Tema a fost arhivată — instrucțiunile și fișierele au fost șterse, doar notele au rămas în catalog.</p>'
+            : (blocks.length ? blocks.map(renderBlockView).join('') : '<p class="av-empty">Niciun conținut adăugat.</p>')}
           ${desc ? `
             <div class="av-section">
               <div class="av-section__label">Instrucțiuni</div>
@@ -1927,6 +1942,35 @@
       </div>`;
   }
 
+  const _SUB_IMG_MAX_W  = 1500;
+  const _SUB_IMG_JPEG_Q = 0.8;
+
+  function _compressSubmissionImage(file) {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = e => {
+        const img = new Image();
+        img.onload = () => {
+          const scale = img.naturalWidth > _SUB_IMG_MAX_W ? _SUB_IMG_MAX_W / img.naturalWidth : 1;
+          const w = Math.max(1, Math.round(img.naturalWidth  * scale));
+          const h = Math.max(1, Math.round(img.naturalHeight * scale));
+          const canvas = document.createElement('canvas');
+          canvas.width = w; canvas.height = h;
+          const ctx = canvas.getContext('2d');
+          ctx.fillStyle = '#ffffff';
+          ctx.fillRect(0, 0, w, h);
+          ctx.drawImage(img, 0, 0, w, h);
+          canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('compress-failed')),
+                         'image/jpeg', _SUB_IMG_JPEG_Q);
+        };
+        img.onerror = () => reject(new Error('load-failed'));
+        img.src = e.target.result;
+      };
+      reader.onerror = () => reject(new Error('read-failed'));
+      reader.readAsDataURL(file);
+    });
+  }
+
   function _wireStudentSubmit(assignmentId, existingSub, section) {
     const drop      = section.querySelector('#avSubDrop');
     const input     = section.querySelector('#avSubInput');
@@ -1982,11 +2026,25 @@
         }
         const uploadedItems = [];
         for (const file of pendingFiles) {
-          const path = `submissions/${assignmentId}/${BMAuth.user.id}/${Date.now()}_${file.name}`;
+          const isImage = file.type.startsWith('image/');
+          let toUpload = file;
+          let pathName = file.name;
+          if (isImage) {
+            try {
+              toUpload = await _compressSubmissionImage(file);
+              pathName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+            } catch {
+              toUpload = file; /* fallback: upload original if compression fails */
+            }
+          }
+          const path = `submissions/${assignmentId}/${BMAuth.user.id}/${Date.now()}_${pathName}`;
           const { error } = await BMAuth.supabase.storage
-            .from('assignment-files').upload(path, file, { upsert: true });
+            .from('assignment-files').upload(path, toUpload, {
+              upsert: true,
+              contentType: isImage ? 'image/jpeg' : file.type
+            });
           if (error) throw error;
-          uploadedItems.push({ filename: file.name, storage_path: path, size: file.size });
+          uploadedItems.push({ filename: file.name, storage_path: path, size: toUpload.size });
         }
         const { error } = await BMAuth.supabase
           .from('homework_submissions')
@@ -2230,6 +2288,7 @@
       points:       existing?.points       ?? 10,
       visibility:   existing?.visibility   || 'published',
       _pendingFiles: [],
+      _removedPaths: [],
     };
 
     _wzShowModal();
@@ -2319,13 +2378,75 @@
       const fi = body.querySelector('#wzFileInput');
       const fl = body.querySelector('#wzFileList');
       if (fi && fl) {
+        const renderList = () => {
+          const existing = wz.blockData.items || [];
+          fl.innerHTML =
+            existing.map((f, i) => `
+              <div class="wz-file-item">
+                <span class="wz-file-item__name">${BM.esc(f.filename)}</span>
+                <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
+                <button type="button" class="wz-file-item__remove" data-kind="existing" data-idx="${i}" title="Șterge">✕</button>
+              </div>`).join('') +
+            wz._pendingFiles.map((f, i) => `
+              <div class="wz-file-item">
+                <span class="wz-file-item__name">${BM.esc(f.name)}</span>
+                <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
+                <button type="button" class="wz-file-item__remove" data-kind="pending" data-idx="${i}" title="Șterge">✕</button>
+              </div>`).join('');
+        };
+        renderList();
+
+        /* Selecția nativă a input-ului de fișiere e înlocuită la fiecare
+           alegere nouă, nu adăugată — acumulăm manual în wz._pendingFiles,
+           cu deduplicare pe nume+dimensiune, ca să poți alege fișiere în
+           mai multe reprize (input sau drop) fără să le pierzi pe cele
+           anterioare. */
+        const addPendingFiles = fileList => {
+          const seen = new Set(wz._pendingFiles.map(f => f.name + '|' + f.size));
+          Array.from(fileList).forEach(f => {
+            const key = f.name + '|' + f.size;
+            if (!seen.has(key)) { wz._pendingFiles.push(f); seen.add(key); }
+          });
+          renderList();
+        };
+
         fi.addEventListener('change', () => {
-          wz._pendingFiles = Array.from(fi.files);
-          fl.innerHTML = wz._pendingFiles.map(f => `
-            <div class="wz-file-item">
-              <span class="wz-file-item__name">${BM.esc(f.name)}</span>
-              <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
-            </div>`).join('');
+          addPendingFiles(fi.files);
+          fi.value = '';
+        });
+
+        /* Zona "Trage fișierul aici" era doar text — <label> nu primește
+           drop-uri automat, așa că fără aceste listenere browserul deschidea
+           fișierul tras într-un tab nou în loc să-l încarce. */
+        const dropZone = body.querySelector('.wz-upload-drop');
+        if (dropZone) {
+          dropZone.addEventListener('dragover', e => {
+            e.preventDefault();
+            dropZone.classList.add('wz-upload-drop--over');
+          });
+          dropZone.addEventListener('dragleave', () => dropZone.classList.remove('wz-upload-drop--over'));
+          dropZone.addEventListener('drop', e => {
+            e.preventDefault();
+            dropZone.classList.remove('wz-upload-drop--over');
+            addPendingFiles(e.dataTransfer.files);
+          });
+        }
+
+        /* Fișierele deja urcate (au storage_path) sunt doar marcate spre
+           ștergere aici — ștergerea fizică din Storage se face abia la
+           _wzSave(), ca un „Anulează" pe wizard să nu lase nimic șters
+           din greșeală. Fișierele încă neurcate se scot direct din listă. */
+        fl.addEventListener('click', e => {
+          const btn = e.target.closest('.wz-file-item__remove');
+          if (!btn) return;
+          const idx = parseInt(btn.dataset.idx, 10);
+          if (btn.dataset.kind === 'existing') {
+            const [removed] = (wz.blockData.items || []).splice(idx, 1);
+            if (removed?.storage_path) wz._removedPaths.push(removed.storage_path);
+          } else {
+            wz._pendingFiles.splice(idx, 1);
+          }
+          renderList();
         });
       }
     }
@@ -2391,9 +2512,7 @@
                value="${BM.esc(wz.blockData.title || '')}">
       </div>`;
 
-    const fileCfg = (accept, multiple, hint) => {
-      const existing = wz.blockData.items || [];
-      return `
+    const fileCfg = (accept, multiple, hint) => `
         <div class="wz-upload-zone">
           <input type="file" id="wzFileInput" class="wz-file-input"
                  accept="${accept}" ${multiple ? 'multiple' : ''}>
@@ -2402,15 +2521,8 @@
             <span class="wz-upload-drop__main">Trage fișierul aici sau <u>alege din calculator</u></span>
             <span class="wz-upload-drop__hint">${hint}</span>
           </label>
-          <div class="wz-file-list" id="wzFileList">
-            ${existing.map(f => `
-              <div class="wz-file-item">
-                <span class="wz-file-item__name">${BM.esc(f.filename)}</span>
-                <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
-              </div>`).join('')}
-          </div>
+          <div class="wz-file-list" id="wzFileList"></div>
         </div>`;
-    };
 
     const cfg = {
       text:      textCfg,
@@ -2530,15 +2642,11 @@
       return true;
     }
     if (['pdf', 'image', 'file'].includes(wz.type)) {
-      if (wz._pendingFiles.length > 0) {
-        wz.blockData = {
-          items: wz._pendingFiles.map(f => ({
-            filename: f.name, size: f.size, mime_type: f.type, storage_path: null
-          }))
-        };
-      } else if (!wz.blockData.items) {
-        wz.blockData = { items: [] };
-      }
+      /* Nu suprascrie wz.blockData.items aici — conține fișierele deja
+         urcate care au supraviețuit eventualelor ștergeri din listă.
+         Fișierele noi (wz._pendingFiles) se urcă și se adaugă la această
+         listă abia în _wzSave(), o singură dată. */
+      if (!wz.blockData.items) wz.blockData = { items: [] };
       return true;
     }
     wz.blockData = {};
@@ -2577,6 +2685,15 @@
         aid = data.id;
       }
 
+      /* Șterge definitiv din Storage fișierele scoase din listă în wizard
+         (marcate în wz._removedPaths la click pe ✕) — abia acum, la salvare
+         efectivă, ca un wizard închis fără să salvezi să nu piardă nimic. */
+      if (wz._removedPaths?.length) {
+        const { error: rmErr } = await BMAuth.supabase.storage
+          .from('assignment-files').remove(wz._removedPaths);
+        if (rmErr) throw rmErr;
+      }
+
       /* Upload fișiere în Supabase Storage (dacă există) */
       if (['pdf', 'image', 'file', 'document'].includes(wz.type) && wz._pendingFiles?.length > 0) {
         btn.textContent = 'Se urcă fișierele…';
@@ -2591,7 +2708,7 @@
           uploadedItems.push({ filename: file.name, size: file.size,
                                mime_type: file.type, storage_path: path });
         }
-        wz.blockData = { items: uploadedItems };
+        wz.blockData.items = [...(wz.blockData.items || []), ...uploadedItems];
         btn.textContent = 'Se salvează…';
       }
 
@@ -2638,6 +2755,57 @@
       await loadTemeTab();
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
+    }
+  }
+
+  async function archiveAssignment(assignmentId, assignmentTitle) {
+    try {
+      const [{ data: blocks }, { data: subs }] = await Promise.all([
+        BMAuth.supabase.from('assignment_blocks').select('data').eq('assignment_id', assignmentId),
+        BMAuth.supabase.from('homework_submissions').select('files, grade_confirmed').eq('assignment_id', assignmentId)
+      ]);
+
+      const unconfirmed = (subs || []).filter(s => !s.grade_confirmed).length;
+      const warnMsg = unconfirmed > 0
+        ? `Atenție: ${unconfirmed} elev(i) nu au notă confirmată — fișierele lor vor fi șterse oricum. `
+        : '';
+
+      const ok = await showConfirmDialog({
+        icon:        '📦',
+        title:       'Arhivezi tema?',
+        message:     warnMsg + `Instrucțiunile, pozele tale și pozele elevilor pentru „${assignmentTitle}" vor fi șterse permanent. Notele elevilor rămân salvate în catalog.`,
+        confirmText: 'Arhivează'
+      });
+      if (!ok) return;
+
+      const paths = [
+        ...(blocks || []).flatMap(b => (b.data?.items || []).map(i => i.storage_path).filter(Boolean)),
+        ...(subs   || []).flatMap(s => (s.files      || []).map(f => f.storage_path).filter(Boolean))
+      ];
+
+      if (paths.length) {
+        const { error: rmErr } = await BMAuth.supabase.storage.from('assignment-files').remove(paths);
+        if (rmErr) throw rmErr;
+      }
+
+      const { error: blocksErr } = await BMAuth.supabase
+        .from('assignment_blocks').delete().eq('assignment_id', assignmentId);
+      if (blocksErr) throw blocksErr;
+
+      const { error: aErr } = await BMAuth.supabase
+        .from('assignments')
+        .update({ instructions: '', archived_at: new Date().toISOString() })
+        .eq('id', assignmentId);
+      if (aErr) throw aErr;
+
+      const { error: subsErr } = await BMAuth.supabase
+        .from('homework_submissions').update({ files: [] }).eq('assignment_id', assignmentId);
+      if (subsErr) throw subsErr;
+
+      BM.toast('Tema a fost arhivată — fișierele au fost șterse, notele au rămas.', 'success');
+      await loadTemeTab();
+    } catch (e) {
+      BM.toast('Eroare la arhivare: ' + e.message, 'error');
     }
   }
 
