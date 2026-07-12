@@ -155,6 +155,14 @@ BM.latexToPlain = function(str) {
   s = s.replace(/^\$\$?(.*?)\$\$?$/s, '$1').trim();
 
   s = s.replace(/\\left|\\right/g, '');
+
+  // LaTeX spacing commands (\,  \;  \!  \quad  \qquad  \<space>) carry no
+  // value of their own — "6\,426" is the single number 6426 with a
+  // thousands-grouping hint, not "6 426" with an actual space in it. Strip
+  // them to nothing (not a literal space) so a student typing "6426" with
+  // zero spaces matches the stored correct_answer.
+  s = s.replace(/\\(?:,|;|!|quad|qquad|thinspace|medspace|thickspace|enspace|\s)/g, '');
+
   s = s.replace(/\\sqrt\[(\d+)\]\{([^{}]*)\}/g, (m, n, x) => {
     const rootGlyph = { '2': '√', '3': '∛', '4': '∜' }[n];
     return rootGlyph ? rootGlyph + x : `${x}^(1/${n})`;

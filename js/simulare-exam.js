@@ -562,7 +562,7 @@ window.BM = window.BM || {};
             </div>
             <div class="sim-result-answer sim-result-answer--correct">
               <span class="sim-result-answer__lbl">Răspuns corect</span>
-              <span class="sim-result-answer__val">${BM.esc(correctAnswer)}</span>
+              <span class="sim-result-answer__val">${BM.esc(BM.latexToPlain(correctAnswer))}</span>
             </div>
           </div>
           ${a?.feedback_text ? `

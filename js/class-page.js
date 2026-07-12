@@ -3378,7 +3378,7 @@
             <span class="sim-qv-row__mark">${correct ? '✓' : '✗'}</span>
             <span class="sim-qv-row__pts">${a?.points_earned ?? 0}/${it.points}p</span>
           </div>
-          <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} — Corect: ${BM.esc(correctAnswer)}</div>
+          <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} — Corect: ${BM.esc(BM.latexToPlain(correctAnswer))}</div>
           ${a?.feedback_text ? `<div class="sim-qv-row__fb">💬 ${BM.esc(a.feedback_text)}</div>` : ''}
         </div>`;
     }).join('');
@@ -3470,7 +3470,7 @@
             </div>
             <div class="sim-result-answer sim-result-answer--correct">
               <span class="sim-result-answer__lbl">Răspuns corect</span>
-              <span class="sim-result-answer__val">${BM.esc(correctAnswer)}</span>
+              <span class="sim-result-answer__val">${BM.esc(BM.latexToPlain(correctAnswer))}</span>
             </div>
           </div>
           ${a ? `
@@ -3938,7 +3938,7 @@
               <div class="sim-wz-item__body">
                 <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
                 <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· 🔘 Grilă' : ''}</div>
-                <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : (it.correct_answer || '—'))}</strong></div>
+                <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : BM.latexToPlain(it.correct_answer || '—'))}</strong></div>
               </div>
               <div class="sim-wz-item__actions">
                 <button type="button" class="dc-tool-btn" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="Mută sus">▲</button>
