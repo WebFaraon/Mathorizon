@@ -532,6 +532,29 @@ body.bac-exam-mode .nav.nav--peek {
   transform: translateY(-1px);
 }
 
+/* ---- Not-logged-in CTA — first-time visitors didn't recognize the plain
+   profile-silhouette icon as the login entry point, so this replaces it
+   with a labeled button using the site's existing --green accent, sized
+   like .token-widget's pill (same height/radius) for visual consistency. */
+.nav-profile-btn--cta {
+  width: auto;
+  height: 38px;
+  border-radius: var(--radius);
+  padding: 0 16px;
+  background: var(--green);
+  border: 1.5px solid rgba(255,255,255,0.25);
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.86rem;
+  white-space: nowrap;
+}
+.nav-profile-btn--cta:hover {
+  background: #15803d;
+  border-color: rgba(255,255,255,0.4);
+  transform: translateY(-1px);
+}
+.nav-profile-cta__short { display: none; }
+
 /* ---- Exam start modal extras ---- */
 .exam-start-modal { max-width: 420px; }
 .exam-start-body {
@@ -3275,7 +3298,11 @@ body.bac-exam-mode .nav.nav--peek {
   html, body { overflow-x: hidden; max-width: 100vw; }
 
   /* ---- Navbar ---- */
-  .nav__logo { height: 38px; }
+  /* Logo was 38px flush against the edge — felt like an afterthought.
+     Bumped ~1.4x and given real breathing room from the screen edge
+     (.nav__brand's desktop -22px pull is dropped here on purpose). */
+  .nav__logo { height: 52px; }
+  .nav__brand { margin-left: 4px; }
   .nav__name { display: none; }
   .nav__inner { padding: 0 12px; gap: 4px; }
   .nav .theme-btn { width: 34px; height: 34px; font-size: 1rem; }
@@ -3283,6 +3310,11 @@ body.bac-exam-mode .nav.nav--peek {
   /* Token widget — compact: icon + number only */
   .token-widget__label { display: none; }
   .token-widget { padding: 0 9px; height: 34px; gap: 4px; }
+  /* Not-logged-in CTA — full label doesn't fit next to a bigger logo +
+     token pill + theme toggle + hamburger, so it shrinks to just "Conectare". */
+  .nav-profile-btn--cta { height: 34px; padding: 0 12px; font-size: 0.78rem; }
+  .nav-profile-cta__full  { display: none; }
+  .nav-profile-cta__short { display: inline; }
   /* Profile — compact pill: initials + short name */
   .nav-profile-btn { width: 34px; height: 34px; }
   .nav-profile-btn--pill {
@@ -3401,7 +3433,13 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* Very small phones — 400px and below */
 @media (max-width: 400px) {
-  .nav__logo { height: 36px; }
+  .nav__logo { height: 46px; }
+  /* Logo + tokens + theme toggle + avatar pill + hamburger all in one row
+     stops leaving room for a username next to the avatar at this width —
+     drop the name, keep just the initials/avatar circle (still tappable,
+     still opens the profile page). */
+  .nav-profile-name { display: none; }
+  .nav-profile-btn--pill { padding: 0; width: 34px; }
   .subcat-cards-grid { grid-template-columns: 1fr; }
   .hero__title { font-size: 1.4rem; }
   .chapter-card { padding: 18px 14px; }
@@ -8897,6 +8935,16 @@ body.bac-exam-mode .nav.nav--peek {
   /* Selects (materie/ziua/ora) se stivuiesc */
   .cls-form-row { grid-template-columns: 1fr; gap: 0; }
 
+  /* Butonul de filtrare pe zi stă lipit de marginea stângă a header-ului
+     pe mobil — cu right:0 (varianta desktop) popup-ul de 248px se întindea
+     spre stânga și ieșea complet din ecran. Îl ancorăm din stânga în loc,
+     spre dreapta unde e loc, și îl limităm să nu depășească viewport-ul. */
+  .cls-day-filter__pop {
+    left: 0;
+    right: auto;
+    max-width: calc(100vw - 32px);
+  }
+
   /* Modal: slide-up sheet din jos */
   .classes-modal {
     padding: 0;
@@ -10944,6 +10992,18 @@ body.bac-exam-mode .nav.nav--peek {
   flex-shrink: 0;
   line-height: 1;
 }
+
+.teme-draft-badge {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 20px;
+  background: rgba(217,119,6,0.12);
+  color: #b45309;
+  white-space: nowrap;
+}
+[data-theme="dark"] .teme-draft-badge { background: rgba(251,191,36,0.15); color: #fbbf24; }
 
 /* Due badge */
 .teme-assignment__due {

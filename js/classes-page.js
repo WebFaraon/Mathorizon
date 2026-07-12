@@ -615,6 +615,11 @@
     const modal = document.getElementById('classesModal');
     if (!modal) return;
     modal.style.display = 'flex';
+    /* Fără asta, body-ul rămâne scrollabil sub modalul fixed — pe mobil,
+       scroll-ul pe pagina din spate face ca header-ul modalului (fixed)
+       să iasă din ecran când bara de adresă a browserului se ascunde/arată. */
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     document.getElementById('classMaterieInput')?.focus();
     document.getElementById('closeModalBtn').onclick         = closeCreateModal;
     document.getElementById('cancelCreateBtn').onclick       = closeCreateModal;
@@ -630,6 +635,8 @@
     const modal = document.getElementById('classesModal');
     if (!modal) return;
     modal.style.display = 'none';
+    document.documentElement.style.overflow = '';
+    document.body.style.overflow = '';
     ['classMaterieInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'].forEach(id => {
       const el = document.getElementById(id);
       if (el) { el.value = ''; _cselReset(el); }

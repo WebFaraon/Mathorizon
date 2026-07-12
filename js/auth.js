@@ -351,6 +351,7 @@
     if (currentUser) {
       const av   = _avatarUrl();
       const name = _displayName();
+      btn.classList.remove('nav-profile-btn--cta');
       btn.classList.add('nav-profile-btn--pill');
       btn.innerHTML = av
         ? `<img src="${av}" alt="${BM.esc(name)}" class="nav-profile-avatar"><span class="nav-profile-name">${BM.esc(name)}</span>`
@@ -359,7 +360,8 @@
       btn.onclick = () => { window.location.href = 'profile.html'; };
     } else {
       btn.classList.remove('nav-profile-btn--pill');
-      btn.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/></svg>`;
+      btn.classList.add('nav-profile-btn--cta');
+      btn.innerHTML = `<span class="nav-profile-cta__full">Conectare / Înregistrare</span><span class="nav-profile-cta__short">Conectare</span>`;
       btn.title   = 'Conectează-te';
       btn.onclick = () => {
         const here = window.location.pathname.replace(/^\//, '') + window.location.search;

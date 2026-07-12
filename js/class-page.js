@@ -687,11 +687,17 @@
     let assignments = [];
 
     try {
-      const { data, error } = await BMAuth.supabase
+      let query = BMAuth.supabase
         .from('assignments')
         .select('*')
         .eq('class_id', classData.id)
         .order('created_at', { ascending: false });
+      /* Draft = vizibil doar profesorului care a creat-o; elevii nu trebuie
+         să vadă niciodată o temă nefinalizată. Un rând fără visibility
+         (NULL — teme mai vechi decât coloana) e tratat ca publicat, nu
+         ascuns implicit. */
+      if (!isTeacher) query = query.or('visibility.eq.published,visibility.is.null');
+      const { data, error } = await query;
       if (error) throw error;
       assignments = data || [];
 
@@ -863,6 +869,7 @@
         <div class="teme-assignment__main">
           <div class="teme-assignment__top">
             <h3 class="teme-assignment__title">${BM.esc(a.title)}</h3>
+            ${isTeacher && a.visibility === 'draft' ? '<span class="teme-draft-badge" title="Vizibilă doar ție — elevii nu o văd până o publici">📝 Draft</span>' : ''}
             <span class="teme-assignment__type-icon">${typeIcon}</span>
           </div>
           ${!a.archived_at && blockChips ? `<div class="teme-assignment__chips">${blockChips}</div>` : ''}
@@ -1005,16 +1012,20 @@
   };
 
   function renderTemeSidebar(assignments) {
+    /* Temele arhivate sunt mereu expirate (poți arhiva doar după termen) —
+       excluse din statistici ca să nu umfle "expirate" la nesfârșit. */
+    const relevant = assignments.filter(a => !a.archived_at);
+
     const today = new Date();
     today.setHours(0, 0, 0, 0);
 
-    const overdue  = assignments.filter(a => {
+    const overdue  = relevant.filter(a => {
       const [y, m, d] = a.due_date.split('-').map(Number);
       return new Date(y, m - 1, d) < today;
     }).length;
-    const active = assignments.length - overdue;
+    const active = relevant.length - overdue;
 
-    const next3 = assignments
+    const next3 = relevant
       .filter(a => {
         const [y, m, d] = a.due_date.split('-').map(Number);
         return new Date(y, m - 1, d) >= today;
@@ -1026,7 +1037,7 @@
         <div class="cd-sidebar-widget__title">Rezumat Teme</div>
         <div class="cd-sidebar-stat">
           <span class="cd-sidebar-stat__icon">📝</span>
-          <span>${assignments.length} ${assignments.length === 1 ? 'temă' : 'teme'} total</span>
+          <span>${relevant.length} ${relevant.length === 1 ? 'temă' : 'teme'} total</span>
         </div>
         ${active > 0 ? `
           <div class="cd-sidebar-stat">
@@ -1040,7 +1051,7 @@
             <span>${overdue} expirate</span>
           </div>
         ` : ''}
-        ${assignments.length === 0 ? `
+        ${relevant.length === 0 ? `
           <div class="cd-sidebar-stat" style="opacity:0.6">
             <span class="cd-sidebar-stat__icon">—</span>
             <span>Nicio temă adăugată</span>
@@ -1148,11 +1159,16 @@
       }
 
       /* 3. Assignments for this class */
-      const { data: rawAssign, error: aErr } = await BMAuth.supabase
+      let assignQuery = BMAuth.supabase
         .from('assignments')
         .select('id, title, due_date, points')
         .eq('class_id', classData.id)
         .order('due_date', { ascending: true });
+      /* Draft assignments never reached students — don't leak their titles
+         as catalog columns either. NULL visibility (pre-existing rows) counts
+         as published, same as loadTemeTab(). */
+      if (!isTeacher) assignQuery = assignQuery.or('visibility.eq.published,visibility.is.null');
+      const { data: rawAssign, error: aErr } = await assignQuery;
       if (aErr) throw aErr;
       const assignments = rawAssign || [];
 
@@ -1792,7 +1808,7 @@
       weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
     });
     const formatted = formattedRaw.charAt(0).toUpperCase() + formattedRaw.slice(1);
-    const desc = a.instructions || a.description || '';
+    const desc = a.archived_at ? '' : (a.instructions || a.description || '');
 
     const modal = document.createElement('div');
     modal.id = 'assignmentView';
@@ -1869,7 +1885,7 @@
     if (isTeacher) {
       _loadTeacherSubmissions(a.id, section);
     } else {
-      _loadStudentSubmission(a.id, section);
+      _loadStudentSubmission(a.id, section, !!a.archived_at);
     }
   }
 
@@ -1877,7 +1893,7 @@
      HOMEWORK SUBMISSIONS — STUDENT
   ═══════════════════════════════════════════════════════════════ */
 
-  async function _loadStudentSubmission(assignmentId, section) {
+  async function _loadStudentSubmission(assignmentId, section, archived) {
     try {
       const { data: sub } = await BMAuth.supabase
         .from('homework_submissions')
@@ -1885,15 +1901,23 @@
         .eq('assignment_id', assignmentId)
         .eq('student_id', BMAuth.user.id)
         .maybeSingle();
-      section.innerHTML = _renderStudentSubmitUI(sub);
-      if (!sub?.grade_confirmed) _wireStudentSubmit(assignmentId, sub, section);
+      section.innerHTML = _renderStudentSubmitUI(sub, archived);
+      if (!archived && !sub?.grade_confirmed) _wireStudentSubmit(assignmentId, sub, section);
     } catch {
       section.innerHTML = '<p class="av-sub-err">Eroare la încărcarea secțiunii de predare.</p>';
     }
   }
 
-  function _renderStudentSubmitUI(sub) {
+  function _renderStudentSubmitUI(sub, archived) {
     const confirmed = sub?.grade_confirmed;
+
+    if (!confirmed && archived) {
+      return `
+        <div class="av-submit-section__inner">
+          <div class="av-submit-section__title">📦 Tema a fost arhivată</div>
+          <p class="av-empty">Profesorul a închis această temă — nu mai poți preda sau modifica fișiere.</p>
+        </div>`;
+    }
 
     if (confirmed) {
       const filesHtml = (sub.files || []).map(f => `
@@ -2029,10 +2053,12 @@
           const isImage = file.type.startsWith('image/');
           let toUpload = file;
           let pathName = file.name;
+          let compressed = false;
           if (isImage) {
             try {
               toUpload = await _compressSubmissionImage(file);
               pathName = file.name.replace(/\.[^.]+$/, '') + '.jpg';
+              compressed = true;
             } catch {
               toUpload = file; /* fallback: upload original if compression fails */
             }
@@ -2041,7 +2067,7 @@
           const { error } = await BMAuth.supabase.storage
             .from('assignment-files').upload(path, toUpload, {
               upsert: true,
-              contentType: isImage ? 'image/jpeg' : file.type
+              contentType: compressed ? 'image/jpeg' : file.type
             });
           if (error) throw error;
           uploadedItems.push({ filename: file.name, storage_path: path, size: toUpload.size });
@@ -2359,16 +2385,30 @@
     if (wz.step === 3) { body.innerHTML = _wzStep3(); _initWzDatePicker(); }
 
     if (wz.step === 1) {
+      /* Schimbarea tipului de conținut abandonează fișierele adunate pentru
+         tipul anterior — cele deja urcate (au storage_path) sunt trecute în
+         coada de ștergere (wz._removedPaths) ca să nu rămână orfane în
+         Storage, nu doar aruncate din wz.blockData. */
+      const setType = newType => {
+        if (newType !== wz.type) {
+          (wz.blockData.items || []).forEach(item => {
+            if (item.storage_path) wz._removedPaths.push(item.storage_path);
+          });
+          wz.blockData = {};
+          wz._pendingFiles = [];
+        }
+        wz.type = newType;
+      };
       body.querySelectorAll('.wz-type-card:not([disabled])').forEach(card => {
         card.addEventListener('click', () => {
           body.querySelectorAll('.wz-type-card').forEach(c => c.classList.remove('wz-type-card--selected'));
           card.classList.add('wz-type-card--selected');
-          wz.type = card.dataset.type;
+          setType(card.dataset.type);
         });
         card.addEventListener('dblclick', () => {
           body.querySelectorAll('.wz-type-card').forEach(c => c.classList.remove('wz-type-card--selected'));
           card.classList.add('wz-type-card--selected');
-          wz.type = card.dataset.type;
+          setType(card.dataset.type);
           _wzNext();
         });
       });
@@ -2415,6 +2455,27 @@
           fi.value = '';
         });
 
+        /* Drop-ul ocolește <input accept>/<input multiple> — browserul le
+           impune doar în dialogul nativ — așa că le reaplicăm manual aici,
+           altfel un bloc "PDF" (accept=".pdf,...", multiple=false) ar putea
+           primi prin drop orice tip de fișier, în orice număr. */
+        const filterByAccept = fileList => {
+          const acceptAttr = (fi.accept || '').trim();
+          let files = Array.from(fileList);
+          if (acceptAttr && acceptAttr !== '*') {
+            const patterns = acceptAttr.split(',').map(s => s.trim().toLowerCase()).filter(Boolean);
+            files = files.filter(f => {
+              const name = f.name.toLowerCase();
+              const type = (f.type || '').toLowerCase();
+              return patterns.some(p =>
+                p.endsWith('/*') ? type.startsWith(p.slice(0, -1)) :
+                p.startsWith('.') ? name.endsWith(p) : type === p);
+            });
+          }
+          if (!fi.multiple) files = files.slice(0, 1);
+          return files;
+        };
+
         /* Zona "Trage fișierul aici" era doar text — <label> nu primește
            drop-uri automat, așa că fără aceste listenere browserul deschidea
            fișierul tras într-un tab nou în loc să-l încarce. */
@@ -2428,7 +2489,9 @@
           dropZone.addEventListener('drop', e => {
             e.preventDefault();
             dropZone.classList.remove('wz-upload-drop--over');
-            addPendingFiles(e.dataTransfer.files);
+            const files = filterByAccept(e.dataTransfer.files);
+            if (!files.length) { BM.toast('Tip de fișier neacceptat pentru acest bloc.', 'error'); return; }
+            addPendingFiles(files);
           });
         }
 
@@ -2669,6 +2732,16 @@
     try {
       let aid = wz.existingId;
 
+      /* Șterge definitiv din Storage fișierele scoase din listă în wizard
+         (marcate în wz._removedPaths la click pe ✕) — ÎNAINTE de a atinge
+         rândul assignment_blocks, ca dacă ștergerea din Storage eșuează
+         (ex. permisiune lipsă) să nu fi pierdut deja conținutul din DB. */
+      if (wz._removedPaths?.length) {
+        const { error: rmErr } = await BMAuth.supabase.storage
+          .from('assignment-files').remove(wz._removedPaths);
+        if (rmErr) throw rmErr;
+      }
+
       if (wz.existingId) {
         const { error } = await BMAuth.supabase.from('assignments')
           .update({ title, instructions, due_date: dueDate, points, visibility,
@@ -2683,15 +2756,6 @@
           .select('id').single();
         if (error) throw error;
         aid = data.id;
-      }
-
-      /* Șterge definitiv din Storage fișierele scoase din listă în wizard
-         (marcate în wz._removedPaths la click pe ✕) — abia acum, la salvare
-         efectivă, ca un wizard închis fără să salvezi să nu piardă nimic. */
-      if (wz._removedPaths?.length) {
-        const { error: rmErr } = await BMAuth.supabase.storage
-          .from('assignment-files').remove(wz._removedPaths);
-        if (rmErr) throw rmErr;
       }
 
       /* Upload fișiere în Supabase Storage (dacă există) */
@@ -2760,10 +2824,12 @@
 
   async function archiveAssignment(assignmentId, assignmentTitle) {
     try {
-      const [{ data: blocks }, { data: subs }] = await Promise.all([
+      const [{ data: blocks, error: blocksFetchErr }, { data: subs, error: subsFetchErr }] = await Promise.all([
         BMAuth.supabase.from('assignment_blocks').select('data').eq('assignment_id', assignmentId),
         BMAuth.supabase.from('homework_submissions').select('files, grade_confirmed').eq('assignment_id', assignmentId)
       ]);
+      if (blocksFetchErr) throw blocksFetchErr;
+      if (subsFetchErr) throw subsFetchErr;
 
       const unconfirmed = (subs || []).filter(s => !s.grade_confirmed).length;
       const warnMsg = unconfirmed > 0
