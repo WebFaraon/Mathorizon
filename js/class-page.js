@@ -3207,7 +3207,10 @@
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
           <h3>🎯 ${BM.esc(s.title)}</h3>
-          <button class="icon-btn" id="simLiveCloseBtn">✕</button>
+          <div style="display:flex;gap:6px;align-items:center">
+            <button class="icon-btn" id="simLiveItemsBtn" title="Vezi exercițiile">📋</button>
+            <button class="icon-btn" id="simLiveCloseBtn">✕</button>
+          </div>
         </div>
         <div class="classes-modal__body" id="simLiveBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
@@ -3216,8 +3219,77 @@
     document.body.appendChild(modal);
     modal.querySelector('.classes-modal__backdrop').onclick = _closeSimLiveModal;
     modal.querySelector('#simLiveCloseBtn').onclick = _closeSimLiveModal;
+    modal.querySelector('#simLiveItemsBtn').onclick = () => openSimItemsView(s);
 
     await _refreshSimLiveBody(s.id);
+  }
+
+  /* ─── Read-only view of a simulation's exercises (statement + correct
+     answer), independent of any student attempt — used from the roster
+     modal so a teacher can check what was actually asked without needing
+     to open a specific student's graded attempt. */
+  async function openSimItemsView(sim) {
+    document.getElementById('simItemsModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'simItemsModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog sim-live-dialog">
+        <div class="classes-modal__head">
+          <h3>📋 Exerciții — ${BM.esc(sim.title)}</h3>
+          <button class="icon-btn" id="simItemsCloseBtn">✕</button>
+        </div>
+        <div class="classes-modal__body" id="simItemsBody">
+          <div class="classes-loading"><div class="classes-spinner"></div></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    const closeModal = () => modal.remove();
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#simItemsCloseBtn').onclick = closeModal;
+
+    const { data: items } = await BMAuth.supabase
+      .from('simulation_items').select('*').eq('simulation_id', sim.id).order('position');
+    const itemIds = (items || []).map(i => i.id);
+    const { data: keys } = await BMAuth.supabase
+      .from('simulation_answer_keys').select('*').in('simulation_item_id', itemIds);
+    const options = await _simFetchOptionsFor(items || []);
+
+    const keyMap = {}; (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
+    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+
+    const totalPoints = (items || []).reduce((s, i) => s + (Number(i.points) || 0), 0);
+    const rows = (items || []).map((it, idx) => {
+      const isGrila = it.answer_type === 'grila';
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
+      return `
+        <div class="sim-result-card">
+          <div class="sim-result-card__head">
+            <span class="sim-result-card__idx">${idx + 1}</span>
+            <span class="sim-result-card__pts">${it.points}p</span>
+          </div>
+          <div class="sim-result-card__statement math-content" id="simItemsStatement${idx}"></div>
+          <div class="sim-result-card__answers">
+            <div class="sim-result-answer sim-result-answer--correct">
+              <span class="sim-result-answer__lbl">Răspuns corect</span>
+              <span class="sim-result-answer__val">${BM.esc(BM.latexToPlain(correctAnswer))}</span>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    const body = document.getElementById('simItemsBody');
+    body.innerHTML = `
+      <p class="wz-subtitle" style="margin-bottom:14px">${(items || []).length} exerciții · ${totalPoints} puncte</p>
+      <div class="sim-result-list">${rows || '<p>Niciun exercițiu.</p>'}</div>`;
+
+    (items || []).forEach((it, idx) => {
+      const el = document.getElementById('simItemsStatement' + idx);
+      if (!el) return;
+      el.innerHTML = BM.trustedNl2br(it.statement || '');
+      BM.renderMath(el);
+    });
   }
 
   async function _refreshSimLiveBody(simId) {
@@ -3939,6 +4011,8 @@
                 <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
                 <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· 🔘 Grilă' : ''}</div>
                 <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : BM.latexToPlain(it.correct_answer || '—'))}</strong></div>
+                <button type="button" class="sim-wz-item__toggle" data-toggle-statement="${idx}">👁 Arată enunțul</button>
+                <div class="sim-wz-item__statement math-content" id="simWzItemStatement${idx}" style="display:none"></div>
               </div>
               <div class="sim-wz-item__actions">
                 <button type="button" class="dc-tool-btn" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="Mută sus">▲</button>
@@ -3964,6 +4038,27 @@
       _simWzRender();
     });
     body.querySelector('#simWzAddExerciseBtn').onclick = () => openSimExercisePicker();
+
+    body.querySelectorAll('[data-toggle-statement]').forEach(btn => {
+      btn.onclick = () => {
+        const idx = btn.dataset.toggleStatement;
+        const el = document.getElementById('simWzItemStatement' + idx);
+        if (!el) return;
+        const showing = el.style.display !== 'none';
+        if (showing) {
+          el.style.display = 'none';
+          btn.textContent = '👁 Arată enunțul';
+        } else {
+          if (!el.dataset.rendered) {
+            el.innerHTML = BM.trustedNl2br(simWiz.items[idx]?.statement || '');
+            BM.renderMath(el);
+            el.dataset.rendered = '1';
+          }
+          el.style.display = '';
+          btn.textContent = '🙈 Ascunde enunțul';
+        }
+      };
+    });
   }
 
   function _simWzStep3() {
