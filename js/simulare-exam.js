@@ -29,6 +29,44 @@ window.BM = window.BM || {};
 
   window.SimulareExam = { start };
 
+  /* ---- On-screen keypad (replaces the native mobile keyboard entirely —
+     the answer input uses inputmode="none" so tapping it never opens the
+     OS keyboard). Grouped as a calculator-style numpad first (most used),
+     then operators, then the set-notation symbols actually seen in this
+     app's exercises. Dropped ⊂ / ± / ≠ / ∅ / ∉ — never used in practice.
+     "÷" and "^" insert '/' and '^' (what the answer-checker understands),
+     not the display glyph, where the two differ. */
+  const KEYPAD_GROUPS = [
+    { label: 'Numere', keys: [
+      { sym: '7' }, { sym: '8' }, { sym: '9' }, { action: 'back', label: '⌫' },
+      { sym: '4' }, { sym: '5' }, { sym: '6' }, { sym: '/', label: '÷' },
+      { sym: '1' }, { sym: '2' }, { sym: '3' }, { sym: '×' },
+      { sym: '0' }, { sym: ',' }, { sym: '(' }, { sym: ')' }
+    ] },
+    { label: 'Operații', keys: [
+      { sym: '+' }, { sym: '-' }, { sym: '^' }, { sym: '√' }
+    ] },
+    { label: 'Simboluri', keys: [
+      { sym: 'x' }, { sym: '∈' }, { sym: '∩' }, { sym: '∪' },
+      { sym: '≤' }, { sym: '≥' }, { sym: '∞' }, { sym: 'π' }
+    ] }
+  ];
+  function _renderKeypad() {
+    return `
+      <div class="sim-keypad">
+        ${KEYPAD_GROUPS.map(g => `
+          <div class="sim-keypad__group">
+            <div class="sim-keypad__group-lbl">${BM.esc(g.label)}</div>
+            <div class="sim-keypad__grid">
+              ${g.keys.map(k => k.action
+                ? `<button type="button" class="sim-key sim-key--action" data-action="${k.action}">${k.label}</button>`
+                : `<button type="button" class="sim-key" data-sym="${BM.esc(k.sym)}">${BM.esc(k.label || k.sym)}</button>`
+              ).join('')}
+            </div>
+          </div>`).join('')}
+      </div>`;
+  }
+
   /* ---- Fullscreen helpers (same approach as bac.js) ---- */
   function _enterFullscreen() {
     const el = document.documentElement;
@@ -42,18 +80,14 @@ window.BM = window.BM || {};
   }
 
   function _onFsChange() {
-    console.log('[simDiag] fullscreenchange fired. state:', !!state, 'finished:', state?.finished, 'isFullscreen:', _isFullscreen());
-    if (!state || state.finished) { console.log('[simDiag] bailing: no state or finished'); return; }
-    if (_isFullscreen()) { console.log('[simDiag] still fullscreen, hiding prompt'); _hideFsPrompt(); return; }
-    console.log('[simDiag] NOT fullscreen — logging violation + showing prompt');
+    if (!state || state.finished) return;
+    if (_isFullscreen()) { _hideFsPrompt(); return; }
     _logViolation();
     _showFsPrompt();
-    console.log('[simDiag] prompt element in DOM now:', !!document.getElementById('simFsPrompt'));
   }
   document.addEventListener('fullscreenchange',       _onFsChange);
   document.addEventListener('webkitfullscreenchange', _onFsChange);
   document.addEventListener('mozfullscreenchange',    _onFsChange);
-  console.log('[simDiag] simulare-exam.js loaded, fullscreenchange listeners attached');
 
   // Non-punitive by design (unlike the BAC exam's 2-strike auto-cancel) —
   // there's no token/forfeiture concept for a teacher-run class simulation,
@@ -152,11 +186,8 @@ window.BM = window.BM || {};
      shown to the student — see simulation_attempt_flags' RLS). Only wired
      up when the simulation itself has supervised === true. ---- */
   function _logViolation() {
-    console.log('[simDiag] _logViolation called. supervised:', state?.simulation?.supervised, 'attemptId:', state?.attempt?.id);
-    if (!state || state.finished || !state.simulation.supervised) { console.log('[simDiag] _logViolation bailing out'); return; }
-    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id })
-      .then(r => console.log('[simDiag] log_sim_violation RPC result:', r))
-      .catch(e => console.log('[simDiag] log_sim_violation RPC threw:', e));
+    if (!state || state.finished || !state.simulation.supervised) return;
+    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id }).catch(() => {});
   }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) _logViolation();
@@ -384,11 +415,9 @@ window.BM = window.BM || {};
       <div class="sim-answer-block">
         <label class="cls-form-label">Răspuns final</label>
         <input type="text" class="sim-answer-input" id="simAnswerInput" autocomplete="off" maxlength="300"
+               inputmode="none" readonly
                value="${BM.esc(state.answers[item.id] || '')}">
-        <div class="sim-symbol-toolbar">
-          ${['(', ')', 'x', '∈','∉','∩','∪','∅','⊂','≤','≥','≠','√','∞','π','²','³','⁴','⁵','⁶','±']
-            .map(s => `<button type="button" class="sim-symbol-btn" data-sym="${BM.esc(s)}">${s}</button>`).join('')}
-        </div>
+        ${_renderKeypad()}
       </div>`}`;
 
     const stEl = document.getElementById('simStatement');
@@ -411,8 +440,11 @@ window.BM = window.BM || {};
       input.addEventListener('input', debouncedSave);
       input.addEventListener('blur', () => _saveAnswer(item.id, input.value));
 
-      content.querySelectorAll('.sim-symbol-btn').forEach(btn => {
+      content.querySelectorAll('.sim-key[data-sym]').forEach(btn => {
         btn.addEventListener('click', () => _insertSymbol(btn.dataset.sym));
+      });
+      content.querySelectorAll('.sim-key[data-action="back"]').forEach(btn => {
+        btn.addEventListener('click', _backspace);
       });
     }
 
@@ -428,6 +460,21 @@ window.BM = window.BM || {};
     const start = inp.selectionStart ?? inp.value.length;
     const end   = inp.selectionEnd ?? inp.value.length;
     inp.setRangeText(sym, start, end, 'end');
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    inp.focus();
+  }
+
+  // With the native keyboard disabled (inputmode="none" + readonly), the
+  // keypad is the only way to edit an answer at all — a delete key is
+  // therefore essential, not optional. Deletes the selection if there is
+  // one, otherwise the single character before the cursor.
+  function _backspace() {
+    const inp = state.lastFocusedInput;
+    if (!inp) return;
+    let start = inp.selectionStart ?? inp.value.length;
+    let end   = inp.selectionEnd ?? inp.value.length;
+    if (start === end && start > 0) start -= 1;
+    inp.setRangeText('', start, end, 'end');
     inp.dispatchEvent(new Event('input', { bubbles: true }));
     inp.focus();
   }

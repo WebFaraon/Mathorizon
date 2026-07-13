@@ -6569,6 +6569,21 @@ body.bac-exam-mode .nav.nav--peek {
   .bac-sidebar-wrap.collapsed .bac-sidebar { width: 100%; }
   .dc-canvas-wrap { min-height: 65vh; flex: none; }
   .bac-slot-nav { margin-top: 16px; padding-bottom: 36px; }
+  /* Class-simulation exam only (.sim-exam-overlay — not the real BAC exam,
+     which keeps the flowing-page footer above): the nav bar (Anterior/
+     Următor + dots) pins to the actual bottom of the viewport instead of
+     just trailing after the content with a gap underneath it. */
+  .sim-exam-overlay .bac-main { padding-bottom: 78px; }
+  .sim-exam-overlay .bac-slot-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin-top: 0;
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    z-index: 50;
+    box-shadow: 0 -4px 16px rgba(0,0,0,0.10);
+  }
   .bac-exam-topbar { margin-bottom: 14px; padding-bottom: 14px; }
   .bac-topbar-controls { gap: 6px; }
   .bac-topbar-controls .bac-timer { font-size: 0.88rem; padding: 4px 10px; }
@@ -10272,7 +10287,9 @@ body.bac-exam-mode .nav.nav--peek {
   overflow-y: auto;
 }
 
-/* Student exam — answer input + symbol toolbar */
+/* Student exam — answer input + on-screen keypad (native keyboard is
+   disabled: the input is readonly + inputmode="none", so this keypad is
+   the only way to type an answer — see js/simulare-exam.js) */
 .sim-answer-block { margin: 18px 0; }
 .sim-answer-input {
   width: 100%;
@@ -10282,25 +10299,49 @@ body.bac-exam-mode .nav.nav--peek {
   border-radius: var(--radius-sm);
   background: var(--card);
   color: var(--text);
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  cursor: text;
 }
 .sim-answer-input:focus { outline: none; border-color: var(--accent); }
-.sim-symbol-toolbar {
+
+.sim-keypad {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 18px;
 }
-.sim-symbol-btn {
-  width: 34px; height: 34px;
+.sim-keypad__group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+.sim-keypad__group-lbl {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.sim-keypad__grid {
+  display: grid;
+  grid-template-columns: repeat(4, 44px);
+  gap: 7px;
+}
+.sim-key {
+  width: 44px;
+  height: 44px;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 8px;
   background: var(--surface);
   color: var(--text);
-  font-size: 0.95rem;
+  font-size: 1.05rem;
+  font-weight: 600;
   cursor: pointer;
-  transition: background var(--transition), border-color var(--transition);
+  transition: background var(--transition), border-color var(--transition), transform 0.08s;
 }
-.sim-symbol-btn:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.sim-key:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.sim-key:active { transform: scale(0.92); }
+.sim-key--action { color: var(--red); }
+.sim-key--action:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
 
 /* Student results */
 .sim-results-wrap { max-width: 720px; margin: 0 auto; padding: 24px 0; }
