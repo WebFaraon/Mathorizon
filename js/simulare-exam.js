@@ -42,14 +42,18 @@ window.BM = window.BM || {};
   }
 
   function _onFsChange() {
-    if (!state || state.finished) return;
-    if (_isFullscreen()) { _hideFsPrompt(); return; }
+    console.log('[simDiag] fullscreenchange fired. state:', !!state, 'finished:', state?.finished, 'isFullscreen:', _isFullscreen());
+    if (!state || state.finished) { console.log('[simDiag] bailing: no state or finished'); return; }
+    if (_isFullscreen()) { console.log('[simDiag] still fullscreen, hiding prompt'); _hideFsPrompt(); return; }
+    console.log('[simDiag] NOT fullscreen — logging violation + showing prompt');
     _logViolation();
     _showFsPrompt();
+    console.log('[simDiag] prompt element in DOM now:', !!document.getElementById('simFsPrompt'));
   }
   document.addEventListener('fullscreenchange',       _onFsChange);
   document.addEventListener('webkitfullscreenchange', _onFsChange);
   document.addEventListener('mozfullscreenchange',    _onFsChange);
+  console.log('[simDiag] simulare-exam.js loaded, fullscreenchange listeners attached');
 
   // Non-punitive by design (unlike the BAC exam's 2-strike auto-cancel) —
   // there's no token/forfeiture concept for a teacher-run class simulation,
@@ -148,8 +152,11 @@ window.BM = window.BM || {};
      shown to the student — see simulation_attempt_flags' RLS). Only wired
      up when the simulation itself has supervised === true. ---- */
   function _logViolation() {
-    if (!state || state.finished || !state.simulation.supervised) return;
-    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id }).catch(() => {});
+    console.log('[simDiag] _logViolation called. supervised:', state?.simulation?.supervised, 'attemptId:', state?.attempt?.id);
+    if (!state || state.finished || !state.simulation.supervised) { console.log('[simDiag] _logViolation bailing out'); return; }
+    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id })
+      .then(r => console.log('[simDiag] log_sim_violation RPC result:', r))
+      .catch(e => console.log('[simDiag] log_sim_violation RPC threw:', e));
   }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) _logViolation();
