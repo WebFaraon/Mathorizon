@@ -39,28 +39,41 @@ window.BM = window.BM || {};
   const KEYPAD_GROUPS = [
     { label: 'Numere', keys: [
       { sym: '7' }, { sym: '8' }, { sym: '9' }, { action: 'back', label: '⌫' },
-      { sym: '4' }, { sym: '5' }, { sym: '6' }, { sym: '/', label: '÷' },
-      { sym: '1' }, { sym: '2' }, { sym: '3' }, { sym: '×' },
-      { sym: '0' }, { sym: ',' }, { sym: '(' }, { sym: ')' }
+      { sym: '4' }, { sym: '5' }, { sym: '6' }, { sym: '/' },
+      { sym: '1' }, { sym: '2' }, { sym: '3' }, { sym: '(' },
+      { sym: '0' }, { sym: ',' }, { sym: ')' }
     ] },
     { label: 'Operații', keys: [
-      { sym: '+' }, { sym: '-' }, { sym: '^' }, { sym: '√' }
+      { sym: '+' }, { sym: '-' }, { action: 'power', label: 'xⁿ' }, { sym: '√' }
     ] },
     { label: 'Simboluri', keys: [
       { sym: 'x' }, { sym: '∈' }, { sym: '∩' }, { sym: '∪' },
       { sym: '≤' }, { sym: '≥' }, { sym: '∞' }, { sym: 'π' }
     ] }
   ];
+
+  // "xⁿ" is a toggle (like a calculator's 2nd/shift key), not a one-shot
+  // insert — while on, digits and the minus sign go in as their Unicode
+  // superscript form (visually smaller, raised, no extra symbol needed) so
+  // an exponent reads like ⁻² instead of the harder-to-parse-at-a-glance
+  // "^-2". Resets to off on every render (new item / re-render) so it
+  // never carries over silently to the next answer.
+  let _powerMode = false;
+  const SUPERSCRIPT_MAP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
+
   function _renderKeypad() {
+    _powerMode = false;
     return `
       <div class="sim-keypad">
         ${KEYPAD_GROUPS.map(g => `
           <div class="sim-keypad__group">
             <div class="sim-keypad__group-lbl">${BM.esc(g.label)}</div>
             <div class="sim-keypad__grid">
-              ${g.keys.map(k => k.action
-                ? `<button type="button" class="sim-key sim-key--action" data-action="${k.action}">${k.label}</button>`
-                : `<button type="button" class="sim-key" data-sym="${BM.esc(k.sym)}">${BM.esc(k.label || k.sym)}</button>`
+              ${g.keys.map(k => k.action === 'back'
+                ? `<button type="button" class="sim-key sim-key--danger" data-action="back">${k.label}</button>`
+                : k.action === 'power'
+                  ? `<button type="button" class="sim-key sim-key--power" data-action="power" id="simPowerBtn">${k.label}</button>`
+                  : `<button type="button" class="sim-key" data-sym="${BM.esc(k.sym)}">${BM.esc(k.label || k.sym)}</button>`
               ).join('')}
             </div>
           </div>`).join('')}
@@ -446,6 +459,9 @@ window.BM = window.BM || {};
       content.querySelectorAll('.sim-key[data-action="back"]').forEach(btn => {
         btn.addEventListener('click', _backspace);
       });
+      content.querySelectorAll('.sim-key[data-action="power"]').forEach(btn => {
+        btn.addEventListener('click', () => _togglePowerMode(btn));
+      });
     }
 
     document.getElementById('simPrevBtn').disabled = idx === 0;
@@ -454,12 +470,18 @@ window.BM = window.BM || {};
     _renderSidebarAndDots();
   }
 
+  function _togglePowerMode(btn) {
+    _powerMode = !_powerMode;
+    btn.classList.toggle('sim-key--power-on', _powerMode);
+  }
+
   function _insertSymbol(sym) {
     const inp = state.lastFocusedInput;
     if (!inp) return;
+    const toInsert = (_powerMode && SUPERSCRIPT_MAP[sym]) ? SUPERSCRIPT_MAP[sym] : sym;
     const start = inp.selectionStart ?? inp.value.length;
     const end   = inp.selectionEnd ?? inp.value.length;
-    inp.setRangeText(sym, start, end, 'end');
+    inp.setRangeText(toInsert, start, end, 'end');
     inp.dispatchEvent(new Event('input', { bubbles: true }));
     inp.focus();
   }

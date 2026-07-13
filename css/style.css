@@ -10304,12 +10304,18 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-answer-input:focus { outline: none; border-color: var(--accent); }
 
+/* Groups stretch to fill the full row (flex:1, not shrink-to-fit) instead
+   of sitting at a fixed width with dead space trailing after them — on a
+   narrow phone each group gets its own full-width row (min 210px forces
+   the wrap), on a tablet/laptop 2-3 groups share a row edge to edge. */
 .sim-keypad {
   display: flex;
   flex-wrap: wrap;
-  gap: 18px;
+  gap: 16px;
+  width: 100%;
 }
 .sim-keypad__group {
+  flex: 1 1 210px;
   display: flex;
   flex-direction: column;
   gap: 7px;
@@ -10323,12 +10329,12 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-keypad__grid {
   display: grid;
-  grid-template-columns: repeat(4, 44px);
+  grid-template-columns: repeat(4, 1fr);
   gap: 7px;
 }
 .sim-key {
-  width: 44px;
-  height: 44px;
+  width: 100%;
+  height: 46px;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--surface);
@@ -10340,8 +10346,19 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-key:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
 .sim-key:active { transform: scale(0.92); }
-.sim-key--action { color: var(--red); }
-.sim-key--action:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+.sim-key--danger { color: var(--red); }
+.sim-key--danger:hover { background: var(--red-dim); border-color: var(--red); color: var(--red); }
+/* "xⁿ" toggle — a distinct accent border marks it as a modifier key (not a
+   one-shot insert), and it fully inverts to solid accent while engaged so
+   "I'm currently typing an exponent" is unmistakable, not just a subtle
+   shade change. */
+.sim-key--power { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+.sim-key--power-on {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+.sim-key--power-on:hover { background: var(--accent); color: #fff; }
 
 /* Student results */
 .sim-results-wrap { max-width: 720px; margin: 0 auto; padding: 24px 0; }
