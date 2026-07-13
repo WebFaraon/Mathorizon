@@ -156,16 +156,32 @@ window.BM = window.BM || {};
   });
 
   async function start(simulation) {
+    // Browsers only grant requestFullscreen() within a short window after a
+    // real user gesture (the click that led here) — it silently no-ops once
+    // that window expires, with no rejection/error surfaced anywhere. This
+    // function used to await several network round-trips (item count,
+    // existing attempt, start_simulation_attempt RPC, items, answers)
+    // *before* calling _enterFullscreen(), so by the time it ran, the
+    // gesture had long expired: fullscreen never actually engaged, which
+    // meant fullscreenchange never fired either, so _onFsChange() — the
+    // thing that shows "Revino la ecran complet" and logs the violation —
+    // never ran. Requesting it here, as the very first synchronous
+    // statement (before any `await`), keeps it inside the original click's
+    // gesture window. The two early-return paths below that don't want
+    // fullscreen (no items yet / just reviewing finished results) undo it
+    // with _exitFullscreen().
+    _enterFullscreen();
     try {
       // Shouldn't happen going forward (the wizard now only activates a
       // simulation after its items are saved), but an old/broken row could
-      // still exist — checked up front, before creating any attempt or
-      // entering fullscreen, so a student never gets stuck with a fresh
-      // 'in_progres' row for a simulation that has nothing to answer.
+      // still exist — checked up front, before creating any attempt, so a
+      // student never gets stuck with a fresh 'in_progres' row for a
+      // simulation that has nothing to answer.
       const { count: itemCount, error: itemCountErr } = await BMAuth.supabase
         .from('simulation_items').select('id', { count: 'exact', head: true }).eq('simulation_id', simulation.id);
       if (itemCountErr) throw itemCountErr;
       if (!itemCount) {
+        _exitFullscreen();
         BM.toast('Această simulare nu are niciun exercițiu — anunță profesorul.', 'error');
         return;
       }
@@ -194,7 +210,8 @@ window.BM = window.BM || {};
       if (existing?.status === 'finalizata' && !canRetake) {
         // Already finished — show the results right inside the class page.
         // No fullscreen/overlay takeover: there's nothing left to protect
-        // from cheating once it's over.
+        // from cheating once it's over (undo the speculative request above).
+        _exitFullscreen();
         const { data: items, error: itemsErr } = await BMAuth.supabase
           .from('simulation_items').select('*').eq('simulation_id', simulation.id).order('position');
         if (itemsErr) throw itemsErr;
@@ -242,11 +259,14 @@ window.BM = window.BM || {};
       window.addEventListener('beforeunload', _beforeUnload);
       _watchSimulationStatus(simulation.id);
 
-      _enterFullscreen();
+      // Already requested at the top of start() (needs to happen before any
+      // await to land inside the click's gesture window) — this is just the
+      // exam UI actually mounting now that fullscreen has had a chance to engage.
       _renderShell();
       _renderItem(0);
       _startTimer();
     } catch (e) {
+      _exitFullscreen();
       document.getElementById('simExamOverlay')?.remove();
       BM.toast('Nu s-a putut porni simularea: ' + e.message, 'error');
     }
