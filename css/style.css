@@ -1128,6 +1128,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.7px;
+  text-align: center;
 }
 
 .stat__ring {
@@ -3392,8 +3393,13 @@ body.bac-exam-mode .nav.nav--peek {
 
   /* ---- Hero ---- */
   .hero { padding: 36px 0 20px; }
-  .hero__title { font-size: 1.5rem; letter-spacing: -0.5px; }
-  .hero__title-accent { font-size: 2.8rem; letter-spacing: -1px; }
+  /* Was a flat 1.5rem/2.8rem — read as an afterthought next to how big and
+     bold this reads on desktop. clamp()'s vw term scales it with the actual
+     phone width instead of a single fixed size, so it stays this dominant
+     across the whole phone range without needing a separate override for
+     very small screens (replaces the old ≤400px .hero__title tweak below). */
+  .hero__title { font-size: clamp(1.7rem, 7.5vw, 2.1rem); letter-spacing: -0.5px; }
+  .hero__title-accent { font-size: clamp(3.2rem, 16vw, 4.4rem); letter-spacing: -1.5px; }
   .hero__sub { font-size: 0.88rem; margin-bottom: 20px; }
   .search-wrap { margin-bottom: 14px; }
   .hero-orb--blue { width: 320px; height: 320px; }
@@ -3503,7 +3509,6 @@ body.bac-exam-mode .nav.nav--peek {
      button, same bg/border treatment as the theme toggle and token widget. */
   .nav-profile-btn--pill { padding: 0; width: 34px; }
   .subcat-cards-grid { grid-template-columns: 1fr; }
-  .hero__title { font-size: 1.4rem; }
   .chapter-card { padding: 18px 14px; }
   .cat-stat__num { font-size: 1.25rem; }
   .ex-card__head { padding: 9px 9px; }
