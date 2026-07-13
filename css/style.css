@@ -3316,7 +3316,7 @@ body.bac-exam-mode .nav.nav--peek {
      Bumped ~1.4x and given real breathing room from the screen edge
      (.nav__brand's desktop -22px pull is dropped here on purpose). */
   .nav__logo { height: 52px; }
-  .nav__brand { margin-left: 4px; }
+  .nav__brand { margin-left: -4px; }
   /* Site name now shows here instead of staying hidden — the theme toggle
      and token widget move into the hamburger dropdown below (see utils.js'
      nav-utility relocation), freeing up the room "Mathorizon" needs.
@@ -3377,7 +3377,9 @@ body.bac-exam-mode .nav.nav--peek {
     max-width: 72px;
   }
   .nav__right { gap: 4px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,0.14); }
-  .nav__hamburger { width: 34px; height: 34px; }
+  /* Extra room between the profile pill and the hamburger — they sat right
+     up against each other once the theme/token widgets moved out of the way. */
+  .nav__hamburger { width: 34px; height: 34px; margin-left: 12px; }
 
   /* ---- Layout ---- */
   .container { padding: 0 12px; }
@@ -3393,13 +3395,23 @@ body.bac-exam-mode .nav.nav--peek {
   .hero-orb--purple { width: 260px; height: 260px; }
   .hero-orb--teal { display: none; }
 
-  /* ---- Stats bar — all 4 in one row (not 2×2), shrunk to fit ---- */
-  .stats { flex-wrap: nowrap; gap: 2px; }
+  /* ---- Stats bar — all 4 in one row (not 2×2), shrunk to fit ----
+     align-items: flex-start + matching min-heights on the value/label
+     slots keep every column's number and label starting at the same Y,
+     regardless of the ring being taller than plain text or "Total
+     exerciții"/"Zile consecutive" wrapping to 2 lines while others don't. */
+  .stats { flex-wrap: nowrap; gap: 2px; align-items: flex-start; }
   .stat__sep { display: none; }
   .stat::after { display: none; }
   .stat { flex: 1 1 0; min-width: 0; padding: 10px 4px; }
-  .stat__val { font-size: 1.2rem; }
-  .stat__lbl { font-size: 0.56rem; letter-spacing: 0.3px; }
+  .stat__val {
+    font-size: 1.2rem;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .stat__lbl { font-size: 0.56rem; letter-spacing: 0.3px; min-height: 24px; }
   .stat__ring { transform: scale(0.72); }
 
   /* ---- Chapter cards ---- */
