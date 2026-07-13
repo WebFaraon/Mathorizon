@@ -335,6 +335,19 @@ body.bac-exam-mode .nav.nav--peek {
 .nav__mobile-link--action { width: 100%; text-align: left; border: none; background: none; font: inherit; cursor: pointer; color: rgba(255,255,255,0.75); }
 .nav__mobile-divider { height: 1px; background: rgba(255,255,255,0.10); margin: 6px 0; }
 
+/* Theme toggle + token widget, relocated here on narrow screens by
+   utils.js (nav-utility relocation) instead of showing in the top bar. */
+.nav__mobile-utility-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 20px 6px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(255,255,255,0.10);
+}
+.nav__mobile-utility-row .token-widget { flex: 1; }
+.nav__mobile-utility-row .token-widget__label { display: inline; }
+
 /* Hide action buttons on desktop where the real icons are already visible */
 @media (min-width: 1151px) {
   .nav__mobile-link--action { display: none; }
@@ -3304,13 +3317,21 @@ body.bac-exam-mode .nav.nav--peek {
      (.nav__brand's desktop -22px pull is dropped here on purpose). */
   .nav__logo { height: 52px; }
   .nav__brand { margin-left: 4px; }
-  .nav__name { display: none; }
+  /* Site name now shows here instead of staying hidden — the theme toggle
+     and token widget move into the hamburger dropdown below (see utils.js'
+     nav-utility relocation), freeing up the room "Mathorizon" needs.
+     Smaller/tighter than the desktop wordmark so it still fits comfortably
+     next to the logo + favorites/history/profile/hamburger buttons. */
+  .nav__name { display: inline; font-size: 0.92rem; letter-spacing: 2px; margin-left: 2px; }
   .nav__inner { padding: 0 12px; gap: 4px; }
-  .nav .theme-btn { width: 34px; height: 34px; font-size: 1rem; }
+  /* Hidden here (not deleted) — utils.js moves the actual elements into
+     #navMobileMenu on narrow screens; scoping to .nav__right means once
+     they're relocated to a different parent this rule simply stops
+     matching, so they display normally in the dropdown with no extra
+     "un-hide" rule needed. */
+  .nav__right .theme-btn { display: none; }
+  .nav__right #tokenWidget { display: none; }
   .nav-icon-btn { width: 34px; height: 34px; font-size: 1rem; }
-  /* Token widget — compact: icon + number only */
-  .token-widget__label { display: none; }
-  .token-widget { padding: 0 9px; height: 34px; gap: 4px; }
   /* Profile — compact pill: initials + short name */
   .nav-profile-btn { width: 34px; height: 34px; }
   /* Not-logged-in CTA — full label doesn't fit next to a bigger logo +
@@ -3372,11 +3393,14 @@ body.bac-exam-mode .nav.nav--peek {
   .hero-orb--purple { width: 260px; height: 260px; }
   .hero-orb--teal { display: none; }
 
-  /* ---- Stats bar ---- */
-  .stats { flex-wrap: wrap; }
+  /* ---- Stats bar — all 4 in one row (not 2×2), shrunk to fit ---- */
+  .stats { flex-wrap: nowrap; gap: 2px; }
   .stat__sep { display: none; }
   .stat::after { display: none; }
-  .stat { flex: 1 1 45%; min-width: 110px; padding: 12px 14px; }
+  .stat { flex: 1 1 0; min-width: 0; padding: 10px 4px; }
+  .stat__val { font-size: 1.2rem; }
+  .stat__lbl { font-size: 0.56rem; letter-spacing: 0.3px; }
+  .stat__ring { transform: scale(0.72); }
 
   /* ---- Chapter cards ---- */
   .chapters-grid { grid-template-columns: 1fr; gap: 10px; }
@@ -3451,12 +3475,10 @@ body.bac-exam-mode .nav.nav--peek {
      drop the name, keep just the initials/avatar circle (still tappable,
      still opens the profile page). */
   .nav-profile-name { display: none; }
-  /* Collapsing to just the avatar circle left it as the only round shape
-     among the navbar's other rounded-square controls (theme toggle, token
-     widget, hamburger) — looked like a stray, unstyled icon rather than a
-     matching button. Squaring the pill's own radius (avatar inside stays
-     circular, same idea as a chip containing an avatar) fixes that. */
-  .nav-profile-btn--pill { padding: 0; width: 34px; border-radius: var(--radius); }
+  /* Stays a circle (border-radius: 20px on a 34px box already rounds fully) —
+     just the avatar circle inside a slightly bigger, transparent circular
+     button, same bg/border treatment as the theme toggle and token widget. */
+  .nav-profile-btn--pill { padding: 0; width: 34px; }
   .subcat-cards-grid { grid-template-columns: 1fr; }
   .hero__title { font-size: 1.4rem; }
   .chapter-card { padding: 18px 14px; }
@@ -6880,23 +6902,30 @@ body.bac-exam-mode .nav.nav--peek {
   line-height: 1;
 }
 
-/* Pill variant — shows avatar + name */
-.nav-profile-btn--pill {
-  width: auto;
-  border-radius: 22px;
-  padding: 0 13px 0 5px;
-  gap: 9px;
-}
-.nav-profile-btn--pill .nav-profile-initials {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  font-size: 0.68rem;
-}
-.nav-profile-btn--pill .nav-profile-avatar {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
+/* Pill variant — shows avatar + name. Scoped to min-width: 601px on purpose —
+   this rule has the same specificity as (and sits after, in source order)
+   the ≤600px/≤400px mobile overrides above, so left unscoped it silently won
+   the cascade on mobile too (media-query conditions don't add specificity,
+   only source order does for equal-specificity rules), making those mobile
+   overrides a no-op. */
+@media (min-width: 601px) {
+  .nav-profile-btn--pill {
+    width: auto;
+    border-radius: 22px;
+    padding: 0 13px 0 5px;
+    gap: 9px;
+  }
+  .nav-profile-btn--pill .nav-profile-initials {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+    font-size: 0.68rem;
+  }
+  .nav-profile-btn--pill .nav-profile-avatar {
+    width: 30px;
+    height: 30px;
+    flex-shrink: 0;
+  }
 }
 .nav-profile-name {
   font-size: 0.82rem;
@@ -11228,13 +11257,18 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 18px 24px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
+  overflow: hidden;
 }
 .wz-head__title {
   font-size: 0.95rem;
   font-weight: 700;
   white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
 }
 .wz-steps {
+  min-width: 0;
   display: flex;
   align-items: center;
   flex: 1;

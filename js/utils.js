@@ -311,6 +311,49 @@ BM.refreshTokenWidgets = function () {
 
 document.addEventListener('DOMContentLoaded', BM.refreshTokenWidgets);
 
+/* ---- Nav: relocate theme toggle + token widget into the hamburger dropdown
+   on narrow screens, instead of showing them (cramped) in the top bar. Moves
+   the actual elements, not copies — same id, same listeners, same
+   refreshTokenWidgets()/BM.toggleTheme() wiring, just re-parented — so
+   there's never two token counts or two theme buttons to keep in sync. */
+(function () {
+  const mq = window.matchMedia('(max-width: 600px)');
+  let inMobile = false;
+  let tokenAnchor = null;
+  let themeAnchor = null;
+  let mobileRow   = null;
+
+  function apply(matches) {
+    if (matches === inMobile) return;
+    const tokenWidget = document.getElementById('tokenWidget');
+    const themeBtn    = document.getElementById('themeBtn');
+    const mobileMenu  = document.getElementById('navMobileMenu');
+    if (!tokenWidget || !themeBtn || !mobileMenu) return;
+
+    if (matches) {
+      tokenAnchor = document.createComment('nav-token-anchor');
+      themeAnchor = document.createComment('nav-theme-anchor');
+      tokenWidget.before(tokenAnchor);
+      themeBtn.before(themeAnchor);
+      mobileRow = document.createElement('div');
+      mobileRow.className = 'nav__mobile-utility-row';
+      mobileRow.append(themeBtn, tokenWidget);
+      mobileMenu.appendChild(mobileRow);
+    } else {
+      tokenAnchor?.replaceWith(tokenWidget);
+      themeAnchor?.replaceWith(themeBtn);
+      mobileRow?.remove();
+      mobileRow = null;
+    }
+    inMobile = matches;
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    apply(mq.matches);
+    mq.addEventListener('change', e => apply(e.matches));
+  });
+})();
+
 /* ---- Scroll-to-top button ---- */
 BM.initScrollTop = function() {
   const btn = document.getElementById('scrollTopBtn');
