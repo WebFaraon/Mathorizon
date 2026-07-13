@@ -945,7 +945,12 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-secondary);
   margin-bottom: 36px;
   position: relative;
-  min-height: 1.7em;
+  line-height: 1.5;
+  /* Reserves room for the longest rotating phrase (2 lines) — the
+     shortest ones only fill ~1 line, but the box no longer shrinks/grows
+     as the JS rotator swaps text, so the rest of the page doesn't shift
+     up/down every few seconds. */
+  min-height: 3em;
   animation: heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 90ms;
 }
@@ -3412,7 +3417,13 @@ body.bac-exam-mode .nav.nav--peek {
     justify-content: center;
   }
   .stat__lbl { font-size: 0.56rem; letter-spacing: 0.3px; min-height: 24px; }
-  .stat__ring { transform: scale(0.72); }
+  /* transform: scale() only changes how the ring LOOKS, not the box size it
+     occupies in layout — its real 50×50px SVG kept the ring's slot taller
+     than .stat__val's 36px, pushing "Completat" 's label lower than the
+     other three. Resizing the actual box (and the SVG inside it) to match
+     36×36 fixes that at the source instead of just visually disguising it. */
+  .stat__ring { width: 36px; height: 36px; }
+  .stat__ring svg { width: 36px; height: 36px; }
 
   /* ---- Chapter cards ---- */
   .chapters-grid { grid-template-columns: 1fr; gap: 10px; }
