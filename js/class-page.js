@@ -4344,6 +4344,12 @@
         if (ex.categoryId !== simPicker.categoryId) return false;
         if (simPicker.subcategoryId && ex.subcategoryId !== simPicker.subcategoryId) return false;
         if (simPicker.difficulty && ex.difficulty !== simPicker.difficulty) return false;
+        // BM.EXERCISES mixes the site's built-in bank (no grade of its own —
+        // shown to both a 9-a and a 12-a) with admin/teacher-added exercises
+        // merged in by custom-exercises.js (always _custom:true with a real
+        // grade). Only the latter needs filtering, or a 12-a exercise leaks
+        // into a 9-a class's picker just because they share one taxonomy.
+        if (ex._custom && ex.grade !== simPicker.gradeCode) return false;
         return true;
       }).slice(0, 40);
 
@@ -4374,8 +4380,11 @@
     }
 
     simPicker.results = results;
+    const emptyMsg = (!simPicker.useBacTaxonomy && !simPicker.query && !simPicker.difficulty)
+      ? 'Banca e goală pentru clasa asta încă — adaugă exerciții din tab-ul „Adaugă exercițiu nou din poză".'
+      : 'Niciun exercițiu găsit.';
     resultsEl.innerHTML = results.length === 0
-      ? `<p class="wz-subtitle">Niciun exercițiu găsit.</p>`
+      ? `<p class="wz-subtitle">${emptyMsg}</p>`
       : results.map((ex, idx) => `
           <div class="sim-picker-result" data-idx="${idx}">
             <span class="sim-picker-result__title">${BM.esc(ex.title)}</span>

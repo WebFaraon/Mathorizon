@@ -12,6 +12,8 @@
   let sb        = null;
   let _tab      = 'login';
   let _role     = 'elev';
+  let _usernameMode = false;
+  const USERNAME_DOMAIN = 'mathorizon.local';
 
   function _getFrom() {
     const from = new URLSearchParams(window.location.search).get('from') || 'index.html';
@@ -127,6 +129,33 @@
     });
   };
 
+  /* ---- Username-instead-of-email toggle (signup only) ---- */
+  window.toggleUsernameMode = function() {
+    _usernameMode = !_usernameMode;
+    const input = document.getElementById('sEmail');
+    const label = document.getElementById('sContactLabel');
+    const btn   = document.getElementById('toggleUsernameBtn');
+    const hint  = document.getElementById('usernameHint');
+    if (!input || !label || !btn || !hint) return;
+    if (_usernameMode) {
+      input.type = 'text';
+      input.placeholder = 'ex: ion_popescu92';
+      input.autocomplete = 'username';
+      label.textContent = 'Nume de utilizator';
+      btn.textContent = 'Am totuși un email';
+      hint.style.display = '';
+    } else {
+      input.type = 'email';
+      input.placeholder = 'adresa@email.com';
+      input.autocomplete = 'email';
+      label.textContent = 'Email';
+      btn.textContent = 'Nu am email — folosesc un nume de utilizator';
+      hint.style.display = 'none';
+    }
+    input.value = '';
+    _clearMsg();
+  };
+
   /* ---- Password visibility ---- */
   window.togglePw = function(btn) {
     const inp = document.getElementById(btn.dataset.target);
@@ -138,7 +167,7 @@
   /* ---- Error translation ---- */
   function _roError(msg) {
     if (!msg) return 'A apărut o eroare. Încearcă din nou.';
-    if (msg.includes('Invalid login credentials'))  return 'Email sau parolă incorectă.';
+    if (msg.includes('Invalid login credentials'))  return 'Date de conectare incorecte.';
     if (msg.includes('Email not confirmed'))        return 'Emailul nu a fost confirmat. Verifică inbox-ul.';
     if (msg.includes('User already registered'))    return 'Există deja un cont cu acest email.';
     if (msg.includes('Password should be'))         return 'Parola trebuie să aibă cel puțin 6 caractere.';
@@ -151,9 +180,10 @@
   async function onLogin(e) {
     e.preventDefault();
     _clearMsg();
-    const email = document.getElementById('lEmail')?.value.trim();
-    const pass  = document.getElementById('lPass')?.value;
-    if (!email || !pass) return _showMsg('Completează toate câmpurile.', true);
+    const raw  = document.getElementById('lEmail')?.value.trim();
+    const pass = document.getElementById('lPass')?.value;
+    if (!raw || !pass) return _showMsg('Completează toate câmpurile.', true);
+    const email = raw.includes('@') ? raw : `${raw.toLowerCase()}@${USERNAME_DOMAIN}`;
     _setLoading('btnLogin', true);
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
     _setLoading('btnLogin', false);
@@ -164,16 +194,42 @@
   async function onSignup(e) {
     e.preventDefault();
     _clearMsg();
-    const name  = document.getElementById('sName')?.value.trim();
-    const email = document.getElementById('sEmail')?.value.trim();
-    const pass  = document.getElementById('sPass')?.value;
-    const conf  = document.getElementById('sConf')?.value;
-    if (!name || !email || !pass || !conf) return _showMsg('Completează toate câmpurile.', true);
+    const name    = document.getElementById('sName')?.value.trim();
+    const contact = document.getElementById('sEmail')?.value.trim();
+    const pass    = document.getElementById('sPass')?.value;
+    const conf    = document.getElementById('sConf')?.value;
+    if (!name || !contact || !pass || !conf) return _showMsg('Completează toate câmpurile.', true);
     if (pass.length < 8) return _showMsg('Parola trebuie să aibă cel puțin 8 caractere.', true);
     if (pass !== conf)   return _showMsg('Parolele nu coincid.', true);
+
+    if (_usernameMode) {
+      const username = contact.toLowerCase();
+      if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        return _showMsg('Numele de utilizator trebuie să aibă 3-20 caractere: litere mici, cifre sau „_”.', true);
+      }
+      _setLoading('btnSignup', true);
+      try {
+        const resp = await fetch('/api/auth/register-username', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password: pass, full_name: name, role: _role })
+        });
+        const data = await resp.json();
+        if (!resp.ok) { _setLoading('btnSignup', false); return _showMsg(data.error || 'A apărut o eroare.', true); }
+        const { error } = await sb.auth.signInWithPassword({ email: data.email, password: pass });
+        _setLoading('btnSignup', false);
+        if (error) return _showMsg(_roError(error.message), true);
+        /* redirect handled by onAuthStateChange listener once SIGNED_IN fires */
+      } catch (err) {
+        _setLoading('btnSignup', false);
+        _showMsg('Eroare de rețea. Încearcă din nou.', true);
+      }
+      return;
+    }
+
     _setLoading('btnSignup', true);
     const { error } = await sb.auth.signUp({
-      email, password: pass,
+      email: contact, password: pass,
       options: { data: { full_name: name, role: _role } }
     });
     _setLoading('btnSignup', false);

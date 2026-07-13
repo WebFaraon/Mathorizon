@@ -581,7 +581,144 @@
     return -1;
   }
 
+  /* ---- Numeric equivalence checking ----
+     Plain numeric/algebraic answers (numbers, fractions, radicals, pi, exponents)
+     are evaluated to a number and compared within a tolerance, so term order and
+     equivalent-but-differently-written forms (20√3+37 vs 37+20√3) don't matter.
+     Anything not purely numeric (equations, sets, intervals, systems, parametrized
+     or trig/complex answers) falls back to the existing string comparison below. */
+  function stripSqrtCommands(s) {
+    const cmdRe = /\\sqrt\{/;
+    let guard = 0;
+    let m;
+    while ((m = lastMatch(s, cmdRe)) && guard++ < 30) {
+      const cmdStart = m.index;
+      const openBrace = cmdStart + m[0].length - 1;
+      const close = matchBrace(s, openBrace);
+      if (close === -1) break;
+      const content = s.slice(openBrace + 1, close);
+      s = s.slice(0, cmdStart) + `sqrt(${content})` + s.slice(close + 1);
+    }
+    return s;
+  }
+
+  function stripExponentBraces(s) {
+    const cmdRe = /\^\{/;
+    let guard = 0;
+    let m;
+    while ((m = lastMatch(s, cmdRe)) && guard++ < 30) {
+      const start = m.index;
+      const openBrace = start + 1;
+      const close = matchBrace(s, openBrace);
+      if (close === -1) break;
+      const content = s.slice(openBrace + 1, close);
+      s = s.slice(0, start) + `^(${content})` + s.slice(close + 1);
+    }
+    return s;
+  }
+
+  function tryEvalNumeric(raw) {
+    let s = String(raw || '').trim();
+    if (!s) return null;
+    s = s.replace(/(\d)\{,\}(\d)/g, '$1.$2'); // Romanian LaTeX decimal comma: "1{,}7" -> "1.7"
+    s = s.replace(/^=\s*/, '');
+    s = s.replace(/\\left|\\right/g, '');
+    s = s.replace(/\\[,;:!]/g, ''); // LaTeX spacing commands
+    s = stripFracCommands(s);
+    s = stripSqrtCommands(s);
+    s = s.replace(/\\sqrt(?!\()/g, 'sqrt'); // stray \sqrt without braces, e.g. "\sqrt2"
+    s = stripExponentBraces(s);
+    s = s.replace(/\\cdot|\\times/g, '*');
+    s = s.replace(/\\pi/g, 'pi');
+    if (/\\/.test(s)) return null; // unhandled LaTeX command remains (\in, \cup, \infty, \mathbb, \text...)
+    if (/[{}\[\]=]/.test(s)) return null; // sets, intervals, equations
+    s = s.replace(/[×·]/g, '*').replace(/π/g, 'pi').replace(/−/g, '-');
+    s = s.replace(/\s+/g, '');
+    s = s.replace(/(\d),(\d)/g, '$1.$2'); // plain decimal comma typed by the student
+    if (s.includes(',')) return null; // leftover comma -> a list, not a single value
+    s = s.toLowerCase();
+    if (!s) return null;
+    const stripped = s.replace(/sqrt|pi/g, '');
+    if (/[a-z]/.test(stripped)) return null; // unsupported variable/constant/function
+    try {
+      const value = evalArithmetic(s);
+      return Number.isFinite(value) ? value : null;
+    } catch (e) {
+      return null;
+    }
+  }
+
+  /* Small recursive-descent evaluator for +,-,*,/,^, parentheses, sqrt(...)/√, pi,
+     and implicit multiplication (e.g. "20sqrt(3)", "2pi", "(2+1)(3-1)"). */
+  function evalArithmetic(s) {
+    let pos = 0;
+    const peek = () => s[pos];
+    const startsWith = word => s.startsWith(word, pos);
+    const canStartFactor = () => {
+      const c = peek();
+      return c === '√' || (c !== undefined && /[0-9.(]/.test(c)) || startsWith('sqrt') || startsWith('pi');
+    };
+    const expect = ch => {
+      if (peek() !== ch) throw new Error(`expected "${ch}"`);
+      pos++;
+    };
+    const parseNumber = () => {
+      const m = /^\d+(\.\d+)?/.exec(s.slice(pos));
+      if (!m) throw new Error('expected number');
+      pos += m[0].length;
+      return parseFloat(m[0]);
+    };
+    const sqrtOf = v => {
+      if (v < 0) throw new Error('sqrt of negative');
+      return Math.sqrt(v);
+    };
+    const parsePrimary = () => {
+      if (peek() === '√') { pos++; return sqrtOf(parsePrimary()); }
+      if (startsWith('sqrt')) { pos += 4; return sqrtOf(parsePrimary()); }
+      if (startsWith('pi')) { pos += 2; return Math.PI; }
+      if (peek() === '(') { pos++; const v = parseExpr(); expect(')'); return v; }
+      if (/[0-9.]/.test(peek() || '')) return parseNumber();
+      throw new Error('unexpected token');
+    };
+    const parsePower = () => {
+      const base = parsePrimary();
+      if (peek() === '^') { pos++; return Math.pow(base, parseUnary()); }
+      return base;
+    };
+    const parseUnary = () => {
+      if (peek() === '-') { pos++; return -parseUnary(); }
+      if (peek() === '+') { pos++; return parseUnary(); }
+      return parsePower();
+    };
+    const parseTerm = () => {
+      let value = parseUnary();
+      while (true) {
+        if (peek() === '*') { pos++; value *= parseUnary(); }
+        else if (peek() === '/') { pos++; value /= parseUnary(); }
+        else if (canStartFactor()) { value *= parseUnary(); }
+        else break;
+      }
+      return value;
+    };
+    const parseExpr = () => {
+      let value = parseTerm();
+      while (peek() === '+' || peek() === '-') {
+        const op = peek(); pos++;
+        value = op === '+' ? value + parseTerm() : value - parseTerm();
+      }
+      return value;
+    };
+    const result = parseExpr();
+    if (pos !== s.length) throw new Error('trailing input');
+    return result;
+  }
+
   function compareAnswers(userRaw, expectedRaw) {
+    const userNum = tryEvalNumeric(userRaw);
+    const expectedNum = tryEvalNumeric(expectedRaw);
+    if (userNum != null && expectedNum != null) {
+      return Math.abs(userNum - expectedNum) < 1e-6 * Math.max(1, Math.abs(expectedNum));
+    }
     return normalizeAnswer(userRaw) === normalizeAnswer(expectedRaw);
   }
 

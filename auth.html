@@ -108,8 +108,8 @@
         <!-- LOGIN FORM -->
         <form id="fLogin" class="auth-form" novalidate onsubmit="onLogin(event)">
           <div class="auth-field">
-            <label class="auth-label" for="lEmail">Email</label>
-            <input class="auth-input" id="lEmail" type="email" placeholder="adresa@email.com" autocomplete="email" required>
+            <label class="auth-label" for="lEmail">Email sau nume de utilizator</label>
+            <input class="auth-input" id="lEmail" type="text" placeholder="adresa@email.com sau nume de utilizator" autocomplete="username" required>
           </div>
           <div class="auth-field">
             <label class="auth-label" for="lPass">Parolă</label>
@@ -133,8 +133,14 @@
             <input class="auth-input" id="sName" type="text" placeholder="Ion Popescu" autocomplete="name" required>
           </div>
           <div class="auth-field">
-            <label class="auth-label" for="sEmail">Email</label>
+            <div style="display:flex;justify-content:space-between;align-items:baseline;gap:10px;flex-wrap:wrap">
+              <label class="auth-label" for="sEmail" id="sContactLabel">Email</label>
+              <button type="button" class="auth-link" style="font-size:0.78rem" id="toggleUsernameBtn" onclick="toggleUsernameMode()">Nu am email — folosesc un nume de utilizator</button>
+            </div>
             <input class="auth-input" id="sEmail" type="email" placeholder="adresa@email.com" autocomplete="email" required>
+            <p class="auth-field-hint" id="usernameHint" style="display:none;margin-top:6px;font-size:0.78rem;opacity:0.7">
+              Vei folosi acest nume ca să te conectezi — doar litere mici, cifre sau „_” (3-20 caractere).
+            </p>
           </div>
           <div class="auth-field">
             <label class="auth-label" for="sPass">Parolă</label>

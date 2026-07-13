@@ -126,7 +126,8 @@
     if (!content || !skeleton) return;
 
     const name        = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
-    const email       = user.email || '';
+    const isUsernameAccount = user.user_metadata?.is_username_account === true;
+    const email       = isUsernameAccount ? '' : (user.email || '');
     const avatarUrl   = user.user_metadata?.custom_avatar_url
         || user.user_metadata?.avatar_url
         || null;
@@ -245,9 +246,11 @@
                     ? '<span class="prof-badge prof-badge--red">✗ Profesor (respins)</span>'
                     : '<span class="prof-badge prof-badge--purple">👨‍🏫 Profesor</span>')
                 : '<span class="prof-badge prof-badge--blue">Elev</span>'}
-            ${verified
-              ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>'
-              : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>'}
+            ${isUsernameAccount
+              ? '<span class="prof-badge prof-badge--green">✓ Cont activ</span>'
+              : (verified
+                ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>'
+                : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>')}
             ${isGoogle ? '<span class="prof-badge prof-badge--blue">🌐 Google</span>' : ''}
           </div>
           <div class="prof-header-meta">
@@ -279,8 +282,8 @@
               <span class="prof-field-val">${BM.esc(name)}</span>
             </div>
             <div class="prof-field-row">
-              <span class="prof-field-lbl">Email</span>
-              <span class="prof-field-val">${BM.esc(email)}</span>
+              <span class="prof-field-lbl">${isUsernameAccount ? 'Nume de utilizator' : 'Email'}</span>
+              <span class="prof-field-val">${isUsernameAccount ? BM.esc(user.user_metadata?.username || name) : BM.esc(email)}</span>
             </div>
             <div class="prof-field-row">
               <span class="prof-field-lbl">Cont creat</span>
@@ -290,7 +293,9 @@
               <span class="prof-field-lbl">Autentificare</span>
               <span class="prof-field-val" title="${isGoogle
                 ? 'Te conectezi la cont folosind contul tău Google.'
-                : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? '🌐 Cont Google' : '📧 Email + parolă'}</span>
+                : isUsernameAccount
+                  ? 'Te conectezi la cont folosind numele de utilizator și parola alese la înregistrare.'
+                  : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? '🌐 Cont Google' : (isUsernameAccount ? '👤 Utilizator + parolă' : '📧 Email + parolă')}</span>
             </div>
           </div>
         </div>
