@@ -51,14 +51,15 @@
       </div>
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link nav__mobile-link--active" href="index.html">Capitole</a>
-      <a class="nav__mobile-link" href="bac.html?new=1">Simulare</a>
-      <a class="nav__mobile-link nav__mobile-link--disabled" href="javascript:void(0)" title="Revine în curând" onclick="return false;">Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html">Clase</a>
-      <a class="nav__mobile-link" href="pachete.html">Pachete</a>
+      <a class="nav__mobile-link nav__mobile-link--active" href="index.html"><span class="nav__mobile-link__icon">📚</span>Capitole</a>
+      <a class="nav__mobile-link" href="bac.html?new=1"><span class="nav__mobile-link__icon">📋</span>Simulare</a>
+      <a class="nav__mobile-link nav__mobile-link--disabled" href="javascript:void(0)" title="Revine în curând" onclick="return false;"><span class="nav__mobile-link__icon">🎯</span>Antrenament</a>
+      <a class="nav__mobile-link" href="classes.html"><span class="nav__mobile-link__icon">🏫</span>Clase</a>
+      <a class="nav__mobile-link" href="pachete.html"><span class="nav__mobile-link__icon">📦</span>Pachete</a>
       <div class="nav__mobile-divider"></div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">&#9825; Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">&#9711; Istoric rezolvări</button>
+      <div class="nav__mobile-section-lbl">Mai multe</div>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">Istoric rezolvări</button>
     </div>
   </nav>
 

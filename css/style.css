@@ -321,19 +321,52 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .nav__mobile-menu.open { display: block; }
 .nav__mobile-link {
-  display: block;
-  padding: 13px 20px;
-  font-size: 0.97rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.74);
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 15px 20px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: rgba(255,255,255,0.82);
   text-decoration: none;
   transition: background 0.14s, color 0.14s;
   letter-spacing: 0.1px;
 }
+.nav__mobile-link__icon { font-size: 1.15rem; width: 22px; text-align: center; flex-shrink: 0; }
 .nav__mobile-link:hover { background: rgba(255,255,255,0.09); color: #fff; }
-.nav__mobile-link--active { color: #fff; background: rgba(255,255,255,0.13); }
-.nav__mobile-link--action { width: 100%; text-align: left; border: none; background: none; font: inherit; cursor: pointer; color: rgba(255,255,255,0.75); }
+/* Bold + a bright left bar so the current page reads unmistakably as
+   "you are here" while scanning — students were losing "Clase" among five
+   visually-identical rows. */
+.nav__mobile-link--active {
+  color: #fff;
+  font-weight: 800;
+  background: rgba(255,255,255,0.18);
+  border-left: 3px solid #fff;
+  padding-left: 17px;
+}
+/* Secondary utilities — smaller, no icon, muted, clearly a notch below the
+   five primary destinations above. */
+.nav__mobile-link--action {
+  width: 100%;
+  text-align: left;
+  border: none;
+  background: none;
+  font: inherit;
+  cursor: pointer;
+  color: rgba(255,255,255,0.55);
+  font-size: 0.85rem;
+  font-weight: 500;
+  padding: 10px 20px;
+}
 .nav__mobile-divider { height: 1px; background: rgba(255,255,255,0.10); margin: 6px 0; }
+.nav__mobile-section-lbl {
+  padding: 10px 20px 2px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,0.45);
+}
 
 /* Theme toggle + token widget, relocated here on narrow screens by
    utils.js (nav-utility relocation) instead of showing in the top bar. */
