@@ -4575,10 +4575,17 @@ body.bac-exam-mode .nav.nav--peek {
   .sim-choose { flex-direction: column; height: auto; min-height: calc(100vh - var(--nav-h)); }
   .sim-card { flex: none; min-height: 50vh; }
   .sim-choose-divider { flex: 0 0 auto; height: 0; }
+  /* The span is position:absolute, so it's taken out of flex layout
+     entirely — .sim-choose-divider's justify-content:center (which works
+     fine on desktop, where the divider is a narrow sliver between two
+     side-by-side cards) does nothing for it here, where the divider
+     stretches to the full stacked-card width. Needs its own explicit
+     horizontal centering via left:50% + translateX(-50%). */
   .sim-choose-divider span {
     writing-mode: horizontal-tb;
     padding: 6px 14px;
-    transform: translateY(-50%);
+    left: 50%;
+    transform: translate(-50%, -50%);
   }
   .sim-card-content { padding: 36px 28px; }
   .sim-card-title { font-size: 2rem; }
