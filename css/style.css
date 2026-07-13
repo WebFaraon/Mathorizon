@@ -691,6 +691,7 @@ body.bac-exam-mode .nav.nav--peek {
   position: relative;
   width: 40px;
   height: 40px;
+  flex-shrink: 0;
   border-radius: var(--radius-sm);
   background: transparent;
   border: 1.5px solid var(--border);
@@ -3450,7 +3451,12 @@ body.bac-exam-mode .nav.nav--peek {
      drop the name, keep just the initials/avatar circle (still tappable,
      still opens the profile page). */
   .nav-profile-name { display: none; }
-  .nav-profile-btn--pill { padding: 0; width: 34px; }
+  /* Collapsing to just the avatar circle left it as the only round shape
+     among the navbar's other rounded-square controls (theme toggle, token
+     widget, hamburger) — looked like a stray, unstyled icon rather than a
+     matching button. Squaring the pill's own radius (avatar inside stays
+     circular, same idea as a chip containing an avatar) fixes that. */
+  .nav-profile-btn--pill { padding: 0; width: 34px; border-radius: var(--radius); }
   .subcat-cards-grid { grid-template-columns: 1fr; }
   .hero__title { font-size: 1.4rem; }
   .chapter-card { padding: 18px 14px; }
@@ -11546,8 +11552,18 @@ body.bac-exam-mode .nav.nav--peek {
 @media (max-width: 600px) {
   .wz-type-grid { grid-template-columns: repeat(2, 1fr); }
   .wz-step-label { display: none; }
-  .wz-dialog { max-height: 96vh; }
+  /* Bottom sheet, matching .classes-modal's mobile treatment (Temă/Simulare
+     wizards previously stayed centered while Anunț became a slide-up sheet —
+     standardizing so every modal on this page opens the same way). */
+  .wz-overlay { padding: 0; align-items: flex-end; }
+  .wz-dialog {
+    border-radius: 16px 16px 0 0;
+    max-width: 100%;
+    max-height: 96vh;
+  }
+  .wz-head { padding: 16px 20px; }
   .wz-body { padding: 18px; }
+  .wz-foot { padding: 14px 20px; }
 }
 
 /* ── Assignment View Modal ───────────────────────────────── */

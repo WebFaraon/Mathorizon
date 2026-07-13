@@ -9,10 +9,10 @@
 
   const DAY_ORDER = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 
-  // Persists across renderTeacherView() re-renders (create/delete a class)
-  // within the same visit, same convention as other in-session-only filter/
-  // sort state elsewhere in the app.
-  let _dayFilterSelected = [];
+  // Persists across renderTeacherView() re-renders AND across page visits
+  // (stored in localStorage via BM.Storage) — a teacher navigating to
+  // another tab and back expects the filter to still be applied.
+  let _dayFilterSelected = BM.Storage.getClassDayFilter();
 
   // Class names are always machine-generated as "Materie · Zi[/Zi2] · Oră"
   // (see buildGeneratedName/_getSelectedDays below — there's no free-text
@@ -234,6 +234,7 @@
         } else if (!_dayFilterSelected.length && dot) {
           dot.remove();
         }
+        BM.Storage.setClassDayFilter(_dayFilterSelected);
         _applyDayFilter();
       });
     });
@@ -243,6 +244,7 @@
       pop.querySelectorAll('.cls-day-chip--sel').forEach(c => c.classList.remove('cls-day-chip--sel'));
       btn.classList.remove('cls-day-filter__btn--active');
       btn.querySelector('.cls-day-filter__dot')?.remove();
+      BM.Storage.setClassDayFilter(_dayFilterSelected);
       _applyDayFilter();
     });
   }

@@ -16,7 +16,8 @@ BM.Storage = (function() {
     history:    'bm_history',
     streak:     'bm_streak',
     lastVisit:  'bm_last_visit',
-    bestCombo:  'bm_training_best_combo'
+    bestCombo:  'bm_training_best_combo',
+    classDayFilter: 'bm_classes_day_filter'
   };
 
   function get(key) {
@@ -140,6 +141,10 @@ BM.Storage = (function() {
   function getBestCombo() { return get(KEY.bestCombo) || 0; }
   function setBestCombo(n) { set(KEY.bestCombo, n); }
 
+  /* ---- Classes page: day-of-week filter (persists across visits) ---- */
+  function getClassDayFilter() { return get(KEY.classDayFilter) || []; }
+  function setClassDayFilter(days) { set(KEY.classDayFilter, days); }
+
   /* ---- Last Visit ---- */
   function recordVisit() { set(KEY.lastVisit, new Date().toDateString()); }
 
@@ -154,6 +159,7 @@ BM.Storage = (function() {
     getHistory, addToHistory, clearHistory,
     getStreak, updateStreak,
     getBestCombo, setBestCombo,
+    getClassDayFilter, setClassDayFilter,
     getStats, getProgressForCategory,
     recordVisit, clearAll
   };
