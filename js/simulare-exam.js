@@ -59,7 +59,16 @@ window.BM = window.BM || {};
   // "^-2". Resets to off on every render (new item / re-render) so it
   // never carries over silently to the next answer.
   let _powerMode = false;
-  const SUPERSCRIPT_MAP = { '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹','-':'⁻' };
+  // Only characters that actually have a Unicode superscript form get one —
+  // there's no way to shrink/raise part of a plain <input>'s text via CSS,
+  // so anything without a real superscript codepoint (comma, √, /) has no
+  // way to render smaller and just inserts at normal size even in power
+  // mode. +, ( and ) do have one — useful for a compound exponent like
+  // "2⁽³⁺¹⁾".
+  const SUPERSCRIPT_MAP = {
+    '0':'⁰','1':'¹','2':'²','3':'³','4':'⁴','5':'⁵','6':'⁶','7':'⁷','8':'⁸','9':'⁹',
+    '-':'⁻', '+':'⁺', '(':'⁽', ')':'⁾'
+  };
 
   function _renderKeypad() {
     _powerMode = false;
