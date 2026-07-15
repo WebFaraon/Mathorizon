@@ -20,6 +20,7 @@ create or replace function public._sim_promote_numeric_literals(s0 text) returns
 language plpgsql immutable as $$
 declare
   s text := s0;
+  
   len int;
   i int := 1;
   ch text;

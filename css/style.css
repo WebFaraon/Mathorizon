@@ -11832,6 +11832,34 @@ body.bac-exam-mode .nav.nav--peek {
 .av-foot__date { font-size: 0.82rem; color: var(--text-secondary); }
 .av-foot__pts  { font-size: 0.82rem; color: var(--text-secondary); }
 
+/* ── Assignment View Modal – mobile ──────────────────────────
+   On phones the old single-row layout (icon + name + size + two
+   buttons) didn't fit: the filename got squeezed to ~0 width and
+   the Descarcă button overflowed past the card edge. Stack each
+   file item into two rows instead — info on top, full-width
+   actions below — and trim padding so the section reads lighter. */
+@media (max-width: 600px) {
+  .av-block { padding: 14px; }
+  .av-file-item {
+    flex-wrap: wrap;
+    row-gap: 10px;
+    padding: 12px;
+  }
+  .av-file-item__name { white-space: normal; overflow-wrap: anywhere; }
+  .av-file-item__actions {
+    flex-basis: 100%;
+    padding-top: 10px;
+    border-top: 1px solid rgba(58,107,173,0.12);
+  }
+  .av-file-item__view,
+  .av-file-item__dl {
+    flex: 1;
+    justify-content: center;
+  }
+  .av-file-item__note { flex-basis: 100%; text-align: left; }
+  [data-theme="dark"] .av-file-item__actions { border-top-color: rgba(255,255,255,0.09); }
+}
+
 .teme-assignment--clickable { cursor: pointer; }
 
 /* ── Submission section ───────────────────────────────────── */
