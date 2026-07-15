@@ -11348,6 +11348,22 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: rgba(234,179,8,0.25);
 }
 
+/* Persistent "tap me" affordance for students — the card itself is the
+   click target, but hover-only cues (lift, cursor) are invisible on touch,
+   so students were missing that it opens the exercises/upload area. */
+.teme-assignment__cta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 9px 20px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: #fff;
+  background: var(--accent);
+}
+
 /* ── Wizard ───────────────────────────────────────────────── */
 .wz-overlay {
   position: fixed;

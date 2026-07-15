@@ -863,6 +863,15 @@
 
     const typeIcon = typeIconMap[blocks[0]?.type] || '📋';
 
+    let ctaLabel = '👆 Apasă pentru exerciții și încărcarea rezolvării';
+    if (a.archived_at) {
+      ctaLabel = '👆 Apasă pentru detalii și notă';
+    } else if (a._subInfo?.grade_confirmed) {
+      ctaLabel = '👆 Apasă pentru a vedea nota și comentariul';
+    } else if (a._subInfo) {
+      ctaLabel = '👆 Apasă pentru a vedea tema trimisă';
+    }
+
     return `
       <div class="teme-assignment teme-assignment--${badge.cls} teme-assignment--clickable"
            data-id="${a.id}">
@@ -904,6 +913,7 @@
             </div>
           `) : ''}
         </div>
+        ${!isTeacher ? `<div class="teme-assignment__cta">${ctaLabel}</div>` : ''}
       </div>
     `;
   }
