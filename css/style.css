@@ -3539,23 +3539,6 @@ body.bac-exam-mode .nav.nav--peek {
   .config-chapter-list { gap: 4px; }
 }
 
-/* .nav__brand (logo + "MATHORIZON" wordmark) and .nav__right (profile +
-   hamburger) are both flex-shrink:0, with nothing flexible left between
-   them once .nav__links is hidden below 860px — so their combined width
-   is fixed, not responsive. On a narrow enough phone (or just a bigger
-   system font-size accessibility setting inflating the wordmark's actual
-   rendered width) that fixed total can exceed the viewport outright; the
-   overflow then gets clipped by html/body's overflow-x:hidden (mobile
-   query above), silently pushing the hamburger button off-screen
-   entirely instead of just cramming everything in tighter — the only fix
-   was rotating to landscape for the extra width. Dropping the wordmark
-   here (icon alone still reads as the brand) frees enough width that
-   this can't happen on any real phone, with real margin to spare even
-   under font-scaling. */
-@media (max-width: 480px) {
-  .nav__name { display: none; }
-}
-
 /* Very small phones — 400px and below */
 @media (max-width: 400px) {
   .nav__logo { height: 46px; }
