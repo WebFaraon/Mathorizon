@@ -3013,7 +3013,7 @@
         ${isTeacher ? `
           <div class="teme-toolbar sim-toolbar">
             <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
-            <button class="btn btn--surface" id="simFromTemplateBtn">📋 Din șablon</button>
+            <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">📋 Șabloane</button>
           </div>` : ''}
         <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
           ${visible.length === 0
@@ -3751,12 +3751,12 @@
     modal.className = 'classes-modal';
     modal.innerHTML = `
       <div class="classes-modal__backdrop"></div>
-      <div class="classes-modal__dialog">
+      <div class="classes-modal__dialog sim-tpl-dialog">
         <div class="classes-modal__head">
           <h3>📋 Șabloane salvate</h3>
           <button class="icon-btn" id="simTplCloseBtn">✕</button>
         </div>
-        <div class="classes-modal__body" id="simTplBody">
+        <div class="classes-modal__body sim-tpl-body" id="simTplBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
         </div>
       </div>`;
@@ -3771,22 +3771,50 @@
     modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
     modal.querySelector('#simTplCloseBtn').onclick = closeModal;
 
-    const { data: templates } = await BMAuth.supabase
-      .from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false });
+    // Templates are saved per-teacher, not per-class (see the 📋 "save as
+    // template" action on an existing simulation) — a teacher managing
+    // several classes should be able to reuse one from here for whichever
+    // class they actually want, not just whichever class page happens to
+    // be open right now.
+    const [{ data: templates }, { data: classes }] = await Promise.all([
+      BMAuth.supabase.from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false }),
+      BMAuth.supabase.from('classes').select('id, name').eq('teacher_id', BMAuth.user.id).order('name')
+    ]);
+
     const body = document.getElementById('simTplBody');
+    if (!body) return; // modal closed while the queries were in flight
+    const myClasses = (classes && classes.length) ? classes : [{ id: classData.id, name: classData.name }];
+    const classFieldHtml = `
+      <div class="cls-form-field sim-tpl-class-field">
+        <label class="cls-form-label">Creezi simularea pentru clasa</label>
+        <select id="simTplClassSelect" class="cls-form-select">
+          ${myClasses.map(c => `<option value="${c.id}"${c.id === classData.id ? ' selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+        </select>
+      </div>`;
+
     if (!templates || !templates.length) {
-      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
+      body.innerHTML = classFieldHtml + `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
+      BM.initCustomSelects(body);
       return;
     }
-    body.innerHTML = `<div class="sim-tpl-list">${templates.map(t => `
+    body.innerHTML = classFieldHtml + `<div class="sim-tpl-list">${templates.map(t => `
       <div class="sim-tpl-row" data-tpl-id="${t.id}">
-        <span class="sim-tpl-row__title">${BM.esc(t.title)}</span>
-        <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · 👁 supravegheat' : ''}</span>
+        <span class="sim-tpl-row__icon">📄</span>
+        <div class="sim-tpl-row__main">
+          <span class="sim-tpl-row__title">${BM.esc(t.title)}</span>
+          <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · 👁 supravegheat' : ''}</span>
+        </div>
+        <span class="sim-tpl-row__arrow">→</span>
       </div>`).join('')}</div>`;
-    body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => _useTemplate(row.dataset.tplId)));
+    BM.initCustomSelects(body);
+    const classSelect = document.getElementById('simTplClassSelect');
+    body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => {
+      const opt = classSelect.selectedOptions[0];
+      _useTemplate(row.dataset.tplId, opt.value, opt.textContent);
+    }));
   }
 
-  async function _useTemplate(templateId) {
+  async function _useTemplate(templateId, classId, className) {
     const [{ data: tpl }, { data: tplItems }] = await Promise.all([
       BMAuth.supabase.from('simulation_templates').select('*').eq('id', templateId).single(),
       BMAuth.supabase.from('simulation_template_items').select('*').eq('template_id', templateId).order('position')
@@ -3818,7 +3846,8 @@
     simWiz = {
       existingId: null, step: 1, title: tpl.title, scheduledAt: '',
       timeLimitMinutes: tpl.time_limit_minutes, supervised: tpl.supervised,
-      startMode: 'schedule', items
+      startMode: 'schedule', items,
+      classId: classId || classData.id, className: className || classData.name
     };
     BM.toast('Șablon încărcat — revizuiește detaliile și exercițiile înainte de a salva.', 'success');
     _simWzShowModal();
@@ -3871,7 +3900,8 @@
       timeLimitMinutes: existing?.time_limit_minutes || 30,
       supervised: existing?.supervised || false,
       startMode: existing?.status === 'activa' ? 'now' : 'schedule',
-      items
+      items,
+      classId: classData.id, className: classData.name
     };
     _simWzShowModal();
   }
@@ -3941,6 +3971,10 @@
 
   function _simWzStep1() {
     return `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Clasă</label>
+        <div class="sim-wz-class-badge">🏫 ${BM.esc(simWiz.className || classData.name)}</div>
+      </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Titlu simulare *</label>
         <input type="text" id="simWzTitle" class="cls-form-input" maxlength="150"
@@ -4111,7 +4145,7 @@
       // that same policy, silently producing an empty, unsolvable simulation
       // whenever "Pornește imediat ce salvez" was chosen.
       const payload = {
-        class_id: classData.id,
+        class_id: simWiz.classId || classData.id,
         title: simWiz.title.trim(),
         time_limit_minutes: Number(simWiz.timeLimitMinutes),
         status: 'programata',
@@ -4177,13 +4211,23 @@
       }
 
       if (!simWiz.existingId) {
-        window.BMPush?.sendClassPush(classData.id, wantsActive ? 'simulare_started' : 'simulare_scheduled', {
+        window.BMPush?.sendClassPush(payload.class_id, wantsActive ? 'simulare_started' : 'simulare_scheduled', {
           sim_title: payload.title,
           when: wantsActive ? '' : formatSimDateTime(payload.scheduled_at)
         });
       }
 
-      BM.toast(simWiz.existingId ? 'Simularea a fost actualizată!' : 'Simularea a fost creată!', 'success');
+      // A template can target a different class than the one currently
+      // open (see openSimTemplatePicker) — say so explicitly, since the
+      // list refresh below only ever shows the current class's own
+      // simulations and the new one would otherwise just seem to vanish.
+      const forOtherClass = payload.class_id !== classData.id;
+      BM.toast(
+        simWiz.existingId ? 'Simularea a fost actualizată!'
+          : forOtherClass ? `Simularea a fost creată pentru clasa „${simWiz.className}"!`
+          : 'Simularea a fost creată!',
+        'success'
+      );
       _simWzClose();
       await loadSimulariTab();
     } catch (e) {

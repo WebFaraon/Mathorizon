@@ -10120,23 +10120,78 @@ body.bac-exam-mode .nav.nav--peek {
   overflow-wrap: break-word;
 }
 
-/* Template picker list */
-.sim-tpl-list { display: flex; flex-direction: column; gap: 8px; }
+/* Template picker — wider than the default .classes-modal__dialog so a
+   normal-length simulation title has room to sit on one line instead of
+   wrapping against the meta text next to it. */
+.sim-tpl-dialog { max-width: 640px; }
+.sim-tpl-body { display: flex; flex-direction: column; gap: 20px; }
+.sim-tpl-class-field { margin-bottom: 0; }
+
+.sim-tpl-list { display: flex; flex-direction: column; gap: 10px; }
 .sim-tpl-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 16px;
+  gap: 14px;
+  padding: 14px 16px;
   border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
+  border-radius: var(--radius);
+  background: var(--card);
   cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
+  transition: border-color 0.15s, background 0.15s, transform 0.15s, box-shadow 0.15s;
 }
-.sim-tpl-row:hover { border-color: var(--accent); background: var(--accent-dim); }
-.sim-tpl-row__title { font-weight: 700; color: var(--text); }
-.sim-tpl-row__meta { font-size: 0.8rem; color: var(--text-muted); white-space: nowrap; }
+.sim-tpl-row:hover {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+  transform: translateY(-1px);
+  box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+}
+.sim-tpl-row__icon {
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  font-size: 1.05rem;
+}
+.sim-tpl-row__main {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+.sim-tpl-row__title {
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.sim-tpl-row__meta { font-size: 0.8rem; color: var(--text-muted); }
+.sim-tpl-row__arrow {
+  flex-shrink: 0;
+  color: var(--text-muted);
+  font-size: 1.05rem;
+  transition: transform 0.15s, color 0.15s;
+}
+.sim-tpl-row:hover .sim-tpl-row__arrow { color: var(--accent); transform: translateX(3px); }
+
+/* Wizard step 1 — read-only class indicator (the class is picked once,
+   up front, in the template-picker modal above) */
+.sim-wz-class-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: var(--radius-sm);
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
 
 .catalog-legend-item--sep {
   margin-left: auto;
@@ -11135,6 +11190,21 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .sim-toolbar .btn {
   width: 100%;
+}
+/* "Șabloane" — .btn--surface's default transparent fill reads as
+   disabled/washed-out here since it sits right under the solid
+   "+ Simulare Nouă" primary button; give it an opaque accent-tinted
+   fill instead so it's still clearly secondary but actually visible. */
+.sim-tpl-btn {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: var(--accent-dim);
+  font-weight: 700;
+}
+.sim-tpl-btn:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
 }
 
 .teme-list {
