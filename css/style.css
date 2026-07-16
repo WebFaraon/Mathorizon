@@ -291,13 +291,23 @@ body.bac-exam-mode .nav.nav--peek {
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s;
+  /* Own compositing layer, insulated from .nav's backdrop-filter blur —
+     on some Android/Chromium builds, thin/low-opacity children sitting
+     inside a backdrop-filter ancestor have been observed failing to
+     paint (the button's own border still renders fine since that's
+     drawn directly on the box, not filtered) while the rest of the
+     button looks and works normally. */
+  isolation: isolate;
 }
 .nav__hamburger:hover { background: rgba(255,255,255,0.20); }
 .nav__hamburger span {
   display: block;
   height: 2px;
   border-radius: 2px;
-  background: rgba(255,255,255,0.90);
+  /* Fully opaque — was rgba(255,255,255,0.90). Nothing needs to show
+     through these, so there's no reason to leave any transparency that
+     the compositing bug above could exploit. */
+  background: #fff;
   transition: transform 0.22s ease, opacity 0.22s ease;
 }
 .nav__hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
@@ -3527,6 +3537,23 @@ body.bac-exam-mode .nav.nav--peek {
   .session-nav { flex-direction: column; }
   .results-stats { grid-template-columns: 1fr; }
   .config-chapter-list { gap: 4px; }
+}
+
+/* .nav__brand (logo + "MATHORIZON" wordmark) and .nav__right (profile +
+   hamburger) are both flex-shrink:0, with nothing flexible left between
+   them once .nav__links is hidden below 860px — so their combined width
+   is fixed, not responsive. On a narrow enough phone (or just a bigger
+   system font-size accessibility setting inflating the wordmark's actual
+   rendered width) that fixed total can exceed the viewport outright; the
+   overflow then gets clipped by html/body's overflow-x:hidden (mobile
+   query above), silently pushing the hamburger button off-screen
+   entirely instead of just cramming everything in tighter — the only fix
+   was rotating to landscape for the extra width. Dropping the wordmark
+   here (icon alone still reads as the brand) frees enough width that
+   this can't happen on any real phone, with real margin to spare even
+   under font-scaling. */
+@media (max-width: 480px) {
+  .nav__name { display: none; }
 }
 
 /* Very small phones — 400px and below */
@@ -10125,7 +10152,6 @@ body.bac-exam-mode .nav.nav--peek {
    wrapping against the meta text next to it. */
 .sim-tpl-dialog { max-width: 640px; }
 .sim-tpl-body { display: flex; flex-direction: column; gap: 20px; }
-.sim-tpl-class-field { margin-bottom: 0; }
 
 .sim-tpl-list { display: flex; flex-direction: column; gap: 10px; }
 .sim-tpl-row {
@@ -10163,12 +10189,24 @@ body.bac-exam-mode .nav.nav--peek {
   flex-direction: column;
   gap: 3px;
 }
+.sim-tpl-row__top { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .sim-tpl-row__title {
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  min-width: 0;
+}
+.sim-tpl-row__grade {
+  flex-shrink: 0;
+  font-size: 0.72rem;
+  font-weight: 800;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  white-space: nowrap;
 }
 .sim-tpl-row__meta { font-size: 0.8rem; color: var(--text-muted); }
 .sim-tpl-row__arrow {

@@ -1291,6 +1291,28 @@
     return `<span class="catalog-th__sort-arrow">${sortState.dir === 'asc' ? '▲' : '▼'}</span>`;
   }
 
+  // Single chronological ordering across both column types, computed once —
+  // shared by the on-screen table and the PDF/Excel export. Previously
+  // assignments and simulări were each sorted fine on their own but then
+  // concatenated (every temă column before every simulare column, always),
+  // so a simulare could sit visually after a temă that actually happened
+  // weeks later. due_date is a date-only string ("YYYY-MM-DD") built into a
+  // local midnight Date the same way the header label itself is formatted,
+  // so the sort key always matches what's displayed; a simulare uses
+  // whichever of started_at/scheduled_at/created_at it actually shows
+  // (see _simColDate).
+  function _catalogColumns(assignments, sims) {
+    const cols = [
+      ...assignments.map(a => {
+        const [y, mo, d] = a.due_date.split('-').map(Number);
+        return { kind: 'assignment', id: a.id, ref: a, date: new Date(y, mo - 1, d) };
+      }),
+      ...sims.map(s => ({ kind: 'sim', id: s.id, ref: s, date: new Date(s.started_at || s.scheduled_at || s.created_at) }))
+    ];
+    cols.sort((a, b) => a.date - b.date);
+    return cols;
+  }
+
   // Shared by renderCatalogTeacher (on-screen) and the PDF/Excel export —
   // one source of truth for per-student averages and sort order, so an
   // export can never silently drift from what's actually on screen.
@@ -1355,18 +1377,19 @@
 
   function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}, sims = [], simMatrix = {}, sortState = {}) {
     const { aStats, sStats } = _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix);
+    const cols = _catalogColumns(assignments, sims);
 
-    const headerCells = assignments.map(a => {
-      const [y, mo, d] = a.due_date.split('-').map(Number);
-      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      return `
-        <div class="catalog-th" title="${BM.esc(a.title)} — temă">
-          <span class="catalog-th__title">📝 ${BM.esc(a.title)}</span>
-          <span class="catalog-th__date">${ds}</span>
-        </div>`;
-    }).join('');
-
-    const simHeaderCells = sims.map(s => {
+    const headerCells = cols.map(col => {
+      if (col.kind === 'assignment') {
+        const a = col.ref;
+        const ds = col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+        return `
+          <div class="catalog-th" title="${BM.esc(a.title)} — temă">
+            <span class="catalog-th__title">📝 ${BM.esc(a.title)}</span>
+            <span class="catalog-th__date">${ds}</span>
+          </div>`;
+      }
+      const s = col.ref;
       const ds = _simColDate(s);
       return `
         <div class="catalog-th catalog-th--sim catalog-th--sortable" data-sort-key="${s.id}" title="${BM.esc(s.title)} — simulare — click pentru sortare">
@@ -1385,19 +1408,18 @@
     );
 
     const studentRows = rows.map(({ name, mySubs, mySims, avgNum }) => {
-      const cells = assignments.map(a => {
-        const sub = mySubs[a.id];
-        if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
-        if (sub.grade_confirmed) {
-          const g = parseFloat(sub.grade);
-          const cls = _catalogGradeTier(g);
-          return `<div class="catalog-td catalog-td--grade catalog-td--${cls}" title="Notă: ${sub.grade}">${sub.grade}</div>`;
+      const cells = cols.map(col => {
+        if (col.kind === 'assignment') {
+          const sub = mySubs[col.id];
+          if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
+          if (sub.grade_confirmed) {
+            const g = parseFloat(sub.grade);
+            const cls = _catalogGradeTier(g);
+            return `<div class="catalog-td catalog-td--grade catalog-td--${cls}" title="Notă: ${sub.grade}">${sub.grade}</div>`;
+          }
+          return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
         }
-        return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
-      }).join('');
-
-      const simCells = sims.map(s => {
-        const att = mySims[s.id];
+        const att = mySims[col.id];
         // grade_10 can be null on a finalized attempt for a simulation that
         // ended up with 0 items (now fixed at creation time, but old/broken
         // rows can still exist) — falls back to the same dash as "didn't
@@ -1419,7 +1441,6 @@
             <span class="catalog-name-text">${BM.esc(name)}</span>
           </div>
           ${cells}
-          ${simCells}
           <div class="catalog-td catalog-td--avg ${avgCls}">${avg}</div>
         </div>`;
     }).join('');
@@ -1431,8 +1452,10 @@
     const statsRow = `
       <div class="catalog-row catalog-row--stats">
         <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie clasă</div>
-        ${assignments.map(a => `<div class="catalog-td catalog-td--stat${_statToneCls(aStats[a.id])}">${aStats[a.id]}</div>`).join('')}
-        ${sims.map(s => `<div class="catalog-td catalog-td--stat catalog-td--sim${_statToneCls(sStats[s.id])}">${sStats[s.id]}</div>`).join('')}
+        ${cols.map(col => col.kind === 'assignment'
+          ? `<div class="catalog-td catalog-td--stat${_statToneCls(aStats[col.id])}">${aStats[col.id]}</div>`
+          : `<div class="catalog-td catalog-td--stat catalog-td--sim${_statToneCls(sStats[col.id])}">${sStats[col.id]}</div>`
+        ).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>`;
 
@@ -1464,7 +1487,6 @@
             <div class="catalog-head">
               <div class="catalog-th catalog-th--name">Elev</div>
               ${headerCells}
-              ${simHeaderCells}
               <div class="catalog-th catalog-th--avg catalog-th--sortable" data-sort-key="avg" title="Click pentru sortare">Medie${_catalogSortArrow('avg', sortState)}</div>
             </div>
             <div class="catalog-body">
@@ -1490,8 +1512,7 @@
      PDF/Excel export to reuse. ─── */
   function _catalogExportColumns(assignments, sims) {
     const cols = [{ label: 'Elev', kind: 'name' }];
-    assignments.forEach(a => cols.push({ label: a.title, kind: 'assignment', id: a.id }));
-    sims.forEach(s => cols.push({ label: s.title, kind: 'sim', id: s.id }));
+    _catalogColumns(assignments, sims).forEach(col => cols.push({ label: col.ref.title, kind: col.kind, id: col.id }));
     cols.push({ label: 'Medie', kind: 'avg' });
     return cols;
   }
@@ -3695,7 +3716,8 @@
       const optsByItem = {}; (opts || []).forEach(o => { (optsByItem[o.simulation_item_id] = optsByItem[o.simulation_item_id] || []).push(o); });
 
       const { data: tpl, error: tplErr } = await BMAuth.supabase.from('simulation_templates').insert({
-        created_by: BMAuth.user.id, title, time_limit_minutes: sim.time_limit_minutes, supervised: !!sim.supervised
+        created_by: BMAuth.user.id, title, time_limit_minutes: sim.time_limit_minutes, supervised: !!sim.supervised,
+        school_grade: classData.school_grade
       }).select('id').single();
       if (tplErr) throw tplErr;
 
@@ -3771,50 +3793,36 @@
     modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
     modal.querySelector('#simTplCloseBtn').onclick = closeModal;
 
-    // Templates are saved per-teacher, not per-class (see the 📋 "save as
-    // template" action on an existing simulation) — a teacher managing
-    // several classes should be able to reuse one from here for whichever
-    // class they actually want, not just whichever class page happens to
-    // be open right now.
-    const [{ data: templates }, { data: classes }] = await Promise.all([
-      BMAuth.supabase.from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false }),
-      BMAuth.supabase.from('classes').select('id, name').eq('teacher_id', BMAuth.user.id).order('name')
-    ]);
+    const { data: templates } = await BMAuth.supabase
+      .from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false });
 
     const body = document.getElementById('simTplBody');
-    if (!body) return; // modal closed while the queries were in flight
-    const myClasses = (classes && classes.length) ? classes : [{ id: classData.id, name: classData.name }];
-    const classFieldHtml = `
-      <div class="cls-form-field sim-tpl-class-field">
-        <label class="cls-form-label">Creezi simularea pentru clasa</label>
-        <select id="simTplClassSelect" class="cls-form-select">
-          ${myClasses.map(c => `<option value="${c.id}"${c.id === classData.id ? ' selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
-        </select>
-      </div>`;
-
+    if (!body) return; // modal closed while the query was in flight
     if (!templates || !templates.length) {
-      body.innerHTML = classFieldHtml + `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
-      BM.initCustomSelects(body);
+      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
       return;
     }
-    body.innerHTML = classFieldHtml + `<div class="sim-tpl-list">${templates.map(t => `
+    // school_grade is a snapshot of the class the template was saved from
+    // (see _saveAsTemplate) — shown so a teacher juggling several grades
+    // can tell at a glance which template targets which one, without
+    // having to open each and check. Templates saved before this existed
+    // have no grade recorded, so the badge is just skipped for those.
+    body.innerHTML = `<div class="sim-tpl-list">${templates.map(t => `
       <div class="sim-tpl-row" data-tpl-id="${t.id}">
         <span class="sim-tpl-row__icon">📄</span>
         <div class="sim-tpl-row__main">
-          <span class="sim-tpl-row__title">${BM.esc(t.title)}</span>
+          <div class="sim-tpl-row__top">
+            <span class="sim-tpl-row__title">${BM.esc(t.title)}</span>
+            ${t.school_grade ? `<span class="sim-tpl-row__grade">Clasa ${BM.esc(t.school_grade)}</span>` : ''}
+          </div>
           <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · 👁 supravegheat' : ''}</span>
         </div>
         <span class="sim-tpl-row__arrow">→</span>
       </div>`).join('')}</div>`;
-    BM.initCustomSelects(body);
-    const classSelect = document.getElementById('simTplClassSelect');
-    body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => {
-      const opt = classSelect.selectedOptions[0];
-      _useTemplate(row.dataset.tplId, opt.value, opt.textContent);
-    }));
+    body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => _useTemplate(row.dataset.tplId)));
   }
 
-  async function _useTemplate(templateId, classId, className) {
+  async function _useTemplate(templateId) {
     const [{ data: tpl }, { data: tplItems }] = await Promise.all([
       BMAuth.supabase.from('simulation_templates').select('*').eq('id', templateId).single(),
       BMAuth.supabase.from('simulation_template_items').select('*').eq('template_id', templateId).order('position')
@@ -3846,8 +3854,7 @@
     simWiz = {
       existingId: null, step: 1, title: tpl.title, scheduledAt: '',
       timeLimitMinutes: tpl.time_limit_minutes, supervised: tpl.supervised,
-      startMode: 'schedule', items,
-      classId: classId || classData.id, className: className || classData.name
+      startMode: 'schedule', items
     };
     BM.toast('Șablon încărcat — revizuiește detaliile și exercițiile înainte de a salva.', 'success');
     _simWzShowModal();
@@ -3900,8 +3907,7 @@
       timeLimitMinutes: existing?.time_limit_minutes || 30,
       supervised: existing?.supervised || false,
       startMode: existing?.status === 'activa' ? 'now' : 'schedule',
-      items,
-      classId: classData.id, className: classData.name
+      items
     };
     _simWzShowModal();
   }
@@ -3973,7 +3979,7 @@
     return `
       <div class="cls-form-field">
         <label class="cls-form-label">Clasă</label>
-        <div class="sim-wz-class-badge">🏫 ${BM.esc(simWiz.className || classData.name)}</div>
+        <div class="sim-wz-class-badge">🏫 Clasa ${BM.esc(classData.school_grade)}</div>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Titlu simulare *</label>
@@ -4145,7 +4151,7 @@
       // that same policy, silently producing an empty, unsolvable simulation
       // whenever "Pornește imediat ce salvez" was chosen.
       const payload = {
-        class_id: simWiz.classId || classData.id,
+        class_id: classData.id,
         title: simWiz.title.trim(),
         time_limit_minutes: Number(simWiz.timeLimitMinutes),
         status: 'programata',
@@ -4211,23 +4217,13 @@
       }
 
       if (!simWiz.existingId) {
-        window.BMPush?.sendClassPush(payload.class_id, wantsActive ? 'simulare_started' : 'simulare_scheduled', {
+        window.BMPush?.sendClassPush(classData.id, wantsActive ? 'simulare_started' : 'simulare_scheduled', {
           sim_title: payload.title,
           when: wantsActive ? '' : formatSimDateTime(payload.scheduled_at)
         });
       }
 
-      // A template can target a different class than the one currently
-      // open (see openSimTemplatePicker) — say so explicitly, since the
-      // list refresh below only ever shows the current class's own
-      // simulations and the new one would otherwise just seem to vanish.
-      const forOtherClass = payload.class_id !== classData.id;
-      BM.toast(
-        simWiz.existingId ? 'Simularea a fost actualizată!'
-          : forOtherClass ? `Simularea a fost creată pentru clasa „${simWiz.className}"!`
-          : 'Simularea a fost creată!',
-        'success'
-      );
+      BM.toast(simWiz.existingId ? 'Simularea a fost actualizată!' : 'Simularea a fost creată!', 'success');
       _simWzClose();
       await loadSimulariTab();
     } catch (e) {
