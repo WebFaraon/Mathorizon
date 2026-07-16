@@ -6561,6 +6561,22 @@ body.bac-exam-mode .nav.nav--peek {
   .bac-nav-item.done    { border-bottom-color: var(--solved); }
   .bac-nav-item__status { display: none; }
   .bac-nav-item__pts { font-size: 0.64rem; }
+  /* Class-simulation exam only (.sim-exam-overlay): tabs grow to fill each
+     row out to the right edge instead of leaving a ragged gap, and the
+     current item is a solid blue fill rather than a separate "În lucru"
+     badge (simulare-exam.js no longer renders that badge at all). */
+  .sim-exam-overlay .bac-nav-item {
+    flex: 1 1 90px;
+    justify-content: center;
+    text-align: center;
+  }
+  .sim-exam-overlay .bac-nav-item.current {
+    background: var(--accent);
+    border-color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+  .sim-exam-overlay .bac-nav-item.current .bac-nav-item__label,
+  .sim-exam-overlay .bac-nav-item.current .bac-nav-item__pts { color: #fff; }
   .bac-topbar-controls .bac-timer { min-width: auto; }
   .bac-main { padding: 16px 16px 0; height: auto; overflow: visible; animation: none; }
   #slotContent { flex: none; overflow-y: visible; padding-right: 0; margin-right: 0; display: block; }

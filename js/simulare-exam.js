@@ -47,7 +47,9 @@ window.BM = window.BM || {};
       { sym: '+' }, { sym: '-' }, { action: 'power', label: 'xⁿ' }, { sym: '√' }
     ] },
     { label: 'Simboluri', keys: [
-      { sym: 'x' }, { sym: '∈' }, { sym: '∩' }, { sym: '∪' },
+      { sym: 'x' }, { sym: 'y' }, { sym: 'z' }, { sym: 'a' },
+      { sym: 'b' }, { sym: 'c' }, { sym: '=' }, { sym: '[' },
+      { sym: ']' }, { sym: '∈' }, { sym: '∩' }, { sym: '∪' },
       { sym: '≤' }, { sym: '≥' }, { sym: '∞' }, { sym: 'π' }
     ] }
   ];
@@ -388,7 +390,7 @@ window.BM = window.BM || {};
           ${state.items.map((it, i) => `
             <div class="bac-nav-item${i === state.current ? ' current' : ''}" data-nav-idx="${i}">
               <span class="bac-nav-item__label">Item ${i + 1}</span>
-              ${i === state.current ? '<span class="bac-nav-badge">În lucru</span>' : `<span class="bac-nav-item__pts">${it.points}p</span>`}
+              <span class="bac-nav-item__pts">${it.points}p</span>
             </div>`).join('')}
         </div>`;
       nav.querySelectorAll('[data-nav-idx]').forEach(el => {
