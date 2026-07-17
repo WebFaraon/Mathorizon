@@ -68,8 +68,8 @@ BM.formatDate = function(ts) {
 };
 
 /* ---- Difficulty label ---- */
-BM.diffLabel = { usor: 'Ușor', mediu: 'Mediu', dificil: 'Greu' };
-BM.diffClass = { usor: 'usor', mediu: 'mediu', dificil: 'dificil' };
+BM.diffLabel = { usor: 'Ușor', mediu: 'Mediu', dificil: 'Greu', legendar: 'Legendar' };
+BM.diffClass = { usor: 'usor', mediu: 'mediu', dificil: 'dificil', legendar: 'legendar' };
 
 BM.diffBadge = function(difficulty) {
   return `<span class="diff-badge ${BM.diffClass[difficulty] || ''}">${BM.diffLabel[difficulty] || difficulty}</span>`;

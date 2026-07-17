@@ -17,9 +17,10 @@
     { id: 'bac', label: 'Clasa a 12-a · BAC' }
   ];
   const DIFFICULTIES = [
-    { id: 'usor',    label: 'Ușor' },
-    { id: 'mediu',   label: 'Mediu' },
-    { id: 'dificil', label: 'Dificil' }
+    { id: 'usor',     label: 'Ușor' },
+    { id: 'mediu',    label: 'Mediu' },
+    { id: 'dificil',  label: 'Dificil' },
+    { id: 'legendar', label: 'Legendar' }
   ];
   const GRADE_LABEL = { '9': 'Clasa a 9-a', bac: 'BAC' };
 

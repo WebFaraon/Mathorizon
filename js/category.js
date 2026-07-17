@@ -316,9 +316,10 @@
       <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
       <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
       <div class="filter-sep"></div>
-      <button class="filter-chip easy"   onclick="setFilter('usor', this)">Ușor</button>
-      <button class="filter-chip medium" onclick="setFilter('mediu', this)">Mediu</button>
-      <button class="filter-chip hard"   onclick="setFilter('dificil', this)">Greu</button>
+      <button class="filter-chip easy"      onclick="setFilter('usor', this)">Ușor</button>
+      <button class="filter-chip medium"    onclick="setFilter('mediu', this)">Mediu</button>
+      <button class="filter-chip hard"      onclick="setFilter('dificil', this)">Greu</button>
+      <button class="filter-chip legendary" onclick="setFilter('legendar', this)">Legendar</button>
     `;
   }
 
@@ -348,6 +349,7 @@
       if (currentFilter === 'usor'  && e.difficulty !== 'usor')  return false;
       if (currentFilter === 'mediu' && e.difficulty !== 'mediu') return false;
       if (currentFilter === 'dificil' && e.difficulty !== 'dificil') return false;
+      if (currentFilter === 'legendar' && e.difficulty !== 'legendar') return false;
       return true;
     }).map(e => Object.assign({}, e, { _locked: !fullAccess && !unlockedIds.has(e.id) }));
 
@@ -372,12 +374,159 @@
     return '';
   }
 
+  /* ---- Rarity redesign (preview — calcul-algebric subcategory only) ---- */
+  const RARITY_BY_DIFF = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };
+
+  function renderRarityCards(container) {
+    const solved = BM.Storage.getSolved();
+    const favs   = BM.Storage.getFavorites();
+    const cat    = currentCategory;
+
+    container.innerHTML = filtered.map((ex) => {
+      const sub    = BM.getSubcategoryById(cat.id, ex.subcategoryId);
+      const rarity = RARITY_BY_DIFF[ex.difficulty] || 'comun';
+
+      if (ex._locked) {
+        return `
+        <div class="rarity-card rarity-card--locked" data-rarity="${rarity}" id="card-${ex.id}">
+          <div class="rarity-card__inner">
+            <div class="rarity-card__title rarity-card__title--locked">🔒 ${BM.esc(ex.title)}</div>
+            <a class="btn btn--accent" href="pachete.html">Deblochează</a>
+          </div>
+        </div>`;
+      }
+
+      const isSolved = !!solved[ex.id];
+      const isFav    = favs.includes(ex.id);
+
+      return `
+        <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}')">
+          <span class="rarity-badge">${rarity}</span>
+          <div class="rarity-card__inner">
+            <div class="rarity-card__top">
+              <div class="rarity-card__tags">
+                ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
+                <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+              </div>
+              <div class="rarity-card__actions" onclick="event.stopPropagation()">
+                <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
+                        onclick="toggleFav('${ex.id}', this)"
+                        title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">${isFav ? '♥' : '♡'}</button>
+                <button class="ex-action-btn solved ${isSolved ? 'active' : ''}"
+                        onclick="toggleSolved('${ex.id}', this)"
+                        title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">${isSolved ? '✓' : '☐'}</button>
+              </div>
+            </div>
+            <div class="rarity-card__title">${BM.esc(ex.title)}</div>
+            <div class="rarity-card__source">${BM.esc(ex.source)}</div>
+            <div class="rarity-card__statement">
+              <div class="rarity-card__statement-inner math-content">${BM.trustedNl2br(ex.statement)}</div>
+              <div class="rarity-card__fade"></div>
+              <div class="rarity-card__more">Vezi complet →</div>
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    container.querySelectorAll('.rarity-card').forEach((card, i) => {
+      card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
+      card.classList.add('ex-entering');
+      card.addEventListener('animationend', () => {
+        card.classList.remove('ex-entering');
+        card.style.animationDelay = '';
+      }, { once: true });
+    });
+
+    if (window.renderMathInElement) BM.renderMath(container);
+    fitRarityStatements(container);
+  }
+
+  /* Fixed-height statement area: shrink font-size until the rendered KaTeX
+     fits, down to a 12px floor; past that, truncate + fade + "Vezi complet →"
+     rather than letting long multi-line expressions blow out the card's
+     (non-negotiable) uniform height. Full text is always in the modal. */
+  function fitRarityStatements(container) {
+    container.querySelectorAll('.rarity-card__statement').forEach(wrap => {
+      const inner = wrap.querySelector('.rarity-card__statement-inner');
+      if (!inner) return;
+      wrap.classList.remove('rarity-card__statement--truncated');
+      const maxH = wrap.clientHeight;
+      let fontSize = 15;
+      inner.style.fontSize = fontSize + 'px';
+      while (inner.scrollHeight > maxH && fontSize > 12) {
+        fontSize -= 1;
+        inner.style.fontSize = fontSize + 'px';
+      }
+      if (inner.scrollHeight > maxH) {
+        wrap.classList.add('rarity-card__statement--truncated');
+      }
+    });
+  }
+
+  function buildRarityModal(ex, rarity) {
+    const cat   = currentCategory;
+    const sub   = BM.getSubcategoryById(cat.id, ex.subcategoryId);
+    const barem = Array.isArray(ex.barem) ? ex.barem : [];
+    const total = ex.puncteTotal || barem.reduce((s, b) => s + (Number(b.puncte_maxime) || 0), 0);
+
+    const stepsHtml = barem.map((b, i) => `
+      <div class="rarity-step">
+        <span class="rarity-step__num">${i + 1}</span>
+        <div class="rarity-step__body math-content">${BM.trustedNl2br(b.descriere || '')}</div>
+        <span class="rarity-step__pts">${b.puncte_maxime}p</span>
+      </div>`).join('');
+
+    return `
+      <div class="classes-modal rarity-modal" id="rarityModal" data-rarity="${rarity}">
+        <div class="classes-modal__backdrop"></div>
+        <div class="classes-modal__dialog rarity-modal__dialog">
+          <div class="rarity-modal__head">
+            <span class="rarity-badge">${rarity}</span>
+            <button class="icon-btn" id="rarityModalClose">✕</button>
+          </div>
+          <div class="rarity-modal__body">
+            <div class="rarity-modal__meta">
+              ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
+              <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+              <span class="source-text">${BM.esc(ex.source)}</span>
+            </div>
+            <h3 class="rarity-modal__title">${BM.esc(ex.title)}</h3>
+            <div class="rarity-modal__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            ${barem.length ? `
+            <div class="rarity-modal__barem-title">Barem</div>
+            ${stepsHtml}
+            <div class="rarity-modal__total">Total <strong>${total}p</strong></div>` : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  window.openRarityModal = function(id) {
+    const ex = BM.EXERCISES.find(e => e.id === id);
+    if (!ex) return;
+    const rarity = RARITY_BY_DIFF[ex.difficulty] || 'comun';
+
+    document.getElementById('rarityModal')?.remove();
+    const wrap = document.createElement('div');
+    wrap.innerHTML = buildRarityModal(ex, rarity);
+    const modal = wrap.firstElementChild;
+    document.body.appendChild(modal);
+    BM.renderMath(modal);
+
+    const close = () => { modal.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    modal.querySelector('.classes-modal__backdrop').onclick = close;
+    modal.querySelector('#rarityModalClose').onclick = close;
+    document.addEventListener('keydown', onKey);
+  };
+
   /* ---- Render exercises ---- */
   function renderExercises() {
     const container = document.getElementById('exercisesContainer');
     if (!container) return;
 
     if (filtered.length === 0) {
+      container.classList.remove('exercises-container--rarity');
       container.innerHTML = `
         <div class="no-results">
           <div class="no-results__icon">🔍</div>
@@ -388,6 +537,10 @@
         </div>`;
       return;
     }
+
+    const isRarityPage = currentSubcat === 'calcul-algebric';
+    container.classList.toggle('exercises-container--rarity', isRarityPage);
+    if (isRarityPage) { renderRarityCards(container); return; }
 
     const solved = BM.Storage.getSolved();
     const favs   = BM.Storage.getFavorites();
