@@ -10207,13 +10207,31 @@ body.bac-exam-mode .nav.nav--peek {
   white-space: nowrap;
 }
 .sim-tpl-row__meta { font-size: 0.8rem; color: var(--text-muted); }
-.sim-tpl-row__arrow {
+.sim-tpl-row__delete {
   flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
   color: var(--text-muted);
-  font-size: 1.05rem;
-  transition: transform 0.15s, color 0.15s;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
 }
-.sim-tpl-row:hover .sim-tpl-row__arrow { color: var(--accent); transform: translateX(3px); }
+.sim-tpl-row__delete:hover { background: var(--red-dim); color: var(--red); border-color: var(--red); }
+
+.sim-tpl-already-note {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--solved);
+  background: var(--solved-dim);
+  border: 1px solid var(--solved-border);
+  border-radius: var(--radius-sm);
+  padding: 10px 14px;
+}
 
 /* Wizard step 1 — read-only class indicator (the class is picked once,
    up front, in the template-picker modal above) */

@@ -3660,6 +3660,10 @@
 
   async function openSaveTemplateModal(sim) {
     document.getElementById('simSaveTplModal')?.remove();
+
+    const { data: existingTpl } = await BMAuth.supabase.from('simulation_templates')
+      .select('title').eq('created_by', BMAuth.user.id).eq('source_simulation_id', sim.id).maybeSingle();
+
     const modal = document.createElement('div');
     modal.id = 'simSaveTplModal';
     modal.className = 'classes-modal';
@@ -3671,6 +3675,9 @@
           <button class="icon-btn" id="simSaveTplCloseBtn">✕</button>
         </div>
         <div class="classes-modal__body">
+          ${existingTpl ? `
+            <p class="sim-tpl-already-note">✓ Această simulare a fost deja salvată ca șablon: „${BM.esc(existingTpl.title)}".</p>
+          ` : ''}
           <div class="cls-form-field">
             <label class="cls-form-label">Denumire șablon *</label>
             <input type="text" id="simSaveTplTitle" class="cls-form-input" value="${BM.esc(sim.title)}">
@@ -3717,7 +3724,7 @@
 
       const { data: tpl, error: tplErr } = await BMAuth.supabase.from('simulation_templates').insert({
         created_by: BMAuth.user.id, title, time_limit_minutes: sim.time_limit_minutes, supervised: !!sim.supervised,
-        school_grade: classData.school_grade
+        school_grade: classData.school_grade, source_simulation_id: sim.id
       }).select('id').single();
       if (tplErr) throw tplErr;
 
@@ -3793,11 +3800,18 @@
     modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
     modal.querySelector('#simTplCloseBtn').onclick = closeModal;
 
+    await _renderTemplateList();
+  }
+
+  async function _renderTemplateList() {
+    const body = document.getElementById('simTplBody');
+    if (!body) return; // modal closed before this was called
+    body.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div></div>`;
+
     const { data: templates } = await BMAuth.supabase
       .from('simulation_templates').select('*').eq('created_by', BMAuth.user.id).order('created_at', { ascending: false });
 
-    const body = document.getElementById('simTplBody');
-    if (!body) return; // modal closed while the query was in flight
+    if (!document.getElementById('simTplBody')) return; // modal closed while the query was in flight
     if (!templates || !templates.length) {
       body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
       return;
@@ -3817,9 +3831,28 @@
           </div>
           <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · 👁 supravegheat' : ''}</span>
         </div>
-        <span class="sim-tpl-row__arrow">→</span>
+        <button class="sim-tpl-row__delete" data-tpl-delete="${t.id}" title="Șterge șablonul">🗑️</button>
       </div>`).join('')}</div>`;
     body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => _useTemplate(row.dataset.tplId)));
+    body.querySelectorAll('[data-tpl-delete]').forEach(btn => btn.addEventListener('click', e => {
+      e.stopPropagation();
+      _deleteTemplate(btn.dataset.tplDelete);
+    }));
+  }
+
+  async function _deleteTemplate(templateId) {
+    const ok = await showConfirmDialog({
+      icon: '🗑️', title: 'Ștergi șablonul?',
+      message: 'Șablonul va fi șters definitiv. Simulările deja create din el nu sunt afectate.',
+      confirmText: 'Șterge'
+    });
+    if (!ok) return;
+    try {
+      const { error } = await BMAuth.supabase.from('simulation_templates').delete().eq('id', templateId);
+      if (error) throw error;
+      BM.toast('Șablonul a fost șters.', 'info');
+      await _renderTemplateList();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
   }
 
   async function _useTemplate(templateId) {
