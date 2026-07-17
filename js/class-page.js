@@ -1650,7 +1650,7 @@
   function _renderCatalogViewToggle(mode) {
     return `
       <div class="catalog-view-toggle-row">
-        <div class="cs-view-toggle" id="catalogViewToggle">
+        <div class="cs-view-toggle cs-view-toggle--lg" id="catalogViewToggle">
           <button type="button" class="cs-view-toggle__btn${mode === 'note' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="note">📊 Note</button>
           <button type="button" class="cs-view-toggle__btn${mode === 'prezenta' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="prezenta">🗓️ Prezență</button>
         </div>

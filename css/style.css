@@ -9706,6 +9706,14 @@ body.bac-exam-mode .nav.nav--peek {
   right: 0;
   z-index: 1;
   border-left: 1.5px solid var(--catalog-line);
+  /* Without this, "sticky" only kicks in once the row actually overflows
+     the scroll container — with few columns the row is narrower than the
+     card, so this cell just sits right after the last data column instead
+     of hugging the card's right edge, and visibly hops rightward every
+     time a new column pushes the row wider. margin-left:auto claims all
+     the flex row's remaining space so the column is pinned flush right
+     from the very first column onward, in every state. */
+  margin-left: auto;
 }
 .catalog-th--avg { z-index: 3; }
 /* :last-child (0,2,0 specificity) would otherwise strip border-right — these
@@ -10037,8 +10045,18 @@ body.bac-exam-mode .nav.nav--peek {
   font-size: 0.76rem;
   font-weight: 700;
   cursor: pointer;
+  transition: background 0.15s, color 0.15s;
 }
 .cs-view-toggle__btn--active { background: var(--accent-dim); color: var(--accent); }
+.cs-view-toggle__btn:hover:not(.cs-view-toggle__btn--active) { background: var(--card-hover); color: var(--text); }
+
+/* Larger, bolder variant — used for the Catalog's Note/Prezență switch,
+   a primary navigation choice that deserves more visual weight than the
+   compact list/chart toggle it shares a base class with. */
+.cs-view-toggle--lg { border-radius: var(--radius); }
+.cs-view-toggle--lg .cs-view-toggle__btn { padding: 11px 20px; font-size: 0.92rem; gap: 6px; }
+.cs-view-toggle--lg .cs-view-toggle__btn--active { background: var(--accent); color: #fff; }
+.cs-view-toggle--lg .cs-view-toggle__btn:hover:not(.cs-view-toggle__btn--active) { background: var(--accent-dim); color: var(--accent); }
 
 /* Chart — single hue (grade over time), no legend needed per dataviz
    convention for one measure; temă vs simulare is called out with a small
