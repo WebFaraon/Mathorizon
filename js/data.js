@@ -2449,6 +2449,20 @@ BM.EXERCISES = [
       { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 1 }
     ]
   },
+    {
+    id: 'ca-172', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent negativ plus număr zecimal',
+    statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} + 0{,}75$$',
+    solution: '**Pasul 1.** Scrierea bazei ca putere a lui 2:\n$$8 = 2^3 \\Rightarrow 8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$\n\n**Pasul 2.** Calcularea valorii puterii:\n$$2^{-2} = \\frac{1}{4} = 0{,}25$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 0{,}25 + 0{,}75 = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Scrierea bazei ca putere a lui 2 și aplicarea proprietăților puterilor: $$8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4} = 0{,}25$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
 
   /* ============================================================
      ALGEBRĂ — Inecuații
