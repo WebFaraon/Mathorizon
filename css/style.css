@@ -95,19 +95,25 @@ img { display: block; max-width: 100%; }
   /* Rarity system (collectible-card exercise redesign — calcul-algebric only) */
   --rarity-comun-a: #6EE7A8;    --rarity-comun-b: #16A34A;
   --rarity-comun-text: #15803D; --rarity-comun-dim: rgba(22, 163, 74, 0.10); --rarity-comun-border: rgba(22, 163, 74, 0.35);
-  --rarity-comun-glow: rgba(22, 163, 74, 0.45);
+  --rarity-comun-glow: rgba(22, 163, 74, 0.16);
+  --rarity-comun-border-soft: rgba(22, 163, 74, 0.45);
 
   --rarity-rar-a: #7FB2EE;      --rarity-rar-b: #3A6BAD;
   --rarity-rar-text: #2A5590;   --rarity-rar-dim: rgba(58, 107, 173, 0.10);  --rarity-rar-border: rgba(58, 107, 173, 0.35);
-  --rarity-rar-glow: rgba(58, 107, 173, 0.45);
+  --rarity-rar-glow: rgba(58, 107, 173, 0.16);
+  --rarity-rar-border-soft: rgba(58, 107, 173, 0.45);
 
   --rarity-epic-a: #C9A2F2;     --rarity-epic-b: #7C3AED;
   --rarity-epic-text: #6D28D9;  --rarity-epic-dim: rgba(124, 58, 237, 0.10); --rarity-epic-border: rgba(124, 58, 237, 0.35);
-  --rarity-epic-glow: rgba(124, 58, 237, 0.45);
+  --rarity-epic-glow: rgba(124, 58, 237, 0.17);
+  --rarity-epic-border-soft: rgba(124, 58, 237, 0.45);
 
   --rarity-legendar-a: #FCD97A; --rarity-legendar-b: #B45309; --rarity-legendar-c: #F59E0B;
   --rarity-legendar-text: #92400E; --rarity-legendar-dim: rgba(180, 83, 9, 0.12); --rarity-legendar-border: rgba(180, 83, 9, 0.4);
-  --rarity-legendar-glow: rgba(245, 158, 11, 0.5);
+  --rarity-legendar-glow: rgba(245, 158, 11, 0.2);
+  --rarity-legendar-border-soft: rgba(180, 83, 9, 0.55);
+
+  --rarity-depth-shadow: rgba(40, 28, 12, 0.12);
 
   --radius-sm: 5px;
   --radius: 7px;
@@ -2305,38 +2311,35 @@ body.bac-exam-mode .nav.nav--peek {
 
 .rarity-card {
   position: relative;
-  height: 320px;
+  height: 250px;
   border-radius: var(--radius-lg);
-  padding: 3px;
+  border: 1.5px solid var(--rc-border);
   cursor: pointer;
-  background: linear-gradient(135deg, var(--rc-a), var(--rc-b));
-  box-shadow: var(--shadow-card), 0 0 18px -3px var(--rc-glow);
-  transition: transform 0.16s ease, box-shadow 0.16s ease;
+  background: var(--card);
+  /* Depth vs. the page background, plus a soft ambient glow in the rarity
+     hue — no more solid gradient rim: a thin muted border reads as premium,
+     a saturated one reads as a gaming RGB strip. */
+  box-shadow: var(--shadow-card), 0 2px 8px var(--rarity-depth-shadow), 0 0 12px var(--rc-glow);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, border-color 0.16s ease;
 }
 .rarity-card:hover {
   transform: translateY(-3px);
-  box-shadow: 0 10px 28px rgba(40, 28, 12, 0.16), 0 0 24px -2px var(--rc-glow);
+  box-shadow: 0 10px 22px rgba(40, 28, 12, 0.14), 0 2px 8px var(--rarity-depth-shadow), 0 0 16px var(--rc-glow);
 }
 
-.rarity-card[data-rarity="comun"]     { --rc-a: var(--rarity-comun-a);     --rc-b: var(--rarity-comun-b);     --rc-glow: var(--rarity-comun-glow); }
-.rarity-card[data-rarity="rar"]       { --rc-a: var(--rarity-rar-a);       --rc-b: var(--rarity-rar-b);       --rc-glow: var(--rarity-rar-glow); }
-.rarity-card[data-rarity="epic"]      { --rc-a: var(--rarity-epic-a);      --rc-b: var(--rarity-epic-b);      --rc-glow: var(--rarity-epic-glow); }
+.rarity-card[data-rarity="comun"]     { --rc-border: var(--rarity-comun-border-soft);     --rc-glow: var(--rarity-comun-glow); }
+.rarity-card[data-rarity="rar"]       { --rc-border: var(--rarity-rar-border-soft);       --rc-glow: var(--rarity-rar-glow); }
+.rarity-card[data-rarity="epic"]      { --rc-border: var(--rarity-epic-border-soft);      --rc-glow: var(--rarity-epic-glow); }
 .rarity-card[data-rarity="legendar"]  {
-  padding: 4px;
-  background: linear-gradient(135deg, var(--rarity-legendar-a), var(--rarity-legendar-c), var(--rarity-legendar-b));
+  border-width: 2px;
+  --rc-border: var(--rarity-legendar-border-soft);
   --rc-glow: var(--rarity-legendar-glow);
-  box-shadow: var(--shadow-card), 0 0 26px -2px var(--rc-glow);
-}
-.rarity-card[data-rarity="legendar"]:hover {
-  box-shadow: 0 10px 30px rgba(180, 83, 9, 0.22), 0 0 32px -1px var(--rc-glow);
 }
 
 .rarity-card__inner {
   position: relative;
   height: 100%;
-  background: var(--card);
-  border-radius: calc(var(--radius-lg) - 2px);
-  padding: 16px 15px 13px;
+  padding: 14px 15px 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2396,14 +2399,35 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 5px;
   flex-shrink: 0;
 }
-.rarity-card__actions .ex-action-btn { width: 30px; height: 30px; font-size: 0.9rem; }
+.rarity-card__actions .ex-action-btn { width: 32px; height: 32px; font-size: 0.95rem; }
+
+/* Solved state needs to read clearly at a glance across every rarity — the
+   shared .ex-action-btn.solved.active style uses a low-opacity "dim" tint
+   (fine on a plain accordion row) that loses contrast against a colorful
+   card, especially rar/epic. Solid fill instead of a wash. */
+.rarity-card__actions .ex-action-btn.solved.active {
+  background: var(--solved);
+  border-color: var(--solved);
+  color: #fff;
+}
+
+/* The points badge ("5p") and the "rar" rarity badge both lean on the same
+   brand blue (--accent === --rarity-rar-b) and read as near-identical at a
+   glance — neutralize the points badge here so it stays a distinct, calmer
+   piece of metadata regardless of the card's rarity tier. */
+.rarity-card__tags .points-badge,
+.rarity-modal__meta .points-badge {
+  background: var(--surface);
+  border-color: var(--border);
+  color: var(--text-secondary);
+}
 
 .rarity-card__title {
   font-size: 0.92rem;
   font-weight: 700;
   color: var(--text);
   line-height: 1.3;
-  margin: 9px 0 3px;
+  margin: 8px 0 2px;
   height: 2.4em;
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -2417,7 +2441,7 @@ body.bac-exam-mode .nav.nav--peek {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
 }
 
 .rarity-card__statement {
@@ -2435,19 +2459,36 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 8px 10px;
 }
 
+/* Intro text + formula (and any trailing text) are rendered as separate
+   sibling blocks (see js/category.js splitStatementForCard) and centered
+   here as ONE flex-column group — relying on text-align alone left the
+   group's vertical position inconsistent, since KaTeX's own display-math
+   margins don't collapse evenly with a preceding text line. */
 .rarity-card__statement-inner {
   width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
   text-align: center;
   color: var(--text);
   line-height: 1.3;
 }
 
+.rarity-card__statement-text {
+  font-size: 0.86em;
+  color: var(--text-secondary);
+}
+
+.rarity-card__statement-formula .katex-display { margin: 0; }
+
 /* Locked card (package restriction) — same footprint, no rarity flourish
    since the content underneath is hidden anyway. */
 .rarity-card--locked {
   cursor: default;
-  padding: 2px;
-  background: var(--border);
+  border-color: var(--border);
+  background: var(--card);
 }
 .rarity-card--locked:hover { transform: none; box-shadow: var(--shadow-card); }
 .rarity-card--locked .rarity-card__inner { align-items: center; justify-content: center; text-align: center; gap: 10px; }
@@ -3928,19 +3969,25 @@ body.bac-exam-mode .nav.nav--peek {
 
   --rarity-comun-a: #4ade80;    --rarity-comun-b: #34d399;
   --rarity-comun-text: #6ee7b7; --rarity-comun-dim: rgba(52, 211, 153, 0.14); --rarity-comun-border: rgba(52, 211, 153, 0.35);
-  --rarity-comun-glow: rgba(52, 211, 153, 0.5);
+  --rarity-comun-glow: rgba(52, 211, 153, 0.18);
+  --rarity-comun-border-soft: rgba(52, 211, 153, 0.4);
 
   --rarity-rar-a: #60a5fa;      --rarity-rar-b: #4a9eff;
   --rarity-rar-text: #93c5fd;   --rarity-rar-dim: rgba(74, 158, 255, 0.14);  --rarity-rar-border: rgba(74, 158, 255, 0.35);
-  --rarity-rar-glow: rgba(74, 158, 255, 0.5);
+  --rarity-rar-glow: rgba(74, 158, 255, 0.18);
+  --rarity-rar-border-soft: rgba(74, 158, 255, 0.4);
 
   --rarity-epic-a: #c084fc;     --rarity-epic-b: #a855f7;
   --rarity-epic-text: #d8b4fe;  --rarity-epic-dim: rgba(168, 85, 247, 0.16); --rarity-epic-border: rgba(168, 85, 247, 0.4);
-  --rarity-epic-glow: rgba(168, 85, 247, 0.55);
+  --rarity-epic-glow: rgba(168, 85, 247, 0.2);
+  --rarity-epic-border-soft: rgba(168, 85, 247, 0.45);
 
   --rarity-legendar-a: #fcd34d; --rarity-legendar-b: #f59e0b; --rarity-legendar-c: #fbbf24;
   --rarity-legendar-text: #fde68a; --rarity-legendar-dim: rgba(245, 158, 11, 0.16); --rarity-legendar-border: rgba(245, 158, 11, 0.4);
-  --rarity-legendar-glow: rgba(245, 158, 11, 0.6);
+  --rarity-legendar-glow: rgba(245, 158, 11, 0.24);
+  --rarity-legendar-border-soft: rgba(245, 158, 11, 0.5);
+
+  --rarity-depth-shadow: rgba(0, 0, 0, 0.4);
 
   --shadow: 0 4px 32px rgba(0,0,0,0.85);
   --shadow-sm: 0 2px 12px rgba(0,0,0,0.6);
