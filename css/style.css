@@ -9519,6 +9519,12 @@ body.bac-exam-mode .nav.nav--peek {
 
 .catalog-wrap { padding: 0; }
 
+/* Note / Prezență sub-view toggle — sits above catalog-wrap, reuses the
+   same segmented-control look as the student cabinet's list/chart toggle
+   (.cs-view-toggle) so the whole app has one visual language for "pick
+   one of two views" instead of a second bespoke component. */
+.catalog-view-toggle-row { margin-bottom: 16px; }
+
 /* Export buttons — secondary action, below the table rather than above it */
 .catalog-toolbar {
   display: flex;
@@ -9526,6 +9532,10 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 10px;
   margin-top: 14px;
 }
+/* Prezență toolbar: a hint on the left, the "+ Adaugă lecție" primary
+   action on the right, instead of two right-aligned export buttons. */
+.catalog-toolbar--split { justify-content: space-between; align-items: center; }
+.catalog-toolbar__hint { font-size: 0.78rem; color: var(--text-muted); }
 
 /* Stats bar */
 .catalog-statsbar {
@@ -9578,6 +9588,7 @@ body.bac-exam-mode .nav.nav--peek {
 .catalog-dot--grade     { background: var(--green); }
 .catalog-dot--submitted { background: var(--accent); }
 .catalog-dot--none      { background: var(--border); }
+.catalog-dot--absent    { background: var(--red); }
 
 /* Scrollable container */
 .catalog-scroll {
@@ -9646,6 +9657,12 @@ body.bac-exam-mode .nav.nav--peek {
    these cells are actually clickable. */
 .catalog-th--sortable { cursor: pointer; user-select: none; transition: background 0.15s; }
 .catalog-th--sortable:hover { background: var(--accent-dim); }
+
+/* Prezență column headers open the "edit lecție" modal — same hover
+   affordance as sortable headers, distinct name since clicking here
+   edits a session rather than sorting rows. */
+.catalog-th--clickable { cursor: pointer; user-select: none; transition: background 0.15s; }
+.catalog-th--clickable:hover { background: var(--accent-dim); }
 .catalog-th__sort-arrow {
   margin-left: 4px;
   color: var(--accent);
@@ -9935,6 +9952,65 @@ body.bac-exam-mode .nav.nav--peek {
 /* Membri catalog — simulation columns (teacher table) */
 .catalog-th--sim { background: rgba(58,107,173,0.05); }
 .catalog-td--sim { background: rgba(58,107,173,0.03); }
+
+/* ── Prezență: "Adaugă/Editează lecție" modal ─────────────────────── */
+.lectie-dialog { max-width: 460px; }
+.lectie-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+  overflow-y: auto;
+  padding-right: 2px;
+}
+.lectie-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.lectie-roster-row__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.lectie-modal__foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-top: 20px;
+}
+
+/* Per-student Prezent/Absent segmented toggle — same 2-button shape as
+   .cs-view-toggle, but with green/red active states since the two
+   options here are opposite outcomes, not two views of the same data. */
+.att-row-toggle {
+  display: flex;
+  flex-shrink: 0;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+.att-row-toggle__btn {
+  padding: 5px 11px;
+  border: none;
+  background: var(--card);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.att-row-toggle__btn--present.att-row-toggle__btn--active { background: var(--green-dim); color: var(--green); }
+.att-row-toggle__btn--absent.att-row-toggle__btn--active   { background: var(--red-dim);   color: var(--red); }
 .cs-note-pts { display: block; font-size: 0.7rem; color: var(--text-muted); text-align: right; margin-top: 2px; }
 
 .cs-sim-section { margin-top: 22px; }
@@ -12314,6 +12390,13 @@ body.bac-exam-mode .nav.nav--peek {
   .cs-view-toggle__btn { flex: 1; }
   .cs-note-row { flex-wrap: wrap; row-gap: 8px; }
   .cs-grade-col { display: flex; flex-direction: column; align-items: flex-end; }
+
+  /* Prezență toolbar — stack instead of squeezing horizontally. The roster
+     rows themselves deliberately don't reflow (same convention as the main
+     catalog table, which only ever scrolls horizontally on mobile) — the
+     name already truncates with ellipsis if the toggle needs the room. */
+  .catalog-toolbar--split { flex-direction: column; align-items: stretch; gap: 8px; }
+  .catalog-toolbar--split .btn { width: 100%; justify-content: center; }
 
   /* Own-results screen — stack the answer comparison instead of squeezing it */
   .sim-result-summary { gap: 20px; padding: 20px 16px; }

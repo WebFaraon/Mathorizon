@@ -34,6 +34,10 @@
   // within the same visit so a teacher's chosen sort doesn't reset itself;
   // key is 'avg' or a simulation id, dir is 'desc' | 'asc' | null.
   let catalogSortState = { key: null, dir: null };
+  // Which sub-view of the teacher's Catalog tab is showing — 'note' (the
+  // existing grade table) or 'prezenta' (attendance). Persists across
+  // reloads the same way catalogSortState does.
+  let catalogViewMode  = 'note';
 
   /* ─── Bootstrap ─────────────────────────────────────────────────── */
   function init() {
@@ -1226,6 +1230,27 @@
         });
       }
 
+      /* 6. Attendance (Prezență) — teacher-only, fetched only for the
+         teacher's own Catalog view; no student select policy exists on
+         these tables, so a student query would just come back empty. */
+      let sessions = [], attMatrix = {};
+      if (isTeacher) {
+        const { data: rawSessions } = await BMAuth.supabase
+          .from('class_sessions').select('id, session_date').eq('class_id', classData.id)
+          .order('session_date', { ascending: true });
+        sessions = rawSessions || [];
+
+        if (sessions.length > 0) {
+          const sessionIds = sessions.map(s => s.id);
+          const { data: attRows } = await BMAuth.supabase
+            .from('attendance_records').select('session_id, student_id, present').in('session_id', sessionIds);
+          (attRows || []).forEach(r => {
+            if (!attMatrix[r.student_id]) attMatrix[r.student_id] = {};
+            attMatrix[r.student_id][r.session_id] = r.present;
+          });
+        }
+      }
+
       /* Compute catalog-level stats */
       const allConfirmedGrades = [];
       members.forEach(m => {
@@ -1250,23 +1275,33 @@
 
       const renderCatalog = () => {
         if (isTeacher) {
-          content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState);
-          content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
-            cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
-          });
-          // Re-sorts by re-rendering from the SAME already-fetched data — no
-          // refetch, and members/assignments/sims/simMatrix themselves are
-          // never mutated, only the order rows are displayed in.
-          content.querySelectorAll('[data-sort-key]').forEach(th => {
-            th.addEventListener('click', () => {
-              const key = th.dataset.sortKey;
-              if (catalogSortState.key !== key) catalogSortState = { key, dir: 'desc' };
-              else if (catalogSortState.dir === 'desc') catalogSortState = { key, dir: 'asc' };
-              else catalogSortState = { key: null, dir: null };
-              renderCatalog();
+          content.innerHTML =
+            _renderCatalogViewToggle(catalogViewMode) +
+            (catalogViewMode === 'note'
+              ? renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState)
+              : renderCatalogAttendance(members, nameMap, sessions, attMatrix));
+          _wireCatalogViewToggle(content, renderCatalog);
+
+          if (catalogViewMode === 'note') {
+            content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
+              cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
             });
-          });
-          _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
+            // Re-sorts by re-rendering from the SAME already-fetched data — no
+            // refetch, and members/assignments/sims/simMatrix themselves are
+            // never mutated, only the order rows are displayed in.
+            content.querySelectorAll('[data-sort-key]').forEach(th => {
+              th.addEventListener('click', () => {
+                const key = th.dataset.sortKey;
+                if (catalogSortState.key !== key) catalogSortState = { key, dir: 'desc' };
+                else if (catalogSortState.dir === 'desc') catalogSortState = { key, dir: 'asc' };
+                else catalogSortState = { key: null, dir: null };
+                renderCatalog();
+              });
+            });
+            _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
+          } else {
+            _wireCatalogAttendance(content, members, nameMap, sessions, attMatrix, renderCatalog);
+          }
         } else {
           content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
           _wireCsSimViewToggle(content);
@@ -1595,6 +1630,344 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Catalog');
       XLSX.writeFile(wb, `${fileBase}.xlsx`);
+    };
+  }
+
+  /* ─── Attendance (Prezență) — teacher-only sub-view of Catalog ───────
+     A "lecție" is one class_sessions row (one dated class meeting); each
+     student gets one attendance_records row per lecție. Switching
+     catalogViewMode never refetches — sessions/attMatrix are the exact
+     objects loadMembriTab() fetched once and holds in closure; every
+     handler below mutates them in place before calling refreshFn (the
+     loadMembriTab-scoped renderCatalog), so a single save/toggle/delete
+     re-renders instantly with no round trip back to the server. ─── */
+
+  function _attendanceTier(pct) {
+    if (pct == null || isNaN(pct)) return null;
+    return pct >= 90 ? 'hi' : pct >= 75 ? 'mid' : 'lo';
+  }
+
+  function _renderCatalogViewToggle(mode) {
+    return `
+      <div class="catalog-view-toggle-row">
+        <div class="cs-view-toggle" id="catalogViewToggle">
+          <button type="button" class="cs-view-toggle__btn${mode === 'note' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="note">📊 Note</button>
+          <button type="button" class="cs-view-toggle__btn${mode === 'prezenta' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="prezenta">🗓️ Prezență</button>
+        </div>
+      </div>`;
+  }
+
+  function _wireCatalogViewToggle(content, onSwitch) {
+    content.querySelector('#catalogViewToggle')?.querySelectorAll('[data-cat-view]').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.catView === catalogViewMode) return;
+        catalogViewMode = btn.dataset.catView;
+        onSwitch();
+      });
+    });
+  }
+
+  function renderCatalogAttendance(members, nameMap, sessions, attMatrix) {
+    const studentStats = members.map((m, idx) => {
+      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
+      const myAtt = attMatrix[m.student_id] || {};
+      const recorded = sessions.filter(s => myAtt[s.id] !== undefined);
+      const presentCount = recorded.filter(s => myAtt[s.id] === true).length;
+      const rate = recorded.length ? Math.round((presentCount / recorded.length) * 100) : null;
+      return { m, name, myAtt, presentCount, recordedCount: recorded.length, rate };
+    });
+
+    const rateValues = studentStats.map(s => s.rate).filter(r => r != null);
+    const classRate = rateValues.length ? Math.round(rateValues.reduce((t, v) => t + v, 0) / rateValues.length) : null;
+
+    const headerCells = sessions.map(s => {
+      const [y, mo, d] = s.session_date.split('-').map(Number);
+      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+      return `
+        <div class="catalog-th catalog-th--clickable" data-edit-session="${s.id}" title="Lecție din ${ds} — click pentru a edita">
+          <span class="catalog-th__title">🗓️ ${ds}</span>
+        </div>`;
+    }).join('');
+
+    const studentRows = studentStats.map(({ m, name, myAtt, presentCount, recordedCount, rate }) => {
+      const cells = sessions.map(s => {
+        const status = myAtt[s.id];
+        if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">—</div>`;
+        return status
+          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent — click pentru a marca absent">✓</div>`
+          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent — click pentru a marca prezent">✗</div>`;
+      }).join('');
+
+      const rateTxt  = rate != null ? `${rate}%` : '—';
+      const rateTier = _attendanceTier(rate);
+      const rateCls  = rateTier ? ` catalog-td--tone-${rateTier}` : '';
+
+      return `
+        <div class="catalog-row">
+          <div class="catalog-td catalog-td--name">
+            <span class="catalog-avatar">${_catalogInitials(name)}</span>
+            <span class="catalog-name-text">${BM.esc(name)}</span>
+          </div>
+          ${cells}
+          <div class="catalog-td catalog-td--avg${rateCls}" title="${presentCount}/${recordedCount} prezențe înregistrate">${rateTxt}</div>
+        </div>`;
+    }).join('');
+
+    const _statToneCls = pct => {
+      const tier = pct != null ? _attendanceTier(pct) : null;
+      return tier ? ` catalog-td--tone-${tier}` : '';
+    };
+    const statsRow = sessions.length > 0 ? `
+      <div class="catalog-row catalog-row--stats">
+        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Prezență clasă</div>
+        ${sessions.map(s => {
+          const recorded = members.filter(m => (attMatrix[m.student_id] || {})[s.id] !== undefined);
+          const present  = recorded.filter(m => (attMatrix[m.student_id] || {})[s.id] === true).length;
+          const pct = recorded.length ? Math.round((present / recorded.length) * 100) : null;
+          return `<div class="catalog-td catalog-td--stat${_statToneCls(pct)}">${pct != null ? pct + '%' : '—'}</div>`;
+        }).join('')}
+        <div class="catalog-td catalog-td--avg"></div>
+      </div>` : '';
+
+    return `
+      <div class="catalog-wrap">
+        <div class="catalog-statsbar">
+          <div class="catalog-stat-card">
+            <div class="catalog-stat-card__val">${members.length}</div>
+            <div class="catalog-stat-card__lbl">Elevi</div>
+          </div>
+          <div class="catalog-stat-card">
+            <div class="catalog-stat-card__val">${sessions.length}</div>
+            <div class="catalog-stat-card__lbl">Lecții</div>
+          </div>
+          <div class="catalog-stat-card ${classRate != null ? 'catalog-stat-card--avg' : ''}">
+            <div class="catalog-stat-card__val">${classRate != null ? classRate + '%' : '—'}</div>
+            <div class="catalog-stat-card__lbl">Prezență medie</div>
+          </div>
+        </div>
+        <div class="catalog-legend">
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Prezent</span>
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--absent"></span>Absent</span>
+          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Fără înregistrare</span>
+        </div>
+        ${sessions.length === 0 ? `
+          <div class="cd-placeholder">
+            <div class="cd-placeholder__icon">🗓️</div>
+            <h3 class="cd-placeholder__title">Nicio lecție înregistrată</h3>
+            <p class="cd-placeholder__desc">Adaugă prima lecție ca să începi să urmărești prezența elevilor.</p>
+          </div>
+        ` : `
+          <div class="catalog-scroll">
+            <div class="catalog-table">
+              <div class="catalog-head">
+                <div class="catalog-th catalog-th--name">Elev</div>
+                ${headerCells}
+                <div class="catalog-th catalog-th--avg">Prezență</div>
+              </div>
+              <div class="catalog-body">
+                ${studentRows}
+                ${statsRow}
+              </div>
+            </div>
+          </div>
+        `}
+        <div class="catalog-toolbar catalog-toolbar--split">
+          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o dată pentru a edita lecția · click pe ✓/✗ pentru a corecta rapid' : ''}</span>
+          <button class="btn btn--primary btn--sm" id="addLectieBtn">+ Adaugă lecție</button>
+        </div>
+      </div>`;
+  }
+
+  function _wireCatalogAttendance(content, members, nameMap, sessions, attMatrix, refreshFn) {
+    document.getElementById('addLectieBtn')?.addEventListener('click', () => {
+      openLectieModal(null, members, nameMap, sessions, attMatrix, refreshFn);
+    });
+    content.querySelectorAll('[data-edit-session]').forEach(th => {
+      th.addEventListener('click', () => {
+        const session = sessions.find(s => s.id === th.dataset.editSession);
+        if (session) openLectieModal(session, members, nameMap, sessions, attMatrix, refreshFn);
+      });
+    });
+    content.querySelectorAll('[data-att-cell]').forEach(cell => {
+      cell.addEventListener('click', async () => {
+        const [sessionId, studentId] = cell.dataset.attCell.split('|');
+        const next = attMatrix[studentId]?.[sessionId] !== true;
+        try {
+          const { error } = await BMAuth.supabase.from('attendance_records')
+            .upsert({ session_id: sessionId, student_id: studentId, present: next }, { onConflict: 'session_id,student_id' });
+          if (error) throw error;
+          if (!attMatrix[studentId]) attMatrix[studentId] = {};
+          attMatrix[studentId][sessionId] = next;
+          refreshFn();
+        } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+      });
+    });
+  }
+
+  function _todayIso() { return new Date().toISOString().split('T')[0]; }
+
+  async function openLectieModal(session, members, nameMap, sessions, attMatrix, refreshFn) {
+    document.getElementById('lectieModal')?.remove();
+    const isEdit   = !!session;
+    const dateVal  = session?.session_date || _todayIso();
+
+    const rosterRows = members.map((m, idx) => {
+      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
+      // No existing record defaults to "present" in both add and edit mode —
+      // keeps the roster binary (no ambiguous third state in the editor
+      // itself; the "—" no-record cell only ever shows in the read-only
+      // table for students who joined after a given lecție was saved).
+      const current = session ? (attMatrix[m.student_id]?.[session.id] !== false) : true;
+      return `
+        <div class="lectie-roster-row" data-student="${m.student_id}">
+          <span class="catalog-avatar">${_catalogInitials(name)}</span>
+          <span class="lectie-roster-row__name">${BM.esc(name)}</span>
+          <div class="att-row-toggle">
+            <button type="button" class="att-row-toggle__btn att-row-toggle__btn--present${current ? ' att-row-toggle__btn--active' : ''}" data-present="1">Prezent</button>
+            <button type="button" class="att-row-toggle__btn att-row-toggle__btn--absent${!current ? ' att-row-toggle__btn--active' : ''}" data-present="0">Absent</button>
+          </div>
+        </div>`;
+    }).join('');
+
+    const modal = document.createElement('div');
+    modal.id = 'lectieModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog lectie-dialog">
+        <div class="classes-modal__head">
+          <h3>🗓️ ${isEdit ? 'Editează lecția' : 'Adaugă lecție'}</h3>
+          <button class="icon-btn" id="lectieCloseBtn">✕</button>
+        </div>
+        <div class="classes-modal__body">
+          <div class="cls-form-field">
+            <label class="cls-form-label">Data lecției *</label>
+            <input type="date" id="lectieDateInput" class="cls-form-input" max="${_todayIso()}" value="${BM.esc(dateVal)}">
+          </div>
+          <div class="cls-form-field">
+            <label class="cls-form-label">Prezență elevi</label>
+            <div class="lectie-roster">${rosterRows}</div>
+          </div>
+          <div class="lectie-modal__foot">
+            ${isEdit ? `<button class="btn btn--danger btn--sm" id="lectieDeleteBtn">🗑️ Șterge lecția</button>` : '<span></span>'}
+            <button class="btn btn--primary" id="lectieSaveBtn">Salvează</button>
+          </div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const closeModal = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
+    modal.querySelector('#lectieCloseBtn').onclick = closeModal;
+
+    modal.querySelectorAll('.lectie-roster-row').forEach(row => {
+      row.querySelectorAll('.att-row-toggle__btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+          row.querySelectorAll('.att-row-toggle__btn').forEach(b => b.classList.remove('att-row-toggle__btn--active'));
+          btn.classList.add('att-row-toggle__btn--active');
+        });
+      });
+    });
+
+    if (window.flatpickr) {
+      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+      const dateInput = document.getElementById('lectieDateInput');
+      flatpickr(dateInput, {
+        locale: window.flatpickr.l10ns?.ro || 'default',
+        dateFormat: 'Y-m-d',
+        maxDate: 'today',
+        defaultDate: dateVal,
+        disableMobile: true,
+        allowInput: false,
+        theme: isDark ? 'dark' : 'light',
+        onChange(_dates, dateStr) { dateInput.value = dateStr; }
+      });
+    }
+
+    modal.querySelector('#lectieDeleteBtn')?.addEventListener('click', async () => {
+      const ok = await showConfirmDialog({
+        icon: '🗑️', title: 'Ștergi lecția?',
+        message: 'Toate înregistrările de prezență pentru această dată vor fi șterse definitiv.',
+        confirmText: 'Șterge'
+      });
+      if (!ok) return;
+      try {
+        const { error } = await BMAuth.supabase.from('class_sessions').delete().eq('id', session.id);
+        if (error) throw error;
+        const idx = sessions.findIndex(s => s.id === session.id);
+        if (idx !== -1) sessions.splice(idx, 1);
+        members.forEach(m => { if (attMatrix[m.student_id]) delete attMatrix[m.student_id][session.id]; });
+        BM.toast('Lecția a fost ștearsă.', 'info');
+        closeModal();
+        refreshFn();
+      } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+    });
+
+    modal.querySelector('#lectieSaveBtn').onclick = async () => {
+      const dateStr = document.getElementById('lectieDateInput').value;
+      if (!dateStr) { BM.toast('Selectează data lecției.', 'error'); return; }
+      const btn = modal.querySelector('#lectieSaveBtn');
+      btn.disabled = true; btn.textContent = 'Se salvează…';
+
+      const statusMap = {};
+      modal.querySelectorAll('.lectie-roster-row').forEach(row => {
+        const present = row.querySelector('.att-row-toggle__btn--present').classList.contains('att-row-toggle__btn--active');
+        statusMap[row.dataset.student] = present;
+      });
+
+      try {
+        let sessionId = session?.id;
+        if (!sessionId) {
+          const { data: dupe } = await BMAuth.supabase.from('class_sessions')
+            .select('id').eq('class_id', classData.id).eq('session_date', dateStr).maybeSingle();
+          if (dupe) {
+            BM.toast('Există deja o lecție pentru această dată — click pe coloana ei pentru a o edita.', 'error');
+            btn.disabled = false; btn.textContent = 'Salvează';
+            return;
+          }
+          const { data: newSession, error: sessErr } = await BMAuth.supabase.from('class_sessions')
+            .insert({ class_id: classData.id, created_by: BMAuth.user.id, session_date: dateStr })
+            .select('id, session_date').single();
+          if (sessErr) throw sessErr;
+          sessionId = newSession.id;
+          sessions.push(newSession);
+          sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
+        } else if (dateStr !== session.session_date) {
+          const { error: updErr } = await BMAuth.supabase.from('class_sessions')
+            .update({ session_date: dateStr }).eq('id', sessionId);
+          if (updErr) throw updErr;
+          session.session_date = dateStr;
+          sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
+        }
+
+        const rows = Object.entries(statusMap).map(([student_id, present]) => ({ session_id: sessionId, student_id, present }));
+        const { error: attErr } = await BMAuth.supabase.from('attendance_records')
+          .upsert(rows, { onConflict: 'session_id,student_id' });
+        if (attErr) throw attErr;
+
+        rows.forEach(r => {
+          if (!attMatrix[r.student_id]) attMatrix[r.student_id] = {};
+          attMatrix[r.student_id][sessionId] = r.present;
+        });
+
+        BM.toast(isEdit ? 'Lecția a fost actualizată.' : 'Lecția a fost adăugată.', 'success');
+        closeModal();
+        refreshFn();
+      } catch (e) {
+        // 23505 = unique_violation — the pre-check above already covers the
+        // common case, this is the final guard against a race between two
+        // near-simultaneous saves (e.g. two tabs) slipping past it.
+        const msg = e.code === '23505' || /duplicate key/i.test(e.message || '')
+          ? 'Există deja o lecție pentru această dată — click pe coloana ei pentru a o edita.'
+          : 'Eroare: ' + e.message;
+        BM.toast(msg, 'error');
+        btn.disabled = false; btn.textContent = 'Salvează';
+      }
     };
   }
 
