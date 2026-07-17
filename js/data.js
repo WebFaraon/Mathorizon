@@ -72,10 +72,10 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC — Algebră',
     title: 'Radical de ordin 3 dintr-o putere',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{25^{1{,}5} - 61}$$',
-    solution: '**Pasul 1.** Calculăm $25^{1{,}5}$:\n$$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Scădem și extragem radicalul:\n$$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$\n\n$$\\boxed{= 4}$$',
+    solution: '**Pasul 1.** Calculăm $25^{1{,}5}$:\n$$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Scădem și extragem radicalul:\n$$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$\n\n$$\\boxed{4}$$',
     barem: [
       { descriere: 'Calculăm $25^{1{,}5}$: $$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$', puncte_maxime: 3 },
-      { descriere: 'Scădem și extragem radicalul: $$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$ $$\\boxed{= 4}$$', puncte_maxime: 2 }
+      { descriere: 'Scădem și extragem radicalul: $$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$ $$\\boxed{4}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2460,6 +2460,579 @@ BM.EXERCISES = [
       { descriere: 'Scrierea bazei ca putere a lui 2 și aplicarea proprietăților puterilor: $$8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4} = 0{,}25$$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-173', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Sumă de puteri împărțită la o putere negativă',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\left(25^{\\frac{3}{2}} + (0{,}5)^{-2}\\right) : \\left(\\frac{1}{3}\\right)^{-1}$$',
+    solution: '**Pasul 1.** Calcularea primului termen din paranteză:\n$$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen din paranteză:\n$$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$\n\n**Pasul 3.** Calcularea valorii împărțitorului:\n$$\\left(\\frac{1}{3}\\right)^{-1} = 3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = (125 + 4) : 3 = 129 : 3 = \\boxed{43}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen din paranteză: $$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea valorii împărțitorului: $$\\left(\\frac{1}{3}\\right)^{-1} = 3$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $43$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-174', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical dintr-o sumă de puteri cu exponenți fracționari și negativi',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{27^{\\frac{2}{3}} + \\left(\\frac{1}{4}\\right)^{-2}}$$',
+    solution: '**Pasul 1.** Calcularea primului termen de sub radical:\n$$27^{\\frac{2}{3}} = \\left(3^3\\right)^{\\frac{2}{3}} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen de sub radical:\n$$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$\n\n**Pasul 3.** Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului:\n$$E = \\sqrt{9 + 16} = \\sqrt{25} = \\boxed{5}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen de sub radical: $$27^{\\frac{2}{3}} = \\left(3^3\\right)^{\\frac{2}{3}} = 3^2 = 9$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen de sub radical: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului: $$E = \\sqrt{9+16} = \\sqrt{25} = 5$$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-175', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent fracționar minus produs cu putere negativă — verificare număr natural',
+    statement: 'Arătați că valoarea expresiei:\n$$a = \\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} - 3\\cdot 2^{-3}$$\neste un număr natural.',
+    solution: '**Pasul 1.** Rescrierea bazei ca pătrat și calcularea puterii:\n$$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left[\\left(\\frac{3}{2}\\right)^2\\right]^{\\frac{3}{2}} = \\left(\\frac{3}{2}\\right)^3 = \\frac{27}{8}$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$3\\cdot 2^{-3} = 3\\cdot\\frac{1}{8} = \\frac{3}{8}$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este natural:\n$$a = \\frac{27}{8} - \\frac{3}{8} = \\frac{24}{8} = \\boxed{3 \\in \\mathbb{N}}$$',
+    barem: [
+      { descriere: 'Rescrierea bazei ca pătrat și calcularea puterii: $$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left(\\frac{3}{2}\\right)^3 = \\frac{27}{8}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$3\\cdot 2^{-3} = \\frac{3}{8}$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $3$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-176', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Produs de puteri negative ale unui zecimal și unei fracții',
+    statement: 'Calculați valoarea expresiei:\n$$E = (0{,}4)^{-2} \\cdot \\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}}$$',
+    solution: '**Pasul 1.** Calcularea primului factor:\n$$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\left(\\frac{5}{2}\\right)^2 = \\frac{25}{4}$$\n\n**Pasul 2.** Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia:\n$$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left[\\left(\\frac{5}{2}\\right)^3\\right]^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\left(\\frac{2}{5}\\right)^2 = \\frac{4}{25}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{25}{4}\\cdot\\frac{4}{25} = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Calcularea primului factor: $$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\frac{25}{4}$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia: $$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\frac{4}{25}$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-177', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Produs de putere cu exponent fracționar și putere negativă a unui radical',
+    statement: 'Calculați valoarea expresiei:\n$$E = (0{,}027)^{\\frac{1}{3}} \\cdot \\left(\\frac{\\sqrt{3}}{10}\\right)^{-2}$$',
+    solution: '**Pasul 1.** Calcularea primului factor:\n$$0{,}027 = \\left(\\frac{3}{10}\\right)^3 \\Rightarrow (0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$\n\n**Pasul 2.** Calcularea celui de-al doilea factor:\n$$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{3}}\\right)^2 = \\frac{100}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{3}{10}\\cdot\\frac{100}{3} = \\boxed{10}$$',
+    barem: [
+      { descriere: 'Calcularea primului factor: $$0{,}027 = \\left(\\frac{3}{10}\\right)^3 \\Rightarrow (0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea factor: $$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{3}}\\right)^2 = \\frac{100}{3}$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $10$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-178', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 dintr-un raport de puteri cu exponent irațional',
+    statement: 'Calculați valoarea expresiei $\\sqrt[3]{a}$, unde\n$$a = 2^{(\\sqrt{2}+1)^2} : 2^{2\\sqrt{2}}$$',
+    solution: '**Pasul 1.** Dezvoltarea pătratului din exponent:\n$$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$\n\n**Pasul 2.** Aplicarea regulii de împărțire a puterilor cu aceeași bază:\n$$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^{3+2\\sqrt{2}-2\\sqrt{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$\\sqrt[3]{a} = \\sqrt[3]{8} = \\boxed{2}$$',
+    barem: [
+      { descriere: 'Dezvoltarea pătratului din exponent: $$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$', puncte_maxime: 2 },
+      { descriere: 'Aplicarea regulii de împărțire a puterilor cu aceeași bază: $$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^3 = 8$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $2$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-179', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Diferență de radicali de ordin 3 cu semn schimbat',
+    statement: 'Calculați valoarea expresiei:\n$$E = -\\left[\\sqrt[3]{\\frac{8}{27}} - \\sqrt[3]{\\frac{125}{27}}\\right]$$',
+    solution: '**Pasul 1.** Calcularea primului radical:\n$$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celui de-al doilea radical:\n$$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = -\\left(\\frac{2}{3} - \\frac{5}{3}\\right) = -\\left(-1\\right) = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Calcularea primului radical: $$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea radical: $$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-180', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 dintr-o diferență cu putere de exponent zecimal negativ',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{4 - 5\\cdot 32^{-0{,}6}}$$',
+    solution: '**Pasul 1.** Calcularea valorii puterii cu exponent zecimal negativ:\n$$32^{-0{,}6} = 32^{-\\frac{3}{5}} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$\n\n**Pasul 2.** Calcularea expresiei de sub radical:\n$$4 - 5\\cdot\\frac{1}{8} = 4 - \\frac{5}{8} = \\frac{27}{8}$$\n\n**Pasul 3.** Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3:\n$$E = \\sqrt[3]{\\frac{27}{8}} = \\boxed{\\frac{3}{2}}$$',
+    barem: [
+      { descriere: 'Calcularea valorii puterii cu exponent zecimal negativ: $$32^{-0{,}6} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea expresiei de sub radical: $$4 - 5\\cdot\\frac{1}{8} = \\frac{27}{8}$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3, egală cu $\\frac{3}{2}$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-181', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Logaritm în baza radical 2 minus număr întreg',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 4 - 4$$',
+    solution: '**Pasul 1.** Calcularea logaritmului în baza $\\sqrt{2}$:\n$$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 4 - 4 = \\boxed{0}$$',
+    barem: [
+      { descriere: 'Calcularea logaritmului în baza $\\sqrt{2}$: $$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-182', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere de putere cu exponent logaritmic minus logaritm',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\left(4^{\\log_2 3}\\right)^{\\frac{3}{2}} - \\log_4 64$$',
+    solution: '**Pasul 1.** Calcularea bazei ridicate la puterea logaritmică:\n$$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 2^{2\\log_2 3} = \\left(2^{\\log_2 3}\\right)^2 = 3^2 = 9$$\n\n**Pasul 2.** Calcularea puterii:\n$$9^{\\frac{3}{2}} = \\left(3^2\\right)^{\\frac{3}{2}} = 3^3 = 27$$\n\n**Pasul 3.** Calcularea logaritmului:\n$$\\log_4 64 = 3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 27 - 3 = \\boxed{24}$$',
+    barem: [
+      { descriere: 'Calcularea bazei ridicate la puterea logaritmică: $$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 3^2 = 9$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea puterii: $$9^{\\frac{3}{2}} = 27$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea logaritmului: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $24$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-183', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi cu coeficient și bază subunitară',
+    statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_9 4 + \\log_{\\frac{1}{9}} 48$$',
+    solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_9 4 = \\log_9 16$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen:\n$$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\log_9 16 - \\log_9 48 = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = \\log_{3^2} 3^{-1} = \\boxed{-\\frac{1}{2}}$$',
+    barem: [
+      { descriere: 'Transformarea primului termen: $$2\\log_9 4 = \\log_9 16$$', puncte_maxime: 1 },
+      { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = -\\frac{1}{2}$$', puncte_maxime: 3 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-184', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical dintr-o sumă de logaritmi cu expresii conjugate — verificare număr natural',
+    statement: 'Arătați că valoarea expresiei:\n$$E = \\sqrt{\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right)}$$\neste un număr natural.',
+    solution: '**Pasul 1.** Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$:\n$$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2\\left[(\\sqrt{23}-\\sqrt{7})(\\sqrt{23}+\\sqrt{7})\\right] = \\log_2(23-7) = \\log_2 16 = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei și verificarea că este natural:\n$$E = \\sqrt{4} = \\boxed{2 \\in \\mathbb{N}}$$',
+    barem: [
+      { descriere: 'Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2 16 = 4$$', puncte_maxime: 4 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $2$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-185', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical de ordin 3 dintr-o putere plus putere cu exponent logaritmic irațional — verificare număr natural',
+    statement: 'Arătați că numărul:\n$$a = \\sqrt[3]{16^{\\frac{3}{4}}} + 9^{\\log_3 \\sqrt{19}}$$\neste natural.',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{\\left(2^4\\right)^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$9^{\\log_3 \\sqrt{19}} = \\left(3^2\\right)^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este natural:\n$$a = 2 + 19 = \\boxed{21 \\in \\mathbb{N}}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$9^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $21$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-186', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Sumă cu putere de exponent logaritmic ridicată la o putere fracționară — verificare pătrat perfect',
+    statement: 'Arătați că valoarea expresiei:\n$$E = \\left[7^{\\log_{49} 25} + \\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}}\\right]^{\\frac{2}{3}}$$\neste un număr natural pătrat perfect.',
+    solution: '**Pasul 1.** Calcularea primului termen din paranteză:\n$$7^{\\log_{49} 25} = 7^{\\log_{7^2} 5^2} = 7^{\\log_7 5} = 5$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen din paranteză:\n$$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = \\left(3^4\\right)^{\\frac{1}{4}} = 3$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este pătrat perfect:\n$$E = (5+3)^{\\frac{2}{3}} = 8^{\\frac{2}{3}} = \\left(2^3\\right)^{\\frac{2}{3}} = 2^2 = \\boxed{4}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen din paranteză: $$7^{\\log_{49} 25} = 7^{\\log_7 5} = 5$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = 3$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $4$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-187', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent sumă de logaritmi',
+    statement: 'Calculați valoarea expresiei:\n$$E = 2^{\\log_2 7 + \\log_3 \\frac{1}{9}}$$',
+    solution: '**Pasul 1.** Calcularea valorii celui de-al doilea logaritm din exponent:\n$$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$\n\n**Pasul 2.** Aplicarea proprietății puterilor pentru a separa termenii:\n$$E = 2^{\\log_2 7 - 2} = 2^{\\log_2 7} \\cdot 2^{-2}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 7 \\cdot \\frac{1}{4} = \\boxed{\\frac{7}{4}}$$',
+    barem: [
+      { descriere: 'Calcularea valorii celui de-al doilea logaritm din exponent: $$\\log_3 \\frac{1}{9} = -2$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, prin separarea termenilor și calcul: $$E = 2^{\\log_2 7}\\cdot 2^{-2} = 7\\cdot\\frac{1}{4} = \\frac{7}{4}$$', puncte_maxime: 3 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-188', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent inversul unui logaritm minus putere fracționară',
+    statement: 'Calculați valoarea expresiei:\n$$E = 36^{\\frac{1}{\\log_5 6}} - 32^{\\frac{2}{5}}$$',
+    solution: '**Pasul 1.** Transformarea exponentului primului termen și calcularea valorii sale:\n$$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = \\left(6^2\\right)^{\\log_6 5} = 6^{2\\log_6 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$32^{\\frac{2}{5}} = \\left(2^5\\right)^{\\frac{2}{5}} = 2^2 = 4$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 25 - 4 = \\boxed{21}$$',
+    barem: [
+      { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$32^{\\frac{2}{5}} = 4$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $21$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-189', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent logaritmic minus logaritm',
+    statement: 'Calculați valoarea expresiei:\n$$E = 9^{\\log_3 7} - \\log_4 64$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$9^{\\log_3 7} = \\left(3^2\\right)^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_4 64 = 3$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 49 - 3 = \\boxed{46}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$9^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $46$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-190', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Logaritm cu coeficient plus logaritm cu bază subunitară',
+    statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 5 + \\log_{\\frac{1}{3}} 75$$',
+    solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_3 5 = \\log_3 25$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen:\n$$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\log_3 25 - \\log_3 75 = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = \\boxed{-1}$$',
+    barem: [
+      { descriere: 'Transformarea primului termen: $$2\\log_3 5 = \\log_3 25$$', puncte_maxime: 1 },
+      { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = -1$$', puncte_maxime: 3 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-191', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Diferență de logaritmi din radicali cu baze diferite',
+    statement: 'Calculați valoarea expresiei:\n$$a = \\log_2\\left(16^{\\frac{1}{2}}\\right) - \\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right)$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = \\log_3 \\frac{1}{3} = -1$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 2 - (-1) = \\boxed{3}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = -1$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-192', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Logaritm cu coeficient minus logaritm',
+    statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 6 - \\log_3 4$$',
+    solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_3 6 = \\log_3 36$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$',
+    barem: [
+      { descriere: 'Transformarea primului termen: $$2\\log_3 6 = \\log_3 36$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$', puncte_maxime: 3 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-193', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Sumă și diferență de trei logaritmi în aceeași bază',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_3 2 + \\log_3 81$$',
+    solution: '**Pasul 1.** Calcularea diferenței primilor doi termeni:\n$$\\log_3 54 - \\log_3 2 = \\log_3 \\frac{54}{2} = \\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celui de-al treilea termen:\n$$\\log_3 81 = \\log_3 3^4 = 4$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 3 + 4 = \\boxed{7}$$',
+    barem: [
+      { descriere: 'Calcularea diferenței primilor doi termeni: $$\\log_3 54 - \\log_3 2 = \\log_3 27 = 3$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al treilea termen: $$\\log_3 81 = 4$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $7$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-194', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi și putere cu exponent logaritmic dublu-imbricat plus logaritm cu bază subunitară',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_{12} 3 + \\log_{12} 4 + 12^{\\log_{144} 4} + \\log_{\\frac{1}{2}} 8$$',
+    solution: '**Pasul 1.** Calcularea sumei primilor doi termeni:\n$$\\log_{12} 3 + \\log_{12} 4 = \\log_{12} 12 = 1$$\n\n**Pasul 2.** Calcularea termenului exponențial:\n$$12^{\\log_{144} 4} = 12^{\\frac{1}{2}\\log_{12} 4} = \\left(12^{\\log_{12} 4}\\right)^{\\frac{1}{2}} = 4^{\\frac{1}{2}} = 2$$\n\n**Pasul 3.** Calcularea ultimului termen:\n$$\\log_{\\frac{1}{2}} 8 = \\log_{2^{-1}} 2^3 = -3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 1 + 2 - 3 = \\boxed{0}$$',
+    barem: [
+      { descriere: 'Calcularea sumei primilor doi termeni: $$\\log_{12} 3 + \\log_{12} 4 = \\log_{12} 12 = 1$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea termenului exponențial: $$12^{\\log_{144} 4} = \\left(12^{\\log_{12} 4}\\right)^{\\frac{1}{2}} = 2$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea ultimului termen: $$\\log_{\\frac{1}{2}} 8 = -3$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-195', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent logaritmic plus logaritm minus radical de ordin 3 — verificare număr întreg',
+    statement: 'Arătați că numărul:\n$$a = 2^{\\log_8 27} + \\log_{\\frac{1}{5}} 25 - \\sqrt[3]{125}$$\neste întreg.',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$2^{\\log_8 27} = 2^{\\log_{2^3} 3^3} = 2^{\\log_2 3} = 3$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_{\\frac{1}{5}} 25 = \\log_{5^{-1}} 5^2 = -2$$\n\n**Pasul 3.** Calcularea radicalului:\n$$\\sqrt[3]{125} = 5$$\n\n**Pasul 4.** Determinarea valorii expresiei și verificarea că este întreg:\n$$a = 3 - 2 - 5 = \\boxed{-4 \\in \\mathbb{Z}}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$2^{\\log_8 27} = 2^{\\log_2 3} = 3$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{5}} 25 = -2$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea radicalului: $$\\sqrt[3]{125} = 5$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este întreg, egală cu $-4$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-196', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Sumă de puteri cu exponenți inversul unei diferențe și opusul unui logaritm',
+    statement: 'Calculați valoarea expresiei:\n$$a = 49^{1-\\log_7 2} + 5^{-\\log_5 4}$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{\\left(7^2\\right)^{\\log_7 2}} = \\frac{49}{2^2} = \\frac{49}{4}$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$5^{-\\log_5 4} = \\left(5^{\\log_5 4}\\right)^{-1} = 4^{-1} = \\frac{1}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = \\frac{49}{4} + \\frac{1}{4} = \\boxed{\\frac{25}{2}}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{4}$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$5^{-\\log_5 4} = \\frac{1}{4}$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\frac{25}{2}$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-197', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Trei puteri cu exponenți logaritmici distincți',
+    statement: 'Calculați valoarea expresiei:\n$$E = 36^{\\log_6 5} + 10^{1-\\lg 2} - 3^{\\log_9 36}$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$36^{\\log_6 5} = \\left(6^2\\right)^{\\log_6 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$10^{1-\\lg 2} = \\frac{10}{10^{\\lg 2}} = \\frac{10}{2} = 5$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen:\n$$3^{\\log_9 36} = 3^{\\frac{1}{2}\\log_3 36} = 36^{\\frac{1}{2}} = 6$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 25 + 5 - 6 = \\boxed{24}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$10^{1-\\lg 2} = 5$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_9 36} = 6$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $24$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-198', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Logaritm cu bază subunitară dintr-un produs de logaritmi',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\frac{1}{4}} \\left(\\log_2 3 \\cdot \\log_3 4\\right)$$',
+    solution: '**Pasul 1.** Simplificarea produsului din interiorul logaritmului, folosind proprietatea $\\log_a b \\cdot \\log_b c = \\log_a c$:\n$$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_{\\frac{1}{4}} 2 = \\log_{2^{-2}} 2^1 = \\boxed{-\\frac{1}{2}}$$',
+    barem: [
+      { descriere: 'Simplificarea produsului din interiorul logaritmului: $$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $-\\frac{1}{2}$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-199', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Putere cu exponent diferență de logaritmi din radicali',
+    statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3}}$$',
+    solution: '**Pasul 1.** Simplificarea exponentului:\n$$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 25^{\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = 5^{2\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{9 \\cdot 5}{3} = \\boxed{15}$$',
+    barem: [
+      { descriere: 'Simplificarea exponentului: $$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{45}{3} = 15$$', puncte_maxime: 3 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-200', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Sumă de patru logaritmi cu baze diferite',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 + \\log_8 2 + \\log_{\\sqrt{5}} \\frac{1}{5} + \\log_{\\frac{1}{7}} \\sqrt[3]{7}$$',
+    solution: '**Pasul 1.** Calcularea primului termen: $$\\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\log_8 2 = \\frac{1}{3}$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = \\log_{5^{\\frac{1}{2}}} 5^{-1} = -2$$\n\n**Pasul 4.** Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = \\log_{7^{-1}} 7^{\\frac{1}{3}} = -\\frac{1}{3}$$\n\n**Pasul 5.** Determinarea valorii expresiei:\n$$E = 3 + \\frac{1}{3} - 2 - \\frac{1}{3} = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_8 2 = \\frac{1}{3}$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = -2$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = -\\frac{1}{3}$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-201', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere negativă a unei fracții plus diferență de logaritmi',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} + \\log_3 36 - \\log_3 4$$',
+    solution: '**Pasul 1.** Calcularea puterii:\n$$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\left(\\frac{27}{8}\\right)^{\\frac{1}{3}} = \\frac{3}{2}$$\n\n**Pasul 2.** Calcularea diferenței de logaritmi:\n$$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{3}{2} + 2 = \\boxed{\\frac{7}{2}}$$',
+    barem: [
+      { descriere: 'Calcularea puterii: $$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\frac{3}{2}$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\frac{7}{2}$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-202', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Produs cu paranteză la putere cu exponent logaritmic',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\frac{4}{5} \\cdot \\left[1 + \\left(\\frac{1}{4}\\right)^{-3}\\right]^{\\log_{65} 5}$$',
+    solution: '**Pasul 1.** Calcularea valorii din paranteză:\n$$\\left(\\frac{1}{4}\\right)^{-3} = 64 \\Rightarrow 1 + 64 = 65$$\n\n**Pasul 2.** Aplicarea proprietății $a^{\\log_a b} = b$:\n$$65^{\\log_{65} 5} = 5$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{4}{5} \\cdot 5 = \\boxed{4}$$',
+    barem: [
+      { descriere: 'Calcularea valorii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-3} = 64 \\Rightarrow 1 + 64 = 65$$', puncte_maxime: 1 },
+      { descriere: 'Aplicarea proprietății $a^{\\log_a b} = b$: $$65^{\\log_{65} 5} = 5$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $4$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-203', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent logaritmic minus logaritm simplu',
+    statement: 'Calculați valoarea expresiei:\n$$E = 9^{\\log_3 5} - \\log_5 25$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$9^{\\log_3 5} = \\left(3^2\\right)^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_5 25 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 25 - 2 = \\boxed{23}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$9^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_5 25 = 2$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $23$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-204', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Logaritm minus radical plus putere cu exponent logaritmic în bază irațională',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}}$$',
+    solution: '**Pasul 1.** Calcularea primilor doi termeni:\n$$\\log_3 27 = 3, \\qquad \\sqrt{6\\tfrac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$\n\n**Pasul 2.** Calcularea celui de-al treilea termen:\n$$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = 3^{2\\log_3 \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 3 - \\frac{5}{2} + \\frac{1}{2} = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Calcularea primilor doi termeni: $$\\log_3 27 = 3, \\quad \\sqrt{6\\tfrac{1}{4}} = \\frac{5}{2}$$', puncte_maxime: 1 },
+      { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 3 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-205', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent sumă de 1 și logaritm — verificare pătrat perfect',
+    statement: 'Arătați că valoarea expresiei:\n$$E = 9^{1+\\log_3 2}$$\neste un pătrat perfect.',
+    solution: '**Pasul 1.** Calcularea valorii expresiei:\n$$E = 9^{1+\\log_3 2} = 9 \\cdot 9^{\\log_3 2} = 9 \\cdot 3^{2\\log_3 2} = 9 \\cdot 2^2 = 9 \\cdot 4 = 36$$\n\n**Pasul 2.** Verificarea că este pătrat perfect:\n$$E = 36 = \\boxed{6^2}$$',
+    barem: [
+      { descriere: 'Calcularea valorii expresiei: $$E = 9^{1+\\log_3 2} = 9\\cdot 3^{2\\log_3 2} = 9\\cdot 4 = 36$$', puncte_maxime: 4 },
+      { descriere: 'Verificarea că $36$ este pătrat perfect: $$36 = 6^2$$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-206', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent diferență de 1 și logaritm',
+    statement: 'Calculați valoarea expresiei:\n$$a = 27^{1-\\log_3 2}$$',
+    solution: '**Pasul 1.** Aplicarea proprietăților puterilor:\n$$27^{1-\\log_3 2} = \\frac{27}{27^{\\log_3 2}} = \\frac{27}{\\left(3^3\\right)^{\\log_3 2}} = \\frac{27}{3^{3\\log_3 2}} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$\n\n**Pasul 2.** Determinarea valorii finale a expresiei:\n$$a = \\boxed{\\frac{27}{8}}$$',
+    barem: [
+      { descriere: 'Aplicarea proprietăților puterilor: $$27^{1-\\log_3 2} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$', puncte_maxime: 4 },
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\frac{27}{8}$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-207', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent logaritmic dintr-un radical plus diferență de logaritmi — verificare pătrat perfect',
+    statement: 'Să se arate că numărul:\n$$a = 4^{\\log_2 \\sqrt{7}} + \\log_5 75 - \\log_5 3$$\neste un pătrat perfect.',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$4^{\\log_2 \\sqrt{7}} = \\left(2^2\\right)^{\\log_2 \\sqrt{7}} = 2^{2\\log_2 \\sqrt{7}} = \\left(\\sqrt{7}\\right)^2 = 7$$\n\n**Pasul 2.** Calcularea diferenței de logaritmi:\n$$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este pătrat perfect:\n$$a = 7 + 2 = \\boxed{9 = 3^2}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$4^{\\log_2 \\sqrt{7}} = \\left(\\sqrt{7}\\right)^2 = 7$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 25 = 2$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $9$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-208', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'usor', source: 'BAC — Algebră',
+    title: 'Putere cu exponent inversul unui logaritm minus radical de ordin 6',
+    statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\frac{1}{\\log_2 5}} - 64^{\\frac{1}{6}}$$',
+    solution: '**Pasul 1.** Transformarea exponentului primului termen și calcularea valorii sale:\n$$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = \\left(5^2\\right)^{\\log_5 2} = 2^2 = 4$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$64^{\\frac{1}{6}} = \\left(2^6\\right)^{\\frac{1}{6}} = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 4 - 2 = \\boxed{2}$$',
+    barem: [
+      { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = 4$$', puncte_maxime: 3 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$64^{\\frac{1}{6}} = 2$$', puncte_maxime: 1 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $2$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-209', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Sumă de logaritmi dublu-imbricați',
+    statement: 'Calculați valoarea expresiei:\n$$a = \\log_3\\left(3\\cdot\\log_3 27\\right) + \\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right)$$',
+    solution: '**Pasul 1.** Calcularea primului termen:\n$$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3(3\\cdot 3) = \\log_3 9 = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = \\log_{\\frac{1}{2}} \\frac{1}{2} = 1$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 2 + 1 = \\boxed{3}$$',
+    barem: [
+      { descriere: 'Calcularea primului termen: $$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3 9 = 2$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = 1$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-210', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Media aritmetică a doi logaritmi cu termen irațional care se reduce',
+    statement: 'Calculați media aritmetică a numerelor:\n$$a = \\log_3 18 \\quad \\text{și} \\quad b = \\log_9 \\frac{1}{4}$$',
+    solution: '**Pasul 1.** Calcularea valorii numărului $a$:\n$$a = \\log_3 18 = \\log_3(9\\cdot 2) = 2 + \\log_3 2$$\n\n**Pasul 2.** Calcularea valorii numărului $b$:\n$$b = \\log_9 \\frac{1}{4} = \\log_{3^2} 2^{-2} = -\\log_3 2$$\n\n**Pasul 3.** Determinarea mediei aritmetice, observând că termenii $\\log_3 2$ se reduc:\n$$\\frac{a+b}{2} = \\frac{2+\\log_3 2-\\log_3 2}{2} = \\frac{2}{2} = \\boxed{1}$$',
+    barem: [
+      { descriere: 'Calcularea valorii numărului $a$: $$a = \\log_3 18 = 2 + \\log_3 2$$', puncte_maxime: 2 },
+      { descriere: 'Calcularea valorii numărului $b$: $$b = \\log_9 \\frac{1}{4} = -\\log_3 2$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea mediei aritmetice, prin reducerea termenilor $\\log_3 2$, egală cu $1$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-211', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Radical dintr-o putere a lui 10 cu exponent sumă și logaritm zecimal',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{10^{2+\\frac{1}{2}\\lg 16}}$$',
+    solution: '**Pasul 1.** Simplificarea celui de-al doilea termen din exponent:\n$$\\frac{1}{2}\\lg 16 = \\lg 16^{\\frac{1}{2}} = \\lg 4$$\n\n**Pasul 2.** Simplificarea exponentului:\n$$2 + \\lg 4 = \\lg 100 + \\lg 4 = \\lg 400$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = \\boxed{20}$$',
+    barem: [
+      { descriere: 'Simplificarea celui de-al doilea termen din exponent: $$\\frac{1}{2}\\lg 16 = \\lg 4$$', puncte_maxime: 1 },
+      { descriere: 'Simplificarea exponentului: $$2+\\lg 4 = \\lg 100+\\lg 4 = \\lg 400$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = 20$$', puncte_maxime: 2 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-212', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'dificil', source: 'BAC — Algebră',
+    title: 'Radical dintr-o sumă de puteri cu exponenți inversul unor logaritmi',
+    statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{25^{\\frac{1}{\\log_6 5}} + 49^{\\frac{1}{\\log_6 7}}}$$',
+    solution: '**Pasul 1.** Transformarea exponentului și calcularea primului termen de sub radical:\n$$\\frac{1}{\\log_6 5} = \\log_5 6 \\Rightarrow 25^{\\log_5 6} = \\left(5^2\\right)^{\\log_5 6} = 6^2 = 36$$\n\n**Pasul 2.** Transformarea exponentului și calcularea celui de-al doilea termen de sub radical:\n$$\\frac{1}{\\log_6 7} = \\log_7 6 \\Rightarrow 49^{\\log_7 6} = \\left(7^2\\right)^{\\log_7 6} = 6^2 = 36$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\sqrt{36+36} = \\sqrt{72} = \\boxed{6\\sqrt{2}}$$',
+    barem: [
+      { descriere: 'Transformarea exponentului și calcularea primului termen de sub radical: $$\\frac{1}{\\log_6 5} = \\log_5 6 \\Rightarrow 25^{\\log_5 6} = 36$$', puncte_maxime: 2 },
+      { descriere: 'Transformarea exponentului și calcularea celui de-al doilea termen de sub radical: $$\\frac{1}{\\log_6 7} = \\log_7 6 \\Rightarrow 49^{\\log_7 6} = 36$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{36+36} = \\sqrt{72} = 6\\sqrt{2}$$', puncte_maxime: 1 }
+    ],
+    baremEstimat: true
+  },
+    {
+    id: 'ca-213', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
+    puncteTotal: 5,
+    difficulty: 'mediu', source: 'BAC — Algebră',
+    title: 'Putere cu exponent sumă de logaritmi în baza radical 5',
+    statement: 'Calculați valoarea expresiei:\n$$a = 5^{\\log_{\\sqrt{5}} 4 + 2\\log_5 3}$$',
+    solution: '**Pasul 1.** Transformarea primului termen din exponent:\n$$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$\n\n**Pasul 2.** Combinarea termenilor din exponent:\n$$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 5^{\\log_5 144} = \\boxed{144}$$',
+    barem: [
+      { descriere: 'Transformarea primului termen din exponent: $$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$', puncte_maxime: 2 },
+      { descriere: 'Combinarea termenilor din exponent: $$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$', puncte_maxime: 2 },
+      { descriere: 'Determinarea valorii expresiei, egală cu $144$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -6315,7 +6888,7 @@ BM.EXERCISES = [
     difficulty: 'usor', source: 'BAC 2023, Varianta 11',
     title: 'Integrală definită',
     statement: 'Calculați:\n$$\\int_0^2 (2x + 1)\\, dx$$',
-    solution: '$F(x) = x^2 + x$\n\n$$\\int_0^2 (2x+1)\\,dx = F(2) - F(0) = (4+2) - 0$$\n\n$$\\boxed{= 6}$$'
+    solution: '$F(x) = x^2 + x$\n\n$$\\int_0^2 (2x+1)\\,dx = F(2) - F(0) = (4+2) - 0$$\n\n$$\\boxed{6}$$'
   },
   {
     id: 'an-int-003', categoryId: 'analiza', subcategoryId: 'integrale',
@@ -6339,7 +6912,7 @@ BM.EXERCISES = [
     difficulty: 'dificil', source: 'BAC 2023, Varianta 19',
     title: 'Integrare prin părți',
     statement: 'Calculați:\n$$\\int x\\sin x\\, dx$$',
-    solution: '$\\int u\\, dv = uv - \\int v\\, du$\n\n$u = x \\Rightarrow du = dx$;  $dv = \\sin x\\, dx \\Rightarrow v = -\\cos x$\n$$\\int x\\sin x\\, dx = -x\\cos x + \\int \\cos x\\, dx$$\n\n$$\\boxed{= -x\\cos x + \\sin x + C}$$'
+    solution: '$\\int u\\, dv = uv - \\int v\\, du$\n\n$u = x \\Rightarrow du = dx$;  $dv = \\sin x\\, dx \\Rightarrow v = -\\cos x$\n$$\\int x\\sin x\\, dx = -x\\cos x + \\int \\cos x\\, dx$$\n\n$$\\boxed{-x\\cos x + \\sin x + C}$$'
   },
 
   /* ============================================================
