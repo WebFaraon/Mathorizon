@@ -421,8 +421,6 @@
             <div class="rarity-card__source">${BM.esc(ex.source)}</div>
             <div class="rarity-card__statement">
               <div class="rarity-card__statement-inner math-content">${BM.trustedNl2br(ex.statement)}</div>
-              <div class="rarity-card__fade"></div>
-              <div class="rarity-card__more">Vezi complet →</div>
             </div>
           </div>
         </div>`;
@@ -442,23 +440,20 @@
   }
 
   /* Fixed-height statement area: shrink font-size until the rendered KaTeX
-     fits, down to a 12px floor; past that, truncate + fade + "Vezi complet →"
-     rather than letting long multi-line expressions blow out the card's
-     (non-negotiable) uniform height. Full text is always in the modal. */
+     fits, down to a 12px floor, rather than letting long multi-line
+     expressions blow out the card's (non-negotiable) uniform height. Past
+     the floor it just clips (overflow:hidden) — full text is always in the
+     modal. */
   function fitRarityStatements(container) {
     container.querySelectorAll('.rarity-card__statement').forEach(wrap => {
       const inner = wrap.querySelector('.rarity-card__statement-inner');
       if (!inner) return;
-      wrap.classList.remove('rarity-card__statement--truncated');
       const maxH = wrap.clientHeight;
       let fontSize = 15;
       inner.style.fontSize = fontSize + 'px';
       while (inner.scrollHeight > maxH && fontSize > 12) {
         fontSize -= 1;
         inner.style.fontSize = fontSize + 'px';
-      }
-      if (inner.scrollHeight > maxH) {
-        wrap.classList.add('rarity-card__statement--truncated');
       }
     });
   }
@@ -511,9 +506,16 @@
     wrap.innerHTML = buildRarityModal(ex, rarity);
     const modal = wrap.firstElementChild;
     document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
     BM.renderMath(modal);
 
-    const close = () => { modal.remove(); document.removeEventListener('keydown', onKey); };
+    const close = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKey);
+    };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     modal.querySelector('.classes-modal__backdrop').onclick = close;
     modal.querySelector('#rarityModalClose').onclick = close;
