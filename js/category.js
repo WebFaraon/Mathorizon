@@ -12,6 +12,15 @@
   let filtered         = [];
   let viewInitialized  = false;
 
+  /* ---- Package-based access: students see only the first N exercises
+     per subchapter; teachers/admin are unrestricted. ---- */
+  const FREE_EXERCISES_PER_SUBCAT = 10;
+
+  function hasFullBankAccess() {
+    const role = window.BMAuth?.role;
+    return role === 'profesor' || role === 'admin';
+  }
+
   /* ---- View transition helper ---- */
   function switchView(hideEl, showEl, renderFn) {
     const doShow = () => {
@@ -327,6 +336,12 @@
       ? allExercises.filter(e => e.subcategoryId === currentSubcat)
       : allExercises;
 
+    /* Lock status is computed from the unfiltered per-subchapter order, so
+       switching the difficulty/solved filter never changes which exercises
+       count toward the free limit. */
+    const fullAccess  = hasFullBankAccess();
+    const unlockedIds = fullAccess ? null : new Set(subExs.slice(0, FREE_EXERCISES_PER_SUBCAT).map(e => e.id));
+
     filtered = subExs.filter(e => {
       if (currentFilter === 'solved'   && !solved[e.id]) return false;
       if (currentFilter === 'unsolved' &&  solved[e.id]) return false;
@@ -334,7 +349,7 @@
       if (currentFilter === 'mediu' && e.difficulty !== 'mediu') return false;
       if (currentFilter === 'dificil' && e.difficulty !== 'dificil') return false;
       return true;
-    });
+    }).map(e => Object.assign({}, e, { _locked: !fullAccess && !unlockedIds.has(e.id) }));
 
     renderExercises();
   }
@@ -382,8 +397,29 @@
       const isSolved   = !!solved[ex.id];
       const isFav      = favs.includes(ex.id);
       const sub        = BM.getSubcategoryById(cat.id, ex.subcategoryId);
-      const mathPrev   = getMathPreview(ex.statement);
       const num        = String(idx + 1).padStart(2, '0');
+
+      if (ex._locked) {
+        return `
+        <div class="ex-card ex-card--locked" id="card-${ex.id}" data-diff="${ex.difficulty}">
+          <div class="ex-card__head">
+            <div class="ex-card__num">${num}</div>
+            <div class="ex-card__left">
+              <div class="ex-card__meta">
+                ${BM.diffBadge(ex.difficulty)}
+                ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
+                <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+              </div>
+              <div class="ex-card__title ex-card__title--locked">🔒 ${BM.esc(ex.title)}</div>
+            </div>
+            <div class="ex-card__locked-cta">
+              <a class="btn btn--accent" href="pachete.html">Deblochează</a>
+            </div>
+          </div>
+        </div>`;
+      }
+
+      const mathPrev   = getMathPreview(ex.statement);
 
       return `
         <div class="ex-card ${isSolved ? 'solved' : ''}" id="card-${ex.id}" data-diff="${ex.difficulty}">
@@ -680,24 +716,13 @@
     if (!currentCategory) return;
     const solved = BM.Storage.getSolved();
 
-    /* Actualizăm starea vizuală a fiecărui card de exercițiu */
-    document.querySelectorAll('.ex-card').forEach(card => {
-      const id       = card.id.replace('card-', '');
-      const isSolved = !!solved[id];
-      card.classList.toggle('solved', isSolved);
-
-      const aBtn = card.querySelector('.ex-action-btn.solved');
-      if (aBtn) {
-        aBtn.classList.toggle('active', isSolved);
-        aBtn.textContent = isSolved ? '✓' : '☐';
-        aBtn.title = isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat';
-      }
-      const sBtn = document.getElementById(`solveBtn-${id}`);
-      if (sBtn) {
-        sBtn.classList.toggle('active', isSolved);
-        sBtn.textContent = isSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
-      }
-    });
+    /* Dacă suntem în view-ul de exerciții, refacem complet lista: reia atât
+       starea de "rezolvat", cât și blocarea per-pachet, care depinde de
+       BMAuth.role și era încă necunoscut la primul render (role se poate
+       sincroniza după ce lista a fost deja afișată). */
+    if (currentSubcat) {
+      applyFilters();
+    }
 
     /* Dacă suntem în view-ul cu carduri de subcategorii, actualizăm progresul în-place */
     if (!currentSubcat) {
