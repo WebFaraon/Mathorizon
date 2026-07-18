@@ -2413,6 +2413,19 @@ body.bac-exam-mode .nav.nav--peek {
   box-shadow: 0 10px 22px rgba(40, 28, 12, 0.14), 0 2px 8px var(--rarity-depth-shadow), 0 0 16px var(--rc-glow);
 }
 
+/* Brief "lift toward you" pulse on click, right before the modal grows out
+   of this same spot (see openRarityModal) — reinforces that the card itself
+   is the thing turning into the modal, rather than the modal being an
+   unrelated popup. */
+.rarity-card--opening {
+  animation: rarityCardPop 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+}
+@keyframes rarityCardPop {
+  0%   { transform: translateY(-3px) scale(1); }
+  45%  { transform: translateY(-7px) scale(1.045); box-shadow: 0 16px 30px rgba(40, 28, 12, 0.18), 0 2px 8px var(--rarity-depth-shadow), 0 0 22px var(--rc-glow); }
+  100% { transform: translateY(-3px) scale(1); }
+}
+
 .rarity-card[data-rarity="comun"]     { --rc-border: var(--rarity-comun-border-soft);     --rc-glow: var(--rarity-comun-glow); }
 .rarity-card[data-rarity="rar"]       { --rc-border: var(--rarity-rar-border-soft);       --rc-glow: var(--rarity-rar-glow); }
 .rarity-card[data-rarity="epic"]      { --rc-border: var(--rarity-epic-border-soft);      --rc-glow: var(--rarity-epic-glow); }
@@ -2614,6 +2627,12 @@ body.bac-exam-mode .nav.nav--peek {
   max-width: 800px;
   width: 100%;
   border-top: 4px solid var(--rc-color);
+  /* Entrance/exit are driven entirely by an inline-style FLIP transition in
+     js/category.js openRarityModal (the dialog grows out of the clicked
+     card's own position/size) — the base .classes-modal__dialog rule's
+     modalIn keyframe would fight that transform every frame, so it's
+     switched off here. */
+  animation: none;
 }
 .rarity-modal[data-rarity="comun"]    { --rc-color: var(--rarity-comun-b); }
 .rarity-modal[data-rarity="rar"]      { --rc-color: var(--rarity-rar-b); }

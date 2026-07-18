@@ -467,11 +467,13 @@
     if (btn) btn.classList.add('active');
     /* Keep the mobile dropdown (rarity page only, see renderFilterBar) in
        sync however the filter was actually changed, so switching between
-       the chip row and the dropdown mid-session never shows a stale value. */
+       the chip row and the dropdown mid-session never shows a stale value.
+       Just set the value directly — dispatching a 'change' event here would
+       re-enter setFilter with btn=null, which strips the just-added
+       .active class from every chip without restoring it to any. */
     const select = document.querySelector('.filter-select');
     if (select && select.value !== f) {
       select.value = f;
-      select.dispatchEvent(new Event('change', { bubbles: true }));
     }
     applyFilters();
   };
@@ -547,7 +549,7 @@
       const formula  = getMathPreview(ex.statement) || BM.trustedNl2br(ex.statement);
 
       return `
-        <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}')">
+        <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
           <span class="rarity-badge">${rarity}</span>
           <div class="rarity-card__inner">
             <div class="rarity-card__top">
@@ -625,25 +627,92 @@
       </div>`;
   }
 
-  window.openRarityModal = function(id) {
+  window.openRarityModal = function(id, originEl) {
     const ex = BM.EXERCISES.find(e => e.id === id);
     if (!ex) return;
     const rarity = RARITY_BY_DIFF[ex.difficulty] || 'comun';
 
     document.getElementById('rarityModal')?.remove();
+
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    /* Measured after the scroll lock above (not before) — locking overflow
+       can drop the scrollbar and shift page content sideways, and the card
+       needs to be measured in the same post-shift layout the modal itself
+       will be measured in, or the two rects fall out of sync by the
+       scrollbar's width. */
+    const originRect = originEl ? originEl.getBoundingClientRect() : null;
+    if (originEl) {
+      originEl.classList.add('rarity-card--opening');
+      originEl.addEventListener('animationend', () => originEl.classList.remove('rarity-card--opening'), { once: true });
+    }
+
     const wrap = document.createElement('div');
     wrap.innerHTML = buildRarityModal(ex, rarity);
     const modal = wrap.firstElementChild;
     document.body.appendChild(modal);
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
     BM.renderMath(modal);
 
-    const close = () => {
+    const dialog   = modal.querySelector('.rarity-modal__dialog');
+    const backdrop = modal.querySelector('.classes-modal__backdrop');
+
+    /* Fly the dialog in from the clicked card's exact position and size (a
+       FLIP transition) so the card visually grows into the modal it opened,
+       rather than the modal just popping up in the center of the screen.
+       Falls back to a plain centered scale-in when there's no origin card
+       (e.g. .rarity-modal__dialog { animation: none } in CSS hands entrance
+       control entirely to this JS transition either way). */
+    const targetRect = dialog.getBoundingClientRect();
+    let fromTransform;
+    if (originRect) {
+      const scaleX = originRect.width  / targetRect.width;
+      const scaleY = originRect.height / targetRect.height;
+      const dx = (originRect.left + originRect.width  / 2) - (targetRect.left + targetRect.width  / 2);
+      const dy = (originRect.top  + originRect.height / 2) - (targetRect.top  + targetRect.height / 2);
+      fromTransform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+    } else {
+      fromTransform = 'translateY(12px) scale(0.94)';
+    }
+
+    dialog.style.transition = 'none';
+    dialog.style.transform  = fromTransform;
+    dialog.style.opacity    = '0';
+    backdrop.style.transition = 'none';
+    backdrop.style.opacity    = '0';
+    dialog.getBoundingClientRect(); /* force reflow before transitioning */
+
+    requestAnimationFrame(() => {
+      dialog.style.transition = 'transform 0.38s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.26s ease';
+      dialog.style.transform  = 'translate(0, 0) scale(1, 1)';
+      dialog.style.opacity    = '1';
+      backdrop.style.transition = 'opacity 0.3s ease';
+      backdrop.style.opacity    = '1';
+    });
+
+    const finishClose = () => {
       modal.remove();
       document.documentElement.style.overflow = '';
       document.body.style.overflow = '';
       document.removeEventListener('keydown', onKey);
+    };
+    const close = () => {
+      const currentRect = dialog.getBoundingClientRect();
+      let toTransform;
+      if (originRect) {
+        const scaleX = originRect.width  / currentRect.width;
+        const scaleY = originRect.height / currentRect.height;
+        const dx = (originRect.left + originRect.width  / 2) - (currentRect.left + currentRect.width  / 2);
+        const dy = (originRect.top  + originRect.height / 2) - (currentRect.top  + currentRect.height / 2);
+        toTransform = `translate(${dx}px, ${dy}px) scale(${scaleX}, ${scaleY})`;
+      } else {
+        toTransform = 'translateY(12px) scale(0.94)';
+      }
+      dialog.style.transition = 'transform 0.26s ease, opacity 0.22s ease';
+      dialog.style.transform  = toTransform;
+      dialog.style.opacity    = '0';
+      backdrop.style.transition = 'opacity 0.22s ease';
+      backdrop.style.opacity    = '0';
+      setTimeout(finishClose, 260);
     };
     const onKey = (e) => { if (e.key === 'Escape') close(); };
     modal.querySelector('.classes-modal__backdrop').onclick = close;
