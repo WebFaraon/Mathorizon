@@ -364,17 +364,115 @@
       <div class="filter-sep"></div>
       ${diffChips}
     `;
+
+    if (isRarityPage) {
+      const nativeSel = bar.querySelector('.filter-select');
+      if (nativeSel) buildCustomFilterSelect(nativeSel);
+      ensureFilterSelectGlobalListeners();
+    }
+  }
+
+  /* A native <select>'s open option list is drawn by the browser/OS itself
+     — its font, corners and colors ignore page CSS entirely, which is why
+     it looked like a completely different, unstyled control next to the
+     rest of the site. Progressively enhance it into the same custom
+     dropdown (.cls-csel) already built for classes.html, so it actually
+     matches — the native <select> stays in the DOM, hidden, purely as the
+     value holder setFilter()/applyFilters() already know how to read. */
+  function buildCustomFilterSelect(sel) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'cls-csel';
+
+    const trigger = document.createElement('div');
+    trigger.className = 'cls-csel__trigger';
+
+    const display = document.createElement('span');
+    display.className = 'cls-csel__display';
+    display.setAttribute('data-has-value', '');
+    display.textContent = sel.options[sel.selectedIndex]?.text || '';
+
+    const arrow = document.createElement('span');
+    arrow.className = 'cls-csel__arrow';
+    arrow.innerHTML = '<svg width="11" height="7" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>';
+
+    trigger.appendChild(display);
+    trigger.appendChild(arrow);
+
+    const dropdown = document.createElement('div');
+    dropdown.className = 'cls-csel__dropdown';
+
+    const addOption = (opt) => {
+      const item = document.createElement('div');
+      item.className = 'cls-csel__option' + (opt.value === sel.value ? ' cls-csel__option--sel' : '');
+      item.textContent = opt.text;
+      item.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sel.value = opt.value;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        closeAllFilterSelects();
+      });
+      dropdown.appendChild(item);
+    };
+
+    [...sel.children].forEach(child => {
+      if (child.tagName === 'OPTGROUP') {
+        const label = document.createElement('div');
+        label.className = 'cls-csel__group-label';
+        label.textContent = child.label;
+        dropdown.appendChild(label);
+        [...child.children].forEach(addOption);
+      } else if (child.tagName === 'OPTION') {
+        addOption(child);
+      }
+    });
+
+    wrapper.appendChild(trigger);
+    wrapper.appendChild(dropdown);
+
+    trigger.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = wrapper.classList.contains('cls-csel--open');
+      closeAllFilterSelects();
+      if (!wasOpen) wrapper.classList.add('cls-csel--open');
+    });
+
+    /* Keeps the trigger's label/selected-option highlight correct whether
+       the value changed via a click above or setFilter() syncing it from a
+       chip click elsewhere. */
+    sel.addEventListener('change', () => {
+      display.textContent = sel.options[sel.selectedIndex]?.text || '';
+      dropdown.querySelectorAll('.cls-csel__option').forEach((el, i) => {
+        el.classList.toggle('cls-csel__option--sel', sel.options[i]?.value === sel.value);
+      });
+    });
+
+    sel.style.display = 'none';
+    sel.insertAdjacentElement('afterend', wrapper);
+  }
+
+  function closeAllFilterSelects() {
+    document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
+  }
+
+  let filterSelectListenersReady = false;
+  function ensureFilterSelectGlobalListeners() {
+    if (filterSelectListenersReady) return;
+    filterSelectListenersReady = true;
+    document.addEventListener('click', closeAllFilterSelects);
   }
 
   window.setFilter = function(f, btn) {
     currentFilter = f;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     if (btn) btn.classList.add('active');
-    /* Keep the mobile <select> (rarity page only, see renderFilterBar) in
+    /* Keep the mobile dropdown (rarity page only, see renderFilterBar) in
        sync however the filter was actually changed, so switching between
        the chip row and the dropdown mid-session never shows a stale value. */
     const select = document.querySelector('.filter-select');
-    if (select && select.value !== f) select.value = f;
+    if (select && select.value !== f) {
+      select.value = f;
+      select.dispatchEvent(new Event('change', { bubbles: true }));
+    }
     applyFilters();
   };
 

@@ -1969,6 +1969,13 @@ body.bac-exam-mode .nav.nav--peek {
    group and a proper divider, rather than touching the shared bar every
    other subcategory page still uses. */
 .filter-bar--rarity {
+  position: relative;
+  /* A sitewide rule (.main > *) puts every direct child of <main> at
+     z-index:1 in its own stacking context — #filterBar and
+     #exercisesContainer are siblings there, so without a boost the
+     dropdown below (which escapes this box via position:absolute) loses
+     to the exercises grid painting after it in DOM order. */
+  z-index: 5;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -2009,28 +2016,27 @@ body.bac-exam-mode .nav.nav--peek {
   display: contents;
 }
 
-/* Native <select> stand-in for the chip row on small screens (see the
-   mobile override below) — same single currentFilter value, just a more
-   comfortable control once there's no room for two full chip rows. */
-.filter-select {
-  display: none;
-  width: 100%;
-  padding: 10px 34px 10px 14px;
-  border-radius: var(--radius);
-  border: 1.5px solid var(--border);
-  background-color: var(--card);
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A7968' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 12px center;
-  color: var(--text);
-  font-size: 0.85rem;
+/* The native <select> itself is never shown — js/category.js's
+   buildCustomFilterSelect() immediately progressively-enhances it into a
+   .cls-csel dropdown (below), which is the thing actually toggled by the
+   mobile override further down. The native element stays in the DOM,
+   hidden, purely as the value source setFilter()/applyFilters() read. */
+.filter-select { display: none; }
+
+/* Stand-in for the chip row on small screens (see the mobile override
+   below) — same single currentFilter value under the hood, just a more
+   comfortable control once there's no room for two full chip rows. Hidden
+   by default; only .filter-bar--rarity shows it, and only ≤640px. */
+.filter-bar--rarity .cls-csel { display: none; }
+
+.cls-csel__group-label {
+  padding: 8px 14px 4px;
+  font-size: 0.68rem;
   font-weight: 700;
-  appearance: none;
-  -webkit-appearance: none;
-  cursor: pointer;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
-.filter-select:focus { border-color: var(--accent); outline: none; }
-[data-theme="dark"] .filter-select option { background: var(--surface); color: var(--text); }
 
 /* 13. EXERCISE CARDS — Dense list
    ============================================================ */
@@ -3992,7 +3998,7 @@ body.bac-exam-mode .nav.nav--peek {
      a small phone — swap to the native <select> (same underlying filter,
      see js/category.js renderFilterBar) instead of the chip clusters. */
   .filter-bar--rarity .filter-bar__chips { display: none; }
-  .filter-bar--rarity .filter-select { display: block; }
+  .filter-bar--rarity .cls-csel { display: block; }
 
   /* ---- Exercise cards ---- */
   .exercises-container { gap: 5px; padding-bottom: 28px; }
