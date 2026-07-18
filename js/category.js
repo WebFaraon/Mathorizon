@@ -318,6 +318,7 @@
       <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
       <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
       <div class="filter-sep"></div>
+      ${isRarityPage ? '<span class="filter-label">Raritate:</span>' : ''}
       <button class="filter-chip easy"      onclick="setFilter('usor', this)">${isRarityPage ? 'Comun' : 'Ușor'}</button>
       <button class="filter-chip medium"    onclick="setFilter('mediu', this)">${isRarityPage ? 'Rar' : 'Mediu'}</button>
       <button class="filter-chip hard"      onclick="setFilter('dificil', this)">${isRarityPage ? 'Epic' : 'Greu'}</button>

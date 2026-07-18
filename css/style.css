@@ -1962,6 +1962,38 @@ body.bac-exam-mode .nav.nav--peek {
   margin: 0 2px;
 }
 
+/* The plain bottom-border strip reads as barely-there on dark backgrounds,
+   and with two visually-unrelated chip clusters (status vs. rarity) sharing
+   one thin divider it wasn't clear which chip did what. Scoped to the
+   rarity preview only — a self-contained "panel" with a labeled second
+   group and a proper divider, rather than touching the shared bar every
+   other subcategory page still uses. */
+.filter-bar--rarity {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 12px 16px;
+  row-gap: 8px;
+}
+
+.filter-bar--rarity .filter-label {
+  font-size: 0.68rem;
+}
+
+.filter-bar--rarity .filter-chip {
+  border-radius: 999px;
+  padding: 5px 13px;
+  font-size: 0.76rem;
+}
+
+.filter-bar--rarity .filter-sep {
+  width: 1.5px;
+  height: 22px;
+  background: var(--text-muted);
+  opacity: 0.35;
+  margin: 0 8px;
+}
+
 /* 13. EXERCISE CARDS — Dense list
    ============================================================ */
 .exercises-container {
@@ -2489,11 +2521,20 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text);
 }
 
-.rarity-card__statement-formula {
+/* The formula div also carries the sitewide .math-content class (for
+   KaTeX's own font-scaling conventions), which sets its own overflow-x:auto
+   + font-size + katex-display margin — defined later in this file, at the
+   same specificity as a plain single/double-class selector, so it silently
+   wins the cascade over almost anything written earlier. The combined
+   selectors below match this element's actual two-class markup
+   (rarity-card__statement-formula + math-content together) for
+   unconditionally higher specificity. */
+.rarity-card__statement-formula.math-content {
+  overflow-x: hidden;
   font-size: 1rem;
   max-width: 100%;
 }
-.rarity-card__statement-formula .katex-display {
+.rarity-card__statement-formula.math-content .katex-display {
   margin: 0;
   overflow-x: hidden;
   overflow-y: hidden;
@@ -3890,6 +3931,7 @@ body.bac-exam-mode .nav.nav--peek {
   .filter-bar { padding: 10px 0; gap: 5px; }
   .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
   .filter-label { font-size: 0.65rem; }
+  .filter-bar--rarity { padding: 10px 12px; }
 
   /* ---- Exercise cards ---- */
   .exercises-container { gap: 5px; padding-bottom: 28px; }
