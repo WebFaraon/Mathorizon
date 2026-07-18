@@ -2005,6 +2005,33 @@ body.bac-exam-mode .nav.nav--peek {
   row-gap: 8px;
 }
 
+.filter-bar__chips {
+  display: contents;
+}
+
+/* Native <select> stand-in for the chip row on small screens (see the
+   mobile override below) — same single currentFilter value, just a more
+   comfortable control once there's no room for two full chip rows. */
+.filter-select {
+  display: none;
+  width: 100%;
+  padding: 10px 34px 10px 14px;
+  border-radius: var(--radius);
+  border: 1.5px solid var(--border);
+  background-color: var(--card);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238A7968' stroke-width='1.6' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  color: var(--text);
+  font-size: 0.85rem;
+  font-weight: 700;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+}
+.filter-select:focus { border-color: var(--accent); outline: none; }
+[data-theme="dark"] .filter-select option { background: var(--surface); color: var(--text); }
+
 /* 13. EXERCISE CARDS — Dense list
    ============================================================ */
 .exercises-container {
@@ -3961,11 +3988,11 @@ body.bac-exam-mode .nav.nav--peek {
   .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
   .filter-label { font-size: 0.65rem; }
   .filter-bar--rarity { padding: 10px 12px; }
-  /* Each chip cluster now wraps as its own row (see .filter-bar__group) —
-     a lone vertical divider sitting on its own line between two stacked
-     rows just reads as a stray mark, so it's hidden once things stack. */
-  .filter-bar--rarity .filter-sep { display: none; }
-  .filter-bar--rarity .filter-bar__group { row-gap: 6px; }
+  /* Even one-cluster-per-row still means up to 3 stacked rows of chips on
+     a small phone — swap to the native <select> (same underlying filter,
+     see js/category.js renderFilterBar) instead of the chip clusters. */
+  .filter-bar--rarity .filter-bar__chips { display: none; }
+  .filter-bar--rarity .filter-select { display: block; }
 
   /* ---- Exercise cards ---- */
   .exercises-container { gap: 5px; padding-bottom: 28px; }
@@ -9587,6 +9614,16 @@ body.bac-exam-mode .nav.nav--peek {
   }
   .classes-modal__head { padding: 16px 20px; }
   .classes-modal__body { padding: 20px; }
+
+  /* The rarity modal's badge floats above the dialog's own top edge — fine
+     everywhere else, but this slide-up sheet is allowed to grow to the full
+     viewport height, so a tall (multi-step barem) exercise leaves the badge
+     with nowhere to poke out into and it gets clipped by the screen edge
+     itself. Reserve a strip up top and cap the dialog to fit inside it. */
+  .classes-modal.rarity-modal { padding-top: 30px; }
+  .classes-modal.rarity-modal .classes-modal__dialog.rarity-modal__dialog {
+    max-height: calc(100vh - 30px);
+  }
   .classes-modal__foot { padding: 14px 20px; }
   .classes-modal__foot .btn { flex: 1; justify-content: center; }
 

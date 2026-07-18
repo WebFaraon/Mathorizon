@@ -328,17 +328,36 @@
     /* Rarity page only: each chip cluster is its own flex group so it wraps
        onto its own line as a whole unit on narrow screens, instead of
        individual buttons free-wrapping and splitting a group in half
-       (e.g. "Rezolvate" stranding itself next to the "Raritate:" label). */
+       (e.g. "Rezolvate" stranding itself next to the "Raritate:" label).
+       Below a certain width even that stacked-chip layout is cramped, so a
+       native <select> (hidden on desktop, see CSS) stands in instead —
+       it's the same single currentFilter value under the hood, just a
+       friendlier control for a small screen. */
     bar.innerHTML = isRarityPage ? `
-      <div class="filter-bar__group">
-        <span class="filter-label">Filtrare:</span>
-        ${statusChips}
+      <div class="filter-bar__chips">
+        <div class="filter-bar__group">
+          <span class="filter-label">Filtrare:</span>
+          ${statusChips}
+        </div>
+        <div class="filter-sep"></div>
+        <div class="filter-bar__group">
+          <span class="filter-label">Raritate:</span>
+          ${diffChips}
+        </div>
       </div>
-      <div class="filter-sep"></div>
-      <div class="filter-bar__group">
-        <span class="filter-label">Raritate:</span>
-        ${diffChips}
-      </div>
+      <select class="filter-select" onchange="setFilter(this.value, null)">
+        <option value="all">Toate exercițiile</option>
+        <optgroup label="Stare">
+          <option value="unsolved">Nerezolvate</option>
+          <option value="solved">Rezolvate</option>
+        </optgroup>
+        <optgroup label="Raritate">
+          <option value="usor">Comun</option>
+          <option value="mediu">Rar</option>
+          <option value="dificil">Epic</option>
+          <option value="legendar">Legendar</option>
+        </optgroup>
+      </select>
     ` : `
       <span class="filter-label">Filtrare:</span>
       ${statusChips}
@@ -351,6 +370,11 @@
     currentFilter = f;
     document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
     if (btn) btn.classList.add('active');
+    /* Keep the mobile <select> (rarity page only, see renderFilterBar) in
+       sync however the filter was actually changed, so switching between
+       the chip row and the dropdown mid-session never shows a stale value. */
+    const select = document.querySelector('.filter-select');
+    if (select && select.value !== f) select.value = f;
     applyFilters();
   };
 
