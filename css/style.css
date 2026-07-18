@@ -1994,6 +1994,17 @@ body.bac-exam-mode .nav.nav--peek {
   margin: 0 8px;
 }
 
+/* Each cluster (status filters / rarity filters) wraps as one atomic unit —
+   see js/category.js renderFilterBar — so a narrow screen never splits a
+   group across two lines the way free-flowing individual chips did. */
+.filter-bar__group {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+  row-gap: 8px;
+}
+
 /* 13. EXERCISE CARDS — Dense list
    ============================================================ */
 .exercises-container {
@@ -2552,7 +2563,10 @@ body.bac-exam-mode .nav.nav--peek {
 .rarity-card--locked .rarity-card__title--locked { color: var(--text-muted); filter: blur(3px); user-select: none; height: auto; -webkit-line-clamp: 3; }
 
 @media (max-width: 640px) {
-  .exercises-container--rarity { grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); gap: 20px; }
+  /* Single column on phones — the floating rarity badge pokes ~11px above
+     its own card's top edge, so the row-gap needs real clearance above
+     that or the badge reads as touching the card stacked above it. */
+  .exercises-container--rarity { grid-template-columns: repeat(auto-fill, minmax(100%, 1fr)); gap: 36px; }
 }
 
 /* ---- Detail modal (reuses .classes-modal structure) ----
@@ -2573,10 +2587,25 @@ body.bac-exam-mode .nav.nav--peek {
 .rarity-modal[data-rarity="epic"]     { --rc-color: var(--rarity-epic-b); }
 .rarity-modal[data-rarity="legendar"] { --rc-color: var(--rarity-legendar-b); }
 
+/* The rarity chip reads as more of a headline in the modal (there's no
+   card-sized content competing with it), so it gets a bit more presence
+   than the compact card-corner version. */
+.rarity-modal .rarity-badge {
+  top: -14px;
+  left: 22px;
+  padding: 5px 16px;
+  font-size: 0.78rem;
+}
+
 .rarity-modal__head {
   display: flex;
   align-items: center;
-  justify-content: space-between;
+  /* .rarity-badge is position:absolute (it needs to float above the
+     dialog's own top edge), so it's out of flow — the close button ends up
+     the *only* flex child here, and justify-content:space-between has
+     nothing to space it from, leaving it stuck at flex-start right next to
+     the badge instead of over on the right where it belongs. */
+  justify-content: flex-end;
   padding: 16px 22px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
@@ -3932,6 +3961,11 @@ body.bac-exam-mode .nav.nav--peek {
   .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
   .filter-label { font-size: 0.65rem; }
   .filter-bar--rarity { padding: 10px 12px; }
+  /* Each chip cluster now wraps as its own row (see .filter-bar__group) —
+     a lone vertical divider sitting on its own line between two stacked
+     rows just reads as a stray mark, so it's hidden once things stack. */
+  .filter-bar--rarity .filter-sep { display: none; }
+  .filter-bar--rarity .filter-bar__group { row-gap: 6px; }
 
   /* ---- Exercise cards ---- */
   .exercises-container { gap: 5px; padding-bottom: 28px; }

@@ -312,17 +312,38 @@
     if (!bar) return;
     const isRarityPage = currentSubcat === 'calcul-algebric';
     bar.classList.toggle('filter-bar--rarity', isRarityPage);
-    bar.innerHTML = `
-      <span class="filter-label">Filtrare:</span>
+
+    const statusChips = `
       <button class="filter-chip active" onclick="setFilter('all', this)">Toate</button>
       <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
       <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
-      <div class="filter-sep"></div>
-      ${isRarityPage ? '<span class="filter-label">Raritate:</span>' : ''}
+    `;
+    const diffChips = `
       <button class="filter-chip easy"      onclick="setFilter('usor', this)">${isRarityPage ? 'Comun' : 'Ușor'}</button>
       <button class="filter-chip medium"    onclick="setFilter('mediu', this)">${isRarityPage ? 'Rar' : 'Mediu'}</button>
       <button class="filter-chip hard"      onclick="setFilter('dificil', this)">${isRarityPage ? 'Epic' : 'Greu'}</button>
       <button class="filter-chip legendary" onclick="setFilter('legendar', this)">Legendar</button>
+    `;
+
+    /* Rarity page only: each chip cluster is its own flex group so it wraps
+       onto its own line as a whole unit on narrow screens, instead of
+       individual buttons free-wrapping and splitting a group in half
+       (e.g. "Rezolvate" stranding itself next to the "Raritate:" label). */
+    bar.innerHTML = isRarityPage ? `
+      <div class="filter-bar__group">
+        <span class="filter-label">Filtrare:</span>
+        ${statusChips}
+      </div>
+      <div class="filter-sep"></div>
+      <div class="filter-bar__group">
+        <span class="filter-label">Raritate:</span>
+        ${diffChips}
+      </div>
+    ` : `
+      <span class="filter-label">Filtrare:</span>
+      ${statusChips}
+      <div class="filter-sep"></div>
+      ${diffChips}
     `;
   }
 
