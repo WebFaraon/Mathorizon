@@ -1945,6 +1945,16 @@ body.bac-exam-mode .nav.nav--peek {
 .filter-chip.hard.active      { background: var(--red);    color: #fff; border-color: var(--red); }
 .filter-chip.legendary.active { background: var(--rarity-legendar-b, #B45309); color: #fff; border-color: var(--rarity-legendar-b, #B45309); }
 
+/* On the calcul-algebric rarity preview, the Ușor/Mediu/Greu labels/colors
+   are relabeled Comun/Rar/Epic (see js/category.js renderFilterBar) — the
+   chip colors need to follow the card rarity palette instead of the
+   sitewide diff-badge green/yellow/red, or "Rar" would stay orange next to
+   blue rarity cards. Scoped to `.filter-bar--rarity` so every other
+   subcategory page keeps the plain diff colors untouched. */
+.filter-bar--rarity .filter-chip.easy.active   { background: var(--rarity-comun-b); border-color: var(--rarity-comun-b); }
+.filter-bar--rarity .filter-chip.medium.active { background: var(--rarity-rar-b);   border-color: var(--rarity-rar-b); }
+.filter-bar--rarity .filter-chip.hard.active   { background: var(--rarity-epic-b);  border-color: var(--rarity-epic-b); }
+
 .filter-sep {
   width: 1px;
   height: 18px;
@@ -2313,7 +2323,7 @@ body.bac-exam-mode .nav.nav--peek {
   position: relative;
   height: 250px;
   border-radius: var(--radius-lg);
-  border: 1.5px solid var(--rc-border);
+  border: 2px solid var(--rc-border);
   cursor: pointer;
   background: var(--card);
   /* Depth vs. the page background, plus a soft ambient glow in the rarity
@@ -2331,7 +2341,7 @@ body.bac-exam-mode .nav.nav--peek {
 .rarity-card[data-rarity="rar"]       { --rc-border: var(--rarity-rar-border-soft);       --rc-glow: var(--rarity-rar-glow); }
 .rarity-card[data-rarity="epic"]      { --rc-border: var(--rarity-epic-border-soft);      --rc-glow: var(--rarity-epic-glow); }
 .rarity-card[data-rarity="legendar"]  {
-  border-width: 2px;
+  border-width: 2.5px;
   --rc-border: var(--rarity-legendar-border-soft);
   --rc-glow: var(--rarity-legendar-glow);
 }
@@ -2339,7 +2349,10 @@ body.bac-exam-mode .nav.nav--peek {
 .rarity-card__inner {
   position: relative;
   height: 100%;
-  padding: 14px 15px 12px;
+  /* Extra top padding vs. sides/bottom — the floating rarity badge already
+     overlaps the top edge, and the tags row was sitting close enough
+     underneath it to read as touching. */
+  padding: 20px 15px 12px;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -2459,29 +2472,32 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 8px 10px;
 }
 
-/* Intro text + formula (and any trailing text) are rendered as separate
-   sibling blocks (see js/category.js splitStatementForCard) and centered
-   here as ONE flex-column group — relying on text-align alone left the
-   group's vertical position inconsistent, since KaTeX's own display-math
-   margins don't collapse evenly with a preceding text line. */
+/* Only the bare formula is shown here (see js/category.js's use of
+   getMathPreview) — no intro/outro text, since that was the reason the
+   "centered" formula appeared to sit at a different height from card to
+   card. One fixed font-size for every card, so they all read as the same
+   weight/scale regardless of how short or long the underlying expression
+   is; KaTeX's own overflow-x:auto on .katex-display is switched off so an
+   edge-case wide formula just clips instead of getting a scrollbar that
+   nudges a couple pixels back and forth for no reason. */
 .rarity-card__statement-inner {
   width: 100%;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   text-align: center;
   color: var(--text);
-  line-height: 1.3;
 }
 
-.rarity-card__statement-text {
-  font-size: 0.86em;
-  color: var(--text-secondary);
+.rarity-card__statement-formula {
+  font-size: 1rem;
+  max-width: 100%;
 }
-
-.rarity-card__statement-formula .katex-display { margin: 0; }
+.rarity-card__statement-formula .katex-display {
+  margin: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
 
 /* Locked card (package restriction) — same footprint, no rarity flourish
    since the content underneath is hidden anyway. */

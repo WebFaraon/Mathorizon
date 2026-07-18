@@ -310,15 +310,17 @@
   function renderFilterBar() {
     const bar = document.getElementById('filterBar');
     if (!bar) return;
+    const isRarityPage = currentSubcat === 'calcul-algebric';
+    bar.classList.toggle('filter-bar--rarity', isRarityPage);
     bar.innerHTML = `
       <span class="filter-label">Filtrare:</span>
       <button class="filter-chip active" onclick="setFilter('all', this)">Toate</button>
       <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
       <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
       <div class="filter-sep"></div>
-      <button class="filter-chip easy"      onclick="setFilter('usor', this)">Ușor</button>
-      <button class="filter-chip medium"    onclick="setFilter('mediu', this)">Mediu</button>
-      <button class="filter-chip hard"      onclick="setFilter('dificil', this)">Greu</button>
+      <button class="filter-chip easy"      onclick="setFilter('usor', this)">${isRarityPage ? 'Comun' : 'Ușor'}</button>
+      <button class="filter-chip medium"    onclick="setFilter('mediu', this)">${isRarityPage ? 'Rar' : 'Mediu'}</button>
+      <button class="filter-chip hard"      onclick="setFilter('dificil', this)">${isRarityPage ? 'Epic' : 'Greu'}</button>
       <button class="filter-chip legendary" onclick="setFilter('legendar', this)">Legendar</button>
     `;
   }
@@ -377,18 +379,6 @@
   /* ---- Rarity redesign (preview — calcul-algebric subcategory only) ---- */
   const RARITY_BY_DIFF = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };
 
-  /* Splits a statement into text-before / formula / text-after around its
-     first $$...$$ block, so the card can render them as separate sibling
-     elements and center the whole group as one flex-column unit — text and
-     formula sharing a single blob left KaTeX's own display-math margins
-     fighting the surrounding text's line-height, so the "centered" result
-     drifted depending on how much text preceded the formula. */
-  function splitStatementForCard(statement) {
-    const m = statement.match(/^([\s\S]*?)(\$\$[\s\S]*?\$\$)([\s\S]*)$/);
-    if (!m) return { before: '', formula: statement, after: '' };
-    return { before: m[1].trim(), formula: m[2].trim(), after: m[3].trim() };
-  }
-
   function renderRarityCards(container) {
     const solved = BM.Storage.getSolved();
     const favs   = BM.Storage.getFavorites();
@@ -410,7 +400,7 @@
 
       const isSolved = !!solved[ex.id];
       const isFav    = favs.includes(ex.id);
-      const { before, formula, after } = splitStatementForCard(ex.statement);
+      const formula  = getMathPreview(ex.statement) || BM.trustedNl2br(ex.statement);
 
       return `
         <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}')">
@@ -434,9 +424,7 @@
             <div class="rarity-card__source">${BM.esc(ex.source)}</div>
             <div class="rarity-card__statement">
               <div class="rarity-card__statement-inner">
-                ${before ? `<div class="rarity-card__statement-text">${BM.trustedNl2br(before)}</div>` : ''}
                 <div class="rarity-card__statement-formula math-content">${formula}</div>
-                ${after ? `<div class="rarity-card__statement-text">${BM.trustedNl2br(after)}</div>` : ''}
               </div>
             </div>
           </div>
@@ -453,31 +441,6 @@
     });
 
     if (window.renderMathInElement) BM.renderMath(container);
-    /* renderRarityCards() runs from inside switchView()'s doShow(), which
-       renders the new view *before* flipping it off display:none — so every
-       clientHeight/scrollHeight read here-and-now would be 0 and the shrink
-       loop below would never engage. Deferring one frame guarantees the
-       section is actually visible and laid out first. */
-    requestAnimationFrame(() => fitRarityStatements(container));
-  }
-
-  /* Fixed-height statement area: shrink font-size until the rendered KaTeX
-     fits, down to a 12px floor, rather than letting long multi-line
-     expressions blow out the card's (non-negotiable) uniform height. Past
-     the floor it just clips (overflow:hidden) — full text is always in the
-     modal. */
-  function fitRarityStatements(container) {
-    container.querySelectorAll('.rarity-card__statement').forEach(wrap => {
-      const inner = wrap.querySelector('.rarity-card__statement-inner');
-      if (!inner) return;
-      const maxH = wrap.clientHeight;
-      let fontSize = 15;
-      inner.style.fontSize = fontSize + 'px';
-      while (inner.scrollHeight > maxH && fontSize > 12) {
-        fontSize -= 1;
-        inner.style.fontSize = fontSize + 'px';
-      }
-    });
   }
 
   function buildRarityModal(ex, rarity) {
