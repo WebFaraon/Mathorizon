@@ -92,7 +92,7 @@ img { display: block; max-width: 100%; }
   --blue: #3A6BAD;
   --blue-dim: rgba(58, 107, 173, 0.07);
 
-  /* Rarity system (collectible-card exercise redesign — calcul-algebric only) */
+  /* Rarity system (collectible-card exercise redesign — see RARITY_SUBCATS in js/category.js) */
   --rarity-comun-a: #6EE7A8;    --rarity-comun-b: #16A34A;
   --rarity-comun-text: #15803D; --rarity-comun-dim: rgba(22, 163, 74, 0.10); --rarity-comun-border: rgba(22, 163, 74, 0.35);
   --rarity-comun-glow: rgba(22, 163, 74, 0.16);
@@ -1945,7 +1945,7 @@ body.bac-exam-mode .nav.nav--peek {
 .filter-chip.hard.active      { background: var(--red);    color: #fff; border-color: var(--red); }
 .filter-chip.legendary.active { background: var(--rarity-legendar-b, #B45309); color: #fff; border-color: var(--rarity-legendar-b, #B45309); }
 
-/* On the calcul-algebric rarity preview, the Ușor/Mediu/Greu labels/colors
+/* On rarity-preview subcategories, the Ușor/Mediu/Greu labels/colors
    are relabeled Comun/Rar/Epic (see js/category.js renderFilterBar) — the
    chip colors need to follow the card rarity palette instead of the
    sitewide diff-badge green/yellow/red, or "Rar" would stay orange next to
@@ -2381,10 +2381,10 @@ body.bac-exam-mode .nav.nav--peek {
 .ex-card__locked-cta { flex-shrink: 0; }
 .ex-card__locked-cta .btn { font-size: 0.8rem; padding: 6px 14px; white-space: nowrap; }
 
-/* ---- 13b. RARITY CARD SYSTEM (calcul-algebric preview only) ----
-   Collectible-card-style redesign, gated in js/category.js to the
-   calcul-algebric subcategory. Uniform fixed-size cards in a grid,
-   gradient rarity border + floating badge, click-anywhere opens the
+/* ---- 13b. RARITY CARD SYSTEM (opt-in per subcategory) ----
+   Collectible-card-style redesign, gated in js/category.js to whichever
+   subcategories are listed in RARITY_SUBCATS. Uniform fixed-size cards in a
+   grid, gradient rarity border + floating badge, click-anywhere opens the
    detail modal (see .rarity-modal below) instead of the inline
    accordion the rest of the site still uses. ---- */
 .exercises-container--rarity {
@@ -2587,14 +2587,23 @@ body.bac-exam-mode .nav.nav--peek {
    (rarity-card__statement-formula + math-content together) for
    unconditionally higher specificity. */
 .rarity-card__statement-formula.math-content {
-  overflow-x: hidden;
+  overflow-x: visible;
   font-size: 1rem;
   max-width: 100%;
 }
+/* Deliberately NOT overflow-hidden here (or on .katex-display below): a CSS
+   transform doesn't shrink an element's own layout box before that box
+   clips its content — the clip is computed first, in local/unscaled
+   coordinates, and only the already-clipped result gets scaled. So an
+   overflow:hidden here would silently eat a few px off wide formulas
+   (long polynomials, matrices) *before* js/category.js's
+   shrinkRarityFormulasToFit ever gets to scale them down to fit. The outer
+   .rarity-card__statement box (fixed size, never transformed) is the one
+   real clip boundary; these stay visible so the JS scale has the formula's
+   true, untruncated size to work with. */
 .rarity-card__statement-formula.math-content .katex-display {
   margin: 0;
-  overflow-x: hidden;
-  overflow-y: hidden;
+  overflow: visible;
 }
 
 /* Locked card (package restriction) — same footprint, no rarity flourish
@@ -9437,7 +9446,15 @@ body.bac-exam-mode .nav.nav--peek {
   border-radius: var(--radius);
   width: 100%;
   max-width: 480px;
+  /* `100vh` is the *layout* viewport — on tablets/phones with a collapsible
+     browser toolbar it reads taller than what's actually visible, so a
+     dialog capped and centered against it can overflow past the real top
+     and bottom edges (the badge/close button poking off-screen). `dvh`
+     tracks the actual visible viewport; the plain vh line stays first as a
+     fallback for browsers that don't support dvh yet (the second
+     declaration simply wins wherever it's understood). */
   max-height: calc(100vh - 40px);
+  max-height: calc(100dvh - 40px);
   display: flex;
   flex-direction: column;
   box-shadow: 0 24px 64px rgba(0,0,0,0.2);
@@ -9636,6 +9653,7 @@ body.bac-exam-mode .nav.nav--peek {
     border-radius: var(--radius) var(--radius) 0 0;
     max-width: 100%;
     max-height: 100vh;
+    max-height: 100dvh;
   }
   .classes-modal__head { padding: 16px 20px; }
   .classes-modal__body { padding: 20px; }
@@ -9648,6 +9666,7 @@ body.bac-exam-mode .nav.nav--peek {
   .classes-modal.rarity-modal { padding-top: 30px; }
   .classes-modal.rarity-modal .classes-modal__dialog.rarity-modal__dialog {
     max-height: calc(100vh - 30px);
+    max-height: calc(100dvh - 30px);
   }
   .classes-modal__foot { padding: 14px 20px; }
   .classes-modal__foot .btn { flex: 1; justify-content: center; }

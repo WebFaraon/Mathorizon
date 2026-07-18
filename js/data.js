@@ -89,7 +89,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea celui de-al doilea termen folosind proprietatea de schimbare a bazei: $$\\log_{\\frac{1}{3}} 5 = \\log_{3^{-1}} 5 = -\\log_3 5$$', puncte_maxime: 2 },
       { descriere: 'Substituirea în expresie și aplicarea proprietății logaritmului puterii: $$\\log_3 75 + 2(-\\log_3 5) = \\log_3 75 - 2\\log_3 5 = \\log_3 75 - \\log_3 5^2 = \\log_3 75 - \\log_3 25$$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea proprietății logaritmului câtului și calcularea valorii finale: $$\\log_3 \\frac{75}{25} = \\log_3 3 = 1$$', puncte_maxime: 1 }
+      { descriere: 'Aplicarea proprietății logaritmului câtului și calcularea valorii finale: $$\\log_3 \\frac{75}{25} = \\log_3 3 = \\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -173,7 +173,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** $125^{-\\frac{1}{3}} = \\frac{1}{5}$\n\n**Pasul 2.** Calcularea valorii expresiei: $-\\frac{1}{5} - \\frac{9}{5} = -\\frac{10}{5} = \\boxed{-2}$',
     barem: [
       { descriere: '$$125^{-\\frac{1}{3}} = \\frac{1}{5}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei, egală cu $-2$.', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii expresiei, egală cu $\\boxed{-2}$.', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -215,7 +215,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii expresiei de sub logaritmul exterior:$$\\log_3 \\sqrt{729} = \\log_3 (3^6)^{1/2} = \\log_3 3^3 = 3$$\n\n**Pasul 2.** Calcularea valorii logaritmului exterior:$$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = -\\frac{1}{2}$$\n\n$$\\boxed{-\\frac{1}{2}}$$',
     barem: [
       { descriere: 'Calcularea valorii expresiei de sub logaritmul exterior: $$\\log_3 \\sqrt{729} = \\log_3 (3^6)^{1/2} = \\log_3 3^3 = 3$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii logaritmului exterior: $$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = -\\frac{1}{2}$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii logaritmului exterior: $$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = \\boxed{-\\frac{1}{2}}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -229,7 +229,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea argumentului logaritmului: $$\\sqrt{2 \\cdot 2^{1/5}} = \\sqrt{2^{\\frac{6}{5}}} = 2^{\\frac{3}{5}}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}}\\!\\left(2^{3/5}\\right) = \\log_{2^{-1}}\\!\\left(2^{3/5}\\right) = \\frac{3/5}{-1} = -\\frac{3}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{3}{5} \\cdot 5 = -3$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{3}{5} \\cdot 5 = \\boxed{-3}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -258,7 +258,7 @@ BM.EXERCISES = [
       { descriere: 'Transformarea expresiei: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{2+\\log_2 9}$$', puncte_maxime: 2 },
       { descriere: 'Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii expresiei: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$', puncte_maxime: 1 },
-      { descriere: 'Verificarea că $36 = 6^2$ și concluzia că valoarea este un pătrat perfect.', puncte_maxime: 1 }
+      { descriere: 'Verificarea că $36 = 6^2$ și concluzia că valoarea este un pătrat perfect: $$\\boxed{\\text{Valoarea expresiei este un pătrat perfect}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -316,7 +316,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$\\sqrt[3]{-0{,}125} = \\sqrt[3]{-\\frac{1}{8}} = -\\frac{1}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$16^{-0{,}25} = 16^{-\\frac{1}{4}} = (2^4)^{-\\frac{1}{4}} = 2^{-1} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -330,7 +330,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Aplicarea proprietății logaritmului: $2\\lg 2 = \\lg 4$', puncte_maxime: 2 },
       { descriere: 'Aplicarea proprietății logaritmului pentru diferență: $\\lg 400 - \\lg 4 = \\lg 100$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $2$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -344,7 +344,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$-4\\frac{17}{27} = -\\frac{125}{27} = -\\frac{5^3}{3^3} \\Rightarrow \\sqrt[3]{-4\\frac{17}{27}} = -\\frac{5}{3}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$36^{-0{,}5} = \\frac{1}{\\sqrt{36}} = \\frac{1}{6}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = -\\frac{10}{6} + \\frac{1}{6} = -\\frac{9}{6} = -\\frac{3}{2}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = -\\frac{10}{6} + \\frac{1}{6} = -\\frac{9}{6} = \\boxed{-\\frac{3}{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -357,7 +357,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicăm proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ pentru primii doi termeni și formula $(a-b)(a+b) = a^2-b^2$: $$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) = \\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$\n\n**Pasul 2.** Continuăm calculul folosind aceeași proprietate a logaritmilor și simplificăm pentru a determina valoarea finală a expresiei: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = 2$$\n$$\\boxed{2}$$',
     barem: [
       { descriere: 'Aplicarea proprietății logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și a formulei $(a-b)(a+b) = a^2-b^2$ pentru a obține: $$\\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$', puncte_maxime: 3 },
-      { descriere: 'Continuarea calculului folosind proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și determinarea valorii finale a expresiei, egală cu $2$: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = 2$$', puncte_maxime: 2 }
+      { descriere: 'Continuarea calculului folosind proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și determinarea valorii finale a expresiei, egală cu $2$: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = \\boxed{2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -371,7 +371,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$100^{\\lg 2} = (10^2)^{\\lg 2} = 10^{2\\lg 2} = 10^{\\lg 4} = 4$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sqrt[5]{-243} = \\sqrt[5]{(-3)^5} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -385,7 +385,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea numărătorului: $\\sqrt[3]{49} = (7^2)^{1/3} = 7^{2/3}$', puncte_maxime: 2 },
       { descriere: 'Aplicarea proprietăților puterilor: $\\frac{7^{2/3}}{7^{-1/3}} = 7^{\\frac{2}{3} - (-\\frac{1}{3})} = 7^{\\frac{2}{3} + \\frac{1}{3}}$', puncte_maxime: 2 },
-      { descriere: 'Calcularea sumei exponenților și determinarea valorii finale: $7^{\\frac{3}{3}} = 7^1 = 7$', puncte_maxime: 1 }
+      { descriere: 'Calcularea sumei exponenților și determinarea valorii finale: $7^{\\frac{3}{3}} = 7^1 = 7$: $$\\boxed{7}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -399,7 +399,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea radicalului în putere: $$\\sqrt[4]{8} = (2^3)^{1/4} = 2^{3/4}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea logaritmului: $0{,}5 = 2^{-1}$, deci $$\\log_{2^{-1}}\\!\\left(2^{3/4}\\right) = \\frac{3/4}{-1} = -\\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -413,7 +413,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea logaritmului $\\log_{49} 25$ în $\\log_7 5$.', puncte_maxime: 3 },
       { descriere: 'Substituirea în expresie și simplificarea exponentului la $\\log_7 2$.', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii finale a expresiei.', puncte_maxime: 1 }
+      { descriere: 'Calcularea valorii finale a expresiei: $$\\boxed{4}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -427,7 +427,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea termenului $\\log_{0{,}1} 4 = \\log_{10^{-1}} 4 = -\\lg 4$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului $\\lg 10^{-1} = -1$', puncte_maxime: 1 },
-      { descriere: 'Substituirea valorilor și determinarea valorii expresiei: $\\lg 250 - (-\\lg 4) + (-1) = \\lg 250 + \\lg 4 - 1 = \\lg 1000 - 1 = 3 - 1 = 2$', puncte_maxime: 2 }
+      { descriere: 'Substituirea valorilor și determinarea valorii expresiei: $\\lg 250 - (-\\lg 4) + (-1) = \\lg 250 + \\lg 4 - 1 = \\lg 1000 - 1 = 3 - 1 = 2$: $$\\boxed{2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -441,7 +441,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Simplificarea argumentului logaritmului: $$\\sqrt{2\\sqrt{2}} = \\sqrt{2 \\cdot 2^{1/2}} = \\sqrt{2^{3/2}} = (2^{3/2})^{1/2} = 2^{3/4}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii logaritmului: $$\\log_2 2^{3/4} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$: $$0{,}25 + \\frac{3}{4} = \\frac{1}{4} + \\frac{3}{4} = 1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $1$: $$0{,}25 + \\frac{3}{4} = \\frac{1}{4} + \\frac{3}{4} = \\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -469,7 +469,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$2\\lg\\sqrt{5} = 2 \\cdot \\frac{1}{2}\\lg 5 = \\lg 5$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{0{,}1} 50 = \\log_{10^{-1}} 50 = -\\lg 50$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -499,7 +499,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea primului termen: $\\log_{\\frac{1}{2}} 6 = -\\log_2 6 = -2\\log_4 6$', puncte_maxime: 2 },
       { descriere: 'Transformarea celui de-al doilea termen: $\\log_4 144 = \\log_4(4 \\cdot 36) = 1 + \\log_4 6^2 = 1 + 2\\log_4 6$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -514,7 +514,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primului termen: $$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 2^2 = 4$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\left(\\frac{1}{32}\\right)^{-0{,}2} = 32^{0{,}2} = (2^5)^{\\frac{1}{5}} = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al treilea termen: $$0{,}5^{-1} = \\frac{1}{0{,}5} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $4$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -528,7 +528,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$\\log_3 \\frac{1}{27} = \\log_3 3^{-3} = -3$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_{\\sqrt{2}} \\frac{1}{8} = \\log_{2^{1/2}} 2^{-3} = \\frac{-3}{\\frac{1}{2}} = -6$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $-9$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{-9}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -586,7 +586,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii primei componente a expresiei: ${\\left(\\frac{1}{27}\\right)}^{-\\frac{1}{3}} = 27^{\\frac{1}{3}} = 3$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii celei de-a doua componente a expresiei: $25{\\left(\\frac{5}{2}\\right)}^{-2} = 25 \\cdot \\frac{4}{25} = 4$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celei de-a treia componente a expresiei: $16^{0{,}25} = (2^4)^{\\frac{1}{4}} = 2$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $5$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{5}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -615,7 +615,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei componente a sumei: $$\\log_{25} 125 = \\log_{5^2} 5^3 = \\frac{3}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua componente a sumei: $$\\log_2(2\\sqrt{2}) = \\log_2(2^1 \\cdot 2^{1/2}) = \\log_2(2^{3/2}) = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$: $$\\frac{3}{2} + \\frac{3}{2} = 3$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $3$: $$\\frac{3}{2} + \\frac{3}{2} = \\boxed{3}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -630,7 +630,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primului termen: $$\\sqrt{\\sqrt{16}} = \\sqrt{4} = 2$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\sqrt{0{,}25} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al treilea termen: $$2^{-1} = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea sumei și determinarea valorii finale a expresiei: $$2 + \\frac{1}{2} + \\frac{1}{2} = 3$$', puncte_maxime: 1 }
+      { descriere: 'Calcularea sumei și determinarea valorii finale a expresiei: $$2 + \\frac{1}{2} + \\frac{1}{2} = \\boxed{3}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -645,7 +645,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$\\sqrt[3]{\\frac{8}{27}} = \\sqrt[3]{\\frac{2^3}{3^3}} = \\frac{2}{3}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua părți a expresiei: $$0{,}5\\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{2} \\cdot \\frac{2}{3} = \\frac{1}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{2}{3} + \\frac{1}{3} = 1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -704,7 +704,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii $27^{2/3}$: $$27^{2/3} = 9$$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii $\\left(\\frac{9}{32}\\right)^{-1}$: $$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$', puncte_maxime: 2 },
       { descriere: 'Efectuarea înmulțirii sub radical: $$9 \\cdot \\frac{32}{9} = 32$$', puncte_maxime: 1 },
-      { descriere: 'Extragerea radicalului și determinarea valorii finale: $$\\sqrt[5]{32} = 2$$', puncte_maxime: 1 }
+      { descriere: 'Extragerea radicalului și determinarea valorii finale: $$\\sqrt[5]{32} = \\boxed{2}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -718,7 +718,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii termenului cu putere negativă: $$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\left(\\frac{\\sqrt{8}}{3}\\right)^2 = \\frac{8}{9}$$', puncte_maxime: 2 },
       { descriere: 'Efectuarea înmulțirii: $$-243 \\cdot \\frac{8}{9} = -27 \\cdot 8 = -216$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = -6$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = \\boxed{-6}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -732,7 +732,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii termenului: $$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} = \\frac{2}{13} \\cdot \\sqrt{169} = \\frac{2}{13} \\cdot 13 = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului: $$9^{1{,}5} = 9^{3/2} = (\\sqrt{9})^3 = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$2 + 27 = 29$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$2 + 27 = \\boxed{29}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -791,7 +791,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}} 16 = \\log_{2^{-1}} 2^4 = \\frac{4}{-1} = -4$$', puncte_maxime: 1 },
       { descriere: 'Determinarea valorii termenului $-\\log_{\\frac{1}{2}} 16$: $$-\\log_{\\frac{1}{2}} 16 = 4$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului exponențial: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{4 - \\frac{1}{4}} = \\sqrt{\\frac{15}{4}} = \\dfrac{\\sqrt{15}}{2}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{4 - \\frac{1}{4}} = \\sqrt{\\frac{15}{4}} = \\boxed{\\dfrac{\\sqrt{15}}{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -821,7 +821,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii expresiei trigonometrice: $$\\sin^2 43^\\circ + \\cos^2 43^\\circ = 1$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului exponențial: $$27^{\\frac{2}{3}} = (3^3)^{\\frac{2}{3}} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Substituirea valorilor și determinarea rezultatului final: $$E = \\sqrt[3]{1 - 9} = \\sqrt[3]{-8} = -2$$', puncte_maxime: 1 }
+      { descriere: 'Substituirea valorilor și determinarea rezultatului final: $$E = \\sqrt[3]{1 - 9} = \\sqrt[3]{-8} = \\boxed{-2}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -834,7 +834,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Transformarea logaritmului în baza 2: $$\\log_{\\frac{1}{2}} 9 = \\log_{2^{-1}} 9 = -\\log_2 9$$\n\n**Pasul 2.** Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = \\boxed{2}$$',
     barem: [
       { descriere: 'Transformarea logaritmului în baza 2: $$\\log_{\\frac{1}{2}} 9 = -\\log_2 9$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = 2$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = \\boxed{2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -862,7 +862,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Simplificarea primului termen al expresiei: $$\\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot (3^2)^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot 3^{\\frac{1}{4}} = 3^1 = 3$$', puncte_maxime: 3 },
       { descriere: 'Simplificarea celui de-al doilea termen al expresiei: $$\\left(\\frac{3}{2}\\right)^{-2} = \\left(\\frac{2}{3}\\right)^{2} = \\frac{4}{9}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 3 - \\frac{4}{9} = \\frac{23}{9}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$E = 3 - \\frac{4}{9} = \\frac{23}{9}$$: $$\\boxed{\\dfrac{23}{9}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -876,7 +876,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$(\\sqrt{8})^{-\\frac{2}{3}} = (8^{\\frac{1}{2}})^{-\\frac{2}{3}} = 8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = 2^{-1} = \\frac{1}{2}$', puncte_maxime: 2 },
       { descriere: '$\\log_{25} 5 = \\log_{5^2} 5 = \\frac{1}{2}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -892,7 +892,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea logaritmului: $$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celei de-a doua puteri: $$\\left(\\frac{1}{\\sqrt{6}}\\right)^{-2} = (\\sqrt{6})^2 = 6$$', puncte_maxime: 1 },
       { descriere: 'Calcularea rădăcinii cubice: $$\\sqrt[3]{-2 - 6} = \\sqrt[3]{-8} = -2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 9 + (-2) = 7$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = 9 + (-2) = \\boxed{7}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -920,7 +920,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii $25^{\\log_5 3} = (5^2)^{\\log_5 3} = 5^{2\\log_5 3} = \\left(5^{\\log_5 3}\\right)^2 = 3^2 = 9$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii $32^{\\frac{1}{5}} = (2^5)^{\\frac{1}{5}} = 2$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $7$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{7}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -935,7 +935,7 @@ BM.EXERCISES = [
       { descriere: 'Transformarea logaritmului cu baza $\\frac{1}{6}$: $$\\log_{\\frac{1}{6}} 16 = -\\log_6 16$$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii primilor doi termeni: $$\\log_6 96 - \\log_6 16 = \\log_6 \\frac{96}{16} = \\log_6 6 = 1$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului cu putere: $$\\left(\\frac{1}{\\sqrt{3}}\\right)^{-2} = (\\sqrt{3})^2 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $4$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -964,7 +964,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\sqrt[3]{-27} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - 3 = -\\frac{5}{2}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - 3 = \\boxed{-\\frac{5}{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -993,7 +993,7 @@ BM.EXERCISES = [
       { descriere: 'Simplificarea termenilor logaritmici: $$3\\lg 5 = \\lg 125, \\quad \\frac{1}{2}\\lg 64 = \\lg 8$$', puncte_maxime: 1 },
       { descriere: 'Calcularea sumei logaritmilor: $$\\lg 125 + \\lg 8 = \\lg 1000 = 3$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului cu radical și putere: $$\\sqrt[3]{-8} = -2 \\Rightarrow (-2)^2 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3 - 4 = -1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = 3 - 4 = \\boxed{-1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1008,7 +1008,7 @@ BM.EXERCISES = [
       { descriere: 'Aplicarea proprietății radicalilor pentru a uni termenii sub un singur radical: $E = \\sqrt[3]{(7-\\sqrt{22})(7+\\sqrt{22})}$', puncte_maxime: 1 },
       { descriere: 'Aplicarea formulei diferenței de pătrate și calcularea valorii de sub radical: $(7-\\sqrt{22})(7+\\sqrt{22}) = 49 - 22 = 27$', puncte_maxime: 2 },
       { descriere: 'Calcularea radicalului: $\\sqrt[3]{27} = 3$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1021,7 +1021,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii termenului logaritmic: $$\\log_3 \\sqrt{27} = \\log_3 3^{\\frac{3}{2}} = \\frac{3}{2} = 1{,}5$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = \\boxed{5}$$',
     barem: [
       { descriere: 'Calcularea valorii termenului logaritmic: $$\\log_3 \\sqrt{27} = \\log_3 3^{\\frac{3}{2}} = \\frac{3}{2} = 1{,}5$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = 5$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = \\boxed{5}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1035,7 +1035,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Exprimarea termenilor sub formă de puteri ale lui $2$: $$\\sqrt[3]{16} = 2^{\\frac{4}{3}}, \\quad 4^{\\frac{1}{3}} = 2^{\\frac{2}{3}}, \\quad \\sqrt{8} = 2^{\\frac{3}{2}}$$', puncte_maxime: 2 },
       { descriere: 'Substituirea în expresie și simplificarea numărătorului: $$E = \\frac{2^{\\frac{4}{3}}\\cdot 2^{\\frac{2}{3}}}{2^{\\frac{3}{2}}} = \\frac{2^2}{2^{\\frac{3}{2}}}$$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea împărțirii și determinarea valorii finale a expresiei: $$E = 2^{2-\\frac{3}{2}} = 2^{\\frac{1}{2}} = \\sqrt{2}$$', puncte_maxime: 1 }
+      { descriere: 'Efectuarea împărțirii și determinarea valorii finale a expresiei: $$E = 2^{2-\\frac{3}{2}} = 2^{\\frac{1}{2}} = \\boxed{\\sqrt{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1120,7 +1120,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\sqrt{2^{-2}} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - \\frac{1}{2} = 0$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - \\frac{1}{2} = \\boxed{0}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1161,7 +1161,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea pătratului: $$(2\\sqrt{6})^2 = 4\\cdot 6 = 24$$\n\n**Pasul 2.** Determinarea valorii expresiei, egală cu $-3$: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = \\boxed{-3}$$',
     barem: [
       { descriere: 'Calcularea pătratului: $$(2\\sqrt{6})^2 = 4\\cdot 6 = 24$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = -3$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = \\boxed{-3}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1189,7 +1189,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea fiecărui termen în puteri ale bazei 3: $3^{-1{,}5} = 3^{-\\frac{3}{2}}$, $9^2 = 3^4$, $\\sqrt{27} = 3^{\\frac{3}{2}}$.', puncte_maxime: 3 },
       { descriere: 'Substituirea termenilor în expresie și efectuarea operațiilor cu puteri: $E = \\frac{3^{-\\frac{3}{2}}\\cdot 3^4}{3^{\\frac{3}{2}}} = \\frac{3^{\\frac{5}{2}}}{3^{\\frac{3}{2}}}$.', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 3^{\\frac{5}{2}-\\frac{3}{2}} = 3^1 = 3$.', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $E = 3^{\\frac{5}{2}-\\frac{3}{2}} = 3^1 = 3$: $$\\boxed{3}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1202,7 +1202,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății logaritmilor și simplificarea argumentului:$$\\log_{25} 75 - \\log_{25} 3 = \\log_{25} \\frac{75}{3} = \\log_{25} 25 = 1$$\n\n**Pasul 2.** Determinarea valorii expresiei:$$E = 1^{-15} = 1$$$$\\boxed{1}$$',
     barem: [
       { descriere: 'Aplicarea proprietății logaritmilor și simplificarea argumentului: $$\\log_{25} 75 - \\log_{25} 3 = \\log_{25} \\frac{75}{3} = \\log_{25} 25 = 1$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 1^{-15} = 1$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = 1^{-15} = \\boxed{1}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1231,7 +1231,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii primului termen: $4^{-\\frac{3}{2}} = (2^2)^{-\\frac{3}{2}} = 2^{-3} = \\frac{1}{8}$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii logaritmului: $\\log_2\\frac{1}{16} = \\log_2 2^{-4} = -4$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii inversului logaritmului: $(-4)^{-1} = -\\frac{1}{4}$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $E = \\frac{1}{8} - \\frac{1}{4} = \\frac{1-2}{8} = -\\dfrac{1}{8}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $E = \\frac{1}{8} - \\frac{1}{4} = \\frac{1-2}{8} = -\\dfrac{1}{8}$: $$\\boxed{-\\dfrac{1}{8}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1244,7 +1244,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$:\n$$E = \\sqrt[3]{(12-\\sqrt{80})(12+\\sqrt{80})} = \\sqrt[3]{12^2 - (\\sqrt{80})^2} = \\sqrt[3]{144-80}$$\n\n**Pasul 2.** Calcularea diferenței și extragerea rădăcinii cubice:\n$$E = \\sqrt[3]{64} = 4$$\n$$\\boxed{4}$$',
     barem: [
       { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$E = \\sqrt[3]{(12-\\sqrt{80})(12+\\sqrt{80})} = \\sqrt[3]{12^2 - (\\sqrt{80})^2} = \\sqrt[3]{144-80}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea diferenței și extragerea rădăcinii cubice: $$E = \\sqrt[3]{64} = 4$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea diferenței și extragerea rădăcinii cubice: $$E = \\sqrt[3]{64} = \\boxed{4}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1287,7 +1287,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b) = a^2 - b^2$: $E = \\sqrt{(\\sqrt{70}-3\\sqrt{5})(\\sqrt{70}+3\\sqrt{5})} = \\sqrt{(\\sqrt{70})^2 - (3\\sqrt{5})^2}$', puncte_maxime: 2 },
       { descriere: 'Efectuarea calculelor sub radical: $E = \\sqrt{70 - 9\\cdot5} = \\sqrt{70 - 45} = \\sqrt{25}$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $5$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{5}$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1330,7 +1330,7 @@ BM.EXERCISES = [
       { descriere: 'Transformarea primului termen: $3\\lg 5 = \\lg 5^3 = \\lg 125$', puncte_maxime: 1 },
       { descriere: 'Transformarea celui de-al doilea termen: $\\frac{1}{2}\\lg 64 = \\lg 64^{\\frac{1}{2}} = \\lg \\sqrt{64} = \\lg 8$', puncte_maxime: 1 },
       { descriere: 'Aplicarea proprietății de adunare a logaritmilor: $\\lg 125 + \\lg 8 = \\lg (125 \\cdot 8) = \\lg 1000$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1343,7 +1343,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Transformarea primului termen al expresiei: $$\\log_{\\sqrt{2}} 12 = \\log_{2^{\\frac{1}{2}}} 12 = 2\\log_2 12$$\n\n**Pasul 2.** Calcularea valorii expresiei: $$E = 2\\log_2 12 - \\log_2 9 = \\log_2 12^2 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16 = \\boxed{4}$$',
     barem: [
       { descriere: 'Transformarea primului termen al expresiei: $$\\log_{\\sqrt{2}} 12 = \\log_{2^{\\frac{1}{2}}} 12 = 2\\log_2 12$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_2 12 - \\log_2 9 = \\log_2 12^2 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16 = 4$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_2 12 - \\log_2 9 = \\log_2 12^2 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16 = \\boxed{4}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1357,7 +1357,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorilor puterilor: $27^{\\frac{2}{3}} = 9$, $125^{\\frac{1}{3}} = 5$ și $8^{\\frac{1}{3}} = 2$.', puncte_maxime: 2 },
       { descriere: 'Sumarea valorilor obținute: $9 + 5 + 2 = 16$.', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 16^{-\\frac{1}{4}} = \\frac{1}{2}$.', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $E = 16^{-\\frac{1}{4}} = \\frac{1}{2}$: $$\\boxed{\\frac{1}{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1385,7 +1385,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Conversia fracției zecimale periodice simple: $$0{,}(5) = \\frac{5}{9}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea termenului cu putere negativă: $$(1{,}5)^{-2} = \\left(\\frac{3}{2}\\right)^{-2} = \\frac{4}{9}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{9} + \\frac{4}{9} = \\frac{9}{9} = 1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{9} + \\frac{4}{9} = \\frac{9}{9} = \\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1416,7 +1416,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii celui de-al doilea termen: $\\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} = 27$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii celui de-al treilea termen: $\\sqrt{125^{\\frac{2}{3}}} = 5$', puncte_maxime: 1 },
       { descriere: 'Sumarea termenilor din paranteză: $4 + 27 + 5 = 36$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 36^{-\\frac{1}{2}} = \\frac{1}{6}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $E = 36^{-\\frac{1}{2}} = \\frac{1}{6}$: $$\\boxed{\\dfrac{1}{6}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1458,7 +1458,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$:$$E = \\sqrt[3]{(9-\\sqrt{17})(9+\\sqrt{17})} = \\sqrt[3]{9^2 - (\\sqrt{17})^2} = \\sqrt[3]{81-17}$$**Pasul 2.** Calcularea valorii expresiei:$$\\sqrt[3]{64} = 4$$$$\\boxed{4}$$',
     barem: [
       { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$E = \\sqrt[3]{(9-\\sqrt{17})(9+\\sqrt{17})} = \\sqrt[3]{9^2 - (\\sqrt{17})^2} = \\sqrt[3]{81-17}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$\\sqrt[3]{64} = 4$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii expresiei: $$\\sqrt[3]{64} = \\boxed{4}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1499,7 +1499,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii termenului $32^{3/5}$.\n$32^{\\frac{3}{5}} = (2^5)^{\\frac{3}{5}} = 2^3 = 8$\n\n**Pasul 2.** Determinarea valorii expresiei.\n$E = 8 - 8 = 0$\n\n$$\\boxed{0}$$',
     barem: [
       { descriere: '$32^{3/5} = (2^5)^{3/5} = 2^3 = 8$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -1512,7 +1512,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$2^{3+\\log_2 5} = 2^3\\cdot 2^{\\log_2 5} = 8\\cdot5 = 40$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua părți a expresiei: $$3^{\\log_9 16} = 3^{2\\log_3 2} = (3^{\\log_3 2})^2 = 2^2 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 40 + 4 = 44$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$E = 40 + 4 = \\boxed{44}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1526,7 +1526,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$$\\log_4 25 = \\log_{2^2} 5^2 = \\log_2 5 \\Rightarrow 2^{2+\\log_2 5} = 4\\cdot5 = 20$$', puncte_maxime: 2 },
       { descriere: '$$\\frac{3}{\\log_5 2} = 3\\log_2 5 \\Rightarrow 2^{3\\log_2 5} = (2^{\\log_2 5})^3 = 5^3 = 125$$', puncte_maxime: 2 },
-      { descriere: '$$E = 20 - 125 = -105$$', puncte_maxime: 1 }
+      { descriere: '$$E = 20 - 125 = \\boxed{-105}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1567,7 +1567,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = -1$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1581,7 +1581,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\sqrt[3]{81} = 9^{2/3}$', puncte_maxime: 2 },
       { descriere: '$9^{2/3} : 9^{1/6} = 9^{1/2}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -1610,7 +1610,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea valorii termenului $(16^{\\frac{3}{4}})^2 = 64$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii termenului $81^{\\frac{1}{2}} = 9$', puncte_maxime: 1 },
       { descriere: 'Substituirea valorilor în expresie și efectuarea înmulțirii: $E = \\sqrt{100 + 64 \\cdot 9} = \\sqrt{100 + 576}$', puncte_maxime: 1 },
-      { descriere: 'Efectuarea adunării și extragerea rădăcinii pătrate: $E = \\sqrt{676} = 26$', puncte_maxime: 1 }
+      { descriere: 'Efectuarea adunării și extragerea rădăcinii pătrate: $E = \\sqrt{676} = 26$: $$\\boxed{26}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1624,7 +1624,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primei expresii: $\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} = \\left(\\frac{4}{3}\\right)^2 = \\frac{16}{9}$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celei de-a doua expresii: $\\left(\\frac{3}{\\sqrt{7}}\\right)^{-2} = \\left(\\frac{\\sqrt{7}}{3}\\right)^2 = \\frac{7}{9}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = \\sqrt{\\frac{16}{9} - \\frac{7}{9}} = \\sqrt{1} = 1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $E = \\sqrt{\\frac{16}{9} - \\frac{7}{9}} = \\sqrt{1} = 1$: $$\\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1666,7 +1666,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Simplificarea primului termen: $$\\frac{1}{2}\\lg 36 = \\lg 6$$', puncte_maxime: 2 },
       { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{0{,}1} 60 = \\log_{10^{-1}} 60 = -\\lg 60$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\lg 6 - \\lg 60 = \\lg \\frac{1}{10} = -1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\lg 6 - \\lg 60 = \\lg \\frac{1}{10} = \\boxed{-1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1680,7 +1680,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$4^{\\log_2\\sqrt{7}} = (2^2)^{\\log_2\\sqrt{7}} = 2^{2\\log_2\\sqrt{7}} = 2^{\\log_2(\\sqrt{7})^2} = 2^{\\log_2 7} = 7$$', puncte_maxime: 2 },
       { descriere: 'Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii lui $a$ și demonstrarea că este un pătrat perfect: $$a = 7 + 2 = 9 = 3^2 \\Rightarrow a = 9 \\text{ este pătrat perfect}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii lui $a$ și demonstrarea că este un pătrat perfect: $$a = 7 + 2 = 9 = 3^2 \\Rightarrow a = 9 \\text{ este pătrat perfect}$$: $$\\boxed{a = 9 \\text{ este pătrat perfect}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1694,7 +1694,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii $49^{1-\\log_7 2}$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii $5^{-\\log_5 4}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$\\boxed{\\frac{25}{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1720,7 +1720,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii termenului $16^{-\\frac{3}{4}}$:\n$$16^{-\\frac{3}{4}} = (2^4)^{-\\frac{3}{4}} = 2^{-3} = \\frac{1}{8}$$\n\n**Pasul 2.** Determinarea valorii expresiei $E$:\n$$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\boxed{\\frac{3}{4}}$$',
     barem: [
       { descriere: 'Calcularea valorii termenului $16^{-\\frac{3}{4}}$: $$16^{-\\frac{3}{4}} = (2^4)^{-\\frac{3}{4}} = 2^{-3} = \\frac{1}{8}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\frac{3}{4}$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\boxed{\\frac{3}{4}}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1747,7 +1747,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\frac{1}{\\log_3 27} = \\frac{1}{3} \\Rightarrow \\left(\\frac{1}{\\log_3 27}\\right)^{-3} = \\left(\\frac{1}{3}\\right)^{-3} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$: $$E = 27 - 27 = 0$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $0$: $$E = 27 - 27 = \\boxed{0}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1844,7 +1844,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Simplificarea primului termen: $\\sqrt{(\\sqrt{3}-1)^2} = |\\sqrt{3}-1| = \\sqrt{3}-1 \\quad (\\text{deoarece }\\sqrt{3}>1)$', puncte_maxime: 2 },
       { descriere: 'Simplificarea celui de-al doilea termen: $\\sqrt{27} = 3\\sqrt{3}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-2\\sqrt{3}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-2\\sqrt{3}}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1887,7 +1887,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Aplicarea formulei de schimbare a bazei logaritmului: $$\\frac{1}{\\log_5 4} = \\log_4 5$$', puncte_maxime: 2 },
       { descriere: 'Simplificarea exponentului: $$\\log_4 5 + 1 = \\log_4 5 + \\log_4 4 = \\log_4 20$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 8^{\\log_4 20} = (4^{3/2})^{\\log_4 20} = (4^{\\log_4 20})^{3/2} = 20^{3/2} = 20\\sqrt{20} = 40\\sqrt{5}$$', puncte_maxime: 1 }
+      { descriere: 'Calcularea valorii expresiei: $$E = 8^{\\log_4 20} = (4^{3/2})^{\\log_4 20} = (4^{\\log_4 20})^{3/2} = 20^{3/2} = 20\\sqrt{20} = \\boxed{40\\sqrt{5}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1915,7 +1915,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei părți a expresiei: $$\\left(-\\frac{1}{5}\\right)^{-2} = (-5)^2 = 25$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 25 - 25 = 0$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei: $$E = 25 - 25 = \\boxed{0}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1928,7 +1928,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$',
     barem: [
       { descriere: 'Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = 6$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1943,7 +1943,7 @@ BM.EXERCISES = [
       { descriere: 'Aplicarea proprietății $a^{x+y} = a^x \\cdot a^y$: $25^{1+\\log_5 2} = 25 \\cdot 25^{\\log_5 2}$', puncte_maxime: 1 },
       { descriere: 'Transformarea bazei și aplicarea proprietății $(a^x)^y = a^{xy}$: $25 \\cdot 25^{\\log_5 2} = 25 \\cdot (5^2)^{\\log_5 2} = 25 \\cdot (5^{\\log_5 2})^2$', puncte_maxime: 1 },
       { descriere: 'Aplicarea proprietății $a^{\\log_a b} = b$ și calculul valorii: $25 \\cdot (5^{\\log_5 2})^2 = 25 \\cdot 2^2 = 25 \\cdot 4 = 100$', puncte_maxime: 2 },
-      { descriere: 'Concluzia că valoarea obținută este un pătrat perfect: $100 = 10^2 \\text{ este pătrat perfect}$', puncte_maxime: 1 }
+      { descriere: 'Concluzia că valoarea obținută este un pătrat perfect: $\\boxed{100 = 10^2 \\text{ este pătrat perfect}}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1956,7 +1956,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea sumei $a+b$:$$a+b = \\log_2(6-2\\sqrt{5}) + \\log_2(6+2\\sqrt{5}) = \\log_2[(6-2\\sqrt{5})(6+2\\sqrt{5})] = \\log_2[36-20] = \\log_2 16 = 4$$\n\n**Pasul 2.** Determinarea mediei aritmetice $E$:$$E = \\frac{a+b}{2} = \\frac{4}{2} = 2$$\n\n$$\\boxed{2}$$',
     barem: [
       { descriere: 'Calcularea sumei $a+b$:$$a+b = \\log_2[(6-2\\sqrt{5})(6+2\\sqrt{5})] = \\log_2[36-20] = \\log_2 16 = 4$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea mediei aritmetice $E$:$$E = \\frac{4}{2} = 2$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea mediei aritmetice $E$:$$E = \\frac{4}{2} = \\boxed{2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1999,7 +1999,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea primului termen al expresiei: $$\\log_{\\sqrt{3}} 24 = 2\\log_3 24$$', puncte_maxime: 2 },
       { descriere: 'Transformarea celui de-al doilea termen al expresiei: $$\\log_9 4^6 = \\frac{6\\log_3 4}{2} = 3\\log_3 4$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_3 24 - 3\\log_3 4 = \\log_3 24^2 - \\log_3 4^3 = \\log_3 \\frac{576}{64} = \\log_3 9 = 2$$', puncte_maxime: 1 }
+      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_3 24 - 3\\log_3 4 = \\log_3 24^2 - \\log_3 4^3 = \\log_3 \\frac{576}{64} = \\log_3 9 = \\boxed{2}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2012,7 +2012,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei diferenței de pătrate pentru a simplifica expresia sub radical:$$E = \\sqrt{(7+2\\sqrt{10})(7-2\\sqrt{10})} = \\sqrt{7^2 - (2\\sqrt{10})^2} = \\sqrt{49 - 4 \\cdot 10} = \\sqrt{49 - 40} = \\sqrt{9}$$ \n\n**Pasul 2.** Calcularea valorii finale a expresiei:$$E = 3$$\\boxed{3}',
     barem: [
       { descriere: 'Aplicarea proprietății radicalilor și a formulei diferenței de pătrate pentru a simplifica expresia sub radical: $$E = \\sqrt{(7+2\\sqrt{10})(7-2\\sqrt{10})} = \\sqrt{7^2 - (2\\sqrt{10})^2} = \\sqrt{49 - 4 \\cdot 10} = \\sqrt{49 - 40} = \\sqrt{9}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii finale a expresiei: $$E = 3$$', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii finale a expresiei: $$E = \\boxed{3}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2055,7 +2055,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primei componente a sumei de sub radical: $$25^{\\frac{1}{2}\\log_5 12} = (5^2)^{\\frac{1}{2}\\log_5 12} = 5^{\\log_5 12} = 12$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a doua componente a sumei de sub radical: $$7^{2\\log_7 2} = \\left(7^{\\log_7 2}\\right)^2 = 2^2 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{12+4} = \\sqrt{16} = 4$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{12+4} = \\sqrt{16} = \\boxed{4}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2069,7 +2069,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Combinarea termenilor sub un singur radical: $$E = \\sqrt[4]{(7-\\sqrt{33})(7+\\sqrt{33})}$$', puncte_maxime: 1 },
       { descriere: 'Aplicarea formulei diferenței de pătrate și simplificarea: $$(7-\\sqrt{33})(7+\\sqrt{33}) = 49 - 33 = 16$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[4]{16} = 2$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[4]{16} = \\boxed{2}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2112,7 +2112,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primei componente: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = 1$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = \\boxed{1}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2140,7 +2140,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii termenului $\\log_{\\sqrt[3]{16}} 2$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii termenului $\\frac{2}{\\log_8 4}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei E', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei E: $$\\boxed{\\dfrac{15}{8}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2154,7 +2154,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii logaritmului.\n$\\log_{\\sqrt{2}} 4 = 2\\log_2 4 = 4$\n\n**Pasul 2.** Calcularea valorii diferenței.\n$$E = 4 - 4 = 0$$\n\n$$\\boxed{0}$$',
     barem: [
       { descriere: '$\\log_{\\sqrt{2}} 4 = 2\\log_2 4 = 4$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii diferenței', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii diferenței: $$\\boxed{0}$$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2166,7 +2166,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii termenului $27^{-\\frac{2}{3}}$.\n$$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$\n\n**Pasul 2.** Determinarea valorii finale a expresiei $E$.\n$$E = \\frac{1}{9} - \\frac{10}{9} = -\\frac{9}{9} = -1$$\n$$\\boxed{-1}$$',
     barem: [
       { descriere: '$27^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2179,7 +2179,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\sqrt[3]{81} = 9^{2/3}$', puncte_maxime: 2 },
       { descriere: '$9^{2/3} : 9^{1/6} = 9^{1/2}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2191,7 +2191,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** $\\log_2 \\sqrt{8} = \\frac{1}{2}\\log_2 8 = \\frac{3}{2}$\n\n**Pasul 2.** Determinarea valorii expresiei, egală cu $3$.\n$$\\boxed{3}$$',
     barem: [
       { descriere: '$\\log_2 \\sqrt{8} = \\frac{1}{2}\\log_2 8 = \\frac{3}{2}$', puncte_maxime: 4 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2217,7 +2217,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii termenului logaritmic.\n$$\\log_{81} 27 = \\log_{3^4} 3^3 = \\frac{3}{4}$$\n\n**Pasul 2.** Calcularea valorii termenului $4^{-1}$ și determinarea valorii finale a expresiei.\n$$4^{-1} = \\frac{1}{4}$$\n$$E = \\frac{3}{4} + \\frac{1}{4} = 1$$\n\n$$\\boxed{1}$$',
     barem: [
       { descriere: '$\\log_{81} 27 = \\frac{3}{4}$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2230,7 +2230,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\log_{\\frac{1}{5}} 2 = -\\log_5 2$', puncte_maxime: 2 },
       { descriere: '$\\log_5 50 - \\log_5 2 = \\log_5 25$', puncte_maxime: 1 },
-      { descriere: '$\\log_5 25 = 2$', puncte_maxime: 2 }
+      { descriere: '$\\log_5 25 = 2$: $$\\boxed{2}$$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2242,7 +2242,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calculul valorii $9^{1{,}5}$.\n$$9^{1{,}5} = (3^2)^{3/2} = 3^3 = 27$$\n\n**Pasul 2.** Determinarea valorii expresiei $E$.\n$$E = \\sqrt{27 - 2} = \\sqrt{25} = 5$$\n\n$$\\boxed{5}$$',
     barem: [
       { descriere: '$9^{1{,}5} = 27$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $5$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{5}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2254,7 +2254,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății logaritmilor pentru a simplifica termenul $2\\log_3 2$.\n$$2\\log_3 2 = \\log_3 2^2 = \\log_3 4$$\n\n**Pasul 2.** Calcularea diferenței logaritmilor și determinarea valorii finale a expresiei.\n$$E = \\log_3 36 - \\log_3 4 = \\log_3 \\frac{36}{4} = \\log_3 9 = 2$$\n$$\\boxed{2}$$',
     barem: [
       { descriere: '$2\\log_3 2 = \\log_3 4$', puncte_maxime: 2 },
-      { descriere: '$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$', puncte_maxime: 3 }
+      { descriere: '$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$: $$\\boxed{2}$$', puncte_maxime: 3 }
     ]
   },
     {
@@ -2267,7 +2267,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\log_{\\frac{1}{2}} \\frac{4}{5} - \\log_2 5 = \\log_2 \\frac{5}{4} - \\log_2 5$', puncte_maxime: 2 },
       { descriere: '$= \\log_2 \\frac{1}{4}$', puncte_maxime: 1 },
-      { descriere: '$= -2$', puncte_maxime: 2 }
+      { descriere: '$\\boxed{= -2}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2279,7 +2279,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii $0{,}125^{\\frac{1}{3}}$.\n$$0{,}125^{\\frac{1}{3}} = \\left(\\frac{1}{8}\\right)^{\\frac{1}{3}} = \\left(\\frac{1}{2^3}\\right)^{\\frac{1}{3}} = \\left(2^{-3}\\right)^{\\frac{1}{3}} = 2^{-1} = \\frac{1}{2} = 0{,}5$$\n\n**Pasul 2.** Determinarea valorii expresiei $E$.\n$$E = \\sqrt[3]{-128 \\cdot 0{,}5} = \\sqrt[3]{-64} = -4$$\n$$\\boxed{-4}$$',
     barem: [
       { descriere: '$0{,}125^{\\frac{1}{3}} = 0{,}5$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-4$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-4}$', puncte_maxime: 3 }
     ]
   },
     {
@@ -2292,7 +2292,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\log_{\\frac{1}{3}} 0{,}5 = -\\log_3 0{,}5$', puncte_maxime: 2 },
       { descriere: '$\\log_3 54 + \\log_3 0{,}5 = \\log_3 27$', puncte_maxime: 1 },
-      { descriere: '$\\log_3 27 = 3$', puncte_maxime: 2 }
+      { descriere: '$\\log_3 27 = 3$: $$\\boxed{3}$$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2305,7 +2305,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Scrierea numitorului și numărătorului ca puteri a lui 2 și 3, respectiv: $16=2^4$, $81=3^4$', puncte_maxime: 2 },
       { descriere: 'Aplicarea proprietății puterilor: $(a^m)^n = a^{mn}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2317,7 +2317,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calculul valorii $32^{0{,}4}$.\n$$32^{0{,}4} = (2^5)^{0{,}4} = 2^2 = 4$$\n\n**Pasul 2.** Calculul valorii finale a expresiei $E$.\n$$E = \\sqrt[3]{4 - 12} = \\sqrt[3]{-8} = -2$$\n$$\\boxed{-2}$$',
     barem: [
       { descriere: '$32^{0{,}4} = (2^5)^{0{,}4} = 2^2 = 4$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-2$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-2}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2330,7 +2330,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\frac{27}{125} = \\left(\\frac{3}{5}\\right)^3$', puncte_maxime: 2 },
       { descriere: '$\\left(\\frac{27}{125}\\right)^{-1/3} = \\frac{5}{3}$', puncte_maxime: 2 },
-      { descriere: 'Obținerea răspunsului corect, egal cu $1$', puncte_maxime: 1 }
+      { descriere: 'Obținerea răspunsului corect, egal cu $\\boxed{1}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2342,7 +2342,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii primului termen al expresiei.\n$$\\log_{\\sqrt[3]{5}} 25 = \\log_{5^{1/3}} 5^2 = \\frac{2}{1/3} = 6$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen și determinarea valorii finale a expresiei.\n$$\\left(\\frac{1}{6}\\right)^{-1} = 6$$\n$$E = 6 - 6 = 0$$\n$$\\boxed{0}$$',
     barem: [
       { descriere: '$\\log_{\\sqrt[3]{5}} 25 = 6$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2354,7 +2354,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea primei părți a expresiei.\n$(0{,}0081)^{1/4} = (0{,}3^4)^{1/4} = 0{,}3$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei și determinarea valorii finale.\n$\\\\left(1\\\\frac{3}{7}\\\\right)^{-1} = \\\\left(\\\\frac{10}{7}\\\\right)^{-1} = \\\\frac{7}{10}$\n$E = 0{,}3 + \\\\frac{7}{10} = \\\\frac{3}{10} + \\\\frac{7}{10} = \\\\frac{10}{10} = 1$\n$$\\\\boxed{1}$$',
     barem: [
       { descriere: '$(0{,}0081)^{1/4} = (0{,}3^4)^{1/4} = 0{,}3$', puncte_maxime: 3 },
-      { descriere: '$\\left(1\\frac{3}{7}\\right)^{-1} = \\frac{7}{10}$ și calcularea valorii expresiei, egală cu $1$', puncte_maxime: 2 }
+      { descriere: '$\\left(1\\frac{3}{7}\\right)^{-1} = \\frac{7}{10}$ și calcularea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2368,7 +2368,7 @@ BM.EXERCISES = [
       { descriere: '$\\frac{4}{25} = \\left(\\frac{2}{5}\\right)^2$', puncte_maxime: 1 },
       { descriere: '$\\left(\\left(\\frac{2}{5}\\right)^2\\right)^{1{,}5} = \\left(\\frac{2}{5}\\right)^3 = \\frac{8}{125}$', puncte_maxime: 2 },
       { descriere: '$(-5)^3 = -125$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-8$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-8}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2381,7 +2381,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\sqrt[3]{-2\\frac{10}{27}} = -\\frac{4}{3}$', puncte_maxime: 2 },
       { descriere: '$9^{-0{,}5} = \\frac{1}{3}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2394,7 +2394,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\left(\\frac{7}{12}\\right)^{-0{,}25} = \\left(\\frac{12}{7}\\right)^{1/4}$', puncte_maxime: 1 },
       { descriere: '$\\left(\\frac{189}{4}\\right)^{1/4} \\cdot \\left(\\frac{12}{7}\\right)^{1/4} = \\left(\\frac{189}{4} \\cdot \\frac{12}{7}\\right)^{1/4} = 81^{1/4}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2406,7 +2406,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Transformarea logaritmului în baza 2.\n$$\\log_4 9 = \\log_{2^2} 3^2 = \\log_2 3$$\n\n**Pasul 2.** Calcularea valorii expresiei folosind proprietățile logaritmilor.\n$$2^{-\\log_2 3} = 2^{\\log_2 \\frac{1}{3}} = \\frac{1}{3}$$\n\n$$\\boxed{\\frac{1}{3}}$$',
     barem: [
       { descriere: '$\\log_4 9 = \\log_{2^2} 3^2 = \\log_2 3$', puncte_maxime: 3 },
-      { descriere: '$2^{-\\log_2 3} = 2^{\\log_2 \\frac{1}{3}} = \\frac{1}{3}$', puncte_maxime: 2 }
+      { descriere: '$2^{-\\log_2 3} = 2^{\\log_2 \\frac{1}{3}} = \\frac{1}{3}$: $$\\boxed{\\frac{1}{3}}$$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2419,7 +2419,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\log_{\\frac{1}{7}} 98 = -\\log_7 98$', puncte_maxime: 2 },
       { descriere: '$\\log_7 2 - \\log_7 98 = \\log_7 \\frac{1}{49}$', puncte_maxime: 1 },
-      { descriere: '$\\log_7 \\frac{1}{49} = -2$', puncte_maxime: 2 }
+      { descriere: '$\\log_7 \\frac{1}{49} = -2$: $$\\boxed{-2}$$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2432,7 +2432,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$\\frac{3}{64} - 2 = -\\frac{125}{64}$', puncte_maxime: 1 },
       { descriere: '$\\sqrt[3]{-\\frac{125}{64}} = -\\frac{5}{4}$', puncte_maxime: 2 },
-      { descriere: '$2^{-2} = \\frac{1}{4}$ și calcularea valorii sumei, egală cu $-1$', puncte_maxime: 2 }
+      { descriere: '$2^{-2} = \\frac{1}{4}$ și calcularea valorii sumei, egală cu $\\boxed{-1}$', puncte_maxime: 2 }
     ]
   },
     {
@@ -2446,7 +2446,7 @@ BM.EXERCISES = [
       { descriere: '$\\frac{34}{125} - 2 = -\\frac{216}{125}$', puncte_maxime: 1 },
       { descriere: '$\\sqrt[3]{-\\frac{216}{125}} = -\\frac{6}{5}$', puncte_maxime: 2 },
       { descriere: '$0{,}2 = \\frac{1}{5}$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 1 }
     ]
   },
     {
@@ -2459,7 +2459,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Scrierea bazei ca putere a lui 2 și aplicarea proprietăților puterilor: $$8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4} = 0{,}25$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2474,7 +2474,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primului termen din paranteză: $$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$', puncte_maxime: 1 },
       { descriere: 'Calcularea valorii împărțitorului: $$\\left(\\frac{1}{3}\\right)^{-1} = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $43$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{43}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2488,7 +2488,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen de sub radical: $$27^{\\frac{2}{3}} = \\left(3^3\\right)^{\\frac{2}{3}} = 3^2 = 9$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen de sub radical: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului: $$E = \\sqrt{9+16} = \\sqrt{25} = 5$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului: $$E = \\sqrt{9+16} = \\sqrt{25} = \\boxed{5}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2502,7 +2502,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Rescrierea bazei ca pătrat și calcularea puterii: $$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left(\\frac{3}{2}\\right)^3 = \\frac{27}{8}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$3\\cdot 2^{-3} = \\frac{3}{8}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $3$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $3$: $$\\boxed{3 \\in \\mathbb{N}}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2516,7 +2516,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului factor: $$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\frac{25}{4}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia: $$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\frac{4}{25}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2530,7 +2530,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului factor: $$0{,}027 = \\left(\\frac{3}{10}\\right)^3 \\Rightarrow (0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea factor: $$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{3}}\\right)^2 = \\frac{100}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $10$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{10}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2544,7 +2544,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Dezvoltarea pătratului din exponent: $$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$', puncte_maxime: 2 },
       { descriere: 'Aplicarea regulii de împărțire a puterilor cu aceeași bază: $$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^3 = 8$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $2$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2558,7 +2558,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului radical: $$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea radical: $$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2572,7 +2572,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii puterii cu exponent zecimal negativ: $$32^{-0{,}6} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$', puncte_maxime: 2 },
       { descriere: 'Calcularea expresiei de sub radical: $$4 - 5\\cdot\\frac{1}{8} = \\frac{27}{8}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3, egală cu $\\frac{3}{2}$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3, egală cu $\\boxed{\\frac{3}{2}}$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2585,7 +2585,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea logaritmului în baza $\\sqrt{2}$:\n$$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 4 - 4 = \\boxed{0}$$',
     barem: [
       { descriere: 'Calcularea logaritmului în baza $\\sqrt{2}$: $$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2600,7 +2600,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea bazei ridicate la puterea logaritmică: $$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 3^2 = 9$$', puncte_maxime: 2 },
       { descriere: 'Calcularea puterii: $$9^{\\frac{3}{2}} = 27$$', puncte_maxime: 1 },
       { descriere: 'Calcularea logaritmului: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $24$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{24}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2614,7 +2614,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea primului termen: $$2\\log_9 4 = \\log_9 16$$', puncte_maxime: 1 },
       { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = -\\frac{1}{2}$$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = \\boxed{-\\frac{1}{2}}$$', puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2627,7 +2627,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$:\n$$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2\\left[(\\sqrt{23}-\\sqrt{7})(\\sqrt{23}+\\sqrt{7})\\right] = \\log_2(23-7) = \\log_2 16 = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei și verificarea că este natural:\n$$E = \\sqrt{4} = \\boxed{2 \\in \\mathbb{N}}$$',
     barem: [
       { descriere: 'Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2 16 = 4$$', puncte_maxime: 4 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $2$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $2$: $$\\boxed{2 \\in \\mathbb{N}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2641,7 +2641,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$9^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $21$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $21$: $$\\boxed{21 \\in \\mathbb{N}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2655,7 +2655,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen din paranteză: $$7^{\\log_{49} 25} = 7^{\\log_7 5} = 5$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $4$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $\\boxed{4}$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2668,7 +2668,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii celui de-al doilea logaritm din exponent:\n$$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$\n\n**Pasul 2.** Aplicarea proprietății puterilor pentru a separa termenii:\n$$E = 2^{\\log_2 7 - 2} = 2^{\\log_2 7} \\cdot 2^{-2}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 7 \\cdot \\frac{1}{4} = \\boxed{\\frac{7}{4}}$$',
     barem: [
       { descriere: 'Calcularea valorii celui de-al doilea logaritm din exponent: $$\\log_3 \\frac{1}{9} = -2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, prin separarea termenilor și calcul: $$E = 2^{\\log_2 7}\\cdot 2^{-2} = 7\\cdot\\frac{1}{4} = \\frac{7}{4}$$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei, prin separarea termenilor și calcul: $$E = 2^{\\log_2 7}\\cdot 2^{-2} = 7\\cdot\\frac{1}{4} = \\boxed{\\frac{7}{4}}$$', puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2682,7 +2682,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 3 },
       { descriere: 'Calcularea celui de-al doilea termen: $$32^{\\frac{2}{5}} = 4$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $21$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{21}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2696,7 +2696,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$9^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$', puncte_maxime: 3 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $46$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{46}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2710,7 +2710,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea primului termen: $$2\\log_3 5 = \\log_3 25$$', puncte_maxime: 1 },
       { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = -1$$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = \\boxed{-1}$$', puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2724,7 +2724,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = -1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2737,7 +2737,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_3 6 = \\log_3 36$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$',
     barem: [
       { descriere: 'Transformarea primului termen: $$2\\log_3 6 = \\log_3 36$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$', puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2751,7 +2751,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea diferenței primilor doi termeni: $$\\log_3 54 - \\log_3 2 = \\log_3 27 = 3$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al treilea termen: $$\\log_3 81 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $7$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{7}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2766,7 +2766,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea sumei primilor doi termeni: $$\\log_{12} 3 + \\log_{12} 4 = \\log_{12} 12 = 1$$', puncte_maxime: 1 },
       { descriere: 'Calcularea termenului exponențial: $$12^{\\log_{144} 4} = \\left(12^{\\log_{12} 4}\\right)^{\\frac{1}{2}} = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea ultimului termen: $$\\log_{\\frac{1}{2}} 8 = -3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2781,7 +2781,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primului termen: $$2^{\\log_8 27} = 2^{\\log_2 3} = 3$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{5}} 25 = -2$$', puncte_maxime: 1 },
       { descriere: 'Calcularea radicalului: $$\\sqrt[3]{125} = 5$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este întreg, egală cu $-4$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este întreg, egală cu $-4$: $$\\boxed{-4 \\in \\mathbb{Z}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2795,7 +2795,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{4}$$', puncte_maxime: 3 },
       { descriere: 'Calcularea celui de-al doilea termen: $$5^{-\\log_5 4} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\frac{25}{2}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{\\frac{25}{2}}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2810,7 +2810,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea primului termen: $$36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$10^{1-\\lg 2} = 5$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_9 36} = 6$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $24$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{24}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2823,7 +2823,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Simplificarea produsului din interiorul logaritmului, folosind proprietatea $\\log_a b \\cdot \\log_b c = \\log_a c$:\n$$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_{\\frac{1}{4}} 2 = \\log_{2^{-2}} 2^1 = \\boxed{-\\frac{1}{2}}$$',
     barem: [
       { descriere: 'Simplificarea produsului din interiorul logaritmului: $$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $-\\frac{1}{2}$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-\\frac{1}{2}}$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2836,7 +2836,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Simplificarea exponentului:\n$$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 25^{\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = 5^{2\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{9 \\cdot 5}{3} = \\boxed{15}$$',
     barem: [
       { descriere: 'Simplificarea exponentului: $$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{45}{3} = 15$$', puncte_maxime: 3 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{45}{3} = \\boxed{15}$$', puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2852,7 +2852,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_8 2 = \\frac{1}{3}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = -2$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = -\\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2866,7 +2866,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea puterii: $$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\frac{3}{2}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea diferenței de logaritmi: $$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\frac{7}{2}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{\\frac{7}{2}}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2880,7 +2880,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-3} = 64 \\Rightarrow 1 + 64 = 65$$', puncte_maxime: 1 },
       { descriere: 'Aplicarea proprietății $a^{\\log_a b} = b$: $$65^{\\log_{65} 5} = 5$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $4$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2894,7 +2894,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$9^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$', puncte_maxime: 3 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_5 25 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $23$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{23}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2908,7 +2908,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primilor doi termeni: $$\\log_3 27 = 3, \\quad \\sqrt{6\\tfrac{1}{4}} = \\frac{5}{2}$$', puncte_maxime: 1 },
       { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2921,7 +2921,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Calcularea valorii expresiei:\n$$E = 9^{1+\\log_3 2} = 9 \\cdot 9^{\\log_3 2} = 9 \\cdot 3^{2\\log_3 2} = 9 \\cdot 2^2 = 9 \\cdot 4 = 36$$\n\n**Pasul 2.** Verificarea că este pătrat perfect:\n$$E = 36 = \\boxed{6^2}$$',
     barem: [
       { descriere: 'Calcularea valorii expresiei: $$E = 9^{1+\\log_3 2} = 9\\cdot 3^{2\\log_3 2} = 9\\cdot 4 = 36$$', puncte_maxime: 4 },
-      { descriere: 'Verificarea că $36$ este pătrat perfect: $$36 = 6^2$$', puncte_maxime: 1 }
+      { descriere: 'Verificarea că $36$ este pătrat perfect: $$36 = \\boxed{6^2}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2934,7 +2934,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Aplicarea proprietăților puterilor:\n$$27^{1-\\log_3 2} = \\frac{27}{27^{\\log_3 2}} = \\frac{27}{\\left(3^3\\right)^{\\log_3 2}} = \\frac{27}{3^{3\\log_3 2}} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$\n\n**Pasul 2.** Determinarea valorii finale a expresiei:\n$$a = \\boxed{\\frac{27}{8}}$$',
     barem: [
       { descriere: 'Aplicarea proprietăților puterilor: $$27^{1-\\log_3 2} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$', puncte_maxime: 4 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\frac{27}{8}$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{\\frac{27}{8}}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2948,7 +2948,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$4^{\\log_2 \\sqrt{7}} = \\left(\\sqrt{7}\\right)^2 = 7$$', puncte_maxime: 2 },
       { descriere: 'Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 25 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $9$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $9$: $$\\boxed{9 = 3^2}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2962,7 +2962,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = 4$$', puncte_maxime: 3 },
       { descriere: 'Calcularea celui de-al doilea termen: $$64^{\\frac{1}{6}} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $2$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2976,7 +2976,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea primului termen: $$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3 9 = 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = 1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2990,7 +2990,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Calcularea valorii numărului $a$: $$a = \\log_3 18 = 2 + \\log_3 2$$', puncte_maxime: 2 },
       { descriere: 'Calcularea valorii numărului $b$: $$b = \\log_9 \\frac{1}{4} = -\\log_3 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea mediei aritmetice, prin reducerea termenilor $\\log_3 2$, egală cu $1$', puncte_maxime: 1 }
+      { descriere: 'Determinarea mediei aritmetice, prin reducerea termenilor $\\log_3 2$, egală cu $\\boxed{1}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -3004,7 +3004,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Simplificarea celui de-al doilea termen din exponent: $$\\frac{1}{2}\\lg 16 = \\lg 4$$', puncte_maxime: 1 },
       { descriere: 'Simplificarea exponentului: $$2+\\lg 4 = \\lg 100+\\lg 4 = \\lg 400$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = 20$$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = \\boxed{20}$$', puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -3018,7 +3018,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea exponentului și calcularea primului termen de sub radical: $$\\frac{1}{\\log_6 5} = \\log_5 6 \\Rightarrow 25^{\\log_5 6} = 36$$', puncte_maxime: 2 },
       { descriere: 'Transformarea exponentului și calcularea celui de-al doilea termen de sub radical: $$\\frac{1}{\\log_6 7} = \\log_7 6 \\Rightarrow 49^{\\log_7 6} = 36$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{36+36} = \\sqrt{72} = 6\\sqrt{2}$$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{36+36} = \\sqrt{72} = \\boxed{6\\sqrt{2}}$$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -3032,7 +3032,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Transformarea primului termen din exponent: $$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$', puncte_maxime: 2 },
       { descriere: 'Combinarea termenilor din exponent: $$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $144$', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{144}$', puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -3380,7 +3380,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = 2m - 2', puncte_maxime: 2 },
       { descriere: '2m - 2 = 0', puncte_maxime: 2 },
-      { descriere: 'Obținerea m = 1', puncte_maxime: 1 }
+      { descriere: 'Obținerea m = 1: $$\\boxed{m = 1}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3395,7 +3395,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Obținerea $P(-2) = 0$ și $a = -8$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X + 2)$', puncte_maxime: 4 },
-      { descriere: 'Determinarea rădăcinilor câtului și scrierea răspunsului corect', puncte_maxime: 2 }
+      { descriere: 'Determinarea rădăcinilor câtului și scrierea răspunsului corect: $$\\boxed{X = -2 \\text{ (dublă)},\\ X = 3}$$', puncte_maxime: 2 }
     ]
   },
 
@@ -3411,7 +3411,7 @@ BM.EXERCISES = [
       { descriere: 'Calcularea determinantului $P(X) = -X^3 - 6X - 7$', puncte_maxime: 2 },
       { descriere: 'Obținerea $P(-1) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $X^2 - X + 7$', puncte_maxime: 3 },
-      { descriere: '$Δ < 0$ și scrierea răspunsului corect $X = -1$', puncte_maxime: 1 }
+      { descriere: '$Δ < 0$ și scrierea răspunsului corect $\\boxed{X = -1}$', puncte_maxime: 1 }
     ]
   },
 
@@ -3426,7 +3426,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Prima iterație a împărțirii — determinăm primul termen al câtului și scădem:\n$$X^4 \\div X^2 = X^2; \\quad X^2(X^2+1) = X^4+X^2$$\n$$(X^4-5X^2+3X-2) - (X^4+X^2) = -6X^2+3X-2$$\n\n**Pasul 2.** A doua iterație — împărțim restul obținut și scădem din nou:\n$$-6X^2 \\div X^2 = -6; \\quad -6(X^2+1) = -6X^2-6$$\n$$(-6X^2+3X-2) - (-6X^2-6) = 3X+4$$\nGradul restului ($1$) e mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$',
     barem: [
       { descriere: 'Obținerea câtului $C(X) = X^2 - 6$', puncte_maxime: 2 },
-      { descriere: 'Obținerea restului $R(X) = 3X + 4$', puncte_maxime: 3 }
+      { descriere: 'Obținerea restului $R(X) = 3X + 4$: $$\\boxed{C(X) = X^2-6, \\quad R(X) = 3X+4}$$', puncte_maxime: 3 }
     ]
   },
   {
@@ -3441,7 +3441,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P\'(3) = 0$', puncte_maxime: 2 },
       { descriere: 'Obținerea valorilor $a = 1, b = 21$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $X^2 + X - 2$', puncte_maxime: 2 },
-      { descriere: 'Obținerea rădăcinilor $X = 1, X = -2$', puncte_maxime: 2 }
+      { descriere: 'Obținerea rădăcinilor $X = 1, X = -2$: $$\\boxed{X=1,\\quad X=-2}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3455,7 +3455,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 5', puncte_maxime: 2 },
       { descriere: 'P(-1) = 2a - 1', puncte_maxime: 2 },
-      { descriere: 'Obținerea valorii a = 3', puncte_maxime: 1 }
+      { descriere: 'Obținerea valorii a = 3: $$\\boxed{a = 3}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3470,7 +3470,7 @@ BM.EXERCISES = [
       { descriere: 'P(1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 5', puncte_maxime: 2 },
       { descriere: 'Împărțirea polinomului P(X) la X + 2', puncte_maxime: 2 },
-      { descriere: 'Obținerea câtului C(X) = X^2 - 7X + 23', puncte_maxime: 2 }
+      { descriere: 'Obținerea câtului C(X) = X^2 - 7X + 23: $$\\boxed{C(X) = X^2 - 7X + 23}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3484,7 +3484,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'R = P(-3)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-3) = 18', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+      { descriere: 'Scrierea răspunsului corect: $$\\boxed{18}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3499,7 +3499,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Obținerea $(X-3)^2 = X^2 - 6X + 9$', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 + X - 2$', puncte_maxime: 3 },
-      { descriere: 'Scrierea descompunerii $P(X) = (X-3)^2(X-1)(X+2)$', puncte_maxime: 3 }
+      { descriere: 'Scrierea descompunerii $\\boxed{P(X) = (X-3)^2(X-1)(X+2)}$', puncte_maxime: 3 }
     ]
   },
   {
@@ -3514,7 +3514,7 @@ BM.EXERCISES = [
       { descriere: 'P\'(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 15', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului X^2 - 3X - 10', puncte_maxime: 2 },
-      { descriere: 'Scrierea descompunerii P(X) = (X+1)^2(X-5)(X+2)', puncte_maxime: 2 }
+      { descriere: 'Scrierea descompunerii P(X) = (X+1)^2(X-5)(X+2): $$\\boxed{P(X) = (X+1)^2(X-5)(X+2)}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3529,7 +3529,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Obținerea $P(3) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $2X^2 - 3X - 2$', puncte_maxime: 4 },
-      { descriere: 'Obținerea rădăcinilor $X = 2$ și $X = -\\frac{1}{2}$', puncte_maxime: 2 }
+      { descriere: 'Obținerea rădăcinilor $X = 2$ și $X = -\\frac{1}{2}$: $$\\boxed{X = 2, \\quad X = -\\tfrac{1}{2}}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3544,7 +3544,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 3X și a restului -4X²+7', puncte_maxime: 2 },
       { descriere: 'A doua etapă: obținerea restului final 3', puncte_maxime: 2 },
-      { descriere: 'R(X) = 3', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{R(X) = 3}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3559,7 +3559,7 @@ BM.EXERCISES = [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea m = 2', puncte_maxime: 2 },
       { descriere: 'Efectuarea împărțirii în coloniță a lui P(X) la X²-2', puncte_maxime: 2 },
-      { descriere: 'Obținerea câtului X²+2X+4 și a restului R(X) = 9X + 12', puncte_maxime: 2 }
+      { descriere: 'Obținerea câtului X²+2X+4 și a restului R(X) = 9X + 12: $$\\boxed{R(X) = 9X+12}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3574,7 +3574,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
       { descriere: '1 + (a-3)/2 + a = 0', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 1/3', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 1/3: $$\\boxed{a = \\dfrac{1}{3}}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3589,7 +3589,7 @@ BM.EXERCISES = [
       { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $X^3 - 4X^2 - 11X + 30$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului $X^2 - 2X - 15$', puncte_maxime: 2 },
-      { descriere: 'Scrierea descompunerii finale $P(X) = (X-2)^2(X-5)(X+3)$', puncte_maxime: 2 }
+      { descriere: 'Scrierea descompunerii finale $\\boxed{P(X) = (X-2)^2(X-5)(X+3)}$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3604,7 +3604,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = 10', puncte_maxime: 2 },
       { descriere: 'Obținerea ecuației 4a - 2a^2 = 0 (sau echivalent)', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorilor a = 0 și a = 2', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorilor a = 0 și a = 2: $$\\boxed{a = 0 \\quad \\text{sau} \\quad a = 2}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3619,7 +3619,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 2X² și a restului 5X³-X+1', puncte_maxime: 2 },
       { descriere: 'Etapele următoare: obținerea restului final 4X+1', puncte_maxime: 2 },
-      { descriere: 'Obținerea răspunsului corect R(X) = 4X + 1', puncte_maxime: 1 }
+      { descriere: 'Obținerea răspunsului corect R(X) = 4X + 1: $$\\boxed{R(X) = 4X+1}$$', puncte_maxime: 1 }
     ]
   },
 
@@ -3636,7 +3636,7 @@ BM.EXERCISES = [
       { descriere: '$P(1)=0$ și $P\'(1)=0$ (sau utilizarea schemei Horner)', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 + 7X + 12$', puncte_maxime: 2 },
       { descriere: 'Factorizarea trinomului $X^2 + 7X + 12 = (X+3)(X+4)$', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect $P(X) = (X-1)^2(X+3)(X+4)$', puncte_maxime: 2 }
+      { descriere: 'Scrierea răspunsului corect $\\boxed{P(X) = (X-1)^2(X+3)(X+4)}$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3650,7 +3650,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = -10', puncte_maxime: 2 },
       { descriere: '18a - 46 = -10', puncte_maxime: 2 },
-      { descriere: 'a = 2', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{a = 2}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3664,7 +3664,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'R = P(-2)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-2) = 110', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+      { descriere: 'Scrierea răspunsului corect: $$\\boxed{110}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3679,7 +3679,7 @@ BM.EXERCISES = [
       { descriere: 'P\'(X) = 4X^3 + 18X^2 + 18X + 2a', puncte_maxime: 2 },
       { descriere: 'P\'(2) = 140 + 2a = 0 \\Rightarrow a = -70', puncte_maxime: 2 },
       { descriere: 'P(2) = 100 + 4a - b = 0', puncte_maxime: 2 },
-      { descriere: 'Obținerea b = -180', puncte_maxime: 2 }
+      { descriere: 'Obținerea b = -180: $$\\boxed{a = -70, \\quad b = -180}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3694,7 +3694,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = 6', puncte_maxime: 2 },
       { descriere: '12a - 58 = 6', puncte_maxime: 2 },
-      { descriere: 'a = 16/3', puncte_maxime: 1 }
+      { descriere: 'a = 16/3: $$\\boxed{a = \\dfrac{16}{3}}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3708,7 +3708,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 27', puncte_maxime: 2 },
       { descriere: '15a - 18 = 27', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 3', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 3: $$\\boxed{a = 3}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3722,7 +3722,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'P(-1) = 1 - m', puncte_maxime: 2 },
-      { descriere: 'm = 1', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{m = 1}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3737,7 +3737,7 @@ BM.EXERCISES = [
       { descriere: 'P(2) = 8', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 10', puncte_maxime: 1 },
       { descriere: 'Efectuarea împărțirii în coloniță a lui P(X) la X²-2', puncte_maxime: 3 },
-      { descriere: 'Obținerea câtului X²+2 și a restului R(X) = 2X-8', puncte_maxime: 2 }
+      { descriere: 'Obținerea câtului X²+2 și a restului R(X) = 2X-8: $$\\boxed{R(X) = 2X-8}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3751,7 +3751,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = -13', puncte_maxime: 2 },
       { descriere: '35a + 127 = -13', puncte_maxime: 2 },
-      { descriere: 'a = -4', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{a = -4}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3765,7 +3765,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(1) = 3', puncte_maxime: 2 },
       { descriere: '3a - 15 = 3', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 6', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 6: $$\\boxed{a = 6}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3781,7 +3781,7 @@ BM.EXERCISES = [
       { descriere: '$(X+2)^2 = X^2+4X+4$', puncte_maxime: 2 },
       { descriere: 'C(X) = X^2+3X-4', puncte_maxime: 3 },
       { descriere: 'X^2+3X-4 = (X+4)(X-1)', puncte_maxime: 2 },
-      { descriere: 'P(X) = (X+2)^2(X+4)(X-1)', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{P(X) = (X+2)^2(X+4)(X-1)}$$', puncte_maxime: 1 }
     ]
   },
 
@@ -3798,7 +3798,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -16$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 3a + b = -7 \\\\ 2a + b = -9 \\end{cases}$ (câte 1p pentru fiecare ecuație)', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului și obținerea valorilor $a = 2, b = -13$', puncte_maxime: 2 },
-      { descriere: 'Calcularea restului $P(-2) = 20$', puncte_maxime: 2 }
+      { descriere: 'Calcularea restului $P(-2) = 20$: $$\\boxed{20}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3813,7 +3813,7 @@ BM.EXERCISES = [
       { descriere: 'P(2) = 4a + 15', puncte_maxime: 1 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
       { descriere: 'R = P(-3)', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii P(-3) = -63', puncte_maxime: 2 }
+      { descriere: 'Calcularea valorii P(-3) = -63: $$\\boxed{-63}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3827,7 +3827,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
-      { descriere: 'Calcularea P(4) = 18', puncte_maxime: 2 }
+      { descriere: 'Calcularea P(4) = 18: $$\\boxed{18}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3842,7 +3842,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea identității $P(X) = (X^2-1)(X^3-X+1) + bX+c$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 2b+c = -15 \\\\ -2b+c = 17 \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorilor $b = -8$ și $c = 1$', puncte_maxime: 2 },
-      { descriere: 'Obținerea răspunsului corect $P(X) = X^5 - 2X^3 + X^2 - 7X$', puncte_maxime: 2 }
+      { descriere: 'Obținerea răspunsului corect $\\boxed{P(X) = X^5 - 2X^3 + X^2 - 7X}$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3857,7 +3857,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(3) = 15$ și $P(-1) = 15$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 3a+b=-17 \\\\ a-b=5 \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului și obținerea $a = -3, b = -8$', puncte_maxime: 2 },
-      { descriere: 'Determinarea rădăcinilor $2, \\frac{3}{2}, -2$ și scrierea răspunsului', puncte_maxime: 2 }
+      { descriere: 'Determinarea rădăcinilor $2, \\frac{3}{2}, -2$ și scrierea răspunsului: $$\\boxed{X = 2,\\quad X = \\tfrac{3}{2},\\quad X = -2}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3872,7 +3872,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Identificarea formei restului $R(X) = bX + c$ și scrierea sistemului \\\\begin{cases} 3b + c = 7 \\\\\\\\ -2b + c = -8 \\\\end{cases}', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului și obținerea valorilor $b = 3$ și $c = -2$', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect $R(X) = 3X - 2$', puncte_maxime: 1 }
+      { descriere: 'Scrierea răspunsului corect $\\boxed{R(X) = 3X - 2}$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3886,7 +3886,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(3) = 0', puncte_maxime: 2 },
       { descriere: '9a + 45 = 0', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = -5', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = -5: $$\\boxed{a = -5}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -3901,7 +3901,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(2) = 15$', puncte_maxime: 2 },
       { descriere: 'Obținerea $m = 5$', puncte_maxime: 1 },
-      { descriere: 'Calcularea restului $P(-3) = -95$', puncte_maxime: 2 }
+      { descriere: 'Calcularea restului $P(-3) = -95$: $$\\boxed{-95}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3916,7 +3916,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 0 și obținerea a = -13', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului 2X^2 - 5X - 3', puncte_maxime: 4 },
-      { descriere: 'Determinarea rădăcinilor X = 3, X = -1/2 și scrierea răspunsului', puncte_maxime: 2 }
+      { descriere: 'Determinarea rădăcinilor X = 3, X = -1/2 și scrierea răspunsului: $$\\boxed{X = -2,\\quad X = -\\tfrac{1}{2},\\quad X = 3}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3930,7 +3930,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '1 + a - 7 = -2', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
-      { descriere: 'Calcularea P(2) = 5', puncte_maxime: 2 }
+      { descriere: 'Calcularea P(2) = 5: $$\\boxed{5}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3946,7 +3946,7 @@ BM.EXERCISES = [
       { descriere: 'P(3) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 6', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului împărțirii lui P(X) la (X - 3)', puncte_maxime: 2 },
-      { descriere: 'Scrierea formei descompuse P(X) = (X - 3)(2X^2 + 3)', puncte_maxime: 2 }
+      { descriere: 'Scrierea formei descompuse P(X) = (X - 3)(2X^2 + 3): $$\\boxed{P(X) = (X-3)(2X^2+3)}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3962,7 +3962,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(3) = 0$ și $P(2) = -6$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 9a+b=-33 \\\\ 4a+b=-18 \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorilor $a = -3$ și $b = -6$', puncte_maxime: 2 },
-      { descriere: 'Obținerea descompunerii $P(X) = (X-3)(X^2+2)$', puncte_maxime: 2 }
+      { descriere: 'Obținerea descompunerii $\\boxed{P(X) = (X-3)(X^2+2)}$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3978,7 +3978,7 @@ BM.EXERCISES = [
       { descriere: 'P(2) = P(-1)', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 1', puncte_maxime: 2 },
       { descriere: 'Descompunerea în factori a polinomului P(X)', puncte_maxime: 2 },
-      { descriere: 'Determinarea rădăcinilor și scrierea răspunsului corect', puncte_maxime: 2 }
+      { descriere: 'Determinarea rădăcinilor și scrierea răspunsului corect: $$\\boxed{X = -2,\\quad X = \\sqrt{5},\\quad X = -\\sqrt{5}}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -3993,7 +3993,7 @@ BM.EXERCISES = [
       { descriere: 'P(1) = 0', puncte_maxime: 2 },
       { descriere: 'a^2 - 2ab + b^2 + a^2 - 2a + 1 = 0', puncte_maxime: 2 },
       { descriere: '(a - b)^2 + (a - 1)^2 = 0', puncte_maxime: 2 },
-      { descriere: 'a = 1, b = 1', puncte_maxime: 2 }
+      { descriere: 'a = 1, b = 1: $$\\boxed{a = 1,\\quad b = 1}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4007,7 +4007,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(1) = -3', puncte_maxime: 2 },
       { descriere: 'Obținerea a - 8 = -3', puncte_maxime: 1 },
-      { descriere: 'Obținerea a = 5', puncte_maxime: 2 }
+      { descriere: 'Obținerea a = 5: $$\\boxed{a = 5}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4022,7 +4022,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(√2) = 4√2', puncte_maxime: 2 },
       { descriere: '2m + m√2 + 2 = 0', puncte_maxime: 2 },
-      { descriere: 'm = √2 - 2', puncte_maxime: 1 }
+      { descriere: 'm = √2 - 2: $$\\boxed{m = \\sqrt{2} - 2}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4038,7 +4038,7 @@ BM.EXERCISES = [
       { descriere: 'P(-2) = 13', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -2', puncte_maxime: 1 },
       { descriere: 'R = P(3)', puncte_maxime: 1 },
-      { descriere: 'Calcularea P(3) = 53', puncte_maxime: 1 }
+      { descriere: 'Calcularea P(3) = 53: $$\\boxed{53}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4054,7 +4054,7 @@ BM.EXERCISES = [
       { descriere: '$P(2) = 0$ și $P(3) = 12$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 4a+b=-14 \\\\ 9a+b=-24 \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorilor $a = -2$ și $b = -6$', puncte_maxime: 2 },
-      { descriere: 'Obținerea descompunerii $P(X) = (X-2)(X^2+3)$', puncte_maxime: 2 }
+      { descriere: 'Obținerea descompunerii $\\boxed{P(X) = (X-2)(X^2+3)}$', puncte_maxime: 2 }
     ]
   },
 
@@ -4070,7 +4070,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = 4', puncte_maxime: 1 },
-      { descriere: 'Calcularea P(5) = -156', puncte_maxime: 2 }
+      { descriere: 'Calcularea P(5) = -156: $$\\boxed{-156}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4085,7 +4085,7 @@ BM.EXERCISES = [
       { descriere: 'P(1) = 0 \\Rightarrow a = 3', puncte_maxime: 2 },
       { descriere: 'C_1(X) = X^3 - 2X^2 - 5X + 6', puncte_maxime: 2 },
       { descriere: 'C_2(X) = X^2 - X - 6', puncte_maxime: 2 },
-      { descriere: 'P(X) = (X-1)^2(X-3)(X+2)', puncte_maxime: 2 }
+      { descriere: '$$\\boxed{P(X) = (X-1)^2(X-3)(X+2)}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4100,7 +4100,7 @@ BM.EXERCISES = [
       { descriere: 'Obținerea câtului $X^3 - 6X^2 + 3X + 10$ (prin prima împărțire la $X-2$)', puncte_maxime: 2 },
       { descriere: 'Obținerea câtului $X^2 - 4X - 5$ (prin a doua împărțire la $X-2$)', puncte_maxime: 2 },
       { descriere: 'Determinarea rădăcinilor $x_1 = -1$ și $x_2 = 5$ ale polinomului $X^2 - 4X - 5$', puncte_maxime: 2 },
-      { descriere: 'Scrierea descompunerii finale $P(X) = (X-2)^2(X+1)(X-5)$', puncte_maxime: 2 }
+      { descriere: 'Scrierea descompunerii finale $P(X) = (X-2)^2(X+1)(X-5)$: $$\\boxed{P(X) = (X-2)^2(X-5)(X+1)}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4115,7 +4115,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial X și a restului -6X²+2X-2', puncte_maxime: 2 },
       { descriere: 'A doua etapă: obținerea restului final 2X-14', puncte_maxime: 2 },
-      { descriere: 'R(X) = 2X - 14', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{R(X) = 2X - 14}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4129,7 +4129,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'a + 4 = 0', puncte_maxime: 2 },
-      { descriere: 'a = -4', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{a = -4}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4143,7 +4143,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
       { descriere: '$P(-3) = 9a - 18$', puncte_maxime: 2 },
-      { descriere: 'Obținerea $a = 2$', puncte_maxime: 1 }
+      { descriere: 'Obținerea $\\boxed{a = 2}$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4157,7 +4157,7 @@ BM.EXERCISES = [
     solution: '**Pasul 1.** Determinarea câtului împărțirii:\n$X^2+2$ nu are rădăcini reale, deci împărțim direct:\n$$2X^3 \\div X^2 = 2X; \\quad 2X(X^2+2) = 2X^3+4X; \\text{ rest: } X^2-4X-2$$\n$$X^2 \\div X^2 = 1; \\quad 1(X^2+2) = X^2+2; \\text{ rest: } -4X-4$$\nCâtul este $2X + 1$.\n\n**Pasul 2.** Obținerea restului $R(X)$:\nFolosind rezultatele împărțirii, scriem forma finală a polinomului:\n$$P(X) = (X^2+2)(2X+1) + (-4X-4)$$\n\n$$\\boxed{R(X) = -4X - 4}$$',
     barem: [
       { descriere: 'Identificarea câtului $2X + 1$', puncte_maxime: 2 },
-      { descriere: 'Obținerea restului $-4X - 4$', puncte_maxime: 3 }
+      { descriere: 'Obținerea restului $-4X - 4$: $$\\boxed{R(X) = -4X - 4}$$', puncte_maxime: 3 }
     ]
   },
   {
@@ -4172,7 +4172,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 13', puncte_maxime: 2 },
       { descriere: 'Obținerea ecuației 2a^2 + 4a - 30 = 0 (sau echivalent)', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorilor a = -5 și a = 3', puncte_maxime: 1 }
+      { descriere: 'Determinarea valorilor a = -5 și a = 3: $$\\boxed{a = -5 \\quad \\text{sau} \\quad a = 3}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4186,7 +4186,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'R = P(-2)', puncte_maxime: 2 },
       { descriere: 'Calcularea P(-2) = -54', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+      { descriere: 'Scrierea răspunsului corect: $$\\boxed{-54}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4200,7 +4200,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = 0', puncte_maxime: 2 },
       { descriere: '10 - 3a = 0', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 10/3', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 10/3: $$\\boxed{a = \\dfrac{10}{3}}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4214,7 +4214,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 3', puncte_maxime: 2 },
       { descriere: 'Obținerea -12 - b = 3', puncte_maxime: 2 },
-      { descriere: 'Obținerea răspunsului corect b = -15', puncte_maxime: 1 }
+      { descriere: 'Obținerea răspunsului corect b = -15: $$\\boxed{b = -15}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4228,7 +4228,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(2) = 4', puncte_maxime: 2 },
       { descriere: 'P(2) = -2a + 18', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 7', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 7: $$\\boxed{a = 7}$$', puncte_maxime: 1 }
     ]
   },
 
@@ -4242,7 +4242,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(-1) = 0$', puncte_maxime: 2 },
       { descriere: '$P(-1) = -a + 1$', puncte_maxime: 2 },
-      { descriere: 'Obținerea $a = 1$', puncte_maxime: 1 }
+      { descriere: 'Obținerea $\\boxed{a = 1}$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4255,7 +4255,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$R = P(2)$', puncte_maxime: 2 },
       { descriere: 'Calcularea $P(2) = 11$', puncte_maxime: 2 },
-      { descriere: 'Scrierea răspunsului corect', puncte_maxime: 1 }
+      { descriere: 'Scrierea răspunsului corect: $$\\boxed{11}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4267,7 +4267,7 @@ BM.EXERCISES = [
     solution: 'Împărțim în coloniță $P(X) = X^3 - 2X^2 + 0X + 16$ la $Q(X) = X^2 + 0X - 1$ (restul va avea gradul $< 2$, deci forma $bX+c$).\n\n**Pasul 1.** $X^3 : X^2 = X$. Înmulțim $X \\cdot (X^2-1) = X^3 - X$ și scădem:\n$$(X^3 - 2X^2 + 0X + 16) - (X^3 - X) = -2X^2 + X + 16$$\n\n**Pasul 2.** $-2X^2 : X^2 = -2$. Înmulțim $-2 \\cdot (X^2-1) = -2X^2 + 2$ și scădem:\n$$(-2X^2 + X + 16) - (-2X^2 + 2) = X + 14$$\nGradul restului ($1$) este mai mic decât gradul lui $Q(X)$ ($2$), deci ne oprim aici.\n\n$$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$',
     barem: [
       { descriere: 'Identificarea câtului $X - 2$', puncte_maxime: 2 },
-      { descriere: 'Obținerea și scrierea restului $X + 14$', puncte_maxime: 3 }
+      { descriere: 'Obținerea și scrierea restului $X + 14$: $$\\boxed{C(X) = X - 2, \\quad R(X) = X + 14}$$', puncte_maxime: 3 }
     ]
   },
   {
@@ -4280,7 +4280,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(2) = -2a - 12$', puncte_maxime: 2 },
       { descriere: '$-2a - 12 = 0$', puncte_maxime: 2 },
-      { descriere: 'Obținerea răspunsului corect $a = -6$', puncte_maxime: 1 }
+      { descriere: 'Obținerea răspunsului corect $\\boxed{a = -6}$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4308,7 +4308,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(-3) = 0$', puncte_maxime: 2 },
       { descriere: 'Obținerea $m = 2$', puncte_maxime: 2 },
-      { descriere: 'Împărțirea polinomului $P(X)$ la $Q(X)$ și scrierea răspunsului corect', puncte_maxime: 4 }
+      { descriere: 'Împărțirea polinomului $P(X)$ la $Q(X)$ și scrierea răspunsului corect: $$\\boxed{m = 2, \\quad R(X) = -2X + 6}$$', puncte_maxime: 4 }
     ]
   },
   {
@@ -4321,7 +4321,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Obținerea $P(2) = 0$', puncte_maxime: 2 },
       { descriere: 'Determinarea câtului împărțirii polinomului $P(X)$ la $(X-2)$', puncte_maxime: 4 },
-      { descriere: 'Determinarea rădăcinilor polinomului obținut și scrierea răspunsului corect', puncte_maxime: 2 }
+      { descriere: 'Determinarea rădăcinilor polinomului obținut și scrierea răspunsului corect: $$\\boxed{X = \\tfrac{1}{2}, \\quad X = \\tfrac{3}{2}}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4335,7 +4335,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(2) = 0$ și $P(-1) = 3$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$ (câte 1p pentru fiecare condiție)', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului $\\begin{cases} 4a+2b+18=0 \\\\ a-b=3 \\end{cases}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea câtului împărțirii lui $P(X)$ la $X-2$', puncte_maxime: 2 }
+      { descriere: 'Determinarea câtului împărțirii lui $P(X)$ la $X-2$: $$\\boxed{C(X) = 2X^2 + 2X - 1}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4348,7 +4348,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(-2) = 4$', puncte_maxime: 2 },
       { descriere: 'Obținerea $-38 - 2m = 4$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii lui $m$', puncte_maxime: 2 }
+      { descriere: 'Determinarea valorii lui $m$: $$\\boxed{m = -21}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4362,7 +4362,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: 'P(-2) = a - 24', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 24', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 24: $$\\boxed{a = 24}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4376,7 +4376,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(1/2) = 0', puncte_maxime: 2 },
       { descriere: 'P(1/2) = a/2 - 19 (sau echivalent)', puncte_maxime: 2 },
-      { descriere: 'Obținerea a = 38', puncte_maxime: 1 }
+      { descriere: 'Obținerea a = 38: $$\\boxed{a = 38}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4391,7 +4391,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(1) = 0$', puncte_maxime: 2 },
       { descriere: '$m^2 + 8m + 15 = 0$', puncte_maxime: 2 },
-      { descriere: '$m = -3, m = -5$', puncte_maxime: 1 }
+      { descriere: '$m = -3, m = -5$: $$\\boxed{m = -3 \\quad \\text{sau} \\quad m = -5}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4406,7 +4406,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'Prima etapă a împărțirii: obținerea câtului parțial 3X și a restului -4X²+11X-1', puncte_maxime: 2 },
       { descriere: 'A doua etapă: obținerea restului final 11X-9', puncte_maxime: 2 },
-      { descriere: 'R(X) = 11X - 9', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{R(X) = 11X - 9}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4422,7 +4422,7 @@ BM.EXERCISES = [
       { descriere: 'Scrierea condițiilor $P(1) = 5$ și $P(-2) = 17$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} a+b=1 \\\\ 2a-b=11 \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Determinarea valorilor $a = 4$ și $b = -3$', puncte_maxime: 2 },
-      { descriere: 'Calcularea $P(2) = 21$ și scrierea răspunsului corect', puncte_maxime: 2 }
+      { descriere: 'Calcularea $P(2) = 21$ și scrierea răspunsului corect: $$\\boxed{21}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4437,7 +4437,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-1) = 0', puncte_maxime: 2 },
       { descriere: 'Obținerea a = -4/3', puncte_maxime: 1 },
-      { descriere: 'Calcularea restului P(2) = 31', puncte_maxime: 2 }
+      { descriere: 'Calcularea restului P(2) = 31: $$\\boxed{\\text{Restul} = 31}$$', puncte_maxime: 2 }
     ]
   },
   {
@@ -4452,7 +4452,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: '$P(-2) = 1$ și $P(-3) = -3$', puncte_maxime: 2 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 2a - b = 3 \\\\ 3a - b = 7 \\end{cases}$', puncte_maxime: 2 },
-      { descriere: 'Obținerea valorilor $a = 4$ și $b = 5$', puncte_maxime: 1 }
+      { descriere: 'Obținerea valorilor $a = 4$ și $b = 5$: $$\\boxed{a = 4, \\quad b = 5}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4466,7 +4466,7 @@ BM.EXERCISES = [
     barem: [
       { descriere: 'P(-2) = 0', puncte_maxime: 2 },
       { descriere: '-44 - m = 0', puncte_maxime: 2 },
-      { descriere: 'm = -44', puncte_maxime: 1 }
+      { descriere: '$$\\boxed{m = -44}$$', puncte_maxime: 1 }
     ]
   },
   {
@@ -4480,7 +4480,7 @@ BM.EXERCISES = [
       { descriere: '$P(2) = 0 \\Rightarrow b = -2a$', puncte_maxime: 2 },
       { descriere: '$P(X) = (X-2)(X^3+a)$', puncte_maxime: 2 },
       { descriere: 'Condiția că $X = 2$ este rădăcină simplă a polinomului $Q(X) = X^3+a$', puncte_maxime: 2 },
-      { descriere: 'Obținerea $a = -8,\\ b = 16$', puncte_maxime: 2 }
+      { descriere: 'Obținerea $a = -8,\\ b = 16$: $$\\boxed{a = -8, \\quad b = 16}$$', puncte_maxime: 2 }
     ]
   },
 
@@ -5484,7 +5484,7 @@ BM.EXERCISES = [
       { descriere: 'Obținerea $2a - 2bi + 4i = ai - b + i$', puncte_maxime: 3 },
       { descriere: 'Obținerea sistemului $\\begin{cases} 2a = -b \\\\ -2b+4 = 1+a \\end{cases}$', puncte_maxime: 2 },
       { descriere: 'Rezolvarea sistemului $\\begin{cases} 2a = -b \\\\ -2b+4 = 1+a \\end{cases}$', puncte_maxime: 2 },
-      { descriere: 'Obținerea $z = -1+2i$', puncte_maxime: 1 }
+      { descriere: 'Obținerea $\\boxed{z = -1+2i}$', puncte_maxime: 1 }
     ]
   },
   {

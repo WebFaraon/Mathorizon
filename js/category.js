@@ -16,6 +16,10 @@
      per subchapter; teachers/admin are unrestricted. ---- */
   const FREE_EXERCISES_PER_SUBCAT = 10;
 
+  /* ---- Collectible-card ("rarity") redesign — opt-in per subcategory.
+     See renderExercises/renderFilterBar below for what this toggles. ---- */
+  const RARITY_SUBCATS = new Set(['calcul-algebric', 'polinoame']);
+
   function hasFullBankAccess() {
     const role = window.BMAuth?.role;
     return role === 'profesor' || role === 'admin';
@@ -310,7 +314,7 @@
   function renderFilterBar() {
     const bar = document.getElementById('filterBar');
     if (!bar) return;
-    const isRarityPage = currentSubcat === 'calcul-algebric';
+    const isRarityPage = RARITY_SUBCATS.has(currentSubcat);
     bar.classList.toggle('filter-bar--rarity', isRarityPage);
 
     const statusChips = `
@@ -522,7 +526,7 @@
     return '';
   }
 
-  /* ---- Rarity redesign (preview — calcul-algebric subcategory only) ---- */
+  /* ---- Rarity redesign (preview — see RARITY_SUBCATS above) ---- */
   const RARITY_BY_DIFF = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };
 
   function renderRarityCards(container) {
@@ -587,6 +591,49 @@
     });
 
     if (window.renderMathInElement) BM.renderMath(container);
+    /* Deferred a frame: on the initial subcategory navigation this renders
+       inside switchView's doShow *before* it un-hides the exercises section
+       (showEl.style.display is set back to '' right after this callback
+       returns) — measuring synchronously here would run against a
+       display:none ancestor, where every box/scroll dimension reads 0, so
+       nothing would ever get scaled. Waiting a frame guarantees the section
+       is actually visible and laid out first. */
+    requestAnimationFrame(() => shrinkRarityFormulasToFit(container));
+  }
+
+  /* Polynomial/matrix statements (polinoame) commonly render wider than the
+     radicals/logs calcul-algebric was designed around, so the fixed 88px
+     preview box can't just rely on a single font-size fitting everything —
+     see css/style.css's .rarity-card__statement-formula comment. Scale each
+     formula down only as much as it needs so it fits the box uniformly,
+     instead of letting overflow-x:hidden silently clip long expressions. */
+  function shrinkRarityFormulasToFit(container) {
+    container.querySelectorAll('.rarity-card__statement').forEach(box => {
+      const formula = box.querySelector('.rarity-card__statement-formula');
+      if (!formula) return;
+      formula.style.transform = '';
+      /* Measure the innermost KaTeX element, not `formula` itself — both
+         it and .katex-display carry their own overflow-x:hidden (see CSS),
+         and scrollWidth on an element only reports what's visible past a
+         *descendant's* own clipping, not past its own. Two nested hidden
+         layers meant formula.scrollWidth always came back pre-clipped to
+         "already fits", so overflow silently slipped through as invisible
+         clipped pixels instead of ever triggering a shrink. */
+      const katex = formula.querySelector('.katex-display, .katex');
+      if (!katex) return;
+      const cs = getComputedStyle(box);
+      // A few px of slack so a shrunk formula never sits flush against the
+      // box edge — fitting exactly to the pixel reads as clipped even when
+      // technically nothing's cut off.
+      const SAFETY = 6;
+      const availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)  - SAFETY;
+      const availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom) - SAFETY;
+      const needW  = katex.scrollWidth;
+      const needH  = katex.scrollHeight;
+      if (!needW || !needH) return;
+      const scale = Math.min(1, availW / needW, availH / needH);
+      if (scale < 1) formula.style.transform = `scale(${scale.toFixed(3)})`;
+    });
   }
 
   function buildRarityModal(ex, rarity) {
@@ -738,7 +785,7 @@
       return;
     }
 
-    const isRarityPage = currentSubcat === 'calcul-algebric';
+    const isRarityPage = RARITY_SUBCATS.has(currentSubcat);
     container.classList.toggle('exercises-container--rarity', isRarityPage);
     if (isRarityPage) { renderRarityCards(container); return; }
 
@@ -1100,6 +1147,21 @@
     }
 
     refreshHeader();
+  });
+
+  /* The grid's column count (and so each card's width) changes with
+     viewport width via auto-fill/minmax — a scale computed once at render
+     time goes stale across a resize or orientation change, leaving formulas
+     either still-clipped or shrunk more than they now need to be. */
+  let resizeTimer = null;
+  window.addEventListener('resize', () => {
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(() => {
+      const container = document.getElementById('exercisesContainer');
+      if (container && container.classList.contains('exercises-container--rarity')) {
+        shrinkRarityFormulasToFit(container);
+      }
+    }, 150);
   });
 
   /* ---- Start ---- */
