@@ -2368,18 +2368,38 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* ---- Locked exercise card (package restriction) ---- */
 .ex-card--locked {
+  position: relative;
   cursor: default;
-  opacity: 0.72;
 }
-.ex-card--locked .ex-card__head { cursor: default; }
+.ex-card--locked .ex-card__head { cursor: default; filter: blur(4px); opacity: 0.75; }
 .ex-card--locked .ex-card__num  { opacity: 0.4; }
 .ex-card__title--locked {
   color: var(--text-muted);
-  filter: blur(3px);
   user-select: none;
 }
-.ex-card__locked-cta { flex-shrink: 0; }
-.ex-card__locked-cta .btn { font-size: 0.8rem; padding: 6px 14px; white-space: nowrap; }
+
+.ex-card__lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  pointer-events: none;
+}
+.ex-card__lock-icon {
+  font-size: 1.4rem;
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+.ex-card__lock-text {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+}
 
 /* ---- 13b. RARITY CARD SYSTEM (opt-in per subcategory) ----
    Collectible-card-style redesign, gated in js/category.js to whichever
@@ -2589,7 +2609,7 @@ body.bac-exam-mode .nav.nav--peek {
 .rarity-card__statement-formula.math-content {
   overflow-x: visible;
   font-size: 1rem;
-  max-width: 100%;
+  max-width: none;
 }
 /* Deliberately NOT overflow-hidden here (or on .katex-display below): a CSS
    transform doesn't shrink an element's own layout box before that box
@@ -2605,17 +2625,58 @@ body.bac-exam-mode .nav.nav--peek {
   margin: 0;
   overflow: visible;
 }
+/* .math-content .katex-display .katex further down this file caps this at
+   max-width:100% for the normal accordion view (where overflow-x:auto lets
+   long formulas scroll). Here there's no scrollbar to fall back on, so a
+   long polynomial's box got squeezed to the card width while its (nowrap)
+   glyphs still rendered at full size past that squeezed edge — the box
+   handed to flex's justify-content:center was narrower than what was
+   actually painted, so "centering" a too-narrow box no longer centered the
+   real content, and it also broke the scale-to-fit below (offsetWidth/
+   scrollWidth read the squeezed box, not the true size, so oversized
+   formulas were never detected as needing to shrink at all). Uncapped, the
+   box's own size always matches its content, so both the centering and the
+   shrinkRarityFormulasToFit measurement are accurate. */
+.rarity-card__statement-formula.math-content .katex-display .katex {
+  max-width: none;
+}
 
 /* Locked card (package restriction) — same footprint, no rarity flourish
-   since the content underneath is hidden anyway. */
+   since the content underneath is hidden anyway. The title still renders
+   (for layout weight/variety across the grid) but sits behind a blur, with
+   a lock icon + upsell text overlaid on top, unblurred. */
 .rarity-card--locked {
   cursor: default;
   border-color: var(--border);
   background: var(--card);
 }
 .rarity-card--locked:hover { transform: none; box-shadow: var(--shadow-card); }
-.rarity-card--locked .rarity-card__inner { align-items: center; justify-content: center; text-align: center; gap: 10px; }
-.rarity-card--locked .rarity-card__title--locked { color: var(--text-muted); filter: blur(3px); user-select: none; height: auto; -webkit-line-clamp: 3; }
+.rarity-card--locked .rarity-card__inner { align-items: center; justify-content: center; text-align: center; gap: 10px; filter: blur(4px); opacity: 0.75; }
+.rarity-card--locked .rarity-card__title--locked { color: var(--text-muted); user-select: none; height: auto; -webkit-line-clamp: 3; }
+
+.rarity-card__lock-overlay {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  pointer-events: none;
+}
+.rarity-card__lock-icon {
+  font-size: 1.7rem;
+  opacity: 0.65;
+  filter: grayscale(0.4);
+}
+.rarity-card__lock-text {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  letter-spacing: 0.2px;
+  padding: 0 16px;
+}
 
 @media (max-width: 640px) {
   /* Single column on phones — the floating rarity badge pokes ~11px above

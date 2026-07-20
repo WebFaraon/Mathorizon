@@ -542,8 +542,11 @@
         return `
         <div class="rarity-card rarity-card--locked" data-rarity="${rarity}" id="card-${ex.id}">
           <div class="rarity-card__inner">
-            <div class="rarity-card__title rarity-card__title--locked">🔒 ${BM.esc(ex.title)}</div>
-            <a class="btn btn--accent" href="pachete.html">Deblochează</a>
+            <div class="rarity-card__title rarity-card__title--locked">${BM.esc(ex.title)}</div>
+          </div>
+          <div class="rarity-card__lock-overlay">
+            <span class="rarity-card__lock-icon" aria-hidden="true">🔒</span>
+            <span class="rarity-card__lock-text">Pachet Standard necesar</span>
           </div>
         </div>`;
       }
@@ -599,6 +602,16 @@
        nothing would ever get scaled. Waiting a frame guarantees the section
        is actually visible and laid out first. */
     requestAnimationFrame(() => shrinkRarityFormulasToFit(container));
+    /* The KaTeX web font can still be loading when the measurement above
+       runs, so scrollWidth is read off fallback-font metrics — usually
+       narrower than the real KaTeX glyphs. That under-measurement is what
+       let several formulas skip scaling entirely (computed as "already
+       fits") and then grow past the box once the real font swaps in, with
+       nothing left to re-trigger a recompute. Re-running once fonts are
+       actually ready re-measures against the final metrics. */
+    if (document.fonts && document.fonts.ready) {
+      document.fonts.ready.then(() => shrinkRarityFormulasToFit(container));
+    }
   }
 
   /* Polynomial/matrix statements (polinoame) commonly render wider than the
@@ -810,11 +823,12 @@
                 ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
                 <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
               </div>
-              <div class="ex-card__title ex-card__title--locked">🔒 ${BM.esc(ex.title)}</div>
+              <div class="ex-card__title ex-card__title--locked">${BM.esc(ex.title)}</div>
             </div>
-            <div class="ex-card__locked-cta">
-              <a class="btn btn--accent" href="pachete.html">Deblochează</a>
-            </div>
+          </div>
+          <div class="ex-card__lock-overlay">
+            <span class="ex-card__lock-icon" aria-hidden="true">🔒</span>
+            <span class="ex-card__lock-text">Pachet Standard necesar</span>
           </div>
         </div>`;
       }
