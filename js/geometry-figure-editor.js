@@ -287,53 +287,112 @@
   };
 
   var SHAPE_LABELS = {
-    'tri-isoscel': 'Isoscel', 'tri-echilateral': 'Echilateral', 'tri-oarecare': 'Oarecare',
+    'tri-isoscel': 'Triunghi isoscel', 'tri-echilateral': 'Triunghi echilateral', 'tri-oarecare': 'Triunghi oarecare',
     cerc: 'Cerc', patrat: 'Pătrat', paralelogram: 'Paralelogram',
-    'trapez-isoscel': 'Trapez is.', 'trapez-dreptunghic': 'Trapez dr.',
-    cub: 'Cub', 'piramida-patrata': 'Piramidă (pătrat)', 'piramida-triunghiulara': 'Piramidă (triunghi)',
+    'trapez-isoscel': 'Trapez isoscel', 'trapez-dreptunghic': 'Trapez dreptunghic',
+    cub: 'Cub', 'piramida-patrata': 'Piramidă (bază pătrată)', 'piramida-triunghiulara': 'Piramidă (bază triunghiulară)',
     sfera: 'Sferă', con: 'Con', cilindru: 'Cilindru'
   };
 
+  // Small outline glyphs (viewBox 0 0 24 24, stroke=currentColor) matching
+  // DrawingCanvas's pen/eraser icon style — 2D shapes as plain outlines, 3D
+  // solids as simplified versions of the same oblique-projection convention
+  // used for the actual inserted shapes (offset/second face + dashed hidden
+  // edges), just legible at icon scale.
+  var SHAPE_ICONS = {
+    'tri-isoscel':    '<path d="M12 4 4 20 20 20Z"/>',
+    'tri-echilateral':'<path d="M12 3.5 3.5 20.5 20.5 20.5Z"/><path d="M7.2 12.4 8.4 12.9"/><path d="M16.8 12.4 15.6 12.9"/><path d="M10.5 20.5 10.5 19.1"/><path d="M13.5 20.5 13.5 19.1"/>',
+    'tri-oarecare':   '<path d="M15 4 3 20 21 17Z"/>',
+    cerc:             '<circle cx="12" cy="12" r="8.5"/>',
+    patrat:           '<rect x="4.5" y="4.5" width="15" height="15"/>',
+    paralelogram:     '<path d="M8 6 20 6 16 18 4 18Z"/>',
+    'trapez-isoscel': '<path d="M9 6 15 6 20 18 4 18Z"/>',
+    'trapez-dreptunghic': '<path d="M6 6 15 6 20 18 6 18Z"/>',
+    cub: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15 14 15" stroke-dasharray="2.2 2"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/>',
+    'piramida-patrata': '<path d="M4 18 12 21 20 18" stroke-dasharray="2.2 2"/><path d="M4 18 9 15 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 9 15" stroke-dasharray="2.2 2"/>',
+    'piramida-triunghiulara': '<path d="M4 19 20 19"/><path d="M12 3 4 19"/><path d="M12 3 20 19"/><path d="M12 3 12 19" stroke-dasharray="2.2 2"/>',
+    sfera: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6" stroke-dasharray="2.2 2"/>',
+    con: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
+    cilindru: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>'
+  };
+
+  var TOOL_ICONS = {
+    select: '<path d="M5 3 5 19 9 15 12 21.5 14.7 20.2 12 14.5 17 14Z" fill="currentColor" stroke="none"/>',
+    segment: '<path d="M5 19 19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/>',
+    text: '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>',
+    'right-angle': '<path d="M5 5v14h14"/><path d="M5 12h7v7"/>',
+    arc: '<path d="M5 19 19 19"/><path d="M5 19V5"/><path d="M9 19a10 10 0 0 1 8-9.8"/>',
+    tick: '<path d="M6 4 6 20"/><path d="M12 4 12 20"/><path d="M3 9 9 9"/><path d="M3 15 9 15"/><path d="M9 9 15 9"/><path d="M9 15 15 15"/>'
+  };
+
+  function _gfeIcon(inner) {
+    return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  }
+
   var TOOLBAR_HTML = `
-    <div class="dc-tool-group gfe-shape-group">
-      ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic']
-        .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="Inserează ${SHAPE_LABELS[id]}">${SHAPE_LABELS[id]}</button>`; }).join('')}
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Forme 2D</span>
+      <div class="dc-tool-group gfe-shape-group">
+        ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic']
+          .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+      </div>
     </div>
-    <div class="dc-tool-group gfe-shape-group">
-      ${['cub','piramida-patrata','piramida-triunghiulara','sfera','con','cilindru']
-        .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="Inserează ${SHAPE_LABELS[id]}">${SHAPE_LABELS[id]}</button>`; }).join('')}
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Corpuri 3D</span>
+      <div class="dc-tool-group gfe-shape-group">
+        ${['cub','piramida-patrata','piramida-triunghiulara','sfera','con','cilindru']
+          .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+      </div>
     </div>
-    <div class="dc-tool-group">
-      <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">↖</button>
-      <button class="dc-tool-btn" data-tool="segment" title="Segment (mediană, bisectoare, înălțime...)">╱</button>
-      <button class="dc-action-btn" id="gfe-dash-toggle" aria-pressed="false" title="Segment punctat">┄</button>
-      <button class="dc-tool-btn" data-tool="text" title="Etichetă text">T</button>
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Linii și segmente</span>
+      <div class="dc-tool-group">
+        <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">${_gfeIcon(TOOL_ICONS.select)}</button>
+        <button class="dc-tool-btn" data-tool="segment" title="Segment (mediană, bisectoare, înălțime...)">${_gfeIcon(TOOL_ICONS.segment)}</button>
+        <button class="dc-action-btn" id="gfe-dash-toggle" aria-pressed="false" title="Segment punctat">┄</button>
+      </div>
     </div>
-    <div class="dc-tool-group">
-      <button class="dc-tool-btn" data-tool="right-angle" title="Unghi drept">⌐</button>
-      <button class="dc-tool-btn" data-tool="arc" title="Arc unghi">⌒</button>
-      <button class="dc-tool-btn" data-tool="tick" title="Segmente egale (marcaj)">‖</button>
-      <button class="gfe-tick-btn gfe-tick-btn--active" data-tick="1" title="1 liniuță">1</button>
-      <button class="gfe-tick-btn" data-tick="2" title="2 liniuțe">2</button>
-      <button class="gfe-tick-btn" data-tick="3" title="3 liniuțe">3</button>
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Adnotări</span>
+      <div class="dc-tool-group">
+        <button class="dc-tool-btn" data-tool="right-angle" title="Unghi drept">${_gfeIcon(TOOL_ICONS['right-angle'])}</button>
+        <button class="dc-tool-btn" data-tool="arc" title="Arc unghi">${_gfeIcon(TOOL_ICONS.arc)}</button>
+        <button class="dc-tool-btn" data-tool="tick" title="Segmente egale (marcaj)">${_gfeIcon(TOOL_ICONS.tick)}</button>
+        <button class="gfe-tick-btn gfe-tick-btn--active" data-tick="1" title="1 liniuță">1</button>
+        <button class="gfe-tick-btn" data-tick="2" title="2 liniuțe">2</button>
+        <button class="gfe-tick-btn" data-tick="3" title="3 liniuțe">3</button>
+      </div>
     </div>
-    <div class="dc-tool-group">
-      <button class="dc-color-btn dc-color-btn--active" data-color="" data-adaptive title="Culoare implicită" aria-label="Culoare implicită"></button>
-      <button class="dc-color-btn" data-color="#dc2626" style="background:#dc2626" title="Roșu" aria-label="Culoare roșu"></button>
-      <button class="dc-color-btn" data-color="#1d4ed8" style="background:#1d4ed8" title="Albastru" aria-label="Culoare albastru"></button>
-      <button class="dc-color-btn" data-color="#16a34a" style="background:#16a34a" title="Verde" aria-label="Culoare verde"></button>
-      <input type="color" id="gfe-color-picker" class="gfe-color-picker" value="#dc2626" title="Altă culoare" aria-label="Alege altă culoare">
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Text</span>
+      <div class="dc-tool-group">
+        <button class="dc-tool-btn" data-tool="text" title="Etichetă text">${_gfeIcon(TOOL_ICONS.text)}</button>
+      </div>
     </div>
-    <div class="dc-tool-group dc-tool-group--right">
-      <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">−</button>
-      <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
-      <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">+</button>
-      <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">⤢</button>
-      <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">▦</button>
-      <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">↺</button>
-      <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">↻</button>
-      <button class="dc-action-btn" id="gfe-delete-btn" title="Șterge selecția (Delete)">🗑</button>
-      <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">⨯</button>
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Culori</span>
+      <div class="dc-tool-group">
+        <button class="dc-color-btn dc-color-btn--active" data-color="" data-adaptive title="Culoare implicită" aria-label="Culoare implicită"></button>
+        <button class="dc-color-btn" data-color="#ffffff" style="background:#ffffff;border-color:var(--border)" title="Alb" aria-label="Culoare alb"></button>
+        <button class="dc-color-btn" data-color="#dc2626" style="background:#dc2626" title="Roșu" aria-label="Culoare roșu"></button>
+        <button class="dc-color-btn" data-color="#1d4ed8" style="background:#1d4ed8" title="Albastru" aria-label="Culoare albastru"></button>
+        <button class="dc-color-btn" data-color="#16a34a" style="background:#16a34a" title="Verde" aria-label="Culoare verde"></button>
+        <input type="color" id="gfe-color-picker" class="gfe-color-picker" value="#dc2626" title="Altă culoare" aria-label="Alege altă culoare">
+      </div>
+    </div>
+    <div class="gfe-tool-section gfe-tool-section--actions dc-tool-group--right">
+      <span class="gfe-tool-section__label">Acțiuni</span>
+      <div class="dc-tool-group">
+        <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">−</button>
+        <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
+        <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">+</button>
+        <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">⤢</button>
+        <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">▦</button>
+        <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">↺</button>
+        <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">↻</button>
+        <button class="dc-action-btn" id="gfe-delete-btn" title="Șterge selecția (Delete)">🗑</button>
+        <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">⨯</button>
+      </div>
     </div>
   `;
 

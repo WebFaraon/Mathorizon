@@ -14509,17 +14509,39 @@ body.dc-fullscreen-active .dc-wrap {
   overflow: hidden;
 }
 
-.gfe-toolbar { flex-wrap: wrap; }
+.gfe-toolbar { flex-wrap: wrap; align-items: flex-start; }
+
+/* ---- Grouped, visually-boxed toolbar sections ---- */
+.gfe-tool-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 6px 10px 8px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0 2px;
+}
+.gfe-tool-section + .gfe-tool-section { border-left: 1px solid var(--border); }
+.gfe-tool-section__label {
+  font-size: 9.5px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  padding-left: 2px;
+}
+.gfe-tool-section .dc-tool-group { gap: 4px; }
+.gfe-tool-section--actions { margin-left: auto; }
 
 .gfe-shape-btn {
-  width: auto;
-  height: 30px;
-  padding: 0 10px;
-  font-size: 11.5px;
-  font-weight: 600;
-  white-space: nowrap;
+  width: 34px;
+  height: 34px;
+  padding: 6px;
   border-radius: 6px;
 }
+.gfe-shape-btn svg { width: 18px; height: 18px; display: block; }
 
 .gfe-tick-btn {
   width: 24px;
@@ -14577,6 +14599,52 @@ body.dc-fullscreen-active .dc-wrap {
   height: auto;
   display: block;
 }
+
+/* ============================================================
+   Admin "Adaugă exercițiu" full page (admin-add-exercise.html)
+   ============================================================ */
+.ae-page-wrap {
+  max-width: 1400px;
+  margin: 0 auto;
+  padding: 32px 20px 60px;
+}
+
+/* Generous, unmistakable separation between the stacked sections —
+   .prof-card already gives each one its own bordered/shaded card. */
+.ae-section { margin-bottom: 32px; }
+
+/* Bigger working area + pinned toolbar, scoped here rather than baked into
+   .gfe-canvas-wrap/.gfe-toolbar's own defaults so the component's normal
+   (smaller, non-sticky) size is unaffected if it's ever embedded elsewhere. */
+.ae-geo-editor .gfe-canvas-wrap {
+  height: 70vh;
+  min-height: 640px;
+}
+.ae-geo-editor .gfe-toolbar {
+  position: sticky;
+  top: var(--nav-h);
+  z-index: 90;
+}
+
+/* ---- Editable barem / metode-alternative rows (§4) ---- */
+.ae-barem-row, .ae-alt-row {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+.ae-barem-row:last-child, .ae-alt-row:last-child { border-bottom: none; }
+.ae-barem-row__nr {
+  flex: 0 0 auto;
+  padding-top: 10px;
+  font-weight: 700;
+  color: var(--accent);
+}
+.ae-barem-row__desc, .ae-alt-row__desc { flex: 1 1 auto; min-width: 0; }
+.ae-barem-row__pts { flex: 0 0 70px; }
+.ae-alt-row__nume { flex: 0 0 180px; }
+.ae-barem-row__del, .ae-alt-row__del { flex: 0 0 auto; margin-top: 4px; }
 
 @media (max-width: 480px) {
   .pricing-hero { padding: 48px 0 32px; }

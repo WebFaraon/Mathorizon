@@ -1,10 +1,10 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ro" translate="no">
 <head>
   <meta charset="UTF-8">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Admin — Mathorizon</title>
+  <title>Adaugă Exercițiu — Mathorizon</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
@@ -65,72 +65,69 @@
   </nav>
 
   <main class="main container">
-    <div class="admin-wrap" id="adminWrap" style="display:none">
+    <div class="ae-page-wrap" id="aeWrap" style="display:none">
 
-      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:6px">
-        <a href="profile.html" class="btn btn--surface btn--sm">← Profil</a>
-        <h1 class="admin-title" style="margin-bottom:0;flex:1 1 auto">Panou Admin</h1>
-        <button class="btn btn--primary btn--sm" id="openAddExerciseBtn" style="margin-left:auto">+ Adaugă exercițiu</button>
-      </div>
-      <p class="admin-sub">Gestionează conturile de profesor și monitorizează platforma.</p>
-
-      <!-- Stats -->
-      <div class="admin-stats-grid" id="adminStats">
-        <div class="admin-stat-card">
-          <div class="admin-stat-val" id="statPending">—</div>
-          <div class="admin-stat-lbl">Cereri în așteptare</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-val" id="statApproved">—</div>
-          <div class="admin-stat-lbl">Profesori aprobați</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-val" id="statRejected">—</div>
-          <div class="admin-stat-lbl">Cereri respinse</div>
-        </div>
-        <div class="admin-stat-card">
-          <div class="admin-stat-val" id="statStudents">—</div>
-          <div class="admin-stat-lbl">Elevi înregistrați</div>
-        </div>
+      <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px">
+        <a href="admin.html" class="btn btn--surface btn--sm">← Panou Admin</a>
+        <h1 class="admin-title" style="margin-bottom:0;flex:1 1 auto">Adaugă Exercițiu</h1>
       </div>
 
-      <!-- Pending professors -->
-      <div class="admin-section-title">⏳ Cereri în așteptare</div>
-      <div id="pendingList">
-        <div class="admin-empty">Se încarcă…</div>
-      </div>
-
-      <!-- Tab switcher: Profesori / Elevi -->
-      <div class="admin-people-header" style="margin-top:36px">
-        <div class="admin-tabs">
-          <button class="admin-tab admin-tab--active" id="tabProfs" onclick="switchAdminTab('profs')">
-            👨‍🏫 Profesori <span class="admin-tab-count" id="tabProfCount"></span>
-          </button>
-          <button class="admin-tab" id="tabStuds" onclick="switchAdminTab('studs')">
-            👩‍🎓 Elevi <span class="admin-tab-count" id="tabStudCount"></span>
-          </button>
+      <!-- §1 Detalii -->
+      <div class="prof-card ae-section">
+        <div class="prof-card__head">
+          <span class="prof-card__icon">1️⃣</span>
+          <span class="prof-card__title">Detalii exercițiu</span>
         </div>
-        <input class="admin-search" id="adminSearch" type="text" placeholder="Caută după nume…" oninput="adminFilterSearch()">
+        <div class="prof-card__body" id="aeDetaliiBody"></div>
       </div>
 
-      <div id="panelProfs">
-        <div class="admin-empty">Se încarcă…</div>
+      <!-- §2 Desenează figura (Geometrie only) -->
+      <div class="prof-card ae-section" id="aeGeoCard" style="display:none">
+        <div class="prof-card__head">
+          <span class="prof-card__icon">2️⃣</span>
+          <span class="prof-card__title">Desenează figura</span>
+        </div>
+        <div class="prof-card__body">
+          <p class="wz-subtitle" style="margin-bottom:14px">Figura e doar un ajutor vizual pentru elev — nu este verificată de AI.</p>
+          <div class="ae-geo-editor" id="aeGeoMount"></div>
+        </div>
       </div>
-      <div id="panelStuds" style="display:none">
-        <div class="admin-empty">Se încarcă…</div>
+
+      <!-- §3 Fotografie -->
+      <div class="prof-card ae-section">
+        <div class="prof-card__head">
+          <span class="prof-card__icon" id="aeStep3Icon">3️⃣</span>
+          <span class="prof-card__title" id="aeStep3Title">Fotografie exercițiu</span>
+        </div>
+        <div class="prof-card__body" id="aeFotoBody"></div>
+      </div>
+
+      <!-- §4 Analiză AI + barem -->
+      <div class="prof-card ae-section">
+        <div class="prof-card__head">
+          <span class="prof-card__icon" id="aeStep4Icon">4️⃣</span>
+          <span class="prof-card__title" id="aeStep4Title">Analiză AI și barem</span>
+        </div>
+        <div class="prof-card__body" id="aeAnalysisBody">
+          <p class="cls-form-hint">Analizează o fotografie mai sus pentru a vedea rezultatul aici.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;justify-content:flex-end;margin:28px 0 60px">
+        <button class="btn btn--primary" id="aeConfirmBtn" disabled>Confirmă și adaugă</button>
       </div>
 
     </div>
 
     <!-- Access denied / loading -->
-    <div id="adminDenied" style="display:none;text-align:center;padding:80px 20px">
+    <div id="aeDenied" style="display:none;text-align:center;padding:80px 20px">
       <div style="font-size:3rem;margin-bottom:16px">🔒</div>
       <h2 style="font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:8px">Acces interzis</h2>
       <p style="color:var(--text-muted)">Această pagină este disponibilă doar pentru administratori.</p>
       <a href="index.html" class="btn btn--primary" style="margin-top:20px">Înapoi la pagina principală</a>
     </div>
 
-    <div id="adminLoading" style="text-align:center;padding:80px 20px;color:var(--text-muted)">
+    <div id="aeLoading" style="text-align:center;padding:80px 20px;color:var(--text-muted)">
       Se verifică accesul…
     </div>
   </main>
@@ -145,6 +142,8 @@
   <script src="js/auth.js"></script>
   <script src="js/data.js"></script>
   <script src="js/panels.js"></script>
-  <script src="js/admin-page.js"></script>
+  <script src="js/vendor/fabric.min.js"></script>
+  <script src="js/geometry-figure-editor.js"></script>
+  <script src="js/admin-add-exercise.js"></script>
 </body>
 </html>

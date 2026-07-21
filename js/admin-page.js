@@ -327,5 +327,12 @@
     }
 
     await renderAdmin((await auth.supabase.auth.getSession()).data.session);
+
+    // "Adaugă exercițiu" now navigates to its own full page (was a modal
+    // wizard, admin-exercise.js) — the geometry figure editor needs far
+    // more room than a modal can give it.
+    document.getElementById('openAddExerciseBtn')?.addEventListener('click', () => {
+      window.location.href = 'admin-add-exercise.html';
+    });
   });
 })();
