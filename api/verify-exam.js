@@ -3,15 +3,16 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { generateContentWithRetry } = require('./_gemini-retry');
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
-// "no longer available") even though some 2.x entries still show up in
-// ListModels — gemini-3-flash-preview is the current working replacement
-// (confirmed directly against the API, including image/vision input).
-// Being a "-preview" name, it may itself get renamed later — if this starts
-// 404ing again, check https://ai.google.dev/gemini-api/docs/models for the
-// current model list.
+// "no longer available"). We initially replaced it with gemini-3-flash-preview,
+// but "-preview" models carry noticeably more restrictive rate limits than
+// stable releases and started throwing transient 503 "high demand" errors as
+// usage grew — gemini-3.5-flash is the stable/GA successor in the same tier
+// (confirmed image/vision input support), so it's used instead. If this
+// starts 404ing later, check https://ai.google.dev/gemini-api/docs/models
+// for the current stable model list.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
-  model: 'gemini-3-flash-preview',
+  model: 'gemini-3.5-flash',
   generationConfig: { temperature: 0 }
 });
 
