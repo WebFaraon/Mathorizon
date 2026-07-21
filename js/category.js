@@ -678,6 +678,7 @@
             </div>
             <h3 class="rarity-modal__title">${BM.esc(ex.title)}</h3>
             <div class="rarity-modal__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            ${BM.renderExerciseFigure(ex)}
             ${barem.length ? `
             <div class="rarity-modal__barem-title">Barem</div>
             ${stepsHtml}
@@ -867,6 +868,7 @@
 
           <div class="ex-card__body" id="body-${ex.id}" onclick="toggleCard('${ex.id}')">
             <div class="ex-card__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            ${BM.renderExerciseFigure(ex)}
             <div class="ex-card__solution math-content" id="sol-${ex.id}"></div>
             <div class="ex-card__foot">
               <button class="btn btn--ghost" onclick="event.stopPropagation(); toggleSolution('${ex.id}')">Arată soluția</button>

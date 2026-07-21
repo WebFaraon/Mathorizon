@@ -14494,6 +14494,90 @@ body.dc-fullscreen-active .dc-wrap {
   .token-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
+/* ============================================================
+   Geometry Figure Editor (admin "Desenează figura" step) —
+   reuses .dc-toolbar/.dc-tool-group/.dc-tool-btn/.dc-action-btn/
+   .dc-color-btn from the DrawingCanvas toolbar (js/drawing-canvas.js)
+   for a consistent visual language; only editor-specific bits below.
+   ============================================================ */
+.gfe-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.gfe-toolbar { flex-wrap: wrap; }
+
+.gfe-shape-btn {
+  width: auto;
+  height: 30px;
+  padding: 0 10px;
+  font-size: 11.5px;
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: 6px;
+}
+
+.gfe-tick-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.gfe-tick-btn:hover { background: var(--card-hover); color: var(--text); }
+.gfe-tick-btn--active { background: var(--accent); color: #fff; border-color: transparent; }
+
+.gfe-color-picker {
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+.gfe-color-picker::-webkit-color-swatch-wrapper { padding: 2px; }
+.gfe-color-picker::-webkit-color-swatch { border: none; border-radius: 3px; }
+
+.gfe-canvas-wrap {
+  position: relative;
+  width: 100%;
+  min-height: 480px;
+  height: 480px;
+  background: var(--surface);
+  line-height: 0;
+}
+
+.gfe-canvas-wrap--grid {
+  background-image:
+    repeating-linear-gradient(0deg,  var(--border) 0 1px, transparent 1px 24px),
+    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 24px);
+}
+
+/* ---- Saved figure, shown alongside an exercise statement ---- */
+.bac-exercise-figure {
+  margin-top: 14px;
+  padding: 14px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  display: flex;
+  justify-content: center;
+}
+.bac-exercise-figure svg {
+  max-width: 100%;
+  height: auto;
+  display: block;
+}
+
 @media (max-width: 480px) {
   .pricing-hero { padding: 48px 0 32px; }
   .pricing-section { padding: 40px 0 16px; }

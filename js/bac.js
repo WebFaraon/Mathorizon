@@ -919,6 +919,7 @@
           <div class="bac-card-body">
             <h2 class="bac-slot-title">${BM.esc(ex.title)}</h2>
             <div class="bac-statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            ${BM.renderExerciseFigure(ex)}
           </div>
         </div>
         <div class="bac-notes-card" id="notesCard">
@@ -1044,6 +1045,7 @@
     mini.innerHTML = `
       <div class="dc-mini-exercise__title">${BM.esc(ex.title)}</div>
       <div class="dc-mini-exercise__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+      ${BM.renderExerciseFigure(ex)}
     `;
     if (window.renderMathInElement) BM.renderMath(mini);
     // Whole card is the drag surface — grab it from anywhere.

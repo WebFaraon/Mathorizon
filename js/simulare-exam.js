@@ -426,6 +426,7 @@ window.BM = window.BM || {};
         <div class="bac-card-body">
           <h2 class="bac-slot-title">Item ${idx + 1} · ${item.points}p</h2>
           <div class="bac-statement math-content" id="simStatement"></div>
+          ${BM.renderExerciseFigure({ figureSvg: item.figure_svg })}
         </div>
       </div>
       ${isGrila ? `

@@ -25,6 +25,7 @@
   const GRADE_LABEL = { '9': 'Clasa a 9-a', bac: 'BAC' };
 
   let ae = null;
+  let aeGeoEditor = null; // mounted GeometryFigureEditor instance while step 4 is shown
 
   // Gemini sometimes wraps raspuns_final in its own $...$/$$...$$ even though
   // the prompt asks for bare LaTeX — strip it so we can safely nest it inside
@@ -42,7 +43,8 @@
       step: 1,
       grade: '', categoryId: '', subcategoryId: '', difficulty: '', punctajTotal: '',
       file: null, mimeType: '', imageBase64: '', previewUrl: '',
-      aiResult: null
+      aiResult: null,
+      figureData: null, figureSvg: null
     };
     _aeShowModal();
   }
@@ -94,6 +96,7 @@
   }
 
   function _aeClose() {
+    if (aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
     document.getElementById('aeWizard')?.remove();
     document.documentElement.style.overflow = '';
     document.body.style.overflow = '';
@@ -108,7 +111,10 @@
     const nextBtn = document.getElementById('aeNextBtn');
     if (!body || !steps || !backBtn || !nextBtn) return;
 
-    const labels = ['Detalii', 'Fotografie', 'Verificare'];
+    const isGeo = ae.categoryId === 'geometrie';
+    const labels = isGeo
+      ? ['Detalii', 'Fotografie', 'Verificare', 'Figură']
+      : ['Detalii', 'Fotografie', 'Verificare'];
     steps.innerHTML = labels.map((l, i) => `
       <div class="wz-step-item">
         <div class="wz-step-dot${i + 1 < ae.step ? ' wz-step-dot--done' : ''}${i + 1 === ae.step ? ' wz-step-dot--active' : ''}">
@@ -116,14 +122,15 @@
         </div>
         <span class="wz-step-label">${l}</span>
       </div>
-      ${i < 2 ? '<div class="wz-step-line"></div>' : ''}
+      ${i < labels.length - 1 ? '<div class="wz-step-line"></div>' : ''}
     `).join('');
 
     backBtn.style.visibility = ae.step === 1 ? 'hidden' : '';
     backBtn.disabled = false;
     nextBtn.textContent =
       ae.step === 2 ? 'Analizează cu AI →' :
-      ae.step === 3 ? 'Confirmă și adaugă'  : 'Continuă →';
+      ae.step === 3 ? (isGeo ? 'Continuă →' : 'Confirmă și adaugă') :
+      ae.step === 4 ? 'Confirmă și adaugă' : 'Continuă →';
     nextBtn.disabled = false;
 
     if (ae.step === 1) { body.innerHTML = _aeStep1(); _aeBindStep1(body); }
@@ -134,6 +141,7 @@
       const baremSum = (r.pasi_barem || []).reduce((s, p) => s + (Number(p.puncte_maxime) || 0), 0);
       nextBtn.disabled = !!(ae.punctajTotal && baremSum !== Number(ae.punctajTotal));
     }
+    if (ae.step === 4) { body.innerHTML = _aeStep4(); _aeBindStep4(body); }
   }
 
   /* ---- Step 1 — Detalii ---- */
@@ -341,9 +349,29 @@
     });
   }
 
+  /* ---- Step 4 — Figură (Geometrie only) ---- */
+  function _aeStep4() {
+    return `
+      <p class="wz-subtitle">Desenează figura corespunzătoare exercițiului — e doar un ajutor vizual pentru elev, nu este verificată de AI.</p>
+      <div id="aeGeoMount"></div>
+    `;
+  }
+
+  function _aeBindStep4(body) {
+    if (aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
+    const mount = body.querySelector('#aeGeoMount');
+    aeGeoEditor = new GeometryFigureEditor(mount, {
+      initialData: ae.figureData || null,
+      onChange: (json) => { ae.figureData = json; }
+    });
+  }
+
   /* ---- Navigation ---- */
   function _aeBack() {
-    if (ae.step > 1) { ae.step--; _aeRender(); }
+    if (ae.step > 1) {
+      if (ae.step === 4 && aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
+      ae.step--; _aeRender();
+    }
   }
 
   async function _aeNext() {
@@ -359,6 +387,12 @@
       return;
     }
     if (ae.step === 3) {
+      if (ae.categoryId === 'geometrie') { ae.step = 4; _aeRender(); return; }
+      await _aeSave();
+      return;
+    }
+    if (ae.step === 4) {
+      if (aeGeoEditor) ae.figureSvg = await aeGeoEditor.exportFigureSvg();
       await _aeSave();
     }
   }
@@ -470,7 +504,9 @@
       solution: solutionParts.join('\n\n'),
       barem,
       barem_estimat: true,
-      ai_raw: r
+      ai_raw: r,
+      figure_data: ae.categoryId === 'geometrie' ? (ae.figureData || null) : null,
+      figure_svg:  ae.categoryId === 'geometrie' ? (ae.figureSvg  || null) : null
     };
 
     const nextBtn = document.getElementById('aeNextBtn');
@@ -498,8 +534,10 @@
   }
 
   function _aeResetAfterSave() {
+    if (aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
     ae.file = null; ae.previewUrl = ''; ae.imageBase64 = ''; ae.mimeType = '';
     ae.aiResult = null;
+    ae.figureData = null; ae.figureSvg = null;
     ae.step = 2;
     _aeRender();
   }

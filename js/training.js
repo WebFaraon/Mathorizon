@@ -305,6 +305,7 @@
       </div>
       <div class="reveal-title">${BM.esc(ex.title)}</div>
       <div class="reveal-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
+      ${BM.renderExerciseFigure(ex)}
       <div id="revealAnswerZone">
         ${expected
           ? `

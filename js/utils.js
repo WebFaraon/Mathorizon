@@ -112,6 +112,15 @@ BM.trustedNl2br = function(str) {
   }).join('');
 };
 
+/* ---- Geometry figure (hand-drawn, admin-authored SVG) shown next to an
+   exercise statement. Inserted inline via innerHTML (not <img src>) so the
+   SVG's embedded var(--text)/var(--text-secondary) strokes resolve against
+   the page's live theme — see js/geometry-figure-editor.js's export. ---- */
+BM.renderExerciseFigure = function(ex) {
+  if (!ex || !ex.figureSvg) return '';
+  return `<div class="bac-exercise-figure">${ex.figureSvg}</div>`;
+};
+
 /* ---- Newlines to <br> ---- */
 BM.nl2br = function(str) {
   return BM.esc(str).replace(/\n/g, '<br>');

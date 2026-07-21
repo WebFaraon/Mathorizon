@@ -123,15 +123,26 @@ function buildDuplicatesBlock(existingExercises) {
 ${list}`;
 }
 
+// Geometry figures in the source photo are hand-redrawn separately by the
+// admin using the Geometry Figure Editor (see js/geometry-figure-editor.js) —
+// Gemini cannot reliably reconstruct precise geometric constructions (exact
+// angles, circumscribed circles, bisectors), and the figure is a visual aid
+// only, never AI-verified. So for this category the model must transcribe
+// the text statement alone and never describe/mention the diagram.
+const GEOMETRY_FIGURE_IGNORE_BLOCK = `
+IMPORTANT — fotografia poate conține și o figură/schiță geometrică (triunghi, cerc, desen). IGNOR-O COMPLET: nu o descrie, nu o menționa în enunț, nu încerca să-i deduci dimensiunile sau unghiurile din desen. Transcrie STRICT enunțul text al problemei (datele numerice și cerințele scrise). Figura va fi redesenată manual, separat, de către profesor — nu este responsabilitatea ta.`;
+
 function buildPrompt(context, existingExercises) {
-  const { grade, categoryName, subcategoryName, difficulty, punctajTotal } = context;
+  const { grade, categoryId, categoryName, subcategoryName, difficulty, punctajTotal } = context;
   const totalBlock = punctajTotal
     ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
     : `Estimează punctajul total ca într-un barem oficial BAC Moldova.`;
+  const geometryBlock = categoryId === 'geometrie' ? GEOMETRY_FIGURE_IGNORE_BLOCK : '';
 
   return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Mathorizon (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
+${geometryBlock}
 
 ${totalBlock}
 
