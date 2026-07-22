@@ -18,8 +18,14 @@
   }
 
   var GRID_VISIBLE_KEY = 'mathorizon:gfe-grid-visible';
+  var SNAP_GRID_KEY    = 'mathorizon:gfe-snap-to-grid';
   var SNAP_PX          = 13;   // screen-space snap radius, independent of zoom
   var EDGE_PX          = 14;   // screen-space "near a segment" radius for the tick tool
+  // Matches .gfe-canvas-wrap--grid's CSS cell size exactly (css/style.css) so
+  // "snap to grid" lands on the same intersections the visible grid draws —
+  // fixed in canvas units, not zoom-adjusted, since the CSS background is
+  // itself a screen-fixed pattern that doesn't rescale with zoom either.
+  var GRID_CELL_PX = 24;
   var MIN_ZOOM = 0.4, MAX_ZOOM = 3, ZOOM_STEP = 0.2;
 
   // Default/"adaptive" role colors — mirrors DrawingCanvas._adaptColors()'s
@@ -655,6 +661,7 @@
         <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">+</button>
         <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">⤢</button>
         <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">▦</button>
+        <button class="dc-action-btn" id="gfe-snapgrid-btn" title="Activează alinierea la grilă">⌗</button>
         <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">↺</button>
         <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">↻</button>
         <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">⨯</button>
@@ -673,6 +680,7 @@
     this._dashed     = false;
     this._color      = null; // null = adaptive/default; else literal hex
     this._gridVisible = this._loadGridVisible();
+    this._snapToGrid  = this._loadSnapToGrid();
     this._zoom       = 1;
     this._destroyed  = false;
     this._undoStack  = [];
@@ -684,6 +692,7 @@
     this._build();
     this._bindEvents();
     this._applyGridVisible();
+    this._applySnapToGridUI();
 
     var self = this;
     requestAnimationFrame(function () {
@@ -825,6 +834,15 @@
   GeometryFigureEditor.prototype._reattach = function (obj) {
     if (obj.type === 'polygon') attachPolygonVertexControls(obj);
     if (obj.type === 'circle')  attachCircleUniformControls(obj);
+    // fabric.Control instances (positionHandler/actionHandler/render — all
+    // functions) never survive a JSON round-trip, so every 3D group needs
+    // its custom vertex+scale+rotate controls rebuilt from scratch after
+    // undo/redo/load, exactly like Polygon/Circle above — this was missing
+    // entirely, which is why undo used to leave 3D shapes with Fabric's
+    // bare default (uncolored, no vertex) controls.
+    if (obj.type === 'group' && obj.data && THREE_D[obj.data.kind]) {
+      attachGroup3DControls(obj, THREE_D[obj.data.kind]);
+    }
   };
 
   GeometryFigureEditor.prototype._restoreFromSnapshot = function (jsonStr) {
@@ -938,6 +956,14 @@
   };
 
   GeometryFigureEditor.prototype._trySnap = function (absPt, excludeObj) {
+    // Grid-snap, when toggled on, is instant/always-on (unlike the proximity-
+    // based shape-vertex snap below) — every vertex drag lands on the
+    // nearest grid intersection, no closeness threshold to clear first.
+    if (this._snapToGrid) {
+      var onGrid = this._snapPointToGrid(absPt);
+      this._flashSnapMarker(onGrid);
+      return onGrid;
+    }
     var hit = this._nearestSnapPoint(absPt, excludeObj);
     if (hit) { this._flashSnapMarker(hit); return { x: hit.x, y: hit.y }; }
     return null;
@@ -1237,6 +1263,31 @@
     if (btn) { btn.classList.toggle('dc-action-btn--active', this._gridVisible); btn.title = this._gridVisible ? 'Ascunde grila' : 'Arată grila'; }
   };
 
+  GeometryFigureEditor.prototype._loadSnapToGrid = function () {
+    try { return localStorage.getItem(SNAP_GRID_KEY) === '1'; } catch (err) { return false; }
+  };
+
+  GeometryFigureEditor.prototype._toggleSnapToGrid = function () {
+    this._snapToGrid = !this._snapToGrid;
+    try { localStorage.setItem(SNAP_GRID_KEY, this._snapToGrid ? '1' : '0'); } catch (err) {}
+    this._applySnapToGridUI();
+  };
+
+  GeometryFigureEditor.prototype._applySnapToGridUI = function () {
+    var btn = this._toolbar.querySelector('#gfe-snapgrid-btn');
+    if (btn) { btn.classList.toggle('dc-action-btn--active', this._snapToGrid); btn.title = this._snapToGrid ? 'Dezactivează alinierea la grilă' : 'Activează alinierea la grilă'; }
+  };
+
+  // Snaps an absolute canvas point to the nearest grid intersection — same
+  // cell size as the visible .gfe-canvas-wrap--grid CSS pattern, so vertex
+  // dragging lands exactly on the squares the admin can see.
+  GeometryFigureEditor.prototype._snapPointToGrid = function (pt) {
+    return {
+      x: Math.round(pt.x / GRID_CELL_PX) * GRID_CELL_PX,
+      y: Math.round(pt.y / GRID_CELL_PX) * GRID_CELL_PX
+    };
+  };
+
   GeometryFigureEditor.prototype._setZoom = function (z) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 20) / 20));
     this._zoom = z;
@@ -1334,6 +1385,7 @@
       var zoomOutBtn = e.target.closest('#gfe-zoomout-btn');
       var fitBtn     = e.target.closest('#gfe-fit-btn');
       var gridBtn    = e.target.closest('#gfe-grid-btn');
+      var snapGridBtn = e.target.closest('#gfe-snapgrid-btn');
 
       if (shapeBtn) self._insertShape(shapeBtn.dataset.shape);
       else if (toolBtn) self._setTool(toolBtn.dataset.tool);
@@ -1351,6 +1403,7 @@
       else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
       else if (fitBtn) self._fitToView();
       else if (gridBtn) self._toggleGrid();
+      else if (snapGridBtn) self._toggleSnapToGrid();
     });
 
     this._toolbar.querySelector('#gfe-color-picker').addEventListener('input', function (e) {
