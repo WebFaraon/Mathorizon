@@ -30,6 +30,11 @@
   var ROLE_LIGHT = { primary: '#1C1917', auxiliary: '#6b6459' };
   var ROLE_DARK  = { primary: '#e5e7eb', auxiliary: '#9ca3af' };
   var HANDLE_COLOR = '#3B82F6';
+  // Distinct from HANDLE_COLOR (used for transient snap feedback / segment
+  // preview) so a persistent, draggable 3D vertex handle never looks like
+  // one of those momentary UI hints.
+  var THREE_D_HANDLE_COLOR = '#f97316';
+  var THREE_D_HANDLE_OFFSET = 13; // px, radial push away from the shape's own centroid
 
   fabric.Object.prototype.transparentCorners = false;
   fabric.Object.prototype.cornerColor        = HANDLE_COLOR;
@@ -105,6 +110,25 @@
   }
 
   function genId() { return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
+
+  // Pushes a 3D shape's vertex handles a few px away from the point they
+  // control (radially outward from the shape's own centroid) so the handle
+  // doesn't visually sit exactly on top of 2-3 converging edges, and is
+  // easier to pick out/grab on its own. The offset is computed once, at
+  // creation time, and stays fixed thereafter — recomputing it "live" from
+  // the shape's current centroid on every drag tick would require inverting
+  // a circular dependency (the offset direction would depend on the very
+  // point it's offsetting), so a fixed offset is the simple, stable choice.
+  function centroidOf(points) {
+    var cx = 0, cy = 0, n = 0;
+    Object.keys(points).forEach(function (k) { cx += points[k].x; cy += points[k].y; n++; });
+    return { x: cx / n, y: cy / n };
+  }
+  function radialOffset(point, centroid, dist) {
+    var dx = point.x - centroid.x, dy = point.y - centroid.y;
+    var len = Math.hypot(dx, dy) || 1;
+    return { dx: (dx / len) * dist, dy: (dy / len) * dist };
+  }
 
   /* ---- Fabric.Polygon vertex-editing controls (canonical Fabric.js
      "editable polygon" recipe) — attached per-instance since the number
@@ -894,18 +918,20 @@
     group.data._lastTop  = group.top;
 
     var self = this;
+    var centroid = centroidOf(points);
     factory.handles.forEach(function (key) {
       var p = points[key];
+      var off = radialOffset(p, centroid, THREE_D_HANDLE_OFFSET);
       var handle = new fabric.Circle({
-        left: p.x - 6, top: p.y - 6, radius: 6,
-        fill: HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
+        left: p.x + off.dx - 6, top: p.y + off.dy - 6, radius: 6,
+        fill: THREE_D_HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
         // A drag handle only ever translates — never resizes/rotates, and
         // never shows its own selection chrome — and is only meaningful
         // while its shape is the active selection (see _syncHandleVisibility).
         hasControls: false, hasBorders: false,
         lockScalingX: true, lockScalingY: true, lockRotation: true,
         visible: false,
-        data: { kind: 'handle', handleFor: groupId, pointKey: key }
+        data: { kind: 'handle', handleFor: groupId, pointKey: key, offsetDx: off.dx, offsetDy: off.dy }
       });
       self._fabricCanvas.add(handle);
     });
@@ -949,17 +975,24 @@
     if (!factory) return;
 
     var points = group.data.points;
-    points[handle.data.pointKey] = { x: handle.left + 6, y: handle.top + 6 };
+    // The handle is rendered offsetDx/offsetDy away from the point it
+    // actually controls (see radialOffset) — subtract that back out to get
+    // the true controlled point.
+    points[handle.data.pointKey] = {
+      x: handle.left + 6 - handle.data.offsetDx,
+      y: handle.top  + 6 - handle.data.offsetDy
+    };
 
     // Some handles only encode a single meaningful axis (e.g. a radius or a
     // base height) — without this, the other axis drifts to wherever the
     // raw mouse happened to be and the handle visually floats away from the
     // shape it's supposed to be resizing. Snap it back onto the constrained
-    // point BEFORE building, and reposition the actual handle circle to match.
+    // point BEFORE building, and reposition the actual handle circle to match
+    // (re-applying the same fixed offset so it stays visually detached).
     if (factory.constrainHandle) {
       var constrained = factory.constrainHandle(handle.data.pointKey, points);
       points[handle.data.pointKey] = constrained;
-      handle.set({ left: constrained.x - 6, top: constrained.y - 6 });
+      handle.set({ left: constrained.x + handle.data.offsetDx - 6, top: constrained.y + handle.data.offsetDy - 6 });
       handle.setCoords();
     }
 
