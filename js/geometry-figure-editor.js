@@ -174,8 +174,55 @@
   // stale bounding box if the shape is rotated/scaled as a whole afterward
   // (rare for a figure that's mostly built via per-vertex dragging), which is
   // an acceptable trade for not depending on an unstable private API.
+  // Recomputes a Polygon's width/height/pathOffset from its CURRENT .points
+  // after a vertex edit, compensating left/top so the rendered shape doesn't
+  // visually jump — without this, width/height stay frozen at insertion-time
+  // values, which vertex-editing math itself doesn't care about (it works in
+  // scale-independent RATIOS that cancel the staleness out), but the native
+  // border/scale-controls DO care, since they size themselves directly off
+  // width*scaleX/height*scaleY — hence the green box drifting out of sync
+  // with the actual reshaped polygon until the next reload recomputed it.
+  function recomputePolygonBounds(poly) {
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    poly.points.forEach(function (p) {
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    });
+    var newOffsetX = (minX + maxX) / 2, newOffsetY = (minY + maxY) / 2;
+    var dx = newOffsetX - poly.pathOffset.x, dy = newOffsetY - poly.pathOffset.y;
+    // A pathOffset shift moves each raw point's local coordinate by -Δ, so the
+    // object's CENTER (the fixed reference calcTransformMatrix() translates
+    // to — see M(0,0) == center identity) must move by +R*S*Δ to keep every
+    // point's ABSOLUTE position unchanged. Computing that target center here,
+    // then handing it to setPositionByOrigin (below) rather than hand-deriving
+    // left/top ourselves, is what actually matters: for a non-'center' origin,
+    // left/top depend on width/height too, and width/height are ALSO changing
+    // in this same function — setPositionByOrigin recomputes left/top against
+    // the NEW width/height to hit the target, which a raw "left += rdx" (the
+    // original, buggy version of this function) silently failed to account for.
+    var oldCenter = poly.getCenterPoint();
+    if (dx || dy) {
+      var angle = fabric.util.degreesToRadians(poly.angle || 0);
+      var cos = Math.cos(angle), sin = Math.sin(angle);
+      var sdx = dx * poly.scaleX, sdy = dy * poly.scaleY;
+      oldCenter.x += sdx * cos - sdy * sin;
+      oldCenter.y += sdx * sin + sdy * cos;
+    }
+    poly.pathOffset = { x: newOffsetX, y: newOffsetY };
+    poly.width  = maxX - minX;
+    poly.height = maxY - minY;
+    poly.setPositionByOrigin(oldCenter, 'center', 'center');
+  }
+
   function refreshCoordsWrapper(fn) {
     return function (eventData, transform, x, y) {
+      // Deliberately NOT calling recomputePolygonBounds here: this actionHandler
+      // runs on EVERY mousemove tick during a single drag, and pathOffset/left/top
+      // are read by THIS SAME handler (via polygon.pathOffset in polygonActionHandler)
+      // on the very next tick — recomputing mid-drag made each tick reference an
+      // already-shifted baseline, compounding into wildly wrong bounds after a few
+      // ticks (worst when the shape was previously rotated). Bounds are recomputed
+      // exactly once, after the drag completes, from the 'object:modified' handler.
       var result = fn(eventData, transform, x, y);
       transform.target.setCoords();
       return result;
@@ -969,17 +1016,28 @@
     return null;
   };
 
+  // A SINGLE reused marker, repositioned in place — grid-snap fires this on
+  // every mousemove tick of an active drag, so creating a brand-new circle
+  // each time (as a fast drag races ahead of each one's own removal timeout)
+  // left a visible trail of stacked blue circles instead of one clean dot.
   GeometryFigureEditor.prototype._flashSnapMarker = function (pt) {
     var canvas = this._fabricCanvas;
-    var marker = new fabric.Circle({
-      left: pt.x - 6, top: pt.y - 6, radius: 6, fill: 'transparent',
-      stroke: HANDLE_COLOR, strokeWidth: 2, selectable: false, evented: false
-    });
-    marker.__isSnapMarker = true;
-    canvas.add(marker);
+    if (!this._snapMarker) {
+      this._snapMarker = new fabric.Circle({
+        radius: 6, fill: 'transparent', stroke: HANDLE_COLOR, strokeWidth: 2,
+        selectable: false, evented: false
+      });
+      this._snapMarker.__isSnapMarker = true;
+      canvas.add(this._snapMarker);
+    }
+    this._snapMarker.set({ left: pt.x - 6, top: pt.y - 6, opacity: 1 });
+    this._snapMarker.setCoords();
+    canvas.bringToFront(this._snapMarker);
     canvas.requestRenderAll();
-    setTimeout(function () {
-      if (canvas.contains && canvas.contains(marker)) canvas.remove(marker);
+    var marker = this._snapMarker;
+    clearTimeout(this._snapMarkerTimer);
+    this._snapMarkerTimer = setTimeout(function () {
+      marker.set({ opacity: 0 });
       canvas.requestRenderAll();
     }, 320);
   };
@@ -1258,9 +1316,52 @@
   };
 
   GeometryFigureEditor.prototype._applyGridVisible = function () {
-    this._canvasWrap.classList.toggle('gfe-canvas-wrap--grid', this._gridVisible);
     var btn = this._toolbar.querySelector('#gfe-grid-btn');
     if (btn) { btn.classList.toggle('dc-action-btn--active', this._gridVisible); btn.title = this._gridVisible ? 'Ascunde grila' : 'Arată grila'; }
+    this._fabricCanvas.requestRenderAll();
+  };
+
+  // Drawn fresh every render pass (hooked via 'before:render') directly in
+  // scene coordinates through the CURRENT viewportTransform — unlike the old
+  // CSS background-pattern grid, this one pans/zooms WITH the content
+  // (an "infinite" grid, IDroo-style: minor lines every cell, a heavier
+  // major line every 5th), and stays exactly aligned with grid-snap, which
+  // operates in the same scene-space units.
+  GeometryFigureEditor.prototype._drawFabricGrid = function () {
+    var canvas = this._fabricCanvas;
+    var ctx = canvas.getContext();
+    var zoom = canvas.getZoom();
+    var vpt = canvas.viewportTransform;
+    var w = canvas.getWidth(), h = canvas.getHeight();
+    var cell = GRID_CELL_PX * zoom;
+    if (cell < 4) return; // too dense to read — skip rather than render a solid smear
+
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var minorColor = dark ? 'rgba(255,255,255,0.07)' : 'rgba(0,0,0,0.07)';
+    var majorColor = dark ? 'rgba(255,255,255,0.16)' : 'rgba(0,0,0,0.18)';
+
+    var kMinX = Math.floor(-vpt[4] / cell) - 1, kMaxX = Math.ceil((w - vpt[4]) / cell) + 1;
+    var kMinY = Math.floor(-vpt[5] / cell) - 1, kMaxY = Math.ceil((h - vpt[5]) / cell) + 1;
+
+    ctx.save();
+    [minorColor, majorColor].forEach(function (color, pass) {
+      var isMajor = pass === 1;
+      ctx.strokeStyle = color;
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var kx = kMinX; kx <= kMaxX; kx++) {
+        if ((kx % 5 === 0) !== isMajor) continue;
+        var x = Math.round(kx * cell + vpt[4]) + 0.5;
+        ctx.moveTo(x, 0); ctx.lineTo(x, h);
+      }
+      for (var ky = kMinY; ky <= kMaxY; ky++) {
+        if ((ky % 5 === 0) !== isMajor) continue;
+        var y = Math.round(ky * cell + vpt[5]) + 0.5;
+        ctx.moveTo(0, y); ctx.lineTo(w, y);
+      }
+      ctx.stroke();
+    });
+    ctx.restore();
   };
 
   GeometryFigureEditor.prototype._loadSnapToGrid = function () {
@@ -1449,12 +1550,33 @@
       }
     });
 
+    this._fabricCanvas.on('before:render', function () {
+      if (self._gridVisible) self._drawFabricGrid();
+    });
+
+    // Scroll-wheel zoom, centered on the cursor — standard editor convention.
+    this._fabricCanvas.on('mouse:wheel', function (opt) {
+      var zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, self._fabricCanvas.getZoom() * Math.pow(0.999, opt.e.deltaY)));
+      self._fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
+      self._zoom = zoom;
+      var label = self._toolbar.querySelector('#gfe-zoom-label');
+      if (label) label.textContent = Math.round(zoom * 100) + '%';
+      opt.e.preventDefault();
+      opt.e.stopPropagation();
+    });
+
     // Vertex/scale/rotate are now all genuine Fabric controls attached
     // directly to each shape (see attachGroup3DControls/attachPolygonVertexControls),
     // not separate sibling objects — so there's no custom visibility-sync or
     // position-sync needed here any more; Fabric's own active-object/control
     // rendering and native group-dragging already do the right thing.
-    this._fabricCanvas.on('object:modified', function () { self._pushHistory(); });
+    this._fabricCanvas.on('object:modified', function (opt) {
+      if (opt.target && opt.target.type === 'polygon') {
+        recomputePolygonBounds(opt.target);
+        opt.target.setCoords();
+      }
+      self._pushHistory();
+    });
     this._fabricCanvas.on('object:added', function (opt) {
       if (opt.target && opt.target.__isSnapMarker) return;
       // creation-time history pushes are handled explicitly by each insert

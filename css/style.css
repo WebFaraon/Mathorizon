@@ -14577,11 +14577,8 @@ body.dc-fullscreen-active .dc-wrap {
   line-height: 0;
 }
 
-.gfe-canvas-wrap--grid {
-  background-image:
-    repeating-linear-gradient(0deg,  var(--border) 0 1px, transparent 1px 24px),
-    repeating-linear-gradient(90deg, var(--border) 0 1px, transparent 1px 24px);
-}
+/* Grid is now drawn directly on the Fabric canvas (pans/zooms with the
+   content) — see GeometryFigureEditor.prototype._drawFabricGrid. */
 
 /* ---- Saved figure, shown alongside an exercise statement ---- */
 .bac-exercise-figure {
