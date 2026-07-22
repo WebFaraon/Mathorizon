@@ -14533,7 +14533,6 @@ body.dc-fullscreen-active .dc-wrap {
   padding-left: 2px;
 }
 .gfe-tool-section .dc-tool-group { gap: 4px; }
-.gfe-tool-section--actions { margin-left: auto; }
 
 .gfe-shape-btn {
   width: 34px;
@@ -14612,6 +14611,27 @@ body.dc-fullscreen-active .dc-wrap {
 /* Generous, unmistakable separation between the stacked sections —
    .prof-card already gives each one its own bordered/shaded card. */
 .ae-section { margin-bottom: 32px; }
+
+/* .prof-card's entrance animation (card-up-in) ends on transform:translateY(0)
+   with fill-mode 'both', which — even though visually a no-op — keeps a
+   non-none transform applied to the card forever. A transformed ancestor
+   creates a new containing block for position:fixed descendants, which is
+   exactly how BM._positionCselDropdown() places the custom-select dropdown
+   (js/utils.js) — so every dropdown inside these cards was anchoring to the
+   card instead of the viewport and landing far from its trigger. Not needed
+   on a form-heavy page anyway. */
+.ae-page-wrap .prof-card { animation: none; }
+
+/* 2x2 grid for the 4 short Detalii dropdowns — stacking them full-width each
+   wasted most of the page's width on a container this wide. */
+.ae-detalii-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 24px;
+}
+@media (max-width: 700px) {
+  .ae-detalii-grid { grid-template-columns: 1fr; }
+}
 
 /* Bigger working area + pinned toolbar, scoped here rather than baked into
    .gfe-canvas-wrap/.gfe-toolbar's own defaults so the component's normal

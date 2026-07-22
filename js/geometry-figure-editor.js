@@ -357,10 +357,6 @@
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="right-angle" title="Unghi drept">${_gfeIcon(TOOL_ICONS['right-angle'])}</button>
         <button class="dc-tool-btn" data-tool="arc" title="Arc unghi">${_gfeIcon(TOOL_ICONS.arc)}</button>
-        <button class="dc-tool-btn" data-tool="tick" title="Segmente egale (marcaj)">${_gfeIcon(TOOL_ICONS.tick)}</button>
-        <button class="gfe-tick-btn gfe-tick-btn--active" data-tick="1" title="1 liniuță">1</button>
-        <button class="gfe-tick-btn" data-tick="2" title="2 liniuțe">2</button>
-        <button class="gfe-tick-btn" data-tick="3" title="3 liniuțe">3</button>
       </div>
     </div>
     <div class="gfe-tool-section">
@@ -380,7 +376,7 @@
         <input type="color" id="gfe-color-picker" class="gfe-color-picker" value="#dc2626" title="Altă culoare" aria-label="Alege altă culoare">
       </div>
     </div>
-    <div class="gfe-tool-section gfe-tool-section--actions dc-tool-group--right">
+    <div class="gfe-tool-section gfe-tool-section--actions">
       <span class="gfe-tool-section__label">Acțiuni</span>
       <div class="dc-tool-group">
         <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">−</button>
@@ -498,6 +494,22 @@
     var self = this;
     this._fabricCanvas.getObjects().forEach(function (o) { self._repaintRoleColor(o); });
     this._fabricCanvas.requestRenderAll();
+    this._paintAdaptiveSwatch();
+  };
+
+  // The "default" swatch has no color of its own (it just means "use
+  // whatever --text currently resolves to") — but left with no background at
+  // all it's invisible/blends into the toolbar, same problem DrawingCanvas's
+  // adaptive black/white swatch solves by painting itself on theme change.
+  GeometryFigureEditor.prototype._paintAdaptiveSwatch = function () {
+    var btn = this._toolbar && this._toolbar.querySelector('[data-adaptive]');
+    if (!btn) return;
+    var color = this._paletteColor('primary');
+    btn.style.background = color;
+    var dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    var label = 'Culoare implicită (' + (dark ? 'alb' : 'negru') + ')';
+    btn.title = label;
+    btn.setAttribute('aria-label', label);
   };
 
   GeometryFigureEditor.prototype._applyColorToSelection = function (hexOrNull) {

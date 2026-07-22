@@ -88,33 +88,35 @@
     const cat  = BM.getCategoryById(ae.categoryId);
     const subs = cat ? cat.subcategories : [];
     body.innerHTML = `
-      <div class="cls-form-field">
-        <label class="cls-form-label">Clasă *</label>
-        <select id="aeGrade" class="cls-form-input cls-form-select">
-          <option value="">Alege clasa…</option>
-          ${GRADES.map(g => `<option value="${g.id}" ${ae.grade === g.id ? 'selected' : ''}>${g.label}</option>`).join('')}
-        </select>
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Capitol *</label>
-        <select id="aeCategory" class="cls-form-input cls-form-select">
-          <option value="">Alege capitolul…</option>
-          ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${ae.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Subcapitol *</label>
-        <select id="aeSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
-          <option value="">${cat ? 'Alege subcapitolul…' : 'Alege mai întâi capitolul'}</option>
-          ${subs.map(s => `<option value="${s.id}" ${ae.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
-        </select>
-      </div>
-      <div class="cls-form-field">
-        <label class="cls-form-label">Dificultate *</label>
-        <select id="aeDifficulty" class="cls-form-input cls-form-select">
-          <option value="">Alege dificultatea…</option>
-          ${DIFFICULTIES.map(d => `<option value="${d.id}" ${ae.difficulty === d.id ? 'selected' : ''}>${d.label}</option>`).join('')}
-        </select>
+      <div class="ae-detalii-grid">
+        <div class="cls-form-field">
+          <label class="cls-form-label">Clasă *</label>
+          <select id="aeGrade" class="cls-form-input cls-form-select">
+            <option value="">Alege clasa…</option>
+            ${GRADES.map(g => `<option value="${g.id}" ${ae.grade === g.id ? 'selected' : ''}>${g.label}</option>`).join('')}
+          </select>
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Capitol *</label>
+          <select id="aeCategory" class="cls-form-input cls-form-select">
+            <option value="">Alege capitolul…</option>
+            ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${ae.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Subcapitol *</label>
+          <select id="aeSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
+            <option value="">${cat ? 'Alege subcapitolul…' : 'Alege mai întâi capitolul'}</option>
+            ${subs.map(s => `<option value="${s.id}" ${ae.subcategoryId === s.id ? 'selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
+          </select>
+        </div>
+        <div class="cls-form-field">
+          <label class="cls-form-label">Dificultate *</label>
+          <select id="aeDifficulty" class="cls-form-input cls-form-select">
+            <option value="">Alege dificultatea…</option>
+            ${DIFFICULTIES.map(d => `<option value="${d.id}" ${ae.difficulty === d.id ? 'selected' : ''}>${d.label}</option>`).join('')}
+          </select>
+        </div>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Punctaj total exercițiu *</label>
@@ -457,7 +459,9 @@
     const r = ae.aiResult;
     const valid = !!(r && r.titlu && r.enunt_katex && r.pasi_barem && r.pasi_barem.length &&
       (!ae.punctajTotal || _aeBaremSum() === Number(ae.punctajTotal)));
-    btn.disabled = !valid;
+    // Hidden (not just disabled) until there's an actual barem to confirm —
+    // a disabled-but-visible button read as "broken" rather than "not yet".
+    btn.style.display = valid ? '' : 'none';
   }
 
   /* ---- Save ---- */
@@ -538,7 +542,7 @@
     ae.figureData = null; ae.figureSvg = null;
     _aeRenderFoto();
     document.getElementById('aeAnalysisBody').innerHTML = '<p class="cls-form-hint">Analizează o fotografie mai sus pentru a vedea rezultatul aici.</p>';
-    document.getElementById('aeConfirmBtn').disabled = true;
+    document.getElementById('aeConfirmBtn').style.display = 'none';
     if (aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
     _aeUpdateGeoVisibility(); // remounts a fresh, empty editor if still on Geometrie
     window.scrollTo({ top: 0, behavior: 'smooth' });
