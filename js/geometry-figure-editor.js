@@ -198,90 +198,141 @@
   }
 
   /* ---- 3D textbook-projection preset factories ----
-     Each returns { group, handleAnchor } — group is the static fabric.Group
-     drawn at `origin` (absolute canvas coords) for the given scalar `param`;
-     handleAnchor is where the depth/height drag-handle belongs for that
-     same origin+param, so the handle can be repositioned after a rebuild. */
+     Each shape stores its FULL geometry as a set of named, independently
+     draggable absolute-coordinate points (data.points on the group) — not a
+     single scalar "param" — so every dimension (width/height/depth for the
+     cube, each base vertex for the pyramids, radius vs. tilt for the sphere,
+     radius vs. height for the cone/cylinder) gets its own handle instead of
+     one handle vaguely controlling "the whole thing" along a guessed axis.
+     `defaultPoints(origin)` seeds the initial layout; `handles` lists which
+     point keys get a draggable circle; `build(points, stroke)` reconstructs
+     every primitive purely from the current point set. */
 
   var THREE_D = {
     cub: {
-      defaultParam: 40,
-      build: function (origin, param, stroke) {
-        var hs = 55;
-        var F = [{ x: -hs, y: -hs }, { x: hs, y: -hs }, { x: hs, y: hs }, { x: -hs, y: hs }]
-          .map(function (p) { return { x: p.x + origin.x, y: p.y + origin.y }; });
-        var dx = param, dy = -param * 0.85;
+      defaultPoints: function (o) {
+        return {
+          origin:  { x: o.x - 55, y: o.y - 20 },   // fixed anchor: front-top-left corner
+          frontBR: { x: o.x + 55, y: o.y + 90 },   // handle: front-face width/height
+          depth:   { x: o.x + 95, y: o.y - 54 }    // handle: depth offset (back-top-right)
+        };
+      },
+      handles: ['frontBR', 'depth'],
+      build: function (pts, stroke) {
+        var o = pts.origin, br = pts.frontBR;
+        var F = [{ x: o.x, y: o.y }, { x: br.x, y: o.y }, { x: br.x, y: br.y }, { x: o.x, y: br.y }];
+        var dx = pts.depth.x - F[1].x, dy = pts.depth.y - F[1].y;
         var B = F.map(function (p) { return { x: p.x + dx, y: p.y + dy }; });
-        var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2 }); });
-        return { objects: [front, back].concat(edges), handleAnchor: B[1] };
+        var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
+        var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
+        var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' }); });
+        return [front, back].concat(edges);
       }
     },
     'piramida-patrata': {
-      defaultParam: 95,
-      build: function (origin, param, stroke) {
-        var L = { x: origin.x - 70, y: origin.y + 15 }, Fr = { x: origin.x, y: origin.y + 42 },
-            R = { x: origin.x + 70, y: origin.y + 15 }, Bk = { x: origin.x, y: origin.y - 15 };
-        var apex = { x: origin.x, y: Bk.y - param };
-        var baseVisible = new fabric.Polyline([L, Fr, R], { fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var baseHidden  = new fabric.Polyline([R, Bk, L], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        var edgeL  = new fabric.Line([apex.x, apex.y, L.x, L.y],   { stroke: stroke, strokeWidth: 2 });
-        var edgeR  = new fabric.Line([apex.x, apex.y, R.x, R.y],   { stroke: stroke, strokeWidth: 2 });
-        var edgeF  = new fabric.Line([apex.x, apex.y, Fr.x, Fr.y], { stroke: stroke, strokeWidth: 2 });
-        var edgeBk = new fabric.Line([apex.x, apex.y, Bk.x, Bk.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        return { objects: [baseVisible, baseHidden, edgeL, edgeR, edgeF, edgeBk], handleAnchor: apex };
+      defaultPoints: function (o) {
+        return {
+          p0: { x: o.x - 70, y: o.y + 15 },  // base left
+          p1: { x: o.x,      y: o.y + 42 },  // base front
+          p2: { x: o.x + 70, y: o.y + 15 },  // base right
+          p3: { x: o.x,      y: o.y - 15 },  // base back
+          apex: { x: o.x, y: o.y - 110 }
+        };
+      },
+      handles: ['p0', 'p1', 'p2', 'p3', 'apex'],
+      build: function (pts, stroke) {
+        var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, p3 = pts.p3, apex = pts.apex;
+        var baseVisible = new fabric.Polyline([p0, p1, p2], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
+        var baseHidden  = new fabric.Polyline([p2, p3, p0], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
+        var edgeP0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var edgeP1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var edgeP2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var edgeP3 = new fabric.Line([apex.x, apex.y, p3.x, p3.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        return [baseVisible, baseHidden, edgeP0, edgeP1, edgeP2, edgeP3];
       }
     },
     'piramida-triunghiulara': {
-      defaultParam: 95,
-      build: function (origin, param, stroke) {
-        var L = { x: origin.x - 60, y: origin.y + 22 }, R = { x: origin.x + 60, y: origin.y + 22 },
-            Bk = { x: origin.x, y: origin.y - 18 };
-        var apex = { x: origin.x, y: Bk.y - param };
-        var edgeFront = new fabric.Line([L.x, L.y, R.x, R.y], { stroke: stroke, strokeWidth: 2 });
-        var edgeBkL   = new fabric.Line([L.x, L.y, Bk.x, Bk.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        var edgeBkR   = new fabric.Line([R.x, R.y, Bk.x, Bk.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        var apexL = new fabric.Line([apex.x, apex.y, L.x, L.y], { stroke: stroke, strokeWidth: 2 });
-        var apexR = new fabric.Line([apex.x, apex.y, R.x, R.y], { stroke: stroke, strokeWidth: 2 });
-        var apexBk = new fabric.Line([apex.x, apex.y, Bk.x, Bk.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        return { objects: [edgeFront, edgeBkL, edgeBkR, apexL, apexR, apexBk], handleAnchor: apex };
+      defaultPoints: function (o) {
+        return {
+          p0: { x: o.x - 60, y: o.y + 22 },
+          p1: { x: o.x + 60, y: o.y + 22 },
+          p2: { x: o.x, y: o.y - 18 },
+          apex: { x: o.x, y: o.y - 113 }
+        };
+      },
+      handles: ['p0', 'p1', 'p2', 'apex'],
+      build: function (pts, stroke) {
+        var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, apex = pts.apex;
+        var edgeFront = new fabric.Line([p0.x, p0.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var edgeBkL   = new fabric.Line([p1.x, p1.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        var edgeBkR   = new fabric.Line([p2.x, p2.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        var apex0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var apex1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var apex2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        return [edgeFront, edgeBkL, edgeBkR, apex0, apex1, apex2];
       }
     },
     sfera: {
-      defaultParam: 18,
-      build: function (origin, param, stroke) {
-        var R = 55;
-        var circle = new fabric.Circle({ left: origin.x - R, top: origin.y - R, radius: R, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var front = ellipseArcPoints(origin.x, origin.y, R, param, 0, Math.PI, 20);
-        var back  = ellipseArcPoints(origin.x, origin.y, R, param, Math.PI, 2 * Math.PI, 20);
-        var eqFront = new fabric.Polyline(front, { fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var eqBack  = new fabric.Polyline(back,  { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5] });
-        return { objects: [circle, eqBack, eqFront], handleAnchor: { x: origin.x + R * 0.7, y: origin.y + param * 0.7 } };
+      defaultPoints: function (o) {
+        return {
+          origin:  { x: o.x, y: o.y },
+          radius:  { x: o.x + 55, y: o.y },       // handle: sphere radius
+          equator: { x: o.x + 38.5, y: o.y + 12.6 } // handle: equator tilt/flatten
+        };
+      },
+      handles: ['radius', 'equator'],
+      build: function (pts, stroke) {
+        var o = pts.origin;
+        var R = Math.max(15, Math.hypot(pts.radius.x - o.x, pts.radius.y - o.y));
+        var ry = Math.max(4, Math.min(R - 2, Math.abs(pts.equator.y - o.y)));
+        var circle = new fabric.Circle({ left: o.x - R, top: o.y - R, radius: R, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
+        var front = ellipseArcPoints(o.x, o.y, R, ry, 0, Math.PI, 20);
+        var back  = ellipseArcPoints(o.x, o.y, R, ry, Math.PI, 2 * Math.PI, 20);
+        var eqFront = new fabric.Polyline(front, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
+        var eqBack  = new fabric.Polyline(back,  { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
+        return [circle, eqBack, eqFront];
       }
     },
     con: {
-      defaultParam: 90,
-      build: function (origin, param, stroke) {
-        var rx = 55, ry = 16;
-        var baseY = origin.y + 30;
-        var apex = { x: origin.x, y: baseY - param };
-        var base = new fabric.Ellipse({ left: origin.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var slantL = new fabric.Line([apex.x, apex.y, origin.x - rx, baseY], { stroke: stroke, strokeWidth: 2 });
-        var slantR = new fabric.Line([apex.x, apex.y, origin.x + rx, baseY], { stroke: stroke, strokeWidth: 2 });
-        return { objects: [base, slantL, slantR], handleAnchor: apex };
+      defaultPoints: function (o) {
+        return {
+          origin: { x: o.x, y: o.y },
+          apex:   { x: o.x, y: o.y - 60 },
+          radius: { x: o.x + 55, y: o.y + 30 }   // handle: base radius + base height
+        };
+      },
+      handles: ['apex', 'radius'],
+      build: function (pts, stroke) {
+        var o = pts.origin;
+        var rx = Math.max(15, Math.abs(pts.radius.x - o.x));
+        var ry = rx * 0.29;
+        var baseY = pts.radius.y;
+        var apex = pts.apex;
+        var base = new fabric.Ellipse({ left: o.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
+        var slantL = new fabric.Line([apex.x, apex.y, o.x - rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var slantR = new fabric.Line([apex.x, apex.y, o.x + rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        return [base, slantL, slantR];
       }
     },
     cilindru: {
-      defaultParam: 100,
-      build: function (origin, param, stroke) {
-        var rx = 55, ry = 16;
-        var topY = origin.y - param / 2, botY = origin.y + param / 2;
-        var top = new fabric.Ellipse({ left: origin.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var bot = new fabric.Ellipse({ left: origin.x - rx, top: botY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var lineL = new fabric.Line([origin.x - rx, topY, origin.x - rx, botY], { stroke: stroke, strokeWidth: 2 });
-        var lineR = new fabric.Line([origin.x + rx, topY, origin.x + rx, botY], { stroke: stroke, strokeWidth: 2 });
-        return { objects: [top, bot, lineL, lineR], handleAnchor: { x: origin.x, y: botY } };
+      defaultPoints: function (o) {
+        return {
+          origin: { x: o.x, y: o.y },
+          top:    { x: o.x + 55, y: o.y - 50 },  // handle: radius + top height
+          bottom: { x: o.x, y: o.y + 50 }        // handle: bottom height
+        };
+      },
+      handles: ['top', 'bottom'],
+      build: function (pts, stroke) {
+        var o = pts.origin;
+        var rx = Math.max(15, Math.abs(pts.top.x - o.x));
+        var ry = rx * 0.29;
+        var topY = pts.top.y, botY = pts.bottom.y;
+        var top = new fabric.Ellipse({ left: o.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
+        var bot = new fabric.Ellipse({ left: o.x - rx, top: botY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
+        var lineL = new fabric.Line([o.x - rx, topY, o.x - rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var lineR = new fabric.Line([o.x + rx, topY, o.x + rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        return [top, bot, lineL, lineR];
       }
     }
   };
@@ -751,7 +802,7 @@
     if (POLY_PRESETS[shapeId]) {
       var pts = POLY_PRESETS[shapeId].map(function (p) { return { x: p.x + center.x, y: p.y + center.y }; });
       obj = new fabric.Polygon(pts, {
-        fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
+        fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true, strokeLineJoin: 'round',
         objectCaching: false, data: { role: spec.role, kind: 'shape', id: genId() }
       });
       attachPolygonVertexControls(obj);
@@ -783,59 +834,69 @@
 
   GeometryFigureEditor.prototype._insert3DShape = function (kind, origin, spec) {
     var factory = THREE_D[kind];
-    var param = factory.defaultParam;
-    var built = factory.build(origin, param, spec.stroke);
-    var group = new fabric.Group(built.objects, { data: { role: spec.role, kind: kind, id: genId(), param: param } });
-    // The depth/height handle below sits deliberately close to one of this
-    // group's own corners — Fabric prioritizes hit-testing the ACTIVE
-    // object's own resize/rotate controls over sibling objects underneath,
-    // so without this the handle would be unreachable (clicks land on the
-    // group's native corner control instead). Still draggable by its body.
+    var points = factory.defaultPoints(origin);
+    var objects = factory.build(points, spec.stroke);
+    var groupId = genId();
+    var group = new fabric.Group(objects, { data: { role: spec.role, kind: kind, id: groupId, points: points } });
+    // Native resize/rotate controls sit right where these per-vertex handles
+    // need to be clickable — Fabric prioritizes hit-testing the ACTIVE
+    // object's own controls over sibling objects underneath, so without this
+    // the handles would be unreachable. The group is still draggable by its body.
     group.hasControls = false;
-    var handle = new fabric.Circle({
-      left: built.handleAnchor.x - 6, top: built.handleAnchor.y - 6, radius: 6,
-      fill: HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
-      data: { kind: 'handle', handleFor: group.data.id, origin: origin }
-    });
     this._fabricCanvas.add(group);
-    this._fabricCanvas.add(handle);
+    group.data._lastLeft = group.left;
+    group.data._lastTop  = group.top;
+
+    var self = this;
+    factory.handles.forEach(function (key) {
+      var p = points[key];
+      var handle = new fabric.Circle({
+        left: p.x - 6, top: p.y - 6, radius: 6,
+        fill: HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
+        data: { kind: 'handle', handleFor: groupId, pointKey: key }
+      });
+      self._fabricCanvas.add(handle);
+    });
+
     this._fabricCanvas.setActiveObject(group);
     this._fabricCanvas.requestRenderAll();
     this._pushHistory();
   };
 
+  // Every point this shape's handles don't cover (e.g. the cube/sphere/cone/
+  // cylinder's fixed "origin" anchor) still needs to translate when the whole
+  // group is dragged by its body — handled in the 'object:moving' listener
+  // (see _bindEvents) by shifting every key in data.points by the same delta.
   GeometryFigureEditor.prototype._regenerate3DFromHandle = function (handle) {
     var canvas = this._fabricCanvas;
     var group = canvas.getObjects().find(function (o) { return o.data && o.data.id === handle.data.handleFor; });
     if (!group) return;
-    var kind = group.data.kind;
-    var factory = THREE_D[kind];
+    var factory = THREE_D[group.data.kind];
     if (!factory) return;
-    var origin = handle.data.origin;
 
-    // Each 3D preset's handleAnchor moves along a single axis as `param`
-    // grows (up for the apex-based shapes, right for the cube's depth
-    // corner, down for the cylinder's bottom rim, down for the sphere's
-    // equator flatten) — derive param from that one axis, clamped to a
-    // sane range per shape so the projection never degenerates.
-    var param;
-    if (kind === 'sfera')          param = Math.max(6, Math.min(50, Math.abs((handle.top + 6) - origin.y)));
-    else if (kind === 'cub')       param = Math.max(10, Math.min(90, (handle.left + 6) - origin.x));
-    else if (kind === 'cilindru')  param = Math.max(40, Math.min(240, ((handle.top + 6) - origin.y) * 2));
-    else /* piramide / con */      param = Math.max(30, Math.min(220, origin.y - (handle.top + 6)));
+    var points = group.data.points;
+    points[handle.data.pointKey] = { x: handle.left + 6, y: handle.top + 6 };
 
     try {
-      var prevProps = { left: group.left, top: group.top, angle: group.angle, scaleX: group.scaleX, scaleY: group.scaleY };
+      // left/top are NOT preserved here — every child object is rebuilt at
+      // its true absolute canvas coordinate (straight from `points`), so
+      // Fabric's own bounding-box-derived position for the new group is
+      // already exactly right and must be left alone; forcing the OLD
+      // left/top back on would misalign the rendered shape from its own
+      // (still-correctly-positioned) handles the moment a resize changes the
+      // bounding box. angle/scale are kept only as a defensive no-op, since
+      // hasControls=false means the group is never rotated/scaled directly.
+      var prevProps = { angle: group.angle, scaleX: group.scaleX, scaleY: group.scaleY };
       var stroke = group.data.role === 'custom' ? this._currentObjectColor(group) : this._paletteColor(group.data.role);
-      var built = factory.build(origin, param, stroke);
-      var freshGroup = new fabric.Group(built.objects, { data: Object.assign({}, group.data, { param: param }) });
+      var objects = factory.build(points, stroke);
+      var freshGroup = new fabric.Group(objects, { data: Object.assign({}, group.data, { points: points }) });
       freshGroup.hasControls = false;
       freshGroup.set(prevProps);
       canvas.remove(group);
       canvas.add(freshGroup);
-      canvas.moveTo(freshGroup, canvas.getObjects().indexOf(handle));
-      handle.data.origin = origin;
-      canvas.bringToFront(handle);
+      canvas.sendToBack(freshGroup); // every handle must stay clickable above the shape, regardless of prior z-order
+      freshGroup.data._lastLeft = freshGroup.left;
+      freshGroup.data._lastTop  = freshGroup.top;
       canvas.requestRenderAll();
     } catch (err) { /* keep the previous shape rather than crash the editor */ }
   };
@@ -882,7 +943,7 @@
     }
     var spec = this._strokeSpec('auxiliary');
     var line = new fabric.Line([this._segmentStart.x, this._segmentStart.y, p.x, p.y], {
-      stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._dashed ? [8, 6] : null,
+      stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._dashed ? [8, 6] : null, strokeLineCap: 'round',
       data: { role: spec.role, kind: 'segment' }
     });
     this._clearSegmentPreview();
@@ -1134,8 +1195,30 @@
 
     this._fabricCanvas.on('object:moving', function (opt) {
       var target = opt.target;
-      if (target && target.data && target.data.kind === 'handle') {
+      if (!target || !target.data) return;
+      if (target.data.kind === 'handle') {
         self._regenerate3DFromHandle(target);
+      } else if (target.data.points) {
+        // A 3D group dragged by its body (not a per-vertex handle) — its own
+        // points are the absolute-coordinate source of truth for the next
+        // handle-drag rebuild, so they (and the handle circles) must move
+        // along with it, not just the rendered group.
+        var dx = target.left - target.data._lastLeft;
+        var dy = target.top  - target.data._lastTop;
+        if (dx || dy) {
+          Object.keys(target.data.points).forEach(function (k) {
+            target.data.points[k].x += dx;
+            target.data.points[k].y += dy;
+          });
+          self._fabricCanvas.getObjects().forEach(function (h) {
+            if (h.data && h.data.handleFor === target.data.id) {
+              h.set({ left: h.left + dx, top: h.top + dy });
+              h.setCoords();
+            }
+          });
+        }
+        target.data._lastLeft = target.left;
+        target.data._lastTop  = target.top;
       }
     });
 
