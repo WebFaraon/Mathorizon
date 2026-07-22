@@ -369,6 +369,10 @@
 
   var TOOL_ICONS = {
     select: '<path d="M5 3 5 19 9 15 12 21.5 14.7 20.2 12 14.5 17 14Z" fill="currentColor" stroke="none"/>',
+    // "Hand" pan tool — palm + fingers, standard pan/scroll-tool convention.
+    pan: '<rect x="6" y="11" width="12" height="9" rx="3"/><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5"/><path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6"/>',
+    // Same eraser glyph as DrawingCanvas's own eraser tool (js/drawing-canvas.js), reused for icon-language consistency.
+    eraser: '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>',
     segment: '<path d="M5 19 19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/>',
     text: '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>',
     'right-angle': '<path d="M5 5v14h14"/><path d="M5 12h7v7"/>',
@@ -381,6 +385,14 @@
   }
 
   var TOOLBAR_HTML = `
+    <div class="gfe-tool-section">
+      <span class="gfe-tool-section__label">Instrumente</span>
+      <div class="dc-tool-group">
+        <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">${_gfeIcon(TOOL_ICONS.select)}</button>
+        <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea (utilă la zoom)">${_gfeIcon(TOOL_ICONS.pan)}</button>
+        <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă pe un element pentru a-l șterge">${_gfeIcon(TOOL_ICONS.eraser)}</button>
+      </div>
+    </div>
     <div class="gfe-tool-section">
       <span class="gfe-tool-section__label">Forme 2D</span>
       <div class="dc-tool-group gfe-shape-group">
@@ -398,7 +410,6 @@
     <div class="gfe-tool-section">
       <span class="gfe-tool-section__label">Linii și segmente</span>
       <div class="dc-tool-group">
-        <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">${_gfeIcon(TOOL_ICONS.select)}</button>
         <button class="dc-tool-btn" data-tool="segment" title="Segment (mediană, bisectoare, înălțime...)">${_gfeIcon(TOOL_ICONS.segment)}</button>
         <button class="dc-action-btn" id="gfe-dash-toggle" aria-pressed="false" title="Segment punctat">┄</button>
       </div>
@@ -853,14 +864,40 @@
       var handle = new fabric.Circle({
         left: p.x - 6, top: p.y - 6, radius: 6,
         fill: HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
+        // A drag handle only ever translates (never its own resize/rotate/
+        // selection chrome) and is only meaningful while its shape is the
+        // active selection — see _syncHandleVisibility.
+        hasControls: false, hasBorders: false, visible: false,
         data: { kind: 'handle', handleFor: groupId, pointKey: key }
       });
       self._fabricCanvas.add(handle);
     });
 
     this._fabricCanvas.setActiveObject(group);
+    this._syncHandleVisibility();
     this._fabricCanvas.requestRenderAll();
     this._pushHistory();
+  };
+
+  // Handles are only useful (and only clickable — visible:false objects are
+  // excluded from Fabric's hit-testing too) while their own shape is the
+  // active selection, so the canvas doesn't stay permanently cluttered with
+  // drag points for every 3D solid on the page.
+  GeometryFigureEditor.prototype._syncHandleVisibility = function () {
+    var active = this._fabricCanvas.getActiveObject();
+    var activeGroupId = null;
+    if (active && active.data) {
+      if (active.data.points) activeGroupId = active.data.id;
+      else if (active.data.kind === 'handle') activeGroupId = active.data.handleFor;
+    }
+    this._fabricCanvas.getObjects().forEach(function (o) {
+      if (o.data && o.data.kind === 'handle') {
+        var show = o.data.handleFor === activeGroupId;
+        o.visible = show;
+        o.evented = show;
+      }
+    });
+    this._fabricCanvas.requestRenderAll();
   };
 
   // Every point this shape's handles don't cover (e.g. the cube/sphere/cone/
@@ -1028,7 +1065,7 @@
     this._fabricCanvas.selection = !placing;
     this._fabricCanvas.getObjects().forEach(function (o) { o.selectable = !placing; });
     this._fabricCanvas.discardActiveObject();
-    this._fabricCanvas.defaultCursor = placing ? 'crosshair' : 'default';
+    this._fabricCanvas.defaultCursor = tool === 'pan' ? 'grab' : (placing ? 'crosshair' : 'default');
     this._fabricCanvas.requestRenderAll();
     this._toolbar.querySelectorAll('[data-tool]').forEach(function (btn) {
       btn.classList.toggle('dc-tool-btn--active', btn.dataset.tool === tool);
@@ -1109,6 +1146,26 @@
     this._pushHistory();
   };
 
+  // Eraser tool: click an element to delete it directly, no select-then-
+  // press-trash round trip. Clicking a 3D shape's handle erases the whole
+  // shape (its owner), same as clicking the shape itself.
+  GeometryFigureEditor.prototype._eraseObject = function (obj) {
+    if (obj.__isSnapMarker) return;
+    var canvas = this._fabricCanvas;
+    var target = obj;
+    if (obj.data && obj.data.kind === 'handle') {
+      target = canvas.getObjects().find(function (o) { return o.data && o.data.id === obj.data.handleFor; });
+      if (!target) return;
+    }
+    canvas.remove(target);
+    if (target.data && target.data.id) {
+      canvas.getObjects().filter(function (h) { return h.data && h.data.handleFor === target.data.id; })
+        .forEach(function (h) { canvas.remove(h); });
+    }
+    canvas.requestRenderAll();
+    this._pushHistory();
+  };
+
   GeometryFigureEditor.prototype._confirmClear = function () {
     var self = this;
     if (document.getElementById('gfeClearConfirmOverlay')) return;
@@ -1179,6 +1236,16 @@
     });
 
     this._fabricCanvas.on('mouse:down', function (opt) {
+      if (self._tool === 'pan') {
+        self._panning = true;
+        self._panStart = { x: opt.e.clientX, y: opt.e.clientY };
+        self._fabricCanvas.defaultCursor = 'grabbing';
+        return;
+      }
+      if (self._tool === 'eraser') {
+        if (opt.target) self._eraseObject(opt.target);
+        return;
+      }
       var pt = self._fabricCanvas.getPointer(opt.e);
       if (self._tool === 'segment') self._handleSegmentClick(pt);
       else if (self._tool === 'text') self._insertText(pt);
@@ -1188,10 +1255,28 @@
     });
 
     this._fabricCanvas.on('mouse:move', function (opt) {
+      if (self._panning) {
+        var e = opt.e;
+        var dx = e.clientX - self._panStart.x, dy = e.clientY - self._panStart.y;
+        self._panStart = { x: e.clientX, y: e.clientY };
+        self._fabricCanvas.relativePan(new fabric.Point(dx, dy));
+        return;
+      }
       if (self._tool === 'segment' && self._segmentStart) {
         self._updateSegmentPreview(self._fabricCanvas.getPointer(opt.e));
       }
     });
+
+    this._fabricCanvas.on('mouse:up', function () {
+      if (self._panning) {
+        self._panning = false;
+        self._fabricCanvas.defaultCursor = 'grab';
+      }
+    });
+
+    this._fabricCanvas.on('selection:created', function () { self._syncHandleVisibility(); });
+    this._fabricCanvas.on('selection:updated', function () { self._syncHandleVisibility(); });
+    this._fabricCanvas.on('selection:cleared', function () { self._syncHandleVisibility(); });
 
     this._fabricCanvas.on('object:moving', function (opt) {
       var target = opt.target;
