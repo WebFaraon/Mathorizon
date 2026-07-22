@@ -29,12 +29,10 @@
   // so the student-facing page re-colors for free with the site theme.
   var ROLE_LIGHT = { primary: '#1C1917', auxiliary: '#6b6459' };
   var ROLE_DARK  = { primary: '#e5e7eb', auxiliary: '#9ca3af' };
-  var HANDLE_COLOR = '#3B82F6';
-  // Distinct from HANDLE_COLOR (used for transient snap feedback / segment
-  // preview) so a persistent, draggable 3D vertex handle never looks like
-  // one of those momentary UI hints.
-  var THREE_D_HANDLE_COLOR = '#f97316';
-  var THREE_D_HANDLE_OFFSET = 13; // px, radial push away from the shape's own centroid
+  var HANDLE_COLOR = '#3B82F6';   // transient snap feedback / segment preview only
+  var VERTEX_COLOR = '#ec4899';   // reshape-this-point controls (pink/magenta, matches IDroo)
+  var SCALE_COLOR  = '#22c55e';   // whole-shape uniform resize controls (green)
+  var ROTATE_COLOR = '#3B82F6';   // whole-shape rotate control (blue)
 
   fabric.Object.prototype.transparentCorners = false;
   fabric.Object.prototype.cornerColor        = HANDLE_COLOR;
@@ -111,25 +109,6 @@
 
   function genId() { return 'g' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8); }
 
-  // Pushes a 3D shape's vertex handles a few px away from the point they
-  // control (radially outward from the shape's own centroid) so the handle
-  // doesn't visually sit exactly on top of 2-3 converging edges, and is
-  // easier to pick out/grab on its own. The offset is computed once, at
-  // creation time, and stays fixed thereafter — recomputing it "live" from
-  // the shape's current centroid on every drag tick would require inverting
-  // a circular dependency (the offset direction would depend on the very
-  // point it's offsetting), so a fixed offset is the simple, stable choice.
-  function centroidOf(points) {
-    var cx = 0, cy = 0, n = 0;
-    Object.keys(points).forEach(function (k) { cx += points[k].x; cy += points[k].y; n++; });
-    return { x: cx / n, y: cy / n };
-  }
-  function radialOffset(point, centroid, dist) {
-    var dx = point.x - centroid.x, dy = point.y - centroid.y;
-    var len = Math.hypot(dx, dy) || 1;
-    return { dx: (dx / len) * dist, dy: (dy / len) * dist };
-  }
-
   /* ---- Fabric.Polygon vertex-editing controls (canonical Fabric.js
      "editable polygon" recipe) — attached per-instance since the number
      of controls depends on that polygon's own point count. Snapping is
@@ -198,27 +177,197 @@
   }
 
   function attachPolygonVertexControls(poly) {
-    poly.hasBorders    = false;
     poly.objectCaching = false;
-    poly.controls = poly.points.reduce(function (acc, point, index) {
-      acc['p' + index] = new fabric.Control({
+    poly.controls = Object.assign({}, poly.controls);
+    poly.points.forEach(function (point, index) {
+      poly.controls['p' + index] = new fabric.Control({
         positionHandler: polygonPositionHandler,
         actionHandler: refreshCoordsWrapper(polygonActionHandler),
         actionName: 'modifyPolygon',
-        pointIndex: index
+        pointIndex: index,
+        cursorStyle: 'pointer',
+        sizeX: 12, sizeY: 12,
+        render: renderVertexControl
       });
-      return acc;
-    }, {});
+    });
+    styleScaleAndRotateControls(poly); // adds/restyles the native scale (green) + rotate (blue) controls alongside the vertex ones above
   }
 
   function attachCircleUniformControls(circle) {
+    styleScaleAndRotateControls(circle);
     ['tl', 'tr', 'bl', 'br'].forEach(function (k) {
       if (circle.controls[k] && fabric.controlsUtils && fabric.controlsUtils.scalingEqually) {
-        circle.controls[k] = fabric.util.object.clone(circle.controls[k]);
         circle.controls[k].actionHandler = fabric.controlsUtils.scalingEqually;
       }
     });
+    // Edge-midpoint scaling and rotation aren't meaningful on a circle
+    // (rotating a circle is a visual no-op) — keep only the 4 uniform-scale
+    // corners.
     circle.setControlsVisibility({ ml: false, mt: false, mr: false, mb: false, mtr: false });
+  }
+
+  /* ---- Shared control styling: green scale squares pushed slightly outside
+     the real shape + one blue rotate circle above center, reused by every
+     shape type so the whole toolset reads consistently (matches the IDroo
+     reference: distinct handle types, distinct colors, never overlapping). */
+  var SCALE_KEYS = ['tl', 'tr', 'bl', 'br', 'ml', 'mr', 'mt', 'mb'];
+  var SCALE_PUSH = 10; // px — a pure rendering/click-target offset; Fabric's
+                        // resize math still keys off the object's true corners
+
+  function renderRotateControl(ctx, left, top) {
+    ctx.save();
+    ctx.fillStyle = ROTATE_COLOR;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(left, top, 6, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function renderVertexControl(ctx, left, top) {
+    ctx.save();
+    ctx.fillStyle = VERTEX_COLOR;
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.arc(left, top, 4.5, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  function styleScaleAndRotateControls(obj) {
+    obj.controls = Object.assign({}, obj.controls); // own copy — never mutate the shared prototype dict
+    SCALE_KEYS.forEach(function (k) {
+      if (!obj.controls[k]) return;
+      obj.controls[k] = fabric.util.object.clone(obj.controls[k]);
+      var c = obj.controls[k];
+      c.offsetX = (c.x || 0) * SCALE_PUSH * 2;
+      c.offsetY = (c.y || 0) * SCALE_PUSH * 2;
+      c.sizeX = 9; c.sizeY = 9;
+    });
+    if (obj.controls.mtr) {
+      obj.controls.mtr = fabric.util.object.clone(obj.controls.mtr);
+      obj.controls.mtr.offsetY = -(SCALE_PUSH * 2 + 30);
+      obj.controls.mtr.render = renderRotateControl;
+      if (fabric.controlsUtils && fabric.controlsUtils.rotationWithSnapping) {
+        obj.controls.mtr.actionHandler = fabric.controlsUtils.rotationWithSnapping;
+      }
+    }
+    obj.cornerColor = SCALE_COLOR;
+    obj.cornerStrokeColor = '#ffffff';
+    obj.borderColor = SCALE_COLOR;
+    obj.transparentCorners = false;
+    obj.cornerStyle = 'rect';
+    obj.cornerSize = 9;
+  }
+
+  /* ---- 3D group vertex controls — same "editable point" idea as Polygon's
+     controls above, but for fabric.Group (which has no .points/.pathOffset
+     of its own). Points are stored LOCAL to the group (center-relative,
+     unscaled) in group.data.points, so they compose correctly underneath
+     whatever rotation/scale the group's own native controls apply — exactly
+     mirroring how Polygon keeps .points independent of its own transform. */
+
+  function groupVertexPositionHandler(dim, finalMatrix, fabricObject) {
+    var localPt = fabricObject.data.points[this.pointKey];
+    return fabric.util.transformPoint(
+      { x: localPt.x, y: localPt.y },
+      fabric.util.multiplyTransformMatrices(
+        fabricObject.canvas.viewportTransform,
+        fabricObject.calcTransformMatrix()
+      )
+    );
+  }
+
+  function groupVertexActionHandler(eventData, transform, x, y) {
+    var group = transform.target;
+    var key = group.controls[group.__corner].pointKey;
+    var mouseLocal = group.toLocalPoint(new fabric.Point(x, y), 'center', 'center');
+    // toLocalPoint returns pixel-space coordinates at the group's CURRENT
+    // scale — divide it back out so the stored point stays in a stable,
+    // scale-independent unit system (same reasoning as Polygon's own
+    // baseSize/transformedSize ratio in polygonActionHandler above).
+    var localPoint = { x: mouseLocal.x / group.scaleX, y: mouseLocal.y / group.scaleY };
+
+    var editor = group.canvas && group.canvas.__gfe;
+    if (editor) {
+      try {
+        var matrix = group.calcTransformMatrix();
+        var absPt = fabric.util.transformPoint(localPoint, matrix);
+        var snapped = editor._trySnap(absPt, group);
+        if (snapped) {
+          var inv = fabric.util.invertTransform(matrix);
+          localPoint = fabric.util.transformPoint(snapped, inv);
+        }
+      } catch (err) { /* never let a snapping bug break vertex dragging */ }
+    }
+
+    group.data.points[key] = localPoint;
+    var factory = THREE_D[group.data.kind];
+    if (factory && factory.constrainHandle) {
+      group.data.points[key] = factory.constrainHandle(key, group.data.points);
+    }
+    rebuildGroupChildren(group);
+    return true;
+  }
+
+  // Rebuilds a 3D group's children IN PLACE (the group object itself is
+  // never swapped out, so its attached controls/data keep working without
+  // any re-wiring) from its stored local vertex points. Bakes the group's
+  // CURRENT rotation/scale directly into the fresh absolute geometry and
+  // resets angle/scale to identity right after — sidesteps ever needing
+  // Fabric's addWithUpdate to correctly compose children with a non-identity
+  // group transform mid-edit (unverified/fragile to assume), at zero visible
+  // cost: the rendered shape is pixel-identical, only WHERE the rotation
+  // "lives" internally shifts from group.angle into the raw coordinates.
+  function rebuildGroupChildren(group) {
+    var factory = THREE_D[group.data.kind];
+    if (!factory) return;
+    var matrix = group.calcTransformMatrix();
+    var absolutePoints = {};
+    Object.keys(group.data.points).forEach(function (k) {
+      absolutePoints[k] = fabric.util.transformPoint(group.data.points[k], matrix);
+    });
+
+    var editor = group.canvas && group.canvas.__gfe;
+    var stroke = '#1C1917';
+    if (editor) {
+      stroke = group.data.role === 'custom' ? editor._currentObjectColor(group) : editor._paletteColor(group.data.role);
+    }
+
+    var newChildren = factory.build(absolutePoints, stroke);
+    group.getObjects().slice().forEach(function (c) { group.remove(c); });
+    newChildren.forEach(function (c) { group.addWithUpdate(c); });
+
+    group.set({ angle: 0, scaleX: 1, scaleY: 1 });
+    var center = group.getCenterPoint();
+    Object.keys(absolutePoints).forEach(function (k) {
+      group.data.points[k] = { x: absolutePoints[k].x - center.x, y: absolutePoints[k].y - center.y };
+    });
+    group.setCoords();
+    if (group.canvas) group.canvas.requestRenderAll();
+  }
+
+  function attachGroup3DControls(group, factory) {
+    group.controls = Object.assign({}, group.controls);
+    factory.handles.forEach(function (key) {
+      group.controls['v_' + key] = new fabric.Control({
+        positionHandler: groupVertexPositionHandler,
+        actionHandler: groupVertexActionHandler,
+        actionName: 'modifyGroupVertex',
+        pointKey: key,
+        cursorStyle: 'pointer',
+        sizeX: 12, sizeY: 12,
+        render: renderVertexControl
+      });
+    });
+    styleScaleAndRotateControls(group);
+    group.hasControls = true;
+    group.hasBorders = true;
+    group.objectCaching = false;
   }
 
   /* ---- 3D textbook-projection preset factories ----
@@ -315,7 +464,7 @@
       // is meaningless, so left un-constrained it drifts wherever the mouse
       // happened to be and visually "floats away" from the sphere. Snapping
       // it back onto that single axis after every drag keeps it stuck to
-      // the shape it's actually resizing (called from _regenerate3DFromHandle).
+      // the shape it's actually resizing (called from groupVertexActionHandler).
       constrainHandle: function (key, pts) {
         var o = pts.origin;
         if (key === 'radius') return { x: o.x + Math.max(15, pts.radius.x - o.x), y: o.y };
@@ -600,10 +749,14 @@
     return { stroke: this._paletteColor(defaultRole), role: defaultRole };
   };
 
-  GeometryFigureEditor.prototype._repaintRoleColor = function (obj) {
+  GeometryFigureEditor.prototype._repaintRoleColor = function (obj, inheritedRole) {
     var self = this;
-    if (obj._objects) obj._objects.forEach(function (child) { self._repaintRoleColor(child); });
-    var role = obj.data && obj.data.role;
+    // 3D shapes' child primitives (edges/faces built by THREE_D[...].build())
+    // never carry their own data.role — only the parent Group does — so a
+    // role found on an ancestor must propagate down to children that don't
+    // have their own, or those children never adapt to theme changes at all.
+    var role = (obj.data && obj.data.role) || inheritedRole;
+    if (obj._objects) obj._objects.forEach(function (child) { self._repaintRoleColor(child, role); });
     if (role === 'primary' || role === 'auxiliary') {
       var color = this._paletteColor(role);
       if (obj.stroke) obj.set('stroke', color);
@@ -724,7 +877,7 @@
     var entries = [];
     this._fabricCanvas.getObjects().forEach(function (obj) {
       if (obj === excludeObj) return;
-      if (obj.__isSnapMarker || (obj.data && obj.data.kind === 'handle')) return;
+      if (obj.__isSnapMarker) return;
 
       if (obj.type === 'polygon') {
         var pts = obj.points.map(function (p) {
@@ -824,7 +977,7 @@
       if (d <= bestDist) { bestDist = d; best = { p1: p1, p2: p2 }; }
     }
     this._fabricCanvas.getObjects().forEach(function (obj) {
-      if (obj.__isSnapMarker || (obj.data && obj.data.kind === 'handle')) return;
+      if (obj.__isSnapMarker) return;
       if (obj.type === 'polygon') {
         var pts = obj.points.map(function (p) {
           return fabric.util.transformPoint({ x: p.x - obj.pathOffset.x, y: p.y - obj.pathOffset.y }, obj.calcTransformMatrix());
@@ -889,6 +1042,7 @@
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
         data: { role: spec.role, kind: 'shape', id: genId() }
       });
+      styleScaleAndRotateControls(obj); // no vertex controls — a rect only ever resizes/rotates as a whole
     } else if (THREE_D[shapeId]) {
       this._insert3DShape(shapeId, center, spec);
       return;
@@ -906,118 +1060,22 @@
     var factory = THREE_D[kind];
     var points = factory.defaultPoints(origin);
     var objects = factory.build(points, spec.stroke);
-    var groupId = genId();
-    var group = new fabric.Group(objects, { data: { role: spec.role, kind: kind, id: groupId, points: points } });
-    // Native resize/rotate controls sit right where these per-vertex handles
-    // need to be clickable — Fabric prioritizes hit-testing the ACTIVE
-    // object's own controls over sibling objects underneath, so without this
-    // the handles would be unreachable. The group is still draggable by its body.
-    group.hasControls = false;
-    this._fabricCanvas.add(group);
-    group.data._lastLeft = group.left;
-    group.data._lastTop  = group.top;
+    var group = new fabric.Group(objects, { data: { role: spec.role, kind: kind, id: genId(), points: points } });
 
-    var self = this;
-    var centroid = centroidOf(points);
-    factory.handles.forEach(function (key) {
-      var p = points[key];
-      var off = radialOffset(p, centroid, THREE_D_HANDLE_OFFSET);
-      var handle = new fabric.Circle({
-        left: p.x + off.dx - 6, top: p.y + off.dy - 6, radius: 6,
-        fill: THREE_D_HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
-        // A drag handle only ever translates — never resizes/rotates, and
-        // never shows its own selection chrome — and is only meaningful
-        // while its shape is the active selection (see _syncHandleVisibility).
-        hasControls: false, hasBorders: false,
-        lockScalingX: true, lockScalingY: true, lockRotation: true,
-        visible: false,
-        data: { kind: 'handle', handleFor: groupId, pointKey: key, offsetDx: off.dx, offsetDy: off.dy }
-      });
-      self._fabricCanvas.add(handle);
+    // data.points must be LOCAL (group-center-relative, unscaled) from here
+    // on, matching groupVertexPositionHandler's expectations — group angle/
+    // scale are still identity at this point (just constructed), so this is
+    // a plain subtraction, same as rebuildGroupChildren's post-bake step.
+    var center = group.getCenterPoint();
+    Object.keys(points).forEach(function (k) {
+      points[k] = { x: points[k].x - center.x, y: points[k].y - center.y };
     });
 
+    attachGroup3DControls(group, factory);
+    this._fabricCanvas.add(group);
     this._fabricCanvas.setActiveObject(group);
-    this._syncHandleVisibility();
     this._fabricCanvas.requestRenderAll();
     this._pushHistory();
-  };
-
-  // Handles are only useful (and only clickable — visible:false objects are
-  // excluded from Fabric's hit-testing too) while their own shape is the
-  // active selection, so the canvas doesn't stay permanently cluttered with
-  // drag points for every 3D solid on the page.
-  GeometryFigureEditor.prototype._syncHandleVisibility = function () {
-    var active = this._fabricCanvas.getActiveObject();
-    var activeGroupId = null;
-    if (active && active.data) {
-      if (active.data.points) activeGroupId = active.data.id;
-      else if (active.data.kind === 'handle') activeGroupId = active.data.handleFor;
-    }
-    this._fabricCanvas.getObjects().forEach(function (o) {
-      if (o.data && o.data.kind === 'handle') {
-        var show = o.data.handleFor === activeGroupId;
-        o.visible = show;
-        o.evented = show;
-      }
-    });
-    this._fabricCanvas.requestRenderAll();
-  };
-
-  // Every point this shape's handles don't cover (e.g. the cube/sphere/cone/
-  // cylinder's fixed "origin" anchor) still needs to translate when the whole
-  // group is dragged by its body — handled in the 'object:moving' listener
-  // (see _bindEvents) by shifting every key in data.points by the same delta.
-  GeometryFigureEditor.prototype._regenerate3DFromHandle = function (handle) {
-    var canvas = this._fabricCanvas;
-    var group = canvas.getObjects().find(function (o) { return o.data && o.data.id === handle.data.handleFor; });
-    if (!group) return;
-    var factory = THREE_D[group.data.kind];
-    if (!factory) return;
-
-    var points = group.data.points;
-    // The handle is rendered offsetDx/offsetDy away from the point it
-    // actually controls (see radialOffset) — subtract that back out to get
-    // the true controlled point.
-    points[handle.data.pointKey] = {
-      x: handle.left + 6 - handle.data.offsetDx,
-      y: handle.top  + 6 - handle.data.offsetDy
-    };
-
-    // Some handles only encode a single meaningful axis (e.g. a radius or a
-    // base height) — without this, the other axis drifts to wherever the
-    // raw mouse happened to be and the handle visually floats away from the
-    // shape it's supposed to be resizing. Snap it back onto the constrained
-    // point BEFORE building, and reposition the actual handle circle to match
-    // (re-applying the same fixed offset so it stays visually detached).
-    if (factory.constrainHandle) {
-      var constrained = factory.constrainHandle(handle.data.pointKey, points);
-      points[handle.data.pointKey] = constrained;
-      handle.set({ left: constrained.x + handle.data.offsetDx - 6, top: constrained.y + handle.data.offsetDy - 6 });
-      handle.setCoords();
-    }
-
-    try {
-      // left/top are NOT preserved here — every child object is rebuilt at
-      // its true absolute canvas coordinate (straight from `points`), so
-      // Fabric's own bounding-box-derived position for the new group is
-      // already exactly right and must be left alone; forcing the OLD
-      // left/top back on would misalign the rendered shape from its own
-      // (still-correctly-positioned) handles the moment a resize changes the
-      // bounding box. angle/scale are kept only as a defensive no-op, since
-      // hasControls=false means the group is never rotated/scaled directly.
-      var prevProps = { angle: group.angle, scaleX: group.scaleX, scaleY: group.scaleY };
-      var stroke = group.data.role === 'custom' ? this._currentObjectColor(group) : this._paletteColor(group.data.role);
-      var objects = factory.build(points, stroke);
-      var freshGroup = new fabric.Group(objects, { data: Object.assign({}, group.data, { points: points }) });
-      freshGroup.hasControls = false;
-      freshGroup.set(prevProps);
-      canvas.remove(group);
-      canvas.add(freshGroup);
-      canvas.sendToBack(freshGroup); // every handle must stay clickable above the shape, regardless of prior z-order
-      freshGroup.data._lastLeft = freshGroup.left;
-      freshGroup.data._lastTop  = freshGroup.top;
-      canvas.requestRenderAll();
-    } catch (err) { /* keep the previous shape rather than crash the editor */ }
   };
 
   GeometryFigureEditor.prototype._currentObjectColor = function (obj) {
@@ -1190,7 +1248,7 @@
 
   GeometryFigureEditor.prototype._fitToView = function () {
     var canvas = this._fabricCanvas;
-    var objs = canvas.getObjects().filter(function (o) { return !o.__isSnapMarker && !(o.data && o.data.kind === 'handle'); });
+    var objs = canvas.getObjects().filter(function (o) { return !o.__isSnapMarker; });
     if (!objs.length) { this._setZoom(1); canvas.setViewportTransform([1, 0, 0, 1, 0, 0]); return; }
     var left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
     objs.forEach(function (o) {
@@ -1216,34 +1274,18 @@
     var canvas = this._fabricCanvas;
     var active = canvas.getActiveObjects();
     if (!active.length) return;
-    active.forEach(function (o) {
-      canvas.remove(o);
-      if (o.data && o.data.id) {
-        canvas.getObjects().filter(function (h) { return h.data && h.data.handleFor === o.data.id; })
-          .forEach(function (h) { canvas.remove(h); });
-      }
-    });
+    active.forEach(function (o) { canvas.remove(o); });
     canvas.discardActiveObject();
     canvas.requestRenderAll();
     this._pushHistory();
   };
 
   // Eraser tool: click an element to delete it directly, no select-then-
-  // press-trash round trip. Clicking a 3D shape's handle erases the whole
-  // shape (its owner), same as clicking the shape itself.
+  // press-trash round trip.
   GeometryFigureEditor.prototype._eraseObject = function (obj) {
     if (obj.__isSnapMarker) return;
     var canvas = this._fabricCanvas;
-    var target = obj;
-    if (obj.data && obj.data.kind === 'handle') {
-      target = canvas.getObjects().find(function (o) { return o.data && o.data.id === obj.data.handleFor; });
-      if (!target) return;
-    }
-    canvas.remove(target);
-    if (target.data && target.data.id) {
-      canvas.getObjects().filter(function (h) { return h.data && h.data.handleFor === target.data.id; })
-        .forEach(function (h) { canvas.remove(h); });
-    }
+    canvas.remove(obj);
     canvas.requestRenderAll();
     this._pushHistory();
   };
@@ -1354,39 +1396,11 @@
       }
     });
 
-    this._fabricCanvas.on('selection:created', function () { self._syncHandleVisibility(); });
-    this._fabricCanvas.on('selection:updated', function () { self._syncHandleVisibility(); });
-    this._fabricCanvas.on('selection:cleared', function () { self._syncHandleVisibility(); });
-
-    this._fabricCanvas.on('object:moving', function (opt) {
-      var target = opt.target;
-      if (!target || !target.data) return;
-      if (target.data.kind === 'handle') {
-        self._regenerate3DFromHandle(target);
-      } else if (target.data.points) {
-        // A 3D group dragged by its body (not a per-vertex handle) — its own
-        // points are the absolute-coordinate source of truth for the next
-        // handle-drag rebuild, so they (and the handle circles) must move
-        // along with it, not just the rendered group.
-        var dx = target.left - target.data._lastLeft;
-        var dy = target.top  - target.data._lastTop;
-        if (dx || dy) {
-          Object.keys(target.data.points).forEach(function (k) {
-            target.data.points[k].x += dx;
-            target.data.points[k].y += dy;
-          });
-          self._fabricCanvas.getObjects().forEach(function (h) {
-            if (h.data && h.data.handleFor === target.data.id) {
-              h.set({ left: h.left + dx, top: h.top + dy });
-              h.setCoords();
-            }
-          });
-        }
-        target.data._lastLeft = target.left;
-        target.data._lastTop  = target.top;
-      }
-    });
-
+    // Vertex/scale/rotate are now all genuine Fabric controls attached
+    // directly to each shape (see attachGroup3DControls/attachPolygonVertexControls),
+    // not separate sibling objects — so there's no custom visibility-sync or
+    // position-sync needed here any more; Fabric's own active-object/control
+    // rendering and native group-dragging already do the right thing.
     this._fabricCanvas.on('object:modified', function () { self._pushHistory(); });
     this._fabricCanvas.on('object:added', function (opt) {
       if (opt.target && opt.target.__isSnapMarker) return;
@@ -1445,15 +1459,16 @@
         staticCanvas.setDimensions({ width: self._fabricCanvas.getWidth(), height: self._fabricCanvas.getHeight() });
         var SENTINEL = { primary: '#a1b2c3', auxiliary: '#a1b2c4' };
         staticCanvas.loadFromJSON(json, function () {
-          function paintSentinel(obj) {
-            if (obj._objects) obj._objects.forEach(paintSentinel);
-            var role = obj.data && obj.data.role;
+          function paintSentinel(obj, inheritedRole) {
+            // 3D shapes' child primitives never carry their own data.role —
+            // only the parent Group does — so it must propagate down, same
+            // fix as _repaintRoleColor.
+            var role = (obj.data && obj.data.role) || inheritedRole;
+            if (obj._objects) obj._objects.forEach(function (child) { paintSentinel(child, role); });
             if (role === 'primary' || role === 'auxiliary') {
               if (obj.stroke) obj.set('stroke', SENTINEL[role]);
               if (obj.type === 'i-text' || obj.type === 'text') obj.set('fill', SENTINEL[role]);
             }
-            // handles are editor-only chrome, never part of the exported figure
-            if (obj.data && obj.data.kind === 'handle') obj.set({ opacity: 0 });
           }
           staticCanvas.getObjects().forEach(paintSentinel);
           staticCanvas.renderAll();
