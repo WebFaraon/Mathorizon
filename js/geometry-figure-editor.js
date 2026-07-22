@@ -210,19 +210,24 @@
 
   var THREE_D = {
     cub: {
+      // Every one of the 8 corners is its own handle (front F0-F3, back
+      // B0-B3) — same free per-vertex editing as the pyramids, so dragging
+      // any corner reshapes width/height/depth/skew independently instead
+      // of one handle standing in for "the whole box".
       defaultPoints: function (o) {
-        return {
-          origin:  { x: o.x - 55, y: o.y - 20 },   // fixed anchor: front-top-left corner
-          frontBR: { x: o.x + 55, y: o.y + 90 },   // handle: front-face width/height
-          depth:   { x: o.x + 95, y: o.y - 54 }    // handle: depth offset (back-top-right)
-        };
+        var hs = 55, dx = 40, dy = -34;
+        var F = [{ x: -hs, y: -hs }, { x: hs, y: -hs }, { x: hs, y: hs }, { x: -hs, y: hs }]
+          .map(function (p) { return { x: p.x + o.x, y: p.y + o.y }; });
+        var pts = { F0: F[0], F1: F[1], F2: F[2], F3: F[3] };
+        ['F0', 'F1', 'F2', 'F3'].forEach(function (k, i) {
+          pts['B' + i] = { x: F[i].x + dx, y: F[i].y + dy };
+        });
+        return pts;
       },
-      handles: ['frontBR', 'depth'],
+      handles: ['F0', 'F1', 'F2', 'F3', 'B0', 'B1', 'B2', 'B3'],
       build: function (pts, stroke) {
-        var o = pts.origin, br = pts.frontBR;
-        var F = [{ x: o.x, y: o.y }, { x: br.x, y: o.y }, { x: br.x, y: br.y }, { x: o.x, y: br.y }];
-        var dx = pts.depth.x - F[1].x, dy = pts.depth.y - F[1].y;
-        var B = F.map(function (p) { return { x: p.x + dx, y: p.y + dy }; });
+        var F = [pts.F0, pts.F1, pts.F2, pts.F3];
+        var B = [pts.B0, pts.B1, pts.B2, pts.B3];
         var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
         var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
         var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' }); });
@@ -276,14 +281,29 @@
       defaultPoints: function (o) {
         return {
           origin:  { x: o.x, y: o.y },
-          radius:  { x: o.x + 55, y: o.y },       // handle: sphere radius
-          equator: { x: o.x + 38.5, y: o.y + 12.6 } // handle: equator tilt/flatten
+          radius:  { x: o.x + 55, y: o.y },     // handle: sphere radius (stays on the horizontal through origin)
+          equator: { x: o.x, y: o.y + 12.6 }    // handle: equator tilt/flatten (stays on the vertical through origin)
         };
       },
       handles: ['radius', 'equator'],
+      // Both handles only ever encode ONE meaningful axis (radius: distance
+      // right of origin; equator: distance below origin) — the other axis
+      // is meaningless, so left un-constrained it drifts wherever the mouse
+      // happened to be and visually "floats away" from the sphere. Snapping
+      // it back onto that single axis after every drag keeps it stuck to
+      // the shape it's actually resizing (called from _regenerate3DFromHandle).
+      constrainHandle: function (key, pts) {
+        var o = pts.origin;
+        if (key === 'radius') return { x: o.x + Math.max(15, pts.radius.x - o.x), y: o.y };
+        if (key === 'equator') {
+          var R = Math.max(15, pts.radius.x - o.x);
+          return { x: o.x, y: o.y + Math.max(4, Math.min(R - 2, Math.abs(pts.equator.y - o.y))) };
+        }
+        return pts[key];
+      },
       build: function (pts, stroke) {
         var o = pts.origin;
-        var R = Math.max(15, Math.hypot(pts.radius.x - o.x, pts.radius.y - o.y));
+        var R = Math.max(15, pts.radius.x - o.x);
         var ry = Math.max(4, Math.min(R - 2, Math.abs(pts.equator.y - o.y)));
         var circle = new fabric.Circle({ left: o.x - R, top: o.y - R, radius: R, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
         var front = ellipseArcPoints(o.x, o.y, R, ry, 0, Math.PI, 20);
@@ -298,13 +318,23 @@
         return {
           origin: { x: o.x, y: o.y },
           apex:   { x: o.x, y: o.y - 60 },
-          radius: { x: o.x + 55, y: o.y + 30 }   // handle: base radius + base height
+          radius: { x: o.x + 55, y: o.y + 30 }   // handle: base radius + base height (both axes meaningful, already stays on the base's own edge)
         };
       },
       handles: ['apex', 'radius'],
+      // radius.y is used directly (base height) so that axis is already
+      // correct; only clamp .x so dragging past origin can't flip the
+      // handle to the wrong (left) side of a still-positive rx.
+      constrainHandle: function (key, pts) {
+        if (key === 'radius') {
+          var o = pts.origin;
+          return { x: o.x + Math.max(15, pts.radius.x - o.x), y: pts.radius.y };
+        }
+        return pts[key];
+      },
       build: function (pts, stroke) {
         var o = pts.origin;
-        var rx = Math.max(15, Math.abs(pts.radius.x - o.x));
+        var rx = Math.max(15, pts.radius.x - o.x);
         var ry = rx * 0.29;
         var baseY = pts.radius.y;
         var apex = pts.apex;
@@ -319,13 +349,19 @@
         return {
           origin: { x: o.x, y: o.y },
           top:    { x: o.x + 55, y: o.y - 50 },  // handle: radius + top height
-          bottom: { x: o.x, y: o.y + 50 }        // handle: bottom height
+          bottom: { x: o.x, y: o.y + 50 }        // handle: bottom height (x is meaningless — constrained back to center)
         };
       },
       handles: ['top', 'bottom'],
+      constrainHandle: function (key, pts) {
+        var o = pts.origin;
+        if (key === 'top')    return { x: o.x + Math.max(15, pts.top.x - o.x), y: pts.top.y };
+        if (key === 'bottom') return { x: o.x, y: pts.bottom.y };
+        return pts[key];
+      },
       build: function (pts, stroke) {
         var o = pts.origin;
-        var rx = Math.max(15, Math.abs(pts.top.x - o.x));
+        var rx = Math.max(15, pts.top.x - o.x);
         var ry = rx * 0.29;
         var topY = pts.top.y, botY = pts.bottom.y;
         var top = new fabric.Ellipse({ left: o.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
@@ -448,7 +484,6 @@
         <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">▦</button>
         <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">↺</button>
         <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">↻</button>
-        <button class="dc-action-btn" id="gfe-delete-btn" title="Șterge selecția (Delete)">🗑</button>
         <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">⨯</button>
       </div>
     </div>
@@ -864,10 +899,12 @@
       var handle = new fabric.Circle({
         left: p.x - 6, top: p.y - 6, radius: 6,
         fill: HANDLE_COLOR, stroke: '#fff', strokeWidth: 1.5,
-        // A drag handle only ever translates (never its own resize/rotate/
-        // selection chrome) and is only meaningful while its shape is the
-        // active selection — see _syncHandleVisibility.
-        hasControls: false, hasBorders: false, visible: false,
+        // A drag handle only ever translates — never resizes/rotates, and
+        // never shows its own selection chrome — and is only meaningful
+        // while its shape is the active selection (see _syncHandleVisibility).
+        hasControls: false, hasBorders: false,
+        lockScalingX: true, lockScalingY: true, lockRotation: true,
+        visible: false,
         data: { kind: 'handle', handleFor: groupId, pointKey: key }
       });
       self._fabricCanvas.add(handle);
@@ -913,6 +950,18 @@
 
     var points = group.data.points;
     points[handle.data.pointKey] = { x: handle.left + 6, y: handle.top + 6 };
+
+    // Some handles only encode a single meaningful axis (e.g. a radius or a
+    // base height) — without this, the other axis drifts to wherever the
+    // raw mouse happened to be and the handle visually floats away from the
+    // shape it's supposed to be resizing. Snap it back onto the constrained
+    // point BEFORE building, and reposition the actual handle circle to match.
+    if (factory.constrainHandle) {
+      var constrained = factory.constrainHandle(handle.data.pointKey, points);
+      points[handle.data.pointKey] = constrained;
+      handle.set({ left: constrained.x - 6, top: constrained.y - 6 });
+      handle.setCoords();
+    }
 
     try {
       // left/top are NOT preserved here — every child object is rebuilt at
@@ -1205,7 +1254,6 @@
       var dashBtn   = e.target.closest('#gfe-dash-toggle');
       var undoBtn   = e.target.closest('#gfe-undo-btn');
       var redoBtn   = e.target.closest('#gfe-redo-btn');
-      var delBtn    = e.target.closest('#gfe-delete-btn');
       var clearBtn  = e.target.closest('#gfe-clear-btn');
       var zoomInBtn  = e.target.closest('#gfe-zoomin-btn');
       var zoomOutBtn = e.target.closest('#gfe-zoomout-btn');
@@ -1223,7 +1271,6 @@
       else if (dashBtn) { self._dashed = !self._dashed; dashBtn.classList.toggle('dc-action-btn--active', self._dashed); }
       else if (undoBtn) self._undo();
       else if (redoBtn) self._redo();
-      else if (delBtn) self._deleteSelected();
       else if (clearBtn) self._confirmClear();
       else if (zoomInBtn) self._setZoom(self._zoom + ZOOM_STEP);
       else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
