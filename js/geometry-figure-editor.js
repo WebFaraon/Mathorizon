@@ -517,9 +517,9 @@
       build: function (pts, stroke) {
         var F = [pts.F0, pts.F1, pts.F2, pts.F3];
         var B = [pts.B0, pts.B1, pts.B2, pts.B3];
-        var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
-        var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
-        var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' }); });
+        var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
+        var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
+        var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false }); });
         return [front, back].concat(edges);
       }
     },
@@ -536,12 +536,12 @@
       handles: ['p0', 'p1', 'p2', 'p3', 'apex'],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, p3 = pts.p3, apex = pts.apex;
-        var baseVisible = new fabric.Polyline([p0, p1, p2], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
-        var baseHidden  = new fabric.Polyline([p2, p3, p0], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
-        var edgeP0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var edgeP1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var edgeP2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var edgeP3 = new fabric.Line([apex.x, apex.y, p3.x, p3.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        var baseVisible = new fabric.Polyline([p0, p1, p2], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
+        var baseHidden  = new fabric.Polyline([p2, p3, p0], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
+        var edgeP0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var edgeP1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var edgeP2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var edgeP3 = new fabric.Line([apex.x, apex.y, p3.x, p3.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
         return [baseVisible, baseHidden, edgeP0, edgeP1, edgeP2, edgeP3];
       }
     },
@@ -557,12 +557,12 @@
       handles: ['p0', 'p1', 'p2', 'apex'],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, apex = pts.apex;
-        var edgeFront = new fabric.Line([p0.x, p0.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var edgeBkL   = new fabric.Line([p1.x, p1.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
-        var edgeBkR   = new fabric.Line([p2.x, p2.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
-        var apex0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var apex1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var apex2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round' });
+        var edgeFront = new fabric.Line([p0.x, p0.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var edgeBkL   = new fabric.Line([p1.x, p1.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
+        var edgeBkR   = new fabric.Line([p2.x, p2.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
+        var apex0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var apex1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var apex2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
         return [edgeFront, edgeBkL, edgeBkR, apex0, apex1, apex2];
       }
     },
@@ -594,11 +594,11 @@
         var o = pts.origin;
         var R = Math.max(15, pts.radius.x - o.x);
         var ry = Math.max(4, Math.min(R - 2, Math.abs(pts.equator.y - o.y)));
-        var circle = new fabric.Circle({ left: o.x - R, top: o.y - R, radius: R, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
+        var circle = new fabric.Circle({ left: o.x - R, top: o.y - R, radius: R, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
         var front = ellipseArcPoints(o.x, o.y, R, ry, 0, Math.PI, 20);
         var back  = ellipseArcPoints(o.x, o.y, R, ry, Math.PI, 2 * Math.PI, 20);
-        var eqFront = new fabric.Polyline(front, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round' });
-        var eqBack  = new fabric.Polyline(back,  { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round' });
+        var eqFront = new fabric.Polyline(front, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
+        var eqBack  = new fabric.Polyline(back,  { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
         return [circle, eqBack, eqFront];
       }
     },
@@ -627,9 +627,9 @@
         var ry = rx * 0.29;
         var baseY = pts.radius.y;
         var apex = pts.apex;
-        var base = new fabric.Ellipse({ left: o.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var slantL = new fabric.Line([apex.x, apex.y, o.x - rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var slantR = new fabric.Line([apex.x, apex.y, o.x + rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var base = new fabric.Ellipse({ left: o.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
+        var slantL = new fabric.Line([apex.x, apex.y, o.x - rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var slantR = new fabric.Line([apex.x, apex.y, o.x + rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
         return [base, slantL, slantR];
       }
     },
@@ -653,10 +653,10 @@
         var rx = Math.max(15, pts.top.x - o.x);
         var ry = rx * 0.29;
         var topY = pts.top.y, botY = pts.bottom.y;
-        var top = new fabric.Ellipse({ left: o.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var bot = new fabric.Ellipse({ left: o.x - rx, top: botY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2 });
-        var lineL = new fabric.Line([o.x - rx, topY, o.x - rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
-        var lineR = new fabric.Line([o.x + rx, topY, o.x + rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round' });
+        var top = new fabric.Ellipse({ left: o.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
+        var bot = new fabric.Ellipse({ left: o.x - rx, top: botY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
+        var lineL = new fabric.Line([o.x - rx, topY, o.x - rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
+        var lineR = new fabric.Line([o.x + rx, topY, o.x + rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
         return [top, bot, lineL, lineR];
       }
     }
@@ -1185,16 +1185,27 @@
       attachPolygonVertexControls(obj);
     } else if (shapeId === 'cerc') {
       var radius = this._snapToGrid ? this._snapDimToGrid(60) : 60;
+      // left/top ARE the shape's literal geometry for Circle/Rect (unlike
+      // Polygon, where left/top are only a derived, stroke-padded bookkeeping
+      // value computed FROM the already-snapped points) — so deriving them
+      // from a snapped center doesn't itself land them on the grid (half of
+      // a grid-aligned dimension generally isn't itself grid-aligned).
+      // Snapping left/top directly, same as the object:moving handler does,
+      // is what actually puts the true corners on the grid.
+      var circLeft = this._snapToGrid ? this._snapPointToGrid({ x: center.x - radius, y: 0 }).x : center.x - radius;
+      var circTop  = this._snapToGrid ? this._snapPointToGrid({ x: 0, y: center.y - radius }).y : center.y - radius;
       obj = new fabric.Circle({
-        left: center.x - radius, top: center.y - radius, radius: radius,
+        left: circLeft, top: circTop, radius: radius,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
         data: { role: spec.role, kind: 'shape', id: genId() }
       });
       attachCircleUniformControls(obj);
     } else if (shapeId === 'patrat') {
       var side = this._snapToGrid ? this._snapDimToGrid(120) : 120;
+      var rectLeft = this._snapToGrid ? this._snapPointToGrid({ x: center.x - side / 2, y: 0 }).x : center.x - side / 2;
+      var rectTop  = this._snapToGrid ? this._snapPointToGrid({ x: 0, y: center.y - side / 2 }).y : center.y - side / 2;
       obj = new fabric.Rect({
-        left: center.x - side / 2, top: center.y - side / 2, width: side, height: side,
+        left: rectLeft, top: rectTop, width: side, height: side,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
         data: { role: spec.role, kind: 'shape', id: genId() }
       });
@@ -1674,19 +1685,35 @@
     // position-sync needed here any more; Fabric's own active-object/control
     // rendering and native group-dragging already do the right thing.
     // Whole-shape repositioning (drag-to-move, not vertex/scale/rotate) —
-    // snaps the object's own left/top (its position anchor) directly to the
-    // grid on every tick, rather than the move DELTA. Equivalent in the
-    // common case (a shape whose vertices already sit on the grid keeps its
-    // bounding-box anchor on the grid too, since aligned points always sum/
-    // average back to aligned ones — see _scaleHandlePoint's reasoning
-    // above), but this is simpler, and self-corrects a shape that wasn't
-    // quite grid-aligned to begin with instead of preserving its old offset.
+    // translates left/top by whatever delta lands a REAL, bias-free point of
+    // the shape's own geometry on the grid, so it lines up with vertex/scale
+    // dragging exactly. Which point is bias-free depends on the shape type:
+    // Polygon/Group auto-derive left/top (and aCoords, which is NOT the raw
+    // path bounds either — it's padded outward by strokeWidth/2) from their
+    // points, so an actual point/vertex has to be read directly; Rect/Circle
+    // don't derive left/top from anything, it's the literal, unpadded corner
+    // coordinate, so it's already exactly what vertex/scale dragging would
+    // agree on.
     this._fabricCanvas.on('object:moving', function (opt) {
       if (!self._snapToGrid) return;
       var target = opt.target;
       if (!target || target.__isSnapMarker) return;
-      var snapped = self._snapPointToGrid({ x: target.left, y: target.top });
-      target.set({ left: snapped.x, top: snapped.y });
+      target.setCoords();
+      var ref;
+      if (target.type === 'polygon' && target.points && target.points.length) {
+        ref = fabric.util.transformPoint(
+          { x: target.points[0].x - target.pathOffset.x, y: target.points[0].y - target.pathOffset.y },
+          target.calcTransformMatrix()
+        );
+      } else if (target.type === 'group' && target.data && target.data.points) {
+        var firstKey = Object.keys(target.data.points)[0];
+        ref = fabric.util.transformPoint(target.data.points[firstKey], target.calcTransformMatrix());
+      } else {
+        ref = { x: target.left, y: target.top };
+      }
+      var snapped = self._snapPointToGrid(ref);
+      var dx = snapped.x - ref.x, dy = snapped.y - ref.y;
+      if (dx || dy) target.set({ left: target.left + dx, top: target.top + dy });
     });
 
     this._fabricCanvas.on('object:modified', function (opt) {
