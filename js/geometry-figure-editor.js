@@ -229,6 +229,79 @@
     };
   }
 
+  // Snaps the raw pointer position fed into a rotate (or edge-midpoint scale)
+  // control's actionHandler to the nearest grid intersection before handing
+  // off to Fabric's own handler — those handlers use (x,y) directly/
+  // unconstrained (a midpoint only ever moves one axis; rotation is a
+  // continuous function of the angle to (x,y)), so pre-snapping the input
+  // lands the output on the grid too, the same way vertex dragging does.
+  function withGridSnapDirect(handler) {
+    return function (eventData, transform, x, y) {
+      var editor = transform.target.canvas && transform.target.canvas.__gfe;
+      if (editor && editor._snapToGrid) {
+        var snapped = editor._snapPointToGrid({ x: x, y: y });
+        x = snapped.x; y = snapped.y;
+      }
+      return handler(eventData, transform, x, y);
+    };
+  }
+
+  var OPPOSITE_CORNER = { tl: 'br', tr: 'bl', bl: 'tr', br: 'tl' };
+
+  // Applies one more uniform scale factor to `target`, around the fixed
+  // `anchor` point, so its `cornerKey` corner's dominant screen axis lands
+  // on `snapTo`. Repositions left/top afterward to keep the anchor exactly
+  // fixed. Returns the resulting corner position.
+  function _scaleCornerTo(target, cornerKey, anchorKey, anchor, useX, snapTo) {
+    var corner = target.aCoords[cornerKey];
+    var current = useX ? corner.x : corner.y;
+    var axisDelta = useX ? corner.x - anchor.x : corner.y - anchor.y;
+    if (!axisDelta) return corner;
+    var ratio = 1 + (snapTo - current) / axisDelta;
+    target.set({ scaleX: target.scaleX * ratio, scaleY: target.scaleY * ratio });
+    target.setCoords();
+    var shiftedAnchor = target.aCoords[anchorKey];
+    target.set({ left: target.left + (anchor.x - shiftedAnchor.x), top: target.top + (anchor.y - shiftedAnchor.y) });
+    target.setCoords();
+    return target.aCoords[cornerKey];
+  }
+
+  // Corner controls (tl/tr/bl/br) default to Fabric's aspect-locked "uniform
+  // scaling" — the dragged corner only ever moves along the fixed anchor→
+  // corner diagonal, so pre-snapping the raw input (x,y) independently per
+  // axis (withGridSnapDirect above) does NOT land the actual resulting
+  // corner on the grid, since the handler re-derives its own direction from
+  // the shape's aspect ratio rather than following the input's. Instead: let
+  // the real handler run to get the natural result, then nudge the scale
+  // (via _scaleCornerTo above) so the corner's dominant axis lands on the
+  // grid. A single proportional nudge lands very close but not always exact
+  // — strokeUniform means screen size isn't perfectly linear in scaleX/Y
+  // (a constant on-screen stroke width on top of the scaled fill) — so this
+  // repeats a couple of times, re-measuring the actual result each time
+  // rather than assuming linearity, until the residual is sub-pixel.
+  function withGridSnapCorner(handler) {
+    return function (eventData, transform, x, y) {
+      var result = handler(eventData, transform, x, y);
+      var target = transform.target;
+      var editor = target.canvas && target.canvas.__gfe;
+      var anchorKey = OPPOSITE_CORNER[transform.corner];
+      if (editor && editor._snapToGrid && result && anchorKey) {
+        target.setCoords();
+        var anchor = target.aCoords[anchorKey];
+        var corner = target.aCoords[transform.corner];
+        if (corner && anchor) {
+          var useX = Math.abs(corner.x - anchor.x) >= Math.abs(corner.y - anchor.y);
+          var snapTo = Math.round((useX ? corner.x : corner.y) / GRID_CELL_PX) * GRID_CELL_PX;
+          for (var i = 0; i < 4; i++) {
+            corner = _scaleCornerTo(target, transform.corner, anchorKey, anchor, useX, snapTo);
+            if (Math.abs((useX ? corner.x : corner.y) - snapTo) < 0.05) break;
+          }
+        }
+      }
+      return result;
+    };
+  }
+
   function attachPolygonVertexControls(poly) {
     poly.objectCaching = false;
     poly.controls = Object.assign({}, poly.controls);
@@ -250,7 +323,7 @@
     styleScaleAndRotateControls(circle);
     ['tl', 'tr', 'bl', 'br'].forEach(function (k) {
       if (circle.controls[k] && fabric.controlsUtils && fabric.controlsUtils.scalingEqually) {
-        circle.controls[k].actionHandler = fabric.controlsUtils.scalingEqually;
+        circle.controls[k].actionHandler = withGridSnapCorner(fabric.controlsUtils.scalingEqually);
       }
     });
     // Edge-midpoint scaling and rotation aren't meaningful on a circle
@@ -300,13 +373,14 @@
       c.offsetX = (c.x || 0) * SCALE_PUSH * 2;
       c.offsetY = (c.y || 0) * SCALE_PUSH * 2;
       c.sizeX = 9; c.sizeY = 9;
+      c.actionHandler = OPPOSITE_CORNER[k] ? withGridSnapCorner(c.actionHandler) : withGridSnapDirect(c.actionHandler);
     });
     if (obj.controls.mtr) {
       obj.controls.mtr = fabric.util.object.clone(obj.controls.mtr);
       obj.controls.mtr.offsetY = -(SCALE_PUSH * 2 + 30);
       obj.controls.mtr.render = renderRotateControl;
       if (fabric.controlsUtils && fabric.controlsUtils.rotationWithSnapping) {
-        obj.controls.mtr.actionHandler = fabric.controlsUtils.rotationWithSnapping;
+        obj.controls.mtr.actionHandler = withGridSnapDirect(fabric.controlsUtils.rotationWithSnapping);
       }
     }
     obj.cornerColor = SCALE_COLOR;
@@ -641,6 +715,7 @@
     // Same eraser glyph as DrawingCanvas's own eraser tool (js/drawing-canvas.js), reused for icon-language consistency.
     eraser: '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>',
     segment: '<path d="M5 19 19 5"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/>',
+    'segment-dashed': '<path d="M5 19 19 5" stroke-dasharray="3.6 3.2"/><circle cx="5" cy="19" r="1.6" fill="currentColor" stroke="none"/><circle cx="19" cy="5" r="1.6" fill="currentColor" stroke="none"/>',
     text: '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>',
     'right-angle': '<path d="M5 5v14h14"/><path d="M5 12h7v7"/>',
     arc: '<path d="M5 19 19 19"/><path d="M5 19V5"/><path d="M9 19a10 10 0 0 1 8-9.8"/>',
@@ -654,7 +729,6 @@
 
   var TOOLBAR_HTML = `
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Instrumente</span>
       <div class="dc-tool-group">
         <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">${_gfeIcon(TOOL_ICONS.select)}</button>
         <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea (utilă la zoom)">${_gfeIcon(TOOL_ICONS.pan)}</button>
@@ -662,7 +736,6 @@
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Forme 2D</span>
       <div class="gfe-dropdown">
         <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Forme 2D — alege o formă" aria-haspopup="true" aria-expanded="false">
           ${_gfeIcon(SHAPE_ICONS['tri-oarecare'])}${_gfeIcon(TOOL_ICONS.chevron)}
@@ -676,7 +749,6 @@
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Corpuri 3D</span>
       <div class="gfe-dropdown">
         <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Corpuri 3D — alege un corp" aria-haspopup="true" aria-expanded="false">
           ${_gfeIcon(SHAPE_ICONS.cub)}${_gfeIcon(TOOL_ICONS.chevron)}
@@ -690,38 +762,33 @@
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Linii și segmente</span>
       <div class="dc-tool-group">
-        <button class="dc-tool-btn" data-tool="segment" title="Segment (mediană, bisectoare, înălțime...)">${_gfeIcon(TOOL_ICONS.segment)}</button>
-        <button class="dc-action-btn" id="gfe-dash-toggle" aria-pressed="false" title="Segment punctat">┄</button>
+        <button class="dc-tool-btn" data-tool="segment" title="Segment continuu">${_gfeIcon(TOOL_ICONS.segment)}</button>
+        <button class="dc-tool-btn" data-tool="segment-dashed" title="Segment punctat">${_gfeIcon(TOOL_ICONS['segment-dashed'])}</button>
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Adnotări</span>
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="right-angle" title="Unghi drept">${_gfeIcon(TOOL_ICONS['right-angle'])}</button>
         <button class="dc-tool-btn" data-tool="arc" title="Arc unghi">${_gfeIcon(TOOL_ICONS.arc)}</button>
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Text</span>
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="text" title="Etichetă text">${_gfeIcon(TOOL_ICONS.text)}</button>
       </div>
     </div>
     <div class="gfe-tool-section">
-      <span class="gfe-tool-section__label">Culori</span>
       <div class="dc-tool-group">
         <button class="dc-color-btn dc-color-btn--active" data-color="" data-adaptive title="Culoare implicită" aria-label="Culoare implicită"></button>
-        <button class="dc-color-btn" data-color="#ffffff" style="background:#ffffff;border-color:var(--border)" title="Alb" aria-label="Culoare alb"></button>
         <button class="dc-color-btn" data-color="#dc2626" style="background:#dc2626" title="Roșu" aria-label="Culoare roșu"></button>
         <button class="dc-color-btn" data-color="#1d4ed8" style="background:#1d4ed8" title="Albastru" aria-label="Culoare albastru"></button>
         <button class="dc-color-btn" data-color="#16a34a" style="background:#16a34a" title="Verde" aria-label="Culoare verde"></button>
-        <input type="color" id="gfe-color-picker" class="gfe-color-picker" value="#dc2626" title="Altă culoare" aria-label="Alege altă culoare">
+        <button class="dc-color-btn" data-color="#ea580c" style="background:#ea580c" title="Portocaliu" aria-label="Culoare portocaliu"></button>
+        <button class="dc-color-btn" data-color="#7c3aed" style="background:#7c3aed" title="Violet" aria-label="Culoare violet"></button>
       </div>
     </div>
     <div class="gfe-tool-section gfe-tool-section--actions">
-      <span class="gfe-tool-section__label">Acțiuni</span>
       <div class="dc-tool-group">
         <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">−</button>
         <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
@@ -744,7 +811,6 @@
 
     this._tool       = 'select';
     this._tickCount  = 1;
-    this._dashed     = false;
     this._color      = null; // null = adaptive/default; else literal hex
     this._gridVisible = this._loadGridVisible();
     this._snapToGrid  = this._loadSnapToGrid();
@@ -1027,39 +1093,11 @@
     // based shape-vertex snap below) — every vertex drag lands on the
     // nearest grid intersection, no closeness threshold to clear first.
     if (this._snapToGrid) {
-      var onGrid = this._snapPointToGrid(absPt);
-      this._flashSnapMarker(onGrid);
-      return onGrid;
+      return this._snapPointToGrid(absPt);
     }
     var hit = this._nearestSnapPoint(absPt, excludeObj);
-    if (hit) { this._flashSnapMarker(hit); return { x: hit.x, y: hit.y }; }
+    if (hit) return { x: hit.x, y: hit.y };
     return null;
-  };
-
-  // A SINGLE reused marker, repositioned in place — grid-snap fires this on
-  // every mousemove tick of an active drag, so creating a brand-new circle
-  // each time (as a fast drag races ahead of each one's own removal timeout)
-  // left a visible trail of stacked blue circles instead of one clean dot.
-  GeometryFigureEditor.prototype._flashSnapMarker = function (pt) {
-    var canvas = this._fabricCanvas;
-    if (!this._snapMarker) {
-      this._snapMarker = new fabric.Circle({
-        radius: 6, fill: 'transparent', stroke: HANDLE_COLOR, strokeWidth: 2,
-        selectable: false, evented: false
-      });
-      this._snapMarker.__isSnapMarker = true;
-      canvas.add(this._snapMarker);
-    }
-    this._snapMarker.set({ left: pt.x - 6, top: pt.y - 6, opacity: 1 });
-    this._snapMarker.setCoords();
-    canvas.bringToFront(this._snapMarker);
-    canvas.requestRenderAll();
-    var marker = this._snapMarker;
-    clearTimeout(this._snapMarkerTimer);
-    this._snapMarkerTimer = setTimeout(function () {
-      marker.set({ opacity: 0 });
-      canvas.requestRenderAll();
-    }, 320);
   };
 
   GeometryFigureEditor.prototype._collectEdgeDirsNear = function (pt) {
@@ -1216,7 +1254,6 @@
   GeometryFigureEditor.prototype._handleSegmentClick = function (pt) {
     var snap = this._nearestSnapPoint(pt);
     var p = snap ? { x: snap.x, y: snap.y } : pt;
-    if (snap) this._flashSnapMarker(p);
 
     if (!this._segmentStart) {
       this._segmentStart = p;
@@ -1224,7 +1261,7 @@
     }
     var spec = this._strokeSpec('auxiliary');
     var line = new fabric.Line([this._segmentStart.x, this._segmentStart.y, p.x, p.y], {
-      stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._dashed ? [8, 6] : null, strokeLineCap: 'round',
+      stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._tool === 'segment-dashed' ? [8, 6] : null, strokeLineCap: 'round',
       data: { role: spec.role, kind: 'segment' }
     });
     this._clearSegmentPreview();
@@ -1522,7 +1559,6 @@
       var toolBtn   = e.target.closest('[data-tool]');
       var colorBtn  = e.target.closest('[data-color]');
       var tickBtn   = e.target.closest('[data-tick]');
-      var dashBtn   = e.target.closest('#gfe-dash-toggle');
       var undoBtn   = e.target.closest('#gfe-undo-btn');
       var redoBtn   = e.target.closest('#gfe-redo-btn');
       var clearBtn  = e.target.closest('#gfe-clear-btn');
@@ -1540,7 +1576,6 @@
         self._toolbar.querySelectorAll('[data-tick]').forEach(function (b) { b.classList.toggle('gfe-tick-btn--active', b === tickBtn); });
         self._setTool('tick');
       }
-      else if (dashBtn) { self._dashed = !self._dashed; dashBtn.classList.toggle('dc-action-btn--active', self._dashed); }
       else if (undoBtn) self._undo();
       else if (redoBtn) self._redo();
       else if (clearBtn) self._confirmClear();
@@ -1549,10 +1584,6 @@
       else if (fitBtn) self._fitToView();
       else if (gridBtn) self._toggleGrid();
       else if (snapGridBtn) self._toggleSnapToGrid();
-    });
-
-    this._toolbar.querySelector('#gfe-color-picker').addEventListener('input', function (e) {
-      self._applyColorToSelection(e.target.value);
     });
 
     this._docClickHandler = function (e) {
@@ -1578,7 +1609,7 @@
         return;
       }
       var pt = self._fabricCanvas.getPointer(opt.e);
-      if (self._tool === 'segment') self._handleSegmentClick(pt);
+      if (self._tool === 'segment' || self._tool === 'segment-dashed') self._handleSegmentClick(pt);
       else if (self._tool === 'text') self._insertText(pt);
       else if (self._tool === 'right-angle') self._insertRightAngle(pt);
       else if (self._tool === 'arc') self._insertArc(pt);
@@ -1593,7 +1624,7 @@
         self._fabricCanvas.relativePan(new fabric.Point(dx, dy));
         return;
       }
-      if (self._tool === 'segment' && self._segmentStart) {
+      if ((self._tool === 'segment' || self._tool === 'segment-dashed') && self._segmentStart) {
         self._updateSegmentPreview(self._fabricCanvas.getPointer(opt.e));
       }
     });

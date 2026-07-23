@@ -14514,28 +14514,22 @@ body.dc-fullscreen-active .dc-wrap {
    sizing bug on the admin page; see .ae-geo-editor .gfe-wrap below). */
 .gfe-toolbar { flex-wrap: nowrap; align-items: flex-start; overflow-x: auto; }
 
-/* ---- Grouped, visually-boxed toolbar sections ---- */
+/* ---- Grouped, visually-boxed toolbar sections — no text labels, just the
+   bordered box + a hairline between sections to delimit each group. Fixed
+   height so every section (including the small color swatches) lines up,
+   regardless of what size its own buttons are. ---- */
 .gfe-tool-section {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
+  align-items: center;
   flex-shrink: 0;
-  gap: 4px;
-  padding: 6px 10px 8px;
+  height: 46px;
+  padding: 0 10px;
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 8px;
   margin: 0 2px;
 }
 .gfe-tool-section + .gfe-tool-section { border-left: 1px solid var(--border); }
-.gfe-tool-section__label {
-  font-size: 9.5px;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  padding-left: 2px;
-}
 .gfe-tool-section .dc-tool-group { gap: 4px; }
 
 .gfe-shape-btn {
@@ -14593,18 +14587,6 @@ body.dc-fullscreen-active .dc-wrap {
 }
 .gfe-tick-btn:hover { background: var(--card-hover); color: var(--text); }
 .gfe-tick-btn--active { background: var(--accent); color: #fff; border-color: transparent; }
-
-.gfe-color-picker {
-  width: 26px;
-  height: 26px;
-  padding: 0;
-  border: 1.5px solid var(--border);
-  border-radius: 6px;
-  background: transparent;
-  cursor: pointer;
-}
-.gfe-color-picker::-webkit-color-swatch-wrapper { padding: 2px; }
-.gfe-color-picker::-webkit-color-swatch { border: none; border-radius: 3px; }
 
 .gfe-canvas-wrap {
   position: relative;
