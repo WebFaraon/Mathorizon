@@ -269,21 +269,30 @@
   // of landing on the grid. Instead: run the handler with the raw input to
   // get the natural (unsnapped) result, measure where the dragged point
   // actually landed, and re-run with the input nudged by exactly the delta
-  // needed to land that point on the grid instead — the mouse-delta-to-
-  // point-delta relationship is 1:1 (verified empirically), so one
-  // correction pass is enough.
+  // needed to land that point on the grid instead. The mouse-delta-to-
+  // point-delta relationship is close to 1:1 but not exactly — strokeUniform
+  // keeps the on-screen stroke width constant regardless of scale, which
+  // makes the true relationship slightly non-linear — so one correction
+  // pass typically lands within a fraction of a pixel but not always exactly
+  // 0; a couple more passes, re-measuring the ACTUAL result each time rather
+  // than assuming linearity, squeeze the residual down to sub-hundredth-
+  // pixel, well under anything a display could actually render as a gap.
   function withGridSnapScale(handler) {
     return function (eventData, transform, x, y) {
       var result = handler(eventData, transform, x, y);
       var target = transform.target;
       var editor = target.canvas && target.canvas.__gfe;
       if (editor && editor._snapToGrid && result) {
-        target.setCoords();
-        var pt = _scaleHandlePoint(target, transform.corner);
-        if (pt) {
+        var cx = x, cy = y;
+        for (var i = 0; i < 4; i++) {
+          target.setCoords();
+          var pt = _scaleHandlePoint(target, transform.corner);
+          if (!pt) break;
           var dx = Math.round(pt.x / GRID_CELL_PX) * GRID_CELL_PX - pt.x;
           var dy = Math.round(pt.y / GRID_CELL_PX) * GRID_CELL_PX - pt.y;
-          if (dx || dy) handler(eventData, transform, x + dx, y + dy);
+          if (Math.abs(dx) < 0.01 && Math.abs(dy) < 0.01) break;
+          cx += dx; cy += dy;
+          handler(eventData, transform, cx, cy);
         }
       }
       return result;
@@ -497,6 +506,26 @@
      point keys get a draggable circle; `build(points, stroke)` reconstructs
      every primitive purely from the current point set. */
 
+  // Builds one fabric.Path out of several "pen strokes" (each an array of
+  // points, drawn as M...L...L...) that touch at shared vertices (e.g. a
+  // pyramid's apex, where 3+ edges meet). Each is its own separate Fabric
+  // object gets its own independent anti-aliasing pass — two of THOSE
+  // meeting at exactly the same pixel don't necessarily composite back up
+  // to full opacity, which is what left a visible hairline gap at cube/
+  // pyramid/cone vertices. One Path, one stroke() call, one anti-aliasing
+  // pass over the whole thing — no seam is possible.
+  function multiStrokePath(strokes, stroke, dashed) {
+    var d = strokes.map(function (pts) {
+      return pts.map(function (p, i) { return (i === 0 ? 'M ' : 'L ') + p.x + ' ' + p.y; }).join(' ');
+    }).join(' ');
+    return new fabric.Path(d, {
+      fill: 'transparent', stroke: stroke, strokeWidth: 2,
+      strokeLineJoin: 'round', strokeLineCap: 'round',
+      strokeDashArray: dashed ? [6, 5] : null,
+      objectCaching: false
+    });
+  }
+
   var THREE_D = {
     cub: {
       // Every one of the 8 corners is its own handle (front F0-F3, back
@@ -517,10 +546,14 @@
       build: function (pts, stroke) {
         var F = [pts.F0, pts.F1, pts.F2, pts.F3];
         var B = [pts.B0, pts.B1, pts.B2, pts.B3];
-        var front = new fabric.Polygon(F, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
-        var back  = new fabric.Polygon(B, { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
-        var edges = F.map(function (p, i) { return new fabric.Line([p.x, p.y, B[i].x, B[i].y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false }); });
-        return [front, back].concat(edges);
+        // Front square + the 4 depth edges are all solid and all meet at an
+        // F-corner — one merged path so those joins render seamlessly.
+        var solid = multiStrokePath(
+          [[F[0], F[1], F[2], F[3], F[0]]].concat(F.map(function (p, i) { return [p, B[i]]; })),
+          stroke, false
+        );
+        var back = multiStrokePath([[B[0], B[1], B[2], B[3], B[0]]], stroke, true);
+        return [back, solid];
       }
     },
     'piramida-patrata': {
@@ -536,13 +569,13 @@
       handles: ['p0', 'p1', 'p2', 'p3', 'apex'],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, p3 = pts.p3, apex = pts.apex;
-        var baseVisible = new fabric.Polyline([p0, p1, p2], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
-        var baseHidden  = new fabric.Polyline([p2, p3, p0], { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
-        var edgeP0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var edgeP1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var edgeP2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var edgeP3 = new fabric.Line([apex.x, apex.y, p3.x, p3.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
-        return [baseVisible, baseHidden, edgeP0, edgeP1, edgeP2, edgeP3];
+        // Solid: visible base edge (p0-p1-p2) + the 3 edges down to it from
+        // the apex — all meet at p0/p1/p2/apex, merged so those joins seal.
+        var solid = multiStrokePath([[p0, p1, p2], [apex, p0], [apex, p1], [apex, p2]], stroke, false);
+        // Dashed: hidden base edge (p2-p3-p0) + the one hidden apex edge,
+        // sharing p3.
+        var dashedPath = multiStrokePath([[p2, p3, p0], [apex, p3]], stroke, true);
+        return [dashedPath, solid];
       }
     },
     'piramida-triunghiulara': {
@@ -557,13 +590,13 @@
       handles: ['p0', 'p1', 'p2', 'apex'],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, apex = pts.apex;
-        var edgeFront = new fabric.Line([p0.x, p0.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var edgeBkL   = new fabric.Line([p1.x, p1.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
-        var edgeBkR   = new fabric.Line([p2.x, p2.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
-        var apex0 = new fabric.Line([apex.x, apex.y, p0.x, p0.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var apex1 = new fabric.Line([apex.x, apex.y, p1.x, p1.y], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var apex2 = new fabric.Line([apex.x, apex.y, p2.x, p2.y], { stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineCap: 'round', objectCaching: false });
-        return [edgeFront, edgeBkL, edgeBkR, apex0, apex1, apex2];
+        // Solid: front base edge + the 2 edges down to it from the apex —
+        // meet at p0/p1/apex.
+        var solid = multiStrokePath([[p0, p1], [apex, p0], [apex, p1]], stroke, false);
+        // Dashed: the two hidden base edges (sharing p2) + the hidden apex
+        // edge (also sharing p2).
+        var dashedPath = multiStrokePath([[p1, p2, p0], [apex, p2]], stroke, true);
+        return [dashedPath, solid];
       }
     },
     sfera: {
@@ -628,9 +661,9 @@
         var baseY = pts.radius.y;
         var apex = pts.apex;
         var base = new fabric.Ellipse({ left: o.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
-        var slantL = new fabric.Line([apex.x, apex.y, o.x - rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        var slantR = new fabric.Line([apex.x, apex.y, o.x + rx, baseY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        return [base, slantL, slantR];
+        // Both slants share the apex — merged into one path so that join seals.
+        var slants = multiStrokePath([[{ x: o.x - rx, y: baseY }, apex, { x: o.x + rx, y: baseY }]], stroke, false);
+        return [base, slants];
       }
     },
     cilindru: {
@@ -712,8 +745,27 @@
     chevron: '<path d="M6 9.5 12 15.5 18 9.5" stroke-width="2.3"/>'
   };
 
+  // Zoom/undo/redo/grid/clear — identical markup to DrawingCanvas's own
+  // toolbar (js/drawing-canvas.js, DC_TOOLBAR_HTML) so these controls read
+  // as the same design-system icon everywhere on the site, not a
+  // similar-but-different one just for this editor.
+  var DC_ICONS = {
+    zoomOut: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>',
+    zoomIn: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>',
+    undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
+    grid: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>',
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>'
+  };
+
   function _gfeIcon(inner) {
     return `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
+  }
+
+  // Same stroke-width (2, vs. the rest of this toolbar's 1.7) as
+  // DrawingCanvas's own icons — matches their exact visual weight, not just
+  // their shape.
+  function _dcIcon(inner, extraClass) {
+    return `<svg${extraClass ? ` class="${extraClass}"` : ''} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${inner}</svg>`;
   }
 
   var TOOLBAR_HTML = `
@@ -779,15 +831,15 @@
     </div>
     <div class="gfe-tool-section gfe-tool-section--actions">
       <div class="dc-tool-group">
-        <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">−</button>
+        <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">${_dcIcon(DC_ICONS.zoomOut)}</button>
         <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
-        <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">+</button>
+        <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">${_dcIcon(DC_ICONS.zoomIn)}</button>
         <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">⤢</button>
-        <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">▦</button>
+        <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">${_dcIcon(DC_ICONS.grid)}</button>
         <button class="dc-action-btn" id="gfe-snapgrid-btn" title="Activează alinierea la grilă">⌗</button>
-        <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">↺</button>
-        <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">↻</button>
-        <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">⨯</button>
+        <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">${_dcIcon(DC_ICONS.undo)}</button>
+        <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">${_dcIcon(DC_ICONS.undo, 'dc-icon-mirror')}</button>
+        <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">${_dcIcon(DC_ICONS.trash)}</button>
       </div>
     </div>
   `;
