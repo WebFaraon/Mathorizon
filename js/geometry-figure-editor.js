@@ -1521,6 +1521,7 @@
     var spec = this._strokeSpec('primary');
     var text = new fabric.IText('Text', {
       left: pt.x, top: pt.y, fontSize: 18, fill: spec.stroke,
+      fontFamily: "'Josefin Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif",
       data: { role: spec.role, kind: 'label' }
     });
     this._fabricCanvas.add(text);
@@ -1687,8 +1688,17 @@
     var canvas = this._fabricCanvas;
     var active = canvas.getActiveObjects();
     if (!active.length) return;
-    active.forEach(function (o) { canvas.remove(o); });
+    // Discarding the selection BEFORE removing the objects matters for a
+    // multi-select: canvas.getActiveObjects() for that case is really a
+    // fabric.ActiveSelection wrapper around the individual objects, and
+    // discardActiveObject() needs those objects to still exist to properly
+    // unwind it. Removing them first left the ActiveSelection's own
+    // bounding box + controls dangling on screen, referencing objects that
+    // no longer existed — dragging one of those stale handles corrupted
+    // rendering (the grid re-drawing itself on top of itself, handle
+    // duplicates) badly enough to need a page refresh.
     canvas.discardActiveObject();
+    active.forEach(function (o) { canvas.remove(o); });
     canvas.requestRenderAll();
     this._pushHistory();
   };
@@ -1947,6 +1957,42 @@
     return new RegExp('rgb\\(\\s*' + r + '\\s*,\\s*' + g + '\\s*,\\s*' + b + '\\s*\\)', 'gi');
   }
 
+  // Frames the export tight around whatever was actually drawn, instead of
+  // baking in the full admin canvas (700-900px+ tall on the "Adaugă
+  // exercițiu" page, per .ae-geo-editor .gfe-canvas-wrap's 70vh/min-640px —
+  // and that height varies with whatever the admin's own browser window
+  // happened to be at authoring time). Left uncropped, students see a huge
+  // mostly-empty box around a small centered figure, and two figures drawn
+  // at different admin window sizes come out at inconsistent visual scale
+  // relative to each other even though the drawings themselves are the same
+  // size in canvas units. Cropping to the content's own bounding box (plus
+  // a fixed padding) makes the exported size depend only on how big the
+  // drawing itself is, never on the authoring viewport.
+  var FIGURE_EXPORT_PADDING = 24;
+
+  function cropStaticCanvasToContent(staticCanvas) {
+    var objects = staticCanvas.getObjects();
+    if (!objects.length) return;
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    objects.forEach(function (o) {
+      o.setCoords();
+      var r = o.getBoundingRect(true, true);
+      if (r.left < minX) minX = r.left;
+      if (r.top < minY) minY = r.top;
+      if (r.left + r.width > maxX) maxX = r.left + r.width;
+      if (r.top + r.height > maxY) maxY = r.top + r.height;
+    });
+    var dx = FIGURE_EXPORT_PADDING - minX, dy = FIGURE_EXPORT_PADDING - minY;
+    objects.forEach(function (o) {
+      o.set({ left: o.left + dx, top: o.top + dy });
+      o.setCoords();
+    });
+    staticCanvas.setDimensions({
+      width: (maxX - minX) + FIGURE_EXPORT_PADDING * 2,
+      height: (maxY - minY) + FIGURE_EXPORT_PADDING * 2
+    });
+  }
+
   GeometryFigureEditor.prototype.exportFigureSvg = function () {
     var self = this;
     return new Promise(function (resolve) {
@@ -1957,6 +2003,7 @@
         staticCanvas.setDimensions({ width: self._fabricCanvas.getWidth(), height: self._fabricCanvas.getHeight() });
         var SENTINEL = { primary: '#a1b2c3', auxiliary: '#a1b2c4' };
         staticCanvas.loadFromJSON(json, function () {
+          cropStaticCanvasToContent(staticCanvas);
           function paintSentinel(obj, inheritedRole) {
             // 3D shapes' child primitives never carry their own data.role —
             // only the parent Group does — so it must propagate down, same
