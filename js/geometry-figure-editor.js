@@ -363,17 +363,62 @@
     styleScaleAndRotateControls(poly); // adds/restyles the native scale (green) + rotate (blue) controls alongside the vertex ones above
   }
 
+  function circleRadiusPositionHandler(dim, finalMatrix, fabricObject) {
+    return fabric.util.transformPoint(
+      { x: fabricObject.radius, y: 0 },
+      fabric.util.multiplyTransformMatrices(fabricObject.canvas.viewportTransform, fabricObject.calcTransformMatrix())
+    );
+  }
+
+  // Horizontal distance only — same "stays on the horizontal through
+  // origin" convention as the sphere's own radius handle. Besides making
+  // the drag predictable, it means grid-snapping only has to land the one
+  // (x) coordinate on the grid, and since the center is a grid point too
+  // (insertion/move already keep it one), the resulting radius comes out
+  // as a whole multiple of the grid — so all 4 cardinal points end up on
+  // the grid, not just the one actually dragged.
+  function circleRadiusActionHandler(eventData, transform, x, y) {
+    var circle = transform.target;
+    var center = circle.getCenterPoint();
+    var newRadius = Math.max(10, Math.abs(x - center.x));
+    // left = center - radius LOOKS right, but strokeUniform makes Fabric's
+    // actual rendered/measured dimensions include a strokeWidth contribution
+    // that plain left/radius arithmetic doesn't account for — every call
+    // was drifting the center by ~1px (compounding across repeated drags in
+    // the same gesture) for exactly that reason. Setting radius alone, then
+    // measuring how far the center actually moved and correcting left/top
+    // by that measured amount, sidesteps needing to know Fabric's exact
+    // stroke-compensation formula.
+    circle.set({ radius: newRadius });
+    circle.setCoords();
+    var shifted = circle.getCenterPoint();
+    circle.set({ left: circle.left + (center.x - shifted.x), top: circle.top + (center.y - shifted.y) });
+    circle.setCoords();
+    return true;
+  }
+
   function attachCircleUniformControls(circle) {
-    styleScaleAndRotateControls(circle);
-    ['tl', 'tr', 'bl', 'br'].forEach(function (k) {
-      if (circle.controls[k] && fabric.controlsUtils && fabric.controlsUtils.scalingEqually) {
-        circle.controls[k].actionHandler = withGridSnapScale(fabric.controlsUtils.scalingEqually);
-      }
+    circle.controls = Object.assign({}, circle.controls);
+    // A single handle, growing/shrinking the circle around its own FIXED
+    // center — Fabric's default bounding-box corners (the old behavior
+    // here, even wrapped in scalingEqually to stop it turning into an
+    // ellipse) always keep the OPPOSITE corner as anchor, so resizing from
+    // any corner shifted the center off to one side. Never what you want
+    // for a shape whose whole identity is "one center, one radius" — same
+    // "radius" handle convention already used for the sphere/cone/cylinder.
+    circle.controls.radius = new fabric.Control({
+      positionHandler: circleRadiusPositionHandler,
+      actionHandler: withGridSnapDirect(circleRadiusActionHandler),
+      actionName: 'resizeCircleRadius',
+      cursorStyle: 'ew-resize',
+      sizeX: 12, sizeY: 12,
+      render: renderVertexControl
     });
-    // Edge-midpoint scaling and rotation aren't meaningful on a circle
-    // (rotating a circle is a visual no-op) — keep only the 4 uniform-scale
-    // corners.
-    circle.setControlsVisibility({ ml: false, mt: false, mr: false, mb: false, mtr: false });
+    // No bounding-box corners and no rotate handle (rotating a circle is a
+    // visual no-op) — just the one radius handle above.
+    circle.setControlsVisibility({ tl: false, tr: false, bl: false, br: false, ml: false, mt: false, mr: false, mb: false, mtr: false });
+    circle.hasBorders = true;
+    circle.borderColor = SCALE_COLOR;
   }
 
   /* ---- Shared control styling: green scale squares pushed slightly outside
@@ -800,7 +845,14 @@
     zoomIn: '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>',
     undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
     grid: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>',
-    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>'
+    trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
+    // Same corner-bracket "expand" glyph as DrawingCanvas's own fullscreen
+    // button — reused here for "fit to view" since it's the same visual
+    // idea (frame the whole content), for icon-language consistency.
+    fit: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
+    // A grid with one highlighted intersection — "things snap to a point
+    // on this grid", distinct from the plain grid-visibility icon above.
+    snapGrid: '<path d="M4 4h16v16H4z"/><path d="M4 12h16"/><path d="M12 4v16"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>'
   };
 
   function _gfeIcon(inner) {
@@ -880,9 +932,9 @@
         <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">${_dcIcon(DC_ICONS.zoomOut)}</button>
         <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
         <button class="dc-action-btn" id="gfe-zoomin-btn" title="Mărește">${_dcIcon(DC_ICONS.zoomIn)}</button>
-        <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">⤢</button>
+        <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">${_dcIcon(DC_ICONS.fit)}</button>
         <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">${_dcIcon(DC_ICONS.grid)}</button>
-        <button class="dc-action-btn" id="gfe-snapgrid-btn" title="Activează alinierea la grilă">⌗</button>
+        <button class="dc-action-btn" id="gfe-snapgrid-btn" title="Activează alinierea la grilă">${_dcIcon(DC_ICONS.snapGrid)}</button>
         <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">${_dcIcon(DC_ICONS.undo)}</button>
         <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">${_dcIcon(DC_ICONS.undo, 'dc-icon-mirror')}</button>
         <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">${_dcIcon(DC_ICONS.trash)}</button>
@@ -960,7 +1012,19 @@
       // axes for a dragged corner — a fixed-aspect diagonal only has one
       // degree of freedom, so at most one axis could ever be made to land
       // exactly on the grid.
-      uniformScaling: false
+      uniformScaling: false,
+      // Every shape here is fill:'transparent' (outline-only), but Fabric's
+      // default hit-testing treats a shape's whole bounding path as
+      // clickable regardless of what's actually painted there — so clicking
+      // inside a big circle's empty interior always selected the circle
+      // itself, even directly on top of a smaller shape nested inside it
+      // (e.g. a square inscribed in a circle), with no way to reach the
+      // inner shape short of moving the circle out of the way first.
+      // perPixelTargetFind checks actual rendered pixel opacity at the
+      // click point instead, so a click lands on whichever shape is really
+      // painted there — the circle's stroke, or the square underneath it.
+      perPixelTargetFind: true,
+      targetFindTolerance: 4
     });
     this._fabricCanvas.__gfe = this;
   };
@@ -1283,20 +1347,29 @@
       attachPolygonVertexControls(obj);
     } else if (shapeId === 'cerc') {
       var radius = this._snapToGrid ? this._snapDimToGrid(60) : 60;
-      // left/top ARE the shape's literal geometry for Circle/Rect (unlike
-      // Polygon, where left/top are only a derived, stroke-padded bookkeeping
-      // value computed FROM the already-snapped points) — so deriving them
-      // from a snapped center doesn't itself land them on the grid (half of
-      // a grid-aligned dimension generally isn't itself grid-aligned).
-      // Snapping left/top directly, same as the object:moving handler does,
-      // is what actually puts the true corners on the grid.
-      var circLeft = this._snapToGrid ? this._snapPointToGrid({ x: center.x - radius, y: 0 }).x : center.x - radius;
-      var circTop  = this._snapToGrid ? this._snapPointToGrid({ x: 0, y: center.y - radius }).y : center.y - radius;
       obj = new fabric.Circle({
-        left: circLeft, top: circTop, radius: radius,
+        left: center.x - radius, top: center.y - radius, radius: radius,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
-        data: { role: spec.role, kind: 'shape', id: genId() }
+        objectCaching: false, data: { role: spec.role, kind: 'shape', id: genId() }
       });
+      if (this._snapToGrid) {
+        // left = center - radius LOOKS like it should land exactly on the
+        // grid once center and radius both do, but strokeUniform gives
+        // Fabric's actually-measured center (getCenterPoint) a sub-pixel
+        // bias plain left/radius arithmetic doesn't account for (same
+        // strokeUniform quirk _scaleSnapTarget and the radius handle above
+        // both had to work around) — so measure the REAL center and correct
+        // left/top by however far off it actually is, instead of trusting
+        // the naive formula.
+        obj.setCoords();
+        var trueCenter = obj.getCenterPoint();
+        var snappedCenter = this._snapPointToGrid(trueCenter);
+        obj.set({
+          left: obj.left + (snappedCenter.x - trueCenter.x),
+          top: obj.top + (snappedCenter.y - trueCenter.y)
+        });
+        obj.setCoords();
+      }
       attachCircleUniformControls(obj);
     } else if (shapeId === 'patrat') {
       var side = this._snapToGrid ? this._snapDimToGrid(120) : 120;
@@ -1305,7 +1378,7 @@
       obj = new fabric.Rect({
         left: rectLeft, top: rectTop, width: side, height: side,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
-        data: { role: spec.role, kind: 'shape', id: genId() }
+        objectCaching: false, data: { role: spec.role, kind: 'shape', id: genId() }
       });
       styleScaleAndRotateControls(obj); // no vertex controls — a rect only ever resizes/rotates as a whole
     } else if (THREE_D[shapeId]) {
