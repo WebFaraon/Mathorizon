@@ -613,8 +613,13 @@
   // used for the actual inserted shapes (offset/second face + dashed hidden
   // edges), just legible at icon scale.
   var SHAPE_ICONS = {
-    'tri-isoscel':    '<path d="M12 4 4 20 20 20Z"/>',
-    'tri-echilateral':'<path d="M12 3.5 3.5 20.5 20.5 20.5Z"/><path d="M7.2 12.4 8.4 12.9"/><path d="M16.8 12.4 15.6 12.9"/><path d="M10.5 20.5 10.5 19.1"/><path d="M13.5 20.5 13.5 19.1"/>',
+    // Tall/narrow silhouette + a single tick on each of the two equal legs
+    // (standard "equal sides" notation) — distinguishes it both by shape and
+    // by mark count from the equilateral icon below.
+    'tri-isoscel':    '<path d="M12 3 5 20 19 20Z"/><path d="M6.5 12.7 9.1 13.7"/><path d="M17.5 12.7 14.9 13.7"/>',
+    // Wide/flat silhouette (true 60-60-60 proportions) + matching ticks on
+    // all three sides, since all three are equal here.
+    'tri-echilateral':'<path d="M12 6 3.5 19 20.5 19Z"/><path d="M6.7 11.8 8.8 13.2"/><path d="M15.2 13.2 17.3 11.8"/><path d="M12 17.9 12 20.1"/>',
     'tri-oarecare':   '<path d="M15 4 3 20 21 17Z"/>',
     cerc:             '<circle cx="12" cy="12" r="8.5"/>',
     patrat:           '<rect x="4.5" y="4.5" width="15" height="15"/>',
@@ -639,7 +644,8 @@
     text: '<path d="M5 6h14"/><path d="M12 6v13"/><path d="M9 19h6"/>',
     'right-angle': '<path d="M5 5v14h14"/><path d="M5 12h7v7"/>',
     arc: '<path d="M5 19 19 19"/><path d="M5 19V5"/><path d="M9 19a10 10 0 0 1 8-9.8"/>',
-    tick: '<path d="M6 4 6 20"/><path d="M12 4 12 20"/><path d="M3 9 9 9"/><path d="M3 15 9 15"/><path d="M9 9 15 9"/><path d="M9 15 15 15"/>'
+    tick: '<path d="M6 4 6 20"/><path d="M12 4 12 20"/><path d="M3 9 9 9"/><path d="M3 15 9 15"/><path d="M9 9 15 9"/><path d="M9 15 15 15"/>',
+    chevron: '<path d="M6 9.5 12 15.5 18 9.5" stroke-width="2.3"/>'
   };
 
   function _gfeIcon(inner) {
@@ -657,16 +663,30 @@
     </div>
     <div class="gfe-tool-section">
       <span class="gfe-tool-section__label">Forme 2D</span>
-      <div class="dc-tool-group gfe-shape-group">
-        ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic']
-          .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+      <div class="gfe-dropdown">
+        <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Forme 2D — alege o formă" aria-haspopup="true" aria-expanded="false">
+          ${_gfeIcon(SHAPE_ICONS['tri-oarecare'])}${_gfeIcon(TOOL_ICONS.chevron)}
+        </button>
+        <div class="gfe-dropdown__panel">
+          <div class="dc-tool-group gfe-shape-group">
+            ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic']
+              .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+          </div>
+        </div>
       </div>
     </div>
     <div class="gfe-tool-section">
       <span class="gfe-tool-section__label">Corpuri 3D</span>
-      <div class="dc-tool-group gfe-shape-group">
-        ${['cub','piramida-patrata','piramida-triunghiulara','sfera','con','cilindru']
-          .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+      <div class="gfe-dropdown">
+        <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Corpuri 3D — alege un corp" aria-haspopup="true" aria-expanded="false">
+          ${_gfeIcon(SHAPE_ICONS.cub)}${_gfeIcon(TOOL_ICONS.chevron)}
+        </button>
+        <div class="gfe-dropdown__panel">
+          <div class="dc-tool-group gfe-shape-group">
+            ${['cub','piramida-patrata','piramida-triunghiulara','sfera','con','cilindru']
+              .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
+          </div>
+        </div>
       </div>
     </div>
     <div class="gfe-tool-section">
@@ -1296,6 +1316,14 @@
     });
   };
 
+  GeometryFigureEditor.prototype._closeDropdowns = function () {
+    this._toolbar.querySelectorAll('.gfe-dropdown--open').forEach(function (dd) {
+      dd.classList.remove('gfe-dropdown--open');
+      var trigger = dd.querySelector('.gfe-dropdown__trigger');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+  };
+
   GeometryFigureEditor.prototype._updateColorSwatchUI = function () {
     var self = this;
     this._toolbar.querySelectorAll('[data-color]').forEach(function (btn) {
@@ -1474,6 +1502,22 @@
     var self = this;
 
     this._toolbar.addEventListener('click', function (e) {
+      var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
+      if (ddTrigger) {
+        var dd = ddTrigger.closest('.gfe-dropdown');
+        var wasOpen = dd.classList.contains('gfe-dropdown--open');
+        self._closeDropdowns();
+        if (!wasOpen) {
+          var panel = dd.querySelector('.gfe-dropdown__panel');
+          var r = ddTrigger.getBoundingClientRect();
+          panel.style.top = (r.bottom + 6) + 'px';
+          panel.style.left = r.left + 'px';
+          dd.classList.add('gfe-dropdown--open');
+          ddTrigger.setAttribute('aria-expanded', 'true');
+        }
+        return;
+      }
+
       var shapeBtn  = e.target.closest('[data-shape]');
       var toolBtn   = e.target.closest('[data-tool]');
       var colorBtn  = e.target.closest('[data-color]');
@@ -1488,7 +1532,7 @@
       var gridBtn    = e.target.closest('#gfe-grid-btn');
       var snapGridBtn = e.target.closest('#gfe-snapgrid-btn');
 
-      if (shapeBtn) self._insertShape(shapeBtn.dataset.shape);
+      if (shapeBtn) { self._insertShape(shapeBtn.dataset.shape); self._closeDropdowns(); }
       else if (toolBtn) self._setTool(toolBtn.dataset.tool);
       else if (colorBtn) self._applyColorToSelection('adaptive' in colorBtn.dataset ? null : colorBtn.dataset.color);
       else if (tickBtn) {
@@ -1510,6 +1554,17 @@
     this._toolbar.querySelector('#gfe-color-picker').addEventListener('input', function (e) {
       self._applyColorToSelection(e.target.value);
     });
+
+    this._docClickHandler = function (e) {
+      if (!self._toolbar.contains(e.target)) self._closeDropdowns();
+    };
+    document.addEventListener('click', this._docClickHandler);
+
+    // Fixed-position panels don't move with a scroll the way an
+    // absolutely-positioned one anchored in flow would, so just close on
+    // scroll rather than re-computing their position mid-gesture.
+    this._scrollCloseHandler = function () { self._closeDropdowns(); };
+    window.addEventListener('scroll', this._scrollCloseHandler, true);
 
     this._fabricCanvas.on('mouse:down', function (opt) {
       if (self._tool === 'pan') {
@@ -1554,8 +1609,11 @@
       if (self._gridVisible) self._drawFabricGrid();
     });
 
-    // Scroll-wheel zoom, centered on the cursor — standard editor convention.
+    // Ctrl/Cmd+wheel zoom, centered on the cursor — a plain scroll over the
+    // canvas is left alone so it scrolls the page like everywhere else,
+    // rather than hijacking it into a zoom the moment the cursor crosses in.
     this._fabricCanvas.on('mouse:wheel', function (opt) {
+      if (!(opt.e.ctrlKey || opt.e.metaKey)) return;
       var zoom = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, self._fabricCanvas.getZoom() * Math.pow(0.999, opt.e.deltaY)));
       self._fabricCanvas.zoomToPoint({ x: opt.e.offsetX, y: opt.e.offsetY }, zoom);
       self._zoom = zoom;
@@ -1594,7 +1652,7 @@
       if (e.key === 'Delete' || e.key === 'Backspace') {
         if (self._fabricCanvas.getActiveObjects().length) { e.preventDefault(); self._deleteSelected(); }
       }
-      if (e.key === 'Escape') self._setTool('select');
+      if (e.key === 'Escape') { self._setTool('select'); self._closeDropdowns(); }
     };
     window.addEventListener('keydown', this._keyHandler);
 
@@ -1663,6 +1721,8 @@
   GeometryFigureEditor.prototype.destroy = function () {
     this._destroyed = true;
     window.removeEventListener('keydown', this._keyHandler);
+    document.removeEventListener('click', this._docClickHandler);
+    window.removeEventListener('scroll', this._scrollCloseHandler, true);
     if (this._ro) this._ro.disconnect();
     if (this._mo) this._mo.disconnect();
     clearTimeout(this._resizeTimer);

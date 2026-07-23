@@ -14509,13 +14509,17 @@ body.dc-fullscreen-active .dc-wrap {
   overflow: hidden;
 }
 
-.gfe-toolbar { flex-wrap: wrap; align-items: flex-start; }
+/* Single row — sections that don't fit scroll horizontally rather than
+   wrapping onto a second line (wrapping is what caused the sticky-toolbar
+   sizing bug on the admin page; see .ae-geo-editor .gfe-wrap below). */
+.gfe-toolbar { flex-wrap: nowrap; align-items: flex-start; overflow-x: auto; }
 
 /* ---- Grouped, visually-boxed toolbar sections ---- */
 .gfe-tool-section {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex-shrink: 0;
   gap: 4px;
   padding: 6px 10px 8px;
   background: var(--surface);
@@ -14541,6 +14545,40 @@ body.dc-fullscreen-active .dc-wrap {
   border-radius: 6px;
 }
 .gfe-shape-btn svg { width: 18px; height: 18px; display: block; }
+
+/* ---- Forme 2D / Corpuri 3D dropdowns — keeps the toolbar to one row ---- */
+.gfe-dropdown { position: relative; }
+.gfe-dropdown__trigger {
+  width: auto;
+  height: 34px;
+  padding: 6px 8px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  border-radius: 6px;
+}
+.gfe-dropdown__trigger svg:first-child { width: 18px; height: 18px; }
+.gfe-dropdown__trigger svg:last-child { width: 11px; height: 11px; color: var(--text-muted); transition: transform 0.15s; }
+.gfe-dropdown--open .gfe-dropdown__trigger svg:last-child { transform: rotate(180deg); }
+.gfe-dropdown--open .gfe-dropdown__trigger { background: var(--card-hover); color: var(--text); }
+
+/* position:fixed (coordinates computed in JS from the trigger's
+   getBoundingClientRect on open) rather than absolute — the toolbar has
+   overflow-x:auto for the single-row layout, which clips absolutely
+   positioned descendants too; fixed escapes that the same way .cls-csel__dropdown
+   already does elsewhere on this page (see the .prof-card animation note above). */
+.gfe-dropdown__panel {
+  display: none;
+  position: fixed;
+  z-index: 95;
+  padding: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.14);
+}
+.gfe-dropdown--open .gfe-dropdown__panel { display: block; animation: fadeSlideIn 0.14s ease; }
+.gfe-dropdown__panel .gfe-shape-group { flex-wrap: wrap; max-width: 160px; }
 
 .gfe-tick-btn {
   width: 24px;
@@ -14605,6 +14643,33 @@ body.dc-fullscreen-active .dc-wrap {
   padding: 32px 20px 60px;
 }
 
+/* ---- Premium pass on the section cards: soft elevation instead of a flat
+   border, plus numbered badges instead of the emoji digits (1️⃣ etc.), which
+   render inconsistently across platforms and read as a placeholder rather
+   than a designed step indicator. Scoped to this page so the shared
+   .prof-card look elsewhere (profile, admin lists) is unaffected. ---- */
+.ae-page-wrap .prof-card {
+  box-shadow: 0 1px 2px rgba(20,16,8,0.04), 0 14px 32px -18px rgba(20,16,8,0.22);
+}
+[data-theme="dark"] .ae-page-wrap .prof-card {
+  box-shadow: 0 1px 2px rgba(0,0,0,0.2), 0 14px 32px -16px rgba(0,0,0,0.55);
+}
+.ae-page-wrap .prof-card__head { gap: 12px; padding: 15px 20px; }
+.ae-page-wrap .prof-card__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+.ae-page-wrap .prof-card__title { letter-spacing: 0.7px; }
+
 /* Generous, unmistakable separation between the stacked sections —
    .prof-card already gives each one its own bordered/shaded card. */
 .ae-section { margin-bottom: 32px; }
@@ -14630,17 +14695,38 @@ body.dc-fullscreen-active .dc-wrap {
   .ae-detalii-grid { grid-template-columns: 1fr; }
 }
 
+/* Green border once a field is filled in — quick "done" feedback while
+   working through Clasă/Capitol/Subcapitol/Dificultate in order.
+   :not(.cls-csel--open) so the active-editing accent border (set by the
+   shared .cls-csel styles) still wins while the dropdown itself is open. */
+.ae-detalii-grid .cls-csel:not(.cls-csel--open) .cls-csel__trigger:has(.cls-csel__display[data-has-value]) {
+  border-color: var(--green);
+}
+.ae-detalii-grid .cls-csel__trigger { transition: border-color 0.18s, box-shadow 0.18s; }
+.ae-detalii-grid .cls-csel__trigger:hover { box-shadow: 0 2px 8px -2px rgba(20,16,8,0.12); }
+
 /* Bigger working area + pinned toolbar, scoped here rather than baked into
    .gfe-canvas-wrap/.gfe-toolbar's own defaults so the component's normal
    (smaller, non-sticky) size is unaffected if it's ever embedded elsewhere. */
 .ae-geo-editor .gfe-canvas-wrap {
   height: 70vh;
   min-height: 640px;
+  border-radius: 0 0 11px 11px;
 }
 .ae-geo-editor .gfe-toolbar {
   position: sticky;
   top: var(--nav-h);
   z-index: 90;
+  border-radius: 11px 11px 0 0;
+}
+/* .gfe-wrap's own overflow:hidden (used elsewhere to clip square corners to
+   its border-radius) makes Chromium mis-size a sticky flex item that wraps
+   onto multiple rows — the toolbar's reserved flex-column space ends up
+   short by ~one row, leaving a blank gap above it and letting the canvas
+   overlap its bottom row. Corners are rounded on the toolbar/canvas
+   themselves above instead, so the parent no longer needs to clip. */
+.ae-geo-editor .gfe-wrap {
+  overflow: visible;
 }
 
 /* ---- Editable barem / metode-alternative rows (§4) ---- */

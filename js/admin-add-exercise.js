@@ -157,9 +157,9 @@
 
     const icon3 = document.getElementById('aeStep3Icon'), title3 = document.getElementById('aeStep3Title');
     const icon4 = document.getElementById('aeStep4Icon'), title4 = document.getElementById('aeStep4Title');
-    icon3.textContent = isGeo ? '3️⃣' : '2️⃣';
+    icon3.textContent = isGeo ? '3' : '2';
     title3.textContent = 'Fotografie exercițiu';
-    icon4.textContent = isGeo ? '4️⃣' : '3️⃣';
+    icon4.textContent = isGeo ? '4' : '3';
     title4.textContent = 'Analiză AI și barem';
   }
 
