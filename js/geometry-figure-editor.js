@@ -259,6 +259,52 @@
     return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   }
 
+  // All of a Polygon/3D-Group's REAL vertices, in absolute canvas space —
+  // bias-free, unlike aCoords (see below).
+  function _realVertices(target) {
+    if (target.type === 'polygon' && target.points) {
+      var m = target.calcTransformMatrix();
+      return target.points.map(function (p) {
+        return fabric.util.transformPoint({ x: p.x - target.pathOffset.x, y: p.y - target.pathOffset.y }, m);
+      });
+    }
+    if (target.type === 'group' && target.data && target.data.points) {
+      var gm = target.calcTransformMatrix();
+      return Object.keys(target.data.points).map(function (k) {
+        return fabric.util.transformPoint(target.data.points[k], gm);
+      });
+    }
+    return null;
+  }
+
+  // A scale handle's true grid-snap target — for a Rect/Circle, the
+  // bounding-box point from _scaleHandlePoint IS the real geometry, so it's
+  // used directly (same as vertex dragging would land on, since there's no
+  // separate "vertex" concept). For a Polygon/Group, though, aCoords is
+  // computed with a strokeWidth-ish padding baked in that its real vertices
+  // don't have (same bias _reattach's move-snap fix already had to work
+  // around) — AND the box corner/midpoint being dragged often isn't a real
+  // vertex to begin with (e.g. a triangle's apex sits at its box's top-
+  // middle, not at either top corner). Snapping the box point directly, as
+  // the corner/rotate handlers already do, would land the (invisible) box
+  // edge on the grid a pixel or so away from the actual point a user is
+  // trying to align — exactly the mismatch vertex-dragging (which snaps the
+  // real point) vs. scale-dragging (which snapped the box instead) produced.
+  // Using whichever real vertex is nearest to the box point instead makes
+  // scale-dragging land on the exact same grid point vertex-dragging would.
+  function _scaleSnapTarget(target, key) {
+    var boxPt = _scaleHandlePoint(target, key);
+    if (!boxPt) return null;
+    var verts = _realVertices(target);
+    if (!verts || !verts.length) return boxPt;
+    var best = verts[0], bestDist = Infinity;
+    verts.forEach(function (v) {
+      var d = Math.hypot(v.x - boxPt.x, v.y - boxPt.y);
+      if (d < bestDist) { bestDist = d; best = v; }
+    });
+    return best;
+  }
+
   // Scale controls are rendered pushed outward from the shape's true edge by
   // SCALE_PUSH (see styleScaleAndRotateControls, below) so they don't
   // collide with the pink vertex handles at the same spot — and Fabric's
@@ -286,7 +332,7 @@
         var cx = x, cy = y;
         for (var i = 0; i < 4; i++) {
           target.setCoords();
-          var pt = _scaleHandlePoint(target, transform.corner);
+          var pt = _scaleSnapTarget(target, transform.corner);
           if (!pt) break;
           var dx = Math.round(pt.x / GRID_CELL_PX) * GRID_CELL_PX - pt.x;
           var dy = Math.round(pt.y / GRID_CELL_PX) * GRID_CELL_PX - pt.y;
