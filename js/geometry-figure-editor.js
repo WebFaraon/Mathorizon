@@ -719,9 +719,9 @@
   var TOOLBAR_HTML = `
     <div class="gfe-tool-section">
       <div class="dc-tool-group">
-        <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută">${_gfeIcon(TOOL_ICONS.select)}</button>
-        <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea (utilă la zoom)">${_gfeIcon(TOOL_ICONS.pan)}</button>
-        <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă pe un element pentru a-l șterge">${_gfeIcon(TOOL_ICONS.eraser)}</button>
+        <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută (Q)">${_gfeIcon(TOOL_ICONS.select)}</button>
+        <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea — utilă la zoom (W)">${_gfeIcon(TOOL_ICONS.pan)}</button>
+        <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă pe un element pentru a-l șterge (E)">${_gfeIcon(TOOL_ICONS.eraser)}</button>
       </div>
     </div>
     <div class="gfe-tool-section">
@@ -965,6 +965,11 @@
   GeometryFigureEditor.prototype._reattach = function (obj) {
     if (obj.type === 'polygon') attachPolygonVertexControls(obj);
     if (obj.type === 'circle')  attachCircleUniformControls(obj);
+    // Rect (the "patrat" preset) only ever gets the shared scale/rotate
+    // styling (no per-vertex controls, same as circle) — was missing here,
+    // so after undo/redo/load it fell back to Fabric's bare default
+    // (uncolored circular) handles instead of the green/blue custom ones.
+    if (obj.type === 'rect')    styleScaleAndRotateControls(obj);
     // fabric.Control instances (positionHandler/actionHandler/render — all
     // functions) never survive a JSON round-trip, so every 3D group needs
     // its custom vertex+scale+rotate controls rebuilt from scratch after
@@ -1157,28 +1162,39 @@
     'trapez-dreptunghic':  [{ x: -70, y: 50 }, { x: -70, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }]
   };
 
+  GeometryFigureEditor.prototype._snapDimToGrid = function (d) {
+    return Math.max(GRID_CELL_PX, Math.round(d / GRID_CELL_PX) * GRID_CELL_PX);
+  };
+
   GeometryFigureEditor.prototype._insertShape = function (shapeId) {
     var center = this._viewCenterPoint();
+    if (this._snapToGrid) center = this._snapPointToGrid(center);
     var spec = this._strokeSpec('primary');
+    var self = this;
     var obj;
 
     if (POLY_PRESETS[shapeId]) {
-      var pts = POLY_PRESETS[shapeId].map(function (p) { return { x: p.x + center.x, y: p.y + center.y }; });
+      var pts = POLY_PRESETS[shapeId].map(function (p) {
+        var abs = { x: p.x + center.x, y: p.y + center.y };
+        return self._snapToGrid ? self._snapPointToGrid(abs) : abs;
+      });
       obj = new fabric.Polygon(pts, {
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true, strokeLineJoin: 'round',
         objectCaching: false, data: { role: spec.role, kind: 'shape', id: genId() }
       });
       attachPolygonVertexControls(obj);
     } else if (shapeId === 'cerc') {
+      var radius = this._snapToGrid ? this._snapDimToGrid(60) : 60;
       obj = new fabric.Circle({
-        left: center.x - 60, top: center.y - 60, radius: 60,
+        left: center.x - radius, top: center.y - radius, radius: radius,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
         data: { role: spec.role, kind: 'shape', id: genId() }
       });
       attachCircleUniformControls(obj);
     } else if (shapeId === 'patrat') {
+      var side = this._snapToGrid ? this._snapDimToGrid(120) : 120;
       obj = new fabric.Rect({
-        left: center.x - 60, top: center.y - 60, width: 120, height: 120,
+        left: center.x - side / 2, top: center.y - side / 2, width: side, height: side,
         fill: 'transparent', stroke: spec.stroke, strokeWidth: 2, strokeUniform: true,
         data: { role: spec.role, kind: 'shape', id: genId() }
       });
@@ -1657,6 +1673,22 @@
     // not separate sibling objects — so there's no custom visibility-sync or
     // position-sync needed here any more; Fabric's own active-object/control
     // rendering and native group-dragging already do the right thing.
+    // Whole-shape repositioning (drag-to-move, not vertex/scale/rotate) —
+    // snaps the object's own left/top (its position anchor) directly to the
+    // grid on every tick, rather than the move DELTA. Equivalent in the
+    // common case (a shape whose vertices already sit on the grid keeps its
+    // bounding-box anchor on the grid too, since aligned points always sum/
+    // average back to aligned ones — see _scaleHandlePoint's reasoning
+    // above), but this is simpler, and self-corrects a shape that wasn't
+    // quite grid-aligned to begin with instead of preserving its old offset.
+    this._fabricCanvas.on('object:moving', function (opt) {
+      if (!self._snapToGrid) return;
+      var target = opt.target;
+      if (!target || target.__isSnapMarker) return;
+      var snapped = self._snapPointToGrid({ x: target.left, y: target.top });
+      target.set({ left: snapped.x, top: snapped.y });
+    });
+
     this._fabricCanvas.on('object:modified', function (opt) {
       if (opt.target && opt.target.type === 'polygon') {
         recomputePolygonBounds(opt.target);
@@ -1682,6 +1714,12 @@
         if (self._fabricCanvas.getActiveObjects().length) { e.preventDefault(); self._deleteSelected(); }
       }
       if (e.key === 'Escape') { self._setTool('select'); self._closeDropdowns(); }
+      if (!e.ctrlKey && !e.metaKey && !e.altKey) {
+        var key = e.key.toLowerCase();
+        if (key === 'q') { e.preventDefault(); self._setTool('select'); }
+        else if (key === 'w') { e.preventDefault(); self._setTool('pan'); }
+        else if (key === 'e') { e.preventDefault(); self._setTool('eraser'); }
+      }
     };
     window.addEventListener('keydown', this._keyHandler);
 
