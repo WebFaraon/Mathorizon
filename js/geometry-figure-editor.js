@@ -229,12 +229,12 @@
     };
   }
 
-  // Snaps the raw pointer position fed into a rotate (or edge-midpoint scale)
-  // control's actionHandler to the nearest grid intersection before handing
-  // off to Fabric's own handler — those handlers use (x,y) directly/
-  // unconstrained (a midpoint only ever moves one axis; rotation is a
-  // continuous function of the angle to (x,y)), so pre-snapping the input
-  // lands the output on the grid too, the same way vertex dragging does.
+  // Snaps the raw pointer position fed into the rotate control's
+  // actionHandler to the nearest grid intersection before handing off to
+  // Fabric's own handler — rotation angle is a direct, unconstrained
+  // function of (x,y) (atan2 of the point relative to center), so
+  // pre-snapping the input lands the output on the grid too, the same way
+  // vertex dragging does.
   function withGridSnapDirect(handler) {
     return function (eventData, transform, x, y) {
       var editor = transform.target.canvas && transform.target.canvas.__gfe;
@@ -246,61 +246,50 @@
     };
   }
 
-  var OPPOSITE_CORNER = { tl: 'br', tr: 'bl', bl: 'tr', br: 'tl' };
+  var EDGE_MIDPOINT_CORNERS = { ml: ['tl', 'bl'], mr: ['tr', 'br'], mt: ['tl', 'tr'], mb: ['bl', 'br'] };
 
-  // Applies one more uniform scale factor to `target`, around the fixed
-  // `anchor` point, so its `cornerKey` corner's dominant screen axis lands
-  // on `snapTo`. Repositions left/top afterward to keep the anchor exactly
-  // fixed. Returns the resulting corner position.
-  function _scaleCornerTo(target, cornerKey, anchorKey, anchor, useX, snapTo) {
-    var corner = target.aCoords[cornerKey];
-    var current = useX ? corner.x : corner.y;
-    var axisDelta = useX ? corner.x - anchor.x : corner.y - anchor.y;
-    if (!axisDelta) return corner;
-    var ratio = 1 + (snapTo - current) / axisDelta;
-    target.set({ scaleX: target.scaleX * ratio, scaleY: target.scaleY * ratio });
-    target.setCoords();
-    var shiftedAnchor = target.aCoords[anchorKey];
-    target.set({ left: target.left + (anchor.x - shiftedAnchor.x), top: target.top + (anchor.y - shiftedAnchor.y) });
-    target.setCoords();
-    return target.aCoords[cornerKey];
+  // Where a scale control (corner or edge-midpoint) actually IS right now —
+  // aCoords only has the 4 true corners, so an edge-midpoint's position is
+  // the midpoint between its two adjacent corners.
+  function _scaleHandlePoint(target, key) {
+    if (target.aCoords[key]) return target.aCoords[key];
+    var pair = EDGE_MIDPOINT_CORNERS[key];
+    if (!pair) return null;
+    var a = target.aCoords[pair[0]], b = target.aCoords[pair[1]];
+    return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2 };
   }
 
-  // Corner controls (tl/tr/bl/br) default to Fabric's aspect-locked "uniform
-  // scaling" — the dragged corner only ever moves along the fixed anchor→
-  // corner diagonal, so pre-snapping the raw input (x,y) independently per
-  // axis (withGridSnapDirect above) does NOT land the actual resulting
-  // corner on the grid, since the handler re-derives its own direction from
-  // the shape's aspect ratio rather than following the input's. Instead: let
-  // the real handler run to get the natural result, then nudge the scale
-  // (via _scaleCornerTo above) so the corner's dominant axis lands on the
-  // grid. A single proportional nudge lands very close but not always exact
-  // — strokeUniform means screen size isn't perfectly linear in scaleX/Y
-  // (a constant on-screen stroke width on top of the scaled fill) — so this
-  // repeats a couple of times, re-measuring the actual result each time
-  // rather than assuming linearity, until the residual is sub-pixel.
-  function withGridSnapCorner(handler) {
+  // Scale controls are rendered pushed outward from the shape's true edge by
+  // SCALE_PUSH (see styleScaleAndRotateControls, below) so they don't
+  // collide with the pink vertex handles at the same spot — and Fabric's
+  // scale handlers move the dragged point by the SAME delta the mouse
+  // moved, not to the mouse's absolute position. So naively pre-snapping
+  // the raw input the way withGridSnapDirect does for rotate would just
+  // re-introduce that same fixed SCALE_PUSH offset into the result instead
+  // of landing on the grid. Instead: run the handler with the raw input to
+  // get the natural (unsnapped) result, measure where the dragged point
+  // actually landed, and re-run with the input nudged by exactly the delta
+  // needed to land that point on the grid instead — the mouse-delta-to-
+  // point-delta relationship is 1:1 (verified empirically), so one
+  // correction pass is enough.
+  function withGridSnapScale(handler) {
     return function (eventData, transform, x, y) {
       var result = handler(eventData, transform, x, y);
       var target = transform.target;
       var editor = target.canvas && target.canvas.__gfe;
-      var anchorKey = OPPOSITE_CORNER[transform.corner];
-      if (editor && editor._snapToGrid && result && anchorKey) {
+      if (editor && editor._snapToGrid && result) {
         target.setCoords();
-        var anchor = target.aCoords[anchorKey];
-        var corner = target.aCoords[transform.corner];
-        if (corner && anchor) {
-          var useX = Math.abs(corner.x - anchor.x) >= Math.abs(corner.y - anchor.y);
-          var snapTo = Math.round((useX ? corner.x : corner.y) / GRID_CELL_PX) * GRID_CELL_PX;
-          for (var i = 0; i < 4; i++) {
-            corner = _scaleCornerTo(target, transform.corner, anchorKey, anchor, useX, snapTo);
-            if (Math.abs((useX ? corner.x : corner.y) - snapTo) < 0.05) break;
-          }
+        var pt = _scaleHandlePoint(target, transform.corner);
+        if (pt) {
+          var dx = Math.round(pt.x / GRID_CELL_PX) * GRID_CELL_PX - pt.x;
+          var dy = Math.round(pt.y / GRID_CELL_PX) * GRID_CELL_PX - pt.y;
+          if (dx || dy) handler(eventData, transform, x + dx, y + dy);
         }
       }
       return result;
     };
   }
+
 
   function attachPolygonVertexControls(poly) {
     poly.objectCaching = false;
@@ -323,7 +312,7 @@
     styleScaleAndRotateControls(circle);
     ['tl', 'tr', 'bl', 'br'].forEach(function (k) {
       if (circle.controls[k] && fabric.controlsUtils && fabric.controlsUtils.scalingEqually) {
-        circle.controls[k].actionHandler = withGridSnapCorner(fabric.controlsUtils.scalingEqually);
+        circle.controls[k].actionHandler = withGridSnapScale(fabric.controlsUtils.scalingEqually);
       }
     });
     // Edge-midpoint scaling and rotation aren't meaningful on a circle
@@ -373,7 +362,7 @@
       c.offsetX = (c.x || 0) * SCALE_PUSH * 2;
       c.offsetY = (c.y || 0) * SCALE_PUSH * 2;
       c.sizeX = 9; c.sizeY = 9;
-      c.actionHandler = OPPOSITE_CORNER[k] ? withGridSnapCorner(c.actionHandler) : withGridSnapDirect(c.actionHandler);
+      c.actionHandler = withGridSnapScale(c.actionHandler);
     });
     if (obj.controls.mtr) {
       obj.controls.mtr = fabric.util.object.clone(obj.controls.mtr);
@@ -864,7 +853,16 @@
     this._fabricCanvas = new fabric.Canvas(canvasEl, {
       selection: true,
       preserveObjectStacking: true,
-      stopContextMenu: true
+      stopContextMenu: true,
+      // Fabric locks corner-drag scaling to the shape's aspect ratio by
+      // default (Shift frees it) — flipped here so corner-dragging is a
+      // free, independent-axis resize by default (Shift now locks the
+      // aspect ratio instead), matching how vertex dragging already moves
+      // freely in both axes. Also what makes grid-snap land exactly on both
+      // axes for a dragged corner — a fixed-aspect diagonal only has one
+      // degree of freedom, so at most one axis could ever be made to land
+      // exactly on the grid.
+      uniformScaling: false
     });
     this._fabricCanvas.__gfe = this;
   };
