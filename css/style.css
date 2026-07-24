@@ -2641,6 +2641,46 @@ body.bac-exam-mode .nav.nav--peek {
   max-width: none;
 }
 
+/* ---- Geometry variant: figure thumbnail + condition snippet ----
+   Geometry cards (geo-plana/geo-spatiu, see RARITY_SUBCATS in
+   js/category.js) show a two-line snippet of the statement ("the
+   condition") plus the hand-drawn figure, instead of the single-formula
+   preview algebra/polinoame use — a synthetic-geometry statement is prose,
+   not one clean equation, and the diagram is the card's real visual
+   anchor. Taller than the base 250px card to fit both without cramming. */
+.rarity-card--figure { height: 350px; }
+
+.rarity-card__snippet {
+  font-size: 0.72rem;
+  line-height: 1.35;
+  color: var(--text-secondary);
+  margin: 2px 0 8px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.rarity-card__statement--figure {
+  flex-basis: 150px;
+  height: 150px;
+  padding: 10px;
+}
+
+.rarity-card__figure-thumb {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.rarity-card__figure-thumb svg {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+}
+
 /* Locked card (package restriction) — same footprint, no rarity flourish
    since the content underneath is hidden anyway. The title still renders
    (for layout weight/variety across the grid) but sits behind a blur, with
