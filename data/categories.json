@@ -60,10 +60,9 @@
     "name": "Geometrie",
     "symbol": "△",
     "color": "#ec4899",
-    "description": "Geometrie plană, analitică și în spațiu",
+    "description": "Geometrie plană și în spațiu",
     "subcategories": [
       { "id": "geo-plana",     "name": "Geometrie plană" },
-      { "id": "geo-analitica", "name": "Geometrie analitică" },
       { "id": "geo-spatiu",    "name": "Geometrie în spațiu" }
     ]
   }

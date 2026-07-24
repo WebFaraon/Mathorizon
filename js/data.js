@@ -28,10 +28,9 @@ BM.CATEGORIES = [
   {
     id: 'geometrie', name: 'Geometrie', symbol: '△',
     gradient: 'linear-gradient(135deg,#be185d,#9d174d)', color: '#ec4899',
-    description: 'Geometrie plană, analitică și în spațiu',
+    description: 'Geometrie plană și în spațiu',
     subcategories: [
       { id: 'geo-plana',     name: 'Geometrie Plană',     symbol: '△',   color: '#f43f5e', description: 'Triunghiuri, cercuri, poligoane' },
-      { id: 'geo-analitica', name: 'Geometrie Analitică', symbol: 'Oxy', color: '#ec4899', description: 'Drepte, distanțe, arii în plan' },
       { id: 'geo-spatiu',    name: 'Geometrie în Spațiu', symbol: '⬡',   color: '#be185d', description: 'Poliedre, sfere, volume' }
     ]
   },
@@ -6954,99 +6953,6 @@ BM.EXERCISES = [
     statement: 'O progresie geometrică are $b_1 = 3$ și $q = 2$. Calculați $b_6$ și $S_6$.',
     solution: '$$b_6 = b_1 \\cdot q^5 = 3 \\cdot 32 = 96$$\n\n$$S_6 = b_1\\frac{q^6-1}{q-1} = 3 \\cdot \\frac{64-1}{1} = 3 \\cdot 63$$\n\n$$\\boxed{b_6 = 96, \\quad S_6 = 189}$$'
   },
-
-  /* ============================================================
-     GEOMETRIE — Plană
-     ============================================================ */
-  {
-    id: 'geo-p-001', categoryId: 'geometrie', subcategoryId: 'geo-plana',
-    puncteTotal: 5,
-    difficulty: 'usor', source: 'BAC 2022, Varianta 18',
-    title: 'Teorema lui Pitagora — latură și arie',
-    statement: 'Un triunghi dreptunghic are catetele $a = 5\\,\\text{cm}$ și $b = 12\\,\\text{cm}$. Calculați ipotenuza și aria.',
-    solution: '$$c = \\sqrt{a^2+b^2} = \\sqrt{25+144} = \\sqrt{169} = 13\\,\\text{cm}$$\n\n$$\\mathcal{A} = \\frac{ab}{2} = \\frac{5 \\cdot 12}{2} = 30\\,\\text{cm}^2$$'
-  },
-  {
-    id: 'geo-p-002', categoryId: 'geometrie', subcategoryId: 'geo-plana',
-    puncteTotal: 5,
-    difficulty: 'usor', source: 'BAC 2023, Varianta 3',
-    title: 'Raza și aria unui cerc din perimetru',
-    statement: 'Un cerc are perimetrul $20\\pi\\,\\text{cm}$. Calculați raza și aria.',
-    solution: '$$P = 2\\pi r = 20\\pi \\Rightarrow r = 10\\,\\text{cm}$$\n\n$$\\mathcal{A} = \\pi r^2 = 100\\pi\\,\\text{cm}^2$$'
-  },
-  {
-    id: 'geo-p-003', categoryId: 'geometrie', subcategoryId: 'geo-plana',
-    difficulty: 'mediu', source: 'BAC 2021, Varianta 14',
-    title: 'Triunghi echilateral — înălțime și arie',
-    statement: 'Un triunghi echilateral are latura $a = 6\\,\\text{cm}$. Calculați înălțimea și aria.',
-    solution: '$$h = \\frac{a\\sqrt{3}}{2} = \\frac{6\\sqrt{3}}{2} = 3\\sqrt{3}\\,\\text{cm}$$\n\n$$\\mathcal{A} = \\frac{a^2\\sqrt{3}}{4} = \\frac{36\\sqrt{3}}{4} = 9\\sqrt{3}\\,\\text{cm}^2$$'
-  },
-  {
-    id: 'geo-p-004', categoryId: 'geometrie', subcategoryId: 'geo-plana',
-    difficulty: 'mediu', source: 'BAC 2022, Varianta 33',
-    title: 'Aria și perimetrul unui trapez isoscel',
-    statement: 'Un trapez are bazele $B = 10\\,\\text{cm}$, $b = 6\\,\\text{cm}$, înălțimea $h = 4\\,\\text{cm}$ și laturile neparalele egale cu $l = 5\\,\\text{cm}$. Calculați aria și perimetrul.',
-    solution: '$$\\mathcal{A} = \\frac{(B+b)h}{2} = \\frac{16 \\cdot 4}{2} = 32\\,\\text{cm}^2$$\n\n$$P = B + b + 2l = 10 + 6 + 10 = 26\\,\\text{cm}$$'
-  },
-
-  /* ============================================================
-     GEOMETRIE — Analitică
-     ============================================================ */
-  {
-    id: 'geo-a-001', categoryId: 'geometrie', subcategoryId: 'geo-analitica',
-    puncteTotal: 5,
-    difficulty: 'usor', source: 'BAC 2022, Varianta 25',
-    title: 'Distanța dintre două puncte',
-    statement: 'Calculați distanța dintre $A(1,\\,2)$ și $B(4,\\,6)$.',
-    solution: '$$d(A,B) = \\sqrt{(4-1)^2+(6-2)^2} = \\sqrt{9+16} = \\sqrt{25}$$\n\n$$\\boxed{d(A,B) = 5}$$'
-  },
-  {
-    id: 'geo-a-002', categoryId: 'geometrie', subcategoryId: 'geo-analitica',
-    difficulty: 'mediu', source: 'BAC 2023, Varianta 30',
-    title: 'Ecuația dreptei prin două puncte',
-    statement: 'Determinați ecuația dreptei prin $A(1,\\,2)$ și $B(3,\\,6)$.',
-    solution: '$$m = \\frac{y_B - y_A}{x_B - x_A} = \\frac{6-2}{3-1} = 2$$\n\n$$y - 2 = 2(x-1) \\Rightarrow y = 2x$$\n\nVerificare: $B(3,6): 6 = 2 \\cdot 3$ ✓\n\n$$\\boxed{y = 2x}$$'
-  },
-  {
-    id: 'geo-a-003', categoryId: 'geometrie', subcategoryId: 'geo-analitica',
-    difficulty: 'mediu', source: 'BAC 2021, Varianta 31',
-    title: 'Distanța de la un punct la o dreaptă',
-    statement: 'Calculați distanța de la $P(3,\\,4)$ la dreapta $3x + 4y - 25 = 0$.',
-    solution: '$$d = \\frac{|ax_0 + by_0 + c|}{\\sqrt{a^2+b^2}} = \\frac{|3\\cdot3 + 4\\cdot4 - 25|}{\\sqrt{9+16}} = \\frac{|0|}{5}$$\n\n$$\\boxed{d = 0}$$\n\nPunctul $P$ se află pe dreaptă!'
-  },
-  {
-    id: 'geo-a-004', categoryId: 'geometrie', subcategoryId: 'geo-analitica',
-    difficulty: 'dificil', source: 'BAC 2023, Varianta 15',
-    title: 'Centrul și raza unui cerc',
-    statement: 'Determinați centrul și raza cercului:\n$$x^2 + y^2 - 6x + 4y - 3 = 0$$',
-    solution: 'Completăm pătratele:\n$$(x^2 - 6x + 9) + (y^2 + 4y + 4) = 3 + 9 + 4$$\n$$(x-3)^2 + (y+2)^2 = 16$$\n\n$$\\boxed{\\text{Centru } O(3,\\,-2),\\quad r = 4}$$'
-  },
-
-  /* ============================================================
-     GEOMETRIE — Spațiu
-     ============================================================ */
-  {
-    id: 'geo-s-001', categoryId: 'geometrie', subcategoryId: 'geo-spatiu',
-    puncteTotal: 5,
-    difficulty: 'usor', source: 'BAC 2022, Varianta 20',
-    title: 'Diagonalele unui cub',
-    statement: 'Un cub are latura $a = 4\\,\\text{cm}$. Calculați diagonala feței și diagonala spațiului.',
-    solution: '$$d_f = a\\sqrt{2} = 4\\sqrt{2}\\,\\text{cm}$$\n\n$$d_s = a\\sqrt{3} = 4\\sqrt{3}\\,\\text{cm}$$'
-  },
-  {
-    id: 'geo-s-002', categoryId: 'geometrie', subcategoryId: 'geo-spatiu',
-    difficulty: 'mediu', source: 'BAC 2023, Varianta 4',
-    title: 'Volumul și aria laterală a unui cilindru',
-    statement: 'Un cilindru are $r = 3\\,\\text{cm}$ și $h = 7\\,\\text{cm}$. Calculați volumul și aria laterală.',
-    solution: '$$V = \\pi r^2 h = \\pi \\cdot 9 \\cdot 7 = 63\\pi\\,\\text{cm}^3$$\n\n$$A_l = 2\\pi r h = 2\\pi \\cdot 3 \\cdot 7 = 42\\pi\\,\\text{cm}^2$$'
-  },
-  {
-    id: 'geo-s-003', categoryId: 'geometrie', subcategoryId: 'geo-spatiu',
-    difficulty: 'dificil', source: 'BAC 2021, Varianta 30',
-    title: 'Piramidă regulată — volum și apotema',
-    statement: 'O piramidă regulată cu baza pătrată ($a = 6\\,\\text{cm}$) are înălțimea $h = 4\\,\\text{cm}$. Calculați volumul și apotema.',
-    solution: '$$V = \\frac{\\mathcal{A}_{baza} \\cdot h}{3} = \\frac{36 \\cdot 4}{3} = 48\\,\\text{cm}^3$$\n\nApotema (înălțimea feței laterale):\n$$l = \\sqrt{h^2 + \\left(\\frac{a}{2}\\right)^2} = \\sqrt{16+9} = 5\\,\\text{cm}$$\n\n$$\\boxed{V = 48\\,\\text{cm}^3,\\quad l = 5\\,\\text{cm}}$$'
-  }
 
 ];
 

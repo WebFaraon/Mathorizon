@@ -82,20 +82,33 @@ const model  = genAI.getGenerativeModel({
 
 const GRADE_LABELS = { '9': 'a IX-a', 'bac': 'a XII-a (BAC)' };
 
-// Real, hand-transcribed BAC Moldova baremuri (only calcul-algebric has these
-// today — see js/data.js) used as few-shot style examples so Gemini matches
-// the official granularity/phrasing for every chapter, not just this one.
+// Real, hand-transcribed BAC Moldova baremuri, tagged per categoryId/subcategoryId
+// (see js/data.js for the id list) — used as few-shot style examples so Gemini
+// matches the official granularity/phrasing. Filtered per-request to the
+// exercise's own subcategory first: a polinoame barem (divizibilitate, rest la
+// împărțire) reads nothing like a calcul-algebric one (puteri, radicali,
+// logaritmi) despite sharing categoryId 'algebra', so mixing them would dilute
+// the calibration rather than help it. Falls back to the full category, then
+// to the full set, for a (sub)category with no examples yet, so coverage gaps
+// degrade gracefully instead of sending an empty block.
 const OFFICIAL_EXAMPLES = JSON.parse(
   fs.readFileSync(path.join(__dirname, '..', '..', 'data', 'official-barem-examples.json'), 'utf8')
 );
 
-function buildExamplesBlock() {
-  return OFFICIAL_EXAMPLES.map((ex, i) => {
+function matchingExamples(categoryId, subcategoryId) {
+  const bySub = OFFICIAL_EXAMPLES.filter(ex => ex.categoryId === categoryId && ex.subcategoryId === subcategoryId);
+  if (bySub.length) return bySub;
+  const byCategory = OFFICIAL_EXAMPLES.filter(ex => ex.categoryId === categoryId);
+  return byCategory.length ? byCategory : OFFICIAL_EXAMPLES;
+}
+
+function buildExamplesBlock(categoryId, subcategoryId) {
+  const pool = matchingExamples(categoryId, subcategoryId);
+  return pool.map((ex, i) => {
     const pasi = ex.pasi.map(p => `   Pasul ${p.nr} (${p.puncte_maxime}p): ${p.descriere}`).join('\n');
     return `${i + 1}. "${ex.titlu}" — enunț: ${ex.enunt.replace(/\n/g, ' ')} — total ${ex.punctaj_total}p\n${pasi}`;
   }).join('\n\n');
 }
-const EXAMPLES_BLOCK = buildExamplesBlock();
 
 async function requireAdmin(accessToken) {
   if (!accessToken) throw new Error('missing accessToken');
@@ -134,11 +147,13 @@ const GEOMETRY_FIGURE_IGNORE_BLOCK = `
 IMPORTANT — fotografia poate conține și o figură/schiță geometrică (triunghi, cerc, desen). IGNOR-O COMPLET: nu o descrie, nu o menționa în enunț, nu încerca să-i deduci dimensiunile sau unghiurile din desen. Transcrie STRICT enunțul text al problemei (datele numerice și cerințele scrise). Figura va fi redesenată manual, separat, de către profesor — nu este responsabilitatea ta.`;
 
 function buildPrompt(context, existingExercises) {
-  const { grade, categoryId, categoryName, subcategoryName, difficulty, punctajTotal } = context;
+  const { grade, categoryId, categoryName, subcategoryId, subcategoryName, difficulty, punctajTotal } = context;
   const totalBlock = punctajTotal
     ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
     : `Estimează punctajul total ca într-un barem oficial BAC Moldova.`;
   const geometryBlock = categoryId === 'geometrie' ? GEOMETRY_FIGURE_IGNORE_BLOCK : '';
+  const examplesCount = matchingExamples(categoryId, subcategoryId).length;
+  const examplesBlock = buildExamplesBlock(categoryId, subcategoryId);
 
   return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Mathorizon (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
 
@@ -147,9 +162,9 @@ ${geometryBlock}
 
 ${totalBlock}
 
-IATĂ ${OFFICIAL_EXAMPLES.length} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (transcrise manual din documente oficiale) — construiește baremul noului exercițiu EXACT în acest stil: fiecare pas combină explicația și calculul matematic într-un singur câmp "descriere" (nu le separa), punctajul se împarte pe pași de calcul logici, nu pe fiecare linie:
+IATĂ ${examplesCount} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (transcrise manual din documente oficiale) — construiește baremul noului exercițiu EXACT în acest stil: fiecare pas combină explicația și calculul matematic într-un singur câmp "descriere" (nu le separa), punctajul se împarte pe pași de calcul logici, nu pe fiecare linie:
 
-${EXAMPLES_BLOCK}
+${examplesBlock}
 
 ${buildDuplicatesBlock(existingExercises)}
 

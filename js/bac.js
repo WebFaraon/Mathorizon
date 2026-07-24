@@ -70,7 +70,6 @@
       desc: 'Geometrie',
       pools: [
         { subcat: 'geo-plana',     diff: ['usor', 'mediu', 'dificil'] },
-        { subcat: 'geo-analitica', diff: ['usor', 'mediu', 'dificil'] },
         { subcat: 'geo-spatiu',    diff: ['usor', 'mediu', 'dificil'] }
       ]
     },
@@ -79,7 +78,6 @@
       desc: 'Geometrie avansată',
       pools: [
         { subcat: 'geo-plana',     diff: ['mediu', 'dificil'] },
-        { subcat: 'geo-analitica', diff: ['mediu', 'dificil'] },
         { subcat: 'geo-spatiu',    diff: ['mediu', 'dificil'] }
       ]
     },
@@ -88,7 +86,6 @@
       desc: 'Geometrie complexă',
       pools: [
         { subcat: 'geo-plana',     diff: ['dificil'] },
-        { subcat: 'geo-analitica', diff: ['dificil'] },
         { subcat: 'geo-spatiu',    diff: ['dificil'] }
       ]
     },

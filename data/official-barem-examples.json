@@ -1,5 +1,6 @@
 [
   {
+    "categoryId": "algebra",
     "titlu": "Putere cu exponent fracționar minus număr întreg",
     "enunt": "Calculați valoarea expresiei:\n$$E = 32^{\\frac{3}{5}} - 8$$",
     "punctaj_total": 5,
@@ -14,9 +15,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $0$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Fracție de radicali și puteri ale lui 3",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{\\frac{1}{6}}}$$",
     "punctaj_total": 5,
@@ -36,9 +39,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $3$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Logaritm în baza radical din 2 minus 4",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 4 - 4$$",
     "punctaj_total": 5,
@@ -53,9 +58,11 @@
         "descriere": "Calcularea valorii diferenței",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere negativă a lui 27 minus fracție",
     "enunt": "Calculați valoarea expresiei:\n$$E = 27^{-\\frac{2}{3}} - \\frac{10}{9}$$",
     "punctaj_total": 5,
@@ -70,9 +77,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-1$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Radical de ordinul 3 din 81 împărțit la putere a lui 9",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{81}}{9^{1/6}}$$",
     "punctaj_total": 5,
@@ -92,9 +101,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $3$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Număr zecimal plus logaritm în baza 2 din radical",
     "enunt": "Calculați valoarea expresiei:\n$$E = 1{,}5 + \\log_2 \\sqrt{8}$$",
     "punctaj_total": 5,
@@ -109,9 +120,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $3$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Logaritm în baza 81 din 27 plus putere negativă",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{81} 27 + 4^{-1}$$",
     "punctaj_total": 5,
@@ -126,9 +139,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $1$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Suma logaritmilor în baze reciproce 5 și 1/5",
     "enunt": "Calculați suma numerelor:\n$$\\log_5 50 \\text{ și } \\log_{\\frac{1}{5}} 2$$",
     "punctaj_total": 5,
@@ -148,9 +163,11 @@
         "descriere": "$\\log_5 25 = 2$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Radical din putere zecimală minus număr",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt{9^{1{,}5} - 2}$$",
     "punctaj_total": 5,
@@ -165,9 +182,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $5$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Logaritm în baza 3 din 36 minus logaritm dublu",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_3 36 - 2\\log_3 2$$",
     "punctaj_total": 5,
@@ -182,9 +201,11 @@
         "descriere": "$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$",
         "puncte_maxime": 3
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Logaritm în baza 1/2 minus logaritm în baza 2",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\frac{1}{2}} \\frac{4}{5} - \\log_2 5$$",
     "punctaj_total": 5,
@@ -204,9 +225,11 @@
         "descriere": "$= -2$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Radical de ordinul 3 dintr-un produs cu putere fracționară",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-128 \\cdot 0{,}125^{\\frac{1}{3}}}$$",
     "punctaj_total": 5,
@@ -221,9 +244,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-4$",
         "puncte_maxime": 3
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Diferență de logaritmi în baze reciproce 3 și 1/3",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_{\\frac{1}{3}} 0{,}5$$",
     "punctaj_total": 5,
@@ -243,9 +268,11 @@
         "descriere": "$\\log_3 27 = 3$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere cu exponent 0,25 a fracției 16/81 minus fracție",
     "enunt": "Calculați valoarea expresiei:\n$$E = -\\frac{5}{3} + \\left(\\frac{16}{81}\\right)^{0{,}25}$$",
     "punctaj_total": 5,
@@ -265,9 +292,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-1$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Radical de ordinul 3 din putere zecimală minus număr",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{32^{0{,}4} - 12}$$",
     "punctaj_total": 5,
@@ -282,9 +311,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-2$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere negativă a fracției 27/125 minus fracție",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{27}{125}\\right)^{-1/3} - \\frac{2}{3}$$",
     "punctaj_total": 5,
@@ -304,9 +335,11 @@
         "descriere": "Obținerea răspunsului corect, egal cu $1$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Logaritm în baza radical cubic din 5 minus inversul unei fracții",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt[3]{5}} 25 - \\left(\\frac{1}{6}\\right)^{-1}$$",
     "punctaj_total": 5,
@@ -321,9 +354,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $0$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere cu exponent 1/4 a lui 0,0081 plus inversul unui număr mixt",
     "enunt": "Calculați valoarea expresiei:\n$$E = (0{,}0081)^{1/4} + \\left(1\\frac{3}{7}\\right)^{-1}$$",
     "punctaj_total": 5,
@@ -338,9 +373,11 @@
         "descriere": "$\\left(1\\frac{3}{7}\\right)^{-1} = \\frac{7}{10}$ și calcularea valorii expresiei, egală cu $1$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere cu exponent 1,5 a fracției înmulțită cu puterea lui -5",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{4}{25}\\right)^{1{,}5} \\cdot (-5)^3$$",
     "punctaj_total": 5,
@@ -365,9 +402,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-8$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Radical de ordinul 3 din număr mixt negativ plus putere negativă",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-2\\dfrac{10}{27}} + 9^{-0{,}5}$$",
     "punctaj_total": 5,
@@ -387,9 +426,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-1$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Produs de puteri cu exponenți fracționari din fracții neparfecte",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\left(\\frac{189}{4}\\right)^{\\frac{1}{4}} \\cdot \\left(\\frac{7}{12}\\right)^{-0{,}25}$$",
     "punctaj_total": 5,
@@ -409,9 +450,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $3$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere cu exponent logaritm negativ în baza 4",
     "enunt": "Calculați valoarea expresiei:\n$$E = 2^{-\\log_4 9}$$",
     "punctaj_total": 5,
@@ -426,9 +469,11 @@
         "descriere": "$2^{-\\log_2 3} = 2^{\\log_2 \\frac{1}{3}} = \\frac{1}{3}$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Suma logaritmilor în baze reciproce 7 și 1/7",
     "enunt": "Calculați valoarea expresiei:\n$$E = \\log_7 2 + \\log_{\\frac{1}{7}} 98$$",
     "punctaj_total": 5,
@@ -448,9 +493,11 @@
         "descriere": "$\\log_7 \\frac{1}{49} = -2$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Putere negativă a lui 2 plus radical de ordinul 3 dintr-o diferență",
     "enunt": "Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\frac{3}{64} - 2}$$",
     "punctaj_total": 5,
@@ -470,9 +517,11 @@
         "descriere": "$2^{-2} = \\frac{1}{4}$ și calcularea valorii sumei, egală cu $-1$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Număr zecimal plus radical de ordinul 3 dintr-o diferență de fracții",
     "enunt": "Calculați valoarea expresiei:\n$$E = 0{,}2 + \\sqrt[3]{\\frac{34}{125} - 2}$$",
     "punctaj_total": 5,
@@ -497,9 +546,11 @@
         "descriere": "Determinarea valorii expresiei, egală cu $-1$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "calcul-algebric"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea lui a din condiția că X=−1 este rădăcină",
     "enunt": "Determinați valorile reale ale lui $a$, pentru care $X = -1$ este rădăcină a polinomului\n$$P(X) = X^3 - X^2 + (a-2)X + 1$$",
     "punctaj_total": 5,
@@ -519,9 +570,11 @@
         "descriere": "Obținerea $a = 1$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Restul împărțirii lui 2X³+X²−5X+1 la X−2",
     "enunt": "Determinați restul împărțirii polinomului $P(X) = 2X^3 + X^2 - 5X + 1$ la binomul $X - 2$.",
     "punctaj_total": 5,
@@ -541,9 +594,11 @@
         "descriere": "Scrierea răspunsului corect",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Restul împărțirii lui X³−2X²+16 la X²−1",
     "enunt": "Determinați restul împărțirii polinomului $P(X) = X^3 - 2X^2 + 16$ la polinomul $Q(X) = X^2 - 1$.",
     "punctaj_total": 5,
@@ -558,9 +613,11 @@
         "descriere": "Obținerea și scrierea restului $X + 14$",
         "puncte_maxime": 3
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea lui a din condiția de divizibilitate cu X−2",
     "enunt": "Fie polinomul $P(X) = X^3 - 4X^2 - aX - 4$. Determinați valorile reale ale lui $a$, pentru care polinomul $P(X)$ este divizibil prin $Q(X) = X - 2$.",
     "punctaj_total": 5,
@@ -580,9 +637,11 @@
         "descriere": "Obținerea răspunsului corect $a = -6$",
         "puncte_maxime": 1
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea lui m din condiția de divizibilitate și restul la X²+3",
     "enunt": "Fie polinomul $P(X) = X^4 + (m+1)X^3 + 2X^2 + 7X + 3$, care este divizibil la binomul $(X + 3)$. Determinați valoarea reală a lui $m$ și restul împărțirii lui $P(X)$ la polinomul $Q(X) = X^2 + 3$.",
     "punctaj_total": 8,
@@ -602,9 +661,11 @@
         "descriere": "Împărțirea polinomului $P(X)$ la $Q(X)$ și scrierea răspunsului corect",
         "puncte_maxime": 4
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Demonstrarea că X=2 este rădăcină și determinarea celorlalte rădăcini",
     "enunt": "Fie polinomul $P(X) = 4X^3 - 16X^2 + 19X - 6$. Arătați că $X = 2$ este rădăcină a polinomului $P(X)$ și determinați celelalte rădăcini ale polinomului.",
     "punctaj_total": 8,
@@ -624,9 +685,11 @@
         "descriere": "Determinarea rădăcinilor polinomului obținut și scrierea răspunsului corect",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea câtului împărțirii la X−2 din două condiții simultane",
     "enunt": "Fie polinomul $P(X) = 2X^3 + aX^2 + bX + 2$, $a, b \\in \\mathbb{R}$. Determinați câtul împărțirii lui $P(X)$ la binomul $X - 2$, dacă se știe că $X = 2$ este rădăcină a polinomului $P(X)$, iar restul împărțirii lui $P(X)$ la $(X + 1)$ este egal cu $3$.",
     "punctaj_total": 8,
@@ -651,9 +714,11 @@
         "descriere": "Determinarea câtului împărțirii lui $P(X)$ la $X-2$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea lui m din condiția restului egal cu 4 la X+2",
     "enunt": "Fie polinomul $P(X) = X^3 - 6X^2 + mX - 6$. Determinați valorile reale a lui $m$ pentru care restul împărțirii polinomului $P(X)$ la $(X + 2)$ este egal cu $4$.",
     "punctaj_total": 5,
@@ -673,9 +738,11 @@
         "descriere": "Determinarea valorii lui $m$",
         "puncte_maxime": 2
       }
-    ]
+    ],
+    "subcategoryId": "polinoame"
   },
   {
+    "categoryId": "algebra",
     "titlu": "Determinarea lui a și b din condiția de rădăcină dublă X=2",
     "enunt": "Determinați valorile reale ale lui $a$ și $b$, pentru care $X = 2$ este rădăcină dublă a polinomului\n$$P(X) = X^4 - 2X^3 + aX + b$$",
     "punctaj_total": 8,
@@ -699,6 +766,517 @@
         "nr": 4,
         "descriere": "Obținerea $a = -8,\\ b = 16$",
         "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "polinoame"
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Raza cercului înscris într-un trapez dreptunghic circumscriptibil",
+    "enunt": "Se consideră trapezul circumscriptibil $ABCD$, în care $m(\\angle ABC) = m(\\angle BAD) = 90°$, $BC = 3$ cm, $CD = 5$ cm, $AD = 6$ cm. Determinați lungimea razei cercului înscris în trapezul $ABCD$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Trapezul fiind circumscriptibil, suma laturilor paralele este egală cu suma laturilor neparalele: $AB + CD = AD + BC$, de unde $AB = 4$ cm",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Cum $m(\\angle ABC) = m(\\angle BAD) = 90°$, latura $AB$ este înălțimea trapezului și este egală cu diametrul cercului înscris, deci raza cercului înscris în trapezul $ABCD$ este $r = \\frac{AB}{2} = 2$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea arcului subîntins de un unghi înscris în cerc",
+    "enunt": "Punctele $A, B, C$ aparțin unui cerc, astfel încât $m(\\angle ABC) = 30°$. Determinați lungimea arcului $AC$, dacă se cunoaște că lungimea cercului este egală cu $12$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Unghiul $\\angle ABC$ este unghi înscris în cerc și subîntinde arcul $AC$, deci măsura arcului $AC$ este egală cu $2 \\cdot m(\\angle ABC) = 60°$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Lungimea arcului $AC$ este proporțională cu măsura lui din lungimea totală a cercului: $l_{AC} = \\frac{60°}{360°} \\cdot 12 = 2$ cm",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Perimetrul unui triunghi folosind linia mijlocie",
+    "enunt": "Punctele $M$ și $N$ sunt mijloacele laturilor $AB$ și $BC$, respectiv, ale triunghiului $ABC$, astfel încât $MB = 3$ cm, $BN = 4$ cm și $MN = 5$ cm. Determinați perimetrul triunghiului $ABC$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Determinarea perimetrului triunghiului $MBN$: $P_{MBN} = MB + BN + MN = 3 + 4 + 5 = 12$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Cum $M$ și $N$ sunt mijloacele laturilor $AB$ și $BC$, triunghiul $MBN$ este asemenea cu triunghiul $ABC$ în raport de $\\frac{1}{2}$, deci perimetrul triunghiului $ABC$ este dublul perimetrului triunghiului $MBN$: $P_{ABC} = 2 \\cdot P_{MBN} = 24$ cm",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Aria totală a unui cub cunoscând volumul",
+    "enunt": "Determinați aria totală a unui cub, dacă se cunoaște că volumul lui este egal cu $8$ cm³.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Din $V = a^3 = 8$ cm³ se obține lungimea muchiei cubului $a = 2$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Calcularea ariei totale a cubului: $A_t = 6a^2 = 6 \\cdot 4 = 24$ cm²",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Aria laterală a unui con cu secțiune axială triunghi dreptunghic",
+    "enunt": "Secțiunea axială a unui con circular drept este un triunghi dreptunghic cu catetele de $\\sqrt{2}$ cm. Determinați aria laterală a conului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Secțiunea axială fiind un triunghi dreptunghic isoscel cu catetele $\\sqrt{2}$ cm, ipotenuza (egală cu diametrul bazei conului) este $2r = \\sqrt{2} \\cdot \\sqrt{2} = 2$ cm, deci raza bazei conului este $r = 1$ cm",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Generatoarea conului este egală cu cateta triunghiului, $g = \\sqrt{2}$ cm, deci aria laterală a conului este $A_l = \\pi r g = \\pi \\cdot 1 \\cdot \\sqrt{2} = \\pi\\sqrt{2}$ cm²",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Distanța de la un punct exterior la centrul cercului, din două tangente perpendiculare",
+    "enunt": "Din punctul $M$ exterior unui cerc sunt duse două tangente la cerc reciproc perpendiculare. Determinați distanța de la punctul $M$ la centrul $O$ al cercului, dacă se cunoaște că distanța de la punctul $M$ la punctele de tangență este egală cu $\\sqrt{2}$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Notând $A$ și $B$ punctele de tangență, razele $OA \\perp AM$ și $OB \\perp BM$ (rază perpendiculară pe tangentă în punctul de tangență), iar $AM \\perp BM$ (tangente reciproc perpendiculare), deci patrulaterul $AMBO$ are trei unghiuri drepte, deci este dreptunghi; cum $OA = OB$ (raze), rezultă că $AMBO$ este pătrat, cu latura $AM = MB = OA = OB = \\sqrt{2}$ cm",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "$OM$ este diagonala pătratului $AMBO$ cu latura $\\sqrt{2}$ cm, deci $OM = \\sqrt{2} \\cdot \\sqrt{2} = 2$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea unui segment determinat de bisectoare pe latura opusă",
+    "enunt": "Fie triunghiul $ABC$, în care $AB = 8$ cm, $AC = 12$ cm, $BC = 10$ cm, iar $AD$ ($D \\in BC$) este bisectoare. Determinați lungimea segmentului $DC$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$AD$ fiind bisectoarea unghiului $\\angle BAC$, conform teoremei bisectoarei se obține proporția $\\frac{AC}{AB} = \\frac{DC}{DB}$, adică $\\frac{12}{8} = \\frac{DC}{10 - DC}$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Rezolvarea ecuației $\\frac{12}{8} = \\frac{DC}{10 - DC}$ se obține $DC = 6$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Volumul unui cilindru din condiția ariei bazei egale cu aria laterală",
+    "enunt": "Aria bazei unui cilindru circular drept este egală cu aria laterală și este egală cu $16\\pi$ cm². Determinați volumul cilindrului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Din $A_b = \\pi r^2 = 16\\pi$ se obține raza bazei cilindrului $r = 4$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Din $A_l = 2\\pi r h = 16\\pi$, cu $r = 4$ cm, se obține înălțimea cilindrului $h = 2$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea volumului cilindrului: $V = \\pi r^2 h = \\pi \\cdot 16 \\cdot 2 = 32\\pi$ cm³",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea unui segment dintr-un triunghi cu paralelă la o latură",
+    "enunt": "Fie triunghiul $ABC$, în care $MN \\parallel AC$, $M \\in (AB)$, $N \\in (BC)$. Determinați lungimea segmentului $BN$, dacă $MN = 4$ cm, $NC = 5$ cm, $AC = 14$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Cum $MN \\parallel AC$, triunghiul $BMN$ este asemenea cu triunghiul $BAC$ (unghiul $B$ comun, unghiuri corespondente congruente), de unde $\\frac{BN}{BC} = \\frac{MN}{AC}$, adică $\\frac{BN}{BN + 5} = \\frac{4}{14}$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Rezolvarea ecuației $\\frac{BN}{BN+5} = \\frac{4}{14}$ se obține $BN = 2$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Măsura unghiului dintre o tangentă și o secantă printr-un diametru parțial",
+    "enunt": "Punctele $M$ și $B$ aparțin cercului de centru $O$ astfel încât $AM$ este tangentă la cerc, iar segmentul $AB$ conține punctul $O$. Determinați măsura în grade a unghiului $OAM$, dacă se cunoaște că $AB = 3$ cm, iar raza cercului este de $1$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Cum $O \\in AB$ și $B$ aparține cercului, $OB = 1$ cm (rază), deci $AO = AB - OB = 3 - 1 = 2$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$AM$ fiind tangentă la cerc în $M$, $OM \\perp AM$, deci triunghiul $OAM$ este dreptunghic în $M$, cu $OM = 1$ cm (rază) și $OA = 2$ cm (ipotenuză); $\\sin(\\angle OAM) = \\frac{OM}{OA} = \\frac{1}{2}$, de unde $m(\\angle OAM) = 30°$",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Volumul unui cilindru cu secțiune axială pătrat de diagonală dată",
+    "enunt": "Secțiunea axială a unui cilindru circular drept este un pătrat cu diagonala de $4$ cm. Determinați volumul cilindrului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Din diagonala pătratului $d = l\\sqrt{2} = 4$ cm se obține latura secțiunii axiale $l = 2\\sqrt{2}$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Latura secțiunii axiale este egală cu diametrul bazei cilindrului, $2r = 2\\sqrt{2}$ cm, deci raza bazei cilindrului este $r = \\sqrt{2}$ cm (iar înălțimea $h = l = 2\\sqrt{2}$ cm)",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea volumului cilindrului: $V = \\pi r^2 h = \\pi \\cdot 2 \\cdot 2\\sqrt{2} = 4\\sqrt{2}\\pi$ cm³",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Volumul unei prisme triunghiulare regulate cu toate muchiile egale",
+    "enunt": "O prismă triunghiulară regulată are toate muchiile de $2$ cm. Determinați volumul prismei.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Baza prismei fiind un triunghi echilateral cu latura $2$ cm, aria bazei este $A_b = \\frac{l^2\\sqrt{3}}{4} = \\frac{4\\sqrt{3}}{4} = \\sqrt{3}$ cm²",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Prisma fiind regulată, înălțimea prismei este egală cu muchia laterală, $h = 2$ cm, deci volumul prismei este $V = A_b \\cdot h = \\sqrt{3} \\cdot 2 = 2\\sqrt{3}$ cm³",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea laturii neparalele a unui trapez isoscel circumscriptibil",
+    "enunt": "Fie $ABCD$ un trapez isoscel circumscriptibil cu bazele $BC = 6$ cm și $AD = 10$ cm. Determinați lungimea laturii $AB$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Trapezul fiind circumscriptibil, suma laturilor paralele este egală cu suma laturilor neparalele: $AB + CD = AD + BC$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Trapezul fiind isoscel, $AB = CD$, deci $2AB = AD + BC = 10 + 6 = 16$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Obținerea $AB = 8$ cm",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Măsura unui arc determinat de un unghi înscris și un unghi exterior",
+    "enunt": "Punctele $A, B, C$ aparțin unui cerc, iar punctul $D$ aparține dreptei $AB$, astfel încât $B \\in (AD)$ și $m(\\angle CBD) = 100°$. Determinați măsura în grade a arcului mic $AC$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Cum $B \\in (AD)$, unghiurile $\\angle ABC$ și $\\angle CBD$ sunt suplementare, deci $m(\\angle ABC) = 180° - 100° = 80°$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Unghiul $\\angle ABC$ este unghi înscris în cerc și subîntinde arcul mic $AC$, deci măsura arcului mic $AC$ este egală cu $2 \\cdot m(\\angle ABC) = 160°$",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea unei laturi dintr-un triunghi cu mediane perpendiculare",
+    "enunt": "În triunghiul $ABC$ medianele $AM$ și $BN$ sunt perpendiculare și au lungimile de $9$ cm și $12$ cm respectiv. Determinați lungimea laturii $AB$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Notând $O$ punctul de intersecție a medianelor (centrul de greutate), acesta împarte fiecare mediană în raportul $2:1$ față de vârf, deci $AO = \\frac{2}{3}AM = 6$ cm și $BO = \\frac{2}{3}BN = 8$ cm",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Cum $AM \\perp BN$, triunghiul $AOB$ este dreptunghic în $O$, deci $AB = \\sqrt{AO^2 + BO^2} = \\sqrt{36 + 64} = 10$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Aria totală a unui cub din suma lungimilor muchiilor",
+    "enunt": "Suma lungimilor muchiilor unui cub este egală cu $48$ cm. Determinați aria totală a cubului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Cubul are $12$ muchii egale, deci din $12a = 48$ cm se obține lungimea muchiei cubului $a = 4$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Calcularea ariei totale a cubului: $A_t = 6a^2 = 6 \\cdot 16 = 96$ cm²",
+        "puncte_maxime": 3
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Volumul unei prisme patrulatere regulate din aria bazei și diagonala feței laterale",
+    "enunt": "Într-o prismă patrulateră regulată, aria bazei este de $144$ cm², iar diagonala feței laterale este de $15$ cm. Determinați volumul prismei.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Baza prismei fiind un pătrat cu aria $144$ cm², din $a^2 = 144$ se obține lungimea muchiei bazei $a = 12$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Fața laterală fiind un dreptunghi cu laturile $a = 12$ cm și $h$ (înălțimea prismei), din diagonala $d = \\sqrt{a^2+h^2} = 15$ cm se obține $h^2 = 225 - 144 = 81$, deci $h = 9$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea volumului prismei: $V = A_b \\cdot h = 144 \\cdot 9 = 1296$ cm³",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea bazei mari a unui trapez cu laturi egale și un unghi dat",
+    "enunt": "Fie $ABCD$ un trapez, în care $AB = BC = CD = 8$ cm și $m(\\angle A) = 60°$. Determinați lungimea laturii $AD$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Ducând înălțimile din $B$ și $C$ pe $AD$, cu picioarele în punctele $E$, respectiv $F$, în triunghiul dreptunghic $ABE$ se obține proiecția laturii $AB$ pe $AD$: $AE = AB \\cdot \\cos(\\angle A) = 8 \\cdot \\cos 60° = 4$ cm (analog, proiecția laturii $CD$ pe $AD$, $FD$, este tot $4$ cm, din simetria trapezului cu $AB = CD$)",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "$AD = AE + BC + FD = 4 + 8 + 4 = 16$ cm",
+        "puncte_maxime": 2
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Volumul unui cilindru cu înălțimea congruentă cu diametrul bazei",
+    "enunt": "Într-un cilindru circular drept înălțimea este congruentă cu diametrul bazei. Aria bazei cilindrului este egală cu $4\\pi$ cm². Determinați volumul cilindrului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Din $A_b = \\pi r^2 = 4\\pi$ se obține raza bazei cilindrului $r = 2$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Înălțimea fiind congruentă cu diametrul bazei, $h = 2r = 4$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea volumului cilindrului: $V = \\pi r^2 h = 4\\pi \\cdot 4 = 16\\pi$ cm³",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Înălțimea unui cilindru obținut prin topirea unei sfere de volum egal",
+    "enunt": "O sferă metalică cu volumul de $36\\pi$ cm³ este topită și turnată într-un cilindru circular drept cu raza bazei congruentă cu raza sferei. Determinați lungimea înălțimii cilindrului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Din $V_{sferă} = \\frac{4}{3}\\pi r^3 = 36\\pi$ se obține $r^3 = 27$, deci raza sferei $r = 3$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Volumul cilindrului fiind egal cu volumul sferei topite (raza bazei cilindrului fiind $r = 3$ cm), se obține $\\pi r^2 H = 9\\pi H = 36\\pi$, unde $H$ este lungimea înălțimii cilindrului",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea valorii lui $H = 4$ cm",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Distanța de la un capăt al unui segment la o dreaptă, cunoscând distanțele celuilalt capăt și ale mijlocului",
+    "enunt": "Segmentul $AB$ și dreapta $d$ sunt coplanare și nu au puncte comune. Punctul $M$ este mijlocul segmentului $AB$. Determinați distanța de la punctul $A$ la dreapta $d$, dacă se cunoaște că punctele $M$ și $B$ sunt situate la distanța $9{,}5$ cm și respectiv $12$ cm de la dreapta $d$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Notând $A_1, M_1, B_1$ proiecțiile punctelor $A, M, B$ pe dreapta $d$, cum $M$ este mijlocul lui $AB$, segmentul $MM_1$ este linie mijlocie în trapezul $AA_1B_1B$, deci $MM_1 = \\frac{AA_1+BB_1}{2}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Înlocuind $MM_1 = 9{,}5$ cm și $BB_1 = 12$ cm se obține $9{,}5 = \\frac{AA_1+12}{2}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea distanței $AA_1 = 7$ cm",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea unei coarde folosind unghi înscris și triunghi echilateral",
+    "enunt": "Punctele $A, B$ și $C$ aparțin cercului de centru $O$, astfel încât $m(\\angle BAC) = 15°$, $AO \\perp BO$, iar $AO = 1$ cm. Determinați lungimea coarzii $AC$.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Unghiul $\\angle BAC$ este unghi înscris în cerc și subîntinde arcul $BC$, deci măsura arcului $BC$ este $2 \\cdot m(\\angle BAC) = 30°$, egală cu măsura unghiului la centru $m(\\angle BOC) = 30°$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Cum $AO \\perp BO$, $m(\\angle AOB) = 90°$, iar $C$ fiind situat astfel încât $OC$ desparte unghiul $\\angle AOB$, se obține $m(\\angle AOC) = m(\\angle AOB) - m(\\angle BOC) = 90° - 30° = 60°$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Triunghiul $AOC$ are $OA = OC = 1$ cm (raze) și $m(\\angle AOC) = 60°$, deci este triunghi echilateral",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "Obținerea lungimii segmentului $AC = OA = 1$ cm",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Măsurile unghiurilor ascuțite ale unui triunghi dreptunghic din ipotenuză și o catetă",
+    "enunt": "Într-un triunghi dreptunghic, ipotenuza este $4$ cm, iar o catetă este de $2\\sqrt{3}$ cm. Determinați măsura unghiurilor ascuțite ale triunghiului.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Aplicând teorema lui Pitagora se determină lungimea celeilalte catete: $c = \\sqrt{4^2 - (2\\sqrt{3})^2} = \\sqrt{16-12} = 2$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Cateta determinată, de $2$ cm, este egală cu jumătate din ipotenuză, deci măsura unghiului opus acestei catete este de $30°$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea măsurii celuilalt unghi ascuțit: $90° - 30° = 60°$",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Aria laterală a unui con cu secțiune axială triunghi dreptunghic din înălțime",
+    "enunt": "Secțiunea axială a unui con circular drept este un triunghi dreptunghic. Determinați aria laterală a conului, dacă înălțimea conului este de $3$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Secțiunea axială fiind un triunghi dreptunghic isoscel cu unghiul drept la vârf, înălțimea din vârful conului (mediana la ipotenuză) este egală cu jumătate din ipotenuză (diametrul bazei), deci raza bazei conului este $r = h = 3$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Generatoarea conului este catetă a triunghiului dreptunghic isoscel cu ipotenuza $2r$, deci $g = r\\sqrt{2} = 3\\sqrt{2}$ cm",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Calcularea ariei laterale a conului: $A_l = \\pi r g = \\pi \\cdot 3 \\cdot 3\\sqrt{2} = 9\\sqrt{2}\\pi$ cm²",
+        "puncte_maxime": 1
+      }
+    ]
+  },
+  {
+    "categoryId": "geometrie",
+    "titlu": "Lungimea unui cerc din unghi înscris și lungimea arcului subîntins",
+    "enunt": "Punctele $A, B$ și $C$ aparțin unui cerc, astfel încât $m(\\angle ABC) = 45°$. Determinați lungimea cercului, dacă se cunoaște că lungimea arcului mic $AC$ este egală cu $2\\pi$ cm.",
+    "punctaj_total": 5,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Unghiul $\\angle ABC$ este unghi înscris în cerc și subîntinde arcul mic $AC$, deci măsura arcului mic $AC$ este egală cu $2 \\cdot m(\\angle ABC) = 90°$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Cum măsura arcului mic $AC$ este $90°$, adică $\\frac{1}{4}$ din măsura întregului cerc ($360°$), lungimea cercului este de $4$ ori mai mare decât lungimea arcului mic $AC$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea lungimii cercului, egală cu $4 \\cdot 2\\pi = 8\\pi$ cm",
+        "puncte_maxime": 1
       }
     ]
   }
