@@ -2013,35 +2013,36 @@
 
   // Raw canvas strokeWidth is always literally "2" at draw time (see the
   // scattered `strokeWidth: 2` calls throughout this file) — a deliberate,
-  // tuned-by-eye value for the LIVE editor at its own natural zoom. But two
-  // exercises whose figures were drawn at very different sizes (a circle
-  // sketched small vs. a cuboid sketched large — both perfectly reasonable
-  // choices for an admin drawing free-hand) end up with wildly different
-  // STROKE-TO-SHAPE-SIZE ratios once exported: a small drawing's 2px stroke
-  // reads as "thick" relative to its own extent, a large drawing's reads as
-  // "thin" — and that ratio survives the crop-to-content + scale-to-fit-box
-  // display pipeline completely unchanged, since uniform scaling preserves
-  // ratios. That's what shows up as inconsistent line weight between
-  // exercise cards. Rescaling every stroke (and dash pattern) proportionally
-  // to the drawing's own bounding-box size at export time normalizes that
-  // ratio across every figure, independent of how big the admin drew it.
+  // tuned-by-eye value for the LIVE editor at its own natural zoom. But
+  // every consumer of the exported SVG (card thumbnail, modal) displays it
+  // at a FIXED box size via CSS max-width/max-height — so a figure drawn
+  // large on the canvas gets shrunk down MORE to fit that box than one
+  // drawn small does. A flat "2" stroke on a big drawing ends up shrunk to
+  // near-nothing; the same flat "2" on a small drawing barely shrinks at
+  // all and reads as bold. The raw stroke has to grow WITH the drawing's
+  // own size — not shrink — so that after each figure's own (different)
+  // amount of display-time shrinking, they all land back at the same
+  // visual weight. Rescaling proportionally to the content bbox at export
+  // time does that, independent of how big the admin happened to draw it.
   var STROKE_REFERENCE_SIZE = 340; // bbox size (px) at which strokeWidth:2 looks right, tuned by eye
-  var STROKE_SCALE_MIN = 0.55;
-  var STROKE_SCALE_MAX = 2.2;
+  var STROKE_SCALE_MIN = 0.25;
+  var STROKE_SCALE_MAX = 5;
 
-  function normalizeStrokeWeights(objects, scale) {
-    objects.forEach(function (o) {
-      if (o._objects) normalizeStrokeWeights(o._objects, scale);
-      if (typeof o.strokeWidth === 'number') o.set('strokeWidth', o.strokeWidth * scale);
-      if (Array.isArray(o.strokeDashArray)) {
-        o.set('strokeDashArray', o.strokeDashArray.map(function (v) { return v * scale; }));
-      }
-    });
-  }
-
+  // Returns the strokeScale to apply (see normalizeStrokeWidthInSvg below) —
+  // computed from the content bbox, but deliberately NOT applied here by
+  // mutating each Fabric object's .strokeWidth. Circles are drawn with
+  // strokeUniform:true (see attachCircleUniformControls) so their stroke
+  // stays visually constant on the LIVE, interactive canvas regardless of
+  // any scaleX/scaleY — but that's a canvas-rendering-only compensation,
+  // and Fabric's toSVG() doesn't reliably re-derive the same effective width
+  // from a mutated .strokeWidth property the way a plain Polyline/Line does.
+  // Rewriting the actual stroke-width/stroke-dasharray attributes in the
+  // FINAL exported SVG markup (see exportFigureSvg) sidesteps that per-shape
+  // inconsistency entirely — it scales whatever Fabric actually wrote out,
+  // for every shape type uniformly, guaranteed.
   function cropStaticCanvasToContent(staticCanvas) {
     var objects = staticCanvas.getObjects();
-    if (!objects.length) return;
+    if (!objects.length) return 1;
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
     objects.forEach(function (o) {
       o.setCoords();
@@ -2051,13 +2052,6 @@
       if (r.left + r.width > maxX) maxX = r.left + r.width;
       if (r.top + r.height > maxY) maxY = r.top + r.height;
     });
-    var contentSize = Math.max(maxX - minX, maxY - minY);
-    if (contentSize > 0) {
-      var strokeScale = STROKE_REFERENCE_SIZE / contentSize;
-      if (strokeScale < STROKE_SCALE_MIN) strokeScale = STROKE_SCALE_MIN;
-      if (strokeScale > STROKE_SCALE_MAX) strokeScale = STROKE_SCALE_MAX;
-      normalizeStrokeWeights(objects, strokeScale);
-    }
     var dx = FIGURE_EXPORT_PADDING - minX, dy = FIGURE_EXPORT_PADDING - minY;
     objects.forEach(function (o) {
       o.set({ left: o.left + dx, top: o.top + dy });
@@ -2067,6 +2061,55 @@
       width: (maxX - minX) + FIGURE_EXPORT_PADDING * 2,
       height: (maxY - minY) + FIGURE_EXPORT_PADDING * 2
     });
+    var contentSize = Math.max(maxX - minX, maxY - minY);
+    if (contentSize <= 0) return 1;
+    var scale = contentSize / STROKE_REFERENCE_SIZE;
+    if (scale < STROKE_SCALE_MIN) scale = STROKE_SCALE_MIN;
+    if (scale > STROKE_SCALE_MAX) scale = STROKE_SCALE_MAX;
+    return scale;
+  }
+
+  function normalizeStrokeWidthInSvg(svg, scale) {
+    // Every 2D shape (circle, pătrat, triunghi, trapez, paralelogram — see
+    // strokeUniform:true in _insertShape) exports with
+    // vector-effect="non-scaling-stroke". That's a real SVG rendering
+    // instruction: "always paint this stroke at exactly stroke-width CSS
+    // pixels, no matter what transform/scale is applied to this element or
+    // its ancestors" — it's what makes strokeUniform work while actively
+    // dragging a resize handle in the LIVE editor (so the line doesn't
+    // stretch mid-drag). But once exported as a frozen, static SVG, it
+    // actively backfires: displayed at a shrunk-down card-thumbnail size,
+    // 3D shapes (built from plain paths, no vector-effect) scale their
+    // stroke down along with the geometry like normal, while 2D shapes'
+    // strokes stay pinned at their literal on-canvas pixel width — reading
+    // as noticeably thicker than everything else, regardless of how big or
+    // small the shape itself was drawn (confirmed by exporting a resized
+    // circle directly: the stroke-width value changes but the rendered
+    // line does not, because vector-effect overrides it). None of that
+    // "freeze the stroke width" behavior is wanted in a static, already-
+    // drawn export, so strip it — every stroke then scales normally with
+    // the rest of the SVG, same as the 3D shapes always have.
+    svg = svg.replace(/\s*vector-effect="non-scaling-stroke"/g, '');
+
+    if (scale === 1) return svg;
+    // Attribute form (stroke-width="2") — how Fabric renders it for most
+    // shape/line/polyline exports.
+    svg = svg.replace(/stroke-width="([\d.]+)"/g, function (_, w) {
+      return 'stroke-width="' + (parseFloat(w) * scale).toFixed(2) + '"';
+    });
+    // CSS-style form (style="...stroke-width: 2;...") — some Fabric versions
+    // bake stroke-width into the style attribute instead for certain
+    // shapes/groups, so both forms need covering for this to be reliable
+    // across every object type the editor can produce.
+    svg = svg.replace(/stroke-width:\s*([\d.]+)/g, function (_, w) {
+      return 'stroke-width: ' + (parseFloat(w) * scale).toFixed(2);
+    });
+    svg = svg.replace(/stroke-dasharray="([^"]+)"/g, function (_, arr) {
+      var scaled = arr.split(/[\s,]+/).filter(Boolean)
+        .map(function (v) { return (parseFloat(v) * scale).toFixed(2); }).join(',');
+      return 'stroke-dasharray="' + scaled + '"';
+    });
+    return svg;
   }
 
   GeometryFigureEditor.prototype.exportFigureSvg = function () {
@@ -2087,7 +2130,7 @@
         staticCanvas.setDimensions({ width: self._fabricCanvas.getWidth(), height: self._fabricCanvas.getHeight() });
         var SENTINEL = { primary: '#a1b2c3', auxiliary: '#a1b2c4' };
         staticCanvas.loadFromJSON(json, function () {
-          cropStaticCanvasToContent(staticCanvas);
+          var strokeScale = cropStaticCanvasToContent(staticCanvas);
           function paintSentinel(obj, inheritedRole) {
             // 3D shapes' child primitives never carry their own data.role —
             // only the parent Group does — so it must propagate down, same
@@ -2102,6 +2145,7 @@
           staticCanvas.getObjects().forEach(paintSentinel);
           staticCanvas.renderAll();
           var raw = staticCanvas.toSVG();
+          raw = normalizeStrokeWidthInSvg(raw, strokeScale);
           raw = raw.replace(hexToRgbPattern(SENTINEL.primary), 'var(--text)');
           raw = raw.replace(hexToRgbPattern(SENTINEL.auxiliary), 'var(--text-secondary)');
           staticCanvas.dispose();

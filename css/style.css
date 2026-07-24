@@ -2680,6 +2680,14 @@ body.bac-exam-mode .nav.nav--peek {
   width: auto;
   height: auto;
 }
+/* Point/segment labels ("A", "B", "M"…) the admin typed into the figure are
+   legible at modal size (.bac-exercise-figure, see js/utils.js) but turn to
+   illegible specks at this thumbnail's scale, so hide them here — the
+   shape's outline alone is enough to recognize at a glance, the labels only
+   matter once a student opens the exercise. */
+.rarity-card__figure-thumb svg text {
+  display: none;
+}
 
 /* Locked card (package restriction) — same footprint, no rarity flourish
    since the content underneath is hidden anyway. The title still renders
