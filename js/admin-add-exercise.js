@@ -493,6 +493,11 @@
     const isGeo = ae.categoryId === 'geometrie';
     if (isGeo && aeGeoEditor) {
       ae.figureSvg = await aeGeoEditor.exportFigureSvg();
+      // exportFigureSvg() resolves '' for a canvas with nothing drawn on
+      // it — geometry exercises don't all need a figure — so drop the
+      // equally-empty figureData too rather than saving a meaningless
+      // empty-objects JSON blob alongside a figure_svg that's null anyway.
+      if (!ae.figureSvg) ae.figureData = null;
     }
 
     const row = {

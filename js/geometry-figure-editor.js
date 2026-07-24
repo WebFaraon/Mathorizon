@@ -1424,6 +1424,30 @@
 
   /* ---- segment tool ---- */
 
+  // Fabric.Line has a real internal inconsistency: calcTransformMatrix()'s
+  // translation (the point everything else is measured from — vertex/scale
+  // snapping, this file's own snap registry) is computed from a stroke-
+  // width-padded bounding box, but calcLinePoints() (which supplies the
+  // actual path coordinates drawn inside that transform) is NOT padded the
+  // same way — so the line RENDERS up to strokeWidth/2 away from the exact
+  // x1/y1 it was constructed with, even though every other shape type in
+  // this editor (polygon, rect, group) reconstructs its points exactly.
+  // That's the "segment doesn't quite touch the vertex" gap. Fixed by
+  // measuring where point 1 actually lands right after construction and
+  // nudging left/top by whatever that's off by — a rigid shift, so it
+  // corrects both endpoints at once.
+  function alignLineToStart(line) {
+    line.setCoords();
+    var lp = line.calcLinePoints();
+    var m = line.calcTransformMatrix();
+    var actual = fabric.util.transformPoint({ x: lp.x1, y: lp.y1 }, m);
+    var dx = line.x1 - actual.x, dy = line.y1 - actual.y;
+    if (dx || dy) {
+      line.set({ left: line.left + dx, top: line.top + dy });
+      line.setCoords();
+    }
+  }
+
   GeometryFigureEditor.prototype._clearSegmentPreview = function () {
     if (this._previewLine) {
       this._fabricCanvas.remove(this._previewLine);
@@ -1460,6 +1484,7 @@
       stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._tool === 'segment-dashed' ? [8, 6] : null, strokeLineCap: 'round',
       data: { role: spec.role, kind: 'segment' }
     });
+    alignLineToStart(line);
     this._clearSegmentPreview();
     this._fabricCanvas.add(line);
     this._segmentStart = null;
@@ -1996,6 +2021,14 @@
   GeometryFigureEditor.prototype.exportFigureSvg = function () {
     var self = this;
     return new Promise(function (resolve) {
+      // An editor mounted for a geometry exercise but never actually drawn
+      // in still round-trips through here at save time — without this,
+      // it silently exports a valid-but-blank SVG (full canvas size, no
+      // shapes), which is truthy, so the student view rendered an empty
+      // bordered box with nothing in it. Resolving '' here makes that
+      // falsy, matching what BM.renderExerciseFigure already treats as
+      // "no figure" (see js/utils.js), so nothing renders instead.
+      if (!self._fabricCanvas.getObjects().length) { resolve(''); return; }
       try {
         var json = self._fabricCanvas.toJSON(['data']);
         var el = document.createElement('canvas');
