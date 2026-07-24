@@ -1927,6 +1927,22 @@
         recomputePolygonBounds(opt.target);
         opt.target.setCoords();
       }
+      // Scaling/rotating a 3D group's whole bounding box (the green/blue
+      // handles) applies a plain scaleX/scaleY/angle transform to the
+      // existing children by default — which stretches their stroke width
+      // and dash spacing right along with the geometry, unlike per-vertex
+      // dragging (which already rebuilds fresh, undistorted geometry on
+      // every tick via rebuildGroupChildren). Doing the same rebuild here,
+      // once the gesture finishes, bakes the transform into fresh geometry
+      // with a constant stroke width and un-stretched dashes (matching
+      // IDroo) without interfering mid-drag — rebuilding on every tick was
+      // tried first, but resetting scaleX/scaleY mid-gesture confuses
+      // Fabric's own scale-handle math (which computes each tick's scale
+      // from the state captured once at drag-start), degrading the grid-
+      // snap precision that same drag already relies on.
+      if (opt.target && opt.target.type === 'group' && opt.target.data && THREE_D[opt.target.data.kind]) {
+        rebuildGroupChildren(opt.target);
+      }
       self._pushHistory();
     });
     this._fabricCanvas.on('object:added', function (opt) {
