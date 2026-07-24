@@ -210,6 +210,19 @@ BM.latexToPlain = function(str) {
   return s.trim();
 };
 
+/* ---- KaTeX macros for LaTeX commands the AI (or an admin transcribing a
+   barem by hand) reaches for that plain KaTeX doesn't ship natively — without
+   these, throwOnError:false below renders the raw, unrecognized command in
+   errorColor instead of throwing, which reads to a student as literal broken
+   code ("m(\overparenBC)") rather than math. \overparen{arc} is standard
+   notation for a circle arc (e.g. Gemini uses it for "arcul BC") but isn't in
+   KaTeX's supported-function list; \stackrel{\frown}{..} is KaTeX's own
+   equivalent construction for the same little arc-over-letters glyph. Add
+   more entries here if another unsupported command turns up the same way. */
+BM.KATEX_MACROS = {
+  '\\overparen': '\\stackrel{\\frown}{#1}'
+};
+
 /* ---- Render KaTeX math în element ---- */
 BM.renderMath = function(el) {
   if (!el || !window.renderMathInElement) return;
@@ -220,7 +233,8 @@ BM.renderMath = function(el) {
         { left: '$',  right: '$',  display: false }
       ],
       throwOnError: false,
-      errorColor: '#ef4444'
+      errorColor: '#ef4444',
+      macros: BM.KATEX_MACROS
     });
   } catch(e) { /* silently ignore */ }
 };

@@ -2011,6 +2011,34 @@
   // drawing itself is, never on the authoring viewport.
   var FIGURE_EXPORT_PADDING = 24;
 
+  // Raw canvas strokeWidth is always literally "2" at draw time (see the
+  // scattered `strokeWidth: 2` calls throughout this file) — a deliberate,
+  // tuned-by-eye value for the LIVE editor at its own natural zoom. But two
+  // exercises whose figures were drawn at very different sizes (a circle
+  // sketched small vs. a cuboid sketched large — both perfectly reasonable
+  // choices for an admin drawing free-hand) end up with wildly different
+  // STROKE-TO-SHAPE-SIZE ratios once exported: a small drawing's 2px stroke
+  // reads as "thick" relative to its own extent, a large drawing's reads as
+  // "thin" — and that ratio survives the crop-to-content + scale-to-fit-box
+  // display pipeline completely unchanged, since uniform scaling preserves
+  // ratios. That's what shows up as inconsistent line weight between
+  // exercise cards. Rescaling every stroke (and dash pattern) proportionally
+  // to the drawing's own bounding-box size at export time normalizes that
+  // ratio across every figure, independent of how big the admin drew it.
+  var STROKE_REFERENCE_SIZE = 340; // bbox size (px) at which strokeWidth:2 looks right, tuned by eye
+  var STROKE_SCALE_MIN = 0.55;
+  var STROKE_SCALE_MAX = 2.2;
+
+  function normalizeStrokeWeights(objects, scale) {
+    objects.forEach(function (o) {
+      if (o._objects) normalizeStrokeWeights(o._objects, scale);
+      if (typeof o.strokeWidth === 'number') o.set('strokeWidth', o.strokeWidth * scale);
+      if (Array.isArray(o.strokeDashArray)) {
+        o.set('strokeDashArray', o.strokeDashArray.map(function (v) { return v * scale; }));
+      }
+    });
+  }
+
   function cropStaticCanvasToContent(staticCanvas) {
     var objects = staticCanvas.getObjects();
     if (!objects.length) return;
@@ -2023,6 +2051,13 @@
       if (r.left + r.width > maxX) maxX = r.left + r.width;
       if (r.top + r.height > maxY) maxY = r.top + r.height;
     });
+    var contentSize = Math.max(maxX - minX, maxY - minY);
+    if (contentSize > 0) {
+      var strokeScale = STROKE_REFERENCE_SIZE / contentSize;
+      if (strokeScale < STROKE_SCALE_MIN) strokeScale = STROKE_SCALE_MIN;
+      if (strokeScale > STROKE_SCALE_MAX) strokeScale = STROKE_SCALE_MAX;
+      normalizeStrokeWeights(objects, strokeScale);
+    }
     var dx = FIGURE_EXPORT_PADDING - minX, dy = FIGURE_EXPORT_PADDING - minY;
     objects.forEach(function (o) {
       o.set({ left: o.left + dx, top: o.top + dy });

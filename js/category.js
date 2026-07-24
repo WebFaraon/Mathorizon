@@ -574,6 +574,8 @@
              </div>
            </div>`;
 
+      const canEdit = window.BMAuth?.role === 'admin' && ex._custom;
+
       return `
         <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
           <span class="rarity-badge">${rarity}</span>
@@ -584,6 +586,7 @@
                 <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
               </div>
               <div class="rarity-card__actions" onclick="event.stopPropagation()">
+                ${canEdit ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">✎</button>` : ''}
                 <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                         onclick="toggleFav('${ex.id}', this)"
                         title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">${isFav ? '♥' : '♡'}</button>
@@ -867,6 +870,7 @@
               ${mathPrev ? `<div class="ex-card__math-preview math-content">${mathPrev}</div>` : ''}
             </div>
             <div class="ex-card__actions" onclick="event.stopPropagation()">
+              ${window.BMAuth?.role === 'admin' && ex._custom ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">✎</button>` : ''}
               <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                       onclick="toggleFav('${ex.id}', this)"
                       title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">
@@ -1015,6 +1019,14 @@
 
     BM.toast(nowFav ? 'Adăugat la favorite! ♥' : 'Eliminat din favorite.',
              nowFav ? 'success' : 'info');
+  };
+
+  /* ---- Admin: edit an admin-added exercise (title/barem/figure) ----
+     Only ever shown for ex._custom rows (see canEdit checks above) — static
+     BM.EXERCISES seed content isn't in custom_exercises and has no id the
+     edit wizard could load. */
+  window.editExercise = function(id) {
+    window.location.href = `admin-add-exercise.html?edit=${encodeURIComponent(id)}`;
   };
 
   /* ---- Refresh header progress (categorie sau subcategorie) ---- */

@@ -1663,7 +1663,8 @@
               { left: '$',  right: '$',  display: false },
               { left: '\\(', right: '\\)', display: false }
             ],
-            throwOnError: false
+            throwOnError: false,
+            macros: BM.KATEX_MACROS
           });
         }
       }

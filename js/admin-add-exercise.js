@@ -29,6 +29,7 @@
   const GRADE_LABEL = { '9': 'Clasa a 9-a', bac: 'BAC' };
 
   let ae = {
+    editId: null,
     grade: '', categoryId: '', subcategoryId: '', difficulty: '', punctajTotal: '',
     file: null, mimeType: '', imageBase64: '', previewUrl: '',
     aiResult: null,
@@ -77,10 +78,78 @@
     if (loading) loading.style.display = 'none';
     if (wrap)    wrap.style.display    = '';
 
-    _aeRenderDetalii();
-    _aeRenderFoto();
+    const editId = BM.getParam('edit');
+    if (editId) {
+      await _aeLoadForEdit(editId);
+    } else {
+      _aeRenderDetalii();
+      _aeRenderFoto();
+    }
     document.getElementById('aeConfirmBtn').addEventListener('click', _aeSave);
   });
+
+  /* ---- Edit mode: load an existing custom_exercises row ----
+     Reuses the exact same §1 Detalii / §2 Desenează / §4 Analiză AI
+     rendering the "add new" flow already uses — those all just read/write
+     the shared `ae` state and `ae.aiResult`, so populating that state from
+     a saved row and rendering is enough to make every field (title, barem
+     rows, alt methods, the figure editor) immediately editable with no
+     separate edit-mode UI to maintain. §3 Fotografie is left as-is too:
+     the admin can ignore it, or optionally upload a new photo and
+     re-analyze to regenerate everything from scratch. */
+  async function _aeLoadForEdit(id) {
+    try {
+      const res = await fetch(
+        `${SUPABASE_URL}/rest/v1/custom_exercises?id=eq.${encodeURIComponent(id)}&select=*`,
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${window._adminSession?.access_token || ''}` } }
+      );
+      const rows = await res.json();
+      const row = rows && rows[0];
+      if (!row) {
+        BM.toast('Exercițiul nu a fost găsit.', 'error');
+        _aeRenderDetalii();
+        _aeRenderFoto();
+        return;
+      }
+
+      ae.editId       = row.id;
+      ae.grade        = row.grade || '';
+      ae.categoryId   = row.category_id || '';
+      ae.subcategoryId = row.subcategory_id || '';
+      ae.difficulty   = row.difficulty || '';
+      ae.punctajTotal = String(row.punctaj_total || '');
+      ae.figureData   = row.figure_data || null;
+      ae.figureSvg    = row.figure_svg  || null;
+
+      // ai_raw is the original Gemini response (has raspuns_final,
+      // verificare_numerica, metode_alternative) but title/statement/barem
+      // may have been hand-edited since it was saved — prefer the row's own
+      // committed columns over the stale snapshot for those three.
+      const raw = row.ai_raw || {};
+      ae.aiResult = {
+        titlu: row.title || raw.titlu || '',
+        enunt_katex: row.statement || raw.enunt_katex || '',
+        raspuns_final: raw.raspuns_final || '',
+        punctaj_total: row.punctaj_total || 0,
+        pasi_barem: Array.isArray(row.barem) && row.barem.length
+          ? row.barem.map((p, i) => ({ nr: i + 1, descriere: p.descriere || '', puncte_maxime: Number(p.puncte_maxime) || 0 }))
+          : (raw.pasi_barem || []),
+        verificare_numerica: raw.verificare_numerica || '',
+        verificat: raw.verificat ?? null,
+        metode_alternative: raw.metode_alternative || [],
+        duplicat: null
+      };
+
+      _aeRenderDetalii();
+      _aeRenderFoto();
+      _aeRenderAnalysis();
+      document.getElementById('aeConfirmBtn').textContent = 'Salvează modificările';
+    } catch (e) {
+      BM.toast('Eroare la încărcarea exercițiului: ' + e.message, 'error');
+      _aeRenderDetalii();
+      _aeRenderFoto();
+    }
+  }
 
   /* ---- §1 Detalii ---- */
   function _aeRenderDetalii() {
@@ -517,12 +586,16 @@
       figure_svg:  isGeo ? (ae.figureSvg  || null) : null
     };
 
+    const isEdit = !!ae.editId;
     const btn = document.getElementById('aeConfirmBtn');
     btn.disabled = true;
     try {
       const session = window._adminSession || (await window.BMAuth.supabase.auth.getSession()).data.session;
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/custom_exercises`, {
-        method: 'POST',
+      const url = isEdit
+        ? `${SUPABASE_URL}/rest/v1/custom_exercises?id=eq.${encodeURIComponent(ae.editId)}`
+        : `${SUPABASE_URL}/rest/v1/custom_exercises`;
+      const res = await fetch(url, {
+        method: isEdit ? 'PATCH' : 'POST',
         headers: {
           apikey: SUPABASE_ANON,
           Authorization: `Bearer ${session?.access_token || ''}`,
@@ -533,8 +606,13 @@
       });
       if (!res.ok) throw new Error(await res.text());
 
-      BM.toast('Exercițiu adăugat cu succes! Este acum disponibil pentru toți utilizatorii.', 'success');
-      _aeResetAfterSave();
+      if (isEdit) {
+        BM.toast('Exercițiu actualizat cu succes!', 'success');
+        setTimeout(() => { window.location.href = 'admin.html'; }, 900);
+      } else {
+        BM.toast('Exercițiu adăugat cu succes! Este acum disponibil pentru toți utilizatorii.', 'success');
+        _aeResetAfterSave();
+      }
     } catch (e) {
       BM.toast('Eroare la salvare: ' + e.message, 'error');
       btn.disabled = false;
