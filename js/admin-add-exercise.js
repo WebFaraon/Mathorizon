@@ -255,7 +255,7 @@
 
     const analyzeBtn = document.getElementById('aeAnalyzeBtn');
     analyzeBtn.disabled = true;
-    analyzeBtn.textContent = 'Se analizează…';
+    analyzeBtn.innerHTML = 'Se analizează…<span class="btn-loading-spin"></span>';
 
     const cat = BM.getCategoryById(ae.categoryId);
     const sub = BM.getSubcategoryById(ae.categoryId, ae.subcategoryId);

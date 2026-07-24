@@ -560,13 +560,12 @@
          Figure Editor) — the single-formula preview that works for
          algebra/polinoame doesn't apply (a synthetic-geometry statement is
          prose, not one clean equation), so the diagram itself becomes the
-         visual anchor, with a short two-line snippet of the statement above
-         it standing in for "the condition" at a glance. Cards without a
-         figure (e.g. the odd coordinate-only problem) fall back to the
-         plain formula/text preview exactly like algebra cards. */
+         visual anchor, same footprint as the formula box (title + source +
+         box only, no statement text — matches algebra/polinoame exactly).
+         Cards without a figure (e.g. the odd coordinate-only problem) fall
+         back to the plain formula/text preview exactly like algebra cards. */
       const previewBox = hasFigure
-        ? `<div class="rarity-card__snippet math-content">${BM.trustedNl2br(ex.statement)}</div>
-           <div class="rarity-card__statement rarity-card__statement--figure">
+        ? `<div class="rarity-card__statement">
              <div class="rarity-card__figure-thumb">${ex.figureSvg}</div>
            </div>`
         : `<div class="rarity-card__statement">
@@ -576,7 +575,7 @@
            </div>`;
 
       return `
-        <div class="rarity-card ${hasFigure ? 'rarity-card--figure' : ''}" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
+        <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
           <span class="rarity-badge">${rarity}</span>
           <div class="rarity-card__inner">
             <div class="rarity-card__top">
