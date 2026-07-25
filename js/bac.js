@@ -520,7 +520,8 @@
     _doStartLectieExam(_lectieGrade);
   };
 
-  function _doStartLectieExam(grade) {
+  async function _doStartLectieExam(grade) {
+    if (BM.customExercisesReady) await BM.customExercisesReady();
     const pool = _buildLectiePool(grade);
     if (pool.length === 0) {
       BM.toast && BM.toast('Nu există exerciții disponibile pentru această clasă.', 'warn');
@@ -645,7 +646,13 @@
   /* ================================================================
      START EXAM
   ================================================================ */
-  function doStartExam() {
+  async function doStartExam() {
+    // Admin/teacher-added exercises (custom_exercises table) merge into
+    // BM.EXERCISES asynchronously on page load — wait for that fetch (or its
+    // timeout) so every eligible bank exercise, not just the static seed, can
+    // be drawn into a slot. Without this, generateExam() could run before the
+    // merge lands and silently leave slots empty (see [[bac-simulation-exam-structure]]).
+    if (BM.customExercisesReady) await BM.customExercisesReady();
     exam = {
       slots: generateExam(),
       startTs: Date.now(),
