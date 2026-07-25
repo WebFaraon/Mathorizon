@@ -13591,7 +13591,7 @@ body.dc-fullscreen-active .dc-wrap {
    without this extra top padding it overlapped the toolbar's own buttons,
    so hovering/clicking near their top edge triggered the navbar instead. */
 body.dc-fullscreen-active .dc-toolbar {
-  padding-top: 16px;
+  padding: 26px 12px 12px;
 }
 
 /* ---- Mini exercise card shown top-right while the canvas is fullscreen ----

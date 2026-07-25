@@ -119,15 +119,29 @@
 
   // Only injected when the host passes a figureSvg option (geometry
   // exercises) — see _build() and DrawingCanvas.prototype.insertFigure.
+  // The button's icon/behavior swaps between these two (see
+  // _updateFigureBtn): "insert" while there's no figure on the canvas yet,
+  // "move" once one has been stamped down (drag-to-reposition).
+  var INSERT_FIGURE_ICON = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <circle cx="8.5" cy="8.5" r="1.5"/>
+      <path d="m21 15-5-5L5 21"/>
+    </svg>
+  `;
+  var MOVE_FIGURE_ICON = `
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="5 9 2 12 5 15"/>
+      <polyline points="9 5 12 2 15 5"/>
+      <polyline points="15 19 12 22 9 19"/>
+      <polyline points="19 9 22 12 19 15"/>
+      <line x1="2" y1="12" x2="22" y2="12"/>
+      <line x1="12" y1="2" x2="12" y2="22"/>
+    </svg>
+  `;
   var FIGURE_BTN_HTML = `
     <div class="dc-tool-group">
-      <button class="dc-action-btn" id="dc-insert-figure-btn" title="Inserează desenul exercițiului pe canvas">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-          <rect x="3" y="3" width="18" height="18" rx="2"/>
-          <circle cx="8.5" cy="8.5" r="1.5"/>
-          <path d="m21 15-5-5L5 21"/>
-        </svg>
-      </button>
+      <button class="dc-action-btn" id="dc-insert-figure-btn" title="Inserează desenul exercițiului pe canvas">${INSERT_FIGURE_ICON}</button>
     </div>
   `;
 
@@ -166,6 +180,17 @@
     this._bgImage        = null; // raster image loaded from a previous session (item.work)
     this._bgImageCssW    = 0;
     this._bgImageCssH    = 0;
+    this._bgX = 0;
+    this._bgY = 0; // top-left placement of _bgImage on the canvas, CSS px
+    // True only while _bgImage is exactly what insertFigure() put there —
+    // i.e. still a standalone figure, not yet fused with other content into
+    // an opaque flattened raster (see the constructor's restore path below
+    // and _loadImage()) — gates whether the toolbar button offers "move"
+    // (see _updateFigureBtn) instead of "insert".
+    this._bgImageIsFigure  = false;
+    this._figureMoveMode   = false; // toggled by the toolbar button; drag-to-reposition
+    this._figureDragging   = false;
+    this._figureDragPointerId = null;
     this._gridVisible = this._loadGridVisible();
     this._isDrawing   = false;
     this._points      = [];
@@ -318,7 +343,7 @@
   DrawingCanvas.prototype._redrawAll = function () {
     this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
     if (this._bgImage) {
-      this._ctx.drawImage(this._bgImage, 0, 0, this._bgImageCssW, this._bgImageCssH);
+      this._ctx.drawImage(this._bgImage, this._bgX, this._bgY, this._bgImageCssW, this._bgImageCssH);
     }
     for (var i = 0; i < this._strokes.length; i++) {
       this._drawStroke(this._strokes[i]);
@@ -474,7 +499,10 @@
       else if (zoomInBtn)  self._setZoom(self._zoom + ZOOM_STEP);
       else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
       else if (maxBtn)     self._toggleMaximize();
-      else if (figureBtn)  self.insertFigure();
+      else if (figureBtn) {
+        if (self._bgImage && self._bgImageIsFigure) self._toggleFigureMoveMode();
+        else self.insertFigure();
+      }
     });
 
     // Canvas pointer events
@@ -532,15 +560,28 @@
     if (e.pointerType === 'touch') {
       this._pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
       // Scroll gestures: two fingers always scroll the page; in stylus-only
-      // mode a single finger scrolls too (it can't draw anyway).
+      // mode a single finger scrolls too (it can't draw — or drag — anyway).
       if (this._touchCount() >= 2 || this._inputMode === 'pen') {
         this._beginScroll(e);
         return;
       }
-      // one finger in "any" mode → draw (fall through)
+      // one finger in "any" mode → draw/drag (fall through)
     } else if (!this._isInputAllowed(e.pointerType)) {
-      // pen is always allowed; a blocked mouse gets the hint.
+      // Same rule as drawing: pen is always allowed, mouse/touch only in
+      // "any" input mode — moving the figure shouldn't be reachable through
+      // an input the student isn't allowed to write with either.
       this._showInputHint();
+      return;
+    }
+
+    if (this._figureMoveMode) {
+      e.preventDefault();
+      this._canvas.setPointerCapture(e.pointerId);
+      this._figureDragging = true;
+      this._figureDragPointerId = e.pointerId;
+      var dragPos = this._getPos(e);
+      this._figureDragStart = dragPos;
+      this._figureBgStart = { x: this._bgX, y: this._bgY };
       return;
     }
 
@@ -569,6 +610,20 @@
   };
 
   DrawingCanvas.prototype._onMove = function (e) {
+    if (this._figureDragging) {
+      if (e.pointerId !== this._figureDragPointerId) return;
+      if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+        this._pointers[e.pointerId].x = e.clientX;
+        this._pointers[e.pointerId].y = e.clientY;
+      }
+      e.preventDefault();
+      var dragPos = this._getPos(e);
+      this._bgX = this._figureBgStart.x + (dragPos.x - this._figureDragStart.x);
+      this._bgY = this._figureBgStart.y + (dragPos.y - this._figureDragStart.y);
+      this._redrawAll();
+      return;
+    }
+
     if (this._scrolling) {
       if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
         this._pointers[e.pointerId].x = e.clientX;
@@ -674,6 +729,14 @@
   DrawingCanvas.prototype._onUp = function (e) {
     var isLeave = e.type === 'pointerleave';
     if (!isLeave && e.pointerType === 'touch') delete this._pointers[e.pointerId];
+
+    if (this._figureDragging) {
+      if (e.pointerId !== this._figureDragPointerId) return;
+      this._figureDragging = false;
+      this._figureDragPointerId = null;
+      this._scheduleSave();
+      return;
+    }
 
     if (this._scrolling) {
       if (isLeave) return; // ignore boundary events mid-scroll
@@ -816,6 +879,9 @@
       self._strokes = [];
       self._redoStack = [];
       self._bgImage = null;
+      self._bgImageIsFigure = false;
+      if (self._figureMoveMode) self._toggleFigureMoveMode();
+      self._updateFigureBtn();
       self._ctx.clearRect(0, 0, self._canvas.width, self._canvas.height);
       self._scheduleSave();
       self._updateUndoRedoButtons();
@@ -825,6 +891,11 @@
   };
 
   DrawingCanvas.prototype._setTool = function (tool) {
+    // Picking a drawing tool implies the student is done repositioning —
+    // without this, a stray pointerdown while a tool button was clicked
+    // would still be interpreted as a figure drag (_onDown checks
+    // _figureMoveMode before the tool at all).
+    if (this._figureMoveMode) this._toggleFigureMoveMode();
     this._tool = tool;
     this._toolbar.querySelectorAll('[data-tool]').forEach(function (btn) {
       btn.classList.toggle('dc-tool-btn--active', btn.dataset.tool === tool);
@@ -880,6 +951,29 @@
     // Let the layout settle (siblings hidden, container resized) before redrawing.
     var self = this;
     requestAnimationFrame(function () { self._resize(); });
+  };
+
+  /* ---- Move/reposition the inserted figure ---- */
+
+  // Swaps the toolbar button between "insert figure" and "move figure"
+  // (see INSERT_FIGURE_ICON/MOVE_FIGURE_ICON) depending on whether _bgImage
+  // is still a standalone, freshly-inserted figure. Called after
+  // insertFigure() succeeds, on move-mode toggle, and on clear.
+  DrawingCanvas.prototype._updateFigureBtn = function () {
+    var btn = this._toolbar.querySelector('#dc-insert-figure-btn');
+    if (!btn) return;
+    var movable = !!(this._bgImage && this._bgImageIsFigure);
+    btn.innerHTML = movable ? MOVE_FIGURE_ICON : INSERT_FIGURE_ICON;
+    btn.title = movable
+      ? (this._figureMoveMode ? 'Se mută desenul — apasă din nou pentru a termina' : 'Mută desenul exercițiului pe canvas')
+      : 'Inserează desenul exercițiului pe canvas';
+    btn.classList.toggle('dc-action-btn--active', movable && this._figureMoveMode);
+  };
+
+  DrawingCanvas.prototype._toggleFigureMoveMode = function () {
+    this._figureMoveMode = !this._figureMoveMode;
+    this._canvas.style.cursor = this._figureMoveMode ? 'move' : (this._tool === 'eraser' ? 'cell' : 'crosshair');
+    this._updateFigureBtn();
   };
 
   /* ---- Input mode (stylus-only vs. any input) ---- */
@@ -977,6 +1071,10 @@
       self._bgImage     = img;
       self._bgImageCssW = img.naturalWidth  / dpr;
       self._bgImageCssH = img.naturalHeight / dpr;
+      self._bgX = 0;
+      self._bgY = 0;
+      self._bgImageIsFigure = false; // opaque restored raster, not a movable figure — see insertFigure()
+      self._updateFigureBtn();
       self._redrawAll();
     };
     img.src = dataUrl;
@@ -1019,6 +1117,10 @@
       self._bgImage     = img;
       self._bgImageCssW = img.naturalWidth  || img.width;
       self._bgImageCssH = img.naturalHeight || img.height;
+      self._bgX = 0;
+      self._bgY = 0;
+      self._bgImageIsFigure = true;
+      self._updateFigureBtn();
       self._redrawAll();
       self._scheduleSave();
     };
