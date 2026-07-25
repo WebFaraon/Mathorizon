@@ -552,6 +552,23 @@
       puncte_maxime: Number(p.puncte_maxime) || 0
     }));
 
+    // Gemini reliably ends the last step with "= \boxed{...}" for subcategories
+    // that have real official few-shot examples to imitate (calcul-algebric —
+    // see OFFICIAL_EXAMPLES in api/admin/generate-exercise.js) but not
+    // consistently elsewhere (e.g. geometrie, which has none and falls back to
+    // a diluted example pool) — the exercise bank/BAC preview modal only ever
+    // renders barem step text (buildRarityModal in js/category.js), never the
+    // separate `solution` field, so a boxed raspuns_final that only landed
+    // there (see solutionParts below) would never actually be visible. Forcing
+    // it onto the last step here makes every admin-added exercise consistent
+    // regardless of what Gemini happened to include on its own.
+    if (r.raspuns_final && barem.length) {
+      const lastStep = barem[barem.length - 1];
+      if (!/\\boxed\{/.test(lastStep.descriere)) {
+        lastStep.descriere = `${lastStep.descriere}\n\n$$\\boxed{${_stripMathDelims(r.raspuns_final)}}$$`;
+      }
+    }
+
     const solutionParts = r.pasi_barem.map(p => `**Pasul ${p.nr}.** ${p.descriere}`);
     if (r.raspuns_final) solutionParts.push(`$$\\boxed{${_stripMathDelims(r.raspuns_final)}}$$`);
     if (r.metode_alternative.length) {
