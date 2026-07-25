@@ -13584,6 +13584,15 @@ body.dc-fullscreen-active .dc-canvas-wrap {
 body.dc-fullscreen-active .dc-wrap {
   height: 100% !important;
 }
+/* In this mode the toolbar sits flush against the very top of the viewport
+   (.bac-main is height:100vh with the topbar hidden) — .bac-nav-hover-zone
+   is a fixed 10px-tall strip across the same top edge (see the "Auto-hide
+   navbar during BAC exam" rules above) to let the navbar peek back in, and
+   without this extra top padding it overlapped the toolbar's own buttons,
+   so hovering/clicking near their top edge triggered the navbar instead. */
+body.dc-fullscreen-active .dc-toolbar {
+  padding-top: 16px;
+}
 
 /* ---- Mini exercise card shown top-right while the canvas is fullscreen ----
    Visibility is toggled from the toolbar's exercise button (integrated into

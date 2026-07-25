@@ -268,7 +268,23 @@
     zone.addEventListener('mouseleave', hide);
   }
 
+  // Tears down the active DrawingCanvas/PhotoUpload widget, if any. Routed
+  // through DrawingCanvas.destroy() (not a bare null-out) specifically
+  // because that's what un-maximizes the canvas and removes the floating
+  // #miniExerciseCard overlay it spawns on document.body — anything that
+  // ends the exam without going through the normal renderCurrentSlot() ->
+  // destroy() path (timer timeout, anti-cheat termination) otherwise leaves
+  // that overlay and the body's dc-fullscreen-active class stuck on screen
+  // after the exam view itself is hidden.
+  function _cleanupActiveWidget() {
+    if (_activeAnswerWidget) {
+      _activeAnswerWidget.destroy();
+      _activeAnswerWidget = null;
+    }
+  }
+
   function _terminateNoResults() {
+    _cleanupActiveWidget();
     clearInterval(timerInterval);
     _navGuardOff();
     _hideFsWarning();
@@ -856,10 +872,7 @@
   }
 
   function renderCurrentSlot() {
-    if (_activeAnswerWidget) {
-      _activeAnswerWidget.destroy();
-      _activeAnswerWidget = null;
-    }
+    _cleanupActiveWidget();
 
     const slot  = _slotDefs[current];
     const item  = exam.slots[current];
@@ -950,9 +963,11 @@
         }
       } else if (dcMount && window.DrawingCanvas) {
         const _cur = current;
+        const isGeo = ex.subcategoryId === 'geo-plana' || ex.subcategoryId === 'geo-spatiu';
         _activeAnswerWidget = new DrawingCanvas(dcMount, {
           onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
           initialData: item.work || null,
+          figureSvg: isGeo ? (ex.figureSvg || null) : null,
           toolbarExtras: `
             <span class="dc-toolbar-timer" id="dcToolbarTimer">${timerEl ? timerEl.textContent : ''}</span>
             <button class="dc-tool-btn" id="dcToolbarExerciseBtn" type="button" title="Arată/ascunde exercițiul">📄</button>
@@ -1206,6 +1221,10 @@
     _navGuardOff();
     _hideFsWarning();
     _exitFullscreen();
+    // destroy() flushes any unsaved stroke itself, so this doesn't lose work —
+    // it just also unmaximizes the canvas and clears #miniExerciseCard if the
+    // exam ended (timer ran out) while the student had it open.
+    _cleanupActiveWidget();
 
     exam.endTs = Date.now();
     exam.phase = 'done';

@@ -117,6 +117,20 @@
     </div>
   `;
 
+  // Only injected when the host passes a figureSvg option (geometry
+  // exercises) — see _build() and DrawingCanvas.prototype.insertFigure.
+  var FIGURE_BTN_HTML = `
+    <div class="dc-tool-group">
+      <button class="dc-action-btn" id="dc-insert-figure-btn" title="Inserează desenul exercițiului pe canvas">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="3" width="18" height="18" rx="2"/>
+          <circle cx="8.5" cy="8.5" r="1.5"/>
+          <path d="m21 15-5-5L5 21"/>
+        </svg>
+      </button>
+    </div>
+  `;
+
   var MIN_ZOOM = 1;
   var MAX_ZOOM = 2;
   var ZOOM_STEP = 0.25;
@@ -132,6 +146,12 @@
     // the host's fullscreen-only chrome lives inside the toolbar itself
     // instead of a separately positioned overlay that can collide with it.
     this._toolbarExtras = options.toolbarExtras || '';
+    // Admin-authored geometry figure (see js/geometry-figure-editor.js's SVG
+    // export) for this exercise, if any — shows an extra toolbar button that
+    // stamps it onto the canvas as a background layer (see insertFigure()),
+    // so a geometry item's diagram doesn't have to be redrawn by hand before
+    // a student can annotate it.
+    this._figureSvg = options.figureSvg || null;
 
     this._tool        = 'pen';
     this._inputMode   = this._loadInputMode(); // 'any' (default) | 'pen'
@@ -189,6 +209,11 @@
     if (this._toolbarExtras) {
       var extrasSlot = toolbar.querySelector('#dc-extras-slot');
       if (extrasSlot) extrasSlot.innerHTML = this._toolbarExtras;
+    }
+
+    if (this._figureSvg) {
+      var extrasEl = toolbar.querySelector('#dc-extras-slot');
+      if (extrasEl) extrasEl.insertAdjacentHTML('afterend', FIGURE_BTN_HTML);
     }
 
     var canvasWrap = document.createElement('div');
@@ -436,6 +461,7 @@
       var zoomInBtn  = e.target.closest('#dc-zoomin-btn');
       var zoomOutBtn = e.target.closest('#dc-zoomout-btn');
       var maxBtn     = e.target.closest('#dc-maximize-btn');
+      var figureBtn  = e.target.closest('#dc-insert-figure-btn');
 
       if (modeBtn)  self._toggleInputMode();
       else if (toolBtn)  self._setTool(toolBtn.dataset.tool);
@@ -448,6 +474,7 @@
       else if (zoomInBtn)  self._setZoom(self._zoom + ZOOM_STEP);
       else if (zoomOutBtn) self._setZoom(self._zoom - ZOOM_STEP);
       else if (maxBtn)     self._toggleMaximize();
+      else if (figureBtn)  self.insertFigure();
     });
 
     // Canvas pointer events
@@ -953,6 +980,49 @@
       self._redrawAll();
     };
     img.src = dataUrl;
+  };
+
+  // Stamps this._figureSvg onto the canvas as the background layer (same
+  // _bgImage slot _loadImage uses to restore a prior session), so a geometry
+  // item's diagram doesn't have to be redrawn by hand before a student can
+  // annotate it. Only meaningful on a blank canvas — _bgImage is a single
+  // slot, and replacing it once real work exists would silently discard
+  // whatever was already flattened into it (e.g. after a page reload, see
+  // the constructor's restore path), so this refuses instead of clobbering.
+  // The figure's colors (var(--text)/var(--text-secondary), see
+  // js/geometry-figure-editor.js's export) are resolved against the live
+  // theme once, here — past this point it's a plain raster like any other
+  // background image, so it won't re-color on a later theme switch.
+  DrawingCanvas.prototype.insertFigure = function () {
+    if (!this._figureSvg) return;
+    if (this._strokes.length || this._bgImage) {
+      if (global.BM && BM.toast) {
+        BM.toast('Desenul poate fi adăugat doar pe un canvas gol — șterge notițele mai întâi.', 'warn');
+      }
+      return;
+    }
+
+    var styles = getComputedStyle(document.documentElement);
+    var textColor     = (styles.getPropertyValue('--text').trim() || '#1a1a1a');
+    var textSecondary = (styles.getPropertyValue('--text-secondary').trim() || '#6b6459');
+    var resolved = this._figureSvg
+      .replace(/var\(--text-secondary\)/g, textSecondary)
+      .replace(/var\(--text\)/g, textColor);
+
+    var self = this;
+    var img = new Image();
+    img.onload = function () {
+      // Unlike _loadImage() (restoring a PNG this same canvas exported at
+      // dpr-scaled physical pixels), the figure's intrinsic size is already
+      // in CSS-pixel terms (the SVG's own width/height attrs) — no dpr
+      // division here, or it'd render at half size on high-DPI screens.
+      self._bgImage     = img;
+      self._bgImageCssW = img.naturalWidth  || img.width;
+      self._bgImageCssH = img.naturalHeight || img.height;
+      self._redrawAll();
+      self._scheduleSave();
+    };
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(resolved);
   };
 
   DrawingCanvas.prototype._adaptColors = function () {
