@@ -2816,6 +2816,11 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
+  /* Adjacent-sibling margins collapse to the larger one, not their sum — the
+     box above (.rarity-modal__statement, margin-bottom 18px, or the figure
+     via BM.renderExerciseFigure, which has none) already contributes up to
+     18px on its own, so this has to clear that to have any visible effect. */
+  margin-top: 28px;
   margin-bottom: 10px;
 }
 
