@@ -336,6 +336,28 @@
     // 100% — the opposite of what zooming in should do.
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
 
+    // Fullscreen mode gives baseW/baseH the whole screen instead of a card's
+    // width within the page, so the SAME zoom % produces a much bigger
+    // backing store there (canvas-in-card 200% at, say, 1200 logical px is
+    // nowhere near as heavy as canvas-fullscreen 200% at 2500+) — that's why
+    // 200% feels smooth outside fullscreen but laggy inside it, even though
+    // the zoom number is identical. Capped relative to the device's OWN
+    // screen resolution: rendering many times more physical pixels than the
+    // screen itself has doesn't add visible sharpness (it can't show detail
+    // beyond its own resolution regardless), it just costs more to
+    // composite. A normal embedded-card canvas stays far under this ceiling
+    // even at 200%, so this never touches the case that's already smooth —
+    // it only ever engages for the fullscreen-plus-high-zoom combination.
+    var screenPhysW = (window.screen ? window.screen.width  : window.innerWidth)  * (window.devicePixelRatio || 1);
+    var screenPhysH = (window.screen ? window.screen.height : window.innerHeight) * (window.devicePixelRatio || 1);
+    var maxPhysW = screenPhysW * 1.5;
+    var maxPhysH = screenPhysH * 1.5;
+    var targetPhysW = w * dpr;
+    var targetPhysH = h * dpr;
+    if (targetPhysW > maxPhysW || targetPhysH > maxPhysH) {
+      dpr = Math.max(1, dpr * Math.min(maxPhysW / targetPhysW, maxPhysH / targetPhysH));
+    }
+
     var zoom = this._zoom;
     var setSize = function (canvas, ctx) {
       canvas.width  = w * dpr;
@@ -623,7 +645,7 @@
     if (window.ResizeObserver) {
       this._ro = new ResizeObserver(function () {
         clearTimeout(self._resizeTimer);
-        self._resizeTimer = setTimeout(function () { self._resize(); }, 80);
+        self._resizeTimer = setTimeout(function () { self._deferredResize(); }, 80);
       });
       this._ro.observe(this._canvasWrap);
     }
@@ -1124,7 +1146,26 @@
 
     clearTimeout(this._zoomSettleTimer);
     var self = this;
-    this._zoomSettleTimer = setTimeout(function () { self._resize(); }, 150);
+    this._zoomSettleTimer = setTimeout(function () { self._deferredResize(); }, 150);
+  };
+
+  // _resize() reallocates canvas.width/height, which wipes the live bitmap
+  // and rebuilds it from committed strokes only (_redrawAll) — fine when
+  // idle, but if it lands while a stroke/figure-drag/pan-pinch is still in
+  // progress, whatever's been drawn for that gesture so far (never pushed to
+  // _strokes yet) gets erased and never redrawn, visibly truncating it (e.g.
+  // a debounced zoom settling mid-stroke would cut off the start of a new
+  // stroke drawn immediately after zooming). Checked back shortly instead
+  // of resizing immediately whenever a gesture is actively in progress.
+  DrawingCanvas.prototype._deferredResize = function () {
+    if (this._destroyed) return;
+    if (this._isDrawing || this._figureDragging || this._scrolling) {
+      var self = this;
+      clearTimeout(this._deferredResizeTimer);
+      this._deferredResizeTimer = setTimeout(function () { self._deferredResize(); }, 100);
+      return;
+    }
+    this._resize();
   };
 
   // Coalesces rapid-fire zoom requests (a fast scroll-wheel spin, a live
@@ -1164,9 +1205,12 @@
     // the .dc-wrap--maximized comment in style.css for why this isn't done
     // with position:fixed here.
     if (this._onMaximizeChange) this._onMaximizeChange(this._maximized);
+    // This resize supersedes any pending debounced zoom-settle resize (see
+    // _setZoom) — no point letting a stale one also fire moments later.
+    clearTimeout(this._zoomSettleTimer);
     // Let the layout settle (siblings hidden, container resized) before redrawing.
     var self = this;
-    requestAnimationFrame(function () { self._resize(); });
+    requestAnimationFrame(function () { self._deferredResize(); });
   };
 
   /* ---- Move/reposition the inserted figure ---- */
@@ -1434,6 +1478,7 @@
     clearTimeout(this._hintTimer);
     clearTimeout(this._saveIndicatorTimer);
     clearTimeout(this._zoomSettleTimer);
+    clearTimeout(this._deferredResizeTimer);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     window.removeEventListener('keydown', this._keyHandler);
     if (this._ro) this._ro.disconnect();
