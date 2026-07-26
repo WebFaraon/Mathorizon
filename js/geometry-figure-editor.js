@@ -2109,6 +2109,23 @@
         .map(function (v) { return (parseFloat(v) * scale).toFixed(2); }).join(',');
       return 'stroke-dasharray="' + scaled + '"';
     });
+    // CSS-style form (style="...stroke-dasharray: 6 5;...", space-separated,
+    // no attribute at all) — this is what Fabric 5.3.0 actually emits for
+    // every dashed shape (hidden 3D edges, the dashed segment tool), so
+    // without this the attribute-form regex above never matches anything
+    // and dash length/gap stays fixed regardless of how much the rest of
+    // the figure scales, reading as too-dense on a large figure and too-
+    // sparse on a small one relative to the (correctly scaled) stroke width.
+    // "none" (non-dashed shapes) is required to start with a digit right
+    // after the whitespace, so "none" itself never matches — without that,
+    // \s* backtracking to zero-width lets [\d.\s]+ capture just the single
+    // space before "none" and "match" it anyway (harmless here only because
+    // the empty-scaled replacement happens to reconstruct the same string).
+    svg = svg.replace(/stroke-dasharray:\s*(\d[\d.\s]*)/g, function (_, arr) {
+      var scaled = arr.trim().split(/[\s,]+/).filter(Boolean)
+        .map(function (v) { return (parseFloat(v) * scale).toFixed(2); }).join(' ');
+      return 'stroke-dasharray: ' + scaled;
+    });
     return svg;
   }
 
