@@ -634,17 +634,27 @@
         return pts;
       },
       handles: ['F0', 'F1', 'F2', 'F3', 'B0', 'B1', 'B2', 'B3'],
+      // F0/F1/F2/F3 are front-top-left/top-right/bottom-right/bottom-left;
+      // B0-B3 the same corners shifted back (up-right). Of the cube's 6
+      // faces, front/top/right are visible from this angle and back/bottom/
+      // left are hidden — an edge is dashed only if BOTH the faces it
+      // borders are hidden, which happens for exactly 3 edges, all meeting
+      // at the one fully-hidden corner B3 (back-bottom-left): F3-B3
+      // (bottom+left), B3-B0 (left+back), B2-B3 (back+bottom). Previously
+      // this dashed the whole back-face loop (B0-B1-B2-B3) instead — wrongly
+      // dashing B0-B1 and B1-B2 (each borders the visible top/right face)
+      // and leaving F3-B3 wrongly solid.
       build: function (pts, stroke) {
         var F = [pts.F0, pts.F1, pts.F2, pts.F3];
         var B = [pts.B0, pts.B1, pts.B2, pts.B3];
-        // Front square + the 4 depth edges are all solid and all meet at an
-        // F-corner — one merged path so those joins render seamlessly.
+        // Front square (closed loop) + the 3 depth/back edges that border a
+        // visible face — merged into one path so those joins render seamlessly.
         var solid = multiStrokePath(
-          [[F[0], F[1], F[2], F[3], F[0]]].concat(F.map(function (p, i) { return [p, B[i]]; })),
+          [[F[0], F[1], F[2], F[3], F[0]], [F[0], B[0]], [F[1], B[1]], [F[2], B[2]], [B[0], B[1]], [B[1], B[2]]],
           stroke, false
         );
-        var back = multiStrokePath([[B[0], B[1], B[2], B[3], B[0]]], stroke, true);
-        return [back, solid];
+        var hidden = multiStrokePath([[F[3], B[3]], [B[3], B[0]], [B[2], B[3]]], stroke, true);
+        return [hidden, solid];
       }
     },
     'piramida-patrata': {
@@ -751,10 +761,15 @@
         var ry = rx * 0.29;
         var baseY = pts.radius.y;
         var apex = pts.apex;
-        var base = new fabric.Ellipse({ left: o.x - rx, top: baseY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
+        // The base circle's far half is hidden behind the cone's own lateral
+        // surface from this angle — same convention as the sphere's equator
+        // (see sfera.build) — front/near half solid, back/far half dashed,
+        // instead of a single uniformly-solid ellipse.
+        var baseFront = new fabric.Polyline(ellipseArcPoints(o.x, baseY, rx, ry, 0, Math.PI, 20), { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
+        var baseBack  = new fabric.Polyline(ellipseArcPoints(o.x, baseY, rx, ry, Math.PI, 2 * Math.PI, 20), { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
         // Both slants share the apex — merged into one path so that join seals.
         var slants = multiStrokePath([[{ x: o.x - rx, y: baseY }, apex, { x: o.x + rx, y: baseY }]], stroke, false);
-        return [base, slants];
+        return [baseBack, baseFront, slants];
       }
     },
     cilindru: {
@@ -777,11 +792,17 @@
         var rx = Math.max(15, pts.top.x - o.x);
         var ry = rx * 0.29;
         var topY = pts.top.y, botY = pts.bottom.y;
+        // Top rim has nothing above it to block the view, so it stays one
+        // uniformly-solid ellipse. The bottom rim's far half is hidden behind
+        // the cylinder's own lateral surface, same convention as the cone's
+        // base / the sphere's equator (see sfera.build) — front/near half
+        // solid, back/far half dashed.
         var top = new fabric.Ellipse({ left: o.x - rx, top: topY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
-        var bot = new fabric.Ellipse({ left: o.x - rx, top: botY - ry, rx: rx, ry: ry, fill: 'transparent', stroke: stroke, strokeWidth: 2, objectCaching: false });
+        var botFront = new fabric.Polyline(ellipseArcPoints(o.x, botY, rx, ry, 0, Math.PI, 20), { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeLineJoin: 'round', objectCaching: false });
+        var botBack  = new fabric.Polyline(ellipseArcPoints(o.x, botY, rx, ry, Math.PI, 2 * Math.PI, 20), { fill: 'transparent', stroke: stroke, strokeWidth: 2, strokeDashArray: [6, 5], strokeLineJoin: 'round', objectCaching: false });
         var lineL = new fabric.Line([o.x - rx, topY, o.x - rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
         var lineR = new fabric.Line([o.x + rx, topY, o.x + rx, botY], { stroke: stroke, strokeWidth: 2, strokeLineCap: 'round', objectCaching: false });
-        return [top, bot, lineL, lineR];
+        return [botBack, top, botFront, lineL, lineR];
       }
     }
   };
