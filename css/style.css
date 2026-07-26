@@ -14813,15 +14813,36 @@ body.dc-fullscreen-active .dc-toolbar {
   overflow: visible;
 }
 
-/* ---- Editable barem / metode-alternative rows (§4) ---- */
+/* ---- §4 section cards (Barem / Răspuns final / Metode alternative) —
+   previously just plain .cls-form-field blocks stacked with a flat 16px
+   gap; once barem/alt rows (each already multi-line, and now each with a
+   preview underneath too) piled up, the whole analysis form read as one
+   dense, undifferentiated block. A bordered card per section, with more
+   breathing room between them, makes each one a distinct visual unit. */
+.ae-section {
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 16px 18px;
+  background: var(--surface);
+  margin-bottom: 22px !important; /* override .cls-form-field's flat 16px */
+}
+.ae-section:last-child { margin-bottom: 0 !important; }
+
+/* ---- Editable barem / metode-alternative rows (§4) ----
+   Column layout (not a single flex row) so each row's own live preview (see
+   admin-add-exercise.js's _aeRenderBaremStepPreview/_aeRenderAltStepPreview)
+   sits directly underneath its textarea instead of squeezed in as another
+   same-row flex item. */
 .ae-barem-row, .ae-alt-row {
   display: flex;
-  gap: 10px;
-  align-items: flex-start;
-  padding: 10px 0;
+  flex-direction: column;
+  gap: 8px;
+  padding: 14px 0;
   border-bottom: 1px solid var(--border);
 }
-.ae-barem-row:last-child, .ae-alt-row:last-child { border-bottom: none; }
+.ae-barem-row:last-child, .ae-alt-row:last-child { border-bottom: none; padding-bottom: 4px; }
+.ae-barem-row:first-child, .ae-alt-row:first-child { padding-top: 4px; }
+.ae-barem-row__main, .ae-alt-row__main { display: flex; gap: 10px; align-items: flex-start; }
 .ae-barem-row__nr {
   flex: 0 0 auto;
   padding-top: 10px;
@@ -14832,6 +14853,20 @@ body.dc-fullscreen-active .dc-toolbar {
 .ae-barem-row__pts { flex: 0 0 70px; }
 .ae-alt-row__nume { flex: 0 0 180px; }
 .ae-barem-row__del, .ae-alt-row__del { flex: 0 0 auto; margin-top: 4px; }
+/* Roughly aligns the preview under the textarea above it, past the "1."
+   number column (its width + the row's own 10px gap) — .ae-alt-row has no
+   such leading column, so its preview starts flush left instead. */
+.ae-barem-row__preview { margin-left: 32px; }
+
+.ae-preview-label {
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 6px;
+}
+.ae-preview-box--compact { padding: 10px 12px; font-size: 0.9rem; }
 
 @media (max-width: 480px) {
   .pricing-hero { padding: 48px 0 32px; }

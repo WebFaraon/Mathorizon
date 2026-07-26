@@ -399,19 +399,20 @@
         <div class="ae-preview-box" id="aeEnuntPreview" style="margin-top:8px"></div>
       </div>
 
-      <div class="cls-form-field">
+      <div class="cls-form-field ae-section">
         <label class="cls-form-label">Barem</label>
         <div id="aeBaremRows"></div>
         <button class="btn btn--surface btn--sm" id="aeAddBaremStep" style="margin-top:8px">+ Adaugă pas</button>
       </div>
 
-      <div class="cls-form-field">
+      <div class="cls-form-field ae-section">
         <label class="cls-form-label">Răspuns final (LaTeX, fără $ )</label>
         <input type="text" id="aeRaspunsFinal" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
         ${r.verificare_numerica ? `<span class="cls-form-hint">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</span>` : ''}
+        <div class="ae-preview-box ae-preview-box--compact" id="aeRaspunsFinalPreview" style="margin-top:8px"></div>
       </div>
 
-      <div class="cls-form-field">
+      <div class="cls-form-field ae-section">
         <label class="cls-form-label">Metode alternative</label>
         <div id="aeAltRows"></div>
         <button class="btn btn--surface btn--sm" id="aeAddAltMethod" style="margin-top:8px">+ Adaugă metodă</button>
@@ -421,7 +422,8 @@
     body.querySelector('#aeTitlu').oninput = e => { r.titlu = e.target.value; };
     const enuntEl = body.querySelector('#aeEnunt');
     enuntEl.oninput = _aeDebounce(() => { r.enunt_katex = enuntEl.value; _aeRenderEnuntPreview(); }, 300);
-    body.querySelector('#aeRaspunsFinal').oninput = e => { r.raspuns_final = e.target.value; };
+    const raspunsEl = body.querySelector('#aeRaspunsFinal');
+    raspunsEl.oninput = _aeDebounce(() => { r.raspuns_final = raspunsEl.value; _aeRenderRaspunsFinalPreview(); }, 300);
     body.querySelector('#aeAddBaremStep').addEventListener('click', () => {
       r.pasi_barem.push({ nr: r.pasi_barem.length + 1, descriere: '', puncte_maxime: 0 });
       _aeRenderBaremRows();
@@ -436,6 +438,7 @@
     });
 
     _aeRenderEnuntPreview();
+    _aeRenderRaspunsFinalPreview();
     _aeRenderBaremRows();
     _aeRenderAltRows();
     _aeUpdateConfirmState();
@@ -453,21 +456,55 @@
     BM.renderMath(el);
   }
 
+  // Unlike the enunț/barem-step fields (rich text with its own $...$
+  // delimiters wherever math actually appears), "Răspuns final" is stored
+  // as bare LaTeX with no delimiters at all (see its "fără $" label) — has
+  // to be wrapped in $...$ here just for the preview to render as math
+  // instead of showing literally as backslash-escaped plain text.
+  function _aeRenderRaspunsFinalPreview() {
+    const el = document.getElementById('aeRaspunsFinalPreview');
+    if (!el) return;
+    const raw = (ae.aiResult.raspuns_final || '').trim();
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează răspunsul final.</span>'; return; }
+    el.innerHTML = `$${BM.esc(raw)}$`;
+    BM.renderMath(el);
+  }
+
+  // Renders one barem step's live preview in place — kept separate from a
+  // full _aeRenderBaremRows() re-render so typing in the textarea doesn't
+  // blow away the other rows' focus/cursor/scroll position on every
+  // keystroke (same reasoning as _aeRenderRaspunsFinalPreview being its own
+  // function rather than piggybacking on the full-form render).
+  function _aeRenderBaremStepPreview(idx) {
+    const el = document.getElementById('aeBaremPreview' + idx);
+    if (!el) return;
+    const raw = ((ae.aiResult.pasi_barem || [])[idx]?.descriere || '').trim();
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează descrierea pasului.</span>'; return; }
+    el.innerHTML = BM.trustedNl2br(raw);
+    BM.renderMath(el);
+  }
+
   function _aeRenderBaremRows() {
     const wrap = document.getElementById('aeBaremRows');
     const pasi = ae.aiResult.pasi_barem || [];
     wrap.innerHTML = pasi.map((p, i) => `
       <div class="ae-barem-row" data-idx="${i}">
-        <span class="ae-barem-row__nr">${p.nr || i + 1}.</span>
-        <textarea class="cls-form-input ae-barem-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem">${BM.esc(p.descriere || '')}</textarea>
-        <input type="number" min="0" class="cls-form-input ae-barem-row__pts" data-field="puncte_maxime" value="${Number(p.puncte_maxime) || 0}">
-        <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">✕</button>
+        <div class="ae-barem-row__main">
+          <span class="ae-barem-row__nr">${p.nr || i + 1}.</span>
+          <textarea class="cls-form-input ae-barem-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem">${BM.esc(p.descriere || '')}</textarea>
+          <input type="number" min="0" class="cls-form-input ae-barem-row__pts" data-field="puncte_maxime" value="${Number(p.puncte_maxime) || 0}">
+          <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">✕</button>
+        </div>
+        <div class="ae-preview-box ae-preview-box--compact ae-barem-row__preview" id="aeBaremPreview${i}"></div>
       </div>
     `).join('') || '<p class="cls-form-hint">Niciun pas — apasă „+ Adaugă pas”.</p>';
 
     wrap.querySelectorAll('.ae-barem-row').forEach(row => {
       const idx = Number(row.dataset.idx);
-      row.querySelector('[data-field="descriere"]').oninput = e => { pasi[idx].descriere = e.target.value; };
+      row.querySelector('[data-field="descriere"]').oninput = _aeDebounce(e => {
+        pasi[idx].descriere = e.target.value;
+        _aeRenderBaremStepPreview(idx);
+      }, 300);
       row.querySelector('[data-field="puncte_maxime"]').oninput = e => {
         pasi[idx].puncte_maxime = Number(e.target.value) || 0;
         _aeUpdateMismatchBanner();
@@ -480,8 +517,20 @@
         _aeUpdateMismatchBanner();
         _aeUpdateConfirmState();
       });
+      _aeRenderBaremStepPreview(idx);
     });
     _aeUpdateMismatchBanner();
+  }
+
+  // Same reasoning as _aeRenderBaremStepPreview — a standalone per-row
+  // render so one method's edit doesn't disturb the others.
+  function _aeRenderAltStepPreview(idx) {
+    const el = document.getElementById('aeAltPreview' + idx);
+    if (!el) return;
+    const raw = ((ae.aiResult.metode_alternative || [])[idx]?.descriere || '').trim();
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează descrierea metodei.</span>'; return; }
+    el.innerHTML = BM.trustedNl2br(raw);
+    BM.renderMath(el);
   }
 
   function _aeRenderAltRows() {
@@ -489,20 +538,27 @@
     const alts = ae.aiResult.metode_alternative || [];
     wrap.innerHTML = alts.map((m, i) => `
       <div class="ae-alt-row" data-idx="${i}">
-        <input type="text" class="cls-form-input ae-alt-row__nume" data-field="nume" placeholder="Nume metodă" value="${BM.esc(m.nume || '')}">
-        <textarea class="cls-form-input ae-alt-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
-        <button class="btn btn--danger-outline btn--sm ae-alt-row__del" title="Șterge metoda">✕</button>
+        <div class="ae-alt-row__main">
+          <input type="text" class="cls-form-input ae-alt-row__nume" data-field="nume" placeholder="Nume metodă" value="${BM.esc(m.nume || '')}">
+          <textarea class="cls-form-input ae-alt-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
+          <button class="btn btn--danger-outline btn--sm ae-alt-row__del" title="Șterge metoda">✕</button>
+        </div>
+        <div class="ae-preview-box ae-preview-box--compact" id="aeAltPreview${i}"></div>
       </div>
     `).join('') || '<p class="cls-form-hint">Nicio metodă alternativă.</p>';
 
     wrap.querySelectorAll('.ae-alt-row').forEach(row => {
       const idx = Number(row.dataset.idx);
       row.querySelector('[data-field="nume"]').oninput = e => { alts[idx].nume = e.target.value; };
-      row.querySelector('[data-field="descriere"]').oninput = e => { alts[idx].descriere = e.target.value; };
+      row.querySelector('[data-field="descriere"]').oninput = _aeDebounce(e => {
+        alts[idx].descriere = e.target.value;
+        _aeRenderAltStepPreview(idx);
+      }, 300);
       row.querySelector('.ae-alt-row__del').addEventListener('click', () => {
         alts.splice(idx, 1);
         _aeRenderAltRows();
       });
+      _aeRenderAltStepPreview(idx);
     });
   }
 
