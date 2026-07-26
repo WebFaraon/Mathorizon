@@ -157,6 +157,20 @@
   var MAX_ZOOM = 2;
   var ZOOM_STEP = 0.25;
 
+  // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
+  // easy to lose against the canvas's own light background, especially on a
+  // laptop trackpad where there's no separate pointer/finger to fall back on
+  // for "where am I". A white halo behind a dark core line keeps it visible
+  // against both the light and dark theme's canvas background.
+  var CROSSHAIR_CURSOR_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">' +
+    '<line x1="11" y1="1" x2="11" y2="21" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
+    '<line x1="1" y1="11" x2="21" y2="11" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
+    '<line x1="11" y1="2" x2="11" y2="20" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
+    '<line x1="2" y1="11" x2="20" y2="11" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
+    '</svg>';
+  var CROSSHAIR_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(CROSSHAIR_CURSOR_SVG) + '") 11 11, crosshair';
+
   function DrawingCanvas(container, options) {
     options = options || {};
     this._container  = container;
@@ -212,6 +226,7 @@
 
     this._build();
     this._bindEvents();
+    this._setTool(this._tool);   // applies the custom high-visibility cursor from the start
     this._applyInputMode();      // reflect persisted preference in UI
     this._applyGridVisible();    // reflect persisted grid preference in UI
     this._updateUndoRedoButtons();
@@ -358,6 +373,38 @@
     for (var i = 0; i < this._strokes.length; i++) {
       this._drawStroke(this._strokes[i]);
     }
+    // Snapshot the now-current committed state — _renderHighlighterLive and
+    // the figure-drag move handler blit this instead of calling _redrawAll
+    // per pointermove (see _updateCache), which used to mean replaying every
+    // past stroke's drawing commands on every single frame. That cost scales
+    // with both stroke count AND canvas area, so it's exactly what got
+    // noticeably laggier at 175–200% zoom (4x the pixels of 100%) — a cheap
+    // bitmap blit doesn't have that problem at any zoom level.
+    this._updateCache();
+  };
+
+  DrawingCanvas.prototype._updateCache = function () {
+    if (!this._cacheCanvas) {
+      this._cacheCanvas = document.createElement('canvas');
+      this._cacheCtx    = this._cacheCanvas.getContext('2d');
+    }
+    this._cacheCanvas.width  = this._canvas.width;
+    this._cacheCanvas.height = this._canvas.height;
+    this._cacheCtx.clearRect(0, 0, this._cacheCanvas.width, this._cacheCanvas.height);
+    this._cacheCtx.drawImage(this._canvas, 0, 0);
+  };
+
+  // Cheap physical-pixel blit of the cached committed state onto the live
+  // canvas — used to redraw the "everything so far" layer underneath a live
+  // in-progress highlighter stroke or figure drag, without replaying vector
+  // stroke data (see _redrawAll's comment).
+  DrawingCanvas.prototype._paintCache = function () {
+    var ctx = this._ctx;
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, this._canvas.width, this._canvas.height);
+    if (this._cacheCanvas) ctx.drawImage(this._cacheCanvas, 0, 0);
+    ctx.restore();
   };
 
   DrawingCanvas.prototype._drawStroke = function (stroke) {
@@ -526,6 +573,18 @@
     this._canvas.addEventListener('pointerleave',  this._onUp.bind(this));
     this._canvas.style.touchAction = 'none'; // prevent scroll while drawing
 
+    // Ctrl/Cmd+wheel zoom, centered on the cursor — same convention as the
+    // geometry figure editor. A plain scroll is left alone (pans the page
+    // like everywhere else) so it isn't hijacked into a zoom just because
+    // the cursor happens to be over the canvas. This also covers a Mac
+    // trackpad pinch gesture, which the browser reports as a wheel event
+    // with ctrlKey set, not as touch pointer events.
+    this._canvas.addEventListener('wheel', function (e) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      self._scheduleZoomTo(self._zoom * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
+    }, { passive: false });
+
     // Keyboard shortcuts
     this._keyHandler = function (e) {
       if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
@@ -657,11 +716,26 @@
         this._pointers[e.pointerId].y = e.clientY;
       }
       e.preventDefault();
+
       if (this._scrollEl) {
         this._scrollEl.scrollTop  = this._scrollStartTop  - (this._avgTouchY() - this._scrollStartY);
         // Horizontal pan only matters when zoomed in (canvas wider than its
         // container) — at zoom 1 scrollLeft has nowhere to go, so this is a no-op.
         this._scrollEl.scrollLeft = this._scrollStartLeft - (this._avgTouchX() - this._scrollStartX);
+      }
+
+      if (this._pinchStartDist && this._touchCount() === 2) {
+        // Two fingers spreading/pinching — _avgTouchX/Y above IS the
+        // midpoint, so panning (moving the midpoint) already happened just
+        // now; scheduling a zoom anchored on that same current midpoint (at
+        // whatever scroll position the pan line just landed on) re-centers
+        // on it fresh rather than fighting the pan — the two compose into
+        // one gesture instead of overriding each other.
+        var dist = this._touchDistance();
+        if (dist > 0) {
+          var mid = this._touchMidpoint();
+          this._scheduleZoomTo(this._pinchStartZoom * (dist / this._pinchStartDist), mid.x, mid.y);
+        }
       }
       return;
     }
@@ -736,11 +810,13 @@
   // the base layer plus the WHOLE in-progress path as one continuous stroke
   // every frame — appending semi-transparent segments one at a time would
   // double the alpha at each joint (visible dots wherever points are spaced
-  // apart, e.g. a fast swipe). Cost is a full _redrawAll() per pointermove,
-  // acceptable for the stroke counts a BAC answer canvas actually has.
+  // apart, e.g. a fast swipe). The base layer comes from _paintCache (a cheap
+  // bitmap blit of the committed state as of this stroke's start — see
+  // _onDown), not a full _redrawAll() replay of every past stroke's drawing
+  // commands, which used to be the per-frame cost here.
   DrawingCanvas.prototype._renderHighlighterLive = function () {
     if (this._points.length < 2) return;
-    this._redrawAll();
+    this._paintCache();
     var ctx = this._ctx;
     ctx.lineJoin    = 'round';
     ctx.lineCap     = 'round';
@@ -774,6 +850,7 @@
         if (this._tool === 'pan') this._canvas.style.cursor = 'grab';
       } else {
         this._rebaselineScroll(); // a finger lifted, others remain → avoid a jump
+        this._pinchStartDist = null; // fewer than 2 fingers left — no longer a pinch
       }
       return;
     }
@@ -790,6 +867,10 @@
       // standard undo/redo behavior (same rule most editors use).
       this._redoStack = [];
       this._updateUndoRedoButtons();
+      // Keep the highlighter-live/figure-drag cache in sync with what was
+      // just committed (pen/eraser strokes render incrementally, not via
+      // _redrawAll, so nothing else refreshes it here).
+      this._updateCache();
     }
     this._currentStroke = null;
     this._points    = [];
@@ -816,6 +897,23 @@
     var sum = 0;
     for (var i = 0; i < ids.length; i++) sum += this._pointers[ids[i]].x;
     return sum / ids.length;
+  };
+
+  // Two-finger pinch distance/midpoint — only meaningful with exactly 2
+  // tracked touches (see _beginScroll/_onMove's pinch-to-zoom handling).
+  DrawingCanvas.prototype._touchDistance = function () {
+    var ids = Object.keys(this._pointers);
+    if (ids.length < 2) return 0;
+    var p0 = this._pointers[ids[0]], p1 = this._pointers[ids[1]];
+    var dx = p1.x - p0.x, dy = p1.y - p0.y;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  DrawingCanvas.prototype._touchMidpoint = function () {
+    var ids = Object.keys(this._pointers);
+    if (ids.length < 2) return null;
+    var p0 = this._pointers[ids[0]], p1 = this._pointers[ids[1]];
+    return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
   };
 
   DrawingCanvas.prototype._getScrollParent = function (node) {
@@ -845,6 +943,11 @@
     try { this._canvas.setPointerCapture(e.pointerId); } catch (err) {}
     this._rebaselineScroll();
     if (this._tool === 'pan') this._canvas.style.cursor = 'grabbing';
+    // Two-finger pinch-to-zoom baseline — spreading/pinching the fingers
+    // zooms (see _onMove), moving them together without changing their
+    // distance just pans, same as any touch app.
+    this._pinchStartDist = (this._touchCount() === 2) ? this._touchDistance() : null;
+    this._pinchStartZoom = this._zoom;
   };
 
   DrawingCanvas.prototype._cancelActiveStroke = function () {
@@ -934,7 +1037,7 @@
     this._toolbar.querySelectorAll('[data-tool]').forEach(function (btn) {
       btn.classList.toggle('dc-tool-btn--active', btn.dataset.tool === tool);
     });
-    this._canvas.style.cursor = tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : 'crosshair';
+    this._canvas.style.cursor = tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : CROSSHAIR_CURSOR;
   };
 
   DrawingCanvas.prototype._setColor = function (color) {
@@ -954,19 +1057,33 @@
 
   /* ---- Zoom (real optical magnification, scroll-to-pan; bounded, not infinite) ---- */
 
-  DrawingCanvas.prototype._setZoom = function (z) {
+  // anchorClientX/Y (viewport coordinates, e.g. straight from a mouse/touch
+  // event) let a wheel-zoom or pinch-zoom keep the point under the
+  // cursor/fingers fixed on screen; omitted (the zoom +/- buttons), it
+  // anchors on the viewport's own center instead.
+  DrawingCanvas.prototype._setZoom = function (z, anchorClientX, anchorClientY) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
     if (z === this._zoom) return;
 
-    // Keep whatever logical point is currently centered in the visible
-    // viewport centered after the resize too — without this, zooming just
-    // grows the canvas down/right from the scroll container's origin, so it
-    // visually zooms from the top-left corner instead of from the middle of
-    // what the student is actually looking at.
+    // Keep whatever logical point sits at the anchor now sitting at the SAME
+    // fractional position within the viewport after the resize — without
+    // this, zooming just grows the canvas down/right from the scroll
+    // container's origin, so it visually zooms from the top-left corner
+    // instead of from the middle (or the cursor/fingers) of what the
+    // student is actually looking at.
     var wrap    = this._canvasWrap;
     var oldZoom = this._zoom;
-    var centerLogicalX = (wrap.scrollLeft + wrap.clientWidth  / 2) / oldZoom;
-    var centerLogicalY = (wrap.scrollTop  + wrap.clientHeight / 2) / oldZoom;
+    var wrapRect = wrap.getBoundingClientRect();
+    var anchorX = (anchorClientX != null) ? (anchorClientX - wrapRect.left + wrap.scrollLeft) : (wrap.scrollLeft + wrap.clientWidth  / 2);
+    var anchorY = (anchorClientY != null) ? (anchorClientY - wrapRect.top  + wrap.scrollTop)  : (wrap.scrollTop  + wrap.clientHeight / 2);
+    var anchorLogicalX = anchorX / oldZoom;
+    var anchorLogicalY = anchorY / oldZoom;
+    // Fraction of the viewport the anchor currently sits at (0.5,0.5 for the
+    // default center case) — reproducing this fraction after the resize is
+    // what keeps an off-center anchor (a cursor near an edge, say) from
+    // jumping to the middle of the view instead of staying put.
+    var fracX = (wrap.clientWidth  > 0) ? (anchorX - wrap.scrollLeft) / wrap.clientWidth  : 0.5;
+    var fracY = (wrap.clientHeight > 0) ? (anchorY - wrap.scrollTop)  / wrap.clientHeight : 0.5;
 
     this._zoom = z;
     var label = this._toolbar.querySelector('#dc-zoom-label');
@@ -981,8 +1098,30 @@
     // zoom — the browser clamps this automatically if it falls outside the
     // valid scroll range (e.g. zooming back down to where the canvas no
     // longer overflows its container).
-    wrap.scrollLeft = centerLogicalX * z - wrap.clientWidth  / 2;
-    wrap.scrollTop  = centerLogicalY * z - wrap.clientHeight / 2;
+    wrap.scrollLeft = anchorLogicalX * z - fracX * wrap.clientWidth;
+    wrap.scrollTop  = anchorLogicalY * z - fracY * wrap.clientHeight;
+  };
+
+  // Coalesces rapid-fire zoom requests (a fast scroll-wheel spin, a live
+  // pinch gesture) into at most one actual _setZoom (and its _resize, which
+  // reallocates the backing store and redraws) per animation frame, instead
+  // of one per raw wheel/pointermove event — those can fire far more often
+  // than the display refreshes, and _resize isn't free at high zoom.
+  DrawingCanvas.prototype._scheduleZoomTo = function (z, clientX, clientY) {
+    this._pendingZoom = { z: z, x: clientX, y: clientY };
+    if (this._zoomRafId) return;
+    var self = this;
+    this._zoomRafId = requestAnimationFrame(function () {
+      self._zoomRafId = null;
+      var pz = self._pendingZoom;
+      self._pendingZoom = null;
+      if (!pz || self._destroyed) return;
+      self._setZoom(pz.z, pz.x, pz.y);
+      // Pan tracking (scrollStartLeft/Top vs. finger position) baselines
+      // against a scroll position that _setZoom just changed — rebaseline
+      // so an in-progress pinch-pan doesn't jump on the next move.
+      if (self._scrolling) self._rebaselineScroll();
+    });
   };
 
   /* ---- Fullscreen canvas mode ---- */
@@ -1024,7 +1163,7 @@
 
   DrawingCanvas.prototype._toggleFigureMoveMode = function () {
     this._figureMoveMode = !this._figureMoveMode;
-    this._canvas.style.cursor = this._figureMoveMode ? 'move' : (this._tool === 'eraser' ? 'cell' : this._tool === 'pan' ? 'grab' : 'crosshair');
+    this._canvas.style.cursor = this._figureMoveMode ? 'move' : (this._tool === 'eraser' ? 'cell' : this._tool === 'pan' ? 'grab' : CROSSHAIR_CURSOR);
     this._updateFigureBtn();
   };
 
