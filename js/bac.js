@@ -1229,7 +1229,18 @@
     // exam ended (timer ran out) while the student had it open.
     _cleanupActiveWidget();
 
-    exam.endTs = Date.now();
+    // Cap to the exam's own intended end time (startTs + its duration)
+    // instead of always using the literal now — tick()'s countdown relies on
+    // a background setInterval, which browsers throttle or freeze entirely
+    // while the tab is hidden/inactive. If the student left the tab in the
+    // background past the real 3-hour mark, tick() (and this doFinish() timeout
+    // path) only actually runs once they come back to it — recording THAT
+    // moment as endTs would show a duration well past the exam's real length
+    // (seen as e.g. "3h 30m" for a 3h exam). An explicit "Finalizează" click
+    // always happens before time is up, so Date.now() there is already ≤ the
+    // cap and this min() is a no-op for that path.
+    var _examDurationForEnd = exam.type === 'lectie' ? LECTIE_DURATION : DURATION;
+    exam.endTs = Math.min(Date.now(), exam.startTs + _examDurationForEnd * 1000);
     exam.phase = 'done';
     // Grading now comes entirely from the AI evaluation of the canvas — mark
     // exercises with no exercise assigned as 0, leave the rest pending (null)
