@@ -7238,19 +7238,18 @@ body.bac-exam-mode .nav.nav--peek {
   .sim-exam-overlay .bac-nav-item.current .bac-nav-item__label,
   .sim-exam-overlay .bac-nav-item.current .bac-nav-item__pts { color: #fff; }
   .bac-topbar-controls .bac-timer { min-width: auto; }
-  .bac-main { padding: 16px 16px 0; height: auto; overflow: visible; animation: none; }
+  .bac-main { padding: 16px 16px 0; height: auto; overflow: visible; animation: none; padding-bottom: 78px; }
   #slotContent { flex: none; overflow-y: visible; padding-right: 0; margin-right: 0; display: block; }
   #slotContent > .bac-notes-card:has(.dc-wrap) { flex: none; min-height: 0; }
   .bac-sidebar-toggle { display: none; }
   .bac-sidebar-wrap.collapsed .bac-sidebar { width: 100%; }
   .dc-canvas-wrap { min-height: 65vh; flex: none; }
-  .bac-slot-nav { margin-top: 16px; padding-bottom: 36px; }
-  /* Class-simulation exam only (.sim-exam-overlay — not the real BAC exam,
-     which keeps the flowing-page footer above): the nav bar (Anterior/
-     Următor + dots) pins to the actual bottom of the viewport instead of
-     just trailing after the content with a gap underneath it. */
-  .sim-exam-overlay .bac-main { padding-bottom: 78px; }
-  .sim-exam-overlay .bac-slot-nav {
+  /* Both the real BAC exam (bac.html) and the class-simulation exam
+     (.sim-exam-overlay) share this .bac-main/.bac-slot-nav markup — the
+     nav bar (Anterior/Următor + dots) pins to the actual bottom of the
+     viewport on phones instead of trailing after the content, so it's
+     always reachable without scrolling. */
+  .bac-slot-nav {
     position: fixed;
     left: 0;
     right: 0;
@@ -13664,10 +13663,21 @@ body.dc-fullscreen-active .dc-toolbar {
     border-bottom: none;
     border-top: 1px solid var(--border);
     padding: 10px 12px 14px; /* extra bottom padding for safe area */
+    justify-content: center;
+    row-gap: 10px;
   }
 
-  .dc-tool-group--right {
+  /* Canvas actions (maximize/undo/redo/grid/clear) drop to their own
+     centered row with a divider above, instead of trailing raggedly
+     left-aligned after whichever tool groups happened to wrap before them. */
+  .dc-tool-group--right.dc-tool-group {
     margin-left: 0;
+    flex-basis: 100%;
+    justify-content: center;
+    border-left: none;
+    padding-left: 0;
+    padding-top: 10px;
+    border-top: 1px solid var(--border);
   }
 
   .dc-canvas-wrap {
