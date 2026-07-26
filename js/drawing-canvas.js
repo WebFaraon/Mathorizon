@@ -324,6 +324,8 @@
     // (100,100) regardless of zoom).
     var baseW = this._canvasWrap.offsetWidth  || 800;
     var baseH = Math.max(650, this._canvasWrap.offsetHeight || 650);
+    this._baseW = baseW; // cached for _applyZoomCss's cheap in-between steps
+    this._baseH = baseH;
     var w   = Math.round(baseW * this._zoom);
     var h   = Math.round(baseH * this._zoom);
     // Fixed regardless of zoom — physical pixels per logical unit is dpr*zoom
@@ -360,6 +362,20 @@
     // vector stroke data instead of a raster snapshot, so content that was
     // outside the previous (narrower) bounds isn't cropped away for good.
     this._redrawAll();
+  };
+
+  // Cheap phase of a zoom change — resizes only the CSS box (canvas.width/
+  // height, the actual pixel buffer, is untouched), so the browser just
+  // stretches the existing bitmap to fit. That's a plain compositor resize,
+  // not a canvas reallocation + full stroke replay, so it's effectively
+  // instant. See _setZoom for why this exists separately from _resize.
+  DrawingCanvas.prototype._applyZoomCss = function () {
+    var w = Math.round(this._baseW * this._zoom);
+    var h = Math.round(this._baseH * this._zoom);
+    this._gridCanvas.style.width  = w + 'px';
+    this._gridCanvas.style.height = h + 'px';
+    this._canvas.style.width  = w + 'px';
+    this._canvas.style.height = h + 'px';
   };
 
   // Replays the loaded background image (if any) plus every recorded stroke
@@ -1092,14 +1108,23 @@
     var zoomInBtn  = this._toolbar.querySelector('#dc-zoomin-btn');
     if (zoomOutBtn) zoomOutBtn.disabled = z <= MIN_ZOOM;
     if (zoomInBtn)  zoomInBtn.disabled  = z >= MAX_ZOOM;
-    this._resize();
 
-    // Re-derive the scroll offset from the same logical point at the NEW
-    // zoom — the browser clamps this automatically if it falls outside the
-    // valid scroll range (e.g. zooming back down to where the canvas no
-    // longer overflows its container).
+    // Cheap phase now: resize the CSS box only (see _applyZoomCss) — the
+    // browser stretches the existing bitmap for the moment, which can look
+    // very slightly soft for the few frames a fast zoom gesture lasts, but
+    // keeps every individual step of "zoom in/out rapidly" instant instead
+    // of each one paying for a full backing-store reallocation + replaying
+    // every stroke. Heavy phase debounced below: once zoom stops changing
+    // for 150ms, _resize() reallocates the backing store and redraws
+    // everything at the new resolution for full sharpness — paid once per
+    // zoom session, not once per intermediate step.
+    this._applyZoomCss();
     wrap.scrollLeft = anchorLogicalX * z - fracX * wrap.clientWidth;
     wrap.scrollTop  = anchorLogicalY * z - fracY * wrap.clientHeight;
+
+    clearTimeout(this._zoomSettleTimer);
+    var self = this;
+    this._zoomSettleTimer = setTimeout(function () { self._resize(); }, 150);
   };
 
   // Coalesces rapid-fire zoom requests (a fast scroll-wheel spin, a live
@@ -1408,6 +1433,8 @@
     clearTimeout(this._resizeTimer);
     clearTimeout(this._hintTimer);
     clearTimeout(this._saveIndicatorTimer);
+    clearTimeout(this._zoomSettleTimer);
+    if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     window.removeEventListener('keydown', this._keyHandler);
     if (this._ro) this._ro.disconnect();
     if (this._mo) this._mo.disconnect();
