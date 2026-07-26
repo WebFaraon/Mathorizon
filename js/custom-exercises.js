@@ -43,6 +43,17 @@ window.BM = window.BM || {};
     })
     .catch(() => {});
 
-  const timeout = new Promise(resolve => setTimeout(resolve, 4000));
+  // This timeout only exists to cap a genuinely hung/dropped connection —
+  // `ready` already resolves gracefully on its own (via .catch above) for a
+  // normal failed/slow response, so racing it against a short timeout buys
+  // nothing but risk: if the fetch is merely a bit slow (cold Supabase,
+  // weak connection, or just a bigger custom_exercises table over time) and
+  // loses the race, generateExam() (js/bac.js) proceeds with an empty
+  // BM.EXERCISES merge and silently leaves any slot that depends entirely on
+  // custom exercises (e.g. geometry, which has no static seed exercises at
+  // all) unavailable — with no error, indistinguishable from "no exercises
+  // exist". A generous ceiling keeps the real protection (never hang
+  // forever) without being the common case that trips.
+  const timeout = new Promise(resolve => setTimeout(resolve, 10000));
   BM.customExercisesReady = () => Promise.race([ready, timeout]);
 })();

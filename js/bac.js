@@ -831,9 +831,7 @@
           <span class="bac-nav-item__status">${statusIcon}</span>
           <span class="bac-nav-item__short">${slot.label.replace('Ex. ', '')}</span>
           <span class="bac-nav-item__label">${slot.label.replace('Ex. ', 'Item ')}</span>
-          ${isCurrent
-            ? '<span class="bac-nav-badge">\xCEn lucru</span>'
-            : `<span class="bac-nav-item__pts">${slot.points}p</span>`}
+          <span class="bac-nav-item__pts">${slot.points}p</span>
           ${starBtn}
         </div>
       `;
@@ -1132,6 +1130,11 @@
   window.toggleNotes = function () {
     const card = document.getElementById('notesCard');
     if (!card) return;
+    // Canvas/photo-upload cards are meant to stay open — style.css already
+    // hides their collapse chevron (".bac-notes-card:has(.dc-wrap/.pu-wrap)
+    // .bac-notes-toggle"), but that never stopped a header click from still
+    // collapsing (and hiding) the card underneath it.
+    if (card.querySelector('.dc-wrap, .pu-wrap')) return;
     card.classList.toggle('collapsed');
   };
 

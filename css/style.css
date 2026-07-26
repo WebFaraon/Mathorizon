@@ -6664,20 +6664,6 @@ body.bac-exam-mode .nav.nav--peek {
 .bac-nav-flag.active { color: #f59e0b; opacity: 1; }
 .bac-nav-item.flagged { background: rgba(245,158,11,0.06); border-left-color: #f59e0b; }
 
-/* ---- "În lucru" nav badge ---- */
-.bac-nav-badge {
-  font-size: 0.52rem;
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  background: var(--accent);
-  color: #fff;
-  padding: 2px 5px;
-  border-radius: 3px;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
 /* ---- Sidebar stat chips ---- */
 .bac-sidebar__stats-grid {
   display: grid;
@@ -7207,29 +7193,39 @@ body.bac-exam-mode .nav.nav--peek {
     animation: none;
   }
   .bac-sidebar__header { display: none; }
+  /* CSS Grid (not flex-wrap) — flex-wrap sizes each wrapped row from its own
+     leftover space, so a row of wider items (e.g. "Item 10a/10b/10c", or the
+     "În lucru" badge row) ends up a different width than every other row and
+     a half-full trailing row (e.g. just "Item 11/12") sits left-aligned with
+     a gap instead of lining up under the columns above. Grid shares one set
+     of column tracks across every row, so items always land in the same
+     columns regardless of a row's content or how many items trail at the end. */
   .bac-sidebar__nav {
-    flex-direction: row;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
     padding: 8px 10px;
-    gap: 4px;
+    gap: 6px;
     overflow-y: visible;
   }
   .bac-sidebar__section-label { display: none; }
   .bac-sidebar__group-label { display: none; }
-  .bac-nav-item { width: auto; padding: 6px 10px; gap: 4px; font-size: 0.74rem; border-left-width: 0; border-bottom-width: 2px; border-bottom-color: transparent; }
+  .bac-nav-item {
+    width: auto;
+    padding: 6px 10px;
+    gap: 4px;
+    font-size: 0.74rem;
+    border-left-width: 0;
+    border-bottom-width: 2px;
+    border-bottom-color: transparent;
+    justify-content: center;
+    text-align: center;
+  }
   .bac-nav-item.current { border-bottom-color: var(--accent); }
   .bac-nav-item.done    { border-bottom-color: var(--solved); }
   .bac-nav-item__status { display: none; }
   .bac-nav-item__pts { font-size: 0.64rem; }
-  /* Class-simulation exam only (.sim-exam-overlay): tabs grow to fill each
-     row out to the right edge instead of leaving a ragged gap, and the
-     current item is a solid blue fill rather than a separate "În lucru"
-     badge (simulare-exam.js no longer renders that badge at all). */
-  .sim-exam-overlay .bac-nav-item {
-    flex: 1 1 90px;
-    justify-content: center;
-    text-align: center;
-  }
+  /* Class-simulation exam only (.sim-exam-overlay): the current item gets a
+     solid blue fill instead of just the thin accent underline above. */
   .sim-exam-overlay .bac-nav-item.current {
     background: var(--accent);
     border-color: var(--accent);
