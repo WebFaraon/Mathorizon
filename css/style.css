@@ -7181,9 +7181,17 @@ body.bac-exam-mode .nav.nav--peek {
   .bac-exam-stat { padding: 7px 10px; gap: 5px; }
 }
 
-/* Mobile BAC */
-@media (max-width: 768px) {
-  .bac-exam-wrap { flex-direction: column; }
+/* Mobile BAC — also covers tablets/narrow windows up to 1024px: a fixed
+   262px sidebar rail (the desktop layout) left a lopsided column of items
+   with a big blank gutter beside it at those in-between widths, instead of
+   the stacked top nav these rules build. */
+@media (max-width: 1024px) {
+  /* align-items: flex-start (base rule, for the desktop side-by-side layout)
+     stops the sidebar from stretching to full width once this flips to a
+     column — without overriding it, .bac-sidebar-wrap/.bac-sidebar shrink to
+     fit their own content instead of filling the viewport, leaving the same
+     lopsided narrow-column-plus-blank-gutter look this block exists to fix. */
+  .bac-exam-wrap { flex-direction: column; align-items: stretch; }
   .bac-sidebar {
     width: 100%;
     height: auto;
@@ -7199,10 +7207,13 @@ body.bac-exam-mode .nav.nav--peek {
      a half-full trailing row (e.g. just "Item 11/12") sits left-aligned with
      a gap instead of lining up under the columns above. Grid shares one set
      of column tracks across every row, so items always land in the same
-     columns regardless of a row's content or how many items trail at the end. */
+     columns regardless of a row's content or how many items trail at the end.
+     A fixed 3-column count (not auto-fill) so the row count stays exactly 3
+     at every width this block applies to (phone through tablet) — auto-fill
+     would instead cram in 6-8+ tiny columns on the wider end of that range. */
   .bac-sidebar__nav {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(92px, 1fr));
+    grid-template-columns: repeat(3, 1fr);
     padding: 8px 10px;
     gap: 6px;
     overflow-y: visible;
