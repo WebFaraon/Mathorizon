@@ -13585,8 +13585,20 @@ body.dc-fullscreen-active .dc-canvas-wrap {
   flex: 1 !important;
   min-height: 0 !important;
 }
+/* height: auto (NOT 100%) — .dc-wrap's parent (.bac-notes-body--canvas) is a
+   row-direction flex container (default direction, since it only ever holds
+   this one item), so .dc-wrap's height is its CROSS-axis size there. A
+   percentage height fails to resolve against that row container below
+   768px — verified: .dc-wrap collapses to its content height (just the
+   toolbar) whenever the viewport is ≤768px, in fullscreen or not, because
+   #slotContent switches to display:block at that width and the fullscreen
+   !important overrides that back to flex without ever giving it a
+   non-percentage-derived height, so this dc-wrap percentage can no longer
+   resolve. `auto` instead lets the existing `flex:1; min-height:0` (base
+   rule, always on) fill the row via default stretch alignment, which does
+   not depend on percentage resolution and works at every width. */
 body.dc-fullscreen-active .dc-wrap {
-  height: 100% !important;
+  height: auto !important;
 }
 /* In this mode the toolbar sits flush against the very top of the viewport
    (.bac-main is height:100vh with the topbar hidden) — .bac-nav-hover-zone
@@ -13619,6 +13631,15 @@ body.dc-fullscreen-active .dc-toolbar {
   cursor: grab;
   touch-action: none;
   user-select: none;
+}
+/* touch-action doesn't inherit — the statement is .math-content, which (like
+   any formula/katex-display) sets overflow-x:auto for wide equations. Without
+   this, a touch-drag starting over the statement gets claimed by the browser
+   as a horizontal-scroll gesture instead of reaching _makeDraggable's pointer
+   handlers, so the card twitches a few px then stalls (drag never continues)
+   — the title has no such descendant and was never affected. */
+.dc-mini-exercise * {
+  touch-action: none;
 }
 .dc-mini-exercise.hidden { display: none; }
 /* Dragging swaps top/right anchoring for explicit inline left/top (see
