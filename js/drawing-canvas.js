@@ -34,6 +34,14 @@
           <path d="m5 11 9 9"/>
         </svg>
       </button>
+      <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea — trage pentru a naviga (M)">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="6" y="11" width="12" height="9" rx="3"/>
+          <path d="M9 11V6a1.5 1.5 0 0 1 3 0v5"/>
+          <path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/>
+          <path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6"/>
+        </svg>
+      </button>
     </div>
     <div class="dc-tool-group">
       <button class="dc-color-btn dc-color-btn--active" data-color="#1a1a1a" data-adaptive title="Negru" aria-label="Culoare negru"></button>
@@ -303,24 +311,13 @@
     var baseH = Math.max(650, this._canvasWrap.offsetHeight || 650);
     var w   = Math.round(baseW * this._zoom);
     var h   = Math.round(baseH * this._zoom);
+    // Fixed regardless of zoom — physical pixels per logical unit is dpr*zoom
+    // (see setSize below), so keeping dpr itself constant means sharpness is
+    // consistent at every zoom level instead of degrading at the high end.
+    // An earlier version scaled dpr DOWN as zoom grew (to cap total canvas
+    // area for performance), which was exactly why 150%+ looked blurrier than
+    // 100% — the opposite of what zooming in should do.
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
-
-    // Cap physical canvas AREA relative to what zoom=1 already costs on this
-    // device, instead of a fixed pixel guess — un-zoomed fullscreen is always
-    // fast (there's no separate "is this device fast enough" question to
-    // answer), so scale the zoomed budget from that known-good baseline
-    // rather than a hardcoded number that's wrong for some screens/dprs.
-    // A fixed longest-side cap tried here first wasn't tight enough — area
-    // (which scales with zoom²) is what actually drives rasterization cost,
-    // and that's what was still laggy at 150%+. Budget = 1.6× baseline keeps
-    // 100–125% completely untouched (full sharpness) while 150%/200% get
-    // scaled down toward that same ceiling instead of growing quadratically.
-    var baseArea   = baseW * baseH * dpr * dpr;
-    var targetArea = w * h * dpr * dpr;
-    var budget     = baseArea * 1.6;
-    if (targetArea > budget) {
-      dpr = Math.max(1, dpr * Math.sqrt(budget / targetArea));
-    }
 
     var zoom = this._zoom;
     var setSize = function (canvas, ctx) {
@@ -542,6 +539,7 @@
       if (e.key === 'p' || e.key === 'P') self._setTool('pen');
       if (e.key === 'h' || e.key === 'H') self._setTool('highlighter');
       if (e.key === 'e' || e.key === 'E') self._setTool('eraser');
+      if (e.key === 'm' || e.key === 'M') self._setTool('pan');
       if (e.key === 'Escape' && self._maximized) self._toggleMaximize();
     };
     window.addEventListener('keydown', this._keyHandler);
@@ -578,12 +576,21 @@
     if (e.pointerType === 'touch') {
       this._pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
       // Scroll gestures: two fingers always scroll the page; in stylus-only
-      // mode a single finger scrolls too (it can't draw — or drag — anyway).
-      if (this._touchCount() >= 2 || this._inputMode === 'pen') {
+      // mode, or with the pan tool selected, a single finger scrolls too
+      // (it can't draw — or drag — anyway, and panning isn't "writing").
+      if (this._touchCount() >= 2 || this._inputMode === 'pen' || this._tool === 'pan') {
         this._beginScroll(e);
         return;
       }
       // one finger in "any" mode → draw/drag (fall through)
+    } else if (this._tool === 'pan') {
+      // Mouse/pen drag-to-pan — unlike drawing (gated by _isInputAllowed
+      // below), this isn't "writing", so it's allowed for any input type
+      // regardless of stylus-only mode.
+      e.preventDefault();
+      this._pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+      this._beginScroll(e);
+      return;
     } else if (!this._isInputAllowed(e.pointerType)) {
       // Same rule as drawing: pen is always allowed, mouse/touch only in
       // "any" input mode — moving the figure shouldn't be reachable through
@@ -643,7 +650,9 @@
     }
 
     if (this._scrolling) {
-      if (e.pointerType === 'touch' && this._pointers[e.pointerId]) {
+      // Track any pointer type while actively panning — touch finger(s), or
+      // a single mouse/pen drag via the pan tool (see _onDown).
+      if (this._pointers[e.pointerId]) {
         this._pointers[e.pointerId].x = e.clientX;
         this._pointers[e.pointerId].y = e.clientY;
       }
@@ -746,7 +755,9 @@
 
   DrawingCanvas.prototype._onUp = function (e) {
     var isLeave = e.type === 'pointerleave';
-    if (!isLeave && e.pointerType === 'touch') delete this._pointers[e.pointerId];
+    // Not gated to pointerType 'touch' — a mouse/pen pan-tool drag (see
+    // _onDown) tracks its pointer here too; deleting an absent key is a no-op.
+    if (!isLeave) delete this._pointers[e.pointerId];
 
     if (this._figureDragging) {
       if (e.pointerId !== this._figureDragPointerId) return;
@@ -758,8 +769,12 @@
 
     if (this._scrolling) {
       if (isLeave) return; // ignore boundary events mid-scroll
-      if (this._touchCount() === 0) this._scrolling = false;
-      else this._rebaselineScroll(); // a finger lifted, others remain → avoid a jump
+      if (this._touchCount() === 0) {
+        this._scrolling = false;
+        if (this._tool === 'pan') this._canvas.style.cursor = 'grab';
+      } else {
+        this._rebaselineScroll(); // a finger lifted, others remain → avoid a jump
+      }
       return;
     }
 
@@ -829,6 +844,7 @@
     this._scrollEl  = this._getScrollParent(this._canvas);
     try { this._canvas.setPointerCapture(e.pointerId); } catch (err) {}
     this._rebaselineScroll();
+    if (this._tool === 'pan') this._canvas.style.cursor = 'grabbing';
   };
 
   DrawingCanvas.prototype._cancelActiveStroke = function () {
@@ -918,7 +934,7 @@
     this._toolbar.querySelectorAll('[data-tool]').forEach(function (btn) {
       btn.classList.toggle('dc-tool-btn--active', btn.dataset.tool === tool);
     });
-    this._canvas.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+    this._canvas.style.cursor = tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : 'crosshair';
   };
 
   DrawingCanvas.prototype._setColor = function (color) {
@@ -941,6 +957,17 @@
   DrawingCanvas.prototype._setZoom = function (z) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
     if (z === this._zoom) return;
+
+    // Keep whatever logical point is currently centered in the visible
+    // viewport centered after the resize too — without this, zooming just
+    // grows the canvas down/right from the scroll container's origin, so it
+    // visually zooms from the top-left corner instead of from the middle of
+    // what the student is actually looking at.
+    var wrap    = this._canvasWrap;
+    var oldZoom = this._zoom;
+    var centerLogicalX = (wrap.scrollLeft + wrap.clientWidth  / 2) / oldZoom;
+    var centerLogicalY = (wrap.scrollTop  + wrap.clientHeight / 2) / oldZoom;
+
     this._zoom = z;
     var label = this._toolbar.querySelector('#dc-zoom-label');
     if (label) label.textContent = Math.round(z * 100) + '%';
@@ -949,6 +976,13 @@
     if (zoomOutBtn) zoomOutBtn.disabled = z <= MIN_ZOOM;
     if (zoomInBtn)  zoomInBtn.disabled  = z >= MAX_ZOOM;
     this._resize();
+
+    // Re-derive the scroll offset from the same logical point at the NEW
+    // zoom — the browser clamps this automatically if it falls outside the
+    // valid scroll range (e.g. zooming back down to where the canvas no
+    // longer overflows its container).
+    wrap.scrollLeft = centerLogicalX * z - wrap.clientWidth  / 2;
+    wrap.scrollTop  = centerLogicalY * z - wrap.clientHeight / 2;
   };
 
   /* ---- Fullscreen canvas mode ---- */
@@ -990,7 +1024,7 @@
 
   DrawingCanvas.prototype._toggleFigureMoveMode = function () {
     this._figureMoveMode = !this._figureMoveMode;
-    this._canvas.style.cursor = this._figureMoveMode ? 'move' : (this._tool === 'eraser' ? 'cell' : 'crosshair');
+    this._canvas.style.cursor = this._figureMoveMode ? 'move' : (this._tool === 'eraser' ? 'cell' : this._tool === 'pan' ? 'grab' : 'crosshair');
     this._updateFigureBtn();
   };
 
