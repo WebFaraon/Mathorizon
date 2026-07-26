@@ -196,7 +196,7 @@
     this._points      = [];
     this._pointers    = {};    // active touch pointers → { x, y } for scroll/pan gestures
     this._scrolling   = false; // true while a finger/two-finger scroll is in progress
-    this._zoom        = 1;     // bounded [MIN_ZOOM, MAX_ZOOM] — grows the raster, not a CSS scale
+    this._zoom        = 1;     // bounded [MIN_ZOOM, MAX_ZOOM] — real optical zoom, see _resize/_getPos
     this._maximized   = false;
     this._saveTimer   = null;
     this._resizeTimer = null;
@@ -290,10 +290,17 @@
   DrawingCanvas.prototype._resize = function () {
     if (this._destroyed) return;
 
-    // The container's own box never grows with zoom — only the canvases
-    // inside it do, via .dc-canvas-wrap's overflow:auto (scroll to pan).
+    // baseW/baseH are the LOGICAL (zoom=1) canvas size — every stroke point
+    // (see _getPos) and grid cell is recorded in this fixed coordinate space,
+    // never in raw on-screen pixels. Zoom only changes how many physical
+    // pixels each logical unit maps to (via ctx.scale below), so existing
+    // content actually magnifies when you zoom in, instead of the canvas
+    // just growing a blank extension you have to scroll to (the old
+    // behavior — canvas.width/height scaled with zoom but the ctx transform
+    // didn't, so a stroke at logical (100,100) always landed at physical
+    // (100,100) regardless of zoom).
     var baseW = this._canvasWrap.offsetWidth  || 800;
-    var baseH = Math.max(600, this._canvasWrap.offsetHeight || 600);
+    var baseH = Math.max(650, this._canvasWrap.offsetHeight || 650);
     var w   = Math.round(baseW * this._zoom);
     var h   = Math.round(baseH * this._zoom);
     var dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -315,12 +322,18 @@
       dpr = Math.max(1, dpr * Math.sqrt(budget / targetArea));
     }
 
+    var zoom = this._zoom;
     var setSize = function (canvas, ctx) {
       canvas.width  = w * dpr;
       canvas.height = h * dpr;
       canvas.style.width  = w + 'px';
       canvas.style.height = h + 'px';
-      ctx.scale(dpr, dpr);
+      // dpr keeps physical pixels matching the display; zoom is what
+      // actually magnifies logical-space content drawn at (x,y) — the two
+      // together map a logical unit onto exactly dpr*zoom physical pixels,
+      // so quality never degrades: more zoom means the SAME logical stroke
+      // rasterizes onto more physical pixels (sharper), not a bigger blank area.
+      ctx.scale(dpr * zoom, dpr * zoom);
     };
 
     setSize(this._gridCanvas, this._gridCtx);
@@ -448,10 +461,13 @@
     // Grid toggle only affects these lines — the background fill above always
     // stays, so hiding the grid never leaves a transparent hole behind strokes.
     if (this._gridVisible) {
-      var cell = 24 * dpr; // 24 CSS-px grid in physical pixels
+      // 24 LOGICAL px per cell — scaling by zoom (not just dpr) means the
+      // grid magnifies right along with the strokes drawn on top of it,
+      // instead of staying a fixed physical size while content zooms past it.
+      var cell = 24 * dpr * (this._zoom || 1);
 
       // Fine grid
-      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.045)' : 'rgba(0,0,0,0.055)';
+      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.10)';
       ctx.lineWidth   = 0.5;
       ctx.beginPath();
       for (var x = 0; x <= pw; x += cell) { ctx.moveTo(x, 0); ctx.lineTo(x, ph); }
@@ -459,8 +475,8 @@
       ctx.stroke();
 
       // Major grid every 5 cells
-      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.08)' : 'rgba(0,0,0,0.10)';
-      ctx.lineWidth   = 0.5;
+      ctx.strokeStyle = dark ? 'rgba(255,255,255,0.14)' : 'rgba(0,0,0,0.18)';
+      ctx.lineWidth   = 0.75;
       ctx.beginPath();
       for (var x2 = 0; x2 <= pw; x2 += cell * 5) { ctx.moveTo(x2, 0); ctx.lineTo(x2, ph); }
       for (var y2 = 0; y2 <= ph; y2 += cell * 5) { ctx.moveTo(0, y2); ctx.lineTo(pw, y2); }
@@ -546,9 +562,11 @@
 
   DrawingCanvas.prototype._getPos = function (e) {
     var rect = this._canvas.getBoundingClientRect();
+    // rect is in on-screen (zoomed) pixels — divide by zoom to land back in
+    // the logical coordinate space strokes are stored/drawn in (see _resize).
     return {
-      x: e.clientX - rect.left,
-      y: e.clientY - rect.top,
+      x: (e.clientX - rect.left) / this._zoom,
+      y: (e.clientY - rect.top)  / this._zoom,
       // stylus pressure: 0–1; mouse always reports 0.5; fallback 0.5
       pressure: (e.pressure > 0) ? e.pressure : 0.5
     };
@@ -918,7 +936,7 @@
     });
   };
 
-  /* ---- Zoom (grows the raster + scroll-to-pan; bounded, not infinite) ---- */
+  /* ---- Zoom (real optical magnification, scroll-to-pan; bounded, not infinite) ---- */
 
   DrawingCanvas.prototype._setZoom = function (z) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));

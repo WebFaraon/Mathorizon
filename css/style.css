@@ -6137,7 +6137,7 @@ body.bac-exam-mode .nav.nav--peek {
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-height: 420px;
+  min-height: 520px;
 }
 #slotContent > .bac-answer-card { flex-shrink: 0; }
 .bac-exam-topbar {
@@ -7250,7 +7250,7 @@ body.bac-exam-mode .nav.nav--peek {
   #slotContent > .bac-notes-card:has(.dc-wrap) { flex: none; min-height: 0; }
   .bac-sidebar-toggle { display: none; }
   .bac-sidebar-wrap.collapsed .bac-sidebar { width: 100%; }
-  .dc-canvas-wrap { min-height: 65vh; flex: none; }
+  .dc-canvas-wrap { min-height: 72vh; flex: none; }
   /* Both the real BAC exam (bac.html) and the class-simulation exam
      (.sim-exam-overlay) share this .bac-main/.bac-slot-nav markup — the
      nav bar (Anterior/Următor + dots) pins to the actual bottom of the
@@ -13477,7 +13477,7 @@ body.bac-exam-mode .nav.nav--peek {
   position: relative;
   width: 100%;
   flex: 1;
-  min-height: 420px;
+  min-height: 520px;
   /* auto (not hidden): zoom grows the canvas past this box's own size, and
      this is also what _getScrollParent() latches onto to pan via 2-finger drag. */
   overflow: auto;
@@ -13709,7 +13709,7 @@ body.dc-fullscreen-active .dc-toolbar {
   }
 
   .dc-canvas-wrap {
-    min-height: 65vh;
+    min-height: 72vh;
   }
 
   /* The exercise panel was eating almost the whole screen on phones
