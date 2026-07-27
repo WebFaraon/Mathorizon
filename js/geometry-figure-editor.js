@@ -27,6 +27,8 @@
   // itself a screen-fixed pattern that doesn't rescale with zoom either.
   var GRID_CELL_PX = 24;
   var MIN_ZOOM = 0.4, MAX_ZOOM = 3, ZOOM_STEP = 0.2;
+  var RIGHT_ANGLE_SNAP_DEG = 5;   // how close to exactly 90° a segment's live angle has to be, against a direction it started on, to snap
+  var RIGHT_ANGLE_MARK_PX  = 11;  // screen-space size of the little "⌐" indicator square, independent of zoom
 
   // Default/"adaptive" role colors — mirrors DrawingCanvas._adaptColors()'s
   // black⇄white swatch approach. These are only used for the LIVE editing
@@ -715,6 +717,14 @@
         return pts;
       },
       handles: ['F0', 'F1', 'F2', 'F3', 'B0', 'B1', 'B2', 'B3'],
+      // All 12 real edges (used for the segment tool's vertex/midpoint snap
+      // registry — see _buildSnapRegistry — regardless of which are
+      // rendered dashed above).
+      edges: [
+        ['F0', 'F1'], ['F1', 'F2'], ['F2', 'F3'], ['F3', 'F0'],
+        ['B0', 'B1'], ['B1', 'B2'], ['B2', 'B3'], ['B3', 'B0'],
+        ['F0', 'B0'], ['F1', 'B1'], ['F2', 'B2'], ['F3', 'B3']
+      ],
       // F0/F1/F2/F3 are front-top-left/top-right/bottom-right/bottom-left;
       // B0-B3 the same corners shifted back (up-right). Of the cube's 6
       // faces, front/top/right are visible from this angle and back/bottom/
@@ -762,6 +772,7 @@
         };
       },
       handles: ['p0', 'p1', 'p2', 'p3', 'apex'],
+      edges: [['p0', 'p1'], ['p1', 'p2'], ['p2', 'p3'], ['p3', 'p0'], ['apex', 'p0'], ['apex', 'p1'], ['apex', 'p2'], ['apex', 'p3']],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, p3 = pts.p3, apex = pts.apex;
         // Solid: visible base edge (p0-p1-p2) + the 3 edges down to it from
@@ -783,6 +794,7 @@
         };
       },
       handles: ['p0', 'p1', 'p2', 'apex'],
+      edges: [['p0', 'p1'], ['p1', 'p2'], ['p2', 'p0'], ['apex', 'p0'], ['apex', 'p1'], ['apex', 'p2']],
       build: function (pts, stroke) {
         var p0 = pts.p0, p1 = pts.p1, p2 = pts.p2, apex = pts.apex;
         // Solid: front base edge + the 2 edges down to it from the apex —
@@ -1093,7 +1105,10 @@
     this._redoStack  = [];
     this._suspendHistory = false;
     this._segmentStart   = null;
+    this._segmentStartDirs = null;
+    this._segmentPreviewPoint = null;
     this._previewLine    = null;
+    this._rightAngleMark = null;
 
     this._build();
     this._bindEvents();
@@ -1343,7 +1358,7 @@
         });
         for (var i = 0; i < pts.length; i++) {
           var a = pts[i], b = pts[(i + 1) % pts.length];
-          entries.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, type: 'midpoint' });
+          entries.push({ x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, type: 'midpoint', edgeDirs: [unitVec(b, a)] });
         }
       } else if (obj.type === 'rect') {
         obj.setCoords();
@@ -1356,7 +1371,7 @@
           });
           for (var j = 0; j < 4; j++) {
             var a2 = order[j], b2 = order[(j + 1) % 4];
-            entries.push({ x: (a2.x + b2.x) / 2, y: (a2.y + b2.y) / 2, type: 'midpoint' });
+            entries.push({ x: (a2.x + b2.x) / 2, y: (a2.y + b2.y) / 2, type: 'midpoint', edgeDirs: [unitVec(b2, a2)] });
           }
         }
       } else if (obj.type === 'line') {
@@ -1367,11 +1382,41 @@
           var p2 = fabric.util.transformPoint({ x: lp.x2, y: lp.y2 }, m);
           entries.push({ x: p1.x, y: p1.y, type: 'vertex', edgeDirs: [unitVec(p2, p1)] });
           entries.push({ x: p2.x, y: p2.y, type: 'vertex', edgeDirs: [unitVec(p1, p2)] });
-          entries.push({ x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2, type: 'midpoint' });
+          entries.push({ x: (p1.x + p2.x) / 2, y: (p1.y + p2.y) / 2, type: 'midpoint', edgeDirs: [unitVec(p2, p1)] });
         } catch (err) {}
       } else if (obj.type === 'circle') {
         var center = obj.getCenterPoint();
         entries.push({ x: center.x, y: center.y, type: 'vertex', edgeDirs: [] });
+      } else if (obj.type === 'group' && obj.data && obj.data.points) {
+        // 3D solids (cub/piramide/etc.) — same vertex+midpoint snap targets
+        // as a 2D polygon, just derived from data.points (LOCAL, group-
+        // center-relative — see attachGroup3DControls) plus each shape's own
+        // `edges` list (which pairs of named points are actually connected;
+        // a cube/pyramid isn't a single closed ring like a polygon, so there
+        // is no "next/prev" to infer this from positionally). Shapes with no
+        // `edges` entry (cone/cylinder/sphere — curved, no real vertices)
+        // still contribute their named points as bare snap targets, just
+        // without edge directions to drive a right-angle snap.
+        try {
+          var spec3d = THREE_D[obj.data.kind];
+          var gm = obj.calcTransformMatrix();
+          var world = {};
+          Object.keys(obj.data.points).forEach(function (k) {
+            world[k] = fabric.util.transformPoint(obj.data.points[k], gm);
+          });
+          var dirsByKey = {};
+          var edgeList = (spec3d && spec3d.edges) || [];
+          edgeList.forEach(function (pair) {
+            var wa = world[pair[0]], wb = world[pair[1]];
+            if (!wa || !wb) return;
+            (dirsByKey[pair[0]] = dirsByKey[pair[0]] || []).push(unitVec(wb, wa));
+            (dirsByKey[pair[1]] = dirsByKey[pair[1]] || []).push(unitVec(wa, wb));
+            entries.push({ x: (wa.x + wb.x) / 2, y: (wa.y + wb.y) / 2, type: 'midpoint', edgeDirs: [unitVec(wb, wa)] });
+          });
+          Object.keys(world).forEach(function (k) {
+            entries.push({ x: world[k].x, y: world[k].y, type: 'vertex', edgeDirs: dirsByKey[k] || [] });
+          });
+        } catch (err) {}
       }
     });
     return entries;
@@ -1589,12 +1634,81 @@
       this._fabricCanvas.remove(this._previewLine);
       this._previewLine = null;
     }
+    this._updateRightAngleIndicator(null);
+    this._segmentPreviewPoint = null;
+  };
+
+  // Tiny "⌐" bracket at `hit.point`, drawn along hit.dir1/hit.dir2 (the edge
+  // direction the snap fired against, and the perpendicular the line is
+  // currently snapped to) — the standard right-angle mark, sized in screen
+  // space so it stays legible at any zoom. Recreated from scratch on every
+  // call rather than mutated in place (cheap for a 3-point path, and avoids
+  // fighting Fabric's Path internals over a moving `path` property) —
+  // passing null just removes whatever mark is currently showing.
+  GeometryFigureEditor.prototype._updateRightAngleIndicator = function (hit) {
+    if (this._rightAngleMark) {
+      this._fabricCanvas.remove(this._rightAngleMark);
+      this._rightAngleMark = null;
+    }
+    if (!hit) return;
+    var sz = RIGHT_ANGLE_MARK_PX / this._fabricCanvas.getZoom();
+    var o = hit.point, d1 = hit.dir1, d2 = hit.dir2;
+    var a = { x: o.x + d1.x * sz, y: o.y + d1.y * sz };
+    var c = { x: o.x + d2.x * sz, y: o.y + d2.y * sz };
+    var b = { x: a.x + d2.x * sz, y: a.y + d2.y * sz };
+    var mark = new fabric.Path(
+      'M ' + a.x + ' ' + a.y + ' L ' + b.x + ' ' + b.y + ' L ' + c.x + ' ' + c.y,
+      { fill: 'transparent', stroke: HANDLE_COLOR, strokeWidth: 1.5, selectable: false, evented: false, objectCaching: false }
+    );
+    mark.__isSnapMarker = true;
+    this._rightAngleMark = mark;
+    this._fabricCanvas.add(mark);
+  };
+
+  // Checks whether the current drag direction (from _segmentStart) is
+  // within RIGHT_ANGLE_SNAP_DEG of exactly perpendicular to one of the
+  // directions the start point snapped onto (_segmentStartDirs — an edge
+  // vertex/midpoint's own direction(s), stashed when the start point was
+  // placed). Returns { point, dir1, dir2 } for the indicator + snapped
+  // endpoint, or null if no direction is close enough right now.
+  GeometryFigureEditor.prototype._rightAngleSnap = function (pt) {
+    if (!this._segmentStartDirs || !this._segmentStartDirs.length) return null;
+    var dx = pt.x - this._segmentStart.x, dy = pt.y - this._segmentStart.y;
+    var len = Math.hypot(dx, dy);
+    if (len < 2) return null;
+    var dir = { x: dx / len, y: dy / len };
+    var found = null;
+    this._segmentStartDirs.forEach(function (ed) {
+      var dot = Math.max(-1, Math.min(1, dir.x * ed.x + dir.y * ed.y));
+      var diffFrom90 = Math.abs(Math.acos(dot) * 180 / Math.PI - 90);
+      if (diffFrom90 <= RIGHT_ANGLE_SNAP_DEG) {
+        var perp = { x: -ed.y, y: ed.x };
+        if (dir.x * perp.x + dir.y * perp.y < 0) perp = { x: ed.y, y: -ed.x };
+        found = { dir1: ed, dir2: perp, len: len };
+      }
+    });
+    return found;
   };
 
   GeometryFigureEditor.prototype._updateSegmentPreview = function (pt) {
     if (!this._segmentStart) return;
     var snap = this._nearestSnapPoint(pt);
     var p = snap ? { x: snap.x, y: snap.y } : pt;
+
+    // A real vertex/midpoint match always wins over an inferred right angle
+    // — landing exactly on an existing point is more useful/explicit.
+    var rightAngle = snap ? null : this._rightAngleSnap(pt);
+    if (rightAngle) {
+      p = {
+        x: this._segmentStart.x + rightAngle.dir2.x * rightAngle.len,
+        y: this._segmentStart.y + rightAngle.dir2.y * rightAngle.len
+      };
+      this._updateRightAngleIndicator({ point: this._segmentStart, dir1: rightAngle.dir1, dir2: rightAngle.dir2 });
+    } else {
+      this._updateRightAngleIndicator(null);
+    }
+    this._segmentPreviewPoint = p;
+
     if (!this._previewLine) {
       this._previewLine = new fabric.Line([this._segmentStart.x, this._segmentStart.y, p.x, p.y], {
         stroke: HANDLE_COLOR, strokeWidth: 1.5, strokeDashArray: [4, 4], selectable: false, evented: false
@@ -1608,13 +1722,17 @@
   };
 
   GeometryFigureEditor.prototype._handleSegmentClick = function (pt) {
-    var snap = this._nearestSnapPoint(pt);
-    var p = snap ? { x: snap.x, y: snap.y } : pt;
-
     if (!this._segmentStart) {
-      this._segmentStart = p;
+      var snap = this._nearestSnapPoint(pt);
+      this._segmentStart = snap ? { x: snap.x, y: snap.y } : pt;
+      this._segmentStartDirs = (snap && snap.edgeDirs) || [];
       return;
     }
+    // Whatever the live preview last showed (plain point-snap OR a
+    // right-angle snap) is exactly what gets committed — never recomputed
+    // independently, so a click never lands somewhere subtly different from
+    // what was just previewed.
+    var p = this._segmentPreviewPoint || pt;
     var spec = this._strokeSpec('auxiliary');
     var line = new fabric.Line([this._segmentStart.x, this._segmentStart.y, p.x, p.y], {
       stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._tool === 'segment-dashed' ? [8, 6] : null, strokeLineCap: 'round',
@@ -1626,6 +1744,7 @@
     this._clearSegmentPreview();
     this._fabricCanvas.add(line);
     this._segmentStart = null;
+    this._segmentStartDirs = null;
     this._setTool('select');
     this._pushHistory();
   };
@@ -1702,6 +1821,7 @@
     this._tool = tool;
     this._clearSegmentPreview();
     this._segmentStart = null;
+    this._segmentStartDirs = null;
     var placing = tool !== 'select';
     this._fabricCanvas.selection = !placing;
     this._fabricCanvas.getObjects().forEach(function (o) { o.selectable = !placing; });
