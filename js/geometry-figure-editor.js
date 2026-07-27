@@ -421,6 +421,87 @@
     circle.borderColor = SCALE_COLOR;
   }
 
+  /* ---- Segment (fabric.Line) endpoint controls — a line is neither
+     "one center + one radius" (circle) nor "N vertices on a shared outline"
+     (polygon); it's just two independent points. Fabric's DEFAULT controls
+     for a bare Line are the same 8-corner scale-box + rotate handle every
+     other shape gets, which resizes it by stretching a scaleX/scaleY
+     transform (blurry with objectCaching on, and it drags the OPPOSITE
+     corner as a fixed anchor rather than letting either endpoint move
+     freely) — wrong model entirely for "grab an end and extend/rotate it
+     around the other end, which stays a fixed pivot". These two controls
+     replace the whole default set with exactly that: drag p1, p2 stays
+     put (and vice versa), same pink vertex-style dot as every other
+     reshape-this-point control in this editor. */
+  function lineEndpointPositionHandler(dim, finalMatrix, fabricObject) {
+    var lp = fabricObject.calcLinePoints();
+    var local = this.pointKey === 'p1' ? { x: lp.x1, y: lp.y1 } : { x: lp.x2, y: lp.y2 };
+    return fabric.util.transformPoint(
+      local,
+      fabric.util.multiplyTransformMatrices(fabricObject.canvas.viewportTransform, fabricObject.calcTransformMatrix())
+    );
+  }
+
+  function lineEndpointActionHandler(eventData, transform, x, y) {
+    var line = transform.target;
+    var key = transform.corner; // 'p1' or 'p2' — whichever control is being dragged
+    var pt = { x: x, y: y };
+    var editor = line.canvas && line.canvas.__gfe;
+    if (editor) {
+      try {
+        var snapped = editor._trySnap(pt, line);
+        if (snapped) pt = snapped;
+      } catch (err) { /* never let a snapping bug break endpoint dragging */ }
+    }
+
+    // The OTHER endpoint must stay EXACTLY where it visually is right now —
+    // read its current absolute position before touching anything, the same
+    // way polygonActionHandler treats every point it isn't currently moving.
+    var lp = line.calcLinePoints();
+    var m = line.calcTransformMatrix();
+    var fixedLocal = key === 'p1' ? { x: lp.x2, y: lp.y2 } : { x: lp.x1, y: lp.y1 };
+    var fixedAbs = fabric.util.transformPoint(fixedLocal, m);
+
+    var nx1 = key === 'p1' ? pt.x : fixedAbs.x;
+    var ny1 = key === 'p1' ? pt.y : fixedAbs.y;
+    var nx2 = key === 'p1' ? fixedAbs.x : pt.x;
+    var ny2 = key === 'p1' ? fixedAbs.y : pt.y;
+
+    // Rewrite x1/y1/x2/y2 (the line's REAL geometry) directly and reset
+    // angle/scale to identity — exactly how the line looked the moment it
+    // was first drawn — instead of leaving the old geometry in place and
+    // stretching a scaleX/scaleY transform over it. That's what keeps the
+    // stroke crisp (no cached bitmap being scaled) and the line's actual
+    // length/quality intact no matter how far it's extended.
+    line.set({
+      x1: nx1, y1: ny1, x2: nx2, y2: ny2,
+      angle: 0, scaleX: 1, scaleY: 1,
+      width: Math.abs(nx2 - nx1) || 1,
+      height: Math.abs(ny2 - ny1) || 1,
+      left: Math.min(nx1, nx2), top: Math.min(ny1, ny2)
+    });
+    alignLineToStart(line);
+    return true;
+  }
+
+  function attachLineEndpointControls(line) {
+    line.objectCaching = false;
+    line.hasBorders = false; // no bounding-box outline — just the two pivot dots
+    line.controls = Object.assign({}, line.controls);
+    ['p1', 'p2'].forEach(function (key) {
+      line.controls[key] = new fabric.Control({
+        pointKey: key,
+        positionHandler: lineEndpointPositionHandler,
+        actionHandler: refreshCoordsWrapper(lineEndpointActionHandler),
+        actionName: 'modifyLineEndpoint',
+        cursorStyle: 'pointer',
+        sizeX: 12, sizeY: 12,
+        render: renderVertexControl
+      });
+    });
+    line.setControlsVisibility({ tl: false, tr: false, bl: false, br: false, ml: false, mt: false, mr: false, mb: false, mtr: false });
+  }
+
   /* ---- Shared control styling: green scale squares pushed slightly outside
      the real shape + one blue rotate circle above center, reused by every
      shape type so the whole toolset reads consistently (matches the IDroo
@@ -658,13 +739,26 @@
       }
     },
     'piramida-patrata': {
+      // Base is a true parallelogram (front edge p0-p1 + the same depth
+      // offset the cube uses for its back corners), NOT a symmetric front-on
+      // diamond — a perfectly symmetric diamond put the apex, the near base
+      // corner (front) AND the far base corner (back) all on the exact same
+      // vertical line, so the dashed "hidden" apex-to-back edge rendered
+      // directly on top of the solid apex-to-front edge (identical pixels
+      // for their whole overlapping range) and simply vanished. Offsetting
+      // the back corners by (dx,dy) — and the apex by half that, so it
+      // still reads as centered over the whole base — guarantees no two
+      // vertices ever share an x, so every edge is its own visible line.
       defaultPoints: function (o) {
+        var dx = 38, dy = -32, hw = 62;
+        var f0 = { x: o.x - hw, y: o.y + 40 };  // front-left (visible)
+        var f1 = { x: o.x + hw, y: o.y + 40 };  // front-right (visible)
         return {
-          p0: { x: o.x - 70, y: o.y + 15 },  // base left
-          p1: { x: o.x,      y: o.y + 42 },  // base front
-          p2: { x: o.x + 70, y: o.y + 15 },  // base right
-          p3: { x: o.x,      y: o.y - 15 },  // base back
-          apex: { x: o.x, y: o.y - 110 }
+          p0: f0,
+          p1: f1,
+          p2: { x: f1.x + dx, y: f1.y + dy },  // back-right (visible)
+          p3: { x: f0.x + dx, y: f0.y + dy },  // back-left (the ONE hidden corner)
+          apex: { x: o.x + dx / 2, y: o.y - 95 }
         };
       },
       handles: ['p0', 'p1', 'p2', 'p3', 'apex'],
@@ -810,7 +904,7 @@
   var SHAPE_LABELS = {
     'tri-isoscel': 'Triunghi isoscel', 'tri-echilateral': 'Triunghi echilateral', 'tri-oarecare': 'Triunghi oarecare',
     cerc: 'Cerc', patrat: 'Pătrat', paralelogram: 'Paralelogram',
-    'trapez-isoscel': 'Trapez isoscel', 'trapez-dreptunghic': 'Trapez dreptunghic',
+    'trapez-isoscel': 'Trapez isoscel', 'trapez-dreptunghic': 'Trapez dreptunghic', romb: 'Romb',
     cub: 'Cub', 'piramida-patrata': 'Piramidă (bază pătrată)', 'piramida-triunghiulara': 'Piramidă (bază triunghiulară)',
     sfera: 'Sferă', con: 'Con', cilindru: 'Cilindru'
   };
@@ -821,25 +915,28 @@
   // used for the actual inserted shapes (offset/second face + dashed hidden
   // edges), just legible at icon scale.
   var SHAPE_ICONS = {
-    // Tall/narrow silhouette + a single tick on each of the two equal legs
-    // (standard "equal sides" notation) — distinguishes it both by shape and
-    // by mark count from the equilateral icon below.
-    'tri-isoscel':    '<path d="M12 3 5 20 19 20Z"/><path d="M6.5 12.7 9.1 13.7"/><path d="M17.5 12.7 14.9 13.7"/>',
-    // Wide/flat silhouette (true 60-60-60 proportions) + matching ticks on
-    // all three sides, since all three are equal here.
-    'tri-echilateral':'<path d="M12 6 3.5 19 20.5 19Z"/><path d="M6.7 11.8 8.8 13.2"/><path d="M15.2 13.2 17.3 11.8"/><path d="M12 17.9 12 20.1"/>',
+    // Tall/narrow silhouette — shape alone (vs. the wide/flat equilateral
+    // below) already tells the two apart, no equal-side tick marks needed.
+    'tri-isoscel':    '<path d="M12 3 5 20 19 20Z"/>',
+    // Wide/flat silhouette (true 60-60-60 proportions).
+    'tri-echilateral':'<path d="M12 6 3.5 19 20.5 19Z"/>',
     'tri-oarecare':   '<path d="M15 4 3 20 21 17Z"/>',
     cerc:             '<circle cx="12" cy="12" r="8.5"/>',
     patrat:           '<rect x="4.5" y="4.5" width="15" height="15"/>',
     paralelogram:     '<path d="M8 6 20 6 16 18 4 18Z"/>',
     'trapez-isoscel': '<path d="M9 6 15 6 20 18 4 18Z"/>',
     'trapez-dreptunghic': '<path d="M6 6 15 6 20 18 6 18Z"/>',
+    romb:             '<path d="M12 3 21 12 12 21 3 12Z"/>',
     cub: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15 14 15" stroke-dasharray="2.2 2"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/>',
     'piramida-patrata': '<path d="M4 18 12 21 20 18" stroke-dasharray="2.2 2"/><path d="M4 18 9 15 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 9 15" stroke-dasharray="2.2 2"/>',
-    'piramida-triunghiulara': '<path d="M4 19 20 19"/><path d="M12 3 4 19"/><path d="M12 3 20 19"/><path d="M12 3 12 19" stroke-dasharray="2.2 2"/>',
+    // Apex + 2 front base corners solid (outer silhouette), + a hidden
+    // back corner reached only by dashed lines — same "one fully-hidden
+    // vertex" convention as the actual inserted 3D shape, so this reads as
+    // a solid, not a flat triangle.
+    'piramida-triunghiulara': '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13" stroke-dasharray="2 1.6"/><path d="M12 13 4 20" stroke-dasharray="2 1.6"/><path d="M12 13 18 20" stroke-dasharray="2 1.6"/>',
     sfera: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6" stroke-dasharray="2.2 2"/>',
-    con: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
-    cilindru: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>'
+    con: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M4.5 18a7.5 2 0 0 1 15 0" stroke-dasharray="2 1.6"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
+    cilindru: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 17a7.5 2 0 0 1 15 0" stroke-dasharray="2 1.6"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>'
   };
 
   var TOOL_ICONS = {
@@ -867,13 +964,16 @@
     undo: '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>',
     grid: '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>',
     trash: '<polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/>',
-    // Same corner-bracket "expand" glyph as DrawingCanvas's own fullscreen
-    // button — reused here for "fit to view" since it's the same visual
-    // idea (frame the whole content), for icon-language consistency.
-    fit: '<path d="M8 3H5a2 2 0 0 0-2 2v3"/><path d="M21 8V5a2 2 0 0 0-2-2h-3"/><path d="M3 16v3a2 2 0 0 0 2 2h3"/><path d="M16 21h3a2 2 0 0 0 2-2v-3"/>',
-    // A grid with one highlighted intersection — "things snap to a point
-    // on this grid", distinct from the plain grid-visibility icon above.
-    snapGrid: '<path d="M4 4h16v16H4z"/><path d="M4 12h16"/><path d="M12 4v16"/><circle cx="12" cy="12" r="2.2" fill="currentColor" stroke="none"/>'
+    // A frame with the content sized to fit snugly inside it — reads as
+    // "everything scaled to fit this view", and unlike a corner-bracket
+    // glyph it can't be mistaken for the real OS-fullscreen button (which
+    // uses that corner-bracket "expand" shape elsewhere on this same page).
+    fit: '<rect x="3" y="4" width="18" height="16" rx="2"/><rect x="7.2" y="8" width="9.6" height="8" rx="1"/>',
+    // A magnet, not another grid — two grid icons side by side (plain grid
+    // vs. grid-with-a-dot) read as near-identical at toolbar size. A magnet
+    // is the universal "snapping" symbol and can't be confused with the
+    // plain grid-visibility toggle next to it.
+    snapGrid: '<path d="M8 3v8a4 4 0 0 0 8 0V3"/><rect x="5" y="3" width="6" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="13" y="3" width="6" height="4" rx="1" fill="currentColor" stroke="none"/>'
   };
 
   function _gfeIcon(inner) {
@@ -892,7 +992,7 @@
       <div class="dc-tool-group">
         <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută (Q)">${_gfeIcon(TOOL_ICONS.select)}</button>
         <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea — utilă la zoom (W)">${_gfeIcon(TOOL_ICONS.pan)}</button>
-        <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă pe un element pentru a-l șterge (E)">${_gfeIcon(TOOL_ICONS.eraser)}</button>
+        <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă și trage peste elemente pentru a le șterge (E)">${_gfeIcon(TOOL_ICONS.eraser)}</button>
       </div>
     </div>
     <div class="gfe-tool-section">
@@ -902,7 +1002,7 @@
         </button>
         <div class="gfe-dropdown__panel">
           <div class="dc-tool-group gfe-shape-group">
-            ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic']
+            ${['tri-isoscel','tri-echilateral','tri-oarecare','cerc','patrat','paralelogram','trapez-isoscel','trapez-dreptunghic','romb']
               .map(function (id) { return `<button class="dc-tool-btn gfe-shape-btn" data-shape="${id}" title="${SHAPE_LABELS[id]}">${_gfeIcon(SHAPE_ICONS[id])}</button>`; }).join('')}
           </div>
         </div>
@@ -1153,6 +1253,7 @@
     // so after undo/redo/load it fell back to Fabric's bare default
     // (uncolored circular) handles instead of the green/blue custom ones.
     if (obj.type === 'rect')    styleScaleAndRotateControls(obj);
+    if (obj.type === 'line' && obj.data && obj.data.kind === 'segment') attachLineEndpointControls(obj);
     // fabric.Control instances (positionHandler/actionHandler/render — all
     // functions) never survive a JSON round-trip, so every 3D group needs
     // its custom vertex+scale+rotate controls rebuilt from scratch after
@@ -1342,7 +1443,8 @@
     'tri-oarecare':   [{ x: -70, y: 60 }, { x: 50, y: -70 }, { x: 80, y: 50 }],
     paralelogram:     [{ x: -70, y: 50 }, { x: -30, y: -50 }, { x: 70, y: -50 }, { x: 30, y: 50 }],
     'trapez-isoscel':      [{ x: -80, y: 50 }, { x: -40, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }],
-    'trapez-dreptunghic':  [{ x: -70, y: 50 }, { x: -70, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }]
+    'trapez-dreptunghic':  [{ x: -70, y: 50 }, { x: -70, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }],
+    romb:             [{ x: 0, y: -65 }, { x: 62, y: 0 }, { x: 0, y: 65 }, { x: -62, y: 0 }]
   };
 
   GeometryFigureEditor.prototype._snapDimToGrid = function (d) {
@@ -1503,9 +1605,11 @@
     var spec = this._strokeSpec('auxiliary');
     var line = new fabric.Line([this._segmentStart.x, this._segmentStart.y, p.x, p.y], {
       stroke: spec.stroke, strokeWidth: 2, strokeDashArray: this._tool === 'segment-dashed' ? [8, 6] : null, strokeLineCap: 'round',
+      objectCaching: false,
       data: { role: spec.role, kind: 'segment' }
     });
     alignLineToStart(line);
+    attachLineEndpointControls(line);
     this._clearSegmentPreview();
     this._fabricCanvas.add(line);
     this._segmentStart = null;
@@ -1857,6 +1961,7 @@
         return;
       }
       if (self._tool === 'eraser') {
+        self._erasing = true;
         if (opt.target) self._eraseObject(opt.target);
         return;
       }
@@ -1879,6 +1984,16 @@
       if ((self._tool === 'segment' || self._tool === 'segment-dashed') && self._segmentStart) {
         self._updateSegmentPreview(self._fabricCanvas.getPointer(opt.e));
       }
+      // "Hold and erase" — while the mouse button is down with the eraser
+      // active, sweep-erase whatever the cursor passes over instead of
+      // requiring a fresh, precisely-aimed click per element (thin 2px
+      // strokes over a transparent fill are hard to hit exactly, especially
+      // on a 3D wireframe). mouse:down already erased under the initial
+      // click; this only needs to keep going for the rest of the drag.
+      if (self._tool === 'eraser' && self._erasing) {
+        var target = opt.target || self._fabricCanvas.findTarget(opt.e, false);
+        if (target) self._eraseObject(target);
+      }
     });
 
     this._fabricCanvas.on('mouse:up', function () {
@@ -1886,6 +2001,7 @@
         self._panning = false;
         self._fabricCanvas.defaultCursor = 'grab';
       }
+      self._erasing = false;
     });
 
     this._fabricCanvas.on('before:render', function () {
