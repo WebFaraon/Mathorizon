@@ -44,8 +44,8 @@ window.BM = window.BM || {};
       { sym: '0' }, { sym: ',' }, { sym: ')' }
     ] },
     { label: 'Operații', keys: [
-      { sym: '+' }, { sym: '-' }, { action: 'power', label: 'xⁿ' }, { sym: '√' },
-      { sym: ' ', label: '␣ Spațiu', wide: true }
+      { sym: '+' }, { sym: '-' }, { sym: '·' }, { action: 'power', label: 'xⁿ' },
+      { sym: '√' }, { sym: ' ', label: '␣ Spațiu', wide: true }
     ] },
     { label: 'Simboluri', keys: [
       { sym: 'x' }, { sym: 'y' }, { sym: 'z' }, { sym: 'a' },
