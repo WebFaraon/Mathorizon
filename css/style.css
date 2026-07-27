@@ -3868,6 +3868,14 @@ body.bac-exam-mode .nav.nav--peek {
    ============================================================ */
 .math-content {
   overflow-x: auto;
+  /* Explicit, not left to default — leaving overflow-y unset while
+     overflow-x is non-visible makes browsers silently compute it as 'auto'
+     too (a well-known overflow-x/y coupling quirk), which was giving every
+     rendered math block its own surprise vertical scrollbar the moment it
+     grew a bit tall, stacked on top of whatever scrollbar its actual
+     container (a modal body, etc.) already had. Only wide formulas should
+     ever scroll (horizontally); vertical content just grows with the page. */
+  overflow-y: visible;
   font-size: 1.02rem;
   line-height: 1.85;
 }
