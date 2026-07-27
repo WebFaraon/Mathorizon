@@ -14634,26 +14634,26 @@ body.dc-fullscreen-active .dc-toolbar {
 .gfe-tool-section .dc-tool-group { gap: 4px; }
 
 .gfe-shape-btn {
-  width: 40px;
-  height: 40px;
+  width: 34px;
+  height: 34px;
   padding: 6px;
   border-radius: 6px;
 }
-.gfe-shape-btn svg { width: 24px; height: 24px; display: block; }
+.gfe-shape-btn svg { width: 18px; height: 18px; display: block; }
 
 /* ---- Forme 2D / Corpuri 3D dropdowns — keeps the toolbar to one row ---- */
 .gfe-dropdown { position: relative; }
 .gfe-dropdown__trigger {
   width: auto;
-  height: 40px;
+  height: 34px;
   padding: 6px 8px;
   display: flex;
   align-items: center;
   gap: 2px;
   border-radius: 6px;
 }
-.gfe-dropdown__trigger svg:first-child { width: 24px; height: 24px; }
-.gfe-dropdown__trigger svg:last-child { width: 12px; height: 12px; color: var(--text-muted); transition: transform 0.15s; }
+.gfe-dropdown__trigger svg:first-child { width: 18px; height: 18px; }
+.gfe-dropdown__trigger svg:last-child { width: 11px; height: 11px; color: var(--text-muted); transition: transform 0.15s; }
 .gfe-dropdown--open .gfe-dropdown__trigger svg:last-child { transform: rotate(180deg); }
 .gfe-dropdown--open .gfe-dropdown__trigger { background: var(--card-hover); color: var(--text); }
 
@@ -14673,7 +14673,7 @@ body.dc-fullscreen-active .dc-toolbar {
   box-shadow: 0 8px 28px rgba(0,0,0,0.14);
 }
 .gfe-dropdown--open .gfe-dropdown__panel { display: block; animation: fadeSlideIn 0.14s ease; }
-.gfe-dropdown__panel .gfe-shape-group { flex-wrap: wrap; max-width: 188px; }
+.gfe-dropdown__panel .gfe-shape-group { flex-wrap: wrap; max-width: 160px; }
 
 .gfe-tick-btn {
   width: 24px;

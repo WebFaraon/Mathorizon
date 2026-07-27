@@ -926,9 +926,20 @@
     paralelogram:     '<path d="M8 6 20 6 16 18 4 18Z"/>',
     'trapez-isoscel': '<path d="M9 6 15 6 20 18 4 18Z"/>',
     'trapez-dreptunghic': '<path d="M6 6 15 6 20 18 6 18Z"/>',
-    romb:             '<path d="M12 3 21 12 12 21 3 12Z"/>',
-    cub: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15 14 15" stroke-dasharray="2.2 2"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/>',
-    'piramida-patrata': '<path d="M4 18 12 21 20 18" stroke-dasharray="2.2 2"/><path d="M4 18 9 15 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 9 15" stroke-dasharray="2.2 2"/>',
+    // Elongated (not a square just tilted) — vertical diagonal roughly
+    // double the horizontal one, so it reads unambiguously as a rhombus.
+    romb:             '<path d="M12 2 17 12 12 22 7 12Z"/>',
+    // Front face solid (the closed square) + the 2 edges bordering a
+    // visible face (back-top, back-right) ALSO solid — only the back-left
+    // edge, back-bottom edge, and the connector down to that one fully-
+    // hidden back-bottom-left corner are dashed. (Was inverted before —
+    // the back-top/back-right edges were dashed and the truly-hidden ones
+    // weren't drawn at all.)
+    cub: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/><path d="M4 20 9 15 9 5" stroke-dasharray="2.2 2"/><path d="M9 15 19 15" stroke-dasharray="2.2 2"/>',
+    // Front base edge + the 2 apex edges down to it solid; the 3 edges to
+    // the single hidden back corner dashed — same convention as the cube
+    // above (was inverted the same way).
+    'piramida-patrata': '<path d="M4 18 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 12 13" stroke-dasharray="2.2 2"/><path d="M12 13 4 18" stroke-dasharray="2.2 2"/><path d="M12 13 20 18" stroke-dasharray="2.2 2"/>',
     // Apex + 2 front base corners solid (outer silhouette), + a hidden
     // back corner reached only by dashed lines — same "one fully-hidden
     // vertex" convention as the actual inserted 3D shape, so this reads as
@@ -970,10 +981,12 @@
     // uses that corner-bracket "expand" shape elsewhere on this same page).
     fit: '<rect x="3" y="4" width="18" height="16" rx="2"/><rect x="7.2" y="8" width="9.6" height="8" rx="1"/>',
     // A magnet, not another grid — two grid icons side by side (plain grid
-    // vs. grid-with-a-dot) read as near-identical at toolbar size. A magnet
-    // is the universal "snapping" symbol and can't be confused with the
-    // plain grid-visibility toggle next to it.
-    snapGrid: '<path d="M8 3v8a4 4 0 0 0 8 0V3"/><rect x="5" y="3" width="6" height="4" rx="1" fill="currentColor" stroke="none"/><rect x="13" y="3" width="6" height="4" rx="1" fill="currentColor" stroke="none"/>'
+    // vs. grid-with-a-dot) read as near-identical at toolbar size. Thick
+    // horseshoe body (bumped stroke-width so it reads as solid metal, not
+    // a thin wire/cord) + two chunky filled pole caps at the open ends —
+    // the universal "snapping" symbol, unmistakable for the plain
+    // grid-visibility toggle next to it.
+    snapGrid: '<path d="M7 4v7a5 5 0 0 0 10 0V4" stroke-width="2.6"/><rect x="4.2" y="2.8" width="5.6" height="4.8" rx="1.1" fill="currentColor" stroke="none"/><rect x="14.2" y="2.8" width="5.6" height="4.8" rx="1.1" fill="currentColor" stroke="none"/>'
   };
 
   function _gfeIcon(inner) {
@@ -1444,7 +1457,7 @@
     paralelogram:     [{ x: -70, y: 50 }, { x: -30, y: -50 }, { x: 70, y: -50 }, { x: 30, y: 50 }],
     'trapez-isoscel':      [{ x: -80, y: 50 }, { x: -40, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }],
     'trapez-dreptunghic':  [{ x: -70, y: 50 }, { x: -70, y: -50 }, { x: 40, y: -50 }, { x: 80, y: 50 }],
-    romb:             [{ x: 0, y: -65 }, { x: 62, y: 0 }, { x: 0, y: 65 }, { x: -62, y: 0 }]
+    romb:             [{ x: 0, y: -80 }, { x: 42, y: 0 }, { x: 0, y: 80 }, { x: -42, y: 0 }]
   };
 
   GeometryFigureEditor.prototype._snapDimToGrid = function (d) {
