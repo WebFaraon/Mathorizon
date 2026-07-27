@@ -44,7 +44,8 @@ window.BM = window.BM || {};
       { sym: '0' }, { sym: ',' }, { sym: ')' }
     ] },
     { label: 'Operații', keys: [
-      { sym: '+' }, { sym: '-' }, { action: 'power', label: 'xⁿ' }, { sym: '√' }
+      { sym: '+' }, { sym: '-' }, { action: 'power', label: 'xⁿ' }, { sym: '√' },
+      { sym: ' ', label: '␣ Spațiu', wide: true }
     ] },
     { label: 'Simboluri', keys: [
       { sym: 'x' }, { sym: 'y' }, { sym: 'z' }, { sym: 'a' },
@@ -84,7 +85,7 @@ window.BM = window.BM || {};
                 ? `<button type="button" class="sim-key sim-key--danger" data-action="back">${k.label}</button>`
                 : k.action === 'power'
                   ? `<button type="button" class="sim-key sim-key--power" data-action="power" id="simPowerBtn">${k.label}</button>`
-                  : `<button type="button" class="sim-key" data-sym="${BM.esc(k.sym)}">${BM.esc(k.label || k.sym)}</button>`
+                  : `<button type="button" class="sim-key${k.wide ? ' sim-key--wide' : ''}" data-sym="${BM.esc(k.sym)}">${BM.esc(k.label || k.sym)}</button>`
               ).join('')}
             </div>
           </div>`).join('')}

@@ -11239,6 +11239,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: #fff;
 }
 .sim-key--power-on:hover { background: var(--accent); color: #fff; }
+.sim-key--wide { grid-column: 1 / -1; font-size: 0.9rem; }
 
 /* Student results */
 .sim-results-wrap { max-width: 720px; margin: 0 auto; padding: 24px 0; }
