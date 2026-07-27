@@ -2014,9 +2014,23 @@
   GeometryFigureEditor.prototype._eraseObject = function (obj) {
     if (obj.__isSnapMarker) return;
     var canvas = this._fabricCanvas;
-    canvas.remove(obj);
-    canvas.requestRenderAll();
-    this._pushHistory();
+    var self = this;
+    // Deferred, not synchronous: this runs from inside Fabric's own
+    // mouse:down/mouse:move handling (that's what fired the 'mouse:down'/
+    // 'mouse:move' event we're reacting to), and `obj` is the exact target
+    // Fabric itself just found — its internal handler is still executing
+    // and may touch that same object again right after our listener
+    // returns. Removing it from the canvas THIS tick throws inside that
+    // internal code and leaves Fabric's interaction state corrupted for
+    // every tool from then on (this is what broke Select/Pan after a
+    // drag-erase pass — the more objects erased per drag, the more
+    // chances to hit it). Pushing the actual removal to the next tick lets
+    // Fabric finish its own handler first.
+    setTimeout(function () {
+      canvas.remove(obj);
+      canvas.requestRenderAll();
+      self._pushHistory();
+    }, 0);
   };
 
   GeometryFigureEditor.prototype._confirmClear = function () {

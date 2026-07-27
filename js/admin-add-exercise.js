@@ -406,7 +406,7 @@
       </div>
 
       <div class="cls-form-field ae-section">
-        <label class="cls-form-label">Răspuns final (LaTeX, fără $ )</label>
+        <label class="cls-form-label">Răspuns final (LaTeX, fără $ , fără unitate de măsură — ex: 24√6, nu 24√6 cm²)</label>
         <input type="text" id="aeRaspunsFinal" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
         ${r.verificare_numerica ? `<span class="cls-form-hint">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</span>` : ''}
         <div class="ae-preview-box ae-preview-box--compact" id="aeRaspunsFinalPreview" style="margin-top:8px"></div>

@@ -80,7 +80,7 @@ Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimenta
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
   "verificare_numerica": "rezumat scurt al verificării făcute: ce valoare/metodă ai folosit și ce ai obținut (ex: 'la x=2, enunțul evaluat dă -122, iar rezultatul evaluat la x=2 dă tot -122')",
-  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$; sau x=3, sau {1,2}) — deja verificat",
+  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$; sau x=3, sau {1,2}) și FĂRĂ unitate de măsură (ex: 24√6, nu 24√6 cm² — acest exercițiu e notat prin comparație EXACTĂ cu ce tastează elevul, care de regulă nu include unități) — deja verificat",
   "verificat": true doar dacă verificarea de mai sus a confirmat rezultatul fără nicio discrepanță, altfel false
 }`;
 }

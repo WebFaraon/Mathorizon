@@ -174,7 +174,7 @@ Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimenta
 {
   "titlu": "titlu scurt descriptiv",
   "enunt_katex": "enunțul complet, cu $...$/$$...$$",
-  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$) — deja verificat",
+  "raspuns_final": "răspunsul final ca expresie LaTeX BRUTĂ, FĂRĂ delimitatoare $ sau $$ în jurul ei (ex: -1, nu $-1$) și FĂRĂ unitate de măsură (ex: 24√6, nu 24√6 cm² — unitatea, dacă există, se menționează doar în textul pasului din barem, niciodată aici) — deja verificat",
   "punctaj_total": ${punctajTotal || 7},
   "pasi_barem": [
     { "nr": 1, "descriere": "explicația și calculul acestui pas, cu LaTeX $...$/$$...$$ inclus direct în text", "puncte_maxime": 3 }
@@ -190,6 +190,7 @@ Returnează STRICT un obiect JSON valid (fără markdown, fără text suplimenta
 Reguli:
 - suma puncte_maxime din pasi_barem = exact punctaj_total
 - fiecare "descriere" este text final, gata de afișat elevilor — nu adăuga alte câmpuri
+- raspuns_final NU conține niciodată unitate de măsură (cm, cm², grade etc.) — doar valoarea/expresia brută; unitatea apare, dacă e cazul, doar în interiorul textului pașilor din barem
 - metode_alternative poate fi listă goală dacă nu există altă metodă validă
 - "duplicat.este_duplicat" = true DOAR dacă noul exercițiu e practic identic (aceleași numere/aceeași structură) cu unul din lista de mai sus; altfel false`;
 }
