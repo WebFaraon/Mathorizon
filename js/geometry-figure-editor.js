@@ -1105,7 +1105,6 @@
     this._redoStack  = [];
     this._suspendHistory = false;
     this._segmentStart   = null;
-    this._segmentStartDirs = null;
     this._segmentPreviewPoint = null;
     this._previewLine    = null;
     this._rightAngleMark = null;
@@ -1481,6 +1480,20 @@
           var p2 = fabric.util.transformPoint({ x: lp.x2, y: lp.y2 }, m);
           consider(p1, p2);
         } catch (err) {}
+      } else if (obj.type === 'group' && obj.data && obj.data.points) {
+        try {
+          var spec3d = THREE_D[obj.data.kind];
+          if (!spec3d || !spec3d.edges) return;
+          var gm = obj.calcTransformMatrix();
+          var world = {};
+          Object.keys(obj.data.points).forEach(function (k) {
+            world[k] = fabric.util.transformPoint(obj.data.points[k], gm);
+          });
+          spec3d.edges.forEach(function (pair) {
+            var wa = world[pair[0]], wb = world[pair[1]];
+            if (wa && wb) consider(wa, wb);
+          });
+        } catch (err) {}
       }
     });
     return best;
@@ -1665,29 +1678,45 @@
     this._fabricCanvas.add(mark);
   };
 
-  // Checks whether the current drag direction (from _segmentStart) is
-  // within RIGHT_ANGLE_SNAP_DEG of exactly perpendicular to one of the
-  // directions the start point snapped onto (_segmentStartDirs — an edge
-  // vertex/midpoint's own direction(s), stashed when the start point was
-  // placed). Returns { point, dir1, dir2 } for the indicator + snapped
-  // endpoint, or null if no direction is close enough right now.
+  // Drop-a-perpendicular-onto-a-nearby-side check — the angle forms where
+  // the line ARRIVES, not where it started (e.g. a triangle's altitude:
+  // you start at a vertex, drag toward the OPPOSITE side, and the line
+  // should snap perpendicular to THAT side, landing exactly on it). So this
+  // looks at whatever real edge (of any other shape, any orientation —
+  // tilted works exactly like axis-aligned, it's a plain angle-between-two-
+  // vectors check, not a special-cased horizontal/vertical one) the cursor
+  // is currently near, not at anything connected to _segmentStart. Returns
+  // { point, dir1, dir2 } — point is the exact foot of the perpendicular
+  // ON that edge's line, both for the snapped endpoint and for where the
+  // little right-angle mark renders — or null if nothing's close enough.
   GeometryFigureEditor.prototype._rightAngleSnap = function (pt) {
-    if (!this._segmentStartDirs || !this._segmentStartDirs.length) return null;
+    var edge = this._findNearestEdge(pt);
+    if (!edge) return null;
+    var edgeDir = unitVec(edge.p2, edge.p1);
     var dx = pt.x - this._segmentStart.x, dy = pt.y - this._segmentStart.y;
     var len = Math.hypot(dx, dy);
     if (len < 2) return null;
-    var dir = { x: dx / len, y: dy / len };
-    var found = null;
-    this._segmentStartDirs.forEach(function (ed) {
-      var dot = Math.max(-1, Math.min(1, dir.x * ed.x + dir.y * ed.y));
-      var diffFrom90 = Math.abs(Math.acos(dot) * 180 / Math.PI - 90);
-      if (diffFrom90 <= RIGHT_ANGLE_SNAP_DEG) {
-        var perp = { x: -ed.y, y: ed.x };
-        if (dir.x * perp.x + dir.y * perp.y < 0) perp = { x: ed.y, y: -ed.x };
-        found = { dir1: ed, dir2: perp, len: len };
-      }
-    });
-    return found;
+    var dragDir = { x: dx / len, y: dy / len };
+    var dot = Math.max(-1, Math.min(1, dragDir.x * edgeDir.x + dragDir.y * edgeDir.y));
+    var diffFrom90 = Math.abs(Math.acos(dot) * 180 / Math.PI - 90);
+    if (diffFrom90 > RIGHT_ANGLE_SNAP_DEG) return null;
+
+    // Foot of the perpendicular from _segmentStart onto the edge's
+    // (infinite) line — vector projection.
+    var t = (this._segmentStart.x - edge.p1.x) * edgeDir.x + (this._segmentStart.y - edge.p1.y) * edgeDir.y;
+    var foot = { x: edge.p1.x + edgeDir.x * t, y: edge.p1.y + edgeDir.y * t };
+
+    // Orient the mark's two arms so they actually bracket the angle: dir1
+    // along the edge toward wherever the cursor currently sits (either
+    // edge direction is mathematically a valid 90°, but only one reads as
+    // "pointing at what the user is doing"); dir2 back along the drawn
+    // segment, from the foot toward the start.
+    var dir1 = edgeDir;
+    var alongSign = (pt.x - foot.x) * edgeDir.x + (pt.y - foot.y) * edgeDir.y;
+    if (alongSign < 0) dir1 = { x: -edgeDir.x, y: -edgeDir.y };
+    var dir2 = unitVec(this._segmentStart, foot);
+
+    return { point: foot, dir1: dir1, dir2: dir2 };
   };
 
   GeometryFigureEditor.prototype._updateSegmentPreview = function (pt) {
@@ -1699,11 +1728,8 @@
     // — landing exactly on an existing point is more useful/explicit.
     var rightAngle = snap ? null : this._rightAngleSnap(pt);
     if (rightAngle) {
-      p = {
-        x: this._segmentStart.x + rightAngle.dir2.x * rightAngle.len,
-        y: this._segmentStart.y + rightAngle.dir2.y * rightAngle.len
-      };
-      this._updateRightAngleIndicator({ point: this._segmentStart, dir1: rightAngle.dir1, dir2: rightAngle.dir2 });
+      p = rightAngle.point;
+      this._updateRightAngleIndicator(rightAngle);
     } else {
       this._updateRightAngleIndicator(null);
     }
@@ -1725,7 +1751,6 @@
     if (!this._segmentStart) {
       var snap = this._nearestSnapPoint(pt);
       this._segmentStart = snap ? { x: snap.x, y: snap.y } : pt;
-      this._segmentStartDirs = (snap && snap.edgeDirs) || [];
       return;
     }
     // Whatever the live preview last showed (plain point-snap OR a
@@ -1744,7 +1769,6 @@
     this._clearSegmentPreview();
     this._fabricCanvas.add(line);
     this._segmentStart = null;
-    this._segmentStartDirs = null;
     this._setTool('select');
     this._pushHistory();
   };
@@ -1821,7 +1845,6 @@
     this._tool = tool;
     this._clearSegmentPreview();
     this._segmentStart = null;
-    this._segmentStartDirs = null;
     var placing = tool !== 'select';
     this._fabricCanvas.selection = !placing;
     this._fabricCanvas.getObjects().forEach(function (o) { o.selectable = !placing; });
