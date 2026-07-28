@@ -12655,7 +12655,9 @@ body.bac-exam-mode .nav.nav--peek {
   border: 1px solid var(--border);
   border-radius: 10px;
   background: var(--surface);
+  box-shadow: inset 0 1px 3px rgba(20,16,8,0.07);
 }
+[data-theme="dark"] .ae-preview-box { box-shadow: inset 0 1px 3px rgba(0,0,0,0.35); }
 .av-body {
   max-height: 60vh;
   overflow-y: auto;
@@ -14833,39 +14835,55 @@ body.dc-fullscreen-active .dc-toolbar {
   border-radius: 12px;
   padding: 16px 18px;
   background: var(--surface);
+  box-shadow: inset 0 1px 4px rgba(20,16,8,0.05);
   margin-bottom: 22px !important; /* override .cls-form-field's flat 16px */
 }
+[data-theme="dark"] .ae-section { box-shadow: inset 0 1px 4px rgba(0,0,0,0.3); }
 .ae-section:last-child { margin-bottom: 0 !important; }
 
 /* ---- Editable barem / metode-alternative rows (§4) ----
-   Column layout (not a single flex row) so each row's own live preview (see
-   admin-add-exercise.js's _aeRenderBaremStepPreview/_aeRenderAltStepPreview)
-   sits directly underneath its textarea instead of squeezed in as another
-   same-row flex item. */
+   Each step/method is its own raised card (background + border + shadow)
+   rather than just a border-bottom divider — with several stacked in a row
+   they used to blend into one long undifferentiated block. .ae-barem-row
+   uses a 4-column grid (nr / desc / points / delete) so the preview box
+   underneath (grid-column 2, same as the textarea) lines up exactly with
+   the step's input instead of the old fixed margin-left approximation. */
 .ae-barem-row, .ae-alt-row {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 14px 0;
-  border-bottom: 1px solid var(--border);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px;
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 12px;
 }
-.ae-barem-row:last-child, .ae-alt-row:last-child { border-bottom: none; padding-bottom: 4px; }
-.ae-barem-row:first-child, .ae-alt-row:first-child { padding-top: 4px; }
-.ae-barem-row__main, .ae-alt-row__main { display: flex; gap: 10px; align-items: flex-start; }
+.ae-barem-row:last-child, .ae-alt-row:last-child { margin-bottom: 0; }
+
+.ae-barem-row {
+  display: grid;
+  grid-template-columns: auto minmax(0,1fr) 70px auto;
+  column-gap: 10px;
+  row-gap: 10px;
+  align-items: start;
+}
 .ae-barem-row__nr {
-  flex: 0 0 auto;
+  grid-column: 1;
   padding-top: 10px;
   font-weight: 700;
   color: var(--accent);
 }
-.ae-barem-row__desc, .ae-alt-row__desc { flex: 1 1 auto; min-width: 0; }
-.ae-barem-row__pts { flex: 0 0 70px; }
-.ae-alt-row__nume { flex: 0 0 180px; }
-.ae-barem-row__del, .ae-alt-row__del { flex: 0 0 auto; margin-top: 4px; }
-/* Roughly aligns the preview under the textarea above it, past the "1."
-   number column (its width + the row's own 10px gap) — .ae-alt-row has no
-   such leading column, so its preview starts flush left instead. */
-.ae-barem-row__preview { margin-left: 32px; }
+.ae-barem-row__desc { grid-column: 2; min-width: 0; }
+.ae-barem-row__pts { grid-column: 3; }
+.ae-barem-row__del { grid-column: 4; margin-top: 4px; }
+.ae-barem-row__preview { grid-column: 2; }
+
+/* .ae-alt-row: name field full-width (was a cramped 180px box that clipped
+   most method titles) with the delete button riding alongside it, then the
+   description and its preview stacked full-width beneath — both naturally
+   share the same left edge, no alignment hack needed. */
+.ae-alt-row { display: flex; flex-direction: column; gap: 10px; }
+.ae-alt-row__head { display: flex; gap: 10px; align-items: center; }
+.ae-alt-row__nume { flex: 1 1 auto; font-weight: 600; }
+.ae-alt-row__del { flex: 0 0 auto; }
 
 .ae-preview-label {
   font-size: 0.62rem;
@@ -14876,6 +14894,47 @@ body.dc-fullscreen-active .dc-toolbar {
   margin-bottom: 6px;
 }
 .ae-preview-box--compact { padding: 10px 12px; font-size: 0.9rem; }
+
+/* ---- Verificare AI — collapsed by default under the Răspuns final
+   preview; only takes up space once the admin actually asks for it. ---- */
+.ae-verif { margin-top: 10px; }
+.ae-verif__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.ae-verif__toggle:hover { color: var(--accent); }
+.ae-verif__chev { transition: transform 0.18s ease; font-size: 0.7rem; }
+.ae-verif__toggle--open .ae-verif__chev { transform: rotate(180deg); }
+.ae-verif__body {
+  margin-top: 8px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+/* ---- Stronger "just filled in" feedback (§4) — plays automatically on
+   insertion since the class ships in the freshly-rendered markup itself
+   (fresh AI analysis, edit-mode load, or a barem/alt row being added or
+   removed), no JS toggling needed. Ring pulse rather than a color/opacity
+   fade so it reads clearly even on a quick glance. */
+@keyframes aeFillPop {
+  0%   { box-shadow: 0 0 0 0 rgba(22,163,74,0.5); }
+  40%  { box-shadow: 0 0 0 7px rgba(22,163,74,0); }
+  100% { box-shadow: 0 0 0 0 rgba(22,163,74,0); }
+}
+.ae-fill-pop { animation: aeFillPop 0.7s ease-out; }
 
 @media (max-width: 480px) {
   .pricing-hero { padding: 48px 0 32px; }

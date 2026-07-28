@@ -60,6 +60,18 @@
     });
   }
 
+  // Always fetch a fresh session right before use instead of reusing a
+  // cached one — supabase-js transparently refreshes an expired access
+  // token inside getSession() (using the refresh token), but a session
+  // object grabbed once at page load and kept around never benefits from
+  // that: figure-drawing/photo-upload/AI-analysis can easily take longer
+  // than the access token's lifetime, so by the time of Save the cached
+  // token is stale and Supabase rejects the request with PGRST303 "JWT
+  // expired". Fetching fresh here means every request gets a valid token.
+  async function _aeSession() {
+    return (await window.BMAuth.supabase.auth.getSession()).data.session;
+  }
+
   document.addEventListener('DOMContentLoaded', async () => {
     const auth = await _waitForAuth();
     if (!auth.user) { window.location.replace('auth.html?from=admin-add-exercise.html'); return; }
@@ -74,7 +86,6 @@
       return;
     }
 
-    window._adminSession = (await auth.supabase.auth.getSession()).data.session;
     if (loading) loading.style.display = 'none';
     if (wrap)    wrap.style.display    = '';
 
@@ -99,9 +110,10 @@
      re-analyze to regenerate everything from scratch. */
   async function _aeLoadForEdit(id) {
     try {
+      const session = await _aeSession();
       const res = await fetch(
         `${SUPABASE_URL}/rest/v1/custom_exercises?id=eq.${encodeURIComponent(id)}&select=*`,
-        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${window._adminSession?.access_token || ''}` } }
+        { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${session?.access_token || ''}` } }
       );
       const rows = await res.json();
       const row = rows && rows[0];
@@ -330,7 +342,7 @@
     const sub = BM.getSubcategoryById(ae.categoryId, ae.subcategoryId);
 
     try {
-      const session = window._adminSession || (await window.BMAuth.supabase.auth.getSession()).data.session;
+      const session = await _aeSession();
       const existingExercises = await _aeGetExistingForSubcat();
       const res = await fetch('/api/admin/generate-exercise', {
         method: 'POST',
@@ -390,12 +402,12 @@
 
       <div class="cls-form-field">
         <label class="cls-form-label">Titlu</label>
-        <input type="text" id="aeTitlu" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
+        <input type="text" id="aeTitlu" class="cls-form-input ae-fill-pop" value="${BM.esc(r.titlu || '')}">
       </div>
 
       <div class="cls-form-field">
         <label class="cls-form-label">Enunț (LaTeX)</label>
-        <textarea id="aeEnunt" class="cls-form-input" rows="4" style="font-family:monospace;font-size:0.85rem">${BM.esc(r.enunt_katex || '')}</textarea>
+        <textarea id="aeEnunt" class="cls-form-input ae-fill-pop" rows="4" style="font-family:monospace;font-size:0.85rem">${BM.esc(r.enunt_katex || '')}</textarea>
         <div class="ae-preview-box" id="aeEnuntPreview" style="margin-top:8px"></div>
       </div>
 
@@ -406,10 +418,17 @@
       </div>
 
       <div class="cls-form-field ae-section">
-        <label class="cls-form-label">Răspuns final (LaTeX, fără $ , fără unitate de măsură — ex: 24√6, nu 24√6 cm²)</label>
-        <input type="text" id="aeRaspunsFinal" class="cls-form-input" value="${BM.esc(r.raspuns_final || '')}">
-        ${r.verificare_numerica ? `<span class="cls-form-hint">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</span>` : ''}
+        <label class="cls-form-label">Răspuns final</label>
+        <input type="text" id="aeRaspunsFinal" class="cls-form-input ae-fill-pop" value="${BM.esc(r.raspuns_final || '')}">
+        <span class="cls-form-hint">LaTeX, fără $, fără unitate de măsură — ex: 24√6, nu 24√6 cm²</span>
         <div class="ae-preview-box ae-preview-box--compact" id="aeRaspunsFinalPreview" style="margin-top:8px"></div>
+        ${r.verificare_numerica ? `
+        <div class="ae-verif">
+          <button type="button" class="ae-verif__toggle" id="aeVerifToggle" aria-expanded="false">
+            <span>🔍 Verificare AI</span><span class="ae-verif__chev">▾</span>
+          </button>
+          <div class="ae-verif__body" id="aeVerifBody" hidden>${BM.esc(r.verificare_numerica)}</div>
+        </div>` : ''}
       </div>
 
       <div class="cls-form-field ae-section">
@@ -436,6 +455,15 @@
       if (!confirm('Regenerezi cu AI? Rezultatul curent (inclusiv editările tale) se pierde.')) return;
       await _aeAnalyze();
     });
+    const verifToggle = body.querySelector('#aeVerifToggle');
+    if (verifToggle) {
+      verifToggle.addEventListener('click', () => {
+        const open = verifToggle.getAttribute('aria-expanded') === 'true';
+        verifToggle.setAttribute('aria-expanded', String(!open));
+        verifToggle.classList.toggle('ae-verif__toggle--open', !open);
+        body.querySelector('#aeVerifBody').hidden = open;
+      });
+    }
 
     _aeRenderEnuntPreview();
     _aeRenderRaspunsFinalPreview();
@@ -488,13 +516,11 @@
     const wrap = document.getElementById('aeBaremRows');
     const pasi = ae.aiResult.pasi_barem || [];
     wrap.innerHTML = pasi.map((p, i) => `
-      <div class="ae-barem-row" data-idx="${i}">
-        <div class="ae-barem-row__main">
-          <span class="ae-barem-row__nr">${p.nr || i + 1}.</span>
-          <textarea class="cls-form-input ae-barem-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem">${BM.esc(p.descriere || '')}</textarea>
-          <input type="number" min="0" class="cls-form-input ae-barem-row__pts" data-field="puncte_maxime" value="${Number(p.puncte_maxime) || 0}">
-          <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">✕</button>
-        </div>
+      <div class="ae-barem-row ae-fill-pop" data-idx="${i}">
+        <span class="ae-barem-row__nr">${p.nr || i + 1}.</span>
+        <textarea class="cls-form-input ae-barem-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem">${BM.esc(p.descriere || '')}</textarea>
+        <input type="number" min="0" class="cls-form-input ae-barem-row__pts" data-field="puncte_maxime" value="${Number(p.puncte_maxime) || 0}">
+        <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">✕</button>
         <div class="ae-preview-box ae-preview-box--compact ae-barem-row__preview" id="aeBaremPreview${i}"></div>
       </div>
     `).join('') || '<p class="cls-form-hint">Niciun pas — apasă „+ Adaugă pas”.</p>';
@@ -537,12 +563,12 @@
     const wrap = document.getElementById('aeAltRows');
     const alts = ae.aiResult.metode_alternative || [];
     wrap.innerHTML = alts.map((m, i) => `
-      <div class="ae-alt-row" data-idx="${i}">
-        <div class="ae-alt-row__main">
+      <div class="ae-alt-row ae-fill-pop" data-idx="${i}">
+        <div class="ae-alt-row__head">
           <input type="text" class="cls-form-input ae-alt-row__nume" data-field="nume" placeholder="Nume metodă" value="${BM.esc(m.nume || '')}">
-          <textarea class="cls-form-input ae-alt-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
           <button class="btn btn--danger-outline btn--sm ae-alt-row__del" title="Șterge metoda">✕</button>
         </div>
+        <textarea class="cls-form-input ae-alt-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
         <div class="ae-preview-box ae-preview-box--compact" id="aeAltPreview${i}"></div>
       </div>
     `).join('') || '<p class="cls-form-hint">Nicio metodă alternativă.</p>';
@@ -663,7 +689,7 @@
     const btn = document.getElementById('aeConfirmBtn');
     btn.disabled = true;
     try {
-      const session = window._adminSession || (await window.BMAuth.supabase.auth.getSession()).data.session;
+      const session = await _aeSession();
       const url = isEdit
         ? `${SUPABASE_URL}/rest/v1/custom_exercises?id=eq.${encodeURIComponent(ae.editId)}`
         : `${SUPABASE_URL}/rest/v1/custom_exercises`;
