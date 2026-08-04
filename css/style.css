@@ -2600,6 +2600,17 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .rarity-card__actions .ex-action-btn { width: 32px; height: 32px; font-size: 0.95rem; }
 
+/* Match the tag pills' height to the 32px action buttons on the same row,
+   so "5p" / subcapitol badges align instead of looking squashed next to
+   the fav/solved icon buttons. */
+.rarity-card__tags .points-badge,
+.rarity-card__tags .type-badge {
+  height: 32px;
+  display: inline-flex;
+  align-items: center;
+  box-sizing: border-box;
+}
+
 /* Solved state needs to read clearly at a glance across every rarity — the
    shared .ex-action-btn.solved.active style uses a low-opacity "dim" tint
    (fine on a plain accordion row) that loses contrast against a colorful
@@ -2982,16 +2993,21 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--border);
+  padding: 12px 14px;
+  margin-bottom: 8px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
   cursor: pointer;
-  transition: background var(--transition);
+  transition: transform var(--transition), background var(--transition),
+              border-color var(--transition), box-shadow var(--transition);
 }
-.panel-ex-item:last-child { border-bottom: none; }
+.panel-ex-item:last-child { margin-bottom: 0; }
 .panel-ex-item:hover {
   background: var(--card-hover);
-  padding-left: 5px;
-  border-radius: var(--radius-sm);
+  border-color: rgba(0, 0, 0, 0.16);
+  box-shadow: var(--shadow-sm);
+  transform: translateX(2px);
 }
 
 .panel-ex-item__info { flex: 1; }
