@@ -146,12 +146,27 @@ ${list}`;
 const GEOMETRY_FIGURE_IGNORE_BLOCK = `
 IMPORTANT — fotografia poate conține și o figură/schiță geometrică (triunghi, cerc, desen). IGNOR-O COMPLET: nu o descrie, nu o menționa în enunț, nu încerca să-i deduci dimensiunile sau unghiurile din desen. Transcrie STRICT enunțul text al problemei (datele numerice și cerințele scrise). Figura va fi redesenată manual, separat, de către profesor — nu este responsabilitatea ta.`;
 
+// Gemini's default instinct for a right triangle with a 30°/45°/60° angle is
+// to reach for cos/sin (e.g. AE = AB·cos(30°)) — mathematically valid, but
+// NOT how this is taught at this level in the Moldovan curriculum, where the
+// expected/official-barem method is the 30-60-90 (and 45-45-90) special
+// right-triangle theorem: cateta opusă unghiului de 30° = jumătate din
+// ipotenuză; cateta opusă unghiului de 60° = radical din 3 ori cealaltă
+// catetă. A barem built around cos/sin here reads as off-curriculum even
+// though the number is correct — so the special-triangle theorem must be
+// the PRIMARY method in pasi_barem, with a trig-based approach (if any)
+// only ever offered in metode_alternative.
+const GEOMETRY_SPECIAL_ANGLE_BLOCK = `
+IMPORTANT — dacă rezolvarea implică un triunghi dreptunghic cu un unghi de 30°, 45° sau 60°, metoda PRINCIPALĂ din pasi_barem trebuie să fie proprietatea triunghiului dreptunghic cu unghiuri speciale (30°-60°-90°: cateta opusă unghiului de 30° este jumătate din ipotenuză, iar cateta opusă unghiului de 60° este egală cu cealaltă catetă înmulțită cu radical din 3; 45°-45°-90°: catetele sunt egale, ipotenuza = cateta·radical din 2) — NU trigonometrie (sin/cos/tan aplicat direct unghiului). Trigonometria poate apărea DOAR în metode_alternative, niciodată ca pasul principal din barem, atâta timp cât unghiul este 30°, 45° sau 60°.`;
+
 function buildPrompt(context, existingExercises) {
   const { grade, categoryId, categoryName, subcategoryId, subcategoryName, difficulty, punctajTotal } = context;
   const totalBlock = punctajTotal
     ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
     : `Estimează punctajul total ca într-un barem oficial BAC Moldova.`;
-  const geometryBlock = categoryId === 'geometrie' ? GEOMETRY_FIGURE_IGNORE_BLOCK : '';
+  const geometryBlock = categoryId === 'geometrie'
+    ? GEOMETRY_FIGURE_IGNORE_BLOCK + '\n' + GEOMETRY_SPECIAL_ANGLE_BLOCK
+    : '';
   const examplesCount = matchingExamples(categoryId, subcategoryId).length;
   const examplesBlock = buildExamplesBlock(categoryId, subcategoryId);
 
