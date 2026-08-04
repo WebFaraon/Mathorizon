@@ -119,30 +119,33 @@
           <div class="cat-header__info">
             <h1 class="cat-header__name">${BM.esc(cat.name)}</h1>
             <p class="cat-header__desc">${BM.esc(cat.description)}</p>
-            <div class="cat-stats-row">
-              <div class="cat-stat">
-                <div class="cat-stat__num" id="hdr-total">${prog.total}</div>
-                <div class="cat-stat__lbl">Exerciții</div>
+            <div class="cat-hud">
+              <div class="cat-hud__stat">
+                <span class="cat-hud__icon" aria-hidden="true">▦</span>
+                <div>
+                  <div class="cat-hud__num" id="hdr-total">${prog.total}</div>
+                  <div class="cat-hud__lbl">Exerciții</div>
+                </div>
               </div>
-              <div class="cat-stat__sep"></div>
-              <div class="cat-stat">
-                <div class="cat-stat__num" style="color:var(--solved)" id="hdr-solved">${prog.solved}</div>
-                <div class="cat-stat__lbl">Rezolvate</div>
+              <div class="cat-hud__stat cat-hud__stat--solved">
+                <span class="cat-hud__icon" aria-hidden="true">✓</span>
+                <div>
+                  <div class="cat-hud__num" id="hdr-solved">${prog.solved}</div>
+                  <div class="cat-hud__lbl">Rezolvate</div>
+                </div>
               </div>
-              <div class="cat-stat__sep"></div>
-              <div class="cat-stat">
-                <div class="cat-stat__num" style="color:${cat.color}" id="hdr-pct">${prog.percent}%</div>
-                <div class="cat-stat__lbl">Completat</div>
-              </div>
-            </div>
-            <div class="cat-progress-wrap">
-              <div class="cat-progress-track">
-                <div class="cat-progress-fill" id="catProgressFill"
-                     style="background:${cat.color}"></div>
-              </div>
-              <div class="cat-progress-label">
-                <span id="hdr-progress-txt">${prog.solved} din ${prog.total} exerciții rezolvate</span>
-                <span style="color:${cat.color};font-weight:700" id="hdr-progress-pct">${prog.percent}%</span>
+              <div class="cat-hud__bar-block">
+                <div class="cat-hud__bar-top">
+                  <span class="cat-hud__bar-label">Progres</span>
+                  <span class="cat-hud__bar-pct" id="hdr-pct" style="color:${cat.color}">${prog.percent}%</span>
+                </div>
+                <div class="cat-hud__track">
+                  <div class="cat-hud__fill" id="catProgressFill" style="background:${cat.color}"></div>
+                  <span class="cat-hud__tick" style="left:25%"></span>
+                  <span class="cat-hud__tick" style="left:50%"></span>
+                  <span class="cat-hud__tick" style="left:75%"></span>
+                </div>
+                <div class="cat-hud__bar-caption" id="hdr-progress-txt">${prog.solved} din ${prog.total} exerciții rezolvate</div>
               </div>
             </div>
           </div>
@@ -165,9 +168,22 @@
     const exEl    = document.getElementById('exercisesSection');
     switchView(exEl, cardsEl, () => {
       resetHeaderToCategory();
+      renderCatBreadcrumb();
       renderSubcatCards();
       refreshHeader();
     });
+  }
+
+  function renderCatBreadcrumb() {
+    const cat = currentCategory;
+    const bc  = document.getElementById('catBreadcrumb');
+    if (!bc) return;
+    const nameEl = document.getElementById('catBreadcrumbName');
+    if (nameEl) {
+      nameEl.textContent   = cat.name;
+      nameEl.style.color   = cat.color;
+    }
+    bc.style.display = '';
   }
 
   /* ---- Header helpers: swap between category and subcategory ---- */
@@ -276,6 +292,8 @@
     const cardsEl = document.getElementById('subcatCardsSection');
     const exEl    = document.getElementById('exercisesSection');
     switchView(cardsEl, exEl, () => {
+      const bc = document.getElementById('catBreadcrumb');
+      if (bc) bc.style.display = 'none';
       const sub = BM.getSubcategoryById(currentCategory.id, subcatId);
       updateHeaderForSubcat(sub);
       renderBreadcrumb(sub);
@@ -1052,8 +1070,6 @@
     if (elP)     elP.textContent = prog.percent + '%';
     const elTxt  = document.getElementById('hdr-progress-txt');
     if (elTxt)   elTxt.textContent = `${prog.solved} din ${prog.total} exerciții rezolvate`;
-    const elPLbl = document.getElementById('hdr-progress-pct');
-    if (elPLbl)  elPLbl.textContent = prog.percent + '%';
   }
 
   /* ---- Random set ---- */
