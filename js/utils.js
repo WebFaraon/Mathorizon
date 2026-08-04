@@ -267,11 +267,15 @@ BM.toast = function(msg, type = 'info', duration = 2800) {
 BM.openPanel = function(id) {
   document.getElementById('overlay')?.classList.add('open');
   document.getElementById(`panel-${id}`)?.classList.add('open');
+  document.documentElement.style.overflow = 'hidden';
+  document.body.style.overflow = 'hidden';
 };
 
 BM.closeAllPanels = function() {
   document.getElementById('overlay')?.classList.remove('open');
   document.querySelectorAll('.panel').forEach(p => p.classList.remove('open'));
+  document.documentElement.style.overflow = '';
+  document.body.style.overflow = '';
 };
 
 /* ---- Progress ring update ---- */

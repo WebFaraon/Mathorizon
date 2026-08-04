@@ -20,6 +20,15 @@
      See renderExercises/renderFilterBar below for what this toggles. ---- */
   const RARITY_SUBCATS = new Set(['calcul-algebric', 'polinoame', 'geo-plana', 'geo-spatiu']);
 
+  /* ---- Fav / solved action-button icons (SVG, not font glyphs — a plain
+     "☐" read as an unclear placeholder rather than "mark as solved"). ---- */
+  function iconHeart(filled) {
+    return `<svg viewBox="0 0 24 24" width="15" height="15" fill="${filled ? 'currentColor' : 'none'}" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>`;
+  }
+  function iconCheck(done) {
+    return `<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/>${done ? '<polyline points="7.8 12.4 10.6 15.2 16.3 9"/>' : ''}</svg>`;
+  }
+
   function hasFullBankAccess() {
     const role = window.BMAuth?.role;
     return role === 'profesor' || role === 'admin';
@@ -618,10 +627,10 @@
                 ${canEdit ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">✎</button>` : ''}
                 <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                         onclick="toggleFav('${ex.id}', this)"
-                        title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">${isFav ? '♥' : '♡'}</button>
+                        title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">${iconHeart(isFav)}</button>
                 <button class="ex-action-btn solved ${isSolved ? 'active' : ''}"
                         onclick="toggleSolved('${ex.id}', this)"
-                        title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">${isSolved ? '✓' : '☐'}</button>
+                        title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">${iconCheck(isSolved)}</button>
               </div>
             </div>
             <div class="rarity-card__title">${BM.esc(ex.title)}</div>
@@ -903,12 +912,12 @@
               <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                       onclick="toggleFav('${ex.id}', this)"
                       title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">
-                ${isFav ? '♥' : '♡'}
+                ${iconHeart(isFav)}
               </button>
               <button class="ex-action-btn solved ${isSolved ? 'active' : ''}"
                       onclick="toggleSolved('${ex.id}', this)"
                       title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">
-                ${isSolved ? '✓' : '☐'}
+                ${iconCheck(isSolved)}
               </button>
               <button class="ex-action-btn ex-card__expand" onclick="toggleCard('${ex.id}')">↓</button>
             </div>
@@ -1005,7 +1014,7 @@
     if (card) card.classList.toggle('solved', nowSolved);
     if (actionBtn) {
       actionBtn.classList.toggle('active', nowSolved);
-      actionBtn.textContent = nowSolved ? '✓' : '☐';
+      actionBtn.innerHTML = iconCheck(nowSolved);
       actionBtn.title = nowSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat';
     }
     if (solveBtn) {
@@ -1033,7 +1042,7 @@
     const nowFav = BM.Storage.toggleFavorite(id);
     if (btn) {
       btn.classList.toggle('active', nowFav);
-      btn.textContent = nowFav ? '♥' : '♡';
+      btn.innerHTML = iconHeart(nowFav);
       btn.title = nowFav ? 'Elimină din favorite' : 'Adaugă la favorite';
     }
 

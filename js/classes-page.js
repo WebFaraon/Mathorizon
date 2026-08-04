@@ -74,10 +74,11 @@
         </div>
       `;
 
-      const close = (result) => { overlay.remove(); document.body.style.overflow = ''; resolve(result); };
+      const close = (result) => { overlay.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; resolve(result); };
       overlay.addEventListener('click', e => { if (e.target === overlay) close(false); });
       overlay.querySelector('#confirmNo').addEventListener('click',  () => close(false));
       overlay.querySelector('#confirmYes').addEventListener('click', () => close(true));
+      document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
       document.body.appendChild(overlay);
       overlay.querySelector('#confirmNo').focus();

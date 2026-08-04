@@ -49,13 +49,14 @@
           <button class="btn btn--danger"  data-action="confirm">${confirmLabel}</button>
         </div>
       </div>`;
+    document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
     document.body.appendChild(ov);
     requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
 
     const close = () => {
       ov.classList.remove('prof-modal-overlay--in');
-      setTimeout(() => { ov.remove(); document.body.style.overflow = ''; }, 180);
+      setTimeout(() => { ov.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }, 180);
     };
 
     ov.addEventListener('click', e => {
