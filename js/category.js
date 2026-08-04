@@ -121,14 +121,25 @@
             <p class="cat-header__desc">${BM.esc(cat.description)}</p>
             <div class="cat-hud">
               <div class="cat-hud__stat">
-                <span class="cat-hud__icon" aria-hidden="true">▦</span>
+                <span class="cat-hud__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="4" y="3" width="16" height="18" rx="2.4"></rect>
+                    <line x1="8" y1="8" x2="16" y2="8"></line>
+                    <line x1="8" y1="12.2" x2="16" y2="12.2"></line>
+                    <line x1="8" y1="16.4" x2="12.5" y2="16.4"></line>
+                  </svg>
+                </span>
                 <div>
                   <div class="cat-hud__num" id="hdr-total">${prog.total}</div>
                   <div class="cat-hud__lbl">Exerciții</div>
                 </div>
               </div>
               <div class="cat-hud__stat cat-hud__stat--solved">
-                <span class="cat-hud__icon" aria-hidden="true">✓</span>
+                <span class="cat-hud__icon" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="4 12.5 9.5 18 20 5"></polyline>
+                  </svg>
+                </span>
                 <div>
                   <div class="cat-hud__num" id="hdr-solved">${prog.solved}</div>
                   <div class="cat-hud__lbl">Rezolvate</div>
