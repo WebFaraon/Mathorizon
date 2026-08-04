@@ -216,6 +216,47 @@
     poly.setPositionByOrigin(oldCenter, 'center', 'center');
   }
 
+  // A whole-shape resize (dragging a green corner/edge handle, as opposed to
+  // dragging one pink vertex) leaves scaleX/scaleY non-1 while .points stays
+  // in its original, unscaled local coordinates — Fabric bakes that
+  // anisotropic stretch into a transform matrix at export time instead of
+  // into the geometry. strokeUniform (vector-effect="non-scaling-stroke")
+  // masks the effect on the live canvas AND in a raw export, but
+  // normalizeStrokeWidthInSvg deliberately strips that attribute for static
+  // exports (see its comment) — once stripped, a leftover non-uniform
+  // transform visibly thickens whichever edges are more aligned with the
+  // more-stretched axis (e.g. a trapezoid's legs after widening it; a
+  // square's edges after turning it into a non-square rectangle). Baking
+  // the scale into .points and resetting scaleX/scaleY to 1 keeps every
+  // edge's stroke isotropic no matter how non-uniformly the shape was
+  // resized. Vertex-dragging (which never touches scaleX/scaleY) is
+  // unaffected — this is a no-op whenever scaleX/scaleY are already 1.
+  function bakePolygonScale(poly) {
+    if (poly.scaleX === 1 && poly.scaleY === 1) return;
+    var oldCenter = poly.getCenterPoint();
+    var sx = poly.scaleX, sy = poly.scaleY;
+    poly.points = poly.points.map(function (p) { return { x: p.x * sx, y: p.y * sy }; });
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    poly.points.forEach(function (p) {
+      if (p.x < minX) minX = p.x; if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y; if (p.y > maxY) maxY = p.y;
+    });
+    poly.pathOffset = { x: (minX + maxX) / 2, y: (minY + maxY) / 2 };
+    poly.width  = maxX - minX;
+    poly.height = maxY - minY;
+    poly.set({ scaleX: 1, scaleY: 1 });
+    poly.setPositionByOrigin(oldCenter, 'center', 'center');
+  }
+
+  // Same anisotropic-scale bug as bakePolygonScale above, but a Rect's
+  // geometry is just width/height (with a left/top origin, so growing them
+  // never needs to reposition the shape) — bake scaleX/scaleY into those
+  // directly instead of a points array.
+  function bakeRectScale(rect) {
+    if (rect.scaleX === 1 && rect.scaleY === 1) return;
+    rect.set({ width: rect.width * rect.scaleX, height: rect.height * rect.scaleY, scaleX: 1, scaleY: 1 });
+  }
+
   function refreshCoordsWrapper(fn) {
     return function (eventData, transform, x, y) {
       // Deliberately NOT calling recomputePolygonBounds here: this actionHandler
@@ -1273,13 +1314,18 @@
   };
 
   GeometryFigureEditor.prototype._reattach = function (obj) {
-    if (obj.type === 'polygon') attachPolygonVertexControls(obj);
+    // Self-heals any figure saved before bakePolygonScale/bakeRectScale
+    // existed (a non-uniformly-resized polygon/rect whose scaleX/scaleY
+    // never got baked into its geometry, see those functions' comment) —
+    // opening the editor on it, even without touching the shape, is enough
+    // to normalize it before the next save/export.
+    if (obj.type === 'polygon') { attachPolygonVertexControls(obj); bakePolygonScale(obj); obj.setCoords(); }
     if (obj.type === 'circle')  attachCircleUniformControls(obj);
     // Rect (the "patrat" preset) only ever gets the shared scale/rotate
     // styling (no per-vertex controls, same as circle) — was missing here,
     // so after undo/redo/load it fell back to Fabric's bare default
     // (uncolored circular) handles instead of the green/blue custom ones.
-    if (obj.type === 'rect')    styleScaleAndRotateControls(obj);
+    if (obj.type === 'rect')    { styleScaleAndRotateControls(obj); bakeRectScale(obj); obj.setCoords(); }
     if (obj.type === 'line' && obj.data && obj.data.kind === 'segment') attachLineEndpointControls(obj);
     // fabric.Control instances (positionHandler/actionHandler/render — all
     // functions) never survive a JSON round-trip, so every 3D group needs
@@ -2231,7 +2277,11 @@
 
     this._fabricCanvas.on('object:modified', function (opt) {
       if (opt.target && opt.target.type === 'polygon') {
+        bakePolygonScale(opt.target); // no-op unless a corner/edge scale handle (not a vertex) was just dragged
         recomputePolygonBounds(opt.target);
+        opt.target.setCoords();
+      } else if (opt.target && opt.target.type === 'rect') {
+        bakeRectScale(opt.target);
         opt.target.setCoords();
       }
       // Scaling/rotating a 3D group's whole bounding box (the green/blue

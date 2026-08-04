@@ -2093,10 +2093,10 @@ body.bac-exam-mode .nav.nav--peek {
 .filter-bar__group {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 8px;
   flex-wrap: wrap;
   row-gap: 8px;
-  padding: 4px 10px 4px 4px;
+  padding: 7px 16px;
   border-radius: 999px;
   background: var(--card);
   border: 1px solid var(--border);
@@ -4233,10 +4233,10 @@ body.bac-exam-mode .nav.nav--peek {
   }
 
   /* ---- Filter bar ---- */
-  .filter-bar { padding: 10px 0; gap: 5px; }
+  .filter-bar { padding: 10px 12px; gap: 8px; }
+  .filter-bar__group { padding: 6px 13px; gap: 6px; }
   .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
   .filter-label { font-size: 0.65rem; }
-  .filter-bar--rarity { padding: 10px 12px; }
   /* Even one-cluster-per-row still means up to 4 stacked rows of chips on
      a small phone — swap to a pair of native <select>s (same underlying
      statusFilter/diffFilter state, see js/category.js renderFilterBar)
