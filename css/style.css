@@ -2022,30 +2022,46 @@ body.bac-exam-mode .nav.nav--peek {
 .filter-chip.hard.active      { background: var(--red);    color: #fff; border-color: var(--red); }
 .filter-chip.legendary.active { background: var(--rarity-legendar-b, #B45309); color: #fff; border-color: var(--rarity-legendar-b, #B45309); }
 
+/* Difficulty/rarity chips carry their color even at rest (outlined +
+   faintly tinted, like .diff-badge) instead of the same flat gray as the
+   status chips — makes the "which color is which tier" association
+   readable without needing to select anything, but stays low-key until
+   .active takes over with the solid fill above. */
+.filter-chip.easy      { color: var(--green);  border-color: var(--green-border);  background: var(--green-dim); }
+.filter-chip.medium    { color: var(--yellow); border-color: var(--yellow-border); background: var(--yellow-dim); }
+.filter-chip.hard      { color: var(--red);    border-color: var(--red-border);    background: var(--red-dim); }
+.filter-chip.legendary { color: var(--rarity-legendar-text, #92400E); border-color: var(--rarity-legendar-border, rgba(180,83,9,0.4)); background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); }
+
+.filter-chip.easy:hover      { border-color: var(--green); }
+.filter-chip.medium:hover    { border-color: var(--yellow); }
+.filter-chip.hard:hover      { border-color: var(--red); }
+.filter-chip.legendary:hover { border-color: var(--rarity-legendar-b, #B45309); }
+
 /* On rarity-preview subcategories, the Ușor/Mediu/Greu labels/colors
    are relabeled Comun/Rar/Epic (see js/category.js renderFilterBar) — the
    chip colors need to follow the card rarity palette instead of the
    sitewide diff-badge green/yellow/red, or "Rar" would stay orange next to
    blue rarity cards. Scoped to `.filter-bar--rarity` so every other
    subcategory page keeps the plain diff colors untouched. */
-.filter-bar--rarity .filter-chip.easy.active   { background: var(--rarity-comun-b); border-color: var(--rarity-comun-b); }
-.filter-bar--rarity .filter-chip.medium.active { background: var(--rarity-rar-b);   border-color: var(--rarity-rar-b); }
-.filter-bar--rarity .filter-chip.hard.active   { background: var(--rarity-epic-b);  border-color: var(--rarity-epic-b); }
+.filter-bar--rarity .filter-chip.easy   { color: var(--rarity-comun-text); border-color: var(--rarity-comun-border); background: var(--rarity-comun-dim); }
+.filter-bar--rarity .filter-chip.medium { color: var(--rarity-rar-text);   border-color: var(--rarity-rar-border);   background: var(--rarity-rar-dim); }
+.filter-bar--rarity .filter-chip.hard   { color: var(--rarity-epic-text);  border-color: var(--rarity-epic-border);  background: var(--rarity-epic-dim); }
 
-.filter-sep {
-  width: 1px;
-  height: 18px;
-  background: var(--border);
-  margin: 0 2px;
-}
+.filter-bar--rarity .filter-chip.easy:hover   { border-color: var(--rarity-comun-b); }
+.filter-bar--rarity .filter-chip.medium:hover { border-color: var(--rarity-rar-b); }
+.filter-bar--rarity .filter-chip.hard:hover   { border-color: var(--rarity-epic-b); }
+
+.filter-bar--rarity .filter-chip.easy.active   { background: var(--rarity-comun-b); border-color: var(--rarity-comun-b); color: #fff; }
+.filter-bar--rarity .filter-chip.medium.active { background: var(--rarity-rar-b);   border-color: var(--rarity-rar-b);   color: #fff; }
+.filter-bar--rarity .filter-chip.hard.active   { background: var(--rarity-epic-b);  border-color: var(--rarity-epic-b);  color: #fff; }
 
 /* The plain bottom-border strip reads as barely-there on dark backgrounds,
    and with two visually-unrelated chip clusters (status vs. rarity) sharing
-   one thin divider it wasn't clear which chip did what. Scoped to the
-   rarity preview only — a self-contained "panel" with a labeled second
-   group and a proper divider, rather than touching the shared bar every
-   other subcategory page still uses. */
-.filter-bar--rarity {
+   one thin divider it wasn't clear which chip did what. A self-contained
+   "panel" with a labeled second group and a proper divider — applies to
+   every subcategory page now (not just the rarity preview), since the two
+   clusters are always independent, combinable filters. */
+.filter-bar {
   position: relative;
   /* A sitewide rule (.main > *) puts every direct child of <main> at
      z-index:1 in its own stacking context — #filterBar and
@@ -2070,16 +2086,9 @@ body.bac-exam-mode .nav.nav--peek {
   font-size: 0.76rem;
 }
 
-.filter-bar--rarity .filter-sep {
-  width: 1.5px;
-  height: 22px;
-  background: var(--text-muted);
-  opacity: 0.35;
-  margin: 0 8px;
-}
-
-/* Each cluster (status filters / rarity filters) wraps as one atomic unit —
-   see js/category.js renderFilterBar — so a narrow screen never splits a
+/* Each cluster (status filters / rarity filters) is its own labeled,
+   faintly-boxed group — see js/category.js renderFilterBar — so it's clear
+   which chips belong together, and so a narrow screen never splits a
    group across two lines the way free-flowing individual chips did. */
 .filter-bar__group {
   display: flex;
@@ -2087,10 +2096,18 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 5px;
   flex-wrap: wrap;
   row-gap: 8px;
+  padding: 4px 10px 4px 4px;
+  border-radius: 999px;
+  background: var(--card);
+  border: 1px solid var(--border);
 }
 
 .filter-bar__chips {
-  display: contents;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  row-gap: 8px;
 }
 
 /* The native <select> itself is never shown — js/category.js's
@@ -2100,10 +2117,12 @@ body.bac-exam-mode .nav.nav--peek {
    hidden, purely as the value source setFilter()/applyFilters() read. */
 .filter-select { display: none; }
 
-/* Stand-in for the chip row on small screens (see the mobile override
-   below) — same single currentFilter value under the hood, just a more
-   comfortable control once there's no room for two full chip rows. Hidden
-   by default; only .filter-bar--rarity shows it, and only ≤640px. */
+/* Stand-in for the chip clusters on small screens (see the mobile override
+   below) — status and rarity each get their own dropdown, same
+   statusFilter/diffFilter state underneath, just a more comfortable
+   control once there's no room for two full chip rows. Hidden by default;
+   only .filter-bar--rarity shows it, and only ≤640px. */
+.filter-bar__selects { display: none; flex-direction: column; gap: 8px; }
 .filter-bar--rarity .cls-csel { display: none; }
 
 .cls-csel__group-label {
@@ -4218,10 +4237,12 @@ body.bac-exam-mode .nav.nav--peek {
   .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
   .filter-label { font-size: 0.65rem; }
   .filter-bar--rarity { padding: 10px 12px; }
-  /* Even one-cluster-per-row still means up to 3 stacked rows of chips on
-     a small phone — swap to the native <select> (same underlying filter,
-     see js/category.js renderFilterBar) instead of the chip clusters. */
+  /* Even one-cluster-per-row still means up to 4 stacked rows of chips on
+     a small phone — swap to a pair of native <select>s (same underlying
+     statusFilter/diffFilter state, see js/category.js renderFilterBar)
+     instead of the chip clusters. */
   .filter-bar--rarity .filter-bar__chips { display: none; }
+  .filter-bar--rarity .filter-bar__selects { display: flex; }
   .filter-bar--rarity .cls-csel { display: block; }
 
   /* ---- Exercise cards ---- */

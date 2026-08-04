@@ -7,7 +7,8 @@
 
   let currentCategory  = null;
   let currentSubcat    = null;
-  let currentFilter    = 'all';
+  let statusFilter     = 'all'; // 'all' | 'unsolved' | 'solved'
+  let diffFilter       = 'all'; // 'all' | 'usor' | 'mediu' | 'dificil' | 'legendar'
   let allExercises     = [];
   let filtered         = [];
   let viewInitialized  = false;
@@ -308,7 +309,8 @@
      ============================================================ */
   function showExercisesView(subcatId) {
     currentSubcat = subcatId;
-    currentFilter = 'all';
+    statusFilter  = 'all';
+    diffFilter    = 'all';
     const cardsEl = document.getElementById('subcatCardsSection');
     const exEl    = document.getElementById('exercisesSection');
     switchView(cardsEl, exEl, () => {
@@ -348,68 +350,68 @@
     `;
   }
 
-  /* ---- Filter Bar ---- */
+  /* ---- Filter Bar ----
+     Status (Toate/Nerezolvate/Rezolvate) and Raritate/Dificultate (Comun/
+     Rar/Epic/Legendar) are two independent axes — statusFilter + diffFilter
+     — so any combination (e.g. "Nerezolvate" + "Rar") can be active at
+     once. Each cluster is its own labeled, boxed group so it's clear at a
+     glance which chips belong together. */
   function renderFilterBar() {
     const bar = document.getElementById('filterBar');
     if (!bar) return;
     const isRarityPage = RARITY_SUBCATS.has(currentSubcat);
     bar.classList.toggle('filter-bar--rarity', isRarityPage);
+    const diffLabel = isRarityPage ? 'Raritate' : 'Dificultate';
 
     const statusChips = `
-      <button class="filter-chip active" onclick="setFilter('all', this)">Toate</button>
-      <button class="filter-chip"        onclick="setFilter('unsolved', this)">Nerezolvate</button>
-      <button class="filter-chip"        onclick="setFilter('solved', this)">Rezolvate</button>
+      <button class="filter-chip ${statusFilter === 'all'      ? 'active' : ''}" data-fg="status" data-fv="all"      onclick="setFilter('status','all')">Toate</button>
+      <button class="filter-chip ${statusFilter === 'unsolved' ? 'active' : ''}" data-fg="status" data-fv="unsolved" onclick="setFilter('status','unsolved')">Nerezolvate</button>
+      <button class="filter-chip ${statusFilter === 'solved'   ? 'active' : ''}" data-fg="status" data-fv="solved"   onclick="setFilter('status','solved')">Rezolvate</button>
     `;
     const diffChips = `
-      <button class="filter-chip easy"      onclick="setFilter('usor', this)">${isRarityPage ? 'Comun' : 'Ușor'}</button>
-      <button class="filter-chip medium"    onclick="setFilter('mediu', this)">${isRarityPage ? 'Rar' : 'Mediu'}</button>
-      <button class="filter-chip hard"      onclick="setFilter('dificil', this)">${isRarityPage ? 'Epic' : 'Greu'}</button>
-      <button class="filter-chip legendary" onclick="setFilter('legendar', this)">Legendar</button>
+      <button class="filter-chip easy      ${diffFilter === 'usor'     ? 'active' : ''}" data-fg="diff" data-fv="usor"     onclick="setFilter('diff','usor')">${isRarityPage ? 'Comun' : 'Ușor'}</button>
+      <button class="filter-chip medium    ${diffFilter === 'mediu'    ? 'active' : ''}" data-fg="diff" data-fv="mediu"    onclick="setFilter('diff','mediu')">${isRarityPage ? 'Rar' : 'Mediu'}</button>
+      <button class="filter-chip hard      ${diffFilter === 'dificil'  ? 'active' : ''}" data-fg="diff" data-fv="dificil"  onclick="setFilter('diff','dificil')">${isRarityPage ? 'Epic' : 'Greu'}</button>
+      <button class="filter-chip legendary ${diffFilter === 'legendar' ? 'active' : ''}" data-fg="diff" data-fv="legendar" onclick="setFilter('diff','legendar')">Legendar</button>
     `;
 
-    /* Rarity page only: each chip cluster is its own flex group so it wraps
-       onto its own line as a whole unit on narrow screens, instead of
-       individual buttons free-wrapping and splitting a group in half
-       (e.g. "Rezolvate" stranding itself next to the "Raritate:" label).
-       Below a certain width even that stacked-chip layout is cramped, so a
-       native <select> (hidden on desktop, see CSS) stands in instead —
-       it's the same single currentFilter value under the hood, just a
-       friendlier control for a small screen. */
-    bar.innerHTML = isRarityPage ? `
+    /* Rarity page only: below a certain width even the boxed-group chip
+       layout is cramped, so a pair of native <select>s (hidden on desktop,
+       see CSS) stand in instead — same statusFilter/diffFilter state
+       underneath, just a friendlier control for a small screen. */
+    bar.innerHTML = `
       <div class="filter-bar__chips">
         <div class="filter-bar__group">
-          <span class="filter-label">Filtrare:</span>
+          <span class="filter-label">Stare:</span>
           ${statusChips}
         </div>
-        <div class="filter-sep"></div>
         <div class="filter-bar__group">
-          <span class="filter-label">Raritate:</span>
+          <span class="filter-label">${diffLabel}:</span>
           ${diffChips}
         </div>
       </div>
-      <select class="filter-select" onchange="setFilter(this.value, null)">
-        <option value="all">Toate exercițiile</option>
-        <optgroup label="Stare">
+      ${isRarityPage ? `
+      <div class="filter-bar__selects">
+        <select class="filter-select" data-fg="status">
+          <option value="all">Toate</option>
           <option value="unsolved">Nerezolvate</option>
           <option value="solved">Rezolvate</option>
-        </optgroup>
-        <optgroup label="Raritate">
+        </select>
+        <select class="filter-select" data-fg="diff">
+          <option value="all">Toate rarități</option>
           <option value="usor">Comun</option>
           <option value="mediu">Rar</option>
           <option value="dificil">Epic</option>
           <option value="legendar">Legendar</option>
-        </optgroup>
-      </select>
-    ` : `
-      <span class="filter-label">Filtrare:</span>
-      ${statusChips}
-      <div class="filter-sep"></div>
-      ${diffChips}
+        </select>
+      </div>` : ''}
     `;
 
     if (isRarityPage) {
-      const nativeSel = bar.querySelector('.filter-select');
-      if (nativeSel) buildCustomFilterSelect(nativeSel);
+      bar.querySelectorAll('.filter-select').forEach(sel => {
+        sel.value = sel.dataset.fg === 'status' ? statusFilter : diffFilter;
+        buildCustomFilterSelect(sel);
+      });
       ensureFilterSelectGlobalListeners();
     }
   }
@@ -422,6 +424,7 @@
      matches — the native <select> stays in the DOM, hidden, purely as the
      value holder setFilter()/applyFilters() already know how to read. */
   function buildCustomFilterSelect(sel) {
+    const group = sel.dataset.fg;
     const wrapper = document.createElement('div');
     wrapper.className = 'cls-csel';
 
@@ -449,9 +452,8 @@
       item.textContent = opt.text;
       item.addEventListener('click', (e) => {
         e.stopPropagation();
-        sel.value = opt.value;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
         closeAllFilterSelects();
+        setFilter(group, opt.value);
       });
       dropdown.appendChild(item);
     };
@@ -478,18 +480,12 @@
       if (!wasOpen) wrapper.classList.add('cls-csel--open');
     });
 
-    /* Keeps the trigger's label/selected-option highlight correct whether
-       the value changed via a click above or setFilter() syncing it from a
-       chip click elsewhere. */
-    sel.addEventListener('change', () => {
-      display.textContent = sel.options[sel.selectedIndex]?.text || '';
-      dropdown.querySelectorAll('.cls-csel__option').forEach((el, i) => {
-        el.classList.toggle('cls-csel__option--sel', sel.options[i]?.value === sel.value);
-      });
-    });
-
     sel.style.display = 'none';
     sel.insertAdjacentElement('afterend', wrapper);
+    /* Stashed so syncFilterUI() can keep this trigger's label/selected-
+       option highlight correct whether the value changed via a click here
+       or via a chip click elsewhere. */
+    sel._cselWrapper = wrapper;
   }
 
   function closeAllFilterSelects() {
@@ -503,22 +499,42 @@
     document.addEventListener('click', closeAllFilterSelects);
   }
 
-  window.setFilter = function(f, btn) {
-    currentFilter = f;
-    document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
-    if (btn) btn.classList.add('active');
-    /* Keep the mobile dropdown (rarity page only, see renderFilterBar) in
-       sync however the filter was actually changed, so switching between
-       the chip row and the dropdown mid-session never shows a stale value.
-       Just set the value directly — dispatching a 'change' event here would
-       re-enter setFilter with btn=null, which strips the just-added
-       .active class from every chip without restoring it to any. */
-    const select = document.querySelector('.filter-select');
-    if (select && select.value !== f) {
-      select.value = f;
+  /* Status and difficulty/rarity are independent axes — clicking a diff
+     chip that's already active clears it back to "all" (there's no
+     standalone "Toate" chip in that row to fall back on the way the status
+     group has one). */
+  window.setFilter = function(group, value) {
+    if (group === 'status') {
+      statusFilter = value;
+    } else {
+      diffFilter = (diffFilter === value) ? 'all' : value;
     }
+    syncFilterUI();
     applyFilters();
   };
+
+  /* Keeps every chip and the mobile dropdowns (rarity page only, see
+     renderFilterBar) in sync however the filter was actually changed —
+     chip click, dropdown option click, or programmatic reset. */
+  function syncFilterUI() {
+    document.querySelectorAll('.filter-chip[data-fg="status"]').forEach(c => {
+      c.classList.toggle('active', c.dataset.fv === statusFilter);
+    });
+    document.querySelectorAll('.filter-chip[data-fg="diff"]').forEach(c => {
+      c.classList.toggle('active', c.dataset.fv === diffFilter);
+    });
+    document.querySelectorAll('.filter-select').forEach(sel => {
+      const val = sel.dataset.fg === 'status' ? statusFilter : diffFilter;
+      if (sel.value !== val) sel.value = val;
+      const wrapper = sel._cselWrapper;
+      if (!wrapper) return;
+      const display = wrapper.querySelector('.cls-csel__display');
+      if (display) display.textContent = sel.options[sel.selectedIndex]?.text || '';
+      wrapper.querySelectorAll('.cls-csel__option').forEach((el, i) => {
+        el.classList.toggle('cls-csel__option--sel', sel.options[i]?.value === sel.value);
+      });
+    });
+  }
 
   /* ---- Apply Filters ---- */
   function applyFilters() {
@@ -534,12 +550,9 @@
     const unlockedIds = fullAccess ? null : new Set(subExs.slice(0, FREE_EXERCISES_PER_SUBCAT).map(e => e.id));
 
     filtered = subExs.filter(e => {
-      if (currentFilter === 'solved'   && !solved[e.id]) return false;
-      if (currentFilter === 'unsolved' &&  solved[e.id]) return false;
-      if (currentFilter === 'usor'  && e.difficulty !== 'usor')  return false;
-      if (currentFilter === 'mediu' && e.difficulty !== 'mediu') return false;
-      if (currentFilter === 'dificil' && e.difficulty !== 'dificil') return false;
-      if (currentFilter === 'legendar' && e.difficulty !== 'legendar') return false;
+      if (statusFilter === 'solved'   && !solved[e.id]) return false;
+      if (statusFilter === 'unsolved' &&  solved[e.id]) return false;
+      if (diffFilter !== 'all' && e.difficulty !== diffFilter) return false;
       return true;
     }).map(e => Object.assign({}, e, { _locked: !fullAccess && !unlockedIds.has(e.id) }));
 
