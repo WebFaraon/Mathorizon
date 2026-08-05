@@ -398,7 +398,7 @@
           <option value="solved">Rezolvate</option>
         </select>
         <select class="filter-select" data-fg="diff">
-          <option value="all">Toate rarități</option>
+          <option value="all">Toate raritățile</option>
           <option value="usor">Comun</option>
           <option value="mediu">Rar</option>
           <option value="dificil">Epic</option>
@@ -427,6 +427,10 @@
     const group = sel.dataset.fg;
     const wrapper = document.createElement('div');
     wrapper.className = 'cls-csel';
+    /* Rarity select only: tint the trigger with the tier's own color (same
+       green/blue/purple/orange as the desktop chips) so the mobile dropdown
+       isn't left flat and colorless next to them — see updateCselTierClass. */
+    if (group === 'diff') updateCselTierClass(wrapper, sel.value);
 
     const trigger = document.createElement('div');
     trigger.className = 'cls-csel__trigger';
@@ -488,6 +492,12 @@
     sel._cselWrapper = wrapper;
   }
 
+  const CSEL_TIER_VALUES = ['all', 'usor', 'mediu', 'dificil', 'legendar'];
+  function updateCselTierClass(wrapper, value) {
+    CSEL_TIER_VALUES.forEach(v => wrapper.classList.remove('cls-csel--tier-' + v));
+    wrapper.classList.add('cls-csel--tier-' + value);
+  }
+
   function closeAllFilterSelects() {
     document.querySelectorAll('.cls-csel--open').forEach(w => w.classList.remove('cls-csel--open'));
   }
@@ -533,6 +543,7 @@
       wrapper.querySelectorAll('.cls-csel__option').forEach((el, i) => {
         el.classList.toggle('cls-csel__option--sel', sel.options[i]?.value === sel.value);
       });
+      if (sel.dataset.fg === 'diff') updateCselTierClass(wrapper, sel.value);
     });
   }
 

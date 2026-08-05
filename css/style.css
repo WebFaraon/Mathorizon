@@ -2122,8 +2122,26 @@ body.bac-exam-mode .nav.nav--peek {
    statusFilter/diffFilter state underneath, just a more comfortable
    control once there's no room for two full chip rows. Hidden by default;
    only .filter-bar--rarity shows it, and only ≤640px. */
-.filter-bar__selects { display: none; flex-direction: column; gap: 8px; }
+.filter-bar__selects { display: none; flex-direction: row; gap: 8px; width: 100%; }
+.filter-bar__selects .cls-csel { flex: 1 1 0; min-width: 0; }
 .filter-bar--rarity .cls-csel { display: none; }
+
+/* Tint the rarity dropdown's trigger with the selected tier's own color —
+   same green/blue/purple/orange as the desktop chips (.filter-chip.easy/
+   medium/hard/legendary above) — so it isn't left flat and colorless next
+   to them. "all" stays neutral (default .cls-csel__trigger styling). */
+.filter-bar__selects .cls-csel--tier-usor .cls-csel__trigger     { border-color: var(--rarity-comun-border); background: var(--rarity-comun-dim); color: var(--rarity-comun-text); }
+.filter-bar__selects .cls-csel--tier-mediu .cls-csel__trigger    { border-color: var(--rarity-rar-border);   background: var(--rarity-rar-dim);   color: var(--rarity-rar-text); }
+.filter-bar__selects .cls-csel--tier-dificil .cls-csel__trigger  { border-color: var(--rarity-epic-border);  background: var(--rarity-epic-dim);  color: var(--rarity-epic-text); }
+.filter-bar__selects .cls-csel--tier-legendar .cls-csel__trigger { border-color: var(--rarity-legendar-border, rgba(180,83,9,0.4)); background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); color: var(--rarity-legendar-text, #92400E); }
+.filter-bar__selects .cls-csel--tier-usor .cls-csel__display,
+.filter-bar__selects .cls-csel--tier-mediu .cls-csel__display,
+.filter-bar__selects .cls-csel--tier-dificil .cls-csel__display,
+.filter-bar__selects .cls-csel--tier-legendar .cls-csel__display { color: inherit; }
+.filter-bar__selects .cls-csel--tier-usor .cls-csel__arrow     { color: var(--rarity-comun-b); }
+.filter-bar__selects .cls-csel--tier-mediu .cls-csel__arrow    { color: var(--rarity-rar-b); }
+.filter-bar__selects .cls-csel--tier-dificil .cls-csel__arrow  { color: var(--rarity-epic-b); }
+.filter-bar__selects .cls-csel--tier-legendar .cls-csel__arrow { color: var(--rarity-legendar-b, #B45309); }
 
 .cls-csel__group-label {
   padding: 8px 14px 4px;
