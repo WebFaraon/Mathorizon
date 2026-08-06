@@ -710,7 +710,9 @@
         setTimeout(() => { window.location.href = 'admin.html'; }, 900);
       } else {
         BM.toast('Exercițiu adăugat cu succes! Este acum disponibil pentru toți utilizatorii.', 'success');
-        _aeResetAfterSave();
+        setTimeout(() => {
+          window.location.href = `category.html?id=${encodeURIComponent(ae.categoryId)}&sub=${encodeURIComponent(ae.subcategoryId)}`;
+        }, 900);
       }
     } catch (e) {
       BM.toast('Eroare la salvare: ' + e.message, 'error');
@@ -718,15 +720,4 @@
     }
   }
 
-  function _aeResetAfterSave() {
-    ae.file = null; ae.previewUrl = ''; ae.imageBase64 = ''; ae.mimeType = '';
-    ae.aiResult = null;
-    ae.figureData = null; ae.figureSvg = null;
-    _aeRenderFoto();
-    document.getElementById('aeAnalysisBody').innerHTML = '<p class="cls-form-hint">Analizează o fotografie mai sus pentru a vedea rezultatul aici.</p>';
-    document.getElementById('aeConfirmBtn').style.display = 'none';
-    if (aeGeoEditor) { aeGeoEditor.destroy(); aeGeoEditor = null; }
-    _aeUpdateGeoVisibility(); // remounts a fresh, empty editor if still on Geometrie
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  }
 })();
