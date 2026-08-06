@@ -2625,7 +2625,7 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: center;
   gap: 5px;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   min-width: 0;
 }
 
@@ -2646,6 +2646,21 @@ body.bac-exam-mode .nav.nav--peek {
   display: inline-flex;
   align-items: center;
   box-sizing: border-box;
+}
+
+/* Points pill never shrinks ("5p" must stay whole); the subcapitol pill is
+   the one that gives way. On admin cards the extra edit button leaves less
+   room in this row than on student/teacher cards, so without this the
+   subcapitol pill used to wrap onto its own line instead of shrinking —
+   pushing the title down and clipping it against the card's fixed height.
+   Truncating with an ellipsis keeps the row height identical no matter how
+   many action buttons sit on the right. */
+.rarity-card__tags .points-badge { flex-shrink: 0; }
+.rarity-card__tags .type-badge {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Solved state needs to read clearly at a glance across every rarity — the
@@ -2872,6 +2887,36 @@ body.bac-exam-mode .nav.nav--peek {
   font-size: 0.78rem;
 }
 
+/* Prev/next exercise nav — positioned against the modal overlay (which
+   spans the full viewport via `inset: 0`), not the dialog itself, so the
+   arrows sit just outside the dialog on desktop and float over the
+   full-bleed sheet on mobile without needing separate layout rules. */
+.rarity-modal__nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 1;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1.5px solid rgba(255, 255, 255, 0.25);
+  background: rgba(20, 20, 20, 0.45);
+  backdrop-filter: blur(3px);
+  color: #fff;
+  font-size: 1.6rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease;
+}
+.rarity-modal__nav:hover  { background: rgba(20, 20, 20, 0.65); }
+.rarity-modal__nav:active { transform: translateY(-50%) scale(0.92); }
+.rarity-modal__nav[hidden] { display: none; }
+.rarity-modal__nav--prev { left: 16px; }
+.rarity-modal__nav--next { right: 16px; }
+
 .rarity-modal__head {
   display: flex;
   align-items: center;
@@ -2886,7 +2931,9 @@ body.bac-exam-mode .nav.nav--peek {
   flex-shrink: 0;
 }
 
-.rarity-modal__body { padding: 22px; overflow-y: auto; flex: 1 1 auto; min-height: 0; }
+/* overflow-x: hidden keeps the prev/next slide transition (translateX in
+   js/category.js's goTo) from flashing a horizontal scrollbar mid-swap. */
+.rarity-modal__body { padding: 22px; overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; }
 
 .rarity-modal__meta {
   display: flex;
@@ -9909,6 +9956,23 @@ body.bac-exam-mode .nav.nav--peek {
     max-height: calc(100vh - 30px);
     max-height: calc(100dvh - 30px);
   }
+
+  /* Nav arrows overlay the full-bleed sheet itself here (there's no room
+     outside it) — smaller and lower-contrast so they read as a floating
+     control rather than blocking the statement text, and nudged down from
+     dead-center so they don't collide with the badge/close row up top.
+     Swipe is the primary way to move between exercises on phone; these are
+     a secondary, thumb-reachable option. */
+  .rarity-modal__nav {
+    width: 38px;
+    height: 38px;
+    font-size: 1.4rem;
+    top: 60%;
+    background: rgba(20, 20, 20, 0.35);
+  }
+  .rarity-modal__nav--prev { left: 8px; }
+  .rarity-modal__nav--next { right: 8px; }
+
   .classes-modal__foot { padding: 14px 20px; }
   .classes-modal__foot .btn { flex: 1; justify-content: center; }
 

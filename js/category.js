@@ -729,7 +729,7 @@
     });
   }
 
-  function buildRarityModal(ex, rarity) {
+  function buildRarityModalBody(ex) {
     const cat   = currentCategory;
     const sub   = BM.getSubcategoryById(cat.id, ex.subcategoryId);
     const barem = Array.isArray(ex.barem) ? ex.barem : [];
@@ -743,33 +743,43 @@
       </div>`).join('');
 
     return `
+      <div class="rarity-modal__meta">
+        ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
+        <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+        <span class="source-text">${BM.esc(ex.source)}</span>
+      </div>
+      <h3 class="rarity-modal__title">${BM.esc(ex.title)}</h3>
+      <div class="rarity-modal__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+      ${BM.renderExerciseFigure(ex)}
+      ${barem.length ? `
+      <div class="rarity-modal__barem-title">Barem</div>
+      ${stepsHtml}
+      <div class="rarity-modal__total">Total <strong>${total}p</strong></div>` : ''}`;
+  }
+
+  function buildRarityModal(ex, rarity, hasPrev, hasNext) {
+    return `
       <div class="classes-modal rarity-modal" id="rarityModal" data-rarity="${rarity}">
         <div class="classes-modal__backdrop"></div>
+        <button class="rarity-modal__nav rarity-modal__nav--prev" id="rarityModalPrev" aria-label="Exercițiul anterior" ${hasPrev ? '' : 'hidden'}>‹</button>
+        <button class="rarity-modal__nav rarity-modal__nav--next" id="rarityModalNext" aria-label="Exercițiul următor" ${hasNext ? '' : 'hidden'}>›</button>
         <div class="classes-modal__dialog rarity-modal__dialog">
           <div class="rarity-modal__head">
             <span class="rarity-badge">${rarity}</span>
             <button class="icon-btn" id="rarityModalClose">✕</button>
           </div>
-          <div class="rarity-modal__body">
-            <div class="rarity-modal__meta">
-              ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
-              <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
-              <span class="source-text">${BM.esc(ex.source)}</span>
-            </div>
-            <h3 class="rarity-modal__title">${BM.esc(ex.title)}</h3>
-            <div class="rarity-modal__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
-            ${BM.renderExerciseFigure(ex)}
-            ${barem.length ? `
-            <div class="rarity-modal__barem-title">Barem</div>
-            ${stepsHtml}
-            <div class="rarity-modal__total">Total <strong>${total}p</strong></div>` : ''}
-          </div>
+          <div class="rarity-modal__body">${buildRarityModalBody(ex)}</div>
         </div>
       </div>`;
   }
 
   window.openRarityModal = function(id, originEl) {
-    const ex = BM.EXERCISES.find(e => e.id === id);
+    /* Navigable list mirrors what's actually on screen (respects the active
+       filters) and skips locked cards — those never open a modal, so they'd
+       be a dead end if included in prev/next. */
+    const navList = filtered.filter(e => !e._locked);
+    let navIdx = navList.findIndex(e => e.id === id);
+    const ex = navIdx >= 0 ? navList[navIdx] : BM.EXERCISES.find(e => e.id === id);
     if (!ex) return;
     const rarity = RARITY_BY_DIFF[ex.difficulty] || 'comun';
 
@@ -788,14 +798,80 @@
       originEl.addEventListener('animationend', () => originEl.classList.remove('rarity-card--opening'), { once: true });
     }
 
+    const hasPrev = navIdx > 0;
+    const hasNext = navIdx >= 0 && navIdx < navList.length - 1;
+
     const wrap = document.createElement('div');
-    wrap.innerHTML = buildRarityModal(ex, rarity);
+    wrap.innerHTML = buildRarityModal(ex, rarity, hasPrev, hasNext);
     const modal = wrap.firstElementChild;
     document.body.appendChild(modal);
     BM.renderMath(modal);
 
     const dialog   = modal.querySelector('.rarity-modal__dialog');
     const backdrop = modal.querySelector('.classes-modal__backdrop');
+    const prevBtn  = modal.querySelector('#rarityModalPrev');
+    const nextBtn  = modal.querySelector('#rarityModalNext');
+    const body     = modal.querySelector('.rarity-modal__body');
+
+    /* Swap the dialog's content in place for prev/next instead of closing
+       and re-opening the whole modal — keeps the dialog anchored where it
+       is (no card-fly animation to a card that may be scrolled off-screen)
+       and reads as flipping a page rather than a fresh navigation. */
+    let navAnimating = false;
+    const goTo = (newIdx, direction) => {
+      if (newIdx < 0 || newIdx >= navList.length || navAnimating) return;
+      navAnimating = true;
+      navIdx = newIdx;
+      const newEx = navList[navIdx];
+      const newRarity = RARITY_BY_DIFF[newEx.difficulty] || 'comun';
+      modal.dataset.rarity = newRarity;
+      modal.querySelector('.rarity-badge').textContent = newRarity;
+      prevBtn.hidden = navIdx <= 0;
+      nextBtn.hidden = navIdx >= navList.length - 1;
+
+      const outOffset = direction === 'next' ? -24 : 24;
+      body.style.transition = 'opacity 0.15s ease, transform 0.15s ease';
+      body.style.opacity   = '0';
+      body.style.transform = `translateX(${outOffset}px)`;
+      setTimeout(() => {
+        body.innerHTML = buildRarityModalBody(newEx);
+        BM.renderMath(body);
+        body.scrollTop = 0;
+        body.style.transition = 'none';
+        body.style.transform  = `translateX(${-outOffset}px)`;
+        body.getBoundingClientRect(); /* force reflow before transitioning back in */
+        requestAnimationFrame(() => {
+          body.style.transition = 'opacity 0.18s ease, transform 0.18s ease';
+          body.style.opacity   = '1';
+          body.style.transform = 'translateX(0)';
+          setTimeout(() => { navAnimating = false; }, 180);
+        });
+      }, 150);
+    };
+    prevBtn.onclick = () => goTo(navIdx - 1, 'prev');
+    nextBtn.onclick = () => goTo(navIdx + 1, 'next');
+
+    /* Touch swipe (phone) — only acts on release past a horizontal
+       threshold, and only when the gesture reads as clearly horizontal, so
+       it never fights the body's own vertical scroll while it's happening. */
+    let touchStartX = 0, touchStartY = 0, touchActive = false;
+    dialog.addEventListener('touchstart', (e) => {
+      if (e.touches.length !== 1) return;
+      touchStartX = e.touches[0].clientX;
+      touchStartY = e.touches[0].clientY;
+      touchActive = true;
+    }, { passive: true });
+    dialog.addEventListener('touchend', (e) => {
+      if (!touchActive) return;
+      touchActive = false;
+      const t = e.changedTouches[0];
+      const dx = t.clientX - touchStartX;
+      const dy = t.clientY - touchStartY;
+      if (Math.abs(dx) > 60 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+        if (dx < 0) goTo(navIdx + 1, 'next');
+        else        goTo(navIdx - 1, 'prev');
+      }
+    }, { passive: true });
 
     /* Fly the dialog in from the clicked card's exact position and size (a
        FLIP transition) so the card visually grows into the modal it opened,
@@ -855,7 +931,11 @@
       backdrop.style.opacity    = '0';
       setTimeout(finishClose, 260);
     };
-    const onKey = (e) => { if (e.key === 'Escape') close(); };
+    const onKey = (e) => {
+      if (e.key === 'Escape') close();
+      else if (e.key === 'ArrowLeft')  goTo(navIdx - 1, 'prev');
+      else if (e.key === 'ArrowRight') goTo(navIdx + 1, 'next');
+    };
     modal.querySelector('.classes-modal__backdrop').onclick = close;
     modal.querySelector('#rarityModalClose').onclick = close;
     document.addEventListener('keydown', onKey);
