@@ -42,6 +42,7 @@
           await _syncUserProfile();
           await _syncTokens();
           await _syncProgress();
+          await _syncTrainingStats();
           document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
         }
       }
@@ -55,7 +56,10 @@
         localStorage.removeItem('bm_favorites');
         localStorage.removeItem('bm_history');
         localStorage.removeItem('bac-history');
+        localStorage.removeItem(BM.Training?.TOTAL_XP_KEY    || 'bm_training_total_xp');
+        localStorage.removeItem(BM.Training?.BEST_STREAK_KEY || 'bm_training_best_streak_persist');
         BM.refreshTokenWidgets();
+        BM.Training?.refreshWidgets();
       }
     });
 
@@ -85,6 +89,41 @@
       }
       return true;
     };
+
+    /* Override BM.Training.addXp/reportBestStreak — PATCH direct în DB
+       (fire-and-forget, ca toate celelalte override-uri din acest fișier —
+       XP-ul de antrenament e o statistică cosmetică, nu are nevoie de retry
+       sau de blocarea UI-ului dacă rețeaua e proastă). */
+    if (BM.Training) {
+      BM.Training.addXp = function (amount) {
+        const n = Math.max(0, BM.Training.getTotalXp() + (Number(amount) || 0));
+        localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
+        BM.Training.refreshWidgets();
+        if (currentUser) {
+          _dbFetch(`training_stats?user_id=eq.${currentUser.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ total_xp: n, updated_at: new Date().toISOString() }),
+            headers: { 'Prefer': 'return=minimal' }
+          }).catch(() => {});
+        }
+        return n;
+      };
+
+      BM.Training.reportBestStreak = function (streakValue) {
+        const current = BM.Training.getBestStreak();
+        if (!(streakValue > current)) return current;
+        localStorage.setItem(BM.Training.BEST_STREAK_KEY, String(streakValue));
+        BM.Training.refreshWidgets();
+        if (currentUser) {
+          _dbFetch(`training_stats?user_id=eq.${currentUser.id}`, {
+            method: 'PATCH',
+            body: JSON.stringify({ best_streak: streakValue, updated_at: new Date().toISOString() }),
+            headers: { 'Prefer': 'return=minimal' }
+          }).catch(() => {});
+        }
+        return streakValue;
+      };
+    }
 
     /* Override BM.Storage.toggleSolved — upsert/delete direct în DB */
     const _origToggleSolved = BM.Storage.toggleSolved;
@@ -205,6 +244,33 @@
     } catch (e) {
       console.error('[BMAuth] syncTokens error:', e.message);
       /* Păstrăm optimistic 3 setat mai sus */
+    }
+  }
+
+  /* ============================================================
+     TRAINING STATS SYNC — lifetime XP + best streak (Antrenament)
+     ============================================================ */
+  async function _syncTrainingStats() {
+    if (!sb || !currentUser || !BM.Training) return;
+    try {
+      const rows = await _dbFetch(
+        `training_stats?select=total_xp,best_streak&user_id=eq.${currentUser.id}`
+      );
+      if (rows && rows.length > 0) {
+        localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(rows[0].total_xp || 0));
+        localStorage.setItem(BM.Training.BEST_STREAK_KEY, String(rows[0].best_streak || 0));
+        BM.Training.refreshWidgets();
+        return;
+      }
+      /* Niciun rând — utilizator nou, inserăm un rând implicit */
+      await _dbFetch('training_stats', {
+        method: 'POST',
+        body: JSON.stringify({ user_id: currentUser.id, total_xp: 0, best_streak: 0 }),
+        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+      });
+      BM.Training.refreshWidgets();
+    } catch (e) {
+      console.error('[BMAuth] syncTrainingStats error:', e.message);
     }
   }
 

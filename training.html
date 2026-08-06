@@ -74,13 +74,16 @@
 
     <!-- LEFT: Config panel -->
     <aside class="training-config" id="configView">
-      <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:6px">
-        <h2 class="training-config__title" style="margin-bottom:0">🎯 Antrenament Rapid</h2>
-        <span class="plan-teaser-badge">🔒 Pachet Standard</span>
-      </div>
+      <h2 class="training-config__title">🎯 Antrenament Rapid</h2>
       <p class="training-config__sub">
         Configurează sesiunea de antrenament și generează un mini-test personalizat.
       </p>
+
+      <div class="training-premium-strip">
+        <span class="plan-teaser-badge">✨ Pachet Standard</span>
+        <span class="training-premium-strip__copy">Antrenamentul inteligent cu opțiuni generate AI face parte din Pachetul Standard.</span>
+        <a class="training-premium-strip__link" href="pachete.html">Vezi pachetele →</a>
+      </div>
 
       <!-- Number of exercises -->
       <div class="config-section">
@@ -112,26 +115,33 @@
       <!-- Session view (hidden initially) -->
       <div id="sessionView" style="display:none">
 
-        <!-- Progress -->
-        <div class="session-progress">
-          <div class="session-progress__top">
-            <span class="session-progress__label">Progres sesiune</span>
-            <span class="session-progress__counter" id="sessionCounter">0 / 10</span>
+        <!-- Session header: progress ring + streak/XP stats (session + lifetime) -->
+        <div class="session-header">
+          <div class="session-progress-ring">
+            <svg viewBox="0 0 80 80" width="84" height="84">
+              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="7"/>
+              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="7"
+                      stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                      stroke-linecap="round" transform="rotate(-90 40 40)" id="sessionProgressRing"
+                      style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
+            </svg>
+            <span class="session-progress-ring__label">
+              <span class="session-progress-ring__caption">progres</span>
+              <span id="sessionCounter">0 / 10</span>
+            </span>
           </div>
-          <div class="session-progress__bar">
-            <div class="session-progress__fill" id="sessionFill" style="width:0%"></div>
-          </div>
-        </div>
 
-        <!-- HUD: streak + XP -->
-        <div class="session-hud" id="sessionHud">
-          <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând">
-            <span>🔥</span><span id="hudStreakVal">0</span>
+          <div class="session-hud" id="sessionHud">
+            <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
+              <span class="session-hud__main">🔥 <span id="hudStreakVal">0</span></span>
+              <span class="session-hud__sub">record: <span id="hudBestStreakVal">0</span></span>
+            </div>
+            <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
+              <span class="session-hud__main">⭐ <span id="hudXpVal">0</span> XP</span>
+              <span class="session-hud__sub">total: <span id="hudTotalXpVal">0</span> XP</span>
+            </div>
+            <div class="session-hud__record" id="hudRecord"></div>
           </div>
-          <div class="session-hud__xp" id="hudXp" title="Puncte de experiență câștigate în această sesiune">
-            <span>⭐</span><span id="hudXpVal">0</span> XP
-          </div>
-          <div class="session-hud__record" id="hudRecord"></div>
         </div>
 
         <!-- Face-down card grid -->
@@ -184,6 +194,7 @@
   <script src="js/custom-exercises.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/utils.js"></script>
+  <script src="js/training-stats.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/panels.js"></script>
   <script src="js/training.js"></script>

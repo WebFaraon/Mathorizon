@@ -589,7 +589,7 @@
   }
 
   /* ---- Rarity redesign (preview — see RARITY_SUBCATS above) ---- */
-  const RARITY_BY_DIFF = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };
+  const RARITY_BY_DIFF = BM.RARITY_BY_DIFF;
 
   function renderRarityCards(container) {
     const solved = BM.Storage.getSolved();

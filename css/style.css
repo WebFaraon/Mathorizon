@@ -3449,30 +3449,49 @@ body.bac-exam-mode .nav.nav--peek {
 .training-config-view { display: block; }
 .training-config-view.hidden { display: none; }
 
-.session-progress { margin-bottom: 22px; }
-
-.session-progress__top {
+/* ---- Antrenament: session header (progress ring + streak/XP stats) ----
+   Real page-header chrome (bordered card, shadow) instead of bare pills
+   floating on the page background — the point being to make progress and
+   stats read as the star of the page, not a small decoration above the
+   card grid. */
+.session-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
-  margin-bottom: 7px;
+  gap: 28px;
+  padding: 20px 24px;
+  margin-bottom: 24px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  flex-wrap: wrap;
 }
 
-.session-progress__label { font-size: 0.78rem; color: var(--text-muted); font-weight: 500; }
-.session-progress__counter { font-size: 1rem; font-weight: 800; color: var(--accent); }
-
-.session-progress__bar {
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
-  overflow: hidden;
+.session-progress-ring {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
 }
-
-.session-progress__fill {
-  height: 100%;
-  background: var(--accent);
-  border-radius: 2px;
-  transition: width 0.4s ease;
+.session-progress-ring__label {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 1.15;
+}
+.session-progress-ring__caption {
+  font-size: 0.58rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+.session-progress-ring__label #sessionCounter {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--text);
 }
 
 .session-nav {
@@ -3561,7 +3580,9 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: var(--accent);
 }
 
-/* ---- Antrenament: "Pachet Standard" teaser badge (cosmetic only, not enforced) ---- */
+/* ---- Antrenament: "Pachet Standard" teaser badge (cosmetic only, not
+   enforced — see .training-premium-strip below for the fuller banner it
+   now sits inside). ---- */
 .plan-teaser-badge {
   display: inline-block;
   background: var(--yellow-dim);
@@ -3576,28 +3597,68 @@ body.bac-exam-mode .nav.nav--peek {
   white-space: nowrap;
 }
 
-/* ---- Antrenament: session HUD (streak + XP) ---- */
+/* Small upsell strip under the config title — badge + one line of copy +
+   a link to pachete.html. Purely cosmetic: nothing here disables or blurs
+   the tool underneath, matching the rest of the site's soft-lock language
+   (there's no real payments backend yet). */
+.training-premium-strip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  margin-bottom: 20px;
+  background: var(--yellow-dim);
+  border: 1px solid var(--yellow-border);
+  border-radius: var(--radius);
+}
+.training-premium-strip__copy {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  flex: 1;
+  min-width: 180px;
+}
+.training-premium-strip__link {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--yellow);
+  white-space: nowrap;
+}
+
+/* ---- Antrenament: session HUD (streak + XP) ----
+   Each pill now pairs a bold session number with a quieter all-time total
+   underneath, pulled from BM.Training (js/training-stats.js) — the visible,
+   persistent per-student progress the tool is built around. */
 .session-hud {
   display: flex;
   align-items: center;
   gap: 12px;
   flex-wrap: wrap;
-  margin-bottom: 18px;
 }
 .session-hud__streak,
 .session-hud__xp {
   display: flex;
-  align-items: center;
-  gap: 7px;
+  flex-direction: column;
+  gap: 2px;
   background: var(--surface);
   border: 1px solid var(--border);
-  border-radius: var(--radius);
-  padding: 6px 14px;
-  font-size: 0.9rem;
-  font-weight: 700;
+  border-radius: var(--radius-lg);
+  padding: 10px 20px;
+  border-top: 3px solid var(--border);
 }
-.session-hud__streak { color: var(--accent); }
-.session-hud__xp { color: var(--yellow); }
+.session-hud__streak { border-top-color: var(--accent); }
+.session-hud__xp     { border-top-color: var(--yellow); }
+.session-hud__main {
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+.session-hud__streak .session-hud__main { color: var(--accent); }
+.session-hud__xp     .session-hud__main { color: var(--yellow); }
+.session-hud__sub {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
 .session-hud__record {
   font-size: 0.78rem;
   font-weight: 700;
@@ -3610,7 +3671,13 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .session-hud__streak--pulse { animation: hudPulse 0.35s ease; }
 
-/* ---- Antrenament: face-down flip-card grid ---- */
+/* ---- Antrenament: face-down flip-card grid ----
+   Sized/bordered/glowing off the SAME custom properties the exercise-bank
+   .rarity-card system uses (--rc-border/--rc-glow, --rarity-*-b/dim) —
+   token indirection, not shared classes, since this is a different
+   interaction (click-to-flip-then-overlay, not click-to-open-modal). Looks
+   identical to a rarity card without inheriting its click/hover/fav-button
+   semantics. */
 .flip-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
@@ -3618,7 +3685,7 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .flip-card {
   position: relative;
-  min-height: 150px;
+  height: 250px;
   perspective: 900px;
   cursor: pointer;
   transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
@@ -3637,7 +3704,6 @@ body.bac-exam-mode .nav.nav--peek {
   position: relative;
   width: 100%;
   height: 100%;
-  min-height: 150px;
   transform-style: preserve-3d;
   transition: transform 0.5s cubic-bezier(0.22,1,0.36,1);
 }
@@ -3650,23 +3716,17 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1.5px solid var(--border);
-  box-shadow: var(--shadow-sm);
   overflow: hidden;
 }
+.flip-card[data-rarity="comun"]     { --rc-border: var(--rarity-comun-border-soft);     --rc-glow: var(--rarity-comun-glow); }
+.flip-card[data-rarity="rar"]       { --rc-border: var(--rarity-rar-border-soft);       --rc-glow: var(--rarity-rar-glow); }
+.flip-card[data-rarity="epic"]      { --rc-border: var(--rarity-epic-border-soft);      --rc-glow: var(--rarity-epic-glow); }
+.flip-card[data-rarity="legendar"]  { --rc-border: var(--rarity-legendar-border-soft);  --rc-glow: var(--rarity-legendar-glow); }
 .flip-card__face--back {
-  background:
-    radial-gradient(120% 140% at 15% 10%, rgba(255,255,255,0.22), transparent 55%),
-    linear-gradient(135deg, var(--accent) 0%, var(--accent-2) 55%, var(--accent) 100%);
-  box-shadow: var(--shadow-sm), inset 0 0 0 1.5px rgba(255,255,255,0.14);
-  transition: box-shadow 0.35s ease;
-}
-.flip-card__face--back::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  background: repeating-linear-gradient(135deg, rgba(255,255,255,0.10) 0 12px, transparent 12px 26px);
-  pointer-events: none;
+  background: var(--card);
+  border: 2px solid var(--rc-border, var(--border));
+  box-shadow: var(--shadow-card), 0 2px 8px var(--rarity-depth-shadow), 0 0 12px var(--rc-glow);
+  transition: box-shadow 0.35s ease, transform 0.35s ease;
 }
 .flip-card__face--back::after {
   content: '';
@@ -3675,7 +3735,7 @@ body.bac-exam-mode .nav.nav--peek {
   left: -60%;
   width: 45%;
   height: 140%;
-  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.35), transparent);
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.22), transparent);
   transform: skewX(-18deg);
   animation: cardShineIdle 6s ease-in-out infinite;
   pointer-events: none;
@@ -3690,7 +3750,7 @@ body.bac-exam-mode .nav.nav--peek {
   94% { left: 120%; }
 }
 .flip-card:not(.flip-card--done):hover .flip-card__face--back {
-  box-shadow: 0 16px 32px -8px rgba(58,107,173,0.5), inset 0 0 0 1.5px rgba(255,255,255,0.35);
+  box-shadow: 0 16px 32px -8px var(--rc-glow), 0 2px 8px var(--rarity-depth-shadow), 0 0 16px var(--rc-glow);
 }
 .flip-card:not(.flip-card--done):hover .flip-card__face--back::after {
   animation: cardShineSweep 0.7s ease forwards;
@@ -3699,18 +3759,56 @@ body.bac-exam-mode .nav.nav--peek {
   from { left: -60%; }
   to   { left: 120%; }
 }
-.flip-card__logo {
-  font-size: 2rem;
-  font-weight: 800;
-  color: rgba(255,255,255,0.9);
-  text-shadow: 0 2px 10px rgba(0,0,0,0.25);
-  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1);
+/* Floating rarity pill — same recipe as .rarity-badge (poking above the
+   card's own top edge), tying the card visually to the exercise-bank's
+   collectible-card language before it's even flipped. */
+.flip-card__rarity-badge {
+  position: absolute;
+  top: -11px;
+  left: 16px;
+  z-index: 2;
+  padding: 3px 12px;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.4px;
+  text-transform: lowercase;
+  color: #fff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 6px rgba(40, 28, 12, 0.25);
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.2);
 }
-.flip-card:not(.flip-card--done):hover .flip-card__logo {
-  transform: scale(1.18) rotate(6deg);
+.flip-card[data-rarity="comun"]    .flip-card__rarity-badge { background: var(--rarity-comun-b);    border-color: var(--rarity-comun-b); }
+.flip-card[data-rarity="rar"]      .flip-card__rarity-badge { background: var(--rarity-rar-b);      border-color: var(--rarity-rar-b); }
+.flip-card[data-rarity="epic"]     .flip-card__rarity-badge { background: var(--rarity-epic-b);     border-color: var(--rarity-epic-b); }
+.flip-card[data-rarity="legendar"] .flip-card__rarity-badge {
+  background: linear-gradient(135deg, var(--rarity-legendar-c), var(--rarity-legendar-b));
+  border-color: var(--rarity-legendar-b);
+  font-weight: 800;
+}
+/* Logo watermark — low-opacity/grayscale so it reads as a subtle premium
+   brand mark, not a loud graphic. No sitewide precedent for this kind of
+   decorative use existed before; invert on dark theme so the mark stays
+   visible instead of vanishing into a dark card surface. */
+.flip-card__logo-img {
+  width: 46%;
+  max-width: 96px;
+  opacity: 0.16;
+  filter: grayscale(1) contrast(0.9);
+  transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.35s ease;
+}
+.flip-card:not(.flip-card--done):hover .flip-card__logo-img {
+  transform: scale(1.08);
+  opacity: 0.24;
+}
+[data-theme="dark"] .flip-card__logo-img {
+  filter: grayscale(1) contrast(0.9) invert(1);
+  opacity: 0.14;
 }
 .flip-card__face--front {
   background: var(--card);
+  border: 1.5px solid var(--border);
+  box-shadow: var(--shadow-sm);
   transform: rotateY(180deg);
 }
 .flip-card__face--front::before {
@@ -3745,8 +3843,19 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 800;
   color: #fff;
 }
-.flip-card__result-badge--good { background: var(--green); }
-.flip-card__result-badge--bad  { background: var(--red); }
+.flip-card__result-badge--good    { background: var(--green); }
+.flip-card__result-badge--bad     { background: var(--red); }
+/* Ungraded fallback (generation failed, or logged-out with no cache hit) —
+   neutral gray, deliberately NOT green/red, so it never reads as a win or
+   a loss the student didn't actually earn. */
+.flip-card__result-badge--neutral { background: var(--text-muted); }
+
+@media (max-width: 900px) {
+  .flip-grid { grid-template-columns: repeat(3, 1fr); }
+}
+@media (max-width: 640px) {
+  .flip-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
+}
 
 /* ---- Antrenament: reveal overlay (mirrors .bac-confirm-overlay) ---- */
 .reveal-overlay {
@@ -3795,12 +3904,44 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
   margin-bottom: 10px;
 }
-.reveal-self-actions {
+
+/* ---- Antrenament: MCQ answer zone (replaces the old self-report flow) ---- */
+.reveal-mcq-loading {
   display: flex;
+  align-items: center;
   gap: 10px;
-  justify-content: center;
-  flex-wrap: wrap;
+  padding: 14px 4px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
 }
+.reveal-mcq-spinner {
+  width: 16px;
+  height: 16px;
+  border: 2.5px solid var(--border);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.75s linear infinite;
+}
+.reveal-mcq-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reveal-mcq-option {
+  text-align: left;
+  padding: 12px 16px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  cursor: pointer;
+  transition: all var(--transition);
+}
+.reveal-mcq-option:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--accent-dim);
+}
+.reveal-mcq-option:disabled { cursor: default; }
 .reveal-result-banner {
   text-align: center;
   font-weight: 700;

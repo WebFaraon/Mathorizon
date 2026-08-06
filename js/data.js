@@ -6968,3 +6968,8 @@ BM.getSubcategoryById = (catId, subId) => {
   const cat = BM.getCategoryById(catId);
   return cat ? cat.subcategories.find(s => s.id === subId) : null;
 };
+
+/* Difficulty -> collectible-card rarity tier, shared by js/category.js
+   (exercise-bank cards) and js/training.js (Antrenament flip-cards) so
+   both systems agree on what "rar"/"epic"/"legendar" mean. */
+BM.RARITY_BY_DIFF = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };

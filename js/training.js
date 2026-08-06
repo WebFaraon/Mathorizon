@@ -11,7 +11,7 @@
   let selectedDiff      = 'all';
 
   let sessionExercises  = [];   // [ex, ex, ...] for the current session
-  let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'self-correct'|'self-incorrect' }
+  let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'ungraded' }
   let revealedCount     = 0;
   let currentStreak     = 0;
   let bestStreakSession  = 0;
@@ -21,6 +21,11 @@
 
   const XP_BASE = { usor: 10, mediu: 20, dificil: 35 };
   const MILESTONES = [3, 5, 8];
+
+  /* In-memory cache for generated MCQ option sets — keyed by exercise id,
+     lives for the page's lifetime (a fresh reload re-checks sessionStorage
+     then Supabase, see renderMcqAnswerZone). */
+  const mcqMemCache = new Map();
 
   /* ---- Init ---- */
   const UNLOCKED_CATS = new Set(['algebra']);
@@ -246,23 +251,34 @@
   function renderFlipGrid() {
     const total = cardStates.length;
     document.getElementById('sessionCounter').textContent = `${revealedCount} / ${total}`;
-    document.getElementById('sessionFill').style.width = total ? `${Math.round((revealedCount / total) * 100)}%` : '0%';
+    const ring = document.getElementById('sessionProgressRing');
+    if (ring) {
+      const circumference = 213.6; // 2 * PI * r(34), matches training.html's ring
+      const pct = total ? revealedCount / total : 0;
+      ring.style.strokeDashoffset = String(circumference * (1 - pct));
+    }
 
     const grid = document.getElementById('flipGrid');
     if (!grid) return;
     grid.innerHTML = cardStates.map((cs, i) => {
-      const done   = cs.status !== 'hidden';
-      const good   = cs.status === 'correct' || cs.status === 'self-correct';
+      const done    = cs.status !== 'hidden';
+      const ungraded = cs.status === 'ungraded';
+      const good    = cs.status === 'correct';
+      const rarity  = BM.RARITY_BY_DIFF[cs.ex.difficulty] || 'comun';
       const diffAttr = done ? ` data-diff="${cs.ex.difficulty}"` : '';
+      const badge = ungraded
+        ? `<span class="flip-card__result-badge flip-card__result-badge--neutral">—</span>`
+        : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${good ? '✓' : '✗'}</span>`;
       return `
-        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" onclick="trOpenCard(${i})">
+        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})">
           <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
             <div class="flip-card__face flip-card__face--back">
-              <span class="flip-card__logo">∑</span>
+              <span class="flip-card__rarity-badge">${rarity}</span>
+              <img class="flip-card__logo-img" src="assets/images/MathorizonLogo.png" alt="">
             </div>
             <div class="flip-card__face flip-card__face--front"${diffAttr}>
               ${done
-                ? `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${good ? '✓' : '✗'}</span>
+                ? `${badge}
                    <span class="flip-card__num">#${i + 1}</span>`
                 : `<span class="flip-card__num">#${i + 1}</span>`}
             </div>
@@ -313,9 +329,7 @@
             <input type="text" id="revealAnswerInput" class="cls-form-input reveal-answer-input" placeholder="Scrie răspunsul tău aici…" autocomplete="off">
             <button class="btn btn--primary" id="revealSubmitBtn">Verifică răspunsul</button>
           </div>`
-          : `
-          <p class="reveal-selfcheck-hint">💭 Acest exercițiu se autoevaluează — rezolvă-l pe hârtie, apoi confirmă mai jos.</p>
-          <button class="btn btn--surface btn--full" id="revealShowSelfBtn">Am o soluție — arată răspunsul</button>`}
+          : `<div class="reveal-mcq-loading"><span class="reveal-mcq-spinner"></span> Se generează opțiunile…</div>`}
       </div>
       <div id="revealResultZone"></div>
     `;
@@ -332,24 +346,104 @@
       input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
       input.focus();
     } else {
-      document.getElementById('revealShowSelfBtn').onclick = () => showSelfAssessPrompt(idx);
+      renderMcqAnswerZone(idx);
     }
   }
 
-  function showSelfAssessPrompt(idx) {
-    const ex = cardStates[idx].ex;
+  /* ---- MCQ answer zone (replaces the old self-report flow) ----
+     For exercises whose answer can't be typed (extractBoxedAnswer
+     returned null), fetch/generate 4 multiple-choice options instead of
+     letting the student self-grade after seeing the solution. */
+  async function renderMcqAnswerZone(idx) {
+    const cs = cardStates[idx];
+    const ex = cs.ex;
+
+    let data = mcqMemCache.get(ex.id) || null;
+
+    if (!data) {
+      try {
+        const cachedRaw = sessionStorage.getItem(`bm_mcq_cache_${ex.id}`);
+        if (cachedRaw) data = JSON.parse(cachedRaw);
+      } catch (e) { /* corrupted entry, ignore */ }
+    }
+
+    if (!data && window.BMAuth?.supabase) {
+      try {
+        const { data: row } = await window.BMAuth.supabase
+          .from('training_mcq_cache')
+          .select('correct_answer,distractors')
+          .eq('exercise_id', ex.id)
+          .maybeSingle();
+        if (row) data = { correctAnswer: row.correct_answer, distractors: row.distractors };
+      } catch (e) { /* network hiccup — fall through to generation/fallback */ }
+    }
+
+    if (!data && window.BMAuth?.user) {
+      try {
+        const session = (await window.BMAuth.supabase.auth.getSession())?.data?.session;
+        const res = await fetch('/api/training/generate-mcq-options', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            accessToken: session?.access_token || '',
+            exerciseId: ex.id,
+            statement: ex.statement,
+            solution: ex.solution,
+            barem: ex.barem
+          })
+        });
+        if (res.ok) data = await res.json();
+      } catch (e) { /* network/Gemini failure — fall through to fallback UI */ }
+    }
+
+    // Bail if the student already navigated away from this card while we
+    // were awaiting the network (e.g. closed the overlay).
+    if (activeCardIndex !== idx) return;
+
+    if (data && data.correctAnswer && Array.isArray(data.distractors) && data.distractors.length === 3) {
+      mcqMemCache.set(ex.id, data);
+      try { sessionStorage.setItem(`bm_mcq_cache_${ex.id}`, JSON.stringify(data)); } catch (e) { /* storage full/unavailable — cache just won't persist across reload */ }
+      renderMcqOptions(idx, data);
+    } else {
+      renderMcqFallback(idx, !window.BMAuth?.user);
+    }
+  }
+
+  function renderMcqOptions(idx, data) {
+    const cs = cardStates[idx];
+    const options = BM.shuffle([data.correctAnswer, ...data.distractors]);
+    cs._mcqCorrectIndex = options.indexOf(data.correctAnswer);
+    cs._mcqCorrectAnswer = data.correctAnswer;
+
     const zone = document.getElementById('revealAnswerZone');
+    if (!zone) return;
     zone.innerHTML = `
-      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
-      <p class="reveal-selfcheck-hint">Ai rezolvat corect?</p>
-      <div class="reveal-self-actions">
-        <button class="btn btn--success" id="selfYesBtn">✅ Am rezolvat corect</button>
-        <button class="btn btn--danger-outline" id="selfNoBtn">❌ Nu am rezolvat</button>
+      <div class="reveal-mcq-options">
+        ${options.map((opt, i) => `
+          <button class="reveal-mcq-option" data-idx="${i}" onclick="trSelectMcqOption(${idx},${i})">
+            <span class="reveal-mcq-option__math math-content">${opt}</span>
+          </button>`).join('')}
       </div>
     `;
     BM.renderMath(zone);
-    document.getElementById('selfYesBtn').onclick = () => trSelfAssess(idx, true);
-    document.getElementById('selfNoBtn').onclick  = () => trSelfAssess(idx, false);
+  }
+
+  /* guestNoSession: true when the fallback is shown because the student
+     isn't logged in (rather than a genuine generation failure) — softer
+     copy inviting login instead of implying something broke. */
+  function renderMcqFallback(idx, guestNoSession) {
+    const ex = cardStates[idx].ex;
+    const zone = document.getElementById('revealAnswerZone');
+    if (!zone) return;
+    zone.innerHTML = `
+      <p class="reveal-selfcheck-hint">${guestNoSession
+        ? '🔒 Conectează-te pentru variante multiple generate automat — deocamdată, iată soluția:'
+        : '⚠️ Nu am putut genera variante de răspuns acum — iată soluția:'}</p>
+      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
+      <button class="btn btn--surface btn--full" id="revealUnderstoodBtn">Am înțeles, continuă</button>
+    `;
+    BM.renderMath(zone);
+    document.getElementById('revealUnderstoodBtn').onclick = () => trAcknowledgeNoGrade(idx);
   }
 
   window.trSubmitAnswer = function(idx) {
@@ -362,17 +456,34 @@
     gradeCard(idx, isCorrect);
   };
 
-  window.trSelfAssess = function(idx, isCorrect) {
-    if (cardStates[idx].status !== 'hidden') return;
+  window.trSelectMcqOption = function(idx, chosenIndex) {
+    const cs = cardStates[idx];
+    if (cs.status !== 'hidden') return;
+    document.querySelectorAll('.reveal-mcq-option').forEach(btn => { btn.disabled = true; });
+    const isCorrect = chosenIndex === cs._mcqCorrectIndex;
     gradeCard(idx, isCorrect);
+  };
+
+  /* No-grade fallback path — never counts as correct or incorrect (keeps
+     the "no self-graded cheat vector" guarantee even when generation fails
+     or the student isn't logged in), but still advances the session. */
+  window.trAcknowledgeNoGrade = function(idx) {
+    const cs = cardStates[idx];
+    if (cs.status !== 'hidden') return;
+    cs.status = 'ungraded';
+    revealedCount++;
+    renderHud();
+    renderFlipGrid();
+    closeRevealOverlay();
   };
 
   /* ---- Grading ---- */
   function gradeCard(idx, isCorrect) {
     const cs = cardStates[idx];
     const ex = cs.ex;
-    const selfPath = cs._expected == null;
-    cs.status = isCorrect ? (selfPath ? 'self-correct' : 'correct') : (selfPath ? 'self-incorrect' : 'incorrect');
+    const mcqPath = cs._expected == null;
+    const correctAnswerText = cs._expected != null ? cs._expected : cs._mcqCorrectAnswer;
+    cs.status = isCorrect ? 'correct' : 'incorrect';
     revealedCount++;
 
     if (isCorrect) {
@@ -383,6 +494,7 @@
       }
       const best = BM.Storage.getBestCombo();
       if (currentStreak > best) BM.Storage.setBestCombo(currentStreak);
+      if (currentStreak > BM.Training.getBestStreak()) BM.Training.reportBestStreak(currentStreak);
       if (!BM.Storage.isSolved(ex.id)) BM.Storage.toggleSolved(ex.id);
     } else {
       currentStreak = 0;
@@ -390,34 +502,29 @@
 
     const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);
     sessionXp += xpGain;
+    BM.Training.addXp(xpGain);
     renderHud();
 
-    /* Reveal result banner + solution (self-assess path already shows the solution) */
+    /* Reveal result banner + solution — both paths are genuinely graded now
+       (typed input compares against the exact boxed answer, MCQ against the
+       chosen option), so both get the same confident banner copy. */
     const resultZone = document.getElementById('revealResultZone');
     const answerZone = document.getElementById('revealAnswerZone');
-    if (!selfPath) {
-      resultZone.innerHTML = `
-        <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
-          ${isCorrect ? '✓ Corect!' : `✗ Greșit — răspunsul corect: ${BM.esc(cs._expected)}`}
-        </div>
-        <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
-      `;
-      BM.renderMath(resultZone);
-    } else {
-      resultZone.innerHTML = `
-        <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
-          ${isCorrect ? '✓ Notat ca rezolvat corect!' : '✗ Notat ca nerezolvat.'}
-        </div>
-      `;
-    }
+    resultZone.innerHTML = `
+      <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
+        ${isCorrect ? '✓ Corect!' : `✗ Greșit — răspunsul corect: ${BM.esc(correctAnswerText || '')}`}
+      </div>
+      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
+    `;
+    BM.renderMath(resultZone);
     resultZone.insertAdjacentHTML('beforeend', `
       <div style="text-align:right;margin-top:14px">
         <button class="btn btn--primary" id="revealContinueBtn">Continuă</button>
       </div>
     `);
     document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
-    if (answerZone && !selfPath) {
-      const row = answerZone.querySelector('.reveal-answer-row');
+    if (answerZone) {
+      const row = mcqPath ? answerZone.querySelector('.reveal-mcq-options') : answerZone.querySelector('.reveal-answer-row');
       if (row) row.style.opacity = '0.5';
     }
 
@@ -452,6 +559,10 @@
       const best = BM.Storage.getBestCombo();
       recordEl.textContent = best > 0 ? `🏆 Record: ${best}` : '';
     }
+    const totalXpEl = document.getElementById('hudTotalXpVal');
+    const bestStreakEl = document.getElementById('hudBestStreakVal');
+    if (totalXpEl) totalXpEl.textContent = BM.Training.getTotalXp();
+    if (bestStreakEl) bestStreakEl.textContent = BM.Training.getBestStreak();
   }
 
   /* ---- XP & celebrations ---- */
@@ -727,7 +838,7 @@
   function finishSession() {
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     const total   = sessionExercises.length;
-    const solved  = cardStates.filter(cs => cs.status === 'correct' || cs.status === 'self-correct').length;
+    const solved  = cardStates.filter(cs => cs.status === 'correct').length;
     const pct     = total > 0 ? Math.round((solved / total) * 100) : 0;
     const isPerfect = total > 0 && solved === total;
     const allTimeBest = BM.Storage.getBestCombo();
