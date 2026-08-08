@@ -238,7 +238,7 @@
     activeCardIndex  = null;
     startTime        = Date.now();
 
-    document.getElementById('configView').style.display = 'none';
+    document.getElementById('trainingLayout').classList.add('training-layout--session');
     document.getElementById('sessionView').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
     closeRevealOverlay(true);
@@ -943,7 +943,7 @@
     bestStreakSession = 0;
     sessionXp = 0;
 
-    document.getElementById('configView').style.display = '';
+    document.getElementById('trainingLayout').classList.remove('training-layout--session');
     document.getElementById('sessionView').style.display = 'none';
     document.getElementById('resultsView').classList.remove('active');
     document.getElementById('resultsView').innerHTML = '';

@@ -3135,6 +3135,21 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 0;
 }
 
+/* Session mode — config card hidden, content pane takes the full width.
+   Collapsing the column TRACK itself (not just hiding the item) matters:
+   a grid keeps its declared template even when a track's item is
+   display:none, so with the 2-column template still in force the
+   remaining item would auto-place into the first (340px) track instead of
+   spanning the freed-up space — this is what made the session view (and
+   the results/empty-state panes) render squeezed into a narrow column
+   matching the sidebar's width instead of the full content pane. */
+.training-layout--session {
+  grid-template-columns: 1fr;
+}
+.training-layout--session .training-config {
+  display: none;
+}
+
 @media (max-width: 900px) {
   .training-layout { grid-template-columns: 1fr; padding: 16px; }
   .training-config { position: static; max-height: none; }
