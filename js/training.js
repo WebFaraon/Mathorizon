@@ -265,7 +265,6 @@
       const ungraded = cs.status === 'ungraded';
       const good    = cs.status === 'correct';
       const rarity  = BM.RARITY_BY_DIFF[cs.ex.difficulty] || 'comun';
-      const diffAttr = done ? ` data-diff="${cs.ex.difficulty}"` : '';
       const badge = ungraded
         ? `<span class="flip-card__result-badge flip-card__result-badge--neutral">—</span>`
         : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${good ? '✓' : '✗'}</span>`;
@@ -276,7 +275,7 @@
             <div class="flip-card__face flip-card__face--back">
               <img class="flip-card__logo-img" src="assets/images/MathorizonLogo.png" alt="">
             </div>
-            <div class="flip-card__face flip-card__face--front"${diffAttr}>
+            <div class="flip-card__face flip-card__face--front">
               ${done
                 ? `${badge}
                    <span class="flip-card__num">#${i + 1}</span>`
@@ -310,10 +309,13 @@
     const sub = BM.getSubcategoryById(ex.categoryId, ex.subcategoryId);
     const expected = extractBoxedAnswer(ex.solution);
     cs._expected = expected;
+    const rarity = BM.RARITY_BY_DIFF[ex.difficulty] || 'comun';
 
     const modal = document.getElementById('revealModal');
+    modal.dataset.rarity = rarity;
     modal.innerHTML = `
       <div class="ex-card__meta" style="margin-bottom:10px">
+        <span class="reveal-modal__rarity-badge">${rarity}</span>
         ${BM.diffBadge(ex.difficulty)}
         ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
         <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
@@ -504,6 +506,7 @@
     sessionXp += xpGain;
     BM.Training.addXp(xpGain);
     renderHud();
+    animateXpGain(xpGain);
 
     /* Reveal result banner + solution — both paths are genuinely graded now
        (typed input compares against the exact boxed answer, MCQ against the
@@ -559,10 +562,27 @@
       const best = BM.Storage.getBestCombo();
       recordEl.textContent = best > 0 ? `🏆 Record: ${best}` : '';
     }
-    const totalXpEl = document.getElementById('hudTotalXpVal');
-    const bestStreakEl = document.getElementById('hudBestStreakVal');
-    if (totalXpEl) totalXpEl.textContent = BM.Training.getTotalXp();
-    if (bestStreakEl) bestStreakEl.textContent = BM.Training.getBestStreak();
+    BM.Training.refreshWidgets();
+  }
+
+  /* Floating "+N XP" that pops up next to the XP pill and a quick pulse on
+     the level bar fill — the "animation when you collect XP" ask. */
+  function animateXpGain(amount) {
+    if (!amount || amount <= 0) return;
+    const xpEl = document.getElementById('hudXp');
+    if (xpEl) {
+      const popup = document.createElement('span');
+      popup.className = 'xp-gain-popup';
+      popup.textContent = `+${amount} XP`;
+      xpEl.appendChild(popup);
+      popup.addEventListener('animationend', () => popup.remove());
+    }
+    const fill = document.querySelector('[data-training-level-fill]');
+    if (fill) {
+      fill.classList.remove('session-level__fill--pulse');
+      void fill.offsetWidth;
+      fill.classList.add('session-level__fill--pulse');
+    }
   }
 
   /* ---- XP & celebrations ---- */

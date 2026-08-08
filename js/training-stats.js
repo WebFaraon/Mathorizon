@@ -29,6 +29,18 @@ window.BM = window.BM || {};
     return Math.max(0, parseInt(localStorage.getItem(BM.Training.BEST_STREAK_KEY), 10) || 0);
   };
 
+  /* Flat 100 XP/level — simple and transparent (level = xp/100 + 1) rather
+     than a progressive curve, so the level bar in the session header reads
+     predictably instead of needing a lookup table. */
+  BM.Training.XP_PER_LEVEL = 100;
+  BM.Training.getLevelInfo = function () {
+    const xp = BM.Training.getTotalXp();
+    const perLevel = BM.Training.XP_PER_LEVEL;
+    const level = Math.floor(xp / perLevel) + 1;
+    const xpIntoLevel = xp % perLevel;
+    return { level, xpIntoLevel, xpForNextLevel: perLevel, pct: xpIntoLevel / perLevel };
+  };
+
   BM.Training.addXp = function (amount) {
     const n = Math.max(0, (BM.Training.getTotalXp() + (Number(amount) || 0)));
     localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
@@ -49,6 +61,15 @@ window.BM = window.BM || {};
     const streak = BM.Training.getBestStreak();
     document.querySelectorAll('[data-training-total-xp]').forEach(el => { el.textContent = xp; });
     document.querySelectorAll('[data-training-best-streak]').forEach(el => { el.textContent = streak; });
+
+    const level = BM.Training.getLevelInfo();
+    document.querySelectorAll('[data-training-level]').forEach(el => { el.textContent = level.level; });
+    document.querySelectorAll('[data-training-level-xp]').forEach(el => {
+      el.textContent = `${level.xpIntoLevel} / ${level.xpForNextLevel} XP`;
+    });
+    document.querySelectorAll('[data-training-level-fill]').forEach(el => {
+      el.style.width = `${Math.round(level.pct * 100)}%`;
+    });
   };
 
   document.addEventListener('DOMContentLoaded', BM.Training.refreshWidgets);

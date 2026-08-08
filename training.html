@@ -15,11 +15,6 @@
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
-  <style>
-    .training-layout {
-      min-height: calc(100vh - var(--nav-h));
-    }
-  </style>
 </head>
 <body class="training-page">
 
@@ -70,7 +65,7 @@
   </nav>
 
   <!-- LAYOUT -->
-  <div class="training-layout" style="display:flex">
+  <div class="training-layout">
 
     <!-- LEFT: Config panel -->
     <aside class="training-config" id="configView">
@@ -110,7 +105,7 @@
     </aside>
 
     <!-- RIGHT: Session / Results -->
-    <div class="training-main" style="flex:1">
+    <div class="training-main">
 
       <!-- Session view (hidden initially) -->
       <div id="sessionView" style="display:none">
@@ -134,13 +129,26 @@
           <div class="session-hud" id="sessionHud">
             <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
               <span class="session-hud__main">🔥 <span id="hudStreakVal">0</span></span>
-              <span class="session-hud__sub">record: <span id="hudBestStreakVal">0</span></span>
+              <span class="session-hud__sub">record: <span data-training-best-streak>0</span></span>
             </div>
             <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
               <span class="session-hud__main">⭐ <span id="hudXpVal">0</span> XP</span>
-              <span class="session-hud__sub">total: <span id="hudTotalXpVal">0</span> XP</span>
+              <span class="session-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
             </div>
             <div class="session-hud__record" id="hudRecord"></div>
+          </div>
+
+          <!-- Level slider — fills the header's remaining width and turns
+               lifetime XP into a visible "next level" goal, not just a bare
+               number. -->
+          <div class="session-level">
+            <div class="session-level__top">
+              <span class="session-level__label">Nivel <span data-training-level>1</span></span>
+              <span class="session-level__xp" data-training-level-xp>0 / 100 XP</span>
+            </div>
+            <div class="session-level__bar">
+              <div class="session-level__fill" data-training-level-fill style="width:0%"></div>
+            </div>
           </div>
         </div>
 
@@ -165,18 +173,36 @@
         <!-- Populated by training.js on finish -->
       </div>
 
-      <!-- Empty state (visible when config is shown) -->
-      <div id="emptyState" style="text-align:center;padding:80px 40px;color:var(--text-muted)">
-        <div style="font-size:4rem;margin-bottom:24px;opacity:0.3">🎯</div>
-        <h3 style="font-size:1.4rem;font-weight:700;color:var(--text);margin-bottom:12px">
-          Gata să exersezi?
-        </h3>
-        <p style="font-size:1rem;margin-bottom:8px">
-          Configurează sesiunea de antrenament și apasă <strong>Începe Antrenamentul</strong>.
-        </p>
-        <p style="font-size:0.88rem">
-          Poți selecta numărul de exerciții, capitolele și dificultatea dorită.
-        </p>
+      <!-- Empty state: a stats dashboard instead of a bare centered blurb —
+           uses the middle pane even before a session starts, and doubles
+           as motivation ("here's your progress so far"). -->
+      <div id="emptyState" class="training-preview">
+        <div class="training-preview__hero">
+          <div class="training-preview__icon">🎯</div>
+          <h3 class="training-preview__title">Gata să exersezi?</h3>
+          <p class="training-preview__sub">
+            Configurează sesiunea din stânga și apasă <strong>Începe Antrenamentul</strong> —
+            alege numărul de exerciții, dificultatea și capitolele dorite.
+          </p>
+        </div>
+
+        <div class="training-preview__stats">
+          <div class="training-preview__stat">
+            <div class="training-preview__stat-icon">🏅</div>
+            <div class="training-preview__stat-val" data-training-level>1</div>
+            <div class="training-preview__stat-lbl">Nivel curent</div>
+          </div>
+          <div class="training-preview__stat">
+            <div class="training-preview__stat-icon">⭐</div>
+            <div class="training-preview__stat-val" data-training-total-xp>0</div>
+            <div class="training-preview__stat-lbl">XP total</div>
+          </div>
+          <div class="training-preview__stat">
+            <div class="training-preview__stat-icon">🔥</div>
+            <div class="training-preview__stat-val" data-training-best-streak>0</div>
+            <div class="training-preview__stat-lbl">Cel mai bun streak</div>
+          </div>
+        </div>
       </div>
     </div>
 

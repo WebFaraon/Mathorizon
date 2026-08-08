@@ -3101,27 +3101,79 @@ body.bac-exam-mode .nav.nav--peek {
 
 /* 15. TRAINING PAGE
    ============================================================ */
+/* A padded, card-based dashboard (config card | content pane), both sitting
+   on the page's own background — replaces the old edge-to-edge app-sidebar
+   layout, which read as a bare utility panel next to a wall of empty space
+   rather than a premium tool. */
 .training-layout {
   min-height: calc(100vh - var(--nav-h));
-  display: flex;
-  align-items: flex-start;
+  display: grid;
+  grid-template-columns: minmax(280px, 340px) 1fr;
+  align-items: start;
+  gap: 24px;
+  max-width: 1440px;
+  margin: 0 auto;
+  padding: 24px;
 }
 
 .training-config {
-  width: 320px;
-  flex-shrink: 0;
   background: var(--card);
-  border-right: 1.5px solid var(--border);
-  min-height: calc(100vh - var(--nav-h));
-  padding: 28px 24px 40px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-xl);
+  box-shadow: var(--shadow-card);
+  padding: 28px 24px 32px;
+  /* Sticks alongside the content pane while scrolling a long chapter list,
+     and caps its own height so a very long list scrolls internally instead
+     of pushing the sticky card taller than the viewport. */
+  position: sticky;
+  top: 24px;
+  max-height: calc(100vh - var(--nav-h) - 48px);
   overflow-y: auto;
 }
 
 .training-main {
-  flex: 1;
-  padding: 24px;
-  overflow-y: auto;
+  padding: 0;
 }
+
+@media (max-width: 900px) {
+  .training-layout { grid-template-columns: 1fr; padding: 16px; }
+  .training-config { position: static; max-height: none; }
+}
+
+/* Pre-session dashboard — replaces a bare centered blurb with the same
+   card language as the rest of the page, and puts the account's persistent
+   XP/level/streak (BM.Training) front and center so the middle pane isn't
+   dead space while the student is still configuring a session. */
+.training-preview {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 36px;
+  min-height: calc(100vh - var(--nav-h) - 48px);
+  text-align: center;
+  padding: 40px 24px;
+}
+.training-preview__icon { font-size: 3.5rem; margin-bottom: 6px; opacity: 0.85; }
+.training-preview__title { font-size: 1.5rem; font-weight: 800; color: var(--text); margin-bottom: 10px; }
+.training-preview__sub { font-size: 0.95rem; color: var(--text-secondary); max-width: 440px; line-height: 1.6; margin: 0 auto; }
+.training-preview__stats {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.training-preview__stat {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 22px 34px;
+  min-width: 140px;
+}
+.training-preview__stat-icon { font-size: 1.5rem; margin-bottom: 6px; }
+.training-preview__stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
+.training-preview__stat-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
 
 .training-config__title {
   font-size: 1.35rem;
@@ -3421,18 +3473,22 @@ body.bac-exam-mode .nav.nav--peek {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 70ms;
 }
-/* config-section elements are children 3,4,5 of .training-config (after h2 and p) */
-.training-config .config-section:nth-child(3) {
+.training-premium-strip {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 140ms;
+  animation-delay: 110ms;
 }
+/* config-section elements are children 4,5,6 of .training-config (after h2, p, and .training-premium-strip) */
 .training-config .config-section:nth-child(4) {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 200ms;
+  animation-delay: 150ms;
 }
 .training-config .config-section:nth-child(5) {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 260ms;
+  animation-delay: 200ms;
+}
+.training-config .config-section:nth-child(6) {
+  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
+  animation-delay: 250ms;
 }
 .training-config #startBtn {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
@@ -3459,7 +3515,8 @@ body.bac-exam-mode .nav.nav--peek {
   overflow: hidden;
   display: flex;
   align-items: center;
-  gap: 28px;
+  justify-content: space-between;
+  gap: 24px;
   padding: 20px 28px;
   margin-bottom: 24px;
   background: linear-gradient(120deg, var(--accent-dim) 0%, var(--card) 45%, var(--yellow-dim) 100%);
@@ -3659,6 +3716,7 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .session-hud__streak,
 .session-hud__xp {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -3692,6 +3750,70 @@ body.bac-exam-mode .nav.nav--peek {
   100% { transform: scale(1); }
 }
 .session-hud__streak--pulse { animation: hudPulse 0.35s ease; }
+
+/* Floating "+N XP" — pops up from the XP pill and fades on its way up,
+   the "animation when you collect XP" the header was missing entirely. */
+.xp-gain-popup {
+  position: absolute;
+  top: -4px;
+  right: 14px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--yellow);
+  text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+  pointer-events: none;
+  animation: xpGainFloat 0.9s ease forwards;
+}
+@keyframes xpGainFloat {
+  0%   { opacity: 0; transform: translateY(0) scale(0.8); }
+  15%  { opacity: 1; transform: translateY(-8px) scale(1.1); }
+  70%  { opacity: 1; transform: translateY(-22px) scale(1); }
+  100% { opacity: 0; transform: translateY(-36px) scale(0.95); }
+}
+
+/* Level slider — turns lifetime XP into a visible "distance to next level"
+   goal instead of a bare number, and fills the header's remaining width
+   so streak/XP/level together span the whole bar. */
+.session-level {
+  flex: 1 1 220px;
+  min-width: 200px;
+  max-width: 420px;
+}
+.session-level__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 6px;
+}
+.session-level__label {
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: var(--text);
+}
+.session-level__xp {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+.session-level__bar {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--border);
+  overflow: hidden;
+  box-shadow: inset 0 1px 2px rgba(0,0,0,0.12);
+}
+.session-level__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--yellow));
+  transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+}
+.session-level__fill--pulse { animation: levelFillPulse 0.5s ease; }
+@keyframes levelFillPulse {
+  0%   { filter: brightness(1); }
+  40%  { filter: brightness(1.5); }
+  100% { filter: brightness(1); }
+}
 
 /* ---- Antrenament: face-down flip-card grid ----
    Sized/bordered/glowing off the SAME custom properties the exercise-bank
@@ -3855,12 +3977,18 @@ body.bac-exam-mode .nav.nav--peek {
   height: 5px;
   background: var(--border);
 }
-.flip-card__face--front[data-diff="usor"]    { border-color: var(--green);  background: linear-gradient(160deg, var(--green-dim) 0%, var(--card) 100%); }
-.flip-card__face--front[data-diff="mediu"]   { border-color: var(--yellow); background: linear-gradient(160deg, var(--yellow-dim) 0%, var(--card) 100%); }
-.flip-card__face--front[data-diff="dificil"] { border-color: var(--red);    background: linear-gradient(160deg, var(--red-dim) 0%, var(--card) 100%); }
-.flip-card__face--front[data-diff="usor"]::before    { background: var(--green); }
-.flip-card__face--front[data-diff="mediu"]::before   { background: var(--yellow); }
-.flip-card__face--front[data-diff="dificil"]::before { background: var(--red); }
+/* Tinted by RARITY, not raw difficulty — a card's color identity (set on
+   the back, via .flip-card[data-rarity]) now stays consistent after the
+   flip too, instead of jumping to the green/yellow/red difficulty palette.
+   Correct/incorrect is communicated by .flip-card__result-badge alone. */
+.flip-card[data-rarity="comun"]    .flip-card__face--front { border-color: var(--rarity-comun-b);    background: linear-gradient(160deg, var(--rarity-comun-dim) 0%, var(--card) 100%); }
+.flip-card[data-rarity="rar"]      .flip-card__face--front { border-color: var(--rarity-rar-b);      background: linear-gradient(160deg, var(--rarity-rar-dim) 0%, var(--card) 100%); }
+.flip-card[data-rarity="epic"]     .flip-card__face--front { border-color: var(--rarity-epic-b);     background: linear-gradient(160deg, var(--rarity-epic-dim) 0%, var(--card) 100%); }
+.flip-card[data-rarity="legendar"] .flip-card__face--front { border-color: var(--rarity-legendar-b); background: linear-gradient(160deg, var(--rarity-legendar-dim) 0%, var(--card) 100%); }
+.flip-card[data-rarity="comun"]    .flip-card__face--front::before { background: var(--rarity-comun-b); }
+.flip-card[data-rarity="rar"]      .flip-card__face--front::before { background: var(--rarity-rar-b); }
+.flip-card[data-rarity="epic"]     .flip-card__face--front::before { background: var(--rarity-epic-b); }
+.flip-card[data-rarity="legendar"] .flip-card__face--front::before { background: var(--rarity-legendar-b); }
 .flip-card__num {
   font-size: 1.5rem;
   font-weight: 800;
@@ -3907,6 +4035,7 @@ body.bac-exam-mode .nav.nav--peek {
 .reveal-modal {
   background: var(--card);
   border: 1.5px solid var(--border);
+  border-top: 4px solid var(--rc-color, var(--border));
   border-radius: var(--radius-lg);
   padding: 28px 26px;
   max-width: 640px;
@@ -3916,6 +4045,25 @@ body.bac-exam-mode .nav.nav--peek {
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   transform: translateY(12px) scale(0.97);
   transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
+}
+/* Rarity accent — the exercise's own tier color (matching the flip-card it
+   was opened from), so the difficulty badge (GREU/red etc., a different,
+   legitimate signal used sitewide) never reads as the modal's only color
+   identity. */
+.reveal-modal[data-rarity="comun"]    { --rc-color: var(--rarity-comun-b); }
+.reveal-modal[data-rarity="rar"]      { --rc-color: var(--rarity-rar-b); }
+.reveal-modal[data-rarity="epic"]     { --rc-color: var(--rarity-epic-b); }
+.reveal-modal[data-rarity="legendar"] { --rc-color: var(--rarity-legendar-b); }
+.reveal-modal__rarity-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: lowercase;
+  color: #fff;
+  background: var(--rc-color, var(--text-muted));
 }
 .reveal-overlay.open .reveal-modal { transform: translateY(0) scale(1); }
 .reveal-title {
