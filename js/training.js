@@ -272,8 +272,8 @@
       return `
         <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})">
           <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
+            <span class="flip-card__rarity-badge">${rarity}</span>
             <div class="flip-card__face flip-card__face--back">
-              <span class="flip-card__rarity-badge">${rarity}</span>
               <img class="flip-card__logo-img" src="assets/images/MathorizonLogo.png" alt="">
             </div>
             <div class="flip-card__face flip-card__face--front"${diffAttr}>

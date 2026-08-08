@@ -3455,16 +3455,38 @@ body.bac-exam-mode .nav.nav--peek {
    stats read as the star of the page, not a small decoration above the
    card grid. */
 .session-header {
+  position: relative;
+  overflow: hidden;
   display: flex;
   align-items: center;
   gap: 28px;
-  padding: 20px 24px;
+  padding: 20px 28px;
   margin-bottom: 24px;
-  background: var(--card);
+  background: linear-gradient(120deg, var(--accent-dim) 0%, var(--card) 45%, var(--yellow-dim) 100%);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
   flex-wrap: wrap;
+}
+/* Large, very faint logo watermark filling the header's otherwise-empty
+   right side on wide screens — decorative only, gives the bar visual
+   weight instead of a flat card with a lot of dead space next to the
+   ring/stats. */
+.session-header::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: 24px;
+  width: 130px;
+  height: 100px;
+  background: url('/assets/images/MathorizonLogo.png') center/contain no-repeat;
+  transform: translateY(-50%);
+  opacity: 0.1;
+  pointer-events: none;
+}
+[data-theme="dark"] .session-header::after { opacity: 0.08; filter: invert(1); }
+@media (max-width: 760px) {
+  .session-header::after { display: none; }
 }
 
 .session-progress-ring {
@@ -3680,8 +3702,9 @@ body.bac-exam-mode .nav.nav--peek {
    semantics. */
 .flip-grid {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 16px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 20px 16px;
+  padding-top: 4px; /* clears the floating rarity badge, same reason as .exercises-container--rarity */
 }
 .flip-card {
   position: relative;
@@ -3722,12 +3745,20 @@ body.bac-exam-mode .nav.nav--peek {
 .flip-card[data-rarity="rar"]       { --rc-border: var(--rarity-rar-border-soft);       --rc-glow: var(--rarity-rar-glow); }
 .flip-card[data-rarity="epic"]      { --rc-border: var(--rarity-epic-border-soft);      --rc-glow: var(--rarity-epic-glow); }
 .flip-card[data-rarity="legendar"]  { --rc-border: var(--rarity-legendar-border-soft);  --rc-glow: var(--rarity-legendar-glow); }
+/* Card back — a rich gradient in the card's own rarity color (not flat
+   white/var(--card)) so the logo has something to actually sit on top of,
+   and each tier reads as visually distinct at a glance — closer to a
+   collectible-card game's colored card backs than the understated bank
+   card look, which is the point: training is meant to feel more gamified. */
 .flip-card__face--back {
-  background: var(--card);
-  border: 2px solid var(--rc-border, var(--border));
-  box-shadow: var(--shadow-card), 0 2px 8px var(--rarity-depth-shadow), 0 0 12px var(--rc-glow);
+  background: linear-gradient(145deg, var(--rarity-comun-a) 0%, var(--rarity-comun-b) 100%);
+  box-shadow: var(--shadow-card), 0 2px 10px var(--rarity-depth-shadow), 0 0 14px var(--rc-glow), inset 0 0 0 1.5px rgba(255,255,255,0.16);
   transition: box-shadow 0.35s ease, transform 0.35s ease;
 }
+.flip-card[data-rarity="comun"]     .flip-card__face--back { background: linear-gradient(145deg, var(--rarity-comun-a) 0%, var(--rarity-comun-b) 100%); }
+.flip-card[data-rarity="rar"]       .flip-card__face--back { background: linear-gradient(145deg, var(--rarity-rar-a) 0%, var(--rarity-rar-b) 100%); }
+.flip-card[data-rarity="epic"]      .flip-card__face--back { background: linear-gradient(145deg, var(--rarity-epic-a) 0%, var(--rarity-epic-b) 100%); }
+.flip-card[data-rarity="legendar"]  .flip-card__face--back { background: linear-gradient(145deg, var(--rarity-legendar-c) 0%, var(--rarity-legendar-b) 100%); }
 .flip-card__face--back::after {
   content: '';
   position: absolute;
@@ -3735,7 +3766,7 @@ body.bac-exam-mode .nav.nav--peek {
   left: -60%;
   width: 45%;
   height: 140%;
-  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.22), transparent);
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.4), transparent);
   transform: skewX(-18deg);
   animation: cardShineIdle 6s ease-in-out infinite;
   pointer-events: none;
@@ -3750,7 +3781,7 @@ body.bac-exam-mode .nav.nav--peek {
   94% { left: 120%; }
 }
 .flip-card:not(.flip-card--done):hover .flip-card__face--back {
-  box-shadow: 0 16px 32px -8px var(--rc-glow), 0 2px 8px var(--rarity-depth-shadow), 0 0 16px var(--rc-glow);
+  box-shadow: 0 16px 32px -8px var(--rc-glow), 0 2px 10px var(--rarity-depth-shadow), 0 0 20px var(--rc-glow), inset 0 0 0 1.5px rgba(255,255,255,0.3);
 }
 .flip-card:not(.flip-card--done):hover .flip-card__face--back::after {
   animation: cardShineSweep 0.7s ease forwards;
@@ -3761,12 +3792,19 @@ body.bac-exam-mode .nav.nav--peek {
 }
 /* Floating rarity pill — same recipe as .rarity-badge (poking above the
    card's own top edge), tying the card visually to the exercise-bank's
-   collectible-card language before it's even flipped. */
+   collectible-card language before it's even flipped. Lives as a direct
+   sibling of the two .flip-card__face elements (not nested inside one) —
+   they clip their own overflow for the shine sweep, which was silently
+   clipping the badge's top half when it lived inside .flip-card__face--back.
+   backface-visibility:hidden makes it follow the back face's own visibility
+   (shown pre-flip, hidden once flipped) without needing the static rotateY
+   the front face carries. */
 .flip-card__rarity-badge {
   position: absolute;
   top: -11px;
   left: 16px;
   z-index: 2;
+  backface-visibility: hidden;
   padding: 3px 12px;
   border-radius: 999px;
   font-size: 0.66rem;
@@ -3786,27 +3824,26 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: var(--rarity-legendar-b);
   font-weight: 800;
 }
-/* Logo watermark — low-opacity/grayscale so it reads as a subtle premium
-   brand mark, not a loud graphic. No sitewide precedent for this kind of
-   decorative use existed before; invert on dark theme so the mark stays
-   visible instead of vanishing into a dark card surface. */
+/* Logo watermark — assets/images/MathorizonLogo.png is white line-art on a
+   transparent background (same file the navbar uses), which is why it was
+   invisible at low opacity against a plain white/near-white card: nothing
+   for a near-white mark to contrast against. Sitting on the rarity gradient
+   above instead, it doesn't need any invert/theme trickery — white reads
+   clearly on every tier's color in both themes, since the rarity tokens
+   themselves are already redefined per theme. */
 .flip-card__logo-img {
-  width: 46%;
-  max-width: 96px;
-  opacity: 0.16;
-  filter: grayscale(1) contrast(0.9);
+  width: 52%;
+  max-width: 110px;
+  opacity: 0.6;
+  filter: drop-shadow(0 2px 6px rgba(0,0,0,0.18));
   transition: transform 0.35s cubic-bezier(0.22,1,0.36,1), opacity 0.35s ease;
 }
 .flip-card:not(.flip-card--done):hover .flip-card__logo-img {
-  transform: scale(1.08);
-  opacity: 0.24;
-}
-[data-theme="dark"] .flip-card__logo-img {
-  filter: grayscale(1) contrast(0.9) invert(1);
-  opacity: 0.14;
+  transform: scale(1.08) rotate(-3deg);
+  opacity: 0.8;
 }
 .flip-card__face--front {
-  background: var(--card);
+  background: linear-gradient(160deg, var(--card) 0%, var(--surface) 100%);
   border: 1.5px solid var(--border);
   box-shadow: var(--shadow-sm);
   transform: rotateY(180deg);
@@ -3815,33 +3852,35 @@ body.bac-exam-mode .nav.nav--peek {
   content: '';
   position: absolute;
   top: 0; left: 0; right: 0;
-  height: 4px;
+  height: 5px;
   background: var(--border);
 }
-.flip-card__face--front[data-diff="usor"]    { border-color: var(--green);  background: var(--green-dim); }
-.flip-card__face--front[data-diff="mediu"]   { border-color: var(--yellow); background: var(--yellow-dim); }
-.flip-card__face--front[data-diff="dificil"] { border-color: var(--red);    background: var(--red-dim); }
+.flip-card__face--front[data-diff="usor"]    { border-color: var(--green);  background: linear-gradient(160deg, var(--green-dim) 0%, var(--card) 100%); }
+.flip-card__face--front[data-diff="mediu"]   { border-color: var(--yellow); background: linear-gradient(160deg, var(--yellow-dim) 0%, var(--card) 100%); }
+.flip-card__face--front[data-diff="dificil"] { border-color: var(--red);    background: linear-gradient(160deg, var(--red-dim) 0%, var(--card) 100%); }
 .flip-card__face--front[data-diff="usor"]::before    { background: var(--green); }
 .flip-card__face--front[data-diff="mediu"]::before   { background: var(--yellow); }
 .flip-card__face--front[data-diff="dificil"]::before { background: var(--red); }
 .flip-card__num {
-  font-size: 0.85rem;
-  font-weight: 700;
+  font-size: 1.5rem;
+  font-weight: 800;
   color: var(--text-muted);
+  letter-spacing: -0.5px;
 }
 .flip-card__result-badge {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 22px;
-  height: 22px;
+  top: 10px;
+  right: 10px;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.78rem;
+  font-size: 0.9rem;
   font-weight: 800;
   color: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.2);
 }
 .flip-card__result-badge--good    { background: var(--green); }
 .flip-card__result-badge--bad     { background: var(--red); }
@@ -3849,13 +3888,6 @@ body.bac-exam-mode .nav.nav--peek {
    neutral gray, deliberately NOT green/red, so it never reads as a win or
    a loss the student didn't actually earn. */
 .flip-card__result-badge--neutral { background: var(--text-muted); }
-
-@media (max-width: 900px) {
-  .flip-grid { grid-template-columns: repeat(3, 1fr); }
-}
-@media (max-width: 640px) {
-  .flip-grid { grid-template-columns: repeat(2, 1fr); gap: 14px; }
-}
 
 /* ---- Antrenament: reveal overlay (mirrors .bac-confirm-overlay) ---- */
 .reveal-overlay {
