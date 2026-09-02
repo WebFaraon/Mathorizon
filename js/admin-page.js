@@ -55,9 +55,22 @@
 
   function _parseClass(cls) {
     const parts = (cls.name || cls.class_name || '').split('·').map(s => s.trim());
-    const icons  = { 'matematică':'📐','fizică':'⚛️','chimie':'🧪','biologie':'🌿','informatică':'💻','istorie':'📜','geografie':'🌍','română':'📖','limba română':'📖','engleză':'🇬🇧','limba engleză':'🇬🇧','franceză':'🇫🇷' };
+    const icons  = {
+      'matematică':     icon('sigma', { size: 16 }),
+      'fizică':         icon('atom', { size: 16 }),
+      'chimie':         icon('flask-conical', { size: 16 }),
+      'biologie':       icon('leaf', { size: 16 }),
+      'informatică':    icon('monitor', { size: 16 }),
+      'istorie':        icon('scroll', { size: 16 }),
+      'geografie':      icon('globe', { size: 16 }),
+      'română':         icon('book-open', { size: 16 }),
+      'limba română':   icon('book-open', { size: 16 }),
+      'engleză':        icon('languages', { size: 16 }),
+      'limba engleză':  icon('languages', { size: 16 }),
+      'franceză':       icon('languages', { size: 16 })
+    };
     const subject = parts[0] || cls.name || cls.class_name;
-    return { subject, icon: icons[(subject||'').toLowerCase()] || '📚', day: parts[1]||'', time: parts[2]||'' };
+    return { subject, icon: icons[(subject||'').toLowerCase()] || icon('library', { size: 16 }), day: parts[1]||'', time: parts[2]||'' };
   }
 
   const mathLevelMap = {
@@ -69,17 +82,17 @@
 
   /* ── Professor section ── */
   function _classCard(cls) {
-    const { subject, icon, day, time } = _parseClass(cls);
+    const { subject, icon: subjectIcon, day, time } = _parseClass(cls);
     const enrolled = Number(cls.member_count) || 0;
     const maxEl    = cls.max_students;
     const lvl      = cls.math_level ? mathLevelMap[cls.math_level] : null;
     const full     = maxEl && enrolled >= maxEl;
     return `
       <div class="admin-class-mini">
-        <div class="admin-class-mini__subject">${icon} ${BM.esc(subject)}</div>
+        <div class="admin-class-mini__subject">${subjectIcon} ${BM.esc(subject)}</div>
         ${(day||time) ? `<div class="admin-class-mini__schedule">${BM.esc([day,time].filter(Boolean).join(' · '))}</div>` : ''}
         <div class="admin-class-mini__tags">
-          <span class="admin-class-mini__tag${full?' admin-class-mini__tag--red':''}">👥 ${enrolled}${maxEl?' / '+maxEl:''} elevi</span>
+          <span class="admin-class-mini__tag${full?' admin-class-mini__tag--red':''}">${icon('users', { size: 16 })} ${enrolled}${maxEl?' / '+maxEl:''} elevi</span>
           ${cls.school_grade ? `<span class="admin-class-mini__tag admin-class-mini__tag--muted">Cls. ${BM.esc(cls.school_grade)}</span>` : ''}
           ${lvl ? `<span class="admin-class-mini__tag admin-class-mini__${lvl.cls}">${BM.esc(cls.math_level)} · ${lvl.label}</span>` : ''}
         </div>
@@ -228,9 +241,9 @@
               </div>
               <div class="admin-prof-actions">
                 <button class="btn btn--sm" style="background:var(--green-dim);color:var(--green);border-color:var(--green-border)"
-                  onclick="approveProf('${p.user_id}')">✓ Aprobă</button>
+                  onclick="approveProf('${p.user_id}')">${icon('check', { size: 16 })} Aprobă</button>
                 <button class="btn btn--sm btn--danger-outline"
-                  onclick="rejectProf('${p.user_id}')">✗ Respinge</button>
+                  onclick="rejectProf('${p.user_id}')">${icon('x', { size: 16 })} Respinge</button>
               </div>
             </div>`).join('');
     }
@@ -284,7 +297,7 @@
       BM.toast('Profesor aprobat!', 'success');
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
-      if (btn) { btn.disabled = false; btn.textContent = '✓ Aprobă'; }
+      if (btn) { btn.disabled = false; btn.innerHTML = `${icon('check', { size: 16 })} Aprobă`; }
     }
   };
 

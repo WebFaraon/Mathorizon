@@ -4,8 +4,11 @@
 
 window.BM = window.BM || {};
 
-/* ---- Hamburger menu ---- */
-document.addEventListener('DOMContentLoaded', function () {
+/* ---- Hamburger menu ----
+   Bound on 'nav:loaded' (dispatched by js/nav-loader.js), not
+   DOMContentLoaded — the nav markup itself is fetched asynchronously and
+   isn't in the DOM yet when DOMContentLoaded fires. */
+document.addEventListener('nav:loaded', function () {
   const hamburger = document.getElementById('navHamburger');
   const menu      = document.getElementById('navMobileMenu');
   if (!hamburger || !menu) return;
@@ -254,8 +257,9 @@ BM.toast = function(msg, type = 'info', duration = 2800) {
   if (!container) return;
   const el = document.createElement('div');
   el.className = `toast ${type}`;
-  const icons = { success: '✓', error: '✕', info: 'ℹ' };
-  el.innerHTML = `<span>${icons[type] || 'ℹ'}</span><span>${BM.esc(msg)}</span>`;
+  const icons = { success: 'circle-check', error: 'circle-x', info: 'info' };
+  const iconClass = { success: 'icon--success', error: 'icon--error', info: 'icon--accent' };
+  el.innerHTML = `<span>${icon(icons[type] || 'info', { size: 16, className: iconClass[type] || 'icon--accent' })}</span><span>${BM.esc(msg)}</span>`;
   container.appendChild(el);
   setTimeout(() => {
     el.classList.add('hiding');
@@ -337,6 +341,7 @@ BM.refreshTokenWidgets = function () {
 };
 
 document.addEventListener('DOMContentLoaded', BM.refreshTokenWidgets);
+document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
 
 /* ---- Nav: relocate theme toggle + token widget into the hamburger dropdown
    on narrow screens, instead of showing them (cramped) in the top bar. Moves
@@ -375,7 +380,9 @@ document.addEventListener('DOMContentLoaded', BM.refreshTokenWidgets);
     inMobile = matches;
   }
 
-  document.addEventListener('DOMContentLoaded', () => {
+  // 'nav:loaded', not DOMContentLoaded — tokenWidget/themeBtn/navMobileMenu
+  // live inside the async-injected nav (see js/nav-loader.js).
+  document.addEventListener('nav:loaded', () => {
     apply(mq.matches);
     mq.addEventListener('change', e => apply(e.matches));
   });

@@ -22,13 +22,13 @@
       <aside class="panel" id="panel-fav">
         <div class="panel__head">
           <h3>Exerciții Favorite</h3>
-          <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+          <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide" aria-label="Închide">${icon('x', { size: 20 })}</button>
         </div>
         <div class="panel__body" id="favList">
           <div class="empty-state">
-            <div class="empty-icon">♡</div>
+            <div class="empty-icon">${icon('heart', { size: 48 })}</div>
             <p>Niciun exercițiu favorit încă.</p>
-            <p class="text-muted">Apasă ♥ pe un exercițiu pentru a-l adăuga.</p>
+            <p class="text-muted">Apasă ${icon('heart', { size: 16 })} pe un exercițiu pentru a-l adăuga.</p>
           </div>
         </div>
       </aside>
@@ -38,12 +38,12 @@
           <div style="display:flex;gap:6px;align-items:center">
             <button class="btn btn--surface" style="font-size:0.75rem;padding:4px 10px;height:32px"
                     onclick="clearPanelHistory()" title="Șterge istoricul">Șterge tot</button>
-            <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide">✕</button>
+            <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide" aria-label="Închide">${icon('x', { size: 20 })}</button>
           </div>
         </div>
         <div class="panel__body" id="histList">
           <div class="empty-state">
-            <div class="empty-icon">◷</div>
+            <div class="empty-icon">${icon('clock', { size: 48 })}</div>
             <p>Nu ai rezolvat niciun exercițiu.</p>
             <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p>
           </div>
@@ -85,9 +85,9 @@
     const favIds = BM.Storage.getFavorites();
     const list = document.getElementById('favList');
     if (favIds.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">♡</div>
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('heart', { size: 48 })}</div>
         <p>Niciun exercițiu favorit încă.</p>
-        <p class="text-muted">Apasă ♥ pe un exercițiu pentru a-l adăuga.</p></div>`;
+        <p class="text-muted">Apasă ${icon('heart', { size: 16 })} pe un exercițiu pentru a-l adăuga.</p></div>`;
     } else {
       const exs = favIds.map(id => BM.EXERCISES.find(e => e.id === id)).filter(Boolean);
       list.innerHTML = exs.map(ex => renderPanelItem(ex)).join('');
@@ -100,7 +100,7 @@
     const hist = BM.Storage.getHistory();
     const list = document.getElementById('histList');
     if (hist.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div>
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('clock', { size: 48 })}</div>
         <p>Nu ai rezolvat niciun exercițiu.</p>
         <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
     } else {
@@ -115,14 +115,19 @@
   window.clearPanelHistory = function () {
     BM.Storage.clearHistory();
     const list = document.getElementById('histList');
-    if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div>
+    if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('clock', { size: 48 })}</div>
       <p>Nu ai rezolvat niciun exercițiu.</p>
       <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
     BM.toast('Istoricul a fost șters.', 'info');
   };
 
-  document.addEventListener('DOMContentLoaded', function () {
+  function bindPanelBtns() {
     document.getElementById('favBtn')?.addEventListener('click', openFavoritesPanel);
     document.getElementById('histBtn')?.addEventListener('click', openHistoryPanel);
-  });
+  }
+  document.addEventListener('DOMContentLoaded', bindPanelBtns);
+  // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
+  // so the DOMContentLoaded-timed call above finds them null on pages that
+  // rely solely on this file — this re-binds once they actually exist.
+  document.addEventListener('nav:loaded', bindPanelBtns);
 })();

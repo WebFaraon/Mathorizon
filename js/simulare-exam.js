@@ -124,10 +124,10 @@ window.BM = window.BM || {};
     ov.id = 'simFsPrompt';
     ov.innerHTML = `
       <div class="fs-resume-box">
-        <div class="fs-resume-icon">🖥️</div>
+        <div class="fs-resume-icon">${icon('monitor', { size: 48 })}</div>
         <div class="fs-resume-title">Revino la ecran complet</div>
         <p class="fs-resume-body">Simularea rulează în ecran complet — timpul continuă să curgă.</p>
-        <button class="btn btn--primary" id="simFsPromptBtn">↑ Revino la ecran complet</button>
+        <button class="btn btn--primary" id="simFsPromptBtn">${icon('arrow-up', { size: 16 })} Revino la ecran complet</button>
       </div>`;
     document.body.appendChild(ov);
     document.getElementById('simFsPromptBtn').onclick = () => { _enterFullscreen(); };
@@ -563,7 +563,7 @@ window.BM = window.BM || {};
     ov.innerHTML = `
       <div class="confirm-dialog">
         <div class="confirm-dialog__body">
-          <div class="confirm-dialog__icon">🎓</div>
+          <div class="confirm-dialog__icon">${icon('graduation-cap', { size: 48 })}</div>
           <div class="confirm-dialog__title">Finalizezi simularea?</div>
           <p style="color:var(--text-muted);font-size:0.9rem;margin-top:8px">
             Exercițiile necompletate primesc 0 puncte. Această acțiune este ireversibilă.
@@ -661,7 +661,7 @@ window.BM = window.BM || {};
           <div class="sim-result-card__head">
             <span class="sim-result-card__idx">${idx + 1}</span>
             <span class="sim-result-card__pts">${a?.points_earned ?? 0}/${it.points}p</span>
-            <span class="sim-result-card__mark">${correct ? '✓' : '✕'}</span>
+            <span class="sim-result-card__mark">${correct ? icon('circle-check', { size: 16 }) : icon('circle-x', { size: 16 })}</span>
           </div>
           <div class="sim-result-card__statement math-content" id="simResultStatement${idx}"></div>
           <div class="sim-result-card__answers">
@@ -675,7 +675,7 @@ window.BM = window.BM || {};
             </div>
           </div>
           ${a?.feedback_text ? `
-          <div class="sim-result-feedback">💬 ${BM.esc(a.feedback_text)}</div>` : ''}
+          <div class="sim-result-feedback">${icon('message-circle', { size: 16 })} ${BM.esc(a.feedback_text)}</div>` : ''}
         </div>`;
     }).join('');
 
@@ -696,7 +696,7 @@ window.BM = window.BM || {};
           </div>
         </div>
         <div class="sim-result-list">${rows}</div>
-        <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">← Înapoi la simulări</button>
+        <button class="btn btn--surface" id="simResultsCloseBtn" style="margin-top:16px">${icon('arrow-left', { size: 16 })} Înapoi la simulări</button>
       </div>`;
 
     state.items.forEach((it, idx) => {

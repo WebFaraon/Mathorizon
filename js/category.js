@@ -339,7 +339,7 @@
       <div class="container">
         <div class="subcat-bc__inner">
           <button class="subcat-bc__back" onclick="goBackToCards()">
-            ← ${BM.esc(cat.name)}
+            ${icon('arrow-left', { size: 16 })} ${BM.esc(cat.name)}
           </button>
           <span class="subcat-bc__sep">›</span>
           <span class="subcat-bc__current" style="color:${sub ? sub.color : 'var(--accent-light)'}">
@@ -607,7 +607,7 @@
             <div class="rarity-card__title rarity-card__title--locked">${BM.esc(ex.title)}</div>
           </div>
           <div class="rarity-card__lock-overlay">
-            <span class="rarity-card__lock-icon" aria-hidden="true">🔒</span>
+            <span class="rarity-card__lock-icon" aria-hidden="true">${icon('lock', { size: 24 })}</span>
             <span class="rarity-card__lock-text">Pachet Standard necesar</span>
           </div>
         </div>`;
@@ -648,7 +648,7 @@
                 <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
               </div>
               <div class="rarity-card__actions" onclick="event.stopPropagation()">
-                ${canEdit ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">✎</button>` : ''}
+                ${canEdit ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">${icon('pencil', { size: 16 })}</button>` : ''}
                 <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                         onclick="toggleFav('${ex.id}', this)"
                         title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">${iconHeart(isFav)}</button>
@@ -766,7 +766,7 @@
         <div class="classes-modal__dialog rarity-modal__dialog">
           <div class="rarity-modal__head">
             <span class="rarity-badge">${rarity}</span>
-            <button class="icon-btn" id="rarityModalClose">✕</button>
+            <button class="icon-btn" id="rarityModalClose">${icon('x', { size: 20 })}</button>
           </div>
           <div class="rarity-modal__body">${buildRarityModalBody(ex)}</div>
         </div>
@@ -950,7 +950,7 @@
       container.classList.remove('exercises-container--rarity');
       container.innerHTML = `
         <div class="no-results">
-          <div class="no-results__icon">🔍</div>
+          <div class="no-results__icon">${icon('search', { size: 48 })}</div>
           <p>Niciun exercițiu găsit cu filtrele selectate.</p>
           <p style="margin-top:8px;font-size:0.85rem;color:var(--text-muted)">
             Încearcă să schimbi filtrele.
@@ -988,7 +988,7 @@
             </div>
           </div>
           <div class="ex-card__lock-overlay">
-            <span class="ex-card__lock-icon" aria-hidden="true">🔒</span>
+            <span class="ex-card__lock-icon" aria-hidden="true">${icon('lock', { size: 20 })}</span>
             <span class="ex-card__lock-text">Pachet Standard necesar</span>
           </div>
         </div>`;
@@ -1005,14 +1005,14 @@
                 ${BM.diffBadge(ex.difficulty)}
                 ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
                 <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
-                ${ex._custom ? '<span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨ Adăugat</span>' : ''}
+                ${ex._custom ? `<span class="type-badge type-badge--custom" title="Adăugat din panoul admin">${icon('sparkles', { size: 16 })} Adăugat</span>` : ''}
                 <span class="source-text">${BM.esc(ex.source)}</span>
               </div>
               <div class="ex-card__title">${BM.esc(ex.title)}</div>
               ${mathPrev ? `<div class="ex-card__math-preview math-content">${mathPrev}</div>` : ''}
             </div>
             <div class="ex-card__actions" onclick="event.stopPropagation()">
-              ${window.BMAuth?.role === 'admin' && ex._custom ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">✎</button>` : ''}
+              ${window.BMAuth?.role === 'admin' && ex._custom ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">${icon('pencil', { size: 16 })}</button>` : ''}
               <button class="ex-action-btn fav ${isFav ? 'active' : ''}"
                       onclick="toggleFav('${ex.id}', this)"
                       title="${isFav ? 'Elimină din favorite' : 'Adaugă la favorite'}">
@@ -1023,7 +1023,7 @@
                       title="${isSolved ? 'Marchează ca nerezolvat' : 'Marchează ca rezolvat'}">
                 ${iconCheck(isSolved)}
               </button>
-              <button class="ex-action-btn ex-card__expand" onclick="toggleCard('${ex.id}')">↓</button>
+              <button class="ex-action-btn ex-card__expand" onclick="toggleCard('${ex.id}')">${icon('chevron-down', { size: 16 })}</button>
             </div>
           </div>
 
@@ -1036,7 +1036,7 @@
               <button class="btn btn--success ${isSolved ? 'active' : ''}"
                       id="solveBtn-${ex.id}"
                       onclick="event.stopPropagation(); toggleSolved('${ex.id}', document.querySelector('#card-${ex.id} .ex-action-btn.solved'))">
-                ${isSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat'}
+                ${isSolved ? icon('circle-check', { size: 16 }) + ' Rezolvat' : 'Marchează ca rezolvat'}
               </button>
             </div>
           </div>
@@ -1067,7 +1067,7 @@
     document.querySelectorAll('.ex-card.open').forEach(c => {
       c.classList.remove('open');
       const b = c.querySelector('.ex-card__expand');
-      if (b) b.textContent = '↓';
+      if (b) b.innerHTML = icon('chevron-down', { size: 16 });
       /* Ascunde soluția la închidere */
       const cId = c.id.replace('card-', '');
       const cSol = document.getElementById(`sol-${cId}`);
@@ -1083,7 +1083,7 @@
     if (!wasOpen) {
       card.classList.add('open');
       const btn = card.querySelector('.ex-card__expand');
-      if (btn) btn.textContent = '↑';
+      if (btn) btn.innerHTML = icon('chevron-up', { size: 16 });
 
       /* Scroll smooth la card */
       setTimeout(() => card.scrollIntoView({ behavior: 'smooth', block: 'nearest' }), 50);
@@ -1123,7 +1123,7 @@
     }
     if (solveBtn) {
       solveBtn.classList.toggle('active', nowSolved);
-      solveBtn.textContent = nowSolved ? '✓ Rezolvat' : 'Marchează ca rezolvat';
+      solveBtn.innerHTML = nowSolved ? `${icon('circle-check', { size: 16 })} Rezolvat` : 'Marchează ca rezolvat';
     }
 
     /* Animație puls pe cardul întregului exercițiu */
@@ -1135,7 +1135,7 @@
     }
 
     BM.toast(
-      nowSolved ? 'Exercițiu marcat ca rezolvat! 🎉' : 'Exercițiu marcat ca nerezolvat.',
+      nowSolved ? 'Exercițiu marcat ca rezolvat!' : 'Exercițiu marcat ca nerezolvat.',
       nowSolved ? 'success' : 'info'
     );
     refreshHeader();
@@ -1159,7 +1159,7 @@
       card.addEventListener('animationend', () => card.classList.remove('anim-solved', 'anim-fav'), { once: true });
     }
 
-    BM.toast(nowFav ? 'Adăugat la favorite! ♥' : 'Eliminat din favorite.',
+    BM.toast(nowFav ? 'Adăugat la favorite!' : 'Eliminat din favorite.',
              nowFav ? 'success' : 'info');
   };
 
@@ -1204,7 +1204,7 @@
       const id = card.id.replace('card-', '');
       card.style.display = ids.includes(id) ? '' : 'none';
     });
-    BM.toast(`Set aleatoriu de ${pool.length} exerciții generat! 🎲`, 'success');
+    BM.toast(`Set aleatoriu de ${pool.length} exerciții generat!`, 'success');
 
     const container = document.getElementById('exercisesContainer');
     if (container && !document.getElementById('resetRandBtn')) {
@@ -1239,11 +1239,15 @@
     document.getElementById('favBtn')?.addEventListener('click', openFavPanel);
     document.getElementById('histBtn')?.addEventListener('click', openHistory);
   }
+  // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
+  // so the call in init() (DOMContentLoaded-timed) finds them null —
+  // this re-binds once they actually exist.
+  document.addEventListener('nav:loaded', initPanelBtns);
 
   window.clearHistory = function() {
     BM.Storage.clearHistory();
     const list = document.getElementById('histList');
-    if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
+    if (list) list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('clock', { size: 48 })}</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
     BM.toast('Istoricul a fost șters.', 'info');
   };
 
@@ -1252,7 +1256,7 @@
     const list = document.getElementById('histList');
     if (!list) return;
     if (hist.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">◷</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('clock', { size: 48 })}</div><p>Nu ai rezolvat niciun exercițiu.</p><p class="text-muted">Exercițiile rezolvate vor apărea aici.</p></div>`;
     } else {
       list.innerHTML = hist.slice(0, 50).map(h => {
         const ex = BM.EXERCISES.find(e => e.id === h.id);
@@ -1281,7 +1285,7 @@
       .filter(Boolean);
 
     if (catFavs.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">♡</div><p>Niciun favorit în acest capitol.</p></div>`;
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('heart', { size: 48 })}</div><p>Niciun favorit în acest capitol.</p></div>`;
     } else {
       list.innerHTML = catFavs.map(ex => `
         <div class="panel-ex-item" onclick="selectSubcat('${ex.subcategoryId}');BM.closeAllPanels()">

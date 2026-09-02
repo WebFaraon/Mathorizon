@@ -49,8 +49,9 @@
 
     const streakEl = document.getElementById('sStreak');
     if (streakEl) {
-      streakEl.textContent = stats.streak > 0
-        ? `🔥 ${stats.streak}`
+      // innerHTML, not textContent — icon() returns markup, not plain text.
+      streakEl.innerHTML = stats.streak > 0
+        ? `${icon('flame', { size: 16, className: 'icon-num icon--gamify' })} ${stats.streak}`
         : '— 0';
     }
   }
@@ -215,11 +216,11 @@
             ${cat?.symbol || '?'}
           </span>
           <div class="sri-text">
-            <div class="sri-title">${BM.esc(ex.title)}${ex._custom ? ' <span class="type-badge type-badge--custom" title="Adăugat din panoul admin">✨</span>' : ''}</div>
+            <div class="sri-title">${BM.esc(ex.title)}${ex._custom ? ` <span class="type-badge type-badge--custom" title="Adăugat din panoul admin">${icon('sparkles', { size: 16 })}</span>` : ''}</div>
             <div class="sri-cat">${BM.esc(cat?.name || '')} · ${BM.esc(sub?.name || ex.subcategoryId)}</div>
           </div>
           <div class="sri-diff">${BM.diffBadge(ex.difficulty)}</div>
-          ${isSolved ? '<span style="color:var(--green);font-size:0.85rem">✓</span>' : ''}
+          ${isSolved ? `<span>${icon('circle-check', { size: 16, className: 'icon--success' })}</span>` : ''}
         </div>
       `;
     }).join('');
@@ -231,6 +232,10 @@
     document.getElementById('favBtn')?.addEventListener('click', openFavorites);
     document.getElementById('histBtn')?.addEventListener('click', openHistory);
   }
+  // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
+  // so the call in init() below (DOMContentLoaded-timed) finds them null —
+  // this re-binds once they actually exist.
+  document.addEventListener('nav:loaded', initPanelBtns);
 
   function openFavorites() {
     const favIds = BM.Storage.getFavorites();
@@ -240,9 +245,9 @@
     if (favIds.length === 0) {
       list.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">♡</div>
+          <div class="empty-icon">${icon('heart', { size: 48 })}</div>
           <p>Niciun exercițiu favorit încă.</p>
-          <p class="text-muted">Apasă ♥ pe un exercițiu pentru a-l adăuga.</p>
+          <p class="text-muted">Apasă ${icon('heart', { size: 16 })} pe un exercițiu pentru a-l adăuga.</p>
         </div>`;
     } else {
       const exs = favIds.map(id => BM.EXERCISES.find(e => e.id === id)).filter(Boolean);
@@ -259,7 +264,7 @@
     if (hist.length === 0) {
       list.innerHTML = `
         <div class="empty-state">
-          <div class="empty-icon">◷</div>
+          <div class="empty-icon">${icon('clock', { size: 48 })}</div>
           <p>Nu ai rezolvat niciun exercițiu.</p>
           <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p>
         </div>`;

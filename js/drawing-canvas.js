@@ -288,7 +288,7 @@
     var saveIndicator = document.createElement('div');
     saveIndicator.className = 'dc-save-indicator';
     saveIndicator.setAttribute('aria-live', 'polite');
-    saveIndicator.innerHTML = '<span class="dc-save-indicator__icon">✓</span><span class="dc-save-indicator__text">Salvat</span>';
+    saveIndicator.innerHTML = '<span class="dc-save-indicator__icon">' + icon('circle-check', { size: 16 }) + '</span><span class="dc-save-indicator__text">Salvat</span>';
 
     canvasWrap.appendChild(this._gridCanvas);
     canvasWrap.appendChild(this._canvas);
@@ -1035,7 +1035,7 @@
     ov.id = 'dcClearConfirmOverlay';
     ov.innerHTML = `
       <div class="bac-confirm-modal" role="dialog" aria-modal="true">
-        <div class="bac-confirm-icon">🗑️</div>
+        <div class="bac-confirm-icon">${icon('trash-2', { size: 48, className: 'icon--error' })}</div>
         <div class="bac-confirm-title">Ștergi toate notițele?</div>
         <div class="bac-confirm-sub">Acțiunea nu poate fi anulată.</div>
         <div class="bac-confirm-actions">

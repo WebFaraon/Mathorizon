@@ -8,10 +8,11 @@
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
-  <link rel="stylesheet" href="css/style.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
@@ -19,56 +20,15 @@
 <body>
 
   <!-- NAVBAR -->
-  <nav class="nav">
-    <div class="nav__inner container">
-      <a class="nav__brand" href="index.html">
-        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
-        <span class="nav__name">Math<b>orizon</b></span>
-      </a>
-      <div class="nav__links">
-        <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link" href="bac.html?new=1">Simulare</a>
-        <a class="nav__link" href="training.html">Antrenament</a>
-        <a class="nav__link" href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html">Pachete</a>
-      </div>
-      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="nav__right">
-        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
-          <span class="token-widget__icon">🎟</span>
-          <span class="token-widget__count" data-token-count>—</span>
-          <span class="token-widget__label">Tokenuri</span>
-        </div>
-        <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-        <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></button>
-        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <button class="nav-profile-btn" id="navProfileBtn" title="Profilul meu">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="index.html"><span class="nav__mobile-link__icon">📚</span>Capitole</a>
-      <a class="nav__mobile-link" href="bac.html?new=1"><span class="nav__mobile-link__icon">📋</span>Simulare</a>
-      <a class="nav__mobile-link" href="training.html"><span class="nav__mobile-link__icon">🎯</span>Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html"><span class="nav__mobile-link__icon">🏫</span>Clase</a>
-      <a class="nav__mobile-link" href="pachete.html"><span class="nav__mobile-link__icon">📦</span>Pachete</a>
-      <div class="nav__mobile-divider"></div>
-      <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">Istoric rezolvări</button>
-    </div>
-  </nav>
+  <nav class="nav" id="nav-root"></nav>
+  <script src="js/icons.js"></script>
+  <script src="js/nav-loader.js"></script>
 
   <main class="main container">
     <div class="admin-wrap" id="adminWrap" style="display:none">
 
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:6px">
-        <a href="profile.html" class="btn btn--surface btn--sm">← Profil</a>
+        <a href="profile.html" class="btn btn--surface btn--sm"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Profil</a>
         <h1 class="admin-title" style="margin-bottom:0;flex:1 1 auto">Panou Admin</h1>
         <button class="btn btn--primary btn--sm" id="openAddExerciseBtn" style="margin-left:auto">+ Adaugă exercițiu</button>
       </div>
@@ -95,7 +55,7 @@
       </div>
 
       <!-- Pending professors -->
-      <div class="admin-section-title">⏳ Cereri în așteptare</div>
+      <div class="admin-section-title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 22h14"></path><path d="M5 2h14"></path><path d="M17 22v-4.172a2 2 0 0 0-.586-1.414L12 12l-4.414 4.414A2 2 0 0 0 7 17.828V22"></path><path d="M7 2v4.172a2 2 0 0 0 .586 1.414L12 12l4.414-4.414A2 2 0 0 0 17 6.172V2"></path></svg> Cereri în așteptare</div>
       <div id="pendingList">
         <div class="admin-empty">Se încarcă…</div>
       </div>
@@ -104,10 +64,10 @@
       <div class="admin-people-header" style="margin-top:36px">
         <div class="admin-tabs">
           <button class="admin-tab admin-tab--active" id="tabProfs" onclick="switchAdminTab('profs')">
-            👨‍🏫 Profesori <span class="admin-tab-count" id="tabProfCount"></span>
+            <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"></path><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"></path><path d="m7 21 5-5 5 5"></path></svg> Profesori <span class="admin-tab-count" id="tabProfCount"></span>
           </button>
           <button class="admin-tab" id="tabStuds" onclick="switchAdminTab('studs')">
-            👩‍🎓 Elevi <span class="admin-tab-count" id="tabStudCount"></span>
+            <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg> Elevi <span class="admin-tab-count" id="tabStudCount"></span>
           </button>
         </div>
         <input class="admin-search" id="adminSearch" type="text" placeholder="Caută după nume…" oninput="adminFilterSearch()">
@@ -124,7 +84,7 @@
 
     <!-- Access denied / loading -->
     <div id="adminDenied" style="display:none;text-align:center;padding:80px 20px">
-      <div style="font-size:3rem;margin-bottom:16px">🔒</div>
+      <div style="display:flex;justify-content:center;margin-bottom:16px"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
       <h2 style="font-size:1.4rem;font-weight:800;color:var(--text);margin-bottom:8px">Acces interzis</h2>
       <p style="color:var(--text-muted)">Această pagină este disponibilă doar pentru administratori.</p>
       <a href="index.html" class="btn btn--primary" style="margin-top:20px">Înapoi la pagina principală</a>

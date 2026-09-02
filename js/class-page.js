@@ -7,11 +7,14 @@
 (function () {
   'use strict';
 
+  // NB: `icon` is currently unused — _tabLabel() below only ever returns
+  // t.label, the tab bar renders text-only. Kept as data (now icon() calls
+  // instead of raw emoji) in case a future pass wires up tab-bar icons.
   const TABS = [
-    { id: 'flux',     label: 'Flux',      icon: '📢' },
-    { id: 'teme',     label: 'Teme',      icon: '📝' },
-    { id: 'simulari', label: 'Simulări',  icon: '🎯' },
-    { id: 'membri',   label: 'Membri',    icon: '👥' }
+    { id: 'flux',     label: 'Flux',      icon: icon('megaphone', { size: 16 }) },
+    { id: 'teme',     label: 'Teme',      icon: icon('file-text', { size: 16 }) },
+    { id: 'simulari', label: 'Simulări',  icon: icon('target', { size: 16 }) },
+    { id: 'membri',   label: 'Membri',    icon: icon('users', { size: 16 }) }
   ];
 
   // The "membri" tab has grown into a results/gradebook view that reads very
@@ -442,7 +445,7 @@
     } catch (e) {
       container.innerHTML = `
         <div class="flux-empty">
-          <div class="flux-empty__icon">⚠️</div>
+          <div class="flux-empty__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
           <h3>Eroare la încărcare</h3>
           <p>${BM.esc(e.message)}</p>
         </div>`;
@@ -482,7 +485,7 @@
   function fluxEmpty(isTeacher) {
     return `
       <div class="flux-empty">
-        <div class="flux-empty__icon">📢</div>
+        <div class="flux-empty__icon">${icon('megaphone', { size: 48 })}</div>
         <h3>Niciun anunț</h3>
         <p>${isTeacher
           ? 'Publicați primul anunț pentru elevii din clasă.'
@@ -516,7 +519,7 @@
                 data-post-id="${post.id}"
                 data-names="${namesJson}"
                 onclick="fluxShowReaders(this)">
-          👁 ${count} ${label}
+          ${icon('eye', { size: 16 })} ${count} ${label}
         </button>`;
     } else {
       const liked = reactionData?.liked ?? false;
@@ -524,21 +527,21 @@
         <button class="flux-like-btn${liked ? ' flux-like-btn--active' : ''}"
                 data-post-id="${post.id}"
                 onclick="fluxToggleLike('${post.id}', this)">
-          ${liked ? '✓ Citit' : '✓ Marchează citit'}
+          ${liked ? icon('bookmark', { size: 16 }) + ' Citit' : icon('bookmark', { size: 16 }) + ' Marchează citit'}
         </button>`;
     }
 
     return `
       <div class="flux-post">
         <div class="flux-post__topbar">
-          <span class="flux-post__badge">📢 Anunț</span>
+          <span class="flux-post__badge">${icon('megaphone', { size: 16 })} Anunț</span>
           <div class="flux-post__topbar-right">
             <span class="flux-post__date" title="${dateStr}, ${timeStr}">${dateStr}</span>
             ${isTeacher ? `
               <button class="flux-post__delete"
                       data-id="${post.id}"
                       data-title="${BM.esc(post.title)}"
-                      title="Șterge anunțul">✕</button>
+                      title="Șterge anunțul">${icon('x', { size: 16 })}</button>
             ` : ''}
           </div>
         </div>
@@ -572,7 +575,7 @@
       <div class="classes-modal__dialog">
         <div class="classes-modal__head">
           <h3>Anunț Nou</h3>
-          <button class="icon-btn" id="closePostModalBtn">✕</button>
+          <button class="icon-btn" id="closePostModalBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
           <div class="cls-form-field">
@@ -650,7 +653,7 @@
 
   async function deletePost(postId, postTitle) {
     const ok = await showConfirmDialog({
-      icon:        '🗑️',
+      icon:        icon('trash-2', { size: 48, className: 'icon--error' }),
       title:       'Ștergi anunțul?',
       message:     '„' + postTitle + '" va fi șters definitiv.',
       confirmText: 'Șterge'
@@ -675,12 +678,12 @@
   ═══════════════════════════════════════════════════════════════ */
 
   const WZ_TYPES = [
-    { id: 'text',      icon: '📝', label: 'Text',           desc: 'Instrucțiuni, explicații' },
-    { id: 'pdf',       icon: '📄', label: 'PDF / Document',  desc: 'Fișă, manual, referat' },
-    { id: 'image',     icon: '🖼️', label: 'Imagini',         desc: 'Poze, scheme, diagrame' },
-    { id: 'link',      icon: '🔗', label: 'Link extern',     desc: 'Site, articol, resursă' },
-    { id: 'exercise',  icon: '📚', label: 'Exerciții',       desc: 'Întrebări interactive', soon: true },
-    { id: 'ai_import', icon: '🤖', label: 'Import AI',       desc: 'Din poză sau PDF', soon: true },
+    { id: 'text',      icon: icon('file-text', { size: 24 }), label: 'Text',           desc: 'Instrucțiuni, explicații' },
+    { id: 'pdf',       icon: icon('file', { size: 24 }),      label: 'PDF / Document',  desc: 'Fișă, manual, referat' },
+    { id: 'image',     icon: icon('image', { size: 24 }),     label: 'Imagini',         desc: 'Poze, scheme, diagrame' },
+    { id: 'link',      icon: icon('link', { size: 24 }),      label: 'Link extern',     desc: 'Site, articol, resursă' },
+    { id: 'exercise',  icon: icon('library', { size: 24 }),   label: 'Exerciții',       desc: 'Întrebări interactive', soon: true },
+    { id: 'ai_import', icon: icon('bot', { size: 24 }),       label: 'Import AI',       desc: 'Din poză sau PDF', soon: true },
   ];
 
   async function loadTemeTab() {
@@ -753,7 +756,7 @@
     } catch (e) {
       container.innerHTML = `
         <div class="teme-empty">
-          <div class="teme-empty__icon">⚠️</div>
+          <div class="teme-empty__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
           <h3>Eroare la încărcare</h3>
           <p>${BM.esc(e.message)}</p>
         </div>`;
@@ -810,7 +813,7 @@
   function temeEmpty(isTeacher) {
     return `
       <div class="teme-empty">
-        <div class="teme-empty__icon">📝</div>
+        <div class="teme-empty__icon">${icon('file-text', { size: 48 })}</div>
         <h3>${isTeacher ? 'Nicio temă creată' : 'Nicio temă disponibilă'}</h3>
         <p>${isTeacher
           ? 'Adaugă prima temă pentru elevii din clasă.'
@@ -841,10 +844,19 @@
     });
     const formatted = formattedRaw.charAt(0).toUpperCase() + formattedRaw.slice(1);
 
-    const typeIconMap = { text:'📝', pdf:'📄', document:'📄', image:'🖼️',
-                          video:'🎥', link:'🔗', exercise:'📚', ai_import:'🤖', file:'📂' };
+    const typeIconMap = {
+      text:       icon('file-text', { size: 16 }),
+      pdf:        icon('file', { size: 16 }),
+      document:   icon('file', { size: 16 }),
+      image:      icon('image', { size: 16 }),
+      video:      icon('video', { size: 16 }),
+      link:       icon('link', { size: 16 }),
+      exercise:   icon('library', { size: 16 }),
+      ai_import:  icon('bot', { size: 16 }),
+      file:       icon('folder', { size: 16 })
+    };
     const blockChips = blocks.map(b => {
-      const icon = typeIconMap[b.type] || '📌';
+      const blockIcon = typeIconMap[b.type] || icon('pin', { size: 16 });
       let label;
       if (['pdf', 'image', 'file', 'document'].includes(b.type)) {
         const items = b.data?.items || [];
@@ -860,20 +872,21 @@
       } else {
         label = (WZ_TYPES.find(t => t.id === b.type) || { label: b.type }).label;
       }
-      return `<span class="teme-block-chip" title="${BM.esc(label)}">${icon} ${BM.esc(label)}</span>`;
+      return `<span class="teme-block-chip" title="${BM.esc(label)}">${blockIcon} ${BM.esc(label)}</span>`;
     }).join('');
 
     const desc = a.archived_at ? '' : (a.instructions || a.description || '');
 
-    const typeIcon = typeIconMap[blocks[0]?.type] || '📋';
+    const typeIcon = typeIconMap[blocks[0]?.type] || icon('clipboard-list', { size: 16 });
 
-    let ctaLabel = '👆 Apasă pentru exerciții și încărcarea rezolvării';
+    const pointerIcon = icon('pointer', { size: 16 });
+    let ctaLabel = `${pointerIcon} Apasă pentru exerciții și încărcarea rezolvării`;
     if (a.archived_at) {
-      ctaLabel = '👆 Apasă pentru detalii și notă';
+      ctaLabel = `${pointerIcon} Apasă pentru detalii și notă`;
     } else if (a._subInfo?.grade_confirmed) {
-      ctaLabel = '👆 Apasă pentru a vedea nota și comentariul';
+      ctaLabel = `${pointerIcon} Apasă pentru a vedea nota și comentariul`;
     } else if (a._subInfo) {
-      ctaLabel = '👆 Apasă pentru a vedea tema trimisă';
+      ctaLabel = `${pointerIcon} Apasă pentru a vedea tema trimisă`;
     }
 
     return `
@@ -882,7 +895,7 @@
         <div class="teme-assignment__main">
           <div class="teme-assignment__top">
             <h3 class="teme-assignment__title">${BM.esc(a.title)}</h3>
-            ${isTeacher && a.visibility === 'draft' ? '<span class="teme-draft-badge" title="Vizibilă doar ție — elevii nu o văd până o publici">📝 Draft</span>' : ''}
+            ${isTeacher && a.visibility === 'draft' ? `<span class="teme-draft-badge" title="Vizibilă doar ție — elevii nu o văd până o publici">${icon('eye-off', { size: 16 })} Draft</span>` : ''}
             <span class="teme-assignment__type-icon">${typeIcon}</span>
           </div>
           ${!a.archived_at && blockChips ? `<div class="teme-assignment__chips">${blockChips}</div>` : ''}
@@ -890,30 +903,30 @@
         </div>
         <div class="teme-assignment__footer teme-assignment__footer--${badge.cls}">
           <div class="teme-assignment__footer-left">
-            <span class="teme-assignment__due teme-assignment__due--${badge.cls}">◷ ${badge.text}</span>
-            <span class="teme-assignment__date">📅 ${formatted}</span>
+            <span class="teme-assignment__due teme-assignment__due--${badge.cls}">${icon('clock', { size: 16 })} ${badge.text}</span>
+            <span class="teme-assignment__date">${icon('calendar', { size: 16 })} ${formatted}</span>
             ${isTeacher
-              ? `<span class="teme-sub-counter">📤 ${a._subInfo?.count ?? 0}/${a._subInfo?.total ?? 0} predate</span>`
+              ? `<span class="teme-sub-counter">${icon('upload', { size: 16 })} ${a._subInfo?.count ?? 0}/${a._subInfo?.total ?? 0} predate</span>`
               : a._subInfo
                 ? a._subInfo.grade_confirmed
-                  ? `<span class="teme-sub-badge teme-sub-badge--graded" data-sub-badge="${a.id}">⭐ Notă: ${a._subInfo.grade}</span>`
-                  : `<span class="teme-sub-badge teme-sub-badge--done" data-sub-badge="${a.id}">✅ Predată</span>`
-                : `<span class="teme-sub-badge teme-sub-badge--none" data-sub-badge="${a.id}">📤 Nepredată</span>`
+                  ? `<span class="teme-sub-badge teme-sub-badge--graded" data-sub-badge="${a.id}">${icon('star', { size: 16 })} Notă: ${a._subInfo.grade}</span>`
+                  : `<span class="teme-sub-badge teme-sub-badge--done" data-sub-badge="${a.id}">${icon('circle-check', { size: 16 })} Predată</span>`
+                : `<span class="teme-sub-badge teme-sub-badge--none" data-sub-badge="${a.id}">${icon('upload', { size: 16 })} Nepredată</span>`
             }
           </div>
           ${isTeacher ? (a.archived_at ? `
             <div class="teme-assignment__actions">
-              <span class="teme-assignment__archived-label" title="Fișierele au fost șterse, notele rămân în catalog">📦 Arhivată — doar note</span>
+              <span class="teme-assignment__archived-label" title="Fișierele au fost șterse, notele rămân în catalog">${icon('archive', { size: 16 })} Arhivată — doar note</span>
             </div>
           ` : `
             <div class="teme-assignment__actions">
               ${badge.cls === 'overdue' ? `
                 <button class="teme-assignment__archive" data-id="${a.id}"
-                        data-title="${BM.esc(a.title)}" title="Arhivează (șterge fișierele, păstrează notele)">🗑️ Arhivează</button>
+                        data-title="${BM.esc(a.title)}" title="Arhivează (șterge fișierele, păstrează notele)">${icon('archive', { size: 16 })} Arhivează</button>
               ` : ''}
-              <button class="teme-assignment__edit" data-id="${a.id}" title="Editează">✎</button>
+              <button class="teme-assignment__edit" data-id="${a.id}" title="Editează">${icon('pencil', { size: 16 })}</button>
               <button class="teme-assignment__delete" data-id="${a.id}"
-                      data-title="${BM.esc(a.title)}" title="Șterge">✕</button>
+                      data-title="${BM.esc(a.title)}" title="Șterge">${icon('x', { size: 16 })}</button>
             </div>
           `) : ''}
         </div>
@@ -928,8 +941,21 @@
     const subject   = nameParts[0];
     const schedule  = nameParts.slice(1).join(' · ');
 
-    const subjectIcons = { 'matematică': '📐', 'fizică': '⚛️', 'chimie': '🧪', 'biologie': '🌿', 'informatică': '💻', 'istorie': '📜', 'geografie': '🌍', 'limba română': '📖', 'română': '📖', 'limba engleză': '🇬🇧', 'engleză': '🇬🇧', 'franceză': '🇫🇷' };
-    const icon = subjectIcons[subject.toLowerCase()] || '📚';
+    const subjectIcons = {
+      'matematică':     icon('sigma', { size: 32 }),
+      'fizică':         icon('atom', { size: 32 }),
+      'chimie':         icon('flask-conical', { size: 32 }),
+      'biologie':       icon('leaf', { size: 32 }),
+      'informatică':    icon('monitor', { size: 32 }),
+      'istorie':        icon('scroll', { size: 32 }),
+      'geografie':      icon('globe', { size: 32 }),
+      'limba română':   icon('book-open', { size: 32 }),
+      'română':         icon('book-open', { size: 32 }),
+      'limba engleză':  icon('languages', { size: 32 }),
+      'engleză':        icon('languages', { size: 32 }),
+      'franceză':       icon('languages', { size: 32 })
+    };
+    const subjectIcon = subjectIcons[subject.toLowerCase()] || icon('library', { size: 32 });
 
     const mathLevelMap = {
       '9-10': { label: 'Foarte bun', cls: 'cd-level--green' },
@@ -945,19 +971,19 @@
       <div class="cd-info-card__details">
         ${grade ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">🎓</span>
+          <span class="cd-info-card__detail-icon">${icon('graduation-cap', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Clasa</span>
           <span class="cd-info-card__detail-val">${BM.esc(grade)}</span>
         </div>` : ''}
         ${maxEl ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">👥</span>
+          <span class="cd-info-card__detail-icon">${icon('users', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Mărime grupă</span>
           <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `${maxEl} elevi`}</span>
         </div>` : ''}
         ${lvl ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">📊</span>
+          <span class="cd-info-card__detail-icon">${icon('chart-column', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Nivel</span>
           <span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)} · ${lvl.label}</span>
         </div>` : ''}
@@ -968,9 +994,9 @@
         <div class="cd-info-card__strip"></div>
         <div class="cd-info-card__inner">
           <div class="cd-info-card__main">
-            <div class="cd-info-card__icon">${icon}</div>
+            <div class="cd-info-card__icon">${subjectIcon}</div>
             <div class="cd-info-card__subject">${BM.esc(subject)}</div>
-            ${schedule ? `<div class="cd-info-card__schedule">🗓 ${BM.esc(schedule)}</div>` : ''}
+            ${schedule ? `<div class="cd-info-card__schedule">${icon('calendar', { size: 16 })} ${BM.esc(schedule)}</div>` : ''}
           </div>
           <div class="cd-info-card__stats">
             <div class="cd-info-card__stat">
@@ -983,7 +1009,7 @@
       </div>
       ${!isTeacher && ('Notification' in window) ? `
       <button class="cd-notif-btn" onclick="cdOpenNotifInfo('${classData.id}')">
-        🔔 Gestionează notificările
+        ${icon('bell', { size: 16 })} Gestionează notificările
       </button>` : ''}
     `;
   }
@@ -998,19 +1024,19 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog">
         <div class="classes-modal__head">
-          <h3>🔔 Notificări pentru această clasă</h3>
-          <button class="icon-btn" id="notifInfoCloseBtn">✕</button>
+          <h3>${icon('bell', { size: 20 })} Notificări pentru această clasă</h3>
+          <button class="icon-btn" id="notifInfoCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
           <p class="notif-info__p">Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când profesorul:</p>
           <ul class="notif-info__list">
-            <li>📢 postează un anunț nou în clasă</li>
-            <li>📝 adaugă o temă nouă</li>
-            <li>🎯 programează sau pornește o simulare</li>
+            <li>${icon('megaphone', { size: 16 })} postează un anunț nou în clasă</li>
+            <li>${icon('file-text', { size: 16 })} adaugă o temă nouă</li>
+            <li>${icon('target', { size: 16 })} programează sau pornește o simulare</li>
           </ul>
           <p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>
           ${blocked ? `
-          <p class="notif-info__p notif-info__p--warn">⚠️ Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
+          <p class="notif-info__p notif-info__p--warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
         </div>
         <div class="classes-modal__foot">
           <button class="btn btn--surface" id="notifInfoCancelBtn">Închide</button>
@@ -1050,7 +1076,7 @@
       <div class="cd-sidebar-widget">
         <div class="cd-sidebar-widget__title">Rezumat Teme</div>
         <div class="cd-sidebar-stat">
-          <span class="cd-sidebar-stat__icon">📝</span>
+          <span class="cd-sidebar-stat__icon">${icon('file-text', { size: 16 })}</span>
           <span>${relevant.length} ${relevant.length === 1 ? 'temă' : 'teme'} total</span>
         </div>
         ${active > 0 ? `
@@ -1143,7 +1169,7 @@
       if (!members || members.length === 0) {
         content.innerHTML = `
           <div class="cd-placeholder">
-            <div class="cd-placeholder__icon">👥</div>
+            <div class="cd-placeholder__icon">${icon('users', { size: 48 })}</div>
             <h3 class="cd-placeholder__title">Niciun elev</h3>
             <p class="cd-placeholder__desc">Partajează codul de invitație pentru a adăuga elevi în clasă.</p>
           </div>`;
@@ -1314,7 +1340,7 @@
     } catch (e) {
       content.innerHTML = `
         <div class="cd-placeholder">
-          <div class="cd-placeholder__icon">⚠️</div>
+          <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
           <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
           <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
         </div>`;
@@ -1420,7 +1446,7 @@
         const ds = col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
         return `
           <div class="catalog-th" title="${BM.esc(a.title)} — temă">
-            <span class="catalog-th__title">📝 ${BM.esc(a.title)}</span>
+            <span class="catalog-th__title">${icon('file-text', { size: 16 })} ${BM.esc(a.title)}</span>
             <span class="catalog-th__date">${ds}</span>
           </div>`;
       }
@@ -1428,7 +1454,7 @@
       const ds = _simColDate(s);
       return `
         <div class="catalog-th catalog-th--sim catalog-th--sortable" data-sort-key="${s.id}" title="${BM.esc(s.title)} — simulare — click pentru sortare">
-          <span class="catalog-th__title">🎯 ${BM.esc(s.title)}${_catalogSortArrow(s.id, sortState)}</span>
+          <span class="catalog-th__title">${icon('target', { size: 16 })} ${BM.esc(s.title)}${_catalogSortArrow(s.id, sortState)}</span>
           <span class="catalog-th__date">${ds}</span>
         </div>`;
     }).join('');
@@ -1452,7 +1478,7 @@
             const cls = _catalogGradeTier(g);
             return `<div class="catalog-td catalog-td--grade catalog-td--${cls}" title="Notă: ${sub.grade}">${sub.grade}</div>`;
           }
-          return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">✓</div>`;
+          return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`;
         }
         const att = mySims[col.id];
         // grade_10 can be null on a finalized attempt for a simulation that
@@ -1515,7 +1541,7 @@
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--submitted"></span>Predat, nenotat</span>
           <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Nepredat</span>
           ${(assignments.length > 0 && sims.length > 0) ? `
-          <span class="catalog-legend-item catalog-legend-item--sep">📝 Notă din temă · 🎯 Notă din simulare</span>` : ''}
+          <span class="catalog-legend-item catalog-legend-item--sep">${icon('file-text', { size: 16 })} Notă din temă · ${icon('target', { size: 16 })} Notă din simulare</span>` : ''}
         </div>
         <div class="catalog-scroll">
           <div class="catalog-table">
@@ -1531,8 +1557,8 @@
           </div>
         </div>
         <div class="catalog-toolbar">
-          <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">📄 Exportă PDF</button>
-          <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">📊 Exportă Excel</button>
+          <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">${icon('file', { size: 16 })} Exportă PDF</button>
+          <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">${icon('chart-column', { size: 16 })} Exportă Excel</button>
         </div>
       </div>`;
   }
@@ -1651,8 +1677,8 @@
     return `
       <div class="catalog-view-toggle-row">
         <div class="cs-view-toggle cs-view-toggle--lg" id="catalogViewToggle">
-          <button type="button" class="cs-view-toggle__btn${mode === 'note' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="note">📊 Note</button>
-          <button type="button" class="cs-view-toggle__btn${mode === 'prezenta' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="prezenta">🗓️ Prezență</button>
+          <button type="button" class="cs-view-toggle__btn${mode === 'note' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="note">${icon('chart-column', { size: 16 })} Note</button>
+          <button type="button" class="cs-view-toggle__btn${mode === 'prezenta' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="prezenta">${icon('calendar', { size: 16 })} Prezență</button>
         </div>
       </div>`;
   }
@@ -1685,7 +1711,7 @@
       const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
       return `
         <div class="catalog-th catalog-th--clickable" data-edit-session="${s.id}" title="Lecție din ${ds} — click pentru a edita">
-          <span class="catalog-th__title">🗓️ ${ds}</span>
+          <span class="catalog-th__title">${icon('calendar', { size: 16 })} ${ds}</span>
         </div>`;
     }).join('');
 
@@ -1694,8 +1720,8 @@
         const status = myAtt[s.id];
         if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">—</div>`;
         return status
-          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent — click pentru a marca absent">✓</div>`
-          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent — click pentru a marca prezent">✗</div>`;
+          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent — click pentru a marca absent">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`
+          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent — click pentru a marca prezent">${icon('circle-x', { size: 16, className: 'icon--error' })}</div>`;
       }).join('');
 
       const rateTxt  = rate != null ? `${rate}%` : '—';
@@ -1752,7 +1778,7 @@
         </div>
         ${sessions.length === 0 ? `
           <div class="cd-placeholder">
-            <div class="cd-placeholder__icon">🗓️</div>
+            <div class="cd-placeholder__icon">${icon('calendar', { size: 48 })}</div>
             <h3 class="cd-placeholder__title">Nicio lecție înregistrată</h3>
             <p class="cd-placeholder__desc">Adaugă prima lecție ca să începi să urmărești prezența elevilor.</p>
           </div>
@@ -1772,7 +1798,7 @@
           </div>
         `}
         <div class="catalog-toolbar catalog-toolbar--split">
-          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o dată pentru a edita lecția · click pe ✓/✗ pentru a corecta rapid' : ''}</span>
+          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o dată pentru a edita lecția · click pe celulă pentru a comuta corect/greșit' : ''}</span>
           <button class="btn btn--primary btn--sm" id="addLectieBtn">+ Adaugă lecție</button>
         </div>
       </div>`;
@@ -1836,8 +1862,8 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog lectie-dialog">
         <div class="classes-modal__head">
-          <h3>🗓️ ${isEdit ? 'Editează lecția' : 'Adaugă lecție'}</h3>
-          <button class="icon-btn" id="lectieCloseBtn">✕</button>
+          <h3>${icon('calendar', { size: 20 })} ${isEdit ? 'Editează lecția' : 'Adaugă lecție'}</h3>
+          <button class="icon-btn" id="lectieCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
           <div class="cls-form-field">
@@ -1849,7 +1875,7 @@
             <div class="lectie-roster">${rosterRows}</div>
           </div>
           <div class="lectie-modal__foot">
-            ${isEdit ? `<button class="btn btn--danger btn--sm" id="lectieDeleteBtn">🗑️ Șterge lecția</button>` : '<span></span>'}
+            ${isEdit ? `<button class="btn btn--danger btn--sm" id="lectieDeleteBtn">${icon('trash-2', { size: 16 })} Șterge lecția</button>` : '<span></span>'}
             <button class="btn btn--primary" id="lectieSaveBtn">Salvează</button>
           </div>
         </div>
@@ -1891,7 +1917,7 @@
 
     modal.querySelector('#lectieDeleteBtn')?.addEventListener('click', async () => {
       const ok = await showConfirmDialog({
-        icon: '🗑️', title: 'Ștergi lecția?',
+        icon: icon('trash-2', { size: 48, className: 'icon--error' }), title: 'Ștergi lecția?',
         message: 'Toate înregistrările de prezență pentru această dată vor fi șterse definitiv.',
         confirmText: 'Șterge'
       });
@@ -2011,7 +2037,7 @@
 
     const noteRows = sortedNotes.map(n => {
       const ds = new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
-      const icon = n.type === 'simulare' ? '🎯' : '📝';
+      const rowIcon = n.type === 'simulare' ? icon('target', { size: 16 }) : icon('file-text', { size: 16 });
 
       let gradeEl = '';
       if (n.status === 'none') {
@@ -2027,10 +2053,10 @@
 
       return `
         <div class="cs-note-row">
-          <span class="cs-note-row__icon" title="${n.type === 'simulare' ? 'Simulare' : 'Temă'}">${icon}</span>
+          <span class="cs-note-row__icon" title="${n.type === 'simulare' ? 'Simulare' : 'Temă'}">${rowIcon}</span>
           <div class="cs-info">
             <div class="cs-title">${BM.esc(n.title)}</div>
-            <div class="cs-date">📅 ${ds}</div>
+            <div class="cs-date">${icon('calendar', { size: 16 })} ${ds}</div>
           </div>
           <div class="cs-grade-col">${gradeEl}</div>
         </div>`;
@@ -2057,8 +2083,8 @@
             <h4 class="cs-sim-section__title">Note curente</h4>
             ${notes.length > 0 ? `
             <div class="cs-view-toggle" id="csSimViewToggle">
-              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'list' ? ' cs-view-toggle__btn--active' : ''}" data-view="list">☰ Listă</button>
-              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'chart' ? ' cs-view-toggle__btn--active' : ''}" data-view="chart">📊 Grafic</button>
+              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'list' ? ' cs-view-toggle__btn--active' : ''}" data-view="list">${icon('list', { size: 16 })} Listă</button>
+              <button type="button" class="cs-view-toggle__btn${_csNotesView === 'chart' ? ' cs-view-toggle__btn--active' : ''}" data-view="chart">${icon('chart-column', { size: 16 })} Grafic</button>
             </div>` : ''}
           </div>
           ${notes.length === 0
@@ -2139,13 +2165,20 @@
       const barH = Math.max((n.grade / 10) * plotH, 2);
       const y = baselineY - barH;
       const dateLabel = new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      const icon = n.type === 'simulare' ? '🎯' : '📝';
+      // SVG <text> can't embed the icon() system's <svg> markup (invalid
+      // content model), so this tiny type marker uses a plain native SVG
+      // shape instead: a circle for "simulare", a small square for "temă" —
+      // matching target's round vs file-text's square silhouette without
+      // needing to inline path data at 13px.
+      const typeMark = n.type === 'simulare'
+        ? `<circle cx="${cx}" cy="${H - 26}" r="4" class="sim-chart-icon-mark"></circle>`
+        : `<rect x="${cx - 4}" y="${H - 30}" width="8" height="8" rx="1.5" class="sim-chart-icon-mark"></rect>`;
       return `
         <g class="sim-chart-bar-group" data-title="${BM.esc(n.title)}" data-date="${BM.esc(new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}"
            data-grade="${n.grade}" data-pts="${n.points ? `${n.points.earned}/${n.points.total}p` : ''}" data-type="${n.type === 'simulare' ? 'Simulare' : 'Temă'}">
           <rect x="${cx - barW / 2}" y="${y}" width="${barW}" height="${barH}" rx="4" class="sim-chart-bar"></rect>
           <text x="${cx}" y="${Math.max(y - 10, 20)}" class="sim-chart-value">${n.grade}</text>
-          <text x="${cx}" y="${H - 22}" class="sim-chart-icon">${icon}</text>
+          ${typeMark}
           <text x="${cx}" y="${H - 6}" class="sim-chart-label">${dateLabel}</text>
         </g>`;
     }).join('');
@@ -2223,11 +2256,11 @@
       <div class="classes-modal__dialog av-dialog">
         <div class="classes-modal__head">
           <h3>${BM.esc(a.title)}</h3>
-          <button class="icon-btn" id="avCloseBtn">✕</button>
+          <button class="icon-btn" id="avCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body av-body">
           ${a.archived_at
-            ? '<p class="av-empty">📦 Tema a fost arhivată — instrucțiunile și fișierele au fost șterse, doar notele au rămas în catalog.</p>'
+            ? `<p class="av-empty">${icon('archive', { size: 16 })} Tema a fost arhivată — instrucțiunile și fișierele au fost șterse, doar notele au rămas în catalog.</p>`
             : (blocks.length ? blocks.map(renderBlockView).join('') : '<p class="av-empty">Niciun conținut adăugat.</p>')}
           ${desc ? `
             <div class="av-section">
@@ -2281,7 +2314,7 @@
         BM.toast('Descărcarea a eșuat.', 'error');
       } finally {
         btn.disabled = false;
-        btn.textContent = '⬇ Descarcă';
+        btn.innerHTML = `${icon('download', { size: 16 })} Descarcă`;
       }
     });
 
@@ -2318,7 +2351,7 @@
     if (!confirmed && archived) {
       return `
         <div class="av-submit-section__inner">
-          <div class="av-submit-section__title">📦 Tema a fost arhivată</div>
+          <div class="av-submit-section__title">${icon('archive', { size: 16 })} Tema a fost arhivată</div>
           <p class="av-empty">Profesorul a închis această temă — nu mai poți preda sau modifica fișiere.</p>
         </div>`;
     }
@@ -2326,19 +2359,19 @@
     if (confirmed) {
       const filesHtml = (sub.files || []).map(f => `
         <div class="av-sub-file">
-          <span class="av-sub-file__icon">📎</span>
+          <span class="av-sub-file__icon">${icon('paperclip', { size: 16 })}</span>
           <span class="av-sub-file__name">${BM.esc(f.filename)}</span>
           <span class="av-sub-file__size">${_wzFmtSize(f.size)}</span>
         </div>`).join('');
       return `
         <div class="av-submit-section__inner">
-          <div class="av-submit-section__title">📤 Tema predată</div>
+          <div class="av-submit-section__title">${icon('upload', { size: 16 })} Tema predată</div>
           <div class="av-sub-files">${filesHtml || '<span class="av-sub-none">Niciun fișier</span>'}</div>
           <div class="av-sub-grade-result">
-            <div class="av-sub-grade-result__badge">⭐ Nota ta: <strong>${sub.grade}</strong> / 10</div>
+            <div class="av-sub-grade-result__badge">${icon('star', { size: 16 })} Nota ta: <strong>${sub.grade}</strong> / 10</div>
             ${sub.teacher_comment ? `
               <div class="av-sub-grade-result__comment">
-                <span class="av-sub-grade-result__comment-label">💬 Comentariu profesor:</span>
+                <span class="av-sub-grade-result__comment-label">${icon('message-circle', { size: 16 })} Comentariu profesor:</span>
                 <p>${BM.esc(sub.teacher_comment)}</p>
               </div>` : ''}
           </div>
@@ -2347,19 +2380,19 @@
 
     const existingFilesHtml = sub ? (sub.files || []).map(f => `
       <div class="av-sub-file av-sub-file--existing">
-        <span class="av-sub-file__icon">📎</span>
+        <span class="av-sub-file__icon">${icon('paperclip', { size: 16 })}</span>
         <span class="av-sub-file__name">${BM.esc(f.filename)}</span>
         <span class="av-sub-file__size">${_wzFmtSize(f.size)}</span>
       </div>`).join('') : '';
 
     return `
       <div class="av-submit-section__inner">
-        <div class="av-submit-section__title">${sub ? '📤 Actualizează tema predată' : '📤 Predă tema'}</div>
+        <div class="av-submit-section__title">${icon('upload', { size: 16 })} ${sub ? 'Actualizează tema predată' : 'Predă tema'}</div>
         ${sub && existingFilesHtml ? `
           <div class="av-sub-existing-label">Fișiere deja încărcate:</div>
           <div class="av-sub-files av-sub-files--existing">${existingFilesHtml}</div>` : ''}
         <div class="av-sub-drop" id="avSubDrop">
-          <span class="av-sub-drop__icon">📎</span>
+          <span class="av-sub-drop__icon">${icon('paperclip', { size: 24 })}</span>
           <span class="av-sub-drop__text">${sub ? 'Adaugă fișiere noi (vor înlocui cele existente)' : 'Trage fișierele aici sau apasă pentru a alege'}</span>
           <input type="file" id="avSubInput" multiple accept="image/*,.pdf,.doc,.docx,.txt" style="display:none">
         </div>
@@ -2411,10 +2444,10 @@
     const updatePending = () => {
       pending.innerHTML = pendingFiles.map((f, i) => `
         <div class="av-sub-file">
-          <span class="av-sub-file__icon">📎</span>
+          <span class="av-sub-file__icon">${icon('paperclip', { size: 16 })}</span>
           <span class="av-sub-file__name">${BM.esc(f.name)}</span>
           <span class="av-sub-file__size">${_wzFmtSize(f.size)}</span>
-          <button class="av-sub-file__remove" data-i="${i}">✕</button>
+          <button class="av-sub-file__remove" data-i="${i}">${icon('x', { size: 16 })}</button>
         </div>`).join('');
       submitBtn.disabled = pendingFiles.length === 0;
     };
@@ -2488,7 +2521,7 @@
         if (error) throw error;
         BM.toast('Tema a fost predată!', 'success');
         const badge = document.querySelector(`[data-sub-badge="${assignmentId}"]`);
-        if (badge) { badge.className = 'teme-sub-badge teme-sub-badge--done'; badge.textContent = '✅ Predată'; }
+        if (badge) { badge.className = 'teme-sub-badge teme-sub-badge--done'; badge.innerHTML = `${icon('circle-check', { size: 16 })} Predată`; }
         _loadStudentSubmission(assignmentId, section);
       } catch (e) {
         BM.toast('Eroare: ' + e.message, 'error');
@@ -2514,7 +2547,7 @@
       if (!subs || subs.length === 0) {
         section.innerHTML = `
           <div class="av-submit-section__inner">
-            <div class="av-submit-section__title">👥 Răspunsuri elevi</div>
+            <div class="av-submit-section__title">${icon('users', { size: 16 })} Răspunsuri elevi</div>
             <p class="av-sub-none">Niciun elev nu a predat tema încă.</p>
           </div>`;
         return;
@@ -2523,7 +2556,7 @@
       section.innerHTML = `
         <div class="av-submit-section__inner">
           <div class="av-submit-section__title">
-            👥 Răspunsuri elevi
+            ${icon('users', { size: 16 })} Răspunsuri elevi
             <span class="av-sub-count">${subs.length}</span>
           </div>
           ${subs.map(s => _renderTeacherSubRow(s)).join('')}
@@ -2557,7 +2590,7 @@
           } catch (e) {
             BM.toast('Eroare: ' + e.message, 'error');
             btn.disabled = false;
-            btn.textContent = '✓ Confirmă nota';
+            btn.innerHTML = `${icon('check', { size: 16 })} Confirmă nota`;
           }
         });
       });
@@ -2576,7 +2609,7 @@
         .from('assignment-files').getPublicUrl(f.storage_path);
       return `
         <div class="av-sub-file">
-          <span class="av-sub-file__icon">📎</span>
+          <span class="av-sub-file__icon">${icon('paperclip', { size: 16 })}</span>
           <a class="av-sub-file__link" href="${BM.esc(urlData.publicUrl)}" target="_blank" rel="noopener">${BM.esc(f.filename)}</a>
           <span class="av-sub-file__size">${_wzFmtSize(f.size)}</span>
         </div>`;
@@ -2586,14 +2619,14 @@
       return `
         <div class="av-sub-row av-sub-row--confirmed" data-sub-id="${sub.id}">
           <div class="av-sub-row__header">
-            <span class="av-sub-row__name">👤 ${BM.esc(sub.student_name || 'Elev')}</span>
+            <span class="av-sub-row__name">${icon('user', { size: 16 })} ${BM.esc(sub.student_name || 'Elev')}</span>
             <span class="av-sub-row__date">${date}</span>
-            <span class="av-sub-row__badge--ok">✅ Notat</span>
+            <span class="av-sub-row__badge--ok">${icon('circle-check', { size: 16 })} Notat</span>
           </div>
           <div class="av-sub-files">${filesHtml}</div>
           <div class="av-sub-row__locked">
-            <span class="av-sub-row__locked-grade">⭐ Nota: <strong>${sub.grade}</strong> / 10</span>
-            ${sub.teacher_comment ? `<p class="av-sub-row__locked-comment">💬 ${BM.esc(sub.teacher_comment)}</p>` : ''}
+            <span class="av-sub-row__locked-grade">${icon('star', { size: 16 })} Nota: <strong>${sub.grade}</strong> / 10</span>
+            ${sub.teacher_comment ? `<p class="av-sub-row__locked-comment">${icon('message-circle', { size: 16 })} ${BM.esc(sub.teacher_comment)}</p>` : ''}
           </div>
         </div>`;
     }
@@ -2601,7 +2634,7 @@
     return `
       <div class="av-sub-row" data-sub-id="${sub.id}">
         <div class="av-sub-row__header">
-          <span class="av-sub-row__name">👤 ${BM.esc(sub.student_name || 'Elev')}</span>
+          <span class="av-sub-row__name">${icon('user', { size: 16 })} ${BM.esc(sub.student_name || 'Elev')}</span>
           <span class="av-sub-row__date">${date}</span>
         </div>
         <div class="av-sub-files">${filesHtml}</div>
@@ -2609,7 +2642,7 @@
           <textarea class="av-sub-comment cls-form-input" placeholder="Comentariu pentru elev (opțional)…" rows="2">${BM.esc(sub.teacher_comment || '')}</textarea>
           <div class="av-sub-row__grade-row">
             <input type="number" class="av-sub-grade-input cls-form-input" min="1" max="10" step="0.5" placeholder="Notă 1–10" value="${sub.grade || ''}">
-            <button class="btn btn--primary av-sub-confirm-btn">✓ Confirmă nota</button>
+            <button class="btn btn--primary av-sub-confirm-btn">${icon('check', { size: 16 })} Confirmă nota</button>
           </div>
         </div>
       </div>`;
@@ -2617,8 +2650,17 @@
 
   function renderBlockView(block) {
     const typeLabel = WZ_TYPES.find(t => t.id === block.type)?.label || block.type;
-    const typeIcon  = { text:'📝', pdf:'📄', document:'📄', image:'🖼️',
-                        video:'🎥', link:'🔗', exercise:'📚', ai_import:'🤖', file:'📂' }[block.type] || '📌';
+    const typeIcon  = {
+      text:      icon('file-text', { size: 16 }),
+      pdf:       icon('file', { size: 16 }),
+      document:  icon('file', { size: 16 }),
+      image:     icon('image', { size: 16 }),
+      video:     icon('video', { size: 16 }),
+      link:      icon('link', { size: 16 }),
+      exercise:  icon('library', { size: 16 }),
+      ai_import: icon('bot', { size: 16 }),
+      file:      icon('folder', { size: 16 })
+    }[block.type] || icon('pin', { size: 16 });
     let inner = '';
 
     if (block.type === 'text') {
@@ -2629,7 +2671,7 @@
         <a class="av-link" href="${BM.esc(block.data.url)}" target="_blank" rel="noopener noreferrer">
           ${block.data.title ? `<span class="av-link__title">${BM.esc(block.data.title)}</span>` : ''}
           <span class="av-link__url">${BM.esc(block.data.url)}</span>
-          <span class="av-link__arrow">↗</span>
+          <span class="av-link__arrow">${icon('external-link', { size: 16 })}</span>
         </a>
         ${block.data.description ? `<p class="av-link__desc">${BM.esc(block.data.description)}</p>` : ''}`;
 
@@ -2643,7 +2685,7 @@
         const m = url.match(/vimeo\.com\/(\d+)/);
         if (m) embed = `<div class="av-video-wrap"><iframe src="https://player.vimeo.com/video/${m[1]}" allowfullscreen frameborder="0" loading="lazy"></iframe></div>`;
       }
-      if (!embed) embed = `<a class="av-link" href="${BM.esc(url)}" target="_blank" rel="noopener"><span class="av-link__url">${BM.esc(url)}</span><span class="av-link__arrow">↗</span></a>`;
+      if (!embed) embed = `<a class="av-link" href="${BM.esc(url)}" target="_blank" rel="noopener"><span class="av-link__url">${BM.esc(url)}</span><span class="av-link__arrow">${icon('external-link', { size: 16 })}</span></a>`;
       inner = `${title ? `<p class="av-video-title">${BM.esc(title)}</p>` : ''}${embed}`;
 
     } else if (['pdf', 'image', 'file', 'document'].includes(block.type)) {
@@ -2664,10 +2706,10 @@
                 </div>
                 <div class="av-file-item__actions">
                   <a class="btn btn--outline av-file-item__view"
-                     href="${BM.esc(urlData.publicUrl)}" target="_blank" rel="noopener">👁 Vizualizează</a>
+                     href="${BM.esc(urlData.publicUrl)}" target="_blank" rel="noopener">${icon('eye', { size: 16 })} Vizualizează</a>
                   <button class="btn btn--primary av-file-item__dl"
                           data-url="${BM.esc(urlData.publicUrl)}"
-                          data-filename="${BM.esc(item.filename)}">⬇ Descarcă</button>
+                          data-filename="${BM.esc(item.filename)}">${icon('download', { size: 16 })} Descarcă</button>
                 </div>
               </div>`;
           } else {
@@ -2734,12 +2776,12 @@
         <div class="wz-head">
           <span class="wz-head__title">${wz.existingId ? 'Editează Tema' : 'Temă Nouă'}</span>
           <div class="wz-steps" id="wzSteps"></div>
-          <button class="icon-btn" id="wzCloseBtn">✕</button>
+          <button class="icon-btn" id="wzCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="wz-body" id="wzBody"></div>
         <div class="wz-foot">
-          <button class="btn btn--surface" id="wzBackBtn">← Înapoi</button>
-          <button class="btn btn--primary"  id="wzNextBtn">Continuă →</button>
+          <button class="btn btn--surface" id="wzBackBtn">${icon('arrow-left', { size: 16 })} Înapoi</button>
+          <button class="btn btn--primary"  id="wzNextBtn">Continuă ${icon('arrow-right', { size: 16 })}</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -2772,7 +2814,7 @@
     steps.innerHTML = labels.map((l, i) => `
       <div class="wz-step-item">
         <div class="wz-step-dot${i + 1 < wz.step ? ' wz-step-dot--done' : ''}${i + 1 === wz.step ? ' wz-step-dot--active' : ''}">
-          ${i + 1 < wz.step ? '✓' : i + 1}
+          ${i + 1 < wz.step ? icon('check', { size: 16 }) : i + 1}
         </div>
         <span class="wz-step-label">${l}</span>
       </div>
@@ -2780,9 +2822,9 @@
     `).join('');
 
     backBtn.style.visibility = wz.step === 1 ? 'hidden' : '';
-    nextBtn.textContent = wz.step === 3
+    nextBtn.innerHTML = wz.step === 3
       ? (wz.existingId ? 'Salvează' : 'Publică Tema')
-      : 'Continuă →';
+      : `Continuă ${icon('arrow-right', { size: 16 })}`;
 
     if (wz.step === 1) body.innerHTML = _wzStep1();
     if (wz.step === 2) body.innerHTML = _wzStep2();
@@ -2829,13 +2871,13 @@
               <div class="wz-file-item">
                 <span class="wz-file-item__name">${BM.esc(f.filename)}</span>
                 <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
-                <button type="button" class="wz-file-item__remove" data-kind="existing" data-idx="${i}" title="Șterge">✕</button>
+                <button type="button" class="wz-file-item__remove" data-kind="existing" data-idx="${i}" title="Șterge">${icon('x', { size: 16 })}</button>
               </div>`).join('') +
             wz._pendingFiles.map((f, i) => `
               <div class="wz-file-item">
                 <span class="wz-file-item__name">${BM.esc(f.name)}</span>
                 <span class="wz-file-item__size">${_wzFmtSize(f.size)}</span>
-                <button type="button" class="wz-file-item__remove" data-kind="pending" data-idx="${i}" title="Șterge">✕</button>
+                <button type="button" class="wz-file-item__remove" data-kind="pending" data-idx="${i}" title="Șterge">${icon('x', { size: 16 })}</button>
               </div>`).join('');
         };
         renderList();
@@ -2984,7 +3026,7 @@
           <input type="file" id="wzFileInput" class="wz-file-input"
                  accept="${accept}" ${multiple ? 'multiple' : ''}>
           <label for="wzFileInput" class="wz-upload-drop">
-            <span class="wz-upload-drop__icon">⬆</span>
+            <span class="wz-upload-drop__icon">${icon('upload', { size: 48 })}</span>
             <span class="wz-upload-drop__main">Trage fișierul aici sau <u>alege din calculator</u></span>
             <span class="wz-upload-drop__hint">${hint}</span>
           </label>
@@ -3003,7 +3045,7 @@
     const content = cfg[wz.type]
       ? cfg[wz.type]()
       : `<div class="wz-soon-msg">
-           <span>🚧</span>
+           <span>${icon('construction', { size: 48 })}</span>
            <p>Acest tip de conținut este în curs de dezvoltare.</p>
          </div>`;
 
@@ -3206,7 +3248,7 @@
 
   async function deleteAssignment(assignmentId, assignmentTitle) {
     const ok = await showConfirmDialog({
-      icon:        '🗑️',
+      icon:        icon('trash-2', { size: 48, className: 'icon--error' }),
       title:       'Ștergi tema?',
       message:     '„' + assignmentTitle + '" va fi ștearsă definitiv.',
       confirmText: 'Șterge'
@@ -3241,7 +3283,7 @@
         : '';
 
       const ok = await showConfirmDialog({
-        icon:        '📦',
+        icon:        icon('archive', { size: 48, className: 'icon--warning' }),
         title:       'Arhivezi tema?',
         message:     warnMsg + `Instrucțiunile, pozele tale și pozele elevilor pentru „${assignmentTitle}" vor fi șterse permanent. Notele elevilor rămân salvate în catalog.`,
         confirmText: 'Arhivează'
@@ -3280,14 +3322,14 @@
   }
 
   /* ─── Confirm dialog (reused pattern) ──────────────────────────── */
-  function showConfirmDialog({ title, message, confirmText = 'Confirmă', icon = '⚠️' }) {
+  function showConfirmDialog({ title, message, confirmText = 'Confirmă', icon: iconHtml = icon('triangle-alert', { size: 48, className: 'icon--warning' }) }) {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'confirm-overlay';
       overlay.innerHTML = `
         <div class="confirm-dialog">
           <div class="confirm-dialog__body">
-            <div class="confirm-dialog__icon">${icon}</div>
+            <div class="confirm-dialog__icon">${iconHtml}</div>
             <div class="confirm-dialog__title">${title}</div>
             ${message ? `<p class="confirm-dialog__msg">${message}</p>` : ''}
           </div>
@@ -3408,7 +3450,7 @@
         ${isTeacher ? `
           <div class="teme-toolbar sim-toolbar">
             <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
-            <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">📋 Șabloane</button>
+            <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">${icon('clipboard-list', { size: 16 })} Șabloane</button>
           </div>` : ''}
         <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
           ${visible.length === 0
@@ -3451,7 +3493,7 @@
     } catch (e) {
       content.innerHTML = `
         <div class="cd-placeholder">
-          <div class="cd-placeholder__icon">⚠️</div>
+          <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
           <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
           <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
         </div>`;
@@ -3461,7 +3503,7 @@
   function simEmpty(isTeacher) {
     return `
       <div class="teme-empty">
-        <div class="teme-empty__icon">🎯</div>
+        <div class="teme-empty__icon">${icon('target', { size: 48 })}</div>
         <h3>${isTeacher ? 'Nicio simulare creată' : 'Nicio simulare disponibilă'}</h3>
         <p>${isTeacher ? 'Creează prima simulare pentru clasă.' : 'Profesorul nu a pornit nicio simulare încă.'}</p>
       </div>`;
@@ -3474,16 +3516,16 @@
         <div class="csim-card__row">
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-          <span class="csim-card__meta-item">📅 ${formatSimDateTime(s.scheduled_at)}</span>
-          <span class="csim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
-          <span class="csim-card__meta-item">👥 ${finishedCount}/${memberCount} finalizat</span>
+          <span class="csim-card__meta-item">${icon('calendar', { size: 16 })} ${formatSimDateTime(s.scheduled_at)}</span>
+          <span class="csim-card__meta-item">${icon('timer', { size: 16 })} ${s.time_limit_minutes} min</span>
+          <span class="csim-card__meta-item">${icon('users', { size: 16 })} ${finishedCount}/${memberCount} finalizat</span>
           <div class="csim-card__actions">
-            ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">▶ Pornește acum</button>` : ''}
-            ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">■ Încheie</button>` : ''}
-            ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">↻ Redeschide</button>` : ''}
-            ${s.status === 'programata' ? `<button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">✎</button>` : ''}
-            <button class="teme-assignment__edit" data-sim-save-template="${s.id}" title="Salvează ca șablon">📋</button>
-            <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">✕</button>
+            ${s.status === 'programata' ? `<button class="btn btn--primary btn--sm" data-sim-start="${s.id}">${icon('play', { size: 16 })} Pornește acum</button>` : ''}
+            ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">${icon('square', { size: 16 })} Încheie</button>` : ''}
+            ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">${icon('refresh-cw', { size: 16 })} Redeschide</button>` : ''}
+            ${s.status === 'programata' ? `<button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">${icon('pencil', { size: 16 })}</button>` : ''}
+            <button class="teme-assignment__edit" data-sim-save-template="${s.id}" title="Salvează ca șablon">${icon('clipboard-list', { size: 16 })}</button>
+            <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">${icon('x', { size: 16 })}</button>
           </div>
         </div>
       </div>`;
@@ -3492,11 +3534,11 @@
   function simCardStudent(s, attempt) {
     let action;
     if (attempt?.status === 'finalizata') {
-      action = `<button class="btn btn--surface btn--sm" data-sim-results="${s.id}">📊 Vezi rezultatul</button>`;
+      action = `<button class="btn btn--surface btn--sm" data-sim-results="${s.id}">${icon('chart-column', { size: 16 })} Vezi rezultatul</button>`;
     } else if (attempt?.status === 'in_progres') {
-      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">▶ Continuă</button>`;
+      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">${icon('play', { size: 16 })} Continuă</button>`;
     } else if (s.status === 'activa') {
-      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">▶ Începe simularea</button>`;
+      action = `<button class="btn btn--primary btn--sm" data-sim-begin="${s.id}">${icon('play', { size: 16 })} Începe simularea</button>`;
     } else {
       action = `<span class="sim-badge sim-badge--locked">Nu ai participat</span>`;
     }
@@ -3505,8 +3547,8 @@
         <div class="csim-card__row">
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
-          <span class="csim-card__meta-item">⏱ ${s.time_limit_minutes} min</span>
-          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">⭐ Nota: ${attempt.grade_10 ?? '—'}</span>` : ''}
+          <span class="csim-card__meta-item">${icon('timer', { size: 16 })} ${s.time_limit_minutes} min</span>
+          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">${icon('star', { size: 16 })} Nota: ${attempt.grade_10 ?? '—'}</span>` : ''}
           <div class="csim-card__actions">${action}</div>
         </div>
       </div>`;
@@ -3537,7 +3579,7 @@
 
   async function endSimulation(id) {
     const ok = await showConfirmDialog({
-      icon: '■', title: 'Încheie simularea?',
+      icon: icon('square', { size: 48 }), title: 'Încheie simularea?',
       message: 'Elevii care nu au început nu vor mai putea participa (poți redeschide oricând).',
       confirmText: 'Încheie'
     });
@@ -3572,7 +3614,7 @@
 
   async function deleteSimulation(id, title) {
     const ok = await showConfirmDialog({
-      icon: '🗑️', title: 'Ștergi simularea?',
+      icon: icon('trash-2', { size: 48, className: 'icon--error' }), title: 'Ștergi simularea?',
       message: '„' + title + '" va fi ștearsă definitiv, împreună cu toate rezultatele elevilor.',
       confirmText: 'Șterge'
     });
@@ -3611,10 +3653,10 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
-          <h3>🎯 ${BM.esc(s.title)}</h3>
+          <h3>${icon('target', { size: 20 })} ${BM.esc(s.title)}</h3>
           <div style="display:flex;gap:6px;align-items:center">
-            <button class="icon-btn" id="simLiveItemsBtn" title="Vezi exercițiile">📋</button>
-            <button class="icon-btn" id="simLiveCloseBtn">✕</button>
+            <button class="icon-btn" id="simLiveItemsBtn" title="Vezi exercițiile">${icon('clipboard-list', { size: 20 })}</button>
+            <button class="icon-btn" id="simLiveCloseBtn">${icon('x', { size: 16 })}</button>
           </div>
         </div>
         <div class="classes-modal__body" id="simLiveBody">
@@ -3642,8 +3684,8 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
-          <h3>📋 Exerciții — ${BM.esc(sim.title)}</h3>
-          <button class="icon-btn" id="simItemsCloseBtn">✕</button>
+          <h3>${icon('clipboard-list', { size: 20 })} Exerciții — ${BM.esc(sim.title)}</h3>
+          <button class="icon-btn" id="simItemsCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="simItemsBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
@@ -3736,13 +3778,13 @@
         const dur = _fmtDuration(new Date(a.finished_at) - new Date(a.started_at));
         statusBadge = `<span class="sim-badge sim-badge--incheiata">Finalizat</span>`;
         statsHtml = `
-          <span class="sim-live-row__stat" title="Timp de rezolvare">⏱ ${dur}</span>
-          <span class="sim-live-row__stat" title="Puncte obținute">🎯 ${a.earned_points}/${a.total_points}p</span>
-          <span class="sim-live-row__stat sim-live-row__stat--grade" title="Notă">⭐ ${a.grade_10 ?? '—'}</span>`;
+          <span class="sim-live-row__stat" title="Timp de rezolvare">${icon('timer', { size: 16 })} ${dur}</span>
+          <span class="sim-live-row__stat" title="Puncte obținute">${icon('target', { size: 16 })} ${a.earned_points}/${a.total_points}p</span>
+          <span class="sim-live-row__stat sim-live-row__stat--grade" title="Notă">${icon('star', { size: 16 })} ${a.grade_10 ?? '—'}</span>`;
       }
       const violations = flagMap[a?.id];
       if (violations > 0) {
-        violationHtml = `<span class="sim-violation-badge" title="Mod supravegheat">⚠ A părăsit fereastra de ${violations} ori</span>`;
+        violationHtml = `<span class="sim-violation-badge" title="Mod supravegheat">${icon('triangle-alert', { size: 16 })} A părăsit fereastra de ${violations} ori</span>`;
       }
 
       return `
@@ -3790,13 +3832,13 @@
       <div class="classes-modal__dialog sim-qv-dialog">
         <div class="classes-modal__head">
           <h3 id="simQvTitle">Se încarcă…</h3>
-          <button class="icon-btn" id="simQvCloseBtn">✕</button>
+          <button class="icon-btn" id="simQvCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="simQvBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
         </div>
         <div class="classes-modal__foot">
-          <button class="btn btn--surface btn--sm" id="simQvDetailBtn">Vezi detaliat →</button>
+          <button class="btn btn--surface btn--sm" id="simQvDetailBtn">Vezi detaliat ${icon('arrow-right', { size: 16 })}</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -3852,11 +3894,11 @@
         <div class="sim-qv-row sim-qv-row--${correct ? 'ok' : 'no'}">
           <div class="sim-qv-row__top">
             <span class="sim-qv-row__idx">${idx + 1}. ${BM.esc(it.title || '')}</span>
-            <span class="sim-qv-row__mark">${correct ? '✓' : '✗'}</span>
+            <span class="sim-qv-row__mark">${correct ? icon('circle-check', { size: 16 }) : icon('circle-x', { size: 16 })}</span>
             <span class="sim-qv-row__pts">${a?.points_earned ?? 0}/${it.points}p</span>
           </div>
           <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} — Corect: ${BM.esc(BM.latexToPlain(correctAnswer))}</div>
-          ${a?.feedback_text ? `<div class="sim-qv-row__fb">💬 ${BM.esc(a.feedback_text)}</div>` : ''}
+          ${a?.feedback_text ? `<div class="sim-qv-row__fb">${icon('message-circle', { size: 16 })} ${BM.esc(a.feedback_text)}</div>` : ''}
         </div>`;
     }).join('');
 
@@ -3865,9 +3907,9 @@
       <div class="sim-qv-summary">
         <div class="sim-qv-grade sim-qv-grade--${gradeCls}">${attempt.grade_10 ?? '—'}</div>
         <div class="sim-qv-meta">
-          <span class="sim-qv-meta__item">🎯 ${attempt.earned_points}/${attempt.total_points}p</span>
-          <span class="sim-qv-meta__item">⏱ ${dur}</span>
-          ${violations > 0 ? `<span class="sim-violation-badge">⚠ A părăsit fereastra de ${violations} ori</span>` : ''}
+          <span class="sim-qv-meta__item">${icon('target', { size: 16 })} ${attempt.earned_points}/${attempt.total_points}p</span>
+          <span class="sim-qv-meta__item">${icon('timer', { size: 16 })} ${dur}</span>
+          ${violations > 0 ? `<span class="sim-violation-badge">${icon('triangle-alert', { size: 16 })} A părăsit fereastra de ${violations} ori</span>` : ''}
         </div>
       </div>
       <div class="sim-qv-list">${rows || '<p class="cs-empty">Niciun exercițiu.</p>'}</div>`;
@@ -3884,7 +3926,7 @@
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
           <h3 id="simDetailTitle">Se încarcă…</h3>
-          <button class="icon-btn" id="simDetailCloseBtn">✕</button>
+          <button class="icon-btn" id="simDetailCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="simDetailBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
@@ -3937,7 +3979,7 @@
           <div class="sim-result-card__head">
             <span class="sim-result-card__idx">${idx + 1}</span>
             <span class="sim-result-card__pts">${a?.points_earned ?? 0}/${it.points}p</span>
-            <span class="sim-result-card__mark">${correct ? '✓' : '✕'}</span>
+            <span class="sim-result-card__mark">${correct ? icon('circle-check', { size: 16 }) : icon('circle-x', { size: 16 })}</span>
           </div>
           <div class="sim-result-card__statement math-content" id="simDetailStatement${idx}"></div>
           <div class="sim-result-card__answers">
@@ -3953,8 +3995,8 @@
           ${a ? `
           <div class="sim-detail-feedback" data-answer-id="${a.id}">
             <div class="sim-detail-feedback__view" style="${fb ? '' : 'display:none'}">
-              💬 <span class="sim-detail-feedback__text">${BM.esc(fb)}</span>
-              <button type="button" class="sim-detail-feedback__editbtn" data-fb-edit="${a.id}">✎ Editează</button>
+              ${icon('message-circle', { size: 16 })} <span class="sim-detail-feedback__text">${BM.esc(fb)}</span>
+              <button type="button" class="sim-detail-feedback__editbtn" data-fb-edit="${a.id}">${icon('pencil', { size: 16 })} Editează</button>
             </div>
             <button type="button" class="btn btn--surface btn--sm" data-fb-add="${a.id}" style="${fb ? 'display:none' : ''}">+ Adaugă feedback</button>
             <div class="sim-detail-feedback__form" data-fb-form="${a.id}" style="display:none">
@@ -3967,7 +4009,7 @@
 
     const body = document.getElementById('simDetailBody');
     body.innerHTML = `
-      ${violations > 0 ? `<div class="sim-violation-badge" style="margin-bottom:14px;display:inline-block">⚠ A părăsit fereastra de ${violations} ori</div>` : ''}
+      ${violations > 0 ? `<div class="sim-violation-badge" style="margin-bottom:14px;display:inline-block">${icon('triangle-alert', { size: 16 })} A părăsit fereastra de ${violations} ori</div>` : ''}
       <div class="sim-result-summary" style="margin-bottom:16px">
         <div class="sim-result-summary__stat">
           <div class="sim-result-summary__val">${attempt.grade_10 ?? '—'}</div>
@@ -4045,12 +4087,12 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog">
         <div class="classes-modal__head">
-          <h3>📋 Salvează ca șablon</h3>
-          <button class="icon-btn" id="simSaveTplCloseBtn">✕</button>
+          <h3>${icon('clipboard-list', { size: 20 })} Salvează ca șablon</h3>
+          <button class="icon-btn" id="simSaveTplCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
           ${existingTpl ? `
-            <p class="sim-tpl-already-note">✓ Această simulare a fost deja salvată ca șablon: „${BM.esc(existingTpl.title)}".</p>
+            <p class="sim-tpl-already-note">${icon('circle-check', { size: 16, className: 'icon--success' })} Această simulare a fost deja salvată ca șablon: „${BM.esc(existingTpl.title)}".</p>
           ` : ''}
           <div class="cls-form-field">
             <label class="cls-form-label">Denumire șablon *</label>
@@ -4156,8 +4198,8 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-tpl-dialog">
         <div class="classes-modal__head">
-          <h3>📋 Șabloane salvate</h3>
-          <button class="icon-btn" id="simTplCloseBtn">✕</button>
+          <h3>${icon('clipboard-list', { size: 20 })} Șabloane salvate</h3>
+          <button class="icon-btn" id="simTplCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body sim-tpl-body" id="simTplBody">
           <div class="classes-loading"><div class="classes-spinner"></div></div>
@@ -4187,7 +4229,7 @@
 
     if (!document.getElementById('simTplBody')) return; // modal closed while the query was in flight
     if (!templates || !templates.length) {
-      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul 📋 de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
+      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul ${icon('clipboard-list', { size: 16 })} de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
       return;
     }
     // school_grade is a snapshot of the class the template was saved from
@@ -4197,15 +4239,15 @@
     // have no grade recorded, so the badge is just skipped for those.
     body.innerHTML = `<div class="sim-tpl-list">${templates.map(t => `
       <div class="sim-tpl-row" data-tpl-id="${t.id}">
-        <span class="sim-tpl-row__icon">📄</span>
+        <span class="sim-tpl-row__icon">${icon('file', { size: 20 })}</span>
         <div class="sim-tpl-row__main">
           <div class="sim-tpl-row__top">
             <span class="sim-tpl-row__title">${BM.esc(t.title)}</span>
             ${t.school_grade ? `<span class="sim-tpl-row__grade">Clasa ${BM.esc(t.school_grade)}</span>` : ''}
           </div>
-          <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · 👁 supravegheat' : ''}</span>
+          <span class="sim-tpl-row__meta">${t.time_limit_minutes} min${t.supervised ? ' · ' + icon('eye', { size: 16 }) + ' supravegheat' : ''}</span>
         </div>
-        <button class="sim-tpl-row__delete" data-tpl-delete="${t.id}" title="Șterge șablonul">🗑️</button>
+        <button class="sim-tpl-row__delete" data-tpl-delete="${t.id}" title="Șterge șablonul">${icon('trash-2', { size: 16 })}</button>
       </div>`).join('')}</div>`;
     body.querySelectorAll('[data-tpl-id]').forEach(row => row.addEventListener('click', () => _useTemplate(row.dataset.tplId)));
     body.querySelectorAll('[data-tpl-delete]').forEach(btn => btn.addEventListener('click', e => {
@@ -4216,7 +4258,7 @@
 
   async function _deleteTemplate(templateId) {
     const ok = await showConfirmDialog({
-      icon: '🗑️', title: 'Ștergi șablonul?',
+      icon: icon('trash-2', { size: 48, className: 'icon--error' }), title: 'Ștergi șablonul?',
       message: 'Șablonul va fi șters definitiv. Simulările deja create din el nu sunt afectate.',
       confirmText: 'Șterge'
     });
@@ -4329,12 +4371,12 @@
         <div class="wz-head">
           <span class="wz-head__title">${simWiz.existingId ? 'Editează Simularea' : 'Simulare Nouă'}</span>
           <div class="wz-steps" id="simWzSteps"></div>
-          <button class="icon-btn" id="simWzCloseBtn">✕</button>
+          <button class="icon-btn" id="simWzCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="wz-body" id="simWzBody"></div>
         <div class="wz-foot">
-          <button class="btn btn--surface" id="simWzBackBtn">← Înapoi</button>
-          <button class="btn btn--primary" id="simWzNextBtn">Continuă →</button>
+          <button class="btn btn--surface" id="simWzBackBtn">${icon('arrow-left', { size: 16 })} Înapoi</button>
+          <button class="btn btn--primary" id="simWzNextBtn">Continuă ${icon('arrow-right', { size: 16 })}</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -4367,7 +4409,7 @@
     steps.innerHTML = labels.map((l, i) => `
       <div class="wz-step-item">
         <div class="wz-step-dot${i + 1 < simWiz.step ? ' wz-step-dot--done' : ''}${i + 1 === simWiz.step ? ' wz-step-dot--active' : ''}">
-          ${i + 1 < simWiz.step ? '✓' : i + 1}
+          ${i + 1 < simWiz.step ? icon('check', { size: 16 }) : i + 1}
         </div>
         <span class="wz-step-label">${l}</span>
       </div>
@@ -4375,7 +4417,7 @@
     `).join('');
 
     backBtn.style.visibility = simWiz.step === 1 ? 'hidden' : '';
-    nextBtn.textContent = simWiz.step === 3 ? (simWiz.existingId ? 'Salvează' : 'Salvează Simularea') : 'Continuă →';
+    nextBtn.innerHTML = simWiz.step === 3 ? (simWiz.existingId ? 'Salvează' : 'Salvează Simularea') : `Continuă ${icon('arrow-right', { size: 16 })}`;
 
     if (simWiz.step === 1) { body.innerHTML = _simWzStep1(); _simWzBindStep1(body); }
     if (simWiz.step === 2) { body.innerHTML = _simWzStep2(); _simWzBindStep2(body); }
@@ -4386,7 +4428,7 @@
     return `
       <div class="cls-form-field">
         <label class="cls-form-label">Clasă</label>
-        <div class="sim-wz-class-badge">🏫 Clasa ${BM.esc(classData.school_grade)}</div>
+        <div class="sim-wz-class-badge">${icon('school', { size: 16 })} Clasa ${BM.esc(classData.school_grade)}</div>
       </div>
       <div class="cls-form-field">
         <label class="cls-form-label">Titlu simulare *</label>
@@ -4460,21 +4502,21 @@
       <p class="wz-subtitle">Exerciții adăugate (${simWiz.items.length}) — total ${totalPoints} puncte</p>
       <div class="sim-wz-item-list">
         ${simWiz.items.length === 0
-          ? `<div class="wz-soon-msg"><span>📚</span><p>Niciun exercițiu adăugat încă.</p></div>`
+          ? `<div class="wz-soon-msg"><span>${icon('library', { size: 48 })}</span><p>Niciun exercițiu adăugat încă.</p></div>`
           : simWiz.items.map((it, idx) => `
             <div class="sim-wz-item" data-idx="${idx}">
               <span class="sim-wz-item__idx">${idx + 1}</span>
               <div class="sim-wz-item__body">
                 <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
-                <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· 🔘 Grilă' : ''}</div>
+                <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· ' + icon('circle-dot', { size: 16 }) + ' Grilă' : ''}</div>
                 <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : BM.latexToPlain(it.correct_answer || '—'))}</strong></div>
-                <button type="button" class="sim-wz-item__toggle" data-toggle-statement="${idx}">👁 Arată enunțul</button>
+                <button type="button" class="sim-wz-item__toggle" data-toggle-statement="${idx}">${icon('eye', { size: 16 })} Arată enunțul</button>
                 <div class="sim-wz-item__statement math-content" id="simWzItemStatement${idx}" style="display:none"></div>
               </div>
               <div class="sim-wz-item__actions">
                 <button type="button" class="dc-tool-btn" data-move-up="${idx}" ${idx === 0 ? 'disabled' : ''} title="Mută sus">▲</button>
                 <button type="button" class="dc-tool-btn" data-move-down="${idx}" ${idx === simWiz.items.length - 1 ? 'disabled' : ''} title="Mută jos">▼</button>
-                <button type="button" class="dc-tool-btn" data-remove-item="${idx}" title="Elimină">✕</button>
+                <button type="button" class="dc-tool-btn" data-remove-item="${idx}" title="Elimină">${icon('x', { size: 16 })}</button>
               </div>
             </div>`).join('')}
       </div>
@@ -4504,7 +4546,7 @@
         const showing = el.style.display !== 'none';
         if (showing) {
           el.style.display = 'none';
-          btn.textContent = '👁 Arată enunțul';
+          btn.innerHTML = `${icon('eye', { size: 16 })} Arată enunțul`;
         } else {
           if (!el.dataset.rendered) {
             el.innerHTML = BM.trustedNl2br(simWiz.items[idx]?.statement || '');
@@ -4512,7 +4554,7 @@
             el.dataset.rendered = '1';
           }
           el.style.display = '';
-          btn.textContent = '🙈 Ascunde enunțul';
+          btn.innerHTML = `${icon('eye-off', { size: 16 })} Ascunde enunțul`;
         }
       };
     });
@@ -4659,7 +4701,7 @@
       <div class="wz-dialog sim-picker-dialog" role="dialog">
         <div class="wz-head">
           <span class="wz-head__title">Adaugă exercițiu</span>
-          <button class="icon-btn" id="simPickerCloseBtn">✕</button>
+          <button class="icon-btn" id="simPickerCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="wz-body">
           <div class="sim-picker-tabs">
@@ -4759,7 +4801,7 @@
               <span class="sim-opt-row__letter">${letters[i] || i + 1}</span>
               <input type="radio" name="simOptCorrect" class="sim-opt-row__radio" data-opt-correct="${i}" ${o.isCorrect ? 'checked' : ''} title="Marchează ca răspuns corect">
               <input type="text" class="cls-form-input sim-opt-row__input" data-opt-label="${i}" value="${BM.esc(o.label)}" placeholder="Text variantă ${letters[i] || i + 1}">
-              <button type="button" class="dc-tool-btn" data-opt-remove="${i}" ${_simOptBuilder.options.length <= 2 ? 'disabled' : ''} title="Elimină">✕</button>
+              <button type="button" class="dc-tool-btn" data-opt-remove="${i}" ${_simOptBuilder.options.length <= 2 ? 'disabled' : ''} title="Elimină">${icon('x', { size: 16 })}</button>
             </div>`).join('')}
         </div>
         <button type="button" class="btn btn--surface btn--sm" id="simOptAddBtn" ${_simOptBuilder.options.length >= 6 ? 'disabled' : ''} style="margin-top:8px">+ Adaugă variantă</button>
@@ -5019,7 +5061,7 @@
         ${photo.previewUrl
           ? `<img src="${photo.previewUrl}" alt="Previzualizare" style="max-width:100%;max-height:280px;border-radius:10px;border:1px solid var(--border);display:block;margin:0 auto">`
           : `<label for="simPickFileInput" class="wz-upload-drop">
-               <span class="wz-upload-drop__icon">⬆</span>
+               <span class="wz-upload-drop__icon">${icon('upload', { size: 48 })}</span>
                <span class="wz-upload-drop__main">Trage fotografia aici sau <u>alege din calculator</u></span>
                <span class="wz-upload-drop__hint">JPG, PNG, HEIC</span>
              </label>`}
@@ -5027,7 +5069,7 @@
       ${photo.previewUrl ? `
         <div class="sim-picker-photo-actions">
           <button class="btn btn--surface btn--sm" id="simPickReplacePhoto">Schimbă fotografia</button>
-          ${!photo.aiResult ? `<button class="btn btn--primary" id="simPickAnalyzeBtn">Analizează cu AI →</button>` : ''}
+          ${!photo.aiResult ? `<button class="btn btn--primary" id="simPickAnalyzeBtn">Analizează cu AI ${icon('arrow-right', { size: 16 })}</button>` : ''}
         </div>` : ''}
       <div id="simPickPhotoResult"></div>`;
   }
@@ -5093,10 +5135,10 @@
       <div class="sim-picker-photo-review">
         ${r.verificat === false ? `
         <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
-          ⚠️ AI-ul nu și-a putut confirma singur rezultatul la verificare — recalculează manual înainte de a confirma.
+          ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur rezultatul la verificare — recalculează manual înainte de a confirma.
         </div>` : ''}
         ${r.verificare_numerica ? `
-        <div class="cls-form-hint" style="margin-bottom:14px">🔍 Verificare AI: ${BM.esc(r.verificare_numerica)}</div>` : ''}
+        <div class="cls-form-hint" style="margin-bottom:14px">${icon('search', { size: 16 })} Verificare AI: ${BM.esc(r.verificare_numerica)}</div>` : ''}
         <div class="cls-form-field">
           <label class="cls-form-label">Titlu</label>
           <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
@@ -5212,13 +5254,13 @@
           .eq('post_id', postId)
           .eq('user_id', BMAuth.user.id);
         btn.classList.remove('flux-like-btn--active');
-        btn.textContent = '✓ Marchează citit';
+        btn.innerHTML = `${icon('bookmark', { size: 16 })} Marchează citit`;
       } else {
         await BMAuth.supabase.from('post_reactions')
           .upsert({ post_id: postId, user_id: BMAuth.user.id, user_name: BMAuth.displayName() },
                   { onConflict: 'post_id,user_id' });
         btn.classList.add('flux-like-btn--active');
-        btn.textContent = '✓ Citit';
+        btn.innerHTML = `${icon('bookmark', { size: 16 })} Citit`;
       }
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
@@ -5238,7 +5280,7 @@
     if (names.length === 0) {
       popover.innerHTML = `<div class="flux-readers-popover__empty">Niciun elev nu a confirmat încă.</div>`;
     } else {
-      const items = names.map(n => `<div class="flux-readers-popover__item">✓ ${BM.esc(n)}</div>`).join('');
+      const items = names.map(n => `<div class="flux-readers-popover__item">${icon('circle-check', { size: 16, className: 'icon--success' })} ${BM.esc(n)}</div>`).join('');
       popover.innerHTML = `<div class="flux-readers-popover__title">Au confirmat (${names.length})</div>${items}`;
     }
     wrapper.appendChild(popover);

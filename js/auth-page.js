@@ -161,7 +161,7 @@
     const inp = document.getElementById(btn.dataset.target);
     if (!inp) return;
     inp.type = inp.type === 'password' ? 'text' : 'password';
-    btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+    btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
   };
 
   /* ---- Error translation ---- */

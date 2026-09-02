@@ -255,7 +255,7 @@
       </div>
       <div style="display:flex;gap:10px;margin-top:14px;align-items:center">
         <button class="btn btn--surface btn--sm" id="aeReplacePhoto" style="display:none">Schimbă fotografia</button>
-        <button class="btn btn--primary" id="aeAnalyzeBtn">Analizează cu AI →</button>
+        <button class="btn btn--primary" id="aeAnalyzeBtn">Analizează cu AI ${icon('arrow-right', { size: 16 })}</button>
       </div>
     `;
     _aeRenderUploadInner(body);
@@ -275,7 +275,7 @@
     inner.innerHTML = ae.previewUrl
       ? `<img src="${ae.previewUrl}" alt="Previzualizare" style="max-width:100%;max-height:320px;border-radius:10px;border:1px solid var(--border);display:block;margin:0 auto">`
       : `<label for="aeFileInput" class="wz-upload-drop" id="aeDropZone">
-           <span class="wz-upload-drop__icon">⬆</span>
+           <span class="wz-upload-drop__icon">${icon('upload', { size: 48 })}</span>
            <span class="wz-upload-drop__main">Trage fotografia aici sau <u>alege din calculator</u></span>
            <span class="wz-upload-drop__hint">JPG, PNG, HEIC</span>
          </label>`;
@@ -375,7 +375,7 @@
       BM.toast('Eroare la analiza AI: ' + e.message, 'error');
     } finally {
       analyzeBtn.disabled = false;
-      analyzeBtn.textContent = 'Analizează cu AI →';
+      analyzeBtn.innerHTML = `Analizează cu AI ${icon('arrow-right', { size: 16 })}`;
     }
   }
 
@@ -386,18 +386,18 @@
     const alts = r.metode_alternative || [];
 
     body.innerHTML = `
-      <button class="btn btn--surface btn--sm" id="aeRegenerate" style="margin-bottom:16px">🔄 Regenerează</button>
+      <button class="btn btn--surface btn--sm" id="aeRegenerate" style="margin-bottom:16px">${icon('refresh-cw', { size: 16 })} Regenerează</button>
 
       <div id="aeMismatchBanner"></div>
 
       ${r.duplicat?.este_duplicat ? `
       <div style="padding:12px 14px;border:1px solid #f59e0b;border-radius:10px;background:rgba(245,158,11,0.08);color:#f59e0b;margin-bottom:16px;font-size:0.88rem">
-        ⚠️ Posibil duplicat al exercițiului „${BM.esc(r.duplicat.titlu_similar || '')}". Verifică înainte de a confirma.
+        ${icon('triangle-alert', { size: 16 })} Posibil duplicat al exercițiului „${BM.esc(r.duplicat.titlu_similar || '')}". Verifică înainte de a confirma.
       </div>` : ''}
 
       ${r.verificat === false ? `
       <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
-        ⚠️ AI-ul nu și-a putut confirma singur răspunsul final la verificare — recalculează manual înainte de a confirma.
+        ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur răspunsul final la verificare — recalculează manual înainte de a confirma.
       </div>` : ''}
 
       <div class="cls-form-field">
@@ -425,7 +425,7 @@
         ${r.verificare_numerica ? `
         <div class="ae-verif">
           <button type="button" class="ae-verif__toggle" id="aeVerifToggle" aria-expanded="false">
-            <span>🔍 Verificare AI</span><span class="ae-verif__chev">▾</span>
+            <span>${icon('search', { size: 16 })} Verificare AI</span><span class="ae-verif__chev">${icon('chevron-down', { size: 16 })}</span>
           </button>
           <div class="ae-verif__body" id="aeVerifBody" hidden>${BM.esc(r.verificare_numerica)}</div>
         </div>` : ''}
@@ -520,7 +520,7 @@
         <span class="ae-barem-row__nr">${p.nr || i + 1}.</span>
         <textarea class="cls-form-input ae-barem-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem">${BM.esc(p.descriere || '')}</textarea>
         <input type="number" min="0" class="cls-form-input ae-barem-row__pts" data-field="puncte_maxime" value="${Number(p.puncte_maxime) || 0}">
-        <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">✕</button>
+        <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">${icon('x', { size: 16 })}</button>
         <div class="ae-preview-box ae-preview-box--compact ae-barem-row__preview" id="aeBaremPreview${i}"></div>
       </div>
     `).join('') || '<p class="cls-form-hint">Niciun pas — apasă „+ Adaugă pas”.</p>';
@@ -566,7 +566,7 @@
       <div class="ae-alt-row ae-fill-pop" data-idx="${i}">
         <div class="ae-alt-row__head">
           <input type="text" class="cls-form-input ae-alt-row__nume" data-field="nume" placeholder="Nume metodă" value="${BM.esc(m.nume || '')}">
-          <button class="btn btn--danger-outline btn--sm ae-alt-row__del" title="Șterge metoda">✕</button>
+          <button class="btn btn--danger-outline btn--sm ae-alt-row__del" title="Șterge metoda">${icon('x', { size: 16 })}</button>
         </div>
         <textarea class="cls-form-input ae-alt-row__desc" rows="2" data-field="descriere" style="font-family:monospace;font-size:0.85rem" placeholder="Descriere">${BM.esc(m.descriere || '')}</textarea>
         <div class="ae-preview-box ae-preview-box--compact" id="aeAltPreview${i}"></div>
@@ -600,7 +600,7 @@
     const mismatch = ae.punctajTotal && sum !== Number(ae.punctajTotal);
     el.innerHTML = mismatch ? `
       <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
-        ⚠️ Suma pașilor din barem (${sum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}p).
+        ${icon('triangle-alert', { size: 16 })} Suma pașilor din barem (${sum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}p).
       </div>` : '';
   }
 

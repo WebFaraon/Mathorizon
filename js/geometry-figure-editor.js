@@ -2087,7 +2087,7 @@
     ov.id = 'gfeClearConfirmOverlay';
     ov.innerHTML = `
       <div class="bac-confirm-modal" role="dialog" aria-modal="true">
-        <div class="bac-confirm-icon">🗑️</div>
+        <div class="bac-confirm-icon">${icon('trash-2', { size: 48, className: 'icon--error' })}</div>
         <div class="bac-confirm-title">Ștergi toată figura?</div>
         <div class="bac-confirm-sub">Acțiunea nu poate fi anulată.</div>
         <div class="bac-confirm-actions">

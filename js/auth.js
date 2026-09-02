@@ -436,6 +436,13 @@
     }
   }
 
+  // navProfileBtn lives inside the async-injected nav (see js/nav-loader.js).
+  // The DOMContentLoaded-time _updateProfileBtn() call above normally runs
+  // after nav injection anyway (it waits on a Supabase round-trip, slower
+  // than a same-origin partial fetch) but this re-syncs in case that race
+  // ever goes the other way.
+  document.addEventListener('nav:loaded', _updateProfileBtn);
+
   /* ============================================================
      PUBLIC API
      ============================================================ */

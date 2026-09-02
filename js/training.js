@@ -113,7 +113,7 @@
       <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
       <span class="config-chapter-name">${BM.esc(cat.name)}</span>
       ${locked
-        ? '<span class="config-chapter-lock">🔒</span><span class="config-chapter-soon">În curând</span>'
+        ? `<span class="config-chapter-lock">${icon('lock', { size: 16 })}</span><span class="config-chapter-soon">În curând</span>`
         : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>
            <span class="config-chapter-chevron">▾</span>`}
     `;
@@ -142,8 +142,8 @@
     const actions = document.createElement('div');
     actions.className = 'config-subcat-actions';
     actions.innerHTML = `
-      <button type="button" class="config-subcat-action config-subcat-action--select">✓ Selectează tot</button>
-      <button type="button" class="config-subcat-action config-subcat-action--clear">✕ Deselectează tot</button>
+      <button type="button" class="config-subcat-action config-subcat-action--select">${icon('check', { size: 16 })} Selectează tot</button>
+      <button type="button" class="config-subcat-action config-subcat-action--clear">${icon('x', { size: 16 })} Deselectează tot</button>
     `;
     const [selectAllBtn, clearAllBtn] = actions.querySelectorAll('button');
     selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); };
@@ -159,7 +159,7 @@
       chip.innerHTML = `
         <span class="config-subcat-icon" style="color:${sub.color}">${sub.symbol}</span>
         <span class="config-subcat-name">${BM.esc(sub.name)}</span>
-        <span class="config-subcat-check">✓</span>
+        <span class="config-subcat-check">${icon('check', { size: 16 })}</span>
       `;
       chip.onclick = e => { e.stopPropagation(); toggleSubcat(sub.id, cat); };
       grid.appendChild(chip);
@@ -267,7 +267,7 @@
       const rarity  = BM.RARITY_BY_DIFF[cs.ex.difficulty] || 'comun';
       const badge = ungraded
         ? `<span class="flip-card__result-badge flip-card__result-badge--neutral">—</span>`
-        : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${good ? '✓' : '✗'}</span>`;
+        : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${icon(good ? 'circle-check' : 'circle-x', { size: 16 })}</span>`;
       return `
         <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})">
           <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
@@ -439,8 +439,8 @@
     if (!zone) return;
     zone.innerHTML = `
       <p class="reveal-selfcheck-hint">${guestNoSession
-        ? '🔒 Conectează-te pentru variante multiple generate automat — deocamdată, iată soluția:'
-        : '⚠️ Nu am putut genera variante de răspuns acum — iată soluția:'}</p>
+        ? `${icon('lock', { size: 16 })} Conectează-te pentru variante multiple generate automat — deocamdată, iată soluția:`
+        : `${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Nu am putut genera variante de răspuns acum — iată soluția:`}</p>
       <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
       <button class="btn btn--surface btn--full" id="revealUnderstoodBtn">Am înțeles, continuă</button>
     `;
@@ -515,7 +515,9 @@
     const answerZone = document.getElementById('revealAnswerZone');
     resultZone.innerHTML = `
       <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
-        ${isCorrect ? '✓ Corect!' : `✗ Greșit — răspunsul corect: ${BM.esc(correctAnswerText || '')}`}
+        ${isCorrect
+          ? `${icon('circle-check', { size: 16 })} Corect!`
+          : `${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: ${BM.esc(correctAnswerText || '')}`}
       </div>
       <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
     `;
@@ -560,7 +562,8 @@
     if (xpEl) xpEl.textContent = sessionXp;
     if (recordEl) {
       const best = BM.Storage.getBestCombo();
-      recordEl.textContent = best > 0 ? `🏆 Record: ${best}` : '';
+      // innerHTML, not textContent — icon() returns markup, not plain text.
+      recordEl.innerHTML = best > 0 ? `${icon('trophy', { size: 16, className: 'icon--gamify' })} Record: ${best}` : '';
     }
     BM.Training.refreshWidgets();
   }
@@ -594,7 +597,7 @@
   }
 
   function celebrateMilestone(streakCount) {
-    BM.toast(`🔥 ${streakCount} răspunsuri corecte la rând!`, 'success', 3200);
+    BM.toast(`${streakCount} răspunsuri corecte la rând!`, 'success', 3200);
     fireConfetti();
   }
 
@@ -868,7 +871,10 @@
     const resView = document.getElementById('resultsView');
     resView.classList.add('active');
 
-    const icon   = pct >= 80 ? '🎉' : pct >= 50 ? '💪' : '📚';
+    // Named resultIcon, not icon — this function is inside the same
+    // closure as every other call to the global icon() below; a local
+    // `icon` here would shadow it.
+    const resultIcon = icon(pct >= 80 ? 'party-popper' : pct >= 50 ? 'dumbbell' : 'library', { size: 48 });
     const title  = pct >= 80 ? 'Excelent!' : pct >= 50 ? 'Bine!' : 'Continuă să exersezi!';
     const sub    = pct >= 80
       ? 'Ai rezolvat majoritatea exercițiilor. Ești pe drumul cel bun!'
@@ -882,12 +888,12 @@
 
     resView.innerHTML = `
       ${isPerfect ? `
-      <div class="results-perfect-banner">🏅 Sesiune perfectă! Ai rezolvat toate exercițiile corect.</div>` : ''}
+      <div class="results-perfect-banner">${icon('award', { size: 16 })} Sesiune perfectă! Ai rezolvat toate exercițiile corect.</div>` : ''}
       ${newRecord ? `
-      <div class="results-record-banner">🏆 Record nou de streak: ${bestStreakSession} răspunsuri corecte la rând!</div>` : ''}
+      <div class="results-record-banner">${icon('trophy', { size: 16 })} Record nou de streak: ${bestStreakSession} răspunsuri corecte la rând!</div>` : ''}
 
       <div class="results-header">
-        <div class="results-icon">${icon}</div>
+        <div class="results-icon">${resultIcon}</div>
         <div class="results-title">${title}</div>
         <div class="results-subtitle">${sub}</div>
       </div>
@@ -910,21 +916,21 @@
           <div class="result-stat__lbl">XP câștigat</div>
         </div>
         <div class="result-stat">
-          <div class="result-stat__num">🔥 ${bestStreakSession}</div>
+          <div class="result-stat__num" style="color:var(--icon-gamify)">${icon('flame', { size: 16, className: 'icon-num' })} ${bestStreakSession}</div>
           <div class="result-stat__lbl">Streak maxim</div>
         </div>
       </div>
 
       <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;margin-bottom:28px">
-        ⏱ Timp total: ${timeStr}
+        ${icon('timer', { size: 16 })} Timp total: ${timeStr}
       </div>
 
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
         <button class="btn btn--primary btn--lg" onclick="restartTraining()">
-          🔄 Nou antrenament
+          ${icon('refresh-cw', { size: 20 })} Nou antrenament
         </button>
         <a class="btn btn--surface btn--lg" href="index.html">
-          ← Înapoi la capitole
+          ${icon('arrow-left', { size: 16 })} Înapoi la capitole
         </a>
       </div>
     `;

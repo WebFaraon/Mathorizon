@@ -4,80 +4,40 @@
   <meta charset="UTF-8">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>🎯 Antrenament Rapid — BACMath</title>
+  <title>Antrenament Rapid — BACMath</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
 </head>
 <body class="training-page">
 
   <!-- NAVBAR -->
-  <nav class="nav">
-    <div class="nav__inner container">
-      <a class="nav__brand" href="index.html">
-        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
-        <span class="nav__name">Math<b>orizon</b></span>
-      </a>
-      <div class="nav__links">
-        <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link" href="bac.html?new=1">Simulare</a>
-        <a class="nav__link nav__link--active" href="training.html">Antrenament</a>
-        <a class="nav__link" href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html">Pachete</a>
-      </div>
-      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="nav__right">
-        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
-          <span class="token-widget__icon">🎟</span>
-          <span class="token-widget__count" data-token-count>—</span>
-          <span class="token-widget__label">Tokenuri</span>
-        </div>
-        <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-        <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></button>
-        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <button class="nav-profile-btn" id="navProfileBtn" title="Conectează-te">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="index.html"><span class="nav__mobile-link__icon">📚</span>Capitole</a>
-      <a class="nav__mobile-link" href="bac.html?new=1"><span class="nav__mobile-link__icon">📋</span>Simulare</a>
-      <a class="nav__mobile-link nav__mobile-link--active" href="training.html"><span class="nav__mobile-link__icon">🎯</span>Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html"><span class="nav__mobile-link__icon">🏫</span>Clase</a>
-      <a class="nav__mobile-link" href="pachete.html"><span class="nav__mobile-link__icon">📦</span>Pachete</a>
-      <div class="nav__mobile-divider"></div>
-      <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">Istoric rezolvări</button>
-    </div>
-  </nav>
+  <nav class="nav" id="nav-root"></nav>
+  <script src="js/icons.js"></script>
+  <script src="js/nav-loader.js"></script>
 
   <!-- LAYOUT -->
   <div class="training-layout" id="trainingLayout">
 
     <!-- LEFT: Config panel -->
     <aside class="training-config" id="configView">
-      <h2 class="training-config__title">🎯 Antrenament Rapid</h2>
+      <h2 class="training-config__title"><svg class="icon icon-24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Antrenament Rapid</h2>
       <p class="training-config__sub">
         Configurează sesiunea de antrenament și generează un mini-test personalizat.
       </p>
 
       <div class="training-premium-strip">
-        <span class="plan-teaser-badge">✨ Pachet Standard</span>
+        <span class="plan-teaser-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg> Pachet Standard</span>
         <span class="training-premium-strip__copy">Antrenamentul inteligent cu opțiuni generate AI face parte din Pachetul Standard.</span>
-        <a class="training-premium-strip__link" href="pachete.html">Vezi pachetele →</a>
+        <a class="training-premium-strip__link" href="pachete.html">Vezi pachetele <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></a>
       </div>
 
       <!-- Number of exercises -->
@@ -100,7 +60,7 @@
 
       <!-- Start button -->
       <button id="startBtn" class="btn btn--primary btn--lg btn--full" onclick="startTraining()">
-        🚀 Începe Antrenamentul
+        <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Începe Antrenamentul
       </button>
     </aside>
 
@@ -128,11 +88,11 @@
 
           <div class="session-hud" id="sessionHud">
             <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
-              <span class="session-hud__main">🔥 <span id="hudStreakVal">0</span></span>
+              <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg> <span id="hudStreakVal">0</span></span>
               <span class="session-hud__sub">record: <span data-training-best-streak>0</span></span>
             </div>
             <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
-              <span class="session-hud__main">⭐ <span id="hudXpVal">0</span> XP</span>
+              <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg> <span id="hudXpVal">0</span> XP</span>
               <span class="session-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
             </div>
             <div class="session-hud__record" id="hudRecord"></div>
@@ -178,7 +138,7 @@
            as motivation ("here's your progress so far"). -->
       <div id="emptyState" class="training-preview">
         <div class="training-preview__hero">
-          <div class="training-preview__icon">🎯</div>
+          <div class="training-preview__icon"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
           <h3 class="training-preview__title">Gata să exersezi?</h3>
           <p class="training-preview__sub">
             Configurează sesiunea din stânga și apasă <strong>Începe Antrenamentul</strong> —
@@ -188,17 +148,17 @@
 
         <div class="training-preview__stats">
           <div class="training-preview__stat">
-            <div class="training-preview__stat-icon">🏅</div>
+            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg></div>
             <div class="training-preview__stat-val" data-training-level>1</div>
             <div class="training-preview__stat-lbl">Nivel curent</div>
           </div>
           <div class="training-preview__stat">
-            <div class="training-preview__stat-icon">⭐</div>
+            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div>
             <div class="training-preview__stat-val" data-training-total-xp>0</div>
             <div class="training-preview__stat-lbl">XP total</div>
           </div>
           <div class="training-preview__stat">
-            <div class="training-preview__stat-icon">🔥</div>
+            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg></div>
             <div class="training-preview__stat-val" data-training-best-streak>0</div>
             <div class="training-preview__stat-lbl">Cel mai bun streak</div>
           </div>
@@ -211,7 +171,7 @@
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
 
-  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus">↑</button>
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg></button>
 
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>

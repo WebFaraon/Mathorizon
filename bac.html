@@ -8,11 +8,12 @@
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
-  <link rel="stylesheet" href="css/style.css">
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
 </head>
@@ -22,50 +23,9 @@
   <div class="bac-nav-hover-zone" id="navHoverZone"></div>
 
   <!-- NAVBAR -->
-  <nav class="nav">
-    <div class="nav__inner container">
-      <a class="nav__brand" href="index.html">
-        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
-        <span class="nav__name">Math<b>orizon</b></span>
-      </a>
-      <div class="nav__links">
-        <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link nav__link--active" href="bac.html?new=1">Simulare</a>
-        <a class="nav__link" href="training.html">Antrenament</a>
-        <a class="nav__link" href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html">Pachete</a>
-      </div>
-      <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
-        <span></span><span></span><span></span>
-      </button>
-      <div class="nav__right">
-        <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
-          <span class="token-widget__icon">🎟</span>
-          <span class="token-widget__count" data-token-count>—</span>
-          <span class="token-widget__label">Tokenuri</span>
-        </div>
-        <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
-        <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></button>
-        <button class="theme-btn" id="themeBtn" onclick="BM.toggleTheme()" title="Schimbă tema">☽</button>
-        <button class="nav-profile-btn" id="navProfileBtn" title="Conectează-te">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-            <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-          </svg>
-        </button>
-      </div>
-    </div>
-    <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="index.html"><span class="nav__mobile-link__icon">📚</span>Capitole</a>
-      <a class="nav__mobile-link nav__mobile-link--active" href="bac.html?new=1"><span class="nav__mobile-link__icon">📋</span>Simulare</a>
-      <a class="nav__mobile-link" href="training.html"><span class="nav__mobile-link__icon">🎯</span>Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html"><span class="nav__mobile-link__icon">🏫</span>Clase</a>
-      <a class="nav__mobile-link" href="pachete.html"><span class="nav__mobile-link__icon">📦</span>Pachete</a>
-      <div class="nav__mobile-divider"></div>
-      <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openFavoritesPanel()">Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');openHistoryPanel()">Istoric rezolvări</button>
-    </div>
-  </nav>
+  <nav class="nav" id="nav-root"></nav>
+  <script src="js/icons.js"></script>
+  <script src="js/nav-loader.js"></script>
 
   <!-- SETUP VIEW -->
   <div id="setupView">
@@ -81,7 +41,7 @@
           <span style="--sz:88px;--t:18%;--l:22%">Δ</span>
         </div>
         <div class="sim-card-content">
-          <div class="sim-card-badge">🎓 BAC Moldova — 2022+</div>
+          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg> BAC Moldova — 2022+</div>
           <h2 class="sim-card-title">Simulare <em>BAC</em><br><span>Matematică</span></h2>
           <div class="sim-card-rule"></div>
           <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 3 ore ca la examenul real.</p>
@@ -90,7 +50,7 @@
             <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
             <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">3h</span><span class="sim-chip__lbl">Timp</span></div>
           </div>
-          <div class="sim-card-cta">Selectează Simulare BAC <span class="sim-card-arrow">→</span></div>
+          <div class="sim-card-cta">Selectează Simulare BAC <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></div>
         </div>
       </div>
 
@@ -106,7 +66,7 @@
           <span style="--sz:80px;--t:20%;--l:20%">±</span>
         </div>
         <div class="sim-card-content">
-          <div class="sim-card-badge">📋 Evaluare inițială</div>
+          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg> Evaluare inițială</div>
           <h2 class="sim-card-title">Lecție de <em>Probă</em><br><span>Testare Nivel</span></h2>
           <div class="sim-card-rule"></div>
           <p class="sim-card-desc">Test personalizat pe clasă, cu exerciții de la nota 5 la nota 10. Evaluăm nivelul elevului nou la prima lecție.</p>
@@ -115,7 +75,7 @@
             <div class="sim-chip sim-chip--rose"><span class="sim-chip__val">8</span><span class="sim-chip__lbl">Exerciții</span></div>
             <div class="sim-chip sim-chip--indigo"><span class="sim-chip__val">50 min</span><span class="sim-chip__lbl">Timp</span></div>
           </div>
-          <div class="sim-card-cta">Selectează Lecție de Probă <span class="sim-card-arrow">→</span></div>
+          <div class="sim-card-cta">Selectează Lecție de Probă <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></div>
         </div>
       </div>
     </div>
@@ -125,7 +85,7 @@
 
       <!-- LEFT: hero -->
       <div class="bac-setup-left">
-        <a class="bac-back-btn" href="#" onclick="backToChoose(event)">← Înapoi</a>
+        <a class="bac-back-btn" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
         <div class="bac-setup-deco" aria-hidden="true">
           <span style="--sz:140px;--t:2%;--l:62%">π</span>
           <span style="--sz:110px;--t:50%;--l:2%">∑</span>
@@ -135,7 +95,7 @@
           <span style="--sz:80px;--t:33%;--l:76%">∞</span>
         </div>
 
-        <div class="bac-setup-badge">🎓 BAC Moldova — Structură Oficială 2022+</div>
+        <div class="bac-setup-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg> BAC Moldova — Structură Oficială 2022+</div>
         <h1 class="bac-setup-title">Simulare <em>BAC</em><br><span>Matematică</span></h1>
         <div class="bac-title-rule"></div>
         <p class="bac-setup-desc">
@@ -161,19 +121,19 @@
         <div class="bac-method-label">Cum vei rezolva exercițiile?</div>
         <div class="bac-method-grid" id="bacMethodGrid">
           <button class="bac-method-btn" type="button" data-method="canvas" onclick="selectAnswerMethod('canvas')">
-            <span class="bac-method-btn__icon">✏️</span>
+            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
             <span class="bac-method-btn__title">Canvas digital</span>
             <span class="bac-method-btn__desc">Scrie direct în aplicație cu mouse/stylus/deget</span>
           </button>
           <button class="bac-method-btn" type="button" data-method="photo" onclick="selectAnswerMethod('photo')">
-            <span class="bac-method-btn__icon">📷</span>
+            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
             <span class="bac-method-btn__title">Încarcă poze</span>
             <span class="bac-method-btn__desc">Rezolvă pe foaie și încarcă poza rezolvării</span>
           </button>
         </div>
 
         <button class="bac-start-btn" id="bacStartBtn" onclick="startExam()" disabled>
-          🚀 Pornește Simularea BAC
+          <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Pornește Simularea BAC
         </button>
       </div>
 
@@ -282,28 +242,28 @@
           <div class="bac-tips__head">Sfaturi pentru succes</div>
           <div class="bac-tips__grid">
             <div class="bac-tip">
-              <span class="bac-tip__icon">⏱</span>
+              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg></span>
               <div>
                 <div class="bac-tip__title">Gestionează timpul</div>
                 <div class="bac-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</div>
               </div>
             </div>
             <div class="bac-tip">
-              <span class="bac-tip__icon">📖</span>
+              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg></span>
               <div>
                 <div class="bac-tip__title">Citește atent enunțul</div>
                 <div class="bac-tip__desc">Înțelege ce se cere înainte de a calcula.</div>
               </div>
             </div>
             <div class="bac-tip">
-              <span class="bac-tip__icon">✏️</span>
+              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
               <div>
                 <div class="bac-tip__title">Notează toți pașii</div>
                 <div class="bac-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</div>
               </div>
             </div>
             <div class="bac-tip">
-              <span class="bac-tip__icon">🎯</span>
+              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
               <div>
                 <div class="bac-tip__title">Începe cu ce știi</div>
                 <div class="bac-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</div>
@@ -319,7 +279,7 @@
 
       <!-- LEFT: hero -->
       <div class="lectie-setup-left">
-        <a class="bac-back-btn" href="#" onclick="backToChoose(event)">← Înapoi</a>
+        <a class="bac-back-btn" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
         <div class="lectie-setup-deco" aria-hidden="true">
           <span style="--sz:130px;--t:4%;--l:58%">√</span>
           <span style="--sz:100px;--t:52%;--l:3%">x²</span>
@@ -329,7 +289,7 @@
           <span style="--sz:75px;--t:35%;--l:74%">θ</span>
         </div>
 
-        <div class="lectie-setup-badge">📋 Evaluare Inițială</div>
+        <div class="lectie-setup-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg> Evaluare Inițială</div>
         <h1 class="lectie-setup-title">Lecție de <em>Probă</em><br><span>Testare Nivel</span></h1>
         <div class="lectie-title-rule"></div>
         <p class="lectie-setup-desc">
@@ -365,7 +325,7 @@
         </div>
 
         <button class="lectie-start-btn" id="lectieStartBtn" onclick="startLectieExam()" disabled>
-          🎯 Pornește Testul de Nivel
+          <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Pornește Testul de Nivel
         </button>
       </div>
 
@@ -375,7 +335,7 @@
           <div class="lectie-info-head">Structura testului</div>
           <div class="lectie-info-rows">
             <div class="lectie-info-row">
-              <span class="lectie-info-icon">🟢</span>
+              <span class="lectie-info-icon"><span class="lectie-info-dot lectie-info-dot--easy"></span></span>
               <div class="lectie-info-body">
                 <div class="lectie-info-title">Exerciții Ușoare — Nota 5–6</div>
                 <div class="lectie-info-desc">3 exerciții de bază din programa clasei selectate. Testează cunoștințele fundamentale.</div>
@@ -383,7 +343,7 @@
               <span class="lectie-info-pts">3 ex.</span>
             </div>
             <div class="lectie-info-row">
-              <span class="lectie-info-icon">🟡</span>
+              <span class="lectie-info-icon"><span class="lectie-info-dot lectie-info-dot--medium"></span></span>
               <div class="lectie-info-body">
                 <div class="lectie-info-title">Exerciții Medii — Nota 7–8</div>
                 <div class="lectie-info-desc">3 exerciții de dificultate medie. Testează înțelegerea și aplicarea conceptelor.</div>
@@ -391,7 +351,7 @@
               <span class="lectie-info-pts">3 ex.</span>
             </div>
             <div class="lectie-info-row">
-              <span class="lectie-info-icon">🔴</span>
+              <span class="lectie-info-icon"><span class="lectie-info-dot lectie-info-dot--hard"></span></span>
               <div class="lectie-info-body">
                 <div class="lectie-info-title">Exerciții Grele — Nota 9–10</div>
                 <div class="lectie-info-desc">2 exerciții avansate. Testează capacitatea de raționament și rezolvare complexă.</div>
@@ -409,28 +369,28 @@
           <div class="lectie-tips__head">Cum funcționează</div>
           <div class="lectie-tips__grid">
             <div class="lectie-tip">
-              <span class="lectie-tip__icon">🔒</span>
+              <span class="lectie-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></span>
               <div>
                 <div class="lectie-tip__title">Examen blocat</div>
                 <div class="lectie-tip__desc">Elevul nu poate ieși din test sau accesa alte pagini.</div>
               </div>
             </div>
             <div class="lectie-tip">
-              <span class="lectie-tip__icon">📊</span>
+              <span class="lectie-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"></path><path d="M18 17V9"></path><path d="M13 17V5"></path><path d="M8 17v-3"></path></svg></span>
               <div>
                 <div class="lectie-tip__title">Rezultate instant</div>
                 <div class="lectie-tip__desc">La final primești raportul complet cu nivelul evaluat.</div>
               </div>
             </div>
             <div class="lectie-tip">
-              <span class="lectie-tip__icon">🎯</span>
+              <span class="lectie-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
               <div>
                 <div class="lectie-tip__title">Adaptat pe clasă</div>
                 <div class="lectie-tip__desc">Exercițiile sunt selectate din programa clasei alese.</div>
               </div>
             </div>
             <div class="lectie-tip">
-              <span class="lectie-tip__icon">⏱</span>
+              <span class="lectie-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg></span>
               <div>
                 <div class="lectie-tip__title">Timp limitat</div>
                 <div class="lectie-tip__desc">50 de minute — suficient pentru a evalua nivelul real.</div>
@@ -459,7 +419,7 @@
         <div class="bac-exam-topbar">
           <div id="slotMeta"></div>
           <div class="bac-topbar-controls">
-            <button class="bac-flag-btn" id="flagBtn" onclick="toggleFlag()" title="Marchează pentru revizuire">☆</button>
+            <button class="bac-flag-btn" id="flagBtn" onclick="toggleFlag()" title="Marchează pentru revizuire"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></button>
             <span class="bac-timer" id="navTimer">03:00:00</span>
             <button class="btn btn--danger bac-finish-btn" onclick="finishExam()">Finalizează</button>
           </div>

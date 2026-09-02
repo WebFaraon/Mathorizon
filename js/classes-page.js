@@ -56,14 +56,14 @@
   }
 
   /* ─── Custom confirm dialog ────────────────────────────────────── */
-  function showConfirm({ title, message, confirmText = 'Confirmă', icon = '⚠️' }) {
+  function showConfirm({ title, message, confirmText = 'Confirmă', icon: iconHtml = icon('triangle-alert', { size: 48, className: 'icon--warning' }) }) {
     return new Promise(resolve => {
       const overlay = document.createElement('div');
       overlay.className = 'confirm-overlay';
       overlay.innerHTML = `
         <div class="confirm-dialog">
           <div class="confirm-dialog__body">
-            <div class="confirm-dialog__icon">${icon}</div>
+            <div class="confirm-dialog__icon">${iconHtml}</div>
             <div class="confirm-dialog__title">${title}</div>
             ${message ? `<p class="confirm-dialog__msg">${message}</p>` : ''}
           </div>
@@ -102,7 +102,7 @@
   function renderLoginPrompt() {
     setRootContent(`
       <div class="classes-auth-prompt">
-        <div class="classes-auth-icon">🔒</div>
+        <div class="classes-auth-icon">${icon('lock', { size: 48 })}</div>
         <h2>Autentificare necesară</h2>
         <p>Trebuie să fii autentificat pentru a accesa funcționalitatea de clase.</p>
         <a class="btn btn--primary" href="auth.html?from=classes.html">Conectează-te</a>
@@ -166,7 +166,7 @@
                ${classes.map(c => teacherCard(c, memberCounts[c.id] || 0)).join('')}
              </div>
              <div class="classes-empty classes-empty--filtered" id="classesFilterEmpty" style="display:none">
-               <div class="classes-empty__icon">📭</div>
+               <div class="classes-empty__icon">${icon('search-x', { size: 48 })}</div>
                <h3>Nicio clasă în ziua selectată</h3>
                <p>Încearcă altă zi sau șterge filtrul.</p>
              </div>`
@@ -313,7 +313,7 @@
   function teacherEmpty() {
     return `
       <div class="classes-empty">
-        <div class="classes-empty__icon">🏫</div>
+        <div class="classes-empty__icon">${icon('school', { size: 48 })}</div>
         <h3>Nicio clasă creată</h3>
         <p>Creează prima clasă și partajează codul de invitație cu elevii tăi.</p>
       </div>
@@ -335,7 +335,7 @@
                   data-id="${cls.id}"
                   data-name="${BM.esc(cls.name)}"
                   title="Șterge clasa"
-                  onclick="event.stopPropagation()">✕</button>
+                  onclick="event.stopPropagation()">${icon('x', { size: 16 })}</button>
         </div>
         ${cls.description ? `<p class="class-card__desc">${BM.esc(cls.description)}</p>` : ''}
         <div class="class-card__invite">
@@ -485,7 +485,7 @@
         <div class="classes-modal__dialog">
           <div class="classes-modal__head">
             <h3>Creează Clasă Nouă</h3>
-            <button class="icon-btn" id="closeModalBtn">✕</button>
+            <button class="icon-btn" id="closeModalBtn">${icon('x', { size: 16 })}</button>
           </div>
           <div class="classes-modal__body">
             <div class="cls-form-field">
@@ -718,7 +718,7 @@
 
   async function deleteClass(classId, className) {
     const ok = await showConfirm({
-      icon:        '🗑️',
+      icon:        icon('trash-2', { size: 48, className: 'icon--error' }),
       title:       'Ștergi clasa „' + className + '"?',
       message:     'Această acțiune este ireversibilă. Toți elevii înscriși vor fi scoși din clasă.',
       confirmText: 'Șterge clasa'
@@ -761,7 +761,7 @@
 
         <div class="classes-join-section">
           <div class="classes-join-card">
-            <div class="classes-join-card__icon">🔑</div>
+            <div class="classes-join-card__icon">${icon('key', { size: 32 })}</div>
             <div class="classes-join-card__body">
               <h3>Alătură-te unei clase</h3>
               <p>Introdu codul de 6 caractere primit de la profesorul tău.</p>
@@ -825,7 +825,7 @@
   function studentEmpty() {
     return `
       <div class="classes-empty">
-        <div class="classes-empty__icon">📚</div>
+        <div class="classes-empty__icon">${icon('library', { size: 48 })}</div>
         <h3>Nicio clasă înscrisă</h3>
         <p>Introdu codul de invitație de mai sus pentru a te alătura primei clase.</p>
       </div>
@@ -915,7 +915,7 @@
       title:       `Ieși din clasa „${className}"?`,
       message:     'Nu vei mai avea acces la anunțuri și teme. Te poți alătura din nou cu codul de invitație.',
       confirmText: 'Ieși din clasă',
-      icon:        '🚪'
+      icon:        icon('log-out', { size: 48 })
     });
     if (!ok) return;
     try {

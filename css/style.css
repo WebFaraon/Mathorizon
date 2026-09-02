@@ -10,7 +10,7 @@
 html { font-size: 16px; scroll-behavior: smooth; overflow-y: scroll; }
 
 body {
-  font-family: 'Josefin Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   padding-top: var(--nav-h);
   background-color: var(--bg);
   background-image:
@@ -49,9 +49,126 @@ input { font: inherit; color: inherit; border: none; outline: none; background: 
 ul, ol { list-style: none; }
 img { display: block; max-width: 100%; }
 
+/* 1b. TYPOGRAPHY — HEADINGS & TITLES
+   Same --font-ui as the rest of the page now (single-font system — see the
+   --font-ui comment above), just bumped to weight 700: at Roboto's more
+   open optical width, these read as body text at the old 600 instead of as
+   titles. Table headers (.catalog-th__title) and file/row names in lists
+   stay at the inherited body weight — they read as UI/data, not editorial
+   titles. The wordmark classes (.nav__name, .auth-modal__brand,
+   .auth-pg-brand-name) are deliberately excluded — they stay pinned to
+   'Josefin Sans'.
+   ============================================================ */
+h1, h2, h3, h4, h5, h6,
+.hero__title, .hero__title-accent,
+.chapter-card__name, .cat-header__name, .subcat-card__name,
+.ex-card__title, .ex-card__title--locked,
+.rarity-card__title, .rarity-card__title--locked, .rarity-modal__title,
+.training-preview__title, .training-config__title,
+.bac-sim-card__name, .bac-method-btn__title, .bac-assess-topbar__title,
+.assess-rating__title, .auth-pg-feat__title, .prof-card__title,
+.prof-modal__title, .prof-pending-banner__title, .class-card__name,
+.confirm-dialog__title, .cd-placeholder__title, .csim-card__title,
+.cs-sim-section__title, .sim-chart-tooltip__title, .sim-tpl-row__title,
+.sim-wz-item__title, .sim-picker-result__title, .flux-post__title,
+.flux-readers-popover__title, .cd-sidebar-widget__title,
+.cd-sidebar-deadline__title, .teme-assignment__title, .wz-head__title,
+.av-link__title, .av-submit-section__title, .dc-mini-exercise__title,
+.ai-section__title, .pricing-hero__title, .pricing-card__name,
+.token-section__title, .faq-section__title, .lectie-tip__title,
+.bac-tip__title, .panel-ex-item__title {
+  font-family: var(--font-ui);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* 1c. TYPOGRAPHY — TABULAR FIGURES
+   Every element that displays digits meant to line up or hold still frame
+   to frame: homepage stats, BAC/lesson timers, exercise & grading points,
+   admin counters, the Catalog table. Safe to apply broadly — this property
+   only affects digit glyphs, never letters, so it's a no-op on any text
+   that happens to share a selector with a numeric value.
+   ============================================================ */
+.stat__val, .chapter-card__count, .subcat-card__count, .cat-hud__num,
+.ex-card__num, .rarity-step__num, .rarity-step__pts, .rarity-modal__total,
+.result-stat__num, .flip-card__num, .token-widget__count,
+.sim-chip__val, .lectie-chip__val, .bac-chip__val,
+.bac-hist-item__grade, .bac-nav-item__pts, .bac-exam-stat__val,
+.bac-stat-chip__val, .bac-struct-num, .bac-slot-num, .bac-results__grade,
+.res-hero__grade, .res-stat__val, .res-row__score,
+.auth-pg-stat-chip__num, .prof-stat__val, .prof-hist-grade,
+.admin-stat-val, .catalog-stat-card__val, .catalog-td,
+.cs-stat__val, .cs-stat__total, .class-card__grade,
+.sim-chart-tooltip__grade, .sim-qv-row__pts, .sim-tpl-row__grade,
+.sim-result-card__pts, .sim-result-answer__val,
+.teme-assignment__pts, .av-foot__pts, .ai-step__pts, .ai-results__grade,
+.bac-timer, .dc-toolbar-timer, .cs-grade, .av-sub-row__locked-grade,
+.csim-card__meta-item--grade, .sim-live-row__stat--grade, .admin-tab-count,
+.session-hud__main, .session-level__xp, .prof-token-count, #sessionCounter,
+table {
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* 1d. ICON SYSTEM (js/icons.js)
+   All icon() output carries .icon plus one size class — sizing is only
+   ever set here, never on the <svg> itself, so every icon stays
+   consistent by construction instead of by convention.
+   ============================================================ */
+.icon {
+  display: inline-block;
+  flex-shrink: 0;
+  vertical-align: middle;
+}
+.icon-16 { width: 16px; height: 16px; }
+.icon-20 { width: 20px; height: 20px; }
+.icon-24 { width: 24px; height: 24px; }
+.icon-32 { width: 32px; height: 32px; }
+/* Stat-card icon that sits stacked above (or otherwise not inline with)
+   a big number — e.g. .training-preview__stat-icon above a level/XP/
+   streak value. A step up from icon-32: at 32px these read smaller than
+   the number below them because a 2px outline is mostly empty space next
+   to a solid 800-weight numeral. Fixed px (not em) because it isn't
+   sharing the number's font-size context the way .icon-num's icons are. */
+.icon-36 { width: 36px; height: 36px; }
+/* Hero-scale — empty-state and results-screen icons that were 48-56px as
+   emoji (font-size); "32px+" leaves room for these, so this isn't a new
+   size philosophy, just the top of the one already specified. */
+.icon-48 { width: 48px; height: 48px; }
+/* Icon sitting inline beside a big stat number (streak/XP/level counters,
+   badge counts) — always paired with one of the icon-NN classes above for
+   a no-JS/no-em fallback, but this rule is declared last so it wins on
+   specificity ties and actually drives the rendered size. Sized in em
+   against the *number's* font-size (this class must be on an icon that's
+   a child of the same element the digits sit in) instead of a fixed px
+   value, because that number's size varies by context (homepage stat,
+   session HUD, results screen…) and a fixed px would only ever be right
+   in one of them. An outline icon under-fills its box next to a solid
+   numeral, so this intentionally overshoots the "0.8-0.9x digit height"
+   target rather than matching it literally — tuned against real
+   renders, not derived from font metrics. */
+.icon-num { width: 0.95em; height: 0.95em; }
+
+/* Icon color roles — opt-in via class, never inline (keeps color changes
+   theme-aware and greppable). Default/no class = neutral = currentColor,
+   which is correct for most icons (nav, structural, decorative-next-to-a-
+   label); only apply one of these when the icon itself needs to carry the
+   state, i.e. nothing else nearby (badge bg, colored pill, text) already
+   does. See css variable block (section 2) for what each aliases to. */
+.icon--success { color: var(--icon-success); }
+.icon--warning { color: var(--icon-warning); }
+.icon--error   { color: var(--icon-error); }
+.icon--accent  { color: var(--icon-accent); }
+.icon--gamify  { color: var(--icon-gamify); }
+
 /* 2. CSS VARIABLES
    ============================================================ */
 :root {
+  /* Typography system — one font, Roboto, for everything: UI, body, headings,
+     numerals, tables. 'Josefin Sans' stays hard-coded (not swapped in) on
+     .nav__name / .auth-modal__brand / .auth-pg-brand-name — the wordmark
+     keeps its own font on purpose, same as before. */
+  --font-ui: 'Roboto', system-ui, -apple-system, sans-serif;
+
   --bg: #F6F3EC;
   --surface: #EDE9DF;
   --card: #FAFAF6;
@@ -112,6 +229,25 @@ img { display: block; max-width: 100%; }
   --rarity-legendar-text: #92400E; --rarity-legendar-dim: rgba(180, 83, 9, 0.12); --rarity-legendar-border: rgba(180, 83, 9, 0.4);
   --rarity-legendar-glow: rgba(245, 158, 11, 0.2);
   --rarity-legendar-border-soft: rgba(180, 83, 9, 0.55);
+
+  /* Icon color roles — aliases onto the palette above, not new hues, so an
+     icon's color always tracks the same swatch its text/badge equivalent
+     already uses. --icon-gamify intentionally does NOT alias --yellow:
+     --yellow already means "warning/attention" (medium-difficulty chips,
+     the "En curând" strip, soft-fail notices) and reusing it for streak/XP/
+     trophy icons would make two unrelated states look identical. It aliases
+     the existing --rarity-legendar-b/gold family instead — already the
+     site's "special achievement" color (collectible-card rarity tier) and
+     visually distinct from --yellow at a glance. Checked at 3:1+ (WCAG
+     non-text contrast) against both --bg and --card — see the contrast
+     note in the PR/chat, not repeated here since these are just aliases. */
+  --icon-success: var(--green);
+  --icon-warning: var(--yellow);
+  --icon-error: var(--red);
+  --icon-accent: var(--accent);
+  --icon-gamify: var(--rarity-legendar-b);
+  --icon-gamify-dim: var(--rarity-legendar-dim);
+  --icon-gamify-border: var(--rarity-legendar-border);
 
   --rarity-depth-shadow: rgba(40, 28, 12, 0.12);
 
@@ -365,7 +501,10 @@ body.bac-exam-mode .nav.nav--peek {
   transition: background 0.14s, color 0.14s;
   letter-spacing: 0.1px;
 }
-.nav__mobile-link__icon { font-size: 1.15rem; width: 22px; text-align: center; flex-shrink: 0; }
+/* Sizing now comes from .icon-16 (js/icons.js), not from here — this rule
+   used to fix the emoji glyph's box (font-size + width); an <svg> doesn't
+   need either, and the old width:22px would have out-specificity'd icon-16. */
+.nav__mobile-link__icon { flex-shrink: 0; }
 .nav__mobile-link:hover { background: rgba(255,255,255,0.09); color: #fff; }
 /* Bold + a bright left bar so the current page reads unmistakably as
    "you are here" while scanning — students were losing "Clase" among five
@@ -2504,9 +2643,7 @@ body.bac-exam-mode .nav.nav--peek {
   pointer-events: none;
 }
 .ex-card__lock-icon {
-  font-size: 1.4rem;
   opacity: 0.65;
-  filter: grayscale(0.4);
 }
 .ex-card__lock-text {
   font-size: 0.76rem;
@@ -2834,9 +2971,7 @@ body.bac-exam-mode .nav.nav--peek {
   pointer-events: none;
 }
 .rarity-card__lock-icon {
-  font-size: 1.7rem;
   opacity: 0.65;
-  filter: grayscale(0.4);
 }
 .rarity-card__lock-text {
   font-size: 0.78rem;
@@ -3435,7 +3570,7 @@ body.bac-exam-mode .nav.nav--peek {
   transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
 }
 .bac-confirm-overlay.open .bac-confirm-modal { transform: translateY(0) scale(1); }
-.bac-confirm-icon { font-size: 1.8rem; margin-bottom: 12px; }
+.bac-confirm-icon { display: flex; justify-content: center; margin-bottom: 12px; }
 .bac-confirm-title {
   font-size: 1.05rem;
   font-weight: 800;
@@ -3664,14 +3799,14 @@ body.bac-exam-mode .nav.nav--peek {
   border: 1.5px solid;
 }
 .results-perfect-banner {
-  background: var(--yellow-dim);
-  color: var(--yellow);
-  border-color: var(--yellow-border);
+  background: var(--icon-gamify-dim);
+  color: var(--icon-gamify);
+  border-color: var(--icon-gamify-border);
 }
 .results-record-banner {
-  background: var(--accent-dim);
-  color: var(--accent);
-  border-color: var(--accent);
+  background: var(--icon-gamify-dim);
+  color: var(--icon-gamify);
+  border-color: var(--icon-gamify-border);
 }
 
 /* ---- Antrenament: "Pachet Standard" teaser badge (cosmetic only, not
@@ -3741,14 +3876,14 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 10px 20px;
   border-top: 3px solid var(--border);
 }
-.session-hud__streak { border-top-color: var(--accent); }
-.session-hud__xp     { border-top-color: var(--yellow); }
+.session-hud__streak { border-top-color: var(--icon-gamify); }
+.session-hud__xp     { border-top-color: var(--icon-gamify); }
 .session-hud__main {
   font-size: 1.25rem;
   font-weight: 800;
 }
-.session-hud__streak .session-hud__main { color: var(--accent); }
-.session-hud__xp     .session-hud__main { color: var(--yellow); }
+.session-hud__streak .session-hud__main { color: var(--icon-gamify); }
+.session-hud__xp     .session-hud__main { color: var(--icon-gamify); }
 .session-hud__sub {
   font-size: 0.7rem;
   font-weight: 600;
@@ -3774,7 +3909,7 @@ body.bac-exam-mode .nav.nav--peek {
   right: 14px;
   font-size: 0.85rem;
   font-weight: 800;
-  color: var(--yellow);
+  color: var(--icon-gamify);
   text-shadow: 0 1px 2px rgba(0,0,0,0.15);
   pointer-events: none;
   animation: xpGainFloat 0.9s ease forwards;
@@ -4204,8 +4339,6 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  line-height: 1;
   opacity: 0;
   pointer-events: none;
   transform: translateY(10px);
@@ -4245,7 +4378,7 @@ body.bac-exam-mode .nav.nav--peek {
   to   { transform: translateY(0);    opacity: 1; }
 }
 
-.push-prompt__icon { font-size: 1.4rem; flex-shrink: 0; }
+.push-prompt__icon { display: flex; flex-shrink: 0; }
 
 .push-prompt__text {
   flex: 1;
@@ -4352,7 +4485,7 @@ body.bac-exam-mode .nav.nav--peek {
 .divider { width: 100%; height: 1px; background: var(--border); margin: 12px 0; }
 
 .no-results { text-align: center; padding: 48px 20px; color: var(--text-muted); }
-.no-results__icon { font-size: 1.8rem; margin-bottom: 10px; opacity: 0.35; }
+.no-results__icon { display: flex; justify-content: center; margin-bottom: 10px; opacity: 0.35; }
 .no-results p { font-size: 0.9rem; }
 
 .random-btn-area { display: flex; justify-content: flex-end; margin-bottom: -6px; }
@@ -5191,7 +5324,7 @@ body.bac-exam-mode .nav.nav--peek {
 .bac-timer {
   font-size: 1.15rem;
   font-weight: 700;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   color: rgba(255,255,255,0.92);
   letter-spacing: 1px;
   padding: 4px 12px;
@@ -5663,7 +5796,14 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .lectie-info-row:last-child { border-bottom: none; }
 .lectie-info-row:hover { background: var(--surface); }
-.lectie-info-icon { font-size: 1.1rem; line-height: 1.6; flex-shrink: 0; }
+.lectie-info-icon { display: inline-flex; align-items: center; flex-shrink: 0; }
+/* Difficulty-tier dot — a plain filled circle reads better here than an
+   outline icon would (this is a solid traffic-light color swatch, not a
+   pictogram), so it's CSS not icon(). */
+.lectie-info-dot { width: 12px; height: 12px; border-radius: 50%; }
+.lectie-info-dot--easy   { background: var(--green); }
+.lectie-info-dot--medium { background: var(--yellow); }
+.lectie-info-dot--hard   { background: var(--red); }
 .lectie-info-body { flex: 1 1 auto; min-width: 0; }
 .lectie-info-title {
   font-size: 0.83rem;
@@ -5728,7 +5868,7 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .lectie-tip:nth-child(even) { border-right: none; }
 .lectie-tip:nth-last-child(-n+2) { border-bottom: none; }
-.lectie-tip__icon { font-size: 1.05rem; line-height: 1; flex-shrink: 0; margin-top: 2px; }
+.lectie-tip__icon { display: inline-flex; flex-shrink: 0; margin-top: 2px; }
 .lectie-tip__title { font-size: 0.80rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
 .lectie-tip__desc { font-size: 0.74rem; color: var(--text-muted); line-height: 1.5; }
 
@@ -6030,7 +6170,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: #fff;
   transform: scale(1.02);
 }
-.bac-method-btn__icon { font-size: 1.3rem; line-height: 1; }
+.bac-method-btn__icon { display: inline-flex; }
 .bac-method-btn__title {
   font-size: 0.88rem;
   font-weight: 700;
@@ -6263,7 +6403,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
 }
 .bac-hist__toggle:hover { background: var(--card-hover); }
-.bac-hist__toggle-icon { font-size: 0.95rem; line-height: 1; }
+.bac-hist__toggle-icon { display: inline-flex; }
 .bac-hist__toggle-title { flex: 1; }
 .bac-hist__toggle-count {
   background: var(--accent-dim);
@@ -6318,12 +6458,12 @@ body.bac-exam-mode .nav.nav--peek {
 .bac-hist-item:hover { background: var(--card-hover); }
 .bac-hist-item:last-child { border-bottom: none; }
 .bac-hist-item__date { color: var(--text-secondary); font-weight: 600; }
-.bac-hist-item__pts  { color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 54px; text-align: right; }
-.bac-hist-item__time { color: var(--text-muted); font-variant-numeric: tabular-nums; min-width: 50px; text-align: right; }
+.bac-hist-item__pts  { color: var(--text-muted); font-variant-numeric: tabular-nums slashed-zero; min-width: 54px; text-align: right; }
+.bac-hist-item__time { color: var(--text-muted); font-variant-numeric: tabular-nums slashed-zero; min-width: 50px; text-align: right; }
 .bac-hist-item__grade {
   font-weight: 800;
   font-size: 0.97rem;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   min-width: 40px;
   text-align: right;
 }
@@ -6334,7 +6474,7 @@ body.bac-exam-mode .nav.nav--peek {
   font-size: 0.82rem;
   line-height: 1.6;
 }
-.bac-hist__empty-icon { display: block; font-size: 1.6rem; margin-bottom: 8px; opacity: 0.35; }
+.bac-hist__empty-icon { display: flex; justify-content: center; margin-bottom: 8px; opacity: 0.35; }
 .bac-hist__empty p { margin: 0; }
 .bac-hist__empty p + p { font-size: 0.76rem; margin-top: 3px; }
 .bac-hist__footer {
@@ -6392,7 +6532,7 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .bac-tip:nth-child(2n) { border-right: none; }
 .bac-tip:nth-last-child(-n+2) { border-bottom: none; }
-.bac-tip__icon { font-size: 1.1rem; flex-shrink: 0; margin-top: 1px; }
+.bac-tip__icon { display: inline-flex; flex-shrink: 0; margin-top: 1px; }
 .bac-tip__title { font-size: 0.80rem; font-weight: 700; color: var(--text); margin-bottom: 2px; }
 .bac-tip__desc { font-size: 0.74rem; color: var(--text-muted); line-height: 1.45; }
 
@@ -6671,7 +6811,7 @@ body.bac-exam-mode .nav.nav--peek {
   border-radius: 20px;
   min-width: 108px;
   text-align: center;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 1.5px;
 }
 .bac-topbar-controls .bac-timer.warning { background: rgba(251,191,36,0.18); color: #b45309; border-color: rgba(251,191,36,0.6); }
@@ -6873,8 +7013,7 @@ body.bac-exam-mode .nav.nav--peek {
   flex: 1;
 }
 .bac-notes-toggle {
-  display: inline-block;
-  font-size: 0.78rem;
+  display: inline-flex;
   color: var(--text-muted);
   transition: transform 0.22s ease;
 }
@@ -7132,7 +7271,6 @@ body.bac-exam-mode .nav.nav--peek {
   background: var(--surface);
   border: 1.5px solid var(--border);
   cursor: pointer;
-  font-size: 1.15rem;
   color: var(--text-muted);
   transition: all var(--transition);
   display: flex;
@@ -7151,7 +7289,6 @@ body.bac-exam-mode .nav.nav--peek {
   background: transparent;
   border: none;
   cursor: pointer;
-  font-size: 0.72rem;
   color: var(--text-muted);
   transition: all var(--transition);
   display: flex;
@@ -7160,7 +7297,6 @@ body.bac-exam-mode .nav.nav--peek {
   flex-shrink: 0;
   padding: 0;
   opacity: 0.4;
-  line-height: 1;
 }
 .bac-nav-item:hover .bac-nav-flag,
 .bac-nav-item.flagged .bac-nav-flag { opacity: 1; }
@@ -7237,7 +7373,7 @@ body.bac-exam-mode .nav.nav--peek {
    picker closed) — same box, but accent-colored like nav-guard-box instead
    of the red danger styling used for actual anti-cheat strikes. */
 .nav-guard-box, .fs-resume-box { border-color: var(--accent); }
-.fs-warn-icon, .nav-guard-icon, .fs-resume-icon { font-size: 2.6rem; line-height: 1; }
+.fs-warn-icon, .nav-guard-icon, .fs-resume-icon { display: flex; justify-content: center; }
 .fs-warn-title, .nav-guard-title, .fs-resume-title {
   font-size: 1.25rem;
   font-weight: 800;
@@ -7945,7 +8081,6 @@ body.bac-exam-mode .nav.nav--peek {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.85rem;
   color: var(--text-muted);
   cursor: pointer;
   background: none;
@@ -8380,8 +8515,7 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 14px;
 }
 .auth-pg-feat__icon {
-  font-size: 1.1rem;
-  line-height: 1;
+  display: inline-flex;
   margin-top: 2px;
   flex-shrink: 0;
   width: 28px;
@@ -8624,7 +8758,11 @@ body.bac-exam-mode .nav.nav--peek {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
 }
-.prof-card__icon { font-size: 1.05rem; }
+.prof-card__icon { display: inline-flex; }
+/* Filled status dot — the icon system is stroke-only (fill:none), so a
+   solid "online/active" indicator needs a plain CSS dot instead of an
+   icon() call. */
+.prof-status-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
 .prof-card__title {
   font-size: 0.9rem;
   font-weight: 700;
@@ -8946,9 +9084,9 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 .prof-modal__icon {
-  font-size: 2.4rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 14px;
-  line-height: 1;
 }
 .prof-modal__title {
   font-size: 1.2rem;
@@ -9005,7 +9143,7 @@ body.bac-exam-mode .nav.nav--peek {
   border-color: var(--accent);
   background: var(--accent-dim);
 }
-.auth-role-icon { font-size: 1.4rem; line-height: 1; }
+.auth-role-icon { display: inline-flex; }
 .auth-role-name {
   font-size: 0.88rem;
   font-weight: 700;
@@ -9030,7 +9168,7 @@ body.bac-exam-mode .nav.nav--peek {
   padding: 16px 20px;
   margin-bottom: 24px;
 }
-.prof-pending-banner__icon { font-size: 1.5rem; flex-shrink: 0; }
+.prof-pending-banner__icon { display: flex; flex-shrink: 0; }
 .prof-pending-banner__title {
   font-size: 0.93rem;
   font-weight: 700;
@@ -9730,7 +9868,6 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 .classes-join-card__icon {
-  font-size: 2rem;
   flex-shrink: 0;
   margin-top: 2px;
 }
@@ -10138,7 +10275,7 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
   padding: 60px 40px;
 }
-.classes-empty__icon { font-size: 3rem; margin-bottom: 16px; opacity: 0.45; }
+.classes-empty__icon { display: flex; justify-content: center; margin-bottom: 16px; opacity: 0.45; }
 .classes-empty h3 { font-size: 1.15rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .classes-empty p  { font-size: 0.9rem; color: var(--text-secondary); }
 
@@ -10175,7 +10312,7 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
   gap: 12px;
 }
-.classes-auth-icon  { font-size: 3rem; margin-bottom: 4px; }
+.classes-auth-icon  { display: flex; justify-content: center; margin-bottom: 4px; }
 .classes-auth-prompt h2 { font-size: 1.5rem; font-weight: 700; color: var(--text); }
 .classes-auth-prompt p  { font-size: 0.95rem; color: var(--text-secondary); }
 
@@ -10359,9 +10496,9 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 .confirm-dialog__icon {
-  font-size: 2.6rem;
+  display: flex;
+  justify-content: center;
   margin-bottom: 14px;
-  line-height: 1;
 }
 
 .confirm-dialog__title {
@@ -10678,7 +10815,7 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 10px;
 }
 
-.cd-placeholder__icon  { font-size: 3rem; opacity: 0.4; margin-bottom: 8px; }
+.cd-placeholder__icon  { display: flex; justify-content: center; opacity: 0.4; margin-bottom: 8px; }
 .cd-placeholder__title { font-size: 1.3rem; font-weight: 700; color: var(--text); }
 .cd-placeholder__desc  { font-size: 0.9rem; color: var(--text-secondary); max-width: 400px; }
 
@@ -11256,7 +11393,7 @@ body.bac-exam-mode .nav.nav--peek {
   font-size: 12px;
   fill: var(--text-muted);
   text-anchor: end;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 .sim-chart-bar-group { cursor: pointer; }
 .sim-chart-bar { fill: var(--accent); transition: opacity var(--transition); }
@@ -11266,12 +11403,9 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 800;
   fill: var(--text);
   text-anchor: middle;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
-.sim-chart-icon {
-  font-size: 13px;
-  text-anchor: middle;
-}
+.sim-chart-icon-mark { fill: var(--text-muted); }
 .sim-chart-label {
   font-size: 12px;
   fill: var(--text-muted);
@@ -11454,7 +11588,6 @@ body.bac-exam-mode .nav.nav--peek {
   justify-content: center;
   border-radius: var(--radius-sm);
   background: var(--accent-dim);
-  font-size: 1.05rem;
 }
 .sim-tpl-row__main {
   flex: 1;
@@ -11794,7 +11927,7 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 800;
   color: var(--text);
   line-height: 1;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 .sim-result-summary__val-sep { color: var(--text-muted); font-weight: 400; margin: 0 2px; }
 .sim-result-summary__val--hi  { color: var(--green);  }
@@ -12084,7 +12217,7 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
   padding: 60px 20px;
 }
-.flux-empty__icon { font-size: 2.8rem; opacity: 0.35; margin-bottom: 14px; }
+.flux-empty__icon { display: flex; justify-content: center; opacity: 0.35; margin-bottom: 14px; }
 .flux-empty h3    { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .flux-empty p     { font-size: 0.88rem; color: var(--text-secondary); }
 
@@ -12240,8 +12373,6 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 .cd-info-card__icon {
-  font-size: 2rem;
-  line-height: 1;
   margin-bottom: 10px;
 }
 
@@ -12315,9 +12446,8 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 .cd-info-card__detail-icon {
-  font-size: 0.95rem;
-  line-height: 1;
   flex-shrink: 0;
+  display: flex;
 }
 
 .cd-info-card__detail-lbl {
@@ -12415,7 +12545,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text);
   padding: 3px 0;
 }
-.cd-sidebar-stat__icon { font-size: 1rem; line-height: 1; }
+.cd-sidebar-stat__icon { display: inline-flex; }
 .cd-sidebar-stat__dot {
   width: 8px;
   height: 8px;
@@ -12906,7 +13036,7 @@ body.bac-exam-mode .nav.nav--peek {
   box-shadow: 0 0 0 3px rgba(58,107,173,0.18);
 }
 .wz-type-card--soon { opacity: 0.45; cursor: not-allowed; }
-.wz-type-card__icon  { font-size: 1.7rem; line-height: 1; }
+.wz-type-card__icon  { display: flex; }
 .wz-type-card__label { font-size: 0.78rem; font-weight: 700; color: var(--text); }
 .wz-type-card__desc  { font-size: 0.67rem; color: var(--text-secondary); line-height: 1.3; }
 .wz-type-card__badge {
@@ -12973,7 +13103,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-secondary);
   font-size: 0.88rem;
 }
-.wz-soon-msg span { font-size: 2rem; opacity: 0.5; }
+.wz-soon-msg span { display: flex; opacity: 0.5; }
 .cls-form-hint { font-size: 0.76rem; color: var(--text-secondary); margin-top: 4px; display: block; }
 
 /* ── Step 3 — Visibility radio ───────────────────────────── */
@@ -13447,7 +13577,7 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
   padding: 60px 20px;
 }
-.teme-empty__icon { font-size: 2.8rem; opacity: 0.35; margin-bottom: 14px; }
+.teme-empty__icon { display: flex; justify-content: center; opacity: 0.35; margin-bottom: 14px; }
 .teme-empty h3    { font-size: 1.1rem; font-weight: 700; color: var(--text); margin-bottom: 8px; }
 .teme-empty p     { font-size: 0.88rem; color: var(--text-secondary); }
 
@@ -13525,7 +13655,8 @@ body.bac-exam-mode .nav.nav--peek {
     padding: 12px 16px 10px;
   }
   .cd-info-card__main { flex: 1 1 0; min-width: 0; }
-  .cd-info-card__icon { font-size: 1.5rem; margin-bottom: 4px; }
+  .cd-info-card__icon { margin-bottom: 4px; }
+  .cd-info-card__icon .icon { width: 24px; height: 24px; }
   .cd-info-card__subject { font-size: 0.92rem; }
   .cd-info-card__stats {
     display: flex;
@@ -13797,10 +13928,9 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .dc-toolbar-timer {
   display: inline-block;
-  /* font-variant-numeric alone isn't reliable here — Josefin Sans may not
-     expose tabular-figure metrics, so digits still shift width per-glyph.
-     A fixed min-width (min-width is a no-op on inline elements, hence
-     display:inline-block above) stops that from reflowing the toolbar. */
+  /* A fixed min-width (min-width is a no-op on inline elements, hence
+     display:inline-block above) guards against any residual reflow —
+     belt-and-suspenders alongside tabular-nums below. */
   min-width: 86px;
   text-align: center;
   font-size: 0.82rem;
@@ -13810,7 +13940,7 @@ body.bac-exam-mode .nav.nav--peek {
   border: 1.5px solid var(--accent);
   border-radius: 20px;
   padding: 5px 12px;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   letter-spacing: 1px;
   white-space: nowrap;
 }
@@ -14015,7 +14145,7 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-secondary);
   min-width: 38px;
   text-align: center;
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
   user-select: none;
 }
 .dc-action-btn:disabled { opacity: 0.35; cursor: default; }
@@ -14334,7 +14464,7 @@ body.dc-fullscreen-active .dc-toolbar {
   border-color: var(--accent);
   background: var(--accent-dim);
 }
-.pu-dropzone__icon { font-size: 1.8rem; opacity: 0.7; }
+.pu-dropzone__icon { display: flex; justify-content: center; opacity: 0.7; }
 .pu-dropzone__text {
   font-size: 0.9rem;
   font-weight: 600;
@@ -14890,7 +15020,7 @@ body.dc-fullscreen-active .dc-toolbar {
   font-weight: 800;
   letter-spacing: -1px;
   color: var(--text);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums slashed-zero;
 }
 .pricing-card--featured .pricing-card__price-val { color: var(--accent); }
 .pricing-card__price-cur {
@@ -14933,7 +15063,6 @@ body.dc-fullscreen-active .dc-toolbar {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 0.7rem;
   margin-top: 1px;
 }
 .pricing-feature__icon--check {
@@ -14946,7 +15075,6 @@ body.dc-fullscreen-active .dc-toolbar {
   background: var(--surface);
   color: var(--text-muted);
   border: 1px solid var(--border);
-  font-size: 0.62rem;
 }
 
 .pricing-card__cta { margin-top: auto; }
@@ -15424,7 +15552,7 @@ body.dc-fullscreen-active .dc-toolbar {
   cursor: pointer;
 }
 .ae-verif__toggle:hover { color: var(--accent); }
-.ae-verif__chev { transition: transform 0.18s ease; font-size: 0.7rem; }
+.ae-verif__chev { display: inline-flex; transition: transform 0.18s ease; }
 .ae-verif__toggle--open .ae-verif__chev { transform: rotate(180deg); }
 .ae-verif__body {
   margin-top: 8px;

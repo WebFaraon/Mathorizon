@@ -167,14 +167,14 @@
     ov.id = 'fsWarnOverlay';
     ov.innerHTML = `
       <div class="fs-warn-box">
-        <div class="fs-warn-icon">⚠️</div>
+        <div class="fs-warn-icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
         <div class="fs-warn-title">Ai ieșit din fullscreen!</div>
         <div class="fs-warn-body">
           Nu ai voie să ieși din fullscreen în timpul examenului.<br>
           <strong>Dacă mai ieși o dată, examenul se închide automat</strong> fără rezultate, notă sau analiză.<br>
           Tokenul utilizat <strong>nu va fi restituit</strong>.
         </div>
-        <button class="btn btn--primary" onclick="BMBac.returnFullscreen()">↑ Reintră în fullscreen</button>
+        <button class="btn btn--primary" onclick="BMBac.returnFullscreen()">${icon('arrow-up', { size: 16 })} Reintră în fullscreen</button>
       </div>`;
     document.body.appendChild(ov);
   }
@@ -194,12 +194,12 @@
     ov.id = 'fsResumeOverlay';
     ov.innerHTML = `
       <div class="fs-resume-box">
-        <div class="fs-resume-icon">🖥️</div>
+        <div class="fs-resume-icon">${icon('monitor', { size: 48 })}</div>
         <div class="fs-resume-title">Revino la ecran complet</div>
         <div class="fs-resume-body">
           Browserul a ieșit din modul ecran complet când ai deschis camera/selectorul de fișiere — e normal, nu contează ca abatere.
         </div>
-        <button class="btn btn--primary" onclick="BMBac.resumeFullscreenAfterPicker()">↑ Revino la ecran complet</button>
+        <button class="btn btn--primary" onclick="BMBac.resumeFullscreenAfterPicker()">${icon('arrow-up', { size: 16 })} Revino la ecran complet</button>
       </div>`;
     document.body.appendChild(ov);
   }
@@ -297,7 +297,7 @@
     ov.id = 'terminateModal';
     ov.innerHTML = `
       <div class="fs-warn-box">
-        <div class="fs-warn-icon">❌</div>
+        <div class="fs-warn-icon">${icon('circle-x', { size: 48, className: 'icon--error' })}</div>
         <div class="fs-warn-title">Examen anulat</div>
         <div class="fs-warn-body">
           Ai ieșit din fullscreen de <strong>două ori</strong> în timpul simulării.<br><br>
@@ -372,7 +372,7 @@
     ov.id = 'navGuardModal';
     ov.innerHTML = `
       <div class="nav-guard-box">
-        <div class="nav-guard-icon">🔒</div>
+        <div class="nav-guard-icon">${icon('lock', { size: 48 })}</div>
         <div class="nav-guard-title">Examen în desfășurare</div>
         <div class="nav-guard-body">
           Nu poți naviga în altă parte în timp ce examenul este activ.<br>
@@ -697,7 +697,7 @@
     if (tokens <= 0) {
       if (!loggedIn) {
         showTokenDialog({
-          icon: '🔑',
+          icon: icon('key', { size: 48 }),
           title: 'Cont necesar',
           body: `Creează un cont gratuit și primești <strong>3 ExamTokenuri</strong> pentru simulări BAC.`,
           confirmLabel: 'Conectează-te',
@@ -707,7 +707,7 @@
         });
       } else {
         showTokenDialog({
-          icon: '🔒',
+          icon: icon('lock', { size: 48 }),
           title: 'Nu mai ai ExamTokenuri',
           body: `Ai folosit toate simulările disponibile.<br>Achiziționează ExamTokenuri pentru a continua să exersezi.`,
           confirmLabel: 'Achiziționează tokenuri',
@@ -720,13 +720,13 @@
     }
 
     showTokenDialog({
-      icon: '🎟',
+      icon: icon('ticket', { size: 48 }),
       title: 'Pornești simularea BAC?',
       body: `Dacă confirmi, <strong>1 ExamToken</strong> va fi scăzut din contul tău.
              Vei rămâne cu <strong>${tokens - 1}</strong> token${tokens - 1 === 1 ? '' : 'uri'}.
              <br><br>
-             <span class="exam-start-warn">⚠ Dacă ieși din pagină în timpul examenului, tokenul nu va fi restituit.</span>`,
-      confirmLabel: '🚀 Pornește examenul',
+             <span class="exam-start-warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Dacă ieși din pagină în timpul examenului, tokenul nu va fi restituit.</span>`,
+      confirmLabel: `${icon('rocket', { size: 16 })} Pornește examenul`,
       confirmClass: 'btn--primary',
       onConfirm: () => {
         if (!BM.consumeToken()) return;
@@ -792,12 +792,12 @@
     const pct = total > 0 ? Math.round((doneCount / total) * 100) : 0;
 
     let motiv;
-    if (pct === 0)        motiv = 'Mult succes la examen! 🎓';
+    if (pct === 0)        motiv = `Mult succes la examen! ${icon('graduation-cap', { size: 16 })}`;
     else if (pct < 30)    motiv = `Bun start! Mai ai ${remaining} exerciții.`;
     else if (pct < 60)    motiv = `Progres bun — ai completat ${pct}%.`;
-    else if (pct < 85)    motiv = `${remaining} exerciții rămase. Continuă! 💪`;
+    else if (pct < 85)    motiv = `${remaining} exerciții rămase. Continuă! ${icon('dumbbell', { size: 16 })}`;
     else if (pct < 100)   motiv = `Aproape gata! Ultimele ${remaining} exerciții.`;
-    else                  motiv = 'Toate exercițiile completate! 🎉';
+    else                  motiv = `Toate exercițiile completate! ${icon('party-popper', { size: 16 })}`;
 
     let itemsHtml = '';
     let lastGroup = null;
@@ -816,13 +816,13 @@
 
       lastGroup = slot.group;
 
-      const statusIcon = isDone ? '✓' : isUnavailable ? '—' : '';
+      const statusIcon = isDone ? icon('circle-check', { size: 16 }) : isUnavailable ? '—' : '';
       const clickAttr  = isUnavailable ? '' : `onclick="gotoSlot(${i})"`;
       const keyAttr    = isUnavailable ? '' : `onkeydown="event.key==='Enter'&&gotoSlot(${i})"`;
       const starBtn    = isUnavailable ? '' :
         `<button class="bac-nav-flag${isFlagged ? ' active' : ''}"
                  onclick="event.stopPropagation();toggleFlagSlot(${i})"
-                 title="Marchează pentru revizuire">${isFlagged ? '★' : '☆'}</button>`;
+                 title="Marchează pentru revizuire">${icon('star', { size: 16 })}</button>`;
 
       itemsHtml += `
         <div class="${cls}" role="button" tabindex="${isUnavailable ? '-1' : '0'}"
@@ -896,7 +896,7 @@
     if (flagBtn) {
       flagBtn.className   = 'bac-flag-btn' + (item.flagged ? ' active' : '');
       flagBtn.title       = item.flagged ? 'Elimină marcajul' : 'Marchează pentru revizuire';
-      flagBtn.textContent = item.flagged ? '★' : '☆';
+      flagBtn.innerHTML = icon('star', { size: 20 });
     }
 
     // Progress dots
@@ -918,7 +918,7 @@
           <div class="bac-card-body">
             <div class="bac-slot-title">${slot.label} — ${slot.desc}</div>
             <div class="bac-unavailable">
-              <div style="font-size:2.5rem;margin-bottom:12px;opacity:0.25">📚</div>
+              <div style="display:flex;justify-content:center;margin-bottom:12px;opacity:0.25">${icon('library', { size: 48 })}</div>
               <p style="font-weight:600;margin-bottom:6px">Exercițiile pentru această temă vor fi adăugate \xEEn cur\xE2nd.</p>
               <p style="font-size:0.84rem;color:var(--text-muted)">Continuă cu itemul următor.</p>
             </div>
@@ -939,9 +939,9 @@
         </div>
         <div class="bac-notes-card" id="notesCard">
           <div class="bac-notes-header" onclick="toggleNotes()">
-            <span class="bac-notes-icon">✏️</span>
+            <span class="bac-notes-icon">${icon('pencil', { size: 16 })}</span>
             <span class="bac-notes-label">Spațiu de rezolvare</span>
-            <span class="bac-notes-toggle">▾</span>
+            <span class="bac-notes-toggle">${icon('chevron-down', { size: 16 })}</span>
           </div>
           <div class="bac-notes-body bac-notes-body--${answerMethod === 'photo' ? 'upload' : 'canvas'}" id="drawingCanvasMount"></div>
         </div>
@@ -968,7 +968,7 @@
           figureSvg: isGeo ? (ex.figureSvg || null) : null,
           toolbarExtras: `
             <span class="dc-toolbar-timer" id="dcToolbarTimer">${timerEl ? timerEl.textContent : ''}</span>
-            <button class="dc-tool-btn" id="dcToolbarExerciseBtn" type="button" title="Arată/ascunde exercițiul">📄</button>
+            <button class="dc-tool-btn" id="dcToolbarExerciseBtn" type="button" title="Arată/ascunde exercițiul">${icon('eye', { size: 16 })}</button>
           `,
           onMaximizeChange: function (isMax) { _toggleMiniExerciseCard(isMax, ex); }
         });
@@ -1121,7 +1121,7 @@
       const flagBtn = document.getElementById('flagBtn');
       if (flagBtn) {
         flagBtn.className   = 'bac-flag-btn' + (exam.slots[i].flagged ? ' active' : '');
-        flagBtn.textContent = exam.slots[i].flagged ? '★' : '☆';
+        flagBtn.innerHTML = icon('star', { size: 20 });
       }
     }
     renderNavigator();
@@ -1190,7 +1190,7 @@
     ov.id = 'finishConfirmModal';
     ov.innerHTML = `
       <div class="nav-guard-box">
-        <div class="nav-guard-icon">🎓</div>
+        <div class="nav-guard-icon">${icon('graduation-cap', { size: 48 })}</div>
         <div class="nav-guard-title" style="color:var(--text)">Finalizezi simularea?</div>
         <div class="nav-guard-body">
           Vei fi evaluat automat de AI pe baza a ceea ce ai scris pe canvas.
@@ -1296,7 +1296,7 @@
                      : grade >= 5   ? 'var(--yellow)'
                      : 'var(--red)';
 
-    const gradeEmoji = grade >= 9 ? '🏆' : grade >= 7 ? '🎯' : grade >= 5 ? '📚' : '📖';
+    const gradeEmoji = icon(grade >= 9 ? 'trophy' : grade >= 7 ? 'target' : grade >= 5 ? 'library' : 'book-open', { size: 20 });
     const gradeLabel = grade >= 9 ? 'Excelent!' : grade >= 7 ? 'Bine!' :
                        grade >= 5 ? 'Promovat' : 'Nepromovat';
 
@@ -1312,10 +1312,10 @@
     const unansweredCount = exam.slots.filter(item => item.exercise && !item.work).length;
 
     const heroBody = status === 'pending' ? `
-        <div class="res-hero__grade res-hero__grade--pending">🤖</div>
+        <div class="res-hero__grade res-hero__grade--pending" style="display:flex;justify-content:center">${icon('bot', { size: 48 })}</div>
         <div class="res-hero__label">Se evaluează cu AI…</div>
       ` : status === 'error' ? `
-        <div class="res-hero__grade res-hero__grade--pending">⚠️</div>
+        <div class="res-hero__grade res-hero__grade--pending" style="display:flex;justify-content:center">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
         <div class="res-hero__label">Evaluarea AI a eșuat</div>
       ` : `
         <div class="res-hero__grade" style="color:${gradeColor}">${gradeDisplay}</div>
@@ -1349,7 +1349,7 @@
 
       <div class="ai-section" id="aiSection">
         <div class="ai-section__intro">
-          <div class="ai-section__icon">🤖</div>
+          <div class="ai-section__icon">${icon('bot', { size: 24 })}</div>
           <div>
             <div class="ai-section__title">Evaluare AI cu Gemini</div>
             <div class="ai-section__desc">Analizează rezolvările tale manuscrise și le compară cu baremul oficial.</div>
@@ -1558,7 +1558,7 @@
 
       const feedbackHtml = r.observatii ? `
           <div class="ai-item__feedback">
-            <span class="ai-item__feedback-icon">${r.error ? '⚠️' : '💡'}</span>
+            <span class="ai-item__feedback-icon">${r.error ? icon('triangle-alert', { size: 16, className: 'icon--warning' }) : icon('lightbulb', { size: 16 })}</span>
             <div>
               <div class="ai-item__feedback-label">${r.error ? 'Eroare evaluare' : 'Observație AI'}</div>
               <div class="ai-item__feedback-text">${BM.esc(r.observatii)}</div>
@@ -1589,7 +1589,7 @@
         <div class="ai-items">${itemsHtml}</div>
         <p class="ai-results__disclaimer">Evaluarea AI are caracter orientativ. Pot apărea inexactități în interpretarea scrisului de mână.</p>
         <div style="text-align:center;margin-top:10px">
-          <button class="btn btn--surface" onclick="verifyExam()">↻ Reevaluează</button>
+          <button class="btn btn--surface" onclick="verifyExam()">${icon('refresh-cw', { size: 16 })} Reevaluează</button>
         </div>
       </div>`;
   }
@@ -1783,7 +1783,7 @@
     if (!list.length) {
       bodyContent = `
         <div class="bac-hist__empty">
-          <span class="bac-hist__empty-icon">📋</span>
+          <span class="bac-hist__empty-icon">${icon('clipboard-list', { size: 32 })}</span>
           <p>Nicio simulare finalizată încă.</p>
           <p>Pornește prima ta simulare și rezultatele vor apărea aici.</p>
         </div>
@@ -1829,7 +1829,7 @@
     el.innerHTML = `
       <div class="bac-hist" id="bacHistPanel">
         <button class="bac-hist__toggle" onclick="toggleHistPanel()" aria-expanded="false">
-          <span class="bac-hist__toggle-icon">📋</span>
+          <span class="bac-hist__toggle-icon">${icon('clipboard-list', { size: 16 })}</span>
           <span class="bac-hist__toggle-title">Simulări anterioare</span>
           ${countBadge}
           <span class="bac-hist__toggle-chevron">▾</span>

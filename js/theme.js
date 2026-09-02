@@ -9,7 +9,14 @@
   function apply(theme) {
     document.documentElement.setAttribute('data-theme', theme);
     var btn = document.getElementById('themeBtn');
-    if (btn) btn.textContent = theme === 'dark' ? '☀' : '☽';
+    // btn lives inside the nav partial (js/nav-loader.js) and window.icon
+    // comes from js/icons.js — both load synchronously on every page, but
+    // neither exists yet during this function's very first call (line 16
+    // below, before either script below it in <head>/<body> has run), so
+    // both are guarded rather than assumed present.
+    if (btn && window.icon) {
+      btn.innerHTML = window.icon(theme === 'dark' ? 'sun' : 'moon', { size: 20 });
+    }
   }
 
   /* Apply immediately before first paint */
@@ -45,5 +52,11 @@
 
   document.addEventListener('DOMContentLoaded', function () {
     apply(localStorage.getItem(KEY) || 'light');
+  });
+
+  // themeBtn lives inside the async-injected nav (see js/nav-loader.js) —
+  // it doesn't exist yet at DOMContentLoaded, so re-sync once it's there.
+  document.addEventListener('nav:loaded', function () {
+    apply(document.documentElement.getAttribute('data-theme') || 'light');
   });
 })();

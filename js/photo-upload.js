@@ -42,10 +42,10 @@
 
     wrap.innerHTML = `
       <div class="pu-camera-row" ${mobile ? '' : 'hidden'}>
-        <button class="pu-camera-btn" type="button">📷 Deschide camera</button>
+        <button class="pu-camera-btn" type="button">${icon('camera', { size: 16 })} Deschide camera</button>
       </div>
       <div class="pu-dropzone" role="button" tabindex="0" aria-label="Încarcă poza rezolvării">
-        <div class="pu-dropzone__icon">⬆️</div>
+        <div class="pu-dropzone__icon">${icon('upload', { size: 48 })}</div>
         <div class="pu-dropzone__text">Trage poza aici sau apasă pentru a selecta</div>
         <div class="pu-dropzone__hint">${mobile ? 'JPG, PNG' : 'JPG, PNG — sau lipește (Ctrl+V) o captură de ecran'}</div>
       </div>
@@ -54,7 +54,7 @@
       <div class="pu-preview" hidden>
         <img class="pu-preview__img" alt="Poza rezolvării">
         <div class="pu-preview__actions">
-          <button class="pu-btn pu-btn--reset" type="button">↺ Schimbă poza</button>
+          <button class="pu-btn pu-btn--reset" type="button">${icon('refresh-cw', { size: 16 })} Schimbă poza</button>
         </div>
       </div>
       <div class="pu-error" hidden></div>

@@ -67,7 +67,7 @@
     bar.id = 'bmPushPrompt';
     bar.className = 'push-prompt';
     bar.innerHTML = `
-      <span class="push-prompt__icon">🔔</span>
+      <span class="push-prompt__icon">${icon('bell', { size: 24 })}</span>
       <span class="push-prompt__text">Primește notificări când profesorul postează ceva nou în această clasă</span>
       <div class="push-prompt__btns">
         <button class="push-prompt__yes">Activează</button>

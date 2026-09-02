@@ -16,7 +16,7 @@ window.BM = window.BM || {};
 
   /* Deliberately different keys from the existing local-only
      bm_training_best_combo (js/storage.js) — that one keeps powering
-     the current in-session "🏆 Record: N" line unchanged; these are
+     the current in-session "Record: N" line unchanged; these are
      additive, DB-synced lifetime totals. */
   BM.Training.TOTAL_XP_KEY    = 'bm_training_total_xp';
   BM.Training.BEST_STREAK_KEY = 'bm_training_best_streak_persist';

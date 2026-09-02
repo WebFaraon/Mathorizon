@@ -151,17 +151,17 @@
     const MAX_SHOWN = 5;
     let tokenVisual;
     if (isAdmin) {
-      tokenVisual = `<span style="font-size:1.45rem;line-height:1" title="Tokenuri nelimitate (cont admin)">🎟</span>
+      tokenVisual = `<span title="Tokenuri nelimitate (cont admin)">${icon('ticket', { size: 24 })}</span>
                      <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Tokenuri nelimitate</span>`;
     } else if (tokens === 0) {
-      tokenVisual = `<span style="font-size:1.5rem;opacity:0.25">🎟</span>
+      tokenVisual = `<span style="opacity:0.25">${icon('ticket', { size: 24 })}</span>
                      <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Niciun token disponibil</span>`;
     } else {
       const shown = Math.min(tokens, MAX_SHOWN);
       const extra = tokens > MAX_SHOWN ? tokens - MAX_SHOWN : 0;
       tokenVisual = Array(shown).fill(null).map(() =>
-        `<span style="font-size:1.45rem;line-height:1;filter:${tokens <= 1 ? 'grayscale(0.4) sepia(0.3)' : 'none'}"
-               title="${tokens} token${tokens === 1 ? '' : 'uri'}">🎟</span>`
+        `<span style="filter:${tokens <= 1 ? 'grayscale(0.4) sepia(0.3)' : 'none'}"
+               title="${tokens} token${tokens === 1 ? '' : 'uri'}">${icon('ticket', { size: 24 })}</span>`
       ).join('') + (extra ? `<span class="prof-token-extra">+${extra}</span>` : '');
     }
 
@@ -170,7 +170,7 @@
     if (!hist.length) {
       histContent = `
         <div class="prof-hist-empty">
-          <span style="font-size:2rem">📋</span>
+          <span style="display:flex;justify-content:center">${icon('clipboard-list', { size: 32 })}</span>
           <p>Nicio simulare finalizată încă.</p>
           <a class="btn btn--primary btn--sm" href="bac.html" style="margin-top:12px">Pornește prima simulare</a>
         </div>`;
@@ -198,7 +198,7 @@
 
     const pendingBanner = role === 'profesor' && status === 'pending' ? `
       <div class="prof-pending-banner">
-        <span class="prof-pending-banner__icon">⏳</span>
+        <span class="prof-pending-banner__icon">${icon('hourglass', { size: 24, className: 'icon--warning' })}</span>
         <div>
           <div class="prof-pending-banner__title">Cont de profesor în așteptare</div>
           <div class="prof-pending-banner__body">
@@ -210,7 +210,7 @@
 
     const rejectedBanner = role === 'profesor' && status === 'rejected' ? `
       <div class="prof-rejected-banner">
-        <span class="prof-pending-banner__icon">❌</span>
+        <span class="prof-pending-banner__icon">${icon('circle-x', { size: 24, className: 'icon--error' })}</span>
         <div>
           <div class="prof-pending-banner__title">Cerere de profesor respinsă</div>
           <div class="prof-pending-banner__body">
@@ -239,31 +239,31 @@
           <p class="prof-email">${BM.esc(email)}</p>
           <div class="prof-badges">
             ${role === 'admin'
-              ? '<span class="prof-badge prof-badge--red">⚙️ Admin</span>'
+              ? `<span class="prof-badge prof-badge--red">${icon('settings', { size: 16 })} Admin</span>`
               : role === 'profesor'
                 ? (status === 'pending'
-                  ? '<span class="prof-badge prof-badge--amber">⏳ Profesor (în așteptare)</span>'
+                  ? `<span class="prof-badge prof-badge--amber">${icon('hourglass', { size: 16 })} Profesor (în așteptare)</span>`
                   : status === 'rejected'
-                    ? '<span class="prof-badge prof-badge--red">✗ Profesor (respins)</span>'
-                    : '<span class="prof-badge prof-badge--purple">👨‍🏫 Profesor</span>')
+                    ? `<span class="prof-badge prof-badge--red">${icon('circle-x', { size: 16 })} Profesor (respins)</span>`
+                    : `<span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>`)
                 : '<span class="prof-badge prof-badge--blue">Elev</span>'}
             ${isUsernameAccount
-              ? '<span class="prof-badge prof-badge--green">✓ Cont activ</span>'
+              ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Cont activ</span>`
               : (verified
-                ? '<span class="prof-badge prof-badge--green">✓ Email verificat</span>'
+                ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Email verificat</span>`
                 : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>')}
-            ${isGoogle ? '<span class="prof-badge prof-badge--blue">🌐 Google</span>' : ''}
+            ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
           </div>
           <div class="prof-header-meta">
-            <span class="prof-meta-item">📅 Membru din ${memberSince}</span>
+            <span class="prof-meta-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
             <span class="prof-meta-sep">·</span>
-            <span class="prof-meta-item">🎟 ${isAdmin ? '∞ tokenuri (nelimitat)' : `${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
+            <span class="prof-meta-item">${icon('ticket', { size: 16 })} ${isAdmin ? '∞ tokenuri (nelimitat)' : `${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
             <span class="prof-meta-sep">·</span>
-            <span class="prof-meta-item">📋 ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
+            <span class="prof-meta-item">${icon('clipboard-list', { size: 16 })} ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
           </div>
           ${role === 'admin' ? `
           <a href="admin.html" class="btn btn--primary btn--sm" style="margin-top:14px;display:inline-flex;gap:8px;align-items:center">
-            ⚙️ Panou Admin
+            ${icon('settings', { size: 16 })} Panou Admin
           </a>` : ''}
         </div>
       </div>
@@ -274,7 +274,7 @@
         <!-- Card: Informații cont -->
         <div class="prof-card">
           <div class="prof-card__head">
-            <span class="prof-card__icon">👤</span>
+            <span class="prof-card__icon">${icon('user', { size: 16 })}</span>
             <span class="prof-card__title">Informații cont</span>
           </div>
           <div class="prof-card__body">
@@ -296,7 +296,7 @@
                 ? 'Te conectezi la cont folosind contul tău Google.'
                 : isUsernameAccount
                   ? 'Te conectezi la cont folosind numele de utilizator și parola alese la înregistrare.'
-                  : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? '🌐 Cont Google' : (isUsernameAccount ? '👤 Utilizator + parolă' : '📧 Email + parolă')}</span>
+                  : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? icon('globe', { size: 16 }) + ' Cont Google' : (isUsernameAccount ? icon('user', { size: 16 }) + ' Utilizator + parolă' : icon('mail', { size: 16 }) + ' Email + parolă')}</span>
             </div>
           </div>
         </div>
@@ -304,7 +304,7 @@
         <!-- Card: ExamTokenuri -->
         <div class="prof-card">
           <div class="prof-card__head">
-            <span class="prof-card__icon">🎟</span>
+            <span class="prof-card__icon">${icon('ticket', { size: 16 })}</span>
             <span class="prof-card__title">ExamTokenuri</span>
           </div>
           <div class="prof-card__body">
@@ -314,7 +314,7 @@
               <div class="prof-token-info">
                 <span class="prof-token-lbl">${isAdmin ? 'tokenuri nelimitate' : `token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
                 <span class="prof-token-hint">
-                  ${isAdmin ? 'Cont admin — acces nelimitat la simulări BAC.' : tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? '⚠ Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
+                  ${isAdmin ? 'Cont admin — acces nelimitat la simulări BAC.' : tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? icon('triangle-alert', { size: 16, className: 'icon--warning' }) + ' Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
                 </span>
               </div>
             </div>
@@ -327,7 +327,7 @@
         <!-- Card: Schimbă parola -->
         <div class="prof-card">
           <div class="prof-card__head">
-            <span class="prof-card__icon">🔐</span>
+            <span class="prof-card__icon">${icon('lock', { size: 16 })}</span>
             <span class="prof-card__title">Schimbă parola</span>
           </div>
           <div class="prof-card__body">
@@ -339,14 +339,14 @@
                      <label class="auth-label" for="pwNew">Parolă nouă</label>
                      <div class="auth-input-wrap">
                        <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
-                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">👁</button>
+                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
                      </div>
                    </div>
                    <div class="auth-field" style="margin-bottom:16px">
                      <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
                      <div class="auth-input-wrap">
                        <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
-                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">👁</button>
+                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
                      </div>
                    </div>
                    <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
@@ -359,20 +359,20 @@
         <!-- Card: Sesiune -->
         <div class="prof-card">
           <div class="prof-card__head">
-            <span class="prof-card__icon">🔒</span>
+            <span class="prof-card__icon">${icon('lock', { size: 16 })}</span>
             <span class="prof-card__title">Sesiune și securitate</span>
           </div>
           <div class="prof-card__body">
             <div class="prof-field-row">
               <span class="prof-field-lbl">Status sesiune</span>
-              <span class="prof-field-val" style="color:var(--green)">● Activ</span>
+              <span class="prof-field-val" style="color:var(--green);display:inline-flex;align-items:center;gap:6px"><span class="prof-status-dot"></span>Activ</span>
             </div>
             <div class="prof-field-row">
               <span class="prof-field-lbl">Ultima autentificare</span>
               <span class="prof-field-val">${_formatDate(user.last_sign_in_at)}</span>
             </div>
             <button class="btn btn--danger-outline btn--sm" id="btnLogout" style="margin-top:16px;width:100%">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+              ${icon('log-out', { size: 16 })}
               Deconectare
             </button>
           </div>
@@ -383,7 +383,7 @@
       <!-- BAC HISTORY -->
       <div class="prof-hist-card">
         <div class="prof-card__head">
-          <span class="prof-card__icon">📋</span>
+          <span class="prof-card__icon">${icon('clipboard-list', { size: 16 })}</span>
           <span class="prof-card__title">Simulări BAC anterioare</span>
           ${hist.length ? `<span class="bac-hist__toggle-count" style="margin-left:auto;margin-right:0">${hist.length}</span>` : ''}
         </div>
@@ -397,7 +397,7 @@
     /* ---- Event bindings ---- */
     const _doLogout = () => {
       _showConfirm({
-        icon: '🔓',
+        icon: icon('unlock', { size: 48 }),
         title: 'Deconectare',
         body: 'Ești sigur că vrei să te deconectezi din contul tău?',
         confirmLabel: 'Da, deconectează-mă',
@@ -515,7 +515,7 @@
       const inp = document.getElementById(btn.dataset.target);
       if (!inp) return;
       inp.type = inp.type === 'password' ? 'text' : 'password';
-      btn.textContent = inp.type === 'password' ? '👁' : '🙈';
+      btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
     };
   }
 
