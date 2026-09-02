@@ -431,7 +431,7 @@
       btn.title   = 'Conectează-te';
       btn.onclick = () => {
         const here = window.location.pathname.replace(/^\//, '') + window.location.search;
-        window.location.href = 'auth.html?from=' + encodeURIComponent(here || 'index.html');
+        window.location.href = 'auth.html?from=' + encodeURIComponent(here || 'capitole.html');
       };
     }
   }
@@ -487,7 +487,7 @@
   /* ============================================================
      DAILY STREAK — bump once per calendar day. Runs on every page
      (this file loads everywhere), not just the homepage, so a day
-     only used to count as "visited" if the user opened index.html
+     only used to count as "visited" if the user opened capitole.html
      or solved an exercise there — every other page load silently
      skipped the bump and broke the "consecutive days" chain even on
      days the user genuinely logged in.

@@ -69,17 +69,17 @@ const HEADER = `<!--
 `;
 
 const TEMPLATE = `    <div class="nav__inner container">
-      <a class="nav__brand" href="index.html">
+      <a class="nav__brand" href="capitole.html" data-authed-href="capitole.html">
         <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
 
       <div class="nav__links">
-        <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link" href="bac.html?new=1">Simulare</a>
-        <a class="nav__link" href="training.html">Antrenament</a>
-        <a class="nav__link" href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html">Pachete</a>
+        <a class="nav__link" href="capitole.html" data-authed-href="capitole.html">Capitole</a>
+        <a class="nav__link" href="bac.html?new=1" data-authed-href="bac.html?new=1">Simulare</a>
+        <a class="nav__link" href="training.html" data-authed-href="training.html">Antrenament</a>
+        <a class="nav__link" href="classes.html" data-authed-href="classes.html">Clase</a>
+        <a class="nav__link" href="pachete.html" data-authed-href="pachete.html">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
         <span></span><span></span><span></span>
@@ -98,14 +98,18 @@ const TEMPLATE = `    <div class="nav__inner container">
             <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
         </button>
+        <div class="nav__guest-actions" id="navGuestActions">
+          <a class="nav__guest-login" id="navGuestLogin" href="auth.html">Conectare</a>
+          <a class="nav__guest-signup" id="navGuestSignup" href="auth.html?tab=signup">Creează cont</a>
+        </div>
       </div>
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="index.html">\${capitole}Capitole</a>
-      <a class="nav__mobile-link" href="bac.html?new=1">\${simulare}Simulare</a>
-      <a class="nav__mobile-link" href="training.html">\${antrenament}Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html">\${clase}Clase</a>
-      <a class="nav__mobile-link" href="pachete.html">\${pachete}Pachete</a>
+      <a class="nav__mobile-link" href="capitole.html" data-authed-href="capitole.html">\${capitole}Capitole</a>
+      <a class="nav__mobile-link" href="bac.html?new=1" data-authed-href="bac.html?new=1">\${simulare}Simulare</a>
+      <a class="nav__mobile-link" href="training.html" data-authed-href="training.html">\${antrenament}Antrenament</a>
+      <a class="nav__mobile-link" href="classes.html" data-authed-href="classes.html">\${clase}Clase</a>
+      <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html">\${pachete}Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
       <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">Exerciții favorite</button>

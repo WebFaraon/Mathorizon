@@ -414,7 +414,7 @@
           localStorage.setItem(BM.TOKEN_KEY, '0');
           localStorage.removeItem('bm_solved');
           localStorage.removeItem('bm_streak');
-          window.location.replace('index.html');
+          window.location.replace('/');
         }
       });
     };

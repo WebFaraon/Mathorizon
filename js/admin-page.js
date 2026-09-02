@@ -215,6 +215,7 @@
     }
 
     if (wrap) wrap.style.display = '';
+    _loadWaitlist(session);
 
     /* Stats */
     const approved = (allProfs||[]).filter(p => p.status === 'active').length;
@@ -282,6 +283,54 @@
   function _setText(id, val) {
     const el = document.getElementById(id);
     if (el) el.textContent = val;
+  }
+
+  /* Landing-page waitlist ("Clasa a 9-a" card) — a plain server route, not
+     an RPC, since it's a service-role read behind its own admin check
+     (see api/admin/get-waitlist.js), not a Postgres function. Loaded
+     separately from the Promise.all above so a failure here never blocks
+     the professor/student panels that already worked before this existed. */
+  async function _loadWaitlist(session) {
+    const listEl = document.getElementById('waitlistList');
+    try {
+      let res;
+      try {
+        res = await fetch('/api/admin/get-waitlist', {
+          headers: { 'Authorization': 'Bearer ' + (session?.access_token || '') }
+        });
+      } catch (networkErr) {
+        console.error('[Admin] network error contacting /api/admin/get-waitlist:', networkErr);
+        throw new Error('Nu s-a putut contacta serverul.');
+      }
+
+      const bodyText = await res.text().catch(function () { return ''; });
+      let data = {};
+      try { data = bodyText ? JSON.parse(bodyText) : {}; } catch (e) {}
+
+      if (!res.ok) {
+        console.error('[Admin] /api/admin/get-waitlist failed — status:', res.status, 'body:', bodyText);
+        if (res.status === 404) {
+          throw new Error('Acest server nu are API activ pe acest port.');
+        }
+        throw new Error(data.error || ('Eroare de server (cod ' + res.status + ').'));
+      }
+
+      const rows = data.rows || [];
+      _setText('statWaitlist9', rows.filter(r => r.clasa === '9').length);
+      if (listEl) {
+        listEl.innerHTML = !rows.length
+          ? '<div class="admin-empty">Nimeni pe listă încă.</div>'
+          : `<div class="admin-waitlist-table">${rows.map(r => `
+              <div class="admin-waitlist-row">
+                <span class="admin-waitlist-row__email">${BM.esc(r.email)}</span>
+                <span class="admin-waitlist-row__clasa">Clasa ${BM.esc(r.clasa)}</span>
+                <span class="admin-waitlist-row__date">${_formatDate(r.created_at)}</span>
+              </div>`).join('')}</div>`;
+      }
+    } catch (e) {
+      _setText('statWaitlist9', '—');
+      if (listEl) listEl.innerHTML = `<div class="admin-empty">${BM.esc(e.message || 'Nu s-a putut încărca lista.')}</div>`;
+    }
   }
 
   window.approveProf = async function(userId) {

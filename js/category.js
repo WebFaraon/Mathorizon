@@ -60,10 +60,10 @@
   /* ---- Init ---- */
   function init() {
     const catId = BM.getParam('id');
-    if (!catId) { window.location.href = 'index.html'; return; }
+    if (!catId) { window.location.href = 'capitole.html'; return; }
 
     currentCategory = BM.getCategoryById(catId);
-    if (!currentCategory) { window.location.href = 'index.html'; return; }
+    if (!currentCategory) { window.location.href = 'capitole.html'; return; }
 
     allExercises = BM.EXERCISES.filter(e => e.categoryId === catId);
 

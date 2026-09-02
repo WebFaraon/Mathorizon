@@ -76,16 +76,17 @@
     grid.innerHTML = BM.CATEGORIES.map(cat => {
       const prog = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
       const subcatNames = cat.subcategories.slice(0, 3).map(s => s.name);
+      const isEmpty = prog.total === 0;
 
       return `
-        <div class="chapter-card" onclick="BM.gotoCategory('${cat.id}')"
+        <div class="chapter-card${isEmpty ? ' chapter-card--soon' : ''}" ${isEmpty ? '' : `onclick="BM.gotoCategory('${cat.id}')"`}
              style="--card-color: ${cat.color}">
           <div class="chapter-card__top">
             <div class="chapter-card__icon" style="color:${cat.color};background:${cat.color}1a">
               ${cat.symbol}
             </div>
             <div class="chapter-card__count">
-              ${prog.total} exerciții
+              ${isEmpty ? 'În curând' : prog.total + ' exerciții'}
             </div>
           </div>
 

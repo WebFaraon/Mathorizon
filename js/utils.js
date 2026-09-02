@@ -13,25 +13,55 @@ document.addEventListener('nav:loaded', function () {
   const menu      = document.getElementById('navMobileMenu');
   if (!hamburger || !menu) return;
 
+  // Locks page scroll while the menu is open (position:fixed + negative
+  // top, not just overflow:hidden — the latter still lets iOS Safari
+  // rubber-band-scroll the content behind a fixed overlay) and restores
+  // the exact scroll position on close.
+  let lockedY = 0;
+
+  function openMenu() {
+    lockedY = window.scrollY;
+    menu.classList.add('open');
+    hamburger.classList.add('open');
+    document.body.style.position = 'fixed';
+    document.body.style.top = `-${lockedY}px`;
+    document.body.style.left = '0';
+    document.body.style.right = '0';
+  }
+
+  function closeMenu() {
+    if (!menu.classList.contains('open')) return;
+    menu.classList.remove('open');
+    hamburger.classList.remove('open');
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    window.scrollTo(0, lockedY);
+  }
+
   hamburger.addEventListener('click', function (e) {
     e.stopPropagation();
-    const isOpen = menu.classList.toggle('open');
-    hamburger.classList.toggle('open', isOpen);
+    if (menu.classList.contains('open')) closeMenu(); else openMenu();
   });
 
   document.addEventListener('click', function (e) {
-    if (!hamburger.contains(e.target) && !menu.contains(e.target)) {
-      menu.classList.remove('open');
-      hamburger.classList.remove('open');
-    }
+    if (!hamburger.contains(e.target) && !menu.contains(e.target)) closeMenu();
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') closeMenu();
   });
 
   menu.querySelectorAll('.nav__mobile-link').forEach(function (link) {
-    link.addEventListener('click', function () {
-      menu.classList.remove('open');
-      hamburger.classList.remove('open');
-    });
+    link.addEventListener('click', closeMenu);
   });
+  // navGuestSignup isn't inside #navMobileMenu yet at this point — it's
+  // only relocated there on narrow screens (see the guest-signup
+  // relocation IIFE below) — so this binds by id instead of querying
+  // within menu, and stays correct regardless of which parent it's
+  // currently under.
+  document.getElementById('navGuestSignup')?.addEventListener('click', closeMenu);
 });
 
 /* ---- Debounce ---- */
@@ -356,6 +386,10 @@ document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
   let mobileRow   = null;
 
   function apply(matches) {
+    // Guests get their own relocation below (themeBtn alone, no
+    // tokenWidget — guests have no tokens) at a different breakpoint —
+    // skip here so the two don't fight over the same themeBtn.
+    if (document.documentElement.classList.contains('bm-guest')) return;
     if (matches === inMobile) return;
     const tokenWidget = document.getElementById('tokenWidget');
     const themeBtn    = document.getElementById('themeBtn');
@@ -382,6 +416,85 @@ document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
 
   // 'nav:loaded', not DOMContentLoaded — tokenWidget/themeBtn/navMobileMenu
   // live inside the async-injected nav (see js/nav-loader.js).
+  document.addEventListener('nav:loaded', () => {
+    apply(mq.matches);
+    mq.addEventListener('change', e => apply(e.matches));
+  });
+})();
+
+/* ---- Guest nav: relocate "Creează cont" into the dropdown menu as its
+   first item on narrow screens — desktop shows it inline next to
+   "Conectare", mobile moves it into the menu instead of the bar (see
+   task spec). Same move-the-real-element pattern as the relocation
+   above, just a different breakpoint (this one only matters once the
+   hamburger has already taken over, well past 600px). CSS (html.bm-guest
+   #navMobileMenu .nav__guest-signup) handles visibility — this only
+   moves it, doesn't show/hide it. */
+(function () {
+  const mq = window.matchMedia('(max-width: 768px)');
+  let inMobile = false;
+  let anchor = null;
+
+  function apply(matches) {
+    if (matches === inMobile) return;
+    const signup = document.getElementById('navGuestSignup');
+    const menu   = document.getElementById('navMobileMenu');
+    if (!signup || !menu) return;
+
+    if (matches) {
+      anchor = document.createComment('nav-guest-signup-anchor');
+      signup.before(anchor);
+      menu.insertBefore(signup, menu.firstChild);
+    } else if (anchor) {
+      anchor.replaceWith(signup);
+      anchor = null;
+    }
+    inMobile = matches;
+  }
+
+  document.addEventListener('nav:loaded', () => {
+    apply(mq.matches);
+    mq.addEventListener('change', e => apply(e.matches));
+  });
+})();
+
+/* ---- Guest nav: relocate the dark-mode toggle into the dropdown menu as
+   its last item, below the 5 tabs — desktop already shows it inline
+   ("Dark mode rămâne"), mobile previously dropped it entirely once
+   guests got their own simplified menu. Same themeBtn element the
+   authenticated relocation above moves (guarded there to skip guests,
+   so only one of the two ever claims it), just appended at the end
+   instead of bundled with tokenWidget into .nav__mobile-utility-row. */
+(function () {
+  const mq = window.matchMedia('(max-width: 768px)');
+  let inMobile = false;
+  let anchor = null;
+
+  function apply(matches) {
+    const isGuest = document.documentElement.classList.contains('bm-guest');
+    const themeBtn = document.getElementById('themeBtn');
+    const menu      = document.getElementById('navMobileMenu');
+    if (!isGuest || !themeBtn || !menu) {
+      if (inMobile && anchor) {
+        anchor.replaceWith(themeBtn);
+        anchor = null;
+        inMobile = false;
+      }
+      return;
+    }
+    if (matches === inMobile) return;
+
+    if (matches) {
+      anchor = document.createComment('nav-guest-theme-anchor');
+      themeBtn.before(anchor);
+      menu.appendChild(themeBtn);
+    } else if (anchor) {
+      anchor.replaceWith(themeBtn);
+      anchor = null;
+    }
+    inMobile = matches;
+  }
+
   document.addEventListener('nav:loaded', () => {
     apply(mq.matches);
     mq.addEventListener('change', e => apply(e.matches));

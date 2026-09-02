@@ -15,17 +15,17 @@
   they will silently drift from js/icons.js if you do.
 -->
     <div class="nav__inner container">
-      <a class="nav__brand" href="index.html">
+      <a class="nav__brand" href="capitole.html" data-authed-href="capitole.html">
         <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
         <span class="nav__name">Math<b>orizon</b></span>
       </a>
 
       <div class="nav__links">
-        <a class="nav__link" href="index.html">Capitole</a>
-        <a class="nav__link" href="bac.html?new=1">Simulare</a>
-        <a class="nav__link" href="training.html">Antrenament</a>
-        <a class="nav__link" href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html">Pachete</a>
+        <a class="nav__link" href="capitole.html" data-authed-href="capitole.html">Capitole</a>
+        <a class="nav__link" href="bac.html?new=1" data-authed-href="bac.html?new=1">Simulare</a>
+        <a class="nav__link" href="training.html" data-authed-href="training.html">Antrenament</a>
+        <a class="nav__link" href="classes.html" data-authed-href="classes.html">Clase</a>
+        <a class="nav__link" href="pachete.html" data-authed-href="pachete.html">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
         <span></span><span></span><span></span>
@@ -44,14 +44,18 @@
             <circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
           </svg>
         </button>
+        <div class="nav__guest-actions" id="navGuestActions">
+          <a class="nav__guest-login" id="navGuestLogin" href="auth.html">Conectare</a>
+          <a class="nav__guest-signup" id="navGuestSignup" href="auth.html?tab=signup">Creează cont</a>
+        </div>
       </div>
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="index.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>Capitole</a>
-      <a class="nav__mobile-link" href="bac.html?new=1"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg>Simulare</a>
-      <a class="nav__mobile-link" href="training.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>Antrenament</a>
-      <a class="nav__mobile-link" href="classes.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg>Clase</a>
-      <a class="nav__mobile-link" href="pachete.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><path d="m7.5 4.27 9 5.15"></path></svg>Pachete</a>
+      <a class="nav__mobile-link" href="capitole.html" data-authed-href="capitole.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg>Capitole</a>
+      <a class="nav__mobile-link" href="bac.html?new=1" data-authed-href="bac.html?new=1"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg>Simulare</a>
+      <a class="nav__mobile-link" href="training.html" data-authed-href="training.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg>Antrenament</a>
+      <a class="nav__mobile-link" href="classes.html" data-authed-href="classes.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg>Clase</a>
+      <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><path d="m7.5 4.27 9 5.15"></path></svg>Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
       <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">Exerciții favorite</button>

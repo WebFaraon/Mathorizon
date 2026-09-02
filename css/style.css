@@ -486,7 +486,9 @@ body.bac-exam-mode .nav.nav--peek {
   border-bottom: 1px solid rgba(255,255,255,0.14);
   box-shadow: 0 8px 28px rgba(0,0,0,0.22);
   z-index: 319;
-  padding: 6px 0 10px;
+  padding: 6px 0 calc(10px + env(safe-area-inset-bottom, 0px));
+  max-height: calc(100vh - var(--nav-h));
+  overflow-y: auto;
 }
 .nav__mobile-menu.open { display: block; }
 .nav__mobile-link {
@@ -773,6 +775,124 @@ body.bac-exam-mode .nav.nav--peek {
 }
 .nav-profile-cta__short { display: none; }
 
+/* ---- Guest (nelogat) nav variant ----
+   html.bm-guest / html.bm-authed are stamped synchronously by
+   js/auth-hint.js before first paint (bmauth:ready corrects them once the
+   real session is known) — CSS alone decides what's visible, so there's
+   no JS-timing flash of the wrong nav for either state. */
+.nav__guest-actions {
+  display: none;
+  align-items: center;
+  gap: 14px;
+}
+.nav__guest-login {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.85);
+  text-decoration: none;
+  white-space: nowrap;
+  transition: color 0.15s ease;
+}
+.nav__guest-login:hover { color: #fff; }
+
+/* Same primary-button token used everywhere else in the app ("Începe
+   Antrenamentul", "Pornește simulare BAC" — .btn--primary: var(--text) on
+   var(--bg), flips light/dark with the page theme) instead of a
+   green that doesn't exist anywhere else in the palette. Its own
+   display:flex + centering — not layered onto .nav-profile-btn(--cta),
+   whose 40px circular-icon-button base doesn't apply here and was why
+   the label wasn't centered before. */
+.nav__guest-signup {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: var(--text);
+  color: var(--bg);
+  border: 1.5px solid var(--text);
+  font-weight: 700;
+  font-size: 0.86rem;
+  white-space: nowrap;
+  text-decoration: none;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+.nav__guest-signup:hover {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+html.bm-guest .token-widget,
+html.bm-guest #favBtn,
+html.bm-guest #histBtn,
+html.bm-guest #navProfileBtn { display: none; }
+html.bm-guest .nav__guest-actions { display: flex; }
+
+/* Mobile guest bar: only the compact "Conectare" button stays inline —
+   "Creează cont" is relocated into the dropdown menu instead (see the
+   relocation IIFE in js/utils.js, same pattern as the existing token/theme
+   relocation). Styled as a real button here since the bar no longer has
+   the text-link's neighbors to read as a link against. */
+@media (max-width: 768px) {
+  html.bm-guest .nav__guest-login {
+    padding: 8px 14px;
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+    border: 1.5px solid rgba(255,255,255,0.42);
+    border-radius: var(--radius);
+    background: rgba(255,255,255,0.17);
+  }
+}
+
+/* Relocated into #navMobileMenu as its first item — full-width solid
+   button instead of the desktop pill. */
+#navMobileMenu .nav__guest-signup {
+  display: none;
+  width: calc(100% - 40px);
+  margin: 8px 20px 10px;
+  padding: 13px 20px;
+  height: auto;
+  text-align: center;
+  justify-content: center;
+}
+html.bm-guest #navMobileMenu .nav__guest-signup { display: flex; }
+
+/* Guest mobile menu = the signup button, the 5 tabs, then the dark-mode
+   toggle last (relocated here by its own IIFE in js/utils.js — same
+   themeBtn element used on desktop, not a second one) — no divider,
+   section label or favorite/history actions, which don't apply without
+   an account. */
+html.bm-guest .nav__mobile-divider,
+html.bm-guest .nav__mobile-section-lbl,
+html.bm-guest .nav__mobile-link--action,
+html.bm-guest .nav__mobile-utility-row { display: none; }
+
+#navMobileMenu #themeBtn {
+  display: none;
+  width: calc(100% - 40px);
+  height: 44px;
+  margin: 6px 20px 10px;
+  border-radius: var(--radius);
+}
+html.bm-guest #navMobileMenu #themeBtn { display: flex; }
+
+/* ---- Auth-pending veil (protected pages only, e.g. capitole.html) —
+   neutral cover while the synchronous "authed" hint from js/auth-hint.js
+   is still unconfirmed, so a stale/expired token's brief verification
+   window never shows real dashboard content underneath. Plain page
+   background, no spinner, nothing that moves. */
+.bm-auth-veil {
+  display: none;
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  background: var(--bg);
+}
+html.bm-auth-pending .bm-auth-veil { display: block; }
+
 /* ---- Exam start modal extras ---- */
 .exam-start-modal { max-width: 420px; }
 .exam-start-body {
@@ -966,7 +1086,7 @@ body.bac-exam-mode .nav.nav--peek {
 /* 6. HERO & SEARCH
    ============================================================ */
 .hero {
-  padding: 80px 0 40px;
+  padding: 56px 0 32px;
   text-align: center;
   position: relative;
   background-color: var(--bg);
@@ -1137,7 +1257,7 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 800;
   letter-spacing: -1px;
   line-height: 1.12;
-  margin-bottom: 6px;
+  margin-bottom: 4px;
   color: var(--text);
   position: relative;
   animation: heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
@@ -1150,7 +1270,7 @@ body.bac-exam-mode .nav.nav--peek {
   font-weight: 900;
   letter-spacing: -2px;
   line-height: 1.0;
-  margin-top: 4px;
+  margin-top: 2px;
   background: linear-gradient(120deg, #3b82f6 0%, #8b5cf6 30%, #06b6d4 60%, #3b82f6 100%);
   background-size: 240% 240%;
   -webkit-background-clip: text;
@@ -1168,7 +1288,7 @@ body.bac-exam-mode .nav.nav--peek {
 .hero__sub {
   font-size: clamp(1rem, 2vw, 1.18rem);
   color: var(--text-secondary);
-  margin-bottom: 36px;
+  margin-bottom: 24px;
   position: relative;
   line-height: 1.5;
   /* Reserves room for the longest rotating phrase (2 lines) — the
@@ -1197,7 +1317,7 @@ body.bac-exam-mode .nav.nav--peek {
 .search-wrap {
   position: relative;
   max-width: 600px;
-  margin: 0 auto 44px;
+  margin: 0 auto 32px;
   z-index: 300;
   animation: heroFadeUp 0.55s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 180ms;
@@ -1511,6 +1631,17 @@ body.bac-exam-mode .nav.nav--peek {
   transform: translateY(-6px);
 }
 
+/* Chapter with no exercises yet — visible but not clickable, no hover lift.
+   animation: none because card-up-in's "both" fill-mode would otherwise
+   force opacity back to 1 once the entrance animation finishes, clobbering
+   the opacity below. */
+.chapter-card--soon {
+  opacity: 0.75;
+  cursor: default;
+  pointer-events: none;
+  animation: none;
+}
+
 .chapter-card__top {
   display: flex;
   align-items: flex-start;
@@ -1621,6 +1752,167 @@ body.bac-exam-mode .nav.nav--peek {
   color: var(--text-muted);
   border: 1px solid var(--border);
   letter-spacing: 0.1px;
+}
+
+/* 9.5 LANDING PAGE (public /) — hero + route selector.
+   Reuses .chapter-card verbatim for the three cards (same accent-band,
+   background, radius, shadow, hover lift as /capitole) and .chapter-card__
+   name/desc/count as-is; only the pieces that don't exist yet
+   (eyebrow label, meta line, arrow link) are new, and every value below
+   is copied from an existing element of the same kind elsewhere in this
+   file, not invented.
+   ============================================================ */
+.landing-hero {
+  text-align: center;
+  padding: 80px 0 50px;
+}
+.landing-hero__title {
+  font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  color: var(--text);
+}
+.landing-hero__title-accent {
+  display: block;
+  font-size: clamp(2.6rem, 5.2vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  line-height: 1.18;
+  color: var(--accent);
+}
+.landing-hero__sub {
+  font-size: 1.18rem;
+  color: var(--text-secondary);
+  margin-top: 28px;
+}
+/* Reuses the dashboard stats-bar's .stats/.stat/.stat__val/.stat__lbl
+   verbatim (see /capitole's stats-bar) — just this wrapper's own
+   margin-top is new. */
+.landing-hero__stats { margin-top: 10px; }
+
+.route-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+/* animation: none for the same reason as .chapter-card--soon — card-up-in's
+   "both" fill-mode is an entrance effect, which this page doesn't use.
+   gap bumped from chapter-card's 8px to 12px (already used elsewhere,
+   e.g. .nav__guest-actions) — this card carries more content rows
+   (eyebrow + title + meta + button) and had less breathing room between
+   them than the 3-4 row chapter-card usually shows. */
+.route-card { animation: none; gap: 12px; }
+
+/* Same small/muted/uppercase label already used for .token-widget__label
+   and .nav__mobile-section-lbl. */
+.route-card__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.route-card__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.route-card__meta {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+.route-card__footer { margin-top: auto; }
+
+/* Plain accent-colored text link, same color-shift-on-hover as every
+   other text link in the app (.nav__link, .auth-link) — no new motion. */
+.route-card__link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition);
+}
+.route-card__link:hover { color: var(--accent-2); }
+
+/* Swappable zone inside the "Clasa a 9-a" card (link → form → success) —
+   its own flex column + margin-top:auto footer so whichever state is
+   showing still pins to the card's bottom edge the same way
+   .chapter-card__footer already does everywhere else. min-height is the
+   tallest of the three states (measured), so switching between them
+   never resizes the card. */
+.route-card__dynamic {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-height: 76px;
+}
+
+.route-card__waitlist-form { display: flex; flex-direction: column; gap: 6px; margin-top: auto; }
+.route-card__waitlist-row { display: flex; gap: 8px; }
+.route-card__waitlist-input { flex: 1; min-width: 0; }
+/* Off-screen, not display:none — a bot's automated form-filler that skips
+   invisible fields would defeat the point; screen readers skip it via
+   aria-hidden + tabindex="-1" instead. */
+.route-card__honeypot {
+  position: absolute;
+  left: -9999px;
+  width: 1px;
+  height: 1px;
+  opacity: 0;
+}
+.route-card__waitlist-error {
+  font-size: 0.78rem;
+  color: var(--red);
+}
+
+.route-grid__note {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-top: 24px;
+}
+
+@media (max-width: 768px) {
+  .route-grid { grid-template-columns: 1fr; gap: 12px; }
+}
+
+/* Mobile: same spacing scale, smaller values — and a genuinely smaller H1
+   (not just letting the desktop clamp() hit its floor), since the two
+   phrases wrap to 2 lines each below ~480px otherwise. */
+@media (max-width: 640px) {
+  .landing-hero { padding: 28px 0 24px; }
+  .landing-hero__title {
+    font-size: clamp(1.4rem, 6.5vw, 1.8rem);
+    line-height: 1.25;
+  }
+  .landing-hero__title-accent {
+    font-size: clamp(1.6rem, 7.5vw, 2.1rem);
+    line-height: 1.22;
+  }
+  .landing-hero__sub { font-size: 0.92rem; margin-top: 12px; }
+  .landing-hero__stats { margin-top: 12px; }
+  .route-grid { gap: 10px; }
+  .route-card { padding: 14px 16px 12px; gap: 8px; }
+  .route-grid__note { margin-top: 20px; }
+}
+
+/* Taller viewports get more breathing room instead of just floating in
+   extra empty space — same spacing values scaled up, not new ones. Kept
+   to a height query specifically (not width) because 1440x900 and
+   1280x800 need different amounts of it despite being close in width. */
+@media (min-height: 850px) {
+  .landing-hero { padding: 118px 0 76px; }
+  .landing-hero__sub { margin-top: 38px; }
+  .landing-hero__stats { margin-top: 14px; }
+  .route-grid__note { margin-top: 30px; }
 }
 
 /* 10. CATEGORY PAGE — HEADER
@@ -4603,10 +4895,10 @@ body.bac-exam-mode .nav.nav--peek {
 /* Tablets portrait */
 @media (max-width: 768px) {
   .subcat-cards-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-  .hero { padding: 48px 0 22px; }
+  .hero { padding: 40px 0 20px; }
   .hero__title-accent { font-size: clamp(2.6rem, 10vw, 4rem); }
-  .search-wrap { margin-bottom: 24px; }
-  .hero__sub { margin-bottom: 20px; }
+  .search-wrap { margin-bottom: 20px; }
+  .hero__sub { margin-bottom: 16px; }
   .cat-hud { flex-wrap: wrap; gap: 8px; }
   .subcat-bc__inner { padding: 0 16px; }
 }
@@ -4691,7 +4983,7 @@ body.bac-exam-mode .nav.nav--peek {
   .main { padding: 12px 12px 28px; }
 
   /* ---- Hero ---- */
-  .hero { padding: 36px 0 20px; }
+  .hero { padding: 28px 0 16px; }
   /* Was a flat 1.5rem/2.8rem — read as an afterthought next to how big and
      bold this reads on desktop. clamp()'s vw term scales it with the actual
      phone width instead of a single fixed size, so it stays this dominant
@@ -4699,8 +4991,8 @@ body.bac-exam-mode .nav.nav--peek {
      very small screens (replaces the old ≤400px .hero__title tweak below). */
   .hero__title { font-size: clamp(1.7rem, 7.5vw, 2.1rem); letter-spacing: -0.5px; }
   .hero__title-accent { font-size: clamp(3.2rem, 16vw, 4.4rem); letter-spacing: -1.5px; }
-  .hero__sub { font-size: 0.88rem; margin-bottom: 20px; }
-  .search-wrap { margin-bottom: 14px; }
+  .hero__sub { font-size: 0.88rem; margin-bottom: 14px; }
+  .search-wrap { margin-bottom: 10px; }
   .hero-orb--blue { width: 320px; height: 320px; }
   .hero-orb--purple { width: 260px; height: 260px; }
   .hero-orb--teal { display: none; }
@@ -9289,6 +9581,29 @@ body.bac-exam-mode .nav.nav--peek {
   margin-top: 3px;
 }
 .admin-prof-actions { display: flex; gap: 8px; flex-shrink: 0; }
+
+/* Waitlist list — same card/border/radius as .admin-empty, one row per
+   signup instead of the fuller .admin-prof-card layout (no actions needed
+   here, just a read-only log). */
+.admin-waitlist-table {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.admin-waitlist-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+.admin-waitlist-row:last-child { border-bottom: none; }
+.admin-waitlist-row__email { color: var(--text); font-weight: 600; }
+.admin-waitlist-row__clasa { color: var(--text-muted); font-size: 0.78rem; flex-shrink: 0; }
+.admin-waitlist-row__date  { color: var(--text-muted); font-size: 0.78rem; flex-shrink: 0; }
 .admin-stats-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));

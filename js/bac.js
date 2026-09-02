@@ -1360,7 +1360,7 @@
 
       <div class="res-actions">
         <button class="btn btn--primary btn--lg" onclick="newSimulation()">Simulare Nouă</button>
-        <a class="btn btn--surface btn--lg" href="index.html">Capitole</a>
+        <a class="btn btn--surface btn--lg" href="capitole.html">Capitole</a>
       </div>
     `;
 

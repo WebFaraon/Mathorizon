@@ -929,7 +929,7 @@
         <button class="btn btn--primary btn--lg" onclick="restartTraining()">
           ${icon('refresh-cw', { size: 20 })} Nou antrenament
         </button>
-        <a class="btn btn--surface btn--lg" href="index.html">
+        <a class="btn btn--surface btn--lg" href="capitole.html">
           ${icon('arrow-left', { size: 16 })} Înapoi la capitole
         </a>
       </div>

@@ -48,7 +48,7 @@ BM.Storage = (function() {
       // to Supabase for a logged-in user. A bare call here would resolve to
       // this module's own un-patched closures, silently skipping the DB
       // sync for every exercise solved from category/training pages (the
-      // only place this ran was on index.html, via its own direct call to
+      // only place this ran was on capitole.html, via its own direct call to
       // BM.Storage.updateStreak()).
       BM.Storage.addToHistory(id);
       BM.Storage.updateStreak();

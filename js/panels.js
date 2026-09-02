@@ -6,7 +6,7 @@
 
     // id must be "overlay" — BM.openPanel/closeAllPanels (js/utils.js) look
     // up getElementById('overlay'), not 'panelOverlay'. On pages that ship
-    // a static #overlay in their HTML (category.html, index.html) this
+    // a static #overlay in their HTML (category.html, capitole.html) this
     // never mattered since injectPanelHTML() just early-returns there; on
     // every other page (class.html, classes.html, pachete.html, bac.html —
     // no static panel markup at all) the mismatched id meant the overlay

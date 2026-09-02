@@ -15,9 +15,20 @@
   let _usernameMode = false;
   const USERNAME_DOMAIN = 'mathorizon.local';
 
+  /* ---- Exercise count — same BM.EXERCISES source capitole.html uses,
+     so this page never drifts from the real total (see js/app.js
+     renderStats). Waits on custom exercises so it lands on the exact
+     same settled number as the home page's "Total exerciții" stat. */
+  (function () {
+    const el = document.getElementById('statChipExercises');
+    if (!el || !window.BM || !BM.EXERCISES) return;
+    const ready = BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve();
+    ready.then(() => { el.textContent = BM.EXERCISES.length; });
+  })();
+
   function _getFrom() {
-    const from = new URLSearchParams(window.location.search).get('from') || 'index.html';
-    return from.startsWith('http') ? 'index.html' : from;
+    const from = new URLSearchParams(window.location.search).get('from') || 'capitole.html';
+    return from.startsWith('http') ? 'capitole.html' : from;
   }
 
   function _redirect() {
@@ -282,8 +293,13 @@
       }
     });
 
-    /* Read initial tab from URL param */
-    const tabParam = new URLSearchParams(window.location.search).get('tab');
+    /* Read initial tab + role from URL params (landing page's route
+       cards link here with both — e.g. auth.html?tab=signup&role=profesor —
+       so the signup form opens with the right role already selected
+       instead of always defaulting to "Elev"). */
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
     if (tabParam === 'signup' || tabParam === 'reset') switchTab(tabParam);
+    if (params.get('role') === 'profesor') selectRole('profesor');
   });
 })();
