@@ -274,7 +274,6 @@
     const bestStreak    = window.BM?.Training?.getBestStreak ? BM.Training.getBestStreak() : 0;
     const dailyStreak   = BM.Storage.getStreak().count;
     const exStats       = BM.Storage.getStats(BM.EXERCISES);
-    const favCount      = BM.Storage.getFavorites().length;
 
     /* BAC history rows */
     let histContent;
@@ -460,8 +459,12 @@
               </div>
             </div>
             <a class="btn btn--primary btn--sm prof-token-btn" href="bac.html?new=1">
-              Pornește simulare BAC
+              Pornește simulare examen
             </a>
+            ${!isAdmin ? `
+            <a class="btn btn--surface btn--sm prof-token-btn" href="pachete.html#tokenuri" style="margin-top:8px">
+              ${icon('ticket', { size: 16 })} Cumpără tokenuri
+            </a>` : ''}
           </div>
         </div>` : ''}
 
@@ -536,13 +539,6 @@
           ${hist.length ? `<span class="bac-hist__toggle-count" style="margin-left:auto;margin-right:0">${hist.length}</span>` : ''}
         </div>
         <div id="profHistBody">${histContent}</div>
-      </div>` : ''}
-
-      ${!isTeacher ? `
-      <!-- Favorite exercises (compact) -->
-      <div class="prof-session-strip" style="margin-top:16px">
-        <span class="prof-session-strip__text">${icon('heart', { size: 16 })} ${favCount} exercițiu${favCount === 1 ? '' : 'i'} favorit${favCount === 1 ? '' : 'e'}</span>
-        <a class="btn btn--surface btn--sm" href="capitole.html?panel=fav">Vezi lista</a>
       </div>` : ''}
 
       <!-- Sesiune (comprimat) -->
