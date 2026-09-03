@@ -1668,18 +1668,12 @@
         return rest;
       });
 
-      const resp = await fetch('/api/verify-exam', {
-        method:  'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(payload)
-      });
-
-      if (!resp.ok) {
-        const err = await resp.json().catch(() => ({ error: `HTTP ${resp.status}` }));
-        throw new Error(err.error || `Server error ${resp.status}`);
-      }
-
-      const results = await resp.json();
+      // BM.postJson, not a bare fetch: it survives a non-JSON reply (a
+      // gateway 502/504 HTML page when grading outruns the platform's limit
+      // used to blow up as «Unexpected token 'A', "An error o"…») and applies
+      // a client-side deadline instead of spinning indefinitely. The budget is
+      // generous because every exercise on the sheet is graded in one request.
+      const results = await BM.postJson('/api/verify-exam', payload, { timeoutMs: 280000 });
       // Map each AI result back onto the exam slot it graded (eligibleIndices
       // was built in the same order the payload was sent), then finalize the
       // official score/grade/history from those numbers.

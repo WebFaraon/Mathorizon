@@ -236,7 +236,7 @@
   // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
   // so the call in init() below (DOMContentLoaded-timed) finds them null —
   // this re-binds once they actually exist.
-  document.addEventListener('nav:loaded', initPanelBtns);
+  BM.onNavReady(initPanelBtns);
 
   function openFavorites() {
     const favIds = BM.Storage.getFavorites();

@@ -5087,18 +5087,21 @@
     if (simPicker.photo?.aiResult) _simPickerRenderPhotoReview(simPicker.photo.aiResult);
   }
 
+  // Downscaled + re-encoded before upload (see BM.compressImageFile) — a raw
+  // phone photo is 4-12MB of base64 in the request body, slow to upload and
+  // large enough to be refused by a serverless request-size limit.
   function _simPickerLoadPhoto(file) {
-    const reader = new FileReader();
-    reader.onload = () => {
+    BM.compressImageFile(file).then(img => {
       simPicker.photo = {
-        file, mimeType: file.type,
-        previewUrl: reader.result,
-        imageBase64: String(reader.result).split(',')[1] || '',
+        file, mimeType: img.mimeType,
+        previewUrl: img.dataUrl,
+        imageBase64: img.base64,
         aiResult: null
       };
       _simPickerRenderBody();
-    };
-    reader.readAsDataURL(file);
+    }).catch(e => {
+      BM.toast(e.message || 'Nu am putut procesa imaginea.', 'error');
+    });
   }
 
   async function _simPickerAnalyzePhoto() {
@@ -5107,18 +5110,16 @@
     try {
       const { data: { session } } = await BMAuth.supabase.auth.getSession();
       const cat = BM.getCategoryById(simPicker.categoryId);
-      const res = await fetch('/api/class/generate-simulation-exercise', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: session?.access_token,
-          imageBase64: simPicker.photo.imageBase64,
-          mimeType: simPicker.photo.mimeType,
-          context: { grade: simPicker.gradeCode, categoryName: cat?.name }
-        })
+      // BM.postJson, not a bare fetch + res.json(): when the AI call outlives
+      // the hosting gateway what comes back is an HTML error page, and
+      // parsing that as JSON surfaced as «Unexpected token 'A', "An error
+      // o"... is not valid JSON» instead of anything the teacher could act on.
+      const data = await BM.postJson('/api/class/generate-simulation-exercise', {
+        accessToken: session?.access_token,
+        imageBase64: simPicker.photo.imageBase64,
+        mimeType: simPicker.photo.mimeType,
+        context: { grade: simPicker.gradeCode, categoryName: cat?.name }
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Eroare AI');
       simPicker.photo.aiResult = data;
       // Full re-render (not just the result box) so the "Analizează cu AI"
       // button disappears now that this photo has already been analyzed.

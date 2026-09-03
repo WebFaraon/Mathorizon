@@ -8,7 +8,7 @@ window.BM = window.BM || {};
    Bound on 'nav:loaded' (dispatched by js/nav-loader.js), not
    DOMContentLoaded — the nav markup itself is fetched asynchronously and
    isn't in the DOM yet when DOMContentLoaded fires. */
-document.addEventListener('nav:loaded', function () {
+BM.onNavReady(function () {
   const hamburger = document.getElementById('navHamburger');
   const menu      = document.getElementById('navMobileMenu');
   if (!hamburger || !menu) return;
@@ -281,20 +281,158 @@ BM.plainPreview = function(str) {
     .split('\n').map(l => l.trim()).filter(Boolean)[0] || '';
 };
 
-/* ---- Toast ---- */
-BM.toast = function(msg, type = 'info', duration = 2800) {
+/* ---- Fotografie → base64 pentru API-urile AI ----
+   Every "upload a photo of the exercise" flow used to FileReader the picked
+   file straight into base64 and POST it as-is. A modern phone photo is
+   4-12 MB, which meant a multi-megabyte JSON body on a mobile connection
+   before Gemini even started thinking, and a body large enough to be rejected
+   outright by a serverless host's request-size limit. Downscaling to
+   MAX_W and re-encoding as JPEG turns the same photo into ~200-600 KB with no
+   loss of legibility for text/handwriting — and, as a side effect, normalises
+   HEIC/odd formats into something Gemini definitely accepts.
+
+   Same MAX_W/quality as PhotoUpload._compress in js/photo-upload.js, which
+   has been doing exactly this for the BAC answer-sheet upload all along. */
+BM.MAX_PHOTO_W = 1500;
+
+BM.compressImageFile = function (file, opts) {
+  const maxW    = (opts && opts.maxWidth) || BM.MAX_PHOTO_W;
+  const quality = (opts && opts.quality)  || 0.8;
+
+  return new Promise(function (resolve, reject) {
+    if (!file || !file.type || file.type.indexOf('image/') !== 0) {
+      reject(new Error('Fișierul selectat nu este o imagine.'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = function (e) {
+      const img = new Image();
+      img.onload = function () {
+        const scale = img.naturalWidth > maxW ? maxW / img.naturalWidth : 1;
+        const w = Math.max(1, Math.round(img.naturalWidth  * scale));
+        const h = Math.max(1, Math.round(img.naturalHeight * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width  = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        // Flattens transparency (e.g. a pasted PNG screenshot) onto white
+        // before JPEG encoding, which has no alpha channel of its own.
+        ctx.fillStyle = '#ffffff';
+        ctx.fillRect(0, 0, w, h);
+        ctx.drawImage(img, 0, 0, w, h);
+        try {
+          const dataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve({
+            dataUrl: dataUrl,
+            base64:  dataUrl.split(',')[1] || '',
+            mimeType: 'image/jpeg',
+            width: w, height: h
+          });
+        } catch (err) { reject(err); }
+      };
+      // A format the browser itself can't decode (some HEIC on non-Safari):
+      // fall back to the original bytes rather than blocking the upload —
+      // Gemini accepts HEIC/HEIF directly.
+      img.onerror = function () {
+        const dataUrl = String(e.target.result || '');
+        const base64  = dataUrl.split(',')[1] || '';
+        if (base64) resolve({ dataUrl: dataUrl, base64: base64, mimeType: file.type, width: 0, height: 0 });
+        else reject(new Error('Nu am putut citi imaginea.'));
+      };
+      img.src = e.target.result;
+    };
+    reader.onerror = function () { reject(new Error('Nu am putut citi fișierul.')); };
+    reader.readAsDataURL(file);
+  });
+};
+
+/* ---- POST JSON către /api/* ----
+   Two things every AI call site was missing:
+
+   1. A response that isn't JSON. When a Gemini call outlives the hosting
+      gateway's limit, what comes back is the gateway's own HTML/text error
+      page with a 502/504 — and `await res.json()` on that throws
+      «Unexpected token 'A', "An error o"... is not valid JSON», which is what
+      the admin then saw in the toast instead of anything actionable.
+   2. A client-side deadline. Without one the browser just spins for as long
+      as the platform allows, with no way to tell "still working" from "this
+      is never coming back".
+
+   Rejects with a human-readable Romanian Error in both cases; on a non-2xx
+   JSON body it prefers the server's own `error` text (the API routes now send
+   a translated message for quota/timeout/overload). */
+BM.postJson = async function (url, body, opts) {
+  const timeoutMs = (opts && opts.timeoutMs) || 240000;
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  let res;
+  try {
+    res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body),
+      signal: controller.signal
+    });
+  } catch (e) {
+    if (e.name === 'AbortError') {
+      throw new Error(`Cererea a depășit ${Math.round(timeoutMs / 1000)}s și a fost oprită. Încearcă din nou.`);
+    }
+    throw new Error('Conexiune întreruptă. Verifică internetul și încearcă din nou.');
+  } finally {
+    clearTimeout(timer);
+  }
+
+  const text = await res.text();
+  let data = null;
+  try { data = text ? JSON.parse(text) : null; } catch (e) { /* not JSON — handled below */ }
+
+  if (!res.ok) {
+    if (data && data.error) throw new Error(data.error);
+    // A gateway error page, not our API: say so in plain language instead of
+    // echoing a wall of HTML.
+    if (res.status === 504 || res.status === 502 || res.status === 503) {
+      throw new Error(`Serverul nu a răspuns la timp (${res.status}). Analiza AI a durat prea mult — încearcă din nou.`);
+    }
+    throw new Error(`Eroare server (${res.status}).`);
+  }
+  if (data === null) throw new Error('Serverul a răspuns cu un conținut neașteptat (nu JSON).');
+  return data;
+};
+
+/* ---- Toast ----
+   opts is optional and backward-compatible with every existing 3-arg call:
+   - opts.id: replaces (not stacks on top of) any currently-showing toast
+     with the same id — used by the guest-nav click toast so rapid repeat
+     clicks refresh one toast instead of piling up five.
+   - opts.link: {href, label} — an inline action link (e.g. "Conectare").
+   - opts.closable: adds a manual close (x) button. */
+BM.toast = function(msg, type = 'info', duration = 2800, opts) {
   const container = document.getElementById('toastContainer');
   if (!container) return;
+  opts = opts || {};
+  if (opts.id) {
+    const existing = document.getElementById(opts.id);
+    if (existing) existing.remove();
+  }
   const el = document.createElement('div');
-  el.className = `toast ${type}`;
+  el.className = `toast ${type}` + (opts.link ? ' toast--action' : '');
+  if (opts.id) el.id = opts.id;
   const icons = { success: 'circle-check', error: 'circle-x', info: 'info' };
   const iconClass = { success: 'icon--success', error: 'icon--error', info: 'icon--accent' };
-  el.innerHTML = `<span>${icon(icons[type] || 'info', { size: 16, className: iconClass[type] || 'icon--accent' })}</span><span>${BM.esc(msg)}</span>`;
+  let html = `<span>${icon(icons[type] || 'info', { size: 16, className: iconClass[type] || 'icon--accent' })}</span><span class="toast__msg">${BM.esc(msg)}</span>`;
+  if (opts.link) html += `<a href="${BM.esc(opts.link.href)}" class="toast__link">${BM.esc(opts.link.label)}</a>`;
+  if (opts.closable) html += `<button type="button" class="toast__close" aria-label="Închide">${icon('x', { size: 14 })}</button>`;
+  el.innerHTML = html;
   container.appendChild(el);
-  setTimeout(() => {
+  const remove = () => {
     el.classList.add('hiding');
     el.addEventListener('animationend', () => el.remove());
-  }, duration);
+  };
+  const timer = setTimeout(remove, duration);
+  if (opts.closable) {
+    el.querySelector('.toast__close').addEventListener('click', () => { clearTimeout(timer); remove(); });
+  }
 };
 
 /* ---- Panel / Modal ---- */
@@ -416,7 +554,7 @@ document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
 
   // 'nav:loaded', not DOMContentLoaded — tokenWidget/themeBtn/navMobileMenu
   // live inside the async-injected nav (see js/nav-loader.js).
-  document.addEventListener('nav:loaded', () => {
+  BM.onNavReady(() => {
     apply(mq.matches);
     mq.addEventListener('change', e => apply(e.matches));
   });
@@ -452,7 +590,7 @@ document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
     inMobile = matches;
   }
 
-  document.addEventListener('nav:loaded', () => {
+  BM.onNavReady(() => {
     apply(mq.matches);
     mq.addEventListener('change', e => apply(e.matches));
   });
@@ -495,7 +633,7 @@ document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
     inMobile = matches;
   }
 
-  document.addEventListener('nav:loaded', () => {
+  BM.onNavReady(() => {
     apply(mq.matches);
     mq.addEventListener('change', e => apply(e.matches));
   });

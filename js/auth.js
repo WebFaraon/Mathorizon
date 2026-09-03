@@ -441,7 +441,7 @@
   // after nav injection anyway (it waits on a Supabase round-trip, slower
   // than a same-origin partial fetch) but this re-syncs in case that race
   // ever goes the other way.
-  document.addEventListener('nav:loaded', _updateProfileBtn);
+  BM.onNavReady(_updateProfileBtn);
 
   /* ============================================================
      PUBLIC API

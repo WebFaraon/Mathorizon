@@ -294,16 +294,21 @@
     }
   }
 
+  // Downscaled + re-encoded before it ever leaves the browser (see
+  // BM.compressImageFile): a raw phone photo is 4-12MB of base64 in the
+  // request body, which is slow to upload, costs more image tokens, and is
+  // large enough to be refused outright by a serverless request-size limit.
   function _aeLoadFile(body, file) {
     ae.file = file;
-    ae.mimeType = file.type;
-    const reader = new FileReader();
-    reader.onload = () => {
-      ae.previewUrl  = reader.result;
-      ae.imageBase64 = String(reader.result).split(',')[1] || '';
+    BM.compressImageFile(file).then(img => {
+      ae.previewUrl  = img.dataUrl;
+      ae.imageBase64 = img.base64;
+      ae.mimeType    = img.mimeType;
       _aeRenderUploadInner(body);
-    };
-    reader.readAsDataURL(file);
+    }).catch(e => {
+      ae.file = null;
+      BM.toast(e.message || 'Nu am putut procesa imaginea.', 'error');
+    });
   }
 
   // Existing exercises for THIS subcapitol only (per user's request — not the
@@ -336,7 +341,15 @@
 
     const analyzeBtn = document.getElementById('aeAnalyzeBtn');
     analyzeBtn.disabled = true;
-    analyzeBtn.innerHTML = 'Se analizează…<span class="btn-loading-spin"></span>';
+    // A live counter, because this call legitimately takes tens of seconds:
+    // a static "Se analizează…" gave no way to tell "still thinking" from
+    // "hung", which is why a slow run felt like a broken one.
+    const startedAt = Date.now();
+    const tick = () => {
+      analyzeBtn.innerHTML = `Se analizează… ${Math.round((Date.now() - startedAt) / 1000)}s<span class="btn-loading-spin"></span>`;
+    };
+    tick();
+    const ticker = setInterval(tick, 1000);
 
     const cat = BM.getCategoryById(ae.categoryId);
     const sub = BM.getSubcategoryById(ae.categoryId, ae.subcategoryId);
@@ -344,25 +357,19 @@
     try {
       const session = await _aeSession();
       const existingExercises = await _aeGetExistingForSubcat();
-      const res = await fetch('/api/admin/generate-exercise', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accessToken: session?.access_token,
-          imageBase64: ae.imageBase64,
-          mimeType: ae.mimeType,
-          existingExercises,
-          context: {
-            grade: ae.grade,
-            categoryId: ae.categoryId, categoryName: cat?.name || ae.categoryId,
-            subcategoryId: ae.subcategoryId, subcategoryName: sub?.name || ae.subcategoryId,
-            difficulty: ae.difficulty,
-            punctajTotal: Number(ae.punctajTotal) || undefined
-          }
-        })
+      const data = await BM.postJson('/api/admin/generate-exercise', {
+        accessToken: session?.access_token,
+        imageBase64: ae.imageBase64,
+        mimeType: ae.mimeType,
+        existingExercises,
+        context: {
+          grade: ae.grade,
+          categoryId: ae.categoryId, categoryName: cat?.name || ae.categoryId,
+          subcategoryId: ae.subcategoryId, subcategoryName: sub?.name || ae.subcategoryId,
+          difficulty: ae.difficulty,
+          punctajTotal: Number(ae.punctajTotal) || undefined
+        }
       });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || 'Eroare AI');
 
       ae.aiResult = Object.assign(
         { titlu: '', enunt_katex: '', raspuns_final: '', punctaj_total: 0, pasi_barem: [], verificare_numerica: '', verificat: null, metode_alternative: [], duplicat: null },
@@ -372,8 +379,11 @@
       _aeRenderAnalysis();
       document.getElementById('aeAnalysisBody').scrollIntoView({ behavior: 'smooth', block: 'start' });
     } catch (e) {
-      BM.toast('Eroare la analiza AI: ' + e.message, 'error');
+      // Longer than the default toast: quota/timeout messages are a full
+      // sentence and are useless if they vanish before they're read.
+      BM.toast('Eroare la analiza AI: ' + e.message, 'error', 8000);
     } finally {
+      clearInterval(ticker);
       analyzeBtn.disabled = false;
       analyzeBtn.innerHTML = `Analizează cu AI ${icon('arrow-right', { size: 16 })}`;
     }

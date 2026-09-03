@@ -406,8 +406,11 @@ body.bac-exam-mode .nav.nav--peek {
   align-items: center;
   padding: 8px 20px;
   border-radius: 30px;
-  font-size: 0.88rem;
-  font-weight: 600;
+  /* Regular weight, not bold — the active tab reads as "current" through
+     its background/border below, not through extra font-weight. Bumped up
+     from 0.88rem to keep the same visual presence the bold used to carry. */
+  font-size: 0.94rem;
+  font-weight: 400;
   letter-spacing: 0.2px;
   color: rgba(255,255,255,0.65);
   text-decoration: none;
@@ -496,8 +499,10 @@ body.bac-exam-mode .nav.nav--peek {
   align-items: center;
   gap: 13px;
   padding: 15px 20px;
-  font-size: 1rem;
-  font-weight: 700;
+  /* Regular weight, not bold — see .nav__link above; bumped up from 1rem
+     to compensate for the lost weight. */
+  font-size: 1.05rem;
+  font-weight: 400;
   color: rgba(255,255,255,0.82);
   text-decoration: none;
   transition: background 0.14s, color 0.14s;
@@ -508,12 +513,11 @@ body.bac-exam-mode .nav.nav--peek {
    need either, and the old width:22px would have out-specificity'd icon-16. */
 .nav__mobile-link__icon { flex-shrink: 0; }
 .nav__mobile-link:hover { background: rgba(255,255,255,0.09); color: #fff; }
-/* Bold + a bright left bar so the current page reads unmistakably as
-   "you are here" while scanning — students were losing "Clase" among five
-   visually-identical rows. */
+/* Background + a bright left bar (not bold) so the current page still
+   reads unmistakably as "you are here" while scanning — students were
+   losing "Clase" among five visually-identical rows. */
 .nav__mobile-link--active {
   color: #fff;
-  font-weight: 800;
   background: rgba(255,255,255,0.18);
   border-left: 3px solid #fff;
   padding-left: 17px;
@@ -845,6 +849,29 @@ html.bm-guest .nav__guest-actions { display: flex; }
     border-radius: var(--radius);
     background: rgba(255,255,255,0.17);
   }
+}
+
+/* Belt-and-suspenders: the actual relocation into #navMobileMenu happens
+   in JS (see js/utils.js) and now runs deterministically before first
+   paint (see BM.onNavReady in js/nav-loader.js) — but this guarantees the
+   bar itself can never overflow from "Creează cont" sitting inline next
+   to "Conectare" + the hamburger on a narrow screen, independent of JS
+   timing. Without it, an overflowing .nav__inner could push the hamburger
+   (flex order:99, last) off the right edge of the viewport entirely. */
+@media (max-width: 768px) {
+  .nav__right .nav__guest-signup { display: none; }
+}
+
+/* Very narrow guest phones (≤380px, e.g. a 360px viewport): logo +
+   "Mathorizon" wordmark + "Conectare" + the hamburger no longer all fit
+   on one row — the wordmark is what's expendable here (the logo image
+   alone, with its existing alt text, still carries the brand), not the
+   login button or the hamburger. Guest-only, so the authenticated nav is
+   untouched. The hamburger itself stays the SAME 34×34 size/style used
+   on every other page — never given a guest-only variant, so it never
+   looks like a different button depending on auth state. */
+@media (max-width: 380px) {
+  html.bm-guest .nav__name { display: none; }
 }
 
 /* Relocated into #navMobileMenu as its first item — full-width solid
@@ -1780,21 +1807,152 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: -0.5px;
   line-height: 1.18;
   color: var(--accent);
+  /* Reserves exactly one line at the current (fluid) font-size before the
+     typewriter script fills it in, so the type-in never shifts anything
+     below it — matches line-height itself rather than a hardcoded pixel
+     value, so it scales correctly at every clamp() breakpoint. */
+  min-height: 1.18em;
 }
+/* The full phrase is always real text in .sr-only (screen readers, and
+   any crawler reading raw HTML) — this sibling is the ONLY part that
+   animates, and is aria-hidden so it's never read twice. */
+.landing-hero__typewriter { display: inline; }
+.landing-hero__cursor {
+  display: inline-block;
+  width: 3px;
+  height: 0.78em;
+  margin-left: 2px;
+  vertical-align: -0.1em;
+  background: currentColor;
+  animation: landingCursorBlink 0.8s step-end infinite;
+}
+.landing-hero__cursor.is-done { display: none; }
+@keyframes landingCursorBlink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .landing-hero__cursor { display: none; }
+}
+
 .landing-hero__sub {
   font-size: 1.18rem;
   color: var(--text-secondary);
   margin-top: 28px;
 }
-/* Reuses the dashboard stats-bar's .stats/.stat/.stat__val/.stat__lbl
-   verbatim (see /capitole's stats-bar) — just this wrapper's own
-   margin-top is new. */
-.landing-hero__stats { margin-top: 10px; }
+
+/* ---- Stats card (648 exerciții / 12 tipuri / barem oficial) ----
+   Its own distinct surface — not just three bare numbers floating on the
+   hero background — using the same card/border/radius/shadow tokens as
+   every other card on the site. Reuses .stats/.stat/.stat__val/.stat__lbl
+   verbatim inside it (the dashboard stats-bar's own building blocks). */
+.landing-stats-card {
+  max-width: 640px;
+  margin: 28px auto 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 4px 8px;
+}
+.landing-stats-track {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.landing-stat { padding: 14px 28px; }
+
+/* Desktop: all three at once, staggered fade-in, once, on load. */
+@media (min-width: 769px) {
+  .landing-stat {
+    opacity: 0;
+    animation: landingStatFadeIn 0.4s ease both;
+    animation-delay: calc(var(--stat-i, 0) * 120ms);
+  }
+}
+@keyframes landingStatFadeIn {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Mobile: one at a time (js/landing-hero.js drives .is-active), fade +
+   slide, dot indicators below. Each stat is absolutely stacked on the
+   others so switching never changes the card's height (no CLS) — the
+   track's min-height is sized to the tallest of the three (measured).
+   Laid out as a compact single row (number + label side by side) instead
+   of the earlier big centered vertical block — the whole point here is a
+   small supporting strip, not a second hero. */
+.landing-stats-dots { display: none; }
+@media (max-width: 768px) {
+  .landing-stats-card { padding: 2px 8px; }
+  .landing-stats-track { position: relative; min-height: 40px; }
+  .landing-stat {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    justify-content: center;
+    gap: 7px;
+    padding: 9px 0;
+    opacity: 0;
+    transform: translateX(10px);
+    transition: opacity 0.35s ease, transform 0.35s ease;
+    pointer-events: none;
+  }
+  .landing-stat .stat__val { font-size: 1.15rem; }
+  .landing-stat .stat__lbl { font-size: 0.68rem; letter-spacing: 0.3px; }
+  /* Only one stat shows at a time here — the desktop separator line
+     between stats would just be a stray mark with no neighbor beside it. */
+  .landing-stats-track .stat::after { display: none; }
+  .landing-stat.is-active {
+    opacity: 1;
+    transform: translateX(0);
+    pointer-events: auto;
+  }
+  .landing-stats-dots {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 5px;
+    padding: 0 0 6px;
+  }
+  .landing-stats-dot {
+    width: 5px;
+    height: 5px;
+    border-radius: 50%;
+    background: var(--border);
+    transition: background 0.2s ease;
+  }
+  .landing-stats-dot.is-active { background: var(--accent); }
+}
+
+/* Reduced motion: no fade-in stagger, no carousel — all three shown at
+   once, stacked on mobile, in a plain static column. */
+@media (prefers-reduced-motion: reduce) {
+  .landing-stat { animation: none !important; opacity: 1 !important; transform: none !important; }
+}
+@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
+  .landing-stats-track { position: static; min-height: 0; flex-direction: column; }
+  .landing-stat { position: static; pointer-events: auto; transition: none; }
+  .landing-stats-dots { display: none; }
+}
 
 .route-grid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 14px;
+  /* Equal card heights per row + the CTA pinned to each card's bottom edge
+     both come free from CSS Grid's default row-stretch + each card's own
+     flex column with .route-card__footer{margin-top:auto} — no JS. */
+  /* Capped and centered (same pattern as .landing-stats-card) — at the
+     .container's full 1520px width each card stretched to ~725px, far past
+     a comfortable text measure for a few lines + a bullet list, which is
+     exactly what read as "mostly empty space with text pinned to the
+     left." Narrower cards wrap their existing text over more of their own
+     width instead of leaving it unused. */
+  max-width: 1040px;
+  margin: 0 auto;
 }
 
 /* animation: none for the same reason as .chapter-card--soon — card-up-in's
@@ -1820,36 +1978,61 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   justify-content: space-between;
   gap: 10px;
 }
-.route-card__meta {
-  font-size: 0.82rem;
-  color: var(--text-secondary);
-  line-height: 1.5;
-}
 .route-card__footer { margin-top: auto; }
 
-/* Plain accent-colored text link, same color-shift-on-hover as every
-   other text link in the app (.nav__link, .auth-link) — no new motion. */
-.route-card__link {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: var(--accent);
-  text-decoration: none;
-  transition: color var(--transition);
+/* Top-left icon — same library/weight/size as the rest of the site
+   (js/icons.js, hand-copied here since this page is static markup), just
+   colored with the card's own accent band via --card-color instead of
+   the default currentColor/text tint. */
+.route-card__icon { color: var(--card-color, var(--accent)); }
+
+/* 3-4 short bullet points under a card's description, colored dot per the
+   card's own accent. */
+.route-card__list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
-.route-card__link:hover { color: var(--accent-2); }
+.route-card__list li {
+  position: relative;
+  padding-left: 15px;
+}
+.route-card__list li::before {
+  content: '';
+  position: absolute;
+  left: 2px;
+  top: 0.5em;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: var(--card-color, var(--accent));
+}
+
+.route-card__approval-note {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
 
 /* Swappable zone inside the "Clasa a 9-a" card (link → form → success) —
    its own flex column + margin-top:auto footer so whichever state is
    showing still pins to the card's bottom edge the same way
    .chapter-card__footer already does everywhere else. min-height is the
    tallest of the three states (measured), so switching between them
-   never resizes the card. */
+   never resizes the card. justify-content:center only actually affects
+   the success state (a single description div, no footer) — the link/
+   form states' own margin-top:auto footer claims all the free space
+   first, which overrides this for them, so they stay bottom-pinned as
+   before; success just centers instead of leaving a dead gap below a
+   short line of text once the row stretches to match its taller sibling. */
 .route-card__dynamic {
   display: flex;
   flex-direction: column;
+  justify-content: center;
   gap: 12px;
   flex: 1;
   min-height: 76px;
@@ -1882,36 +2065,45 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 @media (max-width: 768px) {
   .route-grid { grid-template-columns: 1fr; gap: 12px; }
+  /* The BAC card's own bullet list already covers this copy, and on a
+     phone every line of vertical space before the cards is competing
+     with the cards themselves for the fold. Desktop/tablet keep it. */
+  .landing-hero__sub { display: none; }
 }
 
 /* Mobile: same spacing scale, smaller values — and a genuinely smaller H1
-   (not just letting the desktop clamp() hit its floor), since the two
-   phrases wrap to 2 lines each below ~480px otherwise. */
+   (not just letting the desktop clamp() hit its floor). The leading line
+   ("Pregătire serioasă...") already fits on one line at these sizes; the
+   accent line is sized (measured empirically at 360/390/430) to also fit
+   on exactly one line there, so the whole H1 is 2 lines total, not 3. */
 @media (max-width: 640px) {
-  .landing-hero { padding: 28px 0 24px; }
+  /* Compact — the cards below are the point of the page and need to be
+     reachable with minimal scrolling, especially on a tall phone. */
+  .landing-hero { padding: 16px 0 12px; }
   .landing-hero__title {
     font-size: clamp(1.4rem, 6.5vw, 1.8rem);
     line-height: 1.25;
   }
   .landing-hero__title-accent {
-    font-size: clamp(1.6rem, 7.5vw, 2.1rem);
+    font-size: clamp(1.5rem, 6.7vw, 1.9rem);
     line-height: 1.22;
   }
-  .landing-hero__sub { font-size: 0.92rem; margin-top: 12px; }
-  .landing-hero__stats { margin-top: 12px; }
+  .landing-stats-card { margin-top: 10px; }
   .route-grid { gap: 10px; }
   .route-card { padding: 14px 16px 12px; gap: 8px; }
-  .route-grid__note { margin-top: 20px; }
+  .route-grid__note { margin-top: 14px; }
 }
 
 /* Taller viewports get more breathing room instead of just floating in
-   extra empty space — same spacing values scaled up, not new ones. Kept
-   to a height query specifically (not width) because 1440x900 and
-   1280x800 need different amounts of it despite being close in width. */
-@media (min-height: 850px) {
+   extra empty space — same spacing values scaled up, not new ones. Guarded
+   to min-width:900px too — height alone also matches a tall PHONE held in
+   portrait (e.g. 390×932), where this extra padding pushed the cards
+   (the actual point of the page) below the fold instead of giving a
+   desktop monitor more breathing room, which is what this was meant for. */
+@media (min-height: 850px) and (min-width: 900px) {
   .landing-hero { padding: 118px 0 76px; }
   .landing-hero__sub { margin-top: 38px; }
-  .landing-hero__stats { margin-top: 14px; }
+  .landing-stats-card { margin-top: 32px; }
   .route-grid__note { margin-top: 30px; }
 }
 
@@ -4760,8 +4952,54 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .toast.info    { border-left-color: var(--accent); }
 .toast.hiding  { animation: slideOutToast 0.2s ease forwards; }
 
+/* Toast carrying an inline action link (BM.toast opts.link) — a bit wider
+   so the link doesn't force an awkward wrap next to the message. */
+.toast--action { max-width: 340px; }
+.toast__msg { flex: 1; }
+.toast__link {
+  color: var(--accent);
+  font-weight: 700;
+  text-decoration: underline;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.toast__link:hover { color: var(--accent-2); }
+.toast__close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.toast__close:hover { background: var(--card-hover); color: var(--text); }
+
 /* 18. UTILITIES
    ============================================================ */
+/* Visually hidden but present for screen readers and any HTML-source-only
+   crawler — the standard sr-only pattern (not display:none/visibility:
+   hidden, which both drop content from the accessibility tree too). Used
+   by the landing hero's typewriter line: the full phrase lives here,
+   permanently, while a sibling aria-hidden span carries the animated
+   visual copy (see css section 9.5 and js/landing-hero.js). */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
 .text-muted   { color: var(--text-muted); }
 .text-accent  { color: var(--accent); }
 .text-green   { color: var(--green); }
@@ -8735,13 +8973,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .auth-pg-brand {
   display: flex;
   align-items: center;
-  gap: 2px;
-  margin-bottom: 36px;
+  gap: 12px;
+  margin-bottom: 40px;
   position: relative;
   z-index: 1;
 }
 .auth-pg-logo {
-  height: 60px;
+  height: 40px;
   width: auto;
   object-fit: contain;
   filter: brightness(0) invert(1) drop-shadow(0 2px 8px rgba(0,0,0,0.3));
@@ -8754,7 +8992,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: 5px;
   text-transform: uppercase;
   color: rgba(255,255,255,0.88);
-  margin-left: -4px;
 }
 .auth-pg-brand-name b { font-weight: 800; color: #fff; }
 
@@ -8803,15 +9040,20 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .auth-pg-feat {
   display: flex;
-  align-items: flex-start;
+  align-items: center;
   gap: 14px;
 }
 .auth-pg-feat__icon {
   display: inline-flex;
-  margin-top: 2px;
+  align-items: center;
+  justify-content: center;
   flex-shrink: 0;
-  width: 28px;
-  text-align: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  background: rgba(255,255,255,0.1);
+  border: 1px solid rgba(255,255,255,0.14);
+  color: rgba(255,255,255,0.85);
 }
 .auth-pg-feat__title {
   font-size: 0.87rem;
@@ -8829,7 +9071,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 /* Stats chips row */
 .auth-pg-stats-row {
   display: flex;
-  gap: 10px;
+  gap: 14px;
   margin-top: auto;
   padding-top: 32px;
   position: relative;
@@ -8842,20 +9084,20 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   flex-direction: column;
   align-items: center;
   gap: 4px;
-  padding: 14px 8px;
+  padding: 16px 12px;
   border-radius: 12px;
   background: rgba(255,255,255,0.07);
   border: 1px solid rgba(255,255,255,0.12);
 }
 .auth-pg-stat-chip__num {
-  font-size: 1.45rem;
+  font-size: 1.6rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: -0.5px;
   line-height: 1;
 }
 .auth-pg-stat-chip__lbl {
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   font-weight: 600;
   color: rgba(255,255,255,0.45);
   text-transform: uppercase;
@@ -9122,7 +9364,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   }
   .auth-pg-back { margin-bottom: 20px; }
   .auth-pg-brand { margin-bottom: 16px; }
-  .auth-pg-logo { height: 44px; }
+  .auth-pg-logo { height: 32px; }
   .auth-pg-title { font-size: 1.7rem; margin-bottom: 8px; }
   .auth-pg-sub { display: none; }
   .auth-pg-rule { display: none; }

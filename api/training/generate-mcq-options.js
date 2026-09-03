@@ -1,42 +1,24 @@
 'use strict';
-const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
-const { generateContentWithRetry } = require('../_gemini-retry');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateContentWithRetry, geminiErrorStatus } = require('../_gemini-retry');
+const { extractJson } = require('../_gemini-shared');
 
 const SUPABASE_URL         = 'https://tfflpivehrrzmklvcyhe.supabase.co';
 const SUPABASE_ANON        = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
 
-// Structured output — see api/admin/generate-exercise.js for why this is
-// preferred over relying on prompt instructions alone (forces correctly
-// escaped LaTeX backslashes in the JSON, not just "well-formatted" JSON).
-const MCQ_SCHEMA = {
-  type: SchemaType.OBJECT,
-  properties: {
-    correctAnswer: { type: SchemaType.STRING },
-    distractors: {
-      type: SchemaType.ARRAY,
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          value:  { type: SchemaType.STRING },
-          // Internal QA note only (which mistake this models) — never sent
-          // to the client, stripped before responding.
-          reason: { type: SchemaType.STRING }
-        },
-        required: ['value', 'reason']
-      }
-    }
-  },
-  required: ['correctAnswer', 'distractors']
-};
-
+// JSON output mode without a responseSchema — see the note in
+// api/admin/generate-exercise.js: the constrained decoder measured 150-300s+
+// on the same prompt that JSON mode alone answers in seconds. The shape is
+// stated in the prompt's JSON template and re-asserted after parsing.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
-  model: 'gemini-3.5-flash',
+  // Overridable without a code change (GEMINI_MODEL) — the model list moves
+  // often enough that this file has already been rewritten for it twice.
+  model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   generationConfig: {
     temperature: 0,
-    responseMimeType: 'application/json',
-    responseSchema: MCQ_SCHEMA
+    responseMimeType: 'application/json'
   }
 });
 
@@ -109,17 +91,13 @@ async function generateMcqOptions({ statement, solution, barem }) {
   const prompt = buildPrompt({ statement, solution, barem });
   const result = await generateContentWithRetry(model, [{ text: prompt }]);
 
-  const raw     = result.response.text().trim();
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-  try {
-    return JSON.parse(jsonStr);
-  } catch {
-    // See api/admin/generate-exercise.js for why this repair exists — Gemini
-    // occasionally forgets to double a raw LaTeX backslash inside the JSON
-    // string despite structured-output mode.
-    const repaired = jsonStr.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, '\\\\');
-    return JSON.parse(repaired);
-  }
+  const parsed = extractJson(result.response.text().trim());
+  return {
+    correctAnswer: String(parsed?.correctAnswer ?? ''),
+    distractors: (Array.isArray(parsed?.distractors) ? parsed.distractors : [])
+      .filter(d => d && typeof d === 'object')
+      .map(d => ({ value: String(d.value ?? ''), reason: String(d.reason ?? '') }))
+  };
 }
 
 module.exports = async function handler(req, res) {
@@ -150,7 +128,14 @@ module.exports = async function handler(req, res) {
 
     res.status(200).json({ correctAnswer: parsed.correctAnswer, distractors: distractorValues });
   } catch (e) {
-    const status = e.message === 'unauthorized' ? 401 : e.message === 'missing exerciseId' ? 400 : 502;
-    res.status(status).json({ error: status === 502 ? 'generation_failed' : e.message });
+    // A quota/timeout/overload failure gets its own status and Romanian text
+    // from _gemini-retry; anything else stays the opaque 'generation_failed'
+    // this route has always returned (training.js just falls back to the
+    // free-text answer UI on any non-2xx, so the body is advisory).
+    const status = e.message === 'unauthorized' ? 401
+                 : e.message === 'missing exerciseId' ? 400
+                 : (geminiErrorStatus(e) || 502);
+    if (status >= 500 || status === 429) console.error('[generate-mcq-options]', e.code || '', e.cause || e);
+    res.status(status).json({ error: e.code ? e.message : (status === 502 ? 'generation_failed' : e.message), code: e.code || null });
   }
 };

@@ -43,23 +43,35 @@
     <section class="landing-hero">
       <h1 class="landing-hero__title">
         Pregătire serioasă la matematică
-        <span class="landing-hero__title-accent">pentru examenele din Moldova</span>
+        <span class="landing-hero__title-accent">
+          <!-- Full phrase, always real text — screen readers and any
+               HTML-only crawler read this. The aria-hidden span below is
+               the ONLY part js/landing-hero.js animates (see there). -->
+          <span class="sr-only" id="heroTypewriterFull">pentru examenele din Moldova</span>
+          <span class="landing-hero__typewriter" aria-hidden="true"><span id="heroTypewriterVisible"></span><span class="landing-hero__cursor" id="heroTypewriterCursor"></span></span>
+        </span>
       </h1>
       <p class="landing-hero__sub">Exerciții cu barem oficial, antrenament rapid și simulări cronometrate.</p>
-      <div class="stats landing-hero__stats">
-        <div class="stat">
-          <div class="stat__val accent" id="landingExerciseCount">644</div>
-          <div class="stat__lbl">exerciții</div>
+
+      <div class="landing-stats-card" id="landingStatsCard">
+        <div class="landing-stats-track" id="landingStatsTrack">
+          <div class="stat landing-stat is-active" style="--stat-i:0">
+            <div class="stat__val accent" id="landingExerciseCount">648</div>
+            <div class="stat__lbl">exerciții</div>
+          </div>
+          <div class="stat landing-stat" style="--stat-i:1">
+            <div class="stat__val accent">12</div>
+            <div class="stat__lbl">tipuri de itemi</div>
+          </div>
+          <div class="stat landing-stat" style="--stat-i:2">
+            <div class="stat__val accent">barem</div>
+            <div class="stat__lbl">oficial pe fiecare pas</div>
+          </div>
         </div>
-        <div class="stat__sep" style="width:1px;height:40px;background:var(--border)"></div>
-        <div class="stat">
-          <div class="stat__val accent">12</div>
-          <div class="stat__lbl">tipuri de itemi</div>
-        </div>
-        <div class="stat__sep" style="width:1px;height:40px;background:var(--border)"></div>
-        <div class="stat">
-          <div class="stat__val accent">barem</div>
-          <div class="stat__lbl">oficial pe fiecare pas</div>
+        <div class="landing-stats-dots" id="landingStatsDots" aria-hidden="true">
+          <span class="landing-stats-dot is-active"></span>
+          <span class="landing-stats-dot"></span>
+          <span class="landing-stats-dot"></span>
         </div>
       </div>
     </section>
@@ -69,11 +81,17 @@
 
       <!-- BAC (12th grade) — the one primary action on the page -->
       <a class="chapter-card route-card" href="auth.html?tab=signup&role=elev" style="--card-color:#7c3aed">
+        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg>
         <div class="route-card__eyebrow">BAC</div>
         <div class="chapter-card__name">Clasa a 12-a</div>
-        <div class="route-card__meta">Toate capitolele · simulare de 3 ore</div>
+        <div class="chapter-card__desc">Toate capitolele din programa de examen, cu barem oficial pe fiecare pas.</div>
+        <ul class="route-card__list">
+          <li>Exerciții pe capitole și dificultate</li>
+          <li>Antrenament rapid personalizat</li>
+          <li>Simulare completă de 3 ore, notată automat</li>
+        </ul>
         <div class="route-card__footer">
-          <span class="btn btn--primary btn--lg btn--full">Începe pregătirea</span>
+          <span class="btn btn--ghost btn--lg btn--full">Începe pregătirea</span>
         </div>
       </a>
 
@@ -81,6 +99,7 @@
            Dynamic zone (desc/link vs. form vs. success) is filled in by
            js/landing-page.js — see #waitlistDynamic there. -->
       <div class="chapter-card route-card" style="--card-color:#f59e0b">
+        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg>
         <div class="route-card__top">
           <div class="route-card__eyebrow">Examen de absolvire a gimnaziului</div>
           <span class="chapter-card__count">În pregătire</span>
@@ -92,18 +111,48 @@
       <!-- Teacher path — straight to signup with role preselected, not a
            "how it works" page we don't have yet. -->
       <a class="chapter-card route-card" href="auth.html?tab=signup&role=profesor" style="--card-color:#10b981">
+        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
         <div class="chapter-card__name">Sunt profesor</div>
-        <div class="chapter-card__desc">Creează clase, atribuie teme și urmărește progresul elevilor.</div>
+        <div class="chapter-card__desc">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</div>
+        <ul class="route-card__list">
+          <li>Creează clase și adaugă elevi</li>
+          <li>Atribuie teme din baza de exerciții</li>
+          <li>Vezi cine a rezolvat și cine a rămas în urmă</li>
+          <li>Testează nivelul elevilor noi la prima lecție</li>
+        </ul>
         <div class="route-card__footer">
-          <span class="route-card__link">Creează cont de profesor <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span>
+          <div class="route-card__approval-note">Contul de profesor necesită aprobare.</div>
+          <span class="btn btn--ghost btn--lg btn--full">Creează cont de profesor</span>
         </div>
       </a>
+
+      <!-- No-account diagnostic test — pure design for now, see the CTA note below. -->
+      <div class="chapter-card route-card" style="--card-color:#ec4899">
+        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg>
+        <div class="route-card__eyebrow">FĂRĂ CONT</div>
+        <div class="chapter-card__name">Testează-ți nivelul</div>
+        <div class="chapter-card__desc">8 exerciții, 50 de minute. Afli unde ești și ce ai de recuperat, fără să te înregistrezi.</div>
+        <ul class="route-card__list">
+          <li>Adaptat pe clasa ta (5-12)</li>
+          <li>Rezultat imediat, cu recomandări</li>
+        </ul>
+        <div class="route-card__footer">
+          <!-- Intentionally inert — design only, not wired up yet. Same
+               btn--ghost treatment as the other 3 cards so all four read
+               as one consistent button style; a plain non-disabled
+               button so it looks fully normal. -->
+          <button type="button" class="btn btn--ghost btn--lg btn--full">Începe testarea</button>
+        </div>
+      </div>
 
     </div>
 
     <p class="route-grid__note">Clasele 5-8, 10-11 — pe parcursul anului.</p>
 
   </main>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/data.js"></script>
@@ -112,6 +161,7 @@
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/landing-page.js"></script>
+  <script src="js/landing-hero.js"></script>
   <script>
     /* Exercise count — same BM.EXERCISES source every other page uses (see
        js/app.js renderStats, js/auth-page.js), never a hardcoded figure. */

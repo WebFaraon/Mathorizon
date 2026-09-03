@@ -26,6 +26,14 @@
     ready.then(() => { el.textContent = BM.EXERCISES.length; });
   })();
 
+  /* ---- Chapter count — same BM.CATEGORIES source capitole.html uses,
+     so this page never drifts from the real total. ---- */
+  (function () {
+    const el = document.getElementById('statChipCategories');
+    if (!el || !window.BM || !BM.CATEGORIES) return;
+    el.textContent = BM.CATEGORIES.length;
+  })();
+
   function _getFrom() {
     const from = new URLSearchParams(window.location.search).get('from') || 'capitole.html';
     return from.startsWith('http') ? 'capitole.html' : from;

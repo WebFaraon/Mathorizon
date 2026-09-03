@@ -1,6 +1,7 @@
 'use strict';
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { generateContentWithRetry } = require('./_gemini-retry');
+const { extractJson, normalizeImageMime } = require('./_gemini-shared');
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
 // "no longer available"). We initially replaced it with gemini-3-flash-preview,
@@ -12,41 +13,11 @@ const { generateContentWithRetry } = require('./_gemini-retry');
 // for the current stable model list.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
-  model: 'gemini-3.5-flash',
+  // Overridable without a code change (GEMINI_MODEL) — the model list moves
+  // often enough that this file has already been rewritten for it twice.
+  model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   generationConfig: { temperature: 0 }
 });
-
-// Gemini is told to return ONLY a JSON object, but occasionally wraps it in
-// stray prose despite that instruction. A hard JSON.parse() failure used to
-// take down the whole item — falling into the generic catch in the handler
-// below, which zeroed its score with no useful explanation ever reaching the
-// student (the observatii text wasn't even rendered client-side; see bac.js).
-// Falling back to the outermost {...} block recovers the common case instead
-// of discarding a real evaluation over a stray sentence before/after it.
-function extractJson(raw) {
-  const cleaned = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
-  const start = cleaned.indexOf('{');
-  const end   = cleaned.lastIndexOf('}');
-  const candidate = (start !== -1 && end > start) ? cleaned.slice(start, end + 1) : cleaned;
-  try {
-    return JSON.parse(candidate);
-  } catch (e) {
-    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left,
-    // \frac, \boxed, \notin, \right, \tan, \underline...) that it forgot to
-    // double per JSON string-escaping rules (a literal "\" must be written
-    // "\\") — this is the "Bad escaped character in JSON" failure, which used
-    // to zero the whole exercise on a pure formatting slip. Same fix already
-    // applied in api/admin/generate-exercise.js. \b \f \n \r \t \u are
-    // technically valid single-char JSON escapes too, but in this
-    // LaTeX-transcription context a backslash followed by one of those
-    // letters is essentially always the start of a LaTeX command (\boxed,
-    // \frac, \notin, \right, \tan, \underline), not a real control character
-    // — so only "\" "/ and a genuine \uXXXX are treated as already-valid;
-    // everything else gets doubled.
-    const repaired = candidate.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, '\\\\');
-    return JSON.parse(repaired);
-  }
-}
 
 function extractBarem(solution, totalPoints) {
   if (!solution) return null;
@@ -144,7 +115,8 @@ async function verifyItem(item) {
     puncteMaxime, label, barem: baremFixed, baremEstimat,
     raspunsCorect, subcategoryId, mimeType
   } = item;
-  const imageMimeType = mimeType || 'image/png';
+  // answer sheets arrive as PNG from the drawing canvas, JPEG from a photo
+  const imageMimeType = normalizeImageMime(mimeType, 'image/png');
 
   const subcatHint = SUBCAT_HINTS[subcategoryId] || '';
   const subcatBlock = subcatHint ? `\nATENȚIE SPECIFICĂ PENTRU ACEST TIP DE EXERCIȚIU: ${subcatHint}\n` : '';

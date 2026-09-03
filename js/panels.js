@@ -129,5 +129,5 @@
   // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
   // so the DOMContentLoaded-timed call above finds them null on pages that
   // rely solely on this file — this re-binds once they actually exist.
-  document.addEventListener('nav:loaded', bindPanelBtns);
+  BM.onNavReady(bindPanelBtns);
 })();

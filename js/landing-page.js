@@ -8,7 +8,6 @@
 
   const STORAGE_KEY = 'bm_waitlist_9';
   const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  const ARROW_SVG = '<svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg>';
 
   const dynamic = document.getElementById('waitlistDynamic');
   if (!dynamic) return;
@@ -21,10 +20,12 @@
   }
 
   function renderDefault() {
+    // Same btn--ghost treatment as the other 3 route cards' CTAs, not a
+    // bare text link, so all four cards read as one consistent button style.
     dynamic.innerHTML =
-      '<div class="chapter-card__desc">Lucrăm la exerciții și teste pentru treapta gimnazială.</div>' +
+      '<div class="chapter-card__desc">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</div>' +
       '<div class="route-card__footer">' +
-        '<a href="#" class="route-card__link" id="waitlistLinkBtn">Anunță-mă când e gata ' + ARROW_SVG + '</a>' +
+        '<a href="#" class="btn btn--ghost btn--lg btn--full" id="waitlistLinkBtn">Anunță-mă când e gata</a>' +
       '</div>';
     document.getElementById('waitlistLinkBtn').addEventListener('click', function (e) {
       e.preventDefault();

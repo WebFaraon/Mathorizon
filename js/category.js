@@ -369,6 +369,7 @@
       <button class="filter-chip ${statusFilter === 'solved'   ? 'active' : ''}" data-fg="status" data-fv="solved"   onclick="setFilter('status','solved')">Rezolvate</button>
     `;
     const diffChips = `
+      <button class="filter-chip ${diffFilter === 'all' ? 'active' : ''}" data-fg="diff" data-fv="all" onclick="setFilter('diff','all')">Toate</button>
       <button class="filter-chip easy      ${diffFilter === 'usor'     ? 'active' : ''}" data-fg="diff" data-fv="usor"     onclick="setFilter('diff','usor')">${isRarityPage ? 'Comun' : 'Ușor'}</button>
       <button class="filter-chip medium    ${diffFilter === 'mediu'    ? 'active' : ''}" data-fg="diff" data-fv="mediu"    onclick="setFilter('diff','mediu')">${isRarityPage ? 'Rar' : 'Mediu'}</button>
       <button class="filter-chip hard      ${diffFilter === 'dificil'  ? 'active' : ''}" data-fg="diff" data-fv="dificil"  onclick="setFilter('diff','dificil')">${isRarityPage ? 'Epic' : 'Greu'}</button>
@@ -509,15 +510,14 @@
     document.addEventListener('click', closeAllFilterSelects);
   }
 
-  /* Status and difficulty/rarity are independent axes — clicking a diff
-     chip that's already active clears it back to "all" (there's no
-     standalone "Toate" chip in that row to fall back on the way the status
-     group has one). */
+  /* Status and difficulty/rarity are independent axes, each with its own
+     "Toate" chip to fall back to — so setting either is just a plain
+     assignment, no toggle-off trickery needed. */
   window.setFilter = function(group, value) {
     if (group === 'status') {
       statusFilter = value;
     } else {
-      diffFilter = (diffFilter === value) ? 'all' : value;
+      diffFilter = value;
     }
     syncFilterUI();
     applyFilters();
@@ -1242,7 +1242,7 @@
   // favBtn/histBtn live inside the async-injected nav (see js/nav-loader.js),
   // so the call in init() (DOMContentLoaded-timed) finds them null —
   // this re-binds once they actually exist.
-  document.addEventListener('nav:loaded', initPanelBtns);
+  BM.onNavReady(initPanelBtns);
 
   window.clearHistory = function() {
     BM.Storage.clearHistory();

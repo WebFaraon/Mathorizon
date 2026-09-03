@@ -1,66 +1,39 @@
 'use strict';
 const fs = require('fs');
 const path = require('path');
-const { GoogleGenerativeAI, SchemaType } = require('@google/generative-ai');
-const { generateContentWithRetry } = require('../_gemini-retry');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { generateContentWithRetry, geminiErrorStatus } = require('../_gemini-retry');
+const { extractJson, normalizeImageMime } = require('../_gemini-shared');
 
 const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
 
-// Structured-output schema — forces Gemini's constrained JSON-mode decoder to
-// emit syntactically valid JSON (correctly escaped backslashes) instead of
-// relying on the model to remember JSON string-escaping rules while writing
-// LaTeX-heavy text (\frac, \boxed, \right...). This is the root-cause fix for
-// the "Bad escaped character in JSON" failures — the try/catch repair below
-// is kept only as a defensive fallback, not the primary defense anymore.
-const RESPONSE_SCHEMA = {
-  type: SchemaType.OBJECT,
-  properties: {
-    titlu:          { type: SchemaType.STRING },
-    enunt_katex:    { type: SchemaType.STRING },
-    raspuns_final:  { type: SchemaType.STRING },
-    punctaj_total:  { type: SchemaType.INTEGER },
-    pasi_barem: {
-      type: SchemaType.ARRAY,
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          nr:             { type: SchemaType.INTEGER },
-          descriere:      { type: SchemaType.STRING },
-          puncte_maxime:  { type: SchemaType.INTEGER }
-        },
-        required: ['nr', 'descriere', 'puncte_maxime']
-      }
-    },
-    // Same-call, zero-extra-cost self-check (see generate-simulation-exercise.js
-    // for the rationale) — placed after pasi_barem so the model cross-checks
-    // raspuns_final against an independent numeric substitution, not just
-    // against its own step derivation.
-    verificare_numerica: { type: SchemaType.STRING },
-    verificat:            { type: SchemaType.BOOLEAN },
-    metode_alternative: {
-      type: SchemaType.ARRAY,
-      items: {
-        type: SchemaType.OBJECT,
-        properties: {
-          nume:      { type: SchemaType.STRING },
-          descriere: { type: SchemaType.STRING }
-        },
-        required: ['nume', 'descriere']
-      }
-    },
-    duplicat: {
-      type: SchemaType.OBJECT,
-      properties: {
-        este_duplicat: { type: SchemaType.BOOLEAN },
-        titlu_similar: { type: SchemaType.STRING },
-        motiv:         { type: SchemaType.STRING }
-      },
-      required: ['este_duplicat', 'titlu_similar', 'motiv']
-    }
-  },
-  required: ['titlu', 'enunt_katex', 'raspuns_final', 'punctaj_total', 'pasi_barem', 'verificare_numerica', 'verificat', 'metode_alternative', 'duplicat']
-};
+// JSON output mode WITHOUT a responseSchema — deliberately.
+//
+// A responseSchema was added here originally to stop Gemini emitting
+// syntactically broken JSON around LaTeX backslashes. It did fix that, but it
+// turned out to cost far more than it was worth: Gemini's constrained decoder
+// is pathologically slow on this schema. Measured repeatedly on the same
+// photo + prompt (gemini-3.5-flash, identical thinking-token counts, so the
+// difference is purely decoding):
+//
+//     with responseSchema     157s, 255s, 303s, and 3 runs that never
+//                             returned at all (killed at Node's ~300s fetch
+//                             ceiling with a bare "fetch failed")
+//     without responseSchema   8s,  41s,  80s,  81s, 120s, 223s
+//
+// Those 300s+ runs are exactly the "spins for 7-8 minutes, then errors"
+// report: the hosting gateway returns its own 504 HTML long before the model
+// answers, the browser tries to JSON.parse that HTML, and the admin sees
+// «Unexpected token 'A', "An error o"... is not valid JSON».
+//
+// responseMimeType: 'application/json' alone still puts the model in JSON
+// mode (no markdown fences, correct string escaping in practice) without
+// engaging the slow constrained decoder, and extractJson() in ../_gemini-shared
+// repairs the residual escaping slips. The field list and field ORDER that
+// the schema used to pin down are already spelled out verbatim in the prompt
+// template below, and normalizeResult() re-asserts the shape after parsing —
+// so nothing about what Gemini is asked to produce has changed here.
 
 // Google retired the entire Gemini 2.x generation from generateContent (404
 // "no longer available"). We initially replaced it with gemini-3-flash-preview,
@@ -72,11 +45,12 @@ const RESPONSE_SCHEMA = {
 // for the current stable model list.
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model  = genAI.getGenerativeModel({
-  model: 'gemini-3.5-flash',
+  // Overridable without a code change (GEMINI_MODEL) — the model list moves
+  // often enough that this file has already been rewritten for it twice.
+  model: process.env.GEMINI_MODEL || 'gemini-3.5-flash',
   generationConfig: {
     temperature: 0,
-    responseMimeType: 'application/json',
-    responseSchema: RESPONSE_SCHEMA
+    responseMimeType: 'application/json'
   }
 });
 
@@ -210,32 +184,76 @@ Reguli:
 - "duplicat.este_duplicat" = true DOAR dacă noul exercițiu e practic identic (aceleași numere/aceeași structură) cu unul din lista de mai sus; altfel false`;
 }
 
+// Guarantees the response SHAPE the client renders against — the job the
+// removed responseSchema's `required` list used to do. Strictly structural:
+// it fills in missing containers and coerces types, and never invents,
+// rescales or renumbers anything. Point values pass through exactly as Gemini
+// produced them (the sum-vs-punctaj_total check stays where it already is, in
+// the admin UI), so no barem or scoring rule is touched here.
+function normalizeResult(parsed) {
+  const r = parsed && typeof parsed === 'object' ? parsed : {};
+  const str = v => (typeof v === 'string' ? v : v == null ? '' : String(v));
+
+  const pasi = (Array.isArray(r.pasi_barem) ? r.pasi_barem : [])
+    .filter(p => p && typeof p === 'object')
+    .map((p, i) => ({
+      nr:            Number(p.nr) || i + 1,
+      descriere:     str(p.descriere),
+      puncte_maxime: Number(p.puncte_maxime) || 0
+    }));
+
+  const dup = r.duplicat && typeof r.duplicat === 'object' ? r.duplicat : {};
+
+  return {
+    titlu:         str(r.titlu),
+    enunt_katex:   str(r.enunt_katex),
+    raspuns_final: str(r.raspuns_final),
+    punctaj_total: Number(r.punctaj_total) || pasi.reduce((s, p) => s + p.puncte_maxime, 0),
+    pasi_barem:    pasi,
+    verificare_numerica: str(r.verificare_numerica),
+    // tri-state on purpose: the UI shows a red "AI-ul nu și-a putut confirma"
+    // banner on false but stays quiet on null (no self-check reported at all)
+    verificat:     typeof r.verificat === 'boolean' ? r.verificat : null,
+    metode_alternative: (Array.isArray(r.metode_alternative) ? r.metode_alternative : [])
+      .filter(m => m && typeof m === 'object')
+      .map(m => ({ nume: str(m.nume), descriere: str(m.descriere) })),
+    duplicat: {
+      este_duplicat: !!dup.este_duplicat,
+      titlu_similar: str(dup.titlu_similar),
+      motiv:         str(dup.motiv)
+    }
+  };
+}
+
 async function generateExercise({ imageBase64, mimeType, context, existingExercises }) {
   if (!imageBase64) throw new Error('missing imageBase64');
 
   const prompt = buildPrompt(context || {}, existingExercises);
   const result = await generateContentWithRetry(model, [
     { text: prompt },
-    { inlineData: { mimeType: mimeType || 'image/jpeg', data: imageBase64 } }
+    { inlineData: { mimeType: normalizeImageMime(mimeType), data: imageBase64 } }
   ]);
 
-  const raw     = result.response.text().trim();
-  const jsonStr = raw.replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, '').trim();
+  const raw = result.response.text().trim();
+  let parsed;
   try {
-    return JSON.parse(jsonStr);
-  } catch {
-    // Gemini's JSON often contains raw LaTeX backslashes (\log, \sqrt, \left,
-    // \frac, \boxed, \notin, \right, \tan, \underline...) that it forgot to
-    // double per JSON string-escaping rules (a literal "\" must be written
-    // "\\"). Note: \b \f \n \r \t \u are technically valid single-char JSON
-    // escapes too, but in this LaTeX-transcription context a backslash
-    // followed by one of THOSE letters is essentially always the start of a
-    // LaTeX command (\boxed, \frac, \notin, \right, \tan, \underline), not a
-    // real control character — so only "\" "/ and a genuine \uXXXX (4 hex
-    // digits) are treated as already-valid; everything else gets doubled.
-    const repaired = jsonStr.replace(/\\(?!["\\/]|u[0-9a-fA-F]{4})/g, '\\\\');
-    return JSON.parse(repaired);
+    parsed = extractJson(raw);
+  } catch (e) {
+    // Was a bare "Unexpected token …" with no hint of what came back. Keeping
+    // the first part of the raw reply makes the difference between "Gemini
+    // wrote prose" and "Gemini returned an empty/blocked response" visible.
+    const err = new Error(`Răspunsul Gemini nu a putut fi interpretat ca JSON (${e.message}). Început: ${raw.slice(0, 160)}`);
+    err.status = 502;
+    throw err;
   }
+
+  const normalized = normalizeResult(parsed);
+  if (!normalized.enunt_katex || !normalized.pasi_barem.length) {
+    const err = new Error('Gemini a răspuns, dar fără enunț sau fără pași de barem. Încearcă o fotografie mai clară.');
+    err.status = 502;
+    throw err;
+  }
+  return normalized;
 }
 
 module.exports = async function handler(req, res) {
@@ -253,7 +271,11 @@ module.exports = async function handler(req, res) {
     const parsed = await generateExercise({ imageBase64, mimeType, context, existingExercises });
     res.status(200).json(parsed);
   } catch (e) {
-    const status = e.message === 'forbidden' ? 403 : 400;
-    res.status(status).json({ error: e.message });
+    // Quota/timeout/overload failures used to be flattened into a blanket 400
+    // with Gemini's raw English text, which told the admin nothing actionable.
+    // They now carry their own status + Romanian message from _gemini-retry.
+    const status = e.message === 'forbidden' ? 403 : (geminiErrorStatus(e) || 400);
+    if (status >= 500) console.error('[generate-exercise]', e.code || '', e.cause || e);
+    res.status(status).json({ error: e.message, code: e.code || null });
   }
 };
