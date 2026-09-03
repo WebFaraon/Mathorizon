@@ -4272,20 +4272,16 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 70ms;
 }
-.training-premium-strip {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 110ms;
-}
-/* config-section elements are children 4,5,6 of .training-config (after h2, p, and .training-premium-strip) */
-.training-config .config-section:nth-child(4) {
+/* config-section elements are children 3,4,5 of .training-config (after h2 and p — the premium-strip div that used to sit between them is gone now that Antrenament is a real paywall instead) */
+.training-config .config-section:nth-child(3) {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 150ms;
 }
-.training-config .config-section:nth-child(5) {
+.training-config .config-section:nth-child(4) {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 200ms;
 }
-.training-config .config-section:nth-child(6) {
+.training-config .config-section:nth-child(5) {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
   animation-delay: 250ms;
 }
@@ -4458,9 +4454,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   border-color: var(--icon-gamify-border);
 }
 
-/* ---- Antrenament: "Pachet Standard" teaser badge (cosmetic only, not
-   enforced — see .training-premium-strip below for the fuller banner it
-   now sits inside). ---- */
+/* ---- Antrenament: "Pachet Standard" badge — used inside the real paywall
+   below (#trainingPaywall in training.html). Antrenament itself is now hard-
+   gated by js/auth.js's plan sync, not just a cosmetic hint. ---- */
 .plan-teaser-badge {
   display: inline-block;
   background: var(--yellow-dim);
@@ -4475,32 +4471,29 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   white-space: nowrap;
 }
 
-/* Small upsell strip under the config title — badge + one line of copy +
-   a link to pachete.html. Purely cosmetic: nothing here disables or blurs
-   the tool underneath, matching the rest of the site's soft-lock language
-   (there's no real payments backend yet). */
-.training-premium-strip {
+/* Full-page paywall shown instead of #trainingLayout for elevi on the
+   free plan — mirrors .training-preview's centered hero layout. */
+.training-paywall {
+  max-width: 560px;
+  margin: 64px auto;
+  text-align: center;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
-  flex-wrap: wrap;
-  padding: 10px 14px;
-  margin-bottom: 20px;
-  background: var(--yellow-dim);
-  border: 1px solid var(--yellow-border);
-  border-radius: var(--radius);
+  gap: 14px;
 }
-.training-premium-strip__copy {
-  font-size: 0.82rem;
+.training-paywall__icon { color: var(--yellow); opacity: 0.9; }
+.training-paywall__title {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text);
+  letter-spacing: -0.3px;
+}
+.training-paywall__sub {
+  font-size: 0.95rem;
   color: var(--text-secondary);
-  flex: 1;
-  min-width: 180px;
-}
-.training-premium-strip__link {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--yellow);
-  white-space: nowrap;
+  line-height: 1.6;
+  margin-bottom: 6px;
 }
 
 /* ---- Antrenament: session HUD (streak + XP) ----
@@ -10292,6 +10285,19 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 /* Admin — student date badge (in row meta) */
 .admin-student-date-badge { font-size: 0.77rem; color: var(--text-muted); white-space: nowrap; }
+
+/* Admin — per-student plan override (manual, until real billing exists) */
+.admin-plan-select {
+  font-size: 0.77rem;
+  font-weight: 700;
+  color: var(--text);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 3px 6px;
+  cursor: pointer;
+}
+.admin-plan-select:disabled { opacity: 0.5; cursor: wait; }
 
 /* Admin — student class chips */
 .admin-stud-chips {

@@ -134,7 +134,7 @@
     </span>`;
   }
 
-  function _studentRow(student, classes) {
+  function _studentRow(student, classes, plan) {
     const uid = student.user_id;
     return `
       <div class="admin-prof-block" id="sblock-${uid}" data-name="${BM.esc((student.full_name||'').toLowerCase())}">
@@ -147,6 +147,12 @@
           <div class="admin-prof-meta">
             <span class="admin-class-count">${classes.length} ${classes.length===1?'clasă':'clase'}</span>
             <span class="admin-student-date-badge">${_formatDate(student.created_at)}</span>
+            <select class="admin-plan-select" id="plan-select-${uid}" data-current="${plan}" title="Pachetul elevului"
+                    onclick="event.stopPropagation()" onchange="setStudentPlan('${uid}', this.value)">
+              <option value="free"     ${plan === 'free'     ? 'selected' : ''}>Free</option>
+              <option value="standard" ${plan === 'standard' ? 'selected' : ''}>Standard</option>
+              <option value="premium"  ${plan === 'premium'  ? 'selected' : ''}>Premium</option>
+            </select>
           </div>
           <span class="admin-expand-icon" id="expand-icon-stud-${uid}">▼</span>
         </div>
@@ -199,14 +205,15 @@
     const wrap    = document.getElementById('adminWrap');
     if (loading) loading.style.display = 'none';
 
-    let pending = [], allProfs = [], allClasses = [], allStudents = [], studentClasses = [];
+    let pending = [], allProfs = [], allClasses = [], allStudents = [], studentClasses = [], studentPlans = [];
     try {
-      [pending, allProfs, allClasses, allStudents, studentClasses] = await Promise.all([
+      [pending, allProfs, allClasses, allStudents, studentClasses, studentPlans] = await Promise.all([
         _rpc('get_pending_professors',       {}, session).catch(() => []),
         _rpc('get_all_professors',           {}, session).catch(() => []),
         _rpc('get_all_classes_admin',        {}, session).catch(() => []),
         _rpc('get_all_students',             {}, session).catch(() => []),
         _rpc('get_all_student_classes_admin',{}, session).catch(() => []),
+        _rpc('get_all_student_plans',        {}, session).catch(() => []),
       ]);
     } catch (e) {
       console.error('[Admin] error:', e.message);
@@ -270,11 +277,14 @@
       studClassMap[r.student_id].push(r);
     });
 
+    const planMap = {};
+    (studentPlans||[]).forEach(r => { planMap[r.user_id] = r.plan; });
+
     const studPanel = document.getElementById('panelStuds');
     if (studPanel) {
       studPanel.innerHTML = !(allStudents||[]).length
         ? '<div class="admin-empty">Nu există elevi înregistrați.</div>'
-        : (allStudents||[]).map(s => _studentRow(s, studClassMap[s.user_id]||[])).join('');
+        : (allStudents||[]).map(s => _studentRow(s, studClassMap[s.user_id]||[], planMap[s.user_id] || 'free')).join('');
     }
 
     window._adminSession = session;
@@ -362,6 +372,22 @@
       BM.toast('Cerere respinsă.', 'success');
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
+    }
+  };
+
+  window.setStudentPlan = async function(userId, newPlan) {
+    const sel = document.getElementById(`plan-select-${userId}`);
+    const prevValue = sel?.dataset.current || 'free';
+    if (sel) sel.disabled = true;
+    try {
+      await _rpc('set_student_plan', { target_user_id: userId, new_plan: newPlan }, window._adminSession);
+      if (sel) sel.dataset.current = newPlan;
+      BM.toast('Pachetul elevului a fost actualizat.', 'success');
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+      if (sel) sel.value = prevValue;
+    } finally {
+      if (sel) sel.disabled = false;
     }
   };
 

@@ -16,6 +16,7 @@
   let _syncDone      = false;
   let _userRole      = null;
   let _userStatus    = null;
+  let _userPlan      = null;
 
   /* ============================================================
      INIT
@@ -50,6 +51,7 @@
         _syncDone = false;
         _userRole   = null;
         _userStatus = null;
+        _userPlan   = null;
         localStorage.setItem(BM.TOKEN_KEY, '0');
         localStorage.removeItem('bm_solved');
         localStorage.removeItem('bm_streak');
@@ -281,10 +283,20 @@
     if (!currentUser) return;
     const uid = currentUser.id;
     try {
-      const rows = await _dbFetch(`user_profiles?user_id=eq.${uid}&select=role,status`);
+      // Fetched separately from role/status (below) and never allowed to
+      // throw: the `plan` column ships in its own migration, and a role/
+      // status query that's worked for every page on this site must keep
+      // working even mid-rollout, before that migration has run.
+      let rows;
+      try {
+        rows = await _dbFetch(`user_profiles?user_id=eq.${uid}&select=role,status,plan`);
+      } catch {
+        rows = await _dbFetch(`user_profiles?user_id=eq.${uid}&select=role,status`);
+      }
       if (Array.isArray(rows) && rows.length > 0) {
         _userRole   = rows[0].role;
         _userStatus = rows[0].status;
+        _userPlan   = rows[0].plan || 'free';
       } else {
         /* Utilizator fără profil — creăm unul bazat pe user_metadata */
         const role   = currentUser.user_metadata?.role || 'elev';
@@ -296,9 +308,10 @@
         });
         _userRole   = role;
         _userStatus = status;
+        _userPlan   = 'free'; // matches the column's DB default
       }
       document.dispatchEvent(new CustomEvent('bmauth:profile', {
-        detail: { role: _userRole, status: _userStatus }
+        detail: { role: _userRole, status: _userStatus, plan: _userPlan }
       }));
       BM.refreshTokenWidgets();
     } catch (e) {
@@ -452,6 +465,7 @@
     get supabase()  { return sb; },
     get role()      { return _userRole; },
     get status()    { return _userStatus; },
+    get plan()      { return _userPlan; },
     displayName:    () => _displayName(),
     avatarUrl:      () => _avatarUrl(),
     initials:       () => _initials(),
