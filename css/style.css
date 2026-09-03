@@ -3885,58 +3885,92 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 /* 15. TRAINING PAGE
    ============================================================ */
-/* A padded, card-based dashboard (config card | content pane), both sitting
-   on the page's own background — replaces the old edge-to-edge app-sidebar
-   layout, which read as a bare utility panel next to a wall of empty space
-   rather than a premium tool. */
+/* Single continuous surface: .training-panel is one persistent card that
+   holds two bodies (#configContent / #trainingHud) and morphs its own box
+   between a big centered config screen and a slim top HUD bar — see
+   js/training.js's collapseConfigPanel()/expandConfigPanel(). Replaces the
+   old two-column sidebar+pane layout, which read as two glued screens
+   rather than one surface changing shape. */
 .training-layout {
   min-height: calc(100vh - var(--nav-h));
-  display: grid;
-  grid-template-columns: minmax(280px, 340px) 1fr;
-  align-items: start;
-  gap: 24px;
-  max-width: 1440px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  max-width: 1120px;
   margin: 0 auto;
   padding: 24px;
 }
 
-.training-config {
+.training-panel {
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-xl);
   box-shadow: var(--shadow-card);
-  padding: 28px 24px 32px;
-  /* Sticks alongside the content pane while scrolling a long chapter list,
-     and caps its own height so a very long list scrolls internally instead
-     of pushing the sticky card taller than the viewport. */
-  position: sticky;
-  top: 24px;
-  max-height: calc(100vh - var(--nav-h) - 48px);
-  overflow-y: auto;
+  padding: 36px 40px;
+  transition: padding 0.45s cubic-bezier(0.22,1,0.36,1), border-radius 0.45s cubic-bezier(0.22,1,0.36,1);
 }
 
-.training-main {
-  padding: 0;
+#configContent {
+  overflow: hidden;
+  transition: opacity 0.25s ease, max-height 0.35s ease;
+  max-height: 2400px;
+}
+.training-panel--collapsing #configContent,
+.training-panel--collapsed #configContent {
+  opacity: 0;
+  max-height: 0;
+  pointer-events: none;
 }
 
-/* Session mode — config card hidden, content pane takes the full width.
-   Collapsing the column TRACK itself (not just hiding the item) matters:
-   a grid keeps its declared template even when a track's item is
-   display:none, so with the 2-column template still in force the
-   remaining item would auto-place into the first (340px) track instead of
-   spanning the freed-up space — this is what made the session view (and
-   the results/empty-state panes) render squeezed into a narrow column
-   matching the sidebar's width instead of the full content pane. */
-.training-layout--session {
-  grid-template-columns: 1fr;
+.training-hud {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+  opacity: 0;
+  transition: opacity 0.3s ease;
 }
-.training-layout--session .training-config {
+/* Higher specificity than the bare .training-hud rule above, needed because
+   author-origin "display:flex" would otherwise always beat the user-agent's
+   own [hidden]{display:none} regardless of specificity — the JS-toggled
+   `hidden` attribute would silently stop working without this. */
+.training-hud[hidden] {
   display: none;
+}
+.training-panel--collapsed .training-hud {
+  opacity: 1;
+}
+
+.training-panel--collapsed {
+  padding: 12px 20px;
+  border-radius: var(--radius-lg);
+}
+
+.training-main { padding: 0; }
+
+/* Fills whatever vertical space .training-layout's min-height leaves once
+   the panel has collapsed to its HUD bar, so the card board centers in the
+   true remaining viewport rather than an arbitrary fixed height. Inert
+   (0-height, no effect) before a session starts, since .training-layout
+   itself only grows to min-height:100vh via flex — there's no leftover
+   space to fill until the panel collapses. */
+.training-layout--session .training-main {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+.training-layout--session .flip-board {
+  flex: 1;
+}
+.flip-board {
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 @media (max-width: 900px) {
-  .training-layout { grid-template-columns: 1fr; padding: 16px; }
-  .training-config { position: static; max-height: none; }
+  .training-layout { padding: 16px; gap: 16px; }
+  .training-panel { padding: 24px 20px; }
+  .training-hud { flex-wrap: wrap; gap: 14px; }
 }
 
 /* Pre-session dashboard — replaces a bare centered blurb with the same
@@ -4162,9 +4196,10 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .config-subcat-grid {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-wrap: wrap;
+  gap: 8px;
 }
+.config-subcat-chip { flex: 0 0 auto; }
 .config-subcat-chip {
   display: flex;
   align-items: center;
@@ -4265,33 +4300,111 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   to   { opacity: 1; transform: translateX(0); }
 }
 
-.training-config__title {
+/* Generic staggered entrance for the config panel's children — each element
+   carries its own inline animation-delay (see training.html) instead of
+   fragile nth-child position matching, since the panel now has a variable
+   number of sections (stats strip, A-E). */
+.tr-enter {
   animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
 }
-.training-config__sub {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 70ms;
+@media (prefers-reduced-motion: reduce) {
+  .tr-enter { animation: none; }
 }
-/* config-section elements are children 3,4,5 of .training-config (after h2 and p — the premium-strip div that used to sit between them is gone now that Antrenament is a real paywall instead) */
-.training-config .config-section:nth-child(3) {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 150ms;
+
+/* ---- Antrenament: compact lifetime-stats strip atop the config panel ---- */
+.training-stats-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 20px;
+  margin: 4px 0 24px;
+  padding-bottom: 18px;
+  border-bottom: 1.5px solid var(--border);
 }
-.training-config .config-section:nth-child(4) {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 200ms;
+.training-stats-strip__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  cursor: help;
 }
-.training-config .config-section:nth-child(5) {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 250ms;
+.training-stats-strip__item strong { color: var(--text); font-weight: 800; }
+
+/* ---- Antrenament: D. extra settings — segmented controls + a toggle,
+   reusing the .config-chip solid-fill idiom already live on this page. ---- */
+.config-extra-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
 }
-.training-config #startBtn {
-  animation: trainSlideUp 0.40s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 330ms;
+.config-extra-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px 14px;
 }
-#emptyState {
-  animation: trainSlideUp 0.45s cubic-bezier(0.22,1,0.36,1) both;
-  animation-delay: 160ms;
+.config-extra-row__label {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  min-width: 150px;
+}
+.config-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-family: inherit;
+  color: var(--text);
+  font-weight: 600;
+  background: none;
+  border: none;
+  padding: 0;
+}
+.config-toggle__switch {
+  position: relative;
+  width: 38px;
+  height: 22px;
+  border-radius: 999px;
+  background: var(--border);
+  transition: background var(--transition);
+  flex-shrink: 0;
+}
+.config-toggle__switch::after {
+  content: '';
+  position: absolute;
+  top: 2px; left: 2px;
+  width: 18px; height: 18px;
+  border-radius: 50%;
+  background: var(--card);
+  box-shadow: var(--shadow-sm);
+  transition: transform var(--transition);
+}
+.config-toggle.on .config-toggle__switch { background: var(--accent); }
+.config-toggle.on .config-toggle__switch::after { transform: translateX(16px); }
+
+/* ---- Antrenament: E. live summary + start — always visible inside the
+   panel (no scroll needed to reach it). ---- */
+.config-summary-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 28px;
+  padding-top: 20px;
+  border-top: 1.5px solid var(--border);
+}
+.config-summary-text {
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.config-summary-text--invalid { color: var(--red); }
+.config-summary-bar #startBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Training session */
@@ -4616,9 +4729,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
    semantics. */
 .flip-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  /* Fixed 5 columns so the row count for 5/10/15/20 exercises falls out
+     naturally (1/2/3/4 rows) instead of needing per-count layout variants —
+     steps down at the existing breakpoint scale below. */
+  grid-template-columns: repeat(5, 1fr);
   gap: 20px 16px;
   padding-top: 4px; /* clears the floating rarity badge, same reason as .exercises-container--rarity */
+  width: 100%;
 }
 .flip-card {
   position: relative;
@@ -4636,7 +4753,10 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   transition: transform 0.2s ease !important;
   z-index: 2;
 }
-.flip-card--done { cursor: default; }
+/* Done cards stay clickable — reopens the modal in read-only review mode
+   (js/training.js's trOpenCard) — just without the hover lift/tilt above,
+   which reads as "still playable" rather than "already settled". */
+.flip-card--done { cursor: pointer; }
 .flip-card__inner {
   position: relative;
   width: 100%;
@@ -4809,6 +4929,23 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
    a loss the student didn't actually earn. */
 .flip-card__result-badge--neutral { background: var(--text-muted); }
 
+/* Front-face content stack (card number + per-card score/XP once solved) —
+   the board doubling as the session's visual history needs more than the
+   bare number once a card is done. */
+.flip-card__front-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.flip-card__result-detail {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  text-align: center;
+}
+.flip-card__result-detail strong { color: var(--icon-gamify); }
+
 /* ---- Antrenament: reveal overlay (mirrors .bac-confirm-overlay) ---- */
 .reveal-overlay {
   position: fixed;
@@ -4901,7 +5038,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .reveal-mcq-option {
   text-align: left;
-  padding: 12px 16px;
+  padding: 14px 18px;
+  font-size: 0.95rem;
+  font-weight: 600;
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
   background: var(--surface);
@@ -4932,6 +5071,112 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   color: var(--red);
   border-color: var(--red-border);
 }
+
+/* ---- Antrenament: wrong-answer reveal — progressive step-by-step barem
+   (only when ex.barem exists, ~47% of Algebră today) vs. a plain full
+   solution fallback for exercises without one, kept visibly distinct so the
+   fallback never reads as a broken/half-loaded stepped view. ---- */
+.reveal-solution-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+.reveal-steps {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.reveal-step {
+  padding: 12px 14px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  opacity: 0;
+  animation: trainSlideUp 0.35s cubic-bezier(0.22,1,0.36,1) both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .reveal-step { animation: none; opacity: 1; }
+}
+.reveal-step__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+.reveal-step__num {
+  font-size: 0.72rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+}
+.reveal-step__points {
+  padding: 1px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
+  font-weight: 700;
+  border: 1px solid var(--accent-border, var(--border));
+  background: var(--accent-dim);
+  color: var(--accent);
+  white-space: nowrap;
+}
+.reveal-step__points--estimat { border-style: dashed; background: transparent; opacity: 0.8; cursor: help; }
+
+/* ---- Antrenament: results — per-subcategory breakdown + repeat-mistakes ---- */
+.results-breakdown {
+  margin-bottom: 24px;
+  padding: 18px 20px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+}
+.results-breakdown__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
+.results-breakdown__row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.88rem;
+  color: var(--text);
+}
+.results-breakdown__row + .results-breakdown__row { border-top: 1px solid var(--border); }
+.results-breakdown__score { font-weight: 700; }
+.results-breakdown__score--good { color: var(--green); }
+.results-breakdown__score--mixed { color: var(--yellow); }
+.results-breakdown__score--bad { color: var(--red); }
+
+/* ---- Antrenament: paywall perks list ---- */
+.training-paywall__perks {
+  list-style: none;
+  text-align: left;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 4px 0 8px;
+  padding: 0;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+}
+.training-paywall__perks li { display: flex; align-items: center; gap: 9px; }
+
+/* ---- Antrenament: HUD abandon button ---- */
+.training-hud__abandon { margin-left: auto; white-space: nowrap; }
+/* .btn sets its own display:inline-flex, which — like .training-hud above —
+   would otherwise always beat the UA's [hidden]{display:none}. */
+.training-hud__abandon[hidden] { display: none; }
 
 /* ---- Antrenament: confetti ---- */
 #confettiLayer {
@@ -5263,13 +5508,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 @media (max-width: 900px) {
   .chapters-grid { grid-template-columns: repeat(2, 1fr); }
   .flip-grid { grid-template-columns: repeat(3, 1fr); }
-  .training-layout { flex-direction: column; }
-  .training-config {
-    width: 100%;
-    min-height: auto;
-    border-right: none;
-    border-bottom: 1.5px solid var(--border);
-  }
   .results-stats { grid-template-columns: 1fr 1fr; }
   .stat { padding: 12px 20px; }
 }
@@ -6021,6 +6259,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .bac-timer.warning { color: #fde68a; background: rgba(251,191,36,0.18); border-color: rgba(251,191,36,0.4); }
 .bac-timer.danger  { color: #fca5a5; background: rgba(248,113,113,0.18); border-color: rgba(248,113,113,0.4);
                      animation: timerPulse 1s ease-in-out infinite; }
+@media (prefers-reduced-motion: reduce) {
+  .bac-timer.danger { animation: none; }
+}
 @keyframes timerPulse {
   0%, 100% { opacity: 1; }
   50%       { opacity: 0.65; }

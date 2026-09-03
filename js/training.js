@@ -7,36 +7,39 @@
 
   let selectedCount     = 10;
   let selectedSubcats   = new Set();
-  let expandedCats      = new Set();
   let selectedDiff      = 'all';
+  let selectedTimerMode = 'none';    // 'none' | 'relaxed' | 'strict'
+  let selectedAnswerType = 'mixed';  // 'mixed' | 'written' | 'mcq'
+  let unsolvedOnly      = false;
 
   let sessionExercises  = [];   // [ex, ex, ...] for the current session
-  let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'ungraded' }
+  let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'ungraded', xpGain, correctAnswerText }
   let revealedCount     = 0;
   let currentStreak     = 0;
   let bestStreakSession  = 0;
   let sessionXp         = 0;
   let activeCardIndex   = null;
   let startTime         = null;
+  let xpAtSessionStart  = 0;
+  let missedSubcats     = new Set(); // subcategories with >=1 incorrect card this session — feeds "Repetă greșelile"
 
   const XP_BASE = { usor: 10, mediu: 20, dificil: 35 };
   const MILESTONES = [3, 5, 8];
+  const TIMER_SECONDS = { relaxed: 90, strict: 45 };
 
   /* In-memory cache for generated MCQ option sets — keyed by exercise id,
      lives for the page's lifetime (a fresh reload re-checks sessionStorage
      then Supabase, see renderMcqAnswerZone). */
   const mcqMemCache = new Map();
 
+  function reduceMotion() {
+    return window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
   /* ---- Init ---- */
   const UNLOCKED_CATS = new Set(['algebra']);
 
   function init() {
-    /* Subcategories start deselected — the student picks what to train on,
-       rather than everything being pre-selected for them. */
-    BM.CATEGORIES.forEach(cat => {
-      if (!UNLOCKED_CATS.has(cat.id)) return;
-      expandedCats.add(cat.id);
-    });
     renderConfig();
     BM.initScrollTop();
   }
@@ -54,6 +57,7 @@
           selectedCount = n;
           countBox.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
+          updateSummary();
         };
         countBox.appendChild(btn);
       });
@@ -75,17 +79,21 @@
           selectedDiff = d.id;
           diffBox.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
+          updateSummary();
         };
         diffBox.appendChild(btn);
       });
     }
 
     renderChapterList();
+    renderExtraSettings();
+    updateSummary();
   }
 
-  /* Rebuilds only the chapter/subcategory picker — called on every expand/collapse
-     or subcategory toggle. Kept separate from renderConfig() so the count/difficulty
-     chips (built once, append-only) never get re-appended and duplicated. */
+  /* Rebuilds only the chapter/subcategory picker — called whenever a
+     subcategory selection changes. Kept separate from renderConfig() so the
+     count/difficulty chips (built once, append-only) never get re-appended
+     and duplicated. */
   function renderChapterList() {
     const chList = document.getElementById('chapterList');
     if (!chList) return;
@@ -106,20 +114,18 @@
     const selCount = locked ? 0 : chapterSelectedCount(cat);
     item.className = 'config-chapter-item'
       + (locked ? ' config-chapter-item--locked' : '')
-      + (selCount > 0 ? ' selected' : '')
-      + (expandedCats.has(cat.id) ? ' expanded' : '');
+      + (selCount > 0 ? ' selected' : '');
     item.id = `cat-item-${cat.id}`;
     item.innerHTML = `
       <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
       <span class="config-chapter-name">${BM.esc(cat.name)}</span>
       ${locked
         ? `<span class="config-chapter-lock">${icon('lock', { size: 16 })}</span><span class="config-chapter-soon">În curând</span>`
-        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>
-           <span class="config-chapter-chevron">▾</span>`}
+        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>`}
     `;
     item.onclick = locked
       ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
-      : () => toggleChapterExpanded(cat.id);
+      : () => toggleChapterAll(cat);
     wrap.appendChild(item);
 
     if (!locked) {
@@ -128,15 +134,24 @@
     return wrap;
   }
 
-  function toggleChapterExpanded(id) {
-    if (expandedCats.has(id)) expandedCats.delete(id);
-    else expandedCats.add(id);
-    renderChapterList();
+  /* Click on the chapter title selects/deselects every subcategory in it
+     at once — the chip grid underneath is always visible now (no expand/
+     collapse step), since a wrapping chip grid is compact enough to show
+     in full right away. */
+  function toggleChapterAll(cat) {
+    const allSelected = cat.subcategories.length > 0 && cat.subcategories.every(s => selectedSubcats.has(s.id));
+    if (allSelected) {
+      clearAllSubcats(cat);
+    } else {
+      cat.subcategories.forEach(s => selectedSubcats.add(s.id));
+      renderChapterList();
+      updateSummary();
+    }
   }
 
   function renderSubcatPanel(cat) {
     const panel = document.createElement('div');
-    panel.className = 'config-subcat-panel' + (expandedCats.has(cat.id) ? '' : ' collapsed');
+    panel.className = 'config-subcat-panel';
     panel.id = `subcat-panel-${cat.id}`;
 
     const actions = document.createElement('div');
@@ -146,7 +161,7 @@
       <button type="button" class="config-subcat-action config-subcat-action--clear">${icon('x', { size: 16 })} Deselectează tot</button>
     `;
     const [selectAllBtn, clearAllBtn] = actions.querySelectorAll('button');
-    selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); };
+    selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); updateSummary(); };
     clearAllBtn.onclick  = e => { e.stopPropagation(); clearAllSubcats(cat); };
     panel.appendChild(actions);
 
@@ -180,6 +195,7 @@
       selectedSubcats.add(id);
     }
     renderChapterList();
+    updateSummary();
   }
 
   function clearAllSubcats(cat) {
@@ -191,6 +207,179 @@
     }
     cat.subcategories.forEach(s => selectedSubcats.delete(s.id));
     renderChapterList();
+    updateSummary();
+  }
+
+  /* ---- D. Extra settings: timer / answer type / unsolved-only ----
+     Built once (like the count/difficulty chips) with in-place class
+     toggling on click, rather than a full re-render per change. */
+  function renderExtraSettings() {
+    const box = document.getElementById('extraSettings');
+    if (!box) return;
+    box.innerHTML = '';
+
+    const timerRow = document.createElement('div');
+    timerRow.className = 'config-extra-row';
+    const timerLabel = document.createElement('span');
+    timerLabel.className = 'config-extra-row__label';
+    timerLabel.textContent = 'Cronometru';
+    timerRow.appendChild(timerLabel);
+    const timerChips = document.createElement('div');
+    timerChips.className = 'config-chips';
+    [
+      { id: 'none',    label: 'Fără' },
+      { id: 'relaxed', label: 'Relaxat (90s)' },
+      { id: 'strict',  label: 'Contra timp (45s)' }
+    ].forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'config-chip' + (t.id === selectedTimerMode ? ' selected' : '');
+      btn.textContent = t.label;
+      btn.onclick = () => {
+        selectedTimerMode = t.id;
+        timerChips.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateSummary();
+      };
+      timerChips.appendChild(btn);
+    });
+    timerRow.appendChild(timerChips);
+    box.appendChild(timerRow);
+
+    const typeRow = document.createElement('div');
+    typeRow.className = 'config-extra-row';
+    const typeLabel = document.createElement('span');
+    typeLabel.className = 'config-extra-row__label';
+    typeLabel.textContent = 'Tip de răspuns';
+    typeRow.appendChild(typeLabel);
+    const typeChips = document.createElement('div');
+    typeChips.className = 'config-chips';
+    [
+      { id: 'mixed',   label: 'Mixt' },
+      { id: 'written', label: 'Doar scriere' },
+      { id: 'mcq',     label: 'Doar variante multiple' }
+    ].forEach(t => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'config-chip' + (t.id === selectedAnswerType ? ' selected' : '');
+      btn.textContent = t.label;
+      btn.onclick = () => {
+        selectedAnswerType = t.id;
+        typeChips.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        updateSummary();
+      };
+      typeChips.appendChild(btn);
+    });
+    typeRow.appendChild(typeChips);
+    box.appendChild(typeRow);
+
+    const toggleRow = document.createElement('div');
+    toggleRow.className = 'config-extra-row';
+    const toggle = document.createElement('button');
+    toggle.type = 'button';
+    toggle.className = 'config-toggle' + (unsolvedOnly ? ' on' : '');
+    toggle.innerHTML = `<span class="config-toggle__switch"></span> Doar exerciții nerezolvate`;
+    toggle.onclick = () => {
+      unsolvedOnly = !unsolvedOnly;
+      toggle.classList.toggle('on', unsolvedOnly);
+      updateSummary();
+    };
+    toggleRow.appendChild(toggle);
+    box.appendChild(toggleRow);
+  }
+
+  /* An exercise is answered by typed input when its solution has a short,
+     symbolic \boxed{} value; otherwise it's answered via generated
+     multiple-choice options. Must match extractBoxedAnswer() below exactly
+     (not the looser BM.extractBoxedAnswer in utils.js) since that's the
+     function that actually decides the answer UI at reveal time. */
+  function isWrittenAnswer(ex) {
+    return extractBoxedAnswer(ex.solution) != null;
+  }
+
+  /* Shared by the live summary and the actual session start, so both agree
+     on exactly which exercises are eligible under the current filters. */
+  function buildPool() {
+    const bySubcat = {};
+    BM.EXERCISES.forEach(e => {
+      if (!selectedSubcats.has(e.subcategoryId)) return;
+      if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
+      if (unsolvedOnly && BM.Storage.isSolved(e.id)) return;
+      if (selectedAnswerType !== 'mixed') {
+        const written = isWrittenAnswer(e);
+        if (selectedAnswerType === 'written' && !written) return;
+        if (selectedAnswerType === 'mcq' && written) return;
+      }
+      (bySubcat[e.subcategoryId] = bySubcat[e.subcategoryId] || []).push(e);
+    });
+    return bySubcat;
+  }
+
+  /* ---- E. Live summary + start-button validation ---- */
+  function updateSummary() {
+    const textEl = document.getElementById('configSummaryText');
+    const startBtn = document.getElementById('startBtn');
+    if (!textEl || !startBtn) return;
+
+    if (selectedSubcats.size === 0) {
+      textEl.textContent = 'Selectează cel puțin un subcapitol pentru a începe.';
+      textEl.classList.add('config-summary-text--invalid');
+      startBtn.disabled = true;
+      return;
+    }
+
+    const pool = buildPool();
+    const available = Object.values(pool).reduce((sum, arr) => sum + arr.length, 0);
+
+    if (available === 0) {
+      textEl.textContent = 'Niciun exercițiu disponibil cu aceste filtre — încearcă alte setări.';
+      textEl.classList.add('config-summary-text--invalid');
+      startBtn.disabled = true;
+      return;
+    }
+
+    textEl.classList.remove('config-summary-text--invalid');
+    startBtn.disabled = false;
+
+    const diffLabels = { all: 'toate dificultățile', usor: 'Ușor', mediu: 'Mediu', dificil: 'Greu' };
+    const willRun = Math.min(selectedCount, available);
+    const perExerciseMin = selectedTimerMode !== 'none' ? TIMER_SECONDS[selectedTimerMode] / 60 : 1.5;
+    const minutes = Math.max(1, Math.round(willRun * perExerciseMin));
+    const subCount = selectedSubcats.size;
+
+    let text = `${willRun} exerciții · ${diffLabels[selectedDiff]} · ${subCount} subcapitol${subCount === 1 ? '' : 'e'} · ~${minutes} min`;
+    if (willRun < selectedCount) text += ` (doar ${available} disponibile din ${selectedCount} cerute)`;
+    textEl.textContent = text;
+  }
+
+  /* ---- Config panel <-> HUD morph ---- */
+  function collapseConfigPanel() {
+    const panel = document.getElementById('configPanel');
+    if (reduceMotion()) {
+      document.getElementById('configContent').hidden = true;
+      document.getElementById('trainingHud').hidden = false;
+      panel.classList.add('training-panel--collapsed');
+      return Promise.resolve();
+    }
+    return new Promise(resolve => {
+      panel.classList.add('training-panel--collapsing');
+      setTimeout(() => {
+        document.getElementById('configContent').hidden = true;
+        document.getElementById('trainingHud').hidden = false;
+        panel.classList.remove('training-panel--collapsing');
+        panel.classList.add('training-panel--collapsed');
+        setTimeout(resolve, 300);
+      }, 450);
+    });
+  }
+
+  function expandConfigPanel() {
+    const panel = document.getElementById('configPanel');
+    document.getElementById('trainingLayout').classList.remove('training-layout--session');
+    document.getElementById('trainingHud').hidden = true;
+    document.getElementById('configContent').hidden = false;
+    panel.classList.remove('training-panel--collapsed', 'training-panel--collapsing');
   }
 
   /* ---- Start training ---- */
@@ -198,13 +387,8 @@
     /* Group by subcategory (not a flat pooled shuffle) so that when several
        subcategories are selected, the session round-robins across all of them
        instead of possibly drawing every card from just one by chance. */
-    const bySubcat = {};
-    BM.EXERCISES.forEach(e => {
-      if (!selectedSubcats.has(e.subcategoryId)) return;
-      if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
-      (bySubcat[e.subcategoryId] = bySubcat[e.subcategoryId] || []).push(e);
-    });
-    const subIds = Object.keys(bySubcat);
+    const pool = buildPool();
+    const subIds = Object.keys(pool);
 
     if (selectedSubcats.size === 0) {
       BM.toast('Selectează cel puțin un subcapitol pentru a începe.', 'error');
@@ -215,7 +399,7 @@
       return;
     }
 
-    subIds.forEach(id => { bySubcat[id] = BM.shuffle(bySubcat[id]); });
+    subIds.forEach(id => { pool[id] = BM.shuffle(pool[id]); });
 
     const picked = [];
     let exhausted = false;
@@ -223,8 +407,8 @@
       exhausted = true;
       for (const id of subIds) {
         if (picked.length >= selectedCount) break;
-        if (bySubcat[id].length) {
-          picked.push(bySubcat[id].shift());
+        if (pool[id].length) {
+          picked.push(pool[id].shift());
           exhausted = false;
         }
       }
@@ -237,18 +421,29 @@
     sessionXp        = 0;
     activeCardIndex  = null;
     startTime        = Date.now();
+    xpAtSessionStart = BM.Training.getTotalXp();
+    missedSubcats    = new Set();
 
-    document.getElementById('trainingLayout').classList.add('training-layout--session');
-    document.getElementById('sessionView').style.display = '';
+    document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
+    document.getElementById('resultsView').innerHTML = '';
     closeRevealOverlay(true);
+    document.getElementById('trainingLayout').classList.add('training-layout--session');
 
-    renderHud();
-    renderFlipGrid();
+    collapseConfigPanel().then(() => {
+      renderHud();
+      dealCards();
+    });
   };
 
   /* ---- Card grid ---- */
-  function renderFlipGrid() {
+  function dealCards() {
+    const abandonBtn = document.getElementById('abandonBtn');
+    if (abandonBtn) abandonBtn.hidden = false;
+    renderFlipGrid(true);
+  }
+
+  function renderFlipGrid(dealAnimation) {
     const total = cardStates.length;
     document.getElementById('sessionCounter').textContent = `${revealedCount} / ${total}`;
     const ring = document.getElementById('sessionProgressRing');
@@ -268,18 +463,25 @@
       const badge = ungraded
         ? `<span class="flip-card__result-badge flip-card__result-badge--neutral">—</span>`
         : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${icon(good ? 'circle-check' : 'circle-x', { size: 16 })}</span>`;
+      const detail = (done && !ungraded)
+        ? `<div class="flip-card__result-detail">${cs.ex.puncteTotal ? `${good ? cs.ex.puncteTotal : 0}/${cs.ex.puncteTotal}p · ` : ''}<strong>+${cs.xpGain || 0} XP</strong></div>`
+        : '';
+      const dealStyle = dealAnimation
+        ? ` style="animation:card-up-in 0.4s cubic-bezier(0.22,1,0.36,1) both;animation-delay:${reduceMotion() ? 0 : i * 60}ms"`
+        : '';
       return `
-        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})">
+        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})"${dealStyle}>
           <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
             <span class="flip-card__rarity-badge">${rarity}</span>
             <div class="flip-card__face flip-card__face--back">
               <img class="flip-card__logo-img" src="assets/images/MathorizonLogo.png" alt="">
             </div>
             <div class="flip-card__face flip-card__face--front">
-              ${done
-                ? `${badge}
-                   <span class="flip-card__num">#${i + 1}</span>`
-                : `<span class="flip-card__num">#${i + 1}</span>`}
+              ${done ? badge : ''}
+              <div class="flip-card__front-content">
+                <span class="flip-card__num">#${i + 1}</span>
+                ${detail}
+              </div>
             </div>
           </div>
         </div>`;
@@ -288,32 +490,38 @@
 
   window.trOpenCard = function(idx) {
     const cs = cardStates[idx];
-    if (!cs || cs.status !== 'hidden' || activeCardIndex !== null) return;
+    if (!cs || activeCardIndex !== null) return;
     activeCardIndex = idx;
 
+    /* Already solved — reopen read-only, to review the solution, not to
+       answer again. No flip animation needed, it's already face-up. */
+    if (cs.status !== 'hidden') {
+      renderRevealOverlay(idx, true);
+      return;
+    }
+
     const cardEl = document.querySelector(`.flip-card[data-idx="${idx}"]`);
-    if (!cardEl) { renderRevealOverlay(idx); return; }
+    if (!cardEl) { renderRevealOverlay(idx, false); return; }
 
     cardEl.classList.add('flip-card--selecting');
     setTimeout(() => {
       cardEl.querySelector('.flip-card__inner').classList.add('flip-card--flipped');
-      setTimeout(() => renderRevealOverlay(idx), 480);
+      setTimeout(() => renderRevealOverlay(idx, false), 480);
     }, 200);
   };
 
   /* ---- Reveal overlay ---- */
-  function renderRevealOverlay(idx) {
+  function renderRevealOverlay(idx, reviewMode) {
     const cs = cardStates[idx];
     const ex = cs.ex;
     const cat = BM.getCategoryById(ex.categoryId);
     const sub = BM.getSubcategoryById(ex.categoryId, ex.subcategoryId);
-    const expected = extractBoxedAnswer(ex.solution);
-    cs._expected = expected;
     const rarity = BM.RARITY_BY_DIFF[ex.difficulty] || 'comun';
 
     const modal = document.getElementById('revealModal');
     modal.dataset.rarity = rarity;
-    modal.innerHTML = `
+
+    const headHtml = `
       <div class="ex-card__meta" style="margin-bottom:10px">
         <span class="reveal-modal__rarity-badge">${rarity}</span>
         ${BM.diffBadge(ex.difficulty)}
@@ -324,6 +532,35 @@
       <div class="reveal-title">${BM.esc(ex.title)}</div>
       <div class="reveal-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
       ${BM.renderExerciseFigure(ex)}
+    `;
+
+    if (reviewMode) {
+      const isCorrect = cs.status === 'correct';
+      const bannerHtml = cs.status === 'ungraded'
+        ? ''
+        : isCorrect
+          ? `<div class="reveal-result-banner reveal-result-banner--correct">${icon('circle-check', { size: 16 })} Corect! <strong>+${cs.xpGain || 0} XP</strong></div>`
+          : `<div class="reveal-result-banner reveal-result-banner--incorrect">${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: $${BM.esc(cs.correctAnswerText || '')}$</div>`;
+      modal.innerHTML = `
+        ${headHtml}
+        ${bannerHtml}
+        ${buildSolutionBlockHtml(ex, false)}
+        <div style="text-align:right;margin-top:14px">
+          <button class="btn btn--primary" id="revealContinueBtn">Închide</button>
+        </div>
+      `;
+      modal.scrollTop = 0; // innerHTML swap doesn't reset scroll on its own — without this a modal reopened after a scrolled-down close (e.g. review mode right after grading) would render already scrolled past its own header.
+      BM.renderMath(modal);
+      document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
+      document.getElementById('revealOverlay').classList.add('open');
+      return;
+    }
+
+    const expected = extractBoxedAnswer(ex.solution);
+    cs._expected = expected;
+
+    modal.innerHTML = `
+      ${headHtml}
       <div id="revealAnswerZone">
         ${expected
           ? `
@@ -335,11 +572,14 @@
       </div>
       <div id="revealResultZone"></div>
     `;
+    modal.scrollTop = 0; // see the scroll-reset note in the review-mode branch above
 
     BM.renderMath(modal);
 
     const overlay = document.getElementById('revealOverlay');
     overlay.classList.add('open');
+
+    startCardTimer(idx);
 
     if (expected) {
       const input = document.getElementById('revealAnswerInput');
@@ -350,6 +590,34 @@
     } else {
       renderMcqAnswerZone(idx);
     }
+  }
+
+  /* Wrong-answer solution reveal: a real, points-tagged progressive barem
+     when ex.barem exists (only ~47% of Algebră today — see barem-coverage
+     investigation), otherwise the full solution at once under a distinct
+     label, so the fallback never pretends to be a stepped barem it doesn't
+     have. Also used, non-staggered, for the "Vezi rezolvarea" reveal on a
+     correct answer and for reopening a solved card in review mode. */
+  function buildSolutionBlockHtml(ex, staggered) {
+    if (Array.isArray(ex.barem) && ex.barem.length) {
+      const steps = ex.barem.map((step, i) => {
+        const delay = (staggered && !reduceMotion()) ? i * 220 : 0;
+        const ptsCls = ex.baremEstimat ? ' reveal-step__points--estimat' : '';
+        const ptsTitle = ex.baremEstimat ? ' title="Punctaj estimat de AI — neconfirmat oficial"' : '';
+        return `
+          <div class="reveal-step" style="animation-delay:${delay}ms">
+            <div class="reveal-step__head">
+              <span class="reveal-step__num">Pasul ${i + 1}</span>
+              <span class="reveal-step__points${ptsCls}"${ptsTitle}>${step.puncte_maxime}p${ex.baremEstimat ? ' ?' : ''}</span>
+            </div>
+            <div class="math-content">${BM.trustedNl2br(step.descriere)}</div>
+          </div>`;
+      }).join('');
+      return `<div class="reveal-steps">${steps}</div>`;
+    }
+    return `
+      <div class="reveal-solution-label">Rezolvare completă</div>
+      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>`;
   }
 
   /* ---- MCQ answer zone (replaces the old self-report flow) ----
@@ -472,12 +740,66 @@
   window.trAcknowledgeNoGrade = function(idx) {
     const cs = cardStates[idx];
     if (cs.status !== 'hidden') return;
+    clearCardTimer();
     cs.status = 'ungraded';
+    cs.xpGain = 0;
     revealedCount++;
     renderHud();
     renderFlipGrid();
     closeRevealOverlay();
   };
+
+  /* ---- Per-exercise timer (Cronometru: Relaxat 90s / Contra timp 45s) ----
+     Runs only while a card's modal is open; idle between cards. Reuses
+     .bac-timer/.bac-timer.warning/.danger + timerPulse verbatim from the
+     BAC simulation page. */
+  let timerInterval = null;
+  let timerRemaining = 0;
+
+  function startCardTimer(idx) {
+    clearCardTimer();
+    if (selectedTimerMode === 'none') return;
+    timerRemaining = TIMER_SECONDS[selectedTimerMode];
+    const hud = document.getElementById('hudTimer');
+    if (hud) hud.hidden = false;
+    updateTimerDisplay();
+    timerInterval = setInterval(() => {
+      timerRemaining--;
+      updateTimerDisplay();
+      if (timerRemaining <= 0) {
+        clearCardTimer();
+        trExpireCard(idx);
+      }
+    }, 1000);
+  }
+
+  function updateTimerDisplay() {
+    const hud = document.getElementById('hudTimer');
+    if (!hud) return;
+    const safe = Math.max(0, timerRemaining);
+    const m = Math.floor(safe / 60);
+    const s = safe % 60;
+    hud.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    hud.classList.toggle('warning', timerRemaining <= 15 && timerRemaining > 7);
+    hud.classList.toggle('danger', timerRemaining <= 7);
+  }
+
+  function clearCardTimer() {
+    if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
+    const hud = document.getElementById('hudTimer');
+    if (hud) hud.hidden = true;
+  }
+
+  function trExpireCard(idx) {
+    const cs = cardStates[idx];
+    if (!cs || cs.status !== 'hidden' || activeCardIndex !== idx) return;
+    const input = document.getElementById('revealAnswerInput');
+    if (input) input.disabled = true;
+    const submitBtn = document.getElementById('revealSubmitBtn');
+    if (submitBtn) submitBtn.disabled = true;
+    document.querySelectorAll('.reveal-mcq-option').forEach(btn => { btn.disabled = true; });
+    gradeCard(idx, false);
+  }
 
   /* ---- Grading ---- */
   function gradeCard(idx, isCorrect) {
@@ -486,7 +808,9 @@
     const mcqPath = cs._expected == null;
     const correctAnswerText = cs._expected != null ? cs._expected : cs._mcqCorrectAnswer;
     cs.status = isCorrect ? 'correct' : 'incorrect';
+    cs.correctAnswerText = correctAnswerText;
     revealedCount++;
+    clearCardTimer();
 
     if (isCorrect) {
       currentStreak++;
@@ -500,27 +824,38 @@
       if (!BM.Storage.isSolved(ex.id)) BM.Storage.toggleSolved(ex.id);
     } else {
       currentStreak = 0;
+      missedSubcats.add(ex.subcategoryId);
     }
 
     const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);
+    cs.xpGain = xpGain;
     sessionXp += xpGain;
     BM.Training.addXp(xpGain);
     renderHud();
     animateXpGain(xpGain);
 
-    /* Reveal result banner + solution — both paths are genuinely graded now
-       (typed input compares against the exact boxed answer, MCQ against the
-       chosen option), so both get the same confident banner copy. */
     const resultZone = document.getElementById('revealResultZone');
     const answerZone = document.getElementById('revealAnswerZone');
-    resultZone.innerHTML = `
-      <div class="reveal-result-banner reveal-result-banner--${isCorrect ? 'correct' : 'incorrect'}">
-        ${isCorrect
-          ? `${icon('circle-check', { size: 16 })} Corect!`
-          : `${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: ${BM.esc(correctAnswerText || '')}`}
-      </div>
-      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
-    `;
+
+    if (isCorrect) {
+      /* Solution isn't forced on a correct answer — available on demand via
+         "Vezi rezolvarea", per the design (don't bury the win under a wall
+         of text the student didn't ask for). */
+      resultZone.innerHTML = `
+        <div class="reveal-result-banner reveal-result-banner--correct">${icon('circle-check', { size: 16 })} Corect! <strong>+${xpGain} XP</strong></div>
+        <button class="btn btn--surface btn--full" id="revealShowSolutionBtn">${icon('book-open', { size: 16 })} Vezi rezolvarea</button>
+        <div id="revealSolutionZone" hidden></div>
+      `;
+    } else {
+      /* Wrong answers reveal the solution immediately, progressively when a
+         real barem exists (see buildSolutionBlockHtml). The correct-answer
+         text is LaTeX (e.g. "\frac{5}{2}") — must be $-delimited or
+         BM.renderMath (which only recognizes $/$$) leaves it raw. */
+      resultZone.innerHTML = `
+        <div class="reveal-result-banner reveal-result-banner--incorrect">${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: $${BM.esc(correctAnswerText || '')}$</div>
+        ${buildSolutionBlockHtml(ex, true)}
+      `;
+    }
     BM.renderMath(resultZone);
     resultZone.insertAdjacentHTML('beforeend', `
       <div style="text-align:right;margin-top:14px">
@@ -528,6 +863,15 @@
       </div>
     `);
     document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
+    if (isCorrect) {
+      document.getElementById('revealShowSolutionBtn').onclick = () => {
+        const zone = document.getElementById('revealSolutionZone');
+        zone.hidden = false;
+        zone.innerHTML = buildSolutionBlockHtml(ex, false);
+        BM.renderMath(zone);
+        document.getElementById('revealShowSolutionBtn').remove();
+      };
+    }
     if (answerZone) {
       const row = mcqPath ? answerZone.querySelector('.reveal-mcq-options') : answerZone.querySelector('.reveal-answer-row');
       if (row) row.style.opacity = '0.5';
@@ -538,6 +882,7 @@
   }
 
   function closeRevealOverlay(silent) {
+    clearCardTimer();
     document.getElementById('revealOverlay').classList.remove('open');
     const wasIdx = activeCardIndex;
     activeCardIndex = null;
@@ -546,6 +891,28 @@
       finishSession();
     }
   }
+
+  /* ---- Abandon session ---- */
+  window.trConfirmAbandon = function() {
+    const ov = document.createElement('div');
+    ov.className = 'bac-confirm-overlay';
+    ov.innerHTML = `
+      <div class="bac-confirm-modal" role="dialog" aria-modal="true">
+        <div class="bac-confirm-icon">${icon('triangle-alert', { size: 36, className: 'icon--warning' })}</div>
+        <div class="bac-confirm-title">Renunți la sesiunea curentă?</div>
+        <p class="bac-confirm-sub">Progresul din exercițiile nerezolvate se pierde. Cele deja rezolvate rămân salvate.</p>
+        <div class="bac-confirm-actions">
+          <button class="btn btn--surface" id="abandon-cancel">Înapoi</button>
+          <button class="btn btn--danger" id="abandon-ok">Renunță</button>
+        </div>
+      </div>`;
+    document.body.appendChild(ov);
+    const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 220); };
+    ov.querySelector('#abandon-cancel').onclick = close;
+    ov.querySelector('#abandon-ok').onclick = () => { close(); restartTraining(); };
+    ov.onclick = e => { if (e.target === ov) close(); };
+    requestAnimationFrame(() => ov.classList.add('open'));
+  };
 
   /* ---- HUD ---- */
   function renderHud() {
@@ -858,7 +1225,66 @@
   }
 
   /* ---- Finish ---- */
+  function animateCountUp(el, target) {
+    if (!el) return;
+    if (reduceMotion() || target <= 0) { el.textContent = target; return; }
+    const duration = 800;
+    const start = performance.now();
+    function tick(now) {
+      const t = Math.min(1, (now - start) / duration);
+      el.textContent = Math.round(target * t);
+      if (t < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
+  }
+
+  function animateLevelBar(xpBefore, xpAfter, leveledUp) {
+    const perLevel = BM.Training.XP_PER_LEVEL;
+    const fill = document.getElementById('resultsLevelFill');
+    const label = document.getElementById('resultsLevelLabel');
+    const xpLbl = document.getElementById('resultsLevelXp');
+    if (!fill || !label || !xpLbl) return;
+    const levelBefore = Math.floor(xpBefore / perLevel) + 1;
+    const levelAfter  = Math.floor(xpAfter / perLevel) + 1;
+    const set = (level, pct) => {
+      label.textContent = level;
+      xpLbl.textContent = `${Math.round(pct * perLevel)} / ${perLevel} XP`;
+      fill.style.width = `${Math.round(pct * 100)}%`;
+    };
+    set(levelBefore, (xpBefore % perLevel) / perLevel);
+
+    if (reduceMotion()) {
+      set(levelAfter, (xpAfter % perLevel) / perLevel);
+      return;
+    }
+    requestAnimationFrame(() => {
+      if (!leveledUp) {
+        fill.style.transition = 'width 0.8s cubic-bezier(0.22,1,0.36,1)';
+        set(levelAfter, (xpAfter % perLevel) / perLevel);
+        return;
+      }
+      // Crossed at least one level mid-session: fill to 100%, snap to 0%,
+      // then fill to the new in-level amount — reads as "leveled up" even
+      // when more than one level was crossed in a single session.
+      fill.style.transition = 'width 0.5s cubic-bezier(0.22,1,0.36,1)';
+      set(levelBefore, 1);
+      setTimeout(() => {
+        fill.style.transition = 'none';
+        set(levelAfter, 0);
+        void fill.offsetWidth;
+        fill.style.transition = 'width 0.5s cubic-bezier(0.22,1,0.36,1)';
+        set(levelAfter, (xpAfter % perLevel) / perLevel);
+      }, 550);
+    });
+  }
+
   function finishSession() {
+    // Nothing left to abandon once the session is genuinely over — the HUD
+    // strip stays up (final progress/XP/level are useful context on the
+    // results screen), just without an action that no longer means anything.
+    const abandonBtn = document.getElementById('abandonBtn');
+    if (abandonBtn) abandonBtn.hidden = true;
+
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     const total   = sessionExercises.length;
     const solved  = cardStates.filter(cs => cs.status === 'correct').length;
@@ -867,7 +1293,13 @@
     const allTimeBest = BM.Storage.getBestCombo();
     const newRecord = bestStreakSession > 0 && bestStreakSession >= allTimeBest;
 
-    document.getElementById('sessionView').style.display = 'none';
+    const xpNow = BM.Training.getTotalXp();
+    const perLevel = BM.Training.XP_PER_LEVEL;
+    const levelBefore = Math.floor(xpAtSessionStart / perLevel) + 1;
+    const levelAfter  = Math.floor(xpNow / perLevel) + 1;
+    const leveledUp = levelAfter > levelBefore;
+
+    document.getElementById('flipBoard').style.display = 'none';
     const resView = document.getElementById('resultsView');
     resView.classList.add('active');
 
@@ -886,11 +1318,28 @@
     const secs = elapsed % 60;
     const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
+    /* Per-subcategory breakdown — the "unde ai mers bine, unde ai greșit" ask */
+    const bySub = {};
+    cardStates.forEach(cs => {
+      const key = cs.ex.subcategoryId;
+      if (!bySub[key]) bySub[key] = { correct: 0, total: 0, ex: cs.ex };
+      bySub[key].total++;
+      if (cs.status === 'correct') bySub[key].correct++;
+    });
+    const breakdownRows = Object.values(bySub).map(s => {
+      const sub = BM.getSubcategoryById(s.ex.categoryId, s.ex.subcategoryId);
+      const name = sub?.name || s.ex.subcategoryId;
+      const scoreCls = s.correct === s.total ? 'good' : s.correct === 0 ? 'bad' : 'mixed';
+      return `<div class="results-breakdown__row"><span>${BM.esc(name)}</span><span class="results-breakdown__score results-breakdown__score--${scoreCls}">${s.correct}/${s.total}</span></div>`;
+    }).join('');
+
     resView.innerHTML = `
       ${isPerfect ? `
       <div class="results-perfect-banner">${icon('award', { size: 16 })} Sesiune perfectă! Ai rezolvat toate exercițiile corect.</div>` : ''}
       ${newRecord ? `
       <div class="results-record-banner">${icon('trophy', { size: 16 })} Record nou de streak: ${bestStreakSession} răspunsuri corecte la rând!</div>` : ''}
+      ${leveledUp ? `
+      <div class="results-record-banner">${icon('trophy', { size: 16 })} Nivel nou: ${levelAfter}!</div>` : ''}
 
       <div class="results-header">
         <div class="results-icon">${resultIcon}</div>
@@ -912,7 +1361,7 @@
           <div class="result-stat__lbl">Scor</div>
         </div>
         <div class="result-stat">
-          <div class="result-stat__num" style="color:var(--yellow)">${sessionXp}</div>
+          <div class="result-stat__num" id="resultsXpCount" style="color:var(--yellow)">0</div>
           <div class="result-stat__lbl">XP câștigat</div>
         </div>
         <div class="result-stat">
@@ -921,13 +1370,30 @@
         </div>
       </div>
 
+      <div class="session-level" style="max-width:none;margin:0 auto 24px">
+        <div class="session-level__top">
+          <span class="session-level__label">Nivel <span id="resultsLevelLabel">${levelBefore}</span></span>
+          <span class="session-level__xp" id="resultsLevelXp"></span>
+        </div>
+        <div class="session-level__bar"><div class="session-level__fill" id="resultsLevelFill" style="width:0%"></div></div>
+      </div>
+
+      <div class="results-breakdown">
+        <div class="results-breakdown__title">Defalcare pe subcapitole</div>
+        ${breakdownRows}
+      </div>
+
       <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;margin-bottom:28px">
         ${icon('timer', { size: 16 })} Timp total: ${timeStr}
       </div>
 
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        ${missedSubcats.size > 0 ? `
+        <button class="btn btn--surface btn--lg" onclick="repeatMistakes()">
+          ${icon('refresh-cw', { size: 20 })} Repetă greșelile
+        </button>` : ''}
         <button class="btn btn--primary btn--lg" onclick="restartTraining()">
-          ${icon('refresh-cw', { size: 20 })} Nou antrenament
+          ${icon('refresh-cw', { size: 20 })} Sesiune nouă
         </button>
         <a class="btn btn--surface btn--lg" href="capitole.html">
           ${icon('arrow-left', { size: 16 })} Înapoi la capitole
@@ -935,11 +1401,25 @@
       </div>
     `;
 
-    if (isPerfect) fireConfetti();
+    animateCountUp(document.getElementById('resultsXpCount'), sessionXp);
+    animateLevelBar(xpAtSessionStart, xpNow, leveledUp);
+
+    if (isPerfect || leveledUp) fireConfetti();
   }
+
+  /* Builds a new session using only the subcategories that had >=1 incorrect
+     card this session ("tipurile ratate"), keeping every other setting
+     (difficulty/timer/answer-type/unsolved-only/count) as currently
+     selected. */
+  window.repeatMistakes = function() {
+    if (missedSubcats.size === 0) return;
+    selectedSubcats = new Set(missedSubcats);
+    startTraining();
+  };
 
   window.restartTraining = function() {
     closeRevealOverlay(true);
+    clearCardTimer();
     document.getElementById('flipGrid').innerHTML = '';
     document.getElementById('confettiLayer').innerHTML = '';
     sessionExercises = [];
@@ -948,13 +1428,15 @@
     currentStreak = 0;
     bestStreakSession = 0;
     sessionXp = 0;
+    missedSubcats = new Set();
 
-    document.getElementById('trainingLayout').classList.remove('training-layout--session');
-    document.getElementById('sessionView').style.display = 'none';
+    document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
     document.getElementById('resultsView').innerHTML = '';
-    const empty = document.getElementById('emptyState');
-    if (empty) empty.style.display = '';
+
+    expandConfigPanel();
+    renderChapterList();
+    updateSummary();
   };
 
   /* ---- Start ---- */

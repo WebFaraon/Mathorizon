@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ro" translate="no">
 <head>
   <meta charset="UTF-8">
@@ -24,143 +24,134 @@
   <script src="js/icons.js"></script>
   <script src="js/nav-loader.js"></script>
 
-  <!-- LAYOUT -->
+  <!-- LAYOUT: single surface, two states (config <-> HUD), toggled via
+       .training-layout--session on the root (see js/training.js). -->
   <div class="training-layout" id="trainingLayout">
 
-    <!-- LEFT: Config panel -->
-    <aside class="training-config" id="configView">
-      <h2 class="training-config__title"><svg class="icon icon-24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Antrenament Rapid</h2>
-      <p class="training-config__sub">
-        Configurează sesiunea de antrenament și generează un mini-test personalizat.
-      </p>
+    <!-- The panel: a generous config screen that morphs into a slim HUD bar
+         on start. Same DOM node throughout — its own box (padding/max-width/
+         radius) transitions, its two inner bodies (config content / HUD)
+         cross-fade — so it reads as one surface changing shape, not two
+         screens swapping. -->
+    <div class="training-panel" id="configPanel">
 
-      <!-- Number of exercises -->
-      <div class="config-section">
-        <div class="config-label">Număr de exerciții</div>
-        <div class="config-chips" id="countChips"></div>
-      </div>
+      <!-- ===== Config body (state 1) ===== -->
+      <div class="training-config-content" id="configContent">
+        <h2 class="training-config__title tr-enter"><svg class="icon icon-24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Antrenament Rapid</h2>
+        <p class="training-config__sub tr-enter" style="animation-delay:60ms">
+          Configurează sesiunea de antrenament și generează un mini-test personalizat.
+        </p>
 
-      <!-- Difficulty -->
-      <div class="config-section">
-        <div class="config-label">Dificultate</div>
-        <div class="config-chips" id="diffChips"></div>
-      </div>
-
-      <!-- Chapters -->
-      <div class="config-section">
-        <div class="config-label">Capitole</div>
-        <div class="config-chapter-list" id="chapterList"></div>
-      </div>
-
-      <!-- Start button -->
-      <button id="startBtn" class="btn btn--primary btn--lg btn--full" onclick="startTraining()">
-        <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Începe Antrenamentul
-      </button>
-    </aside>
-
-    <!-- RIGHT: Session / Results -->
-    <div class="training-main">
-
-      <!-- Session view (hidden initially) -->
-      <div id="sessionView" style="display:none">
-
-        <!-- Session header: progress ring + streak/XP stats (session + lifetime) -->
-        <div class="session-header">
-          <div class="session-progress-ring">
-            <svg viewBox="0 0 80 80" width="84" height="84">
-              <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="7"/>
-              <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="7"
-                      stroke-dasharray="213.6" stroke-dashoffset="213.6"
-                      stroke-linecap="round" transform="rotate(-90 40 40)" id="sessionProgressRing"
-                      style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
-            </svg>
-            <span class="session-progress-ring__label">
-              <span class="session-progress-ring__caption">progres</span>
-              <span id="sessionCounter">0 / 10</span>
-            </span>
+        <!-- Compact stats strip: lifetime progress, not a bare centered blurb -->
+        <div class="training-stats-strip tr-enter" style="animation-delay:110ms">
+          <div class="training-stats-strip__item" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament">
+            <svg class="icon icon-16 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg>
+            Nivel <strong data-training-level>1</strong>
           </div>
-
-          <div class="session-hud" id="sessionHud">
-            <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
-              <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg> <span id="hudStreakVal">0</span></span>
-              <span class="session-hud__sub">record: <span data-training-best-streak>0</span></span>
-            </div>
-            <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
-              <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg> <span id="hudXpVal">0</span> XP</span>
-              <span class="session-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
-            </div>
-            <div class="session-hud__record" id="hudRecord"></div>
+          <div class="training-stats-strip__item" title="XP câștigat din răspunsuri corecte în Antrenament — 100 XP pe nivel">
+            <svg class="icon icon-16 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg>
+            XP total <strong data-training-total-xp>0</strong>
           </div>
-
-          <!-- Level slider — fills the header's remaining width and turns
-               lifetime XP into a visible "next level" goal, not just a bare
-               number. -->
-          <div class="session-level">
-            <div class="session-level__top">
-              <span class="session-level__label">Nivel <span data-training-level>1</span></span>
-              <span class="session-level__xp" data-training-level-xp>0 / 100 XP</span>
-            </div>
-            <div class="session-level__bar">
-              <div class="session-level__fill" data-training-level-fill style="width:0%"></div>
-            </div>
+          <div class="training-stats-strip__item" title="Cel mai lung șir de răspunsuri corecte la rând, din orice sesiune">
+            <svg class="icon icon-16 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg>
+            Cel mai bun streak <strong data-training-best-streak>0</strong>
           </div>
         </div>
 
-        <!-- Face-down card grid -->
-        <div class="flip-grid" id="flipGrid">
-          <!-- Populated by training.js -->
+        <!-- A. Number of exercises -->
+        <div class="config-section tr-enter" style="animation-delay:150ms">
+          <div class="config-label">Număr de exerciții</div>
+          <div class="config-chips" id="countChips"></div>
+        </div>
+
+        <!-- B. Difficulty -->
+        <div class="config-section tr-enter" style="animation-delay:190ms">
+          <div class="config-label">Dificultate</div>
+          <div class="config-chips" id="diffChips"></div>
+        </div>
+
+        <!-- C. Chapters -->
+        <div class="config-section tr-enter" style="animation-delay:230ms">
+          <div class="config-label">Capitole și subcapitole</div>
+          <div class="config-chapter-list" id="chapterList"></div>
+        </div>
+
+        <!-- D. Extra settings -->
+        <div class="config-section tr-enter" style="animation-delay:270ms">
+          <div class="config-label">Setări suplimentare</div>
+          <div class="config-extra-grid" id="extraSettings"></div>
+        </div>
+
+        <!-- E. Live summary + start — always visible, no scroll needed -->
+        <div class="config-summary-bar tr-enter" style="animation-delay:310ms">
+          <div class="config-summary-text" id="configSummaryText">Configurează sesiunea mai sus.</div>
+          <button id="startBtn" class="btn btn--primary btn--lg" onclick="startTraining()">
+            <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Începe Antrenamentul
+          </button>
         </div>
       </div>
 
-      <!-- Reveal overlay (opens when a card is picked) -->
-      <div class="reveal-overlay" id="revealOverlay">
-        <div class="reveal-modal" id="revealModal">
-          <!-- Populated by training.js -->
-        </div>
-      </div>
-
-      <!-- Confetti layer -->
-      <div id="confettiLayer"></div>
-
-      <!-- Results view (hidden initially) -->
-      <div id="resultsView" class="training-results">
-        <!-- Populated by training.js on finish -->
-      </div>
-
-      <!-- Empty state: a stats dashboard instead of a bare centered blurb —
-           uses the middle pane even before a session starts, and doubles
-           as motivation ("here's your progress so far"). -->
-      <div id="emptyState" class="training-preview">
-        <div class="training-preview__hero">
-          <div class="training-preview__icon"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></div>
-          <h3 class="training-preview__title">Gata să exersezi?</h3>
-          <p class="training-preview__sub">
-            Configurează sesiunea din stânga și apasă <strong>Începe Antrenamentul</strong> —
-            alege numărul de exerciții, dificultatea și capitolele dorite.
-          </p>
+      <!-- ===== HUD body (state 2) — hidden until session starts ===== -->
+      <div class="training-hud" id="trainingHud" hidden>
+        <div class="session-progress-ring">
+          <svg viewBox="0 0 80 80" width="64" height="64">
+            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="7"/>
+            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="7"
+                    stroke-dasharray="213.6" stroke-dashoffset="213.6"
+                    stroke-linecap="round" transform="rotate(-90 40 40)" id="sessionProgressRing"
+                    style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
+          </svg>
+          <span class="session-progress-ring__label">
+            <span class="session-progress-ring__caption">progres</span>
+            <span id="sessionCounter">0 / 10</span>
+          </span>
         </div>
 
-        <div class="training-preview__stats">
-          <div class="training-preview__stat">
-            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15.477 12.89 1.515 8.526a.5.5 0 0 1-.81.47l-3.58-2.687a1 1 0 0 0-1.197 0l-3.586 2.686a.5.5 0 0 1-.81-.469l1.514-8.526"></path><circle cx="12" cy="8" r="6"></circle></svg></div>
-            <div class="training-preview__stat-val" data-training-level>1</div>
-            <div class="training-preview__stat-lbl">Nivel curent</div>
+        <div class="session-hud" id="sessionHud">
+          <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
+            <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg> <span id="hudStreakVal">0</span></span>
+            <span class="session-hud__sub">record: <span data-training-best-streak>0</span></span>
           </div>
-          <div class="training-preview__stat">
-            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg></div>
-            <div class="training-preview__stat-val" data-training-total-xp>0</div>
-            <div class="training-preview__stat-lbl">XP total</div>
+          <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
+            <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg> <span id="hudXpVal">0</span> XP</span>
+            <span class="session-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
           </div>
-          <div class="training-preview__stat">
-            <div class="training-preview__stat-icon"><svg class="icon icon-36 icon--gamify" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg></div>
-            <div class="training-preview__stat-val" data-training-best-streak>0</div>
-            <div class="training-preview__stat-lbl">Cel mai bun streak</div>
+          <div class="session-hud__record" id="hudRecord"></div>
+          <div class="bac-timer" id="hudTimer" hidden></div>
+        </div>
+
+        <div class="session-level">
+          <div class="session-level__top">
+            <span class="session-level__label">Nivel <span data-training-level>1</span></span>
+            <span class="session-level__xp" data-training-level-xp>0 / 100 XP</span>
+          </div>
+          <div class="session-level__bar">
+            <div class="session-level__fill" data-training-level-fill style="width:0%"></div>
           </div>
         </div>
+
+        <button class="btn btn--surface btn--sm training-hud__abandon" id="abandonBtn" onclick="trConfirmAbandon()">Renunță la sesiune</button>
       </div>
     </div>
 
+    <!-- Board / results -->
+    <div class="training-main" id="trainingMain">
+      <div class="flip-board" id="flipBoard">
+        <div class="flip-grid" id="flipGrid"><!-- Populated by training.js --></div>
+      </div>
+
+      <div id="resultsView" class="training-results"><!-- Populated by training.js on finish --></div>
+    </div>
+
   </div>
+
+  <!-- Reveal overlay (opens when a card is picked, or to review a solved one) -->
+  <div class="reveal-overlay" id="revealOverlay">
+    <div class="reveal-modal" id="revealModal"><!-- Populated by training.js --></div>
+  </div>
+
+  <!-- Confetti layer -->
+  <div id="confettiLayer"></div>
 
   <!-- Plan paywall — shown instead of trainingLayout for elevi without
        Standard/Premium (see the plan-gate script below). Hidden by
@@ -173,6 +164,11 @@
       Ai nevoie de pachetul Standard pentru a accesa Antrenamentul rapid — sesiuni
       personalizate, exerciții generate AI și urmărirea nivelului și a streak-ului.
     </p>
+    <ul class="training-paywall__perks">
+      <li><svg class="icon icon-16 icon--success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Sesiuni personalizate pe capitol, dificultate și tip de răspuns</li>
+      <li><svg class="icon icon-16 icon--success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Rezolvări explicate pas cu pas, cu punctaj din barem</li>
+      <li><svg class="icon icon-16 icon--success" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Nivel, XP și streak care urmăresc progresul tău</li>
+    </ul>
     <a class="btn btn--primary btn--lg" href="pachete.html">Vezi pachetele</a>
   </div>
 
@@ -192,15 +188,6 @@
   <script src="js/auth.js"></script>
   <script src="js/panels.js"></script>
   <script src="js/training.js"></script>
-
-  <script>
-    /* Hide empty state when session starts */
-    const _origStart = window.startTraining;
-    window.startTraining = function() {
-      document.getElementById('emptyState').style.display = 'none';
-      _origStart();
-    };
-  </script>
 
   <script>
     /* Plan gate — Antrenament is a Standard/Premium feature. Only gates
