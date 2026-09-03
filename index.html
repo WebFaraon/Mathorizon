@@ -41,37 +41,57 @@
 
     <!-- HERO -->
     <section class="landing-hero">
-      <h1 class="landing-hero__title">
-        Pregătire serioasă la matematică
-        <span class="landing-hero__title-accent">
-          <!-- Full phrase, always real text — screen readers and any
-               HTML-only crawler read this. The aria-hidden span below is
-               the ONLY part js/landing-hero.js animates (see there). -->
-          <span class="sr-only" id="heroTypewriterFull">pentru examenele din Moldova</span>
-          <span class="landing-hero__typewriter" aria-hidden="true"><span id="heroTypewriterVisible"></span><span class="landing-hero__cursor" id="heroTypewriterCursor"></span></span>
-        </span>
-      </h1>
-      <p class="landing-hero__sub">Exerciții cu barem oficial, antrenament rapid și simulări cronometrate.</p>
+      <!-- Decorative-only background layer — same .hero-syms/.hero-sym
+           glyphs used in capitole.html's dashboard hero, spread across the
+           whole (now shorter, single-column) hero rather than clustered —
+           see css/style.css section 9.5 for the per-symbol slow-drift
+           overrides applied here. Kept low-opacity throughout so nothing
+           here ever competes with the centered H1/stats for legibility;
+           the last 6 are hidden on narrow phones (see the max-width:600px
+           rule) so the set doesn't feel cluttered at that width. -->
+      <div class="hero-syms" aria-hidden="true">
+        <span class="hero-sym" style="left:2%;top:12%;font-size:3.2rem;opacity:0.10">∑</span>
+        <span class="hero-sym" style="left:6%;top:70%;font-size:3rem;opacity:0.11">∫</span>
+        <span class="hero-sym hero-sym--stack" style="left:16%;top:40%;font-size:1.3rem;opacity:0.10">lim<small>x→∞</small></span>
+        <span class="hero-sym" style="left:94%;top:16%;font-size:2.8rem;opacity:0.14">π</span>
+        <span class="hero-sym hero-sym--formula" style="left:8%;top:88%;opacity:0.08;font-size:0.95rem">f(x) = ax² + bx + c</span>
+        <span class="hero-sym" style="left:88%;top:70%;font-size:2.6rem;opacity:0.11">Δ</span>
+        <span class="hero-sym hero-sym--formula" style="left:80%;top:38%;opacity:0.10;font-size:0.9rem">aₙ = a₁ + (n−1)d</span>
+        <span class="hero-sym" style="left:3%;top:45%;font-size:2.4rem;opacity:0.09">∞</span>
+        <span class="hero-sym" style="left:96%;top:50%;font-size:3.6rem;opacity:0.075">∑</span>
+        <span class="hero-sym" style="left:20%;top:8%;font-size:1.8rem;opacity:0.10">∫</span>
+        <span class="hero-sym" style="left:12%;top:82%;font-size:2rem;opacity:0.11">π</span>
+        <span class="hero-sym" style="left:75%;top:8%;font-size:1.6rem;opacity:0.10">Δ</span>
+        <span class="hero-sym" style="left:60%;top:85%;font-size:2rem;opacity:0.075">∞</span>
+        <span class="hero-sym hero-sym--stack" style="left:85%;top:88%;font-size:1.1rem;opacity:0.11">lim<small>x→∞</small></span>
+      </div>
 
-      <div class="landing-stats-card" id="landingStatsCard">
-        <div class="landing-stats-track" id="landingStatsTrack">
-          <div class="stat landing-stat is-active" style="--stat-i:0">
-            <div class="stat__val accent" id="landingExerciseCount">648</div>
-            <div class="stat__lbl">exerciții</div>
+      <div class="landing-hero__inner">
+        <div class="landing-hero__eyebrow">Matematică · BAC · Moldova</div>
+        <h1 class="landing-hero__title">
+          Pregătire serioasă la matematică
+          <span class="landing-hero__title-accent">
+            <!-- Full phrase, always real text — screen readers and any
+                 HTML-only crawler read this. The aria-hidden span below is
+                 the ONLY part js/landing-hero.js animates (see there). -->
+            <span class="sr-only" id="heroTypewriterFull">pentru examenele din Moldova</span>
+            <span class="landing-hero__typewriter" aria-hidden="true"><span id="heroTypewriterVisible"></span><span class="landing-hero__cursor" id="heroTypewriterCursor"></span></span>
+          </span>
+        </h1>
+
+        <div class="landing-hero__stats">
+          <div class="landing-hero__stat">
+            <span class="stat__val accent" id="landingExerciseCount">648</span>
+            <span class="stat__lbl">exerciții</span>
           </div>
-          <div class="stat landing-stat" style="--stat-i:1">
-            <div class="stat__val accent">12</div>
-            <div class="stat__lbl">tipuri de itemi</div>
+          <div class="landing-hero__stat">
+            <span class="stat__val accent">12</span>
+            <span class="stat__lbl">tipuri de itemi</span>
           </div>
-          <div class="stat landing-stat" style="--stat-i:2">
-            <div class="stat__val accent">barem</div>
-            <div class="stat__lbl">oficial pe fiecare pas</div>
+          <div class="landing-hero__stat">
+            <span class="stat__val accent">Barem</span>
+            <span class="stat__lbl">oficial</span>
           </div>
-        </div>
-        <div class="landing-stats-dots" id="landingStatsDots" aria-hidden="true">
-          <span class="landing-stats-dot is-active"></span>
-          <span class="landing-stats-dot"></span>
-          <span class="landing-stats-dot"></span>
         </div>
       </div>
     </section>
@@ -101,7 +121,7 @@
       <div class="chapter-card route-card" style="--card-color:#f59e0b">
         <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg>
         <div class="route-card__top">
-          <div class="route-card__eyebrow">Examen de absolvire a gimnaziului</div>
+          <div class="route-card__eyebrow">Examen gimnaziu</div>
           <span class="chapter-card__count">În pregătire</span>
         </div>
         <div class="chapter-card__name">Clasa a 9-a</div>
@@ -112,6 +132,7 @@
            "how it works" page we don't have yet. -->
       <a class="chapter-card route-card" href="auth.html?tab=signup&role=profesor" style="--card-color:#10b981">
         <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
+        <div class="route-card__eyebrow">Profesori</div>
         <div class="chapter-card__name">Sunt profesor</div>
         <div class="chapter-card__desc">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</div>
         <ul class="route-card__list">

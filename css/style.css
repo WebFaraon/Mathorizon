@@ -709,8 +709,8 @@ body.bac-exam-mode .nav.nav--peek {
   text-align: center;
 }
 .token-widget__label {
-  font-size: 0.64rem;
-  font-weight: 600;
+  font-size: 0.72rem;
+  font-weight: 400;
   color: rgba(255,255,255,0.60);
   letter-spacing: 0.3px;
   text-transform: uppercase;
@@ -790,8 +790,8 @@ body.bac-exam-mode .nav.nav--peek {
   gap: 14px;
 }
 .nav__guest-login {
-  font-size: 0.86rem;
-  font-weight: 600;
+  font-size: 0.94rem;
+  font-weight: 400;
   color: rgba(255,255,255,0.85);
   text-decoration: none;
   white-space: nowrap;
@@ -816,8 +816,8 @@ body.bac-exam-mode .nav.nav--peek {
   background: var(--text);
   color: var(--bg);
   border: 1.5px solid var(--text);
-  font-weight: 700;
-  font-size: 0.86rem;
+  font-weight: 400;
+  font-size: 0.94rem;
   white-space: nowrap;
   text-decoration: none;
   transition: background 0.15s ease, border-color 0.15s ease;
@@ -1028,7 +1028,12 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .btn--ghost {
   background: transparent;
   color: var(--accent);
-  border-color: rgba(27, 74, 138, 0.35);
+  /* Was a hardcoded rgba(27, 74, 138, ...) navy — matched --accent closely
+     enough in light theme to go unnoticed, but with no dark-theme override
+     it stayed that same dark navy there too, nearly invisible against a
+     dark card/page background. color-mix keeps it tied to --accent so it
+     resolves correctly (and stays visible) in both themes automatically. */
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
 }
 .btn--ghost:hover {
   background: var(--accent-dim);
@@ -1531,6 +1536,23 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   position: relative;
 }
 
+/* Landing page only: centers the hero + route-grid + note as one group
+   within the viewport (minus the fixed nav) instead of them just sitting
+   at the top with empty space left below on tall screens. `safe center`
+   falls back to top-aligned if the content is ever taller than the
+   viewport (a browser that doesn't understand the `safe` keyword ignores
+   that whole declaration and keeps the plain `center` above it), so a
+   short/narrow viewport that has to scroll never starts scrolled past the
+   top of the page. */
+.landing-main {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  justify-content: safe center;
+  min-height: calc(100vh - var(--nav-h));
+  min-height: calc(100dvh - var(--nav-h));
+}
+
 /* Colored blobs behind cards so glassmorphism is visible */
 .main::before,
 .main::after {
@@ -1782,36 +1804,60 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 
 /* 9.5 LANDING PAGE (public /) — hero + route selector.
-   Reuses .chapter-card verbatim for the three cards (same accent-band,
-   background, radius, shadow, hover lift as /capitole) and .chapter-card__
-   name/desc/count as-is; only the pieces that don't exist yet
-   (eyebrow label, meta line, arrow link) are new, and every value below
-   is copied from an existing element of the same kind elsewhere in this
-   file, not invented.
+   Single-column, centered hero (eyebrow → H1 → stats), no side panel.
+   .chapter-card is reused verbatim for structure/spacing (same as
+   /capitole) but re-skinned per-card as colored glass — see .route-card
+   below — instead of the plain white/cream glass + top accent band
+   /capitole's own chapter cards use.
    ============================================================ */
 .landing-hero {
-  text-align: center;
-  padding: 80px 0 50px;
+  position: relative;
+  overflow: hidden;
+  padding: 34px 0 26px;
 }
+
+.landing-hero__inner {
+  position: relative;
+  z-index: 1;
+  /* Wide enough that neither H1 line ("Pregătire serioasă la matematică" /
+     "pentru examenele din Moldova") ever wraps a second time on a desktop
+     width — 760px was forcing both onto 2 lines each (4 total) with a lot
+     of unused space left on either side; the container just needs to not
+     be the bottleneck; text-align:center still centers the actual (much
+     narrower) rendered line width within it. */
+  max-width: 1300px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.landing-hero__eyebrow {
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
 .landing-hero__title {
-  font-size: clamp(2.2rem, 4.2vw, 3.2rem);
+  font-size: clamp(2.4rem, 4.4vw, 3.4rem);
   font-weight: 800;
   letter-spacing: -0.5px;
-  line-height: 1.2;
+  line-height: 1.04;
   color: var(--text);
 }
 .landing-hero__title-accent {
   display: block;
-  font-size: clamp(2.6rem, 5.2vw, 3.8rem);
+  font-size: clamp(2.9rem, 5.6vw, 4.1rem);
   font-weight: 800;
   letter-spacing: -0.5px;
-  line-height: 1.18;
+  line-height: 1.0;
   color: var(--accent);
   /* Reserves exactly one line at the current (fluid) font-size before the
      typewriter script fills it in, so the type-in never shifts anything
      below it — matches line-height itself rather than a hardcoded pixel
      value, so it scales correctly at every clamp() breakpoint. */
-  min-height: 1.18em;
+  min-height: 1.0em;
 }
 /* The full phrase is always real text in .sr-only (screen readers, and
    any crawler reading raw HTML) — this sibling is the ONLY part that
@@ -1835,133 +1881,201 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   .landing-hero__cursor { display: none; }
 }
 
-.landing-hero__sub {
-  font-size: 1.18rem;
-  color: var(--text-secondary);
-  margin-top: 28px;
-}
-
-/* ---- Stats card (648 exerciții / 12 tipuri / barem oficial) ----
-   Its own distinct surface — not just three bare numbers floating on the
-   hero background — using the same card/border/radius/shadow tokens as
-   every other card on the site. Reuses .stats/.stat/.stat__val/.stat__lbl
-   verbatim inside it (the dashboard stats-bar's own building blocks). */
-.landing-stats-card {
-  max-width: 640px;
-  margin: 28px auto 0;
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  padding: 4px 8px;
-}
-.landing-stats-track {
+/* ---- Stats row: value-above-label, three columns centered under the H1,
+   thin separators, no card/background of their own — straight on the hero
+   background as part of the composition. Reuses .stat__val/.stat__lbl
+   (the dashboard stats-bar's own building blocks) for color/weight. ---- */
+.landing-hero__stats {
   display: flex;
-  align-items: center;
   justify-content: center;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  margin-top: 18px;
 }
-.landing-stat { padding: 14px 28px; }
+.landing-hero__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 0 28px;
+  position: relative;
+}
+/* A soft accent-colored beam (fades in/out top and bottom) instead of a
+   flat 1px --border hairline, which read as almost invisible against the
+   hero background — ties the divider to the stat values' own accent color
+   instead of a generic neutral rule. */
+.landing-hero__stat:not(:last-child)::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  border-radius: 1px;
+  background: linear-gradient(to bottom,
+    transparent,
+    color-mix(in srgb, var(--accent) 55%, transparent) 30%,
+    color-mix(in srgb, var(--accent) 55%, transparent) 70%,
+    transparent);
+}
+.landing-hero__stats .stat__val { font-size: 1.9rem; line-height: 1; }
+.landing-hero__stats .stat__lbl { color: var(--text-secondary); }
 
-/* Desktop: all three at once, staggered fade-in, once, on load. */
-@media (min-width: 769px) {
-  .landing-stat {
-    opacity: 0;
-    animation: landingStatFadeIn 0.4s ease both;
-    animation-delay: calc(var(--stat-i, 0) * 120ms);
-  }
+/* ---- Background math symbols — the same .hero-syms/.hero-sym markup/
+   glyphs already used in capitole.html's dashboard hero (just more
+   instances of them, spread across the whole hero instead of clustered —
+   see index.html), drifting far more slowly/subtly here. Four drift
+   keyframes (different directions) rotate across the symbols so they
+   don't all move in visual lockstep; durations vary 30-60s. Overridden
+   with higher specificity (`.landing-hero .hero-sym` beats the bare
+   `.hero-sym:nth-child()` rules), so capitole.html's own hero keeps its
+   original timing untouched. ---- */
+.landing-hero .hero-syms { z-index: 0; }
+.landing-hero .hero-sym {
+  animation-timing-function: linear;
+  animation-iteration-count: infinite;
 }
-@keyframes landingStatFadeIn {
-  from { opacity: 0; transform: translateY(6px); }
-  to   { opacity: 1; transform: translateY(0); }
+.landing-hero .hero-sym:nth-child(1)  { animation-name: heroSymDriftA; animation-duration: 42s; animation-delay: -4s; }
+.landing-hero .hero-sym:nth-child(2)  { animation-name: heroSymDriftB; animation-duration: 55s; animation-delay: -18s; }
+.landing-hero .hero-sym:nth-child(3)  { animation-name: heroSymDriftC; animation-duration: 34s; animation-delay: -9s; }
+.landing-hero .hero-sym:nth-child(4)  { animation-name: heroSymDriftD; animation-duration: 60s; animation-delay: -27s; }
+.landing-hero .hero-sym:nth-child(5)  { animation-name: heroSymDriftB; animation-duration: 48s; animation-delay: -2s; }
+.landing-hero .hero-sym:nth-child(6)  { animation-name: heroSymDriftA; animation-duration: 37s; animation-delay: -21s; }
+.landing-hero .hero-sym:nth-child(7)  { animation-name: heroSymDriftD; animation-duration: 52s; animation-delay: -12s; }
+.landing-hero .hero-sym:nth-child(8)  { animation-name: heroSymDriftC; animation-duration: 30s; animation-delay: -6s; }
+.landing-hero .hero-sym:nth-child(9)  { animation-name: heroSymDriftA; animation-duration: 45s; animation-delay: -30s; }
+.landing-hero .hero-sym:nth-child(10) { animation-name: heroSymDriftC; animation-duration: 58s; animation-delay: -14s; }
+.landing-hero .hero-sym:nth-child(11) { animation-name: heroSymDriftB; animation-duration: 33s; animation-delay: -5s; }
+.landing-hero .hero-sym:nth-child(12) { animation-name: heroSymDriftD; animation-duration: 40s; animation-delay: -19s; }
+.landing-hero .hero-sym:nth-child(13) { animation-name: heroSymDriftA; animation-duration: 50s; animation-delay: -33s; }
+.landing-hero .hero-sym:nth-child(14) { animation-name: heroSymDriftC; animation-duration: 36s; animation-delay: -8s; }
+@keyframes heroSymDriftA {
+  0%   { transform: translate(0, 0); }
+  25%  { transform: translate(10px, -8px); }
+  50%  { transform: translate(-4px, 6px); }
+  75%  { transform: translate(-10px, -3px); }
+  100% { transform: translate(0, 0); }
 }
-
-/* Mobile: one at a time (js/landing-hero.js drives .is-active), fade +
-   slide, dot indicators below. Each stat is absolutely stacked on the
-   others so switching never changes the card's height (no CLS) — the
-   track's min-height is sized to the tallest of the three (measured).
-   Laid out as a compact single row (number + label side by side) instead
-   of the earlier big centered vertical block — the whole point here is a
-   small supporting strip, not a second hero. */
-.landing-stats-dots { display: none; }
-@media (max-width: 768px) {
-  .landing-stats-card { padding: 2px 8px; }
-  .landing-stats-track { position: relative; min-height: 40px; }
-  .landing-stat {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: row;
-    align-items: baseline;
-    justify-content: center;
-    gap: 7px;
-    padding: 9px 0;
-    opacity: 0;
-    transform: translateX(10px);
-    transition: opacity 0.35s ease, transform 0.35s ease;
-    pointer-events: none;
-  }
-  .landing-stat .stat__val { font-size: 1.15rem; }
-  .landing-stat .stat__lbl { font-size: 0.68rem; letter-spacing: 0.3px; }
-  /* Only one stat shows at a time here — the desktop separator line
-     between stats would just be a stray mark with no neighbor beside it. */
-  .landing-stats-track .stat::after { display: none; }
-  .landing-stat.is-active {
-    opacity: 1;
-    transform: translateX(0);
-    pointer-events: auto;
-  }
-  .landing-stats-dots {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 5px;
-    padding: 0 0 6px;
-  }
-  .landing-stats-dot {
-    width: 5px;
-    height: 5px;
-    border-radius: 50%;
-    background: var(--border);
-    transition: background 0.2s ease;
-  }
-  .landing-stats-dot.is-active { background: var(--accent); }
+@keyframes heroSymDriftB {
+  0%   { transform: translate(0, 0); }
+  30%  { transform: translate(-9px, 7px); }
+  60%  { transform: translate(8px, -6px); }
+  100% { transform: translate(0, 0); }
 }
-
-/* Reduced motion: no fade-in stagger, no carousel — all three shown at
-   once, stacked on mobile, in a plain static column. */
+@keyframes heroSymDriftC {
+  0%   { transform: translate(0, 0); }
+  40%  { transform: translate(7px, 9px); }
+  80%  { transform: translate(-7px, -5px); }
+  100% { transform: translate(0, 0); }
+}
+@keyframes heroSymDriftD {
+  0%   { transform: translate(0, 0); }
+  20%  { transform: translate(-7px, -9px); }
+  55%  { transform: translate(9px, 4px); }
+  100% { transform: translate(0, 0); }
+}
 @media (prefers-reduced-motion: reduce) {
-  .landing-stat { animation: none !important; opacity: 1 !important; transform: none !important; }
+  .landing-hero .hero-sym { animation: none !important; }
 }
-@media (max-width: 768px) and (prefers-reduced-motion: reduce) {
-  .landing-stats-track { position: static; min-height: 0; flex-direction: column; }
-  .landing-stat { position: static; pointer-events: auto; transition: none; }
-  .landing-stats-dots { display: none; }
+/* Narrow phones: fewer symbols so the (much narrower) hero doesn't read as
+   cluttered — keeps the first 8 (the original capitole.html set), drops
+   the 6 duplicates added for desktop's wider spread. */
+@media (max-width: 600px) {
+  .landing-hero .hero-sym:nth-child(n+9) { display: none; }
 }
 
 .route-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 18px;
   /* Equal card heights per row + the CTA pinned to each card's bottom edge
      both come free from CSS Grid's default row-stretch + each card's own
      flex column with .route-card__footer{margin-top:auto} — no JS. */
-  /* Capped and centered (same pattern as .landing-stats-card) — at the
-     .container's full 1520px width each card stretched to ~725px, far past
-     a comfortable text measure for a few lines + a bullet list, which is
-     exactly what read as "mostly empty space with text pinned to the
-     left." Narrower cards wrap their existing text over more of their own
-     width instead of leaving it unused. */
-  max-width: 1040px;
+  max-width: 1400px;
   margin: 0 auto;
 }
 
 /* animation: none for the same reason as .chapter-card--soon — card-up-in's
    "both" fill-mode is an entrance effect, which this page doesn't use.
-   gap bumped from chapter-card's 8px to 12px (already used elsewhere,
-   e.g. .nav__guest-actions) — this card carries more content rows
-   (eyebrow + title + meta + button) and had less breathing room between
-   them than the 3-4 row chapter-card usually shows. */
-.route-card { animation: none; gap: 12px; }
+   Padding/min-height/gap bumped up from the plain .chapter-card defaults —
+   against the new, visually heavier hero these read as too small; more
+   internal breathing room (icon → eyebrow → title → desc → list → CTA)
+   makes them feel like a deliberate 4-up destination, not an afterthought. */
+.route-card { animation: none; gap: 12px; padding: 22px 22px 18px; min-height: 230px; }
+.route-card .chapter-card__name { font-size: 1.35rem; }
+.route-card .chapter-card__desc { font-size: 0.85rem; line-height: 1.5; }
+.route-card .route-card__list { gap: 5px; font-size: 0.82rem; line-height: 1.35; }
+
+/* ---- Colored glassmorphism — each card's own --card-color (set inline in
+   index.html, the same violet/amber/green/pink already used as the old
+   top accent band) now tints the WHOLE card instead of just a top strip.
+   Compound `.chapter-card.route-card` selectors (specificity 0,2,0 on the
+   *same* element) so these reliably outrank the plain .chapter-card
+   background/border rules — including its own dark-theme override, which
+   is declared later in this file — regardless of source order.
+   `color-mix(..., transparent)` keeps real alpha transparency (not a
+   solid color), so backdrop-filter's blur (inherited from .chapter-card)
+   still does something — same glass recipe as .chapter-card itself, just
+   tinted instead of white. Opacities are tuned per theme so the tint never
+   drops text contrast — see the reduced ones under dark. ---- */
+.chapter-card.route-card {
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 26%, transparent);
+  border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 50%, transparent);
+  box-shadow: var(--shadow-card);
+  transition: transform 0.22s ease, box-shadow 0.22s ease,
+              background 0.22s ease, border-color 0.22s ease;
+}
+[data-theme="dark"] .chapter-card.route-card {
+  /* Same alpha would read as almost black on a near-black page background —
+     bumped so the card's own color still identifies it. Capped at 26% (not
+     matching light theme's 32% 1:1) — the amber/green cards' own hue is
+     lighter than violet/pink at equal alpha, and pushing past this measurably
+     dropped their body text below AA (verified against all 4 colors). */
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 26%, transparent);
+  border-color: color-mix(in srgb, var(--card-color, var(--accent)) 56%, transparent);
+  box-shadow: var(--shadow-card);
+}
+
+/* .chapter-card:hover (the plain/white-glass base rule, unguarded, used as-
+   is by /capitole's real chapter cards) sets its own transform/box-shadow —
+   and a tap on a touch device DOES latch :hover in most mobile browsers
+   until an unrelated tap elsewhere, so without this reset every route card
+   would visibly "stick" lifted after a tap even though the *tinted* hover
+   look below never activates there. Same specificity as that base rule's
+   own :hover (0,2,0 with the pseudo) — .chapter-card.route-card:hover is
+   0,3,0 — so this unconditionally wins and holds the card at its resting
+   look on any device, any pointer type. */
+.chapter-card.route-card:hover {
+  transform: none;
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 26%, transparent);
+  border-color: color-mix(in srgb, var(--card-color, var(--accent)) 50%, transparent);
+  box-shadow: var(--shadow-card);
+}
+[data-theme="dark"] .chapter-card.route-card:hover {
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 26%, transparent);
+  border-color: color-mix(in srgb, var(--card-color, var(--accent)) 56%, transparent);
+  box-shadow: var(--shadow-card);
+}
+
+/* `hover:hover` gates the actual lift/tint-up effect to devices with a real
+   pointer — declared after the reset above, same selector/specificity, so
+   it wins only where this media condition is true (a real mouse), and
+   simply never activates on touch (no stuck hover there at all). Modest,
+   no scale/rotation/strong glow: a small lift, a firmer shadow, and the
+   tint/border reading a little stronger. */
+@media (hover: hover) {
+  .chapter-card.route-card:hover {
+    transform: translateY(-4px);
+    background: color-mix(in srgb, var(--card-color, var(--accent)) 34%, transparent);
+    border-color: color-mix(in srgb, var(--card-color, var(--accent)) 72%, transparent);
+    box-shadow: var(--shadow);
+  }
+  [data-theme="dark"] .chapter-card.route-card:hover {
+    background: color-mix(in srgb, var(--card-color, var(--accent)) 33%, transparent);
+    border-color: color-mix(in srgb, var(--card-color, var(--accent)) 78%, transparent);
+    box-shadow: var(--shadow);
+  }
+}
 
 /* Same small/muted/uppercase label already used for .token-widget__label
    and .nav__mobile-section-lbl. */
@@ -1970,7 +2084,19 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  /* --text-muted (used for this same label elsewhere, e.g. /capitole) reads
+     fine against a near-white/near-black glass card, but falls short of AA
+     (~3:1, measured) against these tinted backgrounds — bumped to
+     --text-secondary, which clears 4.5:1 against all four colors in both
+     themes (verified). */
+  color: var(--text-secondary);
+  /* All 4 cards' eyebrows are a single line now, but Card 2's own eyebrow
+     shares a row with the "În pregătire" badge (.chapter-card__count),
+     whose padding+border make IT the taller of the two (measured 23.4px,
+     vs the eyebrow text's own ~17px) — matching that here is what actually
+     keeps every card's title aligned, not just matching the text's own
+     line height. */
+  min-height: 23.4px;
 }
 .route-card__top {
   display: flex;
@@ -2014,25 +2140,27 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .route-card__approval-note {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  /* Same contrast reasoning as .route-card__eyebrow above. */
+  color: var(--text-secondary);
   margin-bottom: 4px;
 }
 
 /* Swappable zone inside the "Clasa a 9-a" card (link → form → success) —
-   its own flex column + margin-top:auto footer so whichever state is
-   showing still pins to the card's bottom edge the same way
-   .chapter-card__footer already does everywhere else. min-height is the
-   tallest of the three states (measured), so switching between them
-   never resizes the card. justify-content:center only actually affects
-   the success state (a single description div, no footer) — the link/
-   form states' own margin-top:auto footer claims all the free space
-   first, which overrides this for them, so they stay bottom-pinned as
-   before; success just centers instead of leaving a dead gap below a
-   short line of text once the row stretches to match its taller sibling. */
+   its own flex column so whichever state is showing still pins to the
+   card's bottom edge the same way .chapter-card__footer already does
+   everywhere else. min-height is the tallest of the three states
+   (measured), so switching between them never resizes the card.
+   justify-content:flex-start (not center) is what keeps this card's icon
+   and title at the exact same height as the other 3 cards' — the link/
+   form states' own footer/form already pins itself to the bottom via its
+   own margin-top:auto regardless of this, and the success state (a single
+   description div, no footer) now simply sits right under the title
+   instead of floating centered in the leftover space below it (which used
+   to read as a big dead gap between the title and the message). */
 .route-card__dynamic {
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 12px;
   flex: 1;
   min-height: 76px;
@@ -2060,51 +2188,66 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   text-align: center;
   font-size: 0.85rem;
   color: var(--text-secondary);
-  margin-top: 24px;
+  margin-top: 14px;
 }
 
+/* 4-up only above 1100px — at 4-per-row any narrower than that the text
+   (description + bullet list) starts reading as illegible. 2x2 between
+   768 and 1100px; stacked, full width, below 768px (with the 4-up grid's
+   own max-width relaxed at each step so cards don't stay pinned narrow). */
+@media (max-width: 1100px) {
+  .route-grid { grid-template-columns: repeat(2, 1fr); max-width: 760px; }
+}
 @media (max-width: 768px) {
-  .route-grid { grid-template-columns: 1fr; gap: 12px; }
-  /* The BAC card's own bullet list already covers this copy, and on a
-     phone every line of vertical space before the cards is competing
-     with the cards themselves for the fold. Desktop/tablet keep it. */
-  .landing-hero__sub { display: none; }
+  .route-grid { grid-template-columns: 1fr; max-width: 100%; gap: 12px; }
 }
 
-/* Mobile: same spacing scale, smaller values — and a genuinely smaller H1
-   (not just letting the desktop clamp() hit its floor). The leading line
-   ("Pregătire serioasă...") already fits on one line at these sizes; the
-   accent line is sized (measured empirically at 360/390/430) to also fit
-   on exactly one line there, so the whole H1 is 2 lines total, not 3. */
-@media (max-width: 640px) {
-  /* Compact — the cards below are the point of the page and need to be
-     reachable with minimal scrolling, especially on a tall phone. */
-  .landing-hero { padding: 16px 0 12px; }
+/* ---- Mobile (≤768px): H1 has to be unmistakably the dominant thing on
+   screen (size AND contrast against the muted eyebrow/stats around it). ---- */
+@media (max-width: 768px) {
+  .landing-hero { padding: 14px 0 10px; }
+
+  .landing-hero__eyebrow { font-size: 0.6rem; letter-spacing: 0.11em; margin-bottom: 6px; }
+
+  /* Genuinely bigger than the desktop clamp()'s floor, not just whatever
+     it happens to compute at phone widths — this has to read as THE
+     headline at a glance. Sized (checked at 360/390/430) to stay within
+     2-3 lines total between the static line and the typewriter line. */
   .landing-hero__title {
-    font-size: clamp(1.4rem, 6.5vw, 1.8rem);
-    line-height: 1.25;
+    font-size: clamp(1.9rem, 8.5vw, 2.3rem);
+    line-height: 1.05;
   }
   .landing-hero__title-accent {
-    font-size: clamp(1.5rem, 6.7vw, 1.9rem);
-    line-height: 1.22;
+    font-size: clamp(2.0rem, 9vw, 2.5rem);
+    line-height: 1.02;
+    min-height: 1.02em;
   }
-  .landing-stats-card { margin-top: 10px; }
-  .route-grid { gap: 10px; }
-  .route-card { padding: 14px 16px 12px; gap: 8px; }
-  .route-grid__note { margin-top: 14px; }
+
+  /* One row of three compact columns instead of wrapping/hanging
+     separators — value stays above label (inherited from the base
+     layout), just smaller and tighter. */
+  .landing-hero__stats { margin-top: 18px; flex-wrap: nowrap; }
+  .landing-hero__stat { padding: 0 12px; gap: 2px; }
+  .landing-hero__stats .stat__val { font-size: 1.2rem; }
+  .landing-hero__stats .stat__lbl { font-size: 0.6rem; letter-spacing: 0.2px; }
+
+  .route-card { padding: 22px 20px 20px; min-height: 0; gap: 12px; }
+  .route-card .chapter-card__name { font-size: 1.3rem; }
+  .route-grid__note { margin-top: 16px; }
+
+  /* backdrop-filter blur is one of the pricier things a phone GPU can be
+     asked to do per frame, per card, x4 — cut its radius (and the
+     saturate boost, cheap on its own but riding the same filter pass)
+     rather than drop the glass look entirely. */
+  .chapter-card.route-card { backdrop-filter: blur(10px) saturate(1.3); -webkit-backdrop-filter: blur(10px) saturate(1.3); }
 }
 
-/* Taller viewports get more breathing room instead of just floating in
-   extra empty space — same spacing values scaled up, not new ones. Guarded
-   to min-width:900px too — height alone also matches a tall PHONE held in
-   portrait (e.g. 390×932), where this extra padding pushed the cards
-   (the actual point of the page) below the fold instead of giving a
-   desktop monitor more breathing room, which is what this was meant for. */
-@media (min-height: 850px) and (min-width: 900px) {
-  .landing-hero { padding: 118px 0 76px; }
-  .landing-hero__sub { margin-top: 38px; }
-  .landing-stats-card { margin-top: 32px; }
-  .route-grid__note { margin-top: 30px; }
+/* Extra-narrow phones (360-400px): the three stat columns + two separators
+   get tight — drop the separators rather than let them crowd the numbers
+   ("fără separatoare dacă nu încap curat"). */
+@media (max-width: 400px) {
+  .landing-hero__stat:not(:last-child)::after { display: none; }
+  .landing-hero__stat { padding: 0 8px; }
 }
 
 /* 10. CATEGORY PAGE — HEADER
