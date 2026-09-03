@@ -1298,9 +1298,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 /* Animated gradient accent line */
 .hero__title-accent {
   display: block;
-  font-size: clamp(3rem, 8vw, 6rem);
+  font-size: clamp(2.1rem, 5.4vw, 4.2rem);
   font-weight: 900;
-  letter-spacing: -2px;
+  letter-spacing: -1.5px;
   line-height: 1.0;
   margin-top: 2px;
   background: linear-gradient(120deg, #3b82f6 0%, #8b5cf6 30%, #06b6d4 60%, #3b82f6 100%);
@@ -1496,6 +1496,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: -0.5px;
   color: var(--text);
   line-height: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .stat__val.accent { color: var(--accent); }
 
@@ -1763,25 +1766,40 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .progress-track {
   width: 100%;
-  height: 4px;
-  background: var(--border);
-  border-radius: 2px;
+  height: 10px;
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 14%, var(--border));
+  border-radius: 999px;
   overflow: hidden;
-  margin-bottom: 6px;
+  margin-bottom: 8px;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,0.10);
 }
 
 .progress-bar {
+  position: relative;
   height: 100%;
-  background: var(--card-color, var(--accent));
-  border-radius: 2px;
+  background: linear-gradient(90deg,
+    color-mix(in srgb, var(--card-color, var(--accent)) 78%, black 6%),
+    var(--card-color, var(--accent)));
+  border-radius: 999px;
   transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-  opacity: 0.85;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--card-color, var(--accent)) 50%, transparent);
+}
+
+/* Glossy top highlight — gives the fill a raised, gamified-XP-bar feel
+   instead of a flat tint. */
+.progress-bar::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.6), rgba(255,255,255,0) 60%);
 }
 
 .progress-label {
   display: flex;
   justify-content: space-between;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+  font-weight: 600;
   color: var(--text-muted);
 }
 .progress-label span:last-child { color: var(--text-secondary); font-weight: 700; }
@@ -5277,8 +5295,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 @media (max-width: 768px) {
   .subcat-cards-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
   .hero { padding: 40px 0 20px; }
-  .hero__title-accent { font-size: clamp(2.6rem, 10vw, 4rem); }
-  .search-wrap { margin-bottom: 20px; }
+  .hero__title-accent { font-size: clamp(1.9rem, 6.5vw, 3rem); }
   .hero__sub { margin-bottom: 16px; }
   .cat-hud { flex-wrap: wrap; gap: 8px; }
   .subcat-bc__inner { padding: 0 16px; }
@@ -5371,9 +5388,8 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
      across the whole phone range without needing a separate override for
      very small screens (replaces the old ≤400px .hero__title tweak below). */
   .hero__title { font-size: clamp(1.7rem, 7.5vw, 2.1rem); letter-spacing: -0.5px; }
-  .hero__title-accent { font-size: clamp(3.2rem, 16vw, 4.4rem); letter-spacing: -1.5px; }
+  .hero__title-accent { font-size: clamp(1.7rem, 9vw, 2.6rem); letter-spacing: -1px; }
   .hero__sub { font-size: 0.88rem; margin-bottom: 14px; }
-  .search-wrap { margin-bottom: 10px; }
   .hero-orb--blue { width: 320px; height: 320px; }
   .hero-orb--purple { width: 260px; height: 260px; }
   .hero-orb--teal { display: none; }
@@ -5393,6 +5409,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
     display: flex;
     align-items: center;
     justify-content: center;
+    gap: 3px;
   }
   .stat__lbl { font-size: 0.56rem; letter-spacing: 0.3px; min-height: 24px; }
   /* transform: scale() only changes how the ring LOOKS, not the box size it

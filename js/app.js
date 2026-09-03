@@ -90,10 +90,7 @@
             </div>
           </div>
 
-          <div>
-            <div class="chapter-card__name">${BM.esc(cat.name)}</div>
-            <div class="chapter-card__desc">${BM.esc(cat.description)}</div>
-          </div>
+          <div class="chapter-card__name">${BM.esc(cat.name)}</div>
 
           <div class="chapter-card__tags">
             ${subcatNames.map(n => `<span class="tag">${BM.esc(n)}</span>`).join('')}
