@@ -10,6 +10,7 @@ BM.CATEGORIES = [
     id: 'algebra', name: 'Algebră', symbol: 'α',
     gradient: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: '#7c3aed',
     description: 'Ecuații, inecuații, polinoame, numere complexe, exponențiale, logaritmi, trigonometrie',
+    tagline: 'Bazele algebrice de care ai nevoie la orice alt capitol.',
     subcategories: [
       { id: 'calcul-algebric',  name: 'Calcul Algebric',           symbol: 'ax',   color: '#7c3aed', description: 'Radicali, puteri, expresii algebrice' },
       { id: 'polinoame',        name: 'Polinoame',                 symbol: 'P(X)', color: '#2563eb', description: 'Împărțire, rădăcini, descompunere' },
@@ -29,6 +30,7 @@ BM.CATEGORIES = [
     id: 'geometrie', name: 'Geometrie', symbol: '△',
     gradient: 'linear-gradient(135deg,#be185d,#9d174d)', color: '#ec4899',
     description: 'Geometrie plană și în spațiu',
+    tagline: 'Vizualizează și rezolvă orice problemă de geometrie.',
     subcategories: [
       { id: 'geo-plana',     name: 'Geometrie Plană',     symbol: '△',   color: '#f43f5e', description: 'Triunghiuri, cercuri, poligoane' },
       { id: 'geo-spatiu',    name: 'Geometrie în Spațiu', symbol: '⬡',   color: '#be185d', description: 'Poliedre, sfere, volume' }
@@ -38,6 +40,7 @@ BM.CATEGORIES = [
     id: 'analiza', name: 'Analiză Matematică', symbol: '∫',
     gradient: 'linear-gradient(135deg,#d97706,#92400e)', color: '#f59e0b',
     description: 'Limite, derivate, integrale, șiruri și progresii',
+    tagline: 'Studiul funcțiilor, pas cu pas, până la stăpânire.',
     subcategories: [
       { id: 'limite',    name: 'Limite',    symbol: 'lim', color: '#f59e0b', description: 'Limite de funcții și șiruri' },
       { id: 'derivate',  name: 'Derivate',  symbol: "f'",  color: '#d97706', description: 'Reguli de derivare, monotonie' },
@@ -50,6 +53,7 @@ BM.CATEGORIES = [
     id: 'combinatorica', name: 'Combinatorică și Probabilitate', symbol: 'C<span class="sym-nb"><sup>k</sup><sub>n</sub></span>',
     gradient: 'linear-gradient(135deg,#059669,#065f46)', color: '#10b981',
     description: 'Permutări, aranjamente, combinări, probabilitate și statistică',
+    tagline: 'Numărători, șanse și gândire logică pentru BAC.',
     subcategories: [
       { id: 'permutari',     name: 'Permutări',     symbol: 'Pₙ',  color: '#10b981', description: 'Aranjamente fără repetiție' },
       { id: 'aranjamente',   name: 'Aranjamente',   symbol: 'A<span class="sym-nb"><sup>k</sup><sub>n</sub></span>', color: '#059669', description: 'Selecții ordonate de k elemente' },

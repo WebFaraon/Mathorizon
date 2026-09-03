@@ -1118,7 +1118,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 /* 6. HERO & SEARCH
    ============================================================ */
 .hero {
-  padding: 56px 0 32px;
+  padding: 40px 0 16px;
   text-align: center;
   position: relative;
   background-color: var(--bg);
@@ -1320,7 +1320,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .hero__sub {
   font-size: clamp(1rem, 2vw, 1.18rem);
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: 10px;
   position: relative;
   line-height: 1.5;
   /* Reserves room for the longest rotating phrase (2 lines) — the
@@ -1811,13 +1811,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 
 .tag {
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: var(--radius-sm);
-  font-size: 0.66rem;
-  font-weight: 600;
-  background: var(--surface);
-  color: var(--text-muted);
-  border: 1px solid var(--border);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: color-mix(in srgb, var(--card-color, var(--accent)) 14%, var(--surface));
+  color: color-mix(in srgb, var(--card-color, var(--accent)) 80%, var(--text));
+  border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 32%, var(--border));
   letter-spacing: 0.1px;
 }
 
@@ -5294,9 +5294,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 /* Tablets portrait */
 @media (max-width: 768px) {
   .subcat-cards-grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; }
-  .hero { padding: 40px 0 20px; }
+  .hero { padding: 32px 0 14px; }
   .hero__title-accent { font-size: clamp(1.9rem, 6.5vw, 3rem); }
-  .hero__sub { margin-bottom: 16px; }
+  .hero__sub { margin-bottom: 10px; }
   .cat-hud { flex-wrap: wrap; gap: 8px; }
   .subcat-bc__inner { padding: 0 16px; }
 }
@@ -5381,7 +5381,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   .main { padding: 12px 12px 28px; }
 
   /* ---- Hero ---- */
-  .hero { padding: 28px 0 16px; }
+  .hero { padding: 22px 0 10px; }
   /* Was a flat 1.5rem/2.8rem — read as an afterthought next to how big and
      bold this reads on desktop. clamp()'s vw term scales it with the actual
      phone width instead of a single fixed size, so it stays this dominant
@@ -5389,7 +5389,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
      very small screens (replaces the old ≤400px .hero__title tweak below). */
   .hero__title { font-size: clamp(1.7rem, 7.5vw, 2.1rem); letter-spacing: -0.5px; }
   .hero__title-accent { font-size: clamp(1.7rem, 9vw, 2.6rem); letter-spacing: -1px; }
-  .hero__sub { font-size: 0.88rem; margin-bottom: 14px; }
+  .hero__sub { font-size: 0.88rem; margin-bottom: 8px; }
   .hero-orb--blue { width: 320px; height: 320px; }
   .hero-orb--purple { width: 260px; height: 260px; }
   .hero-orb--teal { display: none; }
