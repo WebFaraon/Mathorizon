@@ -115,8 +115,10 @@
 
     /* Stagger chapter card entry + animate progress bars */
     requestAnimationFrame(() => {
-      grid.querySelectorAll('.chapter-card').forEach((card, i) => {
+      const cards = grid.querySelectorAll('.chapter-card');
+      cards.forEach((card, i) => {
         card.style.animationDelay = `${i * 60}ms`;
+        fitCardTags(card, BM.CATEGORIES[i]);
       });
       grid.querySelectorAll('.progress-bar').forEach(bar => {
         const w = bar.style.width;
@@ -141,6 +143,39 @@
         bacCard.style.setProperty('--mouse-x', (e.clientX - r.left) + 'px');
         bacCard.style.setProperty('--mouse-y', (e.clientY - r.top) + 'px');
       });
+    }
+  }
+
+  /* Trims a card's subcategory tags down until they all sit on one visual
+     row, collapsing whatever doesn't fit into a single "+N tipuri" tag.
+     Driven by real layout (offsetTop), not an estimated character budget —
+     Romanian diacritics/kerning make width guessing unreliable, and this
+     way it stays correct if a subcategory gets renamed later. Must run
+     after the card is in the DOM (offsetTop needs real layout). */
+  function fitCardTags(card, cat) {
+    const wrap = card.querySelector('.chapter-card__tags');
+    if (!wrap || !cat) return;
+    const names = cat.subcategories.map(s => s.name);
+    if (names.length === 0) return;
+
+    const render = n => {
+      const hidden = names.length - n;
+      wrap.innerHTML = names.slice(0, n).map(name => `<span class="tag">${BM.esc(name)}</span>`).join('') +
+        (hidden > 0 ? `<span class="tag">+${hidden} tipuri</span>` : '');
+    };
+
+    let shown = Math.min(3, names.length);
+    render(shown);
+    while (shown > 1) {
+      const tags = wrap.children;
+      const firstTop = tags[0].offsetTop;
+      let wrapped = false;
+      for (let i = 1; i < tags.length; i++) {
+        if (tags[i].offsetTop !== firstTop) { wrapped = true; break; }
+      }
+      if (!wrapped) break;
+      shown--;
+      render(shown);
     }
   }
 

@@ -1483,10 +1483,14 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   content: '';
   position: absolute;
   right: 0;
-  top: 22%;
-  height: 56%;
-  width: 1px;
-  background: var(--border);
+  top: 12%;
+  height: 76%;
+  width: 1.5px;
+  border-radius: 1px;
+  /* --catalog-line reads noticeably stronger than --border (it's the
+     token the Catalog table uses so its grid lines don't wash out) —
+     a plain 1px --border line was too faint to register here. */
+  background: var(--catalog-line);
 }
 .stat:last-child::after { display: none; }
 
@@ -5400,7 +5404,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
      regardless of the ring being taller than plain text or "Total
      exerciții"/"Zile consecutive" wrapping to 2 lines while others don't. */
   .stats { flex-wrap: nowrap; gap: 2px; align-items: flex-start; }
-  .stat__sep { display: none; }
   .stat::after { display: none; }
   .stat { flex: 1 1 0; min-width: 0; padding: 10px 4px; }
   .stat__val {
