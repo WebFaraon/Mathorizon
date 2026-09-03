@@ -6102,12 +6102,19 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .sim-card--bac:hover { background: linear-gradient(160deg, #244896 0%, #4a7fc5 100%); }
 
-/* Lectie card — purple gradient */
-.sim-card--lectie {
+/* Evaluare Națională (clasa a IX-a) card — purple gradient. Inert (no
+   exercises yet), so unlike --bac it deliberately has no :hover
+   background-shift — that affordance would suggest it's clickable. */
+.sim-card--natl {
   background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
-  transition: background 0.35s ease;
+  cursor: default;
 }
-.sim-card--lectie:hover { background: linear-gradient(160deg, #481e99 0%, #7d4fe0 100%); }
+.sim-card--natl:hover .sim-card-cta {
+  background: rgba(255,255,255,0.10);
+  border-color: rgba(255,255,255,0.22);
+  color: rgba(255,255,255,0.80);
+  transform: none;
+}
 
 /* Card inner content */
 .sim-card-content {
@@ -6121,7 +6128,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   width: 100%;
   animation: bac-slide-left 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
 }
-.sim-card--lectie .sim-card-content { animation-name: bac-slide-right; }
+.sim-card--natl .sim-card-content { animation-name: bac-slide-right; }
 
 .sim-card-badge {
   display: inline-flex;
@@ -6148,7 +6155,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin-bottom: 0;
 }
 .sim-card-title em { font-style: normal; color: #93c5fd; }
-.sim-card--lectie .sim-card-title em { color: #c4b5fd; }
+.sim-card--natl .sim-card-title em { color: #c4b5fd; }
 .sim-card-title span { color: rgba(255,255,255,0.52); font-weight: 300; }
 .sim-card-rule {
   width: 44px;
@@ -6157,7 +6164,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   border-radius: 2px;
   margin: 18px 0 22px;
 }
-.sim-card--lectie .sim-card-rule { background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0)); }
+.sim-card--natl .sim-card-rule { background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0)); }
 .sim-card-desc {
   font-size: 0.88rem;
   color: rgba(255,255,255,0.62);
@@ -6570,15 +6577,21 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   .sim-card { flex: none; min-height: 50vh; }
   .sim-choose-divider { flex: 0 0 auto; width: 100%; height: 0; }
   /* The span is position:absolute, so it's taken out of flex layout
-     entirely — .sim-choose-divider's justify-content:center (which works
-     fine on desktop, where the divider is a narrow sliver between two
-     side-by-side cards) does nothing for it here, where the divider
-     stretches to the full stacked-card width. Needs its own explicit
-     horizontal centering via left:50% + translateX(-50%). */
+     entirely — .sim-choose-divider's align-items/justify-content (which
+     work fine on desktop, where the divider is a full-height sliver
+     between two side-by-side cards) do nothing for it here, where the
+     divider is a 0-height strip stretching the full stacked-card width.
+     Needs its own explicit centering on both axes: left:50% + top:0 (the
+     strip's own height is 0, so top:0 already sits it on the seam)
+     with translate(-50%,-50%) to center the pill itself on that point —
+     without an explicit top, "top:auto" let some browsers fall back to
+     the pill's static position instead, drifting it up into the card
+     above instead of straddling the seam. */
   .sim-choose-divider span {
     writing-mode: horizontal-tb;
     padding: 6px 14px;
     left: 50%;
+    top: 0;
     transform: translate(-50%, -50%);
   }
   .sim-card-content { padding: 36px 28px; }
@@ -6631,11 +6644,8 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 [data-theme="dark"] .sim-card--bac:hover {
   background: linear-gradient(160deg, #112550 0%, #204285 100%);
 }
-[data-theme="dark"] .sim-card--lectie {
+[data-theme="dark"] .sim-card--natl {
   background: linear-gradient(160deg, #16083a 0%, #341880 100%);
-}
-[data-theme="dark"] .sim-card--lectie:hover {
-  background: linear-gradient(160deg, #1c0a4a 0%, #3e1d97 100%);
 }
 
 /* BAC expanded left panel in dark mode */

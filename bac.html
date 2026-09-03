@@ -57,8 +57,10 @@
       <!-- Divider -->
       <div class="sim-choose-divider"><span>sau</span></div>
 
-      <!-- Lectie de Proba Card -->
-      <div class="sim-card sim-card--lectie" id="simCardLectie" onclick="selectSimType('lectie')" role="button" tabindex="0" aria-label="Selectează Simulare Lecție de Probă">
+      <!-- Evaluare Națională (clasa a IX-a) Card — încă fără exerciții pentru
+           clasa a IX-a, deci inertă (fără onclick/role/tabindex) până apare
+           conținut real; vezi și cardul „Clasa a 9-a" de pe index.html. -->
+      <div class="sim-card sim-card--natl" id="simCardNatl">
         <div class="sim-card-deco" aria-hidden="true">
           <span style="--sz:120px;--t:6%;--l:60%">√</span>
           <span style="--sz:95px;--t:55%;--l:3%">x²</span>
@@ -66,16 +68,16 @@
           <span style="--sz:80px;--t:20%;--l:20%">±</span>
         </div>
         <div class="sim-card-content">
-          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="8" height="4" x="8" y="2" rx="1" ry="1"></rect><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path><path d="M12 11h4"></path><path d="M12 16h4"></path><path d="M8 11h.01"></path><path d="M8 16h.01"></path></svg> Evaluare inițială</div>
-          <h2 class="sim-card-title">Lecție de <em>Probă</em><br><span>Testare Nivel</span></h2>
+          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg> Evaluare Națională — Clasa a IX-a</div>
+          <h2 class="sim-card-title">Evaluare <em>Națională</em><br><span>Clasa a IX-a</span></h2>
           <div class="sim-card-rule"></div>
-          <p class="sim-card-desc">Test personalizat pe clasă, cu exerciții de la nota 5 la nota 10. Evaluăm nivelul elevului nou la prima lecție.</p>
+          <p class="sim-card-desc">Structura oficială a Evaluării Naționale pentru clasa a IX-a. Exercițiile sunt în lucru — revino în curând.</p>
           <div class="sim-card-chips">
-            <div class="sim-chip sim-chip--purple"><span class="sim-chip__val">Cls. 5–12</span><span class="sim-chip__lbl">Nivel</span></div>
-            <div class="sim-chip sim-chip--rose"><span class="sim-chip__val">8</span><span class="sim-chip__lbl">Exerciții</span></div>
-            <div class="sim-chip sim-chip--indigo"><span class="sim-chip__val">50 min</span><span class="sim-chip__lbl">Timp</span></div>
+            <div class="sim-chip sim-chip--amber" style="min-width:auto;padding:9px 18px">
+              <span class="sim-chip__val" style="font-size:0.95rem;white-space:nowrap">În pregătire</span>
+            </div>
           </div>
-          <div class="sim-card-cta">Selectează Lecție de Probă <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></div>
+          <div class="sim-card-cta"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg> Disponibil în curând</div>
         </div>
       </div>
     </div>
