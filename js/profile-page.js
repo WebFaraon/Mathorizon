@@ -86,6 +86,103 @@
     catch { return []; }
   }
 
+  /* Teacher's own classes + total students across them — same tables/
+     query shape as classes-page.js's renderTeacherView() and the admin
+     panel's per-professor class list, just scoped to the logged-in
+     teacher instead of an admin RPC. */
+  async function _fetchTeacherStats(sb, teacherId) {
+    try {
+      const { data: classes, error } = await sb
+        .from('classes')
+        .select('id')
+        .eq('teacher_id', teacherId);
+      if (error) throw error;
+      const classList = classes || [];
+      let studentCount = 0;
+      if (classList.length) {
+        const counts = await Promise.all(classList.map(async cls => {
+          const { count } = await sb
+            .from('class_members')
+            .select('*', { count: 'exact', head: true })
+            .eq('class_id', cls.id);
+          return count || 0;
+        }));
+        studentCount = counts.reduce((a, b) => a + b, 0);
+      }
+      return { classCount: classList.length, studentCount };
+    } catch {
+      return { classCount: 0, studentCount: 0 };
+    }
+  }
+
+  /* ---- Edit profile modal (display name; avatar has its own hover-edit
+     affordance on the header avatar already) ---- */
+  function _showEditProfileModal({ name, sb, onSaved }) {
+    const ov = document.createElement('div');
+    ov.className = 'prof-modal-overlay';
+    ov.innerHTML = `
+      <div class="prof-modal" role="dialog" aria-modal="true">
+        <h3 class="prof-modal__title">Editează profilul</h3>
+        <form id="fEditProfile" novalidate style="text-align:left">
+          <div id="editProfileMsg" class="auth-msg" style="display:none;margin-bottom:12px"></div>
+          <div class="auth-field" style="margin-bottom:20px">
+            <label class="auth-label" for="editName">Nume afișat</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="editName" type="text" maxlength="60" required value="${BM.esc(name)}">
+            </div>
+          </div>
+          <p class="prof-hint-muted" style="margin-bottom:20px">Pentru a schimba poza de profil, treci cu mouse-ul peste avatar și apasă pe iconița de editare.</p>
+          <div class="prof-modal__actions">
+            <button type="button" class="btn btn--surface" data-action="cancel">Anulează</button>
+            <button type="submit" class="btn btn--primary" id="btnSaveProfile">
+              <span>Salvează</span><span class="auth-spin" style="display:none"></span>
+            </button>
+          </div>
+        </form>
+      </div>`;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
+
+    const close = () => {
+      ov.classList.remove('prof-modal-overlay--in');
+      setTimeout(() => { ov.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }, 180);
+    };
+
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    document.getElementById('editName')?.focus();
+
+    function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
+    document.addEventListener('keydown', onEsc);
+
+    ov.querySelector('#fEditProfile').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = document.getElementById('editProfileMsg');
+      const showMsg = (txt, err) => {
+        if (!msg) return;
+        msg.textContent = txt;
+        msg.className = 'auth-msg ' + (err ? 'auth-msg--error' : 'auth-msg--success');
+        msg.style.display = '';
+      };
+      const newName = document.getElementById('editName')?.value.trim();
+      if (!newName) return showMsg('Numele nu poate fi gol.', true);
+
+      const btn = document.getElementById('btnSaveProfile');
+      if (btn) { btn.disabled = true; btn.querySelector('span:first-child').style.opacity = '0'; btn.querySelector('.auth-spin').style.display = ''; }
+
+      const { error } = await sb.auth.updateUser({ data: { full_name: newName } });
+
+      if (btn) { btn.disabled = false; btn.querySelector('span:first-child').style.opacity = ''; btn.querySelector('.auth-spin').style.display = 'none'; }
+
+      if (error) return showMsg(_roError(error.message), true);
+      onSaved(newName);
+      close();
+      BM.toast('Profilul a fost actualizat!', 'success');
+    });
+  }
+
   /* Compress image to data URL (max 200px, JPEG 0.85) */
   function _compressImage(file) {
     return new Promise((resolve, reject) => {
@@ -126,7 +223,7 @@
     const skeleton = document.getElementById('profileSkeleton');
     if (!content || !skeleton) return;
 
-    const name        = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
+    let name          = user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'Utilizator';
     const isUsernameAccount = user.user_metadata?.is_username_account === true;
     const email       = isUsernameAccount ? '' : (user.email || '');
     const avatarUrl   = user.user_metadata?.custom_avatar_url
@@ -141,6 +238,10 @@
     const role    = window.BMAuth?.role   || 'elev';
     const status  = window.BMAuth?.status || 'active';
     const isAdmin = role === 'admin';
+    const isTeacher = role === 'profesor';
+    const isStudent = role === 'elev';
+
+    const teacherStats = isTeacher ? await _fetchTeacherStats(sb, user.id) : null;
 
     const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
@@ -164,6 +265,16 @@
                title="${tokens} token${tokens === 1 ? '' : 'uri'}">${icon('ticket', { size: 24 })}</span>`
       ).join('') + (extra ? `<span class="prof-token-extra">+${extra}</span>` : '');
     }
+
+    /* Learning-progress data — same sources as Antrenament (js/training-stats.js)
+       and Capitole/index (js/storage.js, js/data.js), just read here instead
+       of duplicated. */
+    const levelInfo    = window.BM?.Training?.getLevelInfo ? BM.Training.getLevelInfo() : { level: 1, xpIntoLevel: 0, xpForNextLevel: 100 };
+    const totalXp      = window.BM?.Training?.getTotalXp ? BM.Training.getTotalXp() : 0;
+    const bestStreak    = window.BM?.Training?.getBestStreak ? BM.Training.getBestStreak() : 0;
+    const dailyStreak   = BM.Storage.getStreak().count;
+    const exStats       = BM.Storage.getStats(BM.EXERCISES);
+    const favCount      = BM.Storage.getFavorites().length;
 
     /* BAC history rows */
     let histContent;
@@ -256,51 +367,81 @@
           </div>
           <div class="prof-header-meta">
             <span class="prof-meta-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
-            <span class="prof-meta-sep">·</span>
-            <span class="prof-meta-item">${icon('ticket', { size: 16 })} ${isAdmin ? '∞ tokenuri (nelimitat)' : `${tokens} token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
-            <span class="prof-meta-sep">·</span>
-            <span class="prof-meta-item">${icon('clipboard-list', { size: 16 })} ${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'} BAC</span>
           </div>
-          ${role === 'admin' ? `
-          <a href="admin.html" class="btn btn--primary btn--sm" style="margin-top:14px;display:inline-flex;gap:8px;align-items:center">
-            ${icon('settings', { size: 16 })} Panou Admin
-          </a>` : ''}
+          <div class="prof-header-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+            ${role === 'admin' ? `
+            <a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">
+              ${icon('settings', { size: 16 })} Panou Admin
+            </a>` : ''}
+          </div>
         </div>
       </div>
 
       <!-- CARDS GRID -->
       <div class="prof-grid">
 
-        <!-- Card: Informații cont -->
-        <div class="prof-card">
+        ${isStudent ? `
+        <!-- Card: Progresul Meu -->
+        <div class="prof-card prof-card--wide">
           <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('user', { size: 16 })}</span>
-            <span class="prof-card__title">Informații cont</span>
+            <span class="prof-card__icon">${icon('trending-up', { size: 16 })}</span>
+            <span class="prof-card__title">Progresul Meu</span>
           </div>
           <div class="prof-card__body">
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">Nume</span>
-              <span class="prof-field-val">${BM.esc(name)}</span>
+            <div class="prof-stats" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
+              <div class="prof-stat">
+                <div class="prof-stat__val">${levelInfo.level}</div>
+                <div class="prof-stat__lbl">Nivel curent</div>
+                <div class="prof-stat__sub">${levelInfo.xpIntoLevel} / ${levelInfo.xpForNextLevel} XP</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val">${totalXp}</div>
+                <div class="prof-stat__lbl">XP Total</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val">${dailyStreak}</div>
+                <div class="prof-stat__lbl">Streak curent</div>
+                <div class="prof-stat__sub">zile la rând</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val">${bestStreak}</div>
+                <div class="prof-stat__lbl">Cel mai bun streak</div>
+                <div class="prof-stat__sub">Antrenament</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val">${exStats.solvedCount}</div>
+                <div class="prof-stat__lbl">Exerciții rezolvate</div>
+                <div class="prof-stat__sub">din ${exStats.total}</div>
+              </div>
             </div>
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">${isUsernameAccount ? 'Nume de utilizator' : 'Email'}</span>
-              <span class="prof-field-val">${isUsernameAccount ? BM.esc(user.user_metadata?.username || name) : BM.esc(email)}</span>
+
+            <div style="margin-top:22px">
+              <div class="progress-track"><div class="progress-bar" style="width:${exStats.percent}%"></div></div>
+              <div class="progress-label">
+                <span>${exStats.solvedCount} / ${exStats.total} exerciții rezolvate</span>
+                <span>${exStats.percent}%</span>
+              </div>
             </div>
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">Cont creat</span>
-              <span class="prof-field-val">${memberSince}</span>
-            </div>
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">Autentificare</span>
-              <span class="prof-field-val" title="${isGoogle
-                ? 'Te conectezi la cont folosind contul tău Google.'
-                : isUsernameAccount
-                  ? 'Te conectezi la cont folosind numele de utilizator și parola alese la înregistrare.'
-                  : 'Te conectezi la cont folosind emailul și parola alese la înregistrare (nu prin Google sau alt serviciu).'}">${isGoogle ? icon('globe', { size: 16 }) + ' Cont Google' : (isUsernameAccount ? icon('user', { size: 16 }) + ' Utilizator + parolă' : icon('mail', { size: 16 }) + ' Email + parolă')}</span>
+
+            <div style="margin-top:24px">
+              <div class="prof-progress-subhead">Progres pe capitole</div>
+              ${BM.CATEGORIES.map(cat => {
+                const p = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
+                return `
+                <div class="prof-progress-chapter-row">
+                  <span class="prof-progress-chapter-name">${BM.esc(cat.name)}</span>
+                  <div class="progress-track" style="--card-color:${cat.color};margin:0;flex:1">
+                    <div class="progress-bar" style="width:${p.percent}%"></div>
+                  </div>
+                  <span class="prof-progress-chapter-pct">${p.percent}%</span>
+                </div>`;
+              }).join('')}
             </div>
           </div>
-        </div>
+        </div>` : ''}
 
+        ${!isTeacher ? `
         <!-- Card: ExamTokenuri -->
         <div class="prof-card">
           <div class="prof-card__head">
@@ -322,7 +463,35 @@
               Pornește simulare BAC
             </a>
           </div>
-        </div>
+        </div>` : ''}
+
+        ${isTeacher ? `
+        <!-- Card: Clasele Mele -->
+        <div class="prof-card">
+          <div class="prof-card__head">
+            <span class="prof-card__icon">${icon('school', { size: 16 })}</span>
+            <span class="prof-card__title">Clasele Mele</span>
+          </div>
+          <div class="prof-card__body">
+            <div class="prof-stats">
+              <div class="prof-stat">
+                <div class="prof-stat__val">${teacherStats.classCount}</div>
+                <div class="prof-stat__lbl">Clase</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val">${teacherStats.studentCount}</div>
+                <div class="prof-stat__lbl">Elevi</div>
+              </div>
+              <div class="prof-stat">
+                <div class="prof-stat__val" style="font-size:1.05rem">${status === 'active' ? 'Aprobat' : status === 'pending' ? 'În așteptare' : 'Respins'}</div>
+                <div class="prof-stat__lbl">Status cont</div>
+              </div>
+            </div>
+            <a href="classes.html" class="btn btn--primary btn--sm" style="width:100%;justify-content:center;margin-top:20px">
+              ${icon('school', { size: 16 })} Vezi clasele mele
+            </a>
+          </div>
+        </div>` : ''}
 
         <!-- Card: Schimbă parola -->
         <div class="prof-card">
@@ -356,30 +525,9 @@
           </div>
         </div>
 
-        <!-- Card: Sesiune -->
-        <div class="prof-card">
-          <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('lock', { size: 16 })}</span>
-            <span class="prof-card__title">Sesiune și securitate</span>
-          </div>
-          <div class="prof-card__body">
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">Status sesiune</span>
-              <span class="prof-field-val" style="color:var(--green);display:inline-flex;align-items:center;gap:6px"><span class="prof-status-dot"></span>Activ</span>
-            </div>
-            <div class="prof-field-row">
-              <span class="prof-field-lbl">Ultima autentificare</span>
-              <span class="prof-field-val">${_formatDate(user.last_sign_in_at)}</span>
-            </div>
-            <button class="btn btn--danger-outline btn--sm" id="btnLogout" style="margin-top:16px;width:100%">
-              ${icon('log-out', { size: 16 })}
-              Deconectare
-            </button>
-          </div>
-        </div>
-
       </div>
 
+      ${!isTeacher ? `
       <!-- BAC HISTORY -->
       <div class="prof-hist-card">
         <div class="prof-card__head">
@@ -388,6 +536,22 @@
           ${hist.length ? `<span class="bac-hist__toggle-count" style="margin-left:auto;margin-right:0">${hist.length}</span>` : ''}
         </div>
         <div id="profHistBody">${histContent}</div>
+      </div>` : ''}
+
+      ${!isTeacher ? `
+      <!-- Favorite exercises (compact) -->
+      <div class="prof-session-strip" style="margin-top:16px">
+        <span class="prof-session-strip__text">${icon('heart', { size: 16 })} ${favCount} exercițiu${favCount === 1 ? '' : 'i'} favorit${favCount === 1 ? '' : 'e'}</span>
+        <a class="btn btn--surface btn--sm" href="capitole.html?panel=fav">Vezi lista</a>
+      </div>` : ''}
+
+      <!-- Sesiune (comprimat) -->
+      <div class="prof-session-strip" style="margin-top:16px">
+        <span class="prof-session-strip__text">${icon('clock', { size: 16 })} Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</span>
+        <button class="btn btn--danger-outline btn--sm" id="btnLogout">
+          ${icon('log-out', { size: 16 })}
+          Deconectare
+        </button>
       </div>
     `;
 
@@ -517,6 +681,34 @@
       inp.type = inp.type === 'password' ? 'text' : 'password';
       btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
     };
+
+    /* Edit profile (display name) */
+    document.getElementById('btnEditProfile')?.addEventListener('click', () => {
+      _showEditProfileModal({
+        name, sb,
+        onSaved: newName => {
+          name = newName;
+          const nameParts = newName.split(/\s+/).filter(Boolean);
+          const newInitials = nameParts.length >= 2
+            ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
+            : newName.slice(0, 2).toUpperCase() || '?';
+
+          const nameEl = document.querySelector('.prof-name');
+          if (nameEl) nameEl.textContent = newName;
+
+          const initialsEl = document.querySelector('.prof-avatar-initials');
+          if (initialsEl) initialsEl.textContent = newInitials;
+
+          const navNameEl = document.querySelector('.nav-profile-name');
+          if (navNameEl) navNameEl.textContent = newName;
+          const navInitialsEl = document.querySelector('.nav-profile-initials');
+          if (navInitialsEl) navInitialsEl.textContent = newInitials;
+
+          const navBtn = document.getElementById('navProfileBtn');
+          if (navBtn) navBtn.title = newName;
+        }
+      });
+    });
   }
 
   /* ---- INIT ---- */

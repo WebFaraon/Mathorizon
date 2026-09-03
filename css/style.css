@@ -9507,6 +9507,66 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .prof-hint-muted { font-size: 0.92rem; color: var(--text-muted); line-height: 1.6; }
 
+/* ---- Wide card (spans both grid columns) ---- */
+.prof-card--wide { grid-column: 1 / -1; }
+
+/* ---- Compact single-line "strip" cards (Sesiune, Favorite) ---- */
+.prof-session-strip {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 14px;
+  padding: 16px 20px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+}
+.prof-session-strip__text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+[data-theme="dark"] .prof-session-strip { background: #1c1c1c; }
+
+/* ---- Per-chapter progress breakdown (Progresul Meu card) ---- */
+.prof-progress-chapter-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 7px 0;
+}
+.prof-progress-chapter-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text);
+  min-width: 190px;
+  flex-shrink: 0;
+}
+.prof-progress-chapter-pct {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  min-width: 38px;
+  text-align: right;
+  flex-shrink: 0;
+}
+.prof-progress-subhead {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+@media (max-width: 560px) {
+  .prof-progress-chapter-name { min-width: 110px; font-size: 0.78rem; }
+}
+
 /* Buttons */
 .btn--danger-outline {
   background: transparent;
