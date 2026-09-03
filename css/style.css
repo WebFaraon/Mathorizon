@@ -4168,20 +4168,20 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .config-subcat-actions {
   display: flex;
-  gap: 8px;
-  margin-bottom: 8px;
+  gap: 10px;
+  margin-bottom: 14px;
 }
 .config-subcat-action {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.7rem;
+  gap: 6px;
+  font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-secondary);
   background: var(--surface);
   border: 1.5px solid var(--border);
   border-radius: 999px;
-  padding: 4px 11px;
+  padding: 7px 16px;
   cursor: pointer;
   transition: all var(--transition);
 }
@@ -4952,6 +4952,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   position: fixed;
   inset: 0;
   background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(5px);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4975,6 +4976,16 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   box-shadow: 0 20px 60px rgba(0,0,0,0.25);
   transform: translateY(12px) scale(0.97);
   transition: transform 0.22s cubic-bezier(0.22,1,0.36,1);
+}
+/* Countdown lives on the card itself, not the HUD bar behind it — the HUD
+   sits behind .reveal-overlay's backdrop-filter blur while a card is open,
+   which made a HUD-hosted timer hard to read. Sits at the end of
+   .ex-card__meta's flex row (margin-left:auto pushes it to the far right,
+   wrapping to its own line if the row's already full) rather than an
+   absolutely-positioned corner badge, which risked overlapping the
+   category/subcategory badges on a narrow card. */
+.reveal-timer {
+  margin-left: auto;
 }
 /* Rarity accent — the exercise's own tier color (matching the flip-card it
    was opened from), so the difficulty badge (GREU/red etc., a different,

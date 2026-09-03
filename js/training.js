@@ -26,6 +26,7 @@
   const XP_BASE = { usor: 10, mediu: 20, dificil: 35 };
   const MILESTONES = [3, 5, 8];
   const TIMER_SECONDS = { relaxed: 90, strict: 45 };
+  const TIMER_XP_BONUS = { none: 1, relaxed: 1.2, strict: 1.5 }; // +20% / +50% XP for a correct, cronometrat answer
 
   /* In-memory cache for generated MCQ option sets — keyed by exercise id,
      lives for the page's lifetime (a fresh reload re-checks sessionStorage
@@ -37,7 +38,7 @@
   }
 
   /* ---- Init ---- */
-  const UNLOCKED_CATS = new Set(['algebra']);
+  const UNLOCKED_CATS = new Set(['algebra', 'geometrie']);
 
   function init() {
     renderConfig();
@@ -210,8 +211,8 @@
     timerChips.className = 'config-chips';
     [
       { id: 'none',    label: 'Fără' },
-      { id: 'relaxed', label: 'Relaxat (90s)' },
-      { id: 'strict',  label: 'Contra timp (45s)' }
+      { id: 'relaxed', label: 'Relaxat (90s) · +20% XP' },
+      { id: 'strict',  label: 'Contra timp (45s) · +50% XP' }
     ].forEach(t => {
       const btn = document.createElement('button');
       btn.type = 'button';
@@ -331,6 +332,9 @@
     const subCount = selectedSubcats.size;
 
     let text = `${willRun} exerciții · ${diffLabels[selectedDiff]} · ${subCount} subcapitol${subCount === 1 ? '' : 'e'} · ~${minutes} min`;
+    if (selectedTimerMode !== 'none') {
+      text += ` · +${Math.round((TIMER_XP_BONUS[selectedTimerMode] - 1) * 100)}% XP cronometrat`;
+    }
     if (willRun < selectedCount) text += ` (doar ${available} disponibile din ${selectedCount} cerute)`;
     textEl.textContent = text;
   }
@@ -503,6 +507,15 @@
     const modal = document.getElementById('revealModal');
     modal.dataset.rarity = rarity;
 
+    /* Timer sits at the end of the badge row (flex, margin-left:auto), not
+       absolutely positioned — a corner overlay risked colliding with the
+       category/subcategory badges on a narrow card; this way it just wraps
+       to its own line if the row's already full. Only shown when running
+       (never in review mode — the card's already been answered). */
+    const timerHtml = (!reviewMode && selectedTimerMode !== 'none')
+      ? `<span class="reveal-timer bac-timer" id="revealTimer" title="Timp rămas — răspunsurile cronometrate primesc un bonus de XP"></span>`
+      : '';
+
     const headHtml = `
       <div class="ex-card__meta" style="margin-bottom:10px">
         <span class="reveal-modal__rarity-badge">${rarity}</span>
@@ -510,6 +523,7 @@
         ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
         <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
         ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
+        ${timerHtml}
       </div>
       <div class="reveal-title">${BM.esc(ex.title)}</div>
       <div class="reveal-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
@@ -742,8 +756,6 @@
     clearCardTimer();
     if (selectedTimerMode === 'none') return;
     timerRemaining = TIMER_SECONDS[selectedTimerMode];
-    const hud = document.getElementById('hudTimer');
-    if (hud) hud.hidden = false;
     updateTimerDisplay();
     timerInterval = setInterval(() => {
       timerRemaining--;
@@ -756,20 +768,18 @@
   }
 
   function updateTimerDisplay() {
-    const hud = document.getElementById('hudTimer');
-    if (!hud) return;
+    const el = document.getElementById('revealTimer');
+    if (!el) return;
     const safe = Math.max(0, timerRemaining);
     const m = Math.floor(safe / 60);
     const s = safe % 60;
-    hud.textContent = `${m}:${String(s).padStart(2, '0')}`;
-    hud.classList.toggle('warning', timerRemaining <= 15 && timerRemaining > 7);
-    hud.classList.toggle('danger', timerRemaining <= 7);
+    el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    el.classList.toggle('warning', timerRemaining <= 15 && timerRemaining > 7);
+    el.classList.toggle('danger', timerRemaining <= 7);
   }
 
   function clearCardTimer() {
     if (timerInterval) { clearInterval(timerInterval); timerInterval = null; }
-    const hud = document.getElementById('hudTimer');
-    if (hud) hud.hidden = true;
   }
 
   function trExpireCard(idx) {
@@ -938,11 +948,16 @@
   }
 
   /* ---- XP & celebrations ---- */
+  /* Timer bonus rewards the actual added risk: Contra timp (45s) is tighter
+     than Relaxat (90s), so it pays out more. Only applies to correct
+     answers — a wrong answer under a timer isn't "extra effort" worth
+     rewarding on top of the usual consolation XP. */
   function calcXp(difficulty, isCorrect, streakAtGrade) {
     const base = XP_BASE[difficulty] || 15;
     if (!isCorrect) return Math.round(base * 0.2);
-    const multiplier = 1 + Math.min(streakAtGrade, 10) * 0.1;
-    return Math.round(base * multiplier);
+    const streakMultiplier = 1 + Math.min(streakAtGrade, 10) * 0.1;
+    const timerMultiplier = TIMER_XP_BONUS[selectedTimerMode] || 1;
+    return Math.round(base * streakMultiplier * timerMultiplier);
   }
 
   function celebrateMilestone(streakCount) {
