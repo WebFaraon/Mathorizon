@@ -3896,7 +3896,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   display: flex;
   flex-direction: column;
   gap: 20px;
-  max-width: 1120px;
+  max-width: 1280px;
   margin: 0 auto;
   padding: 24px;
 }
@@ -4089,11 +4089,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   border-radius: var(--radius-sm);
   background: var(--card);
   border: 1.5px solid var(--border);
-  cursor: pointer;
+  /* Not clickable for an unlocked chapter (selection is the explicit
+     Selectează/Deselectează tot buttons' job) — only the locked state below
+     has a click handler (a toast), so only it gets a pointer cursor. */
+  cursor: default;
   transition: all var(--transition);
   font-size: 0.82rem;
 }
-.config-chapter-item:hover { background: var(--card-hover); }
 .config-chapter-item.selected {
   border-color: var(--accent);
   background: var(--accent-dim);
@@ -4195,11 +4197,10 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 
 .config-subcat-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 8px;
 }
-.config-subcat-chip { flex: 0 0 auto; }
 .config-subcat-chip {
   display: flex;
   align-items: center;

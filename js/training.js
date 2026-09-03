@@ -123,30 +123,18 @@
         ? `<span class="config-chapter-lock">${icon('lock', { size: 16 })}</span><span class="config-chapter-soon">În curând</span>`
         : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>`}
     `;
+    /* Only the lock toast is wired here — select-all/clear-all is the
+       explicit buttons' job alone now (a chapter-title click doing the same
+       thing made "Selectează tot" redundant and was surprising). */
     item.onclick = locked
       ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
-      : () => toggleChapterAll(cat);
+      : null;
     wrap.appendChild(item);
 
     if (!locked) {
       wrap.appendChild(renderSubcatPanel(cat));
     }
     return wrap;
-  }
-
-  /* Click on the chapter title selects/deselects every subcategory in it
-     at once — the chip grid underneath is always visible now (no expand/
-     collapse step), since a wrapping chip grid is compact enough to show
-     in full right away. */
-  function toggleChapterAll(cat) {
-    const allSelected = cat.subcategories.length > 0 && cat.subcategories.every(s => selectedSubcats.has(s.id));
-    if (allSelected) {
-      clearAllSubcats(cat);
-    } else {
-      cat.subcategories.forEach(s => selectedSubcats.add(s.id));
-      renderChapterList();
-      updateSummary();
-    }
   }
 
   function renderSubcatPanel(cat) {
@@ -184,12 +172,12 @@
     return panel;
   }
 
+  /* Free to go down to zero — the live summary + disabled Start button
+     (updateSummary) already tell the student when nothing's selected,
+     so blocking it here too was just a second, confusing "no-op" version
+     of that same guard. */
   function toggleSubcat(id, cat) {
     if (selectedSubcats.has(id)) {
-      if (selectedSubcats.size <= 1) {
-        BM.toast('Selectează cel puțin un subcapitol.', 'error');
-        return;
-      }
       selectedSubcats.delete(id);
     } else {
       selectedSubcats.add(id);
@@ -199,12 +187,6 @@
   }
 
   function clearAllSubcats(cat) {
-    const catSubIds = new Set(cat.subcategories.map(s => s.id));
-    const otherSelected = [...selectedSubcats].filter(id => !catSubIds.has(id)).length;
-    if (otherSelected === 0) {
-      BM.toast('Selectează cel puțin un subcapitol.', 'error');
-      return;
-    }
     cat.subcategories.forEach(s => selectedSubcats.delete(s.id));
     renderChapterList();
     updateSummary();
