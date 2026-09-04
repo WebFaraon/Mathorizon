@@ -324,7 +324,14 @@
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'whiteboard_participants'
       }, () => { _debouncedTablaLive(); })
-      .subscribe();
+      .subscribe((status, err) => {
+        // Silent failures here (a dropped/errored channel with no visible
+        // symptom besides "stopped updating live") are hard to tell apart
+        // from a genuine backend bug — this at least surfaces it in devtools.
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('[class-page] realtime channel', status, err);
+        }
+      });
 
     window.addEventListener('beforeunload', () => {
       BMAuth.supabase.removeChannel(_realtimeChannel);
@@ -5534,7 +5541,7 @@
       if (error) throw error;
       const participants = rows || [];
       body.innerHTML = `
-        <div class="wb-roster-count">${icon('users', { size: 16 })} ${participants.length} conectat${participants.length === 1 ? '' : 'i'}</div>
+        <div class="wb-roster-count">${icon('users', { size: 16 })} ${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}</div>
         <div class="wb-roster">
           ${participants.map(p => `
             <div class="wb-participant-chip">
