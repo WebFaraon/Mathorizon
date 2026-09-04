@@ -328,6 +328,10 @@
         // Silent failures here (a dropped/errored channel with no visible
         // symptom besides "stopped updating live") are hard to tell apart
         // from a genuine backend bug — this at least surfaces it in devtools.
+        // A single misconfigured table anywhere in this channel's listener
+        // list (e.g. missing from the supabase_realtime publication) can
+        // silently break delivery for every OTHER table bound to it too —
+        // see the class_members incident, 20260904140000 migration.
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('[class-page] realtime channel', status, err);
         }
@@ -5492,6 +5496,22 @@
     _openTablaSessionId = null;
   }
 
+  // Explicit "step out" action — the X button / clicking the backdrop.
+  // For a student this also removes them from the session's roster, so the
+  // teacher's already-open view reflects it immediately instead of showing
+  // them as still connected until the whole session ends. A teacher closing
+  // their OWN view isn't the same as ending the session — they're still
+  // hosting it either way — so their row is left untouched.
+  function _leaveTablaLiveModal() {
+    const sessionId = _openTablaSessionId;
+    if (sessionId && BMAuth.role !== 'profesor') {
+      BMAuth.supabase.from('whiteboard_participants')
+        .delete().eq('session_id', sessionId).eq('user_id', BMAuth.user.id)
+        .then(() => {}, () => {});
+    }
+    _closeTablaLiveModal();
+  }
+
   async function openWhiteboardLiveView(session) {
     if (!session) return;
     _closeTablaLiveModal();
@@ -5507,7 +5527,7 @@
           <h3>${icon('presentation', { size: 20 })} ${BM.esc(session.title)}</h3>
           <div style="display:flex;gap:6px;align-items:center">
             ${BMAuth.role === 'profesor' ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
-            <button class="icon-btn" id="tablaLiveCloseBtn">${icon('x', { size: 16 })}</button>
+            <button class="icon-btn" id="tablaLiveCloseBtn" title="${BMAuth.role === 'profesor' ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
           </div>
         </div>
         <div class="classes-modal__body" id="tablaLiveBody">
@@ -5515,8 +5535,8 @@
         </div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = _closeTablaLiveModal;
-    modal.querySelector('#tablaLiveCloseBtn').onclick = _closeTablaLiveModal;
+    modal.querySelector('.classes-modal__backdrop').onclick = _leaveTablaLiveModal;
+    modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
 
     try {
