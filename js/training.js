@@ -498,6 +498,7 @@
 
   /* ---- Reveal overlay ---- */
   function renderRevealOverlay(idx, reviewMode) {
+    document.body.style.overflow = 'hidden';
     const cs = cardStates[idx];
     const ex = cs.ex;
     const cat = BM.getCategoryById(ex.categoryId);
@@ -876,6 +877,7 @@
   function closeRevealOverlay(silent) {
     clearCardTimer();
     document.getElementById('revealOverlay').classList.remove('open');
+    document.body.style.overflow = '';
     const wasIdx = activeCardIndex;
     activeCardIndex = null;
     if (silent) return;
@@ -910,7 +912,6 @@
   function renderHud() {
     const streakEl = document.getElementById('hudStreakVal');
     const xpEl     = document.getElementById('hudXpVal');
-    const recordEl = document.getElementById('hudRecord');
     if (streakEl) {
       streakEl.textContent = currentStreak;
       const wrap = document.getElementById('hudStreak');
@@ -919,11 +920,6 @@
       wrap.classList.add('session-hud__streak--pulse');
     }
     if (xpEl) xpEl.textContent = sessionXp;
-    if (recordEl) {
-      const best = BM.Storage.getBestCombo();
-      // innerHTML, not textContent — icon() returns markup, not plain text.
-      recordEl.innerHTML = best > 0 ? `${icon('trophy', { size: 16, className: 'icon--gamify' })} Record: ${best}` : '';
-    }
     BM.Training.refreshWidgets();
   }
 

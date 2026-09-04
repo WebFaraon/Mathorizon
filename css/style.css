@@ -4176,6 +4176,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 .config-subcat-actions {
   display: flex;
+  flex-wrap: wrap;
   gap: 10px;
   margin-bottom: 14px;
 }
@@ -4183,6 +4184,8 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   display: inline-flex;
   align-items: center;
   gap: 6px;
+  flex-shrink: 0;
+  white-space: nowrap;
   font-size: 0.78rem;
   font-weight: 700;
   color: var(--text-secondary);
@@ -4653,11 +4656,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   font-weight: 600;
   color: var(--text-muted);
 }
-.session-hud__record {
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-muted);
-}
 @keyframes hudPulse {
   0%   { transform: scale(1); }
   40%  { transform: scale(1.18); }
@@ -4727,6 +4725,47 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   0%   { filter: brightness(1); }
   40%  { filter: brightness(1.5); }
   100% { filter: brightness(1); }
+}
+
+/* Below 900px .training-hud already switches to flex-wrap, but with no
+   explicit grouping the ring/stat-cards/level-bar/abandon-button just wrap
+   in DOM order onto whatever line has room, landing in a different spot on
+   every viewport width — the "totally random" look. A real grid pins each
+   piece to an intentional slot: ring + stat cards share a row, the level
+   bar spans full width below them, and the abandon button gets its own row. */
+@media (max-width: 640px) {
+  .training-hud {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    grid-template-areas:
+      "ring   stats"
+      "level  level"
+      "abandon abandon";
+    column-gap: 16px;
+    row-gap: 14px;
+    align-items: center;
+  }
+  .session-progress-ring { grid-area: ring; }
+  .session-hud {
+    grid-area: stats;
+    flex-direction: column;
+    align-items: stretch;
+    flex-wrap: nowrap;
+    gap: 8px;
+  }
+  .session-hud__streak, .session-hud__xp { padding: 8px 14px; }
+  .session-level {
+    grid-area: level;
+    flex: none;
+    width: 100%;
+    max-width: none;
+    min-width: 0;
+  }
+  .training-hud__abandon {
+    grid-area: abandon;
+    justify-self: end;
+    margin-left: 0;
+  }
 }
 
 /* ---- Antrenament: face-down flip-card grid ----
@@ -5146,6 +5185,28 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   white-space: nowrap;
 }
 .reveal-step__points--estimat { border-style: dashed; background: transparent; opacity: 0.8; cursor: help; }
+
+/* ---- Antrenament: reveal card on phones ----
+   .reveal-modal's 28px/26px padding plus .reveal-step's own 12px/14px left
+   very little room for a step's math-content before it had to fall back to
+   .math-content's horizontal scroll — every wide formula scrolled instead
+   of just fitting. Trimming both paddings claws back real width. The
+   answer row (input + "Verifică răspunsul" side by side) is the same
+   problem in one dimension: on a narrow modal the button alone needed most
+   of the row, squeezing the input down to a sliver that couldn't even show
+   its own placeholder — stacking it removes that fight over width. */
+@media (max-width: 480px) {
+  .reveal-modal {
+    width: 96%;
+    padding: 18px 14px;
+  }
+  .reveal-step { padding: 10px 10px; }
+  .reveal-answer-row {
+    flex-direction: column;
+  }
+  .reveal-answer-input { width: 100%; }
+  #revealSubmitBtn { width: 100%; justify-content: center; }
+}
 
 /* ---- Antrenament: results — per-subcategory breakdown + repeat-mistakes ---- */
 .results-breakdown {
