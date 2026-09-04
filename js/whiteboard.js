@@ -204,7 +204,14 @@
     this._locked    = !!opts.locked;
 
     this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width, opacity}
-    this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos, erasing}
+    this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos, erasing, panning}
+    // Raw last-known position of every currently-down TOUCH pointer (mouse/
+    // pen excluded — pinch is a touch-only gesture), independent of
+    // _activePtrs' per-gesture state — see _touchCount/_beginPinch.
+    this._touchPositions = {};
+    this._pinching       = false;
+    this._pinchStartDist = null;
+    this._pinchStartZoom = 1;
     this._committedIds = new Set();
     // My own committed strokes' points, for the eraser's hit-testing — see
     // parsePathPoints's comment for why this needs both a live (exact) and
@@ -316,12 +323,14 @@
           '</button>' +
         '</div>' +
       '</div>' +
-      '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
-        '<div class="wb-canvas-inner" id="wbCanvasInner">' +
-          '<canvas id="wbFabricCanvas"></canvas>' +
-          '<div class="wb-locked-banner" id="wbLockedBanner">' +
-            (global.icon ? global.icon('lock', { size: 16 }) : '') +
-            '<span>Profesorul a blocat temporar scrisul tău pe această tablă</span>' +
+      '<div class="wb-canvas-outer" id="wbCanvasOuter">' +
+        '<div class="wb-locked-banner" id="wbLockedBanner">' +
+          (global.icon ? global.icon('lock', { size: 16 }) : '') +
+          '<span>Profesorul a blocat temporar scrisul tău pe această tablă</span>' +
+        '</div>' +
+        '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
+          '<div class="wb-canvas-inner" id="wbCanvasInner">' +
+            '<canvas id="wbFabricCanvas"></canvas>' +
           '</div>' +
         '</div>' +
       '</div>';
@@ -329,6 +338,10 @@
 
     this._wrap       = wrap;
     this._toolbarEl  = wrap.querySelector('.wb-toolbar');
+    // .wb-canvas-wrap (not -outer) is the actual pan/zoom scroll container
+    // — see the CSS comment on .wb-canvas-outer for why the locked banner
+    // needed pulling out of it into its own non-overlapping strip instead
+    // of floating on top of the canvas.
     this._canvasWrap = wrap.querySelector('#wbCanvasWrap');
     this._innerEl    = wrap.querySelector('#wbCanvasInner');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
@@ -509,6 +522,30 @@
     var cssH  = LOGICAL_H * scale;
     var dpr   = Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
+    // Cap the overlay's PHYSICAL backing store relative to the device's
+    // own screen resolution — same technique and reasoning as
+    // js/drawing-canvas.js's own _resize. A big desktop monitor at high
+    // zoom (e.g. 400%) was producing a backing store many times larger
+    // than the screen can even show, and _redrawOverlay clears + redraws
+    // the WHOLE thing every single frame for as long as a stroke is in
+    // progress — that's what actually lagged, not Fabric (it only
+    // re-renders once per FINISHED stroke, never mid-gesture). A phone
+    // screen has far fewer physical pixels to begin with, so the same
+    // 400% never got anywhere near this ceiling there — which is exactly
+    // why only desktop showed the lag. Reduces dpr only, never the CSS
+    // size/scale itself, so logical<->screen coordinate math (_getPos
+    // etc., all in terms of _scale) is completely unaffected — this only
+    // trims retina sharpness back down once it would be wasted anyway.
+    var screenPhysW = (global.screen ? global.screen.width  : global.innerWidth)  * (global.devicePixelRatio || 1);
+    var screenPhysH = (global.screen ? global.screen.height : global.innerHeight) * (global.devicePixelRatio || 1);
+    var maxPhysW = screenPhysW * 1.5;
+    var maxPhysH = screenPhysH * 1.5;
+    var targetPhysW = cssW * dpr;
+    var targetPhysH = cssH * dpr;
+    if (targetPhysW > maxPhysW || targetPhysH > maxPhysH) {
+      dpr = Math.max(1, dpr * Math.min(maxPhysW / targetPhysW, maxPhysH / targetPhysH));
+    }
+
     this._baseScale = baseScale;
     this._scale = scale;
     this._dpr   = dpr;
@@ -575,6 +612,51 @@
     };
   };
 
+  /* ---- Touch pinch-to-zoom helpers — same technique and reasoning as
+     js/drawing-canvas.js's own _touchCount/_touchDistance/_touchMidpoint,
+     just tracked in this._touchPositions instead of that file's
+     this._pointers (kept separate from _activePtrs, which holds per-
+     gesture draw/erase/pan state — a touch can be "down" here before it's
+     decided what it's doing). ---- */
+
+  Whiteboard.prototype._touchCount = function () {
+    return Object.keys(this._touchPositions).length;
+  };
+  Whiteboard.prototype._touchDistance = function () {
+    var ids = Object.keys(this._touchPositions);
+    if (ids.length < 2) return 0;
+    return dist(this._touchPositions[ids[0]], this._touchPositions[ids[1]]);
+  };
+  Whiteboard.prototype._touchMidpoint = function () {
+    var ids = Object.keys(this._touchPositions);
+    if (ids.length < 2) return null;
+    var p0 = this._touchPositions[ids[0]], p1 = this._touchPositions[ids[1]];
+    return { x: (p0.x + p1.x) / 2, y: (p0.y + p1.y) / 2 };
+  };
+
+  // A second finger landing always means "pinch now", regardless of what
+  // tool is selected or what the first finger was already doing — cancel
+  // whatever that was (a draw, erase, or pan) rather than let it continue
+  // underneath the pinch.
+  Whiteboard.prototype._beginPinch = function () {
+    var self = this;
+    Object.keys(this._activePtrs).forEach(function (pid) {
+      var st = self._activePtrs[pid];
+      if (st.strokeId) {
+        self._liveStrokes.delete('m:' + st.strokeId);
+        self._send('stroke:cancel', { strokeId: st.strokeId });
+        self._dirty = true;
+      }
+      if (st.erasing) self._erasedThisDrag = null;
+      if (st.panning) self._overlayEl.style.cursor = 'grab';
+      delete self._activePtrs[pid];
+    });
+    this._pinching = true;
+    var d = this._touchDistance();
+    this._pinchStartDist = d > 0 ? d : null;
+    this._pinchStartZoom = this._zoom;
+  };
+
   /* ---- Pointer handling (mouse / touch / pen — no input-mode gating,
      unlike the exam scratch-canvas, everyone drawing here is expected to
      use whatever they have) ---- */
@@ -587,6 +669,14 @@
       if (e.pointerType === 'mouse' && e.button !== 0) return;
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
+
+      if (e.pointerType === 'touch') {
+        self._touchPositions[e.pointerId] = { x: e.clientX, y: e.clientY };
+        if (self._touchCount() >= 2) { self._beginPinch(); return; }
+        // A 3rd+ finger while already pinching with two others — ignore it
+        // rather than let it start a stray draw/erase/pan underneath.
+        if (self._pinching) return;
+      }
 
       // Pure navigation, never a write — allowed even while locked (see
       // setLocked), unlike every other branch below.
@@ -621,6 +711,23 @@
     });
 
     el.addEventListener('pointermove', function (e) {
+      if (e.pointerType === 'touch' && self._touchPositions[e.pointerId]) {
+        self._touchPositions[e.pointerId].x = e.clientX;
+        self._touchPositions[e.pointerId].y = e.clientY;
+      }
+
+      if (self._pinching) {
+        e.preventDefault();
+        if (self._pinchStartDist && self._touchCount() === 2) {
+          var d = self._touchDistance();
+          if (d > 0) {
+            var mid = self._touchMidpoint();
+            self._setZoom(self._pinchStartZoom * (d / self._pinchStartDist), mid.x, mid.y);
+          }
+        }
+        return;
+      }
+
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       e.preventDefault();
@@ -639,6 +746,17 @@
     });
 
     function finish(e) {
+      if (e.pointerType === 'touch') {
+        delete self._touchPositions[e.pointerId];
+        if (self._pinching) {
+          // Fewer than 2 fingers left: stop zooming, but don't let
+          // whichever one remains resume drawing either — wait for a
+          // full release (touchCount 0) before any new gesture can start.
+          if (self._touchCount() < 2) self._pinchStartDist = null;
+          if (self._touchCount() === 0) self._pinching = false;
+          return;
+        }
+      }
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
@@ -661,6 +779,14 @@
     // pointerup, and a stroke left "stuck" active would never commit.
     el.addEventListener('pointerleave', finish);
     el.addEventListener('pointercancel', function (e) {
+      if (e.pointerType === 'touch') {
+        delete self._touchPositions[e.pointerId];
+        if (self._pinching) {
+          if (self._touchCount() < 2) self._pinchStartDist = null;
+          if (self._touchCount() === 0) self._pinching = false;
+          return;
+        }
+      }
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];

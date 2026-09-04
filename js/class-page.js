@@ -5559,6 +5559,12 @@
     document.getElementById('tablaLiveModal')?.remove();
     document.body.classList.remove('wb-fullscreen-active');
     _openTablaSessionId = null;
+    // Undoes the student-only requestFullscreen in openWhiteboardLiveView —
+    // only actually in fullscreen if that succeeded (or the user entered it
+    // some other way), so this is a no-op otherwise rather than throwing.
+    if (document.fullscreenElement) {
+      (document.exitFullscreen ? document.exitFullscreen() : Promise.resolve()).catch(function () {});
+    }
   }
 
   // Explicit "step out" action — the close button. For a student this also
@@ -5616,6 +5622,27 @@
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
     _bindTablaTitleInput(modal, session);
+
+    // Students only, real browser Fullscreen — the .wb-fullscreen CSS
+    // overlay already covers the viewport, but on a phone that still
+    // leaves the OS status bar (battery/clock/notifications) eating real
+    // vertical space; this reclaims it too. Must fire synchronously off
+    // the click that led here (still true at this point — nothing above
+    // this line has awaited yet), since some browsers only honor
+    // requestFullscreen within the same turn as the triggering user
+    // gesture. Best-effort: unsupported (iOS Safari has no Fullscreen API
+    // for arbitrary elements) or denied just silently no-ops — the CSS
+    // overlay is already the fallback, not a broken state.
+    if (!isTeacher) {
+      var requestFs = modal.requestFullscreen || modal.webkitRequestFullscreen;
+      if (requestFs) {
+        try {
+          var fsPromise = requestFs.call(modal);
+          // Older webkitRequestFullscreen doesn't return a promise at all.
+          if (fsPromise && typeof fsPromise.catch === 'function') fsPromise.catch(function () {});
+        } catch (e) {}
+      }
+    }
 
     let myColor = BMAuth.role === 'profesor' ? '#111827' : null;
     let myLocked = false;

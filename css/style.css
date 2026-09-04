@@ -12727,11 +12727,23 @@ body.wb-fullscreen-active .scroll-top-btn {
      axis. */
   min-width: 0;
 }
+/* Holds the locked banner (its own row, only present at all while locked)
+   above .wb-canvas-wrap — pulled out into a real sibling instead of an
+   absolutely-positioned overlay ON the canvas specifically so it can never
+   sit on top of (and hide) whatever the viewer is looking at; it takes its
+   own space and pushes the canvas down slightly instead. */
+.wb-canvas-outer {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  min-width: 0; /* same row-flex min-width:auto trap as .wb-board above */
+}
 .wb-canvas-wrap {
   position: relative;
   flex: 1;
   min-height: 0;
-  min-width: 0; /* same row-flex min-width:auto trap as .wb-board above */
+  min-width: 0;
   /* Letterbox area — .wb-canvas-inner (the fixed logical board, sized by
      js/whiteboard.js's _applySize) rarely matches this box's own aspect
      ratio exactly at zoom 1, so this is what shows in the margin. auto
@@ -12795,28 +12807,27 @@ body.wb-fullscreen-active .scroll-top-btn {
   opacity: 0.4;
   pointer-events: none;
 }
+/* A real row above .wb-canvas-wrap (see .wb-canvas-outer), not an overlay
+   on top of the canvas — it used to float centered over the board and
+   could sit right on top of whatever the viewer was looking at. Same
+   amber "restricted, not an error" treatment as .dc-toolbar-timer.warning
+   elsewhere, for one consistent meaning across the app. */
 .wb-locked-banner {
   display: none;
-  position: absolute;
-  top: 14px;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 5;
   align-items: center;
+  justify-content: center;
   gap: 8px;
-  background: rgba(17,24,39,0.92);
-  color: #fff;
+  flex-shrink: 0;
+  background: rgba(251,191,36,0.18);
+  color: #b45309;
+  border-bottom: 1px solid rgba(251,191,36,0.6);
   font-size: 0.82rem;
   font-weight: 600;
-  line-height: 1.3; /* .wb-canvas-inner (parent) sets line-height:0 for its <canvas> children — without resetting it here, this banner's own text inherits that and every wrapped line collapses onto the same baseline. */
+  line-height: 1.3;
   padding: 8px 16px;
-  border-radius: 20px;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
-  pointer-events: none;
-  max-width: calc(100% - 28px);
   text-align: center;
 }
-.wb-board--locked .wb-locked-banner { display: inline-flex; }
+.wb-board--locked .wb-locked-banner { display: flex; }
 
 @media (max-width: 600px) {
   .wb-hero { flex-wrap: wrap; }
@@ -15901,15 +15912,14 @@ body.dc-fullscreen-active .dc-toolbar {
     flex-direction: column-reverse;
   }
 
-  /* Scoped to .dc-wrap/.wb-board (not bare .dc-toolbar) — the geometry
-     figure editor (js/geometry-figure-editor.js) reuses the .dc-toolbar/
-     .dc-tool-group classes under its own .gfe-wrap, which keeps its own
-     always-on single nowrap row (see .gfe-toolbar) rather than this
-     mobile-only override. .wb-board is js/whiteboard.js's own wrapper —
-     same toolbar classes, same "Tablă live" mobile toolbar it shares this
-     whole rule with. */
-  .dc-wrap .dc-toolbar,
-  .wb-board .dc-toolbar {
+  /* Scoped to .dc-wrap (not bare .dc-toolbar) — the geometry figure editor
+     (js/geometry-figure-editor.js) reuses the .dc-toolbar/.dc-tool-group
+     classes under its own .gfe-wrap, which keeps its own always-on single
+     nowrap row (see .gfe-toolbar) rather than this mobile-only override.
+     js/whiteboard.js's .wb-board gets its own, different mobile treatment
+     below (a right-side column, not a bottom row) — see its own comment
+     for why. */
+  .dc-wrap .dc-toolbar {
     border-bottom: none;
     border-top: 1px solid var(--border);
     padding: 10px 12px 14px; /* extra bottom padding for safe area */
@@ -15929,9 +15939,53 @@ body.dc-fullscreen-active .dc-toolbar {
   /* Without this, nowrap lets the default flex-shrink squeeze groups (and
      the tap targets inside them) before the row starts scrolling — same
      fix .gfe-tool-section already applies for its own always-on scroll row. */
-  .dc-wrap .dc-tool-group,
-  .wb-board .dc-tool-group {
+  .dc-wrap .dc-tool-group {
     flex-shrink: 0;
+  }
+
+  /* Tablă live's own mobile layout: a narrow column on the RIGHT instead
+     of a row along the bottom. A bottom toolbar row plus the header above
+     it (brand/title/roster) left very little of a portrait phone's
+     already-tight height for the actual board — moving the toolbar to a
+     side column gives the canvas the full remaining height instead, only
+     trading a slim strip off one side. .wb-board (DOM order: toolbar then
+     .wb-canvas-outer) uses row-reverse rather than reordering the markup,
+     so the toolbar lands on the right without existing keyboard-shortcut/
+     query-by-role code caring which visual side it's on. */
+  .wb-board {
+    flex-direction: row-reverse;
+  }
+  .wb-board .dc-toolbar {
+    flex-direction: column;
+    flex-wrap: nowrap;
+    width: 56px;
+    flex-shrink: 0;
+    border-bottom: none;
+    border-left: 1px solid var(--border);
+    padding: 10px 6px calc(10px + env(safe-area-inset-bottom, 0px));
+    gap: 10px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+  .wb-board .dc-tool-group {
+    flex-direction: column;
+    flex-shrink: 0;
+  }
+  /* Dividers between groups rotate with the layout — a horizontal rule
+     under a stacked column reads the same way the vertical one does
+     between side-by-side groups on every other toolbar. */
+  .wb-board .dc-tool-group + .dc-tool-group {
+    border-left: none;
+    border-top: 1px solid var(--border);
+    padding-left: 0;
+    padding-top: 10px;
+    margin-left: 0;
+    margin-top: 0;
+  }
+  .wb-board .dc-zoom-label {
+    font-size: 0.62rem;
+    white-space: nowrap;
   }
 
   .dc-canvas-wrap {
