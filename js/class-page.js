@@ -5706,7 +5706,7 @@
       ${isSelf
         ? `<div class="wb-roster-popover__hint">Ești tu (profesorul)</div>`
         : `<button type="button" class="btn btn--sm ${locked ? 'btn--surface' : 'btn--danger'}" id="wbLockToggleBtn">
-             ${locked ? icon('unlock', { size: 14 }) : icon('lock', { size: 14 })} ${locked ? 'Deblochează scrisul' : 'Blochează scrisul'}
+             ${locked ? icon('unlock', { size: 16 }) : icon('lock', { size: 16 })} ${locked ? 'Deblochează scrisul' : 'Blochează scrisul'}
            </button>`}
     `;
     strip.appendChild(popover);

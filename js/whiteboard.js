@@ -2,10 +2,12 @@
    Whiteboard — live collaborative drawing surface ("Tablă live")
    Phase 1: shared freehand pen/highlighter/eraser, fixed color per
    participant, width picker, undo/redo (own strokes only, Ctrl+Z/Ctrl+Y),
-   "șterge ce am desenat eu", and a teacher-toggled per-participant write
-   lock. No pan/zoom, no erasing anyone else's stroke, no text/shapes yet
-   — those are later phases (see the Phase-2 notes at _eraseAt and in
-   20260904160000_whiteboard_objects.sql).
+   "șterge ce am desenat eu", a teacher-toggled per-participant write lock,
+   and a per-viewer pan/zoom tool (own navigation only — never synced,
+   everyone else keeps seeing the same shared logical board regardless of
+   what any one viewer is zoomed into). No erasing anyone else's stroke, no
+   text/shapes yet — those are later phases (see the Phase-2 notes at
+   _eraseAt and in 20260904160000_whiteboard_objects.sql).
 
    Architecture: fabric.Canvas holds only COMMITTED strokes (one
    fabric.Path per finished stroke) — cheap to render since it never
@@ -41,6 +43,32 @@
   var BROADCAST_PX = 5;  // ...or sooner if the pointer moved at least this far
   var WIDTH_PRESETS = [2, 4, 8];
   var MAX_DPR = 2; // matches drawing-canvas.js's own cap — see its _resize
+  // Same values as js/drawing-canvas.js's own highlighter — one consistent
+  // look for "highlighter" across every drawing surface in the app.
+  var HIGHLIGHTER_OPACITY    = 0.28;
+  var HIGHLIGHTER_WIDTH_MULT = 2.2;
+
+  // 1 = the "fit the whole board in the container" scale computed fresh in
+  // _applySize every resize — MIN_ZOOM stays 1 rather than allowing zoom
+  // OUT below that, since there's nothing more of the board to reveal past
+  // "fully visible" (it would just shrink into a smaller box with empty
+  // margin, not show anything new).
+  var MIN_ZOOM = 1;
+  var MAX_ZOOM = 4;
+  var ZOOM_STEP = 0.25;
+
+  // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
+  // easy to lose against the board's own white background. Same fix (and
+  // same reasoning) as js/drawing-canvas.js's own CROSSHAIR_CURSOR: a white
+  // halo behind a dark core line stays visible either way.
+  var CROSSHAIR_CURSOR_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">' +
+    '<line x1="11" y1="1" x2="11" y2="21" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
+    '<line x1="1" y1="11" x2="21" y2="11" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
+    '<line x1="11" y1="2" x2="11" y2="20" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
+    '<line x1="2" y1="11" x2="20" y2="11" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
+    '</svg>';
+  var CROSSHAIR_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(CROSSHAIR_CURSOR_SVG) + '") 11 11, crosshair';
 
   function dist(a, b) {
     var dx = a.x - b.x, dy = a.y - b.y;
@@ -198,7 +226,15 @@
     this._dirty       = false;
     this._rafId       = null;
     this._destroyed    = false;
-    this._scale = 1;
+    // _scale is the TOTAL effective logical->CSS-px scale (_baseScale *
+    // _zoom) — every existing pointer/render call site already read
+    // this._scale before zoom existed, so keeping it as the combined value
+    // means _getPos, _redrawOverlay etc. didn't need to change at all;
+    // only _applySize (which computes it) and the new zoom/pan code below
+    // needed to know about the two factors separately.
+    this._scale     = 1;
+    this._baseScale = 1; // the "whole board fits the container" scale alone
+    this._zoom      = MIN_ZOOM;
     this._dpr   = 1;
 
     this._build(container);
@@ -223,7 +259,10 @@
   var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
   var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
   var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
+  var PAN_ICON         = '<rect x="6" y="11" width="12" height="9" rx="3"/><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5"/><path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6"/>';
   var UNDO_ICON        = '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>';
+  var ZOOM_OUT_ICON    = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>';
+  var ZOOM_IN_ICON     = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>';
 
   function toolBtn(tool, icon, title) {
     return '<button type="button" class="dc-tool-btn' + (tool === 'pen' ? ' dc-tool-btn--active' : '') +
@@ -241,6 +280,7 @@
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
+          toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
         '</div>' +
         '<div class="dc-tool-group">' +
           WIDTH_PRESETS.map(function (w, i) {
@@ -253,6 +293,15 @@
         '<div class="dc-tool-group">' +
           '<button type="button" class="dc-action-btn" id="wbGridBtn" title="Arată grila">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + GRID_ICON + '</svg>' +
+          '</button>' +
+        '</div>' +
+        '<div class="dc-tool-group">' +
+          '<button type="button" class="dc-action-btn" id="wbZoomOutBtn" title="Micșorează" disabled>' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ZOOM_OUT_ICON + '</svg>' +
+          '</button>' +
+          '<span class="dc-zoom-label" id="wbZoomLabel">100%</span>' +
+          '<button type="button" class="dc-action-btn" id="wbZoomInBtn" title="Mărește">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ZOOM_IN_ICON + '</svg>' +
           '</button>' +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--right">' +
@@ -284,6 +333,9 @@
     this._innerEl    = wrap.querySelector('#wbCanvasInner');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
     this._lockedBannerEl = wrap.querySelector('#wbLockedBanner');
+    this._zoomLabelEl   = wrap.querySelector('#wbZoomLabel');
+    this._zoomOutBtnEl  = wrap.querySelector('#wbZoomOutBtn');
+    this._zoomInBtnEl   = wrap.querySelector('#wbZoomInBtn');
     this._gridOn     = false;
     this._applyLockedUi();
   };
@@ -293,7 +345,19 @@
     this._toolbarEl.querySelectorAll('[data-tool]').forEach(function (b) {
       b.classList.toggle('dc-tool-btn--active', b.dataset.tool === tool);
     });
-    if (this._overlayEl) this._overlayEl.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
+    if (this._overlayEl) {
+      // Locked blocks every tool except pan (pure navigation, never a
+      // write — see setLocked) — that gets its usual 'grab' regardless,
+      // everything else gets 'not-allowed' instead of its normal cursor so
+      // it's obvious nothing will happen. Otherwise: pan gets the
+      // browser's own grab/grabbing (a custom cursor for those is
+      // unnecessary — already high-contrast), eraser a plain 'cell', and
+      // pen/highlighter the high-visibility crosshair (see its own comment
+      // above for why not the plain CSS keyword).
+      this._overlayEl.style.cursor =
+        (this._locked && tool !== 'pan') ? 'not-allowed' :
+        tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : CROSSHAIR_CURSOR;
+    }
   };
 
   Whiteboard.prototype._bindToolbar = function () {
@@ -305,6 +369,8 @@
       var gridBtn   = e.target.closest('#wbGridBtn');
       var undoBtn   = e.target.closest('#wbUndoBtn');
       var redoBtn   = e.target.closest('#wbRedoBtn');
+      var zoomInBtn  = e.target.closest('#wbZoomInBtn');
+      var zoomOutBtn = e.target.closest('#wbZoomOutBtn');
       if (toolBtnEl) {
         self._setTool(toolBtnEl.dataset.tool);
       } else if (widthBtn) {
@@ -323,6 +389,10 @@
         self.undo();
       } else if (redoBtn && !redoBtn.disabled) {
         self.redo();
+      } else if (zoomInBtn && !zoomInBtn.disabled) {
+        self._setZoom(self._zoom + ZOOM_STEP);
+      } else if (zoomOutBtn && !zoomOutBtn.disabled) {
+        self._setZoom(self._zoom - ZOOM_STEP);
       }
     });
   };
@@ -351,6 +421,8 @@
         self._setTool('highlighter');
       } else if (e.key === 'e' || e.key === 'E') {
         self._setTool('eraser');
+      } else if (e.key === 'm' || e.key === 'M') {
+        self._setTool('pan');
       }
     };
     global.addEventListener('keydown', this._keyHandler);
@@ -384,6 +456,8 @@
     this._overlayCtx = overlay.getContext('2d');
 
     this._applySize();
+    this._setTool(this._tool); // applies the initial (high-visibility) cursor — see its own comment
+    this._updateZoomUi();
 
     var self = this;
     if (global.ResizeObserver) {
@@ -393,25 +467,49 @@
       });
       this._ro.observe(this._canvasWrap);
     }
+
+    // Ctrl/Cmd+wheel zoom, centered on the cursor — same convention as
+    // js/drawing-canvas.js and the geometry figure editor. A plain scroll
+    // (no modifier) pans the wrap natively instead (it's a normal
+    // overflow:auto container), so it isn't hijacked into a zoom just
+    // because the cursor happens to be over the board.
+    this._canvasWrap.addEventListener('wheel', function (e) {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      e.preventDefault();
+      self._setZoom(self._zoom * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
+    }, { passive: false });
   };
 
-  // No pan/zoom (Phase 1, confirmed scope) — each client just scales the
-  // fixed LOGICAL_W×LOGICAL_H surface to fit its own container. "Fit"
+  // Each client scales the fixed LOGICAL_W×LOGICAL_H surface to its own
+  // container — .wb-canvas-inner's CSS size is (fit-to-container scale) ×
+  // (this viewer's own zoom, see _setZoom), never anyone else's. "Fit"
   // means contain (both width AND height bounded), not width-only — a
   // fullscreen board is shown on every device shape from a phone in
   // portrait to an ultrawide monitor, and width-only scaling would either
-  // overflow a short viewport or leave a tall one mostly empty. Whatever
-  // doesn't match the container's own aspect ratio just letterboxes
-  // (.wb-canvas-wrap centers the fixed-size .wb-canvas-inner as a unit).
+  // overflow a short viewport or leave a tall one mostly empty. At zoom 1
+  // (no user zoom applied) whatever doesn't match the container's own
+  // aspect ratio just letterboxes — beyond that, .wb-canvas-wrap scrolls
+  // (see its own CSS comment for why that's plain overflow:auto + JS
+  // centering, not flex centering).
+  //
+  // Fabric re-renders every object from its stored vector path data at
+  // whatever zoom is current (never from a cached bitmap), and its own
+  // retina scaling grows the backing store together with the CSS size set
+  // below — so a stroke drawn once stays exactly as crisp zoomed in as it
+  // was at fit, never pixelated. The overlay canvas (this viewer's own
+  // in-progress-stroke preview) gets the identical treatment by hand,
+  // since it's a plain 2D context, not Fabric.
   Whiteboard.prototype._applySize = function () {
     if (this._destroyed) return;
     var availW = this._canvasWrap.clientWidth  || 800;
     var availH = this._canvasWrap.clientHeight || 600;
-    var scale = Math.min(availW / LOGICAL_W, availH / LOGICAL_H);
+    var baseScale = Math.min(availW / LOGICAL_W, availH / LOGICAL_H);
+    var scale = baseScale * this._zoom;
     var cssW  = LOGICAL_W * scale;
     var cssH  = LOGICAL_H * scale;
     var dpr   = Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
+    this._baseScale = baseScale;
     this._scale = scale;
     this._dpr   = dpr;
 
@@ -432,6 +530,43 @@
     this._dirty = true;
   };
 
+  // clientX/clientY (viewport coordinates), when given, keep whatever
+  // logical point was under the cursor/pinch-midpoint fixed on screen
+  // through the zoom change — the same anchor-preserving math
+  // js/drawing-canvas.js's own _setZoom uses, just against scrollLeft/Top
+  // instead of a ctx.scale'd canvas. Omitted (toolbar buttons, keyboard),
+  // it anchors to the center of whatever's currently visible instead.
+  Whiteboard.prototype._setZoom = function (z, clientX, clientY) {
+    z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
+    if (z === this._zoom) return;
+    var wrap = this._canvasWrap;
+    var wrapRect = wrap.getBoundingClientRect();
+    var oldW = this._innerEl.offsetWidth  || 1;
+    var oldH = this._innerEl.offsetHeight || 1;
+    var anchorX = (clientX != null) ? (clientX - wrapRect.left + wrap.scrollLeft) : (wrap.scrollLeft + wrap.clientWidth  / 2);
+    var anchorY = (clientY != null) ? (clientY - wrapRect.top  + wrap.scrollTop)  : (wrap.scrollTop  + wrap.clientHeight / 2);
+    var fracX = anchorX / oldW;
+    var fracY = anchorY / oldH;
+
+    this._zoom = z;
+    this._applySize();
+
+    var newW = this._innerEl.offsetWidth;
+    var newH = this._innerEl.offsetHeight;
+    var viewX = (clientX != null) ? (clientX - wrapRect.left) : (wrap.clientWidth  / 2);
+    var viewY = (clientY != null) ? (clientY - wrapRect.top)  : (wrap.clientHeight / 2);
+    wrap.scrollLeft = fracX * newW - viewX;
+    wrap.scrollTop  = fracY * newH - viewY;
+
+    this._updateZoomUi();
+  };
+
+  Whiteboard.prototype._updateZoomUi = function () {
+    if (this._zoomLabelEl) this._zoomLabelEl.textContent = Math.round(this._zoom * 100) + '%';
+    if (this._zoomOutBtnEl) this._zoomOutBtnEl.disabled = this._zoom <= MIN_ZOOM;
+    if (this._zoomInBtnEl)  this._zoomInBtnEl.disabled  = this._zoom >= MAX_ZOOM;
+  };
+
   Whiteboard.prototype._getPos = function (e) {
     var rect = this._overlayEl.getBoundingClientRect();
     return {
@@ -450,9 +585,20 @@
 
     el.addEventListener('pointerdown', function (e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
-      if (self._locked) return; // teacher has blocked this participant's writing — see setLocked
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
+
+      // Pure navigation, never a write — allowed even while locked (see
+      // setLocked), unlike every other branch below.
+      if (self._tool === 'pan') {
+        self._activePtrs[e.pointerId] = {
+          panning: true, startX: e.clientX, startY: e.clientY,
+          scrollStartLeft: self._canvasWrap.scrollLeft, scrollStartTop: self._canvasWrap.scrollTop
+        };
+        el.style.cursor = 'grabbing';
+        return;
+      }
+      if (self._locked) return; // teacher has blocked this participant's writing — see setLocked
       var pos = self._getPos(e);
 
       if (self._tool === 'eraser') {
@@ -478,6 +624,11 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       e.preventDefault();
+      if (st.panning) {
+        self._canvasWrap.scrollLeft = st.scrollStartLeft - (e.clientX - st.startX);
+        self._canvasWrap.scrollTop  = st.scrollStartTop  - (e.clientY - st.startY);
+        return;
+      }
       var pos = self._getPos(e);
       if (st.erasing) { self._eraseAt(pos); return; }
       st.points.push(pos);
@@ -491,6 +642,7 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
+      if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
@@ -512,6 +664,7 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
+      if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
       self._liveStrokes.delete('m:' + st.strokeId);
       self._dirty = true;
@@ -830,6 +983,10 @@
   Whiteboard.prototype.setLocked = function (locked) {
     this._locked = !!locked;
     this._applyLockedUi();
+    // Re-derive the cursor for whatever tool is currently selected — see
+    // _setTool's own locked branch. Harmless no-op call otherwise (same
+    // tool, just recomputes the same class list too).
+    if (this._overlayEl) this._setTool(this._tool);
   };
 
   Whiteboard.prototype._applyLockedUi = function () {

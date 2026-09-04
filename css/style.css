@@ -12717,23 +12717,43 @@ body.wb-fullscreen-active .scroll-top-btn {
   flex-direction: column;
   flex: 1;
   min-height: 0;
+  /* .wb-canvas-mount (parent) is a row-direction flex container, so .wb-board
+     is a row flex ITEM — a flex item's automatic minimum width defaults to
+     its content's natural width, not 0, so without this the nowrap/scrollx
+     toolbar below forced .wb-board (and everything in it) wider than the
+     viewport instead of clipping/scrolling inside its own overflow-x:auto,
+     with the excess silently cut off by body's overflow-x:hidden and no way
+     to reach it. Same fix min-height:0 above already applies on the other
+     axis. */
+  min-width: 0;
 }
 .wb-canvas-wrap {
   position: relative;
   flex: 1;
   min-height: 0;
-  /* Letterbox area — .wb-canvas-inner (the fixed logical board, sized and
-     centered by js/whiteboard.js's _applySize) rarely matches this box's
-     own aspect ratio exactly, so this is what shows in the margin. */
+  min-width: 0; /* same row-flex min-width:auto trap as .wb-board above */
+  /* Letterbox area — .wb-canvas-inner (the fixed logical board, sized by
+     js/whiteboard.js's _applySize) rarely matches this box's own aspect
+     ratio exactly at zoom 1, so this is what shows in the margin. auto
+     (not hidden): zooming in grows .wb-canvas-inner past this box, and
+     that's also what the pan tool/mouse wheel/native touch-scroll pan
+     through. display:flex is still here, but WITHOUT align-items/
+     justify-content:center — those centered via the flex alignment
+     algorithm, which for an item that overflows its container can only be
+     scrolled towards on one side (scrollLeft/Top can never go negative to
+     reach the other), silently trapping half the pan range once zoomed
+     in. .wb-canvas-inner's own margin:auto below centers it the same way
+     at zoom 1 (nothing to tell them apart there) but degrades to a plain
+     flush top-left + full, untrapped scroll range once it overflows,
+     since auto margins simply resolve to 0 once there's no leftover space
+     to distribute — not a flex-alignment negative-offset trick. */
   background: var(--surface);
   display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
+  overflow: auto;
 }
 .wb-canvas-inner {
   position: relative;
-  flex-shrink: 0;
+  margin: auto; /* centers at zoom 1 — see the wrap's own comment above */
   line-height: 0;
   box-shadow: 0 2px 16px rgba(0,0,0,0.12);
   /* Fixed white "paper" regardless of the site's own dark/light theme —
@@ -12763,11 +12783,14 @@ body.wb-fullscreen-active .scroll-top-btn {
 
 /* ---- Locked state (teacher-blocked writing) — see Whiteboard.setLocked
    in js/whiteboard.js and the roster lock toggle in js/class-page.js ---- */
-.wb-board--locked .wb-overlay-canvas { cursor: not-allowed; }
-/* Drawing/erasing tools specifically (not grid/undo/redo/clear, which stay
-   usable — a locked student can still tidy up their own past strokes,
-   just can't add new ones). */
-.wb-board--locked .wb-toolbar [data-tool],
+/* Drawing/erasing tools specifically (not pan — that's pure navigation,
+   never a write, so it stays usable even while locked, see setLocked's own
+   comment in js/whiteboard.js — nor grid/undo/redo/clear/zoom, same
+   reasoning: a locked student can still tidy up or navigate their own
+   view, just can't add anything new). The overlay's cursor while locked is
+   set from JS (_setTool), not here — it's an inline style, which would
+   outrank a CSS rule here anyway and this dimming doesn't need it too. */
+.wb-board--locked .wb-toolbar [data-tool]:not([data-tool="pan"]),
 .wb-board--locked .wb-toolbar [data-width] {
   opacity: 0.4;
   pointer-events: none;
