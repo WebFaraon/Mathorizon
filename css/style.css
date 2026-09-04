@@ -15430,25 +15430,47 @@ body.dc-fullscreen-active .dc-toolbar {
     flex-direction: column-reverse;
   }
 
-  .dc-toolbar {
+  /* Scoped to .dc-wrap (not bare .dc-toolbar) — the geometry figure editor
+     (js/geometry-figure-editor.js) reuses the .dc-toolbar/.dc-tool-group
+     classes under its own .gfe-wrap for visual consistency, and .gfe-toolbar
+     deliberately keeps a single nowrap row (see that rule below); the
+     grid below would reflow it into two rows if it applied there too. */
+  .dc-wrap .dc-toolbar {
     border-bottom: none;
     border-top: 1px solid var(--border);
     padding: 10px 12px 14px; /* extra bottom padding for safe area */
-    justify-content: center;
-    row-gap: 10px;
+    /* Capped at exactly 2 rows instead of open-ended flex-wrap (which could
+       run to 4-5 rows across pen/color/width/zoom/action groups and eat a
+       big chunk of the canvas). A 2-row grid with auto-flow:column fills
+       row 1 then row 2 of column 1 (in DOM order: tools, colors), then row
+       1/2 of column 2 (widths, input mode), and so on — grid's row tracks
+       are shared across every column, so both rows line up cleanly even
+       though groups vary in height (e.g. the colour swatches are shorter
+       than the icon buttons). If the columns still don't all fit, the
+       toolbar scrolls horizontally (overflow-x:auto) instead of clipping
+       tools or adding a 3rd row. */
+    display: grid;
+    grid-auto-flow: column;
+    grid-template-rows: repeat(2, auto);
+    justify-items: start;
+    align-items: center;
+    row-gap: 6px;
+    column-gap: 16px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
   }
 
-  /* Canvas actions (maximize/undo/redo/grid/clear) drop to their own
-     centered row with a divider above, instead of trailing raggedly
-     left-aligned after whichever tool groups happened to wrap before them. */
-  .dc-tool-group--right.dc-tool-group {
-    margin-left: 0;
-    flex-basis: 100%;
-    justify-content: center;
+  /* Vertical dividers (desktop's .dc-tool-group + .dc-tool-group above) only
+     read as a divider between groups sitting side by side on one row — once
+     groups stack two-per-column instead, a plain gap (column-gap above)
+     separates them without a stray line running through the middle of a
+     column. */
+  .dc-wrap .dc-tool-group + .dc-tool-group,
+  .dc-wrap.dc-wrap--maximized .dc-tool-group--extras + .dc-tool-group {
     border-left: none;
     padding-left: 0;
-    padding-top: 10px;
-    border-top: 1px solid var(--border);
+    margin-left: 0;
   }
 
   .dc-canvas-wrap {
@@ -15467,20 +15489,8 @@ body.dc-fullscreen-active .dc-toolbar {
   }
   .dc-mini-exercise__statement { font-size: 0.74rem; }
 
-  /* Toolbar extras (timer + exercise toggle) are the first thing that needs
-     to fit on a narrow phone toolbar row — let them wrap onto their own
-     line above the rest of the tools instead of squeezing everything. */
   .dc-tool-group--extras {
-    flex-basis: 100%;
-    justify-content: space-between;
-    padding-bottom: 8px;
-    margin-bottom: 4px;
-    border-bottom: 1px solid var(--border);
-  }
-  .dc-wrap--maximized .dc-tool-group--extras + .dc-tool-group {
-    border-left: none;
-    padding-left: 0;
-    margin-left: 0;
+    justify-content: flex-start;
   }
 }
 
