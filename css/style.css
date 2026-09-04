@@ -10276,6 +10276,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: -0.5px;
   margin-bottom: 6px;
 }
+.admin-header-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-bottom: 6px;
+}
+.admin-header-row .admin-title { flex: 1 1 auto; margin-bottom: 0; }
+.admin-header-row #openAddExerciseBtn { margin-left: auto; }
 .admin-sub {
   font-size: 0.9rem;
   color: var(--text-muted);
@@ -10701,6 +10710,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
   /* Stat cards: 2 columns */
   .admin-stats-grid { grid-template-columns: 1fr 1fr; gap: 10px; }
+
+  /* Header row: Profil + Adaugă exercițiu no longer fit alongside the title
+     on one line — margin-left:auto then stranded the button on its own
+     wrapped line, floating at the far right with nothing to align to.
+     flex-basis:100% forces the title onto its own wrapped row instead,
+     leaving Profil + button together on row 1, spaced by space-between. */
+  .admin-header-row { justify-content: space-between; }
+  .admin-header-row .admin-title { order: 3; flex: 1 1 100%; margin-top: 2px; }
+  .admin-header-row #openAddExerciseBtn { margin-left: 0; }
 }
 
 /* ============================================================
@@ -15181,6 +15199,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   color: #fff;
   background: var(--accent);
   border: 1px solid var(--accent-2, var(--accent));
+  /* Without these, a narrow toolbar column (mobile grid track, or the
+     scrollable row now used there — see the max-width:640px block below)
+     could size this pill's box below its text's natural width, wrapping
+     "Mod stilou activ" onto two lines: the 999px border-radius then turns
+     the now-tall pill into a blob, and the toolbar row grows to fit it. */
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .dc-mode-badge--show { display: inline-flex; }
@@ -15432,45 +15457,30 @@ body.dc-fullscreen-active .dc-toolbar {
 
   /* Scoped to .dc-wrap (not bare .dc-toolbar) — the geometry figure editor
      (js/geometry-figure-editor.js) reuses the .dc-toolbar/.dc-tool-group
-     classes under its own .gfe-wrap for visual consistency, and .gfe-toolbar
-     deliberately keeps a single nowrap row (see that rule below); the
-     grid below would reflow it into two rows if it applied there too. */
+     classes under its own .gfe-wrap, which keeps its own always-on single
+     nowrap row (see .gfe-toolbar) rather than this mobile-only override. */
   .dc-wrap .dc-toolbar {
     border-bottom: none;
     border-top: 1px solid var(--border);
     padding: 10px 12px 14px; /* extra bottom padding for safe area */
-    /* Capped at exactly 2 rows instead of open-ended flex-wrap (which could
-       run to 4-5 rows across pen/color/width/zoom/action groups and eat a
-       big chunk of the canvas). A 2-row grid with auto-flow:column fills
-       row 1 then row 2 of column 1 (in DOM order: tools, colors), then row
-       1/2 of column 2 (widths, input mode), and so on — grid's row tracks
-       are shared across every column, so both rows line up cleanly even
-       though groups vary in height (e.g. the colour swatches are shorter
-       than the icon buttons). If the columns still don't all fit, the
-       toolbar scrolls horizontally (overflow-x:auto) instead of clipping
-       tools or adding a 3rd row. */
-    display: grid;
-    grid-auto-flow: column;
-    grid-template-rows: repeat(2, auto);
-    justify-items: start;
-    align-items: center;
-    row-gap: 6px;
-    column-gap: 16px;
+    /* One scrollable row, same groups/gaps/dividers as desktop — a 2-row
+       grid used to pack unrelated groups into shared columns (e.g. the
+       colour swatches directly above the input-mode toggle), so widening
+       any one item, or a group appearing/disappearing, resized a whole
+       column and threw off every gap next to it. A single row can't do
+       that: each group just takes its own natural width and the toolbar
+       scrolls horizontally past whatever doesn't fit. */
+    flex-wrap: nowrap;
     overflow-x: auto;
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
   }
 
-  /* Vertical dividers (desktop's .dc-tool-group + .dc-tool-group above) only
-     read as a divider between groups sitting side by side on one row — once
-     groups stack two-per-column instead, a plain gap (column-gap above)
-     separates them without a stray line running through the middle of a
-     column. */
-  .dc-wrap .dc-tool-group + .dc-tool-group,
-  .dc-wrap.dc-wrap--maximized .dc-tool-group--extras + .dc-tool-group {
-    border-left: none;
-    padding-left: 0;
-    margin-left: 0;
+  /* Without this, nowrap lets the default flex-shrink squeeze groups (and
+     the tap targets inside them) before the row starts scrolling — same
+     fix .gfe-tool-section already applies for its own always-on scroll row. */
+  .dc-wrap .dc-tool-group {
+    flex-shrink: 0;
   }
 
   .dc-canvas-wrap {
@@ -16563,6 +16573,15 @@ body.dc-fullscreen-active .dc-toolbar {
 .ae-geo-editor .gfe-wrap {
   overflow: visible;
 }
+/* On a phone, a 640px min-height desktop working area is taller than the
+   viewport itself — the editor would eat the whole screen before the admin
+   even reaches the barem below it. */
+@media (max-width: 640px) {
+  .ae-geo-editor .gfe-canvas-wrap {
+    height: 50vh;
+    min-height: 380px;
+  }
+}
 
 /* ---- §4 section cards (Barem / Răspuns final / Metode alternative) —
    previously just plain .cls-form-field blocks stacked with a flat 16px
@@ -16615,6 +16634,27 @@ body.dc-fullscreen-active .dc-toolbar {
 .ae-barem-row__pts { grid-column: 3; }
 .ae-barem-row__del { grid-column: 4; margin-top: 4px; }
 .ae-barem-row__preview { grid-column: 2; }
+
+/* Below ~640px the fixed nr/pts/del columns (auto + 70px + auto, plus
+   3×10px gaps) left barely 80-90px for the desc/preview column — just
+   enough to wrap every word in the KaTeX preview onto its own line, with
+   the points input floating on top of it. nr/pts/del move to a compact
+   header row instead so desc/preview each get the full row width. */
+@media (max-width: 640px) {
+  .ae-barem-row {
+    grid-template-columns: auto 70px auto;
+    grid-template-areas:
+      "nr pts del"
+      "desc desc desc"
+      "preview preview preview";
+    row-gap: 8px;
+  }
+  .ae-barem-row__nr { grid-area: nr; padding-top: 6px; }
+  .ae-barem-row__pts { grid-area: pts; }
+  .ae-barem-row__del { grid-area: del; margin-top: 0; }
+  .ae-barem-row__desc { grid-area: desc; }
+  .ae-barem-row__preview { grid-area: preview; }
+}
 
 /* .ae-alt-row: name field full-width (was a cramped 180px box that clipped
    most method titles) with the delete button riding alongside it, then the
