@@ -7542,59 +7542,70 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .bac-sidebar-toggle svg { width: 14px; height: 14px; transition: transform 0.3s ease; }
 .bac-sidebar-wrap.collapsed .bac-sidebar-toggle svg { transform: rotate(180deg); }
 
-/* ---- Sidebar collapsed state ---- */
-.bac-sidebar-wrap.collapsed .bac-sidebar { width: 60px; }
-.bac-sidebar-wrap.collapsed .bac-sidebar__exam-title,
-.bac-sidebar-wrap.collapsed .bac-sidebar__stats-grid,
-.bac-sidebar-wrap.collapsed .bac-sidebar__progress-row,
-.bac-sidebar-wrap.collapsed .bac-sidebar__track,
-.bac-sidebar-wrap.collapsed .bac-sidebar__motiv,
-.bac-sidebar-wrap.collapsed .bac-sidebar__section-label { display: none; }
-.bac-sidebar-wrap.collapsed .bac-sidebar__header { padding: 10px 6px; }
-.bac-sidebar-wrap.collapsed .bac-sidebar__nav {
-  flex-direction: row;
-  flex-wrap: wrap;
-  justify-content: center;
-  padding: 8px 6px;
-  gap: 6px;
+/* ---- Sidebar collapsed state ---- (desktop/tablet only: the toggle that
+   sets .collapsed is itself hidden below 1025px — see .bac-sidebar-toggle
+   in the max-width:1024px block — but the persisted preference isn't, so
+   without this guard a .collapsed picked up on a wide window (or a prior
+   desktop visit sharing the same localStorage) would still out-specificity
+   the ≤1024px mobile grid below on a narrow one: 3 classes always beats
+   that block's single-class selectors regardless of which media query
+   matches. Scoping the whole collapsed-state ruleset to ≥1025px keeps the
+   phone/tablet nav on its own compact grid no matter what was left toggled
+   on desktop. */
+@media (min-width: 1025px) {
+  .bac-sidebar-wrap.collapsed .bac-sidebar { width: 60px; }
+  .bac-sidebar-wrap.collapsed .bac-sidebar__exam-title,
+  .bac-sidebar-wrap.collapsed .bac-sidebar__stats-grid,
+  .bac-sidebar-wrap.collapsed .bac-sidebar__progress-row,
+  .bac-sidebar-wrap.collapsed .bac-sidebar__track,
+  .bac-sidebar-wrap.collapsed .bac-sidebar__motiv,
+  .bac-sidebar-wrap.collapsed .bac-sidebar__section-label { display: none; }
+  .bac-sidebar-wrap.collapsed .bac-sidebar__header { padding: 10px 6px; }
+  .bac-sidebar-wrap.collapsed .bac-sidebar__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    justify-content: center;
+    padding: 8px 6px;
+    gap: 6px;
+  }
+  .bac-sidebar-wrap.collapsed .bac-nav-item {
+    position: relative;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    gap: 0;
+    justify-content: center;
+    border-left-width: 1px;
+  }
+  .bac-sidebar-wrap.collapsed .bac-nav-item__status,
+  .bac-sidebar-wrap.collapsed .bac-nav-item__pts,
+  .bac-sidebar-wrap.collapsed .bac-nav-item__label,
+  .bac-sidebar-wrap.collapsed .bac-nav-badge,
+  .bac-sidebar-wrap.collapsed .bac-nav-flag { display: none; }
+  .bac-sidebar-wrap.collapsed .bac-nav-item__short {
+    display: block;
+    font-size: 0.68rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+  }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.current { background: var(--accent); border-color: var(--accent); }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.current .bac-nav-item__short { color: #fff; }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.done .bac-nav-item__short { color: var(--solved); }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.done::after,
+  .bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after {
+    content: '';
+    position: absolute;
+    top: 3px;
+    right: 3px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+  }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.done::after    { background: var(--solved); }
+  .bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after { background: #f59e0b; }
+  /* flagged+done: show flag color (takes priority) */
+  .bac-sidebar-wrap.collapsed .bac-nav-item.done.flagged::after { background: #f59e0b; }
 }
-.bac-sidebar-wrap.collapsed .bac-nav-item {
-  position: relative;
-  width: 38px;
-  height: 38px;
-  padding: 0;
-  gap: 0;
-  justify-content: center;
-  border-left-width: 1px;
-}
-.bac-sidebar-wrap.collapsed .bac-nav-item__status,
-.bac-sidebar-wrap.collapsed .bac-nav-item__pts,
-.bac-sidebar-wrap.collapsed .bac-nav-item__label,
-.bac-sidebar-wrap.collapsed .bac-nav-badge,
-.bac-sidebar-wrap.collapsed .bac-nav-flag { display: none; }
-.bac-sidebar-wrap.collapsed .bac-nav-item__short {
-  display: block;
-  font-size: 0.68rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-}
-.bac-sidebar-wrap.collapsed .bac-nav-item.current { background: var(--accent); border-color: var(--accent); }
-.bac-sidebar-wrap.collapsed .bac-nav-item.current .bac-nav-item__short { color: #fff; }
-.bac-sidebar-wrap.collapsed .bac-nav-item.done .bac-nav-item__short { color: var(--solved); }
-.bac-sidebar-wrap.collapsed .bac-nav-item.done::after,
-.bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after {
-  content: '';
-  position: absolute;
-  top: 3px;
-  right: 3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-}
-.bac-sidebar-wrap.collapsed .bac-nav-item.done::after    { background: var(--solved); }
-.bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after { background: #f59e0b; }
-/* flagged+done: show flag color (takes priority) */
-.bac-sidebar-wrap.collapsed .bac-nav-item.done.flagged::after { background: #f59e0b; }
 .bac-nav-item__short { display: none; }
 .bac-sidebar__header {
   flex-shrink: 0;
@@ -8805,33 +8816,55 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
      a gap instead of lining up under the columns above. Grid shares one set
      of column tracks across every row, so items always land in the same
      columns regardless of a row's content or how many items trail at the end.
-     A fixed 3-column count (not auto-fill) so the row count stays exactly 3
-     at every width this block applies to (phone through tablet) — auto-fill
-     would instead cram in 6-8+ tiny columns on the wider end of that range. */
+     auto-fill with a minmax floor (not a fixed column count) — a fixed count
+     low enough to read comfortably on a phone (e.g. 3) stretches each cell
+     far past what a bare item number needs on a tablet-width screen, which
+     is what made this nav read as oversized tiles with big dead gaps between
+     them; auto-fill instead packs as many ~44px squares per row as actually
+     fit, so phone and tablet both get compact, evenly-packed rows instead of
+     one fixed layout stretched (or squeezed) to fit every width in between. */
   .bac-sidebar__nav {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    padding: 8px 10px;
-    gap: 6px;
+    grid-template-columns: repeat(auto-fill, minmax(44px, 1fr));
+    padding: 6px 8px;
+    gap: 5px;
     overflow-y: visible;
   }
   .bac-sidebar__section-label { display: none; }
   .bac-sidebar__group-label { display: none; }
   .bac-nav-item {
     width: auto;
-    padding: 6px 10px;
-    gap: 4px;
-    font-size: 0.74rem;
+    aspect-ratio: 1;
+    padding: 4px;
+    gap: 0;
     border-left-width: 0;
     border-bottom-width: 2px;
     border-bottom-color: transparent;
     justify-content: center;
     text-align: center;
   }
-  .bac-nav-item.current { border-bottom-color: var(--accent); }
-  .bac-nav-item.done    { border-bottom-color: var(--solved); }
-  .bac-nav-item__status { display: none; }
-  .bac-nav-item__pts { font-size: 0.64rem; }
+  .bac-nav-item.current  { border-bottom-color: var(--accent); }
+  .bac-nav-item.done     { border-bottom-color: var(--solved); }
+  .bac-nav-item.flagged  { border-bottom-color: #f59e0b; }
+  .bac-nav-item.current .bac-nav-item__short { color: var(--accent); }
+  .bac-nav-item.done    .bac-nav-item__short { color: var(--solved); }
+  .bac-nav-item.flagged .bac-nav-item__short { color: #f59e0b; }
+  /* Label ("Item 1") + points don't fit a ~44px square — same bare-number
+     treatment already used for the desktop sidebar's collapsed rail (see
+     .bac-sidebar-wrap.collapsed .bac-nav-item__short above), reused here
+     since a phone nav is effectively always "collapsed" width-wise. The
+     flag star moves out too (no room for a second tap target in a 44px
+     square) — marking the open item for review still works from the flag
+     button in the exam topbar (#flagBtn). */
+  .bac-nav-item__status,
+  .bac-nav-item__label,
+  .bac-nav-item__pts,
+  .bac-nav-flag { display: none; }
+  .bac-nav-item__short {
+    display: block;
+    font-size: 0.82rem;
+    font-weight: 700;
+  }
   /* Class-simulation exam only (.sim-exam-overlay): the current item gets a
      solid blue fill instead of just the thin accent underline above. */
   .sim-exam-overlay .bac-nav-item.current {
@@ -8839,8 +8872,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
     border-color: var(--accent);
     border-bottom-color: var(--accent);
   }
-  .sim-exam-overlay .bac-nav-item.current .bac-nav-item__label,
-  .sim-exam-overlay .bac-nav-item.current .bac-nav-item__pts { color: #fff; }
+  .sim-exam-overlay .bac-nav-item.current .bac-nav-item__short { color: #fff; }
   .bac-topbar-controls .bac-timer { min-width: auto; }
   .bac-main { padding: 16px 16px 0; height: auto; overflow: visible; animation: none; padding-bottom: 78px; }
   #slotContent { flex: none; overflow-y: visible; padding-right: 0; margin-right: 0; display: block; }

@@ -390,6 +390,7 @@ window.BM = window.BM || {};
           <div class="bac-sidebar__section-label">Itemi</div>
           ${state.items.map((it, i) => `
             <div class="bac-nav-item${i === state.current ? ' current' : ''}" data-nav-idx="${i}">
+              <span class="bac-nav-item__short">${i + 1}</span>
               <span class="bac-nav-item__label">Item ${i + 1}</span>
               <span class="bac-nav-item__pts">${it.points}p</span>
             </div>`).join('')}
