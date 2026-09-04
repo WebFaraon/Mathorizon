@@ -5496,15 +5496,16 @@
     _openWhiteboardInstance?.destroy();
     _openWhiteboardInstance = null;
     document.getElementById('tablaLiveModal')?.remove();
+    document.body.classList.remove('wb-fullscreen-active');
     _openTablaSessionId = null;
   }
 
-  // Explicit "step out" action — the X button / clicking the backdrop.
-  // For a student this also removes them from the session's roster, so the
-  // teacher's already-open view reflects it immediately instead of showing
-  // them as still connected until the whole session ends. A teacher closing
-  // their OWN view isn't the same as ending the session — they're still
-  // hosting it either way — so their row is left untouched.
+  // Explicit "step out" action — the close button. For a student this also
+  // removes them from the session's roster, so the teacher's already-open
+  // view reflects it immediately instead of showing them as still
+  // connected until the whole session ends. A teacher closing their OWN
+  // view isn't the same as ending the session — they're still hosting it
+  // either way — so their row is left untouched.
   function _leaveTablaLiveModal() {
     const sessionId = _openTablaSessionId;
     if (sessionId && BMAuth.role !== 'profesor') {
@@ -5515,33 +5516,35 @@
     _closeTablaLiveModal();
   }
 
+  // A full-screen takeover (not a modal) — opening/closing it never
+  // navigates anywhere, it just shows/hides this overlay on top of the
+  // class page, which is already sitting on the Tablă tab underneath. That
+  // means "leaving the lesson" naturally lands back exactly there with no
+  // routing of its own needed.
   async function openWhiteboardLiveView(session) {
     if (!session) return;
     _closeTablaLiveModal();
     _openTablaSessionId = session.id;
+    document.body.classList.add('wb-fullscreen-active');
 
     const modal = document.createElement('div');
     modal.id = 'tablaLiveModal';
-    modal.className = 'classes-modal';
+    modal.className = 'wb-fullscreen';
     modal.innerHTML = `
-      <div class="classes-modal__backdrop"></div>
-      <div class="classes-modal__dialog wb-live-dialog">
-        <div class="classes-modal__head">
+      <div class="wb-fs-header">
+        <div class="wb-fs-header__left">
           <h3>${icon('presentation', { size: 20 })} ${BM.esc(session.title)}</h3>
-          <div style="display:flex;gap:6px;align-items:center">
-            ${BMAuth.role === 'profesor' ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
-            <button class="icon-btn" id="tablaLiveCloseBtn" title="${BMAuth.role === 'profesor' ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
-          </div>
         </div>
-        <div class="classes-modal__body wb-modal-body" id="tablaLiveBody">
+        <div class="wb-fs-header__right">
           <div class="wb-roster-strip" id="wbRosterStrip"><span class="wb-roster-count">…</span></div>
-          <div class="wb-canvas-mount" id="wbCanvasMount">
-            <div class="classes-loading"><div class="classes-spinner"></div></div>
-          </div>
+          ${BMAuth.role === 'profesor' ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
+          <button class="icon-btn" id="tablaLiveCloseBtn" title="${BMAuth.role === 'profesor' ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
+      </div>
+      <div id="wbCanvasMount" class="wb-canvas-mount">
+        <div class="classes-loading"><div class="classes-spinner"></div></div>
       </div>`;
     document.body.appendChild(modal);
-    modal.querySelector('.classes-modal__backdrop').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
 

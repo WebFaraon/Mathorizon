@@ -132,6 +132,9 @@
 
   /* ---- DOM ---- */
 
+  var GRID_ICON = '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>';
+  var GRID_CELL_LOGICAL = 40; // in logical units — converted to real px per viewer's own scale, see _applySize
+
   Whiteboard.prototype._build = function (container) {
     var wrap = document.createElement('div');
     wrap.className = 'wb-board';
@@ -145,19 +148,28 @@
               '<span class="dc-width-dot" style="width:' + dotSize + 'px;height:' + dotSize + 'px"></span></button>';
           }).join('') +
         '</div>' +
+        '<div class="dc-tool-group">' +
+          '<button type="button" class="dc-action-btn" id="wbGridBtn" title="Arată grila">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + GRID_ICON + '</svg>' +
+          '</button>' +
+        '</div>' +
         '<div class="dc-tool-group dc-tool-group--right">' +
           '<button type="button" class="dc-action-btn dc-action-btn--danger" id="wbClearMineBtn" title="Șterge ce am desenat eu">' +
             (global.icon ? global.icon('trash-2', { size: 16 }) : '×') +
           '</button>' +
         '</div>' +
       '</div>' +
-      '<div class="wb-canvas-wrap" id="wbCanvasWrap"><canvas id="wbFabricCanvas"></canvas></div>';
+      '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
+        '<div class="wb-canvas-inner" id="wbCanvasInner"><canvas id="wbFabricCanvas"></canvas></div>' +
+      '</div>';
     container.appendChild(wrap);
 
     this._wrap       = wrap;
-    this._toolbarEl   = wrap.querySelector('.wb-toolbar');
-    this._canvasWrap  = wrap.querySelector('#wbCanvasWrap');
-    this._fabricEl    = wrap.querySelector('#wbFabricCanvas');
+    this._toolbarEl  = wrap.querySelector('.wb-toolbar');
+    this._canvasWrap = wrap.querySelector('#wbCanvasWrap');
+    this._innerEl    = wrap.querySelector('#wbCanvasInner');
+    this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
+    this._gridOn     = false;
   };
 
   Whiteboard.prototype._bindToolbar = function () {
@@ -165,6 +177,7 @@
     this._toolbarEl.addEventListener('click', function (e) {
       var widthBtn = e.target.closest('[data-width]');
       var clearBtn = e.target.closest('#wbClearMineBtn');
+      var gridBtn  = e.target.closest('#wbGridBtn');
       if (widthBtn) {
         self._width = parseInt(widthBtn.dataset.width, 10);
         self._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
@@ -172,6 +185,11 @@
         });
       } else if (clearBtn) {
         self._clearMine();
+      } else if (gridBtn) {
+        self._gridOn = !self._gridOn;
+        gridBtn.classList.toggle('dc-action-btn--active', self._gridOn);
+        gridBtn.title = self._gridOn ? 'Ascunde grila' : 'Arată grila';
+        self._innerEl.classList.toggle('wb-canvas-inner--grid', self._gridOn);
       }
     });
   };
@@ -182,17 +200,24 @@
     this._fabricCanvas = new fabric.Canvas(this._fabricEl, {
       selection: false,
       evented: false,          // no per-object interaction in Phase 1 — we own all pointer handling via the overlay
-      renderOnAddRemove: false, // batched — every call site below does its own requestRenderAll()
-      backgroundColor: '#ffffff' // deliberately NOT theme-linked — see note on the participant color palette below
+      renderOnAddRemove: false // batched — every call site below does its own requestRenderAll()
+      // No backgroundColor here — .wb-canvas-inner's own white/grid CSS
+      // background shows through the transparent fabric canvas instead
+      // (see the contrast note on that class for why it's fixed-white,
+      // never theme-linked).
     });
 
     // Overlay canvas: raw 2D context, captures every pointer event, renders
-    // only the in-progress stroke (mine + everyone else's). Sits on top of
-    // whatever Fabric just rendered its own <canvas>/.canvas-container as.
+    // only the in-progress stroke (mine + everyone else's). A sibling of
+    // Fabric's own canvas inside the SAME sized-and-centered .wb-canvas-inner
+    // (not .wb-canvas-wrap directly) — the wrap letterboxes/centers that
+    // inner box as a unit when the viewer's aspect ratio doesn't match the
+    // board's, so the overlay's inset:0 always lines up with Fabric's canvas
+    // exactly, regardless of any letterbox margin.
     var overlay = document.createElement('canvas');
     overlay.className = 'wb-overlay-canvas';
     overlay.style.touchAction = 'none'; // prevent the page from scrolling/pinch-zooming while drawing
-    this._canvasWrap.appendChild(overlay);
+    this._innerEl.appendChild(overlay);
     this._overlayEl  = overlay;
     this._overlayCtx = overlay.getContext('2d');
 
@@ -209,21 +234,29 @@
   };
 
   // No pan/zoom (Phase 1, confirmed scope) — each client just scales the
-  // fixed LOGICAL_W×LOGICAL_H surface to fit its own container width.
-  // Fabric's setZoom handles that for the committed-stroke canvas (and its
-  // own enableRetinaScaling default keeps that backing store crisp); the
-  // raw overlay canvas needs the same scale factor applied by hand since
-  // nothing manages it automatically.
+  // fixed LOGICAL_W×LOGICAL_H surface to fit its own container. "Fit"
+  // means contain (both width AND height bounded), not width-only — a
+  // fullscreen board is shown on every device shape from a phone in
+  // portrait to an ultrawide monitor, and width-only scaling would either
+  // overflow a short viewport or leave a tall one mostly empty. Whatever
+  // doesn't match the container's own aspect ratio just letterboxes
+  // (.wb-canvas-wrap centers the fixed-size .wb-canvas-inner as a unit).
   Whiteboard.prototype._applySize = function () {
     if (this._destroyed) return;
-    var wrapW = this._canvasWrap.clientWidth || 800;
-    var scale = wrapW / LOGICAL_W;
-    var cssW  = wrapW;
+    var availW = this._canvasWrap.clientWidth  || 800;
+    var availH = this._canvasWrap.clientHeight || 600;
+    var scale = Math.min(availW / LOGICAL_W, availH / LOGICAL_H);
+    var cssW  = LOGICAL_W * scale;
     var cssH  = LOGICAL_H * scale;
     var dpr   = Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
     this._scale = scale;
     this._dpr   = dpr;
+
+    this._innerEl.style.width  = cssW + 'px';
+    this._innerEl.style.height = cssH + 'px';
+    var cellPx = GRID_CELL_LOGICAL * scale;
+    this._innerEl.style.backgroundSize = cellPx + 'px ' + cellPx + 'px';
 
     this._fabricCanvas.setDimensions({ width: cssW, height: cssH });
     this._fabricCanvas.setZoom(scale);
@@ -282,9 +315,14 @@
       delete self._activePtrs[e.pointerId];
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
-      self._liveStrokes.delete('m:' + st.strokeId);
-      self._dirty = true;
-      self._commitStroke(st.points);
+      // Deliberately NOT deleting the live-stroke entry here — the overlay
+      // preview stays exactly as drawn until _commitStroke's DB round-trip
+      // resolves and the real fabric.Path is ready to take its place (same
+      // tick, see below). Removing it here instead left a gap the length of
+      // that round-trip where the stroke was neither on the overlay nor on
+      // Fabric yet — a visible "disappears for a moment, then reappears"
+      // flicker on every release.
+      self._commitStroke(st.points, 'm:' + st.strokeId);
     }
     el.addEventListener('pointerup', finish);
     // Not gated to touch — mirrors drawing-canvas.js's own reasoning: a
@@ -323,9 +361,14 @@
   };
 
   // A tap with no movement never rendered anything and isn't worth a row —
-  // same rule drawing-canvas.js uses for its own strokes.
-  Whiteboard.prototype._commitStroke = function (points) {
-    if (points.length < 2) return;
+  // same rule drawing-canvas.js uses for its own strokes. liveKey is the
+  // overlay preview entry to retire once (and only once) the real object
+  // is ready to take its place — see the note at the finish() call site.
+  Whiteboard.prototype._commitStroke = function (points, liveKey) {
+    if (points.length < 2) {
+      if (liveKey) { this._liveStrokes.delete(liveKey); this._dirty = true; }
+      return;
+    }
     var path = smoothPathString(points);
     var self = this;
     this._supabase.from('whiteboard_objects').insert({
@@ -333,11 +376,21 @@
       class_id:   this._classId,
       created_by: this._userId,
       kind: 'stroke',
-      fabric_json: { path: path, stroke: this._color, strokeWidth: this._width }
+      // clientStrokeId round-trips back through postgres_changes so a
+      // REMOTE viewer can do the exact same "swap, don't just delete"
+      // trick for their copy of this stroke's live preview — see
+      // _connectRealtime's INSERT handler.
+      fabric_json: { path: path, stroke: this._color, strokeWidth: this._width, clientStrokeId: liveKey ? liveKey.slice(2) : null }
     }).select().single().then(function (res) {
       if (self._destroyed) return;
-      if (res.error) { console.error('[Whiteboard] commit failed', res.error); return; }
+      if (res.error) {
+        console.error('[Whiteboard] commit failed', res.error);
+        if (liveKey) { self._liveStrokes.delete(liveKey); self._dirty = true; } // don't leave the preview stuck forever
+        return;
+      }
       self._addObjectIfNew(res.data);
+      if (liveKey) self._liveStrokes.delete(liveKey);
+      self._dirty = true;
       self._fabricCanvas.requestRenderAll();
     });
   };
@@ -349,11 +402,20 @@
     this._channel = this._supabase
       .channel('whiteboard-' + this._sessionId, { config: { broadcast: { self: false } } })
       .on('broadcast', { event: 'stroke:point' }, function (msg) { self._onRemotePoint(msg.payload); })
-      .on('broadcast', { event: 'stroke:end' },   function (msg) { self._onRemoteStrokeGone(msg.payload); })
-      .on('broadcast', { event: 'stroke:cancel' }, function (msg) { self._onRemoteStrokeGone(msg.payload); })
+      .on('broadcast', { event: 'stroke:end' },   function (msg) { self._onRemoteStrokeEnd(msg.payload); })
+      .on('broadcast', { event: 'stroke:cancel' }, function (msg) { self._liveStrokes.delete('r:' + msg.payload.strokeId); self._dirty = true; })
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
-      }, function (p) { self._addObjectIfNew(p.new); self._fabricCanvas.requestRenderAll(); })
+      }, function (p) {
+        var cid = p.new.fabric_json && p.new.fabric_json.clientStrokeId;
+        // Same swap-not-delete trick as the local drawer's own finish() —
+        // retire the remote live-preview entry in the SAME tick the real
+        // object gets added, so a remote viewer never sees the stroke blink
+        // out during the commit round-trip either.
+        if (cid) { self._liveStrokes.delete('r:' + cid); self._dirty = true; }
+        self._addObjectIfNew(p.new);
+        self._fabricCanvas.requestRenderAll();
+      })
       .on('postgres_changes', {
         event: 'DELETE', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
       }, function (p) { self._removeObjectById(p.old && p.old.id); self._fabricCanvas.requestRenderAll(); })
@@ -375,9 +437,21 @@
     this._dirty = true;
   };
 
-  Whiteboard.prototype._onRemoteStrokeGone = function (payload) {
-    this._liveStrokes.delete('r:' + payload.strokeId);
-    this._dirty = true;
+  // 'end' means the finished object is already on its way as a committed
+  // row (matched by clientStrokeId in the INSERT handler above) — leave the
+  // live preview showing until that arrives instead of deleting it here,
+  // same reasoning as the local drawer's own finish(). The timeout is only
+  // a safety net for the rare case nothing ever arrives (e.g. the sender's
+  // stroke was a single-point tap, which _commitStroke drops without
+  // inserting any row at all) — without it a dropped stroke like that would
+  // leave a phantom preview on screen forever for everyone else.
+  Whiteboard.prototype._onRemoteStrokeEnd = function (payload) {
+    var key = 'r:' + payload.strokeId;
+    if (!this._liveStrokes.has(key)) return;
+    var self = this;
+    setTimeout(function () {
+      if (self._liveStrokes.delete(key)) self._dirty = true;
+    }, 2000);
   };
 
   // Shared by three call sites (my own commit, a remote INSERT, the bulk

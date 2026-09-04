@@ -12492,26 +12492,70 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin-bottom: 10px;
 }
 
-/* Phase 1 grows the modal from a small roster-only dialog into the actual
-   drawing surface — needs real width to be usable, not the 480px card that
-   was plenty for a plain participant list. */
-.wb-live-dialog { max-width: 1120px; width: 96vw; }
-.wb-modal-body.wb-modal-body {
+/* Full-screen takeover, not a modal — this is meant to feel like walking
+   into the lesson, not opening a dialog on top of the class page, and a
+   modal card (even a big one) left the actual drawing area cramped,
+   especially on a phone where half the remaining screen went to browser
+   chrome anyway. Closing it removes this overlay and nothing else, so the
+   class page underneath — already sitting on the Tablă tab — is exactly
+   where you land, with no navigation of its own needed. */
+.wb-fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  background: var(--bg);
   display: flex;
   flex-direction: column;
-  padding: 14px 16px 16px;
+}
+body.wb-fullscreen-active {
+  overflow: hidden;
+}
+body.wb-fullscreen-active #nav-root,
+body.wb-fullscreen-active .scroll-top-btn {
+  display: none !important;
+}
+.wb-fs-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+.wb-fs-header__left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
+}
+.wb-fs-header__left h3 {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wb-fs-header__right {
+  display: flex;
+  align-items: center;
   gap: 12px;
 }
 
 /* Roster shrinks from Phase 0's full-width name list to a compact strip of
    colored initials once the canvas needs the space — full name is still a
    tooltip away, and the color here is the same one that identifies their
-   ink on the board below. */
+   ink on the board below. Gap is generous (not the usual 6-8px) because
+   the teacher's avatar carries an extra accent ring OUTSIDE its own box
+   (box-shadow, so it takes no layout space of its own) — too tight a gap
+   let that ring visually lap onto whatever sat right before it. */
 .wb-roster-strip {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: 10px;
   flex-shrink: 0;
 }
 .wb-roster-count {
@@ -12521,7 +12565,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   font-size: 0.76rem;
   font-weight: 700;
   color: var(--text-muted);
-  margin-right: 4px;
 }
 .wb-avatar {
   display: inline-flex;
@@ -12539,6 +12582,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .wb-avatar--teacher { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent); }
 
+/* Where js/class-page.js mounts the Whiteboard component — just a flex
+   slot filling whatever's left below the header; .wb-board (below) is the
+   component's OWN wrapper it builds inside this on construction. */
+.wb-canvas-mount {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+}
+
 /* ---- Whiteboard component (js/whiteboard.js) ----
    Deliberately reuses .dc-toolbar/.dc-tool-group/.dc-width-btn/
    .dc-width-dot/.dc-action-btn wholesale from the DrawingCanvas toolbar
@@ -12550,26 +12602,43 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   flex-direction: column;
   flex: 1;
   min-height: 0;
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  overflow: hidden;
 }
-.wb-toolbar { border-radius: 11px 11px 0 0; }
 .wb-canvas-wrap {
   position: relative;
-  width: 100%;
-  aspect-ratio: 1400 / 900;
+  flex: 1;
+  min-height: 0;
+  /* Letterbox area — .wb-canvas-inner (the fixed logical board, sized and
+     centered by js/whiteboard.js's _applySize) rarely matches this box's
+     own aspect ratio exactly, so this is what shows in the margin. */
+  background: var(--surface);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+.wb-canvas-inner {
+  position: relative;
+  flex-shrink: 0;
+  line-height: 0;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
   /* Fixed white "paper" regardless of the site's own dark/light theme —
      not a stylistic choice, a contrast one: the teacher's reserved ink
      color (#111827, near-black) would nearly vanish against this app's
      dark-theme canvas background (#161616), and several other palette
      colors would fare little better. A real whiteboard is white
      regardless of the room lighting; this one is too. */
-  background: #ffffff;
-  overflow: hidden;
-  line-height: 0;
+  background-color: #ffffff;
 }
-.wb-canvas-wrap canvas { display: block; }
+/* Grid toggle (js/whiteboard.js's #wbGridBtn) — background-size is set
+   dynamically per viewer's own scale in _applySize, so the drawn cell size
+   always matches the same LOGICAL square for everyone regardless of their
+   own screen/zoom. */
+.wb-canvas-inner--grid {
+  background-image:
+    linear-gradient(to right, rgba(20,16,8,0.09) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(20,16,8,0.09) 1px, transparent 1px);
+}
+.wb-canvas-inner canvas { display: block; }
 .wb-overlay-canvas {
   position: absolute;
   inset: 0;
@@ -12580,11 +12649,8 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 @media (max-width: 600px) {
   .wb-hero { flex-wrap: wrap; }
   .wb-hero .btn { width: 100%; justify-content: center; }
-  /* Every spare pixel matters once the canvas itself only gets what's left
-     after the header/roster/toolbar — shrink .classes-modal's own outer
-     padding (20px everywhere by default) rather than just the dialog. */
-  .classes-modal:has(.wb-live-dialog) { padding: 8px; }
-  .wb-modal-body.wb-modal-body { padding: 10px; gap: 8px; }
+  .wb-fs-header { padding: 8px 10px; }
+  .wb-fs-header__left h3 { font-size: 0.9rem; }
 }
 
 /* Membri catalog — simulation columns (teacher table) */
