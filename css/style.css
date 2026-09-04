@@ -12444,6 +12444,117 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin-left: auto;
 }
 
+/* ════════════════════════════════════════════════════════════
+   TABLĂ — live collaborative whiteboard (class tab)
+   Phase 0: session lifecycle + live roster only, no canvas yet.
+   ════════════════════════════════════════════════════════════ */
+.wb-hero {
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  padding: 20px 22px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--card);
+  margin-bottom: 18px;
+}
+.wb-hero__icon {
+  flex-shrink: 0;
+  width: 52px;
+  height: 52px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.wb-hero__body { flex: 1; min-width: 0; }
+.wb-hero__title {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 4px;
+}
+.wb-hero__desc { font-size: 0.86rem; color: var(--text-muted); }
+.wb-hero .btn { flex-shrink: 0; }
+
+.wb-history { margin-top: 22px; }
+.wb-history__title {
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+.wb-live-dialog { max-width: 480px; }
+.wb-roster-count {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 14px;
+}
+.wb-roster {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.wb-participant-chip {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+}
+.wb-participant-chip__dot {
+  flex-shrink: 0;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border);
+}
+.wb-participant-chip__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.wb-participant-chip__badge {
+  flex-shrink: 0;
+  padding: 2px 8px;
+  border-radius: var(--radius-sm);
+  font-size: 0.68rem;
+  font-weight: 700;
+  background: var(--accent-dim);
+  color: var(--accent);
+}
+.wb-live-placeholder {
+  margin-top: 16px;
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  text-align: center;
+  font-style: italic;
+}
+
+@media (max-width: 600px) {
+  .wb-hero { flex-wrap: wrap; }
+  .wb-hero .btn { width: 100%; justify-content: center; }
+}
+
 /* Membri catalog — simulation columns (teacher table) */
 .catalog-th--sim { background: rgba(58,107,173,0.05); }
 .catalog-td--sim { background: rgba(58,107,173,0.03); }

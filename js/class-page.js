@@ -14,6 +14,7 @@
     { id: 'flux',     label: 'Flux',      icon: icon('megaphone', { size: 16 }) },
     { id: 'teme',     label: 'Teme',      icon: icon('file-text', { size: 16 }) },
     { id: 'simulari', label: 'Simulări',  icon: icon('target', { size: 16 }) },
+    { id: 'tabla',    label: 'Tablă',     icon: icon('presentation', { size: 16 }) },
     { id: 'membri',   label: 'Membri',    icon: icon('users', { size: 16 }) }
   ];
 
@@ -33,6 +34,7 @@
   let simCache   = [];
   let simWiz     = null;
   let simPicker  = null;
+  let tablaCache = [];
   // Persists across loadMembriTab() reloads (e.g. realtime-triggered ones)
   // within the same visit so a teacher's chosen sort doesn't reset itself;
   // key is 'avg' or a simulation id, dir is 'desc' | 'asc' | null.
@@ -255,6 +257,7 @@
   let _reloadTemeTimer = null;
   let _reloadMembriTimer = null;
   let _reloadSimulariTimer = null;
+  let _reloadTablaTimer = null;
 
   function _debouncedFlux() {
     clearTimeout(_reloadFluxTimer);
@@ -274,6 +277,11 @@
   function _debouncedSimulari() {
     clearTimeout(_reloadSimulariTimer);
     _reloadSimulariTimer = setTimeout(() => { if (activeTab === 'simulari' && !_simExamActive) loadSimulariTab(); }, 350);
+  }
+
+  function _debouncedTabla() {
+    clearTimeout(_reloadTablaTimer);
+    _reloadTablaTimer = setTimeout(() => { if (activeTab === 'tabla') loadTablaTab(); }, 350);
   }
 
   function _setupRealtime() {
@@ -309,6 +317,13 @@
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulation_answers'
       }, e => { _debouncedSimulari(); _debouncedSimLive(); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'whiteboard_sessions',
+        filter: 'class_id=eq.' + classData.id
+      }, e => { _debouncedTabla(); _debouncedTablaLive(e); })
+      .on('postgres_changes', {
+        event: '*', schema: 'public', table: 'whiteboard_participants'
+      }, () => { _debouncedTablaLive(); })
       .subscribe();
 
     window.addEventListener('beforeunload', () => {
@@ -324,6 +339,7 @@
       else if (activeTab === 'teme') loadTemeTab();
       else if (activeTab === 'membri') loadMembriTab();
       else if (activeTab === 'simulari' && !_simExamActive) loadSimulariTab();
+      else if (activeTab === 'tabla') loadTablaTab();
     }
   });
 
@@ -393,6 +409,11 @@
     if (tabId === 'membri') {
       requestAnimationFrame(() => loadMembriTab());
       return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă catalogul...</p></div>`;
+    }
+
+    if (tabId === 'tabla') {
+      requestAnimationFrame(() => loadTablaTab());
+      return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă tabla...</p></div>`;
     }
 
     requestAnimationFrame(() => loadSimulariTab());
@@ -5292,6 +5313,242 @@
       });
     }, 0);
   };
+
+  /* ═══════════════════════════════════════════════════════════════
+     TABLĂ TAB — live collaborative whiteboard.
+     Phase 0 only: session lifecycle (start/join/end) + a live
+     participant roster with stable per-session colors. The canvas
+     itself (drawing, sync, tools) lands in a later phase — for now
+     the modal just proves out who's in the session, in real time.
+  ═══════════════════════════════════════════════════════════════ */
+
+  function tablaEmpty(isTeacher) {
+    return `
+      <div class="teme-empty">
+        <div class="teme-empty__icon">${icon('presentation', { size: 48 })}</div>
+        <h3>${isTeacher ? 'Nicio tablă pornită încă' : 'Nicio tablă live momentan'}</h3>
+        <p>${isTeacher
+          ? 'Pornește o tablă live ca elevii din clasă să se poată alătura.'
+          : 'Profesorul nu a pornit nicio tablă live încă.'}</p>
+      </div>`;
+  }
+
+  function formatTablaDateTime(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    return d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }) +
+           ' · ' + d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+  }
+
+  async function loadTablaTab() {
+    const content = document.getElementById('cdContent');
+    if (!content) return;
+    const isTeacher = BMAuth.role === 'profesor';
+
+    try {
+      const { data: sessions, error } = await BMAuth.supabase
+        .from('whiteboard_sessions').select('*').eq('class_id', classData.id)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      tablaCache = sessions || [];
+
+      const live = tablaCache.find(s => s.status === 'live') || null;
+      const past = tablaCache.filter(s => s.status !== 'live');
+
+      // Teacher-only: are they already running a live board in ANOTHER
+      // class? The DB enforces one-live-per-teacher globally (a plain
+      // insert here would just fail with 23505), but checking ahead of
+      // time lets the button explain why instead of surfacing a raw error.
+      let elsewhereLive = null;
+      if (isTeacher && !live) {
+        const { data: mine } = await BMAuth.supabase
+          .from('whiteboard_sessions').select('id, class_id')
+          .eq('created_by', BMAuth.user.id).eq('status', 'live').maybeSingle();
+        if (mine && mine.class_id !== classData.id) elsewhereLive = mine;
+      }
+
+      let heroAction = '';
+      if (isTeacher) {
+        heroAction = live
+          ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>`
+          : elsewhereLive
+            ? `<button class="btn btn--surface" disabled title="Ai deja o tablă activă în altă clasă — încheie-o mai întâi.">${icon('presentation', { size: 16 })} Tablă activă în altă clasă</button>`
+            : `<button class="btn btn--primary" id="tablaStartBtn">${icon('presentation', { size: 16 })} Pornește tablă live</button>`;
+      } else if (live) {
+        heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${icon('presentation', { size: 16 })} Intră în tablă</button>`;
+      }
+
+      content.innerHTML = `
+        <div class="wb-hero">
+          <div class="wb-hero__icon">${icon('presentation', { size: 28 })}</div>
+          <div class="wb-hero__body">
+            <h3 class="wb-hero__title">Tablă live${live ? ' <span class="sim-badge sim-badge--activa">Activă</span>' : ''}</h3>
+            <p class="wb-hero__desc">${isTeacher
+              ? 'Pornește o sesiune live și invită elevii clasei să scrie împreună pe aceeași tablă, în timp real.'
+              : 'Când profesorul pornește o tablă live, o poți deschide aici și te alături instant.'}</p>
+          </div>
+          ${heroAction}
+        </div>
+        ${tablaCache.length === 0
+          ? tablaEmpty(isTeacher)
+          : (past.length ? `
+            <div class="wb-history">
+              <div class="wb-history__title">Istoric sesiuni</div>
+              <div class="sim-list">
+                ${past.map(s => `
+                  <div class="csim-card">
+                    <div class="csim-card__row">
+                      <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
+                      <span class="csim-card__meta-item">${icon('calendar', { size: 16 })} ${formatTablaDateTime(s.started_at)}</span>
+                    </div>
+                  </div>`).join('')}
+              </div>
+            </div>` : '')}
+      `;
+
+      document.getElementById('tablaStartBtn')?.addEventListener('click', startWhiteboard);
+      document.getElementById('tablaOpenBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
+      document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
+    } catch (e) {
+      content.innerHTML = `
+        <div class="cd-placeholder">
+          <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
+          <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
+          <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
+        </div>`;
+    }
+  }
+
+  /* ─── Teacher actions ────────────────────────────────────────────── */
+  async function startWhiteboard() {
+    const btn = document.getElementById('tablaStartBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Se pornește…'; }
+    try {
+      const { data, error } = await BMAuth.supabase.from('whiteboard_sessions')
+        .insert({ class_id: classData.id, created_by: BMAuth.user.id })
+        .select().single();
+      if (error) throw error;
+      BM.toast('Tabla live a fost pornită!', 'success');
+      await loadTablaTab();
+      openWhiteboardLiveView(data);
+    } catch (e) {
+      // 23505 = unique_violation — the one-live-session-per-teacher index
+      // (whiteboard_sessions_one_live_per_teacher_idx) rejected a second
+      // concurrent session, most likely started from another tab/device.
+      BM.toast(
+        e.code === '23505'
+          ? 'Ai deja o tablă activă — încheie-o înainte de a porni una nouă.'
+          : 'Eroare: ' + e.message,
+        'error'
+      );
+      await loadTablaTab();
+    }
+  }
+
+  async function endWhiteboard(id) {
+    const ok = await showConfirmDialog({
+      icon: icon('square', { size: 48 }), title: 'Încheie tabla live?',
+      message: 'Sesiunea se va încheia pentru toți participanții.',
+      confirmText: 'Încheie'
+    });
+    if (!ok) return;
+    try {
+      const { error } = await BMAuth.supabase.from('whiteboard_sessions')
+        .update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', id);
+      if (error) throw error;
+      BM.toast('Tabla a fost încheiată.', 'info');
+      _closeTablaLiveModal();
+      await loadTablaTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  /* ─── Live roster modal ──────────────────────────────────────────── */
+  let _openTablaSessionId  = null;
+  let _reloadTablaLiveTimer = null;
+
+  // Handles both: (a) the roster changing while the modal is open, and
+  // (b) the teacher ending the session from elsewhere — in that case every
+  // open participant's modal must close itself, not just stop updating.
+  function _debouncedTablaLive(e) {
+    if (e?.new && _openTablaSessionId && e.new.id === _openTablaSessionId && e.new.status === 'ended') {
+      BM.toast('Tabla a fost încheiată de profesor.', 'info');
+      _closeTablaLiveModal();
+      return;
+    }
+    if (!_openTablaSessionId) return;
+    clearTimeout(_reloadTablaLiveTimer);
+    _reloadTablaLiveTimer = setTimeout(() => _refreshTablaRoster(_openTablaSessionId), 350);
+  }
+
+  function _closeTablaLiveModal() {
+    document.getElementById('tablaLiveModal')?.remove();
+    _openTablaSessionId = null;
+  }
+
+  async function openWhiteboardLiveView(session) {
+    if (!session) return;
+    _closeTablaLiveModal();
+    _openTablaSessionId = session.id;
+
+    const modal = document.createElement('div');
+    modal.id = 'tablaLiveModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog wb-live-dialog">
+        <div class="classes-modal__head">
+          <h3>${icon('presentation', { size: 20 })} ${BM.esc(session.title)}</h3>
+          <div style="display:flex;gap:6px;align-items:center">
+            ${BMAuth.role === 'profesor' ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
+            <button class="icon-btn" id="tablaLiveCloseBtn">${icon('x', { size: 16 })}</button>
+          </div>
+        </div>
+        <div class="classes-modal__body" id="tablaLiveBody">
+          <div class="classes-loading"><div class="classes-spinner"></div></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('.classes-modal__backdrop').onclick = _closeTablaLiveModal;
+    modal.querySelector('#tablaLiveCloseBtn').onclick = _closeTablaLiveModal;
+    modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
+
+    try {
+      const { error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
+        p_session_id: session.id, p_display_name: BMAuth.displayName()
+      });
+      if (joinError) throw joinError;
+    } catch (e) {
+      BM.toast('Nu s-a putut intra în tablă: ' + e.message, 'error');
+    }
+
+    await _refreshTablaRoster(session.id);
+  }
+
+  async function _refreshTablaRoster(sessionId) {
+    const body = document.getElementById('tablaLiveBody');
+    if (!body) return;
+    try {
+      const { data: rows, error } = await BMAuth.supabase
+        .from('whiteboard_participants').select('*').eq('session_id', sessionId)
+        .order('joined_at', { ascending: true });
+      if (error) throw error;
+      const participants = rows || [];
+      body.innerHTML = `
+        <div class="wb-roster-count">${icon('users', { size: 16 })} ${participants.length} conectat${participants.length === 1 ? '' : 'i'}</div>
+        <div class="wb-roster">
+          ${participants.map(p => `
+            <div class="wb-participant-chip">
+              <span class="wb-participant-chip__dot" style="background:${BM.esc(p.color)}"></span>
+              <span class="wb-participant-chip__name">${BM.esc(p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev'))}</span>
+              ${p.role === 'profesor' ? `<span class="wb-participant-chip__badge">Profesor</span>` : ''}
+            </div>`).join('')}
+        </div>
+        <p class="wb-live-placeholder">Tabla propriu-zisă (desen, scris) vine într-o etapă viitoare — deocamdată vezi, în timp real, cine e conectat.</p>
+      `;
+    } catch (e) {
+      body.innerHTML = `<div class="cd-placeholder"><p class="cd-placeholder__desc">${BM.esc(e.message)}</p></div>`;
+    }
+  }
 
   window.cdCopyCode = function (code) {
     navigator.clipboard.writeText(code)
