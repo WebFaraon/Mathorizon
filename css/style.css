@@ -11635,7 +11635,16 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .confirm-overlay {
   position: fixed;
   inset: 0;
-  z-index: 600;
+  /* Must outrank every other modal/fullscreen layer it can be opened from
+     (e.g. .wb-fullscreen at z-index:2000, the whiteboard's own "Închide"
+     confirmation) — it used to sit at 600, so on top of one of those it
+     rendered fully hidden behind it: invisible, unclickable, its promise
+     never resolving. Clicking the fullscreen view's own X then removed
+     that layer and suddenly revealed every stacked confirm-overlay from
+     each swallowed click at once. Matches the exam guard overlays
+     (#fsWarnOverlay etc.) below, just under the toast layer (100000) so a
+     toast can still surface over an open confirm dialog. */
+  z-index: 99999;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -12529,15 +12538,75 @@ body.wb-fullscreen-active .scroll-top-btn {
   align-items: center;
   gap: 12px;
   min-width: 0;
+  flex-wrap: wrap;
 }
-.wb-fs-header__left h3 {
-  font-size: 1rem;
+/* Brand mark — same PNG the main nav uses, which per the note on
+   .flip-card__logo-img above is white line-art with no dark variant, so it
+   only ever reads on a colored surface, never a plain page background.
+   .wb-fs-header sits directly on var(--bg), which in light theme is a
+   plain near-white — so unlike the nav (permanently on its own dark
+   gradient bar) this needs its own small colored chip behind it rather
+   than sitting straight on the header. */
+.wb-fs-brand {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-shrink: 0;
+  background: var(--accent);
+  border-radius: 8px;
+  padding: 5px 10px 5px 7px;
+}
+.wb-fs-brand__logo {
+  height: 20px;
+  width: auto;
+  display: block;
+}
+.wb-fs-brand__name {
+  font-family: 'Josefin Sans', sans-serif;
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  color: #fff;
+  white-space: nowrap;
+}
+.wb-fs-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.95rem;
   font-weight: 700;
   color: var(--text);
   white-space: nowrap;
+  flex-shrink: 0;
+}
+/* Read-only (students) vs editable (teacher) session title, right after
+   the "Tablă Live" label — see openWhiteboardLiveView/saveTablaTitle in
+   js/class-page.js. Same size/weight so the input doesn't stand out as an
+   input until it's actually focused. */
+.wb-fs-title,
+.wb-fs-title-input {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+  white-space: nowrap;
 }
+.wb-fs-title-input {
+  font-family: inherit;
+  border: 1px solid transparent;
+  background: transparent;
+  border-radius: 6px;
+  padding: 3px 8px;
+  flex: 1;
+  min-width: 80px;
+  max-width: 320px;
+  transition: border-color 0.15s, background 0.15s;
+}
+.wb-fs-title-input:hover  { border-color: var(--border); }
+.wb-fs-title-input:focus  { border-color: var(--accent); background: var(--card); outline: none; }
 .wb-fs-header__right {
   display: flex;
   align-items: center;
@@ -12550,19 +12619,21 @@ body.wb-fullscreen-active .scroll-top-btn {
    ink on the board below. Gap is generous (not the usual 6-8px) because
    the teacher's avatar carries an extra accent ring OUTSIDE its own box
    (box-shadow, so it takes no layout space of its own) — too tight a gap
-   let that ring visually lap onto whatever sat right before it. */
+   let that ring visually lap onto whatever sat right before it (in
+   practice it still did, hiding the count's number behind the ring —
+   see .wb-avatar--teacher's own margin below for the actual fix). */
 .wb-roster-strip {
   display: flex;
   align-items: center;
   flex-wrap: wrap;
-  gap: 10px;
+  gap: 14px;
   flex-shrink: 0;
 }
 .wb-roster-count {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.76rem;
+  gap: 6px;
+  font-size: 0.9rem;
   font-weight: 700;
   color: var(--text-muted);
 }
@@ -12571,16 +12642,24 @@ body.wb-fullscreen-active .scroll-top-btn {
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 26px;
-  height: 26px;
+  width: 32px;
+  height: 32px;
   border-radius: 50%;
-  font-size: 0.62rem;
+  font-size: 0.74rem;
   font-weight: 800;
   color: #fff;
   box-shadow: 0 0 0 2px var(--card);
   cursor: default;
 }
-.wb-avatar--teacher { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent); }
+/* The accent ring (box-shadow, spreads 3.5px past the ring beneath it)
+   takes no layout space of its own, so `gap` alone can't guarantee
+   clearance from whatever sits right before it — a margin does, since
+   it's part of this element's own box instead of relying on the shared
+   flex gap to happen to be wide enough. */
+.wb-avatar--teacher {
+  box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent);
+  margin-left: 4px;
+}
 
 /* Where js/class-page.js mounts the Whiteboard component — just a flex
    slot filling whatever's left below the header; .wb-board (below) is the
@@ -12650,7 +12729,14 @@ body.wb-fullscreen-active .scroll-top-btn {
   .wb-hero { flex-wrap: wrap; }
   .wb-hero .btn { width: 100%; justify-content: center; }
   .wb-fs-header { padding: 8px 10px; }
-  .wb-fs-header__left h3 { font-size: 0.9rem; }
+  /* Brand chip's wordmark is the least essential part of the header on a
+     phone-width screen — drop it first, keep the mark + "Tablă Live" +
+     the actual session title. */
+  .wb-fs-brand__name { display: none; }
+  .wb-fs-brand { padding: 5px 8px; }
+  .wb-fs-label { font-size: 0.86rem; }
+  .wb-fs-title,
+  .wb-fs-title-input { font-size: 0.86rem; }
 }
 
 /* Membri catalog — simulation columns (teacher table) */

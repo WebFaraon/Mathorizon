@@ -5478,18 +5478,64 @@
   let _reloadTablaLiveTimer = null;
   let _openWhiteboardInstance = null;
 
-  // Handles both: (a) the roster changing while the modal is open, and
-  // (b) the teacher ending the session from elsewhere — in that case every
-  // open participant's modal must close itself, not just stop updating.
+  // Handles (a) the roster changing while the modal is open, (b) the
+  // teacher ending the session from elsewhere — in that case every open
+  // participant's modal must close itself, not just stop updating — and
+  // (c) the teacher renaming the session, which every other open viewer
+  // (including the teacher's own other tab/device) should pick up live.
   function _debouncedTablaLive(e) {
-    if (e?.new && _openTablaSessionId && e.new.id === _openTablaSessionId && e.new.status === 'ended') {
-      BM.toast('Tabla a fost încheiată de profesor.', 'info');
-      _closeTablaLiveModal();
-      return;
+    if (e?.new && _openTablaSessionId && e.new.id === _openTablaSessionId) {
+      if (e.new.status === 'ended') {
+        BM.toast('Tabla a fost încheiată de profesor.', 'info');
+        _closeTablaLiveModal();
+        return;
+      }
+      const label = document.getElementById('wbTitleLabel');
+      if (label && e.new.title) label.textContent = e.new.title;
+      // Guarded by activeElement, not just "is the teacher" — this same
+      // event fires for the teacher's own edit too (postgres_changes
+      // echoes a client's own writes back to it, unlike Broadcast's
+      // self:false), so without the guard a second keystroke landing
+      // while the round-trip from the first is still in flight would get
+      // its value stomped by the update the first one just triggered.
+      const input = document.getElementById('wbTitleInput');
+      if (input && e.new.title && document.activeElement !== input) input.value = e.new.title;
     }
     if (!_openTablaSessionId) return;
     clearTimeout(_reloadTablaLiveTimer);
     _reloadTablaLiveTimer = setTimeout(() => _refreshTablaRoster(_openTablaSessionId), 350);
+  }
+
+  // Teacher-only rename, saved on blur/Enter — RLS (wb_sessions_teacher_all)
+  // already allows the class's teacher to UPDATE whiteboard_sessions, so
+  // this is a plain client write, no RPC needed. Students get a read-only
+  // <span> instead (see openWhiteboardLiveView) since they have no write
+  // policy on this table at all.
+  function _bindTablaTitleInput(modal, session) {
+    const input = modal.querySelector('#wbTitleInput');
+    if (!input) return;
+    let saved = session.title;
+    async function save() {
+      const val = input.value.trim();
+      if (!val) { input.value = saved; return; }
+      if (val === saved) return;
+      const prev = saved;
+      saved = val;
+      session.title = val;
+      input.value = val;
+      const { error } = await BMAuth.supabase.from('whiteboard_sessions').update({ title: val }).eq('id', session.id);
+      if (error) {
+        saved = prev;
+        session.title = prev;
+        input.value = prev;
+        BM.toast('Nu s-a putut salva titlul: ' + error.message, 'error');
+      }
+    }
+    input.addEventListener('blur', save);
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter') input.blur();
+      else if (e.key === 'Escape') { input.value = saved; input.blur(); }
+    });
   }
 
   function _closeTablaLiveModal() {
@@ -5527,18 +5573,26 @@
     _openTablaSessionId = session.id;
     document.body.classList.add('wb-fullscreen-active');
 
+    const isTeacher = BMAuth.role === 'profesor';
     const modal = document.createElement('div');
     modal.id = 'tablaLiveModal';
     modal.className = 'wb-fullscreen';
     modal.innerHTML = `
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
-          <h3>${icon('presentation', { size: 20 })} ${BM.esc(session.title)}</h3>
+          <div class="wb-fs-brand">
+            <img class="wb-fs-brand__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
+            <span class="wb-fs-brand__name">Math<b>orizon</b></span>
+          </div>
+          <span class="wb-fs-label">${icon('presentation', { size: 20 })} Tablă Live</span>
+          ${isTeacher
+            ? `<input class="wb-fs-title-input" id="wbTitleInput" type="text" maxlength="60" value="${BM.esc(session.title)}" placeholder="Titlul tablei" title="Redenumește tabla">`
+            : `<span class="wb-fs-title" id="wbTitleLabel">${BM.esc(session.title)}</span>`}
         </div>
         <div class="wb-fs-header__right">
           <div class="wb-roster-strip" id="wbRosterStrip"><span class="wb-roster-count">…</span></div>
-          ${BMAuth.role === 'profesor' ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
-          <button class="icon-btn" id="tablaLiveCloseBtn" title="${BMAuth.role === 'profesor' ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
+          ${isTeacher ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
+          <button class="icon-btn" id="tablaLiveCloseBtn" title="${isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
       </div>
       <div id="wbCanvasMount" class="wb-canvas-mount">
@@ -5547,6 +5601,7 @@
     document.body.appendChild(modal);
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
+    _bindTablaTitleInput(modal, session);
 
     let myColor = BMAuth.role === 'profesor' ? '#111827' : null;
     try {
@@ -5587,7 +5642,7 @@
       if (error) throw error;
       const participants = rows || [];
       strip.innerHTML = `
-        <span class="wb-roster-count" title="${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}">${icon('users', { size: 14 })} ${participants.length}</span>
+        <span class="wb-roster-count" title="${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}">${icon('users', { size: 20 })} ${participants.length}</span>
         ${participants.map(p => {
           const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
           const initials = name.trim().slice(0, 2).toUpperCase();

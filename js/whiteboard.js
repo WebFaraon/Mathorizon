@@ -115,6 +115,14 @@
     this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width}
     this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos}
     this._committedIds = new Set();
+    // Bumped by _clearMine() — a stroke whose in-flight commit (see
+    // _commitStroke) started before that bump but resolves after it would
+    // otherwise land in the DB and get added to the canvas AFTER "clear
+    // mine" already ran, leaving one stray element behind. Each commit
+    // captures the generation it started under and, if it no longer
+    // matches when the insert resolves, deletes what it just inserted
+    // instead of drawing it.
+    this._clearGen     = 0;
     this._dirty       = false;
     this._rafId       = null;
     this._destroyed    = false;
@@ -371,6 +379,7 @@
     }
     var path = smoothPathString(points);
     var self = this;
+    var gen  = this._clearGen; // see the field comment in the constructor
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
       class_id:   this._classId,
@@ -388,8 +397,18 @@
         if (liveKey) { self._liveStrokes.delete(liveKey); self._dirty = true; } // don't leave the preview stuck forever
         return;
       }
-      self._addObjectIfNew(res.data);
       if (liveKey) self._liveStrokes.delete(liveKey);
+      // "Clear mine" ran while this stroke was still in flight — its DELETE
+      // query already returned before this row existed, so it never caught
+      // it. Undo the insert instead of drawing a stroke the user just asked
+      // to erase; the DELETE this triggers reaches every other viewer the
+      // same way _clearMine's own does.
+      if (self._clearGen !== gen) {
+        self._supabase.from('whiteboard_objects').delete().eq('id', res.data.id).then(function () {});
+        self._dirty = true;
+        return;
+      }
+      self._addObjectIfNew(res.data);
       self._dirty = true;
       self._fabricCanvas.requestRenderAll();
     });
@@ -496,6 +515,20 @@
 
   Whiteboard.prototype._clearMine = function () {
     var self = this;
+    // Bump first — any of my strokes already mid-commit (insert sent,
+    // response not back yet) will see this changed generation in
+    // _commitStroke and delete themselves instead of landing on the
+    // canvas after this "clear everything I drew" runs.
+    this._clearGen++;
+    // Discard anything of mine that's only ever lived on the overlay —
+    // a stroke still being actively drawn (pointer still down) or one
+    // whose live preview hasn't been retired yet — since none of that
+    // is in whiteboard_objects yet for the delete below to catch.
+    this._activePtrs = {};
+    Array.from(this._liveStrokes.keys())
+      .filter(function (k) { return k.charAt(0) === 'm'; })
+      .forEach(function (k) { self._liveStrokes.delete(k); });
+    this._dirty = true;
     this._supabase.from('whiteboard_objects').delete()
       .eq('session_id', this._sessionId).eq('created_by', this._userId)
       .select('id')
