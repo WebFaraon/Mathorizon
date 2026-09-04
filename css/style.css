@@ -12492,67 +12492,99 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin-bottom: 10px;
 }
 
-.wb-live-dialog { max-width: 480px; }
-.wb-roster-count {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  margin-bottom: 14px;
-}
-.wb-roster {
+/* Phase 1 grows the modal from a small roster-only dialog into the actual
+   drawing surface — needs real width to be usable, not the 480px card that
+   was plenty for a plain participant list. */
+.wb-live-dialog { max-width: 1120px; width: 96vw; }
+.wb-modal-body.wb-modal-body {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  padding: 14px 16px 16px;
+  gap: 12px;
 }
-.wb-participant-chip {
+
+/* Roster shrinks from Phase 0's full-width name list to a compact strip of
+   colored initials once the canvas needs the space — full name is still a
+   tooltip away, and the color here is the same one that identifies their
+   ink on the board below. */
+.wb-roster-strip {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 9px 12px;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-sm);
-  background: var(--surface);
-}
-.wb-participant-chip__dot {
+  flex-wrap: wrap;
+  gap: 6px;
   flex-shrink: 0;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  box-shadow: 0 0 0 2px var(--surface), 0 0 0 3px var(--border);
 }
-.wb-participant-chip__name {
-  flex: 1;
-  min-width: 0;
-  font-size: 0.88rem;
-  font-weight: 600;
-  color: var(--text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.wb-participant-chip__badge {
-  flex-shrink: 0;
-  padding: 2px 8px;
-  border-radius: var(--radius-sm);
-  font-size: 0.68rem;
+.wb-roster-count {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.76rem;
   font-weight: 700;
-  background: var(--accent-dim);
-  color: var(--accent);
-}
-.wb-live-placeholder {
-  margin-top: 16px;
-  font-size: 0.8rem;
   color: var(--text-muted);
-  text-align: center;
-  font-style: italic;
+  margin-right: 4px;
+}
+.wb-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-size: 0.62rem;
+  font-weight: 800;
+  color: #fff;
+  box-shadow: 0 0 0 2px var(--card);
+  cursor: default;
+}
+.wb-avatar--teacher { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent); }
+
+/* ---- Whiteboard component (js/whiteboard.js) ----
+   Deliberately reuses .dc-toolbar/.dc-tool-group/.dc-width-btn/
+   .dc-width-dot/.dc-action-btn wholesale from the DrawingCanvas toolbar
+   (js/drawing-canvas.js) rather than reinventing them under a wb- prefix —
+   same convention js/geometry-figure-editor.js already follows, for one
+   consistent visual language across every drawing surface in the app. */
+.wb-board {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+.wb-toolbar { border-radius: 11px 11px 0 0; }
+.wb-canvas-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 1400 / 900;
+  /* Fixed white "paper" regardless of the site's own dark/light theme —
+     not a stylistic choice, a contrast one: the teacher's reserved ink
+     color (#111827, near-black) would nearly vanish against this app's
+     dark-theme canvas background (#161616), and several other palette
+     colors would fare little better. A real whiteboard is white
+     regardless of the room lighting; this one is too. */
+  background: #ffffff;
+  overflow: hidden;
+  line-height: 0;
+}
+.wb-canvas-wrap canvas { display: block; }
+.wb-overlay-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  touch-action: none;
 }
 
 @media (max-width: 600px) {
   .wb-hero { flex-wrap: wrap; }
   .wb-hero .btn { width: 100%; justify-content: center; }
+  /* Every spare pixel matters once the canvas itself only gets what's left
+     after the header/roster/toolbar — shrink .classes-modal's own outer
+     padding (20px everywhere by default) rather than just the dialog. */
+  .classes-modal:has(.wb-live-dialog) { padding: 8px; }
+  .wb-modal-body.wb-modal-body { padding: 10px; gap: 8px; }
 }
 
 /* Membri catalog — simulation columns (teacher table) */

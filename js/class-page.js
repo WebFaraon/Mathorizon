@@ -5476,6 +5476,7 @@
   /* ─── Live roster modal ──────────────────────────────────────────── */
   let _openTablaSessionId  = null;
   let _reloadTablaLiveTimer = null;
+  let _openWhiteboardInstance = null;
 
   // Handles both: (a) the roster changing while the modal is open, and
   // (b) the teacher ending the session from elsewhere — in that case every
@@ -5492,6 +5493,8 @@
   }
 
   function _closeTablaLiveModal() {
+    _openWhiteboardInstance?.destroy();
+    _openWhiteboardInstance = null;
     document.getElementById('tablaLiveModal')?.remove();
     _openTablaSessionId = null;
   }
@@ -5530,8 +5533,11 @@
             <button class="icon-btn" id="tablaLiveCloseBtn" title="${BMAuth.role === 'profesor' ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
           </div>
         </div>
-        <div class="classes-modal__body" id="tablaLiveBody">
-          <div class="classes-loading"><div class="classes-spinner"></div></div>
+        <div class="classes-modal__body wb-modal-body" id="tablaLiveBody">
+          <div class="wb-roster-strip" id="wbRosterStrip"><span class="wb-roster-count">…</span></div>
+          <div class="wb-canvas-mount" id="wbCanvasMount">
+            <div class="classes-loading"><div class="classes-spinner"></div></div>
+          </div>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -5539,41 +5545,54 @@
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
 
+    let myColor = BMAuth.role === 'profesor' ? '#111827' : null;
     try {
-      const { error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
+      const { data: participant, error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
         p_session_id: session.id, p_display_name: BMAuth.displayName()
       });
       if (joinError) throw joinError;
+      myColor = participant?.color || myColor;
     } catch (e) {
       BM.toast('Nu s-a putut intra în tablă: ' + e.message, 'error');
     }
 
     await _refreshTablaRoster(session.id);
+
+    // Mount the canvas only after a successful join — _openTablaSessionId
+    // can have changed (modal closed/reopened) while the RPC above was
+    // in flight, so this guards against mounting into a stale/removed DOM.
+    const mount = document.getElementById('wbCanvasMount');
+    if (mount && _openTablaSessionId === session.id && myColor) {
+      mount.innerHTML = '';
+      _openWhiteboardInstance = new Whiteboard(mount, {
+        supabase: BMAuth.supabase,
+        sessionId: session.id,
+        classId: classData.id,
+        userId: BMAuth.user.id,
+        userColor: myColor
+      });
+    }
   }
 
   async function _refreshTablaRoster(sessionId) {
-    const body = document.getElementById('tablaLiveBody');
-    if (!body) return;
+    const strip = document.getElementById('wbRosterStrip');
+    if (!strip) return;
     try {
       const { data: rows, error } = await BMAuth.supabase
         .from('whiteboard_participants').select('*').eq('session_id', sessionId)
         .order('joined_at', { ascending: true });
       if (error) throw error;
       const participants = rows || [];
-      body.innerHTML = `
-        <div class="wb-roster-count">${icon('users', { size: 16 })} ${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}</div>
-        <div class="wb-roster">
-          ${participants.map(p => `
-            <div class="wb-participant-chip">
-              <span class="wb-participant-chip__dot" style="background:${BM.esc(p.color)}"></span>
-              <span class="wb-participant-chip__name">${BM.esc(p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev'))}</span>
-              ${p.role === 'profesor' ? `<span class="wb-participant-chip__badge">Profesor</span>` : ''}
-            </div>`).join('')}
-        </div>
-        <p class="wb-live-placeholder">Tabla propriu-zisă (desen, scris) vine într-o etapă viitoare — deocamdată vezi, în timp real, cine e conectat.</p>
+      strip.innerHTML = `
+        <span class="wb-roster-count" title="${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}">${icon('users', { size: 14 })} ${participants.length}</span>
+        ${participants.map(p => {
+          const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
+          const initials = name.trim().slice(0, 2).toUpperCase();
+          return `<span class="wb-avatar${p.role === 'profesor' ? ' wb-avatar--teacher' : ''}" style="background:${BM.esc(p.color)}" title="${BM.esc(name)}${p.role === 'profesor' ? ' (profesor)' : ''}">${BM.esc(initials)}</span>`;
+        }).join('')}
       `;
     } catch (e) {
-      body.innerHTML = `<div class="cd-placeholder"><p class="cd-placeholder__desc">${BM.esc(e.message)}</p></div>`;
+      strip.innerHTML = `<span class="wb-roster-count">${BM.esc(e.message)}</span>`;
     }
   }
 
