@@ -897,14 +897,22 @@ html.bm-guest .nav__mobile-section-lbl,
 html.bm-guest .nav__mobile-link--action,
 html.bm-guest .nav__mobile-utility-row { display: none; }
 
-#navMobileMenu #themeBtn {
+/* Scoped to a DIRECT child of #navMobileMenu — that's only true for the
+   guest relocation (menu.appendChild(themeBtn) in js/utils.js), which
+   needs this full-width standalone-button styling. The authenticated
+   relocation nests themeBtn inside .nav__mobile-utility-row instead (a
+   grandchild, not a direct child), so it's untouched by this rule and
+   stays visible with its normal pill sizing — this selector used to be
+   `#navMobileMenu #themeBtn` (a descendant selector), which also matched
+   that nested case and hid the theme toggle for every authenticated user. */
+#navMobileMenu > #themeBtn {
   display: none;
   width: calc(100% - 40px);
   height: 44px;
   margin: 6px 20px 10px;
   border-radius: var(--radius);
 }
-html.bm-guest #navMobileMenu #themeBtn { display: flex; }
+html.bm-guest #navMobileMenu > #themeBtn { display: flex; }
 
 /* ---- Auth-pending veil (protected pages only, e.g. capitole.html) —
    neutral cover while the synchronous "authed" hint from js/auth-hint.js

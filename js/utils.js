@@ -45,6 +45,14 @@ BM.onNavReady(function () {
     if (menu.classList.contains('open')) closeMenu(); else openMenu();
   });
 
+  // Exposed so the "Exerciții favorite" / "Istoric rezolvări" buttons
+  // inside the dropdown (partials/nav.html) can close the menu the same
+  // way the hamburger itself does, instead of only removing the menu's
+  // 'open' class — that partial fix used to leave the hamburger stuck
+  // showing its X icon and the body's scroll-lock (position:fixed) never
+  // released, freezing the page until a second hamburger click.
+  BM.closeMobileMenu = closeMenu;
+
   document.addEventListener('click', function (e) {
     if (!hamburger.contains(e.target) && !menu.contains(e.target)) closeMenu();
   });
