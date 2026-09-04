@@ -1,8 +1,11 @@
 /* ============================================================
    Whiteboard — live collaborative drawing surface ("Tablă live")
-   Phase 1: shared freehand pen, fixed color per participant,
-   width picker, "șterge ce am desenat eu". No pan/zoom, no
-   eraser-by-click, no text/shapes yet — those are later phases.
+   Phase 1: shared freehand pen/highlighter/eraser, fixed color per
+   participant, width picker, undo/redo (own strokes only, Ctrl+Z/Ctrl+Y),
+   "șterge ce am desenat eu", and a teacher-toggled per-participant write
+   lock. No pan/zoom, no erasing anyone else's stroke, no text/shapes yet
+   — those are later phases (see the Phase-2 notes at _eraseAt and in
+   20260904160000_whiteboard_objects.sql).
 
    Architecture: fabric.Canvas holds only COMMITTED strokes (one
    fabric.Path per finished stroke) — cheap to render since it never
@@ -49,6 +52,53 @@
     return 'id-' + Date.now() + '-' + Math.random().toString(36).slice(2);
   }
 
+  // Reconstructs an approximate polyline from a committed stroke's SVG path
+  // string (smoothPathString's own output: "M x y" then repeated "Q cx cy
+  // mx my" then a final "L x y") — used only for the eraser's hit-testing
+  // against MY OWN older strokes, which weren't drawn this session so their
+  // original points[] array (available live in _commitStroke) is long gone;
+  // this is the only record left. Each Q's end point (the midpoint) stands
+  // in for that segment of the original curve — close enough for a
+  // tolerance-based "is the pointer near this stroke" check, not meant to
+  // be exact.
+  function parsePathPoints(d) {
+    var pts = [];
+    if (!d) return pts;
+    var tokens = d.match(/[MLQ]|-?\d*\.?\d+/g) || [];
+    var i = 0;
+    while (i < tokens.length) {
+      var cmd = tokens[i];
+      if (cmd === 'M' || cmd === 'L') {
+        pts.push({ x: parseFloat(tokens[i + 1]), y: parseFloat(tokens[i + 2]) });
+        i += 3;
+      } else if (cmd === 'Q') {
+        pts.push({ x: parseFloat(tokens[i + 3]), y: parseFloat(tokens[i + 4]) });
+        i += 5;
+      } else {
+        i++;
+      }
+    }
+    return pts;
+  }
+
+  function distToSegment(p, a, b) {
+    var dx = b.x - a.x, dy = b.y - a.y;
+    var lenSq = dx * dx + dy * dy;
+    var t = lenSq ? Math.max(0, Math.min(1, ((p.x - a.x) * dx + (p.y - a.y) * dy) / lenSq)) : 0;
+    return dist(p, { x: a.x + t * dx, y: a.y + t * dy });
+  }
+
+  function distToPolyline(p, pts) {
+    if (!pts.length) return Infinity;
+    if (pts.length === 1) return dist(p, pts[0]);
+    var min = Infinity;
+    for (var i = 0; i < pts.length - 1; i++) {
+      var d2 = distToSegment(p, pts[i], pts[i + 1]);
+      if (d2 < min) min = d2;
+    }
+    return min;
+  }
+
   // Smooth freehand path (quadratic curve through consecutive midpoints) —
   // same technique js/drawing-canvas.js uses for its own live pen stroke,
   // reused here for both the live overlay preview and the final committed
@@ -70,13 +120,16 @@
     return d;
   }
 
-  function drawSmoothStroke(ctx, points, color, width) {
+  function drawSmoothStroke(ctx, points, color, width, opacity) {
     if (!points.length) return;
+    ctx.save();
+    ctx.globalAlpha = opacity == null ? 1 : opacity;
     if (points.length === 1) {
       ctx.fillStyle = color;
       ctx.beginPath();
       ctx.arc(points[0].x, points[0].y, width / 2, 0, Math.PI * 2);
       ctx.fill();
+      ctx.restore();
       return;
     }
     ctx.strokeStyle = color;
@@ -93,6 +146,7 @@
     var last = points[points.length - 1];
     ctx.lineTo(last.x, last.y);
     ctx.stroke();
+    ctx.restore();
   }
 
   /**
@@ -103,6 +157,9 @@
    *   classId    - classes.id (denormalized onto every whiteboard_objects row)
    *   userId     - auth.uid()
    *   userColor  - this participant's fixed color (from whiteboard_participants.color)
+   *   locked     - this participant's current write-lock state (also
+   *                whiteboard_participants.locked) — kept live afterwards
+   *                via setLocked(), not re-read from here again.
    */
   function Whiteboard(container, opts) {
     this._supabase  = opts.supabase;
@@ -111,10 +168,25 @@
     this._userId    = opts.userId;
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
+    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser'
+    // Blocked by the teacher (whiteboard_participants.locked) — see
+    // setLocked(), wired live from js/class-page.js's roster subscription.
+    // Blocks starting anything new; a stroke already mid-gesture when the
+    // lock lands is left to finish rather than yanked away mid-draw.
+    this._locked    = !!opts.locked;
 
-    this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width}
-    this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos}
+    this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width, opacity}
+    this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos, erasing}
     this._committedIds = new Set();
+    // My own committed strokes' points, for the eraser's hit-testing — see
+    // parsePathPoints's comment for why this needs both a live (exact) and
+    // a reconstructed-from-path (approximate) source. Only ever populated
+    // for MY OWN strokes; erasing anyone else's is Phase 2 (a teacher-can-
+    // delete-any-stroke policy hasn't been added yet — see the SQL comment
+    // in 20260904160000_whiteboard_objects.sql).
+    this._myPathPoints   = new Map(); // id -> points[]
+    this._myStrokeHistory = [];       // [{id, fabric_json}] — undo stack, oldest first
+    this._myRedoStack     = [];
     // Bumped by _clearMine() — a stroke whose in-flight commit (see
     // _commitStroke) started before that bump but resolves after it would
     // otherwise land in the DB and get added to the canvas AFTER "clear
@@ -133,6 +205,7 @@
     this._initFabric();
     this._bindToolbar();
     this._bindPointerEvents();
+    this._bindKeyboard();
     this._connectRealtime();
     this._loadExisting();
     this._startLoop();
@@ -143,11 +216,32 @@
   var GRID_ICON = '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>';
   var GRID_CELL_LOGICAL = 40; // in logical units — converted to real px per viewer's own scale, see _applySize
 
+  // Same icon glyphs js/drawing-canvas.js uses for these exact tools/actions
+  // — one consistent visual language across every drawing surface in the
+  // app (the CSS classes are already deliberately shared, see the note on
+  // .wb-board in css/style.css).
+  var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
+  var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
+  var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
+  var UNDO_ICON        = '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>';
+
+  function toolBtn(tool, icon, title) {
+    return '<button type="button" class="dc-tool-btn' + (tool === 'pen' ? ' dc-tool-btn--active' : '') +
+      '" data-tool="' + tool + '" title="' + title + '">' +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + icon + '</svg>' +
+    '</button>';
+  }
+
   Whiteboard.prototype._build = function (container) {
     var wrap = document.createElement('div');
     wrap.className = 'wb-board';
     wrap.innerHTML =
       '<div class="dc-toolbar wb-toolbar">' +
+        '<div class="dc-tool-group">' +
+          toolBtn('pen', PEN_ICON, 'Stilou (P)') +
+          toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
+          toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
+        '</div>' +
         '<div class="dc-tool-group">' +
           WIDTH_PRESETS.map(function (w, i) {
             var dotSize = 3 + i * 3;
@@ -162,13 +256,25 @@
           '</button>' +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--right">' +
+          '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+          '</button>' +
+          '<button type="button" class="dc-action-btn" id="wbRedoBtn" title="Reface (Ctrl+Y)" disabled>' +
+            '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+          '</button>' +
           '<button type="button" class="dc-action-btn dc-action-btn--danger" id="wbClearMineBtn" title="Șterge ce am desenat eu">' +
             (global.icon ? global.icon('trash-2', { size: 16 }) : '×') +
           '</button>' +
         '</div>' +
       '</div>' +
       '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
-        '<div class="wb-canvas-inner" id="wbCanvasInner"><canvas id="wbFabricCanvas"></canvas></div>' +
+        '<div class="wb-canvas-inner" id="wbCanvasInner">' +
+          '<canvas id="wbFabricCanvas"></canvas>' +
+          '<div class="wb-locked-banner" id="wbLockedBanner">' +
+            (global.icon ? global.icon('lock', { size: 16 }) : '') +
+            '<span>Profesorul a blocat temporar scrisul tău pe această tablă</span>' +
+          '</div>' +
+        '</div>' +
       '</div>';
     container.appendChild(wrap);
 
@@ -177,16 +283,31 @@
     this._canvasWrap = wrap.querySelector('#wbCanvasWrap');
     this._innerEl    = wrap.querySelector('#wbCanvasInner');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
+    this._lockedBannerEl = wrap.querySelector('#wbLockedBanner');
     this._gridOn     = false;
+    this._applyLockedUi();
+  };
+
+  Whiteboard.prototype._setTool = function (tool) {
+    this._tool = tool;
+    this._toolbarEl.querySelectorAll('[data-tool]').forEach(function (b) {
+      b.classList.toggle('dc-tool-btn--active', b.dataset.tool === tool);
+    });
+    if (this._overlayEl) this._overlayEl.style.cursor = tool === 'eraser' ? 'cell' : 'crosshair';
   };
 
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
     this._toolbarEl.addEventListener('click', function (e) {
-      var widthBtn = e.target.closest('[data-width]');
-      var clearBtn = e.target.closest('#wbClearMineBtn');
-      var gridBtn  = e.target.closest('#wbGridBtn');
-      if (widthBtn) {
+      var toolBtnEl = e.target.closest('[data-tool]');
+      var widthBtn  = e.target.closest('[data-width]');
+      var clearBtn  = e.target.closest('#wbClearMineBtn');
+      var gridBtn   = e.target.closest('#wbGridBtn');
+      var undoBtn   = e.target.closest('#wbUndoBtn');
+      var redoBtn   = e.target.closest('#wbRedoBtn');
+      if (toolBtnEl) {
+        self._setTool(toolBtnEl.dataset.tool);
+      } else if (widthBtn) {
         self._width = parseInt(widthBtn.dataset.width, 10);
         self._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
           b.classList.toggle('dc-width-btn--active', b === widthBtn);
@@ -198,8 +319,41 @@
         gridBtn.classList.toggle('dc-action-btn--active', self._gridOn);
         gridBtn.title = self._gridOn ? 'Ascunde grila' : 'Arată grila';
         self._innerEl.classList.toggle('wb-canvas-inner--grid', self._gridOn);
+      } else if (undoBtn && !undoBtn.disabled) {
+        self.undo();
+      } else if (redoBtn && !redoBtn.disabled) {
+        self.redo();
       }
     });
+  };
+
+  // Desktop only in practice (there's no keyboard on a phone/tablet to fire
+  // these), bound at the window so it works regardless of which element
+  // has focus — except a real text input, where Ctrl+Z/Ctrl+Y and the
+  // P/H/E letters should do their normal text-editing thing instead (the
+  // session-title field in js/class-page.js's header lives in the same
+  // document and isn't part of this component, but keydown at window level
+  // reaches it all the same).
+  Whiteboard.prototype._bindKeyboard = function () {
+    var self = this;
+    this._keyHandler = function (e) {
+      var t = document.activeElement;
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        self.undo();
+      } else if ((e.ctrlKey || e.metaKey) && (e.key.toLowerCase() === 'y' || (e.shiftKey && e.key.toLowerCase() === 'z'))) {
+        e.preventDefault();
+        self.redo();
+      } else if (e.key === 'p' || e.key === 'P') {
+        self._setTool('pen');
+      } else if (e.key === 'h' || e.key === 'H') {
+        self._setTool('highlighter');
+      } else if (e.key === 'e' || e.key === 'E') {
+        self._setTool('eraser');
+      }
+    };
+    global.addEventListener('keydown', this._keyHandler);
   };
 
   /* ---- Fabric canvas (committed strokes) ---- */
@@ -296,12 +450,27 @@
 
     el.addEventListener('pointerdown', function (e) {
       if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (self._locked) return; // teacher has blocked this participant's writing — see setLocked
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
       var pos = self._getPos(e);
+
+      if (self._tool === 'eraser') {
+        self._erasedThisDrag = new Set();
+        self._activePtrs[e.pointerId] = { erasing: true };
+        self._eraseAt(pos);
+        return;
+      }
+
+      var isHighlighter = self._tool === 'highlighter';
+      var effWidth   = isHighlighter ? self._width * HIGHLIGHTER_WIDTH_MULT : self._width;
+      var effOpacity = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
       var strokeId = genId();
-      self._activePtrs[e.pointerId] = { strokeId: strokeId, points: [pos], pending: [pos], lastSentAt: 0, lastSentPos: null };
-      self._liveStrokes.set('m:' + strokeId, { points: [pos], color: self._color, width: self._width });
+      self._activePtrs[e.pointerId] = {
+        strokeId: strokeId, points: [pos], pending: [pos], lastSentAt: 0, lastSentPos: null,
+        width: effWidth, opacity: effOpacity
+      };
+      self._liveStrokes.set('m:' + strokeId, { points: [pos], color: self._color, width: effWidth, opacity: effOpacity });
       self._dirty = true;
     });
 
@@ -310,6 +479,7 @@
       if (!st) return;
       e.preventDefault();
       var pos = self._getPos(e);
+      if (st.erasing) { self._eraseAt(pos); return; }
       st.points.push(pos);
       st.pending.push(pos);
       self._liveStrokes.get('m:' + st.strokeId).points = st.points;
@@ -321,6 +491,7 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
+      if (st.erasing) { self._erasedThisDrag = null; return; }
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
       // Deliberately NOT deleting the live-stroke entry here — the overlay
@@ -330,7 +501,7 @@
       // that round-trip where the stroke was neither on the overlay nor on
       // Fabric yet — a visible "disappears for a moment, then reappears"
       // flicker on every release.
-      self._commitStroke(st.points, 'm:' + st.strokeId);
+      self._commitStroke(st.points, 'm:' + st.strokeId, st.width, st.opacity);
     }
     el.addEventListener('pointerup', finish);
     // Not gated to touch — mirrors drawing-canvas.js's own reasoning: a
@@ -341,6 +512,7 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
+      if (st.erasing) { self._erasedThisDrag = null; return; }
       self._liveStrokes.delete('m:' + st.strokeId);
       self._dirty = true;
       self._send('stroke:cancel', { strokeId: st.strokeId });
@@ -356,7 +528,7 @@
 
   Whiteboard.prototype._flush = function (st) {
     if (!st.pending.length) return;
-    this._send('stroke:point', { strokeId: st.strokeId, color: this._color, width: this._width, points: st.pending });
+    this._send('stroke:point', { strokeId: st.strokeId, color: this._color, width: st.width, opacity: st.opacity, points: st.pending });
     st.pending = [];
     st.lastSentAt = (global.performance || Date).now();
     st.lastSentPos = st.points[st.points.length - 1];
@@ -372,7 +544,11 @@
   // same rule drawing-canvas.js uses for its own strokes. liveKey is the
   // overlay preview entry to retire once (and only once) the real object
   // is ready to take its place — see the note at the finish() call site.
-  Whiteboard.prototype._commitStroke = function (points, liveKey) {
+  // width/opacity are the EFFECTIVE values already baked in at pointerdown
+  // (pen vs highlighter — see _bindPointerEvents), not self._width/1 —
+  // otherwise a highlighter stroke would commit at pen width/opacity if
+  // the tool got switched again before this resolved.
+  Whiteboard.prototype._commitStroke = function (points, liveKey, width, opacity) {
     if (points.length < 2) {
       if (liveKey) { this._liveStrokes.delete(liveKey); this._dirty = true; }
       return;
@@ -389,7 +565,7 @@
       // REMOTE viewer can do the exact same "swap, don't just delete"
       // trick for their copy of this stroke's live preview — see
       // _connectRealtime's INSERT handler.
-      fabric_json: { path: path, stroke: this._color, strokeWidth: this._width, clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      fabric_json: { path: path, stroke: this._color, strokeWidth: width, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null }
     }).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) {
@@ -408,7 +584,12 @@
         self._dirty = true;
         return;
       }
-      self._addObjectIfNew(res.data);
+      self._addObjectIfNew(res.data, points);
+      // A new stroke invalidates whatever was on the redo stack — standard
+      // undo/redo semantics (matches drawing-canvas.js's own _undo/_redo).
+      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
+      self._myRedoStack = [];
+      self._updateUndoRedoButtons();
       self._dirty = true;
       self._fabricCanvas.requestRenderAll();
     });
@@ -449,7 +630,7 @@
     var key = 'r:' + payload.strokeId;
     var entry = this._liveStrokes.get(key);
     if (!entry) {
-      entry = { points: [], color: payload.color, width: payload.width };
+      entry = { points: [], color: payload.color, width: payload.width, opacity: payload.opacity };
       this._liveStrokes.set(key, entry);
     }
     entry.points = entry.points.concat(payload.points);
@@ -476,14 +657,19 @@
   // Shared by three call sites (my own commit, a remote INSERT, the bulk
   // historical load) so all three stay trivially idempotent regardless of
   // arrival order — e.g. a stroke committed the instant before a bulk
-  // fetch runs could otherwise arrive via both paths.
-  Whiteboard.prototype._addObjectIfNew = function (row) {
+  // fetch runs could otherwise arrive via both paths. rawPoints is only
+  // ever passed by my own commit (the exact points, still in memory at
+  // that moment) — every other caller leaves it out and, for one of MY
+  // strokes loaded from history, parsePathPoints reconstructs an
+  // approximation instead; see that function's own comment for why.
+  Whiteboard.prototype._addObjectIfNew = function (row, rawPoints) {
     if (!row || this._committedIds.has(row.id)) return;
     this._committedIds.add(row.id);
     var j = row.fabric_json || {};
     var path = new fabric.Path(j.path, {
       stroke: j.stroke,
       strokeWidth: j.strokeWidth,
+      opacity: j.opacity == null ? 1 : j.opacity,
       fill: null,
       strokeLineCap: 'round',
       strokeLineJoin: 'round',
@@ -492,11 +678,15 @@
       data: { id: row.id, ownerId: row.created_by }
     });
     this._fabricCanvas.add(path);
+    if (row.created_by === this._userId) {
+      this._myPathPoints.set(row.id, rawPoints || parsePathPoints(j.path));
+    }
   };
 
   Whiteboard.prototype._removeObjectById = function (id) {
     if (!id) return;
     this._committedIds.delete(id);
+    this._myPathPoints.delete(id);
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
     if (obj) this._fabricCanvas.remove(obj);
   };
@@ -528,6 +718,11 @@
     Array.from(this._liveStrokes.keys())
       .filter(function (k) { return k.charAt(0) === 'm'; })
       .forEach(function (k) { self._liveStrokes.delete(k); });
+    // Every stroke this clears is about to be gone for good — nothing left
+    // to undo/redo or to erase individually.
+    this._myStrokeHistory = [];
+    this._myRedoStack = [];
+    this._updateUndoRedoButtons();
     this._dirty = true;
     this._supabase.from('whiteboard_objects').delete()
       .eq('session_id', this._sessionId).eq('created_by', this._userId)
@@ -537,6 +732,108 @@
         (res.data || []).forEach(function (r) { self._removeObjectById(r.id); });
         self._fabricCanvas.requestRenderAll();
       });
+  };
+
+  // Eraser tool — drag over any of MY OWN strokes to delete them one at a
+  // time. Scoped to own strokes only for now, same as _clearMine and the
+  // DB's own owner-only delete policy: a teacher-erases-anyone tool is
+  // Phase 2 (see the SQL comment in 20260904160000_whiteboard_objects.sql —
+  // it needs its own RLS policy, not just a client-side change).
+  Whiteboard.prototype._eraseAt = function (pos) {
+    var self = this;
+    var hitIds = [];
+    this._fabricCanvas.getObjects().forEach(function (obj) {
+      if (!obj.data || obj.data.ownerId !== self._userId) return;
+      if (self._erasedThisDrag.has(obj.data.id)) return;
+      var pts = self._myPathPoints.get(obj.data.id);
+      if (!pts || !pts.length) return;
+      var tol = (obj.strokeWidth || 2) / 2 + 8; // a little slack for a fast swipe
+      if (distToPolyline(pos, pts) <= tol) {
+        hitIds.push(obj.data.id);
+        self._erasedThisDrag.add(obj.data.id);
+      }
+    });
+    if (hitIds.length) this._deleteObjects(hitIds);
+  };
+
+  // Shared by the eraser and undo — removes committed strokes both locally
+  // (Fabric + the caches above) and in the DB, which reaches every other
+  // viewer through the same DELETE postgres_changes handler _clearMine
+  // already relies on. Also drops these ids from the undo stack so a later
+  // undo can't try to re-delete an already-erased stroke, and — worse — a
+  // later redo can't resurrect one the user erased on purpose.
+  Whiteboard.prototype._deleteObjects = function (ids) {
+    var self = this;
+    ids.forEach(function (id) { self._removeObjectById(id); });
+    this._myStrokeHistory = this._myStrokeHistory.filter(function (h) { return ids.indexOf(h.id) === -1; });
+    this._updateUndoRedoButtons();
+    this._fabricCanvas.requestRenderAll();
+    this._supabase.from('whiteboard_objects').delete().in('id', ids).then(function (res) {
+      if (res.error) console.error('[Whiteboard] erase failed', res.error);
+    });
+  };
+
+  // Undo/redo — scoped to MY OWN strokes only, same reasoning as the
+  // eraser above: undoing someone else's stroke mid-lesson would be
+  // confusing in a live shared session, so this only ever pops my own
+  // history. Bound to the toolbar buttons and Ctrl+Z/Ctrl+Y — see
+  // _bindKeyboard.
+  Whiteboard.prototype.undo = function () {
+    if (!this._myStrokeHistory.length) return;
+    var entry = this._myStrokeHistory.pop();
+    this._myRedoStack.push(entry);
+    this._updateUndoRedoButtons();
+    this._removeObjectById(entry.id);
+    this._fabricCanvas.requestRenderAll();
+    this._supabase.from('whiteboard_objects').delete().eq('id', entry.id).then(function (res) {
+      if (res.error) console.error('[Whiteboard] undo failed', res.error);
+    });
+  };
+
+  // Can't resurrect the deleted row (it's gone) — re-inserts the same
+  // fabric_json as a brand new row instead, same as a fresh stroke, which
+  // syncs to everyone else the normal way through the INSERT handler.
+  Whiteboard.prototype.redo = function () {
+    if (!this._myRedoStack.length) return;
+    var entry = this._myRedoStack.pop();
+    this._updateUndoRedoButtons();
+    var self = this;
+    this._supabase.from('whiteboard_objects').insert({
+      session_id: this._sessionId, class_id: this._classId, created_by: this._userId,
+      kind: 'stroke', fabric_json: entry.fabric_json
+    }).select().single().then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] redo failed', res.error); return; }
+      self._addObjectIfNew(res.data);
+      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
+      self._updateUndoRedoButtons();
+      self._fabricCanvas.requestRenderAll();
+    });
+  };
+
+  Whiteboard.prototype._updateUndoRedoButtons = function () {
+    var undoBtn = this._toolbarEl.querySelector('#wbUndoBtn');
+    var redoBtn = this._toolbarEl.querySelector('#wbRedoBtn');
+    if (undoBtn) undoBtn.disabled = !this._myStrokeHistory.length;
+    if (redoBtn) redoBtn.disabled = !this._myRedoStack.length;
+  };
+
+  // Called from js/class-page.js when the teacher locks/unlocks this
+  // participant — live, through the whiteboard_participants realtime
+  // subscription already running there. Only blocks STARTING something new
+  // (see the _locked check in _bindPointerEvents' pointerdown); a stroke
+  // already mid-gesture when the lock lands is left to finish rather than
+  // yanked away mid-draw. Enforced server-side too, not just here — the
+  // wb_objects_insert RLS policy checks the same flag, so this is a UX
+  // nicety (an instant, friendly block) on top of a real one, not the only
+  // thing standing between a locked student and the board.
+  Whiteboard.prototype.setLocked = function (locked) {
+    this._locked = !!locked;
+    this._applyLockedUi();
+  };
+
+  Whiteboard.prototype._applyLockedUi = function () {
+    if (this._wrap) this._wrap.classList.toggle('wb-board--locked', this._locked);
   };
 
   /* ---- Render loop (overlay only — Fabric renders itself on demand) ---- */
@@ -557,7 +854,7 @@
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, el.width, el.height);
     ctx.setTransform(this._scale * this._dpr, 0, 0, this._scale * this._dpr, 0, 0);
-    this._liveStrokes.forEach(function (s) { drawSmoothStroke(ctx, s.points, s.color, s.width); });
+    this._liveStrokes.forEach(function (s) { drawSmoothStroke(ctx, s.points, s.color, s.width, s.opacity); });
   };
 
   /* ---- Teardown ---- */
@@ -567,6 +864,7 @@
     if (this._rafId) cancelAnimationFrame(this._rafId);
     clearTimeout(this._resizeTimer);
     if (this._ro) this._ro.disconnect();
+    if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);
     if (this._channel) this._supabase.removeChannel(this._channel);
     if (this._fabricCanvas) this._fabricCanvas.dispose();
     if (this._wrap && this._wrap.parentNode) this._wrap.parentNode.removeChild(this._wrap);

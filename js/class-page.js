@@ -323,7 +323,7 @@
       }, e => { _debouncedTabla(); _debouncedTablaLive(e); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'whiteboard_participants'
-      }, () => { _debouncedTablaLive(); })
+      }, e => { _onParticipantChange(e); })
       .subscribe((status, err) => {
         // Silent failures here (a dropped/errored channel with no visible
         // symptom besides "stopped updating live") are hard to tell apart
@@ -5506,6 +5506,21 @@
     _reloadTablaLiveTimer = setTimeout(() => _refreshTablaRoster(_openTablaSessionId), 350);
   }
 
+  // whiteboard_participants changes: (a) my OWN lock state, applied to the
+  // live Whiteboard instance immediately — this is what actually makes a
+  // teacher's lock/unlock take effect for a student who's already in the
+  // session, not just on their next join — and (b) same debounced roster
+  // refresh _debouncedTablaLive already does for session changes, so any
+  // other participant joining/leaving/getting (un)locked still updates the
+  // avatar strip for everyone watching.
+  function _onParticipantChange(e) {
+    if (e?.new && _openTablaSessionId && e.new.session_id === _openTablaSessionId &&
+        BMAuth.user && e.new.user_id === BMAuth.user.id && _openWhiteboardInstance) {
+      _openWhiteboardInstance.setLocked(!!e.new.locked);
+    }
+    _debouncedTablaLive();
+  }
+
   // Teacher-only rename, saved on blur/Enter — RLS (wb_sessions_teacher_all)
   // already allows the class's teacher to UPDATE whiteboard_sessions, so
   // this is a plain client write, no RPC needed. Students get a read-only
@@ -5581,7 +5596,6 @@
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
           <div class="wb-fs-brand">
-            <img class="wb-fs-brand__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
             <span class="wb-fs-brand__name">Math<b>orizon</b></span>
           </div>
           <span class="wb-fs-label">${icon('presentation', { size: 20 })} Tablă Live</span>
@@ -5604,12 +5618,14 @@
     _bindTablaTitleInput(modal, session);
 
     let myColor = BMAuth.role === 'profesor' ? '#111827' : null;
+    let myLocked = false;
     try {
       const { data: participant, error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
         p_session_id: session.id, p_display_name: BMAuth.displayName()
       });
       if (joinError) throw joinError;
       myColor = participant?.color || myColor;
+      myLocked = !!participant?.locked;
     } catch (e) {
       BM.toast('Nu s-a putut intra în tablă: ' + e.message, 'error');
     }
@@ -5627,7 +5643,8 @@
         sessionId: session.id,
         classId: classData.id,
         userId: BMAuth.user.id,
-        userColor: myColor
+        userColor: myColor,
+        locked: myLocked
       });
     }
   }
@@ -5646,13 +5663,85 @@
         ${participants.map(p => {
           const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
           const initials = name.trim().slice(0, 2).toUpperCase();
-          return `<span class="wb-avatar${p.role === 'profesor' ? ' wb-avatar--teacher' : ''}" style="background:${BM.esc(p.color)}" title="${BM.esc(name)}${p.role === 'profesor' ? ' (profesor)' : ''}">${BM.esc(initials)}</span>`;
+          return `<button type="button" class="wb-avatar${p.role === 'profesor' ? ' wb-avatar--teacher' : ''}${p.locked ? ' wb-avatar--locked' : ''}"
+            style="background:${BM.esc(p.color)}" data-user-id="${BM.esc(p.user_id)}" data-name="${BM.esc(name)}"
+            data-role="${BM.esc(p.role)}" data-locked="${p.locked ? '1' : ''}"
+            title="${BM.esc(name)}${p.role === 'profesor' ? ' (profesor)' : ''}${p.locked ? ' — scris blocat' : ''}">${BM.esc(initials)}</button>`;
         }).join('')}
       `;
+      // Locking a participant mid-draw only takes effect for THEM live via
+      // whiteboard_participants realtime (see _debouncedTablaLive) — this
+      // just keeps the teacher's own open popover (if any) showing the
+      // right lock state after a roster refresh, e.g. right after they
+      // toggle it themselves.
+      const openPopover = document.getElementById('wbRosterPopover');
+      if (openPopover && openPopover.dataset.userId) {
+        const btn = strip.querySelector('[data-user-id="' + CSS.escape(openPopover.dataset.userId) + '"]');
+        if (btn) _showRosterPopover(btn); else openPopover.remove();
+      }
     } catch (e) {
       strip.innerHTML = `<span class="wb-roster-count">${BM.esc(e.message)}</span>`;
     }
   }
+
+  // Teacher-only — a student clicking another participant's avatar is a
+  // no-op (they can see who's connected from the tooltip already, same as
+  // before; only the teacher gets the popover with the lock toggle).
+  function _closeRosterPopover() {
+    document.getElementById('wbRosterPopover')?.remove();
+  }
+
+  function _showRosterPopover(btn) {
+    _closeRosterPopover();
+    const strip = btn.closest('.wb-roster-strip');
+    if (!strip) return;
+    const isSelf = btn.dataset.userId === BMAuth.user.id;
+    const locked = btn.dataset.locked === '1';
+    const popover = document.createElement('div');
+    popover.id = 'wbRosterPopover';
+    popover.className = 'wb-roster-popover';
+    popover.dataset.userId = btn.dataset.userId;
+    popover.innerHTML = `
+      <div class="wb-roster-popover__name">${BM.esc(btn.dataset.name)}</div>
+      ${isSelf
+        ? `<div class="wb-roster-popover__hint">Ești tu (profesorul)</div>`
+        : `<button type="button" class="btn btn--sm ${locked ? 'btn--surface' : 'btn--danger'}" id="wbLockToggleBtn">
+             ${locked ? icon('unlock', { size: 14 }) : icon('lock', { size: 14 })} ${locked ? 'Deblochează scrisul' : 'Blochează scrisul'}
+           </button>`}
+    `;
+    strip.appendChild(popover);
+    // Anchored to the strip (position:relative), left-aligned under
+    // whichever avatar was clicked — offsetLeft is relative to the strip
+    // too since it's the nearest positioned ancestor.
+    popover.style.left = Math.max(0, Math.min(btn.offsetLeft, strip.offsetWidth - popover.offsetWidth)) + 'px';
+
+    popover.querySelector('#wbLockToggleBtn')?.addEventListener('click', async () => {
+      try {
+        await BMAuth.supabase.rpc('set_whiteboard_participant_locked', {
+          p_session_id: _openTablaSessionId, p_user_id: btn.dataset.userId, p_locked: !locked
+        });
+        _closeRosterPopover();
+        await _refreshTablaRoster(_openTablaSessionId);
+      } catch (e) {
+        BM.toast('Eroare: ' + e.message, 'error');
+      }
+    });
+
+    setTimeout(() => {
+      document.addEventListener('click', function close(e) {
+        if (!popover.contains(e.target) && e.target !== btn) {
+          popover.remove();
+          document.removeEventListener('click', close);
+        }
+      });
+    }, 0);
+  }
+
+  document.addEventListener('click', e => {
+    if (BMAuth.role !== 'profesor') return;
+    const avatarBtn = e.target.closest('.wb-avatar');
+    if (avatarBtn && avatarBtn.closest('#wbRosterStrip')) _showRosterPopover(avatarBtn);
+  });
 
   window.cdCopyCode = function (code) {
     navigator.clipboard.writeText(code)

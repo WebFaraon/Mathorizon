@@ -12536,38 +12536,22 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wb-fs-header__left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 22px;
   min-width: 0;
   flex-wrap: wrap;
 }
-/* Brand mark — same PNG the main nav uses, which per the note on
-   .flip-card__logo-img above is white line-art with no dark variant, so it
-   only ever reads on a colored surface, never a plain page background.
-   .wb-fs-header sits directly on var(--bg), which in light theme is a
-   plain near-white — so unlike the nav (permanently on its own dark
-   gradient bar) this needs its own small colored chip behind it rather
-   than sitting straight on the header. */
 .wb-fs-brand {
   display: flex;
   align-items: center;
-  gap: 6px;
   flex-shrink: 0;
-  background: var(--accent);
-  border-radius: 8px;
-  padding: 5px 10px 5px 7px;
-}
-.wb-fs-brand__logo {
-  height: 20px;
-  width: auto;
-  display: block;
 }
 .wb-fs-brand__name {
   font-family: 'Josefin Sans', sans-serif;
-  font-size: 0.7rem;
+  font-size: 0.92rem;
   font-weight: 600;
-  letter-spacing: 2px;
+  letter-spacing: 3px;
   text-transform: uppercase;
-  color: #fff;
+  color: var(--accent);
   white-space: nowrap;
 }
 .wb-fs-label {
@@ -12623,6 +12607,7 @@ body.wb-fullscreen-active .scroll-top-btn {
    practice it still did, hiding the count's number behind the ring —
    see .wb-avatar--teacher's own margin below for the actual fix). */
 .wb-roster-strip {
+  position: relative; /* anchors .wb-roster-popover below the clicked avatar */
   display: flex;
   align-items: center;
   flex-wrap: wrap;
@@ -12638,6 +12623,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   color: var(--text-muted);
 }
 .wb-avatar {
+  position: relative;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -12648,9 +12634,17 @@ body.wb-fullscreen-active .scroll-top-btn {
   font-size: 0.74rem;
   font-weight: 800;
   color: #fff;
+  border: none;
+  padding: 0;
   box-shadow: 0 0 0 2px var(--card);
   cursor: default;
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
+/* Only the teacher can actually click one (see _showRosterPopover in
+   js/class-page.js, which no-ops for a student) — the hover lift still
+   shows for everyone since it costs nothing and the tooltip (title
+   attribute) works for a student either way. */
+.wb-avatar:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--card), 0 3px 8px rgba(0,0,0,0.25); }
 /* The accent ring (box-shadow, spreads 3.5px past the ring beneath it)
    takes no layout space of its own, so `gap` alone can't guarantee
    clearance from whatever sits right before it — a margin does, since
@@ -12660,6 +12654,48 @@ body.wb-fullscreen-active .scroll-top-btn {
   box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent);
   margin-left: 4px;
 }
+.wb-avatar--teacher:hover { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent), 0 3px 8px rgba(0,0,0,0.25); }
+.wb-avatar--locked::after {
+  content: '';
+  position: absolute;
+  right: -2px;
+  bottom: -2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--red, #dc2626);
+  box-shadow: 0 0 0 2px var(--card);
+}
+
+/* ---- Roster avatar popover (teacher only) — full name + lock toggle,
+   see _showRosterPopover/js/class-page.js. Opens downward, unlike
+   .flux-readers-popover's upward one, since the roster sits in a header
+   near the top of the screen instead of a footer. ---- */
+.wb-roster-popover {
+  position: absolute;
+  top: calc(100% + 10px);
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  min-width: 200px;
+  padding: 10px 12px;
+  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
+  z-index: 20;
+  animation: fadeSlideIn 0.14s ease;
+}
+.wb-roster-popover__name {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text);
+  margin-bottom: 8px;
+  word-break: break-word;
+}
+.wb-roster-popover__hint {
+  font-size: 0.78rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+.wb-roster-popover .btn { width: 100%; justify-content: center; }
 
 /* Where js/class-page.js mounts the Whiteboard component — just a flex
    slot filling whatever's left below the header; .wb-board (below) is the
@@ -12725,15 +12761,46 @@ body.wb-fullscreen-active .scroll-top-btn {
   touch-action: none;
 }
 
+/* ---- Locked state (teacher-blocked writing) — see Whiteboard.setLocked
+   in js/whiteboard.js and the roster lock toggle in js/class-page.js ---- */
+.wb-board--locked .wb-overlay-canvas { cursor: not-allowed; }
+/* Drawing/erasing tools specifically (not grid/undo/redo/clear, which stay
+   usable — a locked student can still tidy up their own past strokes,
+   just can't add new ones). */
+.wb-board--locked .wb-toolbar [data-tool],
+.wb-board--locked .wb-toolbar [data-width] {
+  opacity: 0.4;
+  pointer-events: none;
+}
+.wb-locked-banner {
+  display: none;
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 5;
+  align-items: center;
+  gap: 8px;
+  background: rgba(17,24,39,0.92);
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  line-height: 1.3; /* .wb-canvas-inner (parent) sets line-height:0 for its <canvas> children — without resetting it here, this banner's own text inherits that and every wrapped line collapses onto the same baseline. */
+  padding: 8px 16px;
+  border-radius: 20px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+  pointer-events: none;
+  max-width: calc(100% - 28px);
+  text-align: center;
+}
+.wb-board--locked .wb-locked-banner { display: inline-flex; }
+
 @media (max-width: 600px) {
   .wb-hero { flex-wrap: wrap; }
   .wb-hero .btn { width: 100%; justify-content: center; }
   .wb-fs-header { padding: 8px 10px; }
-  /* Brand chip's wordmark is the least essential part of the header on a
-     phone-width screen — drop it first, keep the mark + "Tablă Live" +
-     the actual session title. */
-  .wb-fs-brand__name { display: none; }
-  .wb-fs-brand { padding: 5px 8px; }
+  .wb-fs-header__left { gap: 12px; }
+  .wb-fs-brand__name { font-size: 0.78rem; letter-spacing: 2px; }
   .wb-fs-label { font-size: 0.86rem; }
   .wb-fs-title,
   .wb-fs-title-input { font-size: 0.86rem; }
@@ -15811,11 +15878,15 @@ body.dc-fullscreen-active .dc-toolbar {
     flex-direction: column-reverse;
   }
 
-  /* Scoped to .dc-wrap (not bare .dc-toolbar) — the geometry figure editor
-     (js/geometry-figure-editor.js) reuses the .dc-toolbar/.dc-tool-group
-     classes under its own .gfe-wrap, which keeps its own always-on single
-     nowrap row (see .gfe-toolbar) rather than this mobile-only override. */
-  .dc-wrap .dc-toolbar {
+  /* Scoped to .dc-wrap/.wb-board (not bare .dc-toolbar) — the geometry
+     figure editor (js/geometry-figure-editor.js) reuses the .dc-toolbar/
+     .dc-tool-group classes under its own .gfe-wrap, which keeps its own
+     always-on single nowrap row (see .gfe-toolbar) rather than this
+     mobile-only override. .wb-board is js/whiteboard.js's own wrapper —
+     same toolbar classes, same "Tablă live" mobile toolbar it shares this
+     whole rule with. */
+  .dc-wrap .dc-toolbar,
+  .wb-board .dc-toolbar {
     border-bottom: none;
     border-top: 1px solid var(--border);
     padding: 10px 12px 14px; /* extra bottom padding for safe area */
@@ -15835,7 +15906,8 @@ body.dc-fullscreen-active .dc-toolbar {
   /* Without this, nowrap lets the default flex-shrink squeeze groups (and
      the tap targets inside them) before the row starts scrolling — same
      fix .gfe-tool-section already applies for its own always-on scroll row. */
-  .dc-wrap .dc-tool-group {
+  .dc-wrap .dc-tool-group,
+  .wb-board .dc-tool-group {
     flex-shrink: 0;
   }
 
