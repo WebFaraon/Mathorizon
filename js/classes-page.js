@@ -510,6 +510,13 @@
               </div>
               <span class="cls-form-hint">Poți alege 2 zile dacă grupa are lecții de două ori pe săptămână</span>
             </div>
+            <div class="cls-form-field">
+              <label class="cls-form-label">Tip lecție</label>
+              <div class="cls-day-picker" id="classTipPicker">
+                <button type="button" class="cls-day-chip" data-tip="online">${icon('monitor', { size: 14 })} Online</button>
+                <button type="button" class="cls-day-chip" data-tip="offline">${icon('school', { size: 14 })} Offline</button>
+              </div>
+            </div>
             <div class="cls-form-row">
               <div class="cls-form-field">
                 <label class="cls-form-label">Ora</label>
@@ -582,6 +589,10 @@
     return DAY_ORDER.filter(d => selected.includes(d));
   }
 
+  function _getSelectedTip() {
+    return document.getElementById('classTipPicker')?.querySelector('.cls-day-chip--sel')?.dataset.tip || '';
+  }
+
   function buildGeneratedName() {
     const mat = document.getElementById('classMaterieInput')?.value || '';
     const zi  = _getSelectedDays().join('/');
@@ -614,6 +625,21 @@
     });
   }
 
+  // Single-select, unlike the day picker — a lesson is either online or
+  // offline, never both.
+  function _wireTipPicker() {
+    const picker = document.getElementById('classTipPicker');
+    if (!picker || picker._wired) return;
+    picker._wired = true;
+    picker.querySelectorAll('.cls-day-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const already = chip.classList.contains('cls-day-chip--sel');
+        picker.querySelectorAll('.cls-day-chip--sel').forEach(c => c.classList.remove('cls-day-chip--sel'));
+        if (!already) chip.classList.add('cls-day-chip--sel');
+      });
+    });
+  }
+
   function openCreateModal() {
     const modal = document.getElementById('classesModal');
     if (!modal) return;
@@ -632,6 +658,7 @@
       document.getElementById(id)?.addEventListener('change', updateNamePreview);
     });
     _wireDayPicker();
+    _wireTipPicker();
   }
 
   function closeCreateModal() {
@@ -646,6 +673,8 @@
     });
     document.getElementById('classZiuaPicker')?.querySelectorAll('.cls-day-chip--sel')
       .forEach(c => c.classList.remove('cls-day-chip--sel'));
+    document.getElementById('classTipPicker')?.querySelectorAll('.cls-day-chip--sel')
+      .forEach(c => c.classList.remove('cls-day-chip--sel'));
     const preview = document.getElementById('classNamePreview');
     if (preview) preview.textContent = '—';
     _closeAllCsels();
@@ -657,12 +686,17 @@
     const selectedDays = _getSelectedDays();
     const ziua         = selectedDays.join('/');
     const ora          = document.getElementById('classOraInput')?.value;
+    const tip       = _getSelectedTip();
     const maxElevi  = document.getElementById('classMaxEleviInput')?.value;
     const grade     = document.getElementById('classGradeInput')?.value;
     const mathLevel = document.getElementById('classMathLevelInput')?.value;
 
     if (!materie || !ziua || !ora) {
       BM.toast('Selectează materia, ziua (cel puțin una) și ora.', 'error');
+      return;
+    }
+    if (!tip) {
+      BM.toast('Selectează tipul lecției (online sau offline).', 'error');
       return;
     }
     if (!maxElevi) {
@@ -696,7 +730,8 @@
             // by the Sumar tab's "next lesson" calc. `name` itself is never
             // parsed for this again after the one-time backfill migration.
             schedule_days: selectedDays.map(d => DAY_ORDER.indexOf(d) + 1),
-            schedule_time: ora
+            schedule_time: ora,
+            lesson_type:   tip
           });
 
         if (!error) {

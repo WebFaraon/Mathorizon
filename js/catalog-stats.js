@@ -192,6 +192,20 @@
     return { perStudent, classRate };
   }
 
+  /* Average HEADCOUNT present per lesson (not a percentage) — sum of how
+     many students showed up at each session, divided by the number of
+     sessions. Distinct from attendanceStats().classRate (an average of
+     per-student attendance RATES): this answers "how many kids typically
+     show up", that answers "what fraction of the roster typically shows up". */
+  function avgPresentPerLesson(members, sessions, attMatrix) {
+    if (!sessions.length) return null;
+    const total = sessions.reduce((sum, s) => {
+      const presentCount = members.filter(m => (attMatrix[m.student_id] || {})[s.id] === true).length;
+      return sum + presentCount;
+    }, 0);
+    return total / sessions.length;
+  }
+
   /* ─── Lessons held — count + date of the most recent one. `sessions`
      must already be sorted ascending by session_date (every caller's
      query already does this). */
@@ -241,6 +255,7 @@
   CatalogStats.classAverage = classAverage;
   CatalogStats.studentAverage = studentAverage;
   CatalogStats.attendanceStats = attendanceStats;
+  CatalogStats.avgPresentPerLesson = avgPresentPerLesson;
   CatalogStats.lessonStats = lessonStats;
   CatalogStats.assignmentStats = assignmentStats;
   CatalogStats.simulationStats = simulationStats;

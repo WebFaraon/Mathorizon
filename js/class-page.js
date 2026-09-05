@@ -198,6 +198,12 @@
                     ? `<span class="cd-meta__badge cd-meta__badge--teacher">Profesor</span>`
                     : `<span class="cd-meta__badge cd-meta__badge--student">Elev</span>`
                   }
+                  ${classData.lesson_type ? `
+                    <span class="cd-meta__badge cd-meta__badge--${classData.lesson_type}">
+                      ${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 13 })}
+                      ${classData.lesson_type === 'online' ? 'Online' : 'Offline'}
+                    </span>
+                  ` : ''}
                 </div>
                 <div class="cd-title-wrap">
                   <h1 class="cd-title">${BM.esc(classData.name)}</h1>
@@ -209,7 +215,7 @@
                       <circle cx="12" cy="8" r="4"/>
                       <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
                     </svg>
-                    ${BM.esc(classData.teacher_name)}
+                    Profesor: ${BM.esc(classData.teacher_name)}
                   </span>
                 </div>
               </div>
@@ -419,19 +425,11 @@
     if (tabId === 'flux') {
       requestAnimationFrame(() => loadFluxTab());
       return `
-        <div class="cd-tab-layout">
-          <div id="fluxFeed" class="flux-feed">
-            <div class="classes-loading">
-              <div class="classes-spinner"></div>
-              <p>Se încarcă anunțurile...</p>
-            </div>
+        <div id="fluxFeed" class="flux-feed">
+          <div class="classes-loading">
+            <div class="classes-spinner"></div>
+            <p>Se încarcă anunțurile...</p>
           </div>
-          <aside class="cd-sidebar" id="fluxSidebar">
-            <div class="cd-sidebar-shimmer">
-              <div class="cd-sidebar-shimmer__block"></div>
-              <div class="cd-sidebar-shimmer__block" style="height:80px"></div>
-            </div>
-          </aside>
         </div>`;
     }
 
@@ -583,7 +581,7 @@
     const next = _nextLessonDate(classData.schedule_days, classData.schedule_time);
     const lessonCard = `
       <div class="sumar-upnext__card">
-        <span class="sumar-upnext__icon">${icon('calendar', { size: 20 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('calendar', { size: 18 })}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Următoarea lecție</div>
           ${next
@@ -606,7 +604,7 @@
     }
     const temeCard = `
       <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-teme>
-        <span class="sumar-upnext__icon">${icon('file-text', { size: 20 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('file-text', { size: 18 })}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Teme</div>
           ${temeBody}
@@ -632,7 +630,7 @@
     }
     const simCard = `
       <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-simulari>
-        <span class="sumar-upnext__icon">${icon('target', { size: 20 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--teal">${icon('target', { size: 18 })}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Simulări</div>
           ${simBody}
@@ -643,36 +641,60 @@
   }
 
   /* ─── B. Pulsul grupei ───────────────────────────────────────────── */
+  // Purely informational — these used to click through to Catalog, but with
+  // only two destinations behind five cards (and Catalog one tab away
+  // regardless) the navigation didn't earn its keep. No data-goto-* here.
   function _renderSumarKpis(ctx) {
-    const { members, stats, attendance, lessons } = ctx;
+    const { members, sessions, attMatrix, stats, attendance, lessons } = ctx;
     const maxEl = classData.max_students;
     const fillPct = maxEl ? Math.min(100, Math.round((members.length / maxEl) * 100)) : null;
 
     const attTier = BM.CatalogStats.attendanceTier(attendance.classRate);
     const avgNum = stats.classAvg != null ? parseFloat(stats.classAvg) : null;
     const gradeTier = BM.CatalogStats.gradeTier(avgNum);
+    const avgPresent = BM.CatalogStats.avgPresentPerLesson(members, sessions, attMatrix);
 
     return `
-      <div class="catalog-statsbar">
-        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-note>
-          <div class="catalog-stat-card__val">${members.length}${maxEl ? ' / ' + maxEl : ''}</div>
-          <div class="catalog-stat-card__lbl">Elevi</div>
-          ${maxEl ? `<div class="catalog-stat-card__bar"><div class="catalog-stat-card__bar-fill" style="width:${fillPct}%"></div></div>` : ''}
+      <div class="sumar-kpibar">
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('users', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${members.length}${maxEl ? ' / ' + maxEl : ''}</div>
+            <div class="sumar-kpi-card__lbl">Elevi</div>
+            ${maxEl ? `<div class="sumar-kpi-card__bar"><div class="sumar-kpi-card__bar-fill" style="width:${fillPct}%"></div></div>` : ''}
+          </div>
         </div>
-        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-prezenta>
-          <div class="catalog-stat-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '—'}</div>
-          <div class="catalog-stat-card__lbl">Prezență medie</div>
-          ${attendance.classRate == null ? `<div class="catalog-stat-card__sub">Fără lecții încă</div>` : ''}
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '—'}</div>
+            <div class="sumar-kpi-card__lbl">Prezență medie</div>
+            ${attendance.classRate == null ? `<div class="sumar-kpi-card__sub">Fără lecții încă</div>` : ''}
+          </div>
         </div>
-        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-note>
-          <div class="catalog-stat-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '—'}</div>
-          <div class="catalog-stat-card__lbl">Medie clasă</div>
-          ${!stats.classAvg ? `<div class="catalog-stat-card__sub">Fără note confirmate</div>` : ''}
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('trending-up', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${avgPresent != null ? avgPresent.toFixed(2) : '—'}</div>
+            <div class="sumar-kpi-card__lbl">Media elevilor / oră</div>
+            ${avgPresent == null ? `<div class="sumar-kpi-card__sub">Fără lecții încă</div>` : ''}
+          </div>
         </div>
-        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-prezenta>
-          <div class="catalog-stat-card__val">${lessons.count}</div>
-          <div class="catalog-stat-card__lbl">Lecții ținute</div>
-          <div class="catalog-stat-card__sub">${lessons.lastDate ? 'Ultima: ' + _sumarShortDate(lessons.lastDate) : 'Fără lecții încă'}</div>
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('chart-column', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '—'}</div>
+            <div class="sumar-kpi-card__lbl">Medie clasă</div>
+            ${!stats.classAvg ? `<div class="sumar-kpi-card__sub">Fără note confirmate</div>` : ''}
+          </div>
+        </div>
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('calendar', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${lessons.count}</div>
+            <div class="sumar-kpi-card__lbl">Lecții ținute</div>
+            <div class="sumar-kpi-card__sub">${lessons.lastDate ? 'Ultima: ' + _sumarShortDate(lessons.lastDate) : 'Fără lecții încă'}</div>
+          </div>
         </div>
       </div>`;
   }
@@ -749,20 +771,20 @@
     const events = [];
 
     posts.forEach(p => events.push({
-      ts: p.created_at, icn: 'megaphone',
+      ts: p.created_at, icn: 'megaphone', color: 'blue',
       text: `<strong>${BM.esc(p.author_name || 'Profesor')}</strong> a postat anunțul „${BM.esc(p.title || 'Fără titlu')}”`
     }));
 
     assignments.forEach(a => {
       if (a.created_at) events.push({
-        ts: a.created_at, icn: 'file-text',
+        ts: a.created_at, icn: 'file-text', color: 'yellow',
         text: `Temă nouă atribuită: „${BM.esc(a.title)}”`
       });
     });
 
     members.forEach(m => {
       if (m.joined_at) events.push({
-        ts: m.joined_at, icn: 'user',
+        ts: m.joined_at, icn: 'user', color: 'green',
         text: `<strong>${BM.esc(nameMap[m.student_id] || 'Un elev')}</strong> s-a înscris în clasă`
       });
     });
@@ -772,7 +794,7 @@
         if (sub.grade_confirmed && sub.graded_at) {
           const a = assignments.find(x => x.id === sub.assignment_id);
           events.push({
-            ts: sub.graded_at, icn: 'star',
+            ts: sub.graded_at, icn: 'star', color: 'yellow',
             text: `<strong>${BM.esc(nameMap[studentId] || sub.student_name || 'Elev')}</strong> a primit nota ${sub.grade} la „${BM.esc(a?.title || 'o temă')}”`
           });
         }
@@ -784,7 +806,7 @@
         if (att.finished_at) {
           const s = sims.find(x => x.id === att.simulation_id);
           events.push({
-            ts: att.finished_at, icn: 'target',
+            ts: att.finished_at, icn: 'target', color: 'teal',
             text: `<strong>${BM.esc(nameMap[studentId] || att.student_name || 'Elev')}</strong> a finalizat simularea „${BM.esc(s?.title || '')}”`
           });
         }
@@ -795,26 +817,33 @@
     return events.slice(0, 5);
   }
 
+  // First 3 events always show; a 4th/5th (if any) start hidden behind
+  // "Arată mai mult" — there's no tab that shows this merged feed anywhere
+  // else in the app, so "see more" toggles in place instead of navigating.
   function _renderSumarActivity(events) {
     if (!events.length) return `<div class="sumar-activity-empty">Nicio activitate recentă.</div>`;
+    const exactTime = ts => new Date(ts).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     return `
       <div class="sumar-activity">
-        ${events.map(e => `
-          <div class="sumar-activity-row">
-            <span class="sumar-activity-row__icon">${icon(e.icn, { size: 16 })}</span>
+        ${events.map((e, i) => `
+          <div class="sumar-activity-row${i >= 3 ? ' sumar-activity-row--more' : ''}">
+            <span class="sumar-icon-badge sumar-icon-badge--sm sumar-icon-badge--${e.color}">${icon(e.icn, { size: 14 })}</span>
             <span class="sumar-activity-row__text">${e.text}</span>
-            <span class="sumar-activity-row__time">${BM.formatDate(e.ts)}</span>
+            <span class="sumar-activity-row__time">${BM.formatDate(e.ts)}<span class="sumar-activity-row__time-exact">${exactTime(e.ts)}</span></span>
           </div>
         `).join('')}
       </div>
-      <div class="sumar-see-all" data-goto-flux>Vezi tot</div>`;
+      ${events.length > 3 ? `<button type="button" class="sumar-more-btn" data-activity-more>Arată mai mult</button>` : ''}`;
   }
 
   /* ─── Wiring ──────────────────────────────────────────────────────── */
   function _wireSumarMain(main) {
     main.querySelectorAll('[data-goto-teme]').forEach(el => el.addEventListener('click', () => switchTab('teme')));
     main.querySelectorAll('[data-goto-simulari]').forEach(el => el.addEventListener('click', () => switchTab('simulari')));
-    main.querySelectorAll('[data-goto-flux]').forEach(el => el.addEventListener('click', () => switchTab('flux')));
+    main.querySelector('[data-activity-more]')?.addEventListener('click', e => {
+      main.querySelectorAll('.sumar-activity-row--more').forEach(row => row.classList.remove('sumar-activity-row--more'));
+      e.target.remove();
+    });
     main.querySelectorAll('[data-goto-catalog-note]').forEach(el => el.addEventListener('click', () => {
       catalogViewMode = 'note'; switchTab('membri');
     }));
@@ -892,7 +921,11 @@
         <div class="flux-toolbar">
           <button class="btn btn--primary" id="newPostBtn">+ Anunț Nou</button>
         </div>
-      ` : ''}
+      ` : (('Notification' in window) ? `
+        <button class="cd-notif-btn cd-notif-btn--standalone" onclick="cdOpenNotifInfo('${classData.id}')">
+          ${icon('bell', { size: 16 })} Gestionează notificările
+        </button>
+      ` : '')}
       <div class="flux-list${posts.length === 0 ? ' flux-list--empty' : ''}" id="fluxList">
         ${posts.length === 0
           ? fluxEmpty(isTeacher)
@@ -904,9 +937,6 @@
     container.querySelectorAll('.flux-post__delete').forEach(btn => {
       btn.addEventListener('click', () => deletePost(btn.dataset.id, btn.dataset.title));
     });
-
-    const sidebar = document.getElementById('fluxSidebar');
-    if (sidebar) sidebar.innerHTML = renderFluxSidebar(isTeacher);
 
     if (isTeacher) {
       BMAuth.supabase.from('push_subscriptions')
@@ -1440,16 +1470,6 @@
           ${detailsHTML}
         </div>
       </div>
-    `;
-  }
-
-  function renderFluxSidebar(isTeacher) {
-    return `
-      ${_renderClassInfoCard()}
-      ${!isTeacher && ('Notification' in window) ? `
-      <button class="cd-notif-btn" onclick="cdOpenNotifInfo('${classData.id}')">
-        ${icon('bell', { size: 16 })} Gestionează notificările
-      </button>` : ''}
     `;
   }
 
