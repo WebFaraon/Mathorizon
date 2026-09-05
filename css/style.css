@@ -441,9 +441,8 @@ body.bac-exam-mode .nav.nav--peek {
 /* ---- Hamburger button ---- */
 .nav__hamburger {
   display: none;
-  flex-direction: column;
+  align-items: center;
   justify-content: center;
-  gap: 5px;
   width: 38px;
   height: 38px;
   padding: 8px;
@@ -453,28 +452,34 @@ body.bac-exam-mode .nav.nav--peek {
   cursor: pointer;
   flex-shrink: 0;
   transition: background 0.15s;
-  /* Own compositing layer, insulated from .nav's backdrop-filter blur —
-     on some Android/Chromium builds, thin/low-opacity children sitting
-     inside a backdrop-filter ancestor have been observed failing to
-     paint (the button's own border still renders fine since that's
-     drawn directly on the box, not filtered) while the rest of the
-     button looks and works normally. */
-  isolation: isolate;
 }
 .nav__hamburger:hover { background: rgba(255,255,255,0.20); }
-.nav__hamburger span {
-  display: block;
-  height: 2px;
-  border-radius: 2px;
-  /* Fully opaque — was rgba(255,255,255,0.90). Nothing needs to show
-     through these, so there's no reason to leave any transparency that
-     the compositing bug above could exploit. */
-  background: #fff;
+.nav__hamburger-icon {
+  width: 100%;
+  height: 100%;
+}
+/* SVG strokes, not <span> bars painted with background-color — the old
+   span version silently failed to paint on some Android/Chromium AND
+   iOS Safari builds (the button's own border/background rendered fine,
+   but the three thin opaque bars inside it just never showed up).
+   Thin solid-color boxes sitting inside .nav's backdrop-filter blur
+   are apparently sometimes dropped by the compositor; isolation:
+   isolate on the button (tried previously) didn't reliably fix it.
+   The other icon buttons in this same nav (theme/fav/history/profile)
+   never had this problem because they're all SVG strokes, so the
+   hamburger icon switched to SVG too instead of chasing the
+   compositing bug further. */
+.nav__hamburger-icon line {
+  stroke: #fff;
+  stroke-width: 2.4;
+  stroke-linecap: round;
+  transform-box: fill-box;
+  transform-origin: center;
   transition: transform 0.22s ease, opacity 0.22s ease;
 }
-.nav__hamburger.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-.nav__hamburger.open span:nth-child(2) { opacity: 0; transform: scaleX(0); }
-.nav__hamburger.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+.nav__hamburger.open .nav__hamburger-icon line:nth-child(1) { transform: translateY(6px) rotate(45deg); }
+.nav__hamburger.open .nav__hamburger-icon line:nth-child(2) { opacity: 0; transform: scaleX(0); }
+.nav__hamburger.open .nav__hamburger-icon line:nth-child(3) { transform: translateY(-6px) rotate(-45deg); }
 
 /* ---- Mobile dropdown menu ---- */
 .nav__mobile-menu {
@@ -12064,6 +12069,18 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   color: var(--text-muted);
 }
 
+/* Sumar tab's KPI tiles are the same tile clicked through to the Catalog
+   view that has the detail — this is the only place .catalog-stat-card
+   needs to look interactive. */
+.catalog-stat-card--clickable { cursor: pointer; transition: border-color 0.15s, box-shadow 0.15s; }
+.catalog-stat-card--clickable:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.catalog-stat-card__sub { font-size: 0.72rem; color: var(--text-muted); margin-top: 5px; }
+.catalog-stat-card__bar {
+  height: 5px; border-radius: 3px; background: var(--border);
+  margin-top: 9px; overflow: hidden;
+}
+.catalog-stat-card__bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+
 /* Legend */
 .catalog-legend {
   display: flex;
@@ -14180,6 +14197,116 @@ body.wb-fullscreen-active .scroll-top-btn {
   animation: shimmer 1.5s ease-in-out infinite;
 }
 
+/* ── Sumar tab (teacher class overview) ────────────────────── */
+.sumar-main { display: flex; flex-direction: column; gap: 26px; }
+
+.sumar-section__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 10px;
+}
+
+/* A. Ce urmează */
+.sumar-upnext { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+.sumar-upnext__card {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+.sumar-upnext__card--clickable { cursor: pointer; }
+.sumar-upnext__card--clickable:hover { border-color: var(--accent); box-shadow: var(--shadow-sm); }
+.sumar-upnext__icon { color: var(--accent); flex-shrink: 0; margin-top: 2px; }
+.sumar-upnext__body { min-width: 0; flex: 1; }
+.sumar-upnext__lbl {
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+.sumar-upnext__val { font-size: 0.92rem; font-weight: 700; color: var(--text); line-height: 1.35; }
+.sumar-upnext__val--muted { color: var(--text-muted); font-weight: 600; }
+.sumar-upnext__sub { font-size: 0.78rem; color: var(--text-secondary); margin-top: 3px; }
+.sumar-upnext__action {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+/* C. Cine are nevoie de atenție */
+.sumar-attention {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sumar-attention-row { display: flex; align-items: center; gap: 12px; padding: 12px 16px; border-bottom: 1px solid var(--border); }
+.sumar-attention-row:last-child { border-bottom: none; }
+.sumar-attention-row__body { flex: 1; min-width: 0; }
+.sumar-attention-row__name { font-weight: 700; color: var(--text); font-size: 0.86rem; }
+.sumar-attention-row__reason { font-size: 0.78rem; color: var(--text-muted); margin-top: 1px; }
+.sumar-attention-row__action {
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--accent);
+  white-space: nowrap;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+.sumar-attention-empty {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 16px;
+  color: var(--green);
+  font-weight: 600;
+  font-size: 0.86rem;
+  background: var(--green-dim);
+  border: 1.5px solid var(--green-border);
+  border-radius: var(--radius);
+}
+.sumar-see-all {
+  display: block;
+  text-align: center;
+  padding: 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--accent);
+  cursor: pointer;
+  background: var(--surface);
+}
+
+/* D. Activitate recentă */
+.sumar-activity { display: flex; flex-direction: column; }
+.sumar-activity-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 9px 4px;
+  font-size: 0.82rem;
+  border-bottom: 1px solid var(--border);
+}
+.sumar-activity-row:last-child { border-bottom: none; }
+.sumar-activity-row__icon { color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+.sumar-activity-row__text { flex: 1; color: var(--text-secondary); min-width: 0; }
+.sumar-activity-row__text strong { color: var(--text); font-weight: 700; }
+.sumar-activity-row__time { color: var(--text-muted); font-size: 0.74rem; white-space: nowrap; flex-shrink: 0; }
+.sumar-activity-empty { padding: 16px; text-align: center; color: var(--text-muted); font-size: 0.84rem; }
+
 [data-theme="dark"] .cd-sidebar-widget {
   background: rgba(255,255,255,0.05);
   border-color: rgba(255,255,255,0.09);
@@ -15253,6 +15380,12 @@ body.wb-fullscreen-active .scroll-top-btn {
   }
   .cd-info-card__detail-lbl { font-size: 0.63rem; }
   .cd-info-card__detail-val { font-size: 0.75rem; }
+
+  /* Sumar — 3-up "Ce urmează" band and 4-up KPI bar both get cramped at
+     tablet width; wrap to 2 columns like the catalog stat tiles already do. */
+  .sumar-upnext { grid-template-columns: 1fr 1fr; }
+  .catalog-statsbar { flex-wrap: wrap; }
+  .catalog-statsbar .catalog-stat-card { flex: 1 1 45%; }
 }
 
 @media (max-width: 600px) {
@@ -15304,6 +15437,12 @@ body.wb-fullscreen-active .scroll-top-btn {
   /* Teacher live view — name and stats stack instead of crowding one row */
   .sim-live-row { flex-direction: column; align-items: flex-start; gap: 8px; }
   .sim-live-row__right { width: 100%; justify-content: space-between; }
+
+  /* Sumar — single column everywhere below tablet width */
+  .sumar-upnext { grid-template-columns: 1fr; }
+  .catalog-statsbar .catalog-stat-card { flex: 1 1 100%; }
+  .sumar-attention-row { flex-wrap: wrap; }
+  .sumar-attention-row__action { margin-left: auto; }
 }
 
 /* ══════════════════════════════════════════════════════════════

@@ -652,10 +652,11 @@
   }
 
   async function confirmCreateClass() {
-    const name      = buildGeneratedName();
-    const materie   = document.getElementById('classMaterieInput')?.value;
-    const ziua      = _getSelectedDays().join('/');
-    const ora       = document.getElementById('classOraInput')?.value;
+    const name         = buildGeneratedName();
+    const materie      = document.getElementById('classMaterieInput')?.value;
+    const selectedDays = _getSelectedDays();
+    const ziua         = selectedDays.join('/');
+    const ora          = document.getElementById('classOraInput')?.value;
     const maxElevi  = document.getElementById('classMaxEleviInput')?.value;
     const grade     = document.getElementById('classGradeInput')?.value;
     const mathLevel = document.getElementById('classMathLevelInput')?.value;
@@ -684,12 +685,18 @@
           .from('classes')
           .insert({
             name,
-            teacher_id:   BMAuth.user.id,
-            teacher_name: BMAuth.displayName(),
-            invite_code:  inviteCode,
-            max_students: parseInt(maxElevi, 10),
-            school_grade: grade,
-            math_level:   mathLevel || null
+            teacher_id:    BMAuth.user.id,
+            teacher_name:  BMAuth.displayName(),
+            invite_code:   inviteCode,
+            max_students:  parseInt(maxElevi, 10),
+            school_grade:  grade,
+            math_level:    mathLevel || null,
+            // ISO weekday numbering (1=Luni…7=Duminică) — the structured
+            // counterpart of `name`'s "Materie · Zi[/Zi2] · Oră" text, used
+            // by the Sumar tab's "next lesson" calc. `name` itself is never
+            // parsed for this again after the one-time backfill migration.
+            schedule_days: selectedDays.map(d => DAY_ORDER.indexOf(d) + 1),
+            schedule_time: ora
           });
 
         if (!error) {

@@ -28,7 +28,11 @@
         <a class="nav__link" href="pachete.html" data-authed-href="pachete.html">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
-        <span></span><span></span><span></span>
+        <svg class="nav__hamburger-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <line x1="4" y1="6" x2="20" y2="6"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="18" x2="20" y2="18"></line>
+        </svg>
       </button>
       <div class="nav__right">
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
@@ -58,6 +62,6 @@
       <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html"><svg class="icon icon-16 nav__mobile-link__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 21.73a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73z"></path><path d="M12 22V12"></path><polyline points="3.29 7 12 12 20.71 7"></polyline><path d="m7.5 4.27 9 5.15"></path></svg>Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="BM.closeMobileMenu();document.getElementById('favBtn').click()">Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="BM.closeMobileMenu();document.getElementById('histBtn').click()">Istoric rezolvări</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">Istoric rezolvări</button>
     </div>

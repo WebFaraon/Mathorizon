@@ -82,7 +82,11 @@ const TEMPLATE = `    <div class="nav__inner container">
         <a class="nav__link" href="pachete.html" data-authed-href="pachete.html">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
-        <span></span><span></span><span></span>
+        <svg class="nav__hamburger-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <line x1="4" y1="6" x2="20" y2="6"></line>
+          <line x1="4" y1="12" x2="20" y2="12"></line>
+          <line x1="4" y1="18" x2="20" y2="18"></line>
+        </svg>
       </button>
       <div class="nav__right">
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">

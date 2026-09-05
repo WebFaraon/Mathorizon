@@ -10,13 +10,22 @@
   // NB: `icon` is currently unused — _tabLabel() below only ever returns
   // t.label, the tab bar renders text-only. Kept as data (now icon() calls
   // instead of raw emoji) in case a future pass wires up tab-bar icons.
+  // "sumar" is teacherOnly: a student's TABS list (see _visibleTabs) never
+  // includes it, so they can neither see nor reach it via a typed/bookmarked
+  // #sumar hash — renderPage() falls that back to 'flux' the same way any
+  // other unknown hash already does.
   const TABS = [
+    { id: 'sumar',    label: 'Sumar',     icon: icon('chart-column', { size: 16 }), teacherOnly: true },
     { id: 'flux',     label: 'Flux',      icon: icon('megaphone', { size: 16 }) },
     { id: 'teme',     label: 'Teme',      icon: icon('file-text', { size: 16 }) },
     { id: 'simulari', label: 'Simulări',  icon: icon('target', { size: 16 }) },
     { id: 'tabla',    label: 'Tablă',     icon: icon('presentation', { size: 16 }) },
     { id: 'membri',   label: 'Membri',    icon: icon('users', { size: 16 }) }
   ];
+
+  function _visibleTabs(isTeacher) {
+    return TABS.filter(t => !t.teacherOnly || isTeacher);
+  }
 
   // The "membri" tab has grown into a results/gradebook view that reads very
   // differently for each role — a full class roster for the teacher vs. just
@@ -136,10 +145,12 @@
 
   /* ─── Page render ───────────────────────────────────────────────── */
   function renderPage() {
-    activeTab = (location.hash.replace('#', '') || 'flux');
-    if (!TABS.find(t => t.id === activeTab)) activeTab = 'flux';
-
     const isTeacher = BMAuth.role === 'profesor';
+    const visibleTabs = _visibleTabs(isTeacher);
+    const defaultTab = isTeacher ? 'sumar' : 'flux';
+
+    activeTab = (location.hash.replace('#', '') || defaultTab);
+    if (!visibleTabs.find(t => t.id === activeTab)) activeTab = defaultTab;
 
     document.title = BM.esc(classData.name) + ' — Mathorizon';
 
@@ -222,7 +233,7 @@
         <div class="cd-tabs-wrap" id="cdTabsWrap">
           <div class="container">
             <nav class="cd-tabs" role="tablist">
-              ${TABS.map(t => `
+              ${visibleTabs.map(t => `
                 <button class="cd-tab${t.id === activeTab ? ' cd-tab--active' : ''}"
                         data-tab="${t.id}" role="tab"
                         aria-selected="${t.id === activeTab}">
@@ -258,6 +269,12 @@
   let _reloadMembriTimer = null;
   let _reloadSimulariTimer = null;
   let _reloadTablaTimer = null;
+  let _reloadSumarTimer = null;
+
+  function _debouncedSumar() {
+    clearTimeout(_reloadSumarTimer);
+    _reloadSumarTimer = setTimeout(() => { if (activeTab === 'sumar') loadSumarTab(); }, 500);
+  }
 
   function _debouncedFlux() {
     clearTimeout(_reloadFluxTimer);
@@ -292,28 +309,28 @@
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'class_posts',
         filter: 'class_id=eq.' + classData.id
-      }, _debouncedFlux)
+      }, e => { _debouncedFlux(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'post_reactions'
       }, _debouncedFlux)
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'assignments',
         filter: 'class_id=eq.' + classData.id
-      }, _debouncedTeme)
+      }, e => { _debouncedTeme(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'homework_submissions'
-      }, e => { _debouncedTeme(); _debouncedMembri(); })
+      }, e => { _debouncedTeme(); _debouncedMembri(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'class_members',
         filter: 'class_id=eq.' + classData.id
-      }, _debouncedMembri)
+      }, e => { _debouncedMembri(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulations',
         filter: 'class_id=eq.' + classData.id
-      }, _debouncedSimulari)
+      }, e => { _debouncedSimulari(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulation_attempts'
-      }, e => { _debouncedSimulari(); _debouncedMembri(); _debouncedSimLive(); })
+      }, e => { _debouncedSimulari(); _debouncedMembri(); _debouncedSimLive(); _debouncedSumar(); })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'simulation_answers'
       }, e => { _debouncedSimulari(); _debouncedSimLive(); })
@@ -346,7 +363,8 @@
   document.addEventListener('visibilitychange', () => {
     if (!document.hidden) {
       _setupRealtime();
-      if (activeTab === 'flux') loadFluxTab();
+      if (activeTab === 'sumar') loadSumarTab();
+      else if (activeTab === 'flux') loadFluxTab();
       else if (activeTab === 'teme') loadTemeTab();
       else if (activeTab === 'membri') loadMembriTab();
       else if (activeTab === 'simulari' && !_simExamActive) loadSimulariTab();
@@ -379,6 +397,25 @@
 
   /* ─── Tab content ───────────────────────────────────────────────── */
   function renderTab(tabId) {
+    if (tabId === 'sumar') {
+      requestAnimationFrame(() => loadSumarTab());
+      return `
+        <div class="cd-tab-layout">
+          <div id="sumarMain" class="sumar-main">
+            <div class="classes-loading">
+              <div class="classes-spinner"></div>
+              <p>Se încarcă sumarul...</p>
+            </div>
+          </div>
+          <aside class="cd-sidebar" id="sumarSidebar">
+            <div class="cd-sidebar-shimmer">
+              <div class="cd-sidebar-shimmer__block"></div>
+              <div class="cd-sidebar-shimmer__block" style="height:80px"></div>
+            </div>
+          </aside>
+        </div>`;
+    }
+
     if (tabId === 'flux') {
       requestAnimationFrame(() => loadFluxTab());
       return `
@@ -429,6 +466,372 @@
 
     requestAnimationFrame(() => loadSimulariTab());
     return `<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă simulările...</p></div>`;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SUMAR TAB — teacher-only class overview. All aggregate numbers
+     (medie clasă, prezență medie, lecții, teme active) come from
+     js/catalog-stats.js — the exact same functions the Catalog tab
+     itself uses — so this dashboard can never show a different number
+     than what a teacher would see by clicking through to Catalog.
+  ═══════════════════════════════════════════════════════════════ */
+
+  // Next occurrence of classData.schedule_days/schedule_time (ISO weekday
+  // ints 1=Luni..7=Duminică + a "HH:MM[:SS]" time-of-day) from now. Returns
+  // null if either field is missing (older class predating the schedule
+  // columns, or backfill couldn't parse it) — callers show a fallback.
+  function _nextLessonDate(days, timeStr) {
+    if (!days || !days.length || !timeStr) return null;
+    const [hh, mm] = timeStr.split(':').map(Number);
+    const now = new Date();
+    let best = null;
+    days.forEach(isoDay => {
+      const jsDay = isoDay % 7; // 7 (Duminică) → 0, 1..6 unchanged
+      for (let add = 0; add < 8; add++) {
+        const candidate = new Date(now.getFullYear(), now.getMonth(), now.getDate() + add, hh, mm, 0, 0);
+        if (candidate.getDay() === jsDay && candidate >= now) {
+          if (!best || candidate < best) best = candidate;
+          break;
+        }
+      }
+    });
+    return best;
+  }
+
+  function _sumarRelDay(date) {
+    const today = new Date(); today.setHours(0, 0, 0, 0);
+    const d0 = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+    const diff = Math.round((d0 - today) / 86400000);
+    if (diff === 0) return 'azi';
+    if (diff === 1) return 'mâine';
+    return `peste ${diff} zile`;
+  }
+
+  function _sumarFormatLesson(date) {
+    const dayName = date.toLocaleDateString('ro-RO', { weekday: 'long' });
+    const cap = dayName.charAt(0).toUpperCase() + dayName.slice(1);
+    const hh = String(date.getHours()).padStart(2, '0');
+    const mm = String(date.getMinutes()).padStart(2, '0');
+    return `${cap}, ${hh}:${mm} · ${_sumarRelDay(date)}`;
+  }
+
+  function _sumarShortDate(dateStr) {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+  }
+
+  async function loadSumarTab() {
+    const main = document.getElementById('sumarMain');
+    if (!main) return;
+
+    try {
+      const [catalogData, posts] = await Promise.all([
+        BM.CatalogStats.fetchCatalogData(classData.id, true),
+        BMAuth.supabase.from('class_posts')
+          .select('id, title, author_name, created_at')
+          .eq('class_id', classData.id)
+          .order('created_at', { ascending: false })
+          .limit(5)
+          .then(r => r.data || [])
+      ]);
+      const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats } = catalogData;
+
+      const ctx = {
+        members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats,
+        attendance:   BM.CatalogStats.attendanceStats(members, sessions, attMatrix),
+        lessons:      BM.CatalogStats.lessonStats(sessions),
+        homework:     BM.CatalogStats.assignmentStats(assignments),
+        simulations:  BM.CatalogStats.simulationStats(sims, members, simMatrix)
+      };
+
+      const attentionList = _sumarAttentionList(ctx);
+      const activity = _sumarBuildActivity(posts, ctx);
+
+      main.innerHTML = `
+        <section>${_renderSumarUpNext(ctx)}</section>
+        <section>
+          <div class="sumar-section__title">Pulsul grupei</div>
+          ${_renderSumarKpis(ctx)}
+        </section>
+        <section>
+          <div class="sumar-section__title">Cine are nevoie de atenție</div>
+          ${_renderSumarAttention(attentionList, members.length)}
+        </section>
+        <section>
+          <div class="sumar-section__title">Activitate recentă</div>
+          ${_renderSumarActivity(activity)}
+        </section>
+      `;
+      _wireSumarMain(main);
+
+      const sidebar = document.getElementById('sumarSidebar');
+      if (sidebar) sidebar.innerHTML = _renderClassInfoCard();
+    } catch (e) {
+      main.innerHTML = `
+        <div class="cd-placeholder">
+          <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
+          <h3 class="cd-placeholder__title">Eroare la încărcare</h3>
+          <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
+        </div>`;
+    }
+  }
+
+  /* ─── A. Ce urmează ──────────────────────────────────────────────── */
+  function _renderSumarUpNext(ctx) {
+    const { members, subMatrix, homework, simulations } = ctx;
+
+    const next = _nextLessonDate(classData.schedule_days, classData.schedule_time);
+    const lessonCard = `
+      <div class="sumar-upnext__card">
+        <span class="sumar-upnext__icon">${icon('calendar', { size: 20 })}</span>
+        <div class="sumar-upnext__body">
+          <div class="sumar-upnext__lbl">Următoarea lecție</div>
+          ${next
+            ? `<div class="sumar-upnext__val">${BM.esc(_sumarFormatLesson(next))}</div>`
+            : `<div class="sumar-upnext__val sumar-upnext__val--muted">Orar indisponibil</div>`}
+        </div>
+      </div>`;
+
+    let temeBody;
+    if (homework.active === 0) {
+      temeBody = `
+        <div class="sumar-upnext__val sumar-upnext__val--muted">Nicio temă activă</div>
+        <span class="sumar-upnext__action" data-assign-teme>+ Atribuie una</span>`;
+    } else {
+      const nearest = homework.upcoming[0];
+      const notDone = nearest ? members.filter(m => !(subMatrix[m.student_id] || {})[nearest.id]).length : 0;
+      temeBody = `
+        <div class="sumar-upnext__val">${homework.active} ${homework.active === 1 ? 'temă activă' : 'teme active'}</div>
+        ${nearest ? `<div class="sumar-upnext__sub">„${BM.esc(nearest.title)}” · ${dueBadge(nearest.due_date).text} · ${notDone} nu au predat</div>` : ''}`;
+    }
+    const temeCard = `
+      <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-teme>
+        <span class="sumar-upnext__icon">${icon('file-text', { size: 20 })}</span>
+        <div class="sumar-upnext__body">
+          <div class="sumar-upnext__lbl">Teme</div>
+          ${temeBody}
+        </div>
+      </div>`;
+
+    let simBody;
+    if (simulations.activeCount === 0) {
+      simBody = `
+        <div class="sumar-upnext__val sumar-upnext__val--muted">Nicio simulare activă</div>
+        <span class="sumar-upnext__action" data-assign-sim>+ Creează una</span>`;
+    } else if (simulations.activeCount === 1) {
+      const only = simulations.active[0];
+      simBody = `
+        <div class="sumar-upnext__val">1 simulare activă</div>
+        <div class="sumar-upnext__sub">„${BM.esc(only.sim.title)}” · ${only.finished} din ${only.total} au finalizat</div>`;
+    } else {
+      const totalFinished = simulations.active.reduce((t, a) => t + a.finished, 0);
+      const totalMembers  = simulations.active.reduce((t, a) => t + a.total, 0);
+      simBody = `
+        <div class="sumar-upnext__val">${simulations.activeCount} simulări active</div>
+        <div class="sumar-upnext__sub">${totalFinished} din ${totalMembers} finalizări în total</div>`;
+    }
+    const simCard = `
+      <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-simulari>
+        <span class="sumar-upnext__icon">${icon('target', { size: 20 })}</span>
+        <div class="sumar-upnext__body">
+          <div class="sumar-upnext__lbl">Simulări</div>
+          ${simBody}
+        </div>
+      </div>`;
+
+    return `<div class="sumar-upnext">${lessonCard}${temeCard}${simCard}</div>`;
+  }
+
+  /* ─── B. Pulsul grupei ───────────────────────────────────────────── */
+  function _renderSumarKpis(ctx) {
+    const { members, stats, attendance, lessons } = ctx;
+    const maxEl = classData.max_students;
+    const fillPct = maxEl ? Math.min(100, Math.round((members.length / maxEl) * 100)) : null;
+
+    const attTier = BM.CatalogStats.attendanceTier(attendance.classRate);
+    const avgNum = stats.classAvg != null ? parseFloat(stats.classAvg) : null;
+    const gradeTier = BM.CatalogStats.gradeTier(avgNum);
+
+    return `
+      <div class="catalog-statsbar">
+        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-note>
+          <div class="catalog-stat-card__val">${members.length}${maxEl ? ' / ' + maxEl : ''}</div>
+          <div class="catalog-stat-card__lbl">Elevi</div>
+          ${maxEl ? `<div class="catalog-stat-card__bar"><div class="catalog-stat-card__bar-fill" style="width:${fillPct}%"></div></div>` : ''}
+        </div>
+        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-prezenta>
+          <div class="catalog-stat-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '—'}</div>
+          <div class="catalog-stat-card__lbl">Prezență medie</div>
+          ${attendance.classRate == null ? `<div class="catalog-stat-card__sub">Fără lecții încă</div>` : ''}
+        </div>
+        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-note>
+          <div class="catalog-stat-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '—'}</div>
+          <div class="catalog-stat-card__lbl">Medie clasă</div>
+          ${!stats.classAvg ? `<div class="catalog-stat-card__sub">Fără note confirmate</div>` : ''}
+        </div>
+        <div class="catalog-stat-card catalog-stat-card--clickable" data-goto-catalog-prezenta>
+          <div class="catalog-stat-card__val">${lessons.count}</div>
+          <div class="catalog-stat-card__lbl">Lecții ținute</div>
+          <div class="catalog-stat-card__sub">${lessons.lastDate ? 'Ultima: ' + _sumarShortDate(lessons.lastDate) : 'Fără lecții încă'}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ─── C. Cine are nevoie de atenție ──────────────────────────────── */
+  // Priority order matches the spec: prezență sub 60% · medie sub 5 · nu a
+  // predat tema activă · absent la ultimele 2 lecții consecutive. Each
+  // student gets exactly ONE reason (whichever criterion they hit first in
+  // that order), capped at 4 students total.
+  function _sumarAttentionList(ctx) {
+    const { members, nameMap, attendance, assignments, subMatrix, sims, simMatrix, homework } = ctx;
+    const attById = {};
+    attendance.perStudent.forEach(s => { attById[s.studentId] = s; });
+    const nearestActive = homework.upcoming[0] || null;
+
+    const flagged = [];
+    const already = new Set();
+    const tryAdd = (m, reason, actionMode) => {
+      if (already.has(m.student_id) || flagged.length >= 4) return;
+      already.add(m.student_id);
+      flagged.push({ name: nameMap[m.student_id] || 'Elev', reason, actionMode });
+    };
+
+    members.forEach(m => {
+      const a = attById[m.student_id];
+      if (a && a.recordedCount > 0 && a.rate < 60) {
+        tryAdd(m, `Prezență ${a.rate}% · ${a.presentCount} din ${a.recordedCount} lecții`, 'prezenta');
+      }
+    });
+    members.forEach(m => {
+      const avg = BM.CatalogStats.studentAverage(m.student_id, assignments, sims, subMatrix, simMatrix);
+      if (avg != null && avg < 5) tryAdd(m, `Medie ${avg.toFixed(1)} · sub pragul de promovare`, 'note');
+    });
+    if (nearestActive) {
+      members.forEach(m => {
+        const submitted = !!(subMatrix[m.student_id] || {})[nearestActive.id];
+        if (!submitted) tryAdd(m, `Nu a predat „${nearestActive.title}”`, 'teme');
+      });
+    }
+    members.forEach(m => {
+      const a = attById[m.student_id];
+      if (a && a.absentLastTwo) tryAdd(m, 'Absent la ultimele 2 lecții', 'prezenta');
+    });
+
+    return flagged;
+  }
+
+  function _renderSumarAttention(list, memberCount) {
+    if (!list.length) {
+      const msg = memberCount === 0
+        ? 'Adaugă elevi în clasă ca să vezi aici cine are nevoie de atenție.'
+        : 'Toți elevii sunt pe drumul cel bun — nimic de semnalat.';
+      return `<div class="sumar-attention-empty">${icon('party-popper', { size: 20 })} ${msg}</div>`;
+    }
+    return `
+      <div class="sumar-attention">
+        ${list.map(f => `
+          <div class="sumar-attention-row">
+            <span class="catalog-avatar">${_catalogInitials(f.name)}</span>
+            <div class="sumar-attention-row__body">
+              <div class="sumar-attention-row__name">${BM.esc(f.name)}</div>
+              <div class="sumar-attention-row__reason">${f.reason}</div>
+            </div>
+            <span class="sumar-attention-row__action" data-attn-goto="${f.actionMode}">Vezi</span>
+          </div>
+        `).join('')}
+        <div class="sumar-see-all" data-goto-catalog-note>Vezi toți elevii</div>
+      </div>`;
+  }
+
+  /* ─── D. Activitate recentă ──────────────────────────────────────── */
+  function _sumarBuildActivity(posts, ctx) {
+    const { members, nameMap, assignments, subMatrix, sims, simMatrix } = ctx;
+    const events = [];
+
+    posts.forEach(p => events.push({
+      ts: p.created_at, icn: 'megaphone',
+      text: `<strong>${BM.esc(p.author_name || 'Profesor')}</strong> a postat anunțul „${BM.esc(p.title || 'Fără titlu')}”`
+    }));
+
+    assignments.forEach(a => {
+      if (a.created_at) events.push({
+        ts: a.created_at, icn: 'file-text',
+        text: `Temă nouă atribuită: „${BM.esc(a.title)}”`
+      });
+    });
+
+    members.forEach(m => {
+      if (m.joined_at) events.push({
+        ts: m.joined_at, icn: 'user',
+        text: `<strong>${BM.esc(nameMap[m.student_id] || 'Un elev')}</strong> s-a înscris în clasă`
+      });
+    });
+
+    Object.keys(subMatrix).forEach(studentId => {
+      Object.values(subMatrix[studentId]).forEach(sub => {
+        if (sub.grade_confirmed && sub.graded_at) {
+          const a = assignments.find(x => x.id === sub.assignment_id);
+          events.push({
+            ts: sub.graded_at, icn: 'star',
+            text: `<strong>${BM.esc(nameMap[studentId] || sub.student_name || 'Elev')}</strong> a primit nota ${sub.grade} la „${BM.esc(a?.title || 'o temă')}”`
+          });
+        }
+      });
+    });
+
+    Object.keys(simMatrix).forEach(studentId => {
+      Object.values(simMatrix[studentId]).forEach(att => {
+        if (att.finished_at) {
+          const s = sims.find(x => x.id === att.simulation_id);
+          events.push({
+            ts: att.finished_at, icn: 'target',
+            text: `<strong>${BM.esc(nameMap[studentId] || att.student_name || 'Elev')}</strong> a finalizat simularea „${BM.esc(s?.title || '')}”`
+          });
+        }
+      });
+    });
+
+    events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
+    return events.slice(0, 5);
+  }
+
+  function _renderSumarActivity(events) {
+    if (!events.length) return `<div class="sumar-activity-empty">Nicio activitate recentă.</div>`;
+    return `
+      <div class="sumar-activity">
+        ${events.map(e => `
+          <div class="sumar-activity-row">
+            <span class="sumar-activity-row__icon">${icon(e.icn, { size: 16 })}</span>
+            <span class="sumar-activity-row__text">${e.text}</span>
+            <span class="sumar-activity-row__time">${BM.formatDate(e.ts)}</span>
+          </div>
+        `).join('')}
+      </div>
+      <div class="sumar-see-all" data-goto-flux>Vezi tot</div>`;
+  }
+
+  /* ─── Wiring ──────────────────────────────────────────────────────── */
+  function _wireSumarMain(main) {
+    main.querySelectorAll('[data-goto-teme]').forEach(el => el.addEventListener('click', () => switchTab('teme')));
+    main.querySelectorAll('[data-goto-simulari]').forEach(el => el.addEventListener('click', () => switchTab('simulari')));
+    main.querySelectorAll('[data-goto-flux]').forEach(el => el.addEventListener('click', () => switchTab('flux')));
+    main.querySelectorAll('[data-goto-catalog-note]').forEach(el => el.addEventListener('click', () => {
+      catalogViewMode = 'note'; switchTab('membri');
+    }));
+    main.querySelectorAll('[data-goto-catalog-prezenta]').forEach(el => el.addEventListener('click', () => {
+      catalogViewMode = 'prezenta'; switchTab('membri');
+    }));
+    main.querySelectorAll('[data-attn-goto]').forEach(el => el.addEventListener('click', () => {
+      const mode = el.dataset.attnGoto;
+      if (mode === 'teme') switchTab('teme');
+      else { catalogViewMode = mode; switchTab('membri'); }
+    }));
+    main.querySelectorAll('[data-assign-teme]').forEach(el => el.addEventListener('click', e => {
+      e.stopPropagation(); openAssignmentWizard();
+    }));
+    main.querySelectorAll('[data-assign-sim]').forEach(el => el.addEventListener('click', e => {
+      e.stopPropagation(); openSimulationWizard();
+    }));
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -503,7 +906,7 @@
     });
 
     const sidebar = document.getElementById('fluxSidebar');
-    if (sidebar) sidebar.innerHTML = renderFluxSidebar(posts.length, memberCount, isTeacher);
+    if (sidebar) sidebar.innerHTML = renderFluxSidebar(isTeacher);
 
     if (isTeacher) {
       BMAuth.supabase.from('push_subscriptions')
@@ -968,7 +1371,11 @@
   }
 
   /* ─── Sidebar renderers ─────────────────────────────────────────── */
-  function renderFluxSidebar(postCount, memberCount, isTeacher) {
+  // The static class-info card (materie, orar, clasă, mărime grupă, nivel) —
+  // no per-visit data behind it beyond classData itself, so both the Flux
+  // sidebar and the Sumar tab's sidebar render the exact same card from this
+  // one function instead of keeping two copies that could drift apart.
+  function _renderClassInfoCard() {
     const nameParts = classData.name.split(' · ');
     const subject   = nameParts[0];
     const schedule  = nameParts.slice(1).join(' · ');
@@ -1030,15 +1437,15 @@
             <div class="cd-info-card__subject">${BM.esc(subject)}</div>
             ${schedule ? `<div class="cd-info-card__schedule">${icon('calendar', { size: 16 })} ${BM.esc(schedule)}</div>` : ''}
           </div>
-          <div class="cd-info-card__stats">
-            <div class="cd-info-card__stat">
-              <span class="cd-info-card__stat-val">${postCount}</span>
-              <span class="cd-info-card__stat-lbl">anunțuri</span>
-            </div>
-          </div>
           ${detailsHTML}
         </div>
       </div>
+    `;
+  }
+
+  function renderFluxSidebar(isTeacher) {
+    return `
+      ${_renderClassInfoCard()}
       ${!isTeacher && ('Notification' in window) ? `
       <button class="cd-notif-btn" onclick="cdOpenNotifInfo('${classData.id}')">
         ${icon('bell', { size: 16 })} Gestionează notificările
@@ -1084,32 +1491,15 @@
   };
 
   function renderTemeSidebar(assignments) {
-    /* Temele arhivate sunt mereu expirate (poți arhiva doar după termen) —
-       excluse din statistici ca să nu umfle "expirate" la nesfârșit. */
-    const relevant = assignments.filter(a => !a.archived_at);
-
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-
-    const overdue  = relevant.filter(a => {
-      const [y, m, d] = a.due_date.split('-').map(Number);
-      return new Date(y, m - 1, d) < today;
-    }).length;
-    const active = relevant.length - overdue;
-
-    const next3 = relevant
-      .filter(a => {
-        const [y, m, d] = a.due_date.split('-').map(Number);
-        return new Date(y, m - 1, d) >= today;
-      })
-      .slice(0, 3);
+    const { total, active, overdue, upcoming } = BM.CatalogStats.assignmentStats(assignments);
+    const next3 = upcoming.slice(0, 3);
 
     return `
       <div class="cd-sidebar-widget">
         <div class="cd-sidebar-widget__title">Rezumat Teme</div>
         <div class="cd-sidebar-stat">
           <span class="cd-sidebar-stat__icon">${icon('file-text', { size: 16 })}</span>
-          <span>${relevant.length} ${relevant.length === 1 ? 'temă' : 'teme'} total</span>
+          <span>${total} ${total === 1 ? 'temă' : 'teme'} total</span>
         </div>
         ${active > 0 ? `
           <div class="cd-sidebar-stat">
@@ -1123,7 +1513,7 @@
             <span>${overdue} expirate</span>
           </div>
         ` : ''}
-        ${relevant.length === 0 ? `
+        ${total === 0 ? `
           <div class="cd-sidebar-stat" style="opacity:0.6">
             <span class="cd-sidebar-stat__icon">—</span>
             <span>Nicio temă adăugată</span>
@@ -1160,11 +1550,11 @@
   }
 
   // Shared red/amber/green tiering for any displayed grade value (single
-  // grade cells, per-student Medie, per-column Medie clasă) — one place so
-  // the three tiers (and their thresholds) can't drift apart between them.
+  // grade cells, per-student Medie, per-column Medie clasă) — delegates to
+  // js/catalog-stats.js, the single source of truth also used by Sumar,
+  // so the three tiers (and their thresholds) can't drift apart between them.
   function _catalogGradeTier(g) {
-    if (g == null || isNaN(g)) return null;
-    return g >= 7 ? 'hi' : g >= 5 ? 'mid' : 'lo';
+    return BM.CatalogStats.gradeTier(g);
   }
 
   async function loadMembriTab() {
@@ -1182,21 +1572,8 @@
     try { await BMAuth.supabase.rpc('run_simulation_expiry_sweep'); } catch (e) {}
 
     try {
-      /* 1. Class members — try to include student_name (column may not exist yet) */
-      let { data: members, error: memErr } = await BMAuth.supabase
-        .from('class_members')
-        .select('student_id, student_name, joined_at')
-        .eq('class_id', classData.id)
-        .order('joined_at', { ascending: true });
-      if (memErr) {
-        /* Fallback: column doesn't exist yet — select without it */
-        ({ data: members, error: memErr } = await BMAuth.supabase
-          .from('class_members')
-          .select('student_id, joined_at')
-          .eq('class_id', classData.id)
-          .order('joined_at', { ascending: true }));
-        if (memErr) throw memErr;
-      }
+      const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats: catalogStats } =
+        await BM.CatalogStats.fetchCatalogData(classData.id, isTeacher);
 
       if (!members || members.length === 0) {
         content.innerHTML = `
@@ -1207,129 +1584,6 @@
           </div>`;
         return;
       }
-
-      /* 2. Build nameMap — primary: class_members.student_name */
-      const nameMap = {};
-      members.forEach(m => { if (m.student_name) nameMap[m.student_id] = m.student_name; });
-
-      const studentIds = members.map(m => m.student_id);
-
-      /* Supplement from post_reactions (covers members who joined before student_name was stored) */
-      const { data: classPosts } = await BMAuth.supabase
-        .from('class_posts')
-        .select('id')
-        .eq('class_id', classData.id);
-      if (classPosts && classPosts.length > 0) {
-        const postIds = classPosts.map(p => p.id);
-        const { data: reactions } = await BMAuth.supabase
-          .from('post_reactions')
-          .select('user_id, user_name')
-          .in('post_id', postIds);
-        (reactions || []).forEach(r => {
-          if (!nameMap[r.user_id] && r.user_name) nameMap[r.user_id] = r.user_name;
-        });
-      }
-
-      /* 3. Assignments for this class */
-      let assignQuery = BMAuth.supabase
-        .from('assignments')
-        .select('id, title, due_date, points')
-        .eq('class_id', classData.id)
-        .order('due_date', { ascending: true });
-      /* Draft assignments never reached students — don't leak their titles
-         as catalog columns either. NULL visibility (pre-existing rows) counts
-         as published, same as loadTemeTab(). */
-      if (!isTeacher) assignQuery = assignQuery.or('visibility.eq.published,visibility.is.null');
-      const { data: rawAssign, error: aErr } = await assignQuery;
-      if (aErr) throw aErr;
-      const assignments = rawAssign || [];
-
-      /* 4. All submissions */
-      const subMatrix = {}; /* [studentId][assignmentId] */
-      if (assignments.length > 0) {
-        const aIds = assignments.map(a => a.id);
-        const { data: subs } = await BMAuth.supabase
-          .from('homework_submissions')
-          .select('assignment_id, student_id, student_name, grade, grade_confirmed, submitted_at')
-          .in('assignment_id', aIds);
-        (subs || []).forEach(s => {
-          if (!nameMap[s.student_id] && s.student_name) nameMap[s.student_id] = s.student_name;
-          if (!subMatrix[s.student_id]) subMatrix[s.student_id] = {};
-          subMatrix[s.student_id][s.assignment_id] = s;
-        });
-      }
-
-      /* 5. Simulări — finished attempts merge into the same Medie averages */
-      const { data: rawSims } = await BMAuth.supabase
-        .from('simulations').select('id, title, created_at, started_at, scheduled_at').eq('class_id', classData.id)
-        .order('created_at', { ascending: true });
-      const sims = rawSims || [];
-
-      const simMatrix = {}; /* [studentId][simulationId] — latest finalized attempt only */
-      if (sims.length > 0) {
-        const simIds = sims.map(s => s.id);
-        // A student can have multiple finalized attempts for the same
-        // simulation after a teacher reopens + they retake it — order
-        // ascending so each forEach iteration below overwrites with a
-        // newer row, leaving only the LATEST attempt per (student,
-        // simulation) pair by the time the loop finishes. This is what
-        // makes a retake's grade replace the old one in Catalog/averages
-        // without ever deleting the older simulation_attempts row itself.
-        const { data: simAttempts } = await BMAuth.supabase
-          .from('simulation_attempts')
-          .select('id, simulation_id, student_id, student_name, grade_10, status, earned_points, total_points, started_at')
-          .eq('status', 'finalizata')
-          .in('simulation_id', simIds)
-          .order('started_at', { ascending: true });
-        (simAttempts || []).forEach(a => {
-          if (!nameMap[a.student_id] && a.student_name) nameMap[a.student_id] = a.student_name;
-          if (!simMatrix[a.student_id]) simMatrix[a.student_id] = {};
-          simMatrix[a.student_id][a.simulation_id] = a;
-        });
-      }
-
-      /* 6. Attendance (Prezență) — teacher-only, fetched only for the
-         teacher's own Catalog view; no student select policy exists on
-         these tables, so a student query would just come back empty. */
-      let sessions = [], attMatrix = {};
-      if (isTeacher) {
-        const { data: rawSessions } = await BMAuth.supabase
-          .from('class_sessions').select('id, session_date').eq('class_id', classData.id)
-          .order('session_date', { ascending: true });
-        sessions = rawSessions || [];
-
-        if (sessions.length > 0) {
-          const sessionIds = sessions.map(s => s.id);
-          const { data: attRows } = await BMAuth.supabase
-            .from('attendance_records').select('session_id, student_id, present').in('session_id', sessionIds);
-          (attRows || []).forEach(r => {
-            if (!attMatrix[r.student_id]) attMatrix[r.student_id] = {};
-            attMatrix[r.student_id][r.session_id] = r.present;
-          });
-        }
-      }
-
-      /* Compute catalog-level stats */
-      const allConfirmedGrades = [];
-      members.forEach(m => {
-        assignments.forEach(a => {
-          const sub = (subMatrix[m.student_id] || {})[a.id];
-          if (sub?.grade_confirmed) allConfirmedGrades.push(parseFloat(sub.grade));
-        });
-        sims.forEach(s => {
-          const att = (simMatrix[m.student_id] || {})[s.id];
-          if (att?.grade_10 != null) allConfirmedGrades.push(parseFloat(att.grade_10));
-        });
-      });
-      const classAvg = allConfirmedGrades.length
-        ? (allConfirmedGrades.reduce((t, g) => t + g, 0) / allConfirmedGrades.length).toFixed(1)
-        : null;
-
-      const catalogStats = {
-        memberCount: members.length,
-        assignmentCount: assignments.length,
-        classAvg
-      };
 
       const renderCatalog = () => {
         if (isTeacher) {
@@ -1701,8 +1955,7 @@
      re-renders instantly with no round trip back to the server. ─── */
 
   function _attendanceTier(pct) {
-    if (pct == null || isNaN(pct)) return null;
-    return pct >= 90 ? 'hi' : pct >= 75 ? 'mid' : 'lo';
+    return BM.CatalogStats.attendanceTier(pct);
   }
 
   function _renderCatalogViewToggle(mode) {
@@ -1726,17 +1979,15 @@
   }
 
   function renderCatalogAttendance(members, nameMap, sessions, attMatrix) {
+    const { perStudent, classRate } = BM.CatalogStats.attendanceStats(members, sessions, attMatrix);
+    const byId = {};
+    perStudent.forEach(s => { byId[s.studentId] = s; });
     const studentStats = members.map((m, idx) => {
       const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
       const myAtt = attMatrix[m.student_id] || {};
-      const recorded = sessions.filter(s => myAtt[s.id] !== undefined);
-      const presentCount = recorded.filter(s => myAtt[s.id] === true).length;
-      const rate = recorded.length ? Math.round((presentCount / recorded.length) * 100) : null;
-      return { m, name, myAtt, presentCount, recordedCount: recorded.length, rate };
+      const { presentCount, recordedCount, rate } = byId[m.student_id];
+      return { m, name, myAtt, presentCount, recordedCount, rate };
     });
-
-    const rateValues = studentStats.map(s => s.rate).filter(r => r != null);
-    const classRate = rateValues.length ? Math.round(rateValues.reduce((t, v) => t + v, 0) / rateValues.length) : null;
 
     const headerCells = sessions.map(s => {
       const [y, mo, d] = s.session_date.split('-').map(Number);
