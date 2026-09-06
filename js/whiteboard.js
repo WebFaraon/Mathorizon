@@ -54,7 +54,7 @@
   // "fully visible" (it would just shrink into a smaller box with empty
   // margin, not show anything new).
   var MIN_ZOOM = 1;
-  var MAX_ZOOM = 4;
+  var MAX_ZOOM = 6;
   var ZOOM_STEP = 0.25;
 
   // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
@@ -136,6 +136,44 @@
 
   function rectsIntersect(r1, r2) {
     return r1.minX <= r2.maxX && r1.maxX >= r2.minX && r1.minY <= r2.maxY && r1.maxY >= r2.minY;
+  }
+
+  function pointInRect(p, r) {
+    return p.x >= r.minX && p.x <= r.maxX && p.y >= r.minY && p.y <= r.maxY;
+  }
+
+  // Standard segment/segment intersection via orientation tests (no
+  // special-casing collinear overlap — a rubber-band edge landing exactly
+  // parallel to a stroke segment is a vanishingly unlikely miss, not
+  // worth the extra code).
+  function segmentsIntersect(a, b, c, d) {
+    function ccw(p1, p2, p3) { return (p3.y - p1.y) * (p2.x - p1.x) > (p2.y - p1.y) * (p3.x - p1.x); }
+    return ccw(a, c, d) !== ccw(b, c, d) && ccw(a, b, c) !== ccw(a, b, d);
+  }
+
+  // Does the segment p0->p1 actually touch the rect — not just their
+  // bounding boxes? Used by the rubber-band selection (see its own call
+  // site) so a stroke's LOOSE bounding box (which can be much bigger than
+  // the ink itself for a curvy or diagonal shape) never gets treated as
+  // "the hitbox" — only the real path does, same as the eraser/click-
+  // select's own distToPolyline check already does.
+  function segmentIntersectsRect(p0, p1, rect) {
+    if (pointInRect(p0, rect) || pointInRect(p1, rect)) return true;
+    if (Math.max(p0.x, p1.x) < rect.minX || Math.min(p0.x, p1.x) > rect.maxX) return false;
+    if (Math.max(p0.y, p1.y) < rect.minY || Math.min(p0.y, p1.y) > rect.maxY) return false;
+    var c0 = { x: rect.minX, y: rect.minY }, c1 = { x: rect.maxX, y: rect.minY };
+    var c2 = { x: rect.maxX, y: rect.maxY }, c3 = { x: rect.minX, y: rect.maxY };
+    return segmentsIntersect(p0, p1, c0, c1) || segmentsIntersect(p0, p1, c1, c2) ||
+           segmentsIntersect(p0, p1, c2, c3) || segmentsIntersect(p0, p1, c3, c0);
+  }
+
+  function polylineIntersectsRect(pts, rect) {
+    if (!pts.length) return false;
+    if (pts.length === 1) return pointInRect(pts[0], rect);
+    for (var i = 0; i < pts.length - 1; i++) {
+      if (segmentIntersectsRect(pts[i], pts[i + 1], rect)) return true;
+    }
+    return false;
   }
 
   // Smooth freehand path (quadratic curve through consecutive midpoints) —
@@ -671,24 +709,19 @@
       this._ro.observe(this._canvasWrap);
     }
 
-    // Ctrl/Cmd+wheel zooms, centered on the cursor — same convention as
-    // js/drawing-canvas.js and the geometry figure editor. A plain scroll
-    // pans instead, same as Miro/idroo — .wb-canvas-wrap is no longer a
-    // real scrollable element (see its own CSS comment), so this is now
-    // the only way a plain scroll/trackpad-swipe moves the view; we always
-    // preventDefault so the page itself never scrolls out from under a
-    // pan gesture.
+    // A plain wheel always zooms, centered on the cursor, no modifier key
+    // needed — panning moved to a right-click-drag instead (see
+    // _bindPointerEvents' pointerdown), which is what used to need a plain
+    // scroll. Always preventDefault so the page itself never scrolls out
+    // from under this.
     this._canvasWrap.addEventListener('wheel', function (e) {
       e.preventDefault();
-      if (e.ctrlKey || e.metaKey) {
-        self._setZoom(self._currentOrPendingZoom() * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
-        return;
-      }
-      self._panX -= e.deltaX;
-      self._panY -= e.deltaY;
-      self._clampCamera();
-      self._syncViewport();
+      self._setZoom(self._currentOrPendingZoom() * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
     }, { passive: false });
+    // The right-click-drag pan below needs the browser's own context menu
+    // out of the way, or a right-click-and-release-without-dragging (a
+    // normal "just show me the menu" click) would still pop it up.
+    this._canvasWrap.addEventListener('contextmenu', function (e) { e.preventDefault(); });
   };
 
   // Each client scales the fixed LOGICAL_W×LOGICAL_H surface to its own
@@ -904,11 +937,18 @@
     if (this._zoomInBtnEl)  this._zoomInBtnEl.disabled  = this._zoom >= MAX_ZOOM;
   };
 
+  // Clamped to the logical board's own bounds — the viewport can show area
+  // beyond the white paper (panned so it doesn't fill the visible area, or
+  // just a mismatched aspect ratio), and without this a stroke/erase/
+  // select gesture that starts or drags through that margin would place
+  // real points out there instead of stopping at the paper's edge.
   Whiteboard.prototype._getPos = function (e) {
     var rect = this._overlayEl.getBoundingClientRect();
+    var x = (e.clientX - rect.left - this._panX) / this._scale;
+    var y = (e.clientY - rect.top  - this._panY) / this._scale;
     return {
-      x: (e.clientX - rect.left - this._panX) / this._scale,
-      y: (e.clientY - rect.top  - this._panY) / this._scale
+      x: Math.max(0, Math.min(LOGICAL_W, x)),
+      y: Math.max(0, Math.min(LOGICAL_H, y))
     };
   };
 
@@ -966,9 +1006,23 @@
     var el = this._overlayEl;
 
     el.addEventListener('pointerdown', function (e) {
-      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
+
+      // Right mouse button always pans, whatever tool is currently active
+      // — a "hold to navigate" convention so nudging the view doesn't
+      // force a trip to the toolbar's own pan tool first. Pure navigation,
+      // never a write, so — same as the pan tool below — allowed even
+      // while locked (see setLocked).
+      if (e.pointerType === 'mouse' && e.button === 2) {
+        self._activePtrs[e.pointerId] = {
+          panning: true, startX: e.clientX, startY: e.clientY,
+          panStartX: self._panX, panStartY: self._panY
+        };
+        el.style.cursor = 'grabbing';
+        return;
+      }
 
       if (e.pointerType === 'touch') {
         self._touchPositions[e.pointerId] = { x: e.clientX, y: e.clientY };
@@ -1161,8 +1215,16 @@
         var ids = [];
         self._fabricCanvas.getObjects().forEach(function (obj) {
           if (!obj.data || obj.data.ownerId !== self._userId) return;
+          var pts = self._myTranslatedPoints(obj.data.id);
+          if (!pts) return;
+          // Bounding-box check first — cheap, and lets most objects skip
+          // the exact per-segment test below. The exact test is what
+          // actually matters: a curvy or diagonal stroke's bounding box
+          // can be much bigger than its real ink, and selecting based on
+          // that box alone would pick up strokes the rubber-band never
+          // actually touched.
           var b = self._myObjectBounds(obj.data.id);
-          if (b && rectsIntersect(rect, b)) ids.push(obj.data.id);
+          if (b && rectsIntersect(rect, b) && polylineIntersectsRect(pts, rect)) ids.push(obj.data.id);
         });
         self._selectedIds = new Set(ids);
         self._dirty = true;
@@ -1776,33 +1838,39 @@
     this._drawSelectionOverlay(ctx);
   };
 
-  // "select" tool decorations, drawn on top of every live stroke above:
-  // a light highlight box around each currently-selected object (individually,
-  // idroo-style), a dashed box around the union of all of them when 2+ are
-  // selected (so a multi-selection reads as one group at a glance), and the
-  // rubber-band rectangle itself while a selection drag is in progress.
-  // Recomputed fresh from each object's CURRENT bounding box on every
-  // redraw rather than cached, so a highlight tracks its object through a
-  // drag without any extra bookkeeping of its own.
+  // "select" tool decorations, drawn on top of every live stroke above: a
+  // highlight HUGGING each currently-selected object's own actual ink
+  // (individually, idroo-style — see _findMyObjectAt's own comment for
+  // why a padded bounding box is the wrong hitbox for a curvy/diagonal
+  // shape; the same reasoning applies to what the highlight should look
+  // like, not just what it should respond to), a dashed box around the
+  // union of all of them when 2+ are selected (so a multi-selection reads
+  // as one group at a glance — THIS one stays a plain bounding rect, same
+  // as idroo's own group-selection outline), and the rubber-band
+  // rectangle itself while a selection drag is in progress. Recomputed
+  // fresh from each object's CURRENT points/bounds on every redraw rather
+  // than cached, so a highlight tracks its object through a drag without
+  // any extra bookkeeping of its own.
   Whiteboard.prototype._drawSelectionOverlay = function (ctx) {
     var self = this;
-    var pad = 10; // logical units of breathing room around each box
+    var pad = 10; // logical units of breathing room — group box only, see below
     var hairline = 1.5 / this._scale; // a true ~1.5 device px at any zoom, same technique as the grid
+    var objsById = {};
+    this._fabricCanvas.getObjects().forEach(function (o) { if (o.data) objsById[o.data.id] = o; });
     var boxes = [];
     this._selectedIds.forEach(function (id) {
+      var pts = self._myTranslatedPoints(id);
+      var obj = objsById[id];
+      if (!pts || !obj) return;
       var b = self._myObjectBounds(id);
-      if (!b) return;
-      boxes.push(b);
-      ctx.save();
-      ctx.fillStyle = 'rgba(37,99,235,0.12)';
-      ctx.strokeStyle = '#2563eb';
-      ctx.lineWidth = hairline;
-      var x = b.minX - pad, y = b.minY - pad, w = (b.maxX - b.minX) + pad * 2, h = (b.maxY - b.minY) + pad * 2;
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, h, 6);
-      ctx.fill();
-      ctx.stroke();
-      ctx.restore();
+      if (b) boxes.push(b);
+      // A translucent halo drawn ALONG the stroke's own points, wider
+      // than the ink itself — reads as an outline hugging the exact
+      // shape (a straight line/arrow's halo is just its shaft; the
+      // arrowhead barbs aren't in the cached hit-test points either, a
+      // minor cosmetic gap, not a hit-testing one) rather than a
+      // rectangle floating around loosely-related empty space.
+      drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.35)', (obj.strokeWidth || 2) + 16, 1);
     });
     if (boxes.length > 1) {
       var u = boxes.reduce(function (acc, b) {

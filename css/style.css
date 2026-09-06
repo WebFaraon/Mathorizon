@@ -12751,6 +12751,13 @@ body.wb-fullscreen-active .scroll-top-btn {
   display: flex;
   align-items: center;
   flex-shrink: 0;
+  /* Matches .wb-fs-title-input's own 3px padding + 1px border on each
+     side (4px total) — without this, the brand's box is exactly that much
+     SHORTER than the title input's, and even though .wb-fs-header__left's
+     align-items:center keeps both boxes centered on the same line, the
+     brand's own text (filling its shorter box edge-to-edge) sits visibly
+     higher than the input's text (centered within its own taller box). */
+  padding: 4px 0;
 }
 .wb-fs-brand__name {
   font-family: 'Josefin Sans', sans-serif;
@@ -12766,7 +12773,11 @@ body.wb-fullscreen-active .scroll-top-btn {
    size/weight so neither stands out from the other; the input additionally
    gets a visible border (below) at rest, not just on hover/focus, so it
    reads as an editable field rather than plain text — the read-only
-   student span deliberately does NOT get that border, since it isn't one. */
+   student span deliberately does NOT get that border COLOR, since it
+   isn't one, but DOES get the same padding + a same-width TRANSPARENT
+   border (shared here, only the input overrides border-color below) so
+   both end up with the exact same box height as each other — and, in
+   turn, as .wb-fs-brand's own matching padding right next to them. */
 .wb-fs-title,
 .wb-fs-title-input {
   font-size: 0.95rem;
@@ -12776,13 +12787,14 @@ body.wb-fullscreen-active .scroll-top-btn {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  padding: 3px 8px;
+  border: 1px solid transparent;
 }
 .wb-fs-title-input {
   font-family: inherit;
-  border: 1px solid var(--border);
+  border-color: var(--border);
   background: var(--surface);
   border-radius: 6px;
-  padding: 3px 8px;
   flex: 1;
   min-width: 80px;
   max-width: 320px;
