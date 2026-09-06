@@ -147,7 +147,45 @@
   ═══════════════════════════════════════════════════════════════ */
   function _teacherCacheKey() { return 'bm_cls_t_' + BMAuth.user.id; }
 
-  function _applyTeacherUI(classes, memberCounts) {
+  // Same aggregate shape used everywhere else in the app — icon-badge KPI
+  // tiles (.sumar-kpibar/.sumar-kpi-card, from css/style.css's Sumar-tab
+  // work) reused here rather than a bespoke banner component.
+  function _renderStatsBanner(stats) {
+    return `
+      <div class="sumar-kpibar cls-stats-banner">
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('school', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${stats.totalGroups}</div>
+            <div class="sumar-kpi-card__lbl">Grupe</div>
+          </div>
+        </div>
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('users', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${stats.activeStudents}</div>
+            <div class="sumar-kpi-card__lbl">Elevi activi</div>
+          </div>
+        </div>
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('clipboard-list', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${stats.totalLessons}</div>
+            <div class="sumar-kpi-card__lbl">Lecții ținute</div>
+          </div>
+        </div>
+        <div class="sumar-kpi-card">
+          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 18 })}</span>
+          <div class="sumar-kpi-card__body">
+            <div class="sumar-kpi-card__val">${stats.avgAttendance != null ? stats.avgAttendance + '%' : '—'}</div>
+            <div class="sumar-kpi-card__lbl">Prezență medie</div>
+            ${stats.avgAttendance == null ? '<div class="sumar-kpi-card__sub">Fără lecții încă</div>' : ''}
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function _applyTeacherUI(classes, memberCounts, aggStats) {
     setRootContent(`
       <div class="classes-page">
         <div class="classes-header">
@@ -160,6 +198,7 @@
             <button class="btn btn--primary" id="createClassBtn">+ Creează Clasă</button>
           </div>
         </div>
+        ${classes.length > 0 && aggStats ? _renderStatsBanner(aggStats) : ''}
         ${classes.length === 0
           ? teacherEmpty()
           : `<div class="classes-grid" id="classesGrid">
@@ -268,12 +307,41 @@
     grid.style.display = visibleCount === 0 ? 'none' : '';
   }
 
+  // One pass across ALL the teacher's classes — 3 queries total regardless
+  // of how many classes exist (not one query per class): member statuses,
+  // session count, then attendance records for those sessions. "Prezență
+  // medie" here is a single pooled percentage (total present marks ÷ total
+  // recorded marks across every class), not an average of each class's own
+  // rate — deliberately avoids merging attMatrix objects keyed by
+  // student_id across classes, which would corrupt a per-student calc for
+  // any student enrolled in more than one of this teacher's classes.
+  async function _fetchAggregateStats(classIds) {
+    if (!classIds.length) return { totalGroups: 0, activeStudents: 0, totalLessons: 0, avgAttendance: null };
+    const [{ data: members }, { data: sessions }] = await Promise.all([
+      BMAuth.supabase.from('class_members').select('status').in('class_id', classIds),
+      BMAuth.supabase.from('class_sessions').select('id').in('class_id', classIds)
+    ]);
+    const activeStudents = (members || []).filter(m => m.status !== 'inactiv').length;
+    const sessionIds = (sessions || []).map(s => s.id);
+
+    let avgAttendance = null;
+    if (sessionIds.length) {
+      const { data: records } = await BMAuth.supabase
+        .from('attendance_records').select('present').in('session_id', sessionIds);
+      if (records && records.length) {
+        avgAttendance = Math.round((records.filter(r => r.present).length / records.length) * 100);
+      }
+    }
+
+    return { totalGroups: classIds.length, activeStudents, totalLessons: sessionIds.length, avgAttendance };
+  }
+
   async function renderTeacherView() {
     /* Show cached content immediately if available */
     let hasCached = false;
     try {
       const cached = JSON.parse(sessionStorage.getItem(_teacherCacheKey()) || 'null');
-      if (cached) { hasCached = true; _applyTeacherUI(cached.classes, cached.memberCounts); }
+      if (cached) { hasCached = true; _applyTeacherUI(cached.classes, cached.memberCounts, cached.aggStats); }
     } catch {}
     if (!hasCached) {
       setRootContent(`<div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă...</p></div>`);
@@ -306,8 +374,11 @@
       }));
     }
 
-    try { sessionStorage.setItem(_teacherCacheKey(), JSON.stringify({ classes, memberCounts })); } catch {}
-    _applyTeacherUI(classes, memberCounts);
+    let aggStats = null;
+    try { aggStats = await _fetchAggregateStats(classes.map(c => c.id)); } catch {}
+
+    try { sessionStorage.setItem(_teacherCacheKey(), JSON.stringify({ classes, memberCounts, aggStats })); } catch {}
+    _applyTeacherUI(classes, memberCounts, aggStats);
   }
 
   function teacherEmpty() {

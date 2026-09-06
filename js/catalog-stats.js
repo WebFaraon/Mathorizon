@@ -103,7 +103,7 @@
     let sessions = [], attMatrix = {};
     if (isTeacher) {
       const { data: rawSessions } = await BMAuth.supabase
-        .from('class_sessions').select('id, session_date').eq('class_id', classId)
+        .from('class_sessions').select('id, session_date, title').eq('class_id', classId)
         .order('session_date', { ascending: true });
       sessions = rawSessions || [];
 

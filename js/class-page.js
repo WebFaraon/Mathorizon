@@ -108,6 +108,22 @@
     /* 2. Role-based access check */
     if (BMAuth.role === 'profesor') {
       if (cls.teacher_id !== BMAuth.user.id) { hardRedirect(); return; }
+
+      // Self-heal (same idea as the student_name backfill below): teacher_name
+      // is a snapshot taken at class-creation time, so renaming yourself in
+      // Settings afterward left every existing class showing the old name
+      // forever. Whenever the teacher themselves opens one of their classes,
+      // quietly bring that class's snapshot back in sync — updates this
+      // render immediately (not just the next page load) and persists for
+      // every other viewer (students) from then on.
+      const currentName = BMAuth.displayName();
+      if (currentName && cls.teacher_name !== currentName) {
+        cls.teacher_name = currentName;
+        BMAuth.supabase.from('classes')
+          .update({ teacher_name: currentName })
+          .eq('id', classId).eq('teacher_id', BMAuth.user.id)
+          .then(() => {}, () => {});
+      }
     } else {
       /* Student: must be in class_members */
       try {
@@ -1695,18 +1711,6 @@
             content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
               cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
             });
-            // Re-sorts by re-rendering from the SAME already-fetched data — no
-            // refetch, and members/assignments/sims/simMatrix themselves are
-            // never mutated, only the order rows are displayed in.
-            content.querySelectorAll('[data-sort-key]').forEach(th => {
-              th.addEventListener('click', () => {
-                const key = th.dataset.sortKey;
-                if (catalogSortState.key !== key) catalogSortState = { key, dir: 'desc' };
-                else if (catalogSortState.dir === 'desc') catalogSortState = { key, dir: 'asc' };
-                else catalogSortState = { key: null, dir: null };
-                renderCatalog();
-              });
-            });
             _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
           } else {
             _wireCatalogAttendance(content, members, nameMap, sessions, attMatrix, renderCatalog);
@@ -1729,11 +1733,6 @@
           <p class="cd-placeholder__desc">${BM.esc(e.message)}</p>
         </div>`;
     }
-  }
-
-  function _catalogSortArrow(key, sortState) {
-    if (!sortState || sortState.key !== key) return '';
-    return `<span class="catalog-th__sort-arrow">${sortState.dir === 'asc' ? '▲' : '▼'}</span>`;
   }
 
   // Single chronological ordering across both column types, computed once —
@@ -1820,42 +1819,27 @@
     return { aStats, sStats };
   }
 
+  // Transposed on-screen: elevi run left-to-right as columns (a row of
+  // header cells), temă/simulare run top-to-bottom as rows — the opposite
+  // of the data's natural student-major shape, which is why _catalogBuildRows
+  // (still one entry per student, in the class's natural member order — no
+  // interactive sort anymore, an axis swap made "sort students by this
+  // column" no longer make sense as a column-header click) is used here as
+  // the set of COLUMNS instead of rows. PDF/Excel export is intentionally
+  // untouched — it keeps the original student-per-row shape, which reads
+  // better as an external document than the on-screen data-entry table does.
   function renderCatalogTeacher(members, nameMap, assignments, subMatrix, stats = {}, sims = [], simMatrix = {}, sortState = {}) {
     const { aStats, sStats } = _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix);
-    const cols = _catalogColumns(assignments, sims);
+    const lessonCols = _catalogColumns(assignments, sims); // now rendered as ROWS
+    const studentCols = _catalogBuildRows(members, nameMap, assignments, sims, subMatrix, simMatrix); // now rendered as COLUMNS
 
-    const headerCells = cols.map(col => {
-      if (col.kind === 'assignment') {
-        const a = col.ref;
-        const ds = col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-        return `
-          <div class="catalog-th" title="${BM.esc(a.title)} — temă">
-            <span class="catalog-th__title">${icon('file-text', { size: 16 })} ${BM.esc(a.title)}</span>
-            <span class="catalog-th__date">${ds}</span>
-          </div>`;
-      }
-      const s = col.ref;
-      const ds = _simColDate(s);
-      return `
-        <div class="catalog-th catalog-th--sim catalog-th--sortable" data-sort-key="${s.id}" title="${BM.esc(s.title)} — simulare — click pentru sortare">
-          <span class="catalog-th__title">${icon('target', { size: 16 })} ${BM.esc(s.title)}${_catalogSortArrow(s.id, sortState)}</span>
-          <span class="catalog-th__date">${ds}</span>
-        </div>`;
-    }).join('');
+    const studentHeaderCells = studentCols.map(s => `
+      <div class="catalog-th"><span class="catalog-th__title">${BM.esc(s.name)}</span></div>`).join('');
 
-    // Sorting only ever reorders this array — subMatrix/simMatrix/members
-    // themselves are never touched, so nothing about the underlying data
-    // changes, and PDF/Excel export reuses the exact same two calls to
-    // guarantee it reflects the same order shown on screen.
-    const rows = _catalogSortRows(
-      _catalogBuildRows(members, nameMap, assignments, sims, subMatrix, simMatrix),
-      sortState
-    );
-
-    const studentRows = rows.map(({ name, mySubs, mySims, avgNum }) => {
-      const cells = cols.map(col => {
+    const bodyRows = lessonCols.map(col => {
+      const cells = studentCols.map(s => {
         if (col.kind === 'assignment') {
-          const sub = mySubs[col.id];
+          const sub = s.mySubs[col.id];
           if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
           if (sub.grade_confirmed) {
             const g = parseFloat(sub.grade);
@@ -1864,7 +1848,7 @@
           }
           return `<div class="catalog-td catalog-td--submitted" title="Predat, nenotat">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`;
         }
-        const att = mySims[col.id];
+        const att = s.mySims[col.id];
         // grade_10 can be null on a finalized attempt for a simulation that
         // ended up with 0 items (now fixed at creation time, but old/broken
         // rows can still exist) — falls back to the same dash as "didn't
@@ -1875,32 +1859,33 @@
         return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls} catalog-td--clickable" data-quick-view-attempt="${att.id}" title="Vezi detalii rapide">${att.grade_10}</div>`;
       }).join('');
 
-      const avg = avgNum != null ? avgNum.toFixed(1) : '—';
-      const avgTier = avgNum != null ? _catalogGradeTier(avgNum) : null;
-      const avgCls = avgTier ? `catalog-td--tone-${avgTier}` : '';
+      const rowAvg = col.kind === 'assignment' ? aStats[col.id] : sStats[col.id];
+      const rowAvgTier = rowAvg !== '—' ? _catalogGradeTier(parseFloat(rowAvg)) : null;
+      const rowAvgCls = rowAvgTier ? ` catalog-td--tone-${rowAvgTier}` : '';
+      const ds = col.kind === 'assignment'
+        ? col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })
+        : _simColDate(col.ref);
+      const kindIcon = col.kind === 'assignment' ? icon('file-text', { size: 16 }) : icon('target', { size: 16 });
 
       return `
         <div class="catalog-row">
-          <div class="catalog-td catalog-td--name">
-            <span class="catalog-avatar">${_catalogInitials(name)}</span>
-            <span class="catalog-name-text">${BM.esc(name)}</span>
+          <div class="catalog-td catalog-td--name catalog-td--rowlabel" title="${BM.esc(col.ref.title)}">
+            <span class="catalog-th__title">${kindIcon} ${BM.esc(col.ref.title)}</span>
+            <span class="catalog-th__date">${ds}</span>
           </div>
           ${cells}
-          <div class="catalog-td catalog-td--avg ${avgCls}">${avg}</div>
+          <div class="catalog-td catalog-td--avg${rowAvgCls}">${rowAvg}</div>
         </div>`;
     }).join('');
 
-    const _statToneCls = val => {
-      const tier = val !== '—' ? _catalogGradeTier(parseFloat(val)) : null;
-      return tier ? ` catalog-td--tone-${tier}` : '';
-    };
     const statsRow = `
       <div class="catalog-row catalog-row--stats">
-        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie clasă</div>
-        ${cols.map(col => col.kind === 'assignment'
-          ? `<div class="catalog-td catalog-td--stat${_statToneCls(aStats[col.id])}">${aStats[col.id]}</div>`
-          : `<div class="catalog-td catalog-td--stat catalog-td--sim${_statToneCls(sStats[col.id])}">${sStats[col.id]}</div>`
-        ).join('')}
+        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie elev</div>
+        ${studentCols.map(s => {
+          const avg = s.avgNum != null ? s.avgNum.toFixed(1) : '—';
+          const tier = s.avgNum != null ? _catalogGradeTier(s.avgNum) : null;
+          return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${avg}</div>`;
+        }).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>`;
 
@@ -1927,19 +1912,27 @@
           ${(assignments.length > 0 && sims.length > 0) ? `
           <span class="catalog-legend-item catalog-legend-item--sep">${icon('file-text', { size: 16 })} Notă din temă · ${icon('target', { size: 16 })} Notă din simulare</span>` : ''}
         </div>
-        <div class="catalog-scroll">
-          <div class="catalog-table">
-            <div class="catalog-head">
-              <div class="catalog-th catalog-th--name">Elev</div>
-              ${headerCells}
-              <div class="catalog-th catalog-th--avg catalog-th--sortable" data-sort-key="avg" title="Click pentru sortare">Medie${_catalogSortArrow('avg', sortState)}</div>
-            </div>
-            <div class="catalog-body">
-              ${studentRows}
-              ${(assignments.length > 0 || sims.length > 0) ? statsRow : ''}
+        ${lessonCols.length === 0 ? `
+          <div class="cd-placeholder">
+            <div class="cd-placeholder__icon">${icon('chart-column', { size: 48 })}</div>
+            <h3 class="cd-placeholder__title">Nicio temă sau simulare notată</h3>
+            <p class="cd-placeholder__desc">Notele apar aici după ce adaugi teme sau simulări clasei.</p>
+          </div>
+        ` : `
+          <div class="catalog-scroll">
+            <div class="catalog-table">
+              <div class="catalog-head">
+                <div class="catalog-th catalog-th--name">Temă / Simulare</div>
+                ${studentHeaderCells}
+                <div class="catalog-th catalog-th--avg">Medie</div>
+              </div>
+              <div class="catalog-body">
+                ${bodyRows}
+                ${statsRow}
+              </div>
             </div>
           </div>
-        </div>
+        `}
         <div class="catalog-toolbar">
           <button class="btn btn--surface btn--sm" id="catalogExportPdfBtn">${icon('file', { size: 16 })} Exportă PDF</button>
           <button class="btn btn--surface btn--sm" id="catalogExportXlsxBtn">${icon('chart-column', { size: 16 })} Exportă Excel</button>
@@ -2076,62 +2069,59 @@
     });
   }
 
+  // Transposed like renderCatalogTeacher above: elevi run left-to-right as
+  // columns, lecții run top-to-bottom as rows — each row's label is now the
+  // lecție's date + title (clickable to edit), and clicking a date header
+  // to edit is now clicking the row label instead.
   function renderCatalogAttendance(members, nameMap, sessions, attMatrix) {
     const { perStudent, classRate } = BM.CatalogStats.attendanceStats(members, sessions, attMatrix);
     const byId = {};
     perStudent.forEach(s => { byId[s.studentId] = s; });
     const studentStats = members.map((m, idx) => {
       const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
-      const myAtt = attMatrix[m.student_id] || {};
       const { presentCount, recordedCount, rate } = byId[m.student_id];
-      return { m, name, myAtt, presentCount, recordedCount, rate };
+      return { m, name, presentCount, recordedCount, rate };
     });
 
-    const headerCells = sessions.map(s => {
+    const studentHeaderCells = studentStats.map(s => `
+      <div class="catalog-th"><span class="catalog-th__title">${BM.esc(s.name)}</span></div>`).join('');
+
+    const bodyRows = sessions.map(s => {
       const [y, mo, d] = s.session_date.split('-').map(Number);
       const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      return `
-        <div class="catalog-th catalog-th--clickable" data-edit-session="${s.id}" title="Lecție din ${ds} — click pentru a edita">
-          <span class="catalog-th__title">${icon('calendar', { size: 16 })} ${ds}</span>
-        </div>`;
-    }).join('');
 
-    const studentRows = studentStats.map(({ m, name, myAtt, presentCount, recordedCount, rate }) => {
-      const cells = sessions.map(s => {
-        const status = myAtt[s.id];
+      const cells = studentStats.map(({ m }) => {
+        const status = (attMatrix[m.student_id] || {})[s.id];
         if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">—</div>`;
         return status
           ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent — click pentru a marca absent">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`
           : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent — click pentru a marca prezent">${icon('circle-x', { size: 16, className: 'icon--error' })}</div>`;
       }).join('');
 
-      const rateTxt  = rate != null ? `${rate}%` : '—';
-      const rateTier = _attendanceTier(rate);
-      const rateCls  = rateTier ? ` catalog-td--tone-${rateTier}` : '';
+      const recorded = members.filter(m => (attMatrix[m.student_id] || {})[s.id] !== undefined);
+      const present  = recorded.filter(m => (attMatrix[m.student_id] || {})[s.id] === true).length;
+      const pct = recorded.length ? Math.round((present / recorded.length) * 100) : null;
+      const tier = pct != null ? _attendanceTier(pct) : null;
+      const tierCls = tier ? ` catalog-td--tone-${tier}` : '';
 
       return `
         <div class="catalog-row">
-          <div class="catalog-td catalog-td--name">
-            <span class="catalog-avatar">${_catalogInitials(name)}</span>
-            <span class="catalog-name-text">${BM.esc(name)}</span>
+          <div class="catalog-td catalog-td--name catalog-td--rowlabel catalog-td--rowlabel-clickable"
+               data-edit-session="${s.id}" title="Click pentru a edita lecția">
+            <span class="catalog-th__title">${icon('calendar', { size: 16 })} ${s.title ? BM.esc(s.title) : 'Lecție'}</span>
+            <span class="catalog-th__date">${ds}</span>
           </div>
           ${cells}
-          <div class="catalog-td catalog-td--avg${rateCls}" title="${presentCount}/${recordedCount} prezențe înregistrate">${rateTxt}</div>
+          <div class="catalog-td catalog-td--avg${tierCls}">${pct != null ? pct + '%' : '—'}</div>
         </div>`;
     }).join('');
 
-    const _statToneCls = pct => {
-      const tier = pct != null ? _attendanceTier(pct) : null;
-      return tier ? ` catalog-td--tone-${tier}` : '';
-    };
     const statsRow = sessions.length > 0 ? `
       <div class="catalog-row catalog-row--stats">
-        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Prezență clasă</div>
-        ${sessions.map(s => {
-          const recorded = members.filter(m => (attMatrix[m.student_id] || {})[s.id] !== undefined);
-          const present  = recorded.filter(m => (attMatrix[m.student_id] || {})[s.id] === true).length;
-          const pct = recorded.length ? Math.round((present / recorded.length) * 100) : null;
-          return `<div class="catalog-td catalog-td--stat${_statToneCls(pct)}">${pct != null ? pct + '%' : '—'}</div>`;
+        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Prezență elev</div>
+        ${studentStats.map(({ rate }) => {
+          const tier = rate != null ? _attendanceTier(rate) : null;
+          return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${rate != null ? rate + '%' : '—'}</div>`;
         }).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>` : '';
@@ -2167,19 +2157,19 @@
           <div class="catalog-scroll">
             <div class="catalog-table">
               <div class="catalog-head">
-                <div class="catalog-th catalog-th--name">Elev</div>
-                ${headerCells}
+                <div class="catalog-th catalog-th--name">Lecție</div>
+                ${studentHeaderCells}
                 <div class="catalog-th catalog-th--avg">Prezență</div>
               </div>
               <div class="catalog-body">
-                ${studentRows}
+                ${bodyRows}
                 ${statsRow}
               </div>
             </div>
           </div>
         `}
         <div class="catalog-toolbar catalog-toolbar--split">
-          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o dată pentru a edita lecția · click pe celulă pentru a comuta corect/greșit' : ''}</span>
+          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o lecție pentru a o edita · click pe celulă pentru a comuta corect/greșit' : ''}</span>
           <button class="btn btn--primary btn--sm" id="addLectieBtn">+ Adaugă lecție</button>
         </div>
       </div>`;
@@ -2217,6 +2207,7 @@
     document.getElementById('lectieModal')?.remove();
     const isEdit   = !!session;
     const dateVal  = session?.session_date || _todayIso();
+    const titleVal = session?.title || '';
 
     const rosterRows = members.map((m, idx) => {
       const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
@@ -2250,6 +2241,11 @@
           <div class="cls-form-field">
             <label class="cls-form-label">Data lecției *</label>
             <input type="date" id="lectieDateInput" class="cls-form-input" max="${_todayIso()}" value="${BM.esc(dateVal)}">
+          </div>
+          <div class="cls-form-field">
+            <label class="cls-form-label">Titlul lecției</label>
+            <input type="text" id="lectieTitleInput" class="cls-form-input" placeholder="Ce ați parcurs la lecție"
+                   maxlength="120" value="${BM.esc(titleVal)}">
           </div>
           <div class="cls-form-field">
             <label class="cls-form-label">Prezență elevi</label>
@@ -2318,6 +2314,7 @@
     modal.querySelector('#lectieSaveBtn').onclick = async () => {
       const dateStr = document.getElementById('lectieDateInput').value;
       if (!dateStr) { BM.toast('Selectează data lecției.', 'error'); return; }
+      const titleStr = document.getElementById('lectieTitleInput').value.trim() || null;
       const btn = modal.querySelector('#lectieSaveBtn');
       btn.disabled = true; btn.textContent = 'Se salvează…';
 
@@ -2338,17 +2335,18 @@
             return;
           }
           const { data: newSession, error: sessErr } = await BMAuth.supabase.from('class_sessions')
-            .insert({ class_id: classData.id, created_by: BMAuth.user.id, session_date: dateStr })
-            .select('id, session_date').single();
+            .insert({ class_id: classData.id, created_by: BMAuth.user.id, session_date: dateStr, title: titleStr })
+            .select('id, session_date, title').single();
           if (sessErr) throw sessErr;
           sessionId = newSession.id;
           sessions.push(newSession);
           sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
-        } else if (dateStr !== session.session_date) {
+        } else if (dateStr !== session.session_date || titleStr !== (session.title || null)) {
           const { error: updErr } = await BMAuth.supabase.from('class_sessions')
-            .update({ session_date: dateStr }).eq('id', sessionId);
+            .update({ session_date: dateStr, title: titleStr }).eq('id', sessionId);
           if (updErr) throw updErr;
           session.session_date = dateStr;
+          session.title = titleStr;
           sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
         }
 
@@ -5730,7 +5728,11 @@
         const { data: mine } = await BMAuth.supabase
           .from('whiteboard_sessions').select('id, class_id')
           .eq('created_by', BMAuth.user.id).eq('status', 'live').maybeSingle();
-        if (mine && mine.class_id !== classData.id) elsewhereLive = mine;
+        if (mine && mine.class_id !== classData.id) {
+          const { data: otherClass } = await BMAuth.supabase
+            .from('classes').select('name').eq('id', mine.class_id).maybeSingle();
+          elsewhereLive = { ...mine, className: otherClass?.name || 'altă clasă' };
+        }
       }
 
       let heroAction = '';
@@ -5738,7 +5740,7 @@
         heroAction = live
           ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>`
           : elsewhereLive
-            ? `<button class="btn btn--surface" disabled title="Ai deja o tablă activă în altă clasă — încheie-o mai întâi.">${icon('presentation', { size: 16 })} Tablă activă în altă clasă</button>`
+            ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă — apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă — comută aici</button>`
             : `<button class="btn btn--primary" id="tablaStartBtn">${icon('presentation', { size: 16 })} Pornește tablă live</button>`;
       } else if (live) {
         heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${icon('presentation', { size: 16 })} Intră în tablă</button>`;
@@ -5780,6 +5782,7 @@
       document.getElementById('tablaStartBtn')?.addEventListener('click', startWhiteboard);
       document.getElementById('tablaOpenBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
       document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
+      document.getElementById('tablaSwitchBtn')?.addEventListener('click', () => switchWhiteboard(elsewhereLive));
     } catch (e) {
       if (activeTab !== 'tabla') return;
       content.innerHTML = `
@@ -5813,6 +5816,40 @@
           : 'Eroare: ' + e.message,
         'error'
       );
+      await loadTablaTab();
+    }
+  }
+
+  // Teacher already has a live board running in a DIFFERENT class (the DB
+  // only allows one live session per teacher at a time) — end that one and
+  // start a fresh one here in a single confirm, instead of making them go
+  // find and close it from whatever other class it's in.
+  async function switchWhiteboard(elsewhereLive) {
+    const ok = await showConfirmDialog({
+      icon: icon('refresh-cw', { size: 48 }),
+      title: 'Comuți tabla live aici?',
+      message: `Ai o tablă activă în „${elsewhereLive.className}". Se va încheia acolo și va porni una nouă în această clasă.`,
+      confirmText: 'Comută aici'
+    });
+    if (!ok) return;
+
+    const btn = document.getElementById('tablaSwitchBtn');
+    if (btn) { btn.disabled = true; btn.textContent = 'Se comută…'; }
+    try {
+      const { error: endErr } = await BMAuth.supabase.from('whiteboard_sessions')
+        .update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', elsewhereLive.id);
+      if (endErr) throw endErr;
+
+      const { data, error } = await BMAuth.supabase.from('whiteboard_sessions')
+        .insert({ class_id: classData.id, created_by: BMAuth.user.id })
+        .select().single();
+      if (error) throw error;
+
+      BM.toast('Tabla a fost comutată aici.', 'success');
+      await loadTablaTab();
+      openWhiteboardLiveView(data);
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
       await loadTablaTab();
     }
   }

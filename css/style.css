@@ -12201,6 +12201,14 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .catalog-th--name { background: var(--surface); z-index: 3; }
 
+/* Row-label variant of the sticky-left column — used now that the table is
+   transposed (temă/simulare/lecție run top-to-bottom, elevi run left-to-
+   right): overrides .catalog-td--name's row-flex avatar+name layout with a
+   stacked title+date, same shape as a .catalog-th's own header cell. */
+.catalog-td--rowlabel { flex-direction: column; align-items: flex-start; justify-content: center; gap: 2px; }
+.catalog-td--rowlabel-clickable { cursor: pointer; transition: background 0.15s; }
+.catalog-td--rowlabel-clickable:hover { background: var(--accent-dim); }
+
 .catalog-th {
   flex-direction: column;
   gap: 2px;
@@ -14287,6 +14295,10 @@ body.wb-fullscreen-active .scroll-top-btn {
    Catalog Note/Prezență still use as-is) so Sumar can carry the richer
    icon-badge treatment without changing how Catalog's own stat tiles look. */
 .sumar-kpibar { display: flex; flex-wrap: wrap; gap: 12px; }
+/* Reused as-is on classes.html for the "toate grupele" aggregate banner —
+   just needs its own bottom margin there, since Sumar's own spacing comes
+   from its parent's flex gap instead. */
+.cls-stats-banner { margin-bottom: 24px; }
 .sumar-kpi-card {
   flex: 1 1 170px;
   display: flex;
@@ -14429,8 +14441,10 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sumar-roster__status {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   width: fit-content;
+  justify-self: center;
   padding: 5px 10px;
   border-radius: 20px;
   border: 1.5px solid var(--border);
