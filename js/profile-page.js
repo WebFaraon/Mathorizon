@@ -154,17 +154,119 @@
     });
   }
 
-  /* Compress image to data URL (max 200px, JPEG 0.85) */
-  function _compressImage(file) {
+  /* ---- Edit profile modal — teacher variant (name, bio, country, phone,
+     social link; avatar/cover have their own hover-edit affordances) ---- */
+  function _showEditTeacherProfileModal({ name, bio, country, phone, socialUrl, sb, onSaved }) {
+    const ov = document.createElement('div');
+    ov.className = 'prof-modal-overlay';
+    ov.innerHTML = `
+      <div class="prof-modal prof-modal--wide" role="dialog" aria-modal="true">
+        <h3 class="prof-modal__title">Editează profilul</h3>
+        <form id="fEditProfile" novalidate style="text-align:left">
+          <div id="editProfileMsg" class="auth-msg" style="display:none;margin-bottom:12px"></div>
+          <div class="auth-field" style="margin-bottom:16px">
+            <label class="auth-label" for="editName">Nume afișat</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="editName" type="text" maxlength="60" required value="${BM.esc(name)}">
+            </div>
+          </div>
+          <div class="auth-field" style="margin-bottom:16px">
+            <label class="auth-label" for="editBio">Despre mine</label>
+            <div class="auth-input-wrap">
+              <textarea class="auth-input" id="editBio" rows="3" maxlength="280" placeholder="O scurtă descriere despre tine — experiență, stil de predare...">${BM.esc(bio)}</textarea>
+            </div>
+          </div>
+          <div class="prof-pw-grid" style="margin-bottom:16px">
+            <div class="auth-field">
+              <label class="auth-label" for="editCountry">Țară</label>
+              <div class="auth-input-wrap">
+                <input class="auth-input" id="editCountry" type="text" maxlength="60" placeholder="România" value="${BM.esc(country)}">
+              </div>
+            </div>
+            <div class="auth-field">
+              <label class="auth-label" for="editPhone">Telefon</label>
+              <div class="auth-input-wrap">
+                <input class="auth-input" id="editPhone" type="tel" maxlength="30" placeholder="07xx xxx xxx" value="${BM.esc(phone)}">
+              </div>
+            </div>
+          </div>
+          <div class="auth-field" style="margin-bottom:20px">
+            <label class="auth-label" for="editSocial">Rețea socială (link)</label>
+            <div class="auth-input-wrap">
+              <input class="auth-input" id="editSocial" type="url" maxlength="200" placeholder="https://..." value="${BM.esc(socialUrl)}">
+            </div>
+          </div>
+          <p class="prof-hint-muted" style="margin-bottom:20px">Pentru a schimba poza de profil sau imaginea de copertă, treci cu mouse-ul peste ele și apasă pe iconița de editare.</p>
+          <div class="prof-modal__actions">
+            <button type="button" class="btn btn--surface" data-action="cancel">Anulează</button>
+            <button type="submit" class="btn btn--primary" id="btnSaveProfile">
+              <span>Salvează</span><span class="auth-spin" style="display:none"></span>
+            </button>
+          </div>
+        </form>
+      </div>`;
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    document.body.appendChild(ov);
+    requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
+
+    const close = () => {
+      ov.classList.remove('prof-modal-overlay--in');
+      setTimeout(() => { ov.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }, 180);
+    };
+
+    ov.addEventListener('click', e => { if (e.target === ov) close(); });
+    ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    document.getElementById('editName')?.focus();
+
+    function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
+    document.addEventListener('keydown', onEsc);
+
+    ov.querySelector('#fEditProfile').addEventListener('submit', async e => {
+      e.preventDefault();
+      const msg = document.getElementById('editProfileMsg');
+      const showMsg = (txt, err) => {
+        if (!msg) return;
+        msg.textContent = txt;
+        msg.className = 'auth-msg ' + (err ? 'auth-msg--error' : 'auth-msg--success');
+        msg.style.display = '';
+      };
+      const newName    = document.getElementById('editName')?.value.trim();
+      const newBio      = document.getElementById('editBio')?.value.trim() || '';
+      const newCountry  = document.getElementById('editCountry')?.value.trim() || '';
+      const newPhone    = document.getElementById('editPhone')?.value.trim() || '';
+      const newSocial   = document.getElementById('editSocial')?.value.trim() || '';
+      if (!newName) return showMsg('Numele nu poate fi gol.', true);
+      if (newSocial && !/^https?:\/\//i.test(newSocial)) return showMsg('Link-ul trebuie să înceapă cu http:// sau https://.', true);
+
+      const btn = document.getElementById('btnSaveProfile');
+      if (btn) { btn.disabled = true; btn.querySelector('span:first-child').style.opacity = '0'; btn.querySelector('.auth-spin').style.display = ''; }
+
+      const { data, error } = await sb.auth.updateUser({ data: {
+        full_name: newName, bio: newBio, country: newCountry, phone: newPhone, social_url: newSocial
+      } });
+
+      if (btn) { btn.disabled = false; btn.querySelector('span:first-child').style.opacity = ''; btn.querySelector('.auth-spin').style.display = 'none'; }
+
+      if (error) return showMsg(_roError(error.message), true);
+      onSaved(data.user);
+      close();
+      BM.toast('Profilul a fost actualizat!', 'success');
+    });
+  }
+
+  /* Compress image to data URL (default max 200px — avatar size; pass a
+     larger maxDim for the wider cover-photo banner). JPEG 0.85. */
+  function _compressImage(file, maxDim) {
+    maxDim = maxDim || 200;
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = e => {
         const img = new Image();
         img.onload = () => {
-          const MAX = 200;
           let w = img.width, h = img.height;
-          if (w > h) { if (w > MAX) { h = Math.round(h * MAX / w); w = MAX; } }
-          else       { if (h > MAX) { w = Math.round(w * MAX / h); h = MAX; } }
+          if (w > h) { if (w > maxDim) { h = Math.round(h * maxDim / w); w = maxDim; } }
+          else       { if (h > maxDim) { w = Math.round(w * maxDim / h); h = maxDim; } }
           const canvas = document.createElement('canvas');
           canvas.width = w; canvas.height = h;
           canvas.getContext('2d').drawImage(img, 0, 0, w, h);
@@ -176,6 +278,35 @@
       reader.onerror = reject;
       reader.readAsDataURL(file);
     });
+  }
+
+  /* ---- Star rating ---- */
+  function _starsHTML(rating, size) {
+    const filled = rating == null ? 0 : Math.round(rating);
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += `<span class="prof-star${i <= filled ? ' prof-star--filled' : ''}">${icon('star', { size })}</span>`;
+    }
+    return out;
+  }
+
+  /* Reviews are display-only for now (no submission flow yet — see the
+     teacher_reviews migration comment), so this just reads whatever's
+     there; an empty table renders the empty state further down. */
+  async function _fetchTeacherReviews(sb, teacherId) {
+    try {
+      const { data, error } = await sb
+        .from('teacher_reviews')
+        .select('id, rating, comment, student_name, created_at')
+        .eq('teacher_id', teacherId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      const reviews = data || [];
+      const avg = reviews.length ? reviews.reduce((s, r) => s + r.rating, 0) / reviews.length : null;
+      return { reviews, avg, count: reviews.length };
+    } catch {
+      return { reviews: [], avg: null, count: 0 };
+    }
   }
 
   /* Convertește un data URL în Blob fără fetch() */
@@ -211,6 +342,16 @@
     const isAdmin = role === 'admin';
     const isTeacher = role === 'profesor';
     const isStudent = role === 'elev';
+
+    /* "Business card" fields — teacher-only for now, stored the same way
+       as name/avatar (auth user_metadata) rather than a new table. */
+    const bio       = user.user_metadata?.bio || '';
+    const country   = user.user_metadata?.country || '';
+    const socialUrl = user.user_metadata?.social_url || '';
+    const phone     = user.user_metadata?.phone || '';
+    const coverUrl  = user.user_metadata?.custom_cover_url || null;
+    const socialDisplay = socialUrl ? socialUrl.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/+$/, '') : '';
+    const reviewsData = isTeacher ? await _fetchTeacherReviews(sb, user.id) : { reviews: [], avg: null, count: 0 };
 
     const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
@@ -298,58 +439,100 @@
         </div>
       </div>` : '';
 
-    content.innerHTML = `
-      ${pendingBanner}${rejectedBanner}
-      <!-- PROFILE HEADER -->
-      <div class="prof-header${isTeacher ? ' prof-header--profile' : ''}">
-        <div class="prof-identity-row">
-        <div class="prof-avatar-wrap${isTeacher ? ' prof-avatar-wrap--lg' : ''}">
-          <div class="prof-avatar-lg">
-            ${avatarUrl
-              ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
-              : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
-          </div>
-          <label class="prof-avatar-edit" title="Schimbă poza de profil">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <input type="file" id="avatarInput" accept="image/*" style="display:none">
+    const badgesHTML = `
+      ${role === 'admin'
+        ? `<span class="prof-badge prof-badge--red">${icon('settings', { size: 16 })} Admin</span>`
+        : role === 'profesor'
+          ? (status === 'pending'
+            ? `<span class="prof-badge prof-badge--amber">${icon('hourglass', { size: 16 })} Profesor (în așteptare)</span>`
+            : status === 'rejected'
+              ? `<span class="prof-badge prof-badge--red">${icon('circle-x', { size: 16 })} Profesor (respins)</span>`
+              : `<span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>`)
+          : '<span class="prof-badge prof-badge--blue">Elev</span>'}
+      ${role === 'profesor' && status === 'active'
+        ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
+      ${isUsernameAccount
+        ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Cont activ</span>`
+        : (verified
+          ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Email verificat</span>`
+          : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>')}
+      ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
+    `;
+
+    /* Teacher gets a "public profile / business card" style header (cover
+       photo, big avatar overlapping it, rating, contact row, bio) instead
+       of the plain identity header — see the conversation this shipped in.
+       Everyone else keeps the original simple header. */
+    const teacherBizcardHTML = `
+      <div class="prof-bizcard">
+        <div class="prof-cover${coverUrl ? '' : ' prof-cover--placeholder'}"${coverUrl ? ` style="background-image:url('${coverUrl}')"` : ''}>
+          <label class="prof-cover-edit" title="Schimbă imaginea de copertă">
+            ${icon('camera', { size: 16 })}
+            <input type="file" id="coverInput" accept="image/*" style="display:none">
           </label>
         </div>
-        <div class="prof-header-info">
+        <div class="prof-bizcard-body">
+          <div class="prof-bizcard-top">
+            <div class="prof-avatar-wrap prof-avatar-wrap--cover">
+              <div class="prof-avatar-lg">
+                ${avatarUrl
+                  ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
+                  : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+              </div>
+              <label class="prof-avatar-edit" title="Schimbă poza de profil">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                <input type="file" id="avatarInput" accept="image/*" style="display:none">
+              </label>
+            </div>
+            <button class="btn btn--surface btn--sm prof-bizcard-editbtn" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+          </div>
+
           <h1 class="prof-name">${BM.esc(name)}</h1>
-          <p class="prof-email">${BM.esc(email)}</p>
-          <div class="prof-badges">
-            ${role === 'admin'
-              ? `<span class="prof-badge prof-badge--red">${icon('settings', { size: 16 })} Admin</span>`
-              : role === 'profesor'
-                ? (status === 'pending'
-                  ? `<span class="prof-badge prof-badge--amber">${icon('hourglass', { size: 16 })} Profesor (în așteptare)</span>`
-                  : status === 'rejected'
-                    ? `<span class="prof-badge prof-badge--red">${icon('circle-x', { size: 16 })} Profesor (respins)</span>`
-                    : `<span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>`)
-                : '<span class="prof-badge prof-badge--blue">Elev</span>'}
-            ${role === 'profesor' && status === 'active'
-              ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
-            ${isUsernameAccount
-              ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Cont activ</span>`
-              : (verified
-                ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Email verificat</span>`
-                : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>')}
-            ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
+          <div class="prof-badges">${badgesHTML}</div>
+
+          <div class="prof-rating-row">
+            <span class="prof-stars">${_starsHTML(reviewsData.avg, 16)}</span>
+            ${reviewsData.count
+              ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
+              : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
           </div>
-          <div class="prof-header-meta">
-            <span class="prof-meta-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
+
+          <div class="prof-contact-row">
+            ${country ? `<span class="prof-contact-item">${icon('map-pin', { size: 16 })} ${BM.esc(country)}</span>` : ''}
+            ${email ? `<span class="prof-contact-item">${icon('mail', { size: 16 })} ${BM.esc(email)}</span>` : ''}
+            ${phone ? `<span class="prof-contact-item">${icon('phone', { size: 16 })} ${BM.esc(phone)}</span>` : ''}
+            ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${icon('link', { size: 16 })} ${BM.esc(socialDisplay)}</a>` : ''}
+            <span class="prof-contact-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
           </div>
-          <div class="prof-header-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
-            ${role === 'admin' ? `
-            <a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">
-              ${icon('settings', { size: 16 })} Panou Admin
-            </a>` : ''}
-          </div>
+
+          <p class="prof-bio${bio ? '' : ' prof-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
         </div>
+      </div>
+
+      <div class="prof-card prof-card--wide prof-reviews-card">
+        <div class="prof-card__head">
+          <span class="prof-card__icon">${icon('star', { size: 16 })}</span>
+          <span class="prof-card__title">Recenzii elevi</span>
+          ${reviewsData.count ? `<span class="prof-reviews-head-rating">${_starsHTML(reviewsData.avg, 16)} ${reviewsData.avg.toFixed(1)} · ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}</span>` : ''}
         </div>
-        ${isTeacher ? `
-        <div class="prof-divider"></div>
+        <div class="prof-card__body">
+          ${reviewsData.count ? reviewsData.reviews.map(r => `
+            <div class="prof-review-item">
+              <div class="prof-review-item__head">
+                <span class="prof-review-item__name">${BM.esc(r.student_name || 'Elev')}</span>
+                <span class="prof-review-item__stars">${_starsHTML(r.rating, 16)}</span>
+              </div>
+              ${r.comment ? `<p class="prof-review-item__comment">${BM.esc(r.comment)}</p>` : ''}
+              <span class="prof-review-item__date">${_formatDate(r.created_at)}</span>
+            </div>`).join('') : `
+            <div class="prof-hist-empty">
+              <span style="display:flex;justify-content:center">${icon('star', { size: 32 })}</span>
+              <p>Niciun elev nu a lăsat încă o recenzie.</p>
+            </div>`}
+        </div>
+      </div>
+
+      <div class="prof-header prof-header--profile">
         <div class="prof-section">
           <div class="prof-section__title">${icon('lock', { size: 16 })} Schimbă parola</div>
           ${isGoogle
@@ -384,8 +567,46 @@
             ${icon('log-out', { size: 16 })}
             Deconectare
           </button>
-        </div>` : ''}
+        </div>
       </div>
+    `;
+
+    const defaultHeaderHTML = `
+      <div class="prof-header">
+        <div class="prof-identity-row">
+        <div class="prof-avatar-wrap">
+          <div class="prof-avatar-lg">
+            ${avatarUrl
+              ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
+              : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+          </div>
+          <label class="prof-avatar-edit" title="Schimbă poza de profil">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+            <input type="file" id="avatarInput" accept="image/*" style="display:none">
+          </label>
+        </div>
+        <div class="prof-header-info">
+          <h1 class="prof-name">${BM.esc(name)}</h1>
+          <p class="prof-email">${BM.esc(email)}</p>
+          <div class="prof-badges">${badgesHTML}</div>
+          <div class="prof-header-meta">
+            <span class="prof-meta-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
+          </div>
+          <div class="prof-header-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
+            <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+            ${role === 'admin' ? `
+            <a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">
+              ${icon('settings', { size: 16 })} Panou Admin
+            </a>` : ''}
+          </div>
+        </div>
+        </div>
+      </div>`;
+
+    content.innerHTML = `
+      ${pendingBanner}${rejectedBanner}
+      <!-- PROFILE HEADER -->
+      ${isTeacher ? teacherBizcardHTML : defaultHeaderHTML}
 
       <!-- CARDS GRID -->
       <div class="prof-grid">
@@ -621,6 +842,44 @@
       }
     });
 
+    /* Cover photo upload — Supabase Storage, same "avatars" bucket as the
+       profile picture, just a different file per user. */
+    document.getElementById('coverInput')?.addEventListener('change', async e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      const lbl = e.target.closest('label');
+      if (lbl) lbl.style.opacity = '0.5';
+      try {
+        const dataUrl  = await _compressImage(file, 1200);
+        const blob     = _dataUrlToBlob(dataUrl);
+        const filePath = `${user.id}-cover.jpg`;
+
+        const { error: uploadErr } = await sb.storage
+          .from('avatars')
+          .upload(filePath, blob, { contentType: 'image/jpeg', upsert: true });
+        if (uploadErr) {
+          BM.toast('Upload eșuat: ' + (uploadErr.message || ''), 'error');
+          throw uploadErr;
+        }
+
+        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+
+        const { error: updErr } = await sb.auth.updateUser({ data: { custom_cover_url: publicUrl } });
+        if (updErr) throw updErr;
+
+        const coverEl = document.querySelector('.prof-cover');
+        if (coverEl) {
+          coverEl.style.backgroundImage = `url('${publicUrl}')`;
+          coverEl.classList.remove('prof-cover--placeholder');
+        }
+        BM.toast('Imaginea de copertă a fost actualizată!', 'success');
+      } catch (err) {
+        BM.toast('Eroare: ' + (err?.message || 'necunoscută'), 'error');
+      } finally {
+        if (lbl) lbl.style.opacity = '';
+      }
+    });
+
     /* Password form */
     const fPw = document.getElementById('fPassword');
     if (fPw) {
@@ -662,8 +921,16 @@
       btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
     };
 
-    /* Edit profile (display name) */
+    /* Edit profile — teacher gets the bigger "business card" modal (bio,
+       country, phone, social link too); everyone else just edits the name. */
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {
+      if (isTeacher) {
+        _showEditTeacherProfileModal({
+          name, bio, country, phone, socialUrl, sb,
+          onSaved: freshUser => renderProfile(freshUser, sb)
+        });
+        return;
+      }
       _showEditProfileModal({
         name, sb,
         onSaved: newName => {

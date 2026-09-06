@@ -9740,6 +9740,95 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: 0.5px;
 }
 
+/* ---- Business card (teacher public-profile-style header) ---- */
+.prof-bizcard {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  margin-bottom: 16px;
+  animation: card-up-in 0.32s cubic-bezier(0.22,1,0.36,1) both;
+}
+.prof-cover {
+  position: relative;
+  height: 160px;
+  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+  background-size: cover;
+  background-position: center;
+}
+.prof-cover-edit {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.45);
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background 0.18s;
+}
+.prof-cover-edit:hover { background: rgba(0,0,0,0.65); }
+
+.prof-bizcard-body { padding: 0 32px 28px; }
+.prof-bizcard-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: -56px;
+  margin-bottom: 14px;
+}
+.prof-bizcard-editbtn { margin-top: 56px; }
+
+.prof-rating-row { display: flex; align-items: center; gap: 8px; margin: 10px 0 14px; flex-wrap: wrap; }
+.prof-stars { display: inline-flex; gap: 2px; }
+.prof-star { color: var(--border); display: inline-flex; }
+.prof-star--filled { color: var(--yellow); }
+.prof-star--filled svg { fill: currentColor; }
+.prof-rating-num { font-size: 0.95rem; font-weight: 800; color: var(--text); }
+.prof-rating-count { font-size: 0.85rem; color: var(--text-muted); }
+
+.prof-contact-row { display: flex; flex-wrap: wrap; gap: 8px 18px; margin-bottom: 16px; }
+.prof-contact-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+a.prof-contact-item--link { color: var(--accent); text-decoration: none; }
+a.prof-contact-item--link:hover { text-decoration: underline; }
+
+.prof-bio { font-size: 0.92rem; color: var(--text); line-height: 1.6; max-width: 640px; margin: 0; }
+.prof-bio--empty { color: var(--text-muted); font-style: italic; }
+
+/* ---- Reviews ---- */
+.prof-reviews-card { margin-bottom: 16px; }
+.prof-reviews-head-rating {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.prof-review-item { padding: 14px 0; border-bottom: 1px solid var(--border); }
+.prof-review-item:first-child { padding-top: 0; }
+.prof-review-item:last-child { border-bottom: none; padding-bottom: 0; }
+.prof-review-item__head { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 4px; }
+.prof-review-item__name { font-weight: 700; font-size: 0.9rem; color: var(--text); }
+.prof-review-item__stars { display: inline-flex; gap: 1px; }
+.prof-review-item__comment { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; margin: 0 0 4px; }
+.prof-review-item__date { font-size: 0.76rem; color: var(--text-muted); }
+
+.prof-modal--wide { max-width: 480px; }
+
 .prof-header-info { flex: 1; min-width: 0; }
 .prof-name {
   font-size: 1.4rem;
@@ -10018,6 +10107,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   .prof-skeleton-grid { grid-template-columns: 1fr; }
   .prof-pw-grid { grid-template-columns: 1fr; gap: 0; }
   .prof-session-row .btn { width: 100%; justify-content: center; }
+  .prof-bizcard-body { padding: 0 20px 20px; }
+  .prof-cover { height: 120px; }
+  .prof-bizcard-top { flex-direction: column; align-items: flex-start; margin-top: -44px; gap: 12px; }
+  .prof-bizcard-editbtn { margin-top: 0; align-self: flex-start; }
+  .prof-avatar-wrap.prof-avatar-wrap--cover { width: 96px; height: 96px; }
+  .prof-avatar-wrap--cover .prof-avatar-initials { font-size: 1.5rem; }
+  .prof-contact-row { gap: 6px 14px; }
+  .prof-reviews-card .prof-card__head { flex-wrap: wrap; }
+  .prof-reviews-head-rating { margin-left: 0; width: 100%; }
 }
 
 [data-theme="dark"] .auth-pg-card { background: #1c1c1c; border-color: #333; }
@@ -10046,8 +10144,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   width: 100%;
   height: 100%;
 }
-.prof-avatar-wrap.prof-avatar-wrap--lg { width: 128px; height: 128px; }
-.prof-avatar-wrap--lg .prof-avatar-initials { font-size: 2rem; }
+.prof-avatar-wrap.prof-avatar-wrap--cover { width: 128px; height: 128px; }
+.prof-avatar-wrap--cover .prof-avatar-initials { font-size: 2rem; }
+.prof-avatar-wrap--cover .prof-avatar-lg { border: 5px solid var(--card); box-shadow: var(--shadow-card); }
 .prof-avatar-edit {
   position: absolute;
   inset: 0;
