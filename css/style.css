@@ -12209,6 +12209,36 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .catalog-td--rowlabel-clickable { cursor: pointer; transition: background 0.15s; }
 .catalog-td--rowlabel-clickable:hover { background: var(--accent-dim); }
 
+/* Prezență's date column — its own cell (not stacked inside the lecție
+   title cell), colored by month so a teacher can tell seasons/months apart
+   scanning down the table at a glance. Grouped by season, three shades per
+   season (each color pair is that month's own solid color at ~12% for the
+   background, same idea as --yellow/--yellow-dim etc. elsewhere in this
+   file, just one pair per month instead of one pair per grade-tier).
+   Deliberately the same in both themes, matching how the grade/attendance
+   tier colors elsewhere in Catalog also don't get a separate dark variant. */
+.catalog-th--date, .catalog-td--date {
+  min-width: 92px;
+  max-width: 92px;
+  position: sticky;
+  left: 200px;
+  z-index: 1;
+}
+.catalog-th--date { z-index: 3; background: var(--surface); }
+.catalog-td--date { font-weight: 700; border-radius: 0; }
+.catalog-td--date--ian { background: rgba(29,78,216,0.12);  color: #1D4ED8; }
+.catalog-td--date--feb { background: rgba(67,56,202,0.12);  color: #4338CA; }
+.catalog-td--date--mar { background: rgba(101,163,13,0.12); color: #65A30D; }
+.catalog-td--date--apr { background: rgba(22,163,74,0.12);  color: #16A34A; }
+.catalog-td--date--mai { background: rgba(5,150,105,0.12);  color: #059669; }
+.catalog-td--date--iun { background: rgba(202,138,4,0.12);  color: #CA8A04; }
+.catalog-td--date--iul { background: rgba(234,88,12,0.12);  color: #EA580C; }
+.catalog-td--date--aug { background: rgba(220,38,38,0.12);  color: #DC2626; }
+.catalog-td--date--sep { background: rgba(217,119,6,0.12);  color: #D97706; }
+.catalog-td--date--oct { background: rgba(194,65,12,0.12);  color: #C2410C; }
+.catalog-td--date--noi { background: rgba(154,52,18,0.12);  color: #9A3412; }
+.catalog-td--date--dec { background: rgba(37,99,235,0.12);  color: #2563EB; }
+
 .catalog-th {
   flex-direction: column;
   gap: 2px;
@@ -13940,22 +13970,18 @@ body.wb-fullscreen-active .scroll-top-btn {
   gap: 14px;
 }
 
-/* ── Info card (new unified sidebar card) ──────────────────── */
+/* ── Info card — now Sumar-only (Flux dropped its own copy), so this
+   matches the SAME flat card look as its neighbors (.sumar-upnext__card,
+   .sumar-kpi-card) instead of carrying its own separate glass treatment —
+   solid var(--card)/var(--border), not a translucent/blurred one-off,
+   and both light+dark come for free from the tokens instead of a manual
+   dark-mode override. ────────────────────────────────────────── */
 .cd-info-card {
-  background: rgba(255,255,255,0.70);
-  backdrop-filter: blur(20px) saturate(1.6);
-  -webkit-backdrop-filter: blur(20px) saturate(1.6);
-  border: 1.5px solid rgba(255,255,255,0.60);
-  border-radius: 14px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
   overflow: hidden;
-  box-shadow: 0 4px 18px rgba(58,107,173,0.10), inset 0 1px 0 rgba(255,255,255,0.75);
-}
-[data-theme="dark"] .cd-info-card {
-  background: rgba(255,255,255,0.06);
-  backdrop-filter: blur(20px) saturate(1.4);
-  -webkit-backdrop-filter: blur(20px) saturate(1.4);
-  border-color: rgba(255,255,255,0.12);
-  box-shadow: 0 4px 18px rgba(0,0,0,0.38), inset 0 1px 0 rgba(255,255,255,0.07);
+  box-shadow: var(--shadow-sm);
 }
 
 .cd-info-card__strip {
@@ -14295,10 +14321,25 @@ body.wb-fullscreen-active .scroll-top-btn {
    Catalog Note/Prezență still use as-is) so Sumar can carry the richer
    icon-badge treatment without changing how Catalog's own stat tiles look. */
 .sumar-kpibar { display: flex; flex-wrap: wrap; gap: 12px; }
-/* Reused as-is on classes.html for the "toate grupele" aggregate banner —
-   just needs its own bottom margin there, since Sumar's own spacing comes
-   from its parent's flex gap instead. */
-.cls-stats-banner { margin-bottom: 24px; }
+/* classes.html's "toate grupele" aggregate banner — a real panel (surface
+   background + border) around the reused .sumar-kpibar tiles, so the
+   stats visually separate from the class-card grid below instead of
+   floating loose on the page background right above it. */
+.cls-stats-panel {
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 20px;
+  margin-bottom: 28px;
+}
+.cls-stats-panel__title {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 12px;
+}
 .sumar-kpi-card {
   flex: 1 1 170px;
   display: flex;
@@ -14437,6 +14478,9 @@ body.wb-fullscreen-active .scroll-top-btn {
   letter-spacing: 0.06em;
   color: var(--text-muted);
 }
+/* "Status" label — centered to sit directly over the centered status chip
+   below it (2nd grid column: Elev | Status | Manager). */
+.sumar-roster__row--head span:nth-child(2) { text-align: center; }
 .sumar-roster__name { display: flex; align-items: center; gap: 10px; min-width: 0; }
 .sumar-roster__status {
   display: inline-flex;

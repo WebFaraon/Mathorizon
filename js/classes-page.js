@@ -152,7 +152,9 @@
   // work) reused here rather than a bespoke banner component.
   function _renderStatsBanner(stats) {
     return `
-      <div class="sumar-kpibar cls-stats-banner">
+      <div class="cls-stats-panel">
+        <div class="cls-stats-panel__title">Toate grupele</div>
+        <div class="sumar-kpibar">
         <div class="sumar-kpi-card">
           <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('school', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
@@ -181,6 +183,7 @@
             <div class="sumar-kpi-card__lbl">Prezență medie</div>
             ${stats.avgAttendance == null ? '<div class="sumar-kpi-card__sub">Fără lecții încă</div>' : ''}
           </div>
+        </div>
         </div>
       </div>`;
   }

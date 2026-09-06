@@ -2069,10 +2069,16 @@
     });
   }
 
+  // Romanian month abbreviations, index 0 = Ianuarie — used both for the
+  // date cell's label and to pick its seasonal color class below.
+  const _MONTH_ABBR = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'noi', 'dec'];
+
   // Transposed like renderCatalogTeacher above: elevi run left-to-right as
   // columns, lecții run top-to-bottom as rows — each row's label is now the
-  // lecție's date + title (clickable to edit), and clicking a date header
-  // to edit is now clicking the row label instead.
+  // lecție's title (clickable to edit) with the date broken out into its
+  // own adjacent, sticky, month-colored cell (not stacked together the way
+  // Note's temă/simulare title+date still are), and clicking a date header
+  // to edit is now clicking either of those two cells instead.
   function renderCatalogAttendance(members, nameMap, sessions, attMatrix) {
     const { perStudent, classRate } = BM.CatalogStats.attendanceStats(members, sessions, attMatrix);
     const byId = {};
@@ -2089,6 +2095,7 @@
     const bodyRows = sessions.map(s => {
       const [y, mo, d] = s.session_date.split('-').map(Number);
       const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
+      const monthCls = _MONTH_ABBR[mo - 1];
 
       const cells = studentStats.map(({ m }) => {
         const status = (attMatrix[m.student_id] || {})[s.id];
@@ -2109,8 +2116,9 @@
           <div class="catalog-td catalog-td--name catalog-td--rowlabel catalog-td--rowlabel-clickable"
                data-edit-session="${s.id}" title="Click pentru a edita lecția">
             <span class="catalog-th__title">${icon('calendar', { size: 16 })} ${s.title ? BM.esc(s.title) : 'Lecție'}</span>
-            <span class="catalog-th__date">${ds}</span>
           </div>
+          <div class="catalog-td catalog-td--date catalog-td--date--${monthCls} catalog-td--rowlabel-clickable"
+               data-edit-session="${s.id}" title="Click pentru a edita lecția">${ds}</div>
           ${cells}
           <div class="catalog-td catalog-td--avg${tierCls}">${pct != null ? pct + '%' : '—'}</div>
         </div>`;
@@ -2119,6 +2127,7 @@
     const statsRow = sessions.length > 0 ? `
       <div class="catalog-row catalog-row--stats">
         <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Prezență elev</div>
+        <div class="catalog-td catalog-td--date"></div>
         ${studentStats.map(({ rate }) => {
           const tier = rate != null ? _attendanceTier(rate) : null;
           return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${rate != null ? rate + '%' : '—'}</div>`;
@@ -2158,6 +2167,7 @@
             <div class="catalog-table">
               <div class="catalog-head">
                 <div class="catalog-th catalog-th--name">Lecție</div>
+                <div class="catalog-th catalog-th--date">Dată</div>
                 ${studentHeaderCells}
                 <div class="catalog-th catalog-th--avg">Prezență</div>
               </div>
