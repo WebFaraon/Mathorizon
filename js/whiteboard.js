@@ -127,6 +127,17 @@
     return min;
   }
 
+  // "select" tool's rubber-band drag — a and b are its two corners in
+  // either order (whichever direction the user actually dragged), so
+  // this always returns a min/max-normalized box regardless.
+  function normalizedRect(a, b) {
+    return { minX: Math.min(a.x, b.x), minY: Math.min(a.y, b.y), maxX: Math.max(a.x, b.x), maxY: Math.max(a.y, b.y) };
+  }
+
+  function rectsIntersect(r1, r2) {
+    return r1.minX <= r2.maxX && r1.maxX >= r2.minX && r1.minY <= r2.maxY && r1.maxY >= r2.minY;
+  }
+
   // Smooth freehand path (quadratic curve through consecutive midpoints) —
   // same technique js/drawing-canvas.js uses for its own live pen stroke,
   // reused here for both the live overlay preview and the final committed
@@ -311,6 +322,17 @@
     // can merge into it without re-fetching the row first.
     this._myObjectOffsets = new Map(); // id -> {dx, dy}
     this._myObjectsJson   = new Map(); // id -> fabric_json
+    // "select" tool's current multi-selection (own objects only, ids into
+    // the maps above) — a rubber-band drag over empty space replaces this
+    // wholesale, a click adds/refocuses it, see _bindPointerEvents. Drawn
+    // as highlight boxes by _drawSelectionOverlay; cleared on tool switch,
+    // on erasing a selected object, or on selecting empty space.
+    this._selectedIds = new Set();
+    // {start:{x,y}, current:{x,y}} logical-space rectangle while a
+    // rubber-band selection drag is in progress, else null — kept
+    // separate from the per-pointer gesture state in _activePtrs so
+    // _drawSelectionOverlay has one obvious place to read it from.
+    this._activeRubberBand = null;
     this._myStrokeHistory = [];       // [{id, fabric_json}] — undo stack, oldest first
     this._myRedoStack     = [];
     // Bumped by _clearMine() — a stroke whose in-flight commit (see
@@ -404,8 +426,8 @@
     wrap.className = 'wb-board';
     wrap.innerHTML =
       '<div class="dc-toolbar wb-toolbar">' +
-        // Four small tool groups (manipulate / pen / highlighter / line
-        // shapes) with breathing room between them but no divider bars —
+        // Three small tool groups (manipulate / ink / line shapes) with
+        // breathing room between them but no divider bars —
         // dc-tool-group--nodiv overrides the toolbar's usual adjacent-
         // sibling divider (see its own CSS rule) for just these, same
         // lighter-touch grouping idroo's own toolbar uses. The width
@@ -419,8 +441,6 @@
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
-        '</div>' +
-        '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
@@ -501,6 +521,13 @@
   };
 
   Whiteboard.prototype._setTool = function (tool) {
+    // Leaving "select" for anything else drops the selection — a stale
+    // highlighted selection while some other tool is active would be
+    // confusing (what does drawing/erasing do to a "selected" stroke?).
+    if (this._tool === 'select' && tool !== 'select' && this._selectedIds.size) {
+      this._selectedIds = new Set();
+      this._dirty = true;
+    }
     this._tool = tool;
     this._toolbarEl.querySelectorAll('[data-tool]').forEach(function (b) {
       b.classList.toggle('dc-tool-btn--active', b.dataset.tool === tool);
@@ -744,14 +771,13 @@
 
   // Pushes the current camera (this._scale/_panX/_panY) to every layer
   // that needs it: Fabric's own viewportTransform for the committed
-  // strokes (Fabric re-renders every object from its stored vector path
-  // data at whatever transform is current — never from a cached bitmap —
-  // so a stroke drawn once stays exactly as crisp at any zoom as it was
-  // at fit, never pixelated), the grid/paper background (redrawn inline,
-  // cheap — see _redrawGrid), and the live-stroke overlay (marked dirty,
-  // picked up on the next animation-frame tick by _redrawOverlay so it
-  // stays batched with everyone else's incoming points instead of forcing
-  // an extra paint of its own).
+  // strokes (each one built with objectCaching:false in _addObjectIfNew
+  // specifically so this stays crisp — see that flag's own comment for
+  // why, this used to be the "blurry at high zoom" bug), the grid/paper
+  // background (redrawn inline, cheap — see _redrawGrid), and the
+  // live-stroke overlay (marked dirty, picked up on the next animation-
+  // frame tick by _redrawOverlay so it stays batched with everyone else's
+  // incoming points instead of forcing an extra paint of its own).
   Whiteboard.prototype._syncViewport = function () {
     this._fabricCanvas.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
     // setViewportTransform only self-triggers a render when renderOnAddRemove
@@ -974,13 +1000,37 @@
 
       if (self._tool === 'select') {
         var target = self._findMyObjectAt(pos);
-        if (!target) return; // empty space / someone else's object — nothing to do
-        var startOffset = self._myObjectOffsets.get(target.data.id) || { dx: 0, dy: 0 };
+        if (!target) {
+          // Empty space (or someone else's object, which is never
+          // selectable — see _findMyObjectAt) — drop whatever was
+          // selected and start a rubber-band drag instead. A drag that
+          // never moves (a plain click) naturally ends up selecting
+          // nothing in the finish() handler below, which is exactly
+          // "click empty space to deselect".
+          self._selectedIds = new Set();
+          self._activeRubberBand = { start: pos, current: pos };
+          self._activePtrs[e.pointerId] = { rubberBand: true };
+          self._dirty = true;
+          return;
+        }
+        // Clicking a member of an existing MULTI-selection drags the
+        // whole group without disturbing it; anything else (an unselected
+        // object, or the lone member of a single-selection) refocuses the
+        // selection to just that one object first.
+        var ids;
+        if (self._selectedIds.has(target.data.id) && self._selectedIds.size > 1) {
+          ids = Array.from(self._selectedIds);
+        } else {
+          ids = [target.data.id];
+          self._selectedIds = new Set(ids);
+        }
+        var startOffsets = {};
+        ids.forEach(function (id) { startOffsets[id] = self._myObjectOffsets.get(id) || { dx: 0, dy: 0 }; });
         self._activePtrs[e.pointerId] = {
-          moving: true, objId: target.data.id, dragStart: pos,
-          offsetStartX: startOffset.dx, offsetStartY: startOffset.dy,
+          moving: true, objIds: ids, dragStart: pos, startOffsets: startOffsets,
           lastSentAt: 0, lastSentPos: null
         };
+        self._dirty = true; // repaint highlight boxes for the (possibly just-changed) selection
         el.style.cursor = 'grabbing';
         return;
       }
@@ -1045,15 +1095,30 @@
       }
       var pos = self._getPos(e);
       if (st.erasing) { self._eraseAt(pos); return; }
+      if (st.rubberBand) {
+        self._activeRubberBand.current = pos;
+        self._dirty = true;
+        return;
+      }
       if (st.moving) {
-        var mdx = st.offsetStartX + (pos.x - st.dragStart.x);
-        var mdy = st.offsetStartY + (pos.y - st.dragStart.y);
-        self._setObjectOffset(st.objId, mdx, mdy);
-        self._myObjectOffsets.set(st.objId, { dx: mdx, dy: mdy });
+        // One shared (groupDx,groupDy) applied on top of each object's OWN
+        // starting offset — a rigid group translation, so objects that
+        // already sat at different individual offsets (from an earlier,
+        // separate move) keep their relative positions to each other.
+        var groupDx = pos.x - st.dragStart.x;
+        var groupDy = pos.y - st.dragStart.y;
+        var moves = st.objIds.map(function (id) {
+          var so = st.startOffsets[id];
+          var nx = so.dx + groupDx, ny = so.dy + groupDy;
+          self._setObjectOffset(id, nx, ny);
+          self._myObjectOffsets.set(id, { dx: nx, dy: ny });
+          return { id: id, offsetX: nx, offsetY: ny };
+        });
+        self._dirty = true; // keep selection highlight boxes tracking the moved objects
         var mnow = (global.performance || Date).now();
         var mmoved = !st.lastSentPos || dist(st.lastSentPos, pos) >= BROADCAST_PX;
         if (mmoved || mnow - st.lastSentAt >= BROADCAST_MS) {
-          self._send('object:move', { id: st.objId, offsetX: mdx, offsetY: mdy });
+          self._send('object:move', { moves: moves });
           st.lastSentAt = mnow;
           st.lastSentPos = pos;
         }
@@ -1090,14 +1155,30 @@
       delete self._activePtrs[e.pointerId];
       if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
+      if (st.rubberBand) {
+        var rect = normalizedRect(self._activeRubberBand.start, self._activeRubberBand.current);
+        self._activeRubberBand = null;
+        var ids = [];
+        self._fabricCanvas.getObjects().forEach(function (obj) {
+          if (!obj.data || obj.data.ownerId !== self._userId) return;
+          var b = self._myObjectBounds(obj.data.id);
+          if (b && rectsIntersect(rect, b)) ids.push(obj.data.id);
+        });
+        self._selectedIds = new Set(ids);
+        self._dirty = true;
+        return;
+      }
       if (st.moving) {
         el.style.cursor = 'default';
-        var finalOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
         // Unthrottled — the throttled broadcasts during the drag may have
         // skipped the very last point, and this is the one every other
         // viewer needs to land on exactly.
-        self._send('object:move', { id: st.objId, offsetX: finalOff.dx, offsetY: finalOff.dy });
-        self._persistObjectMove(st.objId, finalOff.dx, finalOff.dy);
+        var finalMoves = st.objIds.map(function (id) {
+          var off = self._myObjectOffsets.get(id) || { dx: 0, dy: 0 };
+          return { id: id, offsetX: off.dx, offsetY: off.dy };
+        });
+        self._send('object:move', { moves: finalMoves });
+        finalMoves.forEach(function (m) { self._persistObjectMove(m.id, m.offsetX, m.offsetY); });
         return;
       }
       self._flush(st);
@@ -1130,6 +1211,7 @@
       delete self._activePtrs[e.pointerId];
       if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
+      if (st.rubberBand) { self._activeRubberBand = null; self._dirty = true; return; }
       if (st.moving) {
         // Snap back to wherever it was before this drag — same "the whole
         // in-progress gesture is discarded" semantics as a cancelled
@@ -1137,9 +1219,14 @@
         // object already existed. Nothing was ever sent to the DB for a
         // cancelled drag, so there's nothing to undo there either.
         el.style.cursor = 'default';
-        self._setObjectOffset(st.objId, st.offsetStartX, st.offsetStartY);
-        self._myObjectOffsets.set(st.objId, { dx: st.offsetStartX, dy: st.offsetStartY });
-        self._send('object:move', { id: st.objId, offsetX: st.offsetStartX, offsetY: st.offsetStartY });
+        var revertMoves = st.objIds.map(function (id) {
+          var so = st.startOffsets[id];
+          self._setObjectOffset(id, so.dx, so.dy);
+          self._myObjectOffsets.set(id, so);
+          return { id: id, offsetX: so.dx, offsetY: so.dy };
+        });
+        self._dirty = true;
+        self._send('object:move', { moves: revertMoves });
         return;
       }
       self._liveStrokes.delete('m:' + st.strokeId);
@@ -1244,13 +1331,18 @@
       .on('broadcast', { event: 'stroke:point' }, function (msg) { self._onRemotePoint(msg.payload); })
       .on('broadcast', { event: 'stroke:end' },   function (msg) { self._onRemoteStrokeEnd(msg.payload); })
       .on('broadcast', { event: 'stroke:cancel' }, function (msg) { self._liveStrokes.delete('r:' + msg.payload.strokeId); self._dirty = true; })
-      // Live, ephemeral drag position from the "select" tool — same
+      // Live, ephemeral drag position(s) from the "select" tool — same
       // Broadcast-not-persisted channel as a stroke's own in-progress
-      // points, see _bindPointerEvents' 'moving' branch. Applies to ANY
-      // object regardless of whose it is, since a REMOTE participant is
-      // the one dragging THEIR OWN object here — _setObjectOffset doesn't
-      // care about ownership, only _findMyObjectAt (my own hit-testing) does.
-      .on('broadcast', { event: 'object:move' }, function (msg) { self._setObjectOffset(msg.payload.id, msg.payload.offsetX, msg.payload.offsetY); })
+      // points, see _bindPointerEvents' 'moving' branch. Batched (one or
+      // more {id,offsetX,offsetY} moves per message) since dragging a
+      // multi-selection moves every selected object in the same gesture.
+      // Applies to ANY object regardless of whose it is, since a REMOTE
+      // participant is the one dragging THEIR OWN object(s) here —
+      // _setObjectOffset doesn't care about ownership, only
+      // _findMyObjectAt (my own hit-testing) does.
+      .on('broadcast', { event: 'object:move' }, function (msg) {
+        (msg.payload.moves || []).forEach(function (m) { self._setObjectOffset(m.id, m.offsetX, m.offsetY); });
+      })
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
       }, function (p) {
@@ -1347,6 +1439,21 @@
       strokeLineJoin: 'round',
       selectable: false,
       evented: false,
+      // Fabric objects default to objectCaching:true — rendering from a
+      // cached BITMAP (rasterized once at whatever resolution it happened
+      // to need at the time) rather than fresh from the vector path data
+      // on every paint. That cache doesn't reliably regenerate at a new
+      // resolution when OUR OWN custom setViewportTransform changes the
+      // zoom (see _syncViewport) the way it would for zoom driven through
+      // Fabric's own built-in interactions — it silently kept reusing a
+      // bitmap rasterized for an earlier, often much lower, zoom and
+      // stretched it up, which is exactly what was making committed
+      // strokes look blurry at high zoom despite an otherwise-crisp
+      // backing store. Off entirely, a stroke is always re-rasterized
+      // straight from its path data at the CURRENT zoom, so it's exactly
+      // as sharp at 400% as at 100% — the small number of on-screen
+      // strokes here never made caching earn its keep anyway.
+      objectCaching: false,
       data: { id: row.id, ownerId: row.created_by }
     });
     // Natural position captured BEFORE applying any stored move offset —
@@ -1375,6 +1482,7 @@
     this._objectNaturalPos.delete(id);
     this._myObjectOffsets.delete(id);
     this._myObjectsJson.delete(id);
+    if (this._selectedIds.delete(id)) this._dirty = true; // drop its now-stale highlight box too
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
     if (obj) this._fabricCanvas.remove(obj);
   };
@@ -1477,6 +1585,23 @@
     return null;
   };
 
+  // MY OWN object's current logical-space bounding box (already shifted
+  // by whatever the "select" tool has moved it) — used both for the
+  // rubber-band's own hit-testing (does this box intersect the dragged
+  // rectangle?) and for drawing its highlight in _drawSelectionOverlay.
+  Whiteboard.prototype._myObjectBounds = function (id) {
+    var pts = this._myTranslatedPoints(id);
+    if (!pts || !pts.length) return null;
+    var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+    pts.forEach(function (p) {
+      if (p.x < minX) minX = p.x;
+      if (p.x > maxX) maxX = p.x;
+      if (p.y < minY) minY = p.y;
+      if (p.y > maxY) maxY = p.y;
+    });
+    return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
+  };
+
   // Repositions ANY object — mine (a live drag) or someone else's (an
   // incoming remote move, see _onRemoteObjectMove/_applyObjectUpdate) —
   // to natural position + (dx,dy). Always relative to the object's own
@@ -1512,7 +1637,7 @@
           var prevDx = json.offsetX || 0, prevDy = json.offsetY || 0;
           self._setObjectOffset(objId, prevDx, prevDy);
           self._myObjectOffsets.set(objId, { dx: prevDx, dy: prevDy });
-          self._send('object:move', { id: objId, offsetX: prevDx, offsetY: prevDy });
+          self._send('object:move', { moves: [{ id: objId, offsetX: prevDx, offsetY: prevDy }] });
           return;
         }
         self._myObjectsJson.set(objId, newJson);
@@ -1648,6 +1773,62 @@
       if (st.shape) drawStraightStroke(ctx, st.points[0], st.points[st.points.length - 1], st.color, st.width, st.opacity, st.shape);
       else drawSmoothStroke(ctx, st.points, st.color, st.width, st.opacity);
     });
+    this._drawSelectionOverlay(ctx);
+  };
+
+  // "select" tool decorations, drawn on top of every live stroke above:
+  // a light highlight box around each currently-selected object (individually,
+  // idroo-style), a dashed box around the union of all of them when 2+ are
+  // selected (so a multi-selection reads as one group at a glance), and the
+  // rubber-band rectangle itself while a selection drag is in progress.
+  // Recomputed fresh from each object's CURRENT bounding box on every
+  // redraw rather than cached, so a highlight tracks its object through a
+  // drag without any extra bookkeeping of its own.
+  Whiteboard.prototype._drawSelectionOverlay = function (ctx) {
+    var self = this;
+    var pad = 10; // logical units of breathing room around each box
+    var hairline = 1.5 / this._scale; // a true ~1.5 device px at any zoom, same technique as the grid
+    var boxes = [];
+    this._selectedIds.forEach(function (id) {
+      var b = self._myObjectBounds(id);
+      if (!b) return;
+      boxes.push(b);
+      ctx.save();
+      ctx.fillStyle = 'rgba(37,99,235,0.12)';
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = hairline;
+      var x = b.minX - pad, y = b.minY - pad, w = (b.maxX - b.minX) + pad * 2, h = (b.maxY - b.minY) + pad * 2;
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, 6);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    });
+    if (boxes.length > 1) {
+      var u = boxes.reduce(function (acc, b) {
+        return {
+          minX: Math.min(acc.minX, b.minX), minY: Math.min(acc.minY, b.minY),
+          maxX: Math.max(acc.maxX, b.maxX), maxY: Math.max(acc.maxY, b.maxY)
+        };
+      });
+      var gp = pad * 1.6;
+      ctx.save();
+      ctx.strokeStyle = '#2563eb';
+      ctx.setLineDash([6, 4].map(function (n) { return n / this._scale; }, this));
+      ctx.lineWidth = hairline;
+      ctx.strokeRect(u.minX - gp, u.minY - gp, (u.maxX - u.minX) + gp * 2, (u.maxY - u.minY) + gp * 2);
+      ctx.restore();
+    }
+    if (this._activeRubberBand) {
+      var r = normalizedRect(this._activeRubberBand.start, this._activeRubberBand.current);
+      ctx.save();
+      ctx.fillStyle = 'rgba(37,99,235,0.10)';
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = 1 / this._scale;
+      ctx.fillRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
+      ctx.strokeRect(r.minX, r.minY, r.maxX - r.minX, r.maxY - r.minY);
+      ctx.restore();
+    }
   };
 
   /* ---- Teardown ---- */
