@@ -9714,7 +9714,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 /* Compact on purpose — this is a rarely-touched settings card (password,
    session), so it shouldn't compete visually with the reviews card above
    it the way a full prof-header does. */
-.prof-header--profile { flex-direction: column; align-items: stretch; padding: 18px 28px; }
+.prof-header--profile { flex-direction: column; align-items: stretch; gap: 0; padding: 18px 28px; }
 .prof-identity-row { display: flex; align-items: center; gap: 24px; }
 .prof-divider { border-top: 1.5px solid var(--border); margin: 14px -28px; }
 .prof-section__title {
