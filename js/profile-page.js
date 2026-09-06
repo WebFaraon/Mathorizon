@@ -812,7 +812,11 @@
       const lbl = e.target.closest('label');
       if (lbl) lbl.style.opacity = '0.5';
       try {
-        const dataUrl  = await _compressImage(file);
+        // 500px, not the old 200 — the avatar now displays as large as
+        // ~200px CSS (bigger still on a business-card header), and 200px
+        // source pixels look visibly soft blown up that large, worse yet
+        // on a retina screen.
+        const dataUrl  = await _compressImage(file, 500);
         const blob     = _dataUrlToBlob(dataUrl);
         const filePath = `${user.id}.jpg`;
 
@@ -847,7 +851,7 @@
         const wrap = document.querySelector('.prof-avatar-lg');
         if (wrap) wrap.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`;
         const navBtn = document.getElementById('navProfileBtn');
-        if (navBtn) navBtn.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar">`;
+        if (navBtn) navBtn.innerHTML = `<img src="${publicUrl}" alt="${BM.esc(name)}" class="nav-profile-avatar"><span class="nav-profile-name">${BM.esc(name)}</span>`;
         BM.toast('Poza de profil actualizată!', 'success');
       } catch (err) {
         BM.toast('Eroare: ' + (err?.message || 'necunoscută'), 'error');
@@ -864,7 +868,7 @@
       const lbl = e.target.closest('label');
       if (lbl) lbl.style.opacity = '0.5';
       try {
-        const dataUrl  = await _compressImage(file, 1200);
+        const dataUrl  = await _compressImage(file, 1600);
         const blob     = _dataUrlToBlob(dataUrl);
         const filePath = `${user.id}-cover.jpg`;
 
