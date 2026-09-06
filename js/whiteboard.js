@@ -56,6 +56,15 @@
   var MIN_ZOOM = 1;
   var MAX_ZOOM = 4;
   var ZOOM_STEP = 0.25;
+  // How many times bigger than "fits its own container" the overlay's
+  // backing store is allowed to get before _applySize starts trading dpr
+  // sharpness for paint cost — see the comment there. 3 means full
+  // device-pixel-ratio sharpness survives through 3x zoom on ANY
+  // container size; only the last stretch up to MAX_ZOOM tapers it down
+  // instead of letting the backing store (and the cost of clearing +
+  // redrawing it every frame while a stroke is in progress) keep growing
+  // unchecked.
+  var DPR_HEADROOM = 3;
 
   // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
   // easy to lose against the board's own white background. Same fix (and
@@ -403,9 +412,9 @@
       } else if (redoBtn && !redoBtn.disabled) {
         self.redo();
       } else if (zoomInBtn && !zoomInBtn.disabled) {
-        self._setZoom(self._zoom + ZOOM_STEP);
+        self._setZoom(self._currentOrPendingZoom() + ZOOM_STEP);
       } else if (zoomOutBtn && !zoomOutBtn.disabled) {
-        self._setZoom(self._zoom - ZOOM_STEP);
+        self._setZoom(self._currentOrPendingZoom() - ZOOM_STEP);
       }
     });
   };
@@ -489,7 +498,7 @@
     this._canvasWrap.addEventListener('wheel', function (e) {
       if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
-      self._setZoom(self._zoom * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
+      self._setZoom(self._currentOrPendingZoom() * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
     }, { passive: false });
   };
 
@@ -522,24 +531,29 @@
     var cssH  = LOGICAL_H * scale;
     var dpr   = Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
-    // Cap the overlay's PHYSICAL backing store relative to the device's
-    // own screen resolution — same technique and reasoning as
-    // js/drawing-canvas.js's own _resize. A big desktop monitor at high
-    // zoom (e.g. 400%) was producing a backing store many times larger
-    // than the screen can even show, and _redrawOverlay clears + redraws
-    // the WHOLE thing every single frame for as long as a stroke is in
-    // progress — that's what actually lagged, not Fabric (it only
-    // re-renders once per FINISHED stroke, never mid-gesture). A phone
-    // screen has far fewer physical pixels to begin with, so the same
-    // 400% never got anywhere near this ceiling there — which is exactly
-    // why only desktop showed the lag. Reduces dpr only, never the CSS
-    // size/scale itself, so logical<->screen coordinate math (_getPos
-    // etc., all in terms of _scale) is completely unaffected — this only
-    // trims retina sharpness back down once it would be wasted anyway.
-    var screenPhysW = (global.screen ? global.screen.width  : global.innerWidth)  * (global.devicePixelRatio || 1);
-    var screenPhysH = (global.screen ? global.screen.height : global.innerHeight) * (global.devicePixelRatio || 1);
-    var maxPhysW = screenPhysW * 1.5;
-    var maxPhysH = screenPhysH * 1.5;
+    // Cap the overlay's PHYSICAL backing store relative to THIS
+    // CONTAINER's own size — same technique js/drawing-canvas.js's own
+    // _resize uses, but tied to the container rather than the device's
+    // full screen resolution. A whiteboard panel is usually a fraction of
+    // the screen (a class-page layout, not a fullscreen app), so screen
+    // resolution was the wrong proxy either way: on a big desktop monitor
+    // it stayed generous enough that a large panel at high zoom (e.g.
+    // 400%) still produced a backing store many times larger than
+    // anything on screen — and _redrawOverlay clears + redraws the WHOLE
+    // thing every frame for as long as a stroke is in progress, which is
+    // what actually lagged, not Fabric (it only re-renders once per
+    // FINISHED stroke, never mid-gesture). On a phone it swung the other
+    // way and started softening the live stroke well before MAX_ZOOM, at
+    // ordinary zoom levels — the exact "looks pixelated while drawing"
+    // complaint. Tied to the container instead, a viewer keeps full dpr
+    // sharpness through a generous, size-independent zoom range (see
+    // DPR_HEADROOM) no matter what device or panel size they're on, and
+    // only the far end of the zoom range trades sharpness for staying
+    // responsive. Reduces dpr only, never the CSS size/scale itself, so
+    // logical<->screen coordinate math (_getPos etc., all in terms of
+    // _scale) is completely unaffected.
+    var maxPhysW = availW * dpr * DPR_HEADROOM;
+    var maxPhysH = availH * dpr * DPR_HEADROOM;
     var targetPhysW = cssW * dpr;
     var targetPhysH = cssH * dpr;
     if (targetPhysW > maxPhysW || targetPhysH > maxPhysH) {
@@ -573,8 +587,42 @@
   // js/drawing-canvas.js's own _setZoom uses, just against scrollLeft/Top
   // instead of a ctx.scale'd canvas. Omitted (toolbar buttons, keyboard),
   // it anchors to the center of whatever's currently visible instead.
+  //
+  // Coalesced to at most once per animation frame: a fast wheel or pinch
+  // gesture can fire far more raw events per second than the display can
+  // even paint, and applying a new zoom forces Fabric to resize its
+  // backing store and re-render every committed stroke — doing that once
+  // per RAW EVENT rather than once per FRAME (this used to run its full
+  // body synchronously, inline, on every call) was the actual source of
+  // the reported zoom lag, not the rendering cost itself. Only the latest
+  // requested zoom/anchor per frame is kept; anything superseded before
+  // its frame comes up is simply dropped, same as any other rAF-coalesced
+  // input handler.
   Whiteboard.prototype._setZoom = function (z, clientX, clientY) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
+    this._pendingZoom = { z: z, clientX: clientX, clientY: clientY };
+    if (this._zoomRafId) return;
+    var self = this;
+    this._zoomRafId = requestAnimationFrame(function () {
+      self._zoomRafId = null;
+      self._applyPendingZoom();
+    });
+  };
+
+  // The zoom value a caller should treat as "current" while a zoom is
+  // in flight — the wheel handler computes its next zoom multiplicatively
+  // off of whatever's already requested (self._zoom alone would be stale
+  // until the pending one actually applies, under-zooming a fast scroll
+  // that fires several events inside one frame).
+  Whiteboard.prototype._currentOrPendingZoom = function () {
+    return this._pendingZoom ? this._pendingZoom.z : this._zoom;
+  };
+
+  Whiteboard.prototype._applyPendingZoom = function () {
+    var pending = this._pendingZoom;
+    this._pendingZoom = null;
+    if (!pending || this._destroyed) return;
+    var z = pending.z, clientX = pending.clientX, clientY = pending.clientY;
     if (z === this._zoom) return;
     var wrap = this._canvasWrap;
     var wrapRect = wrap.getBoundingClientRect();
@@ -1145,6 +1193,7 @@
   Whiteboard.prototype.destroy = function () {
     this._destroyed = true;
     if (this._rafId) cancelAnimationFrame(this._rafId);
+    if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     clearTimeout(this._resizeTimer);
     if (this._ro) this._ro.disconnect();
     if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);

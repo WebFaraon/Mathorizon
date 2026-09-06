@@ -16466,15 +16466,66 @@ body.dc-fullscreen-active .dc-toolbar {
     flex-shrink: 0;
   }
 
-  /* Tablă live's own mobile layout: a narrow column on the RIGHT instead
-     of a row along the bottom. A bottom toolbar row plus the header above
-     it (brand/title/roster) left very little of a portrait phone's
-     already-tight height for the actual board — moving the toolbar to a
-     side column gives the canvas the full remaining height instead, only
-     trading a slim strip off one side. .wb-board (DOM order: toolbar then
-     .wb-canvas-outer) uses row-reverse rather than reordering the markup,
-     so the toolbar lands on the right without existing keyboard-shortcut/
-     query-by-role code caring which visual side it's on. */
+  .dc-canvas-wrap {
+    min-height: 72vh;
+  }
+
+  /* The exercise panel was eating almost the whole screen on phones
+     (max-height was a desktop-sized 46vh, width nearly full viewport). */
+  .dc-mini-exercise {
+    top: 8px;
+    right: 8px;
+    left: 8px;
+    width: auto;
+    max-height: 28vh;
+    padding: 10px 12px;
+  }
+  .dc-mini-exercise__statement { font-size: 0.74rem; }
+
+  .dc-tool-group--extras {
+    justify-content: flex-start;
+  }
+}
+
+/* ---- Tablă live (js/whiteboard.js): orientation-aware toolbar ----
+   Orientation, not viewport width, decides where the toolbar sits — a
+   phone rotated to landscape can be nearly as WIDE as a small laptop
+   window, so a width-only breakpoint can't tell "phone, either
+   orientation" apart from "laptop, landscape" the way it could for a
+   plain narrow-vs-wide check.
+
+   Portrait phone: toolbar stays anchored at the TOP — .wb-board's default
+   (desktop) column layout above already puts it there, so nothing here
+   repositions it; this block only keeps the many tool groups from
+   wrapping into 2-3 rows and eating a big slice of an already-short
+   portrait viewport, same nowrap + horizontal-scroll treatment
+   .dc-wrap's own mobile toolbar uses above.
+
+   Landscape phone: toolbar moves to a narrow column on the RIGHT instead
+   — the header above the board plus a top or bottom toolbar row would
+   leave very little of a landscape phone's already-short HEIGHT for the
+   actual board, so a side column trades a slim strip off one side
+   instead. Gated on max-height (not max-width) specifically because
+   that's what tells a landscape PHONE (short) apart from a landscape
+   tablet/laptop (tall enough that the normal top-row layout already
+   works fine) — width alone can't, per the note above. */
+@media (max-width: 640px) and (orientation: portrait) {
+  .wb-board .dc-toolbar {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    -webkit-overflow-scrolling: touch;
+  }
+  .wb-board .dc-tool-group {
+    flex-shrink: 0;
+  }
+}
+
+@media (orientation: landscape) and (max-height: 500px) {
+  /* .wb-board (DOM order: toolbar then .wb-canvas-outer) uses row-reverse
+     rather than reordering the markup, so the toolbar lands on the right
+     without existing keyboard-shortcut/query-by-role code caring which
+     visual side it's on. */
   .wb-board {
     flex-direction: row-reverse;
   }
@@ -16509,26 +16560,6 @@ body.dc-fullscreen-active .dc-toolbar {
   .wb-board .dc-zoom-label {
     font-size: 0.62rem;
     white-space: nowrap;
-  }
-
-  .dc-canvas-wrap {
-    min-height: 72vh;
-  }
-
-  /* The exercise panel was eating almost the whole screen on phones
-     (max-height was a desktop-sized 46vh, width nearly full viewport). */
-  .dc-mini-exercise {
-    top: 8px;
-    right: 8px;
-    left: 8px;
-    width: auto;
-    max-height: 28vh;
-    padding: 10px 12px;
-  }
-  .dc-mini-exercise__statement { font-size: 0.74rem; }
-
-  .dc-tool-group--extras {
-    justify-content: flex-start;
   }
 }
 
