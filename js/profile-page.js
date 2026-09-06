@@ -495,23 +495,23 @@
               </div>
 
               <div class="prof-rating-row">
-                <span class="prof-stars">${_starsHTML(reviewsData.avg, 16)}</span>
+                <span class="prof-stars">${_starsHTML(reviewsData.avg, 20)}</span>
                 ${reviewsData.count
                   ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
                   : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
               </div>
 
               <div class="prof-contact-row">
-                ${country ? `<span class="prof-contact-item">${icon('map-pin', { size: 16 })} ${BM.esc(country)}</span>` : ''}
-                ${email ? `<span class="prof-contact-item">${icon('mail', { size: 16 })} ${BM.esc(email)}</span>` : ''}
-                ${phone ? `<span class="prof-contact-item">${icon('phone', { size: 16 })} ${BM.esc(phone)}</span>` : ''}
-                ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${icon('link', { size: 16 })} ${BM.esc(socialDisplay)}</a>` : ''}
-                <span class="prof-contact-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
+                ${country ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--blue">${icon('map-pin', { size: 16 })}</span> ${BM.esc(country)}</span>` : ''}
+                ${email ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--green">${icon('mail', { size: 16 })}</span> ${BM.esc(email)}</span>` : ''}
+                ${phone ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--yellow">${icon('phone', { size: 16 })}</span> ${BM.esc(phone)}</span>` : ''}
+                ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer"><span class="prof-contact-icon prof-contact-icon--teal">${icon('link', { size: 16 })}</span> ${BM.esc(socialDisplay)}</a>` : ''}
+                <span class="prof-contact-item"><span class="prof-contact-icon">${icon('calendar', { size: 16 })}</span> Membru din ${memberSince}</span>
               </div>
+
+              <p class="prof-bio${bio ? '' : ' prof-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
             </div>
           </div>
-
-          <p class="prof-bio${bio ? '' : ' prof-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
         </div>
       </div>
 
