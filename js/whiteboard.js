@@ -56,15 +56,6 @@
   var MIN_ZOOM = 1;
   var MAX_ZOOM = 4;
   var ZOOM_STEP = 0.25;
-  // How many times bigger than "fits its own container" the overlay's
-  // backing store is allowed to get before _applySize starts trading dpr
-  // sharpness for paint cost — see the comment there. 3 means full
-  // device-pixel-ratio sharpness survives through 3x zoom on ANY
-  // container size; only the last stretch up to MAX_ZOOM tapers it down
-  // instead of letting the backing store (and the cost of clearing +
-  // redrawing it every frame while a stroke is in progress) keep growing
-  // unchecked.
-  var DPR_HEADROOM = 3;
 
   // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
   // easy to lose against the board's own white background. Same fix (and
@@ -186,6 +177,69 @@
     ctx.restore();
   }
 
+  // The two open-chevron "barb" endpoints of an arrowhead at p1, pointing
+  // back toward p0 — shared by straightPathString (the committed SVG path)
+  // and drawStraightStroke (the live preview) so a stroke never visibly
+  // "snaps" to a differently-shaped head the instant it's finalized, same
+  // reasoning as smoothPathString/drawSmoothStroke's own split above.
+  function arrowBarbPoints(p0, p1) {
+    var dx = p1.x - p0.x, dy = p1.y - p0.y;
+    var len = Math.sqrt(dx * dx + dy * dy) || 1;
+    var theta = Math.atan2(dy, dx);
+    // Scales down for a short arrow (so the head doesn't dwarf the shaft)
+    // but caps out for a long one (so it doesn't grow huge) — 14..28
+    // logical units either way.
+    var headLen = Math.min(28, Math.max(14, len * 0.28));
+    var spread = Math.PI / 7; // ~25.7° off the reverse-of-shaft direction, each side
+    return [1, -1].map(function (sign) {
+      var ang = theta + Math.PI + sign * spread;
+      return { x: p1.x + headLen * Math.cos(ang), y: p1.y + headLen * Math.sin(ang) };
+    });
+  }
+
+  // Straight-line tools (line/dashed-line/arrow) — a plain 2-point path,
+  // no smoothing (unlike smoothPathString's freehand curve-fit) since
+  // these are meant to look ruler-straight. 'arrow' appends a second
+  // subpath (a fresh M) for the chevron head — parsePathPoints' own
+  // tokenizer doesn't distinguish M from L, so the eraser's hit-testing
+  // reconstruction still picks up all of it (with one harmless, invisible
+  // zero-length "connector" between subpaths — see its own comment).
+  function straightPathString(p0, p1, shape) {
+    var d = 'M ' + p0.x + ' ' + p0.y + ' L ' + p1.x + ' ' + p1.y;
+    if (shape !== 'arrow') return d;
+    var barbs = arrowBarbPoints(p0, p1);
+    d += ' M ' + barbs[0].x + ' ' + barbs[0].y + ' L ' + p1.x + ' ' + p1.y + ' L ' + barbs[1].x + ' ' + barbs[1].y;
+    return d;
+  }
+
+  // Live preview of an in-progress line/dashed-line/arrow — see the
+  // shape-tool branch in _bindPointerEvents for how p0/p1 are tracked
+  // (always exactly the gesture's start and current point, never a full
+  // polyline the way freehand drawing accumulates one).
+  function drawStraightStroke(ctx, p0, p1, color, width, opacity, shape) {
+    ctx.save();
+    ctx.globalAlpha = opacity == null ? 1 : opacity;
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = width;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.setLineDash(shape === 'dashed-line' ? [width * 3, width * 2.4] : []);
+    ctx.beginPath();
+    ctx.moveTo(p0.x, p0.y);
+    ctx.lineTo(p1.x, p1.y);
+    ctx.stroke();
+    if (shape === 'arrow') {
+      var barbs = arrowBarbPoints(p0, p1);
+      ctx.setLineDash([]);
+      ctx.beginPath();
+      ctx.moveTo(barbs[0].x, barbs[0].y);
+      ctx.lineTo(p1.x, p1.y);
+      ctx.lineTo(barbs[1].x, barbs[1].y);
+      ctx.stroke();
+    }
+    ctx.restore();
+  }
+
   /**
    * @param {HTMLElement} container - mounted into this element (emptied first? no — caller owns that)
    * @param {object} opts
@@ -197,6 +251,15 @@
    *   locked     - this participant's current write-lock state (also
    *                whiteboard_participants.locked) — kept live afterwards
    *                via setLocked(), not re-read from here again.
+   *   isTeacher  - whether THIS participant is the class teacher — the
+   *                only one who gets the grid toggle in their toolbar at
+   *                all (see _build/setGridEnabled).
+   *   gridOn     - the session's CURRENT grid state (whiteboard_sessions.
+   *                grid_enabled) — a global, teacher-controlled setting
+   *                shared by every participant, not a per-viewer
+   *                preference; kept live afterwards via setGridEnabled(),
+   *                wired from js/class-page.js's session subscription,
+   *                same shape as locked/setLocked above.
    */
   function Whiteboard(container, opts) {
     this._supabase  = opts.supabase;
@@ -205,12 +268,14 @@
     this._userId    = opts.userId;
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
-    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser'
+    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'line' | 'dashed-line' | 'arrow' | 'pan'
     // Blocked by the teacher (whiteboard_participants.locked) — see
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
     // lock lands is left to finish rather than yanked away mid-draw.
     this._locked    = !!opts.locked;
+    this._isTeacher = !!opts.isTeacher;
+    this._gridOn    = !!opts.gridOn;
 
     this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width, opacity}
     this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos, erasing, panning}
@@ -243,15 +308,27 @@
     this._rafId       = null;
     this._destroyed    = false;
     // _scale is the TOTAL effective logical->CSS-px scale (_baseScale *
-    // _zoom) — every existing pointer/render call site already read
-    // this._scale before zoom existed, so keeping it as the combined value
-    // means _getPos, _redrawOverlay etc. didn't need to change at all;
-    // only _applySize (which computes it) and the new zoom/pan code below
-    // needed to know about the two factors separately.
+    // _zoom) — _getPos/_redrawOverlay/_redrawGrid/Fabric's own
+    // viewportTransform all read this combined value directly, so only
+    // _applySize (which computes it) and the zoom code need to know about
+    // the two factors separately.
     this._scale     = 1;
     this._baseScale = 1; // the "whole board fits the container" scale alone
     this._zoom      = MIN_ZOOM;
     this._dpr   = 1;
+    // _panX/_panY: the "camera" — canvas-pixel translation applied on top
+    // of _scale (Fabric's own viewportTransform is exactly [_scale, 0, 0,
+    // _scale, _panX, _panY], see _syncViewport). null here specifically
+    // (not 0) is how _applySize tells "never sized before" apart from "sized
+    // before, camera legitimately at 0,0" — see its own comment.
+    this._panX = null;
+    this._panY = null;
+    // Last viewport size _applySize actually computed a camera for — needed
+    // because a resize's ResizeObserver callback only sees the NEW size on
+    // this._canvasWrap by the time it runs, and re-centering across a
+    // resize needs the OLD size too (see _applySize).
+    this._viewportW = null;
+    this._viewportH = null;
 
     this._build(container);
     this._initFabric();
@@ -266,7 +343,13 @@
   /* ---- DOM ---- */
 
   var GRID_ICON = '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>';
-  var GRID_CELL_LOGICAL = 40; // in logical units — converted to real px per viewer's own scale, see _applySize
+  // The grid's desired ON-SCREEN cell size, in CSS px — NOT a logical size.
+  // _redrawGrid derives the actual logical spacing from this fresh on every
+  // redraw (target ÷ current scale), so cells stay this same size on
+  // screen at any zoom instead of growing/shrinking (and, at high zoom,
+  // becoming too coarse to write comfortably against) the way a fixed
+  // LOGICAL spacing would.
+  var GRID_CELL_TARGET_PX = 40;
 
   // Same icon glyphs js/drawing-canvas.js uses for these exact tools/actions
   // — one consistent visual language across every drawing surface in the
@@ -275,6 +358,14 @@
   var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
   var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
   var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
+  // Same plain-diagonal glyph as the geometry figure editor's own segment
+  // tool (js/geometry-figure-editor.js's TOOL_ICONS.segment /
+  // 'segment-dashed'), minus its draggable-endpoint dots — a whiteboard
+  // line isn't editable after the fact the way a geometry segment is, so
+  // there's nothing for those dots to represent here.
+  var LINE_ICON         = '<path d="M5 19 19 5"/>';
+  var DASHED_LINE_ICON  = '<path d="M5 19 19 5" stroke-dasharray="3.6 3.2"/>';
+  var ARROW_ICON        = '<path d="M5 19 19 5"/><path d="M19 5 12 7"/><path d="M19 5 17 12"/>';
   var PAN_ICON         = '<rect x="6" y="11" width="12" height="9" rx="3"/><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5"/><path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6"/>';
   var UNDO_ICON        = '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>';
   var ZOOM_OUT_ICON    = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>';
@@ -296,6 +387,9 @@
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
+          toolBtn('line', LINE_ICON, 'Linie dreaptă') +
+          toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată') +
+          toolBtn('arrow', ARROW_ICON, 'Săgeată') +
           toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
         '</div>' +
         '<div class="dc-tool-group">' +
@@ -306,11 +400,16 @@
               '<span class="dc-width-dot" style="width:' + dotSize + 'px;height:' + dotSize + 'px"></span></button>';
           }).join('') +
         '</div>' +
+        // Grid ON/OFF is a global, teacher-controlled session setting (see
+        // setGridEnabled) — a student never gets this button at all, not
+        // just a disabled one, so their toolbar doesn't imply a control
+        // they don't have.
+        (this._isTeacher ?
         '<div class="dc-tool-group">' +
-          '<button type="button" class="dc-action-btn" id="wbGridBtn" title="Arată grila">' +
+          '<button type="button" class="dc-action-btn' + (this._gridOn ? ' dc-action-btn--active' : '') + '" id="wbGridBtn" title="' + (this._gridOn ? 'Ascunde grila' : 'Arată grila') + '">' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + GRID_ICON + '</svg>' +
           '</button>' +
-        '</div>' +
+        '</div>' : '') +
         '<div class="dc-tool-group">' +
           '<button type="button" class="dc-action-btn" id="wbZoomOutBtn" title="Micșorează" disabled>' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ZOOM_OUT_ICON + '</svg>' +
@@ -338,27 +437,30 @@
           '<span>Profesorul a blocat temporar scrisul tău pe această tablă</span>' +
         '</div>' +
         '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
-          '<div class="wb-canvas-inner" id="wbCanvasInner">' +
-            '<canvas id="wbFabricCanvas"></canvas>' +
-          '</div>' +
+          '<canvas class="wb-grid-canvas" id="wbGridCanvas"></canvas>' +
+          '<canvas id="wbFabricCanvas"></canvas>' +
         '</div>' +
       '</div>';
     container.appendChild(wrap);
 
     this._wrap       = wrap;
     this._toolbarEl  = wrap.querySelector('.wb-toolbar');
-    // .wb-canvas-wrap (not -outer) is the actual pan/zoom scroll container
-    // — see the CSS comment on .wb-canvas-outer for why the locked banner
-    // needed pulling out of it into its own non-overlapping strip instead
-    // of floating on top of the canvas.
+    // .wb-canvas-wrap (not -outer) is the actual pan/zoom viewport — see
+    // the CSS comment on it for why the locked banner needed pulling out
+    // of it into its own non-overlapping strip instead of floating on top
+    // of the canvas. Three canvases stack inside it, all pinned to its own
+    // fixed size (never resized by pan/zoom — see that same CSS comment):
+    // the grid/paper background (below), Fabric's committed strokes
+    // (#wbFabricCanvas), and the live in-progress-stroke overlay (appended
+    // by _initFabric).
     this._canvasWrap = wrap.querySelector('#wbCanvasWrap');
-    this._innerEl    = wrap.querySelector('#wbCanvasInner');
+    this._gridEl     = wrap.querySelector('#wbGridCanvas');
+    this._gridCtx    = this._gridEl.getContext('2d');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
     this._lockedBannerEl = wrap.querySelector('#wbLockedBanner');
     this._zoomLabelEl   = wrap.querySelector('#wbZoomLabel');
     this._zoomOutBtnEl  = wrap.querySelector('#wbZoomOutBtn');
     this._zoomInBtnEl   = wrap.querySelector('#wbZoomInBtn');
-    this._gridOn     = false;
     this._applyLockedUi();
   };
 
@@ -403,10 +505,21 @@
       } else if (clearBtn) {
         self._clearMine();
       } else if (gridBtn) {
-        self._gridOn = !self._gridOn;
-        gridBtn.classList.toggle('dc-action-btn--active', self._gridOn);
-        gridBtn.title = self._gridOn ? 'Ascunde grila' : 'Arată grila';
-        self._innerEl.classList.toggle('wb-canvas-inner--grid', self._gridOn);
+        // Teacher-only (see _build) — a global session setting, not a
+        // per-viewer one, so this both applies locally right away AND
+        // persists it for every other participant (setGridEnabled itself
+        // is what js/class-page.js's session subscription calls on their
+        // end when this UPDATE lands). Reverted on failure since the
+        // local flip above already happened optimistically.
+        var next = !self._gridOn;
+        self.setGridEnabled(next);
+        self._supabase.from('whiteboard_sessions').update({ grid_enabled: next }).eq('id', self._sessionId)
+          .then(function (res) {
+            if (res.error) {
+              self.setGridEnabled(!next);
+              global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error');
+            }
+          });
       } else if (undoBtn && !undoBtn.disabled) {
         self.undo();
       } else if (redoBtn && !redoBtn.disabled) {
@@ -457,23 +570,23 @@
       selection: false,
       evented: false,          // no per-object interaction in Phase 1 — we own all pointer handling via the overlay
       renderOnAddRemove: false // batched — every call site below does its own requestRenderAll()
-      // No backgroundColor here — .wb-canvas-inner's own white/grid CSS
-      // background shows through the transparent fabric canvas instead
+      // No backgroundColor here — .wb-grid-canvas's white/grid paint
+      // underneath shows through the transparent fabric canvas instead
       // (see the contrast note on that class for why it's fixed-white,
       // never theme-linked).
     });
 
     // Overlay canvas: raw 2D context, captures every pointer event, renders
     // only the in-progress stroke (mine + everyone else's). A sibling of
-    // Fabric's own canvas inside the SAME sized-and-centered .wb-canvas-inner
-    // (not .wb-canvas-wrap directly) — the wrap letterboxes/centers that
-    // inner box as a unit when the viewer's aspect ratio doesn't match the
-    // board's, so the overlay's inset:0 always lines up with Fabric's canvas
-    // exactly, regardless of any letterbox margin.
+    // Fabric's own canvas directly inside .wb-canvas-wrap — all three
+    // canvas layers (grid, Fabric, overlay) are pinned to the wrap's own
+    // fixed size via CSS inset:0 and never resized by pan/zoom, so the
+    // overlay always lines up with Fabric's canvas exactly — see the CSS
+    // comment on .wb-canvas-wrap for why.
     var overlay = document.createElement('canvas');
     overlay.className = 'wb-overlay-canvas';
     overlay.style.touchAction = 'none'; // prevent the page from scrolling/pinch-zooming while drawing
-    this._innerEl.appendChild(overlay);
+    this._canvasWrap.appendChild(overlay);
     this._overlayEl  = overlay;
     this._overlayCtx = overlay.getContext('2d');
 
@@ -490,114 +603,190 @@
       this._ro.observe(this._canvasWrap);
     }
 
-    // Ctrl/Cmd+wheel zoom, centered on the cursor — same convention as
+    // Ctrl/Cmd+wheel zooms, centered on the cursor — same convention as
     // js/drawing-canvas.js and the geometry figure editor. A plain scroll
-    // (no modifier) pans the wrap natively instead (it's a normal
-    // overflow:auto container), so it isn't hijacked into a zoom just
-    // because the cursor happens to be over the board.
+    // pans instead, same as Miro/idroo — .wb-canvas-wrap is no longer a
+    // real scrollable element (see its own CSS comment), so this is now
+    // the only way a plain scroll/trackpad-swipe moves the view; we always
+    // preventDefault so the page itself never scrolls out from under a
+    // pan gesture.
     this._canvasWrap.addEventListener('wheel', function (e) {
-      if (!(e.ctrlKey || e.metaKey)) return;
       e.preventDefault();
-      self._setZoom(self._currentOrPendingZoom() * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
+      if (e.ctrlKey || e.metaKey) {
+        self._setZoom(self._currentOrPendingZoom() * Math.pow(0.999, e.deltaY), e.clientX, e.clientY);
+        return;
+      }
+      self._panX -= e.deltaX;
+      self._panY -= e.deltaY;
+      self._clampCamera();
+      self._syncViewport();
     }, { passive: false });
   };
 
   // Each client scales the fixed LOGICAL_W×LOGICAL_H surface to its own
-  // container — .wb-canvas-inner's CSS size is (fit-to-container scale) ×
-  // (this viewer's own zoom, see _setZoom), never anyone else's. "Fit"
-  // means contain (both width AND height bounded), not width-only — a
+  // container — this._scale is (fit-to-container "base" scale) × (this
+  // viewer's own zoom, see _setZoom), never anyone else's. "Fit" means
+  // contain (both width AND height bounded), not width-only — a
   // fullscreen board is shown on every device shape from a phone in
   // portrait to an ultrawide monitor, and width-only scaling would either
-  // overflow a short viewport or leave a tall one mostly empty. At zoom 1
-  // (no user zoom applied) whatever doesn't match the container's own
-  // aspect ratio just letterboxes — beyond that, .wb-canvas-wrap scrolls
-  // (see its own CSS comment for why that's plain overflow:auto + JS
-  // centering, not flex centering).
+  // overflow a short viewport or leave a tall one mostly empty.
   //
-  // Fabric re-renders every object from its stored vector path data at
-  // whatever zoom is current (never from a cached bitmap), and its own
-  // retina scaling grows the backing store together with the CSS size set
-  // below — so a stroke drawn once stays exactly as crisp zoomed in as it
-  // was at fit, never pixelated. The overlay canvas (this viewer's own
-  // in-progress-stroke preview) gets the identical treatment by hand,
-  // since it's a plain 2D context, not Fabric.
+  // Unlike the very first version of this file, this does NOT run on
+  // every zoom/pan change anymore — only on a genuine container resize
+  // (ResizeObserver, debounced) and once at startup. All three canvas
+  // layers are sized to the WRAP's own fixed CSS size here, never to the
+  // zoomed board size, and pan/zoom afterwards only ever change
+  // this._scale/_panX/_panY plus Fabric's viewportTransform (see
+  // _syncViewport) — never these elements' width/height. That split is
+  // what actually fixes two bugs the old resize-the-canvas-every-zoom-step
+  // approach had: setting a canvas element's width/height attribute
+  // (which resizing to the zoomed size required, every step) clears its
+  // bitmap SYNCHRONOUSLY, but Fabric's own redraw into the now-blank
+  // canvas is scheduled for a LATER frame — a fast zoom gesture could
+  // keep clearing it again before that redraw ever got an uninterrupted
+  // frame to land in, so the board would visibly go blank until the
+  // gesture stopped. And since the backing store's size no longer grows
+  // with zoom level at all, there's no more size-vs-sharpness tradeoff to
+  // manage either — Fabric's own retina scaling (uncapped, automatic) and
+  // this._dpr below can both just stay at full quality always.
   Whiteboard.prototype._applySize = function () {
     if (this._destroyed) return;
-    var availW = this._canvasWrap.clientWidth  || 800;
-    var availH = this._canvasWrap.clientHeight || 600;
-    var baseScale = Math.min(availW / LOGICAL_W, availH / LOGICAL_H);
-    var scale = baseScale * this._zoom;
-    var cssW  = LOGICAL_W * scale;
-    var cssH  = LOGICAL_H * scale;
-    var dpr   = Math.min(global.devicePixelRatio || 1, MAX_DPR);
+    // The viewport size from the LAST time this ran — needed to figure out
+    // which logical point was centered before recomputing the camera for
+    // the new size below (this._canvasWrap already reflects the NEW size
+    // by the time a resize gets here). null on the very first call, which
+    // _panX's own null-ness (see below) already short-circuits around.
+    var oldVw = this._viewportW || this._canvasWrap.clientWidth  || 800;
+    var oldVh = this._viewportH || this._canvasWrap.clientHeight || 600;
+    var vw = this._canvasWrap.clientWidth  || 800;
+    var vh = this._canvasWrap.clientHeight || 600;
+    var baseScale = Math.min(vw / LOGICAL_W, vh / LOGICAL_H);
+    var dpr = Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
-    // Cap the overlay's PHYSICAL backing store relative to THIS
-    // CONTAINER's own size — same technique js/drawing-canvas.js's own
-    // _resize uses, but tied to the container rather than the device's
-    // full screen resolution. A whiteboard panel is usually a fraction of
-    // the screen (a class-page layout, not a fullscreen app), so screen
-    // resolution was the wrong proxy either way: on a big desktop monitor
-    // it stayed generous enough that a large panel at high zoom (e.g.
-    // 400%) still produced a backing store many times larger than
-    // anything on screen — and _redrawOverlay clears + redraws the WHOLE
-    // thing every frame for as long as a stroke is in progress, which is
-    // what actually lagged, not Fabric (it only re-renders once per
-    // FINISHED stroke, never mid-gesture). On a phone it swung the other
-    // way and started softening the live stroke well before MAX_ZOOM, at
-    // ordinary zoom levels — the exact "looks pixelated while drawing"
-    // complaint. Tied to the container instead, a viewer keeps full dpr
-    // sharpness through a generous, size-independent zoom range (see
-    // DPR_HEADROOM) no matter what device or panel size they're on, and
-    // only the far end of the zoom range trades sharpness for staying
-    // responsive. Reduces dpr only, never the CSS size/scale itself, so
-    // logical<->screen coordinate math (_getPos etc., all in terms of
-    // _scale) is completely unaffected.
-    var maxPhysW = availW * dpr * DPR_HEADROOM;
-    var maxPhysH = availH * dpr * DPR_HEADROOM;
-    var targetPhysW = cssW * dpr;
-    var targetPhysH = cssH * dpr;
-    if (targetPhysW > maxPhysW || targetPhysH > maxPhysH) {
-      dpr = Math.max(1, dpr * Math.min(maxPhysW / targetPhysW, maxPhysH / targetPhysH));
+    // Re-center on whatever logical point was centered before (preserving
+    // the user's own zoom factor, this._zoom) rather than resetting the
+    // camera on every resize — null _panX specifically means "never sized
+    // before", the only time we instead center on the board's own middle.
+    var centerLogicalX, centerLogicalY;
+    if (this._panX == null) {
+      centerLogicalX = LOGICAL_W / 2;
+      centerLogicalY = LOGICAL_H / 2;
+    } else {
+      centerLogicalX = (oldVw / 2 - this._panX) / this._scale;
+      centerLogicalY = (oldVh / 2 - this._panY) / this._scale;
     }
 
     this._baseScale = baseScale;
-    this._scale = scale;
-    this._dpr   = dpr;
+    this._viewportW = vw;
+    this._viewportH = vh;
+    this._dpr       = dpr;
+    this._scale     = baseScale * this._zoom;
+    this._panX = vw / 2 - centerLogicalX * this._scale;
+    this._panY = vh / 2 - centerLogicalY * this._scale;
+    this._clampCamera();
 
-    this._innerEl.style.width  = cssW + 'px';
-    this._innerEl.style.height = cssH + 'px';
-    var cellPx = GRID_CELL_LOGICAL * scale;
-    this._innerEl.style.backgroundSize = cellPx + 'px ' + cellPx + 'px';
+    var self = this;
+    [this._gridEl, this._fabricEl, this._overlayEl].forEach(function (el) {
+      el.style.width  = vw + 'px';
+      el.style.height = vh + 'px';
+      el.width  = Math.round(vw * self._dpr);
+      el.height = Math.round(vh * self._dpr);
+    });
+    // Fabric applies its OWN (uncapped, automatic) retina scaling on top
+    // of these CSS dimensions — safe to leave uncapped now that the
+    // backing store this produces is pinned to the viewport instead of
+    // growing with zoom, see this method's own comment above.
+    this._fabricCanvas.setDimensions({ width: vw, height: vh });
 
-    this._fabricCanvas.setDimensions({ width: cssW, height: cssH });
-    this._fabricCanvas.setZoom(scale);
+    this._syncViewport();
+  };
 
-    var ov = this._overlayEl;
-    ov.style.width  = cssW + 'px';
-    ov.style.height = cssH + 'px';
-    ov.width  = Math.round(cssW * dpr);
-    ov.height = Math.round(cssH * dpr);
-
+  // Pushes the current camera (this._scale/_panX/_panY) to every layer
+  // that needs it: Fabric's own viewportTransform for the committed
+  // strokes (Fabric re-renders every object from its stored vector path
+  // data at whatever transform is current — never from a cached bitmap —
+  // so a stroke drawn once stays exactly as crisp at any zoom as it was
+  // at fit, never pixelated), the grid/paper background (redrawn inline,
+  // cheap — see _redrawGrid), and the live-stroke overlay (marked dirty,
+  // picked up on the next animation-frame tick by _redrawOverlay so it
+  // stays batched with everyone else's incoming points instead of forcing
+  // an extra paint of its own).
+  Whiteboard.prototype._syncViewport = function () {
+    this._fabricCanvas.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
+    // setViewportTransform only self-triggers a render when renderOnAddRemove
+    // is on, which this canvas deliberately keeps off (see _initFabric) —
+    // every other call site here already does its own requestRenderAll()
+    // for the same reason, this is just that same convention applied to pan/zoom.
+    this._fabricCanvas.requestRenderAll();
+    this._redrawGrid();
     this._dirty = true;
+  };
+
+  // Keeps the board from being panned/zoomed away into empty space with
+  // no way back — the same guarantee native scrollLeft/Top clamping used
+  // to give this for free back when panning was real DOM scrolling. Per
+  // axis: if the board (at the current scale) is smaller than the
+  // viewport, center it (same as the old margin:auto at zoom 1); if it's
+  // bigger, clamp so its far edge can never leave a gap between it and
+  // the viewport's own far edge, same as a native scrollbar's own limits.
+  Whiteboard.prototype._clampCamera = function () {
+    var vw = this._canvasWrap.clientWidth  || 1;
+    var vh = this._canvasWrap.clientHeight || 1;
+    this._panX = clampPanAxis(this._panX, LOGICAL_W * this._scale, vw);
+    this._panY = clampPanAxis(this._panY, LOGICAL_H * this._scale, vh);
+  };
+
+  function clampPanAxis(pan, contentSize, viewportSize) {
+    if (contentSize <= viewportSize) return (viewportSize - contentSize) / 2;
+    return Math.min(0, Math.max(viewportSize - contentSize, pan));
+  }
+
+  // Grid/paper background — see the CSS comment on .wb-grid-canvas for why
+  // this paints the white "paper" rect too, not just the grid lines: with
+  // the fixed-viewport camera, no DOM element is sized/positioned to the
+  // board anymore for a CSS background to show through from. Cheap enough
+  // (the paper rect plus at most ~35 grid lines) to just redraw inline
+  // from _syncViewport on every pan/zoom step rather than batching it
+  // through the dirty-flag/rAF loop the way the overlay's live strokes
+  // are — those redraw every frame during a whole gesture regardless, so
+  // batching them earns its keep; a plain rect-and-some-lines redraw here
+  // and there doesn't need it.
+  Whiteboard.prototype._redrawGrid = function () {
+    var ctx = this._gridCtx;
+    var el  = this._gridEl;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, el.width, el.height);
+    var s = this._scale * this._dpr;
+    ctx.setTransform(s, 0, 0, s, this._panX * this._dpr, this._panY * this._dpr);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
+    if (!this._gridOn) return;
+    // Logical spacing re-derived from the CURRENT scale every redraw —
+    // GRID_CELL_TARGET_PX ÷ scale is exactly the logical size that renders
+    // as GRID_CELL_TARGET_PX on screen right now, so cells neither balloon
+    // into unusably-coarse squares at high zoom nor shrink into a dense
+    // mush at low zoom the way a fixed LOGICAL spacing would.
+    var cellLogical = GRID_CELL_TARGET_PX / this._scale;
+    ctx.strokeStyle = 'rgba(20,16,8,0.09)';
+    ctx.lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
+    ctx.beginPath();
+    for (var x = 0; x <= LOGICAL_W; x += cellLogical) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
+    for (var y = 0; y <= LOGICAL_H; y += cellLogical) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
+    ctx.stroke();
   };
 
   // clientX/clientY (viewport coordinates), when given, keep whatever
   // logical point was under the cursor/pinch-midpoint fixed on screen
-  // through the zoom change — the same anchor-preserving math
-  // js/drawing-canvas.js's own _setZoom uses, just against scrollLeft/Top
-  // instead of a ctx.scale'd canvas. Omitted (toolbar buttons, keyboard),
-  // it anchors to the center of whatever's currently visible instead.
+  // through the zoom change. Omitted (toolbar buttons, keyboard), it
+  // anchors to the center of whatever's currently visible instead.
   //
   // Coalesced to at most once per animation frame: a fast wheel or pinch
   // gesture can fire far more raw events per second than the display can
-  // even paint, and applying a new zoom forces Fabric to resize its
-  // backing store and re-render every committed stroke — doing that once
-  // per RAW EVENT rather than once per FRAME (this used to run its full
-  // body synchronously, inline, on every call) was the actual source of
-  // the reported zoom lag, not the rendering cost itself. Only the latest
-  // requested zoom/anchor per frame is kept; anything superseded before
-  // its frame comes up is simply dropped, same as any other rAF-coalesced
-  // input handler.
+  // even paint, and there's no reason to redo the anchor math and push a
+  // new viewportTransform more often than the screen can show it. Only
+  // the latest requested zoom/anchor per frame is kept; anything
+  // superseded before its frame comes up is simply dropped, same as any
+  // other rAF-coalesced input handler.
   Whiteboard.prototype._setZoom = function (z, clientX, clientY) {
     z = Math.max(MIN_ZOOM, Math.min(MAX_ZOOM, Math.round(z * 100) / 100));
     this._pendingZoom = { z: z, clientX: clientX, clientY: clientY };
@@ -622,27 +811,23 @@
     var pending = this._pendingZoom;
     this._pendingZoom = null;
     if (!pending || this._destroyed) return;
-    var z = pending.z, clientX = pending.clientX, clientY = pending.clientY;
+    var z = pending.z;
     if (z === this._zoom) return;
-    var wrap = this._canvasWrap;
-    var wrapRect = wrap.getBoundingClientRect();
-    var oldW = this._innerEl.offsetWidth  || 1;
-    var oldH = this._innerEl.offsetHeight || 1;
-    var anchorX = (clientX != null) ? (clientX - wrapRect.left + wrap.scrollLeft) : (wrap.scrollLeft + wrap.clientWidth  / 2);
-    var anchorY = (clientY != null) ? (clientY - wrapRect.top  + wrap.scrollTop)  : (wrap.scrollTop  + wrap.clientHeight / 2);
-    var fracX = anchorX / oldW;
-    var fracY = anchorY / oldH;
+    var wrapRect = this._canvasWrap.getBoundingClientRect();
+    var anchorX = (pending.clientX != null) ? (pending.clientX - wrapRect.left) : (this._canvasWrap.clientWidth  / 2);
+    var anchorY = (pending.clientY != null) ? (pending.clientY - wrapRect.top)  : (this._canvasWrap.clientHeight / 2);
+    // The logical point currently under the anchor, before the scale
+    // changes — solving _panX/_panY below for "this same logical point
+    // maps back to this same anchor" is what keeps it visually fixed.
+    var logicalX = (anchorX - this._panX) / this._scale;
+    var logicalY = (anchorY - this._panY) / this._scale;
 
-    this._zoom = z;
-    this._applySize();
-
-    var newW = this._innerEl.offsetWidth;
-    var newH = this._innerEl.offsetHeight;
-    var viewX = (clientX != null) ? (clientX - wrapRect.left) : (wrap.clientWidth  / 2);
-    var viewY = (clientY != null) ? (clientY - wrapRect.top)  : (wrap.clientHeight / 2);
-    wrap.scrollLeft = fracX * newW - viewX;
-    wrap.scrollTop  = fracY * newH - viewY;
-
+    this._zoom  = z;
+    this._scale = this._baseScale * z;
+    this._panX  = anchorX - logicalX * this._scale;
+    this._panY  = anchorY - logicalY * this._scale;
+    this._clampCamera();
+    this._syncViewport();
     this._updateZoomUi();
   };
 
@@ -655,8 +840,8 @@
   Whiteboard.prototype._getPos = function (e) {
     var rect = this._overlayEl.getBoundingClientRect();
     return {
-      x: (e.clientX - rect.left) / this._scale,
-      y: (e.clientY - rect.top)  / this._scale
+      x: (e.clientX - rect.left - this._panX) / this._scale,
+      y: (e.clientY - rect.top  - this._panY) / this._scale
     };
   };
 
@@ -731,7 +916,7 @@
       if (self._tool === 'pan') {
         self._activePtrs[e.pointerId] = {
           panning: true, startX: e.clientX, startY: e.clientY,
-          scrollStartLeft: self._canvasWrap.scrollLeft, scrollStartTop: self._canvasWrap.scrollTop
+          panStartX: self._panX, panStartY: self._panY
         };
         el.style.cursor = 'grabbing';
         return;
@@ -743,6 +928,21 @@
         self._erasedThisDrag = new Set();
         self._activePtrs[e.pointerId] = { erasing: true };
         self._eraseAt(pos);
+        return;
+      }
+
+      // Straight-line tools — tracked as exactly [start, current] (never a
+      // growing polyline the way freehand pen/highlighter points
+      // accumulate below), redrawn as a straight segment each frame — see
+      // drawStraightStroke/straightPathString.
+      if (self._tool === 'line' || self._tool === 'dashed-line' || self._tool === 'arrow') {
+        var shapeId = genId();
+        self._activePtrs[e.pointerId] = {
+          strokeId: shapeId, shape: self._tool, points: [pos, pos], pending: [pos, pos],
+          lastSentAt: 0, lastSentPos: null, width: self._width, opacity: 1
+        };
+        self._liveStrokes.set('m:' + shapeId, { shape: self._tool, points: [pos, pos], color: self._color, width: self._width, opacity: 1 });
+        self._dirty = true;
         return;
       }
 
@@ -780,14 +980,26 @@
       if (!st) return;
       e.preventDefault();
       if (st.panning) {
-        self._canvasWrap.scrollLeft = st.scrollStartLeft - (e.clientX - st.startX);
-        self._canvasWrap.scrollTop  = st.scrollStartTop  - (e.clientY - st.startY);
+        // Direct manipulation, same convention as Miro/idroo — content
+        // follows the finger/cursor rather than a scrollbar-style inverse
+        // relationship.
+        self._panX = st.panStartX + (e.clientX - st.startX);
+        self._panY = st.panStartY + (e.clientY - st.startY);
+        self._clampCamera();
+        self._syncViewport();
         return;
       }
       var pos = self._getPos(e);
       if (st.erasing) { self._eraseAt(pos); return; }
-      st.points.push(pos);
-      st.pending.push(pos);
+      if (st.shape) {
+        // Replace the end point, never accumulate — a shape is always
+        // exactly [start, current], see the pointerdown branch above.
+        st.points[1] = pos;
+        st.pending = st.points.slice();
+      } else {
+        st.points.push(pos);
+        st.pending.push(pos);
+      }
       self._liveStrokes.get('m:' + st.strokeId).points = st.points;
       self._dirty = true;
       self._maybeFlush(st);
@@ -819,7 +1031,7 @@
       // that round-trip where the stroke was neither on the overlay nor on
       // Fabric yet — a visible "disappears for a moment, then reappears"
       // flicker on every release.
-      self._commitStroke(st.points, 'm:' + st.strokeId, st.width, st.opacity);
+      self._commitStroke(st.points, 'm:' + st.strokeId, st.width, st.opacity, st.shape);
     }
     el.addEventListener('pointerup', finish);
     // Not gated to touch — mirrors drawing-canvas.js's own reasoning: a
@@ -855,7 +1067,10 @@
 
   Whiteboard.prototype._flush = function (st) {
     if (!st.pending.length) return;
-    this._send('stroke:point', { strokeId: st.strokeId, color: this._color, width: st.width, opacity: st.opacity, points: st.pending });
+    // shape (line/dashed-line/arrow) or null (freehand) — tells the
+    // receiving end in _onRemotePoint whether "points" here REPLACES the
+    // stroke's current [start,end] or gets appended to its polyline.
+    this._send('stroke:point', { strokeId: st.strokeId, color: this._color, width: st.width, opacity: st.opacity, shape: st.shape || null, points: st.pending });
     st.pending = [];
     st.lastSentAt = (global.performance || Date).now();
     st.lastSentPos = st.points[st.points.length - 1];
@@ -868,19 +1083,27 @@
   };
 
   // A tap with no movement never rendered anything and isn't worth a row —
-  // same rule drawing-canvas.js uses for its own strokes. liveKey is the
-  // overlay preview entry to retire once (and only once) the real object
-  // is ready to take its place — see the note at the finish() call site.
-  // width/opacity are the EFFECTIVE values already baked in at pointerdown
-  // (pen vs highlighter — see _bindPointerEvents), not self._width/1 —
-  // otherwise a highlighter stroke would commit at pen width/opacity if
-  // the tool got switched again before this resolved.
-  Whiteboard.prototype._commitStroke = function (points, liveKey, width, opacity) {
-    if (points.length < 2) {
+  // same rule drawing-canvas.js uses for its own strokes; for a shape
+  // that's "start and end land on the same point" rather than "fewer than
+  // 2 points" (a shape's points array is always exactly [start,end], even
+  // for a zero-movement tap — see the pointerdown branch in
+  // _bindPointerEvents). liveKey is the overlay preview entry to retire
+  // once (and only once) the real object is ready to take its place — see
+  // the note at the finish() call site. width/opacity are the EFFECTIVE
+  // values already baked in at pointerdown (pen vs highlighter — see
+  // _bindPointerEvents), not self._width/1 — otherwise a highlighter
+  // stroke would commit at pen width/opacity if the tool got switched
+  // again before this resolved. shape is 'line'/'dashed-line'/'arrow', or
+  // falsy for an ordinary freehand pen/highlighter stroke.
+  Whiteboard.prototype._commitStroke = function (points, liveKey, width, opacity, shape) {
+    var start = points[0], end = points[points.length - 1];
+    var isDegenerate = shape ? dist(start, end) < 2 : points.length < 2;
+    if (isDegenerate) {
       if (liveKey) { this._liveStrokes.delete(liveKey); this._dirty = true; }
       return;
     }
-    var path = smoothPathString(points);
+    var path = shape ? straightPathString(start, end, shape) : smoothPathString(points);
+    var dashArray = shape === 'dashed-line' ? [width * 3, width * 2.4] : null;
     var self = this;
     var gen  = this._clearGen; // see the field comment in the constructor
     this._supabase.from('whiteboard_objects').insert({
@@ -892,7 +1115,7 @@
       // REMOTE viewer can do the exact same "swap, don't just delete"
       // trick for their copy of this stroke's live preview — see
       // _connectRealtime's INSERT handler.
-      fabric_json: { path: path, stroke: this._color, strokeWidth: width, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null }
     }).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) {
@@ -957,10 +1180,13 @@
     var key = 'r:' + payload.strokeId;
     var entry = this._liveStrokes.get(key);
     if (!entry) {
-      entry = { points: [], color: payload.color, width: payload.width, opacity: payload.opacity };
+      entry = { points: [], color: payload.color, width: payload.width, opacity: payload.opacity, shape: payload.shape || null };
       this._liveStrokes.set(key, entry);
     }
-    entry.points = entry.points.concat(payload.points);
+    // A shape's payload always carries its full current [start,end] pair
+    // (see _flush) — replace, don't accumulate, unlike freehand's growing
+    // polyline below.
+    entry.points = payload.shape ? payload.points : entry.points.concat(payload.points);
     this._dirty = true;
   };
 
@@ -996,6 +1222,7 @@
     var path = new fabric.Path(j.path, {
       stroke: j.stroke,
       strokeWidth: j.strokeWidth,
+      strokeDashArray: j.strokeDashArray || null, // dashed-line tool only — see _commitStroke
       opacity: j.opacity == null ? 1 : j.opacity,
       fill: null,
       strokeLineCap: 'round',
@@ -1167,6 +1394,28 @@
     if (this._wrap) this._wrap.classList.toggle('wb-board--locked', this._locked);
   };
 
+  // Called both locally (the teacher's own click, for instant feedback —
+  // see _bindToolbar's gridBtn branch) and from js/class-page.js's
+  // whiteboard_sessions realtime subscription, which is what actually
+  // makes the teacher's toggle take effect for every OTHER participant,
+  // live. A no-op when the value already matches, so the teacher's own
+  // change echoing back through that same subscription (postgres_changes
+  // echoes a client's own writes back to it) never does redundant work.
+  // No button to update for a student — _build never renders #wbGridBtn
+  // for them at all (see its own comment), so the querySelector below
+  // simply finds nothing and this only touches the shared render state.
+  Whiteboard.prototype.setGridEnabled = function (on) {
+    on = !!on;
+    if (on === this._gridOn) return;
+    this._gridOn = on;
+    var btn = this._toolbarEl && this._toolbarEl.querySelector('#wbGridBtn');
+    if (btn) {
+      btn.classList.toggle('dc-action-btn--active', on);
+      btn.title = on ? 'Ascunde grila' : 'Arată grila';
+    }
+    this._redrawGrid();
+  };
+
   /* ---- Render loop (overlay only — Fabric renders itself on demand) ---- */
 
   Whiteboard.prototype._startLoop = function () {
@@ -1184,8 +1433,12 @@
     var el  = this._overlayEl;
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, el.width, el.height);
-    ctx.setTransform(this._scale * this._dpr, 0, 0, this._scale * this._dpr, 0, 0);
-    this._liveStrokes.forEach(function (s) { drawSmoothStroke(ctx, s.points, s.color, s.width, s.opacity); });
+    var s = this._scale * this._dpr;
+    ctx.setTransform(s, 0, 0, s, this._panX * this._dpr, this._panY * this._dpr);
+    this._liveStrokes.forEach(function (st) {
+      if (st.shape) drawStraightStroke(ctx, st.points[0], st.points[st.points.length - 1], st.color, st.width, st.opacity, st.shape);
+      else drawSmoothStroke(ctx, st.points, st.color, st.width, st.opacity);
+    });
   };
 
   /* ---- Teardown ---- */

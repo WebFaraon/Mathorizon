@@ -5975,6 +5975,14 @@
       // its value stomped by the update the first one just triggered.
       const input = document.getElementById('wbTitleInput');
       if (input && e.new.title && document.activeElement !== input) input.value = e.new.title;
+      // Grid visibility is a teacher-controlled, session-wide setting (not
+      // a per-viewer toggle) — see setGridEnabled in js/whiteboard.js. No
+      // activeElement-style guard needed here the way the title above
+      // needs one: setGridEnabled is a no-op when the value already
+      // matches, so the teacher's own change echoing back is harmless.
+      if (_openWhiteboardInstance && typeof e.new.grid_enabled === 'boolean') {
+        _openWhiteboardInstance.setGridEnabled(e.new.grid_enabled);
+      }
     }
     if (!_openTablaSessionId) return;
     clearTimeout(_reloadTablaLiveTimer);
@@ -6034,12 +6042,47 @@
     document.getElementById('tablaLiveModal')?.remove();
     document.body.classList.remove('wb-fullscreen-active');
     _openTablaSessionId = null;
-    // Undoes the student-only requestFullscreen in openWhiteboardLiveView —
-    // only actually in fullscreen if that succeeded (or the user entered it
-    // some other way), so this is a no-op otherwise rather than throwing.
+    document.removeEventListener('fullscreenchange', _onWbFullscreenChange);
+    document.removeEventListener('webkitfullscreenchange', _onWbFullscreenChange);
+    // Undoes the student-only auto-request in openWhiteboardLiveView, or a
+    // manual one from the wbFullscreenBtn (either role — see
+    // _toggleWbFullscreen) — only actually in fullscreen if one of those
+    // succeeded (or the user entered it some other way), so this is a
+    // no-op otherwise rather than throwing.
     if (document.fullscreenElement) {
       (document.exitFullscreen ? document.exitFullscreen() : Promise.resolve()).catch(function () {});
     }
+  }
+
+  // Real browser Fullscreen, toggled on demand — the teacher never gets
+  // the student-only auto-request below (a presenter tends to want their
+  // own chrome/taskbar visible by default), and even a student's
+  // auto-request can silently fail to actually engage (blocked by the
+  // browser, or just never fired because the click that opened the modal
+  // wasn't itself the gesture requesting it) — this button is the manual
+  // fallback for both cases, not just a teacher-only control.
+  function _toggleWbFullscreen(modal) {
+    if (document.fullscreenElement) {
+      (document.exitFullscreen ? document.exitFullscreen() : Promise.resolve()).catch(function () {});
+      return;
+    }
+    var requestFs = modal.requestFullscreen || modal.webkitRequestFullscreen;
+    if (!requestFs) return;
+    try {
+      var fsPromise = requestFs.call(modal);
+      if (fsPromise && typeof fsPromise.catch === 'function') fsPromise.catch(function () {});
+    } catch (e) {}
+  }
+
+  // Keeps the button's icon/title in sync regardless of how fullscreen was
+  // entered/exited — this button, the student-only auto-request, or the
+  // browser's own Escape/F11 handling all land here the same way.
+  function _onWbFullscreenChange() {
+    var btn = document.getElementById('wbFullscreenBtn');
+    if (!btn) return;
+    var isFs = !!document.fullscreenElement;
+    btn.innerHTML = icon(isFs ? 'minimize' : 'maximize', { size: 18 });
+    btn.title = isFs ? 'Ieși din ecran complet' : 'Ecran complet';
   }
 
   // Explicit "step out" action — the close button. For a student this also
@@ -6079,7 +6122,6 @@
           <div class="wb-fs-brand">
             <span class="wb-fs-brand__name">Math<b>orizon</b></span>
           </div>
-          <span class="wb-fs-label">${icon('presentation', { size: 20 })} Tablă Live</span>
           ${isTeacher
             ? `<input class="wb-fs-title-input" id="wbTitleInput" type="text" maxlength="60" value="${BM.esc(session.title)}" placeholder="Titlul tablei" title="Redenumește tabla">`
             : `<span class="wb-fs-title" id="wbTitleLabel">${BM.esc(session.title)}</span>`}
@@ -6092,10 +6134,14 @@
       </div>
       <div id="wbCanvasMount" class="wb-canvas-mount">
         <div class="classes-loading"><div class="classes-spinner"></div></div>
-      </div>`;
+      </div>
+      <button type="button" class="icon-btn wb-fs-fullscreen-btn" id="wbFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 18 })}</button>`;
     document.body.appendChild(modal);
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
+    modal.querySelector('#wbFullscreenBtn').addEventListener('click', () => _toggleWbFullscreen(modal));
+    document.addEventListener('fullscreenchange', _onWbFullscreenChange);
+    document.addEventListener('webkitfullscreenchange', _onWbFullscreenChange);
     _bindTablaTitleInput(modal, session);
 
     // Students only, real browser Fullscreen — the .wb-fullscreen CSS
@@ -6146,7 +6192,9 @@
         classId: classData.id,
         userId: BMAuth.user.id,
         userColor: myColor,
-        locked: myLocked
+        locked: myLocked,
+        isTeacher: isTeacher,
+        gridOn: !!session.grid_enabled
       });
     }
   }

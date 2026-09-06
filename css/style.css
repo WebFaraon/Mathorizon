@@ -12736,7 +12736,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   justify-content: space-between;
   flex-wrap: wrap;
   gap: 10px 16px;
-  padding: 10px 16px;
+  padding: 7px 16px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -12761,20 +12761,12 @@ body.wb-fullscreen-active .scroll-top-btn {
   color: var(--accent);
   white-space: nowrap;
 }
-.wb-fs-label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.95rem;
-  font-weight: 700;
-  color: var(--text);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-/* Read-only (students) vs editable (teacher) session title, right after
-   the "Tablă Live" label — see openWhiteboardLiveView/saveTablaTitle in
-   js/class-page.js. Same size/weight so the input doesn't stand out as an
-   input until it's actually focused. */
+/* Read-only (students) vs editable (teacher) session title — see
+   openWhiteboardLiveView/_bindTablaTitleInput in js/class-page.js. Same
+   size/weight so neither stands out from the other; the input additionally
+   gets a visible border (below) at rest, not just on hover/focus, so it
+   reads as an editable field rather than plain text — the read-only
+   student span deliberately does NOT get that border, since it isn't one. */
 .wb-fs-title,
 .wb-fs-title-input {
   font-size: 0.95rem;
@@ -12787,8 +12779,8 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .wb-fs-title-input {
   font-family: inherit;
-  border: 1px solid transparent;
-  background: transparent;
+  border: 1px solid var(--border);
+  background: var(--surface);
   border-radius: 6px;
   padding: 3px 8px;
   flex: 1;
@@ -12796,12 +12788,35 @@ body.wb-fullscreen-active .scroll-top-btn {
   max-width: 320px;
   transition: border-color 0.15s, background 0.15s;
 }
-.wb-fs-title-input:hover  { border-color: var(--border); }
+.wb-fs-title-input:hover  { border-color: var(--text-secondary); }
 .wb-fs-title-input:focus  { border-color: var(--accent); background: var(--card); outline: none; }
 .wb-fs-header__right {
   display: flex;
   align-items: center;
   gap: 12px;
+}
+
+/* Manual real-Fullscreen toggle, floating over the canvas — a teacher
+   never gets the student-only auto-request in openWhiteboardLiveView (a
+   presenter tends to want their own taskbar/chrome visible by default on
+   desktop), and even a student's auto-request can silently fail to
+   engage, so this is available to both roles as a fallback either way.
+   Absolute against .wb-fullscreen (already position:fixed, so this needs
+   no positioning context of its own). */
+.wb-fs-fullscreen-btn {
+  position: absolute;
+  right: 16px;
+  bottom: 16px;
+  z-index: 10;
+  background: var(--card);
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+/* Clears the whiteboard's own right-anchored toolbar column in landscape
+   phone mode (56px wide, see the orientation-aware toolbar rules on
+   .wb-board) — same breakpoint, so the two stay in sync if that width
+   ever changes. */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wb-fs-fullscreen-btn { right: 72px; }
 }
 
 /* Roster shrinks from Phase 0's full-width name list to a compact strip of
@@ -12951,48 +12966,61 @@ body.wb-fullscreen-active .scroll-top-btn {
   flex: 1;
   min-height: 0;
   min-width: 0;
-  /* Letterbox area — .wb-canvas-inner (the fixed logical board, sized by
-     js/whiteboard.js's _applySize) rarely matches this box's own aspect
-     ratio exactly at zoom 1, so this is what shows in the margin. auto
-     (not hidden): zooming in grows .wb-canvas-inner past this box, and
-     that's also what the pan tool/mouse wheel/native touch-scroll pan
-     through. display:flex is still here, but WITHOUT align-items/
-     justify-content:center — those centered via the flex alignment
-     algorithm, which for an item that overflows its container can only be
-     scrolled towards on one side (scrollLeft/Top can never go negative to
-     reach the other), silently trapping half the pan range once zoomed
-     in. .wb-canvas-inner's own margin:auto below centers it the same way
-     at zoom 1 (nothing to tell them apart there) but degrades to a plain
-     flush top-left + full, untrapped scroll range once it overflows,
-     since auto margins simply resolve to 0 once there's no leftover space
-     to distribute — not a flex-alignment negative-offset trick. */
+  /* The "table" color showing wherever the logical board doesn't fill this
+     box's own aspect ratio (a letterbox margin at zoom 1, or the area a
+     pan has scrolled the board's edge past) — the white "paper" itself is
+     now painted BY js/whiteboard.js's grid canvas (see .wb-grid-canvas
+     below), not by this element, since none of the three canvas layers
+     are sized/positioned to the board anymore — see the next comment.
+     overflow:hidden (not auto): all three canvas layers below are pinned
+     to this box's own size via inset:0 and STAY that size across every
+     pan/zoom — js/whiteboard.js moves the board under them by adjusting a
+     transform (camera pan/zoom), the same technique Fabric's own
+     viewportTransform is built for, rather than resizing a DOM element to
+     the zoomed board size and letting the browser scroll it. That's what
+     used to live here: a real scrollable box sized to the current zoom,
+     with this comment explaining the same letterbox/full-pan-range
+     reasoning against scrollLeft/Top's own limits. Resizing the actual
+     canvas backing store on every zoom step turned out to be the root
+     cause of two separate bugs — a strokes-vanish-mid-zoom race (resizing
+     a canvas clears its bitmap immediately, but Fabric's redraw into the
+     now-blank canvas is deferred a frame, and a fast gesture could keep
+     clearing it before that redraw ever got a clean frame to land in) and
+     needing to cap retina sharpness at high zoom (the backing store grew
+     with zoom level, so a big board at 400% could mean tens of millions
+     of physical pixels to reallocate and repaint on every step). Pinning
+     the canvases to the viewport's own fixed size removes both problems
+     at the root: nothing ever resizes (so nothing ever clears) mid-
+     gesture, and the backing store's size no longer depends on zoom at
+     all, so full device-pixel-ratio sharpness is always affordable. */
   background: var(--surface);
-  display: flex;
-  overflow: auto;
+  overflow: hidden;
 }
-.wb-canvas-inner {
-  position: relative;
-  margin: auto; /* centers at zoom 1 — see the wrap's own comment above */
-  line-height: 0;
-  box-shadow: 0 2px 16px rgba(0,0,0,0.12);
-  /* Fixed white "paper" regardless of the site's own dark/light theme —
-     not a stylistic choice, a contrast one: the teacher's reserved ink
-     color (#111827, near-black) would nearly vanish against this app's
-     dark-theme canvas background (#161616), and several other palette
-     colors would fare little better. A real whiteboard is white
-     regardless of the room lighting; this one is too. */
-  background-color: #ffffff;
+/* Bottom-most of three stacked, viewport-sized canvas layers (grid at z=0,
+   Fabric's committed strokes at z=1 via #wbFabricCanvas below, the live
+   in-progress-stroke overlay at z=2 via .wb-overlay-canvas) — same
+   convention js/drawing-canvas.js already uses for its own .dc-grid-canvas
+   / .dc-draw-canvas pair. Paints the white "paper" rect (regardless of the
+   site's own dark/light theme — not a stylistic choice, a contrast one:
+   the teacher's reserved ink color, #111827 near-black, would nearly
+   vanish against this app's dark-theme canvas background, #161616, and
+   several other palette colors would fare little better; a real
+   whiteboard is white regardless of the room lighting, this one is too)
+   PLUS the optional grid lines on top of it, both transformed by the same
+   pan/zoom camera as the other two layers — see js/whiteboard.js's
+   _redrawGrid. Both other layers stay fully transparent so this shows
+   through everywhere neither of them has drawn anything. */
+.wb-grid-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
 }
-/* Grid toggle (js/whiteboard.js's #wbGridBtn) — background-size is set
-   dynamically per viewer's own scale in _applySize, so the drawn cell size
-   always matches the same LOGICAL square for everyone regardless of their
-   own screen/zoom. */
-.wb-canvas-inner--grid {
-  background-image:
-    linear-gradient(to right, rgba(20,16,8,0.09) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(20,16,8,0.09) 1px, transparent 1px);
+#wbFabricCanvas {
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  display: block;
 }
-.wb-canvas-inner canvas { display: block; }
 .wb-overlay-canvas {
   position: absolute;
   inset: 0;
@@ -13039,10 +13067,9 @@ body.wb-fullscreen-active .scroll-top-btn {
 @media (max-width: 600px) {
   .wb-hero { flex-wrap: wrap; }
   .wb-hero .btn { width: 100%; justify-content: center; }
-  .wb-fs-header { padding: 8px 10px; }
+  .wb-fs-header { padding: 6px 10px; }
   .wb-fs-header__left { gap: 12px; }
   .wb-fs-brand__name { font-size: 0.78rem; letter-spacing: 2px; }
-  .wb-fs-label { font-size: 0.86rem; }
   .wb-fs-title,
   .wb-fs-title-input { font-size: 0.86rem; }
 }
