@@ -16024,6 +16024,21 @@ body.wb-fullscreen-active .scroll-top-btn {
   margin-left: 2px;
 }
 
+/* Tablă live's own tool groups (js/whiteboard.js's _build: manipulate /
+   pen / highlighter / line shapes) — breathing room between them instead
+   of the divider bar above, same lighter-touch grouping idroo's own
+   toolbar uses. Scoped to .wb-toolbar specifically (not a bare
+   .dc-tool-group--nodiv rule) since .dc-toolbar/.dc-tool-group are shared
+   wholesale with js/drawing-canvas.js's own toolbar — this shouldn't
+   change how ITS groups render. Three classes of specificity beats the
+   two-class rule above regardless of source order, so this doesn't need
+   to worry about staying after it in the file. */
+.wb-toolbar .dc-tool-group--nodiv + .dc-tool-group--nodiv {
+  border-left: none;
+  padding-left: 0;
+  margin-left: 10px;
+}
+
 .dc-tool-group--right {
   margin-left: auto;
 }
@@ -16583,6 +16598,16 @@ body.dc-fullscreen-active .dc-toolbar {
     padding-top: 10px;
     margin-left: 0;
     margin-top: 0;
+  }
+  /* Re-asserts the desktop rule's "no divider" for --nodiv pairs — same
+     specificity as the rule just above (three classes each) and later in
+     the file wins ties, so without this override here too, the stacked
+     column would put a horizontal rule back between the tool sub-groups
+     it's specifically meant to NOT have one. */
+  .wb-board .dc-tool-group--nodiv + .dc-tool-group--nodiv {
+    border-top: none;
+    padding-top: 0;
+    margin-top: 10px;
   }
   .wb-board .dc-zoom-label {
     font-size: 0.62rem;

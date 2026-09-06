@@ -268,7 +268,7 @@
     this._userId    = opts.userId;
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
-    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'line' | 'dashed-line' | 'arrow' | 'pan'
+    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
     // Blocked by the teacher (whiteboard_participants.locked) — see
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
@@ -294,6 +294,23 @@
     // delete-any-stroke policy hasn't been added yet — see the SQL comment
     // in 20260904160000_whiteboard_objects.sql).
     this._myPathPoints   = new Map(); // id -> points[]
+    // Every object's Fabric left/top the instant it's constructed, BEFORE
+    // any stored offsetX/offsetY (see the "select" move tool) is applied —
+    // needed for every viewer, not just an object's owner, since applying
+    // a MOVE (mine or a remote one) always means "natural position + the
+    // CURRENT offset", never a relative nudge from wherever it visually
+    // happens to be already.
+    this._objectNaturalPos = new Map(); // id -> {left, top}
+    // The two below are scoped to MY OWN objects only, same ownership
+    // rule as _myPathPoints and the eraser/delete RLS policy — moving
+    // someone else's object is Phase 2, same deferral as erasing one (see
+    // _eraseAt's own comment). _myObjectOffsets mirrors what's currently
+    // persisted (or optimistically about to be) so hit-testing/dragging
+    // never has to re-derive it from Fabric's own left/top; _myObjectsJson
+    // caches each object's last-known full fabric_json so a move's UPDATE
+    // can merge into it without re-fetching the row first.
+    this._myObjectOffsets = new Map(); // id -> {dx, dy}
+    this._myObjectsJson   = new Map(); // id -> fabric_json
     this._myStrokeHistory = [];       // [{id, fabric_json}] — undo stack, oldest first
     this._myRedoStack     = [];
     // Bumped by _clearMine() — a stroke whose in-flight commit (see
@@ -358,6 +375,10 @@
   var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
   var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
   var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
+  // Classic tilted arrow-cursor glyph — the universal "selection tool"
+  // icon in every drawing app, distinct from PAN_ICON's open hand (that
+  // one moves the CAMERA; this one moves an OBJECT — see _findMyObjectAt).
+  var SELECT_ICON      = '<path d="m3 3 7.07 16.97 2.51-7.39 7.39-2.51L3 3z"/>';
   // Same plain-diagonal glyph as the geometry figure editor's own segment
   // tool (js/geometry-figure-editor.js's TOOL_ICONS.segment /
   // 'segment-dashed'), minus its draggable-endpoint dots — a whiteboard
@@ -383,14 +404,29 @@
     wrap.className = 'wb-board';
     wrap.innerHTML =
       '<div class="dc-toolbar wb-toolbar">' +
-        '<div class="dc-tool-group">' +
-          toolBtn('pen', PEN_ICON, 'Stilou (P)') +
-          toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
+        // Four small tool groups (manipulate / pen / highlighter / line
+        // shapes) with breathing room between them but no divider bars —
+        // dc-tool-group--nodiv overrides the toolbar's usual adjacent-
+        // sibling divider (see its own CSS rule) for just these, same
+        // lighter-touch grouping idroo's own toolbar uses. The width
+        // picker/grid/zoom/undo groups after this keep their normal
+        // divider — those are separate FUNCTIONAL areas, not sub-groups
+        // of "the tools".
+        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+          toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (S)') +
+          toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
+        '</div>' +
+        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+          toolBtn('pen', PEN_ICON, 'Stilou (P)') +
+        '</div>' +
+        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+          toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
+        '</div>' +
+        '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('line', LINE_ICON, 'Linie dreaptă') +
           toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată') +
           toolBtn('arrow', ARROW_ICON, 'Săgeată') +
-          toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
         '</div>' +
         '<div class="dc-tool-group">' +
           WIDTH_PRESETS.map(function (w, i) {
@@ -475,12 +511,15 @@
       // everything else gets 'not-allowed' instead of its normal cursor so
       // it's obvious nothing will happen. Otherwise: pan gets the
       // browser's own grab/grabbing (a custom cursor for those is
-      // unnecessary — already high-contrast), eraser a plain 'cell', and
-      // pen/highlighter the high-visibility crosshair (see its own comment
-      // above for why not the plain CSS keyword).
+      // unnecessary — already high-contrast), eraser a plain 'cell',
+      // select the plain arrow (it's the one tool that ISN'T about
+      // marking the board, so the high-visibility crosshair would be
+      // misleading here), and pen/highlighter/the line tools the
+      // high-visibility crosshair (see its own comment above for why not
+      // the plain CSS keyword).
       this._overlayEl.style.cursor =
         (this._locked && tool !== 'pan') ? 'not-allowed' :
-        tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : CROSSHAIR_CURSOR;
+        tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : tool === 'select' ? 'default' : CROSSHAIR_CURSOR;
     }
   };
 
@@ -556,6 +595,8 @@
         self._setTool('highlighter');
       } else if (e.key === 'e' || e.key === 'E') {
         self._setTool('eraser');
+      } else if (e.key === 's' || e.key === 'S') {
+        self._setTool('select');
       } else if (e.key === 'm' || e.key === 'M') {
         self._setTool('pan');
       }
@@ -931,6 +972,19 @@
         return;
       }
 
+      if (self._tool === 'select') {
+        var target = self._findMyObjectAt(pos);
+        if (!target) return; // empty space / someone else's object — nothing to do
+        var startOffset = self._myObjectOffsets.get(target.data.id) || { dx: 0, dy: 0 };
+        self._activePtrs[e.pointerId] = {
+          moving: true, objId: target.data.id, dragStart: pos,
+          offsetStartX: startOffset.dx, offsetStartY: startOffset.dy,
+          lastSentAt: 0, lastSentPos: null
+        };
+        el.style.cursor = 'grabbing';
+        return;
+      }
+
       // Straight-line tools — tracked as exactly [start, current] (never a
       // growing polyline the way freehand pen/highlighter points
       // accumulate below), redrawn as a straight segment each frame — see
@@ -991,6 +1045,20 @@
       }
       var pos = self._getPos(e);
       if (st.erasing) { self._eraseAt(pos); return; }
+      if (st.moving) {
+        var mdx = st.offsetStartX + (pos.x - st.dragStart.x);
+        var mdy = st.offsetStartY + (pos.y - st.dragStart.y);
+        self._setObjectOffset(st.objId, mdx, mdy);
+        self._myObjectOffsets.set(st.objId, { dx: mdx, dy: mdy });
+        var mnow = (global.performance || Date).now();
+        var mmoved = !st.lastSentPos || dist(st.lastSentPos, pos) >= BROADCAST_PX;
+        if (mmoved || mnow - st.lastSentAt >= BROADCAST_MS) {
+          self._send('object:move', { id: st.objId, offsetX: mdx, offsetY: mdy });
+          st.lastSentAt = mnow;
+          st.lastSentPos = pos;
+        }
+        return;
+      }
       if (st.shape) {
         // Replace the end point, never accumulate — a shape is always
         // exactly [start, current], see the pointerdown branch above.
@@ -1022,6 +1090,16 @@
       delete self._activePtrs[e.pointerId];
       if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
+      if (st.moving) {
+        el.style.cursor = 'default';
+        var finalOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
+        // Unthrottled — the throttled broadcasts during the drag may have
+        // skipped the very last point, and this is the one every other
+        // viewer needs to land on exactly.
+        self._send('object:move', { id: st.objId, offsetX: finalOff.dx, offsetY: finalOff.dy });
+        self._persistObjectMove(st.objId, finalOff.dx, finalOff.dy);
+        return;
+      }
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
       // Deliberately NOT deleting the live-stroke entry here — the overlay
@@ -1052,6 +1130,18 @@
       delete self._activePtrs[e.pointerId];
       if (st.panning) { el.style.cursor = 'grab'; return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
+      if (st.moving) {
+        // Snap back to wherever it was before this drag — same "the whole
+        // in-progress gesture is discarded" semantics as a cancelled
+        // stroke below, just as a revert instead of a delete since the
+        // object already existed. Nothing was ever sent to the DB for a
+        // cancelled drag, so there's nothing to undo there either.
+        el.style.cursor = 'default';
+        self._setObjectOffset(st.objId, st.offsetStartX, st.offsetStartY);
+        self._myObjectOffsets.set(st.objId, { dx: st.offsetStartX, dy: st.offsetStartY });
+        self._send('object:move', { id: st.objId, offsetX: st.offsetStartX, offsetY: st.offsetStartY });
+        return;
+      }
       self._liveStrokes.delete('m:' + st.strokeId);
       self._dirty = true;
       self._send('stroke:cancel', { strokeId: st.strokeId });
@@ -1154,6 +1244,13 @@
       .on('broadcast', { event: 'stroke:point' }, function (msg) { self._onRemotePoint(msg.payload); })
       .on('broadcast', { event: 'stroke:end' },   function (msg) { self._onRemoteStrokeEnd(msg.payload); })
       .on('broadcast', { event: 'stroke:cancel' }, function (msg) { self._liveStrokes.delete('r:' + msg.payload.strokeId); self._dirty = true; })
+      // Live, ephemeral drag position from the "select" tool — same
+      // Broadcast-not-persisted channel as a stroke's own in-progress
+      // points, see _bindPointerEvents' 'moving' branch. Applies to ANY
+      // object regardless of whose it is, since a REMOTE participant is
+      // the one dragging THEIR OWN object here — _setObjectOffset doesn't
+      // care about ownership, only _findMyObjectAt (my own hit-testing) does.
+      .on('broadcast', { event: 'object:move' }, function (msg) { self._setObjectOffset(msg.payload.id, msg.payload.offsetX, msg.payload.offsetY); })
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
       }, function (p) {
@@ -1166,6 +1263,9 @@
         self._addObjectIfNew(p.new);
         self._fabricCanvas.requestRenderAll();
       })
+      .on('postgres_changes', {
+        event: 'UPDATE', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
+      }, function (p) { self._applyObjectUpdate(p.new); })
       .on('postgres_changes', {
         event: 'DELETE', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
       }, function (p) { self._removeObjectById(p.old && p.old.id); self._fabricCanvas.requestRenderAll(); })
@@ -1188,6 +1288,24 @@
     // polyline below.
     entry.points = payload.shape ? payload.points : entry.points.concat(payload.points);
     this._dirty = true;
+  };
+
+  // The DURABLE counterpart to object:move's live broadcast — covers a
+  // viewer who wasn't connected during the drag (a late join, a dropped
+  // connection) and, for my OWN object, keeps _myObjectsJson/_myObjectOffsets
+  // in sync in case another of my own tabs/devices was the one that moved
+  // it. Idempotent with the live broadcast: applying the same (dx,dy)
+  // twice via _setObjectOffset is a no-op, always relative to natural
+  // position rather than wherever the object currently sits.
+  Whiteboard.prototype._applyObjectUpdate = function (row) {
+    if (!row) return;
+    var j = row.fabric_json || {};
+    var dx = j.offsetX || 0, dy = j.offsetY || 0;
+    this._setObjectOffset(row.id, dx, dy);
+    if (row.created_by === this._userId) {
+      this._myObjectOffsets.set(row.id, { dx: dx, dy: dy });
+      this._myObjectsJson.set(row.id, j);
+    }
   };
 
   // 'end' means the finished object is already on its way as a committed
@@ -1231,9 +1349,22 @@
       evented: false,
       data: { id: row.id, ownerId: row.created_by }
     });
+    // Natural position captured BEFORE applying any stored move offset —
+    // see the field comment in the constructor and _onRemoteObjectMove/
+    // _applyObjectUpdate, which both re-derive "natural + offset" the same
+    // way rather than nudging relative to wherever the object happens to
+    // already be on screen.
+    this._objectNaturalPos.set(row.id, { left: path.left, top: path.top });
+    var offsetX = j.offsetX || 0, offsetY = j.offsetY || 0;
+    if (offsetX || offsetY) {
+      path.set({ left: path.left + offsetX, top: path.top + offsetY });
+      path.setCoords();
+    }
     this._fabricCanvas.add(path);
     if (row.created_by === this._userId) {
       this._myPathPoints.set(row.id, rawPoints || parsePathPoints(j.path));
+      this._myObjectOffsets.set(row.id, { dx: offsetX, dy: offsetY });
+      this._myObjectsJson.set(row.id, j);
     }
   };
 
@@ -1241,6 +1372,9 @@
     if (!id) return;
     this._committedIds.delete(id);
     this._myPathPoints.delete(id);
+    this._objectNaturalPos.delete(id);
+    this._myObjectOffsets.delete(id);
+    this._myObjectsJson.delete(id);
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
     if (obj) this._fabricCanvas.remove(obj);
   };
@@ -1288,6 +1422,19 @@
       });
   };
 
+  // MY OWN cached hit-test points for an object, shifted by however far
+  // the "select" tool has moved it since — _myPathPoints alone is only
+  // ever the shape as originally drawn, so both the eraser and the select
+  // tool's own hit-testing need this translated version instead, or a
+  // moved object would keep responding to clicks/swipes at its OLD spot.
+  Whiteboard.prototype._myTranslatedPoints = function (id) {
+    var pts = this._myPathPoints.get(id);
+    if (!pts || !pts.length) return null;
+    var off = this._myObjectOffsets.get(id);
+    if (!off || (!off.dx && !off.dy)) return pts;
+    return pts.map(function (p) { return { x: p.x + off.dx, y: p.y + off.dy }; });
+  };
+
   // Eraser tool — drag over any of MY OWN strokes to delete them one at a
   // time. Scoped to own strokes only for now, same as _clearMine and the
   // DB's own owner-only delete policy: a teacher-erases-anyone tool is
@@ -1299,8 +1446,8 @@
     this._fabricCanvas.getObjects().forEach(function (obj) {
       if (!obj.data || obj.data.ownerId !== self._userId) return;
       if (self._erasedThisDrag.has(obj.data.id)) return;
-      var pts = self._myPathPoints.get(obj.data.id);
-      if (!pts || !pts.length) return;
+      var pts = self._myTranslatedPoints(obj.data.id);
+      if (!pts) return;
       var tol = (obj.strokeWidth || 2) / 2 + 8; // a little slack for a fast swipe
       if (distToPolyline(pos, pts) <= tol) {
         hitIds.push(obj.data.id);
@@ -1308,6 +1455,68 @@
       }
     });
     if (hitIds.length) this._deleteObjects(hitIds);
+  };
+
+  // "select" tool hit-testing — same tolerance-based polyline distance
+  // check as the eraser above, just returning the TOPMOST match (last in
+  // z-order, i.e. drawn most recently) instead of collecting every one a
+  // drag passes over, since a click can only pick up one object to move.
+  // Own objects only — see _eraseAt's own comment for why that's not a
+  // client-side-only restriction (the move UPDATE's own RLS policy
+  // enforces it server-side too).
+  Whiteboard.prototype._findMyObjectAt = function (pos) {
+    var objs = this._fabricCanvas.getObjects();
+    for (var i = objs.length - 1; i >= 0; i--) {
+      var obj = objs[i];
+      if (!obj.data || obj.data.ownerId !== this._userId) continue;
+      var pts = this._myTranslatedPoints(obj.data.id);
+      if (!pts) continue;
+      var tol = (obj.strokeWidth || 2) / 2 + 8;
+      if (distToPolyline(pos, pts) <= tol) return obj;
+    }
+    return null;
+  };
+
+  // Repositions ANY object — mine (a live drag) or someone else's (an
+  // incoming remote move, see _onRemoteObjectMove/_applyObjectUpdate) —
+  // to natural position + (dx,dy). Always relative to the object's own
+  // natural left/top (captured once in _addObjectIfNew), never to
+  // wherever it visually happens to be already, so applying the same
+  // (dx,dy) twice is a safe no-op rather than double-moving it.
+  Whiteboard.prototype._setObjectOffset = function (objId, dx, dy) {
+    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
+    var natural = this._objectNaturalPos.get(objId);
+    if (!obj || !natural) return;
+    obj.set({ left: natural.left + dx, top: natural.top + dy });
+    obj.setCoords();
+    this._fabricCanvas.requestRenderAll();
+  };
+
+  // Persists the "select" tool's final drag position — own objects only,
+  // enforced both here (client never attempts it for someone else's, see
+  // _findMyObjectAt) and server-side by wb_objects_owner_update. Merges
+  // into the object's own cached fabric_json (_myObjectsJson, kept
+  // current since _addObjectIfNew) rather than sending a partial update,
+  // since a bare {offsetX,offsetY} row would otherwise overwrite path/
+  // stroke/etc. with nothing. Reverts the visible position on failure —
+  // the drag already applied it optimistically the instant it happened.
+  Whiteboard.prototype._persistObjectMove = function (objId, dx, dy) {
+    var self = this;
+    var json = this._myObjectsJson.get(objId);
+    if (!json) return; // shouldn't happen for one of my own objects, but nothing sane to merge into
+    var newJson = Object.assign({}, json, { offsetX: dx, offsetY: dy });
+    this._supabase.from('whiteboard_objects').update({ fabric_json: newJson }).eq('id', objId)
+      .then(function (res) {
+        if (res.error) {
+          global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error');
+          var prevDx = json.offsetX || 0, prevDy = json.offsetY || 0;
+          self._setObjectOffset(objId, prevDx, prevDy);
+          self._myObjectOffsets.set(objId, { dx: prevDx, dy: prevDy });
+          self._send('object:move', { id: objId, offsetX: prevDx, offsetY: prevDy });
+          return;
+        }
+        self._myObjectsJson.set(objId, newJson);
+      });
   };
 
   // Shared by the eraser and undo — removes committed strokes both locally
