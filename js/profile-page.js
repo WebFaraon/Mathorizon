@@ -484,25 +484,31 @@
                 <input type="file" id="avatarInput" accept="image/*" style="display:none">
               </label>
             </div>
-            <button class="btn btn--surface btn--sm prof-bizcard-editbtn" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
-          </div>
 
-          <h1 class="prof-name">${BM.esc(name)}</h1>
-          <div class="prof-badges">${badgesHTML}</div>
+            <div class="prof-bizcard-info">
+              <div class="prof-bizcard-info__row1">
+                <div>
+                  <h1 class="prof-name">${BM.esc(name)}</h1>
+                  <div class="prof-badges">${badgesHTML}</div>
+                </div>
+                <button class="btn btn--surface btn--sm prof-bizcard-editbtn" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+              </div>
 
-          <div class="prof-rating-row">
-            <span class="prof-stars">${_starsHTML(reviewsData.avg, 16)}</span>
-            ${reviewsData.count
-              ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
-              : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
-          </div>
+              <div class="prof-rating-row">
+                <span class="prof-stars">${_starsHTML(reviewsData.avg, 16)}</span>
+                ${reviewsData.count
+                  ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
+                  : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
+              </div>
 
-          <div class="prof-contact-row">
-            ${country ? `<span class="prof-contact-item">${icon('map-pin', { size: 16 })} ${BM.esc(country)}</span>` : ''}
-            ${email ? `<span class="prof-contact-item">${icon('mail', { size: 16 })} ${BM.esc(email)}</span>` : ''}
-            ${phone ? `<span class="prof-contact-item">${icon('phone', { size: 16 })} ${BM.esc(phone)}</span>` : ''}
-            ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${icon('link', { size: 16 })} ${BM.esc(socialDisplay)}</a>` : ''}
-            <span class="prof-contact-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
+              <div class="prof-contact-row">
+                ${country ? `<span class="prof-contact-item">${icon('map-pin', { size: 16 })} ${BM.esc(country)}</span>` : ''}
+                ${email ? `<span class="prof-contact-item">${icon('mail', { size: 16 })} ${BM.esc(email)}</span>` : ''}
+                ${phone ? `<span class="prof-contact-item">${icon('phone', { size: 16 })} ${BM.esc(phone)}</span>` : ''}
+                ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${icon('link', { size: 16 })} ${BM.esc(socialDisplay)}</a>` : ''}
+                <span class="prof-contact-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
+              </div>
+            </div>
           </div>
 
           <p class="prof-bio${bio ? '' : ' prof-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
@@ -512,7 +518,7 @@
       <div class="prof-card prof-card--wide prof-reviews-card">
         <div class="prof-card__head">
           <span class="prof-card__icon">${icon('star', { size: 16 })}</span>
-          <span class="prof-card__title">Recenzii elevi</span>
+          <span class="prof-card__title">Recenzii</span>
           ${reviewsData.count ? `<span class="prof-reviews-head-rating">${_starsHTML(reviewsData.avg, 16)} ${reviewsData.avg.toFixed(1)} · ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}</span>` : ''}
         </div>
         <div class="prof-card__body">
@@ -823,7 +829,15 @@
           throw uploadErr;
         }
 
-        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+        // getPublicUrl() returns the same URL every time for this fixed
+        // filePath (upsert overwrites it in place) — confirmed live: on a
+        // second upload the toast said "updated" but the old image kept
+        // showing, because the browser served its cached copy of that
+        // unchanged URL. A cache-busting query param forces a fresh fetch,
+        // both here and on the next page load (the busted URL is what
+        // gets saved).
+        const { data: { publicUrl: rawAvatarUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = `${rawAvatarUrl}?v=${Date.now()}`;
 
         const { error: updErr } = await sb.auth.updateUser({ data: { custom_avatar_url: publicUrl } });
         if (updErr) throw updErr;
@@ -862,7 +876,11 @@
           throw uploadErr;
         }
 
-        const { data: { publicUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+        // Same cache-busting fix as the avatar upload above — this
+        // filePath is fixed per user, so without a query param the
+        // browser would keep showing the previously-cached image.
+        const { data: { publicUrl: rawCoverUrl } } = sb.storage.from('avatars').getPublicUrl(filePath);
+        const publicUrl = `${rawCoverUrl}?v=${Date.now()}`;
 
         const { error: updErr } = await sb.auth.updateUser({ data: { custom_cover_url: publicUrl } });
         if (updErr) throw updErr;
