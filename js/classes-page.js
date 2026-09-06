@@ -240,9 +240,10 @@
           ${_dayFilterSelected.length ? `<span class="cls-day-filter__dot"></span>` : ''}
         </button>
         <div class="cls-day-filter__pop" id="dayFilterPop">
+          <div class="cls-day-filter__pop-title">Arată doar clasele din ziua selectată</div>
           <div class="cls-day-filter__chips">
             ${DAY_ORDER.map(d => `
-              <button type="button" class="cls-day-chip cls-day-chip--sm${_dayFilterSelected.includes(d) ? ' cls-day-chip--sel' : ''}" data-day="${d}">${d.slice(0, 3)}</button>
+              <button type="button" class="cls-day-chip cls-day-chip--sm${_dayFilterSelected.includes(d) ? ' cls-day-chip--sel' : ''}" data-day="${d}">${d}</button>
             `).join('')}
           </div>
           <button type="button" class="cls-day-filter__clear" id="dayFilterClear">Arată toate</button>

@@ -11188,8 +11188,9 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   top: calc(100% + 8px);
   right: 0;
   z-index: 40;
-  width: 248px;
-  padding: 12px;
+  width: 280px;
+  max-width: calc(100vw - 32px);
+  padding: 14px;
   background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius);
@@ -11204,15 +11205,24 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   transform: translateY(0);
   pointer-events: all;
 }
-/* 4 columns → 7 days lay out 4+3, evenly filling the row's width, instead
-   of flex-wrap leaving a single lonely chip on its own last row. */
+/* Explains what this popover is for — the trigger next to it is icon-only,
+   so without this a viewer who didn't add it themselves has no label to
+   go on. */
+.cls-day-filter__pop-title {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  line-height: 1.35;
+  margin-bottom: 12px;
+}
+/* 2 columns → full day names ("Miercuri", "Sâmbătă") get room to sit on
+   one line instead of the tight 4-column/abbreviated layout this replaced. */
 .cls-day-filter__chips {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(2, 1fr);
   gap: 6px;
   margin-bottom: 10px;
 }
-.cls-day-chip--sm { padding: 7px 0; font-size: 0.76rem; text-align: center; }
+.cls-day-chip--sm { padding: 8px 4px; font-size: 0.78rem; text-align: center; }
 .cls-day-filter__clear {
   display: block;
   width: 100%;
@@ -12086,28 +12096,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   letter-spacing: 0.08em;
   color: var(--text-muted);
 }
-
-/* Legend */
-.catalog-legend {
-  display: flex;
-  align-items: center;
-  gap: 18px;
-  flex-wrap: wrap;
-  margin-bottom: 18px;
-  font-size: 0.78rem;
-  color: var(--text-muted);
-}
-.catalog-legend-item { display: flex; align-items: center; gap: 5px; }
-.catalog-dot {
-  display: inline-block;
-  width: 10px; height: 10px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.catalog-dot--grade     { background: var(--green); }
-.catalog-dot--submitted { background: var(--accent); }
-.catalog-dot--none      { background: var(--border); }
-.catalog-dot--absent    { background: var(--red); }
 
 /* Scrollable container */
 .catalog-scroll {
@@ -13288,12 +13276,6 @@ body.wb-fullscreen-active .scroll-top-btn {
   font-size: 0.9rem;
 }
 
-.catalog-legend-item--sep {
-  margin-left: auto;
-  color: var(--text-muted);
-  font-size: 0.78rem;
-}
-
 /* Wizard — item list (step 2) */
 .sim-wz-item-list { display: flex; flex-direction: column; gap: 8px; }
 .sim-wz-item {
@@ -14093,6 +14075,11 @@ body.wb-fullscreen-active .scroll-top-btn {
   color: var(--text);
   text-align: right;
 }
+.cd-info-card__detail-val--muted { color: var(--text-muted); font-weight: 600; }
+
+/* Nivel row — the one detail here that's actually editable */
+.cd-info-card__detail--clickable { cursor: pointer; transition: background 0.15s, border-color 0.15s; }
+.cd-info-card__detail--clickable:hover { background: rgba(58,107,173,0.11); border-color: rgba(58,107,173,0.18); }
 
 /* Math level badge */
 .cd-level-badge {
@@ -14326,11 +14313,28 @@ body.wb-fullscreen-active .scroll-top-btn {
    stats visually separate from the class-card grid below instead of
    floating loose on the page background right above it. */
 .cls-stats-panel {
-  background: var(--surface);
+  position: relative;
+  background: var(--card);
   border: 1.5px solid var(--border);
   border-radius: var(--radius-lg);
   padding: 20px;
-  margin-bottom: 28px;
+  margin-bottom: 34px;
+  box-shadow: var(--shadow-sm);
+}
+/* The gradient line delimiting this panel from the class-card grid below —
+   same accent gradient as .cd-info-card__strip, sitting in the gap rather
+   than another plain border so the panel reads as its own section instead
+   of just another bordered box among the cards. */
+.cls-stats-panel::after {
+  content: '';
+  position: absolute;
+  left: 4px;
+  right: 4px;
+  bottom: -18px;
+  height: 3px;
+  border-radius: 3px;
+  background: linear-gradient(90deg, var(--accent) 0%, rgba(120,80,200,0.75) 100%);
+  opacity: 0.55;
 }
 .cls-stats-panel__title {
   font-size: 0.72rem;
@@ -15659,6 +15663,12 @@ body.wb-fullscreen-active .scroll-top-btn {
   .catalog-stat-card { padding: 10px 8px; }
   .catalog-stat-card__val { font-size: 1.3rem; margin-bottom: 2px; }
   .catalog-stat-card__lbl { font-size: 0.6rem; letter-spacing: 0.03em; }
+
+  /* classes.html's "toate grupele" panel — 2-per-row, not stacked one per
+     line. Needs its own rule (not just the base .sumar-kpi-card flex-basis)
+     because the panel's own padding eats just enough width at this
+     breakpoint to tip 2-across into wrapping to 1-across otherwise. */
+  .cls-stats-panel .sumar-kpi-card { flex: 1 1 calc(50% - 6px); }
 }
 
 /* ══════════════════════════════════════════════════════════════

@@ -122,7 +122,11 @@
         BMAuth.supabase.from('classes')
           .update({ teacher_name: currentName })
           .eq('id', classId).eq('teacher_id', BMAuth.user.id)
-          .then(() => {}, () => {});
+          .select('id')
+          .then(({ data, error }) => {
+            if (error) console.warn('[class-page] teacher_name self-heal failed:', error.message);
+            else if (!data || data.length === 0) console.warn('[class-page] teacher_name self-heal matched 0 rows (permission gap?)');
+          });
       }
     } else {
       /* Student: must be in class_members */
@@ -585,6 +589,7 @@
 
       const sidebar = document.getElementById('sumarSidebar');
       if (sidebar) sidebar.innerHTML = _renderClassInfoCard();
+      document.getElementById('nivelDetailRow')?.addEventListener('click', openNivelModal);
     } catch (e) {
       main.innerHTML = `
         <div class="cd-placeholder">
@@ -1523,7 +1528,11 @@
     const maxEl    = classData.max_students;
     const grade    = classData.school_grade;
 
-    const detailsHTML = (maxEl || grade || lvl) ? `
+    // Always rendered now (not conditioned on maxEl/grade/lvl existing) —
+    // Nivel needs to stay reachable/clickable even for an edge-case class
+    // predating the max_students/school_grade columns, since it's the one
+    // field here you can actually change after creation.
+    const detailsHTML = `
       <div class="cd-info-card__details">
         ${grade ? `
         <div class="cd-info-card__detail">
@@ -1537,13 +1546,14 @@
           <span class="cd-info-card__detail-lbl">Mărime grupă</span>
           <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `${maxEl} elevi`}</span>
         </div>` : ''}
-        ${lvl ? `
-        <div class="cd-info-card__detail">
+        <div class="cd-info-card__detail cd-info-card__detail--clickable" id="nivelDetailRow" title="Click pentru a schimba nivelul grupei">
           <span class="cd-info-card__detail-icon">${icon('chart-column', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Nivel</span>
-          <span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)}</span>
-        </div>` : ''}
-      </div>` : '';
+          ${lvl
+            ? `<span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)}</span>`
+            : `<span class="cd-info-card__detail-val cd-info-card__detail-val--muted">Setează</span>`}
+        </div>
+      </div>`;
 
     return `
       <div class="cd-info-card">
@@ -1558,6 +1568,86 @@
         </div>
       </div>
     `;
+  }
+
+  // Nivel matematică is the one field on this card a teacher legitimately
+  // needs to revisit — a group's level moves up over time — so unlike the
+  // rest of class creation (materie, ziua, ora, etc.) this gets its own
+  // small always-available editor instead of requiring the class be
+  // recreated.
+  function openNivelModal() {
+    document.getElementById('nivelModal')?.remove();
+    const levels = ['9-10', '7-8', '6-7', '5-6'];
+    const current = classData.math_level;
+
+    const modal = document.createElement('div');
+    modal.id = 'nivelModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog">
+        <div class="classes-modal__head">
+          <h3>${icon('chart-column', { size: 20 })} Nivel matematică</h3>
+          <button class="icon-btn" id="nivelCloseBtn">${icon('x', { size: 16 })}</button>
+        </div>
+        <div class="classes-modal__body">
+          <p class="wz-subtitle">Nivelul grupei se poate schimba în timp — actualizează-l oricând nu mai reflectă realitatea.</p>
+          <div class="cls-day-picker" id="nivelPicker">
+            ${levels.map(l => `<button type="button" class="cls-day-chip${l === current ? ' cls-day-chip--sel' : ''}" data-level="${l}">${l}</button>`).join('')}
+          </div>
+        </div>
+        <div class="classes-modal__foot">
+          <button class="btn btn--surface" id="nivelCancelBtn">Anulează</button>
+          <button class="btn btn--primary" id="nivelSaveBtn">Salvează</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const close = () => {
+      modal.remove();
+      document.documentElement.style.overflow = '';
+      document.body.style.overflow = '';
+    };
+    modal.querySelector('.classes-modal__backdrop').onclick = close;
+    modal.querySelector('#nivelCloseBtn').onclick = close;
+    modal.querySelector('#nivelCancelBtn').onclick = close;
+
+    // Click-to-toggle, same as the create form's Tip lecție picker — clicking
+    // the already-selected level clears it back to "no level set".
+    modal.querySelectorAll('#nivelPicker .cls-day-chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        const already = chip.classList.contains('cls-day-chip--sel');
+        modal.querySelectorAll('#nivelPicker .cls-day-chip--sel').forEach(c => c.classList.remove('cls-day-chip--sel'));
+        if (!already) chip.classList.add('cls-day-chip--sel');
+      });
+    });
+
+    modal.querySelector('#nivelSaveBtn').onclick = async () => {
+      const selected = modal.querySelector('#nivelPicker .cls-day-chip--sel')?.dataset.level || null;
+      const btn = modal.querySelector('#nivelSaveBtn');
+      btn.disabled = true; btn.textContent = 'Se salvează…';
+      try {
+        // .select() + a row-count check, not just `if (error)` — an UPDATE
+        // whose WHERE/RLS filter matches nothing is NOT an error to
+        // Postgrest (200, empty result), so without this a permissions gap
+        // would show a false "saved" toast while silently writing nothing.
+        const { data, error } = await BMAuth.supabase.from('classes')
+          .update({ math_level: selected }).eq('id', classData.id).eq('teacher_id', BMAuth.user.id)
+          .select('id');
+        if (error) throw error;
+        if (!data || data.length === 0) throw new Error('Nu s-a putut actualiza clasa (permisiune lipsă?).');
+        classData.math_level = selected;
+        BM.toast('Nivelul a fost actualizat.', 'success');
+        close();
+        const sidebar = document.getElementById('sumarSidebar');
+        if (sidebar) sidebar.innerHTML = _renderClassInfoCard();
+        document.getElementById('nivelDetailRow')?.addEventListener('click', openNivelModal);
+      } catch (e) {
+        BM.toast('Eroare: ' + e.message, 'error');
+        btn.disabled = false; btn.textContent = 'Salvează';
+      }
+    };
   }
 
   window.cdOpenNotifInfo = function (classId) {
@@ -1905,13 +1995,6 @@
             <div class="catalog-stat-card__lbl">Medie clasă</div>
           </div>
         </div>
-        <div class="catalog-legend">
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Notat</span>
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--submitted"></span>Predat, nenotat</span>
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Nepredat</span>
-          ${(assignments.length > 0 && sims.length > 0) ? `
-          <span class="catalog-legend-item catalog-legend-item--sep">${icon('file-text', { size: 16 })} Notă din temă · ${icon('target', { size: 16 })} Notă din simulare</span>` : ''}
-        </div>
         ${lessonCols.length === 0 ? `
           <div class="cd-placeholder">
             <div class="cd-placeholder__icon">${icon('chart-column', { size: 48 })}</div>
@@ -2151,11 +2234,6 @@
             <div class="catalog-stat-card__lbl">Prezență medie</div>
           </div>
         </div>
-        <div class="catalog-legend">
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--grade"></span>Prezent</span>
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--absent"></span>Absent</span>
-          <span class="catalog-legend-item"><span class="catalog-dot catalog-dot--none"></span>Fără înregistrare</span>
-        </div>
         ${sessions.length === 0 ? `
           <div class="cd-placeholder">
             <div class="cd-placeholder__icon">${icon('calendar', { size: 48 })}</div>
@@ -2337,13 +2415,8 @@
       try {
         let sessionId = session?.id;
         if (!sessionId) {
-          const { data: dupe } = await BMAuth.supabase.from('class_sessions')
-            .select('id').eq('class_id', classData.id).eq('session_date', dateStr).maybeSingle();
-          if (dupe) {
-            BM.toast('Există deja o lecție pentru această dată — click pe coloana ei pentru a o edita.', 'error');
-            btn.disabled = false; btn.textContent = 'Salvează';
-            return;
-          }
+          // Multiple lecții on the same date are allowed (some groups run
+          // two back-to-back) — no duplicate-date check here anymore.
           const { data: newSession, error: sessErr } = await BMAuth.supabase.from('class_sessions')
             .insert({ class_id: classData.id, created_by: BMAuth.user.id, session_date: dateStr, title: titleStr })
             .select('id, session_date, title').single();
@@ -2374,13 +2447,7 @@
         closeModal();
         refreshFn();
       } catch (e) {
-        // 23505 = unique_violation — the pre-check above already covers the
-        // common case, this is the final guard against a race between two
-        // near-simultaneous saves (e.g. two tabs) slipping past it.
-        const msg = e.code === '23505' || /duplicate key/i.test(e.message || '')
-          ? 'Există deja o lecție pentru această dată — click pe coloana ei pentru a o edita.'
-          : 'Eroare: ' + e.message;
-        BM.toast(msg, 'error');
+        BM.toast('Eroare: ' + e.message, 'error');
         btn.disabled = false; btn.textContent = 'Salvează';
       }
     };
