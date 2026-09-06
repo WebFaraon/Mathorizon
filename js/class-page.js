@@ -5815,7 +5815,13 @@
       let heroAction = '';
       if (isTeacher) {
         heroAction = live
-          ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>`
+          // Ending the session lives here (next to opening it) rather than
+          // inside the fullscreen board itself — that view is cramped
+          // enough on a phone already, and "end the lesson" is a
+          // deliberate, considered action anyway, not something needed
+          // mid-drawing.
+          ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>` +
+            `<button class="btn btn--surface" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>`
           : elsewhereLive
             ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă — apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă — comută aici</button>`
             : `<button class="btn btn--primary" id="tablaStartBtn">${icon('presentation', { size: 16 })} Pornește tablă live</button>`;
@@ -5858,6 +5864,7 @@
 
       document.getElementById('tablaStartBtn')?.addEventListener('click', startWhiteboard);
       document.getElementById('tablaOpenBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
+      document.getElementById('tablaEndBtn')?.addEventListener('click', () => endWhiteboard(live.id));
       document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
       document.getElementById('tablaSwitchBtn')?.addEventListener('click', () => switchWhiteboard(elsewhereLive));
     } catch (e) {
@@ -6128,7 +6135,6 @@
         </div>
         <div class="wb-fs-header__right">
           <div class="wb-roster-strip" id="wbRosterStrip"><span class="wb-roster-count">…</span></div>
-          ${isTeacher ? `<button class="btn btn--surface btn--sm" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>` : ''}
           <button class="icon-btn" id="tablaLiveCloseBtn" title="${isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
       </div>
@@ -6138,7 +6144,6 @@
       <button type="button" class="icon-btn wb-fs-fullscreen-btn" id="wbFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 18 })}</button>`;
     document.body.appendChild(modal);
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
-    modal.querySelector('#tablaEndBtn')?.addEventListener('click', () => endWhiteboard(session.id));
     modal.querySelector('#wbFullscreenBtn').addEventListener('click', () => _toggleWbFullscreen(modal));
     document.addEventListener('fullscreenchange', _onWbFullscreenChange);
     document.addEventListener('webkitfullscreenchange', _onWbFullscreenChange);

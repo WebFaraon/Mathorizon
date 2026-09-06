@@ -57,19 +57,6 @@
   var MAX_ZOOM = 6;
   var ZOOM_STEP = 0.25;
 
-  // The browser's built-in 'crosshair' cursor is a thin, plain dark line —
-  // easy to lose against the board's own white background. Same fix (and
-  // same reasoning) as js/drawing-canvas.js's own CROSSHAIR_CURSOR: a white
-  // halo behind a dark core line stays visible either way.
-  var CROSSHAIR_CURSOR_SVG =
-    '<svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 22 22">' +
-    '<line x1="11" y1="1" x2="11" y2="21" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
-    '<line x1="1" y1="11" x2="21" y2="11" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' +
-    '<line x1="11" y1="2" x2="11" y2="20" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
-    '<line x1="2" y1="11" x2="20" y2="11" stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round"/>' +
-    '</svg>';
-  var CROSSHAIR_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(CROSSHAIR_CURSOR_SVG) + '") 11 11, crosshair';
-
   function dist(a, b) {
     var dx = a.x - b.x, dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
@@ -420,13 +407,16 @@
   /* ---- DOM ---- */
 
   var GRID_ICON = '<rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M3 15h18"/><path d="M9 3v18"/><path d="M15 3v18"/>';
-  // The grid's desired ON-SCREEN cell size, in CSS px — NOT a logical size.
-  // _redrawGrid derives the actual logical spacing from this fresh on every
-  // redraw (target ÷ current scale), so cells stay this same size on
-  // screen at any zoom instead of growing/shrinking (and, at high zoom,
-  // becoming too coarse to write comfortably against) the way a fixed
-  // LOGICAL spacing would.
-  var GRID_CELL_TARGET_PX = 40;
+  // The grid's desired ON-SCREEN cell size range, in CSS px — NOT a
+  // logical size, and not one fixed number either (see _redrawGrid's own
+  // comment for why a single constant target, this file's first attempt
+  // at this, looked oversized on a phone). MIN/MAX bound how big a
+  // "comfortable" cell is allowed to look on any given viewport; which
+  // exact value within that band is actually used any given moment is
+  // also shaped by niceGridStep's snapping, so neither bound is a
+  // guarantee, just a target.
+  var GRID_CELL_TARGET_PX_MIN = 22;
+  var GRID_CELL_TARGET_PX_MAX = 46;
 
   // Same icon glyphs js/drawing-canvas.js uses for these exact tools/actions
   // — one consistent visual language across every drawing surface in the
@@ -435,6 +425,40 @@
   var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
   var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
   var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
+
+  // Per-tool cursors — a white halo behind a dark core (same technique
+  // js/drawing-canvas.js's own CROSSHAIR_CURSOR uses) so each stays
+  // visible against both the board's white paper and any darker chrome
+  // around it. Pen/highlighter/eraser reuse their own toolbar glyph above
+  // rather than a generic reticle, so the cursor reads as "this tool" at
+  // a glance instead of the same interchangeable crosshair every drawing
+  // app (including this one, before) tends to default to; the hotspot for
+  // each sits at the glyph's own working tip (where a real pen/highlighter/
+  // eraser would actually touch the page), not the icon's visual center.
+  function haloCursor(glyph, hotspotX, hotspotY, fallback) {
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">' +
+      '<g fill="none" stroke="#fff" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round">' + glyph + '</g>' +
+      '<g fill="none" stroke="#1a1a1a" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + glyph + '</g>' +
+      '</svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") ' + hotspotX + ' ' + hotspotY + ', ' + fallback;
+  }
+  var PEN_CURSOR         = haloCursor(PEN_ICON, 3, 21, 'crosshair');
+  var HIGHLIGHTER_CURSOR = haloCursor(HIGHLIGHTER_ICON, 4, 20, 'crosshair');
+  var ERASER_CURSOR      = haloCursor(ERASER_ICON, 12, 20, 'cell');
+  // A precision reticle for the line/dashed-line/arrow tools — these place
+  // two exact points rather than "touch here with a tip", so a crosshair
+  // fits better than the pen-glyph cursors above; refined (thinner, plus a
+  // center dot) from an earlier, blockier version of the same idea.
+  var CROSSHAIR_CURSOR_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">' +
+    '<line x1="10" y1="1" x2="10" y2="19" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="1" y1="10" x2="19" y2="10" stroke="#fff" stroke-width="3" stroke-linecap="round"/>' +
+    '<line x1="10" y1="3" x2="10" y2="17" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>' +
+    '<line x1="3" y1="10" x2="17" y2="10" stroke="#1a1a1a" stroke-width="1.2" stroke-linecap="round"/>' +
+    '<circle cx="10" cy="10" r="1.6" fill="#1a1a1a"/>' +
+    '</svg>';
+  var CROSSHAIR_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(CROSSHAIR_CURSOR_SVG) + '") 10 10, crosshair';
   // Classic tilted arrow-cursor glyph — the universal "selection tool"
   // icon in every drawing app, distinct from PAN_ICON's open hand (that
   // one moves the CAMERA; this one moves an OBJECT — see _findMyObjectAt).
@@ -575,16 +599,19 @@
       // write — see setLocked) — that gets its usual 'grab' regardless,
       // everything else gets 'not-allowed' instead of its normal cursor so
       // it's obvious nothing will happen. Otherwise: pan gets the
-      // browser's own grab/grabbing (a custom cursor for those is
-      // unnecessary — already high-contrast), eraser a plain 'cell',
-      // select the plain arrow (it's the one tool that ISN'T about
-      // marking the board, so the high-visibility crosshair would be
-      // misleading here), and pen/highlighter/the line tools the
-      // high-visibility crosshair (see its own comment above for why not
-      // the plain CSS keyword).
+      // browser's own grab/grabbing (already high-contrast, no custom
+      // cursor needed), select the plain arrow (it's the one tool that
+      // ISN'T about marking the board), and every drawing tool its own
+      // glyph cursor — see haloCursor's own comment above for why each
+      // gets its own rather than one shared crosshair.
       this._overlayEl.style.cursor =
         (this._locked && tool !== 'pan') ? 'not-allowed' :
-        tool === 'eraser' ? 'cell' : tool === 'pan' ? 'grab' : tool === 'select' ? 'default' : CROSSHAIR_CURSOR;
+        tool === 'eraser' ? ERASER_CURSOR :
+        tool === 'pan' ? 'grab' :
+        tool === 'select' ? 'default' :
+        tool === 'pen' ? PEN_CURSOR :
+        tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
+        CROSSHAIR_CURSOR; // line / dashed-line / arrow
     }
   };
 
@@ -841,13 +868,28 @@
     return Math.min(0, Math.max(viewportSize - contentSize, pan));
   }
 
+  // Snaps a raw logical grid step to the nearest 1-2-5-per-decade value
+  // (…,10,20,50,100,200,500,1000,…) — the same progression rulers, chart
+  // axes, and every adaptive-grid design tool (Miro, Figma, idroo) use,
+  // instead of a perfectly continuous size. That's deliberate: it's what
+  // gives an adaptive grid its "coarser squares split into finer ones as
+  // you zoom in" feel, arriving in discrete jumps at nice round numbers,
+  // rather than a mathematically-smooth but visually-arbitrary resize.
+  function niceGridStep(raw) {
+    var exp = Math.floor(Math.log(raw) / Math.LN10);
+    var base = Math.pow(10, exp);
+    var frac = raw / base;
+    var niceFrac = frac < 1.5 ? 1 : frac < 3.5 ? 2 : frac < 7.5 ? 5 : 10;
+    return niceFrac * base;
+  }
+
   // Grid/paper background — see the CSS comment on .wb-grid-canvas for why
   // this paints the white "paper" rect too, not just the grid lines: with
   // the fixed-viewport camera, no DOM element is sized/positioned to the
   // board anymore for a CSS background to show through from. Cheap enough
-  // (the paper rect plus at most ~35 grid lines) to just redraw inline
-  // from _syncViewport on every pan/zoom step rather than batching it
-  // through the dirty-flag/rAF loop the way the overlay's live strokes
+  // (the paper rect plus at most a few dozen grid lines) to just redraw
+  // inline from _syncViewport on every pan/zoom step rather than batching
+  // it through the dirty-flag/rAF loop the way the overlay's live strokes
   // are — those redraw every frame during a whole gesture regardless, so
   // batching them earns its keep; a plain rect-and-some-lines redraw here
   // and there doesn't need it.
@@ -861,12 +903,18 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     if (!this._gridOn) return;
-    // Logical spacing re-derived from the CURRENT scale every redraw —
-    // GRID_CELL_TARGET_PX ÷ scale is exactly the logical size that renders
-    // as GRID_CELL_TARGET_PX on screen right now, so cells neither balloon
-    // into unusably-coarse squares at high zoom nor shrink into a dense
-    // mush at low zoom the way a fixed LOGICAL spacing would.
-    var cellLogical = GRID_CELL_TARGET_PX / this._scale;
+    // The target itself scales down on a small viewport (a phone) rather
+    // than staying one fixed CSS-px number everywhere — a flat 40px
+    // target, tried first, is IDENTICAL in absolute size on any device,
+    // but that's exactly the problem: on a narrow phone screen it's a much
+    // bigger fraction of the whole visible board than the same 40px is on
+    // a desktop, so the same math that looked fine on a laptop rendered
+    // way too few, way-too-chunky-looking squares on mobile. Tying the
+    // target to the viewport's own smaller dimension keeps roughly the
+    // same NUMBER of cells visible across device sizes instead.
+    var minDim = Math.min(this._viewportW || 800, this._viewportH || 600);
+    var targetPx = Math.max(GRID_CELL_TARGET_PX_MIN, Math.min(GRID_CELL_TARGET_PX_MAX, minDim / 14));
+    var cellLogical = niceGridStep(targetPx / this._scale);
     ctx.strokeStyle = 'rgba(20,16,8,0.09)';
     ctx.lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
     ctx.beginPath();
@@ -1207,7 +1255,13 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
-      if (st.panning) { el.style.cursor = 'grab'; return; }
+      // Re-derive the cursor for whatever tool is ACTUALLY active rather
+      // than hardcoding 'grab' — a right-click-drag pans regardless of the
+      // active tool (see pointerdown), so releasing it while e.g. the pen
+      // is still selected must restore the pen's own crosshair, not leave
+      // the grab cursor stuck. Harmless no-op when 'pan' really is the
+      // active tool (self._setTool('pan') sets 'grab' right back anyway).
+      if (st.panning) { self._setTool(self._tool); return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
       if (st.rubberBand) {
         var rect = normalizedRect(self._activeRubberBand.start, self._activeRubberBand.current);
@@ -1271,7 +1325,13 @@
       var st = self._activePtrs[e.pointerId];
       if (!st) return;
       delete self._activePtrs[e.pointerId];
-      if (st.panning) { el.style.cursor = 'grab'; return; }
+      // Re-derive the cursor for whatever tool is ACTUALLY active rather
+      // than hardcoding 'grab' — a right-click-drag pans regardless of the
+      // active tool (see pointerdown), so releasing it while e.g. the pen
+      // is still selected must restore the pen's own crosshair, not leave
+      // the grab cursor stuck. Harmless no-op when 'pan' really is the
+      // active tool (self._setTool('pan') sets 'grab' right back anyway).
+      if (st.panning) { self._setTool(self._tool); return; }
       if (st.erasing) { self._erasedThisDrag = null; return; }
       if (st.rubberBand) { self._activeRubberBand = null; self._dirty = true; return; }
       if (st.moving) {
@@ -1864,13 +1924,13 @@
       if (!pts || !obj) return;
       var b = self._myObjectBounds(id);
       if (b) boxes.push(b);
-      // A translucent halo drawn ALONG the stroke's own points, wider
-      // than the ink itself — reads as an outline hugging the exact
-      // shape (a straight line/arrow's halo is just its shaft; the
-      // arrowhead barbs aren't in the cached hit-test points either, a
-      // minor cosmetic gap, not a hit-testing one) rather than a
-      // rectangle floating around loosely-related empty space.
-      drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.35)', (obj.strokeWidth || 2) + 16, 1);
+      // A translucent halo drawn ALONG the stroke's own points, just
+      // barely wider than the ink itself — reads as a thin outline right
+      // at the edge of the exact shape (a straight line/arrow's halo is
+      // just its shaft; the arrowhead barbs aren't in the cached hit-test
+      // points either, a minor cosmetic gap, not a hit-testing one)
+      // rather than a thick highlighter-like glow.
+      drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
     });
     if (boxes.length > 1) {
       var u = boxes.reduce(function (acc, b) {

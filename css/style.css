@@ -12743,21 +12743,18 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wb-fs-header__left {
   display: flex;
   align-items: center;
-  gap: 22px;
+  gap: 16px;
   min-width: 0;
-  flex-wrap: wrap;
+  /* Fills all the room .wb-fs-header's justify-content:space-between
+     would otherwise have left as a gap before .wb-fs-header__right — the
+     title (flex:1 below) is what actually stretches into that reclaimed
+     space, all the way to the roster on the opposite side. */
+  flex: 1;
 }
 .wb-fs-brand {
   display: flex;
   align-items: center;
   flex-shrink: 0;
-  /* Matches .wb-fs-title-input's own 3px padding + 1px border on each
-     side (4px total) — without this, the brand's box is exactly that much
-     SHORTER than the title input's, and even though .wb-fs-header__left's
-     align-items:center keeps both boxes centered on the same line, the
-     brand's own text (filling its shorter box edge-to-edge) sits visibly
-     higher than the input's text (centered within its own taller box). */
-  padding: 4px 0;
 }
 .wb-fs-brand__name {
   font-family: 'Josefin Sans', sans-serif;
@@ -12770,34 +12767,38 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 /* Read-only (students) vs editable (teacher) session title — see
    openWhiteboardLiveView/_bindTablaTitleInput in js/class-page.js. Same
-   size/weight so neither stands out from the other; the input additionally
-   gets a visible border (below) at rest, not just on hover/focus, so it
-   reads as an editable field rather than plain text — the read-only
-   student span deliberately does NOT get that border COLOR, since it
-   isn't one, but DOES get the same padding + a same-width TRANSPARENT
-   border (shared here, only the input overrides border-color below) so
-   both end up with the exact same box height as each other — and, in
-   turn, as .wb-fs-brand's own matching padding right next to them. */
+   box for both (visible border+fill included — the frame reads as "this
+   is the session title" either way), same size/weight so neither stands
+   out from the other; only the interactive hover/focus feedback below is
+   input-only, since a read-only span isn't actually clickable. Explicit
+   height (not padding-derived) matching .icon-btn's own 40px exactly, so
+   this sits level with the close button on the header's opposite end
+   regardless of either one's own font metrics. */
 .wb-fs-title,
 .wb-fs-title-input {
   font-size: 0.95rem;
   font-weight: 600;
   color: var(--text-secondary);
-  min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  padding: 3px 8px;
-  border: 1px solid transparent;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  flex: 1;
+  min-width: 0;
+}
+/* A span has no built-in vertical text centering the way an <input>'s own
+   content box does — needs it spelled out explicitly to land in the
+   middle of the fixed height above. */
+.wb-fs-title {
+  display: flex;
+  align-items: center;
 }
 .wb-fs-title-input {
   font-family: inherit;
-  border-color: var(--border);
-  background: var(--surface);
-  border-radius: 6px;
-  flex: 1;
-  min-width: 80px;
-  max-width: 320px;
   transition: border-color 0.15s, background 0.15s;
 }
 .wb-fs-title-input:hover  { border-color: var(--text-secondary); }
