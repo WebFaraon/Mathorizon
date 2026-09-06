@@ -86,35 +86,6 @@
     catch { return []; }
   }
 
-  /* Teacher's own classes + total students across them — same tables/
-     query shape as classes-page.js's renderTeacherView() and the admin
-     panel's per-professor class list, just scoped to the logged-in
-     teacher instead of an admin RPC. */
-  async function _fetchTeacherStats(sb, teacherId) {
-    try {
-      const { data: classes, error } = await sb
-        .from('classes')
-        .select('id')
-        .eq('teacher_id', teacherId);
-      if (error) throw error;
-      const classList = classes || [];
-      let studentCount = 0;
-      if (classList.length) {
-        const counts = await Promise.all(classList.map(async cls => {
-          const { count } = await sb
-            .from('class_members')
-            .select('*', { count: 'exact', head: true })
-            .eq('class_id', cls.id);
-          return count || 0;
-        }));
-        studentCount = counts.reduce((a, b) => a + b, 0);
-      }
-      return { classCount: classList.length, studentCount };
-    } catch {
-      return { classCount: 0, studentCount: 0 };
-    }
-  }
-
   /* ---- Edit profile modal (display name; avatar has its own hover-edit
      affordance on the header avatar already) ---- */
   function _showEditProfileModal({ name, sb, onSaved }) {
@@ -241,8 +212,6 @@
     const isTeacher = role === 'profesor';
     const isStudent = role === 'elev';
 
-    const teacherStats = isTeacher ? await _fetchTeacherStats(sb, user.id) : null;
-
     const parts    = name.split(/\s+/).filter(Boolean);
     const initials = parts.length >= 2
       ? (parts[0][0] + parts[1][0]).toUpperCase()
@@ -332,8 +301,9 @@
     content.innerHTML = `
       ${pendingBanner}${rejectedBanner}
       <!-- PROFILE HEADER -->
-      <div class="prof-header">
-        <div class="prof-avatar-wrap">
+      <div class="prof-header${isTeacher ? ' prof-header--profile' : ''}">
+        <div class="prof-identity-row">
+        <div class="prof-avatar-wrap${isTeacher ? ' prof-avatar-wrap--lg' : ''}">
           <div class="prof-avatar-lg">
             ${avatarUrl
               ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
@@ -357,6 +327,8 @@
                     ? `<span class="prof-badge prof-badge--red">${icon('circle-x', { size: 16 })} Profesor (respins)</span>`
                     : `<span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>`)
                 : '<span class="prof-badge prof-badge--blue">Elev</span>'}
+            ${role === 'profesor' && status === 'active'
+              ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
             ${isUsernameAccount
               ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Cont activ</span>`
               : (verified
@@ -375,6 +347,44 @@
             </a>` : ''}
           </div>
         </div>
+        </div>
+        ${isTeacher ? `
+        <div class="prof-divider"></div>
+        <div class="prof-section">
+          <div class="prof-section__title">${icon('lock', { size: 16 })} Schimbă parola</div>
+          ${isGoogle
+            ? '<p class="prof-hint-muted">Contul tău folosește autentificarea Google. Parola se gestionează din contul Google.</p>'
+            : `<div id="pwMsg" class="auth-msg" style="display:none"></div>
+               <form id="fPassword" novalidate>
+                 <div class="prof-pw-grid">
+                   <div class="auth-field">
+                     <label class="auth-label" for="pwNew">Parolă nouă</label>
+                     <div class="auth-input-wrap">
+                       <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
+                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
+                     </div>
+                   </div>
+                   <div class="auth-field">
+                     <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
+                     <div class="auth-input-wrap">
+                       <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
+                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
+                     </div>
+                   </div>
+                 </div>
+                 <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
+                   <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
+                 </button>
+               </form>`}
+        </div>
+        <div class="prof-divider"></div>
+        <div class="prof-session-row">
+          <span class="prof-session-strip__text">${icon('clock', { size: 16 })} Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</span>
+          <button class="btn btn--danger-outline btn--sm" id="btnLogout">
+            ${icon('log-out', { size: 16 })}
+            Deconectare
+          </button>
+        </div>` : ''}
       </div>
 
       <!-- CARDS GRID -->
@@ -468,34 +478,7 @@
           </div>
         </div>` : ''}
 
-        ${isTeacher ? `
-        <!-- Card: Clasele Mele -->
-        <div class="prof-card">
-          <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('school', { size: 16 })}</span>
-            <span class="prof-card__title">Clasele Mele</span>
-          </div>
-          <div class="prof-card__body">
-            <div class="prof-stats">
-              <div class="prof-stat">
-                <div class="prof-stat__val">${teacherStats.classCount}</div>
-                <div class="prof-stat__lbl">Clase</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val">${teacherStats.studentCount}</div>
-                <div class="prof-stat__lbl">Elevi</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val" style="font-size:1.05rem">${status === 'active' ? 'Aprobat' : status === 'pending' ? 'În așteptare' : 'Respins'}</div>
-                <div class="prof-stat__lbl">Status cont</div>
-              </div>
-            </div>
-            <a href="classes.html" class="btn btn--primary btn--sm" style="width:100%;justify-content:center;margin-top:20px">
-              ${icon('school', { size: 16 })} Vezi clasele mele
-            </a>
-          </div>
-        </div>` : ''}
-
+        ${!isTeacher ? `
         <!-- Card: Schimbă parola -->
         <div class="prof-card">
           <div class="prof-card__head">
@@ -526,7 +509,7 @@
                    </button>
                  </form>`}
           </div>
-        </div>
+        </div>` : ''}
 
       </div>
 
@@ -541,6 +524,7 @@
         <div id="profHistBody">${histContent}</div>
       </div>` : ''}
 
+      ${!isTeacher ? `
       <!-- Sesiune (comprimat) -->
       <div class="prof-session-strip" style="margin-top:16px">
         <span class="prof-session-strip__text">${icon('clock', { size: 16 })} Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</span>
@@ -548,7 +532,7 @@
           ${icon('log-out', { size: 16 })}
           Deconectare
         </button>
-      </div>
+      </div>` : ''}
     `;
 
     skeleton.style.display = 'none';
