@@ -200,7 +200,7 @@
                   }
                   ${classData.lesson_type ? `
                     <span class="cd-meta__badge cd-meta__badge--${classData.lesson_type}">
-                      ${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 13 })}
+                      ${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 16 })}
                       ${classData.lesson_type === 'online' ? 'Online' : 'Offline'}
                     </span>
                   ` : ''}
@@ -552,6 +552,10 @@
           ${_renderSumarKpis(ctx)}
         </section>
         <section>
+          <div class="sumar-section__title">Toți elevii</div>
+          ${_renderSumarRoster(ctx)}
+        </section>
+        <section>
           <div class="sumar-section__title">Cine are nevoie de atenție</div>
           ${_renderSumarAttention(attentionList, members.length)}
         </section>
@@ -561,6 +565,7 @@
         </section>
       `;
       _wireSumarMain(main);
+      _wireSumarRoster(main);
 
       const sidebar = document.getElementById('sumarSidebar');
       if (sidebar) sidebar.innerHTML = _renderClassInfoCard();
@@ -689,7 +694,7 @@
           </div>
         </div>
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('calendar', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('clipboard-list', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${lessons.count}</div>
             <div class="sumar-kpi-card__lbl">Lecții ținute</div>
@@ -697,6 +702,69 @@
           </div>
         </div>
       </div>`;
+  }
+
+  /* ─── Toți elevii — a lightweight roster, not a Catalog replacement.
+     Grades/attendance stay in Catalog; this only carries two things that
+     live on the roster itself: whether a student is still active in the
+     group, and who their assigned manager is. Both save on change. ─── */
+  function _renderSumarRoster(ctx) {
+    const { members, nameMap } = ctx;
+    if (!members.length) {
+      return `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev înscris încă.</div>`;
+    }
+    return `
+      <div class="sumar-roster">
+        <div class="sumar-roster__row sumar-roster__row--head">
+          <span>Elev</span><span>Status</span><span>Manager</span>
+        </div>
+        ${members.map((m, idx) => {
+          const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
+          const active = m.status !== 'inactiv';
+          return `
+            <div class="sumar-roster__row">
+              <div class="sumar-roster__name">
+                <span class="catalog-avatar">${_catalogInitials(name)}</span>
+                <span class="catalog-name-text">${BM.esc(name)}</span>
+              </div>
+              <button type="button" class="sumar-roster__status sumar-roster__status--${active ? 'activ' : 'inactiv'}"
+                      data-roster-status="${m.student_id}" data-current="${active ? 'activ' : 'inactiv'}">
+                <span class="sumar-roster__status-dot"></span>${active ? 'Activ' : 'Inactiv'}
+              </button>
+              <input type="text" class="sumar-roster__manager" data-roster-manager="${m.student_id}"
+                     placeholder="Atribuie manager" value="${BM.esc(m.manager_name || '')}">
+            </div>`;
+        }).join('')}
+      </div>`;
+  }
+
+  function _wireSumarRoster(main) {
+    main.querySelectorAll('[data-roster-status]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        const studentId = btn.dataset.rosterStatus;
+        const next = btn.dataset.current === 'activ' ? 'inactiv' : 'activ';
+        btn.dataset.current = next;
+        btn.className = 'sumar-roster__status sumar-roster__status--' + next;
+        btn.innerHTML = `<span class="sumar-roster__status-dot"></span>${next === 'activ' ? 'Activ' : 'Inactiv'}`;
+        try {
+          const { error } = await BMAuth.supabase.from('class_members')
+            .update({ status: next }).eq('class_id', classData.id).eq('student_id', studentId);
+          if (error) throw error;
+        } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+      });
+    });
+    main.querySelectorAll('[data-roster-manager]').forEach(input => {
+      const save = async () => {
+        const studentId = input.dataset.rosterManager;
+        try {
+          const { error } = await BMAuth.supabase.from('class_members')
+            .update({ manager_name: input.value.trim() || null }).eq('class_id', classData.id).eq('student_id', studentId);
+          if (error) throw error;
+        } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+      };
+      input.addEventListener('blur', save);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); });
+    });
   }
 
   /* ─── C. Cine are nevoie de atenție ──────────────────────────────── */
@@ -1426,11 +1494,14 @@
     };
     const subjectIcon = subjectIcons[subject.toLowerCase()] || icon('library', { size: 32 });
 
+    // No text qualifier ("Foarte bun"/"Slab" etc) on the badge — only the
+    // numeric range is shown, so a student never sees a value-judgement
+    // word about their own group. Color still carries the same tiering.
     const mathLevelMap = {
-      '9-10': { label: 'Foarte bun', cls: 'cd-level--green' },
-      '7-8':  { label: 'OK',         cls: 'cd-level--blue'  },
-      '6-7':  { label: 'Așa și așa', cls: 'cd-level--amber' },
-      '5-6':  { label: 'Slab',       cls: 'cd-level--red'   },
+      '9-10': { cls: 'cd-level--green' },
+      '7-8':  { cls: 'cd-level--blue'  },
+      '6-7':  { cls: 'cd-level--amber' },
+      '5-6':  { cls: 'cd-level--red'   },
     };
     const lvl      = classData.math_level ? mathLevelMap[classData.math_level] : null;
     const maxEl    = classData.max_students;
@@ -1454,7 +1525,7 @@
         <div class="cd-info-card__detail">
           <span class="cd-info-card__detail-icon">${icon('chart-column', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Nivel</span>
-          <span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)} · ${lvl.label}</span>
+          <span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)}</span>
         </div>` : ''}
       </div>` : '';
 
@@ -1595,6 +1666,12 @@
       const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats: catalogStats } =
         await BM.CatalogStats.fetchCatalogData(classData.id, isTeacher);
 
+      // #cdContent is shared by every tab that doesn't have its own
+      // sub-container (membri/simulari/tabla) — if the user already
+      // switched away while this fetch was in flight, don't clobber
+      // whatever tab is actually showing now.
+      if (activeTab !== 'membri') return;
+
       if (!members || members.length === 0) {
         content.innerHTML = `
           <div class="cd-placeholder">
@@ -1644,6 +1721,7 @@
       renderCatalog();
 
     } catch (e) {
+      if (activeTab !== 'membri') return;
       content.innerHTML = `
         <div class="cd-placeholder">
           <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
@@ -3746,6 +3824,11 @@
         }
       }
 
+      // #cdContent is shared by every tab that doesn't have its own
+      // sub-container — bail if the user already switched away while this
+      // was in flight, so a slow fetch here can't clobber a newer tab.
+      if (activeTab !== 'simulari') return;
+
       simCache = simList;
       const visible = isTeacher ? simList : simList.filter(s => s.status !== 'programata');
 
@@ -3794,6 +3877,7 @@
         content.querySelectorAll('[data-sim-results]').forEach(btn => btn.addEventListener('click', () => _openSimForStudent(btn.dataset.simResults)));
       }
     } catch (e) {
+      if (activeTab !== 'simulari') return;
       content.innerHTML = `
         <div class="cd-placeholder">
           <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
@@ -5660,6 +5744,11 @@
         heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${icon('presentation', { size: 16 })} Intră în tablă</button>`;
       }
 
+      // #cdContent is shared by every tab that doesn't have its own
+      // sub-container — bail if the user already switched away while this
+      // was in flight, so a slow fetch here can't clobber a newer tab.
+      if (activeTab !== 'tabla') return;
+
       content.innerHTML = `
         <div class="wb-hero">
           <div class="wb-hero__icon">${icon('presentation', { size: 28 })}</div>
@@ -5692,6 +5781,7 @@
       document.getElementById('tablaOpenBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
       document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
     } catch (e) {
+      if (activeTab !== 'tabla') return;
       content.innerHTML = `
         <div class="cd-placeholder">
           <div class="cd-placeholder__icon">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>

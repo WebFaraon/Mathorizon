@@ -11967,6 +11967,12 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   display: flex;
   gap: 0;
   overflow-x: auto;
+  /* Explicit, not left to default: per the CSS overflow spec, when
+     overflow-x and overflow-y differ and one isn't visible, the other
+     computes to auto too — so overflow-x:auto alone silently makes this
+     scrollable on Y as well, which is what let a vertical drag on the tab
+     bar (mobile) scroll IT instead of the page. */
+  overflow-y: hidden;
   scrollbar-width: none;
 }
 .cd-tabs::-webkit-scrollbar { display: none; }
@@ -14391,6 +14397,68 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .sumar-more-btn:hover { background: var(--accent-dim); border-color: var(--accent); }
 
+/* Toți elevii — roster table (status + manager), separate from Catalog
+   which stays grades/attendance-only. */
+.sumar-roster {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.sumar-roster__row {
+  display: grid;
+  grid-template-columns: 1fr 130px 220px;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 16px;
+  border-bottom: 1px solid var(--border);
+}
+.sumar-roster__row:last-child { border-bottom: none; }
+.sumar-roster__row--head {
+  background: var(--surface);
+  padding: 10px 16px;
+  font-size: 0.70rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+}
+.sumar-roster__name { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.sumar-roster__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 5px 10px;
+  border-radius: 20px;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.sumar-roster__status-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; flex-shrink: 0; }
+.sumar-roster__status--activ { color: var(--green); border-color: var(--green-border); background: var(--green-dim); }
+.sumar-roster__manager {
+  padding: 7px 10px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.82rem;
+  font-family: inherit;
+  width: 100%;
+  box-sizing: border-box;
+}
+.sumar-roster__manager::placeholder { color: var(--text-muted); }
+.sumar-roster__manager:focus { outline: none; border-color: var(--accent); }
+[data-theme="dark"] .sumar-roster__manager { background: rgba(255,255,255,0.05); }
+
 [data-theme="dark"] .cd-sidebar-widget {
   background: rgba(255,255,255,0.05);
   border-color: rgba(255,255,255,0.09);
@@ -15465,11 +15533,9 @@ body.wb-fullscreen-active .scroll-top-btn {
   .cd-info-card__detail-lbl { font-size: 0.63rem; }
   .cd-info-card__detail-val { font-size: 0.75rem; }
 
-  /* Sumar — 3-up "Ce urmează" band and 4-up KPI bar both get cramped at
-     tablet width; wrap to 2 columns like the catalog stat tiles already do. */
+  /* Sumar — 3-up "Ce urmează" band gets cramped at tablet width */
   .sumar-upnext { grid-template-columns: 1fr 1fr; }
-  .catalog-statsbar { flex-wrap: wrap; }
-  .catalog-statsbar .catalog-stat-card { flex: 1 1 45%; }
+  .sumar-roster__row { grid-template-columns: 1fr 110px 180px; }
 }
 
 @media (max-width: 600px) {
@@ -15524,9 +15590,17 @@ body.wb-fullscreen-active .scroll-top-btn {
 
   /* Sumar — single column everywhere below tablet width */
   .sumar-upnext { grid-template-columns: 1fr; }
-  .catalog-statsbar .catalog-stat-card { flex: 1 1 100%; }
   .sumar-attention-row { flex-wrap: wrap; }
   .sumar-attention-row__action { margin-left: auto; }
+  .sumar-roster__row--head { display: none; }
+  .sumar-roster__row { grid-template-columns: 1fr; gap: 8px; padding: 12px 16px; }
+
+  /* Catalog's own stat bar (Elevi/Teme/Medie clasă, Elevi/Lecții/Prezență) —
+     stays one row on mobile too (that's the point of a "bar"), just tighter
+     so 3 cards' worth of padding+type don't force wrapping or overflow. */
+  .catalog-stat-card { padding: 10px 8px; }
+  .catalog-stat-card__val { font-size: 1.3rem; margin-bottom: 2px; }
+  .catalog-stat-card__lbl { font-size: 0.6rem; letter-spacing: 0.03em; }
 }
 
 /* ══════════════════════════════════════════════════════════════

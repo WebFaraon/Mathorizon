@@ -23,13 +23,13 @@
     /* 1. Class members — try to include student_name (column may not exist yet) */
     let { data: members, error: memErr } = await BMAuth.supabase
       .from('class_members')
-      .select('student_id, student_name, joined_at')
+      .select('student_id, student_name, joined_at, status, manager_name')
       .eq('class_id', classId)
       .order('joined_at', { ascending: true });
     if (memErr) {
       ({ data: members, error: memErr } = await BMAuth.supabase
         .from('class_members')
-        .select('student_id, joined_at')
+        .select('student_id, joined_at, status, manager_name')
         .eq('class_id', classId)
         .order('joined_at', { ascending: true }));
       if (memErr) throw memErr;

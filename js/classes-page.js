@@ -381,6 +381,7 @@
     const display = document.createElement('span');
     display.className = 'cls-csel__display';
     display.textContent = sel.options[0]?.text || '';
+    display.style.color = sel.value ? 'var(--text)' : 'var(--text-muted)';
 
     const arrowSvg = `<svg width="11" height="7" viewBox="0 0 12 8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M1 1l5 5 5-5"/></svg>`;
     const arrow = document.createElement('span');
@@ -403,7 +404,7 @@
         sel.value = opt.value;
         sel.dispatchEvent(new Event('change', { bubbles: true }));
         display.textContent = opt.text;
-        display.style.color = opt.value ? 'var(--text)' : '';
+        display.style.color = opt.value ? 'var(--text)' : 'var(--text-muted)';
         dropdown.querySelectorAll('.cls-csel__option--sel').forEach(el => el.classList.remove('cls-csel__option--sel'));
         if (opt.value) item.classList.add('cls-csel__option--sel');
         _closeAllCsels();
@@ -457,7 +458,7 @@
     const wrap = sel.previousElementSibling;
     if (!wrap?.classList.contains('cls-csel')) return;
     const display = wrap.querySelector('.cls-csel__display');
-    if (display) display.textContent = sel.options[0]?.text || '';
+    if (display) { display.textContent = sel.options[0]?.text || ''; display.style.color = 'var(--text-muted)'; }
     wrap.querySelectorAll('.cls-csel__option--sel').forEach(o => o.classList.remove('cls-csel__option--sel'));
   }
 
@@ -491,7 +492,7 @@
             <div class="cls-form-field">
               <label class="cls-form-label">Materie</label>
               <select id="classMaterieInput" class="cls-form-input cls-form-select">
-                <option value="">— Selectează materia —</option>
+                <option value="">Selectează materia</option>
                 <option value="Matematică">Matematică</option>
                 <option value="Limba Română">Limba Română</option>
                 <option value="Istorie">Istorie</option>
@@ -513,22 +514,22 @@
             <div class="cls-form-field">
               <label class="cls-form-label">Tip lecție</label>
               <div class="cls-day-picker" id="classTipPicker">
-                <button type="button" class="cls-day-chip" data-tip="online">${icon('monitor', { size: 14 })} Online</button>
-                <button type="button" class="cls-day-chip" data-tip="offline">${icon('school', { size: 14 })} Offline</button>
+                <button type="button" class="cls-day-chip" data-tip="online">${icon('monitor', { size: 16 })} Online</button>
+                <button type="button" class="cls-day-chip" data-tip="offline">${icon('school', { size: 16 })} Offline</button>
               </div>
             </div>
             <div class="cls-form-row">
               <div class="cls-form-field">
                 <label class="cls-form-label">Ora</label>
                 <select id="classOraInput" class="cls-form-input cls-form-select">
-                  <option value="">— Ora —</option>
+                  <option value="">Ora</option>
                   ${buildTimeOptions()}
                 </select>
               </div>
               <div class="cls-form-field">
                 <label class="cls-form-label">Nr. maxim elevi</label>
                 <select id="classMaxEleviInput" class="cls-form-input cls-form-select">
-                  <option value="">— Număr —</option>
+                  <option value="">Număr</option>
                   <option value="6">6 elevi</option>
                   <option value="5">5 elevi</option>
                   <option value="4">4 elevi</option>
@@ -542,7 +543,7 @@
               <div class="cls-form-field">
                 <label class="cls-form-label">Clasa</label>
                 <select id="classGradeInput" class="cls-form-input cls-form-select">
-                  <option value="">— Clasa —</option>
+                  <option value="">Clasa</option>
                   <option value="a 5-a">a 5-a</option>
                   <option value="a 6-a">a 6-a</option>
                   <option value="a 7-a">a 7-a</option>
@@ -556,11 +557,11 @@
               <div class="cls-form-field">
                 <label class="cls-form-label">Nivel matematică</label>
                 <select id="classMathLevelInput" class="cls-form-input cls-form-select">
-                  <option value="">— Nivel —</option>
-                  <option value="9-10">9-10 · Foarte bun</option>
-                  <option value="7-8">7-8 · OK</option>
-                  <option value="6-7">6-7 · Așa și așa</option>
-                  <option value="5-6">5-6 · Slab</option>
+                  <option value="">Nivel</option>
+                  <option value="9-10">9-10</option>
+                  <option value="7-8">7-8</option>
+                  <option value="6-7">6-7</option>
+                  <option value="5-6">5-6</option>
                 </select>
               </div>
             </div>
