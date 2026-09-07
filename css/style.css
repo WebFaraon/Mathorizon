@@ -3082,6 +3082,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .diff-badge.mediu { background: var(--yellow-dim); color: var(--yellow); border-color: var(--yellow-border); }
 .diff-badge.dificil { background: var(--red-dim);    color: var(--red);    border-color: var(--red-border); }
 .diff-badge.legendar { background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); color: var(--rarity-legendar-b, #B45309); border-color: var(--rarity-legendar-border, rgba(180,83,9,0.35)); }
+/* "Raritate" variants — same .diff-badge shape, colored with the rarity
+   tokens instead (comun/rar/epic), used where exercises are shown with the
+   Capitole tab's current terminology instead of the older Ușor/Mediu/Greu
+   (see class-page.js's _simRarityBadge). */
+.diff-badge.comun { background: var(--rarity-comun-dim); color: var(--rarity-comun-text); border-color: var(--rarity-comun-border); }
+.diff-badge.rar   { background: var(--rarity-rar-dim);   color: var(--rarity-rar-text);   border-color: var(--rarity-rar-border); }
+.diff-badge.epic  { background: var(--rarity-epic-dim);  color: var(--rarity-epic-text);  border-color: var(--rarity-epic-border); }
 
 /* Points badge — neutral (accent) color since it's a different axis of
    information from difficulty, not a severity level. */
@@ -3121,13 +3128,17 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .diff-chip:hover { opacity: 0.9; }
 .diff-chip--active { opacity: 1; }
-.diff-chip--usor     { color: var(--green);  border-color: var(--green-border); }
-.diff-chip--mediu    { color: var(--yellow); border-color: var(--yellow-border); }
-.diff-chip--dificil  { color: var(--red);    border-color: var(--red-border); }
+/* Colors match the rarity tiers from the Capitole tab (comun/rar/epic/
+   legendar) — Comun/Rar/Epic/Legendar are the labels now (see
+   SIM_DIFF_CHIPS), so the colors need to match too, not stay green/
+   yellow/red under the hood. */
+.diff-chip--usor     { color: var(--rarity-comun-text, var(--green));  border-color: var(--rarity-comun-border, var(--green-border)); }
+.diff-chip--mediu    { color: var(--rarity-rar-text, var(--accent));   border-color: var(--rarity-rar-border); }
+.diff-chip--dificil  { color: var(--rarity-epic-text);  border-color: var(--rarity-epic-border); }
 .diff-chip--legendar { color: var(--rarity-legendar-b, #B45309); border-color: var(--rarity-legendar-border, rgba(180,83,9,0.4)); }
-.diff-chip--usor.diff-chip--active     { background: var(--green-dim); }
-.diff-chip--mediu.diff-chip--active    { background: var(--yellow-dim); }
-.diff-chip--dificil.diff-chip--active  { background: var(--red-dim); }
+.diff-chip--usor.diff-chip--active     { background: var(--rarity-comun-dim, var(--green-dim)); }
+.diff-chip--mediu.diff-chip--active    { background: var(--rarity-rar-dim); }
+.diff-chip--dificil.diff-chip--active  { background: var(--rarity-epic-dim); }
 .diff-chip--legendar.diff-chip--active { background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); }
 
 .type-badge {
@@ -13865,6 +13876,38 @@ body.wb-fullscreen-active .scroll-top-btn {
   font-size: 0.9rem;
 }
 
+/* "Din culegere" tab — PDF page viewer + drag-to-select crop (see
+   class-page.js's _bindCulegereSelection). */
+.sim-culegere-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 14px 0 10px;
+}
+.sim-culegere-page-label { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); }
+.sim-culegere-canvas-wrap {
+  position: relative;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  overflow: auto;
+  max-height: 60vh;
+  background: var(--surface);
+  margin-bottom: 16px;
+}
+.sim-culegere-canvas-wrap canvas {
+  display: block;
+  max-width: 100%;
+  cursor: crosshair;
+  touch-action: none; /* dragging on the canvas selects a crop, not scrolls */
+}
+.sim-culegere-selection {
+  position: absolute;
+  border: 2px dashed var(--accent);
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  pointer-events: none;
+}
+
 .sim-picker-photo-actions {
   display: flex;
   align-items: center;
@@ -15348,6 +15391,7 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wz-head {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 14px;
   padding: 18px 24px;
   border-bottom: 1px solid var(--border);
@@ -15412,18 +15456,24 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 
 /* ── Wizard / exercise-picker — mobile ───────────────────────────────
-   None of .wz-overlay/.wz-dialog/.wz-head/.wz-body had a narrow-screen
-   override before this — on a phone the fixed 20-24px paddings alone ate
-   a big chunk of the already-tight width, and .sim-picker-tabs (below)
-   had no flex-shrink guard so its two labels wrapped mid-word instead of
-   just staying on one line. */
+   Same "slide-up sheet, edge-to-edge" treatment .classes-modal already
+   uses on mobile (see @media (max-width: 600px) .classes-modal above) —
+   this dialog had no narrow-screen override at all before, so it kept its
+   desktop centered-with-gaps look (and fixed padding) instead of matching
+   every other modal in the app. .sim-picker-tabs also had no flex-shrink
+   guard, so its two labels wrapped mid-word instead of staying on one line
+   (fixed on .sim-picker-tab itself, applies at every width). */
 @media (max-width: 600px) {
-  .wz-overlay { padding: 10px; }
-  #simPickerModal.wz-overlay { padding: 8px; }
-  .wz-dialog { max-height: 94vh; border-radius: 14px; }
-  .wz-head { padding: 14px 16px; gap: 10px; }
-  .wz-body { padding: 16px; }
-  .wz-foot { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+  .wz-overlay, #simPickerModal.wz-overlay { padding: 0; align-items: flex-end; }
+  .wz-dialog {
+    max-width: 100%;
+    border-radius: var(--radius) var(--radius) 0 0;
+    max-height: 100vh;
+    max-height: 100dvh;
+  }
+  .wz-head { padding: 16px 20px; }
+  .wz-body { padding: 16px 20px; }
+  .wz-foot { padding: 12px 20px; flex-wrap: wrap; gap: 10px; }
 }
 
 /* ── Step 1 — Type grid ──────────────────────────────────── */

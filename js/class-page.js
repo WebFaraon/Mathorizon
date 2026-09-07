@@ -5017,7 +5017,7 @@
               <span class="sim-wz-item__idx">${idx + 1}</span>
               <div class="sim-wz-item__body">
                 <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
-                <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + BM.diffBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· ' + icon('circle-dot', { size: 16 }) + ' Grilă' : ''}</div>
+                <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + _simRarityBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· ' + icon('circle-dot', { size: 16 }) + ' Grilă' : ''}</div>
                 <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : BM.latexToPlain(it.correct_answer || '—'))}</strong></div>
                 <button type="button" class="sim-wz-item__toggle" data-toggle-statement="${idx}">${icon('eye', { size: 16 })} Arată enunțul</button>
                 <div class="sim-wz-item__statement math-content" id="simWzItemStatement${idx}" style="display:none"></div>
@@ -5216,6 +5216,7 @@
           <div class="sim-picker-tabs">
             <button type="button" class="sim-picker-tab sim-picker-tab--active" data-picker-tab="bank">Din bancă</button>
             <button type="button" class="sim-picker-tab" data-picker-tab="photo">Adaugă exercițiu nou din poză</button>
+            <button type="button" class="sim-picker-tab" data-picker-tab="culegere">Din culegere</button>
           </div>
           <div id="simPickerBody"></div>
         </div>
@@ -5241,20 +5242,35 @@
     const body = document.getElementById('simPickerBody');
     if (!body) return;
     if (simPicker.tab === 'bank') { body.innerHTML = _simPickerBankHtml(); _simPickerBindBank(body); }
+    else if (simPicker.tab === 'culegere') { body.innerHTML = _simPickerCulegereHtml(); _simPickerBindCulegere(body); }
     else                          { body.innerHTML = _simPickerPhotoHtml(); _simPickerBindPhoto(body); }
   }
 
+  // Labels match the "raritate" terms used everywhere exercises are browsed
+  // now (Capitole tab) — Ușor/Mediu/Greu was the pre-rarity-redesign naming
+  // and isn't shown anywhere else in the app anymore. ids stay the raw
+  // difficulty values (unchanged data — usor/mediu/dificil/legendar), only
+  // the displayed text/color is "raritate"-flavored.
   const SIM_DIFF_CHIPS = [
-    { id: 'usor',     label: 'Ușor' },
-    { id: 'mediu',    label: 'Mediu' },
-    { id: 'dificil',  label: 'Greu' },
+    { id: 'usor',     label: 'Comun' },
+    { id: 'mediu',    label: 'Rar' },
+    { id: 'dificil',  label: 'Epic' },
     { id: 'legendar', label: 'Legendar' }
   ];
+
+  const SIM_RARITY_LABEL = { usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' };
+  const SIM_RARITY_CLASS = { usor: 'comun', mediu: 'rar', dificil: 'epic', legendar: 'legendar' };
+  // Same .diff-badge shape as BM.diffBadge, but "raritate"-labeled — used
+  // instead of it everywhere in this picker/wizard so an exercise's badge
+  // never reverts to Ușor/Mediu/Greu just because it went through here.
+  function _simRarityBadge(difficulty) {
+    return `<span class="diff-badge ${SIM_RARITY_CLASS[difficulty] || ''}">${SIM_RARITY_LABEL[difficulty] || difficulty}</span>`;
+  }
 
   function _simDiffChipsHtml() {
     return `
       <div class="cls-form-field">
-        <label class="cls-form-label">Dificultate</label>
+        <label class="cls-form-label">Raritate</label>
         <div class="sim-diff-chips">
           ${SIM_DIFF_CHIPS.map(d => `
             <button type="button" class="diff-chip diff-chip--${d.id} ${simPicker.difficulty === d.id ? 'diff-chip--active' : ''}" data-diff-chip="${d.id}">${d.label}</button>`).join('')}
@@ -5500,7 +5516,7 @@
       : results.map((ex, idx) => `
           <div class="sim-picker-result" data-idx="${idx}">
             <span class="sim-picker-result__title">${BM.esc(ex.title)}</span>
-            ${ex.difficulty ? BM.diffBadge(ex.difficulty) : ''}
+            ${ex.difficulty ? _simRarityBadge(ex.difficulty) : ''}
           </div>`).join('');
 
     resultsEl.querySelectorAll('.sim-picker-result').forEach(row => {
@@ -5751,6 +5767,226 @@
     BM.toast('Exercițiu adăugat.', 'success');
     _simPickerClose();
     _simWzRender();
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     "Din culegere" tab — browse an admin-uploaded scanned PDF (see
+     admin-culegeri.html / supabase/migrations/20260908090000_culegeri_
+     library.sql), snip a rectangle over one exercise, and send just that
+     crop through the exact same AI pipeline as the photo tab
+     (_simPickerRenderPhotoReview/_simPickerConfirmAdhoc, reused verbatim —
+     both write into #simPickPhotoResult, and only one tab is ever mounted
+     at a time so the shared ids never collide).
+  ═══════════════════════════════════════════════════════════════ */
+  let _simCulegereRows = [];
+  const _culegereState = { pdf: null, pageNum: 1, numPages: 1, selRectCss: null };
+
+  let _pdfJsLoadPromise = null;
+  const PDFJS_VERSION = '3.11.174';
+  function _ensurePdfJs() {
+    if (window.pdfjsLib) return Promise.resolve();
+    if (_pdfJsLoadPromise) return _pdfJsLoadPromise;
+    _pdfJsLoadPromise = new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.min.js`;
+      script.onload = () => {
+        window.pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdn.jsdelivr.net/npm/pdfjs-dist@${PDFJS_VERSION}/build/pdf.worker.min.js`;
+        resolve();
+      };
+      script.onerror = () => { _pdfJsLoadPromise = null; reject(new Error('Nu am putut încărca vizualizatorul PDF.')); };
+      document.head.appendChild(script);
+    });
+    return _pdfJsLoadPromise;
+  }
+
+  function _simPickerCulegereHtml() {
+    return `
+      <div class="cls-form-field">
+        <label class="cls-form-label">Culegere</label>
+        <select id="simCulegereSelect" class="cls-form-input cls-form-select" disabled>
+          <option value="">Se încarcă…</option>
+        </select>
+      </div>
+      <div id="simCulegereViewer" style="display:none">
+        <div class="sim-culegere-toolbar">
+          <button type="button" class="btn btn--surface btn--sm" id="simCulegerePrev">${icon('arrow-left', { size: 14 })} Pagina anterioară</button>
+          <span id="simCulegerePageLabel" class="sim-culegere-page-label"></span>
+          <button type="button" class="btn btn--surface btn--sm" id="simCulegereNext">Pagina următoare ${icon('arrow-right', { size: 14 })}</button>
+        </div>
+        <p class="cls-form-hint">Trage un dreptunghi peste exercițiul dorit ca să-l trimiți la analiză AI.</p>
+        <div class="sim-culegere-canvas-wrap" id="simCulegereCanvasWrap">
+          <canvas id="simCulegereCanvas"></canvas>
+          <div class="sim-culegere-selection" id="simCulegereSelection" hidden></div>
+        </div>
+      </div>
+      <div id="simPickPhotoResult"></div>`;
+  }
+
+  async function _simPickerBindCulegere(body) {
+    const sel = body.querySelector('#simCulegereSelect');
+    const { data, error } = await BMAuth.supabase.from('culegeri')
+      .select('*').eq('grade', simPicker.gradeCode).order('title');
+    sel.disabled = false;
+    if (error) { sel.innerHTML = `<option value="">Eroare la încărcare</option>`; return; }
+    _simCulegereRows = data || [];
+    sel.innerHTML = _simCulegereRows.length
+      ? `<option value="">Alege o culegere…</option>` + _simCulegereRows.map(r => `<option value="${r.id}">${BM.esc(r.title)}</option>`).join('')
+      : `<option value="">Nicio culegere pentru clasa asta încă</option>`;
+
+    sel.onchange = async () => {
+      const row = _simCulegereRows.find(r => r.id === sel.value);
+      document.getElementById('simPickPhotoResult').innerHTML = '';
+      const viewer = document.getElementById('simCulegereViewer');
+      if (!row) { viewer.style.display = 'none'; return; }
+      viewer.style.display = '';
+      document.getElementById('simCulegerePageLabel').textContent = 'Se încarcă…';
+      try {
+        await _simPickerLoadCulegere(row);
+      } catch (e) {
+        BM.toast('Eroare la încărcarea PDF-ului: ' + e.message, 'error');
+      }
+    };
+
+    body.querySelector('#simCulegerePrev').onclick = () => _simCulegereGoToPage(_culegereState.pageNum - 1);
+    body.querySelector('#simCulegereNext').onclick = () => _simCulegereGoToPage(_culegereState.pageNum + 1);
+    _bindCulegereSelection(body);
+  }
+
+  async function _simPickerLoadCulegere(row) {
+    await _ensurePdfJs();
+    const { data, error } = await BMAuth.supabase.storage.from('culegeri').createSignedUrl(row.file_path, 3600);
+    if (error) throw new Error(error.message);
+    const pdf = await window.pdfjsLib.getDocument(data.signedUrl).promise;
+    _culegereState.pdf = pdf;
+    _culegereState.numPages = pdf.numPages;
+    _culegereState.pageNum = 1;
+    await _renderCulegerePage();
+  }
+
+  function _simCulegereGoToPage(n) {
+    if (!_culegereState.pdf || n < 1 || n > _culegereState.numPages) return;
+    _culegereState.pageNum = n;
+    document.getElementById('simPickPhotoResult').innerHTML = '';
+    _renderCulegerePage();
+  }
+
+  async function _renderCulegerePage() {
+    const pdf = _culegereState.pdf;
+    if (!pdf) return;
+    const page = await pdf.getPage(_culegereState.pageNum);
+    const canvas = document.getElementById('simCulegereCanvas');
+    const wrap = document.getElementById('simCulegereCanvasWrap');
+    const containerWidth = wrap.clientWidth || 700;
+    const unscaledViewport = page.getViewport({ scale: 1 });
+    // Cap at 2x so a wide chapter-index page doesn't render an absurdly
+    // tall/heavy canvas — 2x is already more resolution than a crop needs
+    // for Gemini to read clearly.
+    const scale = Math.min(2, containerWidth / unscaledViewport.width);
+    const viewport = page.getViewport({ scale });
+    canvas.width = viewport.width;
+    canvas.height = viewport.height;
+    await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
+
+    document.getElementById('simCulegerePageLabel').textContent = `Pagina ${_culegereState.pageNum} / ${_culegereState.numPages}`;
+    document.getElementById('simCulegerePrev').disabled = _culegereState.pageNum <= 1;
+    document.getElementById('simCulegereNext').disabled = _culegereState.pageNum >= _culegereState.numPages;
+    _clearCulegereSelection();
+  }
+
+  // Pointer Events unify mouse + touch drag-to-select in one set of
+  // handlers — the selection box is a plain absolutely-positioned sibling
+  // <div> over the canvas (CSS pixels), converted to the canvas's actual
+  // pixel resolution only at crop time (_finishCulegereSelection), since
+  // the canvas is displayed scaled-to-fit (max-width:100%) but its
+  // width/height attributes stay at the full render resolution.
+  function _bindCulegereSelection() {
+    const canvas = document.getElementById('simCulegereCanvas');
+    const selBox = document.getElementById('simCulegereSelection');
+    let startX = 0, startY = 0, dragging = false;
+
+    function pos(e) {
+      const rect = canvas.getBoundingClientRect();
+      return {
+        x: Math.max(0, Math.min(e.clientX - rect.left, rect.width)),
+        y: Math.max(0, Math.min(e.clientY - rect.top, rect.height))
+      };
+    }
+    function paint(x1, y1, x2, y2) {
+      const left = Math.min(x1, x2), top = Math.min(y1, y2);
+      const w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
+      selBox.style.left = left + 'px';
+      selBox.style.top = top + 'px';
+      selBox.style.width = w + 'px';
+      selBox.style.height = h + 'px';
+      _culegereState.selRectCss = { left, top, w, h };
+    }
+
+    canvas.onpointerdown = e => {
+      if (!_culegereState.pdf) return;
+      canvas.setPointerCapture(e.pointerId);
+      const p = pos(e);
+      startX = p.x; startY = p.y;
+      dragging = true;
+      selBox.hidden = false;
+      paint(startX, startY, startX, startY);
+    };
+    canvas.onpointermove = e => {
+      if (!dragging) return;
+      const p = pos(e);
+      paint(startX, startY, p.x, p.y);
+    };
+    canvas.onpointerup = () => {
+      if (!dragging) return;
+      dragging = false;
+      _finishCulegereSelection();
+    };
+  }
+
+  function _clearCulegereSelection() {
+    const selBox = document.getElementById('simCulegereSelection');
+    if (selBox) selBox.hidden = true;
+    _culegereState.selRectCss = null;
+  }
+
+  async function _finishCulegereSelection() {
+    const r = _culegereState.selRectCss;
+    // Ignores an accidental click/tiny drag instead of sending a
+    // near-empty crop to Gemini.
+    if (!r || r.w < 20 || r.h < 20) { _clearCulegereSelection(); return; }
+
+    const canvas = document.getElementById('simCulegereCanvas');
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+
+    const cropCanvas = document.createElement('canvas');
+    cropCanvas.width  = Math.round(r.w * scaleX);
+    cropCanvas.height = Math.round(r.h * scaleY);
+    cropCanvas.getContext('2d').drawImage(
+      canvas,
+      r.left * scaleX, r.top * scaleY, r.w * scaleX, r.h * scaleY,
+      0, 0, cropCanvas.width, cropCanvas.height
+    );
+    const base64 = cropCanvas.toDataURL('image/jpeg', 0.92).split(',')[1];
+    _clearCulegereSelection();
+    await _analyzeCulegereSnippet(base64, 'image/jpeg');
+  }
+
+  async function _analyzeCulegereSnippet(imageBase64, mimeType) {
+    const resultEl = document.getElementById('simPickPhotoResult');
+    resultEl.innerHTML = `<div class="classes-loading"><div class="classes-spinner"></div><p>AI-ul analizează exercițiul…</p></div>`;
+    try {
+      const { data: { session } } = await BMAuth.supabase.auth.getSession();
+      const cat = BM.getCategoryById(simPicker.categoryId);
+      const data = await BM.postJson('/api/class/generate-simulation-exercise', {
+        accessToken: session?.access_token,
+        imageBase64, mimeType,
+        context: { grade: simPicker.gradeCode, categoryName: cat?.name }
+      });
+      _simPickerRenderPhotoReview(data);
+    } catch (e) {
+      resultEl.innerHTML = `<p style="color:#ef4444">Eroare: ${BM.esc(e.message)}</p>`;
+    }
   }
 
   /* ─── Helpers ───────────────────────────────────────────────────── */
