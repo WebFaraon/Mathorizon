@@ -1269,12 +1269,6 @@
           '</button>' +
         '</div>' : '') +
         '<div class="dc-tool-group dc-tool-group--right">' +
-          '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
-          '</button>' +
-          '<button type="button" class="dc-action-btn" id="wbRedoBtn" title="Reface (Ctrl+Y)" disabled>' +
-            '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
-          '</button>' +
           '<button type="button" class="dc-action-btn dc-action-btn--danger" id="wbClearMineBtn" title="Șterge ce am desenat eu">' +
             (global.icon ? global.icon('trash-2', { size: 16 }) : '×') +
           '</button>' +
@@ -1288,6 +1282,19 @@
         '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
           '<canvas class="wb-grid-canvas" id="wbGridCanvas"></canvas>' +
           '<canvas id="wbFabricCanvas"></canvas>' +
+          // Floating over the canvas' own top-left corner (GoodNotes-style —
+          // easy to reach one-handed on a phone/tablet without a trip all
+          // the way to the toolbar) rather than in the toolbar itself, which
+          // is what these used to sit in — see _bindToolbar's own undo-
+          // corner listener and _updateUndoRedoButtons for the rest.
+          '<div class="wb-undo-corner" id="wbUndoCorner">' +
+            '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+            '</button>' +
+            '<button type="button" class="dc-action-btn" id="wbRedoBtn" title="Reface (Ctrl+Y)" disabled>' +
+              '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+            '</button>' +
+          '</div>' +
         '</div>' +
       '</div>';
     container.appendChild(wrap);
@@ -1380,15 +1387,21 @@
   // inside a scrolling ancestor might, so this has to happen explicitly.
   // Caller must add the --open class (making the panel display:block,
   // hence measurable via offsetWidth/Height) BEFORE calling this.
+  //
+  // A first version of this FLIPPED all the way to the trigger's opposite
+  // edge whenever the naive placement didn't fit (mirroring how a
+  // tooltip library typically handles this) — for a trigger sitting well
+  // INTO the middle of a wide toolbar rather than right at its edge, that
+  // jumped much further than it needed to, covering a whole strip of
+  // OTHER toolbar buttons the panel had no real reason to sit on top of.
+  // Plain clamping instead never jumps further than it has to: the panel
+  // only ever slides the minimum distance needed to stay on screen, so it
+  // stays as close to the trigger as it can.
   Whiteboard.prototype._positionDropdownPanel = function (panel, r) {
     var margin = 8;
     var pw = panel.offsetWidth, ph = panel.offsetHeight;
-    var left = r.left;
-    if (left + pw > window.innerWidth - margin) left = r.right - pw; // flip to the trigger's left side
-    left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
-    var top = r.bottom + 6;
-    if (top + ph > window.innerHeight - margin) top = r.top - ph - 6; // flip above the trigger
-    top = Math.max(margin, Math.min(top, window.innerHeight - ph - margin));
+    var left = Math.max(margin, Math.min(r.left, window.innerWidth - pw - margin));
+    var top  = Math.max(margin, Math.min(r.bottom + 6, window.innerHeight - ph - margin));
     panel.style.left = left + 'px';
     panel.style.top  = top + 'px';
   };
@@ -1447,8 +1460,6 @@
       var widthBtn  = e.target.closest('[data-width]');
       var clearBtn  = e.target.closest('#wbClearMineBtn');
       var gridBtn   = e.target.closest('#wbGridBtn');
-      var undoBtn   = e.target.closest('#wbUndoBtn');
-      var redoBtn   = e.target.closest('#wbRedoBtn');
       if (toolBtnEl) {
         self._setTool(toolBtnEl.dataset.tool);
         self._closeShapeDropdowns();
@@ -1487,11 +1498,18 @@
               global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error');
             }
           });
-      } else if (undoBtn && !undoBtn.disabled) {
-        self.undo();
-      } else if (redoBtn && !redoBtn.disabled) {
-        self.redo();
       }
+    });
+
+    // Undo/redo live in their own floating corner over the canvas now, not
+    // in the toolbar (see _build) — a separate small listener rather than
+    // folded into the delegated one above, since that one's scoped to
+    // this._toolbarEl specifically and these buttons are no longer inside it.
+    this._wrap.querySelector('#wbUndoCorner').addEventListener('click', function (e) {
+      var undoBtn = e.target.closest('#wbUndoBtn');
+      var redoBtn = e.target.closest('#wbRedoBtn');
+      if (undoBtn && !undoBtn.disabled) self.undo();
+      else if (redoBtn && !redoBtn.disabled) self.redo();
     });
 
     // Same two safety nets js/geometry-figure-editor.js's own shape-picker
@@ -2596,6 +2614,14 @@
     ta.value = initialText;
     ta.spellcheck = false;
     ta.style.color = color;
+    // A <textarea> with no rows attribute defaults to an intrinsic height
+    // of 2 ROWS (a real HTML quirk, not a sizing bug of ours) — height:auto
+    // then resolves against THAT baseline, not against actual content, so
+    // an empty/short box measured its own scrollHeight as two lines tall
+    // no matter what _repositionTextEditor did afterward. rows=1 fixes the
+    // baseline itself; scrollHeight still grows normally past that once
+    // there's more than one real line to show.
+    ta.rows = 1;
     this._canvasWrap.appendChild(ta);
 
     this._textEditing = {
@@ -3341,8 +3367,11 @@
   };
 
   Whiteboard.prototype._updateUndoRedoButtons = function () {
-    var undoBtn = this._toolbarEl.querySelector('#wbUndoBtn');
-    var redoBtn = this._toolbarEl.querySelector('#wbRedoBtn');
+    // this._wrap, not this._toolbarEl — these buttons now float over the
+    // canvas in their own corner (see _build/#wbUndoCorner) rather than
+    // living in the toolbar.
+    var undoBtn = this._wrap.querySelector('#wbUndoBtn');
+    var redoBtn = this._wrap.querySelector('#wbRedoBtn');
     if (undoBtn) undoBtn.disabled = !this._myStrokeHistory.length;
     if (redoBtn) redoBtn.disabled = !this._myRedoStack.length;
   };

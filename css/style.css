@@ -13111,6 +13111,31 @@ body.wb-fullscreen-active .scroll-top-btn {
   touch-action: none;
 }
 
+/* Undo/redo, floating over the canvas' own top-left corner (GoodNotes-
+   style — see js/whiteboard.js's _build) rather than living in the
+   toolbar, so they're reachable with a thumb without a trip across the
+   whole screen on a phone/tablet — same reasoning as .wb-fs-corner's own
+   bottom-right zoom/fullscreen group in js/class-page.js, just the
+   opposite corner. Relative to .wb-canvas-wrap (already position:relative)
+   rather than the page, so it sits right below the toolbar/header
+   regardless of which one currently occupies the top of the screen. */
+.wb-undo-corner {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+  display: flex;
+  gap: 2px;
+  background: var(--card);
+  border-radius: 999px;
+  padding: 4px;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+.wb-undo-corner .dc-action-btn {
+  border: none;
+  border-radius: 999px;
+}
+
 /* Text tool's live editing surface (see _startTextEditor in
    js/whiteboard.js) — a real <textarea>, not a canvas overlay, positioned
    exactly over the logical spot clicked and sized to match the current
@@ -17773,11 +17798,31 @@ body.dc-fullscreen-active .dc-toolbar {
    44px. The toolbar's own height is set by whichever of its buttons is
    tallest regardless (see those same overrides' own comment) — 44px here
    is simply the bigger of the two competing asks. */
-.wb-toolbar .gfe-shape-btn { width: 44px; height: 44px; }
+.wb-toolbar .gfe-shape-btn {
+  width: 44px;
+  height: 44px;
+  /* Flex items shrink by default (flex-shrink:1) whenever their container
+     doesn't have room for all of them at their own natural size — normally
+     harmless (wrapping is what's SUPPOSED to happen instead here), but if
+     the panel's own width ever gets computed narrower than expected for
+     any reason, shrinking is what silently makes every button read as
+     smaller than its own CSS width says, rather than wrapping fewer per
+     row. Pinned so these can never end up smaller than 44px regardless. */
+  flex-shrink: 0;
+}
 .wb-toolbar .gfe-shape-btn svg { width: 23px; height: 23px; }
 .wb-toolbar .gfe-dropdown__trigger { height: 44px; }
 .wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 22px; height: 22px; }
-.wb-toolbar .gfe-dropdown__panel .gfe-shape-group { max-width: 216px; }
+/* A DEFINITE width, not max-width — .gfe-dropdown__panel (this grid's
+   parent) is position:fixed with no width of its own, so it shrink-to-fits
+   around its content; a flex child that's ALSO only capped by max-width
+   (not a real width) leaves the browser's intrinsic-sizing algorithm free
+   to decide the "preferred" (unwrapped, one-row) width first and only then
+   clamp it — which is exactly the kind of two-step computation that was
+   producing a single, one-shape-per-row column instead of the intended
+   grid. A real width removes that ambiguity outright: wrapping is decided
+   against a fixed number, full stop, in every browser. */
+.wb-toolbar .gfe-dropdown__panel .gfe-shape-group { width: 216px; }
 
 .gfe-tick-btn {
   width: 24px;
