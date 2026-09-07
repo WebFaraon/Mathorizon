@@ -3761,44 +3761,68 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   color: var(--text);
 }
 
+/* Houses the title + the reveal/hide toggle, which has to live outside
+   .rarity-modal__barem-gate/__barem-content (unlike the first version of
+   this) since it needs to stay on screen and keep working in both the
+   hidden and revealed state, not disappear along with whichever of the two
+   it just toggled. */
+.rarity-modal__barem-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  /* Adjacent-sibling margins collapse to the larger one, not their sum — the
+     box above (.rarity-modal__statement, margin-bottom 18px, or the figure
+     via BM.renderExerciseFigure, which has none) already contributes up to
+     18px on its own, so this has to clear that to have any visible effect. */
+  margin-top: 28px;
+  margin-bottom: 12px;
+}
 .rarity-modal__barem-title {
   font-size: 0.72rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.6px;
-  /* Adjacent-sibling margins collapse to the larger one, not their sum — the
-     box above (.rarity-modal__statement, margin-bottom 18px, or the figure
-     via BM.renderExerciseFigure, which has none) already contributes up to
-     18px on its own, so this has to clear that to have any visible effect. */
-  margin-top: 28px;
-  margin-bottom: 10px;
 }
 
-/* Barem stays hidden behind this gate until the student asks to check their
+/* Barem stays hidden behind this hint until the student asks to check their
    work — .rarity-modal__barem-content (the steps + total) starts [hidden]
-   right next to it in the markup. */
+   right next to it in the markup. A compact tinted strip (not an empty
+   dashed box) so it reads as a deliberate "still to come" note rather than
+   a loading skeleton. */
 .rarity-modal__barem-gate {
   display: flex;
-  flex-direction: column;
   align-items: center;
   gap: 12px;
-  padding: 22px 16px;
-  border: 1.5px dashed var(--border);
+  padding: 14px 16px;
+  border: 1.5px solid color-mix(in srgb, var(--rc-color) 25%, var(--border));
   border-radius: var(--radius);
-  text-align: center;
+  background: color-mix(in srgb, var(--rc-color) 6%, var(--surface));
 }
-.rarity-modal__barem-gate-text { font-size: 0.86rem; color: var(--text-secondary); }
+.rarity-modal__barem-gate-icon {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: color-mix(in srgb, var(--rc-color) 16%, transparent);
+  color: var(--rc-color);
+}
+.rarity-modal__barem-gate-text { font-size: 0.84rem; color: var(--text-secondary); text-align: left; }
 .rarity-modal__barem-btn {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
+  flex-shrink: 0;
+  gap: 7px;
+  padding: 8px 14px;
   border-radius: var(--radius-sm);
   border: 1.5px solid var(--rc-color);
   background: color-mix(in srgb, var(--rc-color) 10%, transparent);
   color: var(--rc-color);
-  font-size: 0.86rem;
+  font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
   transition: background 0.15s ease, transform 0.15s ease;

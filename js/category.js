@@ -752,10 +752,13 @@
       <div class="rarity-modal__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
       ${BM.renderExerciseFigure(ex)}
       ${barem.length ? `
-      <div class="rarity-modal__barem-title">Barem</div>
+      <div class="rarity-modal__barem-head">
+        <span class="rarity-modal__barem-title">Barem</span>
+        <button type="button" class="rarity-modal__barem-btn" id="rarityBaremToggle">${icon('eye', { size: 16 })} Arată baremul</button>
+      </div>
       <div class="rarity-modal__barem-gate" id="rarityBaremGate">
+        <span class="rarity-modal__barem-gate-icon">${icon('lock', { size: 15 })}</span>
         <p class="rarity-modal__barem-gate-text">Rezolvă exercițiul, apoi verifică-ți rezolvarea.</p>
-        <button type="button" class="rarity-modal__barem-btn" id="rarityBaremReveal">${icon('eye', { size: 16 })} Verifică rezolvarea</button>
       </div>
       <div class="rarity-modal__barem-content" id="rarityBaremContent" hidden>
         ${stepsHtml}
@@ -819,18 +822,24 @@
     const nextBtn  = modal.querySelector('#rarityModalNext');
     const body     = modal.querySelector('.rarity-modal__body');
 
-    /* Delegated (not bound to the reveal button itself) since body.innerHTML
+    /* Delegated (not bound to the toggle button itself) since body.innerHTML
        gets replaced wholesale on every prev/next nav below — a direct
        listener would go stale the moment the student flips to the next
        exercise. Each fresh buildRarityModalBody() render starts the new
        exercise's barem hidden again, which is the point: solving the
        previous card doesn't spoil the next one. */
     body.addEventListener('click', e => {
-      if (!e.target.closest('#rarityBaremReveal')) return;
+      const btn = e.target.closest('#rarityBaremToggle');
+      if (!btn) return;
       const gate = body.querySelector('#rarityBaremGate');
       const content = body.querySelector('#rarityBaremContent');
-      if (gate) gate.hidden = true;
-      if (content) content.hidden = false;
+      if (!gate || !content) return;
+      const reveal = content.hidden; // currently hidden → this click reveals it
+      content.hidden = !reveal;
+      gate.hidden = reveal;
+      btn.innerHTML = reveal
+        ? `${icon('eye-off', { size: 16 })} Ascunde baremul`
+        : `${icon('eye', { size: 16 })} Arată baremul`;
     });
 
     /* Swap the dialog's content in place for prev/next instead of closing
