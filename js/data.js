@@ -5482,13 +5482,7 @@ BM.EXERCISES = [
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Ecuație cu conjugatul numărului complex',
     statement: 'Determinați numărul complex $z = a+bi$, $a,b \\in \\mathbb{R}$, $i^2 = -1$, pentru care\n$$\\frac{2\\bar{z}+4i}{z+1} = i,$$\nunde $\\bar{z}$ este conjugatul lui $z$.',
-    solution: 'Fie $z = a+bi$, $\\bar{z} = a-bi$.\n$2\\bar{z}+4i = 2(a-bi)+4i = 2a+(-2b+4)i$\n$z+1 = (a+1)+bi$\nEcuația devine $2\\bar{z}+4i = i(z+1) = i[(a+1)+bi] = -b+(a+1)i$.\nEgalăm real și imaginar:\nReal: $2a = -b \\Rightarrow b = -2a$\nImag: $-2b+4 = a+1 \\Rightarrow 4a+4 = a+1 \\Rightarrow 3a = -3 \\Rightarrow a = -1$, $b = 2$\n$$\\boxed{z = -1+2i}$$',
-    barem: [
-      { descriere: 'Obținerea $2a - 2bi + 4i = ai - b + i$', puncte_maxime: 3 },
-      { descriere: 'Obținerea sistemului $\\begin{cases} 2a = -b \\\\ -2b+4 = 1+a \\end{cases}$', puncte_maxime: 2 },
-      { descriere: 'Rezolvarea sistemului $\\begin{cases} 2a = -b \\\\ -2b+4 = 1+a \\end{cases}$', puncte_maxime: 2 },
-      { descriere: 'Obținerea $\\boxed{z = -1+2i}$', puncte_maxime: 1 }
-    ]
+    solution: 'Fie $z = a+bi$, $\\bar{z} = a-bi$.\n$2\\bar{z}+4i = 2(a-bi)+4i = 2a+(-2b+4)i$\n$z+1 = (a+1)+bi$\nEcuația devine $2\\bar{z}+4i = i(z+1) = i[(a+1)+bi] = -b+(a+1)i$.\nEgalăm real și imaginar:\nReal: $2a = -b \\Rightarrow b = -2a$\nImag: $-2b+4 = a+1 \\Rightarrow 4a+4 = a+1 \\Rightarrow 3a = -3 \\Rightarrow a = -1$, $b = 2$\n$$\\boxed{z = -1+2i}$$'
   },
   {
     id: 'alg-cx-124', categoryId: 'algebra', subcategoryId: 'complexe',
