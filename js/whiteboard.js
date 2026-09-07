@@ -41,6 +41,11 @@
 
   var BROADCAST_MS = 40; // flush a broadcast at most this often...
   var BROADCAST_PX = 5;  // ...or sooner if the pointer moved at least this far
+  // Same key js/drawing-canvas.js's own stylus-only toggle already uses —
+  // deliberately shared, not a separate whiteboard-only preference: it's
+  // the same physical device/stylus either way, so setting it once on
+  // either drawing surface should carry over to the other.
+  var INPUT_MODE_KEY = 'mathorizon:dc-input-mode';
   var WIDTH_PRESETS = [2, 4, 8];
   // Range for the "custom width" slider a second click on an already-active
   // preset opens (see _toggleCustomWidthPanel) — WIDTH_MIN goes below the
@@ -93,7 +98,6 @@
   // FAST_SPEED being not-quite-right than chasing an exact threshold is.
   var VW_CURVE      = 0.55;
   var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
-  var CIRCLE_SEGS   = 10;   // join-circle polygon approximation — see variableWidthPathString
 
   // Text tool (see _startTextEditor) — the box auto-sizes to its own
   // content (both width and height) up to TEXT_MAX_WIDTH, past which it
@@ -408,12 +412,14 @@
 
   // Committed counterpart of drawVariableWidthStroke — an SVG path string
   // for the fabric.Path this stroke becomes (see _commitStroke/
-  // _addObjectIfNew), filled rather than stroked. Circles are drawn as a
-  // CIRCLE_SEGS-sided polygon (M/L/Z only) instead of arc ('A') commands —
-  // matching the "curves are many-segment straight-line approximations"
-  // convention SHAPE_DEFS's own circle/ellipse stamps already use elsewhere
-  // in this file, rather than introducing the only arc commands in the
-  // whole codebase into fabric's path parser.
+  // _addObjectIfNew), filled rather than stroked. Circles are real SVG arcs
+  // (see circlePathString) rather than the "curves are many-segment
+  // straight-line approximations" convention SHAPE_DEFS's own circle/
+  // ellipse stamps use elsewhere in this file — those are drawn once at a
+  // fixed, known size, but a pen stroke's joint circles can end up any
+  // size depending on how the stroke was drawn, and a fixed segment count
+  // that looks fine at one size reads as an obviously faceted polygon at
+  // another (see circlePathString's own comment).
   function variableWidthPathString(points) {
     if (!points.length) return null;
     // _strokeOutlinePieces already degrades to "just the one join circle,
@@ -435,18 +441,28 @@
   // quads in _strokeOutlinePieces happen to always wind counter-clockwise
   // on screen (their corner order is a fixed a→b→c→d template applied to a
   // perpendicular that's always "90° left of local travel", so this holds
-  // regardless of which way any given segment points); this polygon needs
-  // to match that, not cos/sin's own natural clockwise sweep (angle 0 at
-  // 3-o'clock, increasing = clockwise in screen/y-down space) — hence the
-  // negated angle below. drawVariableWidthStroke's ctx.arc has the exact
-  // same fix via its anticlockwise=true argument.
+  // regardless of which way any given segment points); this needs to match
+  // that, not the arc command's own natural clockwise sweep (sweep-flag=1
+  // is "positive angle direction", which is clockwise in screen/y-down
+  // space) — hence sweep-flag=0 below. drawVariableWidthStroke's ctx.arc
+  // has the exact same fix via its anticlockwise=true argument — that flag
+  // and SVG's sweep-flag are the same convention (both describe rotation
+  // sense in a y-down coordinate system), so the two stay visually
+  // identical between the live preview and the committed path.
+  //
+  // Two semicircle arcs, not a many-sided polygon (the original version of
+  // this, kept a CIRCLE_SEGS=10 sides regardless of how big the circle
+  // actually got drawn) — a joint circle can end up considerably bigger
+  // than the pen's picked width once velocity-based thickening is in play
+  // (a slow/stationary moment thickens toward VW_MAX_MULT), and a 10-sided
+  // polygon at that size is visibly faceted: exactly the "smooth while
+  // drawing, polygonal the instant it commits" mismatch this fixes — the
+  // live preview was already a true arc via ctx.arc, only the committed
+  // SVG path was ever approximated.
   function circlePathString(cx, cy, r) {
-    var d = 'M ' + (cx + r) + ' ' + cy;
-    for (var k = 1; k <= CIRCLE_SEGS; k++) {
-      var a = -(k / CIRCLE_SEGS) * Math.PI * 2;
-      d += ' L ' + (cx + r * Math.cos(a)) + ' ' + (cy + r * Math.sin(a));
-    }
-    return d + ' Z';
+    return 'M ' + (cx + r) + ' ' + cy +
+      ' A ' + r + ' ' + r + ' 0 1 0 ' + (cx - r) + ' ' + cy +
+      ' A ' + r + ' ' + r + ' 0 1 0 ' + (cx + r) + ' ' + cy + ' Z';
   }
 
   // The two open-chevron "barb" endpoints of an arrowhead at p1, pointing
@@ -941,6 +957,10 @@
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
     this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
+    // 'any' (default) | 'pen' (stylus-only — a finger/mouse pans instead of
+    // drawing/interacting, same convention and shared localStorage key as
+    // js/drawing-canvas.js's own toggle — see _isInputAllowed).
+    this._inputMode = this._loadInputMode();
     // Blocked by the teacher (whiteboard_participants.locked) — see
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
@@ -964,6 +984,15 @@
     this._pinchStartDist = null;
     this._pinchStartZoom = 1;
     this._committedIds = new Set();
+    // id -> fabric object, for every object on the board (mine and everyone
+    // else's alike — a remote move/resize needs to look up someone else's
+    // object too, see _applyObjectUpdate). _setObjectOffset alone runs on
+    // EVERY pointermove of a drag/resize gesture, so an O(n) getObjects()
+    // .find() there (and in _resizeHandlePos, called every animation frame
+    // a selection is active) is exactly the kind of cost that stays
+    // invisible with a handful of strokes on the board and turns into real,
+    // felt lag once a lesson's board has accumulated a few dozen+ objects.
+    this._objectsById = new Map();
     // My own committed strokes' points, for the eraser's hit-testing — see
     // parsePathPoints's comment for why this needs both a live (exact) and
     // a reconstructed-from-path (approximate) source. Only ever populated
@@ -1258,6 +1287,22 @@
             '</div>' +
           '</div>' +
         '</div>' +
+        // Stylus-only toggle — same markup/classes (.dc-inputmode-btn,
+        // .dc-mode-badge) as js/drawing-canvas.js's own, reused as-is (that
+        // CSS is already page-generic) so this reads as "the same toggle,
+        // just in the whiteboard" rather than a new control to learn. See
+        // _isInputAllowed for what it actually gates.
+        '<div class="dc-tool-group">' +
+          '<button type="button" class="dc-tool-btn dc-inputmode-btn" id="wbInputModeBtn" aria-pressed="false" title="Mod de scriere: orice input">' +
+            '<svg class="dc-icon-any" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<rect x="5" y="2" width="14" height="20" rx="7"/><path d="M12 6v4"/>' +
+            '</svg>' +
+            '<svg class="dc-icon-pen" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' +
+              '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>' +
+            '</svg>' +
+          '</button>' +
+          '<span class="dc-mode-badge" role="status">Mod stilou activ</span>' +
+        '</div>' +
         // Grid ON/OFF is a global, teacher-controlled session setting (see
         // setGridEnabled) — a student never gets this button at all, not
         // just a disabled one, so their toolbar doesn't imply a control
@@ -1295,6 +1340,11 @@
               '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
             '</button>' +
           '</div>' +
+          // Transient hint shown when a blocked input tries to draw/interact
+          // while stylus-only mode is on — same markup/class/copy as
+          // js/drawing-canvas.js's own (.wb-canvas-wrap is already
+          // position:relative, so this needs no whiteboard-specific CSS).
+          '<div class="dc-input-hint" id="wbInputHint" role="status" aria-live="polite">Folosește pixul digital pentru a scrie</div>' +
         '</div>' +
       '</div>';
     container.appendChild(wrap);
@@ -1314,7 +1364,9 @@
     this._gridCtx    = this._gridEl.getContext('2d');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
     this._lockedBannerEl = wrap.querySelector('#wbLockedBanner');
+    this._inputHint  = wrap.querySelector('#wbInputHint');
     this._applyLockedUi();
+    this._applyInputMode(); // reflect the persisted preference in the UI
   };
 
   Whiteboard.prototype._setTool = function (tool) {
@@ -1358,6 +1410,63 @@
       tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
       tool === 'text' ? 'text' : // native I-beam — already exactly the right affordance, no custom glyph needed
       CROSSHAIR_CURSOR; // line / dashed-line / arrow
+  };
+
+  /* ---- Input mode (stylus-only vs. any input) — same convention as
+     js/drawing-canvas.js's own toggle (see INPUT_MODE_KEY's own comment
+     for why the localStorage key is shared, not whiteboard-specific). Lets
+     a student rest a palm/finger on a tablet screen without leaving stray
+     ink, and gives phones/tablets a deliberate "hand off to the stylus"
+     switch the same way the exam scratch canvas already does. ---- */
+
+  Whiteboard.prototype._loadInputMode = function () {
+    try {
+      return localStorage.getItem(INPUT_MODE_KEY) === 'pen' ? 'pen' : 'any';
+    } catch (err) {
+      return 'any'; // private mode / storage blocked -> safe default
+    }
+  };
+
+  // pen (the stylus itself): always allowed. touch/mouse: only in "any" mode.
+  Whiteboard.prototype._isInputAllowed = function (pointerType) {
+    if (pointerType === 'pen') return true;
+    return this._inputMode === 'any';
+  };
+
+  Whiteboard.prototype._toggleInputMode = function () {
+    this._inputMode = (this._inputMode === 'pen') ? 'any' : 'pen';
+    try { localStorage.setItem(INPUT_MODE_KEY, this._inputMode); } catch (err) {}
+    this._applyInputMode();
+  };
+
+  Whiteboard.prototype._applyInputMode = function () {
+    var stylusOnly = this._inputMode === 'pen';
+    var btn = this._toolbarEl && this._toolbarEl.querySelector('#wbInputModeBtn');
+    if (btn) {
+      btn.classList.toggle('dc-inputmode-btn--stylus', stylusOnly);
+      btn.classList.toggle('dc-tool-btn--active', stylusOnly);
+      btn.setAttribute('aria-pressed', String(stylusOnly));
+      btn.title = stylusOnly
+        ? 'Mod stilou: doar pixul digital (apasă pentru orice input)'
+        : 'Mod de scriere: orice input (apasă pentru doar stilou)';
+    }
+    var badge = this._toolbarEl && this._toolbarEl.querySelector('.dc-mode-badge');
+    if (badge) badge.classList.toggle('dc-mode-badge--show', stylusOnly);
+    // Leaving stylus-only mode clears any lingering "use the stylus" hint.
+    if (!stylusOnly) this._hideInputHint();
+  };
+
+  Whiteboard.prototype._showInputHint = function () {
+    if (!this._inputHint) return;
+    this._inputHint.classList.add('dc-input-hint--show');
+    var self = this;
+    clearTimeout(this._hintTimer);
+    this._hintTimer = setTimeout(function () { self._hideInputHint(); }, 2200);
+  };
+
+  Whiteboard.prototype._hideInputHint = function () {
+    clearTimeout(this._hintTimer);
+    if (this._inputHint) this._inputHint.classList.remove('dc-input-hint--show');
   };
 
   // Same open/position/close dance as js/geometry-figure-editor.js's own
@@ -1460,6 +1569,7 @@
       var widthBtn  = e.target.closest('[data-width]');
       var clearBtn  = e.target.closest('#wbClearMineBtn');
       var gridBtn   = e.target.closest('#wbGridBtn');
+      var inputModeBtn = e.target.closest('#wbInputModeBtn');
       if (toolBtnEl) {
         self._setTool(toolBtnEl.dataset.tool);
         self._closeShapeDropdowns();
@@ -1498,6 +1608,8 @@
               global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error');
             }
           });
+      } else if (inputModeBtn) {
+        self._toggleInputMode();
       }
     });
 
@@ -1711,10 +1823,11 @@
 
   // Pushes the current camera (this._scale/_panX/_panY) to every layer
   // that needs it: Fabric's own viewportTransform for the committed
-  // strokes (each one built with objectCaching:false in _addObjectIfNew
-  // specifically so this stays crisp — see that flag's own comment for
-  // why, this used to be the "blurry at high zoom" bug), the grid/paper
-  // background (redrawn inline, cheap — see _redrawGrid), and the
+  // strokes (each one built with objectCaching:true in _addObjectIfNew —
+  // staying crisp through a zoom is _applyPendingZoom's job, marking
+  // every object dirty exactly once per genuine zoom change, see its own
+  // comment for why plain caching alone doesn't just work here), the
+  // grid/paper background (redrawn inline, cheap — see _redrawGrid), and the
   // live-stroke overlay (marked dirty, picked up on the next animation-
   // frame tick by _redrawOverlay so it stays batched with everyone else's
   // incoming points instead of forcing an extra paint of its own).
@@ -1887,6 +2000,19 @@
     this._panX  = anchorX - logicalX * this._scale;
     this._panY  = anchorY - logicalY * this._scale;
     this._clampCamera();
+    // With objectCaching back on (see _addObjectIfNew), each object's own
+    // cached bitmap only rebuilds when ITS dirty flag is set — Fabric's
+    // usual automatic invalidation watches canvas.getZoom(), which our
+    // custom setViewportTransform-driven zoom (see _syncViewport) never
+    // actually updates, so left alone it would never notice a zoom
+    // happened and keep reusing a bitmap rasterized for the OLD zoom,
+    // stretched (blurry) to the new one. Marking every object dirty right
+    // here — once per GENUINE zoom change (this whole function already
+    // returns early above when z hasn't actually changed), never on a
+    // plain pan frame — forces exactly one full-resolution re-render each
+    // time zoom changes, instead of one on literally every frame the way
+    // objectCaching:false used to, pan included.
+    this._fabricCanvas.getObjects().forEach(function (o) { o.dirty = true; });
     this._syncViewport();
     this._updateZoomUi();
   };
@@ -1995,16 +2121,41 @@
         // A 3rd+ finger while already pinching with two others — ignore it
         // rather than let it start a stray draw/erase/pan underneath.
         if (self._pinching) return;
+        // A single finger in stylus-only mode pans instead of drawing/
+        // interacting — same convention js/drawing-canvas.js's own toggle
+        // uses (see _isInputAllowed): touch still does something useful
+        // rather than just being silently ignored. The pan TOOL's own
+        // touch handling is already covered generically by the branch
+        // just below (it doesn't check pointerType at all), so this only
+        // needs to add the stylus-only case for every OTHER tool.
+        if (self._inputMode === 'pen' && self._tool !== 'pan') {
+          self._activePtrs[e.pointerId] = {
+            panning: true, startX: e.clientX, startY: e.clientY,
+            panStartX: self._panX, panStartY: self._panY
+          };
+          el.style.cursor = 'grabbing';
+          return;
+        }
       }
 
       // Pure navigation, never a write — allowed even while locked (see
-      // setLocked), unlike every other branch below.
+      // setLocked) or in stylus-only mode (see _isInputAllowed below),
+      // unlike every other branch after it.
       if (self._tool === 'pan') {
         self._activePtrs[e.pointerId] = {
           panning: true, startX: e.clientX, startY: e.clientY,
           panStartX: self._panX, panStartY: self._panY
         };
         el.style.cursor = 'grabbing';
+        return;
+      }
+      // Same rule as drawing: pen (the stylus) is always allowed, mouse/
+      // touch only in "any" input mode — selecting/moving/erasing an
+      // object shouldn't be reachable through an input the student isn't
+      // allowed to write with either (same reasoning js/drawing-canvas.js's
+      // own figure-move-mode gate uses).
+      if (!self._isInputAllowed(e.pointerType)) {
+        self._showInputHint();
         return;
       }
       if (self._locked) return; // teacher has blocked this participant's writing — see setLocked
@@ -2765,7 +2916,7 @@
   Whiteboard.prototype._persistTextEdit = function (objId, text, width, height) {
     var self = this;
     var json = this._myObjectsJson.get(objId);
-    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
+    var obj = this._objectsById.get(objId);
     if (!json || !obj) return;
     var scale = this._myObjectScales.get(objId) || 1;
     var off = this._myObjectOffsets.get(objId) || { dx: 0, dy: 0 };
@@ -2983,7 +3134,7 @@
       obj = new fabric.Textbox(j.text || '', {
         left: j.left, top: j.top, width: j.textWidth, fontSize: j.fontSize,
         fontFamily: TEXT_FONT_FAMILY, fill: j.color, editable: false,
-        selectable: false, evented: false, objectCaching: false,
+        selectable: false, evented: false, objectCaching: true,
         originX: 'center', originY: 'center',
         data: { id: row.id, ownerId: row.created_by, isShape: false, isText: true }
       });
@@ -3001,21 +3152,28 @@
         strokeLineJoin: 'round',
         selectable: false,
         evented: false,
-        // Fabric objects default to objectCaching:true — rendering from a
-        // cached BITMAP (rasterized once at whatever resolution it happened
-        // to need at the time) rather than fresh from the vector path data
-        // on every paint. That cache doesn't reliably regenerate at a new
-        // resolution when OUR OWN custom setViewportTransform changes the
-        // zoom (see _syncViewport) the way it would for zoom driven through
-        // Fabric's own built-in interactions — it silently kept reusing a
-        // bitmap rasterized for an earlier, often much lower, zoom and
-        // stretched it up, which is exactly what was making committed
-        // strokes look blurry at high zoom despite an otherwise-crisp
-        // backing store. Off entirely, a stroke is always re-rasterized
-        // straight from its path data at the CURRENT zoom, so it's exactly
-        // as sharp at 400% as at 100% — the small number of on-screen
-        // strokes here never made caching earn its keep anyway.
-        objectCaching: false,
+        // Fabric's own default (objectCaching:true) — rendering from a
+        // cached BITMAP rather than fresh from the vector path data on
+        // every paint, which matters increasingly as a board accumulates
+        // more committed objects: a PAN never changes any object's own
+        // scale, so Fabric can just blit its existing cache at a new
+        // position, no re-render needed at all — with caching off, that
+        // was instead a full re-rasterize of every single object on the
+        // board, every single pan frame. The one real risk (this was OFF
+        // for a while over exactly this) is that Fabric's own automatic
+        // cache invalidation watches canvas.getZoom(), which never
+        // actually changes here — our zoom is driven by a custom
+        // setViewportTransform (see _syncViewport), not Fabric's own
+        // zoom API — so left alone it would never notice a zoom happened
+        // and silently keep reusing a bitmap rasterized for an earlier,
+        // lower zoom, stretched (blurry) to the new one. Fixed at the
+        // root instead of worked around here: _applyPendingZoom marks
+        // every object's own dirty flag exactly once per GENUINE zoom
+        // change (never on a plain pan frame), forcing one full-
+        // resolution re-render right then — so this stays exactly as
+        // sharp at 400% as at 100%, and pan gets to actually benefit from
+        // caching the rest of the time.
+        objectCaching: true,
         originX: 'center',
         originY: 'center',
         data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false }
@@ -3036,6 +3194,7 @@
       obj.setCoords();
     }
     this._fabricCanvas.add(obj);
+    this._objectsById.set(row.id, obj);
     if (row.created_by === this._userId) {
       // Preference order: rawPoints (my own fresh commit, still in memory —
       // already an array of subpaths, see _commitStroke/_insertShape) ->
@@ -3061,7 +3220,8 @@
     this._myObjectScales.delete(id);
     this._myObjectsJson.delete(id);
     if (this._selectedIds.delete(id)) this._dirty = true; // drop its now-stale highlight box too
-    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
+    var obj = this._objectsById.get(id);
+    this._objectsById.delete(id);
     if (obj) this._fabricCanvas.remove(obj);
   };
 
@@ -3224,7 +3384,7 @@
   // wherever it visually happens to be already, so applying the same
   // (dx,dy) twice is a safe no-op rather than double-moving it.
   Whiteboard.prototype._setObjectOffset = function (objId, dx, dy) {
-    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
+    var obj = this._objectsById.get(objId);
     var natural = this._objectNaturalPos.get(objId);
     if (!obj || !natural) return;
     // Re-reads _myObjectScales rather than taking scale as a param — every
@@ -3463,7 +3623,7 @@
   Whiteboard.prototype._resizeHandlePos = function () {
     if (this._selectedIds.size !== 1) return null;
     var id = this._selectedIds.values().next().value;
-    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
+    var obj = this._objectsById.get(id);
     if (!obj || !(obj.data.isShape || obj.data.isText)) return null;
     var subpaths = this._myTranslatedPoints(id);
     if (!subpaths || !subpaths.length) return null;
@@ -3503,12 +3663,10 @@
     var self = this;
     var pad = 10; // logical units of breathing room — group box only, see below
     var hairline = 1.5 / this._scale; // a true ~1.5 device px at any zoom, same technique as the grid
-    var objsById = {};
-    this._fabricCanvas.getObjects().forEach(function (o) { if (o.data) objsById[o.data.id] = o; });
     var boxes = [];
     this._selectedIds.forEach(function (id) {
       var subpaths = self._myTranslatedPoints(id);
-      var obj = objsById[id];
+      var obj = self._objectsById.get(id);
       if (!subpaths || !obj) return;
       var b = self._myObjectBounds(id);
       if (b) boxes.push(b);
@@ -3585,6 +3743,7 @@
     if (this._rafId) cancelAnimationFrame(this._rafId);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     clearTimeout(this._resizeTimer);
+    clearTimeout(this._hintTimer);
     if (this._ro) this._ro.disconnect();
     if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);
     if (this._shapeDocClickHandler) document.removeEventListener('click', this._shapeDocClickHandler);
