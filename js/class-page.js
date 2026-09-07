@@ -6229,7 +6229,10 @@
       <div id="wbCanvasMount" class="wb-canvas-mount">
         <div class="classes-loading"><div class="classes-spinner"></div></div>
       </div>
-      <button type="button" class="icon-btn wb-fs-fullscreen-btn" id="wbFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 18 })}</button>`;
+      <div class="wb-fs-corner">
+        <span class="wb-fs-zoom-label" id="wbFsZoomLabel">100%</span>
+        <button type="button" class="icon-btn wb-fs-fullscreen-btn" id="wbFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 18 })}</button>
+      </div>`;
     document.body.appendChild(modal);
     modal.querySelector('#tablaLiveCloseBtn').onclick = _leaveTablaLiveModal;
     modal.querySelector('#wbFullscreenBtn').addEventListener('click', () => _toggleWbFullscreen(modal));
@@ -6287,7 +6290,14 @@
         userColor: myColor,
         locked: myLocked,
         isTeacher: isTeacher,
-        gridOn: !!session.grid_enabled
+        gridOn: !!session.grid_enabled,
+        // The toolbar itself no longer shows this (see whiteboard.js) —
+        // it now sits next to the fullscreen button instead, which lives
+        // in THIS modal's own header markup, outside the component.
+        onZoomChange: pct => {
+          const el = document.getElementById('wbFsZoomLabel');
+          if (el) el.textContent = pct + '%';
+        }
       });
     }
   }

@@ -95,6 +95,17 @@
   var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
   var CIRCLE_SEGS   = 10;   // join-circle polygon approximation — see variableWidthPathString
 
+  // Text tool (see _startTextEditor) — a fixed wrap width with only the
+  // height left to auto-grow, mirroring fabric.Textbox's own width-fixed/
+  // height-auto model exactly so nothing needs reconciling between what
+  // the live editing <textarea> showed and what gets committed. A real
+  // system font, not a webfont, so the <textarea> (HTML/DOM text layout)
+  // and the committed fabric.Textbox (canvas text layout) read the exact
+  // same font file and measure alike.
+  var TEXT_DEFAULT_WIDTH     = 360;
+  var TEXT_DEFAULT_FONT_SIZE = 32;
+  var TEXT_FONT_FAMILY = 'Arial, Helvetica, sans-serif';
+
   // 1 = the "fit the whole board in the container" scale computed fresh in
   // _applySize every resize — MIN_ZOOM stays 1 rather than allowing zoom
   // OUT below that, since there's nothing more of the board to reveal past
@@ -102,7 +113,6 @@
   // margin, not show anything new).
   var MIN_ZOOM = 1;
   var MAX_ZOOM = 10;
-  var ZOOM_STEP = 0.25;
 
   function dist(a, b) {
     var dx = a.x - b.x, dy = a.y - b.y;
@@ -748,7 +758,13 @@
     // hidden — worked out per shape below, not guessed.
     cub: {
       label: 'Cub',
-      icon: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/><path d="M4 20 9 15 9 5"/><path d="M9 15 19 15"/>',
+      // Only the 3 faces actually visible from this angle — front, top,
+      // right (same edges the real inserted shape itself renders solid,
+      // see this shape's own build() below and its "hidden" set) — the
+      // back corner's 3 edges are dropped entirely rather than dashed;
+      // at this icon's tiny size a dash pattern just read as visual noise,
+      // not as "these are hidden".
+      icon: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/>',
       build: function (cx, cy) {
         // Equal-side front face (a real square — the old hw=80/hh=65 made
         // the front face, and so the whole cube, visibly a squashed box)
@@ -909,6 +925,11 @@
     this._locked    = !!opts.locked;
     this._isTeacher = !!opts.isTeacher;
     this._gridOn    = !!opts.gridOn;
+    // Zoom is now shown OUTSIDE this component entirely (see
+    // openWhiteboardLiveView in js/class-page.js, next to its own
+    // fullscreen button) rather than in the toolbar — this is this
+    // component's only hook back out to that external label.
+    this._onZoomChange = typeof opts.onZoomChange === 'function' ? opts.onZoomChange : null;
 
     this._liveStrokes  = new Map();  // key -> {points:[{x,y}], color, width, opacity}
     this._activePtrs   = {};         // pointerId -> {strokeId, points, pending, lastSentAt, lastSentPos, erasing, panning}
@@ -957,6 +978,10 @@
     // as highlight boxes by _drawSelectionOverlay; cleared on tool switch,
     // on erasing a selected object, or on selecting empty space.
     this._selectedIds = new Set();
+    // The text tool's live editing <textarea>, or null when none is open —
+    // see _startTextEditor/_finishTextEditor. At most one at a time: a
+    // click that would open a second one finishes the first first.
+    this._textEditing = null;
     // {start:{x,y}, current:{x,y}} logical-space rectangle while a
     // rubber-band selection drag is in progress, else null — kept
     // separate from the per-pointer gesture state in _activePtrs so
@@ -1103,8 +1128,7 @@
   var ARROW_ICON        = '<path d="M5 19 19 5"/><path d="M19 5 12 7"/><path d="M19 5 17 12"/>';
   var PAN_ICON         = '<rect x="6" y="11" width="12" height="9" rx="3"/><path d="M9 11V6a1.5 1.5 0 0 1 3 0v5"/><path d="M12 11V5a1.5 1.5 0 0 1 3 0v6"/><path d="M15 11.5V7a1.5 1.5 0 0 1 3 0v6"/>';
   var UNDO_ICON        = '<path d="M3 7v6h6"/><path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6 2.3L3 13"/>';
-  var ZOOM_OUT_ICON    = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/>';
-  var ZOOM_IN_ICON     = '<circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/>';
+  var TEXT_ICON        = '<polyline points="4 7 4 4 20 4 20 7"/><line x1="9" y1="20" x2="15" y2="20"/><line x1="12" y1="4" x2="12" y2="20"/>';
 
   function toolBtn(tool, icon, title) {
     return '<button type="button" class="dc-tool-btn' + (tool === 'pen' ? ' dc-tool-btn--active' : '') +
@@ -1142,14 +1166,15 @@
     wrap.className = 'wb-board';
     wrap.innerHTML =
       '<div class="dc-toolbar wb-toolbar">' +
-        // Three small tool groups (manipulate / ink / line shapes) with
-        // breathing room between them but no divider bars —
-        // dc-tool-group--nodiv overrides the toolbar's usual adjacent-
-        // sibling divider (see its own CSS rule) for just these, same
-        // lighter-touch grouping idroo's own toolbar uses. The width
-        // picker/grid/zoom/undo groups after this keep their normal
+        // Four small tool groups (manipulate / ink+text / line shapes /
+        // shape+body pickers) with breathing room between them but no
+        // divider bars — dc-tool-group--nodiv overrides the toolbar's
+        // usual adjacent-sibling divider (see its own CSS rule) for just
+        // these, same lighter-touch grouping idroo's own toolbar uses. The
+        // width picker/grid/undo groups after this keep their normal
         // divider — those are separate FUNCTIONAL areas, not sub-groups
-        // of "the tools".
+        // of "the tools". Zoom used to be one of these too (see
+        // js/class-page.js's own onZoomChange for where it lives now).
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (Q)') +
           toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (W)') +
@@ -1158,6 +1183,7 @@
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
+          toolBtn('text', TEXT_ICON, 'Text (T)') +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('line', LINE_ICON, 'Linie dreaptă') +
@@ -1197,15 +1223,6 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + GRID_ICON + '</svg>' +
           '</button>' +
         '</div>' : '') +
-        '<div class="dc-tool-group">' +
-          '<button type="button" class="dc-action-btn" id="wbZoomOutBtn" title="Micșorează" disabled>' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ZOOM_OUT_ICON + '</svg>' +
-          '</button>' +
-          '<span class="dc-zoom-label" id="wbZoomLabel">100%</span>' +
-          '<button type="button" class="dc-action-btn" id="wbZoomInBtn" title="Mărește">' +
-            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + ZOOM_IN_ICON + '</svg>' +
-          '</button>' +
-        '</div>' +
         '<div class="dc-tool-group dc-tool-group--right">' +
           '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
@@ -1245,9 +1262,6 @@
     this._gridCtx    = this._gridEl.getContext('2d');
     this._fabricEl   = wrap.querySelector('#wbFabricCanvas');
     this._lockedBannerEl = wrap.querySelector('#wbLockedBanner');
-    this._zoomLabelEl   = wrap.querySelector('#wbZoomLabel');
-    this._zoomOutBtnEl  = wrap.querySelector('#wbZoomOutBtn');
-    this._zoomInBtnEl   = wrap.querySelector('#wbZoomInBtn');
     this._applyLockedUi();
   };
 
@@ -1280,6 +1294,7 @@
         tool === 'select' ? 'default' :
         tool === 'pen' ? PEN_CURSOR :
         tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
+        tool === 'text' ? 'text' : // native I-beam — already exactly the right affordance, no custom glyph needed
         CROSSHAIR_CURSOR; // line / dashed-line / arrow
     }
   };
@@ -1298,6 +1313,32 @@
     });
   };
 
+  // Clamps a just-opened .gfe-dropdown__panel to the viewport on both axes.
+  // The naive "left-aligned under the trigger" placement (what both call
+  // sites below used to just set directly) silently assumed a horizontal
+  // toolbar row — it broke specifically in the landscape-phone layout
+  // (see the "orientation: landscape" rules on .wb-board .dc-toolbar),
+  // where the toolbar becomes a narrow 56px column pinned to the right
+  // edge: a trigger's own rect then sits hard against the screen's right
+  // edge, so "open below-and-left-aligned" pushed most of the panel off-
+  // screen instead of just beside it. position:fixed doesn't get pulled
+  // back on screen on its own the way an absolutely-positioned element
+  // inside a scrolling ancestor might, so this has to happen explicitly.
+  // Caller must add the --open class (making the panel display:block,
+  // hence measurable via offsetWidth/Height) BEFORE calling this.
+  Whiteboard.prototype._positionDropdownPanel = function (panel, r) {
+    var margin = 8;
+    var pw = panel.offsetWidth, ph = panel.offsetHeight;
+    var left = r.left;
+    if (left + pw > window.innerWidth - margin) left = r.right - pw; // flip to the trigger's left side
+    left = Math.max(margin, Math.min(left, window.innerWidth - pw - margin));
+    var top = r.bottom + 6;
+    if (top + ph > window.innerHeight - margin) top = r.top - ph - 6; // flip above the trigger
+    top = Math.max(margin, Math.min(top, window.innerHeight - ph - margin));
+    panel.style.left = left + 'px';
+    panel.style.top  = top + 'px';
+  };
+
   // #wbWidthCustomDd has no .gfe-dropdown__trigger of its own — the width
   // preset button that was clicked a second time (see the widthBtn branch
   // above) IS the trigger, passed in as btn — so it's positioned/opened
@@ -1309,14 +1350,12 @@
     var wasOpen = dd.classList.contains('gfe-dropdown--open');
     this._closeShapeDropdowns();
     if (wasOpen) return; // the click that got us here was the "close it again" click
-    var r = btn.getBoundingClientRect();
+    dd.classList.add('gfe-dropdown--open');
     var panel = dd.querySelector('.gfe-dropdown__panel');
-    panel.style.top  = (r.bottom + 6) + 'px';
-    panel.style.left = r.left + 'px';
+    this._positionDropdownPanel(panel, btn.getBoundingClientRect());
     var range = dd.querySelector('#wbWidthCustomRange');
     range.value = this._width;
     dd.querySelector('#wbWidthCustomVal').textContent = this._width;
-    dd.classList.add('gfe-dropdown--open');
   };
 
   Whiteboard.prototype._bindToolbar = function () {
@@ -1336,11 +1375,9 @@
         var wasOpen = dd.classList.contains('gfe-dropdown--open');
         self._closeShapeDropdowns();
         if (!wasOpen) {
-          var panel = dd.querySelector('.gfe-dropdown__panel');
-          var r = ddTrigger.getBoundingClientRect();
-          panel.style.top = (r.bottom + 6) + 'px';
-          panel.style.left = r.left + 'px';
           dd.classList.add('gfe-dropdown--open');
+          var panel = dd.querySelector('.gfe-dropdown__panel');
+          self._positionDropdownPanel(panel, ddTrigger.getBoundingClientRect());
           ddTrigger.setAttribute('aria-expanded', 'true');
         }
         return;
@@ -1357,8 +1394,6 @@
       var gridBtn   = e.target.closest('#wbGridBtn');
       var undoBtn   = e.target.closest('#wbUndoBtn');
       var redoBtn   = e.target.closest('#wbRedoBtn');
-      var zoomInBtn  = e.target.closest('#wbZoomInBtn');
-      var zoomOutBtn = e.target.closest('#wbZoomOutBtn');
       if (toolBtnEl) {
         self._setTool(toolBtnEl.dataset.tool);
         self._closeShapeDropdowns();
@@ -1400,10 +1435,6 @@
         self.undo();
       } else if (redoBtn && !redoBtn.disabled) {
         self.redo();
-      } else if (zoomInBtn && !zoomInBtn.disabled) {
-        self._setZoom(self._currentOrPendingZoom() + ZOOM_STEP);
-      } else if (zoomOutBtn && !zoomOutBtn.disabled) {
-        self._setZoom(self._currentOrPendingZoom() - ZOOM_STEP);
       }
     });
 
@@ -1442,6 +1473,8 @@
         self._setTool('pen');
       } else if (e.key === 'h' || e.key === 'H') {
         self._setTool('highlighter');
+      } else if (e.key === 't' || e.key === 'T') {
+        self._setTool('text');
       } else if (e.key === 'q' || e.key === 'Q') {
         self._setTool('select');
       } else if (e.key === 'w' || e.key === 'W') {
@@ -1773,9 +1806,7 @@
   };
 
   Whiteboard.prototype._updateZoomUi = function () {
-    if (this._zoomLabelEl) this._zoomLabelEl.textContent = Math.round(this._zoom * 100) + '%';
-    if (this._zoomOutBtnEl) this._zoomOutBtnEl.disabled = this._zoom <= MIN_ZOOM;
-    if (this._zoomInBtnEl)  this._zoomInBtnEl.disabled  = this._zoom >= MAX_ZOOM;
+    if (this._onZoomChange) this._onZoomChange(Math.round(this._zoom * 100));
   };
 
   // Clamped to the logical board's own bounds — the viewport can show area
@@ -1850,6 +1881,13 @@
       if (e.pointerType === 'mouse' && e.button !== 0 && e.button !== 2) return;
       e.preventDefault();
       el.setPointerCapture(e.pointerId);
+      // Belt-and-suspenders alongside the text editor's own blur handler
+      // (see _startTextEditor) — any click reaching the canvas itself means
+      // focus has already left the editing <textarea>, so finish it before
+      // dispatching this click to whatever tool is active. Idempotent if
+      // blur already got there first (see the guard at the top of
+      // _finishTextEditor).
+      if (self._textEditing) self._finishTextEditor(false);
 
       // Right mouse button always pans, whatever tool is currently active
       // — a "hold to navigate" convention so nudging the view doesn't
@@ -1890,6 +1928,16 @@
         self._erasedThisDrag = new Set();
         self._activePtrs[e.pointerId] = { erasing: true };
         self._eraseAt(pos);
+        return;
+      }
+
+      // Click-to-place, no drag gesture at all — same immediacy as a shape
+      // from the toolbar picker, just anchored at the click instead of a
+      // fixed default spot. Nothing is tracked in _activePtrs for this
+      // pointer: there's no drag to follow, _startTextEditor takes over
+      // via its own <textarea> and DOM events from here.
+      if (self._tool === 'text') {
+        self._startTextEditor(pos, null);
         return;
       }
 
@@ -2214,6 +2262,20 @@
       self._dirty = true;
       self._send('stroke:cancel', { strokeId: st.strokeId });
     });
+
+    // Re-open a text object's editor on its actual content, not just move/
+    // resize it — select tool only (a double-click with any other tool
+    // already means something else, e.g. two quick pen dots). The single-
+    // click pointerdown/up pair just above will already have selected the
+    // object by the time this fires.
+    el.addEventListener('dblclick', function (e) {
+      if (self._tool !== 'select' || self._locked) return;
+      var target = self._findMyObjectAt(self._getPos(e));
+      if (target && target.data.isText) {
+        e.preventDefault();
+        self._startTextEditor(null, target);
+      }
+    });
   };
 
   Whiteboard.prototype._maybeFlush = function (st) {
@@ -2388,6 +2450,233 @@
     });
   };
 
+  // Text tool (see the 'text' branch in _bindPointerEvents' pointerdown,
+  // and the dblclick listener at the end of that same function for
+  // re-editing an existing one) — opens a real HTML <textarea> positioned
+  // exactly over the logical spot, so typing/IME/spellcheck/copy-paste all
+  // just work the way they do everywhere else on the page; a canvas has no
+  // native text input of its own. A fixed wrap width with only the height
+  // left to auto-grow mirrors fabric.Textbox's own width-fixed/height-auto
+  // model exactly (see _addObjectIfNew), so there's no reflow logic to
+  // reconcile between "what the textarea showed" and "what gets committed".
+  // pos is the click point for a NEW text (existingObj null); for
+  // re-editing, existingObj's own current position/size/content are used
+  // instead and pos is ignored (pass null).
+  Whiteboard.prototype._startTextEditor = function (pos, existingObj) {
+    if (this._textEditing) this._finishTextEditor(false); // finish whatever was already open first
+    var self = this;
+    var fontSize = TEXT_DEFAULT_FONT_SIZE, color = this._color, scale = 1, width = TEXT_DEFAULT_WIDTH;
+    var initialText = '', oldHeight = fontSize * 1.3, topLeft;
+    if (existingObj) {
+      var j = this._myObjectsJson.get(existingObj.data.id) || {};
+      fontSize = j.fontSize || fontSize;
+      color = j.color || color;
+      width = j.textWidth || width;
+      oldHeight = j.textHeight || oldHeight;
+      scale = this._myObjectScales.get(existingObj.data.id) || 1;
+      initialText = j.text || '';
+      var natural = this._objectNaturalPos.get(existingObj.data.id);
+      var off = this._myObjectOffsets.get(existingObj.data.id) || { dx: 0, dy: 0 };
+      var center = { x: natural.left + off.dx, y: natural.top + off.dy };
+      // Top-left, not center — this is the anchor editing visually holds
+      // fixed while the box's height changes with the line count (see
+      // _persistTextEdit, which re-derives the same anchor the same way).
+      topLeft = { x: center.x - (width * scale) / 2, y: center.y - (oldHeight * scale) / 2 };
+      existingObj.visible = false;
+      // Drop the selection halo/resize handle too, not just the rendered
+      // text — both are computed from the OLD bounds (see
+      // _myObjectBounds/_resizeHandlePos) that won't update until this
+      // commits, so leaving them showing would visibly mismatch the live
+      // textarea the instant its height changes from the original.
+      this._selectedIds = new Set();
+      this._dirty = true;
+      this._fabricCanvas.requestRenderAll();
+    } else {
+      topLeft = pos;
+    }
+
+    var ta = document.createElement('textarea');
+    ta.className = 'wb-text-editor';
+    ta.value = initialText;
+    ta.spellcheck = false;
+    ta.style.color = color;
+    this._canvasWrap.appendChild(ta);
+
+    var wrapRect = this._canvasWrap.getBoundingClientRect();
+    ta.style.left = (wrapRect.left + self._panX + topLeft.x * self._scale) + 'px';
+    ta.style.top  = (wrapRect.top  + self._panY + topLeft.y * self._scale) + 'px';
+    ta.style.width = (width * scale * self._scale) + 'px';
+    ta.style.fontSize = (fontSize * scale * self._scale) + 'px';
+
+    function autosize() {
+      ta.style.height = 'auto';
+      ta.style.height = ta.scrollHeight + 'px';
+    }
+    autosize();
+    ta.addEventListener('input', autosize);
+    ta.addEventListener('blur', function () { self._finishTextEditor(false); });
+    ta.addEventListener('keydown', function (e) {
+      // Enter is left alone — a real newline, same as any other <textarea>
+      // on the page. Blur (above) or Escape are the only two ways out.
+      if (e.key === 'Escape') { e.stopPropagation(); self._finishTextEditor(true); }
+    });
+    // A click anywhere else that reaches the canvas is ALSO caught by
+    // pointerdown's own guard at the top of _bindPointerEvents, but a
+    // click on some other part of the page entirely (a toolbar button,
+    // for instance) never reaches that handler at all — only blur (above)
+    // catches that case. This capture-phase listener is the one thing that
+    // reliably catches BOTH: it runs before the click's own target sees
+    // it, so it beats any focus-order quirk between browsers. Finishing
+    // twice (this + blur, for the same click) is harmless — see the guard
+    // at the top of _finishTextEditor.
+    function onDocPointerDown(e) {
+      if (e.target !== ta) self._finishTextEditor(false);
+    }
+    document.addEventListener('pointerdown', onDocPointerDown, true);
+
+    ta.focus();
+    ta.selectionStart = ta.selectionEnd = ta.value.length;
+
+    this._textEditing = {
+      ta: ta, existingObj: existingObj || null, initialText: initialText,
+      topLeft: topLeft, width: width, fontSize: fontSize, scale: scale,
+      onDocPointerDown: onDocPointerDown
+    };
+  };
+
+  // Closes whatever _startTextEditor opened — cancelled (Escape) discards
+  // any change and restores an existing object untouched; otherwise an
+  // empty/whitespace-only result deletes an existing object (never worth
+  // keeping an empty box) or simply creates nothing (a new one that was
+  // never worth starting), and real content commits via _insertText/
+  // _persistTextEdit. Guarded to be a safe no-op if called twice for the
+  // same editor (blur AND the document-level catch-all in _startTextEditor
+  // can both fire for one click-away) or after destroy() mid-flight.
+  Whiteboard.prototype._finishTextEditor = function (cancelled) {
+    var editing = this._textEditing;
+    if (!editing) return;
+    this._textEditing = null;
+    document.removeEventListener('pointerdown', editing.onDocPointerDown, true);
+    // Read BEFORE removing from the DOM — scrollHeight is only meaningful
+    // while still laid out. Divided back down through both the current
+    // zoom AND this object's own resize scale to land in the same natural/
+    // unscaled logical units everything else (_myPathPoints, textHeight in
+    // fabric_json) is stored in.
+    var heightLogical = editing.ta.scrollHeight / this._scale / editing.scale;
+    if (editing.ta.parentNode) editing.ta.parentNode.removeChild(editing.ta);
+    if (editing.existingObj) editing.existingObj.visible = true;
+    if (this._destroyed) return;
+    var text = editing.ta.value.trim();
+    if (editing.existingObj) {
+      var id = editing.existingObj.data.id;
+      if (cancelled) { this._fabricCanvas.requestRenderAll(); return; }
+      if (!text) { this._deleteObjects([id]); return; }
+      if (text !== editing.initialText) this._persistTextEdit(id, text, heightLogical);
+      else this._fabricCanvas.requestRenderAll();
+      return;
+    }
+    if (!cancelled && text) this._insertText(text, editing.topLeft, editing.width, heightLogical, editing.fontSize);
+    else this._fabricCanvas.requestRenderAll();
+  };
+
+  // Commits a brand-new text object — same insert-then-render-locally
+  // pattern as _commitStroke/_insertShape. centerline is the box's own 4
+  // corners as ONE closed subpath, in the exact "array of subpaths" shape
+  // every other object's hit-testing already expects uniformly (see
+  // distToPolyline's own comment) — a text box just happens to have
+  // exactly one, rectangular, subpath, so it needs no changes of its own
+  // to _myObjectBounds/_myTranslatedPoints/the resize handle to work
+  // correctly; only _findMyObjectAt/_eraseAt special-case isText, to let a
+  // click ANYWHERE inside the box select it rather than only right at its
+  // (invisible) outline the way an unfilled shape's does.
+  Whiteboard.prototype._insertText = function (text, topLeft, width, height, fontSize) {
+    var center = { x: topLeft.x + width / 2, y: topLeft.y + height / 2 };
+    var hw = width / 2, hh = height / 2;
+    var centerline = [[
+      { x: center.x - hw, y: center.y - hh }, { x: center.x + hw, y: center.y - hh },
+      { x: center.x + hw, y: center.y + hh }, { x: center.x - hw, y: center.y + hh },
+      { x: center.x - hw, y: center.y - hh }
+    ]];
+    var self = this;
+    this._supabase.from('whiteboard_objects').insert({
+      session_id: this._sessionId,
+      class_id:   this._classId,
+      created_by: this._userId,
+      kind: 'text',
+      fabric_json: {
+        isText: true, text: text, left: center.x, top: center.y,
+        textWidth: width, textHeight: height, fontSize: fontSize, color: this._color,
+        // A Textbox has no SVG path string the way every other object does
+        // (see _addObjectIfNew) — without its own centerline saved here,
+        // MY OWN text reloaded later (a refresh, a dropped-INSERT replay
+        // via _reconcileObjects) would fall all the way through to
+        // parsePathPoints(j.path) with no j.path to parse. Same rectangle
+        // as the local centerline just above.
+        centerline: centerline
+      }
+    }).select().single().then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] text insert failed', res.error); return; }
+      self._addObjectIfNew(res.data, centerline);
+      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
+      self._myRedoStack = [];
+      self._updateUndoRedoButtons();
+      self._dirty = true;
+      self._fabricCanvas.requestRenderAll();
+    });
+  };
+
+  // Commits an EDIT to an existing text object's content (see the dblclick
+  // listener in _bindPointerEvents) — width and font size never change
+  // here (only the resize handle changes those, via the ordinary
+  // _persistObjectScale path every other object already uses); only the
+  // text and, since a different line count changes how tall the box is,
+  // its height. Folds whatever offset the box already had (from an
+  // earlier plain move) into the new natural position and resets the
+  // offset to zero, the same way a freshly committed object always starts
+  // at offset zero — there's no reason to keep carrying an old offset
+  // forward once the natural position itself has just been redefined.
+  Whiteboard.prototype._persistTextEdit = function (objId, text, height) {
+    var self = this;
+    var json = this._myObjectsJson.get(objId);
+    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
+    if (!json || !obj) return;
+    var width = json.textWidth;
+    var scale = this._myObjectScales.get(objId) || 1;
+    var off = this._myObjectOffsets.get(objId) || { dx: 0, dy: 0 };
+    var natural = this._objectNaturalPos.get(objId);
+    var oldCenter = { x: natural.left + off.dx, y: natural.top + off.dy };
+    // Same anchor _startTextEditor computed to position the live editor —
+    // re-derived here from the OLD height since that's what was still true
+    // the instant editing began.
+    var topLeft = { x: oldCenter.x - (width * scale) / 2, y: oldCenter.y - (json.textHeight * scale) / 2 };
+    var center  = { x: topLeft.x + (width * scale) / 2, y: topLeft.y + (height * scale) / 2 };
+
+    obj.set({ text: text, left: center.x, top: center.y });
+    obj.setCoords();
+    this._objectNaturalPos.set(objId, { left: center.x, top: center.y });
+    this._myObjectOffsets.set(objId, { dx: 0, dy: 0 });
+    // Unscaled half-extents — _myTranslatedPoints re-applies `scale` itself
+    // when it reads this back (see its own comment), same convention as
+    // every other object's stored centerline/_myPathPoints.
+    var hw = width / 2, hh = height / 2;
+    var centerline = [[
+      { x: center.x - hw, y: center.y - hh }, { x: center.x + hw, y: center.y - hh },
+      { x: center.x + hw, y: center.y + hh }, { x: center.x - hw, y: center.y + hh },
+      { x: center.x - hw, y: center.y - hh }
+    ]];
+    this._myPathPoints.set(objId, centerline);
+    this._dirty = true;
+    this._fabricCanvas.requestRenderAll();
+
+    var newJson = Object.assign({}, json, { text: text, left: center.x, top: center.y, textHeight: height, offsetX: 0, offsetY: 0, centerline: centerline });
+    this._supabase.from('whiteboard_objects').update({ fabric_json: newJson }).eq('id', objId)
+      .then(function (res) {
+        if (res.error) { global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error'); return; }
+        self._myObjectsJson.set(objId, newJson);
+      });
+  };
+
   /* ---- Realtime ---- */
 
   Whiteboard.prototype._connectRealtime = function () {
@@ -2552,43 +2841,59 @@
     if (!row || this._committedIds.has(row.id)) return;
     this._committedIds.add(row.id);
     var j = row.fabric_json || {};
-    // Variable-width pen strokes (see _commitStroke) are a FILLED outline,
-    // not a stroked centerline — j.fill is only ever set for those, never
-    // alongside j.stroke.
-    var path = new fabric.Path(j.path, {
-      stroke: j.fill ? null : j.stroke,
-      strokeWidth: j.strokeWidth,
-      strokeDashArray: j.strokeDashArray || null, // dashed-line tool only — see _commitStroke
-      opacity: j.opacity == null ? 1 : j.opacity,
-      fill: j.fill || null,
-      strokeLineCap: 'round',
-      strokeLineJoin: 'round',
-      selectable: false,
-      evented: false,
-      // Fabric objects default to objectCaching:true — rendering from a
-      // cached BITMAP (rasterized once at whatever resolution it happened
-      // to need at the time) rather than fresh from the vector path data
-      // on every paint. That cache doesn't reliably regenerate at a new
-      // resolution when OUR OWN custom setViewportTransform changes the
-      // zoom (see _syncViewport) the way it would for zoom driven through
-      // Fabric's own built-in interactions — it silently kept reusing a
-      // bitmap rasterized for an earlier, often much lower, zoom and
-      // stretched it up, which is exactly what was making committed
-      // strokes look blurry at high zoom despite an otherwise-crisp
-      // backing store. Off entirely, a stroke is always re-rasterized
-      // straight from its path data at the CURRENT zoom, so it's exactly
-      // as sharp at 400% as at 100% — the small number of on-screen
-      // strokes here never made caching earn its keep anyway.
-      objectCaching: false,
-      // center, not fabric's default top-left — a shape's resize handle
-      // (see _drawSelectionOverlay/_bindPointerEvents) scales it around its
-      // own middle, which needs left/top (and the scaling itself) anchored
-      // there instead of a corner to begin with. Harmless for freehand ink,
-      // which never resizes, and keeps the same one code path for both.
-      originX: 'center',
-      originY: 'center',
-      data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape }
-    });
+    // center, not fabric's default top-left, on BOTH branches below — a
+    // shape/text's resize handle (see _drawSelectionOverlay/
+    // _bindPointerEvents) scales it around its own middle, which needs
+    // left/top (and the scaling itself) anchored there instead of a
+    // corner to begin with. Harmless for freehand ink, which never
+    // resizes, and keeps the same one code path for every object type.
+    var obj;
+    if (j.isText) {
+      // A Textbox needs left/top passed in explicitly (unlike a Path,
+      // whose left/top fall out implicitly from its own SVG path data
+      // below) — see _insertText/_persistTextEdit, which always store the
+      // NATURAL (pre-offset) center in j.left/j.top for exactly this.
+      obj = new fabric.Textbox(j.text || '', {
+        left: j.left, top: j.top, width: j.textWidth, fontSize: j.fontSize,
+        fontFamily: TEXT_FONT_FAMILY, fill: j.color, editable: false,
+        selectable: false, evented: false, objectCaching: false,
+        originX: 'center', originY: 'center',
+        data: { id: row.id, ownerId: row.created_by, isShape: false, isText: true }
+      });
+    } else {
+      // Variable-width pen strokes (see _commitStroke) are a FILLED
+      // outline, not a stroked centerline — j.fill is only ever set for
+      // those, never alongside j.stroke.
+      obj = new fabric.Path(j.path, {
+        stroke: j.fill ? null : j.stroke,
+        strokeWidth: j.strokeWidth,
+        strokeDashArray: j.strokeDashArray || null, // dashed-line tool only — see _commitStroke
+        opacity: j.opacity == null ? 1 : j.opacity,
+        fill: j.fill || null,
+        strokeLineCap: 'round',
+        strokeLineJoin: 'round',
+        selectable: false,
+        evented: false,
+        // Fabric objects default to objectCaching:true — rendering from a
+        // cached BITMAP (rasterized once at whatever resolution it happened
+        // to need at the time) rather than fresh from the vector path data
+        // on every paint. That cache doesn't reliably regenerate at a new
+        // resolution when OUR OWN custom setViewportTransform changes the
+        // zoom (see _syncViewport) the way it would for zoom driven through
+        // Fabric's own built-in interactions — it silently kept reusing a
+        // bitmap rasterized for an earlier, often much lower, zoom and
+        // stretched it up, which is exactly what was making committed
+        // strokes look blurry at high zoom despite an otherwise-crisp
+        // backing store. Off entirely, a stroke is always re-rasterized
+        // straight from its path data at the CURRENT zoom, so it's exactly
+        // as sharp at 400% as at 100% — the small number of on-screen
+        // strokes here never made caching earn its keep anyway.
+        objectCaching: false,
+        originX: 'center',
+        originY: 'center',
+        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false }
+      });
+    }
     // Natural position captured BEFORE applying any stored move offset —
     // see the field comment in the constructor and _onRemoteObjectMove/
     // _applyObjectUpdate, which both re-derive "natural + offset" the same
@@ -2597,13 +2902,13 @@
     // not top-left — same reason _myTranslatedPoints scales stored hit-test
     // points around this exact point, so a resized shape's hitbox matches
     // what's actually rendered.
-    this._objectNaturalPos.set(row.id, { left: path.left, top: path.top });
+    this._objectNaturalPos.set(row.id, { left: obj.left, top: obj.top });
     var offsetX = j.offsetX || 0, offsetY = j.offsetY || 0, scale = j.scale || 1;
     if (offsetX || offsetY || scale !== 1) {
-      path.set({ left: path.left + offsetX, top: path.top + offsetY, scaleX: scale, scaleY: scale });
-      path.setCoords();
+      obj.set({ left: obj.left + offsetX, top: obj.top + offsetY, scaleX: scale, scaleY: scale });
+      obj.setCoords();
     }
-    this._fabricCanvas.add(path);
+    this._fabricCanvas.add(obj);
     if (row.created_by === this._userId) {
       // Preference order: rawPoints (my own fresh commit, still in memory —
       // already an array of subpaths, see _commitStroke/_insertShape) ->
@@ -2712,6 +3017,14 @@
     this._fabricCanvas.getObjects().forEach(function (obj) {
       if (!obj.data || obj.data.ownerId !== self._userId) return;
       if (self._erasedThisDrag.has(obj.data.id)) return;
+      // Text reads as a filled block, not a thin outline — anywhere inside
+      // its own box is "on" it, the same reasoning _findMyObjectAt below
+      // uses for its own isText branch.
+      if (obj.data.isText) {
+        var b = self._myObjectBounds(obj.data.id);
+        if (b && pointInRect(pos, b)) { hitIds.push(obj.data.id); self._erasedThisDrag.add(obj.data.id); }
+        return;
+      }
       var pts = self._myTranslatedPoints(obj.data.id);
       if (!pts) return;
       var tol = (obj.strokeWidth || 2) / 2 + 5; // a little slack for a fast swipe — was +8, tightened along with _findMyObjectAt below (see its own comment)
@@ -2735,6 +3048,16 @@
     for (var i = objs.length - 1; i >= 0; i--) {
       var obj = objs[i];
       if (!obj.data || obj.data.ownerId !== this._userId) continue;
+      // Text reads as a filled block of glyphs, not a thin unfilled
+      // outline the way every shape/stroke here is — clicking anywhere
+      // inside its box should grab it, not just within a few px of its
+      // (invisible) edge the way distToPolyline's tolerance works for
+      // everything else below.
+      if (obj.data.isText) {
+        var b = this._myObjectBounds(obj.data.id);
+        if (b && pointInRect(pos, b)) return obj;
+        continue;
+      }
       var pts = this._myTranslatedPoints(obj.data.id);
       if (!pts) continue;
       // Was +8 — well past the visible selection halo's own width (see
@@ -2993,15 +3316,15 @@
   // selected (a multi-selection only ever moves as a rigid group, same as
   // it always has — resizing a GROUP would need to decide a shared anchor
   // and isn't what was asked for) and that object is a stamped shape/body
-  // (isShape — see _insertShape), never freehand ink or a line. Shared
-  // between drawing the handle in _drawSelectionOverlay and hit-testing a
-  // click on it in _bindPointerEvents so the two can never disagree about
-  // where it is.
+  // (isShape — see _insertShape) or a text box (isText — see _insertText),
+  // never freehand ink or a line. Shared between drawing the handle in
+  // _drawSelectionOverlay and hit-testing a click on it in
+  // _bindPointerEvents so the two can never disagree about where it is.
   Whiteboard.prototype._resizeHandlePos = function () {
     if (this._selectedIds.size !== 1) return null;
     var id = this._selectedIds.values().next().value;
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
-    if (!obj || !obj.data.isShape) return null;
+    if (!obj || !(obj.data.isShape || obj.data.isText)) return null;
     var subpaths = this._myTranslatedPoints(id);
     if (!subpaths || !subpaths.length) return null;
     // The bounding BOX's own bottom-right corner can land in empty space
@@ -3063,7 +3386,7 @@
       // input — running THOSE through the curve-fit smoothing every other
       // stroke type still uses below rounded off every sharp corner, which
       // was the "hitbox lines are curved, not on the real edge" bug.
-      var drawHaloSeg = obj.data.isShape ? drawPolylineStroke : drawSmoothStroke;
+      var drawHaloSeg = (obj.data.isShape || obj.data.isText) ? drawPolylineStroke : drawSmoothStroke;
       subpaths.forEach(function (pts) {
         drawHaloSeg(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
       });
@@ -3112,6 +3435,13 @@
 
   Whiteboard.prototype.destroy = function () {
     this._destroyed = true;
+    // Discards rather than commits — and, since _destroyed is already
+    // true, _finishTextEditor's own guard skips any Supabase call entirely.
+    // Needed explicitly (not just left to the DOM teardown below): the
+    // text editor's "click away" listener lives on `document`, not on
+    // this._wrap, so removing _wrap alone would leave it (and its closure
+    // over `self`) dangling forever otherwise.
+    if (this._textEditing) this._finishTextEditor(true);
     if (this._rafId) cancelAnimationFrame(this._rafId);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     clearTimeout(this._resizeTimer);

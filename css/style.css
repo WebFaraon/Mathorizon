@@ -12733,7 +12733,7 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wb-fs-header__left {
   display: flex;
   align-items: center;
-  gap: 16px;
+  gap: 22px;
   min-width: 0;
   /* Fills all the room .wb-fs-header's justify-content:space-between
      would otherwise have left as a gap before .wb-fs-header__right — the
@@ -12748,7 +12748,7 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .wb-fs-brand__name {
   font-family: 'Josefin Sans', sans-serif;
-  font-size: 0.92rem;
+  font-size: 1.05rem;
   font-weight: 600;
   letter-spacing: 3px;
   text-transform: uppercase;
@@ -12806,18 +12806,38 @@ body.wb-fullscreen-active .scroll-top-btn {
   gap: 12px;
 }
 
-/* Manual real-Fullscreen toggle, floating over the canvas — a teacher
-   never gets the student-only auto-request in openWhiteboardLiveView (a
-   presenter tends to want their own taskbar/chrome visible by default on
-   desktop), and even a student's auto-request can silently fail to
-   engage, so this is available to both roles as a fallback either way.
+/* Zoom % (see onZoomChange in js/class-page.js, updated live from
+   js/whiteboard.js's own _updateZoomUi — the toolbar itself no longer
+   shows this, see that file) and the manual real-Fullscreen toggle,
+   grouped in one floating corner over the canvas. A teacher never gets
+   the student-only auto-request in openWhiteboardLiveView (a presenter
+   tends to want their own taskbar/chrome visible by default on desktop),
+   and even a student's auto-request can silently fail to engage, so the
+   fullscreen button is available to both roles as a fallback either way.
    Absolute against .wb-fullscreen (already position:fixed, so this needs
    no positioning context of its own). */
-.wb-fs-fullscreen-btn {
+.wb-fs-corner {
   position: absolute;
   right: 16px;
   bottom: 16px;
   z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.wb-fs-zoom-label {
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 5px 9px;
+  white-space: nowrap;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.18);
+}
+.wb-fs-fullscreen-btn {
   background: var(--card);
   box-shadow: 0 2px 10px rgba(0,0,0,0.18);
 }
@@ -12826,7 +12846,7 @@ body.wb-fullscreen-active .scroll-top-btn {
    .wb-board) — same breakpoint, so the two stay in sync if that width
    ever changes. */
 @media (orientation: landscape) and (max-height: 500px) {
-  .wb-fs-fullscreen-btn { right: 72px; }
+  .wb-fs-corner { right: 72px; }
 }
 
 /* Roster collapsed to a single icon+count BUTTON — the header used to show
@@ -13091,7 +13111,32 @@ body.wb-fullscreen-active .scroll-top-btn {
   touch-action: none;
 }
 
-/* ---- Locked state (teacher-blocked writing) — see Whiteboard.setLocked
+/* Text tool's live editing surface (see _startTextEditor in
+   js/whiteboard.js) — a real <textarea>, not a canvas overlay, positioned
+   exactly over the logical spot clicked and sized to match the current
+   pan/zoom (all inline styles, computed in JS); this stylesheet only
+   covers what's the same on every instance. Committed as a fabric.Textbox
+   once you click away, at which point this element is removed again.
+   z-index above the overlay canvas (2) and the toolbar's own dropdown
+   panels (95) doesn't matter here since it's a sibling of the overlay
+   inside .wb-canvas-wrap specifically, never near a toolbar panel at the
+   same time. */
+.wb-text-editor {
+  position: fixed;
+  z-index: 50;
+  margin: 0;
+  padding: 2px;
+  border: none;
+  outline: 1.5px dashed var(--accent);
+  outline-offset: 5px;
+  background: #fff; /* the board's own paper is always white regardless of site theme — see .wb-grid-canvas's own comment — so this matches it rather than following dark mode */
+  font-family: Arial, Helvetica, sans-serif;
+  line-height: 1.3;
+  white-space: pre-wrap;
+  word-break: break-word;
+  overflow: hidden;
+  resize: none;
+} (teacher-blocked writing) — see Whiteboard.setLocked
    in js/whiteboard.js and the roster lock toggle in js/class-page.js ---- */
 /* Drawing/erasing tools specifically (not pan — that's pure navigation,
    never a write, so it stays usable even while locked, see setLocked's own
@@ -13132,7 +13177,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   .wb-hero .btn { width: 100%; justify-content: center; }
   .wb-fs-header { padding: 6px 10px; }
   .wb-fs-header__left { gap: 12px; }
-  .wb-fs-brand__name { font-size: 0.78rem; letter-spacing: 2px; }
+  .wb-fs-brand__name { font-size: 0.88rem; letter-spacing: 2px; }
   .wb-fs-title,
   .wb-fs-title-input { font-size: 0.86rem; }
 }
@@ -16146,6 +16191,30 @@ body.wb-fullscreen-active .scroll-top-btn {
   margin-left: 10px;
 }
 
+/* Tablă live's toolbar sat noticeably taller than every other drawing
+   surface's in the app while its own individual icons (inherited from the
+   shared .dc-tool-btn/.dc-width-btn/.dc-action-btn base above, sized for
+   js/drawing-canvas.js's tighter row) still read as small — mostly because
+   the shape/body dropdown triggers (see the .gfe-shape-btn override much
+   further below) were the tallest thing in the row and were quietly
+   setting the whole bar's height on their own. Unifying every button here
+   onto one consistent, slightly bigger size and trimming the bar's own
+   padding fixes both at once: shorter overall, bigger icons everywhere.
+   Scoped to .wb-toolbar only — every other .dc-toolbar in the app (drawing
+   canvas, geometry figure editor) keeps its own sizing untouched. */
+.wb-toolbar { padding: 6px 10px; }
+.wb-toolbar .dc-tool-btn,
+.wb-toolbar .dc-width-btn,
+.wb-toolbar .dc-action-btn {
+  width: 38px;
+  height: 38px;
+}
+.wb-toolbar .dc-tool-btn svg,
+.wb-toolbar .dc-action-btn svg {
+  width: 18px;
+  height: 18px;
+}
+
 .dc-tool-group--right {
   margin-left: auto;
 }
@@ -16739,10 +16808,6 @@ body.dc-fullscreen-active .dc-toolbar {
     border-top: none;
     padding-top: 0;
     margin-top: 10px;
-  }
-  .wb-board .dc-zoom-label {
-    font-size: 0.62rem;
-    white-space: nowrap;
   }
 }
 
@@ -17680,14 +17745,18 @@ body.dc-fullscreen-active .dc-toolbar {
 /* Whiteboard's own shape/body picker — bigger boxes and glyphs than the
    shared .gfe-shape-btn/.gfe-dropdown__trigger base above, which stays as
    the geometry configurator's own toolbar had it tuned (tighter, single
-   crowded row) since this override is scoped to .wb-toolbar only. 44px
-   also happens to be the standard minimum touch-target size, which is
-   really the point — the old 34px/18px was too small to read or tap
-   comfortably on either desktop or phone. */
-.wb-toolbar .gfe-shape-btn { width: 44px; height: 44px; }
-.wb-toolbar .gfe-shape-btn svg { width: 23px; height: 23px; }
-.wb-toolbar .gfe-dropdown__trigger { height: 44px; }
-.wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 22px; height: 22px; }
+   crowded row) since this override is scoped to .wb-toolbar only. The old
+   34px/18px base was too small to read or tap comfortably on either
+   desktop or phone; this was first bumped all the way to 44px, then
+   brought back down to 38px (still comfortably tap-able, just no longer
+   the tallest thing in the row — see the .dc-tool-btn/.dc-width-btn/
+   .dc-action-btn overrides below) once THAT turned out to be quietly
+   setting the whole toolbar's own height, taller than anyone actually
+   asked for. */
+.wb-toolbar .gfe-shape-btn { width: 38px; height: 38px; }
+.wb-toolbar .gfe-shape-btn svg { width: 19px; height: 19px; }
+.wb-toolbar .gfe-dropdown__trigger { height: 38px; }
+.wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 19px; height: 19px; }
 .wb-toolbar .gfe-dropdown__panel .gfe-shape-group { max-width: 216px; }
 
 .gfe-tick-btn {
