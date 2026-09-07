@@ -16300,6 +16300,33 @@ body.wb-fullscreen-active .scroll-top-btn {
   cursor: pointer;
 }
 
+/* Eraser type/size panel — same second-click-opens-a-.gfe-dropdown pattern
+   as the width preset buttons' own custom-width panel above. */
+.wb-eraser-panel { width: 220px; display: flex; flex-direction: column; gap: 10px; }
+.wb-eraser-modes { display: flex; gap: 6px; }
+.wb-eraser-mode-btn {
+  flex: 1;
+  padding: 8px 6px;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: 0.76rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.wb-eraser-mode-btn:hover { background: var(--card-hover); }
+.wb-eraser-mode-btn--active { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); }
+.wb-eraser-hint { font-size: 0.74rem; color: var(--text-muted); margin: 0; }
+.wb-eraser-size-row { display: flex; flex-direction: column; gap: 8px; }
+/* An author style's own `display` always beats the UA stylesheet's
+   [hidden]{display:none}, specificity aside — the row's `display:flex`
+   above would otherwise silently cancel out the hidden attribute
+   _bindToolbar's eraserModeBtn branch toggles. */
+.wb-eraser-size-row[hidden] { display: none; }
+
 /* Action buttons */
 .dc-action-btn {
   width: 32px;
@@ -17676,6 +17703,19 @@ body.dc-fullscreen-active .dc-toolbar {
 }
 .gfe-dropdown--open .gfe-dropdown__panel { display: block; animation: fadeSlideIn 0.14s ease; }
 .gfe-dropdown__panel .gfe-shape-group { flex-wrap: wrap; max-width: 160px; }
+
+/* Whiteboard's own shape/body picker — bigger boxes and glyphs than the
+   shared .gfe-shape-btn/.gfe-dropdown__trigger base above, which stays as
+   the geometry configurator's own toolbar had it tuned (tighter, single
+   crowded row) since this override is scoped to .wb-toolbar only. 44px
+   also happens to be the standard minimum touch-target size, which is
+   really the point — the old 34px/18px was too small to read or tap
+   comfortably on either desktop or phone. */
+.wb-toolbar .gfe-shape-btn { width: 44px; height: 44px; }
+.wb-toolbar .gfe-shape-btn svg { width: 23px; height: 23px; }
+.wb-toolbar .gfe-dropdown__trigger { height: 44px; }
+.wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 22px; height: 22px; }
+.wb-toolbar .gfe-dropdown__panel .gfe-shape-group { max-width: 216px; }
 
 .gfe-tick-btn {
   width: 24px;

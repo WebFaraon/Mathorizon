@@ -95,7 +95,7 @@
   // "fully visible" (it would just shrink into a smaller box with empty
   // margin, not show anything new).
   var MIN_ZOOM = 1;
-  var MAX_ZOOM = 6;
+  var MAX_ZOOM = 10;
   var ZOOM_STEP = 0.25;
 
   function dist(a, b) {
@@ -144,13 +144,28 @@
     return dist(p, { x: a.x + t * dx, y: a.y + t * dy });
   }
 
-  function distToPolyline(p, pts) {
-    if (!pts.length) return Infinity;
-    if (pts.length === 1) return dist(p, pts[0]);
+  // subpaths is an array of polylines (each an array of {x,y}) — a single
+  // freehand stroke or line is just one subpath, [[...]], but a shape/body
+  // is genuinely several disconnected pieces (a cube is 6 separate edge/
+  // face polylines, not one continuous line), and treating those as one
+  // flat point list — which parsePathPoints used to do, and which this
+  // function used to require — jumps a fake straight segment between the
+  // END of one piece and the START of the next unrelated one. That's what
+  // produced the wild loop/curve artifacts in the shape/body selection
+  // highlight and made clicking near (but not on) a shape select it: the
+  // "hitbox" was actually this bogus zigzag, whose loose loops cover far
+  // more area than the real shape. See _addObjectIfNew's centerline
+  // handling for where subpaths actually comes from.
+  function distToPolyline(p, subpaths) {
     var min = Infinity;
-    for (var i = 0; i < pts.length - 1; i++) {
-      var d2 = distToSegment(p, pts[i], pts[i + 1]);
-      if (d2 < min) min = d2;
+    for (var s = 0; s < subpaths.length; s++) {
+      var pts = subpaths[s];
+      if (!pts.length) continue;
+      if (pts.length === 1) { min = Math.min(min, dist(p, pts[0])); continue; }
+      for (var i = 0; i < pts.length - 1; i++) {
+        var d2 = distToSegment(p, pts[i], pts[i + 1]);
+        if (d2 < min) min = d2;
+      }
     }
     return min;
   }
@@ -195,11 +210,16 @@
            segmentsIntersect(p0, p1, c2, c3) || segmentsIntersect(p0, p1, c3, c0);
   }
 
-  function polylineIntersectsRect(pts, rect) {
-    if (!pts.length) return false;
-    if (pts.length === 1) return pointInRect(pts[0], rect);
-    for (var i = 0; i < pts.length - 1; i++) {
-      if (segmentIntersectsRect(pts[i], pts[i + 1], rect)) return true;
+  // subpaths — see distToPolyline's own comment on why this can't just be
+  // one flat point list for a shape/body.
+  function polylineIntersectsRect(subpaths, rect) {
+    for (var s = 0; s < subpaths.length; s++) {
+      var pts = subpaths[s];
+      if (!pts.length) continue;
+      if (pts.length === 1) { if (pointInRect(pts[0], rect)) return true; continue; }
+      for (var i = 0; i < pts.length - 1; i++) {
+        if (segmentIntersectsRect(pts[i], pts[i + 1], rect)) return true;
+      }
     }
     return false;
   }
@@ -515,12 +535,58 @@
     return pts;
   }
 
+  // Breaks a polyline (2+ points — a straight edge or a curved arc, either
+  // works since this walks segment by segment) into short "on" dash
+  // segments for the edges of a 3D body that a real opaque solid would hide
+  // from this viewing angle (see each 3D shape's own build() below for
+  // which edges those are and why). There's no fabric strokeDashArray
+  // involved — a shape/body is ONE fabric.Path, and one Path can only carry
+  // one dash pattern for its whole outline, which can't distinguish hidden
+  // from visible edges within the same object. Baking the gaps directly
+  // into the path's own point geometry sidesteps that entirely: the "dash"
+  // is just more ordinary M/L subpaths, so hidden edges can be dashed and
+  // visible ones solid within the exact same single path/single fabric
+  // object/single committed row — no group/multi-object machinery needed.
+  // The running dash/gap phase (pos, drawing) carries over BETWEEN segments
+  // of the same polyline so a multi-segment arc (e.g. a cone's back rim)
+  // dashes continuously instead of restarting the pattern at every segment.
+  function dashedPolylineSegments(pts, dashLen, gapLen) {
+    var segs = [];
+    var pos = 0, drawing = true;
+    for (var i = 0; i < pts.length - 1; i++) {
+      var a = pts[i], b = pts[i + 1];
+      var segLen = dist(a, b);
+      if (!segLen) continue;
+      var t = 0;
+      while (t < 1) {
+        var phaseLen = drawing ? dashLen : gapLen;
+        var travel = Math.min(phaseLen - pos, segLen * (1 - t));
+        var t2 = t + travel / segLen;
+        if (drawing) {
+          segs.push([
+            { x: a.x + (b.x - a.x) * t,  y: a.y + (b.y - a.y) * t },
+            { x: a.x + (b.x - a.x) * t2, y: a.y + (b.y - a.y) * t2 }
+          ]);
+        }
+        pos += travel;
+        t = t2;
+        if (pos >= phaseLen - 1e-6) { pos = 0; drawing = !drawing; }
+      }
+    }
+    return segs;
+  }
+
   // id -> { label, icon (24x24 glyph, toolbar button only), build(cx,cy) }.
-  // build() returns an array of subpaths (each an array of {x,y}) sized
-  // around a fixed half-extent, not the current zoom/selection — a stamped
-  // shape is a normal committed stroke afterward, moved with the "select"
-  // tool like anything else, never resized in place (this app doesn't have
-  // per-vertex handles the way js/geometry-figure-editor.js does).
+  // build() returns EITHER a plain array of subpaths (2D shapes — every
+  // edge is always visible, there's nothing for it to hide behind) OR, for
+  // the six 3D bodies, { subpaths, hidden }: subpaths are the edges drawn
+  // normally, hidden are the edges a real opaque solid would occlude from
+  // this angle, drawn dashed instead (via dashedPolylineSegments — see
+  // _insertShape). Either way, every subpath is sized around a fixed
+  // half-extent, not the current zoom/selection — a stamped shape is a
+  // normal committed stroke afterward, moved with the "select" tool like
+  // anything else, never resized in place (this app doesn't have per-vertex
+  // handles the way js/geometry-figure-editor.js does).
   // Basic-polygon and regular-polygon/rounded icons are original to this
   // toolbar; the ones shared with the geometry configurator's own shape
   // picker (cerc/patrat/paralelogram/romb/cub/piramidă/sferă/con/cilindru)
@@ -530,8 +596,8 @@
     patrat: {
       label: 'Pătrat', icon: '<rect x="4.5" y="4.5" width="15" height="15"/>',
       build: function (cx, cy) {
-        var hw = 90, hh = 70;
-        return [[{ x: cx - hw, y: cy - hh }, { x: cx + hw, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - hw, y: cy - hh }]];
+        var h = 82; // equal half-extent on both axes — was hw=90/hh=70, an actual rectangle
+        return [[{ x: cx - h, y: cy - h }, { x: cx + h, y: cy - h }, { x: cx + h, y: cy + h }, { x: cx - h, y: cy + h }, { x: cx - h, y: cy - h }]];
       }
     },
     'tri-isoscel': {
@@ -565,7 +631,13 @@
     romb: {
       label: 'Romb', icon: '<path d="M12 2 17 12 12 22 7 12Z"/>',
       build: function (cx, cy) {
-        var hw = 95, hh = 75;
+        // All 4 sides are equal length for ANY hw/hh here (a rhombus
+        // doesn't need equal diagonals — only a square does), so the old
+        // 95/75 was already technically a valid romb; it just read as
+        // squashed/flattened because the diagonals were so close in length
+        // it barely looked different from a wide oval. Taller than wide
+        // reads as a proper romb instead.
+        var hw = 70, hh = 95;
         return [[{ x: cx, y: cy - hh }, { x: cx + hw, y: cy }, { x: cx, y: cy + hh }, { x: cx - hw, y: cy }, { x: cx, y: cy - hh }]];
       }
     },
@@ -587,7 +659,7 @@
     },
     cerc: {
       label: 'Cerc', icon: '<circle cx="12" cy="12" r="8.5"/>',
-      build: function (cx, cy) { return [ellipsePts(cx, cy, 90, 75, 48)]; }
+      build: function (cx, cy) { return [ellipsePts(cx, cy, 82, 82, 48)]; } // equal radii — was 90/75, an ellipse
     },
     'patrat-rotunjit': {
       label: 'Pătrat rotunjit', icon: '<rect x="4.5" y="4.5" width="15" height="15" rx="4"/>',
@@ -602,15 +674,34 @@
         return [pts];
       }
     },
+    // ---- 3D bodies: build() returns { subpaths, hidden } — see the
+    // comment above SHAPE_DEFS. Which edges are hidden follows from the
+    // same viewing convention every one of these already used before this
+    // fix (the "back" geometry shifted up-and-right of the "front"
+    // geometry): that puts the viewer below-and-left, so the front, top and
+    // right sides of a body are visible and its back, bottom and left sides
+    // are not. An edge is hidden only where BOTH faces meeting at it are
+    // hidden — worked out per shape below, not guessed.
     cub: {
       label: 'Cub',
       icon: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/><path d="M4 20 9 15 9 5"/><path d="M9 15 19 15"/>',
       build: function (cx, cy) {
-        var hw = 80, hh = 65, dx = 55, dy = -40;
-        var minX = cx - hw, maxX = cx + hw, minY = cy - hh, maxY = cy + hh;
-        var F0 = { x: minX, y: minY - dy }, F1 = { x: maxX - dx, y: minY - dy }, F2 = { x: maxX - dx, y: maxY }, F3 = { x: minX, y: maxY };
+        // Equal-side front face (a real square — the old hw=80/hh=65 made
+        // the front face, and so the whole cube, visibly a squashed box)
+        // plus a clean angle+length depth vector instead of the old ad-hoc
+        // dx/dy, which didn't even make the front and back faces congruent.
+        var s = 72, depthLen = 92, depthAngle = -36 * Math.PI / 180;
+        var dx = Math.cos(depthAngle) * depthLen, dy = Math.sin(depthAngle) * depthLen;
+        var F0 = { x: cx - s, y: cy - s }, F1 = { x: cx + s, y: cy - s }, F2 = { x: cx + s, y: cy + s }, F3 = { x: cx - s, y: cy + s };
         var B0 = { x: F0.x + dx, y: F0.y + dy }, B1 = { x: F1.x + dx, y: F1.y + dy }, B2 = { x: F2.x + dx, y: F2.y + dy }, B3 = { x: F3.x + dx, y: F3.y + dy };
-        return [[F0, F1, F2, F3, F0], [B0, B1, B2, B3, B0], [F0, B0], [F1, B1], [F2, B2], [F3, B3]];
+        // F3 (front-bottom-left) and its mirror B3 (back-bottom-left) are
+        // the only corners bordering exclusively hidden faces (back+bottom+
+        // left) — so B3's own 3 edges are the only ones hidden; every other
+        // edge borders at least one visible face (front/top/right).
+        return {
+          subpaths: [[F0, F1, F2, F3, F0], [B0, B1], [B1, B2], [F0, B0], [F1, B1], [F2, B2]],
+          hidden: [[F3, B3], [B3, B0], [B3, B2]]
+        };
       }
     },
     'piramida-patrata': {
@@ -620,24 +711,51 @@
         var hw = 85, dx = 55, dy = 38, topY = cy - 95, botY = cy + 55;
         var p0 = { x: cx - hw, y: botY }, p1 = { x: cx + hw - dx, y: botY }, p2 = { x: cx + hw, y: botY - dy }, p3 = { x: cx - hw + dx, y: botY - dy };
         var apex = { x: (p0.x + p2.x) / 2, y: topY };
-        return [[p0, p1, p2, p3, p0], [apex, p0], [apex, p1], [apex, p2], [apex, p3]];
+        // Same reasoning as the cube: the base is always hidden (it's the
+        // side resting on the ground) and the back+left faces are hidden
+        // here too, so p3 (the base corner bordering base+back+left, all
+        // three hidden) is the one corner whose edges are all hidden.
+        return {
+          subpaths: [[p0, p1], [p1, p2], [apex, p0], [apex, p1], [apex, p2]],
+          hidden: [[p2, p3], [p3, p0], [apex, p3]]
+        };
       }
     },
     'piramida-triunghiulara': {
       label: 'Piramidă (bază triunghiulară)',
-      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 18 20"/>',
+      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 20 18"/>',
       build: function (cx, cy) {
         var hw = 85, baseY = cy + 65, backY = cy + 30, topY = cy - 95;
         var p0 = { x: cx - hw, y: baseY }, p1 = { x: cx + hw, y: baseY }, p2 = { x: cx, y: backY }, apex = { x: cx, y: topY };
-        return [[p0, p1, p2, p0], [apex, p0], [apex, p1], [apex, p2]];
+        // Only 3 lateral faces here (front/right/left, no separate "back"
+        // like the square-base shapes above) plus the always-hidden base —
+        // front and right stay visible, left is the hidden one, so only its
+        // base edge (p0-p2) is hidden; apex-p2 still borders the visible
+        // right face, so it stays solid.
+        return {
+          subpaths: [[p0, p1], [p1, p2], [apex, p0], [apex, p1], [apex, p2]],
+          hidden: [[p0, p2]]
+        };
       }
     },
+    // con/cilindru/sfera: each "circle viewed edge-on" ellipse splits into a
+    // near/visible half (larger y — nothing in front of it to block it) and
+    // a far/hidden half (smaller y — behind the body's own curved surface
+    // from this angle) — the standard textbook convention for sketching a
+    // cone/cylinder/sphere, and unlike the polyhedra above this one doesn't
+    // depend on this shape's own front/back labeling, just the ellipse's
+    // own center.
     con: {
       label: 'Con',
       icon: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M4.5 18a7.5 2 0 0 1 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
       build: function (cx, cy) {
         var rx = 85, ry = 24, apexY = cy - 95, baseY = cy + 55;
-        return [ellipsePts(cx, baseY, rx, ry, 28), [{ x: cx, y: apexY }, { x: cx - rx, y: baseY }], [{ x: cx, y: apexY }, { x: cx + rx, y: baseY }]];
+        var front = ellipseArcPts(cx, baseY, rx, ry, 0, Math.PI, 24);
+        var back  = ellipseArcPts(cx, baseY, rx, ry, Math.PI, 2 * Math.PI, 24);
+        return {
+          subpaths: [front, [{ x: cx, y: apexY }, { x: cx - rx, y: baseY }], [{ x: cx, y: apexY }, { x: cx + rx, y: baseY }]],
+          hidden: [back]
+        };
       }
     },
     cilindru: {
@@ -645,7 +763,14 @@
       icon: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 17a7.5 2 0 0 1 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>',
       build: function (cx, cy) {
         var rx = 85, ry = 22, topY = cy - 70, botY = cy + 70;
-        return [ellipsePts(cx, topY, rx, ry, 28), ellipsePts(cx, botY, rx, ry, 28), [{ x: cx - rx, y: topY }, { x: cx - rx, y: botY }], [{ x: cx + rx, y: topY }, { x: cx + rx, y: botY }]];
+        var topFront = ellipseArcPts(cx, topY, rx, ry, 0, Math.PI, 24);
+        var topBack  = ellipseArcPts(cx, topY, rx, ry, Math.PI, 2 * Math.PI, 24);
+        var botFront = ellipseArcPts(cx, botY, rx, ry, 0, Math.PI, 24);
+        var botBack  = ellipseArcPts(cx, botY, rx, ry, Math.PI, 2 * Math.PI, 24);
+        return {
+          subpaths: [topFront, botFront, [{ x: cx - rx, y: topY }, { x: cx - rx, y: botY }], [{ x: cx + rx, y: topY }, { x: cx + rx, y: botY }]],
+          hidden: [topBack, botBack]
+        };
       }
     },
     sfera: {
@@ -653,7 +778,14 @@
       icon: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6"/>',
       build: function (cx, cy) {
         var r = 85;
-        return [ellipsePts(cx, cy, r, r, 48), ellipsePts(cx, cy, r, r * 0.3, 40)];
+        // The outline circle is the sphere's silhouette — always fully
+        // visible regardless of viewing angle, unlike the equator band.
+        var eqFront = ellipseArcPts(cx, cy, r, r * 0.3, 0, Math.PI, 20);
+        var eqBack  = ellipseArcPts(cx, cy, r, r * 0.3, Math.PI, 2 * Math.PI, 20);
+        return {
+          subpaths: [ellipsePts(cx, cy, r, r, 48), eqFront],
+          hidden: [eqBack]
+        };
       }
     }
   };
@@ -690,6 +822,14 @@
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
     this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
+    // Eraser tool's own mode — 'stroke' (the original/only behavior: touch
+    // any part of a stroke, the whole thing goes) vs 'standard' (only the
+    // portion under the eraser is removed, splitting the rest into whatever
+    // remains — see _erasePartialAt). Picked from the panel a second click
+    // on the already-active eraser opens, same pattern as the width preset
+    // buttons' own custom-width panel.
+    this._eraserMode = 'stroke';
+    this._eraserSize = 24; // logical-unit diameter — 'standard' mode only, see its own toolbar slider
     // Blocked by the teacher (whiteboard_participants.locked) — see
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
@@ -731,6 +871,13 @@
     // caches each object's last-known full fabric_json so a move's UPDATE
     // can merge into it without re-fetching the row first.
     this._myObjectOffsets = new Map(); // id -> {dx, dy}
+    // id -> scale (shapes/bodies only — see the resize handle in
+    // _drawSelectionOverlay/_bindPointerEvents). Kept separate from
+    // _myObjectOffsets above rather than folded into it so every existing
+    // move-drag call site (which only ever reads/writes {dx,dy}) keeps
+    // working unchanged — only _setObjectOffset, _myTranslatedPoints and
+    // the persist/broadcast paths need to know scale exists at all.
+    this._myObjectScales  = new Map();
     this._myObjectsJson   = new Map(); // id -> fabric_json
     // "select" tool's current multi-selection (own objects only, ids into
     // the maps above) — a rubber-band drag over empty space replaces this
@@ -934,7 +1081,24 @@
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (S)') +
           toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
-          toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
+          toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E) — apasă din nou pentru tip/mărime') +
+          // Not a real .gfe-dropdown__trigger, same reasoning as
+          // #wbWidthCustomDd above — a second click on the already-active
+          // eraser button (see the toolBtnEl branch in _bindToolbar) opens
+          // this instead of a dedicated trigger of its own.
+          '<div class="gfe-dropdown wb-eraser-dd" id="wbEraserDd">' +
+            '<div class="gfe-dropdown__panel wb-eraser-panel">' +
+              '<div class="wb-eraser-modes">' +
+                '<button type="button" class="wb-eraser-mode-btn' + (this._eraserMode === 'stroke' ? ' wb-eraser-mode-btn--active' : '') + '" data-eraser-mode="stroke">Radieră completă</button>' +
+                '<button type="button" class="wb-eraser-mode-btn' + (this._eraserMode === 'standard' ? ' wb-eraser-mode-btn--active' : '') + '" data-eraser-mode="standard">Radieră parțială</button>' +
+              '</div>' +
+              '<p class="wb-eraser-hint">' + (this._eraserMode === 'standard' ? 'Șterge doar porțiunea atinsă.' : 'Șterge tot desenul atins.') + '</p>' +
+              '<div class="wb-eraser-size-row" id="wbEraserSizeRow"' + (this._eraserMode === 'standard' ? '' : ' hidden') + '>' +
+                '<label class="wb-width-panel__label" for="wbEraserSizeRange">Mărime radieră: <span id="wbEraserSizeVal">' + this._eraserSize + '</span></label>' +
+                '<input type="range" class="wb-width-range" id="wbEraserSizeRange" min="8" max="80" step="2" value="' + this._eraserSize + '">' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
@@ -1100,6 +1264,21 @@
     dd.classList.add('gfe-dropdown--open');
   };
 
+  // Same pattern as _toggleCustomWidthPanel just above, for the eraser
+  // type/size panel opened by a second click on the already-active eraser
+  // tool (see the toolBtnEl branch in _bindToolbar).
+  Whiteboard.prototype._toggleEraserPanel = function (btn) {
+    var dd = this._toolbarEl.querySelector('#wbEraserDd');
+    var wasOpen = dd.classList.contains('gfe-dropdown--open');
+    this._closeShapeDropdowns();
+    if (wasOpen) return;
+    var r = btn.getBoundingClientRect();
+    var panel = dd.querySelector('.gfe-dropdown__panel');
+    panel.style.top  = (r.bottom + 6) + 'px';
+    panel.style.left = r.left + 'px';
+    dd.classList.add('gfe-dropdown--open');
+  };
+
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
     // Custom-width slider (see _toggleCustomWidthPanel) — a plain direct
@@ -1109,6 +1288,10 @@
     this._toolbarEl.querySelector('#wbWidthCustomRange').addEventListener('input', function () {
       self._width = parseFloat(this.value);
       self._toolbarEl.querySelector('#wbWidthCustomVal').textContent = this.value;
+    });
+    this._toolbarEl.querySelector('#wbEraserSizeRange').addEventListener('input', function () {
+      self._eraserSize = parseFloat(this.value);
+      self._toolbarEl.querySelector('#wbEraserSizeVal').textContent = this.value;
     });
     this._toolbarEl.addEventListener('click', function (e) {
       var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
@@ -1132,8 +1315,9 @@
         self._closeShapeDropdowns();
         return;
       }
-      var toolBtnEl = e.target.closest('[data-tool]');
-      var widthBtn  = e.target.closest('[data-width]');
+      var toolBtnEl     = e.target.closest('[data-tool]');
+      var widthBtn      = e.target.closest('[data-width]');
+      var eraserModeBtn = e.target.closest('[data-eraser-mode]');
       var clearBtn  = e.target.closest('#wbClearMineBtn');
       var gridBtn   = e.target.closest('#wbGridBtn');
       var undoBtn   = e.target.closest('#wbUndoBtn');
@@ -1141,7 +1325,24 @@
       var zoomInBtn  = e.target.closest('#wbZoomInBtn');
       var zoomOutBtn = e.target.closest('#wbZoomOutBtn');
       if (toolBtnEl) {
-        self._setTool(toolBtnEl.dataset.tool);
+        // Same "second click on the already-active one opens its panel"
+        // pattern as the width presets below, for the eraser's type/size
+        // choice — see _toggleEraserPanel.
+        if (toolBtnEl.dataset.tool === 'eraser' && self._tool === 'eraser') {
+          self._toggleEraserPanel(toolBtnEl);
+        } else {
+          self._setTool(toolBtnEl.dataset.tool);
+          self._closeShapeDropdowns();
+        }
+      } else if (eraserModeBtn) {
+        self._eraserMode = eraserModeBtn.dataset.eraserMode;
+        self._toolbarEl.querySelectorAll('.wb-eraser-mode-btn').forEach(function (b) {
+          b.classList.toggle('wb-eraser-mode-btn--active', b === eraserModeBtn);
+        });
+        var isStandard = self._eraserMode === 'standard';
+        self._toolbarEl.querySelector('#wbEraserSizeRow').hidden = !isStandard;
+        self._toolbarEl.querySelector('.wb-eraser-hint').textContent =
+          isStandard ? 'Șterge doar porțiunea atinsă.' : 'Șterge tot desenul atins.';
       } else if (widthBtn) {
         // A second click on the ALREADY-active preset opens the custom
         // slider instead of just re-selecting the same preset — and
@@ -1666,6 +1867,25 @@
       }
 
       if (self._tool === 'select') {
+        // Checked BEFORE the normal object hit-test below — the handle
+        // sits right at a shape's own corner, inside what would otherwise
+        // also register as "clicked the shape itself" (see _findMyObjectAt),
+        // and grabbing it needs to win that overlap so resize and move
+        // stay two distinct, reliable gestures instead of a coin flip.
+        var handle = self._resizeHandlePos();
+        if (handle && dist(pos, handle) <= 12 / self._scale) {
+          var hNatural = self._objectNaturalPos.get(handle.id);
+          var hOff = self._myObjectOffsets.get(handle.id) || { dx: 0, dy: 0 };
+          var hCenter = { x: hNatural.left + hOff.dx, y: hNatural.top + hOff.dy };
+          self._activePtrs[e.pointerId] = {
+            resizing: true, objId: handle.id, center: hCenter,
+            startScale: self._myObjectScales.get(handle.id) || 1,
+            startDist: Math.max(1, dist(hCenter, pos)),
+            lastSentAt: 0, lastSentPos: null
+          };
+          el.style.cursor = 'nwse-resize';
+          return;
+        }
         var target = self._findMyObjectAt(pos);
         if (!target) {
           // Empty space (or someone else's object, which is never
@@ -1797,6 +2017,25 @@
         }
         return;
       }
+      if (st.resizing) {
+        // Scale factor = how much farther (or closer) the pointer is from
+        // the shape's own center now vs. at the start of the drag — clamped
+        // so a wild swipe can't invert the shape (crossing through 0) or
+        // blow it up past readability.
+        var newDist = Math.max(1, dist(st.center, pos));
+        var newScale = Math.max(0.15, Math.min(6, st.startScale * (newDist / st.startDist)));
+        self._setObjectScale(st.objId, newScale);
+        self._dirty = true;
+        var rnow = (global.performance || Date).now();
+        var rmoved = !st.lastSentPos || dist(st.lastSentPos, pos) >= BROADCAST_PX;
+        if (rmoved || rnow - st.lastSentAt >= BROADCAST_MS) {
+          var rOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
+          self._send('object:move', { moves: [{ id: st.objId, offsetX: rOff.dx, offsetY: rOff.dy, scale: newScale }] });
+          st.lastSentAt = rnow;
+          st.lastSentPos = pos;
+        }
+        return;
+      }
       if (st.shape) {
         // Replace the end point, never accumulate — a shape is always
         // exactly [start, current], see the pointerdown branch above.
@@ -1874,6 +2113,14 @@
         finalMoves.forEach(function (m) { self._persistObjectMove(m.id, m.offsetX, m.offsetY); });
         return;
       }
+      if (st.resizing) {
+        el.style.cursor = 'default';
+        var finalScale = self._myObjectScales.get(st.objId) || 1;
+        var fOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
+        self._send('object:move', { moves: [{ id: st.objId, offsetX: fOff.dx, offsetY: fOff.dy, scale: finalScale }] });
+        self._persistObjectScale(st.objId, finalScale);
+        return;
+      }
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
       // Deliberately NOT deleting the live-stroke entry here — the overlay
@@ -1926,6 +2173,14 @@
         });
         self._dirty = true;
         self._send('object:move', { moves: revertMoves });
+        return;
+      }
+      if (st.resizing) {
+        el.style.cursor = 'default';
+        self._setObjectScale(st.objId, st.startScale);
+        self._dirty = true;
+        var cOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
+        self._send('object:move', { moves: [{ id: st.objId, offsetX: cOff.dx, offsetY: cOff.dy, scale: st.startScale }] });
         return;
       }
       self._liveStrokes.delete('m:' + st.strokeId);
@@ -2001,8 +2256,13 @@
     // the eraser/select tolerance, which reads obj.strokeWidth, still
     // scales with the pen's picked width instead of falling back to its
     // "no strokeWidth" default.
+    // centerline is one subpath ([points]) here — a plain stroke/line is a
+    // single continuous polyline, unlike a shape/body's several genuinely
+    // separate pieces (see _insertShape's own centerline, and
+    // distToPolyline's comment on why every consumer expects this nested
+    // "array of subpaths" shape uniformly rather than some flat, some not.
     var json = isVariableWidth
-      ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: points, clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: [points], clientStrokeId: liveKey ? liveKey.slice(2) : null }
       : { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null };
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
@@ -2028,7 +2288,7 @@
         self._dirty = true;
         return;
       }
-      self._addObjectIfNew(res.data, points);
+      self._addObjectIfNew(res.data, [points]);
       // A new stroke invalidates whatever was on the redo stack — standard
       // undo/redo semantics (matches drawing-canvas.js's own _undo/_redo).
       self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
@@ -2052,22 +2312,47 @@
     if (!def) return;
     var cx = (this._viewportW / 2 - this._panX) / this._scale;
     var cy = (this._viewportH / 2 - this._panY) / this._scale;
-    var subpaths = def.build(cx, cy);
-    var path = subpaths.map(function (pts) {
+    var built = def.build(cx, cy);
+    // A 2D shape's build() is still a plain array of subpaths (no edge of a
+    // flat figure is ever hidden); a 3D body's is {subpaths, hidden} — see
+    // SHAPE_DEFS's own comment.
+    var visible = Array.isArray(built) ? built : built.subpaths;
+    var hidden  = Array.isArray(built) ? [] : built.hidden;
+    var width = this._width;
+    var path = visible.map(function (pts) {
       return pts.map(function (p, i) { return (i === 0 ? 'M ' : 'L ') + p.x + ' ' + p.y; }).join(' ');
     }).join(' ');
-    var width = this._width;
+    if (hidden.length) {
+      // Same visual dash rhythm as the dashed-line tool (width*3 on, *2.4
+      // off) for one consistent "this means dashed" language everywhere on
+      // the board — see dashedPolylineSegments for why this is baked into
+      // the path geometry instead of a strokeDashArray.
+      var dashLen = width * 3, gapLen = width * 2.4;
+      path += ' ' + hidden.map(function (pts) {
+        return dashedPolylineSegments(pts, dashLen, gapLen).map(function (seg) {
+          return 'M ' + seg[0].x + ' ' + seg[0].y + ' L ' + seg[1].x + ' ' + seg[1].y;
+        }).join(' ');
+      }).join(' ');
+    }
+    // centerline keeps the ORIGINAL (non-dashed-broken-up) subpaths for hit-
+    // testing (see _addObjectIfNew) — a hidden edge is still part of the
+    // shape you can click/erase/select, only its on-screen rendering is
+    // dashed, so hit-testing has no reason to see it any differently than a
+    // visible one.
+    var centerline = visible.concat(hidden);
     var self = this;
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
       class_id:   this._classId,
       created_by: this._userId,
       kind: 'stroke',
-      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: null, opacity: 1 }
+      // isShape marks this for the resize handle in _drawSelectionOverlay/
+      // _bindPointerEvents — freehand ink and lines never get one.
+      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: null, opacity: 1, centerline: centerline, isShape: true }
     }).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) { console.error('[Whiteboard] shape insert failed', res.error); return; }
-      self._addObjectIfNew(res.data);
+      self._addObjectIfNew(res.data, centerline);
       self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
       self._myRedoStack = [];
       self._updateUndoRedoButtons();
@@ -2095,7 +2380,14 @@
       // _setObjectOffset doesn't care about ownership, only
       // _findMyObjectAt (my own hit-testing) does.
       .on('broadcast', { event: 'object:move' }, function (msg) {
-        (msg.payload.moves || []).forEach(function (m) { self._setObjectOffset(m.id, m.offsetX, m.offsetY); });
+        // m.scale is only ever present for a resize-handle drag (see
+        // _bindPointerEvents' 'resizing' branch) — update it first so the
+        // very same _setObjectOffset call below picks up the new scale
+        // together with position, both taking effect as one transform.
+        (msg.payload.moves || []).forEach(function (m) {
+          if (m.scale != null) self._myObjectScales.set(m.id, m.scale);
+          self._setObjectOffset(m.id, m.offsetX, m.offsetY);
+        });
       })
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
@@ -2196,6 +2488,7 @@
     if (!row) return;
     var j = row.fabric_json || {};
     var dx = j.offsetX || 0, dy = j.offsetY || 0;
+    this._myObjectScales.set(row.id, j.scale || 1);
     this._setObjectOffset(row.id, dx, dy);
     if (row.created_by === this._userId) {
       this._myObjectOffsets.set(row.id, { dx: dx, dy: dy });
@@ -2260,28 +2553,42 @@
       // as sharp at 400% as at 100% — the small number of on-screen
       // strokes here never made caching earn its keep anyway.
       objectCaching: false,
-      data: { id: row.id, ownerId: row.created_by }
+      // center, not fabric's default top-left — a shape's resize handle
+      // (see _drawSelectionOverlay/_bindPointerEvents) scales it around its
+      // own middle, which needs left/top (and the scaling itself) anchored
+      // there instead of a corner to begin with. Harmless for freehand ink,
+      // which never resizes, and keeps the same one code path for both.
+      originX: 'center',
+      originY: 'center',
+      data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape }
     });
     // Natural position captured BEFORE applying any stored move offset —
     // see the field comment in the constructor and _onRemoteObjectMove/
     // _applyObjectUpdate, which both re-derive "natural + offset" the same
     // way rather than nudging relative to wherever the object happens to
-    // already be on screen.
+    // already be on screen. Now the natural CENTER (see originX/Y above),
+    // not top-left — same reason _myTranslatedPoints scales stored hit-test
+    // points around this exact point, so a resized shape's hitbox matches
+    // what's actually rendered.
     this._objectNaturalPos.set(row.id, { left: path.left, top: path.top });
-    var offsetX = j.offsetX || 0, offsetY = j.offsetY || 0;
-    if (offsetX || offsetY) {
-      path.set({ left: path.left + offsetX, top: path.top + offsetY });
+    var offsetX = j.offsetX || 0, offsetY = j.offsetY || 0, scale = j.scale || 1;
+    if (offsetX || offsetY || scale !== 1) {
+      path.set({ left: path.left + offsetX, top: path.top + offsetY, scaleX: scale, scaleY: scale });
       path.setCoords();
     }
     this._fabricCanvas.add(path);
     if (row.created_by === this._userId) {
-      // Preference order: rawPoints (my own fresh commit, still in memory)
-      // -> j.centerline (a variable-width pen stroke reloaded from
-      // history — its ORIGINAL points, saved exactly for this) ->
+      // Preference order: rawPoints (my own fresh commit, still in memory —
+      // already an array of subpaths, see _commitStroke/_insertShape) ->
+      // j.centerline (a variable-width pen stroke or a shape/body reloaded
+      // from history — its ORIGINAL subpaths, saved exactly for this) ->
       // parsePathPoints (every other reloaded stroke's only remaining
-      // record — see that function's own comment).
-      this._myPathPoints.set(row.id, rawPoints || (j.centerline && j.centerline.length ? j.centerline : parsePathPoints(j.path)));
+      // record — see that function's own comment). parsePathPoints itself
+      // still returns one flat polyline, so it's wrapped as its own single
+      // subpath to match what every consumer expects uniformly.
+      this._myPathPoints.set(row.id, rawPoints || (j.centerline && j.centerline.length ? j.centerline : [parsePathPoints(j.path)]));
       this._myObjectOffsets.set(row.id, { dx: offsetX, dy: offsetY });
+      this._myObjectScales.set(row.id, scale);
       this._myObjectsJson.set(row.id, j);
     }
   };
@@ -2292,6 +2599,7 @@
     this._myPathPoints.delete(id);
     this._objectNaturalPos.delete(id);
     this._myObjectOffsets.delete(id);
+    this._myObjectScales.delete(id);
     this._myObjectsJson.delete(id);
     if (this._selectedIds.delete(id)) this._dirty = true; // drop its now-stale highlight box too
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
@@ -2347,11 +2655,23 @@
   // tool's own hit-testing need this translated version instead, or a
   // moved object would keep responding to clicks/swipes at its OLD spot.
   Whiteboard.prototype._myTranslatedPoints = function (id) {
-    var pts = this._myPathPoints.get(id);
-    if (!pts || !pts.length) return null;
+    var subpaths = this._myPathPoints.get(id); // array of polylines — see distToPolyline's own comment
+    if (!subpaths || !subpaths.length) return null;
     var off = this._myObjectOffsets.get(id);
-    if (!off || (!off.dx && !off.dy)) return pts;
-    return pts.map(function (p) { return { x: p.x + off.dx, y: p.y + off.dy }; });
+    var dx = off ? off.dx : 0, dy = off ? off.dy : 0;
+    var scale = this._myObjectScales.get(id) || 1;
+    if (!dx && !dy && scale === 1) return subpaths;
+    // Scale around the shape's own natural center (see originX/Y:'center'
+    // in _addObjectIfNew) — the SAME point Fabric itself scales the
+    // rendered path around, so a resized shape's hitbox/halo lines up with
+    // what's actually drawn instead of scaling from some other corner.
+    var natural = this._objectNaturalPos.get(id) || { left: 0, top: 0 };
+    var cx = natural.left, cy = natural.top;
+    return subpaths.map(function (pts) {
+      return pts.map(function (p) {
+        return { x: cx + dx + (p.x - cx) * scale, y: cy + dy + (p.y - cy) * scale };
+      });
+    });
   };
 
   // Eraser tool — drag over any of MY OWN strokes to delete them one at a
@@ -2359,7 +2679,14 @@
   // DB's own owner-only delete policy: a teacher-erases-anyone tool is
   // Phase 2 (see the SQL comment in 20260904160000_whiteboard_objects.sql —
   // it needs its own RLS policy, not just a client-side change).
+  // Dispatches to whichever mode the eraser panel has picked — see
+  // this._eraserMode's own comment in the constructor.
   Whiteboard.prototype._eraseAt = function (pos) {
+    if (this._eraserMode === 'standard') this._erasePartialAt(pos);
+    else this._eraseStrokeAt(pos);
+  };
+
+  Whiteboard.prototype._eraseStrokeAt = function (pos) {
     var self = this;
     var hitIds = [];
     this._fabricCanvas.getObjects().forEach(function (obj) {
@@ -2367,13 +2694,107 @@
       if (self._erasedThisDrag.has(obj.data.id)) return;
       var pts = self._myTranslatedPoints(obj.data.id);
       if (!pts) return;
-      var tol = (obj.strokeWidth || 2) / 2 + 8; // a little slack for a fast swipe
+      var tol = (obj.strokeWidth || 2) / 2 + 5; // a little slack for a fast swipe — was +8, tightened along with _findMyObjectAt below (see its own comment)
       if (distToPolyline(pos, pts) <= tol) {
         hitIds.push(obj.data.id);
         self._erasedThisDrag.add(obj.data.id);
       }
     });
     if (hitIds.length) this._deleteObjects(hitIds);
+  };
+
+  // 'standard' eraser mode — removes only the portion of a stroke actually
+  // under the eraser instead of the whole thing. Shapes/lines/arrows
+  // (isShape) stay whole-object erase even here: "partially erasing a
+  // rectangle" isn't the natural operation partially erasing a hand-drawn
+  // line is, and splitting one would also mean re-deriving which of its
+  // edges are still hidden/visible (see SHAPE_DEFS), which isn't worth the
+  // complexity for something that was never the actual ask. Committed
+  // immediately per touch, not batched across the whole drag — a real
+  // erase gesture is short, and every other stroke here already commits
+  // this way, so it doesn't need new plumbing of its own. .slice() on the
+  // object list below matters: _splitStrokeAt removes the touched object
+  // from the live canvas mid-loop, and mutating the array forEach is
+  // actively iterating would skip whatever comes right after it.
+  Whiteboard.prototype._erasePartialAt = function (pos) {
+    var self = this;
+    var radius = this._eraserSize / 2;
+    this._fabricCanvas.getObjects().slice().forEach(function (obj) {
+      if (!obj.data || obj.data.ownerId !== self._userId || obj.data.isShape) return;
+      var subpaths = self._myTranslatedPoints(obj.data.id);
+      if (!subpaths) return;
+      var tol = radius + (obj.strokeWidth || 2) / 2;
+      if (distToPolyline(pos, subpaths) > tol) return;
+      self._splitStrokeAt(obj, pos, radius);
+    });
+  };
+
+  // Cuts obj's own polyline wherever it passes through the eraser circle
+  // (center pos, given radius, both already logical units) and replaces it
+  // with 0, 1 or 2 new strokes for whatever survives. Drops points strictly
+  // inside the circle rather than computing the exact circle-boundary
+  // crossing, so a cut end lands on the nearest surviving SAMPLED point
+  // rather than exactly on the circle's edge — close enough at the point
+  // density freehand drawing actually produces, same kind of tolerance-
+  // based (not exact) approximation the eraser/select tools' own hit-
+  // testing already makes elsewhere in this file.
+  Whiteboard.prototype._splitStrokeAt = function (obj, pos, radius) {
+    var id = obj.data.id;
+    var off = this._myObjectOffsets.get(id) || { dx: 0, dy: 0 };
+    var raw = this._myPathPoints.get(id);
+    if (!raw || !raw.length) return;
+    // Freehand pen/highlighter strokes are always exactly one subpath —
+    // isShape (excluded by the caller above) is the only case with more
+    // than one, and lines/arrows are excluded the same way.
+    var pts = raw[0].map(function (p) {
+      var q = { x: p.x + off.dx, y: p.y + off.dy };
+      if (p.w != null) q.w = p.w; // preserve the pen's per-point width (see _widthFromVelocity) through the cut
+      return q;
+    });
+    var runs = [];
+    var current = [];
+    for (var i = 0; i < pts.length; i++) {
+      if (dist(pts[i], pos) <= radius) {
+        if (current.length >= 2) runs.push(current);
+        current = [];
+      } else {
+        current.push(pts[i]);
+      }
+    }
+    if (current.length >= 2) runs.push(current);
+
+    var isVariableWidth = pts[0].w != null;
+    var color = isVariableWidth ? obj.fill : obj.stroke;
+    var width = obj.strokeWidth;
+    var opacity = obj.opacity == null ? 1 : obj.opacity;
+
+    this._deleteObjects([id]);
+    var self = this;
+    runs.forEach(function (run) { self._commitSplitRun(run, color, width, opacity, isVariableWidth); });
+  };
+
+  // Inserts one surviving run from _splitStrokeAt as its own fresh stroke —
+  // deliberately NOT pushed onto _myStrokeHistory (undo/redo), same as a
+  // whole-object erase already isn't undoable today (_deleteObjects only
+  // ever PRUNES the undo stack, never adds to it).
+  Whiteboard.prototype._commitSplitRun = function (points, color, width, opacity, isVariableWidth) {
+    var path = isVariableWidth ? variableWidthPathString(points) : smoothPathString(points);
+    var json = isVariableWidth
+      ? { path: path, fill: color, strokeWidth: width, opacity: opacity, centerline: [points] }
+      : { path: path, stroke: color, strokeWidth: width, opacity: opacity, centerline: [points] };
+    var self = this;
+    this._supabase.from('whiteboard_objects').insert({
+      session_id: this._sessionId,
+      class_id:   this._classId,
+      created_by: this._userId,
+      kind: 'stroke',
+      fabric_json: json
+    }).select().single().then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] erase-split insert failed', res.error); return; }
+      self._addObjectIfNew(res.data, [points]);
+      self._fabricCanvas.requestRenderAll();
+    });
   };
 
   // "select" tool hit-testing — same tolerance-based polyline distance
@@ -2390,7 +2811,12 @@
       if (!obj.data || obj.data.ownerId !== this._userId) continue;
       var pts = this._myTranslatedPoints(obj.data.id);
       if (!pts) continue;
-      var tol = (obj.strokeWidth || 2) / 2 + 8;
+      // Was +8 — well past the visible selection halo's own width (see
+      // _drawSelectionOverlay, drawn at strokeWidth+3), so clicking a
+      // handful of px of empty space next to a shape would grab it. +3
+      // keeps the click target close to what's actually drawn as "this is
+      // the grabbable thing" rather than a much larger invisible margin.
+      var tol = (obj.strokeWidth || 2) / 2 + 3;
       if (distToPolyline(pos, pts) <= tol) return obj;
     }
     return null;
@@ -2401,14 +2827,16 @@
   // rubber-band's own hit-testing (does this box intersect the dragged
   // rectangle?) and for drawing its highlight in _drawSelectionOverlay.
   Whiteboard.prototype._myObjectBounds = function (id) {
-    var pts = this._myTranslatedPoints(id);
-    if (!pts || !pts.length) return null;
+    var subpaths = this._myTranslatedPoints(id);
+    if (!subpaths || !subpaths.length) return null;
     var minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
-    pts.forEach(function (p) {
-      if (p.x < minX) minX = p.x;
-      if (p.x > maxX) maxX = p.x;
-      if (p.y < minY) minY = p.y;
-      if (p.y > maxY) maxY = p.y;
+    subpaths.forEach(function (pts) {
+      pts.forEach(function (p) {
+        if (p.x < minX) minX = p.x;
+        if (p.x > maxX) maxX = p.x;
+        if (p.y < minY) minY = p.y;
+        if (p.y > maxY) maxY = p.y;
+      });
     });
     return { minX: minX, minY: minY, maxX: maxX, maxY: maxY };
   };
@@ -2423,9 +2851,27 @@
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
     var natural = this._objectNaturalPos.get(objId);
     if (!obj || !natural) return;
-    obj.set({ left: natural.left + dx, top: natural.top + dy });
+    // Re-reads _myObjectScales rather than taking scale as a param — every
+    // existing move-drag call site only ever knows about {dx,dy}, and this
+    // way none of them need to change to keep whatever scale a shape
+    // already has instead of silently resetting it to 1 on the next move.
+    var scale = this._myObjectScales.get(objId) || 1;
+    obj.set({ left: natural.left + dx, top: natural.top + dy, scaleX: scale, scaleY: scale });
     obj.setCoords();
     this._fabricCanvas.requestRenderAll();
+  };
+
+  // Resize handle drag (see _drawSelectionOverlay for the handle itself and
+  // _bindPointerEvents' 'resizing' branch for the gesture) — scales around
+  // the shape's own center (originX/Y:'center', set in _addObjectIfNew),
+  // position untouched. Goes back through _setObjectOffset with whatever
+  // offset the shape already has (rather than setting scaleX/scaleY here
+  // directly) so position and scale can never end up applied independently
+  // out of sync with each other.
+  Whiteboard.prototype._setObjectScale = function (objId, scale) {
+    this._myObjectScales.set(objId, scale);
+    var off = this._myObjectOffsets.get(objId) || { dx: 0, dy: 0 };
+    this._setObjectOffset(objId, off.dx, off.dy);
   };
 
   // Persists the "select" tool's final drag position — own objects only,
@@ -2449,6 +2895,30 @@
           self._setObjectOffset(objId, prevDx, prevDy);
           self._myObjectOffsets.set(objId, { dx: prevDx, dy: prevDy });
           self._send('object:move', { moves: [{ id: objId, offsetX: prevDx, offsetY: prevDy }] });
+          return;
+        }
+        self._myObjectsJson.set(objId, newJson);
+      });
+  };
+
+  // Persists the resize handle's final scale — same shape as
+  // _persistObjectMove just above (merge into the cached fabric_json,
+  // revert optimistic state on failure), kept as its own function rather
+  // than folded into that one since a move drag and a resize drag are
+  // separate gestures in _bindPointerEvents that each end at their own time.
+  Whiteboard.prototype._persistObjectScale = function (objId, scale) {
+    var self = this;
+    var json = this._myObjectsJson.get(objId);
+    if (!json) return;
+    var newJson = Object.assign({}, json, { scale: scale });
+    this._supabase.from('whiteboard_objects').update({ fabric_json: newJson }).eq('id', objId)
+      .then(function (res) {
+        if (res.error) {
+          global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error');
+          var prevScale = json.scale || 1;
+          self._setObjectScale(objId, prevScale);
+          var off = self._myObjectOffsets.get(objId) || { dx: 0, dy: 0 };
+          self._send('object:move', { moves: [{ id: objId, offsetX: off.dx, offsetY: off.dy, scale: prevScale }] });
           return;
         }
         self._myObjectsJson.set(objId, newJson);
@@ -2592,6 +3062,25 @@
     this._drawSelectionOverlay(ctx);
   };
 
+  // Resize handle position (bottom-right corner of the object's own
+  // bounding box, in logical coords) — only when exactly one object is
+  // selected (a multi-selection only ever moves as a rigid group, same as
+  // it always has — resizing a GROUP would need to decide a shared anchor
+  // and isn't what was asked for) and that object is a stamped shape/body
+  // (isShape — see _insertShape), never freehand ink or a line. Shared
+  // between drawing the handle in _drawSelectionOverlay and hit-testing a
+  // click on it in _bindPointerEvents so the two can never disagree about
+  // where it is.
+  Whiteboard.prototype._resizeHandlePos = function () {
+    if (this._selectedIds.size !== 1) return null;
+    var id = this._selectedIds.values().next().value;
+    var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
+    if (!obj || !obj.data.isShape) return null;
+    var b = this._myObjectBounds(id);
+    if (!b) return null;
+    return { id: id, x: b.maxX, y: b.maxY };
+  };
+
   // "select" tool decorations, drawn on top of every live stroke above: a
   // highlight HUGGING each currently-selected object's own actual ink
   // (individually, idroo-style — see _findMyObjectAt's own comment for
@@ -2613,9 +3102,9 @@
     this._fabricCanvas.getObjects().forEach(function (o) { if (o.data) objsById[o.data.id] = o; });
     var boxes = [];
     this._selectedIds.forEach(function (id) {
-      var pts = self._myTranslatedPoints(id);
+      var subpaths = self._myTranslatedPoints(id);
       var obj = objsById[id];
-      if (!pts || !obj) return;
+      if (!subpaths || !obj) return;
       var b = self._myObjectBounds(id);
       if (b) boxes.push(b);
       // A translucent halo drawn ALONG the stroke's own points, just
@@ -2623,9 +3112,28 @@
       // at the edge of the exact shape (a straight line/arrow's halo is
       // just its shaft; the arrowhead barbs aren't in the cached hit-test
       // points either, a minor cosmetic gap, not a hit-testing one)
-      // rather than a thick highlighter-like glow.
-      drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
+      // rather than a thick highlighter-like glow. Each subpath drawn on
+      // its own (see distToPolyline's own comment) — a shape/body's several
+      // disconnected pieces used to get smoothed into one continuous curve
+      // here, which is exactly the wild loop/curve artifact around shapes
+      // and bodies in the selection highlight.
+      subpaths.forEach(function (pts) {
+        drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
+      });
     });
+    var handle = this._resizeHandlePos();
+    if (handle) {
+      var hs = 9 / this._scale; // ~9 device px at any zoom, same fixed-screen-size technique as hairline above
+      ctx.save();
+      ctx.fillStyle = '#fff';
+      ctx.strokeStyle = '#2563eb';
+      ctx.lineWidth = hairline * 1.3;
+      ctx.beginPath();
+      ctx.rect(handle.x - hs, handle.y - hs, hs * 2, hs * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+    }
     if (boxes.length > 1) {
       var u = boxes.reduce(function (acc, b) {
         return {
