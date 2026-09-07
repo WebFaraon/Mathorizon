@@ -19,7 +19,7 @@
 
   /* ---- Collectible-card ("rarity") redesign — opt-in per subcategory.
      See renderExercises/renderFilterBar below for what this toggles. ---- */
-  const RARITY_SUBCATS = new Set(['calcul-algebric', 'polinoame', 'geo-plana', 'geo-spatiu']);
+  const RARITY_SUBCATS = new Set(['calcul-algebric', 'polinoame', 'complexe', 'geo-plana', 'geo-spatiu']);
 
   /* ---- Fav / solved action-button icons (SVG, not font glyphs — a plain
      "☐" read as an unclear placeholder rather than "mark as solved"). ---- */
