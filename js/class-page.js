@@ -2521,7 +2521,7 @@
     return `
       <div class="catalog-wrap">
         <div class="cs-stats">
-          <div class="cs-stat">
+          <div class="cs-stat${avg ? ' cs-stat--avg' : ''}">
             <div class="cs-stat__val${avg ? ' cs-stat__val--grade' : ''}">${avg || '—'}</div>
             <div class="cs-stat__lbl">Medie generală</div>
           </div>
@@ -2574,6 +2574,12 @@
   // Cached so the post-render width fix-up (below) can rebuild the chart
   // against a wider viewBox without re-fetching/recomputing the notes.
   let _lastChartNotes = [];
+
+  // Tracks whichever chart instance is currently live, for the single
+  // delegated "tap outside closes it" listener wired once below (see
+  // _wireNotesChartTooltip) instead of once per (re)render.
+  let _notesChartTip = null;
+  let _notesChartOutsideClickWired = false;
 
   // Single-hue bar chart (one measure — grade over time — so per dataviz
   // convention no legend is needed; temă vs simulare is called out with a
@@ -2659,7 +2665,11 @@
     const scrollEl = chartWrapEl?.querySelector('.sim-chart-scroll');
     if (!chartWrapEl || !scrollEl) return;
     const contentW = Number(scrollEl.dataset.contentW || 0);
-    const containerW = chartWrapEl.clientWidth;
+    // chartWrapEl (.cs-sim-chart-wrap) is the card — clientWidth includes
+    // its own left/right padding, so subtract that to get the width
+    // actually available for the chart inside it.
+    const wrapStyle = getComputedStyle(chartWrapEl);
+    const containerW = chartWrapEl.clientWidth - parseFloat(wrapStyle.paddingLeft) - parseFloat(wrapStyle.paddingRight);
     if (containerW > contentW) {
       chartWrapEl.innerHTML = renderNotesChart(_lastChartNotes, containerW);
       _wireNotesChartTooltip(content);
@@ -2670,21 +2680,51 @@
     const wrap = content.querySelector('.sim-chart-scroll');
     const tip = content.querySelector('#simChartTooltip');
     if (!wrap || !tip) return;
+
+    const state = { pinned: null };
+    _notesChartTip = { tip, state };
+
+    const show = g => {
+      tip.innerHTML = `
+        <div class="sim-chart-tooltip__type">${BM.esc(g.dataset.type)}</div>
+        <div class="sim-chart-tooltip__title">${BM.esc(g.dataset.title)}</div>
+        <div class="sim-chart-tooltip__date">${BM.esc(g.dataset.date)}</div>
+        <div class="sim-chart-tooltip__grade">Notă: <strong>${g.dataset.grade}</strong>${g.dataset.pts ? ` · ${BM.esc(g.dataset.pts)}` : ''}</div>`;
+      tip.classList.add('visible');
+      // position:fixed is viewport-relative, so the bar's own rect is all
+      // that's needed — then clamp horizontally so the tooltip can't run
+      // off-screen for a bar near the left/right edge on a phone.
+      const rect = g.getBoundingClientRect();
+      const margin = 8;
+      const tipW = tip.offsetWidth;
+      const maxLeft = Math.max(margin, window.innerWidth - tipW - margin);
+      const left = Math.min(Math.max(rect.left + rect.width / 2 - tipW / 2, margin), maxLeft);
+      tip.style.left = left + 'px';
+      tip.style.top = rect.top + 'px';
+    };
+    const hide = () => { tip.classList.remove('visible'); state.pinned = null; };
+
     wrap.querySelectorAll('.sim-chart-bar-group').forEach(g => {
-      g.addEventListener('mouseenter', () => {
-        tip.innerHTML = `
-          <div class="sim-chart-tooltip__type">${BM.esc(g.dataset.type)}</div>
-          <div class="sim-chart-tooltip__title">${BM.esc(g.dataset.title)}</div>
-          <div class="sim-chart-tooltip__date">${BM.esc(g.dataset.date)}</div>
-          <div class="sim-chart-tooltip__grade">Notă: <strong>${g.dataset.grade}</strong>${g.dataset.pts ? ` · ${BM.esc(g.dataset.pts)}` : ''}</div>`;
-        tip.classList.add('visible');
-        const rect = g.getBoundingClientRect();
-        const wrapRect = wrap.getBoundingClientRect();
-        tip.style.left = (rect.left - wrapRect.left + wrap.scrollLeft + rect.width / 2) + 'px';
-        tip.style.top = (rect.top - wrapRect.top) + 'px';
+      g.addEventListener('mouseenter', () => { if (!state.pinned) show(g); });
+      g.addEventListener('mouseleave', () => { if (!state.pinned) hide(); });
+      // Tapping a bar pins its tooltip open (mobile has no hover); tapping
+      // it again, tapping elsewhere, or scrolling the chart closes it.
+      g.addEventListener('click', e => {
+        e.stopPropagation();
+        if (state.pinned === g) { hide(); return; }
+        state.pinned = g;
+        show(g);
       });
-      g.addEventListener('mouseleave', () => tip.classList.remove('visible'));
     });
+    wrap.addEventListener('scroll', () => { if (state.pinned) hide(); });
+
+    if (!_notesChartOutsideClickWired) {
+      _notesChartOutsideClickWired = true;
+      document.addEventListener('click', () => {
+        if (_notesChartTip?.state.pinned) _notesChartTip.tip.classList.remove('visible');
+        if (_notesChartTip) _notesChartTip.state.pinned = null;
+      });
+    }
   }
 
   /* ═══════════════════════════════════════════════════════════════

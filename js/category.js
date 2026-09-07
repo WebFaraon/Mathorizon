@@ -736,7 +736,7 @@
     const total = ex.puncteTotal || barem.reduce((s, b) => s + (Number(b.puncte_maxime) || 0), 0);
 
     const stepsHtml = barem.map((b, i) => `
-      <div class="rarity-step">
+      <div class="rarity-step" style="animation-delay:${i * 70}ms">
         <span class="rarity-step__num">${i + 1}</span>
         <div class="rarity-step__body math-content">${BM.trustedNl2br(b.descriere || '')}</div>
         <span class="rarity-step__pts">${b.puncte_maxime}p</span>
@@ -753,8 +753,14 @@
       ${BM.renderExerciseFigure(ex)}
       ${barem.length ? `
       <div class="rarity-modal__barem-title">Barem</div>
-      ${stepsHtml}
-      <div class="rarity-modal__total">Total <strong>${total}p</strong></div>` : ''}`;
+      <div class="rarity-modal__barem-gate" id="rarityBaremGate">
+        <p class="rarity-modal__barem-gate-text">Rezolvă exercițiul, apoi verifică-ți rezolvarea.</p>
+        <button type="button" class="rarity-modal__barem-btn" id="rarityBaremReveal">${icon('eye', { size: 16 })} Verifică rezolvarea</button>
+      </div>
+      <div class="rarity-modal__barem-content" id="rarityBaremContent" hidden>
+        ${stepsHtml}
+        <div class="rarity-modal__total">Total <strong>${total}p</strong></div>
+      </div>` : ''}`;
   }
 
   function buildRarityModal(ex, rarity, hasPrev, hasNext) {
@@ -812,6 +818,20 @@
     const prevBtn  = modal.querySelector('#rarityModalPrev');
     const nextBtn  = modal.querySelector('#rarityModalNext');
     const body     = modal.querySelector('.rarity-modal__body');
+
+    /* Delegated (not bound to the reveal button itself) since body.innerHTML
+       gets replaced wholesale on every prev/next nav below — a direct
+       listener would go stale the moment the student flips to the next
+       exercise. Each fresh buildRarityModalBody() render starts the new
+       exercise's barem hidden again, which is the point: solving the
+       previous card doesn't spoil the next one. */
+    body.addEventListener('click', e => {
+      if (!e.target.closest('#rarityBaremReveal')) return;
+      const gate = body.querySelector('#rarityBaremGate');
+      const content = body.querySelector('#rarityBaremContent');
+      if (gate) gate.hidden = true;
+      if (content) content.hidden = false;
+    });
 
     /* Swap the dialog's content in place for prev/next instead of closing
        and re-opening the whole modal — keeps the dialog anchored where it
