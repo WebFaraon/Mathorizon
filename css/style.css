@@ -6501,19 +6501,13 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .sim-card--bac:hover { background: linear-gradient(160deg, #244896 0%, #4a7fc5 100%); }
 
-/* Evaluare Națională (clasa a IX-a) card — purple gradient. Inert (no
-   exercises yet), so unlike --bac it deliberately has no :hover
-   background-shift — that affordance would suggest it's clickable. */
+/* Evaluare Națională (clasa a IX-a) card — purple gradient, same active/
+   clickable behavior as --bac (see selectSimType('natl') in js/bac.js). */
 .sim-card--natl {
   background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
-  cursor: default;
+  transition: background 0.35s ease;
 }
-.sim-card--natl:hover .sim-card-cta {
-  background: rgba(255,255,255,0.10);
-  border-color: rgba(255,255,255,0.22);
-  color: rgba(255,255,255,0.80);
-  transform: none;
-}
+.sim-card--natl:hover { background: linear-gradient(160deg, #46299b 0%, #7c4dd6 100%); }
 
 /* Card inner content */
 .sim-card-content {
@@ -7073,6 +7067,20 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   justify-content: center;
   position: relative;
   overflow: hidden;
+}
+/* Evaluare Națională setup page — same layout as .bac-setup-left, purple
+   accent instead of blue (matches .sim-card--natl on the choose screen). */
+.bac-setup-left--natl {
+  background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
+}
+[data-theme="dark"] .bac-setup-left--natl {
+  background: linear-gradient(160deg, #190f38 0%, #33196b 100%);
+}
+.bac-setup-left--natl .bac-title-rule {
+  background: linear-gradient(90deg, #c4b5fd, rgba(196,181,253,0));
+}
+.bac-setup-left--natl .bac-setup-title em {
+  color: #c4b5fd;
 }
 .bac-setup-deco {
   position: absolute;
@@ -14728,6 +14736,33 @@ body.wb-fullscreen-active .scroll-top-btn {
   margin-top: 9px; overflow: hidden;
 }
 .sumar-kpi-card__bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
+
+/* classes.html's "Toate grupele" banner only (not the per-class Sumar tab,
+   which keeps the plain/smaller shared look) — bigger icon badges and a
+   per-card color wash + accent edge so the four tiles read as distinct
+   stats at a glance instead of four identical grey boxes. */
+.cls-stats-panel .sumar-icon-badge { width: 50px; height: 50px; }
+.cls-stats-panel .sumar-kpi-card {
+  border: none;
+  position: relative;
+  overflow: hidden;
+  padding-left: 20px;
+  gap: 14px;
+}
+.cls-stats-panel .sumar-kpi-card::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 4px;
+}
+.cls-stats-panel .sumar-kpi-card--blue   { background: var(--accent-dim); }
+.cls-stats-panel .sumar-kpi-card--blue::before   { background: var(--accent); }
+.cls-stats-panel .sumar-kpi-card--teal   { background: var(--solved-dim); }
+.cls-stats-panel .sumar-kpi-card--teal::before   { background: var(--solved); }
+.cls-stats-panel .sumar-kpi-card--yellow { background: var(--yellow-dim); }
+.cls-stats-panel .sumar-kpi-card--yellow::before { background: var(--yellow); }
+.cls-stats-panel .sumar-kpi-card--green  { background: var(--green-dim); }
+.cls-stats-panel .sumar-kpi-card--green::before  { background: var(--green); }
 
 /* C. Cine are nevoie de atenție */
 .sumar-attention {

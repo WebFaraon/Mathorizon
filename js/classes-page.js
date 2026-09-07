@@ -155,29 +155,29 @@
       <div class="cls-stats-panel">
         <div class="cls-stats-panel__title">Toate grupele</div>
         <div class="sumar-kpibar">
-        <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('school', { size: 18 })}</span>
+        <div class="sumar-kpi-card sumar-kpi-card--blue">
+          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('school', { size: 24 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.totalGroups}</div>
             <div class="sumar-kpi-card__lbl">Grupe</div>
           </div>
         </div>
-        <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('users', { size: 18 })}</span>
+        <div class="sumar-kpi-card sumar-kpi-card--teal">
+          <span class="sumar-icon-badge sumar-icon-badge--teal">${icon('users', { size: 24 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.activeStudents}</div>
             <div class="sumar-kpi-card__lbl">Elevi activi</div>
           </div>
         </div>
-        <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('clipboard-list', { size: 18 })}</span>
+        <div class="sumar-kpi-card sumar-kpi-card--yellow">
+          <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('clipboard-list', { size: 24 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.totalLessons}</div>
             <div class="sumar-kpi-card__lbl">Lecții ținute</div>
           </div>
         </div>
-        <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 18 })}</span>
+        <div class="sumar-kpi-card sumar-kpi-card--green">
+          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 24 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.avgAttendance != null ? stats.avgAttendance + '%' : '—'}</div>
             <div class="sumar-kpi-card__lbl">Prezență medie</div>

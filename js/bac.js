@@ -391,10 +391,16 @@
     // ?new=1 from homepage → always reset to setup
     const params = new URLSearchParams(window.location.search);
     if (params.get('new') === '1') {
+      // ?type=bac skips the "BAC vs Evaluare Națională" choice screen —
+      // used by entry points that already say "Simulare BAC" specifically
+      // (capitole.html's promo card), where showing that choice again is a
+      // redundant extra click to an option (Evaluare Națională) that isn't
+      // even available yet.
+      const skipToType = params.get('type');
       sessionStorage.removeItem('bac-exam');
       sessionStorage.removeItem('bac-current');
       history.replaceState(null, '', 'bac.html');
-      showSetupView();
+      showSetupView(skipToType === 'bac' ? 'bac' : 'choose');
       return;
     }
 
@@ -436,7 +442,7 @@
     else renderResults();
   }
 
-  function showSetupView() {
+  function showSetupView(panel) {
     _slotDefs = SLOTS;
     clearInterval(_lectieTimerInterval);
     // Defensive, not just for the normal finish/new-simulation paths: the
@@ -446,19 +452,21 @@
     updateNavbarForExam(false);
     _navGuardOff();
     showView('setupView');
-    _showSetupPanel('choose');
+    _showSetupPanel(panel || 'choose');
     renderHistory();
   }
 
-  /* ---- Setup sub-panels (choose / bac / lectie) ---- */
+  /* ---- Setup sub-panels (choose / bac / natl / lectie) ---- */
   function _showSetupPanel(panel) {
     const choose  = document.getElementById('simChoose');
     const bacExp  = document.getElementById('bacSetupExpanded');
+    const natlExp = document.getElementById('natlSetupExpanded');
     const lectExp = document.getElementById('lectieSetupExpanded');
     if (!choose) return;
     choose.classList.remove('sim-fade-out');
     choose.style.display  = panel === 'choose'  ? 'flex' : 'none';
     bacExp.style.display  = panel === 'bac'     ? 'flex' : 'none';
+    natlExp.style.display = panel === 'natl'    ? 'flex' : 'none';
     lectExp.style.display = panel === 'lectie'  ? 'flex' : 'none';
   }
 
@@ -488,7 +496,7 @@
 
   window.selectSimType = function (type) {
     var choose = document.getElementById('simChoose');
-    var panelId = type === 'bac' ? 'bacSetupExpanded' : 'lectieSetupExpanded';
+    var panelId = type === 'bac' ? 'bacSetupExpanded' : type === 'natl' ? 'natlSetupExpanded' : 'lectieSetupExpanded';
     _switchPanel(choose, type, panelId, function () {
       if (type === 'bac') renderHistory();
     });
@@ -497,14 +505,19 @@
   window.backToChoose = function (e) {
     if (e) e.preventDefault();
     var bacExp  = document.getElementById('bacSetupExpanded');
+    var natlExp = document.getElementById('natlSetupExpanded');
     var lectExp = document.getElementById('lectieSetupExpanded');
     var activePanel = (bacExp && bacExp.style.display !== 'none') ? bacExp
+                     : (natlExp && natlExp.style.display !== 'none') ? natlExp
                      : (lectExp && lectExp.style.display !== 'none') ? lectExp
                      : null;
     _switchPanel(activePanel, 'choose', 'simChoose');
   };
 
-  /* ---- BAC: answer method selection (canvas vs photo upload) ---- */
+  /* ---- BAC / Evaluare Națională: answer method selection (canvas vs photo
+     upload) — shared by both setup panels (see .bac-start-btn below), since
+     only one is ever visible at a time and "how you'll answer" is the same
+     underlying preference either way. ---- */
   let _answerMethod = null;
 
   window.selectAnswerMethod = function (method) {
@@ -512,8 +525,10 @@
     document.querySelectorAll('.bac-method-btn').forEach(btn => {
       btn.classList.toggle('selected', btn.dataset.method === method);
     });
-    const startBtn = document.getElementById('bacStartBtn');
-    if (startBtn) startBtn.disabled = false;
+    // Enables whichever start button belongs to the visible panel (bac or
+    // natl) — harmless to also flip the hidden one's disabled state since
+    // it's not interactable while its panel is display:none.
+    document.querySelectorAll('.bac-start-btn').forEach(btn => { btn.disabled = false; });
   };
 
   /* ---- Lectie de Proba: grade selection & exam ---- */
