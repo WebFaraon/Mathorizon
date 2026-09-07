@@ -96,7 +96,7 @@ h1, h2, h3, h4, h5, h6,
 .bac-hist-item__grade, .bac-nav-item__pts, .bac-exam-stat__val,
 .bac-stat-chip__val, .bac-struct-num, .bac-slot-num, .bac-results__grade,
 .res-hero__grade, .res-stat__val, .res-row__score,
-.auth-pg-stat-chip__num, .prof-stat__val, .prof-hist-grade,
+.auth-pg-stat-chip__num, .prof-hist-grade,
 .admin-stat-val, .catalog-stat-card__val, .catalog-td,
 .cs-stat__val, .cs-stat__total, .class-card__grade,
 .sim-chart-tooltip__grade, .sim-qv-row__pts, .sim-tpl-row__grade,
@@ -9791,7 +9791,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
    session), so it shouldn't compete visually with the reviews card above
    it the way a full prof-header does. */
 .prof-header--profile { flex-direction: column; align-items: stretch; gap: 0; padding: 18px 28px; }
-.prof-identity-row { display: flex; align-items: center; gap: 24px; }
 .prof-divider { border-top: 1.5px solid var(--border); margin: 14px -28px; }
 .prof-section__title {
   display: flex;
@@ -9930,18 +9929,12 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 
 .prof-modal--wide { max-width: 480px; }
 
-.prof-header-info { flex: 1; min-width: 0; }
 .prof-name {
   font-size: 1.4rem;
   font-weight: 800;
   color: var(--text);
   letter-spacing: -0.3px;
   margin-bottom: 2px;
-}
-.prof-email {
-  font-size: 0.88rem;
-  color: var(--text-muted);
-  margin-bottom: 10px;
 }
 .prof-badges { display: flex; gap: 7px; flex-wrap: wrap; }
 
@@ -9976,38 +9969,6 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
   transition: all var(--transition);
 }
 .prof-logout-btn:hover { background: var(--red); color: #fff; }
-
-/* ---- Stats row ---- */
-.prof-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-bottom: 20px;
-}
-.prof-stat {
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 18px 20px;
-  text-align: center;
-  animation: card-up-in 0.32s 0.06s cubic-bezier(0.22,1,0.36,1) both;
-}
-.prof-stat__val {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: var(--accent);
-  letter-spacing: -0.5px;
-  line-height: 1.1;
-  margin-bottom: 3px;
-}
-.prof-stat__lbl {
-  font-size: 0.72rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-secondary);
-}
-.prof-stat__sub { font-size: 0.7rem; color: var(--text-muted); margin-top: 1px; }
 
 /* ---- Cards grid ---- */
 .prof-grid {
@@ -10099,40 +10060,6 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 }
 [data-theme="dark"] .prof-session-strip { background: #1c1c1c; }
 
-/* ---- Per-chapter progress breakdown (Progresul Meu card) ---- */
-.prof-progress-chapter-row {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 7px 0;
-}
-.prof-progress-chapter-name {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text);
-  min-width: 190px;
-  flex-shrink: 0;
-}
-.prof-progress-chapter-pct {
-  font-size: 0.8rem;
-  font-weight: 700;
-  color: var(--text-muted);
-  min-width: 38px;
-  text-align: right;
-  flex-shrink: 0;
-}
-.prof-progress-subhead {
-  font-size: 0.78rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-bottom: 10px;
-}
-@media (max-width: 560px) {
-  .prof-progress-chapter-name { min-width: 110px; font-size: 0.78rem; }
-}
-
 /* Buttons */
 .btn--danger-outline {
   background: transparent;
@@ -10200,10 +10127,8 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 @media (max-width: 768px) {
   .prof-header { flex-direction: column; align-items: flex-start; gap: 16px; }
   .prof-header--profile { align-items: stretch; gap: 0; }
-  .prof-identity-row { flex-direction: column; align-items: flex-start; gap: 16px; }
   .prof-divider { margin: 14px -28px; }
   .prof-logout-btn { width: 100%; justify-content: center; }
-  .prof-stats { grid-template-columns: 1fr; }
   .prof-grid  { grid-template-columns: 1fr; }
   .prof-skeleton-grid { grid-template-columns: 1fr; }
   .prof-pw-grid { grid-template-columns: 1fr; gap: 0; }
@@ -10225,17 +10150,6 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 [data-theme="dark"] .auth-pg-card { background: #1c1c1c; border-color: #333; }
 [data-theme="dark"] .prof-card { background: #1c1c1c; }
 [data-theme="dark"] .prof-header { background: #1c1c1c; }
-
-/* ---- Profile header meta row ---- */
-.prof-header-meta {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 10px;
-}
-.prof-meta-item { font-size: 0.8rem; color: var(--text-muted); font-weight: 600; }
-.prof-meta-sep  { font-size: 0.8rem; color: var(--border); }
 
 /* ---- Avatar upload overlay ---- */
 .prof-avatar-wrap {
@@ -10363,7 +10277,6 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 /* ---- Responsive updates ---- */
 @media (max-width: 768px) {
   .prof-avatar-wrap { width: 72px; height: 72px; }
-  .prof-header-meta { margin-top: 8px; }
   .prof-hist-table th,
   .prof-hist-table td { padding: 9px 12px; font-size: 0.78rem; }
 }
@@ -10399,10 +10312,7 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
    ============================================================ */
 .prof-avatar-wrap { width: 104px; height: 104px; }
 .prof-name  { font-size: 2rem; letter-spacing: -0.5px; }
-.prof-email { font-size: 1.02rem; margin-bottom: 14px; }
 .prof-badge { padding: 5px 14px; font-size: 0.82rem; }
-.prof-meta-item { font-size: 0.93rem; }
-.prof-meta-sep  { font-size: 0.93rem; }
 
 /* ---- Profile confirmation modal ---- */
 .prof-modal-overlay {

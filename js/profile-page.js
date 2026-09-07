@@ -86,77 +86,11 @@
     catch { return []; }
   }
 
-  /* ---- Edit profile modal (display name; avatar has its own hover-edit
-     affordance on the header avatar already) ---- */
-  function _showEditProfileModal({ name, sb, onSaved }) {
-    const ov = document.createElement('div');
-    ov.className = 'prof-modal-overlay';
-    ov.innerHTML = `
-      <div class="prof-modal" role="dialog" aria-modal="true">
-        <h3 class="prof-modal__title">Editează profilul</h3>
-        <form id="fEditProfile" novalidate style="text-align:left">
-          <div id="editProfileMsg" class="auth-msg" style="display:none;margin-bottom:12px"></div>
-          <div class="auth-field" style="margin-bottom:20px">
-            <label class="auth-label" for="editName">Nume afișat</label>
-            <div class="auth-input-wrap">
-              <input class="auth-input" id="editName" type="text" maxlength="60" required value="${BM.esc(name)}">
-            </div>
-          </div>
-          <p class="prof-hint-muted" style="margin-bottom:20px">Pentru a schimba poza de profil, treci cu mouse-ul peste avatar și apasă pe iconița de editare.</p>
-          <div class="prof-modal__actions">
-            <button type="button" class="btn btn--surface" data-action="cancel">Anulează</button>
-            <button type="submit" class="btn btn--primary" id="btnSaveProfile">
-              <span>Salvează</span><span class="auth-spin" style="display:none"></span>
-            </button>
-          </div>
-        </form>
-      </div>`;
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.body.appendChild(ov);
-    requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
-
-    const close = () => {
-      ov.classList.remove('prof-modal-overlay--in');
-      setTimeout(() => { ov.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }, 180);
-    };
-
-    ov.addEventListener('click', e => { if (e.target === ov) close(); });
-    ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
-    document.getElementById('editName')?.focus();
-
-    function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
-    document.addEventListener('keydown', onEsc);
-
-    ov.querySelector('#fEditProfile').addEventListener('submit', async e => {
-      e.preventDefault();
-      const msg = document.getElementById('editProfileMsg');
-      const showMsg = (txt, err) => {
-        if (!msg) return;
-        msg.textContent = txt;
-        msg.className = 'auth-msg ' + (err ? 'auth-msg--error' : 'auth-msg--success');
-        msg.style.display = '';
-      };
-      const newName = document.getElementById('editName')?.value.trim();
-      if (!newName) return showMsg('Numele nu poate fi gol.', true);
-
-      const btn = document.getElementById('btnSaveProfile');
-      if (btn) { btn.disabled = true; btn.querySelector('span:first-child').style.opacity = '0'; btn.querySelector('.auth-spin').style.display = ''; }
-
-      const { error } = await sb.auth.updateUser({ data: { full_name: newName } });
-
-      if (btn) { btn.disabled = false; btn.querySelector('span:first-child').style.opacity = ''; btn.querySelector('.auth-spin').style.display = 'none'; }
-
-      if (error) return showMsg(_roError(error.message), true);
-      onSaved(newName);
-      close();
-      BM.toast('Profilul a fost actualizat!', 'success');
-    });
-  }
-
-  /* ---- Edit profile modal — teacher variant (name, bio, country, phone,
-     social link; avatar/cover have their own hover-edit affordances) ---- */
-  function _showEditTeacherProfileModal({ name, bio, country, phone, socialUrl, sb, onSaved }) {
+  /* ---- Edit profile modal — "business card" variant (name, bio, country,
+     phone, social link; avatar/cover have their own hover-edit affordances).
+     Used by every role now — this used to be teacher-only, back when only
+     the teacher header displayed these fields. */
+  function _showEditBizcardProfileModal({ name, bio, country, phone, socialUrl, isTeacher, sb, onSaved }) {
     const ov = document.createElement('div');
     ov.className = 'prof-modal-overlay';
     ov.innerHTML = `
@@ -173,7 +107,7 @@
           <div class="auth-field" style="margin-bottom:16px">
             <label class="auth-label" for="editBio">Despre mine</label>
             <div class="auth-input-wrap">
-              <textarea class="auth-input" id="editBio" rows="3" maxlength="280" placeholder="O scurtă descriere despre tine — experiență, stil de predare...">${BM.esc(bio)}</textarea>
+              <textarea class="auth-input" id="editBio" rows="3" maxlength="280" placeholder="${isTeacher ? 'O scurtă descriere despre tine — experiență, stil de predare...' : 'O scurtă descriere despre tine...'}">${BM.esc(bio)}</textarea>
             </div>
           </div>
           <div class="prof-pw-grid" style="margin-bottom:16px">
@@ -341,10 +275,10 @@
     const status  = window.BMAuth?.status || 'active';
     const isAdmin = role === 'admin';
     const isTeacher = role === 'profesor';
-    const isStudent = role === 'elev';
 
-    /* "Business card" fields — teacher-only for now, stored the same way
-       as name/avatar (auth user_metadata) rather than a new table. */
+    /* "Business card" fields — stored the same way as name/avatar (auth
+       user_metadata) rather than a new table. Every role has these now;
+       only the rating (reviewsData below) stays teacher-specific. */
     const bio       = user.user_metadata?.bio || '';
     const country   = user.user_metadata?.country || '';
     const socialUrl = user.user_metadata?.social_url || '';
@@ -375,15 +309,6 @@
                title="${tokens} token${tokens === 1 ? '' : 'uri'}">${icon('ticket', { size: 24 })}</span>`
       ).join('') + (extra ? `<span class="prof-token-extra">+${extra}</span>` : '');
     }
-
-    /* Learning-progress data — same sources as Antrenament (js/training-stats.js)
-       and Capitole/index (js/storage.js, js/data.js), just read here instead
-       of duplicated. */
-    const levelInfo    = window.BM?.Training?.getLevelInfo ? BM.Training.getLevelInfo() : { level: 1, xpIntoLevel: 0, xpForNextLevel: 100 };
-    const totalXp      = window.BM?.Training?.getTotalXp ? BM.Training.getTotalXp() : 0;
-    const bestStreak    = window.BM?.Training?.getBestStreak ? BM.Training.getBestStreak() : 0;
-    const dailyStreak   = BM.Storage.getStreak().count;
-    const exStats       = BM.Storage.getStats(BM.EXERCISES);
 
     /* BAC history rows */
     let histContent;
@@ -459,11 +384,14 @@
       ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
     `;
 
-    /* Teacher gets a "public profile / business card" style header (cover
-       photo, big avatar overlapping it, rating, contact row, bio) instead
-       of the plain identity header — see the conversation this shipped in.
-       Everyone else keeps the original simple header. */
-    const teacherBizcardHTML = `
+    /* "Business card" header (cover photo, big avatar overlapping it,
+       contact row, bio) — used by every role now. Used to be teacher-only
+       (see the conversation this shipped in); the rating row and the
+       Recenzii card below stay teacher-only, though, since a review is
+       inherently about being taught by someone — a student or admin has no
+       equivalent to be rated on. */
+    function buildBizcardHeader({ showRating, extraActionsHTML }) {
+      return `
       <div class="prof-bizcard">
         <div class="prof-cover${coverUrl ? '' : ' prof-cover--placeholder'}"${coverUrl ? ` style="background-image:url('${coverUrl}')"` : ''}>
           <label class="prof-cover-edit" title="Schimbă imaginea de copertă">
@@ -491,15 +419,19 @@
                   <h1 class="prof-name">${BM.esc(name)}</h1>
                   <div class="prof-badges">${badgesHTML}</div>
                 </div>
-                <button class="btn btn--surface btn--sm prof-bizcard-editbtn" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+                <div class="prof-bizcard-editbtn" style="display:flex;gap:8px;flex-wrap:wrap">
+                  ${extraActionsHTML || ''}
+                  <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+                </div>
               </div>
 
+              ${showRating ? `
               <div class="prof-rating-row">
                 <span class="prof-stars">${_starsHTML(reviewsData.avg, 20)}</span>
                 ${reviewsData.count
                   ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
                   : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
-              </div>
+              </div>` : ''}
 
               <div class="prof-contact-row">
                 ${country ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--blue">${icon('map-pin', { size: 16 })}</span> ${BM.esc(country)}</span>` : ''}
@@ -513,8 +445,16 @@
             </div>
           </div>
         </div>
-      </div>
+      </div>`;
+    }
 
+    const adminPanelBtnHTML = isAdmin
+      ? `<a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">${icon('settings', { size: 16 })} Panou Admin</a>`
+      : '';
+
+    const bizcardHeaderHTML = buildBizcardHeader({ showRating: isTeacher, extraActionsHTML: adminPanelBtnHTML });
+
+    const reviewsCardHTML = `
       <div class="prof-card prof-card--wide prof-reviews-card">
         <div class="prof-card__head">
           <span class="prof-card__icon">${icon('star', { size: 16 })}</span>
@@ -536,8 +476,9 @@
               <p>Niciun elev nu a lăsat încă o recenzie.</p>
             </div>`}
         </div>
-      </div>
+      </div>`;
 
+    const teacherPasswordBlockHTML = `
       <div class="prof-header prof-header--profile">
         <div class="prof-section">
           <div class="prof-section__title">${icon('lock', { size: 16 })} Schimbă parola</div>
@@ -574,108 +515,17 @@
             Deconectare
           </button>
         </div>
-      </div>
-    `;
-
-    const defaultHeaderHTML = `
-      <div class="prof-header">
-        <div class="prof-identity-row">
-        <div class="prof-avatar-wrap">
-          <div class="prof-avatar-lg">
-            ${avatarUrl
-              ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
-              : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
-          </div>
-          <label class="prof-avatar-edit" title="Schimbă poza de profil">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-            <input type="file" id="avatarInput" accept="image/*" style="display:none">
-          </label>
-        </div>
-        <div class="prof-header-info">
-          <h1 class="prof-name">${BM.esc(name)}</h1>
-          <p class="prof-email">${BM.esc(email)}</p>
-          <div class="prof-badges">${badgesHTML}</div>
-          <div class="prof-header-meta">
-            <span class="prof-meta-item">${icon('calendar', { size: 16 })} Membru din ${memberSince}</span>
-          </div>
-          <div class="prof-header-actions" style="display:flex;gap:10px;flex-wrap:wrap;margin-top:14px">
-            <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
-            ${role === 'admin' ? `
-            <a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">
-              ${icon('settings', { size: 16 })} Panou Admin
-            </a>` : ''}
-          </div>
-        </div>
-        </div>
       </div>`;
 
     content.innerHTML = `
       ${pendingBanner}${rejectedBanner}
       <!-- PROFILE HEADER -->
-      ${isTeacher ? teacherBizcardHTML : defaultHeaderHTML}
+      ${bizcardHeaderHTML}
+      ${isTeacher ? reviewsCardHTML : ''}
+      ${isTeacher ? teacherPasswordBlockHTML : ''}
 
       <!-- CARDS GRID -->
       <div class="prof-grid">
-
-        ${isStudent ? `
-        <!-- Card: Progresul Meu -->
-        <div class="prof-card prof-card--wide">
-          <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('trending-up', { size: 16 })}</span>
-            <span class="prof-card__title">Progresul Meu</span>
-          </div>
-          <div class="prof-card__body">
-            <div class="prof-stats" style="grid-template-columns:repeat(auto-fit,minmax(120px,1fr))">
-              <div class="prof-stat">
-                <div class="prof-stat__val">${levelInfo.level}</div>
-                <div class="prof-stat__lbl">Nivel curent</div>
-                <div class="prof-stat__sub">${levelInfo.xpIntoLevel} / ${levelInfo.xpForNextLevel} XP</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val">${totalXp}</div>
-                <div class="prof-stat__lbl">XP Total</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val">${dailyStreak}</div>
-                <div class="prof-stat__lbl">Streak curent</div>
-                <div class="prof-stat__sub">zile la rând</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val">${bestStreak}</div>
-                <div class="prof-stat__lbl">Cel mai bun streak</div>
-                <div class="prof-stat__sub">Antrenament</div>
-              </div>
-              <div class="prof-stat">
-                <div class="prof-stat__val">${exStats.solvedCount}</div>
-                <div class="prof-stat__lbl">Exerciții rezolvate</div>
-                <div class="prof-stat__sub">din ${exStats.total}</div>
-              </div>
-            </div>
-
-            <div style="margin-top:22px">
-              <div class="progress-track"><div class="progress-bar" style="width:${exStats.percent}%"></div></div>
-              <div class="progress-label">
-                <span>${exStats.solvedCount} / ${exStats.total} exerciții rezolvate</span>
-                <span>${exStats.percent}%</span>
-              </div>
-            </div>
-
-            <div style="margin-top:24px">
-              <div class="prof-progress-subhead">Progres pe capitole</div>
-              ${BM.CATEGORIES.map(cat => {
-                const p = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
-                return `
-                <div class="prof-progress-chapter-row">
-                  <span class="prof-progress-chapter-name">${BM.esc(cat.name)}</span>
-                  <div class="progress-track" style="--card-color:${cat.color};margin:0;flex:1">
-                    <div class="progress-bar" style="width:${p.percent}%"></div>
-                  </div>
-                  <span class="prof-progress-chapter-pct">${p.percent}%</span>
-                </div>`;
-              }).join('')}
-            </div>
-          </div>
-        </div>` : ''}
 
         ${!isTeacher ? `
         <!-- Card: ExamTokenuri -->
@@ -946,36 +796,9 @@
     /* Edit profile — teacher gets the bigger "business card" modal (bio,
        country, phone, social link too); everyone else just edits the name. */
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {
-      if (isTeacher) {
-        _showEditTeacherProfileModal({
-          name, bio, country, phone, socialUrl, sb,
-          onSaved: freshUser => renderProfile(freshUser, sb)
-        });
-        return;
-      }
-      _showEditProfileModal({
-        name, sb,
-        onSaved: newName => {
-          name = newName;
-          const nameParts = newName.split(/\s+/).filter(Boolean);
-          const newInitials = nameParts.length >= 2
-            ? (nameParts[0][0] + nameParts[1][0]).toUpperCase()
-            : newName.slice(0, 2).toUpperCase() || '?';
-
-          const nameEl = document.querySelector('.prof-name');
-          if (nameEl) nameEl.textContent = newName;
-
-          const initialsEl = document.querySelector('.prof-avatar-initials');
-          if (initialsEl) initialsEl.textContent = newInitials;
-
-          const navNameEl = document.querySelector('.nav-profile-name');
-          if (navNameEl) navNameEl.textContent = newName;
-          const navInitialsEl = document.querySelector('.nav-profile-initials');
-          if (navInitialsEl) navInitialsEl.textContent = newInitials;
-
-          const navBtn = document.getElementById('navProfileBtn');
-          if (navBtn) navBtn.title = newName;
-        }
+      _showEditBizcardProfileModal({
+        name, bio, country, phone, socialUrl, isTeacher, sb,
+        onSaved: freshUser => renderProfile(freshUser, sb)
       });
     });
   }
