@@ -48,6 +48,26 @@
   var HIGHLIGHTER_OPACITY    = 0.28;
   var HIGHLIGHTER_WIDTH_MULT = 2.2;
 
+  // Velocity-simulated ink for the pen tool only (see _widthFromVelocity,
+  // drawVariableWidthStroke, variableWidthPathString) — slower strokes lay
+  // down thicker ink, faster ones thin out, the way a real fountain/brush
+  // pen behaves and a fixed-width line never does. The highlighter and
+  // straight-line tools deliberately keep a constant width instead (a real
+  // marker's chisel tip doesn't taper, and a ruler-straight line shouldn't
+  // wobble in thickness either).
+  // These four numbers are the whole "feel" of the pen and were tuned by
+  // eye, not measured — LOGICAL_W/H means "speed" here is in logical units
+  // per millisecond, which has no intuitive real-world scale, so if the
+  // pen feels too twitchy or too flat, retune SLOW_SPEED/FAST_SPEED (the
+  // speed range the taper happens over) and MIN/MAX_MULT (how extreme the
+  // taper gets) here rather than hunting through the drawing code.
+  var VW_MIN_MULT   = 0.55; // thinnest the pen gets, as a multiple of the picked width
+  var VW_MAX_MULT   = 1.6;  // thickest the pen gets, at a dead stop
+  var VW_SLOW_SPEED = 0.05; // logical units/ms at or below this -> MAX_MULT
+  var VW_FAST_SPEED = 1.3;  // logical units/ms at or above this -> MIN_MULT
+  var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
+  var CIRCLE_SEGS   = 10;   // join-circle polygon approximation — see variableWidthPathString
+
   // 1 = the "fit the whole board in the container" scale computed fresh in
   // _applySize every resize — MIN_ZOOM stays 1 rather than allowing zoom
   // OUT below that, since there's nothing more of the board to reveal past
@@ -211,6 +231,117 @@
     ctx.lineTo(last.x, last.y);
     ctx.stroke();
     ctx.restore();
+  }
+
+  // Target width for the point just captured, from how fast the pointer is
+  // currently moving — prevPt/pt both need a .t (ms timestamp, see
+  // _bindPointerEvents' pen branch); prevPt is null for a stroke's very
+  // first point, which has no speed yet and just starts at baseWidth.
+  // Blended toward the raw speed-implied width (VW_SMOOTHING) rather than
+  // jumping straight to it — raw per-sample speed from real pointer input
+  // is noisy enough that an unsmoothed line visibly stutters in thickness.
+  function _widthFromVelocity(baseWidth, prevPt, pt) {
+    if (!prevPt) return baseWidth;
+    var dt = Math.max(1, pt.t - prevPt.t); // ms; floored so a duplicate-timestamp sample can't divide by zero
+    var speed = dist(prevPt, pt) / dt; // logical units / ms
+    var t = (speed - VW_SLOW_SPEED) / (VW_FAST_SPEED - VW_SLOW_SPEED);
+    t = Math.max(0, Math.min(1, t));
+    var targetW = baseWidth * (VW_MAX_MULT - t * (VW_MAX_MULT - VW_MIN_MULT));
+    var prevW = prevPt.w == null ? baseWidth : prevPt.w;
+    return prevW + (targetW - prevW) * VW_SMOOTHING;
+  }
+
+  // Shared geometry for the pen's variable-width ink: each point carries
+  // its own .w (see _widthFromVelocity), so a single canvas lineWidth can't
+  // draw it — instead every segment becomes its own filled quad (one edge
+  // offset half its start point's width, the other half its end point's,
+  // perpendicular to the segment), plus a filled circle at every point to
+  // round over the seam between adjacent quads (which generally don't line
+  // up edge-to-edge once the path turns or the width changes). Filling
+  // every piece as ONE path in a single fill() call is what makes the
+  // overlaps invisible — nonzero winding just unions them — which only
+  // holds up at globalAlpha 1; this is why variable width stays pen-only
+  // (opacity 1) and never highlighter (semi-transparent, which would show
+  // every overlap as a darker blotch). Returned as data rather than drawn
+  // directly so the same math backs both the live canvas preview
+  // (drawVariableWidthStroke) and the committed SVG path
+  // (variableWidthPathString) — a stroke must look pixel-identical the
+  // instant it's finalized, same reasoning as smoothPathString/
+  // drawSmoothStroke's own split above.
+  function _strokeOutlinePieces(points) {
+    var quads = [], circles = [];
+    for (var i = 0; i < points.length - 1; i++) {
+      var p0 = points[i], p1 = points[i + 1];
+      var w0 = p0.w == null ? 2 : p0.w, w1 = p1.w == null ? 2 : p1.w;
+      var dx = p1.x - p0.x, dy = p1.y - p0.y;
+      var len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = -dy / len, ny = dx / len;
+      quads.push({
+        a: { x: p0.x + nx * w0 / 2, y: p0.y + ny * w0 / 2 },
+        b: { x: p1.x + nx * w1 / 2, y: p1.y + ny * w1 / 2 },
+        c: { x: p1.x - nx * w1 / 2, y: p1.y - ny * w1 / 2 },
+        d: { x: p0.x - nx * w0 / 2, y: p0.y - ny * w0 / 2 }
+      });
+    }
+    for (var j = 0; j < points.length; j++) {
+      circles.push({ cx: points[j].x, cy: points[j].y, r: (points[j].w == null ? 2 : points[j].w) / 2 });
+    }
+    return { quads: quads, circles: circles };
+  }
+
+  // Live preview of an in-progress (or another viewer's live) pen stroke —
+  // see drawSmoothStroke above for the fixed-width equivalent every other
+  // tool still uses.
+  function drawVariableWidthStroke(ctx, points, color) {
+    if (!points.length) return;
+    var pieces = _strokeOutlinePieces(points);
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    pieces.quads.forEach(function (q) {
+      ctx.moveTo(q.a.x, q.a.y);
+      ctx.lineTo(q.b.x, q.b.y);
+      ctx.lineTo(q.c.x, q.c.y);
+      ctx.lineTo(q.d.x, q.d.y);
+      ctx.closePath();
+    });
+    pieces.circles.forEach(function (c) {
+      ctx.moveTo(c.cx + c.r, c.cy);
+      ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2);
+    });
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // Committed counterpart of drawVariableWidthStroke — an SVG path string
+  // for the fabric.Path this stroke becomes (see _commitStroke/
+  // _addObjectIfNew), filled rather than stroked. Circles are drawn as a
+  // CIRCLE_SEGS-sided polygon (M/L/Z only) instead of arc ('A') commands —
+  // matching the "curves are many-segment straight-line approximations"
+  // convention SHAPE_DEFS's own circle/ellipse stamps already use elsewhere
+  // in this file, rather than introducing the only arc commands in the
+  // whole codebase into fabric's path parser.
+  function variableWidthPathString(points) {
+    if (!points.length) return null;
+    // _strokeOutlinePieces already degrades to "just the one join circle,
+    // no quads" for a single point — see its own quad loop — so there's no
+    // separate 1-point case to special-case here.
+    var pieces = _strokeOutlinePieces(points);
+    var d = pieces.quads.map(function (q) {
+      return 'M ' + q.a.x + ' ' + q.a.y + ' L ' + q.b.x + ' ' + q.b.y +
+             ' L ' + q.c.x + ' ' + q.c.y + ' L ' + q.d.x + ' ' + q.d.y + ' Z';
+    }).join(' ');
+    d += ' ' + pieces.circles.map(function (c) { return circlePathString(c.cx, c.cy, c.r); }).join(' ');
+    return d.trim();
+  }
+
+  function circlePathString(cx, cy, r) {
+    var d = 'M ' + (cx + r) + ' ' + cy;
+    for (var k = 1; k <= CIRCLE_SEGS; k++) {
+      var a = (k / CIRCLE_SEGS) * Math.PI * 2;
+      d += ' L ' + (cx + r * Math.cos(a)) + ' ' + (cy + r * Math.sin(a));
+    }
+    return d + ' Z';
   }
 
   // The two open-chevron "barb" endpoints of an arrowhead at p1, pointing
@@ -1501,14 +1632,20 @@
       }
 
       var isHighlighter = self._tool === 'highlighter';
+      var isPen         = self._tool === 'pen';
       var effWidth   = isHighlighter ? self._width * HIGHLIGHTER_WIDTH_MULT : self._width;
       var effOpacity = isHighlighter ? HIGHLIGHTER_OPACITY : 1;
+      // The pen's first point has no prior point to compute speed from, so
+      // it just starts at the plain picked width — .t is still stamped so
+      // the SECOND point (first pointermove) has something to measure
+      // speed against. See _widthFromVelocity.
+      var startPt = isPen ? { x: pos.x, y: pos.y, t: (global.performance || Date).now(), w: effWidth } : pos;
       var strokeId = genId();
       self._activePtrs[e.pointerId] = {
-        strokeId: strokeId, points: [pos], pending: [pos], lastSentAt: 0, lastSentPos: null,
-        width: effWidth, opacity: effOpacity
+        strokeId: strokeId, points: [startPt], pending: [startPt], lastSentAt: 0, lastSentPos: null,
+        width: effWidth, opacity: effOpacity, isPen: isPen
       };
-      self._liveStrokes.set('m:' + strokeId, { points: [pos], color: self._color, width: effWidth, opacity: effOpacity });
+      self._liveStrokes.set('m:' + strokeId, { points: [startPt], color: self._color, width: effWidth, opacity: effOpacity });
       self._dirty = true;
     });
 
@@ -1580,8 +1717,14 @@
         st.points[1] = pos;
         st.pending = st.points.slice();
       } else {
-        st.points.push(pos);
-        st.pending.push(pos);
+        var newPt = pos;
+        if (st.isPen) {
+          var prevPt = st.points[st.points.length - 1];
+          newPt = { x: pos.x, y: pos.y, t: (global.performance || Date).now() };
+          newPt.w = _widthFromVelocity(st.width, prevPt, newPt);
+        }
+        st.points.push(newPt);
+        st.pending.push(newPt);
       }
       self._liveStrokes.get('m:' + st.strokeId).points = st.points;
       self._dirty = true;
@@ -1749,20 +1892,38 @@
       if (liveKey) { this._liveStrokes.delete(liveKey); this._dirty = true; }
       return;
     }
-    var path = shape ? straightPathString(start, end, shape) : smoothPathString(points);
+    // Variable-width pen strokes are recognized the same way the live
+    // overlay does (points[0].w present) — see _redrawOverlay's own
+    // comment. Committed as a FILLED outline (variableWidthPathString)
+    // instead of a fixed-width stroked path, with the exact original
+    // points saved as "centerline" so _addObjectIfNew's eraser/select
+    // hit-testing has the real geometry to work with after a reload
+    // instead of parsePathPoints' lossy reconstruction (which only
+    // understands a plain M/Q/L stroke, not this fill's many M/L/Z
+    // subpaths) — see that fallback chain's own comment.
+    var isVariableWidth = !shape && points.length && points[0].w != null;
+    var path = shape ? straightPathString(start, end, shape)
+      : isVariableWidth ? variableWidthPathString(points) : smoothPathString(points);
     var dashArray = shape === 'dashed-line' ? [width * 3, width * 2.4] : null;
     var self = this;
     var gen  = this._clearGen; // see the field comment in the constructor
+    // clientStrokeId (both branches) round-trips back through
+    // postgres_changes so a REMOTE viewer can do the exact same "swap,
+    // don't just delete" trick for their copy of this stroke's live
+    // preview — see _connectRealtime's INSERT handler. strokeWidth stays
+    // set even on the fill branch (nothing actually strokes with it) so
+    // the eraser/select tolerance, which reads obj.strokeWidth, still
+    // scales with the pen's picked width instead of falling back to its
+    // "no strokeWidth" default.
+    var json = isVariableWidth
+      ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: points, clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      : { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null };
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
       class_id:   this._classId,
       created_by: this._userId,
       kind: 'stroke',
-      // clientStrokeId round-trips back through postgres_changes so a
-      // REMOTE viewer can do the exact same "swap, don't just delete"
-      // trick for their copy of this stroke's live preview — see
-      // _connectRealtime's INSERT handler.
-      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      fabric_json: json
     }).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) {
@@ -1985,12 +2146,15 @@
     if (!row || this._committedIds.has(row.id)) return;
     this._committedIds.add(row.id);
     var j = row.fabric_json || {};
+    // Variable-width pen strokes (see _commitStroke) are a FILLED outline,
+    // not a stroked centerline — j.fill is only ever set for those, never
+    // alongside j.stroke.
     var path = new fabric.Path(j.path, {
-      stroke: j.stroke,
+      stroke: j.fill ? null : j.stroke,
       strokeWidth: j.strokeWidth,
       strokeDashArray: j.strokeDashArray || null, // dashed-line tool only — see _commitStroke
       opacity: j.opacity == null ? 1 : j.opacity,
-      fill: null,
+      fill: j.fill || null,
       strokeLineCap: 'round',
       strokeLineJoin: 'round',
       selectable: false,
@@ -2025,7 +2189,12 @@
     }
     this._fabricCanvas.add(path);
     if (row.created_by === this._userId) {
-      this._myPathPoints.set(row.id, rawPoints || parsePathPoints(j.path));
+      // Preference order: rawPoints (my own fresh commit, still in memory)
+      // -> j.centerline (a variable-width pen stroke reloaded from
+      // history — its ORIGINAL points, saved exactly for this) ->
+      // parsePathPoints (every other reloaded stroke's only remaining
+      // record — see that function's own comment).
+      this._myPathPoints.set(row.id, rawPoints || (j.centerline && j.centerline.length ? j.centerline : parsePathPoints(j.path)));
       this._myObjectOffsets.set(row.id, { dx: offsetX, dy: offsetY });
       this._myObjectsJson.set(row.id, j);
     }
@@ -2326,7 +2495,12 @@
     var s = this._scale * this._dpr;
     ctx.setTransform(s, 0, 0, s, this._panX * this._dpr, this._panY * this._dpr);
     this._liveStrokes.forEach(function (st) {
+      // A variable-width pen stroke is recognizable by its own points
+      // carrying .w (set in _bindPointerEvents' pen branch and, for
+      // someone else's live stroke, round-tripped through the broadcast
+      // payload unchanged) — no separate flag needed on the entry itself.
       if (st.shape) drawStraightStroke(ctx, st.points[0], st.points[st.points.length - 1], st.color, st.width, st.opacity, st.shape);
+      else if (st.points.length && st.points[0].w != null) drawVariableWidthStroke(ctx, st.points, st.color);
       else drawSmoothStroke(ctx, st.points, st.color, st.width, st.opacity);
     });
     this._drawSelectionOverlay(ctx);
