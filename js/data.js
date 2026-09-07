@@ -6396,7 +6396,7 @@ BM.EXERCISES = [
     solution: 'Calculăm determinantul:\n$$D(x) = 3^{2x+8} \\cdot 9^{x+6} - 27 \\cdot 3 = 3^{2x+8} \\cdot 3^{2(x+6)} - 3^4$$\n$$= 3^{2x+8+2x+12} - 3^4 = 3^{4x+20} - 3^4$$\n\n$D(x) = 0 \\Rightarrow 3^{4x+20} = 3^4 \\Rightarrow 4x + 20 = 4 \\Rightarrow 4x = -16$\n\n$$\\boxed{x = -4}$$'
   },
   {
-    id: 'log-ee-058', categoryId: 'algebra', subcategoryId: 'ec-exp',
+    id: 'log-ee-058', categoryId: 'algebra', subcategoryId: 'inec-exp',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
     title: 'Inecuație exponențială cu exponent pătratic',

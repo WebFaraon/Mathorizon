@@ -21,8 +21,9 @@
      See renderExercises/renderFilterBar below for what this toggles. ---- */
   const RARITY_SUBCATS = new Set([
     'calcul-algebric', 'polinoame', 'complexe',
-    'inec-rationale', 'ec-irationale', 'ec-exp', 'ec-log', 'inec-log', 'trigonometrie',
-    'geo-plana', 'geo-spatiu'
+    'inec-rationale', 'ec-irationale', 'ec-exp', 'ec-log', 'inec-log', 'inec-exp', 'trigonometrie',
+    'geo-plana', 'geo-spatiu',
+    'limite', 'derivate', 'integrale', 'siruri', 'progresii'
   ]);
 
   /* ---- Fav / solved action-button icons (SVG, not font glyphs — a plain
