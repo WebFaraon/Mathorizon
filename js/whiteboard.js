@@ -307,7 +307,9 @@
     });
     pieces.circles.forEach(function (c) {
       ctx.moveTo(c.cx + c.r, c.cy);
-      ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2);
+      // anticlockwise=true: see circlePathString's own comment on why this
+      // has to wind the same direction as the quads, not canvas's default.
+      ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2, true);
     });
     ctx.fill();
     ctx.restore();
@@ -335,10 +337,22 @@
     return d.trim();
   }
 
+  // The white "eye"-shaped gaps in the first cut of this were exactly this:
+  // fill() with the default nonzero rule treats overlapping shapes as ADDING
+  // winding only when they wind the SAME rotational direction — opposite
+  // windings SUBTRACT instead, cutting a hole wherever they overlap. The
+  // quads in _strokeOutlinePieces happen to always wind counter-clockwise
+  // on screen (their corner order is a fixed a→b→c→d template applied to a
+  // perpendicular that's always "90° left of local travel", so this holds
+  // regardless of which way any given segment points); this polygon needs
+  // to match that, not cos/sin's own natural clockwise sweep (angle 0 at
+  // 3-o'clock, increasing = clockwise in screen/y-down space) — hence the
+  // negated angle below. drawVariableWidthStroke's ctx.arc has the exact
+  // same fix via its anticlockwise=true argument.
   function circlePathString(cx, cy, r) {
     var d = 'M ' + (cx + r) + ' ' + cy;
     for (var k = 1; k <= CIRCLE_SEGS; k++) {
-      var a = (k / CIRCLE_SEGS) * Math.PI * 2;
+      var a = -(k / CIRCLE_SEGS) * Math.PI * 2;
       d += ' L ' + (cx + r * Math.cos(a)) + ' ' + (cy + r * Math.sin(a));
     }
     return d + ' Z';
