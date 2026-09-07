@@ -4089,6 +4089,101 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .training-preview__stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
 .training-preview__stat-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
 
+/* ---- Antrenament: page header — icon, title, description, lifetime
+   stats, sitting above .training-panel (not inside it) so the tab reads as
+   a normal page (header, then content) rather than one bordered box with
+   everything crammed in. Deliberately borderless/transparent — the
+   .training-panel below is the only "card" on the page, so the two don't
+   compete for the same visual weight. ---- */
+.training-page-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 22px;
+  padding: 30px 6px 6px;
+}
+.training-page-header__icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: var(--accent);
+  background: var(--accent-dim);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
+}
+.training-page-header__info { flex: 1 1 260px; min-width: 0; }
+.training-page-header__title {
+  font-size: 1.55rem;
+  font-weight: 800;
+  letter-spacing: -0.6px;
+  color: var(--text);
+  margin-bottom: 5px;
+  line-height: 1.15;
+}
+.training-page-header__desc {
+  font-size: 0.86rem;
+  color: var(--text-secondary);
+  line-height: 1.55;
+  max-width: 480px;
+}
+.training-page-header__stats {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+.training-page-header__stat {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  padding: 9px 16px 9px 11px;
+  box-shadow: var(--shadow-card);
+  cursor: help;
+}
+.training-page-header__stat-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+.training-page-header__stat--gold .training-page-header__stat-icon { color: var(--icon-gamify); background: var(--icon-gamify-dim); }
+.training-page-header__stat--blue .training-page-header__stat-icon { color: var(--accent);      background: var(--accent-dim); }
+.training-page-header__stat--red  .training-page-header__stat-icon { color: var(--red);         background: var(--red-dim); }
+.training-page-header__stat-val {
+  font-size: 1.12rem;
+  font-weight: 800;
+  color: var(--text);
+  line-height: 1.1;
+  letter-spacing: -0.3px;
+}
+.training-page-header__stat-lbl {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--text-muted);
+  margin-top: 2px;
+  white-space: nowrap;
+}
+/* Hidden once a session starts — same moment the old in-panel title used to
+   disappear (.training-layout--session, toggled in js/training.js). */
+.training-layout--session .training-page-header { display: none; }
+
+@media (max-width: 900px) {
+  .training-page-header { padding: 22px 2px 2px; gap: 16px; }
+  .training-page-header__stats { width: 100%; }
+  .training-page-header__stat { flex: 1 1 auto; }
+}
+
 .training-config__title {
   font-size: 1.35rem;
   font-weight: 800;
@@ -7069,11 +7164,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   overflow: hidden;
 }
 /* Evaluare Națională setup page — same layout as .bac-setup-left, purple
-   accent instead of blue (matches .sim-card--natl on the choose screen). */
-.bac-setup-left--natl {
+   accent instead of blue (matches .sim-card--natl on the choose screen).
+   Compound selector (.bac-setup-left.bac-setup-left--natl) so this reliably
+   outranks the plain .bac-setup-left dark-mode override further down the
+   file regardless of source order — a single-class modifier selector tied
+   in specificity with that rule and lost by appearing earlier. */
+.bac-setup-left.bac-setup-left--natl {
   background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
 }
-[data-theme="dark"] .bac-setup-left--natl {
+[data-theme="dark"] .bac-setup-left.bac-setup-left--natl {
   background: linear-gradient(160deg, #190f38 0%, #33196b 100%);
 }
 .bac-setup-left--natl .bac-title-rule {

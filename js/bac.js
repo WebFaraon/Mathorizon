@@ -6,7 +6,8 @@
 (function () {
   'use strict';
 
-  const DURATION = 3 * 60 * 60; // 10800 secunde
+  const DURATION      = 3 * 60 * 60; // BAC — 10800 secunde
+  const NATL_DURATION = 2 * 60 * 60; // Evaluare Națională — 7200 secunde
 
   /* ----------------------------------------------------------------
      CONFIGURAȚIA SLOTURILOR
@@ -677,7 +678,7 @@
   /* ================================================================
      START EXAM
   ================================================================ */
-  async function doStartExam() {
+  async function doStartExam(simType) {
     // Admin/teacher-added exercises (custom_exercises table) merge into
     // BM.EXERCISES asynchronously on page load — wait for that fetch (or its
     // timeout) so every eligible bank exercise, not just the static seed, can
@@ -689,6 +690,7 @@
       startTs: Date.now(),
       endTs: null,
       phase: 'exam',
+      examType: simType === 'natl' ? 'natl' : 'bac',
       answerMethod: _answerMethod || 'canvas'
     };
     current = 0;
@@ -700,12 +702,12 @@
     _navGuardOn_fn();
   }
 
-  window.startExam = function () {
+  window.startExam = function (simType) {
     const tokens    = BM.getTokens();
     const loggedIn  = !!window.BMAuth?.user;
 
     if (window.BMAuth?.role === 'admin') {
-      doStartExam();
+      doStartExam(simType);
       return;
     }
 
@@ -745,7 +747,7 @@
       confirmClass: 'btn--primary',
       onConfirm: () => {
         if (!BM.consumeToken()) return;
-        doStartExam();
+        doStartExam(simType);
       },
       cancelLabel: 'Anulează'
     });
@@ -1156,6 +1158,16 @@
   /* ================================================================
      TIMER
   ================================================================ */
+  // BAC and Evaluare Națională share this whole exam flow (generateExam,
+  // startTimer, doFinish, renderResults) — only the allotted time differs,
+  // tracked via exam.examType ('bac' | 'natl', set in doStartExam). Lectie
+  // de Probă never reaches here — it has its own separate timer/duration.
+  function _examDurationSec() {
+    if (!exam) return DURATION;
+    if (exam.type === 'lectie') return LECTIE_DURATION;
+    return exam.examType === 'natl' ? NATL_DURATION : DURATION;
+  }
+
   function startTimer() {
     if (timerInterval) clearInterval(timerInterval);
     timerInterval = setInterval(tick, 1000);
@@ -1165,7 +1177,7 @@
   function tick() {
     if (!exam) return;
     const elapsed = Math.floor((Date.now() - exam.startTs) / 1000);
-    const remaining = Math.max(0, DURATION - elapsed);
+    const remaining = Math.max(0, _examDurationSec() - elapsed);
     updateTimerDisplay(remaining);
     if (remaining === 0) {
       clearInterval(timerInterval);
@@ -1254,7 +1266,7 @@
     // (seen as e.g. "3h 30m" for a 3h exam). An explicit "Finalizează" click
     // always happens before time is up, so Date.now() there is already ≤ the
     // cap and this min() is a no-op for that path.
-    var _examDurationForEnd = exam.type === 'lectie' ? LECTIE_DURATION : DURATION;
+    var _examDurationForEnd = _examDurationSec();
     exam.endTs = Math.min(Date.now(), exam.startTs + _examDurationForEnd * 1000);
     exam.phase = 'done';
     // Grading now comes entirely from the AI evaluation of the canvas — mark
@@ -1315,7 +1327,7 @@
     const gradeLabel = grade >= 9 ? 'Excelent!' : grade >= 7 ? 'Bine!' :
                        grade >= 5 ? 'Promovat' : 'Nepromovat';
 
-    const _examDuration = exam.type === 'lectie' ? LECTIE_DURATION : DURATION;
+    const _examDuration = _examDurationSec();
     let durationSec = exam.endTs
       ? Math.floor((exam.endTs - exam.startTs) / 1000)
       : _examDuration;
@@ -1755,7 +1767,7 @@
       const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
       const durationSec = exam.endTs
         ? Math.floor((exam.endTs - exam.startTs) / 1000)
-        : DURATION;
+        : _examDurationSec();
       const entry = {
         ts: Date.now(),
         grade: parseFloat((earned / maxPts * 10).toFixed(2)),
