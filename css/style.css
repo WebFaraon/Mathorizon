@@ -15980,6 +15980,19 @@ body.wb-fullscreen-active .scroll-top-btn {
   .csim-card__actions { margin-left: 0; }
   .csim-card__row { row-gap: 10px; }
 
+  /* Tablă live's "Istoric sesiuni" — a single lone delete button doesn't
+     get the treatment above (that's tuned for the Simulări cards' own
+     several-button, full-width-wrapping action group): margin-left:0 just
+     left it sitting wherever it happened to fall in flow — hugging the
+     date text when the row fit on one line, or wrapping to its own line
+     but still LEFT-aligned when it didn't, in both cases nowhere near the
+     "far right" a delete affordance is expected to be. Pinned to the
+     card's own top-right corner instead, entirely out of the title/date
+     flex flow, so it's always in the same spot regardless of how long the
+     title/date text is or how narrow the screen gets. */
+  .wb-history .csim-card { position: relative; padding-right: 48px; }
+  .wb-history .csim-card__actions { position: absolute; top: 14px; right: 14px; margin-left: 0; }
+
   /* Cabinet Personal's stat cards — stay one row of 3 on mobile too, just
      tighter (same treatment as .catalog-stat-card below, for the teacher's
      equivalent Catalog stat bar). */
@@ -16018,6 +16031,13 @@ body.wb-fullscreen-active .scroll-top-btn {
   .sumar-attention-row__action { margin-left: auto; }
   .sumar-roster__row--head { display: none; }
   .sumar-roster__row { grid-template-columns: 1fr; gap: 8px; padding: 12px 16px; }
+  /* .sumar-roster__status's own justify-self:center is tuned for its
+     DESKTOP 130px middle column (see that rule's own comment — a status
+     chip centered under a "Status" header) — collapsed to the single
+     stacked column above, that same centering just floats the chip in the
+     middle of the full row width with nothing to visually relate it to,
+     instead of reading as one item in a simple top-to-bottom list. */
+  .sumar-roster__status { justify-self: start; }
 
   /* Catalog's own stat bar (Elevi/Teme/Medie clasă, Elevi/Lecții/Prezență) —
      stays one row on mobile too (that's the point of a "bar"), just tighter
