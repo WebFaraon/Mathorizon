@@ -1866,14 +1866,39 @@
 
   // Pushes the current camera (this._scale/_panX/_panY) to every layer
   // that needs it: Fabric's own viewportTransform for the committed
-  // strokes (each one built with objectCaching:true in _addObjectIfNew —
-  // staying crisp through a zoom is _applyPendingZoom's job, marking
-  // every object dirty exactly once per genuine zoom change, see its own
-  // comment for why plain caching alone doesn't just work here), the
+  // strokes (each one built with objectCaching:false in _addObjectIfNew —
+  // see that flag's own comment for why a cached bitmap isn't safe to use
+  // here, so every object is always re-rendered fresh from its vector path
+  // at whatever the CURRENT transform is, zoom included, with nothing
+  // extra needed on a zoom change the way a cached object would), the
   // grid/paper background (redrawn inline, cheap — see _redrawGrid), and the
   // live-stroke overlay (marked dirty, picked up on the next animation-
   // frame tick by _redrawOverlay so it stays batched with everyone else's
   // incoming points instead of forcing an extra paint of its own).
+  // Coalesces a pan drag's own viewport pushes to at most once per animation
+  // frame — same reasoning and same pattern as _setZoom's own
+  // requestAnimationFrame batching just above (_pendingZoom/_zoomRafId),
+  // just for panning instead of zooming. A raw pointermove stream can fire
+  // well past display refresh rate (a fast mouse or a precision trackpad
+  // easily reports 120-240+ moves/sec) — every one of those used to call
+  // _syncViewport synchronously, which clears and repaints THREE full-size
+  // canvases (Fabric's own, the grid, and — via the dirty flag below — the
+  // overlay) at full device-pixel resolution, every single time. That's
+  // real, unavoidable fill-rate work regardless of how little is actually
+  // drawn on the board (confirmed live: noticeably laggy panning/zooming
+  // with all of two strokes on the whole board) — capping it to one push
+  // per frame, dropping whatever pan positions land in between before
+  // their frame comes up, removes the redundant multiple-repaints-per-
+  // frame part of that cost without changing what a single frame does.
+  Whiteboard.prototype._scheduleSyncViewport = function () {
+    if (this._panRafId) return;
+    var self = this;
+    this._panRafId = requestAnimationFrame(function () {
+      self._panRafId = null;
+      self._syncViewport();
+    });
+  };
+
   Whiteboard.prototype._syncViewport = function () {
     this._fabricCanvas.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
     // setViewportTransform only self-triggers a render when renderOnAddRemove
@@ -2043,19 +2068,11 @@
     this._panX  = anchorX - logicalX * this._scale;
     this._panY  = anchorY - logicalY * this._scale;
     this._clampCamera();
-    // With objectCaching back on (see _addObjectIfNew), each object's own
-    // cached bitmap only rebuilds when ITS dirty flag is set — Fabric's
-    // usual automatic invalidation watches canvas.getZoom(), which our
-    // custom setViewportTransform-driven zoom (see _syncViewport) never
-    // actually updates, so left alone it would never notice a zoom
-    // happened and keep reusing a bitmap rasterized for the OLD zoom,
-    // stretched (blurry) to the new one. Marking every object dirty right
-    // here — once per GENUINE zoom change (this whole function already
-    // returns early above when z hasn't actually changed), never on a
-    // plain pan frame — forces exactly one full-resolution re-render each
-    // time zoom changes, instead of one on literally every frame the way
-    // objectCaching:false used to, pan included.
-    this._fabricCanvas.getObjects().forEach(function (o) { o.dirty = true; });
+    // No per-object cache to invalidate (objectCaching:false — see
+    // _addObjectIfNew's own comment) — _syncViewport's requestRenderAll
+    // below always re-renders every object straight from its vector path
+    // at whatever this._scale just became, zoom included, with nothing
+    // extra needed here.
     this._syncViewport();
     this._updateZoomUi();
   };
@@ -2338,7 +2355,7 @@
         self._panX = st.panStartX + (e.clientX - st.startX);
         self._panY = st.panStartY + (e.clientY - st.startY);
         self._clampCamera();
-        self._syncViewport();
+        self._scheduleSyncViewport();
         return;
       }
       var pos = self._getPos(e);
@@ -3807,6 +3824,7 @@
     if (this._textEditing) this._finishTextEditor(true);
     if (this._rafId) cancelAnimationFrame(this._rafId);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
+    if (this._panRafId) cancelAnimationFrame(this._panRafId);
     clearTimeout(this._resizeTimer);
     clearTimeout(this._hintTimer);
     if (this._ro) this._ro.disconnect();
