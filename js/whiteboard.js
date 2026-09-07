@@ -926,7 +926,6 @@
   };
   var SHAPE_IDS_2D = ['patrat', 'tri-echilateral', 'tri-isoscel', 'tri-dreptunghic', 'trapez', 'paralelogram', 'romb', 'pentagon', 'hexagon', 'octagon', 'stea', 'cerc', 'patrat-rotunjit', 'semicerc'];
   var SHAPE_IDS_3D = ['cub', 'piramida-patrata', 'piramida-triunghiulara', 'con', 'cilindru', 'sfera'];
-  var CHEVRON_ICON = '<path d="M6 9.5 12 15.5 18 9.5"/>';
 
   /**
    * @param {HTMLElement} container - mounted into this element (emptied first? no — caller owns that)
@@ -1229,8 +1228,13 @@
     '</button>';
   }
 
+  // stroke-width 2, matching toolBtn's own icons exactly (not the geometry
+  // configurator's 1.7 shapeIcon24 used to borrow) — next to a full-weight
+  // line/arrow glyph in the SAME toolbar, 1.7 read as visibly thinner/
+  // smaller despite being the same pixel box, which is exactly the "these
+  // look tiny" complaint this was tuned to fix.
   function shapeIcon24(inner) {
-    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
   }
 
   // "Forme 2D" / "Corpuri 3D" — same .gfe-dropdown/.gfe-shape-btn markup and
@@ -1238,10 +1242,14 @@
   // js/geometry-figure-editor.js), reused as-is (that CSS is already
   // page-generic, not scoped to that editor) so this reads as "the same
   // shape tool, just inside the whiteboard" rather than a new one to learn.
+  // No chevron next to the glyph (gfe's own trigger has one) — two icons
+  // sharing one 38px-tall button forces both smaller than a single glyph
+  // gets to be, which is exactly what made this trigger read as noticeably
+  // punier than every plain one-icon button beside it in the toolbar.
   function shapeDropdown(triggerIconId, title, ids) {
     return '<div class="gfe-dropdown">' +
       '<button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="' + title + '" aria-haspopup="true" aria-expanded="false">' +
-        shapeIcon24(SHAPE_DEFS[triggerIconId].icon) + shapeIcon24(CHEVRON_ICON) +
+        shapeIcon24(SHAPE_DEFS[triggerIconId].icon) +
       '</button>' +
       '<div class="gfe-dropdown__panel">' +
         '<div class="dc-tool-group gfe-shape-group">' +
