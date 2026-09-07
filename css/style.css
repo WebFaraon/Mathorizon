@@ -13357,6 +13357,10 @@ body.wb-fullscreen-active .scroll-top-btn {
    card background instead of blending into it; the axis lines below get a
    bolder, fully-opaque stroke so they read as the chart's frame. */
 .sim-chart-grid { stroke: var(--catalog-line); stroke-width: 1; stroke-dasharray: 3 3; opacity: 0.6; }
+/* The 5/10 passing-threshold line (see the isThreshold check in
+   renderNotesChart) — solid instead of dashed and in --red so it reads as
+   "the floor" rather than just another neutral reference line. */
+.sim-chart-grid--threshold { stroke: var(--red); stroke-width: 1.5; stroke-dasharray: none; opacity: 0.6; }
 .sim-chart-axis { stroke: var(--text); stroke-width: 2.5; stroke-linecap: round; }
 .sim-chart-tick {
   font-size: 12px;
@@ -13364,6 +13368,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   text-anchor: end;
   font-variant-numeric: tabular-nums slashed-zero;
 }
+.sim-chart-tick--threshold { fill: var(--red); font-weight: 800; }
 .sim-chart-bar-group { cursor: pointer; }
 .sim-chart-bar { fill: var(--accent); transition: opacity var(--transition); }
 .sim-chart-bar-group:hover .sim-chart-bar { opacity: 0.8; }
@@ -14041,6 +14046,15 @@ body.wb-fullscreen-active .scroll-top-btn {
 /* ── Responsive ─────────────────────────────────────────── */
 /* ── Flux Tab ───────────────────────────────────────────── */
 .flux-feed { padding-top: 4px; min-width: 0; overflow: hidden; }
+/* Pulls the standalone notif button (see .cd-notif-btn--standalone) up
+   toward the tab bar. This has to live on .flux-feed itself rather than as
+   a negative margin on the button: .flux-feed's own overflow:hidden clips
+   anything that tries to escape past ITS padding (4px), which is far less
+   room than the button needs — a negative margin on the button was getting
+   silently sheared off there, cutting the button in half. .cd-content
+   (.flux-feed's parent) has no such clipping, so the same negative margin
+   applied one level up here collapses cleanly into its 48px top padding. */
+.flux-feed:has(> .cd-notif-btn--standalone) { margin-top: -24px; }
 
 .flux-toolbar {
   margin-bottom: 24px;
@@ -14485,10 +14499,10 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .cd-notif-btn:hover { background: color-mix(in srgb, var(--accent) 16%, transparent); border-color: var(--accent); }
 /* Standalone (Flux feed, no sidebar to sit in) — needs its own bottom
-   gap since it no longer inherits a sidebar's flex `gap`. Pulled up into
-   .cd-content's top padding so it sits closer to the tabs instead of
-   floating in a big empty gap above it. */
-.cd-notif-btn--standalone { margin-top: -24px; margin-bottom: 20px; }
+   gap since it no longer inherits a sidebar's flex `gap`. (The "move it
+   closer to the tabs" pull-up lives on .flux-feed, not here — see the
+   .flux-feed:has(...) rule above it in the stylesheet.) */
+.cd-notif-btn--standalone { margin-top: 0; margin-bottom: 20px; }
 
 /* Legacy widgets (still used by teme sidebar) */
 .cd-sidebar-widget {

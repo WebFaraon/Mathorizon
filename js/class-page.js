@@ -2600,17 +2600,24 @@
       return `<p class="cs-empty">Nicio notă primită încă.</p>`;
     }
 
-    const H = 260, padTop = 36, padBottom = 44, padLeft = 34, padRight = 20;
+    // H is taller than the bars strictly need (260 used to be enough) so
+    // plotH/10 — the gap between consecutive Y-axis ticks — has real room
+    // to breathe instead of packing all 11 labels into 18px steps.
+    const H = 340, padTop = 36, padBottom = 44, padLeft = 34, padRight = 20;
     const bandW = 52, barW = 20;
     const plotH = H - padTop - padBottom;
     const contentW = padLeft + padRight + bandW * graded.length;
     const totalW = Math.max(contentW, minTotalW || 0);
 
+    // 5/10 is Romania's minimum passing grade (nota de trecere) — the one
+    // gridline on this chart that isn't just a neutral reference line, so it
+    // gets called out (solid + red) instead of blending in with the rest.
     const gridLines = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(v => {
       const y = padTop + plotH - (v / 10) * plotH;
+      const isThreshold = v === 5;
       return `
-        <line x1="${padLeft}" y1="${y}" x2="${totalW - padRight}" y2="${y}" class="sim-chart-grid"/>
-        <text x="${padLeft - 10}" y="${y + 4}" class="sim-chart-tick">${v}</text>`;
+        <line x1="${padLeft}" y1="${y}" x2="${totalW - padRight}" y2="${y}" class="sim-chart-grid${isThreshold ? ' sim-chart-grid--threshold' : ''}"/>
+        <text x="${padLeft - 10}" y="${y + 4}" class="sim-chart-tick${isThreshold ? ' sim-chart-tick--threshold' : ''}">${v}</text>`;
     }).join('');
 
     // Baseline (0) and y-axis get their own bolder, fully-opaque stroke so
