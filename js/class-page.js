@@ -5827,11 +5827,19 @@
     const { data, error } = await BMAuth.supabase.from('culegeri')
       .select('*').eq('grade', simPicker.gradeCode).order('title');
     sel.disabled = false;
-    if (error) { sel.innerHTML = `<option value="">Eroare la încărcare</option>`; return; }
+    if (error) {
+      sel.innerHTML = `<option value="">Eroare la încărcare</option>`;
+      BM.initCustomSelects(body);
+      return;
+    }
     _simCulegereRows = data || [];
     sel.innerHTML = _simCulegereRows.length
       ? `<option value="">Alege o culegere…</option>` + _simCulegereRows.map(r => `<option value="${r.id}">${BM.esc(r.title)}</option>`).join('')
       : `<option value="">Nicio culegere pentru clasa asta încă</option>`;
+    // Options were just built from an async fetch, so the styled dropdown
+    // (.cls-form-select is display:none until replaced — see BM.makeCustomSelect)
+    // can only be built now, reading the final option list, not at initial render.
+    BM.initCustomSelects(body);
 
     sel.onchange = async () => {
       const row = _simCulegereRows.find(r => r.id === sel.value);

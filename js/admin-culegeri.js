@@ -66,9 +66,31 @@
 
     document.getElementById('clGrade').innerHTML = `<option value="" selected disabled>Alege clasa…</option>`
       + GRADES.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
+    // Same styled dropdown used everywhere else (.cls-form-select is
+    // display:none by design — this replaces it with the real widget
+    // instead of leaving it invisible or falling back to the unstyled
+    // native <select> popup).
+    BM.initCustomSelects();
     _bindUpload();
     _loadList();
   });
+
+  // BM.makeCustomSelect's visible label only updates through its own click
+  // handler — setting the underlying <select>'s .value programmatically
+  // (as after a successful upload) clears the real value but leaves the
+  // styled dropdown showing the previous class. Reset both halves by hand.
+  function _resetGradeSelect() {
+    const sel = document.getElementById('clGrade');
+    sel.value = '';
+    const wrapper = sel.previousElementSibling;
+    if (!wrapper || !wrapper.classList.contains('cls-csel')) return;
+    const display = wrapper.querySelector('.cls-csel__display');
+    if (display) {
+      display.textContent = 'Alege clasa…';
+      display.removeAttribute('data-has-value');
+    }
+    wrapper.querySelectorAll('.cls-csel__option--sel').forEach(el => el.classList.remove('cls-csel__option--sel'));
+  }
 
   function _resetDropZone() {
     document.getElementById('clDropMain').innerHTML = 'Trage fișierul PDF aici sau <u>alege din calculator</u>';
@@ -143,9 +165,9 @@
       BM.toast('Culegere adăugată.', 'success');
       selectedFile = null;
       document.getElementById('clTitle').value = '';
-      document.getElementById('clGrade').value = '';
       document.getElementById('clFileInput').value = '';
       document.getElementById('clUploadBtn').disabled = true;
+      _resetGradeSelect();
       _resetDropZone();
       _loadList();
     } catch (e) {
