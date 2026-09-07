@@ -13130,7 +13130,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   outline: 1.5px dashed var(--accent);
   outline-offset: 5px;
   background: #fff; /* the board's own paper is always white regardless of site theme — see .wb-grid-canvas's own comment — so this matches it rather than following dark mode */
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-ui);
   line-height: 1.3;
   white-space: pre-wrap;
   word-break: break-word;
@@ -16194,14 +16194,16 @@ body.wb-fullscreen-active .scroll-top-btn {
 /* Tablă live's toolbar sat noticeably taller than every other drawing
    surface's in the app while its own individual icons (inherited from the
    shared .dc-tool-btn/.dc-width-btn/.dc-action-btn base above, sized for
-   js/drawing-canvas.js's tighter row) still read as small — mostly because
-   the shape/body dropdown triggers (see the .gfe-shape-btn override much
-   further below) were the tallest thing in the row and were quietly
-   setting the whole bar's height on their own. Unifying every button here
-   onto one consistent, slightly bigger size and trimming the bar's own
-   padding fixes both at once: shorter overall, bigger icons everywhere.
-   Scoped to .wb-toolbar only — every other .dc-toolbar in the app (drawing
-   canvas, geometry figure editor) keeps its own sizing untouched. */
+   js/drawing-canvas.js's tighter row) still read as small. Bumped these up
+   too — bigger than the base, though the shape/body dropdown triggers
+   (see the .gfe-shape-btn override much further below) stayed bigger
+   still after their own back-and-forth, so they're back to being the
+   tallest thing in the row and setting the bar's own height again; this
+   at least means every OTHER button reads bigger than it used to, and the
+   trimmed padding here still shaves a couple px regardless of which
+   button ends up tallest. Scoped to .wb-toolbar only — every other
+   .dc-toolbar in the app (drawing canvas, geometry figure editor) keeps
+   its own sizing untouched. */
 .wb-toolbar { padding: 6px 10px; }
 .wb-toolbar .dc-tool-btn,
 .wb-toolbar .dc-width-btn,
@@ -16758,7 +16760,12 @@ body.dc-fullscreen-active .dc-toolbar {
     overflow-y: hidden;
     -webkit-overflow-scrolling: touch;
   }
-  .wb-board .dc-tool-group {
+  /* Direct children of the toolbar only (>) — NOT every .dc-tool-group
+     anywhere inside it, which also matches .gfe-shape-group, the shape/
+     body picker's OWN internal button grid nested inside its dropdown
+     panel (see the landscape block below, where getting this wrong is
+     what forced that grid into a single column too). */
+  .wb-board .dc-toolbar > .dc-tool-group {
     flex-shrink: 0;
   }
 }
@@ -16784,7 +16791,18 @@ body.dc-fullscreen-active .dc-toolbar {
     overflow-y: auto;
     -webkit-overflow-scrolling: touch;
   }
-  .wb-board .dc-tool-group {
+  /* Direct children of the toolbar only (>) — this was previously a bare
+     .wb-board .dc-tool-group, which ALSO matched .gfe-shape-group nested
+     several levels deep inside a dropdown panel (toolbar > tool-group >
+     .gfe-dropdown > .gfe-dropdown__panel > .gfe-shape-group), forcing the
+     shape/body picker's own internal button grid into flex-direction:column
+     too — with the panel's own height unconstrained (auto), a column with
+     flex-wrap never actually needs to wrap into a 2nd column, so it just
+     kept growing as one long list of one-shape-per-row, off the bottom of
+     the screen. That grid should stay a normal wrapped, roughly-square
+     grid regardless of which way the OUTER toolbar happens to be laid out
+     — it's a floating panel, not part of the toolbar's own inline flow. */
+  .wb-board .dc-toolbar > .dc-tool-group {
     flex-direction: column;
     flex-shrink: 0;
   }
@@ -17747,16 +17765,18 @@ body.dc-fullscreen-active .dc-toolbar {
    the geometry configurator's own toolbar had it tuned (tighter, single
    crowded row) since this override is scoped to .wb-toolbar only. The old
    34px/18px base was too small to read or tap comfortably on either
-   desktop or phone; this was first bumped all the way to 44px, then
-   brought back down to 38px (still comfortably tap-able, just no longer
-   the tallest thing in the row — see the .dc-tool-btn/.dc-width-btn/
-   .dc-action-btn overrides below) once THAT turned out to be quietly
-   setting the whole toolbar's own height, taller than anyone actually
-   asked for. */
-.wb-toolbar .gfe-shape-btn { width: 38px; height: 38px; }
-.wb-toolbar .gfe-shape-btn svg { width: 19px; height: 19px; }
-.wb-toolbar .gfe-dropdown__trigger { height: 38px; }
-.wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 19px; height: 19px; }
+   desktop or phone, so this was bumped to 44px — briefly brought back down
+   to 38px (to unify with the other toolbar buttons — see the
+   .dc-tool-btn/.dc-width-btn/.dc-action-btn overrides below — and shave a
+   bit off the whole bar's height), but that read as noticeably SMALLER
+   than everything else instead, not just "less special", so it's back to
+   44px. The toolbar's own height is set by whichever of its buttons is
+   tallest regardless (see those same overrides' own comment) — 44px here
+   is simply the bigger of the two competing asks. */
+.wb-toolbar .gfe-shape-btn { width: 44px; height: 44px; }
+.wb-toolbar .gfe-shape-btn svg { width: 23px; height: 23px; }
+.wb-toolbar .gfe-dropdown__trigger { height: 44px; }
+.wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 22px; height: 22px; }
 .wb-toolbar .gfe-dropdown__panel .gfe-shape-group { max-width: 216px; }
 
 .gfe-tick-btn {

@@ -95,16 +95,18 @@
   var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
   var CIRCLE_SEGS   = 10;   // join-circle polygon approximation — see variableWidthPathString
 
-  // Text tool (see _startTextEditor) — a fixed wrap width with only the
-  // height left to auto-grow, mirroring fabric.Textbox's own width-fixed/
-  // height-auto model exactly so nothing needs reconciling between what
-  // the live editing <textarea> showed and what gets committed. A real
-  // system font, not a webfont, so the <textarea> (HTML/DOM text layout)
-  // and the committed fabric.Textbox (canvas text layout) read the exact
-  // same font file and measure alike.
-  var TEXT_DEFAULT_WIDTH     = 360;
+  // Text tool (see _startTextEditor) — the box auto-sizes to its own
+  // content (both width and height) up to TEXT_MAX_WIDTH, past which it
+  // wraps, so a 3-word note doesn't claim a huge fixed hitbox the way an
+  // always-360-wide box used to. Same font the rest of the site's own UI
+  // uses (--font-ui in :root) rather than a generic system font, for one
+  // consistent look — it's already loaded site-wide (see class.html's own
+  // Google Fonts <link>) well before a whiteboard session ever opens, so
+  // there's no separate loading-readiness risk to worry about here.
+  var TEXT_MAX_WIDTH  = 360;
+  var TEXT_MIN_WIDTH  = 24;
   var TEXT_DEFAULT_FONT_SIZE = 32;
-  var TEXT_FONT_FAMILY = 'Arial, Helvetica, sans-serif';
+  var TEXT_FONT_FAMILY = "'Roboto', system-ui, -apple-system, sans-serif";
 
   // 1 = the "fit the whole board in the container" scale computed fresh in
   // _applySize every resize — MIN_ZOOM stays 1 rather than allowing zoom
@@ -581,6 +583,27 @@
     arc(minX + r, maxY - r, 90, 180);
     pts.push(pts[0]);
     return pts;
+  }
+
+  // Widest line of `text` at `fontSizeLogical`, in the SAME logical units
+  // as fontSizeLogical itself — canvas measureText is linear in font size,
+  // so measuring at a logical (not screen) size and reading the result
+  // back as logical units needs no further scale/zoom conversion at the
+  // call site (see _repositionTextEditor/_finishTextEditor, which each
+  // want this in a different final unit space and just multiply from
+  // here). A reused offscreen canvas — measureText needs a real 2D
+  // context but never needs to draw anything, so one canvas, made lazily
+  // once, serves every call for the lifetime of the page.
+  var _measureCtx = null;
+  function measureTextWidth(text, fontSizeLogical) {
+    if (!_measureCtx) _measureCtx = document.createElement('canvas').getContext('2d');
+    _measureCtx.font = fontSizeLogical + 'px ' + TEXT_FONT_FAMILY;
+    var max = 0;
+    (text || '').split('\n').forEach(function (line) {
+      var w = _measureCtx.measureText(line.length ? line : ' ').width;
+      if (w > max) max = w;
+    });
+    return max;
   }
 
   // Breaks a polyline (2+ points — a straight edge or a curved arc, either
@@ -1098,7 +1121,29 @@
       '</svg>';
     return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") ' + hotspotX + ' ' + hotspotY + ', ' + fallback;
   }
-  var PEN_CURSOR         = haloCursor(PEN_ICON, 3, 21, 'crosshair');
+  // Pen cursor: a GoodNotes-style circle showing the actual nib — the
+  // participant's own ink color, sized to match whatever width is
+  // currently picked in the toolbar — rather than a generic pen glyph, so
+  // hovering the board shows exactly how thick/what color the next stroke
+  // will be instead of just "this is the pen tool". Recomputed (see
+  // _updateCursor) whenever the tool becomes 'pen', the width changes, or
+  // the zoom changes — diameterPx is expected already converted to
+  // on-screen CSS px (picked width × current zoom) by the caller. A
+  // white halo ring behind for contrast on dark ink/backgrounds (same
+  // technique haloCursor above uses), a soft translucent fill so the paper/
+  // ink underneath still shows through, and a crisp full-opacity ring
+  // marking the exact boundary.
+  function penCursor(color, diameterPx) {
+    var r = Math.max(3, diameterPx / 2);
+    var pad = 3;
+    var size = r * 2 + pad * 2, c = size / 2;
+    var svg =
+      '<svg xmlns="http://www.w3.org/2000/svg" width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '">' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="' + color + '" fill-opacity="0.32" stroke="#fff" stroke-width="2.4"/>' +
+      '<circle cx="' + c + '" cy="' + c + '" r="' + r + '" fill="none" stroke="' + color + '" stroke-width="1.3"/>' +
+      '</svg>';
+    return 'url("data:image/svg+xml,' + encodeURIComponent(svg) + '") ' + c + ' ' + c + ', crosshair';
+  }
   var HIGHLIGHTER_CURSOR = haloCursor(HIGHLIGHTER_ICON, 4, 20, 'crosshair');
   var ERASER_CURSOR      = haloCursor(ERASER_ICON, 12, 20, 'cell');
   // A precision reticle for the line/dashed-line/arrow tools — these place
@@ -1277,26 +1322,35 @@
     this._toolbarEl.querySelectorAll('[data-tool]').forEach(function (b) {
       b.classList.toggle('dc-tool-btn--active', b.dataset.tool === tool);
     });
-    if (this._overlayEl) {
-      // Locked blocks every tool except pan (pure navigation, never a
-      // write — see setLocked) — that gets its usual 'grab' regardless,
-      // everything else gets 'not-allowed' instead of its normal cursor so
-      // it's obvious nothing will happen. Otherwise: pan gets the
-      // browser's own grab/grabbing (already high-contrast, no custom
-      // cursor needed), select the plain arrow (it's the one tool that
-      // ISN'T about marking the board), and every drawing tool its own
-      // glyph cursor — see haloCursor's own comment above for why each
-      // gets its own rather than one shared crosshair.
-      this._overlayEl.style.cursor =
-        (this._locked && tool !== 'pan') ? 'not-allowed' :
-        tool === 'eraser' ? ERASER_CURSOR :
-        tool === 'pan' ? 'grab' :
-        tool === 'select' ? 'default' :
-        tool === 'pen' ? PEN_CURSOR :
-        tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
-        tool === 'text' ? 'text' : // native I-beam — already exactly the right affordance, no custom glyph needed
-        CROSSHAIR_CURSOR; // line / dashed-line / arrow
-    }
+    this._updateCursor();
+  };
+
+  // Split out of _setTool so the pen's own cursor (see penCursor above) can
+  // be refreshed WITHOUT switching tools too — it depends on the current
+  // width and zoom, neither of which changing on their own goes through
+  // _setTool at all (see the width-picker's click/input handlers and
+  // _syncViewport, which all call this directly).
+  Whiteboard.prototype._updateCursor = function () {
+    if (!this._overlayEl) return;
+    var tool = this._tool;
+    // Locked blocks every tool except pan (pure navigation, never a
+    // write — see setLocked) — that gets its usual 'grab' regardless,
+    // everything else gets 'not-allowed' instead of its normal cursor so
+    // it's obvious nothing will happen. Otherwise: pan gets the
+    // browser's own grab/grabbing (already high-contrast, no custom
+    // cursor needed), select the plain arrow (it's the one tool that
+    // ISN'T about marking the board), and every drawing tool its own
+    // glyph cursor — see haloCursor's own comment above for why each
+    // gets its own rather than one shared crosshair.
+    this._overlayEl.style.cursor =
+      (this._locked && tool !== 'pan') ? 'not-allowed' :
+      tool === 'eraser' ? ERASER_CURSOR :
+      tool === 'pan' ? 'grab' :
+      tool === 'select' ? 'default' :
+      tool === 'pen' ? penCursor(this._color, Math.max(6, this._width * this._scale)) :
+      tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
+      tool === 'text' ? 'text' : // native I-beam — already exactly the right affordance, no custom glyph needed
+      CROSSHAIR_CURSOR; // line / dashed-line / arrow
   };
 
   // Same open/position/close dance as js/geometry-figure-editor.js's own
@@ -1367,6 +1421,7 @@
     this._toolbarEl.querySelector('#wbWidthCustomRange').addEventListener('input', function () {
       self._width = parseFloat(this.value);
       self._toolbarEl.querySelector('#wbWidthCustomVal').textContent = this.value;
+      self._updateCursor(); // the pen cursor's own size tracks the picked width live — see penCursor
     });
     this._toolbarEl.addEventListener('click', function (e) {
       var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
@@ -1412,6 +1467,7 @@
             b.classList.toggle('dc-width-btn--active', b === widthBtn);
           });
           self._closeShapeDropdowns();
+          self._updateCursor(); // the pen cursor's own size tracks the picked width live — see penCursor
         }
       } else if (clearBtn) {
         self._clearMine();
@@ -1653,6 +1709,18 @@
     this._fabricCanvas.requestRenderAll();
     this._redrawGrid();
     this._dirty = true;
+    // Keeps the text tool's live editing <textarea> (a plain position:fixed
+    // DOM element, with no idea on its own that the board underneath just
+    // panned/zoomed) visually anchored to its actual spot on the BOARD
+    // rather than frozen at whatever screen pixel it first appeared at.
+    // A no-op call when nothing's being edited (see its own guard).
+    if (this._textEditing) this._repositionTextEditor();
+    // The pen cursor's own on-screen size (see penCursor) is the picked
+    // width AT THE CURRENT ZOOM — keeps it an accurate preview of the
+    // actual stroke size through a zoom change too, not just on tool
+    // switch/width change. Cheap even when the tool isn't pen (every other
+    // branch is a plain string, no SVG work).
+    this._updateCursor();
   };
 
   // Keeps the board from being panned/zoomed away into empty space with
@@ -2450,44 +2518,72 @@
     });
   };
 
+  // The box's own width, both live while editing and at commit time —
+  // auto-sized to the widest actual line (so 3 letters get a 3-letter-wide
+  // hitbox, not always the full wrap width) up to TEXT_MAX_WIDTH, past
+  // which it wraps like any other <textarea>/fabric.Textbox. TEXT_WIDTH_PAD
+  // is just breathing room for the caret at the end of the widest line
+  // (measureText alone would put it flush against the edge).
+  var TEXT_WIDTH_PAD = 10;
+  Whiteboard.prototype._clampTextWidth = function (text, fontSizeLogical) {
+    return Math.min(Math.max(measureTextWidth(text, fontSizeLogical) + TEXT_WIDTH_PAD, TEXT_MIN_WIDTH), TEXT_MAX_WIDTH);
+  };
+
+  // Re-lays-out the live editing <textarea> from this._textEditing's fixed
+  // LOGICAL anchor/font-size/scale plus whatever's actually typed —
+  // called once from _startTextEditor, again on every keystroke (an
+  // 'input' listener there), and again from _syncViewport on every pan/
+  // zoom change. That last one is what keeps the box visually anchored to
+  // its actual spot on the BOARD through a zoom/pan instead of sitting
+  // frozen at whatever screen pixel it first appeared at — a plain
+  // position:fixed element has no idea the board underneath just moved.
+  Whiteboard.prototype._repositionTextEditor = function () {
+    var editing = this._textEditing;
+    if (!editing) return;
+    var ta = editing.ta;
+    var w = this._clampTextWidth(ta.value, editing.fontSize);
+    var wrapRect = this._canvasWrap.getBoundingClientRect();
+    ta.style.left = (wrapRect.left + this._panX + editing.topLeft.x * this._scale) + 'px';
+    ta.style.top  = (wrapRect.top  + this._panY + editing.topLeft.y * this._scale) + 'px';
+    ta.style.width = (w * editing.scale * this._scale) + 'px';
+    ta.style.fontSize = (editing.fontSize * editing.scale * this._scale) + 'px';
+    ta.style.height = 'auto';
+    ta.style.height = ta.scrollHeight + 'px';
+  };
+
   // Text tool (see the 'text' branch in _bindPointerEvents' pointerdown,
   // and the dblclick listener at the end of that same function for
   // re-editing an existing one) — opens a real HTML <textarea> positioned
   // exactly over the logical spot, so typing/IME/spellcheck/copy-paste all
   // just work the way they do everywhere else on the page; a canvas has no
-  // native text input of its own. A fixed wrap width with only the height
-  // left to auto-grow mirrors fabric.Textbox's own width-fixed/height-auto
-  // model exactly (see _addObjectIfNew), so there's no reflow logic to
-  // reconcile between "what the textarea showed" and "what gets committed".
-  // pos is the click point for a NEW text (existingObj null); for
-  // re-editing, existingObj's own current position/size/content are used
-  // instead and pos is ignored (pass null).
+  // native text input of its own. pos is the click point for a NEW text
+  // (existingObj null); for re-editing, existingObj's own current
+  // position/size/content are used instead and pos is ignored (pass null).
   Whiteboard.prototype._startTextEditor = function (pos, existingObj) {
     if (this._textEditing) this._finishTextEditor(false); // finish whatever was already open first
     var self = this;
-    var fontSize = TEXT_DEFAULT_FONT_SIZE, color = this._color, scale = 1, width = TEXT_DEFAULT_WIDTH;
-    var initialText = '', oldHeight = fontSize * 1.3, topLeft;
+    var fontSize = TEXT_DEFAULT_FONT_SIZE, color = this._color, scale = 1;
+    var initialText = '', topLeft;
     if (existingObj) {
       var j = this._myObjectsJson.get(existingObj.data.id) || {};
       fontSize = j.fontSize || fontSize;
       color = j.color || color;
-      width = j.textWidth || width;
-      oldHeight = j.textHeight || oldHeight;
       scale = this._myObjectScales.get(existingObj.data.id) || 1;
       initialText = j.text || '';
       var natural = this._objectNaturalPos.get(existingObj.data.id);
       var off = this._myObjectOffsets.get(existingObj.data.id) || { dx: 0, dy: 0 };
       var center = { x: natural.left + off.dx, y: natural.top + off.dy };
+      var oldWidth = j.textWidth || TEXT_MIN_WIDTH, oldHeight = j.textHeight || fontSize * 1.3;
       // Top-left, not center — this is the anchor editing visually holds
-      // fixed while the box's height changes with the line count (see
+      // fixed while the box's width/height changes with the content (see
       // _persistTextEdit, which re-derives the same anchor the same way).
-      topLeft = { x: center.x - (width * scale) / 2, y: center.y - (oldHeight * scale) / 2 };
+      topLeft = { x: center.x - (oldWidth * scale) / 2, y: center.y - (oldHeight * scale) / 2 };
       existingObj.visible = false;
       // Drop the selection halo/resize handle too, not just the rendered
       // text — both are computed from the OLD bounds (see
       // _myObjectBounds/_resizeHandlePos) that won't update until this
       // commits, so leaving them showing would visibly mismatch the live
-      // textarea the instant its height changes from the original.
+      // textarea the instant its size changes from the original.
       this._selectedIds = new Set();
       this._dirty = true;
       this._fabricCanvas.requestRenderAll();
@@ -2502,18 +2598,13 @@
     ta.style.color = color;
     this._canvasWrap.appendChild(ta);
 
-    var wrapRect = this._canvasWrap.getBoundingClientRect();
-    ta.style.left = (wrapRect.left + self._panX + topLeft.x * self._scale) + 'px';
-    ta.style.top  = (wrapRect.top  + self._panY + topLeft.y * self._scale) + 'px';
-    ta.style.width = (width * scale * self._scale) + 'px';
-    ta.style.fontSize = (fontSize * scale * self._scale) + 'px';
-
-    function autosize() {
-      ta.style.height = 'auto';
-      ta.style.height = ta.scrollHeight + 'px';
-    }
-    autosize();
-    ta.addEventListener('input', autosize);
+    this._textEditing = {
+      ta: ta, existingObj: existingObj || null, initialText: initialText,
+      topLeft: topLeft, fontSize: fontSize, scale: scale,
+      onDocPointerDown: null // filled in just below, needs `editing` to already exist for the closure
+    };
+    this._repositionTextEditor();
+    ta.addEventListener('input', function () { self._repositionTextEditor(); });
     ta.addEventListener('blur', function () { self._finishTextEditor(false); });
     ta.addEventListener('keydown', function (e) {
       // Enter is left alone — a real newline, same as any other <textarea>
@@ -2533,15 +2624,10 @@
       if (e.target !== ta) self._finishTextEditor(false);
     }
     document.addEventListener('pointerdown', onDocPointerDown, true);
+    this._textEditing.onDocPointerDown = onDocPointerDown;
 
     ta.focus();
     ta.selectionStart = ta.selectionEnd = ta.value.length;
-
-    this._textEditing = {
-      ta: ta, existingObj: existingObj || null, initialText: initialText,
-      topLeft: topLeft, width: width, fontSize: fontSize, scale: scale,
-      onDocPointerDown: onDocPointerDown
-    };
   };
 
   // Closes whatever _startTextEditor opened — cancelled (Escape) discards
@@ -2551,7 +2637,12 @@
   // never worth starting), and real content commits via _insertText/
   // _persistTextEdit. Guarded to be a safe no-op if called twice for the
   // same editor (blur AND the document-level catch-all in _startTextEditor
-  // can both fire for one click-away) or after destroy() mid-flight.
+  // can both fire for one click-away) or after destroy() mid-flight. Always
+  // ends (committed, cancelled, or emptied-and-deleted alike) by switching
+  // to the select tool — otherwise, with the tool still on "text", the very
+  // click that dismisses this editor would immediately open ANOTHER one
+  // wherever that click landed, which is what made confirming a text entry
+  // feel like it did nothing (no visible "done", just a new empty box).
   Whiteboard.prototype._finishTextEditor = function (cancelled) {
     var editing = this._textEditing;
     if (!editing) return;
@@ -2563,20 +2654,28 @@
     // unscaled logical units everything else (_myPathPoints, textHeight in
     // fabric_json) is stored in.
     var heightLogical = editing.ta.scrollHeight / this._scale / editing.scale;
+    var text = editing.ta.value.trim();
     if (editing.ta.parentNode) editing.ta.parentNode.removeChild(editing.ta);
     if (editing.existingObj) editing.existingObj.visible = true;
     if (this._destroyed) return;
-    var text = editing.ta.value.trim();
+
     if (editing.existingObj) {
       var id = editing.existingObj.data.id;
-      if (cancelled) { this._fabricCanvas.requestRenderAll(); return; }
-      if (!text) { this._deleteObjects([id]); return; }
-      if (text !== editing.initialText) this._persistTextEdit(id, text, heightLogical);
-      else this._fabricCanvas.requestRenderAll();
-      return;
+      if (cancelled) {
+        this._fabricCanvas.requestRenderAll();
+      } else if (!text) {
+        this._deleteObjects([id]);
+      } else if (text !== editing.initialText) {
+        this._persistTextEdit(id, text, this._clampTextWidth(text, editing.fontSize), heightLogical);
+      } else {
+        this._fabricCanvas.requestRenderAll();
+      }
+    } else if (!cancelled && text) {
+      this._insertText(text, editing.topLeft, this._clampTextWidth(text, editing.fontSize), heightLogical, editing.fontSize);
+    } else {
+      this._fabricCanvas.requestRenderAll();
     }
-    if (!cancelled && text) this._insertText(text, editing.topLeft, editing.width, heightLogical, editing.fontSize);
-    else this._fabricCanvas.requestRenderAll();
+    this._setTool('select');
   };
 
   // Commits a brand-new text object — same insert-then-render-locally
@@ -2627,32 +2726,34 @@
   };
 
   // Commits an EDIT to an existing text object's content (see the dblclick
-  // listener in _bindPointerEvents) — width and font size never change
-  // here (only the resize handle changes those, via the ordinary
-  // _persistObjectScale path every other object already uses); only the
-  // text and, since a different line count changes how tall the box is,
-  // its height. Folds whatever offset the box already had (from an
-  // earlier plain move) into the new natural position and resets the
+  // listener in _bindPointerEvents) — font size never changes here (only
+  // the resize handle changes that, via the ordinary _persistObjectScale
+  // path every other object already uses), but width AND height both can:
+  // shortening a long line, or changing the line count, should shrink or
+  // grow the hitbox to match the new content, same auto-sizing _insertText
+  // gives a brand-new box. Folds whatever offset the box already had (from
+  // an earlier plain move) into the new natural position and resets the
   // offset to zero, the same way a freshly committed object always starts
   // at offset zero — there's no reason to keep carrying an old offset
   // forward once the natural position itself has just been redefined.
-  Whiteboard.prototype._persistTextEdit = function (objId, text, height) {
+  Whiteboard.prototype._persistTextEdit = function (objId, text, width, height) {
     var self = this;
     var json = this._myObjectsJson.get(objId);
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === objId; });
     if (!json || !obj) return;
-    var width = json.textWidth;
     var scale = this._myObjectScales.get(objId) || 1;
     var off = this._myObjectOffsets.get(objId) || { dx: 0, dy: 0 };
     var natural = this._objectNaturalPos.get(objId);
     var oldCenter = { x: natural.left + off.dx, y: natural.top + off.dy };
     // Same anchor _startTextEditor computed to position the live editor —
-    // re-derived here from the OLD height since that's what was still true
-    // the instant editing began.
-    var topLeft = { x: oldCenter.x - (width * scale) / 2, y: oldCenter.y - (json.textHeight * scale) / 2 };
+    // re-derived here from the OLD width/height since those are what was
+    // still true the instant editing began.
+    var topLeft = { x: oldCenter.x - (json.textWidth * scale) / 2, y: oldCenter.y - (json.textHeight * scale) / 2 };
     var center  = { x: topLeft.x + (width * scale) / 2, y: topLeft.y + (height * scale) / 2 };
 
-    obj.set({ text: text, left: center.x, top: center.y });
+    // width must be re-applied to the live Fabric object too — it's the
+    // Textbox's own wrap boundary (see _addObjectIfNew), not just bookkeeping.
+    obj.set({ text: text, width: width, left: center.x, top: center.y });
     obj.setCoords();
     this._objectNaturalPos.set(objId, { left: center.x, top: center.y });
     this._myObjectOffsets.set(objId, { dx: 0, dy: 0 });
@@ -2669,7 +2770,7 @@
     this._dirty = true;
     this._fabricCanvas.requestRenderAll();
 
-    var newJson = Object.assign({}, json, { text: text, left: center.x, top: center.y, textHeight: height, offsetX: 0, offsetY: 0, centerline: centerline });
+    var newJson = Object.assign({}, json, { text: text, left: center.x, top: center.y, textWidth: width, textHeight: height, offsetX: 0, offsetY: 0, centerline: centerline });
     this._supabase.from('whiteboard_objects').update({ fabric_json: newJson }).eq('id', objId)
       .then(function (res) {
         if (res.error) { global.BM && BM.toast && BM.toast('Eroare: ' + res.error.message, 'error'); return; }
@@ -3186,6 +3287,16 @@
     this._myStrokeHistory = this._myStrokeHistory.filter(function (h) { return ids.indexOf(h.id) === -1; });
     this._updateUndoRedoButtons();
     this._fabricCanvas.requestRenderAll();
+    // The selection halo/resize handle live on the OVERLAY canvas, which
+    // only repaints when _dirty is set (see _redrawOverlay) — requestRenderAll
+    // above is Fabric's own canvas, a different layer entirely. Unconditional
+    // here rather than relying on _removeObjectById's own "was this id
+    // selected" check: the Delete-key handler already clears _selectedIds
+    // itself BEFORE calling this, so that check never fires and the overlay
+    // never got told to redraw — the stale halo/handle from the frame just
+    // before deletion just sat there until some unrelated later interaction
+    // happened to repaint over it.
+    this._dirty = true;
     this._supabase.from('whiteboard_objects').delete().in('id', ids).then(function (res) {
       if (res.error) console.error('[Whiteboard] erase failed', res.error);
     });
