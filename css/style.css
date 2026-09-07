@@ -17809,16 +17809,16 @@ body.dc-fullscreen-active .dc-toolbar {
 .wb-toolbar .gfe-shape-btn svg { width: 18px; height: 18px; }
 .wb-toolbar .gfe-dropdown__trigger { height: 38px; }
 .wb-toolbar .gfe-dropdown__trigger svg:first-child { width: 18px; height: 18px; }
-/* A DEFINITE width, not max-width — .gfe-dropdown__panel (this grid's
-   parent) is position:fixed with no width of its own, so it shrink-to-fits
-   around its content; a flex child that's ALSO only capped by max-width
-   (not a real width) leaves the browser's intrinsic-sizing algorithm free
-   to decide the "preferred" (unwrapped, one-row) width first and only then
-   clamp it — which is exactly the kind of two-step computation that was
-   producing a single, one-shape-per-row column instead of the intended
-   grid. A real width removes that ambiguity outright: wrapping is decided
-   against a fixed number, full stop, in every browser. */
-.wb-toolbar .gfe-dropdown__panel .gfe-shape-group { width: 216px; }
+/* The panel needs a DEFINITE width, not max-width — .gfe-dropdown__panel
+   (this grid's parent) is position:fixed with no width of its own, so it
+   shrink-to-fits around its content; a flex child that's ALSO only capped
+   by max-width (not a real width) leaves the browser's intrinsic-sizing
+   algorithm free to decide the "preferred" (unwrapped, one-row) width
+   first and only then clamp it, which produces a single one-shape-per-row
+   column instead of the intended grid. Set inline per dropdown instead of
+   here (see shapeDropdown in js/whiteboard.js) — 2D's and 3D's own shape
+   counts each need their own column count to divide evenly with no
+   trailing empty cell, so one shared width here can't fit both. */
 
 .gfe-tick-btn {
   width: 24px;

@@ -252,6 +252,16 @@
   // fabric.Path, so a stroke never visibly "snaps" from smooth to jagged
   // the instant it's finalized.
   function smoothPathString(points) {
+    // A stationary tap (highlighter, or any non-variable-width freehand
+    // tool) — a lone point has no segment to draw, but "M x y L x y" (a
+    // zero-length line back to itself) still renders as a dot thanks to
+    // strokeLineCap:'round' on the committed fabric.Path (see
+    // _addObjectIfNew), same trick drawSmoothStroke's own 1-point branch
+    // uses via ctx.arc for the live preview — this just reaches the same
+    // visual result through a stroked path instead of a filled circle.
+    if (points.length === 1) {
+      return 'M ' + points[0].x + ' ' + points[0].y + ' L ' + points[0].x + ' ' + points[0].y;
+    }
     if (points.length < 2) return null;
     if (points.length === 2) {
       return 'M ' + points[0].x + ' ' + points[0].y + ' L ' + points[1].x + ' ' + points[1].y;
@@ -1246,13 +1256,22 @@
   // sharing one 38px-tall button forces both smaller than a single glyph
   // gets to be, which is exactly what made this trigger read as noticeably
   // punier than every plain one-icon button beside it in the toolbar.
-  function shapeDropdown(triggerIconId, title, ids) {
+  //
+  // cols is picked per call so the grid comes out exactly full — a fixed
+  // column count for both panels left the LAST row of whichever list isn't
+  // a multiple of it short a button or two, which read as a stray empty
+  // gap on the panel's own right edge. 14 shapes / 2 cols = 7 full rows;
+  // 6 bodies / 3 cols = 2 full rows — both chosen as actual divisors of
+  // their own list length, not one shared guess.
+  function shapeDropdown(triggerIconId, title, ids, cols) {
+    var GAP = 4, BTN = 38;
+    var panelWidth = cols * BTN + (cols - 1) * GAP;
     return '<div class="gfe-dropdown">' +
       '<button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="' + title + '" aria-haspopup="true" aria-expanded="false">' +
         shapeIcon24(SHAPE_DEFS[triggerIconId].icon) +
       '</button>' +
       '<div class="gfe-dropdown__panel">' +
-        '<div class="dc-tool-group gfe-shape-group">' +
+        '<div class="dc-tool-group gfe-shape-group" style="width:' + panelWidth + 'px">' +
           ids.map(function (id) {
             return '<button type="button" class="dc-tool-btn gfe-shape-btn" data-shape="' + id + '" title="' + SHAPE_DEFS[id].label + '">' + shapeIcon24(SHAPE_DEFS[id].icon) + '</button>';
           }).join('') +
@@ -1266,33 +1285,31 @@
     wrap.className = 'wb-board';
     wrap.innerHTML =
       '<div class="dc-toolbar wb-toolbar">' +
-        // Four small tool groups (manipulate / ink+text / line shapes /
-        // shape+body pickers) with breathing room between them but no
-        // divider bars — dc-tool-group--nodiv overrides the toolbar's
-        // usual adjacent-sibling divider (see its own CSS rule) for just
-        // these, same lighter-touch grouping idroo's own toolbar uses. The
-        // width picker/grid/undo groups after this keep their normal
-        // divider — those are separate FUNCTIONAL areas, not sub-groups
-        // of "the tools". Zoom used to be one of these too (see
-        // js/class-page.js's own onZoomChange for where it lives now).
-        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+        // A plain divider bar between EVERY group, including these four
+        // (manipulate / ink+text / line shapes / shape+body pickers) — used
+        // to be dc-tool-group--nodiv's lighter, divider-less spacing here
+        // (idroo's own toolbar convention), but with this many groups in a
+        // row that read as "which button belongs to which cluster?" instead
+        // of just softer, so every group now gets the same divider the
+        // width/grid/undo groups already had.
+        '<div class="dc-tool-group">' +
           toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (Q)') +
           toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (W)') +
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
         '</div>' +
-        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+        '<div class="dc-tool-group">' +
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
           toolBtn('text', TEXT_ICON, 'Text (T)') +
         '</div>' +
-        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+        '<div class="dc-tool-group">' +
           toolBtn('line', LINE_ICON, 'Linie dreaptă') +
           toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată') +
           toolBtn('arrow', ARROW_ICON, 'Săgeată') +
         '</div>' +
-        '<div class="dc-tool-group dc-tool-group--nodiv">' +
-          shapeDropdown('patrat', 'Forme 2D', SHAPE_IDS_2D) +
-          shapeDropdown('cub', 'Corpuri 3D', SHAPE_IDS_3D) +
+        '<div class="dc-tool-group">' +
+          shapeDropdown('patrat', 'Forme 2D', SHAPE_IDS_2D, 2) +
+          shapeDropdown('cub', 'Corpuri 3D', SHAPE_IDS_3D, 3) +
         '</div>' +
         '<div class="dc-tool-group">' +
           WIDTH_PRESETS.map(function (w, i) {
@@ -2580,7 +2597,15 @@
   // falsy for an ordinary freehand pen/highlighter stroke.
   Whiteboard.prototype._commitStroke = function (points, liveKey, width, opacity, shape) {
     var start = points[0], end = points[points.length - 1];
-    var isDegenerate = shape ? dist(start, end) < 2 : points.length < 2;
+    // A freehand tap-without-moving (dotting an "i", a multiplication ×)
+    // used to get thrown out here (points.length < 2) — the live overlay
+    // already draws a single stationary point as a dot (see
+    // drawSmoothStroke's own 1-point branch), so discarding it on commit
+    // just made it visibly vanish the instant the mouse lifted. A
+    // degenerate SHAPE (start===end drag) is still dropped — collapsing a
+    // line/arrow/rect to a dot isn't a meaningful shape the way a bare dot
+    // of ink is.
+    var isDegenerate = shape ? dist(start, end) < 2 : !points.length;
     if (isDegenerate) {
       if (liveKey) { this._liveStrokes.delete(liveKey); this._dirty = true; }
       return;
