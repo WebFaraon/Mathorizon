@@ -276,6 +276,225 @@
     ctx.restore();
   }
 
+  /* ---- Geometric shape stamps (toolbar shape picker — see SHAPE_DEFS,
+     _insertShape, and the "Forme 2D"/"Corpuri 3D" dropdowns in _build) ----
+     Each shape is built as one or more closed/open point-lists ("subpaths")
+     around a center, joined into a single SVG path string the exact same
+     way the arrow tool already joins its shaft + barb subpaths — which is
+     also why these stay plain M/L polylines with no curves (parsePathPoints,
+     the eraser/select tool's own path-string reader, only understands M/L/Q
+     — see its own comment). Every curve here (circle, ellipse, arcs,
+     rounded corners) is therefore a many-segment straight-line
+     approximation rather than a true arc, same trick the sphere/cone/
+     cylinder's equator/base ellipses already use one level up in
+     js/geometry-figure-editor.js (ellipseArcPoints there, ellipseArcPts
+     here — not shared code since that module keeps its shapes as live,
+     independently-draggable-vertex Fabric groups, a much bigger machine
+     than a whiteboard "stamp a fixed shape, then move it like any other
+     stroke" tool needs). */
+
+  function regularPolygonPts(cx, cy, rx, ry, n, rotDeg) {
+    var pts = [], rot = (rotDeg == null ? -90 : rotDeg) * Math.PI / 180;
+    for (var i = 0; i < n; i++) {
+      var a = rot + i * 2 * Math.PI / n;
+      pts.push({ x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
+    }
+    pts.push(pts[0]);
+    return pts;
+  }
+
+  function starPts(cx, cy, rx, ry, spikes, innerRatio) {
+    var pts = [], rot = -Math.PI / 2;
+    for (var i = 0; i < spikes * 2; i++) {
+      var a = rot + i * Math.PI / spikes;
+      var r = (i % 2 === 0) ? 1 : innerRatio;
+      pts.push({ x: cx + rx * r * Math.cos(a), y: cy + ry * r * Math.sin(a) });
+    }
+    pts.push(pts[0]);
+    return pts;
+  }
+
+  function ellipsePts(cx, cy, rx, ry, segments) {
+    var pts = [];
+    for (var i = 0; i <= segments; i++) {
+      var a = i / segments * 2 * Math.PI;
+      pts.push({ x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
+    }
+    return pts;
+  }
+
+  function ellipseArcPts(cx, cy, rx, ry, a0, a1, segments) {
+    var pts = [];
+    for (var i = 0; i <= segments; i++) {
+      var a = a0 + (a1 - a0) * i / segments;
+      pts.push({ x: cx + rx * Math.cos(a), y: cy + ry * Math.sin(a) });
+    }
+    return pts;
+  }
+
+  function roundedRectPts(minX, minY, maxX, maxY, radius) {
+    var r = Math.min(radius, (maxX - minX) / 2, (maxY - minY) / 2);
+    var pts = [];
+    function arc(acx, acy, startDeg, endDeg) {
+      for (var i = 0; i <= 6; i++) {
+        var a = (startDeg + (endDeg - startDeg) * i / 6) * Math.PI / 180;
+        pts.push({ x: acx + r * Math.cos(a), y: acy + r * Math.sin(a) });
+      }
+    }
+    arc(minX + r, minY + r, 180, 270);
+    arc(maxX - r, minY + r, 270, 360);
+    arc(maxX - r, maxY - r, 0, 90);
+    arc(minX + r, maxY - r, 90, 180);
+    pts.push(pts[0]);
+    return pts;
+  }
+
+  // id -> { label, icon (24x24 glyph, toolbar button only), build(cx,cy) }.
+  // build() returns an array of subpaths (each an array of {x,y}) sized
+  // around a fixed half-extent, not the current zoom/selection — a stamped
+  // shape is a normal committed stroke afterward, moved with the "select"
+  // tool like anything else, never resized in place (this app doesn't have
+  // per-vertex handles the way js/geometry-figure-editor.js does).
+  // Basic-polygon and regular-polygon/rounded icons are original to this
+  // toolbar; the ones shared with the geometry configurator's own shape
+  // picker (cerc/patrat/paralelogram/romb/cub/piramidă/sferă/con/cilindru)
+  // reuse that module's exact SHAPE_ICONS glyphs for visual consistency
+  // between the two tools.
+  var SHAPE_DEFS = {
+    patrat: {
+      label: 'Pătrat', icon: '<rect x="4.5" y="4.5" width="15" height="15"/>',
+      build: function (cx, cy) {
+        var hw = 90, hh = 70;
+        return [[{ x: cx - hw, y: cy - hh }, { x: cx + hw, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - hw, y: cy - hh }]];
+      }
+    },
+    'tri-isoscel': {
+      label: 'Triunghi isoscel', icon: '<path d="M12 3 5 20 19 20Z"/>',
+      build: function (cx, cy) {
+        var hw = 90, hh = 75;
+        return [[{ x: cx, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx, y: cy - hh }]];
+      }
+    },
+    'tri-dreptunghic': {
+      label: 'Triunghi dreptunghic', icon: '<path d="M5 4 5 20 20 20Z"/>',
+      build: function (cx, cy) {
+        var hw = 90, hh = 75;
+        return [[{ x: cx - hw, y: cy + hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy - hh }, { x: cx - hw, y: cy + hh }]];
+      }
+    },
+    trapez: {
+      label: 'Trapez', icon: '<path d="M9 6 15 6 20 18 4 18Z"/>',
+      build: function (cx, cy) {
+        var hw = 95, hh = 65, topHw = hw * 0.5;
+        return [[{ x: cx - topHw, y: cy - hh }, { x: cx + topHw, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - topHw, y: cy - hh }]];
+      }
+    },
+    paralelogram: {
+      label: 'Paralelogram', icon: '<path d="M8 6 20 6 16 18 4 18Z"/>',
+      build: function (cx, cy) {
+        var hw = 90, hh = 65, skew = 35;
+        return [[{ x: cx - hw + skew, y: cy - hh }, { x: cx + hw, y: cy - hh }, { x: cx + hw - skew, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - hw + skew, y: cy - hh }]];
+      }
+    },
+    romb: {
+      label: 'Romb', icon: '<path d="M12 2 17 12 12 22 7 12Z"/>',
+      build: function (cx, cy) {
+        var hw = 95, hh = 75;
+        return [[{ x: cx, y: cy - hh }, { x: cx + hw, y: cy }, { x: cx, y: cy + hh }, { x: cx - hw, y: cy }, { x: cx, y: cy - hh }]];
+      }
+    },
+    pentagon: {
+      label: 'Pentagon', icon: '<path d="M12 3 20.5 9.5 17 19 7 19 3.5 9.5Z"/>',
+      build: function (cx, cy) { return [regularPolygonPts(cx, cy, 90, 90, 5)]; }
+    },
+    hexagon: {
+      label: 'Hexagon', icon: '<path d="M8 4 16 4 20.5 12 16 20 8 20 3.5 12Z"/>',
+      build: function (cx, cy) { return [regularPolygonPts(cx, cy, 90, 90, 6, -30)]; }
+    },
+    octagon: {
+      label: 'Octagon', icon: '<path d="M8.5 3.5 15.5 3.5 20.5 8.5 20.5 15.5 15.5 20.5 8.5 20.5 3.5 15.5 3.5 8.5Z"/>',
+      build: function (cx, cy) { return [regularPolygonPts(cx, cy, 90, 90, 8, -22.5)]; }
+    },
+    stea: {
+      label: 'Stea', icon: '<path d="M12 3 14.4 9.6 21.5 9.8 15.8 14 17.9 21 12 16.9 6.1 21 8.2 14 2.5 9.8 9.6 9.6Z"/>',
+      build: function (cx, cy) { return [starPts(cx, cy, 95, 95, 5, 0.42)]; }
+    },
+    cerc: {
+      label: 'Cerc', icon: '<circle cx="12" cy="12" r="8.5"/>',
+      build: function (cx, cy) { return [ellipsePts(cx, cy, 90, 75, 48)]; }
+    },
+    'patrat-rotunjit': {
+      label: 'Pătrat rotunjit', icon: '<rect x="4.5" y="4.5" width="15" height="15" rx="4"/>',
+      build: function (cx, cy) { return [roundedRectPts(cx - 90, cy - 70, cx + 90, cy + 70, 26)]; }
+    },
+    semicerc: {
+      label: 'Semicerc', icon: '<path d="M4 16h16"/><path d="M4 16a8 8 0 0 1 16 0"/>',
+      build: function (cx, cy) {
+        var rx = 95, h = 90;
+        var pts = ellipseArcPts(cx, cy + h / 2, rx, h, Math.PI, 2 * Math.PI, 24);
+        pts.push(pts[0]);
+        return [pts];
+      }
+    },
+    cub: {
+      label: 'Cub',
+      icon: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/><path d="M4 20 9 15 9 5"/><path d="M9 15 19 15"/>',
+      build: function (cx, cy) {
+        var hw = 80, hh = 65, dx = 55, dy = -40;
+        var minX = cx - hw, maxX = cx + hw, minY = cy - hh, maxY = cy + hh;
+        var F0 = { x: minX, y: minY - dy }, F1 = { x: maxX - dx, y: minY - dy }, F2 = { x: maxX - dx, y: maxY }, F3 = { x: minX, y: maxY };
+        var B0 = { x: F0.x + dx, y: F0.y + dy }, B1 = { x: F1.x + dx, y: F1.y + dy }, B2 = { x: F2.x + dx, y: F2.y + dy }, B3 = { x: F3.x + dx, y: F3.y + dy };
+        return [[F0, F1, F2, F3, F0], [B0, B1, B2, B3, B0], [F0, B0], [F1, B1], [F2, B2], [F3, B3]];
+      }
+    },
+    'piramida-patrata': {
+      label: 'Piramidă (bază pătrată)',
+      icon: '<path d="M4 18 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 12 13"/><path d="M12 13 4 18"/><path d="M12 13 20 18"/>',
+      build: function (cx, cy) {
+        var hw = 85, dx = 55, dy = 38, topY = cy - 95, botY = cy + 55;
+        var p0 = { x: cx - hw, y: botY }, p1 = { x: cx + hw - dx, y: botY }, p2 = { x: cx + hw, y: botY - dy }, p3 = { x: cx - hw + dx, y: botY - dy };
+        var apex = { x: (p0.x + p2.x) / 2, y: topY };
+        return [[p0, p1, p2, p3, p0], [apex, p0], [apex, p1], [apex, p2], [apex, p3]];
+      }
+    },
+    'piramida-triunghiulara': {
+      label: 'Piramidă (bază triunghiulară)',
+      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 18 20"/>',
+      build: function (cx, cy) {
+        var hw = 85, baseY = cy + 65, backY = cy + 30, topY = cy - 95;
+        var p0 = { x: cx - hw, y: baseY }, p1 = { x: cx + hw, y: baseY }, p2 = { x: cx, y: backY }, apex = { x: cx, y: topY };
+        return [[p0, p1, p2, p0], [apex, p0], [apex, p1], [apex, p2]];
+      }
+    },
+    con: {
+      label: 'Con',
+      icon: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M4.5 18a7.5 2 0 0 1 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
+      build: function (cx, cy) {
+        var rx = 85, ry = 24, apexY = cy - 95, baseY = cy + 55;
+        return [ellipsePts(cx, baseY, rx, ry, 28), [{ x: cx, y: apexY }, { x: cx - rx, y: baseY }], [{ x: cx, y: apexY }, { x: cx + rx, y: baseY }]];
+      }
+    },
+    cilindru: {
+      label: 'Cilindru',
+      icon: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 17a7.5 2 0 0 1 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>',
+      build: function (cx, cy) {
+        var rx = 85, ry = 22, topY = cy - 70, botY = cy + 70;
+        return [ellipsePts(cx, topY, rx, ry, 28), ellipsePts(cx, botY, rx, ry, 28), [{ x: cx - rx, y: topY }, { x: cx - rx, y: botY }], [{ x: cx + rx, y: topY }, { x: cx + rx, y: botY }]];
+      }
+    },
+    sfera: {
+      label: 'Sferă',
+      icon: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6"/>',
+      build: function (cx, cy) {
+        var r = 85;
+        return [ellipsePts(cx, cy, r, r, 48), ellipsePts(cx, cy, r, r * 0.3, 40)];
+      }
+    }
+  };
+  var SHAPE_IDS_2D = ['patrat', 'tri-isoscel', 'tri-dreptunghic', 'trapez', 'paralelogram', 'romb', 'pentagon', 'hexagon', 'octagon', 'stea', 'cerc', 'patrat-rotunjit', 'semicerc'];
+  var SHAPE_IDS_3D = ['cub', 'piramida-patrata', 'piramida-triunghiulara', 'con', 'cilindru', 'sfera'];
+  var CHEVRON_ICON = '<path d="M6 9.5 12 15.5 18 9.5"/>';
+
   /**
    * @param {HTMLElement} container - mounted into this element (emptied first? no — caller owns that)
    * @param {object} opts
@@ -509,6 +728,30 @@
     '</button>';
   }
 
+  function shapeIcon24(inner) {
+    return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
+  }
+
+  // "Forme 2D" / "Corpuri 3D" — same .gfe-dropdown/.gfe-shape-btn markup and
+  // interaction the geometry configurator's own shape picker uses (see
+  // js/geometry-figure-editor.js), reused as-is (that CSS is already
+  // page-generic, not scoped to that editor) so this reads as "the same
+  // shape tool, just inside the whiteboard" rather than a new one to learn.
+  function shapeDropdown(triggerIconId, title, ids) {
+    return '<div class="gfe-dropdown">' +
+      '<button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="' + title + '" aria-haspopup="true" aria-expanded="false">' +
+        shapeIcon24(SHAPE_DEFS[triggerIconId].icon) + shapeIcon24(CHEVRON_ICON) +
+      '</button>' +
+      '<div class="gfe-dropdown__panel">' +
+        '<div class="dc-tool-group gfe-shape-group">' +
+          ids.map(function (id) {
+            return '<button type="button" class="dc-tool-btn gfe-shape-btn" data-shape="' + id + '" title="' + SHAPE_DEFS[id].label + '">' + shapeIcon24(SHAPE_DEFS[id].icon) + '</button>';
+          }).join('') +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
   Whiteboard.prototype._build = function (container) {
     var wrap = document.createElement('div');
     wrap.className = 'wb-board';
@@ -535,6 +778,10 @@
           toolBtn('line', LINE_ICON, 'Linie dreaptă') +
           toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată') +
           toolBtn('arrow', ARROW_ICON, 'Săgeată') +
+        '</div>' +
+        '<div class="dc-tool-group dc-tool-group--nodiv">' +
+          shapeDropdown('patrat', 'Forme 2D', SHAPE_IDS_2D) +
+          shapeDropdown('cub', 'Corpuri 3D', SHAPE_IDS_3D) +
         '</div>' +
         '<div class="dc-tool-group">' +
           WIDTH_PRESETS.map(function (w, i) {
@@ -641,9 +888,44 @@
     }
   };
 
+  // Same open/position/close dance as js/geometry-figure-editor.js's own
+  // _closeDropdowns (see that file's comment) — position:fixed (computed
+  // here from the trigger's own getBoundingClientRect) rather than
+  // absolute, since the toolbar's horizontal-scroll overflow would
+  // otherwise clip an absolutely-positioned panel the same way it would
+  // there.
+  Whiteboard.prototype._closeShapeDropdowns = function () {
+    this._toolbarEl.querySelectorAll('.gfe-dropdown--open').forEach(function (dd) {
+      dd.classList.remove('gfe-dropdown--open');
+      var trigger = dd.querySelector('.gfe-dropdown__trigger');
+      if (trigger) trigger.setAttribute('aria-expanded', 'false');
+    });
+  };
+
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
     this._toolbarEl.addEventListener('click', function (e) {
+      var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
+      if (ddTrigger) {
+        var dd = ddTrigger.closest('.gfe-dropdown');
+        var wasOpen = dd.classList.contains('gfe-dropdown--open');
+        self._closeShapeDropdowns();
+        if (!wasOpen) {
+          var panel = dd.querySelector('.gfe-dropdown__panel');
+          var r = ddTrigger.getBoundingClientRect();
+          panel.style.top = (r.bottom + 6) + 'px';
+          panel.style.left = r.left + 'px';
+          dd.classList.add('gfe-dropdown--open');
+          ddTrigger.setAttribute('aria-expanded', 'true');
+        }
+        return;
+      }
+      var shapeBtn = e.target.closest('[data-shape]');
+      if (shapeBtn) {
+        self._insertShape(shapeBtn.dataset.shape);
+        self._closeShapeDropdowns();
+        return;
+      }
       var toolBtnEl = e.target.closest('[data-tool]');
       var widthBtn  = e.target.closest('[data-width]');
       var clearBtn  = e.target.closest('#wbClearMineBtn');
@@ -687,6 +969,18 @@
         self._setZoom(self._currentOrPendingZoom() - ZOOM_STEP);
       }
     });
+
+    // Same two safety nets js/geometry-figure-editor.js's own shape-picker
+    // dropdown uses: a click anywhere outside the toolbar (the canvas,
+    // most likely — exactly where you'd click right after picking a shape)
+    // and a page scroll (the panel is position:fixed, so it wouldn't
+    // otherwise follow the trigger it's supposed to be anchored under).
+    this._shapeDocClickHandler = function (e) {
+      if (!self._toolbarEl.contains(e.target)) self._closeShapeDropdowns();
+    };
+    document.addEventListener('click', this._shapeDocClickHandler);
+    this._shapeScrollCloseHandler = function () { self._closeShapeDropdowns(); };
+    global.addEventListener('scroll', this._shapeScrollCloseHandler, true);
   };
 
   // Desktop only in practice (there's no keyboard on a phone/tablet to fire
@@ -1498,6 +1792,43 @@
     });
   };
 
+  // Toolbar shape picker (SHAPE_DEFS) — unlike a drawn stroke, there's no
+  // drag gesture at all: click a shape and it lands, already fully sized,
+  // centered on whatever's currently visible (the same anchor _setZoom
+  // uses when it isn't given a clientX/clientY), exactly like the
+  // geometry configurator's own _insertShape drops its preset shapes at a
+  // fixed default spot rather than making you drag one out. From here on
+  // it's just a normal committed stroke — move it with the "select" tool,
+  // erase it, undo it — no separate code path for "is this a shape".
+  Whiteboard.prototype._insertShape = function (shapeId) {
+    var def = SHAPE_DEFS[shapeId];
+    if (!def) return;
+    var cx = (this._viewportW / 2 - this._panX) / this._scale;
+    var cy = (this._viewportH / 2 - this._panY) / this._scale;
+    var subpaths = def.build(cx, cy);
+    var path = subpaths.map(function (pts) {
+      return pts.map(function (p, i) { return (i === 0 ? 'M ' : 'L ') + p.x + ' ' + p.y; }).join(' ');
+    }).join(' ');
+    var width = this._width;
+    var self = this;
+    this._supabase.from('whiteboard_objects').insert({
+      session_id: this._sessionId,
+      class_id:   this._classId,
+      created_by: this._userId,
+      kind: 'stroke',
+      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: null, opacity: 1 }
+    }).select().single().then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] shape insert failed', res.error); return; }
+      self._addObjectIfNew(res.data);
+      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
+      self._myRedoStack = [];
+      self._updateUndoRedoButtons();
+      self._dirty = true;
+      self._fabricCanvas.requestRenderAll();
+    });
+  };
+
   /* ---- Realtime ---- */
 
   Whiteboard.prototype._connectRealtime = function () {
@@ -1541,6 +1872,55 @@
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('[Whiteboard] realtime channel', status, err);
         }
+        // Realtime's postgres_changes feed is push-only, no catch-up replay
+        // for whatever happened while a socket was briefly down (a laptop
+        // sleep/wake, a phone tab backgrounded, an ordinary network blip) —
+        // any INSERT/DELETE that landed during that gap is just gone for
+        // this client, forever, until something re-syncs from the DB. That's
+        // the exact shape of the "one stray line stayed until I refreshed"
+        // report: the eraser's DELETE reached the server fine, every OTHER
+        // already-connected client got the live event fine, but this one
+        // client's socket happened to be reconnecting at that exact moment.
+        // SUBSCRIBED fires again after every such reconnect (not just the
+        // very first connect), so reconciling here — including on that very
+        // first call, briefly racing _loadExisting's own fetch, which is
+        // harmless since _addObjectIfNew already de-dupes by id — closes
+        // that gap without the user ever needing to know it happened.
+        if (status === 'SUBSCRIBED') self._reconcileObjects();
+      });
+  };
+
+  // Safety net under the best-effort realtime push above: re-derives local
+  // state from the DB's own current row set rather than trusting that every
+  // INSERT/DELETE this client should have seen actually arrived. Cheap (ids
+  // only) and non-destructive to anything genuinely still current — only
+  // touches objects that have actually drifted out of sync.
+  Whiteboard.prototype._reconcileObjects = function () {
+    var self = this;
+    this._supabase.from('whiteboard_objects').select('id').eq('session_id', this._sessionId)
+      .then(function (res) {
+        if (self._destroyed || res.error) return;
+        var serverIds = {};
+        (res.data || []).forEach(function (r) { serverIds[r.id] = true; });
+        // A local object the server no longer has — its DELETE never made it
+        // to this client (see the comment at the SUBSCRIBED callback above).
+        self._fabricCanvas.getObjects().slice().forEach(function (obj) {
+          if (obj.data && obj.data.id && !serverIds[obj.data.id]) self._removeObjectById(obj.data.id);
+        });
+        // The reverse case — a row the server has that this client missed
+        // entirely (a dropped INSERT) — fetched and added the same way
+        // _loadExisting hydrates the board initially.
+        var missingIds = Object.keys(serverIds).filter(function (id) { return !self._committedIds.has(id); });
+        if (missingIds.length) {
+          self._supabase.from('whiteboard_objects').select('*').in('id', missingIds)
+            .order('seq', { ascending: true })
+            .then(function (res2) {
+              if (self._destroyed || res2.error) return;
+              (res2.data || []).forEach(function (row) { self._addObjectIfNew(row); });
+              self._fabricCanvas.requestRenderAll();
+            });
+        }
+        self._fabricCanvas.requestRenderAll();
       });
   };
 
@@ -2022,6 +2402,8 @@
     clearTimeout(this._resizeTimer);
     if (this._ro) this._ro.disconnect();
     if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);
+    if (this._shapeDocClickHandler) document.removeEventListener('click', this._shapeDocClickHandler);
+    if (this._shapeScrollCloseHandler) global.removeEventListener('scroll', this._shapeScrollCloseHandler, true);
     if (this._channel) this._supabase.removeChannel(this._channel);
     if (this._fabricCanvas) this._fabricCanvas.dispose();
     if (this._wrap && this._wrap.parentNode) this._wrap.parentNode.removeChild(this._wrap);

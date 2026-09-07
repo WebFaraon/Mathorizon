@@ -12918,17 +12918,29 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wb-roster-row--me {
   background: var(--accent-dim);
 }
+/* Border is always the participant's own marker color — see the
+   avatar()/isMe() comment in js/class-page.js — a real profile photo when
+   they have one (background stays transparent, the <img> fills the
+   circle), initials on a colored fill otherwise. */
 .wb-roster-row__avatar {
   flex-shrink: 0;
   width: 30px;
   height: 30px;
   border-radius: 50%;
+  border: 2px solid transparent;
+  box-sizing: border-box;
   display: inline-flex;
   align-items: center;
   justify-content: center;
+  overflow: hidden;
   font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
+}
+.wb-roster-row__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }
 .wb-roster-row__name {
   flex: 1;

@@ -5856,6 +5856,11 @@
                     <div class="csim-card__row">
                       <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
                       <span class="csim-card__meta-item">${icon('calendar', { size: 16 })} ${formatTablaDateTime(s.started_at)}</span>
+                      ${isTeacher ? `
+                        <div class="csim-card__actions">
+                          <button class="teme-assignment__delete" data-tabla-delete="${s.id}" data-tabla-title="${BM.esc(s.title)}" title="Șterge">${icon('x', { size: 16 })}</button>
+                        </div>
+                      ` : ''}
                     </div>
                   </div>`).join('')}
               </div>
@@ -5867,6 +5872,12 @@
       document.getElementById('tablaEndBtn')?.addEventListener('click', () => endWhiteboard(live.id));
       document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
       document.getElementById('tablaSwitchBtn')?.addEventListener('click', () => switchWhiteboard(elsewhereLive));
+      if (isTeacher) {
+        content.querySelectorAll('[data-tabla-delete]').forEach(btn => btn.addEventListener('click', e => {
+          e.stopPropagation();
+          deleteWhiteboardSession(btn.dataset.tablaDelete, btn.dataset.tablaTitle);
+        }));
+      }
     } catch (e) {
       if (activeTab !== 'tabla') return;
       content.innerHTML = `
@@ -5951,6 +5962,29 @@
       if (error) throw error;
       BM.toast('Tabla a fost încheiată.', 'info');
       _closeTablaLiveModal();
+      await loadTablaTab();
+    } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+  }
+
+  // Only ever offered for PAST (ended) sessions — a live one has its own
+  // "Încheie" action instead, see heroAction above. Deleting the session
+  // row is enough on its own to leave zero trace: whiteboard_objects and
+  // whiteboard_participants both reference it with "on delete cascade"
+  // (20260904160000/20260904120000), which Postgres enforces at the FK
+  // level regardless of either table's own RLS, and there's no separate
+  // storage/snapshot file anywhere else to clean up (snapshot is a plain
+  // jsonb column on the row itself, not a Storage object).
+  async function deleteWhiteboardSession(id, title) {
+    const ok = await showConfirmDialog({
+      icon: icon('trash-2', { size: 48, className: 'icon--error' }), title: 'Ștergi tabla?',
+      message: '„' + title + '" va fi ștearsă definitiv, împreună cu tot ce a fost desenat pe ea.',
+      confirmText: 'Șterge'
+    });
+    if (!ok) return;
+    try {
+      const { error } = await BMAuth.supabase.from('whiteboard_sessions').delete().eq('id', id);
+      if (error) throw error;
+      BM.toast('Tabla a fost ștearsă.', 'info');
       await loadTablaTab();
     } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
   }
@@ -6181,7 +6215,7 @@
     let myLocked = false;
     try {
       const { data: participant, error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
-        p_session_id: session.id, p_display_name: BMAuth.displayName()
+        p_session_id: session.id, p_display_name: BMAuth.displayName(), p_avatar_url: BMAuth.avatarUrl()
       });
       if (joinError) throw joinError;
       myColor = participant?.color || myColor;
@@ -6253,9 +6287,17 @@
       const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
       return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span></span>`;
     }
+    // Border is always the participant's own MARKER color (their pen/
+    // stroke color on the board itself) so it doubles as "here's which
+    // color is theirs", not just a decorative ring — the fill is their
+    // real uploaded profile photo when they have one, initials otherwise.
     function avatar(p) {
       const name = p.display_name || '??';
-      return `<span class="wb-roster-row__avatar" style="background:${BM.esc(p.color)}">${BM.esc(name.trim().slice(0, 2).toUpperCase())}</span>`;
+      const initials = BM.esc(name.trim().slice(0, 2).toUpperCase());
+      const style = `border-color:${BM.esc(p.color)}`;
+      return p.avatar_url
+        ? `<span class="wb-roster-row__avatar" style="${style}"><img src="${BM.esc(p.avatar_url)}" alt=""></span>`
+        : `<span class="wb-roster-row__avatar" style="${style};background:${BM.esc(p.color)}">${initials}</span>`;
     }
     function lockBtn(p) {
       if (!isTeacher) return '';
