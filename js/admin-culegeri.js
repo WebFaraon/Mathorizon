@@ -23,6 +23,12 @@
   ];
   const GRADE_LABEL = Object.fromEntries(GRADES.map(g => [g.id, g.label]));
 
+  // Matches the bucket's file_size_limit in supabase/migrations/20260908090000_
+  // culegeri_library.sql — checked here too so a too-large file fails fast
+  // with a clear message instead of after a slow upload attempt errors out
+  // against Supabase's own limit.
+  const MAX_FILE_BYTES = 200 * 1024 * 1024;
+
   let selectedFile = null;
   let culegeriCache = [];
 
@@ -82,6 +88,10 @@
       if (!file) return;
       const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
       if (!isPdf) { BM.toast('Doar fișiere PDF sunt acceptate.', 'error'); return; }
+      if (file.size > MAX_FILE_BYTES) {
+        BM.toast(`Fișierul are ${(file.size / 1024 / 1024).toFixed(0)}MB — depășește limita de 200MB.`, 'error');
+        return;
+      }
       selectedFile = file;
       document.getElementById('clDropMain').textContent = file.name;
       document.getElementById('clDropHint').textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB — alege alt fișier pentru a înlocui`;

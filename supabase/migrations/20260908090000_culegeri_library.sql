@@ -10,9 +10,18 @@
 -- read-only access to browse and open pages.
 -- ============================================================
 
-insert into storage.buckets (id, name, public)
-values ('culegeri', 'culegeri', false)
-on conflict (id) do nothing;
+-- 200MB cap — these are full scanned textbooks (image-heavy pages, not
+-- OCR'd text), routinely 100-300MB. Without an explicit file_size_limit
+-- here the bucket falls back to the project's global Storage default
+-- (commonly 50MB on the free tier), which would silently reject a
+-- legitimate culegere. on conflict...do update so re-running this file
+-- also raises the limit on a bucket that already exists from an earlier
+-- apply of this same migration.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values ('culegeri', 'culegeri', false, 209715200, array['application/pdf'])
+on conflict (id) do update set
+  file_size_limit = excluded.file_size_limit,
+  allowed_mime_types = excluded.allowed_mime_types;
 
 create table if not exists public.culegeri (
   id uuid primary key default gen_random_uuid(),
