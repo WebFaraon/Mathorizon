@@ -16276,6 +16276,30 @@ body.wb-fullscreen-active .scroll-top-btn {
   background: var(--accent);
 }
 
+/* Custom-width panel — opens on a second click on the already-active width
+   preset (see _toggleCustomWidthPanel in js/whiteboard.js). Reuses
+   .gfe-dropdown/.gfe-dropdown__panel wholesale (position:fixed, positioned
+   in JS from the trigger's own getBoundingClientRect — see that class's own
+   comment for why fixed beats absolute here) rather than inventing another
+   popover; only its own inner content needs new rules. */
+.wb-width-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 200px;
+}
+.wb-width-panel__label {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+.wb-width-panel__label span { color: var(--text); font-weight: 800; }
+.wb-width-range {
+  width: 100%;
+  accent-color: var(--accent);
+  cursor: pointer;
+}
+
 /* Action buttons */
 .dc-action-btn {
   width: 32px;

@@ -42,6 +42,13 @@
   var BROADCAST_MS = 40; // flush a broadcast at most this often...
   var BROADCAST_PX = 5;  // ...or sooner if the pointer moved at least this far
   var WIDTH_PRESETS = [2, 4, 8];
+  // Range for the "custom width" slider a second click on an already-active
+  // preset opens (see _toggleCustomWidthPanel) — WIDTH_MIN goes below the
+  // thinnest preset on purpose (that was the actual ask: the presets alone
+  // didn't go thin enough), WIDTH_MAX gives real headroom above the
+  // thickest one rather than just filling in the gaps between 2/4/8.
+  var WIDTH_MIN = 0.5;
+  var WIDTH_MAX = 20;
   var MAX_DPR = 2; // matches drawing-canvas.js's own cap — see its _resize
   // Same values as js/drawing-canvas.js's own highlighter — one consistent
   // look for "highlighter" across every drawing surface in the app.
@@ -55,16 +62,30 @@
   // straight-line tools deliberately keep a constant width instead (a real
   // marker's chisel tip doesn't taper, and a ruler-straight line shouldn't
   // wobble in thickness either).
-  // These four numbers are the whole "feel" of the pen and were tuned by
-  // eye, not measured — LOGICAL_W/H means "speed" here is in logical units
-  // per millisecond, which has no intuitive real-world scale, so if the
-  // pen feels too twitchy or too flat, retune SLOW_SPEED/FAST_SPEED (the
-  // speed range the taper happens over) and MIN/MAX_MULT (how extreme the
-  // taper gets) here rather than hunting through the drawing code.
-  var VW_MIN_MULT   = 0.55; // thinnest the pen gets, as a multiple of the picked width
+  // These numbers are the whole "feel" of the pen and were tuned by eye, not
+  // measured — LOGICAL_W/H means "speed" here is in logical units per
+  // millisecond, which has no intuitive real-world scale, so if the pen
+  // feels too twitchy or too flat, retune SLOW_SPEED/FAST_SPEED (the speed
+  // range the taper happens over), MIN/MAX_MULT (how extreme the taper
+  // gets), or CURVE (see below) here rather than hunting through the
+  // drawing code.
+  // FAST_SPEED in particular used to be tuned for a fast deliberate swipe —
+  // ordinary handwriting speed sat well below it, so most normal writing
+  // only ever reached the top ~30% of the thinning range and the taper was
+  // barely visible; lowered so everyday writing speed actually crosses most
+  // of the SLOW..FAST range instead of just grazing the start of it.
+  var VW_MIN_MULT   = 0.5;  // thinnest the pen gets, as a multiple of the picked width
   var VW_MAX_MULT   = 1.6;  // thickest the pen gets, at a dead stop
-  var VW_SLOW_SPEED = 0.05; // logical units/ms at or below this -> MAX_MULT
-  var VW_FAST_SPEED = 1.3;  // logical units/ms at or above this -> MIN_MULT
+  var VW_SLOW_SPEED = 0.03; // logical units/ms at or below this -> MAX_MULT
+  var VW_FAST_SPEED = 0.45; // logical units/ms at or above this -> MIN_MULT
+  // Applied to the 0..1 SLOW..FAST position before mapping to a width (see
+  // _widthFromVelocity) — 1 would be a straight line; <1 bows the curve so
+  // it responds fastest right off VW_SLOW_SPEED and eases into MIN_MULT,
+  // instead of needing to get most of the way to FAST_SPEED before the
+  // taper becomes noticeable. This is what actually fixes "have to write
+  // unrealistically fast to see it thin out" — a curve is more forgiving of
+  // FAST_SPEED being not-quite-right than chasing an exact threshold is.
+  var VW_CURVE      = 0.55;
   var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
   var CIRCLE_SEGS   = 10;   // join-circle polygon approximation — see variableWidthPathString
 
@@ -245,7 +266,7 @@
     var dt = Math.max(1, pt.t - prevPt.t); // ms; floored so a duplicate-timestamp sample can't divide by zero
     var speed = dist(prevPt, pt) / dt; // logical units / ms
     var t = (speed - VW_SLOW_SPEED) / (VW_FAST_SPEED - VW_SLOW_SPEED);
-    t = Math.max(0, Math.min(1, t));
+    t = Math.pow(Math.max(0, Math.min(1, t)), VW_CURVE);
     var targetW = baseWidth * (VW_MAX_MULT - t * (VW_MAX_MULT - VW_MIN_MULT));
     var prevW = prevPt.w == null ? baseWidth : prevPt.w;
     return prevW + (targetW - prevW) * VW_SMOOTHING;
@@ -932,9 +953,20 @@
           WIDTH_PRESETS.map(function (w, i) {
             var dotSize = 3 + i * 3;
             return '<button type="button" class="dc-width-btn' + (i === 0 ? ' dc-width-btn--active' : '') +
-              '" data-width="' + w + '" title="Grosime linie">' +
+              '" data-width="' + w + '" title="Grosime linie (apasă din nou pentru grosime personalizată)">' +
               '<span class="dc-width-dot" style="width:' + dotSize + 'px;height:' + dotSize + 'px"></span></button>';
           }).join('') +
+          // Not a real .gfe-dropdown__trigger — clicking any of the 3
+          // preset buttons ABOVE while it's already the active one is what
+          // opens this (see the widthBtn branch in _bindToolbar), so there's
+          // no separate visible trigger of its own, just the (initially
+          // hidden) panel positioned under whichever button was clicked.
+          '<div class="gfe-dropdown wb-width-dd" id="wbWidthCustomDd">' +
+            '<div class="gfe-dropdown__panel wb-width-panel">' +
+              '<label class="wb-width-panel__label" for="wbWidthCustomRange">Grosime personalizată: <span id="wbWidthCustomVal">' + WIDTH_PRESETS[0] + '</span></label>' +
+              '<input type="range" class="wb-width-range" id="wbWidthCustomRange" min="' + WIDTH_MIN + '" max="' + WIDTH_MAX + '" step="0.5" value="' + WIDTH_PRESETS[0] + '">' +
+            '</div>' +
+          '</div>' +
         '</div>' +
         // Grid ON/OFF is a global, teacher-controlled session setting (see
         // setGridEnabled) — a student never gets this button at all, not
@@ -1047,8 +1079,37 @@
     });
   };
 
+  // #wbWidthCustomDd has no .gfe-dropdown__trigger of its own — the width
+  // preset button that was clicked a second time (see the widthBtn branch
+  // above) IS the trigger, passed in as btn — so it's positioned/opened
+  // here instead of through the generic ddTrigger click branch that handles
+  // the shape dropdowns. _closeShapeDropdowns() still closes it the same
+  // way, since that just queries .gfe-dropdown--open generically.
+  Whiteboard.prototype._toggleCustomWidthPanel = function (btn) {
+    var dd = this._toolbarEl.querySelector('#wbWidthCustomDd');
+    var wasOpen = dd.classList.contains('gfe-dropdown--open');
+    this._closeShapeDropdowns();
+    if (wasOpen) return; // the click that got us here was the "close it again" click
+    var r = btn.getBoundingClientRect();
+    var panel = dd.querySelector('.gfe-dropdown__panel');
+    panel.style.top  = (r.bottom + 6) + 'px';
+    panel.style.left = r.left + 'px';
+    var range = dd.querySelector('#wbWidthCustomRange');
+    range.value = this._width;
+    dd.querySelector('#wbWidthCustomVal').textContent = this._width;
+    dd.classList.add('gfe-dropdown--open');
+  };
+
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
+    // Custom-width slider (see _toggleCustomWidthPanel) — a plain direct
+    // listener rather than folded into the delegated 'click' handler below,
+    // since 'input' fires continuously while dragging and there's exactly
+    // one of these, not a set of buttons to match by selector.
+    this._toolbarEl.querySelector('#wbWidthCustomRange').addEventListener('input', function () {
+      self._width = parseFloat(this.value);
+      self._toolbarEl.querySelector('#wbWidthCustomVal').textContent = this.value;
+    });
     this._toolbarEl.addEventListener('click', function (e) {
       var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
       if (ddTrigger) {
@@ -1082,10 +1143,21 @@
       if (toolBtnEl) {
         self._setTool(toolBtnEl.dataset.tool);
       } else if (widthBtn) {
-        self._width = parseInt(widthBtn.dataset.width, 10);
-        self._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
-          b.classList.toggle('dc-width-btn--active', b === widthBtn);
-        });
+        // A second click on the ALREADY-active preset opens the custom
+        // slider instead of just re-selecting the same preset — and
+        // crucially does NOT touch self._width first, so it starts the
+        // slider from whatever's actually active (which might already be a
+        // custom value from a previous open of this same panel) rather
+        // than snapping back to the preset's own round number.
+        if (widthBtn.classList.contains('dc-width-btn--active')) {
+          self._toggleCustomWidthPanel(widthBtn);
+        } else {
+          self._width = parseInt(widthBtn.dataset.width, 10);
+          self._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
+            b.classList.toggle('dc-width-btn--active', b === widthBtn);
+          });
+          self._closeShapeDropdowns();
+        }
       } else if (clearBtn) {
         self._clearMine();
       } else if (gridBtn) {
