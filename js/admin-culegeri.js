@@ -64,14 +64,15 @@
     if (loading) loading.style.display = 'none';
     if (wrap)    wrap.style.display    = '';
 
-    document.getElementById('clGrade').innerHTML = GRADES.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
+    document.getElementById('clGrade').innerHTML = `<option value="" selected disabled>Alege clasa…</option>`
+      + GRADES.map(g => `<option value="${g.id}">${g.label}</option>`).join('');
     _bindUpload();
     _loadList();
   });
 
   function _resetDropZone() {
     document.getElementById('clDropMain').innerHTML = 'Trage fișierul PDF aici sau <u>alege din calculator</u>';
-    document.getElementById('clDropHint').textContent = 'PDF · Max 50MB';
+    document.getElementById('clDropHint').textContent = 'PDF · Max 200MB';
   }
 
   function _bindUpload() {
@@ -79,9 +80,10 @@
     const dropLabel  = document.getElementById('clDropLabel');
     const uploadBtn  = document.getElementById('clUploadBtn');
     const titleInput = document.getElementById('clTitle');
+    const gradeSelect = document.getElementById('clGrade');
 
     function checkReady() {
-      uploadBtn.disabled = !(selectedFile && titleInput.value.trim());
+      uploadBtn.disabled = !(selectedFile && titleInput.value.trim() && gradeSelect.value);
     }
 
     function setFile(file) {
@@ -100,6 +102,7 @@
 
     fileInput.addEventListener('change', () => setFile(fileInput.files[0]));
     titleInput.addEventListener('input', checkReady);
+    gradeSelect.addEventListener('change', checkReady);
 
     // Native drag/drop ignores the input's `accept` filter, so PDF-ness is
     // re-checked manually inside setFile() regardless of entry point.
@@ -118,7 +121,7 @@
     const btn   = document.getElementById('clUploadBtn');
     const title = document.getElementById('clTitle').value.trim();
     const grade = document.getElementById('clGrade').value;
-    if (!selectedFile || !title) return;
+    if (!selectedFile || !title || !grade) return;
 
     btn.disabled = true;
     btn.textContent = 'Se încarcă…';
@@ -140,7 +143,9 @@
       BM.toast('Culegere adăugată.', 'success');
       selectedFile = null;
       document.getElementById('clTitle').value = '';
+      document.getElementById('clGrade').value = '';
       document.getElementById('clFileInput').value = '';
+      document.getElementById('clUploadBtn').disabled = true;
       _resetDropZone();
       _loadList();
     } catch (e) {
