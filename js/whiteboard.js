@@ -1188,6 +1188,24 @@
     '<circle cx="10" cy="10" r="1.6" fill="#1a1a1a"/>' +
     '</svg>';
   var CROSSHAIR_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(CROSSHAIR_CURSOR_SVG) + '") 10 10, crosshair';
+  // The text tool used to just use the native `cursor: text` I-beam — on a
+  // dark-themed page (this whole app), Chromium picks a WHITE I-beam to
+  // match the page's own color-scheme, which is invisible against the
+  // board's own paper (always white, regardless of site theme — see the
+  // dedicated comment on that elsewhere in this file) — exactly backwards
+  // from what's needed here. Same halo technique as every other custom
+  // cursor above instead: an always-dark I-beam that's never at the mercy
+  // of the OS/browser's own light/dark cursor guess.
+  var TEXT_CURSOR_SVG =
+    '<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 20 20">' +
+    '<g stroke="#fff" stroke-width="3" stroke-linecap="round">' +
+    '<line x1="10" y1="3" x2="10" y2="17"/><line x1="6" y1="3" x2="14" y2="3"/><line x1="6" y1="17" x2="14" y2="17"/>' +
+    '</g>' +
+    '<g stroke="#1a1a1a" stroke-width="1.4" stroke-linecap="round">' +
+    '<line x1="10" y1="3" x2="10" y2="17"/><line x1="6" y1="3" x2="14" y2="3"/><line x1="6" y1="17" x2="14" y2="17"/>' +
+    '</g>' +
+    '</svg>';
+  var TEXT_CURSOR = 'url("data:image/svg+xml,' + encodeURIComponent(TEXT_CURSOR_SVG) + '") 10 10, text';
   // Classic tilted arrow-cursor glyph — the universal "selection tool"
   // icon in every drawing app, distinct from PAN_ICON's open hand (that
   // one moves the CAMERA; this one moves an OBJECT — see _findMyObjectAt).
@@ -1408,7 +1426,7 @@
       tool === 'select' ? 'default' :
       tool === 'pen' ? penCursor(this._color, Math.max(6, this._width * this._scale)) :
       tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
-      tool === 'text' ? 'text' : // native I-beam — already exactly the right affordance, no custom glyph needed
+      tool === 'text' ? TEXT_CURSOR :
       CROSSHAIR_CURSOR; // line / dashed-line / arrow
   };
 
@@ -3152,28 +3170,23 @@
         strokeLineJoin: 'round',
         selectable: false,
         evented: false,
-        // Fabric's own default (objectCaching:true) — rendering from a
-        // cached BITMAP rather than fresh from the vector path data on
-        // every paint, which matters increasingly as a board accumulates
-        // more committed objects: a PAN never changes any object's own
-        // scale, so Fabric can just blit its existing cache at a new
-        // position, no re-render needed at all — with caching off, that
-        // was instead a full re-rasterize of every single object on the
-        // board, every single pan frame. The one real risk (this was OFF
-        // for a while over exactly this) is that Fabric's own automatic
-        // cache invalidation watches canvas.getZoom(), which never
-        // actually changes here — our zoom is driven by a custom
-        // setViewportTransform (see _syncViewport), not Fabric's own
-        // zoom API — so left alone it would never notice a zoom happened
-        // and silently keep reusing a bitmap rasterized for an earlier,
-        // lower zoom, stretched (blurry) to the new one. Fixed at the
-        // root instead of worked around here: _applyPendingZoom marks
-        // every object's own dirty flag exactly once per GENUINE zoom
-        // change (never on a plain pan frame), forcing one full-
-        // resolution re-render right then — so this stays exactly as
-        // sharp at 400% as at 100%, and pan gets to actually benefit from
-        // caching the rest of the time.
-        objectCaching: true,
+        // objectCaching:true (Fabric's own default) was tried here for pan
+        // performance on a board with many committed objects — reverted
+        // after confirming (a side-by-side render of the exact same path,
+        // cached vs not) that it visibly washes out/blurs a pen stroke's
+        // FILLED variable-width outline (_strokeOutlinePieces/
+        // variableWidthPathString): a thin filled ribbon rasterized into a
+        // cache bitmap loses definition in a way a plain stroked line
+        // doesn't, and it's most visible on exactly the highest-frequency
+        // object type a lesson accumulates (freehand pen ink) — the crisp
+        // live overlay preview swapping, ~one network round-trip after
+        // pointerup, into a noticeably softer committed version. Off
+        // entirely, every object always re-renders straight from its own
+        // vector path data at the CURRENT transform, so it's exactly as
+        // sharp right after committing as at any zoom level later — the
+        // same fix this file used before objectCaching was ever turned
+        // back on, see the git history on this line.
+        objectCaching: false,
         originX: 'center',
         originY: 'center',
         data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false }
@@ -3293,6 +3306,20 @@
     });
   };
 
+  // Shared by the eraser/select hit-testing and the selection halo below —
+  // obj.strokeWidth alone is only ever the shape's ORIGINAL, unscaled
+  // stroke (set once at insert time and never touched by a resize, see
+  // _setObjectScale), so a resize-handle-dragged shape's actual on-screen
+  // ink grows/shrinks by `scale` while a tolerance computed from
+  // strokeWidth alone would stay frozen at its original-size value — comically
+  // oversized around a shrunk-down shape, barely-there around a blown-up
+  // one. Multiplying the whole band (base + padding) by the object's own
+  // current scale keeps it matching what's actually drawn at any size.
+  Whiteboard.prototype._hitTolerance = function (objId, strokeWidth, pad) {
+    var scale = this._myObjectScales.get(objId) || 1;
+    return ((strokeWidth || 2) / 2 + pad) * scale;
+  };
+
   // Eraser tool — drag over any of MY OWN strokes to delete them one at a
   // time. Scoped to own strokes only for now, same as _clearMine and the
   // DB's own owner-only delete policy: a teacher-erases-anyone tool is
@@ -3314,7 +3341,7 @@
       }
       var pts = self._myTranslatedPoints(obj.data.id);
       if (!pts) return;
-      var tol = (obj.strokeWidth || 2) / 2 + 5; // a little slack for a fast swipe — was +8, tightened along with _findMyObjectAt below (see its own comment)
+      var tol = self._hitTolerance(obj.data.id, obj.strokeWidth, 5); // a little slack for a fast swipe — was +8, tightened along with _findMyObjectAt below (see its own comment)
       if (distToPolyline(pos, pts) <= tol) {
         hitIds.push(obj.data.id);
         self._erasedThisDrag.add(obj.data.id);
@@ -3352,7 +3379,7 @@
       // handful of px of empty space next to a shape would grab it. +3
       // keeps the click target close to what's actually drawn as "this is
       // the grabbable thing" rather than a much larger invisible margin.
-      var tol = (obj.strokeWidth || 2) / 2 + 3;
+      var tol = this._hitTolerance(obj.data.id, obj.strokeWidth, 3);
       if (distToPolyline(pos, pts) <= tol) return obj;
     }
     return null;
@@ -3685,8 +3712,13 @@
       // stroke type still uses below rounded off every sharp corner, which
       // was the "hitbox lines are curved, not on the real edge" bug.
       var drawHaloSeg = (obj.data.isShape || obj.data.isText) ? drawPolylineStroke : drawSmoothStroke;
+      // Scaled by the object's own resize factor for the same reason
+      // _hitTolerance is — see its own comment — or a shrunk shape's halo
+      // stays frozen at its original size and comically swallows it whole.
+      var haloScale = self._myObjectScales.get(id) || 1;
+      var haloWidth = ((obj.strokeWidth || 2) + 3) * haloScale;
       subpaths.forEach(function (pts) {
-        drawHaloSeg(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
+        drawHaloSeg(ctx, pts, 'rgba(37,99,235,0.45)', haloWidth, 1);
       });
     });
     var handle = this._resizeHandlePos();

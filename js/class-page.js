@@ -6178,15 +6178,25 @@
     btn.title = isFs ? 'Ieși din ecran complet' : 'Ecran complet';
   }
 
-  // Explicit "step out" action — the close button. For a student this also
-  // removes them from the session's roster, so the teacher's already-open
-  // view reflects it immediately instead of showing them as still
-  // connected until the whole session ends. A teacher closing their OWN
-  // view isn't the same as ending the session — they're still hosting it
-  // either way — so their row is left untouched.
+  // Explicit "step out" action — the close button. Removes the closer from
+  // the session's roster regardless of role, so every other already-open
+  // view (the roster count/dropdown) reflects it immediately instead of
+  // showing someone as still connected after they've actually left. This
+  // used to spare the teacher's own row — the reasoning being that closing
+  // their view isn't the same as ending the session, they're still hosting
+  // it either way — but that made the roster lie: a student watching the
+  // participant count would keep seeing the teacher as present for as long
+  // as the session stayed live, even minutes after the teacher had actually
+  // closed the board and walked away. Ending the session is still a wholly
+  // separate action (endWhiteboard, the "Încheie" button back on the class
+  // page) that doesn't touch whiteboard_participants at all — a teacher who
+  // closes and later reopens the still-live session just rejoins the same
+  // way a student would (join_whiteboard_session re-inserts their row,
+  // same reserved color as before), so nothing but the live "who's here"
+  // count actually changes here.
   function _leaveTablaLiveModal() {
     const sessionId = _openTablaSessionId;
-    if (sessionId && BMAuth.role !== 'profesor') {
+    if (sessionId) {
       BMAuth.supabase.from('whiteboard_participants')
         .delete().eq('session_id', sessionId).eq('user_id', BMAuth.user.id)
         .then(() => {}, () => {});
