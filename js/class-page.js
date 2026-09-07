@@ -6248,10 +6248,10 @@
     const students = _tablaRosterCache.filter(p => p.role !== 'profesor');
     if (!_tablaRosterCache.length) return `<div class="wb-roster-dropdown__empty">Niciun participant încă</div>`;
 
-    function nameAndYou(p) {
+    function isMe(p) { return p.user_id === BMAuth.user.id; }
+    function nameOnly(p) {
       const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
-      const you = p.user_id === BMAuth.user.id ? '<span class="wb-roster-row__you">tu</span>' : '';
-      return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span>${you}</span>`;
+      return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span></span>`;
     }
     function avatar(p) {
       const name = p.display_name || '??';
@@ -6267,18 +6267,18 @@
 
     return `
       ${teacher ? `
-        <div class="wb-roster-row wb-roster-row--teacher">
+        <div class="wb-roster-row wb-roster-row--teacher${isMe(teacher) ? ' wb-roster-row--me' : ''}">
           ${avatar(teacher)}
-          ${nameAndYou(teacher)}
+          ${nameOnly(teacher)}
           <span class="wb-roster-row__badge">Profesor</span>
         </div>
       ` : ''}
       ${students.length ? `
         <div class="wb-roster-dropdown__divider"></div>
         ${students.map(p => `
-          <div class="wb-roster-row">
+          <div class="wb-roster-row${isMe(p) ? ' wb-roster-row--me' : ''}">
             ${avatar(p)}
-            ${nameAndYou(p)}
+            ${nameOnly(p)}
             ${lockBtn(p)}
           </div>
         `).join('')}

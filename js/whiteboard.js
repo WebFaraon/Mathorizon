@@ -417,21 +417,32 @@
   // guarantee, just a target.
   var GRID_CELL_TARGET_PX_MIN = 22;
   var GRID_CELL_TARGET_PX_MAX = 46;
-  // The finer subdivision within each major cell (idroo/Miro-style — see
-  // _redrawGrid) — 5 per side, same as classic quad-ruled paper. Its own
-  // opacity fades in continuously between these two on-screen sizes: below
-  // MIN it isn't drawn at all (too dense to help, just visual noise), at
-  // and above MAX it's fully at MINOR_GRID_OPACITY. Zoom continuously
-  // through that range and the subdivision fades in smoothly; keep
-  // zooming past it and niceGridStep promotes it to the new MAJOR step
-  // while an even finer one starts fading in beneath — repeating for as
-  // many tiers as MAX_ZOOM allows, which is the "keeps subdividing" feel
-  // being asked for (not literally infinite, just as deep as zoom goes).
+  // The idroo/Miro-style nested subdivision (see _redrawGrid): every major
+  // cell is split into MINOR_GRID_SUBDIVISIONS² smaller ones, which are
+  // themselves split again, and so on — as many levels deep as the current
+  // zoom makes visible. Unlike the very first version of this, the level-0
+  // ("major") step is computed ONCE per _applySize (see this._gridBaseStep)
+  // from the container size alone, NOT from the live zoom — so it never
+  // re-snaps to a different nice-round-number mid-gesture. Every deeper
+  // level is just that same fixed step divided by SUBDIVISIONS repeatedly,
+  // so every line, at every level, sits at a fixed LOGICAL position that
+  // never moves or swaps out from under the user while zooming — cells
+  // never disappear, new finer ones just fade in inside them. A level's
+  // opacity fades in continuously as its own on-screen size crosses from
+  // FADE_MIN_PX (invisible, too dense to help) to FADE_MAX_PX (fully at
+  // MINOR_GRID_OPACITY) — and once a level is fully faded in, it just
+  // stays there; it's the next, finer level that starts fading in beneath
+  // it. Level 0 itself is always drawn at the bolder MAJOR_GRID_OPACITY,
+  // permanently (its own on-screen size only ever grows with zoom, never
+  // shrinks below the fade band). How many levels actually become visible
+  // before MAX_ZOOM is reached falls out of this math on its own — no
+  // separate cap needed.
   var MINOR_GRID_SUBDIVISIONS = 5;
   var MINOR_GRID_FADE_MIN_PX  = 6;
   var MINOR_GRID_FADE_MAX_PX  = 14;
   var MAJOR_GRID_OPACITY = 0.16;
   var MINOR_GRID_OPACITY = 0.10;
+  var GRID_MAX_LEVELS = 8; // safety cap on the subdivision loop; the fade-out condition always stops it well before this in practice
 
   // Same icon glyphs js/drawing-canvas.js uses for these exact tools/actions
   // — one consistent visual language across every drawing surface in the
@@ -824,6 +835,14 @@
     this._viewportH = vh;
     this._dpr       = dpr;
     this._scale     = baseScale * this._zoom;
+    // The grid's level-0 step, fixed in LOGICAL units from here until the
+    // next resize — deliberately computed from baseScale (the container's
+    // own fit-to-screen scale), never this._scale, so it stays constant
+    // across every zoom/pan step in between and the grid lines never jump.
+    // See _redrawGrid and the constants above for the rest of the scheme.
+    var gridMinDim = Math.min(vw, vh);
+    var gridTargetPx = Math.max(GRID_CELL_TARGET_PX_MIN, Math.min(GRID_CELL_TARGET_PX_MAX, gridMinDim / 14));
+    this._gridBaseStep = niceGridStep(gridTargetPx / baseScale);
     this._panX = vw / 2 - centerLogicalX * this._scale;
     this._panY = vh / 2 - centerLogicalY * this._scale;
     this._clampCamera();
@@ -918,45 +937,44 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
     if (!this._gridOn) return;
-    // The target itself scales down on a small viewport (a phone) rather
-    // than staying one fixed CSS-px number everywhere — a flat 40px
-    // target, tried first, is IDENTICAL in absolute size on any device,
-    // but that's exactly the problem: on a narrow phone screen it's a much
-    // bigger fraction of the whole visible board than the same 40px is on
-    // a desktop, so the same math that looked fine on a laptop rendered
-    // way too few, way-too-chunky-looking squares on mobile. Tying the
-    // target to the viewport's own smaller dimension keeps roughly the
-    // same NUMBER of cells visible across device sizes instead.
-    var minDim = Math.min(this._viewportW || 800, this._viewportH || 600);
-    var targetPx = Math.max(GRID_CELL_TARGET_PX_MIN, Math.min(GRID_CELL_TARGET_PX_MAX, minDim / 14));
-    var majorStep = niceGridStep(targetPx / this._scale);
     var lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
 
-    // Minor subdivision drawn FIRST (so the major lines land on top at
-    // full opacity wherever a major line and a minor line coincide, every
-    // MINOR_GRID_SUBDIVISIONS-th one) — its opacity is a continuous
-    // function of its own on-screen size, which is what actually produces
-    // the "fades in as you zoom deeper into this tier" effect; see the
-    // constants' own comment for the rest of the mechanism.
-    var minorStep = majorStep / MINOR_GRID_SUBDIVISIONS;
-    var minorPx = minorStep * this._scale;
-    var minorT = (minorPx - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX);
-    minorT = Math.max(0, Math.min(1, minorT));
-    if (minorT > 0) {
-      ctx.strokeStyle = 'rgba(20,16,8,' + (MINOR_GRID_OPACITY * minorT) + ')';
-      ctx.lineWidth = lineWidth;
-      ctx.beginPath();
-      for (var mx = 0; mx <= LOGICAL_W; mx += minorStep) { ctx.moveTo(mx, 0); ctx.lineTo(mx, LOGICAL_H); }
-      for (var my = 0; my <= LOGICAL_H; my += minorStep) { ctx.moveTo(0, my); ctx.lineTo(LOGICAL_W, my); }
-      ctx.stroke();
+    // Build the list of steps from level 0 (coarsest, fixed — see
+    // this._gridBaseStep) down to however fine a level is still visible at
+    // the current zoom — each level is the previous one's step divided by
+    // MINOR_GRID_SUBDIVISIONS, so every line at every level sits at a fixed
+    // logical position that never shifts as zoom changes; only whether a
+    // given (always-the-same) line is currently faded in changes.
+    var baseStep = this._gridBaseStep || niceGridStep(Math.min(GRID_CELL_TARGET_PX_MAX, 32) / this._scale);
+    var steps = [baseStep];
+    for (var i = 1; i < GRID_MAX_LEVELS; i++) {
+      var nextStep = steps[i - 1] / MINOR_GRID_SUBDIVISIONS;
+      if (nextStep * this._scale < MINOR_GRID_FADE_MIN_PX) break;
+      steps.push(nextStep);
     }
 
-    ctx.strokeStyle = 'rgba(20,16,8,' + MAJOR_GRID_OPACITY + ')';
-    ctx.lineWidth = lineWidth;
-    ctx.beginPath();
-    for (var x = 0; x <= LOGICAL_W; x += majorStep) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-    for (var y = 0; y <= LOGICAL_H; y += majorStep) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
-    ctx.stroke();
+    // Drawn finest-first, coarsest-last, so level 0 (and any other
+    // already-fully-faded-in level) paints on top at full opacity wherever
+    // its lines coincide with a finer level's — same reasoning the old
+    // two-tier version used, just generalized to N levels.
+    for (var lvl = steps.length - 1; lvl >= 0; lvl--) {
+      var step = steps[lvl];
+      var opacity;
+      if (lvl === 0) {
+        opacity = MAJOR_GRID_OPACITY;
+      } else {
+        var stepPx = step * this._scale;
+        var t = Math.max(0, Math.min(1, (stepPx - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX)));
+        opacity = MINOR_GRID_OPACITY * t;
+        if (opacity <= 0) continue;
+      }
+      ctx.strokeStyle = 'rgba(20,16,8,' + opacity + ')';
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      for (var x = 0; x <= LOGICAL_W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
+      for (var y = 0; y <= LOGICAL_H; y += step) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
+      ctx.stroke();
+    }
   };
 
   // clientX/clientY (viewport coordinates), when given, keep whatever

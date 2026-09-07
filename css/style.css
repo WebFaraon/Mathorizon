@@ -119,7 +119,9 @@ table {
   flex-shrink: 0;
   vertical-align: middle;
 }
+.icon-14 { width: 14px; height: 14px; }
 .icon-16 { width: 16px; height: 16px; }
+.icon-18 { width: 18px; height: 18px; }
 .icon-20 { width: 20px; height: 20px; }
 .icon-24 { width: 24px; height: 24px; }
 .icon-32 { width: 32px; height: 32px; }
@@ -12772,6 +12774,13 @@ body.wb-fullscreen-active .scroll-top-btn {
   text-transform: uppercase;
   color: var(--accent);
   white-space: nowrap;
+  /* Josefin Sans' own metrics sit its ink noticeably higher within its line
+     box than the title input's font does within its 40px-tall box (measured
+     ~2px, pixel-checked) — a plain flex/align-items:center match isn't
+     enough since that only centers each one's LINE box, not its visible
+     ink. Nudged down by eye/measurement to land level with the title. */
+  position: relative;
+  top: 2px;
 }
 /* Read-only (students) vs editable (teacher) session title — see
    openWhiteboardLiveView/_bindTablaTitleInput in js/class-page.js. Same
@@ -12901,8 +12910,13 @@ body.wb-fullscreen-active .scroll-top-btn {
   border-radius: 8px;
 }
 .wb-roster-row--teacher {
-  background: var(--accent-dim);
   margin-bottom: 4px;
+}
+/* Whichever row is the CURRENT viewer — teacher or student, doesn't matter
+   which — not the teacher's row specifically; the badge alone already
+   marks the teacher, so this highlight's only job is "this one is you". */
+.wb-roster-row--me {
+  background: var(--accent-dim);
 }
 .wb-roster-row__avatar {
   flex-shrink: 0;
@@ -12931,13 +12945,6 @@ body.wb-fullscreen-active .scroll-top-btn {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.wb-roster-row__you {
-  flex-shrink: 0;
-  font-size: 0.74rem;
-  font-weight: 500;
-  font-style: italic;
-  color: var(--text-muted);
-}
 .wb-roster-row__badge {
   flex-shrink: 0;
   font-size: 0.66rem;
@@ -12954,9 +12961,9 @@ body.wb-fullscreen-active .scroll-top-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
-  border-radius: 7px;
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
   border: 1px solid var(--border);
   background: transparent;
   color: var(--text-muted);
