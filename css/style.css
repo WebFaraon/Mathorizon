@@ -3121,12 +3121,14 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .diff-chip:hover { opacity: 0.9; }
 .diff-chip--active { opacity: 1; }
-.diff-chip--usor    { color: var(--green);  border-color: var(--green-border); }
-.diff-chip--mediu   { color: var(--yellow); border-color: var(--yellow-border); }
-.diff-chip--dificil { color: var(--red);    border-color: var(--red-border); }
-.diff-chip--usor.diff-chip--active    { background: var(--green-dim); }
-.diff-chip--mediu.diff-chip--active   { background: var(--yellow-dim); }
-.diff-chip--dificil.diff-chip--active { background: var(--red-dim); }
+.diff-chip--usor     { color: var(--green);  border-color: var(--green-border); }
+.diff-chip--mediu    { color: var(--yellow); border-color: var(--yellow-border); }
+.diff-chip--dificil  { color: var(--red);    border-color: var(--red-border); }
+.diff-chip--legendar { color: var(--rarity-legendar-b, #B45309); border-color: var(--rarity-legendar-border, rgba(180,83,9,0.4)); }
+.diff-chip--usor.diff-chip--active     { background: var(--green-dim); }
+.diff-chip--mediu.diff-chip--active    { background: var(--yellow-dim); }
+.diff-chip--dificil.diff-chip--active  { background: var(--red-dim); }
+.diff-chip--legendar.diff-chip--active { background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); }
 
 .type-badge {
   padding: 1px 7px;
@@ -13774,12 +13776,17 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .sim-wz-item__actions { display: flex; gap: 2px; flex-shrink: 0; }
 
-/* Exercise picker (nested modal) */
+/* Exercise picker (nested modal) — nowrap + horizontal scroll instead of
+   flex-shrink, so a narrow phone screen scrolls the tab strip sideways
+   instead of wrapping "Adaugă exercițiu nou din poză" mid-word. */
 .sim-picker-tabs {
   display: flex;
   gap: 8px;
   margin-bottom: 16px;
   border-bottom: 1px solid var(--border);
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 .sim-picker-tab {
   padding: 10px 14px;
@@ -13790,6 +13797,8 @@ body.wb-fullscreen-active .scroll-top-btn {
   font-size: 0.86rem;
   cursor: pointer;
   border-bottom: 2px solid transparent;
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 .sim-picker-tab--active { color: var(--accent); border-bottom-color: var(--accent); }
 
@@ -13826,7 +13835,7 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sim-picker-confirm-placeholder {
   color: var(--text-muted);
   font-size: 0.86rem;
-  padding: 12px 0;
+  padding: 12px 14px;
 }
 .sim-picker-results {
   max-height: 260px;
@@ -15402,6 +15411,21 @@ body.wb-fullscreen-active .scroll-top-btn {
   margin-bottom: 20px;
 }
 
+/* ── Wizard / exercise-picker — mobile ───────────────────────────────
+   None of .wz-overlay/.wz-dialog/.wz-head/.wz-body had a narrow-screen
+   override before this — on a phone the fixed 20-24px paddings alone ate
+   a big chunk of the already-tight width, and .sim-picker-tabs (below)
+   had no flex-shrink guard so its two labels wrapped mid-word instead of
+   just staying on one line. */
+@media (max-width: 600px) {
+  .wz-overlay { padding: 10px; }
+  #simPickerModal.wz-overlay { padding: 8px; }
+  .wz-dialog { max-height: 94vh; border-radius: 14px; }
+  .wz-head { padding: 14px 16px; gap: 10px; }
+  .wz-body { padding: 16px; }
+  .wz-foot { padding: 12px 16px; flex-wrap: wrap; gap: 10px; }
+}
+
 /* ── Step 1 — Type grid ──────────────────────────────────── */
 .wz-type-grid {
   display: grid;
@@ -15569,12 +15593,12 @@ body.wb-fullscreen-active .scroll-top-btn {
 .wz-toggle input:checked ~ .wz-toggle__track .wz-toggle__thumb { transform: translateX(16px); }
 
 /* Multiple-choice options builder (wizard/picker) */
-.sim-opt-list { display: flex; flex-direction: column; gap: 10px; margin-top: 8px; }
+.sim-opt-list { display: flex; flex-direction: column; gap: 12px; margin-top: 8px; }
 .sim-opt-row {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 16px;
+  padding: 10px 14px;
   border: 1.5px solid var(--border);
   border-radius: 12px;
   background: var(--card);

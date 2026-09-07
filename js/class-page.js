@@ -5245,9 +5245,10 @@
   }
 
   const SIM_DIFF_CHIPS = [
-    { id: 'usor',    label: 'Ușor' },
-    { id: 'mediu',   label: 'Mediu' },
-    { id: 'dificil', label: 'Greu' }
+    { id: 'usor',     label: 'Ușor' },
+    { id: 'mediu',    label: 'Mediu' },
+    { id: 'dificil',  label: 'Greu' },
+    { id: 'legendar', label: 'Legendar' }
   ];
 
   function _simDiffChipsHtml() {
@@ -5266,8 +5267,12 @@
      ever open at a time, so a single module-level state is safe. */
   let _simOptBuilder = null;
 
-  function _simOptBuilderInit() {
-    _simOptBuilder = { answerType: 'liber', options: [{ label: '', isCorrect: true }, { label: '', isCorrect: false }] };
+  // suggestedAnswer pre-fills the first (initially-correct) option with the
+  // same auto-extracted answer the "Răspuns liber" field gets — the teacher
+  // only has to move it to a different slot if the correct answer isn't
+  // meant to be first, not retype it from scratch either way.
+  function _simOptBuilderInit(suggestedAnswer) {
+    _simOptBuilder = { answerType: 'liber', options: [{ label: suggestedAnswer || '', isCorrect: true }, { label: '', isCorrect: false }] };
   }
 
   // Swaps which of the two answer-type fields is visible, fading the one
@@ -5454,13 +5459,17 @@
         // into a 9-a class's picker just because they share one taxonomy.
         if (ex._custom && ex.grade !== simPicker.gradeCode) return false;
         return true;
-      }).slice(0, 40);
+      });
+      // No cap here — the whole point of picking a Capitol/Subcapitol first
+      // is to already narrow this down to a browsable list; a hard slice(0,40)
+      // used to silently hide the rest of a subcategory (calcul-algebric alone
+      // has 200+ exercises) with no indication anything was cut off.
 
       let customQuery = BMAuth.supabase.from('custom_exercises').select('*').eq('grade', simPicker.gradeCode)
         .eq('category_id', simPicker.categoryId);
       if (simPicker.subcategoryId) customQuery = customQuery.eq('subcategory_id', simPicker.subcategoryId);
       if (simPicker.difficulty)    customQuery = customQuery.eq('difficulty', simPicker.difficulty);
-      const { data: customMatches } = await customQuery.limit(40);
+      const { data: customMatches } = await customQuery.limit(500);
 
       results = [
         ...staticMatches.map(ex => Object.assign({}, ex, { _source: 'bank' })),
@@ -5508,7 +5517,7 @@
     const confirmEl = document.getElementById('simPickConfirm');
     if (!confirmEl) return;
     const defaultPoints = ex.puncteTotal || (ex.barem || []).reduce((s, p) => s + (p.puncte_maxime || 0), 0) || 5;
-    _simOptBuilderInit();
+    _simOptBuilderInit(suggested);
 
     confirmEl.innerHTML = `
       <div class="sim-picker-confirm">
@@ -5640,7 +5649,8 @@
 
   function _simPickerRenderPhotoReview(r) {
     const resultEl = document.getElementById('simPickPhotoResult');
-    _simOptBuilderInit();
+    const suggestedAiAnswer = BM.latexToPlain(r.raspuns_final || '');
+    _simOptBuilderInit(suggestedAiAnswer);
     resultEl.innerHTML = `
       <div class="sim-picker-photo-review">
         ${r.verificat === false ? `
@@ -5666,7 +5676,7 @@
         ${_simAnswerTypeRadioHtml('simPickAi')}
         <div id="simPickAiAnswerWrap" class="cls-form-field">
           <label class="cls-form-label">Răspuns final</label>
-          <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(BM.latexToPlain(r.raspuns_final || ''))}">
+          <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(suggestedAiAnswer)}">
           <span class="cls-form-hint">Gemini întoarce LaTeX brut — l-am convertit în text simplu (√, ∈, etc.), dar verifică-l înainte de a confirma. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine — corectarea compară text exact.</span>
         </div>
         <div id="simPickAiOptionsWrap" style="display:none">${_simOptBuilderRowsHtml()}</div>
