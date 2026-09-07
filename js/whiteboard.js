@@ -74,8 +74,14 @@
   // only ever reached the top ~30% of the thinning range and the taper was
   // barely visible; lowered so everyday writing speed actually crosses most
   // of the SLOW..FAST range instead of just grazing the start of it.
-  var VW_MIN_MULT   = 0.5;  // thinnest the pen gets, as a multiple of the picked width
-  var VW_MAX_MULT   = 1.6;  // thickest the pen gets, at a dead stop
+  // Sensitivity (how early the taper kicks in — SLOW/FAST/CURVE below) and
+  // range (how extreme it gets — MIN/MAX here) turned out to need separate
+  // tuning passes: sensitivity was fine once raised, but the resulting
+  // thin-while-moving vs. thick-dot-at-a-stop contrast was too extreme —
+  // narrowed from 0.5..1.6 (3.2x) to 0.65..1.4 (2.15x) without touching the
+  // speed thresholds/curve shape that fixed the sensitivity separately.
+  var VW_MIN_MULT   = 0.65; // thinnest the pen gets, as a multiple of the picked width
+  var VW_MAX_MULT   = 1.4;  // thickest the pen gets, at a dead stop
   var VW_SLOW_SPEED = 0.03; // logical units/ms at or below this -> MAX_MULT
   var VW_FAST_SPEED = 0.45; // logical units/ms at or above this -> MIN_MULT
   // Applied to the 0..1 SLOW..FAST position before mapping to a width (see
@@ -270,6 +276,38 @@
     }
     var last = points[points.length - 1];
     ctx.lineTo(last.x, last.y);
+    ctx.stroke();
+    ctx.restore();
+  }
+
+  // Straight-edged counterpart of drawSmoothStroke — for the selection
+  // halo around a shape/body (see _drawSelectionOverlay), whose subpaths
+  // are precise polygon edges, not sampled freehand input. Running those
+  // through drawSmoothStroke's quadratic-curve fit rounded every sharp
+  // corner into a curve, which is exactly the "hitbox is round/curvy
+  // instead of following the actual straight edge" artifact — a shape's
+  // OWN outline is always drawn with plain straight lines already
+  // (_insertShape just joins M/L points), so its highlight needs to match
+  // that, not the freehand-smoothing convention.
+  function drawPolylineStroke(ctx, points, color, width, opacity) {
+    if (!points.length) return;
+    ctx.save();
+    ctx.globalAlpha = opacity == null ? 1 : opacity;
+    if (points.length === 1) {
+      ctx.fillStyle = color;
+      ctx.beginPath();
+      ctx.arc(points[0].x, points[0].y, width / 2, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.restore();
+      return;
+    }
+    ctx.strokeStyle = color;
+    ctx.lineWidth   = width;
+    ctx.lineCap     = 'round';
+    ctx.lineJoin    = 'round';
+    ctx.beginPath();
+    ctx.moveTo(points[0].x, points[0].y);
+    for (var i = 1; i < points.length; i++) ctx.lineTo(points[i].x, points[i].y);
     ctx.stroke();
     ctx.restore();
   }
@@ -593,17 +631,41 @@
   // reuse that module's exact SHAPE_ICONS glyphs for visual consistency
   // between the two tools.
   var SHAPE_DEFS = {
+    // Every 2D shape's size constants below were rescaled (see the
+    // conversation this shipped in) so each one's bounding-box diagonal
+    // comes out to ~235 logical units, same target as the 3D bodies further
+    // down — before this, a stamped cube was ~40% bigger than a stamped
+    // pyramid dropped at the same moment, purely from each shape's own
+    // half-extent constants never having been calibrated against each
+    // other. Aspect ratios (square/circle/rhombus/etc.) are untouched —
+    // only the overall scale changed.
     patrat: {
       label: 'Pătrat', icon: '<rect x="4.5" y="4.5" width="15" height="15"/>',
       build: function (cx, cy) {
-        var h = 82; // equal half-extent on both axes — was hw=90/hh=70, an actual rectangle
+        var h = 83; // equal half-extent on both axes — was hw=90/hh=70, an actual rectangle
         return [[{ x: cx - h, y: cy - h }, { x: cx + h, y: cy - h }, { x: cx + h, y: cy + h }, { x: cx - h, y: cy + h }, { x: cx - h, y: cy - h }]];
       }
     },
-    'tri-isoscel': {
-      label: 'Triunghi isoscel', icon: '<path d="M12 3 5 20 19 20Z"/>',
+    'tri-echilateral': {
+      // What "tri-isoscel" actually was before this — kept (as its own
+      // correctly-named shape) since an equilateral triangle is a real,
+      // separately useful option, not just a mislabeled placeholder.
+      label: 'Triunghi echilateral', icon: '<path d="M12 3 4 20 20 20Z"/>',
       build: function (cx, cy) {
-        var hw = 90, hh = 75;
+        // Base = 2*hw, slant side = sqrt(hw²+(2hh)²); equal side lengths
+        // (the actual definition of equilateral, not just "looks roughly
+        // even") needs hh = hw·√3/2.
+        var hw = 89, hh = hw * Math.sqrt(3) / 2;
+        return [[{ x: cx, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx, y: cy - hh }]];
+      }
+    },
+    'tri-isoscel': {
+      // A genuinely different shape from tri-echilateral now — 2 equal
+      // (the slant sides) and a 3rd, clearly different one (the base),
+      // instead of the old shape which actually had all 3 sides equal.
+      label: 'Triunghi isoscel', icon: '<path d="M12 2 7 20 17 20Z"/>',
+      build: function (cx, cy) {
+        var hw = 59, hh = 102;
         return [[{ x: cx, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx, y: cy - hh }]];
       }
     },
@@ -617,14 +679,14 @@
     trapez: {
       label: 'Trapez', icon: '<path d="M9 6 15 6 20 18 4 18Z"/>',
       build: function (cx, cy) {
-        var hw = 95, hh = 65, topHw = hw * 0.5;
+        var hw = 97, hh = 66, topHw = hw * 0.5;
         return [[{ x: cx - topHw, y: cy - hh }, { x: cx + topHw, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - topHw, y: cy - hh }]];
       }
     },
     paralelogram: {
       label: 'Paralelogram', icon: '<path d="M8 6 20 6 16 18 4 18Z"/>',
       build: function (cx, cy) {
-        var hw = 90, hh = 65, skew = 35;
+        var hw = 105, hh = 53, skew = 41; // hh was 65 — too tall for a parallelogram, flattened on top of the general size pass
         return [[{ x: cx - hw + skew, y: cy - hh }, { x: cx + hw, y: cy - hh }, { x: cx + hw - skew, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - hw + skew, y: cy - hh }]];
       }
     },
@@ -647,7 +709,7 @@
     },
     hexagon: {
       label: 'Hexagon', icon: '<path d="M8 4 16 4 20.5 12 16 20 8 20 3.5 12Z"/>',
-      build: function (cx, cy) { return [regularPolygonPts(cx, cy, 90, 90, 6, -30)]; }
+      build: function (cx, cy) { return [regularPolygonPts(cx, cy, 89, 89, 6, -30)]; }
     },
     octagon: {
       label: 'Octagon', icon: '<path d="M8.5 3.5 15.5 3.5 20.5 8.5 20.5 15.5 15.5 20.5 8.5 20.5 3.5 15.5 3.5 8.5Z"/>',
@@ -655,20 +717,22 @@
     },
     stea: {
       label: 'Stea', icon: '<path d="M12 3 14.4 9.6 21.5 9.8 15.8 14 17.9 21 12 16.9 6.1 21 8.2 14 2.5 9.8 9.6 9.6Z"/>',
-      build: function (cx, cy) { return [starPts(cx, cy, 95, 95, 5, 0.42)]; }
+      build: function (cx, cy) { return [starPts(cx, cy, 90, 90, 5, 0.42)]; }
     },
     cerc: {
       label: 'Cerc', icon: '<circle cx="12" cy="12" r="8.5"/>',
-      build: function (cx, cy) { return [ellipsePts(cx, cy, 82, 82, 48)]; } // equal radii — was 90/75, an ellipse
+      build: function (cx, cy) { return [ellipsePts(cx, cy, 83, 83, 48)]; } // equal radii — was 90/75, an ellipse
     },
     'patrat-rotunjit': {
       label: 'Pătrat rotunjit', icon: '<rect x="4.5" y="4.5" width="15" height="15" rx="4"/>',
-      build: function (cx, cy) { return [roundedRectPts(cx - 90, cy - 70, cx + 90, cy + 70, 26)]; }
+      // Same hw≠hh bug patrat itself had — a "rounded square" with unequal
+      // width/height is really just a rounded rectangle.
+      build: function (cx, cy) { return [roundedRectPts(cx - 83, cy - 83, cx + 83, cy + 83, 26)]; }
     },
     semicerc: {
       label: 'Semicerc', icon: '<path d="M4 16h16"/><path d="M4 16a8 8 0 0 1 16 0"/>',
       build: function (cx, cy) {
-        var rx = 95, h = 90;
+        var rx = 106, h = 101;
         var pts = ellipseArcPts(cx, cy + h / 2, rx, h, Math.PI, 2 * Math.PI, 24);
         pts.push(pts[0]);
         return [pts];
@@ -690,7 +754,11 @@
         // the front face, and so the whole cube, visibly a squashed box)
         // plus a clean angle+length depth vector instead of the old ad-hoc
         // dx/dy, which didn't even make the front and back faces congruent.
-        var s = 72, depthLen = 92, depthAngle = -36 * Math.PI / 180;
+        // s/depthLen also both scaled down from an early pass at this (72/
+        // 92) — that version came out ~40% bigger than the other 3D bodies
+        // when stamped side by side, since nothing had normalized them
+        // against each other yet; see the 2D shapes' own comment above.
+        var s = 57, depthLen = 73, depthAngle = -36 * Math.PI / 180;
         var dx = Math.cos(depthAngle) * depthLen, dy = Math.sin(depthAngle) * depthLen;
         var F0 = { x: cx - s, y: cy - s }, F1 = { x: cx + s, y: cy - s }, F2 = { x: cx + s, y: cy + s }, F3 = { x: cx - s, y: cy + s };
         var B0 = { x: F0.x + dx, y: F0.y + dy }, B1 = { x: F1.x + dx, y: F1.y + dy }, B2 = { x: F2.x + dx, y: F2.y + dy }, B3 = { x: F3.x + dx, y: F3.y + dy };
@@ -708,7 +776,7 @@
       label: 'Piramidă (bază pătrată)',
       icon: '<path d="M4 18 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 12 13"/><path d="M12 13 4 18"/><path d="M12 13 20 18"/>',
       build: function (cx, cy) {
-        var hw = 85, dx = 55, dy = 38, topY = cy - 95, botY = cy + 55;
+        var hw = 88, dx = 57, dy = 39, topY = cy - 99, botY = cy + 57; // scaled to match the other 3D bodies' size — see the 2D shapes' own comment on the same pass
         var p0 = { x: cx - hw, y: botY }, p1 = { x: cx + hw - dx, y: botY }, p2 = { x: cx + hw, y: botY - dy }, p3 = { x: cx - hw + dx, y: botY - dy };
         var apex = { x: (p0.x + p2.x) / 2, y: topY };
         // Same reasoning as the cube: the base is always hidden (it's the
@@ -723,18 +791,23 @@
     },
     'piramida-triunghiulara': {
       label: 'Piramidă (bază triunghiulară)',
-      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 20 18"/>',
+      // Last segment was "M12 13 20 18" — a transposed-coordinate typo that
+      // sent it to (20,18) instead of the base's actual right corner
+      // (18,20), drawing a stray crossed line instead of connecting to it.
+      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 18 20"/>',
       build: function (cx, cy) {
-        var hw = 85, baseY = cy + 65, backY = cy + 30, topY = cy - 95;
+        var hw = 86, baseY = cy + 65, backY = cy + 30, topY = cy - 96; // scaled to match the other 3D bodies' size
         var p0 = { x: cx - hw, y: baseY }, p1 = { x: cx + hw, y: baseY }, p2 = { x: cx, y: backY }, apex = { x: cx, y: topY };
-        // Only 3 lateral faces here (front/right/left, no separate "back"
-        // like the square-base shapes above) plus the always-hidden base —
-        // front and right stay visible, left is the hidden one, so only its
-        // base edge (p0-p2) is hidden; apex-p2 still borders the visible
-        // right face, so it stays solid.
+        // Only the front face (apex, p0, p1) is genuinely visible here —
+        // the base is always hidden (resting on the ground) and, with a
+        // single back vertex rather than a separate back+left+right like
+        // the square-base pyramid, BOTH other lateral faces (apex,p1,p2 and
+        // apex,p2,p0) recede away from the viewer too. p2 is the one vertex
+        // bordering nothing but hidden faces, so all 3 of ITS edges are
+        // hidden — not just p0-p2, which is what this shipped with first.
         return {
-          subpaths: [[p0, p1], [p1, p2], [apex, p0], [apex, p1], [apex, p2]],
-          hidden: [[p0, p2]]
+          subpaths: [[p0, p1], [apex, p0], [apex, p1]],
+          hidden: [[p1, p2], [p0, p2], [apex, p2]]
         };
       }
     },
@@ -749,7 +822,7 @@
       label: 'Con',
       icon: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M4.5 18a7.5 2 0 0 1 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
       build: function (cx, cy) {
-        var rx = 85, ry = 24, apexY = cy - 95, baseY = cy + 55;
+        var rx = 82, ry = 23, apexY = cy - 92, baseY = cy + 53; // scaled to match the other 3D bodies' size
         var front = ellipseArcPts(cx, baseY, rx, ry, 0, Math.PI, 24);
         var back  = ellipseArcPts(cx, baseY, rx, ry, Math.PI, 2 * Math.PI, 24);
         return {
@@ -762,14 +835,21 @@
       label: 'Cilindru',
       icon: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 17a7.5 2 0 0 1 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>',
       build: function (cx, cy) {
-        var rx = 85, ry = 22, topY = cy - 70, botY = cy + 70;
-        var topFront = ellipseArcPts(cx, topY, rx, ry, 0, Math.PI, 24);
-        var topBack  = ellipseArcPts(cx, topY, rx, ry, Math.PI, 2 * Math.PI, 24);
+        var rx = 80, ry = 21, topY = cy - 66, botY = cy + 66; // scaled to match the other 3D bodies' size
+        // The top rim is fully visible — you're looking down onto the
+        // cylinder's own flat top disk, seeing its whole boundary, the same
+        // way you'd see the full rim of a real cup from slightly above.
+        // Only the BOTTOM rim has a genuinely hidden half: its far arc is
+        // occluded by the cylinder's own curved side (the bottom face
+        // itself faces away, resting on the ground, same as every other
+        // body here) — this shipped with both rims dashed on their far
+        // side at first, which dashed the top one backwards.
+        var topFull  = ellipsePts(cx, topY, rx, ry, 28);
         var botFront = ellipseArcPts(cx, botY, rx, ry, 0, Math.PI, 24);
         var botBack  = ellipseArcPts(cx, botY, rx, ry, Math.PI, 2 * Math.PI, 24);
         return {
-          subpaths: [topFront, botFront, [{ x: cx - rx, y: topY }, { x: cx - rx, y: botY }], [{ x: cx + rx, y: topY }, { x: cx + rx, y: botY }]],
-          hidden: [topBack, botBack]
+          subpaths: [topFull, botFront, [{ x: cx - rx, y: topY }, { x: cx - rx, y: botY }], [{ x: cx + rx, y: topY }, { x: cx + rx, y: botY }]],
+          hidden: [botBack]
         };
       }
     },
@@ -777,7 +857,7 @@
       label: 'Sferă',
       icon: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6"/>',
       build: function (cx, cy) {
-        var r = 85;
+        var r = 83; // scaled to match the other 3D bodies' size
         // The outline circle is the sphere's silhouette — always fully
         // visible regardless of viewing angle, unlike the equator band.
         var eqFront = ellipseArcPts(cx, cy, r, r * 0.3, 0, Math.PI, 20);
@@ -789,7 +869,7 @@
       }
     }
   };
-  var SHAPE_IDS_2D = ['patrat', 'tri-isoscel', 'tri-dreptunghic', 'trapez', 'paralelogram', 'romb', 'pentagon', 'hexagon', 'octagon', 'stea', 'cerc', 'patrat-rotunjit', 'semicerc'];
+  var SHAPE_IDS_2D = ['patrat', 'tri-echilateral', 'tri-isoscel', 'tri-dreptunghic', 'trapez', 'paralelogram', 'romb', 'pentagon', 'hexagon', 'octagon', 'stea', 'cerc', 'patrat-rotunjit', 'semicerc'];
   var SHAPE_IDS_3D = ['cub', 'piramida-patrata', 'piramida-triunghiulara', 'con', 'cilindru', 'sfera'];
   var CHEVRON_ICON = '<path d="M6 9.5 12 15.5 18 9.5"/>';
 
@@ -822,14 +902,6 @@
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
     this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
-    // Eraser tool's own mode — 'stroke' (the original/only behavior: touch
-    // any part of a stroke, the whole thing goes) vs 'standard' (only the
-    // portion under the eraser is removed, splitting the rest into whatever
-    // remains — see _erasePartialAt). Picked from the panel a second click
-    // on the already-active eraser opens, same pattern as the width preset
-    // buttons' own custom-width panel.
-    this._eraserMode = 'stroke';
-    this._eraserSize = 24; // logical-unit diameter — 'standard' mode only, see its own toolbar slider
     // Blocked by the teacher (whiteboard_participants.locked) — see
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
@@ -1079,26 +1151,9 @@
         // divider — those are separate FUNCTIONAL areas, not sub-groups
         // of "the tools".
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
-          toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (S)') +
-          toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (M)') +
-          toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E) — apasă din nou pentru tip/mărime') +
-          // Not a real .gfe-dropdown__trigger, same reasoning as
-          // #wbWidthCustomDd above — a second click on the already-active
-          // eraser button (see the toolBtnEl branch in _bindToolbar) opens
-          // this instead of a dedicated trigger of its own.
-          '<div class="gfe-dropdown wb-eraser-dd" id="wbEraserDd">' +
-            '<div class="gfe-dropdown__panel wb-eraser-panel">' +
-              '<div class="wb-eraser-modes">' +
-                '<button type="button" class="wb-eraser-mode-btn' + (this._eraserMode === 'stroke' ? ' wb-eraser-mode-btn--active' : '') + '" data-eraser-mode="stroke">Radieră completă</button>' +
-                '<button type="button" class="wb-eraser-mode-btn' + (this._eraserMode === 'standard' ? ' wb-eraser-mode-btn--active' : '') + '" data-eraser-mode="standard">Radieră parțială</button>' +
-              '</div>' +
-              '<p class="wb-eraser-hint">' + (this._eraserMode === 'standard' ? 'Șterge doar porțiunea atinsă.' : 'Șterge tot desenul atins.') + '</p>' +
-              '<div class="wb-eraser-size-row" id="wbEraserSizeRow"' + (this._eraserMode === 'standard' ? '' : ' hidden') + '>' +
-                '<label class="wb-width-panel__label" for="wbEraserSizeRange">Mărime radieră: <span id="wbEraserSizeVal">' + this._eraserSize + '</span></label>' +
-                '<input type="range" class="wb-width-range" id="wbEraserSizeRange" min="8" max="80" step="2" value="' + this._eraserSize + '">' +
-              '</div>' +
-            '</div>' +
-          '</div>' +
+          toolBtn('select', SELECT_ICON, 'Selectează și mută ce am desenat eu (Q)') +
+          toolBtn('pan', PAN_ICON, 'Mișcă vizualizarea — trage pentru a naviga (W)') +
+          toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
         '</div>' +
         '<div class="dc-tool-group dc-tool-group--nodiv">' +
           toolBtn('pen', PEN_ICON, 'Stilou (P)') +
@@ -1264,21 +1319,6 @@
     dd.classList.add('gfe-dropdown--open');
   };
 
-  // Same pattern as _toggleCustomWidthPanel just above, for the eraser
-  // type/size panel opened by a second click on the already-active eraser
-  // tool (see the toolBtnEl branch in _bindToolbar).
-  Whiteboard.prototype._toggleEraserPanel = function (btn) {
-    var dd = this._toolbarEl.querySelector('#wbEraserDd');
-    var wasOpen = dd.classList.contains('gfe-dropdown--open');
-    this._closeShapeDropdowns();
-    if (wasOpen) return;
-    var r = btn.getBoundingClientRect();
-    var panel = dd.querySelector('.gfe-dropdown__panel');
-    panel.style.top  = (r.bottom + 6) + 'px';
-    panel.style.left = r.left + 'px';
-    dd.classList.add('gfe-dropdown--open');
-  };
-
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
     // Custom-width slider (see _toggleCustomWidthPanel) — a plain direct
@@ -1288,10 +1328,6 @@
     this._toolbarEl.querySelector('#wbWidthCustomRange').addEventListener('input', function () {
       self._width = parseFloat(this.value);
       self._toolbarEl.querySelector('#wbWidthCustomVal').textContent = this.value;
-    });
-    this._toolbarEl.querySelector('#wbEraserSizeRange').addEventListener('input', function () {
-      self._eraserSize = parseFloat(this.value);
-      self._toolbarEl.querySelector('#wbEraserSizeVal').textContent = this.value;
     });
     this._toolbarEl.addEventListener('click', function (e) {
       var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
@@ -1315,9 +1351,8 @@
         self._closeShapeDropdowns();
         return;
       }
-      var toolBtnEl     = e.target.closest('[data-tool]');
-      var widthBtn      = e.target.closest('[data-width]');
-      var eraserModeBtn = e.target.closest('[data-eraser-mode]');
+      var toolBtnEl = e.target.closest('[data-tool]');
+      var widthBtn  = e.target.closest('[data-width]');
       var clearBtn  = e.target.closest('#wbClearMineBtn');
       var gridBtn   = e.target.closest('#wbGridBtn');
       var undoBtn   = e.target.closest('#wbUndoBtn');
@@ -1325,24 +1360,8 @@
       var zoomInBtn  = e.target.closest('#wbZoomInBtn');
       var zoomOutBtn = e.target.closest('#wbZoomOutBtn');
       if (toolBtnEl) {
-        // Same "second click on the already-active one opens its panel"
-        // pattern as the width presets below, for the eraser's type/size
-        // choice — see _toggleEraserPanel.
-        if (toolBtnEl.dataset.tool === 'eraser' && self._tool === 'eraser') {
-          self._toggleEraserPanel(toolBtnEl);
-        } else {
-          self._setTool(toolBtnEl.dataset.tool);
-          self._closeShapeDropdowns();
-        }
-      } else if (eraserModeBtn) {
-        self._eraserMode = eraserModeBtn.dataset.eraserMode;
-        self._toolbarEl.querySelectorAll('.wb-eraser-mode-btn').forEach(function (b) {
-          b.classList.toggle('wb-eraser-mode-btn--active', b === eraserModeBtn);
-        });
-        var isStandard = self._eraserMode === 'standard';
-        self._toolbarEl.querySelector('#wbEraserSizeRow').hidden = !isStandard;
-        self._toolbarEl.querySelector('.wb-eraser-hint').textContent =
-          isStandard ? 'Șterge doar porțiunea atinsă.' : 'Șterge tot desenul atins.';
+        self._setTool(toolBtnEl.dataset.tool);
+        self._closeShapeDropdowns();
       } else if (widthBtn) {
         // A second click on the ALREADY-active preset opens the custom
         // slider instead of just re-selecting the same preset — and
@@ -1423,12 +1442,20 @@
         self._setTool('pen');
       } else if (e.key === 'h' || e.key === 'H') {
         self._setTool('highlighter');
+      } else if (e.key === 'q' || e.key === 'Q') {
+        self._setTool('select');
+      } else if (e.key === 'w' || e.key === 'W') {
+        self._setTool('pan');
       } else if (e.key === 'e' || e.key === 'E') {
         self._setTool('eraser');
-      } else if (e.key === 's' || e.key === 'S') {
-        self._setTool('select');
-      } else if (e.key === 'm' || e.key === 'M') {
-        self._setTool('pan');
+      } else if ((e.key === 'Delete' || e.key === 'Backspace') && self._selectedIds.size) {
+        // Select tool's multi-selection — own objects only, since
+        // _selectedIds can never hold anyone else's id to begin with (see
+        // _findMyObjectAt/the rubber-band's own owner-only filter).
+        e.preventDefault();
+        var ids = Array.from(self._selectedIds);
+        self._selectedIds = new Set();
+        self._deleteObjects(ids);
       }
     };
     global.addEventListener('keydown', this._keyHandler);
@@ -2679,14 +2706,7 @@
   // DB's own owner-only delete policy: a teacher-erases-anyone tool is
   // Phase 2 (see the SQL comment in 20260904160000_whiteboard_objects.sql —
   // it needs its own RLS policy, not just a client-side change).
-  // Dispatches to whichever mode the eraser panel has picked — see
-  // this._eraserMode's own comment in the constructor.
   Whiteboard.prototype._eraseAt = function (pos) {
-    if (this._eraserMode === 'standard') this._erasePartialAt(pos);
-    else this._eraseStrokeAt(pos);
-  };
-
-  Whiteboard.prototype._eraseStrokeAt = function (pos) {
     var self = this;
     var hitIds = [];
     this._fabricCanvas.getObjects().forEach(function (obj) {
@@ -2701,100 +2721,6 @@
       }
     });
     if (hitIds.length) this._deleteObjects(hitIds);
-  };
-
-  // 'standard' eraser mode — removes only the portion of a stroke actually
-  // under the eraser instead of the whole thing. Shapes/lines/arrows
-  // (isShape) stay whole-object erase even here: "partially erasing a
-  // rectangle" isn't the natural operation partially erasing a hand-drawn
-  // line is, and splitting one would also mean re-deriving which of its
-  // edges are still hidden/visible (see SHAPE_DEFS), which isn't worth the
-  // complexity for something that was never the actual ask. Committed
-  // immediately per touch, not batched across the whole drag — a real
-  // erase gesture is short, and every other stroke here already commits
-  // this way, so it doesn't need new plumbing of its own. .slice() on the
-  // object list below matters: _splitStrokeAt removes the touched object
-  // from the live canvas mid-loop, and mutating the array forEach is
-  // actively iterating would skip whatever comes right after it.
-  Whiteboard.prototype._erasePartialAt = function (pos) {
-    var self = this;
-    var radius = this._eraserSize / 2;
-    this._fabricCanvas.getObjects().slice().forEach(function (obj) {
-      if (!obj.data || obj.data.ownerId !== self._userId || obj.data.isShape) return;
-      var subpaths = self._myTranslatedPoints(obj.data.id);
-      if (!subpaths) return;
-      var tol = radius + (obj.strokeWidth || 2) / 2;
-      if (distToPolyline(pos, subpaths) > tol) return;
-      self._splitStrokeAt(obj, pos, radius);
-    });
-  };
-
-  // Cuts obj's own polyline wherever it passes through the eraser circle
-  // (center pos, given radius, both already logical units) and replaces it
-  // with 0, 1 or 2 new strokes for whatever survives. Drops points strictly
-  // inside the circle rather than computing the exact circle-boundary
-  // crossing, so a cut end lands on the nearest surviving SAMPLED point
-  // rather than exactly on the circle's edge — close enough at the point
-  // density freehand drawing actually produces, same kind of tolerance-
-  // based (not exact) approximation the eraser/select tools' own hit-
-  // testing already makes elsewhere in this file.
-  Whiteboard.prototype._splitStrokeAt = function (obj, pos, radius) {
-    var id = obj.data.id;
-    var off = this._myObjectOffsets.get(id) || { dx: 0, dy: 0 };
-    var raw = this._myPathPoints.get(id);
-    if (!raw || !raw.length) return;
-    // Freehand pen/highlighter strokes are always exactly one subpath —
-    // isShape (excluded by the caller above) is the only case with more
-    // than one, and lines/arrows are excluded the same way.
-    var pts = raw[0].map(function (p) {
-      var q = { x: p.x + off.dx, y: p.y + off.dy };
-      if (p.w != null) q.w = p.w; // preserve the pen's per-point width (see _widthFromVelocity) through the cut
-      return q;
-    });
-    var runs = [];
-    var current = [];
-    for (var i = 0; i < pts.length; i++) {
-      if (dist(pts[i], pos) <= radius) {
-        if (current.length >= 2) runs.push(current);
-        current = [];
-      } else {
-        current.push(pts[i]);
-      }
-    }
-    if (current.length >= 2) runs.push(current);
-
-    var isVariableWidth = pts[0].w != null;
-    var color = isVariableWidth ? obj.fill : obj.stroke;
-    var width = obj.strokeWidth;
-    var opacity = obj.opacity == null ? 1 : obj.opacity;
-
-    this._deleteObjects([id]);
-    var self = this;
-    runs.forEach(function (run) { self._commitSplitRun(run, color, width, opacity, isVariableWidth); });
-  };
-
-  // Inserts one surviving run from _splitStrokeAt as its own fresh stroke —
-  // deliberately NOT pushed onto _myStrokeHistory (undo/redo), same as a
-  // whole-object erase already isn't undoable today (_deleteObjects only
-  // ever PRUNES the undo stack, never adds to it).
-  Whiteboard.prototype._commitSplitRun = function (points, color, width, opacity, isVariableWidth) {
-    var path = isVariableWidth ? variableWidthPathString(points) : smoothPathString(points);
-    var json = isVariableWidth
-      ? { path: path, fill: color, strokeWidth: width, opacity: opacity, centerline: [points] }
-      : { path: path, stroke: color, strokeWidth: width, opacity: opacity, centerline: [points] };
-    var self = this;
-    this._supabase.from('whiteboard_objects').insert({
-      session_id: this._sessionId,
-      class_id:   this._classId,
-      created_by: this._userId,
-      kind: 'stroke',
-      fabric_json: json
-    }).select().single().then(function (res) {
-      if (self._destroyed) return;
-      if (res.error) { console.error('[Whiteboard] erase-split insert failed', res.error); return; }
-      self._addObjectIfNew(res.data, [points]);
-      self._fabricCanvas.requestRenderAll();
-    });
   };
 
   // "select" tool hit-testing — same tolerance-based polyline distance
@@ -3076,9 +3002,25 @@
     var id = this._selectedIds.values().next().value;
     var obj = this._fabricCanvas.getObjects().find(function (o) { return o.data && o.data.id === id; });
     if (!obj || !obj.data.isShape) return null;
-    var b = this._myObjectBounds(id);
-    if (!b) return null;
-    return { id: id, x: b.maxX, y: b.maxY };
+    var subpaths = this._myTranslatedPoints(id);
+    if (!subpaths || !subpaths.length) return null;
+    // The bounding BOX's own bottom-right corner can land in empty space
+    // for a shape that isn't itself a rectangle (a pyramid's actual
+    // rightmost point and its actual bottommost point are two different
+    // vertices, neither of which is where those two extremes combine) —
+    // that's exactly why the handle used to float outside the pyramid.
+    // Picking the real vertex that maximizes x+y instead always lands on
+    // an actual corner of the shape, in whichever direction reads as
+    // "toward the bottom-right" for that particular shape.
+    var best = null, bestScore = -Infinity;
+    subpaths.forEach(function (pts) {
+      pts.forEach(function (p) {
+        var score = p.x + p.y;
+        if (score > bestScore) { bestScore = score; best = p; }
+      });
+    });
+    if (!best) return null;
+    return { id: id, x: best.x, y: best.y };
   };
 
   // "select" tool decorations, drawn on top of every live stroke above: a
@@ -3116,9 +3058,14 @@
       // its own (see distToPolyline's own comment) — a shape/body's several
       // disconnected pieces used to get smoothed into one continuous curve
       // here, which is exactly the wild loop/curve artifact around shapes
-      // and bodies in the selection highlight.
+      // and bodies in the selection highlight. A shape's own subpaths are
+      // precise straight edges (drawPolylineStroke), not sampled freehand
+      // input — running THOSE through the curve-fit smoothing every other
+      // stroke type still uses below rounded off every sharp corner, which
+      // was the "hitbox lines are curved, not on the real edge" bug.
+      var drawHaloSeg = obj.data.isShape ? drawPolylineStroke : drawSmoothStroke;
       subpaths.forEach(function (pts) {
-        drawSmoothStroke(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
+        drawHaloSeg(ctx, pts, 'rgba(37,99,235,0.45)', (obj.strokeWidth || 2) + 3, 1);
       });
     });
     var handle = this._resizeHandlePos();
