@@ -5551,6 +5551,14 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   from { opacity: 0; }
   to   { opacity: 1; }
 }
+/* Referenced by every downward-opening dropdown/popover (roster, gfe's own
+   dropdown, etc.) but never actually defined anywhere — an undefined
+   animation name is just silently ignored, so all of them have been
+   opening with zero animation this whole time. */
+@keyframes fadeSlideIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 @keyframes dropIn {
   from { opacity: 0; transform: translateY(-5px); }
   to   { opacity: 1; transform: translateY(0); }
@@ -12832,103 +12840,146 @@ body.wb-fullscreen-active .scroll-top-btn {
   .wb-fs-fullscreen-btn { right: 72px; }
 }
 
-/* Roster shrinks from Phase 0's full-width name list to a compact strip of
-   colored initials once the canvas needs the space — full name is still a
-   tooltip away, and the color here is the same one that identifies their
-   ink on the board below. Gap is generous (not the usual 6-8px) because
-   the teacher's avatar carries an extra accent ring OUTSIDE its own box
-   (box-shadow, so it takes no layout space of its own) — too tight a gap
-   let that ring visually lap onto whatever sat right before it (in
-   practice it still did, hiding the count's number behind the ring —
-   see .wb-avatar--teacher's own margin below for the actual fix). */
+/* Roster collapsed to a single icon+count BUTTON — the header used to show
+   every participant's own avatar directly, which is what was eating the
+   space a phone doesn't have to spare. See _refreshTablaRoster/
+   _toggleRosterDropdown in js/class-page.js for what opens under it. */
 .wb-roster-strip {
-  position: relative; /* anchors .wb-roster-popover below the clicked avatar */
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 14px;
+  position: relative; /* anchors .wb-roster-dropdown below the button */
   flex-shrink: 0;
 }
-.wb-roster-count {
+.wb-roster-btn {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  font-size: 0.9rem;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--text-muted);
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s, color 0.15s;
 }
-.wb-avatar {
-  position: relative;
+.wb-roster-btn:hover,
+.wb-roster-btn--open {
+  border-color: var(--accent);
+  background: var(--card);
+  color: var(--accent);
+}
+
+/* ---- Roster dropdown — replaces the old per-avatar popover. Teacher
+   always first (own section, tinted) so it reads as "who's presenting"
+   before "who's here", students below in a plain list; the lock toggle
+   next to each student is teacher-only (see js/class-page.js, which never
+   even renders that button's markup for a student viewer — not just
+   hides it, since there's nothing for a student to click either way). ---- */
+.wb-roster-dropdown {
+  position: absolute;
+  top: calc(100% + 10px);
+  right: 0;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: 12px;
+  width: 260px;
+  max-width: calc(100vw - 24px);
+  max-height: 340px;
+  overflow-y: auto;
+  padding: 8px;
+  box-shadow: 0 10px 32px rgba(0,0,0,0.22);
+  z-index: 30;
+  animation: fadeSlideIn 0.14s ease;
+}
+.wb-roster-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 8px;
+  border-radius: 8px;
+}
+.wb-roster-row--teacher {
+  background: var(--accent-dim);
+  margin-bottom: 4px;
+}
+.wb-roster-row__avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  font-size: 0.74rem;
+  font-size: 0.7rem;
   font-weight: 800;
   color: #fff;
-  border: none;
-  padding: 0;
-  box-shadow: 0 0 0 2px var(--card);
-  cursor: default;
-  transition: transform 0.12s ease, box-shadow 0.12s ease;
 }
-/* Only the teacher can actually click one (see _showRosterPopover in
-   js/class-page.js, which no-ops for a student) — the hover lift still
-   shows for everyone since it costs nothing and the tooltip (title
-   attribute) works for a student either way. */
-.wb-avatar:hover { transform: translateY(-2px); box-shadow: 0 0 0 2px var(--card), 0 3px 8px rgba(0,0,0,0.25); }
-/* The accent ring (box-shadow, spreads 3.5px past the ring beneath it)
-   takes no layout space of its own, so `gap` alone can't guarantee
-   clearance from whatever sits right before it — a margin does, since
-   it's part of this element's own box instead of relying on the shared
-   flex gap to happen to be wide enough. */
-.wb-avatar--teacher {
-  box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent);
-  margin-left: 4px;
-}
-.wb-avatar--teacher:hover { box-shadow: 0 0 0 2px var(--card), 0 0 0 3.5px var(--accent), 0 3px 8px rgba(0,0,0,0.25); }
-.wb-avatar--locked::after {
-  content: '';
-  position: absolute;
-  right: -2px;
-  bottom: -2px;
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
-  background: var(--red, #dc2626);
-  box-shadow: 0 0 0 2px var(--card);
-}
-
-/* ---- Roster avatar popover (teacher only) — full name + lock toggle,
-   see _showRosterPopover/js/class-page.js. Opens downward, unlike
-   .flux-readers-popover's upward one, since the roster sits in a header
-   near the top of the screen instead of a footer. ---- */
-.wb-roster-popover {
-  position: absolute;
-  top: calc(100% + 10px);
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: 10px;
-  min-width: 200px;
-  padding: 10px 12px;
-  box-shadow: 0 8px 28px rgba(0,0,0,0.18);
-  z-index: 20;
-  animation: fadeSlideIn 0.14s ease;
-}
-.wb-roster-popover__name {
+.wb-roster-row__name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
   font-size: 0.86rem;
-  font-weight: 700;
+  font-weight: 600;
   color: var(--text);
-  margin-bottom: 8px;
-  word-break: break-word;
 }
-.wb-roster-popover__hint {
-  font-size: 0.78rem;
-  color: var(--text-secondary);
+.wb-roster-row__name span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.wb-roster-row__you {
+  flex-shrink: 0;
+  font-size: 0.74rem;
+  font-weight: 500;
   font-style: italic;
+  color: var(--text-muted);
+}
+.wb-roster-row__badge {
+  flex-shrink: 0;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  color: var(--accent);
+  background: var(--card);
+  padding: 2px 7px;
+  border-radius: 999px;
+}
+.wb-roster-row__lock {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: border-color 0.12s ease, color 0.12s ease, background 0.12s ease;
+}
+.wb-roster-row__lock:hover { border-color: var(--text-secondary); color: var(--text); }
+.wb-roster-row__lock--active {
+  color: #dc2626;
+  border-color: rgba(220,38,38,0.4);
+  background: rgba(220,38,38,0.1);
+}
+.wb-roster-row__lock--active:hover { border-color: #dc2626; color: #dc2626; }
+.wb-roster-dropdown__divider {
+  height: 1px;
+  background: var(--border);
+  margin: 4px 4px 6px;
+}
+.wb-roster-dropdown__empty {
+  padding: 14px 8px;
+  font-size: 0.82rem;
+  color: var(--text-muted);
+  text-align: center;
 }
 .wb-roster-popover .btn { width: 100%; justify-content: center; }
 

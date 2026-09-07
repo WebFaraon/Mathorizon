@@ -417,6 +417,21 @@
   // guarantee, just a target.
   var GRID_CELL_TARGET_PX_MIN = 22;
   var GRID_CELL_TARGET_PX_MAX = 46;
+  // The finer subdivision within each major cell (idroo/Miro-style — see
+  // _redrawGrid) — 5 per side, same as classic quad-ruled paper. Its own
+  // opacity fades in continuously between these two on-screen sizes: below
+  // MIN it isn't drawn at all (too dense to help, just visual noise), at
+  // and above MAX it's fully at MINOR_GRID_OPACITY. Zoom continuously
+  // through that range and the subdivision fades in smoothly; keep
+  // zooming past it and niceGridStep promotes it to the new MAJOR step
+  // while an even finer one starts fading in beneath — repeating for as
+  // many tiers as MAX_ZOOM allows, which is the "keeps subdividing" feel
+  // being asked for (not literally infinite, just as deep as zoom goes).
+  var MINOR_GRID_SUBDIVISIONS = 5;
+  var MINOR_GRID_FADE_MIN_PX  = 6;
+  var MINOR_GRID_FADE_MAX_PX  = 14;
+  var MAJOR_GRID_OPACITY = 0.16;
+  var MINOR_GRID_OPACITY = 0.10;
 
   // Same icon glyphs js/drawing-canvas.js uses for these exact tools/actions
   // — one consistent visual language across every drawing surface in the
@@ -914,12 +929,33 @@
     // same NUMBER of cells visible across device sizes instead.
     var minDim = Math.min(this._viewportW || 800, this._viewportH || 600);
     var targetPx = Math.max(GRID_CELL_TARGET_PX_MIN, Math.min(GRID_CELL_TARGET_PX_MAX, minDim / 14));
-    var cellLogical = niceGridStep(targetPx / this._scale);
-    ctx.strokeStyle = 'rgba(20,16,8,0.09)';
-    ctx.lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
+    var majorStep = niceGridStep(targetPx / this._scale);
+    var lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
+
+    // Minor subdivision drawn FIRST (so the major lines land on top at
+    // full opacity wherever a major line and a minor line coincide, every
+    // MINOR_GRID_SUBDIVISIONS-th one) — its opacity is a continuous
+    // function of its own on-screen size, which is what actually produces
+    // the "fades in as you zoom deeper into this tier" effect; see the
+    // constants' own comment for the rest of the mechanism.
+    var minorStep = majorStep / MINOR_GRID_SUBDIVISIONS;
+    var minorPx = minorStep * this._scale;
+    var minorT = (minorPx - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX);
+    minorT = Math.max(0, Math.min(1, minorT));
+    if (minorT > 0) {
+      ctx.strokeStyle = 'rgba(20,16,8,' + (MINOR_GRID_OPACITY * minorT) + ')';
+      ctx.lineWidth = lineWidth;
+      ctx.beginPath();
+      for (var mx = 0; mx <= LOGICAL_W; mx += minorStep) { ctx.moveTo(mx, 0); ctx.lineTo(mx, LOGICAL_H); }
+      for (var my = 0; my <= LOGICAL_H; my += minorStep) { ctx.moveTo(0, my); ctx.lineTo(LOGICAL_W, my); }
+      ctx.stroke();
+    }
+
+    ctx.strokeStyle = 'rgba(20,16,8,' + MAJOR_GRID_OPACITY + ')';
+    ctx.lineWidth = lineWidth;
     ctx.beginPath();
-    for (var x = 0; x <= LOGICAL_W; x += cellLogical) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-    for (var y = 0; y <= LOGICAL_H; y += cellLogical) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
+    for (var x = 0; x <= LOGICAL_W; x += majorStep) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
+    for (var y = 0; y <= LOGICAL_H; y += majorStep) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
     ctx.stroke();
   };
 

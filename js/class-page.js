@@ -5959,6 +5959,11 @@
   let _openTablaSessionId  = null;
   let _reloadTablaLiveTimer = null;
   let _openWhiteboardInstance = null;
+  // Last-fetched roster — _refreshTablaRoster is the only writer; the
+  // dropdown (see _toggleRosterDropdown) reads from this instead of
+  // fetching its own copy, so opening it never races the same roster
+  // query already in flight from a realtime-triggered refresh.
+  let _tablaRosterCache = [];
 
   // Handles (a) the roster changing while the modal is open, (b) the
   // teacher ending the session from elsewhere — in that case every open
@@ -6134,7 +6139,9 @@
             : `<span class="wb-fs-title" id="wbTitleLabel">${BM.esc(session.title)}</span>`}
         </div>
         <div class="wb-fs-header__right">
-          <div class="wb-roster-strip" id="wbRosterStrip"><span class="wb-roster-count">…</span></div>
+          <div class="wb-roster-strip" id="wbRosterStrip">
+            <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți">${icon('users', { size: 18 })}<span id="wbRosterCount">…</span></button>
+          </div>
           <button class="icon-btn" id="tablaLiveCloseBtn" title="${isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
       </div>
@@ -6212,80 +6219,109 @@
         .from('whiteboard_participants').select('*').eq('session_id', sessionId)
         .order('joined_at', { ascending: true });
       if (error) throw error;
-      const participants = rows || [];
-      strip.innerHTML = `
-        <span class="wb-roster-count" title="${participants.length} ${participants.length === 1 ? 'conectat' : 'conectați'}">${icon('users', { size: 20 })} ${participants.length}</span>
-        ${participants.map(p => {
-          const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
-          const initials = name.trim().slice(0, 2).toUpperCase();
-          return `<button type="button" class="wb-avatar${p.role === 'profesor' ? ' wb-avatar--teacher' : ''}${p.locked ? ' wb-avatar--locked' : ''}"
-            style="background:${BM.esc(p.color)}" data-user-id="${BM.esc(p.user_id)}" data-name="${BM.esc(name)}"
-            data-role="${BM.esc(p.role)}" data-locked="${p.locked ? '1' : ''}"
-            title="${BM.esc(name)}${p.role === 'profesor' ? ' (profesor)' : ''}${p.locked ? ' — scris blocat' : ''}">${BM.esc(initials)}</button>`;
-        }).join('')}
-      `;
+      _tablaRosterCache = rows || [];
+      const countEl = document.getElementById('wbRosterCount');
+      if (countEl) countEl.textContent = _tablaRosterCache.length;
+      const btn = document.getElementById('wbRosterBtn');
+      if (btn) btn.title = `${_tablaRosterCache.length} ${_tablaRosterCache.length === 1 ? 'conectat' : 'conectați'}`;
       // Locking a participant mid-draw only takes effect for THEM live via
       // whiteboard_participants realtime (see _debouncedTablaLive) — this
-      // just keeps the teacher's own open popover (if any) showing the
-      // right lock state after a roster refresh, e.g. right after they
-      // toggle it themselves.
-      const openPopover = document.getElementById('wbRosterPopover');
-      if (openPopover && openPopover.dataset.userId) {
-        const btn = strip.querySelector('[data-user-id="' + CSS.escape(openPopover.dataset.userId) + '"]');
-        if (btn) _showRosterPopover(btn); else openPopover.remove();
-      }
+      // just keeps an already-open dropdown showing the right lock state
+      // after a roster refresh, e.g. right after the teacher toggles it.
+      const dropdown = document.getElementById('wbRosterDropdown');
+      if (dropdown) dropdown.innerHTML = _rosterDropdownContent();
     } catch (e) {
-      strip.innerHTML = `<span class="wb-roster-count">${BM.esc(e.message)}</span>`;
+      const countEl = document.getElementById('wbRosterCount');
+      if (countEl) countEl.textContent = '–';
     }
   }
 
-  // Teacher-only — a student clicking another participant's avatar is a
-  // no-op (they can see who's connected from the tooltip already, same as
-  // before; only the teacher gets the popover with the lock toggle).
-  function _closeRosterPopover() {
-    document.getElementById('wbRosterPopover')?.remove();
+  // Teacher's row first and visually set apart, then every student in
+  // join order — see css/style.css's own .wb-roster-row--teacher comment
+  // for why (this reads as "who's presenting" before "who's here"). The
+  // lock toggle only renders its markup at all for a teacher viewer, not
+  // just hidden by CSS — a student has no policy that would let the RPC
+  // succeed anyway, so there's nothing real for them to click.
+  function _rosterDropdownContent() {
+    const isTeacher = BMAuth.role === 'profesor';
+    const teacher = _tablaRosterCache.find(p => p.role === 'profesor');
+    const students = _tablaRosterCache.filter(p => p.role !== 'profesor');
+    if (!_tablaRosterCache.length) return `<div class="wb-roster-dropdown__empty">Niciun participant încă</div>`;
+
+    function nameAndYou(p) {
+      const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
+      const you = p.user_id === BMAuth.user.id ? '<span class="wb-roster-row__you">tu</span>' : '';
+      return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span>${you}</span>`;
+    }
+    function avatar(p) {
+      const name = p.display_name || '??';
+      return `<span class="wb-roster-row__avatar" style="background:${BM.esc(p.color)}">${BM.esc(name.trim().slice(0, 2).toUpperCase())}</span>`;
+    }
+    function lockBtn(p) {
+      if (!isTeacher) return '';
+      return `<button type="button" class="wb-roster-row__lock${p.locked ? ' wb-roster-row__lock--active' : ''}"
+        data-user-id="${BM.esc(p.user_id)}" data-locked="${p.locked ? '1' : ''}"
+        title="${p.locked ? 'Deblochează scrisul' : 'Blochează scrisul'}">
+        ${p.locked ? icon('lock', { size: 14 }) : icon('unlock', { size: 14 })}</button>`;
+    }
+
+    return `
+      ${teacher ? `
+        <div class="wb-roster-row wb-roster-row--teacher">
+          ${avatar(teacher)}
+          ${nameAndYou(teacher)}
+          <span class="wb-roster-row__badge">Profesor</span>
+        </div>
+      ` : ''}
+      ${students.length ? `
+        <div class="wb-roster-dropdown__divider"></div>
+        ${students.map(p => `
+          <div class="wb-roster-row">
+            ${avatar(p)}
+            ${nameAndYou(p)}
+            ${lockBtn(p)}
+          </div>
+        `).join('')}
+      ` : ''}
+    `;
   }
 
-  function _showRosterPopover(btn) {
-    _closeRosterPopover();
-    const strip = btn.closest('.wb-roster-strip');
-    if (!strip) return;
-    const isSelf = btn.dataset.userId === BMAuth.user.id;
-    const locked = btn.dataset.locked === '1';
-    const popover = document.createElement('div');
-    popover.id = 'wbRosterPopover';
-    popover.className = 'wb-roster-popover';
-    popover.dataset.userId = btn.dataset.userId;
-    popover.innerHTML = `
-      <div class="wb-roster-popover__name">${BM.esc(btn.dataset.name)}</div>
-      ${isSelf
-        ? `<div class="wb-roster-popover__hint">Ești tu (profesorul)</div>`
-        : `<button type="button" class="btn btn--sm ${locked ? 'btn--surface' : 'btn--danger'}" id="wbLockToggleBtn">
-             ${locked ? icon('unlock', { size: 16 }) : icon('lock', { size: 16 })} ${locked ? 'Deblochează scrisul' : 'Blochează scrisul'}
-           </button>`}
-    `;
-    strip.appendChild(popover);
-    // Anchored to the strip (position:relative), left-aligned under
-    // whichever avatar was clicked — offsetLeft is relative to the strip
-    // too since it's the nearest positioned ancestor.
-    popover.style.left = Math.max(0, Math.min(btn.offsetLeft, strip.offsetWidth - popover.offsetWidth)) + 'px';
+  function _closeRosterDropdown() {
+    document.getElementById('wbRosterDropdown')?.remove();
+    document.getElementById('wbRosterBtn')?.classList.remove('wb-roster-btn--open');
+  }
 
-    popover.querySelector('#wbLockToggleBtn')?.addEventListener('click', async () => {
+  function _toggleRosterDropdown() {
+    const existing = document.getElementById('wbRosterDropdown');
+    if (existing) { _closeRosterDropdown(); return; }
+    const strip = document.getElementById('wbRosterStrip');
+    const btn = document.getElementById('wbRosterBtn');
+    if (!strip || !btn) return;
+    btn.classList.add('wb-roster-btn--open');
+    const dropdown = document.createElement('div');
+    dropdown.id = 'wbRosterDropdown';
+    dropdown.className = 'wb-roster-dropdown';
+    dropdown.innerHTML = _rosterDropdownContent();
+    strip.appendChild(dropdown);
+
+    dropdown.addEventListener('click', async e => {
+      const lockBtn = e.target.closest('.wb-roster-row__lock');
+      if (!lockBtn) return;
+      const locked = lockBtn.dataset.locked === '1';
       try {
         await BMAuth.supabase.rpc('set_whiteboard_participant_locked', {
-          p_session_id: _openTablaSessionId, p_user_id: btn.dataset.userId, p_locked: !locked
+          p_session_id: _openTablaSessionId, p_user_id: lockBtn.dataset.userId, p_locked: !locked
         });
-        _closeRosterPopover();
         await _refreshTablaRoster(_openTablaSessionId);
-      } catch (e) {
-        BM.toast('Eroare: ' + e.message, 'error');
+      } catch (err) {
+        BM.toast('Eroare: ' + err.message, 'error');
       }
     });
 
     setTimeout(() => {
       document.addEventListener('click', function close(e) {
-        if (!popover.contains(e.target) && e.target !== btn) {
-          popover.remove();
+        if (!dropdown.contains(e.target) && e.target !== btn && !btn.contains(e.target)) {
+          _closeRosterDropdown();
           document.removeEventListener('click', close);
         }
       });
@@ -6293,9 +6329,7 @@
   }
 
   document.addEventListener('click', e => {
-    if (BMAuth.role !== 'profesor') return;
-    const avatarBtn = e.target.closest('.wb-avatar');
-    if (avatarBtn && avatarBtn.closest('#wbRosterStrip')) _showRosterPopover(avatarBtn);
+    if (e.target.closest('#wbRosterBtn')) _toggleRosterDropdown();
   });
 
   window.cdCopyCode = function (code) {
