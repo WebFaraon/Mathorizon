@@ -13793,14 +13793,14 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sim-picker-tabs {
   display: flex;
   gap: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 10px;
   border-bottom: 1px solid var(--border);
   flex-wrap: nowrap;
   overflow-x: auto;
   -webkit-overflow-scrolling: touch;
 }
 .sim-picker-tab {
-  padding: 10px 14px;
+  padding: 7px 12px;
   border: none;
   background: none;
   color: var(--text-muted);
@@ -13824,6 +13824,10 @@ body.wb-fullscreen-active .scroll-top-btn {
    selector here it would win the cascade and silently cap the dialog back
    down to 660px no matter what's set on this rule. */
 .wz-dialog.sim-picker-dialog { max-width: min(88vw, 1440px); max-height: 92vh; }
+/* Smaller head + tab bar than the wizard default, specifically for this
+   dialog — more vertical space for the culegere split, which needs it far
+   more than the couple of pixels these save actually cost elsewhere. */
+.sim-picker-dialog .wz-head { padding: 12px 20px; }
 /* The culegere split needs the dialog to actually claim real vertical
    space, not just cap it — max-height alone is a ceiling, not something a
    flex-grow chain can distribute from, so every `flex:1;min-height:0`
@@ -13961,20 +13965,20 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sim-culegere-canvas-wrap {
   position: relative;
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: var(--surface);
   height: 100%;
 }
 .sim-culegere-canvas-wrap canvas {
   display: block;
   max-width: 100%;
-  max-height: 100%;
   cursor: crosshair;
-  touch-action: none; /* dragging on the canvas selects a crop, not scrolls */
+  touch-action: none; /* dragging on the canvas selects a crop, not scrolls — the wrap still scrolls fine via mouse wheel/scrollbar/trackpad */
 }
 .sim-culegere-selection {
   position: absolute;
@@ -14005,38 +14009,50 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .sim-culegere-queue-list {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  flex-direction: column;
+  gap: 6px;
   flex: 1;
   min-width: 0;
-  max-height: 76px;
+  max-height: 116px;
   overflow-y: auto;
 }
+/* Styled like a confirmed/checked-off list row (green accent, checkmark),
+   not a generic filter-chip pill — a queued exercise reads as "done and
+   waiting to be committed", which a plain accent-colored tag didn't convey. */
 .sim-culegere-queue-item {
-  display: inline-flex;
+  display: flex;
   align-items: center;
-  gap: 6px;
-  max-width: 240px;
-  background: var(--accent-dim);
-  color: var(--accent);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  padding: 4px 8px 4px 12px;
-  font-size: 0.78rem;
-  font-weight: 600;
+  gap: 8px;
+  background: var(--green-dim);
+  border: 1px solid var(--green-border);
+  border-left: 3px solid var(--green);
+  border-radius: var(--radius-sm);
+  padding: 6px 8px 6px 10px;
 }
-.sim-culegere-queue-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-culegere-queue-item__check { display: inline-flex; flex-shrink: 0; color: var(--green); }
+.sim-culegere-queue-item__title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.sim-culegere-queue-item__pts { flex-shrink: 0; font-size: 0.72rem; font-weight: 700; color: var(--text-muted); }
 .sim-culegere-queue-item__remove {
   display: inline-flex;
   flex-shrink: 0;
   background: none;
   border: none;
-  color: inherit;
+  color: var(--text-muted);
   cursor: pointer;
   opacity: 0.7;
-  padding: 2px;
+  padding: 3px;
+  border-radius: 4px;
 }
-.sim-culegere-queue-item__remove:hover { opacity: 1; }
+.sim-culegere-queue-item__remove:hover { opacity: 1; color: var(--red); background: var(--red-dim); }
 
 /* Let the whole tab actually use the dialog's height instead of just
    stacking block-wise and scrolling the dialog: .wz-body becomes a flex

@@ -5998,16 +5998,16 @@
     const page = await pdf.getPage(_culegereState.pageNum);
     const canvas = document.getElementById('simCulegereCanvas');
     const wrap = document.getElementById('simCulegereCanvasWrap');
-    const containerWidth  = wrap.clientWidth  || 700;
-    const containerHeight = wrap.clientHeight || 500;
+    const containerWidth  = wrap.clientWidth || 700;
     const unscaledViewport = page.getViewport({ scale: 1 });
-    // Fit the WHOLE page inside the box — both width AND height — so it's
-    // visible without scrolling (that's the point of showing it at all).
-    // Capped at 2x so a page that's much smaller than the box (e.g. a
-    // near-square index page) doesn't get upscaled into a blurry, needlessly
-    // heavy canvas — 2x is already more resolution than a crop needs for
-    // Gemini to read clearly.
-    const scale = Math.min(2, containerWidth / unscaledViewport.width, containerHeight / unscaledViewport.height);
+    // Fit-to-width, NOT fit-to-height — these are scanned pages, often
+    // already compressed/low-DPI, and fitting the whole page inside the box
+    // vertically too was shrinking already-soft scans down further, past
+    // the point either a human or Gemini could read the text. Rendering
+    // wider (up to 2.5x) keeps it at closer to the source's native
+    // resolution; .sim-culegere-canvas-wrap scrolls vertically for
+    // whatever doesn't fit instead of downscaling it away.
+    const scale = Math.min(2.5, containerWidth / unscaledViewport.width);
     const viewport = page.getViewport({ scale });
     canvas.width = viewport.width;
     canvas.height = viewport.height;
@@ -6043,11 +6043,20 @@
     function paint(x1, y1, x2, y2) {
       const left = Math.min(x1, x2), top = Math.min(y1, y2);
       const w = Math.abs(x2 - x1), h = Math.abs(y2 - y1);
-      selBox.style.left = left + 'px';
-      selBox.style.top = top + 'px';
+      // left/top here are canvas-relative (from pos(), measured off the
+      // canvas's own edges) — but selBox is positioned absolute against
+      // .sim-culegere-canvas-wrap (its offsetParent), not the canvas
+      // itself. Since the canvas can sit centered/offset inside that wrap
+      // (narrower canvas, wider box), placing selBox at the bare
+      // canvas-relative coordinates put it off by exactly that gap — the
+      // box tracked the drag at a fixed offset from the actual cursor.
+      // canvas.offsetLeft/Top (layout-relative, unaffected by the wrap's
+      // own scroll position) converts into the wrap's coordinate space.
+      selBox.style.left = (canvas.offsetLeft + left) + 'px';
+      selBox.style.top = (canvas.offsetTop + top) + 'px';
       selBox.style.width = w + 'px';
       selBox.style.height = h + 'px';
-      _culegereState.selRectCss = { left, top, w, h };
+      _culegereState.selRectCss = { left, top, w, h }; // kept canvas-relative — _finishCulegereSelection re-measures off canvas.getBoundingClientRect()
     }
 
     canvas.onpointerdown = e => {
@@ -6130,10 +6139,12 @@
     bar.innerHTML = `
       <div class="sim-culegere-queue-list">
         ${_simCulegereQueue.map((it, i) => `
-          <span class="sim-culegere-queue-item">
-            <span>${BM.esc(it.title)}</span>
-            <button type="button" class="sim-culegere-queue-item__remove" data-remove-queue="${i}" title="Elimină din listă">${icon('x', { size: 12 })}</button>
-          </span>`).join('')}
+          <div class="sim-culegere-queue-item">
+            <span class="sim-culegere-queue-item__check">${icon('circle-check', { size: 15 })}</span>
+            <span class="sim-culegere-queue-item__title">${BM.esc(it.title)}</span>
+            <span class="sim-culegere-queue-item__pts">${it.points}p</span>
+            <button type="button" class="sim-culegere-queue-item__remove" data-remove-queue="${i}" title="Elimină din listă">${icon('x', { size: 13 })}</button>
+          </div>`).join('')}
       </div>
       <button type="button" class="btn btn--primary" id="simCulegereCommitBtn">+ Adaugă ${n} exerciți${n === 1 ? 'u' : 'i'}</button>`;
 
