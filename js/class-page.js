@@ -162,27 +162,27 @@
     classData = cls;
     // Fired here (not awaited) so the page renders immediately with the
     // initials fallback — the header/modal patch themselves once this
-    // resolves instead of delaying first paint for a profile lookup.
+    // resolves instead of delaying first paint for a profile lookup. Left
+    // as the RAW promise (rejects on failure) so _openTeacherProfileModal
+    // can show the real server error instead of a generic message; the
+    // .catch right below only exists so a student who never opens the
+    // modal doesn't get an "Uncaught (in promise)" in their console.
     teacherProfilePromise = _fetchTeacherProfile(cls.teacher_id);
+    teacherProfilePromise.catch(e => console.warn('[class-page] teacher profile fetch failed:', e.message));
     renderPage();
   }
 
   async function _fetchTeacherProfile(teacherId) {
-    try {
-      const { data: { session } } = await BMAuth.supabase.auth.getSession();
-      const profile = await BM.postJson('/api/teacher-profile', {
-        accessToken: session?.access_token,
-        teacherId
-      });
-      const avatarEl = document.getElementById('cdTeacherAvatar');
-      if (avatarEl && profile.avatar_url) {
-        avatarEl.innerHTML = `<img src="${BM.esc(profile.avatar_url)}" alt="">`;
-      }
-      return profile;
-    } catch (e) {
-      console.warn('[class-page] _fetchTeacherProfile failed:', e.message);
-      return null;
+    const { data: { session } } = await BMAuth.supabase.auth.getSession();
+    const profile = await BM.postJson('/api/teacher-profile', {
+      accessToken: session?.access_token,
+      teacherId
+    });
+    const avatarEl = document.getElementById('cdTeacherAvatar');
+    if (avatarEl && profile.avatar_url) {
+      avatarEl.innerHTML = `<img src="${BM.esc(profile.avatar_url)}" alt="">`;
     }
+    return profile;
   }
 
   // Read-only "Vezi profilul" modal for a student looking at their
@@ -210,15 +210,24 @@
     modal.querySelector('#tpBackdrop').onclick = close;
     modal.querySelector('#tpCloseBtn').onclick = close;
 
-    const [profile, reviewsAgg] = await Promise.all([
-      teacherProfilePromise,
-      _fetchTeacherReviewsAgg(classData.teacher_id)
-    ]);
+    let profile = null, reviewsAgg = { avg: null, count: 0 }, errorMsg = null;
+    try {
+      [profile, reviewsAgg] = await Promise.all([
+        teacherProfilePromise,
+        _fetchTeacherReviewsAgg(classData.teacher_id)
+      ]);
+    } catch (e) {
+      errorMsg = e.message;
+    }
 
     const body = document.getElementById('tpBody');
     if (!body) return; // modal was closed before the fetch resolved
-    if (!profile) {
-      body.innerHTML = `<p class="cls-form-hint">Nu am putut încărca profilul profesorului.</p>`;
+    if (errorMsg || !profile) {
+      // Shows the real server message (e.g. a missing service-role key or an
+      // auth failure) instead of a dead-end generic line — the previous
+      // version swallowed this, which made a real misconfiguration
+      // indistinguishable from "nothing to show" from the outside.
+      body.innerHTML = `<p class="cls-form-hint">Nu am putut încărca profilul profesorului.${errorMsg ? ` (${BM.esc(errorMsg)})` : ''}</p>`;
       return;
     }
     body.innerHTML = _renderTeacherProfileHeader(profile, reviewsAgg);
