@@ -1352,6 +1352,11 @@
         archiveAssignment(btn.dataset.id, btn.dataset.title));
     });
 
+    container.querySelectorAll('.teme-assignment__publish').forEach(btn => {
+      btn.addEventListener('click', () =>
+        publishAssignment(btn.dataset.id, btn.dataset.title));
+    });
+
     container.querySelector('#temeList')?.addEventListener('click', e => {
       if (e.target.closest('.teme-assignment__actions')) return;
       const card = e.target.closest('.teme-assignment--clickable');
@@ -1477,6 +1482,10 @@
               ${badge.cls === 'overdue' ? `
                 <button class="teme-assignment__archive" data-id="${a.id}"
                         data-title="${BM.esc(a.title)}" title="Arhivează (șterge fișierele, păstrează notele)">${icon('archive', { size: 16 })} Arhivează</button>
+              ` : ''}
+              ${a.visibility === 'draft' ? `
+                <button class="teme-assignment__publish" data-id="${a.id}"
+                        data-title="${BM.esc(a.title)}" title="Publică tema — o face vizibilă elevilor">${icon('eye', { size: 16 })} Publică</button>
               ` : ''}
               <button class="teme-assignment__edit" data-id="${a.id}" title="Editează">${icon('pencil', { size: 16 })}</button>
               <button class="teme-assignment__delete" data-id="${a.id}"
@@ -3481,11 +3490,36 @@
 
     if (wz.step === 2 && wz.type === 'exercise') {
       body.querySelector('#wzAddExerciseBtn').onclick = () => openTemaExercisePicker();
-      body.querySelector('#wzExerciseList').addEventListener('click', e => {
-        const btn = e.target.closest('[data-remove-wz-ex]');
-        if (!btn) return;
-        (wz.blockData.items || []).splice(Number(btn.dataset.removeWzEx), 1);
-        _wzRender();
+      const exList = body.querySelector('#wzExerciseList');
+      exList.addEventListener('click', e => {
+        const removeBtn = e.target.closest('[data-remove-wz-ex]');
+        if (removeBtn) {
+          (wz.blockData.items || []).splice(Number(removeBtn.dataset.removeWzEx), 1);
+          _wzRender();
+          return;
+        }
+        const toggleBtn = e.target.closest('[data-toggle-wz-ex]');
+        if (toggleBtn) {
+          const preview = exList.querySelector(`[data-preview-wz-ex="${toggleBtn.dataset.toggleWzEx}"]`);
+          const willShow = preview.hidden;
+          preview.hidden = !willShow;
+          toggleBtn.classList.toggle('wz-exercise-item__toggle--open', willShow);
+          // Lazy, once-only render — the source text never changes from here,
+          // so re-running KaTeX on every toggle would just be wasted work.
+          if (willShow && !preview.dataset.rendered) {
+            BM.renderMath(preview);
+            preview.dataset.rendered = '1';
+          }
+        }
+      });
+      // Typed directly into wz.blockData.items — no re-render on every
+      // keystroke, since rebuilding the list would blow away input focus
+      // and cursor position mid-edit.
+      exList.addEventListener('input', e => {
+        const input = e.target.closest('[data-ex-title]');
+        if (!input) return;
+        const item = (wz.blockData.items || [])[Number(input.dataset.exTitle)];
+        if (item) item.title = input.value;
       });
     }
   }
@@ -3573,9 +3607,14 @@
         <div class="wz-exercise-list" id="wzExerciseList">
           ${items.length ? items.map((it, i) => `
             <div class="wz-exercise-item">
-              <span class="wz-exercise-item__num">${i + 1}</span>
-              <span class="wz-exercise-item__title">${BM.esc(it.title)}</span>
-              <button type="button" class="wz-exercise-item__remove" data-remove-wz-ex="${i}" title="Elimină">${icon('x', { size: 14 })}</button>
+              <div class="wz-exercise-item__row">
+                <span class="wz-exercise-item__num">${i + 1}</span>
+                <input type="text" class="wz-exercise-item__title-input" data-ex-title="${i}"
+                       value="${BM.esc(it.title)}" placeholder="Titlul exercițiului">
+                <button type="button" class="wz-exercise-item__toggle" data-toggle-wz-ex="${i}" title="Previzualizează enunțul">${icon('chevron-down', { size: 14 })}</button>
+                <button type="button" class="wz-exercise-item__remove" data-remove-wz-ex="${i}" title="Elimină">${icon('x', { size: 14 })}</button>
+              </div>
+              <div class="wz-exercise-item__preview math-content" data-preview-wz-ex="${i}" hidden>${BM.trustedNl2br(it.statement)}</div>
             </div>`).join('') : `<p class="cls-form-hint">Niciun exercițiu adăugat încă.</p>`}
         </div>
         <button type="button" class="btn btn--surface" id="wzAddExerciseBtn">+ Adaugă exerciții din culegere</button>`;
@@ -3821,6 +3860,23 @@
         .eq('id', assignmentId);
       if (error) throw error;
       BM.toast('Tema a fost ștearsă.', 'info');
+      await loadTemeTab();
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+    }
+  }
+
+  // One-click "make it visible to students" for a draft assignment — the
+  // wizard's own 3-step flow is the only other way to flip this bit, which
+  // is needlessly heavy for what's just a single column update.
+  async function publishAssignment(assignmentId, assignmentTitle) {
+    try {
+      const { error } = await BMAuth.supabase
+        .from('assignments')
+        .update({ visibility: 'published' })
+        .eq('id', assignmentId);
+      if (error) throw error;
+      BM.toast(`„${assignmentTitle}" a fost publicată.`, 'success');
       await loadTemeTab();
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
