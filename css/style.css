@@ -15117,23 +15117,23 @@ body.wb-fullscreen-active .scroll-top-btn {
    makes the four read as distinct, modern stat chips rather than four
    identical grey boxes. */
 .cls-stats-panel .sumar-icon-badge {
-  width: 42px;
-  height: 42px;
+  width: 58px;
+  height: 58px;
   transition: transform 0.3s ease;
 }
 .cls-stats-panel .sumar-kpi-card {
   flex: 1 1 190px;
   position: relative;
   overflow: hidden;
-  padding: 14px 16px;
-  gap: 12px;
+  padding: 16px 18px;
+  gap: 14px;
+  align-items: center;
   border-width: 1.5px;
   border-style: solid;
   cursor: default;
   transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
-.cls-stats-panel .sumar-kpi-card__val { font-size: 1.32rem; }
-.cls-stats-panel .sumar-kpi-card__sub { font-size: 0.74rem; font-weight: 600; margin-top: 4px; }
+.cls-stats-panel .sumar-kpi-card__val { font-size: 1.7rem; }
 /* Shine sweep — a skewed light band that glides across the tile on hover,
    clipped by the tile's own border-radius (overflow:hidden above). */
 .cls-stats-panel .sumar-kpi-card::after {
@@ -16089,16 +16089,19 @@ body.wb-fullscreen-active .scroll-top-btn {
    down to fit a dialog instead of a full page hero, and with none of the
    edit/upload affordances (this markup never includes them — see
    _renderTeacherProfileHeader in class-page.js). */
-.tp-dialog { max-width: 600px; }
+.tp-dialog { max-width: 1200px; }
 .tp-dialog .wz-body { padding: 20px; }
 .tp-bizcard { margin-bottom: 0; }
-.tp-bizcard .prof-cover { height: 140px; }
+.tp-bizcard .prof-cover { height: 180px; }
 .tp-bizcard .prof-avatar-wrap.prof-avatar-wrap--cover { width: 116px; height: 116px; margin-top: -58px; }
 .tp-bizcard .prof-avatar-wrap--cover .prof-avatar-initials { font-size: 1.9rem; }
-.tp-bizcard .prof-bizcard-body { padding: 0 26px 26px; }
+.tp-bizcard .prof-bizcard-body { padding: 0 32px 32px; }
 .tp-bizcard .prof-bizcard-info { padding-top: 10px; }
 .tp-bizcard .prof-name { font-size: 1.4rem; }
-.tp-bizcard .prof-bio { max-width: none; }
+/* Widening the dialog is for breathing room around the card, not for
+   stretching the bio into an unreadably long line — kept to a normal
+   reading measure even though the dialog itself is much wider now. */
+.tp-bizcard .prof-bio { max-width: 680px; }
 
 /* ── Assignment View Modal ───────────────────────────────── */
 .av-dialog {
