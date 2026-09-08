@@ -1236,7 +1236,7 @@
     { id: 'pdf',       icon: icon('file', { size: 24 }),      label: 'PDF / Document',  desc: 'Fișă, manual, referat' },
     { id: 'image',     icon: icon('image', { size: 24 }),     label: 'Imagini',         desc: 'Poze, scheme, diagrame' },
     { id: 'link',      icon: icon('link', { size: 24 }),      label: 'Link extern',     desc: 'Site, articol, resursă' },
-    { id: 'exercise',  icon: icon('library', { size: 24 }),   label: 'Exerciții',       desc: 'Întrebări interactive', soon: true },
+    { id: 'exercise',  icon: icon('library', { size: 24 }),   label: 'Exerciții',       desc: 'Din culegere, doar enunț' },
     { id: 'ai_import', icon: icon('bot', { size: 24 }),       label: 'Import AI',       desc: 'Din poză sau PDF', soon: true },
   ];
 
@@ -2787,6 +2787,9 @@
     document.body.appendChild(modal);
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
+    // None of the other block types carry math — only needed since
+    // 'exercise' blocks show a KaTeX-source statement (see renderBlockView).
+    BM.renderMath(modal);
 
     function _closeAv() {
       modal.remove();
@@ -3191,6 +3194,19 @@
       if (!embed) embed = `<a class="av-link" href="${BM.esc(url)}" target="_blank" rel="noopener"><span class="av-link__url">${BM.esc(url)}</span><span class="av-link__arrow">${icon('external-link', { size: 16 })}</span></a>`;
       inner = `${title ? `<p class="av-video-title">${BM.esc(title)}</p>` : ''}${embed}`;
 
+    } else if (block.type === 'exercise') {
+      const items = block.data.items || [];
+      inner = !items.length
+        ? `<p class="av-file-none">Niciun exercițiu adăugat.</p>`
+        : items.map((it, i) => `
+            <div class="av-exercise-item">
+              <span class="av-exercise-item__num">${i + 1}</span>
+              <div class="av-exercise-item__body">
+                <div class="av-exercise-item__title">${BM.esc(it.title)}</div>
+                <div class="av-exercise-item__statement math-content">${BM.trustedNl2br(it.statement)}</div>
+              </div>
+            </div>`).join('');
+
     } else if (['pdf', 'image', 'file', 'document'].includes(block.type)) {
       const items = block.data.items || [];
       if (!items.length) {
@@ -3462,6 +3478,16 @@
         });
       }
     }
+
+    if (wz.step === 2 && wz.type === 'exercise') {
+      body.querySelector('#wzAddExerciseBtn').onclick = () => openTemaExercisePicker();
+      body.querySelector('#wzExerciseList').addEventListener('click', e => {
+        const btn = e.target.closest('[data-remove-wz-ex]');
+        if (!btn) return;
+        (wz.blockData.items || []).splice(Number(btn.dataset.removeWzEx), 1);
+        _wzRender();
+      });
+    }
   }
 
   function _wzStep1() {
@@ -3536,6 +3562,25 @@
           <div class="wz-file-list" id="wzFileList"></div>
         </div>`;
 
+    // Exercises come from the same culegere-scanning picker as Simulări
+    // (openTemaExercisePicker → openSimExercisePicker('tema')) — no answer/
+    // grading fields, since a student just reads the statement and submits
+    // a photo of their solved notebook page the same way as any other temă
+    // (see _loadStudentSubmission/_wireStudentSubmit, unrelated to blocks).
+    const exerciseCfg = () => {
+      const items = wz.blockData.items || [];
+      return `
+        <div class="wz-exercise-list" id="wzExerciseList">
+          ${items.length ? items.map((it, i) => `
+            <div class="wz-exercise-item">
+              <span class="wz-exercise-item__num">${i + 1}</span>
+              <span class="wz-exercise-item__title">${BM.esc(it.title)}</span>
+              <button type="button" class="wz-exercise-item__remove" data-remove-wz-ex="${i}" title="Elimină">${icon('x', { size: 14 })}</button>
+            </div>`).join('') : `<p class="cls-form-hint">Niciun exercițiu adăugat încă.</p>`}
+        </div>
+        <button type="button" class="btn btn--surface" id="wzAddExerciseBtn">+ Adaugă exerciții din culegere</button>`;
+    };
+
     const cfg = {
       text:      textCfg,
       link:      linkCfg,
@@ -3543,6 +3588,7 @@
       pdf:       () => fileCfg('.pdf,.doc,.docx', false, 'PDF, DOC, DOCX · Max 20MB'),
       image:     () => fileCfg('image/*',         true,  'JPG, PNG, GIF, WebP · Max 10MB per fișier'),
       file:      () => fileCfg('*',               true,  'Orice tip de fișier · Max 50MB'),
+      exercise:  exerciseCfg,
     };
 
     const content = cfg[wz.type]
@@ -3659,6 +3705,16 @@
          Fișierele noi (wz._pendingFiles) se urcă și se adaugă la această
          listă abia în _wzSave(), o singură dată. */
       if (!wz.blockData.items) wz.blockData = { items: [] };
+      return true;
+    }
+    if (wz.type === 'exercise') {
+      // wz.blockData.items is already populated directly by the picker
+      // (openTemaExercisePicker → _simCulegereCommitQueue) — nothing to
+      // read from step-2 form fields here, just confirm it's non-empty.
+      if (!wz.blockData.items || !wz.blockData.items.length) {
+        BM.toast('Adaugă cel puțin un exercițiu.', 'error');
+        return false;
+      }
       return true;
     }
     wz.blockData = {};
@@ -5200,7 +5256,7 @@
     const gradeCode = _gradeCodeFromSchoolGrade(classData.school_grade);
     const useBacTaxonomy = gradeCode === '9' || gradeCode === 'bac';
 
-    simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', difficulty: '', results: [], photo: {} };
+    simPicker = { mode: 'simulare', tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', difficulty: '', results: [], photo: {} };
     // Fresh picker session — clear any culegere state/queue left over from a
     // previous open (module-level, so it otherwise survives across opens).
     _simCulegereQueue = [];
@@ -5233,18 +5289,68 @@
     modal.querySelectorAll('.sim-picker-tab').forEach(btn => btn.onclick = () => {
       simPicker.tab = btn.dataset.pickerTab;
       modal.querySelectorAll('.sim-picker-tab').forEach(b => b.classList.toggle('sim-picker-tab--active', b === btn));
+      // #simPickerBody is about to be torn down and rebuilt — the queue
+      // popover lives outside it (appended to the modal itself, see
+      // _openCulegereQueuePopover) so it'd otherwise survive as an orphaned,
+      // stale panel with dead event listeners once its toggle button is gone.
+      _closeCulegereQueuePopover();
       _simPickerRenderBody();
     });
 
     _simPickerRenderBody();
   }
 
+  // "Adaugă exerciții din culegere" for a temă's "Exerciții" block (see
+  // _wzStep2's exerciseCfg) — the exact same culegere/PDF/drag-select/AI
+  // pipeline as the Simulare picker's "Din culegere" tab, just without the
+  // other two tabs (a homework exercise has no answer key to browse from
+  // the bank, and no separate photo-upload need beyond what culegere covers)
+  // and without any answer/grading fields in the review step (see the
+  // simPicker.mode === 'tema' branches in _simPickerRenderPhotoReview and
+  // _simPickerConfirmAdhoc below).
+  function openTemaExercisePicker() {
+    document.getElementById('simPickerModal')?.remove();
+    const gradeCode = _gradeCodeFromSchoolGrade(classData.school_grade);
+
+    simPicker = { mode: 'tema', tab: 'culegere', gradeCode, useBacTaxonomy: false, categoryId: '', subcategoryId: '', query: '', difficulty: '', results: [], photo: {} };
+    _temaExerciseQueue = [];
+    _culegereState.pdf = null;
+    _culegereState.currentRow = null;
+    _culegereState.pageNum = 1;
+
+    const modal = document.createElement('div');
+    modal.id = 'simPickerModal';
+    modal.className = 'wz-overlay';
+    modal.innerHTML = `
+      <div class="wz-backdrop" id="simPickerBackdrop"></div>
+      <div class="wz-dialog sim-picker-dialog" role="dialog">
+        <div class="wz-head">
+          <span class="wz-head__title">Adaugă exerciții din culegere</span>
+          <button class="icon-btn" id="simPickerCloseBtn">${icon('x', { size: 16 })}</button>
+        </div>
+        <div class="wz-body">
+          <div id="simPickerBody">${_simPickerCulegereHtml()}</div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    modal.querySelector('#simPickerBackdrop').onclick = _simPickerClose;
+    modal.querySelector('#simPickerCloseBtn').onclick  = _simPickerClose;
+    _simPickerBindCulegere(document.getElementById('simPickerBody'));
+  }
+
   function _simPickerClose() {
-    if (_simCulegereQueue.length > 0) {
-      const n = _simCulegereQueue.length;
-      if (!confirm(`Ai ${n} exerciți${n === 1 ? 'u' : 'i'} nesalvat${n === 1 ? '' : 'e'} din culegere. Sigur închizi fără să le adaugi la simulare?`)) return;
-      _simCulegereQueue = [];
+    const queue = _activeCulegereQueue();
+    if (queue.length > 0) {
+      const n = queue.length;
+      const dest = simPicker?.mode === 'tema' ? 'la temă' : 'la simulare';
+      if (!confirm(`Ai ${n} exerciți${n === 1 ? 'u' : 'i'} nesalvat${n === 1 ? '' : 'e'} din culegere. Sigur închizi fără să le adaugi ${dest}?`)) return;
+      queue.length = 0;
     }
+    // The popover's own DOM node goes away with the modal below it either
+    // way (it's appended inside #simPickerModal) — this is just to detach
+    // its window/document-level listeners (resize, outside-click) instead
+    // of leaving them dangling.
+    _closeCulegereQueuePopover();
     document.getElementById('simPickerModal')?.remove();
     simPicker = null;
   }
@@ -5676,6 +5782,36 @@
 
   function _simPickerRenderPhotoReview(r) {
     const resultEl = document.getElementById('simPickPhotoResult');
+
+    // A temă exercise has no grading — students just read the statement and
+    // submit a photo of their solved notebook page (the existing whole-
+    // assignment submission flow, unrelated to blocks). Skip punctaj/tip
+    // răspuns/răspuns final/grilă entirely instead of collecting fields
+    // nothing downstream will ever read.
+    if (simPicker.mode === 'tema') {
+      resultEl.innerHTML = `
+        <div class="sim-picker-photo-review">
+          <div class="cls-form-field">
+            <label class="cls-form-label">Titlu</label>
+            <input type="text" id="simPickAiTitle" class="cls-form-input" value="${BM.esc(r.titlu || '')}">
+          </div>
+          <div class="cls-form-field">
+            <label class="cls-form-label">Enunț</label>
+            <textarea id="simPickAiStatement" class="cls-form-input cls-form-textarea" rows="3">${BM.esc(r.enunt_katex || '')}</textarea>
+            <span class="cls-form-hint">Poți edita textul (ex: șterge numărul exercițiului sau litera subpunctului preluate din poză). Mai jos vezi exact cum va apărea elevului.</span>
+            <div class="ae-preview-box" id="simPickAiStatementPreview" style="margin-top:8px"></div>
+          </div>
+          <button class="btn btn--primary" id="simPickAiConfirmBtn">+ Adaugă exercițiul la listă</button>
+        </div>`;
+      const preview = document.getElementById('simPickAiStatementPreview');
+      const statementInput = document.getElementById('simPickAiStatement');
+      const updatePreview = () => { preview.innerHTML = BM.trustedNl2br(statementInput.value || ''); BM.renderMath(preview); };
+      updatePreview();
+      statementInput.addEventListener('input', BM.debounce(updatePreview, 200));
+      document.getElementById('simPickAiConfirmBtn').onclick = () => _simPickerConfirmAdhoc();
+      return;
+    }
+
     const suggestedAiAnswer = BM.latexToPlain(r.raspuns_final || '');
     _simOptBuilderInit(suggestedAiAnswer);
     resultEl.innerHTML = `
@@ -5731,6 +5867,17 @@
   }
 
   async function _simPickerConfirmAdhoc() {
+    if (simPicker.mode === 'tema') {
+      const title     = document.getElementById('simPickAiTitle').value.trim();
+      const statement = document.getElementById('simPickAiStatement').value.trim();
+      if (!title || !statement) { BM.toast('Completează toate câmpurile.', 'error'); return; }
+      _temaExerciseQueue.push({ title, statement });
+      BM.toast('Exercițiu adăugat la listă.', 'success');
+      _renderCulegereQueueBar();
+      document.getElementById('simPickPhotoResult').innerHTML = _simCulegereResultPlaceholder();
+      return;
+    }
+
     const title     = document.getElementById('simPickAiTitle').value.trim();
     const statement = document.getElementById('simPickAiStatement').value.trim();
     const points    = Number(document.getElementById('simPickAiPoints').value) || 1;
@@ -5806,6 +5953,15 @@
   ═══════════════════════════════════════════════════════════════ */
   let _simCulegereRows = [];
   let _simCulegereQueue = [];
+  // Same culegere/PDF machinery, reused verbatim for "Exerciții" temă blocks
+  // (openTemaExercisePicker) — a homework exercise queue is kept separate
+  // from the simulare one so switching contexts never mixes the two, but
+  // everything else (viewer, drag-select, AI review) is shared via
+  // simPicker.mode ('simulare' | 'tema').
+  let _temaExerciseQueue = [];
+  function _activeCulegereQueue() {
+    return simPicker?.mode === 'tema' ? _temaExerciseQueue : _simCulegereQueue;
+  }
   const _culegereState = { pdf: null, currentRow: null, pageNum: 1, numPages: 1, selRectCss: null };
 
   let _pdfJsLoadPromise = null;
@@ -6129,42 +6285,130 @@
 
   // Persistent bar under the viewer, updated on every add/remove — the
   // teacher can keep snipping exercises (any page, any culegere) without
-  // this ever closing the picker; only its own commit button does.
+  // this ever closing the picker; only its own commit button does. Fixed
+  // height regardless of queue size: the actual list only ever appears in
+  // the on-demand popover (_openCulegereQueuePopover) — piling exercises up
+  // inline here used to shrink the canvas view as the queue grew, which is
+  // exactly the "not practical" problem this replaces.
+  let _simCulegereQueuePopoverOpen = false;
+
   function _renderCulegereQueueBar() {
     const bar = document.getElementById('simCulegereQueueBar');
     if (!bar) return;
-    if (!_simCulegereQueue.length) { bar.hidden = true; bar.innerHTML = ''; return; }
+    const n = _activeCulegereQueue().length;
+    if (!n) {
+      bar.hidden = true;
+      bar.innerHTML = '';
+      _closeCulegereQueuePopover();
+      return;
+    }
     bar.hidden = false;
-    const n = _simCulegereQueue.length;
     bar.innerHTML = `
-      <div class="sim-culegere-queue-list">
-        ${_simCulegereQueue.map((it, i) => `
-          <div class="sim-culegere-queue-item">
-            <span class="sim-culegere-queue-item__check">${icon('circle-check', { size: 15 })}</span>
-            <span class="sim-culegere-queue-item__title">${BM.esc(it.title)}</span>
-            <span class="sim-culegere-queue-item__pts">${it.points}p</span>
-            <button type="button" class="sim-culegere-queue-item__remove" data-remove-queue="${i}" title="Elimină din listă">${icon('x', { size: 13 })}</button>
-          </div>`).join('')}
-      </div>
+      <button type="button" class="sim-culegere-queue-toggle${_simCulegereQueuePopoverOpen ? ' sim-culegere-queue-toggle--open' : ''}" id="simCulegereQueueToggle">
+        ${icon('clipboard-list', { size: 14 })}
+        <span>${n} exerciți${n === 1 ? 'u pregătit' : 'i pregătite'}</span>
+        <span class="sim-culegere-queue-toggle__chevron">${icon('chevron-up', { size: 14 })}</span>
+      </button>
       <button type="button" class="btn btn--primary" id="simCulegereCommitBtn">+ Adaugă ${n} exerciți${n === 1 ? 'u' : 'i'}</button>`;
 
-    bar.querySelectorAll('[data-remove-queue]').forEach(btn => {
+    document.getElementById('simCulegereQueueToggle').onclick = () => {
+      if (_simCulegereQueuePopoverOpen) _closeCulegereQueuePopover();
+      else _openCulegereQueuePopover();
+    };
+    document.getElementById('simCulegereCommitBtn').onclick = _simCulegereCommitQueue;
+
+    // Keep an already-open popover in sync (e.g. adding one more exercise
+    // while reviewing the list) instead of leaving it showing a stale count.
+    if (_simCulegereQueuePopoverOpen) _renderCulegereQueuePopoverList();
+  }
+
+  function _openCulegereQueuePopover() {
+    let pop = document.getElementById('simCulegereQueuePopover');
+    if (!pop) {
+      pop = document.createElement('div');
+      pop.id = 'simCulegereQueuePopover';
+      pop.className = 'sim-culegere-queue-popover';
+      // Appended to the modal (not document.body) so it's removed for free
+      // whenever the whole picker closes — no separate cleanup needed for
+      // that path (only the tab-switch path calls _closeCulegereQueuePopover
+      // explicitly, since #simPickerBody gets torn down and rebuilt then).
+      document.getElementById('simPickerModal')?.appendChild(pop);
+    }
+    _simCulegereQueuePopoverOpen = true;
+    document.getElementById('simCulegereQueueToggle')?.classList.add('sim-culegere-queue-toggle--open');
+    _renderCulegereQueuePopoverList();
+    window.addEventListener('resize', _positionCulegereQueuePopover);
+    document.addEventListener('mousedown', _onCulegereQueuePopoverOutsideClick, true);
+  }
+
+  function _closeCulegereQueuePopover() {
+    _simCulegereQueuePopoverOpen = false;
+    document.getElementById('simCulegereQueuePopover')?.remove();
+    document.getElementById('simCulegereQueueToggle')?.classList.remove('sim-culegere-queue-toggle--open');
+    window.removeEventListener('resize', _positionCulegereQueuePopover);
+    document.removeEventListener('mousedown', _onCulegereQueuePopoverOutsideClick, true);
+  }
+
+  function _onCulegereQueuePopoverOutsideClick(e) {
+    const pop    = document.getElementById('simCulegereQueuePopover');
+    const toggle = document.getElementById('simCulegereQueueToggle');
+    if (!pop || pop.contains(e.target) || (toggle && toggle.contains(e.target))) return;
+    _closeCulegereQueuePopover();
+  }
+
+  function _renderCulegereQueuePopoverList() {
+    const pop = document.getElementById('simCulegereQueuePopover');
+    if (!pop) return;
+    const queue = _activeCulegereQueue();
+    if (!queue.length) { _closeCulegereQueuePopover(); return; }
+    // Tema items carry no points (no grading, see _simPickerConfirmAdhoc's
+    // mode==='tema' branch) — only render the badge when there's a real value.
+    pop.innerHTML = queue.map((it, i) => `
+      <div class="sim-culegere-queue-item">
+        <span class="sim-culegere-queue-item__check">${icon('circle-check', { size: 14 })}</span>
+        <span class="sim-culegere-queue-item__title">${BM.esc(it.title)}</span>
+        ${it.points != null ? `<span class="sim-culegere-queue-item__pts">${it.points}p</span>` : ''}
+        <button type="button" class="sim-culegere-queue-item__remove" data-remove-queue="${i}" title="Elimină din listă">${icon('x', { size: 14 })}</button>
+      </div>`).join('');
+    pop.querySelectorAll('[data-remove-queue]').forEach(btn => {
       btn.onclick = () => {
-        _simCulegereQueue.splice(Number(btn.dataset.removeQueue), 1);
+        queue.splice(Number(btn.dataset.removeQueue), 1);
         _renderCulegereQueueBar();
       };
     });
-    document.getElementById('simCulegereCommitBtn').onclick = _simCulegereCommitQueue;
+    _positionCulegereQueuePopover();
+  }
+
+  // Fixed-position, computed off the toggle button — same reasoning as
+  // BM._positionCselDropdown (utils.js): an absolutely/relatively positioned
+  // popover risks being clipped by the dialog's own overflow, fixed doesn't.
+  function _positionCulegereQueuePopover() {
+    const pop    = document.getElementById('simCulegereQueuePopover');
+    const toggle = document.getElementById('simCulegereQueueToggle');
+    if (!pop || !toggle) return;
+    const rect = toggle.getBoundingClientRect();
+    pop.style.left   = rect.left + 'px';
+    pop.style.right  = 'auto';
+    pop.style.bottom = (window.innerHeight - rect.top + 8) + 'px';
+    pop.style.top    = 'auto';
   }
 
   function _simCulegereCommitQueue() {
-    const n = _simCulegereQueue.length;
+    const isTema = simPicker.mode === 'tema';
+    const queue  = _activeCulegereQueue();
+    const n = queue.length;
     if (!n) return;
-    simWiz.items.push(..._simCulegereQueue);
-    _simCulegereQueue = [];
-    BM.toast(`${n} exerciți${n === 1 ? 'u adăugat' : 'i adăugate'} la simulare.`, 'success');
+    if (isTema) {
+      if (!wz.blockData.items) wz.blockData.items = [];
+      wz.blockData.items.push(...queue);
+    } else {
+      simWiz.items.push(...queue);
+    }
+    queue.length = 0;
+    _closeCulegereQueuePopover();
+    BM.toast(`${n} exerciți${n === 1 ? 'u adăugat' : 'i adăugate'} ${isTema ? 'la temă' : 'la simulare'}.`, 'success');
     _simPickerClose();
-    _simWzRender();
+    if (isTema) _wzRender(); else _simWzRender();
   }
 
   /* ─── Helpers ───────────────────────────────────────────────────── */
