@@ -151,6 +151,17 @@
   // tiles (.sumar-kpibar/.sumar-kpi-card, from css/style.css's Sumar-tab
   // work) reused here rather than a bespoke banner component.
   function _renderStatsBanner(stats) {
+    // Each tile's sub-line cross-references one of the other three numbers
+    // instead of repeating the headline value in smaller text — turns four
+    // isolated counts into a small web of context without any extra queries.
+    const avgGroupSize = stats.totalGroups > 0 ? Math.round(stats.activeStudents / stats.totalGroups) : null;
+    const avgLessonsPerGroup = stats.totalGroups > 0 && stats.totalLessons > 0
+      ? (stats.totalLessons / stats.totalGroups).toFixed(1) : null;
+    const attTier = stats.avgAttendance == null ? null
+      : stats.avgAttendance >= 90 ? 'Excelentă'
+      : stats.avgAttendance >= 75 ? 'Bună'
+      : 'Necesită atenție';
+
     return `
       <div class="cls-stats-panel">
         <div class="cls-stats-panel__title">Toate grupele</div>
@@ -160,13 +171,15 @@
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.totalGroups}</div>
             <div class="sumar-kpi-card__lbl">Grupe</div>
+            <div class="sumar-kpi-card__sub">${avgGroupSize != null ? `≈${avgGroupSize} elevi / grupă` : 'Nicio grupă încă'}</div>
           </div>
         </div>
-        <div class="sumar-kpi-card sumar-kpi-card--teal">
-          <span class="sumar-icon-badge sumar-icon-badge--teal">${icon('users', { size: 24 })}</span>
+        <div class="sumar-kpi-card sumar-kpi-card--purple">
+          <span class="sumar-icon-badge sumar-icon-badge--purple">${icon('users', { size: 24 })}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.activeStudents}</div>
             <div class="sumar-kpi-card__lbl">Elevi activi</div>
+            <div class="sumar-kpi-card__sub">${stats.totalGroups > 0 ? `în ${stats.totalGroups} grup${stats.totalGroups === 1 ? 'ă' : 'e'}` : 'Fără grupe încă'}</div>
           </div>
         </div>
         <div class="sumar-kpi-card sumar-kpi-card--yellow">
@@ -174,6 +187,7 @@
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.totalLessons}</div>
             <div class="sumar-kpi-card__lbl">Lecții ținute</div>
+            <div class="sumar-kpi-card__sub">${avgLessonsPerGroup != null ? `${avgLessonsPerGroup} / grupă` : 'Fără lecții încă'}</div>
           </div>
         </div>
         <div class="sumar-kpi-card sumar-kpi-card--green">
@@ -181,7 +195,7 @@
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${stats.avgAttendance != null ? stats.avgAttendance + '%' : '—'}</div>
             <div class="sumar-kpi-card__lbl">Prezență medie</div>
-            ${stats.avgAttendance == null ? '<div class="sumar-kpi-card__sub">Fără lecții încă</div>' : ''}
+            <div class="sumar-kpi-card__sub">${attTier || 'Fără lecții încă'}</div>
           </div>
         </div>
         </div>

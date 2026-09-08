@@ -37,6 +37,10 @@
   }
 
   let classData  = null;
+  // Fetched once per page load (see _fetchTeacherProfile) and reused both to
+  // patch the header avatar once it resolves and to fill the read-only
+  // "Vezi profilul" modal without a second round-trip.
+  let teacherProfilePromise = null;
   let activeTab  = 'flux';
   let temeCache  = [];
   let wz         = null;
@@ -156,7 +160,148 @@
     }
 
     classData = cls;
+    // Fired here (not awaited) so the page renders immediately with the
+    // initials fallback — the header/modal patch themselves once this
+    // resolves instead of delaying first paint for a profile lookup.
+    teacherProfilePromise = _fetchTeacherProfile(cls.teacher_id);
     renderPage();
+  }
+
+  async function _fetchTeacherProfile(teacherId) {
+    try {
+      const { data: { session } } = await BMAuth.supabase.auth.getSession();
+      const profile = await BM.postJson('/api/teacher-profile', {
+        accessToken: session?.access_token,
+        teacherId
+      });
+      const avatarEl = document.getElementById('cdTeacherAvatar');
+      if (avatarEl && profile.avatar_url) {
+        avatarEl.innerHTML = `<img src="${BM.esc(profile.avatar_url)}" alt="">`;
+      }
+      return profile;
+    } catch {
+      return null;
+    }
+  }
+
+  // Read-only "Vezi profilul" modal for a student looking at their
+  // teacher — reuses the exact same .prof-bizcard header markup/CSS as the
+  // teacher's own profile.html, minus every edit affordance and minus the
+  // password/reviews-list sections that live outside the header there.
+  async function _openTeacherProfileModal() {
+    document.getElementById('teacherProfileModal')?.remove();
+    const modal = document.createElement('div');
+    modal.id = 'teacherProfileModal';
+    modal.className = 'wz-overlay';
+    modal.innerHTML = `
+      <div class="wz-backdrop" id="tpBackdrop"></div>
+      <div class="wz-dialog tp-dialog" role="dialog">
+        <div class="wz-head">
+          <span class="wz-head__title">Profilul profesorului</span>
+          <button class="icon-btn" id="tpCloseBtn">${icon('x', { size: 16 })}</button>
+        </div>
+        <div class="wz-body" id="tpBody">
+          <div class="classes-loading"><div class="classes-spinner"></div><p>Se încarcă…</p></div>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    const close = () => modal.remove();
+    modal.querySelector('#tpBackdrop').onclick = close;
+    modal.querySelector('#tpCloseBtn').onclick = close;
+
+    const [profile, reviewsAgg] = await Promise.all([
+      teacherProfilePromise,
+      _fetchTeacherReviewsAgg(classData.teacher_id)
+    ]);
+
+    const body = document.getElementById('tpBody');
+    if (!body) return; // modal was closed before the fetch resolved
+    if (!profile) {
+      body.innerHTML = `<p class="cls-form-hint">Nu am putut încărca profilul profesorului.</p>`;
+      return;
+    }
+    body.innerHTML = _renderTeacherProfileHeader(profile, reviewsAgg);
+  }
+
+  // teacher_reviews is publicly select-able to any authenticated user (see
+  // its migration) — unlike the profile fields, this doesn't need the
+  // service-role endpoint at all.
+  async function _fetchTeacherReviewsAgg(teacherId) {
+    try {
+      const { data, error } = await BMAuth.supabase
+        .from('teacher_reviews').select('rating').eq('teacher_id', teacherId);
+      if (error) throw error;
+      const rows = data || [];
+      const avg = rows.length ? rows.reduce((s, r) => s + r.rating, 0) / rows.length : null;
+      return { avg, count: rows.length };
+    } catch {
+      return { avg: null, count: 0 };
+    }
+  }
+
+  function _tpStarsHTML(rating, size) {
+    const filled = rating == null ? 0 : Math.round(rating);
+    let out = '';
+    for (let i = 1; i <= 5; i++) {
+      out += `<span class="prof-star${i <= filled ? ' prof-star--filled' : ''}">${icon('star', { size })}</span>`;
+    }
+    return out;
+  }
+
+  function _renderTeacherProfileHeader(profile, reviewsAgg) {
+    const name = BM.esc(profile.name || 'Profesor');
+    const parts = (profile.name || '').split(/\s+/).filter(Boolean);
+    const initials = parts.length >= 2
+      ? (parts[0][0] + parts[1][0]).toUpperCase()
+      : (profile.name || '?').slice(0, 2).toUpperCase();
+    const memberSince = profile.created_at
+      ? new Date(profile.created_at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
+      : '—';
+    const socialDisplay = profile.social_url
+      ? profile.social_url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/+$/, '')
+      : '';
+
+    return `
+      <div class="prof-bizcard tp-bizcard">
+        <div class="prof-cover${profile.cover_url ? '' : ' prof-cover--placeholder'}"${profile.cover_url ? ` style="background-image:url('${BM.esc(profile.cover_url)}')"` : ''}></div>
+        <div class="prof-bizcard-body">
+          <div class="prof-bizcard-top">
+            <div class="prof-avatar-wrap prof-avatar-wrap--cover">
+              <div class="prof-avatar-lg">
+                ${profile.avatar_url
+                  ? `<img src="${BM.esc(profile.avatar_url)}" alt="${name}" class="prof-avatar-img">`
+                  : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+              </div>
+            </div>
+            <div class="prof-bizcard-info">
+              <div class="prof-bizcard-info__row1">
+                <div>
+                  <h1 class="prof-name">${name}</h1>
+                  <div class="prof-badges">
+                    <span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>
+                    ${profile.status === 'active' ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
+                  </div>
+                </div>
+              </div>
+
+              <div class="prof-rating-row">
+                <span class="prof-stars">${_tpStarsHTML(reviewsAgg.avg, 20)}</span>
+                ${reviewsAgg.count
+                  ? `<span class="prof-rating-num">${reviewsAgg.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsAgg.count} recenzi${reviewsAgg.count === 1 ? 'e' : 'i'})</span>`
+                  : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
+              </div>
+
+              <div class="prof-contact-row">
+                ${profile.country ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--blue">${icon('map-pin', { size: 16 })}</span> ${BM.esc(profile.country)}</span>` : ''}
+                ${profile.social_url ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(profile.social_url)}" target="_blank" rel="noopener noreferrer"><span class="prof-contact-icon prof-contact-icon--teal">${icon('link', { size: 16 })}</span> ${BM.esc(socialDisplay)}</a>` : ''}
+                <span class="prof-contact-item"><span class="prof-contact-icon">${icon('calendar', { size: 16 })}</span> Membru din ${memberSince}</span>
+              </div>
+
+              <p class="prof-bio${profile.bio ? '' : ' prof-bio--empty'}">${profile.bio ? BM.esc(profile.bio) : 'Profesorul nu a adăugat încă o descriere.'}</p>
+            </div>
+          </div>
+        </div>
+      </div>`;
   }
 
   function hardRedirect() {
@@ -177,6 +322,13 @@
     /* Split "Matematică · Miercuri · 15:30" into parts for richer display */
     const nameParts  = classData.name.split(' · ');
     const subject    = nameParts[0] || classData.name;
+
+    /* Fallback shown in the header avatar until (or unless) the teacher's
+       real photo loads — see _fetchTeacherProfile, which patches #cdTeacherAvatar. */
+    const teacherNameParts = (classData.teacher_name || '').split(/\s+/).filter(Boolean);
+    const teacherInitials = teacherNameParts.length >= 2
+      ? (teacherNameParts[0][0] + teacherNameParts[1][0]).toUpperCase()
+      : (classData.teacher_name || '?').slice(0, 2).toUpperCase();
     const scheduleStr = nameParts.slice(1).join(' · ');
 
     document.getElementById('classRoot').innerHTML = `
@@ -230,13 +382,14 @@
                 </div>
                 <div class="cd-meta">
                   <span class="cd-meta__teacher">
-                    <svg width="13" height="13" viewBox="0 0 24 24" fill="none"
-                         stroke="currentColor" stroke-width="2" stroke-linecap="round">
-                      <circle cx="12" cy="8" r="4"/>
-                      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7"/>
-                    </svg>
+                    <span class="cd-teacher-avatar" id="cdTeacherAvatar">
+                      <span class="cd-teacher-avatar__initials">${BM.esc(teacherInitials)}</span>
+                    </span>
                     Profesor: ${BM.esc(classData.teacher_name)}
                   </span>
+                  <button type="button" class="cd-meta__teacher-viewbtn" id="cdViewTeacherBtn">
+                    ${icon('eye', { size: 14 })} Vezi profilul
+                  </button>
                 </div>
               </div>
 
@@ -283,6 +436,14 @@
     /* Tab click handlers */
     document.querySelectorAll('.cd-tab').forEach(btn => {
       btn.addEventListener('click', () => switchTab(btn.dataset.tab));
+    });
+
+    // The teacher viewing their own class jumps straight to their real,
+    // editable profile — the read-only modal below is only for someone
+    // looking at someone ELSE's teacher (a student).
+    document.getElementById('cdViewTeacherBtn')?.addEventListener('click', () => {
+      if (isTeacher) window.location.href = 'profile.html';
+      else _openTeacherProfileModal();
     });
 
     _setupRealtime();

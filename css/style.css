@@ -12130,10 +12130,40 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 .cd-meta__teacher {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 7px;
   font-size: 0.86rem;
   color: var(--text-secondary);
 }
+.cd-teacher-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent-dim);
+  color: var(--accent);
+  font-size: 0.62rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.cd-teacher-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cd-meta__teacher-viewbtn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  background: none;
+  border: 1px solid var(--border);
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 3px 10px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+}
+.cd-meta__teacher-viewbtn:hover { border-color: var(--accent); color: var(--accent); background: var(--accent-dim); }
 
 .cd-meta__badge {
   display: inline-flex;
@@ -14979,6 +15009,7 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sumar-icon-badge--green  { background: var(--green-dim);  color: var(--green); }
 .sumar-icon-badge--yellow { background: var(--yellow-dim); color: var(--yellow); }
 .sumar-icon-badge--teal   { background: var(--solved-dim); color: var(--solved); }
+.sumar-icon-badge--purple { background: rgba(168,85,247,0.12); color: #a855f7; }
 /* Compact variant — Activitate recentă rows, next to a line of text
    rather than heading a whole card. */
 .sumar-icon-badge--sm { width: 26px; height: 26px; margin-top: 1px; }
@@ -15022,33 +15053,25 @@ body.wb-fullscreen-active .scroll-top-btn {
    Catalog Note/Prezență still use as-is) so Sumar can carry the richer
    icon-badge treatment without changing how Catalog's own stat tiles look. */
 .sumar-kpibar { display: flex; flex-wrap: wrap; gap: 12px; }
-/* classes.html's "toate grupele" aggregate banner — a real panel (surface
-   background + border) around the reused .sumar-kpibar tiles, so the
-   stats visually separate from the class-card grid below instead of
-   floating loose on the page background right above it. */
+/* classes.html's "toate grupele" aggregate banner — no enclosing panel box
+   (each tile below carries its own color identity instead), just a label
+   and a bottom gradient rule separating the stats from the class-card
+   grid below. */
 .cls-stats-panel {
   position: relative;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 20px;
-  margin-bottom: 34px;
-  box-shadow: var(--shadow-sm);
+  margin-bottom: 32px;
+  padding-bottom: 18px;
 }
-/* The gradient line delimiting this panel from the class-card grid below —
-   same accent gradient as .cd-info-card__strip, sitting in the gap rather
-   than another plain border so the panel reads as its own section instead
-   of just another bordered box among the cards. */
 .cls-stats-panel::after {
   content: '';
   position: absolute;
   left: 4px;
   right: 4px;
-  bottom: -18px;
+  bottom: 0;
   height: 3px;
   border-radius: 3px;
   background: linear-gradient(90deg, var(--accent) 0%, rgba(120,80,200,0.75) 100%);
-  opacity: 0.55;
+  opacity: 0.4;
 }
 .cls-stats-panel__title {
   font-size: 0.72rem;
@@ -15086,31 +15109,53 @@ body.wb-fullscreen-active .scroll-top-btn {
 .sumar-kpi-card__bar-fill { height: 100%; background: var(--accent); border-radius: 3px; }
 
 /* classes.html's "Toate grupele" banner only (not the per-class Sumar tab,
-   which keeps the plain/smaller shared look) — bigger icon badges and a
-   per-card color wash + accent edge so the four tiles read as distinct
-   stats at a glance instead of four identical grey boxes. */
-.cls-stats-panel .sumar-icon-badge { width: 50px; height: 50px; }
+   which keeps the plain/smaller shared look) — compact, individually
+   colored tiles (no shared enclosing box) each with a light tint + matching
+   border, a shine sweep and lift on hover, and a soft colored shadow that
+   makes the four read as distinct, modern stat chips rather than four
+   identical grey boxes. */
+.cls-stats-panel .sumar-icon-badge {
+  width: 42px;
+  height: 42px;
+  transition: transform 0.3s ease;
+}
 .cls-stats-panel .sumar-kpi-card {
-  border: none;
+  flex: 1 1 190px;
   position: relative;
   overflow: hidden;
-  padding-left: 20px;
-  gap: 14px;
+  padding: 14px 16px;
+  gap: 12px;
+  border-width: 1.5px;
+  border-style: solid;
+  cursor: default;
+  transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
 }
-.cls-stats-panel .sumar-kpi-card::before {
+.cls-stats-panel .sumar-kpi-card__val { font-size: 1.32rem; }
+.cls-stats-panel .sumar-kpi-card__sub { font-size: 0.74rem; font-weight: 600; margin-top: 4px; }
+/* Shine sweep — a skewed light band that glides across the tile on hover,
+   clipped by the tile's own border-radius (overflow:hidden above). */
+.cls-stats-panel .sumar-kpi-card::after {
   content: '';
   position: absolute;
-  left: 0; top: 0; bottom: 0;
-  width: 4px;
+  top: 0; left: -60%;
+  width: 35%; height: 100%;
+  background: linear-gradient(115deg, transparent, rgba(255,255,255,0.4), transparent);
+  transform: skewX(-20deg);
+  transition: left 0.65s ease;
+  pointer-events: none;
 }
-.cls-stats-panel .sumar-kpi-card--blue   { background: var(--accent-dim); }
-.cls-stats-panel .sumar-kpi-card--blue::before   { background: var(--accent); }
-.cls-stats-panel .sumar-kpi-card--teal   { background: var(--solved-dim); }
-.cls-stats-panel .sumar-kpi-card--teal::before   { background: var(--solved); }
-.cls-stats-panel .sumar-kpi-card--yellow { background: var(--yellow-dim); }
-.cls-stats-panel .sumar-kpi-card--yellow::before { background: var(--yellow); }
-.cls-stats-panel .sumar-kpi-card--green  { background: var(--green-dim); }
-.cls-stats-panel .sumar-kpi-card--green::before  { background: var(--green); }
+.cls-stats-panel .sumar-kpi-card:hover::after { left: 130%; }
+.cls-stats-panel .sumar-kpi-card:hover { transform: translateY(-3px); }
+.cls-stats-panel .sumar-kpi-card:hover .sumar-icon-badge { transform: scale(1.1) rotate(-4deg); }
+
+.cls-stats-panel .sumar-kpi-card--blue   { background: var(--accent-dim); border-color: rgba(58,107,173,0.22); }
+.cls-stats-panel .sumar-kpi-card--blue:hover   { border-color: var(--accent); box-shadow: 0 10px 26px rgba(58,107,173,0.2); }
+.cls-stats-panel .sumar-kpi-card--purple { background: rgba(168,85,247,0.08); border-color: rgba(168,85,247,0.24); }
+.cls-stats-panel .sumar-kpi-card--purple:hover { border-color: #a855f7; box-shadow: 0 10px 26px rgba(168,85,247,0.22); }
+.cls-stats-panel .sumar-kpi-card--yellow { background: var(--yellow-dim); border-color: rgba(217,119,6,0.22); }
+.cls-stats-panel .sumar-kpi-card--yellow:hover { border-color: var(--yellow); box-shadow: 0 10px 26px rgba(217,119,6,0.2); }
+.cls-stats-panel .sumar-kpi-card--green  { background: var(--green-dim); border-color: rgba(22,163,74,0.22); }
+.cls-stats-panel .sumar-kpi-card--green:hover  { border-color: var(--green); box-shadow: 0 10px 26px rgba(22,163,74,0.2); }
 
 /* C. Cine are nevoie de atenție */
 .sumar-attention {
@@ -16036,6 +16081,23 @@ body.wb-fullscreen-active .scroll-top-btn {
   .wz-foot { padding: 14px 20px; }
 }
 
+/* ── Teacher public-profile-header modal (class.html "Vezi profilul") ──
+   Reuses .prof-bizcard verbatim (see profile.html) so a student sees the
+   exact same header a teacher curates on their real profile, just scaled
+   down to fit a dialog instead of a full page hero, and with none of the
+   edit/upload affordances (this markup never includes them — see
+   _renderTeacherProfileHeader in class-page.js). */
+.tp-dialog { max-width: 480px; }
+.tp-dialog .wz-body { padding: 16px; }
+.tp-bizcard { margin-bottom: 0; }
+.tp-bizcard .prof-cover { height: 100px; }
+.tp-bizcard .prof-avatar-wrap.prof-avatar-wrap--cover { width: 92px; height: 92px; margin-top: -46px; }
+.tp-bizcard .prof-avatar-wrap--cover .prof-avatar-initials { font-size: 1.5rem; }
+.tp-bizcard .prof-bizcard-body { padding: 0 20px 20px; }
+.tp-bizcard .prof-bizcard-info { padding-top: 6px; }
+.tp-bizcard .prof-name { font-size: 1.25rem; }
+.tp-bizcard .prof-bio { max-width: none; }
+
 /* ── Assignment View Modal ───────────────────────────────── */
 .av-dialog {
   max-width: 680px !important;
@@ -16558,9 +16620,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   .catalog-stat-card__lbl { font-size: 0.6rem; letter-spacing: 0.03em; }
 
   /* classes.html's "toate grupele" panel — 2-per-row, not stacked one per
-     line. Needs its own rule (not just the base .sumar-kpi-card flex-basis)
-     because the panel's own padding eats just enough width at this
-     breakpoint to tip 2-across into wrapping to 1-across otherwise. */
+     line, at this breakpoint. */
   .cls-stats-panel .sumar-kpi-card { flex: 1 1 calc(50% - 6px); }
 }
 
