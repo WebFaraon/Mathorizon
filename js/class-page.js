@@ -179,7 +179,8 @@
         avatarEl.innerHTML = `<img src="${BM.esc(profile.avatar_url)}" alt="">`;
       }
       return profile;
-    } catch {
+    } catch (e) {
+      console.warn('[class-page] _fetchTeacherProfile failed:', e.message);
       return null;
     }
   }
