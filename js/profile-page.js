@@ -433,7 +433,7 @@
                   : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
               </div>` : ''}
 
-              <div class="prof-contact-row">
+              <div class="prof-contact-row${showRating ? '' : ' prof-contact-row--no-rating'}">
                 ${country ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--blue">${icon('map-pin', { size: 16 })}</span> ${BM.esc(country)}</span>` : ''}
                 ${email ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--green">${icon('mail', { size: 16 })}</span> ${BM.esc(email)}</span>` : ''}
                 ${phone ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--yellow">${icon('phone', { size: 16 })}</span> ${BM.esc(phone)}</span>` : ''}

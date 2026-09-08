@@ -9998,6 +9998,11 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .prof-rating-count { font-size: 0.85rem; color: var(--text-muted); }
 
 .prof-contact-row { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 28px; margin-bottom: 22px; }
+/* Elev/admin headers skip .prof-rating-row entirely (that block is
+   teacher-only) — without it, the contact row had nothing supplying the
+   gap .prof-rating-row's own margin normally provides, so it sat right up
+   against .prof-badges above it. Matches that same 18px here. */
+.prof-contact-row--no-rating { margin-top: 18px; }
 .prof-contact-item {
   display: inline-flex;
   align-items: center;
