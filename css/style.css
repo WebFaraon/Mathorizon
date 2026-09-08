@@ -13823,7 +13823,7 @@ body.wb-fullscreen-active .scroll-top-btn {
    max-width:660px is declared later in this file, so with a tied-specificity
    selector here it would win the cascade and silently cap the dialog back
    down to 660px no matter what's set on this rule. */
-.wz-dialog.sim-picker-dialog { max-width: min(84vw, 1320px); }
+.wz-dialog.sim-picker-dialog { max-width: min(88vw, 1440px); max-height: 92vh; }
 /* Scoped override — this modal alone gets tighter outer breathing room than
    the default .wz-overlay padding, to reclaim a bit more usable width. */
 #simPickerModal.wz-overlay { padding: 12px; }
@@ -13877,27 +13877,85 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 
 /* "Din culegere" tab — PDF page viewer + drag-to-select crop (see
-   class-page.js's _bindCulegereSelection). */
+   class-page.js's _bindCulegereSelection). The whole tab is a flex column
+   that fills the dialog's available height (see the :has() rules further
+   below) so the page + the AI review sit side by side, both fully visible
+   without scrolling the dialog itself — only .sim-culegere-result-col
+   scrolls internally if a review is taller than the box. */
+.sim-culegere-tab { display: flex; flex-direction: column; gap: 4px; }
+
+/* Collapsed "which culegere" summary — replaces the picker row once one is
+   chosen, so that vertical real estate goes to the page/review split
+   instead of a dropdown nobody needs to see anymore. */
+.sim-culegere-summary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 14px;
+  margin-bottom: 10px;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+}
+.sim-culegere-summary__icon { display: inline-flex; color: var(--accent); flex-shrink: 0; }
+.sim-culegere-summary__title { flex: 1; min-width: 0; font-weight: 700; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.sim-culegere-viewer { display: flex; flex-direction: column; flex: 1; min-height: 0; gap: 10px; }
+
 .sim-culegere-toolbar {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin: 14px 0 10px;
+  justify-content: center;
+  gap: 16px;
+  flex-shrink: 0;
 }
-.sim-culegere-page-label { font-size: 0.82rem; font-weight: 700; color: var(--text-secondary); }
+.sim-culegere-toolbar .dc-tool-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.sim-culegere-page-nav {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.sim-culegere-page-input {
+  width: 56px;
+  padding: 6px 4px;
+  text-align: center;
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.84rem;
+  font-weight: 700;
+  font-family: inherit;
+}
+.sim-culegere-page-input::-webkit-inner-spin-button,
+.sim-culegere-page-input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
+.sim-culegere-page-input { -moz-appearance: textfield; }
+
+.sim-culegere-split {
+  display: grid;
+  grid-template-columns: 1.15fr 1fr;
+  gap: 28px;
+  flex: 1;
+  min-height: 0;
+}
 .sim-culegere-canvas-wrap {
   position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   border: 1px solid var(--border);
   border-radius: var(--radius-sm);
-  overflow: auto;
-  max-height: 60vh;
+  overflow: hidden;
   background: var(--surface);
-  margin-bottom: 16px;
+  height: 100%;
 }
 .sim-culegere-canvas-wrap canvas {
   display: block;
   max-width: 100%;
+  max-height: 100%;
   cursor: crosshair;
   touch-action: none; /* dragging on the canvas selects a crop, not scrolls */
 }
@@ -13906,6 +13964,84 @@ body.wb-fullscreen-active .scroll-top-btn {
   border: 2px dashed var(--accent);
   background: color-mix(in srgb, var(--accent) 18%, transparent);
   pointer-events: none;
+}
+.sim-culegere-result-col {
+  border-left: 1px solid var(--border);
+  padding-left: 28px;
+  overflow-y: auto;
+  min-width: 0;
+}
+
+/* Queued exercises — stays visible under the split, independent of
+   whatever page/review is on screen; only its own button ever commits +
+   closes (see _simCulegereCommitQueue in class-page.js). */
+.sim-culegere-queue-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  flex-shrink: 0;
+  border-top: 1px solid var(--border);
+  margin-top: 12px;
+  padding-top: 12px;
+}
+.sim-culegere-queue-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+  max-height: 76px;
+  overflow-y: auto;
+}
+.sim-culegere-queue-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 240px;
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 8px 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+.sim-culegere-queue-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sim-culegere-queue-item__remove {
+  display: inline-flex;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  cursor: pointer;
+  opacity: 0.7;
+  padding: 2px;
+}
+.sim-culegere-queue-item__remove:hover { opacity: 1; }
+
+/* Let the whole tab actually use the dialog's height instead of just
+   stacking block-wise and scrolling the dialog: .wz-body becomes a flex
+   column (only when this tab is mounted — :has() scopes it so "Din
+   bancă"/"Adaugă din poză" keep their normal block+scroll layout), and
+   .sim-culegere-tab flex-grows to fill whatever's left below the tab bar. */
+.wz-body:has(.sim-culegere-tab) { display: flex; flex-direction: column; overflow: hidden; }
+#simPickerBody:has(.sim-culegere-tab) { display: flex; flex-direction: column; flex: 1; min-height: 0; }
+.wz-body:has(.sim-culegere-tab) .sim-picker-tabs { flex-shrink: 0; }
+.wz-body:has(.sim-culegere-tab) .sim-culegere-tab { flex: 1; min-height: 0; }
+
+/* A true side-by-side split just doesn't fit a phone screen — stack
+   instead and let the dialog scroll normally, same as every other tab on
+   mobile (see the .sim-picker-dialog mobile rule near .wz-dialog). */
+@media (max-width: 760px) {
+  .wz-body:has(.sim-culegere-tab) { display: block; overflow-y: auto; }
+  #simPickerBody:has(.sim-culegere-tab) { display: block; }
+  .wz-body:has(.sim-culegere-tab) .sim-culegere-tab { display: block; }
+  .sim-culegere-viewer { display: block; }
+  .sim-culegere-split { display: block; }
+  .sim-culegere-canvas-wrap { height: 42vh; margin-bottom: 16px; }
+  .sim-culegere-result-col { border-left: none; padding-left: 0; border-top: 1px solid var(--border); padding-top: 16px; overflow-y: visible; }
 }
 
 .sim-picker-photo-actions {
@@ -15455,25 +15591,21 @@ body.wb-fullscreen-active .scroll-top-btn {
   margin-bottom: 20px;
 }
 
-/* ── Wizard / exercise-picker — mobile ───────────────────────────────
-   Same "slide-up sheet, edge-to-edge" treatment .classes-modal already
-   uses on mobile (see @media (max-width: 600px) .classes-modal above) —
-   this dialog had no narrow-screen override at all before, so it kept its
-   desktop centered-with-gaps look (and fixed padding) instead of matching
-   every other modal in the app. .sim-picker-tabs also had no flex-shrink
-   guard, so its two labels wrapped mid-word instead of staying on one line
-   (fixed on .sim-picker-tab itself, applies at every width). */
+/* ── Exercise-picker (.sim-picker-dialog) — mobile ───────────────────
+   The generic "@media (max-width:600px) .wz-dialog" bottom-sheet rule
+   further down this file (and #simPickerModal's own 12px overlay padding
+   above, at line ~13829) both already exist — but .sim-picker-dialog's
+   OWN unscoped rule (".wz-dialog.sim-picker-dialog { max-width: min(84vw,
+   1320px) }", two classes, no media guard) out-specifies a plain
+   ".wz-dialog" media rule regardless of source order, and #simPickerModal's
+   ID beats a plain ".wz-overlay" media rule the same way — so this exact
+   modal alone never actually got the full-width mobile treatment every
+   other modal already has, despite an earlier attempt at this same fix
+   (which duplicated the generic rule instead of out-specifying the
+   selectors actually blocking it). Match their specificity here instead. */
 @media (max-width: 600px) {
-  .wz-overlay, #simPickerModal.wz-overlay { padding: 0; align-items: flex-end; }
-  .wz-dialog {
-    max-width: 100%;
-    border-radius: var(--radius) var(--radius) 0 0;
-    max-height: 100vh;
-    max-height: 100dvh;
-  }
-  .wz-head { padding: 16px 20px; }
-  .wz-body { padding: 16px 20px; }
-  .wz-foot { padding: 12px 20px; flex-wrap: wrap; gap: 10px; }
+  .wz-dialog.sim-picker-dialog { max-width: 100%; }
+  #simPickerModal.wz-overlay { padding: 0; align-items: flex-end; }
 }
 
 /* ── Step 1 — Type grid ──────────────────────────────────── */

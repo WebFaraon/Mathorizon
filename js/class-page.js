@@ -5201,6 +5201,12 @@
     const useBacTaxonomy = gradeCode === '9' || gradeCode === 'bac';
 
     simPicker = { tab: 'bank', gradeCode, useBacTaxonomy, categoryId: '', subcategoryId: '', query: '', difficulty: '', results: [], photo: {} };
+    // Fresh picker session — clear any culegere state/queue left over from a
+    // previous open (module-level, so it otherwise survives across opens).
+    _simCulegereQueue = [];
+    _culegereState.pdf = null;
+    _culegereState.currentRow = null;
+    _culegereState.pageNum = 1;
 
     const modal = document.createElement('div');
     modal.id = 'simPickerModal';
@@ -5234,6 +5240,11 @@
   }
 
   function _simPickerClose() {
+    if (_simCulegereQueue.length > 0) {
+      const n = _simCulegereQueue.length;
+      if (!confirm(`Ai ${n} exerciți${n === 1 ? 'u' : 'i'} nesalvat${n === 1 ? '' : 'e'} din culegere. Sigur închizi fără să le adaugi la simulare?`)) return;
+      _simCulegereQueue = [];
+    }
     document.getElementById('simPickerModal')?.remove();
     simPicker = null;
   }
@@ -5696,7 +5707,7 @@
           <span class="cls-form-hint">Gemini întoarce LaTeX brut — l-am convertit în text simplu (√, ∈, etc.), dar verifică-l înainte de a confirma. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine — corectarea compară text exact.</span>
         </div>
         <div id="simPickAiOptionsWrap" style="display:none">${_simOptBuilderRowsHtml()}</div>
-        <button class="btn btn--primary" id="simPickAiConfirmBtn">+ Adaugă la simulare</button>
+        <button class="btn btn--primary" id="simPickAiConfirmBtn">${simPicker.tab === 'culegere' ? '+ Adaugă exercițiul la listă' : '+ Adaugă la simulare'}</button>
       </div>`;
 
     const preview = document.getElementById('simPickAiStatementPreview');
@@ -5761,9 +5772,24 @@
     }
 
     const base = { exercise_source: 'adhoc', source_exercise_id: savedId, title, statement, difficulty: null, points };
-    simWiz.items.push(isGrila
+    const item = isGrila
       ? Object.assign({}, base, { answer_type: 'grila', options: opts })
-      : Object.assign({}, base, { answer_type: 'liber', correct_answer: answer }));
+      : Object.assign({}, base, { answer_type: 'liber', correct_answer: answer });
+
+    // "Din culegere" queues instead of committing+closing — the whole point
+    // is snipping several exercises off the same PDF without leaving and
+    // re-entering the picker (re-choosing the culegere, re-finding the page)
+    // for every single one. simWiz.items only gets these once the teacher
+    // clicks the queue bar's "Adaugă N exerciții" (_simCulegereCommitQueue).
+    if (simPicker.tab === 'culegere') {
+      _simCulegereQueue.push(item);
+      BM.toast('Exercițiu adăugat la listă.', 'success');
+      _renderCulegereQueueBar();
+      document.getElementById('simPickPhotoResult').innerHTML = _simCulegereResultPlaceholder();
+      return;
+    }
+
+    simWiz.items.push(item);
     BM.toast('Exercițiu adăugat.', 'success');
     _simPickerClose();
     _simWzRender();
@@ -5779,7 +5805,8 @@
      at a time so the shared ids never collide).
   ═══════════════════════════════════════════════════════════════ */
   let _simCulegereRows = [];
-  const _culegereState = { pdf: null, pageNum: 1, numPages: 1, selRectCss: null };
+  let _simCulegereQueue = [];
+  const _culegereState = { pdf: null, currentRow: null, pageNum: 1, numPages: 1, selRectCss: null };
 
   let _pdfJsLoadPromise = null;
   const PDFJS_VERSION = '3.11.174';
@@ -5799,27 +5826,50 @@
     return _pdfJsLoadPromise;
   }
 
+  function _simCulegereResultPlaceholder() {
+    return `<p class="cls-form-hint">Trage un dreptunghi peste exercițiul dorit ca să-l trimiți la analiză AI.</p>`;
+  }
+
   function _simPickerCulegereHtml() {
     return `
-      <div class="cls-form-field">
-        <label class="cls-form-label">Culegere</label>
-        <select id="simCulegereSelect" class="cls-form-input cls-form-select" disabled>
-          <option value="">Se încarcă…</option>
-        </select>
-      </div>
-      <div id="simCulegereViewer" style="display:none">
-        <div class="sim-culegere-toolbar">
-          <button type="button" class="btn btn--surface btn--sm" id="simCulegerePrev">${icon('arrow-left', { size: 14 })} Pagina anterioară</button>
-          <span id="simCulegerePageLabel" class="sim-culegere-page-label"></span>
-          <button type="button" class="btn btn--surface btn--sm" id="simCulegereNext">Pagina următoare ${icon('arrow-right', { size: 14 })}</button>
+      <div class="sim-culegere-tab">
+        <div class="cls-form-field" id="simCulegerePickerRow" style="margin-bottom:10px">
+          <label class="cls-form-label">Culegere</label>
+          <select id="simCulegereSelect" class="cls-form-input cls-form-select" disabled>
+            <option value="">Se încarcă…</option>
+          </select>
         </div>
-        <p class="cls-form-hint">Trage un dreptunghi peste exercițiul dorit ca să-l trimiți la analiză AI.</p>
-        <div class="sim-culegere-canvas-wrap" id="simCulegereCanvasWrap">
-          <canvas id="simCulegereCanvas"></canvas>
-          <div class="sim-culegere-selection" id="simCulegereSelection" hidden></div>
+        <div class="sim-culegere-summary" id="simCulegereSummaryRow" hidden>
+          <span class="sim-culegere-summary__icon">${icon('library', { size: 16 })}</span>
+          <span class="sim-culegere-summary__title" id="simCulegereSummaryTitle"></span>
+          <button type="button" class="btn btn--surface btn--sm" id="simCulegereChangeBtn">Schimbă culegerea</button>
         </div>
-      </div>
-      <div id="simPickPhotoResult"></div>`;
+
+        <div id="simCulegereViewer" class="sim-culegere-viewer" style="display:none">
+          <div class="sim-culegere-toolbar">
+            <button type="button" class="dc-tool-btn" id="simCulegerePrev" title="Pagina anterioară">${icon('arrow-left', { size: 16 })}</button>
+            <span class="sim-culegere-page-nav">
+              Pagina
+              <input type="number" id="simCulegerePageInput" class="sim-culegere-page-input" min="1" value="1">
+              / <span id="simCulegereTotalPages">1</span>
+            </span>
+            <button type="button" class="dc-tool-btn" id="simCulegereNext" title="Pagina următoare">${icon('arrow-right', { size: 16 })}</button>
+          </div>
+
+          <div class="sim-culegere-split">
+            <div class="sim-culegere-canvas-wrap" id="simCulegereCanvasWrap">
+              <canvas id="simCulegereCanvas"></canvas>
+              <div class="sim-culegere-selection" id="simCulegereSelection" hidden></div>
+            </div>
+            <div class="sim-culegere-result-col">
+              <p class="cls-form-hint" style="margin-bottom:10px">Trage un dreptunghi peste exercițiul dorit, în stânga, ca să-l trimiți la analiză AI.</p>
+              <div id="simPickPhotoResult">${_simCulegereResultPlaceholder()}</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="sim-culegere-queue-bar" id="simCulegereQueueBar" hidden></div>
+      </div>`;
   }
 
   async function _simPickerBindCulegere(body) {
@@ -5841,23 +5891,76 @@
     // can only be built now, reading the final option list, not at initial render.
     BM.initCustomSelects(body);
 
-    sel.onchange = async () => {
-      const row = _simCulegereRows.find(r => r.id === sel.value);
-      document.getElementById('simPickPhotoResult').innerHTML = '';
-      const viewer = document.getElementById('simCulegereViewer');
-      if (!row) { viewer.style.display = 'none'; return; }
-      viewer.style.display = '';
-      document.getElementById('simCulegerePageLabel').textContent = 'Se încarcă…';
-      try {
-        await _simPickerLoadCulegere(row);
-      } catch (e) {
-        BM.toast('Eroare la încărcarea PDF-ului: ' + e.message, 'error');
-      }
-    };
+    sel.onchange = () => _simCulegereSelectRow(_simCulegereRows.find(r => r.id === sel.value));
+    body.querySelector('#simCulegereChangeBtn').onclick = _simCulegereReset;
 
     body.querySelector('#simCulegerePrev').onclick = () => _simCulegereGoToPage(_culegereState.pageNum - 1);
     body.querySelector('#simCulegereNext').onclick = () => _simCulegereGoToPage(_culegereState.pageNum + 1);
-    _bindCulegereSelection(body);
+    const pageInput = body.querySelector('#simCulegerePageInput');
+    pageInput.addEventListener('change', () => {
+      const n = parseInt(pageInput.value, 10);
+      if (Number.isNaN(n)) { pageInput.value = _culegereState.pageNum; return; }
+      _simCulegereGoToPage(n);
+    });
+    pageInput.addEventListener('keydown', e => { if (e.key === 'Enter') pageInput.blur(); });
+
+    _bindCulegereSelection();
+    _renderCulegereQueueBar();
+
+    // Resume exactly where the teacher left off if "Din culegere" was left
+    // (switched to another tab) and re-opened within the same picker
+    // session — the DOM gets torn down and rebuilt on every tab switch, but
+    // _culegereState/_simCulegereQueue are module-level and survive that.
+    if (_culegereState.currentRow) {
+      sel.value = _culegereState.currentRow.id;
+      _showCulegereSelected(_culegereState.currentRow);
+      if (_culegereState.pdf) _renderCulegerePage();
+    }
+  }
+
+  function _showCulegereSelected(row) {
+    document.getElementById('simCulegerePickerRow').hidden = true;
+    const summary = document.getElementById('simCulegereSummaryRow');
+    summary.hidden = false;
+    document.getElementById('simCulegereSummaryTitle').textContent = row.title;
+    document.getElementById('simCulegereViewer').style.display = '';
+  }
+
+  async function _simCulegereSelectRow(row) {
+    document.getElementById('simPickPhotoResult').innerHTML = _simCulegereResultPlaceholder();
+    if (!row) { document.getElementById('simCulegereViewer').style.display = 'none'; return; }
+    _showCulegereSelected(row);
+    try {
+      await _simPickerLoadCulegere(row);
+    } catch (e) {
+      BM.toast('Eroare la încărcarea PDF-ului: ' + e.message, 'error');
+    }
+  }
+
+  // "Schimbă culegerea" — collapses the summary back to the picker (see
+  // _showCulegereSelected, the point of collapsing it in the first place is
+  // reclaiming vertical space once a culegere IS chosen) and resets the
+  // styled dropdown's own display text by hand, the same way
+  // admin-culegeri.js's _resetGradeSelect does — BM.makeCustomSelect only
+  // updates that text through its own click handler, not through a plain
+  // programmatic sel.value assignment.
+  function _simCulegereReset() {
+    _culegereState.pdf = null;
+    _culegereState.currentRow = null;
+    document.getElementById('simCulegerePickerRow').hidden = false;
+    document.getElementById('simCulegereSummaryRow').hidden = true;
+    document.getElementById('simCulegereViewer').style.display = 'none';
+    const sel = document.getElementById('simCulegereSelect');
+    sel.value = '';
+    const wrapper = sel.previousElementSibling;
+    if (wrapper && wrapper.classList.contains('cls-csel')) {
+      const display = wrapper.querySelector('.cls-csel__display');
+      if (display) {
+        display.textContent = _simCulegereRows.length ? 'Alege o culegere…' : (sel.options[0]?.text || '');
+        display.removeAttribute('data-has-value');
+      }
+      wrapper.querySelectorAll('.cls-csel__option--sel').forEach(el => el.classList.remove('cls-csel__option--sel'));
+    }
   }
 
   async function _simPickerLoadCulegere(row) {
@@ -5866,15 +5969,27 @@
     if (error) throw new Error(error.message);
     const pdf = await window.pdfjsLib.getDocument(data.signedUrl).promise;
     _culegereState.pdf = pdf;
+    _culegereState.currentRow = row;
     _culegereState.numPages = pdf.numPages;
     _culegereState.pageNum = 1;
     await _renderCulegerePage();
   }
 
   function _simCulegereGoToPage(n) {
-    if (!_culegereState.pdf || n < 1 || n > _culegereState.numPages) return;
-    _culegereState.pageNum = n;
-    document.getElementById('simPickPhotoResult').innerHTML = '';
+    if (!_culegereState.pdf) return;
+    // Clamp rather than reject outright — typing e.g. 500 on a 341-page
+    // culegere jumps to the last page instead of silently doing nothing,
+    // and either way the page-number input gets resynced to whatever page
+    // is actually showing (it would otherwise keep displaying the
+    // rejected/out-of-range number the teacher typed).
+    const clamped = Math.min(Math.max(n, 1), _culegereState.numPages);
+    const pageInput = document.getElementById('simCulegerePageInput');
+    if (clamped === _culegereState.pageNum) {
+      if (pageInput) pageInput.value = _culegereState.pageNum;
+      return;
+    }
+    _culegereState.pageNum = clamped;
+    document.getElementById('simPickPhotoResult').innerHTML = _simCulegereResultPlaceholder();
     _renderCulegerePage();
   }
 
@@ -5884,18 +5999,25 @@
     const page = await pdf.getPage(_culegereState.pageNum);
     const canvas = document.getElementById('simCulegereCanvas');
     const wrap = document.getElementById('simCulegereCanvasWrap');
-    const containerWidth = wrap.clientWidth || 700;
+    const containerWidth  = wrap.clientWidth  || 700;
+    const containerHeight = wrap.clientHeight || 500;
     const unscaledViewport = page.getViewport({ scale: 1 });
-    // Cap at 2x so a wide chapter-index page doesn't render an absurdly
-    // tall/heavy canvas — 2x is already more resolution than a crop needs
-    // for Gemini to read clearly.
-    const scale = Math.min(2, containerWidth / unscaledViewport.width);
+    // Fit the WHOLE page inside the box — both width AND height — so it's
+    // visible without scrolling (that's the point of showing it at all).
+    // Capped at 2x so a page that's much smaller than the box (e.g. a
+    // near-square index page) doesn't get upscaled into a blurry, needlessly
+    // heavy canvas — 2x is already more resolution than a crop needs for
+    // Gemini to read clearly.
+    const scale = Math.min(2, containerWidth / unscaledViewport.width, containerHeight / unscaledViewport.height);
     const viewport = page.getViewport({ scale });
     canvas.width = viewport.width;
     canvas.height = viewport.height;
     await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
 
-    document.getElementById('simCulegerePageLabel').textContent = `Pagina ${_culegereState.pageNum} / ${_culegereState.numPages}`;
+    const pageInput = document.getElementById('simCulegerePageInput');
+    pageInput.value = _culegereState.pageNum;
+    pageInput.max = _culegereState.numPages;
+    document.getElementById('simCulegereTotalPages').textContent = _culegereState.numPages;
     document.getElementById('simCulegerePrev').disabled = _culegereState.pageNum <= 1;
     document.getElementById('simCulegereNext').disabled = _culegereState.pageNum >= _culegereState.numPages;
     _clearCulegereSelection();
@@ -5995,6 +6117,44 @@
     } catch (e) {
       resultEl.innerHTML = `<p style="color:#ef4444">Eroare: ${BM.esc(e.message)}</p>`;
     }
+  }
+
+  // Persistent bar under the viewer, updated on every add/remove — the
+  // teacher can keep snipping exercises (any page, any culegere) without
+  // this ever closing the picker; only its own commit button does.
+  function _renderCulegereQueueBar() {
+    const bar = document.getElementById('simCulegereQueueBar');
+    if (!bar) return;
+    if (!_simCulegereQueue.length) { bar.hidden = true; bar.innerHTML = ''; return; }
+    bar.hidden = false;
+    const n = _simCulegereQueue.length;
+    bar.innerHTML = `
+      <div class="sim-culegere-queue-list">
+        ${_simCulegereQueue.map((it, i) => `
+          <span class="sim-culegere-queue-item">
+            <span>${BM.esc(it.title)}</span>
+            <button type="button" class="sim-culegere-queue-item__remove" data-remove-queue="${i}" title="Elimină din listă">${icon('x', { size: 12 })}</button>
+          </span>`).join('')}
+      </div>
+      <button type="button" class="btn btn--primary" id="simCulegereCommitBtn">+ Adaugă ${n} exerciți${n === 1 ? 'u' : 'i'}</button>`;
+
+    bar.querySelectorAll('[data-remove-queue]').forEach(btn => {
+      btn.onclick = () => {
+        _simCulegereQueue.splice(Number(btn.dataset.removeQueue), 1);
+        _renderCulegereQueueBar();
+      };
+    });
+    document.getElementById('simCulegereCommitBtn').onclick = _simCulegereCommitQueue;
+  }
+
+  function _simCulegereCommitQueue() {
+    const n = _simCulegereQueue.length;
+    if (!n) return;
+    simWiz.items.push(..._simCulegereQueue);
+    _simCulegereQueue = [];
+    BM.toast(`${n} exerciți${n === 1 ? 'u adăugat' : 'i adăugate'} la simulare.`, 'success');
+    _simPickerClose();
+    _simWzRender();
   }
 
   /* ─── Helpers ───────────────────────────────────────────────────── */
