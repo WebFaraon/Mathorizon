@@ -13824,6 +13824,16 @@ body.wb-fullscreen-active .scroll-top-btn {
    selector here it would win the cascade and silently cap the dialog back
    down to 660px no matter what's set on this rule. */
 .wz-dialog.sim-picker-dialog { max-width: min(88vw, 1440px); max-height: 92vh; }
+/* The culegere split needs the dialog to actually claim real vertical
+   space, not just cap it — max-height alone is a ceiling, not something a
+   flex-grow chain can distribute from, so every `flex:1;min-height:0`
+   down to .sim-culegere-canvas-wrap was resolving against nothing and
+   collapsing toward its content's own tiny natural size (an unrendered
+   canvas has no intrinsic height) instead of filling the dialog. Scoped to
+   only the culegere tab via :has() so "Din bancă"/"Adaugă din poză" keep
+   shrinking to fit their (usually much shorter) content instead of always
+   opening as a tall, half-empty-looking dialog. */
+.wz-dialog.sim-picker-dialog:has(.sim-culegere-tab) { height: 92vh; }
 /* Scoped override — this modal alone gets tighter outer breathing room than
    the default .wz-overlay padding, to reclaim a bit more usable width. */
 #simPickerModal.wz-overlay { padding: 12px; }
@@ -13897,6 +13907,13 @@ body.wb-fullscreen-active .scroll-top-btn {
   border: 1.5px solid var(--border);
   border-radius: var(--radius-sm);
 }
+/* .sim-culegere-summary's own `display:flex` above is author CSS, which
+   outranks the browser's default `[hidden] { display: none }` UA rule at
+   equal specificity regardless of selector complexity — so toggling the
+   `hidden` property from JS silently did nothing and this row stayed
+   visible (empty) even before a culegere was ever chosen. Needs an
+   explicit override. */
+.sim-culegere-summary[hidden] { display: none; }
 .sim-culegere-summary__icon { display: inline-flex; color: var(--accent); flex-shrink: 0; }
 .sim-culegere-summary__title { flex: 1; min-width: 0; font-weight: 700; font-size: 0.88rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 

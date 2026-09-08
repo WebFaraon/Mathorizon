@@ -5827,7 +5827,7 @@
   }
 
   function _simCulegereResultPlaceholder() {
-    return `<p class="cls-form-hint">Trage un dreptunghi peste exercițiul dorit ca să-l trimiți la analiză AI.</p>`;
+    return `<p class="cls-form-hint">Trage un dreptunghi peste exercițiul dorit, în stânga, ca să-l trimiți la analiză AI.</p>`;
   }
 
   function _simPickerCulegereHtml() {
@@ -5862,7 +5862,6 @@
               <div class="sim-culegere-selection" id="simCulegereSelection" hidden></div>
             </div>
             <div class="sim-culegere-result-col">
-              <p class="cls-form-hint" style="margin-bottom:10px">Trage un dreptunghi peste exercițiul dorit, în stânga, ca să-l trimiți la analiză AI.</p>
               <div id="simPickPhotoResult">${_simCulegereResultPlaceholder()}</div>
             </div>
           </div>
