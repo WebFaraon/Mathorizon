@@ -68,7 +68,7 @@
     bar.className = 'push-prompt';
     bar.innerHTML = `
       <span class="push-prompt__icon">${icon('bell', { size: 24 })}</span>
-      <span class="push-prompt__text">Primește notificări când profesorul postează ceva nou în această clasă</span>
+      <span class="push-prompt__text">Primește notificări când apare ceva nou în această clasă (mesaje, teme, simulări)</span>
       <div class="push-prompt__btns">
         <button class="push-prompt__yes">Activează</button>
         <button class="push-prompt__no">Nu acum</button>

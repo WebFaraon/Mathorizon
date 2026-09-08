@@ -16,7 +16,7 @@
   // other unknown hash already does.
   const TABS = [
     { id: 'sumar',    label: 'Sumar',     icon: icon('chart-column', { size: 16 }), teacherOnly: true },
-    { id: 'flux',     label: 'Flux',      icon: icon('megaphone', { size: 16 }) },
+    { id: 'flux',     label: 'Mesaje',    icon: icon('message-circle', { size: 16 }) },
     { id: 'teme',     label: 'Teme',      icon: icon('file-text', { size: 16 }) },
     { id: 'simulari', label: 'Simulări',  icon: icon('target', { size: 16 }) },
     { id: 'tabla',    label: 'Tablă',     icon: icon('presentation', { size: 16 }) },
@@ -461,7 +461,6 @@
 
   /* ─── Real-time subscriptions ───────────────────────────────────── */
   let _realtimeChannel = null;
-  let _reloadFluxTimer = null;
   let _reloadTemeTimer = null;
   let _reloadMembriTimer = null;
   let _reloadSimulariTimer = null;
@@ -471,11 +470,6 @@
   function _debouncedSumar() {
     clearTimeout(_reloadSumarTimer);
     _reloadSumarTimer = setTimeout(() => { if (activeTab === 'sumar') loadSumarTab(); }, 500);
-  }
-
-  function _debouncedFlux() {
-    clearTimeout(_reloadFluxTimer);
-    _reloadFluxTimer = setTimeout(() => { if (activeTab === 'flux') loadFluxTab(); }, 350);
   }
 
   function _debouncedTeme() {
@@ -506,10 +500,18 @@
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'class_posts',
         filter: 'class_id=eq.' + classData.id
-      }, e => { _debouncedFlux(); _debouncedSumar(); })
+      }, e => { _handleFluxPostChange(e); _debouncedSumar(); })
       .on('postgres_changes', {
-        event: '*', schema: 'public', table: 'post_reactions'
-      }, _debouncedFlux)
+        event: '*', schema: 'public', table: 'message_reactions'
+      }, e => {
+        if (activeTab !== 'flux') return;
+        const postId = e.new?.post_id || e.old?.post_id;
+        if (postId) _fluxRefreshReactionsForPost(postId);
+      })
+      .on('broadcast', { event: 'flux-typing' }, ({ payload }) => {
+        if (activeTab !== 'flux' || !payload || payload.user_id === BMAuth.user?.id) return;
+        _fluxRegisterTyping(payload.user_id, payload.name);
+      })
       .on('postgres_changes', {
         event: '*', schema: 'public', table: 'assignments',
         filter: 'class_id=eq.' + classData.id
@@ -619,7 +621,7 @@
         <div id="fluxFeed" class="flux-feed">
           <div class="classes-loading">
             <div class="classes-spinner"></div>
-            <p>Se încarcă anunțurile...</p>
+            <p>Se încarcă mesajele...</p>
           </div>
         </div>`;
     }
@@ -717,7 +719,7 @@
       const [catalogData, posts] = await Promise.all([
         BM.CatalogStats.fetchCatalogData(classData.id, true),
         BMAuth.supabase.from('class_posts')
-          .select('id, title, author_name, created_at')
+          .select('id, title, content, author_name, created_at')
           .eq('class_id', classData.id)
           .order('created_at', { ascending: false })
           .limit(5)
@@ -1030,10 +1032,13 @@
     const { members, nameMap, assignments, subMatrix, sims, simMatrix } = ctx;
     const events = [];
 
-    posts.forEach(p => events.push({
-      ts: p.created_at, icn: 'megaphone', color: 'blue',
-      text: `<strong>${BM.esc(p.author_name || 'Profesor')}</strong> a postat anunțul „${BM.esc(p.title || 'Fără titlu')}”`
-    }));
+    posts.forEach(p => {
+      const snippet = p.title || (p.content ? p.content.slice(0, 60) + (p.content.length > 60 ? '…' : '') : '');
+      events.push({
+        ts: p.created_at, icn: 'message-circle', color: 'blue',
+        text: `<strong>${BM.esc(p.author_name || 'Cineva')}</strong> a trimis un mesaj: „${BM.esc(snippet)}”`
+      });
+    });
 
     assignments.forEach(a => {
       if (a.created_at) events.push({
@@ -1127,44 +1132,47 @@
      FLUX TAB
   ═══════════════════════════════════════════════════════════════ */
 
+  // Curated reaction set — kept small and fixed (no free-form emoji
+  // picker) so the reaction bar never wraps awkwardly and stays quick to
+  // scan across a whole class thread.
+  const FLUX_REACTIONS = ['👍', '❤️', '😂', '😮', '😢', '👏'];
+
+  // post_id -> array of { id, user_id, user_name, emoji } rows. Rebuilt
+  // wholesale on loadFluxTab(), patched per-post by _fluxRefreshReactionsForPost.
+  let _fluxReactionsByPost = {};
+  // userId -> { name, timer } — ephemeral "is typing" state from the
+  // 'flux-typing' broadcast, never persisted.
+  const _fluxTypingUsers = new Map();
+  let _fluxTypingSentAt = 0;
+
   async function loadFluxTab() {
     const container = document.getElementById('fluxFeed');
     if (!container) return;
 
     const isTeacher = BMAuth.role === 'profesor';
     let posts = [];
-    let memberCount = 0;
-    let reactionsMap = {};
+    let reactionsByPost = {};
 
     try {
-      const reactionsQ = isTeacher
-        ? BMAuth.supabase.from('post_reactions').select('post_id, user_name')
-        : BMAuth.supabase.from('post_reactions').select('post_id').eq('user_id', BMAuth.user.id);
-
-      const [postsRes, membersRes, reactionsRes] = await Promise.all([
-        BMAuth.supabase
-          .from('class_posts')
-          .select('*')
-          .eq('class_id', classData.id)
-          .order('created_at', { ascending: false }),
-        BMAuth.supabase.rpc('get_class_member_count', { p_class_id: classData.id }),
-        reactionsQ
-      ]);
+      const postsRes = await BMAuth.supabase
+        .from('class_posts')
+        .select('*')
+        .eq('class_id', classData.id)
+        .order('created_at', { ascending: false })
+        .limit(200);
       if (postsRes.error) throw postsRes.error;
-      posts = postsRes.data || [];
-      memberCount = membersRes.data ?? 0;
+      posts = (postsRes.data || []).slice().reverse(); // oldest → newest, chat order
 
-      const reactions = reactionsRes.data || [];
-      const postIdSet = new Set(posts.map(p => p.id));
-      if (isTeacher) {
-        reactions.forEach(r => {
-          if (!postIdSet.has(r.post_id)) return;
-          if (!reactionsMap[r.post_id]) reactionsMap[r.post_id] = { count: 0, names: [] };
-          reactionsMap[r.post_id].count++;
-          reactionsMap[r.post_id].names.push(r.user_name);
+      const ids = posts.map(p => p.id);
+      if (ids.length) {
+        const reactRes = await BMAuth.supabase
+          .from('message_reactions')
+          .select('id, post_id, user_id, user_name, emoji')
+          .in('post_id', ids);
+        if (reactRes.error) throw reactRes.error;
+        (reactRes.data || []).forEach(r => {
+          (reactionsByPost[r.post_id] ||= []).push(r);
         });
-      } else {
-        reactions.forEach(r => { if (postIdSet.has(r.post_id)) reactionsMap[r.post_id] = { liked: true }; });
       }
     } catch (e) {
       container.innerHTML = `
@@ -1176,226 +1184,375 @@
       return;
     }
 
+    _fluxReactionsByPost = reactionsByPost;
+    _renderFluxPanel(posts, isTeacher);
+    BMPush?.init(classData.id);
+  }
+
+  function _renderFluxPanel(posts, isTeacher) {
+    const container = document.getElementById('fluxFeed');
+    if (!container) return;
+
     container.innerHTML = `
-      ${isTeacher ? `
-        <div class="flux-toolbar">
-          <button class="btn btn--primary" id="newPostBtn">+ Anunț Nou</button>
+      <div class="msg-panel">
+        <div class="msg-panel__header">
+          <span class="msg-panel__header-title">${icon('message-circle', { size: 16 })} Mesaje</span>
+          ${('Notification' in window) ? `
+            <button class="icon-btn" id="fluxBellBtn" title="Notificări pentru clasă">${icon('bell', { size: 16 })}</button>
+          ` : ''}
         </div>
-      ` : (('Notification' in window) ? `
-        <button class="cd-notif-btn cd-notif-btn--standalone" onclick="cdOpenNotifInfo('${classData.id}')">
-          ${icon('bell', { size: 16 })} Gestionează notificările
+        <div class="msg-panel__list" id="fluxList">
+          ${posts.length === 0 ? _fluxEmptyHTML() : _fluxRenderMessages(posts)}
+        </div>
+        <button type="button" class="msg-panel__jump" id="fluxJumpBtn" hidden>
+          ${icon('chevron-down', { size: 14 })} Mesaje noi
         </button>
-      ` : '')}
-      <div class="flux-list${posts.length === 0 ? ' flux-list--empty' : ''}" id="fluxList">
-        ${posts.length === 0
-          ? fluxEmpty(isTeacher)
-          : posts.map(p => fluxPostCard(p, isTeacher, reactionsMap[p.id] || null)).join('')}
+        <div class="msg-panel__typing" id="fluxTypingIndicator" hidden></div>
+        <form class="msg-panel__composer" id="fluxComposerForm">
+          <textarea id="fluxComposerInput" class="msg-panel__input" rows="1" maxlength="4000"
+                    placeholder="Scrie un mesaj clasei…"></textarea>
+          <button type="submit" class="msg-panel__send" id="fluxSendBtn" disabled title="Trimite">
+            ${icon('arrow-up', { size: 18 })}
+          </button>
+        </form>
       </div>
     `;
 
-    document.getElementById('newPostBtn')?.addEventListener('click', openPostModal);
-    container.querySelectorAll('.flux-post__delete').forEach(btn => {
-      btn.addEventListener('click', () => deletePost(btn.dataset.id, btn.dataset.title));
-    });
-
-    if (isTeacher) {
-      BMAuth.supabase.from('push_subscriptions')
-        .delete().eq('user_id', BMAuth.user.id).eq('class_id', classData.id)
-        .then(() => {});
-    } else {
-      BMPush?.init(classData.id);
-    }
+    document.getElementById('fluxBellBtn')?.addEventListener('click', () => cdOpenNotifInfo(classData.id));
+    document.getElementById('fluxJumpBtn')?.addEventListener('click', () => _fluxScrollToBottom(true));
+    document.getElementById('fluxList')?.addEventListener('scroll', _fluxOnListScroll);
+    document.querySelectorAll('#fluxList .msg-bubble').forEach(_wireFluxMessageEl);
+    _wireFluxComposer();
+    _fluxScrollToBottom(false);
   }
 
-  function fluxEmpty(isTeacher) {
+  function _fluxEmptyHTML() {
     return `
       <div class="flux-empty">
-        <div class="flux-empty__icon">${icon('megaphone', { size: 48 })}</div>
-        <h3>Niciun anunț</h3>
-        <p>${isTeacher
-          ? 'Publicați primul anunț pentru elevii din clasă.'
-          : 'Profesorul nu a publicat niciun anunț încă.'}</p>
+        <div class="flux-empty__icon">${icon('message-circle', { size: 48 })}</div>
+        <h3>Niciun mesaj încă</h3>
+        <p>Fiți primul care scrie ceva clasei.</p>
       </div>
     `;
   }
 
-  function fluxPostCard(post, isTeacher, reactionData) {
-    const words    = post.author_name.trim().split(/\s+/);
+  function _fluxRenderMessages(posts) {
+    let html = '';
+    let prev = null;
+    posts.forEach(p => {
+      const grouped = !!prev
+        && prev.author_id === p.author_id
+        && (new Date(p.created_at) - new Date(prev.created_at)) < 5 * 60 * 1000;
+      html += _fluxMessageHTML(p, grouped);
+      prev = p;
+    });
+    return html;
+  }
+
+  function _fluxAvatarHTML(post) {
+    if (post.author_avatar_url) {
+      return `<img class="msg-bubble__avatar" src="${BM.esc(post.author_avatar_url)}" alt="">`;
+    }
+    const name    = post.author_name || '?';
+    const words   = name.trim().split(/\s+/);
     const initials = words.length >= 2
       ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
-      : post.author_name.slice(0, 2).toUpperCase();
+      : name.slice(0, 2).toUpperCase();
+    return `<span class="msg-bubble__avatar msg-bubble__avatar--initials">${initials}</span>`;
+  }
 
-    const date = new Date(post.created_at);
-    const dateStr = date.toLocaleDateString('ro-RO', {
-      day: 'numeric', month: 'long', year: 'numeric'
-    });
-    const timeStr = date.toLocaleTimeString('ro-RO', {
-      hour: '2-digit', minute: '2-digit'
-    });
-    const contentHTML = BM.esc(post.content).replace(/\n/g, '<br>');
+  function _fluxMessageHTML(post, grouped) {
+    const isTeacherAuthor = post.author_id === classData.teacher_id;
+    const mine       = BMAuth.user && post.author_id === BMAuth.user.id;
+    const canDelete  = mine || BMAuth.role === 'profesor';
 
-    let reactionBtn = '';
-    if (isTeacher) {
-      const count = reactionData?.count ?? 0;
-      const label = count === 1 ? 'confirmare' : 'confirmări';
-      const namesJson = BM.esc(JSON.stringify(reactionData?.names ?? []));
-      reactionBtn = `
-        <button class="flux-like-btn flux-like-btn--teacher"
-                data-post-id="${post.id}"
-                data-names="${namesJson}"
-                onclick="fluxShowReaders(this)">
-          ${icon('eye', { size: 16 })} ${count} ${label}
-        </button>`;
-    } else {
-      const liked = reactionData?.liked ?? false;
-      reactionBtn = `
-        <button class="flux-like-btn${liked ? ' flux-like-btn--active' : ''}"
-                data-post-id="${post.id}"
-                onclick="fluxToggleLike('${post.id}', this)">
-          ${liked ? icon('bookmark', { size: 16 }) + ' Citit' : icon('bookmark', { size: 16 }) + ' Marchează citit'}
-        </button>`;
-    }
+    const date    = new Date(post.created_at);
+    const timeStr = date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+    const fullStr = date.toLocaleString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+    const contentHTML = BM.esc(post.content || '').replace(/\n/g, '<br>');
+    const titleHTML   = post.title ? `<div class="msg-bubble__title">${BM.esc(post.title)}</div>` : '';
 
     return `
-      <div class="flux-post">
-        <div class="flux-post__topbar">
-          <span class="flux-post__badge">${icon('megaphone', { size: 16 })} Anunț</span>
-          <div class="flux-post__topbar-right">
-            <span class="flux-post__date" title="${dateStr}, ${timeStr}">${dateStr}</span>
-            ${isTeacher ? `
-              <button class="flux-post__delete"
-                      data-id="${post.id}"
-                      data-title="${BM.esc(post.title)}"
-                      title="Șterge anunțul">${icon('x', { size: 16 })}</button>
-            ` : ''}
+      <div class="msg-bubble${grouped ? ' msg-bubble--grouped' : ''}${mine ? ' msg-bubble--mine' : ''}"
+           data-post-id="${post.id}" data-author-id="${post.author_id}" data-created-at="${post.created_at}">
+        <div class="msg-bubble__gutter">${grouped
+          ? `<span class="msg-bubble__time-hover">${timeStr}</span>`
+          : _fluxAvatarHTML(post)}</div>
+        <div class="msg-bubble__main">
+          ${grouped ? '' : `
+            <div class="msg-bubble__head">
+              <span class="msg-bubble__author">${BM.esc(post.author_name)}</span>
+              ${isTeacherAuthor ? `<span class="msg-bubble__role-badge">Profesor</span>` : ''}
+              <span class="msg-bubble__time" title="${BM.esc(fullStr)}">${timeStr}</span>
+            </div>
+          `}
+          ${titleHTML}
+          <div class="msg-bubble__content">${contentHTML}</div>
+          <div class="msg-bubble__reactions" id="fluxReactions-${post.id}">
+            ${_fluxReactionsHTML(post.id)}
           </div>
         </div>
-        <div class="flux-post__body">
-          <h3 class="flux-post__title">${BM.esc(post.title)}</h3>
-          <div class="flux-post__content">${contentHTML}</div>
-        </div>
-        <div class="flux-post__footer">
-          <div class="flux-post__footer-left">
-            <span class="flux-post__avatar">${initials}</span>
-            <span class="flux-post__author">${BM.esc(post.author_name)}</span>
-          </div>
-          <div class="flux-post__footer-right">
-            ${reactionBtn}
-          </div>
-        </div>
+        ${canDelete ? `<button type="button" class="msg-bubble__delete" data-id="${post.id}" title="Șterge mesajul">${icon('x', { size: 14 })}</button>` : ''}
       </div>
     `;
   }
 
-  /* ─── Create post modal ─────────────────────────────────────────── */
-  function openPostModal() {
-    document.getElementById('postModal')?.remove();
+  function _fluxReactionsHTML(postId) {
+    const list    = _fluxReactionsByPost[postId] || [];
+    const byEmoji = {};
+    list.forEach(r => {
+      const d = (byEmoji[r.emoji] ||= { count: 0, mine: false, names: [] });
+      d.count++;
+      d.names.push(r.user_name);
+      if (BMAuth.user && r.user_id === BMAuth.user.id) d.mine = true;
+    });
 
-    const modal = document.createElement('div');
-    modal.className = 'classes-modal';
-    modal.id = 'postModal';
-    modal.style.display = 'flex';
-    modal.innerHTML = `
-      <div class="classes-modal__backdrop" id="postModalBackdrop"></div>
-      <div class="classes-modal__dialog">
-        <div class="classes-modal__head">
-          <h3>Anunț Nou</h3>
-          <button class="icon-btn" id="closePostModalBtn">${icon('x', { size: 16 })}</button>
-        </div>
-        <div class="classes-modal__body">
-          <div class="cls-form-field">
-            <label class="cls-form-label">Titlu *</label>
-            <input type="text" id="postTitleInput" class="cls-form-input"
-                   placeholder="ex: Temă pentru săptămâna viitoare…" maxlength="100">
-          </div>
-          <div class="cls-form-field">
-            <label class="cls-form-label">Conținut *</label>
-            <textarea id="postContentInput" class="cls-form-input cls-form-textarea"
-                      placeholder="Scrieți anunțul pentru elevi…" rows="6"></textarea>
-          </div>
-        </div>
-        <div class="classes-modal__foot">
-          <button class="btn btn--surface" id="cancelPostBtn">Anulează</button>
-          <button class="btn btn--primary" id="confirmPostBtn">Publică Anunțul</button>
-        </div>
-      </div>
-    `;
+    const chips = Object.keys(byEmoji).map(emoji => {
+      const d = byEmoji[emoji];
+      return `
+        <button type="button" class="msg-reaction-chip${d.mine ? ' msg-reaction-chip--mine' : ''}"
+                data-post-id="${postId}" data-emoji="${emoji}" title="${BM.esc(d.names.join(', '))}">
+          <span>${emoji}</span><span class="msg-reaction-chip__count">${d.count}</span>
+        </button>`;
+    }).join('');
 
-    document.body.appendChild(modal);
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-
-    const close = () => { modal.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; };
-    modal.querySelector('#closePostModalBtn').onclick  = close;
-    modal.querySelector('#cancelPostBtn').onclick      = close;
-    modal.querySelector('#postModalBackdrop').onclick  = close;
-    modal.querySelector('#confirmPostBtn').onclick     = confirmCreatePost;
-    modal.querySelector('#postTitleInput').focus();
+    return `${chips}<button type="button" class="msg-reaction-add" data-post-id="${postId}" title="Reacționează">+</button>`;
   }
 
-  async function confirmCreatePost() {
-    const title   = document.getElementById('postTitleInput')?.value.trim();
-    const content = document.getElementById('postContentInput')?.value.trim();
+  function _wireFluxReactionEl(el) {
+    if (!el) return;
+    el.querySelectorAll('.msg-reaction-chip').forEach(btn => {
+      btn.addEventListener('click', () => _fluxToggleReaction(btn.dataset.postId, btn.dataset.emoji));
+    });
+    el.querySelectorAll('.msg-reaction-add').forEach(btn => {
+      btn.addEventListener('click', () => _fluxOpenReactionPicker(btn, btn.dataset.postId));
+    });
+  }
 
-    if (!title) {
-      BM.toast('Introduceți titlul anunțului.', 'error');
-      document.getElementById('postTitleInput')?.focus();
-      return;
-    }
-    if (!content) {
-      BM.toast('Introduceți conținutul anunțului.', 'error');
-      document.getElementById('postContentInput')?.focus();
-      return;
-    }
+  function _wireFluxMessageEl(bubbleEl) {
+    _wireFluxReactionEl(bubbleEl.querySelector('.msg-bubble__reactions'));
+    bubbleEl.querySelector('.msg-bubble__delete')?.addEventListener('click', function () {
+      _fluxDeleteMessage(this.dataset.id);
+    });
+  }
 
-    const btn = document.getElementById('confirmPostBtn');
-    btn.disabled    = true;
-    btn.textContent = 'Se publică…';
+  function _fluxOpenReactionPicker(anchorBtn, postId) {
+    document.querySelectorAll('.msg-reaction-picker').forEach(p => p.remove());
+    const picker = document.createElement('div');
+    picker.className = 'msg-reaction-picker';
+    picker.innerHTML = FLUX_REACTIONS.map(e => `<button type="button" class="msg-reaction-picker__opt">${e}</button>`).join('');
+    anchorBtn.parentElement.appendChild(picker);
+    picker.querySelectorAll('button').forEach((b, i) => {
+      b.addEventListener('click', () => { _fluxToggleReaction(postId, FLUX_REACTIONS[i]); picker.remove(); });
+    });
+    setTimeout(() => {
+      document.addEventListener('click', function close(e) {
+        if (!picker.contains(e.target) && e.target !== anchorBtn) { picker.remove(); document.removeEventListener('click', close); }
+      });
+    }, 0);
+  }
 
+  async function _fluxToggleReaction(postId, emoji) {
+    if (!BMAuth.user) return;
+    const existing = (_fluxReactionsByPost[postId] || []).find(r => r.user_id === BMAuth.user.id && r.emoji === emoji);
     try {
-      const { error } = await BMAuth.supabase
-        .from('class_posts')
-        .insert({
-          class_id:    classData.id,
-          author_id:   BMAuth.user.id,
-          author_name: BMAuth.displayName(),
-          title,
-          content
-        });
-      if (error) throw error;
-      document.getElementById('postModal')?.remove();
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      BM.toast('Anunțul a fost publicat!', 'success');
-      BMPush?.sendClassPush(classData.id, 'announcement');
-      await loadFluxTab();
+      if (existing) {
+        const { error } = await BMAuth.supabase.from('message_reactions').delete().eq('id', existing.id);
+        if (error) throw error;
+      } else {
+        const { error } = await BMAuth.supabase.from('message_reactions')
+          .insert({ post_id: postId, user_id: BMAuth.user.id, user_name: BMAuth.displayName(), emoji });
+        if (error) throw error;
+      }
+      await _fluxRefreshReactionsForPost(postId);
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
-      btn.disabled    = false;
-      btn.textContent = 'Publică Anunțul';
     }
   }
 
-  async function deletePost(postId, postTitle) {
+  async function _fluxRefreshReactionsForPost(postId) {
+    try {
+      const { data, error } = await BMAuth.supabase
+        .from('message_reactions')
+        .select('id, post_id, user_id, user_name, emoji')
+        .eq('post_id', postId);
+      if (error) throw error;
+      _fluxReactionsByPost[postId] = data || [];
+      const el = document.getElementById('fluxReactions-' + postId);
+      if (el) {
+        el.innerHTML = _fluxReactionsHTML(postId);
+        _wireFluxReactionEl(el);
+      }
+    } catch (e) {
+      console.warn('[flux] reactions refresh error:', e);
+    }
+  }
+
+  async function _fluxDeleteMessage(postId) {
     const ok = await showConfirmDialog({
       icon:        icon('trash-2', { size: 48, className: 'icon--error' }),
-      title:       'Ștergi anunțul?',
-      message:     '„' + postTitle + '" va fi șters definitiv.',
+      title:       'Ștergi mesajul?',
+      message:     'Mesajul va fi șters definitiv.',
       confirmText: 'Șterge'
     });
     if (!ok) return;
 
     try {
-      const { error } = await BMAuth.supabase
-        .from('class_posts')
-        .delete()
-        .eq('id', postId);
+      const { error } = await BMAuth.supabase.from('class_posts').delete().eq('id', postId);
       if (error) throw error;
-      BM.toast('Anunțul a fost șters.', 'info');
-      await loadFluxTab();
+      document.querySelector(`.msg-bubble[data-post-id="${postId}"]`)?.remove();
+      const list = document.getElementById('fluxList');
+      if (list && !list.querySelector('.msg-bubble')) list.innerHTML = _fluxEmptyHTML();
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
     }
+  }
+
+  /* ─── Composer ───────────────────────────────────────────────────── */
+  function _wireFluxComposer() {
+    const form  = document.getElementById('fluxComposerForm');
+    const input = document.getElementById('fluxComposerInput');
+    const btn   = document.getElementById('fluxSendBtn');
+    if (!form || !input || !btn) return;
+
+    const autoGrow = () => {
+      input.style.height = 'auto';
+      input.style.height = Math.min(input.scrollHeight, 140) + 'px';
+      btn.disabled = !input.value.trim();
+    };
+    input.addEventListener('input', () => { autoGrow(); _fluxBroadcastTyping(); });
+    input.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); }
+    });
+    form.addEventListener('submit', e => { e.preventDefault(); _fluxSendMessage(); });
+    autoGrow();
+  }
+
+  async function _fluxSendMessage() {
+    const input = document.getElementById('fluxComposerInput');
+    const btn   = document.getElementById('fluxSendBtn');
+    const content = input?.value.trim();
+    if (!content) return;
+
+    btn.disabled = true;
+    input.disabled = true;
+    try {
+      const { data, error } = await BMAuth.supabase
+        .from('class_posts')
+        .insert({
+          class_id:          classData.id,
+          author_id:         BMAuth.user.id,
+          author_name:       BMAuth.displayName(),
+          author_avatar_url: BMAuth.avatarUrl() || null,
+          title:             null,
+          content
+        })
+        .select()
+        .single();
+      if (error) throw error;
+
+      input.value = '';
+      input.style.height = 'auto';
+      BMPush?.sendClassPush(classData.id, 'message', { snippet: content.slice(0, 80) });
+
+      // Realtime normally appends the bubble in well under a second — this
+      // is only a safety net for the "channel silently stopped delivering"
+      // failure mode this codebase has hit before (see the class_members
+      // publication incident, 20260904140000).
+      const insertedId = data.id;
+      setTimeout(() => {
+        if (activeTab === 'flux' && !document.querySelector(`.msg-bubble[data-post-id="${insertedId}"]`)) {
+          loadFluxTab();
+        }
+      }, 1500);
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+    } finally {
+      input.disabled = false;
+      input.focus();
+      btn.disabled = !input.value.trim();
+    }
+  }
+
+  /* ─── Scroll handling ────────────────────────────────────────────── */
+  function _fluxIsNearBottom(list) {
+    return list.scrollHeight - list.scrollTop - list.clientHeight < 80;
+  }
+
+  function _fluxScrollToBottom(smooth) {
+    const list = document.getElementById('fluxList');
+    if (!list) return;
+    list.scrollTo({ top: list.scrollHeight, behavior: smooth ? 'smooth' : 'auto' });
+    document.getElementById('fluxJumpBtn')?.setAttribute('hidden', '');
+  }
+
+  function _fluxOnListScroll(e) {
+    if (_fluxIsNearBottom(e.target)) document.getElementById('fluxJumpBtn')?.setAttribute('hidden', '');
+  }
+
+  /* ─── Realtime: incremental message insert/delete ───────────────── */
+  function _handleFluxPostChange(e) {
+    if (activeTab !== 'flux') return;
+    const list = document.getElementById('fluxList');
+    if (!list) return;
+
+    if (e.eventType === 'INSERT') {
+      if (document.querySelector(`.msg-bubble[data-post-id="${e.new.id}"]`)) return;
+      list.querySelector('.flux-empty')?.remove();
+
+      const prevBubble = list.querySelector('.msg-bubble:last-child');
+      const grouped = !!prevBubble
+        && prevBubble.dataset.authorId === e.new.author_id
+        && (new Date(e.new.created_at) - new Date(prevBubble.dataset.createdAt)) < 5 * 60 * 1000;
+      const wasNearBottom = _fluxIsNearBottom(list);
+
+      const wrapper = document.createElement('div');
+      wrapper.innerHTML = _fluxMessageHTML(e.new, grouped);
+      const bubble = wrapper.firstElementChild;
+      list.appendChild(bubble);
+      _wireFluxMessageEl(bubble);
+
+      if (wasNearBottom || e.new.author_id === BMAuth.user?.id) {
+        _fluxScrollToBottom(true);
+      } else {
+        document.getElementById('fluxJumpBtn')?.removeAttribute('hidden');
+      }
+    } else if (e.eventType === 'DELETE') {
+      document.querySelector(`.msg-bubble[data-post-id="${e.old.id}"]`)?.remove();
+      if (!list.querySelector('.msg-bubble')) list.innerHTML = _fluxEmptyHTML();
+    }
+  }
+
+  /* ─── Typing indicator (ephemeral broadcast, never persisted) ────── */
+  function _fluxBroadcastTyping() {
+    if (!_realtimeChannel || !BMAuth.user) return;
+    const now = Date.now();
+    if (now - _fluxTypingSentAt < 2000) return;
+    _fluxTypingSentAt = now;
+    _realtimeChannel.send({
+      type: 'broadcast', event: 'flux-typing',
+      payload: { user_id: BMAuth.user.id, name: BMAuth.displayName() }
+    });
+  }
+
+  function _fluxRegisterTyping(userId, name) {
+    const existing = _fluxTypingUsers.get(userId);
+    if (existing) clearTimeout(existing.timer);
+    const timer = setTimeout(() => { _fluxTypingUsers.delete(userId); _renderFluxTyping(); }, 3000);
+    _fluxTypingUsers.set(userId, { name, timer });
+    _renderFluxTyping();
+  }
+
+  function _renderFluxTyping() {
+    const el = document.getElementById('fluxTypingIndicator');
+    if (!el) return;
+    const names = [..._fluxTypingUsers.values()].map(v => v.name);
+    if (names.length === 0) { el.hidden = true; el.textContent = ''; return; }
+    el.hidden = false;
+    if (names.length === 1) el.textContent = `${names[0]} scrie…`;
+    else if (names.length === 2) el.textContent = `${names[0]} și ${names[1]} scriu…`;
+    else el.textContent = `${names[0]} și încă ${names.length - 1} scriu…`;
   }
 
   /* ═══════════════════════════════════════════════════════════════
@@ -1844,10 +2001,10 @@
           <button class="icon-btn" id="notifInfoCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
-          <p class="notif-info__p">Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când profesorul:</p>
+          <p class="notif-info__p">Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:</p>
           <ul class="notif-info__list">
-            <li>${icon('megaphone', { size: 16 })} postează un anunț nou în clasă</li>
-            <li>${icon('file-text', { size: 16 })} adaugă o temă nouă</li>
+            <li>${icon('message-circle', { size: 16 })} cineva din clasă trimite un mesaj nou</li>
+            <li>${icon('file-text', { size: 16 })} profesorul adaugă o temă nouă</li>
             <li>${icon('target', { size: 16 })} programează sau pornește o simulare</li>
           </ul>
           <p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>
@@ -6647,55 +6804,6 @@
       </div>
     `;
   }
-
-  window.fluxToggleLike = async function (postId, btn) {
-    if (!BMAuth.user) return;
-    btn.disabled = true;
-    const wasActive = btn.classList.contains('flux-like-btn--active');
-    try {
-      if (wasActive) {
-        await BMAuth.supabase.from('post_reactions')
-          .delete()
-          .eq('post_id', postId)
-          .eq('user_id', BMAuth.user.id);
-        btn.classList.remove('flux-like-btn--active');
-        btn.innerHTML = `${icon('bookmark', { size: 16 })} Marchează citit`;
-      } else {
-        await BMAuth.supabase.from('post_reactions')
-          .upsert({ post_id: postId, user_id: BMAuth.user.id, user_name: BMAuth.displayName() },
-                  { onConflict: 'post_id,user_id' });
-        btn.classList.add('flux-like-btn--active');
-        btn.innerHTML = `${icon('bookmark', { size: 16 })} Citit`;
-      }
-    } catch (e) {
-      BM.toast('Eroare: ' + e.message, 'error');
-    } finally {
-      btn.disabled = false;
-    }
-  };
-
-  window.fluxShowReaders = function (btn) {
-    document.querySelectorAll('.flux-readers-popover').forEach(p => p.remove());
-    const wrapper = btn.closest('.flux-post__footer-right');
-    let names = [];
-    try { names = JSON.parse(btn.dataset.names || '[]'); } catch {}
-
-    const popover = document.createElement('div');
-    popover.className = 'flux-readers-popover';
-    if (names.length === 0) {
-      popover.innerHTML = `<div class="flux-readers-popover__empty">Niciun elev nu a confirmat încă.</div>`;
-    } else {
-      const items = names.map(n => `<div class="flux-readers-popover__item">${icon('circle-check', { size: 16, className: 'icon--success' })} ${BM.esc(n)}</div>`).join('');
-      popover.innerHTML = `<div class="flux-readers-popover__title">Au confirmat (${names.length})</div>${items}`;
-    }
-    wrapper.appendChild(popover);
-
-    setTimeout(() => {
-      document.addEventListener('click', function close(e) {
-        if (!wrapper.contains(e.target)) { popover.remove(); document.removeEventListener('click', close); }
-      });
-    }, 0);
-  };
 
   /* ═══════════════════════════════════════════════════════════════
      TABLĂ TAB — live collaborative whiteboard.

@@ -132,7 +132,10 @@ serve(async (req) => {
     const { class_id, type, teacher_name, exclude_user_id, extra } = await req.json();
 
     const labels: Record<string, { title: string; body: string }> = {
-      announcement: { title: 'Anunț nou 📢', body: `${teacher_name} a publicat un anunț nou!` },
+      message: {
+        title: 'Mesaj nou 💬',
+        body: `${teacher_name}${extra?.snippet ? `: ${extra.snippet}` : ' a trimis un mesaj nou în clasă.'}`,
+      },
       assignment:   { title: 'Temă nouă 📚', body: `${teacher_name} a adăugat o temă nouă!`  },
       simulare_scheduled: {
         title: '🎯 Simulare programată',
@@ -143,7 +146,7 @@ serve(async (req) => {
         body: `Simularea${extra?.sim_title ? ` "${extra.sim_title}"` : ''} a pornit — intră în clasă pentru a o rezolva.`,
       },
     };
-    const msg = labels[type] ?? labels.announcement;
+    const msg = labels[type] ?? labels.message;
 
     const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     let query = sb.from('push_subscriptions').select('subscription').eq('class_id', class_id);

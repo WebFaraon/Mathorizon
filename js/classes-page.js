@@ -1030,7 +1030,7 @@
   async function leaveClass(classId, className) {
     const ok = await showConfirm({
       title:       `Ieși din clasa „${className}"?`,
-      message:     'Nu vei mai avea acces la anunțuri și teme. Te poți alătura din nou cu codul de invitație.',
+      message:     'Nu vei mai avea acces la mesaje și teme. Te poți alătura din nou cu codul de invitație.',
       confirmText: 'Ieși din clasă',
       icon:        icon('log-out', { size: 48 })
     });
