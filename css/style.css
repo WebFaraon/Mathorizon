@@ -14469,7 +14469,6 @@ body.wb-fullscreen-active .scroll-top-btn {
   padding: 16px 18px 6px;
   display: flex;
   flex-direction: column;
-  gap: 1px;
 }
 
 .msg-panel__jump {
@@ -14492,6 +14491,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   animation: fadeSlideIn 0.16s ease;
 }
 .msg-panel__jump:hover { background: rgba(58,107,173,0.10); }
+.msg-panel__jump[hidden] { display: none; }
 
 .msg-panel__typing {
   flex: 0 0 auto;
@@ -14517,6 +14517,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   flex: 1 1 auto;
   resize: none;
   max-height: 140px;
+  overflow-y: hidden;
   padding: 9px 14px;
   font: inherit;
   font-size: 0.9rem;
@@ -14552,13 +14553,15 @@ body.wb-fullscreen-active .scroll-top-btn {
   display: flex;
   align-items: flex-start;
   gap: 10px;
-  padding: 6px 8px;
+  padding: 0 8px;
+  margin-top: 10px;
   border-radius: 10px;
   position: relative;
   transition: background 0.12s;
 }
+.msg-bubble:first-child { margin-top: 0; }
+.msg-bubble--grouped { margin-top: 2px; }
 .msg-bubble:hover { background: rgba(58,107,173,0.05); }
-.msg-bubble--mine { box-shadow: inset 2px 0 0 var(--accent); }
 
 .msg-bubble__gutter {
   flex-shrink: 0;
@@ -14617,11 +14620,24 @@ body.wb-fullscreen-active .scroll-top-btn {
 }
 .msg-bubble__time { font-size: 0.7rem; color: var(--text-muted); }
 
-.msg-bubble__title { font-size: 0.95rem; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+.msg-bubble__box {
+  display: inline-block;
+  max-width: 100%;
+  padding: 8px 12px;
+  border-radius: 4px 14px 14px 14px;
+  background: #3b6fa6;
+  color: #fff;
+}
+
+.msg-bubble--mine .msg-bubble__box {
+  background: #2f7d5a;
+}
+
+.msg-bubble__title { font-size: 0.95rem; font-weight: 700; color: inherit; margin-bottom: 3px; }
 
 .msg-bubble__content {
   font-size: 0.88rem;
-  color: var(--text-secondary);
+  color: #fff;
   line-height: 1.55;
   overflow-wrap: break-word;
   word-break: break-word;

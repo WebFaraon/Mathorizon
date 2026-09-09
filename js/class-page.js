@@ -1287,8 +1287,10 @@
               <span class="msg-bubble__time" title="${BM.esc(fullStr)}">${timeStr}</span>
             </div>
           `}
-          ${titleHTML}
-          <div class="msg-bubble__content">${contentHTML}</div>
+          <div class="msg-bubble__box">
+            ${titleHTML}
+            <div class="msg-bubble__content">${contentHTML}</div>
+          </div>
           <div class="msg-bubble__reactions" id="fluxReactions-${post.id}">
             ${_fluxReactionsHTML(post.id)}
           </div>
@@ -1355,14 +1357,17 @@
 
   async function _fluxToggleReaction(postId, emoji) {
     if (!BMAuth.user) return;
-    const existing = (_fluxReactionsByPost[postId] || []).find(r => r.user_id === BMAuth.user.id && r.emoji === emoji);
+    // One reaction per user per message — picking a different emoji swaps
+    // it rather than stacking (see 20260909100000_message_reactions_single.sql).
+    const mine = (_fluxReactionsByPost[postId] || []).find(r => r.user_id === BMAuth.user.id);
     try {
-      if (existing) {
-        const { error } = await BMAuth.supabase.from('message_reactions').delete().eq('id', existing.id);
+      if (mine && mine.emoji === emoji) {
+        const { error } = await BMAuth.supabase.from('message_reactions').delete().eq('id', mine.id);
         if (error) throw error;
       } else {
         const { error } = await BMAuth.supabase.from('message_reactions')
-          .insert({ post_id: postId, user_id: BMAuth.user.id, user_name: BMAuth.displayName(), emoji });
+          .upsert({ post_id: postId, user_id: BMAuth.user.id, user_name: BMAuth.displayName(), emoji },
+                  { onConflict: 'post_id,user_id' });
         if (error) throw error;
       }
       await _fluxRefreshReactionsForPost(postId);
@@ -1418,6 +1423,7 @@
 
     const autoGrow = () => {
       input.style.height = 'auto';
+      input.style.overflowY = input.scrollHeight > 140 ? 'auto' : 'hidden';
       input.style.height = Math.min(input.scrollHeight, 140) + 'px';
       btn.disabled = !input.value.trim();
     };
