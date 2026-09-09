@@ -574,6 +574,7 @@
   /* ─── Tab switching ─────────────────────────────────────────────── */
   function switchTab(tabId) {
     if (tabId === activeTab) return;
+    if (activeTab === 'flux' && _fluxFullscreen) _fluxToggleFullscreen();
     activeTab = tabId;
 
     history.replaceState(null, '', location.pathname + location.search + '#' + tabId);
@@ -1206,9 +1207,12 @@
       <div class="msg-panel">
         <div class="msg-panel__header">
           <span class="msg-panel__header-title">${icon('message-circle', { size: 16 })} Mesaje</span>
-          ${('Notification' in window) ? `
-            <button class="icon-btn" id="fluxBellBtn" title="Notificări pentru clasă">${icon('bell', { size: 16 })}</button>
-          ` : ''}
+          <div class="msg-panel__header-actions">
+            ${('Notification' in window) ? `
+              <button class="icon-btn" id="fluxBellBtn" title="Notificări pentru clasă">${icon('bell', { size: 16 })}</button>
+            ` : ''}
+            <button class="icon-btn" id="fluxFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 16 })}</button>
+          </div>
         </div>
         <div class="msg-panel__list" id="fluxList">
           ${posts.length === 0 ? _fluxEmptyHTML() : _fluxRenderMessages(posts)}
@@ -1228,10 +1232,15 @@
     `;
 
     document.getElementById('fluxBellBtn')?.addEventListener('click', () => cdOpenNotifInfo(classData.id));
+    document.getElementById('fluxFullscreenBtn')?.addEventListener('click', _fluxToggleFullscreen);
     document.getElementById('fluxJumpBtn')?.addEventListener('click', () => _fluxScrollToBottom(true));
     document.getElementById('fluxList')?.addEventListener('scroll', _fluxOnListScroll);
     document.querySelectorAll('#fluxList .msg-bubble').forEach(_wireFluxMessageEl);
     _wireFluxComposer();
+
+    // A reload (tab switch back, visibilitychange) rebuilds this panel from
+    // scratch, which would silently drop fullscreen mode — reapply it.
+    if (_fluxFullscreen) _fluxApplyFullscreenState();
 
     if (!_fluxHasLoadedOnce) {
       _fluxHasLoadedOnce = true;
@@ -1243,6 +1252,32 @@
         if (_fluxIsNearBottom(list)) document.getElementById('fluxJumpBtn')?.setAttribute('hidden', '');
       }
     }
+  }
+
+  /* ─── Fullscreen mode — the message panel alone fills the viewport, so
+     only its own list scrolls (not the surrounding page/tab). ────────── */
+  let _fluxFullscreen = false;
+
+  function _fluxApplyFullscreenState() {
+    const panel = document.querySelector('.msg-panel');
+    const btn   = document.getElementById('fluxFullscreenBtn');
+    if (!panel || !btn) return;
+    panel.classList.toggle('msg-panel--fullscreen', _fluxFullscreen);
+    btn.innerHTML = icon(_fluxFullscreen ? 'minimize' : 'maximize', { size: 16 });
+    btn.title = _fluxFullscreen ? 'Ieși din ecran complet' : 'Ecran complet';
+    document.documentElement.style.overflow = _fluxFullscreen ? 'hidden' : '';
+    document.body.style.overflow = _fluxFullscreen ? 'hidden' : '';
+  }
+
+  function _fluxEscHandler(e) {
+    if (e.key === 'Escape' && _fluxFullscreen) _fluxToggleFullscreen();
+  }
+
+  function _fluxToggleFullscreen() {
+    _fluxFullscreen = !_fluxFullscreen;
+    _fluxApplyFullscreenState();
+    if (_fluxFullscreen) document.addEventListener('keydown', _fluxEscHandler);
+    else document.removeEventListener('keydown', _fluxEscHandler);
   }
 
   function _fluxEmptyHTML() {

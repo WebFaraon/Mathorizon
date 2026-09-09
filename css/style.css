@@ -38,18 +38,18 @@ body {
 body:has(#classRoot) {
   background-color: #E8F1FB;
   background-image:
-    linear-gradient(rgba(58,107,173,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(58,107,173,0.08) 1px, transparent 1px),
-    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzNBNkJBRCcgZmlsbC1vcGFjaXR5PScwLjEwJyBmb250LWZhbWlseT0nR2VvcmdpYSwgIlRpbWVzIE5ldyBSb21hbiIsIHNlcmlmJz4KICAgIDx0ZXh0IHg9JzE4JyAgeT0nNDAnICBmb250LXNpemU9JzM0JyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTYwOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE1MCcgeT0nMzAnICBmb250LXNpemU9JzMwJz4mIzg3MjE7PC90ZXh0PgogICAgPHRleHQgeD0nMjA1JyB5PSc5NScgIGZvbnQtc2l6ZT0nMjYnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoLTEyIDIwNSA5NSknPiYjODczMDs8L3RleHQ+CiAgICA8dGV4dCB4PSczMCcgIHk9JzEyMCcgZm9udC1zaXplPScyNCcgZm9udC1zdHlsZT0naXRhbGljJz54JiMxNzg7PC90ZXh0PgogICAgPHRleHQgeD0nMTE1JyB5PScxNDAnIGZvbnQtc2l6ZT0nMzInPiYjODczNDs8L3RleHQ+CiAgICA8dGV4dCB4PScxMCcgIHk9JzIwMCcgZm9udC1zaXplPScyNic+JiMyNDc7PC90ZXh0PgogICAgPHRleHQgeD0nMTg1JyB5PScxOTAnIGZvbnQtc2l6ZT0nMjgnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoOCAxODUgMTkwKSc+JiM4NzQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9Jzk1JyAgeT0nMjMwJyBmb250LXNpemU9JzIyJyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTUyOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIxNScgeT0nMjQ1JyBmb250LXNpemU9JzI0Jz4lPC90ZXh0PgogIDwvZz4KPC9zdmc+");
+    linear-gradient(rgba(58,107,173,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58,107,173,0.06) 1px, transparent 1px),
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzNBNkJBRCcgZmlsbC1vcGFjaXR5PScwLjA2NScgZm9udC1mYW1pbHk9J0dlb3JnaWEsICJUaW1lcyBOZXcgUm9tYW4iLCBzZXJpZic+CiAgICA8dGV4dCB4PScxOCcgIHk9JzQwJyAgZm9udC1zaXplPSczNCcgZm9udC1zdHlsZT0naXRhbGljJz4mIzk2MDs8L3RleHQ+CiAgICA8dGV4dCB4PScxNTAnIHk9JzMwJyAgZm9udC1zaXplPSczMCc+JiM4NzIxOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIwNScgeT0nOTUnICBmb250LXNpemU9JzI2JyBmb250LXN0eWxlPSdpdGFsaWMnIHRyYW5zZm9ybT0ncm90YXRlKC0xMiAyMDUgOTUpJz4mIzg3MzA7PC90ZXh0PgogICAgPHRleHQgeD0nMzAnICB5PScxMjAnIGZvbnQtc2l6ZT0nMjQnIGZvbnQtc3R5bGU9J2l0YWxpYyc+eCYjMTc4OzwvdGV4dD4KICAgIDx0ZXh0IHg9JzExNScgeT0nMTQwJyBmb250LXNpemU9JzMyJz4mIzg3MzQ7PC90ZXh0PgogICAgPHRleHQgeD0nMTAnICB5PScyMDAnIGZvbnQtc2l6ZT0nMjYnPiYjMjQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE4NScgeT0nMTkwJyBmb250LXNpemU9JzI4JyBmb250LXN0eWxlPSdpdGFsaWMnIHRyYW5zZm9ybT0ncm90YXRlKDggMTg1IDE5MCknPiYjODc0Nzs8L3RleHQ+CiAgICA8dGV4dCB4PSc5NScgIHk9JzIzMCcgZm9udC1zaXplPScyMicgZm9udC1zdHlsZT0naXRhbGljJz4mIzk1Mjs8L3RleHQ+CiAgICA8dGV4dCB4PScyMTUnIHk9JzI0NScgZm9udC1zaXplPScyNCc+JTwvdGV4dD4KICA8L2c+Cjwvc3ZnPg==");
   background-size: 28px 28px, 28px 28px, 260px 260px;
   background-attachment: fixed, fixed, fixed;
 }
 html[data-theme="dark"] body:has(#classRoot) {
   background-color: var(--bg);
   background-image:
-    linear-gradient(rgba(74,158,255,0.08) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(74,158,255,0.08) 1px, transparent 1px),
-    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzdGQjJFOCcgZmlsbC1vcGFjaXR5PScwLjA5JyBmb250LWZhbWlseT0nR2VvcmdpYSwgIlRpbWVzIE5ldyBSb21hbiIsIHNlcmlmJz4KICAgIDx0ZXh0IHg9JzE4JyAgeT0nNDAnICBmb250LXNpemU9JzM0JyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTYwOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE1MCcgeT0nMzAnICBmb250LXNpemU9JzMwJz4mIzg3MjE7PC90ZXh0PgogICAgPHRleHQgeD0nMjA1JyB5PSc5NScgIGZvbnQtc2l6ZT0nMjYnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoLTEyIDIwNSA5NSknPiYjODczMDs8L3RleHQ+CiAgICA8dGV4dCB4PSczMCcgIHk9JzEyMCcgZm9udC1zaXplPScyNCcgZm9udC1zdHlsZT0naXRhbGljJz54JiMxNzg7PC90ZXh0PgogICAgPHRleHQgeD0nMTE1JyB5PScxNDAnIGZvbnQtc2l6ZT0nMzInPiYjODczNDs8L3RleHQ+CiAgICA8dGV4dCB4PScxMCcgIHk9JzIwMCcgZm9udC1zaXplPScyNic+JiMyNDc7PC90ZXh0PgogICAgPHRleHQgeD0nMTg1JyB5PScxOTAnIGZvbnQtc2l6ZT0nMjgnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoOCAxODUgMTkwKSc+JiM4NzQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9Jzk1JyAgeT0nMjMwJyBmb250LXNpemU9JzIyJyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTUyOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIxNScgeT0nMjQ1JyBmb250LXNpemU9JzI0Jz4lPC90ZXh0PgogIDwvZz4KPC9zdmc+");
+    linear-gradient(rgba(74,158,255,0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.06) 1px, transparent 1px),
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzdGQjJFOCcgZmlsbC1vcGFjaXR5PScwLjA1NScgZm9udC1mYW1pbHk9J0dlb3JnaWEsICJUaW1lcyBOZXcgUm9tYW4iLCBzZXJpZic+CiAgICA8dGV4dCB4PScxOCcgIHk9JzQwJyAgZm9udC1zaXplPSczNCcgZm9udC1zdHlsZT0naXRhbGljJz4mIzk2MDs8L3RleHQ+CiAgICA8dGV4dCB4PScxNTAnIHk9JzMwJyAgZm9udC1zaXplPSczMCc+JiM4NzIxOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIwNScgeT0nOTUnICBmb250LXNpemU9JzI2JyBmb250LXN0eWxlPSdpdGFsaWMnIHRyYW5zZm9ybT0ncm90YXRlKC0xMiAyMDUgOTUpJz4mIzg3MzA7PC90ZXh0PgogICAgPHRleHQgeD0nMzAnICB5PScxMjAnIGZvbnQtc2l6ZT0nMjQnIGZvbnQtc3R5bGU9J2l0YWxpYyc+eCYjMTc4OzwvdGV4dD4KICAgIDx0ZXh0IHg9JzExNScgeT0nMTQwJyBmb250LXNpemU9JzMyJz4mIzg3MzQ7PC90ZXh0PgogICAgPHRleHQgeD0nMTAnICB5PScyMDAnIGZvbnQtc2l6ZT0nMjYnPiYjMjQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE4NScgeT0nMTkwJyBmb250LXNpemU9JzI4JyBmb250LXN0eWxlPSdpdGFsaWMnIHRyYW5zZm9ybT0ncm90YXRlKDggMTg1IDE5MCknPiYjODc0Nzs8L3RleHQ+CiAgICA8dGV4dCB4PSc5NScgIHk9JzIzMCcgZm9udC1zaXplPScyMicgZm9udC1zdHlsZT0naXRhbGljJz4mIzk1Mjs8L3RleHQ+CiAgICA8dGV4dCB4PScyMTUnIHk9JzI0NScgZm9udC1zaXplPScyNCc+JTwvdGV4dD4KICA8L2c+Cjwvc3ZnPg==");
 }
 
 /* Page-to-page navigation transition (see js/page-transition.js) */
@@ -12028,7 +12028,11 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 .cd-header {
   position: relative;
   overflow: hidden;
-  background: linear-gradient(120deg, var(--surface) 0%, rgba(58,107,173,0.18) 60%, rgba(58,107,173,0.30) 100%);
+  /* Solid base color first, so the alpha portions of the gradient on top
+     blend against it rather than letting whatever sits behind the header
+     (e.g. class.html's fixed math-symbol page background) show through. */
+  background-color: var(--surface);
+  background-image: linear-gradient(120deg, var(--surface) 0%, rgba(58,107,173,0.18) 60%, rgba(58,107,173,0.30) 100%);
   border-bottom: 1px solid rgba(58,107,173,0.25);
   padding: 32px 0 28px;
 }
@@ -14467,6 +14471,20 @@ body.wb-fullscreen-active .scroll-top-btn {
   position: relative;
 }
 
+/* Fullscreen mode: the panel itself becomes the only scrollable surface on
+   screen (its own .msg-panel__list), covering the tab bar/page behind it —
+   toggled by #fluxFullscreenBtn, see _fluxToggleFullscreen in class-page.js. */
+.msg-panel--fullscreen {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  height: 100vh;
+  min-height: 0;
+  width: 100vw;
+  border-radius: 0;
+  border-width: 0;
+}
+
 .msg-panel__header {
   flex: 0 0 auto;
   display: flex;
@@ -14477,6 +14495,7 @@ body.wb-fullscreen-active .scroll-top-btn {
   background: linear-gradient(90deg, rgba(58,107,173,0.08) 0%, rgba(58,107,173,0.02) 100%);
   border-bottom: 1px solid rgba(58,107,173,0.10);
 }
+.msg-panel__header-actions { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
 .msg-panel__header-title {
   display: inline-flex;
   align-items: center;
