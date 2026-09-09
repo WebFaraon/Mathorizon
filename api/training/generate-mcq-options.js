@@ -124,6 +124,20 @@ module.exports = async function handler(req, res) {
 
     const parsed = await generateMcqOptions({ statement, solution, barem });
     const distractorValues = (parsed.distractors || []).map(d => d.value);
+
+    // Gemini occasionally returns text that extractJson can't fully parse
+    // into the expected shape (empty correctAnswer, fewer than 3 distractors,
+    // or a blank value among them). This cache is "generate once, ever" —
+    // caching a broken result here would make it permanently broken (every
+    // future request just re-reads the same empty row and never retries).
+    // Fail loudly instead, uncached, so the next attempt gets a fresh shot.
+    if (!parsed.correctAnswer || distractorValues.length !== 3 || distractorValues.some(v => !v)) {
+      const err = new Error('invalid_generation');
+      err.code = 'invalid_generation';
+      err.status = 502;
+      throw err;
+    }
+
     await writeCacheRow(exerciseId, parsed.correctAnswer, distractorValues);
 
     res.status(200).json({ correctAnswer: parsed.correctAnswer, distractors: distractorValues });
