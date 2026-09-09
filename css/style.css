@@ -4018,13 +4018,17 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   padding: 24px;
 }
 
-.training-panel {
+/* .training-panel itself carries no visual styling anymore — state 1
+   (#configContent) is a full hero page (.tr-setup-page below) that provides
+   its own look; only the collapsed HUD-bar state (state 2) needs a card
+   treatment, since it really is just a slim bar sitting on the page. */
+.training-panel--collapsed {
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius-xl);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
-  padding: 36px 40px;
-  transition: padding 0.45s cubic-bezier(0.22,1,0.36,1), border-radius 0.45s cubic-bezier(0.22,1,0.36,1);
+  padding: 12px 20px;
+  transition: padding 0.3s cubic-bezier(0.22,1,0.36,1);
 }
 
 #configContent {
@@ -4057,11 +4061,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   opacity: 1;
 }
 
-.training-panel--collapsed {
-  padding: 12px 20px;
-  border-radius: var(--radius-lg);
-}
-
 .training-main { padding: 0; }
 
 /* Fills whatever vertical space .training-layout's min-height leaves once
@@ -4086,7 +4085,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 
 @media (max-width: 900px) {
   .training-layout { padding: 16px; gap: 16px; }
-  .training-panel { padding: 24px 20px; }
   .training-hud { flex-wrap: wrap; gap: 14px; }
 }
 
@@ -4125,94 +4123,238 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .training-preview__stat-val { font-size: 2rem; font-weight: 800; color: var(--accent); letter-spacing: -0.5px; }
 .training-preview__stat-lbl { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-muted); margin-top: 4px; }
 
-/* ---- Antrenament: page header — icon, title, description, lifetime
-   stats, sitting above .training-panel (not inside it) so the tab reads as
-   a normal page (header, then content) rather than one bordered box with
-   everything crammed in. Deliberately borderless/transparent — the
-   .training-panel below is the only "card" on the page, so the two don't
-   compete for the same visual weight. ---- */
-.training-page-header {
-  position: relative;
+/* ---- Antrenament setup — mirrors bac.html's .bac-setup-page two-column
+   hero pattern (own classes, bac.html's CSS untouched): dark hero left
+   with identity/stats/picks/CTA, structured white panels right. This
+   replaces an earlier version that boxed every section in its own bordered
+   card, which still read as "a big box of boxes" — the actual established
+   convention for a "configure then start a session" screen on this site is
+   this hero pattern, not stacked cards. ---- */
+.tr-setup-page {
   display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 22px;
-  padding: 30px 6px 6px;
-}
-.training-page-header__icon {
-  width: 60px;
-  height: 60px;
-  border-radius: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  color: var(--accent);
-  background: var(--accent-dim);
-  border: 1.5px solid color-mix(in srgb, var(--accent) 30%, transparent);
-}
-.training-page-header__info { flex: 1 1 260px; min-width: 0; }
-.training-page-header__title {
-  font-size: 1.55rem;
-  font-weight: 800;
-  letter-spacing: -0.6px;
-  color: var(--text);
-  margin-bottom: 5px;
-  line-height: 1.15;
-}
-.training-page-header__desc {
-  font-size: 0.86rem;
-  color: var(--text-secondary);
-  line-height: 1.55;
-  max-width: 480px;
-}
-.training-page-header__stats {
-  display: flex;
-  gap: 12px;
-  flex-wrap: wrap;
-}
-.training-page-header__stat {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 13px 22px 13px 14px;
+  min-height: calc(100vh - var(--nav-h) - 48px);
+  border-radius: var(--radius-xl);
+  overflow: hidden;
   box-shadow: var(--shadow-card);
-  cursor: help;
 }
-.training-page-header__stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 11px;
+
+.tr-setup-left {
+  flex: 0 0 44%;
+  background: linear-gradient(160deg, #1a3664 0%, #3A6BAD 100%);
+  padding: 44px 44px;
   display: flex;
-  align-items: center;
+  flex-direction: column;
   justify-content: center;
-  flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
 }
-.training-page-header__stat--gold .training-page-header__stat-icon { color: var(--icon-gamify); background: var(--icon-gamify-dim); }
-.training-page-header__stat--blue .training-page-header__stat-icon { color: var(--accent);      background: var(--accent-dim); }
-.training-page-header__stat--red  .training-page-header__stat-icon { color: var(--red);         background: var(--red-dim); }
-.training-page-header__stat-val {
-  font-size: 1.45rem;
-  font-weight: 800;
-  color: var(--text);
-  line-height: 1.1;
-  letter-spacing: -0.4px;
+[data-theme="dark"] .tr-setup-left {
+  background: linear-gradient(160deg, #0d1f42 0%, #1b3870 100%);
 }
-.training-page-header__stat-lbl {
+
+.tr-setup-deco {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  font-family: Georgia, 'Times New Roman', serif;
+  overflow: hidden;
+}
+.tr-setup-deco span:nth-child(1) { animation: bac-sym-a 9s  ease-in-out infinite 0s; }
+.tr-setup-deco span:nth-child(2) { animation: bac-sym-b 13s ease-in-out infinite 1.2s; }
+.tr-setup-deco span:nth-child(3) { animation: bac-sym-c 15s ease-in-out infinite 0.6s; }
+.tr-setup-deco span:nth-child(4) { animation: bac-sym-a 11s ease-in-out infinite 2.4s; }
+.tr-setup-deco span:nth-child(5) { animation: bac-sym-b 14s ease-in-out infinite 3.6s; }
+.tr-setup-deco span:nth-child(6) { animation: bac-sym-c 10s ease-in-out infinite 1.8s; }
+.tr-setup-deco span {
+  position: absolute;
+  color: rgba(255,255,255,0.07);
+  font-size: var(--sz);
+  will-change: transform;
+  top: var(--t);
+  left: var(--l);
+  line-height: 1;
+  user-select: none;
+}
+
+.tr-setup-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.68rem;
   font-weight: 700;
+  letter-spacing: 1.2px;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: var(--text-muted);
-  margin-top: 2px;
-  white-space: nowrap;
+  color: rgba(255,255,255,0.68);
+  background: rgba(255,255,255,0.10);
+  border: 1px solid rgba(255,255,255,0.20);
+  border-radius: 20px;
+  padding: 4px 12px;
+  margin-bottom: 20px;
+  width: fit-content;
+  max-width: 100%;
 }
-/* Hidden once a session starts — same moment the old in-panel title used to
-   disappear (.training-layout--session, toggled in js/training.js). */
-.training-layout--session .training-page-header { display: none; }
+.tr-setup-title {
+  font-size: 2.3rem;
+  font-weight: 800;
+  color: #fff;
+  line-height: 1.08;
+  letter-spacing: -1px;
+  margin-bottom: 12px;
+}
+.tr-setup-title em { font-style: normal; color: #93c5fd; }
+.tr-setup-rule {
+  width: 44px;
+  height: 3px;
+  background: linear-gradient(90deg, #93c5fd, rgba(147,197,253,0));
+  border-radius: 2px;
+  margin: 0 0 16px;
+}
+.tr-setup-desc {
+  font-size: 0.86rem;
+  color: rgba(255,255,255,0.62);
+  line-height: 1.6;
+  margin-bottom: 24px;
+  max-width: 360px;
+}
+
+.tr-setup-chips { display: flex; gap: 10px; margin-bottom: 26px; }
+.tr-chip {
+  flex: 1;
+  border-radius: var(--radius);
+  padding: 10px 8px;
+  text-align: center;
+  border: 1px solid transparent;
+  cursor: help;
+}
+.tr-chip--amber { background: rgba(251,191,36,0.14); border-color: rgba(251,191,36,0.28); }
+.tr-chip--blue  { background: rgba(99,179,237,0.14); border-color: rgba(99,179,237,0.28); }
+.tr-chip--teal  { background: rgba(45,212,191,0.14); border-color: rgba(45,212,191,0.28); }
+.tr-chip__val { font-size: 1.4rem; font-weight: 800; line-height: 1; margin-bottom: 3px; letter-spacing: -0.4px; }
+.tr-chip--amber .tr-chip__val { color: #fbbf24; }
+.tr-chip--blue  .tr-chip__val { color: #93c5fd; }
+.tr-chip--teal  .tr-chip__val { color: #2dd4bf; }
+.tr-chip__lbl {
+  font-size: 0.6rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: rgba(255,255,255,0.48);
+}
+
+/* Picks (count/difficulty/timer chips) sit directly on the dark hero, so the
+   generic .config-chip look (built for a light --card background) needs a
+   contextual override here. Rarity-colored diff chips already set their own
+   color/border-color — only their neutral background needs adjusting, and
+   only while unselected (their .selected rule already wins on its own). */
+.tr-setup-group .config-label { color: rgba(255,255,255,0.85); }
+.tr-setup-group .config-chip:not([class*="config-chip--"]) {
+  background: rgba(255,255,255,0.08);
+  border-color: rgba(255,255,255,0.18);
+  color: rgba(255,255,255,0.80);
+}
+.tr-setup-group .config-chip:not([class*="config-chip--"]):hover {
+  background: rgba(255,255,255,0.15);
+}
+.tr-setup-group .config-chip.selected:not([class*="config-chip--"]) {
+  background: #fff;
+  border-color: #fff;
+  color: #1a3664;
+}
+.tr-setup-group .config-chip[class*="config-chip--"]:not(.selected) {
+  background: rgba(255,255,255,0.06);
+}
+/* The --rarity-*-text tokens are tuned for dark text on a light --card
+   background (Capitole/Simulări) and are nearly unreadable on this dark
+   hero (e.g. --rarity-rar-text is a navy blue on a navy gradient) — use
+   each tier's light "-a" swatch instead, purely for legibility here. */
+.tr-setup-group .config-chip--comun:not(.selected)    { color: var(--rarity-comun-a); }
+.tr-setup-group .config-chip--rar:not(.selected)      { color: var(--rarity-rar-a); }
+.tr-setup-group .config-chip--epic:not(.selected)     { color: var(--rarity-epic-a); }
+.tr-setup-group .config-chip--legendar:not(.selected) { color: var(--rarity-legendar-a); }
+.tr-setup-group .config-chip[class*="config-chip--"] {
+  border-color: rgba(255,255,255,0.24);
+}
+
+.tr-start-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  background: linear-gradient(135deg, #16A34A 0%, #15803d 100%);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius);
+  padding: 15px 28px;
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  letter-spacing: 0.2px;
+  box-shadow: 0 4px 20px rgba(22,163,74,0.40);
+  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+}
+.tr-start-btn:hover {
+  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 30px rgba(22,163,74,0.55);
+}
+.tr-start-btn:disabled {
+  cursor: not-allowed;
+  filter: grayscale(0.7) brightness(0.75);
+  transform: none;
+  box-shadow: none;
+}
+.tr-setup-summary {
+  margin-top: 14px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: rgba(255,255,255,0.55);
+  min-height: 1.2em;
+}
+
+/* RIGHT: structured panels (chapters/subcategories, extra settings) */
+.tr-setup-right {
+  flex: 1;
+  min-width: 0;
+  background: var(--bg);
+  padding: 30px 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  overflow-y: auto;
+}
+.tr-panel {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+.tr-panel__head {
+  background: var(--surface);
+  border-bottom: 1.5px solid var(--border);
+  padding: 9px 16px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+.tr-panel__body { padding: 16px; }
+
+@media (max-width: 900px) {
+  .tr-setup-page   { flex-direction: column; min-height: 0; border-radius: var(--radius-lg); }
+  .tr-setup-left   { flex: none; padding: 32px 28px; }
+  .tr-setup-right  { overflow-y: visible; padding: 24px 20px; }
+  .tr-setup-title  { font-size: 2rem; }
+}
+@media (max-width: 480px) {
+  .tr-setup-left   { padding: 28px 18px; }
+  .tr-setup-title  { font-size: 1.7rem; }
+  .tr-setup-desc   { max-width: 100%; }
+  .tr-setup-chips  { gap: 8px; }
+  .tr-start-btn    { width: 100%; }
+  .tr-setup-deco   { display: none; }
+}
 
 @media (max-width: 900px) {
   .training-page-header { padding: 22px 2px 2px; gap: 16px; }
@@ -4239,28 +4381,16 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin: 20px 0;
 }
 
-/* Each config section is its own card (not a shared box with thin dividers)
-   so the config screen reads as distinct steps — count, difficulty,
-   chapters, extra settings — rather than one long undifferentiated form.
-   Uses --surface (not --card, same tone as .training-panel itself) so
-   each section reads as a layer sitting inside the panel, matching the
-   existing subcat-chip/chapter-item convention of nesting --surface inside
-   a --card parent. */
-.config-section {
-  margin-bottom: 16px;
-  background: var(--surface);
-  border: 1.5px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 18px 20px;
-}
-.config-section:last-of-type { margin-bottom: 0; }
+/* One group of picks (label + chips) inside the hero's left panel — no card,
+   just spacing, since the hero itself is the only "surface" on this screen. */
+.tr-setup-group { margin-bottom: 18px; }
 
 .config-label {
   font-size: 0.85rem;
   font-weight: 800;
   letter-spacing: -0.1px;
   color: var(--text);
-  margin-bottom: 13px;
+  margin-bottom: 10px;
 }
 
 .config-chips {

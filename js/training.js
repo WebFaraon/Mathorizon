@@ -111,6 +111,7 @@
     }
 
     renderChapterList();
+    renderTimerChips();
     renderExtraSettings();
     updateSummary();
   }
@@ -250,19 +251,13 @@
   /* ---- D. Extra settings: timer / answer type / unsolved-only ----
      Built once (like the count/difficulty chips) with in-place class
      toggling on click, rather than a full re-render per change. */
-  function renderExtraSettings() {
-    const box = document.getElementById('extraSettings');
-    if (!box) return;
-    box.innerHTML = '';
-
-    const timerRow = document.createElement('div');
-    timerRow.className = 'config-extra-row';
-    const timerLabel = document.createElement('span');
-    timerLabel.className = 'config-extra-row__label';
-    timerLabel.textContent = 'Cronometru';
-    timerRow.appendChild(timerLabel);
-    const timerChips = document.createElement('div');
-    timerChips.className = 'config-chips';
+  /* Timer chips live in the hero (left panel, next to count/difficulty),
+     not in the "Setări suplimentare" panel — built separately so
+     renderExtraSettings() below can target a different container. */
+  function renderTimerChips() {
+    const timerChips = document.getElementById('timerChips');
+    if (!timerChips) return;
+    timerChips.innerHTML = '';
     [
       { id: 'none',    label: 'Fără' },
       { id: 'relaxed', label: 'Relaxat · +20% XP' },
@@ -281,8 +276,12 @@
       };
       timerChips.appendChild(btn);
     });
-    timerRow.appendChild(timerChips);
-    box.appendChild(timerRow);
+  }
+
+  function renderExtraSettings() {
+    const box = document.getElementById('extraSettings');
+    if (!box) return;
+    box.innerHTML = '';
 
     const typeRow = document.createElement('div');
     typeRow.className = 'config-extra-row';
