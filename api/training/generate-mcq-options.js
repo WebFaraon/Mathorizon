@@ -100,6 +100,28 @@ async function generateMcqOptions({ statement, solution, barem }) {
   };
 }
 
+function isValidMcq(parsed) {
+  const distractorValues = (parsed.distractors || []).map(d => d.value);
+  return !!parsed.correctAnswer && distractorValues.length === 3 && distractorValues.every(v => v);
+}
+
+// Gemini occasionally follows the JSON shape correctly but leaves a field
+// empty or short a distractor — a content quirk, not a parsing bug (extractJson
+// already repairs the common LaTeX-escaping failures on its own). This is
+// usually a one-off, not deterministic, so one retry recovers most of them
+// before we give up and answer with a clean, uncached failure.
+async function generateValidMcqOptions(args, maxAttempts = 2) {
+  let parsed;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    parsed = await generateMcqOptions(args);
+    if (isValidMcq(parsed)) return parsed;
+  }
+  const err = new Error('invalid_generation');
+  err.code = 'invalid_generation';
+  err.status = 502;
+  throw err;
+}
+
 module.exports = async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
@@ -122,21 +144,8 @@ module.exports = async function handler(req, res) {
 
     await requireAuth(accessToken);
 
-    const parsed = await generateMcqOptions({ statement, solution, barem });
-    const distractorValues = (parsed.distractors || []).map(d => d.value);
-
-    // Gemini occasionally returns text that extractJson can't fully parse
-    // into the expected shape (empty correctAnswer, fewer than 3 distractors,
-    // or a blank value among them). This cache is "generate once, ever" —
-    // caching a broken result here would make it permanently broken (every
-    // future request just re-reads the same empty row and never retries).
-    // Fail loudly instead, uncached, so the next attempt gets a fresh shot.
-    if (!parsed.correctAnswer || distractorValues.length !== 3 || distractorValues.some(v => !v)) {
-      const err = new Error('invalid_generation');
-      err.code = 'invalid_generation';
-      err.status = 502;
-      throw err;
-    }
+    const parsed = await generateValidMcqOptions({ statement, solution, barem });
+    const distractorValues = parsed.distractors.map(d => d.value);
 
     await writeCacheRow(exerciseId, parsed.correctAnswer, distractorValues);
 
