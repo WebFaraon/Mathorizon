@@ -8,6 +8,7 @@
   let selectedCount     = 10;
   let selectedSubcats   = new Set();
   let selectedDiff      = 'all';
+  let expandedCats      = new Set(); // category ids whose subcat panel is expanded — chevron-driven, collapsed by default
   let selectedTimerMode = 'none';    // 'none' | 'relaxed' | 'strict'
   let selectedAnswerType = 'mixed';  // 'mixed' | 'written' | 'mcq'
   let unsolvedOnly      = false;
@@ -22,11 +23,32 @@
   let startTime         = null;
   let xpAtSessionStart  = 0;
   let missedSubcats     = new Set(); // subcategories with >=1 incorrect card this session — feeds "Repetă greșelile"
+  /* XP/solved/best-streak are NOT committed to storage per-card anymore —
+     only staged here and written once in finishSession(). This is what lets
+     "Renunță la sesiune" discard a session for real: there's nothing to
+     revert, because nothing was persisted yet. */
+  let pendingSolvedIds  = new Set();
 
   const XP_BASE = { usor: 10, mediu: 20, dificil: 35 };
   const MILESTONES = [3, 5, 8];
-  const TIMER_SECONDS = { relaxed: 90, strict: 45 };
+  /* Timer duration is now per-exercise (rarity × chapter), not a flat
+     45s/90s — a Legendar geometry problem and a Comun arithmetic one can't
+     realistically share a countdown. TIMER_BASE_BY_RARITY is the "Contra
+     timp" (tight) reference; "Relaxat" scales it up. */
+  const TIMER_BASE_BY_RARITY = { comun: 60, rar: 100, epic: 160, legendar: 240 };
+  const TIMER_CATEGORY_MULT = { algebra: 1.0, geometrie: 1.3, analiza: 1.15, combinatorica: 1.1 };
+  const TIMER_RELAXED_FACTOR = 1.6;
   const TIMER_XP_BONUS = { none: 1, relaxed: 1.2, strict: 1.5 }; // +20% / +50% XP for a correct, cronometrat answer
+
+  /* Countdown (seconds) for one exercise under a given timer mode — rounded
+     to the nearest 5s so the displayed time never looks arbitrarily precise. */
+  function computeTimerSeconds(ex, mode) {
+    if (mode === 'none') return 0;
+    const rarity = BM.RARITY_BY_DIFF[ex.difficulty] || 'comun';
+    const base = (TIMER_BASE_BY_RARITY[rarity] || TIMER_BASE_BY_RARITY.comun) * (TIMER_CATEGORY_MULT[ex.categoryId] || 1);
+    const strict = Math.round(base / 5) * 5;
+    return mode === 'relaxed' ? Math.round(strict * TIMER_RELAXED_FACTOR / 5) * 5 : strict;
+  }
 
   /* In-memory cache for generated MCQ option sets — keyed by exercise id,
      lives for the page's lifetime (a fresh reload re-checks sessionStorage
@@ -68,10 +90,11 @@
     const diffBox = document.getElementById('diffChips');
     if (diffBox) {
       [
-        { id: 'all',     label: 'Toate' },
-        { id: 'usor',    label: 'Ușor',  cls: 'config-chip--usor' },
-        { id: 'mediu',   label: 'Mediu', cls: 'config-chip--mediu' },
-        { id: 'dificil', label: 'Greu',  cls: 'config-chip--dificil' }
+        { id: 'all',      label: 'Toate' },
+        { id: 'usor',     label: 'Comun',    cls: 'config-chip--comun' },
+        { id: 'mediu',    label: 'Rar',      cls: 'config-chip--rar' },
+        { id: 'dificil',  label: 'Epic',     cls: 'config-chip--epic' },
+        { id: 'legendar', label: 'Legendar', cls: 'config-chip--legendar' }
       ].forEach(d => {
         const btn = document.createElement('button');
         btn.className = 'config-chip' + (d.cls ? ` ${d.cls}` : '') + (d.id === selectedDiff ? ' selected' : '');
@@ -80,6 +103,7 @@
           selectedDiff = d.id;
           diffBox.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
           btn.classList.add('selected');
+          renderChapterList(); // per-subcategory exercise counts depend on the difficulty filter
           updateSummary();
         };
         diffBox.appendChild(btn);
@@ -106,8 +130,23 @@
     return cat.subcategories.filter(s => selectedSubcats.has(s.id)).length;
   }
 
+  /* Number of exercises available for this subcategory under the current
+     difficulty filter — a live preview so the student can see where the
+     exercises actually are before picking subcategories, not just after
+     hitting Start (see updateSummary's "niciun exercițiu disponibil"). */
+  function subcatExerciseCount(sub) {
+    let n = 0;
+    BM.EXERCISES.forEach(e => {
+      if (e.subcategoryId !== sub.id) return;
+      if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
+      n++;
+    });
+    return n;
+  }
+
   function renderChapterBlock(cat) {
     const locked = !UNLOCKED_CATS.has(cat.id);
+    const expanded = !locked && expandedCats.has(cat.id);
     const wrap = document.createElement('div');
     wrap.className = 'config-chapter-block';
 
@@ -115,25 +154,39 @@
     const selCount = locked ? 0 : chapterSelectedCount(cat);
     item.className = 'config-chapter-item'
       + (locked ? ' config-chapter-item--locked' : '')
-      + (selCount > 0 ? ' selected' : '');
+      + (selCount > 0 ? ' selected' : '')
+      + (expanded ? ' expanded' : '');
     item.id = `cat-item-${cat.id}`;
     item.innerHTML = `
       <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
       <span class="config-chapter-name">${BM.esc(cat.name)}</span>
       ${locked
         ? `<span class="config-chapter-lock">${icon('lock', { size: 16 })}</span><span class="config-chapter-soon">În curând</span>`
-        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>`}
+        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>
+           <button type="button" class="config-chapter-chevron" aria-label="${expanded ? 'Restrânge' : 'Extinde'} ${BM.esc(cat.name)}">${icon('chevron-down', { size: 16 })}</button>`}
     `;
-    /* Only the lock toast is wired here — select-all/clear-all is the
-       explicit buttons' job alone now (a chapter-title click doing the same
-       thing made "Selectează tot" redundant and was surprising). */
+    /* Only the lock toast is wired on the row itself — select-all/clear-all
+       stays the explicit buttons' job (a whole-row click doing the same
+       thing was surprising, see below); the chevron is its own separate
+       affordance purely for expand/collapse, so it can't collide with that. */
     item.onclick = locked
       ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
       : null;
     wrap.appendChild(item);
 
     if (!locked) {
-      wrap.appendChild(renderSubcatPanel(cat));
+      const panel = renderSubcatPanel(cat);
+      panel.classList.toggle('collapsed', !expanded);
+      wrap.appendChild(panel);
+
+      const chevron = item.querySelector('.config-chapter-chevron');
+      chevron.onclick = e => {
+        e.stopPropagation();
+        const nowExpanded = !expandedCats.has(cat.id);
+        if (nowExpanded) expandedCats.add(cat.id); else expandedCats.delete(cat.id);
+        item.classList.toggle('expanded', nowExpanded);
+        panel.classList.toggle('collapsed', !nowExpanded);
+      };
     }
     return wrap;
   }
@@ -163,6 +216,7 @@
       chip.innerHTML = `
         <span class="config-subcat-icon" style="color:${sub.color}">${sub.symbol}</span>
         <span class="config-subcat-name">${BM.esc(sub.name)}</span>
+        <span class="config-subcat-count" title="Exerciții disponibile cu filtrul curent de raritate">${subcatExerciseCount(sub)}</span>
         <span class="config-subcat-check">${icon('check', { size: 16 })}</span>
       `;
       chip.onclick = e => { e.stopPropagation(); toggleSubcat(sub.id, cat); };
@@ -211,13 +265,14 @@
     timerChips.className = 'config-chips';
     [
       { id: 'none',    label: 'Fără' },
-      { id: 'relaxed', label: 'Relaxat (90s) · +20% XP' },
-      { id: 'strict',  label: 'Contra timp (45s) · +50% XP' }
+      { id: 'relaxed', label: 'Relaxat · +20% XP' },
+      { id: 'strict',  label: 'Contra timp · +50% XP' }
     ].forEach(t => {
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'config-chip' + (t.id === selectedTimerMode ? ' selected' : '');
       btn.textContent = t.label;
+      if (t.id !== 'none') btn.title = 'Timpul variază pe exercițiu, în funcție de raritate și capitol.';
       btn.onclick = () => {
         selectedTimerMode = t.id;
         timerChips.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
@@ -325,9 +380,16 @@
     textEl.classList.remove('config-summary-text--invalid');
     startBtn.disabled = false;
 
-    const diffLabels = { all: 'toate dificultățile', usor: 'Ușor', mediu: 'Mediu', dificil: 'Greu' };
+    const diffLabels = { all: 'toate rarităților', usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' };
     const willRun = Math.min(selectedCount, available);
-    const perExerciseMin = selectedTimerMode !== 'none' ? TIMER_SECONDS[selectedTimerMode] / 60 : 1.5;
+    let perExerciseMin = 1.5;
+    if (selectedTimerMode !== 'none') {
+      const flatPool = Object.values(pool).flat();
+      if (flatPool.length) {
+        const avgSeconds = flatPool.reduce((sum, e) => sum + computeTimerSeconds(e, selectedTimerMode), 0) / flatPool.length;
+        perExerciseMin = avgSeconds / 60;
+      }
+    }
     const minutes = Math.max(1, Math.round(willRun * perExerciseMin));
     const subCount = selectedSubcats.size;
 
@@ -409,6 +471,7 @@
     startTime        = Date.now();
     xpAtSessionStart = BM.Training.getTotalXp();
     missedSubcats    = new Set();
+    pendingSolvedIds = new Set();
 
     document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
@@ -520,7 +583,6 @@
     const headHtml = `
       <div class="ex-card__meta" style="margin-bottom:10px">
         <span class="reveal-modal__rarity-badge">${rarity}</span>
-        ${BM.diffBadge(ex.difficulty)}
         ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
         <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
         ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
@@ -756,7 +818,7 @@
   function startCardTimer(idx) {
     clearCardTimer();
     if (selectedTimerMode === 'none') return;
-    timerRemaining = TIMER_SECONDS[selectedTimerMode];
+    timerRemaining = computeTimerSeconds(cardStates[idx].ex, selectedTimerMode);
     updateTimerDisplay();
     timerInterval = setInterval(() => {
       timerRemaining--;
@@ -811,10 +873,9 @@
       if (MILESTONES.includes(currentStreak) || (currentStreak > 8 && (currentStreak - 8) % 5 === 0)) {
         celebrateMilestone(currentStreak);
       }
-      const best = BM.Storage.getBestCombo();
-      if (currentStreak > best) BM.Storage.setBestCombo(currentStreak);
-      if (currentStreak > BM.Training.getBestStreak()) BM.Training.reportBestStreak(currentStreak);
-      if (!BM.Storage.isSolved(ex.id)) BM.Storage.toggleSolved(ex.id);
+      /* Staged, not committed — see pendingSolvedIds/finishSession. Abandoning
+         mid-session must discard this, so nothing writes through here. */
+      if (!BM.Storage.isSolved(ex.id)) pendingSolvedIds.add(ex.id);
     } else {
       currentStreak = 0;
       missedSubcats.add(ex.subcategoryId);
@@ -822,8 +883,7 @@
 
     const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);
     cs.xpGain = xpGain;
-    sessionXp += xpGain;
-    BM.Training.addXp(xpGain);
+    sessionXp += xpGain; // session-local only until finishSession() commits it
     renderHud();
     animateXpGain(xpGain);
 
@@ -894,7 +954,7 @@
       <div class="bac-confirm-modal" role="dialog" aria-modal="true">
         <div class="bac-confirm-icon">${icon('triangle-alert', { size: 36, className: 'icon--warning' })}</div>
         <div class="bac-confirm-title">Renunți la sesiunea curentă?</div>
-        <p class="bac-confirm-sub">Progresul din exercițiile nerezolvate se pierde. Cele deja rezolvate rămân salvate.</p>
+        <p class="bac-confirm-sub">Vei pierde tot progresul acestei sesiuni — XP-ul câștigat, streak-ul și exercițiile rezolvate până acum nu se salvează.</p>
         <div class="bac-confirm-actions">
           <button class="btn btn--surface" id="abandon-cancel">Înapoi</button>
           <button class="btn btn--danger" id="abandon-ok">Renunță</button>
@@ -950,7 +1010,7 @@
      rewarding on top of the usual consolation XP. */
   function calcXp(difficulty, isCorrect, streakAtGrade) {
     const base = XP_BASE[difficulty] || 15;
-    if (!isCorrect) return Math.round(base * 0.2);
+    if (!isCorrect) return 0;
     const streakMultiplier = 1 + Math.min(streakAtGrade, 10) * 0.1;
     const timerMultiplier = TIMER_XP_BONUS[selectedTimerMode] || 1;
     return Math.round(base * streakMultiplier * timerMultiplier);
@@ -1006,13 +1066,20 @@
       }
     }
     if (lastContent == null) return null;
-    /* Reject content that looks like prose (proof conclusions etc.) rather than a short
-       symbolic answer — a run of 4+ letters NOT immediately preceded by "\" (so LaTeX
-       command names like \frac, \sqrt, \log don't trigger a false positive). */
-    if (/\\blacksquare|\\text\{|(?<!\\)[a-zA-ZăâîșțĂÂÎȘȚ]{4,}/.test(lastContent)) return null;
-    const normalized = normalizeAnswer(lastContent);
-    if (!normalized) return null;
-    return lastContent.trim();
+    const trimmed = lastContent.trim();
+    if (!trimmed) return null;
+    /* Only route to typed input when the boxed content is a clean numeric/
+       algebraic expression (number, fraction, radical, exponent, pi) —
+       tryEvalNumeric (below) already correctly bails on brackets, braces,
+       commas and any unhandled LaTeX command, so it doubles as the "is this
+       a short symbolic answer, not an interval/set/equation/prose" check.
+       (The previous "4+ letters not preceded by a backslash" regex broke on
+       \infty/\emptyset — regex tries every start offset, so it matched
+       "nfty"/"mptyset" mid-command — and, worse, let bracketed set answers
+       like \{-1,\;1\} straight through, which normalizeAnswer's blind brace
+       stripping then made ungradeable by any answer a student would type.) */
+    if (tryEvalNumeric(trimmed) == null) return null;
+    return trimmed;
   }
 
   function normalizeAnswer(str) {
@@ -1278,6 +1345,16 @@
     const abandonBtn = document.getElementById('abandonBtn');
     if (abandonBtn) abandonBtn.hidden = true;
 
+    /* Commit everything staged during the session — the only place any of
+       this actually gets written to storage/DB (see gradeCard/pendingSolvedIds
+       above). Must run before xpNow/getBestStreak are read below. */
+    if (sessionXp > 0) BM.Training.addXp(sessionXp);
+    pendingSolvedIds.forEach(id => { if (!BM.Storage.isSolved(id)) BM.Storage.toggleSolved(id); });
+    if (bestStreakSession > 0) {
+      if (bestStreakSession > BM.Storage.getBestCombo()) BM.Storage.setBestCombo(bestStreakSession);
+      BM.Training.reportBestStreak(bestStreakSession);
+    }
+
     const elapsed = Math.round((Date.now() - startTime) / 1000);
     const total   = sessionExercises.length;
     const solved  = cardStates.filter(cs => cs.status === 'correct').length;
@@ -1422,6 +1499,7 @@
     bestStreakSession = 0;
     sessionXp = 0;
     missedSubcats = new Set();
+    pendingSolvedIds = new Set();
 
     document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');

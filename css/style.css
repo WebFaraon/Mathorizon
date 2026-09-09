@@ -4174,18 +4174,18 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .training-page-header__stat {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
   background: var(--card);
   border: 1.5px solid var(--border);
-  border-radius: var(--radius);
-  padding: 9px 16px 9px 11px;
+  border-radius: var(--radius-lg);
+  padding: 13px 22px 13px 14px;
   box-shadow: var(--shadow-card);
   cursor: help;
 }
 .training-page-header__stat-icon {
-  width: 30px;
-  height: 30px;
-  border-radius: 9px;
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -4195,14 +4195,14 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 .training-page-header__stat--blue .training-page-header__stat-icon { color: var(--accent);      background: var(--accent-dim); }
 .training-page-header__stat--red  .training-page-header__stat-icon { color: var(--red);         background: var(--red-dim); }
 .training-page-header__stat-val {
-  font-size: 1.12rem;
+  font-size: 1.45rem;
   font-weight: 800;
   color: var(--text);
   line-height: 1.1;
-  letter-spacing: -0.3px;
+  letter-spacing: -0.4px;
 }
 .training-page-header__stat-lbl {
-  font-size: 0.64rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -4239,17 +4239,28 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   margin: 20px 0;
 }
 
-.config-section { margin-bottom: 22px; }
+/* Each config section is its own card (not a shared box with thin dividers)
+   so the config screen reads as distinct steps — count, difficulty,
+   chapters, extra settings — rather than one long undifferentiated form.
+   Uses --surface (not --card, same tone as .training-panel itself) so
+   each section reads as a layer sitting inside the panel, matching the
+   existing subcat-chip/chapter-item convention of nesting --surface inside
+   a --card parent. */
+.config-section {
+  margin-bottom: 16px;
+  background: var(--surface);
+  border: 1.5px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+}
+.config-section:last-of-type { margin-bottom: 0; }
 
 .config-label {
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.8px;
-  color: var(--text-muted);
-  margin-bottom: 9px;
-  padding-bottom: 5px;
-  border-bottom: 1px solid var(--border);
+  font-size: 0.85rem;
+  font-weight: 800;
+  letter-spacing: -0.1px;
+  color: var(--text);
+  margin-bottom: 13px;
 }
 
 .config-chips {
@@ -4276,16 +4287,19 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   border-color: var(--accent);
 }
 
-/* Difficulty chips — colored to match the difficulty badges used across chapters/exercises */
-.config-chip--usor    { color: var(--green);  border-color: var(--green-border); }
-.config-chip--mediu   { color: var(--yellow); border-color: var(--yellow-border); }
-.config-chip--dificil { color: var(--red);    border-color: var(--red-border); }
-.config-chip--usor:hover    { background: var(--green-dim); }
-.config-chip--mediu:hover   { background: var(--yellow-dim); }
-.config-chip--dificil:hover { background: var(--red-dim); }
-.config-chip--usor.selected    { background: var(--green);  border-color: var(--green);  color: #fff; }
-.config-chip--mediu.selected   { background: var(--yellow); border-color: var(--yellow); color: #fff; }
-.config-chip--dificil.selected { background: var(--red);    border-color: var(--red);    color: #fff; }
+/* Difficulty chips — same rarity palette as the Capitole/Simulări pickers (--rarity-*) */
+.config-chip--comun    { color: var(--rarity-comun-text);    border-color: var(--rarity-comun-border); }
+.config-chip--rar      { color: var(--rarity-rar-text);      border-color: var(--rarity-rar-border); }
+.config-chip--epic     { color: var(--rarity-epic-text);     border-color: var(--rarity-epic-border); }
+.config-chip--legendar { color: var(--rarity-legendar-text); border-color: var(--rarity-legendar-border); }
+.config-chip--comun:hover    { background: var(--rarity-comun-dim); }
+.config-chip--rar:hover      { background: var(--rarity-rar-dim); }
+.config-chip--epic:hover     { background: var(--rarity-epic-dim); }
+.config-chip--legendar:hover { background: var(--rarity-legendar-dim); }
+.config-chip--comun.selected    { background: var(--rarity-comun-b);    border-color: var(--rarity-comun-b);    color: #fff; }
+.config-chip--rar.selected      { background: var(--rarity-rar-b);      border-color: var(--rarity-rar-b);      color: #fff; }
+.config-chip--epic.selected     { background: var(--rarity-epic-b);     border-color: var(--rarity-epic-b);     color: #fff; }
+.config-chip--legendar.selected { background: var(--rarity-legendar-b); border-color: var(--rarity-legendar-b); color: #fff; }
 
 .config-chapter-list {
   display: flex;
@@ -4356,10 +4370,19 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   background: var(--card);
 }
 .config-chapter-chevron {
-  font-size: 0.7rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  padding: 2px;
+  margin: 0;
   color: var(--text-muted);
+  cursor: pointer;
   transition: transform 0.2s ease;
 }
+.config-chapter-chevron:hover { color: var(--text); }
 .config-chapter-item.expanded .config-chapter-chevron { transform: rotate(180deg); }
 
 .config-subcat-panel {
@@ -4436,6 +4459,20 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .config-subcat-icon { font-size: 0.85rem; flex-shrink: 0; }
 .config-subcat-name { flex: 1; font-weight: 600; }
+.config-subcat-count {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 1px 6px;
+  flex-shrink: 0;
+}
+.config-subcat-chip.selected .config-subcat-count {
+  color: var(--accent);
+  border-color: var(--accent);
+}
 .config-subcat-check {
   font-size: 0.78rem;
   color: var(--accent);
