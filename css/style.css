@@ -29,6 +29,29 @@ body {
   animation: page-fade-in 0.3s ease;
 }
 
+/* Class detail page (class.html) gets its own pale-blue backdrop with a
+   faint, fixed layer of math symbols instead of the site-wide cream grid —
+   the Mesaje panel doesn't fill the page width, and the plain background
+   around it read as an empty gap. `background-attachment: fixed` keeps
+   both layers pinned to the viewport rather than scrolling with the page.
+   Scoped via :has(#classRoot) so no other page is affected. */
+body:has(#classRoot) {
+  background-color: #E8F1FB;
+  background-image:
+    linear-gradient(rgba(58,107,173,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(58,107,173,0.08) 1px, transparent 1px),
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzNBNkJBRCcgZmlsbC1vcGFjaXR5PScwLjEwJyBmb250LWZhbWlseT0nR2VvcmdpYSwgIlRpbWVzIE5ldyBSb21hbiIsIHNlcmlmJz4KICAgIDx0ZXh0IHg9JzE4JyAgeT0nNDAnICBmb250LXNpemU9JzM0JyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTYwOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE1MCcgeT0nMzAnICBmb250LXNpemU9JzMwJz4mIzg3MjE7PC90ZXh0PgogICAgPHRleHQgeD0nMjA1JyB5PSc5NScgIGZvbnQtc2l6ZT0nMjYnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoLTEyIDIwNSA5NSknPiYjODczMDs8L3RleHQ+CiAgICA8dGV4dCB4PSczMCcgIHk9JzEyMCcgZm9udC1zaXplPScyNCcgZm9udC1zdHlsZT0naXRhbGljJz54JiMxNzg7PC90ZXh0PgogICAgPHRleHQgeD0nMTE1JyB5PScxNDAnIGZvbnQtc2l6ZT0nMzInPiYjODczNDs8L3RleHQ+CiAgICA8dGV4dCB4PScxMCcgIHk9JzIwMCcgZm9udC1zaXplPScyNic+JiMyNDc7PC90ZXh0PgogICAgPHRleHQgeD0nMTg1JyB5PScxOTAnIGZvbnQtc2l6ZT0nMjgnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoOCAxODUgMTkwKSc+JiM4NzQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9Jzk1JyAgeT0nMjMwJyBmb250LXNpemU9JzIyJyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTUyOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIxNScgeT0nMjQ1JyBmb250LXNpemU9JzI0Jz4lPC90ZXh0PgogIDwvZz4KPC9zdmc+");
+  background-size: 28px 28px, 28px 28px, 260px 260px;
+  background-attachment: fixed, fixed, fixed;
+}
+html[data-theme="dark"] body:has(#classRoot) {
+  background-color: var(--bg);
+  background-image:
+    linear-gradient(rgba(74,158,255,0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(74,158,255,0.08) 1px, transparent 1px),
+    url("data:image/svg+xml;base64,PHN2ZyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnIHdpZHRoPScyNjAnIGhlaWdodD0nMjYwJyB2aWV3Qm94PScwIDAgMjYwIDI2MCc+CiAgPGcgZmlsbD0nIzdGQjJFOCcgZmlsbC1vcGFjaXR5PScwLjA5JyBmb250LWZhbWlseT0nR2VvcmdpYSwgIlRpbWVzIE5ldyBSb21hbiIsIHNlcmlmJz4KICAgIDx0ZXh0IHg9JzE4JyAgeT0nNDAnICBmb250LXNpemU9JzM0JyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTYwOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzE1MCcgeT0nMzAnICBmb250LXNpemU9JzMwJz4mIzg3MjE7PC90ZXh0PgogICAgPHRleHQgeD0nMjA1JyB5PSc5NScgIGZvbnQtc2l6ZT0nMjYnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoLTEyIDIwNSA5NSknPiYjODczMDs8L3RleHQ+CiAgICA8dGV4dCB4PSczMCcgIHk9JzEyMCcgZm9udC1zaXplPScyNCcgZm9udC1zdHlsZT0naXRhbGljJz54JiMxNzg7PC90ZXh0PgogICAgPHRleHQgeD0nMTE1JyB5PScxNDAnIGZvbnQtc2l6ZT0nMzInPiYjODczNDs8L3RleHQ+CiAgICA8dGV4dCB4PScxMCcgIHk9JzIwMCcgZm9udC1zaXplPScyNic+JiMyNDc7PC90ZXh0PgogICAgPHRleHQgeD0nMTg1JyB5PScxOTAnIGZvbnQtc2l6ZT0nMjgnIGZvbnQtc3R5bGU9J2l0YWxpYycgdHJhbnNmb3JtPSdyb3RhdGUoOCAxODUgMTkwKSc+JiM4NzQ3OzwvdGV4dD4KICAgIDx0ZXh0IHg9Jzk1JyAgeT0nMjMwJyBmb250LXNpemU9JzIyJyBmb250LXN0eWxlPSdpdGFsaWMnPiYjOTUyOzwvdGV4dD4KICAgIDx0ZXh0IHg9JzIxNScgeT0nMjQ1JyBmb250LXNpemU9JzI0Jz4lPC90ZXh0PgogIDwvZz4KPC9zdmc+");
+}
+
 /* Page-to-page navigation transition (see js/page-transition.js) */
 @keyframes page-fade-in {
   from { opacity: 0; transform: translateY(8px); }

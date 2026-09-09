@@ -104,6 +104,38 @@
     }
   }
 
+  async function isSubscribed() {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+    try {
+      const reg = await navigator.serviceWorker.getRegistration();
+      if (!reg) return false;
+      const sub = await reg.pushManager.getSubscription();
+      return !!sub;
+    } catch (e) {
+      return false;
+    }
+  }
+
+  async function unsubscribe(classId) {
+    if (!('serviceWorker' in navigator) || !('PushManager' in window)) return false;
+    if (!BMAuth.user) return false;
+    try {
+      const reg = await _getReg();
+      const sub = await reg.pushManager.getSubscription();
+      if (sub) {
+        await BMAuth.supabase
+          .from('push_subscriptions')
+          .delete().eq('user_id', BMAuth.user.id).eq('class_id', classId).eq('endpoint', sub.endpoint);
+        await sub.unsubscribe();
+      }
+      return true;
+    } catch (e) {
+      console.warn('[Push] unsubscribe error:', e);
+      return false;
+    }
+  }
+
   /* Called from sidebar button */
   async function resubscribe(classId) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
@@ -138,5 +170,5 @@
     }
   }
 
-  window.BMPush = { init, resubscribe, sendClassPush };
+  window.BMPush = { init, resubscribe, unsubscribe, isSubscribed, sendClassPush };
 })();

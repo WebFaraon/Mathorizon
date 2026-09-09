@@ -1144,10 +1144,19 @@
   // 'flux-typing' broadcast, never persisted.
   const _fluxTypingUsers = new Map();
   let _fluxTypingSentAt = 0;
+  // Every loadFluxTab() rebuilds #fluxList from scratch, which would reset
+  // scroll to the top by default — capture where the reader was before the
+  // rebuild so _renderFluxPanel can put them back, instead of always
+  // jumping to the newest message on every tab switch / visibility change.
+  let _fluxHasLoadedOnce   = false;
+  let _fluxPendingScrollTop = null;
 
   async function loadFluxTab() {
     const container = document.getElementById('fluxFeed');
     if (!container) return;
+
+    const prevList = document.getElementById('fluxList');
+    _fluxPendingScrollTop = prevList ? prevList.scrollTop : null;
 
     const isTeacher = BMAuth.role === 'profesor';
     let posts = [];
@@ -1223,7 +1232,17 @@
     document.getElementById('fluxList')?.addEventListener('scroll', _fluxOnListScroll);
     document.querySelectorAll('#fluxList .msg-bubble').forEach(_wireFluxMessageEl);
     _wireFluxComposer();
-    _fluxScrollToBottom(false);
+
+    if (!_fluxHasLoadedOnce) {
+      _fluxHasLoadedOnce = true;
+      _fluxScrollToBottom(false);
+    } else {
+      const list = document.getElementById('fluxList');
+      if (list) {
+        list.scrollTop = _fluxPendingScrollTop ?? list.scrollHeight;
+        if (_fluxIsNearBottom(list)) document.getElementById('fluxJumpBtn')?.setAttribute('hidden', '');
+      }
+    }
   }
 
   function _fluxEmptyHTML() {
@@ -1264,7 +1283,7 @@
   function _fluxMessageHTML(post, grouped) {
     const isTeacherAuthor = post.author_id === classData.teacher_id;
     const mine       = BMAuth.user && post.author_id === BMAuth.user.id;
-    const canDelete  = mine || BMAuth.role === 'profesor';
+    const canDelete  = mine;
 
     const date    = new Date(post.created_at);
     const timeStr = date.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
@@ -1993,9 +2012,11 @@
     };
   }
 
-  window.cdOpenNotifInfo = function (classId) {
+  window.cdOpenNotifInfo = async function (classId) {
     document.getElementById('notifInfoModal')?.remove();
-    const blocked = ('Notification' in window) && Notification.permission === 'denied';
+    const blocked    = ('Notification' in window) && Notification.permission === 'denied';
+    const subscribed = !!(await window.BMPush?.isSubscribed());
+
     const modal = document.createElement('div');
     modal.id = 'notifInfoModal';
     modal.className = 'classes-modal';
@@ -2007,19 +2028,23 @@
           <button class="icon-btn" id="notifInfoCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
-          <p class="notif-info__p">Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:</p>
+          <p class="notif-info__p">${subscribed
+            ? 'Ai notificările activate pentru această clasă. Primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:'
+            : 'Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:'}</p>
           <ul class="notif-info__list">
             <li>${icon('message-circle', { size: 16 })} cineva din clasă trimite un mesaj nou</li>
             <li>${icon('file-text', { size: 16 })} profesorul adaugă o temă nouă</li>
             <li>${icon('target', { size: 16 })} programează sau pornește o simulare</li>
           </ul>
-          <p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>
+          ${subscribed
+            ? `<p class="notif-info__p">Apasă butonul de mai jos dacă vrei să oprești notificările pe acest dispozitiv.</p>`
+            : `<p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>`}
           ${blocked ? `
           <p class="notif-info__p notif-info__p--warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
         </div>
         <div class="classes-modal__foot">
           <button class="btn btn--surface" id="notifInfoCancelBtn">Închide</button>
-          <button class="btn btn--primary" id="notifInfoConfirmBtn">Activează notificările</button>
+          <button class="btn ${subscribed ? 'btn--danger' : 'btn--primary'}" id="notifInfoConfirmBtn">${subscribed ? 'Dezactivează notificările' : 'Activează notificările'}</button>
         </div>
       </div>`;
     document.body.appendChild(modal);
@@ -2027,7 +2052,16 @@
     modal.querySelector('.classes-modal__backdrop').onclick = close;
     modal.querySelector('#notifInfoCloseBtn').onclick = close;
     modal.querySelector('#notifInfoCancelBtn').onclick = close;
-    modal.querySelector('#notifInfoConfirmBtn').onclick = () => { close(); window.BMPush?.resubscribe(classId); };
+    modal.querySelector('#notifInfoConfirmBtn').onclick = () => {
+      close();
+      if (subscribed) {
+        window.BMPush?.unsubscribe(classId).then(ok => {
+          BM.toast(ok ? 'Notificările au fost dezactivate.' : 'Eroare la dezactivare.', ok ? 'info' : 'error');
+        });
+      } else {
+        window.BMPush?.resubscribe(classId);
+      }
+    };
   };
 
   function renderTemeSidebar(assignments) {
