@@ -77,8 +77,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{25^{1{,}5} - 61}$$',
     solution: '**Pasul 1.** Calculăm $25^{1{,}5}$:\n$$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Scădem și extragem radicalul:\n$$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$\n\n$$\\boxed{4}$$',
     barem: [
-      { descriere: 'Calculăm $25^{1{,}5}$: $$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$', puncte_maxime: 3 },
-      { descriere: 'Scădem și extragem radicalul: $$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$ $$\\boxed{4}$$', puncte_maxime: 2 }
+      { descriere: "Obținerea $$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3} = \\boxed{4}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -90,9 +90,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_3 75 + 2\\log_{\\frac{1}{3}} 5$$',
     solution: '**Pasul 1.** Transformarea celui de-al doilea termen folosind proprietatea de schimbare a bazei:\n$$\\log_{\\frac{1}{3}} 5 = \\log_{3^{-1}} 5 = -\\log_3 5$$\n\n**Pasul 2.** Substituirea în expresie și aplicarea proprietății logaritmului puterii:\n$$\\log_3 75 + 2(-\\log_3 5) = \\log_3 75 - 2\\log_3 5 = \\log_3 75 - \\log_3 5^2 = \\log_3 75 - \\log_3 25$$\n\n**Pasul 3.** Aplicarea proprietății logaritmului câtului și calcularea valorii finale:\n$$\\log_3 \\frac{75}{25} = \\log_3 3 = 1$$\n$$\\boxed{1}$$',
     barem: [
-      { descriere: 'Transformarea celui de-al doilea termen folosind proprietatea de schimbare a bazei: $$\\log_{\\frac{1}{3}} 5 = \\log_{3^{-1}} 5 = -\\log_3 5$$', puncte_maxime: 2 },
-      { descriere: 'Substituirea în expresie și aplicarea proprietății logaritmului puterii: $$\\log_3 75 + 2(-\\log_3 5) = \\log_3 75 - 2\\log_3 5 = \\log_3 75 - \\log_3 5^2 = \\log_3 75 - \\log_3 25$$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea proprietății logaritmului câtului și calcularea valorii finale: $$\\log_3 \\frac{75}{25} = \\log_3 3 = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății de schimbare a bazei logaritmului: $$\\log_{\\frac{1}{3}} 5 = -\\log_3 5$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății logaritmului puterii și scrierea expresiei sub formă de diferență: $$\\log_3 75 - \\log_3 25$$", puncte_maxime: 1 },
+      { descriere: "Aplicarea proprietății logaritmului câtului și determinarea valorii finale a expresiei: $$\\log_3 \\frac{75}{25} = \\log_3 3 = \\boxed{1}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -104,9 +104,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{16}\\!\\left(64^2\\right) \\cdot \\left(\\frac{3}{2}\\right)^{-1}$$',
     solution: '**Pasul 1.** Reducem totul la puteri ale lui 2:\n$$\\log_{2^4}\\!\\left(2^{12}\\right) = \\frac{12}{4} = 3$$\n\n**Pasul 2.** Puterea negativă:\n$$\\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3}$$\n\n**Pasul 3.** Produsul:\n$$3 \\cdot \\frac{2}{3} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Reducem totul la puteri ale lui 2: $$\\log_{2^4}\\!\\left(2^{12}\\right) = \\frac{12}{4} = 3$$', puncte_maxime: 2 },
-      { descriere: 'Puterea negativă: $$\\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Produsul: $$3 \\cdot \\frac{2}{3} = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Obținerea valorii logaritmului: $$\\log_{16}\\left(64^2\\right) = \\log_{2^4}\\left(2^{12}\\right) = 3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii cu exponent negativ: $$\\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$3 \\cdot \\frac{2}{3} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -118,9 +118,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$2^{\\log_{0{,}5} 2} + 5\\sqrt[3]{0{,}008}$$',
     solution: '**Pasul 1.** Calculăm exponentul — $0{,}5 = 2^{-1}$:\n$$\\log_{2^{-1}} 2 = \\frac{1}{-1} = -1 \\Rightarrow 2^{-1} = \\frac{1}{2}$$\n\n**Pasul 2.** Radicalul:\n$$0{,}008 = \\frac{8}{1000} = \\frac{1}{125} = \\frac{1}{5^3} \\Rightarrow \\sqrt[3]{0{,}008} = \\frac{1}{5}$$\n\n**Pasul 3.** Suma:\n$$\\frac{1}{2} + 5 \\cdot \\frac{1}{5} = \\frac{1}{2} + 1 = \\boxed{\\frac{3}{2}}$$',
     barem: [
-      { descriere: 'Calculăm exponentul — $0{,}5 = 2^{-1}$: $$\\log_{2^{-1}} 2 = \\frac{1}{-1} = -1 \\Rightarrow 2^{-1} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Radicalul: $$0{,}008 = \\frac{8}{1000} = \\frac{1}{125} = \\frac{1}{5^3} \\Rightarrow \\sqrt[3]{0{,}008} = \\frac{1}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Suma: $$\\frac{1}{2} + 5 \\cdot \\frac{1}{5} = \\frac{1}{2} + 1 = \\boxed{\\frac{3}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea exponentului și a valorii primului termen: $$\\log_{0{,}5} 2 = -1 \\Rightarrow 2^{-1} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea radicalului: $$\\sqrt[3]{0{,}008} = \\frac{1}{5}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\frac{1}{2} + 5 \\cdot \\frac{1}{5} = \\boxed{\\frac{3}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -132,10 +132,10 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$64^{\\frac{1}{3}} + \\left(\\frac{1}{\\lg 100}\\right)^{-2}$$',
     solution: '**Pasul 1.** Puterea rațională:\n$$64^{\\frac{1}{3}} = \\left(4^3\\right)^{\\frac{1}{3}} = 4$$\n\n**Pasul 2.** Logaritmul zecimal:\n$$\\lg 100 = \\log_{10} 10^2 = 2 \\Rightarrow \\frac{1}{\\lg 100} = \\frac{1}{2}$$\n\n**Pasul 3.** Puterea negativă:\n$$\\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$\n\n**Pasul 4.** Suma:\n$$4 + 4 = \\boxed{8}$$',
     barem: [
-      { descriere: 'Puterea rațională: $$64^{\\frac{1}{3}} = \\left(4^3\\right)^{\\frac{1}{3}} = 4$$', puncte_maxime: 1 },
-      { descriere: 'Logaritmul zecimal: $$\\lg 100 = \\log_{10} 10^2 = 2 \\Rightarrow \\frac{1}{\\lg 100} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Puterea negativă: $$\\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Suma: $$4 + 4 = \\boxed{8}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii puterii cu exponent fracționar: $$64^{\\frac{1}{3}} = \\left(4^3\\right)^{\\frac{1}{3}} = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii logaritmului zecimal: $$\\lg 100 = 2$$ și obținerea fracției $$\\frac{1}{\\lg 100} = \\frac{1}{2}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea puterii cu exponent negativ: $$\\left(\\frac{1}{2}\\right)^{-2} = 4$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$4 + 4 = \\boxed{8}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -148,9 +148,9 @@ BM.EXERCISES = [
     statement: 'Arătați că numărul\n$$a = \\sqrt[3]{81^{\\frac{3}{4}} + 4^{\\log_2 \\sqrt{37}}}$$\neste un pătrat perfect.',
     solution: '**Pasul 1.** Calculăm $81^{\\frac{3}{4}}$:\n$$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$\n\n**Pasul 2.** Calculăm $4^{\\log_2 \\sqrt{37}}$:\n$$4^{\\log_2 \\sqrt{37}} = (2^2)^{\\log_2 37^{1/2}} = 2^{\\log_2 37} = 37$$\n\n**Pasul 3.** Suma sub radical:\n$$\\sqrt[3]{27 + 37} = \\sqrt[3]{64} = \\sqrt[3]{4^3} = 4 = 2^2$$\n\nDeoarece $a = 2^2$, numărul $a$ este pătrat perfect. $\\blacksquare$',
     barem: [
-      { descriere: 'Calculăm $81^{\\frac{3}{4}}$: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Calculăm $4^{\\log_2 \\sqrt{37}}$: $$4^{\\log_2 \\sqrt{37}} = (2^2)^{\\log_2 37^{1/2}} = 2^{\\log_2 37} = 37$$', puncte_maxime: 2 },
-      { descriere: 'Suma sub radical: $$\\sqrt[3]{27 + 37} = \\sqrt[3]{64} = \\sqrt[3]{4^3} = 4 = 2^2$$ Deoarece $a = 2^2$, numărul $a$ este pătrat perfect. $\\blacksquare$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii puterii cu exponent fracționar: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 27$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii puterii cu logaritm la exponent: $$4^{\\log_2 \\sqrt{37}} = (2^2)^{\\log_2 37^{1/2}} = 37$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii numărului $a$ și argumentarea că acesta este pătrat perfect: $$a = \\sqrt[3]{27 + 37} = \\sqrt[3]{64} = 4 = \\boxed{2^2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -162,8 +162,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}25} 16 + 2$$',
     solution: '**Pasul 1.** Transformarea bazei și argumentului logaritmului în puteri ale lui 2 și calcularea valorii logaritmului:\n$$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = \\frac{4}{-2} = -2$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$-2 + 2 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Transformarea bazei și argumentului logaritmului în puteri ale lui 2 și calcularea valorii logaritmului: $$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = \\frac{4}{-2} = -2$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$-2 + 2 = \\boxed{0}$$', puncte_maxime: 2 }
+      { descriere: "Transformarea bazei și argumentului logaritmului în puteri ale lui 2 și calcularea valorii logaritmului: $$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = -2$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$-2 + 2 = \\boxed{0}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -175,8 +175,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$-125^{-\\frac{1}{3}} - \\frac{9}{5}$$',
     solution: '**Pasul 1.** $125^{-\\frac{1}{3}} = \\frac{1}{5}$\n\n**Pasul 2.** Calcularea valorii expresiei: $-\\frac{1}{5} - \\frac{9}{5} = -\\frac{10}{5} = \\boxed{-2}$',
     barem: [
-      { descriere: '$$125^{-\\frac{1}{3}} = \\frac{1}{5}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei, egală cu $\\boxed{-2}$.', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii puterii: $$125^{-\\frac{1}{3}} = \\frac{1}{5}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$-\\frac{1}{5} - \\frac{9}{5} = \\boxed{-2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -188,11 +188,11 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\frac{27^{-\\frac{2}{3}} \\cdot \\sqrt{9^3}}{\\sqrt[4]{81^{-1}}}$$',
     solution: '**Pasul 1.** Calcularea valorii primului factor din numărător:\n$$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea factor din numărător:\n$$\\sqrt{9^3} = (3^2)^{\\frac{3}{2}} = 3^3 = 27$$\n\n**Pasul 3.** Calcularea valorii numărătorului:\n$$\\frac{1}{9} \\cdot 27 = 3$$\n\n**Pasul 4.** Calcularea valorii numitorului:\n$$\\sqrt[4]{81^{-1}} = (3^4)^{-\\frac{1}{4}} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 5.** Determinarea valorii finale a expresiei:\n$$\\frac{3}{\\frac{1}{3}} = 3 \\cdot 3 = \\boxed{9}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului factor din numărător: $$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea factor din numărător: $$\\sqrt{9^3} = (3^2)^{\\frac{3}{2}} = 3^3 = 27$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii numărătorului: $$\\frac{1}{9} \\cdot 27 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii numitorului: $$\\sqrt[4]{81^{-1}} = (3^4)^{-\\frac{1}{4}} = 3^{-1} = \\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{3}{\\frac{1}{3}} = 3 \\cdot 3 = \\boxed{9}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului factor din numărător: $$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea factor din numărător: $$\\sqrt{9^3} = (3^2)^{\\frac{3}{2}} = 3^3 = 27$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii numărătorului: $$\\frac{1}{9} \\cdot 27 = 3$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii numitorului: $$\\sqrt[4]{81^{-1}} = (3^4)^{-\\frac{1}{4}} = 3^{-1} = \\frac{1}{3}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{3}{\\frac{1}{3}} = 3 \\cdot 3 = \\boxed{9}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -204,8 +204,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$2^{3 - \\log_2 3} - \\frac{2}{3}$$',
     solution: '**Pasul 1.** Simplificarea primului termen al expresiei:\n$$2^{3 - \\log_2 3} = \\frac{2^3}{2^{\\log_2 3}} = \\frac{8}{3}$$\n\n**Pasul 2.** Calcularea valorii expresiei:\n$$\\frac{8}{3} - \\frac{2}{3} = \\frac{6}{3} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Simplificarea primului termen al expresiei: $$2^{3 - \\log_2 3} = \\frac{2^3}{2^{\\log_2 3}} = \\frac{8}{3}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$\\frac{8}{3} - \\frac{2}{3} = \\frac{6}{3} = \\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$2^{3 - \\log_2 3} = \\frac{2^3}{2^{\\log_2 3}} = \\frac{8}{3}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$\\frac{8}{3} - \\frac{2}{3} = \\frac{6}{3} = \\boxed{2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -217,8 +217,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{9}}\\!\\left(\\log_3 \\sqrt{729}\\right)$$',
     solution: '**Pasul 1.** Calcularea valorii expresiei de sub logaritmul exterior:$$\\log_3 \\sqrt{729} = \\log_3 (3^6)^{1/2} = \\log_3 3^3 = 3$$\n\n**Pasul 2.** Calcularea valorii logaritmului exterior:$$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = -\\frac{1}{2}$$\n\n$$\\boxed{-\\frac{1}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii expresiei de sub logaritmul exterior: $$\\log_3 \\sqrt{729} = \\log_3 (3^6)^{1/2} = \\log_3 3^3 = 3$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii logaritmului exterior: $$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = \\boxed{-\\frac{1}{2}}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii expresiei de sub logaritmul exterior: $$\\log_3 \\sqrt{729} = \\log_3 (3^6)^{1/2} = \\log_3 3^3 = 3$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii logaritmului exterior și obținerea rezultatului final: $$\\log_{\\frac{1}{9}} 3 = \\log_{3^{-2}} 3 = \\boxed{-\\frac{1}{2}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -230,9 +230,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{2}}\\!\\left(\\sqrt{2 \\cdot \\sqrt[5]{2}}\\right) \\cdot 5$$',
     solution: '**Pasul 1.** Calcularea argumentului logaritmului: $$\\sqrt{2 \\cdot 2^{1/5}} = \\sqrt{2^{\\frac{6}{5}}} = 2^{\\frac{3}{5}}$$ \n\n**Pasul 2.** Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}}\\!\\left(2^{3/5}\\right) = \\log_{2^{-1}}\\!\\left(2^{3/5}\\right) = \\frac{3/5}{-1} = -\\frac{3}{5}$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-\\frac{3}{5} \\cdot 5 = -3$$ $$\\boxed{-3}$$',
     barem: [
-      { descriere: 'Calcularea argumentului logaritmului: $$\\sqrt{2 \\cdot 2^{1/5}} = \\sqrt{2^{\\frac{6}{5}}} = 2^{\\frac{3}{5}}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}}\\!\\left(2^{3/5}\\right) = \\log_{2^{-1}}\\!\\left(2^{3/5}\\right) = \\frac{3/5}{-1} = -\\frac{3}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{3}{5} \\cdot 5 = \\boxed{-3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea argumentului logaritmului: $$\\sqrt{2 \\cdot \\sqrt[5]{2}} = 2^{\\frac{3}{5}}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}}\\!\\left(2^{3/5}\\right) = -\\frac{3}{5}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$-\\frac{3}{5} \\cdot 5 = \\boxed{-3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -244,9 +244,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\sqrt[4]{4}} 32 - \\left(\\frac{2}{15}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{\\sqrt[4]{4}} 32 = \\log_{2^{1/2}} 2^5 = \\frac{5}{1/2} = 10$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{2}{15}\\right)^{-1} = \\frac{15}{2}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$10 - \\frac{15}{2} = \\frac{20 - 15}{2} = \\boxed{\\frac{5}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{\\sqrt[4]{4}} 32 = \\log_{2^{1/2}} 2^5 = \\frac{5}{1/2} = 10$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{2}{15}\\right)^{-1} = \\frac{15}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$10 - \\frac{15}{2} = \\frac{20 - 15}{2} = \\boxed{\\frac{5}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{\\sqrt[4]{4}} 32 = \\log_{2^{1/2}} 2^5 = \\frac{5}{1/2} = 10$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{2}{15}\\right)^{-1} = \\frac{15}{2}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$10 - \\frac{15}{2} = \\frac{20 - 15}{2} = \\boxed{\\frac{5}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -258,10 +258,10 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei\n$$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9}$$\neste un pătrat perfect.',
     solution: '**Pasul 1.** Transformarea expresiei: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{-\\left(-2-\\log_2 9\\right)} = 2^{2+\\log_2 9}$$\n\n**Pasul 2.** Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$\n\n**Pasul 3.** Calcularea valorii expresiei: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$\n\n**Pasul 4.** Verificarea dacă valoarea este un pătrat perfect: $$36 = 6^2$$\n$$\\boxed{\\text{Valoarea expresiei este un pătrat perfect}}$$',
     barem: [
-      { descriere: 'Transformarea expresiei: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{2+\\log_2 9}$$', puncte_maxime: 2 },
-      { descriere: 'Descompunerea puterii: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii expresiei: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$', puncte_maxime: 1 },
-      { descriere: 'Verificarea că $36 = 6^2$ și concluzia că valoarea este un pătrat perfect: $$\\boxed{\\text{Valoarea expresiei este un pătrat perfect}}$$', puncte_maxime: 1 }
+      { descriere: "Aducerea puterii la baza 2: $$\\left(\\frac{1}{2}\\right)^{-2-\\log_2 9} = 2^{2+\\log_2 9}$$", puncte_maxime: 1 },
+      { descriere: "Descompunerea puterii într-un produs: $$2^{2+\\log_2 9} = 2^2 \\cdot 2^{\\log_2 9}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii expresiei utilizând identitatea logaritmică fundamentală: $$2^2 \\cdot 2^{\\log_2 9} = 4 \\cdot 9 = 36$$", puncte_maxime: 2 },
+      { descriere: "Arătarea faptului că valoarea obținută este un pătrat perfect: $$\\boxed{36 = 6^2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -273,9 +273,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$(0{,}0016)^{\\frac{1}{4}} + \\left(1\\dfrac{1}{4}\\right)^{-1}$$',
     solution: '**Pasul 1.** Transformarea primului termen: $$(0{,}0016)^{\\frac{1}{4}} = \\left(\\frac{16}{10000}\\right)^{\\frac{1}{4}} = \\left(\\left(\\frac{2}{10}\\right)^4\\right)^{\\frac{1}{4}} = \\frac{2}{10} = \\frac{1}{5}$$**Pasul 2.** Transformarea celui de-al doilea termen: $$\\left(1\\dfrac{1}{4}\\right)^{-1} = \\left(\\frac{5}{4}\\right)^{-1} = \\frac{4}{5}$$**Pasul 3.** Determinarea valorii expresiei: $$\\frac{1}{5} + \\frac{4}{5} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $$(0{,}0016)^{\\frac{1}{4}} = \\left(\\frac{16}{10000}\\right)^{\\frac{1}{4}} = \\left(\\left(\\frac{2}{10}\\right)^4\\right)^{\\frac{1}{4}} = \\frac{2}{10} = \\frac{1}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Transformarea celui de-al doilea termen: $$\\left(1\\dfrac{1}{4}\\right)^{-1} = \\left(\\frac{5}{4}\\right)^{-1} = \\frac{4}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\frac{1}{5} + \\frac{4}{5} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Transformarea primului termen: $$(0{,}0016)^{\\frac{1}{4}} = \\left(\\frac{16}{10000}\\right)^{\\frac{1}{4}} = \\left(\\left(\\frac{2}{10}\\right)^4\\right)^{\\frac{1}{4}} = \\frac{1}{5}$$", puncte_maxime: 2 },
+      { descriere: "Transformarea celui de-al doilea termen: $$\\left(1\\dfrac{1}{4}\\right)^{-1} = \\left(\\frac{5}{4}\\right)^{-1} = \\frac{4}{5}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\frac{1}{5} + \\frac{4}{5} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -288,8 +288,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$-\\frac{11}{4} + \\left(\\frac{81}{256}\\right)^{0{,}25}$$',
     solution: '**Pasul 1.** Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\\right)^{0{,}25} = \\left(\\frac{81}{256}\\right)^{1/4} = \\left(\\frac{3^4}{4^4}\\right)^{1/4} = \\frac{3}{4}$$ \n\n**Pasul 2.** Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = -\\frac{8}{4} = \\boxed{-2}$$',
     barem: [
-      { descriere: 'Transformarea exponentului zecimal în fracție și calcularea puterii: $$\\left(\\frac{81}{256}\\right)^{0{,}25} = \\left(\\frac{81}{256}\\right)^{1/4} = \\left(\\frac{3^4}{4^4}\\right)^{1/4} = \\frac{3}{4}$$', puncte_maxime: 3 },
-      { descriere: 'Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = -\\frac{8}{4} = \\boxed{-2}$$', puncte_maxime: 2 }
+      { descriere: "Scrierea exponentului zecimal sub formă de fracție ordinară $$0{,}25 = \\frac{1}{4}$$ și a bazei ca putere $$\\frac{81}{256} = \\left(\\frac{3}{4}\\right)^4$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților puterilor și calcularea valorii puterii: $$\\left(\\frac{81}{256}\\right)^{0{,}25} = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea adunării și determinarea valorii finale a expresiei: $$-\\frac{11}{4} + \\frac{3}{4} = \\boxed{-2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -301,11 +302,11 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_2\\!\\left(\\log_3 81\\right) + \\sqrt{\\log_5 625}$$',
     solution: '**Pasul 1.** Calcularea valorii logaritmului interior: $$\\log_3 81 = \\log_3 3^4 = 4$$\n\n**Pasul 2.** Calcularea valorii primului termen al sumei: $$\\log_2 4 = \\log_2 2^2 = 2$$\n\n**Pasul 3.** Calcularea valorii logaritmului de sub radical: $$\\log_5 625 = \\log_5 5^4 = 4$$\n\n**Pasul 4.** Calcularea valorii celui de-al doilea termen al sumei: $$\\sqrt{4} = 2$$\n\n**Pasul 5.** Determinarea valorii finale a expresiei: $$2 + 2 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea valorii logaritmului interior: $$\\log_3 81 = \\log_3 3^4 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii primului termen al sumei: $$\\log_2 4 = \\log_2 2^2 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii logaritmului de sub radical: $$\\log_5 625 = \\log_5 5^4 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen al sumei: $$\\sqrt{4} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$2 + 2 = \\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii logaritmului interior: $$\\log_3 81 = 4$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii primului termen al sumei: $$\\log_2 4 = 2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii logaritmului de sub radical: $$\\log_5 625 = 4$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al sumei: $$\\sqrt{4} = 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$2 + 2 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -317,9 +318,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-0{,}125} + 16^{-0{,}25}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\sqrt[3]{-0{,}125} = \\sqrt[3]{-\\frac{1}{8}} = -\\frac{1}{2}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$16^{-0{,}25} = 16^{-\\frac{1}{4}} = (2^4)^{-\\frac{1}{4}} = 2^{-1} = \\frac{1}{2}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$-\\frac{1}{2} + \\frac{1}{2} = 0$$\n$$\\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\sqrt[3]{-0{,}125} = \\sqrt[3]{-\\frac{1}{8}} = -\\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$16^{-0{,}25} = 16^{-\\frac{1}{4}} = (2^4)^{-\\frac{1}{4}} = 2^{-1} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\sqrt[3]{-0{,}125} = -\\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$16^{-0{,}25} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -331,9 +332,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\lg 400 - 2\\lg 2$$',
     solution: '**Pasul 1.** Aplicarea proprietății logaritmului: $$2\\lg 2 = \\lg 2^2 = \\lg 4$$\n\n**Pasul 2.** Aplicarea proprietății logaritmului pentru diferență: $$\\lg 400 - \\lg 4 = \\lg\\frac{400}{4} = \\lg 100$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$\\lg 100 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății logaritmului: $2\\lg 2 = \\lg 4$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea proprietății logaritmului pentru diferență: $\\lg 400 - \\lg 4 = \\lg 100$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății logaritmului: $$2\\lg 2 = \\lg 2^2 = \\lg 4$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății logaritmului pentru diferență: $$\\lg 400 - \\lg 4 = \\lg\\frac{400}{4} = \\lg 100$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\lg 100 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -345,9 +346,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-4\\dfrac{17}{27}} + 36^{-0{,}5}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$-4\\frac{17}{27} = -\\frac{125}{27} = -\\frac{5^3}{3^3} \\Rightarrow \\sqrt[3]{-4\\frac{17}{27}} = -\\frac{5}{3}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$36^{-0{,}5} = \\frac{1}{\\sqrt{36}} = \\frac{1}{6}$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = -\\frac{10}{6} + \\frac{1}{6} = -\\frac{9}{6} = \\boxed{-\\frac{3}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$-4\\frac{17}{27} = -\\frac{125}{27} = -\\frac{5^3}{3^3} \\Rightarrow \\sqrt[3]{-4\\frac{17}{27}} = -\\frac{5}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$36^{-0{,}5} = \\frac{1}{\\sqrt{36}} = \\frac{1}{6}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = -\\frac{10}{6} + \\frac{1}{6} = -\\frac{9}{6} = \\boxed{-\\frac{3}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\sqrt[3]{-4\\frac{17}{27}} = -\\frac{5}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$36^{-0{,}5} = \\frac{1}{6}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = \\boxed{-\\frac{3}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -359,8 +360,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) + \\log_3\\frac{1}{2}$$',
     solution: '**Pasul 1.** Aplicăm proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ pentru primii doi termeni și formula $(a-b)(a+b) = a^2-b^2$: $$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) = \\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$\n\n**Pasul 2.** Continuăm calculul folosind aceeași proprietate a logaritmilor și simplificăm pentru a determina valoarea finală a expresiei: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = 2$$\n$$\\boxed{2}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și a formulei $(a-b)(a+b) = a^2-b^2$ pentru a obține: $$\\log_3\\!\\left[(5+\\sqrt{7})(5-\\sqrt{7})\\right] = \\log_3(25-7) = \\log_3 18$$', puncte_maxime: 3 },
-      { descriere: 'Continuarea calculului folosind proprietatea logaritmilor $\\log_a x + \\log_a y = \\log_a (xy)$ și determinarea valorii finale a expresiei, egală cu $2$: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3\\left(18 \\cdot \\frac{1}{2}\\right) = \\log_3 9 = \\log_3 3^2 = \\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății logaritmului sumei și a formulei diferenței de pătrate pentru primii doi termeni: $$\\log_3\\!\\left(5+\\sqrt{7}\\right) + \\log_3\\!\\left(5-\\sqrt{7}\\right) = \\log_3(25-7) = \\log_3 18$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\log_3 18 + \\log_3\\frac{1}{2} = \\log_3 9 = \\boxed{2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -372,9 +373,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$100^{\\lg 2} + \\sqrt[5]{-243}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$100^{\\lg 2} = (10^2)^{\\lg 2} = 10^{2\\lg 2} = 10^{\\lg 4} = 4$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\sqrt[5]{-243} = \\sqrt[5]{(-3)^5} = -3$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$4 + (-3) = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$100^{\\lg 2} = (10^2)^{\\lg 2} = 10^{2\\lg 2} = 10^{\\lg 4} = 4$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sqrt[5]{-243} = \\sqrt[5]{(-3)^5} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$100^{\\lg 2} = (10^2)^{\\lg 2} = 10^{2\\lg 2} = 10^{\\lg 4} = 4$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\sqrt[5]{-243} = \\sqrt[5]{(-3)^5} = -3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$4 + (-3) = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -386,9 +387,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\frac{\\sqrt[3]{49}}{7^{-1/3}}$$',
     solution: '**Pasul 1.** Transformarea numărătorului: $$\\sqrt[3]{49} = (7^2)^{1/3} = 7^{2/3}$$\n\n**Pasul 2.** Aplicarea proprietăților puterilor: $$\\frac{7^{2/3}}{7^{-1/3}} = 7^{\\frac{2}{3} - (-\\frac{1}{3})} = 7^{\\frac{2}{3} + \\frac{1}{3}}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$7^{\\frac{3}{3}} = 7^1 = \\boxed{7}$$',
     barem: [
-      { descriere: 'Transformarea numărătorului: $\\sqrt[3]{49} = (7^2)^{1/3} = 7^{2/3}$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea proprietăților puterilor: $\\frac{7^{2/3}}{7^{-1/3}} = 7^{\\frac{2}{3} - (-\\frac{1}{3})} = 7^{\\frac{2}{3} + \\frac{1}{3}}$', puncte_maxime: 2 },
-      { descriere: 'Calcularea sumei exponenților și determinarea valorii finale: $7^{\\frac{3}{3}} = 7^1 = 7$: $$\\boxed{7}$$', puncte_maxime: 1 }
+      { descriere: "Scrierea numărătorului sub formă de putere cu baza 7: $$\\sqrt[3]{49} = 7^{2/3}$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților împărțirii puterilor cu aceeași bază: $$\\frac{7^{2/3}}{7^{-1/3}} = 7^{\\frac{2}{3} - (-\\frac{1}{3})} = 7^{\\frac{2}{3} + \\frac{1}{3}}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$7^{\\frac{3}{3}} = 7^1 = \\boxed{7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -400,9 +401,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}5}\\sqrt[4]{8} + 0{,}75$$',
     solution: '**Pasul 1.** Transformarea radicalului în putere: $$\\sqrt[4]{8} = (2^3)^{1/4} = 2^{3/4}$$ \n\n**Pasul 2.** Calcularea logaritmului: $0{,}5 = 2^{-1}$, deci $$\\log_{2^{-1}}\\!\\left(2^{3/4}\\right) = \\frac{3/4}{-1} = -\\frac{3}{4}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$-\\frac{3}{4} + 0{,}75 = -\\frac{3}{4} + \\frac{3}{4} = \\boxed{0}$$',
     barem: [
-      { descriere: 'Transformarea radicalului în putere: $$\\sqrt[4]{8} = (2^3)^{1/4} = 2^{3/4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea logaritmului: $0{,}5 = 2^{-1}$, deci $$\\log_{2^{-1}}\\!\\left(2^{3/4}\\right) = \\frac{3/4}{-1} = -\\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
+      { descriere: "Transformarea radicalului în putere cu baza 2: $$\\sqrt[4]{8} = (2^3)^{1/4} = 2^{3/4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului prin aducerea la aceeași bază: $$0{,}5 = 2^{-1}$$, de unde $$\\log_{2^{-1}}\\left(2^{3/4}\\right) = -\\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$-\\frac{3}{4} + 0{,}75 = -\\frac{3}{4} + \\frac{3}{4} = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -414,9 +415,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$49^{\\log_7 10 - \\log_{49} 25}$$',
     solution: '**Pasul 1.** Transformarea logaritmului în baza 7:\n$$\\log_{49} 25 = \\log_{7^2} 5^2 = \\frac{2\\log_7 5}{2} = \\log_7 5$$\n\n**Pasul 2.** Substituirea în expresie și simplificarea exponentului:\n$$49^{\\log_7 10 - \\log_{49} 25} = 49^{\\log_7 10 - \\log_7 5} = 49^{\\log_7 \\left(\\frac{10}{5}\\right)} = 49^{\\log_7 2}$$\n\n**Pasul 3.** Calcularea valorii finale a expresiei:\n$$49^{\\log_7 2} = (7^2)^{\\log_7 2} = 7^{2\\log_7 2} = 7^{\\log_7 2^2} = 7^{\\log_7 4} = \\boxed{4}$$',
     barem: [
-      { descriere: 'Transformarea logaritmului $\\log_{49} 25$ în $\\log_7 5$.', puncte_maxime: 3 },
-      { descriere: 'Substituirea în expresie și simplificarea exponentului la $\\log_7 2$.', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii finale a expresiei: $$\\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Obținerea egalității: $$\\log_{49} 25 = \\log_7 5$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea exponentului: $$\\log_7 10 - \\log_7 5 = \\log_7 2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii finale a expresiei: $$49^{\\log_7 2} = (7^2)^{\\log_7 2} = 7^{\\log_7 4} = \\boxed{4}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -428,9 +429,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\lg 250 - \\log_{0{,}1} 4 + \\lg 10^{-1}$$',
     solution: '**Pasul 1.** Transformarea termenului $\\log_{0{,}1} 4$:$$\\log_{0{,}1} 4 = \\log_{10^{-1}} 4 = -\\lg 4$$**Pasul 2.** Calcularea valorii termenului $\\lg 10^{-1}$:$$\\lg 10^{-1} = -1$$**Pasul 3.** Substituirea valorilor și determinarea valorii expresiei:$$\\lg 250 - (-\\lg 4) + (-1) = \\lg 250 + \\lg 4 - 1 = \\lg (250 \\cdot 4) - 1 = \\lg 1000 - 1 = 3 - 1 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea termenului $\\log_{0{,}1} 4 = \\log_{10^{-1}} 4 = -\\lg 4$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului $\\lg 10^{-1} = -1$', puncte_maxime: 1 },
-      { descriere: 'Substituirea valorilor și determinarea valorii expresiei: $\\lg 250 - (-\\lg 4) + (-1) = \\lg 250 + \\lg 4 - 1 = \\lg 1000 - 1 = 3 - 1 = 2$: $$\\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Obținerea egalității: $$\\log_{0{,}1} 4 = -\\lg 4$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii termenului: $$\\lg 10^{-1} = -1$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$\\lg 250 - (-\\lg 4) + (-1) = \\lg 1000 - 1 = 3 - 1 = \\boxed{2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -442,9 +443,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$0{,}25 + \\log_2\\!\\left(\\sqrt{2\\sqrt{2}}\\right)$$',
     solution: '**Pasul 1.** Simplificarea argumentului logaritmului: $$\\sqrt{2\\sqrt{2}} = \\sqrt{2 \\cdot 2^{1/2}} = \\sqrt{2^{3/2}} = (2^{3/2})^{1/2} = 2^{3/4}$$ \n\n**Pasul 2.** Calcularea valorii logaritmului: $$\\log_2 2^{3/4} = \\frac{3}{4}$$ \n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $1$: $$0{,}25 + \\frac{3}{4} = \\frac{1}{4} + \\frac{3}{4} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Simplificarea argumentului logaritmului: $$\\sqrt{2\\sqrt{2}} = \\sqrt{2 \\cdot 2^{1/2}} = \\sqrt{2^{3/2}} = (2^{3/2})^{1/2} = 2^{3/4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_2 2^{3/4} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$: $$0{,}25 + \\frac{3}{4} = \\frac{1}{4} + \\frac{3}{4} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea argumentului logaritmului: $$\\sqrt{2\\sqrt{2}} = \\sqrt{2 \\cdot 2^{1/2}} = \\sqrt{2^{3/2}} = (2^{3/2})^{1/2} = 2^{3/4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_2 2^{3/4} = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$0{,}25 + \\frac{3}{4} = \\frac{1}{4} + \\frac{3}{4} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -456,9 +457,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$0{,}04^{\\frac{1}{2}} \\cdot \\left(\\frac{\\sqrt{5}}{10}\\right)^{-2}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$0{,}04^{\\frac{1}{2}} = \\sqrt{0{,}04} = 0{,}2 = \\frac{1}{5}$$ \n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{\\sqrt{5}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{5}}\\right)^2 = \\frac{100}{5} = 20$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$\\frac{1}{5} \\cdot 20 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$0{,}04^{\\frac{1}{2}} = \\sqrt{0{,}04} = 0{,}2 = \\frac{1}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{\\sqrt{5}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{5}}\\right)^2 = \\frac{100}{5} = 20$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{1}{5} \\cdot 20 = \\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei părți a expresiei: $$0{,}04^{\\frac{1}{2}} = \\sqrt{0{,}04} = 0{,}2 = \\frac{1}{5}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{\\sqrt{5}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{5}}\\right)^2 = \\frac{100}{5} = 20$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{1}{5} \\cdot 20 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -470,9 +471,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$2\\lg\\sqrt{5} + \\log_{0{,}1} 50$$',
     solution: '**Pasul 1.** Calcularea primului termen:$$2\\lg\\sqrt{5} = 2 \\cdot \\frac{1}{2}\\lg 5 = \\lg 5$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:$$\\log_{0{,}1} 50 = \\log_{10^{-1}} 50 = -\\lg 50$$\n\n**Pasul 3.** Determinarea valorii expresiei:$$\\lg 5 - \\lg 50 = \\lg\\frac{5}{50} = \\lg\\frac{1}{10} = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$2\\lg\\sqrt{5} = 2 \\cdot \\frac{1}{2}\\lg 5 = \\lg 5$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{0{,}1} 50 = \\log_{10^{-1}} 50 = -\\lg 50$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$2\\lg\\sqrt{5} = 2 \\cdot \\frac{1}{2}\\lg 5 = \\lg 5$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\log_{0{,}1} 50 = \\log_{10^{-1}} 50 = -\\lg 50$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\lg 5 - \\lg 50 = \\lg\\frac{5}{50} = \\lg\\frac{1}{10} = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -484,10 +485,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$49^{\\frac{1}{\\log_5 7}} - 81^{\\frac{1}{4}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății de schimbare a bazei pentru logaritm: $$\\frac{1}{\\log_5 7} = \\log_7 5$$\n\n**Pasul 2.** Calcularea valorii primului termen al expresiei: $$49^{\\log_7 5} = (7^2)^{\\log_7 5} = 7^{2\\log_7 5} = \\left(7^{\\log_7 5}\\right)^2 = 5^2 = 25$$\n\n**Pasul 3.** Calcularea valorii celui de-al doilea termen al expresiei: $$81^{\\frac{1}{4}} = (3^4)^{\\frac{1}{4}} = 3$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$25 - 3 = \\boxed{22}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății de schimbare a bazei pentru logaritm: $$\\frac{1}{\\log_5 7} = \\log_7 5$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii primului termen al expresiei: $$49^{\\log_7 5} = (7^2)^{\\log_7 5} = 7^{2\\log_7 5} = \\left(7^{\\log_7 5}\\right)^2 = 5^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen al expresiei: $$81^{\\frac{1}{4}} = (3^4)^{\\frac{1}{4}} = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$25 - 3 = \\boxed{22}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății de schimbare a bazei logaritmului: $$\\frac{1}{\\log_5 7} = \\log_7 5$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii primului termen al expresiei: $$49^{\\log_7 5} = (7^2)^{\\log_7 5} = 25$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$81^{\\frac{1}{4}} = 3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$25 - 3 = \\boxed{22}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -500,9 +501,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{\\frac{1}{2}} 6 + \\log_4 144$$',
     solution: '**Pasul 1.** Transformarea primului termen: $\\log_{\\frac{1}{2}} 6 = -\\log_2 6 = -2\\log_4 6$\n\n**Pasul 2.** Transformarea celui de-al doilea termen: $\\log_4 144 = \\log_4(4 \\cdot 36) = 1 + \\log_4 6^2 = 1 + 2\\log_4 6$\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $\\boxed{1}$',
     barem: [
-      { descriere: 'Transformarea primului termen: $\\log_{\\frac{1}{2}} 6 = -\\log_2 6 = -2\\log_4 6$', puncte_maxime: 2 },
-      { descriere: 'Transformarea celui de-al doilea termen: $\\log_4 144 = \\log_4(4 \\cdot 36) = 1 + \\log_4 6^2 = 1 + 2\\log_4 6$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Transformarea primului termen: $$\\log_{\\frac{1}{2}} 6 = -\\log_2 6 = -2\\log_4 6$$", puncte_maxime: 2 },
+      { descriere: "Transformarea celui de-al doilea termen: $$\\log_4 144 = \\log_4(4 \\cdot 36) = 1 + \\log_4 6^2 = 1 + 2\\log_4 6$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -514,10 +515,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$8^{\\frac{2}{3}} + \\left(\\frac{1}{32}\\right)^{-0{,}2} - 0{,}5^{-1}$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 2^2 = 4$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\left(\\frac{1}{32}\\right)^{-0{,}2} = 32^{0{,}2} = (2^5)^{\\frac{1}{5}} = 2$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen:\n$$0{,}5^{-1} = \\frac{1}{0{,}5} = 2$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$4 + 2 - 2 = 4$$\n$$\\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 2^2 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\left(\\frac{1}{32}\\right)^{-0{,}2} = 32^{0{,}2} = (2^5)^{\\frac{1}{5}} = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$0{,}5^{-1} = \\frac{1}{0{,}5} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 2^2 = 4$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\left(\\frac{1}{32}\\right)^{-0{,}2} = 32^{0{,}2} = (2^5)^{\\frac{1}{5}} = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al treilea termen: $$0{,}5^{-1} = \\frac{1}{0{,}5} = 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$4 + 2 - 2 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -529,9 +530,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_3 \\frac{1}{27} + \\log_{\\sqrt{2}} \\frac{1}{8}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_3 \\frac{1}{27} = \\log_3 3^{-3} = -3$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_{\\sqrt{2}} \\frac{1}{8} = \\log_{2^{1/2}} 2^{-3} = \\frac{-3}{\\frac{1}{2}} = -6$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-3 + (-6) = \\boxed{-9}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_3 \\frac{1}{27} = \\log_3 3^{-3} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_{\\sqrt{2}} \\frac{1}{8} = \\log_{2^{1/2}} 2^{-3} = \\frac{-3}{\\frac{1}{2}} = -6$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{-9}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_3 \\frac{1}{27} = -3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_{\\sqrt{2}} \\frac{1}{8} = -6$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$-3 + (-6) = \\boxed{-9}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -543,9 +544,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$0{,}008^{\\frac{1}{3}} + \\left(\\frac{25}{16}\\right)^{-0{,}5}$$',
     solution: '**Pasul 1.** Calcularea valorii primei puteri:\n$$0{,}008^{\\frac{1}{3}} = \\left(\\frac{8}{1000}\\right)^{\\frac{1}{3}} = \\left(\\left(\\frac{2}{10}\\right)^3\\right)^{\\frac{1}{3}} = \\frac{2}{10} = \\frac{1}{5}$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua puteri:\n$$\\left(\\frac{25}{16}\\right)^{-0{,}5} = \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $1$:\n$$\\frac{1}{5} + \\frac{4}{5} = \\frac{5}{5} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primei puteri: $$0{,}008^{\\frac{1}{3}} = \\left(\\frac{8}{1000}\\right)^{\\frac{1}{3}} = \\left(\\left(\\frac{2}{10}\\right)^3\\right)^{\\frac{1}{3}} = \\frac{2}{10} = \\frac{1}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celei de-a doua puteri: $$\\left(\\frac{25}{16}\\right)^{-0{,}5} = \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$: $$\\frac{1}{5} + \\frac{4}{5} = \\frac{5}{5} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei puteri: $$0{,}008^{\\frac{1}{3}} = \\frac{1}{5}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a doua puteri: $$\\left(\\frac{25}{16}\\right)^{-0{,}5} = \\frac{4}{5}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -557,9 +558,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} - 3^{-1}$$',
     solution: '**Pasul 1.** Simplificarea primei părți a expresiei: $$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} = \\sqrt[3]{-\\dfrac{8}{27}} = -\\dfrac{2}{3}$$**Pasul 2.** Calcularea valorii celei de-a doua părți a expresiei: $$3^{-1} = \\dfrac{1}{3}$$**Pasul 3.** Determinarea valorii finale a expresiei: $$-\\dfrac{2}{3} - \\dfrac{1}{3} = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Simplificarea primei părți a expresiei: $$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} = \\sqrt[3]{-\\dfrac{8}{27}} = -\\dfrac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celei de-a doua părți a expresiei: $$3^{-1} = \\dfrac{1}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-\\dfrac{2}{3} - \\dfrac{1}{3} = \\boxed{-1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} = -\\dfrac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii: $$3^{-1} = \\dfrac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei, egală cu $$\\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -571,10 +572,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{0{,}25} 16 + \\log_3 36 - \\log_{\\sqrt{3}} 2$$',
     solution: '**Pasul 1.** Calcularea primei expresii logaritmice: $$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = \\frac{4}{-2} = -2$$\n\n**Pasul 2.** Calcularea celei de-a doua expresii logaritmice: $$\\log_3 36 = \\log_3(4 \\cdot 9) = 2\\log_3 2 + 2$$\n\n**Pasul 3.** Calcularea celei de-a treia expresii logaritmice: $$\\log_{\\sqrt{3}} 2 = \\log_{3^{1/2}} 2 = 2\\log_3 2$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$-2 + 2\\log_3 2 + 2 - 2\\log_3 2 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea primei expresii logaritmice: $$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = \\frac{4}{-2} = -2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celei de-a doua expresii logaritmice: $$\\log_3 36 = \\log_3(4 \\cdot 9) = 2\\log_3 2 + 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a treia expresii logaritmice: $$\\log_{\\sqrt{3}} 2 = \\log_{3^{1/2}} 2 = 2\\log_3 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-2 + 2\\log_3 2 + 2 - 2\\log_3 2 = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei expresii logaritmice: $$\\log_{0{,}25} 16 = \\log_{2^{-2}} 2^4 = -2$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea celei de-a doua expresii logaritmice: $$\\log_3 36 = \\log_3(4 \\cdot 9) = 2\\log_3 2 + 2$$", puncte_maxime: 1 },
+      { descriere: "Simplificarea celei de-a treia expresii logaritmice: $$\\log_{\\sqrt{3}} 2 = \\log_{3^{1/2}} 2 = 2\\log_3 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$-2 + 2\\log_3 2 + 2 - 2\\log_3 2 = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -586,10 +587,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{1}{27}\\right)^{-\\frac{1}{3}} + 25\\left(\\frac{5}{2}\\right)^{-2} - 16^{0{,}25}$$',
     solution: '**Pasul 1.** Calcularea valorii primei componente a expresiei:$${\\left(\\frac{1}{27}\\right)}^{-\\frac{1}{3}} = 27^{\\frac{1}{3}} = 3$$**Pasul 2.** Calcularea valorii celei de-a doua componente a expresiei:$$25{\\left(\\frac{5}{2}\\right)}^{-2} = 25 \\cdot \\frac{4}{25} = 4$$**Pasul 3.** Calcularea valorii celei de-a treia componente a expresiei:$$16^{0{,}25} = (2^4)^{\\frac{1}{4}} = 2$$**Pasul 4.** Determinarea valorii finale a expresiei:$$3 + 4 - 2 = \\boxed{5}$$',
     barem: [
-      { descriere: 'Calcularea valorii primei componente a expresiei: ${\\left(\\frac{1}{27}\\right)}^{-\\frac{1}{3}} = 27^{\\frac{1}{3}} = 3$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celei de-a doua componente a expresiei: $25{\\left(\\frac{5}{2}\\right)}^{-2} = 25 \\cdot \\frac{4}{25} = 4$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celei de-a treia componente a expresiei: $16^{0{,}25} = (2^4)^{\\frac{1}{4}} = 2$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{5}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei componente a expresiei: $$\\left(\\frac{1}{27}\\right)^{-\\frac{1}{3}} = 3$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celei de-a doua componente a expresiei: $$25\\left(\\frac{5}{2}\\right)^{-2} = 4$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a treia componente a expresiei: $$16^{0{,}25} = 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$3 + 4 - 2 = \\boxed{5}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -601,10 +602,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$0{,}00032^{0{,}2} + \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} + 17^0$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$0{,}00032^{0{,}2} = \\left(\\frac{32}{100000}\\right)^{0{,}2} = \\left(\\left(\\frac{2}{10}\\right)^5\\right)^{0{,}2} = \\frac{2}{10} = \\frac{1}{5}$$  **Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$  **Pasul 3.** Calcularea valorii celui de-al treilea termen: $$17^0 = 1$$  **Pasul 4.** Determinarea valorii finale a expresiei: $$\\frac{1}{5} + \\frac{4}{5} + 1 = 1 + 1 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$0{,}00032^{0{,}2} = \\left(\\frac{32}{100000}\\right)^{0{,}2} = \\left(\\left(\\frac{2}{10}\\right)^5\\right)^{0{,}2} = \\frac{2}{10} = \\frac{1}{5}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al treilea termen: $$17^0 = 1$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{1}{5} + \\frac{4}{5} + 1 = 1 + 1 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$0{,}00032^{0{,}2} = \\left(\\frac{32}{100000}\\right)^{0{,}2} = \\left(\\left(\\frac{2}{10}\\right)^5\\right)^{0{,}2} = \\frac{1}{5}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\frac{4}{5}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii $$17^0 = 1$$ și determinarea valorii finale a expresiei, egală cu $$\\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -616,9 +616,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_{25} 125 + \\log_2(2\\sqrt{2})$$',
     solution: '**Pasul 1.** Calcularea primei componente a sumei: $$\\log_{25} 125 = \\log_{5^2} 5^3 = \\frac{3}{2}$$\n\n**Pasul 2.** Calcularea celei de-a doua componente a sumei: $$\\log_2(2\\sqrt{2}) = \\log_2(2^1 \\cdot 2^{1/2}) = \\log_2(2^{3/2}) = \\frac{3}{2}$$\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $3$: $$\\frac{3}{2} + \\frac{3}{2} = 3$$\n$$\\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea primei componente a sumei: $$\\log_{25} 125 = \\log_{5^2} 5^3 = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua componente a sumei: $$\\log_2(2\\sqrt{2}) = \\log_2(2^1 \\cdot 2^{1/2}) = \\log_2(2^{3/2}) = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $3$: $$\\frac{3}{2} + \\frac{3}{2} = \\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei componente a sumei: $$\\log_{25} 125 = \\log_{5^2} 5^3 = \\frac{3}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua componente a sumei: $$\\log_2(2\\sqrt{2}) = \\log_2(2^1 \\cdot 2^{1/2}) = \\log_2(2^{3/2}) = \\frac{3}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -630,10 +630,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt{\\sqrt{16}} + \\sqrt{0{,}25} + 2^{-1}$$',
     solution: '**Pasul 1.** Calcularea primului termen: $$\\sqrt{\\sqrt{16}} = \\sqrt{4} = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\sqrt{0{,}25} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen: $$2^{-1} = \\frac{1}{2}$$\n\n**Pasul 4.** Calcularea sumei și determinarea valorii finale a expresiei: $$2 + \\frac{1}{2} + \\frac{1}{2} = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\sqrt{\\sqrt{16}} = \\sqrt{4} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\sqrt{0{,}25} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$2^{-1} = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea sumei și determinarea valorii finale a expresiei: $$2 + \\frac{1}{2} + \\frac{1}{2} = \\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$\\sqrt{\\sqrt{16}} = \\sqrt{4} = 2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\sqrt{0{,}25} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al treilea termen: $$2^{-1} = \\frac{1}{2}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$2 + \\frac{1}{2} + \\frac{1}{2} = \\boxed{3}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -646,9 +646,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{\\dfrac{8}{27}} + 0{,}5\\left(\\dfrac{3}{2}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei:\n$$\\sqrt[3]{\\frac{8}{27}} = \\sqrt[3]{\\frac{2^3}{3^3}} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei:\n$$0{,}5\\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{2} \\cdot \\frac{2}{3} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\sqrt[3]{\\frac{8}{27}} = \\sqrt[3]{\\frac{2^3}{3^3}} = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$0{,}5\\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{2} \\cdot \\frac{2}{3} = \\frac{1}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$0{,}5\\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -660,10 +660,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\frac{1}{\\log_3 6} + \\log_6 12 - \\log_3 1$$',
     solution: '**Pasul 1.** Calcularea valorii termenului $\\log_3 1$:$$\\log_3 1 = 0$$\n\n**Pasul 2.** Aplicarea proprietății de schimbare a bazei pentru primul termen:$$\\frac{1}{\\log_3 6} = \\log_6 3$$\n\n**Pasul 3.** Combinarea termenilor rămași folosind proprietatea sumei logaritmilor:$$\\log_6 3 + \\log_6 12 = \\log_6(3 \\cdot 12) = \\log_6 36$$\n\n**Pasul 4.** Simplificarea expresiei și determinarea valorii finale:$$\\log_6 36 = \\log_6 6^2 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului $\\log_3 1$: $$\\log_3 1 = 0$$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea proprietății de schimbare a bazei pentru primul termen: $$\\frac{1}{\\log_3 6} = \\log_6 3$$', puncte_maxime: 1 },
-      { descriere: 'Combinarea termenilor rămași folosind proprietatea sumei logaritmilor: $$\\log_6 3 + \\log_6 12 = \\log_6(3 \\cdot 12) = \\log_6 36$$', puncte_maxime: 2 },
-      { descriere: 'Simplificarea expresiei și determinarea valorii finale: $$\\log_6 36 = \\log_6 6^2 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Obținerea valorii $$\\log_3 1 = 0$$", puncte_maxime: 1 },
+      { descriere: "Aplicarea formulei de schimbare a bazei: $$\\frac{1}{\\log_3 6} = \\log_6 3$$", puncte_maxime: 1 },
+      { descriere: "Calcularea sumei logaritmilor: $$\\log_6 3 + \\log_6 12 = \\log_6 36$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\log_6 36 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -675,10 +675,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{16}{81}\\right)^{0{,}25} - 4^0 + \\sqrt{3}^{-2}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului $\\left(\\frac{16}{81}\\right)^{0{,}25}$: $$\\left(\\frac{16}{81}\\right)^{1/4} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea valorii termenului $4^0$: $$4^0 = 1$$\n\n**Pasul 3.** Calcularea valorii termenului $\\sqrt{3}^{-2}$: $$\\sqrt{3}^{-2} = (3^{1/2})^{-2} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$\\frac{2}{3} - 1 + \\frac{1}{3} = 1 - 1 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului $\\left(\\frac{16}{81}\\right)^{0{,}25}$: $$\\left(\\frac{16}{81}\\right)^{1/4} = \\frac{2}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii termenului $4^0$: $$4^0 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului $\\sqrt{3}^{-2}$: $$\\sqrt{3}^{-2} = (3^{1/2})^{-2} = 3^{-1} = \\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{2}{3} - 1 + \\frac{1}{3} = 1 - 1 = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii termenului $\\left(\\frac{16}{81}\\right)^{0{,}25}$: $$\\left(\\frac{16}{81}\\right)^{1/4} = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii termenului $4^0$: $$4^0 = 1$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii termenului $\\sqrt{3}^{-2}$: $$\\sqrt{3}^{-2} = (3^{1/2})^{-2} = 3^{-1} = \\frac{1}{3}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{2}{3} - 1 + \\frac{1}{3} = 1 - 1 = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -690,9 +690,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_4 \\frac{1}{64} + 0{,}25\\log_{\\sqrt{9}} 81$$',
     solution: '**Pasul 1.** Calcularea primei logaritm: $$\\log_4 \\frac{1}{64} = \\log_4 4^{-3} = -3$$\n\n**Pasul 2.** Calcularea celei de-a doua logaritm și a produsului: $$\\log_{\\sqrt{9}} 81 = \\log_3 81 = \\log_3 3^4 = 4$$ $$0{,}25 \\cdot 4 = 1$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-3 + 1 = \\boxed{-2}$$',
     barem: [
-      { descriere: 'Calcularea primei logaritm: $$\\log_4 \\frac{1}{64} = \\log_4 4^{-3} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua logaritm și a produsului: $$\\log_{\\sqrt{9}} 81 = \\log_3 81 = \\log_3 3^4 = 4$$ $$0{,}25 \\cdot 4 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$-3 + 1 = \\boxed{-2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului logaritm: $$\\log_4 \\frac{1}{64} = -3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea logaritm și a produsului: $$\\log_{\\sqrt{9}} 81 = 4$$ și $$0{,}25 \\cdot 4 = 1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$-3 + 1 = \\boxed{-2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -704,10 +704,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[5]{27^{\\frac{2}{3}}\\left(\\frac{9}{32}\\right)^{-1}}$$',
     solution: '**Pasul 1.** Calcularea valorii primei părți a expresiei: $$27^{2/3} = (3^3)^{2/3} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua părți a expresiei: $$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$\n\n**Pasul 3.** Efectuarea înmulțirii sub radical și simplificarea: $$9 \\cdot \\frac{32}{9} = 32 = 2^5$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$\\sqrt[5]{2^5} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea valorii $27^{2/3}$: $$27^{2/3} = 9$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii $\\left(\\frac{9}{32}\\right)^{-1}$: $$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea înmulțirii sub radical: $$9 \\cdot \\frac{32}{9} = 32$$', puncte_maxime: 1 },
-      { descriere: 'Extragerea radicalului și determinarea valorii finale: $$\\sqrt[5]{32} = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei părți a expresiei: $$27^{2/3} = (3^3)^{2/3} = 3^2 = 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a doua părți a expresiei: $$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$", puncte_maxime: 1 },
+      { descriere: "Efectuarea înmulțirii sub radical și simplificarea: $$9 \\cdot \\frac{32}{9} = 32 = 2^5$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\sqrt[5]{2^5} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -719,9 +719,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-243\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului cu putere negativă: $$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\left(\\frac{\\sqrt{8}}{3}\\right)^2 = \\frac{8}{9}$$ \n\n**Pasul 2.** Efectuarea înmulțirii: $$-243 \\cdot \\frac{8}{9} = -27 \\cdot 8 = -216$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = \\boxed{-6}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului cu putere negativă: $$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\left(\\frac{\\sqrt{8}}{3}\\right)^2 = \\frac{8}{9}$$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea înmulțirii: $$-243 \\cdot \\frac{8}{9} = -27 \\cdot 8 = -216$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = \\boxed{-6}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii puterii cu exponent negativ: $$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\frac{8}{9}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea înmulțirii: $$-243 \\cdot \\frac{8}{9} = -216$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\boxed{-6}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -733,9 +733,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} + 9^{1{,}5}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen al sumei:\n$$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} = \\frac{2}{13} \\cdot \\sqrt{169} = \\frac{2}{13} \\cdot 13 = 2$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen al sumei:\n$$9^{1{,}5} = 9^{3/2} = (\\sqrt{9})^3 = 3^3 = 27$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$2 + 27 = \\boxed{29}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului: $$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} = \\frac{2}{13} \\cdot \\sqrt{169} = \\frac{2}{13} \\cdot 13 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului: $$9^{1{,}5} = 9^{3/2} = (\\sqrt{9})^3 = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$2 + 27 = \\boxed{29}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al sumei: $$\\left(\\frac{13}{2}\\right)^{-1} \\cdot 169^{0{,}5} = \\frac{2}{13} \\cdot 13 = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al sumei: $$9^{1{,}5} = 9^{3/2} = (\\sqrt{9})^3 = 27$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$2 + 27 = \\boxed{29}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -747,10 +747,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$10^{-\\lg 3} + \\log_{27} 9 - \\lg 100$$',
     solution: '**Pasul 1.** Calcularea primului termen: $$10^{-\\lg 3} = 10^{\\lg 3^{-1}} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen: $$\\lg 100 = 2$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$\\frac{1}{3} + \\frac{2}{3} - 2 = 1 - 2 = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$10^{-\\lg 3} = 10^{\\lg 3^{-1}} = 3^{-1} = \\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$\\lg 100 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{1}{3} + \\frac{2}{3} - 2 = 1 - 2 = \\boxed{-1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$10^{-\\lg 3} = 10^{\\lg 3^{-1}} = 3^{-1} = \\frac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al treilea termen: $$\\lg 100 = 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{1}{3} + \\frac{2}{3} - 2 = 1 - 2 = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -762,10 +762,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$\\log_4 32 - \\log_9 27 + \\log_3 6 - \\log_3 2$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_4 32 = \\log_{2^2} 2^5 = \\frac{5}{2}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_9 27 = \\log_{3^2} 3^3 = \\frac{3}{2}$$ \n\n**Pasul 3.** Simplificarea și calcularea valorii diferenței de logaritmi: $$\\log_3 6 - \\log_3 2 = \\log_3 \\frac{6}{2} = \\log_3 3 = 1$$ \n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$\\frac{5}{2} - \\frac{3}{2} + 1 = 1 + 1 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_4 32 = \\log_{2^2} 2^5 = \\frac{5}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_9 27 = \\log_{3^2} 3^3 = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Simplificarea și calcularea valorii diferenței de logaritmi: $$\\log_3 6 - \\log_3 2 = \\log_3 \\frac{6}{2} = \\log_3 3 = 1$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\frac{5}{2} - \\frac{3}{2} + 1 = 1 + 1 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_4 32 = \\log_{2^2} 2^5 = \\frac{5}{2}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_9 27 = \\log_{3^2} 3^3 = \\frac{3}{2}$$", puncte_maxime: 1 },
+      { descriere: "Simplificarea și calcularea valorii diferenței de logaritmi: $$\\log_3 6 - \\log_3 2 = \\log_3 \\frac{6}{2} = \\log_3 3 = 1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\frac{5}{2} - \\frac{3}{2} + 1 = 1 + 1 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -777,9 +777,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$2\\log_6 2 + 0{,}5\\log_6 81$$',
     solution: '**Pasul 1.** Aplicarea proprietății logaritmului pentru primul termen: $$2\\log_6 2 = \\log_6 2^2 = \\log_6 4$$\n\n**Pasul 2.** Aplicarea proprietății logaritmului pentru al doilea termen: $$0{,}5\\log_6 81 = \\log_6 81^{1/2} = \\log_6 \\sqrt{81} = \\log_6 9$$\n\n**Pasul 3.** Calcularea sumei logaritmilor și determinarea valorii finale a expresiei: $$\\log_6 4 + \\log_6 9 = \\log_6 (4 \\cdot 9) = \\log_6 36 = \\log_6 6^2 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății logaritmului pentru primul termen: $$2\\log_6 2 = \\log_6 2^2 = \\log_6 4$$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea proprietății logaritmului pentru al doilea termen: $$0{,}5\\log_6 81 = \\log_6 81^{1/2} = \\log_6 \\sqrt{81} = \\log_6 9$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea sumei logaritmilor și determinarea valorii finale a expresiei: $$\\log_6 4 + \\log_6 9 = \\log_6 (4 \\cdot 9) = \\log_6 36 = \\log_6 6^2 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății logaritmului pentru primul termen: $$2\\log_6 2 = \\log_6 4$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății logaritmului pentru al doilea termen: $$0{,}5\\log_6 81 = \\log_6 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea sumei logaritmilor și obținerea rezultatului final: $$\\log_6 4 + \\log_6 9 = \\log_6 36 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -791,10 +791,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{-\\log_{\\frac{1}{2}} 16 - 8^{-\\frac{2}{3}}}$$',
     solution: '**Pasul 1.** Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}} 16 = \\log_{2^{-1}} 2^4 = \\frac{4}{-1} = -4$$\n\n**Pasul 2.** Determinarea valorii termenului $-\\log_{\\frac{1}{2}} 16$: $$-\\log_{\\frac{1}{2}} 16 = 4$$\n\n**Pasul 3.** Calcularea valorii termenului exponențial: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$\n\n**Pasul 4.** Determinarea valorii expresiei $E$: $$E = \\sqrt{4 - \\frac{1}{4}} = \\sqrt{\\frac{15}{4}} = \\boxed{\\dfrac{\\sqrt{15}}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}} 16 = \\log_{2^{-1}} 2^4 = \\frac{4}{-1} = -4$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii termenului $-\\log_{\\frac{1}{2}} 16$: $$-\\log_{\\frac{1}{2}} 16 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului exponențial: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{4 - \\frac{1}{4}} = \\sqrt{\\frac{15}{4}} = \\boxed{\\dfrac{\\sqrt{15}}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{\\frac{1}{2}} 16 = -4$$ (sau obținerea $$-\\log_{\\frac{1}{2}} 16 = 4$$)", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii termenului exponențial: $$8^{-\\frac{2}{3}} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{4 - \\frac{1}{4}} = \\boxed{\\frac{\\sqrt{15}}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -806,11 +805,11 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{2\\lg 2 + \\lg 3}{\\lg 48 - \\lg 4} + \\left(2^{\\sqrt{3}}\\right)^{\\sqrt{3}}$$',
     solution: '**Pasul 1.** Simplificarea numitorului fracției: $$\\lg 48 - \\lg 4 = \\lg \\frac{48}{4} = \\lg 12$$\n\n**Pasul 2.** Simplificarea numărătorului fracției: $$2\\lg 2 + \\lg 3 = \\lg 4 + \\lg 3 = \\lg 12$$\n\n**Pasul 3.** Calcularea valorii fracției: $$\\frac{\\lg 12}{\\lg 12} = 1$$\n\n**Pasul 4.** Calcularea valorii termenului exponențial: $$\\left(2^{\\sqrt{3}}\\right)^{\\sqrt{3}} = 2^{\\sqrt{3}\\cdot\\sqrt{3}} = 2^3 = 8$$\n\n**Pasul 5.** Determinarea valorii finale a expresiei: $$E = 1 + 8 = \\boxed{9}$$',
     barem: [
-      { descriere: 'Simplificarea numitorului fracției: $$\\lg 48 - \\lg 4 = \\lg \\frac{48}{4} = \\lg 12$$', puncte_maxime: 1 },
-      { descriere: 'Simplificarea numărătorului fracției: $$2\\lg 2 + \\lg 3 = \\lg 4 + \\lg 3 = \\lg 12$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii fracției: $$\\frac{\\lg 12}{\\lg 12} = 1$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii termenului exponențial: $$\\left(2^{\\sqrt{3}}\\right)^{\\sqrt{3}} = 2^{\\sqrt{3}\\cdot\\sqrt{3}} = 2^3 = 8$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 1 + 8 = \\boxed{9}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea numitorului fracției: $$\\lg 48 - \\lg 4 = \\lg 12$$", puncte_maxime: 1 },
+      { descriere: "Simplificarea numărătorului fracției: $$2\\lg 2 + \\lg 3 = \\lg 12$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii fracției: $$\\frac{\\lg 12}{\\lg 12} = 1$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii termenului exponențial: $$\\left(2^{\\sqrt{3}}\\right)^{\\sqrt{3}} = 8$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 1 + 8 = \\boxed{9}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -822,9 +821,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{\\sin^2 43^\\circ + \\cos^2 43^\\circ - (27)^{\\frac{2}{3}}}$$',
     solution: '**Pasul 1.** Calcularea valorii expresiei trigonometrice: $$\\sin^2 43^\\circ + \\cos^2 43^\\circ = 1$$\n\n**Pasul 2.** Calcularea valorii termenului exponențial: $$27^{\\frac{2}{3}} = (3^3)^{\\frac{2}{3}} = 3^2 = 9$$\n\n**Pasul 3.** Substituirea valorilor și determinarea rezultatului final: $$E = \\sqrt[3]{1 - 9} = \\sqrt[3]{-8} = \\boxed{-2}$$',
     barem: [
-      { descriere: 'Calcularea valorii expresiei trigonometrice: $$\\sin^2 43^\\circ + \\cos^2 43^\\circ = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului exponențial: $$27^{\\frac{2}{3}} = (3^3)^{\\frac{2}{3}} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Substituirea valorilor și determinarea rezultatului final: $$E = \\sqrt[3]{1 - 9} = \\sqrt[3]{-8} = \\boxed{-2}$$', puncte_maxime: 1 }
+      { descriere: "Obținerea relației: $$\\sin^2 43^\\circ + \\cos^2 43^\\circ = 1$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii termenului exponențial: $$27^{\\frac{2}{3}} = (3^3)^{\\frac{2}{3}} = 3^2 = 9$$", puncte_maxime: 2 },
+      { descriere: "Substituirea valorilor obținute și determinarea valorii expresiei: $$E = \\sqrt[3]{1 - 9} = \\sqrt[3]{-8} = \\boxed{-2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -836,8 +835,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2 36 + \\log_{\\frac{1}{2}} 9$$',
     solution: '**Pasul 1.** Transformarea logaritmului în baza 2: $$\\log_{\\frac{1}{2}} 9 = \\log_{2^{-1}} 9 = -\\log_2 9$$\n\n**Pasul 2.** Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea logaritmului în baza 2: $$\\log_{\\frac{1}{2}} 9 = -\\log_2 9$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = \\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Transformarea logaritmului în baza 2: $$\\log_{\\frac{1}{2}} 9 = \\log_{2^{-1}} 9 = -\\log_2 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei: $$E = \\log_2 36 - \\log_2 9 = \\log_2 \\frac{36}{9} = \\log_2 4 = \\boxed{2}$$", puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -849,9 +848,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{2}{7}\\right)^{-1} + \\log_3 \\sqrt{27}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\left(\\frac{2}{7}\\right)^{-1} = \\frac{7}{2}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_3 \\sqrt{27} = \\log_3 27^{\\frac{1}{2}} = \\frac{1}{2}\\log_3 3^3 = \\frac{3}{2}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{7}{2} + \\frac{3}{2} = \\frac{10}{2} = \\boxed{5}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\left(\\frac{2}{7}\\right)^{-1} = \\frac{7}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3 \\sqrt{27} = \\log_3 27^{\\frac{1}{2}} = \\frac{1}{2}\\log_3 3^3 = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{7}{2} + \\frac{3}{2} = \\frac{10}{2} = \\boxed{5}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\left(\\frac{2}{7}\\right)^{-1} = \\frac{7}{2}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_3 \\sqrt{27} = \\log_3 27^{\\frac{1}{2}} = \\frac{1}{2}\\log_3 3^3 = \\frac{3}{2}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{7}{2} + \\frac{3}{2} = \\boxed{5}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -863,9 +862,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} - \\left(\\frac{3}{2}\\right)^{-2}$$',
     solution: '**Pasul 1.** Simplificarea primului termen al expresiei:\n$$\\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot (3^2)^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot 3^{\\frac{1}{4}} = 3^{\\frac{3}{4}+\\frac{1}{4}} = 3^1 = 3$$\n\n**Pasul 2.** Simplificarea celui de-al doilea termen al expresiei:\n$$\\left(\\frac{3}{2}\\right)^{-2} = \\left(\\frac{2}{3}\\right)^{2} = \\frac{4}{9}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$E = 3 - \\frac{4}{9} = \\frac{27-4}{9} = \\boxed{\\dfrac{23}{9}}$$',
     barem: [
-      { descriere: 'Simplificarea primului termen al expresiei: $$\\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot (3^2)^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot 3^{\\frac{1}{4}} = 3^1 = 3$$', puncte_maxime: 3 },
-      { descriere: 'Simplificarea celui de-al doilea termen al expresiei: $$\\left(\\frac{3}{2}\\right)^{-2} = \\left(\\frac{2}{3}\\right)^{2} = \\frac{4}{9}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 3 - \\frac{4}{9} = \\frac{23}{9}$$: $$\\boxed{\\dfrac{23}{9}}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea primului termen al expresiei prin aducerea la aceeași bază: $$\\sqrt[4]{27}\\cdot 9^{\\frac{1}{8}} = 3^{\\frac{3}{4}} \\cdot 3^{\\frac{1}{4}} = 3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii cu exponent întreg negativ: $$\\left(\\frac{3}{2}\\right)^{-2} = \\frac{4}{9}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 3 - \\frac{4}{9} = \\boxed{\\frac{23}{9}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -877,9 +876,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\sqrt{8}\\right)^{-\\frac{2}{3}} - \\log_{25} 5$$',
     solution: '**Pasul 1.** $(\\sqrt{8})^{-\\frac{2}{3}} = (8^{\\frac{1}{2}})^{-\\frac{2}{3}} = 8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = 2^{-1} = \\frac{1}{2}\n\n**Pasul 2.** $\\log_{25} 5 = \\log_{5^2} 5 = \\frac{1}{2}\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $\\boxed{0}$',
     barem: [
-      { descriere: '$(\\sqrt{8})^{-\\frac{2}{3}} = (8^{\\frac{1}{2}})^{-\\frac{2}{3}} = 8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = 2^{-1} = \\frac{1}{2}$', puncte_maxime: 2 },
-      { descriere: '$\\log_{25} 5 = \\log_{5^2} 5 = \\frac{1}{2}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii puterii: $$\\left(\\sqrt{8}\\right)^{-\\frac{2}{3}} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{25} 5 = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -891,11 +890,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{1}{3}\\right)^{-2} + \\sqrt[3]{\\log_3 \\frac{1}{9} - \\left(\\frac{1}{\\sqrt{6}}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea primei puteri:\n$$\\left(\\frac{1}{3}\\right)^{-2} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea logaritmului:\n$$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$\n\n**Pasul 3.** Calcularea celei de-a doua puteri:\n$$\\left(\\frac{1}{\\sqrt{6}}\\right)^{-2} = (\\sqrt{6})^2 = 6$$\n\n**Pasul 4.** Calcularea rădăcinii cubice:\n$$\\sqrt[3]{\\log_3 \\frac{1}{9} - \\left(\\frac{1}{\\sqrt{6}}\\right)^{-2}} = \\sqrt[3]{-2 - 6} = \\sqrt[3]{-8} = -2$$\n\n**Pasul 5.** Determinarea valorii expresiei:\n$$E = 9 + (-2) = \\boxed{7}$$',
     barem: [
-      { descriere: 'Calcularea primei puteri: $$\\left(\\frac{1}{3}\\right)^{-2} = 3^2 = 9$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea logaritmului: $$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celei de-a doua puteri: $$\\left(\\frac{1}{\\sqrt{6}}\\right)^{-2} = (\\sqrt{6})^2 = 6$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea rădăcinii cubice: $$\\sqrt[3]{-2 - 6} = \\sqrt[3]{-8} = -2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 9 + (-2) = \\boxed{7}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei puteri: $$\\left(\\frac{1}{3}\\right)^{-2} = 9$$", puncte_maxime: 1 },
+      { descriere: "Calcularea logaritmului și a celei de-a doua puteri: $$\\log_3 \\frac{1}{9} = -2$$ și $$\\left(\\frac{1}{\\sqrt{6}}\\right)^{-2} = 6$$", puncte_maxime: 2 },
+      { descriere: "Calcularea radicalului de ordinul 3: $$\\sqrt[3]{-2 - 6} = -2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 9 + (-2) = \\boxed{7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -907,9 +905,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{27} 9 + \\left(\\frac{4}{3}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{4}{3}\\right)^{-1} = \\frac{3}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{2}{3} + \\frac{3}{4} = \\frac{8}{12} + \\frac{9}{12} = \\boxed{\\dfrac{17}{12}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{4}{3}\\right)^{-1} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{2}{3} + \\frac{3}{4} = \\frac{8}{12} + \\frac{9}{12} = \\boxed{\\dfrac{17}{12}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{4}{3}\\right)^{-1} = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{2}{3} + \\frac{3}{4} = \\boxed{\\frac{17}{12}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -921,9 +919,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\log_5 3} - 32^{\\frac{1}{5}}$$',
     solution: '**Pasul 1.** Calcularea valorii primei părți a expresiei: $$25^{\\log_5 3} = (5^2)^{\\log_5 3} = 5^{2\\log_5 3} = \\left(5^{\\log_5 3}\\right)^2 = 3^2 = 9$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua părți a expresiei: $$32^{\\frac{1}{5}} = (2^5)^{\\frac{1}{5}} = 2$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = 9 - 2 = \\boxed{7}$$',
     barem: [
-      { descriere: 'Calcularea valorii $25^{\\log_5 3} = (5^2)^{\\log_5 3} = 5^{2\\log_5 3} = \\left(5^{\\log_5 3}\\right)^2 = 3^2 = 9$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii $32^{\\frac{1}{5}} = (2^5)^{\\frac{1}{5}} = 2$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{7}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei părți a expresiei: $$25^{\\log_5 3} = (5^2)^{\\log_5 3} = 5^{2\\log_5 3} = \\left(5^{\\log_5 3}\\right)^2 = 3^2 = 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a doua părți a expresiei: $$32^{\\frac{1}{5}} = (2^5)^{\\frac{1}{5}} = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 9 - 2 = \\boxed{7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -935,10 +933,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_6 96 + \\log_{\\frac{1}{6}} 16 + \\left(\\frac{1}{\\sqrt{3}}\\right)^{-2}$$',
     solution: '**Pasul 1.** Transformarea logaritmului cu baza $\\frac{1}{6}$:$$\\log_{\\frac{1}{6}} 16 = -\\log_6 16$$\n\n**Pasul 2.** Calcularea valorii primilor doi termeni:$$\\log_6 96 - \\log_6 16 = \\log_6 \\frac{96}{16} = \\log_6 6 = 1$$\n\n**Pasul 3.** Calcularea valorii termenului cu putere:$$\\left(\\frac{1}{\\sqrt{3}}\\right)^{-2} = (\\sqrt{3})^2 = 3$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei:$$E = 1 + 3 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Transformarea logaritmului cu baza $\\frac{1}{6}$: $$\\log_{\\frac{1}{6}} 16 = -\\log_6 16$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii primilor doi termeni: $$\\log_6 96 - \\log_6 16 = \\log_6 \\frac{96}{16} = \\log_6 6 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului cu putere: $$\\left(\\frac{1}{\\sqrt{3}}\\right)^{-2} = (\\sqrt{3})^2 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății de schimbare a bazei logaritmului: $$\\log_{\\frac{1}{6}} 16 = -\\log_6 16$$", puncte_maxime: 2 },
+      { descriere: "Calcularea diferenței logaritmilor: $$\\log_6 96 - \\log_6 16 = \\log_6 \\frac{96}{16} = \\log_6 6 = 1$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii puterii: $$\\left(\\frac{1}{\\sqrt{3}}\\right)^{-2} = 3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 1 + 3 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -950,10 +948,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 27^{-\\frac{2}{3}} + 81^{\\frac{3}{4}} + (0{,}25)^{-2}$$',
     solution: '**Pasul 1.** Calcularea primei componente a expresiei: $$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$\n\n**Pasul 2.** Calcularea celei de-a doua componente a expresiei: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$\n\n**Pasul 3.** Calcularea celei de-a treia componente a expresiei: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$E = \\frac{1}{9} + 27 + 16 = \\frac{1}{9} + 43 = \\boxed{\\dfrac{388}{9}}$$',
     barem: [
-      { descriere: 'Calcularea primei componente a expresiei: $$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celei de-a doua componente a expresiei: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a treia componente a expresiei: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{9} + 27 + 16 = \\frac{1}{9} + 43 = \\boxed{\\dfrac{388}{9}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei componente a expresiei: $$27^{-\\frac{2}{3}} = (3^3)^{-\\frac{2}{3}} = 3^{-2} = \\frac{1}{9}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua componente a expresiei: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celei de-a treia componente a expresiei: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{1}{9} + 27 + 16 = \\boxed{\\frac{388}{9}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -965,9 +963,9 @@ BM.EXERCISES = [
     statement: 'Să se afle valoarea expresiei:\n$$E = \\log_{36} 84 - \\log_{36} 14 + \\sqrt[3]{-27}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$ \n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$\\sqrt[3]{-27} = -3$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - 3 = \\boxed{-\\frac{5}{2}}$$ ',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\sqrt[3]{-27} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - 3 = \\boxed{-\\frac{5}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} 6 = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea radicalului de ordinul 3: $$\\sqrt[3]{-27} = -3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - 3 = \\boxed{-\\frac{5}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -979,9 +977,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\sqrt{65}-7}\\cdot\\sqrt{\\sqrt{65}+7}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei diferenței de pătrate:$$E = \\sqrt{(\\sqrt{65}-7)(\\sqrt{65}+7)} = \\sqrt{(\\sqrt{65})^2 - 7^2}$$\n\n**Pasul 2.** Efectuarea calculelor sub radical:$$\\sqrt{65 - 49} = \\sqrt{16}$$\n\n**Pasul 3.** Determinarea valorii expresiei:$$E = \\boxed{4}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor și a formulei diferenței de pătrate:$$E = \\sqrt{(\\sqrt{65}-7)(\\sqrt{65}+7)} = \\sqrt{(\\sqrt{65})^2 - 7^2}$$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea calculelor sub radical:$$\\sqrt{65 - 49} = \\sqrt{16}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei:$$E = \\boxed{4}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății de înmulțire a radicalilor și a formulei diferenței de pătrate: $$E = \\sqrt{(\\sqrt{65}-7)(\\sqrt{65}+7)} = \\sqrt{(\\sqrt{65})^2 - 7^2}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea calculelor sub radical: $$\\sqrt{65 - 49} = \\sqrt{16}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -993,10 +991,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 3\\lg 5 + \\frac{1}{2}\\lg 64 - \\left(\\sqrt[3]{-8}\\right)^2$$',
     solution: '**Pasul 1.** Simplificarea termenilor logaritmici: $$3\\lg 5 = \\lg 125 \\text{ \\text{ și } } \\frac{1}{2}\\lg 64 = \\lg 8$$\n\n**Pasul 2.** Calcularea sumei logaritmilor: $$\\lg 125 + \\lg 8 = \\lg (125 \\cdot 8) = \\lg 1000 = 3$$\n\n**Pasul 3.** Calcularea valorii termenului cu radical și putere: $$\\left(\\sqrt[3]{-8}\\right)^2 = (-2)^2 = 4$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = 3 - 4 = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Simplificarea termenilor logaritmici: $$3\\lg 5 = \\lg 125, \\quad \\frac{1}{2}\\lg 64 = \\lg 8$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea sumei logaritmilor: $$\\lg 125 + \\lg 8 = \\lg 1000 = 3$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului cu radical și putere: $$\\sqrt[3]{-8} = -2 \\Rightarrow (-2)^2 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3 - 4 = \\boxed{-1}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea termenilor logaritmici: $$3\\lg 5 = \\lg 125$$ și $$\\frac{1}{2}\\lg 64 = \\lg 8$$", puncte_maxime: 1 },
+      { descriere: "Calcularea sumei logaritmilor: $$\\lg 125 + \\lg 8 = \\lg (125 \\cdot 8) = \\lg 1000 = 3$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii termenului cu radical și putere: $$\\left(\\sqrt[3]{-8}\\right)^2 = (-2)^2 = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3 - 4 = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1008,10 +1006,9 @@ BM.EXERCISES = [
     statement: 'Aflați valoarea expresiei:\n$$E = \\sqrt[3]{7-\\sqrt{22}}\\cdot\\sqrt[3]{7+\\sqrt{22}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor:$$E = \\sqrt[3]{(7-\\sqrt{22})(7+\\sqrt{22})}$$**Pasul 2.** Aplicarea formulei diferenței de pătrate: $$(7-\\sqrt{22})(7+\\sqrt{22}) = 7^2 - (\\sqrt{22})^2 = 49 - 22 = 27$$**Pasul 3.** Calcularea radicalului: $$\\sqrt[3]{27} = 3$$**Pasul 4.** Determinarea valorii finale a expresiei: $$E = \\boxed{3}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor pentru a uni termenii sub un singur radical: $E = \\sqrt[3]{(7-\\sqrt{22})(7+\\sqrt{22})}$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea formulei diferenței de pătrate și calcularea valorii de sub radical: $(7-\\sqrt{22})(7+\\sqrt{22}) = 49 - 22 = 27$', puncte_maxime: 2 },
-      { descriere: 'Calcularea radicalului: $\\sqrt[3]{27} = 3$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății radicalilor pentru scrierea produsului sub un singur radical: $$E = \\sqrt[3]{(7-\\sqrt{22})(7+\\sqrt{22})}$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea formulei diferenței de pătrate și calcularea valorii de sub radical: $$(7-\\sqrt{22})(7+\\sqrt{22}) = 7^2 - (\\sqrt{22})^2 = 49 - 22 = 27$$", puncte_maxime: 2 },
+      { descriere: "Calcularea radicalului de ordinul 3 și determinarea valorii finale a expresiei: $$E = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1023,8 +1020,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 3{,}5 + \\log_3 \\sqrt{27}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului logaritmic: $$\\log_3 \\sqrt{27} = \\log_3 3^{\\frac{3}{2}} = \\frac{3}{2} = 1{,}5$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = \\boxed{5}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului logaritmic: $$\\log_3 \\sqrt{27} = \\log_3 3^{\\frac{3}{2}} = \\frac{3}{2} = 1{,}5$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = \\boxed{5}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii termenului logaritmic: $$\\log_3 \\sqrt{27} = \\log_3 3^{\\frac{3}{2}} = 1{,}5$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3{,}5 + 1{,}5 = \\boxed{5}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1036,9 +1033,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{\\sqrt[3]{16}\\cdot 4^{\\frac{1}{3}}}{\\sqrt{8}}$$',
     solution: '**Pasul 1.** Exprimarea termenilor sub formă de puteri ale lui $2$:\n$$\\sqrt[3]{16} = 2^{\\frac{4}{3}}, \\quad 4^{\\frac{1}{3}} = 2^{\\frac{2}{3}}, \\quad \\sqrt{8} = 2^{\\frac{3}{2}}$$\n\n**Pasul 2.** Substituirea în expresie și simplificarea numărătorului:\n$$E = \\frac{2^{\\frac{4}{3}}\\cdot 2^{\\frac{2}{3}}}{2^{\\frac{3}{2}}} = \\frac{2^{\\frac{4}{3}+\\frac{2}{3}}}{2^{\\frac{3}{2}}} = \\frac{2^{\\frac{6}{3}}}{2^{\\frac{3}{2}}} = \\frac{2^2}{2^{\\frac{3}{2}}}$$\n\n**Pasul 3.** Efectuarea împărțirii și determinarea valorii finale a expresiei:\n$$E = 2^{2-\\frac{3}{2}} = 2^{\\frac{4}{2}-\\frac{3}{2}} = 2^{\\frac{1}{2}} = \\boxed{\\sqrt{2}}$$',
     barem: [
-      { descriere: 'Exprimarea termenilor sub formă de puteri ale lui $2$: $$\\sqrt[3]{16} = 2^{\\frac{4}{3}}, \\quad 4^{\\frac{1}{3}} = 2^{\\frac{2}{3}}, \\quad \\sqrt{8} = 2^{\\frac{3}{2}}$$', puncte_maxime: 2 },
-      { descriere: 'Substituirea în expresie și simplificarea numărătorului: $$E = \\frac{2^{\\frac{4}{3}}\\cdot 2^{\\frac{2}{3}}}{2^{\\frac{3}{2}}} = \\frac{2^2}{2^{\\frac{3}{2}}}$$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea împărțirii și determinarea valorii finale a expresiei: $$E = 2^{2-\\frac{3}{2}} = 2^{\\frac{1}{2}} = \\boxed{\\sqrt{2}}$$', puncte_maxime: 1 }
+      { descriere: "Scrierea termenilor expresiei sub formă de puteri cu baza $2$: $$\\sqrt[3]{16} = 2^{\\frac{4}{3}}, \\quad 4^{\\frac{1}{3}} = 2^{\\frac{2}{3}}, \\quad \\sqrt{8} = 2^{\\frac{3}{2}}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea înmulțirii la numărător prin adunarea exponenților: $$2^{\\frac{4}{3}} \\cdot 2^{\\frac{2}{3}} = 2^{\\frac{4}{3}+\\frac{2}{3}} = 2^2$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea împărțirii și determinarea valorii finale a expresiei: $$E = \\frac{2^2}{2^{\\frac{3}{2}}} = 2^{2-\\frac{3}{2}} = 2^{\\frac{1}{2}} = \\boxed{\\sqrt{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1050,8 +1047,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 24 + \\log_{\\frac{1}{3}} 8$$',
     solution: '**Pasul 1.** Transformarea logaritmului în baza 3: $$\\log_{\\frac{1}{3}} 8 = -\\log_3 8$$\n\n**Pasul 2.** Aplicarea proprietăților logaritmilor și determinarea valorii expresiei: $$E = \\log_3 24 - \\log_3 8 = \\log_3 \\frac{24}{8} = \\log_3 3 = \\boxed{1}$$',
     barem: [
-      { descriere: 'Transformarea logaritmului în baza 3: $$\\log_{\\frac{1}{3}} 8 = -\\log_3 8$$', puncte_maxime: 3 },
-      { descriere: 'Aplicarea proprietăților logaritmilor și determinarea valorii expresiei: $$E = \\log_3 24 - \\log_3 8 = \\log_3 \\frac{24}{8} = \\log_3 3 = \\boxed{1}$$', puncte_maxime: 2 }
+      { descriere: "Transformarea logaritmului în baza 3: $$\\log_{\\frac{1}{3}} 8 = -\\log_3 8$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților logaritmilor și determinarea valorii expresiei: $$E = \\log_3 24 - \\log_3 8 = \\log_3 \\frac{24}{8} = \\log_3 3 = \\boxed{1}$$", puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -1063,9 +1060,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{16} 32 - 2^{-2}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{16} 32 = \\log_{2^4} 2^5 = \\frac{5}{4}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\frac{4}{4} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{16} 32 = \\log_{2^4} 2^5 = \\frac{5}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\frac{4}{4} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{16} 32 = \\log_{2^4} 2^5 = \\frac{5}{4}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\frac{4}{4} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1077,10 +1074,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{1+\\frac{61}{64}} - 2^{-2}$$',
     solution: '**Pasul 1.** Calcularea sumei din interiorul radicalului: $$1 + \\frac{61}{64} = \\frac{64+61}{64} = \\frac{125}{64}$$\n\n**Pasul 2.** Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{125}{64}} = \\frac{\\sqrt[3]{125}}{\\sqrt[3]{64}} = \\frac{5}{4}$$\n\n**Pasul 3.** Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4}$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\frac{4}{4} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea sumei din interiorul radicalului: $$1 + \\frac{61}{64} = \\frac{125}{64}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{125}{64}} = \\frac{\\sqrt[3]{125}}{\\sqrt[3]{64}} = \\frac{5}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea sumei din interiorul radicalului: $$1 + \\frac{61}{64} = \\frac{125}{64}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{125}{64}} = \\frac{5}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{5}{4} - \\frac{1}{4} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1092,9 +1089,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} - \\log_2 \\sqrt{2}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_2 \\sqrt{2} = \\log_2 2^{\\frac{1}{2}} = \\frac{1}{2}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{1}{4} - \\frac{1}{2} = \\frac{1-2}{4} = \\boxed{-\\dfrac{1}{4}}$$ ',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_2 \\sqrt{2} = \\log_2 2^{\\frac{1}{2}} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{4} - \\frac{1}{2} = \\frac{1-2}{4} = \\boxed{-\\dfrac{1}{4}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_2 \\sqrt{2} = \\log_2 2^{\\frac{1}{2}} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{4} - \\frac{1}{2} = \\boxed{-\\dfrac{1}{4}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1106,10 +1103,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{\\frac{5}{3}}\\cdot\\left(\\sqrt[3]{9}\\right)^{\\frac{9}{2}}$$',
     solution: '**Pasul 1.** Calcularea valorii primului factor:\n$$8^{\\frac{5}{3}} = (2^3)^{\\frac{5}{3}} = 2^5 = 32$$\n\n**Pasul 2.** Simplificarea bazei celui de-al doilea factor:\n$$\\sqrt[3]{9} = (3^2)^{\\frac{1}{3}} = 3^{\\frac{2}{3}}$$\n\n**Pasul 3.** Calcularea valorii celui de-al doilea factor:\n$$\\left(3^{\\frac{2}{3}}\\right)^{\\frac{9}{2}} = 3^{\\frac{2}{3}\\cdot\\frac{9}{2}} = 3^3 = 27$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 32 \\cdot 27 = \\boxed{864}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului factor: $$8^{\\frac{5}{3}} = (2^3)^{\\frac{5}{3}} = 2^5 = 32$$', puncte_maxime: 1 },
-      { descriere: 'Simplificarea bazei celui de-al doilea factor: $$\\sqrt[3]{9} = (3^2)^{\\frac{1}{3}} = 3^{\\frac{2}{3}}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea factor: $$\\left(3^{\\frac{2}{3}}\\right)^{\\frac{9}{2}} = 3^{\\frac{2}{3}\\cdot\\frac{9}{2}} = 3^3 = 27$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 32 \\cdot 27 = \\boxed{864}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului factor: $$8^{\\frac{5}{3}} = (2^3)^{\\frac{5}{3}} = 2^5 = 32$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea bazei celui de-al doilea factor: $$\\sqrt[3]{9} = (3^2)^{\\frac{1}{3}} = 3^{\\frac{2}{3}}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea factor: $$\\left(3^{\\frac{2}{3}}\\right)^{\\frac{9}{2}} = 3^{\\frac{2}{3}\\cdot\\frac{9}{2}} = 3^3 = 27$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 32 \\cdot 27 = \\boxed{864}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1121,9 +1118,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{36} 84 - \\log_{36} 14 - \\sqrt{2^{-2}}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$\\sqrt{2^{-2}} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - \\frac{1}{2} = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} \\frac{84}{14} = \\log_{36} 6 = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\sqrt{2^{-2}} = \\sqrt{\\frac{1}{4}} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - \\frac{1}{2} = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății diferenței logaritmilor și obținerea: $$\\log_{36} 84 - \\log_{36} 14 = \\log_{36} 6 = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt{2^{-2}} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{1}{2} - \\frac{1}{2} = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1135,9 +1132,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\lg 5 + \\frac{1}{2}\\lg 16$$',
     solution: '**Pasul 1.** Transformarea primului termen: $$2\\lg 5 = \\lg 5^2 = \\lg 25$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen: $$\\frac{1}{2}\\lg 16 = \\lg 16^{\\frac{1}{2}} = \\lg \\sqrt{16} = \\lg 4$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$\\lg 25 + \\lg 4 = \\lg (25 \\cdot 4) = \\lg 100 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $$2\\lg 5 = \\lg 25$$', puncte_maxime: 2 },
-      { descriere: 'Transformarea celui de-al doilea termen: $$\\frac{1}{2}\\lg 16 = \\lg 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\lg 25 + \\lg 4 = \\lg 100 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Obținerea egalității $$2\\lg 5 = \\lg 25$$", puncte_maxime: 2 },
+      { descriere: "Obținerea egalității $$\\frac{1}{2}\\lg 16 = \\lg 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\lg 25 + \\lg 4 = \\lg 100 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1149,9 +1146,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2 18 - \\log_2 9 + (1{,}5)^{-1}$$',
     solution: '**Pasul 1.** Calcularea diferenței de logaritmi: $$\\log_2 18 - \\log_2 9 = \\log_2 \\frac{18}{9} = \\log_2 2 = 1$$\n\n**Pasul 2.** Calcularea valorii expresiei $(1{,}5)^{-1}$: $$ (1{,}5)^{-1} = \\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3} $$\n\n**Pasul 3.** Determinarea valorii finale a expresiei $E$: $$E = 1 + \\frac{2}{3} = \\boxed{\\dfrac{5}{3}}$$',
     barem: [
-      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_2 18 - \\log_2 9 = \\log_2 \\frac{18}{9} = \\log_2 2 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii expresiei $(1{,}5)^{-1}$: $$ (1{,}5)^{-1} = \\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3} $$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei $E$: $$E = 1 + \\frac{2}{3} = \\boxed{\\dfrac{5}{3}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_2 18 - \\log_2 9 = \\log_2 \\frac{18}{9} = \\log_2 2 = 1$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei $$(1{,}5)^{-1}$$: $$(1{,}5)^{-1} = \\left(\\frac{3}{2}\\right)^{-1} = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei $$E$$: $$E = 1 + \\frac{2}{3} = \\boxed{\\dfrac{5}{3}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1163,8 +1160,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{-3-(2\\sqrt{6})^2}$$',
     solution: '**Pasul 1.** Calcularea pătratului: $$(2\\sqrt{6})^2 = 4\\cdot 6 = 24$$\n\n**Pasul 2.** Determinarea valorii expresiei, egală cu $-3$: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = \\boxed{-3}$$',
     barem: [
-      { descriere: 'Calcularea pătratului: $$(2\\sqrt{6})^2 = 4\\cdot 6 = 24$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = \\boxed{-3}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea pătratului: $$(2\\sqrt{6})^2 = 4\\cdot 6 = 24$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$-3$$: $$E = \\sqrt[3]{-3 - 24} = \\sqrt[3]{-27} = \\boxed{-3}$$", puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -1176,9 +1173,9 @@ BM.EXERCISES = [
     statement: 'Să se afle valoarea expresiei:\n$$E = \\log_5 80 - \\log_5 16 - \\sqrt{3^{-2}}$$',
     solution: '**Pasul 1.** Calcularea diferenței logaritmilor: $$\\log_5 80 - \\log_5 16 = \\log_5 \\frac{80}{16} = \\log_5 5 = 1$$\n\n**Pasul 2.** Calcularea valorii radicalului: $$\\sqrt{3^{-2}} = \\sqrt{\\frac{1}{9}} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 1 - \\frac{1}{3} = \\boxed{\\dfrac{2}{3}}$$',
     barem: [
-      { descriere: 'Calcularea diferenței logaritmilor: $$\\log_5 80 - \\log_5 16 = \\log_5 \\frac{80}{16} = \\log_5 5 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii radicalului: $$\\sqrt{3^{-2}} = \\sqrt{\\frac{1}{9}} = \\frac{1}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 1 - \\frac{1}{3} = \\boxed{\\dfrac{2}{3}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea diferenței logaritmilor: $$\\log_5 80 - \\log_5 16 = \\log_5 \\frac{80}{16} = \\log_5 5 = 1$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt{3^{-2}} = \n\\sqrt{\\frac{1}{9}} = \\frac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 1 - \\frac{1}{3} = \\boxed{\\frac{2}{3}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1190,9 +1187,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{3^{-1{,}5}\\cdot 9^2}{\\sqrt{27}}$$',
     solution: '**Pasul 1.** Transformarea fiecărui termen într-o putere a lui 3:$$3^{-1{,}5} = 3^{-\\frac{3}{2}}$$$$9^2 = (3^2)^2 = 3^4$$$$\\sqrt{27} = 3^{\\frac{3}{2}}$$**Pasul 2.** Substituirea termenilor în expresie și efectuarea operațiilor cu puteri:$$E = \\frac{3^{-\\frac{3}{2}}\\cdot 3^4}{3^{\\frac{3}{2}}} = \\frac{3^{-\\frac{3}{2}+4}}{3^{\\frac{3}{2}}} = \\frac{3^{\\frac{5}{2}}}{3^{\\frac{3}{2}}}$$**Pasul 3.** Determinarea valorii finale a expresiei:$$E = 3^{\\frac{5}{2}-\\frac{3}{2}} = 3^{\\frac{2}{2}} = 3^1 = \\boxed{3}$$',
     barem: [
-      { descriere: 'Transformarea fiecărui termen în puteri ale bazei 3: $3^{-1{,}5} = 3^{-\\frac{3}{2}}$, $9^2 = 3^4$, $\\sqrt{27} = 3^{\\frac{3}{2}}$.', puncte_maxime: 3 },
-      { descriere: 'Substituirea termenilor în expresie și efectuarea operațiilor cu puteri: $E = \\frac{3^{-\\frac{3}{2}}\\cdot 3^4}{3^{\\frac{3}{2}}} = \\frac{3^{\\frac{5}{2}}}{3^{\\frac{3}{2}}}$.', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 3^{\\frac{5}{2}-\\frac{3}{2}} = 3^1 = 3$: $$\\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Scrierea termenilor ca puteri cu baza 3: $$3^{-1{,}5} = 3^{-\\frac{3}{2}}$$, $$9^2 = 3^4$$ și $$\\sqrt{27} = 3^{\\frac{3}{2}}$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților de înmulțire și împărțire a puterilor cu aceeași bază: $$E = \\frac{3^{-\\frac{3}{2}}\\cdot 3^4}{3^{\\frac{3}{2}}} = \\frac{3^{\\frac{5}{2}}}{3^{\\frac{3}{2}}}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 3^{\\frac{5}{2}-\\frac{3}{2}} = 3^1 = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1204,8 +1201,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\log_{25} 75 - \\log_{25} 3\\right)^{-15}$$',
     solution: '**Pasul 1.** Aplicarea proprietății logaritmilor și simplificarea argumentului:$$\\log_{25} 75 - \\log_{25} 3 = \\log_{25} \\frac{75}{3} = \\log_{25} 25 = 1$$\n\n**Pasul 2.** Determinarea valorii expresiei:$$E = 1^{-15} = 1$$$$\\boxed{1}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății logaritmilor și simplificarea argumentului: $$\\log_{25} 75 - \\log_{25} 3 = \\log_{25} \\frac{75}{3} = \\log_{25} 25 = 1$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 1^{-15} = \\boxed{1}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății logaritmilor și simplificarea argumentului: $$\\log_{25} 75 - \\log_{25} 3 = \\log_{25} \\frac{75}{3} = \\log_{25} 25 = 1$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = 1^{-15} = 1$$$$\\boxed{1}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1217,9 +1214,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} + \\log_2\\!\\left(\\sin\\frac{\\pi}{6}\\right)$$',
     solution: '**Pasul 1.** Calculăm valoarea primului termen: $8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$\n\n**Pasul 2.** Calculăm valoarea celui de-al doilea termen: $\\sin\\frac{\\pi}{6} = \\frac{1}{2} \\Rightarrow \\log_2\\frac{1}{2} = -1$\n\n**Pasul 3.** Determinăm valoarea expresiei: $E = \\frac{1}{4} + (-1) = \\boxed{-\\dfrac{3}{4}}$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sin\\frac{\\pi}{6} = \\frac{1}{2} \\Rightarrow \\log_2\\frac{1}{2} = -1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{4} + (-1) = \\boxed{-\\dfrac{3}{4}}$$ ', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$8^{-\\frac{2}{3}} = (2^3)^{-\\frac{2}{3}} = 2^{-2} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\sin\\frac{\\pi}{6} = \\frac{1}{2} \\Rightarrow \\log_2\\frac{1}{2} = -1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{4} + (-1) = \\boxed{-\\frac{3}{4}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1231,10 +1228,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 4^{-\\frac{3}{2}} + \\left(\\log_2\\frac{1}{16}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen:$$4^{-\\frac{3}{2}} = (2^2)^{-\\frac{3}{2}} = 2^{-3} = \\frac{1}{8}$$**Pasul 2.** Calcularea valorii logaritmului:$$\\log_2\\frac{1}{16} = \\log_2 2^{-4} = -4$$**Pasul 3.** Calcularea valorii inversului logaritmului:$$(\\log_2\\frac{1}{16})^{-1} = (-4)^{-1} = -\\frac{1}{4}$$**Pasul 4.** Determinarea valorii expresiei:$$E = \\frac{1}{8} - \\frac{1}{4} = \\frac{1-2}{8} = \\boxed{-\\dfrac{1}{8}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $4^{-\\frac{3}{2}} = (2^2)^{-\\frac{3}{2}} = 2^{-3} = \\frac{1}{8}$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii logaritmului: $\\log_2\\frac{1}{16} = \\log_2 2^{-4} = -4$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii inversului logaritmului: $(-4)^{-1} = -\\frac{1}{4}$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $E = \\frac{1}{8} - \\frac{1}{4} = \\frac{1-2}{8} = -\\dfrac{1}{8}$: $$\\boxed{-\\dfrac{1}{8}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$4^{-\\frac{3}{2}} = (2^2)^{-\\frac{3}{2}} = 2^{-3} = \\frac{1}{8}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii inversului logaritmului: $$\\left(\\log_2\\frac{1}{16}\\right)^{-1} = (-4)^{-1} = -\\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{8} - \\frac{1}{4} = \\boxed{-\\frac{1}{8}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1246,8 +1242,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{12-\\sqrt{80}}\\cdot\\sqrt[3]{12+\\sqrt{80}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$:\n$$E = \\sqrt[3]{(12-\\sqrt{80})(12+\\sqrt{80})} = \\sqrt[3]{12^2 - (\\sqrt{80})^2} = \\sqrt[3]{144-80}$$\n\n**Pasul 2.** Calcularea diferenței și extragerea rădăcinii cubice:\n$$E = \\sqrt[3]{64} = 4$$\n$$\\boxed{4}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$E = \\sqrt[3]{(12-\\sqrt{80})(12+\\sqrt{80})} = \\sqrt[3]{12^2 - (\\sqrt{80})^2} = \\sqrt[3]{144-80}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea diferenței și extragerea rădăcinii cubice: $$E = \\sqrt[3]{64} = \\boxed{4}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$\\sqrt[3]{(12-\\sqrt{80})(12+\\sqrt{80})} = \\sqrt[3]{12^2 - (\\sqrt{80})^2} = \\sqrt[3]{144-80}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea diferenței și extragerea rădăcinii cubice: $$\\sqrt[3]{64} = \\boxed{4}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1259,10 +1255,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{2\\tfrac{3}{8} - \\tfrac{9}{4}} + \\log_3\\sqrt{3}$$',
     solution: '**Pasul 1.** Calcularea valorii expresiei de sub radical: $$2\\frac{3}{8} - \\frac{9}{4} = \\frac{19}{8} - \\frac{18}{8} = \\frac{1}{8}$$\n\n**Pasul 2.** Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{1}{8}} = \\frac{1}{2}$$\n\n**Pasul 3.** Calcularea valorii logaritmului: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$\n\n**Pasul 4.** Determinarea valorii expresiei $E$: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii expresiei de sub radical: $$2\\frac{3}{8} - \\frac{9}{4} = \\frac{19}{8} - \\frac{18}{8} = \\frac{1}{8}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{1}{8}} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii expresiei de sub radical: $$2\\frac{3}{8} - \\frac{9}{4} = \\frac{19}{8} - \\frac{18}{8} = \\frac{1}{8}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{1}{8}} = \\frac{1}{2}$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei $E$: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1274,9 +1270,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 6 - \\log_3 4$$',
     solution: '**Pasul 1.** Aplicarea proprietății $a\\log_b x = \\log_b x^a$: $$2\\log_3 6 = \\log_3 6^2 = \\log_3 36$$\n\n**Pasul 2.** Aplicarea proprietății $\\log_b x - \\log_b y = \\log_b (x/y)$ și simplificarea: $$E = \\log_3 36 - \\log_3 4 = \\log_3 \\frac{36}{4} = \\log_3 9$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\boxed{2}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății $a\\log_b x = \\log_b x^a$: $$2\\log_3 6 = \\log_3 6^2 = \\log_3 36$$', puncte_maxime: 3 },
-      { descriere: 'Aplicarea proprietății $\\log_b x - \\log_b y = \\log_b (x/y)$ și simplificarea: $$E = \\log_3 36 - \\log_3 4 = \\log_3 \\frac{36}{4} = \\log_3 9$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății logaritmului puterii: $$2\\log_3 6 = \\log_3 6^2 = \\log_3 36$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății diferenței logaritmilor și simplificarea: $$\\log_3 36 - \\log_3 4 = \\log_3 \\frac{36}{4} = \\log_3 9$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1288,9 +1284,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\sqrt{70}-3\\sqrt{5}}\\cdot\\sqrt{\\sqrt{70}+3\\sqrt{5}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b) = a^2 - b^2$:$$E = \\sqrt{(\\sqrt{70}-3\\sqrt{5})(\\sqrt{70}+3\\sqrt{5})} = \\sqrt{(\\sqrt{70})^2 - (3\\sqrt{5})^2}$$**Pasul 2.** Efectuarea calculelor sub radical:$$E = \\sqrt{70 - 9\\cdot5} = \\sqrt{70 - 45} = \\sqrt{25}$$**Pasul 3.** Determinarea valorii expresiei, egală cu $5$:$$\\boxed{5}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b) = a^2 - b^2$: $E = \\sqrt{(\\sqrt{70}-3\\sqrt{5})(\\sqrt{70}+3\\sqrt{5})} = \\sqrt{(\\sqrt{70})^2 - (3\\sqrt{5})^2}$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea calculelor sub radical: $E = \\sqrt{70 - 9\\cdot5} = \\sqrt{70 - 45} = \\sqrt{25}$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{5}$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b) = a^2 - b^2$: $$E = \\sqrt{(\\sqrt{70})^2 - (3\\sqrt{5})^2}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea calculelor sub radical: $$E = \\sqrt{70 - 45} = \\sqrt{25}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{5}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1302,9 +1298,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 1{,}(6) + \\log_{27} 9$$',
     solution: '**Pasul 1.** Transformarea fracției zecimale periodice în fracție ordinară: $$1{,}(6) = 1\\tfrac{2}{3} = \\frac{5}{3}$$ \n\n**Pasul 2.** Calcularea valorii logaritmului: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{5}{3} + \\frac{2}{3} = \\boxed{\\dfrac{7}{3}}$$ ',
     barem: [
-      { descriere: 'Transformarea fracției zecimale periodice în fracție ordinară: $$1{,}(6) = 1\\tfrac{2}{3} = \\frac{5}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{3} + \\frac{2}{3} = \\boxed{\\dfrac{7}{3}}$$ ', puncte_maxime: 1 }
+      { descriere: "Transformarea fracției zecimale periodice în fracție ordinară: $$1{,}(6) = 1\\tfrac{2}{3} = \\frac{5}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{27} 9 = \\log_{3^3} 3^2 = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{5}{3} + \\frac{2}{3} = \\boxed{\\dfrac{7}{3}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1316,9 +1312,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 81^{\\frac{3}{4}} + (0{,}25)^{-2}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen:$$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 27 + 16 = \\boxed{43}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 27 + 16 = \\boxed{43}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 27$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$(0{,}25)^{-2} = \\left(\\frac{1}{4}\\right)^{-2} = 16$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 27 + 16 = \\boxed{43}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1330,10 +1326,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 3\\lg 5 + \\frac{1}{2}\\lg 64$$',
     solution: '**Pasul 1.** Transformarea primului termen:\n$$3\\lg 5 = \\lg 5^3 = \\lg 125$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen:\n$$\\frac{1}{2}\\lg 64 = \\lg 64^{\\frac{1}{2}} = \\lg \\sqrt{64} = \\lg 8$$\n\n**Pasul 3.** Aplicarea proprietății de adunare a logaritmilor:\n$$\\lg 125 + \\lg 8 = \\lg (125 \\cdot 8) = \\lg 1000$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$\\lg 1000 = \\boxed{3}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $3\\lg 5 = \\lg 5^3 = \\lg 125$', puncte_maxime: 1 },
-      { descriere: 'Transformarea celui de-al doilea termen: $\\frac{1}{2}\\lg 64 = \\lg 64^{\\frac{1}{2}} = \\lg \\sqrt{64} = \\lg 8$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea proprietății de adunare a logaritmilor: $\\lg 125 + \\lg 8 = \\lg (125 \\cdot 8) = \\lg 1000$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
+      { descriere: "Transformarea primului termen: $$3\\lg 5 = \\lg 125$$", puncte_maxime: 1 },
+      { descriere: "Transformarea celui de-al doilea termen: $$\\frac{1}{2}\\lg 64 = \\lg 8$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății de adunare a logaritmilor: $$\\lg 125 + \\lg 8 = \\lg 1000$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$\\lg 1000 = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1345,8 +1341,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 12 - \\log_2 9$$',
     solution: '**Pasul 1.** Transformarea primului termen al expresiei: $$\\log_{\\sqrt{2}} 12 = \\log_{2^{\\frac{1}{2}}} 12 = 2\\log_2 12$$\n\n**Pasul 2.** Calcularea valorii expresiei: $$E = 2\\log_2 12 - \\log_2 9 = \\log_2 12^2 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Transformarea primului termen al expresiei: $$\\log_{\\sqrt{2}} 12 = \\log_{2^{\\frac{1}{2}}} 12 = 2\\log_2 12$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_2 12 - \\log_2 9 = \\log_2 12^2 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16 = \\boxed{4}$$', puncte_maxime: 2 }
+      { descriere: "Obținerea egalității $$\\log_{\\sqrt{2}} 12 = 2\\log_2 12$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților logaritmilor pentru a obține $$2\\log_2 12 - \\log_2 9 = \\log_2 144 - \\log_2 9 = \\log_2 \\frac{144}{9} = \\log_2 16$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1358,9 +1355,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(27^{\\frac{2}{3}} + 125^{\\frac{1}{3}} + 8^{\\frac{1}{3}}\\right)^{-\\frac{1}{4}}$$',
     solution: '**Pasul 1.** Calcularea valorilor puterilor: $27^{\\frac{2}{3}} = (3^3)^{\\frac{2}{3}} = 3^2 = 9$, $125^{\\frac{1}{3}} = (5^3)^{\\frac{1}{3}} = 5^1 = 5$ și $8^{\\frac{1}{3}} = (2^3)^{\\frac{1}{3}} = 2^1 = 2$.\n\n**Pasul 2.** Sumarea valorilor obținute: $9 + 5 + 2 = 16$.\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $E = 16^{-\\frac{1}{4}} = \\frac{1}{16^{\\frac{1}{4}}} = \\frac{1}{(2^4)^{\\frac{1}{4}}} = \\frac{1}{2^1} = \\frac{1}{2}$.\n$$\\boxed{\\frac{1}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorilor puterilor: $27^{\\frac{2}{3}} = 9$, $125^{\\frac{1}{3}} = 5$ și $8^{\\frac{1}{3}} = 2$.', puncte_maxime: 2 },
-      { descriere: 'Sumarea valorilor obținute: $9 + 5 + 2 = 16$.', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 16^{-\\frac{1}{4}} = \\frac{1}{2}$: $$\\boxed{\\frac{1}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorilor puterilor: $27^{\\frac{2}{3}} = 9$, $125^{\\frac{1}{3}} = 5$ și $8^{\\frac{1}{3}} = 2$", puncte_maxime: 2 },
+      { descriere: "Calcularea sumei din paranteză: $9 + 5 + 2 = 16$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $E = 16^{-\\frac{1}{4}} = \\frac{1}{2}$ $$\\boxed{\\frac{1}{2}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1372,9 +1369,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_4\\sqrt{2} - \\sqrt[3]{\\frac{1}{64}}$$',
     solution: '**Pasul 1.** Calcularea primei componente a expresiei:\n$$\\log_4\\sqrt{2} = \\log_{2^2} 2^{\\frac{1}{2}} = \\frac{1}{4}$$\n\n**Pasul 2.** Calcularea celei de-a doua componente a expresiei:\n$$\\sqrt[3]{\\frac{1}{64}} = \\frac{1}{4}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$E = \\frac{1}{4} - \\frac{1}{4} = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea primei componente a expresiei: $$\\log_4\\sqrt{2} = \\log_{2^2} 2^{\\frac{1}{2}} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua componente a expresiei: $$\\sqrt[3]{\\frac{1}{64}} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{1}{4} - \\frac{1}{4} = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii logaritmului: $$\\log_4\\sqrt{2} = \\log_{2^2} 2^{\\frac{1}{2}} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii radicalului: $$\\sqrt[3]{\\frac{1}{64}} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{1}{4} - \\frac{1}{4} = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1386,9 +1383,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 0{,}(5) + (1{,}5)^{-2}$$',
     solution: '**Pasul 1.** Conversia fracției zecimale periodice simple: $$0{,}(5) = \\frac{5}{9}$$**Pasul 2.** Calcularea termenului cu putere negativă: $$(1{,}5)^{-2} = \\left(\\frac{3}{2}\\right)^{-2} = \\frac{4}{9}$$**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{5}{9} + \\frac{4}{9} = \\frac{9}{9} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Conversia fracției zecimale periodice simple: $$0{,}(5) = \\frac{5}{9}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea termenului cu putere negativă: $$(1{,}5)^{-2} = \\left(\\frac{3}{2}\\right)^{-2} = \\frac{4}{9}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{5}{9} + \\frac{4}{9} = \\frac{9}{9} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Conversia fracției zecimale periodice simple: $$0{,}(5) = \\frac{5}{9}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea termenului cu putere negativă: $$(1{,}5)^{-2} = \\left(\\frac{3}{2}\\right)^{-2} = \\frac{4}{9}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{5}{9} + \\frac{4}{9} = \\frac{9}{9} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1400,10 +1397,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\log_2\\!\\left[\\left(\\frac{1}{4}\\right)^{-2} - (2\\sqrt{3})^2\\right]}$$',
     solution: '**Pasul 1.** Calcularea primei expresii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$ \n\n**Pasul 2.** Calcularea celei de-a doua expresii din paranteză: $$(2\\sqrt{3})^2 = 4\\cdot3 = 12$$ \n\n**Pasul 3.** Calcularea valorii logaritmului: $$\\log_2(16-12) = \\log_2 4 = 2$$ \n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$E = \\sqrt{2} = \\boxed{\\sqrt{2}}$$ ',
     barem: [
-      { descriere: 'Calcularea primei expresii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celei de-a doua expresii din paranteză: $$(2\\sqrt{3})^2 = 4\\cdot3 = 12$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_2(16-12) = \\log_2 4 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\sqrt{2} = \\boxed{\\sqrt{2}}$$ ', puncte_maxime: 1 }
+      { descriere: "Calcularea primei expresii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celei de-a doua expresii din paranteză: $$(2\\sqrt{3})^2 = 4\\cdot3 = 12$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_2(16-12) = \\log_2 4 = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\sqrt{2} = \\boxed{\\sqrt{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1415,11 +1412,11 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left[8^{\\frac{2}{3}} + \\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} + \\sqrt{125^{\\frac{2}{3}}}\\right]^{-\\frac{1}{2}}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 2^2 = 4$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} = 9^{\\frac{3}{2}} = (3^2)^{\\frac{3}{2}} = 3^3 = 27$$\n\n**Pasul 3.** Calcularea valorii celui de-al treilea termen: $$\\sqrt{125^{\\frac{2}{3}}} = \\sqrt{(5^3)^{\\frac{2}{3}}} = \\sqrt{5^2} = \\sqrt{25} = 5$$\n\n**Pasul 4.** Sumarea termenilor din paranteză: $$4 + 27 + 5 = 36$$\n\n**Pasul 5.** Determinarea valorii finale a expresiei: $$E = 36^{-\\frac{1}{2}} = \\frac{1}{\\sqrt{36}} = \\frac{1}{6} = \\boxed{\\dfrac{1}{6}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $8^{\\frac{2}{3}} = 4$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $\\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} = 27$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al treilea termen: $\\sqrt{125^{\\frac{2}{3}}} = 5$', puncte_maxime: 1 },
-      { descriere: 'Sumarea termenilor din paranteză: $4 + 27 + 5 = 36$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = 36^{-\\frac{1}{2}} = \\frac{1}{6}$: $$\\boxed{\\dfrac{1}{6}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$8^{\\frac{2}{3}} = (2^3)^{\\frac{2}{3}} = 4$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{1}{9}\\right)^{-\\frac{3}{2}} = 9^{\\frac{3}{2}} = 27$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al treilea termen: $$\\sqrt{125^{\\frac{2}{3}}} = \\sqrt{5^2} = 5$$", puncte_maxime: 1 },
+      { descriere: "Calcularea sumei termenilor din paranteză: $$4 + 27 + 5 = 36$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 36^{-\\frac{1}{2}} = \\boxed{\\frac{1}{6}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1431,9 +1428,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 8 - \\left(\\frac{1}{3\\sqrt{2}}\\right)^{-2}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{\\sqrt{2}} 8 = \\log_{2^{\\frac{1}{2}}} 2^3 = \\frac{3}{\\frac{1}{2}} = 6$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{1}{3\\sqrt{2}}\\right)^{-2} = (3\\sqrt{2})^2 = 9\\cdot2 = 18$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 6 - 18 = \\boxed{-12}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{\\sqrt{2}} 8 = \\log_{2^{\\frac{1}{2}}} 2^3 = \\frac{3}{\\frac{1}{2}} = 6$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{1}{3\\sqrt{2}}\\right)^{-2} = (3\\sqrt{2})^2 = 9\\cdot2 = 18$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 6 - 18 = \\boxed{-12}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{\\sqrt{2}} 8 = \\log_{2^{\\frac{1}{2}}} 2^3 = 6$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\frac{1}{3\\sqrt{2}}\\right)^{-2} = (3\\sqrt{2})^2 = 18$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 6 - 18 = \\boxed{-12}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1445,10 +1442,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{9^{-3}\\cdot 27^2}{\\left(\\log_{\\sqrt{2}} 2\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorii numărătorului: $$9^{-3}\\cdot 27^2 = (3^2)^{-3}\\cdot (3^3)^2 = 3^{-6}\\cdot 3^6 = 3^0 = 1$$\n\n**Pasul 2.** Calcularea valorii logaritmului: $$\\log_{\\sqrt{2}} 2 = \\log_{2^{\\frac{1}{2}}} 2 = 2$$\n\n**Pasul 3.** Calcularea valorii numitorului: $$(\\log_{\\sqrt{2}} 2)^{-2} = 2^{-2} = \\frac{1}{4}$$\n\n**Pasul 4.** Determinarea valorii expresiei, egală cu $4$: $$E = \\frac{1}{\\frac{1}{4}} = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea valorii numărătorului: $$9^{-3}\\cdot 27^2 = (3^2)^{-3}\\cdot (3^3)^2 = 3^{-6}\\cdot 3^6 = 3^0 = 1$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\sqrt{2}} 2 = \\log_{2^{\\frac{1}{2}}} 2 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii numitorului: $$(\\log_{\\sqrt{2}} 2)^{-2} = 2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $4$: $$E = \\frac{1}{\\frac{1}{4}} = \\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii numărătorului: $$9^{-3}\\cdot 27^2 = (3^2)^{-3}\\cdot (3^3)^2 = 3^{-6}\\cdot 3^6 = 3^0 = 1$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{\\sqrt{2}} 2 = \\log_{2^{\\frac{1}{2}}} 2 = 2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii numitorului: $$(\\log_{\\sqrt{2}} 2)^{-2} = 2^{-2} = \\frac{1}{4}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{\\frac{1}{4}} = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1460,8 +1457,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{9-\\sqrt{17}}\\cdot\\sqrt[3]{9+\\sqrt{17}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$:$$E = \\sqrt[3]{(9-\\sqrt{17})(9+\\sqrt{17})} = \\sqrt[3]{9^2 - (\\sqrt{17})^2} = \\sqrt[3]{81-17}$$**Pasul 2.** Calcularea valorii expresiei:$$\\sqrt[3]{64} = 4$$$$\\boxed{4}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$E = \\sqrt[3]{(9-\\sqrt{17})(9+\\sqrt{17})} = \\sqrt[3]{9^2 - (\\sqrt{17})^2} = \\sqrt[3]{81-17}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$\\sqrt[3]{64} = \\boxed{4}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății radicalilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$E = \\sqrt[3]{(9-\\sqrt{17})(9+\\sqrt{17})} = \\sqrt[3]{9^2 - (\\sqrt{17})^2} = \\sqrt[3]{81-17}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii expresiei: $$\\sqrt[3]{64} = \\boxed{4}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1473,9 +1470,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 18 - \\log_3 4$$',
     solution: '**Pasul 1.** Transformarea primului termen al expresiei: $\\log_{\\sqrt{3}} 18 = \\log_{3^{\\frac{1}{2}}} 18 = 2\\log_3 18\n\n**Pasul 2.** Simplificarea expresiei folosind proprietățile logaritmilor: $E = 2\\log_3 18 - \\log_3 4 = \\log_3 18^2 - \\log_3 4 = \\log_3 324 - \\log_3 4 = \\log_3 \\frac{324}{4} = \\log_3 81\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $4$: $\\log_3 81 = \\boxed{4}$',
     barem: [
-      { descriere: 'Transformarea primului termen al expresiei: $\\log_{\\sqrt{3}} 18 = \\log_{3^{\\frac{1}{2}}} 18 = 2\\log_3 18$', puncte_maxime: 3 },
-      { descriere: 'Simplificarea expresiei folosind proprietățile logaritmilor: $E = 2\\log_3 18 - \\log_3 4 = \\log_3 18^2 - \\log_3 4 = \\log_3 324 - \\log_3 4 = \\log_3 \\frac{324}{4} = \\log_3 81$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $4$: $\\log_3 81 = \\boxed{4}$', puncte_maxime: 1 }
+      { descriere: "Obținerea egalității $$\\log_{\\sqrt{3}} 18 = 2\\log_3 18$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților logaritmilor pentru simplificarea expresiei: $$2\\log_3 18 - \\log_3 4 = \\log_3 18^2 - \\log_3 4 = \\log_3 324 - \\log_3 4 = \\log_3 81$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\log_3 81 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1487,9 +1484,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} - \\left(\\log_3 27\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen al expresiei: $$\\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\\right)^2 = \\frac{4}{3}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3 \\Rightarrow \\left(\\log_3 27\\right)^{-1} = 3^{-1} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\frac{3}{3} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} = \\left(\\frac{2}{\\sqrt{3}}\\right)^2 = \\frac{4}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\left(\\log_3 27\\right)^{-1} = 3^{-1} = \\frac{1}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\frac{3}{3} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$\\left(\\frac{\\sqrt{3}}{2}\\right)^{-2} = \\frac{4}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$\\left(\\log_3 27\\right)^{-1} = \\frac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{4}{3} - \\frac{1}{3} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1513,9 +1510,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{3+\\log_2 5} + 3^{\\log_9 16}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$2^{3+\\log_2 5} = 2^3\\cdot 2^{\\log_2 5} = 8\\cdot5 = 40$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$3^{\\log_9 16} = 3^{2\\log_3 2} = (3^{\\log_3 2})^2 = 2^2 = 4$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = 40 + 4 = \\boxed{44}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$2^{3+\\log_2 5} = 2^3\\cdot 2^{\\log_2 5} = 8\\cdot5 = 40$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$3^{\\log_9 16} = 3^{2\\log_3 2} = (3^{\\log_3 2})^2 = 2^2 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 40 + 4 = \\boxed{44}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei părți a expresiei: $$2^{3+\\log_2 5} = 2^3\\cdot 2^{\\log_2 5} = 8\\cdot5 = 40$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua părți a expresiei: $$3^{\\log_9 16} = 3^{2\\log_3 2} = (3^{\\log_3 2})^2 = 2^2 = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 40 + 4 = \\boxed{44}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1527,9 +1524,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{2+\\log_4 25} - 2^{\\frac{3}{\\log_5 2}}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$2^{2+\\log_4 25} = 2^{2+\\log_{2^2} 5^2} = 2^{2+\\log_2 5} = 2^2 \\cdot 2^{\\log_2 5} = 4 \\cdot 5 = 20$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$2^{\\frac{3}{\\log_5 2}} = 2^{3\\log_2 5} = (2^{\\log_2 5})^3 = 5^3 = 125$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = 20 - 125 = \\boxed{-105}$$',
     barem: [
-      { descriere: '$$\\log_4 25 = \\log_{2^2} 5^2 = \\log_2 5 \\Rightarrow 2^{2+\\log_2 5} = 4\\cdot5 = 20$$', puncte_maxime: 2 },
-      { descriere: '$$\\frac{3}{\\log_5 2} = 3\\log_2 5 \\Rightarrow 2^{3\\log_2 5} = (2^{\\log_2 5})^3 = 5^3 = 125$$', puncte_maxime: 2 },
-      { descriere: '$$E = 20 - 125 = \\boxed{-105}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$2^{2+\\log_4 25} = 2^{2+\\log_{2^2} 5^2} = 2^{2+\\log_2 5} = 4 \\cdot 5 = 20$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$2^{\\frac{3}{\\log_5 2}} = 2^{3\\log_2 5} = 5^3 = 125$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 20 - 125 = \\boxed{-105}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1541,8 +1538,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{14}{3}\\right)^{\\frac{3}{2}}\\cdot\\left(\\frac{7}{6}\\right)^{-1{,}5}$$',
     solution: '**Pasul 1.** Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\\right)^{\\frac{3}{2}}$$ \n\n**Pasul 2.** Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\\right)^{\\frac{3}{2}} = \\left(\\frac{2\\cdot 7}{3}\\cdot\\frac{2\\cdot 3}{7}\\right)^{\\frac{3}{2}} = (2\\cdot 2)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = (2^2)^{\\frac{3}{2}} = 2^3 = \\boxed{8}$$',
     barem: [
-      { descriere: 'Transformarea termenului cu exponent negativ: $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\\right)^{\\frac{3}{2}}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = \\left(\\frac{14}{3}\\cdot\\frac{6}{7}\\right)^{\\frac{3}{2}} = 4^{\\frac{3}{2}} = \\boxed{8}$$', puncte_maxime: 2 }
+      { descriere: "Obținerea egalității $$\\left(\\frac{7}{6}\\right)^{-1{,}5} = \\left(\\frac{6}{7}\\right)^{\\frac{3}{2}}$$", puncte_maxime: 1 },
+      { descriere: "Aplicarea proprietății înmulțirii puterilor cu același exponent și obținerea expresiei $$\\left(\\frac{14}{3} \\cdot \\frac{6}{7}\\right)^{\\frac{3}{2}} = 4^{\\frac{3}{2}}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$4^{\\frac{3}{2}} = \\boxed{8}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1554,9 +1552,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{16} 8 + 2^{-2}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{16} 8 = \\log_{2^4} 2^3 = \\frac{3}{4}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$ \n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $1$: $$E = \\frac{3}{4} + \\frac{1}{4} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{16} 8 = \\log_{2^4} 2^3 = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $1$: $$E = \\frac{3}{4} + \\frac{1}{4} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{16} 8 = \\log_{2^4} 2^3 = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{3}{4} + \\frac{1}{4} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1568,9 +1566,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\frac{27}{64}} - 2$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen:\n$$2^{-2} = \\frac{1}{4}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen:\n$$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1595,9 +1593,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[4]{3^{(\\sqrt{3}-1)^2}\\cdot 9^{\\sqrt{3}}}$$',
     solution: '**Pasul 1.** Calcularea exponentului: $$(\\sqrt{3}-1)^2 = 3 - 2\\sqrt{3} + 1 = 4-2\\sqrt{3}$$\n\n**Pasul 2.** Simplificarea expresiei de sub radical: $$3^{4-2\\sqrt{3}}\\cdot 9^{\\sqrt{3}} = 3^{4-2\\sqrt{3}}\\cdot 3^{2\\sqrt{3}} = 3^{4-2\\sqrt{3}+2\\sqrt{3}} = 3^4 = 81$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\sqrt[4]{81} = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea exponentului: $$(\\sqrt{3}-1)^2 = 4-2\\sqrt{3}$$', puncte_maxime: 2 },
-      { descriere: 'Simplificarea expresiei de sub radical: $$3^{4-2\\sqrt{3}}\\cdot 3^{2\\sqrt{3}} = 3^4 = 81$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt[4]{81} = \\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea exponentului: $$(\\sqrt{3}-1)^2 = 4-2\\sqrt{3}$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea expresiei de sub radical: $$3^{4-2\\sqrt{3}}\\cdot 9^{\\sqrt{3}} = 3^4 = 81$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt[4]{81} = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1609,11 +1607,10 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{1}{10}\\right)^{-2} + \\left(16^{\\frac{3}{4}}\\right)^2\\cdot 81^{\\frac{1}{2}}}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $(\\frac{1}{10})^{-2} = 100\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $16^{\\frac{3}{4}} = 8$, deci $(16^{\\frac{3}{4}})^2 = 8^2 = 64$\n\n**Pasul 3.** Calcularea valorii celui de-al treilea termen: $81^{\\frac{1}{2}} = 9$\n\n**Pasul 4.** Substituirea valorilor calculate în expresie și efectuarea înmulțirii: $E = \\sqrt{100 + 64 \\cdot 9} = \\sqrt{100 + 576}$\n\n**Pasul 5.** Efectuarea adunării și extragerea rădăcinii pătrate: $E = \\sqrt{676} = \\boxed{26}$',
     barem: [
-      { descriere: 'Calcularea valorii termenului $(\\frac{1}{10})^{-2} = 100$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii termenului $(16^{\\frac{3}{4}})^2 = 64$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii termenului $81^{\\frac{1}{2}} = 9$', puncte_maxime: 1 },
-      { descriere: 'Substituirea valorilor în expresie și efectuarea înmulțirii: $E = \\sqrt{100 + 64 \\cdot 9} = \\sqrt{100 + 576}$', puncte_maxime: 1 },
-      { descriere: 'Efectuarea adunării și extragerea rădăcinii pătrate: $E = \\sqrt{676} = 26$: $$\\boxed{26}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\left(\\frac{1}{10}\\right)^{-2} = 100$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$16^{\\frac{3}{4}} = 8$$, de unde $$\\left(16^{\\frac{3}{4}}\\right)^2 = 64$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al treilea termen: $$81^{\\frac{1}{2}} = 9$$", puncte_maxime: 1 },
+      { descriere: "Substituirea valorilor în expresie, efectuarea calculelor sub radical și determinarea valorii finale a expresiei: $$E = \\sqrt{100 + 64 \\cdot 9} = \\sqrt{676} = \\boxed{26}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1625,9 +1622,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} - \\left(\\frac{3}{\\sqrt{7}}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorii primei expresii: $$\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} = \\left(\\left(\\frac{3}{4}\\right)^3\\right)^{-\\frac{2}{3}} = \\left(\\frac{3}{4}\\right)^{-2} = \\left(\\frac{4}{3}\\right)^2 = \\frac{16}{9}$$**Pasul 2.** Calcularea valorii celei de-a doua expresii: $$\\left(\\frac{3}{\\sqrt{7}}\\right)^{-2} = \\left(\\frac{\\sqrt{7}}{3}\\right)^2 = \\frac{7}{9}$$**Pasul 3.** Determinarea valorii finale a expresiei: $$E = \\sqrt{\\frac{16}{9} - \\frac{7}{9}} = \\sqrt{\\frac{9}{9}} = \\sqrt{1} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primei expresii: $\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} = \\left(\\frac{4}{3}\\right)^2 = \\frac{16}{9}$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celei de-a doua expresii: $\\left(\\frac{3}{\\sqrt{7}}\\right)^{-2} = \\left(\\frac{\\sqrt{7}}{3}\\right)^2 = \\frac{7}{9}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $E = \\sqrt{\\frac{16}{9} - \\frac{7}{9}} = \\sqrt{1} = 1$: $$\\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei expresii: $$\\left(\\frac{27}{64}\\right)^{-\\frac{2}{3}} = \\frac{16}{9}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a doua expresii: $$\\left(\\frac{3}{\\sqrt{7}}\\right)^{-2} = \\frac{7}{9}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\sqrt{\\frac{16}{9} - \\frac{7}{9}} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1639,9 +1636,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 3^{\\log_{27} 8} - \\sqrt[3]{0{,}027}$$',
     solution: '**Pasul 1.** Calcularea primului termen al expresiei:$$3^{\\log_{27} 8} = 3^{\\log_{3^3} 2^3} = 3^{\\log_3 2} = 2$$**Pasul 2.** Calcularea celui de-al doilea termen al expresiei:$$\\sqrt[3]{0{,}027} = \\sqrt[3]{\\frac{27}{1000}} = \\frac{3}{10}$$**Pasul 3.** Determinarea valorii finale a expresiei:$$E = 2 - \\frac{3}{10} = 2 - 0{,}3 = \\boxed{1{,}7}$$',
     barem: [
-      { descriere: 'Calcularea primului termen al expresiei:$$3^{\\log_{27} 8} = 3^{\\log_{3^3} 2^3} = 3^{\\log_3 2} = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen al expresiei:$$\\sqrt[3]{0{,}027} = \\sqrt[3]{\\frac{27}{1000}} = \\frac{3}{10}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei:$$E = 2 - \\frac{3}{10} = 2 - 0{,}3 = \\boxed{1{,}7}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$3^{\\log_{27} 8} = 3^{\\log_{3^3} 2^3} = 3^{\\log_3 2} = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$\\sqrt[3]{0{,}027} = \\sqrt[3]{\\frac{27}{1000}} = \\frac{3}{10}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 2 - \\frac{3}{10} = 2 - 0{,}3 = \\boxed{1{,}7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1653,9 +1650,9 @@ BM.EXERCISES = [
     statement: 'Calculați media aritmetică a numerelor $a$ și $b$:\n$$a = \\sqrt{81}+\\sqrt[3]{-64}+16^{\\frac{3}{4}}, \\quad b = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_3\\frac{1}{2}}$$\n$$E = \\dfrac{a+b}{2}$$',
     solution: '**Pasul 1.** Calcularea valorii numărului $a$:\n$$a = \\sqrt{81}+\\sqrt[3]{-64}+16^{\\frac{3}{4}} = 9 + (-4) + (2^4)^{\\frac{3}{4}} = 9 - 4 + 2^3 = 9 - 4 + 8 = 13$$\n\n**Pasul 2.** Calcularea valorii numărului $b$:\n$$b = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_3\\frac{1}{2}} = 3 - \\sqrt{\\frac{25}{4}} + \\frac{1}{2} = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - \\frac{4}{2} = 3 - 2 = 1$$\n\n**Pasul 3.** Calcularea mediei aritmetice a numerelor $a$ și $b$:\n$$E = \\frac{a+b}{2} = \\frac{13+1}{2} = \\frac{14}{2} = \\boxed{7}$$',
     barem: [
-      { descriere: 'Calcularea valorii numărului $a$: $$a = \\sqrt{81}+\\sqrt[3]{-64}+16^{\\frac{3}{4}} = 9 + (-4) + (2^4)^{\\frac{3}{4}} = 9 - 4 + 2^3 = 9 - 4 + 8 = 13$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii numărului $b$: $$b = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_3\\frac{1}{2}} = 3 - \\sqrt{\\frac{25}{4}} + \\frac{1}{2} = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - \\frac{4}{2} = 3 - 2 = 1$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea mediei aritmetice a numerelor $a$ și $b$: $$E = \\frac{a+b}{2} = \\frac{13+1}{2} = \\frac{14}{2} = \\boxed{7}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii numărului $a$:\n$$a = \\sqrt{81}+\\sqrt[3]{-64}+16^{\\frac{3}{4}} = 9 - 4 + 8 = 13$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii numărului $b$:\n$$b = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_3\\frac{1}{2}} = 3 - \\frac{5}{2} + \\frac{1}{2} = 1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii mediei aritmetice $E$:\n$$E = \\frac{a+b}{2} = \\frac{13+1}{2} = \\boxed{7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1667,9 +1664,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{1}{2}\\lg 36 + \\log_{0{,}1} 60$$',
     solution: '**Pasul 1.** Simplificarea primului termen: $$\\frac{1}{2}\\lg 36 = \\lg 36^{1/2} = \\lg \\sqrt{36} = \\lg 6$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen: $$\\log_{0{,}1} 60 = \\log_{10^{-1}} 60 = -\\lg 60$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\lg 6 - \\lg 60 = \\lg \\frac{6}{60} = \\lg \\frac{1}{10} = -1$$$$\\boxed{-1}$$',
     barem: [
-      { descriere: 'Simplificarea primului termen: $$\\frac{1}{2}\\lg 36 = \\lg 6$$', puncte_maxime: 2 },
-      { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{0{,}1} 60 = \\log_{10^{-1}} 60 = -\\lg 60$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\lg 6 - \\lg 60 = \\lg \\frac{1}{10} = \\boxed{-1}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea primului termen: $$\\frac{1}{2}\\lg 36 = \\lg 6$$", puncte_maxime: 2 },
+      { descriere: "Transformarea celui de-al doilea termen: $$\\log_{0{,}1} 60 = -\\lg 60$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\lg 6 - \\lg 60 = \\lg \\frac{1}{10} = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1681,9 +1678,9 @@ BM.EXERCISES = [
     statement: 'Arătați că numărul $a$ este un pătrat perfect:\n$$a = 4^{\\log_2\\sqrt{7}} + \\log_5 75 - \\log_5 3$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei:\n$$4^{\\log_2\\sqrt{7}} = (2^2)^{\\log_2\\sqrt{7}} = 2^{2\\log_2\\sqrt{7}} = 2^{\\log_2(\\sqrt{7})^2} = 2^{\\log_2 7} = 7$$\n\n**Pasul 2.** Calcularea diferenței de logaritmi:\n$$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$\n\n**Pasul 3.** Determinarea valorii lui $a$ și demonstrarea că este un pătrat perfect:\n$$a = 7 + 2 = 9 = 3^2 \\Rightarrow \\boxed{a = 9 \\text{ este pătrat perfect}}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$4^{\\log_2\\sqrt{7}} = (2^2)^{\\log_2\\sqrt{7}} = 2^{2\\log_2\\sqrt{7}} = 2^{\\log_2(\\sqrt{7})^2} = 2^{\\log_2 7} = 7$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii lui $a$ și demonstrarea că este un pătrat perfect: $$a = 7 + 2 = 9 = 3^2 \\Rightarrow a = 9 \\text{ este pătrat perfect}$$: $$\\boxed{a = 9 \\text{ este pătrat perfect}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei părți a expresiei: $$4^{\\log_2\\sqrt{7}} = (2^2)^{\\log_2\\sqrt{7}} = 2^{\\log_2 7} = 7$$", puncte_maxime: 2 },
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii lui $a$ și demonstrarea că este un pătrat perfect: $$a = 7 + 2 = 9 = 3^2 \\Rightarrow \\boxed{a = 9 \\text{ este pătrat perfect}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1695,9 +1692,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = 49^{1-\\log_7 2} + 5^{-\\log_5 4}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen al expresiei:\n$$49^{1-\\log_7 2} = 7^2\\cdot(7^{\\log_7 2})^{-2} = 49\\cdot2^{-2} = \\frac{49}{4}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen al expresiei:\n$$5^{-\\log_5 4} = 4^{-1} = \\frac{1}{4}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$a = \\frac{49}{4} + \\frac{1}{4} = \\frac{50}{4} = \\boxed{\\frac{25}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii $49^{1-\\log_7 2}$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii $5^{-\\log_5 4}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\boxed{\\frac{25}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$49^{1-\\log_7 2} = 7^2\\cdot(7^{\\log_7 2})^{-2} = 49\\cdot2^{-2} = \\frac{49}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$5^{-\\log_5 4} = 4^{-1} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$a = \\frac{49}{4} + \\frac{1}{4} = \\frac{50}{4} = \\boxed{\\frac{25}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1709,8 +1706,8 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 9 - 9$$',
     solution: '**Pasul 1.** Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} 9 = \\log_{3^{\\frac{1}{2}}} 3^2 = \\frac{2}{\\frac{1}{2}} = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = 4 - 9 = \\boxed{-5}$$',
     barem: [
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} 9 = \\log_{3^{\\frac{1}{2}}} 3^2 = \\frac{2}{\\frac{1}{2}} = 4$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 4 - 9 = \\boxed{-5}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} 9 = \\log_{3^{\\frac{1}{2}}} 3^2 = \\frac{2}{\\frac{1}{2}} = 4$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = 4 - 9 = \\boxed{-5}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1722,8 +1719,8 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\frac{7}{8} - 16^{-\\frac{3}{4}}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului $16^{-\\frac{3}{4}}$:\n$$16^{-\\frac{3}{4}} = (2^4)^{-\\frac{3}{4}} = 2^{-3} = \\frac{1}{8}$$\n\n**Pasul 2.** Determinarea valorii expresiei $E$:\n$$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\boxed{\\frac{3}{4}}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului $16^{-\\frac{3}{4}}$: $$16^{-\\frac{3}{4}} = (2^4)^{-\\frac{3}{4}} = 2^{-3} = \\frac{1}{8}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\boxed{\\frac{3}{4}}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii termenului $$16^{-\\frac{3}{4}} = (2^4)^{-\\frac{3}{4}} = 2^{-3} = \\frac{1}{8}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei $$E = \\frac{7}{8} - \\frac{1}{8} = \\frac{6}{8} = \\boxed{\\frac{3}{4}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1735,8 +1732,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\frac{\\sqrt[5]{625}}{25^{-\\frac{1}{10}}}$$',
     solution: '**Pasul 1.** Transformarea radicalului și a puterii în puteri ale bazei 5:$$\\sqrt[5]{625} = 5^{\\frac{4}{5}}$$ $$25^{-\\frac{1}{10}} = 5^{-\\frac{1}{5}}$$ \n\n**Pasul 2.** Calcularea valorii expresiei:$$E = \\frac{5^{\\frac{4}{5}}}{5^{-\\frac{1}{5}}} = 5^{\\frac{4}{5}+\\frac{1}{5}} = 5^1 = \\boxed{5}$$',
     barem: [
-      { descriere: 'Transformarea radicalului și a puterii în puteri ale bazei 5: $$\\sqrt[5]{625} = 5^{\\frac{4}{5}}$$ $$25^{-\\frac{1}{10}} = 5^{-\\frac{1}{5}}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii expresiei: $$E = \\frac{5^{\\frac{4}{5}}}{5^{-\\frac{1}{5}}} = 5^{\\frac{4}{5}+\\frac{1}{5}} = 5^1 = \\boxed{5}$$', puncte_maxime: 2 }
+      { descriere: "Scrierea radicalului ca putere cu baza 5: $$\\sqrt[5]{625} = 5^{\\frac{4}{5}}$$", puncte_maxime: 2 },
+      { descriere: "Scrierea puterii ca putere cu baza 5: $$25^{-\\frac{1}{10}} = 5^{-\\frac{1}{5}}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei: $$E = \\frac{5^{\\frac{4}{5}}}{5^{-\\frac{1}{5}}} = 5^{\\frac{4}{5}+\\frac{1}{5}} = 5^1 = \\boxed{5}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1748,9 +1746,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = 81^{\\frac{3}{4}} - \\left(\\frac{1}{\\log_3 27}\\right)^{-3}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\frac{1}{\\log_3 27} = \\frac{1}{3} \\Rightarrow \\left(\\frac{1}{\\log_3 27}\\right)^{-3} = \\left(\\frac{1}{3}\\right)^{-3} = 3^3 = 27$$ \n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $0$: $$E = 27 - 27 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\frac{1}{\\log_3 27} = \\frac{1}{3} \\Rightarrow \\left(\\frac{1}{\\log_3 27}\\right)^{-3} = \\left(\\frac{1}{3}\\right)^{-3} = 3^3 = 27$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$: $$E = 27 - 27 = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 27$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_3 27 = 3 \\Rightarrow \\left(\\frac{1}{\\log_3 27}\\right)^{-3} = 27$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1762,8 +1760,8 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_9\\sqrt{27} - 0{,}75$$',
     solution: '**Pasul 1.** Calcularea valorii termenului logaritmic: $$\\log_9\\sqrt{27} = \\log_{3^2} 3^{\\frac{3}{2}} = \\frac{3}{4}$$\n\n**Pasul 2.** Determinarea valorii expresiei, egală cu $0$: $$E = \\frac{3}{4} - 0{,}75 = \\frac{3}{4} - \\frac{3}{4} = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului logaritmic: $$\\log_9\\sqrt{27} = \\log_{3^2} 3^{\\frac{3}{2}} = \\frac{3}{4}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $0$: $$E = \\frac{3}{4} - 0{,}75 = \\frac{3}{4} - \\frac{3}{4} = \\boxed{0}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii termenului logaritmic: $$\\log_9\\sqrt{27} = \\log_{3^2} 3^{\\frac{3}{2}} = \\frac{3}{4}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{0}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1775,9 +1773,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{\\left(\\frac{1}{13}\\right)^{-2} - 125^{\\frac{2}{3}}}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$\\left(\\frac{1}{13}\\right)^{-2} = 13^2 = 169$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\sqrt{169-25} = \\sqrt{144} = \\boxed{12}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\left(\\frac{1}{13}\\right)^{-2} = 13^2 = 169$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{169-25} = \\sqrt{144} = \\boxed{12}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei părți a expresiei: $$\\left(\\frac{1}{13}\\right)^{-2} = 169$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = 25$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{169-25} = \\sqrt{144} = \\boxed{12}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1789,9 +1787,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\log_{36} 216^{\\frac{1}{2}} - 2^{-2}$$',
     solution: '**Pasul 1.** Simplificarea primului termen al expresiei:$$\\log_{36} 216^{\\frac{1}{2}} = \\log_{6^2} (6^3)^{\\frac{1}{2}} = \\log_{6^2} 6^{\\frac{3}{2}} = \\frac{3}{4}$$**Pasul 2.** Calcularea celui de-al doilea termen al expresiei:$$2^{-2} = \\frac{1}{4}$$**Pasul 3.** Determinarea valorii finale a expresiei:$$E = \\frac{3}{4} - \\frac{1}{4} = \\boxed{\\dfrac{1}{2}}$$',
     barem: [
-      { descriere: 'Simplificarea primului termen al expresiei: $$\\log_{36} 216^{\\frac{1}{2}} = \\log_{6^2} (6^3)^{\\frac{1}{2}} = \\log_{6^2} 6^{\\frac{3}{2}} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen al expresiei: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = \\frac{3}{4} - \\frac{1}{4} = \\boxed{\\dfrac{1}{2}}$$', puncte_maxime: 1 }
+      { descriere: "Simplificarea primului termen și obținerea: $$\\log_{36} 216^{\\frac{1}{2}} = \\log_{6^2} 6^{\\frac{3}{2}} = \\frac{3}{4}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea celui de-al doilea termen al expresiei: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = \\frac{3}{4} - \\frac{1}{4} = \\boxed{\\frac{1}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1803,9 +1801,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = 9^{\\log_3 7} + \\log_{\\frac{1}{5}} 125$$',
     solution: '**Pasul 1.** Calcularea primului termen al expresiei: $$9^{\\log_3 7} = (3^2)^{\\log_3 7} = (3^{\\log_3 7})^2 = 7^2 = 49$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen al expresiei: $$\\log_{\\frac{1}{5}} 125 = \\log_{5^{-1}} 5^3 = \\frac{3}{-1} = -3$$\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $46$: $$E = 49 + (-3) = \\boxed{46}$$',
     barem: [
-      { descriere: 'Calcularea primului termen al expresiei: $$9^{\\log_3 7} = (3^2)^{\\log_3 7} = (3^{\\log_3 7})^2 = 7^2 = 49$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen al expresiei: $$\\log_{\\frac{1}{5}} 125 = \\log_{5^{-1}} 5^3 = \\frac{3}{-1} = -3$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $46$: $$E = 49 + (-3) = \\boxed{46}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen al expresiei: $$9^{\\log_3 7} = (3^2)^{\\log_3 7} = 49$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen al expresiei: $$\\log_{\\frac{1}{5}} 125 = \\log_{5^{-1}} 5^3 = -3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei, egală cu $$\\boxed{46}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1817,9 +1815,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{64^{\\frac{1}{3}} + \\log_2 \\frac{1}{16}}$$',
     solution: '**Pasul 1.** Calcularea valorii primei componente: $$64^{\\frac{1}{3}} = 4$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua componente: $$\\log_2 \\frac{1}{16} = \\log_2 2^{-4} = -4$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\sqrt{4+(-4)} = \\sqrt{0} = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea valorii $64^{\\frac{1}{3}}$: $$64^{\\frac{1}{3}} = 4$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii $\\log_2 \\frac{1}{16}$: $$\\log_2 \\frac{1}{16} = \\log_2 2^{-4} = -4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{4+(-4)} = \\sqrt{0} = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primei componente: $$64^{\\frac{1}{3}} = 4$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celei de-a doua componente: $$\\log_2 \\frac{1}{16} = -4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{4 + (-4)} = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1831,9 +1829,9 @@ BM.EXERCISES = [
     statement: 'Arătați că numărul $a$ este întreg:\n$$a = \\log_{16} 64 + 8^{-\\frac{1}{3}}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_{16} 64 = \\log_{2^4} 2^6 = \\frac{6}{4} = \\frac{3}{2}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = 2^{-1} = \\frac{1}{2}$$\n\n**Pasul 3.** Determinarea valorii expresiei $a$ și verificarea că este un număr întreg: $$a = \\frac{3}{2} + \\frac{1}{2} = \\boxed{2 \\in \\mathbb{Z}}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$\\log_{16} 64 = \\log_{2^4} 2^6 = \\frac{6}{4} = \\frac{3}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = 2^{-1} = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei $a$ și verificarea că este un număr întreg: $$a = \\frac{3}{2} + \\frac{1}{2} = \\boxed{2 \\in \\mathbb{Z}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_{16} 64 = \\log_{2^4} 2^6 = \\frac{3}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$8^{-\\frac{1}{3}} = (2^3)^{-\\frac{1}{3}} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei $a$ și verificarea că este un număr întreg: $$a = \\frac{3}{2} + \\frac{1}{2} = \\boxed{2 \\in \\mathbb{Z}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1845,9 +1843,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{(\\sqrt{3}-1)^2} - \\sqrt{27} + 1$$',
     solution: '**Pasul 1.** Simplificarea primului termen: $$\\sqrt{(\\sqrt{3}-1)^2} = |\\sqrt{3}-1| = \\sqrt{3}-1 \\quad (\\text{deoarece }\\sqrt{3}>1)$$\n\n**Pasul 2.** Simplificarea celui de-al doilea termen: $$\\sqrt{27} = 3\\sqrt{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\sqrt{3}-1 - 3\\sqrt{3} + 1 = \\boxed{-2\\sqrt{3}}$$',
     barem: [
-      { descriere: 'Simplificarea primului termen: $\\sqrt{(\\sqrt{3}-1)^2} = |\\sqrt{3}-1| = \\sqrt{3}-1 \\quad (\\text{deoarece }\\sqrt{3}>1)$', puncte_maxime: 2 },
-      { descriere: 'Simplificarea celui de-al doilea termen: $\\sqrt{27} = 3\\sqrt{3}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-2\\sqrt{3}}$', puncte_maxime: 1 }
+      { descriere: "Simplificarea primului termen: $$\\sqrt{(\\sqrt{3}-1)^2} = |\\sqrt{3}-1| = \\sqrt{3}-1$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea celui de-al doilea termen: $$\\sqrt{27} = 3\\sqrt{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{3}-1 - 3\\sqrt{3} + 1 = \\boxed{-2\\sqrt{3}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1859,10 +1857,10 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt[3]{2^{(\\sqrt{2}-1)^2}\\cdot 4^{\\sqrt{2}}}$$',
     solution: '**Pasul 1.** Calcularea pătratului binomului:$$(\\sqrt{2}-1)^2 = 2 - 2\\sqrt{2} + 1 = 3 - 2\\sqrt{2}$$\n\n**Pasul 2.** Transformarea factorului $4^{\\sqrt{2}}$ într-o putere cu baza 2:$$4^{\\sqrt{2}} = (2^2)^{\\sqrt{2}} = 2^{2\\sqrt{2}}$$\n\n**Pasul 3.** Efectuarea produsului puterilor cu aceeași bază:$$2^{3-2\\sqrt{2}}\\cdot 2^{2\\sqrt{2}} = 2^{(3-2\\sqrt{2}) + 2\\sqrt{2}} = 2^3 = 8$$\n\n**Pasul 4.** Determinarea valorii expresiei:$$E = \\sqrt[3]{8} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea pătratului binomului: $(\\sqrt{2}-1)^2 = 2 - 2\\sqrt{2} + 1 = 3 - 2\\sqrt{2}$', puncte_maxime: 1 },
-      { descriere: 'Transformarea factorului $4^{\\sqrt{2}}$ într-o putere cu baza 2: $4^{\\sqrt{2}} = (2^2)^{\\sqrt{2}} = 2^{2\\sqrt{2}}$', puncte_maxime: 2 },
-      { descriere: 'Efectuarea produsului puterilor cu aceeași bază: $2^{3-2\\sqrt{2}}\\cdot 2^{2\\sqrt{2}} = 2^{(3-2\\sqrt{2}) + 2\\sqrt{2}} = 2^3 = 8$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $E = \\sqrt[3]{8} = \\boxed{2}$', puncte_maxime: 1 }
+      { descriere: "Calcularea pătratului binomului: $$(\\sqrt{2}-1)^2 = 3 - 2\\sqrt{2}$$", puncte_maxime: 1 },
+      { descriere: "Scrierea factorului $$4^{\\sqrt{2}}$$ ca putere cu baza 2: $$4^{\\sqrt{2}} = 2^{2\\sqrt{2}}$$", puncte_maxime: 1 },
+      { descriere: "Efectuarea produsului puterilor cu aceeași bază: $$2^{3-2\\sqrt{2}}\\cdot 2^{2\\sqrt{2}} = 2^3 = 8$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt[3]{8} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1874,9 +1872,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = 3^{\\log_{\\sqrt{3}} \\text{tg}\\,60^\\circ}$$',
     solution: '**Pasul 1.** Calcularea valorii tangentei: $$\\text{tg}\\,60^\\circ = \\sqrt{3}$$\n\n**Pasul 2.** Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} \\sqrt{3} = 1$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 3^1 = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea valorii tangentei: $$\\text{tg}\\,60^\\circ = \\sqrt{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} \\sqrt{3} = 1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3^1 = \\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii tangentei: $$\\text{tg}\\,60^\\circ = \\sqrt{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii logaritmului: $$\\log_{\\sqrt{3}} \\sqrt{3} = 1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3^1 = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1888,9 +1886,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = 8^{\\frac{1}{\\log_5 4}+1}$$',
     solution: '**Pasul 1.** Aplicarea formulei de schimbare a bazei logaritmului:$$\\frac{1}{\\log_5 4} = \\log_4 5$$\n\n**Pasul 2.** Simplificarea exponentului:$$\\log_4 5 + 1 = \\log_4 5 + \\log_4 4 = \\log_4 (5 \\cdot 4) = \\log_4 20$$\n\n**Pasul 3.** Calcularea valorii expresiei:$$E = 8^{\\log_4 20} = (4^{3/2})^{\\log_4 20} = (4^{\\log_4 20})^{3/2} = 20^{3/2} = 20\\sqrt{20} = \\boxed{40\\sqrt{5}}$$',
     barem: [
-      { descriere: 'Aplicarea formulei de schimbare a bazei logaritmului: $$\\frac{1}{\\log_5 4} = \\log_4 5$$', puncte_maxime: 2 },
-      { descriere: 'Simplificarea exponentului: $$\\log_4 5 + 1 = \\log_4 5 + \\log_4 4 = \\log_4 20$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 8^{\\log_4 20} = (4^{3/2})^{\\log_4 20} = (4^{\\log_4 20})^{3/2} = 20^{3/2} = 20\\sqrt{20} = \\boxed{40\\sqrt{5}}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea formulei de schimbare a bazei logaritmului: $$\\frac{1}{\\log_5 4} = \\log_4 5$$", puncte_maxime: 1 },
+      { descriere: "Simplificarea exponentului: $$\\log_4 5 + 1 = \\log_4 20$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei: $$E = 8^{\\log_4 20} = \\boxed{40\\sqrt{5}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1902,9 +1900,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} + \\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}}$$',
     solution: '**Pasul 1.** Calcularea primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = 9 + 8 = \\boxed{17}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 9 + 8 = \\boxed{17}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\left(\\sqrt[3]{81}\\right)^{\\frac{3}{2}} = (3^{\\frac{4}{3}})^{\\frac{3}{2}} = 3^2 = 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\left(\\sqrt[3]{4}\\right)^{\\frac{9}{2}} = (2^{\\frac{2}{3}})^{\\frac{9}{2}} = 2^3 = 8$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 9 + 8 = \\boxed{17}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1916,9 +1914,9 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\left(-\\frac{1}{5}\\right)^{-2} - 125^{\\frac{2}{3}}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei:$$\\left(-\\frac{1}{5}\\right)^{-2} = (-5)^2 = 25$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei:$$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:$$E = 25 - 25 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\left(-\\frac{1}{5}\\right)^{-2} = (-5)^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 25 - 25 = \\boxed{0}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei părți a expresiei: $$\\left(-\\frac{1}{5}\\right)^{-2} = (-5)^2 = 25$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua părți a expresiei: $$125^{\\frac{2}{3}} = (5^3)^{\\frac{2}{3}} = 5^2 = 25$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 25 - 25 = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1930,8 +1928,8 @@ BM.EXERCISES = [
     statement: 'Determinați valoarea expresiei:\n$$E = \\sqrt{81^{\\frac{3}{4}} + \\left(\\frac{1}{3}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$\n\n**Pasul 2.** Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$',
     barem: [
-      { descriere: 'Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27, \\quad \\left(\\frac{1}{3}\\right)^{-2} = 9$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorilor termenilor din expresie: $$81^{\\frac{3}{4}} = 27$$ și $$\\left(\\frac{1}{3}\\right)^{-2} = 9$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{27+9} = \\sqrt{36} = \\boxed{6}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -1943,10 +1941,10 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei $25^{1+\\log_5 2}$ este un pătrat perfect.',
     solution: '**Pasul 1.** Aplicarea proprietății $a^{x+y} = a^x \\cdot a^y$:\n$$25^{1+\\log_5 2} = 25 \\cdot 25^{\\log_5 2}$$\n\n**Pasul 2.** Transformarea bazei și aplicarea proprietății $(a^x)^y = a^{xy}$:\n$$25 \\cdot 25^{\\log_5 2} = 25 \\cdot (5^2)^{\\log_5 2} = 25 \\cdot (5^{\\log_5 2})^2$$\n\n**Pasul 3.** Aplicarea proprietății $a^{\\log_a b} = b$ și calculul valorii:\n$$25 \\cdot (5^{\\log_5 2})^2 = 25 \\cdot 2^2 = 25 \\cdot 4 = 100$$\n\n**Pasul 4.** Concluzia că valoarea obținută este un pătrat perfect:\n$$\\boxed{100 = 10^2 \\text{ este pătrat perfect}}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății $a^{x+y} = a^x \\cdot a^y$: $25^{1+\\log_5 2} = 25 \\cdot 25^{\\log_5 2}$', puncte_maxime: 1 },
-      { descriere: 'Transformarea bazei și aplicarea proprietății $(a^x)^y = a^{xy}$: $25 \\cdot 25^{\\log_5 2} = 25 \\cdot (5^2)^{\\log_5 2} = 25 \\cdot (5^{\\log_5 2})^2$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea proprietății $a^{\\log_a b} = b$ și calculul valorii: $25 \\cdot (5^{\\log_5 2})^2 = 25 \\cdot 2^2 = 25 \\cdot 4 = 100$', puncte_maxime: 2 },
-      { descriere: 'Concluzia că valoarea obținută este un pătrat perfect: $\\boxed{100 = 10^2 \\text{ este pătrat perfect}}$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății puterii $a^{x+y} = a^x \\cdot a^y$ pentru a scrie expresia sub forma $$25 \\cdot 25^{\\log_5 2}$$", puncte_maxime: 1 },
+      { descriere: "Scrierea bazei $25 = 5^2$ și aplicarea proprietăților puterilor pentru a obține $$25 \\cdot (5^{\\log_5 2})^2$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea identității logaritmice $a^{\\log_a b} = b$ și calcularea valorii expresiei, obținând $100$", puncte_maxime: 1 },
+      { descriere: "Formularea concluziei că valoarea obținută este un pătrat perfect: $$\\boxed{100 = 10^2 \\text{ este pătrat perfect}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1958,8 +1956,9 @@ BM.EXERCISES = [
     statement: 'Calculați media aritmetică a numerelor $a$ și $b$:\n$$E = \\dfrac{a+b}{2}, \\quad a = \\log_2(6-2\\sqrt{5}), \\quad b = \\log_2(6+2\\sqrt{5})$$',
     solution: '**Pasul 1.** Calcularea sumei $a+b$:$$a+b = \\log_2(6-2\\sqrt{5}) + \\log_2(6+2\\sqrt{5}) = \\log_2[(6-2\\sqrt{5})(6+2\\sqrt{5})] = \\log_2[36-20] = \\log_2 16 = 4$$\n\n**Pasul 2.** Determinarea mediei aritmetice $E$:$$E = \\frac{a+b}{2} = \\frac{4}{2} = 2$$\n\n$$\\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea sumei $a+b$:$$a+b = \\log_2[(6-2\\sqrt{5})(6+2\\sqrt{5})] = \\log_2[36-20] = \\log_2 16 = 4$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea mediei aritmetice $E$:$$E = \\frac{4}{2} = \\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății sumei logaritmilor cu aceeași bază: $$a+b = \\log_2[(6-2\\sqrt{5})(6+2\\sqrt{5})]$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea calculelor sub logaritm și determinarea valorii sumei: $$\\log_2(36-20) = \\log_2 16 = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea mediei aritmetice $E$: $$E = \\frac{4}{2} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1971,10 +1970,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 6^{\\log_{36} 49} + \\log_3 27$$',
     solution: '**Pasul 1.** Transformarea bazei logaritmului: $$\\log_{36} 49 = \\log_{6^2} 7^2 = \\log_6 7$$\n\n**Pasul 2.** Calcularea valorii primului termen al expresiei: $$6^{\\log_6 7} = 7$$\n\n**Pasul 3.** Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$E = 7 + 3 = \\boxed{10}$$',
     barem: [
-      { descriere: 'Transformarea bazei logaritmului: $$\\log_{36} 49 = \\log_{6^2} 7^2 = \\log_6 7$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii primului termen al expresiei: $$6^{\\log_6 7} = 7$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 7 + 3 = \\boxed{10}$$', puncte_maxime: 1 }
+      { descriere: "Transformarea bazei logaritmului: $$\\log_{36} 49 = \\log_{6^2} 7^2 = \\log_6 7$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii primului termen al expresiei: $$6^{\\log_6 7} = 7$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$\\log_3 27 = 3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 7 + 3 = \\boxed{10}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -1986,9 +1985,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{9^{-2}\\cdot 81^{\\frac{3}{4}}}{\\left(\\dfrac{1}{3}\\right)^{-1}}$$',
     solution: '**Pasul 1.** Simplificarea termenilor din numărător: $9^{-2} = 3^{-4}$ și $81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3\n\n**Pasul 2.** Simplificarea termenului din numitor: $\\left(\\frac{1}{3}\\right)^{-1} = 3\n\n**Pasul 3.** Substituirea valorilor și calcularea expresiei: $E = \\frac{3^{-4}\\cdot 3^3}{3} = \\frac{3^{-1}}{3} = 3^{-2} = \\boxed{\\dfrac{1}{9}}$',
     barem: [
-      { descriere: 'Simplificarea termenilor din numărător: $9^{-2} = 3^{-4}$ și $81^{\\frac{3}{4}} = (3^4)^{\\frac{3}{4}} = 3^3', puncte_maxime: 2 },
-      { descriere: 'Simplificarea termenului din numitor: $\\left(\\frac{1}{3}\\right)^{-1} = 3', puncte_maxime: 2 },
-      { descriere: 'Substituirea valorilor și calcularea expresiei: $E = \\frac{3^{-4}\\cdot 3^3}{3} = \\frac{3^{-1}}{3} = 3^{-2} = \\boxed{\\dfrac{1}{9}}$', puncte_maxime: 1 }
+      { descriere: "Simplificarea termenilor din numărător: $$9^{-2} = 3^{-4}$$ și $$81^{\\frac{3}{4}} = 3^3$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea termenului din numitor: $$\\left(\\frac{1}{3}\\right)^{-1} = 3$$", puncte_maxime: 1 },
+      { descriere: "Substituirea valorilor și determinarea valorii expresiei: $$E = \\frac{3^{-4}\\cdot 3^3}{3} = \\boxed{\\frac{1}{9}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2000,9 +1999,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{3}} 24 - \\log_9 4^6$$',
     solution: '**Pasul 1.** Transformarea primului termen al expresiei: $$\\log_{\\sqrt{3}} 24 = 2\\log_3 24$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen al expresiei: $$\\log_9 4^6 = \\frac{6\\log_3 4}{2} = 3\\log_3 4$$\n\n**Pasul 3.** Calcularea valorii expresiei: $$E = 2\\log_3 24 - 3\\log_3 4 = \\log_3 24^2 - \\log_3 4^3 = \\log_3 \\frac{576}{64} = \\log_3 9 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea primului termen al expresiei: $$\\log_{\\sqrt{3}} 24 = 2\\log_3 24$$', puncte_maxime: 2 },
-      { descriere: 'Transformarea celui de-al doilea termen al expresiei: $$\\log_9 4^6 = \\frac{6\\log_3 4}{2} = 3\\log_3 4$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii expresiei: $$E = 2\\log_3 24 - 3\\log_3 4 = \\log_3 24^2 - \\log_3 4^3 = \\log_3 \\frac{576}{64} = \\log_3 9 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Transformarea primului termen al expresiei: $$\\log_{\\sqrt{3}} 24 = 2\\log_3 24$$", puncte_maxime: 2 },
+      { descriere: "Transformarea celui de-al doilea termen al expresiei: $$\\log_9 4^6 = \\frac{6\\log_3 4}{2} = 3\\log_3 4$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei: $$E = 2\\log_3 24 - 3\\log_3 4 = \\log_3 24^2 - \\log_3 4^3 = \\log_3 \\frac{576}{64} = \\log_3 9 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2014,8 +2013,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{7+2\\sqrt{10}}\\cdot\\sqrt{7-2\\sqrt{10}}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei diferenței de pătrate pentru a simplifica expresia sub radical:$$E = \\sqrt{(7+2\\sqrt{10})(7-2\\sqrt{10})} = \\sqrt{7^2 - (2\\sqrt{10})^2} = \\sqrt{49 - 4 \\cdot 10} = \\sqrt{49 - 40} = \\sqrt{9}$$ \n\n**Pasul 2.** Calcularea valorii finale a expresiei:$$E = 3$$\\boxed{3}',
     barem: [
-      { descriere: 'Aplicarea proprietății radicalilor și a formulei diferenței de pătrate pentru a simplifica expresia sub radical: $$E = \\sqrt{(7+2\\sqrt{10})(7-2\\sqrt{10})} = \\sqrt{7^2 - (2\\sqrt{10})^2} = \\sqrt{49 - 4 \\cdot 10} = \\sqrt{49 - 40} = \\sqrt{9}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea valorii finale a expresiei: $$E = \\boxed{3}$$', puncte_maxime: 2 }
+      { descriere: "Aplicarea proprietății radicalilor și a formulei diferenței de pătrate pentru a simplifica expresia sub radical: $$E = \\sqrt{(7+2\\sqrt{10})(7-2\\sqrt{10})} = \\sqrt{7^2 - (2\\sqrt{10})^2} = \\sqrt{49 - 40} = \\sqrt{9}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii finale a expresiei: $$E = \\boxed{3}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2027,10 +2026,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_4\\!\\left(\\log_9 81\\right) + \\log_3\\sqrt{3}$$',
     solution: '**Pasul 1.** Calcularea valorii logaritmului interior: $$\\log_9 81 = \\log_{3^2} 3^4 = 2$$\n\n**Pasul 2.** Calcularea valorii primului termen: $$\\log_4 2 = \\log_{2^2} 2 = \\frac{1}{2}$$\n\n**Pasul 3.** Calcularea valorii celui de-al doilea termen: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii logaritmului interior: $$\\log_9 81 = \\log_{3^2} 3^4 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii primului termen: $$\\log_4 2 = \\log_{2^2} 2 = \\frac{1}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii logaritmului interior: $$\\log_9 81 = \\log_{3^2} 3^4 = 2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii primului termen: $$\\log_4 2 = \\log_{2^2} 2 = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\log_3\\sqrt{3} = \\frac{1}{2}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{2} + \\frac{1}{2} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2042,9 +2041,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_3 6 + \\left(\\frac{1}{\\sqrt{2}}\\right)^{-2}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$\\log_3 54 - \\log_3 6 = \\log_3 \\frac{54}{6} = \\log_3 9 = 2$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{1}{\\sqrt{2}}\\right)^{-2} = (\\sqrt{2})^2 = 2$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = 2 + 2 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\log_3 54 - \\log_3 6 = \\log_3 \\frac{54}{6} = \\log_3 9 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{1}{\\sqrt{2}}\\right)^{-2} = (\\sqrt{2})^2 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 2 + 2 = \\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_3 54 - \\log_3 6 = \\log_3 9 = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii: $$\\left(\\frac{1}{\\sqrt{2}}\\right)^{-2} = (\\sqrt{2})^2 = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 2 + 2 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2056,9 +2055,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{25^{\\frac{1}{2}\\log_5 12} + 7^{2\\log_7 2}}$$',
     solution: '**Pasul 1.** Calcularea primei componente a sumei de sub radical:$$25^{\\frac{1}{2}\\log_5 12} = (5^2)^{\\frac{1}{2}\\log_5 12} = 5^{\\log_5 12} = 12$$**Pasul 2.** Calcularea celei de-a doua componente a sumei de sub radical:$$7^{2\\log_7 2} = \\left(7^{\\log_7 2}\\right)^2 = 2^2 = 4$$**Pasul 3.** Determinarea valorii expresiei $E$:$$E = \\sqrt{12+4} = \\sqrt{16} = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea primei componente a sumei de sub radical: $$25^{\\frac{1}{2}\\log_5 12} = (5^2)^{\\frac{1}{2}\\log_5 12} = 5^{\\log_5 12} = 12$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua componente a sumei de sub radical: $$7^{2\\log_7 2} = \\left(7^{\\log_7 2}\\right)^2 = 2^2 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\sqrt{12+4} = \\sqrt{16} = \\boxed{4}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei componente a sumei de sub radical: $$25^{\\frac{1}{2}\\log_5 12} = (5^2)^{\\frac{1}{2}\\log_5 12} = 5^{\\log_5 12} = 12$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua componente a sumei de sub radical: $$7^{2\\log_7 2} = \\left(7^{\\log_7 2}\\right)^2 = 2^2 = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{12+4} = \\sqrt{16} = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2070,9 +2069,9 @@ BM.EXERCISES = [
     statement: 'Aflați valoarea expresiei:\n$$E = \\sqrt[4]{7-\\sqrt{33}}\\cdot\\sqrt[4]{7+\\sqrt{33}}$$',
     solution: '**Pasul 1.** Combinarea termenilor sub un singur radical:$$E = \\sqrt[4]{(7-\\sqrt{33})(7+\\sqrt{33})}$$**Pasul 2.** Aplicarea formulei diferenței de pătrate: $$(7-\\sqrt{33})(7+\\sqrt{33}) = 7^2 - (\\sqrt{33})^2 = 49 - 33 = 16$$**Pasul 3.** Determinarea valorii expresiei: $$\\sqrt[4]{16} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Combinarea termenilor sub un singur radical: $$E = \\sqrt[4]{(7-\\sqrt{33})(7+\\sqrt{33})}$$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea formulei diferenței de pătrate și simplificarea: $$(7-\\sqrt{33})(7+\\sqrt{33}) = 49 - 33 = 16$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$\\sqrt[4]{16} = \\boxed{2}$$', puncte_maxime: 2 }
+      { descriere: "Combinarea termenilor sub un singur radical: $$E = \\sqrt[4]{(7-\\sqrt{33})(7+\\sqrt{33})}$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea formulei diferenței de pătrate: $$(7-\\sqrt{33})(7+\\sqrt{33}) = 7^2 - (\\sqrt{33})^2 = 16$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\sqrt[4]{16} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2084,9 +2083,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_6 60 - \\log_6 5 + \\log_6 3$$',
     solution: '**Pasul 1.** Aplicarea proprietății logaritmului pentru diferență:$$\\log_6 60 - \\log_6 5 = \\log_6 \\frac{60}{5} = \\log_6 12$$\n\n**Pasul 2.** Aplicarea proprietății logaritmului pentru sumă:$$\\log_6 12 + \\log_6 3 = \\log_6 (12 \\cdot 3) = \\log_6 36$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:$$\\log_6 36 = \\log_6 6^2 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății logaritmului pentru diferență: $$\\log_6 60 - \\log_6 5 = \\log_6 \\frac{60}{5} = \\log_6 12$$', puncte_maxime: 3 },
-      { descriere: 'Aplicarea proprietății logaritmului pentru sumă: $$\\log_6 12 + \\log_6 3 = \\log_6 (12 \\cdot 3) = \\log_6 36$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$\\log_6 36 = \\log_6 6^2 = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății logaritmului pentru diferență: $$\\log_6 60 - \\log_6 5 = \\log_6 \\frac{60}{5} = \\log_6 12$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietății logaritmului pentru sumă: $$\\log_6 12 + \\log_6 3 = \\log_6 (12 \\cdot 3) = \\log_6 36$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$\\log_6 36 = \\log_6 6^2 = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2098,9 +2097,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_2\\!\\left(16^{\\frac{1}{2}}\\right) - \\log_3\\!\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei: $$\\log_2 16^{\\frac{1}{2}} = \\log_2 4 = 2$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}} = \\frac{1}{3} \\Rightarrow \\log_3\\frac{1}{3} = -1$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$E = 2 - (-1) = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea primei părți a expresiei: $$\\log_2 16^{\\frac{1}{2}} = \\log_2 4 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua părți a expresiei: $$\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}} = \\frac{1}{3} \\Rightarrow \\log_3\\frac{1}{3} = -1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei: $$E = 2 - (-1) = \\boxed{3}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen al expresiei: $$\\log_2 16^{\\frac{1}{2}} = \\log_2 4 = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen al expresiei: $$\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}} = \\frac{1}{3} \\Rightarrow \\log_3 \\frac{1}{3} = -1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei: $$E = 2 - (-1) = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2112,10 +2111,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}}$$',
     solution: '**Pasul 1.** Calcularea primei componente: $$\\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$\n\n**Pasul 3.** Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$\n\n**Pasul 4.** Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primei componente: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celei de-a doua componente: $$\\sqrt{6\\frac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a treia componente: $$\\log_{\\sqrt{3}} x = 2\\log_3 x \\Rightarrow 3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = 3 - 2 = \\boxed{1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\log_3 27 = 3$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\sqrt{6\\frac{1}{4}} = \\frac{5}{2}$$", puncte_maxime: 1 },
+      { descriere: "Aplicarea proprietăților logaritmilor și puterilor pentru calcularea celui de-al treilea termen: $$3^{\\log_{\\sqrt{3}}\\frac{\\sqrt{2}}{2}} = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea calculelor finale și determinarea valorii expresiei: $$E = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2127,9 +2126,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{27}} 3 - \\frac{1}{3}\\log_3 \\frac{1}{81}$$',
     solution: '**Pasul 1.** Calcularea primei expresii logaritmice: $$\\log_{\\sqrt{27}} 3 = \\log_{3^{\\frac{3}{2}}} 3 = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celei de-a doua expresii logaritmice: $$\\frac{1}{3}\\log_3 \\frac{1}{81} = \\frac{1}{3}\\log_3 3^{-4} = \\frac{1}{3}\\cdot(-4) = -\\frac{4}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei $E$: $$E = \\frac{2}{3} - \\left(-\\frac{4}{3}\\right) = \\frac{2}{3} + \\frac{4}{3} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Calcularea primei expresii logaritmice: $$\\log_{\\sqrt{27}} 3 = \\log_{3^{\\frac{3}{2}}} 3 = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celei de-a doua expresii logaritmice: $$\\frac{1}{3}\\log_3 \\frac{1}{81} = \\frac{1}{3}\\log_3 3^{-4} = \\frac{1}{3}\\cdot(-4) = -\\frac{4}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei $E$: $$E = \\frac{2}{3} - \\left(-\\frac{4}{3}\\right) = \\frac{2}{3} + \\frac{4}{3} = \\boxed{2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primei expresii logaritmice: $$\\log_{\\sqrt{27}} 3 = \\log_{3^{\\frac{3}{2}}} 3 = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celei de-a doua expresii logaritmice: $$\\frac{1}{3}\\log_3 \\frac{1}{81} = \\frac{1}{3}\\cdot(-4) = -\\frac{4}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei $E$: $$E = \\frac{2}{3} - \\left(-\\frac{4}{3}\\right) = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2141,9 +2140,9 @@ BM.EXERCISES = [
     statement: 'Calculați media aritmetică a expresiilor:\n$$E = \\dfrac{\\log_{\\sqrt[3]{16}} 2 + \\dfrac{2}{\\log_8 4}}{2}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului $\\log_{\\sqrt[3]{16}} 2$: $$\\log_{\\sqrt[3]{16}} 2 = \\log_{2^{\\frac{4}{3}}} 2 = \\frac{3}{4}$$ \n\n**Pasul 2.** Calcularea valorii termenului $\\frac{2}{\\log_8 4}$: $$\\log_8 4 = \\log_{2^3} 2^2 = \\frac{2}{3} \\Rightarrow \\frac{2}{\\log_8 4} = \\frac{2}{\\frac{2}{3}} = 3$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei E: $$E = \\frac{\\frac{3}{4} + 3}{2} = \\frac{\\frac{15}{4}}{2} = \\boxed{\\dfrac{15}{8}}$$',
     barem: [
-      { descriere: 'Calcularea valorii termenului $\\log_{\\sqrt[3]{16}} 2$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii termenului $\\frac{2}{\\log_8 4}$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii finale a expresiei E: $$\\boxed{\\dfrac{15}{8}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii termenului $\\log_{\\sqrt[3]{16}} 2$: $$\\log_{\\sqrt[3]{16}} 2 = \\log_{2^{\\frac{4}{3}}} 2 = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii termenului $\\frac{2}{\\log_8 4}$: $$\\log_8 4 = \\log_{2^3} 2^2 = \\frac{2}{3} \\Rightarrow \\frac{2}{\\log_8 4} = 3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii finale a expresiei $E$: $$E = \\frac{\\frac{3}{4} + 3}{2} = \\boxed{\\frac{15}{8}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2205,9 +2204,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{-2} + \\sqrt[3]{\\dfrac{27}{64}} - 2$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = 1 - 2 = \\boxed{-1}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$2^{-2} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$\\sqrt[3]{\\frac{27}{64}} = \\frac{3}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{1}{4} + \\frac{3}{4} - 2 = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2460,9 +2459,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 8^{-\\frac{2}{3}} + 0{,}75$$',
     solution: '**Pasul 1.** Scrierea bazei ca putere a lui 2:\n$$8 = 2^3 \\Rightarrow 8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$\n\n**Pasul 2.** Calcularea valorii puterii:\n$$2^{-2} = \\frac{1}{4} = 0{,}25$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 0{,}25 + 0{,}75 = \\boxed{1}$$',
     barem: [
-      { descriere: 'Scrierea bazei ca putere a lui 2 și aplicarea proprietăților puterilor: $$8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii puterii: $$2^{-2} = \\frac{1}{4} = 0{,}25$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Scrierea bazei ca putere a lui 2 și aplicarea proprietăților puterilor: $$8 = 2^3 \\Rightarrow 8^{-\\frac{2}{3}} = \\left(2^3\\right)^{-\\frac{2}{3}} = 2^{-2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii puterii cu exponent negativ: $$2^{-2} = \\frac{1}{4} = 0{,}25$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 0{,}25 + 0{,}75 = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2474,10 +2473,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(25^{\\frac{3}{2}} + (0{,}5)^{-2}\\right) : \\left(\\frac{1}{3}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea primului termen din paranteză:\n$$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen din paranteză:\n$$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$\n\n**Pasul 3.** Calcularea valorii împărțitorului:\n$$\\left(\\frac{1}{3}\\right)^{-1} = 3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = (125 + 4) : 3 = 129 : 3 = \\boxed{43}$$',
     barem: [
-      { descriere: 'Calcularea primului termen din paranteză: $$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea valorii împărțitorului: $$\\left(\\frac{1}{3}\\right)^{-1} = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{43}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen din paranteză: $$25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen din paranteză: $$(0{,}5)^{-2} = \\left(\\frac{1}{2}\\right)^{-2} = 2^2 = 4$$", puncte_maxime: 1 },
+      { descriere: "Calcularea valorii împărțitorului: $$\\left(\\frac{1}{3}\\right)^{-1} = 3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = (125 + 4) : 3 = 129 : 3 = \\boxed{43}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2489,9 +2488,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{27^{\\frac{2}{3}} + \\left(\\frac{1}{4}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea primului termen de sub radical:\n$$27^{\\frac{2}{3}} = \\left(3^3\\right)^{\\frac{2}{3}} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen de sub radical:\n$$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$\n\n**Pasul 3.** Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului:\n$$E = \\sqrt{9 + 16} = \\sqrt{25} = \\boxed{5}$$',
     barem: [
-      { descriere: 'Calcularea primului termen de sub radical: $$27^{\\frac{2}{3}} = \\left(3^3\\right)^{\\frac{2}{3}} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen de sub radical: $$\\left(\\frac{1}{4}\\right)^{-2} = 4^2 = 16$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, prin sumarea termenilor și extragerea radicalului: $$E = \\sqrt{9+16} = \\sqrt{25} = \\boxed{5}$$', puncte_maxime: 2 }
+      { descriere: "Calcularea primului termen de sub radical: $$27^{\\frac{2}{3}} = 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen de sub radical: $$\\left(\\frac{1}{4}\\right)^{-2} = 16$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{9 + 16} = \\sqrt{25} = \\boxed{5}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2503,9 +2502,9 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei:\n$$a = \\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} - 3\\cdot 2^{-3}$$\neste un număr natural.',
     solution: '**Pasul 1.** Rescrierea bazei ca pătrat și calcularea puterii:\n$$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left[\\left(\\frac{3}{2}\\right)^2\\right]^{\\frac{3}{2}} = \\left(\\frac{3}{2}\\right)^3 = \\frac{27}{8}$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$3\\cdot 2^{-3} = 3\\cdot\\frac{1}{8} = \\frac{3}{8}$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este natural:\n$$a = \\frac{27}{8} - \\frac{3}{8} = \\frac{24}{8} = \\boxed{3 \\in \\mathbb{N}}$$',
     barem: [
-      { descriere: 'Rescrierea bazei ca pătrat și calcularea puterii: $$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left(\\frac{3}{2}\\right)^3 = \\frac{27}{8}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$3\\cdot 2^{-3} = \\frac{3}{8}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $3$: $$\\boxed{3 \\in \\mathbb{N}}$$', puncte_maxime: 2 }
+      { descriere: "Scrierea bazei ca pătrat și calcularea puterii cu exponent fracționar: $$\\left(\\frac{9}{4}\\right)^{\\frac{3}{2}} = \\left[\\left(\\frac{3}{2}\\right)^2\\right]^{\\frac{3}{2}} = \\frac{27}{8}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii cu exponent negativ și a produsului: $$3\\cdot 2^{-3} = 3\\cdot\\frac{1}{8} = \\frac{3}{8}$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea scăderii și verificarea că valoarea expresiei este un număr natural: $$a = \\frac{27}{8} - \\frac{3}{8} = \\boxed{3 \\in \\mathbb{N}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2517,9 +2516,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = (0{,}4)^{-2} \\cdot \\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}}$$',
     solution: '**Pasul 1.** Calcularea primului factor:\n$$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\left(\\frac{5}{2}\\right)^2 = \\frac{25}{4}$$\n\n**Pasul 2.** Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia:\n$$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left[\\left(\\frac{5}{2}\\right)^3\\right]^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\left(\\frac{2}{5}\\right)^2 = \\frac{4}{25}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{25}{4}\\cdot\\frac{4}{25} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primului factor: $$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\frac{25}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia: $$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\frac{4}{25}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului factor: $$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\frac{25}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea factor: $$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\frac{4}{25}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{25}{4} \\cdot \\frac{4}{25} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2531,9 +2530,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = (0{,}027)^{\\frac{1}{3}} \\cdot \\left(\\frac{\\sqrt{3}}{10}\\right)^{-2}$$',
     solution: '**Pasul 1.** Calcularea primului factor:\n$$0{,}027 = \\left(\\frac{3}{10}\\right)^3 \\Rightarrow (0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$\n\n**Pasul 2.** Calcularea celui de-al doilea factor:\n$$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{3}}\\right)^2 = \\frac{100}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{3}{10}\\cdot\\frac{100}{3} = \\boxed{10}$$',
     barem: [
-      { descriere: 'Calcularea primului factor: $$0{,}027 = \\left(\\frac{3}{10}\\right)^3 \\Rightarrow (0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea factor: $$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\left(\\frac{10}{\\sqrt{3}}\\right)^2 = \\frac{100}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{10}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului factor: $$(0{,}027)^{\\frac{1}{3}} = \\frac{3}{10}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea factor: $$\\left(\\frac{\\sqrt{3}}{10}\\right)^{-2} = \\frac{100}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{3}{10} \\cdot \\frac{100}{3} = \\boxed{10}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2545,9 +2544,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei $\\sqrt[3]{a}$, unde\n$$a = 2^{(\\sqrt{2}+1)^2} : 2^{2\\sqrt{2}}$$',
     solution: '**Pasul 1.** Dezvoltarea pătratului din exponent:\n$$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$\n\n**Pasul 2.** Aplicarea regulii de împărțire a puterilor cu aceeași bază:\n$$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^{3+2\\sqrt{2}-2\\sqrt{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$\\sqrt[3]{a} = \\sqrt[3]{8} = \\boxed{2}$$',
     barem: [
-      { descriere: 'Dezvoltarea pătratului din exponent: $$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea regulii de împărțire a puterilor cu aceeași bază: $$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^3 = 8$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
+      { descriere: "Dezvoltarea pătratului de la exponent: $$(\\sqrt{2}+1)^2 = 3 + 2\\sqrt{2}$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea regulii de împărțire a puterilor cu aceeași bază și obținerea $$a = 2^3 = 8$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$\\sqrt[3]{a} = \\sqrt[3]{8} = \\boxed{2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2559,9 +2558,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = -\\left[\\sqrt[3]{\\frac{8}{27}} - \\sqrt[3]{\\frac{125}{27}}\\right]$$',
     solution: '**Pasul 1.** Calcularea primului radical:\n$$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celui de-al doilea radical:\n$$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = -\\left(\\frac{2}{3} - \\frac{5}{3}\\right) = -\\left(-1\\right) = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primului radical: $$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea radical: $$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului radical: $$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea radical: $$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = -\\left(\\frac{2}{3} - \\frac{5}{3}\\right) = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2573,9 +2572,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{4 - 5\\cdot 32^{-0{,}6}}$$',
     solution: '**Pasul 1.** Calcularea valorii puterii cu exponent zecimal negativ:\n$$32^{-0{,}6} = 32^{-\\frac{3}{5}} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$\n\n**Pasul 2.** Calcularea expresiei de sub radical:\n$$4 - 5\\cdot\\frac{1}{8} = 4 - \\frac{5}{8} = \\frac{27}{8}$$\n\n**Pasul 3.** Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3:\n$$E = \\sqrt[3]{\\frac{27}{8}} = \\boxed{\\frac{3}{2}}$$',
     barem: [
-      { descriere: 'Calcularea valorii puterii cu exponent zecimal negativ: $$32^{-0{,}6} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea expresiei de sub radical: $$4 - 5\\cdot\\frac{1}{8} = \\frac{27}{8}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3, egală cu $\\boxed{\\frac{3}{2}}$', puncte_maxime: 2 }
+      { descriere: "Calcularea valorii puterii cu exponent zecimal negativ: $$32^{-0{,}6} = 32^{-\\frac{3}{5}} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii expresiei de sub radical: $$4 - 5 \\cdot \\frac{1}{8} = 4 - \\frac{5}{8} = \\frac{27}{8}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3: $$E = \\sqrt[3]{\\frac{27}{8}} = \\boxed{\\frac{3}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2587,8 +2586,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\sqrt{2}} 4 - 4$$',
     solution: '**Pasul 1.** Calcularea logaritmului în baza $\\sqrt{2}$:\n$$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 4 - 4 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea logaritmului în baza $\\sqrt{2}$: $$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 2 }
+      { descriere: "Calcularea logaritmului în baza $\\sqrt{2}$: $$\\log_{\\sqrt{2}} 4 = \\log_{2^{\\frac{1}{2}}} 2^2 = \\frac{2}{\\frac{1}{2}} = 4$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = 4 - 4 = \\boxed{0}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2600,10 +2599,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(4^{\\log_2 3}\\right)^{\\frac{3}{2}} - \\log_4 64$$',
     solution: '**Pasul 1.** Calcularea bazei ridicate la puterea logaritmică:\n$$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 2^{2\\log_2 3} = \\left(2^{\\log_2 3}\\right)^2 = 3^2 = 9$$\n\n**Pasul 2.** Calcularea puterii:\n$$9^{\\frac{3}{2}} = \\left(3^2\\right)^{\\frac{3}{2}} = 3^3 = 27$$\n\n**Pasul 3.** Calcularea logaritmului:\n$$\\log_4 64 = 3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 27 - 3 = \\boxed{24}$$',
     barem: [
-      { descriere: 'Calcularea bazei ridicate la puterea logaritmică: $$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 3^2 = 9$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea puterii: $$9^{\\frac{3}{2}} = 27$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea logaritmului: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{24}$', puncte_maxime: 1 }
+      { descriere: "Calcularea bazei ridicate la puterea logaritmică: $$4^{\\log_2 3} = \\left(2^2\\right)^{\\log_2 3} = 2^{2\\log_2 3} = \\left(2^{\\log_2 3}\\right)^2 = 3^2 = 9$$", puncte_maxime: 2 },
+      { descriere: "Calcularea puterii: $$9^{\\frac{3}{2}} = \\left(3^2\\right)^{\\frac{3}{2}} = 3^3 = 27$$", puncte_maxime: 1 },
+      { descriere: "Calcularea logaritmului: $$\\log_4 64 = 3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 27 - 3 = \\boxed{24}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2615,9 +2614,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_9 4 + \\log_{\\frac{1}{9}} 48$$',
     solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_9 4 = \\log_9 16$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen:\n$$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\log_9 16 - \\log_9 48 = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = \\log_{3^2} 3^{-1} = \\boxed{-\\frac{1}{2}}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $$2\\log_9 4 = \\log_9 16$$', puncte_maxime: 1 },
-      { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = \\boxed{-\\frac{1}{2}}$$', puncte_maxime: 3 }
+      { descriere: "Transformarea primului termen: $$2\\log_9 4 = \\log_9 16$$", puncte_maxime: 1 },
+      { descriere: "Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{9}} 48 = -\\log_9 48$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\log_9 16 - \\log_9 48 = \\log_9 \\frac{16}{48} = \\log_9 \\frac{1}{3} = \\log_{3^2} 3^{-1} = \\boxed{-\\frac{1}{2}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2629,8 +2628,8 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei:\n$$E = \\sqrt{\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right)}$$\neste un număr natural.',
     solution: '**Pasul 1.** Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$:\n$$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2\\left[(\\sqrt{23}-\\sqrt{7})(\\sqrt{23}+\\sqrt{7})\\right] = \\log_2(23-7) = \\log_2 16 = 4$$\n\n**Pasul 2.** Determinarea valorii expresiei și verificarea că este natural:\n$$E = \\sqrt{4} = \\boxed{2 \\in \\mathbb{N}}$$',
     barem: [
-      { descriere: 'Aplicarea proprietății sumei logaritmilor și a formulei $(a-b)(a+b)=a^2-b^2$: $$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2 16 = 4$$', puncte_maxime: 4 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $2$: $$\\boxed{2 \\in \\mathbb{N}}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietății sumei logaritmilor și a formulei diferenței de pătrate pentru calcularea sumei logaritmilor: $$\\log_2\\left(\\sqrt{23}-\\sqrt{7}\\right) + \\log_2\\left(\\sqrt{23}+\\sqrt{7}\\right) = \\log_2\\left[(\\sqrt{23}-\\sqrt{7})(\\sqrt{23}+\\sqrt{7})\\right] = \\log_2(23-7) = \\log_2 16 = 4$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei $E$ și verificarea faptului că valoarea obținută este un număr natural: $$E = \\sqrt{4} = \\boxed{2 \\in \\mathbb{N}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2642,9 +2641,9 @@ BM.EXERCISES = [
     statement: 'Arătați că numărul:\n$$a = \\sqrt[3]{16^{\\frac{3}{4}}} + 9^{\\log_3 \\sqrt{19}}$$\neste natural.',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{\\left(2^4\\right)^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$9^{\\log_3 \\sqrt{19}} = \\left(3^2\\right)^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este natural:\n$$a = 2 + 19 = \\boxed{21 \\in \\mathbb{N}}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$9^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este natural, egală cu $21$: $$\\boxed{21 \\in \\mathbb{N}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen al sumei: $$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{\\left(2^4\\right)^{\\frac{3}{4}}} = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen al sumei: $$9^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = 19$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii numărului $a$ și justificarea că acesta este natural: $$a = 2 + 19 = \\boxed{21 \\in \\mathbb{N}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2656,9 +2655,9 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei:\n$$E = \\left[7^{\\log_{49} 25} + \\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}}\\right]^{\\frac{2}{3}}$$\neste un număr natural pătrat perfect.',
     solution: '**Pasul 1.** Calcularea primului termen din paranteză:\n$$7^{\\log_{49} 25} = 7^{\\log_{7^2} 5^2} = 7^{\\log_7 5} = 5$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen din paranteză:\n$$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = \\left(3^4\\right)^{\\frac{1}{4}} = 3$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este pătrat perfect:\n$$E = (5+3)^{\\frac{2}{3}} = 8^{\\frac{2}{3}} = \\left(2^3\\right)^{\\frac{2}{3}} = 2^2 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea primului termen din paranteză: $$7^{\\log_{49} 25} = 7^{\\log_7 5} = 5$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen din paranteză: $$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $\\boxed{4}$', puncte_maxime: 2 }
+      { descriere: "Calcularea primului termen din paranteză: $$7^{\\log_{49} 25} = 7^{\\log_{7^2} 5^2} = 7^{\\log_7 5} = 5$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen din paranteză: $$\\left(\\frac{1}{81}\\right)^{-\\frac{1}{4}} = 81^{\\frac{1}{4}} = \\left(3^4\\right)^{\\frac{1}{4}} = 3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei $$E = (5+3)^{\\frac{2}{3}} = 8^{\\frac{2}{3}} = \\left(2^3\\right)^{\\frac{2}{3}} = 2^2 = \\boxed{4}$$ și menționarea că este pătrat perfect", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2670,8 +2669,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2^{\\log_2 7 + \\log_3 \\frac{1}{9}}$$',
     solution: '**Pasul 1.** Calcularea valorii celui de-al doilea logaritm din exponent:\n$$\\log_3 \\frac{1}{9} = \\log_3 3^{-2} = -2$$\n\n**Pasul 2.** Aplicarea proprietății puterilor pentru a separa termenii:\n$$E = 2^{\\log_2 7 - 2} = 2^{\\log_2 7} \\cdot 2^{-2}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 7 \\cdot \\frac{1}{4} = \\boxed{\\frac{7}{4}}$$',
     barem: [
-      { descriere: 'Calcularea valorii celui de-al doilea logaritm din exponent: $$\\log_3 \\frac{1}{9} = -2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, prin separarea termenilor și calcul: $$E = 2^{\\log_2 7}\\cdot 2^{-2} = 7\\cdot\\frac{1}{4} = \\boxed{\\frac{7}{4}}$$', puncte_maxime: 3 }
+      { descriere: "Calcularea valorii logaritmului din exponent: $$\\log_3 \\frac{1}{9} = -2$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților puterilor pentru a separa termenii: $$2^{\\log_2 7 - 2} = 2^{\\log_2 7} \\cdot 2^{-2}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 7 \\cdot \\frac{1}{4} = \\boxed{\\frac{7}{4}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2683,9 +2683,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 36^{\\frac{1}{\\log_5 6}} - 32^{\\frac{2}{5}}$$',
     solution: '**Pasul 1.** Transformarea exponentului primului termen și calcularea valorii sale:\n$$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = \\left(6^2\\right)^{\\log_6 5} = 6^{2\\log_6 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$32^{\\frac{2}{5}} = \\left(2^5\\right)^{\\frac{2}{5}} = 2^2 = 4$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 25 - 4 = \\boxed{21}$$',
     barem: [
-      { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$32^{\\frac{2}{5}} = 4$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{21}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$\\frac{1}{\\log_5 6} = \\log_6 5 \\Rightarrow 36^{\\log_6 5} = 25$$", puncte_maxime: 3 },
+      { descriere: "Calcularea valorii celui de-al doilea termen: $$32^{\\frac{2}{5}} = 4$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 25 - 4 = \\boxed{21}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2697,9 +2697,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 9^{\\log_3 7} - \\log_4 64$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$9^{\\log_3 7} = \\left(3^2\\right)^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_4 64 = 3$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 49 - 3 = \\boxed{46}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$9^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_4 64 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{46}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$9^{\\log_3 7} = \\left(3^2\\right)^{\\log_3 7} = 3^{2\\log_3 7} = 7^2 = 49$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\log_4 64 = 3$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 49 - 3 = \\boxed{46}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2711,9 +2711,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 5 + \\log_{\\frac{1}{3}} 75$$',
     solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_3 5 = \\log_3 25$$\n\n**Pasul 2.** Transformarea celui de-al doilea termen:\n$$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\log_3 25 - \\log_3 75 = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = \\boxed{-1}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $$2\\log_3 5 = \\log_3 25$$', puncte_maxime: 1 },
-      { descriere: 'Transformarea celui de-al doilea termen: $$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = \\boxed{-1}$$', puncte_maxime: 3 }
+      { descriere: "Obținerea egalității $$2\\log_3 5 = \\log_3 25$$", puncte_maxime: 2 },
+      { descriere: "Obținerea egalității $$\\log_{\\frac{1}{3}} 75 = -\\log_3 75$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\log_3 25 - \\log_3 75 = \\log_3 \\frac{25}{75} = \\log_3 \\frac{1}{3} = \\boxed{-1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2725,9 +2725,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = \\log_2\\left(16^{\\frac{1}{2}}\\right) - \\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right)$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = \\log_3 \\frac{1}{3} = -1$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 2 - (-1) = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = -1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$\\log_2\\left(16^{\\frac{1}{2}}\\right) = \\log_2 4 = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\log_3\\left(\\left(\\frac{1}{9}\\right)^{\\frac{1}{2}}\\right) = \\log_3 \\frac{1}{3} = -1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$a = 2 - (-1) = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2739,8 +2739,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 2\\log_3 6 - \\log_3 4$$',
     solution: '**Pasul 1.** Transformarea primului termen:\n$$2\\log_3 6 = \\log_3 36$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea primului termen: $$2\\log_3 6 = \\log_3 36$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$', puncte_maxime: 3 }
+      { descriere: "Aplicarea proprietății logaritmului pentru transformarea primului termen: $$2\\log_3 6 = \\log_3 36$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\log_3 36 - \\log_3 4 = \\log_3 9 = \\boxed{2}$$", puncte_maxime: 3 }
     ],
     baremEstimat: true
   },
@@ -2752,9 +2752,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 54 - \\log_3 2 + \\log_3 81$$',
     solution: '**Pasul 1.** Calcularea diferenței primilor doi termeni:\n$$\\log_3 54 - \\log_3 2 = \\log_3 \\frac{54}{2} = \\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celui de-al treilea termen:\n$$\\log_3 81 = \\log_3 3^4 = 4$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 3 + 4 = \\boxed{7}$$',
     barem: [
-      { descriere: 'Calcularea diferenței primilor doi termeni: $$\\log_3 54 - \\log_3 2 = \\log_3 27 = 3$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$\\log_3 81 = 4$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{7}$', puncte_maxime: 1 }
+      { descriere: "Calcularea diferenței primilor doi termeni: $$\\log_3 54 - \\log_3 2 = \\log_3 \\frac{54}{2} = \\log_3 27 = 3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al treilea termen: $$\\log_3 81 = \\log_3 3^4 = 4$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3 + 4 = \\boxed{7}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2766,10 +2766,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{12} 3 + \\log_{12} 4 + 12^{\\log_{144} 4} + \\log_{\\frac{1}{2}} 8$$',
     solution: '**Pasul 1.** Calcularea sumei primilor doi termeni:\n$$\\log_{12} 3 + \\log_{12} 4 = \\log_{12} 12 = 1$$\n\n**Pasul 2.** Calcularea termenului exponențial:\n$$12^{\\log_{144} 4} = 12^{\\frac{1}{2}\\log_{12} 4} = \\left(12^{\\log_{12} 4}\\right)^{\\frac{1}{2}} = 4^{\\frac{1}{2}} = 2$$\n\n**Pasul 3.** Calcularea ultimului termen:\n$$\\log_{\\frac{1}{2}} 8 = \\log_{2^{-1}} 2^3 = -3$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 1 + 2 - 3 = \\boxed{0}$$',
     barem: [
-      { descriere: 'Calcularea sumei primilor doi termeni: $$\\log_{12} 3 + \\log_{12} 4 = \\log_{12} 12 = 1$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea termenului exponențial: $$12^{\\log_{144} 4} = \\left(12^{\\log_{12} 4}\\right)^{\\frac{1}{2}} = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea ultimului termen: $$\\log_{\\frac{1}{2}} 8 = -3$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{0}$', puncte_maxime: 1 }
+      { descriere: "Calcularea sumei primilor doi termeni ai expresiei: $$\\log_{12} 3 + \\log_{12} 4 = 1$$", puncte_maxime: 1 },
+      { descriere: "Calcularea termenului exponențial: $$12^{\\log_{144} 4} = 12^{\\frac{1}{2}\\log_{12} 4} = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea termenului logaritmic: $$\\log_{\\frac{1}{2}} 8 = -3$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 1 + 2 - 3 = \\boxed{0}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2781,10 +2781,10 @@ BM.EXERCISES = [
     statement: 'Arătați că numărul:\n$$a = 2^{\\log_8 27} + \\log_{\\frac{1}{5}} 25 - \\sqrt[3]{125}$$\neste întreg.',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$2^{\\log_8 27} = 2^{\\log_{2^3} 3^3} = 2^{\\log_2 3} = 3$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_{\\frac{1}{5}} 25 = \\log_{5^{-1}} 5^2 = -2$$\n\n**Pasul 3.** Calcularea radicalului:\n$$\\sqrt[3]{125} = 5$$\n\n**Pasul 4.** Determinarea valorii expresiei și verificarea că este întreg:\n$$a = 3 - 2 - 5 = \\boxed{-4 \\in \\mathbb{Z}}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$2^{\\log_8 27} = 2^{\\log_2 3} = 3$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{5}} 25 = -2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea radicalului: $$\\sqrt[3]{125} = 5$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este întreg, egală cu $-4$: $$\\boxed{-4 \\in \\mathbb{Z}}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$2^{\\log_8 27} = 2^{\\log_2 3} = 3$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{5}} 25 = -2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea radicalului: $$\\sqrt[3]{125} = 5$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei și verificarea că este număr întreg: $$a = 3 - 2 - 5 = \\boxed{-4 \\in \\mathbb{Z}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2796,9 +2796,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = 49^{1-\\log_7 2} + 5^{-\\log_5 4}$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{\\left(7^2\\right)^{\\log_7 2}} = \\frac{49}{2^2} = \\frac{49}{4}$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$5^{-\\log_5 4} = \\left(5^{\\log_5 4}\\right)^{-1} = 4^{-1} = \\frac{1}{4}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = \\frac{49}{4} + \\frac{1}{4} = \\boxed{\\frac{25}{2}}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{4}$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$5^{-\\log_5 4} = \\frac{1}{4}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{\\frac{25}{2}}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$49^{1-\\log_7 2} = \\frac{49}{49^{\\log_7 2}} = \\frac{49}{\\left(7^2\\right)^{\\log_7 2}} = \\frac{49}{4}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen: $$5^{-\\log_5 4} = \\left(5^{\\log_5 4}\\right)^{-1} = \\frac{1}{4}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$a = \\frac{49}{4} + \\frac{1}{4} = \\boxed{\\frac{25}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2810,10 +2810,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 36^{\\log_6 5} + 10^{1-\\lg 2} - 3^{\\log_9 36}$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$36^{\\log_6 5} = \\left(6^2\\right)^{\\log_6 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$10^{1-\\lg 2} = \\frac{10}{10^{\\lg 2}} = \\frac{10}{2} = 5$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen:\n$$3^{\\log_9 36} = 3^{\\frac{1}{2}\\log_3 36} = 36^{\\frac{1}{2}} = 6$$\n\n**Pasul 4.** Determinarea valorii expresiei:\n$$E = 25 + 5 - 6 = \\boxed{24}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$36^{\\log_6 5} = 5^2 = 25$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$10^{1-\\lg 2} = 5$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_9 36} = 6$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{24}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen: $$36^{\\log_6 5} = \\left(6^2\\right)^{\\log_6 5} = 5^2 = 25$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al doilea termen: $$10^{1-\\lg 2} = \\frac{10}{10^{\\lg 2}} = \\frac{10}{2} = 5$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al treilea termen: $$3^{\\log_9 36} = 3^{\\frac{1}{2}\\log_3 36} = 36^{\\frac{1}{2}} = 6$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 25 + 5 - 6 = \\boxed{24}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2825,8 +2825,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_{\\frac{1}{4}} \\left(\\log_2 3 \\cdot \\log_3 4\\right)$$',
     solution: '**Pasul 1.** Simplificarea produsului din interiorul logaritmului, folosind proprietatea $\\log_a b \\cdot \\log_b c = \\log_a c$:\n$$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = \\log_{\\frac{1}{4}} 2 = \\log_{2^{-2}} 2^1 = \\boxed{-\\frac{1}{2}}$$',
     barem: [
-      { descriere: 'Simplificarea produsului din interiorul logaritmului: $$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{-\\frac{1}{2}}$', puncte_maxime: 2 }
+      { descriere: "Simplificarea produsului din interiorul logaritmului: $$\\log_2 3 \\cdot \\log_3 4 = \\log_2 4 = 2$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\log_{\\frac{1}{4}} 2 = \\boxed{-\\frac{1}{2}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2838,8 +2838,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3}}$$',
     solution: '**Pasul 1.** Simplificarea exponentului:\n$$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$\n\n**Pasul 2.** Determinarea valorii expresiei:\n$$E = 25^{\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = 5^{2\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{9 \\cdot 5}{3} = \\boxed{15}$$',
     barem: [
-      { descriere: 'Simplificarea exponentului: $$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2 = \\frac{45}{3} = \\boxed{15}$$', puncte_maxime: 3 }
+      { descriere: "Aplicarea proprietății diferenței logaritmilor cu aceeași bază: $$\\log_5 \\left(3\\sqrt{5}\\right) - \\log_5 \\sqrt{3} = \\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}$$", puncte_maxime: 2 },
+      { descriere: "Scrierea bazei $25 = 5^2$ și aplicarea identității logaritmice fundamentale: $$25^{\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = 5^{2\\log_5 \\frac{3\\sqrt{5}}{\\sqrt{3}}} = \\left(\\frac{3\\sqrt{5}}{\\sqrt{3}}\\right)^2$$", puncte_maxime: 2 },
+      { descriere: "Efectuarea calculelor și obținerea valorii finale a expresiei: $$\\frac{9 \\cdot 5}{3} = \\boxed{15}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2851,11 +2852,10 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 + \\log_8 2 + \\log_{\\sqrt{5}} \\frac{1}{5} + \\log_{\\frac{1}{7}} \\sqrt[3]{7}$$',
     solution: '**Pasul 1.** Calcularea primului termen: $$\\log_3 27 = 3$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen: $$\\log_8 2 = \\frac{1}{3}$$\n\n**Pasul 3.** Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = \\log_{5^{\\frac{1}{2}}} 5^{-1} = -2$$\n\n**Pasul 4.** Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = \\log_{7^{-1}} 7^{\\frac{1}{3}} = -\\frac{1}{3}$$\n\n**Pasul 5.** Determinarea valorii expresiei:\n$$E = 3 + \\frac{1}{3} - 2 - \\frac{1}{3} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\log_3 27 = 3$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_8 2 = \\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = -2$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = -\\frac{1}{3}$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primilor doi termeni ai expresiei: $$\\log_3 27 = 3$$ și $$\\log_8 2 = \\frac{1}{3}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al treilea termen: $$\\log_{\\sqrt{5}} \\frac{1}{5} = \\log_{5^{\\frac{1}{2}}} 5^{-1} = -2$$", puncte_maxime: 1 },
+      { descriere: "Calcularea celui de-al patrulea termen: $$\\log_{\\frac{1}{7}} \\sqrt[3]{7} = \\log_{7^{-1}} 7^{\\frac{1}{3}} = -\\frac{1}{3}$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3 + \\frac{1}{3} - 2 - \\frac{1}{3} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2867,9 +2867,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} + \\log_3 36 - \\log_3 4$$',
     solution: '**Pasul 1.** Calcularea puterii:\n$$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\left(\\frac{27}{8}\\right)^{\\frac{1}{3}} = \\frac{3}{2}$$\n\n**Pasul 2.** Calcularea diferenței de logaritmi:\n$$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{3}{2} + 2 = \\boxed{\\frac{7}{2}}$$',
     barem: [
-      { descriere: 'Calcularea puterii: $$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\frac{3}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{\\frac{7}{2}}$', puncte_maxime: 1 }
+      { descriere: "Calcularea puterii cu exponent fracționar negativ: $$\\left(\\frac{8}{27}\\right)^{-\\frac{1}{3}} = \\left(\\frac{27}{8}\\right)^{\\frac{1}{3}} = \\frac{3}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_3 36 - \\log_3 4 = \\log_3 9 = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{3}{2} + 2 = \\boxed{\\frac{7}{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2881,9 +2881,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\frac{4}{5} \\cdot \\left[1 + \\left(\\frac{1}{4}\\right)^{-3}\\right]^{\\log_{65} 5}$$',
     solution: '**Pasul 1.** Calcularea valorii din paranteză:\n$$\\left(\\frac{1}{4}\\right)^{-3} = 64 \\Rightarrow 1 + 64 = 65$$\n\n**Pasul 2.** Aplicarea proprietății $a^{\\log_a b} = b$:\n$$65^{\\log_{65} 5} = 5$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{4}{5} \\cdot 5 = \\boxed{4}$$',
     barem: [
-      { descriere: 'Calcularea valorii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-3} = 64 \\Rightarrow 1 + 64 = 65$$', puncte_maxime: 1 },
-      { descriere: 'Aplicarea proprietății $a^{\\log_a b} = b$: $$65^{\\log_{65} 5} = 5$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{4}$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii din paranteză: $$\\left(\\frac{1}{4}\\right)^{-3} = 64$$ și obținerea $$1 + 64 = 65$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea identității logaritmice fundamentale: $$65^{\\log_{65} 5} = 5$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\frac{4}{5} \\cdot 5 = \\boxed{4}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2895,9 +2895,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 9^{\\log_3 5} - \\log_5 25$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$9^{\\log_3 5} = \\left(3^2\\right)^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_5 25 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 25 - 2 = \\boxed{23}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$9^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_5 25 = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{23}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen al expresiei: $$9^{\\log_3 5} = \\left(3^2\\right)^{\\log_3 5} = 3^{2\\log_3 5} = 5^2 = 25$$", puncte_maxime: 3 },
+      { descriere: "Calcularea celui de-al doilea termen al expresiei: $$\\log_5 25 = 2$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = 25 - 2 = \\boxed{23}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2909,9 +2909,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\log_3 27 - \\sqrt{6\\tfrac{1}{4}} + 3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}}$$',
     solution: '**Pasul 1.** Calcularea primilor doi termeni:\n$$\\log_3 27 = 3, \\qquad \\sqrt{6\\tfrac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$\n\n**Pasul 2.** Calcularea celui de-al treilea termen:\n$$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = 3^{2\\log_3 \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 3 - \\frac{5}{2} + \\frac{1}{2} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea primilor doi termeni: $$\\log_3 27 = 3, \\quad \\sqrt{6\\tfrac{1}{4}} = \\frac{5}{2}$$', puncte_maxime: 1 },
-      { descriere: 'Calcularea celui de-al treilea termen: $$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$', puncte_maxime: 3 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primilor doi termeni ai expresiei: $$\\log_3 27 = 3$$ și $$\\sqrt{6\\tfrac{1}{4}} = \\sqrt{\\frac{25}{4}} = \\frac{5}{2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii celui de-al treilea termen: $$3^{\\log_{\\sqrt{3}} \\frac{\\sqrt{2}}{2}} = 3^{2\\log_3 \\frac{\\sqrt{2}}{2}} = \\left(\\frac{\\sqrt{2}}{2}\\right)^2 = \\frac{1}{2}$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = 3 - \\frac{5}{2} + \\frac{1}{2} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2923,8 +2923,9 @@ BM.EXERCISES = [
     statement: 'Arătați că valoarea expresiei:\n$$E = 9^{1+\\log_3 2}$$\neste un pătrat perfect.',
     solution: '**Pasul 1.** Calcularea valorii expresiei:\n$$E = 9^{1+\\log_3 2} = 9 \\cdot 9^{\\log_3 2} = 9 \\cdot 3^{2\\log_3 2} = 9 \\cdot 2^2 = 9 \\cdot 4 = 36$$\n\n**Pasul 2.** Verificarea că este pătrat perfect:\n$$E = 36 = \\boxed{6^2}$$',
     barem: [
-      { descriere: 'Calcularea valorii expresiei: $$E = 9^{1+\\log_3 2} = 9\\cdot 3^{2\\log_3 2} = 9\\cdot 4 = 36$$', puncte_maxime: 4 },
-      { descriere: 'Verificarea că $36$ este pătrat perfect: $$36 = \\boxed{6^2}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietăților puterilor pentru a scrie $$9^{1+\\log_3 2} = 9 \\cdot 9^{\\log_3 2} = 9 \\cdot 3^{2\\log_3 2}$$", puncte_maxime: 2 },
+      { descriere: "Calcularea valorii expresiei $$E = 9 \\cdot 2^2 = 36$$", puncte_maxime: 2 },
+      { descriere: "Verificarea faptului că valoarea expresiei este un pătrat perfect: $$E = 36 = \\boxed{6^2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2936,8 +2937,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = 27^{1-\\log_3 2}$$',
     solution: '**Pasul 1.** Aplicarea proprietăților puterilor:\n$$27^{1-\\log_3 2} = \\frac{27}{27^{\\log_3 2}} = \\frac{27}{\\left(3^3\\right)^{\\log_3 2}} = \\frac{27}{3^{3\\log_3 2}} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$\n\n**Pasul 2.** Determinarea valorii finale a expresiei:\n$$a = \\boxed{\\frac{27}{8}}$$',
     barem: [
-      { descriere: 'Aplicarea proprietăților puterilor: $$27^{1-\\log_3 2} = \\frac{27}{\\left(3^{\\log_3 2}\\right)^3} = \\frac{27}{2^3}$$', puncte_maxime: 4 },
-      { descriere: 'Determinarea valorii finale a expresiei, egală cu $\\boxed{\\frac{27}{8}}$', puncte_maxime: 1 }
+      { descriere: "Aplicarea proprietăților puterilor și a identității fundamentale a logaritmilor pentru simplificarea expresiei: $$27^{1-\\log_3 2} = \\frac{27}{27^{\\log_3 2}} = \\frac{27}{\\left(3^3\\right)^{\\log_3 2}} = \\frac{27}{2^3}$$", puncte_maxime: 3 },
+      { descriere: "Determinarea valorii finale a expresiei: $$a = \\boxed{\\frac{27}{8}}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2949,9 +2950,9 @@ BM.EXERCISES = [
     statement: 'Să se arate că numărul:\n$$a = 4^{\\log_2 \\sqrt{7}} + \\log_5 75 - \\log_5 3$$\neste un pătrat perfect.',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$4^{\\log_2 \\sqrt{7}} = \\left(2^2\\right)^{\\log_2 \\sqrt{7}} = 2^{2\\log_2 \\sqrt{7}} = \\left(\\sqrt{7}\\right)^2 = 7$$\n\n**Pasul 2.** Calcularea diferenței de logaritmi:\n$$\\log_5 75 - \\log_5 3 = \\log_5 \\frac{75}{3} = \\log_5 25 = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este pătrat perfect:\n$$a = 7 + 2 = \\boxed{9 = 3^2}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$4^{\\log_2 \\sqrt{7}} = \\left(\\sqrt{7}\\right)^2 = 7$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = \\log_5 25 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei și verificarea că este pătrat perfect, egală cu $9$: $$\\boxed{9 = 3^2}$$', puncte_maxime: 1 }
+      { descriere: "Calcularea valorii primului termen: $$4^{\\log_2 \\sqrt{7}} = 7$$", puncte_maxime: 2 },
+      { descriere: "Calcularea diferenței de logaritmi: $$\\log_5 75 - \\log_5 3 = 2$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii numărului $a$ și arătarea că acesta este pătrat perfect: $$\\boxed{a = 9 = 3^2}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2963,9 +2964,8 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\frac{1}{\\log_2 5}} - 64^{\\frac{1}{6}}$$',
     solution: '**Pasul 1.** Transformarea exponentului primului termen și calcularea valorii sale:\n$$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = \\left(5^2\\right)^{\\log_5 2} = 2^2 = 4$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$64^{\\frac{1}{6}} = \\left(2^6\\right)^{\\frac{1}{6}} = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 4 - 2 = \\boxed{2}$$',
     barem: [
-      { descriere: 'Transformarea exponentului și calcularea primului termen: $$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = 4$$', puncte_maxime: 3 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$64^{\\frac{1}{6}} = 2$$', puncte_maxime: 1 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{2}$', puncte_maxime: 1 }
+      { descriere: "Transformarea exponentului și calcularea valorii primului termen: $$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = \\left(5^2\\right)^{\\log_5 2} = 4$$", puncte_maxime: 3 },
+      { descriere: "Calcularea celui de-al doilea termen $$64^{\\frac{1}{6}} = \\left(2^6\\right)^{\\frac{1}{6}} = 2$$ și determinarea valorii expresiei: $$E = 4 - 2 = \\boxed{2}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -2977,9 +2977,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = \\log_3\\left(3\\cdot\\log_3 27\\right) + \\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right)$$',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3(3\\cdot 3) = \\log_3 9 = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = \\log_{\\frac{1}{2}} \\frac{1}{2} = 1$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 2 + 1 = \\boxed{3}$$',
     barem: [
-      { descriere: 'Calcularea primului termen: $$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3 9 = 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea celui de-al doilea termen: $$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = 1$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{3}$', puncte_maxime: 1 }
+      { descriere: "Calcularea primului termen al expresiei: $$\\log_3\\left(3\\cdot\\log_3 27\\right) = \\log_3 9 = 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea celui de-al doilea termen al expresiei: $$\\log_{\\frac{1}{2}}\\left(\\log_2 \\sqrt{2}\\right) = \\log_{\\frac{1}{2}} \\frac{1}{2} = 1$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$a = 2 + 1 = \\boxed{3}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -2991,9 +2991,9 @@ BM.EXERCISES = [
     statement: 'Calculați media aritmetică a numerelor:\n$$a = \\log_3 18 \\quad \\text{și} \\quad b = \\log_9 \\frac{1}{4}$$',
     solution: '**Pasul 1.** Calcularea valorii numărului $a$:\n$$a = \\log_3 18 = \\log_3(9\\cdot 2) = 2 + \\log_3 2$$\n\n**Pasul 2.** Calcularea valorii numărului $b$:\n$$b = \\log_9 \\frac{1}{4} = \\log_{3^2} 2^{-2} = -\\log_3 2$$\n\n**Pasul 3.** Determinarea mediei aritmetice, observând că termenii $\\log_3 2$ se reduc:\n$$\\frac{a+b}{2} = \\frac{2+\\log_3 2-\\log_3 2}{2} = \\frac{2}{2} = \\boxed{1}$$',
     barem: [
-      { descriere: 'Calcularea valorii numărului $a$: $$a = \\log_3 18 = 2 + \\log_3 2$$', puncte_maxime: 2 },
-      { descriere: 'Calcularea valorii numărului $b$: $$b = \\log_9 \\frac{1}{4} = -\\log_3 2$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea mediei aritmetice, prin reducerea termenilor $\\log_3 2$, egală cu $\\boxed{1}$', puncte_maxime: 1 }
+      { descriere: "Aducerea la o formă mai simplă a numărului $a$: $$a = \\log_3 18 = 2 + \\log_3 2$$", puncte_maxime: 2 },
+      { descriere: "Aducerea la o formă mai simplă a numărului $b$: $$b = \\log_9 \\frac{1}{4} = -\\log_3 2$$", puncte_maxime: 2 },
+      { descriere: "Calcularea mediei aritmetice a numerelor $a$ și $b$: $$\\frac{a+b}{2} = \\frac{2+\\log_3 2 - \\log_3 2}{2} = \\boxed{1}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -3005,9 +3005,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{10^{2+\\frac{1}{2}\\lg 16}}$$',
     solution: '**Pasul 1.** Simplificarea celui de-al doilea termen din exponent:\n$$\\frac{1}{2}\\lg 16 = \\lg 16^{\\frac{1}{2}} = \\lg 4$$\n\n**Pasul 2.** Simplificarea exponentului:\n$$2 + \\lg 4 = \\lg 100 + \\lg 4 = \\lg 400$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = \\boxed{20}$$',
     barem: [
-      { descriere: 'Simplificarea celui de-al doilea termen din exponent: $$\\frac{1}{2}\\lg 16 = \\lg 4$$', puncte_maxime: 1 },
-      { descriere: 'Simplificarea exponentului: $$2+\\lg 4 = \\lg 100+\\lg 4 = \\lg 400$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = \\boxed{20}$$', puncte_maxime: 2 }
+      { descriere: "Obținerea egalității $$\\frac{1}{2}\\lg 16 = \\lg 4$$", puncte_maxime: 2 },
+      { descriere: "Simplificarea exponentului: $$2 + \\lg 4 = \\lg 100 + \\lg 4 = \\lg 400$$", puncte_maxime: 1 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{10^{\\lg 400}} = \\sqrt{400} = \\boxed{20}$$", puncte_maxime: 2 }
     ],
     baremEstimat: true
   },
@@ -3019,9 +3019,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{25^{\\frac{1}{\\log_6 5}} + 49^{\\frac{1}{\\log_6 7}}}$$',
     solution: '**Pasul 1.** Transformarea exponentului și calcularea primului termen de sub radical:\n$$\\frac{1}{\\log_6 5} = \\log_5 6 \\Rightarrow 25^{\\log_5 6} = \\left(5^2\\right)^{\\log_5 6} = 6^2 = 36$$\n\n**Pasul 2.** Transformarea exponentului și calcularea celui de-al doilea termen de sub radical:\n$$\\frac{1}{\\log_6 7} = \\log_7 6 \\Rightarrow 49^{\\log_7 6} = \\left(7^2\\right)^{\\log_7 6} = 6^2 = 36$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\sqrt{36+36} = \\sqrt{72} = \\boxed{6\\sqrt{2}}$$',
     barem: [
-      { descriere: 'Transformarea exponentului și calcularea primului termen de sub radical: $$\\frac{1}{\\log_6 5} = \\log_5 6 \\Rightarrow 25^{\\log_5 6} = 36$$', puncte_maxime: 2 },
-      { descriere: 'Transformarea exponentului și calcularea celui de-al doilea termen de sub radical: $$\\frac{1}{\\log_6 7} = \\log_7 6 \\Rightarrow 49^{\\log_7 6} = 36$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei: $$E = \\sqrt{36+36} = \\sqrt{72} = \\boxed{6\\sqrt{2}}$$', puncte_maxime: 1 }
+      { descriere: "Aplicarea identității $\\frac{1}{\\log_6 5} = \\log_5 6$ și calcularea primului termen de sub radical: $$25^{\\frac{1}{\\log_6 5}} = 36$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea identității $\\frac{1}{\\log_6 7} = \\log_7 6$ și calcularea celui de-al doilea termen de sub radical: $$49^{\\frac{1}{\\log_6 7}} = 36$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$E = \\sqrt{36+36} = \\sqrt{72} = \\boxed{6\\sqrt{2}}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
@@ -3033,9 +3033,9 @@ BM.EXERCISES = [
     statement: 'Calculați valoarea expresiei:\n$$a = 5^{\\log_{\\sqrt{5}} 4 + 2\\log_5 3}$$',
     solution: '**Pasul 1.** Transformarea primului termen din exponent:\n$$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$\n\n**Pasul 2.** Combinarea termenilor din exponent:\n$$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$a = 5^{\\log_5 144} = \\boxed{144}$$',
     barem: [
-      { descriere: 'Transformarea primului termen din exponent: $$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$', puncte_maxime: 2 },
-      { descriere: 'Combinarea termenilor din exponent: $$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$', puncte_maxime: 2 },
-      { descriere: 'Determinarea valorii expresiei, egală cu $\\boxed{144}$', puncte_maxime: 1 }
+      { descriere: "Aducerea logaritmilor la aceeași bază: $$\\log_{\\sqrt{5}} 4 = 2\\log_5 4$$", puncte_maxime: 2 },
+      { descriere: "Aplicarea proprietăților logaritmilor pentru adunarea termenilor din exponent: $$2\\log_5 4 + 2\\log_5 3 = 2\\log_5 12 = \\log_5 144$$", puncte_maxime: 2 },
+      { descriere: "Determinarea valorii expresiei: $$a = 5^{\\log_5 144} = \\boxed{144}$$", puncte_maxime: 1 }
     ],
     baremEstimat: true
   },
