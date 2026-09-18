@@ -1,3 +1,9 @@
 server.js
 node_modules/
 .env
+
+# Vite build metadata for the Capitole React island. The BUNDLE itself
+# (assets/react/capitole-*.js|css) IS committed — production serves this
+# repo as static files and runs no build — but this manifest is only used
+# locally, by scripts/sync-react-tags.js, right after vite writes it.
+assets/react/.vite/

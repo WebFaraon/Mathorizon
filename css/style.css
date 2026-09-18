@@ -74,11 +74,11 @@ img { display: block; max-width: 100%; }
 
 /* 1b. TYPOGRAPHY — HEADINGS & TITLES
    Same --font-ui as the rest of the page now (single-font system — see the
-   --font-ui comment above), just bumped to weight 700: at Roboto's more
-   open optical width, these read as body text at the old 600 instead of as
-   titles. Table headers (.catalog-th__title) and file/row names in lists
-   stay at the inherited body weight — they read as UI/data, not editorial
-   titles. The wordmark classes (.nav__name, .auth-modal__brand,
+   --font-ui comment above), just bumped to weight 700: at the body font's
+   more open optical width, these read as body text at the old 600 instead
+   of as titles. Table headers (.catalog-th__title) and file/row names in
+   lists stay at the inherited body weight — they read as UI/data, not
+   editorial titles. The wordmark classes (.nav__name, .auth-modal__brand,
    .auth-pg-brand-name) are deliberately excluded — they stay pinned to
    'Josefin Sans'.
    ============================================================ */
@@ -188,11 +188,15 @@ table {
 /* 2. CSS VARIABLES
    ============================================================ */
 :root {
-  /* Typography system — one font, Roboto, for everything: UI, body, headings,
-     numerals, tables. 'Josefin Sans' stays hard-coded (not swapped in) on
-     .nav__name / .auth-modal__brand / .auth-pg-brand-name — the wordmark
-     keeps its own font on purpose, same as before. */
-  --font-ui: 'Roboto', system-ui, -apple-system, sans-serif;
+  /* Typography system — one font, Plus Jakarta Sans, for everything: UI,
+     body, headings, numerals, tables. Switched from Roboto here, in the one
+     variable every rule below reads, so the React-migrated Capitole page
+     and the four tabs that are still vanilla keep sharing a font instead of
+     drifting apart mid-migration. Every page's <head> loads it from Google
+     Fonts. 'Josefin Sans' stays hard-coded (not swapped in) on .nav__name /
+     .auth-modal__brand / .auth-pg-brand-name — the wordmark keeps its own
+     font on purpose, same as before. */
+  --font-ui: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
 
   --bg: #F6F3EC;
   --surface: #EDE9DF;

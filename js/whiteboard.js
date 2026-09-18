@@ -110,7 +110,9 @@
   var TEXT_MAX_WIDTH  = 360;
   var TEXT_MIN_WIDTH  = 24;
   var TEXT_DEFAULT_FONT_SIZE = 32;
-  var TEXT_FONT_FAMILY = "'Roboto', system-ui, -apple-system, sans-serif";
+  // Mirrors --font-ui by hand: this is a Fabric.js canvas text object, not
+  // DOM, so it can't read the CSS variable. Keep the two in step.
+  var TEXT_FONT_FAMILY = "'Plus Jakarta Sans', system-ui, -apple-system, sans-serif";
 
   // 1 = the "fit the whole board in the container" scale computed fresh in
   // _applySize every resize — MIN_ZOOM stays 1 rather than allowing zoom

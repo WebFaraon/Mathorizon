@@ -29,6 +29,37 @@ Deschide **http://localhost:8080**.
 > waitlist) dădea 404 pe acel port. A fost eliminat ca să nu mai existe
 > ambiguitate despre „pe care server rulez".
 
+## Pagina Capitole — React + TypeScript
+
+Paginile sunt în continuare fișiere `.html` statice. Singura excepție e
+**capitole.html**, unde tot conținutul de sub bara de navigare (hero,
+statistici, cardurile de capitole, banner-ul Simulare BAC) e o „insulă"
+React montată în `<div id="root">`. Restul taburilor (Simulare, Antrenament,
+Clase, Pachete) rămân vanilla; bara de navigare e comună tuturor și nu e
+migrată.
+
+- sursa: `src/capitole/` (React 19 + TypeScript, Framer Motion, lucide-react)
+- build: `npm run build:react` → `assets/react/capitole-<hash>.js|css`
+- în timpul dezvoltării: `npm run dev:react` (rebuild la fiecare salvare)
+- verificare de tipuri: `npm run typecheck`
+
+Bundle-ul din `assets/react/` **se comite în git**: producția servește
+fișierele din repo, fără pas de build. Scriptul de build e denumit
+`build:react`, nu `build`, tocmai ca hostingul static să nu-l pornească
+singur la deploy și să schimbe felul în care e publicat site-ul.
+
+Numele fișierelor conțin un hash de conținut, așa că tag-urile
+`<link>`/`<script>` din capitole.html sunt **generate**: după fiecare build,
+`scripts/sync-react-tags.js` rescrie blocurile marcate cu
+`REACT-ISLAND-CSS` / `REACT-ISLAND-JS`. Nu le edita manual — și nu șterge
+comentariile-marker, fără ele scriptul se oprește cu eroare.
+
+Datele sunt aceleași ca înainte: React citește prin `window.BM`
+(`js/data.js`, `js/storage.js`) și se reîmprospătează pe evenimentele
+`bmauth:synced` / `bmauth:streak-updated` emise de `js/auth.js`, care e cel
+care sincronizează Supabase → localStorage pe toate paginile. Nu există un
+al doilea strat de acces la Supabase în `src/`.
+
 ## Variabile de mediu
 
 `server.js` citește `.env` (via `dotenv`). Cheile necesare pentru rutele API:
