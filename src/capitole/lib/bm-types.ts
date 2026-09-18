@@ -45,7 +45,14 @@ export interface BMExercise {
   id: string;
   categoryId: string;
   subcategoryId: string;
+  /** Every exercise object in js/data.js and every custom_exercises row
+      (see js/custom-exercises.js) sets this — used by the sidebar's
+      "Continuă de unde ai rămas" card to name the specific next exercise. */
+  title: string;
 }
+
+/** js/storage.js → getSolved() — exercise id → the ms timestamp it was solved at. */
+export type BMSolvedMap = Record<string, number>;
 
 /** js/storage.js → getStats() */
 export interface BMStats {
@@ -65,6 +72,10 @@ export interface BMCategoryProgress {
 export interface BMStorage {
   getStats(exercises: BMExercise[]): BMStats;
   getProgressForCategory(categoryId: string, exercises: BMExercise[]): BMCategoryProgress;
+  /** Keyed by exercise id. Source for the sidebar's "next exercise" pick. */
+  getSolved(): BMSolvedMap;
+  /** Exercise ids, most-recently-favorited first. Source for the nudge card. */
+  getFavorites(): string[];
   recordVisit(): void;
 }
 
@@ -75,4 +86,22 @@ export interface BMGlobal {
   /** Resolves once js/custom-exercises.js has merged the Supabase rows into EXERCISES. */
   customExercisesReady?: () => Promise<unknown>;
   gotoCategory?: (categoryId: string, subcategoryId?: string, exerciseId?: string) => void;
+}
+
+/**
+ * Derived view of one chapter — not a raw BM shape, but built straight from
+ * BM.CATEGORIES + BM.Storage.getProgressForCategory() (see
+ * hooks/useCapitoleData.ts). Lives here, not in the hook file, so
+ * lib/recommendations.ts can consume it without an import cycle.
+ */
+export interface ChapterView {
+  category: BMCategory;
+  progress: BMCategoryProgress;
+  /**
+   * No exercises published for this chapter yet → renders as "În curând"
+   * and isn't clickable. Derived from the live count (`progress.total === 0`),
+   * never hardcoded per chapter: geometry has no exercises in js/data.js at
+   * all and only unlocks once custom_exercises rows arrive from Supabase.
+   */
+  locked: boolean;
 }

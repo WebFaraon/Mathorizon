@@ -1,6 +1,7 @@
 import { useRef } from 'react';
 import { motion, useInView, useReducedMotion } from 'framer-motion';
 import type { ChapterView } from '../hooks/useCapitoleData';
+import type { BMCategoryProgress } from '../lib/bm-types';
 import { useFittedTags } from '../hooks/useFittedTags';
 import { categoryHref } from '../lib/navigate';
 import { EASE_OUT } from '../lib/motion';
@@ -13,6 +14,26 @@ interface ChapterCardProps {
 
 const STAGGER_S = 0.07;
 
+type ChapterStatus = 'done' | 'progress' | 'new';
+
+const STATUS_LABEL: Record<ChapterStatus, string> = {
+  done: 'La zi',
+  progress: 'În lucru',
+  new: 'Neînceput'
+};
+
+/**
+ * A dot, separate from the chapter's own identity color (top border/symbol/
+ * tags), that reads at a glance whether THIS user is caught up here — green
+ * finished, amber started, gray untouched. Purely derived from the real
+ * solved/total ratio, same numbers the progress bar below already shows.
+ */
+function chapterStatus(progress: BMCategoryProgress): ChapterStatus {
+  if (progress.percent >= 100) return 'done';
+  if (progress.percent > 0) return 'progress';
+  return 'new';
+}
+
 export function ChapterCard({ chapter, index }: ChapterCardProps) {
   const { category, progress, locked } = chapter;
   const ref = useRef<HTMLDivElement>(null);
@@ -22,6 +43,7 @@ export function ChapterCard({ chapter, index }: ChapterCardProps) {
   const names = category.subcategories.map((sub) => sub.name);
   const [tagsRef, shownTags] = useFittedTags(names.length);
   const hiddenTags = names.length - shownTags;
+  const status = chapterStatus(progress);
 
   // Per-chapter accent color, straight from js/data.js — every card keeps
   // its own identity color (top band, symbol tile, tags, progress fill).
@@ -37,8 +59,18 @@ export function ChapterCard({ chapter, index }: ChapterCardProps) {
           aria-hidden="true"
           dangerouslySetInnerHTML={{ __html: category.symbol }}
         />
-        <span className="cap-card__count">
-          {locked ? 'În curând' : `${progress.total} exerciții`}
+        <span className="cap-card__top-right">
+          {!locked && (
+            <span
+              className={`cap-card__status cap-card__status--${status}`}
+              title={STATUS_LABEL[status]}
+            >
+              <span className="sr-only">{STATUS_LABEL[status]}</span>
+            </span>
+          )}
+          <span className="cap-card__count">
+            {locked ? 'În curând' : `${progress.total} exerciții`}
+          </span>
         </span>
       </div>
 

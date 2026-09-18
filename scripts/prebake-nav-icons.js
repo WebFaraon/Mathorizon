@@ -43,6 +43,10 @@ const NAV_ICONS = {
   clase:       icon('school',         { size: 16, className: 'nav__mobile-link__icon' }),
   pachete:     icon('package',        { size: 16, className: 'nav__mobile-link__icon' }),
   token:       icon('ticket',         { size: 16, className: 'token-widget__icon' }),
+  // Reuses .token-widget__icon on purpose — the streak pill borrows
+  // .token-widget's whole box/icon/count styling (see TEMPLATE below), so
+  // its icon needs the exact same sizing class, not a lookalike.
+  streak:      icon('flame',          { size: 16, className: 'token-widget__icon' }),
   theme:       icon('moon',           { size: 20 }),
 };
 
@@ -55,7 +59,7 @@ const HEADER = `<!--
 
   This partial is fetched as plain HTML by js/nav-loader.js and injected
   via innerHTML, so it can't execute JavaScript and can't call icon()
-  itself. Its 7 icons are pre-rendered, frozen copies of js/icons.js's
+  itself. Its 8 icons are pre-rendered, frozen copies of js/icons.js's
   icon() output — generated once, at edit time, not live at page load.
   (Chosen specifically to avoid a load-order dependency between
   icons.js and nav-loader.js — see icons.js for the icon definitions.)
@@ -93,6 +97,16 @@ const TEMPLATE = `    <div class="nav__inner container">
           \${token}
           <span class="token-widget__count" data-token-count>—</span>
           <span class="token-widget__label">Tokenuri</span>
+        </div>
+        <!-- Same pill as tokenWidget (shares its box/icon/count styling —
+             see .token-widget in css/style.css) so the two read as one
+             family at a glance; only the icon and the missing text label
+             differ. Value/visibility/relocation wiring lives in
+             js/utils.js (BM.refreshStreakWidgets + the token/theme mobile
+             relocation, extended to carry this one along with it). -->
+        <div class="token-widget" id="streakWidget" title="Zile consecutive">
+          \${streak}
+          <span class="token-widget__count" data-streak-count>—</span>
         </div>
         <button class="nav-icon-btn" id="favBtn" title="Exerciții favorite"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></button>
         <button class="nav-icon-btn" id="histBtn" title="Istoric rezolvări"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><polyline points="12 7 12 12 15.5 14"/></svg></button>

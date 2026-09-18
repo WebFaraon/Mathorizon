@@ -863,6 +863,7 @@ body.bac-exam-mode .nav.nav--peek {
 }
 
 html.bm-guest .token-widget,
+html.bm-guest #streakWidget,
 html.bm-guest #favBtn,
 html.bm-guest #histBtn,
 html.bm-guest #navProfileBtn { display: none; }
@@ -6025,6 +6026,7 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
      "un-hide" rule needed. */
   .nav__right .theme-btn { display: none; }
   .nav__right #tokenWidget { display: none; }
+  .nav__right #streakWidget { display: none; }
   .nav-icon-btn { width: 34px; height: 34px; font-size: 1rem; }
   /* Profile — compact pill: initials + short name */
   .nav-profile-btn { width: 34px; height: 34px; }

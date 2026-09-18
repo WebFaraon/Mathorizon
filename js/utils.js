@@ -519,40 +519,73 @@ BM.refreshTokenWidgets = function () {
 document.addEventListener('DOMContentLoaded', BM.refreshTokenWidgets);
 document.addEventListener('nav:loaded', BM.refreshTokenWidgets);
 
-/* ---- Nav: relocate theme toggle + token widget into the hamburger dropdown
-   on narrow screens, instead of showing them (cramped) in the top bar. Moves
-   the actual elements, not copies — same id, same listeners, same
-   refreshTokenWidgets()/BM.toggleTheme() wiring, just re-parented — so
-   there's never two token counts or two theme buttons to keep in sync. */
+/* ---- Streak widget (header pill next to Tokenuri) ----
+   Reads BM.Storage.getStreak() directly — same daily-bump counter the
+   Capitole page shows, just mirrored here so it's visible from every tab,
+   not only capitole.html. No new sync path: js/auth.js is what actually
+   writes bm_streak into localStorage (from Supabase on sign-in, bumped
+   once/day after that) — this only re-paints the pill whenever that value
+   might have changed. */
+BM.refreshStreakWidgets = function () {
+  const n = BM.Storage?.getStreak ? BM.Storage.getStreak().count : 0;
+  document.querySelectorAll('[data-streak-count]').forEach(el => {
+    el.textContent = n;
+  });
+  const w = document.getElementById('streakWidget');
+  if (!w) return;
+  w.title = n > 0
+    ? `${n} ${n === 1 ? 'zi consecutivă' : 'zile consecutive'}`
+    : 'Fără zile consecutive încă';
+};
+
+document.addEventListener('DOMContentLoaded', BM.refreshStreakWidgets);
+document.addEventListener('nav:loaded', BM.refreshStreakWidgets);
+// The two moments the count can actually change after first paint: a
+// logged-in sync overwriting it from Supabase, and the once-a-day bump
+// (js/auth.js dispatches both once its own work is done).
+document.addEventListener('bmauth:synced', BM.refreshStreakWidgets);
+document.addEventListener('bmauth:streak-updated', BM.refreshStreakWidgets);
+
+/* ---- Nav: relocate theme toggle + token widget + streak widget into the
+   hamburger dropdown on narrow screens, instead of showing them (cramped)
+   in the top bar. Moves the actual elements, not copies — same id, same
+   listeners, same refreshTokenWidgets()/refreshStreakWidgets()/
+   BM.toggleTheme() wiring, just re-parented — so there's never two token
+   counts, two streak counts or two theme buttons to keep in sync. */
 (function () {
   const mq = window.matchMedia('(max-width: 600px)');
   let inMobile = false;
-  let tokenAnchor = null;
-  let themeAnchor = null;
-  let mobileRow   = null;
+  let tokenAnchor  = null;
+  let streakAnchor = null;
+  let themeAnchor  = null;
+  let mobileRow    = null;
 
   function apply(matches) {
     // Guests get their own relocation below (themeBtn alone, no
-    // tokenWidget — guests have no tokens) at a different breakpoint —
-    // skip here so the two don't fight over the same themeBtn.
+    // tokenWidget/streakWidget — guests have neither) at a different
+    // breakpoint — skip here so the two don't fight over the same themeBtn.
     if (document.documentElement.classList.contains('bm-guest')) return;
     if (matches === inMobile) return;
-    const tokenWidget = document.getElementById('tokenWidget');
-    const themeBtn    = document.getElementById('themeBtn');
-    const mobileMenu  = document.getElementById('navMobileMenu');
-    if (!tokenWidget || !themeBtn || !mobileMenu) return;
+    const tokenWidget  = document.getElementById('tokenWidget');
+    const streakWidget = document.getElementById('streakWidget');
+    const themeBtn     = document.getElementById('themeBtn');
+    const mobileMenu   = document.getElementById('navMobileMenu');
+    if (!tokenWidget || !streakWidget || !themeBtn || !mobileMenu) return;
 
     if (matches) {
-      tokenAnchor = document.createComment('nav-token-anchor');
-      themeAnchor = document.createComment('nav-theme-anchor');
+      tokenAnchor  = document.createComment('nav-token-anchor');
+      streakAnchor = document.createComment('nav-streak-anchor');
+      themeAnchor  = document.createComment('nav-theme-anchor');
       tokenWidget.before(tokenAnchor);
+      streakWidget.before(streakAnchor);
       themeBtn.before(themeAnchor);
       mobileRow = document.createElement('div');
       mobileRow.className = 'nav__mobile-utility-row';
-      mobileRow.append(themeBtn, tokenWidget);
+      mobileRow.append(themeBtn, streakWidget, tokenWidget);
       mobileMenu.appendChild(mobileRow);
     } else {
       tokenAnchor?.replaceWith(tokenWidget);
+      streakAnchor?.replaceWith(streakWidget);
       themeAnchor?.replaceWith(themeBtn);
       mobileRow?.remove();
       mobileRow = null;
