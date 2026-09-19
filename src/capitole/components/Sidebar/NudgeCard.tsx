@@ -44,6 +44,16 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
           <strong>{nudge.count}</strong>{' '}
           {nudge.count === 1 ? 'exercițiu favorit nerezolvat' : 'exerciții favorite nerezolvate'}
         </p>
+        {/* A short, concrete preview instead of just the count — names the
+            actual exercises so the card has something to read, not only a
+            number and a button. Capped at 3 in lib/recommendations.ts. */}
+        {nudge.items.length > 0 && (
+          <ul className="cap-nudge__favlist">
+            {nudge.items.map((exercise) => (
+              <li key={exercise.id} className="cap-nudge__favitem">{exercise.title}</li>
+            ))}
+          </ul>
+        )}
         {/* A real button, not a text link — same pressed-button family as
             everywhere else on the page, just smaller (cap-btn--sm), since
             this is a secondary action inside an already-compact card.

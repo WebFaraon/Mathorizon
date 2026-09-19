@@ -6,6 +6,10 @@ export interface LeaderboardRow {
   totalXp: number;
   bestStreak: number;
   rank: number;
+  /** floor(totalXp / XP_PER_LEVEL) + 1 — same formula js/training-stats.js
+      uses for the student's own level, read from BM.Training.XP_PER_LEVEL
+      rather than a second hardcoded 100 so the two can't drift apart. */
+  level: number;
 }
 
 export interface LeaderboardState {
@@ -14,7 +18,10 @@ export interface LeaderboardState {
   ready: boolean;
 }
 
-const LIMIT = 10;
+/** Every elev account (see supabase/migrations/..._xp_leaderboard_all_students.sql),
+    not just a top-10 cut — comfortably above the current student count,
+    kept finite as a sane ceiling rather than truly unbounded. */
+const LIMIT = 500;
 
 /** Row shape returned by the get_xp_leaderboard() RPC (snake_case, as Postgres returns it). */
 interface LeaderboardRpcRow {
@@ -48,13 +55,15 @@ export function useLeaderboard(): LeaderboardState {
       try {
         const { data, error } = await sb.rpc('get_xp_leaderboard', { p_limit: LIMIT });
         if (error) throw error;
+        const xpPerLevel = window.BM?.Training?.XP_PER_LEVEL ?? 100;
         const rpcRows = (data ?? []) as LeaderboardRpcRow[];
         const rows: LeaderboardRow[] = rpcRows.map((row) => ({
           userId: row.user_id,
           displayName: row.display_name,
           totalXp: row.total_xp,
           bestStreak: row.best_streak,
-          rank: row.rank
+          rank: row.rank,
+          level: Math.floor(row.total_xp / xpPerLevel) + 1
         }));
         if (!cancelled) setState({ rows, ready: true });
       } catch {

@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { CircleCheck } from 'lucide-react';
+import { CircleCheck, Gift } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
 import { EASE_OUT } from '../../lib/motion';
 
@@ -41,14 +41,23 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
                 <span className="cap-mission__title">{mission.title}</span>
                 <span className="cap-mission__xp">+{mission.xpReward} XP</span>
               </span>
-              <span className="cap-mission__track">
-                <motion.span
-                  className="cap-mission__fill"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${Math.min(100, (mission.progress / mission.target) * 100)}%` }}
-                  transition={
-                    prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: EASE_OUT }
-                  }
+              <span className="cap-mission__trackrow">
+                <span className="cap-mission__track">
+                  <motion.span
+                    className="cap-mission__fill"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${Math.min(100, (mission.progress / mission.target) * 100)}%` }}
+                    transition={
+                      prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: EASE_OUT }
+                    }
+                  />
+                </span>
+                {/* The reward waiting at the end of the bar — makes the
+                    connection between "finish this" and "get XP" visual,
+                    not just a number in the header row. */}
+                <Gift
+                  className={`cap-mission__reward${mission.done ? ' cap-mission__reward--done' : ''}`}
+                  aria-hidden="true"
                 />
               </span>
               <span className="cap-mission__count">{mission.progress} / {mission.target}</span>

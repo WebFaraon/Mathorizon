@@ -58,7 +58,7 @@ export function pickContinueTarget(
 }
 
 export type SidebarNudge =
-  | { kind: 'favorites'; count: number }
+  | { kind: 'favorites'; count: number; items: BMExercise[] }
   | { kind: 'weak-chapter'; chapter: ChapterView }
   | null;
 
@@ -80,11 +80,20 @@ export type SidebarNudge =
 export function pickNudge(
   chapters: ChapterView[],
   favorites: string[],
+  exercises: BMExercise[],
   solved: BMSolvedMap,
   excludeCategoryId: string | null
 ): SidebarNudge {
-  const unsolvedFavorites = favorites.filter((id) => !solved[id]).length;
-  if (unsolvedFavorites > 0) return { kind: 'favorites', count: unsolvedFavorites };
+  const unsolvedFavoriteIds = favorites.filter((id) => !solved[id]);
+  if (unsolvedFavoriteIds.length > 0) {
+    // Newest-favorited first (favorites' own order), capped to 3 so the
+    // card stays a preview, not a second copy of the favorites panel.
+    const items = unsolvedFavoriteIds
+      .map((id) => exercises.find((e) => e.id === id))
+      .filter((e): e is BMExercise => Boolean(e))
+      .slice(0, 3);
+    return { kind: 'favorites', count: unsolvedFavoriteIds.length, items };
+  }
 
   const candidates = chapters.filter(
     (c) => !c.locked && c.progress.percent < 100 && c.category.id !== excludeCategoryId

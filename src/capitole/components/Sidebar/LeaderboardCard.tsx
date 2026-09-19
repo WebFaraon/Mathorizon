@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Trophy } from 'lucide-react';
+import { Flame, Trophy } from 'lucide-react';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
 
@@ -10,12 +10,12 @@ interface LeaderboardCardProps {
 }
 
 /**
- * Top students by lifetime XP (see hooks/useLeaderboard.ts for exactly
- * where the number comes from — it's real, not a placeholder list). Not
- * "who's online right now": the site has no site-wide presence tracking,
- * only per-session Realtime channels (exam/whiteboard) — this is the
- * nearest real signal to "students doing well on Mathorizon" that exists
- * today.
+ * Every student on Mathorizon, ranked by lifetime XP (see hooks/useLeaderboard.ts
+ * and supabase/migrations/..._xp_leaderboard_all_students.sql — it's a real,
+ * complete roster, not a top-N cut or a placeholder list). Not "who's online
+ * right now": the site has no site-wide presence tracking, only per-session
+ * Realtime channels (exam/whiteboard) — this is the nearest real signal to
+ * "students doing well on Mathorizon" that exists today.
  */
 export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -48,9 +48,20 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
               className={`cap-leaderboard__row${row.userId === currentUserId ? ' cap-leaderboard__row--you' : ''}`}
             >
               <span className="cap-leaderboard__rank">{row.rank}</span>
-              <span className="cap-leaderboard__name">
-                {row.displayName}
-                {row.userId === currentUserId && <span className="cap-leaderboard__you">Tu</span>}
+              <span className="cap-leaderboard__main">
+                <span className="cap-leaderboard__name">
+                  {row.displayName}
+                  {row.userId === currentUserId && <span className="cap-leaderboard__you">Tu</span>}
+                </span>
+                <span className="cap-leaderboard__meta">
+                  <span className="cap-leaderboard__level">Nivel {row.level}</span>
+                  {row.bestStreak > 0 && (
+                    <span className="cap-leaderboard__streak">
+                      <Flame aria-hidden="true" />
+                      {row.bestStreak}
+                    </span>
+                  )}
+                </span>
               </span>
               <span className="cap-leaderboard__xp">{row.totalXp} XP</span>
             </li>

@@ -31,7 +31,13 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
 
   const solved = storage.getSolved();
   const continueTarget = pickContinueTarget(chapters, exercises, solved);
-  const nudge = pickNudge(chapters, storage.getFavorites(), solved, continueTarget.chapter?.category.id ?? null);
+  const nudge = pickNudge(
+    chapters,
+    storage.getFavorites(),
+    exercises,
+    solved,
+    continueTarget.chapter?.category.id ?? null
+  );
 
   return { stats: storage.getStats(exercises), chapters, continueTarget, nudge };
 }

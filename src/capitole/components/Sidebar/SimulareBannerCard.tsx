@@ -10,14 +10,14 @@ const BAC_HREF = 'bac.html?new=1&type=bac';
 const FACTS = ['12 exerciții', '3 ore', 'Notă automată'];
 
 /**
- * Simulare BAC, moved into the sidebar as a full-color card instead of the
- * white bordered banner it used to be — it's promotional, not a progress
- * fact like the two cards above it, so it's allowed to look different.
+ * Simulare BAC, in the sidebar. Tried as a full-color blue-gradient card
+ * first; reverted to the same plain white/bordered look as the cards above
+ * it per direct feedback — it's still a link to a different destination,
+ * not a progress fact, but that didn't need a different color language.
  *
- * The whole card lifts on hover (same language as every other card on the
- * page); the button additionally gets the "pressed" treatment on tap
- * (darker edge beneath in CSS, a small downward nudge here) — one hover
- * cue and one press cue, not both stacked on the button alone.
+ * The button gets the "pressed" treatment on tap (darker edge beneath in
+ * CSS, a small downward nudge) — same lockstep mechanic as every other CTA
+ * on the page, see .cap-btn in styles.css.
  */
 export function SimulareBannerCard() {
   const prefersReducedMotion = useReducedMotion();
@@ -46,7 +46,7 @@ export function SimulareBannerCard() {
 
       {/* Press feedback is plain CSS (:active) — see .cap-btn in
           styles.css for why a Framer whileTap here fought with it. */}
-      <span className="cap-btn cap-btn--on-color cap-btn--block">
+      <span className="cap-btn cap-btn--primary cap-btn--block">
         Începe simularea
         <ArrowRight aria-hidden="true" />
       </span>
