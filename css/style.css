@@ -1632,6 +1632,15 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .main > * { position: relative; z-index: 1; }
 
+/* category.html only: these blobs exist to be seen through glassmorphic
+   cards (see the comment above) — .subcat-card is solid now, not glass,
+   so they only ever showed as stray colored glows in the page margins.
+   #catHeader is unique to this page, so no other .main user is touched. */
+body:has(#catHeader) .main::before,
+body:has(#catHeader) .main::after {
+  display: none;
+}
+
 .main-blob {
   position: absolute;
   border-radius: 50%;
@@ -2625,59 +2634,50 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   padding: 22px 0 44px;
 }
 
+/* Same chunky pressed-button language as Capitole's .cap-card: a darker
+   edge of the subcategory's own color sits below the card at rest, hover
+   dims the face instead of lifting the card, a press sinks it down to
+   meet the edge — replaces the previous glassmorphism (blurred
+   translucent fill, cursor-tracking shine, left-edge color bar) per
+   direct feedback that this page should match the Capitole redesign
+   instead of its own older look. The subcategory's color now shows
+   through the shadow instead of a static side bar. */
 .subcat-card {
-  background: rgba(255,255,255,0.18);
-  backdrop-filter: blur(24px) saturate(1.6);
-  -webkit-backdrop-filter: blur(24px) saturate(1.6);
-  border: 1px solid rgba(255,255,255,0.50);
-  border-left: 4px solid var(--sc-color, var(--accent));
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 20px 22px;
   cursor: pointer;
-  transition: transform var(--transition-slow), box-shadow var(--transition-slow), border-color var(--transition-slow), background var(--transition-slow);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
   position: relative;
-  overflow: hidden;
   display: flex;
   flex-direction: column;
   gap: 12px;
   animation: card-up-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
   min-height: 150px;
-  box-shadow: 0 4px 24px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.6);
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--sc-color, var(--accent)) 55%, black 30%);
 }
-
-.subcat-card::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: radial-gradient(350px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
-    rgba(255,255,255,0.50), transparent 60%);
-  opacity: 0;
-  transition: opacity 0.35s ease;
-  pointer-events: none;
-  z-index: 0;
+html:not([data-theme="dark"]) .subcat-card {
+  background: #fff;
 }
-.subcat-card:hover::before { opacity: 1; }
-.subcat-card > * { position: relative; z-index: 1; }
-.subcat-card::after { display: none; }
 
 .subcat-card:hover {
-  background: rgba(255,255,255,0.28);
   border-color: var(--sc-color, var(--accent));
-  border-left-color: var(--sc-color, var(--accent));
-  box-shadow: 0 16px 40px rgba(0,0,0,0.13), 0 4px 12px rgba(0,0,0,0.07), inset 0 1px 0 rgba(255,255,255,0.7);
-  transform: translateY(-5px);
+  filter: brightness(0.97);
 }
-.subcat-card:hover .subcat-card__icon { transform: scale(1.06); }
+.subcat-card:active {
+  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--sc-color, var(--accent)) 55%, black 30%);
+  transform: translateY(4px);
+}
 
 .subcat-card--empty {
   cursor: default;
   opacity: 0.45;
+  box-shadow: none;
 }
 .subcat-card--empty:hover {
-  transform: none;
   border-color: var(--border);
-  box-shadow: none;
+  filter: none;
 }
 
 .subcat-card__top {
@@ -2696,12 +2696,12 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
+  /* color/background/border-color are actually set inline per-subcategory
+     (js/category.js) — these are just structural fallbacks. No backdrop
+     blur any more, matching the card's own move off glassmorphism. */
   background: rgba(255,255,255,0.35);
   border: 1px solid rgba(255,255,255,0.50);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
   color: var(--sc-color, var(--accent));
-  transition: transform var(--transition-slow);
 }
 
 .subcat-card__count {
@@ -2783,24 +2783,38 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   height: 56px;
 }
 
+/* Same chunky pressed-button language as Capitole's .cap-btn--primary
+   (a darker edge sits below the button at rest, compresses to nothing on
+   press, the button sinks to meet it) — per direct feedback that this
+   button should match the rest of the redesign instead of the plain
+   neutral pill it was. --bc-back-shadow copies .cap-btn's
+   --cap-btn-shadow-primary value exactly, so the same blue button reads
+   identically on this page and on Capitole. */
 .subcat-bc__back {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  font-size: 0.78rem;
-  font-weight: 700;
-  color: var(--text-secondary);
-  background: var(--card);
-  border: 1.5px solid var(--border);
+  gap: 5px;
+  font-size: 0.85rem;
+  font-weight: 800;
+  color: #fff;
+  background: var(--accent);
+  border: none;
   border-radius: var(--radius-sm);
-  padding: 4px 10px;
+  padding: 7px 14px;
   cursor: pointer;
-  transition: all var(--transition);
+  --bc-back-shadow: #16305c;
+  box-shadow: 0 4px 0 0 var(--bc-back-shadow);
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease;
 }
 .subcat-bc__back:hover {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: var(--accent-dim);
+  background: color-mix(in srgb, var(--accent) 90%, white 10%);
+}
+.subcat-bc__back:active {
+  box-shadow: 0 0px 0 0 var(--bc-back-shadow);
+  transform: translateY(4px);
+}
+[data-theme="dark"] .subcat-bc__back {
+  --bc-back-shadow: rgba(0, 0, 0, 0.65);
 }
 
 .subcat-bc__sep { color: var(--text-muted); font-size: 0.8rem; }
@@ -6419,24 +6433,10 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   box-shadow: 0 20px 50px rgba(0,0,0,0.6), 0 4px 16px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.12);
 }
 
-[data-theme="dark"] .subcat-card {
-  background: rgba(255,255,255,0.05);
-  border-color: rgba(255,255,255,0.12);
-  border-left-color: var(--sc-color, var(--accent));
-  box-shadow: 0 4px 24px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.08);
-}
-[data-theme="dark"] .subcat-card::before {
-  background: radial-gradient(350px circle at var(--mouse-x, -999px) var(--mouse-y, -999px),
-    rgba(255,255,255,0.09), transparent 60%);
-}
-[data-theme="dark"] .subcat-card:hover {
-  background: rgba(255,255,255,0.08);
-  box-shadow: 0 16px 40px rgba(0,0,0,0.5), 0 4px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.10);
-}
-[data-theme="dark"] .subcat-card__icon {
-  background: rgba(255,255,255,0.08);
-  border-color: rgba(255,255,255,0.14);
-}
+/* .subcat-card itself needs no dark override any more — --card/--border
+   already resolve to sane dark values, and its shadow is
+   color-mix(subcategory color, black), a fixed dark value independent of
+   page background, same as Capitole's .cap-card. */
 [data-theme="dark"] .subcat-card__soon {
   background: rgba(255,255,255,0.08);
   border-color: rgba(255,255,255,0.15);
@@ -6547,11 +6547,6 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
   from { opacity: 0; transform: translateY(12px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-/* 5. Subcat card hover — lift is already in .subcat-card:hover;
-      add a subtle scale to the icon for extra polish */
-.subcat-card:hover .subcat-card__icon { transform: scale(1.08); }
-.subcat-card__icon { transition: transform 0.22s cubic-bezier(0.34, 1.56, 0.64, 1); }
 
 /* ============================================================
    BAC SIMULATION — DASHBOARD CARD
@@ -19002,9 +18997,10 @@ body.dc-fullscreen-active .dc-toolbar {
 }
 
 /* ============================================================
-   Capitole only: plain white page (light theme only — dark theme's
-   near-black --bg is untouched). #root only exists on capitole.html, so
-   this doesn't touch any other page.
+   Capitole + category (per-chapter) pages only: plain white page (light
+   theme only — dark theme's near-black --bg is untouched). #root only
+   exists on capitole.html and #catHeader only on category.html, so this
+   doesn't touch any other page.
    The grid itself stays — a flat page with no pattern at all read as
    empty — just fainter than the site-wide default (roughly half the
    alpha) so it doesn't compete with the cards on top of it. !important +
@@ -19012,16 +19008,19 @@ body.dc-fullscreen-active .dc-toolbar {
    [data-theme="dark"] body override above without needing to duplicate
    per theme.
    ============================================================ */
-html:not([data-theme="dark"]) body:has(#root) {
+html:not([data-theme="dark"]) body:has(#root),
+html:not([data-theme="dark"]) body:has(#catHeader) {
   background-color: #fff !important;
 }
-body:has(#root) {
+body:has(#root),
+body:has(#catHeader) {
   background-image:
     linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px) !important;
   background-size: 28px 28px !important;
 }
-html[data-theme="dark"] body:has(#root) {
+html[data-theme="dark"] body:has(#root),
+html[data-theme="dark"] body:has(#catHeader) {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
