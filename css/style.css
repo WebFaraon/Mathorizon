@@ -459,6 +459,7 @@ body.bac-exam-mode .nav.nav--peek {
 .nav__link--active {
   background: rgba(255, 255, 255, 0.22);
   color: #fff;
+  border-width: 2px;
   border-color: rgba(255, 255, 255, 0.55);
 }
 /* Short labels — no longer used; hamburger takes over on mobile */

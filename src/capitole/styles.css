@@ -691,6 +691,19 @@
   flex-direction: column;
   gap: 2px;
   list-style: none;
+  /* Every student renders (see hooks/useLeaderboard.ts), but only the
+     first ~5 show without scrolling — sized to that row height, not a
+     round number, so the 6th row doesn't peek in half-cut. Still
+     scrollable (wheel/touch/drag/keyboard), just with the scrollbar
+     itself hidden per direct feedback — "scoate sliderul" meant the
+     visible track, not the scrolling. */
+  max-height: 260px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.cap-leaderboard__list::-webkit-scrollbar {
+  display: none;
 }
 
 .cap-leaderboard__row {
