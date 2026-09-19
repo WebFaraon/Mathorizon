@@ -6830,7 +6830,10 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   transition: background 0.3s ease;
 }
 
-/* Each half-card */
+/* Each half-card — no longer the click target itself (only .sim-card-cta
+   is, see below) per direct feedback that pressing anywhere in the blue/
+   purple zone advanced to the next step, which was confusing since it
+   looked like a passive hero, not a giant button. */
 .sim-card {
   flex: 1;
   position: relative;
@@ -6838,10 +6841,8 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   display: flex;
   align-items: center;
   justify-content: center;
-  cursor: pointer;
   transition: flex 0.45s cubic-bezier(0.22, 1, 0.36, 1), opacity 0.3s ease;
 }
-.sim-card:focus-visible { outline: 3px solid var(--accent); outline-offset: -3px; }
 
 /* Floating math symbols in each card */
 .sim-card-deco {
@@ -6865,21 +6866,19 @@ html:not([data-theme="dark"]) .rarity-card__statement {
 .sim-card-deco span:nth-child(3) { animation-name: bac-sym-c; animation-duration: 16s; animation-delay: 0.8s; }
 .sim-card-deco span:nth-child(4) { animation-duration: 9s; animation-delay: 2.2s; }
 
-/* BAC card — blue gradient */
+/* BAC card — blue gradient. No :hover shift any more — the card itself
+   isn't the click target (see .sim-card-cta below), so reacting to hover
+   here would suggest interactivity that isn't there. */
 .sim-card--bac {
   background: linear-gradient(160deg, #1e3e78 0%, #3A6BAD 100%);
   border-right: 1px solid rgba(255,255,255,0.10);
-  transition: background 0.35s ease;
 }
-.sim-card--bac:hover { background: linear-gradient(160deg, #244896 0%, #4a7fc5 100%); }
 
-/* Evaluare Națională (clasa a IX-a) card — purple gradient, same active/
-   clickable behavior as --bac (see selectSimType('natl') in js/bac.js). */
+/* Evaluare Națională (clasa a IX-a) card — purple gradient, same layout
+   as --bac (see selectSimType('natl') in js/bac.js). */
 .sim-card--natl {
   background: linear-gradient(160deg, #3b2280 0%, #6c3fc7 100%);
-  transition: background 0.35s ease;
 }
-.sim-card--natl:hover { background: linear-gradient(160deg, #46299b 0%, #7c4dd6 100%); }
 
 /* Card inner content */
 .sim-card-content {
@@ -6895,22 +6894,6 @@ html:not([data-theme="dark"]) .rarity-card__statement {
 }
 .sim-card--natl .sim-card-content { animation-name: bac-slide-right; }
 
-.sim-card-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 1.2px;
-  text-transform: uppercase;
-  color: rgba(255,255,255,0.72);
-  background: rgba(255,255,255,0.12);
-  border: 1px solid rgba(255,255,255,0.22);
-  border-radius: 20px;
-  padding: 5px 14px;
-  margin-bottom: 26px;
-  width: fit-content;
-}
 .sim-card-title {
   font-size: 2.6rem;
   font-weight: 800;
@@ -6980,29 +6963,35 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   margin-left: 4px;
 }
 
-/* CTA row */
+/* CTA row — now a real <button> and the ONLY clickable part of the card
+   (see .sim-card above) — opaque white fill with the same chunky 3D
+   press language as every other button on the site, instead of the
+   translucent glass pill it was. */
 .sim-card-cta {
   display: inline-flex;
   align-items: center;
   gap: 8px;
   font-size: 0.88rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.80);
-  background: rgba(255,255,255,0.10);
-  border: 1px solid rgba(255,255,255,0.22);
+  font-weight: 800;
+  font-family: inherit;
+  cursor: pointer;
+  border: none;
+  color: #1e3e78;
+  background: #fff;
   border-radius: var(--radius);
-  padding: 11px 20px;
-  transition: background 0.2s ease, border-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+  padding: 12px 20px;
+  box-shadow: 0 4px 0 0 rgba(0, 0, 0, 0.18);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
   letter-spacing: 0.2px;
 }
-.sim-card:hover .sim-card-cta {
-  background: rgba(255,255,255,0.18);
-  border-color: rgba(255,255,255,0.45);
-  color: #fff;
-  transform: translateX(4px);
+.sim-card--natl .sim-card-cta { color: #3b2280; }
+.sim-card-cta:hover { filter: brightness(0.97); }
+.sim-card-cta:active {
+  box-shadow: 0 0px 0 0 rgba(0, 0, 0, 0.18);
+  transform: translateY(4px);
 }
 .sim-card-arrow { transition: transform 0.2s ease; }
-.sim-card:hover .sim-card-arrow { transform: translateX(4px); }
+.sim-card-cta:hover .sim-card-arrow { transform: translateX(4px); }
 
 /* Vertical divider between the two cards */
 .sim-choose-divider {
@@ -7575,12 +7564,15 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   letter-spacing: 0.8px;
   color: rgba(255,255,255,0.48);
 }
+/* Flat green (was a gradient with a soft ambient glow-shadow) with the
+   same hard-edge chunky 3D press language as the rest of the site —
+   hover dims instead of lifting, per direct feedback. */
 .bac-start-btn {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
-  background: linear-gradient(135deg, #16A34A 0%, #15803d 100%);
+  background: var(--green, #16A34A);
   color: #fff;
   border: none;
   border-radius: var(--radius);
@@ -7590,13 +7582,13 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   font-family: inherit;
   cursor: pointer;
   letter-spacing: 0.2px;
-  box-shadow: 0 4px 20px rgba(22,163,74,0.40), 0 0 0 0 rgba(22,163,74,0);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--green, #16A34A) 55%, black 30%);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
-.bac-start-btn:hover {
-  background: linear-gradient(135deg, #15803d 0%, #166534 100%);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 30px rgba(22,163,74,0.55);
+.bac-start-btn:hover { filter: brightness(0.96); }
+.bac-start-btn:active {
+  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--green, #16A34A) 55%, black 30%);
+  transform: translateY(4px);
 }
 .bac-start-btn:disabled {
   /* Dim via filter, not opacity: the entrance animation (bac-fade-up) both
@@ -7627,42 +7619,55 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   gap: 10px;
   margin-bottom: 22px;
 }
+/* Opaque (white unselected, solid accent-blue selected) with the same
+   chunky 3D press language as the rest of the site, instead of the
+   translucent glass card + a permanent scale(1.02) it was — the
+   scale on .selected is dropped entirely (rather than trying to combine
+   it with the new :active translateY, which a fixed transform and a
+   press-triggered one can't both apply at once) since the solid fill
+   already reads clearly as "chosen" on its own. */
 .bac-method-btn {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 4px;
   text-align: left;
-  background: rgba(255,255,255,0.08);
-  border: 1.5px solid rgba(255,255,255,0.16);
+  background: #fff;
+  border: none;
   border-radius: var(--radius);
-  color: rgba(255,255,255,0.72);
+  color: #1a2e4d;
   font-family: inherit;
   padding: 14px 14px;
   cursor: pointer;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+  --chip-shadow: rgba(0, 0, 0, 0.18);
+  box-shadow: 0 3px 0 0 var(--chip-shadow);
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.1s ease,
+              transform 0.1s ease, filter 0.15s ease;
 }
-.bac-method-btn:hover {
-  background: rgba(147,197,253,0.16);
-  border-color: rgba(147,197,253,0.42);
-  color: #fff;
+.bac-method-btn:hover { filter: brightness(0.96); }
+.bac-method-btn:active {
+  box-shadow: 0 0px 0 0 var(--chip-shadow);
+  transform: translateY(3px);
 }
 .bac-method-btn.selected {
-  background: rgba(147,197,253,0.22);
-  border-color: #93c5fd;
+  background: var(--accent);
   color: #fff;
-  transform: scale(1.02);
+  --chip-shadow: #16305c;
+}
+[data-theme="dark"] .bac-method-btn.selected {
+  --chip-shadow: rgba(0, 0, 0, 0.65);
 }
 .bac-method-btn__icon { display: inline-flex; }
 .bac-method-btn__title {
   font-size: 0.88rem;
   font-weight: 700;
-  color: #fff;
+  color: inherit;
 }
 .bac-method-btn__desc {
   font-size: 0.72rem;
   line-height: 1.4;
-  color: rgba(255,255,255,0.55);
+  color: inherit;
+  opacity: 0.68;
 }
 
 /* RIGHT structure panel */
@@ -7754,7 +7759,12 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   letter-spacing: 0.3px;
 }
 
-/* Back button — inside left panel, top-left */
+/* Back button — inside left panel, top-left. Same chunky 3D language and
+   the same blue as Capitole's other 3D buttons (--bc-back-shadow copies
+   .subcat-bc__back's exact shadow value) instead of the translucent
+   glass pill it was — per direct feedback. Solid blue regardless of
+   which flow (bac/natl) it's in: "back" is a neutral action, not tied to
+   that flow's own accent color the way the rest of the page is. */
 .bac-back-btn {
   position: absolute;
   top: 20px;
@@ -7762,22 +7772,29 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  background: rgba(255,255,255,0.08);
-  border: 1px solid rgba(255,255,255,0.18);
+  background: var(--accent);
+  border: none;
   border-radius: var(--radius-sm);
-  padding: 5px 13px;
-  font-size: 0.75rem;
-  font-weight: 600;
-  color: rgba(255,255,255,0.60);
+  padding: 7px 14px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: #fff;
   text-decoration: none;
   letter-spacing: 0.3px;
-  transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+  --bc-back-shadow: #16305c;
+  box-shadow: 0 3px 0 0 var(--bc-back-shadow);
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease;
   z-index: 10;
 }
 .bac-back-btn:hover {
-  background: rgba(255,255,255,0.16);
-  border-color: rgba(255,255,255,0.35);
-  color: rgba(255,255,255,0.95);
+  background: color-mix(in srgb, var(--accent) 90%, white 10%);
+}
+.bac-back-btn:active {
+  box-shadow: 0 0px 0 0 var(--bc-back-shadow);
+  transform: translateY(3px);
+}
+[data-theme="dark"] .bac-back-btn {
+  --bc-back-shadow: rgba(0, 0, 0, 0.65);
 }
 
 /* BAC setup — entry animations */
@@ -7801,7 +7818,15 @@ html:not([data-theme="dark"]) .rarity-card__statement {
 .bac-setup-chips { animation: bac-fade-up 0.36s 0.42s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-method-label { animation: bac-fade-up 0.36s 0.46s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-method-grid  { animation: bac-fade-up 0.36s 0.50s cubic-bezier(0.22, 1, 0.36, 1) both; }
-.bac-start-btn   { animation: bac-fade-up 0.36s 0.56s cubic-bezier(0.22, 1, 0.36, 1) both; }
+/* backwards, not both: "both" would permanently hold this element's
+   transform at the animation's own translateY(0) end-state (a forwards
+   fill never really "ends"), silently blocking the new :active
+   translateY(4px) press below from ever having a visual effect — the
+   exact bug already found and fixed on .subcat-card (category.html).
+   backwards-only still avoids the pre-animation flash and costs nothing
+   here since the "to" keyframe already matches the element's natural
+   un-animated resting transform. */
+.bac-start-btn   { animation: bac-fade-up 0.36s 0.56s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
 .bac-struct-table { animation: bac-fade-up 0.36s 0.18s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-hist         { animation: bac-fade-up 0.36s 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
 .bac-tips         { animation: bac-fade-up 0.36s 0.34s cubic-bezier(0.22, 1, 0.36, 1) both; }
@@ -19064,10 +19089,11 @@ body.dc-fullscreen-active .dc-toolbar {
 }
 
 /* ============================================================
-   Capitole + category (per-chapter) pages only: plain white page (light
-   theme only — dark theme's near-black --bg is untouched). #root only
-   exists on capitole.html and #catHeader only on category.html, so this
-   doesn't touch any other page.
+   Capitole + category (per-chapter) + bac (Simulare setup) pages only:
+   plain white page (light theme only — dark theme's near-black --bg is
+   untouched). #root only exists on capitole.html, #catHeader only on
+   category.html, and #setupView only on bac.html, so this doesn't touch
+   any other page.
    The grid itself stays — a flat page with no pattern at all read as
    empty — just fainter than the site-wide default (roughly half the
    alpha) so it doesn't compete with the cards on top of it. !important +
@@ -19076,18 +19102,21 @@ body.dc-fullscreen-active .dc-toolbar {
    per theme.
    ============================================================ */
 html:not([data-theme="dark"]) body:has(#root),
-html:not([data-theme="dark"]) body:has(#catHeader) {
+html:not([data-theme="dark"]) body:has(#catHeader),
+html:not([data-theme="dark"]) body:has(#setupView) {
   background-color: #fff !important;
 }
 body:has(#root),
-body:has(#catHeader) {
+body:has(#catHeader),
+body:has(#setupView) {
   background-image:
     linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px) !important;
   background-size: 28px 28px !important;
 }
 html[data-theme="dark"] body:has(#root),
-html[data-theme="dark"] body:has(#catHeader) {
+html[data-theme="dark"] body:has(#catHeader),
+html[data-theme="dark"] body:has(#setupView) {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;

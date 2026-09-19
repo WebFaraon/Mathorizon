@@ -33,7 +33,7 @@
     <!-- STEP 1: Choose simulation type -->
     <div class="sim-choose" id="simChoose">
       <!-- BAC Card -->
-      <div class="sim-card sim-card--bac" id="simCardBac" onclick="selectSimType('bac')" role="button" tabindex="0" aria-label="Selectează Simulare BAC">
+      <div class="sim-card sim-card--bac" id="simCardBac">
         <div class="sim-card-deco" aria-hidden="true">
           <span style="--sz:130px;--t:4%;--l:58%">π</span>
           <span style="--sz:100px;--t:52%;--l:4%">∑</span>
@@ -41,7 +41,6 @@
           <span style="--sz:88px;--t:18%;--l:22%">Δ</span>
         </div>
         <div class="sim-card-content">
-          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg> BAC Moldova — 2022+</div>
           <h2 class="sim-card-title">Simulare <em>BAC</em><br><span>Matematică</span></h2>
           <div class="sim-card-rule"></div>
           <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 3 ore ca la examenul real.</p>
@@ -50,7 +49,7 @@
             <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
             <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">3h</span><span class="sim-chip__lbl">Timp</span></div>
           </div>
-          <div class="sim-card-cta">Selectează Simulare BAC <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></div>
+          <button type="button" class="sim-card-cta" onclick="selectSimType('bac')">Selectează Simulare BAC <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></button>
         </div>
       </div>
 
@@ -62,7 +61,7 @@
            denumirea și culoarea (mov, nu albastru) diferă. Conținutul
            (exercițiile de mai jos sunt încă cele de BAC) e provizoriu —
            urmează să fie înlocuit cu structura reală de clasa a IX-a. -->
-      <div class="sim-card sim-card--natl" id="simCardNatl" onclick="selectSimType('natl')" role="button" tabindex="0" aria-label="Selectează Evaluare Națională">
+      <div class="sim-card sim-card--natl" id="simCardNatl">
         <div class="sim-card-deco" aria-hidden="true">
           <span style="--sz:120px;--t:6%;--l:60%">√</span>
           <span style="--sz:95px;--t:55%;--l:3%">x²</span>
@@ -70,16 +69,15 @@
           <span style="--sz:80px;--t:20%;--l:20%">±</span>
         </div>
         <div class="sim-card-content">
-          <div class="sim-card-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg> Evaluare Națională — Clasa a IX-a</div>
           <h2 class="sim-card-title">Evaluare <em>Națională</em><br><span>Clasa a IX-a</span></h2>
           <div class="sim-card-rule"></div>
-          <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 3 ore ca la examenul real.</p>
+          <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 2 ore ca la examenul real.</p>
           <div class="sim-card-chips">
             <div class="sim-chip sim-chip--blue"><span class="sim-chip__val">12</span><span class="sim-chip__lbl">Exerciții</span></div>
             <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
-            <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">3h</span><span class="sim-chip__lbl">Timp</span></div>
+            <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">2h</span><span class="sim-chip__lbl">Timp</span></div>
           </div>
-          <div class="sim-card-cta">Selectează Evaluarea Națională <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></div>
+          <button type="button" class="sim-card-cta" onclick="selectSimType('natl')">Selectează Evaluarea Națională <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></button>
         </div>
       </div>
     </div>
