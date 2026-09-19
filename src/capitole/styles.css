@@ -560,13 +560,20 @@
   gap: var(--cap-side-card-gap);
   padding: var(--cap-side-card-padding);
   background: var(--card);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--cap-radius);
   /* Every rail card gets this colored top stroke now, not just Continue —
      each sets its own --cap-card-color (Continue/Nudge already did, for
      their icon colors; Missions/Leaderboard below); Simulare has none of
      its own, so it falls back to --accent. */
   border-top: 3px solid var(--cap-card-color, var(--accent));
+}
+
+/* Light theme only — pure white instead of --card's cream tint, per
+   direct feedback. Dark theme's --card already resolves to its own dark
+   value above and wasn't part of the complaint, so it's left alone. */
+html:not([data-theme="dark"]) .cap-side-card {
+  background: #fff;
 }
 
 /* Missions/Leaderboard don't otherwise need --cap-card-color (nothing
@@ -981,7 +988,7 @@
 .cap-side-card--skeleton {
   min-height: 200px;
   border-radius: var(--cap-radius);
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
   background-size: 200% 100%;
   animation: cap-shimmer 1.4s linear infinite;
