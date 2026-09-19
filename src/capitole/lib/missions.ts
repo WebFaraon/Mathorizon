@@ -24,9 +24,10 @@ export interface MissionDefinition {
 }
 
 export const DAILY_MISSIONS: MissionDefinition[] = [
-  { key: 'visit_today', title: 'Deschide Mathorizon azi', target: 1, xpReward: 5 },
   { key: 'solve_3_today', title: 'Rezolvă 3 exerciții', target: 3, xpReward: 15 },
-  { key: 'solve_8_today', title: 'Rezolvă 8 exerciții', target: 8, xpReward: 30 }
+  { key: 'solve_5_today', title: 'Rezolvă 5 exerciții', target: 5, xpReward: 20 },
+  { key: 'solve_8_today', title: 'Rezolvă 8 exerciții', target: 8, xpReward: 30 },
+  { key: 'solve_10_today', title: 'Rezolvă 10 exerciții', target: 10, xpReward: 40 }
 ];
 
 /** Local calendar date as "YYYY-MM-DD" — matches _isoDate() in js/storage.js. */
@@ -51,23 +52,13 @@ export interface MissionProgress extends MissionDefinition {
   done: boolean;
 }
 
-/**
- * Real progress for every mission, from today's solved count + whether
- * the streak was already bumped today (js/auth.js's daily-bump IIFE runs
- * on every page load, so `lastDate === today` is true well before this
- * even renders — "visit_today" is effectively a check-in reward, same
- * spirit as Duolingo's first daily chest).
- */
-export function computeMissionProgress(
-  solved: BMSolvedMap,
-  streakLastDate: string | null,
-  iso: string
-): MissionProgress[] {
+/** Real progress for every mission, from today's solved count. */
+export function computeMissionProgress(solved: BMSolvedMap, iso: string): MissionProgress[] {
   const solvedToday = countSolvedToday(solved, iso);
-  const visited = streakLastDate === iso ? 1 : 0;
 
-  return DAILY_MISSIONS.map((mission) => {
-    const progress = mission.key === 'visit_today' ? visited : solvedToday;
-    return { ...mission, progress: Math.min(progress, mission.target), done: progress >= mission.target };
-  });
+  return DAILY_MISSIONS.map((mission) => ({
+    ...mission,
+    progress: Math.min(solvedToday, mission.target),
+    done: solvedToday >= mission.target
+  }));
 }

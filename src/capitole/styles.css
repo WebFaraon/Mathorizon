@@ -184,10 +184,14 @@
   color: var(--text-muted);
   /* --surface, not --card — the switch's own track (right above) is now
      solid --card (see its comment), and the badge needs to read as a
-     distinct layer on top of it, not disappear into it. */
-  background: var(--surface);
+     distinct layer on top of it, not disappear into it. A subtle top-lit
+     gradient + soft shadow instead of a flat fill, same treatment as
+     .cap-card__count/.cap-sim__fact — per direct feedback that the flat
+     version read as generic/"AI-generated" rather than designed. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
   border: 1px solid var(--border);
   border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 /* One row: the grade switch and the one progress chip left (see
@@ -473,9 +477,12 @@ html:not([data-theme="dark"]) .cap-card {
   letter-spacing: 0.02em;
   white-space: nowrap;
   color: var(--text-muted);
-  background: var(--surface);
+  /* Subtle top-lit gradient + soft shadow instead of a flat fill — see
+     .cap-grade-switch__badge for the same treatment and why. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
   border: 1px solid var(--border);
   border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   font-variant-numeric: tabular-nums;
 }
 
@@ -587,6 +594,16 @@ html:not([data-theme="dark"]) .cap-card {
   border-top: 3px solid var(--cap-card-color, var(--accent));
 }
 
+/* Now that each rail's cards stretch to fill the column (section 3's
+   flex: 1 1 0%), a card whose content doesn't fill its own new height
+   left the button wherever the content happened to end, with blank
+   space below it — pushed to the bottom instead, so the extra space
+   collects ABOVE the button (between it and the content) rather than
+   after it. Targets every card's own button this way, not just one. */
+.cap-side-card > .cap-btn:last-child {
+  margin-top: auto;
+}
+
 /* Light theme only — pure white instead of --card's cream tint, per
    direct feedback. Dark theme's --card already resolves to its own dark
    value above and wasn't part of the complaint, so it's left alone. */
@@ -594,15 +611,14 @@ html:not([data-theme="dark"]) .cap-side-card {
   background: #fff;
 }
 
-/* Missions/Leaderboard don't otherwise need --cap-card-color (nothing
-   else inside them reads it, unlike Nudge's icon), so a direct color
-   override here is simpler than threading the variable through an inline
-   style just to consume it once. */
+/* Missions doesn't otherwise need --cap-card-color (nothing else inside
+   it reads it, unlike Nudge's icon or Leaderboard's new button below), so
+   a direct color override here is simpler than threading the variable
+   through an inline style just to consume it once. Leaderboard sets
+   --cap-card-color: var(--yellow) inline instead (see LeaderboardCard) —
+   its "Leaderboard" button needs the same color the border already uses. */
 .cap-side-card--missions {
   border-top-color: var(--green);
-}
-.cap-side-card--leaderboard {
-  border-top-color: var(--yellow);
 }
 
 .cap-side-card__eyebrow {
@@ -741,18 +757,23 @@ html:not([data-theme="dark"]) .cap-side-card {
   flex-direction: column;
   gap: 2px;
   list-style: none;
-  /* Every student renders (see hooks/useLeaderboard.ts), but only the
-     first ~5 show without scrolling — sized to that row height, not a
-     round number, so the 6th row doesn't peek in half-cut. Still
-     scrollable (wheel/touch/drag/keyboard), just with the scrollbar
-     itself hidden per direct feedback — "scoate sliderul" meant the
-     visible track, not the scrolling. */
+}
+
+/* The card's own preview caps at ~5 rows with a hidden scrollbar (see
+   LeaderboardCard); LeaderboardModal renders the exact same
+   LeaderboardRows component outside of .cap-side-card, on purpose, so it
+   falls back to the plain rule above and shows every row unclipped. */
+.cap-side-card .cap-leaderboard__list {
+  /* Sized to the row height, not a round number, so the 6th row doesn't
+     peek in half-cut. Still scrollable (wheel/touch/drag/keyboard), just
+     with the scrollbar itself hidden per direct feedback — "scoate
+     sliderul" meant the visible track, not the scrolling. */
   max-height: 260px;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.cap-leaderboard__list::-webkit-scrollbar {
+.cap-side-card .cap-leaderboard__list::-webkit-scrollbar {
   display: none;
 }
 
@@ -856,6 +877,60 @@ html:not([data-theme="dark"]) .cap-side-card {
   font-weight: 700;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
+}
+
+/* ---- LEADERBOARD MODAL ----
+   Reuses .classes-modal/__backdrop/__dialog/__head/__body from the shared
+   site stylesheet (css/style.css) — the same centered-dialog pattern the
+   classroom pages already use — rather than a second modal system just
+   for this page. Only the dialog's width, and rows sized up a bit for a
+   roomier full-roster view, are specific to this page. */
+.cap-leaderboard-modal {
+  max-width: 560px;
+  width: 100%;
+}
+.cap-leaderboard-modal .cap-leaderboard__list {
+  gap: 4px;
+}
+.cap-leaderboard-modal .cap-leaderboard__row {
+  padding: 10px 12px;
+}
+.cap-leaderboard-modal .cap-leaderboard__avatar {
+  width: 36px;
+  height: 36px;
+  font-size: 0.78rem;
+}
+.cap-leaderboard-modal .cap-leaderboard__name {
+  font-size: 0.92rem;
+}
+.cap-leaderboard-modal .cap-leaderboard__meta {
+  font-size: 0.76rem;
+}
+.cap-leaderboard-modal .cap-leaderboard__xp {
+  font-size: 0.88rem;
+}
+
+.cap-leaderboard-modal__close {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.cap-leaderboard-modal__close:hover {
+  background: var(--card);
+  color: var(--text);
+}
+.cap-leaderboard-modal__close svg {
+  width: 16px;
+  height: 16px;
 }
 
 .cap-continue__title {
@@ -996,9 +1071,12 @@ html:not([data-theme="dark"]) .cap-side-card {
   font-weight: 600;
   white-space: nowrap;
   color: var(--text-secondary);
-  background: var(--surface);
+  /* Subtle top-lit gradient + soft shadow instead of a flat fill — see
+     .cap-grade-switch__badge for the same treatment and why. */
+  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
   border: 1px solid var(--border);
   border-radius: 999px;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 /* Loading placeholders for the sidebar, matching .cap-card-skeleton's

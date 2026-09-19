@@ -37,8 +37,7 @@ export function useMissions(): MissionsState {
 
       const iso = todayIso();
       const solved = storage.getSolved();
-      const { lastDate } = storage.getStreak();
-      const progress = computeMissionProgress(solved, lastDate, iso);
+      const progress = computeMissionProgress(solved, iso);
 
       const uid = auth?.user?.id;
       const sb = auth?.supabase;
