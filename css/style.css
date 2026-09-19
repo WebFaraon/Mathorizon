@@ -451,15 +451,18 @@ body.bac-exam-mode .nav.nav--peek {
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.92);
 }
-/* A light blue tint instead of plain white/transparent — reads as "this
+/* A vivid blue tint instead of plain white/transparent — reads as "this
    one's selected" the way Duolingo's segmented tabs do, rather than as a
-   generic highlighted state. --accent-light already exists per theme
-   (a lighter blue in dark mode than in light), so this needs no
-   [data-theme="dark"] override of its own. */
+   generic highlighted state. Text goes blue too (not white) so the whole
+   tab commits to the color instead of just its background. --accent-light
+   already exists per theme (a lighter blue in dark mode than in light),
+   so this needs no [data-theme="dark"] override of its own — and using it
+   for both the fill and the text keeps the two in the same family instead
+   of picking an unrelated white. */
 .nav__link--active {
-  background: color-mix(in srgb, var(--accent-light) 32%, transparent);
-  color: #fff;
-  border-color: color-mix(in srgb, var(--accent-light) 48%, transparent);
+  background: color-mix(in srgb, var(--accent-light) 55%, transparent);
+  color: #eaf2ff;
+  border-color: var(--accent-light);
 }
 /* Short labels — no longer used; hamburger takes over on mobile */
 .nav__link-short { display: none; }
