@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { GradeSwitch } from './GradeSwitch';
 
 /* Same four phrases the old inline rotator in capitole.html cycled. */
 const PHRASES = [
@@ -63,6 +64,13 @@ export function Hero() {
             </motion.span>
           </AnimatePresence>
         </p>
+
+        {/* Placed here — right under the title, before anything else on
+            the page — because it sets the context everything below (the
+            chapter grid, missions, leaderboard) is scoped to, not because
+            it belongs visually with the "which chapter" content further
+            down. */}
+        <GradeSwitch />
       </div>
     </section>
   );

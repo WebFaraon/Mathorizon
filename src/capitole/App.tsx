@@ -3,6 +3,8 @@ import { SummaryStrip } from './components/SummaryStrip';
 import { ChaptersSection } from './components/ChaptersSection';
 import { Sidebar } from './components/Sidebar/Sidebar';
 import { useCapitoleData } from './hooks/useCapitoleData';
+import { useMissions } from './hooks/useMissions';
+import { useLeaderboard } from './hooks/useLeaderboard';
 
 /**
  * Everything on capitole.html below the shared navbar.
@@ -12,14 +14,15 @@ import { useCapitoleData } from './hooks/useCapitoleData';
  * is common to all five tabs and still vanilla — they stay in the page's own
  * markup, driven by js/app.js, until the rest of the site is migrated too.
  *
- * Layout: hero → compact progress line → a two-column body (chapter grid +
- * a persistent sidebar with the "continue" recommendation, an attention
- * nudge, and the Simulare BAC promo). The old four-stat-box row and the
- * full-width Simulare banner are gone — see SummaryStrip and
- * components/Sidebar/ for what replaced them.
+ * Layout: hero (+ the grade switch) → compact progress line → a two-column
+ * body (chapter grid + a persistent sidebar). The sidebar leads with the
+ * daily-missions and XP-leaderboard cards (useMissions/useLeaderboard),
+ * then the existing "continue"/nudge/Simulare cards, unchanged.
  */
 export function App() {
   const { stats, chapters, continueTarget, nudge, ready } = useCapitoleData();
+  const { missions, ready: missionsReady } = useMissions();
+  const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
 
   return (
     <>
@@ -28,7 +31,16 @@ export function App() {
       <div className="cap-shell">
         <div className="cap-layout">
           <ChaptersSection chapters={chapters} ready={ready} />
-          <Sidebar continueTarget={continueTarget} nudge={nudge} ready={ready} />
+          <Sidebar
+            continueTarget={continueTarget}
+            nudge={nudge}
+            ready={ready}
+            missions={missions}
+            missionsReady={missionsReady}
+            leaderboardRows={leaderboardRows}
+            leaderboardReady={leaderboardReady}
+            currentUserId={window.BMAuth?.user?.id ?? null}
+          />
         </div>
       </div>
     </>

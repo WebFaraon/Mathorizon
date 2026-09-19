@@ -135,6 +135,64 @@
   min-height: 3.1em;
 }
 
+/* ---- 1b. GRADE SWITCH ----
+   Segmented pair, not a single dropdown — there are exactly two states to
+   choose between, and a segmented control shows both (and which is
+   active) without a click to open anything. Only "a XII-a" is real right
+   now (see GradeSwitch.tsx) — it gets the same pressed-button language as
+   the sidebar's CTAs; "a IX-a" gets the same soft/disabled treatment as a
+   locked chapter card, not a second visual language for "unavailable". */
+.cap-grade-switch {
+  display: inline-flex;
+  gap: 6px;
+  margin-top: 18px;
+  padding: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 5%, transparent);
+  border: 1px solid var(--border);
+}
+
+.cap-grade-switch__option {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.82rem;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.cap-grade-switch__option--active {
+  color: #fff;
+  background: var(--accent);
+  box-shadow: 0 3px 0 0 var(--cap-btn-shadow-primary);
+}
+.cap-grade-switch__option--active:active {
+  box-shadow: 0 1px 0 0 var(--cap-btn-shadow-primary);
+}
+
+.cap-grade-switch__option--soon {
+  color: var(--text-muted);
+  background: none;
+  cursor: not-allowed;
+}
+.cap-grade-switch__option--soon:disabled { opacity: 0.75; }
+
+.cap-grade-switch__badge {
+  padding: 2px 7px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+}
+
 /* ---- 2. SUMMARY STATS --------------------------------------------------
    Replaces the old four stat boxes — two compact, accent-tinted chips
    instead of a full card each, but with enough visual weight (bold
@@ -458,11 +516,174 @@
 }
 
 .cap-side-card__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
   font-size: 0.68rem;
   font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   color: var(--text-muted);
+}
+.cap-side-card__eyebrow-icon {
+  width: 13px;
+  height: 13px;
+  color: var(--yellow);
+}
+
+/* ---- Misiunile zilei ---- */
+.cap-missions__list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.cap-mission {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.cap-mission__check {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  margin-top: 1px;
+  color: var(--green);
+}
+.cap-mission__check svg { width: 20px; height: 20px; }
+.cap-mission__check-empty {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  border: 2px solid var(--border);
+}
+
+.cap-mission__body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 0;
+}
+
+.cap-mission__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.cap-mission__title {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+.cap-mission--done .cap-mission__title {
+  color: var(--text-muted);
+  text-decoration: line-through;
+  text-decoration-color: var(--border);
+}
+
+.cap-mission__xp {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--yellow);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.cap-mission__track {
+  display: block;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.cap-mission__fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--green);
+}
+.cap-mission--done .cap-mission__fill { background: var(--border); }
+
+.cap-mission__count {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Top elevi (leaderboard) ---- */
+.cap-leaderboard__empty {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--text-muted);
+}
+
+.cap-leaderboard__list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  list-style: none;
+}
+
+.cap-leaderboard__row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 8px;
+  border-radius: var(--cap-radius-sm);
+}
+.cap-leaderboard__row--you {
+  background: var(--accent-dim);
+}
+
+.cap-leaderboard__rank {
+  width: 20px;
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+}
+.cap-leaderboard__row:nth-child(1) .cap-leaderboard__rank { color: #D4A017; }
+.cap-leaderboard__row:nth-child(2) .cap-leaderboard__rank { color: #9CA3AF; }
+.cap-leaderboard__row:nth-child(3) .cap-leaderboard__rank { color: #B4681E; }
+
+.cap-leaderboard__name {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-leaderboard__you {
+  margin-left: 6px;
+  padding: 1px 6px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  border-radius: 999px;
+}
+
+.cap-leaderboard__xp {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
 }
 
 .cap-continue__title {

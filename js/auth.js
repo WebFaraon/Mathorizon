@@ -297,13 +297,24 @@
         _userRole   = rows[0].role;
         _userStatus = rows[0].status;
         _userPlan   = rows[0].plan || 'free';
+        /* Keeps display_name (used by the Capitole leaderboard — see
+           get_xp_leaderboard, which reads it instead of touching
+           auth.users) reasonably fresh, e.g. after the user changes their
+           name. Fire-and-forget like the XP/streak writes elsewhere in
+           this file: a stale name for the rest of one session is
+           cosmetic, not worth blocking sync on or retrying. */
+        _dbFetch(`user_profiles?user_id=eq.${uid}`, {
+          method:  'PATCH',
+          body:    JSON.stringify({ display_name: _displayName() }),
+          headers: { 'Prefer': 'return=minimal' }
+        }).catch(() => {});
       } else {
         /* Utilizator fără profil — creăm unul bazat pe user_metadata */
         const role   = currentUser.user_metadata?.role || 'elev';
         const status = role === 'profesor' ? 'pending' : 'active';
         await _dbFetch('user_profiles', {
           method:  'POST',
-          body:    JSON.stringify({ user_id: uid, role, status }),
+          body:    JSON.stringify({ user_id: uid, role, status, display_name: _displayName() }),
           headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
         });
         _userRole   = role;

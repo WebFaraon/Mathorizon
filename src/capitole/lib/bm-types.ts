@@ -13,6 +13,8 @@
    js/data.js / js/storage.js and must keep matching them exactly.
 */
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 export interface BMSubcategory {
   id: string;
   name: string;
@@ -72,10 +74,12 @@ export interface BMCategoryProgress {
 export interface BMStorage {
   getStats(exercises: BMExercise[]): BMStats;
   getProgressForCategory(categoryId: string, exercises: BMExercise[]): BMCategoryProgress;
-  /** Keyed by exercise id. Source for the sidebar's "next exercise" pick. */
+  /** Keyed by exercise id. Source for the sidebar's "next exercise" pick and for daily missions. */
   getSolved(): BMSolvedMap;
   /** Exercise ids, most-recently-favorited first. Source for the nudge card. */
   getFavorites(): string[];
+  /** lastDate is "YYYY-MM-DD" or null — source for the "visited today" mission. */
+  getStreak(): { count: number; lastDate: string | null };
   recordVisit(): void;
 }
 
@@ -86,6 +90,27 @@ export interface BMGlobal {
   /** Resolves once js/custom-exercises.js has merged the Supabase rows into EXERCISES. */
   customExercisesReady?: () => Promise<unknown>;
   gotoCategory?: (categoryId: string, subcategoryId?: string, exerciseId?: string) => void;
+  Training?: {
+    addXp(amount: number): number;
+  };
+}
+
+/**
+ * Set up by js/auth.js. The island uses the live `supabase` client
+ * (the SAME instance auth.js authenticated — not a second client with its
+ * own session) for the two things that need an authenticated write/RPC
+ * call and have no existing BM.* wrapper: claiming a daily mission's XP
+ * (an owner-scoped insert — see supabase/migrations/..._daily_mission_claims.sql)
+ * and reading the XP leaderboard (a security-definer RPC — see
+ * supabase/migrations/..._xp_leaderboard.sql). Typed via @supabase/supabase-js's
+ * own SupabaseClient — already a real dependency (server-side, e.g.
+ * api/admin/get-waitlist.js) — a type-only import, so it costs nothing in
+ * the bundle; the actual client instance is created at runtime by the
+ * classic <script> from the Supabase CDN, not by this import.
+ */
+export interface BMAuthGlobal {
+  readonly user: { id: string } | null;
+  readonly supabase: SupabaseClient | null;
 }
 
 /**
