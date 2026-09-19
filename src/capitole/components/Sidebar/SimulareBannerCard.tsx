@@ -34,7 +34,9 @@ export function SimulareBannerCard() {
         <ClipboardList aria-hidden="true" />
       </span>
       <span className="cap-sim__name">Simulare BAC</span>
-      <span className="cap-sim__desc">Structură oficială BAC Moldova 2022+ · Timer 3h · Notă automată</span>
+      {/* Trimmed to just the one detail the facts pills below don't already
+          say — "3 ore" and "Notă automată" would otherwise appear twice. */}
+      <span className="cap-sim__desc">Structură oficială BAC Moldova 2022+</span>
 
       <span className="cap-sim__facts">
         {FACTS.map((fact) => (

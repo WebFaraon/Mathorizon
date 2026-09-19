@@ -29,7 +29,21 @@
   --cap-radius-sm: 8px;
   /* One rhythm for the gaps BETWEEN sections — the "aerisit" part of the
      brief is mostly this number being big and consistent. */
-  --cap-section-gap: 48px;
+  --cap-section-gap: 40px;
+  /* One rhythm for the internal padding/gap of every sidebar card
+     (ContinueCard, NudgeCard, SimulareBannerCard) — see section 3b. */
+  --cap-side-card-padding: 20px 22px;
+  --cap-side-card-gap: 10px;
+  /* The pressed-button shadow (section 4). A literal, solid color rather
+     than color-mix(accent, black) — that formula darkens light-mode's
+     already-medium accent (#3A6BAD) by barely enough to read as a "step",
+     while comfortably darkening dark mode's much lighter accent
+     (#4a9eff). Two explicit values (this one, and the [data-theme="dark"]
+     override in section 5) keep the effect equally visible in both themes
+     instead of inheriting whichever contrast the accent color happens to
+     produce. Both are plain custom properties, so toggling the theme
+     recomputes them immediately — no JS, nothing to go stale. */
+  --cap-btn-shadow-primary: #16305c;
 }
 
 .cap-shell {
@@ -119,30 +133,63 @@
   min-height: 3.1em;
 }
 
-/* ---- 2. SUMMARY LINE --------------------------------------------------
-   Replaces the old four stat boxes — one sentence, no cards, no icons.
-   Real numbers (see components/SummaryStrip.tsx); no count-up, see there
-   for why. */
+/* ---- 2. SUMMARY STATS --------------------------------------------------
+   Replaces the old four stat boxes — two compact, accent-tinted chips
+   instead of a full card each, but with enough visual weight (bold
+   numbers, an icon, a colored pill) to read as the headline figures they
+   are, not as a footnote sentence. Real numbers (see
+   components/SummaryStrip.tsx); no count-up — see there for why. */
 .cap-summary {
-  padding: 18px 0 0;
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 22px 0 0;
+}
+
+.cap-summary__loading {
+  width: 100%;
   text-align: center;
-}
-
-.cap-summary__line {
-  font-size: 0.95rem;
-  color: var(--text-secondary);
-}
-
-.cap-summary__line strong {
-  color: var(--text);
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-}
-
-.cap-summary__dot {
-  display: inline-block;
-  margin: 0 10px;
+  font-size: 0.9rem;
   color: var(--text-muted);
+}
+
+.cap-summary__stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 20px;
+  border-radius: 999px;
+  background: var(--accent-dim);
+  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+}
+
+.cap-summary__icon {
+  width: 20px;
+  height: 20px;
+  flex-shrink: 0;
+  color: var(--accent);
+}
+
+.cap-summary__text {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.cap-summary__value {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+.cap-summary__label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
 /* ---- 3. TWO-COLUMN BODY ----------------------------------------------
@@ -179,6 +226,12 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
+  /* Without this, CSS Grid stretches every card in a row to match its
+     tallest row-mate — Algebră's longer tag list was forcing Geometrie/
+     Combinatorică (shorter description, fewer tags) into a lot of empty
+     space at the bottom of their own cards. Each card now sizes to its
+     own content instead. */
+  align-items: start;
 }
 
 /* Grid cell. Carries the staggered entrance; the card inside carries the
@@ -226,9 +279,9 @@
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 8px;
+  gap: 10px;
   min-width: 0;
-  padding: 15px 17px 14px;
+  padding: 18px 20px 16px;
   color: inherit;
   text-decoration: none;
 }
@@ -384,11 +437,15 @@
   align-self: start;
 }
 
+/* One padding, one gap, shared by all three cards below (continue/nudge/
+   sim) via the tokens defined in :root — the three used to drift (18px
+   20px vs 15px 18px, gap 6/8/8px), which read as inconsistent even though
+   each was reasonable on its own. Only colors/borders vary per card now. */
 .cap-side-card {
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  padding: 18px 20px;
+  gap: var(--cap-side-card-gap);
+  padding: var(--cap-side-card-padding);
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--cap-radius);
@@ -396,7 +453,6 @@
 
 .cap-side-card--continue {
   border-top: 3px solid var(--cap-card-color, var(--accent));
-  gap: 6px;
 }
 
 .cap-side-card__eyebrow {
@@ -441,11 +497,6 @@
   border-radius: var(--cap-radius-sm);
 }
 .cap-continue__next strong { color: var(--text); font-weight: 700; }
-
-.cap-side-card--nudge {
-  padding: 15px 18px;
-  gap: 8px;
-}
 
 .cap-nudge__icon {
   display: flex;
@@ -588,13 +639,13 @@
 .cap-btn--primary {
   background: var(--accent);
   color: #fff;
-  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--accent) 60%, black 25%);
+  box-shadow: 0 4px 0 0 var(--cap-btn-shadow-primary);
 }
 .cap-btn--primary:hover {
   background: color-mix(in srgb, var(--accent) 90%, white 10%);
 }
 .cap-btn--primary:active {
-  box-shadow: 0 1px 0 0 color-mix(in srgb, var(--accent) 60%, black 25%);
+  box-shadow: 0 1px 0 0 var(--cap-btn-shadow-primary);
 }
 
 /* For the one button that sits on an already-colored card (Simulare BAC) —
@@ -611,6 +662,12 @@
 }
 
 /* ---- 5. DARK THEME -------------------------------------------------- */
+[data-theme="dark"] {
+  /* Same navy family as light mode's shadow, darkened relative to dark
+     mode's own (much lighter) accent — see the variable's definition. */
+  --cap-btn-shadow-primary: #0d2247;
+}
+
 [data-theme="dark"] .cap-hero {
   background: linear-gradient(170deg,
     rgba(79, 70, 229, 0.18) 0%,
@@ -655,7 +712,7 @@
    itself again, so it goes back up to 2 columns here rather than staying
    squeezed at whatever the two-column layout left it. */
 @media (max-width: 900px) {
-  :root { --cap-section-gap: 40px; }
+  :root { --cap-section-gap: 32px; }
   .cap-layout   { grid-template-columns: 1fr; }
   .cap-sidebar  { flex-direction: row; flex-wrap: wrap; }
   .cap-sidebar > * { flex: 1 1 260px; }
@@ -667,6 +724,8 @@
   .cap-grid  { grid-template-columns: 1fr; }
   .cap-sidebar { flex-direction: column; }
   .cap-layout { padding-bottom: 52px; }
+  .cap-summary__stat { padding: 9px 16px; gap: 8px; }
+  .cap-summary__value { font-size: 1.05rem; }
 }
 
 /* Motion is opted out at the component level too (useReducedMotion), so
