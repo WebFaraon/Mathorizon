@@ -42,14 +42,14 @@ export function ContinueCard({ target, ready }: ContinueCardProps) {
         <p className="cap-continue__desc">
           Ai rezolvat tot ce e disponibil acum. Testează-ți nivelul într-o simulare cronometrată.
         </p>
-        <motion.a
-          className="cap-btn cap-btn--primary cap-btn--block"
-          href="bac.html?new=1&type=bac"
-          whileTap={prefersReducedMotion ? undefined : { y: 3 }}
-        >
+        {/* Press feedback is plain CSS now (:active), not Framer's
+            whileTap — see .cap-btn in styles.css for why: mixing a
+            Framer-driven transform with a CSS-eased box-shadow put the two
+            out of sync. A plain <a> here still gets the whole effect. */}
+        <a className="cap-btn cap-btn--primary cap-btn--block" href="bac.html?new=1&type=bac">
           Simulare BAC
           <ArrowRight aria-hidden="true" />
-        </motion.a>
+        </a>
       </motion.div>
     );
   }
@@ -85,14 +85,10 @@ export function ContinueCard({ target, ready }: ContinueCardProps) {
           </>
         )}
       </p>
-      <motion.a
-        className="cap-btn cap-btn--primary cap-btn--block"
-        href={href}
-        whileTap={prefersReducedMotion ? undefined : { y: 3 }}
-      >
+      <a className="cap-btn cap-btn--primary cap-btn--block" href={href}>
         {started ? 'Continuă capitolul' : 'Începe capitolul'}
         <ArrowRight aria-hidden="true" />
-      </motion.a>
+      </a>
     </motion.div>
   );
 }

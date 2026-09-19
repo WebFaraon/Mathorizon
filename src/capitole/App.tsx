@@ -1,7 +1,8 @@
 import { Hero } from './components/Hero';
 import { SummaryStrip } from './components/SummaryStrip';
 import { ChaptersSection } from './components/ChaptersSection';
-import { Sidebar } from './components/Sidebar/Sidebar';
+import { LeftColumn } from './components/Sidebar/LeftColumn';
+import { RightColumn } from './components/Sidebar/RightColumn';
 import { useCapitoleData } from './hooks/useCapitoleData';
 import { useMissions } from './hooks/useMissions';
 import { useLeaderboard } from './hooks/useLeaderboard';
@@ -14,10 +15,15 @@ import { useLeaderboard } from './hooks/useLeaderboard';
  * is common to all five tabs and still vanilla — they stay in the page's own
  * markup, driven by js/app.js, until the rest of the site is migrated too.
  *
- * Layout: hero (+ the grade switch) → compact progress line → a two-column
- * body (chapter grid + a persistent sidebar). The sidebar leads with the
- * daily-missions and XP-leaderboard cards (useMissions/useLeaderboard),
- * then the existing "continue"/nudge/Simulare cards, unchanged.
+ * Layout: three columns, all starting at the same top edge (right under the
+ * navbar) and running the full height of the page — not just alongside the
+ * chapter grid like the previous single right-hand sidebar did:
+ *   - left:   ContinueCard / NudgeCard / SimulareBannerCard
+ *   - middle: hero (+ grade switch) → progress chips → chapter grid
+ *   - right:  daily missions → XP leaderboard
+ * .cap-col-middle carries `order: -1` at narrow widths (see styles.css) so
+ * it's what appears first when the three collapse into one stacked column,
+ * even though it's authored second here.
  */
 export function App() {
   const { stats, chapters, continueTarget, nudge, ready } = useCapitoleData();
@@ -25,24 +31,24 @@ export function App() {
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
 
   return (
-    <>
-      <Hero />
-      <SummaryStrip stats={stats} />
-      <div className="cap-shell">
-        <div className="cap-layout">
+    <div className="cap-shell">
+      <div className="cap-three-col">
+        <LeftColumn continueTarget={continueTarget} nudge={nudge} ready={ready} />
+
+        <div className="cap-col cap-col-middle">
+          <Hero />
+          <SummaryStrip stats={stats} />
           <ChaptersSection chapters={chapters} ready={ready} />
-          <Sidebar
-            continueTarget={continueTarget}
-            nudge={nudge}
-            ready={ready}
-            missions={missions}
-            missionsReady={missionsReady}
-            leaderboardRows={leaderboardRows}
-            leaderboardReady={leaderboardReady}
-            currentUserId={window.BMAuth?.user?.id ?? null}
-          />
         </div>
+
+        <RightColumn
+          missions={missions}
+          missionsReady={missionsReady}
+          leaderboardRows={leaderboardRows}
+          leaderboardReady={leaderboardReady}
+          currentUserId={window.BMAuth?.user?.id ?? null}
+        />
       </div>
-    </>
+    </div>
   );
 }

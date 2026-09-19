@@ -114,12 +114,14 @@ export function ChapterCard({ chapter, index }: ChapterCardProps) {
     </>
   );
 
-  /* Two layers on purpose. The outer one owns the staggered entrance (its
-     transition carries a per-index delay); the inner one owns the hover
-     lift. Sharing one element would apply the entrance delay to the hover
-     too, so a card late in the grid would lift — and drop again — a fifth
-     of a second after the cursor. The deeper hover shadow is CSS, which
-     keeps it theme-aware in dark mode. */
+  /* The outer motion.div owns only the staggered entrance (fade + slide up
+     on mount, per-index delay). Hover/press are plain CSS on .cap-card now
+     (a dim on hover, a chunky press-down on click — see styles.css) rather
+     than a Framer whileHover/whileTap: an earlier version animated the
+     hover lift here with Framer while a sibling used CSS for its own
+     press shadow, and the two fell out of sync (see the .cap-btn comment
+     in styles.css for the same lesson learned on the buttons). Plain CSS
+     keeps both properties on one transition, so they move together. */
   return (
     <motion.div
       ref={ref}
@@ -129,18 +131,13 @@ export function ChapterCard({ chapter, index }: ChapterCardProps) {
       transition={{ duration: 0.42, delay: index * STAGGER_S, ease: EASE_OUT }}
     >
       {locked ? (
-        // Locked chapter ("În curând"): not a link, no hover lift, no
-        // pointer, dimmed — same treatment as the old .chapter-card--soon.
+        // Locked chapter ("În curând"): not a link, no dim, no press, no
+        // pointer — same treatment as the old .chapter-card--soon.
         <div className="cap-card cap-card--soon" style={cardStyle} aria-disabled="true">
           <div className="cap-card__link">{body}</div>
         </div>
       ) : (
-        <motion.div
-          className="cap-card"
-          style={cardStyle}
-          whileHover={prefersReducedMotion ? undefined : { y: -6 }}
-          transition={{ duration: 0.2, ease: 'easeOut' }}
-        >
+        <div className="cap-card" style={cardStyle}>
           {/* A real anchor, where the old card was a <div onclick>: keyboard
               focus, middle-click and "open in new tab" now work, and
               js/page-transition.js gives it the same fade every other link
@@ -148,7 +145,7 @@ export function ChapterCard({ chapter, index }: ChapterCardProps) {
           <a className="cap-card__link" href={categoryHref(category.id)}>
             {body}
           </a>
-        </motion.div>
+        </div>
       )}
     </motion.div>
   );

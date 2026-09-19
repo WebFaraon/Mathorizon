@@ -44,13 +44,12 @@ export function SimulareBannerCard() {
         ))}
       </span>
 
-      <motion.span
-        className="cap-btn cap-btn--on-color cap-btn--block"
-        whileTap={prefersReducedMotion ? undefined : { y: 3 }}
-      >
+      {/* Press feedback is plain CSS (:active) — see .cap-btn in
+          styles.css for why a Framer whileTap here fought with it. */}
+      <span className="cap-btn cap-btn--on-color cap-btn--block">
         Începe simularea
         <ArrowRight aria-hidden="true" />
-      </motion.span>
+      </span>
     </motion.a>
   );
 }

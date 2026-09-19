@@ -25,10 +25,8 @@ export function SummaryStrip({ stats }: SummaryStripProps) {
 
   if (!stats) {
     return (
-      <div className="cap-shell">
-        <div className="cap-summary">
-          <p className="cap-summary__loading">Îți încărcăm progresul…</p>
-        </div>
+      <div className="cap-summary">
+        <p className="cap-summary__loading">Îți încărcăm progresul…</p>
       </div>
     );
   }
@@ -39,32 +37,30 @@ export function SummaryStrip({ stats }: SummaryStripProps) {
   };
 
   return (
-    <div className="cap-shell">
-      <div className="cap-summary">
-        <motion.div
-          className="cap-summary__stat"
-          {...entrance}
-          transition={{ duration: 0.4, delay: 0.12, ease: EASE_OUT }}
-        >
-          <CircleCheck className="cap-summary__icon" aria-hidden="true" />
-          <span className="cap-summary__text">
-            <span className="cap-summary__value">{stats.solvedCount}</span>
-            <span className="cap-summary__label">din {stats.total} rezolvate</span>
-          </span>
-        </motion.div>
+    <div className="cap-summary">
+      <motion.div
+        className="cap-summary__stat"
+        {...entrance}
+        transition={{ duration: 0.4, delay: 0.12, ease: EASE_OUT }}
+      >
+        <CircleCheck className="cap-summary__icon" aria-hidden="true" />
+        <span className="cap-summary__text">
+          <span className="cap-summary__value">{stats.solvedCount}</span>
+          <span className="cap-summary__label">din {stats.total} rezolvate</span>
+        </span>
+      </motion.div>
 
-        <motion.div
-          className="cap-summary__stat"
-          {...entrance}
-          transition={{ duration: 0.4, delay: 0.2, ease: EASE_OUT }}
-        >
-          <Percent className="cap-summary__icon" aria-hidden="true" />
-          <span className="cap-summary__text">
-            <span className="cap-summary__value">{stats.percent}%</span>
-            <span className="cap-summary__label">completat</span>
-          </span>
-        </motion.div>
-      </div>
+      <motion.div
+        className="cap-summary__stat"
+        {...entrance}
+        transition={{ duration: 0.4, delay: 0.2, ease: EASE_OUT }}
+      >
+        <Percent className="cap-summary__icon" aria-hidden="true" />
+        <span className="cap-summary__text">
+          <span className="cap-summary__value">{stats.percent}%</span>
+          <span className="cap-summary__label">completat</span>
+        </span>
+      </motion.div>
     </div>
   );
 }

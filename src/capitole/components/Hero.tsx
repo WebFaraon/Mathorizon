@@ -39,7 +39,7 @@ export function Hero() {
 
   return (
     <section className="cap-hero">
-      <div className="cap-shell cap-hero__inner">
+      <div className="cap-hero__inner">
         <motion.h1
           className="cap-hero__title"
           initial={{ opacity: 0, y: 12 }}
