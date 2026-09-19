@@ -112,7 +112,7 @@ h1, h2, h3, h4, h5, h6,
    only affects digit glyphs, never letters, so it's a no-op on any text
    that happens to share a selector with a numeric value.
    ============================================================ */
-.stat__val, .chapter-card__count, .subcat-card__count, .cat-hud__num,
+.stat__val, .chapter-card__count, .cat-hud__num,
 .ex-card__num, .rarity-step__num, .rarity-step__pts, .rarity-modal__total,
 .result-stat__num, .flip-card__num, .token-widget__count,
 .sim-chip__val, .lectie-chip__val, .bac-chip__val,
@@ -2346,14 +2346,19 @@ html:not([data-theme="dark"]) .cat-header {
   background: #fff;
 }
 
-/* Math grid in category header */
+/* Math grid in category header — same color/opacity as the rest of the
+   page's own grid (body:has(#catHeader), near the end of this file), per
+   direct feedback that this zone stood out at a visibly different
+   opacity. The header is opaque, so the page's own grid can't show
+   through it; this repaints the identical values as its own layer
+   instead of trying to make the header transparent. */
 .cat-header::before {
   content: '';
   position: absolute;
   inset: 0;
   background-image:
-    linear-gradient(rgba(27, 74, 138, 0.10) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(27, 74, 138, 0.10) 1px, transparent 1px);
+    linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px);
   background-size: 28px 28px;
   pointer-events: none;
 }
@@ -2382,6 +2387,15 @@ html:not([data-theme="dark"]) .cat-header {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Flexbox centers the LINE BOX, not the glyph's own ink — a character
+     with no ascender (like this chapter's "α") sits toward the baseline
+     within that box, leaving visibly more empty space above it than
+     below, even though it's technically centered. line-height:1 plus a
+     few px of padding-bottom (nudging the centered content upward)
+     compensates; tuned against both a no-ascender glyph and an
+     ascender+descender one (see .subcat-card__icon for the same fix). */
+  line-height: 1;
+  padding-bottom: 4px;
   font-size: 1.6rem;
   color: var(--icon-color, var(--accent));
   background: color-mix(in srgb, var(--icon-color, var(--accent)) 16%, var(--card));
@@ -2732,21 +2746,16 @@ html:not([data-theme="dark"]) .subcat-card {
   display: flex;
   align-items: center;
   justify-content: center;
+  /* Same optical-centering correction as .cat-header__icon, scaled down
+     for this tile's smaller font-size — see that rule's comment. */
+  line-height: 1;
+  padding-bottom: 3px;
   font-size: 1.2rem;
   flex-shrink: 0;
   color: var(--sc-color, var(--accent));
   background: color-mix(in srgb, var(--sc-color, var(--accent)) 16%, var(--card));
   border: 1px solid color-mix(in srgb, var(--sc-color, var(--accent)) 35%, var(--card));
   box-shadow: 0 4px 10px color-mix(in srgb, var(--sc-color, var(--accent)) 35%, transparent);
-}
-
-.subcat-card__count {
-  font-size: 0.68rem;
-  font-weight: 700;
-  padding: 2px 7px;
-  border-radius: var(--radius-sm);
-  border: 1px solid;
-  white-space: nowrap;
 }
 
 .subcat-card__soon {
@@ -6204,7 +6213,7 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   /* ---- Subcategory cards ---- */
   .subcat-cards-grid { grid-template-columns: 1fr 1fr; gap: 8px; padding: 12px 0 24px; }
   .subcat-card { padding: 14px 14px; min-height: 110px; gap: 8px; }
-  .subcat-card__icon { width: 40px; height: 40px; font-size: 1rem; }
+  .subcat-card__icon { width: 40px; height: 40px; font-size: 1rem; padding-bottom: 2.5px; }
 
   /* ---- Breadcrumb ---- */
   .subcat-breadcrumb { position: sticky; }
@@ -6406,8 +6415,8 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
 
 [data-theme="dark"] .cat-header::before {
   background-image:
-    linear-gradient(rgba(255,255,255,0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255,255,255,0.07) 1px, transparent 1px);
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
   background-size: 28px 28px;
 }
 

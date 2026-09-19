@@ -265,13 +265,7 @@
             <div class="subcat-card__icon">
               ${sub.symbol}
             </div>
-            ${empty
-              ? '<span class="subcat-card__soon">În curând</span>'
-              : `<div class="subcat-card__count"
-                      style="color:${sub.color};border-color:${sub.color}44;background:${sub.color}15">
-                   ${count} ex.
-                 </div>`
-            }
+            ${empty ? '<span class="subcat-card__soon">În curând</span>' : ''}
           </div>
           <div class="subcat-card__name">${BM.esc(sub.name)}</div>
           ${sub.description ? `<div class="subcat-card__desc">${BM.esc(sub.description)}</div>` : ''}
