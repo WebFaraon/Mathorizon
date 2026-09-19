@@ -434,7 +434,7 @@ body.bac-exam-mode .nav.nav--peek {
   display: inline-flex;
   align-items: center;
   padding: 8px 20px;
-  border-radius: 30px;
+  border-radius: 10px;
   /* Regular weight, not bold — the active tab reads as "current" through
      its background/border below, not through extra font-weight. Bumped up
      from 0.88rem to keep the same visual presence the bold used to carry. */
@@ -451,10 +451,15 @@ body.bac-exam-mode .nav.nav--peek {
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.92);
 }
+/* A light blue tint instead of plain white/transparent — reads as "this
+   one's selected" the way Duolingo's segmented tabs do, rather than as a
+   generic highlighted state. --accent-light already exists per theme
+   (a lighter blue in dark mode than in light), so this needs no
+   [data-theme="dark"] override of its own. */
 .nav__link--active {
-  background: rgba(255,255,255,0.18);
+  background: color-mix(in srgb, var(--accent-light) 32%, transparent);
   color: #fff;
-  border-color: rgba(255,255,255,0.22);
+  border-color: color-mix(in srgb, var(--accent-light) 48%, transparent);
 }
 /* Short labels — no longer used; hamburger takes over on mobile */
 .nav__link-short { display: none; }

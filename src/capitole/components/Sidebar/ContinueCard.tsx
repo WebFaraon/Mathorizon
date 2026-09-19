@@ -71,16 +71,20 @@ export function ContinueCard({ target, ready }: ContinueCardProps) {
     >
       <span className="cap-side-card__eyebrow">Continuă de unde ai rămas</span>
       <h3 className="cap-continue__title">{chapter.category.name}</h3>
+      {/* One paragraph, not a separate boxed callout for the next exercise —
+          that second block (its own padding + background + gap) was most of
+          what made this card taller than it needed to be. The title still
+          stands out via <strong>. */}
       <p className="cap-continue__desc">
         {started
           ? `${chapter.progress.solved} din ${chapter.progress.total} exerciții rezolvate — mai ai ${remaining}.`
           : `${chapter.progress.total} exerciții te așteaptă.`}
+        {nextExercise && (
+          <>
+            {' '}Următorul: <strong>{nextExercise.title}</strong>
+          </>
+        )}
       </p>
-      {nextExercise && (
-        <p className="cap-continue__next">
-          Următorul: <strong>{nextExercise.title}</strong>
-        </p>
-      )}
       <motion.a
         className="cap-btn cap-btn--primary cap-btn--block"
         href={href}

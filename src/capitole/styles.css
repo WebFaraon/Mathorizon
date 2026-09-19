@@ -31,9 +31,11 @@
      brief is mostly this number being big and consistent. */
   --cap-section-gap: 40px;
   /* One rhythm for the internal padding/gap of every sidebar card
-     (ContinueCard, NudgeCard, SimulareBannerCard) — see section 3b. */
-  --cap-side-card-padding: 20px 22px;
-  --cap-side-card-gap: 10px;
+     (ContinueCard, NudgeCard, SimulareBannerCard) — see section 3b.
+     Tightened from an earlier 20px/22px + 10px pass: the 3 sidebar cards
+     stacked taller than the 4-card chapter grid next to them. */
+  --cap-side-card-padding: 16px 18px;
+  --cap-side-card-gap: 8px;
   /* The pressed-button shadow (section 4). A literal, solid color rather
      than color-mix(accent, black) — that formula darkens light-mode's
      already-medium accent (#3A6BAD) by barely enough to read as a "step",
@@ -488,15 +490,7 @@
   line-height: 1.5;
   color: var(--text-secondary);
 }
-
-.cap-continue__next {
-  font-size: 0.8rem;
-  color: var(--text-muted);
-  padding: 8px 10px;
-  background: var(--surface);
-  border-radius: var(--cap-radius-sm);
-}
-.cap-continue__next strong { color: var(--text); font-weight: 700; }
+.cap-continue__desc strong { color: var(--text); font-weight: 700; }
 
 .cap-nudge__icon {
   display: flex;
@@ -623,7 +617,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 12px 22px;
+  padding: 10px 20px;
   border: none;
   border-radius: var(--cap-radius-sm);
   font-size: 0.9rem;
@@ -663,9 +657,14 @@
 
 /* ---- 5. DARK THEME -------------------------------------------------- */
 [data-theme="dark"] {
-  /* Same navy family as light mode's shadow, darkened relative to dark
-     mode's own (much lighter) accent — see the variable's definition. */
-  --cap-btn-shadow-primary: #0d2247;
+  /* A solid navy (matching light mode's approach) reads fine against the
+     bright button face above it, but was nearly the same luminance as the
+     dark card sitting BEHIND it (#1c1c1c) — the "step" almost disappeared
+     into the card. Semi-transparent black instead: it darkens whatever's
+     underneath by a fixed relative amount, so it stays visibly darker than
+     the card regardless of the card's exact shade, the same way a real
+     drop shadow would. */
+  --cap-btn-shadow-primary: rgba(0, 0, 0, 0.65);
 }
 
 [data-theme="dark"] .cap-hero {
@@ -699,8 +698,20 @@
   box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
+/* Unlike .cap-card/.cap-side-card above, this ONE card actually did need a
+   dark override: its gradient is literal hex, not a token, so nothing
+   about it changed with the theme at all — including a rest-state shadow
+   (a soft blue glow tuned to lift the card off a light cream page) that
+   reads as barely-there against a black one. The border is new: every
+   other card gets a visible edge from --border in dark mode; this one had
+   none at all, so it looked like the one thing on the page that never
+   found out the theme had changed. */
+[data-theme="dark"] .cap-side-card--sim {
+  border: 1px solid rgba(255, 255, 255, 0.10);
+  box-shadow: 0 10px 26px rgba(0, 0, 0, 0.5);
+}
 [data-theme="dark"] .cap-side-card--sim:hover {
-  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5), 0 2px 10px rgba(0, 0, 0, 0.3);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.6), 0 2px 10px rgba(0, 0, 0, 0.35);
 }
 
 /* ---- 6. RESPONSIVE -------------------------------------------------- */
