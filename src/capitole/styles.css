@@ -184,14 +184,15 @@
   color: var(--text-muted);
   /* --surface, not --card — the switch's own track (right above) is now
      solid --card (see its comment), and the badge needs to read as a
-     distinct layer on top of it, not disappear into it. A subtle top-lit
-     gradient + soft shadow instead of a flat fill, same treatment as
-     .cap-card__count/.cap-sim__fact — per direct feedback that the flat
-     version read as generic/"AI-generated" rather than designed. */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
+     distinct layer on top of it, not disappear into it. A real, visible
+     lift (two-layer shadow) instead of a flat fill — a first attempt at
+     this used a near-flat gradient and a 6%-opacity shadow, which turned
+     out to be too subtle to read as a change at all; this is deliberately
+     more pronounced. Same treatment as .cap-card__count/.cap-sim__fact. */
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
 }
 
 /* One row: the grade switch and the one progress chip left (see
@@ -477,12 +478,12 @@ html:not([data-theme="dark"]) .cap-card {
   letter-spacing: 0.02em;
   white-space: nowrap;
   color: var(--text-muted);
-  /* Subtle top-lit gradient + soft shadow instead of a flat fill — see
+  /* A real, visible lift (two-layer shadow) instead of a flat fill — see
      .cap-grade-switch__badge for the same treatment and why. */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
   font-variant-numeric: tabular-nums;
 }
 
@@ -1071,12 +1072,12 @@ html:not([data-theme="dark"]) .cap-side-card {
   font-weight: 600;
   white-space: nowrap;
   color: var(--text-secondary);
-  /* Subtle top-lit gradient + soft shadow instead of a flat fill — see
+  /* A real, visible lift (two-layer shadow) instead of a flat fill — see
      .cap-grade-switch__badge for the same treatment and why. */
-  background: linear-gradient(180deg, color-mix(in srgb, var(--surface) 55%, var(--card)) 0%, var(--surface) 100%);
+  background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
 }
 
 /* Loading placeholders for the sidebar, matching .cap-card-skeleton's
