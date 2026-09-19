@@ -229,6 +229,13 @@
   border: 2px solid var(--border);
 }
 
+/* Light theme only, same as .cap-side-card/.cap-card — pure white
+   instead of --card's cream tint; dark theme's --card is untouched. */
+html:not([data-theme="dark"]) .cap-grade-switch,
+html:not([data-theme="dark"]) .cap-summary__stat {
+  background: #fff;
+}
+
 .cap-summary__icon {
   width: 20px;
   height: 20px;
@@ -359,10 +366,16 @@
      shadow right below it. The chapter's identity color is still very
      much present: the symbol tile, the tags, the progress fill, and this
      card's own shadow are all still tinted from --cap-card-color. */
-  border: 1px solid var(--border);
+  border: 2px solid var(--border);
   border-radius: var(--cap-radius);
   box-shadow: 0 4px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
   transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
+}
+
+/* Light theme only, same as .cap-side-card — dark theme's --card is
+   untouched. */
+html:not([data-theme="dark"]) .cap-card {
+  background: #fff;
 }
 
 .cap-card:hover {
