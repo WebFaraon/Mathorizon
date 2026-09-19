@@ -3051,6 +3051,15 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   padding-bottom: 48px;
 }
 
+/* .ex-card/.ex-card__math-preview are shared with js/training.js
+   (Antrenament — out of scope for this redesign), so the white-instead-
+   of-cream fix is scoped to category.html specifically via
+   body:has(#catHeader), same as this file's other category-page-only
+   overrides, rather than changed globally. Light theme only, same as
+   every other white-not-cream fix in this redesign. */
+html:not([data-theme="dark"]) body:has(#catHeader) .ex-card {
+  background: #fff;
+}
 .ex-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -3259,6 +3268,11 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
 
 .ex-card__preview { display: none; }
 
+/* Scoped to category.html only — see .ex-card's comment above, same
+   sharing-with-training.js reasoning. */
+html:not([data-theme="dark"]) body:has(#catHeader) .ex-card__math-preview {
+  background: #fff;
+}
 .ex-card__math-preview {
   margin-top: 8px;
   background: var(--surface);
@@ -3431,6 +3445,12 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   padding-top: 4px;
 }
 
+/* Light theme only — pure white instead of --card's cream tint, per
+   direct feedback (matches .cap-card/.subcat-card's own move off cream
+   earlier in this same redesign). Dark theme's --card is untouched. */
+html:not([data-theme="dark"]) .rarity-card {
+  background: #fff;
+}
 .rarity-card {
   position: relative;
   height: 250px;
@@ -3608,6 +3628,12 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   margin-bottom: 6px;
 }
 
+/* Light theme only, same reasoning as .rarity-card above — this box was
+   the one most visibly cream in a screenshot (surface's tint reads much
+   stronger than --card's does). */
+html:not([data-theme="dark"]) .rarity-card__statement {
+  background: #fff;
+}
 .rarity-card__statement {
   position: relative;
   flex: 0 0 88px;
