@@ -2339,6 +2339,12 @@ body:has(#catHeader) .main::after {
   position: relative;
   overflow: hidden;
 }
+/* Light theme only, same as body:has(#catHeader) — per direct feedback
+   that this band was left in the old cream tone while the rest of the
+   page went white. Dark theme's --surface is untouched. */
+html:not([data-theme="dark"]) .cat-header {
+  background: #fff;
+}
 
 /* Math grid in category header */
 .cat-header::before {
@@ -2359,6 +2365,16 @@ body:has(#catHeader) .main::after {
   position: relative;
 }
 
+/* --icon-color is set inline (js/category.js) — the color-mix()es
+   themselves live here, not inline, on purpose: color-mix(..., var(--x))
+   set directly as an inline style (via innerHTML) resolved incorrectly in
+   testing (computed to a near-transparent result instead of the opaque
+   color the math calls for), while the exact same expression in an
+   external stylesheet reading an inline-set plain custom property works
+   correctly — the same split Capitole's own React cards use
+   (--cap-card-color set inline, color-mix() done in styles.css). Opaque
+   fill (mixed into --card, not "transparent") + a colored lift, per
+   direct feedback that this tile read as washed-out/see-through. */
 .cat-header__icon {
   width: 56px;
   height: 56px;
@@ -2367,8 +2383,10 @@ body:has(#catHeader) .main::after {
   align-items: center;
   justify-content: center;
   font-size: 1.6rem;
-  background: var(--card);
-  border: 1.5px solid var(--border);
+  color: var(--icon-color, var(--accent));
+  background: color-mix(in srgb, var(--icon-color, var(--accent)) 16%, var(--card));
+  border: 1.5px solid color-mix(in srgb, var(--icon-color, var(--accent)) 35%, var(--card));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--icon-color, var(--accent)) 35%, transparent);
   flex-shrink: 0;
 }
 
@@ -2449,6 +2467,9 @@ body:has(#catHeader) .main::after {
   flex-shrink: 0;
   box-shadow: var(--shadow-card);
 }
+html:not([data-theme="dark"]) .cat-hud__stat {
+  background: #fff;
+}
 
 .cat-hud__icon {
   width: 30px;
@@ -2501,6 +2522,9 @@ body:has(#catHeader) .main::after {
   justify-content: center;
   gap: 6px;
   box-shadow: var(--shadow-card);
+}
+html:not([data-theme="dark"]) .cat-hud__bar-block {
+  background: #fff;
 }
 
 .cat-hud__bar-top {
@@ -2653,7 +2677,15 @@ body:has(#catHeader) .main::after {
   display: flex;
   flex-direction: column;
   gap: 12px;
-  animation: card-up-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  /* backwards, not both: the "to" keyframe (opacity:1, translateY(0))
+     already matches this element's un-animated resting styles, so
+     forwards-filling it was never visually necessary — and CSS
+     animations outrank transitions on a shared property whenever the
+     animation is still considered "in effect" (which a forwards fill
+     never stops being). That silently blocked the :active transform
+     transition below from ever having any visual effect, since the
+     held animation output for `transform` always won. */
+  animation: card-up-in 0.32s cubic-bezier(0.22, 1, 0.36, 1) backwards;
   min-height: 150px;
   box-shadow: 0 4px 0 0 color-mix(in srgb, var(--sc-color, var(--accent)) 55%, black 30%);
 }
@@ -2687,6 +2719,12 @@ html:not([data-theme="dark"]) .subcat-card {
   gap: 8px;
 }
 
+/* --sc-color is set inline on the parent .subcat-card and inherits down
+   to here — no separate inline style needed on this element itself. See
+   .cat-header__icon's comment for why the color-mix()es live here rather
+   than inline. Opaque fill (mixed into --card) + a colored lift, same
+   treatment as the header's icon, per direct feedback that these tiles
+   read as washed-out/see-through. */
 .subcat-card__icon {
   width: 48px;
   height: 48px;
@@ -2696,12 +2734,10 @@ html:not([data-theme="dark"]) .subcat-card {
   justify-content: center;
   font-size: 1.2rem;
   flex-shrink: 0;
-  /* color/background/border-color are actually set inline per-subcategory
-     (js/category.js) — these are just structural fallbacks. No backdrop
-     blur any more, matching the card's own move off glassmorphism. */
-  background: rgba(255,255,255,0.35);
-  border: 1px solid rgba(255,255,255,0.50);
   color: var(--sc-color, var(--accent));
+  background: color-mix(in srgb, var(--sc-color, var(--accent)) 16%, var(--card));
+  border: 1px solid color-mix(in srgb, var(--sc-color, var(--accent)) 35%, var(--card));
+  box-shadow: 0 4px 10px color-mix(in srgb, var(--sc-color, var(--accent)) 35%, transparent);
 }
 
 .subcat-card__count {
@@ -2772,6 +2808,9 @@ html:not([data-theme="dark"]) .subcat-card {
   top: var(--nav-h);
   z-index: 90;
 }
+html:not([data-theme="dark"]) .subcat-breadcrumb {
+  background: #fff;
+}
 
 .subcat-bc__inner {
   max-width: var(--container);
@@ -2779,7 +2818,7 @@ html:not([data-theme="dark"]) .subcat-card {
   padding: 0 28px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 14px;
   height: 56px;
 }
 
@@ -2817,8 +2856,11 @@ html:not([data-theme="dark"]) .subcat-card {
   --bc-back-shadow: rgba(0, 0, 0, 0.65);
 }
 
-.subcat-bc__sep { color: var(--text-muted); font-size: 0.8rem; }
-.subcat-bc__current { font-size: 0.84rem; font-weight: 700; color: var(--text); }
+/* Bigger/bolder + more space around both (.subcat-bc__inner's gap above)
+   per direct feedback that the separator and current-page name were too
+   small/faint to read as a real breadcrumb. */
+.subcat-bc__sep { color: var(--text-secondary); font-size: 1.15rem; font-weight: 700; }
+.subcat-bc__current { font-size: 1rem; font-weight: 800; color: var(--text); }
 
 /* 12. FILTER BAR — Tab strip
    ============================================================ */
@@ -6166,10 +6208,11 @@ html:not([data-theme="dark"]) .subcat-card {
 
   /* ---- Breadcrumb ---- */
   .subcat-breadcrumb { position: sticky; }
-  .subcat-bc__inner { height: 44px; padding: 0 12px; gap: 5px; }
+  .subcat-bc__inner { height: 44px; padding: 0 12px; gap: 8px; }
   .subcat-bc__back { font-size: 0.72rem; padding: 3px 8px; }
+  .subcat-bc__sep { font-size: 0.9rem; }
   .subcat-bc__current {
-    font-size: 0.76rem;
+    font-size: 0.82rem;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;

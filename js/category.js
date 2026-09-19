@@ -128,7 +128,7 @@
       </svg>
       <div class="container">
         <div class="cat-header__inner">
-          <div class="cat-header__icon" style="color:${cat.color};background:${cat.color}1a;border-color:${cat.color}33">
+          <div class="cat-header__icon" style="--icon-color:${cat.color}">
             ${cat.symbol}
           </div>
           <div class="cat-header__info">
@@ -222,10 +222,8 @@
     const descEl = header.querySelector('.cat-header__desc');
     if (nameEl) nameEl.textContent = sub.name;
     if (iconEl) {
-      iconEl.innerHTML         = sub.symbol;
-      iconEl.style.color       = sub.color;
-      iconEl.style.background  = sub.color + '22';
-      iconEl.style.borderColor = sub.color + '44';
+      iconEl.innerHTML = sub.symbol;
+      iconEl.style.setProperty('--icon-color', sub.color);
     }
     if (descEl) descEl.textContent = sub.description || currentCategory.description;
   }
@@ -239,10 +237,8 @@
     const descEl = header.querySelector('.cat-header__desc');
     if (nameEl) nameEl.textContent = cat.name;
     if (iconEl) {
-      iconEl.innerHTML         = cat.symbol;
-      iconEl.style.color       = cat.color;
-      iconEl.style.background  = cat.color + '1a';
-      iconEl.style.borderColor = cat.color + '33';
+      iconEl.innerHTML = cat.symbol;
+      iconEl.style.setProperty('--icon-color', cat.color);
     }
     if (descEl) descEl.textContent = cat.description;
   }
@@ -266,8 +262,7 @@
              ${empty ? '' : `onclick="selectSubcat('${sub.id}')"`}
              style="--sc-color:${sub.color};animation-delay:${i * 0.04}s">
           <div class="subcat-card__top">
-            <div class="subcat-card__icon"
-                 style="color:${sub.color};background:${sub.color}22;border-color:${sub.color}33">
+            <div class="subcat-card__icon">
               ${sub.symbol}
             </div>
             ${empty
