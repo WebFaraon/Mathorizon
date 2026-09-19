@@ -84,7 +84,10 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
       <p className="cap-nudge__text">
         <strong>{chapter.category.name}</strong> are cel mai mic progres: {chapter.progress.percent}%
       </p>
-      <a className="cap-btn cap-btn--secondary cap-btn--sm" href={categoryHref(chapter.category.id)}>
+      {/* Same full-width/full-height footprint as the favorites branch's
+          button above — was the small left-aligned pill, per direct
+          feedback that it should "look like the others" too. */}
+      <a className="cap-btn cap-btn--secondary cap-btn--block" href={categoryHref(chapter.category.id)}>
         Deschide capitolul
       </a>
     </motion.div>

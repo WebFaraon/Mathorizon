@@ -28,8 +28,10 @@
   --cap-radius: 12px;
   --cap-radius-sm: 8px;
   /* One rhythm for the gaps BETWEEN sections — the "aerisit" part of the
-     brief is mostly this number being big and consistent. */
-  --cap-section-gap: 40px;
+     brief is mostly this number being big and consistent. Trimmed from
+     40px per direct feedback that the whole block (header row + chapter
+     grid) sat too far below the navbar. */
+  --cap-section-gap: 28px;
   /* One rhythm for the internal padding/gap of every sidebar card
      (ContinueCard, NudgeCard, SimulareBannerCard) — see section 3b.
      Tightened from an earlier 20px/22px + 10px pass: the 3 sidebar cards
@@ -197,7 +199,7 @@
   justify-content: center;
   flex-wrap: wrap;
   gap: 12px;
-  padding: 22px 0 0;
+  padding: 14px 0 0;
 }
 
 /* ---- 2. SUMMARY STAT --------------------------------------------------
@@ -296,8 +298,19 @@
        taking up more of that space. */
     grid-template-columns: 340px minmax(0, 1fr) 340px;
     gap: 24px;
+    /* Rails match the middle column's height instead of sitting at their
+       own shorter natural height (the default Grid behavior, before this
+       override) — per direct feedback that the leftover gap under the
+       shorter rail looked unfinished. */
+    align-items: stretch;
   }
   .cap-col-middle { order: 0; }
+  /* Each rail card grows to take an equal share of that extra height
+     (see the align-items change above) instead of the surplus collecting
+     as one blank gap under the last card. */
+  .cap-col-left > *, .cap-col-right > * {
+    flex: 1 1 0%;
+  }
 }
 
 /* ---- 3a. CHAPTERS ----
@@ -307,7 +320,7 @@
    block instead of leaving a heading-sized gap. This padding is the
    entire gap between the two now. */
 .cap-chapters {
-  padding-top: 24px;
+  padding-top: 16px;
 }
 
 .cap-grid {
@@ -549,10 +562,22 @@
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: var(--cap-radius);
+  /* Every rail card gets this colored top stroke now, not just Continue —
+     each sets its own --cap-card-color (Continue/Nudge already did, for
+     their icon colors; Missions/Leaderboard below); Simulare has none of
+     its own, so it falls back to --accent. */
+  border-top: 3px solid var(--cap-card-color, var(--accent));
 }
 
-.cap-side-card--continue {
-  border-top: 3px solid var(--cap-card-color, var(--accent));
+/* Missions/Leaderboard don't otherwise need --cap-card-color (nothing
+   else inside them reads it, unlike Nudge's icon), so a direct color
+   override here is simpler than threading the variable through an inline
+   style just to consume it once. */
+.cap-side-card--missions {
+  border-top-color: var(--green);
+}
+.cap-side-card--leaderboard {
+  border-top-color: var(--yellow);
 }
 
 .cap-side-card__eyebrow {
@@ -905,12 +930,6 @@
   background: var(--cap-card-color, var(--accent));
 }
 
-/* Its CTA is .cap-btn--secondary .cap-btn--sm now (a real button, not a
-   text link — see section 4 for both), aligned to the left like the text
-   link it replaced rather than stretching full-width like the bigger
-   cards' primary buttons. */
-.cap-side-card--nudge .cap-btn { align-self: flex-start; }
-
 /* Simulare BAC — plain .cap-side-card, no modifier of its own: unlike
    Continue/Nudge it carries no extra rule (not even a hover/focus state —
    the card itself isn't a link, only the button inside it is). */
@@ -1064,7 +1083,7 @@
    (section 3), right next to the rule it overrides — everything left
    here is secondary tuning at narrower widths, once already stacked. */
 @media (max-width: 900px) {
-  :root { --cap-section-gap: 32px; }
+  :root { --cap-section-gap: 22px; }
   /* Stacked below 1180px — let the two rails sit side by side here
      instead of full-width each, since there's room for that but not for
      a real 3-column grid yet. */
