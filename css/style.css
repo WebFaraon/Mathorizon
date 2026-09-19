@@ -2892,52 +2892,56 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   letter-spacing: 0.6px;
 }
 
+/* Same chunky pressed-button language as every other button on the site
+   now (a colored edge sits below at rest, collapses and the chip sinks
+   to meet it on press; hover just dims) instead of the flat
+   border-outline chip it was — per direct feedback, along with dropping
+   the boxed panel above. One --chip-shadow custom property drives both
+   the resting AND active box-shadow, so a color only needs to be stated
+   once per state instead of repeating the whole shadow formula. */
 .filter-chip {
-  padding: 4px 11px;
+  --chip-shadow: var(--border);
+  padding: 7px 14px;
   border-radius: var(--radius-sm);
   font-size: 0.75rem;
-  font-weight: 700;
+  font-weight: 800;
   letter-spacing: 0.3px;
-  background: transparent;
-  color: var(--text-muted);
-  border: 1.5px solid var(--border);
-  transition: background 0.18s ease, color 0.18s ease,
-              border-color 0.18s ease, transform 0.13s ease;
-  cursor: pointer;
-  white-space: nowrap;
   text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+  border: none;
+  background: var(--surface);
+  color: var(--text-secondary);
+  box-shadow: 0 3px 0 0 var(--chip-shadow);
+  transition: background 0.15s ease, color 0.15s ease, box-shadow 0.1s ease,
+              transform 0.1s ease, filter 0.15s ease;
 }
-.filter-chip:active { transform: scale(0.95); }
-.filter-chip:hover {
-  background: var(--card-hover);
-  border-color: rgba(0, 0, 0, 0.28);
-  color: var(--text);
+.filter-chip:hover { filter: brightness(0.96); }
+.filter-chip:active {
+  box-shadow: 0 0px 0 0 var(--chip-shadow);
+  transform: translateY(3px);
 }
+
 .filter-chip.active {
   background: var(--text);
   color: var(--card);
-  border-color: var(--text);
+  --chip-shadow: rgba(0, 0, 0, 0.32);
 }
 
-.filter-chip.easy.active      { background: var(--green);  color: #fff; border-color: var(--green); }
-.filter-chip.medium.active    { background: var(--yellow); color: #fff; border-color: var(--yellow); }
-.filter-chip.hard.active      { background: var(--red);    color: #fff; border-color: var(--red); }
-.filter-chip.legendary.active { background: var(--rarity-legendar-b, #B45309); color: #fff; border-color: var(--rarity-legendar-b, #B45309); }
+/* Difficulty/rarity chips carry their color even at rest (tinted fill,
+   like .diff-badge) instead of the same flat gray as the status chips —
+   makes the "which color is which tier" association readable without
+   needing to select anything, but stays low-key until .active takes over
+   with the solid fill + a shadow mixed from that same color. */
+.filter-chip.easy      { color: var(--green);  background: var(--green-dim);  --chip-shadow: var(--green-border); }
+.filter-chip.medium    { color: var(--yellow); background: var(--yellow-dim); --chip-shadow: var(--yellow-border); }
+.filter-chip.hard      { color: var(--red);    background: var(--red-dim);    --chip-shadow: var(--red-border); }
+.filter-chip.legendary { color: var(--rarity-legendar-text, #92400E); background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); --chip-shadow: var(--rarity-legendar-border, rgba(180,83,9,0.4)); }
 
-/* Difficulty/rarity chips carry their color even at rest (outlined +
-   faintly tinted, like .diff-badge) instead of the same flat gray as the
-   status chips — makes the "which color is which tier" association
-   readable without needing to select anything, but stays low-key until
-   .active takes over with the solid fill above. */
-.filter-chip.easy      { color: var(--green);  border-color: var(--green-border);  background: var(--green-dim); }
-.filter-chip.medium    { color: var(--yellow); border-color: var(--yellow-border); background: var(--yellow-dim); }
-.filter-chip.hard      { color: var(--red);    border-color: var(--red-border);    background: var(--red-dim); }
-.filter-chip.legendary { color: var(--rarity-legendar-text, #92400E); border-color: var(--rarity-legendar-border, rgba(180,83,9,0.4)); background: var(--rarity-legendar-dim, rgba(180,83,9,0.12)); }
-
-.filter-chip.easy:hover      { border-color: var(--green); }
-.filter-chip.medium:hover    { border-color: var(--yellow); }
-.filter-chip.hard:hover      { border-color: var(--red); }
-.filter-chip.legendary:hover { border-color: var(--rarity-legendar-b, #B45309); }
+.filter-chip.easy.active      { color: #fff; background: var(--green);  --chip-shadow: color-mix(in srgb, var(--green) 55%, black 30%); }
+.filter-chip.medium.active    { color: #fff; background: var(--yellow); --chip-shadow: color-mix(in srgb, var(--yellow) 55%, black 30%); }
+.filter-chip.hard.active      { color: #fff; background: var(--red);    --chip-shadow: color-mix(in srgb, var(--red) 55%, black 30%); }
+.filter-chip.legendary.active { color: #fff; background: var(--rarity-legendar-b, #B45309); --chip-shadow: color-mix(in srgb, var(--rarity-legendar-b, #B45309) 55%, black 30%); }
 
 /* On rarity-preview subcategories, the Ușor/Mediu/Greu labels/colors
    are relabeled Comun/Rar/Epic (see js/category.js renderFilterBar) — the
@@ -2945,24 +2949,23 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
    sitewide diff-badge green/yellow/red, or "Rar" would stay orange next to
    blue rarity cards. Scoped to `.filter-bar--rarity` so every other
    subcategory page keeps the plain diff colors untouched. */
-.filter-bar--rarity .filter-chip.easy   { color: var(--rarity-comun-text); border-color: var(--rarity-comun-border); background: var(--rarity-comun-dim); }
-.filter-bar--rarity .filter-chip.medium { color: var(--rarity-rar-text);   border-color: var(--rarity-rar-border);   background: var(--rarity-rar-dim); }
-.filter-bar--rarity .filter-chip.hard   { color: var(--rarity-epic-text);  border-color: var(--rarity-epic-border);  background: var(--rarity-epic-dim); }
+.filter-bar--rarity .filter-chip.easy   { color: var(--rarity-comun-text); background: var(--rarity-comun-dim); --chip-shadow: var(--rarity-comun-border); }
+.filter-bar--rarity .filter-chip.medium { color: var(--rarity-rar-text);   background: var(--rarity-rar-dim);   --chip-shadow: var(--rarity-rar-border); }
+.filter-bar--rarity .filter-chip.hard   { color: var(--rarity-epic-text);  background: var(--rarity-epic-dim);  --chip-shadow: var(--rarity-epic-border); }
 
-.filter-bar--rarity .filter-chip.easy:hover   { border-color: var(--rarity-comun-b); }
-.filter-bar--rarity .filter-chip.medium:hover { border-color: var(--rarity-rar-b); }
-.filter-bar--rarity .filter-chip.hard:hover   { border-color: var(--rarity-epic-b); }
+.filter-bar--rarity .filter-chip.easy.active   { background: var(--rarity-comun-b); --chip-shadow: color-mix(in srgb, var(--rarity-comun-b) 55%, black 30%); }
+.filter-bar--rarity .filter-chip.medium.active { background: var(--rarity-rar-b);   --chip-shadow: color-mix(in srgb, var(--rarity-rar-b) 55%, black 30%); }
+.filter-bar--rarity .filter-chip.hard.active   { background: var(--rarity-epic-b);  --chip-shadow: color-mix(in srgb, var(--rarity-epic-b) 55%, black 30%); }
 
 .filter-bar--rarity .filter-chip.easy.active   { background: var(--rarity-comun-b); border-color: var(--rarity-comun-b); color: #fff; }
 .filter-bar--rarity .filter-chip.medium.active { background: var(--rarity-rar-b);   border-color: var(--rarity-rar-b);   color: #fff; }
 .filter-bar--rarity .filter-chip.hard.active   { background: var(--rarity-epic-b);  border-color: var(--rarity-epic-b);  color: #fff; }
 
-/* The plain bottom-border strip reads as barely-there on dark backgrounds,
-   and with two visually-unrelated chip clusters (status vs. rarity) sharing
-   one thin divider it wasn't clear which chip did what. A self-contained
-   "panel" with a labeled second group and a proper divider — applies to
-   every subcategory page now (not just the rarity preview), since the two
-   clusters are always independent, combinable filters. */
+/* The boxed-panel treatment (background/border/radius) tried here was
+   reverted per direct feedback — the full-width beige panel plus each
+   group's own pill background read as cluttered. Back to just the plain
+   bottom-border from the base .filter-bar rule above, with the buttons
+   themselves (now styled below) carrying the visual weight instead. */
 .filter-bar {
   position: relative;
   /* A sitewide rule (.main > *) puts every direct child of <main> at
@@ -2971,10 +2974,6 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
      dropdown below (which escapes this box via position:absolute) loses
      to the exercises grid painting after it in DOM order. */
   z-index: 5;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-lg);
-  padding: 12px 16px;
   row-gap: 8px;
 }
 
@@ -2982,26 +2981,16 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   font-size: 0.68rem;
 }
 
-.filter-bar--rarity .filter-chip {
-  border-radius: 999px;
-  padding: 5px 13px;
-  font-size: 0.76rem;
-}
-
-/* Each cluster (status filters / rarity filters) is its own labeled,
-   faintly-boxed group — see js/category.js renderFilterBar — so it's clear
-   which chips belong together, and so a narrow screen never splits a
-   group across two lines the way free-flowing individual chips did. */
+/* Each cluster (status filters / rarity filters) — see js/category.js
+   renderFilterBar for why they're grouped in markup (so a narrow screen
+   never splits a group across two lines) — no longer its own boxed pill;
+   the label + the buttons' own 3D styling carry the grouping now. */
 .filter-bar__group {
   display: flex;
   align-items: center;
   gap: 8px;
   flex-wrap: wrap;
   row-gap: 8px;
-  padding: 7px 16px;
-  border-radius: 999px;
-  background: var(--card);
-  border: 1px solid var(--border);
 }
 
 .filter-bar__chips {
@@ -6229,9 +6218,9 @@ html:not([data-theme="dark"]) .subcat-breadcrumb {
   }
 
   /* ---- Filter bar ---- */
-  .filter-bar { padding: 10px 12px; gap: 8px; }
-  .filter-bar__group { padding: 6px 13px; gap: 6px; }
-  .filter-chip { font-size: 0.69rem; padding: 4px 9px; }
+  .filter-bar { gap: 8px; }
+  .filter-bar__group { gap: 6px; }
+  .filter-chip { font-size: 0.69rem; padding: 5px 11px; }
   .filter-label { font-size: 0.65rem; }
   /* Even one-cluster-per-row still means up to 4 stacked rows of chips on
      a small phone — swap to a pair of native <select>s (same underlying
