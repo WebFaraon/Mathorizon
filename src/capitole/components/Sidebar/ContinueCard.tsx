@@ -16,6 +16,11 @@ interface ContinueCardProps {
  * come from lib/recommendations.ts, computed from the same progress numbers
  * the chapter grid renders — never a second, separate guess. See that file
  * for the exact preference order.
+ *
+ * Kept to three short, separately-labeled lines (progress, then the next
+ * exercise) rather than one dense sentence fusing both — an earlier
+ * version packed "X din Y rezolvate, mai ai Z. Următorul: <title>" into a
+ * single paragraph, which read as cluttered rather than scannable.
  */
 export function ContinueCard({ target, ready }: ContinueCardProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -58,7 +63,6 @@ export function ContinueCard({ target, ready }: ContinueCardProps) {
   if (!chapter) return null;
 
   const started = chapter.progress.solved > 0;
-  const remaining = chapter.progress.total - chapter.progress.solved;
   const href = nextExercise
     ? categoryHref(chapter.category.id, nextExercise.subcategoryId, nextExercise.id)
     : categoryHref(chapter.category.id);
@@ -71,20 +75,16 @@ export function ContinueCard({ target, ready }: ContinueCardProps) {
     >
       <span className="cap-side-card__eyebrow">Continuă de unde ai rămas</span>
       <h3 className="cap-continue__title">{chapter.category.name}</h3>
-      {/* One paragraph, not a separate boxed callout for the next exercise —
-          that second block (its own padding + background + gap) was most of
-          what made this card taller than it needed to be. The title still
-          stands out via <strong>. */}
-      <p className="cap-continue__desc">
+      <p className="cap-continue__progress">
         {started
-          ? `${chapter.progress.solved} din ${chapter.progress.total} exerciții rezolvate — mai ai ${remaining}.`
-          : `${chapter.progress.total} exerciții te așteaptă.`}
-        {nextExercise && (
-          <>
-            {' '}Următorul: <strong>{nextExercise.title}</strong>
-          </>
-        )}
+          ? `${chapter.progress.solved} din ${chapter.progress.total} exerciții rezolvate`
+          : `${chapter.progress.total} exerciții disponibile`}
       </p>
+      {nextExercise && (
+        <p className="cap-continue__next">
+          Următorul exercițiu: <strong>{nextExercise.title}</strong>
+        </p>
+      )}
       <a className="cap-btn cap-btn--primary cap-btn--block" href={href}>
         {started ? 'Continuă capitolul' : 'Începe capitolul'}
         <ArrowRight aria-hidden="true" />

@@ -19006,13 +19006,16 @@ body.dc-fullscreen-active .dc-toolbar {
 }
 
 /* ============================================================
-   TEMP EXPERIMENT — Capitole only: math-grid background off for preview.
-   #root only exists on capitole.html, so this doesn't touch any other
-   page. !important + last-in-file so it wins over both the base body
+   Capitole only: no math-grid background, plain white page (light theme
+   only — dark theme's near-black --bg is untouched, nothing was asked of
+   it). #root only exists on capitole.html, so this doesn't touch any
+   other page. !important + last-in-file so both win over the base body
    rule and the [data-theme="dark"] body override above without needing
-   to duplicate this per theme. Remove this whole block to restore the
-   grid (see the two rules it's overriding, earlier in this file).
+   to duplicate per theme.
    ============================================================ */
+html:not([data-theme="dark"]) body:has(#root) {
+  background-color: #fff !important;
+}
 body:has(#root) {
   background-image: none !important;
 }

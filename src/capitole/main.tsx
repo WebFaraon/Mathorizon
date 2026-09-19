@@ -19,5 +19,5 @@ if (container) {
     </StrictMode>
   );
 } else {
-  console.error('[capitole] #root not found — React island not mounted.');
+  console.error('[capitole] #root not found, React island not mounted.');
 }

@@ -49,9 +49,12 @@
 }
 
 .cap-shell {
-  /* Identical to css/style.css's .container, so every section lines up
-     with the navbar above it. */
-  max-width: var(--container);
+  /* Wider than css/style.css's own .container (var(--container), 1520px) —
+     on a very wide monitor that left a noticeably empty margin outside the
+     3-column layout before the side rails even started. This is the
+     island's own class, not the shared token, so widening it only affects
+     this page. */
+  max-width: 1760px;
   margin: 0 auto;
   padding: 0 28px;
 }
@@ -65,7 +68,11 @@
    sitting right beside it at the same height. It's just text now, on the
    same background as everything else in the row. */
 .cap-hero {
-  padding: 56px 0 0;
+  /* Pulled up from 56px — with no boxed background of its own any more
+     (see the removed-gradient comment on .cap-hero__inner below), that
+     much empty space above the title read as an accidental gap rather
+     than intentional breathing room. */
+  padding: 26px 0 0;
   text-align: center;
 }
 
@@ -122,10 +129,12 @@
 .cap-grade-switch {
   display: inline-flex;
   gap: 6px;
-  margin-top: 18px;
   padding: 4px;
   border-radius: 999px;
-  background: color-mix(in srgb, var(--text) 5%, transparent);
+  /* A real, opaque color (--surface) instead of a ~5%-alpha tint, which
+     read as nearly invisible once the page background went from cream to
+     white. */
+  background: var(--surface);
   border: 1px solid var(--border);
 }
 
@@ -170,24 +179,32 @@
   text-transform: uppercase;
   letter-spacing: 0.03em;
   color: var(--text-muted);
-  background: var(--surface);
+  /* --card, not --surface — the switch's own track (right above) just
+     became solid --surface too (see its comment), and the badge needs to
+     read as a distinct layer on top of it, not disappear into it. */
+  background: var(--card);
   border: 1px solid var(--border);
   border-radius: 999px;
 }
 
-/* ---- 2. SUMMARY STATS --------------------------------------------------
-   Replaces the old four stat boxes — two compact, accent-tinted chips
-   instead of a full card each, but with enough visual weight (bold
-   numbers, an icon, a colored pill) to read as the headline figures they
-   are, not as a footnote sentence. Real numbers (see
-   components/SummaryStrip.tsx); no count-up — see there for why. */
-.cap-summary {
+/* One row: the grade switch and the one progress chip left (see
+   SummaryStrip.tsx) — replaces the old .cap-summary, which centered two
+   chips on their own line below the switch instead of beside it. */
+.cap-header-row {
   display: flex;
+  align-items: center;
   justify-content: center;
   flex-wrap: wrap;
   gap: 12px;
   padding: 22px 0 0;
 }
+
+/* ---- 2. SUMMARY STAT --------------------------------------------------
+   Replaces the old four stat boxes — one compact, accent-tinted chip
+   instead of a full card, but with enough visual weight (bold number, an
+   icon, a colored pill) to read as the headline figure it is, not as a
+   footnote sentence. Real numbers (see components/SummaryStrip.tsx); no
+   count-up — see there for why. */
 
 .cap-summary__loading {
   width: 100%;
@@ -202,8 +219,13 @@
   gap: 10px;
   padding: 10px 20px;
   border-radius: 999px;
-  background: var(--accent-dim);
-  border: 1px solid color-mix(in srgb, var(--accent) 24%, transparent);
+  /* Fully opaque, not a transparent tint (--accent-dim was ~7% alpha,
+     which read as barely-there once the page background went from cream
+     to white) — mixing two already-opaque tokens (--accent, --surface)
+     keeps the result opaque in both themes without a separate dark
+     override. */
+  background: color-mix(in srgb, var(--accent) 12%, var(--surface));
+  border: 1px solid color-mix(in srgb, var(--accent) 35%, var(--surface));
 }
 
 .cap-summary__icon {
@@ -269,7 +291,11 @@
 
 @media (min-width: 1180px) {
   .cap-three-col {
-    grid-template-columns: 300px minmax(0, 1fr) 300px;
+    /* Widened from 300px — with the shell itself now wider too, a fixed
+       300px rail was leaving a growing gap between it and the actual
+       browser edge as the viewport got wider, instead of the rail itself
+       taking up more of that space. */
+    grid-template-columns: 340px minmax(0, 1fr) 340px;
     gap: 24px;
   }
   .cap-col-middle { order: 0; }
@@ -316,8 +342,12 @@
   flex: 1;
   min-width: 0;
   background: var(--card);
+  /* A uniform border now, not a 3px colored top line — that line was
+     competing with (and undercutting the read of) the pressed-button
+     shadow right below it. The chapter's identity color is still very
+     much present: the symbol tile, the tags, the progress fill, and this
+     card's own shadow are all still tinted from --cap-card-color. */
   border: 1px solid var(--border);
-  border-top: 3px solid var(--cap-card-color, var(--accent));
   border-radius: var(--cap-radius);
   box-shadow: 0 4px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
   transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
@@ -343,7 +373,6 @@
    of the pressed-button treatment above applies: no shadow "step" to
    suggest it's clickable, no dim, no press. */
 .cap-card--soon {
-  border-top-color: var(--border);
   box-shadow: none;
 }
 .cap-card--soon:hover { filter: none; }
@@ -725,6 +754,21 @@
 }
 .cap-continue__desc strong { color: var(--text); font-weight: 700; }
 
+/* Two short, separate lines (progress, then the specific next exercise)
+   instead of one paragraph fusing both — see the component for why. */
+.cap-continue__progress {
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.cap-continue__next {
+  font-size: 0.82rem;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+.cap-continue__next strong { color: var(--text); font-weight: 700; }
+
 .cap-nudge__icon {
   display: flex;
   align-items: center;
@@ -956,7 +1000,6 @@
    here is secondary tuning at narrower widths, once already stacked. */
 @media (max-width: 900px) {
   :root { --cap-section-gap: 32px; }
-  .cap-hero { padding: 44px 0 0; }
   /* Stacked below 1180px — let the two rails sit side by side here
      instead of full-width each, since there's room for that but not for
      a real 3-column grid yet. */

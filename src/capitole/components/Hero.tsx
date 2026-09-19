@@ -13,21 +13,22 @@ const PHRASES = [
   'Exersează inteligent. Progresează rapid. Ia BAC-ul cu 10.',
   'Sute de exerciții organizate pe capitole și dificultate.',
   'Simulări reale BAC cu timer, notă automată și progres salvat.',
-  'Antrenament rapid personalizat — orice capitol, orice nivel.'
+  'Antrenament rapid personalizat, pentru orice capitol și orice nivel.'
 ];
 
 const ROTATE_MS = 5500;
 
 /**
- * Title, rotating subtitle, grade switch and the progress chips — one
- * plain block, no boxed background. An earlier version gave this section
- * its own gradient wash, which read as an oddly-shaped colored panel once
- * the page became three columns (the gradient only spanned the middle
- * column's width, with the plain page background sitting right beside it
- * at the same height) — removed rather than reworked. SummaryStrip lives
- * here now instead of as its own top-level section, so the whole header
- * area — title through progress chips — reads as one unit; the chapter
- * grid (ChaptersSection) sits directly below with no heading of its own.
+ * Title, rotating subtitle, and one row combining the grade switch with
+ * the "solved" progress chip (see SummaryStrip.tsx — the percent-complete
+ * chip that used to sit next to it is gone, as directly derivable from
+ * this same number). One plain block, no boxed background: an earlier
+ * version gave this section its own gradient wash, which read as an
+ * oddly-shaped colored panel once the page became three columns (the
+ * gradient only spanned the middle column's width, with the plain page
+ * background sitting right beside it at the same height) — removed
+ * rather than reworked. The chapter grid (ChaptersSection) sits directly
+ * below with no heading of its own.
  */
 export function Hero({ stats }: HeroProps) {
   const prefersReducedMotion = useReducedMotion();
@@ -57,7 +58,7 @@ export function Hero({ stats }: HeroProps) {
           <span className="cap-hero__title-accent">BAC &amp; Evaluare Națională</span>
         </motion.h1>
 
-        {/* Fixed height so the swap below never nudges the grade switch. */}
+        {/* Fixed height so the swap below never nudges the row underneath. */}
         <p className="cap-hero__sub">
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
@@ -72,11 +73,13 @@ export function Hero({ stats }: HeroProps) {
           </AnimatePresence>
         </p>
 
-        {/* Sets the context everything below (chapter grid, missions,
-            leaderboard) is scoped to. */}
-        <GradeSwitch />
-
-        <SummaryStrip stats={stats} />
+        {/* One row: the grade switch (sets the context everything below —
+            chapter grid, missions, leaderboard — is scoped to) alongside
+            the one progress figure that's left. */}
+        <div className="cap-header-row">
+          <GradeSwitch />
+          <SummaryStrip stats={stats} />
+        </div>
       </div>
     </section>
   );

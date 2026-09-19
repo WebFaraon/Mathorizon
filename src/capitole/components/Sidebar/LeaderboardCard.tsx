@@ -38,7 +38,7 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
 
       {rows.length === 0 ? (
         <p className="cap-leaderboard__empty">
-          Fii primul din clasament — rezolvă exerciții la Antrenament ca să câștigi XP.
+          Fii primul din clasament: rezolvă exerciții la Antrenament ca să câștigi XP.
         </p>
       ) : (
         <ol className="cap-leaderboard__list">

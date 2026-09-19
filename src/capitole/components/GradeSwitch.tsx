@@ -26,7 +26,7 @@ export function GradeSwitch() {
         className="cap-grade-switch__option cap-grade-switch__option--soon"
         aria-pressed="false"
         disabled
-        title="Clasa a IX-a — în curând"
+        title="Clasa a IX-a, în curând"
       >
         Clasa a IX-a
         <span className="cap-grade-switch__badge">În curând</span>

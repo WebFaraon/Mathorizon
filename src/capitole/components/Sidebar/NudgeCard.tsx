@@ -71,7 +71,7 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
         <Target aria-hidden="true" />
       </span>
       <p className="cap-nudge__text">
-        <strong>{chapter.category.name}</strong> are cel mai mic progres — {chapter.progress.percent}%
+        <strong>{chapter.category.name}</strong> are cel mai mic progres: {chapter.progress.percent}%
       </p>
       <a className="cap-btn cap-btn--secondary cap-btn--sm" href={categoryHref(chapter.category.id)}>
         Deschide capitolul
