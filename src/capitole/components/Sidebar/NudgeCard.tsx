@@ -54,14 +54,15 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
             ))}
           </ul>
         )}
-        {/* A real button, not a text link — same pressed-button family as
-            everywhere else on the page, just smaller (cap-btn--sm), since
-            this is a secondary action inside an already-compact card.
+        {/* Full-width, full-height — same footprint as the primary buttons
+            in the cards above/below it, not the small left-aligned pill it
+            was before, per direct feedback. Still tinted (.cap-btn--secondary),
+            not solid blue: this card keeps its own pink identity.
             Reuses the real favorites panel (js/app.js) instead of
             re-rendering the list here — same data, one implementation. */}
         <button
           type="button"
-          className="cap-btn cap-btn--secondary cap-btn--sm"
+          className="cap-btn cap-btn--secondary cap-btn--block"
           onClick={() => document.getElementById('favBtn')?.click()}
         >
           Vezi favoritele

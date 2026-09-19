@@ -451,16 +451,15 @@ body.bac-exam-mode .nav.nav--peek {
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.92);
 }
-/* A vivid blue tint instead of plain white/transparent — reads as "this
-   one's selected" the way Duolingo's segmented tabs do, rather than as a
-   generic highlighted state. A white pill with a thick colored border was
-   tried instead and reverted per direct feedback. --accent-light already
-   differs per theme, so this needs no separate [data-theme="dark"]
-   override. */
+/* Translucent white fill + white border — a "frosted glass" selected
+   state, distinct from both a solid blue-on-blue fill and a solid white
+   pill with a colored border (both tried and reverted per direct
+   feedback). Full white text (not the default dimmed 0.65) is what marks
+   it as selected instead of hovered. */
 .nav__link--active {
-  background: color-mix(in srgb, var(--accent-light) 55%, transparent);
-  color: #eaf2ff;
-  border-color: var(--accent-light);
+  background: rgba(255, 255, 255, 0.22);
+  color: #fff;
+  border-color: rgba(255, 255, 255, 0.55);
 }
 /* Short labels — no longer used; hamburger takes over on mobile */
 .nav__link-short { display: none; }

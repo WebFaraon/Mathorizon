@@ -9,6 +9,15 @@ interface LeaderboardCardProps {
   currentUserId: string | null;
 }
 
+/** Same rule js/auth.js's _initials() uses for the nav profile pill, so a
+    student without a photo gets the identical fallback everywhere on the
+    site instead of a second, different-looking placeholder here. */
+function initialsFor(name: string): string {
+  const parts = name.split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return name.slice(0, 2).toUpperCase() || '?';
+}
+
 /**
  * Every student on Mathorizon, ranked by lifetime XP (see hooks/useLeaderboard.ts
  * and supabase/migrations/..._xp_leaderboard_all_students.sql — it's a real,
@@ -48,6 +57,13 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
               className={`cap-leaderboard__row${row.userId === currentUserId ? ' cap-leaderboard__row--you' : ''}`}
             >
               <span className="cap-leaderboard__rank">{row.rank}</span>
+              <span className="cap-leaderboard__avatar" aria-hidden="true">
+                {row.avatarUrl ? (
+                  <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
+                ) : (
+                  initialsFor(row.displayName)
+                )}
+              </span>
               <span className="cap-leaderboard__main">
                 <span className="cap-leaderboard__name">
                   {row.displayName}

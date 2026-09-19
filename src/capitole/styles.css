@@ -691,11 +691,6 @@
   flex-direction: column;
   gap: 2px;
   list-style: none;
-  /* Every student renders now (see hooks/useLeaderboard.ts), not a fixed
-     top-10 — this keeps the card itself from growing without bound as the
-     roster does; ~6 rows show before it scrolls. */
-  max-height: 300px;
-  overflow-y: auto;
 }
 
 .cap-leaderboard__row {
@@ -721,6 +716,27 @@
 .cap-leaderboard__row:nth-child(1) .cap-leaderboard__rank { color: #D4A017; }
 .cap-leaderboard__row:nth-child(2) .cap-leaderboard__rank { color: #9CA3AF; }
 .cap-leaderboard__row:nth-child(3) .cap-leaderboard__rank { color: #B4681E; }
+
+.cap-leaderboard__avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
+  color: var(--accent);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+.cap-leaderboard__avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
 
 .cap-leaderboard__main {
   display: flex;
@@ -882,22 +898,9 @@
    cards' primary buttons. */
 .cap-side-card--nudge .cap-btn { align-self: flex-start; }
 
-/* Simulare BAC — plain card like its siblings (see .cap-side-card); it
-   only needs its own rule for the hover/focus affordance, since it's a
-   whole-card <a> rather than a static block with a button inside. */
-.cap-side-card--sim {
-  text-decoration: none;
-  transition: border-color 0.15s ease, filter 0.15s ease;
-}
-.cap-side-card--sim:hover {
-  border-color: var(--accent);
-  filter: brightness(0.97);
-}
-.cap-side-card--sim:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 2px;
-}
-
+/* Simulare BAC — plain .cap-side-card, no modifier of its own: unlike
+   Continue/Nudge it carries no extra rule (not even a hover/focus state —
+   the card itself isn't a link, only the button inside it is). */
 .cap-sim__icon {
   display: flex;
   align-items: center;
@@ -1077,5 +1080,5 @@
    this only has to catch the CSS-driven pieces. */
 @media (prefers-reduced-motion: reduce) {
   .cap-card-skeleton, .cap-side-card--skeleton { animation: none; }
-  .cap-card, .cap-side-card--sim { transition: none; }
+  .cap-card { transition: none; }
 }

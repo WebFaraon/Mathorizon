@@ -3,6 +3,10 @@ import { useEffect, useState } from 'react';
 export interface LeaderboardRow {
   userId: string;
   displayName: string;
+  /** Same URL js/auth.js's _avatarUrl() resolves (custom upload or the
+      OAuth provider's photo) — null for most accounts, see LeaderboardCard
+      for the initials fallback. */
+  avatarUrl: string | null;
   totalXp: number;
   bestStreak: number;
   rank: number;
@@ -27,6 +31,7 @@ const LIMIT = 500;
 interface LeaderboardRpcRow {
   user_id: string;
   display_name: string;
+  avatar_url: string | null;
   total_xp: number;
   best_streak: number;
   rank: number;
@@ -49,8 +54,21 @@ export function useLeaderboard(): LeaderboardState {
     let cancelled = false;
 
     const run = async () => {
-      const sb = window.BMAuth?.supabase;
-      if (!sb) return;
+      const auth = window.BMAuth;
+      const sb = auth?.supabase;
+      // get_xp_leaderboard is granted to `authenticated` only (see the
+      // migration) — checking for a real signed-in user, not just the
+      // client object existing, skips a request we already know the
+      // server will 401 rather than firing it and catching the failure.
+      // Same empty-state fallback as the catch below, not a bare return:
+      // auth hasn't resolved yet on first mount even for a real user (the
+      // later bmauth:synced re-run of this same effect replaces it once it
+      // has) — resolving `ready` now avoids an indefinite skeleton for
+      // whichever case never gets that re-run at all.
+      if (!auth?.user || !sb) {
+        if (!cancelled) setState({ rows: [], ready: true });
+        return;
+      }
 
       try {
         const { data, error } = await sb.rpc('get_xp_leaderboard', { p_limit: LIMIT });
@@ -60,6 +78,7 @@ export function useLeaderboard(): LeaderboardState {
         const rows: LeaderboardRow[] = rpcRows.map((row) => ({
           userId: row.user_id,
           displayName: row.display_name,
+          avatarUrl: row.avatar_url,
           totalXp: row.total_xp,
           bestStreak: row.best_streak,
           rank: row.rank,

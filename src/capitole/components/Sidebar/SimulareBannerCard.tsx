@@ -10,22 +10,18 @@ const BAC_HREF = 'bac.html?new=1&type=bac';
 const FACTS = ['12 exerciții', '3 ore', 'Notă automată'];
 
 /**
- * Simulare BAC, in the sidebar. Tried as a full-color blue-gradient card
- * first; reverted to the same plain white/bordered look as the cards above
- * it per direct feedback — it's still a link to a different destination,
- * not a progress fact, but that didn't need a different color language.
- *
- * The button gets the "pressed" treatment on tap (darker edge beneath in
- * CSS, a small downward nudge) — same lockstep mechanic as every other CTA
- * on the page, see .cap-btn in styles.css.
+ * Simulare BAC, in the sidebar. Plain white/bordered card, same as
+ * ContinueCard/NudgeCard above it. Unlike them, the card itself is NOT a
+ * link — only the button inside is — per direct feedback that the whole
+ * container being clickable (with its own hover effect) was confusing
+ * when just the button should lead to the simulation.
  */
 export function SimulareBannerCard() {
   const prefersReducedMotion = useReducedMotion();
 
   return (
-    <motion.a
-      className="cap-side-card cap-side-card--sim"
-      href={BAC_HREF}
+    <motion.div
+      className="cap-side-card"
       initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.42, delay: 0.12, ease: EASE_OUT }}
@@ -44,12 +40,13 @@ export function SimulareBannerCard() {
         ))}
       </span>
 
-      {/* Press feedback is plain CSS (:active) — see .cap-btn in
-          styles.css for why a Framer whileTap here fought with it. */}
-      <span className="cap-btn cap-btn--primary cap-btn--block">
+      {/* The one clickable element in this card — press feedback is plain
+          CSS (:active), see .cap-btn in styles.css for why a Framer
+          whileTap here fought with it. */}
+      <a className="cap-btn cap-btn--primary cap-btn--block" href={BAC_HREF}>
         Începe simularea
         <ArrowRight aria-hidden="true" />
-      </span>
-    </motion.a>
+      </a>
+    </motion.div>
   );
 }
