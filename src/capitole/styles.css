@@ -365,17 +365,15 @@ html:not([data-theme="dark"]) .cap-summary__stat {
      competing with (and undercutting the read of) the pressed-button
      shadow right below it. The chapter's identity color is still very
      much present: the symbol tile, the tags, the progress fill, and this
-     card's own shadow are all still tinted from --cap-card-color. */
-  border: 2px solid var(--border);
+     card's own shadow are all still tinted from --cap-card-color.
+     Kept thin (1px, not the sidebar cards' 2px) specifically because the
+     3D shadow below needs a plain border to sit against — the buttons
+     that use the exact same shadow (.cap-btn) have no border at all. A
+     thicker border, or a negative box-shadow spread trying to compensate
+     for one, both visibly clashed with the shadow's rounded corner. */
+  border: 1px solid var(--border);
   border-radius: var(--cap-radius);
-  /* Negative spread equal to the border width — without it, the shadow's
-     rounded corner (the same border-radius, just shifted 4px down) is
-     slightly wider than the border's own corner arc, so the two visibly
-     crossed at the bottom corners once the border got thicker and higher-
-     contrast (white card, opaque cream border). Insetting the shadow to
-     start from the border's INNER edge keeps its arc fully behind the
-     border's, so they never overlap. */
-  box-shadow: 0 4px 0 -2px color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
   transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
 }
 
@@ -391,7 +389,7 @@ html:not([data-theme="dark"]) .cap-card {
 }
 
 .cap-card:active {
-  box-shadow: 0 0px 0 -2px color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
+  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
   transform: translateY(4px);
 }
 
