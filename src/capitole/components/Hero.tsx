@@ -1,6 +1,12 @@
 import { useEffect, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { GradeSwitch } from './GradeSwitch';
+import { SummaryStrip } from './SummaryStrip';
+import type { BMStats } from '../lib/bm-types';
+
+interface HeroProps {
+  stats: BMStats | null;
+}
 
 /* Same four phrases the old inline rotator in capitole.html cycled. */
 const PHRASES = [
@@ -13,16 +19,17 @@ const PHRASES = [
 const ROTATE_MS = 5500;
 
 /**
- * Page header: title + rotating subtitle on a quiet indigo→blue wash.
- *
- * The old hero stacked four decorative layers behind this text (glow orbs,
- * a coordinate-system SVG, eight floating math glyphs, and a grid overlay),
- * all of them animating on loops. They're gone: the background is now a
- * single flat gradient, so the title is the only thing competing for
- * attention. The one remaining motion is the subtitle swap, which carries
- * actual content.
+ * Title, rotating subtitle, grade switch and the progress chips — one
+ * plain block, no boxed background. An earlier version gave this section
+ * its own gradient wash, which read as an oddly-shaped colored panel once
+ * the page became three columns (the gradient only spanned the middle
+ * column's width, with the plain page background sitting right beside it
+ * at the same height) — removed rather than reworked. SummaryStrip lives
+ * here now instead of as its own top-level section, so the whole header
+ * area — title through progress chips — reads as one unit; the chapter
+ * grid (ChaptersSection) sits directly below with no heading of its own.
  */
-export function Hero() {
+export function Hero({ stats }: HeroProps) {
   const prefersReducedMotion = useReducedMotion();
   const [index, setIndex] = useState(0);
 
@@ -50,7 +57,7 @@ export function Hero() {
           <span className="cap-hero__title-accent">BAC &amp; Evaluare Națională</span>
         </motion.h1>
 
-        {/* Fixed height so the swap below never nudges the stats section. */}
+        {/* Fixed height so the swap below never nudges the grade switch. */}
         <p className="cap-hero__sub">
           <AnimatePresence mode="wait" initial={false}>
             <motion.span
@@ -65,12 +72,11 @@ export function Hero() {
           </AnimatePresence>
         </p>
 
-        {/* Placed here — right under the title, before anything else on
-            the page — because it sets the context everything below (the
-            chapter grid, missions, leaderboard) is scoped to, not because
-            it belongs visually with the "which chapter" content further
-            down. */}
+        {/* Sets the context everything below (chapter grid, missions,
+            leaderboard) is scoped to. */}
         <GradeSwitch />
+
+        <SummaryStrip stats={stats} />
       </div>
     </section>
   );

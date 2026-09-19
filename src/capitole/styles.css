@@ -57,55 +57,26 @@
 }
 
 /* ---- 1. HERO --------------------------------------------------------
-   A single flat gradient. The old hero had four decorative layers behind
-   this text (glow orbs, a coordinate-system SVG, eight floating math
-   glyphs, a grid overlay) — all removed; nothing back there competes with
-   the title now. */
+   Plain — no background of its own. An earlier version gave this section
+   a gradient wash (and, before that, a seam-softening band under the
+   navbar); both got dropped once the page became three columns, where a
+   colored panel confined to the middle column's width read as a stray
+   box rather than a section, with the two rails' plain background
+   sitting right beside it at the same height. It's just text now, on the
+   same background as everything else in the row. */
 .cap-hero {
-  position: relative;
-  padding: 56px 0 44px;
+  padding: 56px 0 0;
   text-align: center;
-  background: linear-gradient(170deg,
-    #E9EFFA 0%,
-    #EFF0F7 45%,
-    var(--bg) 100%);
-  border-bottom: 1px solid var(--border);
-  /* Clips the seam overlay below to the hero's own box. */
-  overflow: hidden;
-}
-
-/* Softens the join with the fixed navbar above (a saturated indigo bar —
-   see .nav in css/style.css) into this section's much paler wash. Without
-   it the two used to meet in one hard edge; this echoes the nav's own hue
-   for ~180px and dissolves it into the hero's normal background, so the
-   transition reads as intentional rather than as a seam. Height is a fixed
-   pixel band (not tied to the hero's own, variable height) because the
-   ask is specifically about the first ~150-200px under the header. */
-.cap-hero::before {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; right: 0;
-  height: 190px;
-  background: linear-gradient(180deg,
-    rgba(22, 68, 175, 0.16) 0%,
-    rgba(22, 68, 175, 0.05) 55%,
-    rgba(22, 68, 175, 0) 100%);
-  pointer-events: none;
 }
 
 .cap-hero__inner {
   max-width: 940px;
   margin: 0 auto;
   padding: 0 20px;
-  /* Above the seam overlay (an absolutely-positioned, z-index:auto
-     pseudo-element would otherwise paint AFTER plain in-flow content and
-     sit on top of the title — see the stacking-order note in the PR). Also
-     centers this within .cap-col-middle now that .cap-hero itself is one
-     of three grid columns rather than a full-bleed section — the
-     max-width above stops mattering as a ceiling once the column itself
-     is narrower, but margin:auto is what keeps it centered either way. */
-  position: relative;
-  z-index: 1;
+  /* Centers this within .cap-col-middle — .cap-hero is one of three grid
+     columns, not a full-bleed section, so the max-width above stops
+     mattering as a ceiling once the column itself is narrower, but
+     margin:auto keeps it centered either way. */
 }
 
 .cap-hero__title {
@@ -304,22 +275,14 @@
   .cap-col-middle { order: 0; }
 }
 
-/* ---- 3a. CHAPTERS ---- */
-.cap-section-head {
-  margin-bottom: 18px;
-}
-
-.cap-section-title {
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-
-.cap-section-sub {
-  margin-top: 4px;
-  font-size: 0.85rem;
-  color: var(--text-muted);
+/* ---- 3a. CHAPTERS ----
+   No heading of its own any more ("Capitole" + subtitle) — the header
+   block right above (title, grade switch, progress chips) already says
+   what this is, and removing it let the grid move up closer to that
+   block instead of leaving a heading-sized gap. This padding is the
+   entire gap between the two now. */
+.cap-chapters {
+  padding-top: 24px;
 }
 
 .cap-grid {
@@ -789,18 +752,11 @@
 }
 .cap-nudge__text strong { color: var(--text); font-weight: 800; }
 
-.cap-nudge__link {
-  align-self: flex-start;
-  font-size: 0.79rem;
-  font-weight: 700;
-  color: var(--accent);
-  background: none;
-  border: none;
-  padding: 0;
-  cursor: pointer;
-  text-decoration: none;
-}
-.cap-nudge__link:hover { text-decoration: underline; }
+/* Its CTA is .cap-btn--secondary .cap-btn--sm now (a real button, not a
+   text link — see section 4 for both), aligned to the left like the text
+   link it replaced rather than stretching full-width like the bigger
+   cards' primary buttons. */
+.cap-side-card--nudge .cap-btn { align-self: flex-start; }
 
 /* Simulare BAC — the one sidebar card that's a promo, not a progress fact,
    so unlike the two above it it's allowed a full-color treatment instead
@@ -902,7 +858,7 @@
   letter-spacing: 0.01em;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease;
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 .cap-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 .cap-btn--block { width: 100%; }
@@ -934,6 +890,26 @@
   transform: translateY(4px);
 }
 
+/* Secondary action inside a compact card (NudgeCard's "Vezi favoritele" /
+   "Deschide capitolul") — a real button, same lockstep press mechanic as
+   the primary ones, but tinted from --cap-card-color instead of solid
+   --accent, and smaller (paired with .cap-btn--sm) to match the card. */
+.cap-btn--secondary {
+  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 14%, var(--card));
+  color: color-mix(in srgb, var(--cap-card-color, var(--accent)) 78%, var(--text));
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
+}
+.cap-btn--secondary:hover { filter: brightness(0.97); }
+.cap-btn--secondary:active {
+  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
+  transform: translateY(3px);
+}
+
+.cap-btn--sm {
+  padding: 7px 14px;
+  font-size: 0.79rem;
+}
+
 /* ---- 5. DARK THEME -------------------------------------------------- */
 [data-theme="dark"] {
   /* A solid navy (matching light mode's approach) reads fine against the
@@ -944,23 +920,6 @@
      the card regardless of the card's exact shade, the same way a real
      drop shadow would. */
   --cap-btn-shadow-primary: rgba(0, 0, 0, 0.65);
-}
-
-[data-theme="dark"] .cap-hero {
-  background: linear-gradient(170deg,
-    rgba(79, 70, 229, 0.18) 0%,
-    rgba(58, 107, 173, 0.10) 45%,
-    var(--bg) 100%);
-}
-
-[data-theme="dark"] .cap-hero::before {
-  /* Both ends of the light-mode seam (nav, page bg) are already near-black
-     here, so mirroring "header hue → white" literally would be invisible.
-     This keeps the same idea — a deliberate wash right under the header —
-     using the hero's own indigo accent instead. */
-  background: linear-gradient(180deg,
-    rgba(79, 70, 229, 0.32) 0%,
-    rgba(79, 70, 229, 0) 100%);
 }
 
 [data-theme="dark"] .cap-hero__title-accent {
@@ -997,7 +956,7 @@
    here is secondary tuning at narrower widths, once already stacked. */
 @media (max-width: 900px) {
   :root { --cap-section-gap: 32px; }
-  .cap-hero { padding: 44px 0 36px; }
+  .cap-hero { padding: 44px 0 0; }
   /* Stacked below 1180px — let the two rails sit side by side here
      instead of full-width each, since there's room for that but not for
      a real 3-column grid yet. */
@@ -1008,7 +967,15 @@
 @media (max-width: 640px) {
   .cap-shell { padding: 0 18px; }
   .cap-grid  { grid-template-columns: 1fr; }
+  /* Reset BOTH properties the 900px rule above set on these cards — a
+     flex-basis of 260px, meant as a MINIMUM WIDTH when the rails were
+     row-wrapped, becomes a minimum HEIGHT once flex-direction goes back
+     to column here (flex-basis tracks the main axis, which just
+     flipped), forcing every card to at least 260px tall regardless of
+     its real content. That's what made NudgeCard show a large empty gap
+     under "Vezi favoritele" on a phone. */
   .cap-col-left, .cap-col-right { flex-direction: column; }
+  .cap-col-left > *, .cap-col-right > * { flex: initial; }
   .cap-three-col { padding-bottom: 52px; }
   .cap-summary__stat { padding: 9px 16px; gap: 8px; }
   .cap-summary__value { font-size: 1.05rem; }

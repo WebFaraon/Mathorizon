@@ -32,7 +32,11 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
 
   if (nudge.kind === 'favorites') {
     return (
-      <motion.div className="cap-side-card cap-side-card--nudge" {...entrance}>
+      <motion.div
+        className="cap-side-card cap-side-card--nudge"
+        style={{ '--cap-card-color': '#ec4899' } as React.CSSProperties}
+        {...entrance}
+      >
         <span className="cap-nudge__icon cap-nudge__icon--favorites">
           <Heart aria-hidden="true" />
         </span>
@@ -40,11 +44,14 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
           <strong>{nudge.count}</strong>{' '}
           {nudge.count === 1 ? 'exercițiu favorit nerezolvat' : 'exerciții favorite nerezolvate'}
         </p>
-        {/* Reuses the real favorites panel (js/app.js) instead of
+        {/* A real button, not a text link — same pressed-button family as
+            everywhere else on the page, just smaller (cap-btn--sm), since
+            this is a secondary action inside an already-compact card.
+            Reuses the real favorites panel (js/app.js) instead of
             re-rendering the list here — same data, one implementation. */}
         <button
           type="button"
-          className="cap-nudge__link"
+          className="cap-btn cap-btn--secondary cap-btn--sm"
           onClick={() => document.getElementById('favBtn')?.click()}
         >
           Vezi favoritele
@@ -66,7 +73,7 @@ export function NudgeCard({ nudge, ready }: NudgeCardProps) {
       <p className="cap-nudge__text">
         <strong>{chapter.category.name}</strong> are cel mai mic progres — {chapter.progress.percent}%
       </p>
-      <a className="cap-nudge__link" href={categoryHref(chapter.category.id)}>
+      <a className="cap-btn cap-btn--secondary cap-btn--sm" href={categoryHref(chapter.category.id)}>
         Deschide capitolul
       </a>
     </motion.div>

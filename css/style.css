@@ -451,18 +451,20 @@ body.bac-exam-mode .nav.nav--peek {
   background: rgba(255,255,255,0.12);
   color: rgba(255,255,255,0.92);
 }
-/* A vivid blue tint instead of plain white/transparent — reads as "this
-   one's selected" the way Duolingo's segmented tabs do, rather than as a
-   generic highlighted state. Text goes blue too (not white) so the whole
-   tab commits to the color instead of just its background. --accent-light
-   already exists per theme (a lighter blue in dark mode than in light),
-   so this needs no [data-theme="dark"] override of its own — and using it
-   for both the fill and the text keeps the two in the same family instead
-   of picking an unrelated white. */
+/* Duolingo-style selected tab: a white pill with a thick, colored border,
+   not a colored fill — a blue-tinted background on top of this nav's own
+   blue bar read as blue-on-blue and barely registered. White (or
+   near-black-bar-relative white — it's a real white regardless of theme,
+   since the pill needs to read as "lifted off" the bar in both) plus blue
+   text plus a 2px border is a bigger jump in contrast than any shade of
+   blue-on-blue could give. --accent already differs per theme, so this
+   needs no separate [data-theme="dark"] override. */
 .nav__link--active {
-  background: color-mix(in srgb, var(--accent-light) 55%, transparent);
-  color: #eaf2ff;
-  border-color: var(--accent-light);
+  background: #fff;
+  color: var(--accent);
+  border-width: 2px;
+  border-color: var(--accent);
+  font-weight: 700;
 }
 /* Short labels — no longer used; hamburger takes over on mobile */
 .nav__link-short { display: none; }

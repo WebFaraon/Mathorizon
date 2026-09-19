@@ -1,5 +1,4 @@
 import { Hero } from './components/Hero';
-import { SummaryStrip } from './components/SummaryStrip';
 import { ChaptersSection } from './components/ChaptersSection';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
@@ -19,7 +18,7 @@ import { useLeaderboard } from './hooks/useLeaderboard';
  * navbar) and running the full height of the page — not just alongside the
  * chapter grid like the previous single right-hand sidebar did:
  *   - left:   ContinueCard / NudgeCard / SimulareBannerCard
- *   - middle: hero (+ grade switch) → progress chips → chapter grid
+ *   - middle: hero (title, grade switch, progress chips) → chapter grid
  *   - right:  daily missions → XP leaderboard
  * .cap-col-middle carries `order: -1` at narrow widths (see styles.css) so
  * it's what appears first when the three collapse into one stacked column,
@@ -36,8 +35,7 @@ export function App() {
         <LeftColumn continueTarget={continueTarget} nudge={nudge} ready={ready} />
 
         <div className="cap-col cap-col-middle">
-          <Hero />
-          <SummaryStrip stats={stats} />
+          <Hero stats={stats} />
           <ChaptersSection chapters={chapters} ready={ready} />
         </div>
 

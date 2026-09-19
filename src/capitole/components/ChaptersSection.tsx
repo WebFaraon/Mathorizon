@@ -9,16 +9,16 @@ interface ChaptersSectionProps {
 /** How many skeletons to show while the Supabase merge settles. */
 const SKELETON_COUNT = 4;
 
+/**
+ * No visible "Capitole" heading/subtitle any more — the header block right
+ * above (title, grade switch, progress chips — see Hero.tsx) already
+ * establishes what this grid is, and the heading was mostly adding a gap
+ * between that block and the cards. aria-label keeps the section
+ * announced for screen readers even without visible heading text.
+ */
 export function ChaptersSection({ chapters, ready }: ChaptersSectionProps) {
   return (
-    <section className="cap-chapters" aria-labelledby="cap-chapters-title">
-      <header className="cap-section-head">
-        <h2 className="cap-section-title" id="cap-chapters-title">Capitole</h2>
-        <p className="cap-section-sub">
-          Alege un capitol și continuă de unde ai rămas.
-        </p>
-      </header>
-
+    <section className="cap-chapters" aria-label="Capitole">
       <div className="cap-grid">
         {ready
           ? chapters.map((chapter, index) => (
