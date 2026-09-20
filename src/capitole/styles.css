@@ -316,50 +316,53 @@ html:not([data-theme="dark"]) .cap-summary__stat {
     order: 0;
     flex: 1 1 0%;
     min-width: 0;
-    /* .cap-col-left is position:fixed below (removed from flow entirely),
-       so this margin manually reserves the space flexbox would otherwise
-       have given it — 340px width + the row's own 24px gap. */
+    /* Both rails are position:fixed below (removed from flow entirely), so
+       these margins manually reserve the space flexbox would otherwise
+       have given them — each rail's 340px width + the row's own 24px gap. */
     margin-left: calc(340px + 24px);
-  }
-  .cap-col-right {
-    flex: 0 0 340px;
-    /* Stays in view while the (usually much taller) middle column scrolls,
-       per direct feedback — same var(--nav-h) sticky-under-the-navbar
-       offset the BAC simulator's own sidebar already uses (.bac-sidebar,
-       earlier in this file's shared parent css/style.css). Sticky, not
-       fixed: unlike the left rail it doesn't need to break out to the
-       viewport edge, and staying an in-flow flex item means .cap-col-middle
-       above doesn't need a matching margin-right — flexbox already
-       reserves this column's space normally. */
-    position: sticky;
-    top: var(--nav-h, 72px);
-    max-height: calc(100vh - var(--nav-h, 72px));
-    overflow-y: auto;
+    margin-right: calc(340px + 24px);
   }
 
-  /* The profile panel: pinned to the true viewport edge AND to the top,
-     like the navbar, while the page scrolls. position:fixed rather than
-     sticky+the old margin/width breakout trick — found by testing that a
-     sticky element with the large negative margin-left that trick needs
-     never actually sticks (it just scrolls normally, as if position were
-     static); nothing about *why* surfaced in computed styles, only in the
-     element's actual on-screen position while scrolled. Fixed sidesteps
-     the interaction entirely: left:0 already IS the viewport edge, with no
-     margin/width calc needed at all. body:has(#root){overflow-x:visible}
-     in the shared css/style.css is a separate, related fix — without it,
-     body's own overflow-x:hidden silently computes overflow-y to `auto`
-     too (see that rule's comment), which would have broken
-     .cap-col-right's sticky above the same way (confirmed: category.html's
-     .subcat-breadcrumb has the identical latent bug) even though it
-     doesn't touch this fixed rule at all. */
-  .cap-col-left {
+  /* Both rails stay in view while the (usually much taller) middle column
+     scrolls, per direct feedback. position:fixed, not sticky — sticky was
+     tried first (cheaper: stays an in-flow flex item, no margin-right
+     needed on .cap-col-middle above) and DID work in isolated testing, but
+     kept visibly still moving on scroll in real use anyway. Fixed removes
+     the ambiguity entirely rather than continuing to chase why: it's
+     always relative to the true viewport, full stop, regardless of any
+     scroll-container/overflow interaction elsewhere on the page (see
+     body:has(#root){overflow-x:visible} in the shared css/style.css for
+     one such interaction sticky positioning has to fight sitewide). */
+  .cap-col-left, .cap-col-right {
     position: fixed;
     top: var(--nav-h, 72px);
-    left: 0;
     width: 340px;
+    z-index: 5;
+  }
+
+  /* The profile panel reaches all the way to the bottom of the viewport
+     (height, not max-height) even when its own content is shorter — per
+     direct feedback that stopping short left a gap between the panel and
+     the actual bottom of the screen. overflow-y:auto is a safety net for
+     if content ever DOES exceed this, not the normal case. */
+  .cap-col-left {
+    left: 0;
+    height: calc(100vh - var(--nav-h, 72px));
+    overflow-y: auto;
+  }
+  /* The right rail keeps its own natural (shorter) height — only
+     .cap-col-left was asked to fill the full column. `right` mirrors
+     .cap-shell's own centering-gap-plus-padding math (max-width:1760px,
+     padding:28px — see .cap-shell above) in reverse, since a *fixed*
+     element's percentages resolve against the viewport, not its DOM
+     parent, so the calc(50%-50vw) trick .cap-col-left used to use (back
+     when it was sticky inside the flex row) doesn't apply here. Hardcodes
+     those two numbers on purpose — cheaper than re-deriving them, but
+     keep this in sync if .cap-shell's own values ever change. */
+  .cap-col-right {
+    right: max(28px, calc((100vw - 1760px) / 2 + 28px));
     max-height: calc(100vh - var(--nav-h, 72px));
     overflow-y: auto;
-    z-index: 5;
   }
 }
 
@@ -972,6 +975,38 @@ html:not([data-theme="dark"]) .cap-side-card {
   height: 16px;
 }
 
+/* ---- FOLLOW MODAL ----
+   Opened from the profile panel's "Urmăriți"/"Urmăritori" buttons. Same
+   .classes-modal shell as the leaderboard modal above; .cap-leaderboard-
+   modal__close is reused as-is (generic enough, no follow-specific styling
+   needed there). */
+.cap-follow-modal {
+  max-width: 400px;
+  width: 100%;
+}
+.cap-follow-modal__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 32px 20px;
+  text-align: center;
+}
+.cap-follow-modal__empty-icon {
+  width: 32px;
+  height: 32px;
+  color: var(--text-muted);
+}
+.cap-follow-modal__empty p {
+  font-size: 0.94rem;
+  font-weight: 700;
+  color: var(--text);
+}
+.cap-follow-modal__empty span {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* Loading placeholders for the sidebar, matching .cap-card-skeleton's
    shimmer while the Supabase merge settles. */
 .cap-side-card--skeleton {
@@ -1042,9 +1077,9 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
   text-align: center;
 }
 .cap-profile-avatar {
-  width: 104px;
-  height: 104px;
-  margin-top: -42px;
+  width: 124px;
+  height: 124px;
+  margin-top: -50px;
   flex-shrink: 0;
   border-radius: 50%;
   border: 4px solid var(--card);
@@ -1064,16 +1099,16 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   object-fit: cover;
 }
 .cap-profile-avatar span {
-  font-size: 1.7rem;
+  font-size: 2rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.5px;
 }
 
 .cap-profile-name {
-  margin-top: 10px;
+  margin-top: 12px;
   max-width: 100%;
-  font-size: 1.05rem;
+  font-size: 1.3rem;
   font-weight: 800;
   letter-spacing: -0.01em;
   color: var(--text);
@@ -1082,15 +1117,27 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   white-space: nowrap;
 }
 
+/* Three-tier hierarchy under the name: role/class reads as a real
+   subtitle (darker, bolder), the join date as a quieter caption — per
+   direct feedback that both used to look like the same flat text with no
+   distinction at all. */
 .cap-profile-meta {
-  margin-top: 4px;
   max-width: 100%;
-  font-size: 0.78rem;
-  font-weight: 600;
-  color: var(--text-secondary);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+.cap-profile-meta--primary {
+  margin-top: 6px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+}
+.cap-profile-meta--secondary {
+  margin-top: 2px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--text-muted);
 }
 
 .cap-profile-follow {
@@ -1105,7 +1152,11 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   font-size: 0.8rem;
   font-weight: 600;
   color: var(--text-secondary);
-  cursor: default;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+.cap-profile-follow__item:hover {
+  opacity: 0.7;
 }
 .cap-profile-follow__item strong {
   color: var(--accent);
@@ -1155,14 +1206,14 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   font-variant-numeric: tabular-nums;
 }
 .cap-profile-xpbar {
-  height: 8px;
-  border-radius: 999px;
+  height: 12px;
+  border-radius: 6px;
   background: color-mix(in srgb, var(--accent) 14%, var(--surface));
   overflow: hidden;
 }
 .cap-profile-xpbar__fill {
   height: 100%;
-  border-radius: 999px;
+  border-radius: 6px;
   background: var(--accent);
   transition: width 0.4s ease;
 }
@@ -1192,7 +1243,10 @@ html:not([data-theme="dark"]) .cap-profile-stat {
   margin-bottom: 2px;
   color: var(--yellow);
 }
-.cap-profile-stat:last-child .cap-profile-stat__icon {
+.cap-profile-stat__icon--xp {
+  color: var(--accent);
+}
+.cap-profile-stat__icon--rank {
   color: #D4A017;
 }
 .cap-profile-stat__val {

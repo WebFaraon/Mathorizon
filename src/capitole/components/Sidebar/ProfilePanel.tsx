@@ -1,9 +1,11 @@
+import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Flame, Trophy, ClipboardList, Award } from 'lucide-react';
+import { Flame, Trophy, Zap, ClipboardList, Award } from 'lucide-react';
 import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
 import { useStudentClass } from '../../hooks/useStudentClass';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
+import { FollowModal } from './FollowModal';
 
 interface ProfilePanelProps {
   leaderboardRows: LeaderboardRow[];
@@ -24,10 +26,9 @@ const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
  * SimulareBannerCard stack, which pointed at "what to do next" using the
  * same progress numbers the chapter grid right next to it already showed.
  * This is a presentation surface instead, styled after a Duolingo-style
- * profile card: cover, avatar, role/class/join-date, follow counts
- * (visual-only for now — no follow feature exists yet), level/XP, a
- * Statistici grid (streak, leaderboard rank), and a Realizări section
- * (also prepared visually ahead of a real achievements feature).
+ * profile card: cover, avatar, role/class/join-date, follow counts, a
+ * Statistici grid (streak, lifetime XP, leaderboard rank), and a Realizări
+ * section (prepared visually ahead of a real achievements feature).
  *
  * Read-only on purpose, no edit affordance: editing stays on profile.html,
  * via the navbar's own profile button.
@@ -44,6 +45,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   const snapshot = useProfileSnapshot();
   const { className } = useStudentClass(snapshot.role === 'elev');
   const prefersReducedMotion = useReducedMotion();
+  const [followModal, setFollowModal] = useState<'following' | 'followers' | null>(null);
 
   if (!snapshot.signedIn) {
     return <div className="cap-profile-panel cap-profile-panel--skeleton" aria-hidden="true" />;
@@ -85,20 +87,20 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
         </div>
 
         <h3 className="cap-profile-name">{snapshot.displayName}</h3>
-        {roleLine && <span className="cap-profile-meta">{roleLine}</span>}
+        {roleLine && <span className="cap-profile-meta cap-profile-meta--primary">{roleLine}</span>}
         {snapshot.memberSince && (
-          <span className="cap-profile-meta">S-a alăturat în {snapshot.memberSince}</span>
+          <span className="cap-profile-meta cap-profile-meta--secondary">S-a alăturat în {snapshot.memberSince}</span>
         )}
 
-        {/* Visual only — there's no follow relationship in the data model
-            yet, so these are real <button>s (matching the requested "add
-            two buttons") but inert (disabled, always 0) until that feature
-            exists. */}
+        {/* No follow relationship in the data model yet — pressable (opens
+            FollowModal's honest empty state) rather than disabled, per
+            direct feedback that these should work as real buttons, not just
+            static counts. */}
         <div className="cap-profile-follow">
-          <button type="button" className="cap-profile-follow__item" disabled>
+          <button type="button" className="cap-profile-follow__item" onClick={() => setFollowModal('following')}>
             <strong>0</strong> urmăriți
           </button>
-          <button type="button" className="cap-profile-follow__item" disabled>
+          <button type="button" className="cap-profile-follow__item" onClick={() => setFollowModal('followers')}>
             <strong>0</strong> urmăritori
           </button>
         </div>
@@ -126,7 +128,12 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
               <span className="cap-profile-stat__label">zile la rând</span>
             </div>
             <div className="cap-profile-stat">
-              <Trophy className="cap-profile-stat__icon" aria-hidden="true" />
+              <Zap className="cap-profile-stat__icon cap-profile-stat__icon--xp" aria-hidden="true" />
+              <span className="cap-profile-stat__val">{totalXp}</span>
+              <span className="cap-profile-stat__label">XP total</span>
+            </div>
+            <div className="cap-profile-stat">
+              <Trophy className="cap-profile-stat__icon cap-profile-stat__icon--rank" aria-hidden="true" />
               <span className="cap-profile-stat__val">
                 {!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}
               </span>
@@ -153,6 +160,8 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
           </a>
         )}
       </div>
+
+      {followModal && <FollowModal kind={followModal} onClose={() => setFollowModal(null)} />}
     </motion.div>
   );
 }
