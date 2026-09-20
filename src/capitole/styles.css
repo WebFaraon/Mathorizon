@@ -356,6 +356,20 @@ html:not([data-theme="dark"]) .cap-summary__stat {
     height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
   }
+  /* .cap-col-left being the right height was never the whole story: it's a
+     flex column container, and a flex child's MAIN axis size (height, in a
+     column container) doesn't stretch to fill leftover space on its own —
+     only the CROSS axis (width) does that by default. Without this, the
+     visible white/dark card (.cap-profile-panel) sat at its own shorter
+     content height while .cap-col-left around it was already the correct
+     full height, leaving blank space between the card's bottom edge and
+     the container's true bottom — invisible in a DOM measurement of
+     .cap-col-left itself (which was always correct), only visible by eye
+     on the actual card. */
+  .cap-profile-panel {
+    flex: 1 1 auto;
+    min-height: 0;
+  }
   /* The right rail keeps its own natural (shorter) height — only
      .cap-col-left was asked to fill the full column. `right` mirrors
      .cap-shell's own centering-gap-plus-padding math (max-width:1760px,
