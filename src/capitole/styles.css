@@ -32,10 +32,10 @@
      40px per direct feedback that the whole block (header row + chapter
      grid) sat too far below the navbar. */
   --cap-section-gap: 28px;
-  /* One rhythm for the internal padding/gap of every sidebar card
-     (ContinueCard, NudgeCard, SimulareBannerCard) — see section 3b.
-     Tightened from an earlier 20px/22px + 10px pass: the 3 sidebar cards
-     stacked taller than the 4-card chapter grid next to them. */
+  /* One rhythm for the internal padding/gap of every right-rail card
+     (Missions, Leaderboard) — see section 3b. Tightened from an earlier
+     20px/22px + 10px pass: the sidebar cards stacked taller than the
+     4-card chapter grid next to them. */
   --cap-side-card-padding: 16px 18px;
   --cap-side-card-gap: 8px;
   /* The pressed-button shadow (section 4). A literal, solid color rather
@@ -188,7 +188,7 @@
      lift (two-layer shadow) instead of a flat fill — a first attempt at
      this used a near-flat gradient and a 6%-opacity shadow, which turned
      out to be too subtle to read as a change at all; this is deliberately
-     more pronounced. Same treatment as .cap-card__count/.cap-sim__fact. */
+     more pronounced. Same treatment as .cap-card__count. */
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: 999px;
@@ -270,12 +270,11 @@ html:not([data-theme="dark"]) .cap-summary__stat {
 }
 
 /* ---- 3. THREE-COLUMN BODY ---------------------------------------------
-   Left rail (Continuă/Nudge/Simulare) — middle (hero, progress chips,
-   chapter grid) — right rail (misiuni, clasament). All three start at the
-   same top edge, right under the navbar, and run the page's full height —
-   not just the height of the chapter grid, the way a single right-hand
-   sidebar used to. Never tabs: every card in every column is always
-   rendered, all at once.
+   Left rail (profile panel) — middle (hero, progress chips, chapter grid) —
+   right rail (misiuni, clasament). All three start at the same top edge,
+   right under the navbar, and run the page's full height — not just the
+   height of the chapter grid, the way a single right-hand sidebar used to.
+   Never tabs: every card in every column is always rendered, all at once.
 
    .cap-col-middle carries order:-1 below the 3-column breakpoint so it's
    what appears FIRST once the three collapse into one stacked column,
@@ -283,11 +282,10 @@ html:not([data-theme="dark"]) .cap-summary__stat {
    (left, middle, right — the order that gives the correct grid-column
    placement at the wide breakpoint, where no `order` override applies). */
 .cap-three-col {
-  display: grid;
-  grid-template-columns: 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 20px;
   padding: var(--cap-section-gap) 0 72px;
-  align-items: start;
 }
 
 .cap-col {
@@ -304,24 +302,55 @@ html:not([data-theme="dark"]) .cap-summary__stat {
 
 @media (min-width: 1180px) {
   .cap-three-col {
-    /* Widened from 300px — with the shell itself now wider too, a fixed
-       300px rail was leaving a growing gap between it and the actual
-       browser edge as the viewport got wider, instead of the rail itself
-       taking up more of that space. */
-    grid-template-columns: 340px minmax(0, 1fr) 340px;
+    /* Flex, not Grid — deliberately: .cap-col-left's breakout below relies
+       on margin/width percentages resolving against the WHOLE row's width.
+       That holds for a flex item's containing block, but NOT for a grid
+       item's — a grid item's containing block is its own grid area (here,
+       a 340px track), so the exact same calc() on a grid child resolves
+       against 340px instead of the row's real width and puts the panel
+       hundreds of pixels off-screen (found by testing, not by inspection —
+       the computed styles looked plausible right up until the element's
+       actual position on screen). Widened from a 300px rail — with the
+       shell itself now wider too, a fixed 300px rail was leaving a growing
+       gap between it and the actual browser edge as the viewport got
+       wider, instead of the rail itself taking up more of that space. */
+    flex-direction: row;
     gap: 24px;
     /* Rails match the middle column's height instead of sitting at their
-       own shorter natural height (the default Grid behavior, before this
-       override) — per direct feedback that the leftover gap under the
-       shorter rail looked unfinished. */
+       own shorter natural height — per direct feedback that the leftover
+       gap under the shorter rail looked unfinished. */
     align-items: stretch;
   }
-  .cap-col-middle { order: 0; }
-  /* Each rail card grows to take an equal share of that extra height
-     (see the align-items change above) instead of the surplus collecting
-     as one blank gap under the last card. */
+  .cap-col-middle { order: 0; flex: 1 1 0%; min-width: 0; }
+  .cap-col-right { flex: 0 0 340px; }
+  /* Each rail's own single/multiple card(s) grow to fill that stretched
+     height (see the align-items change above) instead of the surplus
+     collecting as one blank gap under the last card. */
   .cap-col-left > *, .cap-col-right > * {
     flex: 1 1 0%;
+  }
+
+  /* Breaks the profile panel out of .cap-shell's centered/padded box so it
+     starts at the true viewport edge, like the navbar — the rest of the
+     row (middle + right rail) stays exactly where it was, inset by the
+     shell as normal. `calc(50% - 50vw)` is the standard "full-bleed inside
+     a centered container" trick: that 50% resolves against .cap-three-col's
+     own width (a flex item's containing block IS the flex container, unlike
+     a grid item's), so the expression is self-cancelling regardless of how
+     wide .cap-shell's padding or its max-width centering gap happen to be
+     at any given viewport width — it doesn't need to know either number.
+     flex:0 0 auto (rather than the 340px flex-basis .cap-col-right uses)
+     defers sizing to the explicit width below instead of a fixed
+     flex-basis, so that width calc is actually what wins. Widening by the
+     same amount on the other side keeps the column's RIGHT edge (where it
+     meets the middle column) exactly where a plain 340px column already
+     put it; only the left edge moves. Column height still comes from
+     align-items:stretch above, untouched by any of this. */
+  .cap-col-left {
+    flex: 0 0 auto;
+    margin-left: calc(50% - 50vw);
+    width: calc(340px + (50vw - 50%));
+    box-sizing: border-box;
   }
 }
 
@@ -934,152 +963,6 @@ html:not([data-theme="dark"]) .cap-side-card {
   height: 16px;
 }
 
-.cap-continue__title {
-  font-size: 1.12rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.cap-continue__done {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-.cap-continue__done-icon {
-  width: 22px;
-  height: 22px;
-  flex-shrink: 0;
-  color: var(--green);
-}
-.cap-continue__done .cap-continue__title { font-size: 1.02rem; }
-
-.cap-continue__desc {
-  font-size: 0.84rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-.cap-continue__desc strong { color: var(--text); font-weight: 700; }
-
-/* Two short, separate lines (progress, then the specific next exercise)
-   instead of one paragraph fusing both — see the component for why. */
-.cap-continue__progress {
-  font-size: 0.84rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-.cap-continue__next {
-  font-size: 0.82rem;
-  line-height: 1.4;
-  color: var(--text-muted);
-}
-.cap-continue__next strong { color: var(--text); font-weight: 700; }
-
-.cap-nudge__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: var(--cap-radius-sm);
-  color: var(--cap-card-color, var(--accent));
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 14%, transparent);
-}
-.cap-nudge__icon svg { width: 17px; height: 17px; }
-/* The favorites signal isn't tied to any one chapter, so it gets its own
-   fixed color instead of reading --cap-card-color (which nothing sets it
-   to in that branch — it would otherwise fall back to the plain accent). */
-.cap-nudge__icon--favorites {
-  color: #ec4899;
-  background: rgba(236, 72, 153, 0.14);
-}
-
-.cap-nudge__text {
-  font-size: 0.84rem;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-.cap-nudge__text strong { color: var(--text); font-weight: 800; }
-
-.cap-nudge__favlist {
-  display: flex;
-  flex-direction: column;
-  gap: 5px;
-  list-style: none;
-}
-.cap-nudge__favitem {
-  position: relative;
-  padding-left: 13px;
-  font-size: 0.8rem;
-  line-height: 1.35;
-  color: var(--text);
-  font-weight: 600;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.cap-nudge__favitem::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0.55em;
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-  background: var(--cap-card-color, var(--accent));
-}
-
-/* Simulare BAC — plain .cap-side-card, no modifier of its own: unlike
-   Continue/Nudge it carries no extra rule (not even a hover/focus state —
-   the card itself isn't a link, only the button inside it is). */
-.cap-sim__icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  flex-shrink: 0;
-  border-radius: var(--cap-radius-sm);
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent);
-}
-.cap-sim__icon svg { width: 17px; height: 17px; }
-
-.cap-sim__name {
-  font-size: 1.02rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
-}
-
-.cap-sim__desc {
-  font-size: 0.79rem;
-  line-height: 1.45;
-  color: var(--text-secondary);
-}
-
-.cap-sim__facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 2px;
-}
-.cap-sim__fact {
-  padding: 3px 9px;
-  font-size: 0.68rem;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--text-secondary);
-  /* A real, visible lift (two-layer shadow) instead of a flat fill — see
-     .cap-grade-switch__badge for the same treatment and why. */
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
-}
-
 /* Loading placeholders for the sidebar, matching .cap-card-skeleton's
    shimmer while the Supabase merge settles. */
 .cap-side-card--skeleton {
@@ -1091,6 +974,185 @@ html:not([data-theme="dark"]) .cap-side-card {
   animation: cap-shimmer 1.4s linear infinite;
 }
 .cap-side-card--skeleton-sm { min-height: 96px; }
+
+/* ---- 3c. PROFILE PANEL --------------------------------------------------
+   The whole left rail (see LeftColumn.tsx / ProfilePanel.tsx) — one
+   presentation surface instead of the old 3-card "what to do next" stack.
+   Below 1180px this is a normal, fully-bordered/rounded card like any
+   other — the one-sided radius and missing left border (further down) only
+   apply once .cap-col-left's breakout rule (section 3) actually pulls it
+   flush to the true viewport edge; without that, a missing left border on
+   an otherwise-inset mobile card would read as a rendering bug, not a
+   deliberate edge-to-edge blend. */
+.cap-profile-panel {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--cap-radius);
+}
+@media (min-width: 1180px) {
+  .cap-profile-panel {
+    border-left: none;
+    border-radius: 0 var(--cap-radius) var(--cap-radius) 0;
+  }
+}
+html:not([data-theme="dark"]) .cap-profile-panel {
+  background: #fff;
+}
+
+/* !signedIn only ever means "auth hasn't resolved yet" on this protected
+   route (see the component) — a shimmer, not a sign-in prompt. Repeated at
+   the same html:not([data-theme="dark"]) specificity as .cap-profile-panel's
+   own light-theme override above (and placed after it), otherwise that
+   override's full `background` shorthand would win the cascade and paint
+   this solid white instead of animating. */
+.cap-profile-panel--skeleton,
+html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
+  min-height: 200px;
+  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: cap-shimmer 1.4s linear infinite;
+}
+
+.cap-profile-cover {
+  height: 96px;
+  flex-shrink: 0;
+  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+  background-size: cover;
+  background-position: center;
+}
+
+.cap-profile-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+  padding: 0 20px 20px;
+  text-align: center;
+}
+/* Same "pin the last button to the bottom" convention as .cap-side-card's
+   own rule — this panel stretches to match the middle column's height
+   (section 3's align-items:stretch), so any slack collects above the
+   button instead of leaving it wherever the content happens to end. */
+.cap-profile-body > .cap-btn:last-child {
+  margin-top: auto;
+}
+
+.cap-profile-avatar {
+  width: 76px;
+  height: 76px;
+  margin-top: -34px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  border: 4px solid var(--card);
+  background: var(--accent);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+html:not([data-theme="dark"]) .cap-profile-avatar {
+  border-color: #fff;
+}
+.cap-profile-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.cap-profile-avatar span {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
+.cap-profile-name {
+  margin-top: 10px;
+  max-width: 100%;
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-profile-level {
+  width: 100%;
+  margin-top: 16px;
+}
+.cap-profile-level__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  font-size: 0.82rem;
+}
+.cap-profile-level__label {
+  font-weight: 800;
+  color: var(--text);
+}
+.cap-profile-level__xp {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+.cap-profile-xpbar {
+  height: 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
+  overflow: hidden;
+}
+.cap-profile-xpbar__fill {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--accent);
+  transition: width 0.4s ease;
+}
+
+.cap-profile-stats {
+  display: flex;
+  width: 100%;
+  gap: 10px;
+  margin-top: 14px;
+}
+.cap-profile-stat {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 10px 6px;
+  border-radius: var(--cap-radius-sm);
+  background: var(--surface);
+}
+.cap-profile-stat__icon {
+  width: 18px;
+  height: 18px;
+  margin-bottom: 2px;
+  color: var(--yellow);
+}
+.cap-profile-stat:last-child .cap-profile-stat__icon {
+  color: #D4A017;
+}
+.cap-profile-stat__val {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.cap-profile-stat__label {
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  color: var(--text-muted);
+}
 
 /* ---- 4. BUTTONS --------------------------------------------------------
    The "pressed" treatment: a darker edge sits BELOW the button at rest,

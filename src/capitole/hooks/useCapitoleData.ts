@@ -1,20 +1,16 @@
 import { useEffect, useState } from 'react';
 import type { BMStats, ChapterView } from '../lib/bm-types';
-import { pickContinueTarget, pickNudge, type ContinueTarget, type SidebarNudge } from '../lib/recommendations';
 
 export type { ChapterView } from '../lib/bm-types';
 
 export interface CapitoleData {
   stats: BMStats | null;
   chapters: ChapterView[];
-  /** Null only until the first snapshot lands — see `ready`. */
-  continueTarget: ContinueTarget | null;
-  nudge: SidebarNudge;
   /** False until the Supabase custom-exercise merge has settled — skeletons until then. */
   ready: boolean;
 }
 
-const EMPTY: CapitoleData = { stats: null, chapters: [], continueTarget: null, nudge: null, ready: false };
+const EMPTY: CapitoleData = { stats: null, chapters: [], ready: false };
 
 /** Snapshot of everything this page shows, straight out of the BM globals. */
 function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
@@ -29,17 +25,7 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
     return { category, progress, locked: progress.total === 0 };
   });
 
-  const solved = storage.getSolved();
-  const continueTarget = pickContinueTarget(chapters, exercises, solved);
-  const nudge = pickNudge(
-    chapters,
-    storage.getFavorites(),
-    exercises,
-    solved,
-    continueTarget.chapter?.category.id ?? null
-  );
-
-  return { stats: storage.getStats(exercises), chapters, continueTarget, nudge };
+  return { stats: storage.getStats(exercises), chapters };
 }
 
 /**
@@ -54,11 +40,6 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
  *  3. re-read on `bmauth:synced` (progress landed) and
  *     `bmauth:streak-updated` (the once-a-day streak bump, which fires on
  *     every page and can land after the first read).
- *
- * The sidebar's "continue" and "nudge" picks (lib/recommendations.ts) are
- * derived in the same snapshot, from the same read — not a second
- * independent look at window.BM — so they can never disagree with what the
- * chapter grid itself shows.
  *
  * Both listeners stay attached rather than running once: re-reading is
  * idempotent and cheap, and it keeps the numbers correct if a sync ever

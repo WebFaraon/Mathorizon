@@ -1,0 +1,110 @@
+import { motion, useReducedMotion } from 'framer-motion';
+import { Flame, Trophy, ClipboardList } from 'lucide-react';
+import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
+import type { LeaderboardRow } from '../../hooks/useLeaderboard';
+import { EASE_OUT } from '../../lib/motion';
+
+interface ProfilePanelProps {
+  leaderboardRows: LeaderboardRow[];
+  leaderboardReady: boolean;
+  currentUserId: string | null;
+}
+
+const XP_PER_LEVEL_FALLBACK = 100;
+
+/**
+ * The whole left rail now — replaced the old ContinueCard/NudgeCard/
+ * SimulareBannerCard stack, which pointed at "what to do next" using the
+ * same progress numbers the chapter grid right next to it already showed.
+ * This is a presentation surface instead: photo, cover, level/XP, streak,
+ * leaderboard rank — none of it shown anywhere else on this page (or on
+ * profile.html's own bizcard, which has no XP/level/streak/rank either).
+ *
+ * Read-only on purpose, no edit affordance: editing stays on profile.html,
+ * via the navbar's own profile button.
+ *
+ * capitole.html is BM.__protectedRoute (see js/auth-hint.js) — a visitor who
+ * is genuinely signed out never reaches this component at all, they're
+ * bounced to "/" before React mounts. So !snapshot.signedIn here never means
+ * "guest"; it only ever means "the real session check hasn't resolved yet"
+ * (same race useLeaderboard's own comment describes), which resolves to
+ * true within one bmauth:synced tick for every real visitor. A skeleton is
+ * therefore the correct read of that state, not a sign-in prompt.
+ */
+export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId }: ProfilePanelProps) {
+  const snapshot = useProfileSnapshot();
+  const prefersReducedMotion = useReducedMotion();
+
+  if (!snapshot.signedIn) {
+    return <div className="cap-profile-panel cap-profile-panel--skeleton" aria-hidden="true" />;
+  }
+
+  const entrance = {
+    initial: prefersReducedMotion ? undefined : { opacity: 0, y: 16 },
+    animate: { opacity: 1, y: 0 },
+    transition: { duration: 0.42, ease: EASE_OUT }
+  };
+
+  // Prefer the leaderboard row's own totalXp (and its rank, alongside it)
+  // over the local snapshot's — same underlying number once training_stats
+  // has synced, but this keeps level/XP and rank consistent with EACH OTHER
+  // even if one source is a beat ahead of the other.
+  const myRow = leaderboardRows.find((row) => row.userId === currentUserId) ?? null;
+  const xpPerLevel = window.BM?.Training?.XP_PER_LEVEL ?? XP_PER_LEVEL_FALLBACK;
+  const totalXp = myRow?.totalXp ?? snapshot.totalXp;
+  const level = Math.floor(totalXp / xpPerLevel) + 1;
+  const xpIntoLevel = totalXp % xpPerLevel;
+  const xpPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
+
+  return (
+    <motion.div className="cap-profile-panel" {...entrance}>
+      <div
+        className="cap-profile-cover"
+        style={snapshot.coverUrl ? { backgroundImage: `url('${snapshot.coverUrl}')` } : undefined}
+      />
+      <div className="cap-profile-body">
+        <div className="cap-profile-avatar" aria-hidden="true">
+          {snapshot.avatarUrl ? (
+            <img src={snapshot.avatarUrl} alt="" referrerPolicy="no-referrer" />
+          ) : (
+            <span>{snapshot.initials}</span>
+          )}
+        </div>
+
+        <h3 className="cap-profile-name">{snapshot.displayName}</h3>
+
+        <div className="cap-profile-level">
+          <div className="cap-profile-level__head">
+            <span className="cap-profile-level__label">Nivel {level}</span>
+            <span className="cap-profile-level__xp">
+              {xpIntoLevel} / {xpPerLevel} XP
+            </span>
+          </div>
+          <div className="cap-profile-xpbar">
+            <div className="cap-profile-xpbar__fill" style={{ width: `${xpPct}%` }} />
+          </div>
+        </div>
+
+        <div className="cap-profile-stats">
+          <div className="cap-profile-stat">
+            <Flame className="cap-profile-stat__icon" aria-hidden="true" />
+            <span className="cap-profile-stat__val">{snapshot.dailyStreak}</span>
+            <span className="cap-profile-stat__label">zile la rând</span>
+          </div>
+          <div className="cap-profile-stat">
+            <Trophy className="cap-profile-stat__icon" aria-hidden="true" />
+            <span className="cap-profile-stat__val">
+              {!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}
+            </span>
+            <span className="cap-profile-stat__label">în clasament</span>
+          </div>
+        </div>
+
+        <a className="cap-btn cap-btn--secondary cap-btn--sm cap-btn--block" href="profile.html#simulari-bac">
+          <ClipboardList aria-hidden="true" />
+          Simulările tale anterioare
+        </a>
+      </div>
+    </motion.div>
+  );
+}

@@ -592,7 +592,7 @@
 
       ${!isTeacher ? `
       <!-- BAC HISTORY -->
-      <div class="prof-hist-card">
+      <div class="prof-hist-card" id="simulari-bac">
         <div class="prof-card__head">
           <span class="prof-card__icon">${icon('clipboard-list', { size: 16 })}</span>
           <span class="prof-card__title">Simulări BAC anterioare</span>

@@ -96,6 +96,10 @@ export interface BMGlobal {
         Read here rather than hardcoded so the leaderboard's level column
         (useLeaderboard.ts) can never drift from Antrenament's own math. */
     XP_PER_LEVEL?: number;
+    /** js/training-stats.js — lifetime XP, DB-synced by js/auth.js. Source
+        for the profile panel's level/XP bar when the leaderboard row for
+        this user isn't available yet (see useProfileSnapshot.ts). */
+    getTotalXp?(): number;
   };
 }
 
@@ -113,8 +117,20 @@ export interface BMGlobal {
  * classic <script> from the Supabase CDN, not by this import.
  */
 export interface BMAuthGlobal {
-  readonly user: { id: string } | null;
+  readonly user: {
+    id: string;
+    /** custom_cover_url is only ever set in the owner's own metadata (see
+        js/profile-page.js) — fine for the profile panel, which only ever
+        shows the signed-in user's own cover. */
+    user_metadata?: { custom_cover_url?: string | null };
+  } | null;
   readonly supabase: SupabaseClient | null;
+  /** js/auth.js's _displayName()/_avatarUrl()/_initials() — same values the
+      navbar's own profile pill shows, so the profile panel never disagrees
+      with it. */
+  displayName(): string;
+  avatarUrl(): string | null;
+  initials(): string;
 }
 
 /**

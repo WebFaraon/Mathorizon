@@ -17,7 +17,7 @@ import { useLeaderboard } from './hooks/useLeaderboard';
  * Layout: three columns, all starting at the same top edge (right under the
  * navbar) and running the full height of the page — not just alongside the
  * chapter grid like the previous single right-hand sidebar did:
- *   - left:   ContinueCard / NudgeCard / SimulareBannerCard
+ *   - left:   profile panel (photo, cover, level/XP, streak, leaderboard rank)
  *   - middle: hero (title, grade switch, progress chips) → chapter grid
  *   - right:  daily missions → XP leaderboard
  * .cap-col-middle carries `order: -1` at narrow widths (see styles.css) so
@@ -25,14 +25,19 @@ import { useLeaderboard } from './hooks/useLeaderboard';
  * even though it's authored second here.
  */
 export function App() {
-  const { stats, chapters, continueTarget, nudge, ready } = useCapitoleData();
+  const { stats, chapters, ready } = useCapitoleData();
   const { missions, ready: missionsReady } = useMissions();
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
+  const currentUserId = window.BMAuth?.user?.id ?? null;
 
   return (
     <div className="cap-shell">
       <div className="cap-three-col">
-        <LeftColumn continueTarget={continueTarget} nudge={nudge} ready={ready} />
+        <LeftColumn
+          leaderboardRows={leaderboardRows}
+          leaderboardReady={leaderboardReady}
+          currentUserId={currentUserId}
+        />
 
         <div className="cap-col cap-col-middle">
           <Hero stats={stats} />
@@ -44,7 +49,7 @@ export function App() {
           missionsReady={missionsReady}
           leaderboardRows={leaderboardRows}
           leaderboardReady={leaderboardReady}
-          currentUserId={window.BMAuth?.user?.id ?? null}
+          currentUserId={currentUserId}
         />
       </div>
     </div>
