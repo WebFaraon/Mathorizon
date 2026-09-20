@@ -1,6 +1,7 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Flame, Trophy, ClipboardList } from 'lucide-react';
+import { Flame, Trophy, ClipboardList, Award } from 'lucide-react';
 import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
+import { useStudentClass } from '../../hooks/useStudentClass';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
 
@@ -12,13 +13,21 @@ interface ProfilePanelProps {
 
 const XP_PER_LEVEL_FALLBACK = 100;
 
+const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
+  elev: 'Elev',
+  profesor: 'Profesor',
+  admin: 'Admin'
+};
+
 /**
  * The whole left rail now — replaced the old ContinueCard/NudgeCard/
  * SimulareBannerCard stack, which pointed at "what to do next" using the
  * same progress numbers the chapter grid right next to it already showed.
- * This is a presentation surface instead: photo, cover, level/XP, streak,
- * leaderboard rank — none of it shown anywhere else on this page (or on
- * profile.html's own bizcard, which has no XP/level/streak/rank either).
+ * This is a presentation surface instead, styled after a Duolingo-style
+ * profile card: cover, avatar, role/class/join-date, follow counts
+ * (visual-only for now — no follow feature exists yet), level/XP, a
+ * Statistici grid (streak, leaderboard rank), and a Realizări section
+ * (also prepared visually ahead of a real achievements feature).
  *
  * Read-only on purpose, no edit affordance: editing stays on profile.html,
  * via the navbar's own profile button.
@@ -33,6 +42,7 @@ const XP_PER_LEVEL_FALLBACK = 100;
  */
 export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId }: ProfilePanelProps) {
   const snapshot = useProfileSnapshot();
+  const { className } = useStudentClass(snapshot.role === 'elev');
   const prefersReducedMotion = useReducedMotion();
 
   if (!snapshot.signedIn) {
@@ -56,6 +66,9 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   const xpIntoLevel = totalXp % xpPerLevel;
   const xpPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
 
+  const roleLabel = snapshot.role ? ROLE_LABEL[snapshot.role] : null;
+  const roleLine = roleLabel && className ? `${roleLabel} · ${className}` : roleLabel;
+
   return (
     <motion.div className="cap-profile-panel" {...entrance}>
       <div
@@ -72,6 +85,25 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
         </div>
 
         <h3 className="cap-profile-name">{snapshot.displayName}</h3>
+        {roleLine && <span className="cap-profile-meta">{roleLine}</span>}
+        {snapshot.memberSince && (
+          <span className="cap-profile-meta">S-a alăturat în {snapshot.memberSince}</span>
+        )}
+
+        {/* Visual only — there's no follow relationship in the data model
+            yet, so these are real <button>s (matching the requested "add
+            two buttons") but inert (disabled, always 0) until that feature
+            exists. */}
+        <div className="cap-profile-follow">
+          <button type="button" className="cap-profile-follow__item" disabled>
+            <strong>0</strong> urmăriți
+          </button>
+          <button type="button" className="cap-profile-follow__item" disabled>
+            <strong>0</strong> urmăritori
+          </button>
+        </div>
+
+        <div className="cap-profile-divider" />
 
         <div className="cap-profile-level">
           <div className="cap-profile-level__head">
@@ -85,25 +117,41 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
           </div>
         </div>
 
-        <div className="cap-profile-stats">
-          <div className="cap-profile-stat">
-            <Flame className="cap-profile-stat__icon" aria-hidden="true" />
-            <span className="cap-profile-stat__val">{snapshot.dailyStreak}</span>
-            <span className="cap-profile-stat__label">zile la rând</span>
-          </div>
-          <div className="cap-profile-stat">
-            <Trophy className="cap-profile-stat__icon" aria-hidden="true" />
-            <span className="cap-profile-stat__val">
-              {!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}
-            </span>
-            <span className="cap-profile-stat__label">în clasament</span>
+        <div className="cap-profile-section">
+          <span className="cap-profile-section__title">Statistici</span>
+          <div className="cap-profile-stats">
+            <div className="cap-profile-stat">
+              <Flame className="cap-profile-stat__icon" aria-hidden="true" />
+              <span className="cap-profile-stat__val">{snapshot.dailyStreak}</span>
+              <span className="cap-profile-stat__label">zile la rând</span>
+            </div>
+            <div className="cap-profile-stat">
+              <Trophy className="cap-profile-stat__icon" aria-hidden="true" />
+              <span className="cap-profile-stat__val">
+                {!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}
+              </span>
+              <span className="cap-profile-stat__label">în clasament</span>
+            </div>
           </div>
         </div>
 
-        <a className="cap-btn cap-btn--secondary cap-btn--sm cap-btn--block" href="profile.html#simulari-bac">
-          <ClipboardList aria-hidden="true" />
-          Simulările tale anterioare
-        </a>
+        {/* Prepared ahead of a real achievements feature — an honest empty
+            state now rather than fabricated sample progress, since real
+            students see this. */}
+        <div className="cap-profile-section">
+          <span className="cap-profile-section__title">Realizări</span>
+          <div className="cap-profile-achievements-empty">
+            <Award className="cap-profile-achievements-empty__icon" aria-hidden="true" />
+            <p>Realizările vor apărea aici în curând.</p>
+          </div>
+        </div>
+
+        {snapshot.role === 'elev' && (
+          <a className="cap-btn cap-btn--secondary cap-btn--sm cap-btn--block" href="profile.html#simulari-bac">
+            <ClipboardList aria-hidden="true" />
+            Simulările tale anterioare
+          </a>
+        )}
       </div>
     </motion.div>
   );

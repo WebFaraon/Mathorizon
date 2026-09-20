@@ -302,55 +302,64 @@ html:not([data-theme="dark"]) .cap-summary__stat {
 
 @media (min-width: 1180px) {
   .cap-three-col {
-    /* Flex, not Grid — deliberately: .cap-col-left's breakout below relies
-       on margin/width percentages resolving against the WHOLE row's width.
-       That holds for a flex item's containing block, but NOT for a grid
-       item's — a grid item's containing block is its own grid area (here,
-       a 340px track), so the exact same calc() on a grid child resolves
-       against 340px instead of the row's real width and puts the panel
-       hundreds of pixels off-screen (found by testing, not by inspection —
-       the computed styles looked plausible right up until the element's
-       actual position on screen). Widened from a 300px rail — with the
-       shell itself now wider too, a fixed 300px rail was leaving a growing
-       gap between it and the actual browser edge as the viewport got
-       wider, instead of the rail itself taking up more of that space. */
     flex-direction: row;
     gap: 24px;
-    /* Rails match the middle column's height instead of sitting at their
-       own shorter natural height — per direct feedback that the leftover
-       gap under the shorter rail looked unfinished. */
-    align-items: stretch;
+    /* flex-start, not stretch: .cap-col-right is position:sticky (below),
+       which only has room to do anything if the rail is its own shorter,
+       natural height instead of artificially stretched to match the much
+       taller middle column — a rail stretched to the middle column's full
+       height never has anywhere left to "stick" to before the page runs
+       out of scroll at the same time the middle column does. */
+    align-items: flex-start;
   }
-  .cap-col-middle { order: 0; flex: 1 1 0%; min-width: 0; }
-  .cap-col-right { flex: 0 0 340px; }
-  /* Each rail's own single/multiple card(s) grow to fill that stretched
-     height (see the align-items change above) instead of the surplus
-     collecting as one blank gap under the last card. */
-  .cap-col-left > *, .cap-col-right > * {
+  .cap-col-middle {
+    order: 0;
     flex: 1 1 0%;
+    min-width: 0;
+    /* .cap-col-left is position:fixed below (removed from flow entirely),
+       so this margin manually reserves the space flexbox would otherwise
+       have given it — 340px width + the row's own 24px gap. */
+    margin-left: calc(340px + 24px);
+  }
+  .cap-col-right {
+    flex: 0 0 340px;
+    /* Stays in view while the (usually much taller) middle column scrolls,
+       per direct feedback — same var(--nav-h) sticky-under-the-navbar
+       offset the BAC simulator's own sidebar already uses (.bac-sidebar,
+       earlier in this file's shared parent css/style.css). Sticky, not
+       fixed: unlike the left rail it doesn't need to break out to the
+       viewport edge, and staying an in-flow flex item means .cap-col-middle
+       above doesn't need a matching margin-right — flexbox already
+       reserves this column's space normally. */
+    position: sticky;
+    top: var(--nav-h, 72px);
+    max-height: calc(100vh - var(--nav-h, 72px));
+    overflow-y: auto;
   }
 
-  /* Breaks the profile panel out of .cap-shell's centered/padded box so it
-     starts at the true viewport edge, like the navbar — the rest of the
-     row (middle + right rail) stays exactly where it was, inset by the
-     shell as normal. `calc(50% - 50vw)` is the standard "full-bleed inside
-     a centered container" trick: that 50% resolves against .cap-three-col's
-     own width (a flex item's containing block IS the flex container, unlike
-     a grid item's), so the expression is self-cancelling regardless of how
-     wide .cap-shell's padding or its max-width centering gap happen to be
-     at any given viewport width — it doesn't need to know either number.
-     flex:0 0 auto (rather than the 340px flex-basis .cap-col-right uses)
-     defers sizing to the explicit width below instead of a fixed
-     flex-basis, so that width calc is actually what wins. Widening by the
-     same amount on the other side keeps the column's RIGHT edge (where it
-     meets the middle column) exactly where a plain 340px column already
-     put it; only the left edge moves. Column height still comes from
-     align-items:stretch above, untouched by any of this. */
+  /* The profile panel: pinned to the true viewport edge AND to the top,
+     like the navbar, while the page scrolls. position:fixed rather than
+     sticky+the old margin/width breakout trick — found by testing that a
+     sticky element with the large negative margin-left that trick needs
+     never actually sticks (it just scrolls normally, as if position were
+     static); nothing about *why* surfaced in computed styles, only in the
+     element's actual on-screen position while scrolled. Fixed sidesteps
+     the interaction entirely: left:0 already IS the viewport edge, with no
+     margin/width calc needed at all. body:has(#root){overflow-x:visible}
+     in the shared css/style.css is a separate, related fix — without it,
+     body's own overflow-x:hidden silently computes overflow-y to `auto`
+     too (see that rule's comment), which would have broken
+     .cap-col-right's sticky above the same way (confirmed: category.html's
+     .subcat-breadcrumb has the identical latent bug) even though it
+     doesn't touch this fixed rule at all. */
   .cap-col-left {
-    flex: 0 0 auto;
-    margin-left: calc(50% - 50vw);
-    width: calc(340px + (50vw - 50%));
-    box-sizing: border-box;
+    position: fixed;
+    top: var(--nav-h, 72px);
+    left: 0;
+    width: 340px;
+    max-height: calc(100vh - var(--nav-h, 72px));
+    overflow-y: auto;
+    z-index: 5;
   }
 }
 
@@ -1032,18 +1041,10 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
   padding: 0 20px 20px;
   text-align: center;
 }
-/* Same "pin the last button to the bottom" convention as .cap-side-card's
-   own rule — this panel stretches to match the middle column's height
-   (section 3's align-items:stretch), so any slack collects above the
-   button instead of leaving it wherever the content happens to end. */
-.cap-profile-body > .cap-btn:last-child {
-  margin-top: auto;
-}
-
 .cap-profile-avatar {
-  width: 76px;
-  height: 76px;
-  margin-top: -34px;
+  width: 104px;
+  height: 104px;
+  margin-top: -42px;
   flex-shrink: 0;
   border-radius: 50%;
   border: 4px solid var(--card);
@@ -1063,7 +1064,7 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   object-fit: cover;
 }
 .cap-profile-avatar span {
-  font-size: 1.3rem;
+  font-size: 1.7rem;
   font-weight: 800;
   color: #fff;
   letter-spacing: 0.5px;
@@ -1081,9 +1082,60 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   white-space: nowrap;
 }
 
+.cap-profile-meta {
+  margin-top: 4px;
+  max-width: 100%;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cap-profile-follow {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+}
+.cap-profile-follow__item {
+  padding: 0;
+  border: none;
+  background: none;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  cursor: default;
+}
+.cap-profile-follow__item strong {
+  color: var(--accent);
+  font-weight: 800;
+}
+
+.cap-profile-divider {
+  width: 100%;
+  height: 1.5px;
+  margin-top: 18px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.cap-profile-section {
+  width: 100%;
+  margin-top: 18px;
+}
+.cap-profile-section__title {
+  display: block;
+  margin-bottom: 10px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--text);
+  text-align: left;
+}
+
 .cap-profile-level {
   width: 100%;
-  margin-top: 16px;
+  margin-top: 18px;
 }
 .cap-profile-level__head {
   display: flex;
@@ -1119,7 +1171,6 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   display: flex;
   width: 100%;
   gap: 10px;
-  margin-top: 14px;
 }
 .cap-profile-stat {
   display: flex;
@@ -1127,9 +1178,13 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   flex-direction: column;
   align-items: center;
   gap: 2px;
-  padding: 10px 6px;
+  padding: 12px 6px;
+  border: 1.5px solid var(--border);
   border-radius: var(--cap-radius-sm);
-  background: var(--surface);
+  background: var(--card);
+}
+html:not([data-theme="dark"]) .cap-profile-stat {
+  background: #fff;
 }
 .cap-profile-stat__icon {
   width: 18px;
@@ -1152,6 +1207,32 @@ html:not([data-theme="dark"]) .cap-profile-avatar {
   text-transform: uppercase;
   letter-spacing: 0.02em;
   color: var(--text-muted);
+}
+
+.cap-profile-achievements-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 22px 16px;
+  border: 1.5px dashed var(--border);
+  border-radius: var(--cap-radius);
+  text-align: center;
+}
+.cap-profile-achievements-empty__icon {
+  width: 26px;
+  height: 26px;
+  color: var(--text-muted);
+}
+.cap-profile-achievements-empty p {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.cap-profile-body .cap-btn {
+  margin-top: 18px;
 }
 
 /* ---- 4. BUTTONS --------------------------------------------------------

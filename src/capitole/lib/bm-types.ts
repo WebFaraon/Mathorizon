@@ -119,12 +119,18 @@ export interface BMGlobal {
 export interface BMAuthGlobal {
   readonly user: {
     id: string;
+    /** Standard Supabase Auth field, ISO 8601 — the profile panel's
+        "member since" line. */
+    created_at?: string;
     /** custom_cover_url is only ever set in the owner's own metadata (see
         js/profile-page.js) — fine for the profile panel, which only ever
         shows the signed-in user's own cover. */
     user_metadata?: { custom_cover_url?: string | null };
   } | null;
   readonly supabase: SupabaseClient | null;
+  /** public.user_profiles.role, synced at login — see js/auth.js's
+      _syncProgress(). Null until that sync resolves. */
+  readonly role: 'elev' | 'profesor' | 'admin' | null;
   /** js/auth.js's _displayName()/_avatarUrl()/_initials() — same values the
       navbar's own profile pill shows, so the profile panel never disagrees
       with it. */

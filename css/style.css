@@ -19122,3 +19122,25 @@ html[data-theme="dark"] body:has(#setupView) {
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
   background-size: 28px 28px !important;
 }
+
+/* Capitole-only: body's own overflow-x:hidden (top of this file) has a side
+   effect that isn't obvious from reading that rule alone — per the CSS
+   Overflow spec, an element with overflow-x set to anything but `visible`
+   while overflow-y is left unset silently COMPUTES overflow-y to `auto`
+   too, not `visible` (the spec avoids a state where one axis clips content
+   without any way to scroll to it). That makes body itself a scroll
+   container — and position:sticky on any of ITS descendants then sticks
+   relative to body's own scrollport, which never actually scrolls (the
+   visible page scrolling happens at the html/viewport level instead), so
+   sticky silently does nothing. Confirmed this is pre-existing and
+   sitewide, not specific to Capitole (category.html's own .subcat-breadcrumb
+   has the identical bug) — but fixing it globally is a bigger, separate
+   change with a much larger blast radius to verify; scoped here because
+   this is the one page currently relying on position:sticky working
+   (.cap-col-left/.cap-col-right, see src/capitole/styles.css) via body-level
+   scroll rather than a nested scroll container. overflow-x:visible removes
+   the trigger (both axes visible → no forced auto) without touching the
+   shared rule everything else still depends on. */
+body:has(#root) {
+  overflow-x: visible;
+}
