@@ -348,6 +348,12 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   .cap-col-left {
     left: 0;
     height: calc(100vh - var(--nav-h, 72px));
+    /* dvh accounts for mobile/browser chrome that shows and hides as the
+       page scrolls, which plain vh doesn't — harmless to also declare here
+       even though this rule is desktop-only (≥1180px), and a browser that
+       doesn't understand dvh simply ignores this line and keeps the vh
+       value above. */
+    height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
   }
   /* The right rail keeps its own natural (shorter) height — only
@@ -362,6 +368,7 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   .cap-col-right {
     right: max(28px, calc((100vw - 1760px) / 2 + 28px));
     max-height: calc(100vh - var(--nav-h, 72px));
+    max-height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
   }
 }
