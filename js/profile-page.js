@@ -267,7 +267,6 @@
         || null;
     const memberSince = _formatDate(user.created_at);
     const tokens      = BM.getTokens();
-    const verified    = !!user.email_confirmed_at;
     const isGoogle    = user.app_metadata?.provider === 'google';
     const hist        = _loadHistory();
 
@@ -376,11 +375,6 @@
           : '<span class="prof-badge prof-badge--blue">Elev</span>'}
       ${role === 'profesor' && status === 'active'
         ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
-      ${isUsernameAccount
-        ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Cont activ</span>`
-        : (verified
-          ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Email verificat</span>`
-          : '<span class="prof-badge prof-badge--yellow">Email neverificat</span>')}
       ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
     `;
 

@@ -10357,20 +10357,30 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   color: var(--text);
 }
 .prof-contact-icon {
-  width: 32px;
-  height: 32px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  background: var(--surface);
-  color: var(--text-muted);
+  background: var(--accent-dim);
+  color: var(--accent);
+  border: 1.5px solid color-mix(in srgb, var(--accent) 32%, transparent);
 }
-.prof-contact-icon--blue   { background: var(--accent-dim); color: var(--accent); }
-.prof-contact-icon--green  { background: var(--green-dim);  color: var(--green); }
-.prof-contact-icon--yellow { background: var(--yellow-dim); color: var(--yellow); }
-.prof-contact-icon--teal   { background: var(--solved-dim); color: var(--solved); }
+/* Phone/location/email/calendar used to each get their own color (blue/
+   green/yellow/teal) — per direct feedback, unified to one blue instead,
+   so the base rule above already carries it. Kept (not deleted) since
+   the markup still assigns one of these per contact type; all four just
+   resolve the same way now. */
+.prof-contact-icon--blue,
+.prof-contact-icon--green,
+.prof-contact-icon--yellow,
+.prof-contact-icon--teal {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 32%, transparent);
+}
 a.prof-contact-item--link { color: var(--accent); text-decoration: none; }
 a.prof-contact-item--link:hover { text-decoration: underline; }
 
@@ -10408,19 +10418,33 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 }
 .prof-badges { display: flex; gap: 7px; flex-wrap: wrap; }
 
+/* Rounded-rect, not a full pill (was border-radius:20px) — and tinted via
+   color-mix off each color's own token instead of the old flat rgba()
+   dim/border pair, same formula Capitole's own tag chips use
+   (.cap-card__tag) — per direct feedback the old pill shape plus bright
+   flat colors read as generic/AI-generated rather than designed for this
+   site specifically. */
 .prof-badge {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 20px;
+  gap: 5px;
+  padding: 4px 11px;
+  border-radius: 6px;
   font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
+  letter-spacing: 0.2px;
+  border: 1px solid transparent;
 }
-.prof-badge--blue   { background: var(--accent-dim);  color: var(--accent);  border: 1px solid rgba(58,107,173,0.25); }
-.prof-badge--green  { background: var(--green-dim);   color: var(--green);   border: 1px solid var(--green-border); }
-.prof-badge--yellow { background: var(--yellow-dim);  color: var(--yellow);  border: 1px solid var(--yellow-border); }
+.prof-badge--blue {
+  background: color-mix(in srgb, var(--accent) 10%, transparent);
+  color: color-mix(in srgb, var(--accent) 78%, var(--text));
+  border-color: color-mix(in srgb, var(--accent) 28%, transparent);
+}
+.prof-badge--green {
+  background: color-mix(in srgb, var(--green) 10%, transparent);
+  color: color-mix(in srgb, var(--green) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--green) 28%, transparent);
+}
 
 .prof-logout-btn {
   flex-shrink: 0;
@@ -10924,21 +10948,103 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
   margin-bottom: 24px;
 }
 
-/* prof-badge extras */
+/* prof-badge extras — same color-mix formula as .prof-badge--blue/--green
+   above, off tokens this design system actually defines. --purple used to
+   be a flat #a855f7 (stock Tailwind purple-500) with no equivalent
+   anywhere else on the site — swapped for --solved (the teal already
+   used for "resolved/complete" states elsewhere) so Profesor's chip
+   draws from the real palette instead of an off-brand color that just
+   happened to get used once, here. */
 .prof-badge--purple {
-  background: rgba(168,85,247,0.12);
-  color: #a855f7;
-  border: 1px solid rgba(168,85,247,0.25);
+  background: color-mix(in srgb, var(--solved) 10%, transparent);
+  color: color-mix(in srgb, var(--solved) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--solved) 28%, transparent);
 }
 .prof-badge--amber {
-  background: rgba(251,191,36,0.12);
-  color: #d97706;
-  border: 1px solid rgba(251,191,36,0.28);
+  background: color-mix(in srgb, var(--yellow) 10%, transparent);
+  color: color-mix(in srgb, var(--yellow) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--yellow) 28%, transparent);
 }
 .prof-badge--red {
-  background: rgba(239,68,68,0.12);
-  color: #dc2626;
-  border: 1px solid rgba(239,68,68,0.25);
+  background: color-mix(in srgb, var(--red) 10%, transparent);
+  color: color-mix(in srgb, var(--red) 72%, var(--text));
+  border-color: color-mix(in srgb, var(--red) 28%, transparent);
+}
+
+/* ---- Profile page: chunky pressed-button mechanic --------------------
+   .btn's sitewide default is a hover-lift (translateY(-2px), see .btn:hover
+   near the top of this file) — used on every page that has buttons, so
+   changed globally it would touch far more than this page. Scoped instead
+   to just these profile-page buttons (IDs unique to this page's own
+   markup; .prof-modal__actions is this page's own local class, not a
+   shared modal system — see profile-page.js's _showConfirm/
+   _showEditBizcardProfileModal) to match Capitole's .cap-btn language: a
+   colored edge sits below the button at rest, collapses to flat and the
+   button sinks down to meet it on press, and hover dims the face instead
+   of lifting it. */
+#btnEditProfile,
+#btnPw,
+#btnLogout,
+.prof-modal__actions .btn {
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+#btnEditProfile:hover,
+#btnPw:hover,
+#btnLogout:hover,
+.prof-modal__actions .btn:hover {
+  transform: none;
+  filter: brightness(0.96);
+}
+#btnEditProfile:active,
+#btnPw:active,
+#btnLogout:active,
+.prof-modal__actions .btn:active {
+  transform: translateY(3px);
+}
+
+/* .btn--surface (Editează profilul, both modals' Anulează): transparent
+   fill, so its own border color doubles as the shadow's base tone. */
+#btnEditProfile,
+.prof-modal__actions .btn--surface {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--text-muted) 55%, black 15%);
+}
+#btnEditProfile:active,
+.prof-modal__actions .btn--surface:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--text-muted) 55%, black 15%);
+}
+
+/* .btn--primary (Salvează parola, the edit-profile modal's Salvează):
+   background is var(--text) itself (inverted "ink" button — dark-on-light
+   in light mode, light-on-dark in dark mode). A shadow mixed FROM --text
+   (darkening it further) works in dark mode, where --text is near-white —
+   but in light mode --text is already near-black, so darkening it again
+   left almost no visible step between the button face and its own
+   shadow. --accent-based instead (same formula Capitole's own secondary-
+   button shadow uses): distinct from the ink-black/near-white face in
+   both themes, since it's a fixed hue rather than a further-darkened
+   copy of whatever the face already is. */
+#btnPw,
+.prof-modal__actions .btn--primary {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+}
+#btnPw:active,
+.prof-modal__actions .btn--primary:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+}
+
+/* .btn--danger-outline (Deconectare) / .btn--danger (the logout modal's
+   Da, deconectează-mă): both read as the same "destructive" action, so
+   both get the same red-toned shadow regardless of which one is filled. */
+#btnLogout,
+.prof-modal__actions .btn--danger,
+.prof-modal__actions .btn--danger-outline {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--red) 55%, black 30%);
+}
+#btnLogout:active,
+.prof-modal__actions .btn--danger:active,
+.prof-modal__actions .btn--danger-outline:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--red) 55%, black 30%);
 }
 
 /* ============================================================
@@ -19159,12 +19265,14 @@ body.dc-fullscreen-active .dc-toolbar {
    ============================================================ */
 html:not([data-theme="dark"]) body:has(#root),
 html:not([data-theme="dark"]) body:has(#catHeader),
-html:not([data-theme="dark"]) body:has(#setupView) {
+html:not([data-theme="dark"]) body:has(#setupView),
+html:not([data-theme="dark"]) body:has(#profileContent) {
   background-color: #fff !important;
 }
 body:has(#root),
 body:has(#catHeader),
-body:has(#setupView) {
+body:has(#setupView),
+body:has(#profileContent) {
   background-image:
     linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px) !important;
@@ -19172,7 +19280,8 @@ body:has(#setupView) {
 }
 html[data-theme="dark"] body:has(#root),
 html[data-theme="dark"] body:has(#catHeader),
-html[data-theme="dark"] body:has(#setupView) {
+html[data-theme="dark"] body:has(#setupView),
+html[data-theme="dark"] body:has(#profileContent) {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;
