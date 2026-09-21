@@ -1588,6 +1588,27 @@ html:not([data-theme="dark"]) .cap-profile-stat {
    color-mix(chapter color, black), a fixed dark value independent of
    page background, so it reads the same "step" in both themes already. */
 
+/* The progress tracks (chapter card + daily mission), unlike the cards
+   themselves just above, DO need a dark override — per direct feedback
+   ("sliderele... greu vizibile"/hard to see. .cap-card__track's light-mode
+   formula mixes a small amount of the chapter's own color into --surface;
+   dark mode's --surface (#141414) is close enough in luminance to --card
+   (#1c1c1c, the card sitting right behind it) that a mere 12% tint all but
+   vanished into it. .cap-mission__track has the same problem the other
+   way — its light-mode value IS --surface outright, no tint at all. Both
+   get a translucent-white base instead here (the same family --border's
+   own dark value already uses successfully elsewhere, e.g. the category
+   page's progress bar, which reads fine) — reliably lighter than the card
+   regardless of exactly how dark --surface/--card resolve, the same way
+   the pressed-button shadow above is a fixed relative darkening rather
+   than a value tuned to one specific background. */
+[data-theme="dark"] .cap-card__track {
+  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 30%, rgba(255, 255, 255, 0.14));
+}
+[data-theme="dark"] .cap-mission__track {
+  background: rgba(255, 255, 255, 0.14);
+}
+
 /* ---- 6. RESPONSIVE --------------------------------------------------
    The 3-column ↔ 1-column breakpoint itself lives on .cap-three-col
    (section 3), right next to the rule it overrides — everything left

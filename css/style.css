@@ -10412,11 +10412,6 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 .prof-review-item__comment { font-size: 0.88rem; color: var(--text-secondary); line-height: 1.55; margin: 0 0 4px; }
 .prof-review-item__date { font-size: 0.76rem; color: var(--text-muted); }
 
-/* Widened from 480px — per direct feedback the form (name, a whole bio
-   paragraph, country/phone, social link) read as cramped at the same
-   width as the plain confirm dialogs (.prof-modal's own 400px base). */
-.prof-modal--wide { max-width: 640px; }
-
 .prof-name {
   font-size: 1.4rem;
   font-weight: 800;
@@ -10847,6 +10842,17 @@ a.prof-contact-item--link:hover { text-decoration: underline; }
 .prof-modal-overlay--in .prof-modal {
   transform: scale(1) translateY(0);
 }
+/* Widened from 480px — per direct feedback the form (name, a whole bio
+   paragraph, country/phone, social link) read as cramped at the same
+   width as the plain confirm dialogs (.prof-modal's own 400px base).
+   Placed AFTER .prof-modal's own base rule on purpose: both are single-
+   class selectors (equal specificity), and a modifier class sitting
+   BEFORE the base rule it's meant to override loses the cascade tie to
+   it — same bug already found and fixed once this session for
+   .nav-profile-name (see that rule's own comment); this one just hadn't
+   been caught yet, which is why widening it visibly did nothing the
+   first time. */
+.prof-modal--wide { max-width: 640px; }
 
 .prof-modal__icon {
   display: flex;
