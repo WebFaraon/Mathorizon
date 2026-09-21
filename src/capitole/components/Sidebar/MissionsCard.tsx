@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { CircleCheck, Gift } from 'lucide-react';
+import { CircleCheck, Gift, ListChecks } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
 import { EASE_OUT } from '../../lib/motion';
 
@@ -14,22 +14,26 @@ interface MissionsCardProps {
  * today thresholds. Completing one grants real XP exactly once per day
  * (see hooks/useMissions.ts) — this component only renders whatever state
  * that hook hands it.
+ *
+ * A section inside RightColumn's shared .cap-sidebar-panel now, not its
+ * own bordered card — no entrance animation or skeleton chrome of its own
+ * beyond what that shared panel already provides, and the green identity
+ * that used to live on the standalone card's top border now sits on the
+ * eyebrow icon instead (see LeaderboardCard's Trophy for the same pattern).
  */
 export function MissionsCard({ missions, ready }: MissionsCardProps) {
   const prefersReducedMotion = useReducedMotion();
 
   if (!ready) {
-    return <div className="cap-side-card cap-side-card--skeleton" aria-hidden="true" />;
+    return <div className="cap-sidebar-section cap-sidebar-section--skeleton" aria-hidden="true" />;
   }
 
   return (
-    <motion.div
-      className="cap-side-card cap-side-card--missions"
-      initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.42, ease: EASE_OUT }}
-    >
-      <span className="cap-side-card__eyebrow">Misiunile zilei</span>
+    <div className="cap-sidebar-section">
+      <span className="cap-side-card__eyebrow">
+        <ListChecks className="cap-side-card__eyebrow-icon cap-side-card__eyebrow-icon--green" aria-hidden="true" />
+        Misiunile zilei
+      </span>
       <ul className="cap-missions__list">
         {missions.map((mission) => (
           <li className={`cap-mission${mission.done ? ' cap-mission--done' : ''}`} key={mission.key}>
@@ -65,6 +69,6 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
           </li>
         ))}
       </ul>
-    </motion.div>
+    </div>
   );
 }

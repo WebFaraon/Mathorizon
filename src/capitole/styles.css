@@ -48,6 +48,10 @@
      produce. Both are plain custom properties, so toggling the theme
      recomputes them immediately — no JS, nothing to go stale. */
   --cap-btn-shadow-primary: #16305c;
+  /* The fixed bottom tab bar's own height, phone widths only (section 7) —
+     a named token because .cap-mobile-viewport's height calc needs the
+     exact same number to reserve the right amount of space above it. */
+  --cap-tabbar-h: 62px;
 }
 
 .cap-shell {
@@ -234,7 +238,7 @@
   border: 2px solid var(--border);
 }
 
-/* Light theme only, same as .cap-side-card/.cap-card — pure white
+/* Light theme only, same as .cap-sidebar-panel/.cap-card — pure white
    instead of --card's cream tint; dark theme's --card is untouched. */
 html:not([data-theme="dark"]) .cap-grade-switch,
 html:not([data-theme="dark"]) .cap-summary__stat {
@@ -274,13 +278,26 @@ html:not([data-theme="dark"]) .cap-summary__stat {
    right rail (misiuni, clasament). All three start at the same top edge,
    right under the navbar, and run the page's full height — not just the
    height of the chapter grid, the way a single right-hand sidebar used to.
-   Never tabs: every card in every column is always rendered, all at once.
+   Every column is always MOUNTED, all at once, regardless of width —
+   phone width (section 7) changes how the three are PRESENTED (a sliding
+   tab bar instead of a stacked column), not which of them exist or run
+   their own data hooks.
 
-   .cap-col-middle carries order:-1 below the 3-column breakpoint so it's
-   what appears FIRST once the three collapse into one stacked column,
-   even though App.tsx renders it between the two rails in the markup
-   (left, middle, right — the order that gives the correct grid-column
-   placement at the wide breakpoint, where no `order` override applies). */
+   .cap-col-middle carries order:-1 between the phone and 3-column
+   breakpoints so it's what appears FIRST once the three collapse into one
+   stacked column, even though App.tsx renders it between the two rails in
+   the markup (left, middle, right — the order that gives the correct
+   grid-column placement at the wide breakpoint, where no `order` override
+   applies, AND the correct slide order in phone mode, where order:-1 gets
+   neutralized back to DOM order — see section 7). */
+.cap-mobile-viewport {
+  /* A no-op wrapper above the phone breakpoint: .cap-three-col behaves as
+     if it were still .cap-shell's direct child, same as before this
+     existed. Only becomes a real box (the slider's own viewport, clipping
+     the other two panes) inside the phone media query in section 7. */
+  display: contents;
+}
+
 .cap-three-col {
   display: flex;
   flex-direction: column;
@@ -293,6 +310,20 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   flex-direction: column;
   gap: 16px;
   min-width: 0;
+}
+/* Every direct child here keeps its own natural size by default — a
+   column's single child (.cap-profile-panel/.cap-sidebar-panel) should
+   overflow a height-constrained column (letting that column's own
+   overflow-y:auto scroll it — see .cap-col-left/-right at ≥1180px and
+   section 7's phone tab panes) rather than being squashed to fit it,
+   which is what flex-shrink's default of 1 does combined with that child
+   having its own overflow:hidden (see .cap-profile-body's own comment for
+   why overflow:hidden specifically makes this worse, not just plausible).
+   The ≥1180px stretch rules explicitly set flex:1 1 auto on those two
+   panels ON PURPOSE (to fill the column instead of sitting at their own
+   shorter height) — higher specificity than this, so they still win. */
+.cap-col > * {
+  flex-shrink: 0;
 }
 
 .cap-col-middle {
@@ -370,20 +401,31 @@ html:not([data-theme="dark"]) .cap-summary__stat {
     flex: 1 1 auto;
     min-height: 0;
   }
-  /* The right rail keeps its own natural (shorter) height — only
-     .cap-col-left was asked to fill the full column. `right` mirrors
-     .cap-shell's own centering-gap-plus-padding math (max-width:1760px,
-     padding:28px — see .cap-shell above) in reverse, since a *fixed*
-     element's percentages resolve against the viewport, not its DOM
-     parent, so the calc(50%-50vw) trick .cap-col-left used to use (back
-     when it was sticky inside the flex row) doesn't apply here. Hardcodes
-     those two numbers on purpose — cheaper than re-deriving them, but
-     keep this in sync if .cap-shell's own values ever change. */
+  /* Same full-height treatment as .cap-col-left now, per direct feedback
+     that the right rail should read as one big block the same way the
+     profile panel does, not stop short at its own natural (shorter)
+     content height. `right` mirrors .cap-shell's own centering-gap-plus-
+     padding math (max-width:1760px, padding:28px — see .cap-shell above)
+     in reverse, since a *fixed* element's percentages resolve against the
+     viewport, not its DOM parent, so the calc(50%-50vw) trick
+     .cap-col-left used to use (back when it was sticky inside the flex
+     row) doesn't apply here. Hardcodes those two numbers on purpose —
+     cheaper than re-deriving them, but keep this in sync if .cap-shell's
+     own values ever change. */
   .cap-col-right {
     right: max(28px, calc((100vw - 1760px) / 2 + 28px));
-    max-height: calc(100vh - var(--nav-h, 72px));
-    max-height: calc(100dvh - var(--nav-h, 72px));
+    height: calc(100vh - var(--nav-h, 72px));
+    height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
+  }
+  /* Same reasoning as .cap-profile-panel just above: .cap-col-right being
+     the right height doesn't stretch .cap-sidebar-panel to match on its
+     own (a flex column's main-axis size isn't automatic), so without this
+     the panel sat at its own shorter content height with blank space
+     below it instead of reaching the column's true bottom. */
+  .cap-sidebar-panel {
+    flex: 1 1 auto;
+    min-height: 0;
   }
 }
 
@@ -444,7 +486,7 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
 }
 
-/* Light theme only, same as .cap-side-card — dark theme's --card is
+/* Light theme only, same as .cap-sidebar-panel — dark theme's --card is
    untouched. */
 html:not([data-theme="dark"]) .cap-card {
   background: #fff;
@@ -634,54 +676,69 @@ html:not([data-theme="dark"]) .cap-card {
   to   { background-position: -200% 0; }
 }
 
-/* ---- 3b. SIDE CARDS ----
-   .cap-col (styles.css section 3) already handles the column layout
-   (flex, gap) for both rails — nothing side-card-specific needed here. */
+/* ---- 3b. SIDEBAR PANEL ----
+   The whole right rail now — one presentation surface (.cap-sidebar-panel)
+   holding two sections (Misiunile zilei, Top elevi), same idea as the left
+   rail's .cap-profile-panel: a single bordered card, not two independently-
+   bordered ones stacked with a gap between them. Each section keeps its own
+   ready-gate (see MissionsCard/LeaderboardCard) and can skeleton/render
+   independently of the other. */
+.cap-sidebar-panel {
+  display: flex;
+  flex-direction: column;
+  background: var(--card);
+  border: 2px solid var(--border);
+  border-radius: var(--cap-radius);
+  /* Inactive at this rule's own specificity until the panel is actually
+     height-constrained (the ≥1180px stretch rule below, in section 3) —
+     same min-height:0 + overflow-y:auto pairing as .cap-profile-body, so
+     a short viewport scrolls the panel's own content internally instead
+     of clipping it or pushing the column past the bottom of the screen. */
+  min-height: 0;
+  overflow-y: auto;
+}
+html:not([data-theme="dark"]) .cap-sidebar-panel {
+  background: #fff;
+}
+/* Same flex-shrink:0 fix as .cap-profile-body's own children — without
+   it, the two sections get proportionally squashed to fit a short
+   viewport instead of overflowing it (which is what triggers the scroll
+   above). See that rule's own comment for the mechanics. */
+.cap-sidebar-panel > * {
+  flex-shrink: 0;
+}
 
-/* One padding, one gap, shared by all three cards below (continue/nudge/
-   sim) via the tokens defined in :root — the three used to drift (18px
-   20px vs 15px 18px, gap 6/8/8px), which read as inconsistent even though
-   each was reasonable on its own. Only colors/borders vary per card now. */
-.cap-side-card {
+.cap-sidebar-divider {
+  height: 1.5px;
+  margin: 0 18px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.cap-sidebar-section {
   display: flex;
   flex-direction: column;
   gap: var(--cap-side-card-gap);
   padding: var(--cap-side-card-padding);
-  background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: var(--cap-radius);
-  /* Every rail card gets this colored top stroke now, not just Continue —
-     each sets its own --cap-card-color (Continue/Nudge already did, for
-     their icon colors; Missions/Leaderboard below); Simulare has none of
-     its own, so it falls back to --accent. */
-  border-top: 3px solid var(--cap-card-color, var(--accent));
 }
 
-/* Now that each rail's cards stretch to fill the column (section 3's
-   flex: 1 1 0%), a card whose content doesn't fill its own new height
-   left the button wherever the content happened to end, with blank
-   space below it — pushed to the bottom instead, so the extra space
-   collects ABOVE the button (between it and the content) rather than
-   after it. Targets every card's own button this way, not just one. */
-.cap-side-card > .cap-btn:last-child {
+/* Once the panel stretches to fill the column (see section 3's
+   .cap-sidebar-panel rule), a section whose own content doesn't fill its
+   share of that height left its button wherever the content happened to
+   end — pushed to the bottom instead, so any extra space collects ABOVE
+   the button rather than after it. Only the leaderboard section has a
+   trailing button today, but this targets either section's the same way. */
+.cap-sidebar-section > .cap-btn:last-child {
   margin-top: auto;
 }
 
-/* Light theme only — pure white instead of --card's cream tint, per
-   direct feedback. Dark theme's --card already resolves to its own dark
-   value above and wasn't part of the complaint, so it's left alone. */
-html:not([data-theme="dark"]) .cap-side-card {
-  background: #fff;
-}
-
-/* Missions doesn't otherwise need --cap-card-color (nothing else inside
-   it reads it, unlike Nudge's icon or Leaderboard's new button below), so
-   a direct color override here is simpler than threading the variable
-   through an inline style just to consume it once. Leaderboard sets
-   --cap-card-color: var(--yellow) inline instead (see LeaderboardCard) —
-   its "Leaderboard" button needs the same color the border already uses. */
-.cap-side-card--missions {
-  border-top-color: var(--green);
+.cap-sidebar-section--skeleton {
+  min-height: 150px;
+  margin: 18px;
+  border-radius: var(--cap-radius-sm);
+  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
+  background-size: 200% 100%;
+  animation: cap-shimmer 1.4s linear infinite;
 }
 
 .cap-side-card__eyebrow {
@@ -698,6 +755,13 @@ html:not([data-theme="dark"]) .cap-side-card {
   width: 13px;
   height: 13px;
   color: var(--yellow);
+}
+/* Missions' own identity color used to live on its standalone card's top
+   border (back when Missions and Leaderboard were two separate cards) —
+   now that both share one panel, it sits on this icon instead, the same
+   place Leaderboard's Trophy already carries --yellow. */
+.cap-side-card__eyebrow-icon--green {
+  color: var(--green);
 }
 
 /* ---- Misiunile zilei ---- */
@@ -824,9 +888,9 @@ html:not([data-theme="dark"]) .cap-side-card {
 
 /* The card's own preview caps at ~5 rows with a hidden scrollbar (see
    LeaderboardCard); LeaderboardModal renders the exact same
-   LeaderboardRows component outside of .cap-side-card, on purpose, so it
-   falls back to the plain rule above and shows every row unclipped. */
-.cap-side-card .cap-leaderboard__list {
+   LeaderboardRows component outside of .cap-sidebar-section, on purpose,
+   so it falls back to the plain rule above and shows every row unclipped. */
+.cap-sidebar-section .cap-leaderboard__list {
   /* Sized to the row height, not a round number, so the 6th row doesn't
      peek in half-cut. Still scrollable (wheel/touch/drag/keyboard), just
      with the scrollbar itself hidden per direct feedback — "scoate
@@ -836,7 +900,7 @@ html:not([data-theme="dark"]) .cap-side-card {
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
-.cap-side-card .cap-leaderboard__list::-webkit-scrollbar {
+.cap-sidebar-section .cap-leaderboard__list::-webkit-scrollbar {
   display: none;
 }
 
@@ -1091,18 +1155,6 @@ html:not([data-theme="dark"]) .cap-side-card {
   color: var(--text-muted);
 }
 
-/* Loading placeholders for the sidebar, matching .cap-card-skeleton's
-   shimmer while the Supabase merge settles. */
-.cap-side-card--skeleton {
-  min-height: 200px;
-  border-radius: var(--cap-radius);
-  border: 2px solid var(--border);
-  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: cap-shimmer 1.4s linear infinite;
-}
-.cap-side-card--skeleton-sm { min-height: 96px; }
-
 /* ---- 3c. PROFILE PANEL --------------------------------------------------
    The whole left rail (see LeftColumn.tsx / ProfilePanel.tsx) — one
    presentation surface instead of the old 3-card "what to do next" stack.
@@ -1157,8 +1209,36 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
   flex-direction: column;
   align-items: center;
   flex: 1;
+  /* min-height:0 overrides the flexbox default (min-height:auto), which
+     otherwise refuses to let a flex child shrink below its own content
+     height — without it, this being taller than .cap-col-left's fixed
+     height (see section 3) forced .cap-profile-panel and the column
+     around it to grow past the viewport instead of scrolling internally,
+     which is what actually clipped Statistici/Realizări off the bottom
+     of a short window: .cap-col-left's own overflow-y:auto never got a
+     chance to trigger, because this element (not the column) is what was
+     overflowing, and .cap-profile-panel's own overflow:hidden (there only
+     to clip the cover photo's corners) silently ate the excess instead of
+     scrolling it. The scroll now happens here, right where the content
+     that can outgrow the available height actually lives. */
+  min-height: 0;
+  overflow-y: auto;
   padding: 0 20px 20px;
   text-align: center;
+}
+/* flex-shrink defaults to 1 — without this, making the container above
+   allowed to shrink (min-height:0) also makes the flexbox algorithm
+   proportionally SHRINK these children to fit instead of overflowing them
+   (which is what's supposed to trigger the scroll above). Name/meta being
+   text with their own overflow:hidden (for ellipsis) made it worse: per
+   the flexbox spec, a child's automatic min-size only falls back to its
+   content size when overflow is visible — with overflow:hidden already
+   set (for the ellipsis truncation), theirs is 0, so THEY were the ones
+   that visibly collapsed to nothing first while plainer siblings held
+   their size. flex-shrink:0 on every child fixes both at once: nothing
+   shrinks, the excess becomes real (scrollable) overflow instead. */
+.cap-profile-body > * {
+  flex-shrink: 0;
 }
 .cap-profile-avatar {
   width: 124px;
@@ -1470,7 +1550,7 @@ html:not([data-theme="dark"]) .cap-profile-stat {
   background-clip: text;
 }
 
-/* .cap-card/.cap-side-card need no dark background/border override —
+/* .cap-card/.cap-sidebar-panel need no dark background/border override —
    --card and --border already resolve to sane dark values (#1c1c1c and a
    faint white line). The pressed-button shadow needs none either: it's
    color-mix(chapter color, black), a fixed dark value independent of
@@ -1482,33 +1562,132 @@ html:not([data-theme="dark"]) .cap-profile-stat {
    here is secondary tuning at narrower widths, once already stacked. */
 @media (max-width: 900px) {
   :root { --cap-section-gap: 22px; }
-  /* Stacked below 1180px — let the two rails sit side by side here
-     instead of full-width each, since there's room for that but not for
-     a real 3-column grid yet. */
-  .cap-col-left, .cap-col-right { flex-direction: row; flex-wrap: wrap; }
-  .cap-col-left > *, .cap-col-right > * { flex: 1 1 260px; }
 }
 
 @media (max-width: 640px) {
   .cap-shell { padding: 0 18px; }
   .cap-grid  { grid-template-columns: 1fr; }
-  /* Reset BOTH properties the 900px rule above set on these cards — a
-     flex-basis of 260px, meant as a MINIMUM WIDTH when the rails were
-     row-wrapped, becomes a minimum HEIGHT once flex-direction goes back
-     to column here (flex-basis tracks the main axis, which just
-     flipped), forcing every card to at least 260px tall regardless of
-     its real content. That's what made NudgeCard show a large empty gap
-     under "Vezi favoritele" on a phone. */
-  .cap-col-left, .cap-col-right { flex-direction: column; }
-  .cap-col-left > *, .cap-col-right > * { flex: initial; }
   .cap-three-col { padding-bottom: 52px; }
   .cap-summary__stat { padding: 9px 16px; gap: 8px; }
   .cap-summary__value { font-size: 1.05rem; }
 }
 
+/* ---- 7. PHONE TAB BAR --------------------------------------------------
+   Below 640px the three columns stop being a single stacked scroll
+   (profile, then header+chapters, then missions+leaderboard, all in one
+   long page) and become three full-screen panes on a sliding track
+   instead, switched with a fixed bottom tab bar — per direct feedback
+   that stacking all three on a phone had no good reading order, the way
+   it does at every wider breakpoint. Same three columns, same DOM order,
+   same data — only the presentation changes.
+
+   The mechanism: .cap-mobile-viewport (a no-op above this breakpoint —
+   see section 3) becomes the slider's clipping viewport, sized to exactly
+   the space between the navbar and the tab bar. .cap-three-col becomes
+   the track itself: 300% wide, one pane per 33.3333%-wide column (which
+   is therefore exactly 100% of the viewport's own width), sliding via
+   --cap-tab-index (0/1/2, set inline by App.tsx from the active tab —
+   see MobileTabBar/lib/mobile-tabs.ts). translateX's percentage is
+   relative to the TRACK's own (300%) width, so -33.3333% per index step
+   works out to exactly one full pane. */
+@media (max-width: 640px) {
+  .cap-mobile-viewport {
+    display: block;
+    position: relative;
+    overflow: hidden;
+    height: calc(100vh - var(--nav-h, 72px) - var(--cap-tabbar-h));
+    height: calc(100dvh - var(--nav-h, 72px) - var(--cap-tabbar-h));
+  }
+
+  .cap-three-col {
+    flex-direction: row;
+    flex-wrap: nowrap;
+    width: 300%;
+    height: 100%;
+    gap: 0;
+    padding: 0;
+    transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+    transform: translateX(calc(var(--cap-tab-index, 1) * -33.3333%));
+  }
+
+  /* DOM order (left, middle, right) IS the slide order here — the
+     narrower-but-not-phone order:-1 trick (section 3) that puts the
+     middle column first in a stacked column doesn't apply to a sliding
+     track, where each pane's position has to match its tab's index. */
+  .cap-col-left, .cap-col-middle, .cap-col-right {
+    order: 0;
+    flex: 0 0 33.3333%;
+    width: 33.3333%;
+    height: 100%;
+    min-width: 0;
+    overflow-y: auto;
+    padding: var(--cap-section-gap) 0 24px;
+  }
+}
+
+@media (max-width: 640px) and (prefers-reduced-motion: reduce) {
+  .cap-three-col { transition: none; }
+}
+
+.cap-tabbar {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .cap-tabbar {
+    display: flex;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 40;
+    height: var(--cap-tabbar-h);
+    /* iOS home-indicator clearance — the bar's own background/border
+       extend behind it (padding, not a shrunk height), so the buttons
+       still line up with --cap-tabbar-h on a device with no inset. */
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    background: var(--card);
+    border-top: 1.5px solid var(--border);
+    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
+  }
+  html:not([data-theme="dark"]) .cap-tabbar {
+    background: #fff;
+  }
+}
+
+.cap-tabbar__btn {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: color 0.18s ease;
+}
+.cap-tabbar__icon {
+  width: 22px;
+  height: 22px;
+  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.cap-tabbar__label {
+  font-size: 0.64rem;
+  font-weight: 700;
+}
+.cap-tabbar__btn--active {
+  color: var(--accent);
+}
+.cap-tabbar__btn--active .cap-tabbar__icon {
+  transform: translateY(-1px) scale(1.1);
+}
+
 /* Motion is opted out at the component level too (useReducedMotion), so
    this only has to catch the CSS-driven pieces. */
 @media (prefers-reduced-motion: reduce) {
-  .cap-card-skeleton, .cap-side-card--skeleton { animation: none; }
+  .cap-card-skeleton, .cap-sidebar-section--skeleton { animation: none; }
   .cap-card { transition: none; }
+  .cap-tabbar__icon { transition: none; }
 }

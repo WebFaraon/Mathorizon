@@ -1,8 +1,6 @@
 import { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
 import { Trophy } from 'lucide-react';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
-import { EASE_OUT } from '../../lib/motion';
 import { LeaderboardRows } from './LeaderboardRows';
 import { LeaderboardModal } from './LeaderboardModal';
 
@@ -20,27 +18,27 @@ interface LeaderboardCardProps {
  * Realtime channels (exam/whiteboard) — this is the nearest real signal to
  * "students doing well on Mathorizon" that exists today.
  *
- * Only the first few rows show here (see .cap-side-card .cap-leaderboard__list
+ * A section inside RightColumn's shared .cap-sidebar-panel now, not its own
+ * bordered card — see MissionsCard's own comment for why. --cap-card-color
+ * stays set inline here (rather than moving up to the shared panel) since
+ * it's this section's own thing to own: the Leaderboard button and the
+ * Trophy eyebrow icon both read it, and Missions has no equivalent need
+ * for it.
+ *
+ * Only the first few rows show here (see .cap-sidebar-panel .cap-leaderboard__list
  * in styles.css); the "Leaderboard" button opens LeaderboardModal with the
  * same rows, unclipped, for the full roster.
  */
 export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardProps) {
-  const prefersReducedMotion = useReducedMotion();
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!ready) {
-    return <div className="cap-side-card cap-side-card--skeleton cap-side-card--skeleton-sm" aria-hidden="true" />;
+    return <div className="cap-sidebar-section cap-sidebar-section--skeleton" aria-hidden="true" />;
   }
 
   return (
     <>
-      <motion.div
-        className="cap-side-card"
-        style={{ '--cap-card-color': 'var(--yellow)' } as React.CSSProperties}
-        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.42, delay: 0.06, ease: EASE_OUT }}
-      >
+      <div className="cap-sidebar-section" style={{ '--cap-card-color': 'var(--yellow)' } as React.CSSProperties}>
         <span className="cap-side-card__eyebrow">
           <Trophy className="cap-side-card__eyebrow-icon" aria-hidden="true" />
           Top elevi · XP
@@ -62,7 +60,7 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
             </button>
           </>
         )}
-      </motion.div>
+      </div>
 
       {modalOpen && (
         <LeaderboardModal rows={rows} currentUserId={currentUserId} onClose={() => setModalOpen(false)} />
