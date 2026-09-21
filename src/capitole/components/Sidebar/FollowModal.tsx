@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Users } from 'lucide-react';
 
 interface FollowModalProps {
@@ -8,7 +9,7 @@ interface FollowModalProps {
 
 const COPY = {
   following: {
-    title: 'Urmăriți',
+    title: 'Urmărești',
     empty: 'Nu urmărești pe nimeni încă.'
   },
   followers: {
@@ -18,11 +19,16 @@ const COPY = {
 };
 
 /**
- * Opened from ProfilePanel's "Urmăriți"/"Urmăritori" buttons. There's no
+ * Opened from ProfilePanel's "urmărești"/"urmăritori" buttons. There's no
  * follow relationship in the data model yet (see ProfilePanel's own comment)
  * — this is an honest empty state, not a placeholder list of fake people,
  * since real students see this. Reuses .classes-modal/__backdrop/__dialog/
  * __head/__body from the shared site stylesheet, same as LeaderboardModal.
+ *
+ * Portaled to document.body (see LeaderboardModal's own comment for why) —
+ * ProfilePanel sits inside .cap-col-left, one of the two fixed+z-indexed
+ * rails, and rendering the modal in place trapped it in that rail's own
+ * stacking context instead of the page's.
  */
 export function FollowModal({ kind, onClose }: FollowModalProps) {
   useEffect(() => {
@@ -35,7 +41,7 @@ export function FollowModal({ kind, onClose }: FollowModalProps) {
 
   const copy = COPY[kind];
 
-  return (
+  return createPortal(
     <div className="classes-modal">
       <div className="classes-modal__backdrop" onClick={onClose} />
       <div className="classes-modal__dialog cap-follow-modal" role="dialog" aria-modal="true" aria-label={copy.title}>
@@ -53,6 +59,7 @@ export function FollowModal({ kind, onClose }: FollowModalProps) {
           </div>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 }

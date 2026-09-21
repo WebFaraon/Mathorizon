@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { Flame, Trophy, Zap, ClipboardList, Award } from 'lucide-react';
 import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
-import { useStudentClass } from '../../hooks/useStudentClass';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
 import { FollowModal } from './FollowModal';
@@ -26,9 +25,11 @@ const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
  * SimulareBannerCard stack, which pointed at "what to do next" using the
  * same progress numbers the chapter grid right next to it already showed.
  * This is a presentation surface instead, styled after a Duolingo-style
- * profile card: cover, avatar, role/class/join-date, follow counts, a
- * Statistici grid (streak, lifetime XP, leaderboard rank), and a Realizări
- * section (prepared visually ahead of a real achievements feature).
+ * profile card: cover, avatar, role/join-date, follow counts, a Statistici
+ * grid (streak, lifetime XP, leaderboard rank), and a Realizări section
+ * (prepared visually ahead of a real achievements feature). Just the role
+ * (Elev/Profesor/Admin) under the name, not which class — a student can
+ * belong to more than one, and this card only has room to imply one.
  *
  * Read-only on purpose, no edit affordance: editing stays on profile.html,
  * via the navbar's own profile button.
@@ -43,7 +44,6 @@ const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
  */
 export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId }: ProfilePanelProps) {
   const snapshot = useProfileSnapshot();
-  const { className } = useStudentClass(snapshot.role === 'elev');
   const prefersReducedMotion = useReducedMotion();
   const [followModal, setFollowModal] = useState<'following' | 'followers' | null>(null);
 
@@ -69,7 +69,6 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   const xpPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
 
   const roleLabel = snapshot.role ? ROLE_LABEL[snapshot.role] : null;
-  const roleLine = roleLabel && className ? `${roleLabel} · ${className}` : roleLabel;
 
   return (
     <motion.div className="cap-profile-panel" {...entrance}>
@@ -87,7 +86,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
         </div>
 
         <h3 className="cap-profile-name">{snapshot.displayName}</h3>
-        {roleLine && <span className="cap-profile-meta cap-profile-meta--primary">{roleLine}</span>}
+        {roleLabel && <span className="cap-profile-meta cap-profile-meta--primary">{roleLabel}</span>}
         {snapshot.memberSince && (
           <span className="cap-profile-meta cap-profile-meta--secondary">S-a alăturat în {snapshot.memberSince}</span>
         )}
@@ -98,7 +97,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
             static counts. */}
         <div className="cap-profile-follow">
           <button type="button" className="cap-profile-follow__item" onClick={() => setFollowModal('following')}>
-            <strong>0</strong> urmăriți
+            <strong>0</strong> urmărești
           </button>
           <button type="button" className="cap-profile-follow__item" onClick={() => setFollowModal('followers')}>
             <strong>0</strong> urmăritori

@@ -13,17 +13,49 @@ export function initialsFor(name: string): string {
 interface LeaderboardRowsProps {
   rows: LeaderboardRow[];
   currentUserId: string | null;
+  /** 'compact' (default): the card's stacked name+meta layout, capped
+      height. 'table': LeaderboardModal's real Loc/Elev/Nivel/XP columns,
+      one cell each, lined up under its own header row — see styles.css. */
+  variant?: 'compact' | 'table';
 }
 
 /**
  * The row list itself — shared between LeaderboardCard (a handful of rows,
- * capped height, hidden scrollbar) and LeaderboardModal (every row, full
- * height) so the two never drift into showing different information for
- * the same student. Which one caps the height is a CSS concern scoped to
- * .cap-side-card .cap-leaderboard__list, not something this component
- * decides — see styles.css.
+ * capped height, hidden scrollbar, 'compact' variant) and LeaderboardModal
+ * (every row, full height, 'table' variant) so the two never drift into
+ * showing different information for the same student. Which one caps the
+ * height is a CSS concern scoped to .cap-side-card .cap-leaderboard__list,
+ * not something this component decides — see styles.css.
  */
-export function LeaderboardRows({ rows, currentUserId }: LeaderboardRowsProps) {
+export function LeaderboardRows({ rows, currentUserId, variant = 'compact' }: LeaderboardRowsProps) {
+  if (variant === 'table') {
+    return (
+      <ol className="cap-leaderboard__list cap-leaderboard__list--table">
+        {rows.map((row) => (
+          <li
+            key={row.userId}
+            className={`cap-leaderboard__row cap-leaderboard__row--table${row.userId === currentUserId ? ' cap-leaderboard__row--you' : ''}`}
+          >
+            <span className="cap-leaderboard__rank">{row.rank}</span>
+            <span className="cap-leaderboard__avatar" aria-hidden="true">
+              {row.avatarUrl ? (
+                <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
+              ) : (
+                initialsFor(row.displayName)
+              )}
+            </span>
+            <span className="cap-leaderboard__name">
+              {row.displayName}
+              {row.userId === currentUserId && <span className="cap-leaderboard__you">Tu</span>}
+            </span>
+            <span className="cap-leaderboard__level">{row.level}</span>
+            <span className="cap-leaderboard__xp">{row.totalXp} XP</span>
+          </li>
+        ))}
+      </ol>
+    );
+  }
+
   return (
     <ol className="cap-leaderboard__list">
       {rows.map((row) => (

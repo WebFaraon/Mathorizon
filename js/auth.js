@@ -300,13 +300,18 @@
         /* Keeps display_name/avatar_url (used by the Capitole leaderboard
            — see get_xp_leaderboard, which reads them instead of touching
            auth.users) reasonably fresh, e.g. after the user changes their
-           name or profile picture. Fire-and-forget like the XP/streak
-           writes elsewhere in this file: staleness for the rest of one
-           session is cosmetic, not worth blocking sync on or retrying. */
-        _dbFetch(`user_profiles?user_id=eq.${uid}`, {
-          method:  'PATCH',
-          body:    JSON.stringify({ display_name: _displayName(), avatar_url: _avatarUrl() }),
-          headers: { 'Prefer': 'return=minimal' }
+           name or profile picture. A security-definer RPC, not a raw PATCH
+           on user_profiles: that table has never had a self-service UPDATE
+           policy (only SELECT/INSERT), so a client PATCH here silently 403s
+           under RLS every time — see 20260921090000_user_profiles_self_
+           identity_sync.sql for how that was found and why a blanket
+           self-UPDATE policy isn't the fix (role/status/plan live on the
+           same row). Still fire-and-forget like the XP/streak writes
+           elsewhere in this file: staleness for the rest of one session is
+           cosmetic, not worth blocking sync on or retrying. */
+        sb.rpc('sync_own_profile_identity', {
+          p_display_name: _displayName(),
+          p_avatar_url:   _avatarUrl()
         }).catch(() => {});
       } else {
         /* Utilizator fără profil — creăm unul bazat pe user_metadata */

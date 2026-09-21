@@ -60,11 +60,6 @@ function readSnapshot(): ProfileSnapshot {
  * resolved real session look identical on the very first read, and both
  * simply read as signedIn:false until bmauth:synced fires (which only ever
  * happens for the latter).
- *
- * The one exception is the student's class name, which DOES need a real
- * Supabase query — that lives in the separate useStudentClass hook instead
- * of here, since it's the only piece of state in this panel with a genuine
- * loading phase.
  */
 export function useProfileSnapshot(): ProfileSnapshot {
   const [data, setData] = useState<ProfileSnapshot>(() => readSnapshot());

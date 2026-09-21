@@ -942,21 +942,33 @@ html:not([data-theme="dark"]) .cap-side-card {
   font-variant-numeric: tabular-nums;
 }
 
+/* Standalone rule (rather than only ever nested inside .cap-leaderboard__meta,
+   which sets the same values on its own children by inheritance) — the
+   'table' variant renders this as a direct grid cell, outside .meta
+   entirely, so it needs a font-size/weight/color of its own to fall back
+   on instead of losing them. Same values .meta already gave it, so the
+   compact card variant's look is unchanged. */
+.cap-leaderboard__level {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--text-muted);
+  font-variant-numeric: tabular-nums;
+}
+
 /* ---- LEADERBOARD MODAL ----
    Reuses .classes-modal/__backdrop/__dialog/__head/__body from the shared
    site stylesheet (css/style.css) — the same centered-dialog pattern the
    classroom pages already use — rather than a second modal system just
-   for this page. Only the dialog's width, and rows sized up a bit for a
-   roomier full-roster view, are specific to this page. */
+   for this page. Widened from the card's own narrow rail width per direct
+   feedback that it read as cramped; rows use LeaderboardRows' 'table'
+   variant (see LeaderboardRows.tsx) instead of the card's compact stacked
+   layout — real Loc/Elev/Nivel/XP columns, not a plain list. */
 .cap-leaderboard-modal {
-  max-width: 560px;
+  max-width: 680px;
   width: 100%;
 }
 .cap-leaderboard-modal .cap-leaderboard__list {
   gap: 4px;
-}
-.cap-leaderboard-modal .cap-leaderboard__row {
-  padding: 10px 12px;
 }
 .cap-leaderboard-modal .cap-leaderboard__avatar {
   width: 36px;
@@ -966,11 +978,62 @@ html:not([data-theme="dark"]) .cap-side-card {
 .cap-leaderboard-modal .cap-leaderboard__name {
   font-size: 0.92rem;
 }
-.cap-leaderboard-modal .cap-leaderboard__meta {
-  font-size: 0.76rem;
+.cap-leaderboard-modal .cap-leaderboard__level {
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--text-secondary);
 }
 .cap-leaderboard-modal .cap-leaderboard__xp {
   font-size: 0.88rem;
+}
+
+/* The table's own column grid — one source of truth (this variable-free
+   repetition of the same five track widths) shared by the header row and
+   every data row below it, so they can never drift out of alignment with
+   each other. Rank/avatar sized to their content, Nivel/XP fixed and
+   right-aligned like any numeric table column, Elev (name) the only
+   flexible track. */
+.cap-leaderboard-table__head,
+.cap-leaderboard__row--table {
+  display: grid;
+  grid-template-columns: 32px 36px 1fr 64px 76px;
+  align-items: center;
+  gap: 12px;
+}
+
+.cap-leaderboard-table__head {
+  padding: 6px 12px 10px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--text-muted);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 6px;
+}
+.cap-leaderboard-table__head span:nth-child(4),
+.cap-leaderboard-table__head span:nth-child(5) {
+  text-align: right;
+}
+
+.cap-leaderboard__row--table {
+  padding: 10px 12px;
+}
+.cap-leaderboard__row--table .cap-leaderboard__level,
+.cap-leaderboard__row--table .cap-leaderboard__xp {
+  text-align: right;
+}
+
+@media (max-width: 480px) {
+  .cap-leaderboard-table__head,
+  .cap-leaderboard__row--table {
+    grid-template-columns: 26px 30px 1fr 44px 64px;
+    gap: 7px;
+  }
+  .cap-leaderboard-modal .cap-leaderboard__avatar {
+    width: 30px;
+    height: 30px;
+  }
 }
 
 .cap-leaderboard-modal__close {
@@ -1386,6 +1449,19 @@ html:not([data-theme="dark"]) .cap-profile-stat {
      the card regardless of the card's exact shade, the same way a real
      drop shadow would. */
   --cap-btn-shadow-primary: rgba(0, 0, 0, 0.65);
+}
+
+/* .cap-btn--secondary has no border at all in light mode (see its own
+   comment) — its background is a 14%-into-card tint, and against a white/
+   cream card that's still a visibly different pale color. Dark mode's
+   --card is already near-black (#1c1c1c), so the same formula mixes the
+   tint into a color barely distinguishable from the card behind it: the
+   button read as having a stroke on ONE edge only (the bottom pressed-
+   button shadow, a much stronger mix — see below), and none on the other
+   three. A real border, the same color family as that shadow, restores a
+   visible edge on every side. */
+[data-theme="dark"] .cap-btn--secondary {
+  border: 1.5px solid color-mix(in srgb, var(--cap-card-color, var(--accent)) 45%, transparent);
 }
 
 [data-theme="dark"] .cap-hero__title-accent {
