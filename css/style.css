@@ -3612,6 +3612,35 @@ html:not([data-theme="dark"]) .rarity-card {
   border-color: var(--border);
   color: var(--text-secondary);
 }
+/* Light theme only, same white-not-cream fix as the modal dialog/statement
+   box around it (see .rarity-modal .classes-modal__dialog.rarity-modal__dialog
+   and .rarity-modal__statement) — dark theme's --surface is untouched.
+   Square, not the shared .points-badge's text-driven rectangle (padding
+   2px 9px on a 2-character label) — per direct feedback, and sized to
+   match .type-badge right next to it (see that rule's own override just
+   below) rather than the other way around, since the badge's own content
+   ("5p") is naturally the narrower of the two. */
+html:not([data-theme="dark"]) .rarity-modal__meta .points-badge {
+  background: #fff;
+}
+.rarity-modal__meta .points-badge {
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+/* Matches .points-badge's own new 30px square height right above — per
+   direct feedback wanting the two to line up, not just happen to be
+   close. */
+.rarity-modal__meta .type-badge {
+  height: 30px;
+  box-sizing: border-box;
+  display: inline-flex;
+  align-items: center;
+}
 
 .rarity-card__title {
   font-size: 0.92rem;
@@ -3794,6 +3823,13 @@ html:not([data-theme="dark"]) .rarity-card__statement {
    later in source order wins regardless of what we write here. The
    ancestor+double-class selector below outranks all of them (0,3,0 vs their
    0,1,0 / 0,2,0) so this reliably applies in both themes. */
+/* Light theme only — .classes-modal__dialog's own background is
+   var(--card), a cream tint, not the white body/cards around it use
+   elsewhere on this page; dark theme's --card is untouched. Same
+   selector-specificity trick as the block below, for the same reason. */
+html:not([data-theme="dark"]) .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
+  background: #fff;
+}
 .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
   max-width: 800px;
   width: 100%;
@@ -3864,6 +3900,30 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   flex-shrink: 0;
 }
 
+/* Standard chunky pressed-button treatment (see PROFILE PAGE's own
+   comment on #btnEditProfile etc. for the full rule this follows from
+   now on): a colored edge sits below at rest, collapses to flat and the
+   button sinks down to meet it on press, and hover ONLY dims the face
+   (filter, nothing moves and no color changes). Scoped to this button's
+   own ID, not the shared .icon-btn class it's built from — that class is
+   used for icon buttons across many other pages this rule was never
+   asked to touch. */
+#rarityModalClose {
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--text-muted) 55%, black 15%);
+}
+#rarityModalClose:hover {
+  background: transparent;
+  border-color: var(--border);
+  color: var(--text-secondary);
+  filter: brightness(0.94);
+}
+#rarityModalClose:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--text-muted) 55%, black 15%);
+  transform: translateY(3px);
+}
+
 /* overflow-x: hidden keeps the prev/next slide transition (translateX in
    js/category.js's goTo) from flashing a horizontal scrollbar mid-swap. */
 .rarity-modal__body { padding: 22px; overflow-y: auto; overflow-x: hidden; flex: 1 1 auto; min-height: 0; }
@@ -3893,6 +3953,11 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   font-size: 1rem;
   line-height: 1.9;
   color: var(--text);
+}
+/* Light theme only, same as the dialog itself just above — dark theme's
+   --surface is untouched. */
+html:not([data-theme="dark"]) .rarity-modal__statement {
+  background: #fff;
 }
 
 /* Houses the title + the reveal/hide toggle, which has to live outside
