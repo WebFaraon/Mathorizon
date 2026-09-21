@@ -3999,6 +3999,19 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   border-radius: var(--radius);
   background: color-mix(in srgb, var(--rc-color) 6%, var(--surface));
 }
+/* Without this, the [hidden] attribute js/category.js's barem toggle sets
+   on this element (gate.hidden = reveal) silently does nothing: the
+   `display: flex` above and the user-agent stylesheet's own
+   `[hidden] { display: none }` are equal specificity, and author CSS
+   beats user-agent CSS at a tie regardless of which one is declared
+   "later" — so this box stayed visible (still display:flex) even while
+   hidden="true", showing at the same time as the revealed barem content
+   instead of only when it's hidden, which is what this whole gate is
+   for. A same-specificity-but-more-specific-selector override here (the
+   attribute selector adds a second condition) wins the tie back. */
+.rarity-modal__barem-gate[hidden] {
+  display: none;
+}
 .rarity-modal__barem-gate-icon {
   flex-shrink: 0;
   width: 30px;
@@ -4011,6 +4024,13 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   color: var(--rc-color);
 }
 .rarity-modal__barem-gate-text { font-size: 0.84rem; color: var(--text-secondary); text-align: left; }
+/* Standard chunky pressed-button treatment (see the feedback_3d_button_
+   standard memory / #rarityModalClose's own comment for the full rule):
+   colored edge below at rest, darkened from this button's own face color
+   (--rc-color, the rarity accent — set per-modal, e.g. --rarity-comun-b),
+   hover ONLY dims (no color/position change — restated identically below,
+   not just added on top, same gotcha as everywhere else this rule
+   applies), click sinks the button and collapses the shadow. */
 .rarity-modal__barem-btn {
   display: inline-flex;
   align-items: center;
@@ -4024,10 +4044,20 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   font-size: 0.8rem;
   font-weight: 700;
   cursor: pointer;
-  transition: background 0.15s ease, transform 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--rc-color) 65%, black 30%);
 }
-.rarity-modal__barem-btn:hover  { background: color-mix(in srgb, var(--rc-color) 18%, transparent); }
-.rarity-modal__barem-btn:active { transform: scale(0.97); }
+.rarity-modal__barem-btn:hover {
+  background: color-mix(in srgb, var(--rc-color) 10%, transparent);
+  border-color: var(--rc-color);
+  color: var(--rc-color);
+  filter: brightness(0.94);
+}
+.rarity-modal__barem-btn:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc-color) 65%, black 30%);
+  transform: translateY(3px);
+}
 
 /* Steps stagger in (see the per-step animation-delay in buildRarityModalBody)
    the moment [hidden] is lifted — a display:none subtree doesn't run
