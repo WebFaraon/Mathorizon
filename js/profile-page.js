@@ -810,12 +810,21 @@
       window.location.replace('auth.html?from=profile.html');
       return;
     }
-    await renderProfile(auth.user, auth.supabase);
     // role/status come from a separate, slower DB round-trip
-    // (_syncUserProfile in auth.js) that's still pending at this point —
-    // if it lands after this page already painted with the 'elev' fallback,
-    // a profesor account would be stuck showing "Elev" forever. Re-render
-    // once the real role arrives.
-    document.addEventListener('bmauth:profile', () => renderProfile(auth.user, auth.supabase), { once: true });
+    // (_syncUserProfile in auth.js) that can still be pending at this
+    // point. If it already landed (window.BMAuth.role set), the render
+    // below already picks up the real value; otherwise listen for
+    // 'bmauth:profile' and re-render once it arrives — attached BEFORE
+    // that first render (which does its own async work: bio, cover,
+    // review data...), not after. That first render can easily take
+    // longer than _syncUserProfile's own single quick query, so
+    // listening only once it finished (the previous order here) had a
+    // real window where this one-time event already fired-and-was-missed
+    // before the listener existed — a profesor account stuck showing the
+    // 'elev' fallback forever, exactly the bug direct feedback reported.
+    if (!window.BMAuth?.role) {
+      document.addEventListener('bmauth:profile', () => renderProfile(auth.user, auth.supabase), { once: true });
+    }
+    await renderProfile(auth.user, auth.supabase);
   });
 })();

@@ -404,16 +404,12 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   /* Same full-height treatment as .cap-col-left now, per direct feedback
      that the right rail should read as one big block the same way the
      profile panel does, not stop short at its own natural (shorter)
-     content height. `right` mirrors .cap-shell's own centering-gap-plus-
-     padding math (max-width:1760px, padding:28px — see .cap-shell above)
-     in reverse, since a *fixed* element's percentages resolve against the
-     viewport, not its DOM parent, so the calc(50%-50vw) trick
-     .cap-col-left used to use (back when it was sticky inside the flex
-     row) doesn't apply here. Hardcodes those two numbers on purpose —
-     cheaper than re-deriving them, but keep this in sync if .cap-shell's
-     own values ever change. */
+     content height — and flush to the true right edge (right:0), same as
+     .cap-col-left's left:0, rather than inset by .cap-shell's own gutter:
+     direct feedback was that the gap made the two rails read as
+     differently sized when they're meant to match exactly. */
   .cap-col-right {
-    right: max(28px, calc((100vw - 1760px) / 2 + 28px));
+    right: 0;
     height: calc(100vh - var(--nav-h, 72px));
     height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
@@ -426,6 +422,12 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   .cap-sidebar-panel {
     flex: 1 1 auto;
     min-height: 0;
+    /* Mirrors .cap-profile-panel's own breakout on the opposite edge —
+       flush to the true right edge now (right:0 above), so the right
+       border/rounding would sit off-screen, same reasoning as the left
+       rail dropping its left border/rounding. */
+    border-right: none;
+    border-radius: var(--cap-radius) 0 0 var(--cap-radius);
   }
 }
 
@@ -741,19 +743,25 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   animation: cap-shimmer 1.4s linear infinite;
 }
 
+/* A real section title now (font-size/weight/color match
+   .cap-profile-section__title, the left rail's own "Statistici"/
+   "Realizări" headings) — the small uppercase "eyebrow" label treatment
+   this started as made sense sitting under a card's own colored top
+   border, back when Missions and Leaderboard were two separate cards; on
+   its own inside the merged panel, per direct feedback, it read as too
+   quiet to register as a heading at all. */
 .cap-side-card__eyebrow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--text-muted);
+  gap: 8px;
+  font-size: 0.94rem;
+  font-weight: 800;
+  color: var(--text);
 }
 .cap-side-card__eyebrow-icon {
-  width: 13px;
-  height: 13px;
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
   color: var(--yellow);
 }
 /* Missions' own identity color used to live on its standalone card's top
@@ -1165,6 +1173,7 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
    an otherwise-inset mobile card would read as a rendering bug, not a
    deliberate edge-to-edge blend. */
 .cap-profile-panel {
+  position: relative;
   display: flex;
   flex-direction: column;
   overflow: hidden;
@@ -1223,7 +1232,13 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
      that can outgrow the available height actually lives. */
   min-height: 0;
   overflow-y: auto;
-  padding: 0 20px 20px;
+  /* 74px = .cap-profile-avatar's own height (124px) minus how far it
+     overlaps the cover above (50px) — the exact flow space the avatar
+     used to reserve for itself back when it was positioned with a
+     negative margin instead of absolutely (see .cap-profile-avatar's own
+     comment for why that changed). Now that it's out of flow entirely,
+     this padding stands in for that reserved space by hand. */
+  padding: 74px 20px 20px;
   text-align: center;
 }
 /* flex-shrink defaults to 1 — without this, making the container above
@@ -1240,22 +1255,39 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
 .cap-profile-body > * {
   flex-shrink: 0;
 }
+/* Absolutely positioned against .cap-profile-panel (not flowed, with a
+   negative margin, as a child of the now-scrollable .cap-profile-body —
+   see that rule's own padding-top comment) — a negative margin here used
+   to make this poke up 50px above .cap-profile-body's own top edge to
+   overlap the cover, which relied on that ancestor's overflow staying
+   visible. Once .cap-profile-body needed overflow-y:auto instead (for
+   the short-viewport scroll fix), that same overflow started clipping
+   the avatar's top edge along with it — overflow other than visible
+   clips ALL directions, not just the one the scrollbar reads. Absolute
+   positioning against the panel sidesteps that entirely: this is no
+   longer inside the element that scrolls. 46px = the cover's own height
+   (96px) minus the same 50px overlap the old negative margin used. */
 .cap-profile-avatar {
+  position: absolute;
+  top: 46px;
+  left: 50%;
+  transform: translateX(-50%);
   width: 124px;
   height: 124px;
-  margin-top: -50px;
-  flex-shrink: 0;
   border-radius: 50%;
-  border: 4px solid var(--card);
+  /* A fixed, theme-independent color rather than matching --card/#fff —
+     per direct feedback that a border meant to match the surrounding
+     card became invisible against it precisely where that mattered (the
+     card is white in light mode and near-black in dark mode, exactly
+     the two colors this was), and a custom cover photo can be any tone,
+     so nothing theme-derived is reliably visible against it either. */
+  border: 4px solid var(--accent);
   background: var(--accent);
   box-shadow: var(--shadow-sm);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-}
-html:not([data-theme="dark"]) .cap-profile-avatar {
-  border-color: #fff;
 }
 .cap-profile-avatar img {
   width: 100%;
@@ -1622,6 +1654,18 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     min-width: 0;
     overflow-y: auto;
     padding: var(--cap-section-gap) 0 24px;
+    /* Scroll stays fully usable (wheel/touch/drag/keyboard) — only the
+       visible track is hidden, same treatment as the leaderboard list's
+       own scrollbar (see .cap-sidebar-section .cap-leaderboard__list) —
+       per direct feedback that it looked out of place on a phone, where
+       every native app's own scroll views don't show one either. */
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+  .cap-col-left::-webkit-scrollbar,
+  .cap-col-middle::-webkit-scrollbar,
+  .cap-col-right::-webkit-scrollbar {
+    display: none;
   }
 }
 
