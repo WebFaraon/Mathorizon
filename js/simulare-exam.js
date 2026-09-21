@@ -212,7 +212,10 @@ window.BM = window.BM || {};
      up when the simulation itself has supervised === true. ---- */
   function _logViolation() {
     if (!state || state.finished || !state.simulation.supervised) return;
-    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id }).catch(() => {});
+    // .then(null, ...), not .catch(...) — see js/auth.js's own comment on
+    // its sync_own_profile_identity RPC call for why: the PostgrestFilterBuilder
+    // .rpc() returns is thenable but has no .catch() method of its own.
+    BMAuth.supabase.rpc('log_sim_violation', { p_attempt_id: state.attempt.id }).then(null, () => {});
   }
   document.addEventListener('visibilitychange', () => {
     if (document.hidden) _logViolation();

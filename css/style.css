@@ -389,6 +389,13 @@ body.bac-exam-mode .nav.nav--peek {
   height: 100%;
   gap: 16px;
   max-width: var(--container);
+  /* Flex items default to min-width:auto (never shrink below their own
+     content width) — harmless at any width this nav has ever been
+     designed for, but it's what let .nav__brand's fixed-width logo+
+     wordmark combination push .nav__hamburger off the right edge of the
+     screen entirely on a ~320-360px phone (see .nav__brand's own
+     comment) instead of ever being asked to give up space. */
+  min-width: 0;
 }
 
 .nav__brand {
@@ -6156,7 +6163,27 @@ html:not([data-theme="dark"]) .rarity-card__statement {
   .nav-profile-name {
     display: block;
     font-size: 0.72rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.92);
     max-width: 72px;
+    /* This rule used to lose its max-width entirely to the later,
+       unscoped desktop rule (now moved inside @media(min-width:601px) —
+       see its own comment) — 130px won here instead of this 72px, on
+       every phone down to 601px. On top of that, max-width alone
+       wouldn't have been enough anyway: a flex item (this pill's own
+       .nav-profile-btn is display:flex) defaults to min-width:auto,
+       which refuses to shrink below the text's own natural width no
+       matter what max-width says, and without white-space:nowrap +
+       text-overflow:ellipsis there was nothing telling the browser HOW
+       to fit long text into that width either. Measured together, a
+       longer real name (e.g. "Alexandru Popescu") rendered at 171px —
+       comfortably enough on its own to push .nav__hamburger off the
+       right edge of a ~400-430px phone screen, on top of the wordmark
+       overflow fixed above. */
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .nav__right { gap: 4px; padding-left: 6px; border-left: 1px solid rgba(255,255,255,0.14); }
   /* Extra room between the profile pill and the hamburger — they sat right
@@ -6282,8 +6309,24 @@ html:not([data-theme="dark"]) .rarity-card__statement {
 }
 
 /* Very small phones — 400px and below */
-@media (max-width: 400px) {
-  .nav__logo { height: 46px; }
+/* Own breakpoint (420px), not the shared 400px one just below — measured
+   directly (Playwright, the signed-in pill with a real longer name like
+   "Alexandru Popescu"): overflow past the true viewport edge persisted up
+   to ~409-410px even with .nav-profile-name's own max-width fix (see its
+   comment) applied, purely from .nav__name (the "MATHORIZON" wordmark,
+   ~126px on its own) still showing. 420px clears that with margin instead
+   of matching it exactly. */
+@media (max-width: 420px) {
+  /* Measured directly (Playwright at 320/340/360px): with this still
+     showing, .nav__hamburger's right edge landed anywhere from 4px to
+     44px past the actual viewport edge, i.e. partially or, for a signed-
+     out visitor (the CTA pill is wider than the signed-in avatar pill),
+     completely off-screen and unreachable — the exact bug direct
+     feedback reported from students on their phones. Dropping it here
+     (keeping just the logo icon) reclaims enough width that the rest of
+     the row fits with room to spare even at 320px, the narrowest
+     currently-sold phone width. */
+  .nav__name { display: none; }
   /* Logo + tokens + theme toggle + avatar pill + hamburger all in one row
      stops leaving room for a username next to the avatar at this width —
      drop the name, keep just the initials/avatar circle (still tappable,
@@ -6293,6 +6336,10 @@ html:not([data-theme="dark"]) .rarity-card__statement {
      just the avatar circle inside a slightly bigger, transparent circular
      button, same bg/border treatment as the theme toggle and token widget. */
   .nav-profile-btn--pill { padding: 0; width: 34px; }
+}
+
+@media (max-width: 400px) {
+  .nav__logo { height: 46px; }
   .subcat-cards-grid { grid-template-columns: 1fr; }
   .chapter-card { padding: 18px 14px; }
   .cat-hud__num { font-size: 1rem; }
@@ -9870,15 +9917,24 @@ html:not([data-theme="dark"]) .rarity-card__statement {
     height: 30px;
     flex-shrink: 0;
   }
-}
-.nav-profile-name {
-  font-size: 0.82rem;
-  font-weight: 700;
-  color: rgba(255,255,255,0.92);
-  white-space: nowrap;
-  max-width: 130px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Same "scoped on purpose" reasoning as .nav-profile-btn--pill just
+     above, for the exact same reason — this used to be unscoped, sitting
+     here (equal specificity, later in source) silently winning the
+     cascade over the ≤640px mobile override below no matter the actual
+     viewport width, capping the name at 130px instead of that rule's
+     intended 72px on every phone down to 601px. A longer real name (e.g.
+     "Alexandru Popescu") still measured ~123px even truncated to 130px —
+     comfortably enough, stacked with .nav__name's own width, to push
+     .nav__hamburger off the right edge of a ~400-430px phone screen. */
+  .nav-profile-name {
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: rgba(255,255,255,0.92);
+    white-space: nowrap;
+    max-width: 130px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 }
 
 /* Dark mode */

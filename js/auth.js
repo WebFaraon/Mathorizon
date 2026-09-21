@@ -308,11 +308,23 @@
            self-UPDATE policy isn't the fix (role/status/plan live on the
            same row). Still fire-and-forget like the XP/streak writes
            elsewhere in this file: staleness for the rest of one session is
-           cosmetic, not worth blocking sync on or retrying. */
+           cosmetic, not worth blocking sync on or retrying.
+
+           .then(null, ...), not .catch(...): the PostgrestFilterBuilder
+           .rpc() returns here is thenable (works with await, as
+           useLeaderboard.ts's own sb.rpc() call does) but doesn't
+           implement a .catch() method of its own — calling it threw
+           "sb.rpc(...).catch is not a function" synchronously, INSIDE
+           this function's try block, which skipped straight to the catch
+           below and, with it, the bmauth:profile dispatch a few lines
+           down. That's a worse bug than the one this RPC call was meant
+           to fix in the first place: instead of a stale role, no
+           listener waiting on bmauth:profile (profile.html's own re-
+           render once role/status arrive) ever fired at all. */
         sb.rpc('sync_own_profile_identity', {
           p_display_name: _displayName(),
           p_avatar_url:   _avatarUrl()
-        }).catch(() => {});
+        }).then(null, () => {});
       } else {
         /* Utilizator fără profil — creăm unul bazat pe user_metadata */
         const role   = currentUser.user_metadata?.role || 'elev';

@@ -1627,8 +1627,10 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     display: block;
     position: relative;
     overflow: hidden;
-    height: calc(100vh - var(--nav-h, 72px) - var(--cap-tabbar-h));
-    height: calc(100dvh - var(--nav-h, 72px) - var(--cap-tabbar-h));
+    /* var(--cap-tabbar-h) + env(safe-area-inset-bottom) matches the tab
+       bar's own total (grown) height exactly — see its own comment. */
+    height: calc(100vh - var(--nav-h, 72px) - var(--cap-tabbar-h) - env(safe-area-inset-bottom, 0px));
+    height: calc(100dvh - var(--nav-h, 72px) - var(--cap-tabbar-h) - env(safe-area-inset-bottom, 0px));
   }
 
   .cap-three-col {
@@ -1653,7 +1655,21 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     height: 100%;
     min-width: 0;
     overflow-y: auto;
-    padding: var(--cap-section-gap) 0 24px;
+    /* Bottom padding well past what the layout math above says is
+       strictly needed (--cap-tabbar-h + a 24px margin, not just 24px on
+       its own) — a deliberate safety margin, not a rounding fudge. This
+       pane's own height already subtracts the tab bar's height from the
+       viewport (.cap-mobile-viewport, just above), so at maxed scroll
+       the last bit of content should already clear the tab bar with no
+       extra padding at all — reported direct feedback (a real phone
+       screenshot) showed the last card/button still partly behind the
+       tab bar regardless, which points at real-device viewport-height
+       reporting (100dvh included) being less exact in practice than the
+       math assumes. Padding this generous means the page stays fully
+       reachable by scrolling even if that assumption is off by a fair
+       amount on some browser/device, at the cost of some empty space
+       past the last element on ones where it wasn't. */
+    padding: var(--cap-section-gap) 0 calc(var(--cap-tabbar-h) + 24px);
     /* Scroll stays fully usable (wheel/touch/drag/keyboard) — only the
        visible track is hidden, same treatment as the leaderboard list's
        own scrollbar (see .cap-sidebar-section .cap-leaderboard__list) —
@@ -1685,10 +1701,15 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     right: 0;
     bottom: 0;
     z-index: 40;
-    height: var(--cap-tabbar-h);
-    /* iOS home-indicator clearance — the bar's own background/border
-       extend behind it (padding, not a shrunk height), so the buttons
-       still line up with --cap-tabbar-h on a device with no inset. */
+    /* iOS home-indicator clearance: the bar GROWS by the inset (box-
+       sizing:border-box means a plain padding-bottom here would instead
+       eat into the fixed --cap-tabbar-h, squeezing the actual buttons
+       into whatever's left rather than adding room below them) and the
+       padding pushes the button row up above the gesture area, inside
+       that taller box. .cap-mobile-viewport's own height calc mirrors
+       this exact sum, not --cap-tabbar-h alone, so it reserves the right
+       amount of space above this bar on a device with a real inset. */
+    height: calc(var(--cap-tabbar-h) + env(safe-area-inset-bottom, 0px));
     padding-bottom: env(safe-area-inset-bottom, 0px);
     background: var(--card);
     border-top: 1.5px solid var(--border);
