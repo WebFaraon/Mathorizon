@@ -1308,5 +1308,34 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrală definită rezolvată prin substituție, după simplificarea integrandului",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\setminus \\{2\\} \\to \\mathbb{R}$, $f(x) = \\frac{x^2}{x-2}$. Calculați:\n$$\\int_{3}^{8} \\frac{f(x)(x-2)}{x\\sqrt{x+1}}\\, dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$t = \\sqrt{x+1}$, $x = t^2 - 1$, $dx = 2t\\, dt$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea $2\\int_{2}^{3} (t^2 - 1)\\, dt$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea unei primitive a funcției de sub simbolul integralei",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 4,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]

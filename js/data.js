@@ -6885,6 +6885,20 @@ BM.EXERCISES = [
       { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{2}$', puncte_maxime: 2 }
     ]
   },
+  {
+    id: 'an-int-002', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'dificil', source: 'BAC Moldova, item 10c)',
+    title: 'Integrală definită prin substituție',
+    statement: 'Fie funcția $f\\colon \\mathbb{R} \\setminus \\{2\\} \\to \\mathbb{R}$, $f(x) = \\frac{x^2}{x-2}$.\n\nCalculați:\n$$\\int_{3}^{8} \\frac{f(x)(x-2)}{x\\sqrt{x+1}}\\, dx$$',
+    solution: '**Pasul 1.** Simplificarea integrandului și substituția.\n$f(x)(x-2) = \\frac{x^2}{x-2} \\cdot (x-2) = x^2$, deci integrandul devine $\\frac{x^2}{x\\sqrt{x+1}} = \\frac{x}{\\sqrt{x+1}}$.\nNotăm $t = \\sqrt{x+1}$, de unde $x = t^2 - 1$ și $dx = 2t\\, dt$.\nLimitele de integrare: $x = 3 \\Rightarrow t = 2$, $x = 8 \\Rightarrow t = 3$.\n\n**Pasul 2.** Obținerea integralei în variabila $t$.\n$$\\int_{3}^{8} \\frac{x}{\\sqrt{x+1}}\\, dx = \\int_{2}^{3} \\frac{t^2-1}{t} \\cdot 2t\\, dt = 2\\int_{2}^{3} (t^2 - 1)\\, dt$$\n\n**Pasul 3.** Determinarea unei primitive.\n$$G(t) = \\frac{t^3}{3} - t$$\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz.\n$$2\\left(G(3) - G(2)\\right) = 2\\left[\\left(9 - 3\\right) - \\left(\\frac{8}{3} - 2\\right)\\right] = 2\\left(6 - \\frac{2}{3}\\right) = 2 \\cdot \\frac{16}{3} = \\frac{32}{3}$$\n\n$$\\boxed{\\frac{32}{3}}$$',
+    barem: [
+      { descriere: '$t = \\sqrt{x+1}$, $x = t^2 - 1$, $dx = 2t\\, dt$', puncte_maxime: 3 },
+      { descriere: 'Obținerea $2\\int_{2}^{3} (t^2 - 1)\\, dt$', puncte_maxime: 1 },
+      { descriere: 'Determinarea unei primitive a funcției de sub simbolul integralei', puncte_maxime: 2 },
+      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{\\frac{32}{3}}$', puncte_maxime: 2 }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri
