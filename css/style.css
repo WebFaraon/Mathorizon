@@ -853,26 +853,49 @@ body.bac-exam-mode .nav.nav--peek {
   height: 38px;
   padding: 0 16px;
   border-radius: var(--radius);
-  background: transparent;
-  color: rgba(255,255,255,0.9);
-  border: 1.5px solid rgba(255,255,255,0.38);
+  /* A translucent white face, not fully transparent — the edge below
+     needs an actual button face to sit under, and this also keeps the
+     two nav buttons reading as a matched pair rather than one button
+     next to a text link. */
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.95);
+  border: 1.5px solid rgba(255,255,255,0.40);
   font-weight: 700;
   font-size: 0.94rem;
   white-space: nowrap;
   text-decoration: none;
   transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
               filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.32);
+}
+/* The navbar is a mid-blue bar in light theme but near-black in dark, so
+   a black edge (fine against the blue) had nothing to show against in
+   dark mode — it was invisible there. A faint white band instead: still
+   clearly dimmer than the button's own face, so it reads as the same
+   "darker step below the face", just expressed in the only direction
+   that's visible on a near-black bar. The face is lifted here too
+   (0.15 → 0.22): measured against the dark navbar, a 0.15 face left only
+   ~7/255 between face and edge, which is not a step anyone can see — at
+   0.22 the face/edge/bar are ~65/34/12, which reads properly. */
+[data-theme="dark"] .nav__guest-login {
+  background: rgba(255,255,255,0.22);
+  box-shadow: 0 3px 0 0 rgba(255,255,255,0.09);
+}
+[data-theme="dark"] .nav__guest-login:hover {
+  background: rgba(255,255,255,0.22);
 }
 .nav__guest-login:hover {
-  background: transparent;
-  color: rgba(255,255,255,0.9);
-  border-color: rgba(255,255,255,0.38);
-  filter: brightness(0.85);
+  background: rgba(255,255,255,0.15);
+  color: rgba(255,255,255,0.95);
+  border-color: rgba(255,255,255,0.40);
+  filter: brightness(0.88);
 }
 .nav__guest-login:active {
-  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.32);
   transform: translateY(3px);
+}
+[data-theme="dark"] .nav__guest-login:active {
+  box-shadow: 0 0 0 0 rgba(255,255,255,0.10);
 }
 
 /* Same primary-button token used everywhere else in the app ("Începe
@@ -882,10 +905,13 @@ body.bac-exam-mode .nav.nav--peek {
    display:flex + centering — not layered onto .nav-profile-btn(--cta),
    whose 40px circular-icon-button base doesn't apply here and was why
    the label wasn't centered before.
-   Shadow is --accent-based, not a further-darkened --text, for the same
-   reason every other var(--text)-background "ink" button on this site
-   uses that formula now: --text is already near-black in light mode, so
-   darkening it again leaves almost no visible step. */
+   The 3D edge is a darker shade of this button's OWN face, never an
+   accent blue — a blue band under a black (or, in dark mode, white)
+   button read as an unrelated color glued to the bottom of it. Because
+   --text is already near-black in light mode, the face is lightened a
+   touch (mixed 12% toward --bg) purely so a genuinely darker edge has
+   room to register as a step; in dark mode the near-white face needs no
+   such help and the same mix lands on a clear mid-grey by itself. */
 .nav__guest-signup {
   display: inline-flex;
   align-items: center;
@@ -893,25 +919,25 @@ body.bac-exam-mode .nav.nav--peek {
   height: 38px;
   padding: 0 16px;
   border-radius: var(--radius);
-  background: var(--text);
+  background: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
   color: var(--bg);
-  border: 1.5px solid var(--text);
+  border: 1.5px solid color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
   font-weight: 700;
   font-size: 0.94rem;
   white-space: nowrap;
   text-decoration: none;
   transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
               filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--text) 62%, black 38%);
 }
 .nav__guest-signup:hover {
-  background: var(--text);
-  border-color: var(--text);
+  background: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
+  border-color: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
   color: var(--bg);
   filter: brightness(0.9);
 }
 .nav__guest-signup:active {
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--text) 62%, black 38%);
   transform: translateY(3px);
 }
 
@@ -925,17 +951,17 @@ html.bm-guest .nav__guest-actions { display: flex; }
 /* Mobile guest bar: only the compact "Conectare" button stays inline —
    "Creează cont" is relocated into the dropdown menu instead (see the
    relocation IIFE in js/utils.js, same pattern as the existing token/theme
-   relocation). Styled as a real button here since the bar no longer has
-   the text-link's neighbors to read as a link against. */
+   relocation). Only the tap target grows here now — the border/radius/
+   background this used to re-declare were from when the desktop version
+   was a bare text link and this was the one place it read as a button.
+   The base rule carries all of that itself now, and re-stating the
+   background here specifically was overriding the dark-theme face it
+   sets (this selector outranks it), which measurably flattened the 3D
+   edge on a phone in dark mode. */
 @media (max-width: 768px) {
   html.bm-guest .nav__guest-login {
     padding: 8px 14px;
     min-height: 44px;
-    display: inline-flex;
-    align-items: center;
-    border: 1.5px solid rgba(255,255,255,0.42);
-    border-radius: var(--radius);
-    background: rgba(255,255,255,0.17);
   }
 }
 
@@ -1679,12 +1705,17 @@ html.bm-auth-pending .bm-auth-veil { display: block; }
 }
 .main > * { position: relative; z-index: 1; }
 
-/* category.html only: these blobs exist to be seen through glassmorphic
-   cards (see the comment above) — .subcat-card is solid now, not glass,
-   so they only ever showed as stray colored glows in the page margins.
-   #catHeader is unique to this page, so no other .main user is touched. */
+/* category.html + the landing page only: these blobs exist to be seen
+   through glassmorphic cards (see the comment above) — neither
+   .subcat-card nor the landing's own route cards are glass any more
+   (both are solid/tinted), so the blobs only ever showed as stray
+   colored glows in the page margins. #catHeader is unique to
+   category.html and .landing-main to index.html, so no other .main user
+   is touched. */
 body:has(#catHeader) .main::before,
-body:has(#catHeader) .main::after {
+body:has(#catHeader) .main::after,
+body:has(.landing-main) .main::before,
+body:has(.landing-main) .main::after {
   display: none;
 }
 
@@ -2189,27 +2220,20 @@ body:has(#catHeader) .main::after {
   box-shadow: var(--shadow-card);
 }
 
-/* `hover:hover` gates the tint-up effect to devices with a real pointer —
-   declared after the reset above, same selector/specificity, so it wins
-   only where this media condition is true (a real mouse), and simply
-   never activates on touch (no stuck hover there at all). No lift/
-   transform any more (was translateY(-4px)) — the card itself isn't a
-   click target (see its own cursor:default comment above), so a lift
-   implying "this is pressable" would be actively misleading now that
-   only the footer's own button is; the tint/border/shadow reading a
-   little stronger on hover is still fine as passive highlight, since it
-   doesn't specifically read as "clickable" the way a lift does. */
-@media (hover: hover) {
-  .chapter-card.route-card:hover {
-    background: color-mix(in srgb, var(--card-color, var(--accent)) 34%, transparent);
-    border-color: color-mix(in srgb, var(--card-color, var(--accent)) 72%, transparent);
-    box-shadow: var(--shadow);
-  }
-  [data-theme="dark"] .chapter-card.route-card:hover {
-    background: color-mix(in srgb, var(--card-color, var(--accent)) 33%, transparent);
-    border-color: color-mix(in srgb, var(--card-color, var(--accent)) 78%, transparent);
-    box-shadow: var(--shadow);
-  }
+/* The card has NO hover response of its own at all now (the reset rules
+   above ARE the whole story) — per direct feedback, the only thing that
+   should react to a pointer here is the footer's own button, which is
+   also the only thing that's actually clickable. That means killing the
+   two effects the plain .chapter-card base rule drives from the
+   container's :hover as well: its mouse-follow spotlight (::before) and
+   the icon scale-up. Both are still exactly right on /capitole's real
+   (clickable) chapter cards, which is why this is scoped to route cards
+   rather than removed from the base. */
+.chapter-card.route-card:hover::before {
+  opacity: 0;
+}
+.chapter-card.route-card:hover .chapter-card__icon {
+  transform: none;
 }
 
 /* Same small/muted/uppercase label already used for .token-widget__label
@@ -2343,40 +2367,52 @@ body:has(#catHeader) .main::after {
   transform: translateY(3px);
 }
 
+/* Solid, opaque fill in the card's own hue — the old transparent
+   .btn--ghost face let the card's tinted background straight through, so
+   the button read as a hollow outline rather than a button. --card-btn
+   is set inline per card in index.html next to --card-color: a deeper
+   (700-level) shade of the same hue rather than --card-color itself,
+   because white label text on the raw card colors fails contrast badly
+   on three of the four (amber #f59e0b measures ~2.1:1, green ~2.5:1,
+   pink ~3.4:1); the deeper shades all clear 4.5:1. The 3D edge is that
+   same color darkened, NOT a shared accent blue — a violet button gets a
+   darker violet edge, green gets darker green, and so on. */
 .route-card__footer .btn--ghost {
-  background: transparent;
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
-  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  background: var(--card-btn, var(--accent));
+  color: #fff;
+  border-color: var(--card-btn, var(--accent));
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--card-btn, var(--accent)) 68%, black 32%);
 }
 .route-card__footer .btn--ghost:hover {
-  background: transparent;
-  color: var(--accent);
-  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  background: var(--card-btn, var(--accent));
+  color: #fff;
+  border-color: var(--card-btn, var(--accent));
 }
 .route-card__footer .btn--ghost:active {
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--card-btn, var(--accent)) 68%, black 32%);
 }
 
-/* .btn--primary here is the same var(--text)-on-var(--bg) "ink" button
-   used sitewide (dark-on-light in light mode, light-on-dark in dark) — an
-   --accent-based shadow instead of darkening --text further, same
-   reasoning as every other ink button restyled this way already: --text
-   is already near-black in light mode, so a "darken it more" shadow left
-   almost no visible step there. */
+/* .btn--primary here is the sitewide var(--text)-on-var(--bg) "ink"
+   button (near-black face in light mode, near-white in dark). Its edge is
+   a darker shade of THAT face — not an accent blue, which read as an
+   unrelated color stuck under a black button. In light mode --text is
+   already near-black, so the face is lightened a touch here (to a soft
+   charcoal) purely so a genuinely darker edge has somewhere to sit and
+   the 3D step is actually visible; in dark mode the near-white face
+   needs no such help and the mix lands on a clear mid-grey by itself. */
 .route-card__waitlist-row .btn--primary {
-  background: var(--text);
+  background: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
   color: var(--bg);
-  border-color: var(--text);
-  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  border-color: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--text) 62%, black 38%);
 }
 .route-card__waitlist-row .btn--primary:hover {
-  background: var(--text);
+  background: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
   color: var(--bg);
-  border-color: var(--text);
+  border-color: color-mix(in srgb, var(--text) 88%, var(--bg) 12%);
 }
 .route-card__waitlist-row .btn--primary:active {
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--text) 62%, black 38%);
 }
 
 .route-grid__note {
