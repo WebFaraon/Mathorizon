@@ -6871,46 +6871,9 @@ BM.EXERCISES = [
   /* ============================================================
      ANALIZĂ MATEMATICĂ — Integrale
      ============================================================ */
-  {
-    id: 'an-int-001', categoryId: 'analiza', subcategoryId: 'integrale',
-    puncteTotal: 8,
-    difficulty: 'usor', source: 'BAC 2022, Varianta 2',
-    title: 'Integrala unui polinom',
-    statement: 'Calculați:\n$$\\int (3x^2 - 4x + 2)\\, dx$$',
-    solution: '$$\\int (3x^2 - 4x + 2)\\, dx = x^3 - 2x^2 + 2x + C$$'
-  },
-  {
-    id: 'an-int-002', categoryId: 'analiza', subcategoryId: 'integrale',
-    puncteTotal: 8,
-    difficulty: 'usor', source: 'BAC 2023, Varianta 11',
-    title: 'Integrală definită',
-    statement: 'Calculați:\n$$\\int_0^2 (2x + 1)\\, dx$$',
-    solution: '$F(x) = x^2 + x$\n\n$$\\int_0^2 (2x+1)\\,dx = F(2) - F(0) = (4+2) - 0$$\n\n$$\\boxed{6}$$'
-  },
-  {
-    id: 'an-int-003', categoryId: 'analiza', subcategoryId: 'integrale',
-    puncteTotal: 8,
-    difficulty: 'mediu', source: 'BAC 2021, Varianta 7',
-    title: 'Integrală cu funcție exponențială',
-    statement: 'Calculați:\n$$\\int_0^1 e^x\\, dx$$',
-    solution: '$$\\int_0^1 e^x\\, dx = \\left[e^x\\right]_0^1 = e^1 - e^0 = e - 1$$\n\n$$\\boxed{e - 1 \\approx 1{,}718}$$'
-  },
-  {
-    id: 'an-int-004', categoryId: 'analiza', subcategoryId: 'integrale',
-    puncteTotal: 8,
-    difficulty: 'mediu', source: 'BAC 2022, Varianta 34',
-    title: 'Integrare prin substituție',
-    statement: 'Calculați:\n$$\\int 2x\\,e^{x^2}\\, dx$$',
-    solution: 'Substituție: $t = x^2 \\Rightarrow dt = 2x\\, dx$\n$$\\int e^t\\, dt = e^t + C$$\n\n$$\\boxed{e^{x^2} + C}$$'
-  },
-  {
-    id: 'an-int-005', categoryId: 'analiza', subcategoryId: 'integrale',
-    puncteTotal: 8,
-    difficulty: 'dificil', source: 'BAC 2023, Varianta 19',
-    title: 'Integrare prin părți',
-    statement: 'Calculați:\n$$\\int x\\sin x\\, dx$$',
-    solution: '$\\int u\\, dv = uv - \\int v\\, du$\n\n$u = x \\Rightarrow du = dx$;  $dv = \\sin x\\, dx \\Rightarrow v = -\\cos x$\n$$\\int x\\sin x\\, dx = -x\\cos x + \\int \\cos x\\, dx$$\n\n$$\\boxed{-x\\cos x + \\sin x + C}$$'
-  },
+  /* Golit intenționat: exercițiile vechi (an-int-001..005) au fost eliminate
+     pentru a fi înlocuite cu exerciții derivate din baremurile oficiale RM
+     pentru itemul 10c). Până atunci slotul ex10b/ex10c rămâne fără integrale. */
 
   /* ============================================================
      ANALIZĂ — Șiruri
