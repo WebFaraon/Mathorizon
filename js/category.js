@@ -726,14 +726,16 @@
     // worked-out calculation behind it, shown only to the student. A criterion
     // like "Determinarea unei primitive" tells you what earns the points but
     // not how to get there, which is the whole reason the detail exists.
+    // The detail is a direct child of .rarity-step, not nested under the
+    // criterion, so it can take a full-width wrapped row of its own. Inside
+    // the criterion's column it only had ~177px on a 320px phone, which left
+    // a 261px display formula scrollable by a third of its width.
     const stepsHtml = barem.map((b, i) => `
       <div class="rarity-step" style="animation-delay:${i * 70}ms">
         <span class="rarity-step__num">${i + 1}</span>
-        <div class="rarity-step__body math-content">
-          <div class="rarity-step__crit">${BM.trustedNl2br(b.descriere || '')}</div>
-          ${b.explicatie ? `<div class="rarity-step__detail">${BM.trustedNl2br(b.explicatie)}</div>` : ''}
-        </div>
+        <div class="rarity-step__crit math-content">${BM.trustedNl2br(b.descriere || '')}</div>
         <span class="rarity-step__pts">${b.puncte_maxime}p</span>
+        ${b.explicatie ? `<div class="rarity-step__detail math-content">${BM.trustedNl2br(b.explicatie)}</div>` : ''}
       </div>`).join('');
 
     return `
@@ -809,6 +811,7 @@
     const modal = wrap.firstElementChild;
     document.body.appendChild(modal);
     BM.renderMath(modal);
+    BM.fitDisplayMath(modal);
 
     const dialog   = modal.querySelector('.rarity-modal__dialog');
     const backdrop = modal.querySelector('.classes-modal__backdrop');
@@ -859,6 +862,7 @@
       setTimeout(() => {
         body.innerHTML = buildRarityModalBody(newEx);
         BM.renderMath(body);
+        BM.fitDisplayMath(body);
         body.scrollTop = 0;
         body.style.transition = 'none';
         body.style.transform  = `translateX(${-outOffset}px)`;
@@ -1371,6 +1375,10 @@
       if (container && container.classList.contains('exercises-container--rarity')) {
         shrinkRarityFormulasToFit(container);
       }
+      // The open modal's barem formulas are fitted to a width too, so they go
+      // stale on the same resize/rotation the cards do.
+      const openModal = document.getElementById('rarityModal');
+      if (openModal) BM.fitDisplayMath(openModal);
     }, 150);
   });
 

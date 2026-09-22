@@ -280,6 +280,68 @@ BM.renderMath = function(el) {
   } catch(e) { /* silently ignore */ }
 };
 
+/* ---- Fit display formulas into narrow columns ----
+   KaTeX display math never wraps: a long equation just overflows and
+   .katex-display's own overflow-x:auto turns it into a sideways-scrollable
+   strip. That's fine on a desktop, where it rarely triggers, but a barem step
+   on a 320px phone gives a formula about 280px, and students don't reliably
+   discover that a formula can be dragged — they just read a truncated
+   equation. So shrink the ones that don't fit until they do.
+
+   Scaling font-size rather than applying a transform is deliberate: font-size
+   reflows KaTeX (which sizes everything in em), so widths, scrollWidth and the
+   element's own height all stay truthful. A transform would leave the layout
+   box at its original size, so the overflow would still be there underneath
+   and a band of dead space would open up below each shrunken formula.
+
+   Call it after BM.renderMath, and again on resize/orientation change, since
+   a ratio computed at one width goes stale at another. */
+BM.fitDisplayMath = function(root) {
+  if (!root || !root.querySelectorAll) return;
+  const run = () => BM._fitDisplayMathPass(root);
+  run();
+  /* KaTeX loads its fonts from a CDN. Until they land, every formula is
+     measured in a fallback font and comes out noticeably narrower, so a fit
+     computed now is stale the moment the real fonts swap in — the formula
+     grows back past the edge and the shrink looks like it never happened.
+     Re-run once the fonts are actually ready. */
+  if (document.fonts && document.fonts.ready && typeof document.fonts.ready.then === 'function') {
+    document.fonts.ready.then(run).catch(() => {});
+  }
+};
+
+BM._fitDisplayMathPass = function(root) {
+  root.querySelectorAll('.katex-display').forEach(disp => {
+    const inner = disp.querySelector('.katex');
+    if (!inner) return;
+    // Always reset first: on a resize the element may currently be shrunk
+    // more than the new width requires, and measuring it in that state would
+    // lock in the smaller size forever.
+    inner.style.fontSize = '';
+    const base = parseFloat(getComputedStyle(inner).fontSize);
+    if (!base) return;
+    // Floor the shrink: past this the formula is technically whole but too
+    // small to read, and leaving it scrollable is the better trade.
+    const floor = base * 0.62;
+    let size = base;
+    /* Measure, shrink, measure again. A single pass lands a few pixels short:
+       the ratio is computed while the content is still overflowing, and
+       KaTeX's internal struts and delimiter sizing don't scale perfectly
+       linearly with the root font-size. Measuring the .katex-display wrapper
+       (not the inner .katex) is deliberate — that's the element that actually
+       carries overflow-x, so its own scrollWidth is the honest answer to
+       "would this need dragging". Converges in two or three passes. */
+    for (let pass = 0; pass < 4; pass++) {
+      const avail = disp.clientWidth;
+      const need  = disp.scrollWidth;
+      if (!avail || !need || need - avail <= 1) break;
+      size = Math.max(size * (avail / need), floor);
+      inner.style.fontSize = size.toFixed(2) + 'px';
+      if (size <= floor + 0.01) break;
+    }
+  });
+};
+
 /* ---- Extrage preview plain text (fără LaTeX) ---- */
 BM.plainPreview = function(str) {
   return str

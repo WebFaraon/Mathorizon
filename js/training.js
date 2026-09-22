@@ -609,6 +609,7 @@
       `;
       modal.scrollTop = 0; // innerHTML swap doesn't reset scroll on its own — without this a modal reopened after a scrolled-down close (e.g. review mode right after grading) would render already scrolled past its own header.
       BM.renderMath(modal);
+      BM.fitDisplayMath(modal);
       document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
       document.getElementById('revealOverlay').classList.add('open');
       return;
@@ -633,6 +634,7 @@
     modal.scrollTop = 0; // see the scroll-reset note in the review-mode branch above
 
     BM.renderMath(modal);
+    BM.fitDisplayMath(modal);
 
     const overlay = document.getElementById('revealOverlay');
     overlay.classList.add('open');

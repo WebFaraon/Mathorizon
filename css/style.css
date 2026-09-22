@@ -4216,8 +4216,14 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 
 .rarity-step {
   display: flex;
+  /* The explanation block wraps onto a row of its own (flex-basis: 100%)
+     instead of living inside the criterion's column — on a 320px phone that
+     column is only ~190px wide, too narrow for a display formula. row-gap
+     stays 0 because .rarity-step__detail sets its own top margin. */
+  flex-wrap: wrap;
   align-items: flex-start;
-  gap: 12px;
+  column-gap: 12px;
+  row-gap: 0;
   padding: 10px 0;
   border-top: 1px solid var(--border);
 }
@@ -4238,7 +4244,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   margin-top: 1px;
 }
 
-.rarity-step__body { flex: 1; min-width: 0; font-size: 0.88rem; line-height: 1.7; color: var(--text); }
+.rarity-step__crit { flex: 1; min-width: 0; font-size: 0.88rem; line-height: 1.7; color: var(--text); }
 
 /* The official criterion (what earns the points) vs. the worked calculation
    behind it — see the barem step markup in js/category.js. */
@@ -4251,25 +4257,36 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
    matching negative margin keeps step height and the number badge's alignment
    byte-identical to before. Horizontal scrolling for genuinely wide formulas
    is untouched. */
-.rarity-step__body,
+.rarity-step__crit,
 .reveal-step > .math-content {
   overflow-y: hidden;
   padding-block: 6px;
   margin-block: -6px;
 }
 
-.rarity-step__crit { color: var(--text); }
 .rarity-step__detail {
-  margin-top: 7px;
+  flex: 0 0 100%;
+  /* 26px badge + 12px column-gap: keeps the block aligned under the criterion
+     text on wide screens. Dropped on phones, where the width matters more
+     than the indent. */
+  margin-left: 38px;
+  margin-top: 1px;
+  margin-bottom: -6px;
+  padding-block: 6px;
   padding-left: 11px;
   border-left: 2px solid var(--border);
   font-size: 0.97em;
+  line-height: 1.7;
   color: var(--text-secondary);
+  overflow-y: hidden;
 }
 /* Needs .math-content in the selector to outrank the generic
    `.math-content .katex-display { margin: 12px 0 }` further down the file —
-   same two-class specificity there, and it wins on source order otherwise. */
-.math-content .rarity-step__detail .katex-display,
+   same two-class specificity there, and it wins on source order otherwise.
+   .rarity-step__detail now carries .math-content on itself (not on an
+   ancestor), so it needs the compound form, while .reveal-step__detail is
+   still a descendant of the .math-content wrapper in js/training.js. */
+.rarity-step__detail.math-content .katex-display,
 .math-content .reveal-step__detail .katex-display { margin: 8px 0; }
 
 /* trustedNl2br turns the newlines around a $$...$$ block into <br>s, and each
@@ -4289,7 +4306,19 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   font-size: 0.97em;
   color: var(--text-secondary);
 }
-.reveal-step__detail .katex-display { margin: 8px 0; }
+
+/* Phones: give the explanation every pixel of width available. At 320px the
+   step's criterion column is only ~190px, so a display formula wanting 261px
+   had to be dragged sideways to be read whole. Dropping the indent hands the
+   block the step's full width, and trimming the modal's side padding and the
+   column gap claws back the rest. Measured at 320/360/390/412 after: no
+   formula scrolls. */
+@media (max-width: 480px) {
+  .rarity-modal__body { padding: 22px 14px; }
+  .rarity-step { column-gap: 8px; }
+  .rarity-step__detail { margin-left: 0; padding-left: 9px; }
+  .reveal-step__detail { padding-left: 9px; }
+}
 
 .rarity-step__pts {
   flex-shrink: 0;
@@ -6273,7 +6302,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
      computes to overflow-y:auto no matter what is written here (verified
      in-browser: getComputedStyle reports 'auto'). Kept only because the
      cascade is the same either way; the real vertical-scrollbar fix has to
-     be per-component, see .rarity-step__body / .reveal-step below. Only wide
+     be per-component, see .rarity-step__crit / .rarity-step__detail / .reveal-step above. Only wide
      formulas should ever scroll (horizontally). */
   overflow-y: visible;
   font-size: 1.02rem;

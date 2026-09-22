@@ -78,6 +78,9 @@ REGULI OBLIGATORII:
 6. Nu inventa rezultate. Fiecare valoare numerică trebuie să rezulte din rezolvarea de mai sus.
 7. Între 1 și 4 propoziții per explicație, plus formulele. Concis, dar complet.
 8. Nu folosi caracterul — (liniuță lungă) nicăieri în text.
+9. LĂȚIMEA FORMULELOR. Explicațiile se citesc și pe telefon, unde o formulă $$...$$ are la dispoziție doar ~280 de pixeli, adică în jur de 35 de caractere de formulă pe rând. Orice formulă $$...$$ care ar depăși această lățime TREBUIE spartă pe mai multe rânduri cu mediul aligned, aliniind la semnul egal:
+$$\\begin{aligned} A &= B + C \\\\ &= D \\end{aligned}$$
+Un lanț de egalități cu trei sau mai mulți pași se scrie ÎNTOTDEAUNA așa, cu câte un rând per pas. La fel și o sumă de două sau mai multe integrale: fiecare integrală pe rândul ei. Nu lăsa niciodată o formulă lungă pe un singur rând.
 
 Răspunde STRICT cu JSON de forma:
 {"explicatii": [{"nr": 1, "explicatie": "..."}, {"nr": 2, "explicatie": "..."}]}`;
