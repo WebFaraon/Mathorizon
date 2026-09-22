@@ -218,9 +218,23 @@ async function main() {
     console.error('GEMINI_API_KEY lipsește din .env');
     process.exit(1);
   }
-  const targets = ONLY_ID
+  const requested = ONLY_ID
     ? EXERCISES.filter(ex => ex.id === ONLY_ID)
     : EXERCISES.filter(ex => ex.subcategoryId === TARGET_SUBCAT && ex.baremEstimat === true).slice(0, LIMIT);
+
+  // formatBaremArray() re-emits each step as {descriere, puncte_maxime} only,
+  // so regenerating a hand-transcribed barem would silently drop its
+  // `explicatie` fields (the worked calculation shown to the student) — and
+  // Gemini may well return a different number of steps, so they can't just be
+  // re-attached by index. The --subcat path can't hit these (it filters on
+  // baremEstimat === true), but --id bypasses that filter, so guard here.
+  const targets = requested.filter(ex => {
+    const hasExpl = Array.isArray(ex.barem) && ex.barem.some(p => p.explicatie);
+    if (hasExpl) {
+      console.warn(`  SĂRIT ${ex.id}: baremul are explicații scrise de mână, care s-ar pierde la regenerare. Șterge-le întâi dacă chiar vrei să îl regenerezi.`);
+    }
+    return !hasExpl;
+  });
   console.log(`Subcapitol: ${TARGET_SUBCAT} — ${targets.length} exerciții de procesat (mod: ${APPLY ? 'APPLY (scrie data.js)' : 'DRY RUN'}).`);
 
   let text = fs.readFileSync(DATA_PATH, 'utf8');

@@ -6874,29 +6874,29 @@ BM.EXERCISES = [
   {
     id: 'an-int-001', categoryId: 'analiza', subcategoryId: 'integrale',
     puncteTotal: 8,
-    difficulty: 'mediu', source: 'BAC Moldova, item 10c)',
+    difficulty: 'mediu', source: 'BAC Moldova',
     title: 'Integrala modulului unei funcții polinomiale',
     statement: 'Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = x^4 - 4x^3$.\n\nCalculați:\n$$\\int_{-1}^{1} |f(x)|\\, dx$$',
     solution: '**Pasul 1.** Zerourile și semnul funcției $f$.\n$f(x) = x^4 - 4x^3 = x^3(x - 4)$, deci $f(x) = 0 \\Leftrightarrow x = 0$ sau $x = 4$.\nPe $[-1; 0]$: $x^3 \\le 0$ și $x - 4 < 0$, deci $f(x) \\ge 0$.\nPe $[0; 1]$: $x^3 \\ge 0$ și $x - 4 < 0$, deci $f(x) \\le 0$.\n\n**Pasul 2.** Descompunerea integralei după semnul funcției.\n$$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$$\n\n**Pasul 3.** Determinarea unei primitive a funcției $f$.\n$$F(x) = \\frac{x^5}{5} - x^4$$\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz.\n$$\\int_{-1}^{0} (x^4 - 4x^3)\\, dx = F(0) - F(-1) = 0 - \\left(-\\frac{1}{5} - 1\\right) = \\frac{6}{5}$$\n$$\\int_{0}^{1} (4x^3 - x^4)\\, dx = -\\left(F(1) - F(0)\\right) = -\\left(\\frac{1}{5} - 1\\right) = \\frac{4}{5}$$\n$$\\frac{6}{5} + \\frac{4}{5} = 2$$\n\n$$\\boxed{2}$$',
     barem: [
-      { descriere: 'Zerourile și semnul funcției $f$', puncte_maxime: 2 },
-      { descriere: '$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$', puncte_maxime: 2 },
-      { descriere: 'Determinarea unei primitive a funcției $f$', puncte_maxime: 2 },
-      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{2}$', puncte_maxime: 2 }
+      { descriere: 'Zerourile și semnul funcției $f$', puncte_maxime: 2, explicatie: '$f(x) = x^4 - 4x^3 = x^3(x - 4)$, deci $f(x) = 0$ pentru $x = 0$ și $x = 4$.\nPe $[-1; 0]$: $x^3 \\le 0$ și $x - 4 < 0$, iar produsul a două numere negative este pozitiv, deci $f(x) \\ge 0$.\nPe $[0; 1]$: $x^3 \\ge 0$ și $x - 4 < 0$, deci $f(x) \\le 0$.\nPrin urmare modulul se desface diferit pe cele două intervale, iar integrala trebuie ruptă în $x = 0$.' },
+      { descriere: '$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$', puncte_maxime: 2, explicatie: 'Acolo unde $f(x) \\ge 0$ avem $|f(x)| = f(x)$, iar acolo unde $f(x) \\le 0$ avem $|f(x)| = -f(x)$:\n$$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} \\left[-(x^4 - 4x^3)\\right] dx$$\nunde $-(x^4 - 4x^3) = 4x^3 - x^4$.' },
+      { descriere: 'Determinarea unei primitive a funcției $f$', puncte_maxime: 2, explicatie: 'Integrăm termen cu termen, cu formula $\\int x^n\\, dx = \\frac{x^{n+1}}{n+1}$:\n$$F(x) = \\frac{x^5}{5} - 4 \\cdot \\frac{x^4}{4} = \\frac{x^5}{5} - x^4$$\nAceeași primitivă $F$ servește pentru ambele integrale, a doua fiind doar opusul primei.' },
+      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{2}$', puncte_maxime: 2, explicatie: '$$\\int_{-1}^{0} (x^4 - 4x^3)\\, dx = F(0) - F(-1) = 0 - \\left(-\\frac{1}{5} - 1\\right) = \\frac{6}{5}$$\n$$\\int_{0}^{1} (4x^3 - x^4)\\, dx = -\\left[F(1) - F(0)\\right] = -\\left(\\frac{1}{5} - 1\\right) = \\frac{4}{5}$$\nAdunăm cele două bucăți: $\\frac{6}{5} + \\frac{4}{5} = \\frac{10}{5} = 2$.' }
     ]
   },
   {
     id: 'an-int-002', categoryId: 'analiza', subcategoryId: 'integrale',
     puncteTotal: 8,
-    difficulty: 'dificil', source: 'BAC Moldova, item 10c)',
+    difficulty: 'dificil', source: 'BAC Moldova',
     title: 'Integrală definită prin substituție',
     statement: 'Fie funcția $f\\colon \\mathbb{R} \\setminus \\{2\\} \\to \\mathbb{R}$, $f(x) = \\frac{x^2}{x-2}$.\n\nCalculați:\n$$\\int_{3}^{8} \\frac{f(x)(x-2)}{x\\sqrt{x+1}}\\, dx$$',
     solution: '**Pasul 1.** Simplificarea integrandului și substituția.\n$f(x)(x-2) = \\frac{x^2}{x-2} \\cdot (x-2) = x^2$, deci integrandul devine $\\frac{x^2}{x\\sqrt{x+1}} = \\frac{x}{\\sqrt{x+1}}$.\nNotăm $t = \\sqrt{x+1}$, de unde $x = t^2 - 1$ și $dx = 2t\\, dt$.\nLimitele de integrare: $x = 3 \\Rightarrow t = 2$, $x = 8 \\Rightarrow t = 3$.\n\n**Pasul 2.** Obținerea integralei în variabila $t$.\n$$\\int_{3}^{8} \\frac{x}{\\sqrt{x+1}}\\, dx = \\int_{2}^{3} \\frac{t^2-1}{t} \\cdot 2t\\, dt = 2\\int_{2}^{3} (t^2 - 1)\\, dt$$\n\n**Pasul 3.** Determinarea unei primitive.\n$$G(t) = \\frac{t^3}{3} - t$$\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz.\n$$2\\left(G(3) - G(2)\\right) = 2\\left[\\left(9 - 3\\right) - \\left(\\frac{8}{3} - 2\\right)\\right] = 2\\left(6 - \\frac{2}{3}\\right) = 2 \\cdot \\frac{16}{3} = \\frac{32}{3}$$\n\n$$\\boxed{\\frac{32}{3}}$$',
     barem: [
-      { descriere: '$t = \\sqrt{x+1}$, $x = t^2 - 1$, $dx = 2t\\, dt$', puncte_maxime: 3 },
-      { descriere: 'Obținerea $2\\int_{2}^{3} (t^2 - 1)\\, dt$', puncte_maxime: 1 },
-      { descriere: 'Determinarea unei primitive a funcției de sub simbolul integralei', puncte_maxime: 2 },
-      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{\\frac{32}{3}}$', puncte_maxime: 2 }
+      { descriere: '$t = \\sqrt{x+1}$, $x = t^2 - 1$, $dx = 2t\\, dt$', puncte_maxime: 3, explicatie: 'Întâi simplificăm integrandul: $f(x)(x-2) = \\frac{x^2}{x-2} \\cdot (x-2) = x^2$, deci\n$$\\frac{f(x)(x-2)}{x\\sqrt{x+1}} = \\frac{x^2}{x\\sqrt{x+1}} = \\frac{x}{\\sqrt{x+1}}$$\nNotăm $t = \\sqrt{x+1}$. Ridicând la pătrat, $t^2 = x + 1$, de unde $x = t^2 - 1$, iar prin derivare $dx = 2t\\, dt$.\nSe schimbă și limitele de integrare: $x = 3 \\Rightarrow t = \\sqrt{4} = 2$ și $x = 8 \\Rightarrow t = \\sqrt{9} = 3$.' },
+      { descriere: 'Obținerea $2\\int_{2}^{3} (t^2 - 1)\\, dt$', puncte_maxime: 1, explicatie: 'Înlocuim peste tot: numărătorul $x$ devine $t^2 - 1$, numitorul $\\sqrt{x+1}$ devine $t$, iar $dx$ devine $2t\\, dt$:\n$$\\int_{3}^{8} \\frac{x}{\\sqrt{x+1}}\\, dx = \\int_{2}^{3} \\frac{t^2 - 1}{t} \\cdot 2t\\, dt$$\nSe simplifică $t$ de la numitor cu $t$ din $2t\\, dt$ și rămâne $2\\int_{2}^{3} (t^2 - 1)\\, dt$.' },
+      { descriere: 'Determinarea unei primitive a funcției de sub simbolul integralei', puncte_maxime: 2, explicatie: 'Funcția de sub integrală este acum $t^2 - 1$, cu primitiva\n$$G(t) = \\frac{t^3}{3} - t$$' },
+      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{\\frac{32}{3}}$', puncte_maxime: 2, explicatie: '$$2\\left[G(3) - G(2)\\right] = 2\\left[\\left(\\frac{27}{3} - 3\\right) - \\left(\\frac{8}{3} - 2\\right)\\right] = 2\\left(6 - \\frac{2}{3}\\right) = 2 \\cdot \\frac{16}{3} = \\frac{32}{3}$$\nFactorul $2$ din fața integralei se păstrează până la final.' }
     ]
   },
 

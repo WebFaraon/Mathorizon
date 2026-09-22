@@ -4240,6 +4240,57 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 
 .rarity-step__body { flex: 1; min-width: 0; font-size: 0.88rem; line-height: 1.7; color: var(--text); }
 
+/* The official criterion (what earns the points) vs. the worked calculation
+   behind it — see the barem step markup in js/category.js. */
+/* Inline KaTeX carrying integral limits or a fraction renders 3-5px taller
+   than its line box, and .math-content's overflow-x:auto forces overflow-y to
+   compute to 'auto' (see the note on .math-content), so those few pixels were
+   painting a real, draggable vertical scrollbar on exactly the barem steps
+   that contain such math. Clipping the vertical axis kills the scrollbar; the
+   padding gives the clip box room so no glyph is actually cut, and the
+   matching negative margin keeps step height and the number badge's alignment
+   byte-identical to before. Horizontal scrolling for genuinely wide formulas
+   is untouched. */
+.rarity-step__body,
+.reveal-step > .math-content {
+  overflow-y: hidden;
+  padding-block: 6px;
+  margin-block: -6px;
+}
+
+.rarity-step__crit { color: var(--text); }
+.rarity-step__detail {
+  margin-top: 7px;
+  padding-left: 11px;
+  border-left: 2px solid var(--border);
+  font-size: 0.97em;
+  color: var(--text-secondary);
+}
+/* Needs .math-content in the selector to outrank the generic
+   `.math-content .katex-display { margin: 12px 0 }` further down the file —
+   same two-class specificity there, and it wins on source order otherwise. */
+.math-content .rarity-step__detail .katex-display,
+.math-content .reveal-step__detail .katex-display { margin: 8px 0; }
+
+/* trustedNl2br turns the newlines around a $$...$$ block into <br>s, and each
+   one opens a blank line on top of the block's own margin. KaTeX's
+   auto-render puts .katex-display inside a wrapper <span>, so the <br>s are
+   siblings of that wrapper, not of .katex-display — hence the :has(). Scoped
+   to the detail blocks, so spacing elsewhere on the site is left alone. */
+.rarity-step__detail span:has(> .katex-display) + br,
+.rarity-step__detail br:has(+ span > .katex-display),
+.reveal-step__detail span:has(> .katex-display) + br,
+.reveal-step__detail br:has(+ span > .katex-display) { display: none; }
+
+.reveal-step__detail {
+  margin-top: 7px;
+  padding-left: 11px;
+  border-left: 2px solid var(--border);
+  font-size: 0.97em;
+  color: var(--text-secondary);
+}
+.reveal-step__detail .katex-display { margin: 8px 0; }
+
 .rarity-step__pts {
   flex-shrink: 0;
   padding: 2px 9px;
@@ -6216,13 +6267,14 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
    ============================================================ */
 .math-content {
   overflow-x: auto;
-  /* Explicit, not left to default — leaving overflow-y unset while
-     overflow-x is non-visible makes browsers silently compute it as 'auto'
-     too (a well-known overflow-x/y coupling quirk), which was giving every
-     rendered math block its own surprise vertical scrollbar the moment it
-     grew a bit tall, stacked on top of whatever scrollbar its actual
-     container (a modal body, etc.) already had. Only wide formulas should
-     ever scroll (horizontally); vertical content just grows with the page. */
+  /* NOTE: this declaration does NOT do what it says. Per the CSS overflow
+     spec, when one axis is neither 'visible' nor 'clip', a 'visible' on the
+     other axis computes to 'auto' — so with overflow-x:auto above, this
+     computes to overflow-y:auto no matter what is written here (verified
+     in-browser: getComputedStyle reports 'auto'). Kept only because the
+     cascade is the same either way; the real vertical-scrollbar fix has to
+     be per-component, see .rarity-step__body / .reveal-step below. Only wide
+     formulas should ever scroll (horizontally). */
   overflow-y: visible;
   font-size: 1.02rem;
   line-height: 1.85;

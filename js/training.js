@@ -668,7 +668,10 @@
               <span class="reveal-step__num">Pasul ${i + 1}</span>
               <span class="reveal-step__points${ptsCls}"${ptsTitle}>${step.puncte_maxime}p${ex.baremEstimat ? ' ?' : ''}</span>
             </div>
-            <div class="math-content">${BM.trustedNl2br(step.descriere)}</div>
+            <div class="math-content">
+              <div class="reveal-step__crit">${BM.trustedNl2br(step.descriere)}</div>
+              ${step.explicatie ? `<div class="reveal-step__detail">${BM.trustedNl2br(step.explicatie)}</div>` : ''}
+            </div>
           </div>`;
       }).join('');
       return `<div class="reveal-steps">${steps}</div>`;

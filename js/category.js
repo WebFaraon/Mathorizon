@@ -721,10 +721,18 @@
     const barem = Array.isArray(ex.barem) ? ex.barem : [];
     const total = ex.puncteTotal || barem.reduce((s, b) => s + (Number(b.puncte_maxime) || 0), 0);
 
+    // `descriere` is the official barem criterion, kept verbatim because it's
+    // also what api/verify-exam.js grades against; `explicatie` is the
+    // worked-out calculation behind it, shown only to the student. A criterion
+    // like "Determinarea unei primitive" tells you what earns the points but
+    // not how to get there, which is the whole reason the detail exists.
     const stepsHtml = barem.map((b, i) => `
       <div class="rarity-step" style="animation-delay:${i * 70}ms">
         <span class="rarity-step__num">${i + 1}</span>
-        <div class="rarity-step__body math-content">${BM.trustedNl2br(b.descriere || '')}</div>
+        <div class="rarity-step__body math-content">
+          <div class="rarity-step__crit">${BM.trustedNl2br(b.descriere || '')}</div>
+          ${b.explicatie ? `<div class="rarity-step__detail">${BM.trustedNl2br(b.explicatie)}</div>` : ''}
+        </div>
         <span class="rarity-step__pts">${b.puncte_maxime}p</span>
       </div>`).join('');
 
