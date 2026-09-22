@@ -6871,9 +6871,20 @@ BM.EXERCISES = [
   /* ============================================================
      ANALIZĂ MATEMATICĂ — Integrale
      ============================================================ */
-  /* Golit intenționat: exercițiile vechi (an-int-001..005) au fost eliminate
-     pentru a fi înlocuite cu exerciții derivate din baremurile oficiale RM
-     pentru itemul 10c). Până atunci slotul ex10b/ex10c rămâne fără integrale. */
+  {
+    id: 'an-int-001', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC Moldova, item 10c)',
+    title: 'Integrala modulului unei funcții polinomiale',
+    statement: 'Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = x^4 - 4x^3$.\n\nCalculați:\n$$\\int_{-1}^{1} |f(x)|\\, dx$$',
+    solution: '**Pasul 1.** Zerourile și semnul funcției $f$.\n$f(x) = x^4 - 4x^3 = x^3(x - 4)$, deci $f(x) = 0 \\Leftrightarrow x = 0$ sau $x = 4$.\nPe $[-1; 0]$: $x^3 \\le 0$ și $x - 4 < 0$, deci $f(x) \\ge 0$.\nPe $[0; 1]$: $x^3 \\ge 0$ și $x - 4 < 0$, deci $f(x) \\le 0$.\n\n**Pasul 2.** Descompunerea integralei după semnul funcției.\n$$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$$\n\n**Pasul 3.** Determinarea unei primitive a funcției $f$.\n$$F(x) = \\frac{x^5}{5} - x^4$$\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz.\n$$\\int_{-1}^{0} (x^4 - 4x^3)\\, dx = F(0) - F(-1) = 0 - \\left(-\\frac{1}{5} - 1\\right) = \\frac{6}{5}$$\n$$\\int_{0}^{1} (4x^3 - x^4)\\, dx = -\\left(F(1) - F(0)\\right) = -\\left(\\frac{1}{5} - 1\\right) = \\frac{4}{5}$$\n$$\\frac{6}{5} + \\frac{4}{5} = 2$$\n\n$$\\boxed{2}$$',
+    barem: [
+      { descriere: 'Zerourile și semnul funcției $f$', puncte_maxime: 2 },
+      { descriere: '$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$', puncte_maxime: 2 },
+      { descriere: 'Determinarea unei primitive a funcției $f$', puncte_maxime: 2 },
+      { descriere: 'Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{2}$', puncte_maxime: 2 }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri

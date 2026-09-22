@@ -1279,5 +1279,34 @@
         "puncte_maxime": 1
       }
     ]
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrala modulului unei funcții polinomiale pe un interval cu schimbare de semn",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = x^4 - 4x^3$. Calculați:\n$$\\int_{-1}^{1} |f(x)|\\, dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Zerourile și semnul funcției $f$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "$\\int_{-1}^{1} |f(x)|\\, dx = \\int_{-1}^{0} (x^4 - 4x^3)\\, dx + \\int_{0}^{1} (4x^3 - x^4)\\, dx$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea unei primitive a funcției $f$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 4,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]

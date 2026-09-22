@@ -105,22 +105,20 @@
         { subcat: 'derivate', diff: ['usor', 'mediu', 'dificil'] }
       ]
     },
-    // TEMPORAR: 'integrale' scos din pool-urile 10b/10c cat timp banca nu are
-    // niciun exercitiu de integrale (vezi sectiunea golita din data.js).
-    // DE REINTRODUS imediat ce intra exercitiile noi bazate pe baremurile
-    // oficiale RM, altfel ele nu vor fi trase niciodata in simulare.
     {
       id: 'ex10b', label: 'Ex. 10b', points: 8, group: '10',
-      desc: 'Limite',
+      desc: 'Limite / Integrale',
       pools: [
-        { subcat: 'limite',    diff: ['usor', 'mediu', 'dificil'] }
+        { subcat: 'limite',    diff: ['usor', 'mediu', 'dificil'] },
+        { subcat: 'integrale', diff: ['usor', 'mediu', 'dificil'] }
       ]
     },
     {
       id: 'ex10c', label: 'Ex. 10c', points: 8, group: '10',
-      desc: 'Limite',
+      desc: 'Limite / Integrale',
       pools: [
-        { subcat: 'limite',    diff: ['usor', 'mediu', 'dificil'] }
+        { subcat: 'limite',    diff: ['usor', 'mediu', 'dificil'] },
+        { subcat: 'integrale', diff: ['usor', 'mediu', 'dificil'] }
       ]
     },
     {
