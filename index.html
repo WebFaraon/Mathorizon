@@ -67,7 +67,7 @@
       </div>
 
       <div class="landing-hero__inner">
-        <div class="landing-hero__eyebrow">Matematică · BAC · Moldova</div>
+        <div class="landing-hero__eyebrow">Matematică · BAC · Examen Gimnaziu · Moldova</div>
         <h1 class="landing-hero__title">
           Pregătire serioasă la matematică
           <span class="landing-hero__title-accent">
@@ -99,8 +99,12 @@
     <!-- ROUTE SELECTOR -->
     <div class="route-grid">
 
-      <!-- BAC (12th grade) — the one primary action on the page -->
-      <a class="chapter-card route-card" href="auth.html?tab=signup&role=elev" style="--card-color:#7c3aed">
+      <!-- BAC (12th grade) — the one primary action on the page. Not an
+           <a> around the whole card any more (only the footer's own CTA
+           is a real link now) — per direct feedback, a card this size
+           reading as one giant click target wasn't wanted alongside a
+           dedicated button already doing that job. -->
+      <div class="chapter-card route-card" style="--card-color:#7c3aed">
         <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg>
         <div class="route-card__eyebrow">BAC</div>
         <div class="chapter-card__name">Clasa a 12-a</div>
@@ -111,9 +115,9 @@
           <li>Simulare completă de 3 ore, notată automat</li>
         </ul>
         <div class="route-card__footer">
-          <span class="btn btn--ghost btn--lg btn--full">Începe pregătirea</span>
+          <a class="btn btn--ghost btn--lg btn--full" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
         </div>
-      </a>
+      </div>
 
       <!-- 9th grade — not built yet, stays visually equal, no disabled treatment.
            Dynamic zone (desc/link vs. form vs. success) is filled in by
@@ -125,12 +129,21 @@
           <span class="chapter-card__count">În pregătire</span>
         </div>
         <div class="chapter-card__name">Clasa a 9-a</div>
+        <!-- Static now, not part of #waitlistDynamic's own innerHTML — per
+             direct feedback, it used to disappear the moment the link
+             below swapped to the email form (renderForm() replaced this
+             whole zone, description included). Stays visible through
+             every state now, link/form/success alike — see
+             js/landing-page.js, which no longer touches this element at
+             all, only #waitlistDynamic below it. -->
+        <div class="chapter-card__desc">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</div>
         <div class="route-card__dynamic" id="waitlistDynamic"></div>
       </div>
 
       <!-- Teacher path — straight to signup with role preselected, not a
-           "how it works" page we don't have yet. -->
-      <a class="chapter-card route-card" href="auth.html?tab=signup&role=profesor" style="--card-color:#10b981">
+           "how it works" page we don't have yet. Same not-a-whole-card-
+           link change as the BAC card above. -->
+      <div class="chapter-card route-card" style="--card-color:#10b981">
         <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
         <div class="route-card__eyebrow">Profesori</div>
         <div class="chapter-card__name">Sunt profesor</div>
@@ -143,9 +156,9 @@
         </ul>
         <div class="route-card__footer">
           <div class="route-card__approval-note">Contul de profesor necesită aprobare.</div>
-          <span class="btn btn--ghost btn--lg btn--full">Creează cont de profesor</span>
+          <a class="btn btn--ghost btn--lg btn--full" href="auth.html?tab=signup&role=profesor">Creează cont de profesor</a>
         </div>
-      </a>
+      </div>
 
       <!-- No-account diagnostic test — pure design for now, see the CTA note below. -->
       <div class="chapter-card route-card" style="--card-color:#ec4899">

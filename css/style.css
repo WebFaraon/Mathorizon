@@ -836,15 +836,44 @@ body.bac-exam-mode .nav.nav--peek {
   align-items: center;
   gap: 14px;
 }
+/* Real button chrome now (border/background/padding), not a bare text
+   link — the 3D treatment below needs a face to sit on, and a shadow
+   under plain text with nothing to visually "sit above" wouldn't read as
+   a button at all. Applies wherever this nav partial renders (every
+   guest-facing page, not just the landing page) — same standard as every
+   other button restyled this way, see the feedback_3d_button_standard
+   memory. The navbar's own background is a dark, mostly theme-invariant
+   translucent bar in both themes (see .nav/[data-theme="dark"] .nav), so
+   this doesn't need separate light/dark variants the way page-body
+   buttons do. */
 .nav__guest-login {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 38px;
+  padding: 0 16px;
+  border-radius: var(--radius);
+  background: transparent;
+  color: rgba(255,255,255,0.9);
+  border: 1.5px solid rgba(255,255,255,0.38);
+  font-weight: 700;
   font-size: 0.94rem;
-  font-weight: 400;
-  color: rgba(255,255,255,0.85);
-  text-decoration: none;
   white-space: nowrap;
-  transition: color 0.15s ease;
+  text-decoration: none;
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.35);
 }
-.nav__guest-login:hover { color: #fff; }
+.nav__guest-login:hover {
+  background: transparent;
+  color: rgba(255,255,255,0.9);
+  border-color: rgba(255,255,255,0.38);
+  filter: brightness(0.85);
+}
+.nav__guest-login:active {
+  box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.35);
+  transform: translateY(3px);
+}
 
 /* Same primary-button token used everywhere else in the app ("Începe
    Antrenamentul", "Pornește simulare BAC" — .btn--primary: var(--text) on
@@ -852,7 +881,11 @@ body.bac-exam-mode .nav.nav--peek {
    green that doesn't exist anywhere else in the palette. Its own
    display:flex + centering — not layered onto .nav-profile-btn(--cta),
    whose 40px circular-icon-button base doesn't apply here and was why
-   the label wasn't centered before. */
+   the label wasn't centered before.
+   Shadow is --accent-based, not a further-darkened --text, for the same
+   reason every other var(--text)-background "ink" button on this site
+   uses that formula now: --text is already near-black in light mode, so
+   darkening it again leaves almost no visible step. */
 .nav__guest-signup {
   display: inline-flex;
   align-items: center;
@@ -863,16 +896,23 @@ body.bac-exam-mode .nav.nav--peek {
   background: var(--text);
   color: var(--bg);
   border: 1.5px solid var(--text);
-  font-weight: 400;
+  font-weight: 700;
   font-size: 0.94rem;
   white-space: nowrap;
   text-decoration: none;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
 }
 .nav__guest-signup:hover {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: #fff;
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  filter: brightness(0.9);
+}
+.nav__guest-signup:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+  transform: translateY(3px);
 }
 
 html.bm-guest .token-widget,
@@ -2106,6 +2146,11 @@ body:has(#catHeader) .main::after {
    tinted instead of white. Opacities are tuned per theme so the tint never
    drops text contrast — see the reduced ones under dark. ---- */
 .chapter-card.route-card {
+  /* Not a click target any more (see index.html's own comment — only the
+     footer's own <a>/<button> is a real link/action now), so the hand
+     cursor the base .chapter-card rule implies for the whole card would
+     be actively misleading here. */
+  cursor: default;
   background: color-mix(in srgb, var(--card-color, var(--accent)) 26%, transparent);
   border: 1px solid color-mix(in srgb, var(--card-color, var(--accent)) 50%, transparent);
   box-shadow: var(--shadow-card);
@@ -2144,15 +2189,18 @@ body:has(#catHeader) .main::after {
   box-shadow: var(--shadow-card);
 }
 
-/* `hover:hover` gates the actual lift/tint-up effect to devices with a real
-   pointer — declared after the reset above, same selector/specificity, so
-   it wins only where this media condition is true (a real mouse), and
-   simply never activates on touch (no stuck hover there at all). Modest,
-   no scale/rotation/strong glow: a small lift, a firmer shadow, and the
-   tint/border reading a little stronger. */
+/* `hover:hover` gates the tint-up effect to devices with a real pointer —
+   declared after the reset above, same selector/specificity, so it wins
+   only where this media condition is true (a real mouse), and simply
+   never activates on touch (no stuck hover there at all). No lift/
+   transform any more (was translateY(-4px)) — the card itself isn't a
+   click target (see its own cursor:default comment above), so a lift
+   implying "this is pressable" would be actively misleading now that
+   only the footer's own button is; the tint/border/shadow reading a
+   little stronger on hover is still fine as passive highlight, since it
+   doesn't specifically read as "clickable" the way a lift does. */
 @media (hover: hover) {
   .chapter-card.route-card:hover {
-    transform: translateY(-4px);
     background: color-mix(in srgb, var(--card-color, var(--accent)) 34%, transparent);
     border-color: color-mix(in srgb, var(--card-color, var(--accent)) 72%, transparent);
     box-shadow: var(--shadow);
@@ -2269,6 +2317,66 @@ body:has(#catHeader) .main::after {
 .route-card__waitlist-error {
   font-size: 0.78rem;
   color: var(--red);
+}
+
+/* Standard chunky pressed-button treatment (see the feedback_3d_button_
+   standard memory): colored edge below at rest, hover ONLY dims (every
+   color property restated identically — the base .btn--ghost:hover/
+   .btn--primary:hover rules this would otherwise still lose to are
+   declared once, globally, for every page that uses those classes), and
+   a click sinks the button and collapses the shadow. Scoped to these two
+   contexts (the route cards' own footer CTAs, and the waitlist form's
+   submit button) rather than .btn--ghost/.btn--primary themselves, which
+   are shared across many pages this wasn't asked to touch. */
+.route-card__footer .btn--ghost,
+.route-card__waitlist-row .btn--primary {
+  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease,
+              filter 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.route-card__footer .btn--ghost:hover,
+.route-card__waitlist-row .btn--primary:hover {
+  transform: none;
+  filter: brightness(0.94);
+}
+.route-card__footer .btn--ghost:active,
+.route-card__waitlist-row .btn--primary:active {
+  transform: translateY(3px);
+}
+
+.route-card__footer .btn--ghost {
+  background: transparent;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+}
+.route-card__footer .btn--ghost:hover {
+  background: transparent;
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 35%, transparent);
+}
+.route-card__footer .btn--ghost:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+}
+
+/* .btn--primary here is the same var(--text)-on-var(--bg) "ink" button
+   used sitewide (dark-on-light in light mode, light-on-dark in dark) — an
+   --accent-based shadow instead of darkening --text further, same
+   reasoning as every other ink button restyled this way already: --text
+   is already near-black in light mode, so a "darken it more" shadow left
+   almost no visible step there. */
+.route-card__waitlist-row .btn--primary {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
+}
+.route-card__waitlist-row .btn--primary:hover {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+.route-card__waitlist-row .btn--primary:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, black 30%);
 }
 
 .route-grid__note {
@@ -19395,11 +19503,12 @@ body.dc-fullscreen-active .dc-toolbar {
 }
 
 /* ============================================================
-   Capitole + category (per-chapter) + bac (Simulare setup) pages only:
-   plain white page (light theme only — dark theme's near-black --bg is
-   untouched). #root only exists on capitole.html, #catHeader only on
-   category.html, and #setupView only on bac.html, so this doesn't touch
-   any other page.
+   Capitole + category (per-chapter) + bac (Simulare setup) + profile +
+   landing pages only: plain white page (light theme only — dark theme's
+   near-black --bg is untouched). #root only exists on capitole.html,
+   #catHeader only on category.html, #setupView only on bac.html,
+   #profileContent only on profile.html, and .landing-main only on
+   index.html, so this doesn't touch any other page.
    The grid itself stays — a flat page with no pattern at all read as
    empty — just fainter than the site-wide default (roughly half the
    alpha) so it doesn't compete with the cards on top of it. !important +
@@ -19410,13 +19519,15 @@ body.dc-fullscreen-active .dc-toolbar {
 html:not([data-theme="dark"]) body:has(#root),
 html:not([data-theme="dark"]) body:has(#catHeader),
 html:not([data-theme="dark"]) body:has(#setupView),
-html:not([data-theme="dark"]) body:has(#profileContent) {
+html:not([data-theme="dark"]) body:has(#profileContent),
+html:not([data-theme="dark"]) body:has(.landing-main) {
   background-color: #fff !important;
 }
 body:has(#root),
 body:has(#catHeader),
 body:has(#setupView),
-body:has(#profileContent) {
+body:has(#profileContent),
+body:has(.landing-main) {
   background-image:
     linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px) !important;
@@ -19425,7 +19536,8 @@ body:has(#profileContent) {
 html[data-theme="dark"] body:has(#root),
 html[data-theme="dark"] body:has(#catHeader),
 html[data-theme="dark"] body:has(#setupView),
-html[data-theme="dark"] body:has(#profileContent) {
+html[data-theme="dark"] body:has(#profileContent),
+html[data-theme="dark"] body:has(.landing-main) {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;

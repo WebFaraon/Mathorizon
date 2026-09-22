@@ -21,9 +21,12 @@
 
   function renderDefault() {
     // Same btn--ghost treatment as the other 3 route cards' CTAs, not a
-    // bare text link, so all four cards read as one consistent button style.
+    // bare text link, so all four cards read as one consistent button
+    // style. The description used to live here too, duplicated into every
+    // state's own innerHTML — now static in index.html instead (this zone
+    // never controls it), since the old duplication is exactly what made
+    // it disappear the moment renderForm() replaced this element's content.
     dynamic.innerHTML =
-      '<div class="chapter-card__desc">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</div>' +
       '<div class="route-card__footer">' +
         '<a href="#" class="btn btn--ghost btn--lg btn--full" id="waitlistLinkBtn">Anunță-mă când e gata</a>' +
       '</div>';
