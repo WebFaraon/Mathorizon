@@ -1615,6 +1615,40 @@ body:has(#profileContent) .pf-avatar .prof-avatar-initials { font-size: 2rem; }
   .pf-desk .pf-tape { justify-content: center; }
 }
 
+/* Teacher: activity display across, then classes | reviews | account.
+   A pending / rejected teacher has no classes yet: reviews | account. */
+.pf-desk--teacher {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas:
+    "prog prog prog"
+    "cls  rev  acc";
+}
+.pf-desk--teacher-lite {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  grid-template-areas: "rev acc";
+}
+.pf-desk__cls { grid-area: cls; min-width: 0; }
+.pf-desk__rev { grid-area: rev; min-width: 0; }
+@media (max-width: 1100px) {
+  .pf-desk--teacher {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "prog prog"
+      "cls  acc"
+      "rev  acc";
+  }
+}
+@media (max-width: 720px) {
+  .pf-desk--teacher,
+  .pf-desk--teacher-lite {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-areas: "prog" "cls" "rev" "acc";
+  }
+}
+
+/* Four equal fields (teacher activity). */
+.pf-lcd.pf-lcd--even { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
 /* ---- Teacher: two columns under the plate ---- */
 .pf-grid {
   display: grid;
@@ -2006,6 +2040,9 @@ body:has(#profileContent) .prof-modal__actions .btn:active { box-shadow: 0 0 0 0
   .pf-lcd__cell--wide { grid-column: 1 / -1; }
   .pf-lcd__cell:nth-child(2),
   .pf-lcd__cell:nth-child(4) { border-left: none; }
+  .pf-lcd.pf-lcd--even { grid-template-columns: 1fr 1fr; }
+  .pf-lcd--even .pf-lcd__cell:nth-child(2) { border-left: 1px solid color-mix(in srgb, var(--k-lcd-ink) 16%, transparent); padding-top: 0; border-top: none; }
+  .pf-lcd--even .pf-lcd__cell:nth-child(3) { border-left: none; }
   .pf-lcd__cell:nth-child(n+2) { padding-top: 12px; border-top: 1px solid color-mix(in srgb, var(--k-lcd-ink) 16%, transparent); }
   body:has(#profileContent) .pf-cover { height: 96px; }
 }
@@ -2018,3 +2055,104 @@ body:has(#profileContent) .prof-modal__actions .btn:active { box-shadow: 0 0 0 0
 @media (prefers-reduced-motion: reduce) {
   .pf-skel { animation: none; }
 }
+
+/* ---- Country: flag in the plate, searchable dropdown in the edit modal ---- */
+.pf-flag {
+  display: inline-block;
+  flex-shrink: 0;
+  width: 20px;
+  height: 15px;
+  border-radius: 2px;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+  object-fit: cover;
+  vertical-align: -2px;
+}
+.pf-flag--none { background: var(--k-ghost); box-shadow: none; }
+.pf-country-val { display: inline-flex; align-items: center; gap: 8px; }
+
+.pf-country { position: relative; }
+.pf-country__trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-bg);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.08);
+  font-family: var(--k-font);
+  font-size: 0.9rem;
+  color: var(--k-ink);
+  text-align: left;
+  cursor: pointer;
+}
+.pf-country__trigger:focus-visible,
+.pf-country__trigger[aria-expanded="true"] {
+  border-color: var(--k-blue);
+  outline: none;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.08), 0 0 0 3px var(--k-blue-wash);
+}
+.pf-country__trigger svg { flex-shrink: 0; color: var(--k-ink-3); transition: transform 0.2s ease; }
+.pf-country__trigger[aria-expanded="true"] svg { transform: rotate(180deg); }
+.pf-country__value { display: inline-flex; align-items: center; gap: 10px; min-width: 0; }
+.pf-country__value > span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pf-country__ph { color: var(--k-ink-3); }
+
+.pf-country__pop {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 240px;
+  padding: 8px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 18px 32px -14px rgba(0, 0, 0, 0.4);
+  text-align: left;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .pf-country__pop:not([hidden]) { animation: pf-pop-in 0.18s cubic-bezier(0.16, 1, 0.3, 1); }
+}
+@keyframes pf-pop-in { from { opacity: 0; transform: translateY(-4px); } }
+.pf-country__search {
+  width: 100%;
+  height: 36px;
+  margin-bottom: 6px;
+  padding: 0 10px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-key);
+  font-family: var(--k-font);
+  font-size: 0.86rem;
+  color: var(--k-ink);
+}
+.pf-country__search:focus { border-color: var(--k-blue); outline: none; }
+.pf-country__list {
+  max-height: 240px;
+  margin: 0;
+  padding: 0;
+  overflow-y: auto;
+  list-style: none;
+  scrollbar-width: thin;
+  scrollbar-color: var(--k-panel-edge) transparent;
+}
+.pf-country__opt {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 8px;
+  border-radius: var(--k-r);
+  font-size: 0.88rem;
+  color: var(--k-ink);
+  cursor: pointer;
+}
+.pf-country__opt:hover,
+.pf-country__opt.is-active { background: var(--k-ghost); }
+.pf-country__opt.is-selected { font-weight: 800; color: var(--k-blue); }
+.pf-country__opt--sep { margin-bottom: 6px; border-bottom: 1px solid var(--k-rule); border-radius: var(--k-r) var(--k-r) 0 0; }
+.pf-country__empty { padding: 10px 8px; font-size: 0.86rem; color: var(--k-ink-3); }

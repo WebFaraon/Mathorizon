@@ -35,6 +35,140 @@
 
   function pad(n) { return String(n).padStart(2, '0'); }
 
+  /* ---- Countries ----
+     A fixed ISO 3166-1 list (no free text), named in Romanian by the
+     browser's own Intl.DisplayNames, flags as SVGs from the flag-icons
+     package (emoji flags don't render on Windows). The profile keeps
+     saving the country's name in user_metadata.country (class-page.js
+     shows it as text) and adds country_code for the flag. */
+  const COUNTRY_CODES = ('AD AE AF AG AI AL AM AO AR AS AT AU AW AX AZ BA BB BD BE BF BG BH BI BJ BL BM BN BO BQ BR BS BT BW BY BZ '
+    + 'CA CD CF CG CH CI CK CL CM CN CO CR CU CV CW CX CY CZ DE DJ DK DM DO DZ EC EE EG EH ER ES ET FI FJ FK FM FO FR '
+    + 'GA GB GD GE GF GG GH GI GL GM GN GP GQ GR GT GU GW GY HK HN HR HT HU ID IE IL IM IN IO IQ IR IS IT JE JM JO JP '
+    + 'KE KG KH KI KM KN KP KR KW KY KZ LA LB LC LI LK LR LS LT LU LV LY MA MC MD ME MF MG MH MK ML MM MN MO MP MQ MR '
+    + 'MS MT MU MV MW MX MY MZ NA NC NE NF NG NI NL NO NP NR NU NZ OM PA PE PF PG PH PK PL PM PN PR PS PT PW PY QA RE '
+    + 'RO RS RU RW SA SB SC SD SE SG SH SI SK SL SM SN SO SR SS ST SV SX SY SZ TC TD TG TH TJ TK TL TM TN TO TR TT TV '
+    + 'TW TZ UA UG US UY UZ VA VC VE VG VI VN VU WF WS XK YE YT ZA ZM ZW').split(' ');
+  const PINNED_COUNTRIES = ['MD', 'RO'];
+  const FLAG_BASE = 'https://cdn.jsdelivr.net/npm/flag-icons@7.5.0/flags/4x3/';
+  const _regionNames = (() => {
+    try { return new Intl.DisplayNames(['ro'], { type: 'region' }); } catch { return null; }
+  })();
+  function _countryName(code) {
+    const n = code && _regionNames ? _regionNames.of(code) : '';
+    return n && n !== code ? n : code;
+  }
+  const COUNTRIES = COUNTRY_CODES
+    .map(code => ({ code, name: _countryName(code) }))
+    .sort((a, b) => a.name.localeCompare(b.name, 'ro'));
+  const _fold = str => (str || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+
+  /* Short forms people typed by hand before the dropdown existed. */
+  const COUNTRY_ALIASES = {
+    'moldova': 'MD', 'r. moldova': 'MD', 'rep. moldova': 'MD', 'republica moldova': 'MD', 'rm': 'MD',
+    'romania': 'RO', 'ro': 'RO', 'usa': 'US', 'sua': 'US', 'statele unite': 'US',
+    'uk': 'GB', 'anglia': 'GB', 'marea britanie': 'GB', 'germania': 'DE', 'italia': 'IT', 'ucraina': 'UA'
+  };
+
+  /* Code for a profile: the saved code, or (older profiles, typed by hand)
+     the country whose Romanian name, or a common short form, matches. */
+  function _countryCodeFor(meta) {
+    if (meta?.country_code) return meta.country_code;
+    const typed = _fold(meta?.country).trim();
+    if (!typed) return '';
+    if (COUNTRY_ALIASES[typed]) return COUNTRY_ALIASES[typed];
+    const hit = COUNTRIES.find(c => _fold(c.name) === typed);
+    return hit ? hit.code : '';
+  }
+  function _flagImg(code) {
+    return code
+      ? `<img class="pf-flag" src="${FLAG_BASE}${code.toLowerCase()}.svg" alt="" width="20" height="15" loading="lazy">`
+      : '';
+  }
+
+  /* Searchable country dropdown: a trigger that opens a list with a search
+     box, pinned Moldova / România first, full keyboard support. Returns a
+     getter for the chosen code ('' = none). */
+  function _mountCountryPicker(root, initialCode) {
+    let code = initialCode || '';
+    let active = -1;
+    let shown = [];
+    const trigger = root.querySelector('.pf-country__trigger');
+    const valueEl = root.querySelector('.pf-country__value');
+    const pop     = root.querySelector('.pf-country__pop');
+    const search  = root.querySelector('.pf-country__search');
+    const list    = root.querySelector('.pf-country__list');
+
+    const paintValue = () => {
+      valueEl.innerHTML = code
+        ? `${_flagImg(code)}<span>${BM.esc(_countryName(code))}</span>`
+        : '<span class="pf-country__ph">Alege țara</span>';
+    };
+    const option = (c, i) => `
+      <li role="option" id="pfc-${c.code || 'none'}" class="pf-country__opt${c.sep ? ' pf-country__opt--sep' : ''}${c.code === code ? ' is-selected' : ''}${i === active ? ' is-active' : ''}"
+          data-code="${c.code}" aria-selected="${c.code === code}">
+        ${c.code ? _flagImg(c.code) : '<span class="pf-flag pf-flag--none"></span>'}
+        <span>${BM.esc(c.name)}</span>
+      </li>`;
+    const paintList = () => {
+      const q = _fold(search.value).trim();
+      const none = { code: '', name: 'Nicio țară' };
+      if (q) {
+        shown = COUNTRIES.filter(c => _fold(c.name).includes(q) || c.code.toLowerCase() === q);
+      } else {
+        const pinned = PINNED_COUNTRIES.map(k => COUNTRIES.find(c => c.code === k)).filter(Boolean);
+        // A rule under the pinned block separates it from the full list.
+        if (pinned.length) pinned[pinned.length - 1] = { ...pinned[pinned.length - 1], sep: true };
+        shown = [none, ...pinned, ...COUNTRIES.filter(c => !PINNED_COUNTRIES.includes(c.code))];
+      }
+      if (active >= shown.length) active = shown.length - 1;
+      list.innerHTML = shown.length
+        ? shown.map((c, i) => option(c, i)).join('')
+        : '<li class="pf-country__empty">Nicio țară găsită.</li>';
+      const cur = list.querySelector('.is-active');
+      if (cur) {
+        cur.scrollIntoView({ block: 'nearest' });
+        search.setAttribute('aria-activedescendant', cur.id);
+      }
+    };
+    const open = () => {
+      pop.hidden = false;
+      trigger.setAttribute('aria-expanded', 'true');
+      search.value = '';
+      active = Math.max(0, shownIndexOf(code));
+      paintList();
+      search.focus();
+    };
+    const close = (refocus) => {
+      pop.hidden = true;
+      trigger.setAttribute('aria-expanded', 'false');
+      if (refocus) trigger.focus();
+    };
+    const shownIndexOf = c => {
+      search.value = '';
+      paintList();
+      return shown.findIndex(x => x.code === c);
+    };
+    const pick = c => { code = c; paintValue(); close(true); };
+
+    trigger.addEventListener('click', () => (pop.hidden ? open() : close(true)));
+    search.addEventListener('input', () => { active = 0; paintList(); });
+    search.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); active = Math.min(shown.length - 1, active + 1); paintList(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); active = Math.max(0, active - 1); paintList(); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (shown[active]) pick(shown[active].code); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); close(true); }
+    });
+    list.addEventListener('mousedown', e => e.preventDefault());
+    list.addEventListener('click', e => {
+      const li = e.target.closest('.pf-country__opt');
+      if (li) pick(li.dataset.code);
+    });
+    document.addEventListener('mousedown', e => { if (!pop.hidden && !root.contains(e.target)) close(false); });
+
+    paintValue();
+    return () => code;
+  }
+
   /* ---- Confirmation modal ---- */
   function _showConfirm({ icon, title, body, confirmLabel, cancelLabel, onConfirm }) {
     const ov = document.createElement('div');
@@ -90,7 +224,7 @@
      phone, social link; avatar/cover have their own hover-edit affordances).
      Used by every role now — this used to be teacher-only, back when only
      the teacher header displayed these fields. */
-  function _showEditBizcardProfileModal({ name, bio, country, phone, socialUrl, isTeacher, sb, onSaved }) {
+  function _showEditBizcardProfileModal({ name, bio, countryCode, phone, socialUrl, isTeacher, sb, onSaved }) {
     const ov = document.createElement('div');
     ov.className = 'prof-modal-overlay';
     ov.innerHTML = `
@@ -112,9 +246,17 @@
           </div>
           <div class="prof-pw-grid" style="margin-bottom:16px">
             <div class="auth-field">
-              <label class="auth-label" for="editCountry">Țară</label>
-              <div class="auth-input-wrap">
-                <input class="auth-input" id="editCountry" type="text" maxlength="60" placeholder="România" value="${BM.esc(country)}">
+              <span class="auth-label" id="editCountryLbl">Țară</span>
+              <div class="pf-country" id="editCountry">
+                <button type="button" class="pf-country__trigger" aria-haspopup="listbox" aria-expanded="false" aria-labelledby="editCountryLbl">
+                  <span class="pf-country__value"></span>
+                  ${icon('chevron-down', { size: 16 })}
+                </button>
+                <div class="pf-country__pop" hidden>
+                  <input class="pf-country__search" type="text" placeholder="Caută țara" aria-label="Caută țara"
+                         role="combobox" aria-controls="editCountryList" aria-expanded="true" autocomplete="off">
+                  <ul class="pf-country__list" id="editCountryList" role="listbox" aria-labelledby="editCountryLbl"></ul>
+                </div>
               </div>
             </div>
             <div class="auth-field">
@@ -130,7 +272,7 @@
               <input class="auth-input" id="editSocial" type="url" maxlength="200" placeholder="https://..." value="${BM.esc(socialUrl)}">
             </div>
           </div>
-          <p class="prof-hint-muted" style="margin-bottom:20px">Pentru a schimba poza de profil sau imaginea de copertă, treci cu mouse-ul peste ele și apasă pe iconița de editare.</p>
+          <p class="prof-hint-muted" style="margin-bottom:20px">Poza de profil și coperta se schimbă din butoanele cu aparat foto de pe profil.</p>
           <div class="prof-modal__actions">
             <button type="button" class="btn btn--surface" data-action="cancel">Anulează</button>
             <button type="submit" class="btn btn--primary" id="btnSaveProfile">
@@ -151,6 +293,7 @@
 
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
+    const getCountryCode = _mountCountryPicker(ov.querySelector('#editCountry'), countryCode);
     document.getElementById('editName')?.focus();
 
     function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
@@ -167,7 +310,8 @@
       };
       const newName    = document.getElementById('editName')?.value.trim();
       const newBio      = document.getElementById('editBio')?.value.trim() || '';
-      const newCountry  = document.getElementById('editCountry')?.value.trim() || '';
+      const newCountryCode = getCountryCode();
+      const newCountry  = newCountryCode ? _countryName(newCountryCode) : '';
       const newPhone    = document.getElementById('editPhone')?.value.trim() || '';
       const newSocial   = document.getElementById('editSocial')?.value.trim() || '';
       if (!newName) return showMsg('Numele nu poate fi gol.', true);
@@ -177,7 +321,7 @@
       if (btn) { btn.disabled = true; btn.querySelector('span:first-child').style.opacity = '0'; btn.querySelector('.auth-spin').style.display = ''; }
 
       const { data, error } = await sb.auth.updateUser({ data: {
-        full_name: newName, bio: newBio, country: newCountry, phone: newPhone, social_url: newSocial
+        full_name: newName, bio: newBio, country: newCountry, country_code: newCountryCode, phone: newPhone, social_url: newSocial
       } });
 
       if (btn) { btn.disabled = false; btn.querySelector('span:first-child').style.opacity = ''; btn.querySelector('.auth-spin').style.display = 'none'; }
@@ -342,7 +486,8 @@
        user_metadata) rather than a new table. Every role has these now;
        only the rating (reviewsData below) stays teacher-specific. */
     const bio       = user.user_metadata?.bio || '';
-    const country   = user.user_metadata?.country || '';
+    const countryCode = _countryCodeFor(user.user_metadata);
+    const country   = countryCode ? _countryName(countryCode) : (user.user_metadata?.country || '');
     const socialUrl = user.user_metadata?.social_url || '';
     const phone     = user.user_metadata?.phone || '';
     const coverUrl  = user.user_metadata?.custom_cover_url || null;
@@ -380,7 +525,7 @@
         : { text: 'Elev', led: '' };
 
     const specCells = [
-      country   && ['Țară', BM.esc(country)],
+      country   && ['Țară', `<span class="pf-country-val">${_flagImg(countryCode)}${BM.esc(country)}</span>`],
       email     && ['E-mail', BM.esc(email), true],
       phone     && ['Telefon', BM.esc(phone)],
       socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, true],
@@ -535,32 +680,52 @@
         ${!isAdmin ? `<a class="pf-key pf-key--block" href="pachete.html#tokenuri">${icon('ticket', { size: 16 })} Cumpără tokenuri</a>` : ''}
       </section>`;
 
-    /* ---- Teacher: reviews + classes ---- */
-    const reviewsHTML = `
+    /* ---- Teacher: one activity display, then reviews | classes | account */
+    const totalStudents = teacherClasses.reduce((sum, c) => sum + c.students, 0);
+    const lastReview = reviewsData.count ? reviewsData.reviews[0] : null;
+    const teacherStatsHTML = `
       <section class="pf-section">
-        <h2 class="pf-h">Recenzii</h2>
-        <div class="pf-reviews">
-          <div class="pf-lcd pf-lcd--rating">
-            <div class="pf-lcd__cell">
-              <span class="pf-lcd__lbl">Rating</span>
-              <span class="pf-lcd__val">${reviewsData.count ? reviewsData.avg.toFixed(1) : '0.0'}<small>/5</small></span>
-              <span class="pf-stars">${_starsHTML(reviewsData.avg, 16)}</span>
-              <span class="pf-lcd__sub">${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}</span>
-            </div>
+        <h2 class="pf-h">Activitatea ta</h2>
+        <div class="pf-lcd pf-lcd--even">
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Clase</span>
+            <span class="pf-lcd__val">${teacherClasses.length}</span>
+            <span class="pf-lcd__sub">create de tine</span>
           </div>
-          <div class="pf-reviews__list">
-            ${reviewsData.count ? reviewsData.reviews.map(r => `
-              <article class="pf-review">
-                <div class="pf-review__head">
-                  <strong>${BM.esc(r.student_name || 'Elev')}</strong>
-                  <span class="pf-stars">${_starsHTML(r.rating, 14)}</span>
-                  <span class="pf-review__date">${_formatDate(r.created_at)}</span>
-                </div>
-                ${r.comment ? `<p>${BM.esc(r.comment)}</p>` : ''}
-              </article>`).join('') : `
-              <p class="pf-note">Niciun elev nu a lăsat încă o recenzie. Recenziile elevilor tăi apar aici, cu cele mai noi primele.</p>`}
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Elevi</span>
+            <span class="pf-lcd__val">${totalStudents}</span>
+            <span class="pf-lcd__sub">în toate clasele</span>
+          </div>
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Rating</span>
+            <span class="pf-lcd__val">${reviewsData.count ? reviewsData.avg.toFixed(1) : '0.0'}<small>/5</small></span>
+            <span class="pf-stars">${_starsHTML(reviewsData.avg, 14)}</span>
+          </div>
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Recenzii</span>
+            <span class="pf-lcd__val">${reviewsData.count}</span>
+            <span class="pf-lcd__sub">${lastReview ? `ultima: ${_formatDate(lastReview.created_at)}` : 'niciuna încă'}</span>
           </div>
         </div>
+      </section>`;
+
+    const reviewsHTML = `
+      <section class="pf-card">
+        <div class="pf-h-row">
+          <h2 class="pf-h">Recenzii</h2>
+          <span class="pf-counter">${reviewsData.count}</span>
+        </div>
+        ${reviewsData.count ? reviewsData.reviews.map(r => `
+          <article class="pf-review">
+            <div class="pf-review__head">
+              <strong>${BM.esc(r.student_name || 'Elev')}</strong>
+              <span class="pf-stars">${_starsHTML(r.rating, 14)}</span>
+              <span class="pf-review__date">${_formatDate(r.created_at)}</span>
+            </div>
+            ${r.comment ? `<p>${BM.esc(r.comment)}</p>` : ''}
+          </article>`).join('') : `
+          <p class="pf-note">Niciun elev nu a lăsat încă o recenzie. Recenziile elevilor tăi apar aici, cu cele mai noi primele.</p>`}
       </section>`;
 
     const classesHTML = `
@@ -615,11 +780,17 @@
     /* Teacher: reviews beside classes + account. Student / admin: the
        progress display across the page, then tape, tokens and account side
        by side, so nothing leaves a column of empty space. */
-    const bodyHTML = isTeacher ? `
-      <div class="pf-grid">
-        <div class="pf-main">${reviewsHTML}</div>
-        <aside class="pf-side">${isActiveTeacher ? classesHTML : ''}${accountHTML}</aside>
+    const bodyHTML = isTeacher ? (isActiveTeacher ? `
+      <div class="pf-desk pf-desk--teacher">
+        <div class="pf-desk__prog">${teacherStatsHTML}</div>
+        <div class="pf-desk__cls">${classesHTML}</div>
+        <div class="pf-desk__rev">${reviewsHTML}</div>
+        <div class="pf-desk__acc">${accountHTML}</div>
       </div>` : `
+      <div class="pf-desk pf-desk--teacher-lite">
+        <div class="pf-desk__rev">${reviewsHTML}</div>
+        <div class="pf-desk__acc">${accountHTML}</div>
+      </div>`) : `
       <div class="pf-desk${isAdmin ? ' pf-desk--noprog' : ''}">
         ${isAdmin ? '' : `<div class="pf-desk__prog">${progressHTML}</div>`}
         <div class="pf-desk__tape">${tapeHTML}</div>
@@ -819,7 +990,7 @@
        country, phone, social link too); everyone else just edits the name. */
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       _showEditBizcardProfileModal({
-        name, bio, country, phone, socialUrl, isTeacher, sb,
+        name, bio, countryCode, phone, socialUrl, isTeacher, sb,
         onSaved: freshUser => renderProfile(freshUser, sb)
       });
     });
