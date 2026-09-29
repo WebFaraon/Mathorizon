@@ -20,9 +20,35 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
   const exercises = bm?.EXERCISES;
   if (!storage || !categories || !exercises) return null;
 
+  const solved = storage.getSolved();
+
+  // Chapter of the most recently solved exercise — the key that gets the
+  // "ultima dată aici" flag. Null for a student who hasn't solved anything.
+  let lastCategoryId: string | null = null;
+  let lastTs = -Infinity;
+  const byId = new Map(exercises.map((ex) => [ex.id, ex]));
+  for (const [id, ts] of Object.entries(solved)) {
+    const ex = byId.get(id);
+    if (ex && ts > lastTs) {
+      lastTs = ts;
+      lastCategoryId = ex.categoryId;
+    }
+  }
+
   const chapters: ChapterView[] = categories.map((category) => {
     const progress = storage.getProgressForCategory(category.id, exercises);
-    return { category, progress, locked: progress.total === 0 };
+    const subOrder = new Map(category.subcategories.map((sub, i) => [sub.id, i]));
+    const cells = exercises
+      .filter((ex) => ex.categoryId === category.id)
+      .sort((a, b) => (subOrder.get(a.subcategoryId) ?? 999) - (subOrder.get(b.subcategoryId) ?? 999))
+      .map((ex) => Boolean(solved[ex.id]));
+    return {
+      category,
+      progress,
+      locked: progress.total === 0,
+      cells,
+      lastWorked: category.id === lastCategoryId
+    };
   });
 
   return { stats: storage.getStats(exercises), chapters };

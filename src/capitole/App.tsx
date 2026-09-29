@@ -4,7 +4,7 @@ import { ChaptersSection } from './components/ChaptersSection';
 import { MobileTabBar } from './components/MobileTabBar';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
-import { useCapitoleData } from './hooks/useCapitoleData';
+import { useCapitoleData, type ChapterView } from './hooks/useCapitoleData';
 import { useMissions } from './hooks/useMissions';
 import { useLeaderboard } from './hooks/useLeaderboard';
 import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
@@ -21,7 +21,7 @@ import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
  * navbar) and running the full height of the page — not just alongside the
  * chapter grid like the previous single right-hand sidebar did:
  *   - left:   profile panel (photo, cover, level/XP, streak, leaderboard rank)
- *   - middle: hero (title, grade switch, progress chips) → chapter grid
+ *   - middle: hero (title, LCD readout, grade keys) → chapter keypad
  *   - right:  daily missions → XP leaderboard
  * .cap-col-middle carries `order: -1` at narrow-but-not-phone widths (see
  * styles.css) so it's what appears first when the three collapse into one
@@ -45,6 +45,9 @@ export function App() {
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
   const [mobileTab, setMobileTab] = useState<MobileTab>('capitole');
+  // The chapter key under the pointer (or keyboard focus): the LCD in the
+  // hero reads it out instead of the whole-bank total while it's set.
+  const [readout, setReadout] = useState<ChapterView | null>(null);
 
   return (
     <div className="cap-shell">
@@ -60,8 +63,8 @@ export function App() {
           />
 
           <div className="cap-col cap-col-middle">
-            <Hero stats={stats} />
-            <ChaptersSection chapters={chapters} ready={ready} />
+            <Hero stats={stats} readout={readout} />
+            <ChaptersSection chapters={chapters} ready={ready} onReadout={setReadout} />
           </div>
 
           <RightColumn

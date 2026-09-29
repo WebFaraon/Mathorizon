@@ -7,3 +7,10 @@ node_modules/
 # repo as static files and runs no build — but this manifest is only used
 # locally, by scripts/sync-react-tags.js, right after vite writes it.
 assets/react/.vite/
+
+# Impeccable (design skill) working files: review screenshots, decision-page
+# logs, hook cache. The durable records (PRODUCT.md, DESIGN.md,
+# .impeccable/design.json, .impeccable/surfaces/) ARE committed.
+.impeccable/review/
+.impeccable/questions/
+.impeccable/hook.cache.json

@@ -155,4 +155,13 @@ export interface ChapterView {
    * all and only unlocks once custom_exercises rows arrive from Supabase.
    */
   locked: boolean;
+  /**
+   * One entry per exercise in the chapter, in subcategory order (the order
+   * BM.CATEGORIES lists them), true when this user has solved it — the
+   * chapter key's dot matrix. Same exercises getProgressForCategory counts,
+   * so the number of true cells always equals progress.solved.
+   */
+  cells: boolean[];
+  /** The chapter holding this user's most recently solved exercise. */
+  lastWorked: boolean;
 }

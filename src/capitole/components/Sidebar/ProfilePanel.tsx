@@ -13,6 +13,7 @@ interface ProfilePanelProps {
 }
 
 const XP_PER_LEVEL_FALLBACK = 100;
+const XP_SEGMENTS = 20;
 
 const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
   elev: 'Elev',
@@ -67,6 +68,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   const level = Math.floor(totalXp / xpPerLevel) + 1;
   const xpIntoLevel = totalXp % xpPerLevel;
   const xpPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
+  const litSegments = Math.round((xpPct / 100) * XP_SEGMENTS);
 
   const roleLabel = snapshot.role ? ROLE_LABEL[snapshot.role] : null;
 
@@ -113,13 +115,23 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
               {xpIntoLevel} / {xpPerLevel} XP
             </span>
           </div>
-          <div className="cap-profile-xpbar">
-            <div className="cap-profile-xpbar__fill" style={{ width: `${xpPct}%` }} />
+          {/* Segmented like an LCD bar graph: one cell per 5% of the level. */}
+          <div
+            className="cap-profile-xpbar"
+            role="progressbar"
+            aria-valuenow={xpPct}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`Nivel ${level}: ${xpPct}%`}
+          >
+            {Array.from({ length: XP_SEGMENTS }, (_, i) => (
+              <i key={i} className={i < litSegments ? 'cap-profile-xpbar__seg cap-profile-xpbar__seg--on' : 'cap-profile-xpbar__seg'} />
+            ))}
           </div>
         </div>
 
         <div className="cap-profile-section">
-          <span className="cap-profile-section__title">Statistici</span>
+          <h4 className="cap-profile-section__title">Statistici</h4>
           <div className="cap-profile-stats">
             <div className="cap-profile-stat">
               <Flame className="cap-profile-stat__icon" aria-hidden="true" />
@@ -145,7 +157,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
             state now rather than fabricated sample progress, since real
             students see this. */}
         <div className="cap-profile-section">
-          <span className="cap-profile-section__title">Realizări</span>
+          <h4 className="cap-profile-section__title">Realizări</h4>
           <div className="cap-profile-achievements-empty">
             <Award className="cap-profile-achievements-empty__icon" aria-hidden="true" />
             <p>Realizările vor apărea aici în curând.</p>

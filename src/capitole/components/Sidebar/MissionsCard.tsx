@@ -1,7 +1,6 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from 'framer-motion';
 import { CircleCheck, Gift, ListChecks } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
-import { EASE_OUT } from '../../lib/motion';
 
 interface MissionsCardProps {
   missions: MissionProgress[];
@@ -30,10 +29,10 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
 
   return (
     <div className="cap-sidebar-section">
-      <span className="cap-side-card__eyebrow">
-        <ListChecks className="cap-side-card__eyebrow-icon cap-side-card__eyebrow-icon--green" aria-hidden="true" />
+      <h2 className="cap-side-title">
+        <ListChecks className="cap-side-title__icon" aria-hidden="true" />
         Misiunile zilei
-      </span>
+      </h2>
       <ul className="cap-missions__list">
         {missions.map((mission) => (
           <li className={`cap-mission${mission.done ? ' cap-mission--done' : ''}`} key={mission.key}>
@@ -46,19 +45,17 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
                 <span className="cap-mission__xp">+{mission.xpReward} XP</span>
               </span>
               <span className="cap-mission__trackrow">
-                <span className="cap-mission__track">
-                  <motion.span
-                    className="cap-mission__fill"
-                    initial={{ width: 0 }}
-                    animate={{ width: `${Math.min(100, (mission.progress / mission.target) * 100)}%` }}
-                    transition={
-                      prefersReducedMotion ? { duration: 0 } : { duration: 0.7, ease: EASE_OUT }
-                    }
-                  />
+                {/* One cell per exercise in the target, filled as they're
+                    solved today, ending on the reward. */}
+                <span className="cap-mission__cells">
+                  {Array.from({ length: mission.target }, (_, i) => (
+                    <i
+                      key={i}
+                      className={i < mission.progress ? 'cap-mission__cell cap-mission__cell--on' : 'cap-mission__cell'}
+                      style={prefersReducedMotion ? undefined : ({ '--d': `${i * 40}ms` } as React.CSSProperties)}
+                    />
+                  ))}
                 </span>
-                {/* The reward waiting at the end of the bar — makes the
-                    connection between "finish this" and "get XP" visual,
-                    not just a number in the header row. */}
                 <Gift
                   className={`cap-mission__reward${mission.done ? ' cap-mission__reward--done' : ''}`}
                   aria-hidden="true"

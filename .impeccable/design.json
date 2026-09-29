@@ -1,0 +1,970 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-09-29T17:11:00.969Z",
+  "title": "Design System: Mathorizon",
+  "extensions": {
+    "colorMeta": {
+      "chassis": {
+        "role": "neutral",
+        "displayName": "Chassis",
+        "canonical": "oklch(91.7% 0.007 115.7)",
+        "tonalRamp": [
+          "oklch(15% 0.007 115.7)",
+          "oklch(26.4% 0.007 115.7)",
+          "oklch(37.9% 0.007 115.7)",
+          "oklch(49.3% 0.007 115.7)",
+          "oklch(60.7% 0.007 115.7)",
+          "oklch(72.1% 0.007 115.7)",
+          "oklch(83.6% 0.007 115.7)",
+          "oklch(95% 0.007 115.7)"
+        ]
+      },
+      "panel": {
+        "role": "neutral",
+        "displayName": "Panel",
+        "canonical": "oklch(95.6% 0.005 117.9)",
+        "tonalRamp": [
+          "oklch(15% 0.005 117.9)",
+          "oklch(26.4% 0.005 117.9)",
+          "oklch(37.9% 0.005 117.9)",
+          "oklch(49.3% 0.005 117.9)",
+          "oklch(60.7% 0.005 117.9)",
+          "oklch(72.1% 0.005 117.9)",
+          "oklch(83.6% 0.005 117.9)",
+          "oklch(95% 0.005 117.9)"
+        ]
+      },
+      "panel-edge": {
+        "role": "neutral",
+        "displayName": "Panel Edge",
+        "canonical": "oklch(82.2% 0.013 121.7)",
+        "tonalRamp": [
+          "oklch(15% 0.013 121.7)",
+          "oklch(26.4% 0.013 121.7)",
+          "oklch(37.9% 0.013 121.7)",
+          "oklch(49.3% 0.013 121.7)",
+          "oklch(60.7% 0.013 121.7)",
+          "oklch(72.1% 0.013 121.7)",
+          "oklch(83.6% 0.013 121.7)",
+          "oklch(95% 0.013 121.7)"
+        ]
+      },
+      "key": {
+        "role": "neutral",
+        "displayName": "Key Face",
+        "canonical": "oklch(98.7% 0.004 106.5)",
+        "tonalRamp": [
+          "oklch(15% 0.004 106.5)",
+          "oklch(26.4% 0.004 106.5)",
+          "oklch(37.9% 0.004 106.5)",
+          "oklch(49.3% 0.004 106.5)",
+          "oklch(60.7% 0.004 106.5)",
+          "oklch(72.1% 0.004 106.5)",
+          "oklch(83.6% 0.004 106.5)",
+          "oklch(95% 0.004 106.5)"
+        ]
+      },
+      "key-edge": {
+        "role": "neutral",
+        "displayName": "Key Edge",
+        "canonical": "oklch(77.7% 0.015 124.6)",
+        "tonalRamp": [
+          "oklch(15% 0.015 124.6)",
+          "oklch(26.4% 0.015 124.6)",
+          "oklch(37.9% 0.015 124.6)",
+          "oklch(49.3% 0.015 124.6)",
+          "oklch(60.7% 0.015 124.6)",
+          "oklch(72.1% 0.015 124.6)",
+          "oklch(83.6% 0.015 124.6)",
+          "oklch(95% 0.015 124.6)"
+        ]
+      },
+      "rule": {
+        "role": "neutral",
+        "displayName": "Rule",
+        "canonical": "oklch(87.2% 0.011 123.5)",
+        "tonalRamp": [
+          "oklch(15% 0.011 123.5)",
+          "oklch(26.4% 0.011 123.5)",
+          "oklch(37.9% 0.011 123.5)",
+          "oklch(49.3% 0.011 123.5)",
+          "oklch(60.7% 0.011 123.5)",
+          "oklch(72.1% 0.011 123.5)",
+          "oklch(83.6% 0.011 123.5)",
+          "oklch(95% 0.011 123.5)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(21.3% 0.007 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.007 258.4)",
+          "oklch(26.4% 0.007 258.4)",
+          "oklch(37.9% 0.007 258.4)",
+          "oklch(49.3% 0.007 258.4)",
+          "oklch(60.7% 0.007 258.4)",
+          "oklch(72.1% 0.007 258.4)",
+          "oklch(83.6% 0.007 258.4)",
+          "oklch(95% 0.007 258.4)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2",
+        "canonical": "oklch(41.1% 0.013 256.8)",
+        "tonalRamp": [
+          "oklch(15% 0.013 256.8)",
+          "oklch(26.4% 0.013 256.8)",
+          "oklch(37.9% 0.013 256.8)",
+          "oklch(49.3% 0.013 256.8)",
+          "oklch(60.7% 0.013 256.8)",
+          "oklch(72.1% 0.013 256.8)",
+          "oklch(83.6% 0.013 256.8)",
+          "oklch(95% 0.013 256.8)"
+        ]
+      },
+      "ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3",
+        "canonical": "oklch(52.2% 0.013 252.2)",
+        "tonalRamp": [
+          "oklch(15% 0.013 252.2)",
+          "oklch(26.4% 0.013 252.2)",
+          "oklch(37.9% 0.013 252.2)",
+          "oklch(49.3% 0.013 252.2)",
+          "oklch(60.7% 0.013 252.2)",
+          "oklch(72.1% 0.013 252.2)",
+          "oklch(83.6% 0.013 252.2)",
+          "oklch(95% 0.013 252.2)"
+        ]
+      },
+      "ghost": {
+        "role": "neutral",
+        "displayName": "Ghost",
+        "canonical": "rgba(23, 25, 28, 0.11)",
+        "tonalRamp": [
+          "oklch(15% 0.007 258.4)",
+          "oklch(26.4% 0.007 258.4)",
+          "oklch(37.9% 0.007 258.4)",
+          "oklch(49.3% 0.007 258.4)",
+          "oklch(60.7% 0.007 258.4)",
+          "oklch(72.1% 0.007 258.4)",
+          "oklch(83.6% 0.007 258.4)",
+          "oklch(95% 0.007 258.4)"
+        ]
+      },
+      "lcd": {
+        "role": "neutral",
+        "displayName": "LCD Glass",
+        "canonical": "oklch(83.3% 0.041 122.8)",
+        "tonalRamp": [
+          "oklch(15% 0.041 122.8)",
+          "oklch(26.4% 0.041 122.8)",
+          "oklch(37.9% 0.041 122.8)",
+          "oklch(49.3% 0.041 122.8)",
+          "oklch(60.7% 0.041 122.8)",
+          "oklch(72.1% 0.041 122.8)",
+          "oklch(83.6% 0.041 122.8)",
+          "oklch(95% 0.041 122.8)"
+        ]
+      },
+      "lcd-ink": {
+        "role": "neutral",
+        "displayName": "LCD Ink",
+        "canonical": "oklch(25.7% 0.031 137.5)",
+        "tonalRamp": [
+          "oklch(15% 0.031 137.5)",
+          "oklch(26.4% 0.031 137.5)",
+          "oklch(37.9% 0.031 137.5)",
+          "oklch(49.3% 0.031 137.5)",
+          "oklch(60.7% 0.031 137.5)",
+          "oklch(72.1% 0.031 137.5)",
+          "oklch(83.6% 0.031 137.5)",
+          "oklch(95% 0.031 137.5)"
+        ]
+      },
+      "lcd-dim": {
+        "role": "neutral",
+        "displayName": "LCD Dim",
+        "canonical": "rgba(28, 39, 24, 0.66)",
+        "tonalRamp": [
+          "oklch(15% 0.031 137.5)",
+          "oklch(26.4% 0.031 137.5)",
+          "oklch(37.9% 0.031 137.5)",
+          "oklch(49.3% 0.031 137.5)",
+          "oklch(60.7% 0.031 137.5)",
+          "oklch(72.1% 0.031 137.5)",
+          "oklch(83.6% 0.031 137.5)",
+          "oklch(95% 0.031 137.5)"
+        ]
+      },
+      "lcd-ghost": {
+        "role": "neutral",
+        "displayName": "LCD Ghost",
+        "canonical": "rgba(28, 39, 24, 0.09)",
+        "tonalRamp": [
+          "oklch(15% 0.031 137.5)",
+          "oklch(26.4% 0.031 137.5)",
+          "oklch(37.9% 0.031 137.5)",
+          "oklch(49.3% 0.031 137.5)",
+          "oklch(60.7% 0.031 137.5)",
+          "oklch(72.1% 0.031 137.5)",
+          "oklch(83.6% 0.031 137.5)",
+          "oklch(95% 0.031 137.5)"
+        ]
+      },
+      "bezel": {
+        "role": "neutral",
+        "displayName": "Bezel",
+        "canonical": "oklch(29.9% 0.011 254)",
+        "tonalRamp": [
+          "oklch(15% 0.011 254)",
+          "oklch(26.4% 0.011 254)",
+          "oklch(37.9% 0.011 254)",
+          "oklch(49.3% 0.011 254)",
+          "oklch(60.7% 0.011 254)",
+          "oklch(72.1% 0.011 254)",
+          "oklch(83.6% 0.011 254)",
+          "oklch(95% 0.011 254)"
+        ]
+      },
+      "blue": {
+        "role": "primary",
+        "displayName": "Key Blue",
+        "canonical": "oklch(52% 0.183 263.8)",
+        "tonalRamp": [
+          "oklch(15% 0.183 263.8)",
+          "oklch(26.4% 0.183 263.8)",
+          "oklch(37.9% 0.183 263.8)",
+          "oklch(49.3% 0.183 263.8)",
+          "oklch(60.7% 0.183 263.8)",
+          "oklch(72.1% 0.183 263.8)",
+          "oklch(83.6% 0.183 263.8)",
+          "oklch(95% 0.183 263.8)"
+        ]
+      },
+      "blue-edge": {
+        "role": "primary",
+        "displayName": "Blue Edge",
+        "canonical": "oklch(37.8% 0.139 264.5)",
+        "tonalRamp": [
+          "oklch(15% 0.139 264.5)",
+          "oklch(26.4% 0.139 264.5)",
+          "oklch(37.9% 0.139 264.5)",
+          "oklch(49.3% 0.139 264.5)",
+          "oklch(60.7% 0.139 264.5)",
+          "oklch(72.1% 0.139 264.5)",
+          "oklch(83.6% 0.139 264.5)",
+          "oklch(95% 0.139 264.5)"
+        ]
+      },
+      "blue-wash": {
+        "role": "primary",
+        "displayName": "Blue Wash",
+        "canonical": "rgba(47, 95, 208, 0.09)",
+        "tonalRamp": [
+          "oklch(15% 0.183 263.8)",
+          "oklch(26.4% 0.183 263.8)",
+          "oklch(37.9% 0.183 263.8)",
+          "oklch(49.3% 0.183 263.8)",
+          "oklch(60.7% 0.183 263.8)",
+          "oklch(72.1% 0.183 263.8)",
+          "oklch(83.6% 0.183 263.8)",
+          "oklch(95% 0.183 263.8)"
+        ]
+      },
+      "green": {
+        "role": "secondary",
+        "displayName": "Done Green",
+        "canonical": "oklch(51.7% 0.101 162.9)",
+        "tonalRamp": [
+          "oklch(15% 0.101 162.9)",
+          "oklch(26.4% 0.101 162.9)",
+          "oklch(37.9% 0.101 162.9)",
+          "oklch(49.3% 0.101 162.9)",
+          "oklch(60.7% 0.101 162.9)",
+          "oklch(72.1% 0.101 162.9)",
+          "oklch(83.6% 0.101 162.9)",
+          "oklch(95% 0.101 162.9)"
+        ]
+      },
+      "red": {
+        "role": "secondary",
+        "displayName": "Analiză Red",
+        "canonical": "oklch(54.6% 0.17 31.5)",
+        "tonalRamp": [
+          "oklch(15% 0.17 31.5)",
+          "oklch(26.4% 0.17 31.5)",
+          "oklch(37.9% 0.17 31.5)",
+          "oklch(49.3% 0.17 31.5)",
+          "oklch(60.7% 0.17 31.5)",
+          "oklch(72.1% 0.17 31.5)",
+          "oklch(83.6% 0.17 31.5)",
+          "oklch(95% 0.17 31.5)"
+        ]
+      },
+      "orange": {
+        "role": "tertiary",
+        "displayName": "XP Orange",
+        "canonical": "oklch(65.3% 0.166 48)",
+        "tonalRamp": [
+          "oklch(15% 0.166 48)",
+          "oklch(26.4% 0.166 48)",
+          "oklch(37.9% 0.166 48)",
+          "oklch(49.3% 0.166 48)",
+          "oklch(60.7% 0.166 48)",
+          "oklch(72.1% 0.166 48)",
+          "oklch(83.6% 0.166 48)",
+          "oklch(95% 0.166 48)"
+        ]
+      },
+      "orange-ink": {
+        "role": "tertiary",
+        "displayName": "XP Orange Ink",
+        "canonical": "oklch(52.5% 0.141 46.6)",
+        "tonalRamp": [
+          "oklch(15% 0.141 46.6)",
+          "oklch(26.4% 0.141 46.6)",
+          "oklch(37.9% 0.141 46.6)",
+          "oklch(49.3% 0.141 46.6)",
+          "oklch(60.7% 0.141 46.6)",
+          "oklch(72.1% 0.141 46.6)",
+          "oklch(83.6% 0.141 46.6)",
+          "oklch(95% 0.141 46.6)"
+        ]
+      },
+      "dark-chassis": {
+        "role": "neutral",
+        "displayName": "Chassis (dark)",
+        "canonical": "oklch(18.6% 0.007 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.007 258.4)",
+          "oklch(26.4% 0.007 258.4)",
+          "oklch(37.9% 0.007 258.4)",
+          "oklch(49.3% 0.007 258.4)",
+          "oklch(60.7% 0.007 258.4)",
+          "oklch(72.1% 0.007 258.4)",
+          "oklch(83.6% 0.007 258.4)",
+          "oklch(95% 0.007 258.4)"
+        ]
+      },
+      "dark-panel": {
+        "role": "neutral",
+        "displayName": "Panel (dark)",
+        "canonical": "oklch(22.1% 0.009 255.6)",
+        "tonalRamp": [
+          "oklch(15% 0.009 255.6)",
+          "oklch(26.4% 0.009 255.6)",
+          "oklch(37.9% 0.009 255.6)",
+          "oklch(49.3% 0.009 255.6)",
+          "oklch(60.7% 0.009 255.6)",
+          "oklch(72.1% 0.009 255.6)",
+          "oklch(83.6% 0.009 255.6)",
+          "oklch(95% 0.009 255.6)"
+        ]
+      },
+      "dark-panel-edge": {
+        "role": "neutral",
+        "displayName": "Panel Edge (dark)",
+        "canonical": "oklch(30.4% 0.012 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.012 258.4)",
+          "oklch(26.4% 0.012 258.4)",
+          "oklch(37.9% 0.012 258.4)",
+          "oklch(49.3% 0.012 258.4)",
+          "oklch(60.7% 0.012 258.4)",
+          "oklch(72.1% 0.012 258.4)",
+          "oklch(83.6% 0.012 258.4)",
+          "oklch(95% 0.012 258.4)"
+        ]
+      },
+      "dark-key": {
+        "role": "neutral",
+        "displayName": "Key Face (dark)",
+        "canonical": "oklch(27.1% 0.013 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.013 258.4)",
+          "oklch(26.4% 0.013 258.4)",
+          "oklch(37.9% 0.013 258.4)",
+          "oklch(49.3% 0.013 258.4)",
+          "oklch(60.7% 0.013 258.4)",
+          "oklch(72.1% 0.013 258.4)",
+          "oklch(83.6% 0.013 258.4)",
+          "oklch(95% 0.013 258.4)"
+        ]
+      },
+      "dark-key-edge": {
+        "role": "neutral",
+        "displayName": "Key Edge (dark)",
+        "canonical": "oklch(13.9% 0.005 262.8)",
+        "tonalRamp": [
+          "oklch(15% 0.005 262.8)",
+          "oklch(26.4% 0.005 262.8)",
+          "oklch(37.9% 0.005 262.8)",
+          "oklch(49.3% 0.005 262.8)",
+          "oklch(60.7% 0.005 262.8)",
+          "oklch(72.1% 0.005 262.8)",
+          "oklch(83.6% 0.005 262.8)",
+          "oklch(95% 0.005 262.8)"
+        ]
+      },
+      "dark-rule": {
+        "role": "neutral",
+        "displayName": "Rule (dark)",
+        "canonical": "oklch(28.4% 0.012 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.012 258.4)",
+          "oklch(26.4% 0.012 258.4)",
+          "oklch(37.9% 0.012 258.4)",
+          "oklch(49.3% 0.012 258.4)",
+          "oklch(60.7% 0.012 258.4)",
+          "oklch(72.1% 0.012 258.4)",
+          "oklch(83.6% 0.012 258.4)",
+          "oklch(95% 0.012 258.4)"
+        ]
+      },
+      "dark-ink": {
+        "role": "neutral",
+        "displayName": "Ink (dark)",
+        "canonical": "oklch(94.4% 0.005 117.9)",
+        "tonalRamp": [
+          "oklch(15% 0.005 117.9)",
+          "oklch(26.4% 0.005 117.9)",
+          "oklch(37.9% 0.005 117.9)",
+          "oklch(49.3% 0.005 117.9)",
+          "oklch(60.7% 0.005 117.9)",
+          "oklch(72.1% 0.005 117.9)",
+          "oklch(83.6% 0.005 117.9)",
+          "oklch(95% 0.005 117.9)"
+        ]
+      },
+      "dark-ink-2": {
+        "role": "neutral",
+        "displayName": "Ink 2 (dark)",
+        "canonical": "oklch(78.7% 0.01 252.8)",
+        "tonalRamp": [
+          "oklch(15% 0.01 252.8)",
+          "oklch(26.4% 0.01 252.8)",
+          "oklch(37.9% 0.01 252.8)",
+          "oklch(49.3% 0.01 252.8)",
+          "oklch(60.7% 0.01 252.8)",
+          "oklch(72.1% 0.01 252.8)",
+          "oklch(83.6% 0.01 252.8)",
+          "oklch(95% 0.01 252.8)"
+        ]
+      },
+      "dark-ink-3": {
+        "role": "neutral",
+        "displayName": "Ink 3 (dark)",
+        "canonical": "oklch(66.1% 0.013 252.1)",
+        "tonalRamp": [
+          "oklch(15% 0.013 252.1)",
+          "oklch(26.4% 0.013 252.1)",
+          "oklch(37.9% 0.013 252.1)",
+          "oklch(49.3% 0.013 252.1)",
+          "oklch(60.7% 0.013 252.1)",
+          "oklch(72.1% 0.013 252.1)",
+          "oklch(83.6% 0.013 252.1)",
+          "oklch(95% 0.013 252.1)"
+        ]
+      },
+      "dark-lcd": {
+        "role": "neutral",
+        "displayName": "Backlit LCD Glass (dark)",
+        "canonical": "oklch(21.1% 0.022 136.4)",
+        "tonalRamp": [
+          "oklch(15% 0.022 136.4)",
+          "oklch(26.4% 0.022 136.4)",
+          "oklch(37.9% 0.022 136.4)",
+          "oklch(49.3% 0.022 136.4)",
+          "oklch(60.7% 0.022 136.4)",
+          "oklch(72.1% 0.022 136.4)",
+          "oklch(83.6% 0.022 136.4)",
+          "oklch(95% 0.022 136.4)"
+        ]
+      },
+      "dark-lcd-ink": {
+        "role": "neutral",
+        "displayName": "Backlit LCD Ink (dark)",
+        "canonical": "oklch(86.7% 0.108 130)",
+        "tonalRamp": [
+          "oklch(15% 0.108 130)",
+          "oklch(26.4% 0.108 130)",
+          "oklch(37.9% 0.108 130)",
+          "oklch(49.3% 0.108 130)",
+          "oklch(60.7% 0.108 130)",
+          "oklch(72.1% 0.108 130)",
+          "oklch(83.6% 0.108 130)",
+          "oklch(95% 0.108 130)"
+        ]
+      },
+      "dark-bezel": {
+        "role": "neutral",
+        "displayName": "Bezel (dark)",
+        "canonical": "oklch(12.1% 0.004 245.5)",
+        "tonalRamp": [
+          "oklch(15% 0.004 245.5)",
+          "oklch(26.4% 0.004 245.5)",
+          "oklch(37.9% 0.004 245.5)",
+          "oklch(49.3% 0.004 245.5)",
+          "oklch(60.7% 0.004 245.5)",
+          "oklch(72.1% 0.004 245.5)",
+          "oklch(83.6% 0.004 245.5)",
+          "oklch(95% 0.004 245.5)"
+        ]
+      },
+      "dark-blue": {
+        "role": "primary",
+        "displayName": "Key Blue (dark)",
+        "canonical": "oklch(65.5% 0.161 263.6)",
+        "tonalRamp": [
+          "oklch(15% 0.161 263.6)",
+          "oklch(26.4% 0.161 263.6)",
+          "oklch(37.9% 0.161 263.6)",
+          "oklch(49.3% 0.161 263.6)",
+          "oklch(60.7% 0.161 263.6)",
+          "oklch(72.1% 0.161 263.6)",
+          "oklch(83.6% 0.161 263.6)",
+          "oklch(95% 0.161 263.6)"
+        ]
+      },
+      "dark-blue-edge": {
+        "role": "primary",
+        "displayName": "Blue Edge (dark)",
+        "canonical": "oklch(37.8% 0.131 264.8)",
+        "tonalRamp": [
+          "oklch(15% 0.131 264.8)",
+          "oklch(26.4% 0.131 264.8)",
+          "oklch(37.9% 0.131 264.8)",
+          "oklch(49.3% 0.131 264.8)",
+          "oklch(60.7% 0.131 264.8)",
+          "oklch(72.1% 0.131 264.8)",
+          "oklch(83.6% 0.131 264.8)",
+          "oklch(95% 0.131 264.8)"
+        ]
+      },
+      "dark-green": {
+        "role": "secondary",
+        "displayName": "Done Green (dark)",
+        "canonical": "oklch(72.4% 0.125 162.4)",
+        "tonalRamp": [
+          "oklch(15% 0.125 162.4)",
+          "oklch(26.4% 0.125 162.4)",
+          "oklch(37.9% 0.125 162.4)",
+          "oklch(49.3% 0.125 162.4)",
+          "oklch(60.7% 0.125 162.4)",
+          "oklch(72.1% 0.125 162.4)",
+          "oklch(83.6% 0.125 162.4)",
+          "oklch(95% 0.125 162.4)"
+        ]
+      },
+      "dark-red": {
+        "role": "secondary",
+        "displayName": "Analiză Red (dark)",
+        "canonical": "oklch(69.9% 0.154 31.4)",
+        "tonalRamp": [
+          "oklch(15% 0.154 31.4)",
+          "oklch(26.4% 0.154 31.4)",
+          "oklch(37.9% 0.154 31.4)",
+          "oklch(49.3% 0.154 31.4)",
+          "oklch(60.7% 0.154 31.4)",
+          "oklch(72.1% 0.154 31.4)",
+          "oklch(83.6% 0.154 31.4)",
+          "oklch(95% 0.154 31.4)"
+        ]
+      },
+      "dark-orange": {
+        "role": "tertiary",
+        "displayName": "XP Orange (dark)",
+        "canonical": "oklch(73% 0.153 54.5)",
+        "tonalRamp": [
+          "oklch(15% 0.153 54.5)",
+          "oklch(26.4% 0.153 54.5)",
+          "oklch(37.9% 0.153 54.5)",
+          "oklch(49.3% 0.153 54.5)",
+          "oklch(60.7% 0.153 54.5)",
+          "oklch(72.1% 0.153 54.5)",
+          "oklch(83.6% 0.153 54.5)",
+          "oklch(95% 0.153 54.5)"
+        ]
+      },
+      "dark-orange-ink": {
+        "role": "tertiary",
+        "displayName": "XP Orange Ink (dark)",
+        "canonical": "oklch(78% 0.128 58.6)",
+        "tonalRamp": [
+          "oklch(15% 0.128 58.6)",
+          "oklch(26.4% 0.128 58.6)",
+          "oklch(37.9% 0.128 58.6)",
+          "oklch(49.3% 0.128 58.6)",
+          "oklch(60.7% 0.128 58.6)",
+          "oklch(72.1% 0.128 58.6)",
+          "oklch(83.6% 0.128 58.6)",
+          "oklch(95% 0.128 58.6)"
+        ]
+      },
+      "nav-chassis": {
+        "role": "neutral",
+        "displayName": "Nav Chassis",
+        "canonical": "oklch(23.8% 0.009 255.6)",
+        "tonalRamp": [
+          "oklch(15% 0.009 255.6)",
+          "oklch(26.4% 0.009 255.6)",
+          "oklch(37.9% 0.009 255.6)",
+          "oklch(49.3% 0.009 255.6)",
+          "oklch(60.7% 0.009 255.6)",
+          "oklch(72.1% 0.009 255.6)",
+          "oklch(83.6% 0.009 255.6)",
+          "oklch(95% 0.009 255.6)"
+        ]
+      },
+      "nav-key": {
+        "role": "neutral",
+        "displayName": "Nav Key",
+        "canonical": "oklch(30% 0.012 258.4)",
+        "tonalRamp": [
+          "oklch(15% 0.012 258.4)",
+          "oklch(26.4% 0.012 258.4)",
+          "oklch(37.9% 0.012 258.4)",
+          "oklch(49.3% 0.012 258.4)",
+          "oklch(60.7% 0.012 258.4)",
+          "oklch(72.1% 0.012 258.4)",
+          "oklch(83.6% 0.012 258.4)",
+          "oklch(95% 0.012 258.4)"
+        ]
+      },
+      "nav-key-border": {
+        "role": "neutral",
+        "displayName": "Nav Key Border",
+        "canonical": "oklch(35.4% 0.014 256.8)",
+        "tonalRamp": [
+          "oklch(15% 0.014 256.8)",
+          "oklch(26.4% 0.014 256.8)",
+          "oklch(37.9% 0.014 256.8)",
+          "oklch(49.3% 0.014 256.8)",
+          "oklch(60.7% 0.014 256.8)",
+          "oklch(72.1% 0.014 256.8)",
+          "oklch(83.6% 0.014 256.8)",
+          "oklch(95% 0.014 256.8)"
+        ]
+      },
+      "nav-key-edge": {
+        "role": "neutral",
+        "displayName": "Nav Key Edge",
+        "canonical": "oklch(14.9% 0.005 264.5)",
+        "tonalRamp": [
+          "oklch(15% 0.005 264.5)",
+          "oklch(26.4% 0.005 264.5)",
+          "oklch(37.9% 0.005 264.5)",
+          "oklch(49.3% 0.005 264.5)",
+          "oklch(60.7% 0.005 264.5)",
+          "oklch(72.1% 0.005 264.5)",
+          "oklch(83.6% 0.005 264.5)",
+          "oklch(95% 0.005 264.5)"
+        ]
+      },
+      "nav-ink": {
+        "role": "neutral",
+        "displayName": "Nav Ink",
+        "canonical": "oklch(87.5% 0.006 255.5)",
+        "tonalRamp": [
+          "oklch(15% 0.006 255.5)",
+          "oklch(26.4% 0.006 255.5)",
+          "oklch(37.9% 0.006 255.5)",
+          "oklch(49.3% 0.006 255.5)",
+          "oklch(60.7% 0.006 255.5)",
+          "oklch(72.1% 0.006 255.5)",
+          "oklch(83.6% 0.006 255.5)",
+          "oklch(95% 0.006 255.5)"
+        ]
+      },
+      "nav-blue-edge": {
+        "role": "primary",
+        "displayName": "Nav Blue Edge",
+        "canonical": "oklch(32.8% 0.114 264.9)",
+        "tonalRamp": [
+          "oklch(15% 0.114 264.9)",
+          "oklch(26.4% 0.114 264.9)",
+          "oklch(37.9% 0.114 264.9)",
+          "oklch(49.3% 0.114 264.9)",
+          "oklch(60.7% 0.114 264.9)",
+          "oklch(72.1% 0.114 264.9)",
+          "oklch(83.6% 0.114 264.9)",
+          "oklch(95% 0.114 264.9)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "Page h1 only; second line in Key Blue."
+      },
+      "lcd-figure": {
+        "displayName": "LCD Figure",
+        "purpose": "Main readout on the hero LCD. Doto, LCD surfaces only."
+      },
+      "lcd-small": {
+        "displayName": "LCD Small",
+        "purpose": "Profile stat displays and navbar counters (1.2rem there). LCD surfaces only."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "Profile name."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Chapter key names; panel titles at 1rem."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Key descriptions and panel copy."
+      },
+      "label": {
+        "displayName": "Printed Legend",
+        "purpose": "Uppercase legends on keys, plates, stat labels, marks, table heads."
+      },
+      "math-legend": {
+        "displayName": "Math Legend",
+        "purpose": "Chapter symbols on chapter keys, in the legend color."
+      }
+    },
+    "shadows": [
+      {
+        "name": "key-edge",
+        "value": "0 4px 0 0 var(--k-key-edge)",
+        "purpose": "Chapter keys at rest; collapses to 0 with translateY(4px) on press."
+      },
+      {
+        "name": "button-edge",
+        "value": "0 3px 0 0 var(--k-key-edge)",
+        "purpose": "Buttons, grade keys, nav tabs, tab bar keys; Blue Edge on lit keys. Collapses with translateY(3px) on press."
+      },
+      {
+        "name": "lcd-bezel",
+        "value": "0 0 0 7px var(--k-bezel), 0 7px 0 7px color-mix(in srgb, var(--k-bezel) 70%, black), inset 0 3px 6px rgba(0, 0, 0, 0.22)",
+        "purpose": "Main LCD: bezel ring, lower lip, inset recess."
+      },
+      {
+        "name": "lcd-recess",
+        "value": "inset 0 2px 3px rgba(0, 0, 0, 0.18)",
+        "purpose": "Small displays (XP bar, profile stats)."
+      },
+      {
+        "name": "nav-lcd-recess",
+        "value": "inset 0 2px 4px rgba(0, 0, 0, 0.55)",
+        "purpose": "Navbar token and streak counters."
+      },
+      {
+        "name": "overlay",
+        "value": "0 24px 60px -12px rgba(0, 0, 0, 0.4)",
+        "purpose": "Modals only."
+      }
+    ],
+    "motion": [
+      {
+        "name": "key-travel",
+        "value": "box-shadow 0.1s ease, transform 0.1s ease",
+        "purpose": "Key edge collapse and sink, in lockstep."
+      },
+      {
+        "name": "key-dim",
+        "value": "filter 0.15s ease; brightness(0.95) buttons, 0.96 chapter keys, 0.94 navbar",
+        "purpose": "The only hover response on a key."
+      },
+      {
+        "name": "lcd-refresh",
+        "value": "0.16s steps(3, end)",
+        "purpose": "New LCD value strobes in; no count-ups."
+      },
+      {
+        "name": "dot-sweep",
+        "value": "0.2s steps(2, end) per dot, whole matrix within 650ms",
+        "purpose": "Solved dots light left to right on first view."
+      },
+      {
+        "name": "cell-fill",
+        "value": "0.18s steps(2, end)",
+        "purpose": "Mission cells light."
+      },
+      {
+        "name": "cursor-blink",
+        "value": "1.05s steps(1, end) infinite",
+        "purpose": "LCD input cursor."
+      },
+      {
+        "name": "pane-slide",
+        "value": "transform 0.38s cubic-bezier(0.22, 1, 0.36, 1)",
+        "purpose": "Phone tab bar pane switch."
+      },
+      {
+        "name": "skeleton-pulse",
+        "value": "1.2s ease-in-out infinite alternate, opacity 0.55 to 1",
+        "purpose": "Loading placeholders."
+      },
+      {
+        "name": "reduced-motion",
+        "value": "prefers-reduced-motion: reduce",
+        "purpose": "All animations and key transitions off; render static."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "table-compact",
+        "value": "480px"
+      },
+      {
+        "name": "phone",
+        "value": "640px"
+      },
+      {
+        "name": "tablet",
+        "value": "900px"
+      },
+      {
+        "name": "three-column",
+        "value": "1180px"
+      },
+      {
+        "name": "narrow-rails",
+        "value": "1400px"
+      },
+      {
+        "name": "key-narrow (container)",
+        "value": "300px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Key Button",
+      "kind": "button",
+      "refersTo": "button-key",
+      "description": "Neutral key: darker bottom edge at rest, dim on hover, sink on press.",
+      "html": "<button class=\"ds-btn\">Simulările tale anterioare</button>",
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);box-shadow:0 3px 0 0 var(--k-key-edge,#B4B8AE);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-stretch:100%;font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);border-color:var(--k-panel-edge,#C3C6BD);filter:brightness(.95)}.ds-btn:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(3px)}.ds-btn:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
+    },
+    {
+      "name": "Primary Key",
+      "kind": "button",
+      "refersTo": "button-key-primary",
+      "description": "Lit blue key for the primary action.",
+      "html": "<button class=\"ds-btn-primary\">Clasa a XII-a</button>",
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-blue-edge,#1B3A8A);border-radius:4px;background:var(--k-blue,#2F5FD0);color:#fff;box-shadow:0 3px 0 0 var(--k-blue-edge,#1B3A8A);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn-primary:hover{background:var(--k-blue,#2F5FD0);color:#fff;border-color:var(--k-blue-edge,#1B3A8A);filter:brightness(.95)}.ds-btn-primary:active{box-shadow:0 0 0 0 var(--k-blue-edge,#1B3A8A);transform:translateY(3px)}.ds-btn-primary:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
+    },
+    {
+      "name": "Printed Plate (în curând)",
+      "kind": "button",
+      "refersTo": "button-key",
+      "description": "Not pressable yet: dashed, flat, no key edge.",
+      "html": "<span class=\"ds-soon\">Clasa a IX-a <b>În curând</b></span>",
+      "css": ".ds-soon{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px dashed var(--k-panel-edge,#C3C6BD);border-radius:4px;background:transparent;color:var(--k-ink-3,#646A71);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-size:0.8rem;font-weight:700;cursor:not-allowed}.ds-soon b{font-size:0.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}"
+    },
+    {
+      "name": "Chapter Key",
+      "kind": "card",
+      "refersTo": "chapter-key",
+      "description": "One chapter as one large key with legend color, printed legend, dot matrix and foot.",
+      "html": "<a class=\"ds-key\" href=\"#\" style=\"--legend:#2F5FD0\"><div class=\"ds-key__main\"><span class=\"ds-key__sym\">α</span><div><div class=\"ds-key__name\">Algebră</div><div class=\"ds-key__desc\">Bazele algebrice de care ai nevoie la orice alt capitol.</div></div></div><div class=\"ds-key__legend\">Calcul algebric · Polinoame · +10 tipuri</div><div class=\"ds-key__matrix\"><i class=\"on\"></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i></i><i class=\"on\"></i><i></i></div><div class=\"ds-key__foot\"><span><b>40</b>/616 rezolvate</span><span class=\"ds-key__pct\">6%</span></div></a>",
+      "css": ".ds-key{display:flex;flex-direction:column;gap:14px;max-width:340px;padding:16px 18px 14px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);box-shadow:0 4px 0 0 var(--k-key-edge,#B4B8AE);color:var(--k-ink,#17191C);text-decoration:none;font-family:var(--k-font, 'Archivo', system-ui, sans-serif);transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-key:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);filter:brightness(.96)}.ds-key:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(4px)}.ds-key:focus-visible{outline:2px solid var(--legend);outline-offset:3px}.ds-key__main{display:flex;gap:14px;align-items:flex-start}.ds-key__sym{width:1.3em;font-family:KaTeX_Main,'Cambria Math','Times New Roman',serif;font-size:2.3rem;line-height:1;text-align:center;color:var(--legend)}.ds-key__name{font-size:1.12rem;font-weight:800;font-stretch:87.5%;letter-spacing:-.01em;line-height:1.2}.ds-key__desc{font-size:.8rem;line-height:1.45;color:var(--k-ink-2,#464B52)}.ds-key__legend{font-size:.64rem;font-weight:700;font-stretch:87.5%;letter-spacing:.08em;text-transform:uppercase;color:var(--legend)}.ds-key__matrix{display:flex;flex-wrap:wrap;gap:3px}.ds-key__matrix i{width:12px;height:12px;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11))}.ds-key__matrix i.on{background:var(--legend)}.ds-key:hover .ds-key__matrix i:not(.on){background:color-mix(in srgb,var(--legend) 16%,transparent)}.ds-key__foot{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;border-top:1px solid var(--k-rule,#D3D6CE);font-size:.76rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}.ds-key__foot b{font-weight:800;color:var(--k-ink,#17191C)}.ds-key__pct{font-size:1rem;font-weight:800;color:var(--legend)}"
+    },
+    {
+      "name": "LCD Display",
+      "kind": "custom",
+      "refersTo": "lcd-display",
+      "description": "Recessed dot-matrix readout in a bezel; Doto numerals only here.",
+      "html": "<div class=\"ds-lcd\"><div class=\"ds-lcd__ann\"><span class=\"on\">XII</span><span>IX</span><span class=\"on\">BAC</span></div><div class=\"ds-lcd__input\">Exersează inteligent.<i></i></div><div class=\"ds-lcd__res\"><span class=\"ds-lcd__pct\">7%</span><span class=\"ds-lcd__val\">43</span><span class=\"ds-lcd__tot\">/652</span><span class=\"ds-lcd__unit\">rezolvate</span></div></div>",
+      "css": ".ds-lcd{margin:7px;padding:12px 18px 14px;border-radius:3px;background-color:var(--k-lcd,#C3CDB0);background-image:radial-gradient(circle,var(--k-lcd-ghost,rgba(28,39,24,.09)) .9px,transparent 1.1px);background-size:4px 4px;box-shadow:0 0 0 7px var(--k-bezel,#2A2E33),0 7px 0 7px #1d2024,inset 0 3px 6px rgba(0,0,0,.22);color:var(--k-lcd-ink,#1C2718);font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-lcd__ann{display:flex;gap:12px;font-size:.62rem;font-weight:700;letter-spacing:.1em}.ds-lcd__ann span{color:var(--k-lcd-ghost,rgba(28,39,24,.09))}.ds-lcd__ann span.on{color:var(--k-lcd-ink,#1C2718)}.ds-lcd__input{display:flex;align-items:center;margin-top:10px;font-size:1rem;font-weight:500}.ds-lcd__input i{width:.55em;height:1.05em;margin-left:2px;background:currentColor;animation:ds-blink 1.05s steps(1,end) infinite}@keyframes ds-blink{50%{opacity:0}}.ds-lcd__res{display:flex;align-items:baseline;gap:6px;margin-top:4px;font-variant-numeric:tabular-nums}.ds-lcd__pct{margin-right:auto;font-family:Doto,Archivo,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__val{font-family:Doto,Archivo,monospace;font-size:3.2rem;font-weight:900;line-height:.9}.ds-lcd__tot{font-family:Doto,Archivo,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__unit{font-size:.8rem;font-weight:600}@media (prefers-reduced-motion:reduce){.ds-lcd__input i{animation:none}}"
+    },
+    {
+      "name": "Chassis Panel",
+      "kind": "card",
+      "refersTo": "chassis-panel",
+      "description": "Flat side panel with 1px edge; holds missions with segmented counters.",
+      "html": "<section class=\"ds-panel\"><h3 class=\"ds-panel__title\">Misiunile zilei</h3><div class=\"ds-mission\"><div class=\"ds-mission__row\"><span>Rezolvă 8 exerciții</span><b>+30 XP</b></div><div class=\"ds-mission__cells\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i></i></div><small>5 / 8</small></div></section>",
+      "css": ".ds-panel{max-width:300px;padding:20px 20px 22px;background:var(--k-panel,#F0F1ED);border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:3px;color:var(--k-ink,#17191C);font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-panel__title{margin:0 0 14px;font-size:1rem;font-weight:800;font-stretch:87.5%}.ds-mission{display:flex;flex-direction:column;gap:6px}.ds-mission__row{display:flex;justify-content:space-between;font-size:.84rem;font-weight:600}.ds-mission__row b{font-size:.8rem;font-weight:800;color:var(--k-orange-ink,#A94A0B);font-variant-numeric:tabular-nums}.ds-mission__cells{display:flex;gap:3px}.ds-mission__cells i{flex:1;height:8px;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11))}.ds-mission__cells i.on{background:var(--k-blue,#2F5FD0)}.ds-mission small{font-size:.68rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}"
+    },
+    {
+      "name": "Navbar Tabs",
+      "kind": "nav",
+      "refersTo": "nav-tab",
+      "description": "Dark calculator top strip; tabs are keys, the active one lit blue; counters are a small backlit LCD.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__tab ds-nav__tab--on\" href=\"#\">Capitole</a><a class=\"ds-nav__tab\" href=\"#\">Simulare</a><a class=\"ds-nav__tab\" href=\"#\">Antrenament</a><span class=\"ds-nav__lcd\"><b>3</b> TOKENURI</span></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:6px;padding:14px 16px;background:#1C1F23;border-bottom:1px solid #0B0C0E;font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-nav__tab{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid #373C43;border-radius:4px;background:#2A2E34;color:#D3D6DA;box-shadow:0 3px 0 0 #0A0B0D;font-size:.88rem;font-weight:600;letter-spacing:.01em;text-decoration:none;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-nav__tab:hover{border-color:#373C43;background:#2A2E34;color:#D3D6DA;filter:brightness(.94)}.ds-nav__tab:active{box-shadow:0 0 0 0 #0A0B0D;transform:translateY(3px)}.ds-nav__tab--on,.ds-nav__tab--on:hover{border-color:#172F6E;background:#2F5FD0;color:#fff;box-shadow:0 3px 0 0 #172F6E}.ds-nav__tab:focus-visible{outline:2px solid #5C8CF2;outline-offset:3px}.ds-nav__lcd{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 10px;border:1px solid #050607;border-radius:3px;background:#141B11;box-shadow:inset 0 2px 4px rgba(0,0,0,.55);font-size:.6rem;font-weight:700;letter-spacing:.12em;color:rgba(188,226,150,.55)}.ds-nav__lcd b{font-family:Doto,Archivo,monospace;font-size:1.2rem;font-weight:900;letter-spacing:0;color:#BCE296}"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Scientific Calculator",
+    "overview": "**Creative North Star: \"The Scientific Calculator\"**\n\nMathorizon is built as an instrument, not a brochure. Every surface is a part of a scientific calculator: pale-gray (light) or graphite (dark) chassis panels with hard 1px edges and near-square corners, keys that stand on a darker solid bottom edge and sink when pressed, and a recessed green-gray LCD that carries the numbers that matter. The student reads their progress off the display and presses a chapter key to continue; the interface is operated, not browsed.\n\nDensity is high and tabular. Chapters are laid out as a keypad, exercise banks are drawn honestly as dot matrices (one dot per exercise, solved dots lit), missions are segmented counters, and numerals are always tabular. Color is not decoration: four legend colors each have one job, the way function labels are printed on a real calculator. Motion is the motion of hardware: a key sinks, an LCD refreshes in stepped frames, dots light in one scan. Nothing tweens, glows, or floats.\n\nScope: this system currently covers the Capitole tab (`capitole.html`, the React island in `src/capitole/`) and the shared navbar (`partials/nav.html`, the \"NAVBAR — calculator skin\" block at the end of `css/style.css`). The other tabs (Simulare, Antrenament, Clase, Pachete, profile, class pages, admin) still render the legacy look from `css/style.css`. This file describes the world those tabs are meant to move into; it does not describe their current state. Rejected by the user for this world: rounded soft-shadow cards, gradients, glass, neon, and empty minimalism.",
+    "keyCharacteristics": [
+      "Chassis panels: flat fills, 1px edges, 3px corners, no drop shadows.",
+      "Keys: solid darker bottom edge at rest, brightness dim on hover, sink on press.",
+      "LCD surfaces carry the key numbers, set in Doto dot-matrix, over a faint unlit pixel lattice.",
+      "Archivo at 87.5% width for all display and UI type.",
+      "Four legend colors with fixed jobs; everything else is ink on chassis.",
+      "Light and dark themes are both fully tokenized; dark is a backlit night mode, not an inversion."
+    ],
+    "rules": [
+      {
+        "name": "The Legend Rule",
+        "body": "Each legend color has exactly one job set: blue is primary action and Algebră, green is done and Geometrie, red is Analiză, orange is XP. A chapter's color comes from this map, never from the older per-category colors in `js/data.js`. A new chapter without an assigned legend falls back to ink, not to a fifth hue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Orange Is Earned Rule",
+        "body": "Orange appears only where XP is shown or awarded. It never marks navigation, state, or a chapter.",
+        "section": "colors"
+      },
+      {
+        "name": "The Flat Chassis Rule",
+        "body": "No gradients anywhere. The only patterned fill in the system is the LCD's unlit dot lattice (a 4px radial-dot grid in LCD Ghost), because a real dot-matrix display has one.",
+        "section": "colors"
+      },
+      {
+        "name": "The LCD-Only Doto Rule",
+        "body": "Doto is set only on an LCD surface (the hero display, the profile stat displays, the navbar counters). Never on a chassis, a key, a panel title, or body text. The words on an LCD (annunciators, the typed input line, the unit \"rezolvate\") stay in Archivo.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Rule",
+        "body": "Every number that can change (counts, percents, XP, ranks, levels) is set with `font-variant-numeric: tabular-nums`.",
+        "section": "typography"
+      },
+      {
+        "name": "The Condensed Legend Rule",
+        "body": "Headings and key legends use Archivo at 87.5% width and weight 800. Do not substitute a system display face.",
+        "section": "typography"
+      },
+      {
+        "name": "The Key Travel Rule",
+        "body": "Rest: darker solid bottom edge. Hover: `filter: brightness(0.95)` (0.96 on chapter keys, 0.94 in the navbar) and nothing else; no lift, no color swap, no glow. Press: the edge collapses and the key sinks by the edge height, both on one 0.1s transition so they move in lockstep. Every color property is restated under `:hover` so an older shared rule cannot leak a color swap in.",
+        "section": "elevation"
+      },
+      {
+        "name": "The No Soft Card Rule",
+        "body": "A panel or key never carries a blurred drop shadow. Depth on the chassis is an edge, a tone, or an inset; blur is reserved for overlays.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "Do build every pressable control as a key: solid darker bottom edge (3px buttons, 4px chapter keys), brightness dim only on hover, collapse-and-sink on press over 0.1s.",
+      "Do restate background, color and border-color under `:hover` on every key so legacy shared rules cannot swap colors in.",
+      "Do put the numbers a student should read first on an LCD surface, in Doto 900 with tabular numerals.",
+      "Do assign color by the Legend Rule: blue for primary and Algebră, green for done and Geometrie, red for Analiză, orange for XP.",
+      "Do show real quantities at their real size: one dot per exercise, one cell per mission step.",
+      "Do mark not-yet-available items as printed plates: dashed 1px edge, no fill, no key edge, Ink 3, \"în curând\".",
+      "Do tokenize every color for both `:root` and `[data-theme=\"dark\"]`; dark is a backlit LCD at night (dark glass, pale green segments), not an inversion.",
+      "Do use stepped timing (`steps()`) for display changes and honor `prefers-reduced-motion` by rendering static.",
+      "Do write all UI copy in Romanian, and punctuate with commas, colons or periods: no em dash in UI copy."
+    ],
+    "donts": [
+      "Don't use rounded soft-shadow cards, gradients, glassmorphism, or neon glows; panels are flat with a 1px edge.",
+      "Don't set Doto outside an LCD surface.",
+      "Don't use orange for anything but XP, and don't introduce a fifth legend hue.",
+      "Don't animate numbers with count-ups or tweens; an LCD refreshes.",
+      "Don't lift, recolor, or glow a key on hover.",
+      "Don't round corners past 4px on panels, keys, or displays.",
+      "Don't color chapters from the legacy `js/data.js` category colors."
+    ]
+  }
+}

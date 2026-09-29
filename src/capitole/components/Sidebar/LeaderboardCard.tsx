@@ -38,11 +38,11 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
 
   return (
     <>
-      <div className="cap-sidebar-section" style={{ '--cap-card-color': 'var(--yellow)' } as React.CSSProperties}>
-        <span className="cap-side-card__eyebrow">
-          <Trophy className="cap-side-card__eyebrow-icon" aria-hidden="true" />
+      <div className="cap-sidebar-section">
+        <h2 className="cap-side-title">
+          <Trophy className="cap-side-title__icon cap-side-title__icon--xp" aria-hidden="true" />
           Top elevi · XP
-        </span>
+        </h2>
 
         {rows.length === 0 ? (
           <p className="cap-leaderboard__empty">
@@ -53,7 +53,7 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
             <LeaderboardRows rows={rows} currentUserId={currentUserId} />
             <button
               type="button"
-              className="cap-btn cap-btn--secondary cap-btn--block"
+              className="cap-btn cap-btn--block"
               onClick={() => setModalOpen(true)}
             >
               Leaderboard

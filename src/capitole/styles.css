@@ -4,18 +4,17 @@
    Bundled by Vite and linked from capitole.html AFTER css/style.css, so
    these rules win ties without needing !important.
 
-   Everything here is scoped to the `cap-` prefix on purpose. The old page
-   styled itself with .hero / .stats-bar / .chapter-card / .bac-sim-card,
-   and several of those are shared with pages that are NOT migrated yet —
-   index.html reuses .chapter-card for its route cards, .stat__val is used
-   by bac.js and class-page.js, .hero__title by pachete.html. Re-skinning
-   them in place would have redesigned four other pages by accident, so the
-   island brings its own class names and leaves css/style.css alone.
+   Everything here is scoped to the `cap-` prefix on purpose: several of
+   the old page's class names (.chapter-card, .stat__val, .hero__title …)
+   are shared with pages that are NOT migrated yet, and re-skinning them in
+   place would redesign those pages by accident.
 
-   Colors come from the site's own tokens (--card, --border, --text,
-   --accent …), which is what makes dark mode work here for free; only the
-   handful of values below that have no token (the hero seam tint, the
-   Simulare BAC gradient) are literal.
+   Visual world: a scientific calculator. Chassis panels with hard 1px
+   edges and near-square corners, keys that sit on a darker bottom edge
+   and sink when pressed, and an LCD that carries the numbers. Four legend
+   colors, each with one job (like the function labels printed on a
+   calculator): blue = primary key and Algebră, green = Geometrie and
+   "done", red = Analiză, orange = XP and nothing else.
    ============================================================ */
 
 #root {
@@ -24,277 +23,339 @@
   position: relative;
 }
 
+/* ---- 0. TOKENS ---------------------------------------------------- */
 :root {
-  --cap-radius: 12px;
-  --cap-radius-sm: 8px;
-  /* One rhythm for the gaps BETWEEN sections — the "aerisit" part of the
-     brief is mostly this number being big and consistent. Trimmed from
-     40px per direct feedback that the whole block (header row + chapter
-     grid) sat too far below the navbar. */
-  --cap-section-gap: 28px;
-  /* One rhythm for the internal padding/gap of every right-rail card
-     (Missions, Leaderboard) — see section 3b. Tightened from an earlier
-     20px/22px + 10px pass: the sidebar cards stacked taller than the
-     4-card chapter grid next to them. */
-  --cap-side-card-padding: 16px 18px;
-  --cap-side-card-gap: 8px;
-  /* The pressed-button shadow (section 4). A literal, solid color rather
-     than color-mix(accent, black) — that formula darkens light-mode's
-     already-medium accent (#3A6BAD) by barely enough to read as a "step",
-     while comfortably darkening dark mode's much lighter accent
-     (#4a9eff). Two explicit values (this one, and the [data-theme="dark"]
-     override in section 5) keep the effect equally visible in both themes
-     instead of inheriting whichever contrast the accent color happens to
-     produce. Both are plain custom properties, so toggling the theme
-     recomputes them immediately — no JS, nothing to go stale. */
-  --cap-btn-shadow-primary: #16305c;
-  /* The fixed bottom tab bar's own height, phone widths only (section 7) —
-     a named token because .cap-mobile-viewport's height calc needs the
-     exact same number to reserve the right amount of space above it. */
+  --k-font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --k-lcd-font: 'Doto', 'Archivo', monospace;
+  --k-math-font: 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
+
+  --k-bg: #E3E4DF;
+  --k-panel: #F0F1ED;
+  --k-panel-edge: #C3C6BD;
+  --k-key: #FBFBF8;
+  --k-key-edge: #B4B8AE;
+  --k-rule: #D3D6CE;
+
+  --k-ink: #17191C;
+  --k-ink-2: #464B52;
+  --k-ink-3: #646A71;
+  --k-ghost: rgba(23, 25, 28, 0.11);
+
+  --k-lcd: #C3CDB0;
+  --k-lcd-ink: #1C2718;
+  --k-lcd-dim: rgba(28, 39, 24, 0.66);
+  --k-lcd-ghost: rgba(28, 39, 24, 0.09);
+  --k-bezel: #2A2E33;
+
+  --k-blue: #2F5FD0;
+  --k-blue-edge: #1B3A8A;
+  --k-blue-wash: rgba(47, 95, 208, 0.09);
+  --k-green: #1D7A57;
+  --k-red: #BF3D29;
+  --k-orange: #DE6A1E;
+  --k-orange-ink: #A94A0B;
+  --k-ink-soft: #5D636A;
+
+  --k-r: 3px;
+  --k-r-key: 4px;
+  --k-edge: 4px;
+
+  /* The fixed bottom tab bar's own height, phone widths only (section 8) —
+     .cap-mobile-viewport's height calc needs the exact same number. */
   --cap-tabbar-h: 62px;
+  --cap-section-gap: 28px;
+  --cap-rail: 340px;
+}
+
+[data-theme="dark"] {
+  --k-bg: #111316;
+  --k-panel: #181B1F;
+  --k-panel-edge: #2B2F35;
+  --k-key: #23272D;
+  --k-key-edge: #08090B;
+  --k-rule: #262A30;
+
+  --k-ink: #ECEDE9;
+  --k-ink-2: #B5BAC0;
+  --k-ink-3: #8D939A;
+  --k-ghost: rgba(236, 237, 233, 0.09);
+
+  /* Backlit at night: dark glass, pale green segments. */
+  --k-lcd: #141B11;
+  --k-lcd-ink: #BCE296;
+  --k-lcd-dim: rgba(188, 226, 150, 0.62);
+  --k-lcd-ghost: rgba(188, 226, 150, 0.07);
+  --k-bezel: #050607;
+
+  --k-blue: #5C8CF2;
+  --k-blue-edge: #1E3B86;
+  --k-blue-wash: rgba(92, 140, 242, 0.12);
+  --k-green: #4DBE8E;
+  --k-red: #EE7560;
+  --k-orange: #F08A3C;
+  --k-orange-ink: #F4A25F;
+  --k-ink-soft: #9AA0A7;
+}
+
+/* Page ground: the calculator's chassis, not the site's cream. Scoped to
+   this page by #root (only capitole.html mounts the island). */
+body:has(#root) {
+  background: var(--k-bg);
 }
 
 .cap-shell {
-  /* Wider than css/style.css's own .container (var(--container), 1520px) —
-     on a very wide monitor that left a noticeably empty margin outside the
-     3-column layout before the side rails even started. This is the
-     island's own class, not the shared token, so widening it only affects
-     this page. */
   max-width: 1760px;
   margin: 0 auto;
   padding: 0 28px;
+  font-family: var(--k-font);
+  color: var(--k-ink);
 }
 
-/* ---- 1. HERO --------------------------------------------------------
-   Plain — no background of its own. An earlier version gave this section
-   a gradient wash (and, before that, a seam-softening band under the
-   navbar); both got dropped once the page became three columns, where a
-   colored panel confined to the middle column's width read as a stray
-   box rather than a section, with the two rails' plain background
-   sitting right beside it at the same height. It's just text now, on the
-   same background as everything else in the row. */
+.cap-shell ::selection,
+.cap-leaderboard-modal ::selection {
+  background: var(--k-blue);
+  color: #fff;
+}
+
+.cap-shell :focus-visible {
+  outline: 2px solid var(--k-blue);
+  outline-offset: 3px;
+}
+
+/* ---- 1. HERO: title + LCD --------------------------------------------- */
 .cap-hero {
-  /* Pulled up from 56px — with no boxed background of its own any more
-     (see the removed-gradient comment on .cap-hero__inner below), that
-     much empty space above the title read as an accidental gap rather
-     than intentional breathing room. */
-  padding: 26px 0 0;
-  text-align: center;
-}
-
-.cap-hero__inner {
-  max-width: 940px;
-  margin: 0 auto;
-  padding: 0 20px;
-  /* Centers this within .cap-col-middle — .cap-hero is one of three grid
-     columns, not a full-bleed section, so the max-width above stops
-     mattering as a ceiling once the column itself is narrower, but
-     margin:auto keeps it centered either way. */
+  padding: 30px 0 0;
 }
 
 .cap-hero__title {
-  font-size: clamp(1.9rem, 4.2vw, 3rem);
+  font-family: var(--k-font);
+  font-size: clamp(1.8rem, 2.9vw, 2.55rem);
   font-weight: 800;
-  line-height: 1.14;
-  letter-spacing: -0.025em;
-  color: var(--text);
+  font-stretch: 87.5%;
+  line-height: 1.08;
+  letter-spacing: -0.022em;
+  color: var(--k-ink);
   text-wrap: balance;
 }
 
-/* Two restrained stops, and static. The old accent ran a four-color
-   gradient on an infinite 5s shimmer loop — motion with nothing to
-   communicate, and the loudest thing on the page. */
 .cap-hero__title-accent {
   display: block;
-  margin-top: 6px;
-  background: linear-gradient(100deg, #2A5296 0%, #4F46E5 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  color: transparent;
+  color: var(--k-blue);
 }
 
-.cap-hero__sub {
-  margin: 16px auto 0;
-  max-width: 620px;
-  font-size: clamp(0.95rem, 1.4vw, 1.08rem);
-  line-height: 1.55;
-  color: var(--text-secondary);
-  /* Room for the longest phrase on two lines, so the rotation never nudges
-     the summary line below. */
-  min-height: 3.1em;
+/* The display. A recessed LCD inside a dark bezel: the bezel is a spread
+   ring (no blur, it's a physical frame), the recess is an inset shade. The
+   faint dot lattice is the unlit pixel grid every dot-matrix LCD shows. */
+.cap-lcd {
+  position: relative;
+  margin: 22px 7px 0;
+  padding: 12px 18px 14px;
+  border-radius: var(--k-r);
+  background-color: var(--k-lcd);
+  background-image: radial-gradient(circle, var(--k-lcd-ghost) 0.9px, transparent 1.1px);
+  background-size: 4px 4px;
+  box-shadow:
+    0 0 0 7px var(--k-bezel),
+    0 7px 0 7px color-mix(in srgb, var(--k-bezel) 70%, black),
+    inset 0 3px 6px rgba(0, 0, 0, 0.22);
+  color: var(--k-lcd-ink);
 }
 
-/* ---- 1b. GRADE SWITCH ----
-   Segmented pair, not a single dropdown — there are exactly two states to
-   choose between, and a segmented control shows both (and which is
-   active) without a click to open anything. Only "a XII-a" is real right
-   now (see GradeSwitch.tsx) — it gets the same pressed-button language as
-   the sidebar's CTAs; "a IX-a" gets the same soft/disabled treatment as a
-   locked chapter card, not a second visual language for "unavailable". */
+.cap-lcd__annunciators {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+.cap-lcd__ann {
+  color: var(--k-lcd-ghost);
+  transition: color 0.12s steps(2, end);
+}
+[data-theme="dark"] .cap-lcd__ann { color: rgba(188, 226, 150, 0.14); }
+.cap-lcd__ann--on,
+[data-theme="dark"] .cap-lcd__ann--on { color: var(--k-lcd-ink); }
+.cap-lcd__ann-spacer { flex: 1; }
+
+.cap-lcd__input {
+  display: flex;
+  align-items: center;
+  min-height: 1.6em;
+  margin-top: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+}
+.cap-lcd__input > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cap-lcd__cursor {
+  flex-shrink: 0;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 2px;
+  background: var(--k-lcd-ink);
+  animation: cap-blink 1.05s steps(1, end) infinite;
+}
+@keyframes cap-blink {
+  50% { opacity: 0; }
+}
+
+.cap-lcd__result {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 4px;
+  min-height: 3.6rem;
+  align-items: flex-end;
+}
+
+.cap-lcd__figure {
+  display: flex;
+  align-items: baseline;
+  width: 100%;
+  gap: 6px;
+  font-variant-numeric: tabular-nums;
+}
+.cap-lcd__percent {
+  margin-right: auto;
+  font-family: var(--k-lcd-font);
+  font-size: 1.5rem;
+  font-weight: 900;
+}
+.cap-lcd__value {
+  font-family: var(--k-lcd-font);
+  font-size: clamp(2.6rem, 4.6vw, 3.6rem);
+  font-weight: 900;
+  line-height: 0.9;
+}
+.cap-lcd__total {
+  font-family: var(--k-lcd-font);
+  font-size: clamp(1.3rem, 2vw, 1.7rem);
+  font-weight: 900;
+}
+.cap-lcd__unit {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+}
+
+/* An LCD doesn't tween, it refreshes: the new figure strobes in over two
+   frames. Replays on every change because the element is keyed on what it
+   shows (Hero.tsx). */
+.cap-lcd__refresh {
+  animation: cap-lcd-refresh 0.16s steps(3, end) both;
+}
+@keyframes cap-lcd-refresh {
+  from { opacity: 0.1; }
+  to { opacity: 1; }
+}
+
+/* Row under the display: grade keys, and the key to reading the matrices. */
+.cap-hero__keys {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 30px;
+}
+
+.cap-hero__legend {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
+}
+.cap-hero__legend-dot {
+  width: 7px;
+  height: 7px;
+  margin-left: 8px;
+  border-radius: 1px;
+  background: var(--k-ghost);
+  box-shadow: inset 0 0 0 1px var(--k-ghost);
+}
+.cap-hero__legend-lit {
+  display: inline-flex;
+  gap: 2px;
+}
+.cap-hero__legend-lit .cap-hero__legend-dot {
+  margin-left: 0;
+  box-shadow: none;
+}
+.cap-hero__legend-dot--blue { background: var(--k-blue); }
+.cap-hero__legend-dot--green { background: var(--k-green); }
+.cap-hero__legend-dot--red { background: var(--k-red); }
+
+/* ---- 1b. GRADE KEYS ---- */
 .cap-grade-switch {
   display: inline-flex;
-  gap: 6px;
-  padding: 4px;
-  border-radius: 999px;
-  /* Same white fill + thicker cream border as the stat chip beside it
-     (.cap-summary__stat) — the two used to be different colors (this one
-     --surface, the chip an accent-tinted mix) and read as mismatched
-     sitting in the same row. */
-  background: var(--card);
-  border: 2px solid var(--border);
+  gap: 8px;
 }
 
 .cap-grade-switch__option {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: 8px 16px;
-  border: none;
-  border-radius: 999px;
-  font-size: 0.82rem;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  font-family: var(--k-font);
+  font-size: 0.8rem;
   font-weight: 700;
   white-space: nowrap;
-  cursor: pointer;
-  /* Same lockstep box-shadow+transform pattern as .cap-btn — see there for
-     why both need to be in the one transition instead of split with a
-     Framer-driven nudge. */
-  transition: box-shadow 0.1s ease, transform 0.1s ease;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 
 .cap-grade-switch__option--active {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
   color: #fff;
-  background: var(--accent);
-  box-shadow: 0 3px 0 0 var(--cap-btn-shadow-primary);
+  box-shadow: 0 3px 0 0 var(--k-blue-edge);
+  cursor: pointer;
+}
+.cap-grade-switch__option--active:hover {
+  background: var(--k-blue);
+  color: #fff;
+  filter: brightness(0.95);
 }
 .cap-grade-switch__option--active:active {
-  box-shadow: 0 0px 0 0 var(--cap-btn-shadow-primary);
+  box-shadow: 0 0 0 0 var(--k-blue-edge);
   transform: translateY(3px);
 }
 
+/* Not pressable yet: printed flat on the chassis, no key edge. */
 .cap-grade-switch__option--soon {
-  color: var(--text-muted);
-  background: none;
+  border-style: dashed;
+  background: transparent;
+  color: var(--k-ink-3);
   cursor: not-allowed;
 }
-.cap-grade-switch__option--soon:disabled { opacity: 0.75; }
 
 .cap-grade-switch__badge {
-  padding: 2px 7px;
-  font-size: 0.62rem;
+  font-size: 0.6rem;
   font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
-  color: var(--text-muted);
-  /* --surface, not --card — the switch's own track (right above) is now
-     solid --card (see its comment), and the badge needs to read as a
-     distinct layer on top of it, not disappear into it. A real, visible
-     lift (two-layer shadow) instead of a flat fill — a first attempt at
-     this used a near-flat gradient and a 6%-opacity shadow, which turned
-     out to be too subtle to read as a change at all; this is deliberately
-     more pronounced. Same treatment as .cap-card__count. */
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
+  color: var(--k-ink-3);
 }
 
-/* One row: the grade switch and the one progress chip left (see
-   SummaryStrip.tsx) — replaces the old .cap-summary, which centered two
-   chips on their own line below the switch instead of beside it. */
-.cap-header-row {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-wrap: wrap;
-  gap: 12px;
-  padding: 14px 0 0;
-}
-
-/* ---- 2. SUMMARY STAT --------------------------------------------------
-   Replaces the old four stat boxes — one compact, accent-tinted chip
-   instead of a full card, but with enough visual weight (bold number, an
-   icon, a colored pill) to read as the headline figure it is, not as a
-   footnote sentence. Real numbers (see components/SummaryStrip.tsx); no
-   count-up — see there for why. */
-
-.cap-summary__loading {
-  width: 100%;
-  text-align: center;
-  font-size: 0.9rem;
-  color: var(--text-muted);
-}
-
-.cap-summary__stat {
-  display: inline-flex;
-  align-items: center;
-  gap: 10px;
-  padding: 10px 20px;
-  border-radius: 999px;
-  /* Same white fill + thicker cream border as the grade switch beside it
-     (.cap-grade-switch) — an accent-tinted color-mix here read as a
-     different color from its neighbor in the same row. */
-  background: var(--card);
-  border: 2px solid var(--border);
-}
-
-/* Light theme only, same as .cap-sidebar-panel/.cap-card — pure white
-   instead of --card's cream tint; dark theme's --card is untouched. */
-html:not([data-theme="dark"]) .cap-grade-switch,
-html:not([data-theme="dark"]) .cap-summary__stat {
-  background: #fff;
-}
-
-.cap-summary__icon {
-  width: 20px;
-  height: 20px;
-  flex-shrink: 0;
-  color: var(--accent);
-}
-
-.cap-summary__text {
-  display: flex;
-  align-items: baseline;
-  gap: 6px;
-  white-space: nowrap;
-}
-
-.cap-summary__value {
-  font-size: 1.2rem;
-  font-weight: 800;
-  color: var(--text);
-  font-variant-numeric: tabular-nums;
-  letter-spacing: -0.01em;
-}
-
-.cap-summary__label {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text-secondary);
-}
-
-/* ---- 3. THREE-COLUMN BODY ---------------------------------------------
-   Left rail (profile panel) — middle (hero, progress chips, chapter grid) —
-   right rail (misiuni, clasament). All three start at the same top edge,
-   right under the navbar, and run the page's full height — not just the
-   height of the chapter grid, the way a single right-hand sidebar used to.
-   Every column is always MOUNTED, all at once, regardless of width —
-   phone width (section 7) changes how the three are PRESENTED (a sliding
-   tab bar instead of a stacked column), not which of them exist or run
-   their own data hooks.
-
+/* ---- 2. THREE-COLUMN BODY ---------------------------------------------
+   Left rail (profile) — middle (hero, keypad) — right rail (missions,
+   leaderboard). Every column is always MOUNTED; phone width (section 8)
+   changes how the three are presented (a sliding tab bar), not which exist.
    .cap-col-middle carries order:-1 between the phone and 3-column
-   breakpoints so it's what appears FIRST once the three collapse into one
-   stacked column, even though App.tsx renders it between the two rails in
-   the markup (left, middle, right — the order that gives the correct
-   grid-column placement at the wide breakpoint, where no `order` override
-   applies, AND the correct slide order in phone mode, where order:-1 gets
-   neutralized back to DOM order — see section 7). */
+   breakpoints so it appears first once the three stack. */
 .cap-mobile-viewport {
-  /* A no-op wrapper above the phone breakpoint: .cap-three-col behaves as
-     if it were still .cap-shell's direct child, same as before this
-     existed. Only becomes a real box (the slider's own viewport, clipping
-     the other two panes) inside the phone media query in section 7. */
+  /* No-op wrapper above the phone breakpoint; the slider's clipping
+     viewport inside it (section 8). */
   display: contents;
 }
 
@@ -311,17 +372,8 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   gap: 16px;
   min-width: 0;
 }
-/* Every direct child here keeps its own natural size by default — a
-   column's single child (.cap-profile-panel/.cap-sidebar-panel) should
-   overflow a height-constrained column (letting that column's own
-   overflow-y:auto scroll it — see .cap-col-left/-right at ≥1180px and
-   section 7's phone tab panes) rather than being squashed to fit it,
-   which is what flex-shrink's default of 1 does combined with that child
-   having its own overflow:hidden (see .cap-profile-body's own comment for
-   why overflow:hidden specifically makes this worse, not just plausible).
-   The ≥1180px stretch rules explicitly set flex:1 1 auto on those two
-   panels ON PURPOSE (to fill the column instead of sitting at their own
-   shorter height) — higher specificity than this, so they still win. */
+/* Children keep their natural size, so a height-constrained column
+   scrolls its content instead of squashing it. */
 .cap-col > * {
   flex-shrink: 0;
 }
@@ -335,448 +387,381 @@ html:not([data-theme="dark"]) .cap-summary__stat {
   .cap-three-col {
     flex-direction: row;
     gap: 24px;
-    /* flex-start, not stretch: .cap-col-right is position:sticky (below),
-       which only has room to do anything if the rail is its own shorter,
-       natural height instead of artificially stretched to match the much
-       taller middle column — a rail stretched to the middle column's full
-       height never has anywhere left to "stick" to before the page runs
-       out of scroll at the same time the middle column does. */
     align-items: flex-start;
+    padding-top: 0;
   }
   .cap-col-middle {
     order: 0;
     flex: 1 1 0%;
     min-width: 0;
-    /* Both rails are position:fixed below (removed from flow entirely), so
-       these margins manually reserve the space flexbox would otherwise
-       have given them — each rail's 340px width + the row's own 24px gap. */
-    margin-left: calc(340px + 24px);
-    margin-right: calc(340px + 24px);
+    /* Both rails are position:fixed (out of flow); these margins reserve
+       their width plus the row gap by hand. */
+    margin-left: calc(var(--cap-rail) + 24px);
+    margin-right: calc(var(--cap-rail) + 24px);
+    padding-top: 6px;
   }
 
-  /* Both rails stay in view while the (usually much taller) middle column
-     scrolls, per direct feedback. position:fixed, not sticky — sticky was
-     tried first (cheaper: stays an in-flow flex item, no margin-right
-     needed on .cap-col-middle above) and DID work in isolated testing, but
-     kept visibly still moving on scroll in real use anyway. Fixed removes
-     the ambiguity entirely rather than continuing to chase why: it's
-     always relative to the true viewport, full stop, regardless of any
-     scroll-container/overflow interaction elsewhere on the page (see
-     body:has(#root){overflow-x:visible} in the shared css/style.css for
-     one such interaction sticky positioning has to fight sitewide). */
+  /* Rails fixed to the viewport, flush to its edges, full height below
+     the navbar. Fixed rather than sticky: sticky fights the sitewide
+     body overflow rules (see body:has(#root) in css/style.css). */
   .cap-col-left, .cap-col-right {
     position: fixed;
     top: var(--nav-h, 72px);
-    width: 340px;
+    width: var(--cap-rail);
+    height: calc(100vh - var(--nav-h, 72px));
+    height: calc(100dvh - var(--nav-h, 72px));
+    overflow-y: auto;
     z-index: 5;
+    scrollbar-width: thin;
+    scrollbar-color: var(--k-panel-edge) transparent;
   }
+  .cap-col-left { left: 0; }
+  .cap-col-right { right: 0; }
 
-  /* The profile panel reaches all the way to the bottom of the viewport
-     (height, not max-height) even when its own content is shorter — per
-     direct feedback that stopping short left a gap between the panel and
-     the actual bottom of the screen. overflow-y:auto is a safety net for
-     if content ever DOES exceed this, not the normal case. */
-  .cap-col-left {
-    left: 0;
-    height: calc(100vh - var(--nav-h, 72px));
-    /* dvh accounts for mobile/browser chrome that shows and hides as the
-       page scrolls, which plain vh doesn't — harmless to also declare here
-       even though this rule is desktop-only (≥1180px), and a browser that
-       doesn't understand dvh simply ignores this line and keeps the vh
-       value above. */
-    height: calc(100dvh - var(--nav-h, 72px));
-    overflow-y: auto;
-  }
-  /* .cap-col-left being the right height was never the whole story: it's a
-     flex column container, and a flex child's MAIN axis size (height, in a
-     column container) doesn't stretch to fill leftover space on its own —
-     only the CROSS axis (width) does that by default. Without this, the
-     visible white/dark card (.cap-profile-panel) sat at its own shorter
-     content height while .cap-col-left around it was already the correct
-     full height, leaving blank space between the card's bottom edge and
-     the container's true bottom — invisible in a DOM measurement of
-     .cap-col-left itself (which was always correct), only visible by eye
-     on the actual card. */
-  .cap-profile-panel {
-    flex: 1 1 auto;
-    min-height: 0;
-  }
-  /* Same full-height treatment as .cap-col-left now, per direct feedback
-     that the right rail should read as one big block the same way the
-     profile panel does, not stop short at its own natural (shorter)
-     content height — and flush to the true right edge (right:0), same as
-     .cap-col-left's left:0, rather than inset by .cap-shell's own gutter:
-     direct feedback was that the gap made the two rails read as
-     differently sized when they're meant to match exactly. */
-  .cap-col-right {
-    right: 0;
-    height: calc(100vh - var(--nav-h, 72px));
-    height: calc(100dvh - var(--nav-h, 72px));
-    overflow-y: auto;
-  }
-  /* Same reasoning as .cap-profile-panel just above: .cap-col-right being
-     the right height doesn't stretch .cap-sidebar-panel to match on its
-     own (a flex column's main-axis size isn't automatic), so without this
-     the panel sat at its own shorter content height with blank space
-     below it instead of reaching the column's true bottom. */
+  /* The panels fill their rail and lose the outer edge that now sits on
+     the viewport edge — they read as the chassis' side panels. */
+  .cap-profile-panel,
   .cap-sidebar-panel {
     flex: 1 1 auto;
     min-height: 0;
-    /* Mirrors .cap-profile-panel's own breakout on the opposite edge —
-       flush to the true right edge now (right:0 above), so the right
-       border/rounding would sit off-screen, same reasoning as the left
-       rail dropping its left border/rounding. */
-    border-right: none;
-    border-radius: var(--cap-radius) 0 0 var(--cap-radius);
+    border-radius: 0;
+    border-top: none;
+    border-bottom: none;
   }
+  .cap-profile-panel { border-left: none; }
+  .cap-sidebar-panel { border-right: none; }
 }
 
-/* ---- 3a. CHAPTERS ----
-   No heading of its own any more ("Capitole" + subtitle) — the header
-   block right above (title, grade switch, progress chips) already says
-   what this is, and removing it let the grid move up closer to that
-   block instead of leaving a heading-sized gap. This padding is the
-   entire gap between the two now. */
+/* ---- 3. KEYPAD (chapters) --------------------------------------------- */
 .cap-chapters {
-  padding-top: 16px;
+  padding-top: 18px;
 }
 
 .cap-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 14px;
-  /* Without this, CSS Grid stretches every card in a row to match its
-     tallest row-mate — Algebră's longer tag list was forcing Geometrie/
-     Combinatorică (shorter description, fewer tags) into a lot of empty
-     space at the bottom of their own cards. Each card now sizes to its
-     own content instead. */
-  align-items: start;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 18px 16px;
 }
 
-/* Grid cell. Carries the staggered entrance; the card inside carries the
-   hover lift (see ChapterCard.tsx for why they're separate). */
-.cap-card-slot {
+/* One chapter = one key. The wrapper carries nothing but layout; the face
+   is the key: light top, darker bottom edge at rest, a dim on hover and a
+   sink on press — the same mechanic as every button on the site. */
+.cap-key {
   display: flex;
   min-width: 0;
+  padding-bottom: var(--k-edge);
+  /* Keys size their own contents: the same key is ~250px wide on a
+     laptop and ~560px on a wide monitor, and the viewport alone can't
+     tell which (see the @container rules at the end of section 3). */
+  container-type: inline-size;
 }
 
-/* Same chunky pressed-button language as .cap-btn — a darker edge of the
-   CHAPTER'S OWN color sits below the card at rest (so each stays tied to
-   its own identity color, not one shared shadow), hover dims the face
-   instead of lifting the card, and a press sinks it down to meet the
-   edge. Plain CSS :hover/:active throughout (no Framer whileHover here
-   any more) — see .cap-btn for why a Framer-driven transform and a
-   CSS-eased box-shadow fell out of sync when split across the two. */
-.cap-card {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  background: var(--card);
-  /* A uniform border now, not a 3px colored top line — that line was
-     competing with (and undercutting the read of) the pressed-button
-     shadow right below it. The chapter's identity color is still very
-     much present: the symbol tile, the tags, the progress fill, and this
-     card's own shadow are all still tinted from --cap-card-color.
-     Kept thin (1px, not the sidebar cards' 2px) specifically because the
-     3D shadow below needs a plain border to sit against — the buttons
-     that use the exact same shadow (.cap-btn) have no border at all. A
-     thicker border, or a negative box-shadow spread trying to compensate
-     for one, both visibly clashed with the shadow's rounded corner. */
-  border: 1px solid var(--border);
-  border-radius: var(--cap-radius);
-  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
-  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, border-color 0.15s ease;
-}
-
-/* Light theme only, same as .cap-sidebar-panel — dark theme's --card is
-   untouched. */
-html:not([data-theme="dark"]) .cap-card {
-  background: #fff;
-}
-
-.cap-card:hover {
-  border-color: var(--cap-card-color, var(--accent));
-  filter: brightness(0.97);
-}
-
-.cap-card:active {
-  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
-  transform: translateY(4px);
-}
-
-.cap-card:has(.cap-card__link:focus-visible) {
-  outline: 2px solid var(--cap-card-color, var(--accent));
-  outline-offset: 2px;
-}
-.cap-card__link:focus-visible { outline: none; }
-
-/* Chapter with no exercises published yet ("În curând") — inert, so none
-   of the pressed-button treatment above applies: no shadow "step" to
-   suggest it's clickable, no dim, no press. */
-.cap-card--soon {
-  box-shadow: none;
-}
-.cap-card--soon:hover { filter: none; }
-.cap-card--soon .cap-card__link { cursor: default; }
-
-/* The whole card is the click target — the padding lives here so the
-   anchor covers every pixel of it. More compact than the first pass:
-   smaller padding/type throughout this card, now that it shares the row
-   with a sidebar instead of spanning the full page width. */
-.cap-card__link {
+.cap-key__face {
   display: flex;
   flex-direction: column;
   flex: 1;
-  gap: 10px;
+  gap: 14px;
   min-width: 0;
-  padding: 18px 20px 16px;
+  padding: 16px 18px 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 var(--k-edge) 0 0 var(--k-key-edge);
   color: inherit;
   text-decoration: none;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 
-.cap-card__top {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 8px;
+a.cap-key__face:hover {
+  background: var(--k-key);
+  color: inherit;
+  filter: brightness(0.96);
+}
+a.cap-key__face:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(var(--k-edge));
+}
+a.cap-key__face:focus-visible {
+  outline: 2px solid var(--legend);
+  outline-offset: 3px;
 }
 
-.cap-card__symbol {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  flex-shrink: 0;
-  font-size: 1.25rem;
-  font-weight: 700;
-  border-radius: var(--cap-radius-sm);
-  color: var(--cap-card-color, var(--accent));
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 12%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cap-card-color, var(--accent)) 22%, transparent);
-}
-
-.cap-card__top-right {
-  display: flex;
-  align-items: center;
-  gap: 7px;
-  flex-shrink: 0;
-}
-
-/* Status dot — deliberately a DIFFERENT color channel than the chapter's
-   own identity color (--cap-card-color, used by the top border/symbol/
-   tags/progress fill above). One says "which chapter"; this says "are you
-   caught up on it", from the real solved/total ratio (see ChapterCard.tsx). */
-.cap-card__status {
-  width: 8px;
-  height: 8px;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-.cap-card__status--done     { background: var(--green); }
-.cap-card__status--progress { background: var(--yellow); }
-.cap-card__status--new      { background: var(--text-muted); opacity: 0.6; }
-
-.cap-card__count {
-  padding: 4px 9px;
-  font-size: 0.68rem;
-  font-weight: 700;
-  letter-spacing: 0.02em;
-  white-space: nowrap;
-  color: var(--text-muted);
-  /* A real, visible lift (two-layer shadow) instead of a flat fill — see
-     .cap-grade-switch__badge for the same treatment and why. */
-  background: var(--surface);
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12), 0 4px 10px rgba(0, 0, 0, 0.10);
-  font-variant-numeric: tabular-nums;
-}
-
-.cap-card__name {
-  font-size: 1.05rem;
-  font-weight: 800;
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  color: var(--text);
-}
-
-.cap-card__desc {
-  font-size: 0.8rem;
-  line-height: 1.5;
-  color: var(--text-secondary);
-}
-
-.cap-card__tags {
+/* Function legend printed under the description, in the chapter's
+   legend color. flex-wrap stays on so useFittedTags can detect a second
+   row and drop names until everything fits on one. */
+.cap-key__legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 5px;
-  /* The fitter (useFittedTags) keeps these on one row; this stops a
-     mid-measurement frame from being visible as a taller card. */
+  height: 1.1em;
   overflow: hidden;
+  font-size: 0.64rem;
+  font-weight: 700;
+  font-stretch: 87.5%;
+  letter-spacing: 0.08em;
+  line-height: 1.1;
+  text-transform: uppercase;
+  color: var(--legend);
+}
+.cap-key__legend-item {
+  white-space: nowrap;
+}
+.cap-key__legend-item + .cap-key__legend-item::before {
+  content: '·';
+  margin: 0 0.55em;
+  opacity: 0.6;
 }
 
-.cap-card__tag {
-  padding: 3px 8px;
+.cap-key__main {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+}
+
+.cap-key__symbol {
+  flex-shrink: 0;
+  width: 1.3em;
+  font-family: var(--k-math-font);
+  font-size: 2.3rem;
+  line-height: 1;
+  text-align: center;
+  color: var(--legend);
+}
+/* Combinatorics' stacked k/n (see bm-types.ts) — the shared .sym-nb rule
+   is sized for a smaller glyph. */
+.cap-key__symbol .sym-nb { font-size: 0.42em; }
+
+.cap-key__text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.cap-key__name {
+  font-family: var(--k-font);
+  font-size: 1.12rem;
+  font-weight: 800;
+  font-stretch: 87.5%;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+
+.cap-key__desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--k-ink-2);
+}
+
+/* The chapter's bank: one dot per exercise, solved ones lit in the
+   legend color. Its height is honest — a 616-exercise chapter is a big
+   field, a 20-exercise one is a single row. */
+.cap-matrix {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--dot-gap, 2px);
+  margin-top: auto;
+  padding-top: 2px;
+}
+.cap-matrix__dot {
+  width: var(--dot, 5px);
+  height: var(--dot, 5px);
+  border-radius: 1px;
+  background: var(--k-ghost);
+  transition: background-color 0.15s ease;
+}
+.cap-matrix__dot--on {
+  background: var(--legend);
+}
+/* Hovering the key raises the unlit grid a step, so the lit dots read
+   against the full size of what's left. */
+.cap-key:hover .cap-matrix__dot:not(.cap-matrix__dot--on) {
+  background: color-mix(in srgb, var(--legend) 16%, transparent);
+}
+
+/* First view: the solved dots light in one left-to-right scan. Before the
+   key is in view they sit unlit, so the scan never plays over dots that
+   were already showing. */
+@media (prefers-reduced-motion: no-preference) {
+  .cap-key:not(.cap-key--in) .cap-matrix--sweep .cap-matrix__dot--on {
+    background: var(--k-ghost);
+  }
+  .cap-key--in .cap-matrix--sweep .cap-matrix__dot--on {
+    animation: cap-dot-on 0.2s steps(2, end) both;
+    animation-delay: var(--d, 0ms);
+  }
+}
+@keyframes cap-dot-on {
+  from { background: var(--k-ghost); }
+  to { background: var(--legend); }
+}
+
+.cap-key__foot {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--k-rule);
+}
+
+.cap-key__count {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.cap-key__count b {
+  font-weight: 800;
+  color: var(--k-ink);
+}
+
+.cap-key__marks {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.cap-key__mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
   font-size: 0.66rem;
   font-weight: 700;
-  white-space: nowrap;
-  border-radius: var(--cap-radius-sm);
-  color: color-mix(in srgb, var(--cap-card-color, var(--accent)) 72%, var(--text));
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--cap-card-color, var(--accent)) 26%, transparent);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
-
-.cap-card__footer {
-  margin-top: auto;
-  padding-top: 4px;
+.cap-key__mark svg {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
+.cap-key__mark--last { color: var(--k-blue); }
+.cap-key__mark--done { color: var(--k-green); }
 
-.cap-card__track {
-  height: 7px;
-  overflow: hidden;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 12%, var(--surface));
-}
-
-.cap-card__bar {
-  height: 100%;
-  border-radius: 999px;
-  background: var(--cap-card-color, var(--accent));
-}
-
-.cap-card__progress-label {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  margin-top: 7px;
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
+.cap-key__percent {
+  font-size: 1rem;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--legend);
   font-variant-numeric: tabular-nums;
 }
 
-.cap-card__percent {
-  font-weight: 800;
-  color: var(--text-secondary);
+/* A chapter with nothing published: printed flat on the chassis, no key
+   edge, dashed outline — the same "not a key yet" language as the IX
+   grade option. */
+.cap-key--soon .cap-key__face {
+  border-style: dashed;
+  background: transparent;
+  box-shadow: none;
+  --legend: var(--k-ink-3);
+}
+.cap-key--soon .cap-key__name,
+.cap-key--soon .cap-key__desc {
+  color: var(--k-ink-3);
+}
+.cap-key__soon {
+  align-self: flex-start;
+  margin-top: auto;
+  padding: 3px 8px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-ink-3);
 }
 
-/* Placeholder while the Supabase custom-exercise merge settles. Matches
-   the height of a real card so the grid doesn't jump when they swap. */
+/* Narrow key: tighter face, flag without its words (the title attribute
+   keeps them), description one step smaller. */
+@container (max-width: 300px) {
+  .cap-key__face { padding: 14px 14px 12px; gap: 12px; }
+  .cap-key__main { gap: 10px; }
+  .cap-key__symbol { font-size: 1.9rem; }
+  .cap-key__desc { font-size: 0.76rem; }
+  .cap-key__mark-text { display: none; }
+}
+
+/* Placeholder while the Supabase custom-exercise merge settles. */
 .cap-card-skeleton {
-  min-height: 190px;
-  border-radius: var(--cap-radius);
-  border: 1px solid var(--border);
-  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: cap-shimmer 1.4s linear infinite;
+  min-height: 210px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  animation: cap-pulse 1.2s ease-in-out infinite alternate;
+}
+@keyframes cap-pulse {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
 }
 
-@keyframes cap-shimmer {
-  from { background-position: 200% 0; }
-  to   { background-position: -200% 0; }
-}
-
-/* ---- 3b. SIDEBAR PANEL ----
-   The whole right rail now — one presentation surface (.cap-sidebar-panel)
-   holding two sections (Misiunile zilei, Top elevi), same idea as the left
-   rail's .cap-profile-panel: a single bordered card, not two independently-
-   bordered ones stacked with a gap between them. Each section keeps its own
-   ready-gate (see MissionsCard/LeaderboardCard) and can skeleton/render
-   independently of the other. */
+/* ---- 4. SIDE PANELS (shared) ------------------------------------------ */
+.cap-profile-panel,
 .cap-sidebar-panel {
   display: flex;
   flex-direction: column;
-  background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: var(--cap-radius);
-  /* Inactive at this rule's own specificity until the panel is actually
-     height-constrained (the ≥1180px stretch rule below, in section 3) —
-     same min-height:0 + overflow-y:auto pairing as .cap-profile-body, so
-     a short viewport scrolls the panel's own content internally instead
-     of clipping it or pushing the column past the bottom of the screen. */
+  background: var(--k-panel);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+}
+
+.cap-sidebar-panel {
   min-height: 0;
   overflow-y: auto;
 }
-html:not([data-theme="dark"]) .cap-sidebar-panel {
-  background: #fff;
-}
-/* Same flex-shrink:0 fix as .cap-profile-body's own children — without
-   it, the two sections get proportionally squashed to fit a short
-   viewport instead of overflowing it (which is what triggers the scroll
-   above). See that rule's own comment for the mechanics. */
 .cap-sidebar-panel > * {
   flex-shrink: 0;
 }
 
 .cap-sidebar-divider {
-  height: 1.5px;
-  margin: 0 18px;
-  background: var(--border);
-  flex-shrink: 0;
+  height: 1px;
+  margin: 0 20px;
+  background: var(--k-rule);
 }
 
 .cap-sidebar-section {
   display: flex;
   flex-direction: column;
-  gap: var(--cap-side-card-gap);
-  padding: var(--cap-side-card-padding);
+  gap: 14px;
+  padding: 20px 20px 22px;
 }
-
-/* Once the panel stretches to fill the column (see section 3's
-   .cap-sidebar-panel rule), a section whose own content doesn't fill its
-   share of that height left its button wherever the content happened to
-   end — pushed to the bottom instead, so any extra space collects ABOVE
-   the button rather than after it. Only the leaderboard section has a
-   trailing button today, but this targets either section's the same way. */
 .cap-sidebar-section > .cap-btn:last-child {
   margin-top: auto;
 }
 
 .cap-sidebar-section--skeleton {
   min-height: 150px;
-  margin: 18px;
-  border-radius: var(--cap-radius-sm);
-  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: cap-shimmer 1.4s linear infinite;
+  margin: 20px;
+  border-radius: var(--k-r);
+  background: var(--k-ghost);
+  animation: cap-pulse 1.2s ease-in-out infinite alternate;
 }
 
-/* A real section title now (font-size/weight/color match
-   .cap-profile-section__title, the left rail's own "Statistici"/
-   "Realizări" headings) — the small uppercase "eyebrow" label treatment
-   this started as made sense sitting under a card's own colored top
-   border, back when Missions and Leaderboard were two separate cards; on
-   its own inside the merged panel, per direct feedback, it read as too
-   quiet to register as a heading at all. */
-.cap-side-card__eyebrow {
+.cap-side-title {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 0.94rem;
+  font-family: var(--k-font);
+  font-size: 1rem;
   font-weight: 800;
-  color: var(--text);
+  font-stretch: 87.5%;
+  color: var(--k-ink);
 }
-.cap-side-card__eyebrow-icon {
-  width: 19px;
-  height: 19px;
+.cap-side-title__icon {
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
-  color: var(--yellow);
+  color: var(--k-blue);
 }
-/* Missions' own identity color used to live on its standalone card's top
-   border (back when Missions and Leaderboard were two separate cards) —
-   now that both share one panel, it sits on this icon instead, the same
-   place Leaderboard's Trophy already carries --yellow. */
-.cap-side-card__eyebrow-icon--green {
-  color: var(--green);
-}
+.cap-side-title__icon--xp { color: var(--k-orange); }
 
-/* ---- Misiunile zilei ---- */
+/* ---- 4a. Misiunile zilei ---- */
 .cap-missions__list {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  list-style: none;
 }
 
 .cap-mission {
@@ -789,24 +774,24 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 20px;
-  height: 20px;
+  width: 18px;
+  height: 18px;
   flex-shrink: 0;
   margin-top: 1px;
-  color: var(--green);
+  color: var(--k-green);
 }
-.cap-mission__check svg { width: 20px; height: 20px; }
+.cap-mission__check svg { width: 18px; height: 18px; }
 .cap-mission__check-empty {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  border: 2px solid var(--border);
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+  border: 1.5px solid var(--k-ink-3);
 }
 
 .cap-mission__body {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
   min-width: 0;
 }
@@ -819,22 +804,23 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
 }
 
 .cap-mission__title {
-  font-size: 0.82rem;
+  font-size: 0.84rem;
   font-weight: 600;
-  color: var(--text);
+  color: var(--k-ink);
 }
 .cap-mission--done .cap-mission__title {
-  color: var(--text-muted);
+  color: var(--k-ink-3);
   text-decoration: line-through;
-  text-decoration-color: var(--border);
+  text-decoration-color: var(--k-ink-3);
 }
 
 .cap-mission__xp {
-  font-size: 0.7rem;
-  font-weight: 700;
-  color: var(--yellow);
-  white-space: nowrap;
   flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--k-orange-ink);
 }
 
 .cap-mission__trackrow {
@@ -843,67 +829,65 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   gap: 8px;
 }
 
-.cap-mission__track {
-  display: block;
+/* One cell per exercise in the target — a 3-exercise mission is three
+   cells, a 10-exercise one is ten. */
+.cap-mission__cells {
+  display: flex;
   flex: 1;
-  height: 6px;
-  border-radius: 999px;
-  background: var(--surface);
-  overflow: hidden;
+  gap: 3px;
 }
-.cap-mission__fill {
-  display: block;
-  height: 100%;
-  border-radius: 999px;
-  background: var(--green);
+.cap-mission__cell {
+  flex: 1;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--k-ghost);
 }
-.cap-mission--done .cap-mission__fill { background: var(--border); }
+.cap-mission__cell--on {
+  background: var(--k-blue);
+  animation: cap-cell-on 0.18s steps(2, end) both;
+  animation-delay: var(--d, 0ms);
+}
+.cap-mission--done .cap-mission__cell--on { background: var(--k-green); }
+@keyframes cap-cell-on {
+  from { background: var(--k-ghost); }
+}
 
-/* Dim until the mission is done, then lights up gold — the same "reward
-   claimed" beat the checkmark to its left gives, so the chest and the
-   checkbox agree with each other instead of only one of them reacting. */
 .cap-mission__reward {
   width: 15px;
   height: 15px;
   flex-shrink: 0;
-  color: var(--text-muted);
-  opacity: 0.5;
+  color: var(--k-ink-3);
+  opacity: 0.55;
 }
 .cap-mission--done .cap-mission__reward {
-  color: var(--yellow);
+  color: var(--k-orange);
   opacity: 1;
 }
 
 .cap-mission__count {
   font-size: 0.68rem;
-  color: var(--text-muted);
+  font-weight: 600;
+  color: var(--k-ink-3);
   font-variant-numeric: tabular-nums;
 }
 
-/* ---- Top elevi (leaderboard) ---- */
+/* ---- 4b. Top elevi (leaderboard) ---- */
 .cap-leaderboard__empty {
   font-size: 0.82rem;
   line-height: 1.5;
-  color: var(--text-muted);
+  color: var(--k-ink-3);
 }
 
 .cap-leaderboard__list {
   display: flex;
   flex-direction: column;
-  gap: 2px;
   list-style: none;
 }
 
-/* The card's own preview caps at ~5 rows with a hidden scrollbar (see
-   LeaderboardCard); LeaderboardModal renders the exact same
-   LeaderboardRows component outside of .cap-sidebar-section, on purpose,
-   so it falls back to the plain rule above and shows every row unclipped. */
+/* The rail's preview caps at ~5 rows (scrollable, scrollbar hidden);
+   LeaderboardModal renders the same rows outside the section, unclipped. */
 .cap-sidebar-section .cap-leaderboard__list {
-  /* Sized to the row height, not a round number, so the 6th row doesn't
-     peek in half-cut. Still scrollable (wheel/touch/drag/keyboard), just
-     with the scrollbar itself hidden per direct feedback — "scoate
-     sliderul" meant the visible track, not the scrolling. */
-  max-height: 260px;
+  max-height: 272px;
   overflow-y: auto;
   scrollbar-width: none;
   -ms-overflow-style: none;
@@ -916,37 +900,37 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 8px;
-  border-radius: var(--cap-radius-sm);
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--k-rule);
 }
+.cap-leaderboard__row:last-child { border-bottom: none; }
 .cap-leaderboard__row--you {
-  background: var(--accent-dim);
+  background: var(--k-blue-wash);
 }
 
 .cap-leaderboard__rank {
-  width: 20px;
+  width: 22px;
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 0.86rem;
   font-weight: 800;
-  color: var(--text-muted);
   font-variant-numeric: tabular-nums;
   text-align: center;
+  color: var(--k-ink-3);
 }
-.cap-leaderboard__row:nth-child(1) .cap-leaderboard__rank { color: #D4A017; }
-.cap-leaderboard__row:nth-child(2) .cap-leaderboard__rank { color: #9CA3AF; }
-.cap-leaderboard__row:nth-child(3) .cap-leaderboard__rank { color: #B4681E; }
+.cap-leaderboard__row:nth-child(-n+3) .cap-leaderboard__rank { color: var(--k-ink); }
+.cap-leaderboard__row--you .cap-leaderboard__rank { color: var(--k-blue); }
 
 .cap-leaderboard__avatar {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
-  border-radius: 50%;
   overflow: hidden;
-  background: color-mix(in srgb, var(--accent) 16%, var(--surface));
-  color: var(--accent);
+  border-radius: var(--k-r);
+  background: var(--k-ghost);
+  color: var(--k-ink-2);
   font-size: 0.66rem;
   font-weight: 800;
   letter-spacing: 0.02em;
@@ -966,105 +950,101 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
 }
 
 .cap-leaderboard__name {
-  font-size: 0.82rem;
-  font-weight: 600;
-  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--k-ink);
 }
 
 .cap-leaderboard__meta {
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.cap-leaderboard__level {
   font-size: 0.68rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--k-ink-3);
+  font-variant-numeric: tabular-nums;
 }
 
 .cap-leaderboard__streak {
   display: inline-flex;
   align-items: center;
   gap: 2px;
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
 }
 .cap-leaderboard__streak svg {
   width: 11px;
   height: 11px;
-  color: var(--yellow);
+  color: var(--k-ink-2);
 }
 
 .cap-leaderboard__you {
   margin-left: 6px;
-  padding: 1px 6px;
-  font-size: 0.62rem;
-  font-weight: 700;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 16%, transparent);
-  border-radius: 999px;
+  color: var(--k-blue);
 }
 
 .cap-leaderboard__xp {
   flex-shrink: 0;
-  font-size: 0.78rem;
+  font-size: 0.8rem;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--k-ink-2);
   font-variant-numeric: tabular-nums;
 }
 
-/* Standalone rule (rather than only ever nested inside .cap-leaderboard__meta,
-   which sets the same values on its own children by inheritance) — the
-   'table' variant renders this as a direct grid cell, outside .meta
-   entirely, so it needs a font-size/weight/color of its own to fall back
-   on instead of losing them. Same values .meta already gave it, so the
-   compact card variant's look is unchanged. */
-.cap-leaderboard__level {
-  font-size: 0.68rem;
-  font-weight: 600;
-  color: var(--text-muted);
-  font-variant-numeric: tabular-nums;
+/* ---- 4c. Modals (leaderboard, follow) ----
+   Reuse the shared .classes-modal shell from css/style.css, reskinned
+   here as a chassis panel. */
+.cap-leaderboard-modal,
+.cap-follow-modal {
+  font-family: var(--k-font);
+  color: var(--k-ink);
+  background: var(--k-panel);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.4);
+}
+.cap-leaderboard-modal .classes-modal__head,
+.cap-follow-modal .classes-modal__head {
+  border-bottom-color: var(--k-rule);
+  border-radius: 0;
+}
+.cap-leaderboard-modal .classes-modal__head h3,
+.cap-follow-modal .classes-modal__head h3 {
+  font-family: var(--k-font);
+  font-weight: 800;
+  font-stretch: 87.5%;
+  color: var(--k-ink);
 }
 
-/* ---- LEADERBOARD MODAL ----
-   Reuses .classes-modal/__backdrop/__dialog/__head/__body from the shared
-   site stylesheet (css/style.css) — the same centered-dialog pattern the
-   classroom pages already use — rather than a second modal system just
-   for this page. Widened from the card's own narrow rail width per direct
-   feedback that it read as cramped; rows use LeaderboardRows' 'table'
-   variant (see LeaderboardRows.tsx) instead of the card's compact stacked
-   layout — real Loc/Elev/Nivel/XP columns, not a plain list. */
 .cap-leaderboard-modal {
   max-width: 680px;
   width: 100%;
-}
-.cap-leaderboard-modal .cap-leaderboard__list {
-  gap: 4px;
 }
 .cap-leaderboard-modal .cap-leaderboard__avatar {
   width: 36px;
   height: 36px;
   font-size: 0.78rem;
 }
-.cap-leaderboard-modal .cap-leaderboard__name {
-  font-size: 0.92rem;
-}
+.cap-leaderboard-modal .cap-leaderboard__name { font-size: 0.92rem; }
 .cap-leaderboard-modal .cap-leaderboard__level {
   font-size: 0.86rem;
   font-weight: 700;
-  color: var(--text-secondary);
+  color: var(--k-ink-2);
 }
-.cap-leaderboard-modal .cap-leaderboard__xp {
-  font-size: 0.88rem;
-}
+.cap-leaderboard-modal .cap-leaderboard__xp { font-size: 0.88rem; }
 
-/* The table's own column grid — one source of truth (this variable-free
-   repetition of the same five track widths) shared by the header row and
-   every data row below it, so they can never drift out of alignment with
-   each other. Rank/avatar sized to their content, Nivel/XP fixed and
-   right-aligned like any numeric table column, Elev (name) the only
-   flexible track. */
+/* One column grid shared by the header row and every data row. */
 .cap-leaderboard-table__head,
 .cap-leaderboard__row--table {
   display: grid;
@@ -1074,14 +1054,13 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
 }
 
 .cap-leaderboard-table__head {
-  padding: 6px 12px 10px;
-  font-size: 0.66rem;
+  padding: 0 12px 10px;
+  font-size: 0.64rem;
   font-weight: 700;
+  letter-spacing: 0.1em;
   text-transform: uppercase;
-  letter-spacing: 0.06em;
-  color: var(--text-muted);
-  border-bottom: 1px solid var(--border);
-  margin-bottom: 6px;
+  color: var(--k-ink-3);
+  border-bottom: 1px solid var(--k-panel-edge);
 }
 .cap-leaderboard-table__head span:nth-child(4),
 .cap-leaderboard-table__head span:nth-child(5) {
@@ -1112,30 +1091,31 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 30px;
-  height: 30px;
+  width: 32px;
+  height: 32px;
   flex-shrink: 0;
-  border-radius: 50%;
-  background: var(--surface);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink-2);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
   cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 .cap-leaderboard-modal__close:hover {
-  background: var(--card);
-  color: var(--text);
+  background: var(--k-key);
+  color: var(--k-ink-2);
+  filter: brightness(0.95);
+}
+.cap-leaderboard-modal__close:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
 }
 .cap-leaderboard-modal__close svg {
   width: 16px;
   height: 16px;
 }
 
-/* ---- FOLLOW MODAL ----
-   Opened from the profile panel's "Urmăriți"/"Urmăritori" buttons. Same
-   .classes-modal shell as the leaderboard modal above; .cap-leaderboard-
-   modal__close is reused as-is (generic enough, no follow-specific styling
-   needed there). */
 .cap-follow-modal {
   max-width: 400px;
   width: 100%;
@@ -1149,145 +1129,76 @@ html:not([data-theme="dark"]) .cap-sidebar-panel {
   text-align: center;
 }
 .cap-follow-modal__empty-icon {
-  width: 32px;
-  height: 32px;
-  color: var(--text-muted);
+  width: 30px;
+  height: 30px;
+  color: var(--k-ink-3);
 }
 .cap-follow-modal__empty p {
   font-size: 0.94rem;
   font-weight: 700;
-  color: var(--text);
+  color: var(--k-ink);
 }
 .cap-follow-modal__empty span {
   font-size: 0.8rem;
-  color: var(--text-muted);
+  color: var(--k-ink-3);
 }
 
-/* ---- 3c. PROFILE PANEL --------------------------------------------------
-   The whole left rail (see LeftColumn.tsx / ProfilePanel.tsx) — one
-   presentation surface instead of the old 3-card "what to do next" stack.
-   Below 1180px this is a normal, fully-bordered/rounded card like any
-   other — the one-sided radius and missing left border (further down) only
-   apply once .cap-col-left's breakout rule (section 3) actually pulls it
-   flush to the true viewport edge; without that, a missing left border on
-   an otherwise-inset mobile card would read as a rendering bug, not a
-   deliberate edge-to-edge blend. */
+/* ---- 5. PROFILE PANEL ------------------------------------------------- */
 .cap-profile-panel {
   position: relative;
-  display: flex;
-  flex-direction: column;
   overflow: hidden;
-  background: var(--card);
-  border: 2px solid var(--border);
-  border-radius: var(--cap-radius);
-}
-@media (min-width: 1180px) {
-  .cap-profile-panel {
-    border-left: none;
-    border-radius: 0 var(--cap-radius) var(--cap-radius) 0;
-  }
-}
-html:not([data-theme="dark"]) .cap-profile-panel {
-  background: #fff;
 }
 
 /* !signedIn only ever means "auth hasn't resolved yet" on this protected
-   route (see the component) — a shimmer, not a sign-in prompt. Repeated at
-   the same html:not([data-theme="dark"]) specificity as .cap-profile-panel's
-   own light-theme override above (and placed after it), otherwise that
-   override's full `background` shorthand would win the cascade and paint
-   this solid white instead of animating. */
-.cap-profile-panel--skeleton,
-html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
-  min-height: 200px;
-  background: linear-gradient(90deg, var(--surface) 25%, var(--card) 50%, var(--surface) 75%);
-  background-size: 200% 100%;
-  animation: cap-shimmer 1.4s linear infinite;
+   route (see the component) — a pulse, not a sign-in prompt. */
+.cap-profile-panel--skeleton {
+  min-height: 260px;
+  animation: cap-pulse 1.2s ease-in-out infinite alternate;
 }
 
+/* The user's own cover photo when they set one; otherwise a plain dark
+   strip of the chassis, not a gradient. */
 .cap-profile-cover {
-  height: 96px;
+  height: 92px;
   flex-shrink: 0;
-  background: linear-gradient(135deg, var(--accent) 0%, #6366f1 100%);
+  background-color: var(--k-bezel);
   background-size: cover;
   background-position: center;
+  border-bottom: 1px solid var(--k-panel-edge);
 }
 
 .cap-profile-body {
   display: flex;
   flex-direction: column;
-  align-items: center;
+  align-items: flex-start;
   flex: 1;
-  /* min-height:0 overrides the flexbox default (min-height:auto), which
-     otherwise refuses to let a flex child shrink below its own content
-     height — without it, this being taller than .cap-col-left's fixed
-     height (see section 3) forced .cap-profile-panel and the column
-     around it to grow past the viewport instead of scrolling internally,
-     which is what actually clipped Statistici/Realizări off the bottom
-     of a short window: .cap-col-left's own overflow-y:auto never got a
-     chance to trigger, because this element (not the column) is what was
-     overflowing, and .cap-profile-panel's own overflow:hidden (there only
-     to clip the cover photo's corners) silently ate the excess instead of
-     scrolling it. The scroll now happens here, right where the content
-     that can outgrow the available height actually lives. */
+  /* The body, not the panel, is what can outgrow a short viewport — it
+     scrolls here, where the overflowing content lives. */
   min-height: 0;
   overflow-y: auto;
-  /* 74px = .cap-profile-avatar's own height (124px) minus how far it
-     overlaps the cover above (50px) — the exact flow space the avatar
-     used to reserve for itself back when it was positioned with a
-     negative margin instead of absolutely (see .cap-profile-avatar's own
-     comment for why that changed). Now that it's out of flow entirely,
-     this padding stands in for that reserved space by hand. */
-  padding: 74px 20px 20px;
-  text-align: center;
+  /* 50px = avatar height (88) minus its overlap into the cover (38). */
+  padding: 50px 20px 22px;
 }
-/* flex-shrink defaults to 1 — without this, making the container above
-   allowed to shrink (min-height:0) also makes the flexbox algorithm
-   proportionally SHRINK these children to fit instead of overflowing them
-   (which is what's supposed to trigger the scroll above). Name/meta being
-   text with their own overflow:hidden (for ellipsis) made it worse: per
-   the flexbox spec, a child's automatic min-size only falls back to its
-   content size when overflow is visible — with overflow:hidden already
-   set (for the ellipsis truncation), theirs is 0, so THEY were the ones
-   that visibly collapsed to nothing first while plainer siblings held
-   their size. flex-shrink:0 on every child fixes both at once: nothing
-   shrinks, the excess becomes real (scrollable) overflow instead. */
 .cap-profile-body > * {
   flex-shrink: 0;
 }
-/* Absolutely positioned against .cap-profile-panel (not flowed, with a
-   negative margin, as a child of the now-scrollable .cap-profile-body —
-   see that rule's own padding-top comment) — a negative margin here used
-   to make this poke up 50px above .cap-profile-body's own top edge to
-   overlap the cover, which relied on that ancestor's overflow staying
-   visible. Once .cap-profile-body needed overflow-y:auto instead (for
-   the short-viewport scroll fix), that same overflow started clipping
-   the avatar's top edge along with it — overflow other than visible
-   clips ALL directions, not just the one the scrollbar reads. Absolute
-   positioning against the panel sidesteps that entirely: this is no
-   longer inside the element that scrolls. 46px = the cover's own height
-   (96px) minus the same 50px overlap the old negative margin used. */
+
+/* Out of flow, against the panel: inside the scrolling body its top edge
+   would be clipped by that body's overflow. */
 .cap-profile-avatar {
   position: absolute;
-  top: 46px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 124px;
-  height: 124px;
-  border-radius: 50%;
-  /* A fixed, theme-independent color rather than matching --card/#fff —
-     per direct feedback that a border meant to match the surrounding
-     card became invisible against it precisely where that mattered (the
-     card is white in light mode and near-black in dark mode, exactly
-     the two colors this was), and a custom cover photo can be any tone,
-     so nothing theme-derived is reliably visible against it either. */
-  border: 4px solid var(--accent);
-  background: var(--accent);
-  box-shadow: var(--shadow-sm);
+  top: 54px;
+  left: 20px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 88px;
+  height: 88px;
   overflow: hidden;
+  border: 3px solid var(--k-panel);
+  border-radius: var(--k-r-key);
+  background: var(--k-blue);
+  box-shadow: 0 0 0 1px var(--k-panel-edge);
 }
 .cap-profile-avatar img {
   width: 100%;
@@ -1295,28 +1206,25 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
   object-fit: cover;
 }
 .cap-profile-avatar span {
-  font-size: 2rem;
+  font-size: 1.8rem;
   font-weight: 800;
   color: #fff;
-  letter-spacing: 0.5px;
 }
 
 .cap-profile-name {
   margin-top: 12px;
   max-width: 100%;
-  font-size: 1.3rem;
-  font-weight: 800;
-  letter-spacing: -0.01em;
-  color: var(--text);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  font-family: var(--k-font);
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-stretch: 87.5%;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
 }
 
-/* Three-tier hierarchy under the name: role/class reads as a real
-   subtitle (darker, bolder), the join date as a quieter caption — per
-   direct feedback that both used to look like the same flat text with no
-   distinction at all. */
 .cap-profile-meta {
   max-width: 100%;
   overflow: hidden;
@@ -1324,332 +1232,266 @@ html:not([data-theme="dark"]) .cap-profile-panel--skeleton {
   white-space: nowrap;
 }
 .cap-profile-meta--primary {
-  margin-top: 6px;
-  font-size: 0.92rem;
-  font-weight: 700;
-  color: var(--text-secondary);
+  margin-top: 4px;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-blue);
 }
 .cap-profile-meta--secondary {
-  margin-top: 2px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  margin-top: 4px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--k-ink-3);
 }
 
 .cap-profile-follow {
   display: flex;
-  gap: 16px;
+  gap: 18px;
   margin-top: 12px;
 }
 .cap-profile-follow__item {
   padding: 0;
   border: none;
   background: none;
+  font-family: var(--k-font);
   font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-weight: 500;
+  color: var(--k-ink-2);
   cursor: pointer;
-  transition: opacity 0.15s ease;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 3px;
+  transition: text-decoration-color 0.15s ease;
 }
 .cap-profile-follow__item:hover {
-  opacity: 0.7;
+  text-decoration-color: var(--k-ink-3);
 }
 .cap-profile-follow__item strong {
-  color: var(--accent);
   font-weight: 800;
+  color: var(--k-ink);
 }
 
 .cap-profile-divider {
   width: 100%;
-  height: 1.5px;
-  margin-top: 18px;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
-.cap-profile-section {
-  width: 100%;
-  margin-top: 18px;
-}
-.cap-profile-section__title {
-  display: block;
-  margin-bottom: 10px;
-  font-size: 0.94rem;
-  font-weight: 800;
-  color: var(--text);
-  text-align: left;
+  height: 1px;
+  margin-top: 20px;
+  background: var(--k-rule);
 }
 
 .cap-profile-level {
   width: 100%;
-  margin-top: 18px;
+  margin-top: 20px;
 }
 .cap-profile-level__head {
   display: flex;
   align-items: baseline;
   justify-content: space-between;
-  margin-bottom: 6px;
-  font-size: 0.82rem;
+  margin-bottom: 8px;
 }
 .cap-profile-level__label {
+  font-size: 0.88rem;
   font-weight: 800;
-  color: var(--text);
+  color: var(--k-ink);
 }
 .cap-profile-level__xp {
-  font-size: 0.72rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-size: 0.78rem;
+  font-weight: 800;
   font-variant-numeric: tabular-nums;
-}
-.cap-profile-xpbar {
-  height: 12px;
-  border-radius: 6px;
-  background: color-mix(in srgb, var(--accent) 14%, var(--surface));
-  overflow: hidden;
-}
-.cap-profile-xpbar__fill {
-  height: 100%;
-  border-radius: 6px;
-  background: var(--accent);
-  transition: width 0.4s ease;
+  color: var(--k-orange-ink);
 }
 
-.cap-profile-stats {
+/* LCD bar graph: twenty cells on a small display. */
+.cap-profile-xpbar {
   display: flex;
+  gap: 2px;
+  padding: 4px;
+  border-radius: var(--k-r);
+  background: var(--k-lcd);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+}
+.cap-profile-xpbar__seg {
+  flex: 1;
+  height: 10px;
+  border-radius: 1px;
+  background: var(--k-lcd-ghost);
+}
+.cap-profile-xpbar__seg--on {
+  background: var(--k-lcd-ink);
+}
+
+.cap-profile-section {
   width: 100%;
-  gap: 10px;
+  margin-top: 22px;
+}
+.cap-profile-section__title {
+  margin-bottom: 10px;
+  font-family: var(--k-font);
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-stretch: 87.5%;
+  color: var(--k-ink);
+}
+
+/* Three small displays side by side. */
+.cap-profile-stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
 }
 .cap-profile-stat {
   display: flex;
-  flex: 1;
   flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 12px 6px;
-  border: 1.5px solid var(--border);
-  border-radius: var(--cap-radius-sm);
-  background: var(--card);
+  gap: 6px;
+  min-width: 0;
 }
-html:not([data-theme="dark"]) .cap-profile-stat {
-  background: #fff;
-}
+/* The numbers sit on displays now; the icons would only compete. */
 .cap-profile-stat__icon {
-  width: 18px;
-  height: 18px;
-  margin-bottom: 2px;
-  color: var(--yellow);
-}
-.cap-profile-stat__icon--xp {
-  color: var(--accent);
-}
-.cap-profile-stat__icon--rank {
-  color: #D4A017;
+  display: none;
 }
 .cap-profile-stat__val {
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--text);
+  padding: 8px 10px 6px;
+  border-radius: var(--k-r);
+  background: var(--k-lcd);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  font-family: var(--k-lcd-font);
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1;
+  text-align: right;
+  color: var(--k-lcd-ink);
   font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  overflow: hidden;
 }
 .cap-profile-stat__label {
-  font-size: 0.64rem;
+  overflow: hidden;
+  font-size: 0.6rem;
   font-weight: 700;
+  letter-spacing: 0.04em;
+  white-space: nowrap;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
-  color: var(--text-muted);
+  color: var(--k-ink-3);
 }
 
 .cap-profile-achievements-empty {
   display: flex;
-  flex-direction: column;
   align-items: center;
-  gap: 8px;
-  padding: 22px 16px;
-  border: 1.5px dashed var(--border);
-  border-radius: var(--cap-radius);
-  text-align: center;
+  gap: 12px;
+  padding: 14px;
+  border: 1px dashed var(--k-panel-edge);
+  border-radius: var(--k-r);
 }
 .cap-profile-achievements-empty__icon {
-  width: 26px;
-  height: 26px;
-  color: var(--text-muted);
+  width: 22px;
+  height: 22px;
+  flex-shrink: 0;
+  color: var(--k-ink-3);
 }
 .cap-profile-achievements-empty p {
   margin: 0;
   font-size: 0.8rem;
-  font-weight: 600;
-  color: var(--text-muted);
+  font-weight: 500;
+  color: var(--k-ink-3);
 }
 
 .cap-profile-body .cap-btn {
-  margin-top: 18px;
+  margin-top: 20px;
 }
 
-/* ---- 4. BUTTONS --------------------------------------------------------
-   The "pressed" treatment: a darker edge sits BELOW the button at rest,
-   compresses to (almost) nothing on press, and the button itself sinks
-   down to meet it — classic Duolingo chunky-button mechanic.
-
-   Pure CSS :active now, on purpose — an earlier version split this across
-   CSS (box-shadow) and Framer's whileTap (the y nudge) on the theory that
-   two different properties couldn't fight each other. They don't fight,
-   but they don't SYNC either: box-shadow was easing on its own transition
-   while the y transform rode Framer's separate spring, so the shadow
-   visibly finished collapsing before the button had moved to meet it —
-   "the 3D effect disappears" before the press animation catches up. Both
-   properties now sit in the same `transition` with the same duration, so
-   the shadow shrinking and the button dropping happen in lockstep in
-   both directions — press AND release. */
+/* ---- 6. BUTTONS (keys) -------------------------------------------------
+   Rest: darker bottom edge of the face's own color. Hover: a dim, nothing
+   else. Press: edge collapses and the key sinks to meet it, both on one
+   transition so they move in lockstep. Every color property is restated
+   under :hover so no shared rule from css/style.css can leak a swap in. */
 .cap-btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--cap-radius-sm);
-  font-size: 0.9rem;
-  font-weight: 800;
-  letter-spacing: 0.01em;
+  height: 40px;
+  padding: 0 18px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-size: 0.86rem;
+  font-weight: 700;
   text-decoration: none;
   cursor: pointer;
-  transition: background 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 .cap-btn svg { width: 16px; height: 16px; flex-shrink: 0; }
 .cap-btn--block { width: 100%; }
-
-.cap-btn--primary {
-  background: var(--accent);
-  color: #fff;
-  box-shadow: 0 4px 0 0 var(--cap-btn-shadow-primary);
+.cap-btn:hover {
+  background: var(--k-key);
+  color: var(--k-ink);
+  border-color: var(--k-panel-edge);
+  filter: brightness(0.95);
 }
-.cap-btn--primary:hover {
-  background: color-mix(in srgb, var(--accent) 90%, white 10%);
-}
-.cap-btn--primary:active {
-  box-shadow: 0 0px 0 0 var(--cap-btn-shadow-primary);
-  transform: translateY(4px);
-}
-
-/* Secondary action inside a compact card (NudgeCard's "Vezi favoritele" /
-   "Deschide capitolul") — a real button, same lockstep press mechanic as
-   the primary ones, but tinted from --cap-card-color instead of solid
-   --accent, and smaller (paired with .cap-btn--sm) to match the card. */
-.cap-btn--secondary {
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 14%, var(--card));
-  color: color-mix(in srgb, var(--cap-card-color, var(--accent)) 78%, var(--text));
-  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
-}
-.cap-btn--secondary:hover { filter: brightness(0.97); }
-.cap-btn--secondary:active {
-  box-shadow: 0 0px 0 0 color-mix(in srgb, var(--cap-card-color, var(--accent)) 55%, black 30%);
+.cap-btn:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
   transform: translateY(3px);
 }
 
+.cap-btn--primary,
+.cap-btn--primary:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+}
+.cap-btn--primary { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+.cap-btn--primary:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+
 .cap-btn--sm {
-  padding: 7px 14px;
-  font-size: 0.79rem;
+  height: 36px;
+  font-size: 0.8rem;
 }
 
-/* ---- 5. DARK THEME -------------------------------------------------- */
-[data-theme="dark"] {
-  /* A solid navy (matching light mode's approach) reads fine against the
-     bright button face above it, but was nearly the same luminance as the
-     dark card sitting BEHIND it (#1c1c1c) — the "step" almost disappeared
-     into the card. Semi-transparent black instead: it darkens whatever's
-     underneath by a fixed relative amount, so it stays visibly darker than
-     the card regardless of the card's exact shade, the same way a real
-     drop shadow would. */
-  --cap-btn-shadow-primary: rgba(0, 0, 0, 0.65);
+/* ---- 7. RESPONSIVE ---------------------------------------------------- */
+@media (max-width: 1400px) {
+  :root { --cap-rail: 300px; }
 }
 
-/* .cap-btn--secondary has no border at all in light mode (see its own
-   comment) — its background is a 14%-into-card tint, and against a white/
-   cream card that's still a visibly different pale color. Dark mode's
-   --card is already near-black (#1c1c1c), so the same formula mixes the
-   tint into a color barely distinguishable from the card behind it: the
-   button read as having a stroke on ONE edge only (the bottom pressed-
-   button shadow, a much stronger mix — see below), and none on the other
-   three. A real border, the same color family as that shadow, restores a
-   visible edge on every side. */
-[data-theme="dark"] .cap-btn--secondary {
-  border: 1.5px solid color-mix(in srgb, var(--cap-card-color, var(--accent)) 45%, transparent);
-}
-
-[data-theme="dark"] .cap-hero__title-accent {
-  background: linear-gradient(100deg, #7FB2E8 0%, #A78BFA 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-}
-
-/* .cap-card/.cap-sidebar-panel need no dark background/border override —
-   --card and --border already resolve to sane dark values (#1c1c1c and a
-   faint white line). The pressed-button shadow needs none either: it's
-   color-mix(chapter color, black), a fixed dark value independent of
-   page background, so it reads the same "step" in both themes already. */
-
-/* The progress tracks (chapter card + daily mission), unlike the cards
-   themselves just above, DO need a dark override — per direct feedback
-   ("sliderele... greu vizibile"/hard to see. .cap-card__track's light-mode
-   formula mixes a small amount of the chapter's own color into --surface;
-   dark mode's --surface (#141414) is close enough in luminance to --card
-   (#1c1c1c, the card sitting right behind it) that a mere 12% tint all but
-   vanished into it. .cap-mission__track has the same problem the other
-   way — its light-mode value IS --surface outright, no tint at all. Both
-   get a translucent-white base instead here (the same family --border's
-   own dark value already uses successfully elsewhere, e.g. the category
-   page's progress bar, which reads fine) — reliably lighter than the card
-   regardless of exactly how dark --surface/--card resolve, the same way
-   the pressed-button shadow above is a fixed relative darkening rather
-   than a value tuned to one specific background. */
-[data-theme="dark"] .cap-card__track {
-  background: color-mix(in srgb, var(--cap-card-color, var(--accent)) 30%, rgba(255, 255, 255, 0.14));
-}
-[data-theme="dark"] .cap-mission__track {
-  background: rgba(255, 255, 255, 0.14);
-}
-
-/* ---- 6. RESPONSIVE --------------------------------------------------
-   The 3-column ↔ 1-column breakpoint itself lives on .cap-three-col
-   (section 3), right next to the rule it overrides — everything left
-   here is secondary tuning at narrower widths, once already stacked. */
 @media (max-width: 900px) {
   :root { --cap-section-gap: 22px; }
 }
 
 @media (max-width: 640px) {
-  .cap-shell { padding: 0 18px; }
-  .cap-grid  { grid-template-columns: 1fr; }
-  .cap-three-col { padding-bottom: 52px; }
-  .cap-summary__stat { padding: 9px 16px; gap: 8px; }
-  .cap-summary__value { font-size: 1.05rem; }
+  .cap-shell { padding: 0 16px; }
+  .cap-grid { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .cap-hero { padding-top: 18px; }
+  .cap-lcd { padding: 10px 14px 12px; }
+  /* Two lines reserved, so a long phrase wraps instead of truncating and
+     the typing never nudges the figure below. */
+  .cap-lcd__input {
+    display: block;
+    min-height: 2.9em;
+    font-size: 0.88rem;
+    line-height: 1.45;
+    white-space: normal;
+  }
+  .cap-lcd__cursor {
+    display: inline-block;
+    vertical-align: -0.15em;
+  }
+  .cap-hero__legend { display: none; }
 }
 
-/* ---- 7. PHONE TAB BAR --------------------------------------------------
-   Below 640px the three columns stop being a single stacked scroll
-   (profile, then header+chapters, then missions+leaderboard, all in one
-   long page) and become three full-screen panes on a sliding track
-   instead, switched with a fixed bottom tab bar — per direct feedback
-   that stacking all three on a phone had no good reading order, the way
-   it does at every wider breakpoint. Same three columns, same DOM order,
-   same data — only the presentation changes.
-
-   The mechanism: .cap-mobile-viewport (a no-op above this breakpoint —
-   see section 3) becomes the slider's clipping viewport, sized to exactly
-   the space between the navbar and the tab bar. .cap-three-col becomes
-   the track itself: 300% wide, one pane per 33.3333%-wide column (which
-   is therefore exactly 100% of the viewport's own width), sliding via
-   --cap-tab-index (0/1/2, set inline by App.tsx from the active tab —
-   see MobileTabBar/lib/mobile-tabs.ts). translateX's percentage is
-   relative to the TRACK's own (300%) width, so -33.3333% per index step
-   works out to exactly one full pane. */
+/* ---- 8. PHONE TAB BAR --------------------------------------------------
+   Below 640px the three columns become three full-screen panes on a
+   sliding track, switched with a fixed bottom tab bar. .cap-mobile-viewport
+   becomes the clipping viewport (navbar to tab bar); .cap-three-col the
+   300%-wide track, sliding one pane per --cap-tab-index step (set inline
+   by App.tsx). */
 @media (max-width: 640px) {
   .cap-mobile-viewport {
     display: block;
     position: relative;
     overflow: hidden;
-    /* var(--cap-tabbar-h) + env(safe-area-inset-bottom) matches the tab
-       bar's own total (grown) height exactly — see its own comment. */
     height: calc(100vh - var(--nav-h, 72px) - var(--cap-tabbar-h) - env(safe-area-inset-bottom, 0px));
     height: calc(100dvh - var(--nav-h, 72px) - var(--cap-tabbar-h) - env(safe-area-inset-bottom, 0px));
   }
@@ -1665,10 +1507,8 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     transform: translateX(calc(var(--cap-tab-index, 1) * -33.3333%));
   }
 
-  /* DOM order (left, middle, right) IS the slide order here — the
-     narrower-but-not-phone order:-1 trick (section 3) that puts the
-     middle column first in a stacked column doesn't apply to a sliding
-     track, where each pane's position has to match its tab's index. */
+  /* DOM order is the slide order here; order:-1 from the stacked layout
+     doesn't apply to a sliding track. */
   .cap-col-left, .cap-col-middle, .cap-col-right {
     order: 0;
     flex: 0 0 33.3333%;
@@ -1676,26 +1516,9 @@ html:not([data-theme="dark"]) .cap-profile-stat {
     height: 100%;
     min-width: 0;
     overflow-y: auto;
-    /* Bottom padding well past what the layout math above says is
-       strictly needed (--cap-tabbar-h + a 24px margin, not just 24px on
-       its own) — a deliberate safety margin, not a rounding fudge. This
-       pane's own height already subtracts the tab bar's height from the
-       viewport (.cap-mobile-viewport, just above), so at maxed scroll
-       the last bit of content should already clear the tab bar with no
-       extra padding at all — reported direct feedback (a real phone
-       screenshot) showed the last card/button still partly behind the
-       tab bar regardless, which points at real-device viewport-height
-       reporting (100dvh included) being less exact in practice than the
-       math assumes. Padding this generous means the page stays fully
-       reachable by scrolling even if that assumption is off by a fair
-       amount on some browser/device, at the cost of some empty space
-       past the last element on ones where it wasn't. */
+    /* Generous bottom clearance: real-device viewport heights (dvh
+       included) report less exactly than the math above assumes. */
     padding: var(--cap-section-gap) 0 calc(var(--cap-tabbar-h) + 24px);
-    /* Scroll stays fully usable (wheel/touch/drag/keyboard) — only the
-       visible track is hidden, same treatment as the leaderboard list's
-       own scrollbar (see .cap-sidebar-section .cap-leaderboard__list) —
-       per direct feedback that it looked out of place on a phone, where
-       every native app's own scroll views don't show one either. */
     scrollbar-width: none;
     -ms-overflow-style: none;
   }
@@ -1715,65 +1538,68 @@ html:not([data-theme="dark"]) .cap-profile-stat {
 }
 
 @media (max-width: 640px) {
+  /* A row of three keys along the bottom of the chassis. The bar grows by
+     the iOS home-indicator inset; .cap-mobile-viewport mirrors that sum. */
   .cap-tabbar {
     display: flex;
+    gap: 8px;
     position: fixed;
     left: 0;
     right: 0;
     bottom: 0;
     z-index: 40;
-    /* iOS home-indicator clearance: the bar GROWS by the inset (box-
-       sizing:border-box means a plain padding-bottom here would instead
-       eat into the fixed --cap-tabbar-h, squeezing the actual buttons
-       into whatever's left rather than adding room below them) and the
-       padding pushes the button row up above the gesture area, inside
-       that taller box. .cap-mobile-viewport's own height calc mirrors
-       this exact sum, not --cap-tabbar-h alone, so it reserves the right
-       amount of space above this bar on a device with a real inset. */
     height: calc(var(--cap-tabbar-h) + env(safe-area-inset-bottom, 0px));
-    padding-bottom: env(safe-area-inset-bottom, 0px);
-    background: var(--card);
-    border-top: 1.5px solid var(--border);
-    box-shadow: 0 -4px 16px rgba(0, 0, 0, 0.1);
-  }
-  html:not([data-theme="dark"]) .cap-tabbar {
-    background: #fff;
+    padding: 8px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    background: var(--k-panel);
+    border-top: 1px solid var(--k-panel-edge);
+    font-family: var(--k-font);
   }
 }
 
 .cap-tabbar__btn {
   display: flex;
   flex: 1;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 3px;
-  border: none;
-  background: none;
-  color: var(--text-muted);
+  gap: 7px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink-2);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
   cursor: pointer;
-  transition: color 0.18s ease;
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+.cap-tabbar__btn:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
 }
 .cap-tabbar__icon {
-  width: 22px;
-  height: 22px;
-  transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+  width: 18px;
+  height: 18px;
 }
 .cap-tabbar__label {
-  font-size: 0.64rem;
+  font-size: 0.76rem;
   font-weight: 700;
 }
 .cap-tabbar__btn--active {
-  color: var(--accent);
-}
-.cap-tabbar__btn--active .cap-tabbar__icon {
-  transform: translateY(-1px) scale(1.1);
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+  box-shadow: 0 3px 0 0 var(--k-blue-edge);
 }
 
-/* Motion is opted out at the component level too (useReducedMotion), so
-   this only has to catch the CSS-driven pieces. */
+/* Motion is opted out at the component level too (useReducedMotion); this
+   catches the CSS-driven pieces. */
 @media (prefers-reduced-motion: reduce) {
-  .cap-card-skeleton, .cap-sidebar-section--skeleton { animation: none; }
-  .cap-card { transition: none; }
-  .cap-tabbar__icon { transition: none; }
+  .cap-card-skeleton,
+  .cap-sidebar-section--skeleton,
+  .cap-profile-panel--skeleton,
+  .cap-lcd__cursor,
+  .cap-lcd__refresh,
+  .cap-mission__cell--on { animation: none; }
+  .cap-key__face,
+  .cap-btn,
+  .cap-tabbar__btn { transition: none; }
 }
