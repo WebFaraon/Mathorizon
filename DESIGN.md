@@ -46,27 +46,27 @@ colors:
   dark-red: "#EE7560"
   dark-orange: "#F08A3C"
   dark-orange-ink: "#F4A25F"
-  nav-chassis: "#2552BD"
-  nav-chassis-edge: "#1A3C8E"
-  nav-key: "#3563CC"
-  nav-key-border: "#4A76D8"
-  nav-key-edge: "#173A8A"
-  nav-ink: "#F2F5FC"
+  nav-chassis: "#3A5A9F"
+  nav-chassis-edge: "#2A4478"
+  nav-key: "#4665A9"
+  nav-key-border: "#5874B3"
+  nav-key-edge: "#263F72"
+  nav-ink: "#F1F4FA"
   nav-lit: "#FFFFFF"
-  nav-lit-ink: "#1F4AAE"
-  nav-lit-edge: "#A9BCEB"
+  nav-lit-ink: "#2E4C8F"
+  nav-lit-edge: "#B4C1DC"
   nav-lcd: "#D3DCC3"
   nav-lcd-low: "#E7D8A2"
   nav-lcd-empty: "#EBC3B9"
-  dark-nav-chassis: "#16295A"
-  dark-nav-chassis-edge: "#0C1733"
-  dark-nav-key: "#203873"
-  dark-nav-key-border: "#2D4787"
-  dark-nav-key-edge: "#0A142E"
-  dark-nav-ink: "#DCE4F7"
-  dark-nav-lit: "#E9EEFB"
-  dark-nav-lit-ink: "#1B3F9C"
-  dark-nav-lit-edge: "#7F93C9"
+  dark-nav-chassis: "#1F2F52"
+  dark-nav-chassis-edge: "#121C33"
+  dark-nav-key: "#2A3C63"
+  dark-nav-key-border: "#374A73"
+  dark-nav-key-edge: "#0F172C"
+  dark-nav-ink: "#DDE3F0"
+  dark-nav-lit: "#E6EAF3"
+  dark-nav-lit-ink: "#27427F"
+  dark-nav-lit-edge: "#7F8DAD"
   dark-nav-lcd: "#B8C3A6"
 typography:
   display:
@@ -222,8 +222,9 @@ A neutral warm-gray chassis with ink text, one green-gray LCD, four saturated le
 - **Ink** (#17191C; dark #ECEDE9), **Ink 2** (#464B52; dark #B5BAC0), **Ink 3** (#646A71; dark #8D939A): primary text, secondary text (descriptions, leaderboard streak flames), and tertiary text (counts, labels, disabled "în curând" states). **Ink Soft** (#5D636A; dark #9AA0A7) is the legend fallback for a chapter with no assigned legend color.
 - **Ghost** (11% ink; 9% in dark): unlit bank-strip segments, empty mission cells, avatar placeholders.
 - **LCD Glass** (#C3CDB0; dark backlit #141B11) with **LCD Ink** (#1C2718; dark #BCE296), **LCD Dim** and **LCD Ghost** (unlit segments and the pixel lattice): every display surface on the chassis.
-- **Bezel** (#2A2E33; dark #050607): the frame around the main LCD and the empty profile cover strip.
-- **Nav strip** (#2552BD; dark #16295A, with a 1px edge #1A3C8E; dark #0C1733): the navbar is a solid brand-blue top strip. Its keys are a lighter blue (#3563CC, border #4A76D8, edge #173A8A; dark #203873 / #2D4787 / #0A142E) with **Nav Ink** (#F2F5FC; dark #DCE4F7). The lit key is white (#FFFFFF; dark #E9EEFB) with blue ink (#1F4AAE; dark #1B3F9C) and a pale-blue edge (#A9BCEB; dark #7F93C9). Its counters are a pale classic LCD (#D3DCC3; dark #B8C3A6) with LCD Ink digits in both themes; low tints the glass amber (#E7D8A2) and empty tints it red (#EBC3B9).
+- **Bezel** (#2A2E33; dark #050607): the frame around the main LCD and the empty-state LCDs.
+- **Cover** (#3A5A9F; dark #1F3160): the profile cover strip when the user has no cover photo, the navbar's own blue.
+- **Nav strip** (#3A5A9F; dark #1F2F52, with a 1px edge #2A4478; dark #121C33): the navbar is a solid, calm (desaturated) blue top strip. Its keys are a lighter blue (#4665A9, border #5874B3, edge #263F72; dark #2A3C63 / #374A73 / #0F172C) with **Nav Ink** (#F1F4FA; dark #DDE3F0). The lit key is white (#FFFFFF; dark #E6EAF3) with blue ink (#2E4C8F; dark #27427F) and a pale-blue edge (#B4C1DC; dark #7F8DAD). Its counters are a pale classic LCD (#D3DCC3; dark #B8C3A6) with LCD Ink digits in both themes; low tints the glass amber (#E7D8A2) and empty tints it red (#EBC3B9).
 
 ### Named Rules
 **The Legend Rule.** Each legend color has exactly one job set: blue is primary action and Algebră, green is done and Geometrie, red is Analiză, orange is XP. A chapter's color comes from this map, never from the older per-category colors in `js/data.js`. A new chapter without an assigned legend falls back to Ink Soft, not to a fifth hue.
@@ -320,7 +321,7 @@ A mission is a row: an 18px check box (2px-cornered empty box in Ink 3, a green 
 Rows separated by 1px Rule lines, 8px 6px padding: rank (tabular, 800; top three in Ink, the user in blue), a 30px square-cornered avatar with initials on Ghost, name, level and streak (an 11px flame in Ink 2), XP right-aligned. The user's own row sits on Blue Wash with an uppercase "tu" tag in blue. The full list opens in a chassis-panel modal with a five-column table grid and uppercase column heads.
 
 ### Profile Panel
-A cover strip (the user's photo, or a plain Bezel strip, never a gradient), an 88px square-cornered avatar overlapping it with a 3px Panel ring, name (Headline), an uppercase role line in blue, then level with a 20-segment LCD XP bar, three small stat displays, and achievements. Empty states are dashed plates with a line icon and Ink 3 text.
+A cover strip (the user's photo, or a plain Cover-blue strip, never a gradient), an 88px square-cornered avatar overlapping it with a 3px Panel ring, name (Headline), an uppercase role line in blue, then level with a 20-segment LCD XP bar, three small stat displays, and achievements. Empty states are dashed plates with a line icon and Ink 3 text.
 
 ### Navigation
 The navbar is the calculator's solid brand-blue top strip (no glass, no blur), deeper blue in dark. Tabs are keys on it: nav key face, 1px border, 4px corners, 3px nav edge, 38px tall, 0 16px padding (0 13px at or below 1400px), 600 at 0.9rem, nav ink. The active tab (and the primary guest action) is lit white with blue ink and a pale-blue edge. Icon buttons and the profile button share the key treatment; the profile avatar has 3px corners. Token and streak counters are a pale classic LCD set into the strip (3px corners, a key-edge border, inset recess) with dark Doto 900 digits at 1.2rem and an 0.6rem 800 word; when low the glass turns amber with dark amber ink, when empty red with dark red ink. At or below 1400px the token word drops. On phones the menu drops as a panel of the same blue with the current page as a lit white row; within Capitole a fixed bottom tab bar of three keys (Profil, Capitole, Misiuni) switches panes, the active one lit Key Blue.
@@ -363,3 +364,7 @@ The page powers on once, like the instrument it is, and afterwards moves only in
 - **Don't** lift, recolor, or glow a key on hover.
 - **Don't** round corners past 4px on panels, keys, or displays.
 - **Don't** color chapters from the legacy `js/data.js` category colors.
+
+### Favorite / Istoric panels
+
+The navbar's side panels (vanilla markup from `js/app.js`, reskinned on Capitole only through `body:has(#root)` rules in `src/capitole/styles.css`) use the same world: a Panel-colored sheet sliding in from the right on the page easing, a shadow only while open, head buttons as Keys, each exercise as a Key row (chapter symbol in its Legend color via `data-cat`, title, chapter name, difficulty printed as a 1px-outlined uppercase legend: ușor green, mediu amber #8A6400 / dark #E2B64E, greu red), and the empty state as a small LCD reading inside a bezel. Rows land one after another (capped at 320ms) when the panel opens.

@@ -191,7 +191,7 @@
   function renderPanelItem(ex, ts) {
     const cat = BM.getCategoryById(ex.categoryId);
     return `
-      <div class="panel-ex-item"
+      <div class="panel-ex-item" data-cat="${ex.categoryId}"
            onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
         <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
         <div class="panel-ex-item__info">

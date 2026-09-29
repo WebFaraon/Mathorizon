@@ -48,6 +48,7 @@
   --k-lcd-dim: rgba(28, 39, 24, 0.66);
   --k-lcd-ghost: rgba(28, 39, 24, 0.09);
   --k-bezel: #2A2E33;
+  --k-cover: #3A5A9F;
 
   --k-blue: #2F5FD0;
   --k-blue-edge: #1B3A8A;
@@ -56,6 +57,7 @@
   --k-red: #BF3D29;
   --k-orange: #DE6A1E;
   --k-orange-ink: #A94A0B;
+  --k-amber: #8A6400;
   --k-ink-soft: #5D636A;
 
   --k-r: 3px;
@@ -89,6 +91,7 @@
   --k-lcd-dim: rgba(188, 226, 150, 0.62);
   --k-lcd-ghost: rgba(188, 226, 150, 0.07);
   --k-bezel: #050607;
+  --k-cover: #1F3160;
 
   --k-blue: #5C8CF2;
   --k-blue-edge: #1E3B86;
@@ -97,6 +100,7 @@
   --k-red: #EE7560;
   --k-orange: #F08A3C;
   --k-orange-ink: #F4A25F;
+  --k-amber: #E2B64E;
   --k-ink-soft: #9AA0A7;
 }
 
@@ -1251,6 +1255,208 @@ a.cap-key__face:focus-visible {
   color: var(--k-ink-3);
 }
 
+/* ---- 4d. Favorite / Istoric panels ------------------------------------
+   Vanilla markup (capitole.html + js/app.js's renderPanelItem), opened from
+   the navbar. body:has(#root) scopes and outranks the shared .panel rules
+   in css/style.css, including their dark-theme variants. Each exercise is
+   a key; the empty state is a small LCD reading. */
+body:has(#root) .overlay {
+  background: rgba(12, 16, 26, 0.46);
+  transition: opacity 0.25s ease;
+}
+
+body:has(#root) .panel {
+  width: min(420px, 100vw);
+  background: var(--k-panel);
+  border-left: 1px solid var(--k-panel-edge);
+  color: var(--k-ink);
+  font-family: var(--k-font);
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shadow only while open: a closed panel sits just off the right edge,
+   and its shadow would bleed back into view. */
+body:has(#root) .panel.open {
+  box-shadow: -24px 0 48px -24px rgba(0, 0, 0, 0.35);
+}
+
+body:has(#root) .panel__head {
+  padding: 18px 20px;
+  background: var(--k-panel);
+  border-bottom: 1px solid var(--k-rule);
+}
+body:has(#root) .panel__head h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+
+body:has(#root) .panel__head .icon-btn,
+body:has(#root) .panel__head .btn--surface {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-weight: 700;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#root) .panel__head .icon-btn { width: 36px; padding: 0; }
+body:has(#root) .panel__head .btn--surface { padding: 0 12px; }
+body:has(#root) .panel__head .icon-btn:hover,
+body:has(#root) .panel__head .btn--surface:hover {
+  border-color: var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+  transform: none;
+  filter: brightness(0.95);
+}
+body:has(#root) .panel__head .icon-btn:active,
+body:has(#root) .panel__head .btn--surface:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+
+body:has(#root) .panel__body {
+  padding: 18px 20px 24px;
+  scrollbar-color: var(--k-panel-edge) transparent;
+}
+
+/* One exercise = one key. */
+body:has(#root) .panel-ex-item {
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#root) .panel-ex-item:hover {
+  border-color: var(--k-panel-edge);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transform: none;
+  filter: brightness(0.96);
+}
+body:has(#root) .panel-ex-item:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+/* The chapter symbol (first child, an inline-styled span). */
+body:has(#root) .panel-ex-item > span:first-child {
+  flex-shrink: 0;
+  width: 1.4em;
+  font-family: var(--k-math-font);
+  font-size: 1.5rem !important;
+  line-height: 1;
+  text-align: center;
+  color: var(--k-ink-soft);
+}
+/* Same legend colors as the chapter keys (ChapterCard.tsx's LEGEND). */
+body:has(#root) .panel-ex-item[data-cat="algebra"] > span:first-child { color: var(--k-blue); }
+body:has(#root) .panel-ex-item[data-cat="geometrie"] > span:first-child { color: var(--k-green); }
+body:has(#root) .panel-ex-item[data-cat="analiza"] > span:first-child { color: var(--k-red); }
+body:has(#root) .panel-ex-item__title {
+  margin-bottom: 4px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--k-ink);
+}
+body:has(#root) .panel-ex-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--k-ink-3);
+}
+body:has(#root) .panel-ex-item__date {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Difficulty printed as a legend, not a pill. */
+body:has(#root) .panel .diff-badge {
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+body:has(#root) .panel .diff-badge.usor { color: var(--k-green); }
+body:has(#root) .panel .diff-badge.mediu { color: var(--k-amber); }
+body:has(#root) .panel .diff-badge.dificil { color: var(--k-red); }
+
+/* Empty state: a small LCD reading, same glass as the hero display. */
+body:has(#root) .panel .empty-state {
+  margin: 10px 7px 0;
+  padding: 26px 20px 22px;
+  border-radius: var(--k-r);
+  background-color: var(--k-lcd);
+  background-image: radial-gradient(circle, var(--k-lcd-ghost) 0.9px, transparent 1.1px);
+  background-size: 4px 4px;
+  box-shadow:
+    0 0 0 7px var(--k-bezel),
+    inset 0 3px 6px rgba(0, 0, 0, 0.22);
+  color: var(--k-lcd-ink);
+  text-align: center;
+}
+body:has(#root) .panel .empty-icon {
+  margin-bottom: 10px;
+  opacity: 0.8;
+  color: var(--k-lcd-ink);
+}
+body:has(#root) .panel .empty-state p {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--k-lcd-ink);
+}
+body:has(#root) .panel .empty-state p.text-muted {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--k-lcd-ink);
+  opacity: 0.75;
+}
+
+/* Opening: the list lands key by key (capped, so a 50-item history
+   doesn't make anyone wait). */
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#root) .panel.open .panel-ex-item,
+  body:has(#root) .panel.open .empty-state {
+    animation: cap-panel-item-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: 120ms;
+  }
+  body:has(#root) .panel.open .panel-ex-item:nth-child(2) { animation-delay: 160ms; }
+  body:has(#root) .panel.open .panel-ex-item:nth-child(3) { animation-delay: 200ms; }
+  body:has(#root) .panel.open .panel-ex-item:nth-child(4) { animation-delay: 240ms; }
+  body:has(#root) .panel.open .panel-ex-item:nth-child(5) { animation-delay: 280ms; }
+  body:has(#root) .panel.open .panel-ex-item:nth-child(n+6) { animation-delay: 320ms; }
+}
+@keyframes cap-panel-item-in {
+  from { opacity: 0; transform: translateX(22px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body:has(#root) .panel { transition: none; }
+}
+
 /* ---- 5. PROFILE PANEL ------------------------------------------------- */
 .cap-profile-panel {
   position: relative;
@@ -1264,12 +1470,12 @@ a.cap-key__face:focus-visible {
   animation: cap-pulse 1.2s ease-in-out infinite alternate;
 }
 
-/* The user's own cover photo when they set one; otherwise a plain dark
-   strip of the chassis, not a gradient. */
+/* The user's own cover photo when they set one; otherwise a plain strip
+   in the navbar's blue, not a gradient. */
 .cap-profile-cover {
   height: 92px;
   flex-shrink: 0;
-  background-color: var(--k-bezel);
+  background-color: var(--k-cover);
   background-size: cover;
   background-position: center;
   border-bottom: 1px solid var(--k-panel-edge);

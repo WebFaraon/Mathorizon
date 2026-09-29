@@ -19685,7 +19685,7 @@ body:has(#root) {
    NAVBAR — calculator skin
    ============================================================
    The navbar is the top strip of the calculator the Capitole page is
-   built as (src/capitole/styles.css): a solid brand-blue chassis (no
+   built as (src/capitole/styles.css): a solid, calm blue chassis (no
    glass), tabs as keys on it, the active one lit white, the token/streak
    counters as a small classic LCD. Every rule is prefixed with #nav-root
    (the id every page's <nav class="nav"> carries) so it outranks the
@@ -19697,15 +19697,15 @@ body:has(#root) {
    Keys follow the site's button standard: a darker bottom edge at rest, a
    dim on hover and nothing else, a sink on press. */
 #nav-root {
-  --nk-chassis: #2552BD;
-  --nk-chassis-edge: #1A3C8E;
-  --nk-key: #3563CC;
-  --nk-key-border: #4A76D8;
-  --nk-key-edge: #173A8A;
-  --nk-ink: #F2F5FC;
+  --nk-chassis: #3A5A9F;
+  --nk-chassis-edge: #2A4478;
+  --nk-key: #4665A9;
+  --nk-key-border: #5874B3;
+  --nk-key-edge: #263F72;
+  --nk-ink: #F1F4FA;
   --nk-lit: #FFFFFF;
-  --nk-lit-ink: #1F4AAE;
-  --nk-lit-edge: #A9BCEB;
+  --nk-lit-ink: #2E4C8F;
+  --nk-lit-edge: #B4C1DC;
   --nk-lcd: #D3DCC3;
   --nk-lcd-ink: #1C2718;
 
@@ -19716,15 +19716,15 @@ body:has(#root) {
   box-shadow: none;
 }
 [data-theme="dark"] #nav-root {
-  --nk-chassis: #16295A;
-  --nk-chassis-edge: #0C1733;
-  --nk-key: #203873;
-  --nk-key-border: #2D4787;
-  --nk-key-edge: #0A142E;
-  --nk-ink: #DCE4F7;
-  --nk-lit: #E9EEFB;
-  --nk-lit-ink: #1B3F9C;
-  --nk-lit-edge: #7F93C9;
+  --nk-chassis: #1F2F52;
+  --nk-chassis-edge: #121C33;
+  --nk-key: #2A3C63;
+  --nk-key-border: #374A73;
+  --nk-key-edge: #0F172C;
+  --nk-ink: #DDE3F0;
+  --nk-lit: #E6EAF3;
+  --nk-lit-ink: #27427F;
+  --nk-lit-edge: #7F8DAD;
   --nk-lcd: #B8C3A6;
 }
 
