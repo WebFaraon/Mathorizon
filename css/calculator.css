@@ -92,6 +92,209 @@ body:has(#catHeader) {
   background-size: 28px 28px;
 }
 
+/* ---- 4d. Favorite / Istoric panels ------------------------------------
+   Vanilla markup (capitole.html + js/app.js's renderPanelItem), opened from
+   the navbar. body scopes and outranks the shared .panel rules
+   in css/style.css, including their dark-theme variants. Each exercise is
+   a key; the empty state is a small LCD reading. */
+body .overlay {
+  background: rgba(12, 16, 26, 0.46);
+  transition: opacity 0.25s ease;
+}
+
+body .panel {
+  width: min(420px, 100vw);
+  background: var(--k-panel);
+  border-left: 1px solid var(--k-panel-edge);
+  color: var(--k-ink);
+  font-family: var(--k-font);
+  transition: transform 0.38s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Shadow only while open: a closed panel sits just off the right edge,
+   and its shadow would bleed back into view. */
+body .panel.open {
+  box-shadow: -24px 0 48px -24px rgba(0, 0, 0, 0.35);
+}
+
+body .panel__head {
+  padding: 18px 20px;
+  background: var(--k-panel);
+  border-bottom: 1px solid var(--k-rule);
+}
+body .panel__head h3 {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+
+body .panel__head .icon-btn,
+body .panel__head .btn--surface {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 36px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-weight: 700;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body .panel__head .icon-btn { width: 36px; padding: 0; }
+body .panel__head .btn--surface { padding: 0 14px; font-size: 0.8rem; }
+body .panel__head .icon-btn:hover,
+body .panel__head .btn--surface:hover {
+  border-color: var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+  transform: none;
+  filter: brightness(0.95);
+}
+body .panel__head .icon-btn:active,
+body .panel__head .btn--surface:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+
+body .panel__body {
+  padding: 18px 20px 24px;
+  scrollbar-color: var(--k-panel-edge) transparent;
+}
+
+/* One exercise = one key. */
+body .panel-ex-item {
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body .panel-ex-item:hover {
+  border-color: var(--k-panel-edge);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transform: none;
+  filter: brightness(0.96);
+}
+body .panel-ex-item:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+/* The chapter symbol (first child, an inline-styled span). */
+body .panel-ex-item > span:first-child {
+  flex-shrink: 0;
+  width: 1.4em;
+  font-family: var(--k-math-font);
+  font-size: 1.5rem !important;
+  line-height: 1;
+  text-align: center;
+  color: var(--k-ink-soft);
+}
+/* Same legend colors as the chapter keys (ChapterCard.tsx's LEGEND). */
+body .panel-ex-item[data-cat="algebra"] > span:first-child { color: var(--k-blue); }
+body .panel-ex-item[data-cat="geometrie"] > span:first-child { color: var(--k-green); }
+body .panel-ex-item[data-cat="analiza"] > span:first-child { color: var(--k-red); }
+body .panel-ex-item__title {
+  margin-bottom: 4px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--k-ink);
+}
+body .panel-ex-item__meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.74rem;
+  color: var(--k-ink-3);
+}
+body .panel-ex-item__date {
+  align-self: flex-start;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+/* Rarity printed as a legend, not a pill. */
+body .panel .diff-badge {
+  padding: 1px 6px;
+  border: 1px solid currentColor;
+  border-radius: 2px;
+  background: transparent;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+body .panel .diff-badge.comun { color: var(--rarity-comun-text); }
+body .panel .diff-badge.rar { color: var(--rarity-rar-text); }
+body .panel .diff-badge.epic { color: var(--rarity-epic-text); }
+body .panel .diff-badge.legendar { color: var(--rarity-legendar-text); }
+
+/* Empty state: a small LCD reading, same glass as the hero display. */
+body .panel .empty-state {
+  margin: 10px 7px 0;
+  padding: 26px 20px 22px;
+  border-radius: var(--k-r);
+  background-color: var(--k-lcd);
+  background-image: radial-gradient(circle, var(--k-lcd-ghost) 0.9px, transparent 1.1px);
+  background-size: 4px 4px;
+  box-shadow:
+    0 0 0 7px var(--k-bezel),
+    inset 0 3px 6px rgba(0, 0, 0, 0.22);
+  color: var(--k-lcd-ink);
+  text-align: center;
+}
+body .panel .empty-icon {
+  margin-bottom: 10px;
+  opacity: 0.8;
+  color: var(--k-lcd-ink);
+}
+body .panel .empty-state p {
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--k-lcd-ink);
+}
+body .panel .empty-state p.text-muted {
+  margin-top: 4px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--k-lcd-ink);
+  opacity: 0.75;
+}
+
+/* Opening: the list lands key by key (capped, so a 50-item history
+   doesn't make anyone wait). */
+@media (prefers-reduced-motion: no-preference) {
+  body .panel.open .panel-ex-item,
+  body .panel.open .empty-state {
+    animation: cap-panel-item-in 0.38s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: 120ms;
+  }
+  body .panel.open .panel-ex-item:nth-child(2) { animation-delay: 160ms; }
+  body .panel.open .panel-ex-item:nth-child(3) { animation-delay: 200ms; }
+  body .panel.open .panel-ex-item:nth-child(4) { animation-delay: 240ms; }
+  body .panel.open .panel-ex-item:nth-child(5) { animation-delay: 280ms; }
+  body .panel.open .panel-ex-item:nth-child(n+6) { animation-delay: 320ms; }
+}
+@keyframes cap-panel-item-in {
+  from { opacity: 0; transform: translateX(22px); }
+}
+@media (prefers-reduced-motion: reduce) {
+  body .panel { transition: none; }
+}
+
 /* ============================================================
    category.html — chapter / subchapter page
    ============================================================
@@ -650,12 +853,30 @@ body:has(#catHeader) .rarity-card:hover {
   box-shadow: 0 4px 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
   filter: brightness(0.965);
 }
-body:has(#catHeader) .rarity-card:active,
-body:has(#catHeader) .rarity-card.rarity-card--opening {
+/* Press: the card sinks onto its edge while held, and comes back up on
+   release. Not when the press is on the favorite / solved keys inside it:
+   those keys press on their own. */
+body:has(#catHeader) .rarity-card:active:not(:has(.rarity-card__actions:active)) {
   transform: translateY(4px);
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
-  animation: none;
 }
+/* The click that opens the modal replays the same press as one short
+   down-and-up (js/category.js removes the class on animationend). */
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#catHeader) .rarity-card.rarity-card--opening {
+    animation: rc-press 0.24s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes rc-press {
+  40% {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
+  }
+}
+/* Solving / favoriting animates the key and the "Rezolvat" stamp, not the
+   whole card (the legacy .anim-solved / .anim-fav pulse). */
+body:has(#catHeader) .rarity-card.anim-solved:not(.rarity-card--opening),
+body:has(#catHeader) .rarity-card.anim-fav:not(.rarity-card--opening) { animation: none; }
 body:has(#catHeader) .rarity-card:focus-visible {
   outline: 2px solid var(--rc);
   outline-offset: 3px;
@@ -903,9 +1124,12 @@ body:has(#catHeader) .filter-chip.active .rc-pips i.on { background: #fff; }
 }
 
 /* ---- Exercise modal ---- */
+/* The page behind an open exercise is blurred out, so nothing on it
+   competes with the exercise. */
 body:has(#catHeader) .rarity-modal .classes-modal__backdrop {
-  background: rgba(12, 16, 26, 0.55);
-  backdrop-filter: none;
+  background: rgba(12, 16, 26, 0.42);
+  backdrop-filter: blur(7px) saturate(0.85);
+  -webkit-backdrop-filter: blur(7px) saturate(0.85);
 }
 body:has(#catHeader) .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
   border: 1px solid var(--k-panel-edge);
@@ -917,6 +1141,7 @@ body:has(#catHeader) .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
   color: var(--k-ink);
 }
 body:has(#catHeader) .rarity-modal__head {
+  padding: 12px 16px;
   border-bottom-color: var(--k-rule);
 }
 /* The rarity legend as a printed tab on the dialog's top edge. */

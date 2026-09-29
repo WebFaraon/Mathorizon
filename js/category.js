@@ -1338,11 +1338,11 @@
         if (!ex) return '';
         const cat = BM.getCategoryById(ex.categoryId);
         return `
-          <div class="panel-ex-item" onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
+          <div class="panel-ex-item" data-cat="${ex.categoryId}" onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
             <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
             <div class="panel-ex-item__info">
               <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
-              <div class="panel-ex-item__meta">${BM.esc(cat?.name || '')} · ${BM.diffBadge(ex.difficulty)}</div>
+              <div class="panel-ex-item__meta">${BM.esc(cat?.name || '')} · ${BM.rarityBadge(ex.difficulty)}</div>
             </div>
             <span class="panel-ex-item__date">${BM.formatDate(h.ts)}</span>
           </div>`;
@@ -1363,10 +1363,10 @@
       list.innerHTML = `<div class="empty-state"><div class="empty-icon">${icon('heart', { size: 48 })}</div><p>Niciun favorit în acest capitol.</p></div>`;
     } else {
       list.innerHTML = catFavs.map(ex => `
-        <div class="panel-ex-item" onclick="selectSubcat('${ex.subcategoryId}');BM.closeAllPanels()">
+        <div class="panel-ex-item" data-cat="${ex.categoryId}" onclick="selectSubcat('${ex.subcategoryId}');BM.closeAllPanels()">
           <div class="panel-ex-item__info">
             <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
-            <div class="panel-ex-item__meta">${BM.diffBadge(ex.difficulty)}</div>
+            <div class="panel-ex-item__meta">${BM.rarityBadge(ex.difficulty)}</div>
           </div>
         </div>`).join('');
     }
