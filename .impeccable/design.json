@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "generatedAt": "2026-09-29T17:11:00.969Z",
+  "generatedAt": "2026-09-29T17:36:09.563Z",
   "title": "Design System: Mathorizon",
   "extensions": {
     "colorMeta": {
@@ -604,101 +604,401 @@
           "oklch(95% 0.128 58.6)"
         ]
       },
-      "nav-chassis": {
+      "grid": {
         "role": "neutral",
-        "displayName": "Nav Chassis",
-        "canonical": "oklch(23.8% 0.009 255.6)",
+        "displayName": "Grid Line",
+        "canonical": "rgba(23, 25, 28, 0.065)",
         "tonalRamp": [
-          "oklch(15% 0.009 255.6)",
-          "oklch(26.4% 0.009 255.6)",
-          "oklch(37.9% 0.009 255.6)",
-          "oklch(49.3% 0.009 255.6)",
-          "oklch(60.7% 0.009 255.6)",
-          "oklch(72.1% 0.009 255.6)",
-          "oklch(83.6% 0.009 255.6)",
-          "oklch(95% 0.009 255.6)"
+          "oklch(15% 0.007 258.4)",
+          "oklch(26.4% 0.007 258.4)",
+          "oklch(37.9% 0.007 258.4)",
+          "oklch(49.3% 0.007 258.4)",
+          "oklch(60.7% 0.007 258.4)",
+          "oklch(72.1% 0.007 258.4)",
+          "oklch(83.6% 0.007 258.4)",
+          "oklch(95% 0.007 258.4)"
+        ]
+      },
+      "ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft (legend fallback)",
+        "canonical": "oklch(49.7% 0.013 252.2)",
+        "tonalRamp": [
+          "oklch(15% 0.013 252.2)",
+          "oklch(26.4% 0.013 252.2)",
+          "oklch(37.9% 0.013 252.2)",
+          "oklch(49.3% 0.013 252.2)",
+          "oklch(60.7% 0.013 252.2)",
+          "oklch(72.1% 0.013 252.2)",
+          "oklch(83.6% 0.013 252.2)",
+          "oklch(95% 0.013 252.2)"
+        ]
+      },
+      "dark-grid": {
+        "role": "neutral",
+        "displayName": "Grid Line (dark)",
+        "canonical": "rgba(236, 237, 233, 0.04)",
+        "tonalRamp": [
+          "oklch(15% 0.005 117.9)",
+          "oklch(26.4% 0.005 117.9)",
+          "oklch(37.9% 0.005 117.9)",
+          "oklch(49.3% 0.005 117.9)",
+          "oklch(60.7% 0.005 117.9)",
+          "oklch(72.1% 0.005 117.9)",
+          "oklch(83.6% 0.005 117.9)",
+          "oklch(95% 0.005 117.9)"
+        ]
+      },
+      "dark-ink-soft": {
+        "role": "neutral",
+        "displayName": "Ink Soft (dark)",
+        "canonical": "oklch(70.3% 0.012 252.1)",
+        "tonalRamp": [
+          "oklch(15% 0.012 252.1)",
+          "oklch(26.4% 0.012 252.1)",
+          "oklch(37.9% 0.012 252.1)",
+          "oklch(49.3% 0.012 252.1)",
+          "oklch(60.7% 0.012 252.1)",
+          "oklch(72.1% 0.012 252.1)",
+          "oklch(83.6% 0.012 252.1)",
+          "oklch(95% 0.012 252.1)"
+        ]
+      },
+      "nav-chassis": {
+        "role": "primary",
+        "displayName": "Nav Strip Blue",
+        "canonical": "oklch(47.5% 0.176 263.7)",
+        "tonalRamp": [
+          "oklch(15% 0.176 263.7)",
+          "oklch(26.4% 0.176 263.7)",
+          "oklch(37.9% 0.176 263.7)",
+          "oklch(49.3% 0.176 263.7)",
+          "oklch(60.7% 0.176 263.7)",
+          "oklch(72.1% 0.176 263.7)",
+          "oklch(83.6% 0.176 263.7)",
+          "oklch(95% 0.176 263.7)"
+        ]
+      },
+      "nav-chassis-edge": {
+        "role": "primary",
+        "displayName": "Nav Strip Edge",
+        "canonical": "oklch(38.5% 0.142 263.9)",
+        "tonalRamp": [
+          "oklch(15% 0.142 263.9)",
+          "oklch(26.4% 0.142 263.9)",
+          "oklch(37.9% 0.142 263.9)",
+          "oklch(49.3% 0.142 263.9)",
+          "oklch(60.7% 0.142 263.9)",
+          "oklch(72.1% 0.142 263.9)",
+          "oklch(83.6% 0.142 263.9)",
+          "oklch(95% 0.142 263.9)"
         ]
       },
       "nav-key": {
-        "role": "neutral",
+        "role": "primary",
         "displayName": "Nav Key",
-        "canonical": "oklch(30% 0.012 258.4)",
+        "canonical": "oklch(52.7% 0.171 263.7)",
         "tonalRamp": [
-          "oklch(15% 0.012 258.4)",
-          "oklch(26.4% 0.012 258.4)",
-          "oklch(37.9% 0.012 258.4)",
-          "oklch(49.3% 0.012 258.4)",
-          "oklch(60.7% 0.012 258.4)",
-          "oklch(72.1% 0.012 258.4)",
-          "oklch(83.6% 0.012 258.4)",
-          "oklch(95% 0.012 258.4)"
+          "oklch(15% 0.171 263.7)",
+          "oklch(26.4% 0.171 263.7)",
+          "oklch(37.9% 0.171 263.7)",
+          "oklch(49.3% 0.171 263.7)",
+          "oklch(60.7% 0.171 263.7)",
+          "oklch(72.1% 0.171 263.7)",
+          "oklch(83.6% 0.171 263.7)",
+          "oklch(95% 0.171 263.7)"
         ]
       },
       "nav-key-border": {
-        "role": "neutral",
+        "role": "primary",
         "displayName": "Nav Key Border",
-        "canonical": "oklch(35.4% 0.014 256.8)",
+        "canonical": "oklch(58.4% 0.158 264)",
         "tonalRamp": [
-          "oklch(15% 0.014 256.8)",
-          "oklch(26.4% 0.014 256.8)",
-          "oklch(37.9% 0.014 256.8)",
-          "oklch(49.3% 0.014 256.8)",
-          "oklch(60.7% 0.014 256.8)",
-          "oklch(72.1% 0.014 256.8)",
-          "oklch(83.6% 0.014 256.8)",
-          "oklch(95% 0.014 256.8)"
+          "oklch(15% 0.158 264)",
+          "oklch(26.4% 0.158 264)",
+          "oklch(37.9% 0.158 264)",
+          "oklch(49.3% 0.158 264)",
+          "oklch(60.7% 0.158 264)",
+          "oklch(72.1% 0.158 264)",
+          "oklch(83.6% 0.158 264)",
+          "oklch(95% 0.158 264)"
         ]
       },
       "nav-key-edge": {
-        "role": "neutral",
+        "role": "primary",
         "displayName": "Nav Key Edge",
-        "canonical": "oklch(14.9% 0.005 264.5)",
+        "canonical": "oklch(37.6% 0.14 263.4)",
         "tonalRamp": [
-          "oklch(15% 0.005 264.5)",
-          "oklch(26.4% 0.005 264.5)",
-          "oklch(37.9% 0.005 264.5)",
-          "oklch(49.3% 0.005 264.5)",
-          "oklch(60.7% 0.005 264.5)",
-          "oklch(72.1% 0.005 264.5)",
-          "oklch(83.6% 0.005 264.5)",
-          "oklch(95% 0.005 264.5)"
+          "oklch(15% 0.14 263.4)",
+          "oklch(26.4% 0.14 263.4)",
+          "oklch(37.9% 0.14 263.4)",
+          "oklch(49.3% 0.14 263.4)",
+          "oklch(60.7% 0.14 263.4)",
+          "oklch(72.1% 0.14 263.4)",
+          "oklch(83.6% 0.14 263.4)",
+          "oklch(95% 0.14 263.4)"
         ]
       },
       "nav-ink": {
         "role": "neutral",
         "displayName": "Nav Ink",
-        "canonical": "oklch(87.5% 0.006 255.5)",
+        "canonical": "oklch(97% 0.01 267.4)",
         "tonalRamp": [
-          "oklch(15% 0.006 255.5)",
-          "oklch(26.4% 0.006 255.5)",
-          "oklch(37.9% 0.006 255.5)",
-          "oklch(49.3% 0.006 255.5)",
-          "oklch(60.7% 0.006 255.5)",
-          "oklch(72.1% 0.006 255.5)",
-          "oklch(83.6% 0.006 255.5)",
-          "oklch(95% 0.006 255.5)"
+          "oklch(15% 0.01 267.4)",
+          "oklch(26.4% 0.01 267.4)",
+          "oklch(37.9% 0.01 267.4)",
+          "oklch(49.3% 0.01 267.4)",
+          "oklch(60.7% 0.01 267.4)",
+          "oklch(72.1% 0.01 267.4)",
+          "oklch(83.6% 0.01 267.4)",
+          "oklch(95% 0.01 267.4)"
         ]
       },
-      "nav-blue-edge": {
-        "role": "primary",
-        "displayName": "Nav Blue Edge",
-        "canonical": "oklch(32.8% 0.114 264.9)",
+      "nav-lit": {
+        "role": "neutral",
+        "displayName": "Nav Lit Key (white)",
+        "canonical": "oklch(100% 0 0)",
         "tonalRamp": [
-          "oklch(15% 0.114 264.9)",
-          "oklch(26.4% 0.114 264.9)",
-          "oklch(37.9% 0.114 264.9)",
-          "oklch(49.3% 0.114 264.9)",
-          "oklch(60.7% 0.114 264.9)",
-          "oklch(72.1% 0.114 264.9)",
-          "oklch(83.6% 0.114 264.9)",
-          "oklch(95% 0.114 264.9)"
+          "oklch(15% 0 0)",
+          "oklch(26.4% 0 0)",
+          "oklch(37.9% 0 0)",
+          "oklch(49.3% 0 0)",
+          "oklch(60.7% 0 0)",
+          "oklch(72.1% 0 0)",
+          "oklch(83.6% 0 0)",
+          "oklch(95% 0 0)"
+        ]
+      },
+      "nav-lit-ink": {
+        "role": "primary",
+        "displayName": "Nav Lit Ink",
+        "canonical": "oklch(44.4% 0.167 263.5)",
+        "tonalRamp": [
+          "oklch(15% 0.167 263.5)",
+          "oklch(26.4% 0.167 263.5)",
+          "oklch(37.9% 0.167 263.5)",
+          "oklch(49.3% 0.167 263.5)",
+          "oklch(60.7% 0.167 263.5)",
+          "oklch(72.1% 0.167 263.5)",
+          "oklch(83.6% 0.167 263.5)",
+          "oklch(95% 0.167 263.5)"
+        ]
+      },
+      "nav-lit-edge": {
+        "role": "primary",
+        "displayName": "Nav Lit Edge",
+        "canonical": "oklch(79.7% 0.07 267.6)",
+        "tonalRamp": [
+          "oklch(15% 0.07 267.6)",
+          "oklch(26.4% 0.07 267.6)",
+          "oklch(37.9% 0.07 267.6)",
+          "oklch(49.3% 0.07 267.6)",
+          "oklch(60.7% 0.07 267.6)",
+          "oklch(72.1% 0.07 267.6)",
+          "oklch(83.6% 0.07 267.6)",
+          "oklch(95% 0.07 267.6)"
+        ]
+      },
+      "nav-lcd": {
+        "role": "neutral",
+        "displayName": "Nav Classic LCD",
+        "canonical": "oklch(88.1% 0.035 123.3)",
+        "tonalRamp": [
+          "oklch(15% 0.035 123.3)",
+          "oklch(26.4% 0.035 123.3)",
+          "oklch(37.9% 0.035 123.3)",
+          "oklch(49.3% 0.035 123.3)",
+          "oklch(60.7% 0.035 123.3)",
+          "oklch(72.1% 0.035 123.3)",
+          "oklch(83.6% 0.035 123.3)",
+          "oklch(95% 0.035 123.3)"
+        ]
+      },
+      "nav-lcd-low": {
+        "role": "neutral",
+        "displayName": "Nav LCD Low (amber)",
+        "canonical": "oklch(88.1% 0.072 94.4)",
+        "tonalRamp": [
+          "oklch(15% 0.072 94.4)",
+          "oklch(26.4% 0.072 94.4)",
+          "oklch(37.9% 0.072 94.4)",
+          "oklch(49.3% 0.072 94.4)",
+          "oklch(60.7% 0.072 94.4)",
+          "oklch(72.1% 0.072 94.4)",
+          "oklch(83.6% 0.072 94.4)",
+          "oklch(95% 0.072 94.4)"
+        ]
+      },
+      "nav-lcd-empty": {
+        "role": "neutral",
+        "displayName": "Nav LCD Empty (red)",
+        "canonical": "oklch(84.9% 0.048 34.4)",
+        "tonalRamp": [
+          "oklch(15% 0.048 34.4)",
+          "oklch(26.4% 0.048 34.4)",
+          "oklch(37.9% 0.048 34.4)",
+          "oklch(49.3% 0.048 34.4)",
+          "oklch(60.7% 0.048 34.4)",
+          "oklch(72.1% 0.048 34.4)",
+          "oklch(83.6% 0.048 34.4)",
+          "oklch(95% 0.048 34.4)"
+        ]
+      },
+      "dark-nav-chassis": {
+        "role": "primary",
+        "displayName": "Nav Strip Blue (dark)",
+        "canonical": "oklch(29.6% 0.092 265.3)",
+        "tonalRamp": [
+          "oklch(15% 0.092 265.3)",
+          "oklch(26.4% 0.092 265.3)",
+          "oklch(37.9% 0.092 265.3)",
+          "oklch(49.3% 0.092 265.3)",
+          "oklch(60.7% 0.092 265.3)",
+          "oklch(72.1% 0.092 265.3)",
+          "oklch(83.6% 0.092 265.3)",
+          "oklch(95% 0.092 265.3)"
+        ]
+      },
+      "dark-nav-chassis-edge": {
+        "role": "primary",
+        "displayName": "Nav Strip Edge (dark)",
+        "canonical": "oklch(21.3% 0.057 265.6)",
+        "tonalRamp": [
+          "oklch(15% 0.057 265.6)",
+          "oklch(26.4% 0.057 265.6)",
+          "oklch(37.9% 0.057 265.6)",
+          "oklch(49.3% 0.057 265.6)",
+          "oklch(60.7% 0.057 265.6)",
+          "oklch(72.1% 0.057 265.6)",
+          "oklch(83.6% 0.057 265.6)",
+          "oklch(95% 0.057 265.6)"
+        ]
+      },
+      "dark-nav-key": {
+        "role": "primary",
+        "displayName": "Nav Key (dark)",
+        "canonical": "oklch(35.7% 0.106 264.9)",
+        "tonalRamp": [
+          "oklch(15% 0.106 264.9)",
+          "oklch(26.4% 0.106 264.9)",
+          "oklch(37.9% 0.106 264.9)",
+          "oklch(49.3% 0.106 264.9)",
+          "oklch(60.7% 0.106 264.9)",
+          "oklch(72.1% 0.106 264.9)",
+          "oklch(83.6% 0.106 264.9)",
+          "oklch(95% 0.106 264.9)"
+        ]
+      },
+      "dark-nav-key-border": {
+        "role": "primary",
+        "displayName": "Nav Key Border (dark)",
+        "canonical": "oklch(41.3% 0.111 265.2)",
+        "tonalRamp": [
+          "oklch(15% 0.111 265.2)",
+          "oklch(26.4% 0.111 265.2)",
+          "oklch(37.9% 0.111 265.2)",
+          "oklch(49.3% 0.111 265.2)",
+          "oklch(60.7% 0.111 265.2)",
+          "oklch(72.1% 0.111 265.2)",
+          "oklch(83.6% 0.111 265.2)",
+          "oklch(95% 0.111 265.2)"
+        ]
+      },
+      "dark-nav-key-edge": {
+        "role": "primary",
+        "displayName": "Nav Key Edge (dark)",
+        "canonical": "oklch(19.9% 0.054 265.9)",
+        "tonalRamp": [
+          "oklch(15% 0.054 265.9)",
+          "oklch(26.4% 0.054 265.9)",
+          "oklch(37.9% 0.054 265.9)",
+          "oklch(49.3% 0.054 265.9)",
+          "oklch(60.7% 0.054 265.9)",
+          "oklch(72.1% 0.054 265.9)",
+          "oklch(83.6% 0.054 265.9)",
+          "oklch(95% 0.054 265.9)"
+        ]
+      },
+      "dark-nav-ink": {
+        "role": "neutral",
+        "displayName": "Nav Ink (dark)",
+        "canonical": "oklch(91.9% 0.027 267.5)",
+        "tonalRamp": [
+          "oklch(15% 0.027 267.5)",
+          "oklch(26.4% 0.027 267.5)",
+          "oklch(37.9% 0.027 267.5)",
+          "oklch(49.3% 0.027 267.5)",
+          "oklch(60.7% 0.027 267.5)",
+          "oklch(72.1% 0.027 267.5)",
+          "oklch(83.6% 0.027 267.5)",
+          "oklch(95% 0.027 267.5)"
+        ]
+      },
+      "dark-nav-lit": {
+        "role": "neutral",
+        "displayName": "Nav Lit Key (dark)",
+        "canonical": "oklch(94.9% 0.018 269.1)",
+        "tonalRamp": [
+          "oklch(15% 0.018 269.1)",
+          "oklch(26.4% 0.018 269.1)",
+          "oklch(37.9% 0.018 269.1)",
+          "oklch(49.3% 0.018 269.1)",
+          "oklch(60.7% 0.018 269.1)",
+          "oklch(72.1% 0.018 269.1)",
+          "oklch(83.6% 0.018 269.1)",
+          "oklch(95% 0.018 269.1)"
+        ]
+      },
+      "dark-nav-lit-ink": {
+        "role": "primary",
+        "displayName": "Nav Lit Ink (dark)",
+        "canonical": "oklch(40.4% 0.157 264.3)",
+        "tonalRamp": [
+          "oklch(15% 0.157 264.3)",
+          "oklch(26.4% 0.157 264.3)",
+          "oklch(37.9% 0.157 264.3)",
+          "oklch(49.3% 0.157 264.3)",
+          "oklch(60.7% 0.157 264.3)",
+          "oklch(72.1% 0.157 264.3)",
+          "oklch(83.6% 0.157 264.3)",
+          "oklch(95% 0.157 264.3)"
+        ]
+      },
+      "dark-nav-lit-edge": {
+        "role": "primary",
+        "displayName": "Nav Lit Edge (dark)",
+        "canonical": "oklch(66.9% 0.084 268.4)",
+        "tonalRamp": [
+          "oklch(15% 0.084 268.4)",
+          "oklch(26.4% 0.084 268.4)",
+          "oklch(37.9% 0.084 268.4)",
+          "oklch(49.3% 0.084 268.4)",
+          "oklch(60.7% 0.084 268.4)",
+          "oklch(72.1% 0.084 268.4)",
+          "oklch(83.6% 0.084 268.4)",
+          "oklch(95% 0.084 268.4)"
+        ]
+      },
+      "dark-nav-lcd": {
+        "role": "neutral",
+        "displayName": "Nav Classic LCD (dark)",
+        "canonical": "oklch(80.1% 0.042 124.3)",
+        "tonalRamp": [
+          "oklch(15% 0.042 124.3)",
+          "oklch(26.4% 0.042 124.3)",
+          "oklch(37.9% 0.042 124.3)",
+          "oklch(49.3% 0.042 124.3)",
+          "oklch(60.7% 0.042 124.3)",
+          "oklch(72.1% 0.042 124.3)",
+          "oklch(83.6% 0.042 124.3)",
+          "oklch(95% 0.042 124.3)"
         ]
       }
     },
     "typographyMeta": {
       "display": {
         "displayName": "Display",
-        "purpose": "Page h1 only; second line in Key Blue."
+        "purpose": "Page h1 only, Plus Jakarta Sans 800; second line in Key Blue; lines rise out of masks on load."
       },
       "lcd-figure": {
         "displayName": "LCD Figure",
@@ -706,7 +1006,7 @@
       },
       "lcd-small": {
         "displayName": "LCD Small",
-        "purpose": "Profile stat displays and navbar counters (1.2rem there). LCD surfaces only."
+        "purpose": "Profile stat displays and navbar counters (1.2rem there, dark digits on the pale nav LCD). LCD surfaces only."
       },
       "headline": {
         "displayName": "Headline",
@@ -738,7 +1038,7 @@
       {
         "name": "button-edge",
         "value": "0 3px 0 0 var(--k-key-edge)",
-        "purpose": "Buttons, grade keys, nav tabs, tab bar keys; Blue Edge on lit keys. Collapses with translateY(3px) on press."
+        "purpose": "Buttons, grade keys, nav tabs, tab bar keys; Blue Edge on lit chassis keys, nav key edge or pale-blue lit edge in the navbar. Collapses with translateY(3px) on press."
       },
       {
         "name": "lcd-bezel",
@@ -752,16 +1052,26 @@
       },
       {
         "name": "nav-lcd-recess",
-        "value": "inset 0 2px 4px rgba(0, 0, 0, 0.55)",
-        "purpose": "Navbar token and streak counters."
+        "value": "inset 0 2px 3px rgba(0, 0, 0, 0.22)",
+        "purpose": "Navbar token and streak counters (pale classic LCD)."
       },
       {
         "name": "overlay",
         "value": "0 24px 60px -12px rgba(0, 0, 0, 0.4)",
         "purpose": "Modals only."
+      },
+      {
+        "name": "nav-menu-drop",
+        "value": "0 18px 30px -12px rgba(0, 0, 0, 0.45)",
+        "purpose": "Phone menu drop panel under the blue strip."
       }
     ],
     "motion": [
+      {
+        "name": "ease-out-expo",
+        "value": "cubic-bezier(0.16, 1, 0.3, 1)",
+        "purpose": "Every entrance and physical movement: title masks, key landing, strip fill, rails, rows, check draw, reward pop, symbol tilt."
+      },
       {
         "name": "key-travel",
         "value": "box-shadow 0.1s ease, transform 0.1s ease",
@@ -770,17 +1080,42 @@
       {
         "name": "key-dim",
         "value": "filter 0.15s ease; brightness(0.95) buttons, 0.96 chapter keys, 0.94 navbar",
-        "purpose": "The only hover response on a key."
+        "purpose": "The only hover response on a key face."
+      },
+      {
+        "name": "lcd-power-on",
+        "value": "620ms segment test (all annunciators, 88% / 888 / 888); 0.62s steps(6, end) brightness 0.45 to 1.08 to 1",
+        "purpose": "Hero LCD power-on, once per load."
+      },
+      {
+        "name": "title-rise",
+        "value": "translateY(105%) to 0, 0.7s ease-out-expo; accent line +90ms",
+        "purpose": "Each title line rises out of its own mask."
+      },
+      {
+        "name": "key-land",
+        "value": "0.46s ease-out-expo, from -14px through a 2px seat; 70ms stagger per key",
+        "purpose": "Chapter keys land on their edge when the keypad enters view."
+      },
+      {
+        "name": "strip-fill",
+        "value": "scaleX 0 to fill, 0.7s ease-out-expo; delay land + 260ms + 45ms per segment",
+        "purpose": "Bank strip fills segment by segment after the key lands."
+      },
+      {
+        "name": "rail-slide",
+        "value": "x ±28px to 0 with opacity, 0.42s ease-out-expo",
+        "purpose": "Profile rail from the left, missions rail from the right."
+      },
+      {
+        "name": "xp-charge",
+        "value": "0.12s steps(2, end) per segment, 32ms apart, from 420ms",
+        "purpose": "XP bar charges segment by segment."
       },
       {
         "name": "lcd-refresh",
-        "value": "0.16s steps(3, end)",
+        "value": "0.16s steps(3, end) (stat LCDs 0.2s, staggered 380 / 480 / 580ms)",
         "purpose": "New LCD value strobes in; no count-ups."
-      },
-      {
-        "name": "dot-sweep",
-        "value": "0.2s steps(2, end) per dot, whole matrix within 650ms",
-        "purpose": "Solved dots light left to right on first view."
       },
       {
         "name": "cell-fill",
@@ -788,9 +1123,29 @@
         "purpose": "Mission cells light."
       },
       {
+        "name": "mission-done",
+        "value": "check draw 0.5s from 0.35s; reward pop 0.42s from 0.7s",
+        "purpose": "A finished mission draws its check and pops its XP reward once."
+      },
+      {
+        "name": "row-in",
+        "value": "translateX(14px) to 0, 0.4s ease-out-expo; 45ms stagger from 300ms; own row flashes 26% blue over 1.1s",
+        "purpose": "Leaderboard rows arrive; the user row flashes once."
+      },
+      {
+        "name": "symbol-tilt",
+        "value": "translateY(-3px) rotate(-6deg) scale(1.08), 0.28s ease-out-expo",
+        "purpose": "Chapter symbol on key hover; the face itself only dims."
+      },
+      {
+        "name": "segment-hover",
+        "value": "scaleY(1.35), 0.15s ease",
+        "purpose": "Bank strip segment under the pointer."
+      },
+      {
         "name": "cursor-blink",
         "value": "1.05s steps(1, end) infinite",
-        "purpose": "LCD input cursor."
+        "purpose": "LCD input cursor; the only loop."
       },
       {
         "name": "pane-slide",
@@ -805,7 +1160,7 @@
       {
         "name": "reduced-motion",
         "value": "prefers-reduced-motion: reduce",
-        "purpose": "All animations and key transitions off; render static."
+        "purpose": "All entrances, staggers, power-on and hover transforms off; render the final state."
       }
     ],
     "breakpoints": [
@@ -842,7 +1197,7 @@
       "refersTo": "button-key",
       "description": "Neutral key: darker bottom edge at rest, dim on hover, sink on press.",
       "html": "<button class=\"ds-btn\">Simulările tale anterioare</button>",
-      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);box-shadow:0 3px 0 0 var(--k-key-edge,#B4B8AE);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-stretch:100%;font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);border-color:var(--k-panel-edge,#C3C6BD);filter:brightness(.95)}.ds-btn:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(3px)}.ds-btn:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
+      "css": ".ds-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);box-shadow:0 3px 0 0 var(--k-key-edge,#B4B8AE);font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif);font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);border-color:var(--k-panel-edge,#C3C6BD);filter:brightness(.95)}.ds-btn:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(3px)}.ds-btn:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
     },
     {
       "name": "Primary Key",
@@ -850,7 +1205,7 @@
       "refersTo": "button-key-primary",
       "description": "Lit blue key for the primary action.",
       "html": "<button class=\"ds-btn-primary\">Clasa a XII-a</button>",
-      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-blue-edge,#1B3A8A);border-radius:4px;background:var(--k-blue,#2F5FD0);color:#fff;box-shadow:0 3px 0 0 var(--k-blue-edge,#1B3A8A);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn-primary:hover{background:var(--k-blue,#2F5FD0);color:#fff;border-color:var(--k-blue-edge,#1B3A8A);filter:brightness(.95)}.ds-btn-primary:active{box-shadow:0 0 0 0 var(--k-blue-edge,#1B3A8A);transform:translateY(3px)}.ds-btn-primary:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
+      "css": ".ds-btn-primary{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 18px;border:1px solid var(--k-blue-edge,#1B3A8A);border-radius:4px;background:var(--k-blue,#2F5FD0);color:#fff;box-shadow:0 3px 0 0 var(--k-blue-edge,#1B3A8A);font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif);font-size:0.86rem;font-weight:700;cursor:pointer;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-btn-primary:hover{background:var(--k-blue,#2F5FD0);color:#fff;border-color:var(--k-blue-edge,#1B3A8A);filter:brightness(.95)}.ds-btn-primary:active{box-shadow:0 0 0 0 var(--k-blue-edge,#1B3A8A);transform:translateY(3px)}.ds-btn-primary:focus-visible{outline:2px solid var(--k-blue,#2F5FD0);outline-offset:3px}"
     },
     {
       "name": "Printed Plate (în curând)",
@@ -858,23 +1213,23 @@
       "refersTo": "button-key",
       "description": "Not pressable yet: dashed, flat, no key edge.",
       "html": "<span class=\"ds-soon\">Clasa a IX-a <b>În curând</b></span>",
-      "css": ".ds-soon{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px dashed var(--k-panel-edge,#C3C6BD);border-radius:4px;background:transparent;color:var(--k-ink-3,#646A71);font-family:var(--k-font, 'Archivo', system-ui, sans-serif);font-size:0.8rem;font-weight:700;cursor:not-allowed}.ds-soon b{font-size:0.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}"
+      "css": ".ds-soon{display:inline-flex;align-items:center;gap:8px;height:36px;padding:0 14px;border:1px dashed var(--k-panel-edge,#C3C6BD);border-radius:4px;background:transparent;color:var(--k-ink-3,#646A71);font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif);font-size:0.8rem;font-weight:700;cursor:not-allowed}.ds-soon b{font-size:0.6rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase}"
     },
     {
       "name": "Chapter Key",
       "kind": "card",
       "refersTo": "chapter-key",
-      "description": "One chapter as one large key with legend color, printed legend, dot matrix and foot.",
-      "html": "<a class=\"ds-key\" href=\"#\" style=\"--legend:#2F5FD0\"><div class=\"ds-key__main\"><span class=\"ds-key__sym\">α</span><div><div class=\"ds-key__name\">Algebră</div><div class=\"ds-key__desc\">Bazele algebrice de care ai nevoie la orice alt capitol.</div></div></div><div class=\"ds-key__legend\">Calcul algebric · Polinoame · +10 tipuri</div><div class=\"ds-key__matrix\"><i class=\"on\"></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i class=\"on\"></i><i></i><i></i><i></i><i></i><i></i><i class=\"on\"></i><i></i></div><div class=\"ds-key__foot\"><span><b>40</b>/616 rezolvate</span><span class=\"ds-key__pct\">6%</span></div></a>",
-      "css": ".ds-key{display:flex;flex-direction:column;gap:14px;max-width:340px;padding:16px 18px 14px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);box-shadow:0 4px 0 0 var(--k-key-edge,#B4B8AE);color:var(--k-ink,#17191C);text-decoration:none;font-family:var(--k-font, 'Archivo', system-ui, sans-serif);transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-key:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);filter:brightness(.96)}.ds-key:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(4px)}.ds-key:focus-visible{outline:2px solid var(--legend);outline-offset:3px}.ds-key__main{display:flex;gap:14px;align-items:flex-start}.ds-key__sym{width:1.3em;font-family:KaTeX_Main,'Cambria Math','Times New Roman',serif;font-size:2.3rem;line-height:1;text-align:center;color:var(--legend)}.ds-key__name{font-size:1.12rem;font-weight:800;font-stretch:87.5%;letter-spacing:-.01em;line-height:1.2}.ds-key__desc{font-size:.8rem;line-height:1.45;color:var(--k-ink-2,#464B52)}.ds-key__legend{font-size:.64rem;font-weight:700;font-stretch:87.5%;letter-spacing:.08em;text-transform:uppercase;color:var(--legend)}.ds-key__matrix{display:flex;flex-wrap:wrap;gap:3px}.ds-key__matrix i{width:12px;height:12px;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11))}.ds-key__matrix i.on{background:var(--legend)}.ds-key:hover .ds-key__matrix i:not(.on){background:color-mix(in srgb,var(--legend) 16%,transparent)}.ds-key__foot{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;border-top:1px solid var(--k-rule,#D3D6CE);font-size:.76rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}.ds-key__foot b{font-weight:800;color:var(--k-ink,#17191C)}.ds-key__pct{font-size:1rem;font-weight:800;color:var(--legend)}"
+      "description": "One chapter as one large key with legend color, printed legend, bank strip (one segment per subcategory) and foot.",
+      "html": "<a class=\"ds-key\" href=\"#\" style=\"--legend:#2F5FD0\"><div class=\"ds-key__main\"><span class=\"ds-key__sym\">α</span><div><div class=\"ds-key__name\">Algebră</div><div class=\"ds-key__desc\">Bazele algebrice de care ai nevoie la orice alt capitol.</div></div></div><div class=\"ds-key__legend\">Calcul algebric · Polinoame · +10 tipuri</div><span class=\"ds-strip\"><span class=\"ds-strip__seg\" style=\"flex-grow:.3;--fill:.12\"><i></i></span><span class=\"ds-strip__seg\" style=\"flex-grow:.16;--fill:0\"><i></i></span><span class=\"ds-strip__seg\" style=\"flex-grow:.1;--fill:.4\"><i></i></span><span class=\"ds-strip__seg\" style=\"flex-grow:.22;--fill:.05\"><i></i></span><span class=\"ds-strip__seg\" style=\"flex-grow:.12;--fill:0\"><i></i></span><span class=\"ds-strip__seg\" style=\"flex-grow:.1;--fill:.2\"><i></i></span></span><div class=\"ds-key__foot\"><span><b>40</b>/616 rezolvate</span><span class=\"ds-key__pct\">6%</span></div></a>",
+      "css": ".ds-key{display:flex;flex-direction:column;gap:14px;max-width:340px;padding:16px 18px 14px;border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:4px;background:var(--k-key,#FBFBF8);box-shadow:0 4px 0 0 var(--k-key-edge,#B4B8AE);color:var(--k-ink,#17191C);text-decoration:none;font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif);transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-key:hover{background:var(--k-key,#FBFBF8);color:var(--k-ink,#17191C);filter:brightness(.96)}.ds-key:active{box-shadow:0 0 0 0 var(--k-key-edge,#B4B8AE);transform:translateY(4px)}.ds-key:focus-visible{outline:2px solid var(--legend);outline-offset:3px}.ds-key__main{display:flex;gap:14px;align-items:flex-start}.ds-key__sym{width:1.3em;font-family:KaTeX_Main,'Cambria Math','Times New Roman',serif;font-size:2.3rem;line-height:1;text-align:center;color:var(--legend)}.ds-key__name{font-size:1.12rem;font-weight:800;letter-spacing:-.01em;line-height:1.2}.ds-key__desc{font-size:.8rem;line-height:1.45;color:var(--k-ink-2,#464B52)}.ds-key__legend{font-size:.64rem;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--legend)}.ds-strip{display:flex;gap:3px;height:14px}.ds-strip__seg{position:relative;min-width:6px;overflow:hidden;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11));transition:background-color .15s ease,transform .15s ease}.ds-strip__seg i{position:absolute;inset:0;background:var(--legend);transform:scaleX(var(--fill,0));transform-origin:left center}.ds-strip__seg:hover{background:color-mix(in srgb,var(--legend) 22%,transparent);transform:scaleY(1.35)}.ds-key__foot{display:flex;justify-content:space-between;align-items:baseline;padding-top:10px;border-top:1px solid var(--k-rule,#D3D6CE);font-size:.76rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}.ds-key__foot b{font-weight:800;color:var(--k-ink,#17191C)}.ds-key__pct{font-size:1rem;font-weight:800;color:var(--legend)}.ds-key__sym{transition:transform .28s cubic-bezier(.16,1,.3,1)}.ds-key:hover .ds-key__sym{transform:translateY(-3px) rotate(-6deg) scale(1.08)}@media (prefers-reduced-motion:reduce){.ds-key,.ds-key__sym,.ds-strip__seg{transition:none}.ds-key:hover .ds-key__sym,.ds-strip__seg:hover{transform:none}}"
     },
     {
       "name": "LCD Display",
       "kind": "custom",
       "refersTo": "lcd-display",
       "description": "Recessed dot-matrix readout in a bezel; Doto numerals only here.",
-      "html": "<div class=\"ds-lcd\"><div class=\"ds-lcd__ann\"><span class=\"on\">XII</span><span>IX</span><span class=\"on\">BAC</span></div><div class=\"ds-lcd__input\">Exersează inteligent.<i></i></div><div class=\"ds-lcd__res\"><span class=\"ds-lcd__pct\">7%</span><span class=\"ds-lcd__val\">43</span><span class=\"ds-lcd__tot\">/652</span><span class=\"ds-lcd__unit\">rezolvate</span></div></div>",
-      "css": ".ds-lcd{margin:7px;padding:12px 18px 14px;border-radius:3px;background-color:var(--k-lcd,#C3CDB0);background-image:radial-gradient(circle,var(--k-lcd-ghost,rgba(28,39,24,.09)) .9px,transparent 1.1px);background-size:4px 4px;box-shadow:0 0 0 7px var(--k-bezel,#2A2E33),0 7px 0 7px #1d2024,inset 0 3px 6px rgba(0,0,0,.22);color:var(--k-lcd-ink,#1C2718);font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-lcd__ann{display:flex;gap:12px;font-size:.62rem;font-weight:700;letter-spacing:.1em}.ds-lcd__ann span{color:var(--k-lcd-ghost,rgba(28,39,24,.09))}.ds-lcd__ann span.on{color:var(--k-lcd-ink,#1C2718)}.ds-lcd__input{display:flex;align-items:center;margin-top:10px;font-size:1rem;font-weight:500}.ds-lcd__input i{width:.55em;height:1.05em;margin-left:2px;background:currentColor;animation:ds-blink 1.05s steps(1,end) infinite}@keyframes ds-blink{50%{opacity:0}}.ds-lcd__res{display:flex;align-items:baseline;gap:6px;margin-top:4px;font-variant-numeric:tabular-nums}.ds-lcd__pct{margin-right:auto;font-family:Doto,Archivo,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__val{font-family:Doto,Archivo,monospace;font-size:3.2rem;font-weight:900;line-height:.9}.ds-lcd__tot{font-family:Doto,Archivo,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__unit{font-size:.8rem;font-weight:600}@media (prefers-reduced-motion:reduce){.ds-lcd__input i{animation:none}}"
+      "html": "<div class=\"ds-lcd\"><div class=\"ds-lcd__ann\"><span class=\"on\">XII</span><span>IX</span><span class=\"on\">BAC</span><span class=\"sp\"></span><span class=\"on\">CAP</span><span class=\"on\">TIP</span><span>Σ</span></div><div class=\"ds-lcd__input\">Algebră<b>&nbsp;›&nbsp;Polinoame</b><i></i></div><div class=\"ds-lcd__res\"><span class=\"ds-lcd__pct\">8%</span><span class=\"ds-lcd__val\">6</span><span class=\"ds-lcd__tot\">/76</span><span class=\"ds-lcd__unit\">rezolvate</span></div></div>",
+      "css": ".ds-lcd{margin:7px;padding:12px 18px 14px;border-radius:3px;background-color:var(--k-lcd,#C3CDB0);background-image:radial-gradient(circle,var(--k-lcd-ghost,rgba(28,39,24,.09)) .9px,transparent 1.1px);background-size:4px 4px;box-shadow:0 0 0 7px var(--k-bezel,#2A2E33),0 7px 0 7px #1d2024,inset 0 3px 6px rgba(0,0,0,.22);color:var(--k-lcd-ink,#1C2718);font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif)}.ds-lcd__ann{display:flex;gap:12px;font-size:.62rem;font-weight:700;letter-spacing:.1em}.ds-lcd__ann span{color:var(--k-lcd-ghost,rgba(28,39,24,.09))}.ds-lcd__ann .sp{flex:1}.ds-lcd__ann span.on{color:var(--k-lcd-ink,#1C2718)}.ds-lcd__input{display:flex;align-items:center;margin-top:10px;font-size:1rem;font-weight:500}.ds-lcd__input i{width:.55em;height:1.05em;margin-left:2px;background:currentColor;animation:ds-blink 1.05s steps(1,end) infinite}@keyframes ds-blink{50%{opacity:0}}.ds-lcd__res{display:flex;align-items:baseline;gap:6px;margin-top:4px;font-variant-numeric:tabular-nums}.ds-lcd__pct{margin-right:auto;font-family:Doto,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__val{font-family:Doto,monospace;font-size:3.2rem;font-weight:900;line-height:.9}.ds-lcd__tot{font-family:Doto,monospace;font-size:1.5rem;font-weight:900}.ds-lcd__unit{font-size:.8rem;font-weight:600}@media (prefers-reduced-motion:reduce){.ds-lcd__input i{animation:none}}"
     },
     {
       "name": "Chassis Panel",
@@ -882,47 +1237,49 @@
       "refersTo": "chassis-panel",
       "description": "Flat side panel with 1px edge; holds missions with segmented counters.",
       "html": "<section class=\"ds-panel\"><h3 class=\"ds-panel__title\">Misiunile zilei</h3><div class=\"ds-mission\"><div class=\"ds-mission__row\"><span>Rezolvă 8 exerciții</span><b>+30 XP</b></div><div class=\"ds-mission__cells\"><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i class=\"on\"></i><i></i><i></i><i></i></div><small>5 / 8</small></div></section>",
-      "css": ".ds-panel{max-width:300px;padding:20px 20px 22px;background:var(--k-panel,#F0F1ED);border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:3px;color:var(--k-ink,#17191C);font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-panel__title{margin:0 0 14px;font-size:1rem;font-weight:800;font-stretch:87.5%}.ds-mission{display:flex;flex-direction:column;gap:6px}.ds-mission__row{display:flex;justify-content:space-between;font-size:.84rem;font-weight:600}.ds-mission__row b{font-size:.8rem;font-weight:800;color:var(--k-orange-ink,#A94A0B);font-variant-numeric:tabular-nums}.ds-mission__cells{display:flex;gap:3px}.ds-mission__cells i{flex:1;height:8px;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11))}.ds-mission__cells i.on{background:var(--k-blue,#2F5FD0)}.ds-mission small{font-size:.68rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}"
+      "css": ".ds-panel{max-width:300px;padding:20px 20px 22px;background:var(--k-panel,#F0F1ED);border:1px solid var(--k-panel-edge,#C3C6BD);border-radius:3px;color:var(--k-ink,#17191C);font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif)}.ds-panel__title{margin:0 0 14px;font-size:1rem;font-weight:800;}.ds-mission{display:flex;flex-direction:column;gap:6px}.ds-mission__row{display:flex;justify-content:space-between;font-size:.84rem;font-weight:600}.ds-mission__row b{font-size:.8rem;font-weight:800;color:var(--k-orange-ink,#A94A0B);font-variant-numeric:tabular-nums}.ds-mission__cells{display:flex;gap:3px}.ds-mission__cells i{flex:1;height:8px;border-radius:1px;background:var(--k-ghost,rgba(23,25,28,.11))}.ds-mission__cells i.on{background:var(--k-blue,#2F5FD0)}.ds-mission small{font-size:.68rem;font-weight:600;color:var(--k-ink-3,#646A71);font-variant-numeric:tabular-nums}"
     },
     {
       "name": "Navbar Tabs",
       "kind": "nav",
       "refersTo": "nav-tab",
-      "description": "Dark calculator top strip; tabs are keys, the active one lit blue; counters are a small backlit LCD.",
-      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__tab ds-nav__tab--on\" href=\"#\">Capitole</a><a class=\"ds-nav__tab\" href=\"#\">Simulare</a><a class=\"ds-nav__tab\" href=\"#\">Antrenament</a><span class=\"ds-nav__lcd\"><b>3</b> TOKENURI</span></nav>",
-      "css": ".ds-nav{display:flex;align-items:center;gap:6px;padding:14px 16px;background:#1C1F23;border-bottom:1px solid #0B0C0E;font-family:var(--k-font, 'Archivo', system-ui, sans-serif)}.ds-nav__tab{display:inline-flex;align-items:center;height:38px;padding:0 14px;border:1px solid #373C43;border-radius:4px;background:#2A2E34;color:#D3D6DA;box-shadow:0 3px 0 0 #0A0B0D;font-size:.88rem;font-weight:600;letter-spacing:.01em;text-decoration:none;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-nav__tab:hover{border-color:#373C43;background:#2A2E34;color:#D3D6DA;filter:brightness(.94)}.ds-nav__tab:active{box-shadow:0 0 0 0 #0A0B0D;transform:translateY(3px)}.ds-nav__tab--on,.ds-nav__tab--on:hover{border-color:#172F6E;background:#2F5FD0;color:#fff;box-shadow:0 3px 0 0 #172F6E}.ds-nav__tab:focus-visible{outline:2px solid #5C8CF2;outline-offset:3px}.ds-nav__lcd{margin-left:auto;display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 10px;border:1px solid #050607;border-radius:3px;background:#141B11;box-shadow:inset 0 2px 4px rgba(0,0,0,.55);font-size:.6rem;font-weight:700;letter-spacing:.12em;color:rgba(188,226,150,.55)}.ds-nav__lcd b{font-family:Doto,Archivo,monospace;font-size:1.2rem;font-weight:900;letter-spacing:0;color:#BCE296}"
+      "description": "Solid brand-blue top strip; tabs are blue keys, the active one lit white with blue ink; counters are a pale classic LCD with dark Doto digits.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-nav__tab ds-nav__tab--on\" href=\"#\">Capitole</a><a class=\"ds-nav__tab\" href=\"#\">Simulare</a><a class=\"ds-nav__tab\" href=\"#\">Antrenament</a><span class=\"ds-nav__lcd\"><b>3</b> TOKENURI</span><span class=\"ds-nav__lcd ds-nav__lcd--low\"><b>1</b></span></nav>",
+      "css": ".ds-nav{display:flex;align-items:center;gap:12px;padding:14px 16px;background:#2552BD;border-bottom:1px solid #1A3C8E;font-family:var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif)}.ds-nav__tab{display:inline-flex;align-items:center;height:38px;padding:0 16px;border:1px solid #4A76D8;border-radius:4px;background:#3563CC;color:#F2F5FC;box-shadow:0 3px 0 0 #173A8A;font-size:.9rem;font-weight:600;text-decoration:none;transition:box-shadow .1s ease,transform .1s ease,filter .15s ease}.ds-nav__tab:hover{border-color:#4A76D8;background:#3563CC;color:#F2F5FC;filter:brightness(.94)}.ds-nav__tab:active{box-shadow:0 0 0 0 #173A8A;transform:translateY(3px)}.ds-nav__tab--on,.ds-nav__tab--on:hover{border-color:#A9BCEB;background:#FFFFFF;color:#1F4AAE;box-shadow:0 3px 0 0 #A9BCEB}.ds-nav__tab--on:active{box-shadow:0 0 0 0 #A9BCEB;transform:translateY(3px)}.ds-nav__tab:focus-visible{outline:2px solid #FFFFFF;outline-offset:3px}.ds-nav__lcd{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 10px;border:1px solid #173A8A;border-radius:3px;background:#D3DCC3;box-shadow:inset 0 2px 3px rgba(0,0,0,.22);font-size:.6rem;font-weight:800;letter-spacing:.1em;color:rgba(28,39,24,.62)}.ds-nav__lcd:first-of-type{margin-left:auto}.ds-nav__lcd b{font-family:Doto,monospace;font-size:1.2rem;font-weight:900;letter-spacing:0;color:#1C2718}.ds-nav__lcd--low{background:#E7D8A2;border-color:#7A5E0B}.ds-nav__lcd--low b{color:#4A3806}"
     }
   ],
   "narrative": {
     "northStar": "The Scientific Calculator",
-    "overview": "**Creative North Star: \"The Scientific Calculator\"**\n\nMathorizon is built as an instrument, not a brochure. Every surface is a part of a scientific calculator: pale-gray (light) or graphite (dark) chassis panels with hard 1px edges and near-square corners, keys that stand on a darker solid bottom edge and sink when pressed, and a recessed green-gray LCD that carries the numbers that matter. The student reads their progress off the display and presses a chapter key to continue; the interface is operated, not browsed.\n\nDensity is high and tabular. Chapters are laid out as a keypad, exercise banks are drawn honestly as dot matrices (one dot per exercise, solved dots lit), missions are segmented counters, and numerals are always tabular. Color is not decoration: four legend colors each have one job, the way function labels are printed on a real calculator. Motion is the motion of hardware: a key sinks, an LCD refreshes in stepped frames, dots light in one scan. Nothing tweens, glows, or floats.\n\nScope: this system currently covers the Capitole tab (`capitole.html`, the React island in `src/capitole/`) and the shared navbar (`partials/nav.html`, the \"NAVBAR — calculator skin\" block at the end of `css/style.css`). The other tabs (Simulare, Antrenament, Clase, Pachete, profile, class pages, admin) still render the legacy look from `css/style.css`. This file describes the world those tabs are meant to move into; it does not describe their current state. Rejected by the user for this world: rounded soft-shadow cards, gradients, glass, neon, and empty minimalism.",
+    "overview": "**Creative North Star: \"The Scientific Calculator\"**\n\nMathorizon is built as an instrument, not a brochure. Every surface is a part of a scientific calculator: pale-gray (light) or graphite (dark) chassis panels with hard 1px edges and near-square corners, keys that stand on a darker solid bottom edge and sink when pressed, and a recessed green-gray LCD that carries the numbers that matter, all laid on the site's graph-paper ground. The student reads their progress off the display and presses a chapter key to continue; the interface is operated, not browsed.\n\nDensity is high and tabular. Chapters are laid out as a keypad, each exercise bank is drawn honestly as a bank strip (one segment per subcategory, sized by its exercise count, filled by the share solved), missions are segmented counters, and numerals are always tabular. Color is not decoration: four legend colors each have one job, the way function labels are printed on a real calculator. Motion is the motion of hardware: the page powers on (the LCD runs a segment test, keys land on their edges, strips fill), a key sinks, an LCD refreshes in stepped frames. Numbers never tween, and nothing glows or floats.\n\nScope: this system currently covers the Capitole tab (`capitole.html`, the React island in `src/capitole/`) and the shared navbar (`partials/nav.html`, the \"NAVBAR — calculator skin\" block at the end of `css/style.css`). The other tabs (Simulare, Antrenament, Clase, Pachete, profile, class pages, admin) still render the legacy look from `css/style.css`. This file describes the world those tabs are meant to move into; it does not describe their current state. Rejected by the user for this world: rounded soft-shadow cards, gradients, glass, neon, and empty minimalism.",
     "keyCharacteristics": [
-      "Chassis panels: flat fills, 1px edges, 3px corners, no drop shadows.",
+      "Chassis panels: flat fills, 1px edges, 3px corners, no drop shadows, on a 28px graph-paper ground.",
       "Keys: solid darker bottom edge at rest, brightness dim on hover, sink on press.",
       "LCD surfaces carry the key numbers, set in Doto dot-matrix, over a faint unlit pixel lattice.",
-      "Archivo at 87.5% width for all display and UI type.",
+      "Plus Jakarta Sans, the site face, for all display and UI type; weight carries the hierarchy.",
       "Four legend colors with fixed jobs; everything else is ink on chassis.",
+      "The navbar is a solid brand-blue strip with a white lit key and a pale classic LCD.",
+      "A power-on motion sequence, gated by reduced motion; displays step, never tween.",
       "Light and dark themes are both fully tokenized; dark is a backlit night mode, not an inversion."
     ],
     "rules": [
       {
         "name": "The Legend Rule",
-        "body": "Each legend color has exactly one job set: blue is primary action and Algebră, green is done and Geometrie, red is Analiză, orange is XP. A chapter's color comes from this map, never from the older per-category colors in `js/data.js`. A new chapter without an assigned legend falls back to ink, not to a fifth hue.",
+        "body": "Each legend color has exactly one job set: blue is primary action and Algebră, green is done and Geometrie, red is Analiză, orange is XP. A chapter's color comes from this map, never from the older per-category colors in `js/data.js`. A new chapter without an assigned legend falls back to Ink Soft, not to a fifth hue.",
         "section": "colors"
       },
       {
         "name": "The Orange Is Earned Rule",
-        "body": "Orange appears only where XP is shown or awarded. It never marks navigation, state, or a chapter.",
+        "body": "Orange appears only where XP is shown or awarded. It never marks navigation, state, a streak, or a chapter; the leaderboard streak flame is Ink 2.",
         "section": "colors"
       },
       {
         "name": "The Flat Chassis Rule",
-        "body": "No gradients anywhere. The only patterned fill in the system is the LCD's unlit dot lattice (a 4px radial-dot grid in LCD Ghost), because a real dot-matrix display has one.",
+        "body": "No gradients anywhere. The system has exactly two patterned fills, both physical: the graph-paper ground (1px Grid lines on a 28px square) and the LCD's unlit dot lattice (a 4px radial-dot grid in LCD Ghost), because a real dot-matrix display has one.",
         "section": "colors"
       },
       {
         "name": "The LCD-Only Doto Rule",
-        "body": "Doto is set only on an LCD surface (the hero display, the profile stat displays, the navbar counters). Never on a chassis, a key, a panel title, or body text. The words on an LCD (annunciators, the typed input line, the unit \"rezolvate\") stay in Archivo.",
+        "body": "Doto is set only on an LCD surface (the hero display, the profile stat displays, the navbar counters). Never on a chassis, a key, a panel title, or body text. The words on an LCD (annunciators, the typed input line, the unit \"rezolvate\") stay in the UI face.",
         "section": "typography"
       },
       {
@@ -931,8 +1288,8 @@
         "section": "typography"
       },
       {
-        "name": "The Condensed Legend Rule",
-        "body": "Headings and key legends use Archivo at 87.5% width and weight 800. Do not substitute a system display face.",
+        "name": "The One Face Rule",
+        "body": "Every non-LCD word is set in the site face, Plus Jakarta Sans, through `--font-ui`; headings and key legends take weight 800. Hierarchy comes from weight, size and tracking, not from a second UI face or a width axis.",
         "section": "typography"
       },
       {
@@ -944,6 +1301,16 @@
         "name": "The No Soft Card Rule",
         "body": "A panel or key never carries a blurred drop shadow. Depth on the chassis is an edge, a tone, or an inset; blur is reserved for overlays.",
         "section": "elevation"
+      },
+      {
+        "name": "The Power-On Rule",
+        "body": "Choreography happens once, on arrival, and in hardware order: the display tests itself, the keys seat, the readouts fill. After that, motion only answers input. Nothing loops except the LCD cursor.",
+        "section": "motion"
+      },
+      {
+        "name": "The Stepped Display Rule",
+        "body": "Anything shown on an LCD changes in `steps()` frames, never with a tween or an easing curve, and numbers never count up. Easing curves belong to physical parts: masks, keys, rails, strips.",
+        "section": "motion"
       }
     ],
     "dos": [
@@ -951,15 +1318,16 @@
       "Do restate background, color and border-color under `:hover` on every key so legacy shared rules cannot swap colors in.",
       "Do put the numbers a student should read first on an LCD surface, in Doto 900 with tabular numerals.",
       "Do assign color by the Legend Rule: blue for primary and Algebră, green for done and Geometrie, red for Analiză, orange for XP.",
-      "Do show real quantities at their real size: one dot per exercise, one cell per mission step.",
+      "Do show real quantities at their real proportions: one strip segment per subcategory, sized by its exercise count and filled by the share solved; one cell per mission step.",
       "Do mark not-yet-available items as printed plates: dashed 1px edge, no fill, no key edge, Ink 3, \"în curând\".",
       "Do tokenize every color for both `:root` and `[data-theme=\"dark\"]`; dark is a backlit LCD at night (dark glass, pale green segments), not an inversion.",
-      "Do use stepped timing (`steps()`) for display changes and honor `prefers-reduced-motion` by rendering static.",
+      "Do ease entrances on `cubic-bezier(0.16, 1, 0.3, 1)`, use stepped timing (`steps()`) for display changes, and honor `prefers-reduced-motion` by rendering static.",
       "Do write all UI copy in Romanian, and punctuate with commas, colons or periods: no em dash in UI copy."
     ],
     "donts": [
       "Don't use rounded soft-shadow cards, gradients, glassmorphism, or neon glows; panels are flat with a 1px edge.",
       "Don't set Doto outside an LCD surface.",
+      "Don't add a second UI face or a width axis; Plus Jakarta Sans carries every non-LCD word.",
       "Don't use orange for anything but XP, and don't introduce a fifth legend hue.",
       "Don't animate numbers with count-ups or tweens; an LCD refreshes.",
       "Don't lift, recolor, or glow a key on hover.",

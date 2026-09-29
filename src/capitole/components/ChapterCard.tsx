@@ -1,15 +1,15 @@
 import { useRef } from 'react';
-import { useInView, useReducedMotion } from 'framer-motion';
+import { useInView } from 'framer-motion';
 import { CircleCheck, Flag } from 'lucide-react';
-import type { ChapterView } from '../hooks/useCapitoleData';
+import type { ChapterView, Readout, SubProgress } from '../hooks/useCapitoleData';
 import { useFittedTags } from '../hooks/useFittedTags';
 import { categoryHref } from '../lib/navigate';
 
 interface ChapterCardProps {
   chapter: ChapterView;
-  /** Position on the keypad — only used for the entrance order. */
+  /** Position on the keypad — drives the power-on landing order. */
   index: number;
-  onReadout: (chapter: ChapterView | null) => void;
+  onReadout: (readout: Readout | null) => void;
 }
 
 /**
@@ -24,55 +24,59 @@ const LEGEND: Record<string, string> = {
   analiza: 'var(--k-red)'
 };
 
-/** Whole matrix lights up within this window on first view, left to right. */
-const SWEEP_MS = 650;
+/** Each key lands this long after the previous one on first view. */
+const LAND_STAGGER_MS = 70;
 
 /**
- * Dot pitch from the exercise count, so every key's matrix fills roughly
- * the same field: a 616-exercise bank packs into small dots, a 20-exercise
- * one gets big ones instead of a single thin row in an empty key. Still
- * exactly one dot per exercise.
+ * The chapter's bank as one strip, one segment per subcategory ("tip"):
+ * a segment's width is its share of the chapter's exercises, its fill is
+ * how much of it this user has solved. Pointing at a segment reads that
+ * subcategory out on the hero's LCD. Segments are spans inside the key's
+ * link, so a tap anywhere still opens the chapter.
  */
-const MATRIX_AREA = 300 * 96;
-function dotPitch(n: number): number {
-  return Math.max(7, Math.min(34, Math.floor(Math.sqrt(MATRIX_AREA / Math.max(n, 1)))));
-}
+function BankStrip({
+  chapter,
+  onReadout
+}: {
+  chapter: ChapterView;
+  onReadout: (readout: Readout | null) => void;
+}) {
+  const total = chapter.subs.reduce((sum, sub) => sum + sub.total, 0) || 1;
 
-function DotMatrix({ cells, animate }: { cells: boolean[]; animate: boolean }) {
-  const n = cells.length;
-  const pitch = dotPitch(n);
-  const gap = Math.max(2, Math.round(pitch * 0.22));
-  const matrixStyle = { '--dot': `${pitch - gap}px`, '--dot-gap': `${gap}px` } as React.CSSProperties;
+  const show = (sub: SubProgress | null) => onReadout({ chapter, sub });
+
   return (
-    <span className={`cap-matrix${animate ? ' cap-matrix--sweep' : ''}`} style={matrixStyle} aria-hidden="true">
-      {cells.map((on, i) =>
-        on ? (
-          <i
-            key={i}
-            className="cap-matrix__dot cap-matrix__dot--on"
-            style={{ '--d': `${Math.round((i / n) * SWEEP_MS)}ms` } as React.CSSProperties}
-          />
-        ) : (
-          <i key={i} className="cap-matrix__dot" />
-        )
-      )}
+    <span className="cap-strip" onMouseLeave={() => show(null)}>
+      {chapter.subs.map((sub, i) => (
+        <span
+          key={sub.id}
+          className="cap-strip__seg"
+          style={{
+            flexGrow: sub.total / total,
+            '--fill': sub.total ? sub.solved / sub.total : 0,
+            '--seg-i': i
+          } as React.CSSProperties}
+          onMouseEnter={() => show(sub)}
+        >
+          <span className="cap-strip__fill" />
+        </span>
+      ))}
     </span>
   );
 }
 
 /**
  * One chapter as one key on the keypad: symbol and name printed on the
- * face, the subcategories as its colored legend, and a dot matrix with
- * one dot per exercise in the chapter (solved dots lit). Hovering or
- * focusing the key reads its numbers out on the hero's LCD; pressing it
- * sinks the key (plain CSS :active, same mechanic as every other button
- * on the site) and follows the link.
+ * face, the subcategories as its colored legend, and the bank strip
+ * showing solved progress per subcategory. Hovering or focusing the key
+ * reads its numbers out on the hero's LCD; pressing it sinks the key
+ * (plain CSS :active, same mechanic as every other button on the site)
+ * and follows the link.
  */
 export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
-  const { category, progress, locked, cells, lastWorked } = chapter;
+  const { category, progress, locked, lastWorked } = chapter;
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
-  const prefersReducedMotion = useReducedMotion();
 
   const names = category.subcategories.map((sub) => sub.name);
   const [tagsRef, fitted] = useFittedTags(names.length);
@@ -83,12 +87,11 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
 
   const keyStyle = {
     '--legend': LEGEND[category.id] ?? 'var(--k-ink-soft)',
-    '--enter-delay': `${index * 60}ms`
+    '--land-delay': `${index * LAND_STAGGER_MS}ms`
   } as React.CSSProperties;
 
   const body = (
     <>
-
       <div className="cap-key__main">
         {/* Markup, not text: a chapter symbol can carry .sym-nb markup for
             stacked indices (combinatorics' Cᵏₙ) — see lib/bm-types.ts. */}
@@ -107,13 +110,15 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
         {names.slice(0, shownTags).map((name) => (
           <span className="cap-key__legend-item" key={name}>{name}</span>
         ))}
-        {hiddenTags > 0 && <span className="cap-key__legend-item">+{hiddenTags} {hiddenTags === 1 ? 'tip' : 'tipuri'}</span>}
+        {hiddenTags > 0 && (
+          <span className="cap-key__legend-item">+{hiddenTags} {hiddenTags === 1 ? 'tip' : 'tipuri'}</span>
+        )}
       </div>
 
       {locked ? (
         <span className="cap-key__soon">În curând</span>
       ) : (
-        <DotMatrix cells={cells} animate={!prefersReducedMotion} />
+        <BankStrip chapter={chapter} onReadout={onReadout} />
       )}
 
       <div className="cap-key__foot">
@@ -148,7 +153,7 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
       ref={ref}
       className={`cap-key${locked ? ' cap-key--soon' : ''}${inView ? ' cap-key--in' : ''}`}
       style={keyStyle}
-      onMouseEnter={() => onReadout(chapter)}
+      onMouseEnter={() => onReadout({ chapter, sub: null })}
     >
       {locked ? (
         // Locked chapter ("În curând"): not a link, printed flat with no
@@ -158,7 +163,7 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
         <a
           className="cap-key__face"
           href={categoryHref(category.id)}
-          onFocus={() => onReadout(chapter)}
+          onFocus={() => onReadout({ chapter, sub: null })}
           onBlur={() => onReadout(null)}
         >
           {body}

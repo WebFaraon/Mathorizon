@@ -53,8 +53,8 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   }
 
   const entrance = {
-    initial: prefersReducedMotion ? undefined : { opacity: 0, y: 16 },
-    animate: { opacity: 1, y: 0 },
+    initial: prefersReducedMotion ? undefined : { opacity: 0, x: -28 },
+    animate: { opacity: 1, x: 0 },
     transition: { duration: 0.42, ease: EASE_OUT }
   };
 
@@ -125,7 +125,11 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
             aria-label={`Nivel ${level}: ${xpPct}%`}
           >
             {Array.from({ length: XP_SEGMENTS }, (_, i) => (
-              <i key={i} className={i < litSegments ? 'cap-profile-xpbar__seg cap-profile-xpbar__seg--on' : 'cap-profile-xpbar__seg'} />
+              <i
+                key={i}
+                className={i < litSegments ? 'cap-profile-xpbar__seg cap-profile-xpbar__seg--on' : 'cap-profile-xpbar__seg'}
+                style={{ '--i': i } as React.CSSProperties}
+              />
             ))}
           </div>
         </div>

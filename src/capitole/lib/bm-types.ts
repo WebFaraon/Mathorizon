@@ -139,6 +139,23 @@ export interface BMAuthGlobal {
   initials(): string;
 }
 
+/** One subcategory's slice of a chapter's bank. */
+export interface SubProgress {
+  id: string;
+  name: string;
+  solved: number;
+  total: number;
+}
+
+/**
+ * What the hero's LCD reads out while a chapter key (or one segment of its
+ * bank strip) is under the pointer or keyboard focus.
+ */
+export interface Readout {
+  chapter: ChapterView;
+  sub: SubProgress | null;
+}
+
 /**
  * Derived view of one chapter — not a raw BM shape, but built straight from
  * BM.CATEGORIES + BM.Storage.getProgressForCategory() (see
@@ -156,12 +173,12 @@ export interface ChapterView {
    */
   locked: boolean;
   /**
-   * One entry per exercise in the chapter, in subcategory order (the order
-   * BM.CATEGORIES lists them), true when this user has solved it — the
-   * chapter key's dot matrix. Same exercises getProgressForCategory counts,
-   * so the number of true cells always equals progress.solved.
+   * Progress per subcategory ("tip"), in the order BM.CATEGORIES lists them,
+   * empty subcategories left out — the chapter key's segmented bank strip.
+   * The totals add up to progress.total for every exercise whose
+   * subcategory is listed on its chapter.
    */
-  cells: boolean[];
+  subs: SubProgress[];
   /** The chapter holding this user's most recently solved exercise. */
   lastWorked: boolean;
 }

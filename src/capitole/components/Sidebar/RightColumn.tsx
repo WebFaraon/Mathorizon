@@ -34,8 +34,8 @@ export function RightColumn({
     <aside className="cap-col cap-col-right" aria-label="Misiuni și clasament">
       <motion.div
         className="cap-sidebar-panel"
-        initial={prefersReducedMotion ? undefined : { opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
+        initial={prefersReducedMotion ? undefined : { opacity: 0, x: 28 }}
+        animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.42, ease: EASE_OUT }}
       >
         <MissionsCard missions={missions} ready={missionsReady} />

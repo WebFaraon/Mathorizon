@@ -1,12 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import { GradeSwitch } from './GradeSwitch';
-import type { BMStats, ChapterView } from '../lib/bm-types';
+import type { BMStats, Readout } from '../lib/bm-types';
 
 interface HeroProps {
   stats: BMStats | null;
-  /** Chapter key currently under the pointer/focus — see App.tsx. */
-  readout: ChapterView | null;
+  /** Chapter key (or bank-strip segment) under the pointer/focus — see App.tsx. */
+  readout: Readout | null;
 }
 
 /* Same four phrases the old inline rotator in capitole.html cycled. */
@@ -19,6 +19,23 @@ const PHRASES = [
 
 const ROTATE_MS = 6500;
 const TYPE_MS = 26;
+/** How long the power-on segment test holds before the real figures show. */
+const BOOT_MS = 620;
+
+/**
+ * Power-on: like a real calculator, the display first lights every
+ * segment (all annunciators, a row of eights), then drops to the real
+ * readout. Runs once per page load; skipped under reduced motion.
+ */
+function useBoot(enabled: boolean): boolean {
+  const [booting, setBooting] = useState(enabled);
+  useEffect(() => {
+    if (!enabled) return;
+    const timer = window.setTimeout(() => setBooting(false), BOOT_MS);
+    return () => window.clearTimeout(timer);
+  }, [enabled]);
+  return booting;
+}
 
 /**
  * Types the current phrase onto the LCD's input line one character at a
@@ -63,36 +80,51 @@ function useTypedPhrase(enabled: boolean): string {
  */
 export function Hero({ stats, readout }: HeroProps) {
   const prefersReducedMotion = useReducedMotion();
-  const typed = useTypedPhrase(!prefersReducedMotion);
+  const booting = useBoot(!prefersReducedMotion);
+  const typed = useTypedPhrase(!prefersReducedMotion && !booting);
 
-  const showingChapter = readout !== null && !readout.locked;
-  const value = showingChapter ? readout.progress.solved : stats?.solvedCount;
-  const total = showingChapter ? readout.progress.total : stats?.total;
-  const percent = showingChapter ? readout.progress.percent : stats?.percent;
+  const chapter = readout && !readout.chapter.locked ? readout.chapter : null;
+  const sub = chapter ? readout?.sub ?? null : null;
+  const source = sub ?? chapter?.progress ?? null;
+  const value = source ? source.solved : stats?.solvedCount;
+  const total = source ? source.total : stats?.total;
+  const percent = source
+    ? source.total ? Math.round((source.solved / source.total) * 100) : 0
+    : stats?.percent;
   // Keyed on what's displayed, so the refresh blink replays on every change.
-  const refreshKey = showingChapter ? readout.category.id : 'all';
+  const refreshKey = sub ? `${chapter?.category.id}/${sub.id}` : chapter ? chapter.category.id : 'all';
+  const annOn = (on: boolean) => `cap-lcd__ann${booting || on ? ' cap-lcd__ann--on' : ''}`;
 
   return (
     <section className="cap-hero">
+      {/* Each line rises out of its own mask on load (see .cap-hero__line). */}
       <h1 className="cap-hero__title">
-        Centrul tău de antrenament pentru{' '}
-        <span className="cap-hero__title-accent">BAC &amp; Evaluare Națională</span>
+        <span className="cap-hero__line">
+          <span>Centrul tău de antrenament pentru</span>
+        </span>{' '}
+        <span className="cap-hero__line cap-hero__line--accent">
+          <span className="cap-hero__title-accent">BAC &amp; Evaluare Națională</span>
+        </span>
       </h1>
 
-      <div className="cap-lcd" aria-live="polite">
+      <div className={`cap-lcd${booting ? ' cap-lcd--boot' : ''}`} aria-live="polite">
         <div className="cap-lcd__annunciators" aria-hidden="true">
-          <span className="cap-lcd__ann cap-lcd__ann--on">XII</span>
-          <span className="cap-lcd__ann">IX</span>
-          <span className="cap-lcd__ann cap-lcd__ann--on">BAC</span>
+          <span className={annOn(true)}>XII</span>
+          <span className={annOn(false)}>IX</span>
+          <span className={annOn(true)}>BAC</span>
           <span className="cap-lcd__ann-spacer" />
-          <span className={`cap-lcd__ann${showingChapter ? ' cap-lcd__ann--on' : ''}`}>CAP</span>
-          <span className={`cap-lcd__ann${showingChapter ? '' : ' cap-lcd__ann--on'}`}>Σ</span>
+          <span className={annOn(Boolean(chapter))}>CAP</span>
+          <span className={annOn(Boolean(sub))}>TIP</span>
+          <span className={annOn(!chapter)}>Σ</span>
         </div>
 
         <p className="cap-lcd__input">
-          {showingChapter ? (
+          {booting ? (
+            <span />
+          ) : chapter ? (
             <span key={refreshKey} className="cap-lcd__refresh">
-              {readout.category.name}
+              {chapter.category.name}
+              {sub && <span className="cap-lcd__sub"> › {sub.name}</span>}
             </span>
           ) : (
             <span>{typed}</span>
@@ -101,7 +133,13 @@ export function Hero({ stats, readout }: HeroProps) {
         </p>
 
         <div className="cap-lcd__result">
-          {stats ? (
+          {booting ? (
+            <span className="cap-lcd__figure" aria-hidden="true">
+              <span className="cap-lcd__percent">88%</span>
+              <span className="cap-lcd__value">888</span>
+              <span className="cap-lcd__total">/888</span>
+            </span>
+          ) : stats ? (
             <span key={refreshKey} className="cap-lcd__refresh cap-lcd__figure">
               <span className="cap-lcd__percent">{percent}%</span>
               <span className="cap-lcd__value">{value}</span>
@@ -117,13 +155,10 @@ export function Hero({ stats, readout }: HeroProps) {
       <div className="cap-hero__keys">
         <GradeSwitch />
         <p className="cap-hero__legend" aria-hidden="true">
-          <span className="cap-hero__legend-lit">
-            <span className="cap-hero__legend-dot cap-hero__legend-dot--blue" />
-            <span className="cap-hero__legend-dot cap-hero__legend-dot--green" />
-            <span className="cap-hero__legend-dot cap-hero__legend-dot--red" />
+          <span className="cap-hero__legend-bar">
+            <span className="cap-hero__legend-fill" />
           </span>
-          rezolvat
-          <span className="cap-hero__legend-dot" /> de rezolvat
+          rezolvat din fiecare tip
         </p>
       </div>
     </section>

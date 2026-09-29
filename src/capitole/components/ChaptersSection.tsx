@@ -1,11 +1,11 @@
 import { ChapterCard } from './ChapterCard';
-import type { ChapterView } from '../hooks/useCapitoleData';
+import type { ChapterView, Readout } from '../hooks/useCapitoleData';
 
 interface ChaptersSectionProps {
   chapters: ChapterView[];
   ready: boolean;
   /** Reports the key under the pointer/focus to the hero's LCD (null on leave). */
-  onReadout: (chapter: ChapterView | null) => void;
+  onReadout: (readout: Readout | null) => void;
 }
 
 /** How many skeletons to show while the Supabase merge settles. */

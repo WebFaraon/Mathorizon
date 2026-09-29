@@ -19684,38 +19684,52 @@ body:has(#root) {
 /* ============================================================
    NAVBAR — calculator skin
    ============================================================
-   The navbar is the dark top strip of the calculator the Capitole page is
-   built as (src/capitole/styles.css): tabs are keys on a graphite chassis,
-   the active one lit brand blue, the token/streak counters are a small
-   backlit LCD. Every rule is prefixed with #nav-root (the id every page's
-   <nav class="nav"> carries) so it outranks the older .nav rules above,
-   including their [data-theme="dark"] variants, without deleting them:
-   the navbar looks the same in both themes, the way the glass bar did.
-   Only colors, borders, shadows and type change here — sizes and the
-   responsive layout rules above stay in charge of the geometry.
+   The navbar is the top strip of the calculator the Capitole page is
+   built as (src/capitole/styles.css): a solid brand-blue chassis (no
+   glass), tabs as keys on it, the active one lit white, the token/streak
+   counters as a small classic LCD. Every rule is prefixed with #nav-root
+   (the id every page's <nav class="nav"> carries) so it outranks the
+   older .nav rules above, including their [data-theme="dark"] variants,
+   without deleting them. Dark theme keeps the same strip in a deeper
+   blue. Only colors, borders, shadows, spacing and type change here —
+   the responsive layout rules above stay in charge of the geometry.
 
    Keys follow the site's button standard: a darker bottom edge at rest, a
    dim on hover and nothing else, a sink on press. */
 #nav-root {
-  --nk-chassis: #1C1F23;
-  --nk-key: #2A2E34;
-  --nk-key-border: #373C43;
-  --nk-key-edge: #0A0B0D;
-  --nk-ink: #D3D6DA;
-  --nk-blue: #2F5FD0;
-  --nk-blue-edge: #172F6E;
-  --nk-lcd: #141B11;
-  --nk-lcd-ink: #BCE296;
+  --nk-chassis: #2552BD;
+  --nk-chassis-edge: #1A3C8E;
+  --nk-key: #3563CC;
+  --nk-key-border: #4A76D8;
+  --nk-key-edge: #173A8A;
+  --nk-ink: #F2F5FC;
+  --nk-lit: #FFFFFF;
+  --nk-lit-ink: #1F4AAE;
+  --nk-lit-edge: #A9BCEB;
+  --nk-lcd: #D3DCC3;
+  --nk-lcd-ink: #1C2718;
 
   background: var(--nk-chassis);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-bottom: 1px solid #0B0C0E;
+  border-bottom: 1px solid var(--nk-chassis-edge);
   box-shadow: none;
-  font-family: 'Archivo', var(--font-ui);
+}
+[data-theme="dark"] #nav-root {
+  --nk-chassis: #16295A;
+  --nk-chassis-edge: #0C1733;
+  --nk-key: #203873;
+  --nk-key-border: #2D4787;
+  --nk-key-edge: #0A142E;
+  --nk-ink: #DCE4F7;
+  --nk-lit: #E9EEFB;
+  --nk-lit-ink: #1B3F9C;
+  --nk-lit-edge: #7F93C9;
+  --nk-lcd: #B8C3A6;
 }
 
-#nav-root .nav__links { gap: 6px; }
+#nav-root .nav__links { gap: 12px; }
+#nav-root .nav__right { gap: 10px; }
 
 #nav-root .nav__link,
 #nav-root .nav-icon-btn,
@@ -19754,11 +19768,9 @@ body:has(#root) {
 
 #nav-root .nav__link {
   height: 38px;
-  padding: 0 14px;
-  font-family: 'Archivo', var(--font-ui);
-  font-size: 0.88rem;
+  padding: 0 16px;
+  font-size: 0.9rem;
   font-weight: 600;
-  letter-spacing: 0.01em;
 }
 
 /* Lit key: the tab you're on, and the primary guest action. */
@@ -19768,14 +19780,14 @@ body:has(#root) {
 #nav-root .nav__guest-signup:hover,
 #nav-root .nav-profile-btn--cta,
 #nav-root .nav-profile-btn--cta:hover {
-  border: 1px solid var(--nk-blue-edge);
-  background: var(--nk-blue);
-  color: #fff;
+  border: 1px solid var(--nk-lit-edge);
+  background: var(--nk-lit);
+  color: var(--nk-lit-ink);
 }
 #nav-root .nav__link--active,
 #nav-root .nav__guest-signup,
 #nav-root .nav-profile-btn--cta {
-  box-shadow: 0 3px 0 0 var(--nk-blue-edge);
+  box-shadow: 0 3px 0 0 var(--nk-lit-edge);
 }
 #nav-root .nav__guest-signup,
 #nav-root .nav-profile-btn--cta {
@@ -19790,79 +19802,80 @@ body:has(#root) {
 #nav-root .nav__link--active:active,
 #nav-root .nav__guest-signup:active,
 #nav-root .nav-profile-btn--cta:active {
-  box-shadow: 0 0 0 0 var(--nk-blue-edge);
+  box-shadow: 0 0 0 0 var(--nk-lit-edge);
   transform: translateY(3px);
 }
 
 #nav-root .nav__right {
-  border-left-color: rgba(255, 255, 255, 0.08);
+  border-left-color: rgba(255, 255, 255, 0.16);
 }
 
-/* Token and streak counters: a small backlit LCD, digits in dot-matrix. */
+/* Token and streak counters: a small classic LCD (pale green-gray glass,
+   dark dot-matrix digits) set into the strip. */
 #nav-root .token-widget {
-  border: 1px solid #050607;
+  border: 1px solid var(--nk-key-edge);
   border-radius: 3px;
   background: var(--nk-lcd);
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.55);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
 }
-#nav-root .token-widget__icon { color: var(--nk-lcd-ink); opacity: 0.7; }
+#nav-root .token-widget__icon { color: var(--nk-lcd-ink); opacity: 0.75; }
 #nav-root .token-widget__count {
-  font-family: 'Doto', 'Archivo', monospace;
+  font-family: 'Doto', monospace;
   font-size: 1.2rem;
   font-weight: 900;
   color: var(--nk-lcd-ink);
   text-shadow: none;
 }
 #nav-root .token-widget__label {
-  font-family: 'Archivo', var(--font-ui);
   font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: rgba(188, 226, 150, 0.55);
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: rgba(28, 39, 24, 0.62);
 }
-#nav-root .token-widget--low { border-color: #5E4E0C; }
-#nav-root .token-widget--low .token-widget__count { color: #FFD84D; }
-#nav-root .token-widget--empty { border-color: #5A1F18; background: #24100D; }
-#nav-root .token-widget--empty .token-widget__count { color: #FF8C78; }
+/* Low / empty: the glass itself takes the warning tint. */
+#nav-root .token-widget--low { background: #E7D8A2; border-color: #7A5E0B; }
+#nav-root .token-widget--low .token-widget__count,
+#nav-root .token-widget--low .token-widget__icon { color: #4A3806; }
+#nav-root .token-widget--empty { background: #EBC3B9; border-color: #7A2414; }
+#nav-root .token-widget--empty .token-widget__count,
+#nav-root .token-widget--empty .token-widget__icon { color: #5C1509; }
+#nav-root .token-widget--empty .token-widget__label { color: rgba(92, 21, 9, 0.7); }
+#nav-root .token-widget--empty .token-widget__icon { filter: none; }
 
-#nav-root .nav-profile-name {
-  font-family: 'Archivo', var(--font-ui);
-  color: #E8EAED;
-}
+#nav-root .nav-profile-name { color: var(--nk-ink); }
 #nav-root .nav-profile-avatar,
 #nav-root .nav-profile-initials {
   border-radius: 3px;
 }
 
-/* Phone menu: a chassis-colored drop panel; the current page is a lit
+/* Phone menu: a drop panel of the same blue; the current page is a lit
    row, not a colored side bar. */
 #nav-root .nav__mobile-menu {
   background: var(--nk-chassis);
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
-  border-bottom: 1px solid #0B0C0E;
-  box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.55);
+  border-bottom: 1px solid var(--nk-chassis-edge);
+  box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.45);
 }
-#nav-root .nav__mobile-link {
-  font-family: 'Archivo', var(--font-ui);
-  color: var(--nk-ink);
-}
+#nav-root .nav__mobile-link { color: var(--nk-ink); }
 #nav-root .nav__mobile-link:hover {
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.08);
   color: #fff;
 }
 #nav-root .nav__mobile-link--active,
 #nav-root .nav__mobile-link--active:hover {
   border-left: none;
   padding-left: 20px;
-  background: var(--nk-blue);
-  color: #fff;
+  background: var(--nk-lit);
+  color: var(--nk-lit-ink);
   font-weight: 600;
 }
 
-/* The keys take more room than the old borderless tabs did: below this
-   width the token counter drops its word (the icon and the tooltip on the
-   widget still say what it counts). */
+/* The keys take more room than the old borderless tabs did: below these
+   widths the gaps tighten and the token counter drops its word (the icon
+   and the widget's tooltip still say what it counts). */
 @media (max-width: 1400px) {
   #nav-root .nav__right .token-widget__label { display: none; }
+  #nav-root .nav__links { gap: 8px; }
+  #nav-root .nav__link { padding: 0 13px; }
 }

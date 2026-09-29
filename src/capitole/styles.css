@@ -11,7 +11,8 @@
 
    Visual world: a scientific calculator. Chassis panels with hard 1px
    edges and near-square corners, keys that sit on a darker bottom edge
-   and sink when pressed, and an LCD that carries the numbers. Four legend
+   and sink when pressed, and an LCD that carries the numbers, all on the
+   site's graph-paper ground. Four legend
    colors, each with one job (like the function labels printed on a
    calculator): blue = primary key and Algebră, green = Geometrie and
    "done", red = Analiză, orange = XP and nothing else.
@@ -25,8 +26,8 @@
 
 /* ---- 0. TOKENS ---------------------------------------------------- */
 :root {
-  --k-font: 'Archivo', system-ui, -apple-system, 'Segoe UI', sans-serif;
-  --k-lcd-font: 'Doto', 'Archivo', monospace;
+  --k-font: var(--font-ui, 'Plus Jakarta Sans', system-ui, sans-serif);
+  --k-lcd-font: 'Doto', monospace;
   --k-math-font: 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
 
   --k-bg: #E3E4DF;
@@ -35,6 +36,7 @@
   --k-key: #FBFBF8;
   --k-key-edge: #B4B8AE;
   --k-rule: #D3D6CE;
+  --k-grid: rgba(23, 25, 28, 0.065);
 
   --k-ink: #17191C;
   --k-ink-2: #464B52;
@@ -74,6 +76,7 @@
   --k-key: #23272D;
   --k-key-edge: #08090B;
   --k-rule: #262A30;
+  --k-grid: rgba(236, 237, 233, 0.04);
 
   --k-ink: #ECEDE9;
   --k-ink-2: #B5BAC0;
@@ -100,7 +103,11 @@
 /* Page ground: the calculator's chassis, not the site's cream. Scoped to
    this page by #root (only capitole.html mounts the island). */
 body:has(#root) {
-  background: var(--k-bg);
+  background-color: var(--k-bg);
+  background-image:
+    linear-gradient(var(--k-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
 }
 
 .cap-shell {
@@ -129,18 +136,36 @@ body:has(#root) {
 
 .cap-hero__title {
   font-family: var(--k-font);
-  font-size: clamp(1.8rem, 2.9vw, 2.55rem);
+  font-size: clamp(1.75rem, 2.5vw, 2.25rem);
   font-weight: 800;
-  font-stretch: 87.5%;
-  line-height: 1.08;
-  letter-spacing: -0.022em;
+  line-height: 1.12;
+  letter-spacing: -0.028em;
   color: var(--k-ink);
   text-wrap: balance;
 }
 
 .cap-hero__title-accent {
-  display: block;
   color: var(--k-blue);
+}
+
+/* Each line of the title rises out of its own mask on load. */
+.cap-hero__line {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.cap-hero__line > span {
+  display: inline-block;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cap-hero__line > span {
+    animation: cap-line-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .cap-hero__line--accent > span { animation-delay: 90ms; }
+}
+@keyframes cap-line-up {
+  from { transform: translateY(105%); }
 }
 
 /* The display. A recessed LCD inside a dark bezel: the bezel is a spread
@@ -159,6 +184,21 @@ body:has(#root) {
     0 7px 0 7px color-mix(in srgb, var(--k-bezel) 70%, black),
     inset 0 3px 6px rgba(0, 0, 0, 0.22);
   color: var(--k-lcd-ink);
+}
+
+/* Power-on segment test: the glass comes up from dark while every
+   segment is lit (see useBoot in Hero.tsx). */
+.cap-lcd--boot {
+  animation: cap-lcd-power 0.62s steps(6, end) both;
+}
+@keyframes cap-lcd-power {
+  0% { filter: brightness(0.45); }
+  30% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}
+.cap-lcd--boot .cap-lcd__percent,
+.cap-lcd--boot .cap-lcd__total {
+  opacity: 0.55;
 }
 
 .cap-lcd__annunciators {
@@ -192,6 +232,10 @@ body:has(#root) {
 .cap-lcd__input > span:first-child {
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.cap-lcd__sub {
+  font-weight: 700;
 }
 
 .cap-lcd__cursor {
@@ -244,8 +288,8 @@ body:has(#root) {
   letter-spacing: 0.02em;
 }
 
-/* An LCD doesn't tween, it refreshes: the new figure strobes in over two
-   frames. Replays on every change because the element is keyed on what it
+/* An LCD doesn't tween, it refreshes: the new figure strobes in over three
+   steps. Replays on every change because the element is keyed on what it
    shows (Hero.tsx). */
 .cap-lcd__refresh {
   animation: cap-lcd-refresh 0.16s steps(3, end) both;
@@ -273,25 +317,19 @@ body:has(#root) {
   font-weight: 600;
   color: var(--k-ink-3);
 }
-.cap-hero__legend-dot {
-  width: 7px;
-  height: 7px;
-  margin-left: 8px;
+.cap-hero__legend-bar {
+  position: relative;
+  width: 34px;
+  height: 8px;
+  overflow: hidden;
   border-radius: 1px;
   background: var(--k-ghost);
-  box-shadow: inset 0 0 0 1px var(--k-ghost);
 }
-.cap-hero__legend-lit {
-  display: inline-flex;
-  gap: 2px;
+.cap-hero__legend-fill {
+  position: absolute;
+  inset: 0 45% 0 0;
+  background: var(--k-ink-2);
 }
-.cap-hero__legend-lit .cap-hero__legend-dot {
-  margin-left: 0;
-  box-shadow: none;
-}
-.cap-hero__legend-dot--blue { background: var(--k-blue); }
-.cap-hero__legend-dot--green { background: var(--k-green); }
-.cap-hero__legend-dot--red { background: var(--k-red); }
 
 /* ---- 1b. GRADE KEYS ---- */
 .cap-grade-switch {
@@ -411,6 +449,7 @@ body:has(#root) {
     height: calc(100vh - var(--nav-h, 72px));
     height: calc(100dvh - var(--nav-h, 72px));
     overflow-y: auto;
+    overflow-x: hidden;
     z-index: 5;
     scrollbar-width: thin;
     scrollbar-color: var(--k-panel-edge) transparent;
@@ -496,7 +535,6 @@ a.cap-key__face:focus-visible {
   overflow: hidden;
   font-size: 0.64rem;
   font-weight: 700;
-  font-stretch: 87.5%;
   letter-spacing: 0.08em;
   line-height: 1.1;
   text-transform: uppercase;
@@ -529,6 +567,13 @@ a.cap-key__face:focus-visible {
 /* Combinatorics' stacked k/n (see bm-types.ts) — the shared .sym-nb rule
    is sized for a smaller glyph. */
 .cap-key__symbol .sym-nb { font-size: 0.42em; }
+.cap-key__symbol {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+/* Pressable keys only: a locked chapter stays still. */
+.cap-key:not(.cap-key--soon):hover .cap-key__symbol {
+  transform: translateY(-3px) rotate(-6deg) scale(1.08);
+}
 
 .cap-key__text {
   display: flex;
@@ -541,7 +586,6 @@ a.cap-key__face:focus-visible {
   font-family: var(--k-font);
   font-size: 1.12rem;
   font-weight: 800;
-  font-stretch: 87.5%;
   line-height: 1.2;
   letter-spacing: -0.01em;
   color: var(--k-ink);
@@ -553,47 +597,59 @@ a.cap-key__face:focus-visible {
   color: var(--k-ink-2);
 }
 
-/* The chapter's bank: one dot per exercise, solved ones lit in the
-   legend color. Its height is honest — a 616-exercise chapter is a big
-   field, a 20-exercise one is a single row. */
-.cap-matrix {
+/* The chapter's bank as one strip, one segment per subcategory: width =
+   its share of the chapter, fill = how much of it is solved. The fill is a
+   scaleX on its own layer, so it animates without touching layout. */
+.cap-strip {
   display: flex;
-  flex-wrap: wrap;
-  gap: var(--dot-gap, 2px);
+  gap: 3px;
+  height: 14px;
   margin-top: auto;
-  padding-top: 2px;
 }
-.cap-matrix__dot {
-  width: var(--dot, 5px);
-  height: var(--dot, 5px);
+.cap-strip__seg {
+  position: relative;
+  min-width: 6px;
+  overflow: hidden;
   border-radius: 1px;
   background: var(--k-ghost);
-  transition: background-color 0.15s ease;
+  transition: background-color 0.15s ease, transform 0.15s ease;
 }
-.cap-matrix__dot--on {
+.cap-strip__fill {
+  position: absolute;
+  inset: 0;
   background: var(--legend);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
 }
-/* Hovering the key raises the unlit grid a step, so the lit dots read
-   against the full size of what's left. */
-.cap-key:hover .cap-matrix__dot:not(.cap-matrix__dot--on) {
-  background: color-mix(in srgb, var(--legend) 16%, transparent);
+/* The segment under the pointer is the one the LCD is reading out. */
+.cap-strip__seg:hover {
+  background: color-mix(in srgb, var(--legend) 22%, transparent);
+  transform: scaleY(1.35);
 }
 
-/* First view: the solved dots light in one left-to-right scan. Before the
-   key is in view they sit unlit, so the scan never plays over dots that
-   were already showing. */
+/* Power-on, per key: it lands on its edge, then its strip fills in, one
+   segment after another. These only run once the key has scrolled into
+   view (.cap-key--in). */
 @media (prefers-reduced-motion: no-preference) {
-  .cap-key:not(.cap-key--in) .cap-matrix--sweep .cap-matrix__dot--on {
-    background: var(--k-ghost);
+  .cap-key:not(.cap-key--in) .cap-key__face { opacity: 0; }
+  .cap-key--in .cap-key__face {
+    animation: cap-key-land 0.46s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: var(--land-delay, 0ms);
   }
-  .cap-key--in .cap-matrix--sweep .cap-matrix__dot--on {
-    animation: cap-dot-on 0.2s steps(2, end) both;
-    animation-delay: var(--d, 0ms);
+  .cap-key--in .cap-strip__fill {
+    animation: cap-strip-fill 0.7s cubic-bezier(0.16, 1, 0.3, 1) both;
+    animation-delay: calc(var(--land-delay, 0ms) + 260ms + var(--seg-i, 0) * 45ms);
   }
 }
-@keyframes cap-dot-on {
-  from { background: var(--k-ghost); }
-  to { background: var(--legend); }
+/* Drops onto its edge: the edge appears as the key arrives, then the key
+   gives a hair (a 2px sink) like a real keycap seating. */
+@keyframes cap-key-land {
+  0% { opacity: 0; transform: translateY(-14px); box-shadow: 0 0 0 0 var(--k-key-edge); }
+  70% { opacity: 1; transform: translateY(2px); box-shadow: 0 calc(var(--k-edge) - 2px) 0 0 var(--k-key-edge); }
+  100% { opacity: 1; transform: translateY(0); box-shadow: 0 var(--k-edge) 0 0 var(--k-key-edge); }
+}
+@keyframes cap-strip-fill {
+  from { transform: scaleX(0); }
 }
 
 .cap-key__foot {
@@ -651,6 +707,7 @@ a.cap-key__face:focus-visible {
    edge, dashed outline — the same "not a key yet" language as the IX
    grade option. */
 .cap-key--soon .cap-key__face {
+  animation-name: cap-fade-in;
   border-style: dashed;
   background: transparent;
   box-shadow: none;
@@ -681,6 +738,10 @@ a.cap-key__face:focus-visible {
   .cap-key__symbol { font-size: 1.9rem; }
   .cap-key__desc { font-size: 0.76rem; }
   .cap-key__mark-text { display: none; }
+}
+
+@keyframes cap-fade-in {
+  from { opacity: 0; }
 }
 
 /* Placeholder while the Supabase custom-exercise merge settles. */
@@ -745,7 +806,6 @@ a.cap-key__face:focus-visible {
   font-family: var(--k-font);
   font-size: 1rem;
   font-weight: 800;
-  font-stretch: 87.5%;
   color: var(--k-ink);
 }
 .cap-side-title__icon {
@@ -863,6 +923,26 @@ a.cap-key__face:focus-visible {
   color: var(--k-orange);
   opacity: 1;
 }
+/* A finished mission: its check draws itself, then the reward it paid out
+   pops once. */
+@media (prefers-reduced-motion: no-preference) {
+  .cap-mission--done .cap-mission__check svg {
+    stroke-dasharray: 64;
+    animation: cap-check-draw 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both;
+  }
+  .cap-mission--done .cap-mission__reward {
+    animation: cap-reward-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.7s both;
+  }
+}
+@keyframes cap-check-draw {
+  from { stroke-dashoffset: 64; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes cap-reward-pop {
+  0% { transform: scale(0.4) rotate(-20deg); opacity: 0.3; }
+  60% { transform: scale(1.25) rotate(8deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0); opacity: 1; }
+}
 
 .cap-mission__count {
   font-size: 0.68rem;
@@ -904,6 +984,35 @@ a.cap-key__face:focus-visible {
   border-bottom: 1px solid var(--k-rule);
 }
 .cap-leaderboard__row:last-child { border-bottom: none; }
+.cap-leaderboard__row {
+  transition: background-color 0.15s ease;
+}
+.cap-leaderboard__row:hover {
+  background: var(--k-ghost);
+}
+/* Rows arrive as a list (first five stagger, the rest sit below the
+   capped preview anyway); your own row flashes once as it lands. */
+@media (prefers-reduced-motion: no-preference) {
+  .cap-sidebar-section .cap-leaderboard__row {
+    animation: cap-row-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .cap-sidebar-section .cap-leaderboard__row:nth-child(1) { animation-delay: 300ms; }
+  .cap-sidebar-section .cap-leaderboard__row:nth-child(2) { animation-delay: 345ms; }
+  .cap-sidebar-section .cap-leaderboard__row:nth-child(3) { animation-delay: 390ms; }
+  .cap-sidebar-section .cap-leaderboard__row:nth-child(4) { animation-delay: 435ms; }
+  .cap-sidebar-section .cap-leaderboard__row:nth-child(n+5) { animation-delay: 480ms; }
+  .cap-sidebar-section .cap-leaderboard__row--you {
+    animation-name: cap-row-in, cap-row-flash;
+    animation-duration: 0.4s, 1.1s;
+    animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1), ease-out;
+  }
+}
+@keyframes cap-row-in {
+  from { opacity: 0; transform: translateX(14px); }
+}
+@keyframes cap-row-flash {
+  0%, 40% { background: color-mix(in srgb, var(--k-blue) 26%, transparent); }
+}
 .cap-leaderboard__row--you {
   background: var(--k-blue-wash);
 }
@@ -1023,7 +1132,6 @@ a.cap-key__face:focus-visible {
 .cap-follow-modal .classes-modal__head h3 {
   font-family: var(--k-font);
   font-weight: 800;
-  font-stretch: 87.5%;
   color: var(--k-ink);
 }
 
@@ -1220,7 +1328,6 @@ a.cap-key__face:focus-visible {
   font-family: var(--k-font);
   font-size: 1.35rem;
   font-weight: 800;
-  font-stretch: 87.5%;
   letter-spacing: -0.01em;
   color: var(--k-ink);
 }
@@ -1320,6 +1427,16 @@ a.cap-key__face:focus-visible {
 .cap-profile-xpbar__seg--on {
   background: var(--k-lcd-ink);
 }
+/* The level bar charges up segment by segment after the panel arrives. */
+@media (prefers-reduced-motion: no-preference) {
+  .cap-profile-xpbar__seg--on {
+    animation: cap-seg-on 0.12s steps(2, end) both;
+    animation-delay: calc(420ms + var(--i, 0) * 32ms);
+  }
+}
+@keyframes cap-seg-on {
+  from { background: var(--k-lcd-ghost); }
+}
 
 .cap-profile-section {
   width: 100%;
@@ -1330,7 +1447,6 @@ a.cap-key__face:focus-visible {
   font-family: var(--k-font);
   font-size: 0.95rem;
   font-weight: 800;
-  font-stretch: 87.5%;
   color: var(--k-ink);
 }
 
@@ -1364,6 +1480,14 @@ a.cap-key__face:focus-visible {
   font-variant-numeric: tabular-nums;
   white-space: nowrap;
   overflow: hidden;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .cap-profile-stat__val {
+    animation: cap-lcd-refresh 0.2s steps(3, end) both;
+  }
+  .cap-profile-stat:nth-child(1) .cap-profile-stat__val { animation-delay: 380ms; }
+  .cap-profile-stat:nth-child(2) .cap-profile-stat__val { animation-delay: 480ms; }
+  .cap-profile-stat:nth-child(3) .cap-profile-stat__val { animation-delay: 580ms; }
 }
 .cap-profile-stat__label {
   overflow: hidden;
@@ -1601,5 +1725,9 @@ a.cap-key__face:focus-visible {
   .cap-mission__cell--on { animation: none; }
   .cap-key__face,
   .cap-btn,
-  .cap-tabbar__btn { transition: none; }
+  .cap-tabbar__btn,
+  .cap-key__symbol,
+  .cap-strip__seg { transition: none; }
+  .cap-key:not(.cap-key--soon):hover .cap-key__symbol,
+  .cap-strip__seg:hover { transform: none; }
 }

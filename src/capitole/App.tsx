@@ -4,7 +4,7 @@ import { ChaptersSection } from './components/ChaptersSection';
 import { MobileTabBar } from './components/MobileTabBar';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
-import { useCapitoleData, type ChapterView } from './hooks/useCapitoleData';
+import { useCapitoleData, type Readout } from './hooks/useCapitoleData';
 import { useMissions } from './hooks/useMissions';
 import { useLeaderboard } from './hooks/useLeaderboard';
 import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
@@ -45,9 +45,9 @@ export function App() {
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
   const [mobileTab, setMobileTab] = useState<MobileTab>('capitole');
-  // The chapter key under the pointer (or keyboard focus): the LCD in the
-  // hero reads it out instead of the whole-bank total while it's set.
-  const [readout, setReadout] = useState<ChapterView | null>(null);
+  // The chapter key (or bank-strip segment) under the pointer or keyboard
+  // focus: the LCD in the hero reads it out instead of the whole-bank total.
+  const [readout, setReadout] = useState<Readout | null>(null);
 
   return (
     <div className="cap-shell">

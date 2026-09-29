@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import type { BMStats, ChapterView } from '../lib/bm-types';
 
-export type { ChapterView } from '../lib/bm-types';
+export type { ChapterView, Readout, SubProgress } from '../lib/bm-types';
 
 export interface CapitoleData {
   stats: BMStats | null;
@@ -37,16 +37,23 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
 
   const chapters: ChapterView[] = categories.map((category) => {
     const progress = storage.getProgressForCategory(category.id, exercises);
-    const subOrder = new Map(category.subcategories.map((sub, i) => [sub.id, i]));
-    const cells = exercises
-      .filter((ex) => ex.categoryId === category.id)
-      .sort((a, b) => (subOrder.get(a.subcategoryId) ?? 999) - (subOrder.get(b.subcategoryId) ?? 999))
-      .map((ex) => Boolean(solved[ex.id]));
+    const catExercises = exercises.filter((ex) => ex.categoryId === category.id);
+    const subs = category.subcategories
+      .map((sub) => {
+        const inSub = catExercises.filter((ex) => ex.subcategoryId === sub.id);
+        return {
+          id: sub.id,
+          name: sub.name,
+          total: inSub.length,
+          solved: inSub.filter((ex) => solved[ex.id]).length
+        };
+      })
+      .filter((sub) => sub.total > 0);
     return {
       category,
       progress,
       locked: progress.total === 0,
-      cells,
+      subs,
       lastWorked: category.id === lastCategoryId
     };
   });
