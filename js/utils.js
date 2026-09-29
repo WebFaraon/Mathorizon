@@ -116,6 +116,17 @@ BM.diffBadge = function(difficulty) {
   return `<span class="diff-badge ${BM.diffClass[difficulty] || ''}">${BM.diffLabel[difficulty] || difficulty}</span>`;
 };
 
+/* ---- Rarity badge ----
+   The exercise bank's current terminology (Comun/Rar/Epic/Legendar,
+   BM.RARITY_BY_DIFF) on the same .diff-badge shape, colored by the
+   .diff-badge.comun/.rar/.epic/.legendar rules. Ușor/Mediu/Greu is
+   retired wherever exercises are browsed. */
+BM.rarityLabel = { comun: 'Comun', rar: 'Rar', epic: 'Epic', legendar: 'Legendar' };
+BM.rarityBadge = function(difficulty) {
+  const rarity = (BM.RARITY_BY_DIFF && BM.RARITY_BY_DIFF[difficulty]) || 'comun';
+  return `<span class="diff-badge ${rarity}">${BM.rarityLabel[rarity]}</span>`;
+};
+
 /* ---- Points badge ---- */
 // Renders nothing when puncteTotal isn't set yet (most non-calcul-algebric
 // exercises still don't have one assigned — see [[ai-grading-barem-coverage]])

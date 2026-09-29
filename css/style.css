@@ -19847,6 +19847,11 @@ body:has(#root) {
 #nav-root .nav-profile-initials {
   border-radius: 3px;
 }
+/* Initials chip: lit like the active tab, so it reads against the key. */
+#nav-root .nav-profile-initials {
+  background: var(--nk-lit);
+  color: var(--nk-lit-ink);
+}
 
 /* Phone menu: a drop panel of the same blue; the current page is a lit
    row, not a colored side bar. */

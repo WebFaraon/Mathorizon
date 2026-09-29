@@ -72,7 +72,7 @@
         <div class="panel-ex-item__info">
           <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
           <div class="panel-ex-item__meta">
-            ${BM.esc(cat?.name || '')} · ${BM.diffBadge(ex.difficulty)}
+            ${BM.esc(cat?.name || '')} · ${BM.rarityBadge(ex.difficulty)}
           </div>
         </div>
         ${ts ? `<span class="panel-ex-item__date">${BM.formatDate(ts)}</span>` : ''}
