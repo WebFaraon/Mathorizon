@@ -377,3 +377,13 @@ Tokens are shared: every `--k-*` token and the graph-paper ground live in `css/c
 - **Decks:** each subcategory is a key face on a stack of tinted cards, one per rarity it holds (Comun/Rar/Epic/Legendar, `--rarity-*-b` mixed 30% into the key color), each peeking 5px under the face. A strip on the face shows solved share per rarity. Hover fans the stack and reads the deck on the LCD; press sinks the face 4px and squeezes the stack. Empty subcategories are flat dashed faces with no stack.
 - **Motion:** the decks are dealt (drop with a 2.5deg twist, 55ms stagger), then their rarity cards slide out from under the face, then the strips fill. All fill-mode `backwards`; reduced motion shows the final state.
 - **Breadcrumb:** a panel bar with the back link as a Primary Key and the current name in the legend color.
+
+### Exercise view (category.html?sub=…): collectible cards
+
+The rarity card system stays, reprinted in this world (`css/calculator.css`, markup in `js/category.js` renderRarityCards / renderFilterBar / buildRarityModal):
+
+- **Card:** a key (272px tall) standing on a 4px edge in its rarity color (`--rarity-*-b` mixed 62% into Key Edge), border tinted 38%. A printed band across the top (30px, rarity tint 11%) carries the pips (1 Comun to 4 Legendar), the rarity name, a "Rezolvat" mark on solved cards (stamped in when marked), and the card's collection number (`#012`, its place in the whole subcategory, stable under filters). The formula sits in a recessed Panel window. The subcategory tag is hidden (same on every card of the page). Favorite / solved are 30px keys; solved lights green, favorite tints red.
+- **Filters:** keys with their counts (Toate 76, Comun 26…). Status keys light blue when selected; rarity keys are printed in their rarity ink with pips and fill with the rarity color when selected. Phone: the two dropdowns are keys opening a Panel list.
+- **Modal:** Panel dialog with a 6px rarity top rule and the rarity legend as a printed tab hanging from it; close and prev/next are keys (prev/next move to the bottom corners on phones); "Arată baremul" is a Primary Key; statement in a recessed window; barem step numbers are square rarity tiles.
+- **Motion:** cards are dealt (drop with a 2deg twist, capped stagger) on load and after every filter change; press sinks the card before the modal grows out of it.
+- **Header key:** square by default, grows sideways for wide symbols (P(X), log, lg>). The header LCD takes the larger column share.

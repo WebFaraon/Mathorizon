@@ -127,7 +127,8 @@ body:has(#catHeader) {
 
 .ch {
   display: grid;
-  grid-template-columns: 72px minmax(0, 1fr) minmax(340px, 520px);
+  /* The LCD takes the larger share and grows toward the title. */
+  grid-template-columns: auto minmax(0, 0.85fr) minmax(420px, 1.15fr);
   align-items: center;
   gap: 22px 24px;
 }
@@ -136,8 +137,13 @@ body:has(#catHeader) {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 72px;
+  /* Wide symbols (P(X), log, lg>, a^x>) widen the key instead of spilling
+     out of it: square by default, grows sideways. */
+  min-width: 72px;
   height: 72px;
+  padding: 0 14px;
+  box-sizing: border-box;
+  white-space: nowrap;
   border: 1px solid var(--k-panel-edge);
   border-radius: var(--k-r-key);
   background: var(--k-key);
@@ -564,16 +570,537 @@ a.deck__face:focus-visible {
 /* ---- Responsive ---- */
 @media (max-width: 1000px) {
   .ch {
-    grid-template-columns: 64px minmax(0, 1fr);
+    grid-template-columns: auto minmax(0, 1fr);
   }
   .ch-lcd { grid-column: 1 / -1; }
-  .ch__key { width: 64px; height: 64px; font-size: 1.9rem; }
+  .ch__key { min-width: 64px; height: 64px; font-size: 1.9rem; }
 }
 @media (max-width: 640px) {
   .ch-wrap { padding: 22px 0 18px; }
   .ch { gap: 16px; }
-  .ch__key { width: 52px; height: 52px; font-size: 1.6rem; }
+  .ch__key { min-width: 52px; height: 52px; padding: 0 10px; font-size: 1.6rem; }
   .ch__desc { font-size: 0.84rem; }
   .ch-lcd__val { font-size: 2.1rem; }
   body:has(#catHeader) .subcat-cards-grid { gap: 24px; padding-top: 22px; }
+}
+
+/* ============================================================
+   category.html — exercise view: collectible cards, filters, modal
+   ============================================================
+   The rarity card system stays; it is reprinted in the calculator world.
+   Every card is a key standing on an edge in its rarity color, with a
+   printed band across the top: 1 to 4 pips and the rarity name, the
+   card's number in the subcategory's collection, and a "Rezolvat" mark
+   once solved. The formula sits in a recessed window. Filters are keys
+   that carry their counts. Markup: js/category.js renderRarityCards /
+   renderFilterBar / buildRarityModal. Scoped through #catHeader (this
+   page only) so it outranks the legacy .rarity-card rules in style.css.
+   ============================================================ */
+
+/* Rarity color per card / modal / filter key: --rc paint, --rc-ink text. */
+body:has(#catHeader) [data-rarity="comun"],
+body:has(#catHeader) .filter-chip.easy { --rc: var(--rarity-comun-b, #16A34A); --rc-ink: var(--rarity-comun-text); }
+body:has(#catHeader) [data-rarity="rar"],
+body:has(#catHeader) .filter-chip.medium { --rc: var(--rarity-rar-b, #3A6BAD); --rc-ink: var(--rarity-rar-text); }
+body:has(#catHeader) [data-rarity="epic"],
+body:has(#catHeader) .filter-chip.hard { --rc: var(--rarity-epic-b, #7C3AED); --rc-ink: var(--rarity-epic-text); }
+body:has(#catHeader) [data-rarity="legendar"],
+body:has(#catHeader) .filter-chip.legendary { --rc: var(--rarity-legendar-c, #F59E0B); --rc-ink: var(--rarity-legendar-text); }
+
+/* Pips: the collectible's rarity count, 1 (Comun) to 4 (Legendar). */
+.rc-pips {
+  display: inline-flex;
+  gap: 2px;
+  margin-right: 6px;
+  vertical-align: 1px;
+}
+.rc-pips i {
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: color-mix(in srgb, var(--rc, currentColor) 22%, transparent);
+}
+.rc-pips i.on { background: var(--rc, currentColor); }
+
+/* ---- Grid ---- */
+body:has(#catHeader) .exercises-container--rarity {
+  grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+  gap: 22px 18px;
+  padding-top: 8px;
+  padding-bottom: 60px;
+  font-family: var(--k-font);
+}
+
+/* ---- Card ---- */
+body:has(#catHeader) .rarity-card,
+html:not([data-theme="dark"]) body:has(#catHeader) .rarity-card {
+  display: flex;
+  flex-direction: column;
+  height: 272px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--rc) 38%, var(--k-panel-edge));
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#catHeader) .rarity-card:hover {
+  transform: none;
+  background: var(--k-key);
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
+  filter: brightness(0.965);
+}
+body:has(#catHeader) .rarity-card:active,
+body:has(#catHeader) .rarity-card.rarity-card--opening {
+  transform: translateY(4px);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 62%, var(--k-key-edge));
+  animation: none;
+}
+body:has(#catHeader) .rarity-card:focus-visible {
+  outline: 2px solid var(--rc);
+  outline-offset: 3px;
+}
+
+/* Printed band across the top. */
+.rc-band {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  height: 30px;
+  padding: 0 14px;
+  border-bottom: 1px solid color-mix(in srgb, var(--rc) 30%, var(--k-rule));
+  background: color-mix(in srgb, var(--rc) 11%, var(--k-key));
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--rc-ink);
+}
+.rc-rarity {
+  display: inline-flex;
+  align-items: center;
+}
+.rc-no {
+  margin-left: auto;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  color: color-mix(in srgb, var(--rc-ink) 70%, var(--k-ink-3));
+  font-variant-numeric: tabular-nums;
+}
+/* "Rezolvat" is printed only on solved cards, stamped in when marked. */
+.rc-done {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  color: var(--k-green);
+}
+.rarity-card.solved .rc-done { display: inline-flex; }
+@media (prefers-reduced-motion: no-preference) {
+  .rarity-card.anim-solved .rc-done {
+    animation: rc-stamp 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+  }
+}
+@keyframes rc-stamp {
+  0% { opacity: 0; transform: scale(1.8) rotate(-8deg); }
+  60% { opacity: 1; transform: scale(0.94) rotate(1deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+
+body:has(#catHeader) .rarity-card__inner {
+  flex: 1;
+  height: auto;
+  min-height: 0;
+  padding: 12px 14px 14px;
+}
+
+/* On this page every card is the same subcategory: the name tag is noise. */
+body:has(#catHeader) .rarity-card__tags .type-badge { display: none; }
+
+body:has(#catHeader) .rarity-card__tags .points-badge {
+  height: 26px;
+  padding: 0 8px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: transparent;
+  font-family: var(--k-font);
+  font-size: 0.72rem;
+  font-weight: 800;
+  color: var(--k-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Favorite / solved: small keys. */
+body:has(#catHeader) .rarity-card__actions .ex-action-btn,
+body:has(#catHeader) .rarity-card__actions .ex-action-btn:hover {
+  width: 30px;
+  height: 30px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink-2);
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn {
+  box-shadow: 0 2px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn:hover {
+  transform: none;
+  filter: brightness(0.94);
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(2px);
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active,
+body:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active:hover {
+  border-color: color-mix(in srgb, var(--k-red) 50%, var(--k-panel-edge));
+  background: color-mix(in srgb, var(--k-red) 12%, var(--k-key));
+  color: var(--k-red);
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active,
+body:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active:hover {
+  border-color: color-mix(in srgb, var(--k-green) 70%, black);
+  background: var(--k-green);
+  color: #fff;
+}
+body:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active {
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--k-green) 60%, black);
+}
+
+body:has(#catHeader) .rarity-card__title {
+  margin: 10px 0 2px;
+  font-family: var(--k-font);
+  font-size: 0.92rem;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  color: var(--k-ink);
+}
+body:has(#catHeader) .rarity-card__source {
+  font-size: 0.7rem;
+  color: var(--k-ink-3);
+}
+
+/* The formula window: recessed into the key. */
+body:has(#catHeader) .rarity-card__statement,
+html:not([data-theme="dark"]) body:has(#catHeader) .rarity-card__statement {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-panel);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+}
+[data-theme="dark"] body:has(#catHeader) .rarity-card__statement {
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.45);
+}
+body:has(#catHeader) .rarity-card__statement-inner { color: var(--k-ink); }
+
+/* Locked (package restriction): flat, no edge, lock over a blur. */
+body:has(#catHeader) .rarity-card--locked,
+body:has(#catHeader) .rarity-card--locked:hover {
+  box-shadow: none;
+  filter: none;
+  background: var(--k-key);
+}
+body:has(#catHeader) .rarity-card--locked .rarity-card__lock-overlay { top: 30px; }
+body:has(#catHeader) .rarity-card__lock-text { color: var(--k-ink-2); }
+
+/* Dealt in: on first view and after every filter change (the list
+   re-renders with .ex-entering and a capped per-card delay). */
+@media (prefers-reduced-motion: no-preference) {
+  body:has(#catHeader) .rarity-card.ex-entering {
+    animation: rc-deal 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+}
+@keyframes rc-deal {
+  from { opacity: 0; transform: translateY(-14px) rotate(-2deg); }
+}
+
+@media (max-width: 640px) {
+  body:has(#catHeader) .exercises-container--rarity { grid-template-columns: minmax(0, 1fr); gap: 18px; }
+}
+
+/* ---- Filter keys ---- */
+body:has(#catHeader) .filter-bar,
+body:has(#catHeader) .filter-bar--rarity {
+  font-family: var(--k-font);
+}
+body:has(#catHeader) .filter-label {
+  font-family: var(--k-font);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--k-ink-3);
+}
+body:has(#catHeader) .filter-bar .filter-chip,
+body:has(#catHeader) .filter-bar .filter-chip:hover {
+  display: inline-flex;
+  align-items: center;
+  height: 34px;
+  padding: 0 12px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink-2);
+  font-family: var(--k-font);
+  font-size: 0.74rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+body:has(#catHeader) .filter-bar .filter-chip {
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#catHeader) .filter-bar .filter-chip:hover {
+  transform: none;
+  filter: brightness(0.95);
+}
+body:has(#catHeader) .filter-bar .filter-chip:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+/* Rarity keys: printed in their rarity color at rest. */
+body:has(#catHeader) .filter-bar .filter-chip.easy,
+body:has(#catHeader) .filter-bar .filter-chip.medium,
+body:has(#catHeader) .filter-bar .filter-chip.hard,
+body:has(#catHeader) .filter-bar .filter-chip.legendary,
+body:has(#catHeader) .filter-bar .filter-chip.easy:hover,
+body:has(#catHeader) .filter-bar .filter-chip.medium:hover,
+body:has(#catHeader) .filter-bar .filter-chip.hard:hover,
+body:has(#catHeader) .filter-bar .filter-chip.legendary:hover {
+  color: var(--rc-ink);
+  border-color: color-mix(in srgb, var(--rc) 40%, var(--k-panel-edge));
+}
+/* Selected: status keys light blue, rarity keys light in their color. */
+body:has(#catHeader) .filter-bar .filter-chip.active,
+body:has(#catHeader) .filter-bar .filter-chip.active:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+}
+body:has(#catHeader) .filter-bar .filter-chip.active {
+  box-shadow: 0 3px 0 0 var(--k-blue-edge);
+}
+body:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active,
+body:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active:hover {
+  border-color: color-mix(in srgb, var(--rc) 70%, black);
+  background: var(--rc);
+  color: #fff;
+}
+body:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--rc) 60%, black);
+}
+body:has(#catHeader) .filter-chip.active .rc-pips i { background: rgba(255, 255, 255, 0.35); }
+body:has(#catHeader) .filter-chip.active .rc-pips i.on { background: #fff; }
+
+.fc-n {
+  margin-left: 7px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  opacity: 0.62;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---- Exercise modal ---- */
+body:has(#catHeader) .rarity-modal .classes-modal__backdrop {
+  background: rgba(12, 16, 26, 0.55);
+  backdrop-filter: none;
+}
+body:has(#catHeader) .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
+  border: 1px solid var(--k-panel-edge);
+  border-top: 6px solid var(--rc);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 30px 60px -20px rgba(0, 0, 0, 0.5);
+  font-family: var(--k-font);
+  color: var(--k-ink);
+}
+body:has(#catHeader) .rarity-modal__head {
+  border-bottom-color: var(--k-rule);
+}
+/* The rarity legend as a printed tab on the dialog's top edge. */
+body:has(#catHeader) .rarity-modal .rarity-badge {
+  display: inline-flex;
+  align-items: center;
+  top: -6px;
+  left: 22px;
+  padding: 6px 12px 7px;
+  border: none;
+  border-radius: 0 0 var(--k-r) var(--k-r);
+  background: var(--rc);
+  box-shadow: none;
+  text-shadow: none;
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: #fff;
+}
+body:has(#catHeader) .rarity-modal .rarity-badge .rc-pips i { background: rgba(255, 255, 255, 0.35); }
+body:has(#catHeader) .rarity-modal .rarity-badge .rc-pips i.on { background: #fff; }
+
+body:has(#catHeader) #rarityModalClose,
+body:has(#catHeader) #rarityModalClose:hover {
+  width: 36px;
+  height: 36px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+body:has(#catHeader) #rarityModalClose { box-shadow: 0 3px 0 0 var(--k-key-edge); }
+body:has(#catHeader) #rarityModalClose:active { box-shadow: 0 0 0 0 var(--k-key-edge); }
+
+body:has(#catHeader) .rarity-modal__nav,
+body:has(#catHeader) .rarity-modal__nav:hover {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  backdrop-filter: none;
+}
+body:has(#catHeader) .rarity-modal__nav {
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#catHeader) .rarity-modal__nav:hover { filter: brightness(0.94); }
+body:has(#catHeader) .rarity-modal__nav:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(calc(-50% + 3px));
+}
+
+body:has(#catHeader) .rarity-modal__meta .type-badge,
+body:has(#catHeader) .rarity-modal__meta .points-badge {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: transparent;
+  color: var(--k-ink-2);
+  font-family: var(--k-font);
+  font-weight: 700;
+}
+body:has(#catHeader) .rarity-modal__title {
+  font-family: var(--k-font);
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+body:has(#catHeader) .rarity-modal__statement,
+html:not([data-theme="dark"]) body:has(#catHeader) .rarity-modal__statement {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-key);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.07);
+  color: var(--k-ink);
+}
+body:has(#catHeader) .rarity-modal__barem-title {
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  color: var(--k-ink-3);
+}
+body:has(#catHeader) .rarity-modal__barem-gate {
+  border: 1px dashed var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: transparent;
+}
+body:has(#catHeader) .rarity-modal__barem-gate-icon {
+  border-radius: var(--k-r);
+  background: color-mix(in srgb, var(--rc) 14%, transparent);
+  color: var(--rc-ink);
+}
+body:has(#catHeader) .rarity-modal__barem-gate-text { color: var(--k-ink-2); }
+body:has(#catHeader) .rarity-modal__barem-btn,
+body:has(#catHeader) .rarity-modal__barem-btn:hover {
+  height: 36px;
+  border: 1px solid var(--k-blue-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-blue);
+  color: #fff;
+  font-family: var(--k-font);
+}
+body:has(#catHeader) .rarity-modal__barem-btn { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+body:has(#catHeader) .rarity-modal__barem-btn:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+
+body:has(#catHeader) .rarity-step { border-top-color: var(--k-rule); }
+body:has(#catHeader) .rarity-step__num {
+  border-radius: var(--k-r);
+  background: var(--rc);
+  font-variant-numeric: tabular-nums;
+}
+body:has(#catHeader) .rarity-step__crit { color: var(--k-ink); }
+body:has(#catHeader) .rarity-step__detail {
+  border-left-color: var(--k-panel-edge);
+  color: var(--k-ink-2);
+}
+body:has(#catHeader) .rarity-step__pts {
+  border-radius: var(--k-r);
+  border-color: color-mix(in srgb, var(--rc) 55%, var(--k-panel-edge));
+  background: transparent;
+  color: var(--rc-ink);
+  font-variant-numeric: tabular-nums;
+}
+body:has(#catHeader) .rarity-modal__total {
+  border-top-color: var(--k-panel-edge);
+  color: var(--k-ink-2);
+}
+body:has(#catHeader) .rarity-modal__total strong { color: var(--k-ink); }
+
+/* ---- Phone filter dropdowns (the .cls-csel enhancement of the two
+   native selects, see js/category.js buildCustomFilterSelect): a key
+   that opens a chassis-panel list. The tier tint (.cls-csel--tier-*)
+   still colors the trigger once a rarity is picked. ---- */
+body:has(#catHeader) .filter-bar__selects .cls-csel__trigger {
+  height: 42px;
+  padding: 0 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--k-ink);
+  transition: box-shadow 0.1s ease, transform 0.1s ease;
+}
+body:has(#catHeader) .filter-bar__selects .cls-csel__trigger:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+body:has(#catHeader) .filter-bar__selects .cls-csel__arrow { color: var(--k-ink-2); }
+body:has(#catHeader) .filter-bar__selects .cls-csel__dropdown {
+  top: calc(100% + 8px);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 18px 30px -12px rgba(0, 0, 0, 0.35);
+}
+body:has(#catHeader) .filter-bar__selects .cls-csel__option,
+body:has(#catHeader) .filter-bar__selects .cls-csel__option:first-child,
+body:has(#catHeader) .filter-bar__selects .cls-csel__option:last-child {
+  border-radius: 0;
+  font-family: var(--k-font);
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--k-ink);
+}
+body:has(#catHeader) .filter-bar__selects .cls-csel__option:hover { background: var(--k-ghost); }
+body:has(#catHeader) .filter-bar__selects .cls-csel__option--sel {
+  background: var(--k-blue-wash);
+  color: var(--k-blue);
+  font-weight: 800;
+}
+
+/* Phone: the modal is a full-width sheet, so prev/next move from the
+   vertical middle (over the title) to the bottom corners. */
+@media (max-width: 640px) {
+  body:has(#catHeader) .rarity-modal__nav {
+    top: auto;
+    bottom: calc(16px + env(safe-area-inset-bottom, 0px));
+    transform: none;
+    z-index: 3;
+  }
+  body:has(#catHeader) .rarity-modal__nav:active { transform: translateY(3px); }
+  /* Room under the last line so it scrolls clear of the arrows. */
+  body:has(#catHeader) .rarity-modal__body { padding-bottom: 84px; }
 }

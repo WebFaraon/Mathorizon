@@ -385,17 +385,26 @@
     bar.classList.toggle('filter-bar--rarity', isRarityPage);
     const diffLabel = isRarityPage ? 'Raritate' : 'Dificultate';
 
+    // How many exercises each filter would show (the subcategory's whole
+    // bank, not the current filtered list).
+    const inSub     = allExercises.filter(e => e.subcategoryId === currentSubcat);
+    const solvedMap = BM.Storage.getSolved();
+    const nSolved   = inSub.filter(e => solvedMap[e.id]).length;
+    const nDiff     = d => inSub.filter(e => e.difficulty === d).length;
+    const cnt       = n => `<span class="fc-n">${n}</span>`;
+    const pips      = r => isRarityPage ? rarityPips(r) : '';
+
     const statusChips = `
-      <button class="filter-chip ${statusFilter === 'all'      ? 'active' : ''}" data-fg="status" data-fv="all"      onclick="setFilter('status','all')">Toate</button>
-      <button class="filter-chip ${statusFilter === 'unsolved' ? 'active' : ''}" data-fg="status" data-fv="unsolved" onclick="setFilter('status','unsolved')">Nerezolvate</button>
-      <button class="filter-chip ${statusFilter === 'solved'   ? 'active' : ''}" data-fg="status" data-fv="solved"   onclick="setFilter('status','solved')">Rezolvate</button>
+      <button class="filter-chip ${statusFilter === 'all'      ? 'active' : ''}" data-fg="status" data-fv="all"      onclick="setFilter('status','all')">Toate${cnt(inSub.length)}</button>
+      <button class="filter-chip ${statusFilter === 'unsolved' ? 'active' : ''}" data-fg="status" data-fv="unsolved" onclick="setFilter('status','unsolved')">Nerezolvate${cnt(inSub.length - nSolved)}</button>
+      <button class="filter-chip ${statusFilter === 'solved'   ? 'active' : ''}" data-fg="status" data-fv="solved"   onclick="setFilter('status','solved')">Rezolvate${cnt(nSolved)}</button>
     `;
     const diffChips = `
       <button class="filter-chip ${diffFilter === 'all' ? 'active' : ''}" data-fg="diff" data-fv="all" onclick="setFilter('diff','all')">Toate</button>
-      <button class="filter-chip easy      ${diffFilter === 'usor'     ? 'active' : ''}" data-fg="diff" data-fv="usor"     onclick="setFilter('diff','usor')">${isRarityPage ? 'Comun' : 'Ușor'}</button>
-      <button class="filter-chip medium    ${diffFilter === 'mediu'    ? 'active' : ''}" data-fg="diff" data-fv="mediu"    onclick="setFilter('diff','mediu')">${isRarityPage ? 'Rar' : 'Mediu'}</button>
-      <button class="filter-chip hard      ${diffFilter === 'dificil'  ? 'active' : ''}" data-fg="diff" data-fv="dificil"  onclick="setFilter('diff','dificil')">${isRarityPage ? 'Epic' : 'Greu'}</button>
-      <button class="filter-chip legendary ${diffFilter === 'legendar' ? 'active' : ''}" data-fg="diff" data-fv="legendar" onclick="setFilter('diff','legendar')">Legendar</button>
+      <button class="filter-chip easy      ${diffFilter === 'usor'     ? 'active' : ''}" data-fg="diff" data-fv="usor"     onclick="setFilter('diff','usor')">${pips('comun')}${isRarityPage ? 'Comun' : 'Ușor'}${cnt(nDiff('usor'))}</button>
+      <button class="filter-chip medium    ${diffFilter === 'mediu'    ? 'active' : ''}" data-fg="diff" data-fv="mediu"    onclick="setFilter('diff','mediu')">${pips('rar')}${isRarityPage ? 'Rar' : 'Mediu'}${cnt(nDiff('mediu'))}</button>
+      <button class="filter-chip hard      ${diffFilter === 'dificil'  ? 'active' : ''}" data-fg="diff" data-fv="dificil"  onclick="setFilter('diff','dificil')">${pips('epic')}${isRarityPage ? 'Epic' : 'Greu'}${cnt(nDiff('dificil'))}</button>
+      <button class="filter-chip legendary ${diffFilter === 'legendar' ? 'active' : ''}" data-fg="diff" data-fv="legendar" onclick="setFilter('diff','legendar')">${pips('legendar')}Legendar${cnt(nDiff('legendar'))}</button>
     `;
 
     /* Rarity page only: below a certain width even the boxed-group chip
@@ -613,10 +622,31 @@
   /* ---- Rarity redesign (preview — see RARITY_SUBCATS above) ---- */
   const RARITY_BY_DIFF = BM.RARITY_BY_DIFF;
 
+  /* Collectible marks printed on every card: 1 to 4 pips (Comun..Legendar)
+     and the rarity name, on a band across the top of the card. */
+  const RARITY_PIPS = { comun: 1, rar: 2, epic: 3, legendar: 4 };
+  function rarityPips(rarity) {
+    const on = RARITY_PIPS[rarity] || 1;
+    return `<span class="rc-pips" aria-hidden="true">${[1, 2, 3, 4].map(n => `<i${n <= on ? ' class="on"' : ''}></i>`).join('')}</span>`;
+  }
+  function rarityBand(rarity, number) {
+    return `
+      <div class="rc-band">
+        <span class="rc-rarity">${rarityPips(rarity)}${BM.rarityLabel[rarity]}</span>
+        <span class="rc-done" aria-hidden="true">${icon('circle-check', { size: 14 })} Rezolvat</span>
+        <span class="rc-no">#${String(number).padStart(3, '0')}</span>
+      </div>`;
+  }
+
   function renderRarityCards(container) {
     const solved = BM.Storage.getSolved();
     const favs   = BM.Storage.getFavorites();
     const cat    = currentCategory;
+    // A card's number is its place in the whole subcategory, so it stays the
+    // same whatever filter is on (a collection number, not a list index).
+    const cardNo = new Map(allExercises
+      .filter(e => e.subcategoryId === currentSubcat)
+      .map((e, i) => [e.id, i + 1]));
 
     container.innerHTML = filtered.map((ex) => {
       const sub    = BM.getSubcategoryById(cat.id, ex.subcategoryId);
@@ -625,6 +655,7 @@
       if (ex._locked) {
         return `
         <div class="rarity-card rarity-card--locked" data-rarity="${rarity}" id="card-${ex.id}">
+          ${rarityBand(rarity, cardNo.get(ex.id) || 0)}
           <div class="rarity-card__inner">
             <div class="rarity-card__title rarity-card__title--locked">${BM.esc(ex.title)}</div>
           </div>
@@ -661,8 +692,8 @@
       const canEdit = window.BMAuth?.role === 'admin' && ex._custom;
 
       return `
-        <div class="rarity-card" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
-          <span class="rarity-badge">${rarity}</span>
+        <div class="rarity-card${isSolved ? ' solved' : ''}" data-rarity="${rarity}" data-diff="${ex.difficulty}" id="card-${ex.id}" onclick="openRarityModal('${ex.id}', this)">
+          ${rarityBand(rarity, cardNo.get(ex.id) || 0)}
           <div class="rarity-card__inner">
             <div class="rarity-card__top">
               <div class="rarity-card__tags">
@@ -806,7 +837,7 @@
         <button class="rarity-modal__nav rarity-modal__nav--next" id="rarityModalNext" aria-label="Exercițiul următor" ${hasNext ? '' : 'hidden'}>›</button>
         <div class="classes-modal__dialog rarity-modal__dialog">
           <div class="rarity-modal__head">
-            <span class="rarity-badge">${rarity}</span>
+            <span class="rarity-badge">${rarityPips(rarity)}${BM.rarityLabel[rarity]}</span>
             <button class="icon-btn" id="rarityModalClose">${icon('x', { size: 20 })}</button>
           </div>
           <div class="rarity-modal__body">${buildRarityModalBody(ex)}</div>
@@ -1202,6 +1233,7 @@
       nowSolved ? 'success' : 'info'
     );
     refreshHeader();
+    if (currentSubcat) renderFilterBar();
   };
 
   /* ---- Favorite toggle ---- */
