@@ -19881,3 +19881,116 @@ body:has(#root) {
   #nav-root .nav__links { gap: 8px; }
   #nav-root .nav__link { padding: 0 13px; }
 }
+
+/* ---- Phone widths: wordmark + menu (calculator skin, continued) ---- */
+
+/* 360-420px (most current phones, e.g. 384px on a Galaxy S25+): the
+   wordmark comes back, set smaller and tighter. The ≤420px rule above
+   hides it to keep the row from overflowing at 320-360px; at these widths
+   the signed-in row (logo, avatar key, hamburger) has room for it. Guests
+   keep it hidden (html.bm-guest rule above): their wider "Conectare" key
+   needs the space. */
+@media (min-width: 360px) and (max-width: 420px) {
+  html:not(.bm-guest) #nav-root .nav__name {
+    display: inline;
+    font-size: 0.74rem;
+    letter-spacing: 1.8px;
+    margin-left: -6px;
+  }
+}
+
+/* Phone menu: a drop panel that unrolls from under the strip (clip-path
+   top to bottom) and rolls back up on close, with its rows landing one
+   after another. Kept rendered (not display:none) so the close can
+   animate; visibility hides it from pointer and screen readers once the
+   roll-up ends. js/utils.js still just toggles .open. */
+@media (max-width: 1150px) {
+  #nav-root .nav__mobile-menu {
+    display: block;
+    visibility: hidden;
+    padding: 12px 12px calc(14px + env(safe-area-inset-bottom, 0px));
+    clip-path: inset(0 0 100% 0);
+    pointer-events: none;
+    transition:
+      clip-path 0.22s cubic-bezier(0.4, 0, 1, 1),
+      visibility 0s linear 0.22s;
+  }
+  #nav-root .nav__mobile-menu.open {
+    visibility: visible;
+    clip-path: inset(0 0 0 0);
+    pointer-events: auto;
+    transition:
+      clip-path 0.36s cubic-bezier(0.16, 1, 0.3, 1),
+      visibility 0s;
+  }
+
+  /* Each destination is a key; the page you're on is lit. */
+  #nav-root .nav__mobile-link {
+    height: 50px;
+    margin-bottom: 8px;
+    padding: 0 16px;
+    border: 1px solid var(--nk-key-border);
+    border-radius: 4px;
+    background: var(--nk-key);
+    box-shadow: 0 3px 0 0 var(--nk-key-edge);
+    font-size: 1rem;
+    font-weight: 600;
+    transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+  }
+  #nav-root .nav__mobile-link:hover {
+    background: var(--nk-key);
+    color: var(--nk-ink);
+    filter: brightness(0.94);
+  }
+  #nav-root .nav__mobile-link:active {
+    box-shadow: 0 0 0 0 var(--nk-key-edge);
+    transform: translateY(3px);
+  }
+  #nav-root .nav__mobile-link--active,
+  #nav-root .nav__mobile-link--active:hover {
+    padding-left: 16px;
+    border-color: var(--nk-lit-edge);
+    background: var(--nk-lit);
+    color: var(--nk-lit-ink);
+    box-shadow: 0 3px 0 0 var(--nk-lit-edge);
+  }
+
+  /* Secondary actions: smaller, quieter keys. */
+  #nav-root .nav__mobile-section-lbl {
+    padding: 8px 4px 8px;
+    font-size: 0.62rem;
+    font-weight: 800;
+    letter-spacing: 0.12em;
+    color: rgba(255, 255, 255, 0.6);
+  }
+  #nav-root .nav__mobile-link--action {
+    display: flex;
+    width: 100%;
+    height: 42px;
+    margin-bottom: 8px;
+    padding: 0 12px;
+    font-size: 0.84rem;
+    color: var(--nk-ink);
+  }
+  #nav-root .nav__mobile-divider { margin: 6px 0 4px; background: rgba(255, 255, 255, 0.14); }
+  #nav-root .nav__mobile-utility-row { padding: 12px 0 0; border-top-color: rgba(255, 255, 255, 0.14); }
+}
+@media (max-width: 1150px) and (prefers-reduced-motion: no-preference) {
+  #nav-root .nav__mobile-menu.open .nav__mobile-link,
+  #nav-root .nav__mobile-menu.open .nav__mobile-utility-row {
+    animation: nm-row-in 0.34s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  #nav-root .nav__mobile-menu.open .nav__mobile-link:nth-child(2) { animation-delay: 30ms; }
+  #nav-root .nav__mobile-menu.open .nav__mobile-link:nth-child(3) { animation-delay: 60ms; }
+  #nav-root .nav__mobile-menu.open .nav__mobile-link:nth-child(4) { animation-delay: 90ms; }
+  #nav-root .nav__mobile-menu.open .nav__mobile-link:nth-child(5) { animation-delay: 120ms; }
+  #nav-root .nav__mobile-menu.open .nav__mobile-link--action,
+  #nav-root .nav__mobile-menu.open .nav__mobile-utility-row { animation-delay: 160ms; }
+}
+@keyframes nm-row-in {
+  from { opacity: 0; transform: translateY(-10px); }
+}
+@media (max-width: 1150px) and (prefers-reduced-motion: reduce) {
+  #nav-root .nav__mobile-menu,
+  #nav-root .nav__mobile-menu.open { transition: visibility 0s; clip-path: none; }
+}
