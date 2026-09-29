@@ -27,9 +27,8 @@
     // never controls it), since the old duplication is exactly what made
     // it disappear the moment renderForm() replaced this element's content.
     dynamic.innerHTML =
-      '<div class="route-card__footer">' +
-        '<a href="#" class="btn btn--ghost btn--lg btn--full" id="waitlistLinkBtn">Anunță-mă când e gata</a>' +
-      '</div>';
+      '<p class="ld-note">Îți scriem o singură dată, când e gata. Fără alte mesaje.</p>' +
+      '<button type="button" class="ld-key ld-key--primary ld-key--block" id="waitlistLinkBtn">Anunță-mă când e gata</button>';
     document.getElementById('waitlistLinkBtn').addEventListener('click', function (e) {
       e.preventDefault();
       renderForm();
@@ -38,15 +37,16 @@
 
   function renderForm() {
     dynamic.innerHTML =
-      '<form class="route-card__waitlist-form" id="waitlistForm" novalidate>' +
-        '<div class="route-card__waitlist-row">' +
-          '<input type="email" class="auth-input route-card__waitlist-input" id="waitlistEmail" placeholder="email@exemplu.com" autocomplete="email" required>' +
-          '<button type="submit" class="btn btn--primary btn--sm">Trimite</button>' +
+      '<form class="ld-waitlist__form" id="waitlistForm" novalidate>' +
+        '<label class="ld-waitlist__label" for="waitlistEmail">Emailul tău</label>' +
+        '<div class="ld-waitlist__row">' +
+          '<input type="email" class="ld-input" id="waitlistEmail" placeholder="email@exemplu.com" autocomplete="email" required>' +
+          '<button type="submit" class="ld-key ld-key--primary">Trimite</button>' +
         '</div>' +
         // Honeypot — real visitors never see or fill this; a non-empty
         // value on submit means it was an automated fill, not a person.
         '<input type="text" name="website" id="waitlistHoneypot" class="route-card__honeypot" tabindex="-1" autocomplete="off" aria-hidden="true">' +
-        '<p class="route-card__waitlist-error" id="waitlistError" style="display:none"></p>' +
+        '<p class="ld-waitlist__error" id="waitlistError" role="alert" style="display:none"></p>' +
       '</form>';
     const form = document.getElementById('waitlistForm');
     document.getElementById('waitlistEmail').focus();
@@ -55,7 +55,7 @@
 
   function renderSuccess(email) {
     dynamic.innerHTML =
-      '<div class="chapter-card__desc">Gata. Te anunțăm pe <strong>' + BM.esc(email) + '</strong> când exercițiile pentru clasa a 9-a sunt disponibile.</div>';
+      '<p class="ld-waitlist__done" role="status">Gata. Te anunțăm pe <strong>' + BM.esc(email) + '</strong> când exercițiile pentru clasa a 9-a sunt disponibile.</p>';
   }
 
   async function onSubmit(e) {

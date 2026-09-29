@@ -398,3 +398,12 @@ Styled in `css/calculator.css` (scoped through `#profileContent`), markup in `js
 - **Country:** chosen from a searchable dropdown (ISO 3166-1 list, Romanian names from `Intl.DisplayNames`, SVG flags from `flag-icons` on jsDelivr, Moldova and România pinned first). Saved as `country` (the name, still read as text by class-page.js) plus `country_code`; older hand-typed values are matched by name or common short form. The plate shows the flag beside the name.
 - **Admin:** "Panou admin" as a Primary Key in the plate, the tape, unlimited tokens (one wide ∞ ticket), the account card.
 - **Motion:** one entrance with Motion (motion.dev, ES module from jsDelivr into `window.BMMotion`): the plate settles, spec cells stagger in, display values refresh, tickets are dealt, and the tape prints line by line when it scrolls into view. Skipped under reduced motion or if Motion arrives after the page is already shown.
+
+### Landing (index.html): one calculator with a MODE row
+
+Signed-out landing (signed-in visitors are redirected to Capitole). Styles in `css/calculator.css` (scoped through `.landing-main`), MODE logic in `js/landing-modes.js`, grade IX waitlist in `js/landing-page.js`.
+
+- **Hero:** the headline on two lines (second line in Key Blue), one supporting sentence, the Primary Key "Începe pregătirea" and a neutral "Am deja cont"; beside it a small display with the real figures (exercise count from `BM.EXERCISES`, item types, official barem). The display runs the segment test on load.
+- **The calculator:** a Panel with four MODE keys (BAC, Gimnaziu, Profesor, Test nivel), each with a small legend above its label. The selected mode is lit blue and held half-way down. Below, the mode's display (annunciators BAC / XII / IX / PROF, title, description, "›" lines) beside its action column: student sign-up, the grade IX waitlist (link, then inline email form, then confirmation), teacher sign-up with the approval note, or a dashed "În curând" key for the level test.
+- **Behavior:** real tabs (tablist / tab / tabpanel, arrow keys, Home / End); a `#bac` / `#gimnaziu` / `#profesor` / `#test` hash opens that mode. Switching strobes the display and prints its lines in with Motion (motion.dev from jsDelivr).
+- **Motion:** headline lines rise out of masks, the text settles, the calculator slides up and its MODE keys land one after another (fill-mode backwards so their press still works); reduced motion shows the final state.

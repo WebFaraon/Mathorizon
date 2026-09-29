@@ -41,16 +41,8 @@
 
   <main class="main container landing-main">
 
-    <!-- HERO -->
-    <section class="landing-hero">
-      <!-- Decorative-only background layer — same .hero-syms/.hero-sym
-           glyphs used in capitole.html's dashboard hero, spread across the
-           whole (now shorter, single-column) hero rather than clustered —
-           see css/style.css section 9.5 for the per-symbol slow-drift
-           overrides applied here. Kept low-opacity throughout so nothing
-           here ever competes with the centered H1/stats for legibility;
-           the last 6 are hidden on narrow phones (see the max-width:600px
-           rule) so the set doesn't feel cluttered at that width. -->
+    <!-- HERO: the promise, the real figures, and the start key. -->
+    <section class="ld-hero">
       <div class="hero-syms" aria-hidden="true">
         <span class="hero-sym" style="left:2%;top:12%;font-size:3.2rem;opacity:0.10">∑</span>
         <span class="hero-sym" style="left:6%;top:70%;font-size:3rem;opacity:0.11">∫</span>
@@ -67,123 +59,117 @@
         <span class="hero-sym" style="left:60%;top:85%;font-size:2rem;opacity:0.075">∞</span>
         <span class="hero-sym hero-sym--stack" style="left:85%;top:88%;font-size:1.1rem;opacity:0.11">lim<small>x→∞</small></span>
       </div>
-
-      <div class="landing-hero__inner">
-        <div class="landing-hero__eyebrow">Matematică · BAC · Examen Gimnaziu · Moldova</div>
-        <h1 class="landing-hero__title">
-          Pregătire serioasă la matematică
-          <span class="landing-hero__title-accent">
-            <!-- Full phrase, always real text — screen readers and any
-                 HTML-only crawler read this. The aria-hidden span below is
-                 the ONLY part js/landing-hero.js animates (see there). -->
-            <span class="sr-only" id="heroTypewriterFull">pentru examenele din Moldova</span>
-            <span class="landing-hero__typewriter" aria-hidden="true"><span id="heroTypewriterVisible"></span><span class="landing-hero__cursor" id="heroTypewriterCursor"></span></span>
-          </span>
+      <div class="ld-hero__text">
+        <h1 class="ld-title">
+          <span class="ld-title__line"><span>Pregătire serioasă la matematică</span></span>
+          <span class="ld-title__line ld-title__line--accent"><span>pentru examenele din Moldova</span></span>
         </h1>
+        <p class="ld-lede">Exerciții pe capitole, simulări de BAC notate automat și clase pentru profesori, cu barem oficial pe fiecare pas.</p>
+        <div class="ld-actions">
+          <a class="ld-key ld-key--primary" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
+          <a class="ld-key" href="auth.html">Am deja cont</a>
+        </div>
+      </div>
 
-        <div class="landing-hero__stats">
-          <div class="landing-hero__stat">
-            <span class="stat__val accent" id="landingExerciseCount">648</span>
-            <span class="stat__lbl">exerciții</span>
-          </div>
-          <div class="landing-hero__stat">
-            <span class="stat__val accent">12</span>
-            <span class="stat__lbl">tipuri de itemi</span>
-          </div>
-          <div class="landing-hero__stat">
-            <span class="stat__val accent">Barem</span>
-            <span class="stat__lbl">oficial</span>
-          </div>
+      <!-- Real figures on a small display. The count comes from
+           BM.EXERCISES (script at the bottom), never a typed number. -->
+      <div class="ld-figures ld-lcd ld-boot" role="group" aria-label="Mathorizon în cifre">
+        <div class="ld-figures__row">
+          <span class="ld-figures__val" id="landingExerciseCount">648</span>
+          <span class="ld-figures__lbl">exerciții rezolvate pas cu pas</span>
+        </div>
+        <div class="ld-figures__row">
+          <span class="ld-figures__val">12</span>
+          <span class="ld-figures__lbl">tipuri de itemi de BAC</span>
+        </div>
+        <div class="ld-figures__row ld-figures__row--text">
+          <span class="ld-figures__mark"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg></span>
+          <span class="ld-figures__lbl">Barem oficial pe fiecare pas</span>
         </div>
       </div>
     </section>
 
-    <!-- ROUTE SELECTOR -->
-    <div class="route-grid">
+    <!-- THE CALCULATOR: four MODE keys switch the display (js/landing-modes.js). -->
+    <section class="ld-calc" aria-labelledby="ldCalcTitle">
+      <h2 class="ld-calc__title" id="ldCalcTitle">Alege-ți modul</h2>
+      <div class="ld-modes" role="tablist" aria-labelledby="ldCalcTitle">
+        <button class="ld-mode" role="tab" id="ldTab-bac" aria-controls="ldPanel-bac" data-mode="bac" type="button">
+          <span class="ld-mode__legend">Clasa a 12-a</span><span class="ld-mode__label">BAC</span>
+        </button>
+        <button class="ld-mode" role="tab" id="ldTab-gim" aria-controls="ldPanel-gim" data-mode="gimnaziu" type="button">
+          <span class="ld-mode__legend">Clasa a 9-a</span><span class="ld-mode__label">Gimnaziu</span>
+        </button>
+        <button class="ld-mode" role="tab" id="ldTab-prof" aria-controls="ldPanel-prof" data-mode="profesor" type="button">
+          <span class="ld-mode__legend">Pentru profesori</span><span class="ld-mode__label">Profesor</span>
+        </button>
+        <button class="ld-mode" role="tab" id="ldTab-test" aria-controls="ldPanel-test" data-mode="test" type="button">
+          <span class="ld-mode__legend">Fără cont</span><span class="ld-mode__label">Test nivel</span>
+        </button>
+      </div>
 
-      <!-- BAC (12th grade) — the one primary action on the page. Not an
-           <a> around the whole card any more (only the footer's own CTA
-           is a real link now) — per direct feedback, a card this size
-           reading as one giant click target wasn't wanted alongside a
-           dedicated button already doing that job. -->
-      <div class="chapter-card route-card" style="--card-color:#7c3aed;--card-btn:#6d28d9">
-        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg>
-        <div class="route-card__eyebrow">BAC</div>
-        <div class="chapter-card__name">Clasa a 12-a</div>
-        <div class="chapter-card__desc">Toate capitolele din programa de examen, cu barem oficial pe fiecare pas.</div>
-        <ul class="route-card__list">
-          <li>Exerciții pe capitole și dificultate</li>
-          <li>Antrenament rapid personalizat</li>
-          <li>Simulare completă de 3 ore, notată automat</li>
-        </ul>
-        <div class="route-card__footer">
-          <a class="btn btn--ghost btn--lg btn--full" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
+      <div class="ld-panel" role="tabpanel" id="ldPanel-bac" aria-labelledby="ldTab-bac">
+        <div class="ld-screen ld-lcd">
+          <div class="ld-ann" aria-hidden="true"><span class="on">BAC</span><span class="on">XII</span><span>IX</span><span>PROF</span></div>
+          <p class="ld-screen__title ld-print">Clasa a 12-a</p>
+          <p class="ld-screen__desc ld-print">Toate capitolele din programa de examen, cu barem oficial pe fiecare pas.</p>
+          <ul class="ld-screen__list">
+            <li class="ld-print">Exerciții pe capitole și dificultate</li>
+            <li class="ld-print">Antrenament rapid personalizat</li>
+            <li class="ld-print">Simulare completă de 3 ore, notată automat</li>
+          </ul>
+        </div>
+        <div class="ld-action">
+          <p class="ld-note">Cont gratuit de elev. Începi cu capitolul pe care îl alegi.</p>
+          <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
         </div>
       </div>
 
-      <!-- 9th grade — not built yet, stays visually equal, no disabled treatment.
-           Dynamic zone (desc/link vs. form vs. success) is filled in by
-           js/landing-page.js — see #waitlistDynamic there. -->
-      <div class="chapter-card route-card" style="--card-color:#f59e0b;--card-btn:#b45309">
-        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg>
-        <div class="route-card__top">
-          <div class="route-card__eyebrow">Examen gimnaziu</div>
-          <span class="chapter-card__count">În pregătire</span>
+      <div class="ld-panel" role="tabpanel" id="ldPanel-gim" aria-labelledby="ldTab-gim" hidden>
+        <div class="ld-screen ld-lcd">
+          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span class="on">IX</span><span>PROF</span></div>
+          <p class="ld-screen__title ld-print">Clasa a 9-a <span class="ld-soon">în pregătire</span></p>
+          <p class="ld-screen__desc ld-print">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</p>
         </div>
-        <div class="chapter-card__name">Clasa a 9-a</div>
-        <!-- Static now, not part of #waitlistDynamic's own innerHTML — per
-             direct feedback, it used to disappear the moment the link
-             below swapped to the email form (renderForm() replaced this
-             whole zone, description included). Stays visible through
-             every state now, link/form/success alike — see
-             js/landing-page.js, which no longer touches this element at
-             all, only #waitlistDynamic below it. -->
-        <div class="chapter-card__desc">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</div>
-        <div class="route-card__dynamic" id="waitlistDynamic"></div>
-      </div>
-
-      <!-- Teacher path — straight to signup with role preselected, not a
-           "how it works" page we don't have yet. Same not-a-whole-card-
-           link change as the BAC card above. -->
-      <div class="chapter-card route-card" style="--card-color:#10b981;--card-btn:#047857">
-        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><path d="M16 3.128a4 4 0 0 1 0 7.744"></path><path d="M22 21v-2a4 4 0 0 0-3-3.87"></path><circle cx="9" cy="7" r="4"></circle></svg>
-        <div class="route-card__eyebrow">Profesori</div>
-        <div class="chapter-card__name">Sunt profesor</div>
-        <div class="chapter-card__desc">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</div>
-        <ul class="route-card__list">
-          <li>Creează clase și adaugă elevi</li>
-          <li>Atribuie teme din baza de exerciții</li>
-          <li>Vezi cine a rezolvat și cine a rămas în urmă</li>
-          <li>Testează nivelul elevilor noi la prima lecție</li>
-        </ul>
-        <div class="route-card__footer">
-          <div class="route-card__approval-note">Contul de profesor necesită aprobare.</div>
-          <a class="btn btn--ghost btn--lg btn--full" href="auth.html?tab=signup&role=profesor">Creează cont de profesor</a>
+        <div class="ld-action">
+          <!-- Link, then inline form, then confirmation: js/landing-page.js. -->
+          <div class="ld-waitlist" id="waitlistDynamic"></div>
         </div>
       </div>
 
-      <!-- No-account diagnostic test — pure design for now, see the CTA note below. -->
-      <div class="chapter-card route-card" style="--card-color:#ec4899;--card-btn:#be185d">
-        <svg class="icon icon-24 route-card__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg>
-        <div class="route-card__eyebrow">FĂRĂ CONT</div>
-        <div class="chapter-card__name">Testează-ți nivelul</div>
-        <div class="chapter-card__desc">8 exerciții, 50 de minute. Afli unde ești și ce ai de recuperat, fără să te înregistrezi.</div>
-        <ul class="route-card__list">
-          <li>Adaptat pe clasa ta (5-12)</li>
-          <li>Rezultat imediat, cu recomandări</li>
-        </ul>
-        <div class="route-card__footer">
-          <!-- Intentionally inert — design only, not wired up yet. Same
-               btn--ghost treatment as the other 3 cards so all four read
-               as one consistent button style; a plain non-disabled
-               button so it looks fully normal. -->
-          <button type="button" class="btn btn--ghost btn--lg btn--full">Începe testarea</button>
+      <div class="ld-panel" role="tabpanel" id="ldPanel-prof" aria-labelledby="ldTab-prof" hidden>
+        <div class="ld-screen ld-lcd">
+          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span class="on">PROF</span></div>
+          <p class="ld-screen__title ld-print">Sunt profesor</p>
+          <p class="ld-screen__desc ld-print">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</p>
+          <ul class="ld-screen__list">
+            <li class="ld-print">Creează clase și adaugă elevi</li>
+            <li class="ld-print">Atribuie teme din baza de exerciții</li>
+            <li class="ld-print">Vezi cine a rezolvat și cine a rămas în urmă</li>
+            <li class="ld-print">Testează nivelul elevilor noi la prima lecție</li>
+          </ul>
+        </div>
+        <div class="ld-action">
+          <p class="ld-note">Contul de profesor necesită aprobare.</p>
+          <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=profesor">Creează cont de profesor</a>
         </div>
       </div>
 
-    </div>
-
-    <p class="route-grid__note">Clasele 5-8, 10-11: pe parcursul anului.</p>
+      <div class="ld-panel" role="tabpanel" id="ldPanel-test" aria-labelledby="ldTab-test" hidden>
+        <div class="ld-screen ld-lcd">
+          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span>PROF</span></div>
+          <p class="ld-screen__title ld-print">Testează-ți nivelul <span class="ld-soon">în curând</span></p>
+          <p class="ld-screen__desc ld-print">8 exerciții, 50 de minute. Afli unde ești și ce ai de recuperat, fără să te înregistrezi.</p>
+          <ul class="ld-screen__list">
+            <li class="ld-print">Adaptat pe clasa ta (5-12)</li>
+            <li class="ld-print">Rezultat imediat, cu recomandări</li>
+          </ul>
+        </div>
+        <div class="ld-action">
+          <p class="ld-note">Testul fără cont e în lucru. Până atunci, poți începe direct cu un cont gratuit.</p>
+          <span class="ld-key ld-key--block ld-key--off" aria-disabled="true">În curând</span>
+        </div>
+      </div>
+    </section>
 
   </main>
 
@@ -197,7 +183,13 @@
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/landing-page.js"></script>
-  <script src="js/landing-hero.js"></script>
+  <script src="js/landing-modes.js"></script>
+  <!-- Motion (motion.dev) for the display's print-in; the page works fully without it. -->
+  <script type="module">
+    import { animate, stagger } from "https://cdn.jsdelivr.net/npm/motion@13.4.6/+esm";
+    window.BMMotion = { animate, stagger };
+    document.dispatchEvent(new Event('bm:motion'));
+  </script>
   <script>
     /* Exercise count — same BM.EXERCISES source every other page uses (see
        js/app.js renderStats, js/auth-page.js), never a hardcoded figure. */
