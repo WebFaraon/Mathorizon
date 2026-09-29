@@ -24,92 +24,17 @@
   position: relative;
 }
 
-/* ---- 0. TOKENS ---------------------------------------------------- */
+/* ---- 0. TOKENS ----------------------------------------------------
+   The calculator world's --k-* tokens (light + dark) and the graph-paper
+   page ground live in css/calculator.css, shared with category.html;
+   capitole.html links it right after css/style.css. Only this island's
+   own layout variables are here. */
 :root {
-  --k-font: var(--font-ui, 'Plus Jakarta Sans', system-ui, sans-serif);
-  --k-lcd-font: 'Doto', monospace;
-  --k-math-font: 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
-
-  --k-bg: #E3E4DF;
-  --k-panel: #F0F1ED;
-  --k-panel-edge: #C3C6BD;
-  --k-key: #FBFBF8;
-  --k-key-edge: #B4B8AE;
-  --k-rule: #D3D6CE;
-  --k-grid: rgba(23, 25, 28, 0.065);
-
-  --k-ink: #17191C;
-  --k-ink-2: #464B52;
-  --k-ink-3: #646A71;
-  --k-ghost: rgba(23, 25, 28, 0.11);
-
-  --k-lcd: #C3CDB0;
-  --k-lcd-ink: #1C2718;
-  --k-lcd-dim: rgba(28, 39, 24, 0.66);
-  --k-lcd-ghost: rgba(28, 39, 24, 0.09);
-  --k-bezel: #2A2E33;
-  --k-cover: #3A5A9F;
-
-  --k-blue: #2F5FD0;
-  --k-blue-edge: #1B3A8A;
-  --k-blue-wash: rgba(47, 95, 208, 0.09);
-  --k-green: #1D7A57;
-  --k-red: #BF3D29;
-  --k-orange: #DE6A1E;
-  --k-orange-ink: #A94A0B;
-  --k-ink-soft: #5D636A;
-
-  --k-r: 3px;
-  --k-r-key: 4px;
-  --k-edge: 4px;
-
   /* The fixed bottom tab bar's own height, phone widths only (section 8) —
      .cap-mobile-viewport's height calc needs the exact same number. */
   --cap-tabbar-h: 62px;
   --cap-section-gap: 28px;
   --cap-rail: 340px;
-}
-
-[data-theme="dark"] {
-  --k-bg: #111316;
-  --k-panel: #181B1F;
-  --k-panel-edge: #2B2F35;
-  --k-key: #23272D;
-  --k-key-edge: #08090B;
-  --k-rule: #262A30;
-  --k-grid: rgba(236, 237, 233, 0.04);
-
-  --k-ink: #ECEDE9;
-  --k-ink-2: #B5BAC0;
-  --k-ink-3: #8D939A;
-  --k-ghost: rgba(236, 237, 233, 0.09);
-
-  /* Backlit at night: dark glass, pale green segments. */
-  --k-lcd: #141B11;
-  --k-lcd-ink: #BCE296;
-  --k-lcd-dim: rgba(188, 226, 150, 0.62);
-  --k-lcd-ghost: rgba(188, 226, 150, 0.07);
-  --k-bezel: #050607;
-  --k-cover: #1F3160;
-
-  --k-blue: #5C8CF2;
-  --k-blue-edge: #1E3B86;
-  --k-blue-wash: rgba(92, 140, 242, 0.12);
-  --k-green: #4DBE8E;
-  --k-red: #EE7560;
-  --k-orange: #F08A3C;
-  --k-orange-ink: #F4A25F;
-  --k-ink-soft: #9AA0A7;
-}
-
-/* Page ground: the calculator's chassis, not the site's cream. Scoped to
-   this page by #root (only capitole.html mounts the island). */
-body:has(#root) {
-  background-color: var(--k-bg);
-  background-image:
-    linear-gradient(var(--k-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
-  background-size: 28px 28px;
 }
 
 .cap-shell {

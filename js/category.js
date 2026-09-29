@@ -94,95 +94,104 @@
 
     const header = document.getElementById('catHeader');
     if (!header) return;
+    // Chapter legend color for the whole page (css/calculator.css maps
+    // body[data-cat] to --legend), the same color the chapter's key has
+    // on Capitole. The data file's per-subcategory colors are not used.
+    document.body.dataset.cat = cat.id;
     header.innerHTML = `
-      <svg class="cat-header__math-bg" xmlns="http://www.w3.org/2000/svg"
-           viewBox="0 0 1440 200" preserveAspectRatio="xMidYMid slice"
-           aria-hidden="true" focusable="false">
-        <!-- All decorations in right half (x>720) to avoid overlapping text content -->
-        <!-- Sine wave: axis y=112=4×28, x=728(26×28)→1064(38×28), half-period=56, amplitude=28 -->
-        <g fill="none" stroke="${cat.color}">
-          <line x1="728" y1="112" x2="1092" y2="112" stroke-width="1.0" opacity="0.18"/>
-          <polyline points="1087,108 1095,112 1087,116" stroke-width="1.0" opacity="0.16"/>
-          <path d="M 728 112 C 742 84,770 84,784 112 C 798 140,826 140,840 112
-                   C 854 84,882 84,896 112 C 910 140,938 140,952 112
-                   C 966 84,994 84,1008 112 C 1022 140,1050 140,1064 112"
-                stroke-width="1.6" opacity="0.17"/>
-        </g>
-        <!-- Floating symbols, right zone -->
-        <g fill="${cat.color}" font-family="Georgia,'Times New Roman',serif">
-          <text x="756"  y="68"  font-size="44" opacity="0.08">∑</text>
-          <text x="868"  y="180" font-size="34" opacity="0.075">∫</text>
-          <text x="980"  y="60"  font-size="30" opacity="0.08">π</text>
-          <text x="1040" y="174" font-size="13" opacity="0.065">f(x) = ax² + bx + c</text>
-          <text x="1148" y="64"  font-size="38" opacity="0.08">Δ</text>
-        </g>
-        <!-- Coordinate axes + parabola, far right (origin 1288=46×28, 140=5×28) -->
-        <g fill="none" stroke="${cat.color}">
-          <line x1="1176" y1="140" x2="1412" y2="140" stroke-width="1.1" opacity="0.20"/>
-          <line x1="1288" y1="28"  x2="1288" y2="180" stroke-width="1.1" opacity="0.20"/>
-          <polyline points="1407,136 1415,140 1407,144" stroke-width="1.1" opacity="0.18"/>
-          <polyline points="1284,33  1288,25  1292,33"  stroke-width="1.1" opacity="0.18"/>
-          <!-- Parabola: M 1232 168 Q 1288 56 1344 168, peak at (1288,112)=46×28,4×28 -->
-          <path d="M 1232 168 Q 1288 56 1344 168" stroke-width="1.7" opacity="0.17"/>
-        </g>
-      </svg>
       <div class="container">
-        <div class="cat-header__inner">
-          <div class="cat-header__icon" style="--icon-color:${cat.color}">
-            ${cat.symbol}
+        <div class="ch">
+          <div class="ch__key" aria-hidden="true">${cat.symbol}</div>
+          <div class="ch__titles">
+            <div class="ch__line"><h1 class="ch__name">${BM.esc(cat.name)}</h1></div>
+            <p class="ch__desc">${BM.esc(cat.description)}</p>
           </div>
-          <div class="cat-header__info">
-            <h1 class="cat-header__name">${BM.esc(cat.name)}</h1>
-            <p class="cat-header__desc">${BM.esc(cat.description)}</p>
-            <div class="cat-hud">
-              <div class="cat-hud__stat">
-                <span class="cat-hud__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                    <rect x="4" y="3" width="16" height="18" rx="2.4"></rect>
-                    <line x1="8" y1="8" x2="16" y2="8"></line>
-                    <line x1="8" y1="12.2" x2="16" y2="12.2"></line>
-                    <line x1="8" y1="16.4" x2="12.5" y2="16.4"></line>
-                  </svg>
-                </span>
-                <div>
-                  <div class="cat-hud__num" id="hdr-total">${prog.total}</div>
-                  <div class="cat-hud__lbl">Exerciții</div>
-                </div>
-              </div>
-              <div class="cat-hud__stat cat-hud__stat--solved">
-                <span class="cat-hud__icon" aria-hidden="true">
-                  <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round">
-                    <polyline points="4 12.5 9.5 18 20 5"></polyline>
-                  </svg>
-                </span>
-                <div>
-                  <div class="cat-hud__num" id="hdr-solved">${prog.solved}</div>
-                  <div class="cat-hud__lbl">Rezolvate</div>
-                </div>
-              </div>
-              <div class="cat-hud__bar-block">
-                <div class="cat-hud__bar-top">
-                  <span class="cat-hud__bar-label">Progres</span>
-                  <span class="cat-hud__bar-pct" id="hdr-pct" style="color:${cat.color}">${prog.percent}%</span>
-                </div>
-                <div class="cat-hud__track">
-                  <div class="cat-hud__fill" id="catProgressFill" style="background:${cat.color}"></div>
-                  <span class="cat-hud__tick" style="left:25%"></span>
-                  <span class="cat-hud__tick" style="left:50%"></span>
-                  <span class="cat-hud__tick" style="left:75%"></span>
-                </div>
-                <div class="cat-hud__bar-caption" id="hdr-progress-txt">${prog.solved} din ${prog.total} exerciții rezolvate</div>
-              </div>
+          <div class="ch-lcd ch-lcd--boot" id="chLcd" aria-live="polite">
+            <div class="ch-lcd__ann" aria-hidden="true">
+              <span class="ch-lcd__a ch-lcd__a--on">CAP</span>
+              <span class="ch-lcd__a" id="chAnnTip">TIP</span>
+              <span class="ch-lcd__spacer"></span>
+              ${RARITIES.map(r => `<span class="ch-lcd__a" data-ann="${r}">${BM.rarityLabel[r][0]}</span>`).join('')}
+            </div>
+            <p class="ch-lcd__input"><span id="chLcdLabel">${BM.esc(cat.name)}</span><span class="ch-lcd__cursor" aria-hidden="true"></span></p>
+            <div class="ch-lcd__rar" id="chLcdRar"></div>
+            <div class="ch-lcd__result" id="chLcdResult">
+              <span class="ch-lcd__pct" id="hdr-pct">${prog.percent}%</span>
+              <span class="ch-lcd__val" id="hdr-solved">${prog.solved}</span>
+              <span class="ch-lcd__tot">/<span id="hdr-total">${prog.total}</span></span>
+              <span class="ch-lcd__unit">rezolvate</span>
             </div>
           </div>
         </div>
       </div>
     `;
 
-    requestAnimationFrame(() => requestAnimationFrame(() => {
-      const fill = document.getElementById('catProgressFill');
-      if (fill) fill.style.width = prog.percent + '%';
-    }));
+    // Power-on segment test, once per page load (see .ch-lcd--boot).
+    const lcd = document.getElementById('chLcd');
+    const bootMs = window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : 560;
+    setTimeout(() => lcd && lcd.classList.remove('ch-lcd--boot'), bootMs);
+  }
+
+  /* ---- Header LCD ----
+     Reads out one scope: the whole chapter, the open subcategory, or the
+     subcategory deck under the pointer. Rarity breakdown per scope from
+     BM.RARITY_BY_DIFF (Comun/Rar/Epic/Legendar). */
+  const RARITIES = ['comun', 'rar', 'epic', 'legendar'];
+
+  function rarityBreakdown(exs, solvedMap) {
+    const out = {};
+    RARITIES.forEach(r => { out[r] = { total: 0, solved: 0 }; });
+    exs.forEach(e => {
+      const r = BM.RARITY_BY_DIFF[e.difficulty] || 'comun';
+      out[r].total++;
+      if (solvedMap[e.id]) out[r].solved++;
+    });
+    return out;
+  }
+
+  function defaultLcdScope() {
+    const sub = currentSubcat ? BM.getSubcategoryById(currentCategory.id, currentSubcat) : null;
+    return {
+      label: sub ? sub.name : currentCategory.name,
+      isSub: Boolean(sub),
+      exs: sub ? allExercises.filter(e => e.subcategoryId === sub.id) : allExercises
+    };
+  }
+
+  function lcdShow(scope) {
+    const solvedMap = BM.Storage.getSolved();
+    const total  = scope.exs.length;
+    const solved = scope.exs.filter(e => solvedMap[e.id]).length;
+    const pct    = total > 0 ? Math.round((solved / total) * 100) : 0;
+    const rar    = rarityBreakdown(scope.exs, solvedMap);
+
+    const set = (id, v) => { const el = document.getElementById(id); if (el) el.textContent = v; };
+    set('chLcdLabel', scope.label);
+    set('hdr-pct', pct + '%');
+    set('hdr-solved', solved);
+    set('hdr-total', total);
+
+    const tip = document.getElementById('chAnnTip');
+    if (tip) tip.classList.toggle('ch-lcd__a--on', scope.isSub);
+    document.querySelectorAll('#chLcd [data-ann]').forEach(el => {
+      el.classList.toggle('ch-lcd__a--on', rar[el.dataset.ann].total > 0);
+    });
+
+    const rarEl = document.getElementById('chLcdRar');
+    if (rarEl) {
+      rarEl.innerHTML = RARITIES
+        .filter(r => rar[r].total > 0)
+        .map(r => `<span class="ch-lcd__rar-item"><b>${BM.rarityLabel[r]}</b> ${rar[r].solved}/${rar[r].total}</span>`)
+        .join('');
+    }
+
+    // An LCD refreshes, it doesn't tween: restart the strobe on the figures.
+    const result = document.getElementById('chLcdResult');
+    if (result) {
+      result.classList.remove('ch-lcd--refresh');
+      void result.offsetWidth;
+      result.classList.add('ch-lcd--refresh');
+    }
   }
 
   /* ============================================================
@@ -207,7 +216,6 @@
     const nameEl = document.getElementById('catBreadcrumbName');
     if (nameEl) {
       nameEl.textContent   = cat.name;
-      nameEl.style.color   = cat.color;
     }
     bc.style.display = '';
   }
@@ -217,9 +225,9 @@
     if (!sub) return;
     const header = document.getElementById('catHeader');
     if (!header) return;
-    const nameEl = header.querySelector('.cat-header__name');
-    const iconEl = header.querySelector('.cat-header__icon');
-    const descEl = header.querySelector('.cat-header__desc');
+    const nameEl = header.querySelector('.ch__name');
+    const iconEl = header.querySelector('.ch__key');
+    const descEl = header.querySelector('.ch__desc');
     if (nameEl) nameEl.textContent = sub.name;
     if (iconEl) {
       iconEl.innerHTML = sub.symbol;
@@ -232,9 +240,9 @@
     const cat    = currentCategory;
     const header = document.getElementById('catHeader');
     if (!header) return;
-    const nameEl = header.querySelector('.cat-header__name');
-    const iconEl = header.querySelector('.cat-header__icon');
-    const descEl = header.querySelector('.cat-header__desc');
+    const nameEl = header.querySelector('.ch__name');
+    const iconEl = header.querySelector('.ch__key');
+    const descEl = header.querySelector('.ch__desc');
     if (nameEl) nameEl.textContent = cat.name;
     if (iconEl) {
       iconEl.innerHTML = cat.symbol;
@@ -243,6 +251,12 @@
     if (descEl) descEl.textContent = cat.description;
   }
 
+  /* Each subcategory is a deck of exercise cards: a key-face on top of a
+     stack whose visible edges are its rarities (Comun/Rar/Epic/Legendar,
+     only the ones it has), plus a strip showing how much of each rarity is
+     solved. Hovering a deck fans the stack and reads it out on the header
+     LCD. The face is a real link (middle-click / new tab work); a plain
+     click switches views in place, like before. */
   function renderSubcatCards() {
     const cat    = currentCategory;
     const grid   = document.getElementById('subcatCardsGrid');
@@ -256,35 +270,57 @@
       const done   = exs.filter(e => solved[e.id]).length;
       const pct    = count > 0 ? Math.round((done / count) * 100) : 0;
       const empty  = count === 0;
+      const rar    = rarityBreakdown(exs, solved);
+      const present = RARITIES.filter(r => rar[r].total > 0);
+
+      const stack = present.map((r, k) =>
+        `<span class="deck__card deck__card--${r}" style="--k:${k + 1}"></span>`).join('');
+
+      const strip = present.map(r => `
+        <span class="deck__seg deck__seg--${r}" style="flex-grow:${rar[r].total};--fill:${rar[r].solved / rar[r].total}"
+              title="${BM.rarityLabel[r]}: ${rar[r].solved} din ${rar[r].total}">
+          <span class="deck__seg-fill"></span>
+        </span>`).join('');
+
+      const face = `
+          <span class="deck__top">
+            <span class="deck__symbol" aria-hidden="true">${sub.symbol}</span>
+            ${empty ? '<span class="deck__soon">În curând</span>' : `<span class="deck__pct">${pct}%</span>`}
+          </span>
+          <span class="deck__name">${BM.esc(sub.name)}</span>
+          ${sub.description ? `<span class="deck__desc">${BM.esc(sub.description)}</span>` : ''}
+          ${empty ? '' : `
+            <span class="deck__strip">${strip}</span>
+            <span class="deck__foot"><b>${done}</b>/${count} exerciții</span>`}`;
 
       return `
-        <div class="subcat-card${empty ? ' subcat-card--empty' : ''}"
-             ${empty ? '' : `onclick="selectSubcat('${sub.id}')"`}
-             style="--sc-color:${sub.color};animation-delay:${i * 0.04}s">
-          <div class="subcat-card__top">
-            <div class="subcat-card__icon">
-              ${sub.symbol}
-            </div>
-            ${empty ? '<span class="subcat-card__soon">În curând</span>' : ''}
-          </div>
-          <div class="subcat-card__name">${BM.esc(sub.name)}</div>
-          ${sub.description ? `<div class="subcat-card__desc">${BM.esc(sub.description)}</div>` : ''}
-          ${!empty ? `
-            <div class="subcat-card__footer">
-              <div class="subcat-card__track">
-                <div class="subcat-card__bar"
-                     style="width:${pct}%;background:${sub.color}"></div>
-              </div>
-              <div class="subcat-card__prog">
-                <span>${done} / ${count} exerciții</span>
-                <span style="color:${sub.color};font-weight:700">${pct}%</span>
-              </div>
-            </div>
-          ` : ''}
+        <div class="deck${empty ? ' deck--soon' : ''}" style="--i:${i};--n:${present.length}" data-sub="${sub.id}">
+          <span class="deck__stack" aria-hidden="true">${stack}</span>
+          ${empty
+            ? `<div class="deck__face" aria-disabled="true">${face}</div>`
+            : `<a class="deck__face" href="category.html?id=${encodeURIComponent(cat.id)}&sub=${encodeURIComponent(sub.id)}"
+                  onclick="return catDeckClick(event, '${sub.id}')">${face}</a>`}
         </div>
       `;
     }).join('');
+
+    grid.querySelectorAll('.deck:not(.deck--soon)').forEach(deck => {
+      const sub = BM.getSubcategoryById(cat.id, deck.dataset.sub);
+      const scope = { label: sub.name, isSub: true, exs: allExercises.filter(e => e.subcategoryId === sub.id) };
+      deck.addEventListener('mouseenter', () => lcdShow(scope));
+      deck.querySelector('.deck__face').addEventListener('focus', () => lcdShow(scope));
+    });
+    grid.onmouseleave = () => lcdShow(defaultLcdScope());
   }
+
+  // Plain click: switch views in place. Modified clicks (new tab/window)
+  // keep the link's own behavior.
+  window.catDeckClick = function(event, subcatId) {
+    if (event.ctrlKey || event.metaKey || event.shiftKey || event.button === 1) return true;
+    event.preventDefault();
+    selectSubcat(subcatId);
+    return false;
+  };
 
   window.selectSubcat = function(subcatId) {
     showExercisesView(subcatId);
@@ -328,7 +364,7 @@
             ${icon('arrow-left', { size: 16 })} ${BM.esc(cat.name)}
           </button>
           <span class="subcat-bc__sep">›</span>
-          <span class="subcat-bc__current" style="color:${sub ? sub.color : 'var(--accent-light)'}">
+          <span class="subcat-bc__current">
             ${sub ? BM.esc(sub.name) : subcatId}
           </span>
         </div>
@@ -1200,27 +1236,7 @@
 
   /* ---- Refresh header progress (categorie sau subcategorie) ---- */
   function refreshHeader() {
-    let prog;
-    if (currentSubcat) {
-      const subExs     = allExercises.filter(e => e.subcategoryId === currentSubcat);
-      const solvedMap  = BM.Storage.getSolved();
-      const solvedCnt  = subExs.filter(e => solvedMap[e.id]).length;
-      const total      = subExs.length;
-      prog = { solved: solvedCnt, total, percent: total > 0 ? Math.round((solvedCnt / total) * 100) : 0 };
-    } else {
-      prog = BM.Storage.getProgressForCategory(currentCategory.id, BM.EXERCISES);
-    }
-
-    const fill   = document.getElementById('catProgressFill');
-    if (fill)    fill.style.width = prog.percent + '%';
-    const elT    = document.getElementById('hdr-total');
-    if (elT)     elT.textContent = prog.total;
-    const elS    = document.getElementById('hdr-solved');
-    if (elS)     elS.textContent = prog.solved;
-    const elP    = document.getElementById('hdr-pct');
-    if (elP)     elP.textContent = prog.percent + '%';
-    const elTxt  = document.getElementById('hdr-progress-txt');
-    if (elTxt)   elTxt.textContent = `${prog.solved} din ${prog.total} exerciții rezolvate`;
+    lcdShow(defaultLcdScope());
   }
 
   /* ---- Random set ---- */

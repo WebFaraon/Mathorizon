@@ -1,0 +1,579 @@
+/* ============================================================
+   Mathorizon — calculator world: shared tokens
+   ============================================================
+   The design tokens of the scientific-calculator world (see DESIGN.md),
+   shared by every page built in it: capitole.html (React island,
+   src/capitole/styles.css) and category.html (the chapter / subchapter
+   page, styles further down this file). Linked right after
+   css/style.css on those pages only.
+   ============================================================ */
+
+:root {
+  --k-font: var(--font-ui, 'Plus Jakarta Sans', system-ui, sans-serif);
+  --k-lcd-font: 'Doto', monospace;
+  --k-math-font: 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
+
+  --k-bg: #E3E4DF;
+  --k-panel: #F0F1ED;
+  --k-panel-edge: #C3C6BD;
+  --k-key: #FBFBF8;
+  --k-key-edge: #B4B8AE;
+  --k-rule: #D3D6CE;
+  --k-grid: rgba(23, 25, 28, 0.065);
+
+  --k-ink: #17191C;
+  --k-ink-2: #464B52;
+  --k-ink-3: #646A71;
+  --k-ghost: rgba(23, 25, 28, 0.11);
+
+  --k-lcd: #C3CDB0;
+  --k-lcd-ink: #1C2718;
+  --k-lcd-dim: rgba(28, 39, 24, 0.66);
+  --k-lcd-ghost: rgba(28, 39, 24, 0.09);
+  --k-bezel: #2A2E33;
+  --k-cover: #3A5A9F;
+
+  --k-blue: #2F5FD0;
+  --k-blue-edge: #1B3A8A;
+  --k-blue-wash: rgba(47, 95, 208, 0.09);
+  --k-green: #1D7A57;
+  --k-red: #BF3D29;
+  --k-orange: #DE6A1E;
+  --k-orange-ink: #A94A0B;
+  --k-ink-soft: #5D636A;
+
+  --k-r: 3px;
+  --k-r-key: 4px;
+  --k-edge: 4px;
+
+}
+
+[data-theme="dark"] {
+  --k-bg: #111316;
+  --k-panel: #181B1F;
+  --k-panel-edge: #2B2F35;
+  --k-key: #23272D;
+  --k-key-edge: #08090B;
+  --k-rule: #262A30;
+  --k-grid: rgba(236, 237, 233, 0.04);
+
+  --k-ink: #ECEDE9;
+  --k-ink-2: #B5BAC0;
+  --k-ink-3: #8D939A;
+  --k-ghost: rgba(236, 237, 233, 0.09);
+
+  /* Backlit at night: dark glass, pale green segments. */
+  --k-lcd: #141B11;
+  --k-lcd-ink: #BCE296;
+  --k-lcd-dim: rgba(188, 226, 150, 0.62);
+  --k-lcd-ghost: rgba(188, 226, 150, 0.07);
+  --k-bezel: #050607;
+  --k-cover: #1F3160;
+
+  --k-blue: #5C8CF2;
+  --k-blue-edge: #1E3B86;
+  --k-blue-wash: rgba(92, 140, 242, 0.12);
+  --k-green: #4DBE8E;
+  --k-red: #EE7560;
+  --k-orange: #F08A3C;
+  --k-orange-ink: #F4A25F;
+  --k-ink-soft: #9AA0A7;
+}
+
+/* Page ground: the calculator's chassis on graph paper, not the site's
+   cream. #root exists only on capitole.html, #catHeader only on
+   category.html. */
+body:has(#root),
+body:has(#catHeader) {
+  background-color: var(--k-bg);
+  background-image:
+    linear-gradient(var(--k-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ============================================================
+   category.html — chapter / subchapter page
+   ============================================================
+   Header: the chapter symbol as a key, the title, and an LCD that reads
+   out the chapter, the open subcategory, or the deck under the pointer
+   (with its rarity breakdown). Subcategories are decks of exercise cards:
+   a key face on a stack whose visible edges are the rarities it holds.
+   Built by js/category.js; #catHeader exists only on this page, so every
+   rule is scoped through it and outranks the legacy rules in style.css.
+   ============================================================ */
+
+/* Chapter legend color (same map as the Capitole keys). */
+body:has(#catHeader) { --legend: var(--k-ink-soft); }
+body:has(#catHeader)[data-cat="algebra"] { --legend: var(--k-blue); }
+body:has(#catHeader)[data-cat="geometrie"] { --legend: var(--k-green); }
+body:has(#catHeader)[data-cat="analiza"] { --legend: var(--k-red); }
+
+/* Rarity colors, from the site's own rarity tokens. */
+body:has(#catHeader) {
+  --r-comun: var(--rarity-comun-b, #16A34A);
+  --r-rar: var(--rarity-rar-b, #3A6BAD);
+  --r-epic: var(--rarity-epic-b, #7C3AED);
+  --r-legendar: var(--rarity-legendar-c, #F59E0B);
+}
+
+/* ---- Header ---- */
+.ch-wrap {
+  position: relative;
+  padding: 34px 0 26px;
+  font-family: var(--k-font);
+  color: var(--k-ink);
+}
+
+.ch {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr) minmax(340px, 520px);
+  align-items: center;
+  gap: 22px 24px;
+}
+
+.ch__key {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 var(--k-edge) 0 0 var(--k-key-edge);
+  font-family: var(--k-math-font);
+  font-size: 2.2rem;
+  line-height: 1;
+  color: var(--legend);
+}
+.ch__key .sym-nb { font-size: 0.42em; }
+
+.ch__line {
+  overflow: hidden;
+  padding-bottom: 0.08em;
+  margin-bottom: -0.08em;
+}
+.ch__name {
+  font-family: var(--k-font);
+  font-size: clamp(1.6rem, 2.4vw, 2.2rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.028em;
+  color: var(--k-ink);
+}
+.ch__desc {
+  max-width: 62ch;
+  margin-top: 6px;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--k-ink-2);
+}
+
+/* LCD: same glass as the Capitole display (bezel ring, recess, lattice). */
+.ch-lcd {
+  margin: 7px;
+  padding: 10px 16px 12px;
+  border-radius: var(--k-r);
+  background-color: var(--k-lcd);
+  background-image: radial-gradient(circle, var(--k-lcd-ghost) 0.9px, transparent 1.1px);
+  background-size: 4px 4px;
+  box-shadow:
+    0 0 0 7px var(--k-bezel),
+    0 7px 0 7px color-mix(in srgb, var(--k-bezel) 70%, black),
+    inset 0 3px 6px rgba(0, 0, 0, 0.22);
+  color: var(--k-lcd-ink);
+}
+.ch-lcd__ann {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  line-height: 1;
+}
+.ch-lcd__a { color: var(--k-lcd-ghost); }
+[data-theme="dark"] .ch-lcd__a { color: rgba(188, 226, 150, 0.14); }
+.ch-lcd__a--on,
+[data-theme="dark"] .ch-lcd__a--on,
+.ch-lcd--boot .ch-lcd__a { color: var(--k-lcd-ink); }
+.ch-lcd__spacer { flex: 1; }
+
+.ch-lcd__input {
+  display: flex;
+  align-items: center;
+  min-height: 1.5em;
+  margin-top: 8px;
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.ch-lcd__input > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.ch-lcd__cursor {
+  flex-shrink: 0;
+  width: 0.5em;
+  height: 1em;
+  margin-left: 3px;
+  background: var(--k-lcd-ink);
+  animation: ch-blink 1.05s steps(1, end) infinite;
+}
+@keyframes ch-blink { 50% { opacity: 0; } }
+
+.ch-lcd__rar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 14px;
+  min-height: 1.3em;
+  margin-top: 4px;
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+}
+.ch-lcd__rar-item b { font-weight: 800; }
+
+.ch-lcd__result {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  margin-top: 2px;
+  font-variant-numeric: tabular-nums;
+}
+.ch-lcd__pct {
+  margin-right: auto;
+  font-family: var(--k-lcd-font);
+  font-size: 1.35rem;
+  font-weight: 900;
+}
+.ch-lcd__val {
+  font-family: var(--k-lcd-font);
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 0.9;
+}
+.ch-lcd__tot {
+  font-family: var(--k-lcd-font);
+  font-size: 1.3rem;
+  font-weight: 900;
+}
+.ch-lcd__unit {
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+/* An LCD refreshes, it doesn't tween. */
+.ch-lcd--refresh { animation: ch-refresh 0.16s steps(3, end) both; }
+@keyframes ch-refresh { from { opacity: 0.1; } }
+
+/* Power-on segment test: every annunciator lit and a row of eights, then
+   the real readout (js/category.js drops the class). */
+.ch-lcd--boot { animation: ch-power 0.56s steps(6, end) both; }
+@keyframes ch-power {
+  0% { filter: brightness(0.45); }
+  30% { filter: brightness(1.08); }
+  100% { filter: brightness(1); }
+}
+.ch-lcd--boot .ch-lcd__result > * { visibility: hidden; }
+.ch-lcd--boot .ch-lcd__result::after {
+  content: '888';
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  font-family: var(--k-lcd-font);
+  font-size: 2.5rem;
+  font-weight: 900;
+  line-height: 0.9;
+}
+
+/* Loading shell (before js/category.js renders). */
+.ch--loading .ch__key { box-shadow: none; opacity: 0.4; }
+
+/* ---- Breadcrumb bar (cards view and exercise view) ---- */
+body:has(#catHeader) .subcat-breadcrumb,
+html:not([data-theme="dark"]) body:has(#catHeader) .subcat-breadcrumb {
+  background: var(--k-panel);
+  border-top: 1px solid var(--k-panel-edge);
+  border-bottom: 1px solid var(--k-panel-edge);
+  font-family: var(--k-font);
+}
+body:has(#catHeader) .subcat-bc__back {
+  height: 36px;
+  padding: 0 14px;
+  border: 1px solid var(--k-blue-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-blue);
+  color: #fff;
+  box-shadow: 0 3px 0 0 var(--k-blue-edge);
+  font-family: var(--k-font);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#catHeader) .subcat-bc__back:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+  filter: brightness(0.95);
+}
+body:has(#catHeader) .subcat-bc__back:active {
+  box-shadow: 0 0 0 0 var(--k-blue-edge);
+  transform: translateY(3px);
+}
+body:has(#catHeader) .subcat-bc__sep { color: var(--k-ink-3); }
+body:has(#catHeader) .subcat-bc__current {
+  font-weight: 800;
+  color: var(--legend);
+}
+
+/* ---- Decks ---- */
+body:has(#catHeader) .subcat-cards-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+  gap: 30px 18px;
+  padding-top: 30px;
+  padding-bottom: 60px;
+  font-family: var(--k-font);
+}
+
+.deck {
+  --edge: 5px;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding-bottom: calc(var(--n, 0) * var(--edge));
+}
+
+/* The stack: one card per rarity the deck holds, peeking out under the
+   face by one edge each. Closest to the face is drawn on top. */
+.deck__stack {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.deck__card {
+  position: absolute;
+  top: calc(var(--k) * var(--edge));
+  bottom: calc((var(--n) - var(--k)) * var(--edge));
+  left: calc(var(--k) * 3px);
+  right: calc(var(--k) * 3px);
+  z-index: calc(5 - var(--k));
+  border-radius: var(--k-r-key);
+  /* Tinted card stock, not solid paint: the rarity reads from the edge
+     without striping the whole grid in saturated color. */
+  background: color-mix(in srgb, var(--rc) 30%, var(--k-key));
+  border: 1px solid color-mix(in srgb, var(--rc) 55%, var(--k-panel-edge));
+  transition: transform 0.26s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.deck__card--comun { --rc: var(--r-comun); }
+.deck__card--rar { --rc: var(--r-rar); }
+.deck__card--epic { --rc: var(--r-epic); }
+.deck__card--legendar { --rc: var(--r-legendar); }
+
+.deck__face {
+  position: relative;
+  z-index: 6;
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 16px 16px 14px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: inherit;
+  text-decoration: none;
+  transition: transform 0.1s ease, filter 0.15s ease;
+}
+a.deck__face:hover {
+  border-color: var(--k-panel-edge);
+  background: var(--k-key);
+  color: inherit;
+  filter: brightness(0.96);
+}
+a.deck__face:active {
+  transform: translateY(4px);
+}
+a.deck__face:focus-visible {
+  outline: 2px solid var(--legend);
+  outline-offset: 3px;
+}
+
+/* Hover fans the stack a little; pressing squeezes it under the face. */
+.deck:not(.deck--soon):hover .deck__card {
+  transform: translateY(calc(var(--k) * 3px)) rotate(calc((var(--k) - 2) * 0.9deg));
+}
+.deck:not(.deck--soon):active .deck__card {
+  transform: translateY(-2px);
+}
+
+.deck__top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+.deck__symbol {
+  font-family: var(--k-math-font);
+  font-size: 1.7rem;
+  line-height: 1;
+  color: var(--legend);
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.deck__symbol .sym-nb { font-size: 0.5em; }
+.deck:not(.deck--soon):hover .deck__symbol {
+  transform: translateY(-2px) rotate(-6deg) scale(1.08);
+}
+.deck__pct {
+  font-size: 1rem;
+  font-weight: 800;
+  color: var(--legend);
+  font-variant-numeric: tabular-nums;
+}
+.deck__name {
+  margin-top: 4px;
+  font-size: 1.04rem;
+  font-weight: 800;
+  line-height: 1.25;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+.deck__desc {
+  font-size: 0.8rem;
+  line-height: 1.45;
+  color: var(--k-ink-2);
+}
+
+/* Solved share per rarity: width = how many, fill = how many solved. */
+.deck__strip {
+  display: flex;
+  gap: 3px;
+  height: 10px;
+  margin-top: auto;
+  padding-top: 6px;
+  box-sizing: content-box;
+}
+.deck__seg {
+  position: relative;
+  min-width: 8px;
+  overflow: hidden;
+  border-radius: 1px;
+  background: var(--k-ghost);
+}
+.deck__seg-fill {
+  position: absolute;
+  inset: 0;
+  background: var(--rc);
+  transform: scaleX(var(--fill, 0));
+  transform-origin: left center;
+}
+.deck__seg--comun { --rc: var(--r-comun); }
+.deck__seg--rar { --rc: var(--r-rar); }
+.deck__seg--epic { --rc: var(--r-epic); }
+.deck__seg--legendar { --rc: var(--r-legendar); }
+
+.deck__foot {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--k-ink-3);
+  font-variant-numeric: tabular-nums;
+}
+.deck__foot b {
+  font-weight: 800;
+  color: var(--k-ink);
+}
+
+/* Nothing published yet: printed flat, dashed, no stack. */
+.deck--soon .deck__face {
+  border-style: dashed;
+  background: transparent;
+}
+.deck--soon .deck__symbol,
+.deck--soon .deck__name,
+.deck--soon .deck__desc { color: var(--k-ink-3); }
+.deck__soon {
+  padding: 3px 8px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--k-ink-3);
+}
+
+/* ---- Motion: the chapter powers on and deals its decks ----
+   Fill-mode backwards everywhere: a held final frame would pin transform
+   and swallow the :active press and the hover fan. */
+@media (prefers-reduced-motion: no-preference) {
+  .ch__key {
+    animation: ch-key-land 0.46s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .ch__name {
+    animation: ch-line-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+  }
+  .ch__desc {
+    animation: ch-fade 0.5s ease-out 0.15s backwards;
+  }
+  .deck {
+    animation: ch-deal 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 55ms + 120ms);
+  }
+  .deck__card {
+    animation: ch-stack 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 55ms + 360ms + var(--k, 1) * 70ms);
+  }
+  .deck__seg-fill {
+    animation: ch-fill 0.7s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+    animation-delay: calc(var(--i, 0) * 55ms + 520ms);
+  }
+}
+@keyframes ch-key-land {
+  0% { opacity: 0; transform: translateY(-14px); box-shadow: 0 0 0 0 var(--k-key-edge); }
+  70% { opacity: 1; transform: translateY(2px); }
+}
+@keyframes ch-line-up { from { transform: translateY(105%); } }
+@keyframes ch-fade { from { opacity: 0; } }
+/* Dealt onto the table: drops in with a slight twist. */
+@keyframes ch-deal {
+  from { opacity: 0; transform: translateY(-18px) rotate(-2.5deg); }
+}
+/* The rarity cards slide out from under the face. */
+@keyframes ch-stack {
+  from { transform: translateY(calc(var(--k, 1) * -1 * var(--edge))); }
+}
+@keyframes ch-fill { from { transform: scaleX(0); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .ch-lcd__cursor,
+  .ch-lcd--boot,
+  .ch-lcd--refresh { animation: none; }
+  .deck__card,
+  .deck__face,
+  .deck__symbol { transition: none; }
+  .deck:not(.deck--soon):hover .deck__card,
+  .deck:not(.deck--soon):hover .deck__symbol { transform: none; }
+}
+
+/* ---- Responsive ---- */
+@media (max-width: 1000px) {
+  .ch {
+    grid-template-columns: 64px minmax(0, 1fr);
+  }
+  .ch-lcd { grid-column: 1 / -1; }
+  .ch__key { width: 64px; height: 64px; font-size: 1.9rem; }
+}
+@media (max-width: 640px) {
+  .ch-wrap { padding: 22px 0 18px; }
+  .ch { gap: 16px; }
+  .ch__key { width: 52px; height: 52px; font-size: 1.6rem; }
+  .ch__desc { font-size: 0.84rem; }
+  .ch-lcd__val { font-size: 2.1rem; }
+  body:has(#catHeader) .subcat-cards-grid { gap: 24px; padding-top: 22px; }
+}
