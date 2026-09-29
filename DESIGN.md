@@ -387,3 +387,13 @@ The rarity card system stays, reprinted in this world (`css/calculator.css`, mar
 - **Modal:** Panel dialog with a 6px rarity top rule and the rarity legend as a printed tab hanging from it; close and prev/next are keys (prev/next move to the bottom corners on phones); "Arată baremul" is a Primary Key; statement in a recessed window; barem step numbers are square rarity tiles.
 - **Motion:** cards are dealt (drop with a 2deg twist, capped stagger) on load and after every filter change. Holding a card sinks it onto its edge and releasing brings it back up; a press on its favorite / solved keys presses only those keys (`:active:not(:has(.rarity-card__actions:active))`). The opening click replays the press as one short down-and-up before the modal grows out of the card. The page behind an open modal is blurred (7px).
 - **Header key:** square by default, grows sideways for wide symbols (P(X), log, lg>). The header LCD takes the larger column share.
+
+### Profile (profile.html): the identification plate
+
+Styled in `css/calculator.css` (scoped through `#profileContent`), markup in `js/profile-page.js` renderProfile.
+
+- **Plate:** like the label plate on the back of a calculator. A 128px cover strip (the user's photo, or the Cover blue), a 96px square photo tile standing on a key edge, the name and the role line, and a spec table of the account's facts (Țară, E-mail, Telefon, Link, Rating for teachers, Membru din, Autentificare) drawn as a hairline grid, then the bio. No colored chips: a teacher's status is a small LED (green approved, amber pending with a slow blink, red rejected).
+- **Student:** a four-field progress display (exercises solved with a bar, level, streak, best BAC grade) across the page, then three columns: the BAC history as a printing calculator's paper tape (toothed edges, dot-matrix print, grades under 5 printed in red like a printer's negative numbers, total average at the foot), exam tokens as notched tickets with a perforation, and the account card.
+- **Teacher:** a rating display with stars beside the review list; a side column with "Clasele mele" (their classes and student counts from `classes` / `class_members`) and the account card. Pending / rejected accounts get a notice plate with the LED.
+- **Admin:** "Panou admin" as a Primary Key in the plate, the tape, unlimited tokens (one wide ∞ ticket), the account card.
+- **Motion:** one entrance with Motion (motion.dev, ES module from jsDelivr into `window.BMMotion`): the plate settles, spec cells stagger in, display values refresh, tickets are dealt, and the tape prints line by line when it scrolls into view. Skipped under reduced motion or if Motion arrives after the page is already shown.

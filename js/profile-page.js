@@ -243,6 +243,69 @@
     }
   }
 
+  /* A teacher's own classes with their student counts — the same
+     classes / class_members tables classes.html reads (teacher_id on
+     classes, one class_members row per enrolled student). */
+  async function _fetchTeacherClasses(sb, teacherId) {
+    try {
+      const { data: classes, error } = await sb
+        .from('classes')
+        .select('id, name')
+        .eq('teacher_id', teacherId)
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      if (!classes?.length) return [];
+      const { data: members } = await sb
+        .from('class_members')
+        .select('class_id')
+        .in('class_id', classes.map(c => c.id));
+      const counts = {};
+      (members || []).forEach(m => { counts[m.class_id] = (counts[m.class_id] || 0) + 1; });
+      return classes.map(c => ({ ...c, students: counts[c.id] || 0 }));
+    } catch {
+      return [];
+    }
+  }
+
+  /* One orchestrated entrance, with Motion (loaded as an ES module by
+     profile.html into window.BMMotion): the plate settles, its spec cells
+     count in, the display fields refresh one by one, the tickets are dealt,
+     and the BAC tape prints line by line once it scrolls into view. The
+     page is fully visible without it (no-JS, reduced motion, CDN down). */
+  function _animateProfile(root) {
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const run = M => {
+      const { stagger, inView } = M;
+      const ease = [0.16, 1, 0.3, 1];
+      const $ = sel => root.querySelectorAll(sel);
+      // Motion throws on an empty selection, and not every role renders
+      // every piece (no tickets for a teacher, no display for an admin).
+      const animate = (els, keyframes, options) => els.length && M.animate(els, keyframes, options);
+      animate($('.pf-plate'), { opacity: [0, 1], y: [14, 0] }, { duration: 0.5, ease });
+      animate($('.pf-spec__cell'), { opacity: [0, 1], y: [6, 0] }, { duration: 0.35, ease, delay: stagger(0.045, { startDelay: 0.18 }) });
+      animate($('.pf-card, .pf-section'), { opacity: [0, 1], y: [12, 0] }, { duration: 0.45, ease, delay: stagger(0.08, { startDelay: 0.22 }) });
+      animate($('.pf-lcd__val'), { opacity: [0.1, 1] }, { duration: 0.18, ease: 'linear', delay: stagger(0.1, { startDelay: 0.45 }) });
+      animate($('.pf-lcd__bar i'), { clipPath: ['inset(0 100% 0 0)', 'inset(0 0% 0 0)'] }, { duration: 0.8, ease, delay: 0.6 });
+      animate($('.pf-ticket, .pf-ticket-more'), { opacity: [0, 1], y: [-12, 0], rotate: [-8, 0] }, { duration: 0.4, ease, delay: stagger(0.07, { startDelay: 0.4 }) });
+      const tape = root.querySelector('.pf-tape__paper');
+      if (tape) {
+        inView(tape, () => {
+          animate(tape.querySelectorAll('.pf-tape__line'),
+            { clipPath: ['inset(0 0 100% 0)', 'inset(0 0 0% 0)'], y: [-4, 0] },
+            { duration: 0.16, ease: 'linear', delay: stagger(0.045) });
+        }, { amount: 0.2 });
+      }
+    };
+    if (window.BMMotion) return run(window.BMMotion);
+    // Motion still loading: animate only if it lands right away. Later than
+    // that the page has already been seen, and replaying its entrance
+    // would read as a glitch.
+    const shownAt = performance.now();
+    document.addEventListener('bm:motion', () => {
+      if (performance.now() - shownAt < 600) run(window.BMMotion);
+    }, { once: true });
+  }
+
   /* Convertește un data URL în Blob fără fetch() */
   function _dataUrlToBlob(dataUrl) {
     const [header, b64] = dataUrl.split(',');
@@ -291,323 +354,288 @@
       ? (parts[0][0] + parts[1][0]).toUpperCase()
       : name.slice(0, 2).toUpperCase() || '?';
 
-    /* Token visual — up to 5 ticket emojis + "+N" badge, no empty slots */
-    const MAX_SHOWN = 5;
-    let tokenVisual;
-    if (isAdmin) {
-      tokenVisual = `<span title="Tokenuri nelimitate (cont admin)">${icon('ticket', { size: 24 })}</span>
-                     <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Tokenuri nelimitate</span>`;
-    } else if (tokens === 0) {
-      tokenVisual = `<span style="opacity:0.25">${icon('ticket', { size: 24 })}</span>
-                     <span style="font-size:0.82rem;color:var(--text-muted);margin-left:10px">Niciun token disponibil</span>`;
-    } else {
-      const shown = Math.min(tokens, MAX_SHOWN);
-      const extra = tokens > MAX_SHOWN ? tokens - MAX_SHOWN : 0;
-      tokenVisual = Array(shown).fill(null).map(() =>
-        `<span style="filter:${tokens <= 1 ? 'grayscale(0.4) sepia(0.3)' : 'none'}"
-               title="${tokens} token${tokens === 1 ? '' : 'uri'}">${icon('ticket', { size: 24 })}</span>`
-      ).join('') + (extra ? `<span class="prof-token-extra">+${extra}</span>` : '');
-    }
+    /* ---- Figures, all from the same sources the rest of the site reads.
+       The custom-exercise merge has to land first, or the bank total is
+       short by every exercise that only exists in the database. ---- */
+    await (BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve());
+    const stats    = BM.Storage.getStats(BM.EXERCISES || []);
+    const totalXp  = BM.Training?.getTotalXp?.() ?? 0;
+    const perLevel = BM.Training?.XP_PER_LEVEL ?? 100;
+    const level    = Math.floor(totalXp / perLevel) + 1;
+    const xpInto   = totalXp % perLevel;
+    const streak   = BM.Storage.getStreak?.().count || 0;
+    const grades   = hist.map(h => Number(h.grade)).filter(g => !Number.isNaN(g));
+    const bestGrade = grades.length ? Math.max(...grades) : null;
+    const avgGrade  = grades.length ? grades.reduce((sum, g) => sum + g, 0) / grades.length : null;
+    const isActiveTeacher = isTeacher && status === 'active';
+    const teacherClasses  = isActiveTeacher ? await _fetchTeacherClasses(sb, user.id) : [];
 
-    /* BAC history rows */
-    let histContent;
-    if (!hist.length) {
-      histContent = `
-        <div class="prof-hist-empty">
-          <span style="display:flex;justify-content:center">${icon('clipboard-list', { size: 32 })}</span>
-          <p>Nicio simulare finalizată încă.</p>
-          <a class="btn btn--primary btn--sm" href="bac.html" style="margin-top:12px">Pornește prima simulare</a>
-        </div>`;
-    } else {
-      const rows = hist.map(entry => {
-        const d  = new Date(entry.ts).toLocaleDateString('ro-RO', { day: '2-digit', month: 'short', year: 'numeric' });
-        const dH = Math.floor(entry.durationSec / 3600);
-        const dM = Math.floor((entry.durationSec % 3600) / 60);
-        return `<tr>
-          <td>${d}</td>
-          <td>${entry.earned}/${entry.maxPts}p</td>
-          <td>${dH}h ${pad(dM)}m</td>
-          <td><span class="prof-hist-grade" style="color:${_gradeColor(entry.grade)}">${entry.grade.toFixed(2)}</span></td>
-        </tr>`;
-      }).join('');
-      histContent = `
-        <table class="prof-hist-table">
-          <thead><tr><th>Data</th><th>Puncte</th><th>Timp</th><th>Notă</th></tr></thead>
-          <tbody>${rows}</tbody>
-        </table>
-        <div class="prof-hist-footer">
-          <button class="btn btn--sm btn--danger-outline" id="btnClearHist">Șterge tot istoricul</button>
-        </div>`;
-    }
+    /* ---- Identity plate ---- */
+    const roleLine = isAdmin
+      ? { text: 'Administrator', led: '' }
+      : isTeacher
+        ? (status === 'pending'  ? { text: 'Profesor, în așteptarea aprobării', led: 'amber' }
+          : status === 'rejected' ? { text: 'Profesor, cerere respinsă', led: 'red' }
+          : { text: 'Profesor aprobat', led: 'green' })
+        : { text: 'Elev', led: '' };
 
-    const pendingBanner = role === 'profesor' && status === 'pending' ? `
-      <div class="prof-pending-banner">
-        <span class="prof-pending-banner__icon">${icon('hourglass', { size: 24, className: 'icon--warning' })}</span>
-        <div>
-          <div class="prof-pending-banner__title">Cont de profesor în așteptare</div>
-          <div class="prof-pending-banner__body">
-            Cererea ta de înregistrare ca profesor a fost primită și urmează să fie analizată.
-            Vei putea accesa funcționalitățile pentru profesori după ce adminul îți aprobă contul.
-          </div>
-        </div>
-      </div>` : '';
+    const specCells = [
+      country   && ['Țară', BM.esc(country)],
+      email     && ['E-mail', BM.esc(email), true],
+      phone     && ['Telefon', BM.esc(phone)],
+      socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, true],
+      isTeacher && ['Rating', reviewsData.count
+        ? `${reviewsData.avg.toFixed(1)} din 5, ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}`
+        : 'Fără recenzii încă'],
+      ['Membru din', memberSince],
+      ['Autentificare', isGoogle ? 'Cont Google' : 'E-mail și parolă']
+    ].filter(Boolean);
 
-    const rejectedBanner = role === 'profesor' && status === 'rejected' ? `
-      <div class="prof-rejected-banner">
-        <span class="prof-pending-banner__icon">${icon('circle-x', { size: 24, className: 'icon--error' })}</span>
-        <div>
-          <div class="prof-pending-banner__title">Cerere de profesor respinsă</div>
-          <div class="prof-pending-banner__body">
-            Cererea ta de cont de profesor a fost respinsă. Contactează adminul pentru mai multe detalii.
-          </div>
-        </div>
-      </div>` : '';
-
-    const badgesHTML = `
-      ${role === 'admin'
-        ? `<span class="prof-badge prof-badge--red">${icon('settings', { size: 16 })} Admin</span>`
-        : role === 'profesor'
-          ? (status === 'pending'
-            ? `<span class="prof-badge prof-badge--amber">${icon('hourglass', { size: 16 })} Profesor (în așteptare)</span>`
-            : status === 'rejected'
-              ? `<span class="prof-badge prof-badge--red">${icon('circle-x', { size: 16 })} Profesor (respins)</span>`
-              : `<span class="prof-badge prof-badge--purple">${icon('presentation', { size: 16 })} Profesor</span>`)
-          : '<span class="prof-badge prof-badge--blue">Elev</span>'}
-      ${role === 'profesor' && status === 'active'
-        ? `<span class="prof-badge prof-badge--green">${icon('circle-check', { size: 16 })} Aprobat</span>` : ''}
-      ${isGoogle ? `<span class="prof-badge prof-badge--blue">${icon('globe', { size: 16 })} Google</span>` : ''}
-    `;
-
-    /* "Business card" header (cover photo, big avatar overlapping it,
-       contact row, bio) — used by every role now. Used to be teacher-only
-       (see the conversation this shipped in); the rating row and the
-       Recenzii card below stay teacher-only, though, since a review is
-       inherently about being taught by someone — a student or admin has no
-       equivalent to be rated on. */
-    function buildBizcardHeader({ showRating, extraActionsHTML }) {
-      return `
-      <div class="prof-bizcard">
-        <div class="prof-cover${coverUrl ? '' : ' prof-cover--placeholder'}"${coverUrl ? ` style="background-image:url('${coverUrl}')"` : ''}>
-          <label class="prof-cover-edit" title="Schimbă imaginea de copertă">
-            ${icon('camera', { size: 16 })}
-            <input type="file" id="coverInput" accept="image/*" style="display:none">
+    const plateHTML = `
+      <section class="pf-plate" aria-label="Profil">
+        <div class="prof-cover pf-cover${coverUrl ? '' : ' prof-cover--placeholder'}"${coverUrl ? ` style="background-image:url('${coverUrl}')"` : ''}>
+          <label class="pf-cover-edit" title="Schimbă imaginea de copertă">
+            ${icon('camera', { size: 16 })}<span>Copertă</span>
+            <input type="file" id="coverInput" accept="image/*" hidden>
           </label>
         </div>
-        <div class="prof-bizcard-body">
-          <div class="prof-bizcard-top">
-            <div class="prof-avatar-wrap prof-avatar-wrap--cover">
-              <div class="prof-avatar-lg">
-                ${avatarUrl
-                  ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
-                  : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
-              </div>
-              <label class="prof-avatar-edit" title="Schimbă poza de profil">
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
-                <input type="file" id="avatarInput" accept="image/*" style="display:none">
-              </label>
+        <div class="pf-id">
+          <div class="pf-avatar">
+            <div class="prof-avatar-lg">
+              ${avatarUrl
+                ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
+                : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
             </div>
-
-            <div class="prof-bizcard-info">
-              <div class="prof-bizcard-info__row1">
-                <div>
-                  <h1 class="prof-name">${BM.esc(name)}</h1>
-                  <div class="prof-badges">${badgesHTML}</div>
-                </div>
-                <div class="prof-bizcard-editbtn" style="display:flex;gap:8px;flex-wrap:wrap">
-                  ${extraActionsHTML || ''}
-                  <button class="btn btn--surface btn--sm" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
-                </div>
-              </div>
-
-              ${showRating ? `
-              <div class="prof-rating-row">
-                <span class="prof-stars">${_starsHTML(reviewsData.avg, 20)}</span>
-                ${reviewsData.count
-                  ? `<span class="prof-rating-num">${reviewsData.avg.toFixed(1)}</span><span class="prof-rating-count">(${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'})</span>`
-                  : `<span class="prof-rating-count">Nicio recenzie încă</span>`}
-              </div>` : ''}
-
-              <div class="prof-contact-row${showRating ? '' : ' prof-contact-row--no-rating'}">
-                ${country ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--blue">${icon('map-pin', { size: 16 })}</span> ${BM.esc(country)}</span>` : ''}
-                ${email ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--green">${icon('mail', { size: 16 })}</span> ${BM.esc(email)}</span>` : ''}
-                ${phone ? `<span class="prof-contact-item"><span class="prof-contact-icon prof-contact-icon--yellow">${icon('phone', { size: 16 })}</span> ${BM.esc(phone)}</span>` : ''}
-                ${socialUrl ? `<a class="prof-contact-item prof-contact-item--link" href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer"><span class="prof-contact-icon prof-contact-icon--teal">${icon('link', { size: 16 })}</span> ${BM.esc(socialDisplay)}</a>` : ''}
-                <span class="prof-contact-item"><span class="prof-contact-icon">${icon('calendar', { size: 16 })}</span> Membru din ${memberSince}</span>
-              </div>
-
-              <p class="prof-bio${bio ? '' : ' prof-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
-            </div>
+            <label class="pf-avatar-edit" title="Schimbă poza de profil">
+              ${icon('camera', { size: 16 })}
+              <input type="file" id="avatarInput" accept="image/*" hidden>
+            </label>
+          </div>
+          <div class="pf-id__main">
+            <h1 class="pf-name">${BM.esc(name)}</h1>
+            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}</p>
+          </div>
+          <div class="pf-id__actions">
+            ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
+            <button class="pf-key" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
           </div>
         </div>
-      </div>`;
-    }
+        <dl class="pf-spec">
+          ${specCells.map(([label, value, wide]) => `<div class="pf-spec__cell${wide ? ' pf-spec__cell--wide' : ''}"><dt>${label}</dt><dd>${value}</dd></div>`).join('')}
+        </dl>
+        <p class="pf-bio${bio ? '' : ' pf-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
+      </section>`;
 
-    const adminPanelBtnHTML = isAdmin
-      ? `<a href="admin.html" class="btn btn--primary btn--sm" style="display:inline-flex;gap:8px;align-items:center">${icon('settings', { size: 16 })} Panou Admin</a>`
-      : '';
-
-    const bizcardHeaderHTML = buildBizcardHeader({ showRating: isTeacher, extraActionsHTML: adminPanelBtnHTML });
-
-    const reviewsCardHTML = `
-      <div class="prof-card prof-card--wide prof-reviews-card">
-        <div class="prof-card__head">
-          <span class="prof-card__icon">${icon('star', { size: 16 })}</span>
-          <span class="prof-card__title">Recenzii</span>
-          ${reviewsData.count ? `<span class="prof-reviews-head-rating">${_starsHTML(reviewsData.avg, 16)} ${reviewsData.avg.toFixed(1)} · ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}</span>` : ''}
+    const noticeHTML = isTeacher && status === 'pending' ? `
+      <div class="pf-notice pf-notice--amber" role="status">
+        <span class="pf-led pf-led--amber" aria-hidden="true"></span>
+        <div>
+          <strong>Cont de profesor în așteptare</strong>
+          <p>Cererea ta de înregistrare ca profesor a fost primită și urmează să fie analizată. Vei putea accesa funcționalitățile pentru profesori după ce adminul îți aprobă contul.</p>
         </div>
-        <div class="prof-card__body">
-          ${reviewsData.count ? reviewsData.reviews.map(r => `
-            <div class="prof-review-item">
-              <div class="prof-review-item__head">
-                <span class="prof-review-item__name">${BM.esc(r.student_name || 'Elev')}</span>
-                <span class="prof-review-item__stars">${_starsHTML(r.rating, 16)}</span>
-              </div>
-              ${r.comment ? `<p class="prof-review-item__comment">${BM.esc(r.comment)}</p>` : ''}
-              <span class="prof-review-item__date">${_formatDate(r.created_at)}</span>
-            </div>`).join('') : `
-            <div class="prof-hist-empty">
-              <span style="display:flex;justify-content:center">${icon('star', { size: 32 })}</span>
-              <p>Niciun elev nu a lăsat încă o recenzie.</p>
-            </div>`}
+      </div>` : isTeacher && status === 'rejected' ? `
+      <div class="pf-notice pf-notice--red" role="status">
+        <span class="pf-led pf-led--red" aria-hidden="true"></span>
+        <div>
+          <strong>Cerere de profesor respinsă</strong>
+          <p>Cererea ta de cont de profesor a fost respinsă. Contactează adminul pentru mai multe detalii.</p>
         </div>
-      </div>`;
+      </div>` : '';
 
-    const teacherPasswordBlockHTML = `
-      <div class="prof-header prof-header--profile">
-        <div class="prof-section">
-          <div class="prof-section__title">${icon('lock', { size: 16 })} Schimbă parola</div>
-          ${isGoogle
-            ? '<p class="prof-hint-muted">Contul tău folosește autentificarea Google. Parola se gestionează din contul Google.</p>'
-            : `<div id="pwMsg" class="auth-msg" style="display:none"></div>
-               <form id="fPassword" novalidate>
-                 <div class="prof-pw-grid">
-                   <div class="auth-field">
-                     <label class="auth-label" for="pwNew">Parolă nouă</label>
-                     <div class="auth-input-wrap">
-                       <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
-                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
-                     </div>
-                   </div>
-                   <div class="auth-field">
-                     <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
-                     <div class="auth-input-wrap">
-                       <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
-                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
-                     </div>
-                   </div>
+    /* ---- Student progress: one display, four fields ---- */
+    const progressHTML = `
+      <section class="pf-section">
+        <h2 class="pf-h">Progresul tău</h2>
+        <div class="pf-lcd">
+          <div class="pf-lcd__cell pf-lcd__cell--wide">
+            <span class="pf-lcd__lbl">Exerciții rezolvate</span>
+            <span class="pf-lcd__val">${stats.solvedCount}<small>/${stats.total}</small></span>
+            <span class="pf-lcd__bar" aria-hidden="true"><i style="width:${stats.percent}%"></i></span>
+            <span class="pf-lcd__sub">${stats.percent}% din bancă</span>
+          </div>
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Nivel</span>
+            <span class="pf-lcd__val">${level}</span>
+            <span class="pf-lcd__sub">${xpInto}/${perLevel} XP</span>
+          </div>
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Zile la rând</span>
+            <span class="pf-lcd__val">${streak}</span>
+            <span class="pf-lcd__sub">${totalXp} XP total</span>
+          </div>
+          <div class="pf-lcd__cell">
+            <span class="pf-lcd__lbl">Cea mai bună notă</span>
+            <span class="pf-lcd__val">${bestGrade != null ? bestGrade.toFixed(2) : '0.00'}</span>
+            <span class="pf-lcd__sub">${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'}</span>
+          </div>
+        </div>
+      </section>`;
+
+    /* ---- BAC history as a printing calculator's paper tape. Grades under
+       5 print in red, the way these printers print negative numbers. ---- */
+    const tapeRows = hist.map(entry => {
+      const when = new Date(entry.ts);
+      const d  = when.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const t  = when.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+      const dH = Math.floor(entry.durationSec / 3600);
+      const dM = Math.floor((entry.durationSec % 3600) / 60);
+      const g  = Number(entry.grade);
+      return `
+        <div class="pf-tape__entry">
+          <div class="pf-tape__line pf-tape__line--meta"><span>${d}</span><span>${t}</span></div>
+          <div class="pf-tape__line"><span>Puncte</span><span>${entry.earned}/${entry.maxPts}</span></div>
+          <div class="pf-tape__line"><span>Timp</span><span>${dH}h ${pad(dM)}m</span></div>
+          <div class="pf-tape__line pf-tape__line--grade${g < 5 ? ' pf-tape__line--neg' : ''}"><span>Notă</span><span>${g.toFixed(2)}</span></div>
+        </div>`;
+    }).join('');
+
+    const tapeHTML = `
+      <section class="pf-section" id="simulari-bac">
+        <div class="pf-h-row">
+          <h2 class="pf-h">Simulări BAC</h2>
+          ${hist.length ? '<button class="pf-key pf-key--sm" id="btnClearHist">Șterge istoricul</button>' : ''}
+        </div>
+        ${hist.length ? `
+        <div class="pf-tape">
+          <div class="pf-tape__paper">
+            <div class="pf-tape__line pf-tape__line--head"><span>Simulări finalizate</span><span>${hist.length}</span></div>
+            ${tapeRows}
+            <div class="pf-tape__line pf-tape__line--total"><span>Media notelor</span><span>${avgGrade.toFixed(2)}</span></div>
+          </div>
+        </div>` : `
+        <div class="pf-empty">
+          <p>Nicio simulare finalizată încă. Prima ta simulare apare aici, tipărită, imediat ce o termini.</p>
+          <a class="pf-key pf-key--primary" href="bac.html?new=1">Pornește prima simulare</a>
+        </div>`}
+      </section>`;
+
+    /* ---- Exam tokens as tickets ---- */
+    const MAX_TICKETS = 5;
+    const ticketsHTML = isAdmin
+      ? '<span class="pf-ticket pf-ticket--wide"><b>∞</b></span>'
+      : tokens === 0
+        ? '<span class="pf-ticket pf-ticket--none"></span>'
+        : Array.from({ length: Math.min(tokens, MAX_TICKETS) }, () => '<span class="pf-ticket"></span>').join('')
+          + (tokens > MAX_TICKETS ? `<span class="pf-ticket-more">+${tokens - MAX_TICKETS}</span>` : '');
+    const tokenNote = isAdmin
+      ? 'Cont admin: simulări BAC nelimitate.'
+      : tokens === 0 ? 'Nu mai ai tokenuri. O simulare BAC costă un token.'
+      : tokens === 1 ? 'Ultimul token: încă o simulare BAC.'
+      : `Ajung pentru ${tokens} simulări BAC.`;
+
+    const tokensHTML = `
+      <section class="pf-card">
+        <div class="pf-h-row">
+          <h2 class="pf-h">ExamTokenuri</h2>
+          <span class="pf-counter${!isAdmin && tokens <= 1 ? ' pf-counter--low' : ''}">${isAdmin ? '∞' : tokens}</span>
+        </div>
+        <div class="pf-tickets" aria-hidden="true">${ticketsHTML}</div>
+        <p class="pf-note">${tokenNote}</p>
+        <a class="pf-key pf-key--primary pf-key--block" href="bac.html?new=1">Pornește o simulare</a>
+        ${!isAdmin ? `<a class="pf-key pf-key--block" href="pachete.html#tokenuri">${icon('ticket', { size: 16 })} Cumpără tokenuri</a>` : ''}
+      </section>`;
+
+    /* ---- Teacher: reviews + classes ---- */
+    const reviewsHTML = `
+      <section class="pf-section">
+        <h2 class="pf-h">Recenzii</h2>
+        <div class="pf-reviews">
+          <div class="pf-lcd pf-lcd--rating">
+            <div class="pf-lcd__cell">
+              <span class="pf-lcd__lbl">Rating</span>
+              <span class="pf-lcd__val">${reviewsData.count ? reviewsData.avg.toFixed(1) : '0.0'}<small>/5</small></span>
+              <span class="pf-stars">${_starsHTML(reviewsData.avg, 16)}</span>
+              <span class="pf-lcd__sub">${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}</span>
+            </div>
+          </div>
+          <div class="pf-reviews__list">
+            ${reviewsData.count ? reviewsData.reviews.map(r => `
+              <article class="pf-review">
+                <div class="pf-review__head">
+                  <strong>${BM.esc(r.student_name || 'Elev')}</strong>
+                  <span class="pf-stars">${_starsHTML(r.rating, 14)}</span>
+                  <span class="pf-review__date">${_formatDate(r.created_at)}</span>
+                </div>
+                ${r.comment ? `<p>${BM.esc(r.comment)}</p>` : ''}
+              </article>`).join('') : `
+              <p class="pf-note">Niciun elev nu a lăsat încă o recenzie. Recenziile elevilor tăi apar aici, cu cele mai noi primele.</p>`}
+          </div>
+        </div>
+      </section>`;
+
+    const classesHTML = `
+      <section class="pf-card">
+        <div class="pf-h-row">
+          <h2 class="pf-h">Clasele mele</h2>
+          <span class="pf-counter">${teacherClasses.length}</span>
+        </div>
+        ${teacherClasses.length ? `
+        <ul class="pf-list">
+          ${teacherClasses.map(c => `
+            <li><a class="pf-list__row" href="class.html?id=${encodeURIComponent(c.id)}">
+              <span class="pf-list__name">${BM.esc(c.name || 'Clasă')}</span>
+              <span class="pf-list__meta">${c.students} elev${c.students === 1 ? '' : 'i'}</span>
+            </a></li>`).join('')}
+        </ul>` : '<p class="pf-note">Nu ai creat încă nicio clasă.</p>'}
+        <a class="pf-key pf-key--block" href="classes.html">${icon('users', { size: 16 })} Mergi la Clase</a>
+      </section>`;
+
+    /* ---- Account: password + session ---- */
+    const accountHTML = `
+      <section class="pf-card" id="pfAccount">
+        <h2 class="pf-h">Cont</h2>
+        ${isGoogle
+          ? '<p class="pf-note">Contul tău folosește autentificarea Google. Parola se gestionează din contul Google.</p>'
+          : `<div id="pwMsg" class="auth-msg" style="display:none"></div>
+             <form id="fPassword" class="pf-form" novalidate>
+               <div class="auth-field">
+                 <label class="auth-label" for="pwNew">Parolă nouă</label>
+                 <div class="auth-input-wrap">
+                   <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
+                   <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)" aria-label="Arată parola">${icon('eye', { size: 16 })}</button>
                  </div>
-                 <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
-                   <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
-                 </button>
-               </form>`}
+               </div>
+               <div class="auth-field">
+                 <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
+                 <div class="auth-input-wrap">
+                   <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
+                   <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)" aria-label="Arată parola">${icon('eye', { size: 16 })}</button>
+                 </div>
+               </div>
+               <button type="submit" class="pf-key pf-key--primary pf-key--block" id="btnPw">
+                 <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
+               </button>
+             </form>`}
+        <div class="pf-session">
+          <p class="pf-note">Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</p>
+          <button class="pf-key pf-key--danger pf-key--block" id="btnLogout">${icon('log-out', { size: 16 })} Deconectare</button>
         </div>
-        <div class="prof-divider"></div>
-        <div class="prof-session-row">
-          <span class="prof-session-strip__text">${icon('clock', { size: 16 })} Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</span>
-          <button class="btn btn--danger-outline btn--sm" id="btnLogout">
-            ${icon('log-out', { size: 16 })}
-            Deconectare
-          </button>
-        </div>
+      </section>`;
+
+    /* Teacher: reviews beside classes + account. Student / admin: the
+       progress display across the page, then tape, tokens and account side
+       by side, so nothing leaves a column of empty space. */
+    const bodyHTML = isTeacher ? `
+      <div class="pf-grid">
+        <div class="pf-main">${reviewsHTML}</div>
+        <aside class="pf-side">${isActiveTeacher ? classesHTML : ''}${accountHTML}</aside>
+      </div>` : `
+      <div class="pf-desk${isAdmin ? ' pf-desk--noprog' : ''}">
+        ${isAdmin ? '' : `<div class="pf-desk__prog">${progressHTML}</div>`}
+        <div class="pf-desk__tape">${tapeHTML}</div>
+        <div class="pf-desk__tok">${tokensHTML}</div>
+        <div class="pf-desk__acc">${accountHTML}</div>
       </div>`;
 
     content.innerHTML = `
-      ${pendingBanner}${rejectedBanner}
-      <!-- PROFILE HEADER -->
-      ${bizcardHeaderHTML}
-      ${isTeacher ? reviewsCardHTML : ''}
-      ${isTeacher ? teacherPasswordBlockHTML : ''}
-
-      <!-- CARDS GRID -->
-      <div class="prof-grid">
-
-        ${!isTeacher ? `
-        <!-- Card: ExamTokenuri -->
-        <div class="prof-card">
-          <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('ticket', { size: 16 })}</span>
-            <span class="prof-card__title">ExamTokenuri</span>
-          </div>
-          <div class="prof-card__body">
-            <div class="prof-token-bar">${tokenVisual}</div>
-            <div class="prof-token-main">
-              <span class="prof-token-count ${!isAdmin && tokens === 0 ? 'prof-token-count--empty' : !isAdmin && tokens === 1 ? 'prof-token-count--low' : ''}">${isAdmin ? '∞' : tokens}</span>
-              <div class="prof-token-info">
-                <span class="prof-token-lbl">${isAdmin ? 'tokenuri nelimitate' : `token${tokens === 1 ? '' : 'uri'} disponibil${tokens === 1 ? '' : 'e'}`}</span>
-                <span class="prof-token-hint">
-                  ${isAdmin ? 'Cont admin — acces nelimitat la simulări BAC.' : tokens === 0 ? 'Ai epuizat toate tokenurile.' : tokens === 1 ? icon('triangle-alert', { size: 16, className: 'icon--warning' }) + ' Ultimul token rămas!' : `${tokens} simulări BAC disponibile`}
-                </span>
-              </div>
-            </div>
-            <a class="btn btn--primary btn--sm prof-token-btn" href="bac.html?new=1">
-              Pornește simulare examen
-            </a>
-            ${!isAdmin ? `
-            <a class="btn btn--surface btn--sm prof-token-btn" href="pachete.html#tokenuri" style="margin-top:8px">
-              ${icon('ticket', { size: 16 })} Cumpără tokenuri
-            </a>` : ''}
-          </div>
-        </div>` : ''}
-
-        ${!isTeacher ? `
-        <!-- Card: Schimbă parola -->
-        <div class="prof-card">
-          <div class="prof-card__head">
-            <span class="prof-card__icon">${icon('lock', { size: 16 })}</span>
-            <span class="prof-card__title">Schimbă parola</span>
-          </div>
-          <div class="prof-card__body">
-            ${isGoogle
-              ? '<p class="prof-hint-muted">Contul tău folosește autentificarea Google. Parola se gestionează din contul Google.</p>'
-              : `<div id="pwMsg" class="auth-msg" style="display:none"></div>
-                 <form id="fPassword" novalidate>
-                   <div class="auth-field" style="margin-bottom:12px">
-                     <label class="auth-label" for="pwNew">Parolă nouă</label>
-                     <div class="auth-input-wrap">
-                       <input class="auth-input" id="pwNew" type="password" placeholder="Minim 8 caractere" autocomplete="new-password" required minlength="8">
-                       <button type="button" class="auth-eye" data-target="pwNew" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
-                     </div>
-                   </div>
-                   <div class="auth-field" style="margin-bottom:16px">
-                     <label class="auth-label" for="pwConf">Confirmă parola nouă</label>
-                     <div class="auth-input-wrap">
-                       <input class="auth-input" id="pwConf" type="password" placeholder="Repetă parola" autocomplete="new-password" required>
-                       <button type="button" class="auth-eye" data-target="pwConf" onclick="togglePw(this)">${icon('eye', { size: 16 })}</button>
-                     </div>
-                   </div>
-                   <button type="submit" class="btn btn--primary btn--sm" id="btnPw">
-                     <span>Salvează parola</span><span class="auth-spin" style="display:none"></span>
-                   </button>
-                 </form>`}
-          </div>
-        </div>` : ''}
-
-      </div>
-
-      ${!isTeacher ? `
-      <!-- BAC HISTORY -->
-      <div class="prof-hist-card" id="simulari-bac">
-        <div class="prof-card__head">
-          <span class="prof-card__icon">${icon('clipboard-list', { size: 16 })}</span>
-          <span class="prof-card__title">Simulări BAC anterioare</span>
-          ${hist.length ? `<span class="bac-hist__toggle-count" style="margin-left:auto;margin-right:0">${hist.length}</span>` : ''}
-        </div>
-        <div id="profHistBody">${histContent}</div>
-      </div>` : ''}
-
-      ${!isTeacher ? `
-      <!-- Sesiune (comprimat) -->
-      <div class="prof-session-strip" style="margin-top:16px">
-        <span class="prof-session-strip__text">${icon('clock', { size: 16 })} Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</span>
-        <button class="btn btn--danger-outline btn--sm" id="btnLogout">
-          ${icon('log-out', { size: 16 })}
-          Deconectare
-        </button>
-      </div>` : ''}
+      ${noticeHTML}
+      ${plateHTML}
+      ${bodyHTML}
     `;
 
     skeleton.style.display = 'none';
     content.style.display  = '';
+    _animateProfile(content);
 
     /* ---- Event bindings ---- */
     const _doLogout = () => {
