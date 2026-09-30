@@ -1,0 +1,20 @@
+{
+  "detector": {
+    "ignoreRules": [],
+    "ignoreFiles": [],
+    "ignoreValues": [
+      {
+        "rule": "design-system-font",
+        "value": "josefin sans",
+        "createdAt": "2026-09-30T20:07:20.795Z",
+        "reason": "Wordmark font of the MATHORIZON logo, loaded on every page since before the redesign; kept as the brand mark, body type stays Plus Jakarta Sans (assistant decision, not user confirmed)"
+      },
+      {
+        "rule": "overused-font",
+        "value": "plus jakarta sans",
+        "createdAt": "2026-09-30T20:08:28.198Z",
+        "reason": "user confirmed: asked to revert the UI font back to Plus Jakarta Sans because the alternative looked too official"
+      }
+    ]
+  }
+}

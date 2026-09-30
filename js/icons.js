@@ -401,6 +401,17 @@
     'chevron-down': [
       ['path', { d: 'm6 9 6 6 6-6' }]
     ],
+    'chevron-right': [
+      ['path', { d: 'm9 18 6-6-6-6' }]
+    ],
+    copy: [
+      ['rect', { width: '14', height: '14', x: '8', y: '8', rx: '2', ry: '2' }],
+      ['path', { d: 'M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2' }]
+    ],
+    plus: [
+      ['path', { d: 'M5 12h14' }],
+      ['path', { d: 'M12 5v14' }]
+    ],
     'chevron-up': [
       ['path', { d: 'm18 15-6-6-6 6' }]
     ],
