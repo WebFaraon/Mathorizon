@@ -239,20 +239,10 @@
     }, 620);
   }
 
-  /* Occupancy as a row of LCD segments: one per seat (capped at 12; a
-     bigger group scales down), the taken ones lit. */
-  function occHTML(count, max) {
-    if (!max) {
-      return `<span class="cl-occ__n">${count}</span><span class="cl-occ__u">${count === 1 ? 'elev' : 'elevi'}</span>`;
-    }
-    const segs = Math.min(max, 12);
-    const lit = Math.min(segs, Math.round((count / max) * segs));
-    const full = count >= max;
-    return `
-      <span class="cl-seg${full ? ' cl-seg--full' : ''}" aria-hidden="true">
-        ${Array.from({ length: segs }, (_, i) => `<i${i < lit ? ' class="on"' : ''} style="--s:${i}"></i>`).join('')}
-      </span>
-      <span class="cl-occ__n">${count}/${max}</span>${full ? '<span class="cl-occ__tag">complet</span>' : ''}`;
+  /* A row of LCD segments: `lit` of `total` switched on. */
+  function segsHTML(lit, total) {
+    return `<span class="cl-seg" aria-hidden="true">${Array.from({ length: total }, (_, i) =>
+      `<i${i < lit ? ' class="on"' : ''} style="--s:${i}"></i>`).join('')}</span>`;
   }
 
   function pageClass() { return 'cl-page' + (_painted ? ' cl-static' : ''); }
@@ -269,7 +259,7 @@
         <header class="cl-head">
           <div class="cl-head__info">
             <h1 class="cl-title">Clasele mele</h1>
-            <p class="cl-lede">Registrul grupelor tale: programul, ocuparea și codurile de invitație pe care le trimiți elevilor.</p>
+            <p class="cl-lede">Grupele tale, fiecare cu programul, cifrele ei și codul de invitație pe care îl trimiți elevilor.</p>
           </div>
           <div class="cl-head__keys">
             ${has ? _dayFilterHTML() : ''}
@@ -286,25 +276,20 @@
         ]) : ''}
         ${has ? `
           <div class="cl-bar" id="clBar" hidden></div>
-          <section class="cl-sheet" aria-label="Registrul claselor">
-            <div class="cl-rows__head" aria-hidden="true">
-              <span>Nr.</span><span>Grupă</span><span>Program</span><span>Ocupare</span><span>Cod de invitație</span><span></span>
-            </div>
-            <ol class="cl-rows" id="classesGrid">
-              ${classes.map((c, i) => teacherRow(c, memberCounts[c.id] || 0, i)).join('')}
-            </ol>
-            <div class="cl-empty cl-empty--filtered" id="classesFilterEmpty" hidden>
-              <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
-              <h2>Nicio clasă în ziua selectată</h2>
-              <p>Încearcă altă zi sau șterge filtrul.</p>
-            </div>
-          </section>` : teacherEmpty()}
+          <ol class="cl-blocks" id="classesGrid" aria-label="Clasele tale">
+            ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}
+          </ol>
+          <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
+            <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
+            <h2>Nicio clasă în ziua selectată</h2>
+            <p>Încearcă altă zi sau șterge filtrul.</p>
+          </div>` : teacherEmpty()}
       </div>
       ${createModalHTML()}
     `);
     _freshCode = null;
     document.querySelectorAll('#createClassBtn, #createFirstBtn').forEach(b => b.addEventListener('click', openCreateModal));
-    document.querySelectorAll('.cl-row__del').forEach(btn => {
+    document.querySelectorAll('.cl-block__del').forEach(btn => {
       btn.addEventListener('click', () => deleteClass(btn.dataset.id, btn.dataset.name));
     });
     _wireCopyKeys();
@@ -392,7 +377,7 @@
   function _applyDayFilter() {
     const grid = document.getElementById('classesGrid');
     if (!grid) return;
-    const rows = [...grid.querySelectorAll('.cl-row')];
+    const rows = [...grid.querySelectorAll('.cl-block')];
     let visibleCount = 0;
     rows.forEach(row => {
       const days = (row.dataset.days || '').split(',').filter(Boolean);
@@ -428,24 +413,55 @@
   // student_id across classes, which would corrupt a per-student calc for
   // any student enrolled in more than one of this teacher's classes.
   async function _fetchAggregateStats(classIds) {
-    if (!classIds.length) return { totalGroups: 0, activeStudents: 0, totalLessons: 0, avgAttendance: null };
+    if (!classIds.length) return { totalGroups: 0, activeStudents: 0, totalLessons: 0, avgAttendance: null, perClass: {} };
     const [{ data: members }, { data: sessions }] = await Promise.all([
-      BMAuth.supabase.from('class_members').select('status').in('class_id', classIds),
-      BMAuth.supabase.from('class_sessions').select('id').in('class_id', classIds)
+      BMAuth.supabase.from('class_members').select('class_id, student_id, status').in('class_id', classIds),
+      BMAuth.supabase.from('class_sessions').select('id, class_id').in('class_id', classIds)
     ]);
     const activeStudents = (members || []).filter(m => m.status !== 'inactiv').length;
     const sessionIds = (sessions || []).map(s => s.id);
 
     let avgAttendance = null;
+    let records = [];
     if (sessionIds.length) {
-      const { data: records } = await BMAuth.supabase
-        .from('attendance_records').select('present').in('session_id', sessionIds);
-      if (records && records.length) {
+      const { data } = await BMAuth.supabase
+        .from('attendance_records').select('session_id, student_id, present').in('session_id', sessionIds);
+      records = data || [];
+      if (records.length) {
         avgAttendance = Math.round((records.filter(r => r.present).length / records.length) * 100);
       }
     }
 
-    return { totalGroups: classIds.length, activeStudents, totalLessons: sessionIds.length, avgAttendance };
+    // Per class, with the same meaning as the Sumar tab of that class:
+    // lessons held; students present per lesson on average (a headcount,
+    // over the class's current members); attendance (the mean of each
+    // member's own rate over the lessons recorded for them).
+    const sessionClass = {};
+    (sessions || []).forEach(s => { sessionClass[s.id] = s.class_id; });
+    const perClass = {};
+    classIds.forEach(id => {
+      perClass[id] = { lessons: 0, avgPresent: null, rate: null, _members: new Set(), _per: {} };
+    });
+    (members || []).forEach(m => { perClass[m.class_id]?._members.add(m.student_id); });
+    (sessions || []).forEach(s => { perClass[s.class_id].lessons++; });
+    let presentTotals = {};
+    records.forEach(r => {
+      const cid = sessionClass[r.session_id];
+      const pc = perClass[cid];
+      if (!pc || !pc._members.has(r.student_id)) return;
+      const st = pc._per[r.student_id] || (pc._per[r.student_id] = { present: 0, recorded: 0 });
+      st.recorded++;
+      if (r.present) { st.present++; presentTotals[cid] = (presentTotals[cid] || 0) + 1; }
+    });
+    classIds.forEach(id => {
+      const pc = perClass[id];
+      if (pc.lessons) pc.avgPresent = (presentTotals[id] || 0) / pc.lessons;
+      const rates = Object.values(pc._per).map(v => v.present / v.recorded);
+      if (rates.length) pc.rate = Math.round((rates.reduce((t, v) => t + v, 0) / rates.length) * 100);
+      delete pc._members; delete pc._per;
+    });
+
+    return { totalGroups: classIds.length, activeStudents, totalLessons: sessionIds.length, avgAttendance, perClass };
   }
 
   async function renderTeacherView() {
@@ -505,32 +521,67 @@
     `;
   }
 
-  function teacherRow(cls, memberCount, idx) {
+  function teacherBlock(cls, memberCount, idx, st) {
     const info = _classInfo(cls);
     const sub = [info.grade, info.level, info.type].filter(Boolean);
     const code = BM.esc(cls.invite_code);
+    const max = cls.max_students || 0;
+    const full = max > 0 && memberCount >= max;
+    const segs = Math.min(max, 12);
+    const seatsLit = max ? Math.min(segs, Math.round((memberCount / max) * segs)) : 0;
+    const lessons = st ? st.lessons : 0;
+    const perHour = st && st.avgPresent != null ? st.avgPresent.toFixed(1) : null;
+    const rate = st && st.rate != null ? st.rate : null;
     return `
-      <li class="cl-row${cls.invite_code === _freshCode ? ' cl-row--new' : ''}" style="--i:${idx}"
+      <li class="cl-block${cls.invite_code === _freshCode ? ' cl-block--new' : ''}" style="--i:${idx}"
           data-id="${cls.id}" data-days="${info.days.join(',')}">
-        <span class="cl-row__no">${String(idx + 1).padStart(2, '0')}</span>
-        <div class="cl-row__main">
-          <a class="cl-row__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 16 })}</a>
-          ${sub.length ? `<span class="cl-row__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
-          ${cls.description ? `<span class="cl-row__desc">${BM.esc(cls.description)}</span>` : ''}
+        <div class="cl-block__top">
+          <span class="cl-block__no">${String(idx + 1).padStart(2, '0')}</span>
+          <div class="cl-block__title">
+            <a class="cl-block__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 18 })}</a>
+            ${sub.length ? `<span class="cl-block__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
+            ${cls.description ? `<span class="cl-block__desc">${BM.esc(cls.description)}</span>` : ''}
+          </div>
+          <button type="button" class="cl-block__del" data-id="${cls.id}" data-name="${BM.esc(cls.name)}"
+                  aria-label="Șterge clasa ${BM.esc(info.subject)}" title="Șterge clasa">${icon('x', { size: 16 })}</button>
         </div>
-        <div class="cl-row__when">
-          <b>${info.days.length ? _shortDays(info.days) : '-'}</b>
-          ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
+
+        <div class="cl-block__meta">
+          <div class="cl-field">
+            <span class="cl-field__k">Program</span>
+            <span class="cl-field__v">
+              <span>${info.days.length ? _shortDays(info.days) : '-'}</span>
+              ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
+            </span>
+          </div>
+          <div class="cl-field">
+            <span class="cl-field__k">Cod de invitație</span>
+            <span class="cl-field__v cl-block__code">
+              <span class="cl-chipcode" title="Creată ${relDate(cls.created_at)}">${code}</span>
+              <button type="button" class="cl-mini" data-copy="${code}" aria-label="Copiază codul ${code}" title="Copiază codul">
+                <span class="cl-mini__a">${icon('copy', { size: 16 })}</span><span class="cl-mini__b">${icon('check', { size: 16 })}</span>
+              </button>
+            </span>
+          </div>
         </div>
-        <div class="cl-row__occ">${occHTML(memberCount, cls.max_students)}</div>
-        <div class="cl-row__code">
-          <span class="cl-chipcode" title="Creată ${relDate(cls.created_at)}">${code}</span>
-          <button type="button" class="cl-mini" data-copy="${code}" aria-label="Copiază codul ${code}" title="Copiază codul">
-            <span class="cl-mini__a">${icon('copy', { size: 16 })}</span><span class="cl-mini__b">${icon('check', { size: 16 })}</span>
-          </button>
+
+        <div class="cl-lcd" role="group" aria-label="Cifrele grupei" style="--cols:3">
+          <div class="cl-lcd__cell">
+            <span class="cl-lcd__k">Elevi${full ? ' <em>complet</em>' : ''}</span>
+            <span class="cl-lcd__v">${memberCount}${max ? `<small>/${max}</small>` : ''}</span>
+            ${max ? segsHTML(seatsLit, segs) : '<span class="cl-lcd__hint">fără limită</span>'}
+          </div>
+          <div class="cl-lcd__cell" title="Media elevilor prezenți la o oră">
+            <span class="cl-lcd__k">Elevi pe oră</span>
+            <span class="cl-lcd__v">${perHour != null ? perHour : '-'}</span>
+            <span class="cl-lcd__hint">${lessons ? `la ${lessons} ${lessons === 1 ? 'oră' : 'ore'}` : 'fără ore încă'}</span>
+          </div>
+          <div class="cl-lcd__cell" title="Prezența medie a grupei">
+            <span class="cl-lcd__k">Prezență</span>
+            <span class="cl-lcd__v">${rate != null ? rate + '<small>%</small>' : '-'}</span>
+            ${rate != null ? segsHTML(Math.round(rate / 10), 10) : '<span class="cl-lcd__hint">fără ore încă</span>'}
+          </div>
         </div>
-        <button type="button" class="cl-row__del" data-id="${cls.id}" data-name="${BM.esc(cls.name)}"
-                aria-label="Șterge clasa ${BM.esc(info.subject)}" title="Șterge clasa">${icon('x', { size: 16 })}</button>
       </li>
     `;
   }
@@ -1144,9 +1195,9 @@
       BM.toast('Clasa a fost ștearsă.', 'info');
       try { sessionStorage.removeItem(_teacherCacheKey()); } catch {}
       // The row slides out before the register closes the gap.
-      const row = document.querySelector(`.cl-row[data-id="${classId}"]`);
+      const row = document.querySelector(`.cl-block[data-id="${classId}"]`);
       if (row && !reduced) {
-        row.classList.add('cl-row--leaving');
+        row.classList.add('cl-block--leaving');
         await new Promise(r => setTimeout(r, 300));
       }
       renderTeacherView();
@@ -1225,21 +1276,16 @@
         ]) : ''}
 
         ${classes.length === 0 ? studentEmpty() : `
-          <section class="cl-sheet cl-sheet--student" aria-label="Clasele în care ești înscris">
-            <div class="cl-rows__head" aria-hidden="true">
-              <span>Nr.</span><span>Grupă</span><span>Program</span><span>Profesor</span><span>Înscris</span><span></span>
-            </div>
-            <ol class="cl-rows" id="classesGrid">
-              ${classes.map((c, i) => studentRow(c, i)).join('')}
-            </ol>
-          </section>`}
+          <ol class="cl-blocks" id="classesGrid" aria-label="Clasele în care ești înscris">
+            ${classes.map((c, i) => studentBlock(c, i)).join('')}
+          </ol>`}
       </div>
     `);
     const joinBtn   = document.getElementById('joinClassBtn');
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
     codeInput?.addEventListener('keydown', e => { if (e.key === 'Enter') joinClass(); });
-    document.querySelectorAll('.cl-row__leave').forEach(btn => {
+    document.querySelectorAll('.cl-block__leave').forEach(btn => {
       btn.addEventListener('click', () => leaveClass(btn.dataset.id, btn.dataset.name));
     });
     runStatus();
@@ -1285,24 +1331,47 @@
     `;
   }
 
-  function studentRow(cls, idx) {
+  function studentBlock(cls, idx) {
     const info = _classInfo(cls);
     const sub = [info.grade, info.type].filter(Boolean);
+    const next = _nextLesson([cls]);
+    const since = Math.max(0, Math.floor((Date.now() - new Date(cls.joined_at)) / 86400000));
     return `
-      <li class="cl-row cl-row--student" style="--i:${idx}" data-id="${cls.id}">
-        <span class="cl-row__no">${String(idx + 1).padStart(2, '0')}</span>
-        <div class="cl-row__main">
-          <a class="cl-row__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 16 })}</a>
-          ${sub.length ? `<span class="cl-row__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
-          ${cls.description ? `<span class="cl-row__desc">${BM.esc(cls.description)}</span>` : ''}
+      <li class="cl-block" style="--i:${idx}" data-id="${cls.id}">
+        <div class="cl-block__top">
+          <span class="cl-block__no">${String(idx + 1).padStart(2, '0')}</span>
+          <div class="cl-block__title">
+            <a class="cl-block__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 18 })}</a>
+            ${sub.length ? `<span class="cl-block__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
+            ${cls.description ? `<span class="cl-block__desc">${BM.esc(cls.description)}</span>` : ''}
+          </div>
+          <button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button>
         </div>
-        <div class="cl-row__when">
-          <b>${info.days.length ? _shortDays(info.days) : '-'}</b>
-          ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
+
+        <div class="cl-block__meta">
+          <div class="cl-field">
+            <span class="cl-field__k">Program</span>
+            <span class="cl-field__v">
+              <span>${info.days.length ? _shortDays(info.days) : '-'}</span>
+              ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
+            </span>
+          </div>
+          <div class="cl-field">
+            <span class="cl-field__k">Profesor</span>
+            <span class="cl-field__v">${BM.esc(cls.teacher_name || '-')}</span>
+          </div>
         </div>
-        <div class="cl-row__teacher"><span class="cl-row__k">Profesor</span>${BM.esc(cls.teacher_name || '-')}</div>
-        <div class="cl-row__joined"><span class="cl-row__k">Înscris</span>${relDate(cls.joined_at)}</div>
-        <button type="button" class="cl-row__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button>
+
+        <div class="cl-lcd" role="group" aria-label="Cifrele grupei" style="--cols:2">
+          <div class="cl-lcd__cell">
+            <span class="cl-lcd__k">Următoarea lecție</span>
+            <span class="cl-lcd__v">${next ? `${_timeHTML(next.time)}<span class="cl-lcd__u">${next.when}</span>` : '-'}</span>
+          </div>
+          <div class="cl-lcd__cell">
+            <span class="cl-lcd__k">Înscris de</span>
+            <span class="cl-lcd__v">${since}<span class="cl-lcd__u">${since === 1 ? 'zi' : 'zile'}</span></span>
+          </div>
+        </div>
       </li>
     `;
   }
@@ -1384,9 +1453,9 @@
       if (error) throw error;
       BM.toast('Ai ieșit din clasă.', 'info');
       try { sessionStorage.removeItem(_studentCacheKey()); } catch {}
-      const row = document.querySelector(`.cl-row[data-id="${classId}"]`);
+      const row = document.querySelector(`.cl-block[data-id="${classId}"]`);
       if (row && !reduced) {
-        row.classList.add('cl-row--leaving');
+        row.classList.add('cl-block--leaving');
         await new Promise(r => setTimeout(r, 300));
       }
       renderStudentView();
