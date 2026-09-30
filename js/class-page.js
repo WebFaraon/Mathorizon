@@ -266,7 +266,7 @@
       : (profile.name || '?').slice(0, 2).toUpperCase();
     const memberSince = profile.created_at
       ? new Date(profile.created_at).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' })
-      : '—';
+      : '-';
     const socialDisplay = profile.social_url
       ? profile.social_url.replace(/^https?:\/\/(www\.)?/i, '').replace(/\/+$/, '')
       : '';
@@ -318,6 +318,130 @@
     window.location.replace('classes.html');
   }
 
+  /* ─── Live program display (hero) ─────────────────────────────────
+     The week as seven cells, the class's own days lit, today marked, and
+     a clock counting down to the next lesson in stepped seconds. It uses
+     the same _nextLessonDate as the Sumar tab. */
+  const CD_WEEK = [['L', 'Luni'], ['M', 'Marți'], ['M', 'Miercuri'], ['J', 'Joi'], ['V', 'Vineri'], ['S', 'Sâmbătă'], ['D', 'Duminică']];
+  let _cdClockTimer = null;
+
+  function _liveProgramHTML() {
+    const days = Array.isArray(classData.schedule_days) ? classData.schedule_days : [];
+    const todayIso = ((new Date().getDay() + 6) % 7) + 1;
+    const type = classData.lesson_type;
+    const hasNext = !!_nextLessonDate(days, classData.schedule_time);
+    return `
+      <div class="cd-live" role="group" aria-label="Program">
+        <div class="cd-live__head">
+          <span class="cd-live__k">Program</span>
+          ${type ? `<span class="cd-live__type cd-live__type--${type}"><i></i>${type === 'online' ? 'Online' : 'Offline'}</span>` : ''}
+        </div>
+        <div class="cd-week" role="img" aria-label="Zilele lecțiilor: ${days.length ? days.map(d => CD_WEEK[d - 1][1]).join(', ') : 'nespecificate'}">
+          ${CD_WEEK.map(([l, full], i) => `<span class="cd-week__d${days.includes(i + 1) ? ' is-on' : ''}${todayIso === i + 1 ? ' is-today' : ''}" title="${full}">${l}</span>`).join('')}
+        </div>
+        ${hasNext ? `
+          <div class="cd-live__next">
+            <span class="cd-live__k">Următoarea lecție</span>
+            <span class="cd-live__clock" id="cdClock" aria-live="off">--</span>
+          </div>` : ''}
+      </div>`;
+  }
+
+  function _cdTickClock() {
+    const el = document.getElementById('cdClock');
+    if (!el) { clearInterval(_cdClockTimer); _cdClockTimer = null; return; }
+    const next = _nextLessonDate(classData.schedule_days, classData.schedule_time);
+    if (!next) { el.textContent = '--'; return; }
+    let left = Math.max(0, Math.floor((next - new Date()) / 1000));
+    const d = Math.floor(left / 86400); left -= d * 86400;
+    const h = String(Math.floor(left / 3600)).padStart(2, '0'); left %= 3600;
+    const m = String(Math.floor(left / 60)).padStart(2, '0');
+    const sec = String(left % 60).padStart(2, '0');
+    el.innerHTML = (d ? `${d}<small>z</small> ` : '') + `${h}<span class="cl-colon">:</span>${m}<span class="cl-colon">:</span>${sec}`;
+  }
+
+  function _cdStartClock() {
+    clearInterval(_cdClockTimer);
+    _cdTickClock();
+    _cdClockTimer = setInterval(_cdTickClock, 1000);
+  }
+
+  // New content is dealt in only right after the page or a tab is opened;
+  // later refreshes of the same tab (realtime, tab visibility) stay still.
+  let _cdFreshTimer = null;
+  function _cdMarkFresh() {
+    document.body.dataset.cdFresh = '1';
+    clearTimeout(_cdFreshTimer);
+    _cdFreshTimer = setTimeout(() => { delete document.body.dataset.cdFresh; }, 1600);
+  }
+
+  /* The figures on the class displays (Pulsul grupei, the Catalog totals,
+     the student's cabinet) count up to their value in a few stepped frames,
+     like a display refreshing, but only while a tab is freshly opened. */
+  const CD_TICK_SEL = '.sumar-kpi-card__val, .catalog-stat-card__val, .cs-stat__val';
+
+  function _cdTickValue(el) {
+    if (el._cdTicked) return;
+    el._cdTicked = true;
+    const nodes = [...el.childNodes].filter(n => n.nodeType === 3 && /\d/.test(n.nodeValue));
+    if (!nodes.length) return;
+    const finals = nodes.map(n => n.nodeValue);
+    const steps = 9;
+    let k = 0;
+    const render = f => nodes.forEach((n, i) => {
+      n.nodeValue = finals[i].replace(/\d+(?:\.\d+)?/g, m => parseFloat(m * f).toFixed((m.split('.')[1] || '').length));
+    });
+    render(0);
+    const t = setInterval(() => {
+      k++;
+      if (k >= steps) { clearInterval(t); nodes.forEach((n, i) => { n.nodeValue = finals[i]; }); return; }
+      render(k / steps);
+    }, 46);
+  }
+
+  // Panels and cells that act on click are divs: give them a tab stop and a
+  // button role, and let Enter / Space press them.
+  const CD_CLICKABLE_SEL = '.sumar-upnext__card--clickable, .teme-assignment--clickable, .csim-card--clickable, .catalog-td--clickable, .catalog-th--clickable, .catalog-th--sortable, .catalog-td--rowlabel-clickable, .cd-info-card__detail--clickable';
+  function _cdMakeReachable(el) {
+    if (el.hasAttribute('tabindex')) return;
+    el.setAttribute('tabindex', '0');
+    el.setAttribute('role', 'button');
+  }
+
+  function _cdWatchNumbers() {
+    const root = document.getElementById('classRoot');
+    if (!root || root._cdObs) return;
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    root._cdObs = new MutationObserver(muts => {
+      muts.forEach(m => m.addedNodes.forEach(n => {
+        if (n.nodeType !== 1) return;
+        if (n.matches(CD_CLICKABLE_SEL)) _cdMakeReachable(n);
+        n.querySelectorAll(CD_CLICKABLE_SEL).forEach(_cdMakeReachable);
+        if (reduced || !document.body.dataset.cdFresh) return;
+        if (n.matches(CD_TICK_SEL)) _cdTickValue(n);
+        n.querySelectorAll(CD_TICK_SEL).forEach(_cdTickValue);
+      }));
+    });
+    root._cdObs.observe(root, { childList: true, subtree: true });
+    root.addEventListener('keydown', e => {
+      if (e.key !== 'Enter' && e.key !== ' ') return;
+      const el = e.target.closest && e.target.closest(CD_CLICKABLE_SEL);
+      if (!el || el !== e.target) return;
+      e.preventDefault();
+      el.click();
+    });
+  }
+
+  // The tab bar's real height drives the chat panel's size, and the open tab
+  // is kept in view when the row scrolls (a phone).
+  function _cdSyncTabs() {
+    const wrap = document.getElementById('cdTabsWrap');
+    if (wrap) document.documentElement.style.setProperty('--cd-tabs-h', wrap.offsetHeight + 'px');
+    const tabs = document.querySelector('.cd-tabs');
+    const active = tabs && tabs.querySelector('.cd-tab--active');
+    if (tabs && active) tabs.scrollLeft = Math.max(0, active.offsetLeft - (tabs.clientWidth - active.offsetWidth) / 2);
+  }
+
   /* ─── Page render ───────────────────────────────────────────────── */
   function renderPage() {
     const isTeacher = BMAuth.role === 'profesor';
@@ -327,7 +451,7 @@
     activeTab = (location.hash.replace('#', '') || defaultTab);
     if (!visibleTabs.find(t => t.id === activeTab)) activeTab = defaultTab;
 
-    document.title = BM.esc(classData.name) + ' — Mathorizon';
+    document.title = BM.esc(classData.name) + ' | Mathorizon';
 
     /* Split "Matematică · Miercuri · 15:30" into parts for richer display */
     const nameParts  = classData.name.split(' · ');
@@ -346,22 +470,6 @@
 
         <!-- ── Header ─────────────────────────────────────── -->
         <div class="cd-header">
-
-          <!-- Ambient orbs -->
-          <div class="cd-header-orbs" aria-hidden="true">
-            <div class="cd-orb cd-orb--blue"></div>
-            <div class="cd-orb cd-orb--violet"></div>
-          </div>
-
-          <!-- Decorative math symbols -->
-          <div class="cd-header-deco" aria-hidden="true">
-            <span style="--sz:120px;--t:0%;--l:68%">π</span>
-            <span style="--sz:90px;--t:40%;--l:84%">∑</span>
-            <span style="--sz:150px;--t:-20%;--l:80%">∫</span>
-            <span style="--sz:70px;--t:50%;--l:62%">Δ</span>
-            <span style="--sz:100px;--t:10%;--l:55%">∞</span>
-            <span style="--sz:75px;--t:55%;--l:74%">α</span>
-          </div>
 
           <div class="container" style="position:relative;z-index:1">
             <a class="cd-back" href="classes.html">
@@ -403,17 +511,20 @@
                 </div>
               </div>
 
-              ${isTeacher ? `
-                <div class="cd-invite">
-                  <span class="cd-invite__label">Cod invitație</span>
-                  <div class="cd-invite__row">
-                    <span class="cd-invite__code">${classData.invite_code}</span>
-                    <button class="cd-invite__copy" onclick="cdCopyCode('${classData.invite_code}')"
-                            title="Copiază">⧉</button>
+              <div class="cd-header__side">
+                ${_liveProgramHTML()}
+                ${isTeacher ? `
+                  <div class="cd-invite">
+                    <span class="cd-invite__label">Cod invitație</span>
+                    <div class="cd-invite__row">
+                      <span class="cd-invite__code">${classData.invite_code}</span>
+                      <button class="cd-invite__copy" onclick="cdCopyCode('${classData.invite_code}')"
+                              title="Copiază codul" aria-label="Copiază codul">${icon('copy', { size: 16 })}</button>
+                    </div>
+                    <div class="cd-invite__hint">Partajează cu elevii</div>
                   </div>
-                  <div class="cd-invite__hint">Partajează cu elevii</div>
-                </div>
-              ` : ''}
+                ` : ''}
+              </div>
             </div>
           </div>
         </div>
@@ -442,6 +553,12 @@
 
       </div>
     `;
+
+    _cdMarkFresh();
+    _cdStartClock();
+    _cdWatchNumbers();
+    _cdSyncTabs();
+    window.addEventListener('resize', _cdSyncTabs);
 
     /* Tab click handlers */
     document.querySelectorAll('.cd-tab').forEach(btn => {
@@ -584,7 +701,10 @@
       btn.classList.toggle('cd-tab--active', active);
       btn.setAttribute('aria-selected', active);
     });
+    _cdSyncTabs();
 
+    _cdMarkFresh();
+    _cdChatFocusPending = true;
     const content = document.getElementById('cdContent');
     if (content) {
       content.classList.add('cd-content--switching');
@@ -867,7 +987,7 @@
         <div class="sumar-kpi-card">
           <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
-            <div class="sumar-kpi-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '—'}</div>
+            <div class="sumar-kpi-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '-'}</div>
             <div class="sumar-kpi-card__lbl">Prezență medie</div>
             ${attendance.classRate == null ? `<div class="sumar-kpi-card__sub">Fără lecții încă</div>` : ''}
           </div>
@@ -875,7 +995,7 @@
         <div class="sumar-kpi-card">
           <span class="sumar-icon-badge sumar-icon-badge--green">${icon('trending-up', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
-            <div class="sumar-kpi-card__val">${avgPresent != null ? avgPresent.toFixed(2) : '—'}</div>
+            <div class="sumar-kpi-card__val">${avgPresent != null ? avgPresent.toFixed(2) : '-'}</div>
             <div class="sumar-kpi-card__lbl">Media elevilor / oră</div>
             ${avgPresent == null ? `<div class="sumar-kpi-card__sub">Fără lecții încă</div>` : ''}
           </div>
@@ -883,7 +1003,7 @@
         <div class="sumar-kpi-card">
           <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('chart-column', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
-            <div class="sumar-kpi-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '—'}</div>
+            <div class="sumar-kpi-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '-'}</div>
             <div class="sumar-kpi-card__lbl">Medie clasă</div>
             ${!stats.classAvg ? `<div class="sumar-kpi-card__sub">Fără note confirmate</div>` : ''}
           </div>
@@ -1009,7 +1129,7 @@
     if (!list.length) {
       const msg = memberCount === 0
         ? 'Adaugă elevi în clasă ca să vezi aici cine are nevoie de atenție.'
-        : 'Toți elevii sunt pe drumul cel bun — nimic de semnalat.';
+        : 'Toți elevii sunt pe drumul cel bun, nimic de semnalat.';
       return `<div class="sumar-attention-empty">${icon('party-popper', { size: 20 })} ${msg}</div>`;
     }
     return `
@@ -1222,11 +1342,15 @@
         </button>
         <div class="msg-panel__typing" id="fluxTypingIndicator" hidden></div>
         <form class="msg-panel__composer" id="fluxComposerForm">
-          <textarea id="fluxComposerInput" class="msg-panel__input" rows="1" maxlength="4000"
-                    placeholder="Scrie un mesaj clasei…"></textarea>
-          <button type="submit" class="msg-panel__send" id="fluxSendBtn" disabled title="Trimite">
-            ${icon('arrow-up', { size: 18 })}
-          </button>
+          <label class="msg-panel__label" for="fluxComposerInput">Scrie un mesaj clasei</label>
+          <div class="msg-panel__row">
+            <textarea id="fluxComposerInput" class="msg-panel__input" rows="1" maxlength="4000"
+                      placeholder="Scrie aici și apasă Trimite…"></textarea>
+            <button type="submit" class="msg-panel__send" id="fluxSendBtn" disabled title="Trimite">
+              <span>Trimite</span>${icon('arrow-up', { size: 18 })}
+            </button>
+          </div>
+          <span class="msg-panel__hint">Enter trimite, Shift + Enter trece pe rândul următor</span>
         </form>
       </div>
     `;
@@ -1242,6 +1366,8 @@
     // scratch, which would silently drop fullscreen mode — reapply it.
     if (_fluxFullscreen) _fluxApplyFullscreenState();
 
+    _cdBringChatIntoView();
+
     if (!_fluxHasLoadedOnce) {
       _fluxHasLoadedOnce = true;
       _fluxScrollToBottom(false);
@@ -1252,6 +1378,24 @@
         if (_fluxIsNearBottom(list)) document.getElementById('fluxJumpBtn')?.setAttribute('hidden', '');
       }
     }
+  }
+
+  /* Opening Mesaje lifts the page until the tab bar sits under the navbar,
+     so the whole panel, and with it the box you type in, is on screen at
+     once instead of hanging below the fold. Once per opening of the tab,
+     not on every realtime refresh. */
+  let _cdChatFocusPending = true;
+  function _cdBringChatIntoView() {
+    if (!_cdChatFocusPending) return;
+    _cdChatFocusPending = false;
+    const panel = document.querySelector('.msg-panel');
+    const tabs  = document.getElementById('cdTabsWrap');
+    if (!panel || !tabs || _fluxFullscreen) return;
+    const navH = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--nav-h')) || 72;
+    const rect = panel.getBoundingClientRect();
+    if (rect.bottom <= window.innerHeight - 8) return;
+    const delta = rect.top - (navH + tabs.offsetHeight + 12);
+    if (delta > 0) window.scrollTo({ top: window.scrollY + delta, behavior: window.matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
   }
 
   /* ─── Fullscreen mode — the message panel alone fills the viewport, so
@@ -1328,7 +1472,7 @@
     const titleHTML   = post.title ? `<div class="msg-bubble__title">${BM.esc(post.title)}</div>` : '';
 
     return `
-      <div class="msg-bubble${grouped ? ' msg-bubble--grouped' : ''}${mine ? ' msg-bubble--mine' : ''}"
+      <div class="msg-bubble${grouped ? ' msg-bubble--grouped' : ''}${mine ? ' msg-bubble--mine' : ''}${isTeacherAuthor ? ' msg-bubble--teacher' : ''}"
            data-post-id="${post.id}" data-author-id="${post.author_id}" data-created-at="${post.created_at}">
         <div class="msg-bubble__gutter">${grouped
           ? `<span class="msg-bubble__time-hover">${timeStr}</span>`
@@ -1842,7 +1986,7 @@
         <div class="teme-assignment__main">
           <div class="teme-assignment__top">
             <h3 class="teme-assignment__title">${BM.esc(a.title)}</h3>
-            ${isTeacher && a.visibility === 'draft' ? `<span class="teme-draft-badge" title="Vizibilă doar ție — elevii nu o văd până o publici">${icon('eye-off', { size: 16 })} Draft</span>` : ''}
+            ${isTeacher && a.visibility === 'draft' ? `<span class="teme-draft-badge" title="Vizibilă doar ție, elevii nu o văd până o publici">${icon('eye-off', { size: 16 })} Draft</span>` : ''}
             <span class="teme-assignment__type-icon">${typeIcon}</span>
           </div>
           ${!a.archived_at && blockChips ? `<div class="teme-assignment__chips">${blockChips}</div>` : ''}
@@ -1863,7 +2007,7 @@
           </div>
           ${isTeacher ? (a.archived_at ? `
             <div class="teme-assignment__actions">
-              <span class="teme-assignment__archived-label" title="Fișierele au fost șterse, notele rămân în catalog">${icon('archive', { size: 16 })} Arhivată — doar note</span>
+              <span class="teme-assignment__archived-label" title="Fișierele au fost șterse, notele rămân în catalog">${icon('archive', { size: 16 })} Arhivată, doar note</span>
             </div>
           ` : `
             <div class="teme-assignment__actions">
@@ -1873,7 +2017,7 @@
               ` : ''}
               ${a.visibility === 'draft' ? `
                 <button class="teme-assignment__publish" data-id="${a.id}"
-                        data-title="${BM.esc(a.title)}" title="Publică tema — o face vizibilă elevilor">${icon('eye', { size: 16 })} Publică</button>
+                        data-title="${BM.esc(a.title)}" title="Publică tema, o face vizibilă elevilor">${icon('eye', { size: 16 })} Publică</button>
               ` : ''}
               <button class="teme-assignment__edit" data-id="${a.id}" title="Editează">${icon('pencil', { size: 16 })}</button>
               <button class="teme-assignment__delete" data-id="${a.id}"
@@ -1988,7 +2132,7 @@
           <button class="icon-btn" id="nivelCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
-          <p class="wz-subtitle">Nivelul grupei se poate schimba în timp — actualizează-l oricând nu mai reflectă realitatea.</p>
+          <p class="wz-subtitle">Nivelul grupei se poate schimba în timp, actualizează-l oricând nu mai reflectă realitatea.</p>
           <div class="cls-day-picker" id="nivelPicker">
             ${levels.map(l => `<button type="button" class="cls-day-chip${l === current ? ' cls-day-chip--sel' : ''}" data-level="${l}">${l}</button>`).join('')}
           </div>
@@ -2073,7 +2217,7 @@
           </ul>
           ${subscribed
             ? `<p class="notif-info__p">Apasă butonul de mai jos dacă vrei să oprești notificările pe acest dispozitiv.</p>`
-            : `<p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong> — de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>`}
+            : `<p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong>, de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>`}
           ${blocked ? `
           <p class="notif-info__p notif-info__p--warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
         </div>
@@ -2124,7 +2268,7 @@
         ` : ''}
         ${total === 0 ? `
           <div class="cd-sidebar-stat" style="opacity:0.6">
-            <span class="cd-sidebar-stat__icon">—</span>
+            <span class="cd-sidebar-stat__icon">-</span>
             <span>Nicio temă adăugată</span>
           </div>
         ` : ''}
@@ -2306,7 +2450,7 @@
         .map(s => parseFloat(s.grade));
       aStats[a.id] = grades.length
         ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
-        : '—';
+        : '-';
     });
     const sStats = {};
     sims.forEach(s => {
@@ -2316,7 +2460,7 @@
         .map(a => parseFloat(a.grade_10));
       sStats[s.id] = grades.length
         ? (grades.reduce((t, g) => t + g, 0) / grades.length).toFixed(1)
-        : '—';
+        : '-';
     });
     return { aStats, sStats };
   }
@@ -2342,7 +2486,7 @@
       const cells = studentCols.map(s => {
         if (col.kind === 'assignment') {
           const sub = s.mySubs[col.id];
-          if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">—</div>`;
+          if (!sub) return `<div class="catalog-td catalog-td--none" title="Nepredat">-</div>`;
           if (sub.grade_confirmed) {
             const g = parseFloat(sub.grade);
             const cls = _catalogGradeTier(g);
@@ -2355,14 +2499,14 @@
         // ended up with 0 items (now fixed at creation time, but old/broken
         // rows can still exist) — falls back to the same dash as "didn't
         // take it" instead of literally printing "null".
-        if (!att || att.grade_10 == null) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">—</div>`;
+        if (!att || att.grade_10 == null) return `<div class="catalog-td catalog-td--sim catalog-td--none" title="Neparticipat">-</div>`;
         const g = parseFloat(att.grade_10);
         const cls = _catalogGradeTier(g);
         return `<div class="catalog-td catalog-td--sim catalog-td--grade catalog-td--${cls} catalog-td--clickable" data-quick-view-attempt="${att.id}" title="Vezi detalii rapide">${att.grade_10}</div>`;
       }).join('');
 
       const rowAvg = col.kind === 'assignment' ? aStats[col.id] : sStats[col.id];
-      const rowAvgTier = rowAvg !== '—' ? _catalogGradeTier(parseFloat(rowAvg)) : null;
+      const rowAvgTier = rowAvg !== '-' ? _catalogGradeTier(parseFloat(rowAvg)) : null;
       const rowAvgCls = rowAvgTier ? ` catalog-td--tone-${rowAvgTier}` : '';
       const ds = col.kind === 'assignment'
         ? col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })
@@ -2384,7 +2528,7 @@
       <div class="catalog-row catalog-row--stats">
         <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Medie elev</div>
         ${studentCols.map(s => {
-          const avg = s.avgNum != null ? s.avgNum.toFixed(1) : '—';
+          const avg = s.avgNum != null ? s.avgNum.toFixed(1) : '-';
           const tier = s.avgNum != null ? _catalogGradeTier(s.avgNum) : null;
           return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${avg}</div>`;
         }).join('')}
@@ -2403,7 +2547,7 @@
             <div class="catalog-stat-card__lbl">Teme</div>
           </div>
           <div class="catalog-stat-card ${stats.classAvg ? 'catalog-stat-card--avg' : ''}">
-            <div class="catalog-stat-card__val">${stats.classAvg || '—'}</div>
+            <div class="catalog-stat-card__val">${stats.classAvg || '-'}</div>
             <div class="catalog-stat-card__lbl">Medie clasă</div>
           </div>
         </div>
@@ -2478,8 +2622,8 @@
       const { aStats, sStats } = _catalogColumnStats(members, assignments, sims, subMatrix, simMatrix);
       return cols.map(col => {
         if (col.kind === 'name') return 'Medie clasă';
-        if (col.kind === 'assignment') return aStats[col.id] === '—' ? '' : Number(aStats[col.id]);
-        if (col.kind === 'sim') return sStats[col.id] === '—' ? '' : Number(sStats[col.id]);
+        if (col.kind === 'assignment') return aStats[col.id] === '-' ? '' : Number(aStats[col.id]);
+        if (col.kind === 'sim') return sStats[col.id] === '-' ? '' : Number(sStats[col.id]);
         return stats?.classAvg ? Number(stats.classAvg) : '';
       });
     };
@@ -2488,7 +2632,7 @@
     pdfBtn.onclick = () => {
       const jsPDFCtor = window.jspdf?.jsPDF;
       if (!jsPDFCtor || !jsPDFCtor.API?.autoTable) {
-        BM.toast('Exportul PDF nu s-a putut încărca — verifică conexiunea și încearcă din nou.', 'error');
+        BM.toast('Exportul PDF nu s-a putut încărca, verifică conexiunea și încearcă din nou.', 'error');
         return;
       }
       const rows = buildRows();
@@ -2498,7 +2642,7 @@
       doc.text(classData.name, 14, 16);
       doc.setFontSize(9);
       doc.setTextColor(120);
-      doc.text(`Catalog — generat pe ${new Date().toLocaleDateString('ro-RO')}`, 14, 22);
+      doc.text(`Catalog · generat pe ${new Date().toLocaleDateString('ro-RO')}`, 14, 22);
 
       doc.autoTable({
         startY: 28,
@@ -2516,7 +2660,7 @@
 
     xlsxBtn.onclick = () => {
       if (!window.XLSX) {
-        BM.toast('Exportul Excel nu s-a putut încărca — verifică conexiunea și încearcă din nou.', 'error');
+        BM.toast('Exportul Excel nu s-a putut încărca, verifică conexiunea și încearcă din nou.', 'error');
         return;
       }
       const rows = buildRows();
@@ -2594,10 +2738,10 @@
 
       const cells = studentStats.map(({ m }) => {
         const status = (attMatrix[m.student_id] || {})[s.id];
-        if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">—</div>`;
+        if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">-</div>`;
         return status
-          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent — click pentru a marca absent">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`
-          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent — click pentru a marca prezent">${icon('circle-x', { size: 16, className: 'icon--error' })}</div>`;
+          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent, click pentru a marca absent">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`
+          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent, click pentru a marca prezent">${icon('circle-x', { size: 16, className: 'icon--error' })}</div>`;
       }).join('');
 
       const recorded = members.filter(m => (attMatrix[m.student_id] || {})[s.id] !== undefined);
@@ -2615,7 +2759,7 @@
           <div class="catalog-td catalog-td--date catalog-td--date--${monthCls} catalog-td--rowlabel-clickable"
                data-edit-session="${s.id}" title="Click pentru a edita lecția">${ds}</div>
           ${cells}
-          <div class="catalog-td catalog-td--avg${tierCls}">${pct != null ? pct + '%' : '—'}</div>
+          <div class="catalog-td catalog-td--avg${tierCls}">${pct != null ? pct + '%' : '-'}</div>
         </div>`;
     }).join('');
 
@@ -2625,7 +2769,7 @@
         <div class="catalog-td catalog-td--date"></div>
         ${studentStats.map(({ rate }) => {
           const tier = rate != null ? _attendanceTier(rate) : null;
-          return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${rate != null ? rate + '%' : '—'}</div>`;
+          return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${rate != null ? rate + '%' : '-'}</div>`;
         }).join('')}
         <div class="catalog-td catalog-td--avg"></div>
       </div>` : '';
@@ -2642,7 +2786,7 @@
             <div class="catalog-stat-card__lbl">Lecții</div>
           </div>
           <div class="catalog-stat-card ${classRate != null ? 'catalog-stat-card--avg' : ''}">
-            <div class="catalog-stat-card__val">${classRate != null ? classRate + '%' : '—'}</div>
+            <div class="catalog-stat-card__val">${classRate != null ? classRate + '%' : '-'}</div>
             <div class="catalog-stat-card__lbl">Prezență medie</div>
           </div>
         </div>
@@ -2934,7 +3078,7 @@
       <div class="catalog-wrap">
         <div class="cs-stats">
           <div class="cs-stat${avg ? ' cs-stat--avg' : ''}">
-            <div class="cs-stat__val${avg ? ' cs-stat__val--grade' : ''}">${avg || '—'}</div>
+            <div class="cs-stat__val${avg ? ' cs-stat__val--grade' : ''}">${avg || '-'}</div>
             <div class="cs-stat__lbl">Medie generală</div>
           </div>
           <div class="cs-stat">
@@ -3175,7 +3319,7 @@
         </div>
         <div class="classes-modal__body av-body">
           ${a.archived_at
-            ? `<p class="av-empty">${icon('archive', { size: 16 })} Tema a fost arhivată — instrucțiunile și fișierele au fost șterse, doar notele au rămas în catalog.</p>`
+            ? `<p class="av-empty">${icon('archive', { size: 16 })} Tema a fost arhivată, instrucțiunile și fișierele au fost șterse, doar notele au rămas în catalog.</p>`
             : (blocks.length ? blocks.map(renderBlockView).join('') : '<p class="av-empty">Niciun conținut adăugat.</p>')}
           ${desc ? `
             <div class="av-section">
@@ -3270,7 +3414,7 @@
       return `
         <div class="av-submit-section__inner">
           <div class="av-submit-section__title">${icon('archive', { size: 16 })} Tema a fost arhivată</div>
-          <p class="av-empty">Profesorul a închis această temă — nu mai poți preda sau modifica fișiere.</p>
+          <p class="av-empty">Profesorul a închis această temă, nu mai poți preda sau modifica fișiere.</p>
         </div>`;
     }
 
@@ -3983,7 +4127,7 @@
       <div class="cls-form-field">
         <label class="cls-form-label">Titlu video (opțional)</label>
         <input type="text" id="wzVideoTitle" class="cls-form-input"
-               placeholder="ex: Lecție cap. 5 — Ecuații"
+               placeholder="ex: Lecție cap. 5 · Ecuații"
                value="${BM.esc(wz.blockData.title || '')}">
       </div>`;
 
@@ -4041,7 +4185,7 @@
          </div>`;
 
     return `
-      <p class="wz-subtitle">Configurează conținutul — <strong>${label}</strong></p>
+      <p class="wz-subtitle">Configurează conținutul: <strong>${label}</strong></p>
       ${content}`;
   }
 
@@ -4088,12 +4232,12 @@
           <label class="wz-radio">
             <input type="radio" name="wzVis" value="published" ${wz.visibility !== 'draft' ? 'checked' : ''}>
             <span class="wz-radio__dot"></span>
-            <span>Publică — elevii o văd imediat</span>
+            <span>Publică, elevii o văd imediat</span>
           </label>
           <label class="wz-radio">
             <input type="radio" name="wzVis" value="draft" ${wz.visibility === 'draft' ? 'checked' : ''}>
             <span class="wz-radio__dot"></span>
-            <span>Draft — salvată, invizibilă elevilor</span>
+            <span>Draft, salvată, invizibilă elevilor</span>
           </label>
         </div>
       </div>`;
@@ -4297,7 +4441,7 @@
 
       const unconfirmed = (subs || []).filter(s => !s.grade_confirmed).length;
       const warnMsg = unconfirmed > 0
-        ? `Atenție: ${unconfirmed} elev(i) nu au notă confirmată — fișierele lor vor fi șterse oricum. `
+        ? `Atenție: ${unconfirmed} elev(i) nu au notă confirmată, fișierele lor vor fi șterse oricum. `
         : '';
 
       const ok = await showConfirmDialog({
@@ -4332,7 +4476,7 @@
         .from('homework_submissions').update({ files: [] }).eq('assignment_id', assignmentId);
       if (subsErr) throw subsErr;
 
-      BM.toast('Tema a fost arhivată — fișierele au fost șterse, notele au rămas.', 'success');
+      BM.toast('Tema a fost arhivată, fișierele au fost șterse, notele au rămas.', 'success');
       await loadTemeTab();
     } catch (e) {
       BM.toast('Eroare la arhivare: ' + e.message, 'error');
@@ -4572,7 +4716,7 @@
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
           <span class="csim-card__meta-item">${icon('timer', { size: 16 })} ${s.time_limit_minutes} min</span>
-          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">${icon('star', { size: 16 })} Nota: ${attempt.grade_10 ?? '—'}</span>` : ''}
+          ${attempt?.status === 'finalizata' ? `<span class="csim-card__meta-item csim-card__meta-item--grade">${icon('star', { size: 16 })} Nota: ${attempt.grade_10 ?? '-'}</span>` : ''}
           <div class="csim-card__actions">${action}</div>
         </div>
       </div>`;
@@ -4631,7 +4775,7 @@
       const { error } = await BMAuth.supabase.from('simulations')
         .update({ status: 'activa', started_at: new Date().toISOString() }).eq('id', id);
       if (error) throw error;
-      BM.toast('Simularea a fost redeschisă — elevii care au finalizat-o deja o pot relua.', 'success');
+      BM.toast('Simularea a fost redeschisă, elevii care au finalizat-o deja o pot relua.', 'success');
       await loadSimulariTab();
     } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
   }
@@ -4708,7 +4852,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
-          <h3>${icon('clipboard-list', { size: 20 })} Exerciții — ${BM.esc(sim.title)}</h3>
+          <h3>${icon('clipboard-list', { size: 20 })} Exerciții: ${BM.esc(sim.title)}</h3>
           <button class="icon-btn" id="simItemsCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="simItemsBody">
@@ -4728,12 +4872,12 @@
     const options = await _simFetchOptionsFor(items || []);
 
     const keyMap = {}; (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
-    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '-';
 
     const totalPoints = (items || []).reduce((s, i) => s + (Number(i.points) || 0), 0);
     const rows = (items || []).map((it, idx) => {
       const isGrila = it.answer_type === 'grila';
-      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '-');
       return `
         <div class="sim-result-card">
           <div class="sim-result-card__head">
@@ -4804,7 +4948,7 @@
         statsHtml = `
           <span class="sim-live-row__stat" title="Timp de rezolvare">${icon('timer', { size: 16 })} ${dur}</span>
           <span class="sim-live-row__stat" title="Puncte obținute">${icon('target', { size: 16 })} ${a.earned_points}/${a.total_points}p</span>
-          <span class="sim-live-row__stat sim-live-row__stat--grade" title="Notă">${icon('star', { size: 16 })} ${a.grade_10 ?? '—'}</span>`;
+          <span class="sim-live-row__stat sim-live-row__stat--grade" title="Notă">${icon('star', { size: 16 })} ${a.grade_10 ?? '-'}</span>`;
       }
       const violations = flagMap[a?.id];
       if (violations > 0) {
@@ -4898,12 +5042,12 @@
 
     const keyMap = {}; (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
     const answerMap = {}; (answers || []).forEach(a => { answerMap[a.simulation_item_id] = a; });
-    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '-';
 
-    document.getElementById('simQvTitle').textContent = `${attempt.student_name || 'Elev'} — ${sim?.title || ''}`;
+    document.getElementById('simQvTitle').textContent = `${attempt.student_name || 'Elev'} · ${sim?.title || ''}`;
 
     const violations = flagRow?.data?.tab_switch_count || 0;
-    const dur = attempt.finished_at ? _fmtDuration(new Date(attempt.finished_at) - new Date(attempt.started_at)) : '—';
+    const dur = attempt.finished_at ? _fmtDuration(new Date(attempt.finished_at) - new Date(attempt.started_at)) : '-';
     const grade = attempt.grade_10 != null ? parseFloat(attempt.grade_10) : null;
     const gradeCls = grade == null ? '' : grade >= 9 ? 'hi' : grade >= 7 ? 'ok' : grade >= 5 ? 'mid' : 'lo';
 
@@ -4912,7 +5056,7 @@
       const correct = !!a?.is_correct;
       const isGrila = it.answer_type === 'grila';
       const yourAnswer = isGrila ? (a?.answer_text ? optLabel(it.id, a.answer_text) : '(fără răspuns)') : (a?.answer_text || '(fără răspuns)');
-      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '-');
       const compareLbl = isGrila ? 'Alese' : 'Al tău';
       return `
         <div class="sim-qv-row sim-qv-row--${correct ? 'ok' : 'no'}">
@@ -4921,7 +5065,7 @@
             <span class="sim-qv-row__mark">${correct ? icon('circle-check', { size: 16 }) : icon('circle-x', { size: 16 })}</span>
             <span class="sim-qv-row__pts">${a?.points_earned ?? 0}/${it.points}p</span>
           </div>
-          <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} — Corect: ${BM.esc(BM.latexToPlain(correctAnswer))}</div>
+          <div class="sim-qv-row__ans">${compareLbl}: ${BM.esc(yourAnswer)} · Corect: ${BM.esc(BM.latexToPlain(correctAnswer))}</div>
           ${a?.feedback_text ? `<div class="sim-qv-row__fb">${icon('message-circle', { size: 16 })} ${BM.esc(a.feedback_text)}</div>` : ''}
         </div>`;
     }).join('');
@@ -4929,7 +5073,7 @@
     const body = document.getElementById('simQvBody');
     body.innerHTML = `
       <div class="sim-qv-summary">
-        <div class="sim-qv-grade sim-qv-grade--${gradeCls}">${attempt.grade_10 ?? '—'}</div>
+        <div class="sim-qv-grade sim-qv-grade--${gradeCls}">${attempt.grade_10 ?? '-'}</div>
         <div class="sim-qv-meta">
           <span class="sim-qv-meta__item">${icon('target', { size: 16 })} ${attempt.earned_points}/${attempt.total_points}p</span>
           <span class="sim-qv-meta__item">${icon('timer', { size: 16 })} ${dur}</span>
@@ -4986,9 +5130,9 @@
 
     const keyMap = {}; (keys || []).forEach(k => { keyMap[k.simulation_item_id] = k.correct_answer; });
     const answerMap = {}; (answers || []).forEach(a => { answerMap[a.simulation_item_id] = a; });
-    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '—';
+    const optLabel = (itemId, optionId) => (options[itemId] || []).find(o => o.id === optionId)?.label || '-';
 
-    document.getElementById('simDetailTitle').textContent = `${attempt.student_name || 'Elev'} — ${sim?.title || ''}`;
+    document.getElementById('simDetailTitle').textContent = `${attempt.student_name || 'Elev'} · ${sim?.title || ''}`;
 
     const violations = flagRow?.data?.tab_switch_count || 0;
     const rows = (items || []).map((it, idx) => {
@@ -4996,7 +5140,7 @@
       const correct = !!a?.is_correct;
       const isGrila = it.answer_type === 'grila';
       const yourAnswer = isGrila ? (a?.answer_text ? optLabel(it.id, a.answer_text) : '(fără răspuns)') : (a?.answer_text || '(fără răspuns)');
-      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '—');
+      const correctAnswer = isGrila ? optLabel(it.id, keyMap[it.id]) : (keyMap[it.id] || '-');
       const fb = a?.feedback_text || '';
       return `
         <div class="sim-result-card sim-result-card--${correct ? 'ok' : 'no'}">
@@ -5036,7 +5180,7 @@
       ${violations > 0 ? `<div class="sim-violation-badge" style="margin-bottom:14px;display:inline-block">${icon('triangle-alert', { size: 16 })} A părăsit fereastra de ${violations} ori</div>` : ''}
       <div class="sim-result-summary" style="margin-bottom:16px">
         <div class="sim-result-summary__stat">
-          <div class="sim-result-summary__val">${attempt.grade_10 ?? '—'}</div>
+          <div class="sim-result-summary__val">${attempt.grade_10 ?? '-'}</div>
           <div class="sim-result-summary__lbl">Notă</div>
         </div>
         <div class="sim-result-summary__divider"></div>
@@ -5121,7 +5265,7 @@
           <div class="cls-form-field">
             <label class="cls-form-label">Denumire șablon *</label>
             <input type="text" id="simSaveTplTitle" class="cls-form-input" value="${BM.esc(sim.title)}">
-            <span class="cls-form-hint">Salvează exercițiile, timpul limită și modul supravegheat — reutilizabil la orice altă clasă.</span>
+            <span class="cls-form-hint">Salvează exercițiile, timpul limită și modul supravegheat, reutilizabil la orice altă clasă.</span>
           </div>
           <button class="btn btn--primary" id="simSaveTplConfirmBtn">Salvează</button>
         </div>
@@ -5148,7 +5292,7 @@
       const { data: dupe } = await BMAuth.supabase.from('simulation_templates')
         .select('id').eq('created_by', BMAuth.user.id).ilike('title', title).maybeSingle();
       if (dupe) {
-        BM.toast('Ai deja un șablon cu această denumire — alege alta.', 'error');
+        BM.toast('Ai deja un șablon cu această denumire, alege alta.', 'error');
         btn.disabled = false; btn.textContent = 'Salvează';
         return;
       }
@@ -5206,7 +5350,7 @@
       // common case, this is the final guard against a race between two
       // near-simultaneous saves (e.g. two tabs) slipping past it.
       const msg = e.code === '23505' || /duplicate key/i.test(e.message || '')
-        ? 'Ai deja un șablon cu această denumire — alege alta.'
+        ? 'Ai deja un șablon cu această denumire, alege alta.'
         : 'Eroare: ' + e.message;
       BM.toast(msg, 'error');
       btn.disabled = false; btn.textContent = 'Salvează';
@@ -5329,7 +5473,7 @@
       timeLimitMinutes: tpl.time_limit_minutes, supervised: tpl.supervised,
       startMode: 'schedule', items
     };
-    BM.toast('Șablon încărcat — revizuiește detaliile și exercițiile înainte de a salva.', 'success');
+    BM.toast('Șablon încărcat, revizuiește detaliile și exercițiile înainte de a salva.', 'success');
     _simWzShowModal();
   }
 
@@ -5488,7 +5632,7 @@
           <span class="wz-toggle__track"><span class="wz-toggle__thumb"></span></span>
           <span>Mod supravegheat</span>
         </label>
-        <span class="cls-form-hint">Înregistrează silențios de câte ori elevul părăsește fereastra/ecranul complet în timpul simulării — vizibil doar pentru tine, la rezultate. Elevul nu este blocat sau anunțat.</span>
+        <span class="cls-form-hint">Înregistrează silențios de câte ori elevul părăsește fereastra/ecranul complet în timpul simulării, vizibil doar pentru tine, la rezultate. Elevul nu este blocat sau anunțat.</span>
       </div>`;
   }
 
@@ -5523,7 +5667,7 @@
   function _simWzStep2() {
     const totalPoints = simWiz.items.reduce((s, i) => s + (Number(i.points) || 0), 0);
     return `
-      <p class="wz-subtitle">Exerciții adăugate (${simWiz.items.length}) — total ${totalPoints} puncte</p>
+      <p class="wz-subtitle">Exerciții adăugate (${simWiz.items.length}), total ${totalPoints} puncte</p>
       <div class="sim-wz-item-list">
         ${simWiz.items.length === 0
           ? `<div class="wz-soon-msg"><span>${icon('library', { size: 48 })}</span><p>Niciun exercițiu adăugat încă.</p></div>`
@@ -5533,7 +5677,7 @@
               <div class="sim-wz-item__body">
                 <div class="sim-wz-item__title">${BM.esc(it.title)}</div>
                 <div class="sim-wz-item__meta">${it.points}p ${it.difficulty ? '· ' + _simRarityBadge(it.difficulty) : ''} ${it.answer_type === 'grila' ? '· ' + icon('circle-dot', { size: 16 }) + ' Grilă' : ''}</div>
-                <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '—') : BM.latexToPlain(it.correct_answer || '—'))}</strong></div>
+                <div class="sim-wz-item__answer">Răspuns corect: <strong>${BM.esc(it.answer_type === 'grila' ? ((it.options || []).find(o => o.isCorrect)?.label || '-') : BM.latexToPlain(it.correct_answer || '-'))}</strong></div>
                 <button type="button" class="sim-wz-item__toggle" data-toggle-statement="${idx}">${icon('eye', { size: 16 })} Arată enunțul</button>
                 <div class="sim-wz-item__statement math-content" id="simWzItemStatement${idx}" style="display:none"></div>
               </div>
@@ -6085,7 +6229,7 @@
 
     simPicker.results = results;
     const emptyMsg = (!simPicker.useBacTaxonomy && !simPicker.query && !simPicker.difficulty)
-      ? 'Banca e goală pentru clasa asta încă — adaugă exerciții din tab-ul „Adaugă exercițiu nou din poză".'
+      ? 'Banca e goală pentru clasa asta încă, adaugă exerciții din tab-ul „Adaugă exercițiu nou din poză".'
       : 'Niciun exercițiu găsit.';
     resultsEl.innerHTML = results.length === 0
       ? `<p class="wz-subtitle">${emptyMsg}</p>`
@@ -6122,7 +6266,7 @@
         <div id="simPickAnswerWrap" class="cls-form-field">
           <label class="cls-form-label">Răspuns corect *</label>
           <input type="text" id="simPickAnswer" class="cls-form-input" value="${BM.esc(suggested)}" placeholder="ex: -1, x=3, {1,2}">
-          <span class="cls-form-hint">${suggested ? 'Extras automat din soluție — verifică înainte de a confirma.' : 'Nu am putut extrage automat un răspuns — introdu-l manual.'} Scrie-l cum l-ar tasta elevul (cu simbolurile ∈ √ etc.), nu cod LaTeX — altfel nu se va potrivi la corectare. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine — corectarea compară text exact, nu recunoaște "2, 3" ca fiind identic cu "3, 2".</span>
+          <span class="cls-form-hint">${suggested ? 'Extras automat din soluție, verifică înainte de a confirma.' : 'Nu am putut extrage automat un răspuns, introdu-l manual.'} Scrie-l cum l-ar tasta elevul (cu simbolurile ∈ √ etc.), nu cod LaTeX, altfel nu se va potrivi la corectare. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine, corectarea compară text exact, nu recunoaște "2, 3" ca fiind identic cu "3, 2".</span>
         </div>
         <div id="simPickOptionsWrap" style="display:none">${_simOptBuilderRowsHtml()}</div>
         <button class="btn btn--primary" id="simPickConfirmBtn">+ Adaugă la simulare</button>
@@ -6277,7 +6421,7 @@
       <div class="sim-picker-photo-review">
         ${r.verificat === false ? `
         <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
-          ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur rezultatul la verificare — recalculează manual înainte de a confirma.
+          ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur rezultatul la verificare, recalculează manual înainte de a confirma.
         </div>` : ''}
         ${r.verificare_numerica ? `
         <div class="cls-form-hint" style="margin-bottom:14px">${icon('search', { size: 16 })} Verificare AI: ${BM.esc(r.verificare_numerica)}</div>` : ''}
@@ -6299,7 +6443,7 @@
         <div id="simPickAiAnswerWrap" class="cls-form-field">
           <label class="cls-form-label">Răspuns final</label>
           <input type="text" id="simPickAiAnswer" class="cls-form-input" value="${BM.esc(suggestedAiAnswer)}">
-          <span class="cls-form-hint">Gemini întoarce LaTeX brut — l-am convertit în text simplu (√, ∈, etc.), dar verifică-l înainte de a confirma. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine — corectarea compară text exact.</span>
+          <span class="cls-form-hint">Gemini întoarce LaTeX brut, l-am convertit în text simplu (√, ∈, etc.), dar verifică-l înainte de a confirma. Dacă răspunsul are mai multe valori (ex: două rădăcini), scrie-le mereu în aceeași ordine, corectarea compară text exact.</span>
         </div>
         <div id="simPickAiOptionsWrap" style="display:none">${_simOptBuilderRowsHtml()}</div>
         <button class="btn btn--primary" id="simPickAiConfirmBtn">${simPicker.tab === 'culegere' ? '+ Adaugă exercițiul la listă' : '+ Adaugă la simulare'}</button>
@@ -6367,7 +6511,7 @@
           category_id: simPicker.categoryId || null,
           subcategory_id: simPicker.subcategoryId || null,
           difficulty: 'mediu',
-          source: `Profesor — ${classData.name}`,
+          source: `Profesor · ${classData.name}`,
           title, statement,
           solution: `$$\\boxed{${answer}}$$`,
           barem: null, barem_estimat: false,
@@ -6948,7 +7092,7 @@
           ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>` +
             `<button class="btn btn--surface" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>`
           : elsewhereLive
-            ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă — apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă — comută aici</button>`
+            ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă, apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă, comută aici</button>`
             : `<button class="btn btn--primary" id="tablaStartBtn">${icon('presentation', { size: 16 })} Pornește tablă live</button>`;
       } else if (live) {
         heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${icon('presentation', { size: 16 })} Intră în tablă</button>`;
@@ -7032,7 +7176,7 @@
       // concurrent session, most likely started from another tab/device.
       BM.toast(
         e.code === '23505'
-          ? 'Ai deja o tablă activă — încheie-o înainte de a porni una nouă.'
+          ? 'Ai deja o tablă activă, încheie-o înainte de a porni una nouă.'
           : 'Eroare: ' + e.message,
         'error'
       );
