@@ -48,6 +48,8 @@ const NAV_ICONS = {
   // its icon needs the exact same sizing class, not a lookalike.
   streak:      icon('flame',          { size: 16, className: 'token-widget__icon' }),
   theme:       icon('moon',           { size: 20 }),
+  favorite:    icon('heart',          { size: 16, className: 'nav__mobile-link__icon' }),
+  history:     icon('clock',          { size: 16, className: 'nav__mobile-link__icon' }),
 };
 
 for (const [key, svg] of Object.entries(NAV_ICONS)) {
@@ -130,8 +132,8 @@ const TEMPLATE = `    <div class="nav__inner container">
       <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html">\${pachete}Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">Istoric rezolvări</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">\${favorite}Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">\${history}Istoric rezolvări</button>
     </div>
 `;
 

@@ -19,8 +19,24 @@ BM.onNavReady(function () {
   // the exact scroll position on close.
   let lockedY = 0;
 
+  /* Rows land one after another, top to bottom. The order is read off
+     the screen (not the DOM): the sign-in key is moved to the top, the
+     status chips and theme key are re-ordered by CSS, and which rows
+     exist differs for guests and signed-in users. Hidden rows (no
+     layout boxes) are skipped, so the sequence has no gaps. */
+  function orderRows() {
+    const rows = Array.from(menu.querySelectorAll(':scope > *, .nav__mobile-utility-row > *'))
+      .filter(el => el.getClientRects().length);
+    rows.sort((a, b) => {
+      const ra = a.getBoundingClientRect(), rb = b.getBoundingClientRect();
+      return (ra.top - rb.top) || (ra.left - rb.left);
+    });
+    rows.forEach((el, i) => el.style.setProperty('--i', i));
+  }
+
   function openMenu() {
     lockedY = window.scrollY;
+    orderRows();
     menu.classList.add('open');
     hamburger.classList.add('open');
     document.body.style.position = 'fixed';

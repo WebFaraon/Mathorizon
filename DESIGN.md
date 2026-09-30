@@ -410,3 +410,9 @@ Signed-out landing (signed-in visitors are redirected to Capitole). Styles in `c
 - **Hero figures:** numbers and the check mark are left-aligned in their column.
 - **Phone navbar keys:** menu, sign-in and avatar are all 40px tall.
 - **Motion:** headline lines rise out of masks, the text settles, the calculator slides up and its MODE keys land one after another (fill-mode backwards so their press still works); reduced motion shows the final state.
+
+### Phone menu (navbar, at 1150px and below)
+
+A panel of the navbar blue that unrolls from under the strip and rolls back up on close. Every row is one grid cell wide, so all keys share one width: the sign-in key (guests), the five destinations (the page you are on lit white), then a rule with air above and below, then the secondary keys, each with an icon: Exerciții favorite (heart), Istoric rezolvări (clock), and the theme key, which names what it does ("Tema întunecată" with a moon, "Tema luminoasă" with a sun; the label follows `data-theme` in CSS). Signed-in users get the streak and token chips on the last row, half a row each. The old "Mai multe" label is gone; the icons and the gap do that job.
+
+Rows drop in one after another, top to bottom. The order is read off the screen when the menu opens (`orderRows` in `js/utils.js` sets `--i` on every visible row), not from the DOM, because the sign-in key is moved to the top and the chips and theme key are re-ordered by CSS. The navbar partial is generated: icons live in `scripts/prebake-nav-icons.js`.
