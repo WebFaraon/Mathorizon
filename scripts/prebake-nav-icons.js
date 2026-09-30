@@ -132,8 +132,8 @@ const TEMPLATE = `    <div class="nav__inner container">
       <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html">\${pachete}Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('favBtn').click()">\${favorite}Exerciții favorite</button>
-      <button class="nav__mobile-link nav__mobile-link--action" onclick="document.getElementById('navMobileMenu').classList.remove('open');document.getElementById('histBtn').click()">\${history}Istoric rezolvări</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="BM.closeMobileMenu();document.getElementById('favBtn').click()">\${favorite}Exerciții favorite</button>
+      <button class="nav__mobile-link nav__mobile-link--action" onclick="BM.closeMobileMenu();document.getElementById('histBtn').click()">\${history}Istoric rezolvări</button>
     </div>
 `;
 

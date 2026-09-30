@@ -63,10 +63,12 @@ BM.onNavReady(function () {
 
   // Exposed so the "Exerciții favorite" / "Istoric rezolvări" buttons
   // inside the dropdown (partials/nav.html) can close the menu the same
-  // way the hamburger itself does, instead of only removing the menu's
-  // 'open' class — that partial fix used to leave the hamburger stuck
-  // showing its X icon and the body's scroll-lock (position:fixed) never
-  // released, freezing the page until a second hamburger click.
+  // way the hamburger itself does. They must call THIS, not just remove
+  // the menu's 'open' class inline: an inline handler runs before the
+  // click listener bound to every .nav__mobile-link below, so removing
+  // the class first made that listener's closeMenu() see a menu that was
+  // "already closed" and return early, leaving the hamburger stuck on its
+  // X icon and the body's scroll-lock (position:fixed) never released.
   BM.closeMobileMenu = closeMenu;
 
   document.addEventListener('click', function (e) {
