@@ -19989,6 +19989,10 @@ body:has(#root) {
     color: var(--nk-ink);
     text-align: left;
   }
+  /* A visitor without an account has no favorites or history (the bar's
+     own heart and clock are hidden for guests the same way), so the two
+     keys go; the theme key stays under the rule. */
+  html.bm-guest #nav-root .nav__mobile-link--action { display: none; }
   #nav-root .nav__mobile-menu #themeBtn { border-radius: 4px; }
   #nav-root .nav__mobile-menu #themeBtn svg { flex-shrink: 0; width: 16px; height: 16px; }
   /* The theme key names what it does; its icon (moon or sun) is swapped
