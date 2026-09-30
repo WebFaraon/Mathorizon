@@ -32,451 +32,331 @@
   <!-- SETUP VIEW -->
   <div id="setupView">
 
-    <!-- STEP 1: Choose simulation type -->
-    <div class="sim-choose" id="simChoose">
-      <!-- BAC Card -->
-      <div class="sim-card sim-card--bac" id="simCardBac">
-        <div class="sim-card-deco" aria-hidden="true">
-          <span style="--sz:130px;--t:4%;--l:58%">π</span>
-          <span style="--sz:100px;--t:52%;--l:4%">∑</span>
-          <span style="--sz:160px;--t:64%;--l:66%">∫</span>
-          <span style="--sz:88px;--t:18%;--l:22%">Δ</span>
-        </div>
-        <div class="sim-card-content">
-          <h2 class="sim-card-title">Simulare <em>BAC</em><br><span>Matematică</span></h2>
-          <div class="sim-card-rule"></div>
-          <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 3 ore ca la examenul real.</p>
-          <div class="sim-card-chips">
-            <div class="sim-chip sim-chip--blue"><span class="sim-chip__val">12</span><span class="sim-chip__lbl">Exerciții</span></div>
-            <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
-            <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">3h</span><span class="sim-chip__lbl">Timp</span></div>
-          </div>
-          <button type="button" class="sim-card-cta" onclick="selectSimType('bac')">Selectează Simulare BAC <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></button>
-        </div>
+    <!-- STEP 1: choose the exam. Two tickets under a display with the
+         student's own situation (js/sim-setup.js fills it from real data:
+         bac-history, BM.getTokens). Ids and handlers unchanged: js/bac.js
+         still drives simChoose, selectSimType, backToChoose. -->
+    <div class="st-choose" id="simChoose">
+      <header class="st-head">
+        <h1 class="st-title">Simulare de examen</h1>
+        <p class="st-lede">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Alegi examenul, apoi cum vei răspunde, iar la final îți primești nota.</p>
+      </header>
+
+      <div class="st-status st-boot" role="group" aria-label="Situația ta">
+        <div class="st-status__cell"><span class="st-status__lbl">Simulări finalizate</span><span class="st-status__val" id="stCount">0</span></div>
+        <div class="st-status__cell"><span class="st-status__lbl">Cea mai bună notă</span><span class="st-status__val" id="stBest">-.--</span></div>
+        <div class="st-status__cell"><span class="st-status__lbl">ExamTokenuri</span><span class="st-status__val" id="stTokens">0</span></div>
       </div>
 
-      <!-- Divider -->
-      <div class="sim-choose-divider"><span>sau</span></div>
-
-      <!-- Evaluare Națională (clasa a IX-a) Card — activă, aceeași structură
-           și flux ca sim-card--bac (vezi natlSetupExpanded mai jos); doar
-           denumirea și culoarea (mov, nu albastru) diferă. Conținutul
-           (exercițiile de mai jos sunt încă cele de BAC) e provizoriu —
-           urmează să fie înlocuit cu structura reală de clasa a IX-a. -->
-      <div class="sim-card sim-card--natl" id="simCardNatl">
-        <div class="sim-card-deco" aria-hidden="true">
-          <span style="--sz:120px;--t:6%;--l:60%">√</span>
-          <span style="--sz:95px;--t:55%;--l:3%">x²</span>
-          <span style="--sz:150px;--t:62%;--l:68%">∞</span>
-          <span style="--sz:80px;--t:20%;--l:20%">±</span>
-        </div>
-        <div class="sim-card-content">
-          <h2 class="sim-card-title">Evaluare <em>Națională</em><br><span>Clasa a IX-a</span></h2>
-          <div class="sim-card-rule"></div>
-          <p class="sim-card-desc">12 exerciții generate aleator, câte unul per tip, fără repetare. Lucrezi 2 ore ca la examenul real.</p>
-          <div class="sim-card-chips">
-            <div class="sim-chip sim-chip--blue"><span class="sim-chip__val">12</span><span class="sim-chip__lbl">Exerciții</span></div>
-            <div class="sim-chip sim-chip--amber"><span class="sim-chip__val">100</span><span class="sim-chip__lbl">Puncte</span></div>
-            <div class="sim-chip sim-chip--teal"><span class="sim-chip__val">2h</span><span class="sim-chip__lbl">Timp</span></div>
-          </div>
-          <button type="button" class="sim-card-cta" onclick="selectSimType('natl')">Selectează Evaluarea Națională <span class="sim-card-arrow"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h14"></path><path d="m12 5 7 7-7 7"></path></svg></span></button>
-        </div>
+      <div class="st-tickets">
+      <article class="st-ticket st-ticket--blue" id="simCardBac" data-exam="bac">
+        <div class="st-ticket__top"><span>Clasa a XII-a</span></div>
+        <h2 class="st-ticket__title">Simulare BAC <span>Matematică</span></h2>
+        <p class="st-ticket__desc">Lucrezi 3 ore, ca la examenul real. La final te autoevaluezi și primești nota.</p>
+        <div class="st-perf" aria-hidden="true"></div>
+        <dl class="st-fields"><div><dt>Exerciții</dt><dd>12</dd></div><div><dt>Puncte</dt><dd>100</dd></div><div><dt>Timp</dt><dd>3h</dd></div></dl>
+        <button type="button" class="st-key st-key--primary st-key--block" onclick="selectSimType('bac')">Selectează Simularea BAC</button>
+      </article>
+      <article class="st-ticket st-ticket--green" id="simCardNatl" data-exam="natl">
+        <div class="st-ticket__top"><span>Clasa a IX-a</span></div>
+        <h2 class="st-ticket__title">Evaluare Națională <span>Clasa a IX-a</span></h2>
+        <p class="st-ticket__desc">Lucrezi 2 ore, ca la examenul real. La final te autoevaluezi și primești nota.</p>
+        <div class="st-perf" aria-hidden="true"></div>
+        <dl class="st-fields"><div><dt>Exerciții</dt><dd>12</dd></div><div><dt>Puncte</dt><dd>100</dd></div><div><dt>Timp</dt><dd>2h</dd></div></dl>
+        <button type="button" class="st-key st-key--primary st-key--block" onclick="selectSimType('natl')">Selectează Evaluarea Națională</button>
+      </article>
       </div>
     </div>
 
-    <!-- STEP 2a: BAC expanded setup -->
-    <div class="bac-setup-page" id="bacSetupExpanded" style="display:none">
+    <!-- STEP 2: the chosen exam opened up: its ticket, how you will answer,
+         the start key, and the printed structure of the exam. The Evaluare
+         Națională page keeps the BAC exercise structure for now (the real
+         grade IX content does not exist yet), same as before. -->
+    <div class="st-setup" id="bacSetupExpanded" style="display:none">
+      <div class="st-setup__bar">
+        <a class="st-key st-key--sm" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
+      </div>
+      <div class="st-setup__grid">
 
-      <!-- LEFT: hero -->
-      <div class="bac-setup-left">
-        <a class="bac-back-btn" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
-        <div class="bac-setup-deco" aria-hidden="true">
-          <span style="--sz:140px;--t:2%;--l:62%">π</span>
-          <span style="--sz:110px;--t:50%;--l:2%">∑</span>
-          <span style="--sz:170px;--t:66%;--l:70%">∫</span>
-          <span style="--sz:95px;--t:16%;--l:24%">Δ</span>
-          <span style="--sz:120px;--t:80%;--l:34%">α</span>
-          <span style="--sz:80px;--t:33%;--l:76%">∞</span>
+        <div class="st-setup__left">
+          <article class="st-ticket st-ticket--blue st-ticket--open" data-exam="bac">
+            <div class="st-ticket__top"><span>BAC Moldova, structura oficială 2022+</span></div>
+            <h1 class="st-ticket__title">Simulare BAC <span>Matematică</span></h1>
+            <p class="st-ticket__desc">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Lucrezi 3 ore ca la examenul real. La final te autoevaluezi și primești nota.</p>
+            <div class="st-perf" aria-hidden="true"></div>
+            <dl class="st-fields"><div><dt>Exerciții</dt><dd>12</dd></div><div><dt>Puncte</dt><dd>100</dd></div><div><dt>Timp</dt><dd>3h</dd></div></dl>
+          </article>
+
+          <section class="st-method" aria-labelledby="bacMethodLbl">
+            <h2 class="st-h" id="bacMethodLbl">Cum vei rezolva exercițiile?</h2>
+            <div class="st-method__keys" id="bacMethodGrid">
+              <button class="st-method__key" type="button" data-method="canvas" aria-pressed="false" onclick="selectAnswerMethod('canvas')">
+                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
+                <span class="st-method__text"><b>Canvas digital</b><small>Scrie direct în aplicație cu mouse, stylus sau deget</small></span>
+              </button>
+              <button class="st-method__key" type="button" data-method="photo" aria-pressed="false" onclick="selectAnswerMethod('photo')">
+                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
+                <span class="st-method__text"><b>Încarcă poze</b><small>Rezolvă pe foaie și încarcă poza rezolvării</small></span>
+              </button>
+            </div>
+          </section>
+
+          <div class="st-start">
+            <p class="st-start__note" data-token-note>Alege mai întâi cum vei răspunde.</p>
+            <button class="st-key st-key--primary st-key--block st-start-key" id="bacStartBtn" onclick="startExam('bac')" disabled><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Pornește Simularea BAC</button>
+          </div>
         </div>
 
-        <div class="bac-setup-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.42 10.922a1 1 0 0 0-.019-1.838L12.83 5.18a2 2 0 0 0-1.66 0L2.6 9.08a1 1 0 0 0 0 1.832l8.57 3.908a2 2 0 0 0 1.66 0z"></path><path d="M22 10v6"></path><path d="M6 12.5V16a6 3 0 0 0 12 0v-3.5"></path></svg> BAC Moldova — Structură Oficială 2022+</div>
-        <h1 class="bac-setup-title">Simulare <em>BAC</em><br><span>Matematică</span></h1>
-        <div class="bac-title-rule"></div>
-        <p class="bac-setup-desc">
-          12 exerciții generate aleator, câte unul per tip, fără repetare de teme.
-          Lucrezi 3 ore ca la examen real. La final te autoevaluezi și primești nota.
-        </p>
-
-        <div class="bac-setup-chips">
-          <div class="bac-chip bac-chip--blue">
-            <div class="bac-chip__val">12</div>
-            <div class="bac-chip__lbl">Exerciții</div>
-          </div>
-          <div class="bac-chip bac-chip--amber">
-            <div class="bac-chip__val">100</div>
-            <div class="bac-chip__lbl">Puncte</div>
-          </div>
-          <div class="bac-chip bac-chip--teal">
-            <div class="bac-chip__val">3h</div>
-            <div class="bac-chip__lbl">Timp</div>
-          </div>
+        <div class="st-setup__right">
+          <section class="st-sheet" aria-labelledby="bacSheetLbl">
+            <h2 class="st-h" id="bacSheetLbl">Structura examenului</h2>
+            <div class="st-rows__head" aria-hidden="true"><span>Exercițiu</span><span></span><span>Nivel</span><span>Punctaj</span></div>
+            <ol class="st-rows">
+            <li class="st-row">
+              <span class="st-row__num">Ex. 1</span>
+              <span class="st-row__desc">Calcul Algebric</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 2</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 3</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 4</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 5</span>
+              <span class="st-row__desc">Trigonometrie / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 6</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 7</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 8</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 9</span>
+              <span class="st-row__desc">Șiruri / Progresii / Studiul unor funcții</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10a</span>
+              <span class="st-row__desc">Puncte de extrem local / Puncte de inflexiune / Ecuația tangentei</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10b</span>
+              <span class="st-row__desc">Limite / Aria subgraficului / Ecuația asimptotei oblice</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10c</span>
+              <span class="st-row__desc">Aria subgraficului / Volumul corpului de rotație</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 11</span>
+              <span class="st-row__desc">Probabilitate</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 12</span>
+              <span class="st-row__desc">Binomul lui Newton</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            </ol>
+            <div class="st-total"><span>Total</span><span>100p</span></div>
+          </section>
         </div>
 
-        <div class="bac-method-label">Cum vei rezolva exercițiile?</div>
-        <div class="bac-method-grid" id="bacMethodGrid">
-          <button class="bac-method-btn" type="button" data-method="canvas" onclick="selectAnswerMethod('canvas')">
-            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
-            <span class="bac-method-btn__title">Canvas digital</span>
-            <span class="bac-method-btn__desc">Scrie direct în aplicație cu mouse/stylus/deget</span>
-          </button>
-          <button class="bac-method-btn" type="button" data-method="photo" onclick="selectAnswerMethod('photo')">
-            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
-            <span class="bac-method-btn__title">Încarcă poze</span>
-            <span class="bac-method-btn__desc">Rezolvă pe foaie și încarcă poza rezolvării</span>
-          </button>
-        </div>
-
-        <button class="bac-start-btn" id="bacStartBtn" onclick="startExam('bac')" disabled>
-          <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Pornește Simularea BAC
-        </button>
       </div>
 
-      <!-- RIGHT: structure + history -->
-      <div class="bac-setup-right">
-        <div class="bac-struct-table">
-          <div class="bac-struct-head">
-            <span>Structura examenului</span>
-            <span>Dificultate</span>
-            <span>Punctaj</span>
-          </div>
-          <div class="bac-struct-rows">
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 1</span>
-              <span class="bac-struct-desc">Calcul Algebric</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 2</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 3</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 4</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 5</span>
-              <span class="bac-struct-desc">Trigonometrie / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 6</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 7</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 8</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 9</span>
-              <span class="bac-struct-desc">Șiruri / Progresii / Studiul unor funcții</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10a</span>
-              <span class="bac-struct-desc">Puncte de extrem local / Puncte de inflexiune / Ecuația tangentei</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10b</span>
-              <span class="bac-struct-desc">Limite / Aria subgraficului / Ecuația asimptotei oblice</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10c</span>
-              <span class="bac-struct-desc">Aria subgraficului / Volumul corpului de rotație</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 11</span>
-              <span class="bac-struct-desc">Probabilitate</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 12</span>
-              <span class="bac-struct-desc">Binomul lui Newton</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-          </div>
-          <div class="bac-struct-total">
-            <span>Total</span>
-            <span></span>
-            <span>100p</span>
-          </div>
-        </div>
-
-        <div class="bac-tips">
-          <div class="bac-tips__head">Sfaturi pentru succes</div>
-          <div class="bac-tips__grid">
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg></span>
-              <div>
-                <div class="bac-tip__title">Gestionează timpul</div>
-                <div class="bac-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg></span>
-              <div>
-                <div class="bac-tip__title">Citește atent enunțul</div>
-                <div class="bac-tip__desc">Înțelege ce se cere înainte de a calcula.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
-              <div>
-                <div class="bac-tip__title">Notează toți pașii</div>
-                <div class="bac-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
-              <div>
-                <div class="bac-tip__title">Începe cu ce știi</div>
-                <div class="bac-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="st-tips" aria-labelledby="bacTipsLbl">
+        <h2 class="st-h" id="bacTipsLbl">Sfaturi pentru succes</h2>
+        <ul class="st-tips__list">
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg> Gestionează timpul</span><span class="st-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg> Citește atent enunțul</span><span class="st-tip__desc">Înțelege ce se cere înainte de a calcula.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg> Notează toți pașii</span><span class="st-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Începe cu ce știi</span><span class="st-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</span></li>
+        </ul>
+      </section>
     </div>
 
-    <!-- STEP 2a-bis: Evaluare Națională expanded setup — exact copy of the BAC
-         setup page's structure/behavior (see comment on sim-card--natl above);
-         only the name and the accent color (purple, via bac-setup-left--natl)
-         differ. The exercise structure/table below is still the BAC one —
-         intentionally left as-is until real clasa a IX-a content exists. -->
-    <div class="bac-setup-page" id="natlSetupExpanded" style="display:none">
+<div class="st-setup" id="natlSetupExpanded" style="display:none">
+      <div class="st-setup__bar">
+        <a class="st-key st-key--sm" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
+      </div>
+      <div class="st-setup__grid">
 
-      <!-- LEFT: hero -->
-      <div class="bac-setup-left bac-setup-left--natl">
-        <a class="bac-back-btn" href="#" onclick="backToChoose(event)"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Înapoi</a>
-        <div class="bac-setup-deco" aria-hidden="true">
-          <span style="--sz:140px;--t:2%;--l:62%">π</span>
-          <span style="--sz:110px;--t:50%;--l:2%">∑</span>
-          <span style="--sz:170px;--t:66%;--l:70%">∫</span>
-          <span style="--sz:95px;--t:16%;--l:24%">Δ</span>
-          <span style="--sz:120px;--t:80%;--l:34%">α</span>
-          <span style="--sz:80px;--t:33%;--l:76%">∞</span>
-        </div>
+        <div class="st-setup__left">
+          <article class="st-ticket st-ticket--green st-ticket--open" data-exam="natl">
+            <div class="st-ticket__top"><span>Evaluare Națională, clasa a IX-a</span></div>
+            <h1 class="st-ticket__title">Evaluare Națională <span>Clasa a IX-a</span></h1>
+            <p class="st-ticket__desc">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Lucrezi 2 ore ca la examenul real. La final te autoevaluezi și primești nota.</p>
+            <div class="st-perf" aria-hidden="true"></div>
+            <dl class="st-fields"><div><dt>Exerciții</dt><dd>12</dd></div><div><dt>Puncte</dt><dd>100</dd></div><div><dt>Timp</dt><dd>2h</dd></div></dl>
+          </article>
 
-        <div class="bac-setup-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M14 21v-3a2 2 0 0 0-4 0v3"></path><path d="M18 4.933V21"></path><path d="m4 6 7.106-3.79a2 2 0 0 1 1.788 0L20 6"></path><path d="m6 11-3.52 2.147a1 1 0 0 0-.48.854V19a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-5a1 1 0 0 0-.48-.853L18 11"></path><path d="M6 4.933V21"></path><circle cx="12" cy="9" r="2"></circle></svg> Evaluare Națională — Clasa a IX-a</div>
-        <h1 class="bac-setup-title">Evaluare <em>Națională</em><br><span>Clasa a IX-a</span></h1>
-        <div class="bac-title-rule"></div>
-        <p class="bac-setup-desc">
-          12 exerciții generate aleator, câte unul per tip, fără repetare de teme.
-          Lucrezi 2 ore ca la examen real. La final te autoevaluezi și primești nota.
-        </p>
+          <section class="st-method" aria-labelledby="natlMethodLbl">
+            <h2 class="st-h" id="natlMethodLbl">Cum vei rezolva exercițiile?</h2>
+            <div class="st-method__keys" id="natlMethodGrid">
+              <button class="st-method__key" type="button" data-method="canvas" aria-pressed="false" onclick="selectAnswerMethod('canvas')">
+                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
+                <span class="st-method__text"><b>Canvas digital</b><small>Scrie direct în aplicație cu mouse, stylus sau deget</small></span>
+              </button>
+              <button class="st-method__key" type="button" data-method="photo" aria-pressed="false" onclick="selectAnswerMethod('photo')">
+                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
+                <span class="st-method__text"><b>Încarcă poze</b><small>Rezolvă pe foaie și încarcă poza rezolvării</small></span>
+              </button>
+            </div>
+          </section>
 
-        <div class="bac-setup-chips">
-          <div class="bac-chip bac-chip--blue">
-            <div class="bac-chip__val">12</div>
-            <div class="bac-chip__lbl">Exerciții</div>
-          </div>
-          <div class="bac-chip bac-chip--amber">
-            <div class="bac-chip__val">100</div>
-            <div class="bac-chip__lbl">Puncte</div>
-          </div>
-          <div class="bac-chip bac-chip--teal">
-            <div class="bac-chip__val">2h</div>
-            <div class="bac-chip__lbl">Timp</div>
+          <div class="st-start">
+            <p class="st-start__note" data-token-note>Alege mai întâi cum vei răspunde.</p>
+            <button class="st-key st-key--primary st-key--block st-start-key" id="natlStartBtn" onclick="startExam('natl')" disabled><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Pornește Evaluarea Națională</button>
           </div>
         </div>
 
-        <div class="bac-method-label">Cum vei rezolva exercițiile?</div>
-        <div class="bac-method-grid" id="natlMethodGrid">
-          <button class="bac-method-btn" type="button" data-method="canvas" onclick="selectAnswerMethod('canvas')">
-            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
-            <span class="bac-method-btn__title">Canvas digital</span>
-            <span class="bac-method-btn__desc">Scrie direct în aplicație cu mouse/stylus/deget</span>
-          </button>
-          <button class="bac-method-btn" type="button" data-method="photo" onclick="selectAnswerMethod('photo')">
-            <span class="bac-method-btn__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
-            <span class="bac-method-btn__title">Încarcă poze</span>
-            <span class="bac-method-btn__desc">Rezolvă pe foaie și încarcă poza rezolvării</span>
-          </button>
+        <div class="st-setup__right">
+          <section class="st-sheet" aria-labelledby="natlSheetLbl">
+            <h2 class="st-h" id="natlSheetLbl">Structura examenului</h2>
+            <div class="st-rows__head" aria-hidden="true"><span>Exercițiu</span><span></span><span>Nivel</span><span>Punctaj</span></div>
+            <ol class="st-rows">
+            <li class="st-row">
+              <span class="st-row__num">Ex. 1</span>
+              <span class="st-row__desc">Calcul Algebric</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 2</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 3</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 4</span>
+              <span class="st-row__desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 5</span>
+              <span class="st-row__desc">Trigonometrie / Ecuații / Inecuații</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 6</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 7</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 8</span>
+              <span class="st-row__desc">Geometrie plană / spațiu</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 9</span>
+              <span class="st-row__desc">Șiruri / Progresii / Studiul unor funcții</span>
+              <span class="st-lvl st-lvl--comun">Comun</span>
+              <span class="st-row__pts">5p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10a</span>
+              <span class="st-row__desc">Puncte de extrem local / Puncte de inflexiune / Ecuația tangentei</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10b</span>
+              <span class="st-row__desc">Limite / Aria subgraficului / Ecuația asimptotei oblice</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 10c</span>
+              <span class="st-row__desc">Aria subgraficului / Volumul corpului de rotație</span>
+              <span class="st-lvl st-lvl--epic">Epic</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 11</span>
+              <span class="st-row__desc">Probabilitate</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            <li class="st-row">
+              <span class="st-row__num">Ex. 12</span>
+              <span class="st-row__desc">Binomul lui Newton</span>
+              <span class="st-lvl st-lvl--rar">Rar</span>
+              <span class="st-row__pts">8p</span>
+            </li>
+            </ol>
+            <div class="st-total"><span>Total</span><span>100p</span></div>
+          </section>
         </div>
 
-        <button class="bac-start-btn" id="natlStartBtn" onclick="startExam('natl')" disabled>
-          <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Pornește Evaluarea Națională
-        </button>
       </div>
 
-      <!-- RIGHT: structure — identic cu cel de BAC pentru moment -->
-      <div class="bac-setup-right">
-        <div class="bac-struct-table">
-          <div class="bac-struct-head">
-            <span>Structura examenului</span>
-            <span>Dificultate</span>
-            <span>Punctaj</span>
-          </div>
-          <div class="bac-struct-rows">
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 1</span>
-              <span class="bac-struct-desc">Calcul Algebric</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 2</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 3</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 4</span>
-              <span class="bac-struct-desc">Numere Complexe / Polinoame / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 5</span>
-              <span class="bac-struct-desc">Trigonometrie / Ecuații / Inecuații</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 6</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 7</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 8</span>
-              <span class="bac-struct-desc">Geometrie plană / spațiu</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 9</span>
-              <span class="bac-struct-desc">Șiruri / Progresii / Studiul unor funcții</span>
-              <span class="bac-struct-diff bac-struct-diff--usor">Ușor</span>
-              <span class="bac-struct-pts">5p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10a</span>
-              <span class="bac-struct-desc">Puncte de extrem local / Puncte de inflexiune / Ecuația tangentei</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10b</span>
-              <span class="bac-struct-desc">Limite / Aria subgraficului / Ecuația asimptotei oblice</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 10c</span>
-              <span class="bac-struct-desc">Aria subgraficului / Volumul corpului de rotație</span>
-              <span class="bac-struct-diff bac-struct-diff--greu">Greu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 11</span>
-              <span class="bac-struct-desc">Probabilitate</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-            <div class="bac-struct-row">
-              <span class="bac-struct-num">Ex. 12</span>
-              <span class="bac-struct-desc">Binomul lui Newton</span>
-              <span class="bac-struct-diff bac-struct-diff--mediu">Mediu</span>
-              <span class="bac-struct-pts">8p</span>
-            </div>
-          </div>
-          <div class="bac-struct-total">
-            <span>Total</span>
-            <span></span>
-            <span>100p</span>
-          </div>
-        </div>
-
-        <div class="bac-tips">
-          <div class="bac-tips__head">Sfaturi pentru succes</div>
-          <div class="bac-tips__grid">
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg></span>
-              <div>
-                <div class="bac-tip__title">Gestionează timpul</div>
-                <div class="bac-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg></span>
-              <div>
-                <div class="bac-tip__title">Citește atent enunțul</div>
-                <div class="bac-tip__desc">Înțelege ce se cere înainte de a calcula.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
-              <div>
-                <div class="bac-tip__title">Notează toți pașii</div>
-                <div class="bac-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</div>
-              </div>
-            </div>
-            <div class="bac-tip">
-              <span class="bac-tip__icon"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg></span>
-              <div>
-                <div class="bac-tip__title">Începe cu ce știi</div>
-                <div class="bac-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+      <section class="st-tips" aria-labelledby="natlTipsLbl">
+        <h2 class="st-h" id="natlTipsLbl">Sfaturi pentru succes</h2>
+        <ul class="st-tips__list">
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="10" x2="14" y1="2" y2="2"></line><line x1="12" x2="15" y1="14" y2="11"></line><circle cx="12" cy="14" r="8"></circle></svg> Gestionează timpul</span><span class="st-tip__desc">~15 minute per exercițiu. Nu te bloca la unul singur.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v16"></path><path d="M20.001 19A2 2 0 0022 17V5a2 2 0 00-1.999-2L16 3.002A5 5 0 0012 5a5 5 0 00-4-2H4a2 2 0 00-2 2v12a2 2 0 001.999 2H8a5 5 0 014 2 5 5 0 014-2z"></path></svg> Citește atent enunțul</span><span class="st-tip__desc">Înțelege ce se cere înainte de a calcula.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg> Notează toți pașii</span><span class="st-tip__desc">La autoevaluare compari pașii tăi cu soluția oficială.</span></li>
+        <li class="st-tip"><span class="st-tip__title"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Începe cu ce știi</span><span class="st-tip__desc">Rezolvă exercițiile sigure mai întâi, revino la restul.</span></li>
+        </ul>
+      </section>
     </div>
 
-    <!-- STEP 2b: Lectie de Proba expanded setup -->
+<!-- STEP 2b: Lectie de Proba expanded setup -->
     <div class="lectie-setup-page" id="lectieSetupExpanded" style="display:none">
 
       <!-- LEFT: hero -->
@@ -655,6 +535,7 @@
   <script src="js/custom-exercises.js"></script>
   <script src="js/drawing-canvas.js"></script>
   <script src="js/photo-upload.js"></script>
+  <script src="js/sim-setup.js"></script>
   <script src="js/bac.js"></script>
 </body>
 </html>

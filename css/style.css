@@ -19723,8 +19723,9 @@ body.dc-fullscreen-active .dc-toolbar {
    theme only — dark theme's near-black --bg is untouched). Capitole
    (#root), category.html (#catHeader), profile.html (#profileContent)
    and index.html (.landing-main) are not in this list: they paint the
-   calculator world's chassis ground (css/calculator.css). #setupView
-   only on bac.html, so this doesn't touch any other page.
+   calculator world's chassis ground (css/calculator.css). bac.html's
+   setup view (#setupView showing) does too; only its exam and results
+   views (#setupView hidden) keep the legacy ground below.
    The grid itself stays — a flat page with no pattern at all read as
    empty — just fainter than the site-wide default (roughly half the
    alpha) so it doesn't compete with the cards on top of it. !important +
@@ -19732,16 +19733,16 @@ body.dc-fullscreen-active .dc-toolbar {
    [data-theme="dark"] body override above without needing to duplicate
    per theme.
    ============================================================ */
-html:not([data-theme="dark"]) body:has(#setupView) {
+html:not([data-theme="dark"]) body:has(#setupView[style*="none"]) {
   background-color: #fff !important;
 }
-body:has(#setupView) {
+body:has(#setupView[style*="none"]) {
   background-image:
     linear-gradient(rgba(100, 82, 55, 0.05) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.05) 1px, transparent 1px) !important;
   background-size: 28px 28px !important;
 }
-html[data-theme="dark"] body:has(#setupView) {
+html[data-theme="dark"] body:has(#setupView[style*="none"]) {
   background-image:
     linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
     linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px) !important;

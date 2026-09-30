@@ -455,6 +455,7 @@
     showView('setupView');
     _showSetupPanel(panel || 'choose');
     renderHistory();
+    if (window.BMSimSetup) BMSimSetup.refresh();
   }
 
   /* ---- Setup sub-panels (choose / bac / natl / lectie) ---- */
@@ -523,13 +524,16 @@
 
   window.selectAnswerMethod = function (method) {
     _answerMethod = method;
-    document.querySelectorAll('.bac-method-btn').forEach(btn => {
-      btn.classList.toggle('selected', btn.dataset.method === method);
+    document.querySelectorAll('.st-method__key').forEach(btn => {
+      const on = btn.dataset.method === method;
+      btn.classList.toggle('selected', on);
+      btn.setAttribute('aria-pressed', String(on));
     });
+    if (window.BMSimSetup) BMSimSetup.methodPicked();
     // Enables whichever start button belongs to the visible panel (bac or
     // natl) — harmless to also flip the hidden one's disabled state since
     // it's not interactable while its panel is display:none.
-    document.querySelectorAll('.bac-start-btn').forEach(btn => { btn.disabled = false; });
+    document.querySelectorAll('.st-start-key').forEach(btn => { btn.disabled = false; });
   };
 
   /* ---- Lectie de Proba: grade selection & exam ---- */
