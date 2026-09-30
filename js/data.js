@@ -6916,6 +6916,22 @@ BM.EXERCISES = [
       { descriere: "Scrierea răspunsului corect: $\\boxed{\\operatorname{arctg} e^x - \\frac{\\pi}{3}}$", puncte_maxime: 1, explicatie: "Înlocuim valoarea constantei $C$ determinată anterior în expresia funcției $G(x)$ pentru a scrie răspunsul final:\n$$G(x) = \\operatorname{arctg} e^x - \\frac{\\pi}{3}$$" }
     ]
   },
+  {
+    id: 'an-int-004', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC Moldova',
+    title: 'Integrală cu descompunere și substituția t = ln x',
+    statement: 'Fie funcția $f\\colon (0; +\\infty) \\to \\mathbb{R}$, $f(x) = 4\\ln x - x$.\n\nCalculați:\n$$\\int_{1}^{e} \\frac{f(x)}{x}\\,dx$$',
+    solution: '**Pasul 1.** Simplificarea expresiei de sub integrală.\n$$\\frac{f(x)}{x} = \\frac{4\\ln x - x}{x} = 4\\frac{\\ln x}{x} - 1$$\nDeci\n$$\\int_{1}^{e} \\frac{f(x)}{x}\\,dx = 4\\int_{1}^{e} \\frac{\\ln x}{x}\\,dx - \\int_{1}^{e} 1\\,dx$$\n\n**Pasul 2.** O primitivă a funcției $h(x) = 1$ este $H(x) = x$.\n\n**Pasul 3.** O primitivă a funcției $g(x) = 4\\frac{\\ln x}{x}$, prin substituția $t = \\ln x$.\nDin $t = \\ln x$ obținem $dt = \\frac{1}{x}\\,dx$, deci\n$$\\int 4\\frac{\\ln x}{x}\\,dx = \\int 4t\\,dt = 2t^2 + C = 2\\ln^2 x + C$$\nO primitivă este $G(x) = 2\\ln^2 x$.\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz, cu primitiva $F(x) = 2\\ln^2 x - x$ a lui $\\frac{f(x)}{x}$.\n$$\\int_{1}^{e} \\frac{f(x)}{x}\\,dx = F(e) - F(1) = (2 - e) - (0 - 1) = 3 - e$$\n\n$$\\boxed{3 - e}$$',
+    barem: [
+      { descriere: "$\\frac{f(x)}{x} = 4\\frac{\\ln x}{x} - 1$", puncte_maxime: 2, explicatie: "Înlocuim expresia funcției $f(x)$ în raportul de sub integrală și împărțim termen cu termen.\n$$\\begin{aligned} &\\frac{f(x)}{x} \\\\ &= \\frac{4\\ln x - x}{x} \\\\ &= 4\\frac{\\ln x}{x} - 1 \\end{aligned}$$" },
+      { descriere: "Determinarea unei primitive a funcției $h(x) = 1$", puncte_maxime: 1, explicatie: "Determinăm o primitivă a funcției $h(x) = 1$. Folosim formula de integrare pentru funcția constantă.\n$$\\int 1\\,dx = x$$\nAlegem primitiva:\n$$H(x) = x$$" },
+      { descriere: "Determinarea unei primitive a funcției $g(x) = 4\\frac{\\ln x}{x}$: notarea $t = \\ln x$", puncte_maxime: 1, explicatie: "Pentru a integra primul termen al integrandei, aplicăm metoda substituției. Notăm variabila nouă $t$ ca fiind logaritmul natural.\n$$g(x) = 4\\frac{\\ln x}{x}$$\n$$t = \\ln x$$" },
+      { descriere: "$dt = \\frac{1}{x}\\,dx$", puncte_maxime: 1, explicatie: "Calculăm diferențiala noii variabile $t$ prin derivarea funcției logaritmice în raport cu $x$ și înmulțirea cu diferențiala $dx$.\n$$dt = (\\ln x)'\\,dx$$\n$$dt = \\frac{1}{x}\\,dx$$" },
+      { descriere: "Primitiva funcției obținute", puncte_maxime: 1, explicatie: "Înlocuim $t$ și $dt$ în integrala nedefinită a funcției $g(x)$, integrăm în raport cu $t$ și revenim la variabila $x$.\n$$\\begin{aligned} &\\int 4\\frac{\\ln x}{x}\\,dx \\\\ &= \\int 4t\\,dt \\\\ &= 2t^2 \\\\ &= 2\\ln^2 x \\end{aligned}$$\n$$G(x) = 2\\ln^2 x$$" },
+      { descriere: "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{3 - e}$", puncte_maxime: 2, explicatie: "Scădem cele două primitive pentru a obține primitiva $F(x)$ a integrandei. Aplicăm formula Newton-Leibniz pe intervalul $[1, e]$, folosind valorile $\\ln e = 1$ și $\\ln 1 = 0$.\n$$F(x) = 2\\ln^2 x - x$$\n$$\\begin{aligned} F(e) &= 2\\ln^2 e - e \\\\ &= 2\\cdot 1^2 - e \\\\ &= 2 - e \\end{aligned}$$\n$$\\begin{aligned} F(1) &= 2\\ln^2 1 - 1 \\\\ &= 2\\cdot 0^2 - 1 \\\\ &= -1 \\end{aligned}$$\n$$\\begin{aligned} &\\int_{1}^{e} \\frac{f(x)}{x}\\,dx \\\\ &= F(e) - F(1) \\\\ &= (2 - e) - (-1) \\\\ &= 3 - e \\end{aligned}$$" }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri

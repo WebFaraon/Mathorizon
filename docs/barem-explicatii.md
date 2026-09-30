@@ -28,7 +28,7 @@ Regulile de mai jos sunt aceleași pe care le primește Gemini la generare și p
 
 1. Adaugi exercițiul în `js/data.js`, cu `barem[]` transcris din documentul oficial, și exemplul în `data/official-barem-examples.json`.
 2. Probă, fără scriere: `node scripts/generate-barem-explicatii.js --id <id>`. Citește rezultatul din log (calea e afișată la final). Verifică matematica pas cu pas, pentru că regulile de mai jos verifică forma, nu adevărul.
-3. Scrie: `node scripts/generate-barem-explicatii.js --id <id> --apply`.
+3. Scrie exact ce ai citit: `node scripts/generate-barem-explicatii.js --id <id> --apply --from-log <fișierul din pasul 2>`. Fără `--from-log`, `--apply` face o cerere nouă către Gemini, iar răspunsurile nu sunt deterministe nici la temperatură 0, deci ai scrie altceva decât ai verificat. Cu `--from-log` textul trece din nou prin ambele verificări și se scrie identic.
 4. Verifică tot: `npm run lint:explicatii`. Trebuie să iasă `OK`.
 
 Generatorul retrimite singur lui Gemini încălcările găsite, de cel mult 3 ori, și scrie doar un răspuns care a trecut de reguli. Dacă un exercițiu e respins de 3 ori, nu se scrie nimic pentru el și mesajul spune ce regulă a picat.
@@ -76,10 +76,11 @@ Forma corectă cu conținut subțire nu ajută un elev. Regulile de formă împi
 
 - **C1.** Calcul concret, nu reformulare a criteriului.
 - **C2. Autonomie.** Elevul citește doar enunțul și explicația pasului. Orice expresie care apare într-o formulă și nu e în enunț (integrandul simplificat, `G(3)`, noile limite) își arată originea în aceeași explicație.
-- **C3.** Nu se sare nicio operație. Nu „`G(3) = 6`", ci „`G(3) = 3^3/3 - 3 = 6`". Noile limite după o substituție se derivă. Nici operațiile cu fracții nu se sar. O valoare specială (trigonometrică, `arctg`, logaritm) se enunță și se justifică: „`arctg √3 = π/3`, deoarece `tg(π/3) = √3`". Fără „se știe că", „valoare cunoscută", „unghi cunoscut".
+- **C3.** Nu se sare nicio operație. Nu „`G(3) = 6`", ci „`G(3) = 3^3/3 - 3 = 6`". Noile limite după o substituție se derivă. Nici operațiile cu fracții nu se sar. O valoare specială (trigonometrică, `arctg`, logaritm) se enunță și se justifică: „`arctg √3 = π/3`, deoarece `tg(π/3) = √3`". La fel „`ln e = 1`" și „`ln 1 = 0`" se scriu când se folosesc. Fără „se știe că", „valoare cunoscută", „unghi cunoscut".
 - **C4.** O transformare pe care criteriul o presupune dar nu o scrie (simplificarea integrandului înainte de substituție) se include la începutul explicației.
 - **C5.** Doar ce ține de pas: nu anticipa pașii următori, nu relua pașii anteriori.
 - **C6.** Nu comprima ca să încapi (ai loc de 4 blocuri), dar nici rânduri consecutive care repetă același calcul.
+- **C7.** Operațiile se numesc exact. Nu „însumăm" când de fapt scădem: dacă integrandul e `g - h`, primitiva e `G - H`, o diferență. Un elev care citește atent poate rămâne cu o idee greșită chiar dacă formula de sub text e corectă.
 
 ## Ce verifică lintul, concret
 

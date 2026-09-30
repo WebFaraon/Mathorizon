@@ -21,6 +21,8 @@
      node scripts/generate-barem-explicatii.js --subcat integrale
      node scripts/generate-barem-explicatii.js --id an-int-001 --apply
      node scripts/generate-barem-explicatii.js --id an-int-001 --no-browser
+     node scripts/generate-barem-explicatii.js --id an-int-001 --apply --from-log <log.json>
+        (scrie exact ce ai citit intr-o proba anterioara, fara o cerere noua)
 
    Fără --apply nu se scrie nimic: doar afișează ce ar genera și
    salvează un log, ca să poată fi citit înainte de a fi crezut pe cuvânt.
@@ -49,6 +51,11 @@ const TARGET_SUBCAT = arg('subcat', null);
 const APPLY = argv.includes('--apply');
 const NO_BROWSER = argv.includes('--no-browser');
 const OUT = arg('out', null);
+// Scrie EXACT ce s-a citit intr-o proba anterioara, fara o cerere noua catre
+// Gemini: raspunsurile nu sunt deterministe nici la temperatura 0, deci un
+// --apply simplu ar scrie altceva decat ai verificat. Trece din nou prin ambele
+// verificari inainte de scriere.
+const FROM_LOG = arg('from-log', null);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 const model = genAI.getGenerativeModel({
@@ -168,10 +175,20 @@ async function main() {
   for (const ex of targets) {
     process.stdout.write(`${ex.id} ... `);
     try {
-      const r = await generateOne(ex);
+      let r;
+      if (FROM_LOG) {
+        const logData = JSON.parse(fs.readFileSync(FROM_LOG, 'utf8'));
+        const entry = logData.find(e => e.id === ex.id);
+        if (!entry || !Array.isArray(entry.pasi) || !entry.pasi.length) throw new Error(`nu exista ${ex.id} in ${FROM_LOG}`);
+        const list = entry.pasi.map(p => ({ nr: p.nr, explicatie: p.explicatie_gemini }));
+        const problems = await check(ex, list);
+        r = { list, raw: '', problems, attempts: 0 };
+      } else {
+        r = await generateOne(ex);
+      }
       console.log(r.problems.length
         ? `\n    RESPINS dupa ${r.attempts} incercari:\n${feedbackText(r.problems).replace(/^/gm, '      ')}`
-        : `ok (incercarea ${r.attempts})`);
+        : (r.attempts ? `ok (incercarea ${r.attempts})` : `ok (din log, reverificat)`));
       results.push({ id: ex.id, ex, ...r });
     } catch (err) {
       console.log('EROARE: ' + err.message);

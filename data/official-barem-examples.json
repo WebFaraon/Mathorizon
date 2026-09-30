@@ -1381,5 +1381,44 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrală definită cu descompunere și substituția t = ln x",
+    "enunt": "Fie funcția $f\\colon (0; +\\infty) \\to \\mathbb{R}$, $f(x) = 4\\ln x - x$.\n\nCalculați:\n$$\\int_{1}^{e} \\frac{f(x)}{x}\\,dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$\\frac{f(x)}{x} = 4\\frac{\\ln x}{x} - 1$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea unei primitive a funcției $h(x) = 1$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea unei primitive a funcției $g(x) = 4\\frac{\\ln x}{x}$: notarea $t = \\ln x$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "$dt = \\frac{1}{x}\\,dx$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 5,
+        "descriere": "Primitiva funcției obținute",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 6,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{3 - e}$",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]
