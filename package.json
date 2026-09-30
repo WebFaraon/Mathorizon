@@ -8,6 +8,7 @@
     "build:react": "vite build",
     "dev:react": "vite build --watch",
     "typecheck": "tsc --noEmit",
+    "lint:explicatii": "node scripts/lint-barem-explicatii.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {

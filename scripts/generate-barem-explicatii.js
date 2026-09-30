@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /* ============================================================
    Generează, cu Gemini, câmpul `explicatie` pentru pașii unui barem
-   deja existent în js/data.js — calculul desfășurat pe care îl vede
+   deja existent în js/data.js: calculul desfășurat pe care îl vede
    elevul sub criteriul oficial.
 
    `descriere` (criteriul oficial) NU se atinge: el e ce trimite
@@ -9,14 +9,21 @@
    deliberat agnostică față de metodă. Explicațiile sunt strict
    pedagogice.
 
+   Fiecare răspuns al lui Gemini trece prin două verificări înainte să fie
+   acceptat: regulile de conținut (scripts/_explicatie-rules.js) și lățimea
+   în browser real (scripts/_explicatie-browser-lint.js). Dacă pică, i se
+   retrimit exact încălcările și refă explicațiile, de cel mult MAX_ATTEMPTS
+   ori. Ce se scrie în data.js e chiar răspunsul verificat, nu o cerere nouă.
+   Regulile sunt descrise în docs/barem-explicatii.md.
+
    Usage:
      node scripts/generate-barem-explicatii.js --id an-int-001
      node scripts/generate-barem-explicatii.js --subcat integrale
      node scripts/generate-barem-explicatii.js --id an-int-001 --apply
+     node scripts/generate-barem-explicatii.js --id an-int-001 --no-browser
 
    Fără --apply nu se scrie nimic: doar afișează ce ar genera și
-   salvează un log în scratch, ca să poată fi citit înainte de a fi
-   crezut pe cuvânt.
+   salvează un log, ca să poată fi citit înainte de a fi crezut pe cuvânt.
    ============================================================ */
 'use strict';
 require('dotenv').config({ quiet: true });
@@ -26,8 +33,11 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { generateContentWithRetry } = require('../api/_gemini-retry');
 const { extractJson } = require('../api/_gemini-shared');
 const { buildBaremSpanMap, lineIndent } = require('./_data-barem-span');
+const { RULES_PROMPT, CONTENT_PROMPT, lintStatic } = require('./_explicatie-rules');
+const { lintLayout } = require('./_explicatie-browser-lint');
 
 const DATA_PATH = path.join(__dirname, '..', 'js', 'data.js');
+const MAX_ATTEMPTS = 3;
 
 const argv = process.argv.slice(2);
 const arg = (name, def) => {
@@ -37,6 +47,7 @@ const arg = (name, def) => {
 const ONLY_ID = arg('id', null);
 const TARGET_SUBCAT = arg('subcat', null);
 const APPLY = argv.includes('--apply');
+const NO_BROWSER = argv.includes('--no-browser');
 const OUT = arg('out', null);
 
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
@@ -49,10 +60,14 @@ global.window = global;
 require(DATA_PATH);
 const EXERCISES = global.BM.EXERCISES;
 
-function buildPrompt(ex) {
+function buildPrompt(ex, feedback) {
   const pasi = ex.barem
     .map((b, i) => `Pasul ${i + 1} (${b.puncte_maxime}p): ${b.descriere}`)
     .join('\n');
+
+  const retry = feedback
+    ? `\n\nRĂSPUNSUL TĂU ANTERIOR A ÎNCĂLCAT REGULILE DE FORMĂ:\n${feedback}\nRefă TOATE explicațiile, respectând regulile de formă de mai sus. Nu schimba matematica, doar forma.\n`
+    : '';
 
   return `Ești profesor de matematică și pregătești elevi pentru BAC-ul din Republica Moldova.
 
@@ -69,47 +84,66 @@ ${ex.solution}
 BAREMUL OFICIAL (${ex.puncteTotal}p în total):
 ${pasi}
 
-REGULI OBLIGATORII:
-1. O explicație per pas, exact ${ex.barem.length} explicații, în aceeași ordine.
-2. Explicația trebuie să conțină CALCULUL CONCRET, nu o reformulare a criteriului. Dacă criteriul zice "Determinarea unei primitive", explicația trebuie să arate ce formulă de integrare se aplică și să scrie primitiva rezultată.
-3. Explică DOAR ce ține de pasul respectiv. Nu anticipa pașii următori și nu relua pașii anteriori.
-4. Matematica se scrie în KaTeX: $...$ pentru formule în rând, $$...$$ pentru formule pe rând separat. Fără alte marcaje, fără **bold**, fără liste cu bulină.
-5. Scrie în română, cu diacritice, la persoana I plural ("integrăm", "notăm", "obținem"), ca la tablă.
-6. Nu inventa rezultate. Fiecare valoare numerică trebuie să rezulte din rezolvarea de mai sus.
-7. Între 1 și 4 propoziții per explicație, plus formulele. Concis, dar complet.
-8. Nu folosi caracterul — (liniuță lungă) nicăieri în text.
-9. LĂȚIMEA FORMULELOR. Explicațiile se citesc și pe telefon, unde o formulă $$...$$ are la dispoziție doar ~280 de pixeli, adică în jur de 35 de caractere de formulă pe rând. Orice formulă $$...$$ care ar depăși această lățime TREBUIE spartă pe mai multe rânduri cu mediul aligned, aliniind la semnul egal:
-$$\\begin{aligned} A &= B + C \\\\ &= D \\end{aligned}$$
-Un lanț de egalități cu trei sau mai mulți pași se scrie ÎNTOTDEAUNA așa, cu câte un rând per pas. La fel și o sumă de două sau mai multe integrale: fiecare integrală pe rândul ei. Nu lăsa niciodată o formulă lungă pe un singur rând.
+Scrie exact ${ex.barem.length} explicații, în aceeași ordine ca pașii. Matematica se scrie în KaTeX: $...$ pentru formule în rând, $$...$$ pentru formule pe rând separat.
 
+${CONTENT_PROMPT}
+
+${RULES_PROMPT}${retry}
 Răspunde STRICT cu JSON de forma:
 {"explicatii": [{"nr": 1, "explicatie": "..."}, {"nr": 2, "explicatie": "..."}]}`;
 }
 
-function validate(ex, out) {
-  const problems = [];
-  if (!Array.isArray(out)) return ['raspunsul nu contine un array `explicatii`'];
-  if (out.length !== ex.barem.length) {
-    problems.push(`asteptam ${ex.barem.length} explicatii, am primit ${out.length}`);
+/* Întoarce problemele pe pas: [{ step, msgs: [...] }] */
+async function check(ex, list) {
+  const perStep = [];
+  if (!Array.isArray(list)) return [{ step: 0, msgs: ['raspunsul nu contine un array `explicatii`'] }];
+  if (list.length !== ex.barem.length) {
+    return [{ step: 0, msgs: [`asteptam ${ex.barem.length} explicatii, am primit ${list.length}`] }];
   }
-  out.forEach((e, i) => {
-    const t = String(e.explicatie || '').trim();
-    if (!t) problems.push(`explicatia ${i + 1} e goala`);
-    if (t.includes('—')) problems.push(`explicatia ${i + 1} contine liniuta lunga`);
-    if (/\*\*/.test(t)) problems.push(`explicatia ${i + 1} contine **bold**`);
-    const dollars = (t.match(/\$/g) || []).length;
-    if (dollars % 2 !== 0) problems.push(`explicatia ${i + 1} are delimitatori $ neperechi (${dollars})`);
+
+  list.forEach((e, i) => {
+    const msgs = lintStatic(String(e.explicatie || ''));
+    if (msgs.length) perStep.push({ step: i + 1, msgs });
   });
-  return problems;
+  if (perStep.length) return perStep;   // pana nu trece continutul, latimea nu are sens
+
+  if (!NO_BROWSER) {
+    const layout = await lintLayout(list.map((e, i) => ({
+      criterion: ex.barem[i].descriere,
+      points: ex.barem[i].puncte_maxime,
+      explicatie: String(e.explicatie || '').trim()
+    })));
+    if (!layout.available) {
+      if (!check.warned) { console.log(`\n  ATENTIE: verificarea de latime nu a rulat (${layout.reason}). Se scrie doar cu regulile de continut.`); check.warned = true; }
+    } else {
+      layout.problems.forEach((msgs, i) => { if (msgs.length) perStep.push({ step: i + 1, msgs }); });
+    }
+  }
+  return perStep;
 }
 
-async function run(ex) {
-  const prompt = buildPrompt(ex);
-  const res = await generateContentWithRetry(model, [{ text: prompt }]);
-  const raw = res.response.text();
-  const parsed = extractJson(raw);
-  const list = parsed && Array.isArray(parsed.explicatii) ? parsed.explicatii : null;
-  return { list, raw };
+function feedbackText(problems) {
+  return problems.map(p => `- ${p.step ? 'Pasul ' + p.step + ': ' : ''}${p.msgs.join('; ')}`).join('\n');
+}
+
+async function generateOne(ex) {
+  let feedback = '';
+  let last = { list: null, raw: '', problems: [{ step: 0, msgs: ['nicio incercare'] }], attempts: 0 };
+  for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
+    const res = await generateContentWithRetry(model, [{ text: buildPrompt(ex, feedback) }]);
+    const raw = res.response.text();
+    let parsed = null;
+    try { parsed = extractJson(raw); } catch (e) { /* problems mai jos */ }
+    const list = parsed && Array.isArray(parsed.explicatii) ? parsed.explicatii : null;
+    const problems = await check(ex, list);
+    last = { list, raw, problems, attempts: attempt };
+    if (!problems.length) return last;
+    if (attempt < MAX_ATTEMPTS) {
+      process.stdout.write(`\n    incercarea ${attempt}: ${problems.length} pasi cu probleme, retrimit... `);
+      feedback = feedbackText(problems);
+    }
+  }
+  return last;
 }
 
 async function main() {
@@ -128,25 +162,27 @@ async function main() {
     process.exit(1);
   }
 
-  console.log(`${targets.length} exercitii de procesat (mod: ${APPLY ? 'APPLY' : 'DRY RUN'}).\n`);
+  console.log(`${targets.length} exercitii de procesat (mod: ${APPLY ? 'APPLY' : 'DRY RUN'}, cel mult ${MAX_ATTEMPTS} incercari fiecare).\n`);
 
   const results = [];
   for (const ex of targets) {
     process.stdout.write(`${ex.id} ... `);
     try {
-      const { list, raw } = await run(ex);
-      const problems = validate(ex, list);
-      console.log(problems.length ? `PROBLEME: ${problems.join('; ')}` : 'ok');
-      results.push({ id: ex.id, ex, list, raw, problems });
+      const r = await generateOne(ex);
+      console.log(r.problems.length
+        ? `\n    RESPINS dupa ${r.attempts} incercari:\n${feedbackText(r.problems).replace(/^/gm, '      ')}`
+        : `ok (incercarea ${r.attempts})`);
+      results.push({ id: ex.id, ex, ...r });
     } catch (err) {
       console.log('EROARE: ' + err.message);
-      results.push({ id: ex.id, ex, list: null, raw: '', problems: ['exceptie: ' + err.message] });
+      results.push({ id: ex.id, ex, list: null, raw: '', attempts: 0, problems: [{ step: 0, msgs: ['exceptie: ' + err.message] }] });
     }
   }
 
   const outPath = OUT || path.join(require('os').tmpdir(), 'barem-explicatii.json');
   fs.writeFileSync(outPath, JSON.stringify(results.map(r => ({
     id: r.id,
+    attempts: r.attempts,
     problems: r.problems,
     pasi: (r.list || []).map((e, i) => ({
       nr: i + 1,
@@ -162,12 +198,10 @@ async function main() {
     return;
   }
 
-  // ---- scriere ----
+  // ---- scriere: doar ce a trecut de ambele verificari ----
   const usable = results.filter(r => r.list && !r.problems.length);
   const skipped = results.filter(r => !r.list || r.problems.length);
-  if (skipped.length) {
-    skipped.forEach(r => console.log(`SARIT ${r.id}: ${r.problems.join('; ')}`));
-  }
+  skipped.forEach(r => console.log(`SARIT ${r.id}: respins de reguli, nu s-a scris nimic pentru el.`));
   if (!usable.length) {
     console.log('nimic de scris.');
     return;

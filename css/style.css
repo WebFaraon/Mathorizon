@@ -4265,11 +4265,16 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 }
 
 .rarity-step__detail {
-  flex: 0 0 100%;
-  /* 26px badge + 12px column-gap: keeps the block aligned under the criterion
-     text on wide screens. Dropped on phones, where the width matters more
-     than the indent. */
-  margin-left: 38px;
+  /* 26px badge + 12px column-gap = 38px indent, so the block sits under the
+     criterion text on wide screens (dropped on phones, where width matters
+     more than the indent). The indent MUST come out of the width: a plain
+     flex-basis:100% plus margin-left:38px makes the box 38px wider than the
+     step, and .rarity-modal__body is overflow-x:hidden, so the last 38px of
+     every line was silently cut off on tablet and desktop. */
+  --detail-indent: 38px;
+  flex: 0 0 calc(100% - var(--detail-indent));
+  max-width: calc(100% - var(--detail-indent));
+  margin-left: var(--detail-indent);
   margin-top: 1px;
   margin-bottom: -6px;
   padding-block: 6px;
@@ -4316,7 +4321,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 @media (max-width: 480px) {
   .rarity-modal__body { padding: 22px 14px; }
   .rarity-step { column-gap: 8px; }
-  .rarity-step__detail { margin-left: 0; padding-left: 9px; }
+  .rarity-step__detail { --detail-indent: 0px; padding-left: 9px; }
   .reveal-step__detail { padding-left: 9px; }
 }
 
