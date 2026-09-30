@@ -236,28 +236,6 @@
   margin-top: 30px;
 }
 
-.cap-hero__legend {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 0.74rem;
-  font-weight: 600;
-  color: var(--k-ink-3);
-}
-.cap-hero__legend-bar {
-  position: relative;
-  width: 34px;
-  height: 8px;
-  overflow: hidden;
-  border-radius: 1px;
-  background: var(--k-ghost);
-}
-.cap-hero__legend-fill {
-  position: absolute;
-  inset: 0 45% 0 0;
-  background: var(--k-ink-2);
-}
-
 /* ---- 1b. GRADE KEYS ---- */
 .cap-grade-switch {
   display: inline-flex;
@@ -1532,7 +1510,6 @@ a.cap-key__face:focus-visible {
     display: inline-block;
     vertical-align: -0.15em;
   }
-  .cap-hero__legend { display: none; }
 }
 
 /* ---- 8. PHONE TAB BAR --------------------------------------------------

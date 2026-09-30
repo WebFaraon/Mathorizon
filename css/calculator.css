@@ -2706,15 +2706,16 @@ body:has(#setupView:not([style*="none"])) {
 #setupView .st-key--sm { height: 38px; padding: 0 14px; font-size: 0.86rem; }
 #setupView .st-key--block { display: flex; width: 100%; }
 #setupView .st-key svg { width: 16px; height: 16px; flex-shrink: 0; }
-/* Not available yet: printed flat, dashed, no edge. */
+/* Not pressable yet: an unlit key. It keeps its face, its edge and its
+   label (so the step ahead stays visible), tinted toward the blue it will
+   light up in; it just never moves. */
 #setupView .st-key[disabled],
 #setupView .st-key[disabled]:hover,
 #setupView .st-key[disabled]:active {
-  border-style: dashed;
-  border-color: var(--k-panel-edge);
-  background: transparent;
-  box-shadow: none;
-  color: var(--k-ink-3);
+  border-color: color-mix(in srgb, var(--k-blue) 32%, var(--k-panel-edge));
+  background: color-mix(in srgb, var(--k-blue) 12%, var(--k-key));
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--k-blue) 26%, var(--k-key-edge));
+  color: var(--k-ink-2);
   cursor: not-allowed;
   filter: none;
   transform: none;

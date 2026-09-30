@@ -154,12 +154,6 @@ export function Hero({ stats, readout }: HeroProps) {
 
       <div className="cap-hero__keys">
         <GradeSwitch />
-        <p className="cap-hero__legend" aria-hidden="true">
-          <span className="cap-hero__legend-bar">
-            <span className="cap-hero__legend-fill" />
-          </span>
-          rezolvat din fiecare tip
-        </p>
       </div>
     </section>
   );
