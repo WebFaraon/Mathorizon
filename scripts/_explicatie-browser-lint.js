@@ -57,15 +57,21 @@ function pageHtml(items, css, utilsSrc) {
   window.BM.onNavReady = function () {};
   ${utilsSrc}
   window.__items = ${data};
-  document.getElementById('steps').innerHTML = window.__items.map(function (it, i) {
-    return '<div class="rarity-step">' +
-      '<span class="rarity-step__num">' + (i + 1) + '</span>' +
-      '<div class="rarity-step__crit math-content">' + BM.trustedNl2br(it.criterion || 'Criteriu') + '</div>' +
-      '<span class="rarity-step__pts">' + (it.points || 2) + 'p</span>' +
-      (it.explicatie ? '<div class="rarity-step__detail math-content">' + BM.trustedNl2br(it.explicatie) + '</div>' : '') +
-    '</div>';
-  }).join('');
+  // Markup din BM.baremStepsHtml (js/utils.js), adica exact codul de pe site,
+  // nu o copie a lui.
+  document.getElementById('steps').innerHTML = BM.baremStepsHtml(window.__items.map(function (it) {
+    return { descriere: it.criterion || 'Criteriu', puncte_maxime: it.points || 2, explicatie: it.explicatie };
+  }));
   BM.renderMath(document.body);
+  // Starea IMPLICITA se noteaza inainte de a deschide ceva: fiecare explicatie
+  // trebuie sa fie ascunsa cu adevarat (display:none), nu doar cu atributul.
+  window.__initial = Array.prototype.map.call(document.querySelectorAll('.rarity-step'), function (s) {
+    var p = s.querySelector('[data-expl-panel]');
+    return p ? { hidden: p.hidden, display: getComputedStyle(p).display } : null;
+  });
+  // Apoi se deschid toate, prin acelasi cod ca butonul de pe site: latimea se
+  // masoara pe explicatia DESCHISA, cazul cel mai defavorabil.
+  BM.setAllExplanations(document.getElementById('steps'), true);
   // Fonturile KaTeX vin de pe CDN: pana ajung, formulele se masoara cu un font
   // de rezerva, mai ingust. Se asteapta, altfel masuratoarea minte.
   (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve())
@@ -107,10 +113,16 @@ async function lintLayout(items, opts = {}) {
         const br = body.getBoundingClientRect();
         const visRight = br.right - parseFloat(bcs.paddingRight) - (body.offsetWidth - body.clientWidth);
 
-        document.querySelectorAll('.rarity-step').forEach((step) => {
+        document.querySelectorAll('.rarity-step').forEach((step, stepIdx) => {
           const msgs = [];
           const det = step.querySelector('.rarity-step__detail');
           if (!det) { out.push(msgs); return; }
+
+          // 0. starea implicita: explicatia trebuie sa fie ascunsa cu adevarat
+          const init = window.__initial && window.__initial[stepIdx];
+          if (!init || !init.hidden || init.display !== 'none') {
+            msgs.push('explicatia nu e ascunsa implicit (display: ' + (init && init.display) + '); elevul trebuie sa vada doar criteriul si punctajul pana apasa butonul');
+          }
 
           // 1. vizibilitate
           let worst = 0, worstWhat = '';

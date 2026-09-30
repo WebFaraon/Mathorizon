@@ -371,6 +371,126 @@ BM._fitDisplayMathPass = function(root) {
   });
 };
 
+/* ---- Barem step explanations: collapsed until asked for ----
+   A step's `explicatie` (the worked calculation, see docs/barem-explicatii.md)
+   is long, and most students only need the official criterion and its points
+   to check their own work. So the barem shows just those, and each step that
+   has an explanation gets a button to open it, plus one button on top that
+   opens or closes all of them. The two levels share one delegated handler.
+
+   Conventions the markup carries (BM.baremStepsHtml here, buildSolutionBlockHtml
+   in js/training.js):
+     [data-expl-scope]       container the "toggle all" button acts on
+     [data-expl-step]        one barem step
+     [data-expl-toggle]      that step's button
+     [data-expl-panel]       the explanation itself, `hidden` until opened
+     [data-expl-toggle-all]  the button that opens/closes every panel in scope
+   Panels are display:none while closed, so a formula inside has clientWidth 0
+   and BM.fitDisplayMath can't size it; it runs when the panel opens instead. */
+BM.EXPL_LABELS = {
+  show:    'Vezi explicația',
+  hide:    'Ascunde explicația',
+  showAll: 'Arată toate explicațiile',
+  hideAll: 'Ascunde toate explicațiile'
+};
+BM._explSeq = 0;
+
+BM.explParts = function() {
+  const id = 'expl-' + (++BM._explSeq);
+  return {
+    button: `<button type="button" class="expl-btn" data-expl-toggle aria-expanded="false" aria-controls="${id}"><span class="expl-btn__chev" aria-hidden="true"></span><span class="expl-btn__label">${BM.EXPL_LABELS.show}</span></button>`,
+    panelAttrs: `id="${id}" data-expl-panel hidden`
+  };
+};
+
+BM.explToggleAllHtml = function() {
+  return `<button type="button" class="expl-btn expl-btn--all" data-expl-toggle-all aria-expanded="false"><span class="expl-btn__chev" aria-hidden="true"></span><span class="expl-btn__label">${BM.EXPL_LABELS.showAll}</span></button>`;
+};
+
+/* The barem's steps for the rarity modal (js/category.js). The toolbar is a
+   <header>, not a <div>, on purpose: `.rarity-step:first-of-type` (no top
+   border on the first step) counts siblings by element type, and a <div>
+   toolbar in front would take that slot from the real first step. */
+BM.baremStepsHtml = function(barem) {
+  const list = Array.isArray(barem) ? barem : [];
+  const withExpl = list.filter(b => b && b.explicatie).length;
+  // With a single explanation the step's own button does the same job.
+  const toolbar = withExpl >= 2 ? `<header class="expl-toolbar">${BM.explToggleAllHtml()}</header>` : '';
+  const steps = list.map((b, i) => {
+    let expl = '';
+    if (b.explicatie) {
+      const p = BM.explParts();
+      expl = `
+        <div class="rarity-step__expl-row">${p.button}</div>
+        <div class="rarity-step__detail math-content" ${p.panelAttrs}>${BM.trustedNl2br(b.explicatie)}</div>`;
+    }
+    return `
+      <div class="rarity-step" data-expl-step style="animation-delay:${i * 70}ms">
+        <span class="rarity-step__num">${i + 1}</span>
+        <div class="rarity-step__crit math-content">${BM.trustedNl2br(b.descriere || '')}</div>
+        <span class="rarity-step__pts">${b.puncte_maxime}p</span>${expl}
+      </div>`;
+  }).join('');
+  return `<div class="rarity-steps" data-expl-scope>${toolbar}${steps}</div>`;
+};
+
+BM.setExplanationOpen = function(panel, open) {
+  if (!panel) return;
+  panel.hidden = !open;
+  const step = panel.closest('[data-expl-step]');
+  const btn = step && step.querySelector('[data-expl-toggle]');
+  if (btn) {
+    btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    const label = btn.querySelector('.expl-btn__label');
+    if (label) label.textContent = open ? BM.EXPL_LABELS.hide : BM.EXPL_LABELS.show;
+  }
+  // Only measurable once it's displayed (see the note above).
+  if (open) BM.fitDisplayMath(panel);
+};
+
+BM._syncExplToolbar = function(scope) {
+  if (!scope) return;
+  const all = scope.querySelector('[data-expl-toggle-all]');
+  if (!all) return;
+  const panels = [...scope.querySelectorAll('[data-expl-panel]')];
+  const allOpen = panels.length > 0 && panels.every(p => !p.hidden);
+  all.setAttribute('aria-expanded', allOpen ? 'true' : 'false');
+  const label = all.querySelector('.expl-btn__label');
+  if (label) label.textContent = allOpen ? BM.EXPL_LABELS.hideAll : BM.EXPL_LABELS.showAll;
+};
+
+BM.setAllExplanations = function(scope, open) {
+  if (!scope) return;
+  scope.querySelectorAll('[data-expl-panel]').forEach(p => BM.setExplanationOpen(p, open));
+  BM._syncExplToolbar(scope);
+};
+
+/* Delegated on a long-lived ancestor, because the barem's HTML gets replaced
+   wholesale (prev/next in the rarity modal, a fresh reveal in training) and a
+   listener bound to a button itself would go stale. Safe to call repeatedly. */
+BM.bindExplanationToggles = function(root) {
+  if (!root || root._explBound) return;
+  root._explBound = true;
+  root.addEventListener('click', e => {
+    const one = e.target.closest('[data-expl-toggle]');
+    if (one && root.contains(one)) {
+      const step = one.closest('[data-expl-step]');
+      const panel = step && step.querySelector('[data-expl-panel]');
+      if (!panel) return;
+      BM.setExplanationOpen(panel, panel.hidden);
+      BM._syncExplToolbar(one.closest('[data-expl-scope]'));
+      return;
+    }
+    const all = e.target.closest('[data-expl-toggle-all]');
+    if (all && root.contains(all)) {
+      const scope = all.closest('[data-expl-scope]');
+      if (!scope) return;
+      const anyClosed = [...scope.querySelectorAll('[data-expl-panel]')].some(p => p.hidden);
+      BM.setAllExplanations(scope, anyClosed);
+    }
+  });
+};
+
 /* ---- Extrage preview plain text (fără LaTeX) ---- */
 BM.plainPreview = function(str) {
   return str

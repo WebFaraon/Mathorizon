@@ -790,20 +790,12 @@
 
     // `descriere` is the official barem criterion, kept verbatim because it's
     // also what api/verify-exam.js grades against; `explicatie` is the
-    // worked-out calculation behind it, shown only to the student. A criterion
-    // like "Determinarea unei primitive" tells you what earns the points but
-    // not how to get there, which is the whole reason the detail exists.
-    // The detail is a direct child of .rarity-step, not nested under the
-    // criterion, so it can take a full-width wrapped row of its own. Inside
-    // the criterion's column it only had ~177px on a 320px phone, which left
-    // a 261px display formula scrollable by a third of its width.
-    const stepsHtml = barem.map((b, i) => `
-      <div class="rarity-step" style="animation-delay:${i * 70}ms">
-        <span class="rarity-step__num">${i + 1}</span>
-        <div class="rarity-step__crit math-content">${BM.trustedNl2br(b.descriere || '')}</div>
-        <span class="rarity-step__pts">${b.puncte_maxime}p</span>
-        ${b.explicatie ? `<div class="rarity-step__detail math-content">${BM.trustedNl2br(b.explicatie)}</div>` : ''}
-      </div>`).join('');
+    // worked-out calculation behind it, shown only to the student and only
+    // after they open it (each step's own button, or the toggle-all on top).
+    // The markup lives in BM.baremStepsHtml (js/utils.js) rather than here so
+    // scripts/lint-barem-explicatii.js renders the exact same code as the site
+    // instead of a copy that can drift.
+    const stepsHtml = BM.baremStepsHtml(barem);
 
     return `
       <div class="rarity-modal__meta">
@@ -904,7 +896,16 @@
       btn.innerHTML = reveal
         ? `${icon('eye-off', { size: 16 })} Ascunde baremul`
         : `${icon('eye', { size: 16 })} Arată baremul`;
+      // An explanation that was left open is sized against the width it had
+      // when it opened; refit now that the content is on screen again.
+      if (reveal) BM.fitDisplayMath(content);
     });
+
+    // The per-step "Vezi explicația" buttons and the toggle-all on top of the
+    // barem. Bound once here for the same reason as the handler above: the
+    // body's innerHTML is replaced on every prev/next, and each new exercise
+    // starts with every explanation closed again.
+    BM.bindExplanationToggles(body);
 
     /* Swap the dialog's content in place for prev/next instead of closing
        and re-opening the whole modal — keeps the dialog anchored where it

@@ -568,6 +568,9 @@
     const rarity = BM.RARITY_BY_DIFF[ex.difficulty] || 'comun';
 
     const modal = document.getElementById('revealModal');
+    // Delegated on the modal itself: its innerHTML is replaced on every open, so a
+    // listener on a step's button would go stale. Safe to call on each open.
+    BM.bindExplanationToggles(modal);
     modal.dataset.rarity = rarity;
 
     /* Timer sits at the end of the badge row (flex, margin-left:auto), not
@@ -660,23 +663,34 @@
      correct answer and for reopening a solved card in review mode. */
   function buildSolutionBlockHtml(ex, staggered) {
     if (Array.isArray(ex.barem) && ex.barem.length) {
+      const withExpl = ex.barem.filter(step => step.explicatie).length;
       const steps = ex.barem.map((step, i) => {
         const delay = (staggered && !reduceMotion()) ? i * 220 : 0;
         const ptsCls = ex.baremEstimat ? ' reveal-step__points--estimat' : '';
         const ptsTitle = ex.baremEstimat ? ' title="Punctaj estimat de AI — neconfirmat oficial"' : '';
+        // The explanation stays closed until the student asks for it (see the
+        // BM.explParts block in js/utils.js); only the criterion and its points
+        // are visible by default. It's a sibling of the criterion, not nested
+        // in it, so the button can sit between them.
+        let expl = '';
+        if (step.explicatie) {
+          const p = BM.explParts();
+          expl = `
+            <div class="reveal-step__expl-row">${p.button}</div>
+            <div class="reveal-step__detail math-content" ${p.panelAttrs}>${BM.trustedNl2br(step.explicatie)}</div>`;
+        }
         return `
-          <div class="reveal-step" style="animation-delay:${delay}ms">
+          <div class="reveal-step" data-expl-step style="animation-delay:${delay}ms">
             <div class="reveal-step__head">
               <span class="reveal-step__num">Pasul ${i + 1}</span>
               <span class="reveal-step__points${ptsCls}"${ptsTitle}>${step.puncte_maxime}p${ex.baremEstimat ? ' ?' : ''}</span>
             </div>
-            <div class="math-content">
-              <div class="reveal-step__crit">${BM.trustedNl2br(step.descriere)}</div>
-              ${step.explicatie ? `<div class="reveal-step__detail">${BM.trustedNl2br(step.explicatie)}</div>` : ''}
-            </div>
+            <div class="reveal-step__crit math-content">${BM.trustedNl2br(step.descriere)}</div>${expl}
           </div>`;
       }).join('');
-      return `<div class="reveal-steps">${steps}</div>`;
+      // With a single explanation, that step's own button does the same job.
+      const toolbar = withExpl >= 2 ? `<header class="expl-toolbar">${BM.explToggleAllHtml()}</header>` : '';
+      return `<div class="reveal-steps" data-expl-scope>${toolbar}${steps}</div>`;
     }
     return `
       <div class="reveal-solution-label">Rezolvare completă</div>

@@ -11,6 +11,17 @@ Sub fiecare criteriu oficial din barem, elevul vede o **explicație**: calculul 
 - `descriere` = criteriul oficial, transcris întocmai. E și textul pe care `api/verify-exam.js` îl trimite lui Gemini la notare, deci **nu se rescrie niciodată** ca să sune mai explicativ.
 - `explicatie` = doar pentru elev. Nu intră în `data/official-barem-examples.json`.
 
+## Cum o vede elevul
+
+Explicațiile sunt **închise implicit**. Baremul arată doar criteriul și punctajul fiecărui pas; explicația lungă se deschide la cerere:
+
+- fiecare pas care are explicație are butonul **„Vezi explicația"** (devine „Ascunde explicația");
+- când sunt cel puțin două explicații, sus apare și **„Arată toate explicațiile"** (devine „Ascunde toate explicațiile" și se sincronizează singur: dacă închizi un pas, revine la „Arată toate");
+- același comportament în modalul de la Capitole și în rezolvarea afișată la Antrenament;
+- la trecerea la alt exercițiu (prev/next) totul pornește din nou închis.
+
+Codul comun e în `js/utils.js` (`BM.baremStepsHtml`, `BM.explParts`, `BM.bindExplanationToggles`). Un `explicatie` nou nu cere nicio modificare de UI: apare singur cu butonul lui. Cât timp o explicație e închisă, formulele din ea nu au lățime măsurabilă, deci `BM.fitDisplayMath` rulează la deschidere, nu la randare.
+
 Regulile de mai jos sunt aceleași pe care le primește Gemini la generare și pe care le verifică automat comanda de lint. Sursa lor unică e `scripts/_explicatie-rules.js`.
 
 ## Fluxul pentru un exercițiu nou
@@ -75,7 +86,8 @@ Forma corectă cu conținut subțire nu ajută un elev. Regulile de formă împi
 `npm run lint:explicatii` (sau `node scripts/lint-barem-explicatii.js`, cu `--id`, `--subcat` sau `--no-browser`) iese cu cod 1 dacă găsește o încălcare.
 
 1. **Din text:** regulile 2, 4, 5, 7, 8, 9, 10, 12.
-2. **În browser real, pe 320 / 390 / 768 / 1280px**, cu CSS-ul, `js/utils.js` și KaTeX-ul reale:
+2. **În browser real, pe 320 / 390 / 768 / 1280px**, cu CSS-ul, `js/utils.js` (deci chiar markup-ul din `BM.baremStepsHtml`) și KaTeX-ul reale. Explicațiile se deschid toate înainte de măsurare, cazul cel mai defavorabil:
+   - *Închis implicit:* fiecare explicație trebuie să fie ascunsă cu adevărat (`display: none`), nu doar cu atributul `hidden`.
    - *Vizibilitate:* nimic din explicație nu iese din zona vizibilă a modalului. `.rarity-modal__body` are `overflow-x: hidden`, deci ce iese e tăiat fără urmă.
    - *Lățime:* o formulă `$$...$$` trebuie să încapă cu cel mult 15% micșorare. Sub asta textul devine prea mic pentru telefon.
 
