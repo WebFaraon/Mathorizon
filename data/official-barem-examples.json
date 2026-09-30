@@ -1337,5 +1337,49 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Primitivă cu condiție inițială, prin substituția t = e^x",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = x e^x$.\n\nFie funcția $g\\colon (0; +\\infty) \\to \\mathbb{R}$, $g(x) = \\frac{f(x)}{x(e^{2x}+1)}$. Determinați primitiva $G$ a funcției $g$, pentru care $x = \\frac{1}{2}\\ln 3$ este zero.",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Determinarea primitivei funcției $g(x) = \\frac{e^x}{e^{2x}+1}$: notarea $t = e^x$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 2,
+        "descriere": "$dt = e^x\\,dx$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Primitiva funcției obținute",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "Înlocuirea lui $t = e^x$ în expresia primitivei obținute",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 5,
+        "descriere": "Scrierea $G\\left(\\frac{1}{2}\\ln 3\\right) = 0$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 6,
+        "descriere": "Determinarea valorii lui $C = -\\frac{\\pi}{3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 7,
+        "descriere": "Scrierea răspunsului corect: $\\boxed{\\operatorname{arctg} e^x - \\frac{\\pi}{3}}$",
+        "puncte_maxime": 1
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]

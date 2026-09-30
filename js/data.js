@@ -6899,6 +6899,23 @@ BM.EXERCISES = [
       { descriere: "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{\\frac{32}{3}}$", puncte_maxime: 2, explicatie: "Calculăm valorile primitivei $G(t)$ în noile limite de integrare:\n$$\\begin{aligned} G(3) &= \\frac{27}{3} - 3 = 6 \\\\ G(2) &= \\frac{8}{3} - 2 = \\frac{2}{3} \\end{aligned}$$\nAplicăm formula Leibniz-Newton pentru a găsi valoarea integralei:\n$$\\begin{aligned} &2[G(3) - G(2)] \\\\ &= 2\\left(6 - \\frac{2}{3}\\right) \\\\ &= 2 \\cdot \\frac{16}{3} \\\\ &= \\frac{32}{3} \\end{aligned}$$" }
     ]
   },
+  {
+    id: 'an-int-003', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC Moldova',
+    title: 'Primitiva cu condiție inițială, prin substituție',
+    statement: 'Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = x e^x$.\n\nFie funcția $g\\colon (0; +\\infty) \\to \\mathbb{R}$, $g(x) = \\frac{f(x)}{x(e^{2x}+1)}$. Determinați primitiva $G$ a funcției $g$, pentru care $x = \\frac{1}{2}\\ln 3$ este zero.',
+    solution: '**Pasul 1.** Simplificarea funcției $g$.\nPentru $x > 0$: $g(x) = \\frac{x e^x}{x(e^{2x}+1)} = \\frac{e^x}{e^{2x}+1}$.\n\n**Pasul 2.** Determinarea primitivei funcției $g$, prin substituția $t = e^x$.\nDin $t = e^x$ obținem $dt = e^x\\,dx$ și $e^{2x} = t^2$, deci\n$$\\int \\frac{e^x}{e^{2x}+1}\\,dx = \\int \\frac{dt}{t^2+1} = \\operatorname{arctg} t + C$$\nRevenim la variabila $x$, înlocuind $t = e^x$:\n$$G(x) = \\operatorname{arctg} e^x + C$$\n\n**Pasul 3.** Condiția ca $x = \\frac{1}{2}\\ln 3$ să fie zero al lui $G$ este $G\\left(\\frac{1}{2}\\ln 3\\right) = 0$.\nCum $e^{\\frac{1}{2}\\ln 3} = \\sqrt{3}$ și $\\operatorname{arctg}\\sqrt{3} = \\frac{\\pi}{3}$:\n$$\\operatorname{arctg} e^{\\frac{1}{2}\\ln 3} + C = \\operatorname{arctg}\\sqrt{3} + C = \\frac{\\pi}{3} + C = 0$$\n\n**Pasul 4.** Determinarea constantei: $C = -\\frac{\\pi}{3}$.\n\n$$\\boxed{\\operatorname{arctg} e^x - \\frac{\\pi}{3}}$$',
+    barem: [
+      { descriere: "Determinarea primitivei funcției $g(x) = \\frac{e^x}{e^{2x}+1}$: notarea $t = e^x$", puncte_maxime: 1, explicatie: "Simplificăm funcția $g(x)$ înlocuind $f(x) = x e^x$:\n$$\\begin{aligned} g(x) &= \\frac{x e^x}{x(e^{2x}+1)} \\\\ &= \\frac{e^x}{e^{2x}+1} \\end{aligned}$$\nPentru calculul primitivei prin metoda substituției, notăm:\n$$t = e^x$$" },
+      { descriere: "$dt = e^x\\,dx$", puncte_maxime: 1, explicatie: "Diferențiem relația de substituție $t = e^x$ pentru a exprima diferențiala $dt$ în funcție de $dx$:\n$$dt = (e^x)'\\,dx = e^x\\,dx$$\nDe asemenea, observăm că numitorul devine:\n$$e^{2x} = (e^x)^2 = t^2$$" },
+      { descriere: "Primitiva funcției obținute", puncte_maxime: 1, explicatie: "Înlocuim $t$ și $dt$ în integrala simplificată și aplicăm formula de integrare directă:\n$$\\int \\frac{dt}{t^2+1} = \\operatorname{arctg} t + C$$\nunde $C$ este o constantă reală." },
+      { descriere: "Înlocuirea lui $t = e^x$ în expresia primitivei obținute", puncte_maxime: 1, explicatie: "Revenim la variabila inițială $x$ prin înlocuirea lui $t$ cu $e^x$ în expresia primitivei găsite:\n$$G(x) = \\operatorname{arctg} e^x + C$$" },
+      { descriere: "Scrierea $G\\left(\\frac{1}{2}\\ln 3\\right) = 0$", puncte_maxime: 1, explicatie: "Punem condiția ca valoarea $x$ dată să fie un zero al funcției $G$, ceea ce înseamnă că valoarea funcției în acest punct este nulă:\n$$G\\left(\\frac{1}{2}\\ln 3\\right) = 0$$" },
+      { descriere: "Determinarea valorii lui $C = -\\frac{\\pi}{3}$", puncte_maxime: 2, explicatie: "Calculăm valoarea lui $G$ în punctul dat. Folosim proprietatea logaritmului:\n$$\\begin{aligned} &e^{\\frac{1}{2}\\ln 3} \\\\ &= e^{\\ln\\sqrt{3}} \\\\ &= \\sqrt{3} \\end{aligned}$$\nDin condiția ca valoarea funcției să fie nulă, obținem:\n$$\\operatorname{arctg}\\sqrt{3} + C = 0$$\nDeoarece tangenta de $\\pi/3$ este $\\sqrt{3}$, avem:\n$$\\operatorname{arctg}\\sqrt{3} = \\frac{\\pi}{3}$$\nRezultă valoarea constantei:\n$$\\begin{aligned} C &= -\\operatorname{arctg}\\sqrt{3} \\\\ &= -\\frac{\\pi}{3} \\end{aligned}$$" },
+      { descriere: "Scrierea răspunsului corect: $\\boxed{\\operatorname{arctg} e^x - \\frac{\\pi}{3}}$", puncte_maxime: 1, explicatie: "Înlocuim valoarea constantei $C$ determinată anterior în expresia funcției $G(x)$ pentru a scrie răspunsul final:\n$$G(x) = \\operatorname{arctg} e^x - \\frac{\\pi}{3}$$" }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri
