@@ -19987,3 +19987,16 @@ body:has(#root) {
   #nav-root .nav__mobile-menu,
   #nav-root .nav__mobile-menu.open { transition: visibility 0s; clip-path: none; }
 }
+
+/* Phone navbar: the keys in the bar (menu, sign-in, avatar) are one
+   height, so "Conectare" no longer stands taller than the menu key. Both
+   sit at 40px (a comfortable tap target); the wider rules above set them
+   to 34px and 44px separately. */
+@media (max-width: 768px) {
+  #nav-root .nav__hamburger { width: 40px; height: 40px; }
+  html.bm-guest #nav-root .nav__guest-login { height: 40px; min-height: 40px; padding: 0 14px; }
+  #nav-root .nav-profile-btn { height: 40px; }
+}
+@media (max-width: 420px) {
+  #nav-root .nav-profile-btn--pill { width: 40px; }
+}

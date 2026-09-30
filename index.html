@@ -90,7 +90,7 @@
     </section>
 
     <!-- THE CALCULATOR: four MODE keys switch the display (js/landing-modes.js). -->
-    <section class="ld-calc" aria-labelledby="ldCalcTitle">
+    <section class="ld-calc is-pre" aria-labelledby="ldCalcTitle">
       <h2 class="ld-calc__title" id="ldCalcTitle">Alege-ți modul</h2>
       <div class="ld-modes" role="tablist" aria-labelledby="ldCalcTitle">
         <button class="ld-mode" role="tab" id="ldTab-bac" aria-controls="ldPanel-bac" data-mode="bac" type="button">
@@ -107,66 +107,84 @@
         </button>
       </div>
 
-      <div class="ld-panel" role="tabpanel" id="ldPanel-bac" aria-labelledby="ldTab-bac">
-        <div class="ld-screen ld-lcd">
-          <div class="ld-ann" aria-hidden="true"><span class="on">BAC</span><span class="on">XII</span><span>IX</span><span>PROF</span></div>
-          <p class="ld-screen__title ld-print">Clasa a 12-a</p>
-          <p class="ld-screen__desc ld-print">Toate capitolele din programa de examen, cu barem oficial pe fiecare pas.</p>
-          <ul class="ld-screen__list">
-            <li class="ld-print">Exerciții pe capitole și dificultate</li>
-            <li class="ld-print">Antrenament rapid personalizat</li>
-            <li class="ld-print">Simulare completă de 3 ore, notată automat</li>
-          </ul>
+      <!-- All four panels share one grid cell (.ld-stage), so the calculator
+           is always as tall as the tallest one and switching modes never
+           moves the page; the inactive ones are inert and invisible. -->
+      <div class="ld-stage">
+        <div class="ld-panel is-active" role="tabpanel" id="ldPanel-bac" aria-labelledby="ldTab-bac">
+          <div class="ld-screen ld-lcd">
+            <div class="ld-ann" aria-hidden="true"><span class="on">BAC</span><span class="on">XII</span><span>IX</span><span>PROF</span></div>
+            <p class="ld-screen__title ld-print">Clasa a 12-a</p>
+            <p class="ld-screen__desc ld-print">Toate capitolele din programa de examen, cu barem oficial pe fiecare pas.</p>
+            <ul class="ld-screen__list">
+              <li class="ld-print">Exerciții pe capitole și dificultate</li>
+              <li class="ld-print">Antrenament rapid personalizat</li>
+              <li class="ld-print">Simulare completă de 3 ore, notată automat</li>
+            </ul>
+          </div>
+          <div class="ld-action">
+            <ol class="ld-steps">
+              <li><span class="ld-steps__n">1</span><span>Creezi un cont de elev</span></li>
+              <li><span class="ld-steps__n">2</span><span>Alegi un capitol și un exercițiu</span></li>
+              <li><span class="ld-steps__n">3</span><span>Rezolvi, apoi verifici cu baremul oficial</span></li>
+            </ol>
+            <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
+          </div>
         </div>
-        <div class="ld-action">
-          <p class="ld-note">Cont gratuit de elev. Începi cu capitolul pe care îl alegi.</p>
-          <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=elev">Începe pregătirea</a>
-        </div>
-      </div>
 
-      <div class="ld-panel" role="tabpanel" id="ldPanel-gim" aria-labelledby="ldTab-gim" hidden>
-        <div class="ld-screen ld-lcd">
-          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span class="on">IX</span><span>PROF</span></div>
-          <p class="ld-screen__title ld-print">Clasa a 9-a <span class="ld-soon">în pregătire</span></p>
-          <p class="ld-screen__desc ld-print">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</p>
+        <div class="ld-panel" role="tabpanel" id="ldPanel-gim" aria-labelledby="ldTab-gim" inert>
+          <div class="ld-screen ld-lcd">
+            <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span class="on">IX</span><span>PROF</span></div>
+            <p class="ld-screen__title ld-print">Clasa a 9-a <span class="ld-soon">în pregătire</span></p>
+            <p class="ld-screen__desc ld-print">Lucrăm la exerciții și teste pentru treapta gimnazială. Lasă-ți emailul și te anunțăm primul.</p>
+          </div>
+          <div class="ld-action">
+            <ol class="ld-steps">
+              <li><span class="ld-steps__n">1</span><span>Îți lași adresa de email aici</span></li>
+              <li><span class="ld-steps__n">2</span><span>Îți scriem o singură dată, când e gata</span></li>
+            </ol>
+            <!-- Link, then inline form, then confirmation: js/landing-page.js. -->
+            <div class="ld-waitlist" id="waitlistDynamic"></div>
+          </div>
         </div>
-        <div class="ld-action">
-          <!-- Link, then inline form, then confirmation: js/landing-page.js. -->
-          <div class="ld-waitlist" id="waitlistDynamic"></div>
-        </div>
-      </div>
 
-      <div class="ld-panel" role="tabpanel" id="ldPanel-prof" aria-labelledby="ldTab-prof" hidden>
-        <div class="ld-screen ld-lcd">
-          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span class="on">PROF</span></div>
-          <p class="ld-screen__title ld-print">Sunt profesor</p>
-          <p class="ld-screen__desc ld-print">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</p>
-          <ul class="ld-screen__list">
-            <li class="ld-print">Creează clase și adaugă elevi</li>
-            <li class="ld-print">Atribuie teme din baza de exerciții</li>
-            <li class="ld-print">Vezi cine a rezolvat și cine a rămas în urmă</li>
-            <li class="ld-print">Testează nivelul elevilor noi la prima lecție</li>
-          </ul>
+        <div class="ld-panel" role="tabpanel" id="ldPanel-prof" aria-labelledby="ldTab-prof" inert>
+          <div class="ld-screen ld-lcd">
+            <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span class="on">PROF</span></div>
+            <p class="ld-screen__title ld-print">Sunt profesor</p>
+            <p class="ld-screen__desc ld-print">Gestionează-ți elevii într-un singur loc, fără foi și fără mesaje pierdute.</p>
+            <ul class="ld-screen__list">
+              <li class="ld-print">Creează clase și adaugă elevi</li>
+              <li class="ld-print">Atribuie teme din baza de exerciții</li>
+              <li class="ld-print">Vezi cine a rezolvat și cine a rămas în urmă</li>
+              <li class="ld-print">Testează nivelul elevilor noi la prima lecție</li>
+            </ul>
+          </div>
+          <div class="ld-action">
+            <ol class="ld-steps">
+              <li><span class="ld-steps__n">1</span><span>Creezi contul de profesor</span></li>
+              <li><span class="ld-steps__n">2</span><span>Adminul îți aprobă contul</span></li>
+              <li><span class="ld-steps__n">3</span><span>Creezi clase și adaugi elevi</span></li>
+            </ol>
+            <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=profesor">Creează cont de profesor</a>
+          </div>
         </div>
-        <div class="ld-action">
-          <p class="ld-note">Contul de profesor necesită aprobare.</p>
-          <a class="ld-key ld-key--primary ld-key--block" href="auth.html?tab=signup&role=profesor">Creează cont de profesor</a>
-        </div>
-      </div>
 
-      <div class="ld-panel" role="tabpanel" id="ldPanel-test" aria-labelledby="ldTab-test" hidden>
-        <div class="ld-screen ld-lcd">
-          <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span>PROF</span></div>
-          <p class="ld-screen__title ld-print">Testează-ți nivelul <span class="ld-soon">în curând</span></p>
-          <p class="ld-screen__desc ld-print">8 exerciții, 50 de minute. Afli unde ești și ce ai de recuperat, fără să te înregistrezi.</p>
-          <ul class="ld-screen__list">
-            <li class="ld-print">Adaptat pe clasa ta (5-12)</li>
-            <li class="ld-print">Rezultat imediat, cu recomandări</li>
-          </ul>
-        </div>
-        <div class="ld-action">
-          <p class="ld-note">Testul fără cont e în lucru. Până atunci, poți începe direct cu un cont gratuit.</p>
-          <span class="ld-key ld-key--block ld-key--off" aria-disabled="true">În curând</span>
+        <div class="ld-panel" role="tabpanel" id="ldPanel-test" aria-labelledby="ldTab-test" inert>
+          <div class="ld-screen ld-lcd">
+            <div class="ld-ann" aria-hidden="true"><span>BAC</span><span>XII</span><span>IX</span><span>PROF</span></div>
+            <p class="ld-screen__title ld-print">Testează-ți nivelul <span class="ld-soon">în curând</span></p>
+            <p class="ld-screen__desc ld-print">8 exerciții, 50 de minute. Afli unde ești și ce ai de recuperat, fără să te înregistrezi.</p>
+            <ul class="ld-screen__list">
+              <li class="ld-print">Adaptat pe clasa ta (5-12)</li>
+              <li class="ld-print">Rezultat imediat, cu recomandări</li>
+            </ul>
+          </div>
+          <div class="ld-action">
+            <p class="ld-action__text">Testul fără cont e în lucru. Până atunci poți începe direct cu un cont de elev.</p>
+            <span class="ld-key ld-key--block ld-key--off" aria-disabled="true">Testul: în curând</span>
+            <a class="ld-key ld-key--block" href="auth.html?tab=signup&role=elev">Începe cu un cont de elev</a>
+          </div>
         </div>
       </div>
     </section>

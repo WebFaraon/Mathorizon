@@ -2306,13 +2306,13 @@ body:has(.landing-main) .ld-key--off:active {
   font-size: 2.3rem;
   font-weight: 900;
   line-height: 1;
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
 }
 .ld-figures__row--text { align-items: center; }
-.ld-figures__mark { display: flex; justify-content: flex-end; }
+.ld-figures__mark { display: flex; justify-content: flex-start; }
 .ld-figures__mark svg { width: 26px; height: 26px; }
-.ld-figures__lbl { font-size: 0.92rem; font-weight: 700; line-height: 1.35; }
+.ld-figures__lbl { font-size: 0.92rem; font-weight: 700; line-height: 1.35; text-wrap: balance; }
 
 /* Power-on segment test (js/landing-modes.js drops .ld-boot). */
 .ld-boot { animation: ld-power 0.6s steps(6, end) both; }
@@ -2320,7 +2320,7 @@ body:has(.landing-main) .ld-key--off:active {
 .ld-boot .ld-figures__val::after {
   content: '888';
   position: absolute;
-  right: 0;
+  left: 0;
   color: var(--k-lcd-ink);
 }
 @keyframes ld-power {
@@ -2330,11 +2330,36 @@ body:has(.landing-main) .ld-key--off:active {
 }
 
 /* ---- The calculator ---- */
+/* The chassis: a slab standing on a solid edge, a highlight along its
+   top, a soft shadow on the ground, and four screws in the corners. */
 .ld-calc {
-  padding: 22px 22px 26px;
+  --k-screw: var(--k-panel-edge);
+  position: relative;
+  padding: 30px 30px 34px;
   border: 1px solid var(--k-panel-edge);
   border-radius: var(--k-r-key);
   background: var(--k-panel);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.8),
+    0 7px 0 0 var(--k-panel-edge),
+    0 18px 18px -14px rgba(23, 25, 28, 0.4);
+}
+[data-theme="dark"] .ld-calc {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.07),
+    0 7px 0 0 #0A0B0D,
+    0 18px 18px -14px rgba(0, 0, 0, 0.7);
+}
+.ld-calc::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 12px 12px, var(--k-ink-3) 0 1.4px, var(--k-screw) 1.6px 4.6px, transparent 5px) no-repeat,
+    radial-gradient(circle at calc(100% - 12px) 12px, var(--k-ink-3) 0 1.4px, var(--k-screw) 1.6px 4.6px, transparent 5px) no-repeat,
+    radial-gradient(circle at 12px calc(100% - 12px), var(--k-ink-3) 0 1.4px, var(--k-screw) 1.6px 4.6px, transparent 5px) no-repeat,
+    radial-gradient(circle at calc(100% - 12px) calc(100% - 12px), var(--k-ink-3) 0 1.4px, var(--k-screw) 1.6px 4.6px, transparent 5px) no-repeat;
 }
 .ld-calc__title {
   margin-bottom: 14px;
@@ -2389,19 +2414,53 @@ body:has(.landing-main) .ld-key--off:active {
 }
 .ld-mode.is-on .ld-mode__legend { color: rgba(255, 255, 255, 0.78); }
 
+/* One grid cell for all four panels: the stage is as tall as the tallest,
+   so the page never jumps when the mode changes. */
+.ld-stage { display: grid; }
 .ld-panel {
+  grid-area: 1 / 1;
   display: grid;
   grid-template-columns: minmax(0, 1.65fr) minmax(250px, 1fr);
   align-items: stretch;
   gap: 32px;
+  /* Waiting off to one side, invisible and inert. Leaving is quick. */
+  --shift: 0px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translateX(var(--shift));
+  transition:
+    opacity 0.18s ease,
+    transform 0.32s cubic-bezier(0.4, 0, 1, 1),
+    visibility 0s linear 0.18s;
 }
-.ld-panel[hidden] { display: none; }
+.ld-panel.is-before { --shift: -36px; }
+.ld-panel.is-after { --shift: 36px; }
+/* The active one arrives after the old one has gone, from its own side. */
+.ld-panel.is-active {
+  --shift: 0px;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transition:
+    opacity 0.32s ease 0.12s,
+    transform 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.12s,
+    visibility 0s;
+}
+.ld-instant .ld-panel,
+.ld-instant .ld-panel.is-active { transition: none; }
+/* First paint: the lines wait for their print-in. */
+.ld-calc.is-pre .ld-print { opacity: 0; }
 
 .ld-screen {
-  min-height: 200px;
+  min-height: var(--ld-screen-h, 0px);
   margin: 7px;
   padding: 16px 22px 22px;
 }
+/* js/landing-modes.js measures the panels at their natural height. */
+.ld-measure .ld-panel { align-content: start; }
+.ld-measure .ld-screen,
+.ld-measure .ld-action { align-self: start; min-height: 0; }
 .ld-ann {
   display: flex;
   gap: 12px;
@@ -2452,16 +2511,60 @@ body:has(.landing-main) .ld-key--off:active {
   font-weight: 800;
   letter-spacing: 0.06em;
 }
-.ld-refresh { animation: ld-refresh 0.16s steps(3, end); }
-@keyframes ld-refresh { from { opacity: 0.1; } }
 
+/* The action column is a recessed well: the steps to get going, the
+   key at the foot, so it fills the height of the display beside it. */
 .ld-action {
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 18px;
+  min-height: var(--ld-action-h, 0px);
+  margin: 7px 0;
+  padding: 20px 22px 22px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-bg);
+  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.09);
 }
-.ld-note { font-size: 0.92rem; line-height: 1.55; color: var(--k-ink-2); }
+[data-theme="dark"] .ld-action { box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.5); }
+.ld-action__text { font-size: 0.95rem; line-height: 1.55; color: var(--k-ink-2); }
+.ld-steps { margin: 0; padding: 0; list-style: none; }
+.ld-steps li {
+  display: grid;
+  grid-template-columns: 28px minmax(0, 1fr);
+  align-items: center;
+  gap: 14px;
+  padding: 11px 0;
+  border-top: 1px solid var(--k-rule);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--k-ink);
+}
+.ld-steps li:first-child { border-top: none; padding-top: 0; }
+.ld-steps__n {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r);
+  background: var(--k-key);
+  box-shadow: 0 2px 0 0 var(--k-key-edge);
+  font-size: 0.82rem;
+  font-weight: 800;
+  color: var(--k-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+.ld-steps li.is-done .ld-steps__n {
+  border-color: color-mix(in srgb, var(--k-green) 70%, black);
+  background: var(--k-green);
+  box-shadow: 0 2px 0 0 color-mix(in srgb, var(--k-green) 60%, black);
+  color: #fff;
+}
+.ld-action .ld-key + .ld-key { margin-top: -6px; }
 
 /* Grade IX waitlist (js/landing-page.js). */
 .ld-waitlist { display: flex; flex-direction: column; gap: 14px; }
@@ -2513,27 +2616,29 @@ body:has(.landing-main) .ld-key--off:active {
   70% { opacity: 1; transform: translateY(2px); }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ld-boot, .ld-refresh { animation: none; }
+  .ld-boot { animation: none; }
   .ld-key, .ld-mode { transition: none; }
+  .ld-panel, .ld-panel.is-active { transition: none; transform: none; }
 }
 
 /* ---- Responsive ---- */
 @media (max-width: 960px) {
   .ld-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-bottom: 32px; }
   .ld-figures { max-width: 460px; }
-  .ld-panel { grid-template-columns: minmax(0, 1fr); gap: 24px; }
-  .ld-screen { min-height: 0; }
+  .ld-panel { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 @media (max-width: 640px) {
   body:has(.landing-main) .main { padding-top: 20px; }
   .ld-modes { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-bottom: 22px; }
-  .ld-calc { padding: 16px 14px 20px; }
+  .ld-calc { padding: 22px 16px 24px; }
+  .ld-action { margin: 0; padding: 16px 16px 18px; }
   .ld-screen { padding: 14px 16px 18px; }
   .ld-screen__title { font-size: 1.3rem; }
   .ld-actions .ld-key { flex: 1 1 auto; }
   .ld-hero .hero-syms { display: none; }
 }
 @media (max-width: 400px) {
-  .ld-waitlist__row { flex-direction: column; }
-  .ld-waitlist__row .ld-input { flex: none; }
+  /* Stays one row (input + key): a stacked form would be taller than the
+     link it replaces and push the page down when it opens. */
+  .ld-waitlist__row .ld-key { padding: 0 14px; }
 }

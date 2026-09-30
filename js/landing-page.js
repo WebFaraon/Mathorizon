@@ -27,7 +27,6 @@
     // never controls it), since the old duplication is exactly what made
     // it disappear the moment renderForm() replaced this element's content.
     dynamic.innerHTML =
-      '<p class="ld-note">Îți scriem o singură dată, când e gata. Fără alte mesaje.</p>' +
       '<button type="button" class="ld-key ld-key--primary ld-key--block" id="waitlistLinkBtn">Anunță-mă când e gata</button>';
     document.getElementById('waitlistLinkBtn').addEventListener('click', function (e) {
       e.preventDefault();
@@ -54,6 +53,8 @@
   }
 
   function renderSuccess(email) {
+    // Step 1 of the list beside it is done.
+    document.querySelectorAll('#ldPanel-gim .ld-steps li').forEach(function (li) { li.classList.add('is-done'); });
     dynamic.innerHTML =
       '<p class="ld-waitlist__done" role="status">Gata. Te anunțăm pe <strong>' + BM.esc(email) + '</strong> când exercițiile pentru clasa a 9-a sunt disponibile.</p>';
   }
