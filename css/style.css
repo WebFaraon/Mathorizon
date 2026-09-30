@@ -20044,3 +20044,65 @@ body:has(#root) {
 @media (max-width: 420px) {
   #nav-root .nav-profile-btn--pill { width: 40px; }
 }
+
+/* Phone navbar: a bigger avatar in its key (32px, a 3px frame; it was 26px
+   in a 40px key, so it read as lost in a box). */
+@media (max-width: 768px) {
+  #nav-root .nav-profile-btn--pill { padding: 0 10px 0 3px; }
+  #nav-root .nav-profile-btn--pill .nav-profile-avatar,
+  #nav-root .nav-profile-btn--pill .nav-profile-initials {
+    width: 32px;
+    height: 32px;
+  }
+  #nav-root .nav-profile-btn--pill .nav-profile-initials { font-size: 0.8rem; }
+}
+@media (max-width: 420px) {
+  #nav-root .nav-profile-btn--pill { padding: 0; }
+}
+
+/* Phone menu: the page behind it is blurred and dimmed while it is open,
+   so nothing competes with the menu. A layer on the navbar itself
+   (#nav-root::after), from under the strip to the bottom of the screen,
+   sitting below the menu (z-index -1 inside the navbar's own stacking
+   context). Because it belongs to the navbar, a tap on it closes the menu
+   through the same outside-click handler in js/utils.js. It fades and
+   un-blurs on close; visibility waits for the fade so it never blocks
+   taps once gone. */
+@media (max-width: 1150px) {
+  #nav-root::after {
+    content: '';
+    position: fixed;
+    top: var(--nav-h-fixed);
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: -1;
+    background: rgba(10, 14, 24, 0.34);
+    -webkit-backdrop-filter: blur(0);
+    backdrop-filter: blur(0);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition:
+      opacity 0.24s ease,
+      backdrop-filter 0.24s ease,
+      -webkit-backdrop-filter 0.24s ease,
+      visibility 0s linear 0.24s;
+  }
+  #nav-root:has(.nav__mobile-menu.open)::after {
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition:
+      opacity 0.3s ease,
+      backdrop-filter 0.3s ease,
+      -webkit-backdrop-filter 0.3s ease,
+      visibility 0s;
+  }
+}
+@media (max-width: 1150px) and (prefers-reduced-motion: reduce) {
+  #nav-root::after,
+  #nav-root:has(.nav__mobile-menu.open)::after { transition: visibility 0s; }
+}
