@@ -1,0 +1,23 @@
+-- ============================================================
+-- Fix: sync_own_profile_identity became callable by anon (unauthenticated).
+--
+-- 20260921090000 created this function with a fresh CREATE FUNCTION and
+-- followed it with "revoke execute ... from public". This project's default
+-- privileges grant EXECUTE directly to anon/authenticated on every new
+-- function, and a direct grant to anon is not one inherited from PUBLIC, so
+-- that revoke never removed it (same trap 20260919130100 fixed for
+-- get_xp_leaderboard).
+--
+-- Confirmed on the live database on 2026-09-30: an unauthenticated call with
+-- the public anon key returned 204 instead of a permission error.
+--
+-- Practical impact is nil today: the function returns immediately when
+-- auth.uid() is null, and for a signed-in caller it can only ever write
+-- display_name/avatar_url on that caller's own row. But anon has no business
+-- executing it, and the next edit to the function body could turn a harmless
+-- grant into a real hole without anyone noticing. Revoking anon here.
+-- authenticated keeps its explicit grant from the previous migration, which
+-- is what js/auth.js's sign-in sync uses.
+-- ============================================================
+
+revoke execute on function public.sync_own_profile_identity(text, text) from anon;
