@@ -211,7 +211,7 @@
           <div class="cl-status__cell">
             <span class="cl-status__lbl">${c.lbl}</span>
             <span class="cl-status__row">
-              <span class="cl-status__val"${c.tick != null ? ` data-tick="${c.tick}" data-suffix="${c.suffix || ''}"` : ''}>${c.tick != null ? (_painted ? c.tick + (c.suffix || '') : '0') : c.val}</span>
+              <span class="cl-status__val"${c.tick != null ? ` data-tick="${c.tick}" data-dec="${c.dec || 0}" data-suffix="${c.suffix || ''}"` : ''}>${c.tick != null ? (_painted ? Number(c.tick).toFixed(c.dec || 0) + (c.suffix || '') : (0).toFixed(c.dec || 0)) : c.val}</span>
               ${c.unit ? `<span class="cl-status__unit">${c.unit}</span>` : ''}
             </span>
           </div>`).join('')}
@@ -222,7 +222,8 @@
     const status = document.querySelector('.cl-status');
     if (!status) return;
     const vals = [...status.querySelectorAll('[data-tick]')];
-    const finish = () => vals.forEach(v => { v.textContent = v.dataset.tick + v.dataset.suffix; });
+    const fmt = (v, x) => Number(x).toFixed(Number(v.dataset.dec) || 0) + v.dataset.suffix;
+    const finish = () => vals.forEach(v => { v.textContent = fmt(v, v.dataset.tick); });
     if (_painted || reduced) { status.classList.remove('cl-boot'); finish(); return; }
     setTimeout(() => {
       status.classList.remove('cl-boot');
@@ -232,7 +233,8 @@
         k++;
         vals.forEach(v => {
           const target = Number(v.dataset.tick);
-          v.textContent = Math.round(target * Math.min(k / steps, 1)) + v.dataset.suffix;
+          const dec = Number(v.dataset.dec) || 0;
+          v.textContent = fmt(v, dec ? target * Math.min(k / steps, 1) : Math.round(target * Math.min(k / steps, 1)));
         });
         if (k >= steps) { clearInterval(t); finish(); }
       }, 46);
@@ -247,6 +249,111 @@
 
   function pageClass() { return 'cl-page' + (_painted ? ' cl-static' : ''); }
 
+  /* ─── Greeting and today ───────────────────────────────────────────
+     "Bună ziua, <name>" (dimineața / ziua / seara by the hour), the date
+     as "Joi, 1 octombrie", and a strip with the lessons that are today. */
+  function _greeting() {
+    const h = new Date().getHours();
+    return h >= 5 && h < 11 ? 'Bună dimineața' : h >= 11 && h < 18 ? 'Bună ziua' : 'Bună seara';
+  }
+
+  function _todayLabel() {
+    const s = new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
+    return s.charAt(0).toUpperCase() + s.slice(1);
+  }
+
+  function headInfoHTML(lede) {
+    const name = BM.esc((window.BMAuth && BMAuth.displayName && BMAuth.displayName()) || '');
+    return `
+      <div class="cl-head__info">
+        <span class="cl-eyebrow"><i></i>${_todayLabel()}</span>
+        <h1 class="cl-title">${_greeting()}${name ? `, <span class="cl-title__name">${name}</span>` : ''}</h1>
+        <p class="cl-lede">${lede}</p>
+      </div>`;
+  }
+
+  function _todayLessons(classes) {
+    const todayName = DAY_ORDER[(new Date().getDay() + 6) % 7];
+    return classes
+      .map(cls => ({ cls, info: _classInfo(cls) }))
+      .filter(x => x.info.days.includes(todayName) && /^\d{1,2}:\d{2}/.test(x.info.time))
+      .sort((a, b) => a.info.time.localeCompare(b.info.time));
+  }
+
+  // Where a lesson is relative to now, in words. The classes carry no
+  // duration, so a lesson that has started is "a început", and after three
+  // hours "încheiată".
+  function _lessonState(time) {
+    const [h, m] = time.split(':').map(Number);
+    const at = new Date();
+    at.setHours(h, m, 0, 0);
+    const diff = Math.round((at - new Date()) / 60000);
+    if (diff > 0) {
+      const text = diff >= 60 ? `peste ${Math.floor(diff / 60)} h${diff % 60 ? ' ' + (diff % 60) + ' min' : ''}` : `peste ${diff} min`;
+      return { cls: 'soon', text };
+    }
+    if (diff > -180) return { cls: 'now', text: 'a început' };
+    return { cls: 'done', text: 'încheiată' };
+  }
+
+  function todayHTML(classes, role, memberCounts) {
+    const lessons = _todayLessons(classes);
+    const title = role === 'profesor' ? 'Lecțiile tale de azi' : 'Lecțiile de azi';
+    const next = _nextLesson(classes);
+    const nextText = next
+      ? `Următoarea: ${next.at.toLocaleDateString('ro-RO', { weekday: 'long' })}, ${BM.esc(next.time)}, ${BM.esc(_classInfo(next.cls).subject)}${next.cls.school_grade ? ' (clasa ' + BM.esc(next.cls.school_grade) + ')' : ''}.`
+      : '';
+    return `
+      <section class="cl-today" aria-labelledby="clTodayT">
+        <header class="cl-today__head">
+          <h2 id="clTodayT"><i class="cl-today__led${lessons.length ? ' is-on' : ''}"></i>${title}</h2>
+          <span class="cl-today__count">${lessons.length ? `${lessons.length} ${lessons.length === 1 ? 'lecție' : 'lecții'}` : 'nicio lecție'}</span>
+        </header>
+        ${lessons.length ? `
+          <ol class="cl-today__list">
+            ${lessons.map(({ cls, info }, i) => {
+              const st = _lessonState(info.time);
+              const n = memberCounts ? memberCounts[cls.id] : null;
+              const sub = [info.grade, info.type, role === 'profesor'
+                ? (n != null ? `${n}${cls.max_students ? '/' + cls.max_students : ''} ${n === 1 ? 'elev' : 'elevi'}` : '')
+                : (cls.teacher_name || '')].filter(Boolean);
+              return `
+              <li class="cl-lesson cl-lesson--${st.cls}" style="--i:${i}" data-time="${BM.esc(info.time)}">
+                <a class="cl-lesson__link" href="class.html?id=${cls.id}">
+                  <span class="cl-lesson__time">${_timeHTML(info.time)}</span>
+                  <span class="cl-lesson__body">
+                    <b>${BM.esc(info.subject)}</b>
+                    <span>${sub.map(BM.esc).join(' · ')}</span>
+                  </span>
+                  <span class="cl-lesson__state">${st.text}</span>
+                  ${icon('chevron-right', { size: 18 })}
+                </a>
+              </li>`;
+            }).join('')}
+          </ol>` : `
+          <div class="cl-today__empty">
+            <b>Nu sunt lecții programate pentru azi.</b>
+            ${nextText ? `<span>${nextText}</span>` : ''}
+          </div>`}
+      </section>`;
+  }
+
+  // The words in the strip ("peste 2 h" -> "a început") follow the clock.
+  let _todayTimer = null;
+  function startTodayTicker() {
+    clearInterval(_todayTimer);
+    _todayTimer = setInterval(() => {
+      const items = document.querySelectorAll('.cl-lesson[data-time]');
+      if (!items.length) { clearInterval(_todayTimer); return; }
+      items.forEach(li => {
+        const st = _lessonState(li.dataset.time);
+        li.className = li.className.replace(/cl-lesson--(soon|now|done)/, 'cl-lesson--' + st.cls);
+        const el = li.querySelector('.cl-lesson__state');
+        if (el && el.textContent !== st.text) el.textContent = st.text;
+      });
+    }, 30000);
+  }
+
   /* ═══════════════════════════════════════════════════════════════
      TEACHER VIEW
   ═══════════════════════════════════════════════════════════════ */
@@ -257,22 +364,23 @@
     setRootContent(`
       <div class="${pageClass()}">
         <header class="cl-head">
-          <div class="cl-head__info">
-            <h1 class="cl-title">Clasele mele</h1>
-            <p class="cl-lede">Grupele tale, fiecare cu programul, cifrele ei și codul de invitație pe care îl trimiți elevilor.</p>
-          </div>
+          ${headInfoHTML('Aici sunt grupele tale, fiecare cu programul, cifrele ei și codul de invitație pe care îl trimiți elevilor.')}
           <div class="cl-head__keys">
             ${has ? _dayFilterHTML() : ''}
             <button type="button" class="cl-key cl-key--primary" id="createClassBtn">${icon('plus', { size: 16 })} Creează clasă</button>
           </div>
         </header>
+        ${has ? todayHTML(classes, 'profesor', memberCounts) : ''}
         ${has && aggStats ? statusHTML('Toate grupele', [
           { lbl: 'Grupe', tick: aggStats.totalGroups },
           { lbl: 'Elevi activi', tick: aggStats.activeStudents },
           { lbl: 'Lecții ținute', tick: aggStats.totalLessons },
           aggStats.avgAttendance != null
             ? { lbl: 'Prezență medie', tick: aggStats.avgAttendance, suffix: '%' }
-            : { lbl: 'Prezență medie', val: '-' }
+            : { lbl: 'Prezență medie', val: '-' },
+          aggStats.avgPerLesson != null
+            ? { lbl: 'Elevi pe oră', tick: aggStats.avgPerLesson, dec: 1 }
+            : { lbl: 'Elevi pe oră', val: '-' }
         ]) : ''}
         ${has ? `
           <div class="cl-bar" id="clBar" hidden></div>
@@ -294,7 +402,7 @@
     });
     _wireCopyKeys();
     _initCustomControls();
-    if (has) { _wireDayFilter(); _applyDayFilter(); }
+    if (has) { _wireDayFilter(); _applyDayFilter(); startTodayTicker(); }
     runStatus();
     _painted = true;
   }
@@ -413,7 +521,7 @@
   // student_id across classes, which would corrupt a per-student calc for
   // any student enrolled in more than one of this teacher's classes.
   async function _fetchAggregateStats(classIds) {
-    if (!classIds.length) return { totalGroups: 0, activeStudents: 0, totalLessons: 0, avgAttendance: null, perClass: {} };
+    if (!classIds.length) return { totalGroups: 0, activeStudents: 0, totalLessons: 0, avgAttendance: null, avgPerLesson: null, perClass: {} };
     const [{ data: members }, { data: sessions }] = await Promise.all([
       BMAuth.supabase.from('class_members').select('class_id, student_id, status').in('class_id', classIds),
       BMAuth.supabase.from('class_sessions').select('id, class_id').in('class_id', classIds)
@@ -461,7 +569,11 @@
       delete pc._members; delete pc._per;
     });
 
-    return { totalGroups: classIds.length, activeStudents, totalLessons: sessionIds.length, avgAttendance, perClass };
+    // Students present at a lesson, on average, over every lesson of every class.
+    const presentAll = Object.values(presentTotals).reduce((t, v) => t + v, 0);
+    const avgPerLesson = sessionIds.length ? presentAll / sessionIds.length : null;
+
+    return { totalGroups: classIds.length, activeStudents, totalLessons: sessionIds.length, avgAttendance, avgPerLesson, perClass };
   }
 
   async function renderTeacherView() {
@@ -1233,13 +1345,13 @@
         const d = DAY_ORDER.indexOf(dayName) + 1;
         const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((d - todayIso + 7) % 7), +t[1], +t[2]);
         if (at <= now) at.setDate(at.getDate() + 7);
-        if (!best || at < best.at) best = { at, dayName, time: info.time };
+        if (!best || at < best.at) best = { at, dayName, time: info.time, cls: c };
       });
     });
     if (!best) return null;
     const days = Math.round((new Date(best.at.getFullYear(), best.at.getMonth(), best.at.getDate()) -
       new Date(now.getFullYear(), now.getMonth(), now.getDate())) / 86400000);
-    return { time: best.time, when: days === 0 ? 'azi' : days === 1 ? 'mâine' : DAY_SHORT[best.dayName] };
+    return { time: best.time, at: best.at, cls: best.cls, when: days === 0 ? 'azi' : days === 1 ? 'mâine' : DAY_SHORT[best.dayName] };
   }
 
   function _applyStudentUI(classes) {
@@ -1248,11 +1360,10 @@
     setRootContent(`
       <div class="${pageClass()}">
         <header class="cl-head">
-          <div class="cl-head__info">
-            <h1 class="cl-title">Clasele mele</h1>
-            <p class="cl-lede">Introdu codul primit de la profesor și vezi grupele la care participi.</p>
-          </div>
+          ${headInfoHTML('Introdu codul primit de la profesor și vezi grupele la care participi.')}
         </header>
+
+        ${classes.length ? todayHTML(classes, 'elev', null) : ''}
 
         <section class="cl-join" aria-labelledby="clJoinTitle">
           <div class="cl-join__icon">${icon('key', { size: 24 })}</div>
@@ -1288,6 +1399,7 @@
     document.querySelectorAll('.cl-block__leave').forEach(btn => {
       btn.addEventListener('click', () => leaveClass(btn.dataset.id, btn.dataset.name));
     });
+    if (classes.length) startTodayTicker();
     runStatus();
     _painted = true;
   }
