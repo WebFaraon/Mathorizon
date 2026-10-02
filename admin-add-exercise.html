@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Adaugă Exercițiu — Mathorizon</title>
+  <title>Adaugă exercițiu | Mathorizon admin</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
@@ -15,18 +15,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/calculator.css">
+  <link href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/admin.css">
+  <script>window.BM = window.BM || {}; BM.navLoaded = false; BM.onNavReady = function () {};</script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
 </head>
-<body>
-
-  <!-- NAVBAR -->
-  <nav class="nav" id="nav-root"></nav>
+<body class="ax ax-legacy" data-ax-page="exercitii">
+  <div class="ax-empty" id="axLoading" style="padding-top:20vh">Se verifică accesul…</div>
   <script src="js/icons.js"></script>
-  <script src="js/nav-loader.js"></script>
 
-  <main class="main container">
+  <main class="main ax-legacy__main" id="axLegacy" hidden>
     <div class="ae-page-wrap" id="aeWrap" style="display:none">
 
       <div style="display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:24px">
@@ -50,7 +50,7 @@
           <span class="prof-card__title">Desenează figura</span>
         </div>
         <div class="prof-card__body">
-          <p class="wz-subtitle" style="margin-bottom:14px">Figura e doar un ajutor vizual pentru elev — nu este verificată de AI.</p>
+          <p class="wz-subtitle" style="margin-bottom:14px">Figura e doar un ajutor vizual pentru elev, nu este verificată de AI.</p>
           <div class="ae-geo-editor" id="aeGeoMount"></div>
         </div>
       </div>
@@ -103,9 +103,11 @@
   <script src="js/utils.js"></script>
   <script src="js/auth.js"></script>
   <script src="js/data.js"></script>
-  <script src="js/panels.js"></script>
   <script src="js/vendor/fabric.min.js"></script>
   <script src="js/geometry-figure-editor.js"></script>
   <script src="js/admin-add-exercise.js"></script>
+  <script src="js/admin/mock-data.js"></script>
+  <script src="js/admin/ui.js"></script>
+  <script src="js/admin/shell.js"></script>
 </body>
 </html>

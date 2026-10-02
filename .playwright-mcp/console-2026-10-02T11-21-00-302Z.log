@@ -1,0 +1,8 @@
+[     400ms] [LOG] [BMAuth] onAuthStateChange: INITIAL_SESSION false @ http://localhost:8080/js/auth.js:28
+[     400ms] [LOG] [BMAuth] getSession: false @ http://localhost:8080/js/auth.js:68
+[     424ms] TypeError: BM.onNavReady is not a function
+    at http://localhost:8080/js/utils.js:11:4
+[    3124ms] [LOG] [BMAuth] onAuthStateChange: INITIAL_SESSION false @ http://localhost:8080/js/auth.js:28
+[    3124ms] [LOG] [BMAuth] getSession: false @ http://localhost:8080/js/auth.js:68
+[    3148ms] TypeError: BM.onNavReady is not a function
+    at http://localhost:8080/js/utils.js:11:4

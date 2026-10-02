@@ -1,0 +1,2 @@
+[     546ms] [LOG] [BMAuth] onAuthStateChange: INITIAL_SESSION false @ http://localhost:8080/js/auth.js:28
+[     546ms] [LOG] [BMAuth] getSession: false @ http://localhost:8080/js/auth.js:68

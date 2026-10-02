@@ -1,6 +1,6 @@
 
 /* ============================================================
-   Mathorizon — Admin "Adaugă exercițiu" full page
+   Mathorizon, Admin "Adaugă exercițiu" full page
    (admin-add-exercise.html). Replaces the old modal wizard
    (js/admin-exercise.js) — same photo → Gemini → editable
    review → publish flow, just laid out as one continuously
@@ -101,7 +101,7 @@
 
   /* ---- Edit mode: load an existing custom_exercises row ----
      Reuses the exact same §1 Detalii / §2 Desenează / §4 Analiză AI
-     rendering the "add new" flow already uses — those all just read/write
+     rendering the "add new" flow already uses, those all just read/write
      the shared `ae` state and `ae.aiResult`, so populating that state from
      a saved row and rendering is enough to make every field (title, barem
      rows, alt methods, the figure editor) immediately editable with no
@@ -203,7 +203,7 @@
         <label class="cls-form-label">Punctaj total exercițiu *</label>
         <input type="number" min="1" id="aePunctajTotal" class="cls-form-input" style="max-width:120px"
                placeholder="ex: 5" value="${BM.esc(ae.punctajTotal || '')}">
-        <span class="cls-form-hint">Punctajul oficial al exercițiului — AI-ul va construi baremul să însumeze exact atât.</span>
+        <span class="cls-form-hint">Punctajul oficial al exercițiului, AI-ul va construi baremul să însumeze exact atât.</span>
       </div>`;
 
     body.querySelector('#aeGrade').onchange       = e => { ae.grade = e.target.value; };
@@ -328,7 +328,7 @@
         { headers: { apikey: SUPABASE_ANON } }
       );
       if (res.ok) fromCustom = await res.json();
-    } catch { /* best-effort — don't block analysis on this */ }
+    } catch { /* best-effort, don't block analysis on this */ }
 
     return [...fromStatic, ...fromCustom];
   }
@@ -407,7 +407,7 @@
 
       ${r.verificat === false ? `
       <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
-        ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur răspunsul final la verificare — recalculează manual înainte de a confirma.
+        ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur răspunsul final la verificare, recalculează manual înainte de a confirma.
       </div>` : ''}
 
       <div class="cls-form-field">
@@ -430,7 +430,7 @@
       <div class="cls-form-field ae-section">
         <label class="cls-form-label">Răspuns final</label>
         <input type="text" id="aeRaspunsFinal" class="cls-form-input ae-fill-pop" value="${BM.esc(r.raspuns_final || '')}">
-        <span class="cls-form-hint">LaTeX, fără $, fără unitate de măsură — ex: 24√6, nu 24√6 cm²</span>
+        <span class="cls-form-hint">LaTeX, fără $, fără unitate de măsură, ex: 24√6, nu 24√6 cm²</span>
         <div class="ae-preview-box ae-preview-box--compact" id="aeRaspunsFinalPreview" style="margin-top:8px"></div>
         ${r.verificare_numerica ? `
         <div class="ae-verif">
@@ -503,7 +503,7 @@
     const el = document.getElementById('aeRaspunsFinalPreview');
     if (!el) return;
     const raw = (ae.aiResult.raspuns_final || '').trim();
-    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează răspunsul final.</span>'; return; }
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare, completează răspunsul final.</span>'; return; }
     el.innerHTML = `$${BM.esc(raw)}$`;
     BM.renderMath(el);
   }
@@ -517,7 +517,7 @@
     const el = document.getElementById('aeBaremPreview' + idx);
     if (!el) return;
     const raw = ((ae.aiResult.pasi_barem || [])[idx]?.descriere || '').trim();
-    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează descrierea pasului.</span>'; return; }
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare, completează descrierea pasului.</span>'; return; }
     el.innerHTML = BM.trustedNl2br(raw);
     BM.renderMath(el);
   }
@@ -533,7 +533,7 @@
         <button class="btn btn--danger-outline btn--sm ae-barem-row__del" title="Șterge pasul">${icon('x', { size: 16 })}</button>
         <div class="ae-preview-box ae-preview-box--compact ae-barem-row__preview" id="aeBaremPreview${i}"></div>
       </div>
-    `).join('') || '<p class="cls-form-hint">Niciun pas — apasă „+ Adaugă pas”.</p>';
+    `).join('') || '<p class="cls-form-hint">Niciun pas, apasă „+ Adaugă pas”.</p>';
 
     wrap.querySelectorAll('.ae-barem-row').forEach(row => {
       const idx = Number(row.dataset.idx);
@@ -564,7 +564,7 @@
     const el = document.getElementById('aeAltPreview' + idx);
     if (!el) return;
     const raw = ((ae.aiResult.metode_alternative || [])[idx]?.descriere || '').trim();
-    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare — completează descrierea metodei.</span>'; return; }
+    if (!raw) { el.innerHTML = '<span class="cls-form-hint">Previzualizare, completează descrierea metodei.</span>'; return; }
     el.innerHTML = BM.trustedNl2br(raw);
     BM.renderMath(el);
   }
@@ -684,7 +684,7 @@
       subcategory_id: ae.subcategoryId,
       difficulty: ae.difficulty,
       punctaj_total: Number(ae.punctajTotal) || baremSum,
-      source: `${GRADE_LABEL[ae.grade] || ae.grade} — ${cat?.name || ae.categoryId}`,
+      source: `${GRADE_LABEL[ae.grade] || ae.grade}, ${cat?.name || ae.categoryId}`,
       title: r.titlu,
       statement: r.enunt_katex,
       solution: solutionParts.join('\n\n'),

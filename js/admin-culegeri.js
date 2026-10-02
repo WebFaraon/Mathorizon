@@ -1,7 +1,7 @@
 /* ============================================================
-   Mathorizon — Admin "Culegeri" page (admin-culegeri.html)
+   Mathorizon, Admin "Culegeri" page (admin-culegeri.html)
    Admin-only upload of scanned PDF textbooks into a private Supabase
-   Storage bucket ('culegeri') — visible to approved teachers (role=
+   Storage bucket ('culegeri'), visible to approved teachers (role=
    profesor) and admin via the culegeri table's RLS, browsed from the
    exercise-picker in js/class-page.js (see the "Din culegere" tab).
    See supabase/migrations/20260908090000_culegeri_library.sql for the
@@ -113,12 +113,12 @@
       const isPdf = file.type === 'application/pdf' || /\.pdf$/i.test(file.name);
       if (!isPdf) { BM.toast('Doar fișiere PDF sunt acceptate.', 'error'); return; }
       if (file.size > MAX_FILE_BYTES) {
-        BM.toast(`Fișierul are ${(file.size / 1024 / 1024).toFixed(0)}MB — depășește limita de 200MB.`, 'error');
+        BM.toast(`Fișierul are ${(file.size / 1024 / 1024).toFixed(0)}MB, depășește limita de 200MB.`, 'error');
         return;
       }
       selectedFile = file;
       document.getElementById('clDropMain').textContent = file.name;
-      document.getElementById('clDropHint').textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB — alege alt fișier pentru a înlocui`;
+      document.getElementById('clDropHint').textContent = `${(file.size / 1024 / 1024).toFixed(1)} MB, alege alt fișier pentru a înlocui`;
       checkReady();
     }
 

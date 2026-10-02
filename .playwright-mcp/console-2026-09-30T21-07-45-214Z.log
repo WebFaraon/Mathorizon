@@ -1,0 +1,8 @@
+[     455ms] [LOG] [BMAuth] onAuthStateChange: INITIAL_SESSION false @ http://localhost:8080/js/auth.js:28
+[     455ms] [LOG] [BMAuth] getSession: false @ http://localhost:8080/js/auth.js:68
+[     484ms] TypeError: BM.onNavReady is not a function
+    at http://localhost:8080/js/utils.js:11:4
+[     567ms] TypeError: BM.onNavReady is not a function
+    at http://localhost:8080/js/utils.js:11:4
+[   10741ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   10741ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170

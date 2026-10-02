@@ -1,0 +1,130 @@
+/* Admin console: Elevi (js/admin/views/elevi.js) */
+
+/* ---- summary strip ---- */
+body.ax .el-stats { margin-bottom: 22px; }
+body.ax .el-stats .ax-stat { min-height: 96px; }
+body.ax .el-unit { margin-left: 6px; font-size: 0.9rem; font-weight: 700; font-stretch: 100%; color: var(--ax-ink-3); }
+
+/* ---- rail ---- */
+body.ax .el-split { grid-template-columns: 240px minmax(0, 1fr); }
+body.ax .el-rail__tg { display: none; }
+body.ax .el-rail__n:empty { display: none; }
+body.ax .el-rail__n { min-width: 20px; padding: 0 5px; border-radius: var(--ax-r); background: var(--ax-ink); color: var(--ax-bg); font-size: 0.72rem; font-weight: 800; line-height: 18px; text-align: center; }
+body.ax .el-find { display: flex; flex-direction: column; gap: 6px; }
+body.ax .el-find .ax-select { min-height: 34px; font-weight: 700; }
+body.ax .el-sect {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+  padding: 0 2px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  font-stretch: 106%;
+  color: var(--ax-ink);
+}
+body.ax .el-sect .ax-ico { display: grid; width: 22px; height: 22px; padding: 4px; border-radius: var(--ax-r); background: var(--ax-sign); color: var(--ax-sign-ink); }
+body.ax .el-seg { display: grid; width: 100%; }
+body.ax .el-seg button { min-width: 0; padding: 0 6px; border-left: 1px solid var(--ax-rule); font-size: 0.86rem; font-weight: 700; }
+body.ax .el-seg button:first-child { border-left: 0; }
+body.ax .el-seg--fill { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+body.ax .el-seg--sold button { min-height: 42px; padding: 4px 6px; font-size: 0.8rem; line-height: 1.15; }
+body.ax .el-switch { padding: 8px 2px 2px; }
+body.ax .el-clear { width: 100%; }
+
+/* ---- results ---- */
+body.ax .el-bar { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+body.ax .el-count { font-size: 0.92rem; color: var(--ax-ink-2); }
+body.ax .el-count b { font-size: 1.05rem; font-weight: 800; color: var(--ax-ink); }
+body.ax .el-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body.ax .el-empty-k { margin-top: 16px; }
+
+body.ax .el-table { min-width: 820px; }
+body.ax .el-table th { padding: 11px 8px; }
+body.ax .el-table th[data-sort] { padding: 0; }
+body.ax .el-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 11px 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+body.ax .el-table th.ax-num .el-sort { justify-content: flex-end; }
+body.ax .el-sort .ax-ico { opacity: 0.45; }
+body.ax .el-sort.is-on .ax-ico { opacity: 1; }
+body.ax .el-sort:focus-visible { outline-offset: -2px; }
+body.ax .el-table td { padding: 10px 8px; vertical-align: top; }
+body.ax .el-table th:first-child .el-sort, body.ax .el-table td:first-child { padding-left: 12px; }
+body.ax .el-table th:last-child, body.ax .el-table td:last-child { padding-right: 12px; }
+body.ax .el-table tbody tr:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: -2px; }
+body.ax .el-table tbody tr:focus-visible td { background: var(--ax-panel-2); }
+
+body.ax .el-name { display: block; font-weight: 700; white-space: nowrap; }
+body.ax .el-tel { font-size: 0.82rem; color: var(--ax-ink-3); text-decoration: none; white-space: nowrap; }
+body.ax .el-tel:hover { color: var(--ax-blue); text-decoration: underline; }
+body.ax .el-table .ax-pres { margin-top: 2px; }
+body.ax .el-mgr { display: block; margin-top: 5px; }
+body.ax .el-mgr .ax-mgr { font-size: 0.82rem; color: var(--ax-ink-2); white-space: nowrap; }
+body.ax .el-bal { font-weight: 800; white-space: nowrap; }
+body.ax .el-bal.is-zero { color: var(--ax-ink-3); font-weight: 700; }
+body.ax .el-proj { display: block; margin-top: 3px; }
+body.ax .el-cls { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+body.ax .el-cls .ax-sub { line-height: 1.25; }
+body.ax .el-nw { white-space: nowrap; }
+body.ax .el-size { display: block; margin-bottom: 1px; font-size: 0.86rem; font-weight: 600; white-space: nowrap; }
+body.ax .el-days { display: block; font-weight: 700; line-height: 1.3; }
+body.ax .el-days span { white-space: nowrap; }
+body.ax .el-time { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 2px; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-2); white-space: nowrap; }
+body.ax .el-room { padding: 0 5px; border-radius: var(--ax-r); background: var(--ax-sign); color: var(--ax-sign-ink); font-size: 0.74rem; font-weight: 800; line-height: 18px; }
+body.ax .el-nogroup { display: inline-flex; align-items: center; gap: 8px; font-size: 0.88rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .el-nogroup::before { content: ''; width: 14px; height: 0; border-top: 2px dashed var(--ax-rule-2); }
+
+body.ax .el-legend { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 0.8rem; color: var(--ax-ink-3); }
+body.ax .el-legend .ax-pres i { width: 16px; height: 16px; font-size: 0.64rem; }
+body.ax .el-morebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ---- drawer ---- */
+body.ax .el-dw { display: flex; flex-direction: column; gap: 22px; }
+body.ax .el-dw__bal { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); background: var(--ax-panel-2); }
+body.ax .el-dw__haz { display: inline-block; width: 28px; height: 10px; margin-left: 10px; border-radius: 1px; vertical-align: 0; }
+body.ax .el-dw__k { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .el-dw__bal b { font-size: 1.9rem; font-weight: 800; font-stretch: 110%; line-height: 1.05; }
+body.ax .el-dw__bal p { font-size: 0.88rem; color: var(--ax-ink-2); }
+body.ax .el-dw__tel { display: inline-flex; align-items: center; gap: 6px; color: var(--ax-blue); text-decoration: none; }
+body.ax .el-dw__tel:hover { text-decoration: underline; }
+body.ax .el-dw__h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-2); }
+body.ax .el-dw__h span { font-size: 0.8rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ax-ink-3); }
+body.ax .el-dw__pres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1px; margin: 0; padding: 0; list-style: none; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); background: var(--ax-rule); overflow: hidden; }
+body.ax .el-dw__pres li { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--ax-panel); }
+body.ax .el-dw__pres .ax-pres i { width: 24px; height: 24px; font-size: 0.8rem; }
+body.ax .el-dw__pres b { display: block; font-size: 0.9rem; }
+body.ax .el-dw__group { display: flex; flex-direction: column; gap: 14px; padding: 14px 16px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); }
+body.ax .el-dw__gsigns { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; }
+body.ax .el-dw__group .ax-dl { grid-template-columns: 110px minmax(0, 1fr); }
+body.ax .el-dw__go { display: inline-flex; align-items: center; gap: 6px; align-self: flex-start; color: var(--ax-blue); text-decoration: none; }
+body.ax .el-dw__none { color: var(--ax-ink-3); }
+
+/* ---- responsive ---- */
+@media (max-width: 1180px) {
+  body.ax .el-split { grid-template-columns: minmax(0, 1fr); }
+  body.ax .el-rail__tg { display: inline-flex; }
+  body.ax .el-rail .ax-rail__head { padding-bottom: 0; }
+  body.ax .el-rail.is-open .ax-rail__head { padding-bottom: 6px; }
+}
+@media (max-width: 600px) {
+  body.ax .el-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.ax .el-stats .ax-stat { min-height: 0; padding: 12px 14px; }
+  body.ax .el-stats .ax-stat__s { display: none; }
+  body.ax .el-unit { font-size: 0.78rem; margin-left: 4px; }
+  body.ax .el-dw__pres { grid-template-columns: minmax(0, 1fr); }
+  body.ax .el-dw__group .ax-dl { grid-template-columns: minmax(0, 1fr); }
+  body.ax .el-legend { align-items: flex-start; }
+}

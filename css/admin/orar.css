@@ -1,0 +1,235 @@
+/* Admin console: Orar (js/admin/views/orar.js) */
+
+/* ---- quick signs: projects + quick selections ---- */
+body.ax .or-signs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px; margin-bottom: 22px; }
+body.ax .or-signs__grp { display: flex; flex-direction: column; min-width: 0; }
+body.ax .or-signs__t { margin-bottom: 8px; font-size: 0.74rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .or-signs__row {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1px;
+  border: 1px solid var(--ax-rule);
+  border-radius: var(--ax-r-2);
+  background: var(--ax-rule);
+  overflow: hidden;
+  flex: 1;
+}
+body.ax .or-sign {
+  --c: var(--ax-ink);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-width: 0;
+  min-height: 116px;
+  padding: 22px 14px 12px;
+  border: 0;
+  border-radius: 0;
+  background: var(--ax-panel);
+  color: var(--ax-ink);
+  text-align: left;
+  cursor: pointer;
+  transition: background-color 0.12s;
+}
+body.ax .or-sign:hover { background: var(--ax-panel-2); }
+body.ax .or-sign:focus-visible { outline-offset: -3px; }
+body.ax .or-sign--exo { --c: var(--ax-line-exo); }
+body.ax .or-sign--exn { --c: var(--ax-line-exn); }
+body.ax .or-sign--mat { --c: var(--ax-line-mat); }
+body.ax .or-sign__line { display: flex; align-items: center; gap: 7px; }
+body.ax .or-sign__band { flex-shrink: 0; width: 16px; height: 7px; border-radius: 1px; background: var(--c); }
+body.ax .or-sign__pic {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: var(--ax-r);
+  background: var(--ax-sign);
+  color: var(--ax-sign-ink);
+}
+body.ax .or-sign--warn .or-sign__pic { color: var(--ax-yellow); }
+body.ax .or-sign__name { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 800; font-stretch: 106%; line-height: 1.2; }
+body.ax .or-sign__sub { font-size: 0.78rem; line-height: 1.3; color: var(--ax-ink-3); }
+body.ax .or-sign__v { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; margin-top: auto; padding-top: 6px; font-size: 0.82rem; font-weight: 600; color: var(--ax-ink-2); }
+body.ax .or-sign__v b { font-size: 1.55rem; font-weight: 800; font-stretch: 110%; line-height: 1; color: var(--ax-ink); }
+body.ax .or-sign__of { font-weight: 600; color: var(--ax-ink-3); }
+body.ax .or-sign__here {
+  position: absolute;
+  top: 0;
+  right: 0;
+  display: none;
+  place-items: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--ax-r);
+  background: var(--ax-yellow-ink);
+  color: var(--ax-yellow);
+}
+/* you are here: the selected sign turns into the yellow plate */
+body.ax .or-sign[aria-pressed="true"] { background: var(--ax-yellow); color: var(--ax-yellow-ink); }
+body.ax .or-sign[aria-pressed="true"]:hover { background: var(--ax-yellow); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__sub,
+body.ax .or-sign[aria-pressed="true"] .or-sign__v,
+body.ax .or-sign[aria-pressed="true"] .or-sign__of,
+body.ax .or-sign[aria-pressed="true"] .or-sign__v b { color: var(--ax-yellow-ink); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__pic { background: var(--ax-yellow-ink); color: var(--ax-yellow); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__here { display: grid; }
+body.ax .or-sign[aria-pressed="true"] .or-sign__band { outline: 1.5px solid var(--ax-yellow-ink); }
+
+/* ---- rail ---- */
+body.ax .or-rail__tg { display: none; }
+body.ax .or-rail__n:empty { display: none; }
+body.ax .or-rail__n { min-width: 20px; padding: 0 5px; border-radius: var(--ax-r); background: var(--ax-ink); color: var(--ax-bg); font-size: 0.72rem; font-weight: 800; line-height: 18px; text-align: center; }
+body.ax .or-seg { display: grid; width: 100%; }
+body.ax .or-seg button { min-width: 0; padding: 0 6px; font-size: 0.86rem; font-weight: 700; border-left: 1px solid var(--ax-rule); }
+body.ax .or-seg button:first-child { border-left: 0; }
+body.ax .or-seg--fill { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+body.ax .or-seg--days { grid-template-columns: repeat(7, minmax(0, 1fr)); }
+body.ax .or-seg--days button { padding: 0; font-size: 0.78rem; }
+body.ax .or-switch { padding: 8px 2px 2px; }
+body.ax .or-clear { width: 100%; }
+
+/* ---- results ---- */
+body.ax .or-bar { display: flex; align-items: baseline; justify-content: space-between; gap: 6px 16px; flex-wrap: wrap; margin-bottom: 10px; }
+body.ax .or-count { font-size: 0.92rem; color: var(--ax-ink-2); }
+body.ax .or-count b { font-size: 1.05rem; font-weight: 800; color: var(--ax-ink); }
+body.ax .or-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+body.ax .or-empty-k { margin-top: 16px; }
+
+body.ax .or-split { grid-template-columns: 240px minmax(0, 1fr); }
+body.ax .or-table { min-width: 800px; }
+body.ax .or-table th { padding: 0; }
+body.ax .or-sort {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  width: 100%;
+  padding: 11px 8px;
+  border: 0;
+  background: none;
+  font: inherit;
+  letter-spacing: inherit;
+  text-transform: inherit;
+  color: inherit;
+  white-space: nowrap;
+  cursor: pointer;
+}
+body.ax .or-table th.ax-num .or-sort { justify-content: flex-end; white-space: normal; text-align: right; }
+body.ax .or-table th:first-child .or-sort, body.ax .or-table td:first-child { padding-left: 12px; }
+body.ax .or-table th:last-child .or-sort, body.ax .or-table td:last-child { padding-right: 12px; }
+body.ax .or-sort .ax-ico { opacity: 0.45; }
+body.ax .or-sort.is-on .ax-ico { opacity: 1; }
+body.ax .or-sort:focus-visible { outline-offset: -2px; }
+body.ax .or-table td { padding: 10px 8px; vertical-align: top; }
+body.ax .or-table td.or-c-kids { min-width: 150px; }
+body.ax .or-table tbody tr:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: -2px; }
+body.ax .or-table tbody tr:focus-visible td { background: var(--ax-panel-2); }
+
+body.ax .or-when { display: flex; align-items: flex-start; gap: 10px; }
+body.ax .or-room {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 38px;
+  height: 38px;
+  border-radius: var(--ax-r);
+  background: var(--ax-sign);
+  color: var(--ax-sign-ink);
+  font-size: 1.1rem;
+  font-weight: 850;
+  font-stretch: 112%;
+  line-height: 1;
+}
+body.ax .or-room small { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-sign-ink-2); }
+body.ax .or-room--on { border: 1.5px solid var(--ax-rule-2); background: transparent; color: var(--ax-ink-3); }
+body.ax .or-room--sm { display: inline-flex; flex-direction: row; gap: 4px; width: auto; height: 24px; padding: 0 7px; font-size: 0.86rem; }
+body.ax .or-room--sm small { font-size: 0.62rem; }
+body.ax .or-days { display: block; font-weight: 700; line-height: 1.3; }
+body.ax .or-days span { white-space: nowrap; }
+body.ax .or-time { display: block; margin-top: 1px; white-space: nowrap; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-2); }
+body.ax .or-first { color: var(--ax-ink-2); }
+body.ax .or-proj { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 3px; }
+body.ax .or-proj .ax-tag { height: 20px; padding: 0 6px; font-size: 0.72rem; }
+body.ax .or-table .ax-grade { margin-bottom: 3px; }
+body.ax .or-size { display: block; margin-bottom: 2px; font-weight: 700; white-space: nowrap; }
+body.ax .or-table td.ax-num { white-space: nowrap; }
+body.ax .or-free { display: inline-block; min-width: 26px; padding: 0 2px; font-size: 1.05rem; font-weight: 800; }
+body.ax .or-free.is-zero { color: var(--ax-ink-3); font-weight: 700; }
+body.ax .or-table .ax-tag--warn { height: 24px; font-size: 0.92rem; font-weight: 800; }
+body.ax .or-seats { display: flex; justify-content: flex-end; flex-wrap: wrap; max-width: 80px; margin: 6px 0 0 auto; }
+body.ax .or-kids { margin: 0; padding: 0; list-style: none; }
+body.ax .or-kids li { display: flex; align-items: center; gap: 7px; min-width: 0; line-height: 1.5; }
+body.ax .or-kids .ax-st__i { width: 9px; height: 9px; }
+body.ax .or-kid { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 150px; font-size: 0.88rem; }
+body.ax .or-more { display: inline-block; margin-top: 2px; padding-left: 16px; font-size: 0.8rem; font-weight: 800; color: var(--ax-ink-2); }
+
+body.ax .or-morebar { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-top: 14px; }
+
+/* ---- drawer ---- */
+body.ax .or-dw { display: flex; flex-direction: column; gap: 20px; }
+body.ax .or-dw__signs { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; }
+body.ax .or-dw__h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 0.76rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-2); }
+body.ax .or-dw__n { font-size: 0.8rem; font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--ax-ink-3); }
+body.ax .or-dw__st { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); width: 100%; }
+body.ax .or-dw__st button { display: flex; align-items: center; justify-content: flex-start; min-height: 40px; padding: 0 12px; border-left: 0; border-top: 1px solid var(--ax-rule); }
+body.ax .or-dw__st button:nth-child(-n+2) { border-top: 0; }
+body.ax .or-dw__st button:nth-child(2n) { border-left: 1px solid var(--ax-rule); }
+body.ax .or-dw__st button[aria-pressed="true"] { background: var(--ax-ink); }
+body.ax .or-dw__st button[aria-pressed="true"] .ax-st { color: var(--ax-bg); }
+body.ax .or-dw__dl dd .ax-sub { margin-top: 1px; font-weight: 500; }
+body.ax .or-tel { display: inline-flex; align-items: center; gap: 5px; margin-left: 10px; font-size: 0.84rem; font-weight: 600; color: var(--ax-blue); text-decoration: none; }
+body.ax .or-tel:hover { text-decoration: underline; }
+body.ax .or-dw__kids { margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--ax-rule); }
+body.ax .or-dw__kid { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 4px 12px; padding: 10px 0; border-bottom: 1px solid var(--ax-rule); }
+body.ax .or-dw__who b { display: block; font-weight: 700; }
+body.ax .or-dw__who a { font-size: 0.82rem; color: var(--ax-ink-3); text-decoration: none; }
+body.ax .or-dw__who a:hover { color: var(--ax-blue); text-decoration: underline; }
+body.ax .or-dw__stc { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 12px; grid-column: 1; }
+body.ax .or-dw__bal { grid-column: 2; grid-row: 1 / span 2; align-self: center; font-weight: 800; text-align: right; white-space: nowrap; }
+body.ax .or-dw__kid.is-gone .or-dw__who b { color: var(--ax-ink-3); }
+
+/* ---- responsive ---- */
+@media (max-width: 1280px) {
+  body.ax .or-signs { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  body.ax .or-sign { min-height: 104px; }
+}
+@media (max-width: 1180px) {
+  body.ax .or-split { grid-template-columns: minmax(0, 1fr); }
+  body.ax .or-rail__tg { display: inline-flex; }
+  body.ax .or-rail .ax-rail__head { padding-bottom: 0; }
+  body.ax .or-rail.is-open .ax-rail__head { padding-bottom: 6px; }
+}
+@media (max-width: 600px) {
+  body.ax .or-signs__row { grid-template-columns: minmax(0, 1fr); }
+  body.ax .or-sign { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; column-gap: 12px; min-height: 0; padding: 12px 40px 11px 14px; }
+  body.ax .or-sign__pic { display: none; }
+  body.ax .or-sign__name, body.ax .or-sign__sub { grid-column: 1; }
+  body.ax .or-sign__v { grid-column: 2; grid-row: 1 / span 2; margin: 0; padding: 0; }
+  body.ax .or-sign__of { display: none; }
+  body.ax .or-sign__here { top: 50%; right: 10px; width: 22px; height: 22px; margin-top: -11px; }
+  body.ax .or-dw__kid { grid-template-columns: minmax(0, 1fr); }
+  body.ax .or-dw__bal { grid-column: 1; grid-row: auto; text-align: left; }
+}
+
+/* ---- print (the Printează key) ---- */
+@media print {
+  body.ax.or-print { background: #fff; }
+  body.ax.or-print .ax-sign,
+  body.ax.or-print .ax-top,
+  body.ax.or-print .or-signs,
+  body.ax.or-print .or-rail,
+  body.ax.or-print .ax-head__keys,
+  body.ax.or-print .ax-active,
+  body.ax.or-print .or-morebar,
+  body.ax.or-print .ax-toasts { display: none; }
+  body.ax.or-print .ax-shell,
+  body.ax.or-print .ax-split { display: block; }
+  body.ax.or-print .ax-view { padding: 0; }
+  body.ax.or-print .ax-table-wrap { overflow: visible; border: 0; }
+  body.ax.or-print .or-table { min-width: 0; font-size: 0.78rem; }
+  body.ax.or-print .or-table tr { break-inside: avoid; }
+}

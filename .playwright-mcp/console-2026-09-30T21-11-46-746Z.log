@@ -1,0 +1,68 @@
+[   12182ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   12184ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[   32010ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   32011ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[   35083ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   35083ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[   38224ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   38224ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[   41344ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[   41345ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  145639ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  145639ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  148768ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  148776ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  151850ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  151851ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  154910ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  154911ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  180504ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  180504ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  183717ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  183717ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  186878ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  186879ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  189974ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  189975ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  193127ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  193128ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  250921ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  250921ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  253751ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  253752ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  256567ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  256567ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  259352ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  259353ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  262066ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  262067ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  264828ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  264829ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  275490ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  275491ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  278764ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  278765ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  293001ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  293001ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  296019ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  296020ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  299039ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  299039ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  302067ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  302068ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  324342ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  324342ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  361601ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  361601ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  365080ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  365081ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  387283ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  387283ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  501009ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  501009ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  687715ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  687716ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  690522ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  690523ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170
+[  694127ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[  694127ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170

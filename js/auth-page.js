@@ -39,7 +39,18 @@
     return from.startsWith('http') ? 'capitole.html' : from;
   }
 
-  function _redirect() {
+  // An admin with no explicit destination lands in the admin console.
+  let _redirecting = false;
+  async function _redirect(session) {
+    if (_redirecting) return;
+    _redirecting = true;
+    const explicit = new URLSearchParams(window.location.search).get('from');
+    if (!explicit && session && sb) {
+      try {
+        const { data } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
+        if (data && data.role === 'admin') { window.location.replace('admin.html'); return; }
+      } catch (e) { /* fall through to the default page */ }
+    }
     window.location.replace(_getFrom());
   }
 
@@ -292,12 +303,12 @@
 
     /* If already logged in, redirect immediately */
     const { data: { session } } = await sb.auth.getSession();
-    if (session) { _redirect(); return; }
+    if (session) { _redirect(session); return; }
 
     /* Listen for auth state changes (handles OAuth hash) */
     sb.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-        _redirect();
+        _redirect(session);
       }
     });
 

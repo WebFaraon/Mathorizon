@@ -14,6 +14,12 @@
         "value": "plus jakarta sans",
         "createdAt": "2026-09-30T20:08:28.198Z",
         "reason": "user confirmed: asked to revert the UI font back to Plus Jakarta Sans because the alternative looked too official"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "archivo",
+        "createdAt": "2026-10-02T11:23:41.512Z",
+        "reason": "Admin console font, chosen in the admin direction round (seed 05ada60a) and documented in DESIGN.md 'Admin console'"
       }
     ]
   }

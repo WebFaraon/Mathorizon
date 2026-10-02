@@ -1,0 +1,2 @@
+[     810ms] [ERROR] Failed to load resource: the server responded with a status of 401 (Unauthorized) @ http://localhost:8080/api/teacher-profile:0
+[     810ms] [WARNING] [class-page] teacher profile fetch failed: Sesiune invalidă. @ http://localhost:8080/js/class-page.js?v=20260909d:170

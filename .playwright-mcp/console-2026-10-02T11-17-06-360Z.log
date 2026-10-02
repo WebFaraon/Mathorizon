@@ -1,0 +1,24 @@
+[    8722ms] TypeError: Cannot set properties of undefined (setting 'acasa')
+    at http://localhost:8080/js/admin/views/acasa.js:96:27
+    at http://localhost:8080/js/admin/views/acasa.js:143:3
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'orar')
+    at http://localhost:8080/js/admin/views/orar.js:2:37
+    at http://localhost:8080/js/admin/views/orar.js:2:155
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'elevi')
+    at http://localhost:8080/js/admin/views/elevi.js:2:38
+    at http://localhost:8080/js/admin/views/elevi.js:2:157
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'repartizare')
+    at http://localhost:8080/js/admin/views/repartizare.js:2:44
+    at http://localhost:8080/js/admin/views/repartizare.js:2:169
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'analitica')
+    at http://localhost:8080/js/admin/views/analitica.js:2:42
+    at http://localhost:8080/js/admin/views/analitica.js:2:165
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'disponibilitate')
+    at http://localhost:8080/js/admin/views/disponibilitate.js:2:48
+    at http://localhost:8080/js/admin/views/disponibilitate.js:2:177
+[    8723ms] TypeError: Cannot set properties of undefined (setting 'profesori')
+    at http://localhost:8080/js/admin/views/profesori.js:2:42
+    at http://localhost:8080/js/admin/views/profesori.js:2:165
+[    8743ms] TypeError: Cannot read properties of undefined (reading 'title')
+    at render (http://localhost:8080/js/admin/shell.js:143:28)
+    at HTMLDocument.start (http://localhost:8080/js/admin/shell.js:238:20)

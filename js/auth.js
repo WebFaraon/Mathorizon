@@ -345,6 +345,17 @@
       document.dispatchEvent(new CustomEvent('bmauth:profile', {
         detail: { role: _userRole, status: _userStatus, plan: _userPlan }
       }));
+      // The admin's home is the console: the default landing pages send an
+      // admin there, unless they chose "Vezi site-ul" in this tab.
+      if (_userRole === 'admin') {
+        const page = (location.pathname.split('/').pop() || 'index.html');
+        let browsing = false;
+        try { browsing = sessionStorage.getItem('bm_admin_browse') === '1'; } catch (e) {}
+        if (!browsing && (page === 'capitole.html' || page === 'index.html' || page === '')) {
+          location.replace('admin.html');
+          return;
+        }
+      }
       BM.refreshTokenWidgets();
     } catch (e) {
       console.error('[BMAuth] syncUserProfile error:', e.message);
