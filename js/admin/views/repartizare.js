@@ -43,8 +43,6 @@
   let M = null;              // mounted view: { root, ctx, s }
   let settleId = null;       // card to animate after the next render
   let lastBoardKey = null;   // day|rows|vis of the last board, to keep scroll on filter changes
-  let confOpen = true;
-  try { confOpen = localStorage.getItem('bm_ax_rp_conf') !== '0'; } catch (e) { /* storage off */ }
 
   /* ============ state <-> URL ============ */
   const LIST_KEYS = ['proj', 'st', 'disc', 'cls', 'fmt', 'profil', 'reg'];
@@ -213,48 +211,45 @@
     return `
       <div class="ax-fixsplit rp-split">
         <div class="rp-side rp-noprint">
-          <div id="rpSum"></div>
+          <div id="rpDays"></div>
           <aside class="ax-rail is-collapsible rp-rail" id="rpRail" aria-label="Filtre"></aside>
         </div>
-        <div class="ax-col">
-          <header class="ax-head rp-head">
-            <div class="ax-head__t">
-              <span class="ax-plate">${ico('door', 24)}</span>
-              <div>
-                <h1 class="ax-h1">Repartizare pe cabinete</h1>
-                <p class="ax-lede">Cabinetele pe ore, ziua aleasă. Mută o grupă trăgând-o pe alt loc: tabla verifică cabinetul, profesorul și disponibilitatea în toate zilele grupei.</p>
-              </div>
+        <div class="ax-col rp-col">
+          <header class="rp-head">
+            <div class="rp-head__t">
+              <span class="ax-plate">${ico('door', 22)}</span>
+              <h1 class="ax-h1">Repartizare pe cabinete</h1>
             </div>
-            <div class="ax-head__keys rp-noprint">
-              <button type="button" class="ax-btn ax-btn--sm" id="rpUndo" disabled>${ico('undo', 16)} Anulează mutarea</button>
-              <button type="button" class="ax-btn ax-btn--sm" id="rpPrint">${ico('printer', 16)} Printează</button>
-              <button type="button" class="ax-btn ax-btn--sm" id="rpCsv">${ico('download', 16)} CSV</button>
-            </div>
+            <div class="rp-noprint" id="rpSum"></div>
           </header>
           <div class="rp-main" id="rpMain"></div>
         </div>
       </div>`;
   }
 
+  function dayStats(s, ci, d) {
+    const n = dayGroups(s, d.id).length;
+    const c = d.id === s.day ? ci.list.length : D.conflicts(d.id).length;
+    return { n, c, today: d.id === isoToday() };
+  }
+
+  /* phones and tablets: days and row mode above the board */
   function toolbarHTML(s, ci) {
-    const today = isoToday();
     return `
-      <div class="rp-bar rp-noprint">
+      <div class="rp-bar rp-bar--m rp-noprint">
         <div class="ax-seg rp-days" role="group" aria-label="Ziua">
           ${D.DAYS.map(d => {
-            const n = dayGroups(s, d.id).length;
-            const c = d.id === s.day ? ci.list.length : D.conflicts(d.id).length;
-            return `<button type="button" data-day="${d.id}" aria-pressed="${d.id === s.day}"${d.id === today ? ' class="is-today"' : ''}
-              aria-label="${esc(d.name)}${d.id === today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
+            const { n, c, today } = dayStats(s, ci, d);
+            return `<button type="button" data-day="${d.id}" aria-pressed="${d.id === s.day}"${today ? ' class="is-today"' : ''}
+              aria-label="${esc(d.name)}${today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
               <span class="rp-days__n"><span class="rp-days__full">${esc(d.name)}</span><span class="rp-days__short">${esc(d.short)}</span></span>
-              <span class="rp-days__c">${d.id === today ? '<em>azi</em>' : ''}${nf.format(n)}</span>
+              <span class="rp-days__c">${today ? '<em>azi</em>' : ''}${nf.format(n)}</span>
               ${c ? '<i class="rp-days__x" aria-hidden="true"></i>' : ''}
             </button>`;
           }).join('')}
         </div>
         <div class="rp-mode">
-          <span class="rp-mode__lbl" id="rpModeL">Rânduri</span>
-          <div class="ax-seg" role="group" aria-labelledby="rpModeL">
+          <div class="ax-seg" role="group" aria-label="Rânduri">
             <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
             <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
           </div>
@@ -262,19 +257,42 @@
       </div>`;
   }
 
+  /* desktop: the day is the first and loudest filter in the fixed column */
+  function dayBlockHTML(s, ci) {
+    return `
+      <section class="rp-dayblock" aria-label="Ziua și rândurile">
+        <div class="rp-dayblock__h"><b>Ziua</b><small>lecții pe zi</small></div>
+        <div class="rp-dl" role="group" aria-label="Ziua">
+          ${D.DAYS.map(d => {
+            const { n, c, today } = dayStats(s, ci, d);
+            return `<button type="button" class="rp-dl__b" data-day="${d.id}" aria-pressed="${d.id === s.day}"
+              aria-label="${esc(d.name)}${today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
+              <span class="rp-dl__n">${esc(d.name)}</span>
+              ${today ? '<em class="rp-dl__today">azi</em>' : ''}
+              ${c ? '<i class="rp-dl__x" aria-hidden="true"></i>' : ''}
+              <span class="rp-dl__c">${nf.format(n)}</span>
+            </button>`;
+          }).join('')}
+        </div>
+        <div class="rp-dayblock__m">
+          <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
+            <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
+            <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
+          </div>
+        </div>
+      </section>`;
+  }
+
   function summaryHTML(s, sum) {
+    const confTxt = sum.conf ? [sum.confRoom ? plural(sum.confRoom, 'în cabinet', 'în cabinete') : '', sum.confTeacher ? plural(sum.confTeacher, 'la profesor', 'la profesori') : ''].filter(Boolean).join(', ') : 'ziua e curată';
     return `
       <section class="rp-sum" aria-label="Sumarul zilei">
-        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>sumarul zilei</small></h2>
-        <div class="rp-sum__i"><span class="rp-sum__k">Lecții</span><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__s">${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online</span></div>
-        <div class="rp-sum__i"><span class="rp-sum__k">Cabinete</span><b class="rp-sum__v">${sum.used}<small> din ${D.rooms.length}</small></b><span class="rp-sum__s">${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}</span></div>
-        <div class="rp-sum__i rp-sum__i--occ"><span class="rp-sum__k">Ocupare</span><b class="rp-sum__v">${sum.occ}%</b>
-          <span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span>
-          <span class="rp-sum__s">${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet</span></div>
-        <div class="rp-sum__i"><span class="rp-sum__k">Ore libere</span><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__s">între 08:00 și 21:00</span></div>
-        <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf>
-          <span class="rp-sum__k">${sum.conf ? ico('alert', 14) : ''} Suprapuneri</span><b class="rp-sum__v">${nf.format(sum.conf)}</b>
-          <span class="rp-sum__s">${sum.conf ? [sum.confRoom ? plural(sum.confRoom, 'în cabinet', 'în cabinete') : '', sum.confTeacher ? plural(sum.confTeacher, 'la profesor', 'la profesori') : ''].filter(Boolean).join(', ') : 'ziua e curată'}</span>
+        <div class="rp-sum__i" title="${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online"><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__k">lecții</span></div>
+        <div class="rp-sum__i" title="${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}"><b class="rp-sum__v">${sum.used}<small>/${D.rooms.length}</small></b><span class="rp-sum__k">cabinete</span></div>
+        <div class="rp-sum__i rp-sum__i--occ" title="${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet"><b class="rp-sum__v">${sum.occ}%</b><span class="rp-sum__k">ocupare</span><span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span></div>
+        <div class="rp-sum__i" title="Între 08:00 și 21:00"><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__k">ore libere</span></div>
+        <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf title="${esc(confTxt)}. Deschide lista de suprapuneri.">
+          <b class="rp-sum__v">${sum.conf ? ico('alert', 16) : ''}${nf.format(sum.conf)}</b><span class="rp-sum__k">suprapuneri</span>
         </button>
       </section>`;
   }
@@ -328,12 +346,13 @@
     }
     const head = s.rows === 'prof' ? (g.room ? D.room(g.room).name : 'Online') : t.name;
     const full = enr >= g.size;
+    const sun = g.regime === 'vara' ? `<span class="rp-card__sun" role="img" aria-label="Școala de Vară" title="Școala de Vară">${ico('sun', 16)}</span>` : '';
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
       ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
-      <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Vară</span>' : ''}</span>
-      <span class="rp-card__f">${stHTML(g.status)}${g.profile ? `<span class="rp-card__p">${esc(g.profile)}</span>` : ''}</span>
+      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>
+      <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}${g.profile ? ' · ' + esc(g.profile) : ''}</span></span>
+      <span class="rp-card__f">${stHTML(g.status)}</span>
       <span class="rp-card__fill${full ? ' is-full' : ''}">${seatsHTML(g)}<span class="rp-card__n"><b>${enr}</b>/${g.size}<small>${full ? 'complet' : 'elevi'}</small></span></span>
-      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || `<span class="rp-card__time">${range(g)}</span>`}</span>
     </button>`;
   }
 
@@ -405,25 +424,17 @@
           </div>
           ${empty}
         </div>
-        <div class="rp-legend rp-noprint" aria-label="Legendă">
-          <span><i class="rp-lg rp-lg--free"></i>Liber</span>
-          <span><i class="rp-lg ax-hazard"></i>Cabinet dublat</span>
-          <span><i class="rp-lg rp-lg--bad"></i>Profesor ocupat sau indisponibil</span>
-          ${s.rows === 'prof' ? '<span><i class="rp-lg rp-lg--na"></i>În afara disponibilității</span>' + D.PROJECTS.map(p => `<span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>`).join('') : ''}
-          <span class="rp-legend__hint">Trage o grupă cu mausul, sau deschide-o (clic, Enter) și folosește „Mută”.</span>
-        </div>
       </section>`;
   }
 
-  function conflictsHTML(s, ci) {
-    const dayName = D.DAYS[s.day - 1].name;
-    const nR = ci.list.filter(c => c.kind === 'room').length, nT = ci.list.length - nR;
-    const rows = ci.list.map((c, i) => {
+  function conflictsListHTML(ci) {
+    if (!ci.list.length) return '<p class="rp-conf__none">Nicio suprapunere în ziua selectată.</p>';
+    return `<ol class="rp-conf__list">${ci.list.map((c, i) => {
       const what = c.kind === 'room'
         ? `<b>${esc(roomName(c.room))}</b><span class="ax-sub">Același cabinet, ${range({ start: c.from, duration: c.to - c.from })}</span>`
         : `<b>${esc(D.teacher(c.teacher).name)}</b><span class="ax-sub">Același profesor, ${range({ start: c.from, duration: c.to - c.from })}</span>`;
       return `
-        <li class="rp-conf__row" data-arrive style="--i:${i}">
+        <li class="rp-conf__row">
           <span class="rp-conf__k" aria-hidden="true">${ico(c.kind === 'room' ? 'door' : 'user', 18)}</span>
           <div class="rp-conf__what">${what}</div>
           <div class="rp-conf__gs">
@@ -434,23 +445,32 @@
             <button type="button" class="ax-btn ax-btn--sm ax-btn--dark" data-fix="${i}">Rezolvă ${ico('arrow-right', 16)}</button>
           </div>
         </li>`;
-    }).join('');
-    return `
-      <section class="ax-panel rp-conf rp-noprint${confOpen ? '' : ' is-closed'}" id="rpConf" aria-labelledby="rpConfT">
-        <div class="ax-panel__head">
-          <div class="rp-conf__head">
-            <span class="rp-conf__sign${ci.list.length ? ' ax-hazard' : ''}" aria-hidden="true"></span>
-            <div>
-              <h2 class="ax-h2" id="rpConfT">Suprapuneri, ${esc(dayName)}</h2>
-              <p class="ax-lede">${ci.list.length ? `${plural(nR, 'în cabinet', 'în cabinete')}, ${plural(nT, 'la profesori', 'la profesori')}. Calculate pentru toate grupele zilei, indiferent de filtre.` : 'Calculate pentru toate grupele zilei, indiferent de filtre.'}</p>
-            </div>
-          </div>
-          <button type="button" class="ax-btn ax-btn--sm" id="rpConfTg" aria-expanded="${confOpen}" aria-controls="rpConfList">${ico('chevron-down', 16)} ${confOpen ? 'Restrânge' : 'Arată'}</button>
-        </div>
-        <div id="rpConfList">
-          ${ci.list.length ? `<ol class="rp-conf__list">${rows}</ol>` : '<p class="rp-conf__none">Nicio suprapunere în ziua selectată.</p>'}
-        </div>
-      </section>`;
+    }).join('')}</ol>`;
+  }
+
+  /* the clash list lives in a drawer, opened from the red/yellow count in the header */
+  function openConflicts() {
+    const s = M.s;
+    const ci = conflictInfo(s.day);
+    const dayName = D.DAYS[s.day - 1].name;
+    const nR = ci.list.filter(c => c.kind === 'room').length, nT = ci.list.length - nR;
+    const el = U.drawer({
+      title: `Suprapuneri, ${esc(dayName)}`,
+      sub: ci.list.length ? `${plural(nR, 'în cabinet', 'în cabinete')}, ${plural(nT, 'la profesor', 'la profesori')}. Calculate pentru toate grupele zilei, indiferent de filtre.` : 'Calculate pentru toate grupele zilei, indiferent de filtre.',
+      body: `<div class="rp-conf rp-conf--drawer">${conflictsListHTML(ci)}</div>`
+    });
+    U.$$('[data-show]', el).forEach(b => b.addEventListener('click', () => {
+      const c = ci.list[+b.dataset.show];
+      el.close();
+      showGroups(c.groups, c.kind);
+    }));
+    U.$$('[data-fix]', el).forEach(b => b.addEventListener('click', () => {
+      const c = ci.list[+b.dataset.fix];
+      // the second group, unless only the first one has a fully free slot
+      const order = c.groups.length > 1 ? [c.groups[1], c.groups[0]].concat(c.groups.slice(2)) : c.groups;
+      const gid = order.find(id => propose(D.group(id), true)) || order[0];
+      openDrawer(gid, { propose: true, conflict: c });
+    }));
   }
 
   /* ============ rail ============ */
@@ -486,7 +506,16 @@
         <span>Ascunde rândurile goale${s.rows === 'prof' ? '<small>Doar pentru Cabinete</small>' : ''}</span>
       </label>
       <div class="ax-rail__sep"></div>
-      <button type="button" class="ax-btn rp-rail__clear" id="rpClear"${n ? '' : ' disabled'}>${ico('x', 16)} Șterge toate filtrele</button>`;
+      <button type="button" class="ax-btn rp-rail__clear" id="rpClear"${n ? '' : ' disabled'}>${ico('x', 16)} Șterge toate filtrele</button>
+      <div class="ax-rail__sep"></div>
+      <div class="ax-rail__lbl">Legendă</div>
+      <div class="rp-legend" aria-label="Legendă">
+        <span><i class="rp-lg rp-lg--free"></i>Loc liber</span>
+        <span><i class="rp-lg ax-hazard"></i>Cabinet dublat</span>
+        <span><i class="rp-lg rp-lg--bad"></i>Profesor ocupat sau indisponibil</span>
+        ${s.rows === 'prof' ? '<span><i class="rp-lg rp-lg--na"></i>În afara disponibilității</span>' + D.PROJECTS.map(p => `<span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>`).join('') : ''}
+      </div>
+      <p class="rp-rail__note">Trage o grupă cu mausul sau deschide-o (clic, Enter) și folosește „Mută". Ctrl+Z anulează ultima mutare.</p>`;
     rail.classList.toggle('is-open', wasOpen);
 
     const on = key => vals => { s[key] = vals; s.focus = null; writeState(s); refreshRailCount(); renderMain(); };
@@ -557,13 +586,12 @@
     const gs = dayGroups(s, s.day);
     const rows = rowsFor(s, gs);
     const chips = chipItems(s);
-    const sumHost = root.querySelector('#rpSum');
-    if (sumHost) sumHost.innerHTML = summaryHTML(s, daySummary(s.day, ci));
+    root.querySelector('#rpSum').innerHTML = summaryHTML(s, daySummary(s.day, ci));
+    root.querySelector('#rpDays').innerHTML = dayBlockHTML(s, ci);
     main.innerHTML = `
       ${toolbarHTML(s, ci)}
       <div class="rp-chips rp-noprint">${U.activeChips(chips)}</div>
-      ${boardHTML(s, rows, ci)}
-      ${conflictsHTML(s, ci)}`;
+      ${boardHTML(s, rows, ci)}`;
 
     wireMain(main, s, ci, chips);
 
@@ -572,7 +600,6 @@
     else initialScroll(sc, s, rows);
     lastBoardKey = key;
     settleId = null;
-    updateUndo();
 
     if (s.focus) {
       const id = s.focus;
@@ -602,37 +629,23 @@
   }
 
   function wireMain(main, s, ci, chips) {
-    U.$$('[data-day]', main).forEach(b => b.addEventListener('click', () => {
+    const root = M.root;
+    const visible = sel => U.$$(sel, root).find(x => x.offsetParent !== null);
+    U.$$('[data-day]', root).forEach(b => b.addEventListener('click', () => {
       if (+b.dataset.day === s.day) return;
       s.day = +b.dataset.day; s.focus = null; writeState(s); renderMain();
-      const nb = main.querySelector(`[data-day="${s.day}"]`); if (nb) nb.focus();
+      const nb = visible(`[data-day="${s.day}"]`); if (nb) nb.focus();
     }));
-    U.$$('[data-rows]', main).forEach(b => b.addEventListener('click', () => {
+    U.$$('[data-rows]', root).forEach(b => b.addEventListener('click', () => {
       if (b.dataset.rows === s.rows) return;
       s.rows = b.dataset.rows; s.focus = null; writeState(s); buildRail(); renderMain();
-      const nb = main.querySelector(`[data-rows="${s.rows}"]`); if (nb) nb.focus();
+      const nb = visible(`[data-rows="${s.rows}"]`); if (nb) nb.focus();
     }));
     U.wireActiveChips(main.querySelector('.rp-chips'), chips, it => {
       if (it.key === 'q') s.q = ''; else s[it.key] = s[it.key].filter(v => v !== it.value);
       writeState(s); buildRail(); renderMain();
     }, clearFilters);
-    M.root.querySelector('[data-goconf]').addEventListener('click', () => {
-      const p = main.querySelector('#rpConf');
-      if (!confOpen) setConf(true);
-      p.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });
-    });
-    main.querySelector('#rpConfTg').addEventListener('click', () => setConf(!confOpen));
-    U.$$('[data-show]', main).forEach(b => b.addEventListener('click', () => {
-      const c = ci.list[+b.dataset.show];
-      showGroups(c.groups, c.kind);
-    }));
-    U.$$('[data-fix]', main).forEach(b => b.addEventListener('click', () => {
-      const c = ci.list[+b.dataset.fix];
-      // the second group, unless only the first one has a fully free slot
-      const order = c.groups.length > 1 ? [c.groups[1], c.groups[0]].concat(c.groups.slice(2)) : c.groups;
-      const gid = order.find(id => propose(D.group(id), true)) || order[0];
-      openDrawer(gid, { propose: true, conflict: c });
-    }));
+    root.querySelector('[data-goconf]').addEventListener('click', openConflicts);
 
     const sc = main.querySelector('#rpScroll');
     const board = main.querySelector('#rpBoard');
@@ -643,17 +656,6 @@
       openDrawer(card.dataset.g);
     });
     wireDrag(sc, board, s);
-  }
-
-  function setConf(open) {
-    confOpen = open;
-    try { localStorage.setItem('bm_ax_rp_conf', open ? '1' : '0'); } catch (e) { /* storage off */ }
-    const p = M.root.querySelector('#rpConf');
-    if (!p) return;
-    p.classList.toggle('is-closed', !open);
-    const b = p.querySelector('#rpConfTg');
-    b.setAttribute('aria-expanded', String(open));
-    b.innerHTML = `${ico('chevron-down', 16)} ${open ? 'Restrânge' : 'Arată'}`;
   }
 
   /* Scroll to cards and pulse them; if a filter or the row mode hides
@@ -729,13 +731,6 @@
     D.move(e.id, e.prev);
     U.toast(esc(`Mutare anulată: ${D.teacher(g.teacher).name}, ${g.subject} ${g.grade} e din nou ${e.prev.room ? 'în ' + roomName(e.prev.room) + ', ' : 'la '}${hh(e.prev.start)}.`));
   }
-  function updateUndo() {
-    const b = M && M.root.querySelector('#rpUndo');
-    if (!b) return;
-    b.disabled = !undoStack.length;
-    b.title = undoStack.length ? `Ultima: ${D.teacher(D.group(undoStack[undoStack.length - 1].id).teacher).name}` : 'Nicio mutare în această sesiune';
-  }
-
   /* Validate then move; asks before an invalid move. */
   async function tryMove(g, room, start) {
     if (room === g.room && start === g.start) return false;
@@ -1069,25 +1064,6 @@
   }
 
   /* ============ export, print ============ */
-  function exportCSV() {
-    const s = M.s;
-    const ci = conflictInfo(s.day);
-    const rows = rowsFor(s, dayGroups(s, s.day));
-    const out = [['Zi', 'Început', 'Sfârșit', 'Profesor', 'Proiect', 'Disciplină', 'Clasa', 'Profil', 'Nivel', 'Statut', 'Elevi', 'Locuri', 'Regim', 'Cabinet', 'Zile', 'Suprapunere']];
-    rows.forEach(r => lanes(r.gs).sorted.forEach(g => {
-      const t = D.teacher(g.teacher);
-      out.push([
-        D.DAYS[s.day - 1].name, hh(g.start), hh(g.start + g.duration),
-        t.name, D.project(g.project).name, g.subject, g.grade, g.profile || '', g.level, statusName(g.status),
-        D.enrolled(g).length, g.size, g.regime === 'vara' ? 'Școala de Vară' : 'Regim normal',
-        g.room ? D.room(g.room).name : 'Online', U.daysLabel(g.days.slice().sort((a, b) => a - b)),
-        [ci.room.has(g.id) ? 'cabinet' : '', ci.teacher.has(g.id) ? 'profesor' : ''].filter(Boolean).join(', ')
-      ]);
-    }));
-    U.downloadCSV(`repartizare-${norm(D.DAYS[s.day - 1].name)}${s.rows === 'prof' ? '-profesori' : ''}.csv`, out);
-    U.toast(esc(`Export: ${plural(out.length - 1, 'lecție', 'lecții')}, ${D.DAYS[s.day - 1].name}.`));
-  }
-
   const onView = () => !!(M && M.root.isConnected && /^#repartizare(\?|$)/.test(location.hash || ''));
   window.addEventListener('beforeprint', () => { if (onView()) document.body.classList.add('rp-print'); });
   window.addEventListener('afterprint', () => document.body.classList.remove('rp-print'));
@@ -1106,6 +1082,13 @@
     if (lbl) { lbl.style.setProperty('--f', now.f); lbl.textContent = now.label; }
   }, 30000);
 
+  document.addEventListener('keydown', e => {
+    if (!onView() || e.key.toLowerCase() !== 'z' || !(e.ctrlKey || e.metaKey) || e.shiftKey) return;
+    if (/^(INPUT|TEXTAREA|SELECT)$/.test((e.target || {}).tagName) || document.querySelector('.ax-drawer, dialog[open]')) return;
+    e.preventDefault();
+    undo();
+  });
+
   function totalConflicts() {
     let n = 0;
     for (let d = 1; d <= 7; d++) n += D.conflicts(d).length;
@@ -1120,13 +1103,6 @@
       M = { root, ctx, s: readState(ctx.query) };
       if (!ctx.query.day) writeState(M.s);
       root.innerHTML = headHTML();
-      root.querySelector('#rpUndo').addEventListener('click', () => undo());
-      root.querySelector('#rpPrint').addEventListener('click', () => {
-        document.body.classList.add('rp-print');
-        window.print();
-        setTimeout(() => document.body.classList.remove('rp-print'), 400);
-      });
-      root.querySelector('#rpCsv').addEventListener('click', exportCSV);
       buildRail();
       renderMain(true);
     }

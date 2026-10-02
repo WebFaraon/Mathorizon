@@ -891,8 +891,8 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
   /* narrow screens: header and figures first, then the pinned filter bar, then the list */
   body.ax .ax-fixsplit { display: flex; flex-direction: column; }
   body.ax .ax-fixsplit > .ax-col, body.ax .ax-fixsplit > .rp-side { display: contents; }
-  body.ax .ax-fixsplit .ax-head { order: 0; }
-  body.ax .ax-fixsplit .or-signs, body.ax .ax-fixsplit .el-stats, body.ax .ax-fixsplit #rpSum { order: 1; margin-bottom: 14px; }
+  body.ax .ax-fixsplit .ax-head, body.ax .ax-fixsplit .rp-head { order: 0; }
+  body.ax .ax-fixsplit .or-signs, body.ax .ax-fixsplit .el-stats { order: 1; margin-bottom: 14px; }
   body.ax .ax-fixsplit .ax-rail { order: 2; margin-bottom: 14px; }
   body.ax .ax-fixsplit .or-main, body.ax .ax-fixsplit .el-main, body.ax .ax-fixsplit .rp-main { order: 3; }
 }
