@@ -234,9 +234,9 @@ body.ax :focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 2px;
   background: var(--ax-bg);
 }
 .ax-top .ax-top__menu { display: none; }
-.ax-top__crumb { display: flex; align-items: center; gap: 10px; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-3); }
-.ax-top__crumb b { color: var(--ax-ink); font-weight: 800; }
-.ax-top__right { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+.ax-top__crumb { display: flex; align-items: center; gap: 10px; min-width: 0; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-3); }
+.ax-top__crumb b { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--ax-ink); font-weight: 800; }
+.ax-top__right { display: flex; flex: none; align-items: center; gap: 10px; margin-left: auto; }
 .ax-demo {
   display: inline-flex;
   align-items: center;
@@ -677,3 +677,4 @@ body.ax-legacy .btn { border-radius: var(--ax-r); box-shadow: none; font-family:
 body.ax-legacy .btn--primary { border-color: var(--ax-blue); background: var(--ax-blue); color: var(--ax-blue-ink); }
 body.ax-legacy .btn--surface { border: 1px solid var(--ax-rule-2); background: var(--ax-panel); color: var(--ax-ink); }
 body.ax-legacy .toast-container { z-index: 300; }
+body.ax-legacy .ae-detalii-grid + .cls-form-field { margin-top: 16px; }

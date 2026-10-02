@@ -98,10 +98,10 @@
             <button type="button" class="ax-icon-btn ax-top__menu" id="axMenu" aria-label="Deschide meniul">${ico('menu', 18)}</button>
             <div class="ax-top__crumb"><span>Consolă</span>${ico('chevron-right', 16)}<b id="axCrumb"></b></div>
             <div class="ax-top__right">
-              <span class="ax-demo" title="Datele sunt generate în browser. Modificările rămân doar pe acest dispozitiv.">
+              ${external ? '' : `<span class="ax-demo" title="Datele sunt generate în browser. Modificările rămân doar pe acest dispozitiv.">
                 <i aria-hidden="true"></i><b>Date demo</b>
                 <button type="button" id="axDemoReset">Resetează</button>
-              </span>
+              </span>`}
               <div class="ax-clock" aria-live="off"><b id="axTime"></b><small id="axDate"></small></div>
             </div>
           </header>
@@ -179,7 +179,8 @@
     document.querySelector('[data-browse]').addEventListener('click', () => {
       try { sessionStorage.setItem('bm_admin_browse', '1'); } catch (e) {}
     });
-    document.getElementById('axDemoReset').addEventListener('click', () => {
+    const demoReset = document.getElementById('axDemoReset');
+    if (demoReset) demoReset.addEventListener('click', () => {
       if (!confirm('Resetezi datele demo? Mutările și statusurile schimbate pe acest dispozitiv se pierd.')) return;
       window.AdminData.reset();
       U.toast('Datele demo au fost resetate.');
