@@ -666,3 +666,25 @@ body.ax .rp-days button[aria-pressed="true"].is-today .rp-days__c em { backgroun
   body.ax .rp-days button { min-width: 0; padding: 6px 4px 6px 7px; }
   body.ax .rp-days__c small { display: none; }
 }
+
+/* ============ header: days (all the same size) and the rows switch ============ */
+body.ax .rp-head { flex-wrap: nowrap; align-items: stretch; gap: 12px; }
+body.ax .rp-daytop { display: flex; flex: 1; align-items: stretch; gap: 12px; min-width: 0; }
+body.ax .rp-days { display: grid; flex: 1; grid-template-columns: repeat(7, minmax(0, 1fr)); min-width: 0; }
+body.ax .rp-days button { min-width: 0; align-items: flex-start; }
+body.ax .rp-days button + button { border-left: 1px solid var(--ax-rule); }
+body.ax .rp-days__c { min-height: 1.2em; }
+body.ax .rp-modeseg { flex: none; width: auto; flex-wrap: nowrap; }
+body.ax .rp-modeseg button { flex: none; min-height: 54px; padding: 0 18px; font-size: 0.95rem; }
+@media (max-width: 1180px) {
+  body.ax .rp-head { flex-wrap: wrap; }
+  body.ax .rp-daytop { flex-wrap: wrap; width: 100%; }
+  body.ax .rp-days { flex: 1 1 100%; }
+  body.ax .rp-modeseg { width: 100%; }
+  body.ax .rp-modeseg button { flex: 1; min-height: 44px; }
+}
+body.ax .rp-days button { padding: 6px 14px 6px 10px; }
+body.ax .rp-days__n { font-size: 0.92rem; }
+body.ax .rp-modeseg button { padding: 0 14px; font-size: 0.9rem; gap: 6px; }
+@media (max-width: 1180px) { body.ax .rp-modeseg button { padding: 0 14px; } }
+body.ax .rp-days__x { top: auto; bottom: 11px; right: 9px; width: 8px; height: 8px; }

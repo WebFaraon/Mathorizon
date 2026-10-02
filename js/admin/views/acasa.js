@@ -2,8 +2,8 @@
    Admin console: Acasă
    ============================================================
    Greeting with the date, what needs attention today (each sign a
-   number and a direct link), the lessons of today on the room board,
-   the three projects at a glance and the directions to every page.
+   number and a direct link), the three projects at a glance on the
+   left and, in the middle, big tiles that lead to every other page.
    Reference view for the others: render(root, ctx) writes markup
    with AdminUI helpers and wires its own events.
    ============================================================ */
@@ -37,36 +37,6 @@
     ];
   }
 
-  function todayBoard() {
-    const day = todayId();
-    const rows = D.rooms.map(r => {
-      const gs = D.groups.filter(g => g.room === r.id && g.status !== 'inactiv' && g.days.includes(day)).sort((a, b) => a.start - b.start);
-      return { r, gs };
-    });
-    const total = rows.reduce((t, x) => t + x.gs.length, 0);
-    return `
-      <section class="ax-panel ah-board" aria-labelledby="ahBoardT">
-        <div class="ax-panel__head">
-          <div><h2 class="ax-h2" id="ahBoardT">Azi în cabinete</h2><p class="ax-lede">${esc(D.DAYS[day - 1].name)}, Examen.md Offline · ${plural(total, 'lecție', 'lecții')}</p></div>
-          <a class="ax-btn ax-btn--sm" href="#repartizare?day=${day}">Deschide repartizarea ${ico('arrow-right', 16)}</a>
-        </div>
-        <ol class="ah-board__rows">
-          ${rows.map(({ r, gs }, i) => `
-            <li class="ah-board__row" data-arrive style="--i:${i}">
-              <span class="ah-room"><small>Cab.</small>${r.num}</span>
-              <div class="ah-board__slots">
-                ${gs.length ? gs.map(g => {
-                  const t = D.teacher(g.teacher);
-                  return `<a class="ah-slot" href="#repartizare?day=${day}&focus=${g.id}">
-                    <b>${U.hh(g.start)}</b><span>${esc(t.last)} ${esc(t.first[0])}.</span><span class="ax-sub">${esc(g.subject)} ${esc(g.grade)}</span>
-                  </a>`;
-                }).join('') : '<span class="ah-free">Liber toată ziua</span>'}
-              </div>
-            </li>`).join('')}
-        </ol>
-      </section>`;
-  }
-
   function projects() {
     return D.PROJECTS.map((p, i) => {
       const gs = D.groups.filter(g => g.project === p.id);
@@ -84,14 +54,24 @@
     }).join('');
   }
 
-  const DIRECTIONS = [
-    ['orar', 'grid', 'Orar', 'Grupele, programul și locurile libere'],
-    ['elevi', 'users', 'Elevi', 'Prezențe, sold, manager și status'],
-    ['repartizare', 'door', 'Repartizare', 'Cabinetele pe ore, cu mutare și verificare'],
-    ['disponibilitate', 'clock', 'Disponibilitate', 'Când pot preda profesorii'],
-    ['analitica', 'chart-column', 'Analitică', 'Distribuții, tendințe, tabele încrucișate'],
-    ['profesori', 'user', 'Conturi', 'Cereri profesori, elevi, abonamente']
-  ];
+  /* one big tile per page: icon plate in the page colour, what it is for,
+     and one live figure so the tile also says something before you open it */
+  function tiles() {
+    const day = todayId();
+    const liveToday = D.groups.filter(g => g.status !== 'inactiv' && g.days.includes(day));
+    const clash = D.conflicts(day).length;
+    const activeStudents = D.students.filter(s => s.status === 'activ').length;
+    return [
+      { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele cu programul, profesorul și locurile libere.', fig: nf.format(D.groups.length), unit: 'grupe' },
+      { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statutul fiecărui elev.', fig: nf.format(D.students.length), unit: 'elevi' },
+      { id: 'repartizare', href: '#repartizare?day=' + day, icon: 'door', t: 'Repartizare', d: 'Cabinetele pe ore, cu mutare și verificare automată.', fig: nf.format(liveToday.length), unit: clash ? `lecții azi, ${plural(clash, 'suprapunere', 'suprapuneri')}` : 'lecții azi' },
+      { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii și cine e liber la o oră.', fig: nf.format(D.teachers.length), unit: 'profesori' },
+      { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții, tendințe și tabele încrucișate.', fig: U.pct(activeStudents, D.students.length) + '%', unit: 'elevi activi' },
+      { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri de profesor, elevi, abonamente și waitlist.', fig: 'Date reale', unit: '' },
+      { id: 'exercitii', href: 'admin-add-exercise.html', icon: 'plus', t: 'Adaugă exercițiu', d: 'Un exercițiu nou în culegere, cu barem generat.', fig: 'Culegere', unit: '' },
+      { id: 'culegeri', href: 'admin-culegeri.html', icon: 'library', t: 'Culegeri', d: 'Culegerile existente și exercițiile din ele.', fig: 'Bibliotecă', unit: '' }
+    ];
+  }
 
   window.AdminViews.acasa = {
     title: 'Acasă',
@@ -119,24 +99,25 @@
         </section>
 
         <div class="ah-grid">
-          ${todayBoard()}
-          <div class="ah-side">
-            <section aria-labelledby="ahProjT">
-              <div class="ax-h2-row"><h2 class="ax-h2" id="ahProjT">Proiecte</h2></div>
-              <div class="ah-projs">${projects()}</div>
-            </section>
-            <section aria-labelledby="ahDirT">
-              <div class="ax-h2-row"><h2 class="ax-h2" id="ahDirT">Direcții</h2></div>
-              <nav class="ah-dirs">
-                ${DIRECTIONS.map(([id, ic, t, s], i) => `
-                  <a class="ah-dir" href="#${id}" data-arrive style="--i:${i};--pg:var(--ax-c-${esc(id)}, var(--ax-hi))">
-                    <span class="ax-plate">${ico(ic, 20)}</span>
-                    <span><b>${esc(t)}</b><span class="ax-sub">${esc(s)}</span></span>
-                    ${ico('arrow-right', 18)}
-                  </a>`).join('')}
-              </nav>
-            </section>
-          </div>
+          <aside class="ah-side" aria-labelledby="ahProjT">
+            <div class="ax-h2-row"><h2 class="ax-h2" id="ahProjT">Proiecte</h2></div>
+            <div class="ah-projs">${projects()}</div>
+          </aside>
+          <section aria-labelledby="ahHubT">
+            <div class="ax-h2-row"><h2 class="ax-h2" id="ahHubT">Instrumente</h2></div>
+            <nav class="ah-hub">
+              ${tiles().map((t, i) => `
+                <a class="ah-tile" href="${t.href}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
+                  <span class="ah-tile__top">
+                    <span class="ah-tile__plate">${ico(t.icon, 28)}</span>
+                    <span class="ah-tile__go" aria-hidden="true">${ico('arrow-right', 20)}</span>
+                  </span>
+                  <b class="ah-tile__t">${esc(t.t)}</b>
+                  <span class="ah-tile__d">${esc(t.d)}</span>
+                  <span class="ah-tile__fig"><b>${esc(t.fig)}</b>${t.unit ? `<small>${esc(t.unit)}</small>` : ''}</span>
+                </a>`).join('')}
+            </nav>
+          </section>
         </div>`;
     }
   };

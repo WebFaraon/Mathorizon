@@ -736,23 +736,34 @@ a.ax-stat:hover, button.ax-stat:hover { box-shadow: inset 0 6px 0 var(--pg); }
 /* ---- logo ---- */
 .ax-sign__brand b { letter-spacing: 0.04em; }
 
-/* ---- folded sign panel: one centred column ---- */
-.ax-shell.is-folded .ax-sign { padding-left: 12px; padding-right: 12px; }
-.ax-shell.is-folded .ax-sign .ax-hide-folded { display: none; }
-.ax-shell.is-folded .ax-sign__brand { justify-content: center; padding: 2px 0 14px; }
-.ax-shell.is-folded .ax-sign__logo { width: 46px; }
-.ax-shell.is-folded .ax-sign__group { margin-top: 0; }
-.ax-shell.is-folded .ax-sign__group + .ax-sign__group { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ax-sign-rule); }
-.ax-shell.is-folded #axNav { padding-top: 14px; }
-.ax-shell.is-folded .ax-nav { align-items: center; gap: 6px; }
-.ax-shell.is-folded .ax-nav__a { width: 46px; min-height: 46px; justify-content: center; padding: 5px; }
-.ax-shell.is-folded .ax-nav__arrow,
-.ax-shell.is-folded .ax-nav__label { display: none; }
-.ax-shell.is-folded .ax-nav__n { position: absolute; top: -3px; right: -3px; min-width: 0; margin: 0; padding: 0 4px; font-size: 0.64rem; line-height: 16px; }
-.ax-shell.is-folded .ax-sign__foot { align-items: center; gap: 8px; padding-top: 12px; }
-.ax-shell.is-folded .ax-sign__user { justify-content: center; padding: 0; }
-.ax-shell.is-folded .ax-sign__row { flex-direction: column; align-items: center; width: 100%; gap: 8px; }
-.ax-shell.is-folded .ax-sign__btn--icon { flex: 0 0 36px; width: 36px; }
+/* ---- folded sign panel: one centred column, animated ---- */
+.ax-shell { transition: grid-template-columns 0.34s var(--ax-ease); }
+.ax-sign { overflow-x: hidden; }
+.ax-sign__brand small { white-space: nowrap; }
+.ax-sign__brand > span, .ax-sign__user > span, .ax-nav__label { max-width: 210px; overflow: hidden; white-space: nowrap; transition: max-width 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
+.ax-sign__title { max-height: 30px; overflow: hidden; transition: max-height 0.3s var(--ax-ease), padding 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
+.ax-sign__foot .ax-sign__btn.ax-hide-folded { max-height: 38px; overflow: hidden; white-space: nowrap; transition: max-height 0.3s var(--ax-ease), opacity 0.16s 0.08s, padding 0.3s var(--ax-ease), border-width 0.3s; }
+.ax-sign__logo { transition: width 0.3s var(--ax-ease); }
+.ax-nav__a, .ax-sign__brand, .ax-sign__user { transition: padding 0.3s var(--ax-ease), background-color 0.15s; }
+@media (min-width: 961px) {
+  .ax-shell.is-folded .ax-sign { padding-left: 12px; padding-right: 12px; }
+  .ax-shell.is-folded .ax-sign__brand > span, .ax-shell.is-folded .ax-sign__user > span, .ax-shell.is-folded .ax-nav__label { max-width: 0; opacity: 0; }
+  .ax-shell.is-folded .ax-sign__brand { gap: 0; justify-content: center; padding: 2px 0 14px; }
+  .ax-shell.is-folded .ax-sign__logo { width: 46px; }
+  .ax-shell.is-folded .ax-sign__title { max-height: 0; padding-bottom: 0; opacity: 0; }
+  .ax-shell.is-folded .ax-sign__foot .ax-sign__btn.ax-hide-folded { max-height: 0; padding-top: 0; padding-bottom: 0; border-width: 0; opacity: 0; pointer-events: none; }
+  .ax-shell.is-folded .ax-sign__group { margin-top: 0; }
+  .ax-shell.is-folded .ax-sign__group + .ax-sign__group { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ax-sign-rule); }
+  .ax-shell.is-folded #axNav { padding-top: 14px; }
+  .ax-shell.is-folded .ax-nav { align-items: center; gap: 6px; }
+  .ax-shell.is-folded .ax-nav__a { width: 46px; min-height: 46px; gap: 0; justify-content: center; padding: 5px; }
+  .ax-shell.is-folded .ax-nav__arrow { display: none; }
+  .ax-shell.is-folded .ax-nav__n { position: absolute; top: -3px; right: -3px; min-width: 0; margin: 0; padding: 0 4px; font-size: 0.64rem; line-height: 16px; }
+  .ax-shell.is-folded .ax-sign__foot { align-items: center; gap: 8px; padding-top: 12px; }
+  .ax-shell.is-folded .ax-sign__user { gap: 0; justify-content: center; padding: 0; }
+  .ax-shell.is-folded .ax-sign__row { flex-direction: column; align-items: center; width: 100%; gap: 8px; }
+  .ax-shell.is-folded .ax-sign__btn--icon { flex: 0 0 36px; width: 36px; }
+}
 
 /* ---- filters stay pinned ---- */
 body.ax .an-filters, body.ax .cn-bar { position: sticky; top: calc(var(--ax-top-h) - 1px); z-index: 12; }
@@ -890,7 +901,7 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
     border-radius: 0;
     background: var(--ax-panel);
     scrollbar-width: thin;
-    transition: left 0.2s var(--ax-ease);
+    transition: left 0.34s var(--ax-ease);
   }
   body.ax .ax-fixsplit > .rp-side .ax-rail { position: static; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; }
   /* view padding (28px) + column (252px) + gap (22px) */
@@ -919,3 +930,5 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
 /* ---- type-ahead list ---- */
 .ax-sug__none { padding: 10px; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-3); }
 .ax-sug .ax-sel__opt b { font-weight: 800; color: var(--ax-ink); background: color-mix(in srgb, var(--pg) 38%, transparent); border-radius: 1px; }
+
+.ax-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }

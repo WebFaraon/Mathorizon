@@ -216,10 +216,7 @@
         </div>
         <div class="ax-col rp-col">
           <header class="rp-head">
-            <div class="rp-head__t">
-              <span class="ax-plate">${ico('door', 22)}</span>
-              <h1 class="ax-h1">Repartizare</h1>
-            </div>
+            <h1 class="ax-sr">Repartizare pe cabinete</h1>
             <div class="rp-noprint rp-daytop" id="rpDaysTop"></div>
           </header>
           <div class="rp-main" id="rpMain"></div>
@@ -246,17 +243,16 @@
             ${c ? '<i class="rp-days__x" aria-hidden="true"></i>' : ''}
           </button>`;
         }).join('')}
+      </div>
+      <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
+        <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 18)} Cabinete</button>
+        <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 18)} Profesori</button>
       </div>`;
   }
 
-  /* first block of the fixed column: rows mode, then the figures of the chosen day */
+  /* first block of the fixed column: the figures of the chosen day */
   function sideBlockHTML(s, sum) {
-    return `
-      <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
-        <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
-        <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
-      </div>
-      ${summaryHTML(s, sum)}`;
+    return summaryHTML(s, sum);
   }
 
   function summaryHTML(s, sum) {
