@@ -127,3 +127,26 @@ body.ax .el-dw__none { color: var(--ax-ink-3); }
   body.ax .el-dw__group .ax-dl { grid-template-columns: minmax(0, 1fr); }
   body.ax .el-legend { align-items: flex-start; }
 }
+
+/* sold: two short keys, then the long one on its own row */
+body.ax .el-seg--sold { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--ax-rule); overflow: hidden; }
+body.ax .el-seg--sold button { min-height: 38px; padding: 0 8px; border-left: 0; background: var(--ax-panel); font-size: 0.86rem; white-space: nowrap; }
+body.ax .el-seg--sold button:last-child { grid-column: 1 / -1; }
+body.ax .el-seg--sold button:hover { background: var(--ax-hi-wash); }
+body.ax .el-seg--sold button[aria-pressed="true"] { background: var(--ax-ink); color: var(--ax-bg); }
+body.ax .el-seg--sold { grid-auto-flow: row; }
+
+/* ---- columns: fixed shares, room between the figures and the text ---- */
+body.ax .el-table { table-layout: fixed; min-width: 960px; }
+body.ax .el-table th, body.ax .el-table td { padding-left: 14px; padding-right: 14px; }
+body.ax .el-table th[data-sort] { padding: 0; }
+body.ax .el-table th:nth-child(1) { width: 21%; }
+body.ax .el-table th:nth-child(2) { width: 9%; }
+body.ax .el-table th:nth-child(3) { width: 13%; }
+body.ax .el-table th:nth-child(4) { width: 11%; }
+body.ax .el-table th:nth-child(5) { width: 17%; }
+body.ax .el-table th:nth-child(6) { width: 16%; }
+body.ax .el-table th:nth-child(7) { width: 13%; }
+body.ax .el-table th:nth-child(4), body.ax .el-table td:nth-child(4) { padding-right: 30px; text-align: right; }
+body.ax .el-table th:nth-child(5) .el-sort, body.ax .el-table td:nth-child(5) { padding-left: 22px; }
+body.ax .el-table td { overflow-wrap: anywhere; }

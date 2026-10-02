@@ -187,7 +187,14 @@
         </p>
       </div>
       ${free.length ? `
-        <div class="dp-free-head" aria-hidden="true"><span>Profesor</span><span>Proiecte</span><span>Ziua aleasă, 08-21</span><span></span></div>
+        <div class="dp-legend" aria-label="Cum se citește bara">
+          <span class="dp-legend__t">Cum se citește bara:</span>
+          <span><i class="dp-lg dp-lg--av"></i>Programul profesorului (când poate preda)</span>
+          <span><i class="dp-lg dp-lg--off"></i>Hașurat: în afara programului</span>
+          <span><i class="dp-lg dp-lg--g"></i>O grupă pe care o are deja, în culoarea proiectului</span>
+          <span><i class="dp-lg dp-lg--slot"></i>Ora căutată, ${esc(dayName)} ${range(h, Math.min(H1, h + dur))}</span>
+        </div>
+        <div class="dp-free-head" aria-hidden="true"><span>Profesor</span><span>Proiecte</span><span class="dp-scale">${[8, 10, 12, 14, 16, 18, 20].map(x => `<i style="left:${pos(x)}%">${String(x).padStart(2, '0')}</i>`).join('')}</span><span></span></div>
         <ul class="dp-free">
           ${shown.map((t, i) => {
             const ds = stats[t.id].days[day];
@@ -197,7 +204,7 @@
               <span class="dp-free__lines">${lines(t)}</span>
               <span class="dp-free__day">
                 ${miniDay(t, day, h, dur)}
-                <span class="ax-sub">Disponibil ${esc(win)} · ${ds.booked ? hours(ds.booked) + ' ocupate' : 'nicio grupă'}</span>
+                <span class="ax-sub dp-free__note"><b>Liber în ${esc(win)}</b> · ${ds.booked ? hours(ds.booked) + ' ocupate' : 'nicio grupă'}</span>
               </span>
               <button type="button" class="ax-btn ax-btn--sm" data-see="${t.id}">Vezi programul ${ico('arrow-right', 16)}</button>
             </li>`;

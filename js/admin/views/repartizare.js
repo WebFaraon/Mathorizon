@@ -267,7 +267,7 @@
           <span class="rp-sum__s">${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet</span></div>
         <div class="rp-sum__i"><span class="rp-sum__k">Ore libere</span><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__s">între 08:00 și 21:00</span></div>
         <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf title="Deschide lista de suprapuneri">
-          <span class="rp-sum__k">${sum.conf ? ico('alert', 14) : ''} Suprapuneri</span><b class="rp-sum__v">${nf.format(sum.conf)}</b><span class="rp-sum__s">${esc(confTxt)}</span>
+          <span class="rp-sum__k">Suprapuneri</span><b class="rp-sum__v">${sum.conf ? ico('alert', 20) : ''}${nf.format(sum.conf)}</b><span class="rp-sum__s">${esc(confTxt)}</span>
         </button>
       </section>`;
   }
@@ -405,20 +405,32 @@
   function conflictsListHTML(ci) {
     if (!ci.list.length) return '<p class="rp-conf__none">Nicio suprapunere în ziua selectată.</p>';
     return `<ol class="rp-conf__list">${ci.list.map((c, i) => {
-      const what = c.kind === 'room'
-        ? `<b>${esc(roomName(c.room))}</b><span class="ax-sub">Același cabinet, ${range({ start: c.from, duration: c.to - c.from })}</span>`
-        : `<b>${esc(D.teacher(c.teacher).name)}</b><span class="ax-sub">Același profesor, ${range({ start: c.from, duration: c.to - c.from })}</span>`;
+      const isRoom = c.kind === 'room';
+      const when = range({ start: c.from, duration: c.to - c.from });
       return `
-        <li class="rp-conf__row">
-          <span class="rp-conf__k" aria-hidden="true">${ico(c.kind === 'room' ? 'door' : 'user', 18)}</span>
-          <div class="rp-conf__what">${what}</div>
-          <div class="rp-conf__gs">
-            ${c.gs.map(g => `<span class="rp-conf__g rp-conf__g--${g.project}"><b>${esc(D.teacher(g.teacher).name)}</b><span>${esc(g.subject)} ${esc(g.grade)}, ${range(g)}${c.kind === 'teacher' ? ', ' + esc(g.room ? 'Cab. ' + D.room(g.room).num : 'online') : ''}</span></span>`).join('')}
+        <li class="rp-cf">
+          <span class="rp-cf__hz ax-hazard" aria-hidden="true"></span>
+          <header class="rp-cf__h">
+            <span class="rp-cf__k" aria-hidden="true">${ico(isRoom ? 'door' : 'user', 20)}</span>
+            <div class="rp-cf__what">
+              <b>${esc(isRoom ? roomName(c.room) : D.teacher(c.teacher).name)}</b>
+              <span>${isRoom ? 'Același cabinet, în același timp' : 'Același profesor, în același timp'}</span>
+            </div>
+            <span class="rp-cf__when">${when}</span>
+          </header>
+          <div class="rp-cf__gs">
+            ${c.gs.map(g => `
+              <div class="rp-cg rp-cg--st-${esc(g.status)}">
+                <b>${esc(D.teacher(g.teacher).name)}</b>
+                <span class="rp-cg__s"><span class="ax-grade">${esc(g.grade)}</span>${esc(g.subject)}</span>
+                <span class="rp-cg__t">${range(g)}${c.kind === 'teacher' ? ' · ' + esc(g.room ? 'Cabinet ' + D.room(g.room).num : 'online') : ''}</span>
+                ${stHTML(g.status)}
+              </div>`).join('')}
           </div>
-          <div class="rp-conf__act">
-            <button type="button" class="ax-btn ax-btn--sm" data-show="${i}">${ico('eye', 16)} Arată</button>
+          <footer class="rp-cf__f">
+            <button type="button" class="ax-btn ax-btn--sm" data-show="${i}">${ico('eye', 16)} Arată pe tablă</button>
             <button type="button" class="ax-btn ax-btn--sm ax-btn--dark" data-fix="${i}">Rezolvă ${ico('arrow-right', 16)}</button>
-          </div>
+          </footer>
         </li>`;
     }).join('')}</ol>`;
   }

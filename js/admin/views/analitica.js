@@ -129,32 +129,32 @@
     const noGroup = students.filter(s => !s.group).length;
     return {
       groups: [
-        { k: 'Total grupe', v: nf.format(groups.length), raw: groups.length, s: 'Toate grupele din filtru, orice statut' },
-        { k: 'Grupe active', v: nf.format(act.length), raw: act.length, s: 'Statut Activ: țin lecții' },
-        { k: 'Se completează', v: nf.format(n('completare')), raw: n('completare'), s: 'Își adună încă elevii', href: withProject(st, '#orar', { status: 'completare' }) },
-        { k: 'Startează', v: nf.format(starting), raw: starting, s: 'Se completează, pornesc în 7 zile', href: withProject(st, '#orar', { status: 'completare', sort: 'start' }) },
-        { k: 'Grupe inactive', v: nf.format(n('inactiv')), raw: n('inactiv'), s: 'Oprite, nu mai țin lecții', href: withProject(st, '#orar', { status: 'inactiv' }) },
-        { k: 'Mărime medie grupă', v: dec1.format(act.length ? actInAct / act.length : 0), raw: act.length ? +(actInAct / act.length).toFixed(1) : 0, s: 'Elevi activi pe grupă activă' }
+        { tone: 'blue', icon: 'grid', k: 'Total grupe', v: nf.format(groups.length), raw: groups.length, s: 'Toate grupele din filtru, orice statut' },
+        { tone: 'green', icon: 'check', k: 'Grupe active', v: nf.format(act.length), raw: act.length, s: 'Statut Activ: țin lecții' },
+        { tone: 'amber', icon: 'clock', k: 'Se completează', v: nf.format(n('completare')), raw: n('completare'), s: 'Își adună încă elevii', href: withProject(st, '#orar', { status: 'completare' }) },
+        { tone: 'violet', icon: 'play', k: 'Startează', v: nf.format(starting), raw: starting, s: 'Se completează, pornesc în 7 zile', href: withProject(st, '#orar', { status: 'completare', sort: 'start' }) },
+        { tone: 'red', icon: 'x', k: 'Grupe inactive', v: nf.format(n('inactiv')), raw: n('inactiv'), s: 'Oprite, nu mai țin lecții', href: withProject(st, '#orar', { status: 'inactiv' }) },
+        { tone: 'teal', icon: 'users', k: 'Mărime medie grupă', v: dec1.format(act.length ? actInAct / act.length : 0), raw: act.length ? +(actInAct / act.length).toFixed(1) : 0, s: 'Elevi activi pe grupă activă' }
       ],
       students: [
-        { k: 'Total elevi', v: nf.format(students.length), raw: students.length, s: m.filtered ? 'Elevii grupelor din filtru' : `Inclusiv ${nf.format(noGroup)} fără grupă` },
-        { k: 'Elevi activi', v: nf.format(sc('activ')), raw: sc('activ'), s: 'Statut Activ' },
-        { k: 'Ore de probă', v: nf.format(sc('proba') + sc('proba_ok')), raw: sc('proba') + sc('proba_ok'), s: `${nf.format(sc('proba'))} programate, ${nf.format(sc('proba_ok'))} confirmate`, href: withProject(st, '#elevi', { status: 'proba,proba_ok' }) },
-        { k: 'Transferați', v: nf.format(sc('transferat')), raw: sc('transferat'), s: 'Statut Transferat', href: withProject(st, '#elevi', { status: 'transferat' }) },
-        { k: 'Elevi inactivi', v: nf.format(sc('inactiv')), raw: sc('inactiv'), s: 'Nu mai frecventează', href: withProject(st, '#elevi', { status: 'inactiv' }) },
-        { k: 'Rata de activitate', v: pctTxt(ratio(sc('activ'), students.length)), raw: Math.round(ratio(sc('activ'), students.length)) + '%', s: 'Elevi activi din totalul elevilor' }
+        { tone: 'blue', icon: 'users', k: 'Total elevi', v: nf.format(students.length), raw: students.length, s: m.filtered ? 'Elevii grupelor din filtru' : `Inclusiv ${nf.format(noGroup)} fără grupă` },
+        { tone: 'green', icon: 'check', k: 'Elevi activi', v: nf.format(sc('activ')), raw: sc('activ'), s: 'Statut Activ' },
+        { tone: 'amber', icon: 'clock', k: 'Ore de probă', v: nf.format(sc('proba') + sc('proba_ok')), raw: sc('proba') + sc('proba_ok'), s: `${nf.format(sc('proba'))} programate, ${nf.format(sc('proba_ok'))} confirmate`, href: withProject(st, '#elevi', { status: 'proba,proba_ok' }) },
+        { tone: 'violet', icon: 'swap', k: 'Transferați', v: nf.format(sc('transferat')), raw: sc('transferat'), s: 'Statut Transferat', href: withProject(st, '#elevi', { status: 'transferat' }) },
+        { tone: 'red', icon: 'user-x', k: 'Elevi inactivi', v: nf.format(sc('inactiv')), raw: sc('inactiv'), s: 'Nu mai frecventează', href: withProject(st, '#elevi', { status: 'inactiv' }) },
+        { tone: 'teal', icon: 'chart-column', k: 'Rata de activitate', v: pctTxt(ratio(sc('activ'), students.length)), raw: Math.round(ratio(sc('activ'), students.length)) + '%', s: 'Elevi activi din totalul elevilor' }
       ]
     };
   }
 
   function statHTML(a, i) {
     const inner = `
-      <span class="ax-stat__k">${esc(a.k)}</span>
+      <span class="ax-stat__k">${a.icon ? `<span class="an-stat__i">${ico(a.icon, 16)}</span>` : ''}${esc(a.k)}</span>
       <span class="ax-stat__v">${a.v}</span>
       <span class="ax-stat__s">${esc(a.s)}</span>`;
     return a.href
-      ? `<a class="ax-stat an-stat" href="${a.href}" data-arrive style="--i:${i}">${inner}<span class="an-stat__go" aria-hidden="true">${ico('arrow-right', 16)}</span></a>`
-      : `<div class="ax-stat an-stat" data-arrive style="--i:${i}">${inner}</div>`;
+      ? `<a class="ax-stat an-stat an-t--${a.tone || 'blue'}" href="${a.href}" data-arrive style="--i:${i}">${inner}<span class="an-stat__go" aria-hidden="true">${ico('arrow-right', 16)}</span></a>`
+      : `<div class="ax-stat an-stat an-t--${a.tone || 'blue'}" data-arrive style="--i:${i}">${inner}</div>`;
   }
 
   function kpiHTML(k) {
@@ -294,7 +294,7 @@
     return `
       <ul class="an-status">
         ${rows.map(r => `
-          <li class="an-status__row">
+          <li class="an-status__row an-st--${esc(r.id)}">
             <span class="ax-st ax-st--${r.id}"><i class="ax-st__i"></i>${esc(r.name)}</span>
             <span class="an-status__n"><b>${nf.format(r.n)}</b><span>${pctTxt(r.share)}</span></span>
             <span class="an-status__bar" aria-hidden="true"><i style="width:${((r.share / max) * 100).toFixed(1)}%"></i></span>
@@ -651,7 +651,7 @@
           ? `Cifrele privesc ${U.plural(m.groups.length, 'grupă', 'grupe')} din filtru și elevii lor. Elevii fără grupă nu intră în calcul când e activ un filtru.`
           : 'Toate grupele și toți elevii. Grupă activă: are statut Activ. Elev activ: are statut Activ, indiferent de statutul grupei.'}</p>
 
-        <section class="ax-panel an-sec" aria-labelledby="anClsT">
+        <section class="ax-panel an-sec an-t--blue" aria-labelledby="anClsT">
           <div class="ax-panel__head an-head">
             <div>
               <h2 class="ax-h2" id="anClsT">Distribuția pe clase</h2>
@@ -666,7 +666,7 @@
         </section>
 
         <div class="an-grid">
-          <section class="ax-panel an-sec" aria-labelledby="anSubT">
+          <section class="ax-panel an-sec an-t--teal" aria-labelledby="anSubT">
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anSubT">Materii</h2>
@@ -676,7 +676,7 @@
             ${subjectHTML(subjectRows(m))}
           </section>
 
-          <section class="ax-panel an-sec" aria-labelledby="anStT">
+          <section class="ax-panel an-sec an-t--green" aria-labelledby="anStT">
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anStT">Statusul elevilor</h2>
@@ -687,10 +687,10 @@
           </section>
         </div>
 
-        <section class="ax-panel an-sec an-pv-sec" id="anPivot" aria-labelledby="anPvT"></section>
+        <section class="ax-panel an-sec an-pv-sec an-t--violet" id="anPivot" aria-labelledby="anPvT"></section>
 
         <div class="an-grid">
-          <section class="ax-panel an-sec" aria-labelledby="anRoT">
+          <section class="ax-panel an-sec an-t--amber" aria-labelledby="anRoT">
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anRoT">Ocuparea cabinetelor</h2>
@@ -702,7 +702,7 @@
           </section>
 
           <div class="an-stack">
-            <section class="ax-panel an-sec" aria-labelledby="anHrT">
+            <section class="ax-panel an-sec an-t--violet" aria-labelledby="anHrT">
               <div class="ax-panel__head an-head">
                 <div>
                   <h2 class="ax-h2" id="anHrT">Lecții pe ore</h2>
@@ -712,7 +712,7 @@
               <div class="ax-panel__body">${hoursHTML(hd)}</div>
             </section>
 
-            <section class="ax-panel an-sec" aria-labelledby="anDbT">
+            <section class="ax-panel an-sec an-t--red" aria-labelledby="anDbT">
               <div class="ax-panel__head an-head">
                 <div>
                   <h2 class="ax-h2" id="anDbT">Datorii pe manageri</h2>

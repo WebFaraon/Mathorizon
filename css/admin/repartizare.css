@@ -688,3 +688,45 @@ body.ax .rp-days__n { font-size: 0.92rem; }
 body.ax .rp-modeseg button { padding: 0 14px; font-size: 0.9rem; gap: 6px; }
 @media (max-width: 1180px) { body.ax .rp-modeseg button { padding: 0 14px; } }
 body.ax .rp-days__x { top: auto; bottom: 11px; right: 9px; width: 8px; height: 8px; }
+
+/* ============ roomier summary, slimmer header keys ============ */
+body.ax .rp-sum__h { padding: 12px 16px; font-size: 1.12rem; }
+body.ax .rp-sum__i { padding: 12px 16px 13px; gap: 2px; }
+body.ax .rp-sum__k { white-space: normal; font-size: 0.78rem; }
+body.ax .rp-sum__v { font-size: 1.6rem; }
+body.ax .rp-sum__s { font-size: 0.78rem; }
+body.ax .rp-sum__conf .rp-sum__k { align-items: flex-start; gap: 5px; line-height: 1.25; }
+body.ax .rp-sum__conf .rp-sum__k .ax-ico { margin-top: 1px; }
+body.ax .rp-daytop { gap: 32px; }
+body.ax .rp-days button { min-height: 44px; padding-top: 4px; padding-bottom: 4px; }
+body.ax .rp-modeseg button { min-height: 44px; }
+@media (max-width: 1180px) {
+  body.ax .rp-daytop { gap: 12px; }
+  body.ax .rp-modeseg button { min-height: 42px; }
+}
+
+/* ============ clash cards in the drawer ============ */
+body.ax .rp-conf--drawer .rp-conf__list { display: flex; flex-direction: column; gap: 14px; }
+body.ax .rp-cf { position: relative; overflow: hidden; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r-2); background: var(--ax-panel); }
+body.ax .rp-cf__hz { display: block; height: 7px; }
+body.ax .rp-cf__h { display: flex; align-items: center; gap: 12px; padding: 14px 16px 12px; }
+body.ax .rp-cf__k { display: grid; place-items: center; flex: none; width: 42px; height: 42px; border-radius: var(--ax-r); background: var(--ax-sign); color: var(--ax-sign-ink); }
+body.ax .rp-cf__what { display: flex; flex-direction: column; flex: 1; min-width: 0; gap: 1px; }
+body.ax .rp-cf__what b { font-size: 1.12rem; font-weight: 800; line-height: 1.2; }
+body.ax .rp-cf__what span { font-size: 0.84rem; color: var(--ax-ink-3); }
+body.ax .rp-cf__when { flex: none; padding: 4px 9px; border-radius: var(--ax-r); background: var(--ax-yellow); color: var(--ax-yellow-ink); font-size: 0.84rem; font-weight: 800; white-space: nowrap; }
+body.ax .rp-cf__gs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; padding: 0 16px 14px; }
+body.ax .rp-cg { --c: var(--ax-ink-3); position: relative; display: flex; flex-direction: column; gap: 6px; min-width: 0; padding: 12px 12px 11px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); background: var(--ax-panel-2); }
+body.ax .rp-cg::before { content: ''; position: absolute; inset: 0 0 auto 0; height: 3px; background: var(--c); }
+body.ax .rp-cg--st-activ { --c: var(--ax-st-activ); }
+body.ax .rp-cg--st-completare { --c: var(--ax-st-completare); }
+body.ax .rp-cg--st-inlocuire { --c: var(--ax-st-inlocuire); }
+body.ax .rp-cg--st-inactiv { --c: var(--ax-st-inactiv); }
+body.ax .rp-cg > b { font-size: 0.98rem; font-weight: 800; line-height: 1.2; }
+body.ax .rp-cg__s { display: flex; align-items: center; gap: 7px; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-2); }
+body.ax .rp-cg__s .ax-grade { min-width: 28px; height: 22px; padding: 0 4px; font-size: 0.74rem; }
+body.ax .rp-cg__t { font-size: 0.84rem; font-weight: 700; color: var(--ax-ink); }
+body.ax .rp-cg .ax-st { font-size: 0.8rem; }
+body.ax .rp-cf__f { display: flex; justify-content: flex-end; gap: 8px; padding: 11px 16px; border-top: 1px solid var(--ax-rule); background: var(--ax-panel-2); }
+@media (max-width: 520px) { body.ax .rp-cf__gs { grid-template-columns: minmax(0, 1fr); } body.ax .rp-cf__h { flex-wrap: wrap; } }
+body.ax .rp-sum__v { display: flex; align-items: center; gap: 6px; }

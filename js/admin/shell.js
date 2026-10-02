@@ -86,11 +86,11 @@
               <span class="ax-hide-folded"><b>${esc(name)}</b><small>Administrator</small></span>
             </div>
             <div class="ax-sign__row">
-              <a class="ax-sign__btn ax-hide-folded" href="capitole.html" data-browse>${ico('external', 16)} Vezi site-ul</a>
+              <a class="ax-sign__btn ax-sign__btn--site" href="capitole.html" data-browse title="Vezi site-ul">${ico('external', 16)}<span class="ax-btn-t">Vezi site-ul</span></a>
               <button type="button" class="ax-sign__btn ax-sign__btn--icon" id="axTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 16)}</button>
               <button type="button" class="ax-sign__btn ax-sign__btn--icon ax-fold-btn" id="axFold" aria-label="Restrânge meniul">${ico('panel', 16)}</button>
             </div>
-            <button type="button" class="ax-sign__btn ax-hide-folded" id="axLogout">${ico('log-out', 16)} Deconectare</button>
+            <button type="button" class="ax-sign__btn ax-sign__btn--out" id="axLogout" title="Deconectare">${ico('log-out', 16)}<span class="ax-btn-t">Deconectare</span></button>
           </div>
         </aside>
         <div class="ax-main">
@@ -128,12 +128,42 @@
     return window.AdminViews[id] ? id : 'acasa';
   }
 
-  function refreshNav() {
+  function refreshNav(active) {
     const nav = document.getElementById('axNav');
-    if (nav) nav.innerHTML = navHTML(external || current);
+    if (nav) nav.innerHTML = navHTML(active || external || current);
   }
 
+  /* Changing tab: the old page fades out (150ms), the new one comes in with
+     its blocks rising one after another. Re-renders on the same tab (filters,
+     theme) stay instant. */
+  const calm = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let leaveT = 0, enterT = 0;
   function render(fresh) {
+    const root = document.getElementById('axView');
+    if (!root || external) return;
+    clearTimeout(leaveT);
+    const next = routeId();
+    if (next !== current && current && !calm()) {
+      root.classList.remove('is-entering');
+      root.classList.add('is-leaving');
+      refreshNav(next); // the sign panel answers the click at once
+      leaveT = setTimeout(() => { root.classList.remove('is-leaving'); paint(fresh); }, 150);
+    } else {
+      root.classList.remove('is-leaving');
+      paint(fresh);
+    }
+  }
+
+  function enter(root) {
+    if (calm()) return;
+    clearTimeout(enterT);
+    root.classList.remove('is-entering');
+    void root.offsetWidth;
+    root.classList.add('is-entering');
+    enterT = setTimeout(() => root.classList.remove('is-entering'), 1000);
+  }
+
+  function paint(fresh) {
     const root = document.getElementById('axView');
     if (!root || external) return;
     const id = routeId();
@@ -153,7 +183,7 @@
       console.error(e);
       root.innerHTML = `<div class="ax-empty"><b>Pagina nu s-a putut afișa.</b>${esc(e.message)}</div>`;
     }
-    if (changed) { window.scrollTo(0, 0); root.focus({ preventScroll: true }); }
+    if (changed) { window.scrollTo(0, 0); root.focus({ preventScroll: true }); enter(root); }
     document.getElementById('axShell').classList.remove('is-nav-open');
   }
 
@@ -188,6 +218,18 @@
       U.toast('Datele demo au fost resetate.');
     });
     window.AdminData.onChange(() => refreshNav());
+    // links that load another document: let the page fade out first
+    document.addEventListener('click', e => {
+      const a = e.target.closest && e.target.closest('a[href]');
+      if (!a || e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || a.target === '_blank' || calm()) return;
+      let u; try { u = new URL(a.href, location.href); } catch (err) { return; }
+      if (u.origin !== location.origin || u.pathname === location.pathname) return;
+      const view = document.getElementById('axView');
+      if (!view) return;
+      e.preventDefault();
+      view.classList.add('is-leaving');
+      setTimeout(() => { location.href = a.href; }, 150);
+    });
     window.addEventListener('hashchange', () => render(false));
     tick();
     setInterval(tick, 15000);
@@ -238,6 +280,7 @@
       view.dataset.view = external;
       document.getElementById('axShell').dataset.view = external;
       if (legacy) { view.appendChild(legacy); legacy.hidden = false; }
+      enter(view);
     }
     wire();
     if (!external) render(true);

@@ -740,18 +740,18 @@ a.ax-stat:hover, button.ax-stat:hover { box-shadow: inset 0 6px 0 var(--pg); }
 .ax-shell { transition: grid-template-columns 0.34s var(--ax-ease); }
 .ax-sign { overflow-x: hidden; }
 .ax-sign__brand small { white-space: nowrap; }
-.ax-sign__brand > span, .ax-sign__user > span, .ax-nav__label { max-width: 210px; overflow: hidden; white-space: nowrap; transition: max-width 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
+.ax-sign__brand > span.ax-hide-folded, .ax-sign__user > span.ax-hide-folded, .ax-nav__label, .ax-btn-t { max-width: 210px; overflow: hidden; white-space: nowrap; transition: max-width 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
 .ax-sign__title { max-height: 30px; overflow: hidden; transition: max-height 0.3s var(--ax-ease), padding 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
-.ax-sign__foot .ax-sign__btn.ax-hide-folded { max-height: 38px; overflow: hidden; white-space: nowrap; transition: max-height 0.3s var(--ax-ease), opacity 0.16s 0.08s, padding 0.3s var(--ax-ease), border-width 0.3s; }
+
 .ax-sign__logo { transition: width 0.3s var(--ax-ease); }
 .ax-nav__a, .ax-sign__brand, .ax-sign__user { transition: padding 0.3s var(--ax-ease), background-color 0.15s; }
 @media (min-width: 961px) {
   .ax-shell.is-folded .ax-sign { padding-left: 12px; padding-right: 12px; }
-  .ax-shell.is-folded .ax-sign__brand > span, .ax-shell.is-folded .ax-sign__user > span, .ax-shell.is-folded .ax-nav__label { max-width: 0; opacity: 0; }
+  .ax-shell.is-folded .ax-sign__brand > span.ax-hide-folded, .ax-shell.is-folded .ax-sign__user > span.ax-hide-folded, .ax-shell.is-folded .ax-nav__label, .ax-shell.is-folded .ax-btn-t { max-width: 0; opacity: 0; }
   .ax-shell.is-folded .ax-sign__brand { gap: 0; justify-content: center; padding: 2px 0 14px; }
   .ax-shell.is-folded .ax-sign__logo { width: 46px; }
   .ax-shell.is-folded .ax-sign__title { max-height: 0; padding-bottom: 0; opacity: 0; }
-  .ax-shell.is-folded .ax-sign__foot .ax-sign__btn.ax-hide-folded { max-height: 0; padding-top: 0; padding-bottom: 0; border-width: 0; opacity: 0; pointer-events: none; }
+  .ax-shell.is-folded .ax-sign__btn { flex: 0 0 36px; width: 36px; gap: 0; justify-content: center; padding: 0; }
   .ax-shell.is-folded .ax-sign__group { margin-top: 0; }
   .ax-shell.is-folded .ax-sign__group + .ax-sign__group { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--ax-sign-rule); }
   .ax-shell.is-folded #axNav { padding-top: 14px; }
@@ -879,7 +879,7 @@ a.ax-stat, button.ax-stat { cursor: pointer; }
 /* ============================================================
    Fixed filter column (Orar, Elevi, Repartizare)
    ============================================================ */
-.ax-shell { --ax-side-w: 264px; --ax-fix-w: 252px; }
+.ax-shell { --ax-side-w: 264px; --ax-fix-w: 272px; }
 .ax-shell.is-folded { --ax-side-w: 76px; }
 body.ax .ax-fixsplit > .ax-col { min-width: 0; }
 @media (min-width: 1181px) {
@@ -932,3 +932,23 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
 .ax-sug .ax-sel__opt b { font-weight: 800; color: var(--ax-ink); background: color-mix(in srgb, var(--pg) 38%, transparent); border-radius: 1px; }
 
 .ax-sr { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+
+.ax-sign__btn { transition: width 0.3s var(--ax-ease), padding 0.3s var(--ax-ease), gap 0.3s, background-color 0.15s, border-color 0.15s; }
+.ax-sign__btn--out { width: 100%; }
+
+/* ============ moving between pages ============ */
+.ax-view { transition: opacity 0.15s ease; }
+.ax-view.is-leaving { opacity: 0; }
+@keyframes ax-enter { from { opacity: 0; transform: translateY(14px); } }
+@keyframes ax-rail-in { from { opacity: 0; transform: translateX(-16px); } }
+@media (prefers-reduced-motion: no-preference) {
+  /* never a transform on .ax-fixsplit itself: the fixed filter column lives inside it */
+  .ax-view.is-entering > :not(.ax-fixsplit),
+  .ax-view.is-entering .ax-fixsplit > .ax-col > * { animation: ax-enter 0.46s var(--ax-ease) backwards; animation-delay: calc(var(--e, 0) * 60ms); }
+  .ax-view.is-entering > :nth-child(2), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(2) { --e: 1; }
+  .ax-view.is-entering > :nth-child(3), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(3) { --e: 2; }
+  .ax-view.is-entering > :nth-child(4), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(4) { --e: 3; }
+  .ax-view.is-entering > :nth-child(n+5), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(n+5) { --e: 4; }
+  .ax-view.is-entering .ax-fixsplit > .ax-rail, .ax-view.is-entering .ax-fixsplit > .rp-side { animation: ax-rail-in 0.4s var(--ax-ease) backwards; }
+}
+.ax-rail > * { flex-shrink: 0; }
