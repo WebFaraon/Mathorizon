@@ -3,7 +3,7 @@
 /* ---- summary strip ---- */
 body.ax .el-stats { margin-bottom: 22px; }
 body.ax .el-stats .ax-stat { min-height: 96px; }
-body.ax .el-unit { margin-left: 6px; font-size: 0.9rem; font-weight: 700; font-stretch: 100%; color: var(--ax-ink-3); }
+body.ax .el-unit { margin-left: 6px; font-size: 0.9rem; font-weight: 700; color: var(--ax-ink-3); }
 
 /* ---- rail ---- */
 body.ax .el-split { grid-template-columns: 240px minmax(0, 1fr); }
@@ -20,7 +20,6 @@ body.ax .el-sect {
   padding: 0 2px;
   font-size: 0.82rem;
   font-weight: 800;
-  font-stretch: 106%;
   color: var(--ax-ink);
 }
 body.ax .el-sect .ax-ico { display: grid; width: 22px; height: 22px; padding: 4px; border-radius: var(--ax-r); background: var(--ax-sign); color: var(--ax-sign-ink); }
@@ -96,7 +95,7 @@ body.ax .el-dw { display: flex; flex-direction: column; gap: 22px; }
 body.ax .el-dw__bal { display: grid; gap: 4px; padding: 14px 16px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); background: var(--ax-panel-2); }
 body.ax .el-dw__haz { display: inline-block; width: 28px; height: 10px; margin-left: 10px; border-radius: 1px; vertical-align: 0; }
 body.ax .el-dw__k { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
-body.ax .el-dw__bal b { font-size: 1.9rem; font-weight: 800; font-stretch: 110%; line-height: 1.05; }
+body.ax .el-dw__bal b { font-size: 1.9rem; font-weight: 800; line-height: 1.05; }
 body.ax .el-dw__bal p { font-size: 0.88rem; color: var(--ax-ink-2); }
 body.ax .el-dw__tel { display: inline-flex; align-items: center; gap: 6px; color: var(--ax-blue); text-decoration: none; }
 body.ax .el-dw__tel:hover { text-decoration: underline; }

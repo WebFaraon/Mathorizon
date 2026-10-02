@@ -1,6 +1,6 @@
 /* Admin console: Acasă (js/admin/views/acasa.js) */
 body.ax .ah-eyebrow { font-size: 0.86rem; font-weight: 700; letter-spacing: 0.04em; color: var(--ax-ink-3); text-transform: capitalize; }
-body.ax .ah-title { margin-top: 6px; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 850; font-stretch: 116%; letter-spacing: -0.015em; line-height: 1; }
+body.ax .ah-title { margin-top: 6px; font-size: clamp(2rem, 4vw, 3.2rem); font-weight: 800; letter-spacing: -0.015em; line-height: 1; }
 
 body.ax .ah-att { margin-bottom: 26px; }
 body.ax .ah-att__item { position: relative; }
@@ -29,8 +29,7 @@ body.ax .ah-room {
   background: var(--ax-sign);
   color: var(--ax-sign-ink);
   font-size: 1.45rem;
-  font-weight: 850;
-  font-stretch: 115%;
+  font-weight: 800;
   line-height: 1;
 }
 body.ax .ah-room small { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-sign-ink-2); }

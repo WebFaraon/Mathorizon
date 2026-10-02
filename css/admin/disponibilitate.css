@@ -17,7 +17,7 @@ body.ax .dp-find__ctl { display: flex; flex-wrap: wrap; align-items: flex-end; g
 body.ax .dp-find__res { padding: 0 0 6px; }
 body.ax .dp-find__sum { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 22px; padding: 14px 18px 12px; }
 body.ax .dp-find__big { font-size: 1.02rem; font-weight: 700; }
-body.ax .dp-find__big b { font-size: 1.6rem; font-weight: 850; font-stretch: 112%; margin-right: 2px; }
+body.ax .dp-find__big b { font-size: 1.6rem; font-weight: 800; margin-right: 2px; }
 body.ax .dp-find__rest { display: flex; flex-wrap: wrap; gap: 4px 18px; font-size: 0.88rem; color: var(--ax-ink-2); }
 body.ax .dp-find__rest b { color: var(--ax-ink); font-weight: 800; }
 body.ax .dp-find__empty { padding: 26px 18px; }
@@ -89,7 +89,7 @@ body.ax .dp-util.is-over .dp-util__v { color: var(--ax-bad); }
 
 body.ax .dp-week { padding: 18px 18px 16px; min-width: 0; }
 body.ax .dp-who { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px 18px; flex-wrap: wrap; margin-bottom: 14px; }
-body.ax .dp-who__name { font-size: 1.5rem; font-weight: 850; font-stretch: 112%; line-height: 1.1; }
+body.ax .dp-who__name { font-size: 1.5rem; font-weight: 800; line-height: 1.1; }
 body.ax .dp-who__meta { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 16px; margin-top: 6px; font-size: 0.88rem; color: var(--ax-ink-2); }
 body.ax .dp-who__lines { display: inline-flex; flex-wrap: wrap; gap: 4px 12px; }
 body.ax .dp-who__ph { display: inline-flex; align-items: center; gap: 5px; }
@@ -165,7 +165,7 @@ body.ax .dp-blk b { overflow: hidden; font-size: 0.78rem; font-weight: 800; text
 body.ax .dp-blk span { overflow: hidden; font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); text-overflow: ellipsis; white-space: nowrap; }
 body.ax .dp-blk:hover { border-color: var(--ax-ink); background: var(--ax-panel-2); }
 body.ax .dp-blk.is-out { outline: 2px solid var(--ax-bad); outline-offset: -1px; }
-body.ax .dp-blk__out { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 12px; height: 12px; background: var(--ax-bad); color: #fff; font-style: normal; font-size: 0.66rem; font-weight: 900; }
+body.ax .dp-blk__out { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 12px; height: 12px; background: var(--ax-bad); color: #fff; font-style: normal; font-size: 0.66rem; font-weight: 800; }
 
 /* ---------- all teachers ---------- */
 body.ax .dp-all-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 12px 16px; margin-bottom: 14px; }

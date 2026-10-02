@@ -14,7 +14,6 @@ body.ax .cn-real {
   border-radius: var(--ax-r);
   font-size: 0.74rem;
   font-weight: 800;
-  font-stretch: 100%;
   letter-spacing: 0.08em;
   text-transform: uppercase;
   vertical-align: 6px;

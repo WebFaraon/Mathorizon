@@ -405,17 +405,17 @@
     const countSG = fn => countS(st => { const g = st.group && D.group(st.group); return g ? fn(g) : null; });
     const msDefs = {
       project: { label: 'Proiect', opts: D.PROJECTS.map(x => ({ value: x.id, label: x.name })), c: countSG(g => g.project) },
-      gstatus: { label: 'Statut grup', opts: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })), c: countSG(g => g.status) },
+      gstatus: { label: 'Statut grup', tone: true, opts: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })), c: countSG(g => g.status) },
       subj: { label: 'Disciplină', opts: D.SUBJECTS.map(x => ({ value: x, label: x })), c: countSG(g => g.subject) },
       grade: { label: 'Clasa', opts: D.GRADES.map(x => ({ value: x, label: 'Clasa ' + x })), c: countSG(g => g.grade) },
       size: { label: 'Format grup', opts: [1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: sizeLabel(n) })), c: countSG(g => String(g.size)) },
-      status: { label: 'Statut elev', opts: D.STUDENT_STATUS.map(x => ({ value: x.id, label: x.name })), c: countS(st => st.status) },
+      status: { label: 'Statut elev', tone: true, opts: D.STUDENT_STATUS.map(x => ({ value: x.id, label: x.name })), c: countS(st => st.status) },
       level: { label: 'Nivel de cunoștințe', opts: D.LEVELS.map(x => ({ value: x, label: 'Nivel ' + x })), c: countS(st => st.level) },
       manager: { label: 'Manager', opts: D.managers.map(x => ({ value: x.id, label: x.name })), c: countS(st => st.manager) }
     };
     Object.entries(msDefs).forEach(([k, def]) => {
       const opts = def.opts.filter(o => def.c[o.value]).map(o => Object.assign({}, o, { count: def.c[o.value] }));
-      const ms = U.multiSelect({ id: 'el-' + k, label: def.label, options: opts, selected: s[k], onChange: v => { s[k] = v; update(); } });
+      const ms = U.multiSelect({ id: 'el-' + k, label: def.label, options: opts, selected: s[k], tone: !!def.tone, onChange: v => { s[k] = v; update(); } });
       rail.querySelector(`[data-ms="${k}"]`).replaceWith(ms);
     });
 

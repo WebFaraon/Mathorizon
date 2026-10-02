@@ -218,9 +218,9 @@
           <header class="rp-head">
             <div class="rp-head__t">
               <span class="ax-plate">${ico('door', 22)}</span>
-              <h1 class="ax-h1">Repartizare pe cabinete</h1>
+              <h1 class="ax-h1">Repartizare</h1>
             </div>
-            <div class="rp-noprint" id="rpSum"></div>
+            <div class="rp-noprint rp-daytop" id="rpDaysTop"></div>
           </header>
           <div class="rp-main" id="rpMain"></div>
         </div>
@@ -233,66 +233,45 @@
     return { n, c, today: d.id === isoToday() };
   }
 
-  /* phones and tablets: days and row mode above the board */
-  function toolbarHTML(s, ci) {
+  /* the days: the first control above the board */
+  function daysTopHTML(s, ci) {
     return `
-      <div class="rp-bar rp-bar--m rp-noprint">
-        <div class="ax-seg rp-days" role="group" aria-label="Ziua">
-          ${D.DAYS.map(d => {
-            const { n, c, today } = dayStats(s, ci, d);
-            return `<button type="button" data-day="${d.id}" aria-pressed="${d.id === s.day}"${today ? ' class="is-today"' : ''}
-              aria-label="${esc(d.name)}${today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
-              <span class="rp-days__n"><span class="rp-days__full">${esc(d.name)}</span><span class="rp-days__short">${esc(d.short)}</span></span>
-              <span class="rp-days__c">${today ? '<em>azi</em>' : ''}${nf.format(n)}</span>
-              ${c ? '<i class="rp-days__x" aria-hidden="true"></i>' : ''}
-            </button>`;
-          }).join('')}
-        </div>
-        <div class="rp-mode">
-          <div class="ax-seg" role="group" aria-label="Rânduri">
-            <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
-            <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
-          </div>
-        </div>
+      <div class="ax-seg rp-days" role="group" aria-label="Ziua">
+        ${D.DAYS.map(d => {
+          const { n, c, today } = dayStats(s, ci, d);
+          return `<button type="button" data-day="${d.id}" aria-pressed="${d.id === s.day}"${today ? ' class="is-today"' : ''}
+            aria-label="${esc(d.name)}${today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
+            <span class="rp-days__n"><span class="rp-days__full">${esc(d.name)}</span><span class="rp-days__short">${esc(d.short)}</span></span>
+            <span class="rp-days__c">${today ? '<em>azi</em>' : ''}${nf.format(n)}</span>
+            ${c ? '<i class="rp-days__x" aria-hidden="true"></i>' : ''}
+          </button>`;
+        }).join('')}
       </div>`;
   }
 
-  /* desktop: the day is the first and loudest filter in the fixed column */
-  function dayBlockHTML(s, ci) {
+  /* first block of the fixed column: rows mode, then the figures of the chosen day */
+  function sideBlockHTML(s, sum) {
     return `
-      <section class="rp-dayblock" aria-label="Ziua și rândurile">
-        <div class="rp-dayblock__h"><b>Ziua</b><small>lecții pe zi</small></div>
-        <div class="rp-dl" role="group" aria-label="Ziua">
-          ${D.DAYS.map(d => {
-            const { n, c, today } = dayStats(s, ci, d);
-            return `<button type="button" class="rp-dl__b" data-day="${d.id}" aria-pressed="${d.id === s.day}"
-              aria-label="${esc(d.name)}${today ? ', azi' : ''}: ${plural(n, 'lecție', 'lecții')}${c ? ', ' + plural(c, 'suprapunere', 'suprapuneri') : ''}">
-              <span class="rp-dl__n">${esc(d.name)}</span>
-              ${today ? '<em class="rp-dl__today">azi</em>' : ''}
-              ${c ? '<i class="rp-dl__x" aria-hidden="true"></i>' : ''}
-              <span class="rp-dl__c">${nf.format(n)}</span>
-            </button>`;
-          }).join('')}
-        </div>
-        <div class="rp-dayblock__m">
-          <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
-            <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
-            <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
-          </div>
-        </div>
-      </section>`;
+      <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
+        <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 16)} Cabinete</button>
+        <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 16)} Profesori</button>
+      </div>
+      ${summaryHTML(s, sum)}`;
   }
 
   function summaryHTML(s, sum) {
     const confTxt = sum.conf ? [sum.confRoom ? plural(sum.confRoom, 'în cabinet', 'în cabinete') : '', sum.confTeacher ? plural(sum.confTeacher, 'la profesor', 'la profesori') : ''].filter(Boolean).join(', ') : 'ziua e curată';
     return `
       <section class="rp-sum" aria-label="Sumarul zilei">
-        <div class="rp-sum__i" title="${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online"><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__k">lecții</span></div>
-        <div class="rp-sum__i" title="${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}"><b class="rp-sum__v">${sum.used}<small>/${D.rooms.length}</small></b><span class="rp-sum__k">cabinete</span></div>
-        <div class="rp-sum__i rp-sum__i--occ" title="${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet"><b class="rp-sum__v">${sum.occ}%</b><span class="rp-sum__k">ocupare</span><span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span></div>
-        <div class="rp-sum__i" title="Între 08:00 și 21:00"><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__k">ore libere</span></div>
-        <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf title="${esc(confTxt)}. Deschide lista de suprapuneri.">
-          <b class="rp-sum__v">${sum.conf ? ico('alert', 16) : ''}${nf.format(sum.conf)}</b><span class="rp-sum__k">suprapuneri</span>
+        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>sumarul zilei</small></h2>
+        <div class="rp-sum__i"><span class="rp-sum__k">Lecții</span><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__s">${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online</span></div>
+        <div class="rp-sum__i"><span class="rp-sum__k">Cabinete</span><b class="rp-sum__v">${sum.used}<small> din ${D.rooms.length}</small></b><span class="rp-sum__s">${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}</span></div>
+        <div class="rp-sum__i rp-sum__i--occ"><span class="rp-sum__k">Ocupare</span><b class="rp-sum__v">${sum.occ}%</b>
+          <span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span>
+          <span class="rp-sum__s">${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet</span></div>
+        <div class="rp-sum__i"><span class="rp-sum__k">Ore libere</span><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__s">între 08:00 și 21:00</span></div>
+        <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf title="Deschide lista de suprapuneri">
+          <span class="rp-sum__k">${sum.conf ? ico('alert', 14) : ''} Suprapuneri</span><b class="rp-sum__v">${nf.format(sum.conf)}</b><span class="rp-sum__s">${esc(confTxt)}</span>
         </button>
       </section>`;
   }
@@ -329,7 +308,7 @@
     const rc = ci.room.has(g.id), tc = ci.teacher.has(g.id);
     const enr = D.enrolled(g).length;
     const label = `${t.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}, ${statusName(g.status)}, ${enr} din ${g.size} locuri${rc ? ', cabinet dublat' : ''}${tc ? ', profesor dublat' : ''}. Deschide detaliile și mutarea.`;
-    const cls = ['rp-card', 'rp-card--' + g.project, 'rp-card--d' + g.duration];
+    const cls = ['rp-card', 'rp-card--' + g.project, 'rp-card--st-' + g.status, 'rp-card--d' + g.duration];
     if (rc || tc) cls.push('is-clash');
     if (!live(g)) cls.push('is-off');
     if (g.id === settleId) cls.push('is-settle');
@@ -528,13 +507,13 @@
     const stack = rail.querySelector('[data-slot="groups"]');
     const sizes = Array.from(new Set(D.groups.map(g => g.size))).sort((a, b) => a - b);
     [
-      { id: 'st', label: 'Statut grup', options: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })) },
+      { id: 'st', label: 'Statut grup', tone: true, options: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })) },
       { id: 'disc', label: 'Disciplină', options: D.SUBJECTS.map(x => ({ value: x, label: x })) },
       { id: 'cls', label: 'Clasa', options: D.GRADES.map(x => ({ value: x, label: 'Clasa ' + x })) },
       { id: 'fmt', label: 'Format grup', options: sizes.map(x => ({ value: String(x), label: x === 1 ? 'Individual, 1 loc' : plural(x, 'loc', 'locuri') })) },
       { id: 'profil', label: 'Profil', options: [{ value: 'Real', label: 'Real' }, { value: 'Uman', label: 'Uman' }] },
       { id: 'reg', label: 'Regim', options: [{ value: 'normal', label: 'Regim normal' }, { value: 'vara', label: 'Școala de Vară' }] }
-    ].forEach(f => stack.appendChild(U.multiSelect({ id: f.id, label: f.label, options: f.options, selected: s[f.id], onChange: on(f.id) })));
+    ].forEach(f => stack.appendChild(U.multiSelect({ id: f.id, label: f.label, options: f.options, selected: s[f.id], onChange: on(f.id), tone: !!f.tone })));
     openIds.forEach(id => { const ms = rail.querySelector(`.ax-ms[data-id="${id}"]`); if (ms) { ms.classList.add('is-open'); ms.querySelector('.ax-ms__btn').setAttribute('aria-expanded', 'true'); } });
 
     rail.querySelector('.rp-rail__tg').addEventListener('click', e => {
@@ -544,6 +523,7 @@
       e.currentTarget.textContent = open ? 'Ascunde' : 'Arată filtrele';
     });
     let tmr;
+    U.suggest(rail.querySelector('#rpQ'), () => D.teachers.map(t => t.name).sort((a, b) => a.localeCompare(b, 'ro')));
     rail.querySelector('#rpQ').addEventListener('input', e => {
       clearTimeout(tmr);
       const v = e.target.value.trim();
@@ -586,10 +566,9 @@
     const gs = dayGroups(s, s.day);
     const rows = rowsFor(s, gs);
     const chips = chipItems(s);
-    root.querySelector('#rpSum').innerHTML = summaryHTML(s, daySummary(s.day, ci));
-    root.querySelector('#rpDays').innerHTML = dayBlockHTML(s, ci);
+    root.querySelector('#rpDaysTop').innerHTML = daysTopHTML(s, ci);
+    root.querySelector('#rpDays').innerHTML = sideBlockHTML(s, daySummary(s.day, ci));
     main.innerHTML = `
-      ${toolbarHTML(s, ci)}
       <div class="rp-chips rp-noprint">${U.activeChips(chips)}</div>
       ${boardHTML(s, rows, ci)}`;
 

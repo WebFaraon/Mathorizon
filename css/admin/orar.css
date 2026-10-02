@@ -50,10 +50,10 @@ body.ax .or-sign__pic {
   color: var(--ax-sign-ink);
 }
 body.ax .or-sign--warn .or-sign__pic { color: var(--ax-yellow); }
-body.ax .or-sign__name { display: flex; align-items: center; gap: 8px; font-size: 0.95rem; font-weight: 800; font-stretch: 106%; line-height: 1.2; }
+body.ax .or-sign__name { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 800; line-height: 1.2; overflow-wrap: anywhere; }
 body.ax .or-sign__sub { font-size: 0.78rem; line-height: 1.3; color: var(--ax-ink-3); }
 body.ax .or-sign__v { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 6px; margin-top: auto; padding-top: 6px; font-size: 0.82rem; font-weight: 600; color: var(--ax-ink-2); }
-body.ax .or-sign__v b { font-size: 1.55rem; font-weight: 800; font-stretch: 110%; line-height: 1; color: var(--ax-ink); }
+body.ax .or-sign__v b { font-size: 1.55rem; font-weight: 800; line-height: 1; color: var(--ax-ink); }
 body.ax .or-sign__of { font-weight: 600; color: var(--ax-ink-3); }
 body.ax .or-sign__here {
   position: absolute;
@@ -140,8 +140,7 @@ body.ax .or-room {
   background: var(--ax-sign);
   color: var(--ax-sign-ink);
   font-size: 1.1rem;
-  font-weight: 850;
-  font-stretch: 112%;
+  font-weight: 800;
   line-height: 1;
 }
 body.ax .or-room small { font-size: 0.56rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-sign-ink-2); }

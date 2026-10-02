@@ -115,7 +115,7 @@ body.ax .an-fig__t { margin-bottom: 12px; font-size: 0.86rem; font-weight: 800; 
 body.ax .an-fig__t span { margin-left: 6px; font-weight: 600; color: var(--ax-ink-3); }
 body.ax .an-hbars__list { margin: 0; padding: 0; list-style: none; border-left: 1px solid var(--ax-rule-2); margin-left: 38px; }
 body.ax .an-hbar { display: grid; grid-template-columns: minmax(0, 1fr) 40px; align-items: center; gap: 8px; height: 30px; position: relative; }
-body.ax .an-hbar__l { position: absolute; left: -38px; width: 30px; text-align: right; font-size: 0.8rem; font-weight: 800; font-stretch: 108%; color: var(--ax-ink-2); }
+body.ax .an-hbar__l { position: absolute; left: -38px; width: 30px; text-align: right; font-size: 0.8rem; font-weight: 800; color: var(--ax-ink-2); }
 body.ax .an-hbar__t { height: 14px; }
 body.ax .an-hbar__t i { display: block; height: 100%; min-width: 2px; border-radius: 0 2px 2px 0; background: var(--ax-ink); transition: opacity 0.15s; }
 body.ax .an-hbar__v { font-size: 0.84rem; font-weight: 700; }
@@ -194,8 +194,7 @@ body.ax .an-room {
   background: var(--ax-sign);
   color: var(--ax-sign-ink);
   font-size: 0.98rem;
-  font-weight: 850;
-  font-stretch: 115%;
+  font-weight: 800;
 }
 body.ax .an-rooms td.an-rooms__c { min-width: 40px; padding: 10px 6px; border-left: 1px solid var(--ax-panel); text-align: center; font-weight: 700; }
 body.ax .an-rooms td.an-rooms__c.an-h0 { color: var(--ax-ink-3); font-weight: 400; }

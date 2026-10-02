@@ -244,7 +244,8 @@
       };
       btn.addEventListener('keydown', onKey);
       const onDown = e => { if (!pop.contains(e.target) && !btn.contains(e.target)) closeSelPop(); };
-      const onScroll = e => { if (e && e.target && pop.contains(e.target)) return; closeSelPop(); };
+      const openedAt = Date.now();
+      const onScroll = e => { if (e && e.target && pop.contains(e.target)) return; if (Date.now() - openedAt < 300) return; if (e && e.target && e.target !== document && !e.target.contains(btn)) return; closeSelPop(); };
       document.addEventListener('pointerdown', onDown, true);
       document.addEventListener('scroll', onScroll, true);
       window.addEventListener('resize', onScroll);
@@ -266,6 +267,98 @@
     queueMicrotask(() => { selQueued = false; enhanceSelects(document); });
   }).observe(document.documentElement, { childList: true, subtree: true });
   enhanceSelects(document);
+
+
+  /* ---- type-ahead list under a text field ----
+     Shows every option when the field is focused and narrows it as you
+     type ("D" lists the names that start with D, in the first or the last
+     name). Picking one writes the full name into the field and fires
+     'input', so the view's own filter handler runs unchanged. */
+  const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  function suggest(input, getOptions) {
+    let pop = null, act = -1, items = [];
+    const close = () => {
+      if (!pop) return;
+      const p = pop; pop = null; act = -1;
+      p.classList.add('is-closing');
+      setTimeout(() => p.remove(), 120);
+      document.removeEventListener('pointerdown', onDown, true);
+      document.removeEventListener('scroll', onScroll, true);
+    };
+    const onDown = e => { if (pop && !pop.contains(e.target) && e.target !== input) close(); };
+    const place = () => {
+      if (!pop) return;
+      const r = input.getBoundingClientRect();
+      if (r.bottom < 0 || r.top > innerHeight) { close(); return; }
+      const w = Math.max(r.width, 220);
+      pop.style.minWidth = w + 'px';
+      pop.style.maxHeight = Math.max(160, Math.min(340, innerHeight - r.bottom - 16)) + 'px';
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+      pop.style.top = (r.bottom + 4) + 'px';
+    };
+    const onScroll = e => { if (pop && !pop.contains(e.target)) place(); };
+    const filter = () => {
+      const q = plain(input.value).trim();
+      const all = getOptions();
+      if (!q) return all;
+      return all.filter(o => { const n = plain(o); return n.startsWith(q) || n.split(/\s+/).some(w => w.startsWith(q)); });
+    };
+    const mark = i => {
+      if (!pop) return;
+      pop.querySelectorAll('.is-act').forEach(x => x.classList.remove('is-act'));
+      act = i;
+      const el = pop.querySelector(`[data-i="${i}"]`);
+      if (el) { el.classList.add('is-act'); el.scrollIntoView({ block: 'nearest' }); }
+    };
+    const pick = i => {
+      input.value = items[i];
+      input.dispatchEvent(new Event('input', { bubbles: true }));
+      close();
+    };
+    const hl = (name, q) => {
+      if (!q) return esc(name);
+      const words = name.split(' ');
+      let out = '', done = false;
+      words.forEach((w, k) => {
+        const hit = !done && plain(w).startsWith(q);
+        if (hit) { out += `<b>${esc(w.slice(0, q.length))}</b>${esc(w.slice(q.length))}`; done = true; } else out += esc(w);
+        if (k < words.length - 1) out += ' ';
+      });
+      return out;
+    };
+    function render() {
+      items = filter();
+      const q = plain(input.value).trim();
+      if (!pop) {
+        pop = document.createElement('div');
+        pop.className = 'ax-sel__pop ax-sug';
+        pop.setAttribute('role', 'listbox');
+        pop.addEventListener('pointerdown', e => e.preventDefault()); // keep focus in the field
+        pop.addEventListener('click', e => { const o = e.target.closest('[data-i]'); if (o) pick(+o.dataset.i); });
+        document.body.append(pop);
+        document.addEventListener('pointerdown', onDown, true);
+        document.addEventListener('scroll', onScroll, true);
+      }
+      pop.innerHTML = items.length
+        ? items.map((n, i) => `<button type="button" class="ax-sel__opt" role="option" data-i="${i}"><span>${hl(n, q)}</span></button>`).join('')
+        : '<div class="ax-sug__none">Niciun profesor cu acest nume</div>';
+      place();
+      pop.classList.remove('is-closing');
+      mark(items.length ? 0 : -1);
+    }
+    input.setAttribute('autocomplete', 'off');
+    input.setAttribute('aria-autocomplete', 'list');
+    input.addEventListener('focus', render);
+    input.addEventListener('click', () => { if (!pop) render(); });
+    input.addEventListener('input', render);
+    input.addEventListener('blur', () => setTimeout(close, 120));
+    input.addEventListener('keydown', e => {
+      if (e.key === 'ArrowDown') { e.preventDefault(); if (!pop) render(); else mark(Math.min(items.length - 1, act + 1)); }
+      else if (e.key === 'ArrowUp' && pop) { e.preventDefault(); mark(Math.max(0, act - 1)); }
+      else if (e.key === 'Enter' && pop && act >= 0 && items[act]) { e.preventDefault(); pick(act); }
+      else if (e.key === 'Escape' && pop) { e.stopPropagation(); close(); }
+    });
+  }
 
   /* ---- chips for the active-filter bar ---- */
   function activeChips(items, onRemove, onClear) {
@@ -345,6 +438,6 @@
   window.AdminUI = {
     esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
     readQuery, writeQuery, listParam,
-    multiSelect, enhanceSelects, activeChips, wireActiveChips, drawer, toast, downloadCSV
+    multiSelect, enhanceSelects, suggest, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };
 })();
