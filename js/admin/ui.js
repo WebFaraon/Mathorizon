@@ -101,13 +101,13 @@
         <span class="ax-ms__count"></span>
         ${ico('chevron-down', 16)}
       </button>
-      <div class="ax-ms__list" role="listbox" aria-multiselectable="true" aria-label="${esc(label)}">
+      <div class="ax-ms__list" role="listbox" aria-multiselectable="true" aria-label="${esc(label)}"><div class="ax-ms__clip"><div class="ax-ms__in">
         ${options.map(o => `
           <button type="button" class="ax-ms__opt${tone ? ' ax-tone--' + esc(o.tone || o.value) : ''}" role="option" data-value="${esc(o.value)}" aria-checked="false">
             <span class="ax-ms__box" aria-hidden="true"></span><span>${esc(o.label)}</span>
             ${o.count != null ? `<span class="ax-ms__n">${nf.format(o.count)}</span>` : ''}
           </button>`).join('')}
-      </div>`;
+      </div></div></div>`;
     const btn = wrap.querySelector('.ax-ms__btn');
     btn.addEventListener('click', () => {
       const open = !wrap.classList.contains('is-open');
@@ -124,6 +124,148 @@
     render();
     return wrap;
   }
+
+
+  /* ---- single-select dropdown ----
+     Every native <select class="ax-select"> is replaced by a button that
+     opens a popover in the same style as the multi-select filters. The
+     native element stays in the DOM (hidden), so views keep reading
+     .value and listening to 'change'. A MutationObserver upgrades selects
+     that views render later. */
+  let selPop = null;
+  function closeSelPop(focusBtn) {
+    if (!selPop) return;
+    const p = selPop; selPop = null;
+    p.wrap.classList.remove('is-open');
+    p.btn.setAttribute('aria-expanded', 'false');
+    p.pop.classList.add('is-closing');
+    setTimeout(() => p.pop.remove(), 120);
+    document.removeEventListener('pointerdown', p.onDown, true);
+    document.removeEventListener('scroll', p.onScroll, true);
+    window.removeEventListener('resize', p.onScroll);
+    p.btn.removeEventListener('keydown', p.onKey);
+    if (focusBtn) p.btn.focus({ preventScroll: true });
+  }
+
+  function enhanceSelect(native) {
+    if (native.dataset.axEnh) return;
+    native.dataset.axEnh = '1';
+    const wrap = document.createElement('div');
+    wrap.className = 'ax-sel';
+    const cs = getComputedStyle(native);
+    if (cs.minWidth && cs.minWidth !== '0px' && cs.minWidth !== 'auto') wrap.style.minWidth = cs.minWidth;
+    native.before(wrap);
+    wrap.append(native);
+    native.classList.add('ax-sel__native');
+    native.tabIndex = -1;
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'ax-sel__btn';
+    btn.setAttribute('aria-haspopup', 'listbox');
+    btn.setAttribute('aria-expanded', 'false');
+    if (cs.minHeight && cs.minHeight !== '0px' && cs.minHeight !== 'auto') btn.style.minHeight = cs.minHeight;
+    if (native.id) {
+      const lab = document.querySelector(`label[for="${native.id}"]`);
+      if (lab) { if (!lab.id) lab.id = native.id + '-lbl'; btn.setAttribute('aria-labelledby', lab.id); }
+    }
+    wrap.append(btn);
+
+    const opts = () => Array.from(native.options);
+    const sync = () => {
+      const o = native.options[native.selectedIndex];
+      btn.innerHTML = `<span class="ax-sel__v">${esc(o ? o.textContent : '')}</span>${ico('chevron-down', 16)}`;
+      btn.disabled = native.disabled;
+      wrap.classList.toggle('is-set', !!(o && o.value !== '' && native.selectedIndex > 0));
+    };
+    // programmatic changes (select.value = ...) keep the label in step
+    const vd = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'value');
+    Object.defineProperty(native, 'value', { configurable: true, get() { return vd.get.call(this); }, set(v) { vd.set.call(this, v); sync(); } });
+    const sd = Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype, 'selectedIndex');
+    Object.defineProperty(native, 'selectedIndex', { configurable: true, get() { return sd.get.call(this); }, set(v) { sd.set.call(this, v); sync(); } });
+    native.addEventListener('change', sync);
+    native.addEventListener('focus', () => btn.focus());
+    sync();
+
+    function open() {
+      if (btn.disabled) return;
+      if (selPop && selPop.btn === btn) { closeSelPop(true); return; }
+      closeSelPop();
+      const pop = document.createElement('div');
+      pop.className = 'ax-sel__pop';
+      pop.setAttribute('role', 'listbox');
+      pop.innerHTML = opts().map((o, i) => `
+        <button type="button" class="ax-sel__opt${i === native.selectedIndex ? ' is-on' : ''}" role="option" data-i="${i}" aria-selected="${i === native.selectedIndex}"${o.disabled ? ' disabled' : ''}>
+          <span>${esc(o.textContent)}</span>${i === native.selectedIndex ? ico('check', 16) : ''}
+        </button>`).join('');
+      document.body.append(pop);
+      const r = btn.getBoundingClientRect();
+      const w = Math.max(r.width, 180);
+      pop.style.minWidth = w + 'px';
+      const h = Math.min(pop.scrollHeight, 320);
+      pop.style.maxHeight = '320px';
+      const below = innerHeight - r.bottom - 8, above = r.top - 8;
+      const up = below < h && above > below;
+      pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+      if (up) { pop.style.bottom = (innerHeight - r.top + 4) + 'px'; pop.classList.add('is-up'); }
+      else pop.style.top = (r.bottom + 4) + 'px';
+      wrap.classList.add('is-open');
+      btn.setAttribute('aria-expanded', 'true');
+      const items = () => Array.from(pop.querySelectorAll('.ax-sel__opt:not([disabled])'));
+      let act = pop.querySelector('.is-on') || items()[0];
+      const mark = el => { if (!el) return; pop.querySelectorAll('.is-act').forEach(x => x.classList.remove('is-act')); act = el; el.classList.add('is-act'); el.scrollIntoView({ block: 'nearest' }); };
+      mark(act);
+      const choose = el => {
+        const i = +el.dataset.i;
+        const changed = native.selectedIndex !== i;
+        native.selectedIndex = i;
+        closeSelPop(true);
+        if (changed) {
+          native.dispatchEvent(new Event('input', { bubbles: true }));
+          native.dispatchEvent(new Event('change', { bubbles: true }));
+        }
+      };
+      pop.addEventListener('click', e => { const o = e.target.closest('.ax-sel__opt'); if (o && !o.disabled) choose(o); });
+      pop.addEventListener('pointermove', e => { const o = e.target.closest('.ax-sel__opt'); if (o && o !== act && !o.disabled) mark(o); });
+      let typed = '', typedT = 0;
+      const onKey = e => {
+        const list = items(); const at = list.indexOf(act);
+        if (e.key === 'ArrowDown') { e.preventDefault(); mark(list[Math.min(list.length - 1, at + 1)]); }
+        else if (e.key === 'ArrowUp') { e.preventDefault(); mark(list[Math.max(0, at - 1)]); }
+        else if (e.key === 'Home') { e.preventDefault(); mark(list[0]); }
+        else if (e.key === 'End') { e.preventDefault(); mark(list[list.length - 1]); }
+        else if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); if (act) choose(act); }
+        else if (e.key === 'Escape') { e.preventDefault(); closeSelPop(true); }
+        else if (e.key === 'Tab') { closeSelPop(); }
+        else if (e.key.length === 1) {
+          clearTimeout(typedT); typed += e.key.toLowerCase(); typedT = setTimeout(() => { typed = ''; }, 600);
+          const hit = list.find(x => x.textContent.trim().toLowerCase().startsWith(typed));
+          if (hit) mark(hit);
+        }
+      };
+      btn.addEventListener('keydown', onKey);
+      const onDown = e => { if (!pop.contains(e.target) && !btn.contains(e.target)) closeSelPop(); };
+      const onScroll = e => { if (e && e.target && pop.contains(e.target)) return; closeSelPop(); };
+      document.addEventListener('pointerdown', onDown, true);
+      document.addEventListener('scroll', onScroll, true);
+      window.addEventListener('resize', onScroll);
+      selPop = { wrap, btn, pop, onDown, onScroll, onKey };
+    }
+    btn.addEventListener('click', open);
+    btn.addEventListener('keydown', e => {
+      if (!selPop && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); open(); }
+    });
+  }
+
+  function enhanceSelects(root) {
+    (root || document).querySelectorAll('select.ax-select:not([data-ax-enh])').forEach(enhanceSelect);
+  }
+  let selQueued = false;
+  new MutationObserver(() => {
+    if (selQueued) return;
+    selQueued = true;
+    queueMicrotask(() => { selQueued = false; enhanceSelects(document); });
+  }).observe(document.documentElement, { childList: true, subtree: true });
+  enhanceSelects(document);
 
   /* ---- chips for the active-filter bar ---- */
   function activeChips(items, onRemove, onClear) {
@@ -203,6 +345,6 @@
   window.AdminUI = {
     esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
     readQuery, writeQuery, listParam,
-    multiSelect, activeChips, wireActiveChips, drawer, toast, downloadCSV
+    multiSelect, enhanceSelects, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };
 })();

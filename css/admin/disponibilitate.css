@@ -124,7 +124,7 @@ body.ax .dp-row__day { position: sticky; left: 0; z-index: 2; display: flex; fle
 body.ax .dp-row__day b { align-self: flex-start; font-size: 0.88rem; font-weight: 800; }
 body.ax .dp-row__win { font-size: 0.76rem; font-weight: 700; color: var(--ax-ink-2); }
 body.ax .dp-row__day .ax-sub { font-size: 0.72rem; }
-body.ax .dp-row.is-today .dp-row__day b { padding: 0 5px; margin-left: -5px; border-radius: var(--ax-r); background: var(--ax-yellow); color: var(--ax-yellow-ink); }
+body.ax .dp-row.is-today .dp-row__day b { padding: 0 5px; margin-left: -5px; border-radius: var(--ax-r); background: var(--ax-hi); color: var(--ax-hi-ink); }
 body.ax .dp-row__track { position: relative; height: calc(var(--lanes, 1) * 46px + 8px); margin-right: 14px; }
 body.ax .dp-row__cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(13, 1fr); }
 body.ax .dp-row__cells i { border-left: 1px solid var(--ax-rule); }
@@ -173,7 +173,7 @@ body.ax .dp-all-bar .dp-f--search { flex: 1 1 240px; max-width: 360px; }
 body.ax .dp-th { display: inline-flex; align-items: center; gap: 2px; padding: 0; border: 0; background: none; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer; }
 body.ax .dp-all th.ax-num .dp-th { justify-content: flex-end; }
 body.ax .dp-all__d { text-align: center; }
-body.ax .dp-all__d.is-today span { padding: 1px 5px; border-radius: var(--ax-r); background: var(--ax-yellow); color: var(--ax-yellow-ink); }
+body.ax .dp-all__d.is-today span { padding: 1px 5px; border-radius: var(--ax-r); background: var(--ax-hi); color: var(--ax-hi-ink); }
 body.ax .dp-all td { padding-top: 9px; padding-bottom: 9px; }
 body.ax .dp-all__name { padding: 0; border: 0; background: none; font-weight: 800; text-align: left; cursor: pointer; }
 body.ax .dp-all tr[data-open]:hover .dp-all__name { text-decoration: underline; text-underline-offset: 3px; }

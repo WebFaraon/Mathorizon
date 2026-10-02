@@ -76,7 +76,7 @@
       <div class="ax-shell" id="axShell">
         <aside class="ax-sign" aria-label="Navigare consolă">
           <a class="ax-sign__brand" href="admin.html#acasa">
-            <span class="ax-sign__mark">M</span>
+            <img class="ax-sign__logo" src="assets/images/MathorizonLogo-mark.png" alt="" width="312" height="165">
             <span class="ax-hide-folded"><b>MATHORIZON</b><small>Consolă de administrare</small></span>
           </a>
           <nav id="axNav">${navHTML(external || 'acasa')}</nav>
@@ -143,6 +143,8 @@
     document.title = (view.title || 'Consolă') + ' | Mathorizon admin';
     document.getElementById('axCrumb').textContent = view.title || '';
     refreshNav();
+    root.dataset.view = id;
+    document.getElementById('axShell').dataset.view = id;
     root.classList.toggle('is-fresh', !!(fresh || changed));
     root.innerHTML = '';
     try {
@@ -233,6 +235,8 @@
       const item = ALL.find(i => i.id === external);
       document.getElementById('axCrumb').textContent = item ? item.label : '';
       const view = document.getElementById('axView');
+      view.dataset.view = external;
+      document.getElementById('axShell').dataset.view = external;
       if (legacy) { view.appendChild(legacy); legacy.hidden = false; }
     }
     wire();

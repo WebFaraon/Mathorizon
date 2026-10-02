@@ -64,19 +64,19 @@ body.ax .or-sign__here {
   width: 20px;
   height: 20px;
   border-radius: var(--ax-r);
-  background: var(--ax-yellow-ink);
-  color: var(--ax-yellow);
+  background: var(--ax-hi-ink);
+  color: var(--ax-hi);
 }
-/* you are here: the selected sign turns into the yellow plate */
-body.ax .or-sign[aria-pressed="true"] { background: var(--ax-yellow); color: var(--ax-yellow-ink); }
-body.ax .or-sign[aria-pressed="true"]:hover { background: var(--ax-yellow); }
+/* you are here: the selected sign turns into the light-blue plate */
+body.ax .or-sign[aria-pressed="true"] { background: var(--ax-hi); color: var(--ax-hi-ink); }
+body.ax .or-sign[aria-pressed="true"]:hover { background: var(--ax-hi); }
 body.ax .or-sign[aria-pressed="true"] .or-sign__sub,
 body.ax .or-sign[aria-pressed="true"] .or-sign__v,
 body.ax .or-sign[aria-pressed="true"] .or-sign__of,
-body.ax .or-sign[aria-pressed="true"] .or-sign__v b { color: var(--ax-yellow-ink); }
-body.ax .or-sign[aria-pressed="true"] .or-sign__pic { background: var(--ax-yellow-ink); color: var(--ax-yellow); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__v b { color: var(--ax-hi-ink); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__pic { background: var(--ax-hi-ink); color: var(--ax-hi); }
 body.ax .or-sign[aria-pressed="true"] .or-sign__here { display: grid; }
-body.ax .or-sign[aria-pressed="true"] .or-sign__band { outline: 1.5px solid var(--ax-yellow-ink); }
+body.ax .or-sign[aria-pressed="true"] .or-sign__band { outline: 1.5px solid var(--ax-hi-ink); }
 
 /* ---- rail ---- */
 body.ax .or-rail__tg { display: none; }

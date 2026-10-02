@@ -110,7 +110,7 @@
 
         <section aria-label="De rezolvat" class="ax-stats ah-att">
           ${att.map((a, i) => `
-            <a class="ax-stat ah-att__item${a.warn ? ' is-warn' : ''}" href="${a.href}" data-arrive style="--i:${i}">
+            <a class="ax-stat ah-att__item${a.warn ? ' is-warn' : ''}" href="${a.href}" data-arrive style="--i:${i};--pg:var(--ax-c-${esc(a.href.replace('#', '').split('?')[0])}, var(--ax-hi))">
               <span class="ax-stat__k">${ico(a.icon, 16)} ${esc(a.k)}</span>
               <span class="ax-stat__v">${nf.format(a.v)}</span>
               <span class="ax-stat__s">${esc(a.s)}</span>
@@ -129,7 +129,7 @@
               <div class="ax-h2-row"><h2 class="ax-h2" id="ahDirT">Direcții</h2></div>
               <nav class="ah-dirs">
                 ${DIRECTIONS.map(([id, ic, t, s], i) => `
-                  <a class="ah-dir" href="#${id}" data-arrive style="--i:${i}">
+                  <a class="ah-dir" href="#${id}" data-arrive style="--i:${i};--pg:var(--ax-c-${esc(id)}, var(--ax-hi))">
                     <span class="ax-plate">${ico(ic, 20)}</span>
                     <span><b>${esc(t)}</b><span class="ax-sub">${esc(s)}</span></span>
                     ${ico('arrow-right', 18)}

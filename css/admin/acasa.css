@@ -67,7 +67,10 @@ body.ax .ah-dir { display: grid; grid-template-columns: auto minmax(0, 1fr) auto
 body.ax .ah-dir .ax-plate { width: 40px; height: 40px; }
 body.ax .ah-dir b { display: block; font-size: 0.98rem; font-weight: 800; }
 body.ax .ah-dir > .ax-ico { color: var(--ax-ink-3); transition: transform 0.2s var(--ax-ease); }
-body.ax .ah-dir:hover { background: var(--ax-panel-2); }
+body.ax .ah-dir { transition: background-color 0.15s, box-shadow 0.2s var(--ax-ease); }
+body.ax .ah-dir .ax-plate { transition: transform 0.2s var(--ax-ease); }
+body.ax .ah-dir:hover { background: var(--ax-hi-wash); box-shadow: inset 4px 0 0 var(--pg); }
+body.ax .ah-dir:hover .ax-plate { transform: scale(1.06); }
 body.ax .ah-dir:hover > .ax-ico { transform: translateX(3px); color: var(--ax-ink); }
 
 @media (max-width: 1100px) {
