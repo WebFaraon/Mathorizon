@@ -354,7 +354,10 @@
     let limit = PER;
 
     root.innerHTML = `
-      <header class="ax-head">
+      <div class="ax-fixsplit el-split">
+        <aside class="ax-rail is-collapsible el-rail${railOpen ? ' is-open' : ''}" id="elRail" aria-label="Filtre">${railHTML(s, railOpen)}</aside>
+        <div class="ax-col">
+          <header class="ax-head">
         <div class="ax-head__t">
           <span class="ax-plate">${ico('users', 24)}</span>
           <div>
@@ -366,10 +369,9 @@
           <button type="button" class="ax-btn" data-csv>${ico('download', 16)} Export CSV</button>
         </div>
       </header>
-      <section class="ax-stats el-stats" aria-label="Rezumatul listei" data-stats></section>
-      <div class="ax-split el-split">
-        <aside class="ax-rail is-collapsible el-rail${railOpen ? ' is-open' : ''}" id="elRail" aria-label="Filtre">${railHTML(s, railOpen)}</aside>
-        <div class="el-main" data-main></div>
+          <section class="ax-stats el-stats" aria-label="Rezumatul listei" data-stats></section>
+          <div class="el-main" data-main></div>
+        </div>
       </div>`;
 
     const rail = root.querySelector('.el-rail');

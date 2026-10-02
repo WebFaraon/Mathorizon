@@ -386,7 +386,10 @@
     let limit = PER;
 
     root.innerHTML = `
-      <header class="ax-head">
+      <div class="ax-fixsplit or-split">
+        <aside class="ax-rail is-collapsible or-rail${railOpen ? ' is-open' : ''}" id="orRail" aria-label="Filtre">${railHTML(s, railOpen)}</aside>
+        <div class="ax-col">
+          <header class="ax-head">
         <div class="ax-head__t">
           <span class="ax-plate">${ico('grid', 24)}</span>
           <div>
@@ -399,10 +402,9 @@
           <button type="button" class="ax-btn" data-print>${ico('printer', 16)} Printează</button>
         </div>
       </header>
-      <section class="or-signs" aria-label="Proiecte și selecții rapide" data-signs>${signsHTML(s)}</section>
-      <div class="ax-split or-split">
-        <aside class="ax-rail is-collapsible or-rail${railOpen ? ' is-open' : ''}" id="orRail" aria-label="Filtre">${railHTML(s, railOpen)}</aside>
-        <div class="or-main" data-main></div>
+          <section class="or-signs" aria-label="Proiecte și selecții rapide" data-signs>${signsHTML(s)}</section>
+          <div class="or-main" data-main></div>
+        </div>
       </div>`;
 
     const rail = root.querySelector('.or-rail');

@@ -53,7 +53,7 @@
       day: +q.day >= 1 && +q.day <= 7 ? +q.day : isoToday(),
       rows: q.rows === 'prof' ? 'prof' : 'cab',
       q: q.q || '',
-      vis: q.vis === 'max' ? 'max' : 'c',
+      vis: q.vis === 'c' ? 'c' : 'max',
       hide: q.hide === '1',
       focus: q.focus || null
     };
@@ -64,7 +64,7 @@
     const o = { day: s.day, rows: s.rows === 'prof' ? 'prof' : null };
     LIST_KEYS.forEach(k => { o[k] = s[k]; });
     o.q = s.q || null;
-    o.vis = s.vis === 'max' ? 'max' : null;
+    o.vis = s.vis === 'c' ? 'c' : null;
     o.hide = s.hide ? '1' : null;
     o.focus = s.focus || null;
     U.writeQuery(o);
@@ -211,23 +211,28 @@
   /* ============ markup ============ */
   function headHTML() {
     return `
-      <header class="ax-head rp-head">
-        <div class="ax-head__t">
-          <span class="ax-plate">${ico('door', 24)}</span>
-          <div>
-            <h1 class="ax-h1">Repartizare pe cabinete</h1>
-            <p class="ax-lede">Cabinetele pe ore, ziua aleasă. Mută o grupă trăgând-o pe alt loc: tabla verifică cabinetul, profesorul și disponibilitatea în toate zilele grupei.</p>
-          </div>
+      <div class="ax-fixsplit rp-split">
+        <div class="rp-side rp-noprint">
+          <div id="rpSum"></div>
+          <aside class="ax-rail is-collapsible rp-rail" id="rpRail" aria-label="Filtre"></aside>
         </div>
-        <div class="ax-head__keys rp-noprint">
-          <button type="button" class="ax-btn" id="rpUndo" disabled>${ico('undo', 16)} Anulează ultima mutare</button>
-          <button type="button" class="ax-btn" id="rpPrint">${ico('printer', 16)} Printează</button>
-          <button type="button" class="ax-btn" id="rpCsv">${ico('download', 16)} Export CSV</button>
+        <div class="ax-col">
+          <header class="ax-head rp-head">
+            <div class="ax-head__t">
+              <span class="ax-plate">${ico('door', 24)}</span>
+              <div>
+                <h1 class="ax-h1">Repartizare pe cabinete</h1>
+                <p class="ax-lede">Cabinetele pe ore, ziua aleasă. Mută o grupă trăgând-o pe alt loc: tabla verifică cabinetul, profesorul și disponibilitatea în toate zilele grupei.</p>
+              </div>
+            </div>
+            <div class="ax-head__keys rp-noprint">
+              <button type="button" class="ax-btn ax-btn--sm" id="rpUndo" disabled>${ico('undo', 16)} Anulează mutarea</button>
+              <button type="button" class="ax-btn ax-btn--sm" id="rpPrint">${ico('printer', 16)} Printează</button>
+              <button type="button" class="ax-btn ax-btn--sm" id="rpCsv">${ico('download', 16)} CSV</button>
+            </div>
+          </header>
+          <div class="rp-main" id="rpMain"></div>
         </div>
-      </header>
-      <div class="ax-split rp-split">
-        <aside class="ax-rail is-collapsible rp-rail rp-noprint" id="rpRail" aria-label="Filtre"></aside>
-        <div class="rp-main" id="rpMain"></div>
       </div>`;
   }
 
@@ -260,12 +265,13 @@
   function summaryHTML(s, sum) {
     return `
       <section class="rp-sum" aria-label="Sumarul zilei">
+        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>sumarul zilei</small></h2>
         <div class="rp-sum__i"><span class="rp-sum__k">Lecții</span><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__s">${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online</span></div>
-        <div class="rp-sum__i"><span class="rp-sum__k">Cabinete folosite</span><b class="rp-sum__v">${sum.used}<small> din ${D.rooms.length}</small></b><span class="rp-sum__s">${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}</span></div>
+        <div class="rp-sum__i"><span class="rp-sum__k">Cabinete</span><b class="rp-sum__v">${sum.used}<small> din ${D.rooms.length}</small></b><span class="rp-sum__s">${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}</span></div>
         <div class="rp-sum__i rp-sum__i--occ"><span class="rp-sum__k">Ocupare</span><b class="rp-sum__v">${sum.occ}%</b>
           <span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span>
           <span class="rp-sum__s">${nf.format(sum.booked)} din ${nf.format(sum.cap)} ore-cabinet</span></div>
-        <div class="rp-sum__i"><span class="rp-sum__k">Ore-cabinet libere</span><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__s">între 08:00 și 21:00</span></div>
+        <div class="rp-sum__i"><span class="rp-sum__k">Ore libere</span><b class="rp-sum__v">${nf.format(sum.free)}</b><span class="rp-sum__s">între 08:00 și 21:00</span></div>
         <button type="button" class="rp-sum__i rp-sum__conf${sum.conf ? ' is-warn' : ''}" data-goconf>
           <span class="rp-sum__k">${sum.conf ? ico('alert', 14) : ''} Suprapuneri</span><b class="rp-sum__v">${nf.format(sum.conf)}</b>
           <span class="rp-sum__s">${sum.conf ? [sum.confRoom ? plural(sum.confRoom, 'în cabinet', 'în cabinete') : '', sum.confTeacher ? plural(sum.confTeacher, 'la profesor', 'la profesori') : ''].filter(Boolean).join(', ') : 'ziua e curată'}</span>
@@ -321,12 +327,13 @@
       </button>`;
     }
     const head = s.rows === 'prof' ? (g.room ? D.room(g.room).name : 'Online') : t.name;
+    const full = enr >= g.size;
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
       ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
+      <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Vară</span>' : ''}</span>
+      <span class="rp-card__f">${stHTML(g.status)}${g.profile ? `<span class="rp-card__p">${esc(g.profile)}</span>` : ''}</span>
+      <span class="rp-card__fill${full ? ' is-full' : ''}">${seatsHTML(g)}<span class="rp-card__n"><b>${enr}</b>/${g.size}<small>${full ? 'complet' : 'elevi'}</small></span></span>
       <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || `<span class="rp-card__time">${range(g)}</span>`}</span>
-      <span class="rp-card__s">${esc(g.subject)}${g.profile ? ', ' + esc(g.profile) : ''}${g.regime === 'vara' ? ' <span class="ax-tag ax-tag--sun">Vară</span>' : ''}</span>
-      <span class="rp-card__m"><span class="ax-grade">${esc(g.grade)}</span>${seatsHTML(g)}<span class="rp-card__n">${enr}/${g.size}</span></span>
-      <span class="rp-card__f">${stHTML(g.status)}</span>
     </button>`;
   }
 
@@ -550,9 +557,10 @@
     const gs = dayGroups(s, s.day);
     const rows = rowsFor(s, gs);
     const chips = chipItems(s);
+    const sumHost = root.querySelector('#rpSum');
+    if (sumHost) sumHost.innerHTML = summaryHTML(s, daySummary(s.day, ci));
     main.innerHTML = `
       ${toolbarHTML(s, ci)}
-      ${summaryHTML(s, daySummary(s.day, ci))}
       <div class="rp-chips rp-noprint">${U.activeChips(chips)}</div>
       ${boardHTML(s, rows, ci)}
       ${conflictsHTML(s, ci)}`;
@@ -608,7 +616,7 @@
       if (it.key === 'q') s.q = ''; else s[it.key] = s[it.key].filter(v => v !== it.value);
       writeState(s); buildRail(); renderMain();
     }, clearFilters);
-    main.querySelector('[data-goconf]').addEventListener('click', () => {
+    M.root.querySelector('[data-goconf]').addEventListener('click', () => {
       const p = main.querySelector('#rpConf');
       if (!confOpen) setConf(true);
       p.scrollIntoView({ behavior: reduced() ? 'auto' : 'smooth', block: 'start' });

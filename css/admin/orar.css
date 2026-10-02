@@ -233,3 +233,5 @@ body.ax .or-dw__kid.is-gone .or-dw__who b { color: var(--ax-ink-3); }
   body.ax.or-print .or-table { min-width: 0; font-size: 0.78rem; }
   body.ax.or-print .or-table tr { break-inside: avoid; }
 }
+
+body.ax .or-seg--days button { padding: 0 2px; font-size: 0.78rem; }

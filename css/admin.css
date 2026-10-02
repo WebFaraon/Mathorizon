@@ -258,7 +258,7 @@ body.ax :focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 2px;
 .ax-clock { text-align: right; line-height: 1.15; }
 .ax-clock b { display: block; font-size: 1.15rem; font-weight: 800; font-stretch: 108%; }
 .ax-clock small { font-size: 0.76rem; font-weight: 600; color: var(--ax-ink-3); }
-.ax-view { flex: 1; min-width: 0; padding: 26px 28px 64px; }
+.ax-view { flex: 1; min-width: 0; padding: 26px 28px 32px; }
 
 /* ============ Page header ============ */
 .ax-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 24px; flex-wrap: wrap; margin-bottom: 22px; }
@@ -374,7 +374,7 @@ body.ax :focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 2px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  max-height: calc(100vh - var(--ax-top-h) - 28px);
+  max-height: calc(100vh - var(--ax-top-h) - 46px);
   padding: 14px;
   overflow-y: auto;
   border: 1px solid var(--ax-rule);
@@ -853,4 +853,49 @@ body.ax .cn-bar { margin-left: -4px; margin-right: -4px; padding: 8px 4px; backg
 a.ax-stat, button.ax-stat { cursor: pointer; }
 @media (prefers-reduced-motion: reduce) {
   .ax-sel__pop { animation: none; }
+}
+
+
+/* ============================================================
+   Fixed filter column (Orar, Elevi, Repartizare)
+   ============================================================ */
+.ax-shell { --ax-side-w: 264px; --ax-fix-w: 252px; }
+.ax-shell.is-folded { --ax-side-w: 76px; }
+body.ax .ax-fixsplit > .ax-col { min-width: 0; }
+@media (min-width: 1181px) {
+  /* the filters are a second sign panel: pinned to the viewport, full height,
+     independent of the page scroll, like the navigation on the left */
+  body.ax .ax-fixsplit > .ax-rail,
+  body.ax .ax-fixsplit > .rp-side {
+    position: fixed;
+    top: var(--ax-top-h);
+    bottom: 0;
+    left: var(--ax-side-w);
+    z-index: 12;
+    width: var(--ax-fix-w);
+    max-height: none;
+    padding: 14px;
+    overflow-y: auto;
+    border: 0;
+    border-right: 1px solid var(--ax-rule);
+    border-radius: 0;
+    background: var(--ax-panel);
+    scrollbar-width: thin;
+    transition: left 0.2s var(--ax-ease);
+  }
+  body.ax .ax-fixsplit > .rp-side .ax-rail { position: static; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; }
+  /* view padding (28px) + column (252px) + gap (22px) */
+  body.ax .ax-fixsplit > .ax-col { margin-left: calc(var(--ax-fix-w) - 6px); }
+}
+@media (max-width: 1180px) {
+  /* narrow screens: header and figures first, then the pinned filter bar, then the list */
+  body.ax .ax-fixsplit { display: flex; flex-direction: column; }
+  body.ax .ax-fixsplit > .ax-col, body.ax .ax-fixsplit > .rp-side { display: contents; }
+  body.ax .ax-fixsplit .ax-head { order: 0; }
+  body.ax .ax-fixsplit .or-signs, body.ax .ax-fixsplit .el-stats, body.ax .ax-fixsplit #rpSum { order: 1; margin-bottom: 14px; }
+  body.ax .ax-fixsplit .ax-rail { order: 2; margin-bottom: 14px; }
+  body.ax .ax-fixsplit .or-main, body.ax .ax-fixsplit .el-main, body.ax .ax-fixsplit .rp-main { order: 3; }
+}
+@media print {
+  body.ax .ax-fixsplit > .ax-col { margin-left: 0; }
 }
