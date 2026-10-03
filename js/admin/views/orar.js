@@ -415,6 +415,7 @@
     const countActive = () => chipItems(s).length - (s.project.length) - (s.quick ? 1 : 0);
     function paintMain() {
       main.innerHTML = mainHTML(s, list, limit);
+      if (limit === PER) U.stagger(main.querySelector('tbody'), 14, 12);
       const items = chipItems(s);
       U.wireActiveChips(main, items, it => { it.remove(s); writeState(s); ctx.rerender(); }, clearAll);
       const n = countActive();

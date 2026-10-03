@@ -739,7 +739,8 @@ a.ax-stat:hover, button.ax-stat:hover { box-shadow: inset 0 6px 0 var(--pg); }
 .ax-sign__brand b { letter-spacing: 0.04em; }
 
 /* ---- folded sign panel: one centred column, animated ---- */
-.ax-shell { transition: grid-template-columns 0.34s var(--ax-ease); }
+.ax-shell.is-folding .ax-sign { z-index: 40; }
+.ax-shell.is-folding .ax-main { overflow-x: clip; }
 .ax-sign { overflow-x: hidden; }
 .ax-sign__brand small { white-space: nowrap; }
 .ax-sign__brand > span.ax-hide-folded, .ax-sign__user > span.ax-hide-folded, .ax-nav__label, .ax-btn-t { max-width: 210px; overflow: hidden; white-space: nowrap; transition: max-width 0.3s var(--ax-ease), opacity 0.16s 0.08s; }
@@ -903,7 +904,7 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
     border-radius: 0;
     background: var(--ax-panel);
     scrollbar-width: thin;
-    transition: left 0.34s var(--ax-ease);
+    transition: left 0.34s cubic-bezier(0.2, 0.8, 0.2, 1);
   }
   body.ax .ax-fixsplit > .rp-side .ax-rail { position: static; max-height: none; padding: 0; overflow: visible; border: 0; border-radius: 0; background: transparent; }
   /* view padding (28px) + column (252px) + gap (22px) */
@@ -944,13 +945,113 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
 @keyframes ax-enter { from { opacity: 0; transform: translateY(14px); } }
 @keyframes ax-rail-in { from { opacity: 0; transform: translateX(-16px); } }
 @media (prefers-reduced-motion: no-preference) {
-  /* never a transform on .ax-fixsplit itself: the fixed filter column lives inside it */
-  .ax-view.is-entering > :not(.ax-fixsplit),
-  .ax-view.is-entering .ax-fixsplit > .ax-col > * { animation: ax-enter 0.46s var(--ax-ease) backwards; animation-delay: calc(var(--e, 0) * 60ms); }
-  .ax-view.is-entering > :nth-child(2), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(2) { --e: 1; }
-  .ax-view.is-entering > :nth-child(3), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(3) { --e: 2; }
-  .ax-view.is-entering > :nth-child(4), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(4) { --e: 3; }
-  .ax-view.is-entering > :nth-child(n+5), .ax-view.is-entering .ax-fixsplit > .ax-col > :nth-child(n+5) { --e: 4; }
-  .ax-view.is-entering .ax-fixsplit > .ax-rail, .ax-view.is-entering .ax-fixsplit > .rp-side { animation: ax-rail-in 0.4s var(--ax-ease) backwards; }
+  /* classes set by shell.js on the blocks that move; never a transform on .ax-fixsplit itself,
+     because the fixed filter column lives inside it */
+  .ax-in { animation: ax-enter 0.46s var(--ax-ease) backwards; animation-delay: calc(var(--e, 0) * 60ms); }
+  .ax-in-side { animation: ax-rail-in 0.4s var(--ax-ease) backwards; }
 }
 .ax-rail > * { flex-shrink: 0; }
+
+/* ============================================================
+   Polish: small motions, feedback and edges
+   ============================================================ */
+html { scrollbar-width: thin; scrollbar-color: var(--ax-rule-2, #c7c7bf) transparent; }
+body.ax ::selection { background: color-mix(in srgb, var(--pg, #7DB9FF) 42%, transparent); color: inherit; }
+
+/* "you are here" slides in on the nav item that just became current */
+@keyframes ax-plate-in { from { clip-path: inset(0 100% 0 0); } to { clip-path: inset(0 0 0 0); } }
+@keyframes ax-icon-pop { 0% { transform: scale(0.6) rotate(-14deg); } 60% { transform: scale(1.14) rotate(2deg); } 100% { transform: none; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ax-nav__a.is-new { animation: ax-plate-in 0.4s var(--ax-ease) backwards; }
+  .ax-nav__a.is-new .ax-nav__pic { animation: ax-icon-pop 0.5s var(--ax-ease) 0.12s backwards; }
+}
+
+/* press feedback */
+.ax-btn:active, .ax-icon-btn:active, .ax-chip-x:active, .ax-seg button:active, .ax-sign__btn:active, .ax-copy:active { transform: scale(0.975); }
+.ax-seg button { transition: background-color 0.15s, color 0.15s, box-shadow 0.2s var(--ax-ease), transform 0.12s; }
+.ax-icon-btn .ax-ico, .ax-chip-x .ax-ico { transition: transform 0.25s var(--ax-ease); }
+.ax-icon-btn:hover .ax-ico, .ax-chip-x:hover .ax-ico { transform: rotate(90deg); }
+.ax-top__menu:hover .ax-ico { transform: none; }
+
+/* toggles and ticks get a little spring */
+.ax-switch__t::after { transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s; }
+@keyframes ax-tick { 0% { transform: scale(0.65); } 60% { transform: scale(1.18); } 100% { transform: none; } }
+@keyframes ax-chip-in { from { opacity: 0; transform: scale(0.88) translateY(3px); } }
+@media (prefers-reduced-motion: no-preference) {
+  .ax-ms__opt.is-on .ax-ms__box { animation: ax-tick 0.24s var(--ax-ease); }
+  .ax-chip-x { animation: ax-chip-in 0.22s var(--ax-ease) backwards; }
+}
+.ax-search .ax-ico { transition: color 0.15s; }
+.ax-search:focus-within .ax-ico { color: var(--pg); }
+
+/* toasts: a slim bar runs out with the toast, hovering holds it */
+.ax-toast { position: relative; overflow: hidden; padding-bottom: 15px; transition: opacity 0.25s, transform 0.25s var(--ax-ease); }
+.ax-toast.is-out { transform: translateX(16px); }
+.ax-toast::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 3px; background: currentColor; opacity: 0.35; transform-origin: left; animation: ax-toast-bar var(--ax-toast-ms, 3200ms) linear forwards; }
+.ax-toast.is-paused::after { animation-play-state: paused; }
+@keyframes ax-toast-bar { to { transform: scaleX(0); } }
+
+/* drawer: content comes in after the panel, the close key turns */
+@media (prefers-reduced-motion: no-preference) {
+  .ax-drawer__body > * { animation: ax-enter 0.4s var(--ax-ease) backwards; animation-delay: calc(0.1s + var(--d, 0) * 45ms); }
+  .ax-drawer__body > :nth-child(2) { --d: 1; }
+  .ax-drawer__body > :nth-child(3) { --d: 2; }
+  .ax-drawer__body > :nth-child(4) { --d: 3; }
+  .ax-drawer__body > :nth-child(n+5) { --d: 4; }
+}
+
+/* a table that scrolls sideways shows it: soft edge cues on the sides with more content */
+.ax-table-wrap {
+  background:
+    linear-gradient(to right, var(--ax-panel) 30%, transparent) 0 0 / 36px 100% no-repeat local,
+    linear-gradient(to left, var(--ax-panel) 30%, transparent) 100% 0 / 36px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(18, 20, 23, 0.14), transparent) 0 0 / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(18, 20, 23, 0.14), transparent) 100% 0 / 12px 100% no-repeat scroll,
+    var(--ax-panel);
+}
+[data-theme="dark"] .ax-table-wrap {
+  background:
+    linear-gradient(to right, var(--ax-panel) 30%, transparent) 0 0 / 36px 100% no-repeat local,
+    linear-gradient(to left, var(--ax-panel) 30%, transparent) 100% 0 / 36px 100% no-repeat local,
+    radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.5), transparent) 0 0 / 12px 100% no-repeat scroll,
+    radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.5), transparent) 100% 0 / 12px 100% no-repeat scroll,
+    var(--ax-panel);
+}
+
+/* loading: a thin indeterminate line over a loading panel */
+@keyframes ax-indet { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
+body.ax .cn-state[role="status"] { position: relative; overflow: hidden; }
+body.ax .cn-state[role="status"]::before { content: ''; position: absolute; inset: 0 auto auto 0; width: 38%; height: 3px; background: var(--pg); animation: ax-indet 1.3s var(--ax-ease) infinite; }
+
+/* clock: the minutes change with a small slide */
+@keyframes ax-tick-in { from { opacity: 0; transform: translateY(-5px); } }
+.ax-clock b.is-tick { animation: ax-tick-in 0.3s var(--ax-ease); }
+
+/* ---- touch and mobile browsers ---- */
+body.ax button, body.ax a, body.ax input, body.ax summary, body.ax [role="tab"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+.ax-sign { height: 100vh; height: 100dvh; }
+@media (max-width: 960px) { .ax-sign { height: auto; bottom: 0; } }
+.ax-drawer__body, .ax-rail, .rp-side, .ax-sel__pop, .ax-sign, .rp-scroll, .ax-table-wrap { overscroll-behavior: contain; }
+/* hover lifts are for pointers: on touch screens they would stick after a tap */
+@media (hover: none) {
+  .ah-tile:hover, .cl-tab:hover, .ax-btn:hover, .ax-icon-btn:hover, .ax-copy:hover, .cl-copy:hover, .rp-days button:hover, .ax-nav__a:hover .ax-nav__pic, .ax-seg button:hover { transform: none; }
+  .ah-tile:hover::before { height: 4px; opacity: 1; }
+  .ah-tile:hover .ah-tile__plate, .cl-tab:hover .cl-tab__pic { transform: none; }
+}
+
+/* touch targets: small controls get a comfortable hit area without growing visually */
+@media (pointer: coarse) {
+  .ax-demo button { position: relative; }
+  .ax-demo button::after { content: ''; position: absolute; inset: -9px -6px; }
+  body.ax a.el-tel, body.ax .or-tel, body.ax .ax-link { position: relative; }
+  body.ax a.el-tel::after, body.ax .ax-link::after { content: ''; position: absolute; inset: -9px -4px; }
+  body.ax .ax-seg button { min-height: 40px; }
+  body.ax .ax-chip-x { min-height: 38px; }
+}
+
+.ax-shell[data-nodemo] .ax-demo { display: none; }
+
+/* demo reset: a pill in the top bar on desktop; on phones it moves into the menu drawer */
+.ax-sign__btn--demo { display: none; }
+@media (max-width: 960px) { .ax-sign__btn--demo { display: inline-flex; } .ax-shell[data-nodemo] .ax-sign__btn--demo { display: none; } }
+@media (max-width: 600px) { .ax-demo { display: none; } }

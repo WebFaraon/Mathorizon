@@ -415,6 +415,7 @@
   window.AdminViews.calculator = {
     title: 'Calculator',
     icon: 'calculator',
+    demo: false,
     render(root, ctx) {
       rootEl = root;
       if (MODES[ctx.query.mod]) S.mode = ctx.query.mod;

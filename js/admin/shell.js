@@ -91,6 +91,7 @@
               <button type="button" class="ax-sign__btn ax-sign__btn--icon" id="axTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 16)}</button>
               <button type="button" class="ax-sign__btn ax-sign__btn--icon ax-fold-btn" id="axFold" aria-label="Restrânge meniul">${ico('panel', 16)}</button>
             </div>
+            <button type="button" class="ax-sign__btn ax-sign__btn--demo" id="axDemoReset2" title="Resetează datele demo">${ico('refresh-cw', 16)}<span class="ax-btn-t">Resetează datele demo</span></button>
             <button type="button" class="ax-sign__btn ax-sign__btn--out" id="axLogout" title="Deconectare">${ico('log-out', 16)}<span class="ax-btn-t">Deconectare</span></button>
           </div>
         </aside>
@@ -116,7 +117,10 @@
     const now = new Date();
     const t = document.getElementById('axTime');
     const d = document.getElementById('axDate');
-    if (t) t.textContent = now.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+    if (t) {
+      const txt = now.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
+      if (t.textContent !== txt) { const first = !t.textContent; t.textContent = txt; if (!first) { t.classList.remove('is-tick'); void t.offsetWidth; t.classList.add('is-tick'); } }
+    }
     if (d) {
       const s = now.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' });
       d.textContent = s.charAt(0).toUpperCase() + s.slice(1);
@@ -129,9 +133,12 @@
     return window.AdminViews[id] ? id : 'acasa';
   }
 
-  function refreshNav(active) {
+  function refreshNav(active, reveal) {
     const nav = document.getElementById('axNav');
-    if (nav) nav.innerHTML = navHTML(active || external || current);
+    if (!nav) return;
+    nav.innerHTML = navHTML(active || external || current);
+    // "you are here" slides in only when the page really changed, not on every data refresh
+    if (reveal && !calm()) { const a = nav.querySelector('[aria-current="page"]'); if (a) a.classList.add('is-new'); }
   }
 
   /* Changing tab: the old page fades out (150ms), the new one comes in with
@@ -147,7 +154,7 @@
     if (next !== current && current && !calm()) {
       root.classList.remove('is-entering');
       root.classList.add('is-leaving');
-      refreshNav(next); // the sign panel answers the click at once
+      refreshNav(next, true); // the sign panel answers the click at once
       leaveT = setTimeout(() => { root.classList.remove('is-leaving'); paint(fresh); }, 150);
     } else {
       root.classList.remove('is-leaving');
@@ -158,10 +165,21 @@
   function enter(root) {
     if (calm()) return;
     clearTimeout(enterT);
-    root.classList.remove('is-entering');
-    void root.offsetWidth;
-    root.classList.add('is-entering');
-    enterT = setTimeout(() => root.classList.remove('is-entering'), 1000);
+    // The entrance is put on the few blocks that move, not on the page container: a class on an
+    // ancestor makes the browser re-check the style of every element below it (slow on big tables).
+    requestAnimationFrame(() => {
+      const blocks = [];
+      Array.from(root.children).forEach(c => {
+        if (!c.classList.contains('ax-fixsplit')) { blocks.push(c); return; }
+        const col = c.querySelector(':scope > .ax-col');
+        if (col) blocks.push(...col.children);
+        const side = c.querySelector(':scope > .ax-rail, :scope > .rp-side');
+        if (side) { side.classList.add('ax-in-side'); blocks.push(side); }
+      });
+      blocks.forEach((el, i) => { if (!el.classList.contains('ax-in-side')) { el.style.setProperty('--e', String(Math.min(i, 4))); el.classList.add('ax-in'); } });
+      enterT = setTimeout(() => blocks.forEach(el => { el.classList.remove('ax-in', 'ax-in-side'); el.style.removeProperty('--e'); }), 1200);
+      U.countUp(root);
+    });
   }
 
   function paint(fresh) {
@@ -176,6 +194,8 @@
     refreshNav();
     root.dataset.view = id;
     document.getElementById('axShell').dataset.view = id;
+    // pages that do not run on the generated demo data do not show the demo switch
+    document.getElementById('axShell').toggleAttribute('data-nodemo', view.demo === false);
     root.classList.toggle('is-fresh', !!(fresh || changed));
     root.innerHTML = '';
     try {
@@ -192,8 +212,22 @@
     const shell = document.getElementById('axShell');
     try { if (localStorage.getItem('bm_ax_folded') === '1') shell.classList.add('is-folded'); } catch (e) {}
     document.getElementById('axFold').addEventListener('click', () => {
+      // The layout switches to its final state at once (one reflow); the movement is
+      // played on transforms and on the sign panel's width only, so it stays smooth
+      // even on heavy pages. Main content and the sign panel slide by the same distance.
+      const sign = shell.querySelector('.ax-sign');
+      const from = sign.getBoundingClientRect().width;
       shell.classList.toggle('is-folded');
+      const to = sign.getBoundingClientRect().width;
       try { localStorage.setItem('bm_ax_folded', shell.classList.contains('is-folded') ? '1' : '0'); } catch (e) {}
+      if (calm() || innerWidth <= 960 || !sign.animate || from === to) return;
+      const o = { duration: 340, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
+      shell.classList.add('is-folding');
+      sign.animate([{ width: from + 'px' }, { width: to + 'px' }], o);
+      shell.querySelectorAll('.ax-top, .ax-view > :not(.ax-fixsplit), .ax-view .ax-fixsplit > .ax-col').forEach(el => {
+        el.animate([{ transform: `translateX(${from - to}px)` }, { transform: 'none' }], o);
+      });
+      setTimeout(() => shell.classList.remove('is-folding'), o.duration + 40);
     });
     document.getElementById('axMenu').addEventListener('click', () => shell.classList.add('is-nav-open'));
     shell.addEventListener('click', e => { if (shell.classList.contains('is-nav-open') && e.target === shell) shell.classList.remove('is-nav-open'); });
@@ -212,12 +246,12 @@
     document.querySelector('[data-browse]').addEventListener('click', () => {
       try { sessionStorage.setItem('bm_admin_browse', '1'); } catch (e) {}
     });
-    const demoReset = document.getElementById('axDemoReset');
-    if (demoReset) demoReset.addEventListener('click', () => {
+    const resetDemo = () => {
       if (!confirm('Resetezi datele demo? Mutările și statusurile schimbate pe acest dispozitiv se pierd.')) return;
       window.AdminData.reset();
       U.toast('Datele demo au fost resetate.');
-    });
+    };
+    ['axDemoReset', 'axDemoReset2'].forEach(id => { const b = document.getElementById(id); if (b) b.addEventListener('click', resetDemo); });
     window.AdminData.onChange(() => refreshNav());
     // links that load another document: let the page fade out first
     document.addEventListener('click', e => {
@@ -279,6 +313,7 @@
       document.getElementById('axCrumb').textContent = item ? item.label : '';
       const view = document.getElementById('axView');
       view.dataset.view = external;
+      document.getElementById('axShell').setAttribute('data-nodemo', '');
       document.getElementById('axShell').dataset.view = external;
       if (legacy) { view.appendChild(legacy); legacy.hidden = false; }
       enter(view);

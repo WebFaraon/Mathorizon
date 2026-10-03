@@ -429,6 +429,7 @@
 
   window.AdminViews.profesori = {
     title: 'Conturi',
+    demo: false,
     icon: 'user',
     badge: () => (C.status === 'ready' && C.pending.length ? C.pending.length : null),
     render(root, ctx) {

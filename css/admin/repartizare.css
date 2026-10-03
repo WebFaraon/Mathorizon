@@ -730,3 +730,15 @@ body.ax .rp-cg .ax-st { font-size: 0.8rem; }
 body.ax .rp-cf__f { display: flex; justify-content: flex-end; gap: 8px; padding: 11px 16px; border-top: 1px solid var(--ax-rule); background: var(--ax-panel-2); }
 @media (max-width: 520px) { body.ax .rp-cf__gs { grid-template-columns: minmax(0, 1fr); } body.ax .rp-cf__h { flex-wrap: wrap; } }
 body.ax .rp-sum__v { display: flex; align-items: center; gap: 6px; }
+body.ax .rp-card__f { align-items: center; justify-content: space-between; gap: 8px; }
+body.ax .rp-card__p { flex: none; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+
+/* narrower screens: the days take the whole row, the rows switch goes under them */
+@media (max-width: 1500px) {
+  body.ax .rp-head { flex-wrap: wrap; }
+  body.ax .rp-daytop { flex-wrap: wrap; gap: 10px; width: 100%; }
+  body.ax .rp-days { flex: 1 1 100%; }
+  body.ax .rp-modeseg { width: auto; }
+  body.ax .rp-modeseg button { min-height: 40px; }
+}
+body.ax .rp-card__f .ax-st { white-space: normal; line-height: 1.2; }

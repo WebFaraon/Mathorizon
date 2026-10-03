@@ -234,6 +234,7 @@ body.ax .an-debt {
 body.ax .an-debts li:last-child .an-debt { border-bottom: 0; }
 body.ax .an-debt:hover { background: var(--ax-panel-2); }
 body.ax .an-debt .ax-mgr { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+@media (max-width: 480px) { body.ax .an-debt .ax-mgr { white-space: normal; overflow-wrap: anywhere; } }
 body.ax .an-debt__bar { height: 12px; }
 body.ax .an-debt__bar i { display: block; height: 100%; min-width: 2px; border-radius: 0 2px 2px 0; background: var(--ax-ink); }
 body.ax .an-debt__v { text-align: right; line-height: 1.25; }
@@ -331,3 +332,5 @@ body.ax .an-kpis__row:nth-child(2) .an-kpis__h { border-top-color: var(--ax-st-a
 body.ax .an-meter__t i { background: var(--sc, var(--ax-blue)); }
 body.ax .an-hbar__t i { background: var(--sc, var(--ax-blue)); }
 body.ax .an-sec.an-t--teal .an-meter__t i { background: var(--ax-line-mat); }
+
+@media (pointer: coarse) { body.ax a.an-status__act { position: relative; } body.ax a.an-status__act::after { content: ''; position: absolute; inset: -10px -4px; } }

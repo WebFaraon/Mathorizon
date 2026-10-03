@@ -87,7 +87,7 @@ body.ax .dp-t {
 body.ax .dp-t:hover { background: var(--ax-hover); }
 body.ax .dp-t[aria-pressed="true"] { border-color: var(--ax-ink); background: var(--ax-hover); }
 body.ax .dp-t__who { min-width: 0; }
-body.ax .dp-t__who b { display: block; overflow: hidden; font-size: 0.9rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+body.ax .dp-t__who b { display: block; font-size: 0.9rem; font-weight: 700; line-height: 1.25; overflow-wrap: anywhere; }
 body.ax .dp-t[aria-pressed="true"] .dp-t__who b { font-weight: 800; }
 body.ax .dp-t__who .ax-sub { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
@@ -171,8 +171,8 @@ body.ax .dp-blk--mat { --c: var(--ax-line-mat); }
 body.ax .dp-blk.is-short span::before { content: ''; display: inline-block; width: 8px; height: 4px; margin-right: 3px; border-radius: 1px; background: var(--c); vertical-align: 2px; }
 body.ax .dp-blk.is-short b::before { display: none; }
 body.ax .dp-blk.is-short { padding: 0 4px 0 5px; }
-body.ax .dp-blk b::before { content: ''; display: inline-block; width: 12px; height: 5px; margin-right: 5px; border-radius: 1px; background: var(--c); vertical-align: 2px; }
-body.ax .dp-blk b { overflow: hidden; font-size: 0.78rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+body.ax .dp-blk b::before { content: ''; display: inline-block; width: 9px; height: 5px; margin-right: 4px; border-radius: 1px; background: var(--c); vertical-align: 2px; }
+body.ax .dp-blk b { overflow: hidden; font-size: 0.76rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 body.ax .dp-blk span { overflow: hidden; font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); text-overflow: ellipsis; white-space: nowrap; }
 body.ax .dp-blk:hover { border-color: var(--ax-ink); background: var(--ax-panel-2); }
 body.ax .dp-blk.is-out { outline: 2px solid var(--ax-bad); outline-offset: -1px; }
@@ -247,3 +247,12 @@ body.ax .dp-all td:first-child { position: sticky; left: 0; z-index: 1; min-widt
 body.ax .dp-all th:first-child { z-index: 2; background: var(--ax-panel-2); }
 body.ax .dp-all tbody tr:hover td:first-child { background: var(--ax-panel-2); }
 body.ax .dp-lg--off { border: 1px solid var(--ax-rule-2); background: repeating-linear-gradient(135deg, transparent 0 3px, color-mix(in srgb, var(--ax-ink) 14%, transparent) 3px 4px); }
+
+/* week blocks: the time is never cut, the room gives way first */
+body.ax .dp-blk__m { display: flex; gap: 6px; min-width: 0; }
+body.ax .dp-blk__m i { font-style: normal; white-space: nowrap; }
+body.ax .dp-blk__m i:first-child { flex: none; }
+body.ax .dp-blk__m i:last-child { min-width: 0; overflow: hidden; text-overflow: ellipsis; }
+body.ax .dp-free__row { grid-template-columns: minmax(210px, 1.2fr) minmax(150px, 1fr) minmax(230px, 1.5fr) auto; }
+
+@media (max-width: 760px) { body.ax .dp-grid { min-width: 780px; } }

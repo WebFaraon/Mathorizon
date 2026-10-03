@@ -150,3 +150,7 @@ body.ax .el-table th:nth-child(7) { width: 13%; }
 body.ax .el-table th:nth-child(4), body.ax .el-table td:nth-child(4) { padding-right: 30px; text-align: right; }
 body.ax .el-table th:nth-child(5) .el-sort, body.ax .el-table td:nth-child(5) { padding-left: 22px; }
 body.ax .el-table td { overflow-wrap: anywhere; }
+
+/* the four figures: wider minimum cell, so "−801.052 lei" never runs into the next one */
+body.ax .el-stats { grid-template-columns: repeat(auto-fit, minmax(214px, 1fr)); }
+body.ax .el-stats .ax-stat__v { white-space: nowrap; }

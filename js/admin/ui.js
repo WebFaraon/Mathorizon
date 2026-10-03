@@ -417,7 +417,62 @@
     t.className = 'ax-toast' + (kind ? ' ax-toast--' + kind : '');
     t.innerHTML = msg;
     host.appendChild(t);
-    setTimeout(() => { t.classList.add('is-out'); setTimeout(() => t.remove(), 250); }, 3200);
+    // a slim bar runs down the toast's own lifetime; hovering pauses both
+    let left = 3200, started = Date.now(), timer = 0;
+    const out = () => { t.classList.add('is-out'); setTimeout(() => t.remove(), 250); };
+    const arm = () => { started = Date.now(); timer = setTimeout(out, left); t.classList.remove('is-paused'); };
+    t.style.setProperty('--ax-toast-ms', left + 'ms');
+    t.addEventListener('mouseenter', () => { clearTimeout(timer); left -= Date.now() - started; t.classList.add('is-paused'); });
+    t.addEventListener('mouseleave', arm);
+    arm();
+  }
+
+  /* ---- long tables: the first rows paint at once, the rest follow a few per frame ----
+     A page with 60 rows costs a few hundred ms of layout on a slow device; spreading it keeps
+     the page answering (typing in a filter, switching tabs). Rows are only hidden, not removed. */
+  function stagger(tbody, first, step) {
+    if (!tbody || tbody.children.length <= first) return;
+    const rest = Array.from(tbody.children).slice(first);
+    rest.forEach(r => { r.hidden = true; });
+    let i = 0;
+    (function next() {
+      if (!tbody.isConnected) return;
+      const end = Math.min(rest.length, i + step);
+      for (; i < end; i++) rest[i].hidden = false;
+      if (i < rest.length) requestAnimationFrame(next);
+    })();
+  }
+
+  /* ---- count-up: the figures of a page run up from 0 when it opens ----
+     Only plain numbers in the Romanian format ("1.234", "2,8", "51%", "−801.052");
+     anything else is left alone. Skipped with reduced motion. */
+  function countUp(root) {
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+    const re = /^([−-]?)(\d{1,3}(?:\.\d{3})*|\d+)(,\d+)?(\s*%)?$/;
+    const jobs = [];
+    root.querySelectorAll('.ax-stat__v, .ah-tile__fig > b, .rp-sum__v, .an-stat__v, .cl-hero b[data-v]').forEach(el => {
+      if (el.children.length || el.dataset.counted) return;
+      const txt = el.textContent.trim();
+      const m = re.exec(txt);
+      if (m) jobs.push([el, txt, m]);
+    });
+    // one pass of reads (widths), then one pass of writes: no layout thrashing
+    const widths = jobs.map(([el]) => el.getBoundingClientRect().width);
+    jobs.forEach(([el, txt, m], idx) => {
+      const sign = m[1], int = +m[2].replace(/\./g, ''), dec = m[3] || '', suffix = m[4] || '';
+      const decimals = dec ? dec.length - 1 : 0, target = int + (dec ? +('0.' + dec.slice(1)) : 0);
+      if (target === 0 || target > 1e7) return;
+      el.dataset.counted = '1';
+      const t0 = performance.now(), dur = Math.min(900, 380 + Math.log10(target + 1) * 120);
+      const nfm = new Intl.NumberFormat('ro-RO', { minimumFractionDigits: decimals, maximumFractionDigits: decimals });
+      const fmt = v => sign + nfm.format(v) + suffix;
+      el.style.minWidth = widths[idx] + 'px'; // the line never jitters while the digits change
+      (function step(now) {
+        const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+        el.textContent = k < 1 ? fmt(target * e) : txt;
+        if (k < 1) requestAnimationFrame(step); else el.style.minWidth = '';
+      })(t0);
+    });
   }
 
   /* ---- CSV ---- */
@@ -439,6 +494,6 @@
   window.AdminUI = {
     esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
     readQuery, writeQuery, listParam,
-    multiSelect, enhanceSelects, suggest, activeChips, wireActiveChips, drawer, toast, downloadCSV
+    multiSelect, enhanceSelects, suggest, countUp, stagger, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };
 })();

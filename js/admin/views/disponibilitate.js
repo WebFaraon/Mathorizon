@@ -289,7 +289,7 @@
                 style="left:${pos(g.start)}%;width:calc(${pos(g.start + g.duration) - pos(g.start)}% - 5px);--lane:${L.lane.get(g.id)}" aria-label="${esc(label)}" title="${esc(label)}">
                 ${g.duration === 1
                   ? `<b>${esc(g.grade)}</b><span>${esc(SHORT[g.subject] || g.subject)}</span>`
-                  : `<b>${esc(SHORT[g.subject] || g.subject)} ${esc(g.grade)}</b><span>${g.start}-${g.start + g.duration}${room ? ` · cab. ${room.num}` : ''}</span>`}
+                  : `<b>${esc(SHORT[g.subject] || g.subject)} ${esc(g.grade)}</b><span class="dp-blk__m"><i>${g.start}-${g.start + g.duration}</i>${room ? `<i>cab. ${room.num}</i>` : ''}</span>`}
                 ${out ? `<em class="dp-blk__out" aria-hidden="true">!</em>` : ''}
               </button>`;
             }).join('')}
