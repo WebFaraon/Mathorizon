@@ -69,6 +69,7 @@
       { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții, tendințe și tabele încrucișate.', fig: U.pct(activeStudents, D.students.length) + '%', unit: 'elevi activi' },
       { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri de profesor, elevi, abonamente și waitlist.', fig: 'Date reale', unit: '' },
       { id: 'exercitii', href: 'admin-add-exercise.html', icon: 'plus', t: 'Adaugă exercițiu', d: 'Un exercițiu nou în culegere, cu barem generat.', fig: 'Culegere', unit: '' },
+      { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur: sumele împărțite proporțional.', fig: 'Transfer', unit: 'înlocuire · retur' },
       { id: 'culegeri', href: 'admin-culegeri.html', icon: 'library', t: 'Culegeri', d: 'Culegerile existente și exercițiile din ele.', fig: 'Bibliotecă', unit: '' }
     ];
   }

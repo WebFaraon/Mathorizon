@@ -43,6 +43,7 @@ body.ax {
   --ax-c-profesori: #E2AB82;
   --ax-c-exercitii: #FF7B6B;
   --ax-c-culegeri: #4FC8DE;
+  --ax-c-calculator: #C9A7FF;
   --ax-c-ink: #0E1114;
   --pg: var(--ax-hi);
 
@@ -715,6 +716,7 @@ body.ax-legacy .ae-detalii-grid + .cls-form-field { margin-top: 16px; }
 .ax-shell[data-view="profesori"], .ax-nav__a[data-route="profesori"] { --pg: var(--ax-c-profesori); }
 .ax-shell[data-view="exercitii"], .ax-nav__a[data-route="exercitii"] { --pg: var(--ax-c-exercitii); }
 .ax-shell[data-view="culegeri"], .ax-nav__a[data-route="culegeri"] { --pg: var(--ax-c-culegeri); }
+.ax-shell[data-view="calculator"], .ax-nav__a[data-route="calculator"] { --pg: var(--ax-c-calculator); }
 
 .ax-nav__pic { color: var(--pg); transition: background-color 0.15s, border-color 0.15s, transform 0.2s var(--ax-ease); }
 .ax-nav__a:not([aria-current]):hover .ax-nav__pic { border-color: var(--pg); background: color-mix(in srgb, var(--pg) 18%, #1C2026); transform: translateY(-1px); }

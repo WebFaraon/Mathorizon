@@ -31,7 +31,8 @@
       { id: 'elevi', label: 'Elevi', icon: 'users' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
       { id: 'disponibilitate', label: 'Disponibilitate', icon: 'clock' },
-      { id: 'analitica', label: 'Analitică', icon: 'chart-column' }
+      { id: 'analitica', label: 'Analitică', icon: 'chart-column' },
+      { id: 'calculator', label: 'Calculator', icon: 'calculator' }
     ] },
     { group: 'Platforma', items: [
       { id: 'profesori', label: 'Conturi', icon: 'user' },
