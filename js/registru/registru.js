@@ -47,7 +47,7 @@
   const GCOUNT = { activ: 'Active', completare: 'Se completează', inlocuire: 'Înlocuire', inactiv: 'Inactive' };
   const SHORT = { Matematica: 'Mat.', 'L.română': 'Rom.', Fizica: 'Fiz.', Istoria: 'Ist.', Chimie: 'Chim.', Biologie: 'Bio.', Engleza: 'Engl.', Geografie: 'Geo.' };
   const MONTH_HUE = [215, 195, 165, 125, 90, 52, 38, 26, 12, 345, 300, 255]; // Jan..Dec: June, July, August as in the sheet
-  const H0 = 8, H1 = 21;                                                     // availability rows: 08:00 .. 20:00
+  const H0 = 8, H1 = 22;                                                     // availability rows: 08:00 .. 21:00
   const HOURS = Array.from({ length: H1 - H0 }, (_, i) => H0 + i);
   const GRADES = D.GRADES;
 
@@ -121,17 +121,12 @@
       ${gs.map(g => {
         const L = D.ledger(g.id);
         return tab('grupa/' + g.id, `<i class="rg-tab__n" title="Elevi în registru">${L.rows.length}</i><span>${esc(D.tabName(g))}</span><em class="rg-tab__s rg-s-${g.status}" title="${esc(GNAME[g.status])}"></em>`, ' rg-tab--g');
-      }).join('')}
-      <i class="rg-tabs__bar" id="rgBar" aria-hidden="true"></i>`;
+      }).join('')}`;
   }
 
   function moveBar(animate) {
-    const bar = document.getElementById('rgBar');
     const on = tabsEl && tabsEl.querySelector('.rg-tab[aria-selected="true"]');
-    if (!bar || !on) return;
-    if (!animate || calm()) bar.style.transition = 'none';
-    bar.style.transform = `translateX(${on.offsetLeft}px) scaleX(${on.offsetWidth})`;
-    if (!animate || calm()) { void bar.offsetWidth; bar.style.transition = ''; }
+    if (!on) return;
     // keep the active tab in view in the strip
     const sc = tabsEl, l = on.offsetLeft, r = l + on.offsetWidth;
     if (l < sc.scrollLeft + 8) sc.scrollTo({ left: Math.max(0, l - 16), behavior: calm() ? 'auto' : 'smooth' });
@@ -257,12 +252,6 @@
       board.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const el = e.target.closest('[data-c]'); light(el ? el.dataset.c : null); });
       board.addEventListener('pointerleave', () => light(null));
     }
-    // tooltips on presence marks
-    board.addEventListener('pointerover', e => { const el = e.target.closest('[data-tip]'); if (el && e.pointerType !== 'touch') showTip(el); });
-    board.addEventListener('pointerout', e => { if (e.target.closest('[data-tip]') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-tip]') === e.target.closest('[data-tip]'))) hideTip(); });
-    board.addEventListener('focusin', e => { const el = e.target.closest('[data-tip]'); if (el) showTip(el); });
-    board.addEventListener('focusout', hideTip);
-    board.addEventListener('scroll', hideTip, { passive: true });
   }
 
   let tipEl = null;
@@ -389,7 +378,7 @@
           ${row('', 'Starea grupului', kv(['activ', 'completare', 'inlocuire', 'inactiv'].map(k => [GNAME[k], gs.filter(L => L.g.status === k).length, k])),
             cells(L => ({ h: `<span class="rg-dot rg-s-${L.g.status}"></span>${esc(GNAME[L.g.status])}`, c: 'rg-tone rg-tone--st-' + L.g.status })))}
           ${row('', 'Materia', kv(distinct(gs, L => L.g.subject, (k, n) => [esc(k), n])), cells(L => ({ h: esc(subjLabel(L.g)), c: 'rg-cream' })))}
-          ${row('', 'Clasa', chipsOf(distinct(gs.slice().sort((a, b) => GRADES.indexOf(a.g.grade) - GRADES.indexOf(b.g.grade)), L => L.g.grade, (k, n) => [k, n])),
+          ${row('', 'Clasa', kv(distinct(gs.slice().sort((a, b) => GRADES.indexOf(a.g.grade) - GRADES.indexOf(b.g.grade)), L => L.g.grade, (k, n) => ['Clasa ' + k, n])),
             cells(L => ({ h: esc(L.g.grade), c: 'rg-tone rg-tone--' + gradeTone(L.g.grade) })))}
           ${row('', 'Nivelul de studiu', '', cells(L => ({ h: esc(L.g.level), c: 'rg-cream' })))}
           ${row('', 'Profilul', '', cells(L => (L.g.profile ? { h: esc(L.g.profile), c: 'rg-tone rg-tone--' + (L.g.profile === 'Real' ? 'pink' : 'lilac') } : { h: '<span class="rg-none">-</span>', c: 'rg-cream' })))}
@@ -478,7 +467,7 @@
     fin(4, 'disc', 'REDUCERI', ps('subject', g.subject, D.SUBJECTS.map(s => [s, s]), 'rg-cream', 'Materia'), x => ({ h: fm(x.disc) }), '0');
     fin(5, 'cost', 'COSTUL LECȚIILOR', ps('grade', g.grade, GRADES.map(s => [s, 'Clasa ' + s]), 'rg-tone--' + gradeTone(g.grade), 'Clasa'), x => ({ h: fm(x.cost) }), '0');
     fin(6, 'done', 'EFECTUATE / DISPONIBILE', ps('level', g.level, D.LEVELS.map(s => [s, 'Nivel ' + s]), 'rg-cream', 'Nivelul de studiu'), x => ({ h: `${x.done} / ${fm(x.avail, 1)}`, c: x.avail < 0 ? 'is-bad-t' : '' }), '0 / 0,0');
-    fin(7, 'mgr', 'MANAGER', ps('profile', g.profile || '', [['', 'Profilul'], ['Real', 'Profil Real'], ['Uman', 'Profil Uman']], g.profile ? 'rg-tone--' + (g.profile === 'Real' ? 'pink' : 'lilac') : 'rg-cream', 'Profilul'), x => ({ h: esc(person(x.manager)) }), '');
+    fin(7, 'mgr', 'MANAGER', ps('profile', g.profile || '', [['', 'Profilul'], ['Real', 'Profil Real'], ['Uman', 'Profil Uman']], g.profile ? 'rg-tone--' + (g.profile === 'Real' ? 'pink' : 'lilac') : 'rg-cream', 'Profilul'), x => ({ h: `<div class="rg-ps rg-ps--mg"><select class="ax-select" data-smg="${x.s.id}" aria-label="Managerul elevului ${esc(lastFirst(x.s))}">${opts(D.managers.map(m => [m.id, person(m)]), x.s.manager)}</select></div>` }), '');
     head.push(`<tr class="rg-hr rg-hr--last" data-hr="8">
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
@@ -492,21 +481,18 @@
     L.lessons.forEach((l, li) => {
       const extra = li >= L.nGen;
       body.push(`<tr class="rg-lr${extra ? ' is-extra' : ''}" data-li="${li}">
-        <th class="rg-a rg-ld" style="--mh:${MONTH_HUE[l.date.getMonth()]}" scope="row"><label class="rg-dc" title="Schimbă data"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date.getDate()} ${esc(D.MONTHS[l.date.getMonth()].slice(0, 3))}</span><input class="rg-di" type="date" value="${l.iso}" data-di="${li}" aria-label="Data lecției ${li + 1}"></label></th>
-        <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${li}" list="rgTopics" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
+        <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${li}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
+        <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${li}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
         <td class="rg-cc rg-lp"><span>${fm(l.price)}</span>${extra ? `<button type="button" class="rg-x" data-del="${li}" title="Șterge lecția" aria-label="Șterge lecția ${li + 1}">${ico('x', 14)}</button>` : ''}</td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
-          const paid = c === 'P' || c === 'A';
-          const tip = m ? `${lastFirst(x.s)}|${l.label}${l.topic ? ', ' + l.topic : ''}|${m.n}${paid ? ', ' + fm(l.price) + ' lei' : ', fără cost'}${x.flag === li ? '|Aici a depășit suma plătită' : ''}` : '';
-          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${li}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${m ? m.t : ''}</button></td>`;
+          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${li}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
         <td class="rg-xc rg-x1"><span class="rg-lvl">Nivelul ${L.level}</span></td><td class="rg-xc rg-x2 rg-xp${l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.pct == null ? '' : l.pct + '%'}</td>${blankX(3)}
       </tr>`);
     });
-    const next = D.nextDate(g.id);
-    body.push(`<tr class="rg-addrow"><td colspan="${cols + 6}"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecția din ${esc(dateLabel(next))}</span></button></td></tr>`);
+    body.push(`<tr class="rg-addrow"><td colspan="${cols + 6}"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></td></tr>`);
 
     return `
       <table class="rg-gsheet" style="--scols:${cols}">
@@ -581,6 +567,66 @@
     });
   }
 
+  /* a calendar in the language of the site, instead of the browser's own */
+  const WD = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
+  const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
+  function openCalendar(anchor, gid, li) {
+    const L = D.ledger(gid), l = L.lessons[li], g = L.g;
+    const todayIso = D.iso(new Date());
+    let cur = l.iso ? new Date(l.iso + 'T00:00') : new Date();
+    cur = new Date(cur.getFullYear(), cur.getMonth(), 1);
+    const html = () => {
+      const first = new Date(cur), lead = (first.getDay() + 6) % 7;
+      const start = new Date(first); start.setDate(1 - lead);
+      const cells = [];
+      for (let i = 0; i < 42; i++) {
+        const d = new Date(start); d.setDate(start.getDate() + i);
+        const iso = D.iso(d), wdId = ((d.getDay() + 6) % 7) + 1;
+        cells.push(`<button type="button" class="rg-cal__d${d.getMonth() !== cur.getMonth() ? ' is-out' : ''}${iso === todayIso ? ' is-today' : ''}${iso === l.iso ? ' is-sel' : ''}${g.days.includes(wdId) ? ' is-meet' : ''}" data-d="${iso}" tabindex="-1" aria-label="${d.getDate()} ${D.MONTHS[d.getMonth()]} ${d.getFullYear()}">${d.getDate()}</button>`);
+      }
+      return `
+        <div class="rg-cal__h">
+          <button type="button" class="rg-cal__nav" data-nav="-1" aria-label="Luna trecută"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button>
+          <b>${esc(cap1(D.MONTHS[cur.getMonth()]))} ${cur.getFullYear()}</b>
+          <button type="button" class="rg-cal__nav" data-nav="1" aria-label="Luna viitoare"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button>
+        </div>
+        <div class="rg-cal__w" aria-hidden="true">${WD.map(x => `<span>${x}</span>`).join('')}</div>
+        <div class="rg-cal__g">${cells.join('')}</div>
+        <div class="rg-cal__f"><span><i></i>zilele grupei</span><button type="button" class="rg-cal__today" data-today>Azi</button></div>`;
+    };
+    const pop = openPop(anchor, '<div class="rg-cal">' + html() + '</div>', 'rg-pop--cal');
+    const root = pop.querySelector('.rg-cal');
+    const focusDay = iso => { const b = root.querySelector('.rg-cal__d[data-d="' + iso + '"]'); if (b) { root.querySelectorAll('.rg-cal__d[tabindex="0"]').forEach(x => { x.tabIndex = -1; }); b.tabIndex = 0; b.focus(); } };
+    const redraw = dir => {
+      root.innerHTML = html();
+      const grid = root.querySelector('.rg-cal__g');
+      if (dir && !calm()) grid.animate([{ opacity: 0, transform: 'translateX(' + (dir * 14) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 220, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' });
+    };
+    const pick = iso => { closePop(); D.setLesson(gid, li, { d: iso }); flashSaved(); refreshGroup(gid); };
+    const go = n => { cur = new Date(cur.getFullYear(), cur.getMonth() + n, 1); redraw(n); };
+    root.addEventListener('click', e => {
+      const nav = e.target.closest('[data-nav]'); if (nav) { go(+nav.dataset.nav); return; }
+      if (e.target.closest('[data-today]')) { pick(todayIso); return; }
+      const d = e.target.closest('.rg-cal__d'); if (d) pick(d.dataset.d);
+    });
+    root.addEventListener('keydown', e => {
+      const d = e.target.closest('.rg-cal__d');
+      if (!d) return;
+      const base = new Date(d.dataset.d + 'T00:00');
+      let n = 0, m = 0;
+      if (e.key === 'ArrowLeft') n = -1; else if (e.key === 'ArrowRight') n = 1; else if (e.key === 'ArrowUp') n = -7; else if (e.key === 'ArrowDown') n = 7;
+      else if (e.key === 'PageUp') m = -1; else if (e.key === 'PageDown') m = 1;
+      else if (e.key === 'Escape') { e.preventDefault(); closePop(); anchor.focus(); return; }
+      else return;
+      e.preventDefault();
+      const t = new Date(base);
+      if (m) t.setMonth(t.getMonth() + m); else t.setDate(t.getDate() + n);
+      if (t.getMonth() !== cur.getMonth() || t.getFullYear() !== cur.getFullYear()) { cur = new Date(t.getFullYear(), t.getMonth(), 1); redraw(t > base ? 1 : -1); }
+      focusDay(D.iso(t));
+    });
+    focusDay(l.iso || todayIso);
+  }
+
   function wireGroup(board, gid) {
     board.addEventListener('click', e => {
       const pl = e.target.closest('.rg-pl[data-sid]');
@@ -590,7 +636,7 @@
       if (e.target.closest('[data-add]')) {
         D.addLesson(gid); flashSaved(); refreshGroup(gid);
         const rows = board.querySelectorAll('.rg-lr'); const last = rows[rows.length - 1];
-        if (last) { last.classList.add('is-new'); const ti = last.querySelector('.rg-ti'); if (ti) { ti.focus({ preventScroll: true }); last.scrollIntoView({ block: 'nearest', behavior: calm() ? 'auto' : 'smooth' }); } }
+        if (last) { last.classList.add('is-new'); const dc = last.querySelector('.rg-dc'); if (dc) { dc.focus({ preventScroll: true }); last.scrollIntoView({ block: 'nearest', behavior: calm() ? 'auto' : 'smooth' }); } }
         return;
       }
       const del = e.target.closest('[data-del]');
@@ -602,12 +648,16 @@
         if (u) u.addEventListener('click', () => { D.setLedgerEdits(JSON.parse(before)); refreshGroup(gid); u.closest('.ax-toast').classList.add('is-out'); });
         return;
       }
-      const di = e.target.closest('.rg-di');
-      if (di && di.showPicker) { try { di.showPicker(); } catch (err) { /* needs a gesture; the click is one */ } }
+      const dt = e.target.closest('[data-date]');
+      if (dt) openCalendar(dt, gid, +dt.dataset.date);
     });
     board.addEventListener('keydown', e => {
       const t = e.target;
-      if (t.matches && t.matches('.rg-ti')) { if (e.key === 'Escape') { t.value = t.defaultValue; t.blur(); } return; }
+      if (t.matches && t.matches('.rg-ti')) {
+        if (e.key === 'Escape') { t.value = t.defaultValue; t.blur(); }
+        else if (e.key === 'Enter') { e.preventDefault(); t.blur(); }   // saves (change fires on blur) and leaves the field
+        return;
+      }
       const pl = t.closest && t.closest('.rg-pl[data-sid]');
       if (!pl) return;
       const li = +pl.dataset.i, c = +pl.closest('td').dataset.c;
@@ -632,9 +682,8 @@
       } else if (t.matches('select[data-sst]')) {
         D.setStudentStatus(t.dataset.sst, t.value);
         flashSaved(); refreshGroup(gid); refreshChrome();
-      } else if (t.matches('input[data-di]')) {
-        if (!t.value) { t.value = t.defaultValue; return; }
-        D.setLesson(gid, +t.dataset.di, { d: t.value });
+      } else if (t.matches('select[data-smg]')) {
+        D.setStudentManager(t.dataset.smg, t.value);
         flashSaved(); refreshGroup(gid);
       } else if (t.matches('input[data-ti]')) {
         D.setLesson(gid, +t.dataset.ti, { t: t.value.trim() });
@@ -649,11 +698,9 @@
 
   function renderGroup(v, gid) {
     const L = D.ledger(gid);
-    const topics = D.topicsFor({ subject: L.g.subject, grade: L.g.grade });
     v.innerHTML = `
       <div class="rg-group">
         <div class="rg-board rg-gboard" id="rgBoard" tabindex="0" aria-label="Foaia grupei ${esc(D.tabName(L.g))}">${groupTableHTML(L)}</div>
-        <datalist id="rgTopics">${topics.map(t => `<option value="${esc(t)}"></option>`).join('')}</datalist>
       </div>`;
     const board = v.querySelector('#rgBoard');
     wireBoard(board, { cross: false });
@@ -861,7 +908,8 @@
   let teachRows = [];
   function teachHTML() {
     const locked = lockedSet();
-    const rows = teachRows.concat([{ subject: '', grades: [] }, { subject: '', grades: [] }]);
+    const blanks = Math.max(2, 9 - teachRows.length);
+    const rows = teachRows.concat(Array.from({ length: blanks }, () => ({ subject: '', grades: [] })));
     const band = i => (i <= 3 ? 1 : i <= 8 ? 2 : 3);
     return `
       <table class="rg-teach" aria-label="Ce predai și pentru ce clase">
@@ -942,10 +990,9 @@
         <div class="rg-av-head">
           <div>
             <h2>Disponibilitate</h2>
-            <p>Atinge o oră sau trage peste mai multe. <b>Ocupat</b> înseamnă că ai deja o lecție atunci; ce rămâne gol înseamnă că nu poți. Ce completezi aici se vede în consola administratorului, la <b>Disponibilitate</b>.</p>
+            <p>Atinge o oră sau trage peste mai multe. <b>Ocupat</b> înseamnă că ai deja o lecție; ce rămâne gol înseamnă că nu poți.</p>
           </div>
           <div class="rg-av-keys">
-            <span class="rg-save" id="rgSave"><i>${ico('check', 14)}</i><span>Se salvează automat</span></span>
             <button type="button" class="ax-btn ax-btn--sm" id="rgClear">${ico('x', 14)} Golește programul</button>
             <button type="button" class="ax-btn ax-btn--sm" id="rgReset"${edited ? '' : ' hidden'}>${ico('refresh-cw', 14)} Programul inițial</button>
           </div>
@@ -958,10 +1005,9 @@
               <span class="rg-ast"><small>Libere</small><b data-stat="free">${c.free}</b><em>de oferit</em></span>
             </div>
             <div class="rg-av-wrap">${gridHTML()}</div>
-            <div class="rg-av-legend"><span><i class="rg-lg rg-lg--on"></i>Disponibil</span><span><i class="rg-lg rg-lg--busy"></i>Ocupat, ai o lecție</span><span><i class="rg-lg rg-lg--off"></i>Gol, nu poți</span></div>
           </section>
           <section class="rg-card rg-card--teach" aria-label="Detalii profesor">
-            <div class="rg-teach-h"><h3>Ce predai și pentru ce clase</h3><span class="rg-save rg-save--s" id="rgSave2"><i>${ico('check', 14)}</i><span>Se salvează automat</span></span></div>
+            <div class="rg-teach-h"><h3>Ce predai și pentru ce clase</h3></div>
             <div class="rg-teach-wrap" id="rgTeachBox">${teachHTML()}</div>
             <p class="rg-teach-n">${ico('info', 14)} Clasele la care ai deja o grupă sunt bifate și blocate.</p>
           </section>

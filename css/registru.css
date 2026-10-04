@@ -56,7 +56,7 @@ body.ax-rg {
   --rg-pres-e: #E8EAED;
   --rg-flag: #E5261B;
   --rg-line: #D9D2BE;
-  --rg-grid: #BCB195;
+  --rg-grid: #9F9475;
   --rg-dot: #6B6B63;
   --rg-heavy: #1B1B1B;
   --rg-ink: #1B1B1B;
@@ -111,7 +111,7 @@ body.ax-rg {
   --rg-pres-e: #25282D;
   --rg-flag: #FF6A5E;
   --rg-line: #34301F;
-  --rg-grid: #565039;
+  --rg-grid: #6E6747;
   --rg-dot: #5A574C;
   --rg-heavy: #000;
   --rg-ink: #ECEAE3;
@@ -170,7 +170,6 @@ body.ax-rg {
 .rg-tab[aria-selected="true"] .rg-tab__n { background: var(--ax-ink); color: var(--ax-bg); }
 .rg-tab__s { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--ax-off); }
 .rg-tabs__sep { align-self: center; flex: none; width: 1px; height: 22px; margin: 0 8px; background: var(--ax-rule-2); }
-.rg-tabs__bar { position: absolute; left: 0; top: 0; height: 4px; width: 1px; background: var(--rg-avon); transform-origin: 0 0; transition: transform 0.38s var(--ax-ease); pointer-events: none; }
 .rg-tabs__arr { display: flex; flex: none; border-left: 2px solid var(--rg-heavy); background: var(--ax-panel); }
 .rg-tabs__arr.is-idle { opacity: 0.5; }
 .rg-arr { display: grid; place-items: center; width: 44px; padding: 0; border: 0; background: transparent; color: var(--ax-ink); cursor: pointer; transition: background-color 0.15s, transform 0.12s var(--ax-ease), opacity 0.15s; }
@@ -323,6 +322,12 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-tone--st-inlocuire .rg-dot { background: var(--ax-st-inlocuire); }
 .rg-tone--st-inactiv .rg-dot { background: var(--ax-st-inactiv); }
 
+.rg-sheet .rg-lab, .rg-sheet .rg-tot, .rg-sheet .rg-c { border-bottom: 1px solid var(--rg-grid); }
+.rg-sheet .rg-lab { border-right: 1px solid var(--rg-grid); }
+.rg-sheet .rg-r--band > * { border-top: 2px solid var(--rg-heavy); }
+.rg-sheet .rg-r--head > * { border-bottom: 2px solid var(--rg-heavy); }
+.rg-kv__r { border-bottom-color: var(--rg-dot); }
+
 /* Total sheet: the row and the column under the pointer light up (the group sheet does not do this) */
 .rg-sheet .rg-r:hover > *, .rg-sheet .is-col { background-image: linear-gradient(var(--rg-hl), var(--rg-hl)); }
 .rg-sheet .rg-r:hover > .is-col { background-image: linear-gradient(var(--rg-hl-2), var(--rg-hl-2)), linear-gradient(var(--rg-hl), var(--rg-hl)); }
@@ -343,7 +348,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-gboard { background: var(--rg-cream); }
 /* Three fixed blocks: the left one (data, topic, price), the right one (day, hour, room) and,
    between them, the students, which are the only thing the horizontal scrollbar moves. */
-.rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 208px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 52px; --hr: 34px; --hl: 38px;
+.rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 232px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 52px; --hr: 34px; --hl: 38px;
   table-layout: fixed; border-collapse: separate; border-spacing: 0; width: calc(var(--wa) + var(--wb) + var(--wc) + var(--scols) * var(--ws) + var(--wx1) + var(--wx2) + var(--wx3)); font-size: 0.86rem; color: var(--rg-ink); }
 .rg-col-a { width: var(--wa); } .rg-col-b { width: var(--wb); } .rg-col-c { width: var(--wc); } .rg-col-s { width: var(--ws); } .rg-col-x1 { width: var(--wx1); } .rg-col-x2 { width: var(--wx2); } .rg-col-x3 { width: var(--wx3); }
 .rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 1px solid var(--rg-grid); border-bottom: 1px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -364,11 +369,11 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-gsheet .rg-x3 { right: 0; border-right: 0; }
 
 /* the pills of the first column are real dropdowns */
-.rg-pillcell { background: var(--rg-cream) !important; padding: 0 8px !important; }
+.rg-pillcell { background: var(--rg-cream) !important; padding: 0 14px !important; }
 .rg-ps { width: 100%; }
 .rg-ps .ax-sel { width: 100%; }
 .rg-ps[class*="rg-tone--"], .rg-ps.rg-cream { background: none !important; }
-.rg-ps .ax-sel__btn, .rg-ps .ax-sel__btn:hover { height: 26px; min-height: 26px; padding: 0 8px 0 12px; border: 1px solid color-mix(in srgb, var(--pi, var(--rg-ink)) 18%, transparent); border-radius: 13px; background: var(--pb, var(--rg-pres-e)); color: var(--pi, var(--rg-ink)); font-size: 0.8rem; font-weight: 700; box-shadow: none; transition: border-color 0.15s, transform 0.12s var(--ax-ease), filter 0.15s; }
+.rg-ps .ax-sel__btn, .rg-ps .ax-sel__btn:hover { height: 22px; min-height: 22px; padding: 0 7px 0 11px; border: 1px solid color-mix(in srgb, var(--pi, var(--rg-ink)) 18%, transparent); border-radius: 11px; background: var(--pb, var(--rg-pres-e)); color: var(--pi, var(--rg-ink)); font-size: 0.8rem; font-weight: 700; box-shadow: none; transition: border-color 0.15s, transform 0.12s var(--ax-ease), filter 0.15s; }
 .rg-ps .ax-sel__btn:hover { border-color: var(--pg); filter: brightness(0.97); }
 .rg-ps .ax-sel__btn:active { transform: scale(0.98); }
 .rg-ps .ax-sel.is-set .ax-sel__btn { box-shadow: none; }
@@ -433,6 +438,16 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 .rg-ps--st .ax-sel__btn, .rg-ps--st .ax-sel__btn:hover { width: 100%; min-height: var(--hl); border: 0; border-radius: 0; background: transparent; color: inherit; justify-content: center; gap: 6px; font-size: 0.8rem; font-weight: 800; filter: none; }
 .rg-ps--st .ax-sel__btn:hover { background: rgba(255, 255, 255, 0.22); }
 .rg-ps--st .ax-sel.is-open .ax-sel__btn { box-shadow: inset 0 0 0 2px var(--ax-blue); }
+.rg-ps--st .ax-sel__btn, .rg-ps--mg .ax-sel__btn { position: relative; }
+.rg-ps--st .ax-sel__v, .rg-ps--mg .ax-sel__v { flex: 1; padding: 0 24px; text-align: center; }
+.rg-ps--st .ax-sel__btn .ax-ico, .rg-ps--mg .ax-sel__btn .ax-ico { position: absolute; right: 10px; top: 50%; margin-top: -8px; }
+.rg-fin--mgr { padding: 0 !important; }
+.rg-ps--mg { height: 100%; }
+.rg-ps--mg .ax-sel, .rg-ps--mg .ax-sel__btn { height: 100%; }
+.rg-ps--mg .ax-sel__btn, .rg-ps--mg .ax-sel__btn:hover { width: 100%; min-height: var(--hr); border: 0; border-radius: 0; background: transparent; color: var(--rg-ink); font-size: 0.86rem; font-weight: 700; filter: none; }
+.rg-ps--mg .ax-sel__btn:hover { background: rgba(0, 0, 0, 0.06); }
+[data-theme="dark"] .rg-ps--mg .ax-sel__btn:hover { background: rgba(255, 255, 255, 0.08); }
+.rg-ps--mg .ax-sel.is-open .ax-sel__btn { box-shadow: inset 0 0 0 2px var(--ax-blue); }
 .rg-colh { background: var(--rg-steel) !important; color: #fff; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; }
 .rg-sumh { font-size: 0.82rem; }
 .rg-xh { background: var(--rg-sage) !important; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
@@ -441,9 +456,10 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 
 /* lessons: the date and the title are editable */
 .rg-gsheet .rg-lr > * { height: var(--hl); }
+.rg-ld.is-nodate .rg-dc span { font-style: italic; font-weight: 600; opacity: 0.8; }
 .rg-ld { padding: 0 !important; background: hsl(var(--mh) 92% 83%) !important; color: hsl(var(--mh) 82% 26%); font-size: 0.82rem; font-weight: 800; }
 [data-theme="dark"] .rg-ld { background: hsl(var(--mh) 38% 21%) !important; color: hsl(var(--mh) 85% 75%); }
-.rg-dc { position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: var(--hl); cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
+.rg-dc { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: var(--hl); cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
 .rg-dc span { transition: text-decoration-color 0.15s; text-decoration: underline dotted transparent; text-underline-offset: 3px; }
 .rg-dc:hover { filter: brightness(0.96); }
 .rg-dc:hover span { text-decoration-color: currentColor; }
@@ -465,7 +481,7 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 
 /* presence: a button per cell, five soft colours; only the cell under the pointer reacts */
 .rg-pc { padding: 0 8px !important; background: var(--rg-gap) !important; }
-.rg-pl { display: flex; align-items: center; justify-content: center; width: 100%; height: 24px; padding: 0 8px; border: 0; border-radius: 12px; font: inherit; font-size: 0.62rem; font-weight: 800; letter-spacing: 0; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: transform 0.15s var(--ax-ease), box-shadow 0.15s, filter 0.15s, background-color 0.15s; }
+.rg-pl { display: flex; align-items: center; justify-content: center; width: 100%; height: 26px; padding: 0 8px; border: 0; border-radius: 13px; font: inherit; font-size: 0.72rem; font-weight: 800; letter-spacing: 0; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: transform 0.15s var(--ax-ease), box-shadow 0.15s, filter 0.15s, background-color 0.15s; }
 i.rg-pl { display: inline-block; width: 44px; height: 14px; padding: 0; cursor: default; }
 .rg-pl--p { background: var(--rg-pres-p); color: var(--rg-pres-p-ink); }
 .rg-pl--g { background: var(--rg-pres-g); color: var(--rg-pres-g-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rg-pres-g-ink) 30%, transparent); }
@@ -485,7 +501,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-lvl { display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--rg-pres-g); color: var(--rg-pres-g-ink); font-size: 0.7rem; font-weight: 800; }
 .rg-gsheet td.is-free { opacity: 0.9; }
 .rg-addrow td { height: 54px; padding: 0; border-right: 0; background: var(--rg-cream); }
-.rg-add { position: sticky; left: 16px; display: inline-flex; align-items: center; gap: 8px; height: 36px; margin-left: 16px; padding: 0 16px 0 12px; border: 1px dashed var(--rg-grid); border-radius: var(--ax-r); background: transparent; color: var(--rg-ink); font: inherit; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ax-ease); }
+.rg-add { position: sticky; left: 12px; display: inline-flex; align-items: center; gap: 8px; height: 36px; margin-left: 12px; padding: 0 16px 0 12px; border: 1px dashed var(--rg-grid); border-radius: var(--ax-r); background: transparent; color: var(--rg-ink); font: inherit; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ax-ease); }
 .rg-add .ax-ico { transition: transform 0.25s var(--ax-ease); }
 .rg-add:hover { border-style: solid; border-color: var(--rg-avon); background: color-mix(in srgb, var(--rg-avon) 10%, transparent); }
 .rg-add:hover .ax-ico { transform: rotate(90deg); }
@@ -504,6 +520,32 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-pop.is-on .rg-mi { animation: rg-mi 0.24s var(--ax-ease) backwards; }
 .rg-pop.is-on .rg-mi:nth-child(2) { animation-delay: 25ms; } .rg-pop.is-on .rg-mi:nth-child(3) { animation-delay: 50ms; } .rg-pop.is-on .rg-mi:nth-child(4) { animation-delay: 75ms; } .rg-pop.is-on .rg-mi:nth-child(5) { animation-delay: 100ms; } .rg-pop.is-on .rg-mi:nth-child(6) { animation-delay: 125ms; }
 @keyframes rg-mi { from { opacity: 0; transform: translateX(-8px); } }
+
+/* the calendar of the date cell */
+.rg-pop--cal { width: 304px; padding: 12px 12px 10px; }
+.rg-cal__h { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.rg-cal__h b { font-size: 1rem; font-weight: 800; }
+.rg-cal__nav { display: grid; place-items: center; width: 32px; height: 32px; padding: 0; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); color: var(--ax-ink); cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.12s var(--ax-ease); }
+.rg-cal__nav svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.rg-cal__nav:hover { background: var(--ax-hover); border-color: var(--pg); }
+.rg-cal__nav:active { transform: scale(0.92); }
+.rg-cal__w { display: grid; grid-template-columns: repeat(7, 1fr); margin-bottom: 4px; }
+.rg-cal__w span { padding: 4px 0; text-align: center; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+.rg-cal__g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.rg-cal__d { position: relative; display: grid; place-items: center; height: 36px; padding: 0; border: 1px solid transparent; border-radius: var(--ax-r); background: transparent; color: var(--ax-ink); font: inherit; font-size: 0.9rem; font-weight: 600; cursor: pointer; transition: background-color 0.12s, transform 0.12s var(--ax-ease), border-color 0.12s; }
+.rg-cal__d.is-out { color: var(--ax-ink-3); opacity: 0.55; }
+.rg-cal__d:hover { background: var(--ax-hover); border-color: var(--ax-rule-2); transform: scale(1.06); }
+.rg-cal__d:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 1px; }
+.rg-cal__d.is-today { border-color: var(--ax-ink); font-weight: 800; }
+.rg-cal__d.is-meet::after { content: ''; position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--rg-avon); }
+.rg-cal__d.is-sel { background: var(--rg-avon); border-color: var(--rg-avon); color: #fff; font-weight: 800; }
+.rg-cal__d.is-sel.is-meet::after { background: #fff; }
+.rg-cal__d:active { transform: scale(0.94); }
+.rg-cal__f { display: flex; align-items: center; justify-content: space-between; margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--ax-rule); font-size: 0.76rem; font-weight: 600; color: var(--ax-ink-3); }
+.rg-cal__f span { display: inline-flex; align-items: center; gap: 6px; }
+.rg-cal__f i { width: 5px; height: 5px; border-radius: 50%; background: var(--rg-avon); }
+.rg-cal__today { height: 28px; padding: 0 12px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); color: var(--ax-ink); font: inherit; font-size: 0.82rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s, border-color 0.15s; }
+.rg-cal__today:hover { background: var(--ax-hover); border-color: var(--pg); }
 
 /* tooltip and popover */
 .rg-tip { position: fixed; left: 0; top: 0; z-index: 300; display: grid; gap: 1px; max-width: 280px; padding: 8px 11px; border: 1px solid var(--ax-ink); border-radius: var(--ax-r); background: var(--ax-ink); color: var(--ax-bg); font-size: 0.78rem; line-height: 1.35; pointer-events: none; opacity: 0; transition: opacity 0.12s; }
@@ -526,10 +568,10 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-pos { color: var(--rg-green-ink); }
 
 /* ---------------- Disponibilitate ---------------- */
-.rg-av-page { overflow: auto; padding: 20px 24px 48px; background: var(--ax-bg); overscroll-behavior: contain; }
-.rg-av-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 28px; flex-wrap: wrap; margin-bottom: 18px; }
-.rg-av-head h2 { font-size: 1.6rem; font-weight: 800; line-height: 1.15; }
-.rg-av-head p { max-width: 64ch; margin-top: 6px; font-size: 0.92rem; color: var(--ax-ink-3); }
+.rg-av-page { overflow: auto; padding: 12px 24px 24px; background: var(--ax-bg); overscroll-behavior: contain; }
+.rg-av-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px 28px; flex-wrap: wrap; margin-bottom: 10px; }
+.rg-av-head h2 { font-size: 1.3rem; font-weight: 800; line-height: 1.15; }
+.rg-av-head p { max-width: 64ch; margin-top: 2px; font-size: 0.86rem; color: var(--ax-ink-3); }
 .rg-av-head p b { color: var(--ax-ink); font-weight: 700; }
 .rg-av-keys { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 .rg-save { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px 0 8px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); font-size: 0.8rem; font-weight: 700; color: var(--ax-ink-3); }
@@ -540,10 +582,10 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-av-cols { display: grid; grid-template-columns: minmax(540px, 0.95fr) minmax(600px, 1.05fr); gap: 20px; align-items: start; }
 .rg-card { min-width: 0; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r-2); background: var(--ax-panel); overflow: hidden; }
 .rg-av-stats { display: grid; grid-template-columns: repeat(3, 1fr); border-bottom: 1px solid var(--ax-rule-2); }
-.rg-ast { display: grid; gap: 1px; padding: 12px 16px; border-right: 1px solid var(--ax-rule); }
+.rg-ast { display: grid; gap: 0; padding: 7px 14px; border-right: 1px solid var(--ax-rule); }
 .rg-ast:last-child { border-right: 0; }
 .rg-ast small { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
-.rg-ast b { font-size: 1.7rem; font-weight: 800; line-height: 1.1; }
+.rg-ast b { font-size: 1.35rem; font-weight: 800; line-height: 1.1; }
 .rg-ast em { font-size: 0.76rem; font-style: normal; color: var(--ax-ink-3); }
 .rg-ast:nth-child(1) { box-shadow: inset 0 3px 0 var(--rg-avon); }
 .rg-ast:nth-child(2) { box-shadow: inset 0 3px 0 var(--rg-orange); }
@@ -551,7 +593,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-ast b.is-tick { animation: rg-tick 0.4s var(--ax-ease); }
 @keyframes rg-tick { 0% { transform: translateY(-5px); opacity: 0.2; } 100% { transform: none; opacity: 1; } }
 
-.rg-av-wrap { margin: 14px; border: 2px solid var(--rg-orange); background: var(--rg-sky); overflow-x: auto; }
+.rg-av-wrap { margin: 10px; border: 2px solid var(--rg-orange); background: var(--rg-sky); overflow-x: auto; }
 .rg-av-grid { width: 100%; min-width: 520px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 0.84rem; user-select: none; -webkit-user-select: none; }
 .rg-av-grid th, .rg-av-grid td { padding: 0; border-right: 1px solid var(--rg-sky-line); border-bottom: 1px solid var(--rg-sky-line); text-align: center; }
 .rg-av-grid th:first-child { width: 66px; }
@@ -563,11 +605,11 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-av-day button:hover, .rg-av-hour button:hover { filter: brightness(1.12); }
 .rg-av-day button:active, .rg-av-hour button:active { filter: brightness(0.95); }
 .rg-av-hour { background: var(--rg-steel); }
-.rg-av { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 38px; padding: 0 4px; border: 0; background: transparent; color: var(--rg-ink); font-size: 0.82rem; font-weight: 700; line-height: 1.15; cursor: pointer; touch-action: manipulation; transition: background-color 0.12s, box-shadow 0.12s; }
+.rg-av { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 36px; padding: 0 4px; border: 0; background: transparent; color: var(--rg-ink); font-size: 0.82rem; font-weight: 700; line-height: 1.15; cursor: pointer; touch-action: manipulation; transition: background-color 0.12s, box-shadow 0.12s; }
 /* the hint on hover is drawn over the whole cell, centred, so it never sits on top of the word */
 .rg-av::after { content: ''; position: absolute; inset: 0; display: grid; place-items: center; pointer-events: none; opacity: 0; transition: opacity 0.12s; font-weight: 700; }
 .rg-av:not(.is-on):not(.is-busy):hover { background: color-mix(in srgb, var(--rg-avon) 14%, transparent); }
-.rg-av:not(.is-on):not(.is-busy):hover::after { content: '+'; opacity: 0.85; color: var(--rg-avon); font-size: 1.5rem; font-weight: 500; }
+.rg-av:not(.is-on):not(.is-busy):hover::after { content: ''; opacity: 0.9; background: linear-gradient(var(--rg-avon), var(--rg-avon)) center / 16px 2px no-repeat, linear-gradient(var(--rg-avon), var(--rg-avon)) center / 2px 16px no-repeat; }
 .rg-av.is-on { background: var(--rg-avon); color: #fff; }
 .rg-av.is-on:hover::after { content: 'Scoate'; opacity: 1; background: color-mix(in srgb, var(--rg-avon) 72%, #000); color: #fff; font-size: 0.78rem; }
 .rg-av.is-busy { background: var(--rg-busy); color: var(--rg-busy-ink); cursor: pointer; }
@@ -590,7 +632,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 /* what the teacher teaches */
 .rg-teach-h { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; padding: 14px 16px 0; }
 .rg-teach-h h3 { font-size: 1.02rem; font-weight: 800; }
-.rg-teach-wrap { margin: 12px 16px 6px; border: 2px solid var(--rg-orange); background: var(--rg-sky); overflow-x: auto; }
+.rg-teach-wrap { margin: 10px 16px 6px; border: 2px solid var(--rg-orange); background: var(--rg-sky); overflow-x: auto; }
 .rg-teach { width: 100%; min-width: 620px; border-collapse: separate; border-spacing: 0; table-layout: fixed; font-size: 0.82rem; }
 .rg-teach th, .rg-teach td { padding: 0; border-right: 1px solid var(--rg-sky-line); border-bottom: 1px solid var(--rg-sky-line); text-align: center; }
 .rg-teach th:first-child { width: 170px; }
@@ -713,7 +755,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-x { width: 34px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .rg-view, .rg-view.is-leaving, .rg-tabs__bar, .rg-brand__logo, .rg-saved { transition: none; }
+  .rg-view, .rg-view.is-leaving, .rg-brand__logo, .rg-saved { transition: none; }
   .rg-view.is-entering > *, .rg-view.is-entering .rg-sheet .rg-r, .rg-view.is-entering .rg-gsheet .rg-lr, .rg-view.is-entering .rg-av-grid td, .rg-view.is-entering .rg-ledger tbody tr { animation: none; }
   .rg-av.is-pop, .rg-pl.is-pop, .rg-save.is-on i, .rg-saved.is-on i, .rg-ast b.is-tick, .rg-lr.is-new > *, .rg-pop.is-on .rg-mi { animation: none; }
 }

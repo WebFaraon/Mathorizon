@@ -171,13 +171,13 @@
     return { rate, dur: b.duration, lessons, rows };
   }
 
-  const mkLesson = (i, date, topic, price) => ({
+  const mkLesson = (i, date, topic, price) => (date ? {
     i, date, iso: D.iso(date), day: wd(date),
     month: date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0'),
     monthName: cap(MONTHS[date.getMonth()]),
     label: date.getDate() + ' ' + MONTHS[date.getMonth()],
     topic, price
-  });
+  } : { i, date: null, iso: '', day: 0, month: '', monthName: '', label: 'Alege data', topic, price });
 
   function derive(g, G, ov) {
     ov = ov || {};
@@ -186,7 +186,7 @@
       const o = (ov.l || {})[i] || {};
       return mkLesson(i, o.d ? parse(o.d) : l.date, o.t != null ? o.t : l.topic, Math.round(l.price * k));
     });
-    (ov.x || []).forEach((e, j) => lessons.push(mkLesson(G.lessons.length + j, parse(e.d), e.t != null ? e.t : '', Math.round(rate * G.dur))));
+    (ov.x || []).forEach((e, j) => lessons.push(mkLesson(G.lessons.length + j, e.d ? parse(e.d) : null, e.t != null ? e.t : '', Math.round(rate * G.dur))));
     const n = lessons.length;
 
     const rows = G.rows.map(r => {
@@ -227,6 +227,7 @@
     const months = [];
     const byKey = {};
     lessons.forEach((l, i) => {
+      if (!l.month) return;                       // a lesson without a date counts in no month yet
       let m = byKey[l.month];
       if (!m) { m = byKey[l.month] = { key: l.month, name: l.monthName, P: 0, A: 0, M: 0, G: 0, B: 0, value: 0, hours: 0, mgr: {} }; months.push(m); }
       m.hours += G.dur;
@@ -275,12 +276,13 @@
   /* the date the group meets next after its last lesson */
   function nextDate(gid) {
     const L = ledger(gid), g = L.g;
-    const lastD = L.lessons.length ? new Date(Math.max.apply(null, L.lessons.map(l => l.date.getTime()))) : new Date(D.today.getTime() - DAY_MS);
+    const dated = L.lessons.filter(l => l.date);
+    const lastD = dated.length ? new Date(Math.max.apply(null, dated.map(l => l.date.getTime()))) : new Date(D.today.getTime() - DAY_MS);
     const d = new Date(lastD);
     for (let i = 0; i < 14; i++) { d.setDate(d.getDate() + 1); if (g.days.includes(wd(d))) return D.iso(d); }
     return D.iso(d);
   }
-  function addLesson(gid, iso) { const d = iso || nextDate(gid); edit(gid, ov => { ov.x = ov.x || []; ov.x.push({ d, t: '' }); }); }
+  function addLesson(gid, iso) { edit(gid, ov => { ov.x = ov.x || []; ov.x.push({ d: iso || '', t: '' }); }); }
   function removeLesson(gid, i) {
     const n = ledger(gid).nGen, j = i - n;
     if (j < 0) return;
@@ -357,10 +359,11 @@
 
   // an edit (here, in another tab, or a reset of the demo data): rebuild what depends on it
   let seen = JSON.stringify(D.ledgerEdits());
-  let statuses = D.students.map(s => s.status).join();
+  const sig = () => D.students.map(s => s.status + s.manager).join();
+  let statuses = sig();
   D.onChange(() => {
     const now = JSON.stringify(D.ledgerEdits());
-    const st = D.students.map(s => s.status).join();
+    const st = sig();
     if (now === seen && st === statuses) return;
     seen = now; statuses = st;
     cache.clear();

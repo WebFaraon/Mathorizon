@@ -20,7 +20,7 @@
   const U = window.AdminUI, D = window.AdminData;
   const { esc, ico, nf, plural, pct, hh } = U;
 
-  const H0 = 8, H1 = 21, SPAN = H1 - H0; // the board shows 08:00 .. 21:00
+  const H0 = 8, H1 = 22, SPAN = H1 - H0; // the board shows 08:00 .. 22:00 (the register lets a teacher offer the 21:00 hour)
   const SHORT = { Matematica: 'Mat.', 'L.română': 'Rom.', Fizica: 'Fiz.', Istoria: 'Ist.', Chimie: 'Chim.', Biologie: 'Bio.', Engleza: 'Engl.', Geografie: 'Geo.' };
   const todayId = () => ((new Date().getDay() + 6) % 7) + 1;
   const live = g => g.status !== 'inactiv';

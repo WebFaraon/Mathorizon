@@ -286,7 +286,7 @@
   /* ---- local edits (demo only) ---- */
   const clone = o => JSON.parse(JSON.stringify(o));
   const BASE = clone(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile, size: g.size })));
-  const BASE_S = Object.fromEntries(students.map(s => [s.id, s.status]));
+  const BASE_S = Object.fromEntries(students.map(s => [s.id, { status: s.status, manager: s.manager }]));
   const idxS = Object.fromEntries(students.map(s => [s.id, s]));
   const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
   const baseG = Object.fromEntries(BASE.map(b => [b.id, b]));
@@ -295,7 +295,7 @@
   function applyEdits() {
     BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status, subject: b.subject, grade: b.grade, level: b.level, profile: b.profile, size: b.size }));
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
-    Object.entries(BASE_S).forEach(([id, st]) => { idxS[id].status = st; });
+    Object.entries(BASE_S).forEach(([id, b]) => { idxS[id].status = b.status; idxS[id].manager = b.manager; });
     Object.entries(edits.students || {}).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
     BASE_T.forEach(b => {
       const t = idx.teachers[b.id], e = (edits.teachers || {})[b.id] || {};
@@ -397,7 +397,8 @@
     edited: () => Object.keys(edits.groups || {}).length,
     setGroup: (id, patch) => patchGroup(id, patch),
     setStudentStatus: (id, status) => patchStudent(id, { status }),
-    baseStatus: id => BASE_S[id],
+    baseStatus: id => BASE_S[id].status,
+    setStudentManager: (id, manager) => patchStudent(id, { manager }),
     ledgerEdits: () => edits.ledger || {},
     setLedgerEdits(v) { edits.ledger = v; save(); },
     setAvailability: (id, availability) => patchTeacher(id, { availability }),

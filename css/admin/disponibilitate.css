@@ -138,7 +138,7 @@ body.ax .dp-row__win { font-size: 0.76rem; font-weight: 700; color: var(--ax-ink
 body.ax .dp-row__day .ax-sub { font-size: 0.72rem; }
 body.ax .dp-row.is-today .dp-row__day b { padding: 0 5px; margin-left: -5px; border-radius: var(--ax-r); background: var(--ax-hi); color: var(--ax-hi-ink); }
 body.ax .dp-row__track { position: relative; height: calc(var(--lanes, 1) * 46px + 8px); margin-right: 14px; }
-body.ax .dp-row__cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(13, 1fr); }
+body.ax .dp-row__cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(14, 1fr); }
 body.ax .dp-row__cells i { border-left: 1px solid var(--ax-rule); }
 body.ax .dp-row__cells i:first-child { border-left: 0; }
 
