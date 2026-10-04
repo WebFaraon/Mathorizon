@@ -175,6 +175,26 @@
     });
   }
 
+  /* The slot above was picked from the availability of the group's first day
+     only. Widen each teacher's availability so every lesson sits inside it, on
+     every day it is held (lessons stay where they are; the schedule follows). */
+  groups.forEach(g => {
+    const t = teachers.find(x => x.id === g.teacher);
+    g.days.forEach(d => {
+      const have = t.availability[d] || [];
+      if (have.some(([a, b]) => g.start >= a && g.start + g.duration <= b)) return; // already inside
+      // not covered yet: open a realistic block around the lesson, not just its own hour
+      const wins = have.concat([[Math.max(8, g.start - 2), Math.min(21, g.start + g.duration + 2)]]).sort((a, b) => a[0] - b[0]);
+      const merged = [];
+      wins.forEach(w => {
+        const last = merged[merged.length - 1];
+        if (last && w[0] <= last[1] + 1) last[1] = Math.max(last[1], w[1]); // overlapping, adjacent or one hour apart
+        else merged.push([w[0], w[1]]);
+      });
+      t.availability[d] = merged;
+    });
+  });
+
   /* Offline groups get a room: the first free one at their hours, so the
      plan starts mostly clean; a handful are then placed on purpose in a
      busy room so the console has real conflicts to show. */

@@ -742,3 +742,24 @@ body.ax .rp-card__p { flex: none; font-size: 0.7rem; font-weight: 700; letter-sp
   body.ax .rp-modeseg button { min-height: 40px; }
 }
 body.ax .rp-card__f .ax-st { white-space: normal; line-height: 1.2; }
+
+/* hour tiles: the teacher has another group (red) vs outside his schedule (violet) */
+body.ax .rp-hr--busy { border-color: var(--ax-bad); background: color-mix(in srgb, var(--ax-bad) 9%, var(--ax-panel)); }
+body.ax .rp-hr--busy small { color: var(--ax-bad); }
+body.ax .rp-hr--unav { border: 1px dashed var(--ax-swap); background: color-mix(in srgb, var(--ax-swap) 10%, var(--ax-panel)); }
+body.ax .rp-hr--unav small { color: var(--ax-swap); }
+body.ax .rp-hr--busy:hover { background: color-mix(in srgb, var(--ax-bad) 16%, var(--ax-panel)); }
+body.ax .rp-hr--unav:hover { background: color-mix(in srgb, var(--ax-swap) 18%, var(--ax-panel)); }
+body.ax .rp-hr[aria-checked="true"].rp-hr--busy, body.ax .rp-hr[aria-checked="true"].rp-hr--unav { border-style: solid; border-color: var(--ax-ink); background: var(--ax-ink); }
+body.ax .rp-hrs__key { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 8px 0 0; font-size: 0.74rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rp-hrs__key span { display: inline-flex; align-items: center; gap: 6px; }
+body.ax .rp-hrs__key i { width: 10px; height: 10px; border: 1px solid; border-radius: 1px; }
+body.ax .rp-hrs__key .is-busy i { border-color: var(--ax-bad); background: color-mix(in srgb, var(--ax-bad) 25%, transparent); }
+body.ax .rp-hrs__key .is-unav i { border: 1px dashed var(--ax-swap); background: color-mix(in srgb, var(--ax-swap) 25%, transparent); }
+body.ax .rp-hrs__key .is-room i { border-color: var(--ax-yellow-ink); background: var(--ax-yellow); }
+/* note under the reasons: why every day of the group is checked */
+body.ax .rp-note { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--ax-rule); font-size: 0.78rem; font-weight: 600; line-height: 1.4; color: var(--ax-ink-3); }
+body.ax .rp-tip .rp-note { color: var(--ax-ink-3); }
+/* hour header while dragging: same two colours */
+body.ax .rp-hour.v-unav { box-shadow: inset 0 -3px 0 var(--ax-swap); }
+body.ax .rp-hour.v-unav .rp-hour__v { color: var(--ax-swap); }

@@ -336,6 +336,13 @@
         pop.setAttribute('role', 'listbox');
         pop.addEventListener('pointerdown', e => e.preventDefault()); // keep focus in the field
         pop.addEventListener('click', e => { const o = e.target.closest('[data-i]'); if (o) pick(+o.dataset.i); });
+        // hover follows the pointer (not on scroll: only a real mouse move counts)
+        pop.addEventListener('pointermove', e => {
+          const o = e.target.closest('[data-i]');
+          if (!o || +o.dataset.i === act) return;
+          pop.querySelectorAll('.is-act').forEach(x => x.classList.remove('is-act'));
+          act = +o.dataset.i; o.classList.add('is-act');
+        });
         document.body.append(pop);
         document.addEventListener('pointerdown', onDown, true);
         document.addEventListener('scroll', onScroll, true);

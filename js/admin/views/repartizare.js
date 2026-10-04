@@ -104,7 +104,7 @@
   /* Would group g fit in `room` at `start`, on ALL its days? */
   function check(g, room, start) {
     const end = start + g.duration;
-    const res = { room: [], teacher: [], unavail: [], overflow: end > END || start < FIRST, small: 0 };
+    const res = { start, room: [], teacher: [], unavail: [], overflow: end > END || start < FIRST, small: 0 };
     D.groups.forEach(o => {
       if (o.id === g.id || !live(o)) return;
       if (o.start >= end || o.start + o.duration <= start) return;
@@ -121,16 +121,29 @@
     res.ok = !res.bad && !res.clash;
     return res;
   }
+  const cap = x => x.charAt(0).toUpperCase() + x.slice(1);
+  /* Every line starts with the day it is about, so a group held on two days
+     says which of its days causes the problem. `.note` explains why the other
+     day matters at all (the new hour applies to every day of the group). */
   function reasons(g, c) {
     const t = D.teacher(g.teacher);
     const out = [];
     if (c.overflow) out.push('Lecția s-ar termina după 21:00.');
-    c.teacher.forEach(({ o, days }) => out.push(`${t.name} are deja o grupă ${daysPhrase(days)}, ${range(o)} (${o.subject} ${o.grade}${o.room ? ', ' + roomName(o.room) : ', online'}).`));
-    if (c.unavail.length) out.push(`${t.name} nu e disponibil ${daysPhrase(c.unavail)} la această oră.`);
-    c.room.forEach(({ o, days }) => out.push(`${roomName(o.room)} e ocupat ${daysPhrase(days)}, ${range(o)}, de ${D.teacher(o.teacher).name} (${o.subject} ${o.grade}).`));
+    c.teacher.forEach(({ o, days }) => out.push(`${cap(daysPhrase(days))}: ${t.name} are deja ${o.subject} ${o.grade} la ${range(o)} (${o.room ? roomName(o.room) : 'online'}).`));
+    c.unavail.forEach(d => {
+      const wins = (t.availability[d] || []).map(([a, b]) => `${hh(a)}-${hh(b)}`).join(', ');
+      out.push(`${cap(DAY_LOWER[d - 1])}: ${t.name} nu lucrează la ${range(g, c.start)} (${wins ? 'program ' + wins : 'nu are program în această zi'}).`);
+    });
+    c.room.forEach(({ o, days }) => out.push(`${cap(daysPhrase(days))}: ${roomName(o.room)} e ocupat la ${range(o)} de ${D.teacher(o.teacher).name} (${o.subject} ${o.grade}).`));
     if (c.small) out.push(`Cabinetul are doar ${c.small} locuri, grupa are ${g.size}.`);
+    if (g.days.length > 1 && out.length) out.note = `Grupa se ține ${daysPhrase(g.days)}. Ora nouă se aplică în toate zilele, de aceea sunt verificate toate.`;
     return out;
   }
+  /* reasons as <p>/<span> lines plus the muted note */
+  const reasonsHTML = (g, c, tag, cls) => {
+    const r = reasons(g, c);
+    return r.map(x => `<${tag} class="${cls}">${esc(x)}</${tag}>`).join('') + (r.note ? `<${tag} class="rp-note">${esc(r.note)}</${tag}>` : '');
+  };
   function shortReason(c) {
     if (c.overflow) return 'După 21:00';
     if (c.teacher.length) return 'Prof. ocupat';
@@ -743,6 +756,7 @@
         <div class="rp-dlg__b">
           <h2 id="rpDlgT">${esc(title)}</h2>
           <ul>${list.map(r => `<li>${esc(r)}</li>`).join('')}</ul>
+          ${list.note ? `<p class="rp-note">${esc(list.note)}</p>` : ''}
           <p>${esc(note)}</p>
         </div>
         <div class="rp-dlg__f">
@@ -802,6 +816,7 @@
           const long = shortReason(c);
           const short = { 'Prof. ocupat': 'Ocupat', 'Indisponibil': 'Indisp.', 'După 21:00': 'Târziu' }[long] || long;
           hd.classList.add('v-bad');
+          if (!c.teacher.length && c.unavail.length) hd.classList.add('v-unav');
           hd.title = reasons(g, c).join(' ');
           hd.querySelector('.rp-hour__v').textContent = max ? (long === 'Prof. ocupat' ? 'Profesor ocupat' : long === 'Indisponibil' ? 'Profesor indisponibil' : long) : short;
         });
@@ -849,7 +864,7 @@
               ? `<b>${esc(where)}</b><span>Poziția actuală.</span>`
               : c.ok
                 ? `<b>${esc(where)}</b><span class="is-ok">${ico('check', 14)} Liber ${esc(daysPhrase(g.days))}.</span>`
-                : `<b>${esc(where)}</b>${reasons(g, c).map(r => `<span class="${c.bad ? 'is-bad' : 'is-warn'}">${esc(r)}</span>`).join('')}`;
+                : `<b>${esc(where)}</b>${reasonsHTML(g, c, 'span', c.bad ? 'is-bad' : 'is-warn')}`;
           }
         }
         tip.innerHTML = html;
@@ -877,11 +892,18 @@
         raf = requestAnimationFrame(autoScroll);
       };
 
+      let over = false;
       const end = async drop => {
+        if (over) return;
+        over = true;
         card.removeEventListener('pointermove', onMove);
         card.removeEventListener('pointerup', onUp);
         card.removeEventListener('pointercancel', onCancel);
+        card.removeEventListener('lostpointercapture', onCancel);
         document.removeEventListener('keydown', onKey, true);
+        document.removeEventListener('visibilitychange', onHide);
+        window.removeEventListener('blur', onCancel);
+        window.removeEventListener('hashchange', onCancel);
         if (!started) return;
         cancelAnimationFrame(raf);
         ghost.remove(); tip.remove();
@@ -889,26 +911,40 @@
         board.classList.remove('is-dragging');
         card.classList.remove('is-src');
         U.$$('.rp-cell', board).forEach(c => { c.className = 'rp-cell'; });
-        U.$$('.rp-hour.v-bad', board).forEach(hd => { hd.classList.remove('v-bad'); hd.removeAttribute('title'); hd.querySelector('.rp-hour__v').textContent = ''; });
+        U.$$('.rp-hour.v-bad', board).forEach(hd => { hd.classList.remove('v-bad', 'v-unav'); hd.removeAttribute('title'); hd.querySelector('.rp-hour__v').textContent = ''; });
         drag.justDropped = true;
         setTimeout(() => { drag.justDropped = false; }, 0);
         if (drop && target) await tryMove(g, target.room, target.start);
       };
       const onMove = ev => {
+        // the button was released somewhere we never heard about (other tab, other window)
+        if (ev.buttons === 0 && ev.pointerType === 'mouse') { end(false); return; }
         px = ev.clientX; py = ev.clientY;
         if (!started) { if (Math.hypot(px - x0, py - y0) < 6) return; begin(); }
         place();
       };
       const onUp = () => end(true);
       const onCancel = () => end(false);
+      const onHide = () => { if (document.hidden) end(false); };
       const onKey = ev => { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); end(false); } };
       try { card.setPointerCapture(e.pointerId); } catch (err) { /* old browsers */ }
       card.addEventListener('pointermove', onMove);
       card.addEventListener('pointerup', onUp);
       card.addEventListener('pointercancel', onCancel);
+      card.addEventListener('lostpointercapture', onCancel);
       document.addEventListener('keydown', onKey, true);
+      document.addEventListener('visibilitychange', onHide);
+      window.addEventListener('blur', onCancel);
+      window.addEventListener('hashchange', onCancel);
     });
   }
+  /* A ghost or tooltip must never outlive its drag (route change, re-render). */
+  function clearStrayDrag() {
+    document.querySelectorAll('.rp-ghost, .rp-tip').forEach(n => n.remove());
+    document.body.classList.remove('rp-grabbing');
+  }
+  window.addEventListener('hashchange', clearStrayDrag);
+  window.addEventListener('pagehide', clearStrayDrag);
 
   /* ============ drawer ============ */
   function openDrawer(gid, opts) {
@@ -957,6 +993,7 @@
           </select>` : ''}
         <span class="rp-dr__lbl" id="rpMvHL">Ora de început</span>
         <div class="rp-hrs" role="radiogroup" aria-labelledby="rpMvHL" id="rpMvH"></div>
+        <p class="rp-hrs__key" aria-hidden="true"><span class="is-busy"><i></i>are oră: profesorul predă altă grupă</span><span class="is-unav"><i></i>indisp.: în afara programului lui</span><span class="is-room"><i></i>ocupat: cabinetul e luat</span></p>
         <div class="rp-mv__res" id="rpMvRes" aria-live="polite"></div>
       </section>
 
@@ -988,10 +1025,13 @@
         const fits = h + g.duration <= END;
         const c = fits ? check(g, sel.room, h) : null;
         const cur = sel.room === g.room && h === g.start;
-        const k = !fits ? 'out' : c.ok ? 'ok' : c.bad ? 'bad' : 'room';
+        // two different problems, two different colours: the teacher teaches
+        // something else then (busy, red) / is outside his schedule (unav, amber)
+        const k = !fits ? 'out' : c.ok ? 'ok' : c.teacher.length ? 'busy' : c.unavail.length ? 'unav' : c.bad ? 'bad' : 'room';
         const word = !fits ? 'nu încape' : cur ? 'actual' : c.ok ? 'liber' : { 'Prof. ocupat': 'are oră', 'Indisponibil': 'indisp.', 'Ocupat': 'ocupat', 'Prea mic': 'prea mic', 'După 21:00': 'târziu' }[shortReason(c)];
         const full = !fits ? 'nu încape în program' : cur ? 'poziția actuală' : c.ok ? 'liber' : reasons(g, c).join(' ');
-        tiles.push(`<button type="button" role="radio" class="rp-hr rp-hr--${k}${cur ? ' is-cur' : ''}" data-h="${h}" aria-checked="${h === sel.start}"${fits ? '' : ' disabled'} tabindex="${h === sel.start ? 0 : -1}" aria-label="${hh(h)}, ${esc(full)}" title="${esc(full)}">
+        const aria = k === 'busy' ? 'profesorul are altă lecție' : k === 'unav' ? 'în afara programului profesorului' : '';
+        tiles.push(`<button type="button" role="radio" class="rp-hr rp-hr--${k}${cur ? ' is-cur' : ''}" data-h="${h}" aria-checked="${h === sel.start}"${fits ? '' : ' disabled'} tabindex="${h === sel.start ? 0 : -1}" aria-label="${hh(h)}, ${esc(aria ? aria + '. ' + full : full)}" title="${esc(full)}">
           <b>${hh(h)}</b><small>${esc(word)}</small>${k === 'room' ? '<i class="ax-hazard" aria-hidden="true"></i>' : ''}</button>`);
       }
       hrs.innerHTML = tiles.join('');
@@ -999,10 +1039,10 @@
       const c = check(g, sel.room, sel.start);
       const where = `${sel.room ? roomName(sel.room) + ', ' : ''}${range(g, sel.start)}`;
       res.innerHTML = (note ? `<p class="rp-mv__note">${note}</p>` : '') + (same
-        ? `<p class="rp-mv__line">${esc(where)}: poziția actuală${c.ok ? '' : ', cu probleme'}.</p>${c.ok ? '' : reasons(g, c).map(r => `<p class="rp-mv__line is-${c.bad ? 'bad' : 'warn'}">${esc(r)}</p>`).join('')}`
+        ? `<p class="rp-mv__line">${esc(where)}: poziția actuală${c.ok ? '' : ', cu probleme'}.</p>${c.ok ? '' : reasonsHTML(g, c, 'p', 'rp-mv__line is-' + (c.bad ? 'bad' : 'warn'))}`
         : c.ok
           ? `<p class="rp-mv__line is-ok">${ico('check', 16)} ${esc(where)}: liber ${esc(daysPhrase(g.days))}.</p>`
-          : reasons(g, c).map(r => `<p class="rp-mv__line is-${c.bad ? 'bad' : 'warn'}">${esc(r)}</p>`).join(''));
+          : reasonsHTML(g, c, 'p', 'rp-mv__line is-' + (c.bad ? 'bad' : 'warn')));
       save.disabled = same;
       save.innerHTML = `${ico('arrow-right', 16)} ${same ? 'Mută grupa' : c.ok ? 'Mută grupa' : 'Mută oricum'}`;
     };
@@ -1087,6 +1127,7 @@
     icon: 'door',
     badge: () => totalConflicts() || null,
     render(root, ctx) {
+      clearStrayDrag();
       M = { root, ctx, s: readState(ctx.query) };
       if (!ctx.query.day) writeState(M.s);
       root.innerHTML = headHTML();
