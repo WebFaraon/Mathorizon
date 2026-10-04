@@ -1420,5 +1420,39 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Volumul unui corp de rotație, cu integrandul dezvoltat",
+    "enunt": "Fie funcția $f\\colon [-2; 6] \\to \\mathbb{R}$, $f(x) = \\sqrt{x+3} + 2$.\n\nDeterminați valoarea numerică a volumului corpului obținut prin rotirea subgraficului funcției $f$ în jurul axei $Ox$.",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$V = \\pi \\int_{-2}^{6} \\left(\\sqrt{x+3} + 2\\right)^2 dx = \\pi \\int_{-2}^{6} \\left(x + 7 + 4\\sqrt{x+3}\\right) dx$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea unei primitive a funcției de sub simbolul integralei: primitiva primului termen",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "Determinarea unei primitive a funcției de sub simbolul integralei: primitiva celui de-al doilea termen",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 4,
+        "descriere": "Determinarea unei primitive a funcției de sub simbolul integralei: primitiva termenului al treilea",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 5,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei: $V = \\boxed{\\frac{424}{3}\\pi}$",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]

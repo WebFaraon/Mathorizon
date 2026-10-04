@@ -76,11 +76,12 @@ Forma corectă cu conținut subțire nu ajută un elev. Regulile de formă împi
 
 - **C1.** Calcul concret, nu reformulare a criteriului.
 - **C2. Autonomie.** Elevul citește doar enunțul și explicația pasului. Orice expresie care apare într-o formulă și nu e în enunț (integrandul simplificat, `G(3)`, noile limite) își arată originea în aceeași explicație.
-- **C3.** Nu se sare nicio operație. Nu „`G(3) = 6`", ci „`G(3) = 3^3/3 - 3 = 6`". Noile limite după o substituție se derivă. Nici operațiile cu fracții nu se sar. O valoare specială (trigonometrică, `arctg`, logaritm) se enunță și se justifică: „`arctg √3 = π/3`, deoarece `tg(π/3) = √3`". La fel „`ln e = 1`" și „`ln 1 = 0`" se scriu când se folosesc. Fără „se știe că", „valoare cunoscută", „unghi cunoscut".
+- **C3.** Nu se sare nicio operație. La Newton-Leibniz fiecare valoare `F(b)` și `F(a)` se arată în trei pași: expresia cu numerele înlocuite, calculul, rezultatul; nu direct „`F(6) = 132`". Nu „`G(3) = 6`", ci „`G(3) = 3^3/3 - 3 = 6`". Noile limite după o substituție se derivă. Nici operațiile cu fracții nu se sar. O valoare specială (trigonometrică, `arctg`, logaritm) se enunță și se justifică: „`arctg √3 = π/3`, deoarece `tg(π/3) = √3`". La fel „`ln e = 1`" și „`ln 1 = 0`" se scriu când se folosesc. Fără „se știe că", „valoare cunoscută", „unghi cunoscut".
 - **C4.** O transformare pe care criteriul o presupune dar nu o scrie (simplificarea integrandului înainte de substituție) se include la începutul explicației.
 - **C5.** Doar ce ține de pas: nu anticipa pașii următori, nu relua pașii anteriori.
 - **C6.** Nu comprima ca să încapi (ai loc de 4 blocuri), dar nici rânduri consecutive care repetă același calcul.
 - **C7.** Operațiile se numesc exact. Nu „însumăm" când de fapt scădem: dacă integrandul e `g - h`, primitiva e `G - H`, o diferență. Un elev care citește atent poate rămâne cu o idee greșită chiar dacă formula de sub text e corectă.
+- **C8.** O formulă folosită se scrie, nu doar se numește: nu „formula puterilor", ci `∫(x+a)^n dx = (x+a)^(n+1)/(n+1)`. Orice coeficient nou care apare (`2/3`, `8/3`) trebuie să se vadă născându-se: formula scrisă, apoi exponentul nou și împărțirea la el.
 
 ## Ce verifică lintul, concret
 
