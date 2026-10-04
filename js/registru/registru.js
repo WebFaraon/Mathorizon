@@ -32,17 +32,26 @@
   const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   const lastFirst = p => `${p.last} ${p.first}`;
 
-  const SNAME = { activ: 'Activ', proba: 'Oră de probă', proba_ok: 'Probă confirmată', instabil: 'Instabil', inlocuire: 'Înlocuire', transferat: 'Transferat', inactiv: 'Inactiv' };
+  // the statuses a student can have in the register, in the order of the sheet's dropdown
+  const SNAME = { proba: 'Oră de probă', activ: 'Activ', transferat: 'Transferat', inactiv: 'Inactiv', proba_ok: 'Oră de probă confirmată', inlocuire: 'Înlocuire', instabil: 'Instabil' };
+  const SORDER = ['proba', 'activ', 'transferat', 'inactiv', 'proba_ok', 'inlocuire', 'instabil'];
+  // presence marks: P present, G present at the first free lesson, M absent excused, A absent unexcused, B absent at the trial lesson
+  const MARK = {
+    P: { k: 'P', t: 'PREZENT', n: 'Prezent', c: 'p' },
+    G: { k: 'G', t: 'PREZENT PRIMA LECȚIE GRATUITĂ', n: 'Prezent prima lecție gratuită', c: 'g' },
+    M: { k: 'M', t: 'ABSENT MOTIVAT', n: 'Absent motivat', c: 'm' },
+    A: { k: 'A', t: 'ABSENT NEMOTIVAT', n: 'Absent nemotivat', c: 'a' },
+    B: { k: 'B', t: 'ABSENT PRIMA LECȚIE DE PROBĂ', n: 'Absent prima lecție de probă', c: 'b' }
+  };
   const GNAME = { activ: 'Activ', completare: 'Se completează', inlocuire: 'Înlocuire', inactiv: 'Inactiv' };
   const GCOUNT = { activ: 'Active', completare: 'Se completează', inlocuire: 'Înlocuire', inactiv: 'Inactive' };
-  const CODE = { P: ['PREZENT', 'p'], A: ['ABSENT', 'a'], M: ['ABSENT MOTIVAT', 'm'], G: ['PRIMA LECȚIE GRATUITĂ', 'g'] };
   const SHORT = { Matematica: 'Mat.', 'L.română': 'Rom.', Fizica: 'Fiz.', Istoria: 'Ist.', Chimie: 'Chim.', Biologie: 'Bio.', Engleza: 'Engl.', Geografie: 'Geo.' };
   const MONTH_HUE = [215, 195, 165, 125, 90, 52, 38, 26, 12, 345, 300, 255]; // Jan..Dec: June, July, August as in the sheet
   const H0 = 8, H1 = 21;                                                     // availability rows: 08:00 .. 20:00
   const HOURS = Array.from({ length: H1 - H0 }, (_, i) => H0 + i);
   const GRADES = D.GRADES;
 
-  const S = { tid: null, role: null, auth: null, book: null, cur: '', compact: false };
+  const S = { tid: null, role: null, auth: null, book: null, cur: '' };
   let view = null, tabsEl = null;
 
   /* ---------------- who is looking ---------------- */
@@ -69,6 +78,7 @@
           </a>
           <div class="rg-who" id="rgWho"></div>
           <div class="rg-top__r">
+            <span class="rg-saved" id="rgSaved" role="status" aria-live="polite"><i>${ico('check', 14)}</i><span>Salvat</span></span>
             <label class="rg-demo" title="Datele sunt generate în browser. Modificările rămân doar pe acest dispozitiv.">
               <i aria-hidden="true"></i><b>Date demo</b>
               <select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select>
@@ -77,8 +87,14 @@
             <a class="ax-btn rg-back" href="${back.href}">${ico(back.icon, 16)}<span>${back.label}</span></a>
           </div>
         </header>
-        <nav class="rg-tabs" aria-label="Foile registrului"><div class="rg-tabs__in" id="rgTabs" role="tablist"></div></nav>
         <main class="rg-view" id="rgView" tabindex="-1"></main>
+        <nav class="rg-tabs" aria-label="Foile registrului">
+          <div class="rg-tabs__in" id="rgTabs" role="tablist"></div>
+          <div class="rg-tabs__arr">
+            <button type="button" class="rg-arr" id="rgTL" data-dir="-1" aria-label="Taburi spre stânga" title="Taburi spre stânga"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10 3 5 8l5 5"/></svg></button>
+            <button type="button" class="rg-arr" id="rgTR" data-dir="1" aria-label="Taburi spre dreapta" title="Taburi spre dreapta"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="m6 3 5 5-5 5"/></svg></button>
+          </div>
+        </nav>
       </div>`;
   }
 
@@ -120,6 +136,55 @@
     const sc = tabsEl, l = on.offsetLeft, r = l + on.offsetWidth;
     if (l < sc.scrollLeft + 8) sc.scrollTo({ left: Math.max(0, l - 16), behavior: calm() ? 'auto' : 'smooth' });
     else if (r > sc.scrollLeft + sc.clientWidth - 8) sc.scrollTo({ left: r - sc.clientWidth + 16, behavior: calm() ? 'auto' : 'smooth' });
+    updateArrows();
+  }
+
+  /* the arrows at the end of the strip, as in the spreadsheet: a click moves a page of tabs,
+     holding moves them continuously, the wheel moves them too */
+  function updateArrows() {
+    const l = document.getElementById('rgTL'), r = document.getElementById('rgTR');
+    if (!l || !r || !tabsEl) return;
+    const max = tabsEl.scrollWidth - tabsEl.clientWidth;
+    l.disabled = tabsEl.scrollLeft <= 1;
+    r.disabled = tabsEl.scrollLeft >= max - 1;
+    l.parentElement.classList.toggle('is-idle', max <= 1);
+  }
+  function wireTabArrows() {
+    let hold = 0, raf = 0, dir = 0;
+    const step = () => { tabsEl.scrollLeft += dir * 14; raf = requestAnimationFrame(step); };
+    const stop = () => { clearTimeout(hold); cancelAnimationFrame(raf); raf = 0; dir = 0; };
+    document.querySelectorAll('.rg-arr').forEach(b => {
+      b.addEventListener('pointerdown', e => {
+        if (b.disabled || e.button > 0) return;
+        dir = +b.dataset.dir;
+        hold = setTimeout(() => { raf = requestAnimationFrame(step); b.dataset.held = '1'; }, 320);
+      });
+      b.addEventListener('click', () => {
+        if (b.dataset.held) { delete b.dataset.held; return; }
+        tabsEl.scrollBy({ left: +b.dataset.dir * Math.max(180, tabsEl.clientWidth * 0.7), behavior: calm() ? 'auto' : 'smooth' });
+      });
+    });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(ev => document.querySelectorAll('.rg-arr').forEach(b => b.addEventListener(ev, stop)));
+    tabsEl.addEventListener('scroll', () => requestAnimationFrame(updateArrows), { passive: true });
+    tabsEl.addEventListener('wheel', e => {
+      if (Math.abs(e.deltaY) > Math.abs(e.deltaX) && tabsEl.scrollWidth > tabsEl.clientWidth) { e.preventDefault(); tabsEl.scrollLeft += e.deltaY; }
+    }, { passive: false });
+  }
+
+  /* a small "Salvat" in the top bar after every edit */
+  function flashSaved() {
+    const el = document.getElementById('rgSaved');
+    if (!el) return;
+    el.classList.remove('is-on'); void el.offsetWidth; el.classList.add('is-on');
+    clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove('is-on'), 2200);
+  }
+  /* the tabs and the top bar show the status of the groups and the counts: redraw them after an edit */
+  function refreshChrome() {
+    paintTop();
+    tabsEl.innerHTML = tabsHTML();
+    const r = parseRoute();
+    tabsEl.querySelectorAll('.rg-tab').forEach(b => { const on = b.dataset.r === r.key; b.setAttribute('aria-selected', String(on)); b.tabIndex = on ? 0 : -1; });
+    moveBar(false);
   }
 
   /* ---------------- router ---------------- */
@@ -131,7 +196,7 @@
     return { key: 'total', name: 'total' };
   }
 
-  let leaveT = 0;
+  let leaveT = 0, enterT = 0;
   function route(first) {
     const r = parseRoute();
     const changed = r.key !== S.cur;
@@ -147,6 +212,7 @@
 
   function paint(r, entering) {
     closePop(); hideTip();
+    clearTimeout(enterT); view.classList.remove('is-entering');
     const keepScroll = !entering ? (view.querySelector('.rg-board, .rg-av-page') || {}) : null;
     const sx = keepScroll ? keepScroll.scrollLeft : 0, sy = keepScroll ? keepScroll.scrollTop : 0;
     view.dataset.tab = r.name;
@@ -162,7 +228,8 @@
     const sc = view.querySelector('.rg-board, .rg-av-page');
     if (sc && !entering) { sc.scrollLeft = sx; sc.scrollTop = sy; }
     if (entering) {
-      view.classList.remove('is-entering'); void view.offsetWidth; view.classList.add('is-entering');
+      void view.offsetWidth; view.classList.add('is-entering');
+      enterT = setTimeout(() => view.classList.remove('is-entering'), 1300);
       if (sc) sc.scrollTo(0, 0);
       U.countUp(view);
     }
@@ -171,8 +238,9 @@
   const repaint = () => paint(parseRoute(), false);
 
   /* ---------------- scroll shadows, hover cross, tooltip ---------------- */
-  function wireBoard(board) {
+  function wireBoard(board, opts) {
     if (!board) return;
+    const cross = !(opts && opts.cross === false);
     let raf = 0;
     const sync = () => { raf = 0; board.classList.toggle('is-sx', board.scrollLeft > 2); board.classList.toggle('is-sy', board.scrollTop > 2); };
     board.addEventListener('scroll', () => { if (!raf) raf = requestAnimationFrame(sync); }, { passive: true });
@@ -185,8 +253,10 @@
       col = c;
       if (c != null) board.querySelectorAll(`[data-c="${c}"]`).forEach(x => x.classList.add('is-col'));
     };
-    board.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const el = e.target.closest('[data-c]'); light(el ? el.dataset.c : null); });
-    board.addEventListener('pointerleave', () => light(null));
+    if (cross) {
+      board.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const el = e.target.closest('[data-c]'); light(el ? el.dataset.c : null); });
+      board.addEventListener('pointerleave', () => light(null));
+    }
     // tooltips on presence marks
     board.addEventListener('pointerover', e => { const el = e.target.closest('[data-tip]'); if (el && e.pointerType !== 'touch') showTip(el); });
     board.addEventListener('pointerout', e => { if (e.target.closest('[data-tip]') && !(e.relatedTarget && e.relatedTarget.closest && e.relatedTarget.closest('[data-tip]') === e.target.closest('[data-tip]'))) hideTip(); });
@@ -210,10 +280,10 @@
   function hideTip() { if (tipEl) tipEl.classList.remove('is-on'); }
 
   let popEl = null;
-  function openPop(anchor, html) {
+  function openPop(anchor, html, cls) {
     closePop();
     popEl = document.createElement('div');
-    popEl.className = 'rg-pop';
+    popEl.className = 'rg-pop' + (cls ? ' ' + cls : '');
     popEl.innerHTML = html;
     document.body.appendChild(popEl);
     const r = anchor.getBoundingClientRect(), w = popEl.offsetWidth, h = popEl.offsetHeight;
@@ -243,20 +313,22 @@
   const lines = arr => arr.map(x => `<span>${x}</span>`).join('');
   const mgrShort = m => { const p = m.name.split(' '); return `${p[p.length - 1]} ${p[0][0]}.`; };
 
+  const kv = items => `<span class="rg-kv">${items.map(([lab, n, dot]) => `<span class="rg-kv__r">${dot ? `<i class="rg-dot rg-s-${dot}"></i>` : ''}<em>${lab}</em><b>${n}</b></span>`).join('')}</span>`;
+  const chipsOf = items => `<span class="rg-chips">${items.map(([lab, n]) => `<span class="rg-chip">${esc(lab)}<b>${n}</b></span>`).join('')}</span>`;
+
   function monthsCell(months, kind) {
-    if (!months.length) return '<span class="rg-none">-</span>';
-    return months.map(m => {
-      let inner;
-      if (kind === 'state') inner = `<em class="p" title="Prezent">${m.P}</em><em class="a" title="Absent">${m.A}</em><em class="m" title="Absent motivat">${m.M}</em><em class="g" title="Prima lecție gratuită">${m.G}</em>`;
-      else if (kind === 'rate') inner = `<b>${m.pct}%</b><u class="rg-bar" aria-hidden="true"><i style="width:${m.pct}%"></i></u>`;
-      else if (kind === 'value') inner = `<b>${fm(m.value)}</b>`;
-      else if (kind === 'hours') inner = `<b>${fm(m.hours)}</b>`;
-      else {
-        const ids = Object.keys(m.mgr).sort((a, b) => m.mgr[b] - m.mgr[a]);
-        inner = ids.length ? `<span class="rg-m__l">${ids.map(id => `<span><u>${esc(mgrShort(D.manager(id)))}</u><b>${fm(m.mgr[id])}</b></span>`).join('')}</span>` : '<b>0</b>';
-      }
-      return `<span class="rg-m${kind === 'mgr' ? ' rg-m--col' : ''}"><i>${esc(m.name.slice(0, 3))}</i>${inner}</span>`;
+    if (!months.length) return '<span class="rg-none">Nicio lecție</span>';
+    const rows = months.map(m => {
+      const hue = MONTH_HUE[+m.key.slice(5) - 1];
+      const tag = `<i class="rg-mt" style="--mh:${hue}">${esc(m.name.slice(0, 3))}</i>`;
+      if (kind === 'state') return `<span class="rg-m">${tag}<span class="rg-mc">${['P', 'G', 'M', 'A', 'B'].map(c => `<em class="${MARK[c].c}" title="${esc(MARK[c].n)}">${m[c]}</em>`).join('')}</span></span>`;
+      if (kind === 'rate') return `<span class="rg-m">${tag}<span class="rg-mr"><u class="rg-bar" aria-hidden="true"><i style="width:${m.pct}%"></i></u><b>${m.pct}%</b></span></span>`;
+      if (kind === 'value') return `<span class="rg-m">${tag}<b class="rg-mv">${fm(m.value)}<small>lei</small></b></span>`;
+      if (kind === 'hours') return `<span class="rg-m">${tag}<b class="rg-mv">${fm(m.hours)}<small>ore</small></b></span>`;
+      const ids = Object.keys(m.mgr).sort((a, b) => m.mgr[b] - m.mgr[a]);
+      return `<span class="rg-m rg-m--col">${tag}<span class="rg-m__l">${ids.length ? ids.map(id => `<span><u>${esc(mgrShort(D.manager(id)))}</u><b>${fm(m.mgr[id])}</b></span>`).join('') : '<span><u>fără ore plătite</u><b>0</b></span>'}</span></span>`;
     }).join('');
+    return `<span class="rg-ms rg-ms--${kind}">${rows}</span>`;
   }
 
   function ledgerHTML(B) {
@@ -312,12 +384,12 @@
           ${head}
           ${row('rg-r--tall', 'Orarul', `<span class="rg-sm">${weekly} ${weekly === 1 ? 'lecție' : 'lecții'} pe săptămână</span>`,
             cells(L => ({ h: lines(D.schedule(L.g).map(x => `${esc(x.day)} ${hh(x.hour).slice(0, 5)} ${x.room ? 'cab ' + x.room : 'online'}`)), c: 'rg-sched' })))}
-          ${row('', 'Formatul grupului', `<span class="rg-sm rg-lines">${lines(distinct(gs, L => L.g.size, (k, n) => `${k === 1 ? 'Individual' : 'Grup cu ' + k}: ${n}`))}</span>`,
+          ${row('', 'Formatul grupului', kv(distinct(gs, L => L.g.size, (k, n) => [k === 1 ? 'Individual' : `Grup cu ${k} elevi`, n])),
             cells(L => ({ h: sizeLabel(L.g.size), c: 'rg-tone rg-tone--' + sizeTone(L.g.size) })))}
-          ${row('', 'Starea grupului', `<span class="rg-sm rg-lines">${lines(['activ', 'completare', 'inlocuire', 'inactiv'].map(k => `${GCOUNT[k]}: ${gs.filter(L => L.g.status === k).length}`))}</span>`,
+          ${row('', 'Starea grupului', kv(['activ', 'completare', 'inlocuire', 'inactiv'].map(k => [GNAME[k], gs.filter(L => L.g.status === k).length, k])),
             cells(L => ({ h: `<span class="rg-dot rg-s-${L.g.status}"></span>${esc(GNAME[L.g.status])}`, c: 'rg-tone rg-tone--st-' + L.g.status })))}
-          ${row('', 'Materia', `<span class="rg-sm rg-lines">${lines(distinct(gs, L => L.g.subject, (k, n) => `${esc(k)}: ${n}`))}</span>`, cells(L => ({ h: esc(subjLabel(L.g)), c: 'rg-cream' })))}
-          ${row('', 'Clasa', `<span class="rg-sm rg-lines">${lines(distinct(gs.slice().sort((a, b) => GRADES.indexOf(a.g.grade) - GRADES.indexOf(b.g.grade)), L => L.g.grade, (k, n) => `${k}: ${n}`))}</span>`,
+          ${row('', 'Materia', kv(distinct(gs, L => L.g.subject, (k, n) => [esc(k), n])), cells(L => ({ h: esc(subjLabel(L.g)), c: 'rg-cream' })))}
+          ${row('', 'Clasa', chipsOf(distinct(gs.slice().sort((a, b) => GRADES.indexOf(a.g.grade) - GRADES.indexOf(b.g.grade)), L => L.g.grade, (k, n) => [k, n])),
             cells(L => ({ h: esc(L.g.grade), c: 'rg-tone rg-tone--' + gradeTone(L.g.grade) })))}
           ${row('', 'Nivelul de studiu', '', cells(L => ({ h: esc(L.g.level), c: 'rg-cream' })))}
           ${row('', 'Profilul', '', cells(L => (L.g.profile ? { h: esc(L.g.profile), c: 'rg-tone rg-tone--' + (L.g.profile === 'Real' ? 'pink' : 'lilac') } : { h: '<span class="rg-none">-</span>', c: 'rg-cream' })))}
@@ -337,7 +409,7 @@
           ${row('', 'Datorii elevi', totNum(T.debt), cells(L => ({ h: sg(L.stats.debt), c: L.stats.debt < 0 ? 'rg-tone rg-tone--bad2' : '' })), 'rg-fig--k' + (T.debt < 0 ? ' is-bad' : ''))}
           ${row('', 'Avansuri elevi', totNum(T.adv), cells(L => ({ h: sg(L.stats.adv), c: L.stats.adv > 0 ? 'rg-tone rg-tone--good2' : '' })), 'rg-fig--k' + (T.adv > 0 ? ' is-good' : ''))}
           ${row('', 'Sold elevi', totNum(T.sold), cells(L => ({ h: sg(L.stats.sold), c: L.stats.sold > 0 ? 'rg-tone rg-tone--good2' : L.stats.sold < 0 ? 'rg-tone rg-tone--bad2' : '' })), 'rg-fig--k ' + sold(T.sold))}
-          ${row('rg-r--tall rg-r--top', 'Starea elevului la oră<span class="rg-key"><em class="p">prezent</em><em class="a">absent</em><em class="m">motivat</em><em class="g">gratuit</em></span>', `<span class="rg-ms">${monthsCell(B.months, 'state')}</span>`, cells(L => ({ h: `<span class="rg-ms">${monthsCell(L.months, 'state')}</span>`, c: 'rg-ml' })))}
+          ${row('rg-r--tall rg-r--top', 'Starea elevului la oră<span class="rg-key"><em class="p">prezent</em><em class="g">gratuit</em><em class="m">motivat</em><em class="a">nemotivat</em><em class="b">probă</em></span>', `<span class="rg-ms">${monthsCell(B.months, 'state')}</span>`, cells(L => ({ h: `<span class="rg-ms">${monthsCell(L.months, 'state')}</span>`, c: 'rg-ml' })))}
           ${row('rg-r--tall rg-r--top', 'Randament grupă', `<span class="rg-ms">${monthsCell(B.months, 'rate')}</span>`, cells(L => ({ h: `<span class="rg-ms">${monthsCell(L.months, 'rate')}</span>`, c: 'rg-ml' })))}
           ${row('rg-r--tall rg-r--top', 'Valoarea orelor consumate lunar', `<span class="rg-ms">${monthsCell(B.months, 'value')}</span>`, cells(L => ({ h: `<span class="rg-ms">${monthsCell(L.months, 'value')}</span>`, c: 'rg-ml' })))}
           ${row('rg-r--tall rg-r--top', 'Ore predate lunar', `<span class="rg-ms">${monthsCell(B.months, 'hours')}</span>`, cells(L => ({ h: `<span class="rg-ms">${monthsCell(L.months, 'hours')}</span>`, c: 'rg-ml' })))}
@@ -364,125 +436,84 @@
   /* ============================================================
      One group
      ============================================================ */
-  function nextLessons(g, n) {
-    if (g.status === 'inactiv') return [];
-    const out = [];
-    const d = new Date(D.today);
-    for (let i = 0; i < 28 && out.length < n; i++) {
-      d.setDate(d.getDate() + (i === 0 ? 0 : 1));
-      const wd = ((d.getDay() + 6) % 7) + 1;
-      if (g.days.includes(wd)) out.push({ label: `${d.getDate()} ${D.MONTHS[d.getMonth()]}`, month: d.getMonth(), today: i === 0 });
-    }
-    return out;
-  }
+  const SIZES = [1, 2, 3, 4, 5, 6, 7, 8].map(n => [n, sizeLabel(n)]);
+  const opts = (list, cur) => list.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(cur) ? ' selected' : ''}>${esc(l)}</option>`).join('');
+  const ps = (field, cur, list, tone, label) => `<div class="rg-ps ${tone}"><select class="ax-select" data-gf="${field}" aria-label="${esc(label)}">${opts(list, cur)}</select></div>`;
+  const STONE = { activ: 'ok', proba: 'info', proba_ok: 'info', instabil: 'warn', inlocuire: 'lilac', transferat: 'grey', inactiv: 'bad' };
+  const dateLabel = iso => { const d = new Date(iso + 'T00:00'); return `${d.getDate()} ${D.MONTHS[d.getMonth()]}`; };
 
-  function groupHTML(L) {
-    const g = L.g, t = D.teacher(g.teacher);
-    const free = Math.max(0, g.size - D.enrolled(g).length);
+  function groupTableHTML(L) {
+    const g = L.g;
     const nStu = L.rows.length;
-    const cols = nStu + free;
+    const cols = Math.max(12, nStu + 6);          // a register has many empty columns
+    const free = cols - nStu;
     const sched = D.schedule(g);
-    const up = nextLessons(g, 2);
-    const each = fn => L.rows.map((x, i) => fn(x, i)).join('');
-    const emptyCols = (fn) => Array.from({ length: free }, (_, k) => fn(nStu + k)).join('');
-    const xcol = (a, b, c) => `<td class="rg-gap"></td>${a}${b}${c}`;
-    const st = L.stats;
-    const pill = (txt, cls) => `<span class="rg-pillsel ${cls || ''}">${txt}<i>${ico('chevron-down', 14)}</i></span>`;
+    const each = fn => L.rows.map(fn).join('');
+    const ghost = fn => Array.from({ length: free }, (_, k) => fn(nStu + k)).join('');
+    const blankX = c => `<td class="rg-xc rg-x${c} is-blank"></td>`;
+    const schedX = n => { const s = sched[n]; return s
+      ? `<td class="rg-xc rg-x1">${esc(s.day)}</td><td class="rg-xc rg-x2">${hh(s.hour).slice(0, 5)}</td><td class="rg-xc rg-x3">${s.room ? s.room : 'online'}</td>`
+      : blankX(1) + blankX(2) + blankX(3); };
+    const person = m => (m ? lastFirst({ first: m.name.split(' ')[0], last: m.name.split(' ').slice(1).join(' ') }) : '');
 
-    const tone = { activ: 'ok', proba: 'info', proba_ok: 'info', instabil: 'warn', inlocuire: 'lilac', transferat: 'grey', inactiv: 'bad' };
-
-    const rows = [];
-    // 1 names
-    rows.push(`<tr class="rg-hr" data-hr="1">
-      <th class="rg-a rg-pillcell">${pill(`<span class="rg-long">${esc(sizeLabel(g.size))}</span><span class="rg-short">${g.size === 1 ? 'Individual' : g.size + ' elevi'}</span>`, 'rg-tone--' + sizeTone(g.size))}</th>
-      <th class="rg-b rg-hl-lab" colspan="2">DATELE ELEVULUI</th>
-      ${each((x, i) => `<th class="rg-sc rg-sname" data-c="${i}" scope="col"><button type="button" class="rg-sn" data-s="${x.s.id}"><b>${esc(lastFirst(x.s))}</b><small>${esc(x.s.phone)}</small></button></th>`)}
-      ${emptyCols(i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col"><span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span></th>`)}
-      ${xcol('<th class="rg-xh">Ziua</th>', '<th class="rg-xh">Ora</th>', '<th class="rg-xh">Cabinetul</th>')}
+    const head = [];
+    head.push(`<tr class="rg-hr" data-hr="1">
+      <th class="rg-a rg-pillcell">${ps('size', g.size, SIZES, 'rg-tone--' + sizeTone(g.size), 'Formatul grupei')}</th>
+      <th class="rg-hl-lab" colspan="2">DATELE ELEVULUI</th>
+      ${each((x, i) => `<th class="rg-sc rg-sname" data-c="${i}" scope="col"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(lastFirst(x.s))}"><b>${esc(lastFirst(x.s))}</b><small>${esc(x.s.phone)}</small></button></th>`)}
+      ${ghost(i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col"><span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span></th>`)}
+      <th class="rg-xh rg-x1">Ziua</th><th class="rg-xh rg-x2">Ora</th><th class="rg-xh rg-x3">Cabinetul</th>
     </tr>`);
-    const fin = (n, cls, lab, pillHTML, get, getFree) => {
-      const sx = [null, null, null, null, null, null];
-      const idx = n - 2; // schedule entry shown in this header row
-      const s = sched[idx];
-      rows.push(`<tr class="rg-hr rg-hr--fin" data-hr="${n}">
+    const fin = (n, cls, lab, pillHTML, get, getFree) => head.push(`<tr class="rg-hr rg-hr--fin" data-hr="${n}">
         <th class="rg-a rg-pillcell">${pillHTML}</th>
-        <th class="rg-b rg-hl-lab rg-hl--${cls}" colspan="2">${lab}</th>
-        ${each((x, i) => `<td class="rg-sc rg-fin rg-fin--${cls}${get(x).c ? ' ' + get(x).c : ''}" data-c="${i}">${get(x).h}</td>`)}
-        ${emptyCols(i => `<td class="rg-sc rg-fin rg-fin--${cls} is-free" data-c="${i}">${getFree}</td>`)}
-        ${xcol(s ? `<td class="rg-xc">${esc(s.day)}</td>` : '<td class="rg-xc is-blank"></td>', s ? `<td class="rg-xc">${hh(s.hour).slice(0, 5)}</td>` : '<td class="rg-xc is-blank"></td>', s ? `<td class="rg-xc">${s.room ? s.room : 'online'}</td>` : '<td class="rg-xc is-blank"></td>')}
+        <th class="rg-hl-lab rg-hl--${cls}" colspan="2">${lab}</th>
+        ${each((x, i) => { const v = get(x); return `<td class="rg-sc rg-fin rg-fin--${cls}${v.c ? ' ' + v.c : ''}" data-c="${i}">${v.h}</td>`; })}
+        ${ghost(i => `<td class="rg-sc rg-fin rg-fin--${cls} is-free" data-c="${i}">${getFree}</td>`)}
+        ${schedX(n - 2)}
       </tr>`);
-    };
-    fin(2, 'sold', 'SOLD', `<span class="rg-rate"><span class="rg-long">${fm(L.rate)} MDL/Oră</span><span class="rg-short">${fm(L.rate)}/oră</span></span>`,
+    fin(2, 'sold', 'SOLD',
+      `<span class="rg-rate"><input class="rg-rate-in" type="number" inputmode="numeric" min="50" max="2000" step="5" value="${L.rate}" data-rate aria-label="Prețul pe oră, în lei"><span>MDL/Oră</span></span>`,
       x => ({ h: sg(x.sold, 0), c: x.sold > 0 ? 'is-good' : x.sold < 0 ? 'is-bad' : '' }), '0');
-    fin(3, 'paid', 'ACHITĂRI', pill(esc(GNAME[g.status]), 'rg-tone--st-' + g.status), x => ({ h: fm(x.paid) }), '0');
-    fin(4, 'disc', 'REDUCERI', pill(`<span class="rg-long">${esc(subjLabel(g))}</span><span class="rg-short">${esc(SHORT[g.subject] || g.subject)}${g.regime === 'vara' ? ' V' : ''}</span>`, 'rg-cream'), x => ({ h: fm(x.disc) }), '0');
-    fin(5, 'cost', 'COSTUL LECȚIILOR', pill(esc(g.grade), 'rg-tone--' + gradeTone(g.grade)), x => ({ h: fm(x.cost) }), '0');
-    fin(6, 'done', 'EFECTUATE / DISPONIBILE', pill(esc(g.level), 'rg-cream'), x => ({ h: `${x.done} / ${fm(x.avail, 1)}`, c: x.avail < 0 ? 'is-bad-t' : '' }), '0 / 0,0');
-    fin(7, 'mgr', 'MANAGER', pill(esc(g.profile || 'Profilul'), g.profile ? 'rg-tone--' + (g.profile === 'Real' ? 'pink' : 'lilac') : 'rg-cream'), x => ({ h: x.manager ? esc(lastFirst({ first: x.manager.name.split(' ')[0], last: x.manager.name.split(' ').slice(1).join(' ') })) : '' }), '');
-    // 8 status + column heads
-    rows.push(`<tr class="rg-hr rg-hr--last" data-hr="8">
+    fin(3, 'paid', 'ACHITĂRI', ps('status', g.status, D.GROUP_STATUS.map(s => [s.id, s.name]), 'rg-tone--st-' + g.status, 'Starea grupei'), x => ({ h: fm(x.paid) }), '0');
+    fin(4, 'disc', 'REDUCERI', ps('subject', g.subject, D.SUBJECTS.map(s => [s, s]), 'rg-cream', 'Materia'), x => ({ h: fm(x.disc) }), '0');
+    fin(5, 'cost', 'COSTUL LECȚIILOR', ps('grade', g.grade, GRADES.map(s => [s, 'Clasa ' + s]), 'rg-tone--' + gradeTone(g.grade), 'Clasa'), x => ({ h: fm(x.cost) }), '0');
+    fin(6, 'done', 'EFECTUATE / DISPONIBILE', ps('level', g.level, D.LEVELS.map(s => [s, 'Nivel ' + s]), 'rg-cream', 'Nivelul de studiu'), x => ({ h: `${x.done} / ${fm(x.avail, 1)}`, c: x.avail < 0 ? 'is-bad-t' : '' }), '0 / 0,0');
+    fin(7, 'mgr', 'MANAGER', ps('profile', g.profile || '', [['', 'Profilul'], ['Real', 'Profil Real'], ['Uman', 'Profil Uman']], g.profile ? 'rg-tone--' + (g.profile === 'Real' ? 'pink' : 'lilac') : 'rg-cream', 'Profilul'), x => ({ h: esc(person(x.manager)) }), '');
+    head.push(`<tr class="rg-hr rg-hr--last" data-hr="8">
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
       <th class="rg-cc rg-colh rg-sumh" title="Suma lecțiilor">${fm(L.sum)}</th>
-      ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${tone[x.s.status] || 'grey'}" data-c="${i}">${esc(SNAME[x.s.status] || x.s.status)}</td>`)}
-      ${emptyCols(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
-      ${xcol('<th class="rg-colh rg-xlh">NIVELUL PROFESORULUI</th>', '<th class="rg-colh rg-xlh">PREZENȚA</th>', '<th class="rg-colh rg-xlh"></th>')}
+      ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${STONE[x.s.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.s.status)}</select></div></td>`)}
+      ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
+      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3"></th>
     </tr>`);
 
     const body = [];
     L.lessons.forEach((l, li) => {
-      body.push(`<tr class="rg-lr" style="--ri:${Math.min(li, 18)}">
-        <th class="rg-a rg-ld" style="--mh:${MONTH_HUE[l.date.getMonth()]}" scope="row"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date.getDate()} ${esc(D.MONTHS[l.date.getMonth()].slice(0, 3))}</span></th>
-        <td class="rg-b rg-lt" title="${esc(l.topic)}">${esc(l.topic)}</td>
-        <td class="rg-cc rg-lp">${fm(l.price)}</td>
+      const extra = li >= L.nGen;
+      body.push(`<tr class="rg-lr${extra ? ' is-extra' : ''}" data-li="${li}">
+        <th class="rg-a rg-ld" style="--mh:${MONTH_HUE[l.date.getMonth()]}" scope="row"><label class="rg-dc" title="Schimbă data"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date.getDate()} ${esc(D.MONTHS[l.date.getMonth()].slice(0, 3))}</span><input class="rg-di" type="date" value="${l.iso}" data-di="${li}" aria-label="Data lecției ${li + 1}"></label></th>
+        <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${li}" list="rgTopics" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
+        <td class="rg-cc rg-lp"><span>${fm(l.price)}</span>${extra ? `<button type="button" class="rg-x" data-del="${li}" title="Șterge lecția" aria-label="Șterge lecția ${li + 1}">${ico('x', 14)}</button>` : ''}</td>
         ${each((x, i) => {
-          const c = x.codes[li], info = c ? CODE[c] : null;
-          const tip = info ? `${lastFirst(x.s)}|${l.label}, ${l.topic}|${info[0]}${c === 'P' || c === 'A' ? ', ' + fm(l.price) + ' lei' : ', fără cost'}${x.flag === li ? '|Aici a depășit suma plătită' : ''}` : '';
-          return `<td class="rg-sc rg-pc" data-c="${i}">${info
-            ? `<span class="rg-pl rg-pl--${info[1]}${x.flag === li ? ' is-flag' : ''}" tabindex="0" data-tip="${esc(tip)}">${info[0]}</span>`
-            : '<span class="rg-pl rg-pl--e"></span>'}</td>`;
+          const c = x.codes[li], m = c ? MARK[c] : null;
+          const paid = c === 'P' || c === 'A';
+          const tip = m ? `${lastFirst(x.s)}|${l.label}${l.topic ? ', ' + l.topic : ''}|${m.n}${paid ? ', ' + fm(l.price) + ' lei' : ', fără cost'}${x.flag === li ? '|Aici a depășit suma plătită' : ''}` : '';
+          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${li}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}"${tip ? ` data-tip="${esc(tip)}"` : ''}>${m ? m.t : ''}</button></td>`;
         })}
-        ${emptyCols(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e"></span></td>`)}
-        ${xcol(`<td class="rg-xc"><span class="rg-lvl">Nivelul profesorului ${L.level}</span></td>`, `<td class="rg-xc rg-xp${l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.pct == null ? '' : l.pct + '%'}</td>`, '<td class="rg-xc is-blank"></td>')}
+        ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
+        <td class="rg-xc rg-x1"><span class="rg-lvl">Nivelul ${L.level}</span></td><td class="rg-xc rg-x2 rg-xp${l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.pct == null ? '' : l.pct + '%'}</td>${blankX(3)}
       </tr>`);
     });
-    up.forEach((u, k) => {
-      body.push(`<tr class="rg-lr rg-lr--next" style="--ri:${Math.min(L.lessons.length + k, 20)}">
-        <th class="rg-a rg-ld" style="--mh:${MONTH_HUE[u.month]}" scope="row"><span class="rg-long">${esc(u.label)}</span><span class="rg-short">${esc(u.label.split(' ')[0])} ${esc(u.label.split(' ')[1].slice(0, 3))}</span></th>
-        <td class="rg-b rg-lt"><em>${u.today ? 'Astăzi' : k === 0 ? 'Urmează' : 'Apoi'}</em></td>
-        <td class="rg-cc rg-lp"></td>
-        ${Array.from({ length: cols }, (_, i) => `<td class="rg-sc rg-pc" data-c="${i}"><span class="rg-pl rg-pl--e"></span></td>`).join('')}
-        ${xcol('<td class="rg-xc is-blank"></td>', '<td class="rg-xc is-blank"></td>', '<td class="rg-xc is-blank"></td>')}
-      </tr>`);
-    });
-    if (!L.lessons.length && !up.length) body.push(`<tr class="rg-lr"><td colspan="${6 + cols}" class="rg-empty-row">Nicio lecție ținută încă. Prima lecție apare aici după ce grupa începe.</td></tr>`);
+    const next = D.nextDate(g.id);
+    body.push(`<tr class="rg-addrow"><td colspan="${cols + 6}"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecția din ${esc(dateLabel(next))}</span></button></td></tr>`);
 
     return `
-      <div class="rg-group">
-      <div class="rg-gbar">
-        <div class="rg-gbar__t">
-          <h2>${esc(D.tabName(g))}</h2>
-          <p><span class="rg-dot rg-s-${g.status}"></span>${esc(GNAME[g.status])}<i>·</i>${esc(subjLabel(g))} ${esc(g.grade)}<i>·</i>${L.lessons.length} ${L.lessons.length === 1 ? 'lecție' : 'lecții'}<i>·</i>${nStu} ${nStu === 1 ? 'elev' : 'elevi'}<i>·</i>${esc(D.project(g.project).short)}</p>
-        </div>
-        <div class="rg-gbar__k">
-          <span class="rg-gstat"><small>Sold grupă</small><b class="${st.sold < 0 ? 'is-bad' : st.sold > 0 ? 'is-good' : ''}">${sg(st.sold)}</b></span>
-          <span class="rg-gstat"><small>Prezențe</small><b>${L.lessons.length ? st.success + '%' : '-'}</b></span>
-          <span class="rg-gstat rg-gstat--sal"><small>Câștigat</small><b>${fm(L.earned, 2)}</b></span>
-          <button type="button" class="rg-fold" id="rgFold" aria-pressed="${S.compact}" title="Ascunde sau arată cifrele elevilor">${ico('list', 16)}<span>Sumar</span></button>
-        </div>
-      </div>
-      <div class="rg-board rg-gboard" id="rgBoard" tabindex="0" aria-label="Foaia grupei ${esc(D.tabName(g))}">
-        <table class="rg-gsheet${S.compact ? ' is-compact' : ''}" style="--scols:${cols}">
-          <colgroup><col class="rg-col-a"><col class="rg-col-b"><col class="rg-col-c">${Array.from({ length: cols }, () => '<col class="rg-col-s">').join('')}<col class="rg-col-gap"><col class="rg-col-x1"><col class="rg-col-x2"><col class="rg-col-x3"></colgroup>
-          <thead>${rows.join('')}</thead>
-          <tbody>${body.join('')}</tbody>
-        </table>
-      </div>
-      <footer class="rg-legend" aria-label="Legendă">
-        <span><i class="rg-pl rg-pl--p"></i>Prezent</span><span><i class="rg-pl rg-pl--a"></i>Absent</span><span><i class="rg-pl rg-pl--m"></i>Absent motivat</span><span><i class="rg-pl rg-pl--g"></i>Prima lecție gratuită</span>
-        <span><i class="rg-pl rg-pl--p is-flag"></i>Aici elevul a depășit suma plătită</span><span class="rg-legend__n">Sold = achitări + reduceri − costul lecțiilor. Absența nemotivată se plătește.</span>
-      </footer>
-      </div>`;
+      <table class="rg-gsheet" style="--scols:${cols}">
+        <colgroup><col class="rg-col-a"><col class="rg-col-b"><col class="rg-col-c">${Array.from({ length: cols }, () => '<col class="rg-col-s">').join('')}<col class="rg-col-x1"><col class="rg-col-x2"><col class="rg-col-x3"></colgroup>
+        <thead>${head.join('')}</thead>
+        <tbody>${body.join('')}</tbody>
+      </table>`;
   }
 
   function studentDrawer(L, sid) {
@@ -505,24 +536,128 @@
           <dt>Lecții efectuate</dt><dd>${x.done}, mai are plătite ${fm(Math.max(0, x.avail), 1)}</dd>
         </dl>
         <h3 class="rg-dr-h">Ultimele lecții</h3>
-        <ul class="rg-dr-l">${recent.length ? recent.reverse().map(([c, i]) => `<li><span class="rg-pl rg-pl--${CODE[c][1]}">${CODE[c][0]}</span><span><b>${esc(L.lessons[i].label)}</b><small>${esc(L.lessons[i].topic)}</small></span></li>`).join('') : '<li class="rg-none">Nicio lecție încă.</li>'}</ul>`,
+        <ul class="rg-dr-l">${recent.length ? recent.reverse().map(([c, i]) => `<li><span class="rg-pl rg-pl--${MARK[c].c}">${MARK[c].t}</span><span><b>${esc(L.lessons[i].label)}</b><small>${esc(L.lessons[i].topic || 'fără temă')}</small></span></li>`).join('') : '<li class="rg-none">Nicio lecție încă.</li>'}</ul>`,
       actions: S.role === 'admin' ? `<a class="ax-btn ax-btn--primary" href="admin.html#elevi?q=${encodeURIComponent(s.last)}">Vezi în consolă ${ico('arrow-right', 16)}</a>` : ''
+    });
+  }
+
+  /* the table is drawn again after an edit (a few ms); scroll and focus stay where they were */
+  function refreshGroup(gid, focus) {
+    const board = view.querySelector('#rgBoard');
+    if (!board) return;
+    hideTip();
+    const sx = board.scrollLeft, sy = board.scrollTop;
+    board.innerHTML = groupTableHTML(D.ledger(gid));
+    board.scrollLeft = sx; board.scrollTop = sy;
+    if (focus) {
+      const b = board.querySelector(`.rg-pl[data-sid="${focus.sid}"][data-i="${focus.i}"]`);
+      if (b) { b.tabIndex = 0; b.focus({ preventScroll: true }); b.classList.add('is-pop'); }
+    }
+  }
+
+  function openMarkMenu(btn, gid) {
+    const cur = btn.dataset.m;
+    const pop = openPop(btn, `
+      <div class="rg-menu" role="menu" aria-label="Prezența">
+        ${Object.values(MARK).map(m => `<button type="button" role="menuitemradio" aria-checked="${m.k === cur}" class="rg-mi${m.k === cur ? ' is-on' : ''}" data-code="${m.k}"><i class="rg-pl rg-pl--${m.c}"></i><span>${m.n}</span><kbd>${m.k}</kbd></button>`).join('')}
+        <button type="button" role="menuitem" class="rg-mi rg-mi--clear" data-code=""><i class="rg-pl rg-pl--e"></i><span>Golește celula</span><kbd>Del</kbd></button>
+      </div>`, 'rg-pop--menu');
+    const items = Array.from(pop.querySelectorAll('.rg-mi'));
+    (items.find(x => x.classList.contains('is-on')) || items[0]).focus();
+    const pick = code => {
+      closePop();
+      D.setMark(gid, btn.dataset.sid, +btn.dataset.i, code);
+      flashSaved();
+      refreshGroup(gid, { sid: btn.dataset.sid, i: btn.dataset.i });
+    };
+    pop.addEventListener('click', e => { const b = e.target.closest('.rg-mi'); if (b) pick(b.dataset.code); });
+    pop.addEventListener('keydown', e => {
+      const at = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, at + 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(0, at - 1)].focus(); }
+      else if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); pick(''); }
+      else if (MARK[e.key.toUpperCase()] && !e.ctrlKey && !e.metaKey) { e.preventDefault(); pick(e.key.toUpperCase()); }
+      else if (e.key === 'Escape' || e.key === 'Tab') { e.preventDefault(); closePop(); btn.focus(); }
+    });
+  }
+
+  function wireGroup(board, gid) {
+    board.addEventListener('click', e => {
+      const pl = e.target.closest('.rg-pl[data-sid]');
+      if (pl) { openMarkMenu(pl, gid); return; }
+      const st = e.target.closest('[data-s]');
+      if (st) { studentDrawer(D.ledger(gid), st.dataset.s); return; }
+      if (e.target.closest('[data-add]')) {
+        D.addLesson(gid); flashSaved(); refreshGroup(gid);
+        const rows = board.querySelectorAll('.rg-lr'); const last = rows[rows.length - 1];
+        if (last) { last.classList.add('is-new'); const ti = last.querySelector('.rg-ti'); if (ti) { ti.focus({ preventScroll: true }); last.scrollIntoView({ block: 'nearest', behavior: calm() ? 'auto' : 'smooth' }); } }
+        return;
+      }
+      const del = e.target.closest('[data-del]');
+      if (del) {
+        const before = JSON.stringify(D.ledgerEdits());
+        D.removeLesson(gid, +del.dataset.del); flashSaved(); refreshGroup(gid);
+        U.toast('Lecția a fost ștearsă. <button type="button" class="rg-undo">Anulează</button>');
+        const u = document.querySelector('.ax-toasts .ax-toast:last-child .rg-undo');
+        if (u) u.addEventListener('click', () => { D.setLedgerEdits(JSON.parse(before)); refreshGroup(gid); u.closest('.ax-toast').classList.add('is-out'); });
+        return;
+      }
+      const di = e.target.closest('.rg-di');
+      if (di && di.showPicker) { try { di.showPicker(); } catch (err) { /* needs a gesture; the click is one */ } }
+    });
+    board.addEventListener('keydown', e => {
+      const t = e.target;
+      if (t.matches && t.matches('.rg-ti')) { if (e.key === 'Escape') { t.value = t.defaultValue; t.blur(); } return; }
+      const pl = t.closest && t.closest('.rg-pl[data-sid]');
+      if (!pl) return;
+      const li = +pl.dataset.i, c = +pl.closest('td').dataset.c;
+      const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
+      if (MARK[key] && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); D.setMark(gid, pl.dataset.sid, li, key); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: li }); return; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); D.setMark(gid, pl.dataset.sid, li, ''); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: li }); return; }
+      if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMarkMenu(pl, gid); return; }
+      let nl = li, nc = c;
+      if (e.key === 'ArrowDown') nl++; else if (e.key === 'ArrowUp') nl--; else if (e.key === 'ArrowRight') nc++; else if (e.key === 'ArrowLeft') nc--; else return;
+      e.preventDefault();
+      const n = board.querySelector(`tr[data-li="${nl}"] td[data-c="${nc}"] .rg-pl[data-sid]`);
+      if (n) { pl.tabIndex = -1; n.tabIndex = 0; n.focus(); }
+    });
+    board.addEventListener('change', e => {
+      const t = e.target;
+      if (t.matches('select[data-gf]')) {
+        const f = t.dataset.gf;
+        let v = t.value;
+        if (f === 'size') v = +v; else if (f === 'profile') v = v || null;
+        D.setGroup(gid, { [f]: v });
+        flashSaved(); refreshGroup(gid); refreshChrome();
+      } else if (t.matches('select[data-sst]')) {
+        D.setStudentStatus(t.dataset.sst, t.value);
+        flashSaved(); refreshGroup(gid); refreshChrome();
+      } else if (t.matches('input[data-di]')) {
+        if (!t.value) { t.value = t.defaultValue; return; }
+        D.setLesson(gid, +t.dataset.di, { d: t.value });
+        flashSaved(); refreshGroup(gid);
+      } else if (t.matches('input[data-ti]')) {
+        D.setLesson(gid, +t.dataset.ti, { t: t.value.trim() });
+        t.defaultValue = t.value; flashSaved();
+      } else if (t.matches('input[data-rate]')) {
+        const n = Math.round(+t.value);
+        if (!(n >= 50 && n <= 2000)) { t.value = D.ledger(gid).rate; U.toast('Prețul pe oră trebuie să fie între 50 și 2000 de lei.'); return; }
+        D.setRate(gid, n); flashSaved(); refreshGroup(gid);
+      }
     });
   }
 
   function renderGroup(v, gid) {
     const L = D.ledger(gid);
-    v.innerHTML = groupHTML(L);
+    const topics = D.topicsFor({ subject: L.g.subject, grade: L.g.grade });
+    v.innerHTML = `
+      <div class="rg-group">
+        <div class="rg-board rg-gboard" id="rgBoard" tabindex="0" aria-label="Foaia grupei ${esc(D.tabName(L.g))}">${groupTableHTML(L)}</div>
+        <datalist id="rgTopics">${topics.map(t => `<option value="${esc(t)}"></option>`).join('')}</datalist>
+      </div>`;
     const board = v.querySelector('#rgBoard');
-    wireBoard(board);
-    v.querySelector('#rgFold').addEventListener('click', e => {
-      S.compact = !S.compact;
-      e.currentTarget.setAttribute('aria-pressed', String(S.compact));
-      try { localStorage.setItem('bm_rg_compact', S.compact ? '1' : '0'); } catch (err) {}
-      board.querySelector('.rg-gsheet').classList.toggle('is-compact', S.compact);
-      board.scrollTop = 0;
-    });
-    board.addEventListener('click', e => { const b = e.target.closest('[data-s]'); if (b) studentDrawer(L, b.dataset.s); });
+    wireBoard(board, { cross: false });
+    wireGroup(board, gid);
   }
 
   /* ============================================================
@@ -560,10 +695,10 @@
     if (g) {
       const out = outsideOf(d, h);
       const lab = `${dn} ${hh(h)}, ocupat: ${g.subject} ${g.grade}${out ? ', în afara disponibilității' : ''}`;
-      return `<button type="button" class="rg-av is-busy${out ? ' is-out' : ''}" data-d="${d}" data-h="${h}" tabindex="-1" aria-label="${esc(lab)}"><span>Ocupat</span><small>${esc(SHORT[g.subject] || g.subject)} ${esc(g.grade)}</small>${out ? '<em aria-hidden="true">!</em>' : ''}</button>`;
+      return `<button type="button" class="rg-av is-busy${out ? ' is-out' : ''}" data-d="${d}" data-h="${h}" tabindex="-1" aria-label="${esc(lab)}"><span class="rg-av__t">Ocupat</span><small>${esc(SHORT[g.subject] || g.subject)} ${esc(g.grade)}</small>${out ? '<em aria-hidden="true">!</em>' : ''}</button>`;
     }
     const on = A.on[d].has(h);
-    return `<button type="button" class="rg-av${on ? ' is-on' : ''}" data-d="${d}" data-h="${h}" tabindex="${first ? 0 : -1}" aria-pressed="${on}" aria-label="${esc(dn + ' ' + hh(h))}"><span>${on ? 'Disponibil' : ''}</span></button>`;
+    return `<button type="button" class="rg-av${on ? ' is-on' : ''}" data-d="${d}" data-h="${h}" tabindex="${first ? 0 : -1}" aria-pressed="${on}" aria-label="${esc(dn + ' ' + hh(h))}"><span class="rg-av__t">${on ? 'Disponibil' : ''}</span></button>`;
   }
 
   function gridHTML() {
@@ -598,7 +733,7 @@
     if (on) A.on[d].add(h); else A.on[d].delete(h);
     btn.classList.toggle('is-on', on);
     btn.setAttribute('aria-pressed', String(on));
-    btn.firstElementChild.textContent = on ? 'Disponibil' : '';
+    btn.querySelector('.rg-av__t').textContent = on ? 'Disponibil' : '';
     btn.classList.remove('is-pop'); void btn.offsetWidth; btn.classList.add('is-pop');
     return true;
   }
@@ -609,6 +744,7 @@
     selfWrite = true;
     try { D.setAvailability(S.tid, o); } finally { selfWrite = false; }
     updateStats();
+    flashSaved();
     const chip = view.querySelector('#rgSave');
     if (chip) {
       chip.classList.remove('is-on'); void chip.offsetWidth; chip.classList.add('is-on');
@@ -625,7 +761,7 @@
       const d = +b.dataset.d, h = +b.dataset.h;
       if (A.busy[d].has(h)) { b.classList.toggle('is-out', outsideOf(d, h)); const em = b.querySelector('em'); if (outsideOf(d, h) && !em) b.insertAdjacentHTML('beforeend', '<em aria-hidden="true">!</em>'); else if (!outsideOf(d, h) && em) em.remove(); return; }
       const on = A.on[d].has(h);
-      b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.firstElementChild.textContent = on ? 'Disponibil' : '';
+      b.classList.toggle('is-on', on); b.setAttribute('aria-pressed', String(on)); b.querySelector('.rg-av__t').textContent = on ? 'Disponibil' : '';
     });
     updateStats();
   }
@@ -758,6 +894,7 @@
     const rows = teachRows.filter(r => r.subject).map(r => ({ subject: r.subject, grades: GRADES.filter(g => r.grades.includes(g)) }));
     selfWrite = true;
     try { D.setTeach(S.tid, rows); } finally { selfWrite = false; }
+    flashSaved();
     const chip = view.querySelector('#rgSave2');
     if (chip) { chip.classList.remove('is-on'); void chip.offsetWidth; chip.classList.add('is-on'); chip.querySelector('span').textContent = note || 'Salvat, se vede în consolă'; }
     const rs = view.querySelector('#rgReset');
@@ -872,7 +1009,6 @@
     if (role !== 'profesor' && role !== 'admin') { blocked('Acces interzis', 'Registrul este pentru profesori.', 'capitole.html', 'Înapoi la site'); return; }
     S.auth = auth; S.role = role;
     S.tid = resolveTeacher(auth);
-    try { S.compact = localStorage.getItem('bm_rg_compact') === '1'; } catch (e) {}
 
     const loading = document.getElementById('rgLoading');
     if (loading) loading.remove();
@@ -883,6 +1019,7 @@
     tabsEl = document.getElementById('rgTabs');
     paintTop();
     tabsEl.innerHTML = tabsHTML();
+    wireTabArrows();
 
     tabsEl.addEventListener('click', e => { const b = e.target.closest('.rg-tab'); if (b) location.hash = b.dataset.r; });
     tabsEl.addEventListener('keydown', e => {

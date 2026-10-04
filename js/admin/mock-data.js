@@ -285,14 +285,18 @@
 
   /* ---- local edits (demo only) ---- */
   const clone = o => JSON.parse(JSON.stringify(o));
-  const BASE = clone(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status })));
+  const BASE = clone(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile, size: g.size })));
+  const BASE_S = Object.fromEntries(students.map(s => [s.id, s.status]));
+  const idxS = Object.fromEntries(students.map(s => [s.id, s]));
   const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
   const baseG = Object.fromEntries(BASE.map(b => [b.id, b]));
   let edits = {};
   try { edits = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { edits = {}; }
   function applyEdits() {
-    BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status }));
+    BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status, subject: b.subject, grade: b.grade, level: b.level, profile: b.profile, size: b.size }));
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
+    Object.entries(BASE_S).forEach(([id, st]) => { idxS[id].status = st; });
+    Object.entries(edits.students || {}).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
     BASE_T.forEach(b => {
       const t = idx.teachers[b.id], e = (edits.teachers || {})[b.id] || {};
       t.availability = clone(e.availability || b.availability);
@@ -355,6 +359,13 @@
     edits.groups = edits.groups || {};
     edits.groups[id] = Object.assign({}, edits.groups[id] || {}, patch);
     Object.assign(idx.groups[id], patch);
+    if ('subject' in patch) teachers.forEach(t => { t.subjects = subjectsOf(t); });
+    save();
+  }
+  function patchStudent(id, patch) {
+    edits.students = edits.students || {};
+    edits.students[id] = Object.assign({}, edits.students[id] || {}, patch);
+    Object.assign(idxS[id], patch);
     save();
   }
 
@@ -384,6 +395,11 @@
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),
     edited: () => Object.keys(edits.groups || {}).length,
+    setGroup: (id, patch) => patchGroup(id, patch),
+    setStudentStatus: (id, status) => patchStudent(id, { status }),
+    baseStatus: id => BASE_S[id],
+    ledgerEdits: () => edits.ledger || {},
+    setLedgerEdits(v) { edits.ledger = v; save(); },
     setAvailability: (id, availability) => patchTeacher(id, { availability }),
     setTeach: (id, teach) => patchTeacher(id, { teach }),
     teacherEdited: id => !!((edits.teachers || {})[id]),
