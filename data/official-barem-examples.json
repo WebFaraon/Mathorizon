@@ -1454,5 +1454,34 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrală definită cu substituția t = x² + 1",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = \\frac{x}{x^2+1}$.\n\nCalculați:\n$$\\int_{0}^{1} f(x)\\,dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$t = x^2 + 1$, $dt = 2x\\,dx$, $t \\in [1; 2]$",
+        "puncte_maxime": 3
+      },
+      {
+        "nr": 2,
+        "descriere": "Obținerea integralei $\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t}$",
+        "puncte_maxime": 1
+      },
+      {
+        "nr": 3,
+        "descriere": "$\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t} = \\frac{1}{2}\\ln t\\,\\Big|_{1}^{2}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 4,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea răspunsului corect: $\\boxed{\\frac{1}{2}\\ln 2}$",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]

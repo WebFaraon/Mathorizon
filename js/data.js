@@ -6947,6 +6947,20 @@ BM.EXERCISES = [
       { descriere: "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei: $V = \\boxed{\\frac{424}{3}\\pi}$", puncte_maxime: 2, explicatie: "Adunăm primitivele obținute pentru a scrie primitiva totală $F(x)$:\n$$F(x) = \\frac{x^2}{2} + 7x + \\frac{8}{3}(x+3)\\sqrt{x+3}$$\nCalculăm valorile primitivei în capetele intervalului, $F(6)$ și $F(-2)$:\n$$\\begin{aligned} F(6) &= 18 + 42 + \\frac{8}{3} \\cdot 27 \\\\ &= 60 + 72 \\\\ &= 132 \\end{aligned}$$\n$$\\begin{aligned} F(-2) &= 2 - 14 + \\frac{8}{3} \\cdot 1 \\\\ &= -12 + \\frac{8}{3} \\\\ &= -\\frac{28}{3} \\end{aligned}$$\nAplicăm formula Newton-Leibniz pentru a afla volumul $V$:\n$$\\begin{aligned} V &= \\pi [F(6) - F(-2)] \\\\ &= \\pi \\left(132 + \\frac{28}{3}\\right) \\\\ &= \\frac{424}{3}\\pi \\end{aligned}$$" }
     ]
   },
+  {
+    id: 'an-int-006', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC Moldova',
+    title: 'Integrală cu substituția t = x² + 1',
+    statement: 'Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = \\frac{x}{x^2+1}$.\n\nCalculați:\n$$\\int_{0}^{1} f(x)\\,dx$$',
+    solution: '**Pasul 1.** Substituția $t = x^2 + 1$.\nDin $t = x^2 + 1$ obținem $dt = 2x\\,dx$, deci $x\\,dx = \\frac{dt}{2}$.\nLimitele de integrare: pentru $x = 0$ avem $t = 1$, iar pentru $x = 1$ avem $t = 2$, deci $t \\in [1; 2]$.\n\n**Pasul 2.** Obținerea integralei în variabila $t$.\n$$\\int_{0}^{1} \\frac{x}{x^2+1}\\,dx = \\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t}$$\n\n**Pasul 3.** O primitivă a lui $\\frac{1}{t}$ este $\\ln t$, deci\n$$\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t} = \\frac{1}{2}\\ln t\\,\\Big|_{1}^{2}$$\n\n**Pasul 4.** Aplicarea formulei Newton-Leibniz.\n$$\\frac{1}{2}\\ln t\\,\\Big|_{1}^{2} = \\frac{1}{2}\\left(\\ln 2 - \\ln 1\\right) = \\frac{1}{2}\\ln 2$$\n\n$$\\boxed{\\frac{1}{2}\\ln 2}$$',
+    barem: [
+      { descriere: "$t = x^2 + 1$, $dt = 2x\\,dx$, $t \\in [1; 2]$", puncte_maxime: 3, explicatie: "Notăm numitorul cu $t$ și calculăm diferențiala. Schimbăm limitele de integrare înlocuind pe $x$ în formula lui $t$.\n$$\\begin{aligned} t &= x^2 + 1 \\\\ dt &= 2x\\,dx \\\\ x\\,dx &= \\tfrac{1}{2}\\,dt \\end{aligned}$$\nPentru limita inferioară $x = 0$ obținem:\n$$t = 0^2 + 1 = 1$$\nPentru limita superioară $x = 1$ obținem:\n$$t = 1^2 + 1 = 2$$" },
+      { descriere: "Obținerea integralei $\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t}$", puncte_maxime: 1, explicatie: "Înlocuim variabila $x$ și diferențiala $x\\,dx$ în integrala inițială. Folosim noile limite de integrare determinate anterior.\n$$\\int_{0}^{1} \\frac{x}{x^2+1}\\,dx = \\int_{1}^{2} \\frac{\\tfrac{1}{2}\\,dt}{t}$$\nScoatem constanta în fața integralei:\n$$\\int_{1}^{2} \\frac{\\tfrac{1}{2}\\,dt}{t} = \\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t}$$" },
+      { descriere: "$\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t} = \\frac{1}{2}\\ln t\\,\\Big|_{1}^{2}$", puncte_maxime: 2, explicatie: "Integrăm funcția folosind formula integralei elementare pentru fracția inversă.\n$$\\int \\frac{1}{t}\\,dt = \\ln|t| + C$$\nDeoarece intervalul de integrare este pozitiv, scriem primitiva fără modul:\n$$\\frac{1}{2}\\int_{1}^{2} \\frac{dt}{t} = \\left. \\frac{1}{2}\\ln t \\right|_{1}^{2}$$" },
+      { descriere: "Aplicarea formulei Newton-Leibniz și obținerea răspunsului corect: $\\boxed{\\frac{1}{2}\\ln 2}$", puncte_maxime: 2, explicatie: "Aplicăm formula Newton-Leibniz scăzând valoarea primitivei în limita inferioară din valoarea în limita superioară. Folosim valoarea $\\ln 1 = 0$:\n$$\\left. F(t) \\right|_{a}^{b} = F(b) - F(a)$$\n$$\\begin{aligned} &\\left. \\frac{1}{2}\\ln t \\right|_{1}^{2} \\\\ &= \\frac{1}{2}\\ln 2 - \\frac{1}{2}\\ln 1 \\\\ &= \\frac{1}{2}\\ln 2 - 0 \\\\ &= \\frac{1}{2}\\ln 2 \\end{aligned}$$" }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri
