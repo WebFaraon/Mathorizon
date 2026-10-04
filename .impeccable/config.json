@@ -20,6 +20,75 @@
         "value": "archivo",
         "createdAt": "2026-10-02T11:23:41.512Z",
         "reason": "Admin console font, chosen in the admin direction round (seed 05ada60a) and documented in DESIGN.md 'Admin console'"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          "css/registru.css"
+        ],
+        "createdAt": "2026-10-04T20:14:09.656Z",
+        "reason": "assistant: the DESIGN.md type ramp belongs to the calculator world; the console (and this page, built on it) sizes in rem steps like css/admin.css"
+      },
+      {
+        "rule": "design-system-radius",
+        "value": "*",
+        "files": [
+          "css/registru.css"
+        ],
+        "createdAt": "2026-10-04T20:14:09.841Z",
+        "reason": "assistant: pill radii (9-12px) reproduce the sheet's presence pills and select chips from the user's screenshots"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "undocumented color rgba(255, 194, 14, 0.07) is outside design.md colors",
+        "createdAt": "2026-10-04T20:14:10.037Z",
+        "reason": "assistant: tint or text colour for the dark theme variants of the sheet palette, documented as --rg-* in DESIGN.md Registru section"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "undocumented color #fbe7cc is outside design.md colors",
+        "createdAt": "2026-10-04T20:14:10.210Z",
+        "reason": "assistant: tint or text colour for the dark theme variants of the sheet palette, documented as --rg-* in DESIGN.md Registru section"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "undocumented color #cfe6ff is outside design.md colors",
+        "createdAt": "2026-10-04T20:14:10.398Z",
+        "reason": "assistant: tint or text colour for the dark theme variants of the sheet palette, documented as --rg-* in DESIGN.md Registru section"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "undocumented color #0b5394 is outside design.md colors",
+        "createdAt": "2026-10-04T20:14:10.569Z",
+        "reason": "assistant: tint or text colour for the dark theme variants of the sheet palette, documented as --rg-* in DESIGN.md Registru section"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "css/registru.css"
+        ],
+        "createdAt": "2026-10-04T20:14:22.188Z",
+        "reason": "assistant: frozen-pane divider copied from the user's Excel register screenshots, plus the console's stat-sign top rule (.ax-stat pattern) and a next-lesson marker; none is a card accent"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "css/registru.css"
+        ],
+        "createdAt": "2026-10-04T20:14:22.344Z",
+        "reason": "assistant: top rule on stat signs follows the console's .ax-stat pattern in DESIGN.md; corner radius is 2px"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "css/registru.css"
+        ],
+        "createdAt": "2026-10-04T20:14:22.516Z",
+        "reason": "assistant: only the one-off fold of the payments list on phones remains (tab bar now animates on transform); small panel outside the scroll path"
       }
     ]
   }

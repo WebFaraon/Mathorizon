@@ -114,8 +114,7 @@
     const on = tabsEl && tabsEl.querySelector('.rg-tab[aria-selected="true"]');
     if (!bar || !on) return;
     if (!animate || calm()) bar.style.transition = 'none';
-    bar.style.width = on.offsetWidth + 'px';
-    bar.style.transform = `translateX(${on.offsetLeft}px)`;
+    bar.style.transform = `translateX(${on.offsetLeft}px) scaleX(${on.offsetWidth})`;
     if (!animate || calm()) { void bar.offsetWidth; bar.style.transition = ''; }
     // keep the active tab in view in the strip
     const sc = tabsEl, l = on.offsetLeft, r = l + on.offsetWidth;

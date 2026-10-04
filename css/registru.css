@@ -164,7 +164,7 @@ body.ax-rg {
 .rg-tab[aria-selected="true"] .rg-tab__n { background: var(--ax-ink); color: var(--ax-bg); }
 .rg-tab__s { width: 8px; height: 8px; flex: none; border-radius: 50%; background: var(--ax-off); }
 .rg-tabs__sep { align-self: center; flex: none; width: 1px; height: 22px; margin: 0 8px; background: var(--ax-rule-2); }
-.rg-tabs__bar { position: absolute; left: 0; bottom: 0; height: 4px; width: 0; background: var(--rg-avon); transition: transform 0.38s var(--ax-ease), width 0.38s var(--ax-ease); pointer-events: none; }
+.rg-tabs__bar { position: absolute; left: 0; bottom: 0; height: 4px; width: 1px; background: var(--rg-avon); transform-origin: 0 0; transition: transform 0.38s var(--ax-ease); pointer-events: none; }
 .rg-s-activ { background: var(--ax-st-activ); }
 .rg-s-completare { background: var(--ax-st-completare); }
 .rg-s-inlocuire { background: var(--ax-st-inlocuire); }
@@ -252,7 +252,7 @@ body.ax-rg {
 .rg-m__l span { display: flex; justify-content: space-between; gap: 6px; }
 .rg-m__l u { overflow: hidden; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; color: var(--rg-mute); }
 .rg-bar { position: relative; display: block; flex: 1; max-width: 70px; height: 6px; margin-left: 4px; background: var(--rg-line); }
-.rg-bar i { position: absolute; inset: 0 auto 0 0; background: var(--rg-green-d); width: 0; transition: width 0.7s var(--ax-ease); }
+.rg-bar i { position: absolute; inset: 0 auto 0 0; background: var(--rg-green-d); width: 0; }
 .rg-m b + .rg-bar { margin-left: 6px; }
 .rg-m:has(.rg-bar) b { margin-left: 0; min-width: 38px; }
 td.rg-ml { text-align: left; }
