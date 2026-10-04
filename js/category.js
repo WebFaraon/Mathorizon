@@ -685,7 +685,7 @@
            </div>`
         : `<div class="rarity-card__statement">
              <div class="rarity-card__statement-inner">
-               <div class="rarity-card__statement-formula math-content">${formula}</div>
+               <div class="rarity-card__statement-formula math-content math-pending">${formula}</div>
              </div>
            </div>`;
 
@@ -717,7 +717,10 @@
         </div>`;
     }).join('');
 
+    /* Only the cards that can be on screen play the entrance animation: 76
+       staggered animations on cards far below the fold are pure cost. */
     container.querySelectorAll('.rarity-card').forEach((card, i) => {
+      if (i >= ENTER_ANIMATED) return;
       card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
       card.classList.add('ex-entering');
       card.addEventListener('animationend', () => {
@@ -726,25 +729,67 @@
       }, { once: true });
     });
 
-    if (window.renderMathInElement) BM.renderMath(container);
-    /* Deferred a frame: on the initial subcategory navigation this renders
-       inside switchView's doShow *before* it un-hides the exercises section
-       (showEl.style.display is set back to '' right after this callback
-       returns) — measuring synchronously here would run against a
-       display:none ancestor, where every box/scroll dimension reads 0, so
-       nothing would ever get scaled. Waiting a frame guarantees the section
-       is actually visible and laid out first. */
-    requestAnimationFrame(() => shrinkRarityFormulasToFit(container));
-    /* The KaTeX web font can still be loading when the measurement above
-       runs, so scrollWidth is read off fallback-font metrics — usually
-       narrower than the real KaTeX glyphs. That under-measurement is what
-       let several formulas skip scaling entirely (computed as "already
-       fits") and then grow past the box once the real font swaps in, with
-       nothing left to re-trigger a recompute. Re-running once fonts are
-       actually ready re-measures against the final metrics. */
+    /* KaTeX is the expensive part (about 3 ms a card on a laptop, far more on
+       a phone), so only the cards near the viewport are typeset up front and
+       the rest as they are scrolled toward. Each batch is fitted in one pass
+       (see fitBoxes). Until a formula is typeset it is hidden (.math-pending)
+       so no raw $$ source ever flashes. */
+    lazyMath(container, '.rarity-card__statement-formula', fitBatch);
+    /* The KaTeX web font can still be loading when a batch is measured, so
+       scrollWidth is read off fallback-font metrics, usually narrower than
+       the real glyphs. Re-measuring the cards typeset so far once fonts are
+       ready corrects that (the ones typeset later already see the real font). */
     if (document.fonts && document.fonts.ready) {
       document.fonts.ready.then(() => shrinkRarityFormulasToFit(container));
     }
+  }
+
+  const ENTER_ANIMATED = 12;
+
+  /* Typeset the `selector` elements of `container` lazily: an IntersectionObserver
+     with a generous margin queues the ones coming into view, and a rAF loop
+     typesets a few per frame so the page never freezes on a long list.
+     `after(els)` runs once per batch (used to fit rarity formulas). A newer
+     call supersedes the previous one. */
+  let mathIO = null, mathRaf = 0;
+  function lazyMath(container, selector, after) {
+    if (mathIO) mathIO.disconnect();
+    cancelAnimationFrame(mathRaf);
+    mathRaf = 0;
+    const els = Array.from(container.querySelectorAll(selector));
+    const done = el => { el.classList.remove('math-pending'); };
+    if (!window.renderMathInElement || !('IntersectionObserver' in window)) {
+      BM.renderMath(container);
+      els.forEach(done);
+      if (after) requestAnimationFrame(() => after(els));
+      return;
+    }
+    const queue = [];
+    const BATCH = 6;
+    const pump = () => {
+      mathRaf = 0;
+      const batch = queue.splice(0, BATCH).filter(el => el.isConnected);
+      batch.forEach(el => { BM.renderMath(el); done(el); });
+      if (batch.length && after) after(batch);
+      if (queue.length) mathRaf = requestAnimationFrame(pump);
+    };
+    mathIO = new IntersectionObserver(entries => {
+      entries.forEach(en => {
+        if (!en.isIntersecting) return;
+        mathIO.unobserve(en.target);
+        queue.push(en.target);
+      });
+      // nearest the top of the screen first
+      queue.sort((x, y) => x.getBoundingClientRect().top - y.getBoundingClientRect().top);
+      if (queue.length && !mathRaf) mathRaf = requestAnimationFrame(pump);
+    }, { rootMargin: '700px 0px 900px 0px' });
+    els.forEach(el => mathIO.observe(el));
+  }
+  /* Typeset the math inside one element on demand (a card's statement when it opens). */
+  function ensureMath(el) {
+    if (!el || !el.hasAttribute('data-math-lazy')) return;
+    el.removeAttribute('data-math-lazy');
+    BM.renderMath(el);
   }
 
   /* Polynomial/matrix statements (polinoame) commonly render wider than the
@@ -753,32 +798,43 @@
      see css/style.css's .rarity-card__statement-formula comment. Scale each
      formula down only as much as it needs so it fits the box uniformly,
      instead of letting overflow-x:hidden silently clip long expressions. */
+  function fitBatch(formulas) {
+    fitBoxes(formulas.map(f => f.closest('.rarity-card__statement')).filter(Boolean));
+  }
   function shrinkRarityFormulasToFit(container) {
-    container.querySelectorAll('.rarity-card__statement').forEach(box => {
+    fitBoxes(Array.from(container.querySelectorAll('.rarity-card__statement')).filter(box => {
+      const f = box.querySelector('.rarity-card__statement-formula');
+      return f && !f.classList.contains('math-pending');
+    }));
+  }
+  /* Reads and writes are kept apart (reset all, measure all, scale all), so
+     the browser lays the page out once per batch instead of once per card. */
+  function fitBoxes(boxes) {
+    const items = [];
+    boxes.forEach(box => {
       const formula = box.querySelector('.rarity-card__statement-formula');
       if (!formula) return;
       formula.style.transform = '';
-      /* Measure the innermost KaTeX element, not `formula` itself — both
-         it and .katex-display carry their own overflow-x:hidden (see CSS),
-         and scrollWidth on an element only reports what's visible past a
-         *descendant's* own clipping, not past its own. Two nested hidden
-         layers meant formula.scrollWidth always came back pre-clipped to
-         "already fits", so overflow silently slipped through as invisible
-         clipped pixels instead of ever triggering a shrink. */
+      items.push({ box, formula });
+    });
+    /* Measure the innermost KaTeX element, not `formula` itself: both it and
+       .katex-display carry their own overflow-x:hidden (see CSS), and
+       scrollWidth only reports what is visible past a *descendant's* own
+       clipping, so formula.scrollWidth always read as "already fits". */
+    const SAFETY = 6; // a shrunk formula never sits flush against the box edge
+    const scales = items.map(({ box, formula }) => {
       const katex = formula.querySelector('.katex-display, .katex');
-      if (!katex) return;
+      if (!katex) return 1;
       const cs = getComputedStyle(box);
-      // A few px of slack so a shrunk formula never sits flush against the
-      // box edge — fitting exactly to the pixel reads as clipped even when
-      // technically nothing's cut off.
-      const SAFETY = 6;
       const availW = box.clientWidth  - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight)  - SAFETY;
       const availH = box.clientHeight - parseFloat(cs.paddingTop)  - parseFloat(cs.paddingBottom) - SAFETY;
       const needW  = katex.scrollWidth;
       const needH  = katex.scrollHeight;
-      if (!needW || !needH) return;
-      const scale = Math.min(1, availW / needW, availH / needH);
-      if (scale < 1) formula.style.transform = `scale(${scale.toFixed(3)})`;
+      if (!needW || !needH) return 1;
+      return Math.min(1, availW / needW, availH / needH);
+    });
+    items.forEach(({ formula }, i) => {
+      if (scales[i] < 1) formula.style.transform = `scale(${scales[i].toFixed(3)})`;
     });
   }
 
@@ -1104,7 +1160,7 @@
                 <span class="source-text">${BM.esc(ex.source)}</span>
               </div>
               <div class="ex-card__title">${BM.esc(ex.title)}</div>
-              ${mathPrev ? `<div class="ex-card__math-preview math-content">${mathPrev}</div>` : ''}
+              ${mathPrev ? `<div class="ex-card__math-preview math-content math-pending">${mathPrev}</div>` : ''}
             </div>
             <div class="ex-card__actions" onclick="event.stopPropagation()">
               ${window.BMAuth?.role === 'admin' && ex._custom ? `<button class="ex-action-btn edit" onclick="editExercise('${ex.id}')" title="Editează exercițiul">${icon('pencil', { size: 16 })}</button>` : ''}
@@ -1123,7 +1179,7 @@
           </div>
 
           <div class="ex-card__body" id="body-${ex.id}" onclick="toggleCard('${ex.id}')">
-            <div class="ex-card__statement math-content">${BM.trustedNl2br(ex.statement)}</div>
+            <div class="ex-card__statement math-content" data-math-lazy>${BM.trustedNl2br(ex.statement)}</div>
             ${BM.renderExerciseFigure(ex)}
             <div class="ex-card__solution math-content" id="sol-${ex.id}"></div>
             <div class="ex-card__foot">
@@ -1141,6 +1197,7 @@
 
     /* Stagger entry animation — class removed after animationend so reflows don't restart it */
     container.querySelectorAll('.ex-card').forEach((card, i) => {
+      if (i >= ENTER_ANIMATED) return;
       card.style.animationDelay = `${Math.min(i * 30, 300)}ms`;
       card.classList.add('ex-entering');
       card.addEventListener('animationend', () => {
@@ -1149,7 +1206,7 @@
       }, { once: true });
     });
 
-    if (window.renderMathInElement) BM.renderMath(container);
+    lazyMath(container, '.ex-card__math-preview');
   }
 
   /* ---- Card toggle (accordion: max 1 deschis odată) ---- */
@@ -1176,6 +1233,7 @@
 
     /* Dacă nu era deschis, îl deschidem — soluția rămâne ascunsă */
     if (!wasOpen) {
+      ensureMath(card.querySelector('.ex-card__statement'));
       card.classList.add('open');
       const btn = card.querySelector('.ex-card__expand');
       if (btn) btn.innerHTML = icon('chevron-up', { size: 16 });
@@ -1303,6 +1361,7 @@
       const card = document.getElementById(`card-${exId}`);
       if (card) {
         card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        ensureMath(card.querySelector('.ex-card__statement'));
         card.classList.add('open');
         card.style.borderColor = 'var(--accent)';
         setTimeout(() => { card.style.borderColor = ''; }, 2000);

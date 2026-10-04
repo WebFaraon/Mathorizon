@@ -20150,3 +20150,6 @@ body:has(#root) {
   #nav-root::after,
   #nav-root:has(.nav__mobile-menu.open)::after { transition: visibility 0s; }
 }
+
+/* formulas typeset lazily (js/category.js lazyMath): hidden until KaTeX has run, so raw $$ source never shows */
+.math-pending { visibility: hidden; }
