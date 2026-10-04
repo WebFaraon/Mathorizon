@@ -13,8 +13,16 @@
      rooms, teachers, managers, groups, students,
      group(id), teacher(id), manager(id), room(id), studentsOf(groupId),
      freeSeats(g), conflicts(day), move(groupId, patch), setStatus(...),
+     setAvailability(teacherId, availability), setTeach(teacherId, rows),
+     resetTeacher(id), teacherEdited(id), base(groupId),
      reset(), onChange(fn)
    }
+
+   js/admin/registru-data.js adds the teacher register ledger on top of this
+   (ledger, teacherBook, ...) and makes student balances and presence come
+   from it. The register page (registru.html) edits availability and the
+   teaching table through setAvailability / setTeach; another tab picks the
+   change up through the 'storage' event.
    ============================================================ */
 (function () {
   'use strict';
@@ -254,13 +262,43 @@
   const studentsByGroup = {};
   students.forEach(s => { if (s.group) (studentsByGroup[s.group] = studentsByGroup[s.group] || []).push(s); });
 
+  /* ---- what each teacher teaches, per grade (the "Detalii profesor" table of the register) ----
+     Own random stream, drawn after everything above, so the data above stays exactly as it was. */
+  const R2 = rng(20261004);
+  teachers.forEach(t => {
+    t.teach = t.subjects.map(subject => {
+      const own = groups.filter(g => g.teacher === t.id && g.subject === subject).map(g => GRADES.indexOf(g.grade));
+      const set = new Set(own);
+      const lo = own.length ? Math.min(...own) : 4, hi = own.length ? Math.max(...own) : 8;
+      for (let i = lo; i <= hi; i++) if (R2() < 0.8) set.add(i);
+      if (lo > 0 && R2() < 0.5) set.add(lo - 1);
+      if (hi < 11 && R2() < 0.5) set.add(hi + 1);
+      return { subject, grades: Array.from(set).sort((a, b) => a - b).map(i => GRADES[i]) };
+    });
+  });
+  const subjectsOf = t => {
+    const out = [];
+    t.teach.forEach(r => { if (!out.includes(r.subject)) out.push(r.subject); });
+    groups.forEach(g => { if (g.teacher === t.id && !out.includes(g.subject)) out.push(g.subject); });
+    return out;
+  };
+
   /* ---- local edits (demo only) ---- */
-  const BASE = JSON.parse(JSON.stringify(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status }))));
+  const clone = o => JSON.parse(JSON.stringify(o));
+  const BASE = clone(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status })));
+  const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
+  const baseG = Object.fromEntries(BASE.map(b => [b.id, b]));
   let edits = {};
   try { edits = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { edits = {}; }
   function applyEdits() {
     BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status }));
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
+    BASE_T.forEach(b => {
+      const t = idx.teachers[b.id], e = (edits.teachers || {})[b.id] || {};
+      t.availability = clone(e.availability || b.availability);
+      t.teach = clone(e.teach || b.teach);
+      t.subjects = subjectsOf(t);
+    });
   }
   applyEdits();
   const listeners = new Set();
@@ -268,6 +306,14 @@
     try { localStorage.setItem(STORE_KEY, JSON.stringify(edits)); } catch (e) { /* private mode */ }
     listeners.forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
   }
+  // The register (registru.html) edits the same store from another tab: pick its changes up live.
+  window.addEventListener('storage', e => {
+    if (e.key !== STORE_KEY) return;
+    try { edits = JSON.parse(e.newValue || '{}') || {}; } catch (err) { edits = {}; }
+    applyEdits();
+    listeners.forEach(fn => { try { fn(); } catch (err) { console.error(err); } });
+    document.dispatchEvent(new CustomEvent('bm:demo-external'));
+  });
 
   /* ---- helpers ---- */
   const enrolled = g => (studentsByGroup[g.id] || []).filter(s => !['inactiv', 'transferat'].includes(s.status));
@@ -312,6 +358,16 @@
     save();
   }
 
+  /* A teacher's weekly availability ({ day: [[from, to), ...] }) or teaching table, as the register writes it. */
+  function patchTeacher(id, patch) {
+    edits.teachers = edits.teachers || {};
+    edits.teachers[id] = Object.assign({}, edits.teachers[id] || {}, clone(patch));
+    const t = idx.teachers[id];
+    if (patch.availability) t.availability = clone(patch.availability);
+    if (patch.teach) { t.teach = clone(patch.teach); t.subjects = subjectsOf(t); }
+    save();
+  }
+
   window.AdminData = {
     DAYS, HOURS, PROJECTS, SUBJECTS, GRADES, LEVELS, GROUP_STATUS, STUDENT_STATUS,
     rooms, teachers, managers, groups, students,
@@ -328,6 +384,11 @@
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),
     edited: () => Object.keys(edits.groups || {}).length,
+    setAvailability: (id, availability) => patchTeacher(id, { availability }),
+    setTeach: (id, teach) => patchTeacher(id, { teach }),
+    teacherEdited: id => !!((edits.teachers || {})[id]),
+    resetTeacher(id) { if (edits.teachers) delete edits.teachers[id]; applyEdits(); save(); },
+    base: id => baseG[id],
     reset() { edits = {}; applyEdits(); save(); },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
   };

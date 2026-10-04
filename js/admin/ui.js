@@ -457,7 +457,7 @@
     if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const re = /^([−-]?)(\d{1,3}(?:\.\d{3})*|\d+)(,\d+)?(\s*%)?$/;
     const jobs = [];
-    root.querySelectorAll('.ax-stat__v, .ah-tile__fig > b, .rp-sum__v, .an-stat__v, .cl-hero b[data-v]').forEach(el => {
+    root.querySelectorAll('.ax-stat__v, .ah-tile__fig > b, .rp-sum__v, .an-stat__v, .cl-hero b[data-v], .rg-fig--k').forEach(el => {
       if (el.children.length || el.dataset.counted) return;
       const txt = el.textContent.trim();
       const m = re.exec(txt);

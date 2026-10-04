@@ -253,6 +253,8 @@
     };
     ['axDemoReset', 'axDemoReset2'].forEach(id => { const b = document.getElementById(id); if (b) b.addEventListener('click', resetDemo); });
     window.AdminData.onChange(() => refreshNav());
+    // the teacher's register (another tab) saved availability or subjects: show it here at once
+    document.addEventListener('bm:demo-external', () => { if (external) return; refreshNav(); render(false); U.toast('Date actualizate din Registrul profesorului.'); });
     // links that load another document: let the page fade out first
     document.addEventListener('click', e => {
       const a = e.target.closest && e.target.closest('a[href]');

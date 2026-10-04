@@ -562,6 +562,7 @@
           </div>
           <div class="pf-id__actions">
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
+            ${isActiveTeacher || isAdmin ? `<a href="registru.html" class="pf-key${isAdmin ? '' : ' pf-key--primary'}">${icon('book-open', { size: 16 })} Registru</a>` : ''}
             <button class="pf-key" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
           </div>
         </div>

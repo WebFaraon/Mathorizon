@@ -11,7 +11,8 @@
      project band; a group outside availability gets a red outline.
    - Toți profesorii: teachers × days, booked / available hours per
      cell, sortable by utilization.
-   Availability is read-only here: it comes from the teacher profile.
+   Availability is read-only here: the teacher sets it in the register (registru.html, tab
+   Disponibilitate), which writes the same demo store, also live across tabs.
    State lives in the URL: #disponibilitate?mode=all&t=t4&subj=...&fd=2&fh=15
    ============================================================ */
 (function () {
@@ -303,7 +304,10 @@
           <h2 class="dp-who__name">${esc(t.name)}</h2>
           <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span></p>
         </div>
-        <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
+        <div class="dp-who__keys">
+          <a class="ax-btn ax-btn--sm" href="registru.html?t=${t.id}#disponibilitate" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>
+          <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
+        </div>
       </div>
       <div class="ax-stats dp-tot">
         <div class="ax-stat"><span class="ax-stat__k">Ore disponibile</span><span class="ax-stat__v">${nf.format(w.avail)}</span><span class="ax-stat__s">pe săptămână</span></div>
@@ -315,7 +319,7 @@
         <span><i class="dp-key dp-key--av"></i>Disponibil</span>
         <span><i class="dp-key dp-key--g"></i>Grupă (banda arată proiectul)</span>
         <span><i class="dp-key dp-key--out"></i>Grupă în afara disponibilității</span>
-        <span class="dp-legend__note">${ico('info', 14)} Disponibilitatea vine din profilul profesorului</span>
+        <span class="dp-legend__note">${ico('info', 14)} Disponibilitatea vine din Registrul profesorului</span>
       </div>
       <div class="dp-grid-wrap">
         <div class="dp-grid" role="group" aria-label="Săptămâna lui ${esc(t.name)}">
@@ -520,7 +524,7 @@
             </div>
           </div>
         </header>
-        <p class="dp-ro">${ico('info', 16)}<span>Disponibilitatea vine din profilul profesorului. Aici doar se citește.</span></p>
+        <p class="dp-ro">${ico('info', 16)}<span>Disponibilitatea o completează profesorul în Registrul lui, tabul Disponibilitate. Aici doar se citește și se actualizează singură.</span></p>
         ${finderHTML()}
         <div class="ax-h2-row dp-main-h">
           <div><h2 class="ax-h2">${S.mode === 'all' ? 'Toți profesorii' : 'Săptămâna unui profesor'}</h2></div>
