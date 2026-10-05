@@ -56,9 +56,13 @@
 
   /* ---------------- who is looking ---------------- */
   function resolveTeacher(auth) {
-    const q = new URLSearchParams(location.search).get('t');
-    if (q && D.teacher(q)) return q;
-    try { const s = sessionStorage.getItem('bm_rg_teacher'); if (s && D.teacher(s)) return s; } catch (e) {}
+    // The admin can open any teacher's register (?t=). A teacher always gets his own: the one that matches his name
+    // (in this demo, anyone who does not match is the demo teacher t5).
+    if (S.role === 'admin') {
+      const q = new URLSearchParams(location.search).get('t');
+      if (q && D.teacher(q)) return q;
+      try { const s = sessionStorage.getItem('bm_rg_teacher'); if (s && D.teacher(s)) return s; } catch (e) {}
+    }
     const nm = norm(auth && auth.displayName && auth.displayName());
     const hit = nm && D.teachers.find(t => norm(`${t.first} ${t.last}`) === nm || norm(lastFirst(t)) === nm);
     return (hit || D.teacher('t5') || D.teachers[0]).id;
@@ -81,7 +85,7 @@
             <span class="rg-saved" id="rgSaved" role="status" aria-live="polite"><i>${ico('check', 14)}</i><span>Salvat</span></span>
             <label class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${D.fingerprint}">
               <i aria-hidden="true"></i><b>Date demo</b>
-              <select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select>
+              ${admin ? '<select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select>' : ''}
             </label>
             <button type="button" class="ax-icon-btn rg-ibtn" id="rgTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 18)}</button>
             <a class="ax-btn rg-back" href="${back.href}">${ico(back.icon, 16)}<span>${back.label}</span></a>
@@ -103,9 +107,9 @@
     const n = D.groups.filter(g => g.teacher === t.id && g.status !== 'inactiv').length;
     document.getElementById('rgWho').innerHTML = `
       <span class="rg-who__av" aria-hidden="true">${esc(initials(lastFirst(t)))}</span>
-      <span class="rg-who__t"><b>${esc(lastFirst(t))}</b><small>${esc(t.subjects.join(', '))} · nivelul ${D.tLevel(t.id)} · ${n} ${n === 1 ? 'grupă activă' : 'grupe active'}</small></span>`;
+      <span class="rg-who__t"><b>${esc(lastFirst(t))}</b><small>${esc(t.subjects.join(', '))} · ${n} ${n === 1 ? 'grupă activă' : 'grupe active'}</small></span>`;
     const sel = document.getElementById('rgTeacher');
-    sel.innerHTML = D.teachers.slice().sort((a, b) => a.name.localeCompare(b.name, 'ro')).map(x => {
+    if (sel) sel.innerHTML = D.teachers.slice().sort((a, b) => a.name.localeCompare(b.name, 'ro')).map(x => {
       const c = D.groups.filter(g => g.teacher === x.id).length;
       return `<option value="${x.id}"${x.id === S.tid ? ' selected' : ''}>${esc(lastFirst(x))} (${c})</option>`;
     }).join('');
@@ -474,7 +478,7 @@
       <th class="rg-cc rg-colh rg-sumh" title="Suma lecțiilor">${fm(L.sum)}</th>
       ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${STONE[x.s.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.s.status)}</select></div></td>`)}
       ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
-      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3"></th>
+      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3">SALARIUL LECȚIEI</th>
     </tr>`);
 
     const body = [];
@@ -482,13 +486,13 @@
       body.push(`<tr class="rg-lr" data-li="${li}">
         <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
         <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
-        <td class="rg-cc rg-lp"><span>${fm(l.price)}</span></td>
+        <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${l.counted ? fm(l.price) : ''}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
           return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
-        <td class="rg-xc rg-x1"><span class="rg-lvl">Nivelul ${L.level}</span></td><td class="rg-xc rg-x2 rg-xp${l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.pct == null ? '' : l.pct + '%'}</td>${blankX(3)}
+        <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td><td class="rg-xc rg-x3 rg-xs">${l.counted ? fm(l.pay) + ' lei' : ''}</td>
       </tr>`);
     });
     body.push(`<tr class="rg-addrow"><th class="rg-a rg-addc"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></th><td colspan="${cols + 5}" class="rg-addfill"></td></tr>`);
@@ -1112,7 +1116,8 @@
       if (window.BM && BM.toggleTheme) BM.toggleTheme();
       e.currentTarget.innerHTML = ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 18);
     });
-    document.getElementById('rgTeacher').addEventListener('change', e => {
+    const picker = document.getElementById('rgTeacher');
+    if (picker) picker.addEventListener('change', e => {
       S.tid = e.target.value;
       try { sessionStorage.setItem('bm_rg_teacher', S.tid); } catch (err) {}
       const u = new URL(location.href); u.searchParams.set('t', S.tid); u.hash = 'total';

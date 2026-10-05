@@ -17,7 +17,7 @@
    Added to window.AdminData (also setMark, setLesson, addLesson, removeLesson, setRate, nextDate):
      ledger(groupId)   -> { lessons, rows, stats, rate, ... } for one group
      teacherBook(tid)  -> { groups, totals, earned, payments, due, ... }
-     tLevel(tid), rateOf(group), tabName(group), schedule(group)
+     tLevel(tid), rateOf(group), rateBySize(size), lessonPay(size, present), tabName(group), schedule(group)
      MONTHS
 
    History is generated once from the original schedule of each group
@@ -79,11 +79,21 @@
 
   const LEVEL_PCT = { 1: 0.20, 2: 0.22, 3: 0.24, 4: 0.26, 5: 0.28 };
   const tLevel = tid => 2 + ((parseInt(tid.slice(1), 10) * 5) % 4);        // 2..5
-  function rateOf(g) {
-    const gi = D.GRADES.indexOf(g.grade);
-    const base = gi <= 3 ? 140 : gi <= 6 ? 160 : gi <= 8 ? 190 : gi <= 10 ? 218 : 240;
-    const k = g.project === 'exo' ? 1.1 : g.project === 'mat' ? 0.92 : 1;
-    return Math.round(base * k / 5) * 5;
+  /* What a student pays per hour, by the format of the group (individual 608, three students 288 each, ...).
+     Sizes 2, 4 and 5 are in between (not given): they can be corrected here, or per group in the sheet. */
+  const STUDENT_RATE = { 1: 608, 2: 380, 3: 288, 4: 250, 5: 230, 6: 218 };
+  const rateBySize = n => STUDENT_RATE[Math.min(6, Math.max(1, +n || 1))];
+  const rateOf = g => rateBySize(g.size);
+
+  /* What the teacher earns per hour of a lesson, by how many students came: everybody 255, one missing 218,
+     fewer 175, and never less than 175 for a lesson. (Individual: 255. Three students: 1 -> 175, 2 -> 218, 3 -> 255.
+     Six: 1 to 4 -> 175, 5 -> 218, 6 -> 255.) */
+  const PAY_MIN = 175, PAY_MID = 218, PAY_TOP = 255;
+  function lessonPay(size, present) {
+    if (present <= 0) return PAY_MIN;
+    if (present >= size) return PAY_TOP;
+    if (present === size - 1) return PAY_MID;
+    return PAY_MIN;
   }
 
   /* "Luni/Miercuri 12:00", "Joi 10:00-12:00 (Vară)": the name of the group's tab in the register */
@@ -112,7 +122,7 @@
   function generate(g) {
     const b = D.base(g.id) || g;
     const r = rng(hash('g' + g.id));
-    const rate = rateOf({ grade: b.grade, project: g.project });
+    const rate = rateBySize(b.size);
     const topics = topicsFor({ subject: b.subject, grade: b.grade });
 
     const from = new Date(D.today); from.setDate(from.getDate() - WINDOW_DAYS);
@@ -127,8 +137,8 @@
 
     let k = 0;
     const lessons = held.map((d, i) => {
-      const reduced = i > 0 && r() < 0.12;
-      const price = Math.round(rate * b.duration * (reduced ? 0.8 : 1));
+      void (i > 0 && r() < 0.12);                 // (the old random reduced price; the draw stays so the other numbers do not move)
+      const price = Math.round(rate * b.duration);
       const topic = topics[k % topics.length]; k += r() < 0.85 ? 1 : 0;
       return { date: d, topic, price };
     });
@@ -181,7 +191,8 @@
 
   function derive(g, G, ov) {
     ov = ov || {};
-    const rate = ov.rate || G.rate, k = rate / G.rate;
+    // what a student pays per hour follows the group's format (individual, 3, 6 ...) unless it was set by hand
+    const rate = ov.rate || rateBySize(g.size), k = rate / G.rate;
     const all = G.lessons.map((l, i) => {
       const o = (ov.l || {})[i] || {};
       return mkLesson(i, o.d ? parse(o.d) : l.date, o.t != null ? o.t : l.topic, Math.round(l.price * k));
@@ -191,13 +202,17 @@
     const rm = new Set(ov.rm || []);
     const lessons = all.filter(l => !rm.has(l.oid));
     lessons.forEach((l, pos) => { l.i = pos; });
+    // A lesson counts (students' cost, teacher's pay, hours, figures) only once it has a date AND a title:
+    // until then it shows no sum, so the teacher always fills both in.
+    lessons.forEach(l => { l.counted = !!(l.date && String(l.topic || '').trim()); if (!l.counted) l.price = 0; });
     const n = lessons.length;
+    const nCounted = lessons.filter(l => l.counted).length;
 
     const rows = G.rows.map(r => {
       const mine = (ov.m || {})[r.s.id] || {};
       const codes = lessons.map(l => (mine[l.oid] != null ? mine[l.oid] : (r.codes[l.oid] || '')));
       let cost = 0, done = 0;
-      codes.forEach((c, i) => { if (PAID_MARK[c]) { cost += lessons[i].price; done++; } });
+      codes.forEach((c, i) => { if (PAID_MARK[c] && lessons[i].counted) { cost += lessons[i].price; done++; } });
       const sold = r.paid + r.disc - cost;
       let flag = -1;
       if (sold < 0) { let run = 0; for (let i = 0; i < n; i++) { if (PAID_MARK[codes[i]]) run += lessons[i].price; if (run > r.paid + r.disc) { flag = i; break; } } }
@@ -206,7 +221,7 @@
 
     const st = { P: 0, A: 0, M: 0, G: 0, B: 0, paid: 0, cost: 0, disc: 0, debt: 0, adv: 0, sold: 0, active: 0, trial: 0, moved: 0, inactive: 0 };
     rows.forEach(x => {
-      x.codes.forEach(c => { if (c) st[c]++; });
+      x.codes.forEach((c, i) => { if (c && lessons[i].counted) st[c]++; });
       st.paid += x.paid; st.cost += x.cost; st.disc += x.disc; st.sold += x.sold;
       if (x.sold < 0) st.debt += x.sold; else st.adv += x.sold;
       const t = x.s.status;
@@ -216,22 +231,24 @@
       else st.inactive++;
     });
     const marks = st.P + st.A + st.M;
-    st.hours = n * G.dur;
-    st.avg = n ? (st.P + st.G) / n : 0;
+    st.hours = nCounted * G.dur;
+    st.avg = nCounted ? (st.P + st.G) / nCounted : 0;
     st.success = marks ? Math.round(st.P / marks * 100) : 0;
     st.absent = st.A + st.M + st.B;
 
+    // per lesson: who was there, and what the teacher earns for it (by how many came, with a floor)
     lessons.forEach((l, i) => {
       let there = 0, expected = 0;
       rows.forEach(x => { const c = x.codes[i]; if (c) { expected++; if (c === 'P' || c === 'G') there++; } });
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
+      l.pay = l.counted ? lessonPay(g.size, there) * G.dur : 0;
     });
 
     const months = [];
     const byKey = {};
     lessons.forEach((l, i) => {
-      if (!l.month) return;                       // a lesson without a date counts in no month yet
+      if (!l.month || !l.counted) return;         // a lesson without a date or a title counts in no month yet
       let m = byKey[l.month];
       if (!m) { m = byKey[l.month] = { key: l.month, name: l.monthName, P: 0, A: 0, M: 0, G: 0, B: 0, value: 0, hours: 0, mgr: {} }; months.push(m); }
       m.hours += G.dur;
@@ -245,9 +262,8 @@
     months.sort((a, b) => a.key.localeCompare(b.key));
     months.forEach(m => { const t = m.P + m.A + m.M; m.pct = t ? Math.round(m.P / t * 100) : 0; });
 
-    const pct = LEVEL_PCT[tLevel(g.teacher)];
-    const earned = Math.round(st.cost * pct * 100) / 100;
-    return { g, rate, baseRate: G.rate, dur: G.dur, nGen: G.lessons.length, lessons, rows, stats: st, months, sum: lessons.reduce((t, l) => t + l.price, 0), earned, level: tLevel(g.teacher), pct };
+    const earned = Math.round(lessons.reduce((t, l) => t + l.pay, 0) * 100) / 100;
+    return { g, rate, baseRate: G.rate, dur: G.dur, nGen: G.lessons.length, nCounted, lessons, rows, stats: st, months, sum: lessons.reduce((t, l) => t + l.price, 0), earned, level: tLevel(g.teacher) };
   }
 
   function ledger(gid) {
@@ -332,7 +348,7 @@
     payments.reverse();
     const paid = payments.reduce((n, p) => n + p.amount, 0);
 
-    return { teacher: t, level: tLevel(tid), pct: LEVEL_PCT[tLevel(tid)], groups, totals: T, months, earned, payments, paid, due: Math.round((earned - paid) * 100) / 100 };
+    return { teacher: t, level: tLevel(tid), groups, totals: T, months, earned, payments, paid, due: Math.round((earned - paid) * 100) / 100 };
   }
 
   /* ---- the ledger is the source of the balances the console shows ---- */
@@ -350,7 +366,7 @@
 
   // an edit (here, in another tab, or a reset of the demo data): rebuild what depends on it
   let seen = JSON.stringify(D.ledgerEdits());
-  const sig = () => D.students.map(s => s.status + s.manager).join();
+  const sig = () => D.students.map(s => s.status + s.manager).join() + '|' + D.groups.map(g => g.size).join();   // the group's format sets the price and the pay
   let statuses = sig();
   D.onChange(() => {
     const now = JSON.stringify(D.ledgerEdits());
@@ -361,5 +377,5 @@
     D.groups.forEach(g => applyToStudents(g.id));
   });
 
-  Object.assign(D, { MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, tabName, schedule, LEVEL_PCT, setMark, setLesson, addLesson, removeLesson, setRate, nextDate });
+  Object.assign(D, { MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, nextDate });
 })();

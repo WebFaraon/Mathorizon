@@ -31,7 +31,8 @@ D.groups.forEach(g => {
     ok(last.every((m, k) => x.s.presence[3 - last.length + k] === m), g.id + ' presence ' + x.s.id);
   });
   ok(sumSold === L.stats.sold && sumPaid === L.stats.paid && sumCost === L.stats.cost, g.id + ' group sums');
-  ok(near(L.earned, Math.round(L.stats.cost * L.pct * 100) / 100), g.id + ' earned');
+  ok(near(L.earned, L.lessons.reduce((t, l) => t + l.pay, 0)), g.id + ' earned = sum of the lesson pays');
+  L.lessons.forEach(l => { if (l.counted) { ok(l.pay >= 175 * L.dur, g.id + ' pay is never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
   nLessons += L.lessons.length;
   ok(L.lessons.every((l, i) => l.i === i), g.id + ' lesson positions');
   ok(L.sum === L.lessons.reduce((t, l) => t + l.price, 0), g.id + ' price sum');
@@ -55,6 +56,10 @@ D.teachers.forEach(t => {
   ok(t.teach.length > 0 && t.subjects.length >= t.teach.length, t.id + ' teach/subjects');
 });
 
+// the pay scheme and the prices, as agreed
+ok(D.rateBySize(1) === 608 && D.rateBySize(3) === 288, 'student prices: individual 608, three 288');
+[[1, 1, 255], [1, 0, 175], [3, 1, 175], [3, 2, 218], [3, 3, 255], [3, 0, 175], [6, 1, 175], [6, 2, 175], [6, 3, 175], [6, 4, 175], [6, 5, 218], [6, 6, 255], [6, 0, 175], [2, 1, 218], [2, 2, 255]]
+  .forEach(([size, present, pay]) => ok(D.lessonPay(size, present) === pay, 'pay for size ' + size + ' with ' + present + ' present = ' + pay + ' (got ' + D.lessonPay(size, present) + ')'));
 // edits: each mark has the effect it should
 const g = 'g080', L0 = D.ledger(g); const x0 = L0.rows.find(r => r.codes.some((c, i) => c === 'P'));
 const i0 = x0.codes.findIndex(c => c === 'P'); const oid = L0.lessons[i0].oid; const price = L0.lessons[i0].price;
@@ -68,7 +73,14 @@ D.setMark(g, x0.s.id, oid, ''); ok(soldOf() === base + price, 'empty is free');
 D.setMark(g, x0.s.id, oid, 'P'); ok(soldOf() === base, 'P is charged');
 const rate0 = D.ledger(g).rate; D.setRate(g, rate0 + 10); ok(D.ledger(g).rate === rate0 + 10 && soldOf() < base, 'raising the rate raises the cost'); D.setRate(g, 0); ok(D.ledger(g).rate === rate0, 'rate back');
 const n0 = D.ledger(g).lessons.length;
-D.addLesson(g); ok(D.ledger(g).lessons.length === n0 + 1 && D.ledger(g).lessons.slice(-1)[0].label === 'Alege data', 'added lesson has no date');
+const earn0 = D.ledger(g).earned, hours0 = D.ledger(g).stats.hours, cost0 = D.ledger(g).stats.cost, sum0 = D.ledger(g).sum;
+  D.addLesson(g); ok(D.ledger(g).lessons.length === n0 + 1 && D.ledger(g).lessons.slice(-1)[0].label === 'Alege data', 'added lesson has no date');
+  { const nl = D.ledger(g).lessons.slice(-1)[0]; ok(!nl.counted && nl.price === 0 && nl.pay === 0, 'an added lesson shows no sum'); D.setMark(g, x0.s.id, nl.oid, 'P');
+    ok(D.ledger(g).earned === earn0 && D.ledger(g).stats.hours === hours0 && D.ledger(g).stats.cost === cost0 && D.ledger(g).sum === sum0, 'an incomplete lesson adds nothing: not to the cost, the hours, the pay');
+    D.setLesson(g, nl.oid, { d: '2026-10-12' }); ok(!D.ledger(g).lessons.slice(-1)[0].counted, 'a date alone is not enough');
+    D.setLesson(g, nl.oid, { t: 'Tema' }); { const c = D.ledger(g).lessons.slice(-1)[0]; ok(c.counted && c.price > 0 && c.pay >= 175 && D.ledger(g).earned > earn0 && D.ledger(g).stats.cost > cost0 && D.ledger(g).stats.hours === hours0 + D.ledger(g).dur, 'date and title together make it count (price ' + c.price + ', pay ' + c.pay + ')'); }
+    D.setLesson(g, nl.oid, { t: '  ' }); ok(!D.ledger(g).lessons.slice(-1)[0].counted && D.ledger(g).earned === earn0, 'clearing the title takes it out again');
+    D.setLesson(g, nl.oid, { t: 'Tema' }); D.setMark(g, x0.s.id, nl.oid, ''); }
 const nl = D.ledger(g).lessons.slice(-1)[0]; D.setLesson(g, nl.oid, { d: '2026-10-12' }); ok(D.ledger(g).lessons.slice(-1)[0].label === '12 octombrie', 'date set');
 D.removeLesson(g, nl.oid); ok(D.ledger(g).lessons.length === n0, 'added lesson removed');
 D.removeLesson(g, L0.lessons[1].oid); const L2 = D.ledger(g); ok(L2.lessons.length === n0 - 1 && L2.lessons.every((l, i) => l.i === i), 'generated lesson removed, positions renumbered');
