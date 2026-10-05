@@ -749,6 +749,9 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-av:not(.is-on):not(.is-busy):hover::after, .rg-av.is-on:hover::after { opacity: 0; }
 }
 @media (pointer: coarse) {
+  /* on a touch screen the pills of the first column are finger-sized and the rows grow with them */
+  .rg-pillcell .rg-ps .ax-sel__btn { height: 32px !important; min-height: 32px !important; }
+  .rg-gsheet { --hr: 44px; }
   .rg-gl { min-height: 40px; }
   .rg-brand { min-height: 44px; }
   .rg-av { height: 44px; }
