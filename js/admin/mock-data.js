@@ -137,8 +137,12 @@
 
   /* ---- groups ---- */
   const DAY_PATTERNS = [[1, 3], [2, 4], [3, 5], [1, 4], [2, 5], [6, 7], [1], [2], [3], [4], [5], [6], [7], [6], [7]];
-  const today = new Date();
-  today.setHours(0, 0, 0, 0);
+  /* The demo's "today" is a fixed day, not the device's clock: lessons, balances and payments are generated
+     up to it, so every device, in every time zone and on every day shows exactly the same data (and the
+     shared edits in Supabase stay attached to the lessons they were made on). To move the demo forward,
+     change this date and press "Resetează" in the console once. */
+  const DEMO_DAY = [2026, 10, 5];
+  const today = new Date(DEMO_DAY[0], DEMO_DAY[1] - 1, DEMO_DAY[2]);   // local midnight of that calendar day
   // Local calendar date (toISOString would shift it to UTC, a day back here).
   const iso = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   const addDays = (d, n) => { const x = new Date(d); x.setDate(x.getDate() + n); return x; };

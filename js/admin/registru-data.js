@@ -281,7 +281,7 @@
   function nextDate(gid) {
     const L = ledger(gid), g = L.g;
     const dated = L.lessons.filter(l => l.date);
-    const lastD = dated.length ? new Date(Math.max.apply(null, dated.map(l => l.date.getTime()))) : new Date(D.today.getTime() - DAY_MS);
+    const lastD = dated.length ? new Date(Math.max.apply(null, dated.map(l => l.date.getTime()))) : new Date(D.today.getFullYear(), D.today.getMonth(), D.today.getDate() - 1);
     const d = new Date(lastD);
     for (let i = 0; i < 14; i++) { d.setDate(d.getDate() + 1); if (g.days.includes(wd(d))) return D.iso(d); }
     return D.iso(d);
