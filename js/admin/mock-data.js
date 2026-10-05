@@ -213,7 +213,10 @@
     return out;
   };
   groups.filter(g => g.project === 'exo').forEach((g, i) => {
-    const order = rooms.map(r => r.id).sort(() => R() - 0.5);
+    // A shuffle that draws a fixed number of random numbers. (This used to be sort(() => R() - 0.5): how many
+    // times a browser calls the comparator depends on its sort algorithm, so two devices got different students.)
+    const order = rooms.map(r => r.id);
+    for (let k = order.length - 1; k > 0; k--) { const j = Math.floor(R() * (k + 1)); const t = order[k]; order[k] = order[j]; order[j] = t; }
     let room = order.find(r => slotKeys(g, r).every(k => !busy[k]));
     if (!room || i % 14 === 5) room = order.find(r => slotKeys(g, r).some(k => busy[k])) || order[0];
     g.room = room;
@@ -394,7 +397,12 @@
     save();
   }
 
+  /* A fingerprint of the generated people: two devices that show the same one run the same data. */
+  let fp = 2166136261;
+  students.forEach(s => { const t = s.name + s.phone + s.group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
+
   window.AdminData = {
+    fingerprint: (fp >>> 0).toString(36),
     DAYS, HOURS, PROJECTS, SUBJECTS, GRADES, LEVELS, GROUP_STATUS, STUDENT_STATUS,
     rooms, teachers, managers, groups, students,
     today,

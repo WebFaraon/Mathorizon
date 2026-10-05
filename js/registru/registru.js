@@ -79,7 +79,7 @@
           <div class="rg-who" id="rgWho"></div>
           <div class="rg-top__r">
             <span class="rg-saved" id="rgSaved" role="status" aria-live="polite"><i>${ico('check', 14)}</i><span>Salvat</span></span>
-            <label class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv.">
+            <label class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${D.fingerprint}">
               <i aria-hidden="true"></i><b>Date demo</b>
               <select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select>
             </label>

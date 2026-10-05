@@ -100,7 +100,7 @@
             <button type="button" class="ax-icon-btn ax-top__menu" id="axMenu" aria-label="Deschide meniul">${ico('menu', 18)}</button>
             <div class="ax-top__crumb"><span>Consolă</span>${ico('chevron-right', 16)}<b id="axCrumb"></b></div>
             <div class="ax-top__right">
-              ${external ? '' : `<span class="ax-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv.">
+              ${external ? '' : `<span class="ax-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${window.AdminData.fingerprint}">
                 <i aria-hidden="true"></i><b>Date demo</b>
                 <button type="button" id="axDemoReset">Resetează</button>
               </span>`}
