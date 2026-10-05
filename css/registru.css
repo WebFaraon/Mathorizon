@@ -450,7 +450,7 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 [data-theme="dark"] .rg-ps--mg .ax-sel__btn:hover { background: rgba(255, 255, 255, 0.08); }
 .rg-ps--mg .ax-sel.is-open .ax-sel__btn { box-shadow: inset 0 0 0 2px var(--ax-blue); }
 .rg-colh { background: var(--rg-steel) !important; color: #fff; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.06em; }
-.rg-sumh { font-size: 0.82rem; }
+.rg-gsheet th.rg-sumh { padding: 0 3px; font-size: 0.6rem; line-height: 1.05; letter-spacing: 0.02em; white-space: normal; }
 .rg-xh { background: var(--rg-sage) !important; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; }
 .rg-xlh { background: var(--rg-steel) !important; color: #fff; white-space: normal !important; line-height: 1.1; font-size: 0.64rem !important; }
 .rg-xc { background: var(--rg-cream); font-weight: 700; }

@@ -475,10 +475,10 @@
     head.push(`<tr class="rg-hr rg-hr--last" data-hr="8">
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
-      <th class="rg-cc rg-colh rg-sumh" title="Suma lecțiilor">${fm(L.sum)}</th>
+      <th class="rg-cc rg-colh rg-sumh">PREȚ ELEV</th>
       ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${STONE[x.s.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.s.status)}</select></div></td>`)}
       ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
-      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3">SALARIUL LECȚIEI</th>
+      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3">SALARIU PROFESOR</th>
     </tr>`);
 
     const body = [];
