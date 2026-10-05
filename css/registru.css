@@ -142,7 +142,13 @@ body.ax-rg {
 .rg-saved.is-on { opacity: 1; transform: none; }
 .rg-saved.is-on i { animation: rg-pop 0.45s var(--ax-ease); }
 .rg-demo { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 4px 0 10px; border: 1px solid var(--ax-sign-rule); border-radius: var(--ax-r); background: rgba(255, 194, 14, 0.07); font-size: 0.78rem; }
-.rg-demo i { width: 8px; height: 8px; flex: none; background: var(--ax-yellow); outline: 1px solid var(--ax-yellow-ink); }
+.rg-demo i { width: 8px; height: 8px; flex: none; background: var(--ax-yellow); outline: 1px solid var(--ax-yellow-ink); transition: background-color 0.3s; }
+html[data-demo-sync="live"] .rg-demo i, html[data-demo-sync="syncing"] .rg-demo i { background: #2DB77A; outline-color: #0E5C3C; }
+html[data-demo-sync="syncing"] .rg-demo i { animation: ax-sync 0.8s ease-in-out infinite alternate; }
+html[data-demo-sync="error"] .rg-demo i { background: var(--ax-bad); outline-color: #5C1410; }
+html[data-demo-sync="live"] .rg-demo b::after { content: ' · live'; font-weight: 600; color: #6FD3A4; }
+html[data-demo-sync="syncing"] .rg-demo b::after { content: ' · se trimite'; font-weight: 600; color: var(--ax-sign-ink-2); }
+html[data-demo-sync="error"] .rg-demo b::after { content: ' · fără conexiune'; font-weight: 600; color: #FF9A92; }
 .rg-demo b { font-weight: 700; color: var(--ax-yellow); white-space: nowrap; }
 .rg-demo .ax-sel { width: 188px; }
 .rg-demo .ax-sel__btn { min-height: 30px; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--ax-sign-ink); font-size: 0.82rem; font-weight: 600; }

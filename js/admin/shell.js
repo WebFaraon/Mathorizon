@@ -100,7 +100,7 @@
             <button type="button" class="ax-icon-btn ax-top__menu" id="axMenu" aria-label="Deschide meniul">${ico('menu', 18)}</button>
             <div class="ax-top__crumb"><span>Consolă</span>${ico('chevron-right', 16)}<b id="axCrumb"></b></div>
             <div class="ax-top__right">
-              ${external ? '' : `<span class="ax-demo" title="Datele sunt generate în browser. Modificările rămân doar pe acest dispozitiv.">
+              ${external ? '' : `<span class="ax-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv.">
                 <i aria-hidden="true"></i><b>Date demo</b>
                 <button type="button" id="axDemoReset">Resetează</button>
               </span>`}
@@ -253,14 +253,18 @@
     };
     ['axDemoReset', 'axDemoReset2'].forEach(id => { const b = document.getElementById(id); if (b) b.addEventListener('click', resetDemo); });
     window.AdminData.onChange(() => refreshNav());
-    // the teacher's register (another tab) saved availability or subjects: show it here at once
-    let lastExt = 0;
-    document.addEventListener('bm:demo-external', () => {
+    // the teacher's register (another tab or another device) saved something: show it here at once,
+    // but never under a field someone is typing in or a drawer that is open (it waits for that to end)
+    let lastExt = 0, extWait = false;
+    const typing = () => { const a = document.activeElement; return !!(a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && document.getElementById('axView').contains(a)) || !!document.querySelector('.ax-drawer'); };
+    const showExternal = () => {
       if (external) return;
+      if (typing()) { if (!extWait) { extWait = true; setTimeout(() => { extWait = false; showExternal(); }, 1200); } return; }
       refreshNav(); render(false);
       if (Date.now() - lastExt > 5000) U.toast('Date actualizate din Registrul profesorului.'); // one notice per burst of edits
       lastExt = Date.now();
-    });
+    };
+    document.addEventListener('bm:demo-external', showExternal);
     // links that load another document: let the page fade out first
     document.addEventListener('click', e => {
       const a = e.target.closest && e.target.closest('a[href]');

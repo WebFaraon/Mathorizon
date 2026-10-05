@@ -306,9 +306,24 @@
   }
   applyEdits();
   const listeners = new Set();
+  const saveHooks = [];
   function save() {
     try { localStorage.setItem(STORE_KEY, JSON.stringify(edits)); } catch (e) { /* private mode */ }
     listeners.forEach(fn => { try { fn(); } catch (e) { console.error(e); } });
+    saveHooks.forEach(fn => { try { fn(edits); } catch (e) { console.error(e); } });   // js/admin/demo-sync.js sends the changes to Supabase
+  }
+  /* Edits that arrive from another device (Realtime): applied at once, announced after a short pause so a burst
+     of them (a reset on the other side) redraws the views once. */
+  let extT = 0;
+  function replaceEdits(next) {
+    edits = next || {};
+    applyEdits();
+    try { localStorage.setItem(STORE_KEY, JSON.stringify(edits)); } catch (e) { /* private mode */ }
+    clearTimeout(extT);
+    extT = setTimeout(() => {
+      listeners.forEach(fn => { try { fn(); } catch (err) { console.error(err); } });
+      document.dispatchEvent(new CustomEvent('bm:demo-external'));
+    }, 60);
   }
   // The register (registru.html) edits the same store from another tab: pick its changes up live.
   window.addEventListener('storage', e => {
@@ -407,6 +422,7 @@
     resetTeacher(id) { if (edits.teachers) delete edits.teachers[id]; applyEdits(); save(); },
     base: id => baseG[id],
     reset() { edits = {}; applyEdits(); save(); },
+    sync: { edits: () => edits, replace: replaceEdits, onSave: fn => saveHooks.push(fn) },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
   };
 })();

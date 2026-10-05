@@ -264,7 +264,15 @@ body.ax :focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 2px;
   font-size: 0.78rem;
   font-weight: 700;
 }
-.ax-demo i { width: 8px; height: 8px; background: var(--ax-yellow); outline: 1px solid var(--ax-yellow-ink); }
+.ax-demo i { width: 8px; height: 8px; background: var(--ax-yellow); outline: 1px solid var(--ax-yellow-ink); transition: background-color 0.3s; }
+/* shared demo state (js/admin/demo-sync.js): yellow = this browser only, green = live with the other devices */
+html[data-demo-sync="live"] .ax-demo i, html[data-demo-sync="syncing"] .ax-demo i { background: #2DB77A; outline-color: #0E5C3C; }
+html[data-demo-sync="syncing"] .ax-demo i { animation: ax-sync 0.8s ease-in-out infinite alternate; }
+html[data-demo-sync="error"] .ax-demo i { background: var(--ax-bad); outline-color: #5C1410; }
+html[data-demo-sync="live"] .ax-demo b::after { content: ' · live'; font-weight: 600; color: var(--ax-ok); }
+html[data-demo-sync="syncing"] .ax-demo b::after { content: ' · se trimite'; font-weight: 600; color: var(--ax-ink-3); }
+html[data-demo-sync="error"] .ax-demo b::after { content: ' · fără conexiune'; font-weight: 600; color: var(--ax-bad); }
+@keyframes ax-sync { from { opacity: 0.35; } }
 .ax-demo button { height: 22px; padding: 0 8px; border: 0; border-radius: var(--ax-r); background: var(--ax-hover); font-size: 0.74rem; font-weight: 700; cursor: pointer; }
 .ax-clock { text-align: right; line-height: 1.15; }
 .ax-clock b { display: block; font-size: 1.15rem; font-weight: 800; }
