@@ -479,20 +479,19 @@
 
     const body = [];
     L.lessons.forEach((l, li) => {
-      const extra = li >= L.nGen;
-      body.push(`<tr class="rg-lr${extra ? ' is-extra' : ''}" data-li="${li}">
-        <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${li}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
-        <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${li}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
-        <td class="rg-cc rg-lp"><span>${fm(l.price)}</span>${extra ? `<button type="button" class="rg-x" data-del="${li}" title="Șterge lecția" aria-label="Șterge lecția ${li + 1}">${ico('x', 14)}</button>` : ''}</td>
+      body.push(`<tr class="rg-lr" data-li="${li}">
+        <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
+        <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
+        <td class="rg-cc rg-lp"><span>${fm(l.price)}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
-          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${li}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
+          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
         <td class="rg-xc rg-x1"><span class="rg-lvl">Nivelul ${L.level}</span></td><td class="rg-xc rg-x2 rg-xp${l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.pct == null ? '' : l.pct + '%'}</td>${blankX(3)}
       </tr>`);
     });
-    body.push(`<tr class="rg-addrow"><td colspan="${cols + 6}"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></td></tr>`);
+    body.push(`<tr class="rg-addrow"><th class="rg-a rg-addc"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></th><td colspan="${cols + 5}" class="rg-addfill"></td></tr>`);
 
     return `
       <table class="rg-gsheet" style="--scols:${cols}">
@@ -567,11 +566,43 @@
     });
   }
 
+  /* deleting any lesson, with undo (the edits are restored as they were) */
+  function deleteLesson(gid, oid) {
+    const before = JSON.stringify(D.ledgerEdits());
+    D.removeLesson(gid, oid); flashSaved(); refreshGroup(gid);
+    U.toast('Lecția a fost ștearsă. <button type="button" class="rg-undo">Anulează</button>');
+    const u = document.querySelector('.ax-toasts .ax-toast:last-child .rg-undo');
+    if (u) u.addEventListener('click', () => { D.setLedgerEdits(JSON.parse(before)); refreshGroup(gid); u.closest('.ax-toast').classList.add('is-out'); });
+  }
+  /* right click on the date block */
+  function openLessonMenu(anchor, gid, oid) {
+    const L = D.ledger(gid), l = L.lessons.find(x => x.oid === oid);
+    if (!l) return;
+    const pop = openPop(anchor, `
+      <div class="rg-menu rg-menu--ctx" role="menu" aria-label="Lecția din ${esc(l.label)}">
+        <button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="date">${ico('calendar', 16)}<span>Schimbă data</span></button>
+        <button type="button" role="menuitem" class="rg-mi rg-mi--ctx rg-mi--del" data-act="del">${ico('trash-2', 16)}<span>Șterge lecția</span></button>
+      </div>`, 'rg-pop--menu rg-pop--ctx');
+    const items = Array.from(pop.querySelectorAll('.rg-mi'));
+    items[0].focus();
+    pop.addEventListener('click', e => {
+      const b = e.target.closest('.rg-mi'); if (!b) return;
+      closePop();
+      if (b.dataset.act === 'del') deleteLesson(gid, oid); else openCalendar(anchor, gid, oid);
+    });
+    pop.addEventListener('keydown', e => {
+      const at = items.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, at + 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); items[Math.max(0, at - 1)].focus(); }
+      else if (e.key === 'Escape') { e.preventDefault(); closePop(); anchor.focus(); }
+    });
+  }
+
   /* a calendar in the language of the site, instead of the browser's own */
   const WD = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
   const cap1 = t => t.charAt(0).toUpperCase() + t.slice(1);
   function openCalendar(anchor, gid, li) {
-    const L = D.ledger(gid), l = L.lessons[li], g = L.g;
+    const L = D.ledger(gid), l = L.lessons.find(x => x.oid === li), g = L.g;
     const todayIso = D.iso(new Date());
     let cur = l.iso ? new Date(l.iso + 'T00:00') : new Date();
     cur = new Date(cur.getFullYear(), cur.getMonth(), 1);
@@ -592,7 +623,7 @@
         </div>
         <div class="rg-cal__w" aria-hidden="true">${WD.map(x => `<span>${x}</span>`).join('')}</div>
         <div class="rg-cal__g">${cells.join('')}</div>
-        <div class="rg-cal__f"><span><i></i>zilele grupei</span><button type="button" class="rg-cal__today" data-today>Azi</button></div>`;
+        <div class="rg-cal__f"><span><i></i>zilele grupei</span><span class="rg-cal__k"><button type="button" class="rg-cal__del" data-del>Șterge lecția</button><button type="button" class="rg-cal__today" data-today>Azi</button></span></div>`;
     };
     const pop = openPop(anchor, '<div class="rg-cal">' + html() + '</div>', 'rg-pop--cal');
     const root = pop.querySelector('.rg-cal');
@@ -607,6 +638,7 @@
     root.addEventListener('click', e => {
       const nav = e.target.closest('[data-nav]'); if (nav) { go(+nav.dataset.nav); return; }
       if (e.target.closest('[data-today]')) { pick(todayIso); return; }
+      if (e.target.closest('[data-del]')) { closePop(); deleteLesson(gid, li); return; }
       const d = e.target.closest('.rg-cal__d'); if (d) pick(d.dataset.d);
     });
     root.addEventListener('keydown', e => {
@@ -639,20 +671,18 @@
         if (last) { last.classList.add('is-new'); const dc = last.querySelector('.rg-dc'); if (dc) { dc.focus({ preventScroll: true }); last.scrollIntoView({ block: 'nearest', behavior: calm() ? 'auto' : 'smooth' }); } }
         return;
       }
-      const del = e.target.closest('[data-del]');
-      if (del) {
-        const before = JSON.stringify(D.ledgerEdits());
-        D.removeLesson(gid, +del.dataset.del); flashSaved(); refreshGroup(gid);
-        U.toast('Lecția a fost ștearsă. <button type="button" class="rg-undo">Anulează</button>');
-        const u = document.querySelector('.ax-toasts .ax-toast:last-child .rg-undo');
-        if (u) u.addEventListener('click', () => { D.setLedgerEdits(JSON.parse(before)); refreshGroup(gid); u.closest('.ax-toast').classList.add('is-out'); });
-        return;
-      }
       const dt = e.target.closest('[data-date]');
       if (dt) openCalendar(dt, gid, +dt.dataset.date);
     });
+    board.addEventListener('contextmenu', e => {
+      const dt = e.target.closest('[data-date]');
+      if (!dt) return;
+      e.preventDefault();
+      openLessonMenu(dt, gid, +dt.dataset.date);
+    });
     board.addEventListener('keydown', e => {
       const t = e.target;
+      if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { const dt = t.closest && t.closest('[data-date]'); if (dt) { e.preventDefault(); openLessonMenu(dt, gid, +dt.dataset.date); return; } }
       if (t.matches && t.matches('.rg-ti')) {
         if (e.key === 'Escape') { t.value = t.defaultValue; t.blur(); }
         else if (e.key === 'Enter') { e.preventDefault(); t.blur(); }   // saves (change fires on blur) and leaves the field
@@ -660,10 +690,10 @@
       }
       const pl = t.closest && t.closest('.rg-pl[data-sid]');
       if (!pl) return;
-      const li = +pl.dataset.i, c = +pl.closest('td').dataset.c;
+      const oid = +pl.dataset.i, li = +pl.closest('tr').dataset.li, c = +pl.closest('td').dataset.c;
       const key = e.key.length === 1 ? e.key.toUpperCase() : e.key;
-      if (MARK[key] && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); D.setMark(gid, pl.dataset.sid, li, key); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: li }); return; }
-      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); D.setMark(gid, pl.dataset.sid, li, ''); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: li }); return; }
+      if (MARK[key] && !e.ctrlKey && !e.metaKey && !e.altKey) { e.preventDefault(); D.setMark(gid, pl.dataset.sid, oid, key); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: oid }); return; }
+      if (e.key === 'Delete' || e.key === 'Backspace') { e.preventDefault(); D.setMark(gid, pl.dataset.sid, oid, ''); flashSaved(); refreshGroup(gid, { sid: pl.dataset.sid, i: oid }); return; }
       if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openMarkMenu(pl, gid); return; }
       let nl = li, nc = c;
       if (e.key === 'ArrowDown') nl++; else if (e.key === 'ArrowUp') nl--; else if (e.key === 'ArrowRight') nc++; else if (e.key === 'ArrowLeft') nc--; else return;

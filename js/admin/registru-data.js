@@ -172,26 +172,30 @@
   }
 
   const mkLesson = (i, date, topic, price) => (date ? {
-    i, date, iso: D.iso(date), day: wd(date),
+    i, oid: i, date, iso: D.iso(date), day: wd(date),
     month: date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0'),
     monthName: cap(MONTHS[date.getMonth()]),
     label: date.getDate() + ' ' + MONTHS[date.getMonth()],
     topic, price
-  } : { i, date: null, iso: '', day: 0, month: '', monthName: '', label: 'Alege data', topic, price });
+  } : { i, oid: i, date: null, iso: '', day: 0, month: '', monthName: '', label: 'Alege data', topic, price });
 
   function derive(g, G, ov) {
     ov = ov || {};
     const rate = ov.rate || G.rate, k = rate / G.rate;
-    const lessons = G.lessons.map((l, i) => {
+    const all = G.lessons.map((l, i) => {
       const o = (ov.l || {})[i] || {};
       return mkLesson(i, o.d ? parse(o.d) : l.date, o.t != null ? o.t : l.topic, Math.round(l.price * k));
     });
-    (ov.x || []).forEach((e, j) => lessons.push(mkLesson(G.lessons.length + j, e.d ? parse(e.d) : null, e.t != null ? e.t : '', Math.round(rate * G.dur))));
+    (ov.x || []).forEach((e, j) => all.push(mkLesson(G.lessons.length + j, e.d ? parse(e.d) : null, e.t != null ? e.t : '', Math.round(rate * G.dur))));
+    // a deleted lesson (a generated one or an added one) is only skipped: marks and edits keep their keys
+    const rm = new Set(ov.rm || []);
+    const lessons = all.filter(l => !rm.has(l.oid));
+    lessons.forEach((l, pos) => { l.i = pos; });
     const n = lessons.length;
 
     const rows = G.rows.map(r => {
       const mine = (ov.m || {})[r.s.id] || {};
-      const codes = Array.from({ length: n }, (_, i) => (mine[i] != null ? mine[i] : (r.codes[i] || '')));
+      const codes = lessons.map(l => (mine[l.oid] != null ? mine[l.oid] : (r.codes[l.oid] || '')));
       let cost = 0, done = 0;
       codes.forEach((c, i) => { if (PAID_MARK[c]) { cost += lessons[i].price; done++; } });
       const sold = r.paid + r.disc - cost;
@@ -283,20 +287,7 @@
     return D.iso(d);
   }
   function addLesson(gid, iso) { edit(gid, ov => { ov.x = ov.x || []; ov.x.push({ d: iso || '', t: '' }); }); }
-  function removeLesson(gid, i) {
-    const n = ledger(gid).nGen, j = i - n;
-    if (j < 0) return;
-    edit(gid, ov => {
-      if (!ov.x) return;
-      ov.x.splice(j, 1);
-      // marks given to later lessons move up by one
-      Object.values(ov.m || {}).forEach(mm => {
-        const keys = Object.keys(mm).map(Number).sort((a, b) => a - b);
-        keys.forEach(k => { if (k === i) delete mm[k]; });
-        keys.filter(k => k > i).forEach(k => { mm[k - 1] = mm[k]; delete mm[k]; });
-      });
-    });
-  }
+  function removeLesson(gid, oid) { edit(gid, ov => { ov.rm = ov.rm || []; if (!ov.rm.includes(oid)) ov.rm.push(oid); }); }
   function setRate(gid, rate) { edit(gid, ov => { if (rate > 0) ov.rate = rate; else delete ov.rate; }); }
 
   /* ---- everything one teacher sees on the first page of the register ---- */
