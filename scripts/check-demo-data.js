@@ -32,7 +32,7 @@ D.groups.forEach(g => {
   });
   ok(sumSold === L.stats.sold && sumPaid === L.stats.paid && sumCost === L.stats.cost, g.id + ' group sums');
   ok(near(L.earned, L.lessons.reduce((t, l) => t + l.pay, 0)), g.id + ' earned = sum of the lesson pays');
-  L.lessons.forEach(l => { if (l.counted) { ok(l.pay >= 175 * L.dur, g.id + ' pay is never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
+  L.lessons.forEach(l => { if (l.counted) { ok(l.there === 0 ? l.pay === 0 : l.pay >= 175 * L.dur, g.id + ' pay: 0 when nobody came, else never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
   nLessons += L.lessons.length;
   ok(L.lessons.every((l, i) => l.i === i), g.id + ' lesson positions');
   ok(L.sum === L.lessons.reduce((t, l) => t + l.price, 0), g.id + ' price sum');
@@ -58,7 +58,7 @@ D.teachers.forEach(t => {
 
 // the pay scheme and the prices, as agreed
 ok(D.rateBySize(1) === 608 && D.rateBySize(3) === 288, 'student prices: individual 608, three 288');
-[[1, 1, 255], [1, 0, 175], [3, 1, 175], [3, 2, 218], [3, 3, 255], [3, 0, 175], [6, 1, 175], [6, 2, 175], [6, 3, 175], [6, 4, 175], [6, 5, 218], [6, 6, 255], [6, 0, 175], [2, 1, 218], [2, 2, 255]]
+[[1, 1, 255], [1, 0, 0], [3, 1, 175], [3, 2, 218], [3, 3, 255], [3, 0, 0], [6, 1, 175], [6, 2, 175], [6, 3, 175], [6, 4, 175], [6, 5, 218], [6, 6, 255], [6, 0, 0], [2, 1, 218], [2, 2, 255]]
   .forEach(([size, present, pay]) => ok(D.lessonPay(size, present) === pay, 'pay for size ' + size + ' with ' + present + ' present = ' + pay + ' (got ' + D.lessonPay(size, present) + ')'));
 // edits: each mark has the effect it should
 const g = 'g080', L0 = D.ledger(g); const x0 = L0.rows.find(r => r.codes.some((c, i) => c === 'P'));
@@ -138,7 +138,7 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
 }
 
 // every lesson is one hour: the price is the hourly rate, the pay one of the three hourly amounts, whatever the group's meeting length
-D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok([175, 218, 255].includes(l.pay), g.id + ' lesson pay is an hourly amount (' + l.pay + ')'); } }); });
+D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok([0, 175, 218, 255].includes(l.pay), g.id + ' lesson pay is an hourly amount (' + l.pay + ')'); } }); });
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 

@@ -492,7 +492,7 @@
       body.push(`<tr class="rg-lr" data-li="${li}">
         <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
         <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
-        <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${l.counted ? fm(l.pay) : ''}</span></td>
+        <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${fm(l.pay)}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
           if (x.lock[li]) return `<td class="rg-sc rg-pc is-lock" data-c="${i}" title="${x.leave ? 'Elevul a fost transferat, lecțiile de după transfer nu se mai notează aici' : 'Elevul a venit prin transfer, lecțiile dinainte nu se notează'}"><span class="rg-pl rg-pl--e is-off">${c ? (m ? m.t : '') : ''}</span></td>`;

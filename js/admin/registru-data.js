@@ -86,11 +86,11 @@
   const rateOf = g => rateBySize(g.size);
 
   /* What the teacher earns per hour of a lesson, by how many students came: everybody 255, one missing 218,
-     fewer 175, and never less than 175 for a lesson. (Individual: 255. Three students: 1 -> 175, 2 -> 218, 3 -> 255.
+     fewer 175, and 0 when nobody came. (Individual: 255. Three students: 1 -> 175, 2 -> 218, 3 -> 255.
      Six: 1 to 4 -> 175, 5 -> 218, 6 -> 255.) */
   const PAY_MIN = 175, PAY_MID = 218, PAY_TOP = 255;
   function lessonPay(size, present) {
-    if (present <= 0) return PAY_MIN;
+    if (present <= 0) return 0;
     if (present >= size) return PAY_TOP;
     if (present === size - 1) return PAY_MID;
     return PAY_MIN;
