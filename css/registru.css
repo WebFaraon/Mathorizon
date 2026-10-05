@@ -224,8 +224,8 @@ html[data-demo-sync="error"] .rg-demo b::after { content: ' · fără conexiune'
 
 .rg-sheet { --lw: 218px; --tw: 196px; --gw: 196px; table-layout: fixed; width: calc(var(--lw) + var(--tw) + var(--cols) * var(--gw)); border-collapse: separate; border-spacing: 0; font-size: 0.88rem; color: var(--rg-ink); }
 .rg-col-lab { width: var(--lw); } .rg-col-tot { width: var(--tw); } .rg-col-g { width: var(--gw); }
-.rg-sheet th, .rg-sheet td { padding: 6px 10px; border-right: 1px dotted var(--rg-dot); border-bottom: 1px solid var(--rg-line); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; }
-.rg-sheet tbody tr { height: 36px; }
+.rg-sheet th, .rg-sheet td { padding: 3px 10px; border-right: 1px dotted var(--rg-dot); border-bottom: 1px solid var(--rg-line); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; }
+.rg-sheet tbody tr { height: 30px; }
 .rg-sheet .rg-lab { position: sticky; left: 0; z-index: 3; background: var(--rg-sage); font-weight: 800; letter-spacing: 0.01em; }
 .rg-sheet .rg-tot { position: sticky; left: var(--lw); z-index: 3; background: var(--rg-sage-2); font-weight: 800; border-right: 3px solid var(--rg-heavy); }
 .rg-tot.rg-tot--w { background: var(--ax-panel); }
@@ -345,7 +345,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 @keyframes rg-fade { from { opacity: 0; } }
 
 /* shadows when the sheet is scrolled */
-.rg-board.is-sx .rg-sheet .rg-tot, .rg-board.is-sx .rg-gsheet .rg-cc, .rg-board.is-sx .rg-gsheet .rg-hl-lab { box-shadow: 8px 0 10px -8px rgba(0, 0, 0, 0.45); }
+.rg-board.is-sx .rg-sheet .rg-tot { box-shadow: 8px 0 10px -8px rgba(0, 0, 0, 0.45); }
 .rg-board.is-sy .rg-sheet .rg-r--head > * { box-shadow: 0 8px 10px -8px rgba(0, 0, 0, 0.45); }
 .rg-board.is-sx.is-sy .rg-sheet .rg-r--head > .rg-tot { box-shadow: 8px 8px 10px -8px rgba(0, 0, 0, 0.45); }
 
@@ -354,25 +354,19 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-gboard { background: var(--rg-cream); }
 /* Three fixed blocks: the left one (data, topic, price), the right one (day, hour, room) and,
    between them, the students, which are the only thing the horizontal scrollbar moves. */
-.rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 232px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 52px; --hr: 34px; --hl: 38px;
+.rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 232px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 42px; --hr: 28px; --hl: 30px;
   table-layout: fixed; border-collapse: separate; border-spacing: 0; width: calc(var(--wa) + var(--wb) + var(--wc) + var(--scols) * var(--ws) + var(--wx1) + var(--wx2) + var(--wx3)); font-size: 0.86rem; color: var(--rg-ink); }
 .rg-col-a { width: var(--wa); } .rg-col-b { width: var(--wb); } .rg-col-c { width: var(--wc); } .rg-col-s { width: var(--ws); } .rg-col-x1 { width: var(--wx1); } .rg-col-x2 { width: var(--wx2); } .rg-col-x3 { width: var(--wx3); }
 .rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 1px solid var(--rg-grid); border-bottom: 1px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rg-gsheet [data-hr="1"] > * { height: var(--h1); }
 .rg-gsheet .rg-hr--fin > * { height: var(--hr); }
 .rg-gsheet [data-hr="8"] > * { height: var(--hl); border-bottom: 2px solid var(--rg-heavy); }
-.rg-gsheet .rg-hr > .rg-a, .rg-gsheet .rg-hr > .rg-hl-lab, .rg-gsheet .rg-hr > .rg-cc { z-index: 6; }
-.rg-gsheet .rg-a { position: sticky; left: 0; z-index: 3; }
-.rg-gsheet .rg-b { position: sticky; left: var(--wa); z-index: 3; }
-.rg-gsheet .rg-hl-lab { position: sticky; left: var(--wa); z-index: 3; }
-.rg-gsheet .rg-cc { position: sticky; left: calc(var(--wa) + var(--wb)); z-index: 3; border-right: 3px solid var(--rg-heavy); }
+.rg-gsheet .rg-cc { border-right: 3px solid var(--rg-heavy); }
 .rg-gsheet .rg-hl-lab { border-right: 3px solid var(--rg-heavy); }
 .rg-gsheet .rg-sc { z-index: 1; }
 /* the right block stays on the right edge of the screen */
-.rg-gsheet .rg-x1, .rg-gsheet .rg-x2, .rg-gsheet .rg-x3 { position: sticky; z-index: 3; }
-.rg-gsheet .rg-x1 { right: calc(var(--wx2) + var(--wx3)); border-left: 3px solid var(--rg-heavy); }
-.rg-gsheet .rg-x2 { right: var(--wx3); }
-.rg-gsheet .rg-x3 { right: 0; border-right: 0; }
+.rg-gsheet .rg-x1 { border-left: 3px solid var(--rg-heavy); }
+.rg-gsheet .rg-x3 { border-right: 0; }
 
 /* the pills of the first column are real dropdowns */
 .rg-pillcell { background: var(--rg-cream) !important; padding: 0 14px !important; }
@@ -380,7 +374,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-ps .ax-sel { width: 100%; }
 .rg-ps[class*="rg-tone--"], .rg-ps.rg-cream { background: none !important; }
 .rg-ps .ax-sel__btn, .rg-ps .ax-sel__btn:hover { height: 22px; min-height: 22px; padding: 0 7px 0 11px; border: 1px solid color-mix(in srgb, var(--pi, var(--rg-ink)) 18%, transparent); border-radius: 11px; background: var(--pb, var(--rg-pres-e)); color: var(--pi, var(--rg-ink)); font-size: 0.8rem; font-weight: 700; box-shadow: none; transition: border-color 0.15s, transform 0.12s var(--ax-ease), filter 0.15s; }
-.rg-pillcell .rg-ps .ax-sel__btn { height: 22px !important; min-height: 22px !important; }
+.rg-pillcell .rg-ps .ax-sel__btn { height: 20px !important; min-height: 20px !important; }
 .rg-ps .ax-sel__btn:hover { border-color: var(--pg); filter: brightness(0.97); }
 .rg-ps .ax-sel__btn:active { transform: scale(0.98); }
 .rg-ps .ax-sel.is-set .ax-sel__btn { box-shadow: none; }
@@ -398,7 +392,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-ps.rg-tone--st-inlocuire { --pb: var(--rg-lilac-l); --pi: var(--rg-lilac-ink); }
 .rg-ps.rg-tone--st-inactiv { --pb: var(--rg-red-l); --pi: var(--rg-red-ink); }
 .rg-rate { display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 0.9rem; font-weight: 800; }
-.rg-rate-in { width: 64px; height: 26px; padding: 0 6px; border: 1px solid transparent; border-radius: var(--ax-r); background: transparent; color: inherit; font: inherit; font-weight: 800; text-align: right; -moz-appearance: textfield; transition: border-color 0.15s, background-color 0.15s; }
+.rg-rate-in { width: 64px; height: 22px; padding: 0 6px; border: 1px solid transparent; border-radius: var(--ax-r); background: transparent; color: inherit; font: inherit; font-weight: 800; text-align: right; -moz-appearance: textfield; transition: border-color 0.15s, background-color 0.15s; }
 .rg-rate-in::-webkit-inner-spin-button, .rg-rate-in::-webkit-outer-spin-button { appearance: none; margin: 0; }
 .rg-rate-in:hover { border-color: var(--rg-grid); }
 .rg-rate-in:focus { outline: 0; border-color: var(--ax-blue); background: var(--ax-panel); }
@@ -483,7 +477,7 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 
 /* presence: a button per cell, five soft colours; only the cell under the pointer reacts */
 .rg-pc { padding: 0 8px !important; background: var(--rg-gap) !important; }
-.rg-pl { display: flex; align-items: center; justify-content: center; width: 100%; height: 26px; padding: 0 8px; border: 0; border-radius: 13px; font: inherit; font-size: 0.72rem; font-weight: 800; letter-spacing: 0; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: transform 0.15s var(--ax-ease), box-shadow 0.15s, filter 0.15s, background-color 0.15s; }
+.rg-pl { display: flex; align-items: center; justify-content: center; width: 100%; height: 22px; padding: 0 8px; border: 0; border-radius: 11px; font: inherit; font-size: 0.7rem; font-weight: 800; letter-spacing: 0; line-height: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer; transition: transform 0.15s var(--ax-ease), box-shadow 0.15s, filter 0.15s, background-color 0.15s; }
 i.rg-pl { display: inline-block; width: 44px; height: 14px; padding: 0; cursor: default; }
 .rg-pl--p { background: var(--rg-pres-p); color: var(--rg-pres-p-ink); }
 .rg-pl--g { background: var(--rg-pres-g); color: var(--rg-pres-g-ink); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--rg-pres-g-ink) 30%, transparent); }
@@ -502,8 +496,8 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-xp.is-low { color: var(--rg-red-ink); }
 .rg-lvl { display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--rg-pres-g); color: var(--rg-pres-g-ink); font-size: 0.7rem; font-weight: 800; }
 .rg-gsheet td.is-free { opacity: 0.9; }
-.rg-addrow td { height: 54px; padding: 0; border-right: 0; background: var(--rg-cream); }
-.rg-addrow th { height: 54px; padding: 0 12px !important; background: var(--rg-cream) !important; }
+.rg-addrow td { height: 40px; padding: 0; border-right: 0; background: var(--rg-cream); }
+.rg-addrow th { height: 40px; padding: 0 12px !important; background: var(--rg-cream) !important; }
 .rg-addfill { background: var(--rg-cream) !important; border-right: 0 !important; }
 .rg-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 36px; padding: 0 12px; border: 1px dashed var(--rg-grid); border-radius: var(--ax-r); background: transparent; color: var(--rg-ink); font: inherit; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ax-ease); }
 .rg-add .ax-ico { transition: transform 0.25s var(--ax-ease); }
@@ -682,10 +676,6 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-av-cols { grid-template-columns: 1fr; }
   .rg-demo b { display: none; }
 }
-@media (max-width: 1180px) {
-  /* not enough room to pin the right block */
-  .rg-gsheet .rg-x1, .rg-gsheet .rg-x2, .rg-gsheet .rg-x3 { position: static; }
-}
 @media (max-width: 960px) {
   body.ax-rg { --rg-top: 56px; --rg-tabs: 48px; }
   .rg-top { gap: 12px; }
@@ -702,7 +692,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-ledger.is-open .rg-ledger__sc { max-height: 46dvh; overflow: auto; }
   .rg-sheet { --lw: 132px; --tw: 150px; --gw: 176px; font-size: 0.82rem; }
   .rg-sheet th, .rg-sheet td { padding: 5px 7px; }
-  .rg-gsheet { --wa: 120px; --wb: 124px; --wc: 54px; --ws: 190px; --wx1: 120px; --wx2: 70px; --wx3: 84px; --h1: 50px; --hl: 40px; }
+  .rg-gsheet { --wa: 120px; --wb: 124px; --wc: 54px; --ws: 190px; --wx1: 120px; --wx2: 70px; --wx3: 84px; --h1: 40px; --hr: 28px; --hl: 32px; }
   .rg-gsheet th, .rg-gsheet td { padding: 0 6px; }
   .rg-pillcell { padding: 0 4px !important; }
   .rg-ps .ax-sel__btn, .rg-ps .ax-sel__btn:hover { padding: 0 6px 0 9px; font-size: 0.66rem; }
@@ -757,7 +747,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 @media (pointer: coarse) {
   /* on a touch screen the pills of the first column are finger-sized and the rows grow with them */
   .rg-pillcell .rg-ps .ax-sel__btn { height: 32px !important; min-height: 32px !important; }
-  .rg-gsheet { --hr: 44px; }
+  .rg-gsheet { --hr: 40px; }
   .rg-gl { min-height: 40px; }
   .rg-brand { min-height: 44px; }
   .rg-av { height: 44px; }
@@ -765,10 +755,14 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-ck, .rg-ck-c { height: 44px; }
   .rg-tab { min-height: 44px; }
   .rg-pl { height: 32px; }
-  .rg-gsheet { --hl: 46px; }
+  .rg-gsheet { --hl: 40px; }
 }
 @media (prefers-reduced-motion: reduce) {
   .rg-view, .rg-view.is-leaving, .rg-brand__logo, .rg-saved { transition: none; }
   .rg-view.is-entering > *, .rg-view.is-entering .rg-sheet .rg-r, .rg-view.is-entering .rg-gsheet .rg-lr, .rg-view.is-entering .rg-av-grid td, .rg-view.is-entering .rg-ledger tbody tr { animation: none; }
   .rg-av.is-pop, .rg-pl.is-pop, .rg-save.is-on i, .rg-saved.is-on i, .rg-ast b.is-tick, .rg-lr.is-new > *, .rg-pop.is-on .rg-mi { animation: none; }
 }
+
+/* the dropdowns copy the native select's minimum height inline; the status and manager cells follow the row */
+.rg-ps--st .ax-sel__btn, .rg-ps--st .ax-sel__btn:hover { height: var(--hl) !important; min-height: var(--hl) !important; }
+.rg-ps--mg .ax-sel__btn, .rg-ps--mg .ax-sel__btn:hover { height: var(--hr) !important; min-height: var(--hr) !important; }
