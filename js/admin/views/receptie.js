@@ -18,11 +18,13 @@
 
    Controls (only in the console, not on the TV): pause and step,
    a simulation of any day and hour (so the board can be shown at
-   noon on a Sunday), full screen. #receptie?tv=1 hides the console
+   noon on a Sunday), a busy demo programme (the demo data never has
+   more than four lessons at once; the busy programme fills the
+   cabinets so a full slide and the paging can be seen), full screen. #receptie?tv=1 hides the console
    around the board, for a screen that is opened on this address.
 
    Data: the demo data of the console (js/admin/mock-data.js).
-   State of the preview in the address: ?zi=<1-7>&ora=<8-20>
+   State of the preview in the address: ?zi=<1-7>&ora=<8-20>&prog=aglomerat
    ============================================================ */
 (function () {
   'use strict';
@@ -40,7 +42,27 @@
   let ctl = null;                // the running board (one at a time)
 
   /* ---------- what is on, when ---------- */
-  const offline = day => D.groups.filter(g => g.project === 'exo' && g.status !== 'inactiv' && g.room && g.days.includes(day) && D.enrolled(g).length);
+  let busy = false;              // the busy demo programme (preview only, nothing is stored)
+  const enr = g => D.enrolled(g.src || g);
+  /* Every hour from 9 to 19: six lessons in the odd hours, eight (two slides) in the even ones, each in its own
+     cabinet and with its own teacher, made from real groups of the demo data. */
+  const crowdCache = {};
+  function crowd(day) {
+    if (crowdCache[day]) return crowdCache[day];
+    const base = D.groups.filter(g => g.project === 'exo' && g.room && D.enrolled(g).length);
+    const out = []; let k = 0;
+    for (let h = 9; h <= 19; h++) {
+      const n = h % 2 === 0 ? 8 : 6, used = new Set();
+      for (let i = 0; i < n; i++) {
+        let src = base[(k * 7) % base.length]; k++;
+        for (let tries = 0; used.has(src.teacher) && tries < base.length; tries++) { src = base[(k * 7) % base.length]; k++; }
+        used.add(src.teacher);
+        out.push(Object.assign({}, src, { id: 'demo-' + day + '-' + h + '-' + i, src, days: [day], start: h, duration: 1, room: D.rooms[i % D.rooms.length].id, status: 'activ' }));
+      }
+    }
+    return (crowdCache[day] = out);
+  }
+  const offline = day => (busy ? crowd(day) : D.groups.filter(g => g.project === 'exo' && g.status !== 'inactiv' && g.room && g.days.includes(day) && D.enrolled(g).length));
   const byRoom = (a, b) => D.room(a.room).num - D.room(b.room).num || a.start - b.start;
 
   function clock(sim) {
@@ -49,7 +71,7 @@
     const day = sim.zi || real;
     const min = sim.ora != null ? sim.ora * 60 + 5 : d.getHours() * 60 + d.getMinutes();
     const date = new Date(d); date.setDate(d.getDate() + ((day - real + 7) % 7));
-    return { day, min, date, sec: d.getSeconds(), simulated: !!(sim.zi || sim.ora != null) };
+    return { day, min, date, sec: d.getSeconds(), simulated: !!(sim.zi || sim.ora != null || busy) };
   }
 
   function plan(day, min) {
@@ -92,14 +114,14 @@
   const SIGN = { now: 'În desfășurare', next: 'Urmează', later: 'Mâine', idle: 'Recepție' };
 
   function studentsHTML(g) {
-    const list = D.enrolled(g).slice().sort((a, b) => a.name.localeCompare(b.name, 'ro'));
+    const list = enr(g).slice().sort((a, b) => a.name.localeCompare(b.name, 'ro'));
     return `<ul class="rc-stu${list.length > 4 ? ' is-two' : ''}">${list.map(s => `
       <li><i class="rc-dot rc-dot--${s.status === 'instabil' ? 'activ' : s.status}" aria-hidden="true"></i><span class="rc-sn">${esc(s.first)} ${esc(s.last)}</span></li>`).join('')}</ul>`;
   }
 
   function cardHTML(g, kind, i, startMin) {
     const t = D.teacher(g.teacher), room = D.room(g.room);
-    const en = D.enrolled(g).length;
+    const en = enr(g).length;
     const seats = g.size === 1 ? 'Individual' : `${en} din ${g.size} elevi`;
     const subj = g.subject + (g.regime === 'vara' ? ' (vară)' : '');
     return `
@@ -124,6 +146,8 @@
     if (ctl) ctl.stop();
     const sim = { zi: +query.zi >= 1 && +query.zi <= 7 ? +query.zi : 0, ora: +query.ora >= 8 && +query.ora <= 20 ? +query.ora : null };
     const tv = query.tv === '1';
+    busy = query.prog === 'aglomerat';
+    const saveQ = () => U.writeQuery({ zi: sim.zi || null, ora: sim.ora, prog: busy ? 'aglomerat' : null, tv: tv ? '1' : null });
     const st = { slides: [], i: 0, paused: false, key: '', timers: [], offs: [] };
     const q = s => root.querySelector(s);
     const stage = q('#rcStage'), grid = q('#rcGrid'), prog = q('#rcProg');
@@ -198,8 +222,10 @@
     if (toolbar.pause) toolbar.pause.addEventListener('click', () => setPaused(!st.paused));
     if (toolbar.prev) toolbar.prev.addEventListener('click', () => go(st.i - 1, true));
     if (toolbar.next) toolbar.next.addEventListener('click', () => go(st.i + 1, true));
-    if (toolbar.day) toolbar.day.addEventListener('change', e => { sim.zi = +e.target.value || 0; U.writeQuery({ zi: sim.zi || null, ora: sim.ora, tv: tv ? '1' : null }); st.key = ''; replan(true); });
-    if (toolbar.hour) toolbar.hour.addEventListener('change', e => { sim.ora = e.target.value === '' ? null : +e.target.value; U.writeQuery({ zi: sim.zi || null, ora: sim.ora, tv: tv ? '1' : null }); st.key = ''; replan(true); });
+    if (toolbar.day) toolbar.day.addEventListener('change', e => { sim.zi = +e.target.value || 0; saveQ(); st.key = ''; replan(true); });
+    if (toolbar.hour) toolbar.hour.addEventListener('change', e => { sim.ora = e.target.value === '' ? null : +e.target.value; saveQ(); st.key = ''; replan(true); });
+    const progPick = q('#rcProgPick');
+    if (progPick) progPick.addEventListener('change', e => { busy = e.target.value === 'aglomerat'; saveQ(); st.key = ''; replan(true); });
 
     const wrap = q('#rcWrap');
     const fsOK = !!(wrap.requestFullscreen);
@@ -276,6 +302,11 @@
               <select class="ax-select" id="rcHourPick">
                 <option value="">Acum</option>
                 ${D.HOURS.filter(h => h <= 20).map(h => `<option value="${h}"${h === ora ? ' selected' : ''}>${String(h).padStart(2, '0')}:05</option>`).join('')}
+              </select></label>
+            <label class="rc-pick"><span>Programul</span>
+              <select class="ax-select" id="rcProgPick">
+                <option value="">Cel real (demo)</option>
+                <option value="aglomerat"${q.prog === 'aglomerat' ? ' selected' : ''}>Aglomerat, de probă</option>
               </select></label>
             <button type="button" class="ax-btn ax-btn--primary" id="rcFull">${ico('maximize', 16)}<span>Pe tot ecranul</span></button>
           </div>
