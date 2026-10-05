@@ -30,6 +30,7 @@
       { id: 'orar', label: 'Orar', icon: 'grid' },
       { id: 'elevi', label: 'Elevi', icon: 'users' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
+      { id: 'receptie', label: 'Recepție', icon: 'monitor' },
       { id: 'disponibilitate', label: 'Disponibilitate', icon: 'clock' },
       { id: 'analitica', label: 'Analitică', icon: 'chart-column' },
       { id: 'calculator', label: 'Calculator', icon: 'calculator' }
@@ -194,6 +195,7 @@
     refreshNav();
     root.dataset.view = id;
     document.getElementById('axShell').dataset.view = id;
+    document.getElementById('axShell').removeAttribute('data-tv');          // the TV mode belongs to the Recepție page only
     // pages that do not run on the generated demo data do not show the demo switch
     document.getElementById('axShell').toggleAttribute('data-nodemo', view.demo === false);
     root.classList.toggle('is-fresh', !!(fresh || changed));

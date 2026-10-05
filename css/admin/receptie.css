@@ -1,0 +1,123 @@
+/* Admin console: Recepție (js/admin/views/receptie.js)
+   The board is sized in em from the width of its box (container units), so the same layout reads
+   from across a lobby on a 1080p or 4K TV and still shows as a preview in the console. */
+
+body.ax .rc-tools { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px 20px; flex-wrap: wrap; margin-bottom: 14px; }
+body.ax .rc-tools__a, body.ax .rc-tools__b { display: flex; align-items: flex-end; gap: 8px; flex-wrap: wrap; }
+body.ax .rc-pick { display: grid; gap: 3px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .rc-pick .ax-sel { min-width: 116px; }
+body.ax .rc-tools .ax-btn[aria-pressed="true"] { background: var(--ax-ink); color: var(--ax-bg); border-color: var(--ax-ink); }
+
+/* as wide as fits, never taller than the window: the preview shows the whole screen without scrolling */
+body.ax .rc-wrap { width: min(100%, max(900px, calc((100dvh - 300px) * 16 / 9))); margin: 0 auto; overflow-x: auto; background: var(--ax-bg); border: 2px solid var(--ax-ink); }
+body.ax .rc-fit { min-width: 900px; container-type: inline-size; }
+
+/* ---- the board ---- */
+body.ax .rc {
+  --kc: var(--ax-ok); --kci: #FFFFFF;
+  position: relative; display: flex; flex-direction: column;
+  width: 100%; aspect-ratio: 16 / 9;
+  background: var(--ax-bg); color: var(--ax-ink);
+  font-size: clamp(8px, 1.12cqw, 44px);
+  overflow: hidden;
+}
+body.ax .rc[data-kind="next"] { --kc: var(--ax-blue); --kci: var(--ax-blue-ink); }
+body.ax .rc[data-kind="later"], body.ax .rc[data-kind="idle"] { --kc: var(--ax-ink); --kci: var(--ax-bg); }
+[data-theme="dark"] body.ax .rc[data-kind="now"] { --kci: #08150F; }
+
+/* the bar along the top: one segment per slide, the current one fills in 10 seconds */
+body.ax .rc-prog { display: flex; gap: 0.35em; height: 0.55em; padding: 0; background: var(--ax-rule); }
+body.ax .rc-prog[hidden] { display: block; background: var(--kc); }
+body.ax .rc-seg { position: relative; flex: 1; overflow: hidden; background: var(--ax-rule-2); }
+body.ax .rc-seg i { position: absolute; inset: 0; transform: scaleX(0); transform-origin: left; background: var(--sc, var(--ax-ok)); }
+body.ax .rc-seg--now { --sc: var(--ax-ok); } body.ax .rc-seg--next { --sc: var(--ax-blue); } body.ax .rc-seg--later, body.ax .rc-seg--idle { --sc: var(--ax-ink); }
+body.ax .rc-seg.is-done i { transform: none; opacity: 0.55; }
+body.ax .rc-seg.is-cur i { animation: rc-fill 10s linear forwards; }
+body.ax .rc.is-paused .rc-seg.is-cur i { animation-play-state: paused; }
+@keyframes rc-fill { to { transform: scaleX(1); } }
+
+body.ax .rc-top { display: flex; align-items: center; justify-content: space-between; gap: 1.5em; padding: 1.1em 1.7em 0.5em; }
+body.ax .rc-state { display: flex; align-items: center; gap: 1.2em; min-width: 0; }
+body.ax .rc-sign { display: inline-flex; align-items: center; gap: 0.6em; padding: 0.4em 0.95em; border-radius: 2px; background: var(--kc); color: var(--kci); font-size: 1.7em; font-weight: 800; letter-spacing: 0.04em; line-height: 1.15; white-space: nowrap; }
+body.ax .rc[data-kind="now"] .rc-sign::before { content: ''; width: 0.5em; height: 0.5em; border-radius: 50%; background: currentColor; animation: rc-pulse 1.8s ease-in-out infinite; }
+@keyframes rc-pulse { 50% { opacity: 0.3; transform: scale(0.8); } }
+body.ax .rc-sub { font-size: 1.55em; font-weight: 700; color: var(--ax-ink-2); }
+body.ax .rc-clock { text-align: right; flex: none; }
+body.ax .rc-clock b { display: block; font-size: 3em; font-weight: 800; line-height: 1; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; }
+body.ax .rc-clock > span { display: block; margin-top: 0.15em; font-size: 1.2em; font-weight: 600; color: var(--ax-ink-2); }
+body.ax .rc-clock em { font-style: normal; font-weight: 800; color: var(--ax-ink); }
+body.ax .rc-simtag { display: none; margin-left: 0.7em; padding: 0.05em 0.5em; background: var(--ax-yellow); color: var(--ax-yellow-ink); font-style: normal; font-size: 0.78em; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; }
+body.ax .rc.is-sim .rc-simtag { display: inline-block; }
+
+/* six places, three by two */
+body.ax .rc-grid { flex: 1 1 auto; min-height: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); grid-template-rows: repeat(2, minmax(0, 1fr)); gap: 1em; padding: 0.5em 1.7em 0; }
+/* the layout follows the count: a few groups are bigger and centred, four are two by two, five or six are three by two */
+body.ax .rc-grid.is-n1 { grid-template-columns: minmax(0, 1fr); grid-template-rows: minmax(0, 27em); width: 44%; margin: 0 auto; align-content: center; }
+body.ax .rc-grid.is-n2 { grid-template-columns: repeat(2, minmax(0, 1fr)); grid-template-rows: minmax(0, 27em); width: 76%; margin: 0 auto; align-content: center; }
+body.ax .rc-grid.is-n3 { grid-template-rows: minmax(0, 27em); align-content: center; }
+body.ax .rc-grid.is-n4 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+body.ax .rc-grid.is-n1 .rc-card, body.ax .rc-grid.is-n2 .rc-card, body.ax .rc-grid.is-n3 .rc-card { font-size: 1.28em; }
+body.ax .rc-grid.is-n4 .rc-card { font-size: 1.14em; }
+body.ax .rc-grid.is-n1, body.ax .rc-grid.is-n2, body.ax .rc-grid.is-n3 { padding-left: 0; padding-right: 0; }
+body.ax .rc-grid.is-n3 { padding: 0.5em 1.7em 0; }
+body.ax .rc-card { display: grid; grid-template-columns: 5.6em minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; column-gap: 1.1em; row-gap: 0.55em; padding: 1em 1.15em 0.9em; min-height: 0; background: var(--ax-panel); border: 1px solid var(--ax-rule-2); border-radius: 2px; overflow: hidden; animation: rc-rise 0.55s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+@keyframes rc-rise { from { opacity: 0; transform: translateY(1.2em); } }
+body.ax .rc.is-turn .rc-sign, body.ax .rc.is-turn .rc-sub { animation: rc-swap 0.5s var(--ax-ease) backwards; }
+@keyframes rc-swap { from { opacity: 0; transform: translateY(-0.5em); } }
+
+/* the cabinet is a platform plate */
+body.ax .rc-plate { grid-row: 1 / 3; display: grid; align-content: center; justify-items: center; height: 5.6em; background: var(--ax-sign); color: var(--ax-sign-ink); border-radius: 2px; }
+body.ax .rc-plate small { font-size: 0.56em; font-weight: 700; letter-spacing: 0.15em; text-transform: uppercase; color: var(--ax-sign-ink-2); }
+body.ax .rc-plate b { font-size: 2.6em; font-weight: 800; line-height: 1; letter-spacing: -0.02em; }
+body.ax .rc-main { min-width: 0; grid-row: 1 / 3; align-self: center; }
+body.ax .rc-teacher { margin: 0; font-size: 1.62em; font-weight: 800; line-height: 1.08; letter-spacing: -0.01em; }
+body.ax .rc-time { display: flex; align-items: baseline; flex-wrap: wrap; gap: 0 0.7em; margin: 0.3em 0 0; }
+body.ax .rc-time b { font-size: 1.3em; font-weight: 800; font-variant-numeric: tabular-nums; }
+body.ax .rc-time span { font-size: 0.95em; font-weight: 600; color: var(--ax-ink-3); }
+
+body.ax .rc-meta { grid-column: 1 / -1; display: flex; flex-wrap: wrap; align-items: center; gap: 0.35em 0.9em; padding-top: 0.55em; border-top: 1px solid var(--ax-rule); font-size: 1.08em; }
+body.ax .rc-subj { font-weight: 800; }
+body.ax .rc-grade { display: inline-flex; align-items: baseline; gap: 0.4em; padding: 0.02em 0.55em; border: 1.5px solid var(--ax-ink); border-radius: 2px; font-weight: 800; font-size: 0.95em; }
+body.ax .rc-grade i { font-style: normal; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rc-seats { margin-left: auto; font-weight: 700; color: var(--ax-ink-2); }
+
+body.ax .rc-stu { grid-column: 1 / -1; display: grid; align-content: start; gap: 0.28em 1em; margin: 0; padding: 0; list-style: none; font-size: 1.14em; }
+body.ax .rc-stu.is-two { grid-template-columns: 1fr 1fr; }
+body.ax .rc-stu li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.1em 0.55em; min-width: 0; }
+body.ax .rc-sn { min-width: 0; font-weight: 600; line-height: 1.2; overflow-wrap: anywhere; }
+body.ax .rc-tag { flex: none; padding: 0 0.4em; border: 1px solid currentColor; border-radius: 2px; color: var(--ax-blue); font-size: 0.68em; font-style: normal; font-weight: 800; white-space: nowrap; }
+body.ax .rc-dot { display: inline-block; flex: none; width: 0.62em; height: 0.62em; margin: 0; border-radius: 50%; background: var(--ax-ok); }
+body.ax .rc-dot--proba, body.ax .rc-dot--proba_ok { background: none; border: 2px dashed var(--ax-blue); }
+body.ax .rc-dot--inlocuire { background: none; border: 2px solid var(--ax-swap); }
+
+body.ax .rc-when { grid-column: 1 / -1; font-size: 0.9em; font-weight: 700; color: var(--ax-ink-3); }
+body.ax .rc-card--next .rc-when { color: var(--ax-blue); }
+body.ax .rc-elapsed { display: block; height: 0.32em; margin-top: 0.4em; background: var(--ax-rule); }
+body.ax .rc-elapsed i { display: block; height: 100%; background: var(--ax-ok); transform: scaleX(0.02); transform-origin: left; transition: transform 0.8s var(--ax-ease); }
+body.ax .rc-card--next .rc-elapsed, body.ax .rc-card--later .rc-elapsed { display: none; }
+body.ax .rc-grid.is-empty { display: grid; place-items: center; }
+body.ax .rc-idle { grid-column: 1 / -1; grid-row: 1 / -1; display: grid; place-content: center; text-align: center; font-size: 1.9em; color: var(--ax-ink-2); }
+body.ax .rc-idle b { color: var(--ax-ink); }
+
+body.ax .rc-foot { display: flex; align-items: center; justify-content: space-between; gap: 1em; padding: 0.7em 1.7em 0.8em; font-size: 0.98em; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rc-leg { display: inline-flex; align-items: center; gap: 0.55em; }
+body.ax .rc-leg .rc-dot + .rc-dot { margin-left: 1.2em; }
+
+/* the TV: full screen from the button, or the console hidden around the board (#receptie?tv=1) */
+body.ax .rc-wrap:fullscreen { width: 100%; margin: 0; overflow: hidden; border: 0; }
+body.ax .rc-wrap:fullscreen .rc-fit, body.ax .rc-wrap.is-full .rc-fit { height: 100%; min-width: 0; }
+body.ax .rc-wrap.is-full .rc, body.ax .ax-shell[data-tv] .rc { aspect-ratio: auto; height: 100%; }
+body.ax .rc-wrap.is-idle, body.ax .rc-wrap.is-idle * { cursor: none; }
+body.ax .ax-shell[data-tv] { display: block; }
+body.ax .ax-shell[data-tv] .ax-sign, body.ax .ax-shell[data-tv] .ax-top, body.ax .ax-shell[data-tv] .rc-head, body.ax .ax-shell[data-tv] .rc-tools { display: none; }
+body.ax .ax-shell[data-tv] .ax-view { padding: 0; }
+body.ax .ax-shell[data-tv] .rc-wrap { width: auto; margin: 0; position: fixed; inset: 0; z-index: 30; border: 0; overflow: hidden; }
+body.ax .ax-shell[data-tv] .rc-fit { height: 100%; min-width: 0; }
+
+@media (max-width: 760px) {
+  body.ax .rc-tools__b { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  body.ax .rc-card, body.ax .rc.is-turn .rc-sign, body.ax .rc.is-turn .rc-sub, body.ax .rc[data-kind="now"] .rc-sign::before { animation: none; }
+  body.ax .rc-elapsed i { transition: none; }
+}
