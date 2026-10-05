@@ -89,13 +89,12 @@
 
   /* ---------- pieces of the board ---------- */
   const gradeNo = g => D.GRADES.indexOf(g) + 1;
-  const STU_TAG = { proba: 'Oră de probă', proba_ok: 'Oră de probă', inlocuire: 'Înlocuire' };
   const SIGN = { now: 'În desfășurare', next: 'Urmează', later: 'Mâine', idle: 'Recepție' };
 
   function studentsHTML(g) {
     const list = D.enrolled(g).slice().sort((a, b) => a.name.localeCompare(b.name, 'ro'));
     return `<ul class="rc-stu${list.length > 4 ? ' is-two' : ''}">${list.map(s => `
-      <li><i class="rc-dot rc-dot--${s.status === 'instabil' ? 'activ' : s.status}" aria-hidden="true"></i><span class="rc-sn">${esc(s.first)} ${esc(s.last)}</span>${STU_TAG[s.status] ? `<em class="rc-tag">${STU_TAG[s.status]}</em>` : ''}</li>`).join('')}</ul>`;
+      <li><i class="rc-dot rc-dot--${s.status === 'instabil' ? 'activ' : s.status}" aria-hidden="true"></i><span class="rc-sn">${esc(s.first)} ${esc(s.last)}</span></li>`).join('')}</ul>`;
   }
 
   function cardHTML(g, kind, i, startMin) {
@@ -103,9 +102,6 @@
     const en = D.enrolled(g).length;
     const seats = g.size === 1 ? 'Individual' : `${en} din ${g.size} elevi`;
     const subj = g.subject + (g.regime === 'vara' ? ' (vară)' : '');
-    const when = kind === 'now'
-      ? `<span class="rc-until" data-until="${(g.start + g.duration) * 60}" data-from="${g.start * 60}"></span>`
-      : `<span class="rc-until" data-starts="${startMin != null ? startMin : g.start * 60}"></span>`;
     return `
       <article class="rc-card rc-card--${kind}" style="--i:${i}">
         <div class="rc-plate" aria-label="Cabinetul ${room.num}"><small>Cabinet</small><b>${room.num}</b><small>etaj ${room.floor}</small></div>
@@ -119,7 +115,7 @@
           <span class="rc-seats">${seats}</span>
         </div>
         ${studentsHTML(g)}
-        <div class="rc-when">${when}<u class="rc-elapsed" aria-hidden="true"><i></i></u></div>
+        ${kind === 'now' ? `<u class="rc-elapsed" aria-hidden="true" data-until="${(g.start + g.duration) * 60}" data-from="${g.start * 60}"><i></i></u>` : ''}
       </article>`;
   }
 
@@ -143,15 +139,9 @@
       q('#rcTime').textContent = sim.ora != null ? hhmm(c.min) : String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0') + ':' + String(now.getSeconds()).padStart(2, '0');
       stage.classList.toggle('is-sim', c.simulated);
       // countdowns and the elapsed bar of each card
-      stage.querySelectorAll('[data-until]').forEach(el => {
-        const to = +el.dataset.until, from = +el.dataset.from, left = to - c.min;
-        el.textContent = left > 0 ? `până la ${hhmm(to)}, mai sunt ${left} min` : 'se termină acum';
-        const bar = el.parentElement.querySelector('.rc-elapsed i');
-        if (bar) bar.style.transform = `scaleX(${Math.max(0.02, Math.min(1, (c.min - from) / (to - from)))})`;
-      });
-      stage.querySelectorAll('[data-starts]').forEach(el => {
-        const at = +el.dataset.starts, left = at - c.min;
-        el.textContent = left > 0 && left < 60 ? `începe în ${left} min` : `începe la ${hhmm(at)}`;
+      stage.querySelectorAll('.rc-elapsed').forEach(el => {
+        const to = +el.dataset.until, from = +el.dataset.from;
+        el.firstElementChild.style.transform = `scaleX(${Math.max(0.02, Math.min(1, (c.min - from) / (to - from)))})`;
       });
     }
 
@@ -302,7 +292,7 @@
             </header>
             <div class="rc-grid" id="rcGrid" aria-live="polite"></div>
             <footer class="rc-foot">
-              <span class="rc-leg"><i class="rc-dot rc-dot--activ"></i>elev din grupă<i class="rc-dot rc-dot--proba"></i>oră de probă</span>
+              <span class="rc-leg"><i class="rc-dot rc-dot--activ"></i>elev din grupă<i class="rc-dot rc-dot--proba"></i>oră de probă<i class="rc-dot rc-dot--inlocuire"></i>înlocuire</span>
               <span class="rc-page" id="rcPage"></span>
             </footer>
           </section>
