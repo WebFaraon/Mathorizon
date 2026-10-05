@@ -110,6 +110,8 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
   const people0 = D.students.length, old0 = D.ledger(src.id).rows.find(r => r.s.id === sid), cols0 = D.ledger(dest.id).rows.length, enrDest0 = D.enrolled(dest).length, enrSrc0 = D.enrolled(src).length;
   ok(D.transferCandidates([sid]).every(c => c.g.subject === src.subject && c.g.grade === src.grade && c.g.status !== 'inactiv' && c.g.id !== src.id), 'candidates: same subject and grade, open, not the same group');
   ok(D.transferCandidates([sid]).filter(c => c.fits).every(c => c.free >= 1), 'candidates: fits means room');
+  ok(D.transferCandidates([sid]).every(c => (c.g.profile || '') === (src.profile || '')), 'candidates: same profile');
+  { const f = D.transferCandidates([sid]).filter(c => c.fits).map(c => c.dLevel); ok(f.every((v, i) => !i || f[i - 1] <= v), 'candidates: the same level first, then further away'); }
   const ids = D.transfer([sid], dest.id);
   const L1 = D.ledger(src.id), L2 = D.ledger(dest.id), o1 = L1.rows.find(r => r.s.id === sid), n1 = L2.rows.find(r => r.s.id === sid);
   ok(ids.length === 1 && who.group === dest.id && who.status === 'activ', 'transfer: student is in the new group, Activ');

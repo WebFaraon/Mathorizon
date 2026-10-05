@@ -4,9 +4,10 @@
    Opened from the group drawer of the Orar view, after the admin ticked
    the students to move:  AdminTransfer.open({ from: groupId, students: [ids], onDone })
 
-   A dialog lists the groups the students could go to: same subject and
-   grade, not closed, with room for all of them, never a group they were
-   in before. Best first (same level, same profile, same project). A
+   A dialog lists the groups the students could go to: same subject,
+   grade and profile, not closed, with room for all of them, never a
+   group they were in before. Ordered by level: the same level first,
+   then the nearest ones. A
    choice shows what will happen; "Transferă" calls AdminData.transfer,
    which keeps the student in the old group with the status Transferat
    (marks and money stay there, so the statistics are not lost) and
@@ -36,7 +37,7 @@
     const people = students.map(id => D.students.find(s => s.id === id)).filter(Boolean);
     if (!src || !people.length) return;
     const n = people.length;
-    const st = { pick: null, onlyLevel: false, onlyProfile: false, done: null };
+    const st = { pick: null, done: null };
 
     const dlg = document.createElement('dialog');
     dlg.className = 'tr-dlg';
@@ -44,7 +45,7 @@
     document.body.appendChild(dlg);
 
     const all = () => D.transferCandidates(students);
-    const visible = () => all().filter(c => (!st.onlyLevel || c.sameLevel) && (!st.onlyProfile || c.sameProfile));
+    const visible = () => all();
     const tName = g => D.teacher(g.teacher).name;
 
     /* ---------------- step 1: choose the group ---------------- */
@@ -52,10 +53,7 @@
       const g = c.g, e = g.size - c.free, sel = st.pick === g.id;
       const incoming = sel ? n : 0;
       const seats = Array.from({ length: g.size }, (_, k) => `<i class="${k < e ? 'on' : k < e + incoming ? 'inc' : ''}"></i>`).join('');
-      const lvl = c.sameLevel ? `<span class="tr-b tr-b--ok">Același nivel ${esc(g.level)}</span>`
-        : c.dLevel === 1 ? `<span class="tr-b tr-b--near">Nivel ${esc(g.level)}, aproape</span>`
-        : `<span class="tr-b tr-b--far">Nivel ${esc(g.level)}</span>`;
-      const prof = g.profile ? (c.sameProfile ? `<span class="tr-b tr-b--ok">Același profil</span>` : `<span class="tr-b tr-b--far">Profil ${esc(g.profile)}</span>`) : '';
+      const lvl = `<span class="tr-b${c.sameLevel ? ' tr-b--ok' : ''}">${c.sameLevel ? 'Același nivel ' : 'Nivel '}${esc(g.level)}</span>`;
       const proj = c.sameProject ? '' : `<span class="tr-b tr-b--far">${esc(D.project(g.project).mode === 'offline' ? 'Offline' : 'Online')}</span>`;
       const fill = g.status === 'completare' ? '<span class="tr-b">Se completează</span>' : '';
       return `
@@ -64,8 +62,8 @@
           <span class="tr-card__room">${roomPlate(g)}</span>
           <span class="tr-card__main">
             <b>${esc(tName(g))}</b>
-            <span>${esc(g.subject)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''} <i class="ax-line ax-line--${g.project}">${esc(D.project(g.project).short)}</i></span>
-            <span class="tr-badges">${best ? '<span class="tr-b tr-b--best">Cea mai potrivită</span>' : ''}${lvl}${prof}${proj}${fill}</span>
+            <span>${esc(g.subject)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''} <span class="ax-line ax-line--${g.project}">${esc(D.project(g.project).short)}</span></span>
+            <span class="tr-badges">${best ? '<span class="tr-b tr-b--best">Cea mai potrivită</span>' : ''}${lvl}${proj}${fill}</span>
           </span>
           <span class="tr-card__seat">
             <span class="ax-seats" aria-hidden="true">${seats}</span>
@@ -83,7 +81,7 @@
       const bestId = fit.length ? fit[0].g.id : null;
       let html = '';
       if (fit.length) html += fit.map((c, i) => cardHTML(c, i, c.g.id === bestId && (c.sameLevel || fit.length === 1))).join('');
-      else html += `<div class="tr-empty"><b>Nicio grupă potrivită${st.onlyLevel || st.onlyProfile ? ' cu aceste condiții' : ''}.</b>${st.onlyLevel || st.onlyProfile ? 'Relaxează o condiție de mai sus.' : tight.length ? `Grupele de clasa ${esc(src.grade)} nu au destule locuri pentru ${countWord(n, 'elev', 'elevi')}. Încearcă să muți mai puțini deodată.` : 'Toate grupele de aceeași materie și clasă sunt complete sau închise. Poți crea o grupă nouă din Repartizare.'}</div>`;
+      else html += `<div class="tr-empty"><b>Nicio grupă potrivită.</b>${tight.length ? `Grupele de clasa ${esc(src.grade)} nu au destule locuri pentru ${countWord(n, 'elev', 'elevi')}. Încearcă să muți mai puțini deodată.` : 'Toate grupele de aceeași materie, clasă și profil sunt complete sau închise. Poți crea o grupă nouă din Repartizare.'}</div>`;
       if (tight.length) html += `<h3 class="tr-sub">Nu au destule locuri pentru ${countWord(n, 'elev', 'elevi')}</h3>` + tight.map((c, i) => cardHTML(c, fit.length + i, false)).join('');
       if (full) html += `<p class="tr-full">${full === 1 ? 'Încă o grupă este completă' : `Încă ${full} ${full % 100 >= 1 && full % 100 <= 19 ? 'grupe sunt complete' : 'de grupe sunt complete'}`} și nu apare aici.</p>`;
       return html;
@@ -111,12 +109,6 @@
           <div class="tr-from"><small>Din grupa</small><span class="ax-grade">${esc(src.grade)}</span><b>${esc(src.subject)}</b><span>${esc(tName(src))}, ${esc(dayNames(src))} ${timeRange(src)}</span></div>
           <ul class="tr-kids">${people.map((s, i) => `<li style="--i:${i}"><i>${esc(initials(s))}</i>${esc(s.name)}</li>`).join('')}</ul>
         </section>
-        <div class="tr-rules" role="group" aria-label="Condiții">
-          <span class="tr-rule"><i>${CHECK}</i>${esc(src.subject)}, clasa ${esc(src.grade)}</span>
-          <span class="tr-rule"><i>${CHECK}</i>Loc liber pentru ${countWord(n, 'elev', 'elevi')}</span>
-          <button type="button" class="tr-tg" data-tg="onlyLevel" aria-pressed="${st.onlyLevel}"><i>${CHECK}</i>Doar nivelul ${esc(src.level)}</button>
-          ${src.profile ? `<button type="button" class="tr-tg" data-tg="onlyProfile" aria-pressed="${st.onlyProfile}"><i>${CHECK}</i>Doar profilul ${esc(src.profile)}</button>` : ''}
-        </div>
         <div class="tr-list" role="radiogroup" aria-label="Grupe disponibile" id="trList">${listHTML()}</div>
         <div class="tr-note${pickG ? ' is-on' : ''}" id="trNote"><div>${pickG ? noteHTML(pickG) : ''}</div></div>
         <footer class="tr-f">
@@ -197,8 +189,6 @@
     dlg.addEventListener('click', e => {
       if (e.target === dlg) { dlg.close(); return; }
       if (e.target.closest('[data-x]')) { dlg.close(); return; }
-      const tg = e.target.closest('[data-tg]');
-      if (tg) { st[tg.dataset.tg] = !st[tg.dataset.tg]; if (st.pick && !visible().some(c => c.g.id === st.pick && c.fits)) st.pick = null; paintStep(true); const b = dlg.querySelector(`[data-tg="${tg.dataset.tg}"]`); if (b) b.focus(); return; }
       const card = e.target.closest('.tr-card');
       if (card && !card.disabled) { choose(card.dataset.g); return; }
       if (e.target.closest('[data-go]')) { commit(); return; }
@@ -220,7 +210,20 @@
       const next = cards[Math.max(0, Math.min(cards.length - 1, at + (e.key === 'ArrowDown' || e.key === 'ArrowRight' ? 1 : -1)))];
       if (next) { choose(next.dataset.g); next.focus(); next.scrollIntoView({ block: 'nearest' }); }
     });
-    dlg.addEventListener('close', () => { dlg.remove(); });
+    /* while the dialog is open nothing behind it scrolls: the wheel and touch only move the list inside it */
+    const phone = () => window.matchMedia('(max-width: 760px)').matches;
+    const hold = e => {
+      const t = e.target;
+      if (t !== dlg && dlg.contains(t) && (phone() || t.closest('.tr-list, .tr-ok'))) return;
+      e.preventDefault();
+    };
+    document.addEventListener('wheel', hold, { passive: false, capture: true });
+    document.addEventListener('touchmove', hold, { passive: false, capture: true });
+    dlg.addEventListener('close', () => {
+      document.removeEventListener('wheel', hold, { capture: true });
+      document.removeEventListener('touchmove', hold, { capture: true });
+      dlg.remove();
+    });
     dlg.addEventListener('cancel', () => { /* Esc closes it, as usual */ });
 
     paintStep(false);

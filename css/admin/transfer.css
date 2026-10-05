@@ -36,7 +36,7 @@ body.ax .tr-foot__n b { display: inline-block; min-width: 1.2em; font-size: 1.15
 body.ax .tr-foot__n.is-bump b { animation: ax-tick 0.3s var(--ax-ease); }
 
 /* ---------- the dialog ---------- */
-body.ax .tr-dlg { width: min(900px, calc(100vw - 32px)); max-width: none; max-height: min(88vh, 940px); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); font-family: var(--ax-font); overflow: hidden; }
+body.ax .tr-dlg { overscroll-behavior: contain; width: min(900px, calc(100vw - 32px)); max-width: none; max-height: min(88vh, 940px); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); font-family: var(--ax-font); overflow: hidden; }
 body.ax .tr-dlg[open] { display: flex; flex-direction: column; animation: tr-in 0.3s var(--ax-ease); }
 body.ax .tr-dlg::backdrop { background: rgba(10, 12, 15, 0.55); animation: ax-fade 0.2s ease-out; }
 body.ax .tr-h { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: var(--ax-sign); color: var(--ax-sign-ink); }
@@ -54,19 +54,6 @@ body.ax .tr-from b { color: var(--ax-ink); font-weight: 800; }
 body.ax .tr-kids { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
 body.ax .tr-kids li { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); font-size: 0.9rem; font-weight: 700; animation: tr-chip 0.36s var(--ax-ease) backwards; animation-delay: calc(0.12s + var(--i, 0) * 50ms); }
 body.ax .tr-kids li i { display: grid; place-items: center; width: 26px; height: 26px; background: var(--ax-swap); color: #fff; font-size: 0.72rem; font-style: normal; font-weight: 800; letter-spacing: 0.02em; }
-
-body.ax .tr-rules { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 20px; border-bottom: 1px solid var(--ax-rule); }
-body.ax .tr-rule, body.ax .tr-tg { display: inline-flex; align-items: center; gap: 7px; min-height: 32px; padding: 0 12px 0 8px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); font-size: 0.84rem; font-weight: 700; color: var(--ax-ink-2); }
-body.ax .tr-rule i, body.ax .tr-tg i { display: grid; place-items: center; width: 18px; height: 18px; border: 1.5px solid var(--ax-ink-3); border-radius: 1px; }
-body.ax .tr-rule i { border-color: var(--ax-ok); background: var(--ax-ok); }
-body.ax .tr-chk-svg { width: 12px; height: 12px; fill: none; stroke: #fff; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-body.ax .tr-tg { cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.12s; }
-body.ax .tr-tg:hover { background: var(--ax-hover); }
-body.ax .tr-tg:active { transform: scale(0.97); }
-body.ax .tr-tg .tr-chk-svg { stroke-dasharray: 14; stroke-dashoffset: 14; transition: stroke-dashoffset 0.2s var(--ax-ease); }
-body.ax .tr-tg[aria-pressed="true"] { border-color: var(--ax-ink); background: var(--ax-ink); color: var(--ax-bg); }
-body.ax .tr-tg[aria-pressed="true"] i { border-color: var(--ax-bg); }
-body.ax .tr-tg[aria-pressed="true"] .tr-chk-svg { stroke: var(--ax-bg); stroke-dashoffset: 0; }
 
 body.ax .tr-list { flex: 1; min-height: 120px; overflow-y: auto; display: grid; align-content: start; gap: 8px; padding: 14px 20px; overscroll-behavior: contain; }
 body.ax .tr-sub { margin-top: 8px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
@@ -151,7 +138,6 @@ body.ax .tr-ok__f { display: flex; flex-wrap: wrap; justify-content: center; gap
   body.ax .tr-list { overflow: visible; }
   body.ax .tr-f { position: sticky; bottom: 0; z-index: 2; }
   body.ax .tr-h { position: sticky; top: 0; z-index: 2; }
-  body.ax .tr-rules { gap: 6px; padding: 10px 16px; }
   body.ax .tr-who, body.ax .tr-list { padding-left: 16px; padding-right: 16px; }
   body.ax .tr-card { grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "when tick" "main main" "room seat"; gap: 8px 12px; }
   body.ax .tr-card__when { grid-area: when; }

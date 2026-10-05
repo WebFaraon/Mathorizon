@@ -2,8 +2,8 @@
    Admin console: Acasă
    ============================================================
    Greeting with the date, what needs attention today (each sign a
-   number and a direct link), the three projects at a glance on the
-   left and, in the middle, big tiles that lead to every other page.
+   number and a direct link) and, in the middle, big tiles that lead
+   to every other page.
    Reference view for the others: render(root, ctx) writes markup
    with AdminUI helpers and wires its own events.
    ============================================================ */
@@ -37,34 +37,19 @@
     ];
   }
 
-  function projects() {
-    return D.PROJECTS.map((p, i) => {
-      const gs = D.groups.filter(g => g.project === p.id);
-      const act = gs.filter(g => g.status === 'activ').length;
-      const ids = new Set(gs.map(g => g.id));
-      const st = D.students.filter(s => ids.has(s.group) && s.status === 'activ').length;
-      const share = U.pct(act, gs.length);
-      return `
-        <a class="ah-proj" href="#orar?project=${p.id}" data-arrive style="--i:${i}">
-          <span class="ax-line ax-line--${p.id}">${esc(p.name)}</span>
-          <span class="ah-proj__v"><b>${nf.format(act)}</b> grupe active din ${nf.format(gs.length)}</span>
-          <span class="ah-proj__bar" aria-hidden="true"><i style="width:${share}%"></i></span>
-          <span class="ax-sub">${plural(st, 'elev activ', 'elevi activi')} · ${p.mode === 'offline' ? 'în cabinete' : 'online'}</span>
-        </a>`;
-    }).join('');
-  }
-
   /* one big tile per page: icon plate in the page colour, what it is for,
      and one live figure so the tile also says something before you open it */
   function tiles() {
     const day = todayId();
     const liveToday = D.groups.filter(g => g.status !== 'inactiv' && g.days.includes(day));
     const clash = D.conflicts(day).length;
+    const offlineToday = liveToday.filter(g => g.project === 'exo' && g.room && D.enrolled(g).length).length;
     const activeStudents = D.students.filter(s => s.status === 'activ').length;
     return [
       { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele cu programul, profesorul și locurile libere.', fig: nf.format(D.groups.length), unit: 'grupe' },
       { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statutul fiecărui elev.', fig: nf.format(D.students.length), unit: 'elevi' },
       { id: 'repartizare', href: '#repartizare?day=' + day, icon: 'door', t: 'Repartizare', d: 'Cabinetele pe ore, cu mutare și verificare automată.', fig: nf.format(liveToday.length), unit: clash ? `lecții azi, ${plural(clash, 'suprapunere', 'suprapuneri')}` : 'lecții azi' },
+      { id: 'receptie', href: '#receptie', icon: 'monitor', t: 'Recepție', d: 'Ecranul TV de la intrare: lecțiile în desfășurare și cele care urmează.', fig: nf.format(offlineToday), unit: 'lecții offline azi' },
       { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii și cine e liber la o oră.', fig: nf.format(D.teachers.length), unit: 'profesori' },
       { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții, tendințe și tabele încrucișate.', fig: U.pct(activeStudents, D.students.length) + '%', unit: 'elevi activi' },
       { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri de profesor, elevi, abonamente și waitlist.', fig: 'Date reale', unit: '' },
@@ -100,10 +85,6 @@
         </section>
 
         <div class="ah-grid">
-          <aside class="ah-side" aria-labelledby="ahProjT">
-            <div class="ax-h2-row"><h2 class="ax-h2" id="ahProjT">Proiecte</h2></div>
-            <div class="ah-projs">${projects()}</div>
-          </aside>
           <section aria-labelledby="ahHubT">
             <div class="ax-h2-row"><h2 class="ax-h2" id="ahHubT">Instrumente</h2></div>
             <nav class="ah-hub">

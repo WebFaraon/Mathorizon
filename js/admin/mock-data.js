@@ -405,8 +405,8 @@
 
   /* ---- transfers ---- */
   const LEVEL_I = l => LEVELS.indexOf(l);
-  /* The groups a set of students could move to: same subject and grade, not closed, with room for all of them,
-     never one they already were in. Best first: same level, same profile, same project, nearest level. */
+  /* The groups a set of students could move to: same subject, grade and profile, not closed, with room for all of
+     them, never one they already were in. Ordered by level: the same level first, then the nearest ones. */
   function transferCandidates(sids) {
     const people = sids.map(id => idxS[id]).filter(Boolean);
     if (!people.length) return [];
@@ -414,15 +414,16 @@
     if (!from) return [];
     const been = new Set();
     people.forEach(s => { been.add(s.group); (moves[s.id] || []).forEach(t => { been.add(t.from); been.add(t.to); }); });
-    return groups.filter(g => g.id !== from.id && !been.has(g.id) && g.status !== 'inactiv' && g.subject === from.subject && g.grade === from.grade)
+    return groups.filter(g => g.id !== from.id && !been.has(g.id) && g.status !== 'inactiv' && g.subject === from.subject && g.grade === from.grade && (g.profile || '') === (from.profile || ''))
       .map(g => {
         const free = Math.max(0, g.size - enrolled(g).length);
         const dLevel = Math.abs(LEVEL_I(g.level) - LEVEL_I(from.level));
-        const sameProfile = (g.profile || '') === (from.profile || '');
         const sameProject = g.project === from.project;
         const fits = free >= people.length;
-        const score = (fits ? 1000 : 0) + (dLevel === 0 ? 400 : Math.max(0, 200 - dLevel * 80)) + (sameProfile ? 120 : 0) + (sameProject ? 60 : 0) + (g.status === 'activ' ? 20 : 0) - (g.size - free) + (g.size - free === 0 ? -150 : Math.min(g.size - free, 4) * 12);   // a group that already meets beats an empty one
-        return { g, free, fits, dLevel, sameLevel: dLevel === 0, sameProfile, sameProject, score };
+        const pop = g.size - free;
+        // the level decides (1000 a step); the rest only orders groups of the same level
+        const score = (fits ? 100000 : 0) - dLevel * 1000 + (pop === 0 ? -150 : Math.min(pop, 4) * 12) + (sameProject ? 60 : 0) + (g.status === 'activ' ? 20 : 0);
+        return { g, free, fits, dLevel, sameLevel: dLevel === 0, sameProject, score };
       })
       .sort((a, b) => b.score - a.score || a.g.id.localeCompare(b.g.id));
   }
