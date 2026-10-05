@@ -475,10 +475,10 @@
     head.push(`<tr class="rg-hr rg-hr--last" data-hr="8">
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
-      <th class="rg-cc rg-colh rg-sumh">PREȚ ELEV</th>
+      <th class="rg-cc rg-colh rg-sumh" aria-label="Total câștigat cu această grupă">${fm(L.earned)}</th>
       ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${STONE[x.s.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.s.status)}</select></div></td>`)}
       ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
-      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3">SALARIU PROFESOR</th>
+      <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3"></th>
     </tr>`);
 
     const body = [];
@@ -486,13 +486,13 @@
       body.push(`<tr class="rg-lr" data-li="${li}">
         <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
         <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
-        <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${l.counted ? fm(l.price) : ''}</span></td>
+        <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${l.counted ? fm(l.pay) : ''}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
           return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
-        <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td><td class="rg-xc rg-x3 rg-xs">${l.counted ? fm(l.pay) + ' lei' : ''}</td>
+        <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td>${blankX(3)}
       </tr>`);
     });
     body.push(`<tr class="rg-addrow"><th class="rg-a rg-addc"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></th><td colspan="${cols + 5}" class="rg-addfill"></td></tr>`);
