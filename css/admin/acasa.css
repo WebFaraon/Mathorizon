@@ -19,10 +19,10 @@ body.ax .ah-grid .ax-h2-row { margin-top: 0; }
 /* the tiles fill the middle; a last row with fewer tiles stays centred */
 body.ax .ah-hub { --n: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
 body.ax .ah-hub > .ah-tile { flex: 0 0 calc((100% - (var(--n) - 1) * 16px) / var(--n)); min-width: 0; }
-@media (min-width: 640px) { body.ax .ah-hub { --n: 2; } }
-@media (min-width: 1000px) { body.ax .ah-hub { --n: 3; } }
-@media (min-width: 1450px) { body.ax .ah-hub { --n: 4; } }
-@media (min-width: 1850px) { body.ax .ah-hub { --n: 5; } }
+@media (min-width: 560px) { body.ax .ah-hub { --n: 2; } }
+@media (min-width: 800px) { body.ax .ah-hub { --n: 3; } }
+@media (min-width: 1100px) { body.ax .ah-hub { --n: 4; } }
+@media (min-width: 1400px) { body.ax .ah-hub { --n: 5; } }
 body.ax .ah-tile {
   position: relative;
   display: flex;
