@@ -39,8 +39,8 @@
     if (!c) {
       const ss = D.studentsOf(g.id);
       c = {
-        active: ss.filter(s => s.status === 'activ').length,
-        probe: ss.filter(s => s.status === 'proba' || s.status === 'proba_ok').length,
+        active: ss.filter(s => D.statusIn(s, g.id) === 'activ').length,
+        probe: ss.filter(s => ['proba', 'proba_ok'].includes(D.statusIn(s, g.id))).length,
         enrolled: D.enrolled(g).length,
         free: D.freeSeats(g)
       };

@@ -453,7 +453,11 @@
     head.push(`<tr class="rg-hr" data-hr="1">
       <th class="rg-a rg-pillcell">${ps('size', g.size, SIZES, 'rg-tone--' + sizeTone(g.size), 'Formatul grupei')}</th>
       <th class="rg-hl-lab" colspan="2">DATELE ELEVULUI</th>
-      ${each((x, i) => `<th class="rg-sc rg-sname" data-c="${i}" scope="col"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(lastFirst(x.s))}"><b>${esc(lastFirst(x.s))}</b><small>${esc(x.s.phone)}</small></button></th>`)}
+      ${each((x, i) => {
+        const note = x.leave ? `<small class="rg-sn__mv">→ ${esc(x.to ? D.tabName(x.to) : 'altă grupă')}</small>` : x.join ? `<small class="rg-sn__mv">din ${esc(x.from ? D.tabName(x.from) : 'altă grupă')}</small>` : `<small>${esc(x.s.phone)}</small>`;
+        const tip = lastFirst(x.s) + (x.leave ? ', transferat în ' + (x.to ? D.tabName(x.to) : 'altă grupă') : x.join ? ', venit prin transfer din ' + (x.from ? D.tabName(x.from) : 'altă grupă') : '');
+        return `<th class="rg-sc rg-sname${x.leave ? ' is-moved' : ''}${x.join ? ' is-in' : ''}" data-c="${i}" scope="col"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(tip)}"><b>${esc(lastFirst(x.s))}</b>${note}</button></th>`;
+      })}
       ${ghost(i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col"><span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span></th>`)}
       <th class="rg-xh rg-x1">Ziua</th><th class="rg-xh rg-x2">Ora</th><th class="rg-xh rg-x3">Cabinetul</th>
     </tr>`);
@@ -476,7 +480,9 @@
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
       <th class="rg-cc rg-colh rg-sumh" aria-label="Total câștigat cu această grupă">${fm(L.earned)}</th>
-      ${each((x, i) => `<td class="rg-sc rg-stat rg-stat--${STONE[x.s.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.s.status)}</select></div></td>`)}
+      ${each((x, i) => x.leave
+        ? `<td class="rg-sc rg-stat rg-stat--lilac rg-stat--moved" data-c="${i}" title="A fost transferat. Ora lui și banii rămân în această coloană."><span class="rg-mvd">Transferat</span></td>`
+        : `<td class="rg-sc rg-stat rg-stat--${STONE[x.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.status)}</select></div></td>`)}
       ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
       <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3"></th>
     </tr>`);
@@ -489,6 +495,7 @@
         <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${l.counted ? fm(l.pay) : ''}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
+          if (x.lock[li]) return `<td class="rg-sc rg-pc is-lock" data-c="${i}" title="${x.leave ? 'Elevul a fost transferat, lecțiile de după transfer nu se mai notează aici' : 'Elevul a venit prin transfer, lecțiile dinainte nu se notează'}"><span class="rg-pl rg-pl--e is-off">${c ? (m ? m.t : '') : ''}</span></td>`;
           return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
@@ -505,19 +512,27 @@
       </table>`;
   }
 
+  /* a group a student moved to or came from: a link to its sheet (the admin can open another teacher's) */
+  function moveLink(g) {
+    const label = esc(`${g.subject} ${g.grade}, ${D.tabName(g)}`);
+    if (g.teacher === S.tid) return `<a href="#grupa/${g.id}" data-closedr>${label}</a>`;
+    return S.role === 'admin' ? `<a href="registru.html?t=${g.teacher}#grupa/${g.id}" target="_blank" rel="noopener">${label}</a>, la ${esc(lastFirst(D.teacher(g.teacher)))}` : `${label}, la ${esc(lastFirst(D.teacher(g.teacher)))}`;
+  }
   function studentDrawer(L, sid) {
     const x = L.rows.find(r => r.s.id === sid);
     if (!x) return;
     const s = x.s;
     const recent = x.codes.map((c, i) => [c, i]).filter(p => p[0]).slice(-8);
-    U.drawer({
+    const dr = U.drawer({
       title: esc(lastFirst(s)),
-      sub: `${esc(D.tabName(L.g))} · ${esc(SNAME[s.status])}`,
+      sub: `${esc(D.tabName(L.g))} · ${esc(SNAME[x.status])}`,
       body: `
         <dl class="ax-dl">
           <dt>Telefon</dt><dd><a href="tel:${esc(s.phone)}">${esc(s.phone)}</a></dd>
           <dt>Manager</dt><dd>${x.manager ? esc(lastFirst({ first: x.manager.name.split(' ')[0], last: x.manager.name.split(' ').slice(1).join(' ') })) : '-'}</dd>
-          <dt>În grupă din</dt><dd>${esc(new Date(s.joinedAt + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}</dd>
+          <dt>În grupă din</dt><dd>${esc(new Date((x.join || s.joinedAt) + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}</dd>
+          ${x.leave ? `<dt>Transferat</dt><dd>${esc(new Date(x.leave + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}, în ${x.to ? moveLink(x.to) : 'altă grupă'}</dd>` : ''}
+          ${x.join ? `<dt>Venit din</dt><dd>${x.from ? moveLink(x.from) : 'altă grupă'}</dd>` : ''}
           <dt>Achitări</dt><dd>${fm(x.paid)} lei</dd>
           <dt>Reduceri</dt><dd>${fm(x.disc)} lei</dd>
           <dt>Costul lecțiilor</dt><dd>${fm(x.cost)} lei</dd>
@@ -528,6 +543,7 @@
         <ul class="rg-dr-l">${recent.length ? recent.reverse().map(([c, i]) => `<li><span class="rg-pl rg-pl--${MARK[c].c}">${MARK[c].t}</span><span><b>${esc(L.lessons[i].label)}</b><small>${esc(L.lessons[i].topic || 'fără temă')}</small></span></li>`).join('') : '<li class="rg-none">Nicio lecție încă.</li>'}</ul>`,
       actions: S.role === 'admin' ? `<a class="ax-btn ax-btn--primary" href="admin.html#elevi?q=${encodeURIComponent(s.last)}">Vezi în consolă ${ico('arrow-right', 16)}</a>` : ''
     });
+    dr.querySelectorAll('[data-closedr]').forEach(l => l.addEventListener('click', () => dr.close()));
   }
 
   /* the table is drawn again after an edit (a few ms); scroll and focus stay where they were */

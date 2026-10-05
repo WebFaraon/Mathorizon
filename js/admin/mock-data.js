@@ -14,6 +14,8 @@
      group(id), teacher(id), manager(id), room(id), studentsOf(groupId),
      freeSeats(g), conflicts(day), move(groupId, patch), setStatus(...),
      setAvailability(teacherId, availability), setTeach(teacherId, rows),
+     transfer(studentIds, toGroupId), undoTransfer(ids), statusIn(student, groupId),
+     stint(student, groupId), baseMembers(groupId), transferCandidates(studentIds),
      resetTeacher(id), teacherEdited(id), base(groupId),
      reset(), onChange(fn)
    }
@@ -293,7 +295,10 @@
   /* ---- local edits (demo only) ---- */
   const clone = o => JSON.parse(JSON.stringify(o));
   const BASE = clone(groups.map(g => ({ id: g.id, days: g.days, start: g.start, duration: g.duration, room: g.room, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile, size: g.size })));
-  const BASE_S = Object.fromEntries(students.map(s => [s.id, { status: s.status, manager: s.manager }]));
+  const BASE_S = Object.fromEntries(students.map(s => [s.id, { status: s.status, manager: s.manager, group: s.group }]));
+  const baseBy = {};      // the people each group started with (a transfer never changes it)
+  students.forEach(s => { if (s.group) (baseBy[s.group] = baseBy[s.group] || []).push(s); });
+  let moves = {};         // student id -> his transfers, oldest first (rebuilt from edits.transfers)
   const idxS = Object.fromEntries(students.map(s => [s.id, s]));
   const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
   const baseG = Object.fromEntries(BASE.map(b => [b.id, b]));
@@ -302,13 +307,30 @@
   function applyEdits() {
     BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status, subject: b.subject, grade: b.grade, level: b.level, profile: b.profile, size: b.size }));
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
-    Object.entries(BASE_S).forEach(([id, b]) => { idxS[id].status = b.status; idxS[id].manager = b.manager; });
+    Object.entries(BASE_S).forEach(([id, b]) => { idxS[id].status = b.status; idxS[id].manager = b.manager; idxS[id].group = b.group; });
     Object.entries(edits.students || {}).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
+    applyTransfers();
     BASE_T.forEach(b => {
       const t = idx.teachers[b.id], e = (edits.teachers || {})[b.id] || {};
       t.availability = clone(e.availability || b.availability);
       t.teach = clone(e.teach || b.teach);
       t.subjects = subjectsOf(t);
+    });
+  }
+  /* A transfer moves a person to another group: s.group is the group he is in now. The group he left keeps him
+     (status Transferat there, his marks and money stay), so nothing of his history is lost. */
+  function applyTransfers() {
+    moves = {};
+    const list = Object.entries(edits.transfers || {}).map(([id, t]) => Object.assign({ id }, t))
+      .filter(t => idxS[t.s] && idx.groups[t.to]).sort((a, b) => (a.at || 0) - (b.at || 0) || a.id.localeCompare(b.id));
+    Object.keys(studentsByGroup).forEach(k => { delete studentsByGroup[k]; });
+    Object.keys(baseBy).forEach(k => { studentsByGroup[k] = baseBy[k].slice(); });
+    list.forEach(t => {
+      const s = idxS[t.s];
+      (moves[t.s] = moves[t.s] || []).push(t);
+      s.group = t.to;
+      const arr = studentsByGroup[t.to] = studentsByGroup[t.to] || [];
+      if (!arr.includes(s)) arr.push(s);
     });
   }
   applyEdits();
@@ -342,7 +364,16 @@
   });
 
   /* ---- helpers ---- */
-  const enrolled = g => (studentsByGroup[g.id] || []).filter(s => !['inactiv', 'transferat'].includes(s.status));
+  const enrolled = g => (studentsByGroup[g.id] || []).filter(s => s.group === g.id && !['inactiv', 'transferat'].includes(s.status));
+  /* the status a person has in one group: in the group he left it is always Transferat */
+  const statusIn = (s, gid) => (s.group === gid ? s.status : 'transferat');
+  /* when a person joined a group and when he left it (ISO dates, null if not by a transfer) */
+  function stint(s, gid) {
+    const list = moves[s.id] || [];
+    const into = list.filter(t => t.to === gid).pop(), out = list.filter(t => t.from === gid).pop();
+    const gone = s.group !== gid && !!out;
+    return { join: into ? into.iso : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null };
+  }
   const freeSeats = g => Math.max(0, g.size - enrolled(g).length);
 
   // Overlaps for one day: the same room or the same teacher twice in an hour.
@@ -370,6 +401,67 @@
       out.push({ kind: 'teacher', teacher: k.split('|')[0], hour: +k.split('|')[1], groups: ids });
     });
     return out;
+  }
+
+  /* ---- transfers ---- */
+  const LEVEL_I = l => LEVELS.indexOf(l);
+  /* The groups a set of students could move to: same subject and grade, not closed, with room for all of them,
+     never one they already were in. Best first: same level, same profile, same project, nearest level. */
+  function transferCandidates(sids) {
+    const people = sids.map(id => idxS[id]).filter(Boolean);
+    if (!people.length) return [];
+    const from = idx.groups[people[0].group];
+    if (!from) return [];
+    const been = new Set();
+    people.forEach(s => { been.add(s.group); (moves[s.id] || []).forEach(t => { been.add(t.from); been.add(t.to); }); });
+    return groups.filter(g => g.id !== from.id && !been.has(g.id) && g.status !== 'inactiv' && g.subject === from.subject && g.grade === from.grade)
+      .map(g => {
+        const free = Math.max(0, g.size - enrolled(g).length);
+        const dLevel = Math.abs(LEVEL_I(g.level) - LEVEL_I(from.level));
+        const sameProfile = (g.profile || '') === (from.profile || '');
+        const sameProject = g.project === from.project;
+        const fits = free >= people.length;
+        const score = (fits ? 1000 : 0) + (dLevel === 0 ? 400 : Math.max(0, 200 - dLevel * 80)) + (sameProfile ? 120 : 0) + (sameProject ? 60 : 0) + (g.status === 'activ' ? 20 : 0) - (g.size - free) + (g.size - free === 0 ? -150 : Math.min(g.size - free, 4) * 12);   // a group that already meets beats an empty one
+        return { g, free, fits, dLevel, sameLevel: dLevel === 0, sameProfile, sameProject, score };
+      })
+      .sort((a, b) => b.score - a.score || a.g.id.localeCompare(b.g.id));
+  }
+  function transfer(sids, toGid) {
+    const to = idx.groups[toGid];
+    if (!to) return [];
+    edits.transfers = edits.transfers || {};
+    edits.students = edits.students || {};
+    const out = [];
+    sids.forEach((sid, i) => {
+      const s = idxS[sid];
+      if (!s || !s.group || s.group === toGid) return;
+      const id = 'tr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + i;
+      edits.transfers[id] = { s: sid, from: s.group, to: toGid, iso: iso(today), prev: s.status, at: Date.now() + i };
+      edits.students[sid] = Object.assign({}, edits.students[sid] || {}, { status: 'activ' });
+      out.push(id);
+    });
+    if (!out.length) return out;
+    applyEdits();
+    save();
+    return out;
+  }
+  /* takes a transfer back (only the person's latest one), with the status he had before */
+  function undoTransfer(ids) {
+    let did = 0;
+    ids.forEach(id => {
+      const t = (edits.transfers || {})[id];
+      if (!t) return;
+      const mine = moves[t.s] || [];
+      if (!mine.length || mine[mine.length - 1].id !== id) return;
+      delete edits.transfers[id];
+      edits.students = edits.students || {};
+      edits.students[t.s] = Object.assign({}, edits.students[t.s] || {}, { status: t.prev });
+      did++;
+      applyEdits();
+    });
+    if (!Object.keys(edits.transfers || {}).length) delete edits.transfers;
+    if (did) save();
+    return did;
   }
 
   function isAvailable(teacherId, day, start, duration) {
@@ -403,7 +495,7 @@
 
   /* A fingerprint of the generated people: two devices that show the same one run the same data. */
   let fp = 2166136261;
-  students.forEach(s => { const t = s.name + s.phone + s.group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
+  students.forEach(s => { const t = s.name + s.phone + BASE_S[s.id].group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
 
   window.AdminData = {
     fingerprint: (fp >>> 0).toString(36),
@@ -418,7 +510,9 @@
     room: id => idx.rooms[id],
     project: id => PROJECTS.find(p => p.id === id),
     studentsOf: gid => studentsByGroup[gid] || [],
-    enrolled, freeSeats, conflicts, isAvailable,
+    baseMembers: gid => baseBy[gid] || [],
+    enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer,
+    transfersOf: sid => (moves[sid] || []).slice(),
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),
     edited: () => Object.keys(edits.groups || {}).length,

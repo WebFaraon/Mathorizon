@@ -133,7 +133,7 @@
     const dates = [];
     for (let d = new Date(first); d < last; d.setDate(d.getDate() + 1)) if (b.days.includes(wd(d))) dates.push(new Date(d));
     // a group nobody has joined yet has no history
-    const held = D.studentsOf(g.id).length ? dates.filter((_, i) => i === 0 || r() > 0.06).slice(-MAX_LESSONS) : [];
+    const held = D.baseMembers(g.id).length ? dates.filter((_, i) => i === 0 || r() > 0.06).slice(-MAX_LESSONS) : [];
 
     let k = 0;
     const lessons = held.map((d, i) => {
@@ -144,7 +144,7 @@
     });
     const n = lessons.length;
 
-    const rows = D.studentsOf(g.id).map(s => {
+    const rows = D.baseMembers(g.id).map(s => {
       const rs = rng(hash('s' + s.id));
       const st0 = D.baseStatus ? D.baseStatus(s.id) : s.status;
       if (s._debt == null) s._debt = s.balance < 0;
@@ -208,15 +208,22 @@
     const n = lessons.length;
     const nCounted = lessons.filter(l => l.counted).length;
 
-    const rows = G.rows.map(r => {
+    // A student who came by a transfer has a column too, starting empty and with no money; the one who left keeps
+    // his column (marks, money) but no lesson from the day of the transfer on can be marked for him, and the new
+    // group's lessons before that day cannot be marked for the one who came.
+    const known = new Set(G.rows.map(r => r.s.id));
+    const extra = D.studentsOf(g.id).filter(s => !known.has(s.id)).map(s => ({ s, codes: [], paid: 0, disc: 0 }));
+    const rows = G.rows.concat(extra).map(r => {
+      const T = D.stint(r.s, g.id);
+      const lock = lessons.map(l => !!((T.join && l.iso && l.iso < T.join) || (T.leave && (!l.iso || l.iso >= T.leave))));
       const mine = (ov.m || {})[r.s.id] || {};
-      const codes = lessons.map(l => (mine[l.oid] != null ? mine[l.oid] : (r.codes[l.oid] || '')));
+      const codes = lessons.map((l, i) => (lock[i] ? '' : mine[l.oid] != null ? mine[l.oid] : (r.codes[l.oid] || '')));
       let cost = 0, done = 0;
       codes.forEach((c, i) => { if (PAID_MARK[c] && lessons[i].counted) { cost += lessons[i].price; done++; } });
       const sold = r.paid + r.disc - cost;
       let flag = -1;
       if (sold < 0) { let run = 0; for (let i = 0; i < n; i++) { if (PAID_MARK[codes[i]]) run += lessons[i].price; if (run > r.paid + r.disc) { flag = i; break; } } }
-      return { s: r.s, codes, cost, done, disc: r.disc, paid: r.paid, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
+      return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, codes, cost, done, disc: r.disc, paid: r.paid, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
     });
 
     const st = { P: 0, A: 0, M: 0, G: 0, B: 0, paid: 0, cost: 0, disc: 0, debt: 0, adv: 0, sold: 0, active: 0, trial: 0, moved: 0, inactive: 0 };
@@ -224,7 +231,7 @@
       x.codes.forEach((c, i) => { if (c && lessons[i].counted) st[c]++; });
       st.paid += x.paid; st.cost += x.cost; st.disc += x.disc; st.sold += x.sold;
       if (x.sold < 0) st.debt += x.sold; else st.adv += x.sold;
-      const t = x.s.status;
+      const t = x.status;
       if (STUDENT_COUNTS_AS_ACTIVE.includes(t)) st.active++;
       else if (t === 'proba' || t === 'proba_ok') st.trial++;
       else if (t === 'transferat') st.moved++;
@@ -353,20 +360,28 @@
 
   /* ---- the ledger is the source of the balances the console shows ---- */
   const mapMark = c => (c === 'A' || c === 'B' ? 'a' : c === 'M' ? 'm' : 'p');
-  function applyToStudents(gid) {
-    ledger(gid).rows.forEach(x => {
+  function applyToStudents() {
+    const bal = new Map(), marks = new Map();
+    D.groups.forEach(g => ledger(g.id).rows.forEach(x => {
       const s = x.s;
       if (!s._p0) s._p0 = s.presence.slice();
-      s.balance = x.sold;
-      const last = x.codes.filter(Boolean).slice(-3).map(mapMark);
+      bal.set(s, (bal.get(s) || 0) + x.sold);
+      const list = marks.get(s) || [];
+      // the columns of the groups he left come first, the one he is in now last
+      if (s.group === g.id) list.push(x.codes); else list.unshift(x.codes);
+      marks.set(s, list);
+    }));
+    bal.forEach((v, s) => {
+      s.balance = v;
+      const last = [].concat(...marks.get(s)).filter(Boolean).slice(-3).map(mapMark);
       s.presence = s._p0.slice(0, 3 - last.length).concat(last);
     });
   }
-  D.groups.forEach(g => applyToStudents(g.id));
+  applyToStudents();
 
   // an edit (here, in another tab, or a reset of the demo data): rebuild what depends on it
   let seen = JSON.stringify(D.ledgerEdits());
-  const sig = () => D.students.map(s => s.status + s.manager).join() + '|' + D.groups.map(g => g.size).join();   // the group's format sets the price and the pay
+  const sig = () => D.students.map(s => s.status + s.manager + s.group).join() + '|' + D.groups.map(g => g.size).join();   // the group's format sets the price and the pay
   let statuses = sig();
   D.onChange(() => {
     const now = JSON.stringify(D.ledgerEdits());
@@ -374,8 +389,10 @@
     if (now === seen && st === statuses) return;
     seen = now; statuses = st;
     cache.clear();
-    D.groups.forEach(g => applyToStudents(g.id));
+    applyToStudents();
   });
 
-  Object.assign(D, { MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, nextDate });
+  /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
+  const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
+  Object.assign(D, { soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, nextDate });
 })();

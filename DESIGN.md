@@ -469,3 +469,11 @@ A page of the console for the big screen at the entrance (offline groups only, t
 - **Top corner:** day of the week, date and the running clock, as in the old lobby.
 - **In the console only:** pause and step, a simulation of any day and hour (so the board can be shown at noon on a Sunday; a yellow "simulare" tag marks it), and "Pe tot ecranul" (full screen, screen kept awake, pointer hidden after 3 seconds). Keys: arrows, space, F. \`#receptie?tv=1\` hides the console around the board for a screen that stays on this address (Esc leaves).
 - **State in the address:** \`?zi=<1-7>&ora=<8-20>\`.
+
+## Transfer (admin.html#orar, drawer of a group): moving students between groups
+
+- **One person, one record.** A transfer never copies a student. `s.group` is the group he is in now; the transfer is stored in `edits.transfers` (one row per transfer in `demo_state`, so it syncs and undoes like every other edit). The group he left keeps his column: status **Transferat** there, marks and money untouched (statistics are not lost); in the new group he is **Activ**, with a new empty column and no money. His balance in the console is the sum of his columns.
+- **Flow.** Drawer footer "Transfer" turns the student list into a tick list (square boxes, check drawn on tick, count in the footer) → "Alege grupa" opens a dialog of candidates → a choice opens a "what will happen" note → "Transferă" → done screen with "Anulează transferul".
+- **Candidates** (`AdminData.transferCandidates`): same subject and grade, not closed, free seats for everyone, never a group he already was in. Ranked: same level, same profile, same project, a group that already meets before an empty one. Groups with too few seats are listed dimmed; full ones are only counted.
+- **Register.** The moved column is lilac (status "Transferat", no dropdown, the new group's name under the name); the incoming column is blue ("din ..."). Cells the transfer closes are hatched and cannot be marked: lessons from the transfer day on in the old group, lessons before it in the new one.
+- **Colour.** The transfer colour is `--ax-swap` (the status colour of Transferat); selection is the signal blue; the dialog header is the dark sign panel.

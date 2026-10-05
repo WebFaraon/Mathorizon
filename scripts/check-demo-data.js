@@ -103,6 +103,38 @@ ok(D.students.find(s => s.id === x0.s.id).status !== 'transferat', 'reset: stude
 ok(D.ledger(g).lessons.length === n0 && soldOf() === base, 'reset: ledger and balance');
 ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'reset: teacher');
 
+// transfers: the student moves, the old column stays (status Transferat, money kept), nobody is duplicated
+{
+  const src = D.groups.find(x => D.enrolled(x).length >= 2 && x.status === 'activ' && D.transferCandidates([D.enrolled(x)[0].id]).some(c => c.fits));
+  const who = D.enrolled(src)[0], sid = who.id, dest = D.transferCandidates([sid]).find(c => c.fits).g;
+  const people0 = D.students.length, old0 = D.ledger(src.id).rows.find(r => r.s.id === sid), cols0 = D.ledger(dest.id).rows.length, enrDest0 = D.enrolled(dest).length, enrSrc0 = D.enrolled(src).length;
+  ok(D.transferCandidates([sid]).every(c => c.g.subject === src.subject && c.g.grade === src.grade && c.g.status !== 'inactiv' && c.g.id !== src.id), 'candidates: same subject and grade, open, not the same group');
+  ok(D.transferCandidates([sid]).filter(c => c.fits).every(c => c.free >= 1), 'candidates: fits means room');
+  const ids = D.transfer([sid], dest.id);
+  const L1 = D.ledger(src.id), L2 = D.ledger(dest.id), o1 = L1.rows.find(r => r.s.id === sid), n1 = L2.rows.find(r => r.s.id === sid);
+  ok(ids.length === 1 && who.group === dest.id && who.status === 'activ', 'transfer: student is in the new group, Activ');
+  ok(D.students.length === people0, 'transfer: nobody is duplicated');
+  ok(o1 && o1.status === 'transferat' && o1.leave && o1.to && o1.to.id === dest.id, 'transfer: old column says Transferat');
+  ok(o1.paid === old0.paid && o1.cost === old0.cost && o1.sold === old0.sold && o1.codes.join() === old0.codes.join(), 'transfer: old column keeps marks and money');
+  ok(n1 && n1.status === 'activ' && n1.join && n1.from && n1.from.id === src.id && n1.paid === 0 && n1.codes.every(c => !c), 'transfer: new column is Activ and starts empty');
+  ok(L2.rows.length === cols0 + 1 && D.enrolled(dest).length === enrDest0 + 1 && D.enrolled(src).length === enrSrc0 - 1, 'transfer: seats move');
+  ok(L1.stats.moved >= 1 && L1.rows.length === (D.baseMembers(src.id).length), 'transfer: old group keeps every column');
+  ok(who.balance === o1.sold + n1.sold, 'transfer: console balance is the sum of his columns');
+  ok(D.transferCandidates([sid]).every(c => c.g.id !== src.id), 'transfer: cannot go back to a group he was in');
+  const nl = (D.addLesson(dest.id, '2026-10-12'), D.ledger(dest.id).lessons.slice(-1)[0]);
+  D.setLesson(dest.id, nl.oid, { t: 'Tema noua' });
+  D.setMark(dest.id, sid, nl.oid, 'P'); D.setMark(src.id, sid, D.ledger(src.id).lessons[0].oid, 'M');
+  const n2 = D.ledger(dest.id).rows.find(r => r.s.id === sid);
+  ok(n2.codes[n2.codes.length - 1] === 'P' && n2.cost > 0, 'transfer: a new lesson can be marked in the new group');
+  ok(n2.codes.slice(0, -1).every(c => !c) && n2.lock.slice(0, -1).every(Boolean), 'transfer: lessons before the transfer stay closed in the new group');
+  D.addLesson(src.id, '2026-10-12'); const sl = D.ledger(src.id).lessons.slice(-1)[0]; D.setLesson(src.id, sl.oid, { t: 'X' }); D.setMark(src.id, sid, sl.oid, 'P');
+  ok(D.ledger(src.id).rows.find(r => r.s.id === sid).codes.slice(-1)[0] === '', 'transfer: a lesson after the transfer cannot be marked in the old group');
+  const undo = D.undoTransfer(ids);
+  ok(undo === 1 && who.group === src.id && who.status === 'activ' && D.ledger(dest.id).rows.length === cols0, 'undo: back in the old group, column gone');
+  D.transfer([sid], dest.id); D.reset();
+  ok(who.group === src.id && !Object.keys(D.sync.edits()).length, 'reset clears transfers');
+}
+
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 

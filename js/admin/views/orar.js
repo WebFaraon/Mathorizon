@@ -8,7 +8,9 @@
    the left, everything kept in the address (#orar?quick=risc&...),
    so the links from Acasă land on a ready selection.
    A row opens a drawer with the group, its students and a status
-   switch (demo data, js/admin/mock-data.js).
+   switch (demo data, js/admin/mock-data.js). "Transfer" in the drawer's
+   footer turns the student list into a tick list; with the students
+   ticked, js/admin/transfer.js shows the groups they can move to.
    ============================================================ */
 (function () {
   'use strict';
@@ -316,10 +318,31 @@
     const t = D.teacher(g.teacher);
     const p = D.project(g.project);
     const room = g.room ? D.room(g.room) : null;
-    const all = D.studentsOf(g.id);
+    let pick = null;                 // the ticked students while "Transfer" is on, else null
+    const stOf = st => D.statusIn(st, g.id);
+    const gone = st => ['inactiv', 'transferat'].includes(stOf(st)) || st.group !== g.id;
+    const where = st => {           // where a student who left went, or where he came from
+      const T = D.stint(st, g.id), o = T.to ? D.group(T.to) : null, f = T.join && T.from ? D.group(T.from) : null;
+      if (o) return `<span class="or-dw__mv">${ico('arrow-right', 14)} ${esc(D.teacher(o.teacher).name)}, ${esc(dayNames(o))} ${timeRange(o)}</span>`;
+      if (f) return `<span class="or-dw__mv or-dw__mv--in">din ${esc(D.teacher(f.teacher).name)}, ${esc(dayNames(f))} ${timeRange(f)}</span>`;
+      return '';
+    };
+    const kidHTML = (st, i) => {
+      const out = gone(st), on = pick && pick.has(st.id);
+      const tick = pick && !out;
+      return `
+              <li class="or-dw__kid${out ? ' is-gone' : ''}${tick ? ' is-pick' : ''}${on ? ' is-on' : ''}" style="--i:${i}" data-sid="${st.id}">
+                ${tick ? `<input type="checkbox" class="tr-in" ${on ? 'checked' : ''} aria-label="${esc(st.name)}"><span class="tr-box" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></svg></span>` : ''}
+                <span class="or-dw__who"><b>${esc(st.name)}</b><a href="tel:${esc(st.phone)}">${esc(fmtPhone(st.phone))}</a></span>
+                <span class="or-dw__stc">${stHTML(stOf(st), statusName(D.STUDENT_STATUS, stOf(st)))}${presHTML(st.presence)}</span>${where(st) ? `<span class="or-dw__w">${where(st)}</span>` : ''}
+                <span class="or-dw__bal${D.soldIn(st, g.id) < 0 ? ' ax-neg' : ''}">${U.money(D.soldIn(st, g.id))}</span>
+              </li>`;
+    };
     const body = () => {
+      const all = D.studentsOf(g.id);
       const free = D.freeSeats(g);
       const enr = D.enrolled(g).length;
+      const canPick = all.filter(st => !gone(st));
       const seats = Array.from({ length: g.size }, (_, k) => `<i${k < enr ? ' class="on"' : ''}></i>`).join('');
       return `
         <div class="or-dw">
@@ -345,37 +368,110 @@
           </dl>
           <section class="or-dw__sec">
             <h3 class="or-dw__h">Elevi <span class="or-dw__n">${enr} înscriși${all.length > enr ? `, ${all.length - enr} plecați` : ''}</span></h3>
-            ${all.length ? `<ul class="or-dw__kids">${all.map(st => `
-              <li class="or-dw__kid${['inactiv', 'transferat'].includes(st.status) ? ' is-gone' : ''}">
-                <span class="or-dw__who"><b>${esc(st.name)}</b><a href="tel:${esc(st.phone)}">${esc(fmtPhone(st.phone))}</a></span>
-                <span class="or-dw__stc">${stHTML(st.status, statusName(D.STUDENT_STATUS, st.status))}${presHTML(st.presence)}</span>
-                <span class="or-dw__bal${st.balance < 0 ? ' ax-neg' : ''}">${U.money(st.balance)}</span>
-              </li>`).join('')}</ul>` : '<p class="ax-sub">Grupa nu are încă elevi.</p>'}
+            ${pick ? `<div class="tr-bar" role="status"><span><b>Transfer.</b> Bifează elevii pe care vrei să-i muți în altă grupă.</span><button type="button" class="ax-link" data-all>${pick.size === canPick.length ? 'Șterge bifele' : 'Bifează toți'}</button></div>` : ''}
+            ${all.length ? `<ul class="or-dw__kids${pick ? ' is-picking' : ''}">${all.map(kidHTML).join('')}</ul>` : '<p class="ax-sub">Grupa nu are încă elevi.</p>'}
           </section>
         </div>`;
     };
     const day = g.days[0];
+    const footHTML = () => pick
+      ? `<span class="tr-foot__n" id="trCount" aria-live="polite">${pick.size ? `<b>${pick.size}</b> ${pick.size === 1 ? 'elev ales' : 'elevi aleși'}` : 'Niciun elev ales'}</span>
+        <button type="button" class="ax-btn" data-tr-cancel>Renunță</button>
+        <button type="button" class="ax-btn ax-btn--primary" data-tr-next ${pick.size ? '' : 'disabled'}>Alege grupa ${ico('arrow-right', 16)}</button>`
+      : `<a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>
+        <a class="ax-btn ax-btn--dark" href="#elevi?in=prof&q=${encodeURIComponent(t.name)}" data-go>${ico('users', 16)} Elevii profesorului</a>
+        <button type="button" class="ax-btn ax-btn--primary" data-tr-start>${ico('swap', 16)} Transfer</button>`;
     const el = U.drawer({
       title: `${esc(g.subject)}, clasa ${esc(g.grade)}`,
       sub: `${esc(t.name)} · ${esc(dayNames(g))}, ${timeRange(g)}`,
       body: body(),
-      actions: `
-        <a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>
-        <a class="ax-btn ax-btn--dark" href="#elevi?in=prof&q=${encodeURIComponent(t.name)}" data-go>${ico('users', 16)} Elevii profesorului</a>`
+      actions: footHTML()
     });
     const wireBody = () => {
       el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
         if (g.status === b.dataset.st) return;
         D.setStatus(g.id, b.dataset.st);
-        el.querySelector('.ax-drawer__body').innerHTML = body();
-        wireBody();
-        el.querySelector(`[data-st="${g.status}"]`).focus();
+        repaintAll(`[data-st="${g.status}"]`);
         U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, g.status))}.`);
         onChanged();
       }));
     };
     wireBody();
     el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
+
+    /* ---- transfer: tick students, then choose the group in a dialog ---- */
+    const foot = el.querySelector('.ax-drawer__foot');
+    const repaintAll = (focusSel) => {
+      const bodyEl = el.querySelector('.ax-drawer__body');
+      const sc = bodyEl.scrollTop;
+      bodyEl.innerHTML = body();
+      bodyEl.querySelectorAll(':scope > *').forEach(x => { x.style.animation = 'none'; });
+      bodyEl.scrollTop = sc;
+      wireBody(); wireKids();
+      if (focusSel) { const f = el.querySelector(focusSel); if (f) f.focus(); }
+    };
+    const swapFoot = () => {
+      foot.innerHTML = footHTML();
+      foot.classList.remove('is-swap'); void foot.offsetWidth; foot.classList.add('is-swap');
+      foot.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
+    };
+    const refreshCount = () => {
+      const c = el.querySelector('#trCount'), nx = el.querySelector('[data-tr-next]');
+      if (c) { c.innerHTML = pick.size ? `<b>${pick.size}</b> ${pick.size === 1 ? 'elev ales' : 'elevi aleși'}` : 'Niciun elev ales'; c.classList.remove('is-bump'); void c.offsetWidth; c.classList.add('is-bump'); }
+      if (nx) nx.disabled = !pick.size;
+      const all = el.querySelector('[data-all]');
+      if (all) all.textContent = pick.size === D.studentsOf(g.id).filter(x => !gone(x)).length ? 'Șterge bifele' : 'Bifează toți';
+    };
+    const setPick = (sid, on) => {
+      if (on) pick.add(sid); else pick.delete(sid);
+      const li = el.querySelector(`.or-dw__kid[data-sid="${sid}"]`);
+      if (li) { li.classList.toggle('is-on', on); const i = li.querySelector('.tr-in'); if (i) i.checked = on; }
+      refreshCount();
+    };
+    function wireKids() {
+      const list = el.querySelector('.or-dw__kids.is-picking');
+      if (list) {
+        list.addEventListener('click', e => {
+          const li = e.target.closest('.or-dw__kid.is-pick');
+          if (!li || e.target.closest('a')) return;
+          if (e.target.classList.contains('tr-in')) { setPick(li.dataset.sid, e.target.checked); return; }
+          setPick(li.dataset.sid, !pick.has(li.dataset.sid));
+        });
+      }
+      const all = el.querySelector('[data-all]');
+      if (all) all.addEventListener('click', () => {
+        const ids = D.studentsOf(g.id).filter(x => !gone(x)).map(x => x.id);
+        const every = ids.every(id => pick.has(id));
+        ids.forEach(id => setPick(id, !every));
+      });
+    }
+    foot.addEventListener('click', e => {
+      if (e.target.closest('[data-tr-start]')) {
+        if (!D.studentsOf(g.id).some(x => !gone(x))) { U.toast('Grupa nu are elevi înscriși de transferat.'); return; }
+        pick = new Set();
+        repaintAll();
+        swapFoot();
+        const sec = el.querySelector('.or-dw__kids');
+        if (sec) sec.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else if (e.target.closest('[data-tr-cancel]')) {
+        pick = null; repaintAll(); swapFoot();
+      } else if (e.target.closest('[data-tr-next]')) {
+        const ids = Array.from(pick);
+        if (!ids.length) return;
+        window.AdminTransfer.open({
+          from: g.id, students: ids,
+          onDone: kind => {
+            pick = null;
+            if (document.body.contains(el)) { repaintAll(); swapFoot(); }
+            onChanged();
+            if (kind === 'transfer') flashMoved(ids);
+          }
+        });
+      }
+    });
+    function flashMoved(ids) {
+      ids.forEach(id => { const li = el.querySelector(`.or-dw__kid[data-sid="${id}"]`); if (li) { li.classList.add('is-flash'); } });
+    }
   }
 
   /* ---- view ---- */

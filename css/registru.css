@@ -766,3 +766,16 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 /* the dropdowns copy the native select's minimum height inline; the status and manager cells follow the row */
 .rg-ps--st .ax-sel__btn, .rg-ps--st .ax-sel__btn:hover { height: var(--hl) !important; min-height: var(--hl) !important; }
 .rg-ps--mg .ax-sel__btn, .rg-ps--mg .ax-sel__btn:hover { height: var(--hr) !important; min-height: var(--hr) !important; }
+
+/* a transfer: the column of the student who left (kept, marks and money stay) and of the one who came */
+.rg-sname.is-moved { background: var(--rg-lilac-l) !important; }
+.rg-sname.is-in { background: var(--rg-blue-l) !important; }
+.rg-sn small.rg-sn__mv { overflow: hidden; max-width: 100%; text-overflow: ellipsis; white-space: nowrap; font-weight: 700; color: var(--rg-lilac-ink); }
+.rg-sname.is-in .rg-sn small.rg-sn__mv { color: var(--rg-blue-ink); }
+.rg-stat--moved { text-align: center; cursor: default; }
+.rg-mvd { display: block; line-height: var(--hl); font-size: 0.8rem; font-weight: 800; }
+.rg-pc.is-lock { cursor: not-allowed; }
+.rg-pc.is-lock .rg-pl { opacity: 0.55; background: repeating-linear-gradient(135deg, transparent 0 4px, color-mix(in srgb, var(--ax-ink) 12%, transparent) 4px 5px), var(--rg-pres-e); }
+@keyframes rg-arrive { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.rg-sname.is-in .rg-sn { animation: rg-arrive 0.5s var(--ax-ease) backwards; }
+@media (prefers-reduced-motion: reduce) { .rg-sname.is-in .rg-sn { animation: none; } }

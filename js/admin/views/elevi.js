@@ -311,6 +311,11 @@
     } else {
       groupHTML = '<p class="el-dw__none">Elevul nu este într-o grupă acum.</p>';
     }
+    const hist = D.transfersOf(st.id).map(t => {
+      const a = D.group(t.from), b = D.group(t.to);
+      return `<li><span class="ax-sub">${esc(fmtDate(t.iso))}</span><span>${esc(D.teacher(a.teacher).name)}, ${esc(dayNames(a))} ${timeRange(a)} ${ico('arrow-right', 14)} <b>${esc(D.teacher(b.teacher).name)}</b>, ${esc(dayNames(b))} ${timeRange(b)}</span></li>`;
+    });
+    if (hist.length) groupHTML += `<div class="el-dw__moves"><h4>Transferuri</h4><ul>${hist.join('')}</ul><p class="ax-sub">În grupa veche rămân prezențele și banii, cu statutul Transferat.</p></div>`;
     const el = U.drawer({
       title: esc(st.name),
       sub: `${esc(statusName(D.STUDENT_STATUS, st.status))} · manager ${esc(m ? m.name : '-')}`,

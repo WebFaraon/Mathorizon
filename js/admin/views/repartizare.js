@@ -1008,7 +1008,7 @@
         <h3 class="rp-dr__h" id="rpStudT">Elevi <span class="rp-dr__cnt">${studs.length}</span></h3>
         ${studs.length ? `<div class="ax-table-wrap"><table class="ax-table rp-dr__tbl">
           <thead><tr><th scope="col">Elev</th><th scope="col">Statut</th><th scope="col" class="ax-num">Sold</th></tr></thead>
-          <tbody>${studs.map(st => `<tr><td><span class="ax-strong">${esc(st.name)}</span><span class="ax-sub">${esc(st.phone)}</span></td><td><span class="ax-st ax-st--${esc(st.status)}"><i class="ax-st__i" aria-hidden="true"></i>${esc((D.STUDENT_STATUS.find(x => x.id === st.status) || {}).name || st.status)}</span></td><td class="ax-num${st.balance < 0 ? ' ax-neg' : ''}">${U.money(st.balance)}</td></tr>`).join('')}</tbody>
+          <tbody>${studs.map(st => `<tr><td><span class="ax-strong">${esc(st.name)}</span><span class="ax-sub">${esc(st.phone)}</span></td><td><span class="ax-st ax-st--${esc(D.statusIn(st, g.id))}"><i class="ax-st__i" aria-hidden="true"></i>${esc((D.STUDENT_STATUS.find(x => x.id === D.statusIn(st, g.id)) || {}).name || st.status)}</span></td><td class="ax-num${D.soldIn(st, g.id) < 0 ? ' ax-neg' : ''}">${U.money(D.soldIn(st, g.id))}</td></tr>`).join('')}</tbody>
         </table></div>` : '<p class="rp-dr__note">Niciun elev înscris.</p>'}
       </section>`;
 
