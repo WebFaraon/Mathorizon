@@ -85,7 +85,7 @@
   const rateBySize = n => STUDENT_RATE[Math.min(6, Math.max(1, +n || 1))];
   const rateOf = g => rateBySize(g.size);
 
-  /* What the teacher earns per hour of a lesson, by how many students came: everybody 255, one missing 218,
+  /* What the teacher earns per hour of a lesson, by how many students are charged for it (marked P or A; G, M, B and an empty cell are not): everybody 255, one missing 218,
      fewer 175, and 0 when nobody came. (Individual: 255. Three students: 1 -> 175, 2 -> 218, 3 -> 255.
      Six: 1 to 4 -> 175, 5 -> 218, 6 -> 255.) */
   const PAY_MIN = 175, PAY_MID = 218, PAY_TOP = 255;
@@ -250,11 +250,12 @@
 
     // per lesson: who was there, and what the teacher earns for it (by how many came, with a floor)
     lessons.forEach((l, i) => {
-      let there = 0, expected = 0;
-      rows.forEach(x => { const c = x.codes[i]; if (c) { expected++; if (c === 'P' || c === 'G') there++; } });
+      let there = 0, expected = 0, paying = 0;
+      rows.forEach(x => { const c = x.codes[i]; if (c) { expected++; if (c === 'P' || c === 'G') there++; if (PAID_MARK[c]) paying++; } });   // the teacher is paid by the students whose lesson is charged: P and A
+      l.paying = paying;
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
-      l.pay = l.counted ? lessonPay(g.size, there) : 0;
+      l.pay = l.counted ? lessonPay(g.size, paying) : 0;
     });
 
     const months = [];

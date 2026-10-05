@@ -32,7 +32,7 @@ D.groups.forEach(g => {
   });
   ok(sumSold === L.stats.sold && sumPaid === L.stats.paid && sumCost === L.stats.cost, g.id + ' group sums');
   ok(near(L.earned, L.lessons.reduce((t, l) => t + l.pay, 0)), g.id + ' earned = sum of the lesson pays');
-  L.lessons.forEach(l => { if (l.counted) { ok(l.there === 0 ? l.pay === 0 : l.pay >= 175 * L.dur, g.id + ' pay: 0 when nobody came, else never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
+  L.lessons.forEach(l => { if (l.counted) { ok(l.paying === 0 ? l.pay === 0 : l.pay >= 175 * L.dur, g.id + ' pay: 0 when nobody came, else never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
   nLessons += L.lessons.length;
   ok(L.lessons.every((l, i) => l.i === i), g.id + ' lesson positions');
   ok(L.sum === L.lessons.reduce((t, l) => t + l.price, 0), g.id + ' price sum');
@@ -139,6 +139,16 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
 
 // every lesson is one hour: the price is the hourly rate, the pay one of the three hourly amounts, whatever the group's meeting length
 D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok([0, 175, 218, 255].includes(l.pay), g.id + ' lesson pay is an hourly amount (' + l.pay + ')'); } }); });
+// which marks pay the teacher: P and A (the student is charged), not G, M, B or an empty cell
+{
+  const g = D.groups.find(x => D.ledger(x.id).rows.length >= 2 && x.size >= 3), sid = D.ledger(g.id).rows[0].s.id, other = D.ledger(g.id).rows[1].s.id;
+  D.addLesson(g.id, '2026-10-12'); const nl = D.ledger(g.id).lessons.slice(-1)[0]; D.setLesson(g.id, nl.oid, { t: 'Tema' });
+  D.ledger(g.id).rows.forEach(r => { if (r.s.id !== sid) D.setMark(g.id, r.s.id, nl.oid, ''); });
+  const payFor = code => { D.setMark(g.id, sid, nl.oid, code); return D.ledger(g.id).lessons.slice(-1)[0].pay; };
+  ok(payFor('P') === 175 && payFor('A') === 175, 'P and A are paid');
+  ['G', 'M', 'B', ''].forEach(c => ok(payFor(c) === 0, 'mark ' + (c || 'empty') + ' pays nothing'));
+  D.reset();
+}
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 
