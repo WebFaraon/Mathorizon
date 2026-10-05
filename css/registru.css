@@ -56,7 +56,7 @@ body.ax-rg {
   --rg-pres-e: #E8EAED;
   --rg-flag: #E5261B;
   --rg-line: #D9D2BE;
-  --rg-grid: #9F9475;
+  --rg-grid: #6F6548;
   --rg-dot: #6B6B63;
   --rg-heavy: #1B1B1B;
   --rg-ink: #1B1B1B;
@@ -111,7 +111,7 @@ body.ax-rg {
   --rg-pres-e: #25282D;
   --rg-flag: #FF6A5E;
   --rg-line: #34301F;
-  --rg-grid: #6E6747;
+  --rg-grid: #9A915F;
   --rg-dot: #5A574C;
   --rg-heavy: #000;
   --rg-ink: #ECEAE3;
@@ -141,7 +141,7 @@ body.ax-rg {
 .rg-saved i { display: grid; place-items: center; width: 18px; height: 18px; border-radius: 50%; background: var(--pg); color: #14210F; }
 .rg-saved.is-on { opacity: 1; transform: none; }
 .rg-saved.is-on i { animation: rg-pop 0.45s var(--ax-ease); }
-.rg-demo { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 4px 0 10px; border: 1px solid var(--ax-sign-rule); border-radius: var(--ax-r); background: rgba(255, 194, 14, 0.07); font-size: 0.78rem; }
+.rg-demo { display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px 0 10px; border: 1px solid var(--ax-sign-rule); border-radius: var(--ax-r); background: rgba(255, 194, 14, 0.07); font-size: 0.78rem; }
 .rg-demo i { width: 8px; height: 8px; flex: none; background: var(--ax-yellow); outline: 1px solid var(--ax-yellow-ink); transition: background-color 0.3s; }
 html[data-demo-sync="live"] .rg-demo i, html[data-demo-sync="syncing"] .rg-demo i { background: #2DB77A; outline-color: #0E5C3C; }
 html[data-demo-sync="syncing"] .rg-demo i { animation: ax-sync 0.8s ease-in-out infinite alternate; }
@@ -150,10 +150,11 @@ html[data-demo-sync="live"] .rg-demo b::after { content: ' · live'; font-weight
 html[data-demo-sync="syncing"] .rg-demo b::after { content: ' · se trimite'; font-weight: 600; color: var(--ax-sign-ink-2); }
 html[data-demo-sync="error"] .rg-demo b::after { content: ' · fără conexiune'; font-weight: 600; color: #FF9A92; }
 .rg-demo b { font-weight: 700; color: var(--ax-yellow); white-space: nowrap; }
-.rg-demo .ax-sel { width: 188px; }
-.rg-demo .ax-sel__btn { min-height: 30px; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--ax-sign-ink); font-size: 0.82rem; font-weight: 600; }
-.rg-demo .ax-sel__btn:hover { background: rgba(255, 255, 255, 0.14); }
-.rg-demo .ax-sel__btn .ax-ico { color: var(--ax-sign-ink-2); }
+.rg-pick { display: flex; align-items: center; height: 38px; padding: 3px; border: 1px solid var(--ax-sign-rule); border-radius: var(--ax-r); background: rgba(255, 255, 255, 0.05); }
+.rg-pick .ax-sel { width: 188px; }
+.rg-pick .ax-sel__btn { min-height: 30px; border: 0; background: rgba(255, 255, 255, 0.08); color: var(--ax-sign-ink); font-size: 0.82rem; font-weight: 600; }
+.rg-pick .ax-sel__btn:hover { background: rgba(255, 255, 255, 0.14); }
+.rg-pick .ax-sel__btn .ax-ico { color: var(--ax-sign-ink-2); }
 .rg-ibtn, .rg-back { border-color: var(--ax-sign-rule); background: transparent; color: var(--ax-sign-ink); }
 .rg-ibtn { width: 38px; height: 38px; }
 .rg-back { min-height: 38px; font-size: 0.84rem; }
@@ -458,6 +459,7 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 /* lessons: the date and the title are editable */
 .rg-gsheet .rg-lr > * { height: var(--hl); }
 .rg-ld.is-nodate .rg-dc span { font-weight: 600; opacity: 0.8; }
+.rg-gsheet .rg-ld.is-nodate { background: var(--ax-panel) !important; color: var(--rg-mute); }
 .rg-ld { padding: 0 !important; background: hsl(var(--mh) 92% 83%) !important; color: hsl(var(--mh) 82% 26%); font-size: 0.82rem; font-weight: 800; }
 [data-theme="dark"] .rg-ld { background: hsl(var(--mh) 38% 21%) !important; color: hsl(var(--mh) 85% 75%); }
 .rg-dc { padding: 0; border: 0; background: transparent; color: inherit; font: inherit; position: relative; display: flex; align-items: center; justify-content: center; width: 100%; height: var(--hl); cursor: pointer; transition: filter 0.15s, box-shadow 0.15s; }
@@ -472,7 +474,8 @@ button.rg-sn:hover { background: rgba(255, 255, 255, 0.45); }
 .rg-ti:hover { background: var(--rg-cream-2); }
 .rg-ti:focus { outline: 0; background: var(--ax-panel); box-shadow: inset 0 0 0 2px var(--ax-blue); }
 .rg-lp { position: relative; background: var(--rg-cream) !important; color: var(--rg-mute); font-weight: 700; }
-.rg-lr.is-new > * { animation: rg-new 1.1s ease; }
+.rg-lr.is-new > * { animation: rg-rowin 0.6s var(--ax-ease) backwards, rg-new 1.1s ease; }
+@keyframes rg-rowin { from { opacity: 0; transform: translateY(-12px); clip-path: inset(0 0 100% 0); } to { opacity: 1; transform: none; clip-path: inset(0 0 0 0); } }
 @keyframes rg-new { from { filter: brightness(1.25); box-shadow: inset 0 0 0 999px color-mix(in srgb, var(--pg) 35%, transparent); } }
 
 /* presence: a button per cell, five soft colours; only the cell under the pointer reacts */
@@ -496,14 +499,14 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-xp.is-low { color: var(--rg-red-ink); }
 .rg-lvl { display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--rg-pres-g); color: var(--rg-pres-g-ink); font-size: 0.7rem; font-weight: 800; }
 .rg-gsheet td.is-free { opacity: 0.9; }
-.rg-addrow td { height: 40px; padding: 0; border-right: 0; background: var(--rg-cream); }
-.rg-addrow th { height: 40px; padding: 0 12px !important; background: var(--rg-cream) !important; }
-.rg-addfill { background: var(--rg-cream) !important; border-right: 0 !important; }
-.rg-add { display: flex; align-items: center; justify-content: center; gap: 8px; width: 100%; height: 36px; padding: 0 12px; border: 1px dashed var(--rg-grid); border-radius: var(--ax-r); background: transparent; color: var(--rg-ink); font: inherit; font-size: 0.86rem; font-weight: 700; cursor: pointer; transition: background-color 0.15s, border-color 0.15s, transform 0.15s var(--ax-ease); }
+/* the button under the last lesson: not a row of the table, it stays at the left while the students scroll */
+.rg-addbar { position: sticky; left: 0; display: inline-block; padding: 14px 16px 18px; }
+.rg-add { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px 0 16px; border: 0; border-radius: var(--ax-r); background: var(--ax-blue); color: var(--ax-blue-ink); font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 0 color-mix(in srgb, var(--ax-blue) 60%, black); transition: transform 0.12s, box-shadow 0.12s, filter 0.15s; }
 .rg-add .ax-ico { transition: transform 0.25s var(--ax-ease); }
-.rg-add:hover { border-style: solid; border-color: var(--rg-avon); background: color-mix(in srgb, var(--rg-avon) 10%, transparent); }
+.rg-add:hover { background: var(--ax-blue); color: var(--ax-blue-ink); filter: brightness(0.94); }
 .rg-add:hover .ax-ico { transform: rotate(90deg); }
-.rg-add:active { transform: scale(0.97); }
+.rg-add:active { transform: translateY(3px); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ax-blue) 60%, black); }
+.rg-add:focus-visible { outline: 2px solid var(--ax-ink); outline-offset: 3px; }
 
 /* the menu of a presence cell */
 .rg-pop--menu { width: 372px; padding: 6px; }
@@ -681,7 +684,7 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-top { gap: 12px; }
   .rg-who { padding-left: 12px; }
   .rg-who__t small { display: none; }
-  .rg-demo .ax-sel { width: 166px; }
+  .rg-pick .ax-sel { width: 166px; }
   .rg-total { grid-template-columns: 1fr; grid-template-rows: auto minmax(0, 1fr); }
   .rg-ledger { flex-direction: row; align-items: stretch; border-right: 0; border-bottom: 3px solid var(--rg-heavy); position: relative; }
   .rg-ledger__h { flex: 1; cursor: pointer; }
@@ -726,9 +729,9 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
   .rg-brand span, .rg-who { display: none; }
   .rg-brand__logo { width: 44px; }
   .rg-top__r { flex: 1; min-width: 0; }
-  .rg-demo { flex: 1; min-width: 0; padding-left: 8px; }
-  .rg-demo i { display: none; }
-  .rg-demo .ax-sel { width: auto; flex: 1; min-width: 0; }
+  .rg-demo { padding: 0 8px; }
+  .rg-pick { flex: 1; min-width: 0; }
+  .rg-pick .ax-sel { width: auto; flex: 1; min-width: 0; }
   .rg-saved { position: fixed; top: calc(var(--rg-top) + 8px); right: 10px; z-index: 50; background: var(--ax-ink); color: var(--ax-bg); border-color: var(--ax-ink); }
   .rg-saved i { background: var(--rg-avon); color: #fff; }
   .rg-back span { display: none; }

@@ -83,10 +83,10 @@
           <div class="rg-who" id="rgWho"></div>
           <div class="rg-top__r">
             <span class="rg-saved" id="rgSaved" role="status" aria-live="polite"><i>${ico('check', 14)}</i><span>Salvat</span></span>
-            <label class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${D.fingerprint}">
+            <span class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${D.fingerprint}">
               <i aria-hidden="true"></i><b>Date demo</b>
-              ${admin ? '<select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select>' : ''}
-            </label>
+            </span>
+            ${admin ? '<label class="rg-pick"><select class="ax-select rg-demo__sel" id="rgTeacher" aria-label="Profesor (date demo)"></select></label>' : ''}
             <button type="button" class="ax-icon-btn rg-ibtn" id="rgTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 18)}</button>
             <a class="ax-btn rg-back" href="${back.href}">${ico(back.icon, 16)}<span>${back.label}</span></a>
           </div>
@@ -502,14 +502,14 @@
         <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td>${blankX(3)}
       </tr>`);
     });
-    body.push(`<tr class="rg-addrow"><th class="rg-a rg-addc"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></th><td colspan="${cols + 5}" class="rg-addfill"></td></tr>`);
 
     return `
       <table class="rg-gsheet" style="--scols:${cols}">
         <colgroup><col class="rg-col-a"><col class="rg-col-b"><col class="rg-col-c">${Array.from({ length: cols }, () => '<col class="rg-col-s">').join('')}<col class="rg-col-x1"><col class="rg-col-x2"><col class="rg-col-x3"></colgroup>
         <thead>${head.join('')}</thead>
         <tbody>${body.join('')}</tbody>
-      </table>`;
+      </table>
+      <div class="rg-addbar"><button type="button" class="rg-add" data-add>${ico('plus', 16)}<span>Adaugă lecție nouă</span></button></div>`;
   }
 
   /* a group a student moved to or came from: a link to its sheet (the admin can open another teacher's) */
