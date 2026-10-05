@@ -358,7 +358,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 232px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 42px; --hr: 28px; --hl: 30px;
   table-layout: fixed; border-collapse: separate; border-spacing: 0; width: calc(var(--wa) + var(--wb) + var(--wc) + var(--scols) * var(--ws) + var(--wx1) + var(--wx2) + var(--wx3)); font-size: 0.86rem; color: var(--rg-ink); }
 .rg-col-a { width: var(--wa); } .rg-col-b { width: var(--wb); } .rg-col-c { width: var(--wc); } .rg-col-s { width: var(--ws); } .rg-col-x1 { width: var(--wx1); } .rg-col-x2 { width: var(--wx2); } .rg-col-x3 { width: var(--wx3); }
-.rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 1px solid var(--rg-grid); border-bottom: 1px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 2px solid var(--rg-grid); border-bottom: 2px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rg-gsheet [data-hr="1"] > * { height: var(--h1); }
 .rg-gsheet .rg-hr--fin > * { height: var(--hr); }
 .rg-gsheet [data-hr="8"] > * { height: var(--hl); border-bottom: 2px solid var(--rg-heavy); }
@@ -499,13 +499,13 @@ button.rg-pl:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 
 .rg-xp.is-low { color: var(--rg-red-ink); }
 .rg-lvl { display: inline-block; padding: 3px 10px; border-radius: 12px; background: var(--rg-pres-g); color: var(--rg-pres-g-ink); font-size: 0.7rem; font-weight: 800; }
 .rg-gsheet td.is-free { opacity: 0.9; }
-/* the button under the last lesson: not a row of the table, it stays at the left while the students scroll */
+/* the button under the last lesson: not a row of the table, it stays at the left while the students scroll (flat, as the console's buttons) */
 .rg-addbar { position: sticky; left: 0; display: inline-block; padding: 14px 16px 18px; }
-.rg-add { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px 0 16px; border: 0; border-radius: var(--ax-r); background: var(--ax-blue); color: var(--ax-blue-ink); font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; box-shadow: 0 3px 0 0 color-mix(in srgb, var(--ax-blue) 60%, black); transition: transform 0.12s, box-shadow 0.12s, filter 0.15s; }
+.rg-add { display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 20px 0 16px; border: 0; border-radius: var(--ax-r); background: var(--ax-blue); color: var(--ax-blue-ink); font: inherit; font-size: 0.88rem; font-weight: 800; cursor: pointer; transition: transform 0.12s, background-color 0.15s; }
 .rg-add .ax-ico { transition: transform 0.25s var(--ax-ease); }
-.rg-add:hover { background: var(--ax-blue); color: var(--ax-blue-ink); filter: brightness(0.94); }
+.rg-add:hover { background: color-mix(in srgb, var(--ax-blue) 88%, black); color: var(--ax-blue-ink); }
 .rg-add:hover .ax-ico { transform: rotate(90deg); }
-.rg-add:active { transform: translateY(3px); box-shadow: 0 0 0 0 color-mix(in srgb, var(--ax-blue) 60%, black); }
+.rg-add:active { transform: scale(0.975); }
 .rg-add:focus-visible { outline: 2px solid var(--ax-ink); outline-offset: 3px; }
 
 /* the menu of a presence cell */
