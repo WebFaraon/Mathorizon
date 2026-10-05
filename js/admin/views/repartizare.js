@@ -10,8 +10,11 @@
    - drag a card with the mouse to another cell; while dragging every
      cell shows whether the move is valid for ALL the group's days
      (free / room taken / teacher busy or unavailable);
-   - or open the card (click, Enter) and use the "Mută" form in the
-     drawer, with "Propune primul loc liber".
+   - or open the "Mută" form in the drawer (Shift+click on the card, or
+     from the clash list), with "Propune primul loc liber".
+   A plain click (or Enter) on a card opens that teacher's register at
+   the group, in a new tab (registru.html?t=..#grupa/..), where the
+   admin edits the same data the teacher sees, live.
    Every move goes through AdminData.move and is pushed on a session
    undo stack.
 
@@ -653,7 +656,11 @@
       const card = e.target.closest('.rp-card');
       if (!card) return;
       if (drag.justDropped) { drag.justDropped = false; return; }
-      openDrawer(card.dataset.g);
+      const g = D.group(card.dataset.g);
+      if (!g) return;
+      // a click opens the teacher's register at that group, in a new tab; Shift+click keeps the old side panel
+      if (e.shiftKey) { openDrawer(g.id); return; }
+      window.open(`registru.html?t=${encodeURIComponent(g.teacher)}#grupa/${g.id}`, '_blank', 'noopener');
     });
     wireDrag(sc, board, s);
   }
