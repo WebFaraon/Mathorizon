@@ -137,6 +137,8 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
   ok(who.group === src.id && !Object.keys(D.sync.edits()).length, 'reset clears transfers');
 }
 
+// every lesson is one hour: the price is the hourly rate, the pay one of the three hourly amounts, whatever the group's meeting length
+D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok([175, 218, 255].includes(l.pay), g.id + ' lesson pay is an hourly amount (' + l.pay + ')'); } }); });
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 

@@ -133,12 +133,15 @@
     const dates = [];
     for (let d = new Date(first); d < last; d.setDate(d.getDate() + 1)) if (b.days.includes(wd(d))) dates.push(new Date(d));
     // a group nobody has joined yet has no history
-    const held = D.baseMembers(g.id).length ? dates.filter((_, i) => i === 0 || r() > 0.06).slice(-MAX_LESSONS) : [];
+    const meets = D.baseMembers(g.id).length ? dates.filter((_, i) => i === 0 || r() > 0.06) : [];
+    // every lesson in the register is one hour (a student may come to only one of the two, each with its own mark
+    // and its own payment): a meeting of two hours is two lessons on the same date
+    const held = [].concat(...meets.map(d => Array(b.duration).fill(d))).slice(-MAX_LESSONS);
 
     let k = 0;
     const lessons = held.map((d, i) => {
       void (i > 0 && r() < 0.12);                 // (the old random reduced price; the draw stays so the other numbers do not move)
-      const price = Math.round(rate * b.duration);
+      const price = rate;
       const topic = topics[k % topics.length]; k += r() < 0.85 ? 1 : 0;
       return { date: d, topic, price };
     });
@@ -162,7 +165,9 @@
         : [['P', 60], ['A', 22], ['M', 18]];
       const codes = Array(n).fill('');
       for (let i = joinIdx; i < endIdx; i++) {
+        const p = i > joinIdx ? lessons[i - 1] : null;
         if (i === joinIdx && isNew) codes[i] = rs() < 0.12 ? 'B' : 'G';
+        else if (p && p.date.getTime() === lessons[i].date.getTime() && codes[i - 1] && codes[i - 1] !== 'G' && codes[i - 1] !== 'B' && rs() < 0.9) codes[i] = codes[i - 1];   // the second hour of a meeting: mostly the same as the first
         else codes[i] = weighted(rs, odds);
       }
       let cost = 0, done = 0;
@@ -178,7 +183,7 @@
       }
       return { s, codes, paid, disc };
     });
-    return { rate, dur: b.duration, lessons, rows };
+    return { rate, dur: 1, lessons, rows };
   }
 
   const mkLesson = (i, date, topic, price) => (date ? {
@@ -197,7 +202,7 @@
       const o = (ov.l || {})[i] || {};
       return mkLesson(i, o.d ? parse(o.d) : l.date, o.t != null ? o.t : l.topic, Math.round(l.price * k));
     });
-    (ov.x || []).forEach((e, j) => all.push(mkLesson(G.lessons.length + j, e.d ? parse(e.d) : null, e.t != null ? e.t : '', Math.round(rate * G.dur))));
+    (ov.x || []).forEach((e, j) => all.push(mkLesson(G.lessons.length + j, e.d ? parse(e.d) : null, e.t != null ? e.t : '', Math.round(rate))));
     // a deleted lesson (a generated one or an added one) is only skipped: marks and edits keep their keys
     const rm = new Set(ov.rm || []);
     const lessons = all.filter(l => !rm.has(l.oid));
@@ -238,7 +243,7 @@
       else st.inactive++;
     });
     const marks = st.P + st.A + st.M;
-    st.hours = nCounted * G.dur;
+    st.hours = nCounted;
     st.avg = nCounted ? (st.P + st.G) / nCounted : 0;
     st.success = marks ? Math.round(st.P / marks * 100) : 0;
     st.absent = st.A + st.M + st.B;
@@ -249,7 +254,7 @@
       rows.forEach(x => { const c = x.codes[i]; if (c) { expected++; if (c === 'P' || c === 'G') there++; } });
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
-      l.pay = l.counted ? lessonPay(g.size, there) * G.dur : 0;
+      l.pay = l.counted ? lessonPay(g.size, there) : 0;
     });
 
     const months = [];
@@ -258,7 +263,7 @@
       if (!l.month || !l.counted) return;         // a lesson without a date or a title counts in no month yet
       let m = byKey[l.month];
       if (!m) { m = byKey[l.month] = { key: l.month, name: l.monthName, P: 0, A: 0, M: 0, G: 0, B: 0, value: 0, hours: 0, mgr: {} }; months.push(m); }
-      m.hours += G.dur;
+      m.hours += 1;
       rows.forEach(x => {
         const c = x.codes[i];
         if (!c) return;
