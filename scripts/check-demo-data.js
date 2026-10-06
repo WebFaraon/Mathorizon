@@ -235,6 +235,22 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
   ok(tested.credit >= 3 && tested.debt >= 3, 'money: both credit and debt cases were tested (' + JSON.stringify(tested) + ')');
   D.reset();
 }
+// transfer candidates: the same way of teaching, and Activ groups first when the group he leaves is Activ
+{
+  const modeOf = g => D.PROJECTS.find(p => p.id === g.project).mode;
+  let seen = { activ: 0, other: 0 };
+  D.groups.forEach(g => {
+    const e = D.enrolled(g)[0]; if (!e || e.group !== g.id) return;
+    const c = D.transferCandidates([e.id]);
+    ok(c.every(x => modeOf(x.g) === modeOf(g)), 'transfer: only groups of the same kind (offline stays offline) ' + g.id);
+    if (g.status === 'activ') {
+      const f = c.filter(x => x.fits).map(x => x.g.status === 'activ');
+      ok(f.every((v, i) => !i || f[i - 1] || !v), 'transfer: from an Activ group, the Activ ones come first ' + g.id);
+      seen.activ++;
+    } else seen.other++;
+  });
+  ok(seen.activ > 20, 'transfer: enough Activ cases tested (' + seen.activ + ')');
+}
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 
