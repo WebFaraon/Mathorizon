@@ -57,7 +57,7 @@ svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; s
 .top h1 .ln { display: block; overflow: hidden; padding-bottom: 0.08em; }
 .top h1 .ln > span { display: block; transform: translateY(105%); animation: rise 1s var(--ease) 0.1s forwards; }
 .top h1 .ln:nth-child(2) > span { animation-delay: 0.22s; }
-.top h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+.top h1 em { font-style: normal; font-weight: 500; color: var(--accent); }
 .lede { max-width: 56ch; margin: 28px 0 0; font-size: 1.2rem; line-height: 1.55; color: var(--ink-2); opacity: 0; animation: fade 0.9s var(--ease) 0.55s forwards; }
 .legend { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 26px 0 0; font-size: 0.9rem; color: var(--mute); opacity: 0; animation: fade 0.9s var(--ease) 0.7s forwards; }
 .legend span { display: inline-flex; align-items: center; gap: 9px; }
@@ -73,13 +73,14 @@ svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; s
 .tab:hover { color: var(--ink); }
 .tab[aria-pressed="true"] { color: var(--ink); }
 .tab small { font-size: 0.78rem; font-weight: 600; color: var(--mute); }
-.tabs .ink { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transition: transform 0.45s var(--ease), width 0.45s var(--ease); }
+.tabs .ink { position: absolute; left: 0; bottom: 0; height: 3px; width: 100px; background: var(--ink); transform-origin: 0 50%; transition: transform 0.45s var(--ease); }
 .only { flex: none; display: inline-flex; align-items: center; gap: 10px; padding: 6px 4px; border: 0; background: none; font-size: 0.92rem; font-weight: 600; color: var(--ink-2); }
 .only .sw { position: relative; width: 36px; height: 20px; border-radius: 10px; background: var(--rule-2); transition: background-color 0.25s; }
 .only .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.3s var(--ease); }
 .only[aria-pressed="true"] .sw { background: var(--accent); }
 .only[aria-pressed="true"] .sw::after { transform: translateX(16px); }
-.only:active .sw::after { width: 18px; }
+.only[aria-pressed="true"]:active .sw::after { transform: translateX(14px) scaleX(1.25); }
+.only:active .sw::after { transform: scaleX(1.25); }
 
 /* ---------- groups ---------- */
 main { padding: 12px 0 160px; }
@@ -154,7 +155,7 @@ main { padding: 12px 0 160px; }
 .dock__n b.bump { animation: bump 0.42s var(--ease); }
 @keyframes bump { 0% { transform: translateY(40%); opacity: 0; } 100% { transform: none; opacity: 1; } }
 .dock__bar { flex: 1; min-width: 40px; height: 4px; border-radius: 2px; background: rgba(244, 241, 232, 0.2); overflow: hidden; }
-.dock__bar i { display: block; height: 100%; width: 0; background: #7FD6BC; border-radius: 2px; transition: width 0.6s var(--ease); }
+.dock__bar i { display: block; height: 100%; width: 100%; background: #7FD6BC; border-radius: 2px; transform: scaleX(0); transform-origin: 0 50%; transition: transform 0.6s var(--ease); }
 .dbtn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: #F4F1E8; font-size: 0.92rem; font-weight: 600; transition: background-color 0.2s, transform 0.15s var(--ease); white-space: nowrap; }
 .dbtn:hover { background: rgba(244, 241, 232, 0.12); }
 .dbtn:active { transform: scale(0.96); }
@@ -394,8 +395,7 @@ footer { padding: 0 0 56px; color: var(--mute); font-size: 0.92rem; }
   function moveInk() {
     var on = tabs.querySelector('.tab[aria-pressed="true"]');
     if (!on) return;
-    ink.style.width = on.offsetWidth + 'px';
-    ink.style.transform = 'translateX(' + on.offsetLeft + 'px)';
+    ink.style.transform = 'translateX(' + on.offsetLeft + 'px) scaleX(' + (on.offsetWidth / 100) + ')';
     var l = on.offsetLeft, r = l + on.offsetWidth;
     if (l < tabs.scrollLeft + 8) tabs.scrollTo({ left: Math.max(0, l - 16), behavior: 'smooth' });
     else if (r > tabs.scrollLeft + tabs.clientWidth - 8) tabs.scrollTo({ left: r - tabs.clientWidth + 16, behavior: 'smooth' });
@@ -448,7 +448,7 @@ footer { padding: 0 0 56px; color: var(--mute); font-size: 0.92rem; }
     document.body.classList.toggle('has-picks', n > 0);
     dn.textContent = n;
     dt.textContent = 'din ' + TOTAL + (n === 1 ? ' propunere' : ' propuneri');
-    db.style.width = (n / TOTAL * 100) + '%';
+    db.style.transform = 'scaleX(' + (n / TOTAL) + ')';
     dock.classList.toggle('on', n > 0);
     if (bump && n !== last) { dn.classList.remove('bump'); void dn.offsetWidth; dn.classList.add('bump'); }
     last = n;
