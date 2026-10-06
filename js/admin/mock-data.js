@@ -16,6 +16,7 @@
      setAvailability(teacherId, availability), setTeach(teacherId, rows),
      transfer(studentIds, toGroupId), undoTransfer(ids), statusIn(student, groupId),
      stint(student, groupId), baseMembers(groupId), transferCandidates(studentIds),
+     comments(), addComment({ k, g, by, role, t }), deleteComments(ids),
      resetTeacher(id), teacherEdited(id), base(groupId),
      reset(), onChange(fn)
    }
@@ -465,6 +466,25 @@
     return did;
   }
 
+  /* ---- comments on register cells: a thread of notes per cell, as in a spreadsheet ----
+     One row per message (edits.comments[id] = { k: cell key, g: group, by, role, t: text, at }), so two people
+     writing at the same time never overwrite each other. */
+  const comments = () => Object.entries(edits.comments || {}).map(([id, c]) => Object.assign({ id }, c)).sort((a, b) => (a.at || 0) - (b.at || 0) || a.id.localeCompare(b.id));
+  function addComment(c) {
+    edits.comments = edits.comments || {};
+    const id = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+    edits.comments[id] = { k: c.k, g: c.g, by: c.by, role: c.role, t: c.t, at: Date.now() };
+    save();
+    return id;
+  }
+  function deleteComments(ids) {
+    let n = 0;
+    ids.forEach(id => { if (edits.comments && edits.comments[id]) { delete edits.comments[id]; n++; } });
+    if (edits.comments && !Object.keys(edits.comments).length) delete edits.comments;
+    if (n) save();
+    return n;
+  }
+
   function isAvailable(teacherId, day, start, duration) {
     const wins = (idx.teachers[teacherId] && idx.teachers[teacherId].availability[day]) || [];
     return wins.some(([a, b]) => start >= a && start + duration <= b);
@@ -512,7 +532,7 @@
     project: id => PROJECTS.find(p => p.id === id),
     studentsOf: gid => studentsByGroup[gid] || [],
     baseMembers: gid => baseBy[gid] || [],
-    enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer,
+    enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer, comments, addComment, deleteComments,
     transfersOf: sid => (moves[sid] || []).slice(),
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),

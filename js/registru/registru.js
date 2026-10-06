@@ -82,6 +82,7 @@
           </a>
           <div class="rg-who" id="rgWho"></div>
           <div class="rg-top__r">
+            <button type="button" class="ax-icon-btn rg-ibtn rg-inbox" id="rgInbox" aria-label="Comentarii" title="Comentarii">${ico('message-circle', 18)}<b class="rg-inbox__n" id="rgInboxN" hidden></b></button>
             <span class="rg-saved" id="rgSaved" role="status" aria-live="polite"><i>${ico('check', 14)}</i><span>Salvat</span></span>
             <span class="rg-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${D.fingerprint}">
               <i aria-hidden="true"></i><b>Date demo</b>
@@ -108,6 +109,7 @@
     document.getElementById('rgWho').innerHTML = `
       <span class="rg-who__av" aria-hidden="true">${esc(initials(lastFirst(t)))}</span>
       <span class="rg-who__t"><b>${esc(lastFirst(t))}</b><small>${esc(t.subjects.join(', '))} · ${n} ${n === 1 ? 'grupă activă' : 'grupe active'}</small></span>`;
+    paintInbox();
     const sel = document.getElementById('rgTeacher');
     if (sel) sel.innerHTML = D.teachers.slice().sort((a, b) => a.name.localeCompare(b.name, 'ro')).map(x => {
       const c = D.groups.filter(g => g.teacher === x.id).length;
@@ -117,6 +119,7 @@
 
   function tabsHTML() {
     const gs = D.groups.filter(g => g.teacher === S.tid).sort((a, b) => Math.min(...a.days) - Math.min(...b.days) || a.start - b.start || a.id.localeCompare(b.id));
+    const unread = unreadByGroup();
     const tab = (r, label, extra = '') => `<button type="button" class="rg-tab${extra}" role="tab" data-r="${r}" aria-selected="false" tabindex="-1">${label}</button>`;
     return `
       ${tab('total', `${ico('chart-column', 16)}<span>Total achitări</span>`, ' rg-tab--main')}
@@ -124,7 +127,7 @@
       <i class="rg-tabs__sep" aria-hidden="true"></i>
       ${gs.map(g => {
         const L = D.ledger(g.id);
-        return tab('grupa/' + g.id, `<i class="rg-tab__n" title="Elevi în registru">${L.rows.length}</i><span>${esc(D.tabName(g))}</span><em class="rg-tab__s rg-s-${g.status}" title="${esc(GNAME[g.status])}"></em>`, ' rg-tab--g');
+        return tab('grupa/' + g.id, `<i class="rg-tab__n" title="Elevi în registru">${L.rows.length}</i><span>${esc(D.tabName(g))}</span>${unread[g.id] ? `<b class="rg-tab__c" title="${unread[g.id] === 1 ? 'Un comentariu nou' : unread[g.id] + ' comentarii noi'}">${unread[g.id]}</b>` : ''}<em class="rg-tab__s rg-s-${g.status}" title="${esc(GNAME[g.status])}"></em>`, ' rg-tab--g');
       }).join('')}`;
   }
 
@@ -292,7 +295,159 @@
   function closePop() {
     document.removeEventListener('pointerdown', outside, true);
     document.removeEventListener('keydown', onEsc);
+    CM.open = null;
     if (popEl) { const p = popEl; popEl = null; p.classList.remove('is-on'); setTimeout(() => p.remove(), 140); }
+  }
+
+  /* ============================================================
+     Comments on cells (as in a spreadsheet)
+     ============================================================
+     The admin or a manager leaves a note on a presence cell, a student column or a lesson date; the teacher
+     reads it and may reply. A small orange corner marks a cell with a thread (red while there is something
+     unread), the thread opens on click, Shift+F2 or the right-click menu, and a card with the note shows on hover.
+     Stored in the shared demo state, one row per message (AdminData.addComment), so it is live on every device. */
+  const CM = { open: null, card: null, timer: 0 };
+  const READ_KEY = 'bm_rg_cm_read_v1';
+  let readSet = {};
+  try { readSet = JSON.parse(localStorage.getItem(READ_KEY) || '{}') || {}; } catch (e) { readSet = {}; }
+  const saveRead = () => { try { localStorage.setItem(READ_KEY, JSON.stringify(readSet)); } catch (e) {} };
+  const myRole = () => (S.role === 'admin' ? 'admin' : 'profesor');
+  const ROLE_NAME = { admin: 'Administrator', profesor: 'Profesor' };
+  const isUnread = m => m.role !== myRole() && !readSet[m.id];
+  const threadMap = gid => { const m = new Map(); D.comments().forEach(c => { if (c.g === gid) { if (!m.has(c.k)) m.set(c.k, []); m.get(c.k).push(c); } }); return m; };
+  const threadOf = (gid, key) => D.comments().filter(c => c.g === gid && c.k === key);
+  const canThread = (gid, key) => S.role === 'admin' || threadOf(gid, key).length > 0;
+  function unreadByGroup() {
+    const by = {};
+    D.comments().forEach(c => { if (isUnread(c) && D.group(c.g) && D.group(c.g).teacher === S.tid) by[c.g] = (by[c.g] || 0) + 1; });
+    return by;
+  }
+  const unreadTotal = () => Object.values(unreadByGroup()).reduce((a, b) => a + b, 0);
+  function paintInbox() {
+    const n = document.getElementById('rgInboxN');
+    if (!n) return;
+    const u = unreadTotal();
+    n.hidden = !u; n.textContent = u > 9 ? '9+' : u;
+    const b = document.getElementById('rgInbox');
+    if (b) b.setAttribute('aria-label', u ? 'Comentarii, ' + u + ' necitite' : 'Comentarii');
+  }
+  function cellLabel(gid, key) {
+    const L = D.ledger(gid), p = key.split('~');
+    const row = id => L.rows.find(r => r.s.id === id), les = oid => L.lessons.find(l => l.oid === +oid);
+    if (p[0] === 's') return row(p[1]) ? lastFirst(row(p[1]).s) : null;
+    if (p[0] === 'l') return les(p[1]) ? 'Lecția din ' + les(p[1]).label : null;
+    if (p[0] === 'm') return row(p[1]) && les(p[2]) ? lastFirst(row(p[1]).s) + ', ' + les(p[2]).label : null;
+    return null;
+  }
+  const whenOf = ms => {
+    const d = new Date(ms), t = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'), now = new Date();
+    if (d.toDateString() === now.toDateString()) return 'azi, ' + t;
+    const m = D.MONTHS[d.getMonth()];
+    return d.getDate() + ' ' + (m.length > 4 ? m.slice(0, 3) + '.' : m) + ', ' + t;
+  };
+  const linkify = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>');
+  const msgHTML = m => `<li class="rg-cmm rg-cmm--${m.role}${isUnread(m) ? ' is-new' : ''}"><span class="rg-cmm__av" aria-hidden="true">${esc(initials(m.by))}</span><div><p class="rg-cmm__h"><b>${esc(m.by)}</b><em>${ROLE_NAME[m.role] || ''}</em><time>${whenOf(m.at)}</time></p><p class="rg-cmm__t">${linkify(m.t)}</p></div></li>`;
+
+  /* the card that shows on hover, read-only */
+  function showCard(span, gid) {
+    clearTimeout(CM.timer);
+    CM.timer = setTimeout(() => {
+      const cell = span.closest('[data-cmk]'); if (!cell || popEl) return;
+      const th = threadOf(gid, cell.dataset.cmk); if (!th.length) return;
+      if (!CM.card) { CM.card = document.createElement('div'); CM.card.className = 'rg-cmcard'; CM.card.setAttribute('role', 'tooltip'); document.body.appendChild(CM.card); }
+      const first = th[0], rest = th.slice(1);
+      CM.card.innerHTML = `<div class="rg-cmcard__h"><span class="rg-cmm__av rg-cmm--${first.role}">${esc(initials(first.by))}</span><div><b>${esc(first.by)}</b><time>${whenOf(first.at)}</time></div></div><p>${linkify(first.t)}</p>${rest.length ? `<small>${rest.length === 1 ? 'Încă un răspuns' : 'Încă ' + rest.length + ' răspunsuri'}. Apasă ca să deschizi conversația.</small>` : '<small>Apasă ca să răspunzi.</small>'}`;
+      CM.card.classList.add('is-on');
+      const r = cell.getBoundingClientRect(), w = CM.card.offsetWidth, h = CM.card.offsetHeight;
+      let x = r.right + 6; if (x + w > innerWidth - 8) x = Math.max(8, r.left - w - 6);
+      let y = Math.max(64, Math.min(innerHeight - h - 8, r.top));
+      CM.card.style.transform = `translate(${Math.round(x)}px, ${Math.round(y)}px)`;
+    }, 220);
+  }
+  function hideCard() { clearTimeout(CM.timer); if (CM.card) CM.card.classList.remove('is-on'); }
+
+  /* the thread: messages, a reply box, and for the admin a way to delete it */
+  function openThread(anchor, gid, key, label) {
+    if (!anchor || !canThread(gid, key)) return;
+    hideCard(); hideTip();
+    const me = (S.auth && S.auth.displayName && S.auth.displayName()) || (S.role === 'admin' ? 'Administrator' : 'Profesor');
+    const markRead = () => { const th = threadOf(gid, key); let ch = false; th.forEach(m => { if (!readSet[m.id]) { readSet[m.id] = 1; ch = true; } }); if (ch) { saveRead(); paintInbox(); } return ch; };
+    const listHTML = () => { const th = threadOf(gid, key); return th.length ? th.map(msgHTML).join('') : '<li class="rg-cmw__empty">Nicio notă încă. Scrie ce vrei să vadă profesorul.</li>'; };
+    const html = () => {
+      const has = threadOf(gid, key).length > 0;
+      return `<div class="rg-cmw" role="dialog" aria-label="Comentariu: ${esc(label)}">
+        <div class="rg-cmw__h"><span><small>Comentariu</small><b>${esc(label)}</b></span><button type="button" class="rg-cmw__x" data-cmx aria-label="Închide">${ico('x', 16)}</button></div>
+        <ul class="rg-cmw__l" id="rgCmL">${listHTML()}</ul>
+        <form class="rg-cmw__f" id="rgCmF">
+          <textarea rows="2" maxlength="600" placeholder="${has ? 'Răspunde…' : 'Scrie o notă pentru profesor…'}" aria-label="${has ? 'Răspuns' : 'Comentariu nou'}"></textarea>
+          <div class="rg-cmw__b"><span>Enter trimite, Shift+Enter rând nou</span>${S.role === 'admin' && has ? '<button type="button" class="rg-cmw__del" data-cmdel>Șterge conversația</button>' : ''}<button type="submit" class="rg-cmw__go">Trimite</button></div>
+        </form>
+      </div>`;
+    };
+    const wasUnread = markRead();
+    const pop = openPop(anchor, html(), 'rg-pop--cm');
+    const list = pop.querySelector('#rgCmL'), ta = pop.querySelector('textarea');
+    list.scrollTop = list.scrollHeight;
+    ta.focus();
+    CM.open = { refresh() { const keep = ta.value; const was = list.scrollHeight - list.scrollTop - list.clientHeight < 40; list.innerHTML = listHTML(); markRead(); if (was) list.scrollTop = list.scrollHeight; ta.value = keep; } };
+    const send = () => {
+      const t = ta.value.trim(); if (!t) return;
+      D.addComment({ k: key, g: gid, by: me, role: myRole(), t });
+      readSet[D.comments().slice(-1)[0].id] = 1; saveRead();
+      pop.innerHTML = html(); wireIn();
+      flashSaved(); refreshGroup(gid); refreshChrome();
+      const l2 = pop.querySelector('#rgCmL'); l2.scrollTop = l2.scrollHeight;
+      pop.querySelector('textarea').focus();
+    };
+    const wireIn = () => {
+      const l = pop.querySelector('#rgCmL'), t = pop.querySelector('textarea');
+      CM.open = { refresh() { const keep = t.value; const was = l.scrollHeight - l.scrollTop - l.clientHeight < 40; l.innerHTML = listHTML(); markRead(); if (was) l.scrollTop = l.scrollHeight; t.value = keep; } };
+      t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
+      pop.querySelector('#rgCmF').addEventListener('submit', e => { e.preventDefault(); send(); });
+    };
+    wireIn();
+    pop.addEventListener('click', e => {
+      if (e.target.closest('[data-cmx]')) { closePop(); return; }
+      const d = e.target.closest('[data-cmdel]');
+      if (d) {
+        if (!d.dataset.sure) { d.dataset.sure = '1'; d.textContent = 'Sigur? Apasă din nou'; setTimeout(() => { if (d.isConnected) { delete d.dataset.sure; d.textContent = 'Șterge conversația'; } }, 3000); return; }
+        D.deleteComments(threadOf(gid, key).map(m => m.id));
+        closePop(); flashSaved(); refreshGroup(gid); refreshChrome(); U.toast('Conversația a fost ștearsă.');
+      }
+    });
+    if (wasUnread) { refreshGroup(gid); refreshChrome(); }
+  }
+  /* right-click on a cell: open its thread, or start one */
+  function openCellMenu(cell, gid) {
+    const key = cell.dataset.cmk, has = threadOf(gid, key).length > 0;
+    const pop = openPop(cell, `<div class="rg-menu rg-menu--ctx" role="menu"><button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="cm">${ico('message-circle', 16)}<span>${has ? 'Deschide comentariul' : 'Adaugă comentariu'}</span></button></div>`, 'rg-pop--menu rg-pop--ctx');
+    const b = pop.querySelector('.rg-mi'); b.focus();
+    b.addEventListener('click', () => { closePop(); openThread(cell, gid, key, cell.dataset.cml); });
+  }
+  /* every comment of this teacher's groups, newest first; a click goes to the cell */
+  function openInbox() {
+    const mine = new Set(D.groups.filter(g => g.teacher === S.tid).map(g => g.id));
+    const map = new Map();
+    D.comments().forEach(c => { if (mine.has(c.g) && cellLabel(c.g, c.k)) { const id = c.g + '|' + c.k; if (!map.has(id)) map.set(id, []); map.get(id).push(c); } });
+    const items = Array.from(map.values()).sort((a, b) => b[b.length - 1].at - a[a.length - 1].at);
+    const body = items.length ? `<ul class="rg-inbox__l">${items.map((th, i) => {
+      const last = th[th.length - 1], g = D.group(last.g), un = th.filter(isUnread).length;
+      return `<li><button type="button" class="rg-inbox__i${un ? ' is-new' : ''}" data-i="${i}"><span class="rg-inbox__w">${esc(D.tabName(g))} · ${esc(cellLabel(last.g, last.k))}</span><span class="rg-inbox__t"><b>${esc(last.by)}:</b> ${esc(last.t.length > 120 ? last.t.slice(0, 120) + '…' : last.t)}</span><span class="rg-inbox__m">${whenOf(last.at)} · ${th.length === 1 ? 'un mesaj' : th.length + ' mesaje'}${un ? ' · <i>' + un + ' necitit' + (un === 1 ? '' : 'e') + '</i>' : ''}</span></button></li>`;
+    }).join('')}</ul>` : '<div class="ax-empty"><b>Niciun comentariu.</b>' + (S.role === 'admin' ? 'Fă clic dreapta pe o celulă din registru și alege „Adaugă comentariu”.' : 'Când administratorul lasă o notă pe o celulă, o găsești aici.') + '</div>';
+    const dr = U.drawer({ title: 'Comentarii', sub: `${esc(lastFirst(D.teacher(S.tid)))} · ${items.length} ${items.length === 1 ? 'conversație' : 'conversații'}`, body });
+    dr.querySelectorAll('.rg-inbox__i').forEach(b => b.addEventListener('click', () => { const th = items[+b.dataset.i], last = th[0]; dr.close(); goComment(last.g, last.k); }));
+  }
+  function goComment(gid, key) {
+    if (parseRoute().gid !== gid) location.hash = 'grupa/' + gid;
+    let tries = 0;
+    (function find() {
+      const cell = view.querySelector('#rgBoard [data-cmk="' + key + '"]');
+      if (cell) {
+        cell.scrollIntoView({ block: 'center', inline: 'center', behavior: calm() ? 'auto' : 'smooth' });
+        cell.classList.add('is-cmflash'); setTimeout(() => cell.classList.remove('is-cmflash'), 2000);
+        setTimeout(() => openThread(cell, gid, key, cell.dataset.cml), 380);
+      } else if (++tries < 15) setTimeout(find, 120);
+    })();
   }
 
   /* ============================================================
@@ -447,6 +602,8 @@
     const schedX = n => { const s = sched[n]; return s
       ? `<td class="rg-xc rg-x1">${esc(s.day)}</td><td class="rg-xc rg-x2">${hh(s.hour).slice(0, 5)}</td><td class="rg-xc rg-x3">${s.room ? s.room : 'online'}</td>`
       : blankX(1) + blankX(2) + blankX(3); };
+    const TH = threadMap(g.id);
+    const cmMark = key => { const th = TH.get(key); return th ? `<span class="rg-cm${th.some(isUnread) ? ' is-new' : ''}" role="button" tabindex="-1" aria-label="Comentariu, ${th.length === 1 ? 'un mesaj' : th.length + ' mesaje'}${th.some(isUnread) ? ', necitit' : ''}"></span>` : ''; };
     const person = m => (m ? lastFirst({ first: m.name.split(' ')[0], last: m.name.split(' ').slice(1).join(' ') }) : '');
 
     const head = [];
@@ -456,7 +613,7 @@
       ${each((x, i) => {
         const note = x.leave ? `<small class="rg-sn__mv">→ ${esc(x.to ? D.tabName(x.to) : 'altă grupă')}</small>` : x.join ? `<small class="rg-sn__mv">din ${esc(x.from ? D.tabName(x.from) : 'altă grupă')}</small>` : `<small>${esc(x.s.phone)}</small>`;
         const tip = lastFirst(x.s) + (x.leave ? ', transferat în ' + (x.to ? D.tabName(x.to) : 'altă grupă') : x.join ? ', venit prin transfer din ' + (x.from ? D.tabName(x.from) : 'altă grupă') : '');
-        return `<th class="rg-sc rg-sname${x.leave ? ' is-moved' : ''}${x.join ? ' is-in' : ''}" data-c="${i}" scope="col"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(tip)}"><b>${esc(lastFirst(x.s))}</b>${note}</button></th>`;
+        return `<th class="rg-sc rg-sname${x.leave ? ' is-moved' : ''}${x.join ? ' is-in' : ''}" data-c="${i}" scope="col" data-cmk="s~${x.s.id}" data-cml="${esc(lastFirst(x.s))}"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(tip)}"><b>${esc(lastFirst(x.s))}</b>${note}</button>${cmMark('s~' + x.s.id)}</th>`;
       })}
       ${ghost(i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col"><span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span></th>`)}
       <th class="rg-xh rg-x1">Ziua</th><th class="rg-xh rg-x2">Ora</th><th class="rg-xh rg-x3">Cabinetul</th>
@@ -490,13 +647,13 @@
     const body = [];
     L.lessons.forEach((l, li) => {
       body.push(`<tr class="rg-lr" data-li="${li}">
-        <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button></th>
+        <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row" data-cmk="l~${l.oid}" data-cml="Lecția din ${esc(l.label)}"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button>${cmMark('l~' + l.oid)}</th>
         <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
         <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${fm(l.pay)}</span></td>
         ${each((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
           if (x.lock[li]) return `<td class="rg-sc rg-pc is-lock" data-c="${i}" title="${x.leave ? 'Elevul a fost transferat, lecțiile de după transfer nu se mai notează aici' : 'Elevul a venit prin transfer, lecțiile dinainte nu se notează'}"><span class="rg-pl rg-pl--e is-off">${c ? (m ? m.t : '') : ''}</span></td>`;
-          return `<td class="rg-sc rg-pc" data-c="${i}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button></td>`;
+          return `<td class="rg-sc rg-pc" data-c="${i}" data-cmk="m~${x.s.id}~${l.oid}" data-cml="${esc(lastFirst(x.s) + ', ' + l.label)}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button>${cmMark('m~' + x.s.id + '~' + l.oid)}</td>`;
         })}
         ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
         <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td>${blankX(3)}
@@ -566,6 +723,7 @@
       <div class="rg-menu" role="menu" aria-label="Prezența">
         ${Object.values(MARK).map(m => `<button type="button" role="menuitemradio" aria-checked="${m.k === cur}" class="rg-mi${m.k === cur ? ' is-on' : ''}" data-code="${m.k}"><i class="rg-pl rg-pl--${m.c}"></i><span>${m.n}</span><kbd>${m.k}</kbd></button>`).join('')}
         <button type="button" role="menuitem" class="rg-mi rg-mi--clear" data-code=""><i class="rg-pl rg-pl--e"></i><span>Golește celula</span><kbd>Del</kbd></button>
+        ${canThread(gid, btn.closest('[data-cmk]').dataset.cmk) ? `<button type="button" role="menuitem" class="rg-mi rg-mi--cm" data-cmopen="1">${ico('message-circle', 16)}<span>${threadOf(gid, btn.closest('[data-cmk]').dataset.cmk).length ? 'Deschide comentariul' : 'Adaugă comentariu'}</span><kbd>Shift+F2</kbd></button>` : ''}
       </div>`, 'rg-pop--menu');
     const items = Array.from(pop.querySelectorAll('.rg-mi'));
     (items.find(x => x.classList.contains('is-on')) || items[0]).focus();
@@ -575,7 +733,11 @@
       flashSaved();
       refreshGroup(gid, { sid: btn.dataset.sid, i: btn.dataset.i });
     };
-    pop.addEventListener('click', e => { const b = e.target.closest('.rg-mi'); if (b) pick(b.dataset.code); });
+    pop.addEventListener('click', e => {
+      const b = e.target.closest('.rg-mi'); if (!b) return;
+      if (b.dataset.cmopen) { const c = btn.closest('[data-cmk]'); closePop(); openThread(c, gid, c.dataset.cmk, c.dataset.cml); return; }
+      pick(b.dataset.code);
+    });
     pop.addEventListener('keydown', e => {
       const at = items.indexOf(document.activeElement);
       if (e.key === 'ArrowDown') { e.preventDefault(); items[Math.min(items.length - 1, at + 1)].focus(); }
@@ -601,6 +763,7 @@
     const pop = openPop(anchor, `
       <div class="rg-menu rg-menu--ctx" role="menu" aria-label="Lecția din ${esc(l.label)}">
         <button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="date">${ico('calendar', 16)}<span>Schimbă data</span></button>
+        ${canThread(gid, 'l~' + oid) ? `<button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="cm">${ico('message-circle', 16)}<span>${threadOf(gid, 'l~' + oid).length ? 'Deschide comentariul' : 'Adaugă comentariu'}</span></button>` : ''}
         <button type="button" role="menuitem" class="rg-mi rg-mi--ctx rg-mi--del" data-act="del">${ico('trash-2', 16)}<span>Șterge lecția</span></button>
       </div>`, 'rg-pop--menu rg-pop--ctx');
     const items = Array.from(pop.querySelectorAll('.rg-mi'));
@@ -608,7 +771,9 @@
     pop.addEventListener('click', e => {
       const b = e.target.closest('.rg-mi'); if (!b) return;
       closePop();
-      if (b.dataset.act === 'del') deleteLesson(gid, oid); else openCalendar(anchor, gid, oid);
+      if (b.dataset.act === 'del') deleteLesson(gid, oid);
+      else if (b.dataset.act === 'cm') { const c = anchor.closest('[data-cmk]'); openThread(c, gid, c.dataset.cmk, c.dataset.cml); }
+      else openCalendar(anchor, gid, oid);
     });
     pop.addEventListener('keydown', e => {
       const at = items.indexOf(document.activeElement);
@@ -681,6 +846,8 @@
 
   function wireGroup(board, gid) {
     board.addEventListener('click', e => {
+      const cmx = e.target.closest('.rg-cm');
+      if (cmx) { const c = cmx.closest('[data-cmk]'); hideCard(); openThread(c, gid, c.dataset.cmk, c.dataset.cml); return; }
       const pl = e.target.closest('.rg-pl[data-sid]');
       if (pl) { openMarkMenu(pl, gid); return; }
       const st = e.target.closest('[data-s]');
@@ -696,12 +863,15 @@
     });
     board.addEventListener('contextmenu', e => {
       const dt = e.target.closest('[data-date]');
-      if (!dt) return;
-      e.preventDefault();
-      openLessonMenu(dt, gid, +dt.dataset.date);
+      if (dt) { e.preventDefault(); openLessonMenu(dt, gid, +dt.dataset.date); return; }
+      const c = e.target.closest('[data-cmk]');
+      if (c && canThread(gid, c.dataset.cmk)) { e.preventDefault(); openCellMenu(c, gid); }
     });
+    board.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const m = e.target.closest('.rg-cm'); if (m) showCard(m, gid); });
+    board.addEventListener('pointerout', e => { if (e.target.closest('.rg-cm')) hideCard(); });
     board.addEventListener('keydown', e => {
       const t = e.target;
+      if (e.shiftKey && e.key === 'F2') { const c = t.closest && t.closest('[data-cmk]'); if (c && canThread(gid, c.dataset.cmk)) { e.preventDefault(); openThread(c, gid, c.dataset.cmk, c.dataset.cml); return; } }
       if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { const dt = t.closest && t.closest('[data-date]'); if (dt) { e.preventDefault(); openLessonMenu(dt, gid, +dt.dataset.date); return; } }
       if (t.matches && t.matches('.rg-ti')) {
         if (e.key === 'Escape') { t.value = t.defaultValue; t.blur(); }
@@ -1128,6 +1298,7 @@
       if (n < 0) return;
       e.preventDefault(); list[n].focus(); location.hash = list[n].dataset.r;
     });
+    document.getElementById('rgInbox').addEventListener('click', openInbox);
     document.getElementById('rgTheme').addEventListener('click', e => {
       if (window.BM && BM.toggleTheme) BM.toggleTheme();
       e.currentTarget.innerHTML = ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 18);
@@ -1152,10 +1323,13 @@
     let extWait = false;
     const external = () => {
       if (selfWrite || !view) return;
+      if (CM.open && popEl) CM.open.refresh();
       const a = document.activeElement;
       const busy = (a && /^(INPUT|TEXTAREA)$/.test(a.tagName) && view.contains(a)) || document.querySelector('.rg-pop, .ax-drawer');
       if (busy) { if (!extWait) { extWait = true; setTimeout(() => { extWait = false; external(); }, 1200); } return; }
+      const before = unreadTotal();
       refreshChrome(); route(false);
+      if (unreadTotal() > before) U.toast('Ai un comentariu nou în registru.');
     };
     document.addEventListener('bm:demo-external', external);
 

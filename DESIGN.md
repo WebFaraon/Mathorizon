@@ -477,3 +477,8 @@ A page of the console for the big screen at the entrance (offline groups only, t
 - **Candidates** (`AdminData.transferCandidates`): same subject, grade and profile, not closed, free seats for everyone, never a group he already was in. No filter chips: the rules are fixed. Same profile is required; the order is by level (the same level first, then the nearest). Groups with too few seats are listed dimmed; full ones are only counted.
 - **Register.** The moved column is lilac (status "Transferat", no dropdown, the new group's name under the name); the incoming column is blue ("din ..."). Cells the transfer closes are hatched and cannot be marked: lessons from the transfer day on in the old group, lessons before it in the new one.
 - **Colour.** The transfer colour is `--ax-swap` (the status colour of Transferat); selection is the signal blue; the dialog header is the dark sign panel.
+
+### Comments on register cells
+- A thread of notes per cell (presence cell, student column, lesson date), like a spreadsheet's comments. A small amber corner marks a cell with a thread, red while something in it is unread; a card with the first note shows on hover; click, Shift+F2 or the right-click menu open the thread.
+- Only the admin starts a thread; the teacher reads and replies. Stored one row per message in `edits.comments` (so two writers never overwrite each other and it syncs like every other edit). Read state is per device (`bm_rg_cm_read_v1`).
+- Unread count: a red number on the group's tab and on the top-bar comments button, whose drawer lists every conversation of the teacher and jumps to the cell.
