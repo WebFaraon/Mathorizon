@@ -92,18 +92,10 @@ body.ax .tr-card:focus-visible { outline: 2px solid var(--ax-blue); outline-offs
 body.ax .tr-note { display: grid; grid-template-rows: 0fr; border-top: 0 solid var(--ax-rule); background: var(--ax-panel-2); transition: grid-template-rows 0.32s var(--ax-ease); }
 body.ax .tr-note > div { overflow: hidden; min-height: 0; }
 body.ax .tr-note.is-on { grid-template-rows: 1fr; border-top-width: 1px; }
-body.ax .tr-flow { display: grid; gap: 8px; margin: 0; padding: 14px 20px; list-style: none; font-size: 0.86rem; line-height: 1.4; color: var(--ax-ink-2); }
-body.ax .tr-flow li { display: grid; grid-template-columns: 24px minmax(0, 1fr); gap: 10px; align-items: start; }
-body.ax .tr-flow b { color: var(--ax-ink); }
-body.ax .tr-flow em { font-style: normal; font-weight: 800; color: var(--ax-ink); }
-body.ax .tr-flow__i { display: grid; place-items: center; width: 24px; height: 24px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); color: var(--ax-ink-2); }
-body.ax .tr-flow__i--out { border-color: var(--ax-swap); color: var(--ax-swap); }
-body.ax .tr-flow__i--in { border-color: var(--ax-ok); color: var(--ax-ok); }
 
 /* the money of the transfer */
 body.ax .tr-money { padding: 4px 20px 16px; border-top: 1px solid var(--ax-rule); }
 body.ax .tr-money h3 { margin: 12px 0 4px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-swap); }
-body.ax .tr-money__s { margin: 0 0 10px; font-size: 0.84rem; color: var(--ax-ink-3); }
 body.ax .tr-money__w { overflow-x: auto; }
 body.ax .tr-money__t { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
 body.ax .tr-money__t th, body.ax .tr-money__t td { padding: 7px 10px; border-bottom: 1px solid var(--ax-rule); text-align: right; white-space: nowrap; }
@@ -131,7 +123,6 @@ body.ax .tr-ok__rows li { display: grid; grid-template-columns: minmax(0, 1fr) a
 body.ax .tr-ok__rows b { font-weight: 800; }
 body.ax .tr-ok__rows .ax-st--transferat { text-decoration: none; }
 body.ax .tr-ok__arr { color: var(--ax-ink-3); animation: tr-nudge 1.2s var(--ax-ease) 1s 2; }
-body.ax .tr-ok__note { max-width: 560px; font-size: 0.86rem; line-height: 1.45; color: var(--ax-ink-3); animation: tr-up 0.4s var(--ax-ease) 0.6s backwards; }
 body.ax .tr-ok__f { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 8px; animation: tr-up 0.4s var(--ax-ease) 0.66s backwards; }
 
 /* ---------- motion ---------- */

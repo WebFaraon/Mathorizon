@@ -99,11 +99,10 @@
       const nameOf = id => (people.find(x => x.id === id) || {}).name || '';
       const debts = plan.filter(p => p.debt > 0);
       const any = plan.some(p => p.A + p.R + p.C > 0);
-      if (!any) return '<div class="tr-money"><p class="tr-money__s">Elevul nu are sume în grupa veche: nu se mută nimic.</p></div>';
+      if (!any) return '';
       return `
         <div class="tr-money">
-          <h3>Banii, calculați automat</h3>
-          <p class="tr-money__s">Costul lecțiilor ținute se scade proporțional din achitări și din reduceri; ce rămâne trece în grupa nouă. Aceleași formule ca în Calculator.</p>
+          <h3>Banii</h3>
           <div class="tr-money__w"><table class="tr-money__t">
             <thead><tr><th>Elev</th><th>Achitări</th><th>Reduceri</th><th>Costul lecțiilor</th><th>Rămâne aici</th><th>Trece în grupa nouă</th></tr></thead>
             <tbody>${plan.map(p => `<tr><th scope="row">${esc(nameOf(p.sid))}</th><td>${money(p.A)}</td><td>${money(p.R)}</td><td>${money(p.C)}</td><td>${money(p.achC + p.redC)}</td><td class="is-go"><b>${money(p.achRem + p.redRem)}</b><small>${money(p.achRem)} + ${money(p.redRem)}</small></td></tr>`).join('')}</tbody>
@@ -112,15 +111,7 @@
         </div>`;
     }
 
-    function noteHTML(g) {
-      const t = D.teacher(g.teacher), o = D.teacher(src.teacher);
-      return `
-        <ul class="tr-flow">
-          <li><span class="tr-flow__i tr-flow__i--out">${ico('arrow-right', 14)}</span><span><b>În grupa veche</b> primește statutul <em>Transferat</em>. Prezențele și banii rămân la ${esc(o.name)}, ca să nu se piardă statistica.</span></li>
-          <li><span class="tr-flow__i tr-flow__i--in">${ico('arrow-right', 14)}</span><span><b>În grupa nouă</b> apare ca <em>Activ</em>, în registrul lui ${esc(t.name)}, cu o coloană nouă fără lecții trecute.</span></li>
-          <li><span class="tr-flow__i">${ico('refresh-cw', 14)}</span><span>Se vede imediat în consolă și la ambii profesori. Rămâne un singur elev, nu doi.</span></li>
-        </ul>${moneyHTML()}`;
-    }
+    function noteHTML() { return moneyHTML(); }
 
     function stepHTML() {
       const pickG = st.pick && D.group(st.pick);
@@ -135,7 +126,7 @@
           <ul class="tr-kids">${people.map((s, i) => `<li style="--i:${i}"><i>${esc(initials(s))}</i>${esc(s.name)}</li>`).join('')}</ul>
         </section>
         <div class="tr-list" role="radiogroup" aria-label="Grupe disponibile" id="trList">${listHTML()}</div>
-        <div class="tr-note${pickG ? ' is-on' : ''}" id="trNote"><div>${pickG ? noteHTML(pickG) : ''}</div></div>
+        <div class="tr-note${pickG && noteHTML() ? ' is-on' : ''}" id="trNote"><div>${pickG ? noteHTML() : ''}</div></div>
         <footer class="tr-f">
           <p class="tr-f__s" id="trSum" aria-live="polite">${pickG ? `${esc(tName(pickG))}, ${esc(dayNames(pickG))} ${timeRange(pickG)}` : 'Alege o grupă din listă.'}</p>
           <button type="button" class="ax-btn" data-x>Renunță</button>
@@ -168,8 +159,9 @@
       });
       const g = D.group(gid);
       const note = dlg.querySelector('#trNote');
-      note.firstElementChild.innerHTML = noteHTML(g);
-      note.classList.add('is-on');
+      const nh = noteHTML();
+      note.firstElementChild.innerHTML = nh;
+      note.classList.toggle('is-on', !!nh);
       dlg.querySelector('#trSum').textContent = `${tName(g)}, ${dayNames(g)} ${timeRange(g)}`;
       const go = dlg.querySelector('[data-go]'); go.disabled = false;
       if (!calm()) { go.classList.remove('is-ping'); void go.offsetWidth; go.classList.add('is-ping'); }
@@ -191,7 +183,6 @@
               <span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ</span>
               ${(p => p && (p.A + p.R + p.C > 0) ? `<small class="tr-ok__m">Rămân în grupa veche ${money(p.achC + p.redC)} lei (lecțiile ținute) · trec în grupa nouă ${money(p.achRem + p.redRem)} lei${p.debt ? ` · datorie rămasă ${money(p.debt)} lei` : ''}</small>` : '')(plan.find(q => q.sid === s.id))}
             </li>`).join('')}</ul>
-          <p class="tr-ok__note">Banii s-au împărțit automat, ca în Calculator. Gata, se vede acum în registrul lui ${esc(t.name)} și în consolă. În registrul lui ${esc(o.name)} rămâne cu statutul Transferat, cu prezențele și banii păstrați.</p>
           <div class="tr-ok__f">
             <button type="button" class="ax-btn" data-undo>${ico('undo', 16)} Anulează transferul</button>
             <button type="button" class="ax-btn ax-btn--primary" data-fin>Gata</button>
