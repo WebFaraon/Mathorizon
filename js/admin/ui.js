@@ -199,7 +199,8 @@
         <button type="button" class="ax-sel__opt${i === native.selectedIndex ? ' is-on' : ''}" role="option" data-i="${i}" aria-selected="${i === native.selectedIndex}"${o.disabled ? ' disabled' : ''}>
           <span>${esc(o.textContent)}</span>${i === native.selectedIndex ? ico('check', 16) : ''}
         </button>`).join('');
-      document.body.append(pop);
+      // inside a modal dialog (top layer) the list must live in the dialog, or it opens behind it
+      (native.closest('dialog[open]') || document.body).append(pop);
       const r = btn.getBoundingClientRect();
       const w = Math.max(r.width, 180);
       pop.style.minWidth = w + 'px';

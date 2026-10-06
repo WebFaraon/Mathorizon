@@ -29,46 +29,74 @@
   const PROJ_NAME = { exo: 'Examen.md Offline', exn: 'Examen.md Online', mat: 'Matematica.md' };
   const H0 = 8, H1 = 21;
 
-  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', teacher: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null } });
+  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null } });
   let S = fresh();
   try { const v = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (v && v.ng) S = Object.assign(fresh(), v); } catch (e) { /* private mode */ }
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } };
   let root = null, onResize = null;
 
   /* ---------------- what the parent said -> the query ---------------- */
-  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.fmt ? 1 : 0) + (S.teacher ? 1 : 0);
-  const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: S.level, days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, teacher: S.teacher, filling: S.filling });
+  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.fmt ? 1 : 0) + (S.prof.trim() ? 1 : 0);
+  const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: S.level, days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, filling: S.filling });
+  const plain = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+  /* the teacher search: every word typed starts a word of the name */
+  const profOk = name => { const q = plain(S.prof).split(/\s+/).filter(Boolean); if (!q.length) return true; const w = plain(name).split(/\s+/); return q.every(x => w.some(y => y.startsWith(x))); };
   const ready = () => !!(S.subject && S.grade);
   const lyceum = () => !!S.grade && D.needsProfile(S.grade);
 
-  /* ---------------- the form on the left ---------------- */
-  const chip = (k, v, on, label) => `<button type="button" class="in-chip${on ? ' is-on' : ''}" data-k="${k}" data-v="${esc(v)}" role="radio" aria-checked="${on}">${esc(label || v)}</button>`;
-  function formHTML() {
-    const teachers = D.teachers.filter(t => t.subjects.includes(S.subject)).sort((a, b) => a.name.localeCompare(b.name, 'ro'));
-    const hourOpts = (cur, any) => `<option value="">${any}</option>` + Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i).map(h => `<option value="${h}"${String(cur) === String(h) ? ' selected' : ''}>${hh(h)}</option>`).join('');
-    const w = wishes();
+  /* ---------------- the filters on the left: a fixed rail of dropdowns ---------------- */
+  const opt = (v, label, cur) => `<option value="${esc(v)}"${String(cur) === String(v) ? ' selected' : ''}>${esc(label)}</option>`;
+  function railHTML() {
+    const hourOpts = (cur, any) => opt('', any, cur) + Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i).map(h => opt(h, hh(h), cur)).join('');
     return `
-      <section class="in-card" aria-labelledby="inAbout">
-        <h2 class="in-h" id="inAbout">Despre elev</h2>
-        <div class="in-f"><span class="in-l">Materia</span><div class="in-chips" role="radiogroup" aria-label="Materia">${D.SUBJECTS.map(s => chip('subject', s, S.subject === s)).join('')}</div></div>
-        <div class="in-f"><span class="in-l">Clasa</span><div class="in-grades" role="radiogroup" aria-label="Clasa">${D.GRADES.map(g => `<button type="button" class="in-g${S.grade === g ? ' is-on' : ''}" data-k="grade" data-v="${g}" role="radio" aria-checked="${S.grade === g}">${g}</button>`).join('')}</div></div>
-        <div class="in-prof${lyceum() ? ' is-open' : ''}"><div>
-          <div class="in-f"><span class="in-l">Profilul <small>liceu</small></span><div class="in-chips" role="radiogroup" aria-label="Profilul">${['Real', 'Uman'].map(p => chip('profile', p, S.profile === p)).join('')}</div></div>
-        </div></div>
-        <div class="in-f"><span class="in-l">Nivelul</span><div class="in-chips" role="radiogroup" aria-label="Nivelul">${D.LEVELS.map(l => chip('level', l, S.level === l)).join('')}</div></div>
-      </section>
-      <section class="in-card in-card--wish" aria-labelledby="inWish">
-        <h2 class="in-h" id="inWish">Dorințele părintelui${w ? `<button type="button" class="in-clear" data-clear-wish>Șterge (${w})</button>` : ''}</h2>
-        <p class="in-note">Le folosești doar dacă părintele le cere.</p>
-        <div class="in-f"><span class="in-l">Zilele în care poate</span><div class="in-days" role="group" aria-label="Zilele">${D.DAYS.map(d => `<button type="button" class="in-chip in-chip--d${S.days.includes(d.id) ? ' is-on' : ''}" data-day="${d.id}" aria-pressed="${S.days.includes(d.id)}" title="${esc(d.name)}">${esc(d.short)}</button>`).join('')}</div></div>
-        <div class="in-row">
-          <label class="in-sel"><span class="in-l">De la ora</span><select class="ax-select" data-k="from" aria-label="De la ora">${hourOpts(S.from, 'Oricând')}</select></label>
-          <label class="in-sel"><span class="in-l">Până la ora</span><select class="ax-select" data-k="to" aria-label="Până la ora">${hourOpts(S.to, 'Oricând')}</select></label>
-        </div>
-        <div class="in-f"><span class="in-l">Formatul</span><div class="in-chips" role="radiogroup" aria-label="Formatul">${chip('fmt', 'offline', S.fmt === 'offline', 'În cabinet')}${chip('fmt', 'online', S.fmt === 'online', 'Online')}</div></div>
-        <label class="in-sel"><span class="in-l">Profesorul</span><select class="ax-select" data-k="teacher" aria-label="Profesorul"><option value="">Oricare</option>${teachers.map(t => `<option value="${t.id}"${S.teacher === t.id ? ' selected' : ''}>${esc(t.name)}</option>`).join('')}</select></label>
-      </section>
+      <div class="ax-rail__head"><b>Despre elev</b></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLs">Materia</span><select class="ax-select" data-k="subject" aria-labelledby="inLs">${D.SUBJECTS.map(x => opt(x, x, S.subject)).join('')}</select></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLg">Clasa</span><select class="ax-select" data-k="grade" aria-labelledby="inLg">${opt('', 'Alege clasa', S.grade)}${D.GRADES.map(x => opt(x, 'Clasa ' + x, S.grade)).join('')}</select></div>
+      <div class="in-prof${lyceum() ? ' is-open' : ''}" id="inProf"><div><div class="in-fl"><span class="ax-rail__lbl" id="inLp">Profilul <small>liceu</small></span><select class="ax-select" data-k="profile" aria-labelledby="inLp">${opt('', 'Alege profilul', S.profile)}${['Real', 'Uman'].map(x => opt(x, x, S.profile)).join('')}</select></div></div></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLl">Nivelul</span><select class="ax-select" data-k="level" aria-labelledby="inLl">${opt('', 'Nu știu încă', S.level)}${D.LEVELS.map(x => opt(x, 'Nivel ' + x, S.level)).join('')}</select></div>
+      <div class="ax-rail__sep"></div>
+      <div class="ax-rail__head"><b>Dorințele părintelui</b><button type="button" class="in-clear" data-clear-wish hidden>Șterge</button></div>
+      <p class="in-note">Le folosești doar dacă părintele le cere.</p>
+      <div data-ms="days"></div>
+      <div class="in-row">
+        <div class="in-fl"><span class="ax-rail__lbl" id="inLf">De la ora</span><select class="ax-select" data-k="from" aria-labelledby="inLf">${hourOpts(S.from, 'Oricând')}</select></div>
+        <div class="in-fl"><span class="ax-rail__lbl" id="inLt">Până la ora</span><select class="ax-select" data-k="to" aria-labelledby="inLt">${hourOpts(S.to, 'Oricând')}</select></div>
+      </div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Oricare', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
+      <div class="in-fl"><span class="ax-rail__lbl">Profesorul</span><div class="ax-search">${ico('search', 16)}<input id="inProfQ" class="ax-input" type="search" autocomplete="off" placeholder="Nume profesor" aria-label="Profesorul" value="${esc(S.prof)}"></div></div>
       <button type="button" class="in-reset" data-reset>${ico('undo', 16)} Începe de la zero</button>`;
+  }
+  /* what changes when a dropdown changes, without redrawing the rail (so the open ones stay open) */
+  function syncRail() {
+    const rail = root.querySelector('#inRail'); if (!rail) return;
+    rail.querySelector('#inProf').classList.toggle('is-open', lyceum());
+    const c = rail.querySelector('[data-clear-wish]'), n = wishes();
+    c.hidden = !n; c.textContent = n ? `Șterge (${n})` : 'Șterge';
+  }
+  function buildRail() {
+    const rail = root.querySelector('#inRail');
+    rail.innerHTML = railHTML();
+    const days = U.multiSelect({ id: 'in-days', label: 'Zilele în care poate', options: D.DAYS.map(d => ({ value: String(d.id), label: d.name })), selected: S.days.map(String), onChange: v => { S.days = v.map(Number); save(); syncRail(); paintPane(true); } });
+    rail.querySelector('[data-ms="days"]').replaceWith(days);
+    U.suggest(rail.querySelector('#inProfQ'), () => D.teachers.filter(t => t.subjects.includes(S.subject)).map(t => t.name).sort((a, b) => a.localeCompare(b, 'ro')));
+    let tm = 0;
+    rail.querySelector('#inProfQ').addEventListener('input', e => { S.prof = e.target.value; clearTimeout(tm); tm = setTimeout(() => { save(); syncRail(); paintPane(true); }, 140); });
+    syncRail();
+  }
+  function wireRail() {
+    const rail = root.querySelector('#inRail');
+    rail.addEventListener('change', e => {
+      const sel = e.target.closest('select[data-k]'); if (!sel) return;
+      const k = sel.dataset.k;
+      S[k] = sel.value;
+      if (k === 'subject') { S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
+      if (k === 'grade') { if (!lyceum()) S.profile = ''; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
+      save(); syncRail(); paintPane(true);
+    });
+    rail.addEventListener('click', e => {
+      if (e.target.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (e.target.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); }
+    });
   }
 
   /* ---------------- the right side ---------------- */
@@ -133,7 +161,7 @@
   }
   function newHTML() {
     if (!ready()) return prompt();
-    const opts = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project, teacher: S.teacher });
+    const opts = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project }).filter(o => profOk(o.t.name));
     const sel = opts.find(o => o.t.id === S.ng.teacher);
     const offline = S.ng.project === 'exo';
     const picked = sel && S.ng.start != null && S.ng.days.length;
@@ -167,14 +195,8 @@
 
   /* ---------------- painting ---------------- */
   let lastN = -1;
-  function paintForm() {
-    const f = root.querySelector('#inForm');
-    const sc = f.scrollTop;
-    f.innerHTML = formHTML();
-    f.scrollTop = sc;
-  }
   function paintPane(animate) {
-    const list = ready() ? D.enrolCandidates(query()) : [];
+    const list = ready() ? D.enrolCandidates(query()).filter(c => profOk(D.teacher(c.g.teacher).name)) : [];
     root.querySelectorAll('.in-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === S.mode)));
     const nb = root.querySelector('#inN'); nb.hidden = !ready(); nb.textContent = list.length;
     const pane = root.querySelector('#inPane');
@@ -192,7 +214,7 @@
     ink.style.width = '100px';
     ink.style.transform = `translateX(${on.offsetLeft}px) scaleX(${on.offsetWidth / 100})`;
   }
-  const paintAll = animate => { paintForm(); paintPane(animate); };
+  const paintAll = animate => { syncRail(); paintPane(animate); };
 
   /* ---------------- the dialog: who is the student ---------------- */
   function openEnrol(target) {
@@ -324,7 +346,7 @@
     dlg.addEventListener('click', e => {
       if (e.target === dlg || e.target.closest('[data-x]')) { dlg.close(); return; }
       if (e.target.closest('[data-fin]') && st.done && e.target.tagName !== 'A') { dlg.close(); return; }
-      if (e.target.closest('[data-another]')) { S = fresh(); save(); dlg.close(); paintAll(true); const f = root.querySelector('.in-g'); if (f) f.focus(); return; }
+      if (e.target.closest('[data-another]')) { S = fresh(); save(); dlg.close(); buildRail(); paintPane(true); return; }
       if (e.target.closest('[data-undo]')) {
         D.undoEnrol(st.done); st.done = null; dlg.close(); paintAll(false);
         U.toast('Înscrierea a fost anulată. Elevul a dispărut din registru.');
@@ -341,18 +363,8 @@
   function wire(host) {
     host.addEventListener('click', e => {
       const t = e.target;
-      const set = t.closest('[data-k]');
-      if (set && !set.matches('select')) {
-        const k = set.dataset.k, v = set.dataset.v;
-        if (k === 'subject') { if (S.subject === v) return; S.subject = v; if (S.teacher && !D.teacher(S.teacher).subjects.includes(v)) S.teacher = ''; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
-        else if (k === 'grade') { S.grade = S.grade === v ? '' : v; if (!lyceum()) S.profile = ''; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
-        else S[k] = S[k] === v ? '' : v;
-        save(); paintAll(true); return;
-      }
-      const day = t.closest('[data-day]');
-      if (day) { const d = +day.dataset.day; S.days = S.days.includes(d) ? S.days.filter(x => x !== d) : S.days.concat(d); save(); paintAll(true); return; }
-      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', teacher: '' }); save(); paintAll(true); return; }
-      if (t.closest('[data-reset]')) { S = fresh(); save(); paintAll(true); return; }
+      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (t.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); return; }
       const mode = t.closest('[data-mode]');
       if (mode) { S.mode = mode.dataset.mode; save(); paintPane(true); return; }
       if (t.closest('[data-filling]')) { S.filling = !S.filling; save(); paintPane(true); return; }
@@ -381,10 +393,6 @@
         openEnrol({ fresh: { project: S.ng.project, regime: 'normal', subject: S.subject, grade: S.grade, profile: lyceum() ? (S.profile || null) : null, level: S.level || '', size: S.ng.size, status: 'completare', teacher: o.t.id, days, start: S.ng.start, duration: S.ng.dur, room, startDate: D.iso(sd), createdAt: D.todayISO } });
       }
     });
-    host.addEventListener('change', e => {
-      const sel = e.target.closest('select[data-k]'); if (!sel) return;
-      S[sel.dataset.k] = sel.value; save(); paintAll(true);
-    });
   }
 
   /* ---------------- the view ---------------- */
@@ -394,26 +402,29 @@
     render(el) {
       root = el;
       root.innerHTML = `
-        <header class="ax-head in-head">
-          <div class="ax-head__t">
-            <span class="ax-plate">${ico('user-plus', 24)}</span>
-            <div>
-              <h1 class="ax-h1">Înscriere elev</h1>
-              <p class="ax-lede">Notează ce spune părintele la telefon. Grupele active care se potrivesc apar pe loc, iar dacă nu există niciuna, creezi o grupă nouă.</p>
-            </div>
+        <div class="ax-fixsplit in-fix">
+          <aside class="ax-rail in-rail" id="inRail" aria-label="Ce spune părintele"></aside>
+          <div class="ax-col">
+            <header class="ax-head in-head">
+              <div class="ax-head__t">
+                <span class="ax-plate">${ico('user-plus', 24)}</span>
+                <div>
+                  <h1 class="ax-h1">Înscriere elev</h1>
+                  <p class="ax-lede">Notează ce spune părintele la telefon. Grupele active care se potrivesc apar pe loc, iar dacă nu există niciuna, creezi o grupă nouă.</p>
+                </div>
+              </div>
+            </header>
+            <section class="in-res" aria-label="Unde îl punem">
+              <div id="inTabs"></div>
+              <div class="in-pane" id="inPane"></div>
+            </section>
           </div>
-        </header>
-        <div class="in-split">
-          <aside class="in-side" id="inForm" aria-label="Ce spune părintele"></aside>
-          <section class="in-res" aria-label="Unde îl punem">
-            <div id="inTabs"></div>
-            <div class="in-pane" id="inPane"></div>
-          </section>
         </div>`;
       root.querySelector('#inTabs').innerHTML = tabsHTML();
       lastN = -1;
-      paintAll(true);
-      wire(root.querySelector('.in-split'));
+      buildRail(); wireRail();
+      paintPane(true);
+      wire(root.querySelector('.in-res'));
       if (onResize) window.removeEventListener('resize', onResize);
       onResize = moveInk; window.addEventListener('resize', onResize);
     }
