@@ -149,6 +149,19 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
   ['G', 'M', 'B', ''].forEach(c => ok(payFor(c) === 0, 'mark ' + (c || 'empty') + ' pays nothing'));
   D.reset();
 }
+// columns: a student moved to another column keeps his marks, the others close the gap; lesson tabs show start and end
+{
+  const g = D.groups.find(x => D.ledger(x.id).rows.length >= 3), L0 = D.ledger(g.id), a = L0.rows[0], codes = a.codes.join();
+  ok(L0.rows.every((r, i) => r.slot === i), 'columns start from the left');
+  D.setColumn(g.id, a.s.id, 11);
+  const L1 = D.ledger(g.id), moved = L1.rows.find(r => r.s.id === a.s.id);
+  ok(moved.slot === 11 && moved.codes.join() === codes && moved.sold === a.sold, 'moved column keeps marks and money');
+  ok(L1.rows.filter(r => r !== moved).every((r, i) => r.slot === i), 'the other columns close the gap');
+  ok(new Set(L1.rows.map(r => r.slot)).size === L1.rows.length, 'no two students share a column');
+  D.setColumn(g.id, a.s.id, null); ok(D.ledger(g.id).rows[0].s.id === a.s.id, 'back to the natural place');
+  D.groups.forEach(x => ok(/[0-9][0-9]:00-[0-9][0-9]:00/.test(D.tabName(x)), 'tab shows start and end ' + x.id));
+  D.reset();
+}
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 

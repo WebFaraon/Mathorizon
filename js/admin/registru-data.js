@@ -14,7 +14,7 @@
      - availability and what a teacher teaches are edited in the register
        and read by the console (AdminData.setAvailability / setTeach).
 
-   Added to window.AdminData (also setMark, setLesson, addLesson, removeLesson, setRate, nextDate):
+   Added to window.AdminData (also setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate):
      ledger(groupId)   -> { lessons, rows, stats, rate, ... } for one group
      teacherBook(tid)  -> { groups, totals, earned, payments, due, ... }
      tLevel(tid), rateOf(group), rateBySize(size), lessonPay(size, present), tabName(group), schedule(group)
@@ -100,7 +100,7 @@
   function tabName(g) {
     const days = g.days.map(d => D.DAYS[d - 1].name).join('/');
     const hh = h => String(h).padStart(2, '0') + ':00';
-    const time = g.duration > 1 ? `${hh(g.start)}-${hh(g.start + g.duration)}` : hh(g.start);
+    const time = `${hh(g.start)}-${hh(g.start + g.duration)}`;      // always start and end, one hour or two
     return `${days} ${time}${g.regime === 'vara' ? ' (Vară)' : ''}`;
   }
   function schedule(g) {
@@ -231,6 +231,16 @@
       return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, codes, cost, done, disc: r.disc, paid: r.paid, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
     });
 
+    // The column of each student: his slot. By default the students fill the columns from the left; a manager can
+    // move one to another (free) column, e.g. a student who left goes to the far right to make room (ov.pos).
+    {
+      const want = ov.pos || {}, taken = new Set();
+      rows.forEach(x => { const p = want[x.s.id]; if (Number.isInteger(p) && p >= 0 && !taken.has(p)) { x.slot = p; taken.add(p); } });
+      let nx = 0;
+      rows.forEach(x => { if (x.slot == null) { while (taken.has(nx)) nx++; x.slot = nx; taken.add(nx); } });
+      rows.sort((a, b) => a.slot - b.slot);
+    }
+
     const st = { P: 0, A: 0, M: 0, G: 0, B: 0, paid: 0, cost: 0, disc: 0, debt: 0, adv: 0, sold: 0, active: 0, trial: 0, moved: 0, inactive: 0 };
     rows.forEach(x => {
       x.codes.forEach((c, i) => { if (c && lessons[i].counted) st[c]++; });
@@ -317,6 +327,8 @@
   }
   function addLesson(gid, iso) { edit(gid, ov => { ov.x = ov.x || []; ov.x.push({ d: iso || '', t: '' }); }); }
   function removeLesson(gid, oid) { edit(gid, ov => { ov.rm = ov.rm || []; if (!ov.rm.includes(oid)) ov.rm.push(oid); }); }
+  /* a student's column: slot = the column number (0 is the first), null = back to the natural place */
+  function setColumn(gid, sid, slot) { edit(gid, ov => { ov.pos = ov.pos || {}; if (slot == null) delete ov.pos[sid]; else ov.pos[sid] = slot; if (!Object.keys(ov.pos).length) delete ov.pos; }); }
   function setRate(gid, rate) { edit(gid, ov => { if (rate > 0) ov.rate = rate; else delete ov.rate; }); }
 
   /* ---- everything one teacher sees on the first page of the register ---- */
@@ -400,5 +412,5 @@
 
   /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
   const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
-  Object.assign(D, { soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, nextDate });
+  Object.assign(D, { soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
 })();

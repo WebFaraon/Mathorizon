@@ -346,7 +346,7 @@
     return d.getDate() + ' ' + (m.length > 4 ? m.slice(0, 3) + '.' : m) + ', ' + t;
   };
   const linkify = t => esc(t).replace(/(https?:\/\/[^\s<]+)/g, '<a href="$1" target="_blank" rel="noopener">$1</a>').replace(/\n/g, '<br>');
-  const msgHTML = m => `<li class="rg-cmm rg-cmm--${m.role}${isUnread(m) ? ' is-new' : ''}"><span class="rg-cmm__av" aria-hidden="true">${esc(initials(m.by))}</span><div><p class="rg-cmm__h"><b>${esc(m.by)}</b><em>${ROLE_NAME[m.role] || ''}</em><time>${whenOf(m.at)}</time></p><p class="rg-cmm__t">${linkify(m.t)}</p></div></li>`;
+  const msgHTML = (m, fresh) => `<li class="rg-cmm rg-cmm--${m.role}${isUnread(m) ? ' is-new' : ''}${fresh ? ' is-fresh' : ''}"><span class="rg-cmm__av" aria-hidden="true">${esc(initials(m.by))}</span><div><p class="rg-cmm__h"><b>${esc(m.by)}</b><em>${ROLE_NAME[m.role] || ''}</em><time>${whenOf(m.at)}</time></p><p class="rg-cmm__t">${linkify(m.t)}</p></div></li>`;
 
   /* the card that shows on hover, read-only */
   function showCard(span, gid) {
@@ -372,12 +372,13 @@
     hideCard(); hideTip();
     const me = (S.auth && S.auth.displayName && S.auth.displayName()) || (S.role === 'admin' ? 'Administrator' : 'Profesor');
     const markRead = () => { const th = threadOf(gid, key); let ch = false; th.forEach(m => { if (!readSet[m.id]) { readSet[m.id] = 1; ch = true; } }); if (ch) { saveRead(); paintInbox(); } return ch; };
-    const listHTML = () => { const th = threadOf(gid, key); return th.length ? th.map(msgHTML).join('') : '<li class="rg-cmw__empty">Nicio notă încă. Scrie ce vrei să vadă profesorul.</li>'; };
-    const html = () => {
+    let seen = new Set(threadOf(gid, key).map(m => m.id));
+    const listHTML = fresh => { const th = threadOf(gid, key); return th.length ? th.map(m => msgHTML(m, fresh && fresh.has(m.id))).join('') : '<li class="rg-cmw__empty">Nicio notă încă. Scrie ce vrei să vadă profesorul.</li>'; };
+    const html = fresh => {
       const has = threadOf(gid, key).length > 0;
       return `<div class="rg-cmw" role="dialog" aria-label="Comentariu: ${esc(label)}">
         <div class="rg-cmw__h"><span><small>Comentariu</small><b>${esc(label)}</b></span><button type="button" class="rg-cmw__x" data-cmx aria-label="Închide">${ico('x', 16)}</button></div>
-        <ul class="rg-cmw__l" id="rgCmL">${listHTML()}</ul>
+        <ul class="rg-cmw__l" id="rgCmL">${listHTML(fresh)}</ul>
         <form class="rg-cmw__f" id="rgCmF">
           <textarea rows="2" maxlength="600" placeholder="${has ? 'Răspunde…' : 'Scrie o notă pentru profesor…'}" aria-label="${has ? 'Răspuns' : 'Comentariu nou'}"></textarea>
           <div class="rg-cmw__b"><span>Enter trimite, Shift+Enter rând nou</span>${S.role === 'admin' && has ? '<button type="button" class="rg-cmw__del" data-cmdel>Șterge conversația</button>' : ''}<button type="submit" class="rg-cmw__go">Trimite</button></div>
@@ -389,19 +390,29 @@
     const list = pop.querySelector('#rgCmL'), ta = pop.querySelector('textarea');
     list.scrollTop = list.scrollHeight;
     ta.focus();
-    CM.open = { refresh() { const keep = ta.value; const was = list.scrollHeight - list.scrollTop - list.clientHeight < 40; list.innerHTML = listHTML(); markRead(); if (was) list.scrollTop = list.scrollHeight; ta.value = keep; } };
     const send = () => {
       const t = ta.value.trim(); if (!t) return;
       D.addComment({ k: key, g: gid, by: me, role: myRole(), t });
-      readSet[D.comments().slice(-1)[0].id] = 1; saveRead();
-      pop.innerHTML = html(); wireIn();
+      const mine = D.comments().slice(-1)[0].id;
+      readSet[mine] = 1; saveRead();
+      seen = new Set(threadOf(gid, key).map(m => m.id));
+      pop.innerHTML = html(new Set([mine])); wireIn();
       flashSaved(); refreshGroup(gid); refreshChrome();
       const l2 = pop.querySelector('#rgCmL'); l2.scrollTop = l2.scrollHeight;
       pop.querySelector('textarea').focus();
     };
     const wireIn = () => {
       const l = pop.querySelector('#rgCmL'), t = pop.querySelector('textarea');
-      CM.open = { refresh() { const keep = t.value; const was = l.scrollHeight - l.scrollTop - l.clientHeight < 40; l.innerHTML = listHTML(); markRead(); if (was) l.scrollTop = l.scrollHeight; t.value = keep; } };
+      // another device wrote: add only what is new (nothing is redrawn when nothing changed)
+      CM.open = { refresh() {
+        const ids = threadOf(gid, key).map(m => m.id);
+        if (ids.length === seen.size && ids.every(id => seen.has(id))) return;
+        const fresh = new Set(ids.filter(id => !seen.has(id))); seen = new Set(ids);
+        const keep = t.value, atEnd = l.scrollHeight - l.scrollTop - l.clientHeight < 40;
+        l.innerHTML = listHTML(fresh); markRead();
+        if (atEnd) l.scrollTop = l.scrollHeight;
+        t.value = keep;
+      } };
       t.addEventListener('keydown', e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); send(); } });
       pop.querySelector('#rgCmF').addEventListener('submit', e => { e.preventDefault(); send(); });
     };
@@ -418,12 +429,64 @@
     if (wasUnread) { refreshGroup(gid); refreshChrome(); }
   }
   /* right-click on a cell: open its thread, or start one */
-  function openCellMenu(cell, gid) {
-    const key = cell.dataset.cmk, has = threadOf(gid, key).length > 0;
-    const pop = openPop(cell, `<div class="rg-menu rg-menu--ctx" role="menu"><button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="cm">${ico('message-circle', 16)}<span>${has ? 'Deschide comentariul' : 'Adaugă comentariu'}</span></button></div>`, 'rg-pop--menu rg-pop--ctx');
-    const b = pop.querySelector('.rg-mi'); b.focus();
-    b.addEventListener('click', () => { closePop(); openThread(cell, gid, key, cell.dataset.cml); });
+  function cellItems(cell, gid) {
+    const key = cell.dataset.cmk, items = [];
+    if (key && canThread(gid, key)) items.push(['cm', 'message-circle', threadOf(gid, key).length ? 'Deschide comentariul' : 'Adaugă comentariu']);
+    const sn = cell.querySelector('.rg-sn[data-s]');
+    if (S.role === 'admin' && sn) items.push(['copy', 'clipboard-list', 'Copiază coloana']);
+    if (S.role === 'admin' && S.clip && S.clip.gid === gid && cell.classList.contains('is-free')) items.push(['paste', 'arrow-right', 'Lipește coloana aici']);
+    return items;
   }
+  function openCellMenu(cell, gid) {
+    const items = cellItems(cell, gid);
+    if (!items.length) return;
+    const pop = openPop(cell, `<div class="rg-menu rg-menu--ctx" role="menu">${items.map(([a, ic, lab]) => `<button type="button" role="menuitem" class="rg-mi rg-mi--ctx" data-act="${a}">${ico(ic, 16)}<span>${lab}</span></button>`).join('')}</div>`, 'rg-pop--menu rg-pop--ctx');
+    const bs = Array.from(pop.querySelectorAll('.rg-mi')); bs[0].focus();
+    pop.addEventListener('click', e => {
+      const b = e.target.closest('.rg-mi'); if (!b) return;
+      closePop();
+      if (b.dataset.act === 'cm') openThread(cell, gid, cell.dataset.cmk, cell.dataset.cml);
+      else if (b.dataset.act === 'copy') copyColumn(gid, cell.querySelector('.rg-sn[data-s]').dataset.s);
+      else if (b.dataset.act === 'paste') pasteColumn(gid, +cell.dataset.c);
+    });
+    pop.addEventListener('keydown', e => {
+      const at = bs.indexOf(document.activeElement);
+      if (e.key === 'ArrowDown') { e.preventDefault(); bs[Math.min(bs.length - 1, at + 1)].focus(); }
+      else if (e.key === 'ArrowUp') { e.preventDefault(); bs[Math.max(0, at - 1)].focus(); }
+    });
+  }
+
+  /* ---- moving a student's column: copy it, then paste it on a free column ----
+     A student who left (Inactiv, Transferat) keeps his column, but a manager moves it to the far right to free
+     the first columns for the new ones. The student cannot be in two columns, so pasting moves the column. */
+  function copyColumn(gid, sid) {
+    const x = D.ledger(gid).rows.find(r => r.s.id === sid); if (!x) return;
+    S.clip = { gid, sid };
+    refreshGroup(gid);
+    const pb = view.querySelectorAll('#rgBoard .rg-sn--paste'); if (pb.length) pb[pb.length - 1].scrollIntoView({ inline: 'end', block: 'nearest', behavior: calm() ? 'auto' : 'smooth' });   // show the free columns on the right
+    U.toast(`Coloana lui ${esc(lastFirst(x.s))} e copiată. Alege o coloană liberă și apasă „Lipește aici”.`);
+  }
+  function pasteColumn(gid, slot) {
+    const c = S.clip; if (!c || c.gid !== gid) return;
+    const L = D.ledger(gid), x = L.rows.find(r => r.s.id === c.sid);
+    S.clip = null;
+    if (!x || L.rows.some(r => r.slot === slot)) { refreshGroup(gid); return; }
+    const before = JSON.stringify(D.ledgerEdits());
+    D.setColumn(gid, c.sid, slot);
+    flashSaved(); refreshGroup(gid);
+    const board = view.querySelector('#rgBoard');
+    if (board) board.querySelectorAll('[data-c="' + slot + '"]').forEach(el => { el.classList.add('is-cmflash'); setTimeout(() => el.classList.remove('is-cmflash'), 2000); });
+    U.toast(`Coloana lui ${esc(lastFirst(x.s))} a fost mutată. <button type="button" class="rg-undo">Anulează</button>`);
+    const u = document.querySelector('.ax-toasts .ax-toast:last-child .rg-undo');
+    if (u) u.addEventListener('click', () => { D.setLedgerEdits(JSON.parse(before)); refreshGroup(gid); u.closest('.ax-toast').classList.add('is-out'); });
+  }
+  /* the copied column is outlined until it is pasted (Esc cancels) */
+  function markClip(board, gid) {
+    if (!board || !S.clip || S.clip.gid !== gid) return;
+    const x = D.ledger(gid).rows.find(r => r.s.id === S.clip.sid); if (!x) return;
+    board.querySelectorAll('[data-c="' + x.slot + '"]').forEach(el => el.classList.add('is-clipcol'));
+  }
+
   /* every comment of this teacher's groups, newest first; a click goes to the cell */
   function openInbox() {
     const mine = new Set(D.groups.filter(g => g.teacher === S.tid).map(g => g.id));
@@ -593,11 +656,14 @@
   function groupTableHTML(L) {
     const g = L.g;
     const nStu = L.rows.length;
-    const cols = Math.max(12, nStu + 6);          // a register has many empty columns
-    const free = cols - nStu;
+    const maxSlot = L.rows.reduce((m, x) => Math.max(m, x.slot), -1);
+    const cols = Math.max(12, nStu + 6, maxSlot + 2);          // a register has many empty columns
     const sched = D.schedule(g);
-    const each = fn => L.rows.map(fn).join('');
-    const ghost = fn => Array.from({ length: free }, (_, k) => fn(nStu + k)).join('');
+    // a student sits in his own column (his slot); the columns between are free
+    const rowBySlot = new Map(L.rows.map(x => [x.slot, x]));
+    const firstSlot = L.rows.length ? L.rows[0].slot : 0;
+    const slots = (rowFn, freeFn) => Array.from({ length: cols }, (_, i) => { const x = rowBySlot.get(i); return x ? rowFn(x, i) : freeFn(i); }).join('');
+    const pasting = !!(S.clip && S.clip.gid === g.id && S.role === 'admin');
     const blankX = c => `<td class="rg-xc rg-x${c} is-blank"></td>`;
     const schedX = n => { const s = sched[n]; return s
       ? `<td class="rg-xc rg-x1">${esc(s.day)}</td><td class="rg-xc rg-x2">${hh(s.hour).slice(0, 5)}</td><td class="rg-xc rg-x3">${s.room ? s.room : 'online'}</td>`
@@ -610,19 +676,17 @@
     head.push(`<tr class="rg-hr" data-hr="1">
       <th class="rg-a rg-pillcell">${ps('size', g.size, SIZES, 'rg-tone--' + sizeTone(g.size), 'Formatul grupei')}</th>
       <th class="rg-hl-lab" colspan="2">DATELE ELEVULUI</th>
-      ${each((x, i) => {
+      ${slots((x, i) => {
         const note = x.leave ? `<small class="rg-sn__mv">→ ${esc(x.to ? D.tabName(x.to) : 'altă grupă')}</small>` : x.join ? `<small class="rg-sn__mv">din ${esc(x.from ? D.tabName(x.from) : 'altă grupă')}</small>` : `<small>${esc(x.s.phone)}</small>`;
         const tip = lastFirst(x.s) + (x.leave ? ', transferat în ' + (x.to ? D.tabName(x.to) : 'altă grupă') : x.join ? ', venit prin transfer din ' + (x.from ? D.tabName(x.from) : 'altă grupă') : '');
         return `<th class="rg-sc rg-sname${x.leave ? ' is-moved' : ''}${x.join ? ' is-in' : ''}" data-c="${i}" scope="col" data-cmk="s~${x.s.id}" data-cml="${esc(lastFirst(x.s))}"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(tip)}"><b>${esc(lastFirst(x.s))}</b>${note}</button>${cmMark('s~' + x.s.id)}</th>`;
-      })}
-      ${ghost(i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col"><span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span></th>`)}
+      }, i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col">${pasting ? `<button type="button" class="rg-sn rg-sn--paste" data-paste="${i}"><b>Lipește aici</b><small>mută coloana</small></button>` : '<span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span>'}</th>`)}
       <th class="rg-xh rg-x1">Ziua</th><th class="rg-xh rg-x2">Ora</th><th class="rg-xh rg-x3">Cabinetul</th>
     </tr>`);
     const fin = (n, cls, lab, pillHTML, get, getFree) => head.push(`<tr class="rg-hr rg-hr--fin" data-hr="${n}">
         <th class="rg-a rg-pillcell">${pillHTML}</th>
         <th class="rg-hl-lab rg-hl--${cls}" colspan="2">${lab}</th>
-        ${each((x, i) => { const v = get(x); return `<td class="rg-sc rg-fin rg-fin--${cls}${v.c ? ' ' + v.c : ''}" data-c="${i}">${v.h}</td>`; })}
-        ${ghost(i => `<td class="rg-sc rg-fin rg-fin--${cls} is-free" data-c="${i}">${getFree}</td>`)}
+        ${slots((x, i) => { const v = get(x); return `<td class="rg-sc rg-fin rg-fin--${cls}${v.c ? ' ' + v.c : ''}" data-c="${i}">${v.h}</td>`; }, i => `<td class="rg-sc rg-fin rg-fin--${cls} is-free" data-c="${i}">${getFree}</td>`)}
         ${schedX(n - 2)}
       </tr>`);
     fin(2, 'sold', 'SOLD',
@@ -637,10 +701,9 @@
       <th class="rg-a rg-colh">DATA</th>
       <th class="rg-b rg-colh">TEMA</th>
       <th class="rg-cc rg-colh rg-sumh" aria-label="Total câștigat cu această grupă">${fm(L.earned)}</th>
-      ${each((x, i) => x.leave
+      ${slots((x, i) => x.leave
         ? `<td class="rg-sc rg-stat rg-stat--lilac rg-stat--moved" data-c="${i}" title="A fost transferat. Ora lui și banii rămân în această coloană."><span class="rg-mvd">Transferat</span></td>`
-        : `<td class="rg-sc rg-stat rg-stat--${STONE[x.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.status)}</select></div></td>`)}
-      ${ghost(i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
+        : `<td class="rg-sc rg-stat rg-stat--${STONE[x.status] || 'grey'}" data-c="${i}"><div class="rg-ps rg-ps--st"><select class="ax-select" data-sst="${x.s.id}" aria-label="Statusul elevului ${esc(lastFirst(x.s))}">${opts(SORDER.map(k => [k, SNAME[k]]), x.status)}</select></div></td>`, i => `<td class="rg-sc rg-stat rg-stat--free is-free" data-c="${i}">Liber</td>`)}
       <th class="rg-colh rg-xlh rg-x1">NIVELUL PROFESORULUI</th><th class="rg-colh rg-xlh rg-x2">PREZENȚA</th><th class="rg-colh rg-xlh rg-x3"></th>
     </tr>`);
 
@@ -650,12 +713,11 @@
         <th class="rg-a rg-ld${l.date ? '' : ' is-nodate'}" style="--mh:${MONTH_HUE[l.date ? l.date.getMonth() : 0]}" scope="row" data-cmk="l~${l.oid}" data-cml="Lecția din ${esc(l.label)}"><button type="button" class="rg-dc" data-date="${l.oid}" title="Schimbă data" aria-label="Data lecției ${li + 1}: ${esc(l.label)}"><span class="rg-long">${esc(l.label)}</span><span class="rg-short">${l.date ? l.date.getDate() + ' ' + esc(D.MONTHS[l.date.getMonth()].slice(0, 3)) : 'Data'}</span></button>${cmMark('l~' + l.oid)}</th>
         <td class="rg-b rg-lt"><input class="rg-ti" type="text" value="${esc(l.topic)}" data-ti="${l.oid}" placeholder="Tema lecției" maxlength="90" autocomplete="off" aria-label="Tema lecției ${li + 1}"></td>
         <td class="rg-cc rg-lp"${l.counted ? '' : ' title="Completează data și tema: abia atunci lecția se plătește"'}><span>${fm(l.pay)}</span></td>
-        ${each((x, i) => {
+        ${slots((x, i) => {
           const c = x.codes[li], m = c ? MARK[c] : null;
           if (x.lock[li]) return `<td class="rg-sc rg-pc is-lock" data-c="${i}" title="${x.leave ? 'Elevul a fost transferat, lecțiile de după transfer nu se mai notează aici' : 'Elevul a venit prin transfer, lecțiile dinainte nu se notează'}"><span class="rg-pl rg-pl--e is-off">${c ? (m ? m.t : '') : ''}</span></td>`;
-          return `<td class="rg-sc rg-pc" data-c="${i}" data-cmk="m~${x.s.id}~${l.oid}" data-cml="${esc(lastFirst(x.s) + ', ' + l.label)}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === 0 ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button>${cmMark('m~' + x.s.id + '~' + l.oid)}</td>`;
-        })}
-        ${ghost(i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
+          return `<td class="rg-sc rg-pc" data-c="${i}" data-cmk="m~${x.s.id}~${l.oid}" data-cml="${esc(lastFirst(x.s) + ', ' + l.label)}"><button type="button" class="rg-pl rg-pl--${m ? m.c : 'e'}${x.flag === li ? ' is-flag' : ''}" data-sid="${x.s.id}" data-i="${l.oid}" data-m="${c || ''}" tabindex="${li === 0 && i === firstSlot ? 0 : -1}" aria-label="${esc(lastFirst(x.s) + ', ' + l.label + ': ' + (m ? m.n : 'necompletat'))}">${m ? m.t : ''}</button>${cmMark('m~' + x.s.id + '~' + l.oid)}</td>`;
+        }, i => `<td class="rg-sc rg-pc is-free" data-c="${i}"><span class="rg-pl rg-pl--e is-off"></span></td>`)}
         <td class="rg-xc rg-x1">${l.counted ? `<span class="rg-lvl">Nivelul ${L.level}</span>` : ''}</td><td class="rg-xc rg-x2 rg-xp${!l.counted || l.pct == null ? '' : l.pct >= 80 ? ' is-ok' : l.pct < 50 ? ' is-low' : ''}">${l.counted && l.pct != null ? l.pct + '%' : ''}</td>${blankX(3)}
       </tr>`);
     });
@@ -710,6 +772,7 @@
     hideTip();
     const sx = board.scrollLeft, sy = board.scrollTop;
     board.innerHTML = groupTableHTML(D.ledger(gid));
+    markClip(board, gid);
     board.scrollLeft = sx; board.scrollTop = sy;
     if (focus) {
       const b = board.querySelector(`.rg-pl[data-sid="${focus.sid}"][data-i="${focus.i}"]`);
@@ -846,6 +909,8 @@
 
   function wireGroup(board, gid) {
     board.addEventListener('click', e => {
+      const ps = e.target.closest('[data-paste]');
+      if (ps) { pasteColumn(gid, +ps.dataset.paste); return; }
       const cmx = e.target.closest('.rg-cm');
       if (cmx) { const c = cmx.closest('[data-cmk]'); hideCard(); openThread(c, gid, c.dataset.cmk, c.dataset.cml); return; }
       const pl = e.target.closest('.rg-pl[data-sid]');
@@ -864,13 +929,14 @@
     board.addEventListener('contextmenu', e => {
       const dt = e.target.closest('[data-date]');
       if (dt) { e.preventDefault(); openLessonMenu(dt, gid, +dt.dataset.date); return; }
-      const c = e.target.closest('[data-cmk]');
-      if (c && canThread(gid, c.dataset.cmk)) { e.preventDefault(); openCellMenu(c, gid); }
+      const c = e.target.closest('[data-cmk], .rg-sname.is-free');
+      if (c && cellItems(c, gid).length) { e.preventDefault(); openCellMenu(c, gid); }
     });
     board.addEventListener('pointerover', e => { if (e.pointerType === 'touch') return; const m = e.target.closest('.rg-cm'); if (m) showCard(m, gid); });
     board.addEventListener('pointerout', e => { if (e.target.closest('.rg-cm')) hideCard(); });
     board.addEventListener('keydown', e => {
       const t = e.target;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'c' && S.role === 'admin' && t.matches && t.matches('.rg-sn[data-s]')) { e.preventDefault(); copyColumn(gid, t.dataset.s); return; }
       if (e.shiftKey && e.key === 'F2') { const c = t.closest && t.closest('[data-cmk]'); if (c && canThread(gid, c.dataset.cmk)) { e.preventDefault(); openThread(c, gid, c.dataset.cmk, c.dataset.cml); return; } }
       if (e.key === 'ContextMenu' || (e.shiftKey && e.key === 'F10')) { const dt = t.closest && t.closest('[data-date]'); if (dt) { e.preventDefault(); openLessonMenu(dt, gid, +dt.dataset.date); return; } }
       if (t.matches && t.matches('.rg-ti')) {
@@ -925,6 +991,7 @@
     const board = v.querySelector('#rgBoard');
     wireBoard(board, { cross: false });
     wireGroup(board, gid);
+    markClip(board, gid);
   }
 
   /* ============================================================
@@ -1313,6 +1380,11 @@
       paintTop();
       tabsEl.innerHTML = tabsHTML();
       route(false);
+    });
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'Escape' || !S.clip || popEl || document.querySelector('.ax-drawer')) return;
+      const g = S.clip.gid; S.clip = null;
+      if (parseRoute().gid === g) refreshGroup(g);
     });
     window.addEventListener('hashchange', () => route(false));
     window.addEventListener('resize', () => moveBar(false));
