@@ -287,9 +287,9 @@
               const room = g.room ? D.room(g.room) : null;
               const label = `${g.subject} ${g.grade}, ${D.project(g.project).name}, ${range(g.start, g.start + g.duration)}${room ? ', ' + room.name : ''}${out ? ', în afara disponibilității' : ''}`;
               return `<button type="button" class="dp-blk dp-blk--${g.project}${out ? ' is-out' : ''}${g.duration === 1 ? ' is-short' : ''}" data-g="${g.id}" data-d="${d.id}"
-                style="left:${pos(g.start)}%;width:calc(${pos(g.start + g.duration) - pos(g.start)}% - 5px);--lane:${L.lane.get(g.id)}" aria-label="${esc(label)}" title="${esc(label)}">
+                style="left:${pos(g.start)}%;width:calc(${pos(g.start + g.duration) - pos(g.start)}% - 6px);--lane:${L.lane.get(g.id)}" aria-label="${esc(label)}" title="${esc(label)}">
                 ${g.duration === 1
-                  ? `<b>${esc(g.grade)}</b><span>${esc(SHORT[g.subject] || g.subject)}</span>`
+                  ? `<b>${esc(g.grade)}</b><span class="dp-blk__m"><i>${g.start}-${g.start + 1}</i></span>`
                   : `<b>${esc(SHORT[g.subject] || g.subject)} ${esc(g.grade)}</b><span class="dp-blk__m"><i>${g.start}-${g.start + g.duration}</i>${room ? `<i>cab. ${room.num}</i>` : ''}</span>`}
                 ${out ? `<em class="dp-blk__out" aria-hidden="true">!</em>` : ''}
               </button>`;
@@ -363,7 +363,11 @@
     if (!box) return;
     const t = D.teacher(S.t);
     box.innerHTML = t ? weekHTML(t) : `<div class="ax-empty"><b>Alege un profesor</b>din lista din stânga.</div>`;
-    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', () => openGroup(b.dataset.g, +b.dataset.d)));
+    // a click opens the teacher's register at that group, in a new tab (as in Repartizare); Shift+click keeps the side panel
+    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', e => {
+      if (e.shiftKey) { openGroup(b.dataset.g, +b.dataset.d); return; }
+      window.open(`registru.html?t=${encodeURIComponent(S.t)}#grupa/${b.dataset.g}`, '_blank', 'noopener');
+    }));
   }
 
   function paintList() {

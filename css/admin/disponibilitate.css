@@ -116,8 +116,7 @@ body.ax .dp-legend > span { display: inline-flex; align-items: center; gap: 7px;
 body.ax .dp-legend__note { margin-left: auto; color: var(--ax-ink-3); }
 body.ax .dp-key { display: inline-block; width: 22px; height: 12px; border-radius: 1px; }
 body.ax .dp-key--av { border: 1px solid var(--ax-rule-2); background: var(--ax-hover); }
-body.ax .dp-key--g { position: relative; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); }
-body.ax .dp-key--g::before { content: ''; position: absolute; left: 3px; top: 3px; width: 8px; height: 4px; border-radius: 1px; background: var(--ax-line-exo); }
+body.ax .dp-key--g { position: relative; border: 1px solid var(--ax-rule-2); border-top: 4px solid var(--ax-line-exo); background: var(--ax-panel); }
 body.ax .dp-key--out { border: 2px solid var(--ax-bad); background: var(--ax-panel); }
 
 /* the week board: days (rows) × hours 08..21 (columns) */
@@ -137,26 +136,27 @@ body.ax .dp-row__day b { align-self: flex-start; font-size: 0.88rem; font-weight
 body.ax .dp-row__win { font-size: 0.76rem; font-weight: 700; color: var(--ax-ink-2); }
 body.ax .dp-row__day .ax-sub { font-size: 0.72rem; }
 body.ax .dp-row.is-today .dp-row__day b { padding: 0 5px; margin-left: -5px; border-radius: var(--ax-r); background: var(--ax-hi); color: var(--ax-hi-ink); }
-body.ax .dp-row__track { position: relative; height: calc(var(--lanes, 1) * 46px + 8px); margin-right: 14px; }
+body.ax .dp-row__track { position: relative; height: calc(var(--lanes, 1) * 50px + 4px); margin-right: 14px; }
 body.ax .dp-row__cells { position: absolute; inset: 0; display: grid; grid-template-columns: repeat(14, 1fr); }
 body.ax .dp-row__cells i { border-left: 1px solid var(--ax-rule); }
 body.ax .dp-row__cells i:first-child { border-left: 0; }
 
 /* availability: a light ruled area, not a fill color */
-body.ax .dp-av { position: absolute; top: 3px; bottom: 3px; border: 1px solid var(--ax-ink-3); border-radius: 1px; background: var(--ax-hover); }
+body.ax .dp-av { position: absolute; top: 2px; bottom: 2px; border: 1px solid var(--ax-ink-3); border-radius: 1px; background: var(--ax-hover); }
 
 body.ax .dp-blk {
   --c: var(--ax-ink-3);
   position: absolute;
-  top: calc(5px + var(--lane, 0) * 46px);
-  height: 40px;
+  top: calc(5px + var(--lane, 0) * 50px);
+  height: 44px;
   display: flex;
   flex-direction: column;
   justify-content: center;
   min-width: 0;
   margin-left: 3px;
-  padding: 0 6px;
+  padding: 0 9px;
   border: 1px solid var(--ax-rule-2);
+  border-top: 4px solid var(--c);
   border-radius: var(--ax-r);
   background: var(--ax-panel);
   text-align: left;
@@ -164,18 +164,16 @@ body.ax .dp-blk {
   overflow: hidden;
   cursor: pointer;
   transform: translateX(0);
-  transition: border-color 0.12s, background-color 0.12s;
+  transition: border-color 0.12s, background-color 0.12s, transform 0.15s var(--ax-ease);
 }
 body.ax .dp-blk--exo { --c: var(--ax-line-exo); }
 body.ax .dp-blk--exn { --c: var(--ax-line-exn); }
 body.ax .dp-blk--mat { --c: var(--ax-line-mat); }
-body.ax .dp-blk.is-short span::before { content: ''; display: inline-block; width: 8px; height: 4px; margin-right: 3px; border-radius: 1px; background: var(--c); vertical-align: 2px; }
-body.ax .dp-blk.is-short b::before { display: none; }
-body.ax .dp-blk.is-short { padding: 0 4px 0 5px; }
-body.ax .dp-blk b::before { content: ''; display: inline-block; width: 9px; height: 5px; margin-right: 4px; border-radius: 1px; background: var(--c); vertical-align: 2px; }
-body.ax .dp-blk b { overflow: hidden; font-size: 0.76rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
+body.ax .dp-blk b { overflow: hidden; font-size: 0.82rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
 body.ax .dp-blk span { overflow: hidden; font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); text-overflow: ellipsis; white-space: nowrap; }
-body.ax .dp-blk:hover { border-color: var(--ax-ink); background: var(--ax-panel-2); }
+body.ax .dp-blk:hover { border-color: var(--ax-ink); border-top-color: var(--c); background: var(--ax-panel-2); transform: translateY(-1px); }
+body.ax .dp-blk.is-short { padding: 0 7px; }
+body.ax .dp-blk:active { transform: scale(0.98); }
 body.ax .dp-blk.is-out { outline: 2px solid var(--ax-bad); outline-offset: -1px; }
 body.ax .dp-blk__out { position: absolute; top: 0; right: 0; display: grid; place-items: center; width: 12px; height: 12px; background: var(--ax-bad); color: #fff; font-style: normal; font-size: 0.66rem; font-weight: 800; }
 

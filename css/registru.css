@@ -56,7 +56,7 @@ body.ax-rg {
   --rg-pres-e: #E8EAED;
   --rg-flag: #E5261B;
   --rg-line: #D9D2BE;
-  --rg-grid: #6F6548;
+  --rg-grid: #000000;
   --rg-dot: #6B6B63;
   --rg-heavy: #1B1B1B;
   --rg-ink: #1B1B1B;
@@ -358,7 +358,7 @@ td.rg-ml { text-align: left; padding-left: 8px; padding-right: 8px; }
 .rg-gsheet { --wa: 224px; --wb: 236px; --wc: 64px; --ws: 232px; --wx1: 136px; --wx2: 84px; --wx3: 98px; --h1: 42px; --hr: 28px; --hl: 30px;
   table-layout: fixed; border-collapse: separate; border-spacing: 0; width: calc(var(--wa) + var(--wb) + var(--wc) + var(--scols) * var(--ws) + var(--wx1) + var(--wx2) + var(--wx3)); font-size: 0.86rem; color: var(--rg-ink); }
 .rg-col-a { width: var(--wa); } .rg-col-b { width: var(--wb); } .rg-col-c { width: var(--wc); } .rg-col-s { width: var(--ws); } .rg-col-x1 { width: var(--wx1); } .rg-col-x2 { width: var(--wx2); } .rg-col-x3 { width: var(--wx3); }
-.rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 2px solid var(--rg-grid); border-bottom: 2px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rg-gsheet th, .rg-gsheet td { padding: 0 10px; border-right: 1.6px solid var(--rg-grid); border-bottom: 1.6px solid var(--rg-grid); background: var(--rg-cream); text-align: center; vertical-align: middle; font-weight: 600; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .rg-gsheet [data-hr="1"] > * { height: var(--h1); }
 .rg-gsheet .rg-hr--fin > * { height: var(--hr); }
 .rg-gsheet [data-hr="8"] > * { height: var(--hl); border-bottom: 2px solid var(--rg-heavy); }
