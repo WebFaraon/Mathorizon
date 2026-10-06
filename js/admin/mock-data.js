@@ -400,7 +400,7 @@
     const gone = s.group !== gid && !!out;
     // a student enrolled here (not by a transfer) joined on his enrolment day: the lessons before it stay closed for him
     const born = !into && s.isNew && s.origin === gid;
-    return { join: into ? into.iso : born ? s.joinedAt : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null };
+    return { join: into ? into.iso : born ? s.joinedAt : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null, finIn: (into && into.fin) || null, finOut: (gone && out && out.fin) || null };
   }
   const freeSeats = g => Math.max(0, g.size - enrolled(g).length);
 
@@ -455,7 +455,7 @@
       })
       .sort((a, b) => b.score - a.score || a.g.id.localeCompare(b.g.id));
   }
-  function transfer(sids, toGid) {
+  function transfer(sids, toGid, fins) {
     const to = idx.groups[toGid];
     if (!to) return [];
     edits.transfers = edits.transfers || {};
@@ -466,6 +466,7 @@
       if (!s || !s.group || s.group === toGid) return;
       const id = 'tr' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6) + i;
       edits.transfers[id] = { s: sid, from: s.group, to: toGid, iso: iso(today), prev: s.status, at: Date.now() + i };
+      if (fins && fins[sid]) edits.transfers[id].fin = fins[sid];      // the money split, frozen when the transfer is confirmed
       edits.students[sid] = Object.assign({}, edits.students[sid] || {}, { status: 'activ' });
       out.push(id);
     });

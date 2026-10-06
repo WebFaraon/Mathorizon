@@ -26,8 +26,9 @@
   const { esc, ico } = U;
   const calm = () => !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
 
-  const fm = (n, d = 0) => new Intl.NumberFormat('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
-  const sg = (n, d = 0) => (n < 0 ? '−' : '') + fm(Math.abs(n), d);
+  // money shows its cents only when it has some (a transfer splits sums to the cent); other figures keep their decimals
+  const fm = (n, d) => { if (d == null) d = Math.abs(n - Math.round(n)) < 0.005 ? 0 : 2; return new Intl.NumberFormat('ro-RO', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n); };
+  const sg = (n, d) => (n < 0 ? '−' : '') + fm(Math.abs(n), d);
   const hh = h => String(h).padStart(2, '0') + ':00';
   const norm = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
   const lastFirst = p => `${p.last} ${p.first}`;
@@ -691,7 +692,7 @@
       </tr>`);
     fin(2, 'sold', 'SOLD',
       `<span class="rg-rate"><input class="rg-rate-in" type="number" inputmode="numeric" min="50" max="2000" step="5" value="${L.rate}" data-rate aria-label="Prețul pe oră, în lei"><span>MDL/Oră</span></span>`,
-      x => ({ h: sg(x.sold, 0), c: x.sold > 0 ? 'is-good' : x.sold < 0 ? 'is-bad' : '' }), '0');
+      x => ({ h: sg(x.sold), c: x.sold > 0 ? 'is-good' : x.sold < 0 ? 'is-bad' : '' }), '0');
     fin(3, 'paid', 'ACHITĂRI', ps('status', g.status, D.GROUP_STATUS.map(s => [s.id, s.name]), 'rg-tone--st-' + g.status, 'Starea grupei'), x => ({ h: fm(x.paid) }), '0');
     fin(4, 'disc', 'REDUCERI', ps('subject', g.subject, D.SUBJECTS.map(s => [s, s]), 'rg-cream', 'Materia'), x => ({ h: fm(x.disc) }), '0');
     fin(5, 'cost', 'COSTUL LECȚIILOR', ps('grade', g.grade, GRADES.map(s => [s, 'Clasa ' + s]), 'rg-tone--' + gradeTone(g.grade), 'Clasa'), x => ({ h: fm(x.cost) }), '0');
@@ -751,6 +752,8 @@
           <dt>Manager</dt><dd>${x.manager ? esc(lastFirst({ first: x.manager.name.split(' ')[0], last: x.manager.name.split(' ').slice(1).join(' ') })) : '-'}</dd>
           <dt>În grupă din</dt><dd>${esc(new Date((x.join || s.joinedAt) + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}</dd>
           ${x.leave ? `<dt>Transferat</dt><dd>${esc(new Date(x.leave + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}, în ${x.to ? moveLink(x.to) : 'altă grupă'}</dd>` : ''}
+          ${x.leave && x.fin ? `<dt>Banii la transfer</dt><dd>Au rămas aici ${fm(x.fin.achC + x.fin.redC)} lei, cât au costat lecțiile ținute; ${fm(x.fin.achRem + x.fin.redRem)} lei au trecut în grupa nouă${x.fin.debt ? `. Datorie rămasă aici: ${fm(x.fin.debt)} lei` : ''}</dd>` : ''}
+          ${x.join && x.fin ? `<dt>Banii veniți</dt><dd>Achitări ${fm(x.fin.achRem)} lei, reduceri ${fm(x.fin.redRem)} lei, din grupa veche</dd>` : ''}
           ${x.join && x.from ? `<dt>Venit din</dt><dd>${x.from ? moveLink(x.from) : 'altă grupă'}</dd>` : ''}
           <dt>Achitări</dt><dd>${fm(x.paid)} lei</dd>
           <dt>Reduceri</dt><dd>${fm(x.disc)} lei</dd>

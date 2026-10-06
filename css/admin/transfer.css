@@ -100,6 +100,20 @@ body.ax .tr-flow__i { display: grid; place-items: center; width: 24px; height: 2
 body.ax .tr-flow__i--out { border-color: var(--ax-swap); color: var(--ax-swap); }
 body.ax .tr-flow__i--in { border-color: var(--ax-ok); color: var(--ax-ok); }
 
+/* the money of the transfer */
+body.ax .tr-money { padding: 4px 20px 16px; border-top: 1px solid var(--ax-rule); }
+body.ax .tr-money h3 { margin: 12px 0 4px; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-swap); }
+body.ax .tr-money__s { margin: 0 0 10px; font-size: 0.84rem; color: var(--ax-ink-3); }
+body.ax .tr-money__w { overflow-x: auto; }
+body.ax .tr-money__t { width: 100%; min-width: 620px; border-collapse: collapse; font-size: 0.86rem; font-variant-numeric: tabular-nums; }
+body.ax .tr-money__t th, body.ax .tr-money__t td { padding: 7px 10px; border-bottom: 1px solid var(--ax-rule); text-align: right; white-space: nowrap; }
+body.ax .tr-money__t thead th { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--ax-ink-3); border-bottom: 1px solid var(--ax-rule-2); }
+body.ax .tr-money__t tbody th { text-align: left; font-weight: 700; color: var(--ax-ink); white-space: normal; }
+body.ax .tr-money__t thead th:first-child { text-align: left; }
+body.ax .tr-money__t .is-go b { display: block; font-size: 0.95rem; color: var(--ax-ok); }
+body.ax .tr-money__t .is-go small { display: block; font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .tr-money__debt { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; margin: 10px 0 0; padding: 9px 11px; border: 1px solid var(--ax-yellow-ink); background: var(--ax-yellow); color: var(--ax-yellow-ink); font-size: 0.84rem; line-height: 1.4; }
+body.ax .tr-ok__m { grid-column: 1 / -1; font-size: 0.8rem; font-weight: 600; color: var(--ax-ink-3); text-align: left; }
 body.ax .tr-f { display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-top: 1px solid var(--ax-rule); background: var(--ax-panel); }
 body.ax .tr-f__s { flex: 1; min-width: 0; font-size: 0.88rem; font-weight: 600; color: var(--ax-ink-2); }
 body.ax .tr-go { min-height: 42px; padding: 0 18px; font-weight: 800; }

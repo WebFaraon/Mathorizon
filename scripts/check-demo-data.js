@@ -117,7 +117,7 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
   ok(ids.length === 1 && who.group === dest.id && who.status === 'activ', 'transfer: student is in the new group, Activ');
   ok(D.students.length === people0, 'transfer: nobody is duplicated');
   ok(o1 && o1.status === 'transferat' && o1.leave && o1.to && o1.to.id === dest.id, 'transfer: old column says Transferat');
-  ok(o1.paid === old0.paid && o1.cost === old0.cost && o1.sold === old0.sold && o1.codes.join() === old0.codes.join(), 'transfer: old column keeps marks and money');
+  ok(o1.cost === old0.cost && o1.codes.join() === old0.codes.join(), 'transfer: old column keeps marks and the cost of its lessons');
   ok(n1 && n1.status === 'activ' && n1.join && n1.from && n1.from.id === src.id && n1.paid === 0 && n1.codes.every(c => !c), 'transfer: new column is Activ and starts empty');
   ok(L2.rows.length === cols0 + 1 && D.enrolled(dest).length === enrDest0 + 1 && D.enrolled(src).length === enrSrc0 - 1, 'transfer: seats move');
   ok(L1.stats.moved >= 1 && L1.rows.length === (D.baseMembers(src.id).length), 'transfer: old group keeps every column');
@@ -193,6 +193,46 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
   ok(/^g[0-9]+$/.test(G.id) && D.ledger(G.id).rows.length === 1 && D.groups.filter(x => x.teacher === o.t.id).includes(G), "new group: in the teacher register as a tab");
   ok(D.conflicts(+day).every(c => !c.groups.includes(G.id)), 'new group: no clash for the teacher or the room');
   D.undoEnrol(r2); ok(D.groups.length === g0 && !D.group(r2.newGroup), 'new group: undo removes it');
+  D.reset();
+}
+// the money of a transfer: the Calculator's formulas, automatic, in both registers
+{
+  const cents = v => Math.round(v * 100) / 100, eq = (x, y) => Math.abs(x - y) < 0.0051;
+  let tested = { credit: 0, debt: 0, exact: 0 };
+  D.groups.forEach(g => {
+    const L = D.ledger(g.id);
+    L.rows.forEach(x => {
+      if (x.status === 'transferat' || !D.enrolled(g).includes(x.s) || x.s.group !== g.id) return;
+      const kind = x.sold > 1 ? 'credit' : x.sold < -1 ? 'debt' : 'exact';
+      if (tested[kind] >= 12) return;
+      const c = D.transferCandidates([x.s.id]).find(k => k.fits); if (!c) return;
+      tested[kind]++;
+      const A = x.paid, R = x.disc, C = x.cost, bal0 = x.s.balance, total = cents(A + R), marks = x.codes.join();
+      const fin = D.transferFin(g.id, x.s.id);
+      const ids = D.transfer([x.s.id], c.g.id);
+      const o = D.ledger(g.id).rows.find(r => r.s.id === x.s.id), n = D.ledger(c.g.id).rows.find(r => r.s.id === x.s.id);
+      const used = Math.min(C, total);
+      ok(eq(o.paid + o.disc, used) && eq(n.paid + n.disc, cents(total - used)), 'money: consumed + moved = paid + discounts (' + g.id + ' ' + x.s.id + ')');
+      ok(total > 0 ? eq(o.paid, used * A / total) : o.paid === 0, 'money: payments consumed in proportion (' + g.id + ')');
+      ok(eq(o.sold, cents(o.paid + o.disc - o.cost)) && (C <= total ? eq(o.sold, 0) : eq(o.sold, total - C)), 'money: the old column ends at 0, or keeps the debt (' + g.id + ')');
+      ok(eq(n.sold, cents(total - used)) && n.cost === 0 && n.paid >= 0 && n.disc >= 0, 'money: the new column starts with what is left, never negative (' + g.id + ')');
+      ok(eq(x.s.balance, bal0), 'money: the total balance of the student does not change (' + g.id + ')');
+      ok(o.codes.join() === marks, 'money: the old marks stay');
+      ok(eq(D.ledger(g.id).stats.sold + 0, D.ledger(g.id).rows.reduce((t, r) => t + r.sold, 0)), 'money: group totals add up (' + g.id + ')');
+      // a second transfer carries what the first brought
+      const c2 = D.transferCandidates([x.s.id]).find(k => k.fits);
+      if (c2) {
+        const b1 = x.s.balance, f2 = D.transferFin(c.g.id, x.s.id);
+        D.transfer([x.s.id], c2.g.id);
+        ok(eq(x.s.balance, b1), 'money: chained transfer keeps the total balance (' + g.id + ')');
+        D.undoTransfer(D.transfersOf(x.s.id).slice(-1).map(t => t.id));
+      }
+      D.undoTransfer(ids);
+      const o2 = D.ledger(g.id).rows.find(r => r.s.id === x.s.id);
+      ok(o2.paid === A && o2.disc === R && eq(x.s.balance, bal0), 'money: undo gives the old figures back (' + g.id + ')');
+    });
+  });
+  ok(tested.credit >= 3 && tested.debt >= 3, 'money: both credit and debt cases were tested (' + JSON.stringify(tested) + ')');
   D.reset();
 }
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);

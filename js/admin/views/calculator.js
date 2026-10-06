@@ -46,7 +46,7 @@
   const MODES = {
     transfer: {
       title: 'Transfer', icon: 'swap', sub: 'Elev dintr-un grup în altul',
-      lede: 'Introdu sumele din grupul vechi. Costul lecțiilor deja ținute se scade proporțional din achitări și din reduceri; restul trece în grupul nou.',
+      lede: 'Introdu sumele din grupul vechi. Costul lecțiilor deja ținute se scade proporțional din achitări și din reduceri; restul trece în grupul nou. Când transferi un elev din Orar, banii se împart automat cu aceleași formule; calculatorul rămâne pentru verificări.',
       fields: [
         { id: 'ach', k: 'ach', label: 'Achitări', row: 'Rândul 3', hint: 'banii plătiți de elev', ex: '2808.50' },
         { id: 'red', k: 'red', label: 'Reduceri', row: 'Rândul 4', hint: 'reducerile acordate', ex: '244.00' },

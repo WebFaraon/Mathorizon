@@ -11,8 +11,12 @@
    choice shows what will happen; "Transferă" calls AdminData.transfer,
    which keeps the student in the old group with the status Transferat
    (marks and money stay there, so the statistics are not lost) and
-   gives him a new column, status Activ, in the new group. The console
-   and both teachers' registers follow through the shared demo state.
+   gives him a new column, status Activ, in the new group. The money is
+   split automatically with the Calculator's formulas (AdminData.transferFin):
+   the cost of the lessons he had is consumed in the old group, in proportion
+   to payments and discounts, and what is left goes to the new group; the
+   dialog shows the split before confirming. The console and both teachers'
+   registers follow through the shared demo state.
    The success screen offers "Anulează transferul".
    ============================================================ */
 (function () {
@@ -38,6 +42,8 @@
     if (!src || !people.length) return;
     const n = people.length;
     const st = { pick: null, done: null };
+    const money = v => new Intl.NumberFormat('ro-RO', { minimumFractionDigits: Math.abs(v - Math.round(v)) < 0.005 ? 0 : 2, maximumFractionDigits: Math.abs(v - Math.round(v)) < 0.005 ? 0 : 2 }).format(v);
+    let plan = D.transferPlan ? D.transferPlan(from, students) : [];     // the money split, as the register will do it
 
     const dlg = document.createElement('dialog');
     dlg.className = 'tr-dlg';
@@ -87,6 +93,25 @@
       return html;
     }
 
+    /* the money of the transfer, before it is confirmed (same formulas as the Calculator) */
+    function moneyHTML() {
+      if (!plan.length) return '';
+      const nameOf = id => (people.find(x => x.id === id) || {}).name || '';
+      const debts = plan.filter(p => p.debt > 0);
+      const any = plan.some(p => p.A + p.R + p.C > 0);
+      if (!any) return '<div class="tr-money"><p class="tr-money__s">Elevul nu are sume în grupa veche: nu se mută nimic.</p></div>';
+      return `
+        <div class="tr-money">
+          <h3>Banii, calculați automat</h3>
+          <p class="tr-money__s">Costul lecțiilor ținute se scade proporțional din achitări și din reduceri; ce rămâne trece în grupa nouă. Aceleași formule ca în Calculator.</p>
+          <div class="tr-money__w"><table class="tr-money__t">
+            <thead><tr><th>Elev</th><th>Achitări</th><th>Reduceri</th><th>Costul lecțiilor</th><th>Rămâne aici</th><th>Trece în grupa nouă</th></tr></thead>
+            <tbody>${plan.map(p => `<tr><th scope="row">${esc(nameOf(p.sid))}</th><td>${money(p.A)}</td><td>${money(p.R)}</td><td>${money(p.C)}</td><td>${money(p.achC + p.redC)}</td><td class="is-go"><b>${money(p.achRem + p.redRem)}</b><small>${money(p.achRem)} + ${money(p.redRem)}</small></td></tr>`).join('')}</tbody>
+          </table></div>
+          ${debts.map(p => `<p class="tr-money__debt">${ico('alert', 14)}<span><b>${esc(nameOf(p.sid))}</b> are o datorie de ${money(p.debt)} lei: lecțiile costă mai mult decât a plătit. Datoria rămâne în grupa veche, în grupa nouă nu trece nimic.</span></p>`).join('')}
+        </div>`;
+    }
+
     function noteHTML(g) {
       const t = D.teacher(g.teacher), o = D.teacher(src.teacher);
       return `
@@ -94,7 +119,7 @@
           <li><span class="tr-flow__i tr-flow__i--out">${ico('arrow-right', 14)}</span><span><b>În grupa veche</b> primește statutul <em>Transferat</em>. Prezențele și banii rămân la ${esc(o.name)}, ca să nu se piardă statistica.</span></li>
           <li><span class="tr-flow__i tr-flow__i--in">${ico('arrow-right', 14)}</span><span><b>În grupa nouă</b> apare ca <em>Activ</em>, în registrul lui ${esc(t.name)}, cu o coloană nouă fără lecții trecute.</span></li>
           <li><span class="tr-flow__i">${ico('refresh-cw', 14)}</span><span>Se vede imediat în consolă și la ambii profesori. Rămâne un singur elev, nu doi.</span></li>
-        </ul>`;
+        </ul>${moneyHTML()}`;
     }
 
     function stepHTML() {
@@ -164,8 +189,9 @@
               <span class="ax-st ax-st--transferat"><i class="ax-st__i" aria-hidden="true"></i>Transferat</span>
               <span class="tr-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span>
               <span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ</span>
+              ${(p => p && (p.A + p.R + p.C > 0) ? `<small class="tr-ok__m">Rămân în grupa veche ${money(p.achC + p.redC)} lei (lecțiile ținute) · trec în grupa nouă ${money(p.achRem + p.redRem)} lei${p.debt ? ` · datorie rămasă ${money(p.debt)} lei` : ''}</small>` : '')(plan.find(q => q.sid === s.id))}
             </li>`).join('')}</ul>
-          <p class="tr-ok__note">Gata, se vede acum în registrul lui ${esc(t.name)} și în consolă. În registrul lui ${esc(o.name)} rămâne cu statutul Transferat, cu prezențele și banii păstrați.</p>
+          <p class="tr-ok__note">Banii s-au împărțit automat, ca în Calculator. Gata, se vede acum în registrul lui ${esc(t.name)} și în consolă. În registrul lui ${esc(o.name)} rămâne cu statutul Transferat, cu prezențele și banii păstrați.</p>
           <div class="tr-ok__f">
             <button type="button" class="ax-btn" data-undo>${ico('undo', 16)} Anulează transferul</button>
             <button type="button" class="ax-btn ax-btn--primary" data-fin>Gata</button>
@@ -176,6 +202,7 @@
     function commit() {
       const g = D.group(st.pick);
       if (!g) return;
+      plan = D.transferPlan ? D.transferPlan(from, students) : [];       // the figures of this very moment
       const ids = D.transfer(students, g.id);
       if (!ids.length) { U.toast('Elevii nu au putut fi transferați.', 'warn'); return; }
       st.done = ids;

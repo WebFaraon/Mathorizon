@@ -220,15 +220,21 @@
     const extra = D.studentsOf(g.id).filter(s => !known.has(s.id)).map(s => ({ s, codes: [], paid: 0, disc: 0 }));
     const rows = G.rows.concat(extra).map(r => {
       const T = D.stint(r.s, g.id);
+      // The money of a transfer (the Calculator's formulas, see transferFin): what the student brought from the old group
+      // is his start here; in the group he left only what the lessons he had cost stays.
+      let paidX = r.paid, discX = r.disc;
+      if (T.finIn) { paidX = T.finIn.achRem; discX = T.finIn.redRem; }
+      if (T.finOut) { paidX = T.finOut.achC; discX = T.finOut.redC; }
       const lock = lessons.map(l => !!((T.join && l.iso && l.iso < T.join) || (T.leave && (!l.iso || l.iso >= T.leave))));
       const mine = (ov.m || {})[r.s.id] || {};
       const codes = lessons.map((l, i) => (lock[i] ? '' : mine[l.oid] != null ? mine[l.oid] : (r.codes[l.oid] || '')));
       let cost = 0, done = 0;
       codes.forEach((c, i) => { if (PAID_MARK[c] && lessons[i].counted) { cost += lessons[i].price; done++; } });
-      const sold = r.paid + r.disc - cost;
+      cost = round2(cost);
+      const sold = round2(paidX + discX - cost);
       let flag = -1;
-      if (sold < 0) { let run = 0; for (let i = 0; i < n; i++) { if (PAID_MARK[codes[i]]) run += lessons[i].price; if (run > r.paid + r.disc) { flag = i; break; } } }
-      return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, codes, cost, done, disc: r.disc, paid: r.paid, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
+      if (sold < 0) { let run = 0; for (let i = 0; i < n; i++) { if (PAID_MARK[codes[i]]) run += lessons[i].price; if (run > paidX + discX) { flag = i; break; } } }
+      return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, fin: T.finOut || T.finIn || null, codes, cost, done, disc: discX, paid: paidX, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
     });
 
     // The column of each student: his slot. By default the students fill the columns from the left; a manager can
@@ -252,6 +258,7 @@
       else if (t === 'transferat') st.moved++;
       else st.inactive++;
     });
+    ['paid', 'cost', 'disc', 'debt', 'adv', 'sold'].forEach(k => { st[k] = round2(st[k]); });
     const marks = st.P + st.A + st.M;
     st.hours = nCounted;
     st.avg = nCounted ? (st.P + st.G) / nCounted : 0;
@@ -339,6 +346,7 @@
     const T = { P: 0, A: 0, M: 0, G: 0, B: 0, paid: 0, cost: 0, disc: 0, debt: 0, adv: 0, sold: 0, active: 0, trial: 0, moved: 0, inactive: 0, hours: 0 };
     groups.forEach(L => Object.keys(T).forEach(k => { T[k] += L.stats[k] || 0; }));
     const marks = T.P + T.A + T.M;
+    ['paid', 'cost', 'disc', 'debt', 'adv', 'sold'].forEach(k => { T[k] = round2(T[k]); });
     T.success = marks ? Math.round(T.P / marks * 100) : 0;
     T.lessons = groups.reduce((n, L) => n + L.lessons.length, 0);
     T.avg = T.lessons ? (T.P + T.G) / T.lessons : 0;
@@ -376,6 +384,36 @@
     return { teacher: t, level: tLevel(tid), groups, totals: T, months, earned, payments, paid, due: Math.round((earned - paid) * 100) / 100 };
   }
 
+  /* ---- the money of a transfer: the Calculator's "Transfer" formulas, done by the register ----
+     A = what the student paid in the group he leaves, R = the discounts, C = the cost of the lessons he had.
+       share of payments = A / (A + R), of discounts = R / (A + R)
+       stays in the old group (consumed) = C x each share   -> the old column ends with balance 0
+       goes to the new group = what was entered - what was consumed (payments and discounts apart)
+     Everything is rounded to cents so that consumed + moved = A + R exactly. If the lessons cost more than A + R, the
+     student owes the difference: it stays in the old group (nothing negative is sent to the new one). */
+  const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
+  function transferFin(gid, sid) {
+    const x = ledger(gid).rows.find(r => r.s.id === sid);
+    if (!x) return null;
+    const A = round2(x.paid), R = round2(x.disc), C = round2(x.cost), total = round2(A + R);
+    const used = Math.min(C, total);
+    let achC = 0, redC = 0;
+    if (total > 0 && used > 0) {
+      achC = round2(used * (A / total));
+      redC = Math.min(R, round2(used - achC));
+      achC = round2(used - redC);
+    }
+    return { A, R, C, achC, redC, achRem: round2(A - achC), redRem: round2(R - redC), debt: round2(Math.max(0, C - total)) };
+  }
+  /* the plan to show before confirming: one entry per student of the group */
+  function transferPlan(gid, sids) { return sids.map(id => { const f = transferFin(gid, id); return f ? Object.assign({ sid: id }, f) : null; }).filter(Boolean); }
+  const baseTransfer = D.transfer;
+  D.transfer = (sids, toGid) => {
+    const fins = {};
+    sids.forEach(id => { const s = D.students.find(x => x.id === id); if (s && s.group) { const f = transferFin(s.group, id); if (f) fins[id] = f; } });
+    return baseTransfer(sids, toGid, fins);
+  };
+
   /* ---- the ledger is the source of the balances the console shows ---- */
   const mapMark = c => (c === 'A' || c === 'B' ? 'a' : c === 'M' ? 'm' : 'p');
   function applyToStudents() {
@@ -412,5 +450,5 @@
 
   /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
   const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
-  Object.assign(D, { soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
+  Object.assign(D, { transferFin, transferPlan, soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
 })();
