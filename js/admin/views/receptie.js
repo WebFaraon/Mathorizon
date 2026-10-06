@@ -121,11 +121,11 @@
 
   function cardHTML(g, kind, i, startMin) {
     const t = D.teacher(g.teacher), room = D.room(g.room);
-    const en = enr(g).length;
-    const seats = g.size === 1 ? 'Individual' : `${en} din ${g.size} elevi`;
+    const real = g.src || g;                                  // the busy demo programme clones real groups
+    const seats = g.size === 1 ? 'Individual' : `Grup cu ${g.size} elevi`;
     const subj = g.subject + (g.regime === 'vara' ? ' (vară)' : '');
     return `
-      <article class="rc-card rc-card--${kind}" style="--i:${i}">
+      <article class="rc-card rc-card--${kind}" style="--i:${i}" data-gid="${real.id}" data-tid="${real.teacher}" tabindex="0" aria-label="${esc(`${t.first} ${t.last}, ${subj}, ${hh(g.start)}–${hh(g.start + g.duration)}. Deschide registrul.`)}">
         <div class="rc-plate" aria-label="Cabinetul ${room.num}"><small>Cabinet</small><b>${room.num}</b><small>etaj ${room.floor}</small></div>
         <div class="rc-main">
           <h3 class="rc-teacher">${esc(t.first)} ${esc(t.last)}</h3>
@@ -151,6 +151,10 @@
     const st = { slides: [], i: 0, paused: false, key: '', timers: [], offs: [] };
     const q = s => root.querySelector(s);
     const stage = q('#rcStage'), grid = q('#rcGrid'), prog = q('#rcProg');
+    // a click on a lesson opens that teacher's register at the group, in a new tab (not on the TV itself)
+    const openReg = card => { if (!card || tv) return; window.open(`registru.html?t=${encodeURIComponent(card.dataset.tid)}#grupa/${card.dataset.gid}`, '_blank', 'noopener'); };
+    grid.addEventListener('click', e => openReg(e.target.closest('.rc-card')));
+    grid.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('rc-card')) { e.preventDefault(); openReg(e.target); } });
 
     const keyOf = p => [p.now.map(g => g.id).join(), p.next.map(g => g.id).join(), p.tomorrow ? p.tomorrow.groups.map(g => g.id).join() : ''].join('|');
 

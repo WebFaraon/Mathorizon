@@ -482,3 +482,5 @@ A page of the console for the big screen at the entrance (offline groups only, t
 - A thread of notes per cell (presence cell, student column, lesson date), like a spreadsheet's comments. A small amber corner marks a cell with a thread, red while something in it is unread; a card with the first note shows on hover; click, Shift+F2 or the right-click menu open the thread.
 - Only the admin starts a thread; the teacher reads and replies. Stored one row per message in `edits.comments` (so two writers never overwrite each other and it syncs like every other edit). Read state is per device (`bm_rg_cm_read_v1`).
 - Unread count: a red number on the group's tab and on the top-bar comments button, whose drawer lists every conversation of the teacher and jumps to the cell.
+
+- Recepție: the size of the group is shown as "Grup cu N elevi" (or Individual), never as a count of enrolled students. A click on a lesson card opens that teacher's register at the group in a new tab; the TV kiosk (?tv=1) ignores clicks.

@@ -61,6 +61,9 @@ body.ax .rc-grid.is-n4 .rc-card { font-size: 1.14em; }
 body.ax .rc-grid.is-n1, body.ax .rc-grid.is-n2, body.ax .rc-grid.is-n3 { padding-left: 0; padding-right: 0; }
 body.ax .rc-grid.is-n3 { padding: 0.5em 1.7em 0; }
 body.ax .rc-card { display: grid; grid-template-columns: 5.2em minmax(0, 1fr); grid-template-rows: auto auto auto minmax(0, 1fr) auto; column-gap: 1.1em; row-gap: 0.45em; padding: 0.9em 1.15em 0.8em; min-height: 0; background: var(--ax-panel); border: 1px solid var(--ax-rule-2); border-radius: 2px; overflow: hidden; animation: rc-rise 0.55s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 70ms); }
+body.ax .ax-shell:not([data-tv]) .rc-card { cursor: pointer; transition: border-color 0.15s, transform 0.18s var(--ax-ease); }
+body.ax .ax-shell:not([data-tv]) .rc-card:hover { border-color: var(--ax-ink); transform: translateY(-2px); }
+body.ax .ax-shell:not([data-tv]) .rc-card:active { transform: scale(0.99); }
 @keyframes rc-rise { from { opacity: 0; transform: translateY(1.2em); } }
 body.ax .rc.is-turn .rc-sign, body.ax .rc.is-turn .rc-sub { animation: rc-swap 0.5s var(--ax-ease) backwards; }
 @keyframes rc-swap { from { opacity: 0; transform: translateY(-0.5em); } }
