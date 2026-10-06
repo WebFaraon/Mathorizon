@@ -484,3 +484,9 @@ A page of the console for the big screen at the entrance (offline groups only, t
 - Unread count: a red number on the group's tab and on the top-bar comments button, whose drawer lists every conversation of the teacher and jumps to the cell.
 
 - Recepție: the size of the group is shown as "Grup cu N elevi" (or Individual), never as a count of enrolled students. A click on a lesson card opens that teacher's register at the group in a new tab; the TV kiosk (?tv=1) ignores clicks.
+
+## Înscriere (admin.html#inscriere): the enrolment desk
+- Two panes: what the parent says (subject, grade, profile only for the lyceum X-XII, level; then, optional, the parent's wishes: days, hours, offline/online, a teacher) and the live result. Chips are ink when chosen (the console's own segmented look), the grade is a 6x2 grid of roman numerals, the profile row opens with a height animation only for X-XII.
+- Result 1, "Grupe existente": only ACTIVE groups with a free seat (a switch adds the ones that are still filling), the same level first and then the nearest. Result 2, "Grupă nouă": the teachers who teach that subject and grade with the hours they can still take, a week grid of free hours (click an hour, click the same hour on another day for a second weekly meeting), the room picked automatically for offline groups.
+- Enrolling asks only for the name, the parent's phone and the manager. The student starts as **Oră de probă** (first lesson free) in the teacher's register (a column "elev nou") and becomes **Activ** when the parent pays. A new group starts as **Se completează** with this one student. Every enrolment can be undone.
+- Data: `edits.newStudents` and `edits.newGroups` (rows in the shared demo state, like every other edit); a new group id is `g` + digits so the register's routes accept it.

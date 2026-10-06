@@ -29,6 +29,7 @@
       { id: 'acasa', label: 'Acasă', icon: 'home' },
       { id: 'orar', label: 'Orar', icon: 'grid' },
       { id: 'elevi', label: 'Elevi', icon: 'users' },
+      { id: 'inscriere', label: 'Înscriere', icon: 'user-plus' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
       { id: 'receptie', label: 'Recepție', icon: 'monitor' },
       { id: 'disponibilitate', label: 'Disponibilitate', icon: 'clock' },

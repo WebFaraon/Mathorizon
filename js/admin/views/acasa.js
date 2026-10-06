@@ -48,6 +48,7 @@
     return [
       { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele cu programul, profesorul și locurile libere.', fig: nf.format(D.groups.length), unit: 'grupe' },
       { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statutul fiecărui elev.', fig: nf.format(D.students.length), unit: 'elevi' },
+      { id: 'inscriere', href: '#inscriere', icon: 'user-plus', t: 'Înscriere', d: 'Un elev nou: grupele active care i se potrivesc sau o grupă nouă.', fig: 'Elev nou', unit: 'ora de probă gratuită' },
       { id: 'repartizare', href: '#repartizare?day=' + day, icon: 'door', t: 'Repartizare', d: 'Cabinetele pe ore, cu mutare și verificare automată.', fig: nf.format(liveToday.length), unit: clash ? `lecții azi, ${plural(clash, 'suprapunere', 'suprapuneri')}` : 'lecții azi' },
       { id: 'receptie', href: '#receptie', icon: 'monitor', t: 'Recepție', d: 'Ecranul TV de la intrare: lecțiile în desfășurare și cele care urmează.', fig: nf.format(offlineToday), unit: 'lecții offline azi' },
       { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii și cine e liber la o oră.', fig: nf.format(D.teachers.length), unit: 'profesori' },

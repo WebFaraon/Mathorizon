@@ -677,8 +677,8 @@
       <th class="rg-a rg-pillcell">${ps('size', g.size, SIZES, 'rg-tone--' + sizeTone(g.size), 'Formatul grupei')}</th>
       <th class="rg-hl-lab" colspan="2">DATELE ELEVULUI</th>
       ${slots((x, i) => {
-        const note = x.leave ? `<small class="rg-sn__mv">→ ${esc(x.to ? D.tabName(x.to) : 'altă grupă')}</small>` : x.join ? `<small class="rg-sn__mv">din ${esc(x.from ? D.tabName(x.from) : 'altă grupă')}</small>` : `<small>${esc(x.s.phone)}</small>`;
-        const tip = lastFirst(x.s) + (x.leave ? ', transferat în ' + (x.to ? D.tabName(x.to) : 'altă grupă') : x.join ? ', venit prin transfer din ' + (x.from ? D.tabName(x.from) : 'altă grupă') : '');
+        const note = x.leave ? `<small class="rg-sn__mv">→ ${esc(x.to ? D.tabName(x.to) : 'altă grupă')}</small>` : x.join ? `<small class="rg-sn__mv">${x.from ? 'din ' + esc(D.tabName(x.from)) : 'elev nou'}</small>` : `<small>${esc(x.s.phone)}</small>`;
+        const tip = lastFirst(x.s) + (x.leave ? ', transferat în ' + (x.to ? D.tabName(x.to) : 'altă grupă') : x.join ? (x.from ? ', venit prin transfer din ' + D.tabName(x.from) : ', elev nou înscris pe ' + x.join) : '');
         return `<th class="rg-sc rg-sname${x.leave ? ' is-moved' : ''}${x.join ? ' is-in' : ''}" data-c="${i}" scope="col" data-cmk="s~${x.s.id}" data-cml="${esc(lastFirst(x.s))}"><button type="button" class="rg-sn" data-s="${x.s.id}" title="${esc(tip)}"><b>${esc(lastFirst(x.s))}</b>${note}</button>${cmMark('s~' + x.s.id)}</th>`;
       }, i => `<th class="rg-sc rg-sname is-free" data-c="${i}" scope="col">${pasting ? `<button type="button" class="rg-sn rg-sn--paste" data-paste="${i}"><b>Lipește aici</b><small>mută coloana</small></button>` : '<span class="rg-sn"><b>Loc liber</b><small>în grupă</small></span>'}</th>`)}
       <th class="rg-xh rg-x1">Ziua</th><th class="rg-xh rg-x2">Ora</th><th class="rg-xh rg-x3">Cabinetul</th>
@@ -751,7 +751,7 @@
           <dt>Manager</dt><dd>${x.manager ? esc(lastFirst({ first: x.manager.name.split(' ')[0], last: x.manager.name.split(' ').slice(1).join(' ') })) : '-'}</dd>
           <dt>În grupă din</dt><dd>${esc(new Date((x.join || s.joinedAt) + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}</dd>
           ${x.leave ? `<dt>Transferat</dt><dd>${esc(new Date(x.leave + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}, în ${x.to ? moveLink(x.to) : 'altă grupă'}</dd>` : ''}
-          ${x.join ? `<dt>Venit din</dt><dd>${x.from ? moveLink(x.from) : 'altă grupă'}</dd>` : ''}
+          ${x.join && x.from ? `<dt>Venit din</dt><dd>${x.from ? moveLink(x.from) : 'altă grupă'}</dd>` : ''}
           <dt>Achitări</dt><dd>${fm(x.paid)} lei</dd>
           <dt>Reduceri</dt><dd>${fm(x.disc)} lei</dd>
           <dt>Costul lecțiilor</dt><dd>${fm(x.cost)} lei</dd>

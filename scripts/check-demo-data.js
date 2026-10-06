@@ -162,6 +162,39 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
   D.groups.forEach(x => ok(/[0-9][0-9]:00-[0-9][0-9]:00/.test(D.tabName(x)), 'tab shows start and end ' + x.id));
   D.reset();
 }
+// the enrolment desk: candidates are active groups with room, best level first; the student starts as Ora de proba
+{
+  const src = D.groups.find(g => g.status === 'activ' && D.freeSeats(g) >= 1 && D.enrolled(g).length >= 1);
+  const q = { subject: src.subject, grade: src.grade, profile: src.profile || '', level: src.level };
+  const c = D.enrolCandidates(q);
+  ok(c.length >= 1 && c.every(x => x.g.status === 'activ' && x.free >= 1 && x.g.subject === q.subject && x.g.grade === q.grade), 'enrol: only active groups with a free seat, same subject and grade');
+  ok(c.every((x, i) => !i || c[i - 1].dLevel <= x.dLevel), 'enrol: the same level first');
+  ok(!D.needsProfile('IX') && D.needsProfile('X'), 'enrol: a profile only from the lyceum (X)');
+  ok(c.every(x => !D.needsProfile(q.grade) || !q.profile || x.g.profile === q.profile), 'enrol: the profile must match');
+  ok(D.enrolCandidates({ ...q, days: [], teacher: 'nobody' }).length === 0, 'enrol: the teacher filter narrows');
+  const people0 = D.students.length, enr0 = D.enrolled(src).length, cols0 = D.ledger(src.id).rows.length;
+  const r = D.enrolStudent({ first: 'Test', last: 'Elev', phone: '+37369000000', manager: 'm1', level: q.level, group: src.id });
+  const st = D.students.find(x => x.id === r.student), L = D.ledger(src.id), row = L.rows.find(x => x.s.id === r.student);
+  ok(D.students.length === people0 + 1 && st.status === 'proba' && st.group === src.id, 'enrol: a new student, Ora de proba, in the group');
+  ok(D.enrolled(src).length === enr0 + 1 && L.rows.length === cols0 + 1 && row && row.status === 'proba' && row.join, 'enrol: seat taken, a new column in the register');
+  ok(row.codes.every(x => !x) && row.paid === 0 && row.lock.slice(0, L.lessons.length).every(Boolean), 'enrol: empty column, past lessons closed');
+  D.setStudentStatus(r.student, 'activ'); ok(D.students.find(x => x.id === r.student).status === 'activ' && D.ledger(src.id).rows.find(x => x.s.id === r.student).status === 'activ', 'enrol: status changes to Activ after paying');
+  D.undoEnrol(r); ok(D.students.length === people0 && D.ledger(src.id).rows.length === cols0 && !D.students.find(x => x.id === r.student), 'enrol: undo removes the student');
+  // a new group
+  const nq = { subject: 'Matematica', grade: 'XII', project: 'exo' };
+  const opts = D.newGroupOptions(nq);
+  ok(opts.length >= 1 && opts.every(o => o.t.teach.some(x => x.subject === 'Matematica' && x.grades.includes('XII')) && o.total > 0), 'new group: teachers who teach it and have free hours');
+  const o = opts[0], day = Object.keys(o.free).find(d => o.free[d].length), h = o.free[day][0];
+  const room = D.freeRoom([+day], h, 1);
+  const g0 = D.groups.length;
+  const r2 = D.enrolStudent({ first: 'Alt', last: 'Elev', phone: '+37379000000', manager: 'm2', level: '7-8', newGroup: { project: 'exo', subject: 'Matematica', grade: 'XII', profile: 'Real', level: '7-8', size: 6, teacher: o.t.id, days: [+day], start: h, duration: 1, room } });
+  const G = D.group(r2.newGroup);
+  ok(D.groups.length === g0 + 1 && G && G.status === 'completare' && G.teacher === o.t.id && D.enrolled(G).length === 1, 'new group: created, Se completeaza, with the student');
+  ok(/^g[0-9]+$/.test(G.id) && D.ledger(G.id).rows.length === 1 && D.groups.filter(x => x.teacher === o.t.id).includes(G), "new group: in the teacher register as a tab");
+  ok(D.conflicts(+day).every(c => !c.groups.includes(G.id)), 'new group: no clash for the teacher or the room');
+  D.undoEnrol(r2); ok(D.groups.length === g0 && !D.group(r2.newGroup), 'new group: undo removes it');
+  D.reset();
+}
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));
 

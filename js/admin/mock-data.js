@@ -17,6 +17,7 @@
      transfer(studentIds, toGroupId), undoTransfer(ids), statusIn(student, groupId),
      stint(student, groupId), baseMembers(groupId), transferCandidates(studentIds),
      comments(), addComment({ k, g, by, role, t }), deleteComments(ids),
+     enrolCandidates(query), newGroupOptions(query), freeRoom(days, start, duration), enrolStudent(data), undoEnrol(result),
      resetTeacher(id), teacherEdited(id), base(groupId),
      reset(), onChange(fn)
    }
@@ -300,6 +301,8 @@
   const baseBy = {};      // the people each group started with (a transfer never changes it)
   students.forEach(s => { if (s.group) (baseBy[s.group] = baseBy[s.group] || []).push(s); });
   let moves = {};         // student id -> his transfers, oldest first (rebuilt from edits.transfers)
+  const BASE_NS = students.length, BASE_NG = groups.length;   // what the generator made; enrolment adds after these
+  const dynS = {}, dynG = {};                                   // enrolled students / created groups keep their object between rebuilds
   const idxS = Object.fromEntries(students.map(s => [s.id, s]));
   const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
   const baseG = Object.fromEntries(BASE.map(b => [b.id, b]));
@@ -307,6 +310,7 @@
   try { edits = JSON.parse(localStorage.getItem(STORE_KEY) || '{}') || {}; } catch (e) { edits = {}; }
   function applyEdits() {
     BASE.forEach(b => Object.assign(idx.groups[b.id], { days: b.days.slice(), start: b.start, duration: b.duration, room: b.room, status: b.status, subject: b.subject, grade: b.grade, level: b.level, profile: b.profile, size: b.size }));
+    applyEnrol();
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
     Object.entries(BASE_S).forEach(([id, b]) => { idxS[id].status = b.status; idxS[id].manager = b.manager; idxS[id].group = b.group; });
     Object.entries(edits.students || {}).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
@@ -320,12 +324,33 @@
   }
   /* A transfer moves a person to another group: s.group is the group he is in now. The group he left keeps him
      (status Transferat there, his marks and money stay), so nothing of his history is lost. */
+  /* Students enrolled and groups created at the enrolment desk (edits.newStudents / edits.newGroups): appended after
+     the generated ones, rebuilt from the edits every time, with the same object kept for the same id. */
+  function applyEnrol() {
+    const ordered = o => Object.entries(o || {}).sort((a, b) => (a[1].at || 0) - (b[1].at || 0) || a[0].localeCompare(b[0]));
+    groups.length = BASE_NG;
+    Object.keys(dynG).forEach(id => { if (!(edits.newGroups || {})[id]) { delete idx.groups[id]; delete dynG[id]; } });
+    ordered(edits.newGroups).forEach(([id, d]) => {
+      const g = dynG[id] = dynG[id] || {};
+      Object.assign(g, d, { id, days: d.days.slice() });
+      idx.groups[id] = g; groups.push(g);
+    });
+    students.length = BASE_NS;
+    Object.keys(dynS).forEach(id => { if (!(edits.newStudents || {})[id]) { delete idxS[id]; delete dynS[id]; } });
+    ordered(edits.newStudents).forEach(([id, d]) => {
+      const s = dynS[id] = dynS[id] || {};
+      Object.assign(s, { id, first: d.first, last: d.last, name: `${d.last} ${d.first}`, phone: d.phone, status: d.status || 'proba', manager: d.manager, balance: 0, presence: [], level: d.level, group: d.group, origin: d.group, joinedAt: d.joinedAt, isNew: true, by: d.by || null }, { _p0: [] });
+      idxS[id] = s; students.push(s);
+    });
+    teachers.forEach(t => { t.subjects = subjectsOf(t); });
+  }
   function applyTransfers() {
     moves = {};
     const list = Object.entries(edits.transfers || {}).map(([id, t]) => Object.assign({ id }, t))
       .filter(t => idxS[t.s] && idx.groups[t.to]).sort((a, b) => (a.at || 0) - (b.at || 0) || a.id.localeCompare(b.id));
     Object.keys(studentsByGroup).forEach(k => { delete studentsByGroup[k]; });
     Object.keys(baseBy).forEach(k => { studentsByGroup[k] = baseBy[k].slice(); });
+    students.slice(BASE_NS).forEach(s => { s.group = s.origin; (studentsByGroup[s.origin] = studentsByGroup[s.origin] || []).push(s); });
     list.forEach(t => {
       const s = idxS[t.s];
       (moves[t.s] = moves[t.s] || []).push(t);
@@ -373,7 +398,9 @@
     const list = moves[s.id] || [];
     const into = list.filter(t => t.to === gid).pop(), out = list.filter(t => t.from === gid).pop();
     const gone = s.group !== gid && !!out;
-    return { join: into ? into.iso : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null };
+    // a student enrolled here (not by a transfer) joined on his enrolment day: the lessons before it stay closed for him
+    const born = !into && s.isNew && s.origin === gid;
+    return { join: into ? into.iso : born ? s.joinedAt : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null };
   }
   const freeSeats = g => Math.max(0, g.size - enrolled(g).length);
 
@@ -466,6 +493,81 @@
     return did;
   }
 
+  /* ---- the enrolment desk ----
+     A manager types what the parent says on the phone (subject, grade, profile for the lyceum, level) and gets the
+     ACTIVE groups that fit, best level first; the parent's wishes (days, hours, format, a teacher) only narrow it.
+     No group fits: a new group is created for the student with the teacher the manager picks, in a free slot. */
+  const LICEU = g => GRADES.indexOf(g) >= 9;                       // the lyceum is X-XII: only there a profile exists
+  function enrolCandidates(q) {
+    if (!q || !q.subject || !q.grade) return [];
+    const li = LEVEL_I(q.level);
+    const days = q.days && q.days.length ? q.days : null, from = q.from == null ? 0 : q.from, to = q.to == null ? 24 : q.to;
+    return groups.filter(g => {
+      if (g.status !== 'activ' && !(q.filling && g.status === 'completare')) return false;
+      if (g.subject !== q.subject || g.grade !== q.grade) return false;
+      if (LICEU(q.grade) && q.profile && (g.profile || '') !== q.profile) return false;
+      if (q.project && q.project.length && !q.project.includes(g.project)) return false;
+      if (q.teacher && g.teacher !== q.teacher) return false;
+      if (days && !g.days.every(d => days.includes(d))) return false;
+      if (g.start < from || g.start + g.duration > to) return false;
+      return enrolled(g).length < g.size;
+    }).map(g => {
+      const free = g.size - enrolled(g).length, pop = enrolled(g).length;
+      const dLevel = q.level ? Math.abs(LEVEL_I(g.level) - li) : 0;
+      return { g, free, pop, dLevel, sameLevel: dLevel === 0 };
+    }).sort((a, b) => a.dLevel - b.dLevel || (b.pop > 0) - (a.pop > 0) || Math.min(...a.g.days) - Math.min(...b.g.days) || a.g.start - b.g.start || a.g.id.localeCompare(b.g.id));
+  }
+  /* the first free room (offline groups) at these days and hours */
+  function freeRoom(days, start, duration) {
+    const used = new Set();
+    groups.forEach(g => { if (g.status === 'inactiv' || !g.room) return; if (g.days.some(d => days.includes(d)) && g.start < start + duration && start < g.start + g.duration) used.add(g.room); });
+    const r = rooms.find(x => !used.has(x.id));
+    return r ? r.id : null;
+  }
+  /* teachers who teach this subject in this grade, with the hours each can still take, per day */
+  function newGroupOptions(q) {
+    if (!q || !q.subject || !q.grade) return [];
+    return teachers.filter(t => t.teach.some(r => r.subject === q.subject && r.grades.includes(q.grade)) && (!q.project || t.projects.includes(q.project)) && (!q.teacher || t.id === q.teacher)).map(t => {
+      const busy = new Set();
+      groups.forEach(g => { if (g.teacher === t.id && g.status !== 'inactiv') g.days.forEach(d => { for (let h = g.start; h < g.start + g.duration; h++) busy.add(d + '|' + h); }); });
+      const free = {};
+      let total = 0;
+      DAYS.forEach(d => {
+        const hs = [];
+        (t.availability[d.id] || []).forEach(([a, b]) => { for (let h = a; h < b; h++) if (!busy.has(d.id + '|' + h)) hs.push(h); });
+        free[d.id] = hs; total += hs.length;
+      });
+      return { t, free, total, hasGroups: groups.some(g => g.teacher === t.id && g.status === 'activ') };
+    }).filter(o => o.total > 0).sort((a, b) => b.total - a.total || a.t.name.localeCompare(b.t.name, 'ro'));
+  }
+  /* Enrols a student (status Ora de proba, first lesson free) in a group; with newGroup the group is created first.
+     Returns { student, group, newGroup } for undoEnrol. */
+  function enrolStudent(d) {
+    const at = Date.now(), stamp = at.toString(36) + Math.random().toString(36).slice(2, 5);
+    edits.newStudents = edits.newStudents || {};
+    let gid = d.group, created = null;
+    if (d.newGroup) {
+      gid = 'g' + at + String(Math.floor(Math.random() * 90) + 10);
+      edits.newGroups = edits.newGroups || {};
+      edits.newGroups[gid] = Object.assign({ regime: 'normal', status: 'completare', startDate: iso(today), createdAt: iso(today), room: null, at }, d.newGroup);
+      created = gid;
+    }
+    const sid = 'sn' + stamp;
+    edits.newStudents[sid] = { first: d.first, last: d.last, phone: d.phone, manager: d.manager, level: d.level, group: gid, joinedAt: iso(today), status: 'proba', by: d.by || null, at };
+    applyEdits();
+    save();
+    return { student: sid, group: gid, newGroup: created };
+  }
+  function undoEnrol(r) {
+    if (!r) return;
+    if (edits.newStudents) delete edits.newStudents[r.student];
+    if (r.newGroup && edits.newGroups) { delete edits.newGroups[r.newGroup]; if (edits.ledger) delete edits.ledger[r.newGroup]; }
+    if (edits.students) delete edits.students[r.student];
+    ['newStudents', 'newGroups'].forEach(k => { if (edits[k] && !Object.keys(edits[k]).length) delete edits[k]; });
+    applyEdits();
+    save();
+  }
+
   /* ---- comments on register cells: a thread of notes per cell, as in a spreadsheet ----
      One row per message (edits.comments[id] = { k: cell key, g: group, by, role, t: text, at }), so two people
      writing at the same time never overwrite each other. */
@@ -516,7 +618,7 @@
 
   /* A fingerprint of the generated people: two devices that show the same one run the same data. */
   let fp = 2166136261;
-  students.forEach(s => { const t = s.name + s.phone + BASE_S[s.id].group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
+  students.forEach(s => { if (!BASE_S[s.id]) return; const t = s.name + s.phone + BASE_S[s.id].group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
 
   window.AdminData = {
     fingerprint: (fp >>> 0).toString(36),
@@ -533,6 +635,7 @@
     studentsOf: gid => studentsByGroup[gid] || [],
     baseMembers: gid => baseBy[gid] || [],
     enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer, comments, addComment, deleteComments,
+    enrolCandidates, newGroupOptions, freeRoom, enrolStudent, undoEnrol, needsProfile: LICEU,
     transfersOf: sid => (moves[sid] || []).slice(),
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),
