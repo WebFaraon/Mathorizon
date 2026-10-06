@@ -89,6 +89,16 @@
         ],
         "createdAt": "2026-10-04T20:14:22.516Z",
         "reason": "assistant: only the one-off fold of the payments list on phones remains (tab bar now animates on transform); small panel outside the scroll path"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "fraunces",
+        "createdAt": "2026-10-06T09:02:07.941Z"
+      },
+      {
+        "rule": "design-system-font",
+        "value": "instrument sans",
+        "createdAt": "2026-10-06T09:02:08.023Z"
       }
     ]
   }

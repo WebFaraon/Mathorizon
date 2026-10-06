@@ -1,0 +1,497 @@
+<!doctype html>
+<html lang="ro">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Ce construim mai departe</title>
+<meta name="description" content="Propuneri pentru gestionarea mai ușoară a companiei și a fluxului de elevi.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Instrument+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* A page of its own: it shares nothing with the site (no scripts, no styles, no links). */
+:root {
+  --paper: #F4F1E8;
+  --sheet: #FBFAF5;
+  --ink: #15181B;
+  --ink-2: #3F454B;
+  --mute: #5C6269;
+  --rule: #DAD5C6;
+  --rule-2: #BDB7A4;
+  --accent: #0F6B57;
+  --accent-ink: #FFFFFF;
+  --accent-wash: #E3F0EA;
+  --accent-deep: #0A4D3F;
+  --ease: cubic-bezier(0.16, 1, 0.3, 1);
+  --serif: 'Fraunces', Georgia, 'Times New Roman', serif;
+  --sans: 'Instrument Sans', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --a-zilnic: #B4541F;
+  --a-elevi: #2B5FB0;
+  --a-bani: #0F6B57;
+  --a-parinti: #8A3C7A;
+  --a-control: #5A5F66;
+}
+* { box-sizing: border-box; }
+html { scroll-behavior: smooth; scrollbar-color: var(--rule-2) var(--paper); scrollbar-width: thin; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--sans); font-size: 1.0625rem; line-height: 1.55;
+  -webkit-font-smoothing: antialiased; font-variant-numeric: tabular-nums;
+  caret-color: var(--accent);
+}
+::selection { background: var(--accent); color: var(--accent-ink); }
+a, button, input { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; border-radius: 3px; }
+.sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+.wrap { width: min(1080px, 100% - 40px); margin: 0 auto; }
+svg.i { width: 1em; height: 1em; flex: none; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+
+/* ---------- header ---------- */
+.top { padding: clamp(56px, 11vh, 120px) 0 clamp(28px, 5vh, 52px); }
+.top h1 {
+  margin: 0; max-width: 14ch; font-family: var(--serif); font-weight: 600; font-size: clamp(2.8rem, 8.4vw, 5.6rem);
+  line-height: 0.98; letter-spacing: -0.03em; text-wrap: balance; font-variation-settings: 'opsz' 144;
+}
+.top h1 .ln { display: block; overflow: hidden; padding-bottom: 0.08em; }
+.top h1 .ln > span { display: block; transform: translateY(105%); animation: rise 1s var(--ease) 0.1s forwards; }
+.top h1 .ln:nth-child(2) > span { animation-delay: 0.22s; }
+.top h1 em { font-style: italic; font-weight: 500; color: var(--accent); }
+.lede { max-width: 56ch; margin: 28px 0 0; font-size: 1.2rem; line-height: 1.55; color: var(--ink-2); opacity: 0; animation: fade 0.9s var(--ease) 0.55s forwards; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 26px 0 0; font-size: 0.9rem; color: var(--mute); opacity: 0; animation: fade 0.9s var(--ease) 0.7s forwards; }
+.legend span { display: inline-flex; align-items: center; gap: 9px; }
+@keyframes rise { to { transform: none; } }
+@keyframes fade { to { opacity: 1; } }
+
+/* ---------- toolbar ---------- */
+.bar { position: sticky; top: 0; z-index: 20; background: var(--paper); border-bottom: 1px solid var(--rule-2); }
+.bar .wrap { display: flex; align-items: center; gap: 18px; min-height: 58px; }
+.tabs { position: relative; display: flex; gap: 4px; flex: 1; min-width: 0; overflow-x: auto; scrollbar-width: none; }
+.tabs::-webkit-scrollbar { display: none; }
+.tab { position: relative; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 58px; padding: 0 14px; border: 0; background: none; font-size: 0.95rem; font-weight: 600; color: var(--mute); transition: color 0.2s; white-space: nowrap; }
+.tab:hover { color: var(--ink); }
+.tab[aria-pressed="true"] { color: var(--ink); }
+.tab small { font-size: 0.78rem; font-weight: 600; color: var(--mute); }
+.tabs .ink { position: absolute; left: 0; bottom: 0; height: 3px; width: 0; background: var(--ink); transition: transform 0.45s var(--ease), width 0.45s var(--ease); }
+.only { flex: none; display: inline-flex; align-items: center; gap: 10px; padding: 6px 4px; border: 0; background: none; font-size: 0.92rem; font-weight: 600; color: var(--ink-2); }
+.only .sw { position: relative; width: 36px; height: 20px; border-radius: 10px; background: var(--rule-2); transition: background-color 0.25s; }
+.only .sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 14px; height: 14px; border-radius: 50%; background: #fff; transition: transform 0.3s var(--ease); }
+.only[aria-pressed="true"] .sw { background: var(--accent); }
+.only[aria-pressed="true"] .sw::after { transform: translateX(16px); }
+.only:active .sw::after { width: 18px; }
+
+/* ---------- groups ---------- */
+main { padding: 12px 0 160px; }
+.group { padding-top: clamp(40px, 7vh, 72px); }
+.group[hidden] { display: none; }
+.group.enter { animation: fade-up 0.5s var(--ease) backwards; }
+@keyframes fade-up { from { opacity: 0; transform: translateY(14px); } }
+.ghead { display: grid; grid-template-columns: auto 1fr; column-gap: 16px; align-items: center; margin-bottom: 8px; }
+.gico { display: grid; place-items: center; width: 44px; height: 44px; border: 1.5px solid currentColor; border-radius: 50%; font-size: 1.25rem; color: var(--c); transition: background-color 0.3s, color 0.3s, transform 0.4s var(--ease); }
+.group:hover .gico { background: var(--c); color: #fff; transform: rotate(-8deg) scale(1.04); }
+.ghead h2 { margin: 0; font-family: var(--serif); font-weight: 600; font-size: clamp(1.7rem, 3.6vw, 2.3rem); letter-spacing: -0.02em; line-height: 1.1; }
+.ghead p { grid-column: 2; margin: 4px 0 0; color: var(--mute); }
+.tasks { margin: 18px 0 0; padding: 0; list-style: none; border-top: 1px solid var(--rule-2); }
+
+/* ---------- one task ---------- */
+.task { position: relative; border-bottom: 1px solid var(--rule-2); transition: background-color 0.35s; }
+.js .task { opacity: 0; transform: translateY(12px); }
+.js .task.in { opacity: 1; transform: none; transition: opacity 0.6s var(--ease), transform 0.6s var(--ease), background-color 0.35s; }
+.task.is-picked { background: var(--accent-wash); }
+.thead { display: grid; grid-template-columns: 56px minmax(0, 1fr); align-items: stretch; }
+.pick { display: grid; place-items: center; cursor: pointer; }
+.pick input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.box { display: grid; place-items: center; width: 26px; height: 26px; border: 2px solid var(--ink-2); border-radius: 6px; background: var(--sheet); transition: background-color 0.2s, border-color 0.2s, transform 0.25s var(--ease); }
+.box svg { width: 16px; height: 16px; fill: none; stroke: #fff; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 24; stroke-dashoffset: 24; transition: stroke-dashoffset 0.3s var(--ease) 0.05s; }
+.pick:hover .box { border-color: var(--accent); transform: scale(1.08); }
+.pick:active .box { transform: scale(0.92); }
+.pick input:checked + .box { background: var(--accent); border-color: var(--accent); animation: pop 0.38s var(--ease); }
+.pick input:checked + .box svg { stroke-dashoffset: 0; }
+.pick input:focus-visible + .box { outline: 2px solid var(--accent); outline-offset: 3px; }
+@keyframes pop { 0% { transform: scale(0.8); } 55% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.ttoggle { display: grid; grid-template-columns: minmax(0, 1fr) auto 28px; align-items: center; gap: 8px 26px; width: 100%; padding: 22px 6px 22px 0; border: 0; background: none; text-align: left; }
+.ttoggle:focus-visible { outline-offset: -3px; }
+.tt { display: block; font-family: var(--serif); font-weight: 600; font-size: clamp(1.25rem, 2.4vw, 1.55rem); line-height: 1.2; letter-spacing: -0.015em; transition: color 0.2s; }
+.ts { display: block; margin-top: 4px; color: var(--ink-2); font-size: 1rem; }
+.ttoggle:hover .tt { color: var(--accent-deep); }
+.tmeta { display: grid; justify-items: end; gap: 6px; font-size: 0.82rem; font-weight: 600; color: var(--mute); text-align: right; }
+.effort { display: inline-flex; align-items: center; gap: 7px; color: var(--ink-2); }
+.dots { display: inline-flex; gap: 4px; }
+.dots i { width: 9px; height: 9px; border: 1.5px solid currentColor; border-radius: 50%; transition: background-color 0.25s, transform 0.3s var(--ease); }
+.effort[data-n="1"] .dots i:nth-child(1), .effort[data-n="2"] .dots i:nth-child(-n+2), .effort[data-n="3"] .dots i { background: currentColor; }
+.ttoggle:hover .dots i { transform: translateY(-2px); }
+.ttoggle:hover .dots i:nth-child(2) { transition-delay: 0.04s; }
+.ttoggle:hover .dots i:nth-child(3) { transition-delay: 0.08s; }
+.chev { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; color: var(--ink-2); font-size: 1.1rem; transition: transform 0.45s var(--ease), background-color 0.2s; }
+.ttoggle:hover .chev { background: rgba(21, 24, 27, 0.07); }
+.ttoggle[aria-expanded="true"] .chev { transform: rotate(180deg); }
+
+.tbody { display: grid; grid-template-rows: 0fr; transition: grid-template-rows 0.5s var(--ease); }
+.tbody > div { min-height: 0; overflow: hidden; }
+.task.is-open .tbody { grid-template-rows: 1fr; }
+.tin { display: grid; grid-template-columns: 1fr 1fr; gap: 26px 44px; padding: 4px 24px 30px 56px; opacity: 0; transform: translateY(-6px); transition: opacity 0.4s var(--ease), transform 0.5s var(--ease); }
+.task.is-open .tin { opacity: 1; transform: none; transition-delay: 0.08s; }
+.tin h3 { margin: 0 0 8px; font-size: 0.78rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--mute); }
+.tin p { margin: 0; max-width: 56ch; line-height: 1.6; }
+.tin .better p { color: var(--ink); }
+.tin .better h3 { color: var(--accent); }
+.tin .ex { grid-column: 1 / -1; padding: 16px 18px; border: 1px dashed var(--rule-2); border-radius: 6px; background: var(--sheet); color: var(--ink-2); }
+.tin .ex b { color: var(--ink); }
+.task.is-picked .tin .ex { background: rgba(255, 255, 255, 0.55); }
+
+/* ---------- empty ---------- */
+.empty { display: none; margin: 64px 0 0; padding: 40px 24px; border: 1px dashed var(--rule-2); border-radius: 8px; text-align: center; color: var(--ink-2); }
+.empty.on { display: block; animation: fade-up 0.5s var(--ease); }
+.empty b { display: block; margin-bottom: 4px; font-family: var(--serif); font-size: 1.35rem; color: var(--ink); }
+
+/* ---------- the chosen list ---------- */
+.dock { position: fixed; left: 50%; bottom: 20px; z-index: 30; width: min(720px, 100% - 24px); transform: translate(-50%, 160%); transition: transform 0.6s var(--ease); }
+.dock.on { transform: translate(-50%, 0); }
+.dock__in { display: flex; align-items: center; gap: 14px; padding: 12px 12px 12px 22px; border-radius: 14px; background: var(--ink); color: #F4F1E8; box-shadow: 0 1px 0 rgba(255,255,255,0.08) inset, 0 18px 40px -14px rgba(21, 24, 27, 0.55), 0 4px 10px -4px rgba(21, 24, 27, 0.35); }
+.dock__n { display: flex; align-items: baseline; gap: 8px; min-width: 0; font-size: 0.98rem; white-space: nowrap; }
+.dock__n b { position: relative; display: inline-block; min-width: 1.2ch; font-family: var(--serif); font-size: 1.7rem; font-weight: 600; line-height: 1; }
+.dock__n b.bump { animation: bump 0.42s var(--ease); }
+@keyframes bump { 0% { transform: translateY(40%); opacity: 0; } 100% { transform: none; opacity: 1; } }
+.dock__bar { flex: 1; min-width: 40px; height: 4px; border-radius: 2px; background: rgba(244, 241, 232, 0.2); overflow: hidden; }
+.dock__bar i { display: block; height: 100%; width: 0; background: #7FD6BC; border-radius: 2px; transition: width 0.6s var(--ease); }
+.dbtn { display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px; border: 0; border-radius: 9px; background: transparent; color: #F4F1E8; font-size: 0.92rem; font-weight: 600; transition: background-color 0.2s, transform 0.15s var(--ease); white-space: nowrap; }
+.dbtn:hover { background: rgba(244, 241, 232, 0.12); }
+.dbtn:active { transform: scale(0.96); }
+.dbtn--main { background: #F4F1E8; color: var(--ink); }
+.dbtn--main:hover { background: #fff; }
+.dbtn:focus-visible { outline-color: #7FD6BC; }
+.toast { position: fixed; left: 50%; bottom: 96px; z-index: 40; padding: 10px 18px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 0.92rem; font-weight: 600; transform: translate(-50%, 20px); opacity: 0; pointer-events: none; transition: transform 0.45s var(--ease), opacity 0.3s; }
+.toast.on { transform: translate(-50%, 0); opacity: 1; }
+
+footer { padding: 0 0 56px; color: var(--mute); font-size: 0.92rem; }
+
+/* ---------- small screens ---------- */
+@media (max-width: 760px) {
+  body { font-size: 1rem; }
+  .thead { grid-template-columns: 48px minmax(0, 1fr); }
+  .ttoggle { grid-template-columns: minmax(0, 1fr) 28px; padding-right: 0; }
+  .tmeta { grid-column: 1; grid-row: 2; justify-items: start; text-align: left; display: flex; flex-wrap: wrap; gap: 4px 14px; }
+  .chev { grid-column: 2; grid-row: 1; }
+  .tin { grid-template-columns: 1fr; padding: 0 4px 26px 48px; }
+  .only span.t { display: none; }
+  .dock__in { padding-left: 16px; gap: 8px; }
+  .dock__bar { display: none; }
+  .dock__n { flex: 1; }
+  .dbtn--sec, #dt { display: none; }
+}
+
+/* ---------- print: the chosen tasks (or all of them), opened ---------- */
+@media print {
+  body { background: #fff; font-size: 11pt; }
+  .bar, .dock, .toast, .legend, .pick, .chev, .empty, .only { display: none !important; }
+  .top { padding: 0 0 14pt; } .top h1 { font-size: 30pt; } .top h1 .ln > span { transform: none; animation: none; } .lede, .legend { opacity: 1; animation: none; }
+  main { padding: 0; }
+  .js .task { opacity: 1; transform: none; }
+  .task { break-inside: avoid; background: none !important; }
+  .tbody { grid-template-rows: 1fr !important; } .tin { opacity: 1 !important; transform: none !important; padding-left: 0; }
+  body.has-picks .task:not(.is-picked) { display: none; }
+  body.has-picks .group:not(.has-picked) { display: none; }
+  .thead { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { animation-duration: 0.01ms !important; animation-delay: 0s !important; transition-duration: 0.01ms !important; transition-delay: 0s !important; }
+  .top h1 .ln > span { transform: none; } .lede, .legend { opacity: 1; }
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <h1><span class="ln"><span>Ce construim</span></span><span class="ln"><span><em>mai departe</em></span></span></h1>
+    <p class="lede">Propuneri pentru a gestiona mai ușor compania și fluxul de elevi. Fiecare spune ce adăugăm și cu ce îmbunătățește munca de zi cu zi. Bifează ce vrei să facem mai întâi, iar lista ta o poți copia sau tipări.</p>
+    <p class="legend">
+      <span><span class="effort" data-n="1"><span class="dots"><i></i><i></i><i></i></span></span> Rapid de făcut</span>
+      <span><span class="effort" data-n="2"><span class="dots"><i></i><i></i><i></i></span></span> Cere mai mult timp</span>
+      <span><span class="effort" data-n="3"><span class="dots"><i></i><i></i><i></i></span></span> Proiect amplu</span>
+    </p>
+  </div>
+</header>
+
+<div class="bar">
+  <div class="wrap">
+    <nav class="tabs" id="tabs" aria-label="Domenii"><span class="ink" id="ink" aria-hidden="true"></span></nav>
+    <button type="button" class="only" id="only" aria-pressed="false"><span class="sw" aria-hidden="true"></span><span class="t">Doar cele alese</span></button>
+  </div>
+</div>
+
+<main>
+  <div class="wrap" id="groups"></div>
+  <div class="wrap"><div class="empty" id="empty"><b>Nu ai ales nimic încă.</b>Bifează o propunere și apare aici.</div></div>
+</main>
+
+<footer><div class="wrap">Alegerile se păstrează pe acest dispozitiv. Nimic de aici nu e trimis nicăieri.</div></footer>
+
+<div class="dock" id="dock" role="region" aria-label="Lista aleasă">
+  <div class="dock__in">
+    <span class="dock__n" aria-live="polite">Ai ales <b id="dn">0</b> <span id="dt">din 15</span></span>
+    <span class="dock__bar" aria-hidden="true"><i id="db"></i></span>
+    <button type="button" class="dbtn dbtn--sec" id="clear">Golește</button>
+    <button type="button" class="dbtn dbtn--sec" id="print"><svg class="i" viewBox="0 0 24 24"><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 9V3a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v6"/><rect x="6" y="14" width="12" height="8" rx="1"/></svg>Tipărește</button>
+    <button type="button" class="dbtn dbtn--main" id="copy"><svg class="i" viewBox="0 0 24 24"><rect width="14" height="14" x="8" y="8" rx="2"/><path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/></svg>Copiază lista</button>
+  </div>
+</div>
+<div class="toast" id="toast" role="status"></div>
+
+<script>
+(function () {
+  'use strict';
+  document.documentElement.classList.add('js');
+
+  var ICON = {
+    bell: '<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>',
+    users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+    wallet: '<path d="M19 7V4a1 1 0 0 0-1-1H5a2 2 0 0 0 0 4h15a1 1 0 0 1 1 1v4h-3a2 2 0 0 0 0 4h3a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1"/><path d="M3 5v14a2 2 0 0 0 2 2h15a1 1 0 0 0 1-1v-4"/>',
+    chat: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+    shield: '<path d="M20 13c0 5-3.5 7.5-7.66 8.95a1 1 0 0 1-.67-.01C7.5 20.5 4 18 4 13V6a1 1 0 0 1 1-1c2 0 4.5-1.2 6.24-2.72a1.17 1.17 0 0 1 1.52 0C14.51 3.81 17 5 19 5a1 1 0 0 1 1 1z"/><path d="m9 12 2 2 4-4"/>',
+    chev: '<path d="m6 9 6 6 6-6"/>'
+  };
+  var svg = function (n) { return '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + ICON[n] + '</svg>'; };
+
+  var AREAS = [
+    { id: 'zilnic', t: 'Control zilnic', d: 'Ca nimic să nu se piardă între ore.', ic: 'bell', c: 'var(--a-zilnic)' },
+    { id: 'elevi', t: 'Elevi și grupe', d: 'De la prima cerere până când elevul își găsește locul.', ic: 'users', c: 'var(--a-elevi)' },
+    { id: 'bani', t: 'Bani', d: 'Vezi unde se câștigă, plătește corect, încasează la timp.', ic: 'wallet', c: 'var(--a-bani)' },
+    { id: 'parinti', t: 'Părinți și comunicare', d: 'Mai puține telefoane, mai multă încredere.', ic: 'chat', c: 'var(--a-parinti)' },
+    { id: 'control', t: 'Planificare și control', d: 'Planifici pe date și păstrezi ordinea.', ic: 'shield', c: 'var(--a-control)' }
+  ];
+
+  var TASKS = [
+    { id: 'azi', a: 'zilnic', n: 1, src: 'Pe datele de acum',
+      t: 'Pagina „Azi de rezolvat”', s: 'O singură listă cu tot ce cere atenție azi.',
+      add: 'O pagină care adună singură problemele zilei: elevi cu două absențe nemotivate la rând, datorii peste o sumă stabilită, elevi rămași fără ore plătite, grupe cu loc liber de mai multe zile. Fiecare rând are un buton: „Am sunat” sau „Rezolvat”.',
+      imp: 'Administratorul nu mai caută prin tabele. Problemele se prind în ziua în care apar, nu la sfârșit de lună, iar fiecare sarcină are un responsabil.',
+      ex: 'Luni dimineața, administratorul deschide pagina și vede 6 elevi de sunat. După apeluri apasă „Am sunat” și lista se golește.' },
+    { id: 'memento', a: 'zilnic', n: 1, src: 'Pe datele de acum',
+      t: 'Memento pentru lecțiile necompletate', s: 'Profesorul e anunțat când uită data sau tema unei lecții.',
+      add: 'O lecție se plătește doar dacă are dată și temă. Dacă una rămâne necompletată, profesorul primește un memento după ore. Dacă nu o completează în aceeași zi, administratorul vede lista.',
+      imp: 'Registrele sunt mereu la zi, iar profesorii nu pierd bani din uitare. Calculul salariilor de la sfârșit de lună nu mai aduce surprize.',
+      ex: 'Marți seara, profesorul primește: „Lecția de ieri la Matematica, clasa X nu are tema”.' },
+
+    { id: 'plasare', a: 'elevi', n: 1, src: 'Pe datele de acum',
+      t: 'Plasare automată a elevului nou', s: 'La înscriere, sistemul propune singur grupa potrivită.',
+      add: 'La fiecare elev nou, sistemul listează grupele care se potrivesc: aceeași materie, clasă și profil, loc liber, nivel cât mai apropiat. Cea mai bună apare prima, cu motivul ei. Administratorul alege și elevul e înscris.',
+      imp: 'Înscrierea durează câteva secunde, nu apeluri între colegi. Elevii ajung în grupe de nivelul lor, deci pleacă mai puțini din cauza unei grupe nepotrivite.',
+      ex: 'Un elev de clasa a IX-a, profil Real: apar 3 grupe, iar prima are același nivel și 2 locuri libere.' },
+    { id: 'asteptare', a: 'elevi', n: 2, src: 'Pe datele de acum',
+      t: 'Listă de așteptare pe grupe', s: 'Niciun elev nu se pierde pentru că „nu avem loc”.',
+      add: 'Elevii pentru care nu există încă grupă intră pe o listă, pe materie și clasă. Când se eliberează un loc sau se deschide o grupă nouă, sistemul spune cine poate intra. Lista arată și unde cererea e mare.',
+      imp: 'Nu se mai pierd elevii care ar fi venit. Decizia de a deschide o grupă nouă se ia pe numere, nu din intuiție.',
+      ex: '„12 elevi de clasa a XI-a așteaptă la Biologie”: se vede că merită o grupă nouă.' },
+    { id: 'inlocuire', a: 'elevi', n: 2, src: 'Cu mesaje către părinți',
+      t: 'Înlocuire rapidă de profesor', s: 'Dacă un profesor lipsește, înlocuitorul se găsește în câteva secunde.',
+      add: 'Când un profesor nu poate veni, sistemul arată profesorii liberi la acea oră care predau aceeași materie, în ordinea potrivirii. Cu un click, elevii sau părinții primesc mesajul despre schimbare.',
+      imp: 'Lecția nu se mai anulează din lipsă de timp pentru căutat. Dispar zecile de telefoane făcute manual.',
+      ex: 'Un profesor se îmbolnăvește la prânz. Apar 3 profesori liberi la 16:00, administratorul alege unul, iar părinții primesc mesajul.' },
+    { id: 'palnie', a: 'elevi', n: 2, src: 'Pe datele de acum',
+      t: 'Drumul elevului: de la prima cerere la plecare', s: 'Vezi câți intră, câți rămân și de ce pleacă ceilalți.',
+      add: 'O pagină cu etapele elevului: cerere, oră de probă, probă confirmată, activ, instabil, plecat. Arată câți au intrat și câți au plecat în fiecare lună, câți dintre cei de la ora de probă rămân și motivul fiecărei plecări (preț, program, profesor, nivel).',
+      imp: 'Directorul vede unde se pierd elevii și de ce, nu doar cât de mulți sunt. E primul pas ca să oprești plecările.',
+      ex: 'Aprilie: 14 elevi noi, 9 au rămas după ora de probă, 5 au plecat, 3 dintre ei din cauza programului.' },
+    { id: 'risc', a: 'elevi', n: 2, src: 'Pe datele de acum',
+      t: 'Semnal de risc de plecare', s: 'Elevii care pot pleca sunt prinși înainte să plece.',
+      add: 'Sistemul urmărește absențele repetate, datoriile și schimbările de grupă și trece singur elevul pe „Instabil”. Managerul lui primește o sarcină: sună părintele în 48 de ore.',
+      imp: 'Elevii se păstrează înainte să plece, nu se află după. Fiecare manager știe exact cu cine să vorbească azi.',
+      ex: 'Un elev are 2 absențe nemotivate și o datorie. Devine „Instabil”, iar managerul vede sarcina „Sună mama”.' },
+
+    { id: 'rentabil', a: 'bani', n: 1, src: 'Pe datele de acum',
+      t: 'Rentabilitate pe grupă și pe profesor', s: 'Vezi imediat unde câștigi și unde pierzi.',
+      add: 'Pentru fiecare grupă: cât plătesc elevii, cât primește profesorul, cât rămâne companiei. Clasament pe grupe și pe profesori, cu semn pentru grupele care nu acoperă costul.',
+      imp: 'Directorul vede ce grupe merită completate și unde se pierd bani. Prețul și programul se hotărăsc pe baza datelor.',
+      ex: 'O grupă de 6 elevi cu toți prezenți aduce 1.308 lei pe oră, iar profesorul primește 255. La doar 3 prezenți aduce 654 lei, iar profesorul primește 175.' },
+    { id: 'fisa', a: 'bani', n: 1, src: 'Pe datele de acum',
+      t: 'Fișa de plată a profesorului și închiderea lunii', s: 'Salariile se calculează în minute, fără dispute.',
+      add: 'La sfârșit de lună, fiecare profesor are o fișă: ce lecții a predat, suma, ce a primit deja și cât rămâne de plătit. Butonul „Închide luna” blochează lecțiile vechi, ca nimeni să nu le mai modifice.',
+      imp: 'Nu mai există discuții despre „cât am predat”. Fiecare sumă se poate verifica oricând, lecție cu lecție.',
+      ex: 'La 1 noiembrie, fișa unui profesor arată 86 de lecții, 14.700 lei de primit, 12.000 lei plătiți deja, 2.700 lei de plată.' },
+    { id: 'scadent', a: 'bani', n: 3, src: 'Cu plată online',
+      t: 'Scadențar și plată online', s: 'Încasări mai rapide, fără datorii uitate.',
+      add: 'O listă cu cine datorează, cât și de când, plus memento automat înainte să se termine orele plătite. Părintele poate plăti online cu cardul, iar plata intră direct în registru.',
+      imp: 'Banii intră mai repede și nu se mai uită datorii. Contabilitatea nu mai potrivește manual plățile cu elevii.',
+      ex: 'Elevului îi mai rămân 2 lecții plătite. Părintele primește un link, plătește cu cardul, iar soldul se actualizează singur.' },
+
+    { id: 'mesaje', a: 'parinti', n: 2, src: 'Cu SMS sau Viber',
+      t: 'Mesaje către părinți cu un click', s: 'Același mesaj corect, trimis în câteva secunde.',
+      add: 'Mesaje gata scrise pentru situațiile dese: datorie, lecție anulată, schimbare de grupă, oră de probă confirmată. Se trimit prin SMS, Viber sau e-mail, iar fiecare mesaj rămâne în istoricul elevului.',
+      imp: 'Comunicarea e uniformă și rapidă, fără scris de mână. Se vede oricând cine ce a trimis și când.',
+      ex: 'Grupa de joi se anulează. Un click trimite mesajul celor 5 părinți.' },
+    { id: 'parinte', a: 'parinti', n: 2, src: 'Pe datele de acum',
+      t: 'Pagina părintelui', s: 'Părintele află singur ce are nevoie, fără să sune.',
+      add: 'O pagină simplă, pe un link trimis părintelui, cu prezențele copilului, soldul, ce s-a predat și următoarele ore. Fără cont complicat.',
+      imp: 'Părinții sună mai rar, pentru că găsesc răspunsul singuri. Transparența crește încrederea, iar plata se face la timp.',
+      ex: 'Mama deschide linkul seara și vede: 8 prezențe, sold 0 lei, următoarea oră joi la 16:00.' },
+    { id: 'qr', a: 'parinti', n: 3, src: 'Cu cititor de cod QR',
+      t: 'Check-in la intrare cu cod QR', s: 'Prezența se marchează singură, iar părintele știe că a ajuns.',
+      add: 'Fiecare elev are un cod QR. La recepție îl scanează, prezența se marchează singură, iar părintele primește mesajul „a ajuns”. Elevul apare și pe ecranul TV de la intrare.',
+      imp: 'Siguranță pentru copii și prezențe fără greșeli. Profesorul începe lecția cu lista deja completată.',
+      ex: 'Ana scanează codul la 15:55, iar mama ei primește „Ana a ajuns la ora de Matematica”.' },
+
+    { id: 'ocupare', a: 'control', n: 2, src: 'Pe datele de acum',
+      t: 'Ocuparea cabinetelor și prognoza de venit', s: 'Orele goale se umplu, iar bugetul nu mai e o presupunere.',
+      add: 'O hartă a orelor și a cabinetelor: unde e aglomerat și unde sunt ore goale. Alături, venitul estimat pe luna următoare, calculat din orele deja plătite și din elevii care probabil pleacă.',
+      imp: 'Orele goale pot fi umplute cu grupe noi, iar bugetul lunii viitoare se bazează pe cifre.',
+      ex: 'Miercuri între 12:00 și 14:00 sunt 6 cabinete libere din 8, deci acolo încape o grupă nouă.' },
+    { id: 'jurnal', a: 'control', n: 2, src: 'Pe datele de acum',
+      t: 'Istoric de modificări și drepturi de acces', s: 'Pentru orice neînțelegere există un răspuns clar.',
+      add: 'Un jurnal cu cine a schimbat ce și când: o prezență, un statut, un transfer, o sumă. În plus, fiecare rol vede doar ce îi trebuie: managerul își vede elevii, profesorul își vede registrul, directorul vede totul.',
+      imp: 'Se găsește imediat cine a modificat o informație. Datele companiei sunt ferite de greșeli și de accesări nedorite.',
+      ex: '„Cine a schimbat prezența lui Radu pe 12 martie?” Jurnalul răspunde în câteva secunde.' }
+  ];
+  var EFFORT = { 1: 'Rapid de făcut', 2: 'Cere mai mult timp', 3: 'Proiect amplu' };
+
+  var KEY = 'plan-dezvoltare-alese-v1';
+  var picked = {};
+  try { picked = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { picked = {}; }
+  var save = function () { try { localStorage.setItem(KEY, JSON.stringify(picked)); } catch (e) {} };
+
+  var $ = function (s, r) { return (r || document).querySelector(s); };
+  var esc = function (s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); };
+
+  /* ---------- render ---------- */
+  var groups = $('#groups');
+  groups.innerHTML = AREAS.map(function (a) {
+    var items = TASKS.filter(function (t) { return t.a === a.id; });
+    return '<section class="group" data-area="' + a.id + '" style="--c:' + a.c + '" aria-labelledby="h-' + a.id + '">' +
+      '<div class="ghead"><span class="gico">' + svg(a.ic) + '</span><h2 id="h-' + a.id + '">' + esc(a.t) + '</h2><p>' + esc(a.d) + '</p></div>' +
+      '<ul class="tasks">' + items.map(function (t) {
+        return '<li class="task" data-id="' + t.id + '">' +
+          '<div class="thead">' +
+            '<label class="pick"><input type="checkbox" data-pick="' + t.id + '"><span class="box"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5L20 7"/></svg></span><span class="sr">Vreau asta: ' + esc(t.t) + '</span></label>' +
+            '<button type="button" class="ttoggle" aria-expanded="false" aria-controls="b-' + t.id + '">' +
+              '<span><span class="tt">' + esc(t.t) + '</span><span class="ts">' + esc(t.s) + '</span></span>' +
+              '<span class="tmeta"><span class="effort" data-n="' + t.n + '" title="' + EFFORT[t.n] + '"><span class="dots"><i></i><i></i><i></i></span><span>' + EFFORT[t.n] + '</span></span><span>' + esc(t.src) + '</span></span>' +
+              '<span class="chev">' + svg('chev') + '</span>' +
+            '</button>' +
+          '</div>' +
+          '<div class="tbody" id="b-' + t.id + '"><div><div class="tin">' +
+            '<div><h3>Ce adăugăm</h3><p>' + esc(t.add) + '</p></div>' +
+            '<div class="better"><h3>Ce se îmbunătățește</h3><p>' + esc(t.imp) + '</p></div>' +
+            '<p class="ex"><b>Exemplu.</b> ' + esc(t.ex) + '</p>' +
+          '</div></div></div>' +
+        '</li>';
+      }).join('') + '</ul></section>';
+  }).join('');
+
+  var TOTAL = TASKS.length;
+  var tabs = $('#tabs'), ink = $('#ink');
+  var tabDefs = [{ id: 'all', t: 'Toate', n: TOTAL }].concat(AREAS.map(function (a) { return { id: a.id, t: a.t, n: TASKS.filter(function (t) { return t.a === a.id; }).length }; }));
+  tabDefs.forEach(function (d) {
+    var b = document.createElement('button');
+    b.type = 'button'; b.className = 'tab'; b.dataset.tab = d.id; b.setAttribute('aria-pressed', d.id === 'all' ? 'true' : 'false');
+    b.innerHTML = esc(d.t) + ' <small>' + d.n + '</small>';
+    tabs.insertBefore(b, ink);
+  });
+
+  var state = { area: 'all', only: false };
+
+  /* ---------- the sliding mark under the tabs ---------- */
+  function moveInk() {
+    var on = tabs.querySelector('.tab[aria-pressed="true"]');
+    if (!on) return;
+    ink.style.width = on.offsetWidth + 'px';
+    ink.style.transform = 'translateX(' + on.offsetLeft + 'px)';
+    var l = on.offsetLeft, r = l + on.offsetWidth;
+    if (l < tabs.scrollLeft + 8) tabs.scrollTo({ left: Math.max(0, l - 16), behavior: 'smooth' });
+    else if (r > tabs.scrollLeft + tabs.clientWidth - 8) tabs.scrollTo({ left: r - tabs.clientWidth + 16, behavior: 'smooth' });
+  }
+
+  /* ---------- filtering ---------- */
+  function apply(anim) {
+    var any = false;
+    document.querySelectorAll('.group').forEach(function (g) {
+      var show = state.area === 'all' || g.dataset.area === state.area;
+      var rows = g.querySelectorAll('.task');
+      var vis = 0;
+      rows.forEach(function (r) { var ok = !state.only || picked[r.dataset.id]; r.hidden = !ok; if (ok) vis++; });
+      show = show && vis > 0;
+      g.hidden = !show;
+      if (show) { any = true; if (anim) { g.classList.remove('enter'); void g.offsetWidth; g.classList.add('enter'); } }
+    });
+    $('#empty').classList.toggle('on', !any);
+    watch();
+  }
+  tabs.addEventListener('click', function (e) {
+    var b = e.target.closest('.tab'); if (!b) return;
+    tabs.querySelectorAll('.tab').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); });
+    state.area = b.dataset.tab; moveInk(); apply(true);
+    var bar = $('.bar'); if (window.scrollY > bar.offsetTop) window.scrollTo({ top: bar.offsetTop, behavior: 'smooth' });
+  });
+  $('#only').addEventListener('click', function () {
+    state.only = !state.only; this.setAttribute('aria-pressed', String(state.only)); apply(true);
+  });
+
+  /* ---------- open / close ---------- */
+  groups.addEventListener('click', function (e) {
+    var t = e.target.closest('.ttoggle'); if (!t) return;
+    var li = t.closest('.task'), open = !li.classList.contains('is-open');
+    li.classList.toggle('is-open', open); t.setAttribute('aria-expanded', String(open));
+  });
+
+  /* ---------- choosing ---------- */
+  var dock = $('#dock'), dn = $('#dn'), dt = $('#dt'), db = $('#db');
+  var last = -1;
+  function count() { return Object.keys(picked).filter(function (k) { return picked[k]; }).length; }
+  function paint(bump) {
+    var n = count();
+    document.querySelectorAll('.task').forEach(function (r) {
+      var on = !!picked[r.dataset.id];
+      r.classList.toggle('is-picked', on);
+      r.querySelector('input').checked = on;
+    });
+    document.querySelectorAll('.group').forEach(function (g) { g.classList.toggle('has-picked', !!g.querySelector('.is-picked')); });
+    document.body.classList.toggle('has-picks', n > 0);
+    dn.textContent = n;
+    dt.textContent = 'din ' + TOTAL + (n === 1 ? ' propunere' : ' propuneri');
+    db.style.width = (n / TOTAL * 100) + '%';
+    dock.classList.toggle('on', n > 0);
+    if (bump && n !== last) { dn.classList.remove('bump'); void dn.offsetWidth; dn.classList.add('bump'); }
+    last = n;
+  }
+  groups.addEventListener('change', function (e) {
+    var i = e.target.closest('input[data-pick]'); if (!i) return;
+    picked[i.dataset.pick] = i.checked; if (!i.checked) delete picked[i.dataset.pick];
+    save(); paint(true);
+    if (state.only) { var r = i.closest('.task'); setTimeout(function () { apply(false); }, 350); }
+  });
+  $('#clear').addEventListener('click', function () { picked = {}; save(); paint(true); if (state.only) apply(false); });
+  $('#print').addEventListener('click', function () { window.print(); });
+  var toast = $('#toast'), tt = 0;
+  function say(m) { toast.textContent = m; toast.classList.add('on'); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove('on'); }, 2200); }
+  $('#copy').addEventListener('click', function () {
+    var list = TASKS.filter(function (t) { return picked[t.id]; });
+    var text = 'Propuneri alese (' + list.length + '):\n\n' + list.map(function (t, i) { return (i + 1) + '. ' + t.t + '\n   ' + t.s + '\n   Ce adăugăm: ' + t.add + '\n   Ce se îmbunătățește: ' + t.imp; }).join('\n\n');
+    var done = function () { say('Lista a fost copiată'); };
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(done, fallback); else fallback();
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0'; document.body.appendChild(ta); ta.select();
+      try { document.execCommand('copy'); done(); } catch (e) { say('Nu am putut copia lista'); }
+      ta.remove();
+    }
+  });
+
+  /* ---------- the rows settle in as they come into view ---------- */
+  var io = null;
+  function watch() {
+    var rows = document.querySelectorAll('.task:not(.in):not([hidden])');
+    if (!('IntersectionObserver' in window)) { rows.forEach(function (r) { r.classList.add('in'); }); return; }
+    if (!io) io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) { if (en.isIntersecting) { en.target.classList.add('in'); io.unobserve(en.target); } });
+    }, { rootMargin: '0px 0px -8% 0px', threshold: 0.05 });
+    rows.forEach(function (r) { io.observe(r); });
+  }
+
+  paint(false);
+  apply(false);
+  moveInk();
+  window.addEventListener('resize', moveInk);
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(moveInk);
+})();
+</script>
+</body>
+</html>
