@@ -20,6 +20,12 @@ const num = x => { const n = parseFloat(String(x).replace(/\./g, '').replace(','
     const T = links.teachers[tid];
     const ranges = T.groups.flatMap(g => [`${q(g.tab)}!C9:C198`, `${q(g.tab)}!D2:Z2`, `${q(g.tab)}!D5:Z5`]);
     const r = await api('GET', `https://sheets.googleapis.com/v4/spreadsheets/${T.ssid}/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&` + ranges.map(x => 'ranges=' + encodeURIComponent(x)).join('&'), { who: 'user' });
+    const tot = await api('GET', `https://sheets.googleapis.com/v4/spreadsheets/${T.ssid}/values/${encodeURIComponent("'Total achitări'!E1:E3")}?valueRenderOption=UNFORMATTED_VALUE`, { who: 'user' });
+    const [due, paid, earned] = (tot.values || []).map(x => Number(x[0]));
+    const book = D.teacherBook(tid);
+    [['Salariu spre achitare (E1)', due, book.due], ['Suma achitată (E2)', paid, book.paid], ['Suma pentru toate lecțiile (E3)', earned, book.earned]].forEach(([lab, got, want]) => {
+      cells++; if (!(Math.abs(got - want) <= 0.05)) { bad++; if (shown.length < 15) shown.push(`${T.name} / Total achitări: ${lab}: Sheets ${got}, consolă ${want}`); }
+    });
     T.groups.forEach((g, i) => {
       tabs++;
       const L = D.ledger(g.id), lessons = L.lessons.filter(l => l.counted || l.topic).slice(0, 190);

@@ -8,7 +8,7 @@
 const fs = require('fs');
 const path = require('path');
 const { api } = require('./auth');
-const { allTeachers } = require('../demo-group');
+const { allTeachers, D } = require('../demo-group');
 const { colLetter } = require('../parse');
 
 const args = process.argv.slice(2);
@@ -63,6 +63,26 @@ function fill(title, d, cfg, report) {
   return { raw, formulas };
 }
 
+/* the general tabs of a teacher's workbook: payments to the teacher and the tabs the totals add up; availability, subjects and classes */
+const GRADES = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+function general(t, titles, report) {
+  const raw = [], book = D.teacherBook(t.id), tch = D.teacher(t.id);
+  const payments = book.payments.slice(0, 30);
+  if (book.payments.length > 30) report.payments = book.payments.length;
+  if (payments.length) raw.push({ range: `'Total achitări'!A3:B${2 + payments.length}`, values: payments.map(p => [p.label, p.amount]) });
+  raw.push({ range: `'Total achitări'!F4:${colLetter(5 + Math.min(30, titles.length))}4`, values: [titles.slice(0, 30)] });
+  const vara = D.groups.filter(g => g.teacher === t.id && g.regime === 'vara' && g.status !== 'inactiv');
+  [['Disponibilitate', false], ['Disponibilitate Vara', true]].forEach(([tab, summer]) => {
+    const grid = [];
+    for (let h = 9; h <= 21; h++) grid.push([1, 2, 3, 4, 5, 6, 7].map(day => (summer && vara.some(g => g.days.includes(day) && g.start <= h && h < g.start + g.duration) ? 'Ocupat' : D.isAvailable(t.id, day, h, 1) ? 'Disponibil' : '')));
+    raw.push({ range: `'${tab}'!B2:H14`, values: grid });
+    const rows = [];
+    for (let i = 0; i < 12; i++) { const e = tch.teach[i]; rows.push([e ? e.subject + (summer ? ' (Vara)' : '') : ''].concat(GRADES.map(g => !!(e && e.grades.includes(g))))); }
+    raw.push({ range: `'${tab}'!J3:V14`, values: rows });
+  });
+  return raw;
+}
+
 async function build(t, cfg, template, links) {
   const names = new Set();
   const titles = t.groups.map(d => { let nm = d.group.tab.slice(0, 95), k = 1; while (names.has(nm)) nm = d.group.tab.slice(0, 90) + ' (' + (++k) + ')'; names.add(nm); return nm; });
@@ -71,13 +91,14 @@ async function build(t, cfg, template, links) {
   const meta = await api('GET', `${SHEETS}${ssid}?fields=sheets.properties(title,sheetId)`, U);
   const base = meta.sheets.map(s => s.properties).find(p => p.title === 'Orar 1');
   const requests = [];
-  for (let i = 1; i < t.groups.length; i++) requests.push({ duplicateSheet: { sourceSheetId: base.sheetId, newSheetName: titles[i], insertSheetIndex: i } });
+  for (let i = 1; i < t.groups.length; i++) requests.push({ duplicateSheet: { sourceSheetId: base.sheetId, newSheetName: titles[i], insertSheetIndex: i + 3 } });
   requests.push({ updateSheetProperties: { properties: { sheetId: base.sheetId, title: titles[0] }, fields: 'title' } });
   const res = await api('POST', `${SHEETS}${ssid}:batchUpdate`, Object.assign({ body: { requests } }, U));
   const gids = [base.sheetId].concat(res.replies.filter(r => r.duplicateSheet).map(r => r.duplicateSheet.properties.sheetId));
   const report = { cabinet: 0, manager: 0 };
   const rawAll = [], formAll = [];
   t.groups.forEach((d, i) => { const f = fill(titles[i], d, cfg, report); rawAll.push(...f.raw); formAll.push(...f.formulas); });
+  rawAll.push(...general(t, titles, report));
   await api('POST', `${SHEETS}${ssid}/values:batchUpdate`, Object.assign({ body: { valueInputOption: 'RAW', data: rawAll } }, U));
   await api('POST', `${SHEETS}${ssid}/values:batchUpdate`, Object.assign({ body: { valueInputOption: 'USER_ENTERED', data: formAll } }, U));
   links.teachers[t.id] = { name: t.name, ssid, groups: t.groups.map((d, i) => ({ id: d.group.id, tab: titles[i], gid: gids[i] })) };
