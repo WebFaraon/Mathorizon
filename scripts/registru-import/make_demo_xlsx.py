@@ -58,6 +58,12 @@ for i, l in enumerate(d['lessons']):
     ws.cell(r, 2).value = l['topic']
     for k, code in enumerate(l['marks']):
         if code: ws.cell(r, 4 + k).value = MARK[code]
+# The real register colours the marks with Google Sheets' dropdown chips, which an .xlsx cannot carry: the same colours as cell fills.
+from openpyxl.formatting.rule import FormulaRule
+from openpyxl.styles import PatternFill, Font
+for text, fill, ink in [('PREZENT', '11734B', 'FFFFFF'), ('ABSENT', 'B10202', 'FFFFFF'), ('ABSENT MOTIVAT', 'E8EAED', '000000'),
+                        ('PRIMA LECȚIE GRATUITĂ', 'D4EDBC', '11734B'), ('ABSENT PRIMA LECȚIE GRATUITĂ', 'E8EAED', '000000')]:
+    ws.conditional_formatting.add('D9:Z198', FormulaRule(formula=['D9="%s"' % text], fill=PatternFill(start_color=fill, end_color=fill, fill_type='solid'), font=Font(color=ink)))
 os.makedirs(out, exist_ok=True)
 path = os.path.join(out, '%s Registru EXAMEN.MD OFFLINE 2025-2026 (DEMO).xlsx' % d['teacher'])
 wb.save(path)
