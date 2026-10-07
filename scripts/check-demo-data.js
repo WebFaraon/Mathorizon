@@ -22,13 +22,14 @@ D.groups.forEach(g => {
     ok(cost === x.cost, g.id + ' cost ' + x.s.id);
     ok(done === x.done, g.id + ' done ' + x.s.id);
     ok(x.sold === x.paid + x.disc - x.cost, g.id + ' sold formula ' + x.s.id);
-    ok(x.s.balance === x.sold, g.id + ' console balance == register sold ' + x.s.id);
+    // (a student with a past in two groups has the sum of his columns)
+    ok(Math.abs(x.s.balance - D.groups.map(h => D.ledger(h.id).rows.find(r => r.s.id === x.s.id)).filter(Boolean).reduce((t, r) => t + r.sold, 0)) < 0.011, g.id + ' console balance == the sum of his register columns ' + x.s.id);
     ok(!x.codes.some(c => c && !'PGMAB'.includes(c)), g.id + ' unknown mark');
     ok(Number.isFinite(x.avail), g.id + ' avail NaN');
     sumSold += x.sold; sumPaid += x.paid; sumCost += x.cost;
     // the last three marks in the console come from the register
     const last = x.codes.filter(Boolean).slice(-3).map(c => (c === 'A' || c === 'B' ? 'a' : c === 'M' ? 'm' : 'p'));
-    ok(last.every((m, k) => x.s.presence[3 - last.length + k] === m), g.id + ' presence ' + x.s.id);
+    ok(D.transfersOf(x.s.id).length > 0 || last.every((m, k) => x.s.presence[3 - last.length + k] === m), g.id + ' presence ' + x.s.id);
   });
   ok(sumSold === L.stats.sold && sumPaid === L.stats.paid && sumCost === L.stats.cost, g.id + ' group sums');
   ok(near(L.earned, L.lessons.reduce((t, l) => t + l.pay, 0)), g.id + ' earned = sum of the lesson pays');
@@ -106,7 +107,7 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
 // transfers: the student moves, the old column stays (status Transferat, money kept), nobody is duplicated
 {
   const src = D.groups.find(x => D.enrolled(x).length >= 2 && x.status === 'activ' && D.transferCandidates([D.enrolled(x)[0].id]).some(c => c.fits));
-  const who = D.enrolled(src)[0], sid = who.id, dest = D.transferCandidates([sid]).find(c => c.fits).g;
+  const who = D.enrolled(src)[0], status0 = who.status, sid = who.id, dest = D.transferCandidates([sid]).find(c => c.fits).g;
   const people0 = D.students.length, old0 = D.ledger(src.id).rows.find(r => r.s.id === sid), cols0 = D.ledger(dest.id).rows.length, enrDest0 = D.enrolled(dest).length, enrSrc0 = D.enrolled(src).length;
   ok(D.transferCandidates([sid]).every(c => c.g.subject === src.subject && c.g.grade === src.grade && c.g.status !== 'inactiv' && c.g.id !== src.id), 'candidates: same subject and grade, open, not the same group');
   ok(D.transferCandidates([sid]).filter(c => c.fits).every(c => c.free >= 1), 'candidates: fits means room');
@@ -118,7 +119,7 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
   ok(D.students.length === people0, 'transfer: nobody is duplicated');
   ok(o1 && o1.status === 'transferat' && o1.leave && o1.to && o1.to.id === dest.id, 'transfer: old column says Transferat');
   ok(o1.cost === old0.cost && o1.codes.join() === old0.codes.join(), 'transfer: old column keeps marks and the cost of its lessons');
-  ok(n1 && n1.status === 'activ' && n1.join && n1.from && n1.from.id === src.id && n1.paid === 0 && n1.codes.every(c => !c), 'transfer: new column is Activ and starts empty');
+  ok(n1 && n1.status === 'activ' && n1.join && n1.from && n1.from.id === src.id && n1.codes.every(c => !c) && n1.cost === 0, 'transfer: new column is Activ and starts empty');
   ok(L2.rows.length === cols0 + 1 && D.enrolled(dest).length === enrDest0 + 1 && D.enrolled(src).length === enrSrc0 - 1, 'transfer: seats move');
   ok(L1.stats.moved >= 1 && L1.rows.length === (D.baseMembers(src.id).length), 'transfer: old group keeps every column');
   ok(who.balance === o1.sold + n1.sold, 'transfer: console balance is the sum of his columns');
@@ -132,7 +133,7 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
   D.addLesson(src.id, '2026-10-12'); const sl = D.ledger(src.id).lessons.slice(-1)[0]; D.setLesson(src.id, sl.oid, { t: 'X' }); D.setMark(src.id, sid, sl.oid, 'P');
   ok(D.ledger(src.id).rows.find(r => r.s.id === sid).codes.slice(-1)[0] === '', 'transfer: a lesson after the transfer cannot be marked in the old group');
   const undo = D.undoTransfer(ids);
-  ok(undo === 1 && who.group === src.id && who.status === 'activ' && D.ledger(dest.id).rows.length === cols0, 'undo: back in the old group, column gone');
+  ok(undo === 1 && who.group === src.id && who.status === status0 && D.ledger(dest.id).rows.length === cols0, 'undo: back in the old group, column gone');
   D.transfer([sid], dest.id); D.reset();
   ok(who.group === src.id && !Object.keys(D.sync.edits()).length, 'reset clears transfers');
 }
@@ -283,6 +284,24 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
   ok(D.journey(r.student).chapters[0].events.some(e => e.kind === 'status' && e.from === 'proba' && e.to === 'activ'), 'journey: Ora de proba -> Activ is in the journey');
   D.undoEnrol(r); ok(D.journey(r.student) === null, 'journey: an undone enrolment leaves no trace');
   D.reset();
+}
+// the story students: a past in several groups, built into the data (Resetează does not remove them)
+{
+  const cents = v => Math.round(v * 100) / 100, eq = (x, y) => Math.abs(x - y) < 0.0051;
+  const multi = D.students.filter(x => D.transfersOf(x.id).length);
+  ok(multi.length === 3, 'story students: three of them (' + multi.length + ')');
+  ok(multi.some(x => D.transfersOf(x.id).length === 2) && multi.some(x => x.status === 'inactiv'), 'story students: one with two transfers, one who ended inactive');
+  multi.forEach(x => {
+    const j = D.journey(x.id), ch = j.chapters;
+    ok(ch.length === D.transfersOf(x.id).length + 1, 'story: a chapter per group ' + x.id);
+    ok(eq(j.totals.balance, cents(ch.reduce((t, c) => t + c.sold, 0))), 'story: the balance is the sum of the groups ' + x.id);
+    ok(ch.every((c, i) => i === ch.length - 1 || (c.fin && eq(c.sold, c.fin.debt ? -c.fin.debt : 0) || c.fin)), 'story: every leaving chapter has its money split ' + x.id);
+    ch.forEach((c, i) => { if (i > 0 && !c.leave) ok(c.finIn && eq(c.paid + c.disc, cents(c.finIn.achRem + c.finIn.redRem)), 'story: a chapter starts with what came from the old group ' + x.id); });
+    ok(ch.every(c => c.events.length >= 2) && ch.slice(1).every(c => c.held >= 1), 'story: events and lessons in every chapter ' + x.id);
+    ok(ch.slice(0, -1).every(c => c.fin && eq(c.sold, c.fin.debt > 0 ? -c.fin.debt : 0)), 'story: the old group ends at 0 (or keeps the debt) ' + x.id);
+  });
+  const dead = multi.find(x => x.status === 'inactiv'), jd = D.journey(dead.id);
+  ok(jd.chapters[jd.chapters.length - 1].events.some(e => e.kind === 'status' && e.to === 'inactiv'), 'story: the inactive one has a dated end');
 }
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));

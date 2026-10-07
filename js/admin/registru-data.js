@@ -217,7 +217,11 @@
     // his column (marks, money) but no lesson from the day of the transfer on can be marked for him, and the new
     // group's lessons before that day cannot be marked for the one who came.
     const known = new Set(G.rows.map(r => r.s.id));
-    const extra = D.studentsOf(g.id).filter(s => !known.has(s.id)).map(s => ({ s, codes: [], paid: 0, disc: 0 }));
+    const extra = D.studentsOf(g.id).filter(s => !known.has(s.id)).map(s => {
+      const T0 = D.stint(s, g.id);
+      // a story student (js/admin/mock-data.js, buildSeeds) was really here for a while: his lessons have marks
+      return { s, codes: T0.inEntry && T0.inEntry.seed ? seedCodes(s.id, g.id, G, T0.join, T0.leave || '9999-12-31') : [], paid: 0, disc: 0 };
+    });
     const rows = G.rows.concat(extra).map(r => {
       const T = D.stint(r.s, g.id);
       // The money of a transfer (the Calculator's formulas, see transferFin): what the student brought from the old group
@@ -392,10 +396,8 @@
      Everything is rounded to cents so that consumed + moved = A + R exactly. If the lessons cost more than A + R, the
      student owes the difference: it stays in the old group (nothing negative is sent to the new one). */
   const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
-  function transferFin(gid, sid) {
-    const x = ledger(gid).rows.find(r => r.s.id === sid);
-    if (!x) return null;
-    const A = round2(x.paid), R = round2(x.disc), C = round2(x.cost), total = round2(A + R);
+  function splitMoney(a, r, c) {
+    const A = round2(a), R = round2(r), C = round2(c), total = round2(A + R);
     const used = Math.min(C, total);
     let achC = 0, redC = 0;
     if (total > 0 && used > 0) {
@@ -405,6 +407,40 @@
     }
     return { A, R, C, achC, redC, achRem: round2(A - achC), redRem: round2(R - redC), debt: round2(Math.max(0, C - total)) };
   }
+  function transferFin(gid, sid) {
+    const x = ledger(gid).rows.find(r => r.s.id === sid);
+    return x ? splitMoney(x.paid, x.disc, x.cost) : null;
+  }
+  /* The story students' transfers have no stored split: it is worked out from the generated register of the group he
+     left, the same way, as of the day of the transfer (a second transfer starts from what the first one brought). */
+  const seedFinCache = new Map();
+  const genOf = gid => { let G = gens.get(gid); if (!G) { G = generate(D.group(gid)); gens.set(gid, G); } return G; };
+  function seedCodes(sid, gid, G, fromIso, toIso) {
+    const rs = rng(hash('sc' + sid + gid)), out = [];
+    G.lessons.forEach((l, i) => { const d = D.iso(l.date); if (d >= fromIso && d < toIso) out[i] = weighted(rs, [['P', 84], ['M', 10], ['A', 6]]); });
+    return out;
+  }
+  function finOfEntry(t) { return t ? (t.fin || (t.seed ? seedFin(t) : null)) : null; }
+  function seedFin(t) {
+    if (seedFinCache.has(t.id)) return seedFinCache.get(t.id);
+    const G = genOf(t.from), base = G.rows.find(r => r.s.id === t.s);
+    const prev = D.transfersOf(t.s).filter(x => x.to === t.from && x.at < t.at).pop();
+    let A, R, codes;
+    if (prev) { const f = finOfEntry(prev); A = f.achRem; R = f.redRem; codes = seedCodes(t.s, t.from, G, prev.iso, t.iso); }
+    else { A = base.paid; R = base.disc; codes = base.codes; }
+    let C = 0;
+    G.lessons.forEach((l, i) => { if (D.iso(l.date) < t.iso && PAID_MARK[codes[i]]) C += l.price; });
+    const f = splitMoney(A, R, C);
+    seedFinCache.set(t.id, f);
+    return f;
+  }
+  const baseStint = D.stint;
+  D.stint = (s, gid) => {
+    const T = baseStint(s, gid);
+    if (T.inEntry && T.inEntry.seed && !T.finIn) T.finIn = seedFin(T.inEntry);
+    if (T.outEntry && T.outEntry.seed && !T.finOut) T.finOut = seedFin(T.outEntry);
+    return T;
+  };
   /* the plan to show before confirming: one entry per student of the group */
   function transferPlan(gid, sids) { return sids.map(id => { const f = transferFin(gid, id); return f ? Object.assign({ sid: id }, f) : null; }).filter(Boolean); }
   const baseTransfer = D.transfer;

@@ -1043,7 +1043,9 @@ body.ax .cn-state[role="status"]::before { content: ''; position: absolute; inse
 body.ax button, body.ax a, body.ax input, body.ax summary, body.ax [role="tab"] { -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
 .ax-sign { height: 100vh; height: 100dvh; }
 @media (max-width: 960px) { .ax-sign { height: auto; bottom: 0; } }
-.ax-drawer__body, .ax-rail, .rp-side, .ax-sel__pop, .ax-sign, .rp-scroll, .ax-table-wrap { overscroll-behavior: contain; }
+.ax-drawer__body, .ax-rail, .rp-side, .ax-sel__pop, .ax-sign, .rp-scroll { overscroll-behavior: contain; }
+/* a wide table scrolls sideways inside its wrap; going up and down must reach the page (contain on both axes swallowed the wheel over the table) */
+.ax-table-wrap { overscroll-behavior-x: contain; overscroll-behavior-y: auto; }
 /* hover lifts are for pointers: on touch screens they would stick after a tap */
 @media (hover: none) {
   .ah-tile:hover, .cl-tab:hover, .ax-btn:hover, .ax-icon-btn:hover, .ax-copy:hover, .cl-copy:hover, .rp-days button:hover, .ax-nav__a:hover .ax-nav__pic, .ax-seg button:hover { transform: none; }

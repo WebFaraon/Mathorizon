@@ -56,7 +56,7 @@
           <header class="jr-ch__h">
             <span class="ax-grade">${esc(g.grade)}</span>
             <div><b>${esc(g.subject)}${g.profile ? ', ' + esc(g.profile) : ''}</b><span>${groupLine(g)}${room ? `, cabinetul ${room.num}` : ', online'} · ${esc(sizeLabel(g.size))}</span></div>
-            ${stHTML(c.status)}
+            <div class="jr-ch__r">${stHTML(c.status)}<span class="jr-spent" title="Costul lecțiilor la care a fost prezent sau absent nemotivat în această grupă"><small>Cheltuit în grupă</small><b data-n="${c.spent}" class="jr-m">${money(c.spent)} lei</b></span></div>
           </header>
           <ol class="jr-ev">${c.events.map((e, k) => { const t = EVENT[e.kind] || EVENT.status; return `
             <li class="jr-e jr-e--${t.tone}" style="--k:${k}"><span class="jr-e__d">${esc(short(e.iso))}</span><span class="jr-e__n" aria-hidden="true">${ico(t.ic, 14)}</span><span class="jr-e__t">${eventText(e)}</span></li>`; }).join('')}</ol>
@@ -118,6 +118,7 @@
             <div><dt>Sold acum</dt><dd class="${J.totals.balance < 0 ? 'is-neg' : J.totals.balance > 0 ? 'is-pos' : ''}">${sgn(J.totals.balance)} lei</dd></div>
           </dl>
         </div>
+        ${J.chapters.length ? (() => { const max = Math.max(...J.chapters.map(c => c.spent), 1); return `<section class="jr-by" aria-label="Cheltuit pe grupe"><h3>Cheltuit pe grupe</h3><ul>${J.chapters.map((c, i) => `<li style="--i:${i}"><span class="jr-by__n"><b>${esc(c.g.subject)}</b> ${esc(D.teacher(c.g.teacher).name)}</span><span class="jr-by__b" aria-hidden="true"><i style="--p:${c.spent / max}"></i></span><span class="jr-by__v">${money(c.spent)} lei</span><small>${c.held} ${c.held === 1 ? 'lecție' : 'lecții'}</small></li>`).join('')}<li class="jr-by__t"><span class="jr-by__n"><b>Total</b></span><span></span><span class="jr-by__v">${money(J.totals.spent)} lei</span><small>${J.totals.held} lecții</small></li></ul></section>`; })() : ''}
         <div class="jr-tl" id="jrTl"><i class="jr-line" aria-hidden="true"></i>${body}</div>
       </div>
       <footer class="jr-f"><span>${J.chapters.length === 1 ? 'O grupă' : J.chapters.length + ' grupe'} în parcurs</span><button type="button" class="ax-btn" data-x>Închide</button></footer>`;

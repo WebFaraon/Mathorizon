@@ -301,6 +301,10 @@
   const baseBy = {};      // the people each group started with (a transfer never changes it)
   students.forEach(s => { if (s.group) (baseBy[s.group] = baseBy[s.group] || []).push(s); });
   let moves = {};         // student id -> his transfers, oldest first (rebuilt from edits.transfers)
+  /* A few demo students already have a past in several groups (a transfer, two transfers, a transfer and then inactive),
+     so the journey of a student has something to show from the first day. They are part of the data, not of the edits:
+     "Resetează" does not remove them. Filled at the end of this file (buildSeeds). */
+  const SEED = { transfers: {}, history: {}, students: {} };
   const BASE_NS = students.length, BASE_NG = groups.length;   // what the generator made; enrolment adds after these
   const dynS = {}, dynG = {};                                   // enrolled students / created groups keep their object between rebuilds
   const idxS = Object.fromEntries(students.map(s => [s.id, s]));
@@ -313,6 +317,7 @@
     applyEnrol();
     Object.entries(edits.groups || {}).forEach(([id, patch]) => { if (idx.groups[id]) Object.assign(idx.groups[id], patch); });
     Object.entries(BASE_S).forEach(([id, b]) => { idxS[id].status = b.status; idxS[id].manager = b.manager; idxS[id].group = b.group; });
+    Object.entries(SEED.students).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
     Object.entries(edits.students || {}).forEach(([id, patch]) => { if (idxS[id]) Object.assign(idxS[id], patch); });
     applyTransfers();
     BASE_T.forEach(b => {
@@ -346,7 +351,7 @@
   }
   function applyTransfers() {
     moves = {};
-    const list = Object.entries(edits.transfers || {}).map(([id, t]) => Object.assign({ id }, t))
+    const list = Object.entries(Object.assign({}, SEED.transfers, edits.transfers || {})).map(([id, t]) => Object.assign({ id }, t))
       .filter(t => idxS[t.s] && idx.groups[t.to]).sort((a, b) => (a.at || 0) - (b.at || 0) || a.id.localeCompare(b.id));
     Object.keys(studentsByGroup).forEach(k => { delete studentsByGroup[k]; });
     Object.keys(baseBy).forEach(k => { studentsByGroup[k] = baseBy[k].slice(); });
@@ -400,7 +405,7 @@
     const gone = s.group !== gid && !!out;
     // a student enrolled here (not by a transfer) joined on his enrolment day: the lessons before it stay closed for him
     const born = !into && s.isNew && s.origin === gid;
-    return { join: into ? into.iso : born ? s.joinedAt : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null, finIn: (into && into.fin) || null, finOut: (gone && out && out.fin) || null };
+    return { join: into ? into.iso : born ? s.joinedAt : null, leave: gone ? out.iso : null, from: into ? into.from : null, to: gone ? out.to : null, finIn: (into && into.fin) || null, finOut: (gone && out && out.fin) || null, inEntry: into || null, outEntry: gone ? out : null };
   }
   const freeSeats = g => Math.max(0, g.size - enrolled(g).length);
 
@@ -612,7 +617,7 @@
     edits.history = edits.history || {};
     edits.history['h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)] = { s: id, from: s.status, to, iso: iso(today), at: Date.now() };
   }
-  const statusLog = sid => Object.entries(edits.history || {}).filter(([, h]) => h.s === sid).map(([id, h]) => Object.assign({ id }, h)).sort((a, b) => a.at - b.at);
+  const statusLog = sid => Object.entries(Object.assign({}, SEED.history, edits.history || {})).filter(([, h]) => h.s === sid).map(([id, h]) => Object.assign({ id }, h)).sort((a, b) => a.at - b.at);
   function patchStudent(id, patch) {
     edits.students = edits.students || {};
     edits.students[id] = Object.assign({}, edits.students[id] || {}, patch);
@@ -633,6 +638,40 @@
   /* A fingerprint of the generated people: two devices that show the same one run the same data. */
   let fp = 2166136261;
   students.forEach(s => { if (!BASE_S[s.id]) return; const t = s.name + s.phone + BASE_S[s.id].group; for (let k = 0; k < t.length; k++) { fp ^= t.charCodeAt(k); fp = Math.imul(fp, 16777619); } });
+
+  /* the story students: the first matching students, far apart, get a deterministic past (dates are days before the demo day) */
+  function buildSeeds() {
+    const back = n => iso(addDays(today, -n));
+    const live = s => s.group && s.status === 'activ' && idx.groups[s.group] && idx.groups[s.group].status === 'activ' && s.joinedAt < back(75) && enrolled(idx.groups[s.group]).includes(s);
+    const hasPast = g => (baseBy[g.id] || []).length > 0;          // its lessons exist (a group with no base students has no history)
+    let at = 1000, taken = 0;
+    const add = (s, from, to, daysAgo) => {
+      SEED.transfers['seed' + (at)] = { s: s.id, from, to, iso: back(daysAgo), prev: 'activ', at: at++, seed: true };
+      applyEdits();
+    };
+    const next = s => transferCandidates([s.id]).find(c => c.fits && c.g.status === 'activ' && hasPast(c.g));
+    const pool = students.filter(live);
+    let last = -100;
+    for (let i = 0; i < pool.length && taken < 3; i++) {
+      if (i - last < 30) continue;
+      const s = pool[i], g0 = idx.groups[s.group], c1 = next(s);
+      if (!c1) continue;
+      if (taken === 0) { add(s, g0.id, c1.g.id, 21); }
+      else if (taken === 1) {
+        add(s, g0.id, c1.g.id, 63);
+        const c2 = next(s); if (!c2) { delete SEED.transfers['seed' + (at - 1)]; applyEdits(); continue; }
+        add(s, c1.g.id, c2.g.id, 16);
+      } else {
+        add(s, g0.id, c1.g.id, 40);
+        SEED.students[s.id] = { status: 'inactiv' };
+        SEED.history['seedh' + s.id] = { s: s.id, from: 'activ', to: 'inactiv', iso: back(12), at: at + 1000 };
+        applyEdits();
+      }
+      taken++; last = i;
+    }
+  }
+  applyEdits();
+  buildSeeds();
 
   window.AdminData = {
     fingerprint: (fp >>> 0).toString(36),
