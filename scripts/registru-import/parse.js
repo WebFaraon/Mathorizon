@@ -245,4 +245,4 @@ function parseWorkbook(book) {
   return model;
 }
 
-module.exports = { parseWorkbook, parseStudentHeader, titleOf, plain, colLetter, dayNumber, priceFor, lessonPay, ROMAN };
+module.exports = { parseWorkbook, readConfig, parseStudentHeader, titleOf, plain, colLetter, dayNumber, priceFor, lessonPay, ROMAN };
