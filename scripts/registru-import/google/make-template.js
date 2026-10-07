@@ -17,6 +17,9 @@ const CLEAR = ["'Total achitări'!A3:B32", "'Total achitări'!F4:AI4", "'Disponi
   if (kept.length !== KEEP.size) throw new Error('Nu am găsit toate filele de păstrat: ' + kept.map(k => k.title));
   await api('POST', `https://sheets.googleapis.com/v4/spreadsheets/${copy.id}:batchUpdate`, { who: 'user', body: { requests: drop.map(p => ({ deleteSheet: { sheetId: p.sheetId } })) } });
   await api('POST', `https://sheets.googleapis.com/v4/spreadsheets/${copy.id}/values:batchClear`, { who: 'user', body: { ranges: CLEAR } });
+  // clearing removes the checkbox rule of the classes grid (nothing else): put it back, unticked
+  const ids = {}; kept.forEach(k => { ids[k.title] = k.sheetId; });
+  await api('POST', `https://sheets.googleapis.com/v4/spreadsheets/${copy.id}:batchUpdate`, { who: 'user', body: { requests: ['Disponibilitate', 'Disponibilitate Vara'].map(n => ({ repeatCell: { range: { sheetId: ids[n], startRowIndex: 2, endRowIndex: 14, startColumnIndex: 10, endColumnIndex: 22 }, cell: { userEnteredValue: { boolValue: false }, dataValidation: { condition: { type: 'BOOLEAN' } } }, fields: 'userEnteredValue,dataValidation' } })) } });
   const after = await api('GET', `https://sheets.googleapis.com/v4/spreadsheets/${copy.id}?fields=sheets.properties(title,sheetId,hidden)`, { who: 'user' });
   console.log('Șablon:', copy.id);
   console.log('File rămase:', after.sheets.map(s => s.properties.title + (s.properties.hidden ? ' (ascunsă)' : '') + ' gid=' + s.properties.sheetId).join(' | '));
