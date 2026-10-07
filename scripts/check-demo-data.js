@@ -96,7 +96,7 @@ ok(D.isAvailable('t5', 1, 21, 1), 'hour 21 available'); ok(D.teacherEdited('t5')
 D.setTeach('t5', [{ subject: 'Matematica', grades: ['V'] }, { subject: 'Chimie', grades: ['X'] }]); ok(D.teacher('t5').subjects.includes('Chimie'), 'new subject');
 // the whole thing survives a reload (a second copy of the code reading the same store) and a reset clears it all
 const saved = localStorage._s; const keep = JSON.stringify(saved);
-ok(Object.keys(JSON.parse(Object.values(saved)[0])).sort().join() === 'groups,ledger,students,teachers', 'what is stored: ' + Object.keys(JSON.parse(Object.values(saved)[0])).join());
+ok(Object.keys(JSON.parse(Object.values(saved)[0])).sort().join() === 'groups,history,ledger,students,teachers', 'what is stored: ' + Object.keys(JSON.parse(Object.values(saved)[0])).join());
 D.reset();
 ok(D.group(g).subject === 'Matematica' && D.group(g).status !== 'inlocuire', 'reset: group');
 ok(D.students.find(s => s.id === x0.s.id).status !== 'transferat', 'reset: student status');
@@ -250,6 +250,39 @@ D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l
     } else seen.other++;
   });
   ok(seen.activ > 20, 'transfer: enough Activ cases tested (' + seen.activ + ')');
+}
+// the journey of a student: groups in order, dates, money, transfers, how a stay ended
+{
+  const cents = v => Math.round(v * 100) / 100, eq = (x, y) => Math.abs(x - y) < 0.0051;
+  // a generated student who left: the end is dated by his last lesson
+  const gone = D.students.find(x => x.status === 'inactiv' && x.group && D.journey(x.id).chapters.some(c => c.last));
+  const jg = D.journey(gone.id), cg = jg.chapters[0];
+  ok(jg.chapters.length === 1 && cg.events[0].kind === 'enrol' && cg.events.some(e => e.kind === 'inactive' && e.iso === cg.last), 'journey: an inactive student has an Inactive event on his last lesson');
+  ok(eq(jg.totals.spent, cg.spent) && eq(jg.totals.balance, cg.sold), 'journey: totals add up (one group)');
+  // a transfer: two chapters, a link with the money
+  const src = D.groups.find(g => g.status === 'activ' && D.enrolled(g).length >= 1 && D.transferCandidates([D.enrolled(g)[0].id]).some(c => c.fits));
+  const stu = D.enrolled(src)[0], dest = D.transferCandidates([stu.id]).find(c => c.fits).g;
+  const before = D.journey(stu.id);
+  D.transfer([stu.id], dest.id);
+  const j = D.journey(stu.id);
+  ok(j.chapters.length === 2 && j.chapters[0].g.id === src.id && j.chapters[1].g.id === dest.id, 'journey: the old group first, then the new one');
+  ok(j.chapters[0].to && j.chapters[0].to.id === dest.id && j.chapters[0].fin && j.chapters[1].from && j.chapters[1].from.id === src.id && j.chapters[1].finIn, 'journey: the transfer links the chapters, with its money');
+  ok(j.chapters[1].events[0].kind === 'arrive', 'journey: the new chapter starts with the arrival');
+  ok(eq(j.totals.balance, cents(j.chapters[0].sold + j.chapters[1].sold)) && eq(j.totals.balance, stu.balance), 'journey: the balance is the sum of the groups');
+  ok(j.totals.spent >= before.totals.spent - 0.01, 'journey: what was spent in the old group stays');
+  // the status log: a change is dated and shows in the chapter that was open
+  D.setStudentStatus(stu.id, 'inactiv');
+  const ev = D.journey(stu.id).chapters[1].events.find(e => e.kind === 'status');
+  ok(ev && ev.from === 'activ' && ev.to === 'inactiv' && ev.iso === D.todayISO, 'journey: a status change is dated');
+  D.reset();
+  // a new student: enrolled today, nothing yet
+  const r = D.enrolStudent({ first: 'Test', last: 'Jurnal', phone: '+37369000001', manager: 'm1', level: '7-8', group: src.id });
+  const jn = D.journey(r.student);
+  ok(jn.chapters.length === 1 && jn.chapters[0].events[0].kind === 'enrol' && jn.chapters[0].events[0].iso === D.todayISO && jn.totals.spent === 0, 'journey: a new student starts today with an enrolment');
+  D.setStudentStatus(r.student, 'activ');
+  ok(D.journey(r.student).chapters[0].events.some(e => e.kind === 'status' && e.from === 'proba' && e.to === 'activ'), 'journey: Ora de proba -> Activ is in the journey');
+  D.undoEnrol(r); ok(D.journey(r.student) === null, 'journey: an undone enrolment leaves no trace');
+  D.reset();
 }
 console.log(`DATA: ${pass} checks passed, ${fail} failed | ${D.groups.length} groups, ${nRows} student columns, ${nLessons} lessons, ${D.teachers.length} teachers (${teachersWithGroups} with groups)`);
 fails.forEach(f => console.log('  FAIL', f));

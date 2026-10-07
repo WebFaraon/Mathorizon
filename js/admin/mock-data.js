@@ -16,7 +16,7 @@
      setAvailability(teacherId, availability), setTeach(teacherId, rows),
      transfer(studentIds, toGroupId), undoTransfer(ids), statusIn(student, groupId),
      stint(student, groupId), baseMembers(groupId), transferCandidates(studentIds),
-     comments(), addComment({ k, g, by, role, t }), deleteComments(ids),
+     comments(), addComment({ k, g, by, role, t }), deleteComments(ids), statusLog(studentId),
      enrolCandidates(query), newGroupOptions(query), freeRoom(days, start, duration), enrolStudent(data), undoEnrol(result),
      resetTeacher(id), teacherEdited(id), base(groupId),
      reset(), onChange(fn)
@@ -568,6 +568,7 @@
     if (edits.newStudents) delete edits.newStudents[r.student];
     if (r.newGroup && edits.newGroups) { delete edits.newGroups[r.newGroup]; if (edits.ledger) delete edits.ledger[r.newGroup]; }
     if (edits.students) delete edits.students[r.student];
+    if (edits.history) { Object.keys(edits.history).forEach(k => { if (edits.history[k].s === r.student) delete edits.history[k]; }); if (!Object.keys(edits.history).length) delete edits.history; }
     ['newStudents', 'newGroups'].forEach(k => { if (edits[k] && !Object.keys(edits[k]).length) delete edits[k]; });
     applyEdits();
     save();
@@ -604,6 +605,14 @@
     if ('subject' in patch) teachers.forEach(t => { t.subjects = subjectsOf(t); });
     save();
   }
+  /* every change of a student's status is written down with its day (edits.history), for the journey of the student */
+  function logStatus(id, to) {
+    const s = idxS[id];
+    if (!s || s.status === to) return;
+    edits.history = edits.history || {};
+    edits.history['h' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6)] = { s: id, from: s.status, to, iso: iso(today), at: Date.now() };
+  }
+  const statusLog = sid => Object.entries(edits.history || {}).filter(([, h]) => h.s === sid).map(([id, h]) => Object.assign({ id }, h)).sort((a, b) => a.at - b.at);
   function patchStudent(id, patch) {
     edits.students = edits.students || {};
     edits.students[id] = Object.assign({}, edits.students[id] || {}, patch);
@@ -639,14 +648,14 @@
     project: id => PROJECTS.find(p => p.id === id),
     studentsOf: gid => studentsByGroup[gid] || [],
     baseMembers: gid => baseBy[gid] || [],
-    enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer, comments, addComment, deleteComments,
+    enrolled, freeSeats, conflicts, isAvailable, statusIn, stint, transferCandidates, transfer, undoTransfer, comments, addComment, deleteComments, statusLog,
     enrolCandidates, newGroupOptions, freeRoom, enrolStudent, undoEnrol, needsProfile: LICEU,
     transfersOf: sid => (moves[sid] || []).slice(),
     move: (id, patch) => patchGroup(id, patch),
     setStatus: (id, status) => patchGroup(id, { status }),
     edited: () => Object.keys(edits.groups || {}).length,
     setGroup: (id, patch) => patchGroup(id, patch),
-    setStudentStatus: (id, status) => patchStudent(id, { status }),
+    setStudentStatus: (id, status) => { logStatus(id, status); patchStudent(id, { status }); },
     baseStatus: id => BASE_S[id].status,
     setStudentManager: (id, manager) => patchStudent(id, { manager }),
     ledgerEdits: () => edits.ledger || {},

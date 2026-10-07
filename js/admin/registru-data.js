@@ -414,6 +414,50 @@
     return baseTransfer(sids, toGid, fins);
   };
 
+  /* ---- the journey of a student: every group he was in, with dates, lessons and money, and what happened between ----
+     Chapters (one per group, in the order he joined them) with the events inside each; the links between chapters are the
+     transfers. Dates come from the register (first and last marked lesson), the transfers and the status log. */
+  function journey(sid) {
+    const s = D.students.find(x => x.id === sid);
+    if (!s) return null;
+    const moves = D.transfersOf(sid), log = D.statusLog(sid);
+    const chapters = [];
+    D.groups.forEach(g => {
+      if (!D.studentsOf(g.id).includes(s)) return;
+      const L = ledger(g.id), x = L.rows.find(r => r.s.id === sid);
+      if (!x) return;
+      const T = D.stint(s, g.id);
+      const into = moves.filter(t => t.to === g.id).pop(), out = moves.filter(t => t.from === g.id).pop();
+      const coded = x.codes.map((c, i) => (c ? i : -1)).filter(i => i >= 0);
+      const first = coded.length ? { iso: L.lessons[coded[0]].iso, code: x.codes[coded[0]] } : null;
+      const last = coded.length ? L.lessons[coded[coded.length - 1]].iso : null;
+      chapters.push({ g, x, status: x.status, join: T.join || s.joinedAt, joinAt: into ? into.at : -Infinity, leave: T.leave, leaveAt: T.leave && out ? out.at : Infinity,
+        from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, first, last, held: x.done, spent: x.cost, paid: x.paid, disc: x.disc, sold: x.sold, fin: T.finOut || null, finIn: T.finIn || null });
+    });
+    chapters.sort((a, b) => a.joinAt - b.joinAt || a.join.localeCompare(b.join));
+    chapters.forEach((c, k) => { c.events = []; c.k = k; });
+    chapters.forEach((c, k) => {
+      c.events.push(k === 0 ? { iso: c.join, kind: 'enrol', title: 'Înscris' } : { iso: c.join, kind: 'arrive', title: 'Venit prin transfer', from: c.from });
+      if (c.first) c.events.push({ iso: c.first.iso, kind: 'first', title: 'Prima lecție', code: c.first.code });
+    });
+    // status changes: they belong to the chapter that was open when they happened
+    log.forEach(h => {
+      const c = chapters.find(x => h.at >= x.joinAt && h.at < x.leaveAt) || chapters[chapters.length - 1];
+      if (c) c.events.push({ iso: h.iso, kind: 'status', title: 'Statut schimbat', from: h.from, to: h.to });
+    });
+    // an end that the log does not have (the generated students): the last lesson tells when
+    chapters.forEach(c => {
+      const ended = c.status === 'inactiv' || (c.status === 'transferat' && !c.to);
+      const logged = c.events.some(e => e.kind === 'status' && (e.to === 'inactiv' || e.to === 'transferat'));
+      if (ended && !logged) c.events.push({ iso: c.last || c.join, kind: c.status === 'inactiv' ? 'inactive' : 'moved', title: c.status === 'inactiv' ? 'Devine inactiv' : 'Transferat', last: c.last, unknown: c.status === 'transferat' });
+      else if ((c.leave || ended) && c.last) c.events.push({ iso: c.last, kind: 'last', title: 'Ultima lecție' });
+    });
+    const order = { enrol: 0, arrive: 0, first: 1, status: 2, last: 3, inactive: 4, moved: 4 };
+    chapters.forEach(c => c.events.sort((a, b) => a.iso.localeCompare(b.iso) || order[a.kind] - order[b.kind]));
+    const sum = k => Math.round(chapters.reduce((t, c) => t + c[k], 0) * 100) / 100;
+    return { student: s, chapters, links: moves, totals: { spent: sum('spent'), paid: sum('paid'), disc: sum('disc'), held: sum('held'), balance: s.balance }, since: chapters.length ? chapters[0].join : s.joinedAt };
+  }
+
   /* ---- the ledger is the source of the balances the console shows ---- */
   const mapMark = c => (c === 'A' || c === 'B' ? 'a' : c === 'M' ? 'm' : 'p');
   function applyToStudents() {
@@ -450,5 +494,5 @@
 
   /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
   const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
-  Object.assign(D, { transferFin, transferPlan, soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
+  Object.assign(D, { journey, transferFin, transferPlan, soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
 })();

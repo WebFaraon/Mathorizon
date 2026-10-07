@@ -4,7 +4,7 @@
    controls (ink when chosen); the signal blue only for the one action of a step.
    ============================================================ */
 body.ax .in-note { margin: 0 0 4px; padding: 0 2px; font-size: 0.82rem; line-height: 1.4; color: var(--ax-ink-3); }
-body.ax .in-clear { padding: 0; border: 0; background: none; font-size: 0.8rem; font-weight: 700; letter-spacing: 0; text-transform: none; color: var(--ax-blue); cursor: pointer; }
+body.ax .in-clear { align-self: flex-start; justify-self: start; padding: 2px; border: 0; background: none; font-size: 0.84rem; font-weight: 700; color: var(--ax-blue); cursor: pointer; animation: in-fadein 0.25s var(--ax-ease); }
 body.ax .in-clear:hover { text-decoration: underline; }
 body.ax .in-f { display: grid; gap: 8px; }
 body.ax .in-l { font-size: 0.84rem; font-weight: 700; color: var(--ax-ink); }

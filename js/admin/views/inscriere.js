@@ -55,7 +55,7 @@
       <div class="in-prof${lyceum() ? ' is-open' : ''}" id="inProf"><div><div class="in-fl"><span class="ax-rail__lbl" id="inLp">Profilul <small>liceu</small></span><select class="ax-select" data-k="profile" aria-labelledby="inLp">${opt('', 'Alege profilul', S.profile)}${['Real', 'Uman'].map(x => opt(x, x, S.profile)).join('')}</select></div></div></div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLl">Nivelul</span><select class="ax-select" data-k="level" aria-labelledby="inLl">${opt('', 'Nu știu încă', S.level)}${D.LEVELS.map(x => opt(x, 'Nivel ' + x, S.level)).join('')}</select></div>
       <div class="ax-rail__sep"></div>
-      <div class="ax-rail__head"><b>Dorințele părintelui</b><button type="button" class="in-clear" data-clear-wish hidden>Șterge</button></div>
+      <div class="ax-rail__head"><b>Dorințele părintelui</b></div>
       <p class="in-note">Le folosești doar dacă părintele le cere.</p>
       <div data-ms="days"></div>
       <div class="in-row">
@@ -64,6 +64,7 @@
       </div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Oricare', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
       <div class="in-fl"><span class="ax-rail__lbl">Profesorul</span><div class="ax-search">${ico('search', 16)}<input id="inProfQ" class="ax-input" type="search" autocomplete="off" placeholder="Nume profesor" aria-label="Profesorul" value="${esc(S.prof)}"></div></div>
+      <button type="button" class="in-clear" data-clear-wish hidden>Șterge dorințele</button>
       <button type="button" class="in-reset" data-reset>${ico('undo', 16)} Începe de la zero</button>`;
   }
   /* what changes when a dropdown changes, without redrawing the rail (so the open ones stay open) */
@@ -71,7 +72,7 @@
     const rail = root.querySelector('#inRail'); if (!rail) return;
     rail.querySelector('#inProf').classList.toggle('is-open', lyceum());
     const c = rail.querySelector('[data-clear-wish]'), n = wishes();
-    c.hidden = !n; c.textContent = n ? `Șterge (${n})` : 'Șterge';
+    c.hidden = !n; c.textContent = n ? `Șterge dorințele (${n})` : 'Șterge dorințele';
   }
   function buildRail() {
     const rail = root.querySelector('#inRail');

@@ -244,6 +244,7 @@
         <td>${stHTML(st.status, statusName(D.STUDENT_STATUS, st.status))}<span class="el-mgr">${m ? `<span class="ax-mgr" data-i="${esc(initials(m.name))}" title="${esc(m.name)}">${esc(m.short)}</span>` : ''}</span></td>
         <td class="ax-num"><span class="el-bal${st.balance < 0 ? ' ax-neg' : st.balance === 0 ? ' is-zero' : ''}">${U.money(st.balance)}</span></td>
         ${groupCells}
+        <td class="el-hist"><button type="button" class="el-hbtn" data-hist="${st.id}" aria-label="Istoricul lui ${esc(st.name)}" title="Parcursul elevului">${ico('history', 16)}<span>Istoric</span></button></td>
       </tr>`;
   }
 
@@ -270,6 +271,7 @@
             <th scope="col">Profesor</th>
             ${thHTML('grade', s)}
             <th scope="col">Orar</th>
+            <th scope="col" class="el-hist"><span class="or-vh">Istoric</span></th>
           </tr></thead>
           <tbody>${rows.map((st, i) => rowHTML(st, i)).join('')}</tbody>
         </table>
@@ -345,10 +347,13 @@
           </section>
         </div>`,
       actions: `
+        <button type="button" class="ax-btn" data-journey>${ico('history', 16)} Istoric</button>
         <a class="ax-btn" href="tel:${esc(st.phone)}">${ico('phone', 16)} Sună</a>
         ${g ? `<a class="ax-btn ax-btn--dark" href="#orar?prof=${encodeURIComponent(D.teacher(g.teacher).name)}" data-go>${ico('grid', 16)} Orarul profesorului</a>` : ''}`
     });
     el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
+    const jb = el.querySelector('[data-journey]');
+    if (jb) jb.addEventListener('click', () => { el.close(); window.AdminJourney.open(st.id); });
   }
 
   /* ---- view ---- */
@@ -477,6 +482,8 @@
         return;
       }
       if (e.target.closest('[data-clearall]')) { clearAll(); return; }
+      const hb = e.target.closest('[data-hist]');
+      if (hb) { window.AdminJourney.open(hb.dataset.hist); return; }
       const tr = e.target.closest('tr[data-open]');
       if (tr && !e.target.closest('a,button')) openStudent(tr.dataset.open);
     });
