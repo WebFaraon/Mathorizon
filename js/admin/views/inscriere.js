@@ -317,7 +317,7 @@
       dlg.classList.add('is-ok');
       dlg.innerHTML = doneHTML(res);
       paintAll(false);
-      dlg.querySelector('[data-fin]').focus();
+      dlg.querySelector('[data-another]').focus();
     }
     function doneHTML(res) {
       const G = D.group(res.group), tt = D.teacher(G.teacher), m = D.manager(st.mgr);
@@ -334,8 +334,7 @@
           </ul>
           <p class="in-ok__note">Elevul e deja în registrul lui ${esc(tt.name)}, cu o coloană nouă. Prima lecție e gratuită.</p>
           <div class="in-ok__f">
-            <a class="ax-btn ax-btn--primary" href="registru.html?t=${encodeURIComponent(G.teacher)}#grupa/${G.id}" target="_blank" rel="noopener" data-fin>${ico('book-open', 16)} Deschide registrul profesorului</a>
-            <button type="button" class="ax-btn" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>
+            <button type="button" class="ax-btn ax-btn--primary" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>
             <button type="button" class="ax-btn in-undo" data-undo>${ico('undo', 16)} Anulează înscrierea</button>
           </div>
         </div>`;

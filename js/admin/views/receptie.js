@@ -151,11 +151,6 @@
     const st = { slides: [], i: 0, paused: false, key: '', timers: [], offs: [] };
     const q = s => root.querySelector(s);
     const stage = q('#rcStage'), grid = q('#rcGrid'), prog = q('#rcProg');
-    // a click on a lesson opens that teacher's register at the group, in a new tab (not on the TV itself)
-    const openReg = card => { if (!card || tv) return; window.open(`registru.html?t=${encodeURIComponent(card.dataset.tid)}#grupa/${card.dataset.gid}`, '_blank', 'noopener'); };
-    grid.addEventListener('click', e => openReg(e.target.closest('.rc-card')));
-    grid.addEventListener('keydown', e => { if ((e.key === 'Enter' || e.key === ' ') && e.target.classList && e.target.classList.contains('rc-card')) { e.preventDefault(); openReg(e.target); } });
-
     const keyOf = p => [p.now.map(g => g.id).join(), p.next.map(g => g.id).join(), p.tomorrow ? p.tomorrow.groups.map(g => g.id).join() : ''].join('|');
 
     function paintClock() {

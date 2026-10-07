@@ -658,9 +658,8 @@
       if (drag.justDropped) { drag.justDropped = false; return; }
       const g = D.group(card.dataset.g);
       if (!g) return;
-      // a click opens the teacher's register at that group, in a new tab; Shift+click keeps the old side panel
-      if (e.shiftKey) { openDrawer(g.id); return; }
-      window.open(`registru.html?t=${encodeURIComponent(g.teacher)}#grupa/${g.id}`, '_blank', 'noopener');
+      // a click opens the side panel (the link to the in-platform register is switched off)
+      openDrawer(g.id);
     });
     wireDrag(sc, board, s);
   }

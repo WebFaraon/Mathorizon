@@ -305,7 +305,6 @@
           <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span></p>
         </div>
         <div class="dp-who__keys">
-          <a class="ax-btn ax-btn--sm" href="registru.html?t=${t.id}#disponibilitate" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>
           <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
         </div>
       </div>
@@ -363,11 +362,8 @@
     if (!box) return;
     const t = D.teacher(S.t);
     box.innerHTML = t ? weekHTML(t) : `<div class="ax-empty"><b>Alege un profesor</b>din lista din stânga.</div>`;
-    // a click opens the teacher's register at that group, in a new tab (as in Repartizare); Shift+click keeps the side panel
-    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', e => {
-      if (e.shiftKey) { openGroup(b.dataset.g, +b.dataset.d); return; }
-      window.open(`registru.html?t=${encodeURIComponent(S.t)}#grupa/${b.dataset.g}`, '_blank', 'noopener');
-    }));
+    // a click opens the group in the side panel (the link to the in-platform register is switched off)
+    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', () => openGroup(b.dataset.g, +b.dataset.d)));
   }
 
   function paintList() {
