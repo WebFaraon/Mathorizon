@@ -305,6 +305,7 @@
           <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span></p>
         </div>
         <div class="dp-who__keys">
+          ${window.AdminSheetLinks && window.AdminSheetLinks.teacherUrl(t.id) ? `<a class="ax-btn ax-btn--sm" href="${window.AdminSheetLinks.teacherUrl(t.id)}" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>` : ''}
           <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
         </div>
       </div>
@@ -362,8 +363,11 @@
     if (!box) return;
     const t = D.teacher(S.t);
     box.innerHTML = t ? weekHTML(t) : `<div class="ax-empty"><b>Alege un profesor</b>din lista din stânga.</div>`;
-    // a click opens the group in the side panel (the link to the in-platform register is switched off)
-    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', () => openGroup(b.dataset.g, +b.dataset.d)));
+    // a click opens the group's tab in its Google Sheets register; a group with no register yet opens the side panel (Shift+click always does)
+    box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', e => {
+      const url = !e.shiftKey && window.AdminSheetLinks && window.AdminSheetLinks.groupUrl(b.dataset.g);
+      if (url) window.open(url, '_blank', 'noopener'); else openGroup(b.dataset.g, +b.dataset.d);
+    }));
   }
 
   function paintList() {

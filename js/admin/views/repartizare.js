@@ -658,8 +658,9 @@
       if (drag.justDropped) { drag.justDropped = false; return; }
       const g = D.group(card.dataset.g);
       if (!g) return;
-      // a click opens the side panel (the link to the in-platform register is switched off)
-      openDrawer(g.id);
+      // a click opens the group's tab in its Google Sheets register; a group with no register yet opens the side panel (Shift+click always does)
+      const url = !e.shiftKey && window.AdminSheetLinks && window.AdminSheetLinks.groupUrl(g.id);
+      if (url) window.open(url, '_blank', 'noopener'); else openDrawer(g.id);
     });
     wireDrag(sc, board, s);
   }
