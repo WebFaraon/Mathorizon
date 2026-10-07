@@ -56,7 +56,7 @@
     profesor: { label: 'Profesor', key: g => g.teacher, order: TEACHERS.map(t => t.id), name: k => D.teacher(k).name },
     proiect: { label: 'Proiect', key: g => g.project, order: D.PROJECTS.map(p => p.id), name: k => D.project(k).name },
     statut: { label: 'Statut grup', key: g => g.status, order: D.GROUP_STATUS.map(s => s.id), name: k => GST[k] },
-    format: { label: 'Format grup', key: g => g.size, order: [1, 2, 3, 4, 5, 6], name: k => (k === 1 ? 'Individual' : k + ' locuri') }
+    format: { label: 'Format grup', key: g => g.size, order: [1, 2, 3, 4, 5, 6, 8], name: k => (k === 1 ? 'Individual' : k + ' locuri') }
   };
   const VALS = {
     grupe: { label: 'Număr grupe', agg: gs => gs.length },

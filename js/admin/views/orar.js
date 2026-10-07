@@ -539,7 +539,7 @@
       subj: { label: 'Disciplină', opts: D.SUBJECTS.map(x => ({ value: x, label: x })), by: g => g.subject },
       grade: { label: 'Clasa', opts: D.GRADES.map(x => ({ value: x, label: 'Clasa ' + x })), by: g => g.grade },
       level: { label: 'Nivel de cunoștințe', opts: D.LEVELS.map(x => ({ value: x, label: 'Nivel ' + x })), by: g => g.level },
-      size: { label: 'Format grup', opts: [1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: sizeLabel(n) })), by: g => String(g.size) }
+      size: { label: 'Format grup', opts: [1, 2, 3, 4, 5, 6, 8].map(n => ({ value: String(n), label: sizeLabel(n) })), by: g => String(g.size) }
     };
     Object.entries(msDefs).forEach(([k, def]) => {
       const c = count(def.by);

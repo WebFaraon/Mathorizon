@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "lint:explicatii": "node scripts/lint-barem-explicatii.js",
     "test": "echo \"Error: no test specified\" && exit 1",
-    "check:demo": "node scripts/check-demo-data.js"
+    "check:demo": "node scripts/check-demo-data.js",
+    "import:registru": "node scripts/registru-import/run.js"
   },
   "repository": {
     "type": "git",
@@ -39,6 +40,7 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "typescript": "^7.0.2",
-    "vite": "^8.3.0"
+    "vite": "^8.3.0",
+    "xlsx": "^0.18.5"
   }
 }

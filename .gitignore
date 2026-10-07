@@ -14,3 +14,6 @@ assets/react/.vite/
 .impeccable/review/
 .impeccable/questions/
 .impeccable/hook.cache.json
+
+# Registers imported for checking (they hold real names and phones)
+_import/

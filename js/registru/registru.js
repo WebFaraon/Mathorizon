@@ -648,7 +648,7 @@
   /* ============================================================
      One group
      ============================================================ */
-  const SIZES = [1, 2, 3, 4, 5, 6, 7, 8].map(n => [n, sizeLabel(n)]);
+  const SIZES = [1, 2, 3, 4, 5, 6, 8].map(n => [n, sizeLabel(n)]);
   const opts = (list, cur) => list.map(([v, l]) => `<option value="${esc(v)}"${String(v) === String(cur) ? ' selected' : ''}>${esc(l)}</option>`).join('');
   const ps = (field, cur, list, tone, label) => `<div class="rg-ps ${tone}"><select class="ax-select" data-gf="${field}" aria-label="${esc(label)}">${opts(list, cur)}</select></div>`;
   const STONE = { activ: 'ok', proba: 'info', proba_ok: 'info', instabil: 'warn', inlocuire: 'lilac', transferat: 'grey', inactiv: 'bad' };

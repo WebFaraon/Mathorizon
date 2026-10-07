@@ -419,7 +419,7 @@
       gstatus: { label: 'Statut grup', tone: true, opts: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })), c: countSG(g => g.status) },
       subj: { label: 'Disciplină', opts: D.SUBJECTS.map(x => ({ value: x, label: x })), c: countSG(g => g.subject) },
       grade: { label: 'Clasa', opts: D.GRADES.map(x => ({ value: x, label: 'Clasa ' + x })), c: countSG(g => g.grade) },
-      size: { label: 'Format grup', opts: [1, 2, 3, 4, 5, 6].map(n => ({ value: String(n), label: sizeLabel(n) })), c: countSG(g => String(g.size)) },
+      size: { label: 'Format grup', opts: [1, 2, 3, 4, 5, 6, 8].map(n => ({ value: String(n), label: sizeLabel(n) })), c: countSG(g => String(g.size)) },
       status: { label: 'Statut elev', tone: true, opts: D.STUDENT_STATUS.map(x => ({ value: x.id, label: x.name })), c: countS(st => st.status) },
       level: { label: 'Nivel de cunoștințe', opts: D.LEVELS.map(x => ({ value: x, label: 'Nivel ' + x })), c: countS(st => st.level) },
       manager: { label: 'Manager', opts: D.managers.map(x => ({ value: x.id, label: x.name })), c: countS(st => st.manager) }

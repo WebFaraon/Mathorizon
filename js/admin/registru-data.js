@@ -17,7 +17,7 @@
    Added to window.AdminData (also setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate):
      ledger(groupId)   -> { lessons, rows, stats, rate, ... } for one group
      teacherBook(tid)  -> { groups, totals, earned, payments, due, ... }
-     tLevel(tid), rateOf(group), rateBySize(size), lessonPay(size, present), tabName(group), schedule(group)
+     tLevel(tid), rateOf(group), rateBySize(size), lessonPay(size, paying, level), tabName(group), schedule(group)
      MONTHS
 
    History is generated once from the original schedule of each group
@@ -79,21 +79,28 @@
 
   const LEVEL_PCT = { 1: 0.20, 2: 0.22, 3: 0.24, 4: 0.26, 5: 0.28 };
   const tLevel = tid => 2 + ((parseInt(tid.slice(1), 10) * 5) % 4);        // 2..5
-  /* What a student pays per hour, by the format of the group (individual 608, three students 288 each, ...).
-     Sizes 2, 4 and 5 are in between (not given): they can be corrected here, or per group in the sheet. */
-  const STUDENT_RATE = { 1: 608, 2: 380, 3: 288, 4: 250, 5: 230, 6: 218 };
-  const rateBySize = n => STUDENT_RATE[Math.min(6, Math.max(1, +n || 1))];
+  /* What a student pays per hour, by the format of the group, as in the teachers' registers (cell A1, "Grup cu 6 elevi"):
+     the price list of the sheet's formulas. 7 is not a format. Kept equal to scripts/registru-import/pay.js (check-demo-data compares them). */
+  const STUDENT_RATE = { 1: 608, 2: 348, 3: 288, 4: 248, 5: 228, 6: 218, 7: 0, 8: 148 };
+  const rateBySize = n => STUDENT_RATE[+n] || STUDENT_RATE[1];
   const rateOf = g => rateBySize(g.size);
 
-  /* What the teacher earns per hour of a lesson, by how many students are charged for it (marked P or A; G, M, B and an empty cell are not): everybody 255, one missing 218,
-     fewer 175, and 0 when nobody came. (Individual: 255. Three students: 1 -> 175, 2 -> 218, 3 -> 255.
-     Six: 1 to 4 -> 175, 5 -> 218, 6 -> 255.) */
-  const PAY_MIN = 175, PAY_MID = 218, PAY_TOP = 255;
-  function lessonPay(size, present) {
-    if (present <= 0) return 0;
-    if (present >= size) return PAY_TOP;
-    if (present === size - 1) return PAY_MID;
-    return PAY_MIN;
+  /* What the teacher earns for one lesson: the registers' column C formula. It depends on the group's format, on how many students are
+     charged for the lesson (marked P or A; G, M, B and an empty cell are not) and on the teacher's level (1..6). Nobody charged = 0.
+     Full group and the cap by level; fewer students get a share of it (a floor of 3 of 4 and 4 of 5 for groups of 4 and 5). */
+  const PAY_MAX_8 = { 1: 180, 2: 235, 3: 255, 4: 270, 5: 280, 6: 325 }, PAY_MAX = { 1: 165, 2: 215, 3: 235, 4: 255, 5: 265, 6: 305 };
+  const GUARANTEED = { 4: 3, 5: 4 };
+  function lessonPay(size, paying, level) {
+    if (!(size >= 1) || !paying) return 0;
+    const max = (size === 8 ? PAY_MAX_8 : PAY_MAX)[level] || 0;
+    const counted = Math.max(paying, GUARANTEED[size] || 0);
+    let f;
+    if (size === 3) f = { 1: 0.6863, 2: 0.8549, 3: 1 }[paying];
+    else if (size === 6) f = { 1: 0.6863, 2: 0.6863, 3: 0.6863, 4: 0.6863, 5: 0.8549, 6: 1 }[paying];
+    else if (size === 8) f = paying < 3 ? 0.6296 : paying < 6 ? 0.7519 : paying / size;
+    else f = counted / size;
+    if (f === undefined) f = paying / size;
+    return f * max;
   }
 
   /* "Luni/Miercuri 12:00", "Joi 10:00-12:00 (Vară)": the name of the group's tab in the register */
@@ -276,7 +283,7 @@
       l.paying = paying;
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
-      l.pay = l.counted ? lessonPay(g.size, paying) : 0;
+      l.pay = l.counted ? lessonPay(g.size, paying, tLevel(g.teacher)) : 0;
     });
 
     const months = [];

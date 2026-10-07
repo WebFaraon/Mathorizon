@@ -33,7 +33,7 @@ D.groups.forEach(g => {
   });
   ok(sumSold === L.stats.sold && sumPaid === L.stats.paid && sumCost === L.stats.cost, g.id + ' group sums');
   ok(near(L.earned, L.lessons.reduce((t, l) => t + l.pay, 0)), g.id + ' earned = sum of the lesson pays');
-  L.lessons.forEach(l => { if (l.counted) { ok(l.paying === 0 ? l.pay === 0 : l.pay >= 175 * L.dur, g.id + ' pay: 0 when nobody came, else never below 175/hour'); ok(l.pay <= 255 * L.dur, g.id + ' pay is never above 255/hour'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
+  L.lessons.forEach(l => { if (l.counted) { ok(l.paying === 0 ? l.pay === 0 : l.pay > 0, g.id + ' pay: 0 when nobody was charged, else a sum'); ok(l.pay <= 325 * Math.max(1, l.paying / g.size), g.id + ' pay never goes above the top cap'); } else ok(l.pay === 0 && l.price === 0, g.id + ' an incomplete lesson has no sum'); });
   nLessons += L.lessons.length;
   ok(L.lessons.every((l, i) => l.i === i), g.id + ' lesson positions');
   ok(L.sum === L.lessons.reduce((t, l) => t + l.price, 0), g.id + ' price sum');
@@ -57,10 +57,16 @@ D.teachers.forEach(t => {
   ok(t.teach.length > 0 && t.subjects.length >= t.teach.length, t.id + ' teach/subjects');
 });
 
-// the pay scheme and the prices, as agreed
-ok(D.rateBySize(1) === 608 && D.rateBySize(3) === 288, 'student prices: individual 608, three 288');
-[[1, 1, 255], [1, 0, 0], [3, 1, 175], [3, 2, 218], [3, 3, 255], [3, 0, 0], [6, 1, 175], [6, 2, 175], [6, 3, 175], [6, 4, 175], [6, 5, 218], [6, 6, 255], [6, 0, 0], [2, 1, 218], [2, 2, 255]]
-  .forEach(([size, present, pay]) => ok(D.lessonPay(size, present) === pay, 'pay for size ' + size + ' with ' + present + ' present = ' + pay + ' (got ' + D.lessonPay(size, present) + ')'));
+// the prices and the pay formula: the registers' own (scripts/registru-import/pay.js), and the browser copy must equal it on every combination
+{
+  const P = require(path.join(__dirname, 'registru-import', 'pay.js'));
+  [1, 2, 3, 4, 5, 6, 7, 8].forEach(s => ok(D.rateBySize(s) === (P.PRICES[s] || 608) || s === 7, 'student price for a group of ' + s));
+  ok(D.rateBySize(1) === 608 && D.rateBySize(2) === 348 && D.rateBySize(4) === 248 && D.rateBySize(5) === 228 && D.rateBySize(8) === 148, 'prices as in the sheet');
+  [1, 2, 3, 4, 5, 6, 8].forEach(s => { for (let paying = 0; paying <= s + 2; paying++) for (let lv = 1; lv <= 6; lv++) ok(D.lessonPay(s, paying, lv) === P.lessonPay(s, paying, lv), 'pay parity ' + s + '/' + paying + '/' + lv); });
+  const r = (s, n, lv) => Math.round(D.lessonPay(s, n, lv) * 100) / 100;
+  ok(r(6, 6, 4) === 255 && r(3, 3, 4) === 255 && r(1, 1, 4) === 255 && r(8, 8, 4) === 270 && r(6, 5, 4) === 218 && r(4, 2, 4) === 191.25 && D.lessonPay(5, 0, 4) === 0, 'pay: known values of the sheet');
+  ok(r(6, 7, 4) === 297.5 && r(3, 4, 4) === 340, 'pay: more students than seats is pro rata');
+}
 // edits: each mark has the effect it should
 const g = 'g080', L0 = D.ledger(g); const x0 = L0.rows.find(r => r.codes.some((c, i) => c === 'P'));
 const i0 = x0.codes.findIndex(c => c === 'P'); const oid = L0.lessons[i0].oid; const price = L0.lessons[i0].price;
@@ -79,7 +85,7 @@ const earn0 = D.ledger(g).earned, hours0 = D.ledger(g).stats.hours, cost0 = D.le
   { const nl = D.ledger(g).lessons.slice(-1)[0]; ok(!nl.counted && nl.price === 0 && nl.pay === 0, 'an added lesson shows no sum'); D.setMark(g, x0.s.id, nl.oid, 'P');
     ok(D.ledger(g).earned === earn0 && D.ledger(g).stats.hours === hours0 && D.ledger(g).stats.cost === cost0 && D.ledger(g).sum === sum0, 'an incomplete lesson adds nothing: not to the cost, the hours, the pay');
     D.setLesson(g, nl.oid, { d: '2026-10-12' }); ok(!D.ledger(g).lessons.slice(-1)[0].counted, 'a date alone is not enough');
-    D.setLesson(g, nl.oid, { t: 'Tema' }); { const c = D.ledger(g).lessons.slice(-1)[0]; ok(c.counted && c.price > 0 && c.pay >= 175 && D.ledger(g).earned > earn0 && D.ledger(g).stats.cost > cost0 && D.ledger(g).stats.hours === hours0 + D.ledger(g).dur, 'date and title together make it count (price ' + c.price + ', pay ' + c.pay + ')'); }
+    D.setLesson(g, nl.oid, { t: 'Tema' }); { const c = D.ledger(g).lessons.slice(-1)[0]; ok(c.counted && c.price > 0 && c.pay > 0 && D.ledger(g).earned > earn0 && D.ledger(g).stats.cost > cost0 && D.ledger(g).stats.hours === hours0 + D.ledger(g).dur, 'date and title together make it count (price ' + c.price + ', pay ' + c.pay + ')'); }
     D.setLesson(g, nl.oid, { t: '  ' }); ok(!D.ledger(g).lessons.slice(-1)[0].counted && D.ledger(g).earned === earn0, 'clearing the title takes it out again');
     D.setLesson(g, nl.oid, { t: 'Tema' }); D.setMark(g, x0.s.id, nl.oid, ''); }
 const nl = D.ledger(g).lessons.slice(-1)[0]; D.setLesson(g, nl.oid, { d: '2026-10-12' }); ok(D.ledger(g).lessons.slice(-1)[0].label === '12 octombrie', 'date set');
@@ -139,14 +145,14 @@ ok(!D.teacherEdited('t5') && !D.teacher('t5').subjects.includes('Chimie'), 'rese
 }
 
 // every lesson is one hour: the price is the hourly rate, the pay one of the three hourly amounts, whatever the group's meeting length
-D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok([0, 175, 218, 255].includes(l.pay), g.id + ' lesson pay is an hourly amount (' + l.pay + ')'); } }); });
+D.groups.forEach(g => { const L = D.ledger(g.id); L.lessons.forEach(l => { if (l.counted) { ok(l.price === L.rate, g.id + ' lesson price is one hour'); ok(l.pay === D.lessonPay(g.size, l.paying, D.tLevel(g.teacher)), g.id + ' lesson pay follows the register formula (' + l.pay + ')'); } }); });
 // which marks pay the teacher: P and A (the student is charged), not G, M, B or an empty cell
 {
   const g = D.groups.find(x => D.ledger(x.id).rows.length >= 2 && x.size >= 3), sid = D.ledger(g.id).rows[0].s.id, other = D.ledger(g.id).rows[1].s.id;
   D.addLesson(g.id, '2026-10-12'); const nl = D.ledger(g.id).lessons.slice(-1)[0]; D.setLesson(g.id, nl.oid, { t: 'Tema' });
   D.ledger(g.id).rows.forEach(r => { if (r.s.id !== sid) D.setMark(g.id, r.s.id, nl.oid, ''); });
   const payFor = code => { D.setMark(g.id, sid, nl.oid, code); return D.ledger(g.id).lessons.slice(-1)[0].pay; };
-  ok(payFor('P') === 175 && payFor('A') === 175, 'P and A are paid');
+  { const want = D.lessonPay(g.size, 1, D.tLevel(g.teacher)); ok(want > 0 && payFor('P') === want && payFor('A') === want, 'P and A are paid'); }
   ['G', 'M', 'B', ''].forEach(c => ok(payFor(c) === 0, 'mark ' + (c || 'empty') + ' pays nothing'));
   D.reset();
 }
