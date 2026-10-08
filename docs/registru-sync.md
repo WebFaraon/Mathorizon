@@ -92,3 +92,9 @@ Ce nu se poate deduce din registre (de știut): telefonul profesorului, locurile
 - **Verificat:** 63 de teste (în memorie și prin adaptorul asincron) și un test pe un registru demo real din Google: adaugă elev, îl citește înapoi parserul, duplicatul e refuzat, plată și retur, conflict de statut, celulele puse la loc (`node scripts/registru-import/google/apply-local.js`).
 
 Punerea în funcțiune: (1) SQL Editor: rulează `20261008200000_registre_commands.sql`; (2) `npx supabase functions deploy registru-apply --project-ref tfflpivehrrzmklvcyhe --use-api --no-verify-jwt`; (3) redeploy la `registru-sync` (a primit verificările și datele profesorului); (4) la registrele reale: partajează cu contul de serviciu ca Editor.
+
+## 9. Cât de repede apare o schimbare din registru în consolă
+
+Sheets → baza de date: cron-ul (`registru-sync`, azi la 10 minute; se poate pune la un minut, verificarea datei fișierului e ușoară) sau butonul „Sincronizează acum” din pagina Sincronizare.
+Baza de date → consola deschisă (modul Registre): **singură**, la 45 de secunde. Consola întreabă (un apel mic) care e cea mai nouă citire a oricărui registru și, dacă e mai nouă decât datele de pe ecran și nimeni nu scrie într-un câmp sau n-are o fereastră deschisă, își încarcă datele noi. Butonul de pe insigna verde „Registre” face același lucru imediat.
+Sub o secundă-două ar fi nevoie de un declanșator în Google (Apps Script, la fiecare editare): urmează.

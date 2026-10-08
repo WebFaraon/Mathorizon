@@ -17,6 +17,8 @@
   const PAGE = 1000;                                   // the most rows the API returns in one answer
 
   let busy = false;
+  let stamp = null;                                   // the newest full read of any register, as of the data on screen
+  const latestRead = list => list.reduce((m, w) => (w.last_full_sync_at && (!m || w.last_full_sync_at > m) ? w.last_full_sync_at : m), null);
   const read = () => { try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
   const write = v => { try { localStorage.setItem(KEY, v); } catch (e) { /* private mode */ } };
 
@@ -49,11 +51,12 @@
   async function loadTables() {
     const access = await token();
     const [workbooks, groups, students, lessons] = await Promise.all([
-      fetchAll('reg_workbooks', 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled', 'teacher_name.asc,id.asc', access),
+      fetchAll('reg_workbooks', 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at', 'teacher_name.asc,id.asc', access),
       fetchAll('reg_groups', 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule', 'workbook_id.asc,sheet_id.asc', access),
       fetchAll('reg_students', 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold', 'group_id.asc,col.asc', access),
       fetchAll('reg_lessons', 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks', 'group_id.asc,row_no.asc', access)
     ]);
+    stamp = latestRead(workbooks);
     return { workbooks, groups, students, lessons };
   }
 
@@ -138,16 +141,41 @@
     }
     box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === (reg ? 'registre' : 'demo'))));
     box.classList.toggle('is-busy', busy);
+    const pillEl = document.getElementById('axRegPill');
+    if (pillEl) pillEl.classList.toggle('is-busy', busy);
     let pill = document.getElementById('axRegPill');
     if (!pill) {
       pill = document.createElement('span');
       pill.className = 'ax-regpill';
       pill.id = 'axRegPill';
       pill.title = 'Datele vin din registrele Google Sheets (sincronizate în platformă). Din consolă se poate înscrie un elev într-o grupă existentă; restul se schimbă în registru.';
-      pill.innerHTML = '<i aria-hidden="true"></i><b>Registre</b>';
+      pill.innerHTML = '<i aria-hidden="true"></i><b>Registre</b><button type="button" class="ax-regpill__r" title="Reîncarcă acum datele din registre" aria-label="Reîncarcă datele din registre"></button>';
+      pill.querySelector('button').innerHTML = (window.AdminUI && window.AdminUI.ico) ? window.AdminUI.ico('refresh-cw', 14) : '↻';
+      pill.querySelector('button').addEventListener('click', () => poll(true));
       right.insertBefore(pill, box.nextSibling);
     }
   }
+
+  /* The registers are read into the platform by the sync (every few minutes, or "Sincronizează acum"). The console on screen follows by itself:
+     every 45 seconds it asks for the time of the newest read (one small call) and, when it is newer than its own data and nobody is typing or has
+     a dialog open, loads the new data. The button on the green pill does the same at once. */
+  async function poll(force) {
+    if (!D.readOnly() || busy || (document.hidden && !force)) return false;
+    try {
+      const access = await token();
+      const res = await fetch(`${SUPABASE_URL}/rest/v1/reg_workbooks?select=last_full_sync_at&order=last_full_sync_at.desc.nullslast&limit=1`, { headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, Accept: 'application/json' } });
+      if (!res.ok) return false;
+      const rows = await res.json(), latest = rows[0] && rows[0].last_full_sync_at;
+      if (!force && (!latest || latest === stamp)) return false;
+      const a = document.activeElement;
+      if (!force && (document.querySelector('dialog[open], .ax-drawer') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))) return false;   // later: not under somebody's hands
+      busy = true; paint();
+      try { await refresh(); } finally { busy = false; paint(); }
+      U.toast(force ? 'Datele au fost reîncărcate din registre.' : 'Datele au fost actualizate din registre.');
+      return true;
+    } catch (e) { busy = false; paint(); return false; }
+  }
+  setInterval(() => poll(false), 45000);
 
   async function setSource(next, quiet) {
     if (busy) return false;
@@ -185,7 +213,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev într-o grupă existentă (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, command, enrol, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, poll, command, enrol, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

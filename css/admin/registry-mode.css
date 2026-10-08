@@ -15,3 +15,8 @@ html[data-source="registre"] body.ax .ax-sign__btn--demo { display: none; }
 @media (max-width: 760px) {
   body.ax .ax-regpill b { display: none; }
 }
+
+/* the small button on the green pill: read the registers again now */
+body.ax .ax-regpill__r { display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px; margin-right: -4px; border: 0; border-radius: var(--ax-r); background: var(--ax-hover); color: var(--ax-ink); cursor: pointer; }
+body.ax .ax-regpill__r:hover { background: var(--ax-rule-2); }
+body.ax .ax-regpill.is-busy .ax-regpill__r svg { animation: ax-sync 0.8s ease-in-out infinite alternate; }
