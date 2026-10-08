@@ -82,3 +82,13 @@ De făcut o singură dată, în ordine:
 5. Comută pe **Registre** și compară cu ce știi.
 
 Ce nu se poate deduce din registre (de știut): telefonul profesorului, locurile dintr-un cabinet (se presupun 8), proiectul unei grupe (vine din titlul fișierului: OFFLINE, ONLINE), data unui transfer (prima lecție în grupa nouă), anul lecțiilor (din titlu și din succesiunea rândurilor: un registru acoperă un an școlar). Un rând de orar fără zi și oră lasă grupa fără orar în consolă. Aceleași reguli se aplică și când registrele devin sursa pentru scriere (F2).
+
+## 8. Scrierea din platformă (F2, scrisă și testată; de pus în funcțiune)
+
+- **Coada:** `reg_commands` (migrația `20261008200000_registre_commands.sql`). Consola pune o comandă prin `reg_enqueue_command` (azi doar adminul: `reg_can_write()` e locul unde se adaugă managerii), apoi cheamă funcția **`registru-apply`**, care o aplică în Sheets: o ia din coadă (o singură rulare per comandă), o planifică pe fila live, **recitește celulele chiar înainte de scriere**, scrie, citește înapoi și păstrează rezultatul: `done`, `noop`, `invalid`, `conflict`, `failed`. Apoi consola cere `registru-sync` pentru acel registru și își reîncarcă datele.
+- **Comenzi:** adaugă elev (primul loc liber, `Oră de probă`), schimbă statutul sau managerul, adaugă o plată sau o reducere (un termen în plus în `SUM(...)`). Aceleași reguli ca la secțiunea 3: nu se suprascrie nimic schimbat între timp, o coloană cu prezențe și fără antet nu se refolosește, un text în celula plății cere un om.
+- **În consolă, azi:** Înscriere într-o **grupă existentă** scrie în registru (dialogul arată coloana și un link la celulă). Grupele noi, transferul și plățile din consolă urmează; pagina Sincronizare arată „Scrieri recente” cu rezultatul fiecărei comenzi.
+- **Contul de serviciu trebuie să fie EDITOR al registrului** ca să scrie (pentru citire a fost destul Cititor). Registrele demo sunt deja în folderul partajat ca Editor.
+- **Verificat:** 63 de teste (în memorie și prin adaptorul asincron) și un test pe un registru demo real din Google: adaugă elev, îl citește înapoi parserul, duplicatul e refuzat, plată și retur, conflict de statut, celulele puse la loc (`node scripts/registru-import/google/apply-local.js`).
+
+Punerea în funcțiune: (1) SQL Editor: rulează `20261008200000_registre_commands.sql`; (2) `npx supabase functions deploy registru-apply --project-ref tfflpivehrrzmklvcyhe --use-api --no-verify-jwt`; (3) redeploy la `registru-sync` (a primit verificările și datele profesorului); (4) la registrele reale: partajează cu contul de serviciu ca Editor.

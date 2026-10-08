@@ -57,6 +57,69 @@
     return { workbooks, groups, students, lessons };
   }
 
+  /* the data read again from the registers (after a write, or on demand), without leaving the Registre mode */
+  async function refresh() {
+    if (!D.readOnly()) return false;
+    const T = await loadTables();
+    const ds = window.AdminRegistryDataset.build(T, { today: new Date().toISOString().slice(0, 10) });
+    D.useData(ds, { today: new Date() });
+    if (window.AdminShell) window.AdminShell.render();
+    return true;
+  }
+
+  async function call(fn, access, body) {
+    let res;
+    try { res = await fetch(`${SUPABASE_URL}/functions/v1/${fn}`, { method: 'POST', headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, 'Content-Type': 'application/json' }, body: JSON.stringify(body || {}) }); }
+    catch (e) { throw new Error('Nu s-a putut contacta funcția ' + fn + ' (nu e pusă în funcțiune sau nu răspunde).'); }
+    const data = await res.json().catch(() => ({}));
+    if (!res.ok) throw new Error(res.status === 401 ? 'Contul nu are drept de scriere în registre.' : (data.error || 'Eroare de server (cod ' + res.status + ').'));
+    return data;
+  }
+  async function rpc(fn, access, params) {
+    let res;
+    try { res = await fetch(`${SUPABASE_URL}/rest/v1/rpc/${fn}`, { method: 'POST', headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, 'Content-Type': 'application/json', Accept: 'application/json' }, body: JSON.stringify(params || {}) }); }
+    catch (e) { throw new Error('Nu s-a putut contacta serverul.'); }
+    const text = await res.text();
+    if (!res.ok) {
+      let msg = text;
+      try { const j = JSON.parse(text); msg = j.message || j.hint || text; } catch (e) { /* plain text */ }
+      if (/not authorized/i.test(msg)) msg = 'Contul nu are drept de scriere în registre.';
+      if (/Could not find the function|schema cache/i.test(msg)) msg = 'Scrierea în registre nu e pusă în funcțiune (migrația 20261008200000_registre_commands.sql nu a fost rulată).';
+      throw new Error(msg || 'Eroare de server (cod ' + res.status + ').');
+    }
+    return text ? JSON.parse(text) : null;
+  }
+
+  /* One command, from the click to the result: queued (a row the admin can see), applied in the sheet by registru-apply, the register read
+     again by registru-sync so the console shows it. Returns { ok, status, column, msg, url } and never throws. */
+  async function command(group, type, payload) {
+    try {
+      if (!D.readOnly()) throw new Error('Scrierea în registre merge doar în modul Registre.');
+      const g = D.group(group);
+      if (!g || !g._src || !g._src.wb) throw new Error('Grupa nu are un registru legat.');
+      const access = await token();
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
+      const queued = await rpc('reg_enqueue_command', access, { p_workbook: g._src.wb, p_sheet: g._src.sheet, p_type: type, p_payload: payload, p_id: id });
+      const out = await call('registru-apply', access, { command_id: queued });
+      const r = (out.results || [])[0];
+      if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
+      const ok = r.status === 'done';
+      if (ok || r.status === 'noop') {
+        try { await call('registru-sync', access, { workbook_id: g._src.wb }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
+      }
+      const url = g._src.ssid ? `https://docs.google.com/spreadsheets/d/${g._src.ssid}/edit#gid=${g._src.sheet}` + (r.column ? `&range=${r.column}1` : '') : null;
+      return { ok, status: r.status, column: r.column || null, msg: r.msg || '', code: r.code || '', url };
+    } catch (e) {
+      return { ok: false, status: 'failed', column: null, msg: String((e && e.message) || e), code: 'client', url: null };
+    }
+  }
+
+  /* the enrolment desk: a new student in an existing group, first lesson free (status "Oră de probă") */
+  async function enrol(d) {
+    const m = D.manager(d.manager);
+    return command(d.group, 'ADD_STUDENT', { name: `${d.last} ${d.first}`.replace(/\s+/g, ' ').trim(), phone: d.phone, manager: m ? (m._reg || m.name) : '', status: 'Oră de probă' });
+  }
+
   function paint() {
     const reg = D.readOnly();
     document.documentElement.setAttribute('data-source', reg ? 'registre' : 'demo');
@@ -80,8 +143,8 @@
       pill = document.createElement('span');
       pill.className = 'ax-regpill';
       pill.id = 'axRegPill';
-      pill.title = 'Datele vin din registrele Google Sheets (sincronizate în platformă). Consola e doar pentru citire: scrierea în registre vine la pasul următor.';
-      pill.innerHTML = '<i aria-hidden="true"></i><b>Registre · doar citire</b>';
+      pill.title = 'Datele vin din registrele Google Sheets (sincronizate în platformă). Din consolă se poate înscrie un elev într-o grupă existentă; restul se schimbă în registru.';
+      pill.innerHTML = '<i aria-hidden="true"></i><b>Registre</b>';
       right.insertBefore(pill, box.nextSibling);
     }
   }
@@ -119,10 +182,10 @@
   document.addEventListener('bm:registry-readonly', () => {
     if (Date.now() - lastToast < 2500) return;
     lastToast = Date.now();
-    U.toast('Registrele sunt sursa datelor și consola e doar pentru citire. Schimbările se fac în registru; scrierea din platformă vine la pasul următor. În modul Demo poți încerca liber.', 'warn');
+    U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev într-o grupă existentă (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, command, enrol, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

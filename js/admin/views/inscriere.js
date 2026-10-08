@@ -219,7 +219,7 @@
 
   /* ---------------- the dialog: who is the student ---------------- */
   function openEnrol(target) {
-    if (D.blocked()) return;
+    if (D.readOnly() && target.fresh) { U.toast('Grupele noi se creează în registru (Google Sheets). De aici poți înscrie elevi în grupele existente.', 'warn'); return; }
     const mine = target.group ? D.group(target.group) : null;
     const fieldsG = target.fresh;                       // a group to be created
     const g = mine || fieldsG;
@@ -266,6 +266,7 @@
               <p>${ico('info', 16)}<span><b>Prima lecție e gratuită.</b> Elevul apare acum în registrul profesorului cu statutul <em>Oră de probă</em>. Când părintele plătește, statutul devine <em>Activ</em>.</span></p>
               <p class="in-chips-s"><span>Clasa ${esc(g.grade)}</span>${g.profile ? `<span>${esc(g.profile)}</span>` : ''}${S.level ? `<span>Nivel ${esc(S.level)}</span>` : ''}<span>${esc(g.subject)}</span></p>
             </div>
+            <p class="in-werr" id="inErr" role="alert"></p>
           </form>
         </div>
         <footer class="in-dlg__f"><span class="in-dlg__s" id="inSum"></span><button type="button" class="ax-btn" data-x>Renunță</button><button type="submit" form="inEF" class="ax-btn ax-btn--primary in-go" id="inGo" disabled>${ico('user-plus', 16)} Înscrie elevul</button></footer>`;
@@ -307,6 +308,7 @@
       showErrors(false);
     }
     function submit() {
+      if (D.readOnly()) { submitRegistry(); return; }
       st.touched = { last: 1, first: 1, phone: 1 };
       if (Object.keys(errs()).length) { showErrors(true); const bad = dlg.querySelector('.has-err input'); if (bad) bad.focus(); return; }
       st.last = cap(st.last.trim()); st.first = cap(st.first.trim());
@@ -319,6 +321,48 @@
       dlg.innerHTML = doneHTML(res);
       paintAll(false);
       dlg.querySelector('[data-another]').focus();
+    }
+    /* Registre: the student is written in the register itself (a command, applied by registru-apply), and the answer is shown */
+    async function submitRegistry() {
+      st.touched = { last: 1, first: 1, phone: 1 };
+      if (Object.keys(errs()).length) { showErrors(true); const bad = dlg.querySelector('.has-err input'); if (bad) bad.focus(); return; }
+      st.last = cap(st.last.trim()); st.first = cap(st.first.trim());
+      try { localStorage.setItem(MGR_KEY, st.mgr); } catch (e) { /* private mode */ }
+      const go = dlg.querySelector('#inGo'), msg = dlg.querySelector('#inErr');
+      if (msg) msg.textContent = '';
+      if (go) { go.disabled = true; go.dataset.label = go.innerHTML; go.textContent = 'Se scrie în registru…'; }
+      const r = await window.AdminRegistry.enrol({ group: mine.id, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr });
+      if (!r.ok) {
+        if (go) { go.disabled = false; go.innerHTML = go.dataset.label; }
+        const text = r.status === 'conflict' ? `${r.msg} Nu am scris nimic: încearcă din nou.` : (r.msg || 'Nu s-a putut scrie în registru.');
+        if (msg) msg.textContent = text; else U.toast(esc(text), 'warn');
+        return;
+      }
+      st.done = { registry: true, res: r };
+      dlg.classList.add('is-ok');
+      dlg.innerHTML = doneRegistryHTML(r);
+      paintAll(false);
+      dlg.querySelector('[data-another]').focus();
+    }
+    function doneRegistryHTML(r) {
+      const G = D.group(mine.id) || mine, tt = D.teacher(G.teacher) || t, m = D.manager(st.mgr);
+      return `
+        <div class="in-ok">
+          <button type="button" class="ax-icon-btn in-ok__x" data-x aria-label="Închide">${ico('x', 18)}</button>
+          <svg class="in-ok__ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="m19 33 9 9 18-20"/></svg>
+          <h2 id="inDT">Elevul e în registru</h2>
+          <p class="in-ok__sub"><b>${esc(st.last)} ${esc(st.first)}</b>, ${esc(G.subject)}, clasa ${esc(G.grade)}, la ${esc(tt.name)}, ${esc(dayNames(G))}, ${timeRange(G.start, G.duration)}</p>
+          <ul class="in-ok__s">
+            <li><span>${ico('book-open', 16)}</span><span>Scris în registru, coloana <b>${esc(r.column || '')}</b></span></li>
+            <li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>
+            <li><span>${ico('users', 16)}</span><span>Managerul elevului: <b>${esc(m ? m.name : '')}</b></span></li>
+          </ul>
+          <p class="in-ok__note">Prima lecție e gratuită. Dacă greșești, corectezi direct în registru.</p>
+          <div class="in-ok__f">
+            <button type="button" class="ax-btn ax-btn--primary" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>
+            ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide în Sheets</a>` : ''}
+          </div>
+        </div>`;
     }
     function doneHTML(res) {
       const G = D.group(res.group), tt = D.teacher(G.teacher), m = D.manager(st.mgr);
@@ -348,7 +392,7 @@
       if (e.target === dlg || e.target.closest('[data-x]')) { dlg.close(); return; }
       if (e.target.closest('[data-fin]') && st.done && e.target.tagName !== 'A') { dlg.close(); return; }
       if (e.target.closest('[data-another]')) { S = fresh(); save(); dlg.close(); buildRail(); paintPane(true); return; }
-      if (e.target.closest('[data-undo]')) {
+      if (e.target.closest('[data-undo]') && !(st.done && st.done.registry)) {
         D.undoEnrol(st.done); st.done = null; dlg.close(); paintAll(false);
         U.toast('Înscrierea a fost anulată. Elevul a dispărut din registru.');
       }

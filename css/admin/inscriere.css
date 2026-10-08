@@ -214,3 +214,6 @@ body.ax .in-undo { color: var(--ax-bad); }
 }
 
 @media (max-width: 1180px) { body.ax .ax-fixsplit .in-res { order: 3; } body.ax .ax-fixsplit .in-rail { order: 2; margin-bottom: 14px; } }
+
+/* Registre: the answer of the register when the write did not go through */
+body.ax .in-werr { min-height: 1.2em; margin-top: 4px; color: var(--ax-bad); font-weight: 700; font-size: 0.86rem; overflow-wrap: anywhere; }

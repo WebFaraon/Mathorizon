@@ -21,3 +21,4 @@ body.ax .sy-f em { font-weight: 500; font-style: normal; color: var(--ax-ink-3);
 body.ax .sy-check { flex-direction: row; align-items: center; gap: 10px; }
 body.ax .sy-step { padding: 12px 14px; border: 1.5px solid var(--ax-ink); border-radius: var(--ax-r); background: var(--ax-yellow); color: var(--ax-yellow-ink); font-size: 0.86rem; line-height: 1.5; overflow-wrap: anywhere; }
 body.ax .sy-err { min-height: 1.2em; color: var(--ax-bad); font-weight: 700; font-size: 0.86rem; }
+body.ax .sy-h2 { margin: 28px 0 12px; font-size: 1.05rem; font-weight: 800; }

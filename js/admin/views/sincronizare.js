@@ -93,7 +93,9 @@
       groups.forEach(g => { groupsBy[g.workbook_id] = (groupsBy[g.workbook_id] || 0) + 1; (sheetOf[g.workbook_id] = sheetOf[g.workbook_id] || {})[g.tab] = g.sheet_id; });
       const skippedBy = {};                                    // the latest partial run of each register: which groups were not stored, and why
       runs.forEach(r => { if (!skippedBy[r.workbook_id]) skippedBy[r.workbook_id] = (r.detail && r.detail.skipped) || []; });
-      C = { status: 'ready', loadedAt: new Date(), books, groupsBy, skippedBy, sheetOf };
+      let cmds = [];
+      try { cmds = await get('reg_commands?select=id,workbook_id,type,payload,status,result,created_at&order=created_at.desc&limit=15'); } catch (e) { cmds = null; }   // null: the migration is not run yet
+      C = { status: 'ready', loadedAt: new Date(), books, groupsBy, skippedBy, sheetOf, cmds };
     } catch (e) { C = { status: 'error', error: niceError(e) }; }
     paint();
     if (window.AdminShell) window.AdminShell.refreshNav();
@@ -261,10 +263,27 @@
     </table></div>`;
   }
 
+  const CMD = { ADD_STUDENT: 'Elev adăugat', SET_STATUS: 'Statut schimbat', SET_MANAGER: 'Manager schimbat', ADD_PAYMENT: 'Plată adăugată', ADD_DISCOUNT: 'Reducere adăugată' };
+  const CST = { pending: ['inlocuire', 'În așteptare'], running: ['inlocuire', 'Se scrie'], done: ['activ', 'Scris'], noop: ['activ', 'Era deja așa'], invalid: ['inactiv sy-bad', 'Refuzat'], conflict: ['completare', 'Conflict'], failed: ['inactiv sy-bad', 'Eroare'] };
+  function commandsHTML() {
+    if (!C.cmds || !C.cmds.length) return '';
+    const name = id => { const w = C.books.find(x => x.id === id); return w ? (w.teacher_name || 'Registru') : 'Registru'; };
+    return `<h2 class="sy-h2">Scrieri recente în registre</h2>
+      <div class="ax-table-wrap"><table class="ax-table cn-table sy-table">
+        <thead><tr><th>Când</th><th>Registru</th><th>Ce</th><th>Status</th></tr></thead>
+        <tbody>${C.cmds.map(c => {
+          const st = CST[c.status] || ['inactiv', c.status], who = (c.payload && (c.payload.name || (c.payload.student && c.payload.student.name))) || '';
+          const r = c.result || {};
+          const detail = r.msg ? `<span class="sy-note${c.status === 'failed' || c.status === 'invalid' ? ' sy-note--err' : ''}">${esc(r.msg)}</span>` : (r.column ? `<span class="ax-sub">coloana ${esc(r.column)}</span>` : '');
+          return `<tr><td class="cn-nowrap">${esc(ago(c.created_at))}</td><td>${esc(name(c.workbook_id))}</td><td><b class="ax-strong">${esc(CMD[c.type] || c.type)}</b>${who ? `<span class="ax-sub">${esc(who)}</span>` : ''}</td><td><span class="ax-st ax-st--${st[0]}"><i class="ax-st__i"></i>${esc(st[1])}</span>${detail}</td></tr>`;
+        }).join('')}</tbody>
+      </table></div>`;
+  }
+
   function bodyHTML() {
     if (C.status === 'loading' || C.status === 'idle') return loadingHTML();
     if (C.status === 'error') return errorHTML(C.error);
-    return tableHTML();
+    return tableHTML() + commandsHTML();
   }
 
   /* ---------- paint + wiring ---------- */
