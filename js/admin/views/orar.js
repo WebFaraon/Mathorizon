@@ -389,7 +389,7 @@
     });
     const wireBody = () => {
       el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
-        if (g.status === b.dataset.st) return;
+        if (g.status === b.dataset.st || D.blocked()) return;
         D.setStatus(g.id, b.dataset.st);
         repaintAll(`[data-st="${g.status}"]`);
         U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, g.status))}.`);

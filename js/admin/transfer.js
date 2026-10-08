@@ -37,6 +37,7 @@
   }
 
   function open({ from, students, onDone }) {
+    if (D.blocked()) return;
     const src = D.group(from);
     const people = students.map(id => D.students.find(s => s.id === id)).filter(Boolean);
     if (!src || !people.length) return;

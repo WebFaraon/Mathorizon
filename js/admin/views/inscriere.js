@@ -219,6 +219,7 @@
 
   /* ---------------- the dialog: who is the student ---------------- */
   function openEnrol(target) {
+    if (D.blocked()) return;
     const mine = target.group ? D.group(target.group) : null;
     const fieldsG = target.fresh;                       // a group to be created
     const g = mine || fieldsG;

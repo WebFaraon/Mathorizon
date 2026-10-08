@@ -776,7 +776,7 @@
     base: id => baseG[id],
     reset() { if (ro()) return; edits = {}; applyEdits(); save(); },
     sync: { edits: () => edits, replace: replaceEdits, onSave: fn => saveHooks.push(fn) },
-    useData, useDemo, readOnly: () => !!registry,
+    useData, useDemo, readOnly: () => !!registry, blocked: () => ro(),
     get registry() { return registry; },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
   };

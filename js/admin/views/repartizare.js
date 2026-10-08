@@ -718,6 +718,7 @@
     return room ? `${roomName(room)}, ${hh(start)}` : `ora ${hh(start)}`;
   }
   function apply(g, patch) {
+    if (D.blocked()) return;
     const prev = { start: g.start, room: g.room };
     const entry = { id: g.id, prev, next: Object.assign({}, prev, patch) };
     undoStack.push(entry);
@@ -730,6 +731,7 @@
     if (b) b.addEventListener('click', () => { undo(entry); t.remove(); });
   }
   function undo(entry) {
+    if (D.blocked()) return;
     const i = entry ? undoStack.indexOf(entry) : undoStack.length - 1;
     if (i < 0) return;
     const e = undoStack.splice(i, 1)[0];
@@ -740,6 +742,7 @@
   }
   /* Validate then move; asks before an invalid move. */
   async function tryMove(g, room, start) {
+    if (D.blocked()) return false;
     if (room === g.room && start === g.start) return false;
     const c = check(g, room, start);
     if (!c.ok) {
@@ -1089,7 +1092,7 @@
       apply(g, g.room ? { start: sel.start, room: sel.room } : { start: sel.start });
     });
     U.$$('[data-st]', dr).forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.st === g.status) return;
+      if (b.dataset.st === g.status || D.blocked()) return;
       D.setStatus(g.id, b.dataset.st);
       U.$$('[data-st]', dr).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       U.toast(esc(`Statut schimbat: ${statusName(b.dataset.st)}.`));

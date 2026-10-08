@@ -1,0 +1,17 @@
+/* Admin console: the data source switch, Demo | Registre (js/admin/registry-mode.js) */
+
+body.ax .ax-src { margin-right: 10px; }
+body.ax .ax-src button { height: 28px; padding: 0 12px; font-size: 0.8rem; font-weight: 700; }
+body.ax .ax-src.is-busy { opacity: 0.6; pointer-events: none; }
+
+/* in Registre the yellow "Date demo" pill gives way to the green one: the data are not demo data, and the console only reads */
+body.ax .ax-regpill { display: none; align-items: center; gap: 8px; height: 30px; padding: 0 10px; border: 1.5px solid var(--ax-ink); border-radius: var(--ax-r); background: var(--ax-panel); font-size: 0.78rem; white-space: nowrap; }
+body.ax .ax-regpill i { width: 8px; height: 8px; border-radius: 50%; background: var(--ax-ok); }
+body.ax .ax-regpill b { font-weight: 800; letter-spacing: 0.02em; }
+html[data-source="registre"] body.ax .ax-regpill { display: inline-flex; }
+html[data-source="registre"] body.ax .ax-demo { display: none; }
+html[data-source="registre"] body.ax .ax-sign__btn--demo { display: none; }
+
+@media (max-width: 760px) {
+  body.ax .ax-regpill b { display: none; }
+}

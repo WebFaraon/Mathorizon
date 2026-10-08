@@ -251,6 +251,7 @@
       try { sessionStorage.setItem('bm_admin_browse', '1'); } catch (e) {}
     });
     const resetDemo = () => {
+      if (window.AdminData.blocked()) return;
       if (!confirm('Resetezi datele demo? Mutările și statusurile schimbate pe acest dispozitiv se pierd.')) return;
       window.AdminData.reset();
       U.toast('Datele demo au fost resetate.');
