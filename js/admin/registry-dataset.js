@@ -182,7 +182,7 @@
     /* ---- the ledger of every group, as the register has it (consumed by registru-data.js) ---- */
     groups.forEach(g => {
       const cols = enrol.filter(e => e.g === g);
-      colsOf[g.id] = cols.map(e => ({ s: e.person, col: e.row.col, paid: Number(e.row.paid) || 0, disc: Number(e.row.discount) || 0, marks: e.marks, sheetCost: e.row.cost, sheetSold: e.row.sold }));
+      colsOf[g.id] = cols.map(e => ({ s: e.person, col: e.row.col, name: e.row.name, phone: e.row.phone, statusRaw: e.row.status, manager: e.row.manager, paid: Number(e.row.paid) || 0, disc: Number(e.row.discount) || 0, marks: e.marks, sheetCost: e.row.cost, sheetSold: e.row.sold }));
       payOf[g.id] = lessonsOf[g.id].map(l => l.pay);
     });
 
@@ -201,6 +201,8 @@
     return {
       teachers, managers, rooms, groups, students, transfers, history, baseBy,
       ledger: gid => ({ lessons: lessonsOf[gid] || [], cols: colsOf[gid] || [], pay: payOf[gid] || [] }),
+      /* the column of a person in a group's sheet: { col (the letter), name, phone, status, manager } as the register has it */
+      columnOf: (sid, gid) => { const c = (colsOf[gid] || []).find(x => x.s.id === sid); return c ? { col: c.col, name: c.name, phone: c.phone, status: c.statusRaw, manager: c.manager } : null; },
       teacherInfo, tLevel: tid => (teacherInfo[tid] ? teacherInfo[tid].level : 4),
       payments: tid => (teacherInfo[tid] ? teacherInfo[tid].payments : []),
       summary: { workbooks: wbs.length, groups: groups.length, students: students.length, columns: enrol.length, irregular: groups.filter(g => g._irregular).length, noSchedule: groups.filter(g => !g.days.length).length }

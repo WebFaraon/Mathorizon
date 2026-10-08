@@ -42,7 +42,14 @@ const nameInHead = head => tokens(head.replace(/[+\d][\s\S]*$/, '')).join(' ');
 
 /* finds the student's column: by phone and name, as long as the register has no id for him (later: the column's developer metadata) */
 export function locate(s, who) {
-  if (who.col) return readStudents(s).find(x => x.col === who.col && x.head) || null;
+  if (who.col) {
+    const x = readStudents(s).find(c => c.col === who.col && c.head);
+    if (!x) return null;
+    // the column is only trusted while its header is still the student's (somebody may have moved or replaced it)
+    if (who.name && nameInHead(x.head) !== tokens(who.name).join(' ')) return null;
+    if (who.phone && phoneOf(who.phone) && phoneInHead(x.head) !== phoneOf(who.phone)) return null;
+    return x;
+  }
   const t = tokens(who.name || '').join(' '), ph = phoneOf(who.phone);
   const hits = readStudents(s).filter(x => x.head && (!ph || phoneInHead(x.head) === ph) && nameInHead(x.head) === t);
   return hits.length === 1 ? hits[0] : null;

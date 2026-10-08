@@ -318,6 +318,21 @@
       return `<li><span class="ax-sub">${esc(fmtDate(t.iso))}</span><span>${esc(D.teacher(a.teacher).name)}, ${esc(dayNames(a))} ${timeRange(a)} ${ico('arrow-right', 14)} <b>${esc(D.teacher(b.teacher).name)}</b>, ${esc(dayNames(b))} ${timeRange(b)}</span></li>`;
     });
     if (hist.length) groupHTML += `<div class="el-dw__moves"><h4>Transferuri</h4><ul>${hist.join('')}</ul><p class="ax-sub">În grupa veche rămân prezențele și banii, cu statutul Transferat.</p></div>`;
+    // Registre: the student's column in his group's sheet, with what can be written there (status, manager, a payment or a discount)
+    const col = D.readOnly() && g ? D.registry.columnOf(st.id, g.id) : null;
+    const STATUSES = ['Activ', 'Oră de probă', 'Oră de probă confirmată', 'Înlocuire', 'Transferat', 'Inactiv'];
+    const regHTML = col ? `
+          <section class="el-reg" aria-label="În registru">
+            <h3 class="el-dw__h">În registru <span>coloana ${esc(col.col)}, grupa ${esc(g.subject)} ${esc(g.grade)}</span></h3>
+            <div class="el-reg__row"><label>Statut<select class="ax-select" data-reg-status>${STATUSES.map(x => `<option${x === col.status ? ' selected' : ''}>${esc(x)}</option>`).join('')}${STATUSES.includes(col.status) ? '' : `<option selected>${esc(col.status || '')}</option>`}</select></label>
+              <button type="button" class="ax-btn ax-btn--sm" data-reg-do="status">Salvează</button></div>
+            <div class="el-reg__row"><label>Manager<select class="ax-select" data-reg-mgr>${D.managers.map(x => `<option value="${esc(x._reg || x.name)}"${(x._reg || x.name) === col.manager ? ' selected' : ''}>${esc(x.name)}</option>`).join('')}${col.manager ? '' : '<option value="" selected>fără manager</option>'}</select></label>
+              <button type="button" class="ax-btn ax-btn--sm" data-reg-do="mgr">Salvează</button></div>
+            <div class="el-reg__row"><label>Sumă (lei)<input class="ax-input" data-reg-amount inputmode="decimal" placeholder="ex. 600" autocomplete="off"></label>
+              <label>Ce este<select class="ax-select" data-reg-kind><option value="pay">Plată</option><option value="disc">Reducere</option><option value="refund">Retur (scade din plată)</option></select></label>
+              <button type="button" class="ax-btn ax-btn--sm" data-reg-do="pay">Adaugă</button></div>
+            <p class="el-reg__msg" data-reg-msg role="status"></p>
+          </section>` : '';
     const el = U.drawer({
       title: esc(st.name),
       sub: `${esc(statusName(D.STUDENT_STATUS, st.status))} · manager ${esc(m ? m.name : '-')}`,
@@ -345,6 +360,7 @@
             <h3 class="el-dw__h">Grupa</h3>
             ${groupHTML}
           </section>
+          ${regHTML}
         </div>`,
       actions: `
         <button type="button" class="ax-btn" data-journey>${ico('history', 16)} Istoric</button>
@@ -352,6 +368,36 @@
         ${g ? `<a class="ax-btn ax-btn--dark" href="#orar?prof=${encodeURIComponent(D.teacher(g.teacher).name)}" data-go>${ico('grid', 16)} Orarul profesorului</a>` : ''}`
     });
     el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
+    if (col) {
+      const msg = el.querySelector('[data-reg-msg]');
+      const colNo = col.col.split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0);
+      const who = { col: colNo, name: col.name, phone: col.phone };
+      const say = (text, bad) => { msg.textContent = text; msg.classList.toggle('is-bad', !!bad); };
+      el.querySelectorAll('[data-reg-do]').forEach(b => b.addEventListener('click', async () => {
+        const kind = b.dataset.regDo;
+        let type, payload, done;
+        if (kind === 'status') {
+          const v = el.querySelector('[data-reg-status]').value;
+          if (v === col.status) { say('Statutul e deja acesta.'); return; }
+          type = 'SET_STATUS'; payload = { student: who, status: v, expectStatus: col.status }; done = 'Statutul a fost schimbat în registru.';
+        } else if (kind === 'mgr') {
+          const v = el.querySelector('[data-reg-mgr]').value;
+          if (!v || v === col.manager) { say('Managerul e deja acesta.'); return; }
+          type = 'SET_MANAGER'; payload = { student: who, manager: v }; done = 'Managerul a fost schimbat în registru.';
+        } else {
+          const raw = el.querySelector('[data-reg-amount]').value.replace(',', '.').trim(), n = Number(raw), k = el.querySelector('[data-reg-kind]').value;
+          if (!raw || !Number.isFinite(n) || n <= 0 || Math.round(n * 100) !== n * 100) { say('Scrie o sumă mai mare ca zero, cu cel mult 2 zecimale.', true); return; }
+          type = k === 'disc' ? 'ADD_DISCOUNT' : 'ADD_PAYMENT'; payload = { student: who, amount: k === 'refund' ? -n : n };
+          done = k === 'disc' ? 'Reducerea a fost adăugată în registru.' : k === 'refund' ? 'Returul a fost scris în registru.' : 'Plata a fost adăugată în registru.';
+        }
+        el.querySelectorAll('[data-reg-do]').forEach(x => { x.disabled = true; });
+        say('Se scrie în registru…');
+        const r = await window.AdminRegistry.command(g.id, type, payload);
+        if (r.ok || r.status === 'noop') { U.toast(esc(r.status === 'noop' ? 'Era deja așa în registru.' : done)); el.close(); setTimeout(() => openStudent(sid), 220); return; }
+        el.querySelectorAll('[data-reg-do]').forEach(x => { x.disabled = false; });
+        say(r.status === 'conflict' ? `${r.msg} Nu am scris nimic: încearcă din nou.` : (r.msg || 'Nu s-a putut scrie în registru.'), true);
+      }));
+    }
     const jb = el.querySelector('[data-journey]');
     if (jb) jb.addEventListener('click', () => { el.close(); window.AdminJourney.open(st.id); });
   }

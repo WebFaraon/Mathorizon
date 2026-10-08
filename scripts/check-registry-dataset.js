@@ -107,6 +107,15 @@ const multi = ds.students.filter(s => D.transfersOf(s.id).length);
 ok(multi.length === 3, 'three students with a past in several groups: ' + multi.length);
 multi.forEach(s => { const j = D.journey(s.id); ok(j && j.chapters.length >= 2, `${s.name}: the journey has chapters`); });
 
+/* where a person sits in a group's sheet (the console writes his status, manager and payments there) */
+{
+  const g0 = ds.groups[0], c0 = ds.ledger(g0.id).cols[0], col = ds.columnOf(c0.s.id, g0.id);
+  ok(col && /^[D-Z]$/.test(col.col) && col.name === c0.name && col.status === c0.statusRaw, 'columnOf gives the letter, the header name and the status of the column');
+  const ml = ds.students.filter(s => D.transfersOf(s.id).length)[0], gids = [ml._base, ml.group];
+  ok(gids.every(id => ds.columnOf(ml.id, id)), 'a person with two groups has a column in each');
+  ok(ds.columnOf(ds.students[0].id, 'nu-exista') === null, 'no column in a group he was never in');
+}
+
 /* read only: nothing writes */
 const before = JSON.stringify(D.group(ds.groups[0].id));
 D.move(ds.groups[0].id, { start: 3 }); D.setStatus(ds.groups[0].id, 'inactiv'); D.setStudentStatus(ds.students[0].id, 'inactiv'); D.setMark(ds.groups[0].id, ds.students[0].id, 0, 'P'); D.setAvailability(ds.teachers[0].id, {});

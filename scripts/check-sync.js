@@ -93,6 +93,20 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
   ok(r.status === 'done' && JSON.stringify(diff(s0, b)) === JSON.stringify(['D7']), 'manager changed in one cell');
   ok(apply(b, { id: 'm2', type: 'SET_MANAGER', tab: 'Grupa 1', student: { name: 'Ionescu Ana', phone: '069123456' }, manager: 'Cerchez Cristina' }).status === 'noop', 'same manager is a no-op');
 }
+// a student given by his column number: trusted only while the header is still his
+{
+  const who = { col: 5, name: 'Popa Mihai', phone: '+37379111222' };            // E
+  const b = book();
+  const r1 = apply(b, { id: 'c1', type: 'SET_STATUS', tab: 'Grupa 1', student: who, status: 'Activ', expectStatus: 'Oră de probă' });
+  ok(r1.status === 'done' && cell(b, 'E8').v === 'Activ', 'by column: the status of the student in column E changes');
+  const moved = book(); moved.data['Grupa 1'].cells.E1 = { v: 'Altcineva Ion+37360000000' };
+  const r2 = apply(moved, { id: 'c2', type: 'ADD_PAYMENT', tab: 'Grupa 1', student: who, amount: 100 });
+  ok(r2.status === 'invalid' && r2.code === 'not-found' && moved.writes.length === 0, 'by column: a header that is not his any more refuses the payment, nothing written');
+  const r3 = apply(book(), { id: 'c3', type: 'SET_MANAGER', tab: 'Grupa 1', student: Object.assign({}, who, { phone: '+37369999999' }), manager: 'Pricinoc Ariadna' });
+  ok(r3.code === 'not-found', 'by column: a different phone is refused too');
+  const r4 = apply(book(), { id: 'c4', type: 'SET_MANAGER', tab: 'Grupa 1', student: { col: 12, name: 'Nimeni Nimeni' }, manager: 'Pricinoc Ariadna' });
+  ok(r4.code === 'not-found', 'by column: an empty column is not a student');
+}
 // payments and discounts: one more term in the sum
 {
   const pay = (b, who, amount, type) => apply(b, { id: 'p' + Math.random(), type: type || 'ADD_PAYMENT', tab: 'Grupa 1', student: who, amount });

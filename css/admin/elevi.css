@@ -154,3 +154,11 @@ body.ax .el-table td { overflow-wrap: anywhere; }
 /* the four figures: wider minimum cell, so "−801.052 lei" never runs into the next one */
 body.ax .el-stats { grid-template-columns: repeat(auto-fit, minmax(214px, 1fr)); }
 body.ax .el-stats .ax-stat__v { white-space: nowrap; }
+
+/* Registre: what can be written in the student's column of the register */
+body.ax .el-reg { display: grid; gap: 12px; padding-top: 4px; }
+body.ax .el-reg__row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 10px; }
+body.ax .el-reg__row label { display: flex; flex-direction: column; gap: 5px; flex: 1 1 150px; font-size: 0.78rem; font-weight: 700; color: var(--ax-ink-2); }
+body.ax .el-reg__row .ax-input, body.ax .el-reg__row .ax-select { font-weight: 600; color: var(--ax-ink); }
+body.ax .el-reg__msg { min-height: 1.3em; font-size: 0.84rem; font-weight: 700; color: var(--ax-ink-2); overflow-wrap: anywhere; }
+body.ax .el-reg__msg.is-bad { color: var(--ax-bad); }
