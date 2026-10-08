@@ -24,6 +24,7 @@
   };
 
   let C = { status: 'idle' };
+  let progress = '';                                           // 'k/n' while every register is being read
   let session = null, mount = null, syncing = null;          // syncing: null | 'all' | workbook id
 
   function niceError(e) {
@@ -102,10 +103,42 @@
   }
 
   /* ---------- sync now ---------- */
+  /* "Sincronizează acum" for everything: each enabled register is read for real (force), one at a time, because a register whose file did not change
+     is otherwise skipped and its teacher data (availability, what he teaches) could stay empty. Google allows about 60 reads a minute, so a register the
+     function postpones is asked again after a short wait. */
+  async function syncAllForced() {
+    const books = C.books.filter(w => w.enabled);
+    let read = 0, failed = 0, left = 0;
+    for (let i = 0; i < books.length; i++) {
+      progress = `${i + 1}/${books.length}`; paint();
+      let res = null;
+      for (let tries = 0; tries < 6; tries++) {
+        const r = await fetch(`${SUPABASE_URL}/functions/v1/registru-sync`, {
+          method: 'POST',
+          headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + ((session && session.access_token) || ''), 'Content-Type': 'application/json' },
+          body: JSON.stringify({ workbook_id: books[i].id, force: true })
+        });
+        if (r.status === 401) throw new Error('Contul nu are drept de administrator pentru sincronizare.');
+        const body = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(body.error || 'Eroare de server (cod ' + r.status + ').');
+        res = (body.results || [])[0] || { status: 'none' };
+        if (res.status !== 'deferred') break;
+        await new Promise(ok => setTimeout(ok, 15000));
+      }
+      if (res.status === 'ok' || res.status === 'partial') read++; else if (res.status === 'failed') failed++; else left++;
+    }
+    progress = '';
+    U.toast(`${plural(books.length, 'registru verificat', 'registre verificate')}, ${plural(read, 'citit', 'citite')}${failed ? `, ${plural(failed, 'cu eroare', 'cu erori')}` : ''}${left ? `, ${plural(left, 'rămas pentru următoarea rulare', 'rămase pentru următoarea rulare')}` : ''}.`, failed || left ? 'warn' : undefined);
+  }
   async function syncNow(id) {
     if (syncing) return;
     syncing = id || 'all';
     paint();
+    if (!id) {
+      try { await syncAllForced(); } catch (e) { progress = ''; U.toast(`Sincronizarea nu a pornit: ${esc(niceError(e))}`, 'warn'); } finally { syncing = null; }
+      await load();
+      return;
+    }
     try {
       let res;
       try {
@@ -295,7 +328,7 @@
     r.querySelector('#syStamp').textContent = C.status === 'ready' ? 'Încărcat la ' + C.loadedAt.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) : '';
     const all = r.querySelector('#syAll'), reload = r.querySelector('#syReload');
     all.disabled = !!syncing || C.status !== 'ready';
-    all.innerHTML = `${ico('refresh-cw', 16)} ${syncing === 'all' ? 'Se sincronizează…' : 'Sincronizează acum'}`;
+    all.innerHTML = `${ico('refresh-cw', 16)} ${syncing === 'all' ? 'Se citesc registrele ' + progress + '…' : 'Sincronizează acum'}`;
     reload.disabled = C.status === 'loading' || !!syncing;
     const box = r.querySelector('#syBody');
     box.innerHTML = bodyHTML();

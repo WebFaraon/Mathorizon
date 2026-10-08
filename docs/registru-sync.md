@@ -139,3 +139,4 @@ Punerea în funcțiune: (1) SQL Editor: `20261008240000_registre_new_group.sql`;
 - **În consolă:** Disponibilitate, un profesor, „Editează disponibilitatea”: ore pe zile, click sau tragere cu mouse-ul, antetul unei zile sau ore bifează toată linia. Săptămâna se schimbă pe ecran imediat, se scrie în fundal, apoi registrul se citește din nou. Se editează doar fila normală (nu cea de vară), iar ce predă profesorul (materii x clase) rămâne doar în citire.
 - **Recepția:** un click (sau Enter) pe o lecție deschide fila grupei în registru.
 - **Punerea în funcțiune:** (1) SQL Editor: `20261008280000_registre_set_availability.sql`; (2) deploy la `registru-apply` și `registru-sync`.
+- **Butonul „Sincronizează acum” (toate)** forțează acum citirea fiecărui registru, pe rând, cu progres „k/n”; un registru amânat de limita Google e cerut din nou după 15 secunde. Înainte forța doar butonul din dreptul fiecărui registru.
