@@ -69,3 +69,16 @@ Site-ul e servit static, cu handler-e `api/*.js`. Sincronizarea nu trebuie să r
 - **F1 (scris, de pus în funcțiune):** citirea registrelor în tabele Supabase, jurnal de rulări. Rămâne pagina de stare în admin.
 - **F2:** comenzile din Înscriere/Transfer/Plăți ajung în Sheets prin coadă.
 - **F3:** semnale în timp real (Apps Script), monitorizare, alerte.
+
+## 7. Trecerea pe date reale (listă de control)
+
+Ce e făcut: citirea registrelor în tabele, pagina Sincronizare (stare, probleme cu link la celulă, adăugare registru, legare de contul unui profesor), comutatorul **Demo | Registre** în consolă (doar citire; verificat că arată exact ca demo-ul pe cele 27 de registre demo: `npm run check:registry`).
+
+De făcut o singură dată, în ordine:
+1. **SQL Editor:** rulează `supabase/migrations/20261008180000_registre_sync_teacher.sql` (coloanele noi și funcțiile pentru adăugarea registrelor).
+2. **Deploy** funcția (citește acum și filele generale, rulează verificările, deduce anul din succesiunea lecțiilor): `npx supabase functions deploy registru-sync --project-ref tfflpivehrrzmklvcyhe --use-api --no-verify-jwt`.
+3. Pentru fiecare registru real: partajează-l cu `registre-sync@mathorizon-registre.iam.gserviceaccount.com` ca **Cititor**, apoi în Admin → Sincronizare → **Adaugă registru** (link, profesor, contul lui, anul școlar). Registrele demo se pot opri din **Setări** când nu mai sunt necesare.
+4. Citește **De reparat / De verificat** din fiecare registru; repară în Sheets (nu în platformă). Înainte să schimbi o filă: fără redenumiri de file, fără inserări sau ștergeri de rânduri și coloane (fișierele confidențiale ale adminului citesc din registre).
+5. Comută pe **Registre** și compară cu ce știi.
+
+Ce nu se poate deduce din registre (de știut): telefonul profesorului, locurile dintr-un cabinet (se presupun 8), proiectul unei grupe (vine din titlul fișierului: OFFLINE, ONLINE), data unui transfer (prima lecție în grupa nouă), anul lecțiilor (din titlu și din succesiunea rândurilor: un registru acoperă un an școlar). Un rând de orar fără zi și oră lasă grupa fără orar în consolă. Aceleași reguli se aplică și când registrele devin sursa pentru scriere (F2).
