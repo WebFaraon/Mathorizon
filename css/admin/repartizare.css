@@ -327,6 +327,11 @@ body.ax .rp-card--c .ax-seats { gap: 2px; }
 body.ax .rp-card--c .ax-seats i { width: 5px; height: 5px; border-width: 1px; }
 
 /* motion: a moved card settles, a found card pulses */
+/* a move the register has not confirmed yet: moving hazard stripes along the bottom edge */
+@keyframes rp-saving { to { background-position: 17px 0; } }
+body.ax .rp-card.is-saving { cursor: progress; }
+body.ax .rp-card.is-saving::after { content: ''; position: absolute; left: 0; right: 0; bottom: 0; height: 4px; background: repeating-linear-gradient(-45deg, var(--ax-ink) 0 6px, transparent 6px 12px); background-size: 17px 100%; animation: rp-saving 0.8s linear infinite; }
+@media (prefers-reduced-motion: reduce) { body.ax .rp-card.is-saving::after { animation: none; } }
 @keyframes rp-settle { from { opacity: 0.2; transform: scale(0.92); } }
 @keyframes rp-pulse { 0%, 100% { transform: none; } 25%, 65% { transform: scale(1.04); } 45% { transform: scale(0.99); } }
 body.ax .rp-card.is-pulse { z-index: 5; outline: 2px solid var(--ax-ink); outline-offset: 1px; box-shadow: 0 0 0 6px var(--ax-hi); }

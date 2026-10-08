@@ -60,6 +60,7 @@ async function run(key: unknown, row: any) {
       const adapter = createAdapter(key, wb.spreadsheet_id), cmd = { id: row.id, type: row.type, tab, ...row.payload };
       result = row.type === 'SET_GROUP' ? await applySetGroupAsync(adapter, cmd) : await applyAsync(adapter, cmd);
     }
+    if (result && !result.tab) result.tab = tab;   // the name the tab has now (the client reads just that tab next)
     }
     await finish(row.id, result.status, result);
     return result;

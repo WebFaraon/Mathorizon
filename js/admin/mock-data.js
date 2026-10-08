@@ -776,6 +776,10 @@
     base: id => baseG[id],
     reset() { if (ro()) return; edits = {}; applyEdits(); save(); },
     sync: { edits: () => edits, replace: replaceEdits, onSave: fn => saveHooks.push(fn) },
+    /* Registre: show a change on the screen BEFORE the register has it (the write takes a few seconds). Changes the group in memory only, nothing is
+       saved or queued; the data read back from the register replaces it (useData), so a refused write simply disappears. */
+    optimistic(id, patch) { if (!registry || !idx.groups[id]) return; Object.assign(idx.groups[id], patch); announce(); },
+    touch: announce,
     useData, useDemo, readOnly: () => !!registry, blocked: () => ro(),
     get registry() { return registry; },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }

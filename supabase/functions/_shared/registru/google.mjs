@@ -85,6 +85,22 @@ export async function readWorkbook(key, spreadsheetId) {
   return { title: meta.properties.title, tabs };
 }
 
+/* ONE group tab: { title (the register's), tabs: [{ title, sheetId, hidden, values }] } in two calls made at the same time. The tab is asked for by name and
+   checked by its id (the names change, the ids do not): a name that is not that sheet's today is an error, never another group's data. */
+export async function readGroupTab(key, spreadsheetId, sheetId, tab) {
+  const token = await accessToken(key);
+  const base = 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(spreadsheetId);
+  const [meta, vals] = await Promise.all([
+    get(token, base + '?fields=properties.title,sheets.properties(title,sheetId,hidden)'),
+    get(token, base + '/values/' + encodeURIComponent(q(tab) + '!A1:AC198') + '?valueRenderOption=UNFORMATTED_VALUE&majorDimension=ROWS')
+  ]);
+  const s = meta.sheets.find(x => String(x.properties.sheetId) === String(sheetId));
+  if (!s) throw new Error('Fila nu mai există în registru (id ' + sheetId + ').');
+  if (s.properties.title !== tab) throw new Error('Fila s-a redenumit între timp („' + s.properties.title + '”): citirea completă o preia.');
+  if (GENERAL.has(plain(tab))) throw new Error('Fila „' + tab + '” nu e o grupă.');
+  return { title: meta.properties.title, tabs: [{ title: tab, sheetId: s.properties.sheetId, hidden: !!s.properties.hidden, values: vals.values || [] }] };
+}
+
 /* when the file last changed (one light call): a register that did not change is not read at all */
 export async function driveModified(key, spreadsheetId) {
   const j = await get(await accessToken(key), 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(spreadsheetId) + '?fields=modifiedTime&supportsAllDrives=true');

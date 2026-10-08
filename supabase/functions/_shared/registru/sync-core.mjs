@@ -122,3 +122,24 @@ export async function syncWorkbook({ wb, read, peek, db, force }) {
   out.workbook = workbookData(m);
   return out;
 }
+
+/* ONE group, right after the platform wrote in its tab: only that tab is read and only that group is replaced, so the console sees the change in a
+   second or two instead of after a read of the whole register. Does not look at the other groups, does not prune, does not touch the register's own
+   state (drive_modified, last_full_sync_at, issues): the minute cron still does the full read afterwards and corrects anything this skipped.
+   readTab(spreadsheetId, sheetId, tab) -> { title, tabs: [one tab] } (google.mjs readGroupTab, or a fixture in tests) */
+export async function syncGroup({ wb, sheetId, tab, readTab, db }) {
+  const data = await readTab(wb.spreadsheet_id, sheetId, tab);
+  const t = data.tabs[0];
+  if (!t) throw new Error('Fila nu mai există în registru.');
+  const m = parseWorkbook(valuesBook(data, `${data.title}.xlsx`), { yearFrom: wb.school_year_from || null });
+  const g = m.groups.find(x => x.tab === t.title);
+  if (!g) throw new Error('Fila „' + t.title + '” nu mai arată ca o grupă: nu schimb nimic.');
+  const bad = gate(g);
+  if (bad) return { changed: 0, unchanged: 0, skipped: [{ tab: g.tab, reason: bad }], tab: g.tab };
+  const payload = groupPayload(g, t.sheetId);
+  payload.content_hash = await sha256(JSON.stringify(Object.assign({}, payload, { content_hash: undefined })));
+  const stored = await db.hashes(wb.id);
+  if (stored.get(String(t.sheetId)) === payload.content_hash) return { changed: 0, unchanged: 1, skipped: [], tab: g.tab };
+  await db.applyGroup(wb.id, payload);
+  return { changed: 1, unchanged: 0, skipped: [], tab: g.tab };
+}

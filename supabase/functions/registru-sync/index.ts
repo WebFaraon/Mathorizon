@@ -1,10 +1,11 @@
 /* registru-sync: reads the teachers' Google Sheets registers into the platform's reg_* tables (F1: read only).
    Called by pg_cron every few minutes (header x-sync-secret) or by an admin from the console (Bearer token of an admin).
    Body (optional): { "workbook_id": "<uuid>" } to sync one register; without it, every enabled one.
+   { "workbook_id", "sheet_id", "tab" }: only that group's tab is read and replaced (right after a write of the console; the cron's full read follows).
    Secrets (supabase secrets set): GOOGLE_SA_KEY (the service account JSON, as text), REG_SYNC_SECRET (a long random string). */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { syncWorkbook } from '../_shared/registru/sync-core.mjs';
-import { readWorkbook, driveModified, QuotaError } from '../_shared/registru/google.mjs';
+import { syncWorkbook, syncGroup } from '../_shared/registru/sync-core.mjs';
+import { readWorkbook, readGroupTab, driveModified, QuotaError } from '../_shared/registru/google.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -54,6 +55,17 @@ Deno.serve(async (req) => {
   if (body.workbook_id) q = q.eq('id', body.workbook_id);
   const { data: books, error } = await q.order('last_synced_at', { ascending: true, nullsFirst: true });   // the longest-waiting register first
   if (error) return json(500, { error: error.message });
+
+  if (body.workbook_id && body.sheet_id && body.tab) {
+    const wb = (books ?? [])[0];
+    if (!wb) return json(200, { results: [{ workbook: body.workbook_id, status: 'failed', error: 'registru necunoscut sau oprit' }] });
+    try {
+      const r = await syncGroup({ wb, sheetId: body.sheet_id, tab: String(body.tab), readTab: (id: string, sid: number, tab: string) => readGroupTab(key, id, sid, tab), db });
+      return json(200, { results: [{ workbook: wb.id, group: true, status: r.skipped.length ? 'partial' : 'ok', changed: r.changed, tab: r.tab }] });
+    } catch (e) {
+      return json(200, { results: [{ workbook: wb.id, group: true, status: 'failed', error: String((e as Error).message ?? e).slice(0, 300) }] });
+    }
+  }
 
   const started = Date.now(), results: unknown[] = [];
   for (const wb of books ?? []) {

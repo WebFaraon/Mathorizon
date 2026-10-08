@@ -393,16 +393,20 @@
       el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', async () => {
         if (g.status === b.dataset.st) return;
         if (D.readOnly()) {
-          // Registre: the state is written in the group's tab (cell A3), then the register is read again
-          el.querySelectorAll('[data-st]').forEach(x => { x.disabled = true; });
-          U.toast('Se scrie în registru…');
-          const r = await window.AdminRegistry.setGroup(g.id, { status: b.dataset.st });
-          const ng = D.group(g.id);
-          if (ng) { g.status = ng.status; g._state = ng._state; }
+          // Registre: the state shows at once and is written in the group's tab (cell A3) in the background; the answer comes in a toast
+          const p = window.AdminRegistry.setGroup(g.id, { status: b.dataset.st });
+          g.status = b.dataset.st;
           repaintAll(`[data-st="${g.status}"]`);
-          if (r.ok || r.status === 'noop') U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, g.status))}, scris în registru.`);
-          else U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru.` : (r.msg || 'Nu s-a putut scrie în registru.')), 'warn');
           onChanged();
+          const r = await p;
+          if (r.ok || r.status === 'noop') U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, b.dataset.st))}, scris în registru.`);
+          else {
+            const ng = D.group(g.id);                                                  // refused: the register's own value is back on screen
+            if (ng) { g.status = ng.status; g._state = ng._state; }
+            repaintAll(`[data-st="${g.status}"]`);
+            onChanged();
+            U.toast(esc(r.status === 'conflict' ? `${r.msg} Statutul a revenit la cel din registru.` : `${r.msg || 'Nu s-a putut scrie în registru.'} Statutul a revenit la cel din registru.`), 'warn');
+          }
           return;
         }
         if (D.blocked()) return;

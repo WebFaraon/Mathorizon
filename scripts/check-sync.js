@@ -460,6 +460,32 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(r2.status === 'conflict' && R2.calls.rename === 0, 'a refused command renames nothing');
     }
   }
+  // ── syncGroup: only the tab the console just wrote is read and replaced ──
+  {
+    const { syncGroup } = await import(core);
+    const wbg = { id: 'w1', spreadsheet_id: 'x' };
+    const one = bk => { const d = grid(bk); return { title: d.title, tabs: d.tabs.filter(x => x.title === 'Grupa 1') }; };
+    const db = mem(); delete db.prune;                                  // a group sync must never prune: calling it would throw
+    let asked = null;
+    const readTab = async (ss, sid, tab) => { asked = [ss, sid, tab]; return one(book()); };
+    const r1 = await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab, db });
+    ok(r1.changed === 1 && r1.tab === 'Grupa 1' && db.store.get('100') && db.store.get('100').students.length === 2 && JSON.stringify(asked) === JSON.stringify(['x', 100, 'Grupa 1']), 'group sync: that one tab is read and stored with its students and lessons');
+    const r2 = await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab, db });
+    ok(r2.changed === 0 && r2.unchanged === 1, 'group sync: nothing changed, nothing rewritten');
+    const b2 = book(); b2.data['Grupa 1'].cells.A3 = { v: 'Inactiv' };
+    const r3 = await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab: async () => one(b2), db });
+    ok(r3.changed === 1 && db.store.get('100').state === 'Inactiv', 'group sync: a changed state replaces the group');
+    db.store.set('555', { sheet_id: 555, content_hash: 'z' });
+    await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab, db });
+    ok(db.store.has('555'), 'group sync: the other groups of the register are not touched');
+    const b3 = book(); b3.data['Grupa 1'].cells.A1 = { v: 'Grup cu 7 elevi' };
+    const db2 = mem(); const r4 = await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab: async () => one(b3), db: db2 });
+    ok(r4.changed === 0 && r4.skipped.length === 1 && db2.store.size === 0, 'group sync: a wrong format is not stored');
+    let threw = false; try { await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab: async () => ({ title: 'X', tabs: [] }), db }); } catch (e) { threw = true; }
+    ok(threw, 'group sync: a tab that is gone is an error, nothing changes');
+    threw = false; try { await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab: async () => ({ title: 'X', tabs: [{ title: 'Total achitări', sheetId: 9, hidden: false, values: [] }] }), db }); } catch (e) { threw = true; }
+    ok(threw, 'group sync: a tab that is not a group is an error');
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();
