@@ -717,7 +717,39 @@
     const start = 'start' in patch ? patch.start : g.start;
     return room ? `${roomName(room)}, ${hh(start)}` : `ora ${hh(start)}`;
   }
+  /* Registre: a move is written in the group's tab (hour and cabinet, AA2:AC7) and the register is read again; the board repaints from the register.
+     One write at a time. Returns true when the register has the new position. */
+  let writing = false;
+  async function writeMove(g, patch, what) {
+    if (writing) { U.toast('O mutare se scrie deja în registru. Așteaptă o clipă.', 'warn'); return false; }
+    writing = true;
+    U.toast('Se scrie în registru…');
+    try {
+      const change = { start: 'start' in patch ? patch.start : g.start };
+      if ('room' in patch) change.room = patch.room;
+      const r = await window.AdminRegistry.setGroup(g.id, change);
+      if (r.ok || r.status === 'noop') return true;
+      U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru: alege din nou.` : (r.msg || `Nu s-a putut scrie ${what} în registru.`)), 'warn');
+      return false;
+    } finally { writing = false; }
+  }
+  async function applyRegistry(g, patch) {
+    const prev = { start: g.start, room: g.room };
+    const entry = { id: g.id, prev, next: Object.assign({}, prev, patch) };
+    if (!(await writeMove(g, patch, 'mutarea'))) return false;
+    undoStack.push(entry);
+    settleId = g.id;
+    renderMain();
+    const cur = D.group(g.id) || g;
+    const txt = `Grupa mutată în ${moveText(cur, {})}, scris în registru.`.replace('în ora', 'la ora');
+    U.toast(`<span class="rp-toast"><span>${esc(txt)}</span><button type="button" class="rp-toast__undo">${ico('undo', 14)} Anulează</button></span>`);
+    const tt = document.querySelector('.ax-toasts') && document.querySelector('.ax-toasts').lastElementChild;
+    const b = tt && tt.querySelector('.rp-toast__undo');
+    if (b) b.addEventListener('click', () => { undo(entry); tt.remove(); });
+    return true;
+  }
   function apply(g, patch) {
+    if (D.readOnly()) { applyRegistry(g, patch); return; }
     if (D.blocked()) return;
     const prev = { start: g.start, room: g.room };
     const entry = { id: g.id, prev, next: Object.assign({}, prev, patch) };
@@ -730,10 +762,20 @@
     const b = t && t.querySelector('.rp-toast__undo');
     if (b) b.addEventListener('click', () => { undo(entry); t.remove(); });
   }
-  function undo(entry) {
-    if (D.blocked()) return;
+  async function undo(entry) {
     const i = entry ? undoStack.indexOf(entry) : undoStack.length - 1;
     if (i < 0) return;
+    if (D.readOnly()) {
+      const e0 = undoStack[i], g0 = D.group(e0.id);
+      if (!g0 || !(await writeMove(g0, e0.prev.room ? { start: e0.prev.start, room: e0.prev.room } : { start: e0.prev.start }, 'anularea'))) return;
+      undoStack.splice(undoStack.indexOf(e0), 1);
+      settleId = e0.id;
+      renderMain();
+      const g1 = D.group(e0.id);
+      U.toast(esc(`Mutare anulată în registru: ${D.teacher(g1.teacher).name}, ${g1.subject} ${g1.grade} e din nou ${e0.prev.room ? 'în ' + roomName(e0.prev.room) + ', ' : 'la '}${hh(e0.prev.start)}.`));
+      return;
+    }
+    if (D.blocked()) return;
     const e = undoStack.splice(i, 1)[0];
     const g = D.group(e.id);
     settleId = e.id;
@@ -742,13 +784,14 @@
   }
   /* Validate then move; asks before an invalid move. */
   async function tryMove(g, room, start) {
-    if (D.blocked()) return false;
+    if (!D.readOnly() && D.blocked()) return false;
     if (room === g.room && start === g.start) return false;
     const c = check(g, room, start);
     if (!c.ok) {
       const yes = await confirmDialog(`Mutarea la ${room ? roomName(room) + ', ' : ''}${hh(start)} are probleme`, reasons(g, c), c);
       if (!yes) return false;
     }
+    if (D.readOnly()) return applyRegistry(g, g.room ? { start, room } : { start });
     apply(g, g.room ? { start, room } : { start });
     return true;
   }
@@ -1091,8 +1134,22 @@
       dr.close();
       apply(g, g.room ? { start: sel.start, room: sel.room } : { start: sel.start });
     });
-    U.$$('[data-st]', dr).forEach(b => b.addEventListener('click', () => {
-      if (b.dataset.st === g.status || D.blocked()) return;
+    U.$$('[data-st]', dr).forEach(b => b.addEventListener('click', async () => {
+      if (b.dataset.st === g.status) return;
+      if (D.readOnly()) {
+        // Registre: the state is written in the group's tab (cell A3), then the register is read again
+        U.$$('[data-st]', dr).forEach(x => { x.disabled = true; });
+        U.toast('Se scrie în registru…');
+        const r = await window.AdminRegistry.setGroup(g.id, { status: b.dataset.st });
+        const ng = D.group(g.id);
+        if (ng) { g.status = ng.status; g._state = ng._state; }
+        U.$$('[data-st]', dr).forEach(x => { x.disabled = false; x.setAttribute('aria-pressed', String(x.dataset.st === g.status)); });
+        if (r.ok || r.status === 'noop') U.toast(esc(`Statut schimbat în registru: ${statusName(g.status)}.`));
+        else U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru.` : (r.msg || 'Nu s-a putut scrie în registru.')), 'warn');
+        paint();
+        return;
+      }
+      if (D.blocked()) return;
       D.setStatus(g.id, b.dataset.st);
       U.$$('[data-st]', dr).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       U.toast(esc(`Statut schimbat: ${statusName(b.dataset.st)}.`));

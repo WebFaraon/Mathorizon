@@ -118,6 +118,35 @@
     }
   }
 
+  /* The group itself: its state (cell A3) and/or its hour and cabinet (AA2:AC7), written in the group's tab. `change` is { status } (a console status id)
+     and/or { start, room } (the new hour, the new room id; the days stay). The command carries what the console showed (expect), so a register
+     changed in the meantime is refused ("conflict") and the console reloads it. Returns the same { ok, status, msg, code } as command(). */
+  async function setGroup(groupId, change) {
+    const g = D.group(groupId);
+    if (!g) return { ok: false, status: 'failed', msg: 'Grupa nu mai există.', code: 'client', url: null };
+    const payload = {}, expect = {};
+    if (change.status !== undefined) {
+      const st = D.GROUP_STATUS.find(x => x.id === change.status);
+      if (!st) return { ok: false, status: 'invalid', msg: 'Starea grupei nu există.', code: 'client', url: null };
+      payload.state = st.name; expect.state = g._state;
+    }
+    if (change.start !== undefined || change.room !== undefined) {
+      if (g._irregular) return { ok: false, status: 'invalid', msg: 'Orarul grupei nu are aceeași oră în toate zilele: schimbă-l direct în registru.', code: 'irregular', url: null };
+      if (!g.days.length) return { ok: false, status: 'invalid', msg: 'Grupa nu are orar în registru: completează-l direct în registru.', code: 'no-schedule', url: null };
+      const room = 'room' in change ? (change.room ? D.room(change.room) : null) : null;
+      payload.schedule = { days: g.days.slice(), start: change.start !== undefined ? change.start : g.start, duration: g.duration, cabinet: 'room' in change ? (room ? String(room.num) : '') : g._cab };
+      expect.schedule = { days: g.days.slice(), start: g.start, duration: g.duration, cabinet: g._cab };
+    }
+    payload.expect = expect;
+    const r = await command(groupId, 'SET_GROUP', payload, { defer: true });
+    // done or already so: the register is read again at once; refused because it changed: read it again too, so the screen shows the truth
+    try {
+      const access = await token();
+      if (r.ok || r.status === 'noop' || r.status === 'conflict') { await call('registru-sync', access, { workbook_id: g._src.wb, force: true }); await refresh(); }
+    } catch (e) { /* the cron reads it a few minutes later */ }
+    return r;
+  }
+
   /* Transfer: each student moves from `from` to `to` (groups that may be in two different registers), with his money split by the Calculator's
      formulas (the register's own cells are the numbers, the console only sends what it showed on screen so a change in between is refused).
      One command per student; a student whose second phase failed can be tried again (nothing is duplicated). Returns one result per student. */
@@ -263,7 +292,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, poll, command, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, poll, command, setGroup, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

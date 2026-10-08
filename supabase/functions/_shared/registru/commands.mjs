@@ -5,7 +5,7 @@
    row 7 (manager) and row 8 (status) of a student column. Marks, topics and dates stay with the teacher; the money
    (rows 2, 5, 6, column C) is the sheet's own formulas and is never written.
    Plain ES module (Node through require, the Supabase Edge Function through import). */
-import { colLetter, readConfig } from './parse.mjs';
+import { colLetter, readConfig, dayNumber } from './parse.mjs';
 import { tokens } from './link.mjs';
 import { splitMoney, round2 } from './pay.mjs';
 
@@ -25,6 +25,7 @@ export function phoneOf(raw) {
   return null;
 }
 
+const DAY_NAMES = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 const invalid = (code, msg) => ({ ok: false, code, msg });
 const planOk = (writes, extra) => Object.assign({ ok: true, writes }, extra || {});
 
@@ -103,6 +104,57 @@ const PLANNERS = {
     return planOk([w(col.letter + '7', snap(s, 7, col.col), { v: cmd.manager })], { column: col.letter });
   },
 
+  /* The group itself: its state (A3) and its schedule (AA2:AC7: day, hour, cabinet, one row per hour). These belong to the sheet and to the admin;
+     the platform writes them only when the person on screen saw the current values (cmd.expect), so a change made in the sheet meanwhile is refused.
+       cmd: { type: 'SET_GROUP', tab, state?, schedule?: { days, start, duration, cabinet }, expect?: { state?, schedule? } }
+     A schedule cell that already says what is wanted is not written again (the register keeps its own spelling of the day, its own cabinet cell). */
+  SET_GROUP(book, cmd, cfg) {
+    const s = book.sheet(cmd.tab);
+    if (!/^(grup|individual)/i.test(s.text(1, 1))) return invalid('not-a-group', 'Fila nu e o grupă (A1 nu începe cu „Grup” sau „Individual”).');
+    const writes = [], ex = cmd.expect || {};
+    if (cmd.state !== undefined) {
+      const state = String(cmd.state || '').trim(), cur = s.text(3, 1);
+      if (!state || (cfg.groupState && cfg.groupState.length && !cfg.groupState.includes(state))) return invalid('state', `Starea „${state}” nu e în lista din CONFIGURARI.`);
+      if (cur !== state) {
+        if (ex.state !== undefined && !same(ex.state, cur)) return { ok: false, conflict: true, code: 'stale-state', msg: `Starea grupei din registru e „${cur}”, nu „${ex.state}” cât ai văzut tu. Nu am scris nimic.` };
+        writes.push(w('A3', snap(s, 3, 1), { v: state }));
+      }
+    }
+    if (cmd.schedule !== undefined) {
+      const want = scheduleRows(cmd.schedule, cfg);
+      if (!want.ok) return want;
+      const cur = [];
+      for (let r = 2; r <= 7; r++) {
+        const day = dayNumber(s.text(r, 27)), hn = s.num(r, 28);
+        if (day && hn !== null) cur.push({ r, day, hour: Math.round(hn * 24), cab: s.text(r, 29) });
+      }
+      cur.sort((x, y) => x.day - y.day || x.hour - y.hour);
+      const effCab = (cur.find(x => x.cab) || {}).cab || '';
+      const sameSlots = (a, b) => a.length === b.length && a.every((x, i) => x.day === b[i].day && x.hour === b[i].hour);
+      if (ex.schedule !== undefined) {
+        const seen = scheduleRows(ex.schedule, cfg), unchanged = sameSlots(cur, want.rows) && effCab === want.rows[0].cab;
+        if (!unchanged && !(seen.ok && sameSlots(cur, seen.rows) && effCab === seen.rows[0].cab)) {
+          return { ok: false, conflict: true, code: 'stale-schedule', msg: 'Orarul grupei din registru nu mai e cel pe care l-ai văzut (s-a schimbat în registru). Nu am scris nimic.' };
+        }
+      }
+      for (let i = 0; i < 6; i++) {
+        const r = i + 2, t = want.rows[i], x = cur.find(y => y.r === r);
+        const rawDay = s.text(r, 27), rawCab = s.text(r, 29), hn = s.num(r, 28);
+        if (t) {
+          if (!(x && x.day === t.day)) writes.push(w('AA' + r, snap(s, r, 27), { v: DAY_NAMES[t.day - 1] }));
+          if (!(x && x.hour === t.hour)) writes.push(w('AB' + r, snap(s, r, 28), { v: t.hour / 24 }));
+          if (rawCab !== t.cab) writes.push(w('AC' + r, snap(s, r, 29), { v: t.cab === '' ? null : t.cab }));
+        } else {
+          if (rawDay) writes.push(w('AA' + r, snap(s, r, 27), { v: null }));
+          if (hn !== null || s.text(r, 28)) writes.push(w('AB' + r, snap(s, r, 28), { v: null }));
+          if (rawCab) writes.push(w('AC' + r, snap(s, r, 29), { v: null }));
+        }
+      }
+    }
+    if (cmd.state === undefined && cmd.schedule === undefined) return invalid('empty', 'Comanda nu cere nicio schimbare.');
+    return writes.length ? planOk(writes) : planOk([], { noop: true });
+  },
+
   /* a payment or a discount is one more term in the cell's SUM(...), the way the managers type them: =SUM(1216-608) -> =SUM(1216-608+300) */
   ADD_PAYMENT(book, cmd) { return addTerm(book, cmd, 3); },
   ADD_DISCOUNT(book, cmd) { return addTerm(book, cmd, 4); }
@@ -127,6 +179,18 @@ function addTerm(book, cmd, row) {
   const term = String(Math.abs(amount));
   const next = body === '0' ? (amount > 0 ? term : '-' + term) : body + (amount > 0 ? '+' : '-') + term;
   return planOk([w(col.letter + row, snap(s, row, col.col), { f: `SUM(${next})` })], { column: col.letter });
+}
+
+/* { days, start, duration, cabinet } -> the schedule rows in the order of the sheet: { rows: [{ day, hour, cab }] } (a two-hour lesson is two rows) */
+function scheduleRows(sc, cfg) {
+  const days = ((sc && sc.days) || []).map(Number), start = Number(sc && sc.start), duration = Number(sc && sc.duration) || 1;
+  if (!days.length || days.some(d => !(d >= 1 && d <= 7)) || new Set(days).size !== days.length || !Number.isInteger(start) || !Number.isInteger(duration) || duration < 1 || start < 8 || start + duration > 22) return invalid('schedule', 'Orarul grupei (zile și oră) nu e valid.');
+  if (days.length * duration > 6) return invalid('schedule', 'Registrul are loc pentru cel mult 6 ore de orar pe săptămână (AA2:AC7).');
+  const cab = sc.cabinet == null || sc.cabinet === '' ? '' : String(sc.cabinet);
+  if (cab && cfg.cabinet && cfg.cabinet.length && !cfg.cabinet.map(String).includes(cab)) return invalid('cabinet', `Cabinetul „${cab}” nu e în lista din CONFIGURARI.`);
+  const rows = [];
+  days.slice().sort((a, b) => a - b).forEach(d => { for (let h = 0; h < duration; h++) rows.push({ day: d, hour: start + h, cab }); });
+  return { ok: true, rows };
 }
 
 export function plan(book, cmd) {

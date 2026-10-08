@@ -12,6 +12,7 @@ import { readConfig } from './parse.mjs';
 import { parseA1 } from './memory-book.mjs';
 
 const nul = x => (x === undefined || x === null ? null : x);
+const sameVal = (a, b) => a === b || (typeof a === 'number' && typeof b === 'number' && Math.abs(a - b) < 1e-9);   // a time of day comes back as a fraction
 const same = (a, b) => nul(a.v) === nul(b.v) && (a.f || null) === (b.f || null);
 const current = (book, tab, k) => { const { r, c } = parseA1(k); const x = book.sheet(tab).get(r, c); return x ? { v: nul(x.v), f: x.f || null } : { v: null, f: null }; };
 
@@ -27,7 +28,7 @@ function run(book, cmd) {
   p.writes.forEach(x => { cells[x.a1] = x.write; });
   book.set(cmd.tab, cells);
   // read back
-  const bad = p.writes.filter(x => { const now = current(book, cmd.tab, x.a1); return x.write.f ? (now.f || '') !== x.write.f : now.v !== x.write.v || now.f; });
+  const bad = p.writes.filter(x => { const now = current(book, cmd.tab, x.a1); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${current(book, cmd.tab, bad[0].a1).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
   return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
 }
@@ -62,7 +63,7 @@ export async function applyAsync(adapter, cmd) {
   p.writes.forEach(x => { cells[x.a1] = x.write; });
   await adapter.write(cmd.tab, cells);
   const after = await adapter.read(cmd.tab, keys);
-  const bad = p.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : now.v !== x.write.v || now.f; });
+  const bad = p.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
   return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
 }
@@ -92,7 +93,7 @@ export async function applyTransferAsync(adapters, cmd) {
       ph.writes.forEach(x => { cells[x.a1] = x.write; });
       await adapter.write(ph.tab, cells);
       const after = await adapter.read(ph.tab, keys);
-      const bad = ph.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : now.v !== x.write.v || now.f; });
+      const bad = ph.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
       if (bad.length) return half(i, `după scriere, celula ${bad[0].a1} din „${ph.tab}” are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, { cells: bad.map(x => x.a1) });
       done.push({ side: ph.side, tab: ph.tab, writes: ph.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) });
     } catch (e) {

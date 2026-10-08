@@ -390,8 +390,22 @@
       actions: footHTML()
     });
     const wireBody = () => {
-      el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', () => {
-        if (g.status === b.dataset.st || D.blocked()) return;
+      el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', async () => {
+        if (g.status === b.dataset.st) return;
+        if (D.readOnly()) {
+          // Registre: the state is written in the group's tab (cell A3), then the register is read again
+          el.querySelectorAll('[data-st]').forEach(x => { x.disabled = true; });
+          U.toast('Se scrie în registru…');
+          const r = await window.AdminRegistry.setGroup(g.id, { status: b.dataset.st });
+          const ng = D.group(g.id);
+          if (ng) { g.status = ng.status; g._state = ng._state; }
+          repaintAll(`[data-st="${g.status}"]`);
+          if (r.ok || r.status === 'noop') U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, g.status))}, scris în registru.`);
+          else U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru.` : (r.msg || 'Nu s-a putut scrie în registru.')), 'warn');
+          onChanged();
+          return;
+        }
+        if (D.blocked()) return;
         D.setStatus(g.id, b.dataset.st);
         repaintAll(`[data-st="${g.status}"]`);
         U.toast(`Statutul grupei: ${esc(statusName(D.GROUP_STATUS, g.status))}.`);

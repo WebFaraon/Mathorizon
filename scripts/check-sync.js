@@ -340,6 +340,68 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(r3.status === 'done' && R3.bk.cell(r3.tab, 'A4').v === 'Matematica (Vara)' && / \(Vara\)$/.test(r3.tab), 'a summer group: "(Vara)" in the subject and in the tab name');
     }
   }
+  // ── SET_GROUP: the state (A3) and the schedule (AA2:AC7) of a group, only when the person saw the current values ──
+  const { applyAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+  {
+    const cfgS = Object.assign({}, cfgCells, { F3: { v: 'Se completează' }, F4: { v: 'Inactiv' }, I3: { v: '13' }, I4: { v: '15' } });
+    const mkS = (extra, hooks) => {
+      const cells = Object.assign({ A1: { v: 'Grup cu 3 elevi' }, A3: { v: 'Activ' }, AA2: { v: 'Marți' }, AB2: { v: 16 / 24 }, AC2: { v: '14' }, AA3: { v: 'Joi' }, AB3: { v: 16 / 24 }, AC3: { v: '14' } }, extra || {});
+      const bk = new MemoryBook({ 'Grupa 1': { cells }, CONFIGURARI: { hidden: true, cells: cfgS } }, 'x.xlsx');
+      const calls = { write: 0 };
+      return {
+        bk, calls,
+        load: async () => bk,
+        read: async (tab, keys) => { const out = {}; keys.forEach(k => { const c = bk.cell(tab, k); out[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return out; },
+        write: async (tab, cells) => { calls.write++; if (hooks && hooks.before) hooks.before(bk); bk.set(tab, cells); }
+      };
+    };
+    const SG = (o) => Object.assign({ id: 'sg' + Math.random(), type: 'SET_GROUP', tab: 'Grupa 1' }, o);
+    const cc = (R, k) => R.bk.cell('Grupa 1', k) || {};
+    const sch = (o) => Object.assign({ days: [2, 4], start: 16, duration: 1, cabinet: '14' }, o || {});
+    {
+      const R = mkS(), r = await applyAsync(R, SG({ state: 'Inactiv', expect: { state: 'Activ' } }));
+      ok(r.status === 'done' && cc(R, 'A3').v === 'Inactiv' && r.writes.length === 1, 'group state changed in one cell (A3)');
+      const r2 = await applyAsync(R, SG({ state: 'Inactiv' }));
+      ok(r2.status === 'noop', 'the same state again is a no-op');
+      const R2 = mkS(); R2.bk.data['Grupa 1'].cells.A3.v = 'Se completează';
+      const r3 = await applyAsync(R2, SG({ state: 'Inactiv', expect: { state: 'Activ' } }));
+      ok(r3.status === 'conflict' && r3.code === 'stale-state' && R2.calls.write === 0, 'the state changed in the sheet meanwhile: conflict, nothing written');
+      ok((await applyAsync(mkS(), SG({ state: 'Gigel' }))).code === 'state', 'a state outside the list is refused');
+    }
+    {
+      // a move: the hour changes (one cell per row), the cabinet changes (the two cabinet cells), the days stay
+      const R = mkS(), r = await applyAsync(R, SG({ schedule: sch({ start: 18, cabinet: '13' }), expect: { schedule: sch() } }));
+      ok(r.status === 'done' && cc(R, 'AA2').v === 'Marți' && Math.abs(cc(R, 'AB2').v - 18 / 24) < 1e-9 && Math.abs(cc(R, 'AB3').v - 18 / 24) < 1e-9 && cc(R, 'AC2').v === '13' && cc(R, 'AC3').v === '13' && r.writes.length === 4, 'a move: new hour and cabinet on both rows, the days not rewritten: ' + JSON.stringify(r.writes && r.writes.map(x => x.a1)));
+      const r2 = await applyAsync(R, SG({ schedule: sch({ start: 18, cabinet: '13' }), expect: { schedule: sch() } }));
+      ok(r2.status === 'noop', 'the same move again (the sheet already has it) is a no-op, not a conflict');
+    }
+    {
+      // other days and a second hour: rows are added, leftovers cleared
+      const R = mkS(), r = await applyAsync(R, SG({ schedule: sch({ days: [1, 3, 5], duration: 2, start: 10 }), expect: { schedule: sch() } }));
+      const rows = [2, 3, 4, 5, 6, 7].map(i => [cc(R, 'AA' + i).v, cc(R, 'AB' + i).v == null ? null : Math.round(cc(R, 'AB' + i).v * 24), cc(R, 'AC' + i).v || null]);
+      ok(r.status === 'done' && JSON.stringify(rows) === JSON.stringify([['Luni', 10, '14'], ['Luni', 11, '14'], ['Miercuri', 10, '14'], ['Miercuri', 11, '14'], ['Vineri', 10, '14'], ['Vineri', 11, '14']]), 'other days and two hours: six rows, one per hour: ' + JSON.stringify(rows));
+      const R2 = mkS(), r2 = await applyAsync(R2, SG({ schedule: sch({ days: [2], cabinet: '' }), expect: { schedule: sch() } }));
+      ok(r2.status === 'done' && cc(R2, 'AA3').v == null && cc(R2, 'AB3').v == null && cc(R2, 'AC3').v == null && cc(R2, 'AC2').v == null && cc(R2, 'AA2').v === 'Marți', 'fewer days and no cabinet: the leftover row and the cabinets are cleared');
+    }
+    {
+      const R = mkS({ AB2: { v: 17 / 24 } }), r = await applyAsync(R, SG({ schedule: sch({ start: 18 }), expect: { schedule: sch() } }));
+      ok(r.status === 'conflict' && r.code === 'stale-schedule' && R.calls.write === 0, 'the schedule was changed in the sheet meanwhile: conflict, nothing written');
+      const R2 = mkS(), real = R2.read;
+      let n = 0; R2.read = async (tab, keys) => { if (++n === 1) R2.bk.data['Grupa 1'].cells.AB3.v = 17 / 24; return real(tab, keys); };
+      const r2 = await applyAsync(R2, SG({ schedule: sch({ start: 18 }), expect: { schedule: sch() } }));
+      ok(r2.status === 'conflict' && r2.code === 'changed' && R2.calls.write === 0, 'a cell changed between the plan and the write: conflict, nothing written: ' + r2.status);
+    }
+    {
+      const R = mkS({ AC2: { v: '14' }, AC3: { v: null } }), r = await applyAsync(R, SG({ schedule: sch({ start: 17 }), expect: { schedule: sch() } }));
+      ok(r.status === 'done', 'a cabinet on one row only is read as the group cabinet (no false conflict)');
+      const bad = [[{ days: [] }, 'schedule'], [{ days: [2, 2] }, 'schedule'], [{ days: [1, 2, 3, 4], duration: 2 }, 'schedule'], [{ start: 7 }, 'schedule'], [{ start: 22 }, 'schedule'], [{ cabinet: '99' }, 'cabinet']];
+      for (const [s, code] of bad) { const R3 = mkS(), r3 = await applyAsync(R3, SG({ schedule: sch(s) })); ok(r3.status === 'invalid' && r3.code === code && R3.calls.write === 0, 'refused (' + code + '): ' + JSON.stringify(s)); }
+      ok((await applyAsync(mkS({ A1: { v: 'Total' } }), SG({ state: 'Activ' }))).code === 'not-a-group', 'a tab that is not a group is refused');
+      ok((await applyAsync(mkS(), SG({}))).code === 'empty', 'a command that asks for nothing is refused');
+      const R4 = mkS(), r4 = await applyAsync(R4, SG({ state: 'Inactiv', schedule: sch({ start: 19 }), expect: { state: 'Activ', schedule: sch() } }));
+      ok(r4.status === 'done' && cc(R4, 'A3').v === 'Inactiv' && Math.abs(cc(R4, 'AB2').v - 19 / 24) < 1e-9, 'state and schedule together are one command');
+    }
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

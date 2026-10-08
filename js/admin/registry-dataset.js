@@ -52,12 +52,12 @@
     const byDay = {};
     rows.forEach(s => { (byDay[s.day] = byDay[s.day] || []).push(s.hour); });
     const days = Object.keys(byDay).map(Number).sort((a, b) => a - b);
-    if (!days.length) return { days: [], start: 0, duration: 1, room: null, irregular: false };
+    if (!days.length) return { days: [], start: 0, duration: 1, room: null, cab: '', irregular: false };
     const win = d => merge(byDay[d])[0];
     const w0 = win(days[0]);
     const irregular = days.some(d => { const w = win(d); return w[0] !== w0[0] || w[1] !== w0[1]; });
     const cab = (rows.find(s => s.cabinet) || {}).cabinet;
-    return { days, start: w0[0], duration: w0[1] - w0[0], room: cab ? 'c' + String(cab).replace(/\D/g, '') : null, irregular };
+    return { days, start: w0[0], duration: w0[1] - w0[0], room: cab ? 'c' + String(cab).replace(/\D/g, '') : null, cab: cab ? String(cab) : '', irregular };
   }
 
   function build(T, opts) {
@@ -118,7 +118,7 @@
         const g = {
           id: r.id, project: projectId(w), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
           size: r.format_size, status: groupStatus(r.state), teacher: tidOf.get(w.id), days: sl.days, start: sl.start, duration: sl.duration, room: sl.room,
-          startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, ssid: w.spreadsheet_id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular
+          startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, ssid: w.spreadsheet_id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular, _state: r.state || '', _cab: sl.cab
         };
         groups.push(g); gById.set(g.id, g);
         lessonsOf[g.id] = lessons.map(l => ({ row: l.row_no, iso: l.iso || null, topic: l.topic || '', marks: l.marks || {}, level: l.teacher_level, pay: l.teacher_pay }));
