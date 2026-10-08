@@ -404,12 +404,16 @@
           type = k === 'disc' ? 'ADD_DISCOUNT' : 'ADD_PAYMENT'; payload = { student: who, amount: k === 'refund' ? -n : n };
           done = k === 'disc' ? 'Reducerea a fost adăugată în registru.' : k === 'refund' ? 'Returul a fost scris în registru.' : 'Plata a fost adăugată în registru.';
         }
+        // the change shows at once (the drawer opens again with the new values) and is written in the register in the background; the answer comes as a toast
         el.querySelectorAll('[data-reg-do]').forEach(x => { x.disabled = true; });
-        say('Se scrie în registru…');
-        const r = await window.AdminRegistry.command(g.id, type, payload);
-        if (r.ok || r.status === 'noop') { U.toast(esc(r.status === 'noop' ? 'Era deja așa în registru.' : done)); el.close(); setTimeout(() => openStudent(sid), 220); return; }
-        el.querySelectorAll('[data-reg-do]').forEach(x => { x.disabled = false; });
-        say(r.status === 'conflict' ? `${r.msg} Nu am scris nimic: încearcă din nou.` : (r.msg || 'Nu s-a putut scrie în registru.'), true);
+        const p = window.AdminRegistry.studentChange(g.id, type, payload, col.col);
+        el.close(); setTimeout(() => openStudent(sid), 220);
+        const r = await p;
+        if (r.ok || r.status === 'noop') { U.toast(esc(r.status === 'noop' ? 'Era deja așa în registru.' : done)); return; }
+        U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru: încearcă din nou.` : `${r.msg || 'Nu s-a putut scrie în registru.'} Valorile au revenit la cele din registru.`), 'warn');
+        const open = document.querySelector('.ax-drawer');                       // the drawer shows the guess: open it again with what the register has
+        if (open && open.close) open.close();
+        setTimeout(() => openStudent(sid), 220);
       }));
     }
     const jb = el.querySelector('[data-journey]');

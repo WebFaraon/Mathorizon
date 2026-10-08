@@ -19,6 +19,8 @@
   let busy = false;
   let lastT = null;                                   // the tables as last read: a group can be replaced in them without reading everything again
   const GROUP_COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
+  const STUDENT_COLS = 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold';
+  const LESSON_COLS = 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks';
   let stamp = null;                                   // the newest full read of any register, as of the data on screen
   const latestRead = list => list.reduce((m, w) => (w.last_full_sync_at && (!m || w.last_full_sync_at > m) ? w.last_full_sync_at : m), null);
   const read = () => { try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
@@ -55,8 +57,8 @@
     const [workbooks, groups, students, lessons] = await Promise.all([
       fetchAll('reg_workbooks', 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at', 'teacher_name.asc,id.asc', access),
       fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access),
-      fetchAll('reg_students', 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold', 'group_id.asc,col.asc', access),
-      fetchAll('reg_lessons', 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks', 'group_id.asc,row_no.asc', access)
+      fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access),
+      fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access)
     ]);
     stamp = latestRead(workbooks);
     lastT = { workbooks, groups, students, lessons };
@@ -74,17 +76,44 @@
     D.useData(ds, { today: new Date() });
     if (window.AdminShell) window.AdminShell.render();
   }
-  /* only some groups read again (their rows in reg_groups: state, schedule, name); the students and lessons already on screen stay */
-  async function refreshGroups(ids) {
+  /* Only some groups read again, not the whole platform: ids = groups already on screen, sheets = [{ wb, sheet }] for groups that may be new (a new tab).
+     Their rows of reg_groups are replaced in the tables kept from the last read and, with opts.rows, so are their students and lessons (a payment, a status,
+     a new student change those). Everything else on screen stays. A group that cannot be found: everything is read again. */
+  async function refreshGroups(ids, opts) {
+    opts = opts || {};
     if (!D.readOnly()) return false;
-    if (!lastT || !ids.length) return refresh();
+    const sheets = opts.sheets || [];
+    ids = ids || [];
+    if (!lastT || (!ids.length && !sheets.length)) return refresh();
     const access = await token();
-    const rows = await fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, `id=in.(${ids.join(',')})`);
-    if (rows.length !== ids.length) return refresh();                               // a group is gone or new: everything again
-    const byId = new Map(rows.map(r => [r.id, r]));
-    lastT = Object.assign({}, lastT, { groups: lastT.groups.map(g => byId.get(g.id) || g) });
+    const parts = [];
+    if (ids.length) parts.push(fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, `id=in.(${ids.join(',')})`));
+    sheets.forEach(s => parts.push(fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, `workbook_id=eq.${s.wb}&sheet_id=eq.${s.sheet}`)));
+    const found = (await Promise.all(parts)).flat();
+    if (found.length !== ids.length + sheets.length) return refresh();
+    const gids = found.map(r => r.id), inList = `group_id=in.(${gids.join(',')})`;
+    let students = lastT.students, lessons = lastT.lessons;
+    if (opts.rows) {
+      const [s, l] = await Promise.all([fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access, inList), fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access, inList)]);
+      const gone = new Set(gids);
+      students = lastT.students.filter(x => !gone.has(x.group_id)).concat(s);
+      lessons = lastT.lessons.filter(x => !gone.has(x.group_id)).concat(l);
+    }
+    const byId = new Map(found.map(r => [r.id, r]));
+    const known = new Set(lastT.groups.map(g => g.id));
+    lastT = Object.assign({}, lastT, { groups: lastT.groups.map(g => byId.get(g.id) || g).concat(found.filter(r => !known.has(r.id))), students, lessons });
     show(lastT);
     return true;
+  }
+  /* the register of a group is read again right after our write: just that tab when the function knows how, else the whole register */
+  async function syncAfterWrite(wb, sheet, tab) {
+    const access = await token();
+    if (tab && sheet) {
+      const out = await call('registru-sync', access, { workbook_id: wb, sheet_id: sheet, tab, force: true });
+      const x = (out.results || [])[0];
+      if (x && x.status !== 'failed') return;
+    }
+    await call('registru-sync', access, { workbook_id: wb, force: true });
   }
 
   async function call(fn, access, body) {
@@ -126,7 +155,7 @@
       if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
       const ok = r.status === 'done';
       if ((ok || r.status === 'noop') && !opts.defer) {
-        try { await call('registru-sync', access, { workbook_id: g._src.wb, force: true }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
+        try { await syncAfterWrite(g._src.wb, g._src.sheet, r.tab); await refreshGroups([g.id], { rows: true }); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
       }
       const url = g._src.ssid ? `https://docs.google.com/spreadsheets/d/${g._src.ssid}/edit#gid=${g._src.sheet}` + (r.column ? `&range=${r.column}1` : '') : null;
       return { ok, status: r.status, column: r.column || null, msg: r.msg || '', code: r.code || '', url, tab: r.tab || null, renamed: r.renamed || null, renameNote: r.renameNote || '' };
@@ -141,9 +170,68 @@
      screen showed (expect), so a register changed in the meantime is refused ("conflict"). When nothing is waiting any more the groups that were touched are read
      again, only them (the group's own tab from Google, its row from the platform), and that replaces the guess on screen with what the register really has:
      a refused write simply goes back. Returns a promise of { ok, status, msg, code, renamed, renameNote } (never rejects). */
-  const jobs = [], saving = new Map(), touched = new Set();
-  let pumping = false;
+  /* One queue for everything the console writes without making the person wait (group state and moves, a student's status, manager, payment, discount):
+       - the change is shown at once: a group move patches the group in memory (D.optimistic), a student change patches the tables kept from the last read
+         and builds the console from them (the same builder as a real read, so balances and lists follow);
+       - the write follows in the background, ONE at a time, in the order of the clicks; every command carries what the screen showed (expect), which for a
+         second click on the same thing is what the first click wrote;
+       - when nothing is waiting any more the groups that were touched are read again (their tab from Google, their rows from the platform) and that
+         replaces every guess with what the register really has: a refused write simply goes back, and the answer says why. */
+  const queue = [], saving = new Map();
+  let pend = [], pumping = false;                       // pend: every job since the last read of the truth, finished or not: their guesses are on screen
   const isSaving = id => saving.has(id);
+  const colNo = letter => String(letter).split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0);
+  const cents = x => Math.round(x * 100) / 100;
+
+  /* what the screen shows while the register has not answered: the group guesses on the groups, the student guesses on the tables */
+  function showGuesses() {
+    if (!lastT) return;
+    const rowJobs = pend.filter(j => j.patchT);
+    if (rowJobs.length) show(rowJobs.reduce((T, j) => j.patchT(T), lastT));
+    pend.filter(j => j.patch).forEach(j => D.optimistic(j.groupId, j.patch));
+  }
+  function enqueue(job) {
+    saving.set(job.groupId, (saving.get(job.groupId) || 0) + 1);       // before the screen changes, so a card is drawn as "saving"
+    pend.push(job); queue.push(job);
+    if (job.patch && !job.patchT) D.optimistic(job.groupId, job.patch); else showGuesses();
+    return new Promise(resolve => { job.resolve = resolve; pump(); });
+  }
+  async function pump() {
+    if (pumping) return;
+    pumping = true;
+    try {
+      while (queue.length) {
+        const j = queue.shift();
+        let r;
+        try { r = await j.run(); } catch (e) { r = { ok: false, status: 'failed', msg: String((e && e.message) || e), code: 'client', url: null }; }
+        j.done = true;
+        if (!(r.ok || r.status === 'noop')) {                              // refused: its guess goes away NOW, before the answer reaches the screen that asked
+          try { await refreshGroups([j.groupId], { rows: !!j.patchT }); } catch (e) { /* the drain below reads it again */ }
+          pend = pend.filter(x => x !== j);
+          showGuesses();
+        }
+        const n = (saving.get(j.groupId) || 1) - 1;
+        if (n) saving.set(j.groupId, n); else saving.delete(j.groupId);
+        D.touch();
+        j.resolve(r);
+      }
+      const finished = pend.filter(j => j.done), ids = [...new Set(finished.map(j => j.groupId))], withRows = finished.some(j => j.patchT);
+      if (ids.length) { try { await refreshGroups(ids, { rows: withRows }); } catch (e) { try { await refresh(); } catch (e2) { /* the next poll reads it */ } } }
+      pend = pend.filter(j => !j.done);
+      showGuesses();                                                     // a click that came in during the reading is still waiting: keep it on screen
+    } finally { pumping = false; }
+    if (queue.length) pump();
+  }
+  /* after the write: the group's tab read again (not the whole register) so the next step reads the truth */
+  async function runCommand(groupId, type, payload) {
+    const r = await command(groupId, type, payload, { defer: true });
+    const g = D.group(groupId);
+    if (g && g._src && (r.ok || r.status === 'noop' || r.status === 'conflict')) { try { await syncAfterWrite(g._src.wb, g._src.sheet, r.tab); } catch (e) { /* the cron reads it a few minutes later */ } }
+    return r;
+  }
+
+  /* The group itself: its state (cell A3) and/or its hour and cabinet (AA2:AC7), written in the group's tab. `change` is { status } (a console status id)
+     and/or { start, room } (the new hour, the new room id; the days stay). Returns a promise of { ok, status, msg, code, renamed, renameNote } (never rejects). */
   function setGroup(groupId, change) {
     const g = D.group(groupId);
     const fail = (msg, code) => Promise.resolve({ ok: false, status: 'invalid', msg, code: code || 'client', url: null });
@@ -168,42 +256,25 @@
       if ('room' in change) patch.room = change.room || null;
     }
     payload.expect = expect;
-    saving.set(groupId, (saving.get(groupId) || 0) + 1); touched.add(groupId);   // before the screen changes, so the card is drawn as "saving"
-    D.optimistic(groupId, patch);
-    return new Promise(resolve => { jobs.push({ groupId, payload, patch, resolve }); pump(); });
+    return enqueue({ groupId, patch, run: () => runCommand(groupId, 'SET_GROUP', payload) });
   }
-  /* the register of the group is read again right after our write: just the group's tab when the function knows how, else the whole register */
-  async function syncAfterWrite(g, tab) {
-    const access = await token();
-    if (tab && g._src.sheet) {
-      const out = await call('registru-sync', access, { workbook_id: g._src.wb, sheet_id: g._src.sheet, tab, force: true });
-      const x = (out.results || [])[0];
-      if (x && x.status !== 'failed') return;
-    }
-    await call('registru-sync', access, { workbook_id: g._src.wb, force: true });
-  }
-  async function pump() {
-    if (pumping) return;
-    pumping = true;
-    try {
-      while (jobs.length) {
-        const j = jobs.shift();
-        let r;
-        try {
-          r = await command(j.groupId, 'SET_GROUP', j.payload, { defer: true });
-          const g = D.group(j.groupId);
-          if (g && (r.ok || r.status === 'noop' || r.status === 'conflict')) { try { await syncAfterWrite(g, r.tab); } catch (e) { /* the cron reads it a few minutes later */ } }
-        } catch (e) { r = { ok: false, status: 'failed', msg: String((e && e.message) || e), code: 'client', url: null }; }
-        const n = (saving.get(j.groupId) || 1) - 1;
-        if (n) saving.set(j.groupId, n); else saving.delete(j.groupId);
-        D.touch();
-        j.resolve(r);
-      }
-      const ids = [...touched]; touched.clear();
-      try { await refreshGroups(ids); } catch (e) { try { await refresh(); } catch (e2) { /* the next poll reads it */ } }
-      jobs.forEach(j => D.optimistic(j.groupId, j.patch));                 // a click that came in during the reading is still waiting: keep it on screen
-    } finally { pumping = false; }
-    if (jobs.length) pump();
+
+  /* A student's column in a group: status, manager, a payment (amount > 0), a refund (< 0) or a discount. `type` and `payload` are the command's own
+     (SET_STATUS, SET_MANAGER, ADD_PAYMENT, ADD_DISCOUNT); `col` is the column letter on screen, used to show the change before the register has it. */
+  function studentChange(groupId, type, payload, col) {
+    const g = D.group(groupId);
+    const fail = (msg) => Promise.resolve({ ok: false, status: 'invalid', msg, code: 'client', url: null });
+    if (!g || !g._src || !g._src.wb) return fail('Grupa nu are un registru legat.');
+    if (!D.readOnly()) return fail('Scrierea în registre merge doar în modul Registre.');
+    const mine = x => x.group_id === groupId && x.col === col;
+    const edit = fn => T => Object.assign({}, T, { students: T.students.map(x => (mine(x) ? Object.assign({}, x, fn(x)) : x)) });
+    let patchT;
+    if (type === 'SET_STATUS') patchT = edit(() => ({ status: payload.status }));
+    else if (type === 'SET_MANAGER') patchT = edit(() => ({ manager: payload.manager }));
+    else if (type === 'ADD_PAYMENT') patchT = edit(x => ({ paid: cents((Number(x.paid) || 0) + payload.amount), sold: cents((Number(x.sold) || 0) + payload.amount) }));
+    else if (type === 'ADD_DISCOUNT') patchT = edit(x => ({ discount: cents((Number(x.discount) || 0) + payload.amount), sold: cents((Number(x.sold) || 0) + payload.amount) }));
+    else return fail('Comandă necunoscută: ' + type);
+    return enqueue({ groupId, patchT, run: () => runCommand(groupId, type, payload) });
   }
 
   /* Transfer: each student moves from `from` to `to` (groups that may be in two different registers), with his money split by the Calculator's
@@ -212,6 +283,7 @@
   async function transfer({ from, students, to }) {
     const gFrom = D.group(from), gTo = D.group(to), results = [];
     const toSync = new Set();
+    let fromTab = gFrom && gFrom._src.tab;
     for (const sid of students) {
       const col = gFrom && D.registry.columnOf(sid, from);
       if (!col || !gTo || !gTo._src) { results.push({ sid, ok: false, status: 'invalid', code: 'client', msg: 'Elevul sau grupa nouă nu au un registru legat.' }); continue; }
@@ -219,10 +291,14 @@
       const letterNo = String(col.col).split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0);
       const r = await command(from, 'TRANSFER', { student: { col: letterNo, name: col.name, phone: col.phone }, toWorkbook: gTo._src.wb, toSheet: gTo._src.sheet, status: col.status || 'Activ', manager: col.manager || '', expect: { A: f.A, R: f.R, C: f.C } }, { defer: true });
       results.push(Object.assign({ sid }, r));
-      if (r.ok || r.status === 'noop' || r.code === 'half-done') { toSync.add(gFrom._src.wb); toSync.add(gTo._src.wb); }
+      if (r.ok || r.status === 'noop' || r.code === 'half-done') { toSync.add(gFrom); toSync.add(gTo); fromTab = r.tab || fromTab; }
     }
     if (toSync.size) {
-      try { const access = await token(); for (const wb of toSync) await call('registru-sync', access, { workbook_id: wb, force: true }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
+      // only the two groups (their tabs) are read again, in parallel
+      try {
+        await Promise.all([...toSync].map(g => syncAfterWrite(g._src.wb, g._src.sheet, g === gFrom ? fromTab : g._src.tab)));
+        await refreshGroups([...toSync].map(g => g.id), { rows: true });
+      } catch (e) { /* written; the cron reads it a few minutes later */ }
     }
     return results;
   }
@@ -246,7 +322,7 @@
       const r = (out.results || [])[0];
       if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
       if (r.status === 'done' || r.code === 'group-done-student-failed') {
-        try { await call('registru-sync', access, { workbook_id: t._wb, force: true }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
+        try { await syncAfterWrite(t._wb, r.sheetId, r.tab); await refreshGroups([], { sheets: [{ wb: t._wb, sheet: r.sheetId }], rows: true }); } catch (e) { /* written; the cron reads it a few minutes later */ }
       }
       const url = t._ssid && r.sheetId ? `https://docs.google.com/spreadsheets/d/${t._ssid}/edit#gid=${r.sheetId}` + (r.column ? `&range=${r.column}1` : '') : null;
       return { ok: r.status === 'done', status: r.status, tab: r.tab || null, column: r.column || null, msg: r.msg || '', code: r.code || '', url };
@@ -298,7 +374,7 @@
      every 45 seconds it asks for the time of the newest read (one small call) and, when it is newer than its own data and nobody is typing or has
      a dialog open, loads the new data. The button on the green pill does the same at once. */
   async function poll(force) {
-    if (!D.readOnly() || busy || pumping || saving.size || (document.hidden && !force)) return false;
+    if (!D.readOnly() || busy || pumping || pend.length || (document.hidden && !force)) return false;
     try {
       const access = await token();
       const res = await fetch(`${SUPABASE_URL}/rest/v1/reg_workbooks?select=last_full_sync_at&order=last_full_sync_at.desc.nullslast&limit=1`, { headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, Accept: 'application/json' } });
@@ -351,7 +427,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, refreshGroups, poll, command, setGroup, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, refreshGroups, poll, command, setGroup, studentChange, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;
