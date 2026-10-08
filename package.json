@@ -12,7 +12,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "check:demo": "node scripts/check-demo-data.js",
     "import:registru": "node scripts/registru-import/run.js",
-    "check:sync": "node scripts/check-sync.js"
+    "check:sync": "node scripts/check-sync.js",
+    "check:registry": "node scripts/check-registry-dataset.js"
   },
   "repository": {
     "type": "git",

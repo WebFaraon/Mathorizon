@@ -147,6 +147,7 @@ function parseGroup(book, name, year) {
   }
   /* lessons */
   g.lessons = [];
+  let seqYear = null, prevMonth = null;
   const cols = g.students.map(x => x.col);
   for (let r = FIRST_LESSON_ROW; r <= LAST_LESSON_ROW; r++) {
     const dateText = s.text(r, 1), topic = s.text(r, 2);
@@ -161,7 +162,12 @@ function parseGroup(book, name, year) {
       const mi = MONTHS.indexOf(plain(m[2]));
       L.dom = +m[1]; L.month = mi + 1;
       if (year) {
-        L.year = L.month >= 9 ? year : year + 1;
+        // the register does not write the year: the first lesson sits in the school year (September-December = the first year, January-August = the next),
+        // then the year goes up when the months wrap round (a drop of more than five months: December -> January); a small step back is only an out of order row
+        if (seqYear == null) seqYear = L.month >= 9 ? year : year + 1;
+        else if (L.month < prevMonth - 5) seqYear++;
+        prevMonth = L.month;
+        L.year = seqYear;
         const d = new Date(Date.UTC(L.year, mi, L.dom));
         if (d.getUTCMonth() === mi && d.getUTCDate() === L.dom) { L.iso = `${L.year}-${pad(L.month)}-${pad(L.dom)}`; L.weekday = ((d.getUTCDay() + 6) % 7) + 1; }
         else L.badDate = true;

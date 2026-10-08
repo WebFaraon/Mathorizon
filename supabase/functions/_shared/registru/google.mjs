@@ -61,6 +61,13 @@ export async function readWorkbook(key, spreadsheetId) {
     const r = await get(token, base + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&majorDimension=ROWS&' + part.map(t => 'ranges=' + encodeURIComponent(q(t.title) + '!A1:AC198')).join('&'));
     part.forEach((t, k) => { t.values = r.valueRanges[k].values || []; });
   }
+  // the general tabs: payments to the teacher, availability (regular and summer), the dropdown lists
+  const GENERAL_RANGES = { 'total achitari': 'A1:AI32', 'disponibilitate': 'A1:V15', 'disponibilitate vara': 'A1:V16', 'configurari': 'A1:K200' };
+  const general = tabs.filter(t => GENERAL_RANGES[plain(t.title)]);
+  if (general.length) {
+    const r = await get(token, base + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&majorDimension=ROWS&' + general.map(t => 'ranges=' + encodeURIComponent(q(t.title) + '!' + GENERAL_RANGES[plain(t.title)])).join('&'));
+    general.forEach((t, k) => { t.values = r.valueRanges[k].values || []; });
+  }
   return { title: meta.properties.title, tabs };
 }
 

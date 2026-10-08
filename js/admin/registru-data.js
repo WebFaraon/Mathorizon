@@ -78,7 +78,7 @@
   }
 
   const LEVEL_PCT = { 1: 0.20, 2: 0.22, 3: 0.24, 4: 0.26, 5: 0.28 };
-  const tLevel = tid => 2 + ((parseInt(tid.slice(1), 10) * 5) % 4);        // 2..5
+  const tLevel = tid => (D.registry ? D.registry.tLevel(tid) : 2 + ((parseInt(tid.slice(1), 10) * 5) % 4));        // 2..5 (demo); from the lessons' own level column when the registers are the source
   /* What a student pays per hour, by the format of the group, as in the teachers' registers (cell A1, "Grup cu 6 elevi"):
      the price list of the sheet's formulas. 7 is not a format. Kept equal to scripts/registru-import/pay.js (check-demo-data compares them). */
   const STUDENT_RATE = { 1: 608, 2: 348, 3: 288, 4: 248, 5: 228, 6: 218, 7: 0, 8: 148 };
@@ -126,7 +126,21 @@
   // marks: P present, G present first lesson free, M absent excused, A absent unexcused, B absent first (trial) lesson
   const PAID_MARK = { P: true, A: true };
 
+
+  /* The registers as the source (js/admin/registry-dataset.js): the lessons, the marks and the money are what the sheets hold. */
+  function fromRegistry(g) {
+    const R = D.registry.ledger(g.id);
+    const rate = rateBySize(g.size);
+    const lessons = R.lessons.map(l => ({ date: l.iso ? parse(l.iso) : null, topic: l.topic || '', price: rate }));
+    const MARKS = { P: 1, A: 1, G: 1, M: 1, B: 1 };
+    const rows = R.cols.map(c => ({ s: c.s, codes: R.lessons.map((l, i) => (MARKS[c.marks[i]] ? c.marks[i] : '')), paid: c.paid, disc: c.disc }));
+    const pos = {};
+    R.cols.forEach(c => { const n = String(c.col).split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0) - 4; if (n >= 0 && pos[c.s.id] == null) pos[c.s.id] = n; });
+    return { rate, dur: 1, lessons, rows, pay: R.pay, pos };
+  }
+
   function generate(g) {
+    if (D.registry) return fromRegistry(g);
     const b = D.base(g.id) || g;
     const r = rng(hash('g' + g.id));
     const rate = rateBySize(b.size);
@@ -284,6 +298,7 @@
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
       l.pay = l.counted ? lessonPay(g.size, paying, tLevel(g.teacher)) : 0;
+      if (l.counted && G.pay && G.pay[l.oid] != null) l.pay = G.pay[l.oid];          // registers: what the sheet calculated
     });
 
     const months = [];
@@ -313,7 +328,7 @@
       const g = D.group(gid);
       let G = gens.get(gid);
       if (!G) { G = generate(g); gens.set(gid, G); }
-      L = derive(g, G, D.ledgerEdits()[gid]);
+      L = derive(g, G, D.registry ? { pos: G.pos } : D.ledgerEdits()[gid]);
       cache.set(gid, L);
     }
     return L;
@@ -377,6 +392,10 @@
     months.forEach(m => { const q = m.P + m.A + m.M; m.pct = q ? Math.round(m.P / q * 100) : 0; });
 
     // what the school already paid the teacher
+    if (D.registry) {
+      const pays = D.registry.payments(tid), paid = Math.round(pays.reduce((n, p) => n + p.amount, 0) * 100) / 100;
+      return { teacher: t, level: tLevel(tid), groups, totals: T, months, earned, payments: pays, paid, due: Math.round((earned - paid) * 100) / 100 };
+    }
     const r = rng(hash('pay' + tid));
     const owedLeft = r() < 0.7 ? Math.round(r() * 9000) / 100 : 300 + Math.round(r() * 2200);
     let target = Math.max(0, Math.floor(earned - owedLeft));
@@ -526,7 +545,9 @@
   let seen = JSON.stringify(D.ledgerEdits());
   const sig = () => D.students.map(s => s.status + s.manager + s.group).join() + '|' + D.groups.map(g => g.size).join();   // the group's format sets the price and the pay
   let statuses = sig();
+  let lastSource = D.registry;
   D.onChange(() => {
+    if (D.registry !== lastSource) { lastSource = D.registry; gens.clear(); cache.clear(); applyToStudents(); seen = JSON.stringify(D.ledgerEdits()); statuses = sig(); return; }       // the source changed (demo <-> registers): everything is rebuilt
     const now = JSON.stringify(D.ledgerEdits());
     const st = sig();
     if (now === seen && st === statuses) return;
@@ -537,5 +558,6 @@
 
   /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
   const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
+  D.resetLedger = () => { gens.clear(); cache.clear(); applyToStudents(); };
   Object.assign(D, { journey, transferFin, transferPlan, soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
 })();

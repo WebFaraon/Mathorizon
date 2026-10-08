@@ -18,7 +18,7 @@ function groupData(g) {
   const room = g.room ? D.room(g.room) : null;
   return {
     teacher: t.name, teacherLevel: D.tLevel(g.teacher),
-    group: { id: g.id, tab: D.tabName(g), size: g.size, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile || null },
+    group: { id: g.id, tab: D.tabName(g), duration: g.duration, regime: g.regime, size: g.size, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile || null },
     schedule: g.days.map(d => ({ day: D.DAYS[d - 1].name, hour: g.start, room: room ? String(room.num) : null })),
     students: L.rows.slice(0, 23).map(r => ({ name: r.s.name, phone: r.s.phone, manager: r.manager ? nameLastFirst(r.manager) : null, status: r.status, paid: r.paid, disc: r.disc || 0 })),
     lessons: lessons.slice(0, 190).map(({ l, i }) => ({ iso: l.iso, topic: l.topic, marks: L.rows.slice(0, 23).map(r => r.codes[i] || '') }))

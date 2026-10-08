@@ -35,17 +35,21 @@ async function lists() {
   return { manager: new Set(col(0)), cabinet: new Set(col(1)), state: new Set(col(2)), status: new Set(col(3)) };
 }
 
+/* the schedule as the register writes it: one row per hour (a two-hour lesson is "Joi 10" and "Joi 11"), at most 6 rows */
+function scheduleRows(d, cfg, report) {
+  const dur = d.group.duration || 1, out = [];
+  d.schedule.forEach(s => { for (let h = 0; h < dur; h++) { out.push([s.day, (s.hour + h) / 24, s.room && cfg.cabinet.has(s.room) ? s.room : '']); if (h === 0 && s.room && !cfg.cabinet.has(s.room)) report.cabinet++; } });
+  return out.slice(0, 6);
+}
+
 /* the cells to write for one group tab, as value ranges */
 function fill(title, d, cfg, report) {
   const g = d.group, raw = [], formulas = [];
   const R = (a1, values) => raw.push({ range: `${q(title)}!${a1}`, values });
   R('A1', [[g.size === 1 ? 'Individual 1 elev' : `Grup cu ${g.size} elevi`]]);
   const state = STATE[g.status] || 'Activ';
-  R('A3:A7', [[cfg.state.has(state) ? state : 'Activ'], [g.subject], [g.grade], [g.level.replace('-', ' ― ')], [g.profile || 'Profilul']]);
-  d.schedule.slice(0, 6).forEach((s, i) => {
-    R(`AA${2 + i}:AC${2 + i}`, [[s.day, s.hour / 24, s.room && cfg.cabinet.has(s.room) ? s.room : '']]);
-    if (s.room && !cfg.cabinet.has(s.room)) report.cabinet++;
-  });
+  R('A3:A7', [[cfg.state.has(state) ? state : 'Activ'], [g.subject + (g.regime === 'vara' ? ' (Vara)' : '')], [g.grade], [g.level.replace('-', ' ― ')], [g.profile || 'Profilul']]);
+  scheduleRows(d, cfg, report).forEach((row, i) => R(`AA${2 + i}:AC${2 + i}`, [row]));
   const n = d.students.length;
   if (n) {
     const last = colLetter(3 + n);

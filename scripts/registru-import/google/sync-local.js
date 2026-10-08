@@ -13,7 +13,7 @@ const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
 (async () => {
   const { syncWorkbook } = await import('../../../supabase/functions/_shared/registru/sync-core.mjs');
   const { readWorkbook, driveModified } = await import('../../../supabase/functions/_shared/registru/google.mjs');
-  const state = new Map(); let reads = 0;                   // what the workbooks table would remember: drive_modified, last_full_sync_at
+  const state = new Map(); let reads = 0; const wbRows = new Map();                   // what the workbooks table would remember: drive_modified, last_full_sync_at
   const store = new Map();                                    // workbook id -> Map(sheet_id -> group payload)
   const db = {
     async hashes(id) { return new Map([...(store.get(id) || new Map())].map(([k, v]) => [k, v.content_hash])); },
@@ -26,13 +26,37 @@ const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
     for (const tid of ids) {
       const T = links.teachers[tid];
       const st = state.get(tid) || {};
-      const r = await syncWorkbook({ wb: Object.assign({ id: tid, spreadsheet_id: T.ssid }, st), read: id => { reads++; return readWorkbook(KEY, id); }, peek: id => driveModified(KEY, id), db });
-      if (r.full) state.set(tid, { drive_modified: r.modified, last_full_sync_at: new Date().toISOString() });
+      let r;
+      for (let attempt = 0; ; attempt++) {
+        try { r = await syncWorkbook({ wb: Object.assign({ id: tid, spreadsheet_id: T.ssid }, st), read: id => { reads++; return readWorkbook(KEY, id); }, peek: id => driveModified(KEY, id), db }); break; }
+        catch (e) { if (attempt < 3 && /limita pe minut/.test(e.message)) { console.log('  limita Google atinsă: aștept un minut'); await new Promise(res => setTimeout(res, 65000)); continue; } throw e; }
+      }
+      if (r.full) {
+        state.set(tid, { drive_modified: r.modified, last_full_sync_at: new Date().toISOString() });
+        wbRows.set(tid, { id: 'wb-' + tid, spreadsheet_id: T.ssid, title: r.title, teacher_name: r.teacher, project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher, enabled: true });
+      }
       seen += r.seen; changed += r.changed; unchanged += r.unchanged; skipped += r.skipped.length;
       if (pass === 1) console.log(`${T.name}: ${r.seen} grupe, ${r.changed} scrise, ${r.skipped.length} oprite${r.notes.length ? ' | ' + r.notes.join('; ') : ''}`);
     }
     console.log(`Trecerea ${pass}: ${ids.length} registre, ${reads} citite din Google, ${seen} grupe, ${changed} scrise, ${unchanged} neschimbate, ${skipped} oprite, ${Math.round((Date.now() - t0) / 1000)}s`);
   }
+  // the tables as the database would hold them: what the console's registry mode reads (and what the Node check feeds it)
+  if (args.includes('--save')) {
+    const tables = { workbooks: [], groups: [], students: [], lessons: [] };
+    for (const tid of ids) {
+      const wbr = wbRows.get(tid); tables.workbooks.push(wbr);
+      store.get(tid).forEach((p, sheetId) => {
+        const gid = `g-${tid}-${sheetId}`;
+        tables.groups.push({ id: gid, workbook_id: wbr.id, sheet_id: p.sheet_id, tab: p.tab, format_size: p.format_size, state: p.state, subject: p.subject, summer: p.summer, grade: p.grade, level: p.level, profile: p.profile, schedule: p.schedule, cached_total_pay: p.cached_total_pay });
+        p.students.forEach(st => tables.students.push({ id: `s-${gid}-${st.col}`, group_id: gid, col: st.col, name: st.name, phone: st.phone, manager: st.manager, status: st.status, paid: st.paid, discount: st.discount, cost: st.cost, sold: st.sold }));
+        p.lessons.forEach(l => tables.lessons.push({ group_id: gid, row_no: l.row_no, date_text: l.date_text, iso: l.iso, topic: l.topic, teacher_level: l.teacher_level, teacher_pay: l.teacher_pay, marks: l.marks }));
+      });
+    }
+    const out = path.join(__dirname, '..', '..', '..', '_import', 'demo', 'snapshot.json');
+    fs.writeFileSync(out, JSON.stringify(tables));
+    console.log(`Snapshot: ${tables.workbooks.length} registre, ${tables.groups.length} grupe, ${tables.students.length} coloane, ${tables.lessons.length} lecții -> ${out}`);
+  }
+
   // what is stored, compared with the console
   const { D } = require('../demo-group');
   let students = 0, lessons = 0, bad = 0; const shown = [];

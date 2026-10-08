@@ -45,6 +45,23 @@ export function groupPayload(g, sheetId) {
   };
 }
 
+/* what belongs to the register itself, not to one group: the project, the dropdown lists, and the teacher's own tabs */
+export function workbookData(m) {
+  const cfg = m.config || {};
+  const tot = m.total || {};
+  const av = m.availability || null, avv = m.availabilitySummer || null;
+  return {
+    project: m.meta.project || null,
+    config: { manager: cfg.manager || [], cabinet: cfg.cabinet || [], subject: cfg.subject || [], studentStatus: cfg.studentStatus || [], groupState: cfg.groupState || [] },
+    teacher: {
+      availability: av ? { slots: av.slots, teaches: av.teaches } : null,
+      availabilitySummer: avv ? { slots: avv.slots, teaches: avv.teaches } : null,
+      payments: (tot.payments || []).filter(p => p.sum != null).map(p => ({ dateText: p.dateText, iso: p.iso, sum: p.sum })),
+      salaryDue: tot.salaryDue == null ? null : tot.salaryDue, paidTotal: tot.paidTotal == null ? null : tot.paidTotal, earnedTotal: tot.earnedTotal == null ? null : tot.earnedTotal
+    }
+  };
+}
+
 /* a group is not stored when its format is wrong: every price and pay in it would be wrong too */
 export function gate(g) {
   if (g.size == null || !KNOWN_SIZES.includes(g.size)) return `formatul „${g.formatRaw}” nu e unul cunoscut`;
@@ -86,5 +103,6 @@ export async function syncWorkbook({ wb, read, peek, db }) {
   // tabs deleted from the register leave the platform, but only the tabs that no longer exist (a skipped group is kept)
   out.pruned = await db.prune(wb.id, keep.filter(x => x !== undefined));
   out.title = data.title; out.teacher = m.meta.teacher;
+  out.workbook = workbookData(m);
   return out;
 }

@@ -305,7 +305,7 @@
      so the journey of a student has something to show from the first day. They are part of the data, not of the edits:
      "Resetează" does not remove them. Filled at the end of this file (buildSeeds). */
   const SEED = { transfers: {}, history: {}, students: {} };
-  const BASE_NS = students.length, BASE_NG = groups.length;   // what the generator made; enrolment adds after these
+  let BASE_NS = students.length, BASE_NG = groups.length;   // what the generator made; enrolment adds after these
   const dynS = {}, dynG = {};                                   // enrolled students / created groups keep their object between rebuilds
   const idxS = Object.fromEntries(students.map(s => [s.id, s]));
   const BASE_T = clone(teachers.map(t => ({ id: t.id, availability: t.availability, teach: t.teach })));
@@ -376,6 +376,7 @@
      of them (a reset on the other side) redraws the views once. */
   let extT = 0;
   function replaceEdits(next) {
+    if (registry) return;                    // the registers are the source: another device's demo edits do not apply
     edits = next || {};
     applyEdits();
     try { localStorage.setItem(STORE_KEY, JSON.stringify(edits)); } catch (e) { /* private mode */ }
@@ -387,7 +388,7 @@
   }
   // The register (registru.html) edits the same store from another tab: pick its changes up live.
   window.addEventListener('storage', e => {
-    if (e.key !== STORE_KEY) return;
+    if (e.key !== STORE_KEY || registry) return;
     try { edits = JSON.parse(e.newValue || '{}') || {}; } catch (err) { edits = {}; }
     applyEdits();
     listeners.forEach(fn => { try { fn(); } catch (err) { console.error(err); } });
@@ -465,6 +466,7 @@
       .sort((a, b) => b.score - a.score || a.g.id.localeCompare(b.g.id));
   }
   function transfer(sids, toGid, fins) {
+    if (ro()) return [];
     const to = idx.groups[toGid];
     if (!to) return [];
     edits.transfers = edits.transfers || {};
@@ -486,6 +488,7 @@
   }
   /* takes a transfer back (only the person's latest one), with the status he had before */
   function undoTransfer(ids) {
+    if (ro()) return;
     let did = 0;
     ids.forEach(id => {
       const t = (edits.transfers || {})[id];
@@ -553,6 +556,7 @@
   /* Enrols a student (status Ora de proba, first lesson free) in a group; with newGroup the group is created first.
      Returns { student, group, newGroup } for undoEnrol. */
   function enrolStudent(d) {
+    if (ro()) return null;
     const at = Date.now(), stamp = at.toString(36) + Math.random().toString(36).slice(2, 5);
     edits.newStudents = edits.newStudents || {};
     let gid = d.group, created = null;
@@ -569,6 +573,7 @@
     return { student: sid, group: gid, newGroup: created };
   }
   function undoEnrol(r) {
+    if (ro()) return;
     if (!r) return;
     if (edits.newStudents) delete edits.newStudents[r.student];
     if (r.newGroup && edits.newGroups) { delete edits.newGroups[r.newGroup]; if (edits.ledger) delete edits.ledger[r.newGroup]; }
@@ -584,6 +589,7 @@
      writing at the same time never overwrite each other. */
   const comments = () => Object.entries(edits.comments || {}).map(([id, c]) => Object.assign({ id }, c)).sort((a, b) => (a.at || 0) - (b.at || 0) || a.id.localeCompare(b.id));
   function addComment(c) {
+    if (ro()) return null;
     edits.comments = edits.comments || {};
     const id = 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
     edits.comments[id] = { k: c.k, g: c.g, by: c.by, role: c.role, t: c.t, at: Date.now() };
@@ -591,6 +597,7 @@
     return id;
   }
   function deleteComments(ids) {
+    if (ro()) return 0;
     let n = 0;
     ids.forEach(id => { if (edits.comments && edits.comments[id]) { delete edits.comments[id]; n++; } });
     if (edits.comments && !Object.keys(edits.comments).length) delete edits.comments;
@@ -604,6 +611,7 @@
   }
 
   function patchGroup(id, patch) {
+    if (ro()) return;
     edits.groups = edits.groups || {};
     edits.groups[id] = Object.assign({}, edits.groups[id] || {}, patch);
     Object.assign(idx.groups[id], patch);
@@ -619,6 +627,7 @@
   }
   const statusLog = sid => Object.entries(Object.assign({}, SEED.history, edits.history || {})).filter(([, h]) => h.s === sid).map(([id, h]) => Object.assign({ id }, h)).sort((a, b) => a.at - b.at);
   function patchStudent(id, patch) {
+    if (ro()) return;
     edits.students = edits.students || {};
     edits.students[id] = Object.assign({}, edits.students[id] || {}, patch);
     Object.assign(idxS[id], patch);
@@ -627,6 +636,7 @@
 
   /* A teacher's weekly availability ({ day: [[from, to), ...] }) or teaching table, as the register writes it. */
   function patchTeacher(id, patch) {
+    if (ro()) return;
     edits.teachers = edits.teachers || {};
     edits.teachers[id] = Object.assign({}, edits.teachers[id] || {}, clone(patch));
     const t = idx.teachers[id];
@@ -673,7 +683,67 @@
   applyEdits();
   buildSeeds();
 
-  window.AdminData = {
+
+  /* ---- the Google Sheets registers as the source (js/admin/registry-mode.js) ----
+     useData(ds) puts the data built from the registers (js/admin/registry-dataset.js) in place of the generated demo data,
+     INSIDE the same arrays and indexes (every view keeps working on the same objects); useDemo() puts the demo data back.
+     While the registers are the source the console is read only: every write below answers with the 'bm:registry-readonly'
+     event and changes nothing, edits that arrive from other devices are ignored, and nothing is saved or sent to the shared demo state. */
+  let registry = null, DEMO = null;
+  const fill = (arr, items) => { arr.splice(0, arr.length, ...items); };
+  const clearObj = o => { Object.keys(o).forEach(k => { delete o[k]; }); };
+  function reindex() {
+    clearObj(idx.teachers); clearObj(idx.managers); clearObj(idx.rooms); clearObj(idx.groups); clearObj(idxS);
+    teachers.forEach(x => { idx.teachers[x.id] = x; }); managers.forEach(x => { idx.managers[x.id] = x; });
+    rooms.forEach(x => { idx.rooms[x.id] = x; }); groups.forEach(x => { idx.groups[x.id] = x; }); students.forEach(x => { idxS[x.id] = x; });
+  }
+  function keepDemo() {
+    DEMO = {
+      teachers: teachers.slice(), managers: managers.slice(), rooms: rooms.slice(), groups: groups.slice(), students: students.slice(),
+      BASE: BASE.slice(), BASE_S: Object.assign({}, BASE_S), BASE_T: BASE_T.slice(), baseG: Object.assign({}, baseG),
+      baseBy: Object.fromEntries(Object.entries(baseBy).map(([k, v]) => [k, v.slice()])),
+      SEED: { transfers: Object.assign({}, SEED.transfers), history: Object.assign({}, SEED.history), students: Object.assign({}, SEED.students) },
+      edits, BASE_NS, BASE_NG, dynS: Object.assign({}, dynS), dynG: Object.assign({}, dynG), today: AdminDataRef.today, todayISO: AdminDataRef.todayISO
+    };
+  }
+  function announce() { listeners.forEach(fn => { try { fn(); } catch (e) { console.error(e); } }); }
+  function useData(ds, o) {
+    if (!DEMO) keepDemo();
+    registry = ds;
+    fill(teachers, ds.teachers); fill(managers, ds.managers); fill(rooms, ds.rooms); fill(groups, ds.groups); fill(students, ds.students);
+    reindex();
+    fill(BASE, groups.map(g => ({ id: g.id, days: g.days.slice(), start: g.start, duration: g.duration, room: g.room, status: g.status, subject: g.subject, grade: g.grade, level: g.level, profile: g.profile, size: g.size })));
+    clearObj(baseG); BASE.forEach(b => { baseG[b.id] = b; });
+    clearObj(BASE_S); students.forEach(s => { BASE_S[s.id] = { status: s.status, manager: s.manager, group: s._base }; });
+    fill(BASE_T, teachers.map(t => ({ id: t.id, availability: clone(t.availability), teach: clone(t.teach) })));
+    clearObj(baseBy); Object.keys(ds.baseBy).forEach(k => { baseBy[k] = ds.baseBy[k].slice(); });
+    clearObj(SEED.transfers); Object.assign(SEED.transfers, ds.transfers); clearObj(SEED.history); Object.assign(SEED.history, ds.history); clearObj(SEED.students);
+    BASE_NS = students.length; BASE_NG = groups.length; clearObj(dynS); clearObj(dynG);
+    edits = {}; moves = {};
+    const day = (o && o.today) || new Date();
+    AdminDataRef.today = new Date(day.getFullYear(), day.getMonth(), day.getDate());
+    AdminDataRef.todayISO = iso(AdminDataRef.today);
+    applyEdits();
+    announce();
+  }
+  function useDemo() {
+    if (!DEMO) return;
+    registry = null;
+    fill(teachers, DEMO.teachers); fill(managers, DEMO.managers); fill(rooms, DEMO.rooms); fill(groups, DEMO.groups); fill(students, DEMO.students);
+    reindex();
+    fill(BASE, DEMO.BASE); fill(BASE_T, DEMO.BASE_T);
+    clearObj(baseG); Object.assign(baseG, DEMO.baseG); clearObj(BASE_S); Object.assign(BASE_S, DEMO.BASE_S);
+    clearObj(baseBy); Object.keys(DEMO.baseBy).forEach(k => { baseBy[k] = DEMO.baseBy[k].slice(); });
+    clearObj(SEED.transfers); Object.assign(SEED.transfers, DEMO.SEED.transfers); clearObj(SEED.history); Object.assign(SEED.history, DEMO.SEED.history); clearObj(SEED.students); Object.assign(SEED.students, DEMO.SEED.students);
+    BASE_NS = DEMO.BASE_NS; BASE_NG = DEMO.BASE_NG; clearObj(dynS); Object.assign(dynS, DEMO.dynS); clearObj(dynG); Object.assign(dynG, DEMO.dynG);
+    edits = DEMO.edits; moves = {};
+    AdminDataRef.today = DEMO.today; AdminDataRef.todayISO = DEMO.todayISO;
+    applyEdits();
+    announce();
+  }
+  const ro = () => { if (!registry) return false; document.dispatchEvent(new CustomEvent('bm:registry-readonly')); return true; };
+
+  const AdminDataRef = window.AdminData = {
     fingerprint: (fp >>> 0).toString(36),
     DAYS, HOURS, PROJECTS, SUBJECTS, GRADES, LEVELS, GROUP_STATUS, STUDENT_STATUS,
     rooms, teachers, managers, groups, students,
@@ -694,18 +764,20 @@
     setStatus: (id, status) => patchGroup(id, { status }),
     edited: () => Object.keys(edits.groups || {}).length,
     setGroup: (id, patch) => patchGroup(id, patch),
-    setStudentStatus: (id, status) => { logStatus(id, status); patchStudent(id, { status }); },
+    setStudentStatus: (id, status) => { if (ro()) return; logStatus(id, status); patchStudent(id, { status }); },
     baseStatus: id => BASE_S[id].status,
     setStudentManager: (id, manager) => patchStudent(id, { manager }),
     ledgerEdits: () => edits.ledger || {},
-    setLedgerEdits(v) { edits.ledger = v; save(); },
+    setLedgerEdits(v) { if (ro()) return; edits.ledger = v; save(); },
     setAvailability: (id, availability) => patchTeacher(id, { availability }),
     setTeach: (id, teach) => patchTeacher(id, { teach }),
     teacherEdited: id => !!((edits.teachers || {})[id]),
-    resetTeacher(id) { if (edits.teachers) delete edits.teachers[id]; applyEdits(); save(); },
+    resetTeacher(id) { if (ro()) return; if (edits.teachers) delete edits.teachers[id]; applyEdits(); save(); },
     base: id => baseG[id],
-    reset() { edits = {}; applyEdits(); save(); },
+    reset() { if (ro()) return; edits = {}; applyEdits(); save(); },
     sync: { edits: () => edits, replace: replaceEdits, onSave: fn => saveHooks.push(fn) },
+    useData, useDemo, readOnly: () => !!registry,
+    get registry() { return registry; },
     onChange(fn) { listeners.add(fn); return () => listeners.delete(fn); }
   };
 })();

@@ -69,7 +69,7 @@ Deno.serve(async (req) => {
       }
       const status = r.skipped.length ? 'partial' : 'ok';
       await sb.from('reg_sync_runs').update({ finished_at: new Date().toISOString(), status, groups_seen: r.seen, groups_changed: r.changed, groups_skipped: r.skipped.length, detail: r }).eq('id', run.data?.id);
-      await sb.from('reg_workbooks').update({ last_synced_at: new Date().toISOString(), last_status: status, last_error: null, title: r.title, teacher_name: r.teacher, drive_modified: r.modified, last_full_sync_at: new Date().toISOString() }).eq('id', wb.id);
+      await sb.from('reg_workbooks').update({ last_synced_at: new Date().toISOString(), last_status: status, last_error: null, title: r.title, teacher_name: r.teacher, drive_modified: r.modified, last_full_sync_at: new Date().toISOString(), project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher }).eq('id', wb.id);
       results.push({ workbook: wb.id, status, seen: r.seen, changed: r.changed, skipped: r.skipped.length });
     } catch (e) {
       if (e instanceof QuotaError) {                       // Google's per-minute limit: stop here, the next run continues with the longest-waiting register
