@@ -74,7 +74,7 @@ Redeploy BOTH whenever anything in `supabase/functions/` changes (the shared mod
 
 ## 7. What is left (as of 2026-10-08)
 
-1. **Rehearsal on a real register**, local only: run the importer/console dataset on the real Bivol register, see the issues and how the console looks (recommended next).
+1. ~~Rehearsal on a real register~~ DONE 2026-10-08 (`node scripts/registru-import/rehearsal.js "<xlsx>"`, local, writes `_import/out/real-tables.json` and `rehearsal.report.txt`, prints no names). Bivol register: 28 group tabs, 137 student columns -> 128 people, 574 lessons, 6 people with a past in several groups (transfers deduced), 25 teacher payments (4 with a text date). All 10 console pages render on it in Registre mode, no JS errors. The 21 tabs without a schedule are all Inactiv or Inlocuire groups (the teacher clears AA2:AC7 when a group ends); every active group has a schedule. 6 of 137 student columns "drift" (marks on rows without date/topic, charged by the sheet), in 5 tabs. Teacher pay: console 119,424.61 vs sheet 119,424.59 (rounding). 9 students without phone, 5 scheduled groups outside the teacher's availability grid, availability only 4 days, one subject in "Detalii profesor". Importer: 1 error ("h" in a payment cell), 75 warnings.
 2. ~~Transfer between groups~~ DONE (see section 9).
 3. **New groups from Inscriere**: a new tab (`duplicateSheet` of the template tab "Orar 1"), name in the Total tab's F4:AI4 list. Today the dialog says new groups are created in the register.
 4. **Group-level writes from the console** (state, schedule, room): read-only in Registre mode today.
