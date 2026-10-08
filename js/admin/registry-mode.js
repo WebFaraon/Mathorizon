@@ -19,6 +19,7 @@
   let busy = false;
   let lastT = null;                                   // the tables as last read: a group can be replaced in them without reading everything again
   const GROUP_COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
+  const WORKBOOK_COLS = 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at';
   const STUDENT_COLS = 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold';
   const LESSON_COLS = 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks';
   let stamp = null;                                   // the newest full read of any register, as of the data on screen
@@ -55,7 +56,7 @@
   async function loadTables() {
     const access = await token();
     const [workbooks, groups, students, lessons] = await Promise.all([
-      fetchAll('reg_workbooks', 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at', 'teacher_name.asc,id.asc', access),
+      fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access),
       fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access),
       fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access),
       fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access)
@@ -102,6 +103,18 @@
     const byId = new Map(found.map(r => [r.id, r]));
     const known = new Set(lastT.groups.map(g => g.id));
     lastT = Object.assign({}, lastT, { groups: lastT.groups.map(g => byId.get(g.id) || g).concat(found.filter(r => !known.has(r.id))), students, lessons });
+    show(lastT);
+    return true;
+  }
+  /* a register's own data read again (its availability, lists): the workbook rows only */
+  async function refreshWorkbooks(ids) {
+    if (!D.readOnly()) return false;
+    if (!lastT || !ids.length) return refresh();
+    const access = await token();
+    const rows = await fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access, `id=in.(${ids.join(',')})`);
+    if (rows.length !== ids.length) return refresh();
+    const byId = new Map(rows.map(r => [r.id, r]));
+    lastT = Object.assign({}, lastT, { workbooks: lastT.workbooks.map(w => byId.get(w.id) || w) });
     show(lastT);
     return true;
   }
@@ -191,7 +204,8 @@
     pend.filter(j => j.patch).forEach(j => D.optimistic(j.groupId, j.patch));
   }
   function enqueue(job) {
-    saving.set(job.groupId, (saving.get(job.groupId) || 0) + 1);       // before the screen changes, so a card is drawn as "saving"
+    job.key = job.groupId || job.wb;
+    saving.set(job.key, (saving.get(job.key) || 0) + 1);               // before the screen changes, so a card is drawn as "saving"
     pend.push(job); queue.push(job);
     if (job.patch && !job.patchT) D.optimistic(job.groupId, job.patch); else showGuesses();
     return new Promise(resolve => { job.resolve = resolve; pump(); });
@@ -206,16 +220,18 @@
         try { r = await j.run(); } catch (e) { r = { ok: false, status: 'failed', msg: String((e && e.message) || e), code: 'client', url: null }; }
         j.done = true;
         if (!(r.ok || r.status === 'noop')) {                              // refused: its guess goes away NOW, before the answer reaches the screen that asked
-          try { await refreshGroups([j.groupId], { rows: !!j.patchT }); } catch (e) { /* the drain below reads it again */ }
+          try { if (j.groupId) await refreshGroups([j.groupId], { rows: !!j.patchT }); else await refreshWorkbooks([j.wb]); } catch (e) { /* the drain below reads it again */ }
           pend = pend.filter(x => x !== j);
           showGuesses();
         }
-        const n = (saving.get(j.groupId) || 1) - 1;
-        if (n) saving.set(j.groupId, n); else saving.delete(j.groupId);
+        const n = (saving.get(j.key) || 1) - 1;
+        if (n) saving.set(j.key, n); else saving.delete(j.key);
         D.touch();
         j.resolve(r);
       }
-      const finished = pend.filter(j => j.done), ids = [...new Set(finished.map(j => j.groupId))], withRows = finished.some(j => j.patchT);
+      const finished = pend.filter(j => j.done), ids = [...new Set(finished.filter(j => j.groupId).map(j => j.groupId))], withRows = finished.some(j => j.patchT && j.groupId);
+      const wbs = [...new Set(finished.filter(j => j.wb).map(j => j.wb))];
+      if (wbs.length) { try { await refreshWorkbooks(wbs); } catch (e) { /* the next poll reads it */ } }
       if (ids.length) { try { await refreshGroups(ids, { rows: withRows }); } catch (e) { try { await refresh(); } catch (e2) { /* the next poll reads it */ } } }
       pend = pend.filter(j => !j.done);
       showGuesses();                                                     // a click that came in during the reading is still waiting: keep it on screen
@@ -257,6 +273,48 @@
     }
     payload.expect = expect;
     return enqueue({ groupId, patch, run: () => runCommand(groupId, 'SET_GROUP', payload) });
+  }
+
+  /* A register command that is not about one group (the teacher's availability): queued like the others, then the whole register is read once more
+     (the availability lives in the register's own data, which only a full read stores). */
+  async function runWorkbookCommand(wb, type, payload) {
+    try {
+      const access = await token();
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
+      const queued = await rpc('reg_enqueue_command', access, { p_workbook: wb, p_sheet: 0, p_type: type, p_payload: payload, p_id: id });
+      const out = await call('registru-apply', access, { command_id: queued });
+      const r = (out.results || [])[0];
+      if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
+      if (r.status === 'done' || r.status === 'noop' || r.status === 'conflict') { try { await call('registru-sync', access, { workbook_id: wb, force: true }); } catch (e) { /* the cron reads it a few minutes later */ } }
+      return { ok: r.status === 'done', status: r.status, msg: r.msg || '', code: r.code || '' };
+    } catch (e) {
+      return { ok: false, status: 'failed', msg: String((e && e.message) || e), code: 'client' };
+    }
+  }
+  /* A teacher's availability, as the hours the person wants to offer: { day (1..7): [hour, ...] } for the hours of the register's own table
+     (t._availHours). Only the hours that differ from what is on screen are sent, each with what the screen showed (the register refuses an hour the teacher
+     changed meanwhile). Shown at once, written in the background. */
+  function setAvailability(teacherId, desired) {
+    const t = D.teacher(teacherId);
+    const fail = msg => Promise.resolve({ ok: false, status: 'invalid', msg, code: 'client' });
+    if (!t || !t._wb) return fail('Profesorul nu are un registru legat.');
+    if (!D.readOnly()) return fail('Scrierea în registre merge doar în modul Registre.');
+    const hours = t._availHours || [];
+    const has = (day, h) => (t.availability[day] || []).some(([a, b]) => h >= a && h < b);
+    const changes = [];
+    for (let d = 1; d <= 7; d++) hours.forEach(h => {
+      const was = has(d, h), to = (desired[d] || []).includes(h);
+      if (was !== to) changes.push({ day: d, hour: h, to, was });
+    });
+    if (!changes.length) return Promise.resolve({ ok: true, status: 'noop', msg: '', code: '' });
+    const patchT = T => Object.assign({}, T, { workbooks: T.workbooks.map(w => {
+      if (w.id !== t._wb) return w;
+      const td = w.teacher_data || {}, av = td.availability || { slots: {}, teaches: {}, hours: [] };
+      const slots = {}; Object.keys(av.slots || {}).forEach(k => { slots[k] = (av.slots[k] || []).slice(); });
+      changes.forEach(c => { const list = slots[c.day] || (slots[c.day] = []); const i = list.indexOf(c.hour); if (c.to && i < 0) list.push(c.hour); if (!c.to && i >= 0) list.splice(i, 1); });
+      return Object.assign({}, w, { teacher_data: Object.assign({}, td, { availability: Object.assign({}, av, { slots }) }) });
+    }) });
+    return enqueue({ wb: t._wb, patchT, run: () => runWorkbookCommand(t._wb, 'SET_AVAILABILITY', { summer: false, changes }) });
   }
 
   /* A student's column in a group: status, manager, a payment (amount > 0), a refund (< 0) or a discount. `type` and `payload` are the command's own
@@ -427,7 +485,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, refreshGroups, poll, command, setGroup, studentChange, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

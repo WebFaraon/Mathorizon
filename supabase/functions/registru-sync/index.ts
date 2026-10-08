@@ -51,7 +51,7 @@ Deno.serve(async (req) => {
   if (!SA_KEY) return json(500, { error: 'GOOGLE_SA_KEY is not set' });
   const key = JSON.parse(SA_KEY);
   const body = await req.json().catch(() => ({}));
-  let q = sb.from('reg_workbooks').select('id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at').eq('enabled', true);
+  let q = sb.from('reg_workbooks').select('id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at, teacher_data').eq('enabled', true);
   if (body.workbook_id) q = q.eq('id', body.workbook_id);
   const { data: books, error } = await q.order('last_synced_at', { ascending: true, nullsFirst: true });   // the longest-waiting register first
   if (error) return json(500, { error: error.message });

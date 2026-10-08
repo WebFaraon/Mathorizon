@@ -56,8 +56,8 @@ export function workbookData(m) {
     project: m.meta.project || null,
     config: { manager: cfg.manager || [], cabinet: cfg.cabinet || [], subject: cfg.subject || [], studentStatus: cfg.studentStatus || [], groupState: cfg.groupState || [] },
     teacher: {
-      availability: av ? { slots: av.slots, teaches: av.teaches } : null,
-      availabilitySummer: avv ? { slots: avv.slots, teaches: avv.teaches } : null,
+      availability: av ? { slots: av.slots, teaches: av.teaches, hours: av.hours } : null,
+      availabilitySummer: avv ? { slots: avv.slots, teaches: avv.teaches, hours: avv.hours } : null,
       payments: (tot.payments || []).filter(p => p.sum != null).map(p => ({ dateText: p.dateText, iso: p.iso, sum: p.sum })),
       salaryDue: tot.salaryDue == null ? null : tot.salaryDue, paidTotal: tot.paidTotal == null ? null : tot.paidTotal, earnedTotal: tot.earnedTotal == null ? null : tot.earnedTotal
     }
@@ -92,7 +92,9 @@ export async function syncWorkbook({ wb, read, peek, db, force }) {
     out.modified = await peek(wb.spreadsheet_id);                                 // asked BEFORE reading: an edit in between shows up as a newer time next run
     const fresh = wb.last_full_sync_at && Date.now() - Date.parse(wb.last_full_sync_at) < DAY_MS;
     // force: read anyway (right after a write of ours the file's modifiedTime can still be the old one for a few seconds)
-    if (!force && out.modified && wb.drive_modified === out.modified && fresh) { out.full = false; return out; }
+    // a register whose teacher data was never stored (it was added before those columns existed) is read once even when the file did not change
+    const hasData = !!(wb.teacher_data && 'availability' in wb.teacher_data);
+    if (!force && out.modified && wb.drive_modified === out.modified && fresh && hasData) { out.full = false; return out; }
   }
   const data = await read(wb.spreadsheet_id);
   const source = `${data.title}.xlsx`;

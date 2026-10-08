@@ -306,6 +306,7 @@
         </div>
         <div class="dp-who__keys">
           ${window.AdminSheetLinks && window.AdminSheetLinks.teacherUrl(t.id) ? `<a class="ax-btn ax-btn--sm" href="${window.AdminSheetLinks.teacherUrl(t.id)}" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>` : ''}
+          ${D.readOnly() && t._wb ? `<button type="button" class="ax-btn ax-btn--sm" data-av-edit>${ico('pencil', 16)} Editează disponibilitatea</button>` : ''}
           <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
         </div>
       </div>
@@ -319,7 +320,7 @@
         <span><i class="dp-key dp-key--av"></i>Disponibil</span>
         <span><i class="dp-key dp-key--g"></i>Grupă (banda arată proiectul)</span>
         <span><i class="dp-key dp-key--out"></i>Grupă în afara disponibilității</span>
-        <span class="dp-legend__note">${ico('info', 14)} Disponibilitatea vine din Registrul profesorului</span>
+        <span class="dp-legend__note">${ico('info', 14)} ${D.readOnly() ? 'Disponibilitatea e cea din Registrul profesorului: ce schimbi aici se scrie și acolo' : 'Disponibilitatea vine din Registrul profesorului'}</span>
       </div>
       <div class="dp-grid-wrap">
         <div class="dp-grid" role="group" aria-label="Săptămâna lui ${esc(t.name)}">
@@ -358,11 +359,72 @@
     });
   }
 
+  /* ---------- editing the availability (Registre): the register's own table, hours x days ---------- */
+  function openAvailabilityEditor(t) {
+    const hrs = t._availHours && t._availHours.length ? t._availHours : [];
+    if (!hrs.length) { U.toast('Registrul nu are tabelul de disponibilitate.', 'warn'); return; }
+    const on = {};                                                                   // 'day|hour' -> true
+    D.DAYS.forEach(d => hrs.forEach(h => { if ((t.availability[d.id] || []).some(([a, b]) => h >= a && h < b)) on[d.id + '|' + h] = true; }));
+    const start = Object.assign({}, on);
+    const head = D.DAYS.map(d => `<button type="button" class="dp-ed__d" data-col="${d.id}" title="Bifează sau șterge toată ziua">${esc(d.name.slice(0, 3))}</button>`).join('');
+    const rows = hrs.map(h => `<div class="dp-ed__r"><button type="button" class="dp-ed__h" data-row="${h}" title="Bifează sau șterge toată ora">${String(h).padStart(2, '0')}:00</button>${D.DAYS.map(d => `<button type="button" class="dp-ed__c" data-d="${d.id}" data-h="${h}" aria-pressed="${!!on[d.id + '|' + h]}" aria-label="${esc(d.name)} ${h}:00"></button>`).join('')}</div>`).join('');
+    const el = U.drawer({
+      title: 'Disponibilitatea',
+      sub: esc(t.name),
+      body: `
+        <p class="dp-ed__note">Bifează orele în care profesorul poate preda. Se scrie în fila „Disponibilitate” din registrul lui. Poți trage cu mouse-ul peste mai multe ore.</p>
+        <div class="dp-ed" role="group" aria-label="Disponibilitatea lui ${esc(t.name)}">
+          <div class="dp-ed__r dp-ed__r--hd"><span></span>${head}</div>
+          ${rows}
+        </div>
+        <p class="dp-ed__sum" id="dpEdSum" aria-live="polite"></p>`,
+      actions: `<button type="button" class="ax-btn" data-ed-cancel>Renunță</button><button type="button" class="ax-btn ax-btn--primary" data-ed-save disabled>Salvează în registru</button>`
+    });
+    const cell = (d, h) => el.querySelector(`.dp-ed__c[data-d="${d}"][data-h="${h}"]`);
+    const set = (d, h, v) => { if (v) on[d + '|' + h] = true; else delete on[d + '|' + h]; const c = cell(d, h); if (c) c.setAttribute('aria-pressed', String(v)); };
+    const diff = () => { let n = 0; D.DAYS.forEach(d => hrs.forEach(h => { if (!!on[d.id + '|' + h] !== !!start[d.id + '|' + h]) n++; })); return n; };
+    const sync = () => { const n = diff(); el.querySelector('#dpEdSum').textContent = n ? `${n} ${n === 1 ? 'oră schimbată' : 'ore schimbate'}` : 'Nicio schimbare.'; el.querySelector('[data-ed-save]').disabled = !n; };
+    let paint = null;                                                                // while the button is down: the value being painted
+    const grid = el.querySelector('.dp-ed');
+    grid.addEventListener('pointerdown', e => {
+      const c = e.target.closest('.dp-ed__c');
+      if (!c) return;
+      e.preventDefault();
+      paint = !on[c.dataset.d + '|' + c.dataset.h];
+      set(+c.dataset.d, +c.dataset.h, paint); sync();
+    });
+    grid.addEventListener('pointerover', e => {
+      const c = paint !== null && e.target.closest('.dp-ed__c');
+      if (c) { set(+c.dataset.d, +c.dataset.h, paint); sync(); }
+    });
+    const stop = () => { paint = null; };
+    window.addEventListener('pointerup', stop); window.addEventListener('pointercancel', stop);
+    grid.addEventListener('keydown', e => { const c = e.target.closest('.dp-ed__c'); if (c && (e.key === ' ' || e.key === 'Enter')) { e.preventDefault(); set(+c.dataset.d, +c.dataset.h, !on[c.dataset.d + '|' + c.dataset.h]); sync(); } });
+    grid.addEventListener('click', e => {
+      const col = e.target.closest('[data-col]'), row = e.target.closest('[data-row]');
+      if (col) { const d = +col.dataset.col, all = hrs.every(h => on[d + '|' + h]); hrs.forEach(h => set(d, h, !all)); sync(); }
+      if (row) { const h = +row.dataset.row, all = D.DAYS.every(d => on[d.id + '|' + h]); D.DAYS.forEach(d => set(d.id, h, !all)); sync(); }
+    });
+    el.querySelector('[data-ed-cancel]').addEventListener('click', () => el.close());
+    el.querySelector('[data-ed-save]').addEventListener('click', async () => {
+      const desired = {};
+      D.DAYS.forEach(d => { desired[d.id] = hrs.filter(h => on[d.id + '|' + h]); });
+      el.close();
+      const p = window.AdminRegistry.setAvailability(t.id, desired);                // the week changes on screen at once
+      const r = await p;
+      if (r.ok || r.status === 'noop') U.toast(esc('Disponibilitatea a fost scrisă în registru.'));
+      else U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru: încearcă din nou.` : `${r.msg || 'Nu s-a putut scrie în registru.'} Disponibilitatea a revenit la cea din registru.`), 'warn');
+    });
+    sync();
+  }
+
   function paintWeek() {
     const box = rootEl.querySelector('#dpWeek');
     if (!box) return;
     const t = D.teacher(S.t);
     box.innerHTML = t ? weekHTML(t) : `<div class="ax-empty"><b>Alege un profesor</b>din lista din stânga.</div>`;
+    const ed = box.querySelector('[data-av-edit]');
+    if (ed && t) ed.addEventListener('click', () => openAvailabilityEditor(t));
     // a click opens the group's tab in its Google Sheets register; a group with no register yet opens the side panel (Shift+click always does)
     box.querySelectorAll('.dp-blk').forEach(b => b.addEventListener('click', e => {
       const url = !e.shiftKey && window.AdminSheetLinks && window.AdminSheetLinks.groupUrl(b.dataset.g);

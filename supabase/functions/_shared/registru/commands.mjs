@@ -155,6 +155,35 @@ const PLANNERS = {
     return writes.length ? planOk(writes) : planOk([], { noop: true });
   },
 
+  /* The teacher's availability (tab "Disponibilitate": hours down column A, days across row 1, a cell says "Disponibil" or is empty). The platform sets or
+     clears single cells, each with what the person saw (`was`), so a cell the teacher changed meanwhile is refused. Other words in a cell ("Ocupat") are
+     never cleared, only overwritten when the person marks that hour available.
+       cmd: { type: 'SET_AVAILABILITY', tab, changes: [{ day: 1..7, hour, to: true|false, was?: true|false }] } */
+  SET_AVAILABILITY(book, cmd, cfg) {
+    const s = book.sheet(cmd.tab), OK = 'Disponibil';
+    if (!/^disponibilitate/.test(norm(cmd.tab))) return invalid('not-availability', 'Fila nu e una de disponibilitate.');
+    if (cfg.availability && cfg.availability.length && !cfg.availability.some(x => norm(x) === 'disponibil')) return invalid('availability', 'Valoarea „Disponibil” nu e în lista din CONFIGURARI.');
+    const list = Array.isArray(cmd.changes) ? cmd.changes : [];
+    if (!list.length || list.length > 7 * 24) return invalid('changes', 'Nicio schimbare de disponibilitate (sau prea multe deodată).');
+    const dayCol = {}, hourRow = {};
+    for (let c = 2; c <= 8; c++) { const d = dayNumber(s.text(1, c)); if (d) dayCol[d] = c; }
+    for (let r = 2; r <= 40; r++) { const hv = s.num(r, 1); if (hv !== null) hourRow[Math.round(hv * 24)] = r; }
+    const writes = [], seen = new Set();
+    for (const ch of list) {
+      const c = dayCol[ch.day], r = hourRow[ch.hour];
+      if (!c || !r) return invalid('slot', `Ora ${ch.hour}:00 din ziua ${ch.day} nu există în tabelul de disponibilitate.`);
+      const a1 = colLetter(c) + r;
+      if (seen.has(a1)) return invalid('changes', 'Aceeași oră apare de două ori în cerere.');
+      seen.add(a1);
+      const isAv = norm(s.text(r, c)) === 'disponibil', to = !!ch.to;
+      if (isAv === to) continue;                                               // already so
+      if (ch.was !== undefined && !!ch.was !== isAv) return { ok: false, conflict: true, code: 'stale-availability', msg: `Disponibilitatea din registru s-a schimbat (${DAY_NAMES[ch.day - 1]}, ${ch.hour}:00). Nu am scris nimic.` };
+      if (to) writes.push(w(a1, snap(s, r, c), { v: OK }));
+      else writes.push(w(a1, snap(s, r, c), { v: null }));
+    }
+    return writes.length ? planOk(writes) : planOk([], { noop: true });
+  },
+
   /* a payment or a discount is one more term in the cell's SUM(...), the way the managers type them: =SUM(1216-608) -> =SUM(1216-608+300) */
   ADD_PAYMENT(book, cmd) { return addTerm(book, cmd, 3); },
   ADD_DISCOUNT(book, cmd) { return addTerm(book, cmd, 4); }

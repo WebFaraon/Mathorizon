@@ -255,3 +255,16 @@ body.ax .dp-blk__m i:last-child { min-width: 0; overflow: hidden; text-overflow:
 body.ax .dp-free__row { grid-template-columns: minmax(210px, 1.2fr) minmax(150px, 1fr) minmax(230px, 1.5fr) auto; }
 
 @media (max-width: 760px) { body.ax .dp-grid { min-width: 780px; } }
+
+/* ---------- editing the availability (Registre): hours down, days across, tap or drag to paint ---------- */
+body.ax .dp-ed__note { margin: 0 0 14px; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .dp-ed { display: grid; gap: 3px; user-select: none; touch-action: none; }
+body.ax .dp-ed__r { display: grid; grid-template-columns: 54px repeat(7, minmax(0, 1fr)); gap: 3px; }
+body.ax .dp-ed__d, body.ax .dp-ed__h { padding: 6px 0; font: inherit; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); background: transparent; border: 0; cursor: pointer; }
+body.ax .dp-ed__h { text-align: left; letter-spacing: 0; text-transform: none; font-size: 0.82rem; font-variant-numeric: tabular-nums; }
+body.ax .dp-ed__d:hover, body.ax .dp-ed__h:hover { color: var(--ax-ink); }
+body.ax .dp-ed__c { height: 28px; padding: 0; background: var(--ax-panel-2); border: 1px solid var(--ax-rule-2); border-radius: 2px; cursor: pointer; }
+body.ax .dp-ed__c:hover { border-color: var(--ax-ink); }
+body.ax .dp-ed__c[aria-pressed="true"] { background: var(--ax-ink); border-color: var(--ax-ink); }
+body.ax .dp-ed__c:focus-visible { outline: 2px solid var(--ax-ink); outline-offset: 2px; }
+body.ax .dp-ed__sum { margin: 14px 0 0; font-size: 0.86rem; font-weight: 700; }

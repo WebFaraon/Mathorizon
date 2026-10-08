@@ -156,13 +156,15 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
     ok(r5.pruned === 1 && db.store.has('555') && !db.store.has('100'), 'a deleted tab leaves the platform');
     // the file's modifiedTime: same time and a fresh full read -> not read at all
     let reads = 0; const peek = async () => 'T1';
-    const wbm = { id: 'w1', spreadsheet_id: 'x', drive_modified: 'T1', last_full_sync_at: new Date().toISOString() };
+    const wbm = { id: 'w1', spreadsheet_id: 'x', drive_modified: 'T1', last_full_sync_at: new Date().toISOString(), teacher_data: { availability: null } };
     const r6 = await syncWorkbook({ wb: wbm, read: async () => { reads++; return data; }, peek, db });
     ok(!r6.full && reads === 0, 'unchanged file: no read from Google');
     const r7 = await syncWorkbook({ wb: Object.assign({}, wbm, { drive_modified: 'T0' }), read: async () => { reads++; return data; }, peek, db });
     ok(r7.full && reads === 1 && r7.modified === 'T1', 'changed file: read');
     const r8 = await syncWorkbook({ wb: Object.assign({}, wbm, { last_full_sync_at: new Date(Date.now() - 2 * 864e5).toISOString() }), read: async () => { reads++; return data; }, peek, db });
     ok(r8.full && reads === 2, 'a full read at least once a day even if the file looks unchanged');
+    const r9 = await syncWorkbook({ wb: Object.assign({}, wbm, { teacher_data: {} }), read: async () => { reads++; return data; }, peek, db });
+    ok(r9.full && reads === 3, 'a register whose teacher data was never stored is read once even when the file looks unchanged');
     const r7f = await syncWorkbook({ wb: wbm, read: async () => { reads++; return data; }, peek, db, force: true });
     ok(r7f.full && r7f.changed === 0, 'force: read even when the file looks unchanged (right after a write of ours)');
   }
@@ -485,6 +487,51 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
     ok(threw, 'group sync: a tab that is gone is an error, nothing changes');
     threw = false; try { await syncGroup({ wb: wbg, sheetId: 100, tab: 'Grupa 1', readTab: async () => ({ title: 'X', tabs: [{ title: 'Total achitări', sheetId: 9, hidden: false, values: [] }] }), db }); } catch (e) { threw = true; }
     ok(threw, 'group sync: a tab that is not a group is an error');
+  }
+  // ── SET_AVAILABILITY: single cells of the "Disponibilitate" tab, only when the person saw the current value ──
+  {
+    const { applyAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+    const mkA = (extra, cfgExtra) => {
+      const cells = { A1: { v: 'Orar' }, B1: { v: 'Luni' }, C1: { v: 'Marți' }, D1: { v: 'Miercuri' }, E1: { v: 'Joi' }, F1: { v: 'Vineri' }, G1: { v: 'Sâmbătă' }, H1: { v: 'Duminică' } };
+      for (let i = 0; i < 13; i++) cells['A' + (i + 2)] = { v: (9 + i) / 24 };
+      cells.B2 = { v: 'Disponibil' }; cells.B3 = { v: 'Disponibil' }; cells.C3 = { v: 'Ocupat' };
+      const bk = new MemoryBook({ Disponibilitate: { cells: Object.assign(cells, extra || {}) }, CONFIGURARI: { hidden: true, cells: Object.assign({}, cfgCells, cfgExtra || {}) } }, 'x.xlsx');
+      const calls = { write: 0 };
+      return {
+        bk, calls,
+        load: async () => bk,
+        read: async (tab, keys) => { const out = {}; keys.forEach(k => { const c = bk.cell(tab, k); out[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return out; },
+        write: async (tab, cells) => { calls.write++; bk.set(tab, cells); }
+      };
+    };
+    const SA = (changes) => ({ id: 'av' + Math.random(), type: 'SET_AVAILABILITY', tab: 'Disponibilitate', changes });
+    const cc = (R, k) => R.bk.cell('Disponibilitate', k) || {};
+    {
+      const R = mkA(), r = await applyAsync(R, SA([{ day: 1, hour: 11, to: true, was: false }, { day: 1, hour: 9, to: false, was: true }]));
+      ok(r.status === 'done' && cc(R, 'B4').v === 'Disponibil' && cc(R, 'B2').v == null && cc(R, 'B3').v === 'Disponibil' && r.writes.length === 2, 'availability: one hour set, one cleared, nothing else touched');
+      const r2 = await applyAsync(R, SA([{ day: 1, hour: 11, to: true, was: false }]));
+      ok(r2.status === 'noop', 'availability: the same change again is a no-op (not a conflict)');
+    }
+    {
+      const R = mkA(), r = await applyAsync(R, SA([{ day: 2, hour: 10, to: false, was: false }, { day: 2, hour: 10 + 0, to: false }].slice(0, 1)));
+      ok(r.status === 'noop' && cc(R, 'C3').v === 'Ocupat', 'availability: "Ocupat" is never cleared');
+      const R2 = mkA(), r2 = await applyAsync(R2, SA([{ day: 2, hour: 10, to: true, was: false }]));
+      ok(r2.status === 'done' && cc(R2, 'C3').v === 'Disponibil', 'availability: marking an "Ocupat" hour available overwrites it');
+    }
+    {
+      const R = mkA({ B4: { v: 'Disponibil' } }), r = await applyAsync(R, SA([{ day: 1, hour: 11, to: false, was: false }]));
+      ok(r.status === 'conflict' && cc(R, 'B4').v === 'Disponibil' && R.calls.write === 0, 'availability: the teacher made an hour available meanwhile, the person wants it cleared on what he saw: conflict, nothing written');
+      const R3 = mkA({ B5: { v: 'Disponibil' } }), r3 = await applyAsync(R3, SA([{ day: 1, hour: 12, to: true, was: false }, { day: 3, hour: 9, to: true, was: true }]));
+      ok(r3.status === 'conflict' && r3.code === 'stale-availability' && R3.calls.write === 0, 'availability: the person saw "not available" for an hour that was available: conflict, nothing written');
+    }
+    {
+      const bad = [[[], 'changes'], [[{ day: 1, hour: 4, to: true }], 'slot'], [[{ day: 9, hour: 10, to: true }], 'slot'], [[{ day: 1, hour: 10, to: true }, { day: 1, hour: 10, to: false }], 'changes']];
+      for (const [list, code] of bad) { const R = mkA(), r = await applyAsync(R, SA(list)); ok(r.status === 'invalid' && r.code === code && R.calls.write === 0, 'availability refused (' + code + ')'); }
+      const R = mkA({}, { J1: { v: 'Statut disponibilitate' }, J2: { v: 'Ocupat' } }), r = await applyAsync(R, SA([{ day: 1, hour: 11, to: true }]));
+      ok(r.status === 'invalid' && r.code === 'availability', 'availability: the register\'s list has no "Disponibil": refused');
+      const R2 = mkA(), r2 = await applyAsync(R2, Object.assign(SA([{ day: 1, hour: 11, to: true }]), { tab: 'Total achitări' }));
+      ok(r2.status === 'invalid', 'availability: another tab is refused');
+    }
   }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }

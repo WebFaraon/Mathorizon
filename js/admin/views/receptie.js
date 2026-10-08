@@ -151,6 +151,16 @@
     const st = { slides: [], i: 0, paused: false, key: '', timers: [], offs: [] };
     const q = s => root.querySelector(s);
     const stage = q('#rcStage'), grid = q('#rcGrid'), prog = q('#rcProg');
+    /* a lesson opens its group's tab in the Google Sheets register (a new tab); a group with no register does nothing */
+    const openSheet = e => {
+      const card = e.target.closest && e.target.closest('.rc-card');
+      const url = card && window.AdminSheetLinks && window.AdminSheetLinks.groupUrl(card.dataset.gid);
+      if (!url) return false;
+      window.open(url, '_blank', 'noopener');
+      return true;
+    };
+    grid.addEventListener('click', openSheet);
+    grid.addEventListener('keydown', e => { if (e.key === 'Enter' && openSheet(e)) { e.preventDefault(); e.stopPropagation(); } });
     const keyOf = p => [p.now.map(g => g.id).join(), p.next.map(g => g.id).join(), p.tomorrow ? p.tomorrow.groups.map(g => g.id).join() : ''].join('|');
 
     function paintClock() {

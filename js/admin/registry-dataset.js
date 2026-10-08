@@ -97,7 +97,7 @@
       });
       const GR = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
       const teach = Object.keys(teachMap).map(subject => ({ subject, grades: teachMap[subject].sort((a, b) => GR.indexOf(a) - GR.indexOf(b)) }));
-      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id, _ssid: w.spreadsheet_id };
+      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id, _ssid: w.spreadsheet_id, _availHours: (td.availability && td.availability.hours && td.availability.hours.length ? td.availability.hours : [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]).slice().sort((a, b) => a - b) };
       teachers.push(t); tidOf.set(w.id, t.id);
     });
 

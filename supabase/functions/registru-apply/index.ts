@@ -40,7 +40,15 @@ async function run(key: unknown, row: any) {
   }
   try {
     let result;
-    if (row.type === 'NEW_GROUP') {
+    if (row.type === 'SET_AVAILABILITY') {
+      // a command on the register: the tab is "Disponibilitate" or, for the summer one, "Disponibilitate Vara" (found by name, the register has no sheet id for it here)
+      const adapter = createAdapter(key, wb.spreadsheet_id);
+      const plainT = (x: string) => String(x).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim();
+      const want = row.payload?.summer ? 'disponibilitate vara' : 'disponibilitate';
+      const found = (await adapter.tabs()).find((x: any) => plainT(x.title) === want);
+      result = found ? await applyAsync(adapter, { id: row.id, type: 'SET_AVAILABILITY', tab: found.title, ...row.payload })
+        : { status: 'invalid', code: 'no-tab', msg: 'Registrul nu are fila de disponibilitate.' };
+    } else if (row.type === 'NEW_GROUP') {
       // a command on the register itself: the tab does not exist yet
       result = await applyNewGroupAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: 'NEW_GROUP', ...row.payload });
     } else {
