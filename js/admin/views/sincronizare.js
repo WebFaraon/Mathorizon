@@ -199,7 +199,7 @@
           <div class="ax-head__t">
             <span class="ax-plate">${ico('refresh-cw', 24)}</span>
             <div>
-              <h1 class="ax-h1">Sincronizare <span class="cn-real" title="Această pagină citește starea reală din baza de date, nu datele demo.">Date reale</span></h1>
+              <h1 class="ax-h1">Sincronizare <span class="cn-real" title="Starea sincronizării vine din baza de date reală. Conținutul registrelor de acum este demo.">Stare reală</span></h1>
               <p class="ax-lede">Registrele Google Sheets citite în platformă: când au fost verificate, ce s-a citit și ce nu a mers.</p>
             </div>
           </div>
