@@ -139,6 +139,34 @@
     return results;
   }
 
+  /* A new group: a new tab in the teacher's register, filled in (format, subject, class, level, profile, schedule, cabinet, the teacher's level),
+     listed in Total achitari, with the first student. One command on the register (it has no sheet yet). Returns { ok, status, tab, column, msg, url }. */
+  async function newGroup({ fresh, first, last, phone, manager }) {
+    try {
+      if (!D.readOnly()) throw new Error('Grupele noi se scriu în registre doar în modul Registre.');
+      const t = D.teacher(fresh.teacher);
+      if (!t || !t._wb) throw new Error('Profesorul nu are un registru legat.');
+      const access = await token();
+      const room = fresh.room ? D.room(fresh.room) : null, m = D.manager(manager);
+      const payload = {
+        group: { size: fresh.size, subject: fresh.subject, summer: fresh.regime === 'vara', grade: fresh.grade, profile: fresh.profile || null, level: fresh.level || '', days: fresh.days, start: fresh.start, duration: fresh.duration, cabinet: room ? String(room.num) : '', teacherLevel: D.tLevel(t.id), state: 'Se completează' },
+        student: { name: `${last} ${first}`.replace(/\s+/g, ' ').trim(), phone, manager: m ? (m._reg || m.name) : '', status: 'Oră de probă' }
+      };
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
+      const queued = await rpc('reg_enqueue_command', access, { p_workbook: t._wb, p_sheet: 0, p_type: 'NEW_GROUP', p_payload: payload, p_id: id });
+      const out = await call('registru-apply', access, { command_id: queued });
+      const r = (out.results || [])[0];
+      if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
+      if (r.status === 'done' || r.code === 'group-done-student-failed') {
+        try { await call('registru-sync', access, { workbook_id: t._wb, force: true }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
+      }
+      const url = t._ssid && r.sheetId ? `https://docs.google.com/spreadsheets/d/${t._ssid}/edit#gid=${r.sheetId}` + (r.column ? `&range=${r.column}1` : '') : null;
+      return { ok: r.status === 'done', status: r.status, tab: r.tab || null, column: r.column || null, msg: r.msg || '', code: r.code || '', url };
+    } catch (e) {
+      return { ok: false, status: 'failed', tab: null, column: null, msg: String((e && e.message) || e), code: 'client', url: null };
+    }
+  }
+
   /* the enrolment desk: a new student in an existing group, first lesson free (status "Oră de probă") */
   async function enrol(d) {
     const m = D.manager(d.manager);
@@ -235,7 +263,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, poll, command, enrol, transfer, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, poll, command, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

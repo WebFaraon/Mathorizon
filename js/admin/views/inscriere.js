@@ -219,7 +219,7 @@
 
   /* ---------------- the dialog: who is the student ---------------- */
   function openEnrol(target) {
-    if (D.readOnly() && target.fresh) { U.toast('Grupele noi se creează în registru (Google Sheets). De aici poți înscrie elevi în grupele existente.', 'warn'); return; }
+    if (D.readOnly() && target.fresh && !(D.teacher(target.fresh.teacher) || {})._wb) { U.toast('Profesorul acestei grupe nu are un registru legat: grupa nouă nu se poate crea în registru.', 'warn'); return; }
     const mine = target.group ? D.group(target.group) : null;
     const fieldsG = target.fresh;                       // a group to be created
     const g = mine || fieldsG;
@@ -330,8 +330,10 @@
       try { localStorage.setItem(MGR_KEY, st.mgr); } catch (e) { /* private mode */ }
       const go = dlg.querySelector('#inGo'), msg = dlg.querySelector('#inErr');
       if (msg) msg.textContent = '';
-      if (go) { go.disabled = true; go.dataset.label = go.innerHTML; go.textContent = 'Se scrie în registru…'; }
-      const r = await window.AdminRegistry.enrol({ group: mine.id, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr });
+      if (go) { go.disabled = true; go.dataset.label = go.innerHTML; go.textContent = mine ? 'Se scrie în registru…' : 'Se creează fila în registru…'; }
+      const r = mine
+        ? await window.AdminRegistry.enrol({ group: mine.id, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr })
+        : await window.AdminRegistry.newGroup({ fresh: fieldsG, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr });
       if (!r.ok) {
         if (go) { go.disabled = false; go.innerHTML = go.dataset.label; }
         const text = r.status === 'conflict' ? `${r.msg} Nu am scris nimic: încearcă din nou.` : (r.msg || 'Nu s-a putut scrie în registru.');
@@ -345,15 +347,17 @@
       dlg.querySelector('[data-another]').focus();
     }
     function doneRegistryHTML(r) {
-      const G = D.group(mine.id) || mine, tt = D.teacher(G.teacher) || t, m = D.manager(st.mgr);
+      const G = mine ? (D.group(mine.id) || mine) : fieldsG, tt = D.teacher(G.teacher) || t, m = D.manager(st.mgr);
       return `
         <div class="in-ok">
           <button type="button" class="ax-icon-btn in-ok__x" data-x aria-label="Închide">${ico('x', 18)}</button>
           <svg class="in-ok__ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="m19 33 9 9 18-20"/></svg>
-          <h2 id="inDT">Elevul e în registru</h2>
+          <h2 id="inDT">${mine ? 'Elevul e în registru' : 'Grupa nouă e în registru'}</h2>
           <p class="in-ok__sub"><b>${esc(st.last)} ${esc(st.first)}</b>, ${esc(G.subject)}, clasa ${esc(G.grade)}, la ${esc(tt.name)}, ${esc(dayNames(G))}, ${timeRange(G.start, G.duration)}</p>
           <ul class="in-ok__s">
-            <li><span>${ico('book-open', 16)}</span><span>Scris în registru, coloana <b>${esc(r.column || '')}</b></span></li>
+            ${mine ? '' : `<li><span>${ico('book-open', 16)}</span><span>Fila <b>${esc(r.tab || '')}</b> a fost creată în registrul lui ${esc(tt.name)}, cu tot completat</span></li>
+            <li><span class="ax-st ax-st--completare"><i class="ax-st__i" aria-hidden="true"></i>Se completează</span><span>Grupa e trecută și în „Total achitări”.</span></li>`}
+            <li><span>${ico('user-plus', 16)}</span><span>${mine ? 'Scris în registru, coloana' : 'Elevul e în coloana'} <b>${esc(r.column || '')}</b></span></li>
             <li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>
             <li><span>${ico('users', 16)}</span><span>Managerul elevului: <b>${esc(m ? m.name : '')}</b></span></li>
           </ul>

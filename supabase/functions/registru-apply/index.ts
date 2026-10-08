@@ -91,7 +91,7 @@ Deno.serve(async (req) => {
     const { data: claimed } = await sb.from('reg_commands').update({ status: 'running', claimed_at: new Date().toISOString() }).eq('id', row.id).eq('status', 'pending').select('id');
     if (!claimed || !claimed.length) continue;
     const r = await run(key, row);
-    results.push({ id: row.id, status: (r as any)?.status ?? 'done', column: (r as any)?.column, msg: (r as any)?.msg, code: (r as any)?.code });
+    results.push({ id: row.id, status: (r as any)?.status ?? 'done', column: (r as any)?.column, msg: (r as any)?.msg, code: (r as any)?.code, tab: (r as any)?.tab, sheetId: (r as any)?.sheetId });
   }
   return json(200, { results });
 });
