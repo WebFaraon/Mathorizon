@@ -1,0 +1,5 @@
+project_id = "tfflpivehrrzmklvcyhe"
+
+# registru-sync checks its own access (x-sync-secret from pg_cron, or the token of an admin), so the gateway must not ask for a Supabase JWT
+[functions.registru-sync]
+verify_jwt = false
