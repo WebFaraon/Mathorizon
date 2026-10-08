@@ -1,0 +1,8 @@
+/* Admin console: Sincronizare (js/admin/views/sincronizare.js). Reuses the Conturi styles (cn-*) for the shell of the page. */
+
+body.ax .sy-small { font-size: 1.35rem; line-height: 1.25; }
+body.ax .sy-table td { vertical-align: top; }
+body.ax .sy-note { display: block; margin-top: 6px; font-size: 0.82rem; line-height: 1.45; color: var(--ax-ink-2); overflow-wrap: anywhere; }
+body.ax .sy-note--err { color: var(--ax-neg, var(--ax-ink)); font-weight: 600; }
+body.ax .sy-keys { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; white-space: nowrap; }
+body.ax .sy-bad, body.ax .sy-bad .ax-st__i { color: var(--ax-bad); }

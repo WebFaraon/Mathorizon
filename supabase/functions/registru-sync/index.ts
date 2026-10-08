@@ -13,7 +13,8 @@ const SA_KEY = Deno.env.get('GOOGLE_SA_KEY') ?? '';
 const BUDGET_MS = 100_000;                         // stop starting new registers after this: the platform limits how long a call may run
 
 const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { 'content-type': 'application/json' } });
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-secret', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };   // the admin console calls it from the browser
+const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...CORS, 'content-type': 'application/json' } });
 
 async function allowed(req: Request): Promise<boolean> {
   if (SECRET && req.headers.get('x-sync-secret') === SECRET) return true;
@@ -43,6 +44,7 @@ const db = {
 };
 
 Deno.serve(async (req) => {
+  if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
   if (!(await allowed(req))) return json(401, { error: 'not allowed' });
   if (!SA_KEY) return json(500, { error: 'GOOGLE_SA_KEY is not set' });
