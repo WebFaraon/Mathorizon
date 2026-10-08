@@ -10,6 +10,8 @@
 alter table public.reg_workbooks add column if not exists project text;
 alter table public.reg_workbooks add column if not exists config jsonb not null default '{}'::jsonb;
 alter table public.reg_workbooks add column if not exists teacher_data jsonb not null default '{}'::jsonb;
+-- ce au gasit verificarile (aceleasi ca raportul importerului): { summary, byCode, items, truncated }
+alter table public.reg_workbooks add column if not exists issues jsonb not null default '{}'::jsonb;
 
 -- "https://docs.google.com/spreadsheets/d/<id>/edit#gid=0" sau doar "<id>" -> "<id>"
 create or replace function public.reg_spreadsheet_id(p text) returns text

@@ -4,6 +4,8 @@
    One register at a time: read it once, parse it with the same parser as the importer, and replace each CHANGED group whole (or not at all).
    Nothing is deleted on a doubt: an unreadable register, or one that suddenly shows no group, fails the run and leaves the data as it was. */
 import { parseWorkbook } from './parse.mjs';
+import { linkPeople } from './link.mjs';
+import { validate, TITLES } from './validate.mjs';
 
 const KNOWN_SIZES = [1, 2, 3, 4, 5, 6, 8];
 const MARK_CODE = c => c.code || c.raw;
@@ -70,6 +72,18 @@ export function gate(g) {
 
 const DAY_MS = 24 * 3600 * 1000;
 
+/* what the checks found, small enough to keep next to the register: counts for everything, the items only for what a person must look at
+   (errors first, then warnings; the "cleaned or assumed" notes are counted, not listed) */
+export function packIssues(list, max = 400) {
+  const summary = { error: 0, warn: 0, info: 0 }, byCode = {};
+  list.forEach(i => { summary[i.level]++; const k = i.level + ':' + i.code; byCode[k] = (byCode[k] || 0) + 1; });
+  const order = { error: 0, warn: 1 };
+  const items = list.filter(i => i.level !== 'info').sort((a, b) => order[a.level] - order[b.level]).slice(0, max).map(i => ({ level: i.level, code: i.code, tab: i.tab, cell: i.cell, msg: i.msg }));
+  const titles = {};
+  Object.keys(byCode).forEach(k => { const c = k.split(':')[1]; titles[c] = TITLES[c] || c; });
+  return { summary, byCode, titles, items, truncated: summary.error + summary.warn > items.length };
+}
+
 /* wb: { id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at }
    peek(spreadsheetId) -> the file's modifiedTime: when it is the same as at the last full read (and that read is under a day old) the register is not read at all */
 export async function syncWorkbook({ wb, read, peek, db }) {
@@ -84,6 +98,7 @@ export async function syncWorkbook({ wb, read, peek, db }) {
   const book = valuesBook(data, source);
   const m = parseWorkbook(book, { yearFrom: wb.school_year_from || null });
   if (wb.school_year_from && !titleHasYear(data.title)) out.notes.push('anul școlar nu se vede în titlu: am folosit anul din setări');
+  out.issues = packIssues(validate(m, linkPeople(m)));
   if (!m.groups.length) throw new Error('Registrul nu arată nicio grupă: nu schimb nimic (poate accesul lipsește sau structura s-a stricat).');
   const sheetOf = new Map(data.tabs.map(t => [t.title, t.sheetId]));
   const stored = await db.hashes(wb.id);

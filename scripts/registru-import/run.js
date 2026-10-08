@@ -9,7 +9,7 @@ const path = require('path');
 const { readXlsx } = require('./read-xlsx');
 const { parseWorkbook } = require('./parse');
 const { linkPeople } = require('./link');
-const { validate, summarize } = require('./validate');
+const { validate, summarize, TITLES } = require('./validate');
 
 const args = process.argv.slice(2);
 const file = args.find(a => !a.startsWith('--'));
@@ -24,18 +24,7 @@ const summary = summarize(model, linked, issues);
 
 /* the report for people */
 const LEVELS = { error: 'De reparat', warn: 'De verificat', info: 'Curățat sau presupus de importator' };
-const TITLE = {
-  'no-config': 'Lipsește CONFIGURARI', 'no-year': 'Anul școlar nu se știe', 'year-inferred': 'Anul datelor a fost presupus', 'no-total': 'Lipsește Total achitări', 'no-availability': 'Lipsește Disponibilitate',
-  'not-in-total': 'Grupe care nu intră în „Total achitări”', 'total-unknown-tab': '„Total achitări” citește file care nu există', 'payment-sum': 'Plăți către profesor fără sumă', 'payment-date': 'Plăți către profesor cu data scrisă ca text',
-  'paid-total': 'Suma achitată nu se potrivește', 'earned-total': 'Suma pentru lecții nu se potrivește',
-  format: 'Format de grupă invalid', state: 'Starea grupei', subject: 'Materia', grade: 'Clasa', level: 'Nivel nealeș', profile: 'Liceu fără profil', 'profile-extra': 'Profil la o clasă fără profil', note: 'Alte note', 'tab-vs-state': 'Numele filei nu se potrivește cu starea grupei',
-  schedule: 'Orar', cabinet: 'Cabinet', 'outside-availability': 'Orar în afara disponibilității', 'not-in-teaches': 'Materie sau clasă nebifată la „Detalii profesor”',
-  'over-size': 'Prea mulți elevi pentru formatul grupei', 'state-vs-students': 'Starea grupei nu se potrivește cu elevii', phone: 'Telefoane lipsă sau neînțelese', 'phone-cleaned': 'Telefoane aduse la forma +373XXXXXXXX', name: 'Nume neobișnuite', manager: 'Manager', status: 'Statut de elev',
-  money: 'Sume care nu sunt numere', cost: 'Cost diferit de calcul', sold: 'Sold diferit de calcul', 'trial-too-long': 'Oră de probă care a trecut de prima lecție', 'active-no-marks': 'Elev activ fără nicio prezență',
-  date: 'Date care nu se înțeleg', 'date-order': 'Date în ordine greșită', weekday: 'Lecții în alte zile decât orarul', mark: 'Prezențe necunoscute', 'unpaid-lesson': 'Lecții cu prezențe, dar neplătite (fără dată sau temă)', 'teacher-level': 'Nivelul profesorului pe lecții',
-  'over-paying': 'Mai mulți elevi taxați decât locuri', pay: 'Plata lecției diferă de calcul', 'orphan-marks': 'Prezențe fără elev', 'double-booked': 'Profesorul are două grupe în același timp', 'room-clash': 'Cabinet ocupat de două grupe',
-  siblings: 'Același telefon, nume diferite', duplicate: 'Același nume, telefoane diferite', 'name-only': 'Elevi legați doar după nume', 'two-active': 'Elev Activ în mai multe grupe', 'moved-nowhere': 'Transferat fără grupă nouă în registru'
-};
+const TITLE = TITLES;
 const where = i => [i.tab ? `„${i.tab}”` : null, i.cell].filter(Boolean).join(' ');
 let md = `# Raport de import: ${summary.file}\n\n`;
 md += `Profesor: **${summary.teacher || '?'}** · proiect: **${summary.project || '?'}** · an școlar: **${summary.year || '?'}**\n\n`;

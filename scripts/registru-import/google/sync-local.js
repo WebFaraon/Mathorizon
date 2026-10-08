@@ -33,10 +33,10 @@ const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
       }
       if (r.full) {
         state.set(tid, { drive_modified: r.modified, last_full_sync_at: new Date().toISOString() });
-        wbRows.set(tid, { id: 'wb-' + tid, spreadsheet_id: T.ssid, title: r.title, teacher_name: r.teacher, project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher, enabled: true });
+        wbRows.set(tid, { issues: r.issues, id: 'wb-' + tid, spreadsheet_id: T.ssid, title: r.title, teacher_name: r.teacher, project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher, enabled: true });
       }
       seen += r.seen; changed += r.changed; unchanged += r.unchanged; skipped += r.skipped.length;
-      if (pass === 1) console.log(`${T.name}: ${r.seen} grupe, ${r.changed} scrise, ${r.skipped.length} oprite${r.notes.length ? ' | ' + r.notes.join('; ') : ''}`);
+      if (pass === 1 && r.full) console.log(`${T.name}: ${r.seen} grupe, ${r.changed} scrise, ${r.skipped.length} oprite, de reparat ${r.issues.summary.error}, de verificat ${r.issues.summary.warn}${r.notes.length ? ' | ' + r.notes.join('; ') : ''}`);
     }
     console.log(`Trecerea ${pass}: ${ids.length} registre, ${reads} citite din Google, ${seen} grupe, ${changed} scrise, ${unchanged} neschimbate, ${skipped} oprite, ${Math.round((Date.now() - t0) / 1000)}s`);
   }
