@@ -7,6 +7,8 @@
    anything that slipped in (it reports "verify-failed", with what the cell holds, instead of retrying blindly).
    Plain ES module (Node through require, the Supabase Edge Function through import). */
 import { plan, planTransfer } from './commands.mjs';
+import { planNewGroup, firstFree, GENERAL_TABS } from './newgroup.mjs';
+import { readConfig } from './parse.mjs';
 import { parseA1 } from './memory-book.mjs';
 
 const nul = x => (x === undefined || x === null ? null : x);
@@ -100,3 +102,58 @@ export async function applyTransferAsync(adapters, cmd) {
   }
   return { status: 'done', column: p.column, oldColumn: p.oldColumn, split: p.split, resumed: p.resumed, phases: done };
 }
+
+/* NEW_GROUP against a live register. adapter:
+     tabs()                         -> [{ title, sheetId, hidden }]          (in the register's order)
+     load(tab), read(tab, [a1])     -> as for the other commands
+     duplicate(sourceTitle, title)  -> { sheetId }                           (a copy of the tab, with its colours, lists and formulas)
+     batchWrite({ clears, cells })  -> ONE all-or-nothing write: clears [{ tab, range }], cells { tab: { a1: { v } | { f } } }
+     remove(title)                  -> deletes a tab
+   The tab is duplicated, then cleared + filled + listed in the Total tab in one write; if that write fails the new tab is deleted again, so a failure
+   leaves nothing behind. The first student (optional) is written afterwards like any ADD_STUDENT; if only that fails the group stays and the answer says so. */
+export async function applyNewGroupAsync(adapter, cmd) {
+  if (!cmd || !cmd.id) return { status: 'invalid', code: 'id', msg: 'Comanda nu are id.' };
+  const tabs = await adapter.tabs();
+  const norm = c => ({ v: nul(c && c.v), f: (c && c.f) || null });
+  // the template: the empty tab "Orar 1", else the last visible group tab (found by its A1, reading from the end until one matches)
+  const plainT = x => String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+  let template = tabs.find(x => plainT(x.title) === 'orar 1') || null;
+  if (!template) {
+    const groups = tabs.filter(x => !x.hidden && !GENERAL_TABS.has(plainT(x.title)));
+    for (let k = groups.length - 1; k >= 0 && !template; k--) { const a1 = (await adapter.read(groups[k].title, ['A1']))['A1']; if (/^(grup|individual)/i.test(String((a1 && a1.v) || ''))) template = groups[k]; }
+  }
+  const totalTab = tabs.find(x => String(x.title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === 'total achitari');
+  let total = { exists: false };
+  if (totalTab) {
+    const keys = []; for (let c = 6; c <= 35; c++) keys.push(colName(c) + '4');
+    const row = await adapter.read(totalTab.title, keys);
+    total = { exists: true, title: totalTab.title, free: firstFree(keys.map(k => { const x = row[k]; return x && x.v != null ? x.v : ''; })) };
+  }
+  const book = template ? await adapter.load(template.title) : null;
+  const config = book ? readConfig(book) : {};
+  const p = planNewGroup({ tabs, template, config, configCells: book && book.data.CONFIGURARI ? book.data.CONFIGURARI.cells : {}, total, cmd });
+  if (!p.ok) return { status: 'invalid', code: p.code, msg: p.msg, onStudent: !!p.onStudent };
+
+  const created = await adapter.duplicate(p.sourceTitle, p.title);
+  const cellsByTab = { [p.title]: p.cells };
+  if (p.total) cellsByTab[p.total.tab] = { [p.total.a1]: { v: p.total.v } };
+  try {
+    await adapter.batchWrite({ clears: p.clears.map(range => ({ tab: p.title, range })), cells: cellsByTab });
+    const keys = ['A1', 'A3', 'A4', 'A5', 'A6', 'AA9'];
+    const after = await adapter.read(p.title, keys);
+    const bad = keys.filter(k => norm(after[k]).v !== p.cells[k].v);
+    if (bad.length) throw new Error(`după scriere, celula ${bad[0]} din fila nouă nu are ce am scris`);
+    if (p.total) { const t = await adapter.read(p.total.tab, [p.total.a1]); if (norm(t[p.total.a1]).v !== p.total.v) throw new Error('numele filei nu a ajuns în „Total achitări”'); }
+  } catch (e) {
+    try { await adapter.remove(p.title); } catch (e2) { /* the tab stays: said below */ }
+    return { status: 'failed', code: 'new-group-failed', msg: 'Fila nouă nu a putut fi completată și a fost ștearsă: ' + String((e && e.message) || e).slice(0, 200) };
+  }
+  const out = { status: 'done', tab: p.title, sheetId: created.sheetId, source: p.sourceTitle, totalListed: !!p.total, column: null };
+  if (p.student) {
+    const r = await applyAsync(adapter, Object.assign({ id: cmd.id + '-s' }, p.student));
+    if (r.status !== 'done') return Object.assign(out, { status: 'failed', code: 'group-done-student-failed', msg: `Grupa a fost creată (fila „${p.title}”), dar elevul nu a putut fi scris: ${r.msg || r.code}. Îl poți înscrie din consolă după sincronizare.` });
+    out.column = r.column;
+  }
+  return out;
+}
+const colName = c => { let s = ''; for (; c > 0; c = Math.floor((c - 1) / 26)) s = String.fromCharCode(65 + ((c - 1) % 26)) + s; return s; };

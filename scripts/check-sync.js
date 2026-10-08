@@ -271,6 +271,75 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(r.status === 'done' && b.cell('Grupa 2', r.column + '1').v === 'Ionescu Ana+37369123456' && b.cell('Grupa 1', 'D8').v === 'Transferat', 'one register, two tabs: the same two phases');
     }
   }
+  // ── NEW_GROUP: a new tab in the teacher's register, filled in, listed in Total achitari, with its first student ──
+  {
+    const { applyNewGroupAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+    const cfgG = Object.assign({}, cfgCells, { B3: { v: 'Matematica (Vara)' }, D3: { v: '4 ― 5' }, D4: { v: '9 ― 10' }, F3: { v: 'Se completează' }, I3: { v: '13' } });
+    const total = (n) => { const c = { D1: { v: 'Data' } }; for (let i = 0; i < n; i++) c[String.fromCharCode(70 + i % 20) + '4'] = { v: 'x' }; return c; };
+    const totalCells = n => { const c = {}; for (let i = 0; i < n; i++) { const col = 6 + i; const L = col <= 26 ? String.fromCharCode(64 + col) : 'A' + String.fromCharCode(64 + col - 26); c[L + '4'] = { v: 'Grupa ' + i }; } return c; };
+    const orar = () => ({ A1: { v: 'Grup cu 6 elevi' }, A3: { v: 'Starea grupului' }, A4: { v: 'Materia' }, A5: { v: 'Clasa' }, A6: { v: 'Nivelul' }, A7: { v: 'Profilul' }, D3: { v: 0, f: 'sum(0)' }, D4: { v: 0, f: 'sum(0)' }, AA9: { v: 'Nivelul Profesorului 4' }, AA198: { v: 'Nivelul Profesorului 4' }, D5: { v: 0, f: 'LET(x)' } });
+    const reg = (o, hooks) => {
+      o = o || {};
+      const spec = { 'Total achitări': { cells: totalCells(o.total == null ? 3 : o.total) } };
+      if (o.noTotal) delete spec['Total achitări'];
+      if (!o.noOrar) spec['Orar 1'] = { cells: orar() };
+      spec['Grupa 1'] = { cells: Object.assign({}, book().data['Grupa 1'].cells) };
+      spec.CONFIGURARI = { hidden: true, cells: cfgG };
+      const bk = new MemoryBook(spec, 'x.xlsx'), ids = {}; let n = 100; const calls = { duplicate: 0, batch: 0 };
+      return {
+        bk, calls,
+        tabs: async () => bk.sheetNames.map(nm => ({ title: nm, sheetId: ids[nm] || (ids[nm] = ++n), hidden: bk.data[nm].hidden })),
+        load: async () => bk,
+        read: async (tab, keys) => { const out = {}; keys.forEach(k => { const c = bk.cell(tab, k); out[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return out; },
+        duplicate: async (src, title) => { calls.duplicate++; bk.addSheet(title, bk.data[src].cells); ids[title] = ++n; return { sheetId: ids[title] }; },
+        remove: async tt => bk.removeSheet(tt),
+        batchWrite: async ({ clears, cells }) => { calls.batch++; if (hooks && hooks.failBatch) throw new Error('Google 500: simulat'); clears.forEach(c => bk.clearRange(c.tab, c.range)); Object.keys(cells).forEach(tb => bk.set(tb, cells[tb])); },
+        write: async (tab, cells) => { bk.set(tab, cells); }
+      };
+    };
+    const G = (o) => Object.assign({ size: 3, subject: 'Matematica', summer: false, grade: 'XI', profile: 'Real', level: '9-10', days: [2, 4], start: 16, duration: 1, cabinet: '13', teacherLevel: 5, state: 'Se completează' }, o || {});
+    const S = { name: 'Rusu Elena', phone: '069 555 444', manager: 'Cerchez Cristina', status: 'Oră de probă' };
+    const cmdG = (id, g, st) => ({ id, type: 'NEW_GROUP', group: G(g), student: st === undefined ? S : st });
+
+    {
+      const R = reg(), r = await applyNewGroupAsync(R, cmdG('n1'));
+      const tab = 'Marți/Joi 16:00-17:00', c = k => R.bk.cell(tab, k) || {};
+      ok(r.status === 'done' && r.tab === tab && r.source === 'Orar 1' && r.totalListed && r.column === 'D', 'new group: tab created from Orar 1, listed in Total, student written: ' + JSON.stringify({ s: r.status, t: r.tab, m: r.msg }));
+      ok(c('A1').v === 'Grup cu 3 elevi' && c('A3').v === 'Se completează' && c('A4').v === 'Matematica' && c('A5').v === 'XI' && c('A6').v === '9 ― 10' && c('A7').v === 'Real', 'new group: format, state, subject, class, level, profile');
+      ok(c('AA2').v === 'Marți' && Math.abs(c('AB2').v - 16 / 24) < 1e-9 && c('AC2').v === '13' && c('AA3').v === 'Joi' && !c('AA4').v, 'new group: the schedule, one row per day and hour, with the cabinet');
+      ok(c('AA9').v === 'Nivelul Profesorului 5' && c('AA198').v === 'Nivelul Profesorului 5' && c('D3').f === 'sum(0)' && c('D5').f === 'LET(x)', 'new group: the teacher level on every row, payments back to sum(0), the sheet formulas kept');
+      ok(c('D1').v === 'Rusu Elena+37369555444' && c('D7').v === 'Cerchez Cristina' && c('D8').v === 'Oră de probă', 'new group: the first student in the first column');
+      ok(R.bk.cell('Total achitări', 'I4').v === tab, 'new group: its name is the next free cell of the Total list (F4:AI4)');
+      const r2 = await applyNewGroupAsync(R, cmdG('n2', null, null));
+      ok(r2.status === 'done' && r2.tab === tab + ' (2)', 'a second group with the same schedule gets another name: ' + r2.tab);
+    }
+    {
+      const R = reg({ noOrar: true }), r = await applyNewGroupAsync(R, cmdG('n3', { days: [1, 3], start: 12 }, null));
+      const tab = r.tab, kept = R.bk.data['Grupa 1'].cells;
+      const noStudents = ![4, 5, 6, 7].some(i => R.bk.cell(tab, String.fromCharCode(64 + i) + '1')) && !R.bk.cell(tab, 'D9') && !R.bk.cell(tab, 'B9') && !R.bk.cell(tab, 'A9') && !R.bk.cell(tab, 'F9');
+      ok(r.status === 'done' && r.source === 'Grupa 1' && noStudents && !R.bk.cell(tab, 'D8') && !R.bk.cell(tab, 'D7'), 'no Orar 1: a real group tab is copied and then cleaned (no students, lessons, marks, manager, status) ');
+      ok(kept.D1 && kept.D9 && R.bk.cell('Grupa 1', 'D1').v === 'Ionescu Ana+37369123456', 'the group it was copied from is not touched');
+    }
+    {
+      const R = reg({ total: 30 }), r = await applyNewGroupAsync(R, cmdG('n4'));
+      ok(r.status === 'invalid' && r.code === 'total-full' && R.calls.duplicate === 0, 'Total list full: refused before anything is created');
+      const R2 = reg({ noTotal: true }), r2 = await applyNewGroupAsync(R2, cmdG('n5'));
+      ok(r2.status === 'done' && r2.totalListed === false, 'no Total tab: the group is still created (and the answer says it is not listed)');
+    }
+    {
+      const R = reg({}, { failBatch: true }), before = R.bk.sheetNames.slice();
+      const r = await applyNewGroupAsync(R, cmdG('n6'));
+      ok(r.status === 'failed' && r.code === 'new-group-failed' && JSON.stringify(R.bk.sheetNames) === JSON.stringify(before), 'the write fails: the new tab is deleted again, nothing is left behind');
+    }
+    {
+      const bad = [[{ size: 7 }, 'size'], [{ subject: 'Gigel' }, 'subject'], [{ grade: 'XIII' }, 'grade'], [{ profile: null }, 'profile'], [{ level: '1-2' }, 'level'], [{ days: [] }, 'schedule'], [{ days: [1, 2, 3, 4], duration: 2 }, 'schedule'], [{ cabinet: '99' }, 'cabinet'], [{ teacherLevel: 9 }, 'teacher-level'], [{ state: 'Altceva' }, 'state']];
+      for (const [g, code] of bad) { const R = reg(), r = await applyNewGroupAsync(R, cmdG('b' + code, g)); ok(r.status === 'invalid' && r.code === code && R.calls.duplicate === 0, 'refused (' + code + '), nothing created'); }
+      const R = reg(), r = await applyNewGroupAsync(R, cmdG('bs', null, Object.assign({}, S, { phone: '123' })));
+      ok(r.status === 'invalid' && r.code === 'phone' && r.onStudent && R.calls.duplicate === 0, 'a bad phone of the first student is refused BEFORE the tab is created');
+      const R3 = reg(), r3 = await applyNewGroupAsync(R3, cmdG('bsum', { summer: true, subject: 'Matematica' }, null));
+      ok(r3.status === 'done' && R3.bk.cell(r3.tab, 'A4').v === 'Matematica (Vara)' && / \(Vara\)$/.test(r3.tab), 'a summer group: "(Vara)" in the subject and in the tab name');
+    }
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

@@ -5,7 +5,7 @@
    the write, written, read back, and the outcome kept on the command: done | noop | invalid | conflict | failed.
    Secrets: GOOGLE_SA_KEY, REG_SYNC_SECRET (as registru-sync). The service account must be EDITOR of the register to write in it. */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { applyAsync, applyTransferAsync } from '../_shared/registru/apply.mjs';
+import { applyAsync, applyTransferAsync, applyNewGroupAsync } from '../_shared/registru/apply.mjs';
 import { createAdapter, tabTitle } from '../_shared/registru/google.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -39,8 +39,12 @@ async function run(key: unknown, row: any) {
     return result;
   }
   try {
-    const tab = await tabTitle(key, wb.spreadsheet_id, row.sheet_id);               // the tab's name today (names change, the id does not)
     let result;
+    if (row.type === 'NEW_GROUP') {
+      // a command on the register itself: the tab does not exist yet
+      result = await applyNewGroupAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: 'NEW_GROUP', ...row.payload });
+    } else {
+    const tab = await tabTitle(key, wb.spreadsheet_id, row.sheet_id);               // the tab's name today (names change, the id does not)
     if (row.type === 'TRANSFER') {
       // two groups, possibly in two registers: the new one is in the payload
       const { toWorkbook, toSheet, ...rest } = row.payload;
@@ -54,6 +58,7 @@ async function run(key: unknown, row: any) {
       }
     } else {
       result = await applyAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: row.type, tab, ...row.payload });
+    }
     }
     await finish(row.id, result.status, result);
     return result;

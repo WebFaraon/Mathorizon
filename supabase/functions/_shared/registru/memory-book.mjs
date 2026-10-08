@@ -59,6 +59,12 @@ export class MemoryBook {
       this.data[name].cells[k] = c;
     });
   }
+  addSheet(name, cells, hidden) { this.data[name] = { hidden: !!hidden, cells: Object.fromEntries(Object.entries(cells || {}).map(([k, v]) => [k, Object.assign({}, v)])) }; if (!this.sheetNames.includes(name)) this.sheetNames.push(name); }
+  removeSheet(name) { delete this.data[name]; this.sheetNames = this.sheetNames.filter(n => n !== name); }
+  clearRange(name, range) {                                   // "A9:B198": the values and formulas of a rectangle
+    const [a, b] = range.split(':').map(parseA1);
+    Object.keys(this.data[name].cells).forEach(k => { const p = parseA1(k); if (p.r >= a.r && p.r <= b.r && p.c >= a.c && p.c <= b.c) delete this.data[name].cells[k]; });
+  }
   /* raw access for comparisons in tests */
   cell(name, k) { const x = this.data[name].cells[k]; return x ? Object.assign({}, x) : null; }
   snapshot() { const o = {}; Object.keys(this.data).forEach(n => { o[n] = JSON.stringify(this.data[n].cells); }); return o; }

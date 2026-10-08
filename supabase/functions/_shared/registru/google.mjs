@@ -138,6 +138,50 @@ export function createAdapter(key, spreadsheetId) {
       keys.forEach((k, i) => { const c = toCells(parts[i][0], parts[i][1]); out[k] = c.A1 || { v: null }; });
       return out;
     },
+    async tabs() {
+      const token = await accessToken(key, true);
+      const meta = await get(token, base + '?fields=sheets.properties(title,sheetId,hidden,index)');
+      ids = Object.fromEntries(meta.sheets.map(s => [s.properties.title, s.properties.sheetId]));
+      return meta.sheets.map(s => ({ title: s.properties.title, sheetId: s.properties.sheetId, hidden: !!s.properties.hidden }));
+    },
+    /* a copy of a tab (colours, dropdown chips, validations, formulas) with a new name, at the end of the visible tabs */
+    async duplicate(sourceTitle, title) {
+      const token = await accessToken(key, true);
+      const all = await this.tabs();
+      const src = all.find(x => x.title === sourceTitle);
+      if (!src) throw new Error('Fila-șablon „' + sourceTitle + '” nu mai există.');
+      const lastVisible = all.reduce((m, x, i) => (!x.hidden ? i : m), all.length - 1);
+      const r = await send(token, 'POST', base + ':batchUpdate', { requests: [{ duplicateSheet: { sourceSheetId: src.sheetId, newSheetName: title, insertSheetIndex: lastVisible + 1 } }] });
+      const sheetId = r.replies[0].duplicateSheet.properties.sheetId;
+      ids[title] = sheetId;
+      return { sheetId };
+    },
+    async remove(title) {
+      const token = await accessToken(key, true);
+      await this.tabs();
+      if (ids[title] === undefined) return;
+      await send(token, 'POST', base + ':batchUpdate', { requests: [{ deleteSheet: { sheetId: ids[title] } }] });
+      delete ids[title];
+    },
+    /* clears (rectangles) and cells of one or more tabs, in ONE request: all or nothing */
+    async batchWrite({ clears, cells }) {
+      const token = await accessToken(key, true);
+      if (!ids) await this.tabs();
+      const need = [...new Set((clears || []).map(c => c.tab).concat(Object.keys(cells || {})))];
+      for (const tb of need) if (ids[tb] === undefined) throw new Error('Fila „' + tb + '” nu există în registru.');
+      const requests = (clears || []).map(({ tab, range }) => {
+        const [a, b] = range.split(':').map(parseA1);
+        return { updateCells: { range: { sheetId: ids[tab], startRowIndex: a.r - 1, endRowIndex: b.r, startColumnIndex: a.c - 1, endColumnIndex: b.c }, fields: 'userEnteredValue' } };
+      });
+      Object.keys(cells || {}).forEach(tab => Object.keys(cells[tab]).forEach(k => {
+        const c = cells[tab][k], { r, c: col } = parseA1(k);
+        const cell = c.f ? { userEnteredValue: { formulaValue: '=' + c.f } }
+          : c.v === undefined || c.v === null || c.v === '' ? {}
+          : typeof c.v === 'number' ? { userEnteredValue: { numberValue: c.v } } : { userEnteredValue: { stringValue: String(c.v) } };
+        requests.push({ updateCells: { start: { sheetId: ids[tab], rowIndex: r - 1, columnIndex: col - 1 }, rows: [{ values: [cell] }], fields: 'userEnteredValue' } });
+      }));
+      await send(token, 'POST', base + ':batchUpdate', { requests });
+    },
     /* all the cells of a tab in ONE request (spreadsheets.batchUpdate is all or nothing): the text as text (a "+373..." header stays text),
        a formula as a formula, an empty value clears the cell */
     async write(tab, cells) {
