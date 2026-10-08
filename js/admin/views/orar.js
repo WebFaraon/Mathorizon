@@ -374,12 +374,14 @@
         </div>`;
     };
     const day = g.days[0];
+    // "Arată în registru": the group's tab in this teacher's register (the link comes from the registers in Registre mode, from the demo registers in Demo)
+    const regUrl = window.AdminSheetLinks ? window.AdminSheetLinks.groupUrl(g.id) : null;
     const footHTML = () => pick
       ? `<span class="tr-foot__n" id="trCount" aria-live="polite">${pick.size ? `<b>${pick.size}</b> ${pick.size === 1 ? 'elev ales' : 'elevi aleși'}` : 'Niciun elev ales'}</span>
         <button type="button" class="ax-btn" data-tr-cancel>Renunță</button>
         <button type="button" class="ax-btn ax-btn--primary" data-tr-next ${pick.size ? '' : 'disabled'}>Alege grupa ${ico('arrow-right', 16)}</button>`
       : `<a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>
-        <a class="ax-btn ax-btn--dark" href="#elevi?in=prof&q=${encodeURIComponent(t.name)}" data-go>${ico('users', 16)} Elevii profesorului</a>
+        ${regUrl ? `<a class="ax-btn ax-btn--dark" href="${esc(regUrl)}" target="_blank" rel="noopener">${ico('book-open', 16)} Arată în registru</a>` : ''}
         <button type="button" class="ax-btn ax-btn--primary" data-tr-start>${ico('swap', 16)} Transfer</button>`;
     const el = U.drawer({
       title: `${esc(g.subject)}, clasa ${esc(g.grade)}`,
