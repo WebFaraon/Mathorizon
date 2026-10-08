@@ -60,7 +60,7 @@ Deno.serve(async (req) => {
     if (Date.now() - started > BUDGET_MS) { results.push({ workbook: wb.id, status: 'deferred' }); continue; }
     const run = await sb.from('reg_sync_runs').insert({ workbook_id: wb.id }).select('id').single();
     try {
-      const r = await syncWorkbook({ wb, read: (id: string) => readWorkbook(key, id), peek: (id: string) => driveModified(key, id), db });
+      const r = await syncWorkbook({ wb, read: (id: string) => readWorkbook(key, id), peek: (id: string) => driveModified(key, id), db, force: !!(body.force && body.workbook_id) });
       if (!r.full) {                                       // nothing changed: only note that it was checked
         await sb.from('reg_sync_runs').delete().eq('id', run.data?.id);
         await sb.from('reg_workbooks').update({ last_synced_at: new Date().toISOString() }).eq('id', wb.id);

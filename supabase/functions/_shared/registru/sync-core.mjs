@@ -85,13 +85,14 @@ export function packIssues(list, max = 400) {
 }
 
 /* wb: { id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at }
-   peek(spreadsheetId) -> the file's modifiedTime: when it is the same as at the last full read (and that read is under a day old) the register is not read at all */
-export async function syncWorkbook({ wb, read, peek, db }) {
+   peek(spreadsheetId) -> the file's modifiedTime: when it is the same as at the last full read (and that read is under a day old) the register is not read at all, unless `force` */
+export async function syncWorkbook({ wb, read, peek, db, force }) {
   const out = { seen: 0, changed: 0, unchanged: 0, skipped: [], pruned: 0, notes: [], full: true, modified: null };
   if (peek) {
     out.modified = await peek(wb.spreadsheet_id);                                 // asked BEFORE reading: an edit in between shows up as a newer time next run
     const fresh = wb.last_full_sync_at && Date.now() - Date.parse(wb.last_full_sync_at) < DAY_MS;
-    if (out.modified && wb.drive_modified === out.modified && fresh) { out.full = false; return out; }
+    // force: read anyway (right after a write of ours the file's modifiedTime can still be the old one for a few seconds)
+    if (!force && out.modified && wb.drive_modified === out.modified && fresh) { out.full = false; return out; }
   }
   const data = await read(wb.spreadsheet_id);
   const source = `${data.title}.xlsx`;

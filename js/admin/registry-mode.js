@@ -109,7 +109,7 @@
       if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
       const ok = r.status === 'done';
       if ((ok || r.status === 'noop') && !opts.defer) {
-        try { await call('registru-sync', access, { workbook_id: g._src.wb }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
+        try { await call('registru-sync', access, { workbook_id: g._src.wb, force: true }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
       }
       const url = g._src.ssid ? `https://docs.google.com/spreadsheets/d/${g._src.ssid}/edit#gid=${g._src.sheet}` + (r.column ? `&range=${r.column}1` : '') : null;
       return { ok, status: r.status, column: r.column || null, msg: r.msg || '', code: r.code || '', url };
@@ -134,7 +134,7 @@
       if (r.ok || r.status === 'noop' || r.code === 'half-done') { toSync.add(gFrom._src.wb); toSync.add(gTo._src.wb); }
     }
     if (toSync.size) {
-      try { const access = await token(); for (const wb of toSync) await call('registru-sync', access, { workbook_id: wb }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
+      try { const access = await token(); for (const wb of toSync) await call('registru-sync', access, { workbook_id: wb, force: true }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
     }
     return results;
   }

@@ -112,7 +112,7 @@
         res = await fetch(`${SUPABASE_URL}/functions/v1/registru-sync`, {
           method: 'POST',
           headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + ((session && session.access_token) || ''), 'Content-Type': 'application/json' },
-          body: JSON.stringify(id ? { workbook_id: id } : {})
+          body: JSON.stringify(id ? { workbook_id: id, force: true } : {})
         });
       } catch (e) { throw new Error('Nu s-a putut contacta funcția de sincronizare (nu e pusă în funcțiune sau nu răspunde).'); }
       const body = await res.json().catch(() => ({}));

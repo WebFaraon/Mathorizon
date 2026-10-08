@@ -57,6 +57,7 @@ Tests: `npm run check:demo` (21,267), `npm run check:sync` (67), `npm run check:
 - `Total achitari` has room for 30 payments (rows 3..32): a teacher with more loses the rest in the sheet's total. `Oră de probă confirmată` and `Înlocuire` students are not counted by the sheet's "Elevi activi/ora de proba" totals (the console counts them).
 - Demo caveats: all 27 demo registers are titled OFFLINE (projects Online and Matematica.md do not show), `instabil` status does not exist in registers (demo wrote it as Activ), teacher phone empty, room seats assumed 8.
 - Google quota: 60 read requests/minute/project. The sync avoids it by asking Drive for `modifiedTime` first (a register unchanged and fully read less than a day ago is not read); on a 429 the run stops and the next one continues (`QuotaError`).
+- After a write of ours the console asks `registru-sync` with `force: true` for that workbook (and the Sincronizare page does the same for one register): Drive's `modifiedTime` can still be the old one for a few seconds after a Sheets API write, so without force the read was skipped and the new data came only with the next cron + poll (1-2 min). `force` only counts with a `workbook_id` (a forced read of all 27 would hit the Google quota).
 - Freshness: Sheets -> DB within ~1-2 min (cron every minute); open console reloads itself within 45 s of a newer read (not while typing or under a dialog); the green pill has a reload button; the Sincronizare page has "Sincronizeaza acum".
 
 ## 5b. Transfer (done 2026-10-08)

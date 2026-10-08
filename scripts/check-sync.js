@@ -163,6 +163,8 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
     ok(r7.full && reads === 1 && r7.modified === 'T1', 'changed file: read');
     const r8 = await syncWorkbook({ wb: Object.assign({}, wbm, { last_full_sync_at: new Date(Date.now() - 2 * 864e5).toISOString() }), read: async () => { reads++; return data; }, peek, db });
     ok(r8.full && reads === 2, 'a full read at least once a day even if the file looks unchanged');
+    const r7f = await syncWorkbook({ wb: wbm, read: async () => { reads++; return data; }, peek, db, force: true });
+    ok(r7f.full && r7f.changed === 0, 'force: read even when the file looks unchanged (right after a write of ours)');
   }
   // ── F2: the same commands against a live register (Google Sheets) through the async adapter: load, read, write ──
   {

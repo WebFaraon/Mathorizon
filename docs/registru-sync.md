@@ -108,3 +108,5 @@ Sub o secundă-două ar fi nevoie de un declanșator în Google (Apps Script, la
 - **Verificat:** 85 de teste în memorie (două registre, un registru cu două file, eșec simulat în faza 2, refuzurile, cazul cu datorie) și un test pe **două registre demo reale din Google** (`node scripts/registru-import/google/transfer-local.js`: 5.760 rămân, 860 trec, celulele puse la loc).
 
 Punerea în funcțiune: (1) SQL Editor: `20261008220000_registre_transfer.sql`; (2) deploy la `registru-apply` și `registru-sync` (cod comun schimbat), cu aceleași comenzi ca la secțiunea 8; (3) la registrele reale, contul de serviciu trebuie să fie Editor în **ambele** registre ale unui transfer.
+
+După o scriere din consolă se cere o citire **forțată** a registrului respectiv (`force: true`, doar cu `workbook_id`): data ultimei modificări a fișierului poate rămâne veche câteva secunde după o scriere prin API, iar fără forțare citirea ar fi fost sărită și datele noi ar fi apărut abia după următoarea rulare a cron-ului (1–2 minute). La fel face butonul „Sincronizează” de pe un rând din pagina Sincronizare.
