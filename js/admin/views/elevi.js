@@ -318,6 +318,15 @@
       return `<li><span class="ax-sub">${esc(fmtDate(t.iso))}</span><span>${esc(D.teacher(a.teacher).name)}, ${esc(dayNames(a))} ${timeRange(a)} ${ico('arrow-right', 14)} <b>${esc(D.teacher(b.teacher).name)}</b>, ${esc(dayNames(b))} ${timeRange(b)}</span></li>`;
     });
     if (hist.length) groupHTML += `<div class="el-dw__moves"><h4>Transferuri</h4><ul>${hist.join('')}</ul><p class="ax-sub">În grupa veche rămân prezențele și banii, cu statutul Transferat.</p></div>`;
+    // "Arată în registru": the group's tab in the register, on the student's own column when it is known
+    const regUrl = (() => {
+      const L = window.AdminSheetLinks, base = g && L && L.groupUrl(g.id);
+      if (!base) return null;
+      let letter = null;
+      if (D.readOnly()) { const c = D.registry.columnOf(st.id, g.id); letter = c && c.col; }
+      else { const r = D.ledger(g.id).rows.find(x => x.s.id === st.id); if (r && r.slot < 23) letter = String.fromCharCode(68 + r.slot); }   // the columns start at D
+      return base + (letter ? '&range=' + letter + '1' : '');
+    })();
     // Registre: the student's column in his group's sheet, with what can be written there (status, manager, a payment or a discount)
     const col = D.readOnly() && g ? D.registry.columnOf(st.id, g.id) : null;
     const STATUSES = ['Activ', 'Oră de probă', 'Oră de probă confirmată', 'Înlocuire', 'Transferat', 'Inactiv'];
@@ -365,7 +374,7 @@
       actions: `
         <button type="button" class="ax-btn" data-journey>${ico('history', 16)} Istoric</button>
         <a class="ax-btn" href="tel:${esc(st.phone)}">${ico('phone', 16)} Sună</a>
-        ${g ? `<a class="ax-btn ax-btn--dark" href="#orar?prof=${encodeURIComponent(D.teacher(g.teacher).name)}" data-go>${ico('grid', 16)} Orarul profesorului</a>` : ''}`
+        ${regUrl ? `<a class="ax-btn ax-btn--dark" href="${esc(regUrl)}" target="_blank" rel="noopener">${ico('book-open', 16)} Arată în registru</a>` : ''}`
     });
     el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
     if (col) {
