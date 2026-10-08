@@ -97,7 +97,7 @@
       });
       const GR = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
       const teach = Object.keys(teachMap).map(subject => ({ subject, grades: teachMap[subject].sort((a, b) => GR.indexOf(a) - GR.indexOf(b)) }));
-      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id };
+      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id, _ssid: w.spreadsheet_id };
       teachers.push(t); tidOf.set(w.id, t.id);
     });
 
@@ -118,7 +118,7 @@
         const g = {
           id: r.id, project: projectId(w), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
           size: r.format_size, status: groupStatus(r.state), teacher: tidOf.get(w.id), days: sl.days, start: sl.start, duration: sl.duration, room: sl.room,
-          startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular
+          startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, ssid: w.spreadsheet_id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular
         };
         groups.push(g); gById.set(g.id, g);
         lessonsOf[g.id] = lessons.map(l => ({ row: l.row_no, iso: l.iso || null, topic: l.topic || '', marks: l.marks || {}, level: l.teacher_level, pay: l.teacher_pay }));

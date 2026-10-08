@@ -1266,6 +1266,16 @@
 };
   const base = id => 'https://docs.google.com/spreadsheets/d/' + id + '/edit';
   /* the link to a group's tab (or null), and to a teacher's workbook (or null) */
-  L.groupUrl = gid => { const g = L.groups[gid]; return g ? base(g.ssid) + '#gid=' + g.gid : null; };
-  L.teacherUrl = tid => { const t = L.teachers[tid]; return t ? base(t.ssid) : null; };
+  /* when the registers are the source (Registre) every group and teacher knows its own registry: the link comes from the data */
+  const D = () => window.AdminData;
+  L.groupUrl = gid => {
+    const d = D();
+    if (d && d.registry) { const g = d.group(gid); return g && g._src && g._src.ssid ? base(g._src.ssid) + '#gid=' + g._src.sheet : null; }
+    const g = L.groups[gid]; return g ? base(g.ssid) + '#gid=' + g.gid : null;
+  };
+  L.teacherUrl = tid => {
+    const d = D();
+    if (d && d.registry) { const t = d.teacher(tid); return t && t._ssid ? base(t._ssid) : null; }
+    const t = L.teachers[tid]; return t ? base(t.ssid) : null;
+  };
 })();
