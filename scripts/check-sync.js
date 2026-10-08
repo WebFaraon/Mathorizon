@@ -193,6 +193,82 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
     const r6 = await applyAsync(D2, { id: 'a6', type: 'SET_STATUS', tab: 'Grupa 1', student: { name: 'Ionescu Ana', phone: '069123456' }, status: 'Activ' });
     ok(r6.status === 'noop' && D2.calls.write === 1, 'async: the status it already has is a no-op');
   }
+  // ── TRANSFER: two phases, in two registers (or one), with the Calculator's split of the money ──
+  {
+    const { applyTransferAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+    const { splitMoney } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'pay.mjs').replace(/\\/g, '/'));
+    const mk = (cells) => new MemoryBook({ 'Grupa 1': { cells }, CONFIGURARI: { hidden: true, cells: cfgCells } }, 'Test Registru EXAMEN.MD OFFLINE 2025-2026.xlsx');
+    const fromBook = (extra) => { const b = book(); Object.assign(b.data['Grupa 1'].cells, { D5: { v: 300, f: 'x' } }, extra || {}); return b; };       // he paid 608, the lessons cost 300
+    const toBook = () => mk({ A1: { v: 'Grup cu 3 elevi' }, A3: { v: 'Activ' }, A4: { v: 'Matematica' }, F9: {}, E3: { v: 0, f: 'sum(0)' }, E4: { v: 0, f: 'sum(0)' }, D3: { v: 0, f: 'sum(0)' }, D4: { v: 0, f: 'sum(0)' } });
+    const adapter = (bk, tab, hooks) => ({
+      calls: { read: 0, write: 0 },
+      load: async () => bk,
+      read: async function (tb, keys) { this.calls.read++; if (hooks && hooks.beforeRead) { hooks.beforeRead(bk); hooks.beforeRead = null; } const o = {}; keys.forEach(k => { const c = bk.cell(tb, k); o[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return o; },
+      write: async function (tb, cells) { this.calls.write++; if (hooks && hooks.failWrite) { hooks.failWrite--; throw new Error('Google 500: simulat'); } bk.set(tb, cells); }
+    });
+    const cmdT = (id, o) => Object.assign({ id, type: 'TRANSFER', fromTab: 'Grupa 1', toTab: 'Grupa 1', student: { col: 4, name: 'Ionescu Ana', phone: '+37369123456' }, status: 'Activ', manager: 'Pricinoc Ariadna' }, o);
+
+    // the split itself (the numbers of the Calculator)
+    { const m = splitMoney(608, 0, 300); ok(m.achC === 300 && m.achRem === 308 && m.redRem === 0 && m.debt === 0, 'split: paid 608, lessons 300 -> 300 stays, 308 moves'); }
+    { const m = splitMoney(1000, 200, 600); ok(m.achC === 500 && m.redC === 100 && m.achRem === 500 && m.redRem === 100, 'split: payments and discounts share the cost by their weight: ' + JSON.stringify(m)); }
+    { const m = splitMoney(300, 100, 500); ok(m.achRem === 0 && m.redRem === 0 && m.debt === 100, 'split: the lessons cost more than he paid -> nothing moves, the debt stays'); }
+
+    // two registers: both phases
+    {
+      const F = fromBook(), T = toBook(), aF = adapter(F), aT = adapter(T);
+      const r = await applyTransferAsync({ from: aF, to: aT }, cmdT('t1', { toTab: 'Grupa 1' }));
+      const E = r.column;
+      ok(r.status === 'done' && r.split.achRem === 308 && aT.calls.write === 1 && aF.calls.write === 1, 'transfer: both phases written, one write per register: ' + JSON.stringify({ s: r.status, c: r.column, m: r.msg }));
+      ok(T.cell('Grupa 1', E + '1').v === 'Ionescu Ana+37369123456' && T.cell('Grupa 1', E + '8').v === 'Activ' && T.cell('Grupa 1', E + '7').v === 'Pricinoc Ariadna' && T.cell('Grupa 1', E + '3').f === 'SUM(308)', 'new group: the column has his header, status, manager and the 308 that moved');
+      ok(F.cell('Grupa 1', 'D8').v === 'Transferat' && F.cell('Grupa 1', 'D3').f === 'SUM(1216-608-308)' && F.cell('Grupa 1', 'D4').f === 'sum(0)', 'old group: Transferat, and the moved 308 taken out as one more term (what was typed stays)');
+      const again = await applyTransferAsync({ from: aF, to: aT }, cmdT('t1b'));
+      ok(again.status === 'noop' && aT.calls.write === 1 && aF.calls.write === 1, 'the same transfer again changes nothing');
+    }
+    // a failure in phase 2, then the retry finishes it without a second column
+    {
+      const F = fromBook(), T = toBook(), aF = adapter(F, null, { failWrite: 1 }), aT = adapter(T);
+      const r1 = await applyTransferAsync({ from: aF, to: aT }, cmdT('t2'));
+      const cols = () => { let n = 0; for (let c = 4; c <= 26; c++) if (T.sheet('Grupa 1').text(1, c)) n++; return n; };
+      ok(r1.status === 'failed' && r1.code === 'half-done' && r1.phase === 2 && cols() === 1 && F.cell('Grupa 1', 'D8').v === 'Activ', 'phase 2 fails: reported as half-done, he is in the new group, the old one is untouched: ' + JSON.stringify({ c: r1.code, m: r1.msg && r1.msg.slice(0, 60) }));
+      const r2 = await applyTransferAsync({ from: aF, to: aT }, cmdT('t2b'));
+      ok(r2.status === 'done' && r2.resumed === true && cols() === 1 && F.cell('Grupa 1', 'D8').v === 'Transferat' && F.cell('Grupa 1', 'D3').f === 'SUM(1216-608-308)', 'the retry only finishes phase 2: still one column in the new group, the old one closed');
+    }
+    // refusals: nothing is written
+    {
+      const F = fromBook(), T = toBook(), aF = adapter(F), aT = adapter(T);
+      const r = await applyTransferAsync({ from: aF, to: aT }, cmdT('t3', { expect: { A: 608, R: 0, C: 500 } }));
+      ok(r.status === 'conflict' && r.code === 'stale-money' && aT.calls.write === 0 && aF.calls.write === 0, 'the money on screen is not the sheet\'s any more: conflict, nothing written');
+      const bad = fromBook(); bad.data['Grupa 1'].cells.D8 = { v: 'Inactiv' };
+      const r2 = await applyTransferAsync({ from: adapter(bad), to: adapter(toBook()) }, cmdT('t4'));
+      ok(r2.status === 'invalid' && r2.code === 'not-active', 'an Inactiv student is not transferred');
+      const text = fromBook(); text.data['Grupa 1'].cells.D3 = { v: 'h' };
+      const r3 = await applyTransferAsync({ from: adapter(text), to: adapter(toBook()) }, cmdT('t5'));
+      ok(r3.code === 'cell-not-numeric', 'a text in the payment cell needs a human');
+      const full = toBook(); ['D', 'E', 'F'].forEach((L, i) => { full.data['Grupa 1'].cells[L + '1'] = { v: 'Elev' + i + ' Unu+3736900000' + i }; full.data['Grupa 1'].cells[L + '8'] = { v: 'Activ' }; });
+      const r4 = await applyTransferAsync({ from: adapter(fromBook()), to: adapter(full) }, cmdT('t6'));
+      ok(r4.code === 'group-full', 'a full group does not take him');
+      const r5 = await applyTransferAsync({ from: adapter(fromBook()), to: adapter(toBook()) }, cmdT('t7', { status: 'Gigel' }));
+      ok(r5.code === 'status', 'a status outside the list of the new group is refused');
+      const r6 = await applyTransferAsync({ from: adapter(fromBook()), to: adapter(toBook()) }, cmdT('t8', { student: { col: 4, name: 'Altcineva Ion', phone: '+37369123456' } }));
+      ok(r6.code === 'not-found', 'a column that is not his is refused');
+      const T9 = toBook(), F9 = fromBook(), aF9 = adapter(F9), aT9 = adapter(T9, null, { beforeRead: bk => { bk.data['Grupa 1'].cells.D1 = { v: 'Altcineva Ion+37360000000' }; } });
+      const r7 = await applyTransferAsync({ from: aF9, to: aT9 }, cmdT('t9'));
+      ok(r7.status === 'conflict' && r7.code === 'changed' && aT9.calls.write === 0 && aF9.calls.write === 0, 'a cell taken in the new group between planning and writing: conflict, nothing written');
+    }
+    // the debt case: nothing moves but the student is still marked Transferat; his debt stays
+    {
+      const F = fromBook({ D5: { v: 800, f: 'x' } }), T = toBook(), aF = adapter(F), aT = adapter(T);
+      const r = await applyTransferAsync({ from: aF, to: aT }, cmdT('t10'));
+      ok(r.status === 'done' && r.split.debt === 192 && r.split.achRem === 0 && T.cell('Grupa 1', r.column + '3').f === 'sum(0)' && F.cell('Grupa 1', 'D3').f === 'sum(1216-608)' && F.cell('Grupa 1', 'D8').v === 'Transferat', 'debt: 608 paid, lessons 800 -> nothing moves, his sums stay, the debt of 192 stays in the old group');
+    }
+    // one register, two tabs
+    {
+      const b = new MemoryBook({ 'Grupa 1': { cells: Object.assign({}, book().data['Grupa 1'].cells, { D5: { v: 300, f: 'x' } }) }, 'Grupa 2': { cells: { A1: { v: 'Grup cu 3 elevi' }, E3: { v: 0, f: 'sum(0)' }, E4: { v: 0, f: 'sum(0)' }, D3: { v: 0, f: 'sum(0)' }, D4: { v: 0, f: 'sum(0)' } } }, CONFIGURARI: { hidden: true, cells: cfgCells } }, 'Test.xlsx');
+      const a = adapter(b);
+      const r = await applyTransferAsync({ from: a, to: a }, cmdT('t11', { toTab: 'Grupa 2' }));
+      ok(r.status === 'done' && b.cell('Grupa 2', r.column + '1').v === 'Ionescu Ana+37369123456' && b.cell('Grupa 1', 'D8').v === 'Transferat', 'one register, two tabs: the same two phases');
+    }
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

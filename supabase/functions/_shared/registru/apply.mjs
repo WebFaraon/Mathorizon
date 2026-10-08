@@ -6,7 +6,7 @@
    The Sheets API has no compare-and-set, so step 2 and 3 cannot be atomic: the window is a few milliseconds, and step 3 catches
    anything that slipped in (it reports "verify-failed", with what the cell holds, instead of retrying blindly).
    Plain ES module (Node through require, the Supabase Edge Function through import). */
-import { plan } from './commands.mjs';
+import { plan, planTransfer } from './commands.mjs';
 import { parseA1 } from './memory-book.mjs';
 
 const nul = x => (x === undefined || x === null ? null : x);
@@ -63,4 +63,40 @@ export async function applyAsync(adapter, cmd) {
   const bad = p.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : now.v !== x.write.v || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
   return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
+}
+
+/* TRANSFER against live registers: adapters = { from, to } (the same adapter when both groups are in one register).
+   Each phase is checked just before it is written and read back after it. Phase 1 (new group) failing leaves the old group untouched;
+   a failure in phase 2 is reported as "half-done" (he is in both groups, his money in both): the same command, tried again, only finishes phase 2. */
+export async function applyTransferAsync(adapters, cmd) {
+  if (!cmd || !cmd.id) return { status: 'invalid', code: 'id', msg: 'Comanda nu are id.' };
+  const [bookFrom, bookTo] = await Promise.all([adapters.from.load(cmd.fromTab), adapters.to.load(cmd.toTab)]);
+  const p = planTransfer(bookFrom, bookTo, cmd);
+  if (!p.ok) return p.conflict ? { status: 'conflict', code: p.code, msg: p.msg } : { status: 'invalid', code: p.code, msg: p.msg };
+  if (p.state === 'done') return { status: 'noop', column: p.column, writes: [], msg: 'Elevul era deja transferat.' };
+  const norm = c => ({ v: nul(c && c.v), f: (c && c.f) || null });
+  const half = (i, msg, extra) => Object.assign({ status: 'failed', code: i === 0 ? 'verify-failed' : 'half-done', msg: i === 0 ? msg : `S-a scris elevul în grupa nouă, dar nu s-a terminat în grupa veche: ${msg} Reîncearcă transferul (nu se dublează nimic).`, column: p.column, split: p.split, phase: i + 1 }, extra || {});
+  const done = [];
+  for (let i = 0; i < p.phases.length; i++) {
+    const ph = p.phases[i], adapter = ph.side === 'to' ? adapters.to : adapters.from, keys = ph.writes.map(x => x.a1);
+    try {
+      const fresh = await adapter.read(ph.tab, keys);
+      const stale = ph.writes.filter(x => !same(norm(fresh[x.a1]), x.expect));
+      if (stale.length) {
+        const msg = `Celula ${stale[0].a1} din „${ph.tab}” a fost schimbată între timp (acum: „${norm(fresh[stale[0].a1]).v}”).`;
+        return i === 0 ? { status: 'conflict', code: 'changed', msg: msg + ' Nu am scris nimic.', cells: stale.map(x => x.a1) } : half(i, msg);
+      }
+      const cells = {};
+      ph.writes.forEach(x => { cells[x.a1] = x.write; });
+      await adapter.write(ph.tab, cells);
+      const after = await adapter.read(ph.tab, keys);
+      const bad = ph.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : now.v !== x.write.v || now.f; });
+      if (bad.length) return half(i, `după scriere, celula ${bad[0].a1} din „${ph.tab}” are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, { cells: bad.map(x => x.a1) });
+      done.push({ side: ph.side, tab: ph.tab, writes: ph.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) });
+    } catch (e) {
+      if (i === 0) throw e;                       // nothing was written yet that we know of
+      return half(i, String((e && e.message) || e).slice(0, 200));
+    }
+  }
+  return { status: 'done', column: p.column, oldColumn: p.oldColumn, split: p.split, resumed: p.resumed, phases: done };
 }

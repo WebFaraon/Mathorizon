@@ -92,7 +92,7 @@ export async function driveModified(key, spreadsheetId) {
 }
 
 /* ---- writing: what a command needs from a live register (see applyAsync in apply.mjs) ---- */
-import { MemoryBook, a1 as cellName } from './memory-book.mjs';
+import { MemoryBook, a1 as cellName, parseA1 } from './memory-book.mjs';
 
 const toCells = (formulas, values) => {
   const cells = {};
@@ -115,6 +115,7 @@ export async function tabTitle(key, spreadsheetId, sheetId) {
 }
 
 export function createAdapter(key, spreadsheetId) {
+  let ids = null;                                             // tab title -> sheet id, read once
   const base = 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(spreadsheetId);
   const ranges = list => list.map(r => 'ranges=' + encodeURIComponent(r)).join('&');
   const two = async list => {                                 // the same ranges as formulas and as calculated values
@@ -137,16 +138,23 @@ export function createAdapter(key, spreadsheetId) {
       keys.forEach((k, i) => { const c = toCells(parts[i][0], parts[i][1]); out[k] = c.A1 || { v: null }; });
       return out;
     },
+    /* all the cells of a tab in ONE request (spreadsheets.batchUpdate is all or nothing): the text as text (a "+373..." header stays text),
+       a formula as a formula, an empty value clears the cell */
     async write(tab, cells) {
       const token = await accessToken(key, true);
-      const raw = [], formulas = [];
-      Object.keys(cells).forEach(k => {
-        const c = cells[k];
-        if (c.f) formulas.push({ range: q(tab) + '!' + k, values: [['=' + c.f]] });
-        else raw.push({ range: q(tab) + '!' + k, values: [[c.v === undefined || c.v === null ? '' : c.v]] });
+      if (!ids) {
+        const meta = await get(token, base + '?fields=sheets.properties(title,sheetId)');
+        ids = Object.fromEntries(meta.sheets.map(s => [s.properties.title, s.properties.sheetId]));
+      }
+      if (ids[tab] === undefined) throw new Error('Fila „' + tab + '” nu mai există în registru.');
+      const requests = Object.keys(cells).map(k => {
+        const c = cells[k], { r, c: col } = parseA1(k);
+        const cell = c.f ? { userEnteredValue: { formulaValue: '=' + c.f } }
+          : c.v === undefined || c.v === null || c.v === '' ? {}
+          : typeof c.v === 'number' ? { userEnteredValue: { numberValue: c.v } } : { userEnteredValue: { stringValue: String(c.v) } };
+        return { updateCells: { start: { sheetId: ids[tab], rowIndex: r - 1, columnIndex: col - 1 }, rows: [{ values: [cell] }], fields: 'userEnteredValue' } };
       });
-      if (raw.length) await send(token, 'POST', base + '/values:batchUpdate', { valueInputOption: 'RAW', data: raw });
-      if (formulas.length) await send(token, 'POST', base + '/values:batchUpdate', { valueInputOption: 'USER_ENTERED', data: formulas });
+      await send(token, 'POST', base + ':batchUpdate', { requests });
     }
   };
 }

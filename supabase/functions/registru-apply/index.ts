@@ -5,7 +5,7 @@
    the write, written, read back, and the outcome kept on the command: done | noop | invalid | conflict | failed.
    Secrets: GOOGLE_SA_KEY, REG_SYNC_SECRET (as registru-sync). The service account must be EDITOR of the register to write in it. */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { applyAsync } from '../_shared/registru/apply.mjs';
+import { applyAsync, applyTransferAsync } from '../_shared/registru/apply.mjs';
 import { createAdapter, tabTitle } from '../_shared/registru/google.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -40,7 +40,21 @@ async function run(key: unknown, row: any) {
   }
   try {
     const tab = await tabTitle(key, wb.spreadsheet_id, row.sheet_id);               // the tab's name today (names change, the id does not)
-    const result = await applyAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: row.type, tab, ...row.payload });
+    let result;
+    if (row.type === 'TRANSFER') {
+      // two groups, possibly in two registers: the new one is in the payload
+      const { toWorkbook, toSheet, ...rest } = row.payload;
+      const { data: wb2 } = await sb.from('reg_workbooks').select('spreadsheet_id, enabled').eq('id', toWorkbook).maybeSingle();
+      if (!wb2 || !wb2.enabled) {
+        result = { status: 'failed', code: 'workbook', msg: 'Registrul grupei noi nu mai e activ în platformă.' };
+      } else {
+        const toTab = await tabTitle(key, wb2.spreadsheet_id, toSheet);
+        const from = createAdapter(key, wb.spreadsheet_id), to = wb2.spreadsheet_id === wb.spreadsheet_id ? from : createAdapter(key, wb2.spreadsheet_id);
+        result = await applyTransferAsync({ from, to }, { id: row.id, type: 'TRANSFER', fromTab: tab, toTab, ...rest });
+      }
+    } else {
+      result = await applyAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: row.type, tab, ...row.payload });
+    }
     await finish(row.id, result.status, result);
     return result;
   } catch (e) {

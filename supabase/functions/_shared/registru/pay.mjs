@@ -29,3 +29,22 @@ export function lessonPay(size, paying, level) {
   return f * max;
 }
 
+/* The money of a transfer, the Calculator's "Transfer" formulas (the console's js/admin/registru-data.js keeps a copy: check:registry compares them).
+   A = what the student paid in the group he leaves, R = the discounts, C = the cost of the lessons he had there.
+     share of payments = A / (A + R), of discounts = R / (A + R)
+     stays in the old group (consumed) = C x each share   -> the old column ends with balance 0
+     goes to the new group = what was entered - what was consumed (payments and discounts apart)
+   Everything is rounded to cents so that consumed + moved = A + R exactly. If the lessons cost more than A + R, the student owes the difference:
+   it stays in the old group and nothing negative is sent to the new one. */
+export const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
+export function splitMoney(a, r, c) {
+  const A = round2(a), R = round2(r), C = round2(c), total = round2(A + R);
+  const used = Math.min(C, total);
+  let achC = 0, redC = 0;
+  if (total > 0 && used > 0) {
+    achC = round2(used * (A / total));
+    redC = Math.min(R, round2(used - achC));
+    achC = round2(used - redC);
+  }
+  return { A, R, C, achC, redC, achRem: round2(A - achC), redRem: round2(R - redC), debt: round2(Math.max(0, C - total)) };
+}

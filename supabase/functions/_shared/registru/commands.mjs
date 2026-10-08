@@ -7,6 +7,7 @@
    Plain ES module (Node through require, the Supabase Edge Function through import). */
 import { colLetter, readConfig } from './parse.mjs';
 import { tokens } from './link.mjs';
+import { splitMoney, round2 } from './pay.mjs';
 
 export const FIRST_COL = 4, LAST_COL = 26, FIRST_LESSON_ROW = 9, LAST_LESSON_ROW = 198;
 const ENROLLED = new Set(['activ', 'ora de proba', 'ora de proba confirmata', 'inlocuire']);
@@ -107,6 +108,13 @@ const PLANNERS = {
   ADD_DISCOUNT(book, cmd) { return addTerm(book, cmd, 4); }
 };
 
+/* the inside of a payment or discount cell, SUM(<body>): "0" for an empty one, null when it is not a sum a person typed (a text, a strange formula) */
+function sumBody(cell) {
+  if (!cell) return '0';
+  if (cell.f) { const m = /^sum\((.*)\)$/i.exec(cell.f.replace(/\s+/g, '')); return m && /^[\d.+\-*/()]*$/.test(m[1]) ? m[1] : null; }
+  return typeof cell.v === 'number' ? String(cell.v) : null;
+}
+
 function addTerm(book, cmd, row) {
   const s = book.sheet(cmd.tab);
   const amount = Number(cmd.amount);
@@ -114,10 +122,7 @@ function addTerm(book, cmd, row) {
   const col = locate(s, cmd.student);
   if (!col) return NOT_FOUND();
   const cell = s.get(row, col.col);
-  let body = null;
-  if (!cell) body = '0';
-  else if (cell.f) { const m = /^sum\((.*)\)$/i.exec(cell.f.replace(/\s+/g, '')); if (m && /^[\d.+\-*/()]*$/.test(m[1])) body = m[1]; }
-  else if (typeof cell.v === 'number') body = String(cell.v);
+  const body = sumBody(cell);
   if (body === null) return invalid('cell-not-numeric', `Celula ${col.letter}${row} nu e o sumă pe care o pot continua (are „${cell ? (cell.f || cell.v) : ''}”): trebuie reparată de un om.`);
   const term = String(Math.abs(amount));
   const next = body === '0' ? (amount > 0 ? term : '-' + term) : body + (amount > 0 ? '+' : '-') + term;
@@ -132,3 +137,72 @@ export function plan(book, cmd) {
 }
 
 export const COMMANDS = Object.keys(PLANNERS);
+
+/* ---- TRANSFER: a student moves from one group to another, and his money with him ----
+   Two registers may be involved (the groups often have different teachers), so there is no single write: two PHASES, in the safe order.
+     phase 1, the new group: his column (header, manager, status) with the part of his money that moves (payments, discounts)
+     phase 2, the old group: status Transferat, and the moved part taken out of his payments and discounts (one more minus term in each SUM,
+              so what was typed stays; the old column ends with balance 0, or with his debt)
+   cmd: { id, type: 'TRANSFER', fromTab, toTab, student: { col, name, phone }, status, manager, expect?: { A, R, C }, allowOverfill? }
+   The split is worked out HERE from the cells of the old column (never trusted from the caller); `expect` is what the person saw on screen, and
+   a difference is refused. A retry after a failure in phase 2 finds him already in the new group with the right sums and only does phase 2. */
+export function planTransfer(bookFrom, bookTo, cmd) {
+  if (!bookFrom.sheetNames.includes(cmd.fromTab) || !bookTo.sheetNames.includes(cmd.toTab)) return invalid('tab', 'Una din file nu mai există în registru.');
+  const sF = bookFrom.sheet(cmd.fromTab), sT = bookTo.sheet(cmd.toTab), cfg = readConfig(bookTo);
+  const old = locate(sF, cmd.student);
+  if (!old) return NOT_FOUND();
+  const oldStatus = norm(sF.text(8, old.col));
+  const name = String((cmd.student && cmd.student.name) || '').replace(/\s+/g, ' ').trim(), phone = phoneOf(cmd.student && cmd.student.phone);
+  if (name.split(' ').length < 2 || !phone) return invalid('student', 'Elevul nu are nume și telefon valide în registru.');
+  const dupe = readStudents(sT).find(x => x.head && phoneInHead(x.head) === phone && nameInHead(x.head) === tokens(name).join(' '));
+  if (dupe && oldStatus === 'transferat') return planOk([], { state: 'done', phases: [] });
+  if (!dupe && !ENROLLED.has(oldStatus)) return invalid('not-active', 'Elevul nu e activ în grupa veche (statut „' + sF.text(8, old.col) + '”): nu se poate transfera.');
+
+  // his money, as the sheet has it
+  const cA = sF.get(3, old.col), cR = sF.get(4, old.col), bodyA = sumBody(cA), bodyR = sumBody(cR);
+  if (bodyA === null) return invalid('cell-not-numeric', `Celula ${old.letter}3 nu e o sumă pe care o pot continua: trebuie reparată de un om.`);
+  if (bodyR === null) return invalid('cell-not-numeric', `Celula ${old.letter}4 nu e o sumă pe care o pot continua: trebuie reparată de un om.`);
+  const A = sF.num(3, old.col) || 0, R = sF.num(4, old.col) || 0, C = sF.num(5, old.col);
+  if (C === null) return invalid('no-cost', `Celula ${old.letter}5 (costul lecțiilor) nu are o valoare: registrul nu l-a calculat.`);
+  const m = splitMoney(A, R, C);
+  if (cmd.expect) {
+    const e = cmd.expect;
+    if (Math.abs(e.A - m.A) > 0.01 || Math.abs(e.R - m.R) > 0.01 || Math.abs(e.C - m.C) > 0.01) return { ok: false, conflict: true, code: 'stale-money', msg: `Sumele din registru s-au schimbat de când ai deschis transferul (acum: achitări ${m.A}, reduceri ${m.R}, cost ${m.C}). Nu am scris nimic.` };
+  }
+  const phases = [];
+  let column = dupe ? dupe.letter : null;
+
+  // phase 1: the new group
+  if (dupe) {
+    // already there (an earlier try wrote it): it must be the same transfer, with the sums of this split
+    const pa = sT.num(3, dupe.col) || 0, pr = sT.num(4, dupe.col) || 0;
+    if (Math.abs(pa - m.achRem) > 0.01 || Math.abs(pr - m.redRem) > 0.01) return { ok: false, conflict: true, code: 'mismatch', msg: `Elevul e deja în grupa nouă (coloana ${dupe.letter}), dar cu alte sume decât cele ale transferului (${pa} / ${pr} față de ${m.achRem} / ${m.redRem}). Nu am scris nimic: verifică în registru.` };
+  } else {
+    if (cfg.studentStatus && !cfg.studentStatus.includes(cmd.status)) return invalid('status', `Statutul „${cmd.status}” nu e în lista din CONFIGURARI a grupei noi.`);
+    if (cfg.manager && cmd.manager && !cfg.manager.includes(cmd.manager)) return invalid('manager', `Managerul „${cmd.manager}” nu e în lista din CONFIGURARI a grupei noi.`);
+    const cols = readStudents(sT);
+    const size = (/(\d+)/.exec(sT.text(1, 1)) || [])[1];
+    const live = cols.filter(x => x.head && ENROLLED.has(norm(x.status))).length;
+    if (size && live >= +size && !cmd.allowOverfill) return invalid('group-full', `Grupa nouă are ${live} elevi activi din ${size} locuri.`);
+    const free = cols.find(x => !x.head && !x.marks);
+    if (!free) return invalid('no-column', 'Nu mai e nicio coloană liberă (D–Z) în grupa nouă.');
+    const c = free.col, L = free.letter;
+    const writes = [w(L + '1', snap(sT, 1, c), { v: `${name}${phone}` })];
+    if (cmd.manager) writes.push(w(L + '7', snap(sT, 7, c), { v: cmd.manager }));
+    writes.push(w(L + '8', snap(sT, 8, c), { v: cmd.status }));
+    if (m.achRem > 0) writes.push(w(L + '3', snap(sT, 3, c), { f: `SUM(${m.achRem})` }));
+    if (m.redRem > 0) writes.push(w(L + '4', snap(sT, 4, c), { f: `SUM(${m.redRem})` }));
+    phases.push({ side: 'to', tab: cmd.toTab, writes });
+    column = L;
+  }
+
+  // phase 2: the old group
+  if (oldStatus !== 'transferat') {
+    const writes = [w(old.letter + '8', snap(sF, 8, old.col), { v: 'Transferat' })];
+    const minus = (body, x) => `SUM(${body === '0' ? '-' + x : body + '-' + x})`;
+    if (m.achRem > 0) writes.push(w(old.letter + '3', snap(sF, 3, old.col), { f: minus(bodyA, m.achRem) }));
+    if (m.redRem > 0) writes.push(w(old.letter + '4', snap(sF, 4, old.col), { f: minus(bodyR, m.redRem) }));
+    phases.push({ side: 'from', tab: cmd.fromTab, writes });
+  }
+  return planOk([], { state: phases.length ? (dupe ? 'resume' : 'both') : 'done', phases, split: m, column, oldColumn: old.letter, resumed: !!dupe });
+}
