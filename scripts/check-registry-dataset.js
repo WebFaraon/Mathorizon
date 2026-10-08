@@ -116,6 +116,17 @@ multi.forEach(s => { const j = D.journey(s.id); ok(j && j.chapters.length >= 2, 
   ok(ds.columnOf(ds.students[0].id, 'nu-exista') === null, 'no column in a group he was never in');
 }
 
+/* the Calculator's transfer split: the console's copy and the one the Edge Function uses give the same figures */
+{
+  const P = require(path.join(__dirname, 'registru-import', 'pay.js'));
+  let same = 0, n = 0;
+  [0, 1, 99.99, 300, 608, 1000, 1984, 6620].forEach(a => [0, 106, 200, 353].forEach(r => [0, 218, 300, 1090, 1308, 5760, 9999].forEach(c => {
+    n++; const x = D.splitMoney(a, r, c), y = P.splitMoney(a, r, c);
+    if (Object.keys(y).every(k => x[k] === y[k])) same++; else ok(false, `split differs for ${a}/${r}/${c}: ${JSON.stringify(x)} vs ${JSON.stringify(y)}`);
+  })));
+  ok(same === n && n > 100, `the split is the same in the console and in the function (${n} combinations)`);
+}
+
 /* read only: nothing writes */
 const before = JSON.stringify(D.group(ds.groups[0].id));
 D.move(ds.groups[0].id, { start: 3 }); D.setStatus(ds.groups[0].id, 'inactiv'); D.setStudentStatus(ds.students[0].id, 'inactiv'); D.setMark(ds.groups[0].id, ds.students[0].id, 0, 'P'); D.setAvailability(ds.teachers[0].id, {});

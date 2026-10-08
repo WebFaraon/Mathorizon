@@ -566,6 +566,7 @@
 
   /* what a person owes or has in advance in one group (his total, over all groups, is s.balance) */
   const soldIn = (s, gid) => { const x = ledger(gid).rows.find(r => r.s.id === s.id); return x ? x.sold : s.balance; };
+  D.splitMoney = splitMoney;
   D.resetLedger = () => { gens.clear(); cache.clear(); applyToStudents(); };
   Object.assign(D, { journey, transferFin, transferPlan, soldIn, MONTHS, topicsFor, ledger, teacherBook, tLevel, rateOf, rateBySize, lessonPay, tabName, schedule, setMark, setLesson, addLesson, removeLesson, setRate, setColumn, nextDate });
 })();

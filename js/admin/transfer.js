@@ -37,7 +37,6 @@
   }
 
   function open({ from, students, onDone }) {
-    if (D.blocked()) return;
     const src = D.group(from);
     const people = students.map(id => D.students.find(s => s.id === id)).filter(Boolean);
     if (!src || !people.length) return;
@@ -128,6 +127,7 @@
         </section>
         <div class="tr-list" role="radiogroup" aria-label="Grupe disponibile" id="trList">${listHTML()}</div>
         <div class="tr-note${pickG && noteHTML() ? ' is-on' : ''}" id="trNote"><div>${pickG ? noteHTML() : ''}</div></div>
+        <p class="tr-werr" id="trErr" role="alert"></p>
         <footer class="tr-f">
           <p class="tr-f__s" id="trSum" aria-live="polite">${pickG ? `${esc(tName(pickG))}, ${esc(dayNames(pickG))} ${timeRange(pickG)}` : 'Alege o grupă din listă.'}</p>
           <button type="button" class="ax-btn" data-x>Renunță</button>
@@ -191,9 +191,60 @@
         </div>`;
     }
 
+    /* Registre: every student is written in the registers (a TRANSFER command each); a failure is shown, and tried again without duplicating */
+    async function commitRegistry(g, only) {
+      const ids = only || students;
+      const plans = D.transferPlan ? D.transferPlan(from, ids) : [];                                  // the figures as the person saw them
+      const names = Object.fromEntries(people.map(p => [p.id, p.name]));
+      const label = { src: `${esc(src.subject)}, clasa ${esc(src.grade)}`, o: tName(src), t: tName(g), when: `${dayNames(g)} ${timeRange(g)}` };
+      const go = dlg.querySelector('[data-go]'), err = dlg.querySelector('#trErr');
+      if (err) err.textContent = '';
+      if (go) { go.disabled = true; go.dataset.label = go.innerHTML; go.textContent = 'Se scrie în registre…'; }
+      const results = await window.AdminRegistry.transfer({ from, students: ids, to: g.id });
+      const good = results.filter(r => r.ok || r.status === 'noop');
+      if (!good.length) {
+        if (go) { go.disabled = false; go.innerHTML = go.dataset.label; }
+        const r = results[0] || {};
+        const msg = r.code === 'half-done' ? r.msg : r.status === 'conflict' ? `${r.msg} Încearcă din nou.` : (r.msg || 'Transferul nu s-a putut scrie în registru.');
+        if (err) err.textContent = msg; else U.toast(esc(msg), 'warn');
+        if (r.code === 'half-done' && onDone) onDone('transfer');
+        return;
+      }
+      st.done = { registry: true, results, plans, names, label };
+      dlg.classList.add('is-ok');
+      dlg.innerHTML = doneRegistryHTML();
+      if (onDone) onDone('transfer');
+      const f = dlg.querySelector('[data-fin]'); if (f) f.focus();
+    }
+    function doneRegistryHTML() {
+      const { results, plans, names, label } = st.done;
+      const failed = results.filter(r => !(r.ok || r.status === 'noop'));
+      const moneyLine = p => (p && (p.A + p.R + p.C > 0) ? `<small class="tr-ok__m">Rămân în grupa veche ${money(p.achC + p.redC)} lei (lecțiile ținute) · trec în grupa nouă ${money(p.achRem + p.redRem)} lei${p.debt > 0 ? ` · datorie rămasă în grupa veche: ${money(p.debt)} lei` : ''}</small>` : '');
+      return `
+        <div class="tr-ok">
+          <button type="button" class="ax-icon-btn tr-ok__x" data-x aria-label="Închide">${ico('x', 18)}</button>
+          <svg class="tr-ok__ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="m19 33 9 9 18-20"/></svg>
+          <h2 id="trT">${failed.length ? 'Transfer făcut parțial' : results.length === 1 ? 'Elevul a fost transferat în registru' : countWord(results.length, 'elev transferat', 'elevi transferați') + ' în registre'}</h2>
+          <p class="tr-ok__sub">${label.src}: de la ${esc(label.o)} la ${esc(label.t)}, ${esc(label.when)}</p>
+          <ul class="tr-ok__rows">${results.map((r, i) => {
+            const p = plans.find(x => x.sid === r.sid), good = r.ok || r.status === 'noop';
+            return `<li style="--i:${i}">
+              <b>${esc(names[r.sid] || '')}</b>
+              ${good ? `<span class="ax-st ax-st--transferat"><i class="ax-st__i" aria-hidden="true"></i>Transferat</span><span class="tr-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>${r.column ? 'Coloana ' + esc(r.column) : 'Activ'}</span>${moneyLine(p)}`
+                : `<span class="ax-st ax-st--inactiv sy-bad"><i class="ax-st__i" aria-hidden="true"></i>${r.code === 'half-done' ? 'Neterminat' : 'Nu s-a transferat'}</span><small class="tr-ok__m tr-ok__fail">${esc(r.msg || '')}</small>`}
+            </li>`;
+          }).join('')}</ul>
+          <div class="tr-ok__f">
+            ${failed.length ? `<button type="button" class="ax-btn" data-retry>${ico('swap', 16)} Reîncearcă ${failed.length === 1 ? 'elevul rămas' : failed.length + ' elevi'}</button>` : ''}
+            <button type="button" class="ax-btn ax-btn--primary" data-fin>Gata</button>
+          </div>
+        </div>`;
+    }
+
     function commit() {
       const g = D.group(st.pick);
       if (!g) return;
+      if (D.readOnly()) { commitRegistry(g); return; }
       plan = D.transferPlan ? D.transferPlan(from, students) : [];       // the figures of this very moment
       const ids = D.transfer(students, g.id);
       if (!ids.length) { U.toast('Elevii nu au putut fi transferați.', 'warn'); return; }
@@ -211,6 +262,11 @@
       const card = e.target.closest('.tr-card');
       if (card && !card.disabled) { choose(card.dataset.g); return; }
       if (e.target.closest('[data-go]')) { commit(); return; }
+      if (e.target.closest('[data-retry]') && st.done && st.done.registry) {
+        const again = st.done.results.filter(r => !(r.ok || r.status === 'noop')).map(r => r.sid), g = D.group(st.pick);
+        if (again.length && g) { dlg.classList.remove('is-ok'); dlg.innerHTML = stepHTML(); commitRegistry(g, again); }
+        return;
+      }
       if (e.target.closest('[data-fin]')) { dlg.close(); return; }
       if (e.target.closest('[data-undo]')) {
         const did = D.undoTransfer(st.done || []);

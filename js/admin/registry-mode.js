@@ -95,7 +95,8 @@
 
   /* One command, from the click to the result: queued (a row the admin can see), applied in the sheet by registru-apply, the register read
      again by registru-sync so the console shows it. Returns { ok, status, column, msg, url } and never throws. */
-  async function command(group, type, payload) {
+  async function command(group, type, payload, opts) {
+    opts = opts || {};
     try {
       if (!D.readOnly()) throw new Error('Scrierea în registre merge doar în modul Registre.');
       const g = D.group(group);
@@ -107,7 +108,7 @@
       const r = (out.results || [])[0];
       if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
       const ok = r.status === 'done';
-      if (ok || r.status === 'noop') {
+      if ((ok || r.status === 'noop') && !opts.defer) {
         try { await call('registru-sync', access, { workbook_id: g._src.wb }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
       }
       const url = g._src.ssid ? `https://docs.google.com/spreadsheets/d/${g._src.ssid}/edit#gid=${g._src.sheet}` + (r.column ? `&range=${r.column}1` : '') : null;
@@ -115,6 +116,27 @@
     } catch (e) {
       return { ok: false, status: 'failed', column: null, msg: String((e && e.message) || e), code: 'client', url: null };
     }
+  }
+
+  /* Transfer: each student moves from `from` to `to` (groups that may be in two different registers), with his money split by the Calculator's
+     formulas (the register's own cells are the numbers, the console only sends what it showed on screen so a change in between is refused).
+     One command per student; a student whose second phase failed can be tried again (nothing is duplicated). Returns one result per student. */
+  async function transfer({ from, students, to }) {
+    const gFrom = D.group(from), gTo = D.group(to), results = [];
+    const toSync = new Set();
+    for (const sid of students) {
+      const col = gFrom && D.registry.columnOf(sid, from);
+      if (!col || !gTo || !gTo._src) { results.push({ sid, ok: false, status: 'invalid', code: 'client', msg: 'Elevul sau grupa nouă nu au un registru legat.' }); continue; }
+      const f = D.transferFin(from, sid) || { A: 0, R: 0, C: 0 };
+      const letterNo = String(col.col).split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0);
+      const r = await command(from, 'TRANSFER', { student: { col: letterNo, name: col.name, phone: col.phone }, toWorkbook: gTo._src.wb, toSheet: gTo._src.sheet, status: col.status || 'Activ', manager: col.manager || '', expect: { A: f.A, R: f.R, C: f.C } }, { defer: true });
+      results.push(Object.assign({ sid }, r));
+      if (r.ok || r.status === 'noop' || r.code === 'half-done') { toSync.add(gFrom._src.wb); toSync.add(gTo._src.wb); }
+    }
+    if (toSync.size) {
+      try { const access = await token(); for (const wb of toSync) await call('registru-sync', access, { workbook_id: wb }); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ }
+    }
+    return results;
   }
 
   /* the enrolment desk: a new student in an existing group, first lesson free (status "Oră de probă") */
@@ -210,10 +232,10 @@
   document.addEventListener('bm:registry-readonly', () => {
     if (Date.now() - lastToast < 2500) return;
     lastToast = Date.now();
-    U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev într-o grupă existentă (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
+    U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, poll, command, enrol, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, poll, command, enrol, transfer, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

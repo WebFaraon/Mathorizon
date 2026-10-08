@@ -167,3 +167,7 @@ body.ax .el-dw__moves h4 { margin-bottom: 8px; font-size: 0.74rem; font-weight: 
 body.ax .el-dw__moves ul { display: grid; gap: 8px; margin: 0 0 8px; padding: 0; list-style: none; font-size: 0.86rem; line-height: 1.4; }
 body.ax .el-dw__moves li { display: grid; gap: 1px; }
 body.ax .el-dw__moves li .ax-ico { vertical-align: -2px; color: var(--ax-swap); }
+
+/* Registre: the register's answer when a transfer did not go through, and the line of a student that did not move */
+body.ax .tr-werr { min-height: 1.2em; margin: 6px 22px 0; color: var(--ax-bad); font-weight: 700; font-size: 0.86rem; overflow-wrap: anywhere; }
+body.ax .tr-ok__fail { color: var(--ax-bad); font-weight: 600; white-space: normal; }
