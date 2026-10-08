@@ -34,12 +34,26 @@ Reguli: o coloană cu prezențe, dar fără antet, nu se refolosește niciodată
 
 **Limită cunoscută:** Google Sheets nu are „scrie doar dacă valoarea e încă X”. Între recitirea de la pasul 2 și scriere rămâne o fereastră de câteva milisecunde. Pasul 3 prinde ce nu s-a scris, dar nu poate prinde o editare făcută de om exact în acea fereastră. Se reduce prin scrieri mici (câteva celule, un singur apel) și prin faptul că proprietarii zonelor sunt diferiți.
 
-## 4. Citirea din registre (urmează, F1)
+## 4. Citirea din registre (F1, scrisă și testată)
 
-- Un apel `batchGet` pe tot registrul, apoi comparație cu starea din platformă.
-- Apps Script (`onEdit`, trigger instalat) trimite un semnal la fiecare editare; peste el o citire completă la câteva minute prinde semnalele pierdute.
-- Mai întâi trece prin validator (`run.js`). Erorile grave (coloană fără elev, persoană duplicată) opresc importul acelui registru și apar în raport.
-- Datele fără an: coloană ascunsă cu data reală, calculată de formulă; până atunci anul se deduce din succesiunea lecțiilor.
+- Funcția edge `registru-sync` (`supabase/functions/registru-sync/`) și motorul comun (`supabase/functions/_shared/registru/`): `google.mjs` (login cu contul de serviciu și citire), `parse.mjs` (același parser ca importerul), `sync-core.mjs` (hash pe grupă, înlocuire, curățare). Aceleași fișiere rulează în Node (teste) și în Deno (funcția).
+- Pentru fiecare registru: o verificare ușoară a datei ultimei modificări (Drive). Dacă fișierul nu s-a schimbat și ultima citire completă e de sub o zi, **nu se citește nimic din Sheets**. Altfel, o singură citire pentru toate filele de grup.
+- Fiecare grupă schimbată se înlocuiește **întreagă și în tranzacție** (`reg_apply_group`), deci nu rămâne niciodată pe jumătate scrisă. O grupă neschimbată nu se rescrie (hash).
+- Protecții: o grupă cu format necunoscut nu se salvează (rămâne copia veche) și apare ca „oprită”; un registru care deodată nu arată nicio grupă face ca rularea să eșueze și nu șterge nimic; fila ștearsă din registru iese din platformă; limita Google pe minut oprește rularea, iar următoarea continuă cu registrul care așteaptă cel mai mult.
+- Anul lecțiilor: se ia din titlul fișierului („… 2025-2026”) sau din `reg_workbooks.school_year_from`.
+- Tabele: `reg_workbooks`, `reg_groups`, `reg_students`, `reg_lessons`, `reg_sync_runs` (migrația `20261008120000_registre_sync.sql`). Adminul vede tot, un profesor doar registrul pe care îl deține; scrie doar funcția (service role).
+- Verificat pe cele 27 de registre demo: 196 de grupe, 476 de coloane de elevi, 3.788 de lecții citite și comparate cu consola, 0 diferențe; a doua trecere nu face nicio citire din Sheets (`scripts/registru-import/google/sync-local.js --twice`).
+
+### Punerea în funcțiune (o singură dată)
+
+1. **SQL Editor** în Supabase: rulează conținutul `supabase/migrations/20261008120000_registre_sync.sql`.
+2. Înregistrează registrele: `node scripts/registru-import/google/seed-sql.js`, apoi rulează `_import/demo/seed-workbooks.sql` în SQL Editor.
+3. **Secrete** (Edge Functions → Secrets, sau CLI): `GOOGLE_SA_KEY` (tot conținutul `_import/google-service-account.json`) și `REG_SYNC_SECRET` (un șir lung, aleator).
+4. **Deploy** din folderul proiectului: `npx supabase login`, apoi `npx supabase functions deploy registru-sync --project-ref tfflpivehrrzmklvcyhe`.
+5. **Cron** (SQL Editor, cu secretul tău în loc de `<SECRET>`):
+   `select cron.schedule('registru-sync', '*/10 * * * *', $$ select net.http_post(url := 'https://tfflpivehrrzmklvcyhe.supabase.co/functions/v1/registru-sync', headers := jsonb_build_object('Content-Type', 'application/json', 'x-sync-secret', '<SECRET>'), body := '{}'::jsonb) $$);`
+
+Cota Google: 60 de citiri pe minut pe proiect. Fără verificarea datei, 27 de registre citite la fiecare 10 minute ar depăși-o; cu ea, doar registrele schimbate se citesc.
 
 ## 5. Unde rulează
 
@@ -52,6 +66,6 @@ Site-ul e servit static, cu handler-e `api/*.js`. Sincronizarea nu trebuie să r
 ## 6. Etape
 
 - **F0 (făcut):** contractul de mai sus, planificarea și aplicarea comenzilor, testate pe un registru în memorie (`npm run check:sync`).
-- **F1:** contul de serviciu, citirea registrelor reale în tabele Supabase, jurnal și pagina de stare în admin.
+- **F1 (scris, de pus în funcțiune):** citirea registrelor în tabele Supabase, jurnal de rulări. Rămâne pagina de stare în admin.
 - **F2:** comenzile din Înscriere/Transfer/Plăți ajung în Sheets prin coadă.
 - **F3:** semnale în timp real (Apps Script), monitorizare, alerte.

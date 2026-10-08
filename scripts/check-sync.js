@@ -112,5 +112,44 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
   const rr = pay(race, ana, 5);
   ok(rr.status === 'conflict' && cell(race, 'D3').f === 'sum(999)', 'a payment typed by a manager meanwhile is not overwritten: ' + JSON.stringify(rr));
 }
-console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
-if (fail) { console.log(fails.join('\n')); process.exit(1); }
+// ── the reading side (F1): a register's values -> the parser -> one replace per changed group ──
+(async () => {
+  const core = 'file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'sync-core.mjs').replace(/\\/g, '/');
+  const { syncWorkbook } = await import(core);
+  const grid = bk => ({ title: 'Test Registru EXAMEN.MD OFFLINE 2025-2026', tabs: bk.sheetNames.map((n, i) => { const sh = bk.sheet(n), rows = []; for (let r = 1; r <= 198; r++) { const row = []; for (let c = 1; c <= 29; c++) { const x = sh.get(r, c); row.push(x ? x.v : ''); } rows.push(row); } return { title: n, sheetId: 100 + i, hidden: bk.hidden(n), values: n === 'CONFIGURARI' ? null : rows }; }) });
+  const mem = () => { const store = new Map(); return { store, hashes: async () => new Map([...store].map(([k, v]) => [k, v.content_hash])), applyGroup: async (id, p) => { store.set(String(p.sheet_id), p); }, prune: async (id, keep) => { let n = 0; [...store.keys()].forEach(k => { if (!keep.map(String).includes(k)) { store.delete(k); n++; } }); return n; } }; };
+  const wb = { id: 'w1', spreadsheet_id: 'x' };
+  {
+    const db = mem(), data = grid(book());
+    const r1 = await syncWorkbook({ wb, read: async () => data, db });
+    ok(r1.seen === 1 && r1.changed === 1 && r1.skipped.length === 0, 'first read stores the group: ' + JSON.stringify(r1));
+    const g = db.store.get('100');
+    ok(g && g.format_size === 3 && g.subject === 'Matematica' && g.students.length === 2 && g.lessons.length === 2, 'the stored group has its students and lessons');
+    ok(g.students[0].phone === '+37369123456' && g.students[0].paid === 608 && g.lessons[0].iso === '2025-09-08' && g.lessons[0].marks.D === 'P' && g.lessons[0].marks.E === 'G', 'phone, payment, date with the school year and marks are read: ' + JSON.stringify(g.lessons[0]));
+    const r2 = await syncWorkbook({ wb, read: async () => data, db });
+    ok(r2.changed === 0 && r2.unchanged === 1, 'nothing changed: nothing rewritten');
+    const d2 = grid(book()); d2.tabs[0].values[8][3] = 'ABSENT';
+    const r3 = await syncWorkbook({ wb, read: async () => d2, db });
+    ok(r3.changed === 1 && db.store.get('100').lessons[0].marks.D === 'A', 'one changed mark replaces the group');
+    const d3 = grid(book()); d3.tabs[0].values[0][0] = 'Grup cu 7 elevi';
+    const db3 = mem(); const r4 = await syncWorkbook({ wb, read: async () => d3, db: db3 });
+    ok(r4.skipped.length === 1 && r4.changed === 0 && db3.store.size === 0, 'a wrong format is not stored: ' + JSON.stringify(r4.skipped));
+    const empty = { title: 'X', tabs: [{ title: 'Total achitări', sheetId: 1, values: [] }] };
+    let threw = false; try { await syncWorkbook({ wb, read: async () => empty, db }); } catch (e) { threw = true; }
+    ok(threw && db.store.size === 1, 'a register that suddenly shows no group fails and deletes nothing');
+    const gone = grid(book()); gone.tabs = gone.tabs.filter(t => t.title === 'CONFIGURARI').concat([{ title: 'Alta', sheetId: 555, hidden: false, values: grid(book()).tabs[0].values }]);
+    const r5 = await syncWorkbook({ wb, read: async () => gone, db });
+    ok(r5.pruned === 1 && db.store.has('555') && !db.store.has('100'), 'a deleted tab leaves the platform');
+    // the file's modifiedTime: same time and a fresh full read -> not read at all
+    let reads = 0; const peek = async () => 'T1';
+    const wbm = { id: 'w1', spreadsheet_id: 'x', drive_modified: 'T1', last_full_sync_at: new Date().toISOString() };
+    const r6 = await syncWorkbook({ wb: wbm, read: async () => { reads++; return data; }, peek, db });
+    ok(!r6.full && reads === 0, 'unchanged file: no read from Google');
+    const r7 = await syncWorkbook({ wb: Object.assign({}, wbm, { drive_modified: 'T0' }), read: async () => { reads++; return data; }, peek, db });
+    ok(r7.full && reads === 1 && r7.modified === 'T1', 'changed file: read');
+    const r8 = await syncWorkbook({ wb: Object.assign({}, wbm, { last_full_sync_at: new Date(Date.now() - 2 * 864e5).toISOString() }), read: async () => { reads++; return data; }, peek, db });
+    ok(r8.full && reads === 2, 'a full read at least once a day even if the file looks unchanged');
+  }
+  console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
+  if (fail) { console.log(fails.join('\n')); process.exit(1); }
+})();
