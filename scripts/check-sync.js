@@ -150,6 +150,35 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
     const r8 = await syncWorkbook({ wb: Object.assign({}, wbm, { last_full_sync_at: new Date(Date.now() - 2 * 864e5).toISOString() }), read: async () => { reads++; return data; }, peek, db });
     ok(r8.full && reads === 2, 'a full read at least once a day even if the file looks unchanged');
   }
+  // ── F2: the same commands against a live register (Google Sheets) through the async adapter: load, read, write ──
+  {
+    const { applyAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+    const live = (hooks) => {
+      const bk = book(), calls = { read: 0, write: 0 };
+      return {
+        bk, calls,
+        load: async () => bk,
+        read: async (tab, keys) => { calls.read++; if (hooks && hooks.beforeRead) { hooks.beforeRead(bk); hooks.beforeRead = null; } const o = {}; keys.forEach(k => { const c = bk.cell(tab, k); o[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return o; },
+        write: async (tab, cells) => { calls.write++; if (!(hooks && hooks.drop)) bk.set(tab, cells); }
+      };
+    };
+    const A = live();
+    const r1 = await applyAsync(A, add('a1'));
+    ok(r1.status === 'done' && r1.column === 'G' && A.calls.write === 1 && cell(A.bk, 'G1').v === 'Rusu Elena+37369555444', 'async: the student is written in one call: ' + JSON.stringify(r1));
+    const r2 = await applyAsync(A, add('a2'));
+    ok(r2.status === 'invalid' && r2.code === 'duplicate' && A.calls.write === 1 && A.calls.read === 2, 'async: the same student again is refused before any read or write');
+    const B = live({ beforeRead: bk => { bk.data['Grupa 1'].cells.G1 = { v: 'Altcineva Ion+37360000000' }; } });
+    const r3 = await applyAsync(B, add('a3'));
+    ok(r3.status === 'conflict' && r3.code === 'changed' && B.calls.write === 0, 'async: a cell taken between planning and the re-read is a conflict, nothing written: ' + JSON.stringify(r3));
+    const C = live({ drop: true });
+    const r4 = await applyAsync(C, add('a4'));
+    ok(r4.status === 'failed' && r4.code === 'verify-failed' && C.calls.write === 1, 'async: a write that did not stick is reported');
+    const D2 = live();
+    const r5 = await applyAsync(D2, { id: 'a5', type: 'ADD_PAYMENT', tab: 'Grupa 1', student: { name: 'Ionescu Ana', phone: '069123456' }, amount: 300 });
+    ok(r5.status === 'done' && cell(D2.bk, 'D3').f === 'SUM(1216-608+300)', 'async: a payment continues the sum');
+    const r6 = await applyAsync(D2, { id: 'a6', type: 'SET_STATUS', tab: 'Grupa 1', student: { name: 'Ionescu Ana', phone: '069123456' }, status: 'Activ' });
+    ok(r6.status === 'noop' && D2.calls.write === 1, 'async: the status it already has is a no-op');
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

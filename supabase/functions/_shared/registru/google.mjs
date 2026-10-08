@@ -18,17 +18,20 @@ async function signJwt(key, scope) {
   return head + '.' + body + '.' + b64u(sig);
 }
 
-let cached = null;
-export async function accessToken(key) {
-  if (cached && cached.email === key.client_email && cached.exp > Date.now() + 60000) return cached.token;
+const SCOPE_READ = 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.metadata.readonly';
+const SCOPE_WRITE = 'https://www.googleapis.com/auth/spreadsheets';
+const cached = {};
+export async function accessToken(key, write) {
+  const scope = write ? SCOPE_WRITE : SCOPE_READ, id = key.client_email + '|' + scope, c = cached[id];
+  if (c && c.exp > Date.now() + 60000) return c.token;
   const res = await fetch('https://oauth2.googleapis.com/token', {
     method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: await signJwt(key, 'https://www.googleapis.com/auth/spreadsheets.readonly https://www.googleapis.com/auth/drive.metadata.readonly') })
+    body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: await signJwt(key, scope) })
   });
   const j = await res.json();
   if (!j.access_token) throw new Error('Login Google eșuat: ' + JSON.stringify(j).slice(0, 200));
-  cached = { email: key.client_email, token: j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000 };
-  return cached.token;
+  cached[id] = { token: j.access_token, exp: Date.now() + (j.expires_in || 3600) * 1000 };
+  return cached[id].token;
 }
 
 /* Google's per-minute quota is used up: the caller stops and the next run continues (nothing is marked as failed) */
@@ -37,6 +40,17 @@ export class QuotaError extends Error {}
 async function get(token, url) {
   for (let attempt = 0; ; attempt++) {
     const res = await fetch(url, { headers: { authorization: 'Bearer ' + token } });
+    if ((res.status === 429 || res.status >= 500) && attempt < 3) { await new Promise(r => setTimeout(r, 2000 * 2 ** attempt)); continue; }
+    const j = await res.json().catch(() => ({}));
+    if (res.status === 429) throw new QuotaError('Google: limita pe minut a fost atinsă');
+    if (!res.ok) throw new Error(`Google ${res.status}: ${JSON.stringify(j.error || j).slice(0, 240)}`);
+    return j;
+  }
+}
+
+async function send(token, method, url, body) {
+  for (let attempt = 0; ; attempt++) {
+    const res = await fetch(url, { method, headers: { authorization: 'Bearer ' + token, 'content-type': 'application/json' }, body: JSON.stringify(body) });
     if ((res.status === 429 || res.status >= 500) && attempt < 3) { await new Promise(r => setTimeout(r, 2000 * 2 ** attempt)); continue; }
     const j = await res.json().catch(() => ({}));
     if (res.status === 429) throw new QuotaError('Google: limita pe minut a fost atinsă');
@@ -75,4 +89,64 @@ export async function readWorkbook(key, spreadsheetId) {
 export async function driveModified(key, spreadsheetId) {
   const j = await get(await accessToken(key), 'https://www.googleapis.com/drive/v3/files/' + encodeURIComponent(spreadsheetId) + '?fields=modifiedTime&supportsAllDrives=true');
   return j.modifiedTime;
+}
+
+/* ---- writing: what a command needs from a live register (see applyAsync in apply.mjs) ---- */
+import { MemoryBook, a1 as cellName } from './memory-book.mjs';
+
+const toCells = (formulas, values) => {
+  const cells = {};
+  (formulas || []).forEach((row, r) => (row || []).forEach((x, c) => {
+    if (x === '' || x === undefined || x === null) return;
+    const v = values && values[r] ? values[r][c] : undefined;
+    const isF = typeof x === 'string' && x.startsWith('=');
+    cells[cellName(r + 1, c + 1)] = isF ? { v: v === '' ? undefined : v, f: x.slice(1) } : { v: x };
+  }));
+  return cells;
+};
+
+/* the tab with the given sheet id of a register: its title now (names change, ids do not) */
+export async function tabTitle(key, spreadsheetId, sheetId) {
+  const token = await accessToken(key, true);
+  const meta = await get(token, 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(spreadsheetId) + '?fields=sheets.properties(title,sheetId)');
+  const s = meta.sheets.find(x => String(x.properties.sheetId) === String(sheetId));
+  if (!s) throw new Error('Fila nu mai există în registru (id ' + sheetId + ').');
+  return s.properties.title;
+}
+
+export function createAdapter(key, spreadsheetId) {
+  const base = 'https://sheets.googleapis.com/v4/spreadsheets/' + encodeURIComponent(spreadsheetId);
+  const ranges = list => list.map(r => 'ranges=' + encodeURIComponent(r)).join('&');
+  const two = async list => {                                 // the same ranges as formulas and as calculated values
+    const token = await accessToken(key, true);
+    const q = ranges(list) + '&majorDimension=ROWS&';
+    const [f, v] = await Promise.all([
+      get(token, base + '/values:batchGet?valueRenderOption=FORMULA&' + q),
+      get(token, base + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&' + q)
+    ]);
+    return list.map((_, k) => [f.valueRanges[k].values || [], v.valueRanges[k].values || []]);
+  };
+  return {
+    async load(tab) {
+      const [[f, v], [cf, cv]] = await two([q(tab) + '!A1:AC198', "'CONFIGURARI'!A1:K200"]);
+      return new MemoryBook({ [tab]: { cells: toCells(f, v) }, CONFIGURARI: { hidden: true, cells: toCells(cf, cv) } }, spreadsheetId + '.xlsx');
+    },
+    async read(tab, keys) {
+      const out = {};
+      const parts = await two(keys.map(k => q(tab) + '!' + k));
+      keys.forEach((k, i) => { const c = toCells(parts[i][0], parts[i][1]); out[k] = c.A1 || { v: null }; });
+      return out;
+    },
+    async write(tab, cells) {
+      const token = await accessToken(key, true);
+      const raw = [], formulas = [];
+      Object.keys(cells).forEach(k => {
+        const c = cells[k];
+        if (c.f) formulas.push({ range: q(tab) + '!' + k, values: [['=' + c.f]] });
+        else raw.push({ range: q(tab) + '!' + k, values: [[c.v === undefined || c.v === null ? '' : c.v]] });
+      });
+      if (raw.length) await send(token, 'POST', base + '/values:batchUpdate', { valueInputOption: 'RAW', data: raw });
+      if (formulas.length) await send(token, 'POST', base + '/values:batchUpdate', { valueInputOption: 'USER_ENTERED', data: formulas });
+    }
+  };
 }
