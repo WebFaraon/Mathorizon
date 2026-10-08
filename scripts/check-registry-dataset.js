@@ -128,5 +128,22 @@ ok(!D.readOnly() && D.groups.length === demoGroups, 'back to the demo data');
 const again = {}; D.groups.forEach(g => { if (regId[g.id]) again[g.id] = observe(g.id); });
 ok(JSON.stringify(again) === JSON.stringify(demo), 'the demo console is exactly what it was before the switch');
 
+/* the sheet is the calculator: a PREZENT on a row with no date and no topic is charged by the sheet (its formula counts the whole column) but not by our own count from the marks */
+{
+  const T2 = JSON.parse(JSON.stringify(snap));
+  const g0 = T2.groups.find(g => T2.students.some(s => s.group_id === g.id && s.status === 'Activ'));
+  const st0 = T2.students.find(s => s.group_id === g0.id && s.status === 'Activ');
+  const price = { 1: 608, 2: 348, 3: 288, 4: 248, 5: 228, 6: 218, 8: 148 }[g0.format_size];
+  T2.lessons.push({ group_id: g0.id, row_no: 197, date_text: null, iso: null, topic: null, teacher_level: null, teacher_pay: null, marks: { [st0.col]: 'P' } });
+  const cost0 = Number(st0.cost), sold0 = Number(st0.sold);
+  st0.cost = cost0 + price; st0.sold = sold0 - price;
+  D.useData(RD.build(T2, { today: '2026-10-05' }), { today: new Date(2026, 9, 5) });
+  const row = D.ledger(g0.id).rows.find(r => r.s.name === st0.name && r.s.phone === st0.phone);
+  ok(row && near(row.cost, cost0 + price) && near(row.sold, sold0 - price), 'the console shows the cost and sold of the sheet (not its own count from the marks): ' + (row && row.cost + '/' + row.sold) + ' vs ' + (cost0 + price) + '/' + (sold0 - price));
+  ok(row && row.drift === true, 'and says that its own count differs');
+  ok(D.ledger(g0.id).rows.filter(r => r !== row && r.drift).length === 0, 'the other students of the group do not drift');
+  D.useDemo();
+}
+
 console.log(`REGISTRY: ${pass} checks passed, ${fail} failed | ${ds.summary.groups} groups, ${ds.summary.students} people from ${ds.summary.columns} columns`);
 if (fail) { console.log(fails.join('\n')); process.exit(1); }

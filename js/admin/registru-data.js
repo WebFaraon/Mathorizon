@@ -136,7 +136,9 @@
     const rows = R.cols.map(c => ({ s: c.s, codes: R.lessons.map((l, i) => (MARKS[c.marks[i]] ? c.marks[i] : '')), paid: c.paid, disc: c.disc }));
     const pos = {};
     R.cols.forEach(c => { const n = String(c.col).split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0) - 4; if (n >= 0 && pos[c.s.id] == null) pos[c.s.id] = n; });
-    return { rate, dur: 1, lessons, rows, pay: R.pay, pos };
+    const sheet = {};
+    R.cols.forEach(c => { if (c.sheetCost != null && sheet[c.s.id] == null) sheet[c.s.id] = { cost: Number(c.sheetCost), sold: c.sheetSold == null ? null : Number(c.sheetSold) }; });
+    return { rate, dur: 1, lessons, rows, pay: R.pay, pos, sheet };
   }
 
   function generate(g) {
@@ -256,10 +258,16 @@
       let cost = 0, done = 0;
       codes.forEach((c, i) => { if (PAID_MARK[c] && lessons[i].counted) { cost += lessons[i].price; done++; } });
       cost = round2(cost);
-      const sold = round2(paidX + discX - cost);
+      let sold = round2(paidX + discX - cost);
+      // Registers: the sheet is the calculator. What it says the student cost and what is left is the money, even when our own count from the
+      // marks differs (the sheet charges every PREZENT / ABSENT in his column, also on a row that has no date or topic yet): `drift` says so.
+      const sh = G.sheet && G.sheet[r.s.id];
+      let drift = false;
+      const ownCost = cost;
+      if (sh && sh.cost != null) { drift = Math.abs(sh.cost - cost) > 0.01; cost = round2(sh.cost); sold = sh.sold != null ? round2(sh.sold) : round2(paidX + discX - cost); }
       let flag = -1;
       if (sold < 0) { let run = 0; for (let i = 0; i < n; i++) { if (PAID_MARK[codes[i]]) run += lessons[i].price; if (run > paidX + discX) { flag = i; break; } } }
-      return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, fin: T.finOut || T.finIn || null, codes, cost, done, disc: discX, paid: paidX, sold, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
+      return { s: r.s, status: D.statusIn(r.s, g.id), join: T.join, leave: T.leave, from: T.from ? D.group(T.from) : null, to: T.to ? D.group(T.to) : null, lock, fin: T.finOut || T.finIn || null, codes, cost, done, disc: discX, paid: paidX, sold, drift, ownCost, avail: rate ? Math.round(sold / rate * 10) / 10 : 0, flag, manager: D.manager(r.s.manager) };
     });
 
     // The column of each student: his slot. By default the students fill the columns from the left; a manager can

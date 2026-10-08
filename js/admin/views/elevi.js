@@ -293,6 +293,11 @@
     else if (st.balance < 0) note = 'Are de achitat restul pentru lecțiile ținute.';
     else if (st.balance > 0) note = 'La zi, cu avans pentru lecțiile următoare.';
     else note = 'La zi.';
+    // Registre: the sheet charges every PREZENT / ABSENT in the column, also on a row that has no date or topic yet; say so when that is the case
+    if (D.readOnly() && g) {
+      const row = D.ledger(g.id).rows.find(x => x.s.id === st.id);
+      if (row && row.drift) { const diff = Math.round((row.cost - row.ownCost) * 100) / 100; note = `Registrul numără ${diff > 0 ? 'în plus' : 'în minus'} ${U.money(Math.abs(diff))} față de lecțiile cu dată și temă: ${diff > 0 ? 'are prezențe pe rânduri fără dată sau temă, pe care formula din registru le taxează.' : 'o prezență lipsește sau nu e una taxată.'} Completează data și tema în registru.`; }
+    }
     const LBL = ['Acum trei lecții', 'Penultima', 'Ultima'];
     let groupHTML;
     if (g) {
