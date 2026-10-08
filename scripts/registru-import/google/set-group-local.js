@@ -13,7 +13,7 @@ const tid = process.argv[2] || 't26';
 
 (async () => {
   const { createAdapter, readWorkbook } = await import('../../../supabase/functions/_shared/registru/google.mjs');
-  const { applyAsync } = await import('../../../supabase/functions/_shared/registru/apply.mjs');
+  const { applyAsync, applySetGroupAsync } = await import('../../../supabase/functions/_shared/registru/apply.mjs');
   const { valuesBook } = await import('../../../supabase/functions/_shared/registru/sync-core.mjs');
   const { parseWorkbook, readConfig } = await import('../../../supabase/functions/_shared/registru/parse.mjs');
   const T = links.teachers[tid];
@@ -37,6 +37,9 @@ const tid = process.argv[2] || 't26';
   const cab = (rows0.find(s => s.cabinet) || {}).cabinet || '';
   console.log(`Registrul lui ${T.name}, fila „${g0.tab}”: stare „${g0.state}”, zile ${days}, ora ${start}, durata ${duration}, cabinet „${cab}”`);
   const keys = []; for (let r = 2; r <= 7; r++) ['AA', 'AB', 'AC'].forEach(c => keys.push(c + r)); keys.push('A3');
+  let tabNow = g0.tab;
+  const totalKeys = []; for (let c = 6; c <= 35; c++) totalKeys.push((c <= 26 ? String.fromCharCode(64 + c) : 'A' + String.fromCharCode(64 + c - 26)) + '4');
+  const totalBefore = await adapter.read('Total achitări', totalKeys);
   const before = await adapter.read(g0.tab, keys);
   const norm = o => JSON.stringify(keys.map(k => [(o[k] && o[k].v) == null ? null : o[k].v, (o[k] && o[k].f) || null]));
 
@@ -44,27 +47,34 @@ const tid = process.argv[2] || 't26';
   const otherCab = (cfg.cabinet || []).map(String).find(c => c !== String(cab));
   const newStart = start + duration + 1 <= 21 ? start + 1 : start - 1;
   const seen = { days, start, duration, cabinet: String(cab) };
-  const cmd = (o) => Object.assign({ id: 'setgroup-test-' + Date.now() + Math.random(), type: 'SET_GROUP', tab: g0.tab }, o);
+  const cmd = (o) => Object.assign({ id: 'setgroup-test-' + Date.now() + Math.random(), type: 'SET_GROUP', tab: tabNow }, o);
   try {
-    const r = await applyAsync(adapter, cmd({ state: otherState, schedule: { days, start: newStart, duration, cabinet: otherCab || String(cab) }, expect: { state: g0.state, schedule: seen } }));
+    const r = await applySetGroupAsync(adapter, cmd({ state: otherState, schedule: { days, start: newStart, duration, cabinet: otherCab || String(cab) }, expect: { state: g0.state, schedule: seen } }));
+    if (r.tab) tabNow = r.tab;
+    const listed = totalKeys.find(k => totalBefore[k].v === g0.tab);
+    const listedNow = listed && (await adapter.read('Total achitări', [listed]))[listed].v;
+    check(!r.renameNote && (!/^(Luni|Mar|Mie|Joi|Vin|S[âa]m|Dum)/.test(g0.tab) || (r.renamed && tabNow !== g0.tab && (!listed || listedNow === tabNow))), 'fila a fost redenumită după orar și numele din „Total achitări” a mers cu ea: ' + g0.tab + ' -> ' + tabNow);
     check(r.status === 'done', 'starea și mutarea au fost scrise: ' + JSON.stringify({ s: r.status, m: r.msg, w: (r.writes || []).map(x => x.a1) }));
     const d1 = await readWorkbook(KEY, T.ssid);
-    const g1 = parseWorkbook(valuesBook(d1, d1.title + '.xlsx')).groups.find(g => g.tab === g0.tab);
+    const g1 = parseWorkbook(valuesBook(d1, d1.title + '.xlsx')).groups.find(g => g.tab === tabNow);
     const rows1 = g1.schedule.filter(s => !s.stub && s.day && s.hour != null);
     check(g1.state === otherState, 'importerul citește starea nouă: ' + g1.state);
     check(rows1.length === rows0.length && rows1.every(s => s.hour >= newStart && s.hour < newStart + duration) && rows1.every(s => String(s.cabinet || '') === (otherCab || String(cab))), 'importerul citește ora și cabinetul noi: ' + JSON.stringify(rows1.map(s => [s.day, s.hour, s.cabinet])));
     check(JSON.stringify([...new Set(rows1.map(s => s.day))].sort((a, b) => a - b)) === JSON.stringify(days), 'zilele au rămas aceleași');
     // the same command again: the sheet already has it
-    const r2 = await applyAsync(adapter, cmd({ state: otherState, schedule: { days, start: newStart, duration, cabinet: otherCab || String(cab) }, expect: { state: g0.state, schedule: seen } }));
+    const r2 = await applySetGroupAsync(adapter, cmd({ state: otherState, schedule: { days, start: newStart, duration, cabinet: otherCab || String(cab) }, expect: { state: g0.state, schedule: seen } }));
     check(r2.status === 'noop', 'aceeași comandă a doua oară: nimic de scris (' + r2.status + ')');
     // a command made on the old values, for another state: refused
-    const r3 = await applyAsync(adapter, cmd({ state: g0.state, expect: { state: 'Altceva' } }));
+    const r3 = await applySetGroupAsync(adapter, cmd({ state: g0.state, expect: { state: 'Altceva' } }));
     check(r3.status === 'conflict' && r3.code === 'stale-state', 'valori vechi: comanda e refuzată (' + r3.status + ' ' + (r3.code || '') + ')');
-    const r4 = await applyAsync(adapter, cmd({ schedule: { days, start: start, duration, cabinet: String(cab) }, expect: { schedule: { days, start: 22 - duration - 1, duration, cabinet: 'x' } } }));
+    const r4 = await applySetGroupAsync(adapter, cmd({ schedule: { days, start: start, duration, cabinet: String(cab) }, expect: { schedule: { days, start: 22 - duration - 1, duration, cabinet: 'x' } } }));
     check(r4.status === 'conflict' && r4.code === 'stale-schedule', 'orar văzut greșit: comanda e refuzată (' + r4.status + ' ' + (r4.code || '') + ')');
   } finally {
     // put everything back: first by the command (the way the console would undo), then cell by cell if anything differs
-    const back = await applyAsync(adapter, cmd({ state: g0.state, schedule: { days, start, duration, cabinet: String(cab) } }));
+    const back = await applySetGroupAsync(adapter, cmd({ state: g0.state, schedule: { days, start, duration, cabinet: String(cab) } }));
+    if (back.tab) tabNow = back.tab;
+    const tabsNow = (await adapter.tabs()).map(x => x.title);
+    check(tabsNow.includes(g0.tab) && (tabNow === g0.tab || !back.renamed), 'fila are înapoi numele ei: ' + tabNow);
     let after = await adapter.read(g0.tab, keys);
     if (norm(after) !== norm(before)) {
       const fix = {}; keys.forEach(k => { const b = before[k] || {}; fix[k] = b.f ? { f: b.f } : { v: b.v == null ? null : b.v }; });
@@ -73,6 +83,8 @@ const tid = process.argv[2] || 't26';
     }
     check(back.status === 'done' || back.status === 'noop', 'înapoi prin comandă: ' + back.status);
     check(norm(after) === norm(before), 'fila e la loc, celulă cu celulă (A3 și AA2:AC7)');
+    const totalAfter = await adapter.read('Total achitări', totalKeys);
+    check(totalKeys.every(k => (totalAfter[k].v || null) === (totalBefore[k].v || null)), 'lista din „Total achitări” e la loc');
   }
   console.log(`\n${ok} verificări reușite, ${bad} eșuate`);
   if (bad) process.exit(1);

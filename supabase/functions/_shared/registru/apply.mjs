@@ -7,7 +7,7 @@
    anything that slipped in (it reports "verify-failed", with what the cell holds, instead of retrying blindly).
    Plain ES module (Node through require, the Supabase Edge Function through import). */
 import { plan, planTransfer } from './commands.mjs';
-import { planNewGroup, firstFree, GENERAL_TABS } from './newgroup.mjs';
+import { planNewGroup, firstFree, renamedTitle, GENERAL_TABS } from './newgroup.mjs';
 import { readConfig } from './parse.mjs';
 import { parseA1 } from './memory-book.mjs';
 
@@ -66,6 +66,36 @@ export async function applyAsync(adapter, cmd) {
   const bad = p.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
   return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
+}
+
+/* SET_GROUP against a live register: the state and the schedule are written like any command (applyAsync); then, when the schedule is asked for and the tab
+   is named after its schedule, the tab is renamed to follow it, and its name in the list of "Total achitari" (F4:AI4, which the Total formulas use to find
+   the tab) is changed in the same request. A rename that cannot be done never undoes the write: the answer carries `renameNote` instead.
+   adapter also has: tabs(), renameTab(old, new, totalCell). */
+export async function applySetGroupAsync(adapter, cmd) {
+  const r = await applyAsync(adapter, cmd);
+  if ((r.status !== 'done' && r.status !== 'noop') || cmd.schedule === undefined || !adapter.renameTab) return r;
+  try {
+    const tabs = await adapter.tabs();
+    const newTitle = renamedTitle(cmd.tab, cmd.schedule, tabs.map(x => x.title).filter(x => x !== cmd.tab));
+    if (!newTitle) return r;
+    const plainT = x => String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
+    const totalTab = tabs.find(x => plainT(x.title) === 'total achitari');
+    let cell = null;
+    if (totalTab) {
+      const keys = []; for (let c = 6; c <= 35; c++) keys.push(colName(c) + '4');
+      const row = await adapter.read(totalTab.title, keys);
+      const at = keys.find(k => row[k] && row[k].v === cmd.tab);
+      if (at) cell = { tab: totalTab.title, a1: at, v: newTitle };
+    }
+    await adapter.renameTab(cmd.tab, newTitle, cell);
+    const after = await adapter.tabs();
+    if (!after.some(x => x.title === newTitle) || after.some(x => x.title === cmd.tab)) throw new Error('după redenumire, fila nu are noul nume');
+    if (cell) { const t = await adapter.read(cell.tab, [cell.a1]); if (!t[cell.a1] || t[cell.a1].v !== newTitle) throw new Error('numele nou nu a ajuns în „Total achitări”'); }
+    return Object.assign({}, r, { renamed: { from: cmd.tab, to: newTitle, total: !!cell }, tab: newTitle });
+  } catch (e) {
+    return Object.assign({}, r, { renameNote: 'Orarul a fost scris, dar fila nu a putut fi redenumită: ' + String((e && e.message) || e).slice(0, 200) });
+  }
 }
 
 /* TRANSFER against live registers: adapters = { from, to } (the same adapter when both groups are in one register).

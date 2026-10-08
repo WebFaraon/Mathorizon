@@ -112,7 +112,7 @@
         try { await call('registru-sync', access, { workbook_id: g._src.wb, force: true }); await refresh(); } catch (e) { /* the write is done; the cron reads it a few minutes later */ }
       }
       const url = g._src.ssid ? `https://docs.google.com/spreadsheets/d/${g._src.ssid}/edit#gid=${g._src.sheet}` + (r.column ? `&range=${r.column}1` : '') : null;
-      return { ok, status: r.status, column: r.column || null, msg: r.msg || '', code: r.code || '', url };
+      return { ok, status: r.status, column: r.column || null, msg: r.msg || '', code: r.code || '', url, renamed: r.renamed || null, renameNote: r.renameNote || '' };
     } catch (e) {
       return { ok: false, status: 'failed', column: null, msg: String((e && e.message) || e), code: 'client', url: null };
     }

@@ -37,6 +37,22 @@ export function tabTitleFor(g, taken) {
   return title;
 }
 
+/* A tab named after its schedule ("Luni/Miercuri 12:00-13:00 (Vară) (2)") follows the schedule when it moves; any other name ("Orar 1", "Grupa 1") is left alone.
+   Returns the new name, or null when there is nothing to rename. The "(Vară)" the tab already has is kept as it is written. */
+const AUTO_NAME = new RegExp('^(?:' + DAY_NAMES.map(plain).join('|') + ')(?:/(?:' + DAY_NAMES.map(plain).join('|') + '))* \\d{2}:\\d{2}-\\d{2}:\\d{2}(?: \\(vara\\))?(?: \\(\\d+\\))?$');
+export function renamedTitle(oldTitle, sc, others) {
+  if (!AUTO_NAME.test(plain(oldTitle))) return null;
+  const days = ((sc && sc.days) || []).map(Number), start = Number(sc && sc.start), duration = Number(sc && sc.duration) || 1;
+  if (!days.length || days.some(d => !(d >= 1 && d <= 7)) || !Number.isInteger(start)) return null;
+  const hh = h => String(h).padStart(2, '0') + ':00';
+  const summer = (/\(Var[aă]\)/i.exec(oldTitle) || [''])[0];
+  const base = `${days.slice().sort((a, b) => a - b).map(d => DAY_NAMES[d - 1]).join('/')} ${hh(start)}-${hh(start + duration)}${summer ? ' ' + summer : ''}`.slice(0, 95);
+  const used = new Set((others || []).map(plain));
+  let title = base, k = 1;
+  while (used.has(plain(title))) title = `${base} (${++k})`;
+  return plain(title) === plain(oldTitle) ? null : title;
+}
+
 /* the template: the empty tab "Orar 1" when the register has it, else the last visible group tab (it is cleaned anyway) */
 export function chooseTemplate(tabs, a1Of) {
   const orar = tabs.find(t => plain(t.title) === 'orar 1');

@@ -718,7 +718,7 @@
     return room ? `${roomName(room)}, ${hh(start)}` : `ora ${hh(start)}`;
   }
   /* Registre: a move is written in the group's tab (hour and cabinet, AA2:AC7) and the register is read again; the board repaints from the register.
-     One write at a time. Returns true when the register has the new position. */
+     One write at a time. Returns the answer (truthy) when the register has the new position, false otherwise. */
   let writing = false;
   async function writeMove(g, patch, what) {
     if (writing) { U.toast('O mutare se scrie deja în registru. Așteaptă o clipă.', 'warn'); return false; }
@@ -728,7 +728,10 @@
       const change = { start: 'start' in patch ? patch.start : g.start };
       if ('room' in patch) change.room = patch.room;
       const r = await window.AdminRegistry.setGroup(g.id, change);
-      if (r.ok || r.status === 'noop') return true;
+      if (r.ok || r.status === 'noop') {
+        if (r.renameNote) U.toast(esc(r.renameNote), 'warn');
+        return r;
+      }
       U.toast(esc(r.status === 'conflict' ? `${r.msg} Am reîncărcat datele din registru: alege din nou.` : (r.msg || `Nu s-a putut scrie ${what} în registru.`)), 'warn');
       return false;
     } finally { writing = false; }
@@ -736,12 +739,13 @@
   async function applyRegistry(g, patch) {
     const prev = { start: g.start, room: g.room };
     const entry = { id: g.id, prev, next: Object.assign({}, prev, patch) };
-    if (!(await writeMove(g, patch, 'mutarea'))) return false;
+    const wr = await writeMove(g, patch, 'mutarea');
+    if (!wr) return false;
     undoStack.push(entry);
     settleId = g.id;
     renderMain();
     const cur = D.group(g.id) || g;
-    const txt = `Grupa mutată în ${moveText(cur, {})}, scris în registru.`.replace('în ora', 'la ora');
+    const txt = `Grupa mutată în ${moveText(cur, {})}, scris în registru.${wr.renamed ? ` Fila a fost redenumită: „${wr.renamed.to}”.` : ''}`.replace('în ora', 'la ora');
     U.toast(`<span class="rp-toast"><span>${esc(txt)}</span><button type="button" class="rp-toast__undo">${ico('undo', 14)} Anulează</button></span>`);
     const tt = document.querySelector('.ax-toasts') && document.querySelector('.ax-toasts').lastElementChild;
     const b = tt && tt.querySelector('.rp-toast__undo');

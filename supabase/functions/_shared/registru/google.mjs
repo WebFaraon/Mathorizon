@@ -156,6 +156,21 @@ export function createAdapter(key, spreadsheetId) {
       ids[title] = sheetId;
       return { sheetId };
     },
+    /* a tab gets a new name; `cell` ({ tab, a1, v }) is the cell of "Total achitari" that holds the old name (its formulas find the tab by it),
+       changed in the SAME request, so the register never has a name the Total list cannot find */
+    async renameTab(oldTitle, newTitle, cell) {
+      const token = await accessToken(key, true);
+      await this.tabs();
+      if (ids[oldTitle] === undefined) throw new Error('Fila „' + oldTitle + '” nu mai există în registru.');
+      const requests = [{ updateSheetProperties: { properties: { sheetId: ids[oldTitle], title: newTitle }, fields: 'title' } }];
+      if (cell) {
+        if (ids[cell.tab] === undefined) throw new Error('Fila „' + cell.tab + '” nu există în registru.');
+        const { r, c } = parseA1(cell.a1);
+        requests.push({ updateCells: { start: { sheetId: ids[cell.tab], rowIndex: r - 1, columnIndex: c - 1 }, rows: [{ values: [{ userEnteredValue: { stringValue: String(cell.v) } }] }], fields: 'userEnteredValue' } });
+      }
+      await send(token, 'POST', base + ':batchUpdate', { requests });
+      ids[newTitle] = ids[oldTitle]; delete ids[oldTitle];
+    },
     async remove(title) {
       const token = await accessToken(key, true);
       await this.tabs();

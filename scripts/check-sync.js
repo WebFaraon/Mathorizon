@@ -402,6 +402,64 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(r4.status === 'done' && cc(R4, 'A3').v === 'Inactiv' && Math.abs(cc(R4, 'AB2').v - 19 / 24) < 1e-9, 'state and schedule together are one command');
     }
   }
+  // ── SET_GROUP renames the tab: a tab named after its schedule follows it, and so does its name in the Total list ──
+  {
+    const { applySetGroupAsync } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'apply.mjs').replace(/\\/g, '/'));
+    const { renamedTitle } = await import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', 'newgroup.mjs').replace(/\\/g, '/'));
+    const cfgS = Object.assign({}, cfgCells, { F3: { v: 'Se completează' }, I3: { v: '13' }, I4: { v: '15' } });
+    const mk = (title, o) => {
+      o = o || {};
+      const grp = { A1: { v: 'Grup cu 3 elevi' }, A3: { v: 'Activ' }, AA2: { v: 'Joi' }, AB2: { v: 11 / 24 }, AC2: { v: '14' } };
+      const spec = { [title]: { cells: grp }, 'Alta grupa': { cells: Object.assign({}, grp) }, CONFIGURARI: { hidden: true, cells: cfgS } };
+      if (!o.noTotal) spec['Total achitări'] = { cells: { F4: { v: 'Alta grupa' }, G4: { v: o.inTotal === false ? 'altceva' : title } } };
+      const bk = new MemoryBook(spec, 'x.xlsx');
+      const calls = { rename: 0 };
+      return {
+        bk, calls,
+        tabs: async () => bk.sheetNames.map(n => ({ title: n, sheetId: 1, hidden: bk.data[n].hidden })),
+        load: async () => bk,
+        read: async (tab, keys) => { const out = {}; keys.forEach(k => { const c = bk.cell(tab, k); out[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return out; },
+        write: async (tab, cells) => { bk.set(tab, cells); },
+        renameTab: async (oldT, newT, cell) => { calls.rename++; if (o.failRename) throw new Error('Google 500: simulat'); if (bk.sheetNames.includes(newT)) throw new Error('nume duplicat'); bk.addSheet(newT, bk.data[oldT].cells); bk.removeSheet(oldT); if (cell) bk.set(cell.tab, { [cell.a1]: { v: cell.v } }); }
+      };
+    };
+    const sc = (o) => Object.assign({ days: [4], start: 10, duration: 1, cabinet: '14' }, o || {});
+    const cmdR = (tab, s, extra) => Object.assign({ id: 'rn' + Math.random(), type: 'SET_GROUP', tab, schedule: s, expect: { schedule: sc({ start: 11 }) } }, extra || {});
+    ok(renamedTitle('Joi 11:00-12:00 (Vară)', sc(), []) === 'Joi 10:00-11:00 (Vară)', 'the name follows the schedule and keeps its "(Vară)"');
+    ok(renamedTitle('Miercuri/Vineri 09:00-11:00', { days: [5, 3], start: 14, duration: 2 }, []) === 'Miercuri/Vineri 14:00-16:00', 'two days, two hours, days in week order');
+    ok(renamedTitle('Orar 1', sc(), []) === null && renamedTitle('Grupa 1', sc(), []) === null && renamedTitle('Alina Ionescu', sc(), []) === null, 'a name that is not a schedule is left alone');
+    ok(renamedTitle('Joi 10:00-11:00', sc(), []) === null, 'a name that already matches: nothing to rename');
+    ok(renamedTitle('Joi 11:00-12:00', sc(), ['Joi 10:00-11:00']) === 'Joi 10:00-11:00 (2)', 'a taken name gets a number');
+    {
+      const R = mk('Joi 11:00-12:00 (Vară)'), r = await applySetGroupAsync(R, cmdR('Joi 11:00-12:00 (Vară)', sc()));
+      ok(r.status === 'done' && r.renamed && r.renamed.to === 'Joi 10:00-11:00 (Vară)' && r.renamed.total === true && R.bk.sheetNames.includes('Joi 10:00-11:00 (Vară)') && !R.bk.sheetNames.includes('Joi 11:00-12:00 (Vară)'), 'moved: written and the tab renamed: ' + JSON.stringify(r.renamed));
+      ok(R.bk.cell('Total achitări', 'G4').v === 'Joi 10:00-11:00 (Vară)' && R.bk.cell('Total achitări', 'F4').v === 'Alta grupa', 'its cell in the Total list has the new name, the others are untouched');
+      ok(Math.abs(R.bk.cell('Joi 10:00-11:00 (Vară)', 'AB2').v - 10 / 24) < 1e-9, 'the schedule is written in the renamed tab');
+    }
+    {
+      // the sheet already has the new hour but the name is old (an earlier move before renaming existed): the same command only renames
+      const R = mk('Joi 11:00-12:00 (Vară)'); R.bk.data['Joi 11:00-12:00 (Vară)'].cells.AB2.v = 10 / 24;
+      const r = await applySetGroupAsync(R, cmdR('Joi 11:00-12:00 (Vară)', sc()));
+      ok(r.status === 'noop' && r.renamed && R.bk.sheetNames.includes('Joi 10:00-11:00 (Vară)'), 'nothing to write but the name is out of date: only the rename is done');
+    }
+    {
+      const R = mk('Orar 1'), r = await applySetGroupAsync(R, cmdR('Orar 1', sc()));
+      ok(r.status === 'done' && !r.renamed && R.calls.rename === 0, 'a tab with another kind of name is not renamed');
+      const R2 = mk('Joi 11:00-12:00', { noTotal: true }), r2 = await applySetGroupAsync(R2, cmdR('Joi 11:00-12:00', sc()));
+      ok(r2.status === 'done' && r2.renamed && r2.renamed.total === false, 'no Total tab: renamed anyway, the answer says it was not in a list');
+      const R3 = mk('Joi 11:00-12:00', { inTotal: false }), r3 = await applySetGroupAsync(R3, cmdR('Joi 11:00-12:00', sc()));
+      ok(r3.status === 'done' && r3.renamed && r3.renamed.total === false && R3.bk.cell('Total achitări', 'G4').v === 'altceva', 'a group that is not in the Total list: the list is not touched');
+      const R4 = mk('Joi 11:00-12:00'), r4 = await applySetGroupAsync(R4, { id: 'rnst', type: 'SET_GROUP', tab: 'Joi 11:00-12:00', state: 'Se completează' });
+      ok(r4.status === 'done' && !r4.renamed && R4.calls.rename === 0, 'only the state changes: the tab keeps its name');
+    }
+    {
+      const R = mk('Joi 11:00-12:00', { failRename: true }), r = await applySetGroupAsync(R, cmdR('Joi 11:00-12:00', sc()));
+      ok(r.status === 'done' && r.renameNote && !r.renamed && Math.abs(R.bk.cell('Joi 11:00-12:00', 'AB2').v - 10 / 24) < 1e-9 && R.bk.cell('Total achitări', 'G4').v === 'Joi 11:00-12:00', 'the rename fails: the schedule stays written, the Total list is untouched, the answer says why');
+      const R2 = mk('Joi 11:00-12:00'); R2.bk.data['Joi 11:00-12:00'].cells.AB2.v = 17 / 24;
+      const r2 = await applySetGroupAsync(R2, cmdR('Joi 11:00-12:00', sc()));
+      ok(r2.status === 'conflict' && R2.calls.rename === 0, 'a refused command renames nothing');
+    }
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

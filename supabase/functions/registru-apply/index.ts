@@ -5,7 +5,7 @@
    the write, written, read back, and the outcome kept on the command: done | noop | invalid | conflict | failed.
    Secrets: GOOGLE_SA_KEY, REG_SYNC_SECRET (as registru-sync). The service account must be EDITOR of the register to write in it. */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-import { applyAsync, applyTransferAsync, applyNewGroupAsync } from '../_shared/registru/apply.mjs';
+import { applyAsync, applySetGroupAsync, applyTransferAsync, applyNewGroupAsync } from '../_shared/registru/apply.mjs';
 import { createAdapter, tabTitle } from '../_shared/registru/google.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
@@ -57,7 +57,8 @@ async function run(key: unknown, row: any) {
         result = await applyTransferAsync({ from, to }, { id: row.id, type: 'TRANSFER', fromTab: tab, toTab, ...rest });
       }
     } else {
-      result = await applyAsync(createAdapter(key, wb.spreadsheet_id), { id: row.id, type: row.type, tab, ...row.payload });
+      const adapter = createAdapter(key, wb.spreadsheet_id), cmd = { id: row.id, type: row.type, tab, ...row.payload };
+      result = row.type === 'SET_GROUP' ? await applySetGroupAsync(adapter, cmd) : await applyAsync(adapter, cmd);
     }
     }
     await finish(row.id, result.status, result);
@@ -91,7 +92,7 @@ Deno.serve(async (req) => {
     const { data: claimed } = await sb.from('reg_commands').update({ status: 'running', claimed_at: new Date().toISOString() }).eq('id', row.id).eq('status', 'pending').select('id');
     if (!claimed || !claimed.length) continue;
     const r = await run(key, row);
-    results.push({ id: row.id, status: (r as any)?.status ?? 'done', column: (r as any)?.column, msg: (r as any)?.msg, code: (r as any)?.code, tab: (r as any)?.tab, sheetId: (r as any)?.sheetId });
+    results.push({ id: row.id, status: (r as any)?.status ?? 'done', column: (r as any)?.column, msg: (r as any)?.msg, code: (r as any)?.code, tab: (r as any)?.tab, sheetId: (r as any)?.sheetId, renamed: (r as any)?.renamed, renameNote: (r as any)?.renameNote });
   }
   return json(200, { results });
 });
