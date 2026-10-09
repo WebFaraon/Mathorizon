@@ -195,6 +195,123 @@
         ],
         "createdAt": "2026-10-09T11:29:26.246Z",
         "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:36.657Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:36.737Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:36.811Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:36.886Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:36.971Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "confidentialitate.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.059Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.135Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.215Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.303Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.369Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.429Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "termeni.html"
+        ],
+        "createdAt": "2026-10-09T12:03:37.496Z",
+        "reason": "assistant: raised at page level from legacy rules in the shared css/style.css; none applies to an element of this page (same finding as auth.html)"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "css/legal.css"
+        ],
+        "createdAt": "2026-10-09T12:03:37.554Z",
+        "reason": "assistant: the graph-paper ground is the calculator world's own ground (DESIGN.md Flat Chassis Rule)"
       }
     ]
   }

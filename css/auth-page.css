@@ -564,6 +564,9 @@ body.ap [hidden] { display: none !important; }
 
 .ap-or { display: flex; align-items: center; gap: 14px; margin: 20px 0 16px; font-size: 0.8rem; font-weight: 600; color: var(--k-ink-3); }
 .ap-or::before, .ap-or::after { content: ''; flex: 1; height: 1px; background: var(--k-rule); }
+.ap-legal { margin: 16px 0 0; font-size: 0.78rem; line-height: 1.5; text-align: center; color: var(--k-ink-2); }
+.ap-legal a { color: var(--k-ink); font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.ap-legal a:hover { color: var(--k-blue); }
 .ap-google { width: 100%; height: 46px; }
 /* the provider is not on in this project yet: printed flat, as the not-yet-available things are elsewhere in the world */
 .ap-google.is-off, .ap-google.is-off:hover { background: transparent; border-style: dashed; box-shadow: none; color: var(--k-ink-3); filter: none; cursor: not-allowed; }
