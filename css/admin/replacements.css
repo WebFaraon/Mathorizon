@@ -72,7 +72,7 @@ body.ax .rl-room:has(.rl-in:focus-visible) { outline: 2px solid var(--ax-blue); 
 
 /* what happens */
 body.ax .rl-sum__empty { margin: 0; font-size: 0.9rem; color: var(--ax-ink-3); }
-body.ax .rl-sum__b { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--ax-st-inlocuire); border-left-width: 4px; background: color-mix(in srgb, var(--ax-st-inlocuire) 7%, var(--ax-panel)); animation: rl-chip 0.3s var(--ax-ease) backwards; }
+body.ax .rl-sum__b { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--ax-st-inlocuire); background: color-mix(in srgb, var(--ax-st-inlocuire) 7%, var(--ax-panel)); animation: rl-chip 0.3s var(--ax-ease) backwards; }
 body.ax .rl-sum__b p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--ax-ink-2); max-width: 64ch; }
 body.ax .rl-sum__b b { color: var(--ax-ink); }
 body.ax .rl-kids { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }

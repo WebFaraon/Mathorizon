@@ -130,7 +130,8 @@ body.ax .jr-f span { flex: 1; font-size: 0.86rem; font-weight: 600; color: var(-
 }
 
 /* the lessons done with a substitute: a list under the timeline, in the colour of the Inlocuire state */
-body.ax .jr-sub { margin: 14px 0 0; padding: 14px 16px; border: 1px solid var(--ax-rule-2); border-left: 3px solid var(--ax-st-inlocuire); background: var(--ax-panel); }
+body.ax .jr-sub { margin: 14px 0 0; padding: 14px 16px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); }
+body.ax .jr-sub h3::before { content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 8px; background: var(--ax-st-inlocuire); }
 body.ax .jr-sub h3 { margin: 0 0 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-ink-3); }
 body.ax .jr-sub p { margin: 0 0 8px; font-size: 0.84rem; color: var(--ax-ink-3); max-width: 62ch; }
 body.ax .jr-sub ul { margin: 0; padding: 0; list-style: none; }
