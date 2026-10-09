@@ -170,3 +170,11 @@ body.ax .rp-card__sub { display: block; font-size: 0.72rem; font-weight: 800; co
   body.ax .rl-dlg[open], body.ax .rl-dates li, body.ax .rl-ts li, body.ax .rl-sum__b, body.ax .ri-list li, body.ax .rl-h__ic { animation: none !important; }
 }
 body.ax .ri-nm { font-weight: 700; }
+
+/* the footer of a group drawer: the two things you do (Înlocuire, Transfer) side by side on top, the two places you go (Repartizare, registru) under them */
+body.ax .ax-drawer__foot:has([data-tr-start]) { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; justify-content: stretch; }
+body.ax .ax-drawer__foot:has([data-tr-start]) .ax-btn { width: 100%; justify-content: center; }
+body.ax .ax-drawer__foot:has([data-tr-start]) [data-repl] { order: 1; }
+body.ax .ax-drawer__foot:has([data-tr-start]) [data-tr-start] { order: 2; }
+body.ax .ax-drawer__foot:has([data-tr-start]) .ax-btn:not([data-repl]):not([data-tr-start]) { order: 3; }
+body.ax .ax-drawer__foot:has([data-tr-start]) .ax-btn:last-child:nth-child(odd) { grid-column: 1 / -1; }
