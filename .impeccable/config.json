@@ -117,6 +117,84 @@
           "plan-dezvoltare.html"
         ],
         "createdAt": "2026-10-06T09:04:02.782Z"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "css/auth-page.css"
+        ],
+        "createdAt": "2026-10-09T11:29:25.477Z",
+        "reason": "assistant: the graph-paper ground is the calculator world's own ground (DESIGN.md Flat Chassis Rule), same as capitole and the profile"
+      },
+      {
+        "rule": "design-system-font-size",
+        "value": "*",
+        "files": [
+          "css/auth-page.css"
+        ],
+        "createdAt": "2026-10-09T11:29:25.580Z",
+        "reason": "assistant: form sizing, inputs at 16px so iOS does not zoom, labels and hints sized for touch; the DESIGN.md ramp describes the Capitole instrument (same exception as css/registru.css)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "undocumented color rgba(0, 0, 0, 0.1) is outside design.md colors",
+        "createdAt": "2026-10-09T11:29:25.662Z",
+        "reason": "assistant: the recess shadow of a slot, the same inset as the LCD recess (rgba(0,0,0,.18)) in DESIGN.md Elevation"
+      },
+      {
+        "rule": "ai-color-palette",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:25.764Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "gradient-text",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:25.860Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "dark-glow",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:25.953Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "repeating-stripes-gradient",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:26.062Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "codex-grid-background",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:26.153Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
+      },
+      {
+        "rule": "design-system-color",
+        "value": "*",
+        "files": [
+          "auth.html"
+        ],
+        "createdAt": "2026-10-09T11:29:26.246Z",
+        "reason": "assistant: raised at page level (line 0) from legacy rules in the shared css/style.css (purple and gradient-text rules of other components, a repeating-gradient at style.css:2738); none applies to an element of this page (checked in the rendered DOM)"
       }
     ]
   }

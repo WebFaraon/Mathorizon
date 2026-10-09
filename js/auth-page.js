@@ -1,6 +1,9 @@
 /* ============================================================
    Mathorizon — Auth Page (auth.html)
    Standalone — does NOT depend on auth.js timing
+   The look is the calculator world (css/auth-page.css); this file holds
+   the behaviour: Supabase sign-in / sign-up / reset, Google, the role,
+   and the display (LCD) that talks you through the form.
    ============================================================ */
 
 (function () {
@@ -13,26 +16,109 @@
   let _tab      = 'login';
   let _role     = 'elev';
   let _usernameMode = false;
+  let _quietFocus = false;
   const USERNAME_DOMAIN = 'mathorizon.local';
 
-  /* ---- Exercise count — same BM.EXERCISES source capitole.html uses,
-     so this page never drifts from the real total (see js/app.js
-     renderStats). Waits on custom exercises so it lands on the exact
-     same settled number as the home page's "Total exerciții" stat. */
-  (function () {
-    const el = document.getElementById('statChipExercises');
-    if (!el || !window.BM || !BM.EXERCISES) return;
-    const ready = BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve();
-    ready.then(() => { el.textContent = BM.EXERCISES.length; });
+  const $ = id => document.getElementById(id);
+  const reduceMotion = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const FORMS = { login: 'fLogin', signup: 'fSignup', reset: 'fReset' };
+
+  /* ============================================================
+     The display. Annunciators say where you are (mode, role), a typed
+     line prints a greeting and then the rule of the field you are in,
+     and the figures are the site's real ones (never counted up: an LCD
+     refreshes). Same grammar as the Capitole display.
+     ============================================================ */
+  const LCD = (function () {
+    const box = $('apLcd'), line = $('apLine');
+    const PHRASE = { login: 'Bine ai revenit.', signup: 'Creează-ți contul.', reset: 'Resetează parola.' };
+    let timer = 0, booted = false;
+
+    const total = () => (window.BM && BM.EXERCISES ? BM.EXERCISES.length : 0);
+    const chapters = () => (window.BM && BM.CATEGORIES ? BM.CATEGORIES.length : 0);
+
+    function type(text) {
+      if (!line) return;
+      clearInterval(timer);
+      if (reduceMotion()) { line.textContent = text; return; }
+      line.textContent = '';
+      let i = 0;
+      timer = setInterval(() => {
+        i++;
+        line.textContent = text.slice(0, i);
+        if (i >= text.length) clearInterval(timer);
+      }, 22);
+    }
+    function refreshFrames() {
+      if (!box || reduceMotion()) return;
+      box.classList.remove('ap-lcd--refresh');
+      void box.offsetWidth;
+      box.classList.add('ap-lcd--refresh');
+    }
+    function figures(mode) {
+      const put = (id, v) => { const el = $(id); if (el) el.textContent = v; };
+      if (mode === 'signup') {
+        put('apFigA', '3');          put('apUnitA', 'ExamTokenuri gratuite');
+        put('apFigB', total() || ''); put('apUnitB', 'exerciții');
+      } else {
+        put('apFigA', total() || ''); put('apUnitA', 'exerciții');
+        put('apFigB', chapters() || ''); put('apUnitB', 'capitole');
+      }
+    }
+    function annunciators(mode) {
+      if (!box) return;
+      box.querySelectorAll('[data-ann]').forEach(a => {
+        const k = a.dataset.ann;
+        a.classList.toggle('ap-lcd__a--on', k === mode || (mode === 'signup' && k === _role));
+      });
+    }
+    return {
+      /* power-on: the segment test (eights), then the real readout */
+      boot(mode) {
+        if (!box) return;
+        const done = () => {
+          booted = true;
+          box.classList.remove('ap-lcd--boot');
+          figures(mode); annunciators(mode); type(PHRASE[mode]);
+        };
+        if (reduceMotion()) { done(); return; }
+        setTimeout(done, 600);
+      },
+      mode(mode) {
+        if (!booted) return;
+        figures(mode); annunciators(mode); refreshFrames(); type(PHRASE[mode]);
+      },
+      role() { if (booted) annunciators(_tab); },
+      hint(text) { if (booted && text) type(text); },
+      home() { if (booted) type(PHRASE[_tab]); },
+      /* the bank can grow after custom exercises load: show the settled number */
+      figuresNow() { if (booted) { figures(_tab); refreshFrames(); } }
+    };
   })();
 
-  /* ---- Chapter count — same BM.CATEGORIES source capitole.html uses,
-     so this page never drifts from the real total. ---- */
-  (function () {
-    const el = document.getElementById('statChipCategories');
-    if (!el || !window.BM || !BM.CATEGORIES) return;
-    el.textContent = BM.CATEGORIES.length;
-  })();
+  /* What each field says on the display while you are in it */
+  const HINT = {
+    lEmail: 'Email sau nume de utilizator.',
+    lPass:  'Parola contului tău.',
+    sName:  'Numele tău complet.',
+    sEmail: () => (_usernameMode ? '3-20 caractere: litere mici, cifre sau _.' : 'Adresa unde primești confirmarea.'),
+    sPass:  'Minim 8 caractere.',
+    sConf:  'Repetă aceeași parolă.',
+    rEmail: 'Emailul contului tău.'
+  };
+  const ROLE_HINT = {
+    elev: 'Elev: acces complet la exerciții și simulări.',
+    profesor: 'Profesor: contul se activează după aprobarea adminului.'
+  };
+
+  /* ---- Exercise count: same BM.EXERCISES source capitole.html uses, so
+     this page never drifts from the real total. Waits on custom
+     exercises so it lands on the settled number. ---- */
+  function _watchBank() {
+    if (!window.BM || !BM.EXERCISES) return;
+    const ready = BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve();
+    ready.then(() => LCD.figuresNow()).catch(() => {});
+  }
 
   function _getFrom() {
     const from = new URLSearchParams(window.location.search).get('from') || 'capitole.html';
@@ -56,93 +142,72 @@
 
   /* ---- Message helpers ---- */
   function _showMsg(text, isError) {
-    const el = document.getElementById('authMsg');
-    if (!el) return;
-    el.textContent  = text;
-    el.className    = 'auth-msg ' + (isError ? 'auth-msg--error' : 'auth-msg--success');
-    el.style.display = '';
+    const el = $('authMsg'), t = $('authMsgText');
+    if (!el || !t) return;
+    t.textContent = text;
+    el.className = 'ap-msg ' + (isError ? 'ap-msg--error' : 'ap-msg--success');
+    el.hidden = false;
+    void el.offsetWidth;                       // replay the entrance when a new message replaces an old one
+    el.classList.add('is-new');
   }
   function _clearMsg() {
-    const el = document.getElementById('authMsg');
-    if (el) { el.style.display = 'none'; el.textContent = ''; }
+    const el = $('authMsg'), t = $('authMsgText');
+    if (el) el.hidden = true;
+    if (t) t.textContent = '';
   }
   function _setLoading(btnId, on) {
-    const btn = document.getElementById(btnId);
+    const btn = $(btnId);
     if (!btn) return;
     btn.disabled = on;
-    const txt = btn.querySelector('span:first-child');
-    const spn = btn.querySelector('.auth-spin');
-    if (txt) txt.style.opacity = on ? '0' : '';
-    if (spn) spn.style.display = on ? ''  : 'none';
+    btn.classList.toggle('is-loading', on);
+    btn.setAttribute('aria-busy', on ? 'true' : 'false');
+  }
+  /* fields that were left empty: red edge, a nudge, and the cursor goes to the first one */
+  function _markInvalid(ids) {
+    let first = null;
+    ids.forEach(id => {
+      const el = $(id);
+      if (!el) return;
+      el.setAttribute('aria-invalid', 'true');
+      if (!first) first = el;
+    });
+    if (first) {
+      first.classList.remove('is-nudge'); void first.offsetWidth; first.classList.add('is-nudge');
+      first.focus();
+    }
+  }
+  function _clearInvalid(form) {
+    form.querySelectorAll('[aria-invalid]').forEach(el => el.removeAttribute('aria-invalid'));
   }
 
-  /* ---- Tab switching (cu animație smooth) ---- */
-  let _switching = false;
+  /* ---- Mode keys: Conectare / Înregistrare (and the reset form, which hides them) ---- */
   function switchTab(tab) {
-    if (_switching || tab === _tab) return;
-    _switching = true;
+    if (tab === _tab) return;
     const prev = _tab;
     _tab = tab;
-
-    const map = { login: 'fLogin', signup: 'fSignup', reset: 'fReset' };
-    const prevEl = document.getElementById(map[prev]);
-    const nextEl = document.getElementById(map[tab]);
-
     const isReset = tab === 'reset';
-    const tabRow  = document.querySelector('.auth-tabs');
-    const divider = document.getElementById('authDivider');
-    const google  = document.getElementById('authGoogle');
+    const prevEl = $(FORMS[prev]), nextEl = $(FORMS[tab]);
+    const modes = document.querySelector('.ap-modes'), divider = $('authDivider'), google = $('authGoogle');
 
-    /* Actualizăm tab-urile active imediat */
-    document.querySelectorAll('.auth-tab').forEach(t => {
-      t.classList.toggle('auth-tab--active', t.dataset.tab === tab);
+    document.querySelectorAll('.ap-mode').forEach(t => {
+      const on = t.dataset.tab === tab;
+      t.classList.toggle('ap-mode--on', on);
+      t.setAttribute('aria-selected', on ? 'true' : 'false');
+      t.tabIndex = on || (isReset && t.dataset.tab === 'login') ? 0 : -1;
     });
+    if (modes)   modes.style.display   = isReset ? 'none' : '';
+    if (divider) divider.style.display = isReset ? 'none' : '';
+    if (google)  google.style.display  = isReset ? 'none' : '';
 
-    if (prevEl && prevEl.style.display !== 'none') {
-      /* Fade-out formul curent */
-      prevEl.classList.add('auth-form--exiting');
-      prevEl.addEventListener('animationend', () => {
-        prevEl.style.display = 'none';
-        prevEl.classList.remove('auth-form--exiting');
-
-        /* Ascunde/arată elemente care depind de tab */
-        if (tabRow)  tabRow.style.display  = isReset ? 'none' : '';
-        if (divider) divider.style.display = isReset ? 'none' : '';
-        if (google)  google.style.display  = isReset ? 'none' : '';
-
-        /* Fade-in formulul nou */
-        if (nextEl) {
-          nextEl.style.display = '';
-          nextEl.classList.add('auth-form--entering');
-          nextEl.addEventListener('animationend', () => {
-            nextEl.classList.remove('auth-form--entering');
-            _switching = false;
-          }, { once: true });
-        } else {
-          _switching = false;
-        }
-
-        const focus = { login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab];
-        setTimeout(() => document.getElementById(focus)?.focus(), 40);
-      }, { once: true });
-    } else {
-      /* Nu există un formular vizibil curent — arată direct */
-      if (tabRow)  tabRow.style.display  = isReset ? 'none' : '';
-      if (divider) divider.style.display = isReset ? 'none' : '';
-      if (google)  google.style.display  = isReset ? 'none' : '';
-      if (nextEl) {
-        nextEl.style.display = '';
-        nextEl.classList.add('auth-form--entering');
-        nextEl.addEventListener('animationend', () => {
-          nextEl.classList.remove('auth-form--entering');
-          _switching = false;
-        }, { once: true });
-      } else {
-        _switching = false;
-      }
-      const focus = { login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab];
-      setTimeout(() => document.getElementById(focus)?.focus(), 40);
+    if (prevEl) prevEl.style.display = 'none';
+    if (nextEl) {
+      nextEl.style.display = '';
+      nextEl.classList.remove('is-in'); void nextEl.offsetWidth; nextEl.classList.add('is-in');
+      setTimeout(() => nextEl.classList.remove('is-in'), 600);
     }
+    LCD.mode(tab);
+    /* the cursor goes to the first field, but the display keeps its greeting: it prints a field's rule only when the person goes there */
+    setTimeout(() => { const f = $({ login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab]); if (f) { _quietFocus = true; f.focus(); _quietFocus = false; } }, 40);
 
     _clearMsg();
     const url = new URL(window.location.href);
@@ -151,21 +216,36 @@
   }
   window.switchTab = switchTab;
 
-  /* ---- Role selection ---- */
-  window.selectRole = function(role) {
-    _role = role;
-    document.querySelectorAll('.auth-role-btn').forEach(btn => {
-      btn.classList.toggle('auth-role-btn--active', btn.dataset.role === role);
+  /* arrow keys move between the two mode keys, like a tab list */
+  function _wireModeKeys() {
+    const modes = document.querySelector('.ap-modes');
+    if (!modes) return;
+    modes.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+      e.preventDefault();
+      const next = _tab === 'login' ? 'signup' : 'login';
+      switchTab(next);
+      const k = modes.querySelector(`[data-tab="${next}"]`);
+      if (k) k.focus();
     });
+  }
+
+  /* ---- Role selection ---- */
+  window.selectRole = function (role) {
+    _role = role;
+    document.querySelectorAll('.ap-role').forEach(btn => {
+      const on = btn.dataset.role === role;
+      btn.classList.toggle('ap-role--on', on);
+      btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+    });
+    LCD.role();
+    LCD.hint(ROLE_HINT[role]);
   };
 
   /* ---- Username-instead-of-email toggle (signup only) ---- */
-  window.toggleUsernameMode = function() {
+  window.toggleUsernameMode = function () {
     _usernameMode = !_usernameMode;
-    const input = document.getElementById('sEmail');
-    const label = document.getElementById('sContactLabel');
-    const btn   = document.getElementById('toggleUsernameBtn');
-    const hint  = document.getElementById('usernameHint');
+    const input = $('sEmail'), label = $('sContactLabel'), btn = $('toggleUsernameBtn'), hint = $('usernameHint');
     if (!input || !label || !btn || !hint) return;
     if (_usernameMode) {
       input.type = 'text';
@@ -173,26 +253,86 @@
       input.autocomplete = 'username';
       label.textContent = 'Nume de utilizator';
       btn.textContent = 'Am totuși un email';
-      hint.style.display = '';
+      hint.hidden = false;
     } else {
       input.type = 'email';
       input.placeholder = 'adresa@email.com';
       input.autocomplete = 'email';
       label.textContent = 'Email';
-      btn.textContent = 'Nu am email — folosesc un nume de utilizator';
-      hint.style.display = 'none';
+      btn.textContent = 'Nu am email, folosesc un nume de utilizator';
+      hint.hidden = true;
     }
     input.value = '';
+    input.removeAttribute('aria-invalid');
+    input.focus();
     _clearMsg();
   };
 
   /* ---- Password visibility ---- */
-  window.togglePw = function(btn) {
-    const inp = document.getElementById(btn.dataset.target);
+  window.togglePw = function (btn) {
+    const inp = $(btn.dataset.target);
     if (!inp) return;
-    inp.type = inp.type === 'password' ? 'text' : 'password';
-    btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
+    const show = inp.type === 'password';
+    inp.type = show ? 'text' : 'password';
+    btn.innerHTML = icon(show ? 'eye-off' : 'eye', { size: 16 });
+    btn.setAttribute('aria-pressed', show ? 'true' : 'false');
+    btn.setAttribute('aria-label', show ? 'Ascunde parola' : 'Arată parola');
   };
+
+  /* ---- Password length: eight cells, one per required character ---- */
+  function _wirePassword() {
+    const pass = $('sPass'), conf = $('sConf'), cells = $('sPassCells'), count = $('sPassN'), match = $('sMatch');
+    if (!pass || !cells) return;
+    const paintCells = () => {
+      const len = pass.value.length, n = Math.min(len, 8);
+      cells.querySelectorAll('i').forEach((c, i) => c.classList.toggle('on', i < n));
+      cells.classList.toggle('ok', len >= 8);
+      if (count) count.textContent = n + '/8';
+      cells.setAttribute('aria-label', len >= 8 ? `Parola are ${len} caractere: destul` : `Parola are ${len} din cele 8 caractere necesare`);
+    };
+    const paintMatch = () => {
+      if (!match) return;
+      const a = pass.value, b = conf.value;
+      if (!b) { match.hidden = true; return; }
+      const same = a === b;
+      match.hidden = false;
+      match.classList.toggle('is-ok', same);
+      match.classList.toggle('is-bad', !same);
+      match.querySelector('span').textContent = same ? 'Parolele coincid.' : 'Parolele nu coincid încă.';
+    };
+    pass.addEventListener('input', () => { paintCells(); paintMatch(); });
+    conf.addEventListener('input', paintMatch);
+  }
+
+  /* Caps Lock: a small amber light under a password field while it is on */
+  function _wireCaps() {
+    document.querySelectorAll('.ap-caps').forEach(note => {
+      const inp = $(note.dataset.caps);
+      if (!inp) return;
+      const check = e => { note.hidden = !(e.getModifierState && e.getModifierState('CapsLock')); };
+      inp.addEventListener('keydown', check);
+      inp.addEventListener('keyup', check);
+      inp.addEventListener('blur', () => { note.hidden = true; });
+    });
+  }
+
+  /* The display names the field you are in and prints its rule */
+  function _wireHints() {
+    document.addEventListener('focusin', e => {
+      if (_quietFocus) return;
+      const h = HINT[e.target.id];
+      if (h) LCD.hint(typeof h === 'function' ? h() : h);
+    });
+    document.addEventListener('focusout', e => {
+      if (!HINT[e.target.id]) return;
+      setTimeout(() => {
+        const a = document.activeElement;
+        if (!a || !HINT[a.id]) LCD.home();
+      }, 250);
+    });
+    /* typing clears the red edge of the field */
+    document.addEventListener('input', e => { if (e.target.removeAttribute) e.target.removeAttribute('aria-invalid'); });
+  }
 
   /* ---- Error translation ---- */
   function _roError(msg) {
@@ -205,14 +345,19 @@
       return 'Prea multe încercări. Încearcă mai târziu.';
     return msg;
   }
+  const _noService = () => _showMsg('Serviciul de autentificare nu s-a încărcat. Reîncarcă pagina.', true);
 
   /* ---- Form handlers ---- */
   async function onLogin(e) {
     e.preventDefault();
-    _clearMsg();
-    const raw  = document.getElementById('lEmail')?.value.trim();
-    const pass = document.getElementById('lPass')?.value;
-    if (!raw || !pass) return _showMsg('Completează toate câmpurile.', true);
+    _clearMsg(); _clearInvalid($('fLogin'));
+    if (!sb) return _noService();
+    const raw  = $('lEmail')?.value.trim();
+    const pass = $('lPass')?.value;
+    if (!raw || !pass) {
+      _markInvalid([!raw && 'lEmail', !pass && 'lPass'].filter(Boolean));
+      return _showMsg('Completează toate câmpurile.', true);
+    }
     const email = raw.includes('@') ? raw : `${raw.toLowerCase()}@${USERNAME_DOMAIN}`;
     _setLoading('btnLogin', true);
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
@@ -223,18 +368,23 @@
 
   async function onSignup(e) {
     e.preventDefault();
-    _clearMsg();
-    const name    = document.getElementById('sName')?.value.trim();
-    const contact = document.getElementById('sEmail')?.value.trim();
-    const pass    = document.getElementById('sPass')?.value;
-    const conf    = document.getElementById('sConf')?.value;
-    if (!name || !contact || !pass || !conf) return _showMsg('Completează toate câmpurile.', true);
-    if (pass.length < 8) return _showMsg('Parola trebuie să aibă cel puțin 8 caractere.', true);
-    if (pass !== conf)   return _showMsg('Parolele nu coincid.', true);
+    _clearMsg(); _clearInvalid($('fSignup'));
+    if (!sb) return _noService();
+    const name    = $('sName')?.value.trim();
+    const contact = $('sEmail')?.value.trim();
+    const pass    = $('sPass')?.value;
+    const conf    = $('sConf')?.value;
+    if (!name || !contact || !pass || !conf) {
+      _markInvalid([!name && 'sName', !contact && 'sEmail', !pass && 'sPass', !conf && 'sConf'].filter(Boolean));
+      return _showMsg('Completează toate câmpurile.', true);
+    }
+    if (pass.length < 8) { _markInvalid(['sPass']); return _showMsg('Parola trebuie să aibă cel puțin 8 caractere.', true); }
+    if (pass !== conf)   { _markInvalid(['sConf']); return _showMsg('Parolele nu coincid.', true); }
 
     if (_usernameMode) {
       const username = contact.toLowerCase();
       if (!/^[a-z0-9_]{3,20}$/.test(username)) {
+        _markInvalid(['sEmail']);
         return _showMsg('Numele de utilizator trebuie să aibă 3-20 caractere: litere mici, cifre sau „_”.', true);
       }
       _setLoading('btnSignup', true);
@@ -264,6 +414,7 @@
     });
     _setLoading('btnSignup', false);
     if (error) return _showMsg(_roError(error.message), true);
+    LCD.hint('Cont creat.');
     if (_role === 'profesor') {
       _showMsg('Cont creat! Verifică emailul pentru confirmare. Contul tău de profesor va fi activat după aprobarea adminului.', false);
     } else {
@@ -274,20 +425,23 @@
 
   async function onReset(e) {
     e.preventDefault();
-    _clearMsg();
-    const email = document.getElementById('rEmail')?.value.trim();
-    if (!email) return _showMsg('Introdu adresa de email.', true);
+    _clearMsg(); _clearInvalid($('fReset'));
+    if (!sb) return _noService();
+    const email = $('rEmail')?.value.trim();
+    if (!email) { _markInvalid(['rEmail']); return _showMsg('Introdu adresa de email.', true); }
     _setLoading('btnReset', true);
     const { error } = await sb.auth.resetPasswordForEmail(email, {
       redirectTo: window.location.origin + '/auth.html?tab=login'
     });
     _setLoading('btnReset', false);
     if (error) return _showMsg(_roError(error.message), true);
+    LCD.hint('Email trimis.');
     _showMsg('Email trimis! Verifică căsuța poștală.', false);
   }
   window.onReset = onReset;
 
   async function onGoogle() {
+    if (!sb) return _noService();
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth.html' }
@@ -296,7 +450,23 @@
   }
   window.onGoogle = onGoogle;
 
-  /* ---- INIT ---- */
+  /* ---- INIT: the page itself does not wait for Supabase ---- */
+  document.addEventListener('DOMContentLoaded', () => {
+    const params = new URLSearchParams(window.location.search);
+    const tabParam = params.get('tab');
+    /* Read initial tab + role from URL params (the landing page's route
+       cards link here with both, e.g. auth.html?tab=signup&role=profesor,
+       so the signup form opens with the right role already selected). */
+    if (params.get('role') === 'profesor') { _role = 'profesor'; selectRole('profesor'); }
+    if (tabParam === 'signup' || tabParam === 'reset') {
+      /* the form shows at once, without the swap animation: the display boots straight into that mode */
+      switchTab(tabParam);
+    }
+    LCD.boot(_tab);
+    _watchBank();
+    _wireModeKeys(); _wirePassword(); _wireCaps(); _wireHints();
+  });
+
   document.addEventListener('DOMContentLoaded', async () => {
     if (!window.supabase) return;
     sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -311,14 +481,5 @@
         _redirect(session);
       }
     });
-
-    /* Read initial tab + role from URL params (landing page's route
-       cards link here with both — e.g. auth.html?tab=signup&role=profesor —
-       so the signup form opens with the right role already selected
-       instead of always defaulting to "Elev"). */
-    const params = new URLSearchParams(window.location.search);
-    const tabParam = params.get('tab');
-    if (tabParam === 'signup' || tabParam === 'reset') switchTab(tabParam);
-    if (params.get('role') === 'profesor') selectRole('profesor');
   });
 })();
