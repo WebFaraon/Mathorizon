@@ -63,8 +63,8 @@
     subj: { label: 'Materia', def: 'asc', key: g => norm(g.subject) },
     grade: { label: 'Clasa', def: 'asc', key: g => D.GRADES.indexOf(g.grade) },
     size: { label: 'Grupă', def: 'asc', key: g => g.size },
-    free: { label: 'Locuri libere', def: 'desc', key: g => D.freeSeats(g) },
-    elevi: { label: 'Elevi', def: 'desc', key: g => D.enrolled(g).length },
+    free: { label: 'Locuri libere', def: 'desc', key: g => freeOf(g) },
+    elevi: { label: 'Elevi', def: 'desc', key: g => kidsOf(g).length },
     // no column of its own: used by links (#orar?status=completare&sort=start)
     start: { label: 'Data de început', def: 'asc', key: g => g.startDate }
   };
@@ -102,15 +102,20 @@
     return tk.every(t => n.includes(t));
   }
 
+  /* the replacements are rows of the list too (the substitute's tab is a group in his register, state Înlocuire); a click opens the replacement */
+  const replRows = () => ((D.registry && D.registry.replacements) || []).map(r => r.asGroup).filter(Boolean);
+  const freeOf = g => (g._repl ? Math.max(0, g.size - g.kids.length) : D.freeSeats(g));
+  const kidsOf = g => (g._repl ? g.kids : D.enrolled(g));
+
   function filtered(s) {
     const pt = tokens(s.prof);
     const eq = s.elev.trim();
-    return D.groups.filter(g => {
+    return D.groups.concat(replRows()).filter(g => {
       if (s.project.length && !s.project.includes(g.project)) return false;
       if (s.quick && !QUICK[s.quick].test(g)) return false;
       if (s.teacher && g.teacher !== s.teacher) return false;
       if (pt.length) { const n = norm(D.teacher(g.teacher).name); if (!pt.every(t => n.includes(t))) return false; }
-      if (eq && !D.studentsOf(g.id).some(st => studentMatches(st, eq))) return false;
+      if (eq && !(g._repl ? g.kids : D.studentsOf(g.id)).some(st => studentMatches(st, eq))) return false;
       if (s.dur.length && !s.dur.includes(String(g.duration))) return false;
       if (s.status.length && !s.status.includes(g.status)) return false;
       if (s.subj.length && !s.subj.includes(g.subject)) return false;
@@ -118,7 +123,7 @@
       if (s.level.length && !s.level.includes(g.level)) return false;
       if (s.size.length && !s.size.includes(String(g.size))) return false;
       if (s.profile.length && !s.profile.includes(g.profile)) return false;
-      if (s.seats.length) { const f = D.freeSeats(g); if (!s.seats.includes(f >= 3 ? '3' : String(f))) return false; }
+      if (s.seats.length) { const f = freeOf(g); if (!s.seats.includes(f >= 3 ? '3' : String(f))) return false; }
       if (s.vara && g.regime !== 'vara') return false;
       if (s.days.length && !g.days.some(d => s.days.includes(String(d)))) return false;
       return true;
@@ -239,17 +244,19 @@
       <button type="button" class="or-sort${on ? ' is-on' : ''}">${esc(SORTS[k].label)}${icon}</button></th>`;
   }
 
+  const replDay = iso => { const d = new Date(iso + 'T12:00:00'); return `${D.DAYS[((d.getDay() + 6) % 7)].short} ${d.getDate()} ${D.MONTHS[d.getMonth()].slice(0, 3)}`; };
+
   function rowHTML(g, i, s) {
     const t = D.teacher(g.teacher);
     const p = D.project(g.project);
     const room = g.room ? D.room(g.room) : null;
-    const free = D.freeSeats(g);
-    const enr = D.enrolled(g);
+    const free = freeOf(g);
+    const enr = kidsOf(g);
     const warn = g.status === 'activ' && free >= 2;
     // with an Elev search on, the matching students come first
     let kids = enr;
     if (s.elev.trim()) {
-      const hit = D.studentsOf(g.id).filter(st => studentMatches(st, s.elev.trim()));
+      const hit = (g._repl ? g.kids : D.studentsOf(g.id)).filter(st => studentMatches(st, s.elev.trim()));
       kids = hit.concat(enr.filter(x => !hit.includes(x)));
     }
     const shown = kids.slice(0, 2);
@@ -260,7 +267,7 @@
         <td>
           <div class="or-when">
             ${room ? `<span class="or-room" title="${esc(room.name)}"><small>Cab.</small>${room.num}</span>` : `<span class="or-room or-room--on" title="Online">${ico('monitor', 16)}</span>`}
-            <span><b class="or-days">${g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="or-time">${timeRange(g)}</span></span>
+            <span><b class="or-days">${g._repl ? g.dates.map(x => `<span>${esc(replDay(x))}</span>`).join(' / ') : g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="or-time">${timeRange(g)}</span></span>
           </div>
         </td>
         <td><span class="ax-strong">${esc(t.last)}</span> <span class="or-first">${esc(t.first)}</span></td>
@@ -313,6 +320,7 @@
 
   /* ---- drawer ---- */
   function openGroup(gid, onChanged) {
+    if (String(gid).startsWith('rp~')) { const v = window.AdminViews.inlocuiri; if (v && v.openDetail) v.openDetail(String(gid).slice(3)); return; }
     const g = D.group(gid);
     if (!g) return;
     const t = D.teacher(g.teacher);

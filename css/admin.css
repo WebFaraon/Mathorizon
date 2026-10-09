@@ -609,7 +609,7 @@ button.ax-stat { border: 0; text-align: left; cursor: pointer; font: inherit; co
 .ax-drawer__head h2 { font-size: 1.3rem; font-weight: 800; }
 .ax-drawer__head p { margin-top: 4px; font-size: 0.88rem; color: var(--ax-ink-2); }
 .ax-drawer__body { flex: 1; overflow-y: auto; padding: 18px 22px; }
-.ax-drawer__foot { display: flex; gap: 8px; justify-content: flex-end; padding: 14px 22px; border-top: 1px solid var(--ax-rule); }
+.ax-drawer__foot { display: flex; flex-wrap: wrap; gap: 8px; justify-content: flex-end; padding: 14px 22px; border-top: 1px solid var(--ax-rule); }
 .ax-dl { display: grid; grid-template-columns: 140px minmax(0, 1fr); gap: 10px 16px; margin: 0; font-size: 0.92rem; }
 .ax-dl dt { color: var(--ax-ink-3); font-weight: 600; }
 .ax-dl dd { margin: 0; font-weight: 600; }

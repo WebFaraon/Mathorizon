@@ -38,7 +38,7 @@
       : g._irregular || !g.days.length ? 'Orarul grupei nu are aceeași oră în toate zilele (sau lipsește): atribuie înlocuirea direct în registru.'
       : !price ? 'Formatul grupei nu are un preț de lecție: banii unei înlocuiri nu se pot calcula.'
       : !kids.length ? 'Grupa nu are elevi de copiat în fila de înlocuire.' : '';
-    const st = { dates: new Set(), teacher: null, room: undefined, busy: false, done: null, err: '' };
+    const st = { dates: new Set(), teacher: null, room: undefined, busy: false, done: null, err: '', moreOpen: false };
 
     const dlg = document.createElement('dialog');
     dlg.className = 'rl-dlg';
@@ -89,7 +89,7 @@
           <span class="rl-t__n"><b>${esc(o.teacher.name)}</b>${o.ok ? `<small>${esc(o.teacher.subjects.slice(0, 3).join(', '))}</small>` : `<small class="rl-why">${esc(o.reasons.join('. '))}</small>`}</span>
         </label></li>`;
       return `${ok.length ? `<ul class="rl-ts" role="radiogroup" aria-label="Profesori disponibili">${ok.map(row).join('')}</ul>` : '<p class="rl-none">Niciun profesor nu poate prelua toate lecțiile alese. Alege mai puține lecții sau altă zi.</p>'}
-        ${no.length ? `<details class="rl-more"><summary>Nu pot prelua (${no.length})</summary><ul class="rl-ts">${no.map(row).join('')}</ul></details>` : ''}`;
+        ${no.length ? `<details class="rl-more"${st.moreOpen ? ' open' : ''}><summary>Nu pot prelua (${no.length})</summary><ul class="rl-ts">${no.map(row).join('')}</ul></details>` : ''}`;
     }
 
     function roomsHTML() {
@@ -141,29 +141,34 @@
     }
 
     function doneHTML() {
-      const r = st.done, t = chosenTeacher();
+      const r = st.done, tt = chosenTeacher(), n = st.dates.size;
       return `
-        <div class="rl-body rl-ok">
-          <span class="rl-ok__ic" aria-hidden="true">${CHECK}</span>
-          <h3>${r.reused ? 'Fila de înlocuire a fost actualizată' : 'Fila de înlocuire a fost creată'}</h3>
-          <p>În registrul lui <b>${esc(t.name)}</b>${r.tab ? `, fila <b>${esc(r.tab)}</b>` : ''}: ${plural(kids.length, 'elev', 'elevi')} cu statutul Înlocuire și banii la 0. Banii se mută singuri, după ce ${esc(t.name)} pune prezența.</p>
-          <p class="rl-ok__s">${plural(st.dates.size, 'lecție', 'lecții')} ${st.dates.size === 1 ? 'se vede' : 'se văd'} în Repartizare în ziua ${st.dates.size === 1 ? 'ei' : 'lor'}. Urmărești totul în pagina Înlocuiri.</p>
-        </div>
-        <footer class="rl-f"><span></span>
-          ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide fila</a>` : ''}
-          <a class="ax-btn ax-btn--primary" href="#inlocuiri" data-x>${ico('replace', 16)} Vezi în Înlocuiri</a>
-        </footer>`;
+        <div class="in-ok">
+          <button type="button" class="ax-icon-btn in-ok__x" data-x aria-label="Închide">${ico('x', 18)}</button>
+          <svg class="in-ok__ring" viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="28"/><path d="m19 33 9 9 18-20"/></svg>
+          <h2 id="rlT">${r.reused ? 'Fila de înlocuire e actualizată' : 'Înlocuirea e în registru'}</h2>
+          <p class="in-ok__sub"><b>${esc(g.subject)}, clasa ${esc(g.grade)}</b>, ${esc(base.name)}, ${esc(g.days.map(d => D.DAYS[d - 1].name).join(' / '))} ${hh(g.start)}-${hh(g.start + g.duration)}, o preia ${esc(tt.name)} ${n === 1 ? 'la o lecție' : 'la ' + n + ' lecții'}</p>
+          <ul class="in-ok__s">
+            <li><span>${ico('book-open', 16)}</span><span>Fila <b>${esc(r.tab || '')}</b> a fost ${r.reused ? 'adusă la zi' : 'creată'} în registrul lui ${esc(tt.name)}</span></li>
+            <li><span class="ax-st ax-st--inlocuire"><i class="ax-st__i" aria-hidden="true"></i>Înlocuire</span><span>${plural(kids.length, 'elev copiat', 'elevi copiați')}, cu achitări, reduceri și sold 0</span></li>
+            <li><span>${ico('wallet', 16)}</span><span>Banii se mută singuri, o lecție de <b>${money(price)} lei</b> pentru fiecare prezență pusă</span></li>
+            <li><span>${ico('door', 16)}</span><span>${n === 1 ? 'Lecția apare' : 'Lecțiile apar'} în Repartizare, în săptămâna ${n === 1 ? 'ei' : 'lor'}</span></li>
+          </ul>
+          <p class="in-ok__note">Elevii rămân Activ în registrul lui ${esc(base.name)}. Dacă ceva nu e cum trebuie, anulezi lecția din pagina Înlocuiri.</p>
+          <div class="in-ok__f">
+            <a class="ax-btn ax-btn--primary" href="#inlocuiri" data-x>${ico('replace', 16)} Vezi în Înlocuiri</a>
+            ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide în Sheets</a>` : ''}
+          </div>
+        </div>`;
     }
 
     /* ---------- paint and wiring ---------- */
     const $ = s => dlg.querySelector(s);
-    function paintRest() {                                                // everything after the dates, kept in place so the list the person is ticking never jumps
-      $('#rlTeachers').innerHTML = teachersHTML();
-      $('#rlRooms').innerHTML = roomsHTML();
-      $('#rlSumBox').innerHTML = sumHTML();
-      $('#rlFoot').innerHTML = footHTML();
-      $('#rlErr').textContent = st.err;
-    }
+    /* a choice repaints only what it can change: the dates never touch the teachers' list unless they change who can come, a room never touches the teachers */
+    function paintTeachers() { const d = $('.rl-more'); if (d) st.moreOpen = d.open; $('#rlTeachers').innerHTML = teachersHTML(); }
+    function paintRooms() { $('#rlRooms').innerHTML = roomsHTML(); }
+    function paintTail() { $('#rlSumBox').innerHTML = sumHTML(); $('#rlFoot').innerHTML = footHTML(); $('#rlErr').textContent = st.err; }
+    const markOn = sel => dlg.querySelectorAll(sel).forEach(l => { const i = l.querySelector('input'); l.classList.toggle('is-on', !!(i && i.checked)); });
     function pickDefaultRoom() {
       if (!st.teacher) { st.room = undefined; return; }
       const list = rooms(), own = list.find(o => o.room.id === g.room);
@@ -191,15 +196,15 @@
         if (i.dataset.date) {
           if (i.checked) st.dates.add(i.dataset.date); else st.dates.delete(i.dataset.date);
           i.closest('.rl-date').classList.toggle('is-on', i.checked);
-          dropInvalid();
+          dropInvalid(); paintTeachers(); paintRooms();
         } else if (i.name === 'rlTeacher') {
           st.teacher = i.value; st.room = undefined; pickDefaultRoom();
+          markOn('.rl-t'); paintRooms();
         } else if (i.name === 'rlRoom') {
           st.room = i.value || null;
+          markOn('.rl-room');
         }
-        paintRest();
-        if (i.name === 'rlTeacher') { const sel = dlg.querySelector('input[name="rlTeacher"]:checked'); if (sel) sel.focus({ preventScroll: true }); }
-        if (i.name === 'rlRoom') { const sel = dlg.querySelector('input[name="rlRoom"]:checked'); if (sel) sel.focus({ preventScroll: true }); }
+        paintTail();
       });
       dlg.addEventListener('click', async e => {
         if (!e.target.closest('[data-assign]') || !ready()) return;
@@ -212,7 +217,7 @@
         st.busy = false; dlg.classList.remove('is-busy');
         if (out.ok) {
           st.done = out;
-          dlg.innerHTML = headHTML() + doneHTML();
+          dlg.innerHTML = doneHTML();
           if (onDone) onDone(out);
           U.toast(`Înlocuire atribuită: ${esc(t.name)}, ${plural(st.dates.size, 'lecție', 'lecții')}.`);
           return;

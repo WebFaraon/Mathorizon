@@ -84,15 +84,6 @@ body.ax .rl-err:empty { display: none; }
 body.ax .rl-f { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding: 12px 20px; border-top: 1px solid var(--ax-rule-2); background: var(--ax-panel-2); }
 body.ax .rl-f__s { margin: 0 auto 0 0; min-width: 0; font-size: 0.88rem; font-weight: 700; color: var(--ax-ink-2); }
 
-/* done */
-body.ax .rl-ok { display: grid; justify-items: start; gap: 8px; padding: 24px 20px; }
-body.ax .rl-ok__ic { display: grid; place-items: center; width: 44px; height: 44px; background: var(--ax-ok); animation: ax-icon-pop 0.5s var(--ax-ease) backwards; }
-body.ax .rl-ok__ic svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-body.ax .rl-ok h3 { margin: 6px 0 0; font-size: 1.2rem; font-weight: 800; }
-body.ax .rl-ok p { margin: 0; max-width: 60ch; font-size: 0.94rem; line-height: 1.5; color: var(--ax-ink-2); }
-body.ax .rl-ok p b { color: var(--ax-ink); }
-body.ax .rl-ok .rl-ok__s { color: var(--ax-ink-3); }
-
 @keyframes rl-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 @keyframes rl-chip { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
 
@@ -176,6 +167,6 @@ body.ax .rp-card.is-replaced { opacity: 0.62; background-image: repeating-linear
 body.ax .rp-card__sub { display: block; font-size: 0.72rem; font-weight: 800; color: var(--ax-st-inlocuire); }
 
 @media (prefers-reduced-motion: reduce) {
-  body.ax .rl-dlg[open], body.ax .rl-dates li, body.ax .rl-ts li, body.ax .rl-sum__b, body.ax .ri-list li, body.ax .rl-h__ic, body.ax .rl-ok__ic { animation: none !important; }
+  body.ax .rl-dlg[open], body.ax .rl-dates li, body.ax .rl-ts li, body.ax .rl-sum__b, body.ax .ri-list li, body.ax .rl-h__ic { animation: none !important; }
 }
 body.ax .ri-nm { font-weight: 700; }

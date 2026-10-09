@@ -222,6 +222,19 @@
         _src: { wb: rep.repl_workbook, ssid: w ? w.spreadsheet_id : null, sheet: rep.repl_sheet, tab: rep.repl_tab || (gr && gr.tab) || '' }
       };
     });
+    /* the row of a replacement in the Orar list: it looks like a group (the substitute's tab IS a group in his register, state Înlocuire) but is not one of the console */
+    const wdOf = iso => { const d = new Date(iso + 'T12:00:00Z').getUTCDay(); return d === 0 ? 7 : d; };
+    replacements.forEach(r => {
+      const b = r.base ? groups.find(g => g.id === r.base) : null;
+      const live = r.dates.filter(d => !d.cancelled).sort((a, c) => a.iso.localeCompare(c.iso)), d0 = live[0] || r.dates[0];
+      if (!b || !d0 || !r.teacher) { r.asGroup = null; return; }
+      r.asGroup = {
+        id: 'rp~' + r.id, _repl: true, rep: r.id, project: b.project, regime: b.regime, subject: b.subject, grade: b.grade, profile: b.profile, level: b.level, size: r.size || b.size,
+        status: r.status === 'active' ? 'inlocuire' : 'inactiv', teacher: r.teacher, days: [...new Set(live.map(d => wdOf(d.iso)))].sort((a, c) => a - c), start: d0.start, duration: d0.duration,
+        room: d0.cabinet && rooms.some(x => x.id === 'c' + String(d0.cabinet).replace(/\D/g, '')) ? 'c' + String(d0.cabinet).replace(/\D/g, '') : null, startDate: d0.iso, createdAt: (r.createdAt || '').slice(0, 10) || d0.iso, dates: live.map(d => d.iso),
+        kids: r.cols.map(c => ({ id: c.sid || 'c' + c.col, name: c.name, phone: c.phone, status: studentStatus(c.status) }))
+      };
+    });
     /* the money of the lessons a student did with a substitute: the sold of his column in the substitute's tab (what he paid there minus what the lessons cost) */
     const replSoldBy = new Map(), replEventsBy = new Map();
     replacements.forEach(r => {

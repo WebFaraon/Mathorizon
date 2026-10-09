@@ -126,6 +126,9 @@
   }
 
   /* ---- one replacement: dates, what each student did and where the money is ---- */
+  /* the registers do not write the year of a lesson (it is deduced from the school year in the file's name): when the day and month are those of a planned date, that date is the lesson's */
+  const lessonDay = (r, l) => { if (!l.iso) return null; const d = r.dates.find(x => x.iso.slice(5) === l.iso.slice(5)); return d ? d.iso : l.iso; };
+
   function lessonRowsHTML(r) {
     const rows = r.lessons.filter(l => Object.keys(l.marks).length);
     if (!rows.length) return '<p class="ri-none">Profesorul nu a pus încă nicio prezență în fila lui.</p>';
@@ -144,7 +147,7 @@
         const retry = item && item.error ? `<button type="button" class="ax-btn ax-btn--sm" data-retry="${esc(item.key)}">Reia</button>` : '';
         return `<tr><td class="ri-nm">${esc(c.name)}</td><td>${esc(MARK[code] || code)}</td><td class="ri-m${tone ? ' ri-m--' + tone : ''}">${esc(money_)}</td><td>${retry}</td></tr>`;
       }).join('');
-      return `<div class="ri-lesson"><h4>${l.iso ? esc(dayLong(l.iso)) : 'Lecția din rândul ' + l.row}${l.topic ? `<small>${esc(l.topic)}</small>` : ''}</h4>
+      return `<div class="ri-lesson"><h4>${lessonDay(r, l) ? esc(dayLong(lessonDay(r, l))) : 'Lecția din rândul ' + l.row}${l.topic ? `<small>${esc(l.topic)}</small>` : ''}</h4>
         <div class="ax-table-wrap"><table class="ax-table ri-t"><thead><tr><th>Elev</th><th>Prezență</th><th>Banii</th><th></th></tr></thead><tbody>${lines}</tbody></table></div></div>`;
     }).join('');
   }
