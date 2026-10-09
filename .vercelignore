@@ -1,0 +1,11 @@
+# Not part of the site: internal docs, tooling, the Supabase functions and the design notes are not published on Vercel.
+docs
+supabase
+scripts
+.impeccable
+.claude
+.mcp.json
+fontcheck
+DESIGN.md
+PRODUCT.md
+README.md
