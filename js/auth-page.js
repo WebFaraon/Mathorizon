@@ -111,13 +111,46 @@
     profesor: 'Profesor: contul se activează după aprobarea adminului.'
   };
 
+  /* ============================================================
+     The chapters of the bank, drawn from the real data: one strip per
+     chapter, one segment per type of item, sized by its exercise count
+     (the same bank strip as on Capitole). A chapter with no exercises is
+     printed flat, "în curând". Pointing at a row makes the display read it.
+     ============================================================ */
+  const LEGEND = { algebra: 'var(--k-blue)', geometrie: 'var(--k-green)', analiza: 'var(--k-red)' };   // the legend colours, by chapter
+  const _esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const _pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
+  function renderChapters() {
+    const ul = $('apChap');
+    if (!ul || !window.BM || !BM.CATEGORIES || !BM.EXERCISES) return;
+    const byCat = {}, bySub = {};
+    BM.EXERCISES.forEach(e => { byCat[e.categoryId] = (byCat[e.categoryId] || 0) + 1; bySub[e.subcategoryId] = (bySub[e.subcategoryId] || 0) + 1; });
+    ul.innerHTML = BM.CATEGORIES.map(c => {
+      const n = byCat[c.id] || 0, lg = LEGEND[c.id] || 'var(--k-ink-soft)';
+      const sym = `<span class="ap-chap__sym" aria-hidden="true">${c.symbol || ''}</span>`;
+      if (!n) return `<li class="ap-chap__r ap-chap__r--soon" style="--lg:${lg}" data-say="${_esc(c.name)}: în curând.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__soon">în curând</span></li>`;
+      const subs = (c.subcategories || []).filter(s => bySub[s.id]);
+      const strip = subs.map((s, j) => `<i style="--w:${bySub[s.id]};--j:${j}"></i>`).join('');
+      return `<li class="ap-chap__r" style="--lg:${lg}" data-say="${_esc(c.name)}: ${_pl(n, 'exercițiu', 'exerciții')} în ${_pl(subs.length, 'tip', 'tipuri')}.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__c">${n}</span><span class="ap-chap__strip" aria-hidden="true">${strip}</span></li>`;
+    }).join('');
+  }
+  function _wireChapters() {
+    const ul = $('apChap');
+    if (!ul) return;
+    ul.addEventListener('pointerover', e => { const r = e.target.closest('.ap-chap__r'); if (r && r.dataset.say) LCD.hint(r.dataset.say); });
+    ul.addEventListener('pointerleave', () => {
+      const a = document.activeElement, h = a && HINT[a.id];
+      if (h) LCD.hint(typeof h === 'function' ? h() : h); else LCD.home();
+    });
+  }
+
   /* ---- Exercise count: same BM.EXERCISES source capitole.html uses, so
      this page never drifts from the real total. Waits on custom
      exercises so it lands on the settled number. ---- */
   function _watchBank() {
     if (!window.BM || !BM.EXERCISES) return;
     const ready = BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve();
-    ready.then(() => LCD.figuresNow()).catch(() => {});
+    ready.then(() => { LCD.figuresNow(); renderChapters(); }).catch(() => {});
   }
 
   function _getFrom() {
@@ -183,6 +216,7 @@
   /* ---- Mode keys: Conectare / Înregistrare (and the reset form, which hides them) ---- */
   function switchTab(tab) {
     if (tab === _tab) return;
+    document.body.classList.remove('ap-boot');       // the first-paint entrances must not play again
     const prev = _tab;
     _tab = tab;
     const isReset = tab === 'reset';
@@ -463,7 +497,10 @@
       switchTab(tabParam);
     }
     LCD.boot(_tab);
+    renderChapters();
     _watchBank();
+    _wireChapters();
+    setTimeout(() => document.body.classList.remove('ap-boot'), 2600);
     _wireModeKeys(); _wirePassword(); _wireCaps(); _wireHints();
   });
 
