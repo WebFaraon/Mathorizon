@@ -153,9 +153,38 @@
     ready.then(() => { LCD.figuresNow(); renderChapters(); }).catch(() => {});
   }
 
+  /* The page the person came for (?from=...). Google takes the browser away and brings it back to auth.html without the query,
+     so it is kept for that round trip in sessionStorage. */
+  function _fromParam() {
+    let from = new URLSearchParams(window.location.search).get('from');
+    try {
+      if (from) sessionStorage.setItem('bm_auth_from', from);
+      else from = sessionStorage.getItem('bm_auth_from');
+    } catch (e) { /* private mode: the default page */ }
+    return from || null;
+  }
   function _getFrom() {
-    const from = new URLSearchParams(window.location.search).get('from') || 'capitole.html';
-    return from.startsWith('http') ? 'capitole.html' : from;
+    const from = _fromParam() || 'capitole.html';
+    try { sessionStorage.removeItem('bm_auth_from'); } catch (e) { /* ignore */ }
+    return from.startsWith('http') || from.startsWith('//') ? 'capitole.html' : from;
+  }
+
+  /* A teacher who chose Profesor and then Google: Google cannot carry the role, so it is kept here and written to the new account
+     (as user metadata, like the email form does) before the profile is made. An account that already exists keeps its role. */
+  async function _applyPendingRole(session) {
+    let role = null;
+    /* kept only for the trip to Google and back: a choice abandoned there must not turn a later student sign-up into a teacher */
+    try {
+      const raw = JSON.parse(localStorage.getItem('bm_pending_role') || 'null');
+      if (raw && raw.role === 'profesor' && Date.now() - raw.at < 10 * 60 * 1000) role = 'profesor';
+      localStorage.removeItem('bm_pending_role');
+    } catch (e) { /* ignore */ }
+    if (role !== 'profesor' || !sb || !session) return;
+    try {
+      const { data } = await sb.from('user_profiles').select('user_id').eq('user_id', session.user.id).maybeSingle();
+      if (data) return;
+      await sb.auth.updateUser({ data: { role: 'profesor' } });
+    } catch (e) { /* the account is made as a student; an admin can change it */ }
   }
 
   // An admin with no explicit destination lands in the admin console.
@@ -163,7 +192,8 @@
   async function _redirect(session) {
     if (_redirecting) return;
     _redirecting = true;
-    const explicit = new URLSearchParams(window.location.search).get('from');
+    await _applyPendingRole(session);
+    const explicit = _fromParam();
     if (!explicit && session && sb) {
       try {
         const { data } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
@@ -371,6 +401,8 @@
   /* ---- Error translation ---- */
   function _roError(msg) {
     if (!msg) return 'A apărut o eroare. Încearcă din nou.';
+    if (msg.includes('provider is not enabled') || msg.includes('Unsupported provider')) return 'Conectarea cu Google nu este activată încă. Folosește emailul și parola.';
+    if (msg.includes('access_denied')) return 'Conectarea cu Google a fost anulată.';
     if (msg.includes('Invalid login credentials'))  return 'Date de conectare incorecte.';
     if (msg.includes('Email not confirmed'))        return 'Emailul nu a fost confirmat. Verifică inbox-ul.';
     if (msg.includes('User already registered'))    return 'Există deja un cont cu acest email.';
@@ -474,13 +506,34 @@
   }
   window.onReset = onReset;
 
+  /* The Google key is lit only when the project has the provider on (Supabase answers it on /auth/v1/settings). Until then it is printed flat
+     with "în curând", and a press says why, instead of sending the browser to a page of JSON. */
+  let _googleOn = true;
+  async function _checkGoogle() {
+    try {
+      const r = await fetch(SUPABASE_URL + '/auth/v1/settings', { headers: { apikey: SUPABASE_ANON } });
+      if (!r.ok) return;
+      const s = await r.json();
+      _googleOn = !!(s && s.external && s.external.google);
+    } catch (e) { return; }                       // offline or blocked: leave the key lit, the press will say what happened
+    const g = $('authGoogle');
+    if (!g) return;
+    g.classList.toggle('is-off', !_googleOn);
+    g.setAttribute('aria-disabled', _googleOn ? 'false' : 'true');
+  }
   async function onGoogle() {
     if (!sb) return _noService();
+    _clearMsg();
+    if (!_googleOn) return _showMsg('Conectarea cu Google nu este activată încă. Folosește emailul și parola.', true);
+    _fromParam();                                  // keep the page asked for across the round trip
+    try { if (_tab === 'signup' && _role === 'profesor') localStorage.setItem('bm_pending_role', JSON.stringify({ role: 'profesor', at: Date.now() })); else localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
+    const g = $('authGoogle');
+    if (g) { g.disabled = true; g.classList.add('is-loading'); }
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth.html' }
     });
-    if (error) _showMsg(_roError(error.message), true);
+    if (error) { if (g) { g.disabled = false; g.classList.remove('is-loading'); } _showMsg(_roError(error.message), true); }
   }
   window.onGoogle = onGoogle;
 
@@ -496,6 +549,16 @@
       /* the form shows at once, without the swap animation: the display boots straight into that mode */
       switchTab(tabParam);
     }
+    /* Google (through Supabase) brings an error back on the URL when the person cancels or the sign-in is refused */
+    const hashQ = new URLSearchParams((window.location.hash || '').replace(/^#/, ''));
+    const back = params.get('error_description') || params.get('error') || hashQ.get('error_description') || hashQ.get('error');
+    const backCode = params.get('error') || hashQ.get('error');
+    if (back) {
+      try { localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
+      _showMsg(backCode === 'access_denied' ? 'Conectarea cu Google a fost anulată.' : _roError(String(back).replace(/\+/g, ' ')), true);
+      history.replaceState(null, '', window.location.pathname + (tabParam ? '?tab=' + tabParam : ''));
+    }
+    _checkGoogle();
     LCD.boot(_tab);
     renderChapters();
     _watchBank();
