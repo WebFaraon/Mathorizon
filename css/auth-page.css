@@ -27,6 +27,11 @@ body.ap {
   --ap-side-ink: #F1F4FA;
   --ap-side-ink-2: #D6DEF0;
   --ap-key-on: #fff;                     /* text on a lit blue key */
+  /* the legend colours as lit tints, readable on the blue column (Algebra blue, Geometrie green, Analiza red, the rest soft) */
+  --ap-lg-blue: #C9DBFF;
+  --ap-lg-green: #86E0B8;
+  --ap-lg-red: #FFA08B;
+  --ap-lg-soft: #C5CCDA;
   --ap-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ap-field: var(--k-bg);
 
@@ -39,7 +44,7 @@ body.ap {
   font-family: var(--k-font);
   line-height: 1.45;
   animation: none;
-  overflow-x: hidden;
+  overflow-x: clip;                        /* not hidden: hidden makes the body a scroll container and the sticky column below stops sticking */
   -webkit-text-size-adjust: 100%;
   scrollbar-color: var(--k-panel-edge) transparent;
 }
@@ -247,39 +252,38 @@ body.ap [hidden] { display: none !important; }
 .ap-lcd__fig--sm { align-items: flex-end; text-align: right; }
 .ap-lcd__fig--sm b { font-size: clamp(1.5rem, 2.4vw, 1.9rem); line-height: 1; }
 
-/* ---- the chapters of the bank: a chassis plate set on the blue column. One strip per chapter, one segment per type of item, sized by its exercise count ---- */
+/* ---- the chapters of the bank, printed on the blue column itself: the chapter symbol and strip in its legend colour (as a lit tint),
+   the name, the exercise count, one strip segment per type of item sized by its count; hairline rules between the rows ---- */
 .ap-chap {
   list-style: none;
   width: calc(100% - 14px);
   max-width: 460px;
-  margin: 0 7px;
-  padding: 4px 16px;
-  background: var(--k-panel);
-  border: 1px solid var(--k-panel-edge);
-  border-radius: var(--k-r);
-  color: var(--k-ink);
+  margin: 2px 7px 0;
+  padding: 0;
+  color: var(--ap-lit);
 }
 .ap-chap__r {
-  --lg: var(--k-ink-soft);
+  --lg: var(--ap-lg-soft);
   display: grid;
   grid-template-columns: 28px minmax(0, 1fr) auto;
   align-items: center;
   column-gap: 10px;
   row-gap: 7px;
-  padding: 11px 0 10px;
+  padding: 12px 0 11px;
   cursor: default;
 }
-.ap-chap__r + .ap-chap__r { border-top: 1px solid var(--k-rule); }
+.ap-chap__r + .ap-chap__r { border-top: 1px solid color-mix(in srgb, var(--ap-side-ink) 22%, transparent); }
+.ap-chap__r:first-child { padding-top: 4px; }
 .ap-chap__sym { grid-row: 1; font-family: var(--k-math-font); font-size: 1.35rem; line-height: 1; text-align: center; color: var(--lg); }
 .ap-chap__sym sup, .ap-chap__sym sub { font-size: 0.55em; }
-.ap-chap__n { overflow: hidden; font-size: 0.86rem; font-weight: 800; letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
-.ap-chap__c { font-size: 0.8rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--k-ink-2); }
+.ap-chap__n { overflow: hidden; font-size: 0.9rem; font-weight: 800; letter-spacing: -0.01em; text-overflow: ellipsis; white-space: nowrap; }
+.ap-chap__c { font-size: 0.84rem; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--ap-side-ink-2); }
 .ap-chap__strip { grid-column: 2 / -1; display: flex; gap: 2px; height: 8px; }
 .ap-chap__strip > i { flex: var(--w, 1) 1 0; min-width: 5px; background: var(--lg); border-radius: 1px; transform-origin: left; }
-.ap-chap__r:hover .ap-chap__strip > i { filter: brightness(0.9); }
-/* not on the platform yet: printed flat, as on the Capitole keypad */
-.ap-chap__r--soon .ap-chap__n, .ap-chap__r--soon .ap-chap__sym { color: var(--k-ink-3); }
-.ap-chap__soon { padding: 2px 6px; border: 1px dashed var(--k-panel-edge); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--k-ink-3); }
+.ap-chap__r:hover .ap-chap__strip > i { filter: brightness(1.12); }
+/* not on the platform yet: printed flat, a dashed plate, as on the Capitole keypad */
+.ap-chap__r--soon .ap-chap__n, .ap-chap__r--soon .ap-chap__sym { color: var(--ap-side-ink-2); opacity: 0.8; }
+.ap-chap__soon { padding: 2px 6px; border: 1px dashed color-mix(in srgb, var(--ap-side-ink) 45%, transparent); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ap-side-ink-2); }
 
 .ap-feats { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; max-width: 460px; }
 .ap-feats li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.92rem; line-height: 1.45; color: var(--ap-side-ink-2); }

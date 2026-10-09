@@ -117,7 +117,7 @@
      (the same bank strip as on Capitole). A chapter with no exercises is
      printed flat, "în curând". Pointing at a row makes the display read it.
      ============================================================ */
-  const LEGEND = { algebra: 'var(--k-blue)', geometrie: 'var(--k-green)', analiza: 'var(--k-red)' };   // the legend colours, by chapter
+  const LEGEND = { algebra: 'var(--ap-lg-blue)', geometrie: 'var(--ap-lg-green)', analiza: 'var(--ap-lg-red)' };   // the legend colours, by chapter (lit tints for the blue column)
   const _esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
   const _pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
   function renderChapters() {
@@ -126,7 +126,7 @@
     const byCat = {}, bySub = {};
     BM.EXERCISES.forEach(e => { byCat[e.categoryId] = (byCat[e.categoryId] || 0) + 1; bySub[e.subcategoryId] = (bySub[e.subcategoryId] || 0) + 1; });
     ul.innerHTML = BM.CATEGORIES.map(c => {
-      const n = byCat[c.id] || 0, lg = LEGEND[c.id] || 'var(--k-ink-soft)';
+      const n = byCat[c.id] || 0, lg = LEGEND[c.id] || 'var(--ap-lg-soft)';
       const sym = `<span class="ap-chap__sym" aria-hidden="true">${c.symbol || ''}</span>`;
       if (!n) return `<li class="ap-chap__r ap-chap__r--soon" style="--lg:${lg}" data-say="${_esc(c.name)}: în curând.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__soon">în curând</span></li>`;
       const subs = (c.subcategories || []).filter(s => bySub[s.id]);
