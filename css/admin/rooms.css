@@ -31,7 +31,7 @@ body.ax .in-rm__hint .ax-link { font-weight: 700; background: none; border: 0; c
 body.ax .in-rm__hint .ax-link:hover { text-decoration: underline; }
 
 /* ---------- the "Cabinete" settings dialog ---------- */
-body.ax .rs-dlg { overscroll-behavior: contain; width: min(620px, calc(100vw - 32px)); max-width: none; max-height: min(90vh, 860px); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); font-family: var(--ax-font); }
+body.ax .rs-dlg { overscroll-behavior: contain; width: min(620px, calc(100vw - 32px)); max-width: none; max-height: min(90vh, 860px); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); font-family: var(--ax-font); overflow: hidden; }
 body.ax .rs-dlg[open] { display: flex; flex-direction: column; animation: rs-in 0.3s var(--ax-ease); }
 body.ax .rs-dlg::backdrop { background: rgba(10, 12, 15, 0.55); animation: ax-fade 0.2s ease-out; }
 body.ax .rs-h { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: var(--ax-sign); color: var(--ax-sign-ink); }
@@ -46,13 +46,25 @@ body.ax .rs-lede { margin: 0 0 12px; max-width: 60ch; font-size: 0.92rem; line-h
 body.ax .rs-note { margin: 0 0 12px; padding: 10px 12px; border: 1px dashed var(--ax-rule-2); font-size: 0.88rem; color: var(--ax-ink-3); }
 body.ax .rs-fill { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel-2); font-size: 0.9rem; font-weight: 600; }
 body.ax .rs-fill label { display: inline-flex; align-items: center; gap: 8px; }
-body.ax .rs-t th, body.ax .rs-t td { padding: 7px 10px; vertical-align: middle; }
-body.ax .rs-t tbody tr { animation: rl-chip 0.3s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 18ms); }
-body.ax .rs-t tr.is-dirty { background: var(--ax-hi-wash); }
-body.ax .rs-t tr.is-bad .rs-in { border-color: var(--ax-bad); }
-body.ax .rs-in { width: 72px; text-align: center; }
-body.ax .rs-vh { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-body.ax .rs-st { font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+/* the list: one row per cabinet (a grid, not a table, so nothing inside scrolls on its own: only the body of the dialog does) */
+body.ax .rs-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r-2); }
+body.ax .rs-row { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 34px; align-items: end; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--ax-rule); animation: rl-chip 0.3s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 18ms); }
+body.ax .rs-row:first-child { border-top: 0; }
+body.ax .rs-row.is-dirty { background: var(--ax-hi-wash); }
+body.ax .rs-row.is-bad .rs-in { border-color: var(--ax-bad); }
+body.ax .rs-c { display: grid; gap: 3px; margin: 0; padding: 0; background: none; }
+body.ax .rs-head { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 34px; gap: 12px; padding: 0 13px 6px 13px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .rs-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+body.ax .rs-s .ax-tag { justify-self: start; }
+body.ax .rs-in { width: 100%; text-align: center; font-variant-numeric: tabular-nums; }
+body.ax .rs-in--num { font-weight: 800; }
+body.ax .rs-in[readonly] { border-color: transparent; background: var(--ax-panel-2); color: var(--ax-ink); cursor: default; }
+body.ax .rs-s { display: grid; gap: 1px; align-self: center; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
+body.ax .rs-s small { font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rs-del { align-self: center; }
+body.ax .rs-none { padding: 14px; font-size: 0.9rem; color: var(--ax-ink-3); }
+body.ax .rs-add { margin-top: 12px; }
+body.ax .rs-help { margin: 8px 0 0; max-width: 60ch; font-size: 0.82rem; line-height: 1.45; color: var(--ax-ink-3); }
 body.ax .rs-ok { color: var(--ax-ok); }
 body.ax .rs-chg { color: var(--ax-blue); }
 body.ax .rs-err { margin: 10px 0 0; font-size: 0.9rem; font-weight: 700; color: var(--ax-bad); }
@@ -62,10 +74,17 @@ body.ax .rs-f__s { margin: 0 auto 0 0; font-size: 0.88rem; font-weight: 700; col
 @keyframes rs-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 640px) {
+  body.ax .rs-row, body.ax .rs-head { grid-template-columns: 1fr 1fr 1fr 34px; }
+  body.ax .rs-head span:nth-child(n+4) { display: none; }
+  body.ax .rs-l { position: static; width: auto; height: auto; clip-path: none; overflow: visible; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+  body.ax .rs-head { display: none; }
+  body.ax .rs-s { grid-column: 1 / 4; grid-row: 2; }
+  body.ax .rs-del { grid-column: 4; grid-row: 1; }
   body.ax .rs-dlg { width: 100vw; max-height: 100dvh; height: 100dvh; border-left: 0; border-right: 0; border-radius: 0; }
   body.ax .in-rm { min-width: 72px; }
 }
 @media (prefers-reduced-motion: reduce) {
-  body.ax .rs-dlg[open], body.ax .rs-t tbody tr, body.ax .rs-h__ic { animation: none !important; }
+  body.ax .rs-dlg[open], body.ax .rs-row, body.ax .rs-h__ic { animation: none !important; }
   body.ax .in-rm { transition: none; }
 }
+body.ax .rs-fill .rs-in { width: 72px; }

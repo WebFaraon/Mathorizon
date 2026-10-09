@@ -111,7 +111,7 @@
     (T.groups || []).forEach(g => (g.schedule || []).forEach(s => { if (s.cabinet && /^\d+$/.test(String(s.cabinet))) cabs.add(+s.cabinet); }));
     // the registers do not say how many seats a cabinet has: the admin sets it in the console (table console_rooms); until then 8, marked as not set
     const cfgRooms = new Map((T.console_rooms || []).map(r => [Number(r.num), r]));
-    const rooms = [...cabs].sort((a, b) => a - b).map(n => { const c = cfgRooms.get(n); return { id: 'c' + n, num: n, name: 'Cabinet ' + n, floor: c && c.floor != null ? c.floor : n < 15 ? 1 : n < 25 ? 2 : 3, seats: c ? c.seats : 8, seatsSet: !!c }; });
+    const rooms = [...new Set([...cabs, ...cfgRooms.keys()])].sort((a, b) => a - b).map(n => { const c = cfgRooms.get(n); return { id: 'c' + n, num: n, name: 'Cabinet ' + n, floor: c && c.floor != null ? c.floor : n < 15 ? 1 : n < 25 ? 2 : 3, seats: c ? c.seats : 8, seatsSet: !!c, inRegisters: cabs.has(n) }; });      // a cabinet the admin added here that no register lists yet comes too (inRegisters false)
 
     /* ---- groups ---- */
     const replRows = (T.replacements || []).filter(r => r.status !== 'cancelled');
