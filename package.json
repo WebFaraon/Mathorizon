@@ -13,7 +13,8 @@
     "check:demo": "node scripts/check-demo-data.js",
     "import:registru": "node scripts/registru-import/run.js",
     "check:sync": "node scripts/check-sync.js",
-    "check:registry": "node scripts/check-registry-dataset.js"
+    "check:registry": "node scripts/check-registry-dataset.js",
+    "check:oauth": "node scripts/check-oauth-guard.js"
   },
   "repository": {
     "type": "git",

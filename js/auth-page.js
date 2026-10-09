@@ -171,6 +171,41 @@
 
   /* A teacher who chose Profesor and then Google: Google cannot carry the role, so it is kept here and written to the new account
      (as user metadata, like the email form does) before the profile is made. An account that already exists keeps its role. */
+  /* Conectare is for an account that exists, Înregistrare for a new one, and Google cannot tell them apart by itself (it makes the
+     account the first time it sees an identity). So the tab the Google key was pressed in is remembered for the round trip, and when
+     Google brings the person back the server (api/auth/oauth-guard.js) says whether what happened fits that tab:
+       "no-account": they pressed it in Conectare but no account existed: the account Google just made is removed, they go to Înregistrare;
+       "exists": they pressed it in Înregistrare but the account already existed: they are signed out and sent to Conectare.
+     If the check cannot be reached the sign-in goes through as before (a failed check must never lock people out). */
+  async function _oauthGuard(session) {
+    let intent = null;
+    try {
+      const raw = JSON.parse(localStorage.getItem('bm_oauth_intent') || 'null');
+      localStorage.removeItem('bm_oauth_intent');
+      if (raw && (raw.intent === 'login' || raw.intent === 'signup') && Date.now() - raw.at < 10 * 60 * 1000) intent = raw.intent;
+    } catch (e) { /* ignore */ }
+    if (!intent || !session) return 'ok';
+    try {
+      const r = await fetch('/api/auth/oauth-guard', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + session.access_token },
+        body: JSON.stringify({ intent })
+      });
+      if (!r.ok) return 'ok';
+      const j = await r.json();
+      return j && (j.status === 'no-account' || j.status === 'exists') ? j.status : 'ok';
+    } catch (e) { return 'ok'; }
+  }
+  async function _refuseGoogle(verdict) {
+    try { localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
+    try { await sb.auth.signOut({ scope: 'local' }); } catch (e) { /* the session is dropped below anyway */ }
+    _redirecting = false;
+    switchTab(verdict === 'exists' ? 'login' : 'signup');
+    _showMsg(verdict === 'exists'
+      ? 'Există deja un cont cu acest cont Google. Conectează-te din Conectare.'
+      : 'Nu există încă un cont cu acest cont Google. Creează-l din Înregistrare.', true);
+  }
+
   async function _applyPendingRole(session) {
     let role = null;
     /* kept only for the trip to Google and back: a choice abandoned there must not turn a later student sign-up into a teacher */
@@ -192,6 +227,8 @@
   async function _redirect(session) {
     if (_redirecting) return;
     _redirecting = true;
+    const verdict = await _oauthGuard(session);
+    if (verdict !== 'ok') { await _refuseGoogle(verdict); return; }
     await _applyPendingRole(session);
     const explicit = _fromParam();
     if (!explicit && session && sb) {
@@ -526,6 +563,7 @@
     _clearMsg();
     if (!_googleOn) return _showMsg('Conectarea cu Google nu este activată încă. Folosește emailul și parola.', true);
     _fromParam();                                  // keep the page asked for across the round trip
+    try { localStorage.setItem('bm_oauth_intent', JSON.stringify({ intent: _tab === 'signup' ? 'signup' : 'login', at: Date.now() })); } catch (e) { /* ignore */ }
     try { if (_tab === 'signup' && _role === 'profesor') localStorage.setItem('bm_pending_role', JSON.stringify({ role: 'profesor', at: Date.now() })); else localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
     const g = $('authGoogle');
     if (g) { g.disabled = true; g.classList.add('is-loading'); }
