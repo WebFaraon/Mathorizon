@@ -65,8 +65,9 @@
     ]);
     // read AFTER the groups: a substitute's tab that the cron has just read is always already in this list (the command saves it right after making the tab)
     const [replacements, replacement_items] = await replacementTables(access);
+    const console_rooms = await fetchAll('console_rooms', 'num,seats,floor', 'num.asc', access).catch(() => []);        // optional: a platform without the migration has none
     stamp = latestRead(workbooks);
-    lastT = { workbooks, groups, students, lessons, replacements, replacement_items };
+    lastT = { workbooks, groups, students, lessons, replacements, replacement_items, console_rooms };
     return lastT;
   }
   /* the replacements and the money lines of each; a platform without the migration simply has none */
@@ -409,6 +410,22 @@
     }
   }
 
+  /* How many seats a cabinet has (the registers do not say): saved for everyone by the function console_set_room (admin only). items = [{ num, seats, floor }],
+     seats = null puts a cabinet back to the default. The tables are read once at the end so every screen follows. Returns { ok, msg }. */
+  async function setRooms(items) {
+    try {
+      if (!D.readOnly()) throw new Error('Capacitățile cabinetelor se salvează doar în modul Registre.');
+      const access = await token();
+      for (const it of items) await rpc('console_set_room', access, { p_num: it.num, p_seats: it.seats, p_floor: it.floor == null ? null : it.floor });
+      try { await refresh(); } catch (e) { /* the next poll reads it */ }
+      return { ok: true, msg: '' };
+    } catch (e) {
+      let msg = String((e && e.message) || e);
+      if (/Could not find the function|schema cache/i.test(msg)) msg = 'Capacitățile nu sunt puse în funcțiune (migrația 20261010100000_console_rooms.sql nu a fost rulată).';
+      return { ok: false, msg };
+    }
+  }
+
   /* A replacement: the lesson(s) of a group taught by another teacher. One command on the SUBSTITUTE's register (REPLACEMENT_CREATE): the tab of this group at
      this teacher is made (or reused), every student copied with status Inlocuire and no money; the platform then follows his marks (registru-replace).
      dates = [{ iso, start, duration, cabinet }]. Returns { ok, status, tab, url, replacementId, reused, msg }. */
@@ -561,7 +578,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, refreshReplacements, replace, cancelReplacement, settleReplacements, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, refreshReplacements, setRooms, replace, cancelReplacement, settleReplacements, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

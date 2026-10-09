@@ -355,6 +355,7 @@
             </div>
           </div>
           <div class="ax-head__keys">
+            <button type="button" class="ax-btn" id="syRooms">${ico('door', 16)} Cabinete</button>
             <button type="button" class="ax-btn" id="syAdd">${ico('plus', 16)} Adaugă registru</button>
             <button type="button" class="ax-btn ax-btn--primary" id="syAll">${ico('refresh-cw', 16)} Sincronizează acum</button>
           </div>
@@ -366,6 +367,7 @@
         </div>
         <div id="syBody" aria-live="polite"></div>`;
       root.querySelector('#syAll').addEventListener('click', () => syncNow(null));
+      root.querySelector('#syRooms').addEventListener('click', () => { if (window.AdminRooms) window.AdminRooms.open(); });
       root.querySelector('#syAdd').addEventListener('click', () => { if (C.status === 'ready') openSettings(null); });
       root.querySelector('#syReload').addEventListener('click', load);
       if (C.status === 'idle') load(); else paint();

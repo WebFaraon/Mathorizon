@@ -29,7 +29,7 @@
   const PROJ_NAME = { exo: 'Examen.md Offline', exn: 'Examen.md Online', mat: 'Matematica.md' };
   const H0 = 8, H1 = 21;
 
-  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null } });
+  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
   let S = fresh();
   try { const v = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (v && v.ng) S = Object.assign(fresh(), v); } catch (e) { /* private mode */ }
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } };
@@ -160,13 +160,51 @@
         return `<td><button type="button" class="in-cell${can ? '' : ' is-off'}${sel ? ' is-sel' : ''}${can && pref(d.id, h) ? ' is-pref' : ''}" data-cell data-d="${d.id}" data-h="${h}"${can ? '' : ' disabled'} aria-pressed="${sel}" aria-label="${esc(d.name + ' ' + hh(h) + (can ? '' : ', ocupat'))}"></button></td>`;
       }).join('')}</tr>`).join('')}</tbody></table></div>`;
   }
+  /* The cabinets for a new group at the chosen days and hour: which are free, which are taken (and by whom), which are too small, and the one that fits best
+     (the smallest free cabinet with room for everybody, so a group of two does not take a cabinet of ten). `chosen` is the person's pick while it is still valid. */
+  function roomPlan() {
+    const days = S.ng.days.slice().sort(), start = S.ng.start, dur = S.ng.dur, size = S.ng.size;
+    if (S.ng.project !== 'exo' || start == null || !days.length) return null;
+    const holders = id => D.groups.filter(g => g.status !== 'inactiv' && g.room === id && g.days.some(d => days.includes(d)) && g.start < start + dur && start < g.start + g.duration);
+    const opts = D.rooms.map(r => {
+      const by = holders(r.id).map(g => `${D.teacher(g.teacher).name}, ${g.subject} ${g.grade}, ${dayNames(g)} ${timeRange(g.start, g.duration)}`);
+      return { r, free: !by.length, by, fits: r.seats >= size, set: r.seatsSet !== false };
+    });
+    const usable = opts.filter(o => o.free && o.fits);
+    const best = usable.slice().sort((a, b) => a.r.seats - b.r.seats || a.r.num - b.r.num)[0] || null;
+    const chosen = opts.find(o => o.r.id === S.ng.room && o.free && o.fits) || best;
+    return { opts, best, chosen, size, anyUnset: opts.some(o => !o.set) };
+  }
+  function roomsHTML(plan) {
+    if (!plan) return '';
+    const { opts, best, chosen, size } = plan;
+    const chip = o => {
+      const sel = chosen && chosen.r.id === o.r.id, state = !o.free ? 'ocupat' : !o.fits ? 'prea mic' : best && best.r.id === o.r.id ? 'se potrivește' : 'liber';
+      const why = !o.free ? `Ocupat în aceste ore: ${o.by.join('; ')}` : !o.fits ? `Are ${o.r.seats} locuri, grupa are ${size}` : '';
+      return `<button type="button" class="in-rm${sel ? ' is-on' : ''}${!o.free || !o.fits ? ' is-off' : ''}${best && best.r.id === o.r.id ? ' is-best' : ''}" data-room="${o.r.id}" role="radio" aria-checked="${sel}" ${o.free && o.fits ? '' : 'disabled'}${why ? ` title="${esc(why)}"` : ''}>
+        <b>${o.r.num}</b><span class="in-rm__s">${o.r.seats} ${o.r.seats === 1 ? 'loc' : 'locuri'}${o.set ? '' : '?'}</span><small>${state}</small></button>`;
+    };
+    const spare = chosen && chosen.set ? chosen.r.seats - size : 0;
+    const note = !chosen
+      ? `<p class="in-rm__note is-bad">${ico('alert', 16)} <span>Niciun cabinet liber la ora aceasta nu are ${size === 1 ? 'un loc' : size + ' locuri'}. Alege altă oră sau altă zi.</span></p>`
+      : spare >= 3 ? `<p class="in-rm__note is-warn">${ico('alert', 16)} <span>Cabinetul ${chosen.r.num} are ${chosen.r.seats} locuri pentru ${size === 1 ? 'un elev' : size + ' elevi'}: ${spare} locuri rămân goale cât timp grupa ține cabinetul.${best && best.r.id !== chosen.r.id && best.r.seats < chosen.r.seats ? ` Cabinetul ${best.r.num} (${best.r.seats} locuri) e liber la ora aceasta.` : ''}</span></p>`
+      : '';
+    const unset = plan.anyUnset ? `<p class="in-rm__hint">Pentru cabinetele cu <b>?</b> nu se știe câte locuri au (acum 8). <button type="button" class="ax-link" data-rooms>Setează capacitățile</button></p>` : '';
+    return `<section class="in-rooms" aria-label="Cabinetul grupei">
+      <h3 class="in-rooms__h">Cabinetul <small>pentru ${size === 1 ? 'un elev' : size + ' elevi'}, ${esc(S.ng.days.slice().sort().map(d => D.DAYS[d - 1].name).join(' / '))}, ${timeRange(S.ng.start, S.ng.dur)}</small></h3>
+      <div class="in-rm__grid" role="radiogroup" aria-label="Cabinete">${opts.map(chip).join('')}</div>
+      ${note}${unset}
+    </section>`;
+  }
+
   function newHTML() {
     if (!ready()) return prompt();
     const opts = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project }).filter(o => profOk(o.t.name));
     const sel = opts.find(o => o.t.id === S.ng.teacher);
     const offline = S.ng.project === 'exo';
     const picked = sel && S.ng.start != null && S.ng.days.length;
-    const room = picked && offline ? D.freeRoom(S.ng.days, S.ng.start, S.ng.dur) : null;
+    const plan = picked && offline ? roomPlan() : null;
+    const room = plan && plan.chosen ? plan.chosen.r.id : null;
     const needProf = lyceum() && !S.profile;
     const bar = picked ? `
       <div class="in-dock is-on">
@@ -189,7 +227,7 @@
             <span class="in-tc__n"><b>${o.total}</b> ore libere pe săptămână</span>
             <span class="in-tc__chev" aria-hidden="true">${ico('chevron-down', 18)}</span>
           </button>
-          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">Alege ora; apasă și a doua zi, la aceeași oră, dacă grupa se întâlnește de două ori pe săptămână. Cu punct: ce a cerut părintele.</p>${gridHTML(o)}` : ''}</div></div>
+          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">Alege ora; apasă și a doua zi, la aceeași oră, dacă grupa se întâlnește de două ori pe săptămână. Cu punct: ce a cerut părintele.</p>${gridHTML(o)}${roomsHTML(plan)}` : ''}</div></div>
         </li>`).join('')}</ul>` : `<div class="in-empty"><span class="in-empty__ic" aria-hidden="true">${ico('search-x', 28)}</span><b>Niciun profesor nu are ore libere pentru asta.</b><span>Încearcă alt format sau scoate profesorul ales din dorințele părintelui.</span></div>`}
       ${bar}`;
   }
@@ -424,19 +462,25 @@
       const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
       const ngt = t.closest('[data-ngt]');
       if (ngt) { S.ng.teacher = S.ng.teacher === ngt.dataset.ngt ? '' : ngt.dataset.ngt; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
+      const rm = t.closest('[data-room]'); if (rm && !rm.disabled) { S.ng.room = rm.dataset.room; save(); paintPane(false); return; }
+      if (t.closest('[data-rooms]')) { if (window.AdminRooms) window.AdminRooms.open(); return; }
       const cell = t.closest('[data-cell]');
       if (cell && !cell.disabled) {
         const d = +cell.dataset.d, h = +cell.dataset.h;
         if (S.ng.start === h && S.ng.days.includes(d)) { S.ng.days = S.ng.days.filter(x => x !== d); if (!S.ng.days.length) S.ng.start = null; }
         else if (S.ng.start === h && S.ng.days.length < 3) S.ng.days = S.ng.days.concat(d);
         else { S.ng.start = h; S.ng.days = [d]; }
-        save(); paintPane(false); return;
+        save(); paintPane(false);
+        const rs = root.querySelector('.in-rooms');                       // the cabinets appear under the grid: bring them into view (above the dock)
+        if (rs && S.ng.start != null) rs.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+        return;
       }
       if (t.closest('[data-create]')) {
         const o = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project }).find(x => x.t.id === S.ng.teacher);
         if (!o || S.ng.start == null || !S.ng.days.length) return;
         const days = S.ng.days.slice().sort();
-        const room = S.ng.project === 'exo' ? D.freeRoom(days, S.ng.start, S.ng.dur) : null;
+        const plan = roomPlan(), room = S.ng.project === 'exo' ? (plan && plan.chosen ? plan.chosen.r.id : null) : null;
+        if (S.ng.project === 'exo' && !room) return;
         const sd = new Date(D.today); let k = 0;
         do { sd.setDate(sd.getDate() + 1); k++; } while (k < 8 && !days.includes(((sd.getDay() + 6) % 7) + 1));   // the first meeting: the trial lesson
         openEnrol({ fresh: { project: S.ng.project, regime: 'normal', subject: S.subject, grade: S.grade, profile: lyceum() ? (S.profile || null) : null, level: S.level || '', size: S.ng.size, status: 'completare', teacher: o.t.id, days, start: S.ng.start, duration: S.ng.dur, room, startDate: D.iso(sd), createdAt: D.todayISO } });

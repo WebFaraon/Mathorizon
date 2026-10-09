@@ -102,5 +102,12 @@ ok(RP.onDate(ds.replacements, '2026-10-15').length === 1 && RP.onDate(ds.replace
 const cancelled = [Object.assign({}, ds.replacements[0], { dates: [{ iso: '2026-10-15', start: 16, duration: 1, cabinet: '14', cancelled: true }] })];
 ok(!RP.replacedOn(cancelled, 'g1', '2026-10-15') && RP.onDate(cancelled, '2026-10-15').length === 0, 'a cancelled date is not a replacement any more');
 
+// the capacity of the cabinets: set by the admin (console_rooms), 8 and marked "not set" until then
+const withRooms = RD.build(Object.assign({}, T, { console_rooms: [{ num: 13, seats: 10, floor: 2 }] }), { today: '2026-10-09' });
+const r13 = withRooms.rooms.find(x => x.num === 13), r14 = withRooms.rooms.find(x => x.num === 14);
+ok(r13 && r13.seats === 10 && r13.floor === 2 && r13.seatsSet === true, 'a cabinet the admin has set keeps its seats and floor');
+ok(r14 && r14.seats === 8 && r14.seatsSet === false, 'a cabinet nobody has set is 8, marked not set (the console warns instead of guessing)');
+ok(ds.rooms.every(x => x.seatsSet === false), 'without the table every cabinet is "not set"');
+
 console.log(`REPLACEMENTS (console): ${pass} checks passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

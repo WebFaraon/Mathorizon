@@ -13,7 +13,7 @@
 
    Pure function, no browser needed: the same file is read by the console (window.AdminRegistryDataset) and by the Node check
    (scripts/check-registry-dataset.js), which proves that the demo registers give back exactly the demo console.
-   The registers do not say: a teacher's phone (left empty), a room's seats (8), a transfer's date (the first lesson in the new group).
+   The registers do not say: a teacher's phone (left empty), a room's seats (8 until the admin sets them: table console_rooms), a transfer's date (the first lesson in the new group).
    ============================================================ */
 (function (root, factory) {
   if (typeof module === 'object' && module.exports) module.exports = factory();
@@ -109,7 +109,9 @@
     const cabs = new Set();
     wbs.forEach(w => ((w.config && w.config.cabinet) || []).forEach(c => { if (/^\d+$/.test(String(c))) cabs.add(+c); }));
     (T.groups || []).forEach(g => (g.schedule || []).forEach(s => { if (s.cabinet && /^\d+$/.test(String(s.cabinet))) cabs.add(+s.cabinet); }));
-    const rooms = [...cabs].sort((a, b) => a - b).map(n => ({ id: 'c' + n, num: n, name: 'Cabinet ' + n, floor: n < 15 ? 1 : n < 25 ? 2 : 3, seats: 8 }));
+    // the registers do not say how many seats a cabinet has: the admin sets it in the console (table console_rooms); until then 8, marked as not set
+    const cfgRooms = new Map((T.console_rooms || []).map(r => [Number(r.num), r]));
+    const rooms = [...cabs].sort((a, b) => a - b).map(n => { const c = cfgRooms.get(n); return { id: 'c' + n, num: n, name: 'Cabinet ' + n, floor: c && c.floor != null ? c.floor : n < 15 ? 1 : n < 25 ? 2 : 3, seats: c ? c.seats : 8, seatsSet: !!c }; });
 
     /* ---- groups ---- */
     const replRows = (T.replacements || []).filter(r => r.status !== 'cancelled');
