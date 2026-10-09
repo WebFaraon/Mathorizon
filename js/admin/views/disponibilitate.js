@@ -348,7 +348,7 @@
           <dt>Status</dt><dd><span class="ax-st ax-st--${g.status}"><i class="ax-st__i"></i>${esc(st ? st.name : g.status)}</span></dd>
           <dt>Zile</dt><dd>${esc(U.daysLabel(g.days))}</dd>
           <dt>Ora</dt><dd>${range(g.start, g.start + g.duration)} (${hours(g.duration)})</dd>
-          <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}, etajul ${room.floor}` : 'Online'}</dd>
+          <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}, etajul ${room.floor}` : U.noRoom(g).label}</dd>
           <dt>Elevi</dt><dd><span class="ax-seats" aria-hidden="true">${seats}</span> ${nf.format(en)} din ${nf.format(g.size)}</dd>
           <dt>Nivel</dt><dd>${esc(g.level)}${g.profile ? `, profil ${esc(g.profile)}` : ''}</dd>
           <dt>Regim</dt><dd>${g.regime === 'vara' ? 'Vară' : 'Normal'}</dd>

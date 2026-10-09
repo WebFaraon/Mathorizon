@@ -266,7 +266,7 @@
       <tr data-open="${g.id}" tabindex="0" data-arrive style="--i:${i}" aria-label="${esc(`${g.subject} ${g.grade}, ${t.name}, ${dayNames(g)} ${timeRange(g)}`)}">
         <td>
           <div class="or-when">
-            ${room ? `<span class="or-room" title="${esc(room.name)}"><small>Cab.</small>${room.num}</span>` : `<span class="or-room or-room--on" title="Online">${ico('monitor', 16)}</span>`}
+            ${room ? `<span class="or-room" title="${esc(room.name)}"><small>Cab.</small>${room.num}</span>` : U.roomPlate(g)}
             <span><b class="or-days">${g._repl ? g.dates.map(x => `<span>${esc(replDay(x))}</span>`).join(' / ') : g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="or-time">${timeRange(g)}</span></span>
           </div>
         </td>
@@ -274,7 +274,7 @@
         <td>
           <span class="ax-strong">${esc(g.subject)}</span>
           <span class="or-proj"><span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Vară</span>' : ''}</span>
-          <span class="ax-sub">${p.mode === 'offline' ? 'Offline' : 'Online'}</span>
+          <span class="ax-sub">${p.mode === 'offline' ? 'Offline' : 'Online'}${!room && p.mode === 'offline' ? ' · fără cabinet' : ''}</span>
         </td>
         <td><span class="ax-grade">${esc(g.grade)}</span>${g.profile ? `<span class="ax-sub">${esc(g.profile)}</span>` : ''}</td>
         <td>
@@ -301,7 +301,7 @@
     return `
       ${U.activeChips(items)}
       <div class="or-bar">
-        <p class="or-count" aria-live="polite"><b>${countWord(list.length, 'grupă', 'grupe')}</b> din ${nf.format(D.groups.length)}</p>
+        <p class="or-count" aria-live="polite"><b>${countWord(list.length, 'grupă', 'grupe')}</b> din ${nf.format(D.groups.length + replRows().length)}</p>
         <p class="ax-sub">Sortat după ${esc(sortTxt)}</p>
       </div>
       ${list.length ? `
@@ -356,7 +356,7 @@
         <div class="or-dw">
           <div class="or-dw__signs">
             <span class="ax-line ax-line--${p.id}">${esc(p.name)}</span>
-            ${room ? `<span class="or-room or-room--sm"><small>Cab.</small>${room.num}</span>` : '<span class="ax-tag">Online</span>'}
+            ${room ? `<span class="or-room or-room--sm"><small>Cab.</small>${room.num}</span>` : `<span class="ax-tag${U.noRoom(g).online ? '' : ' ax-tag--warn'}">${U.noRoom(g).label}</span>`}
             ${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Școala de Vară</span>' : ''}
             ${g.status === 'activ' && free >= 2 ? `<span class="ax-tag ax-tag--warn">${ico('alert', 14)} Risc financiar</span>` : ''}
           </div>
@@ -369,7 +369,7 @@
           <dl class="ax-dl or-dw__dl">
             <dt>Profesor</dt><dd>${esc(t.name)}<a class="or-tel" href="tel:${esc(t.phone)}">${ico('phone', 14)} ${esc(fmtPhone(t.phone))}</a></dd>
             <dt>Program</dt><dd>${esc(dayNames(g))}, ${timeRange(g)}<span class="ax-sub">${g.duration === 1 ? 'Ore de 1 oră' : 'Ore de 2 ore'}</span></dd>
-            <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}<span class="ax-sub">Etajul ${room.floor}, ${room.seats} locuri</span>` : 'Online, fără cabinet'}</dd>
+            <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}<span class="ax-sub">Etajul ${room.floor}, ${room.seats} locuri</span>` : U.noRoom(g).long}</dd>
             <dt>Grupa</dt><dd>${sizeLabel(g.size)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''}<span class="ax-sub">Nivel de cunoștințe ${esc(g.level)}</span></dd>
             <dt>Locuri</dt><dd><span class="ax-seats" aria-hidden="true">${seats}</span> ${free ? `${free} ${free === 1 ? 'liber' : 'libere'} din ${g.size}` : 'Grupă completă'}</dd>
             <dt>Început</dt><dd>${esc(fmtDate(g.startDate))}<span class="ax-sub">Creată pe ${esc(fmtDate(g.createdAt))}, cod ${esc(g.id.toUpperCase())}</span></dd>
@@ -663,7 +663,7 @@
       const rows = [['Cod', 'Proiect', 'Regim', 'Disciplină', 'Clasa', 'Profil', 'Nivel', 'Format', 'Statut', 'Profesor', 'Zile', 'Ora', 'Cabinet', 'Locuri libere', 'Elevi înscriși', 'Început']];
       list.forEach(g => {
         const room = g.room ? D.room(g.room) : null;
-        rows.push([g.id.toUpperCase(), D.project(g.project).name, g.regime === 'vara' ? 'Școala de Vară' : 'Normal', g.subject, g.grade, g.profile || '', g.level, sizeLabel(g.size), statusName(D.GROUP_STATUS, g.status), D.teacher(g.teacher).name, dayNames(g), timeRange(g), room ? room.num : 'Online', D.freeSeats(g), D.enrolled(g).length, g.startDate]);
+        rows.push([g.id.toUpperCase(), D.project(g.project).name, g.regime === 'vara' ? 'Școala de Vară' : 'Normal', g.subject, g.grade, g.profile || '', g.level, sizeLabel(g.size), statusName(D.GROUP_STATUS, g.status), D.teacher(g.teacher).name, dayNames(g), timeRange(g), room ? room.num : U.noRoom(g).label, D.freeSeats(g), D.enrolled(g).length, g.startDate]);
       });
       U.downloadCSV('orar-grupe.csv', rows);
       U.toast(`Export: ${countWord(list.length, 'grupă', 'grupe')}.`);

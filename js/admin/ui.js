@@ -502,9 +502,13 @@
 
   window.AdminViews = window.AdminViews || {};
 
+  /* A group with no cabinet: in an online project that is normal ("Online"); in an offline project the register simply has no cabinet for it ("Fără cabinet"). */
+  const noRoom = g => { const p = window.AdminData.project(g.project); return p && p.mode === 'offline' ? { online: false, label: 'Fără cabinet', long: 'Fără cabinet în registru' } : { online: true, label: 'Online', long: 'Online, fără cabinet' }; };
+  const roomPlate = (g, size) => { const n = noRoom(g); return n.online ? `<span class="or-room or-room--on${size ? ' or-room--sm' : ''}" title="Online">${ico('monitor', 16)}</span>` : `<span class="or-room or-room--none${size ? ' or-room--sm' : ''}" title="${n.long}">${ico('alert', 16)}</span>`; };
+
   window.AdminUI = {
     esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
-    readQuery, writeQuery, listParam,
+    readQuery, writeQuery, listParam, noRoom, roomPlate,
     multiSelect, enhanceSelects, suggest, countUp, stagger, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };
 })();

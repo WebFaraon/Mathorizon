@@ -63,7 +63,7 @@
         </header>
         <section class="rl-who" aria-label="Grupa">
           <span>${esc(base.name)}</span><span>${esc(g.days.map(d => D.DAYS[d - 1].name).join(' / '))}, ${hh(g.start)}-${hh(g.start + g.duration)}</span>
-          <span>${g.room ? esc(D.room(g.room).name) : 'Online'}</span><span>${plural(kids.length, 'elev', 'elevi')}</span>
+          <span>${g.room ? esc(D.room(g.room).name) : U.noRoom(g).label}</span><span>${plural(kids.length, 'elev', 'elevi')}</span>
         </section>`;
     }
 
@@ -98,7 +98,7 @@
       const chips = list.map(o => `<label class="rl-room${st.room === o.room.id ? ' is-on' : ''}${o.free ? '' : ' is-off'}" ${o.free ? '' : `title="Ocupat: ${esc(o.by.join(', '))}"`}>
           <input type="radio" class="rl-in" name="rlRoom" value="${esc(o.room.id)}" ${st.room === o.room.id ? 'checked' : ''} ${o.free ? '' : 'disabled'}>
           <b>${o.room.num}</b><small>${o.free ? (g.room === o.room.id ? 'cabinetul grupei' : 'liber') : 'ocupat'}</small></label>`).join('');
-      const online = g.room ? '' : `<label class="rl-room rl-room--on${st.room === null ? ' is-on' : ''}"><input type="radio" class="rl-in" name="rlRoom" value="" ${st.room === null ? 'checked' : ''}><b>Online</b><small>fără cabinet</small></label>`;
+      const online = g.room ? '' : `<label class="rl-room rl-room--on${st.room === null ? ' is-on' : ''}"><input type="radio" class="rl-in" name="rlRoom" value="" ${st.room === null ? 'checked' : ''}><b>${U.noRoom(g).label}</b><small>${U.noRoom(g).online ? 'fără cabinet' : 'cum e acum'}</small></label>`;
       return `<div class="rl-rooms" role="radiogroup" aria-label="Cabinet">${online}${chips}</div>`;
     }
 

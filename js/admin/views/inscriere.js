@@ -119,7 +119,7 @@
     return `
       <button type="button" class="in-gc" data-enrol="${g.id}" style="--i:${i}" aria-label="${esc(`${t.name}, ${dayNames(g)} ${timeRange(g.start, g.duration)}, ${c.free} ${c.free === 1 ? 'loc liber' : 'locuri libere'}. Înscrie aici.`)}">
         <span class="in-gc__when"><b>${esc(dayNames(g))}</b><span>${timeRange(g.start, g.duration)}</span></span>
-        <span class="in-gc__room">${room ? `<span class="or-room or-room--sm" title="${esc(room.name)}"><small>Cab.</small>${room.num}</span>` : '<span class="ax-tag">Online</span>'}</span>
+        <span class="in-gc__room">${room ? `<span class="or-room or-room--sm" title="${esc(room.name)}"><small>Cab.</small>${room.num}</span>` : `<span class="ax-tag${U.noRoom(g).online ? '' : ' ax-tag--warn'}">${U.noRoom(g).label}</span>`}</span>
         <span class="in-gc__main">
           <b>${esc(t.name)}</b>
           <span>${esc(g.subject)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''} <span class="ax-line ax-line--${g.project}">${esc(D.project(g.project).short)}</span></span>

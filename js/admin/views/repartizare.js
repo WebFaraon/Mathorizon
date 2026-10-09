@@ -33,7 +33,7 @@
   const live = g => g.status !== 'inactiv';
   const range = (g, start) => `${hh(start == null ? g.start : start)}-${hh((start == null ? g.start : start) + g.duration)}`;
   const statusName = id => (D.GROUP_STATUS.find(s => s.id === id) || {}).name || id;
-  const roomName = id => (id ? D.room(id).name : 'Online');
+  const roomName = (id, g) => (id ? D.room(id).name : (g ? U.noRoom(g).label : 'Online'));
   const reduced = () => window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
 
   function daysPhrase(days) {
@@ -350,12 +350,12 @@
       return `<button type="button" class="${cls.join(' ')} rp-card--c" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}" title="${esc(t.name + ', ' + g.subject + ' ' + g.grade + ', ' + range(g))}">
         ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
         ${s.rows === 'prof'
-          ? `<span class="rp-card__t">${g.room ? 'Cab. ' + D.room(g.room).num : 'Online'}</span>`
+          ? `<span class="rp-card__t">${g.room ? 'Cab. ' + D.room(g.room).num : U.noRoom(g).label}</span>`
           : `<span class="rp-card__t">${esc(t.last)} <span class="rp-card__i">${esc(t.first[0])}.</span></span>`}
         <span class="rp-card__m"><span class="ax-grade">${esc(g.grade)}</span>${seatsHTML(g)}</span>
       </button>`;
     }
-    const head = s.rows === 'prof' ? (g.room ? D.room(g.room).name : 'Online') : t.name;
+    const head = s.rows === 'prof' ? (g.room ? D.room(g.room).name : U.noRoom(g).label) : t.name;
     const full = enr >= g.size;
     const sun = g.regime === 'vara' ? `<span class="rp-card__sun" role="img" aria-label="Școala de Vară" title="Școala de Vară">${ico('sun', 16)}</span>` : '';
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
@@ -1059,7 +1059,7 @@
         <dt>Nivel</dt><dd>${esc(g.level)}</dd>
         <dt>Format</dt><dd class="rp-dr__seats">${seatsHTML(g)} <span>${enr} din ${plural(g.size, 'loc ocupat', 'locuri ocupate')}</span></dd>
         <dt>Program</dt><dd>${esc(U.daysLabel(g.days.slice().sort((a, b) => a - b)))}<span class="ax-sub">${range(g)}, ${plural(g.duration, 'oră', 'ore')}</span></dd>
-        <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}<span class="ax-sub">${room.seats} locuri, etajul ${room.floor}</span>` : 'Online, fără cabinet'}</dd>
+        <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}<span class="ax-sub">${room.seats} locuri, etajul ${room.floor}</span>` : U.noRoom(g).long}</dd>
         <dt>Regim</dt><dd>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Școala de Vară</span>' : 'Regim normal'}</dd>
       </dl>
 

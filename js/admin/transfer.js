@@ -33,7 +33,7 @@
 
   function roomPlate(g) {
     const r = g.room ? D.room(g.room) : null;
-    return r ? `<span class="or-room or-room--sm" title="${esc(r.name)}"><small>Cab.</small>${r.num}</span>` : '<span class="ax-tag">Online</span>';
+    return r ? `<span class="or-room or-room--sm" title="${esc(r.name)}"><small>Cab.</small>${r.num}</span>` : `<span class="ax-tag${U.noRoom(g).online ? '' : ' ax-tag--warn'}">${U.noRoom(g).label}</span>`;
   }
 
   function open({ from, students, onDone }) {

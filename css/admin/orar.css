@@ -255,3 +255,4 @@ body.ax .or-seg--days button:last-child { grid-column: span 2; }
 body.ax .or-kid { max-width: none; white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.3; }
 body.ax .or-kids li { align-items: flex-start; }
 body.ax .or-kids .ax-st__i { margin-top: 5px; }
+body.ax .or-room--none { border: 1.5px dashed var(--ax-yellow); background: color-mix(in srgb, var(--ax-yellow) 14%, transparent); color: var(--ax-ink-2); }

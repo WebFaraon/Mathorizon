@@ -310,7 +310,7 @@
           <dl class="ax-dl">
             <dt>Profesor</dt><dd>${esc(t.name)}<span class="ax-sub">${esc(g.subject)}</span></dd>
             <dt>Program</dt><dd>${esc(dayNames(g))}, ${timeRange(g)}</dd>
-            <dt>Cabinet</dt><dd>${room ? esc(room.name) + `<span class="ax-sub">Etajul ${room.floor}</span>` : 'Online'}</dd>
+            <dt>Cabinet</dt><dd>${room ? esc(room.name) + `<span class="ax-sub">Etajul ${room.floor}</span>` : U.noRoom(g).label}</dd>
             <dt>Grupa</dt><dd>${sizeLabel(g.size)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''}<span class="ax-sub">Nivel ${esc(g.level)}, ${D.freeSeats(g) ? (D.freeSeats(g) === 1 ? '1 loc liber' : D.freeSeats(g) + ' locuri libere') : 'completă'}</span></dd>
           </dl>
           <a class="ax-link el-dw__go" href="#orar?prof=${encodeURIComponent(t.name)}" data-go>Grupele profesorului în Orar ${ico('arrow-right', 16)}</a>
@@ -567,7 +567,7 @@
         rows.push([st.name, st.phone, statusName(D.STUDENT_STATUS, st.status), (D.manager(st.manager) || {}).name || '', st.balance,
           st.presence.map(x => PRES[x][0]).join(''), st.level,
           t ? t.name : '', g ? D.project(g.project).name : '', g ? g.subject : '', g ? g.grade : '', g ? sizeLabel(g.size) : 'Fără grupă',
-          g ? statusName(D.GROUP_STATUS, g.status) : '', g ? dayNames(g) : '', g ? timeRange(g) : '', room ? room.num : (g ? 'Online' : ''), st.joinedAt]);
+          g ? statusName(D.GROUP_STATUS, g.status) : '', g ? dayNames(g) : '', g ? timeRange(g) : '', room ? room.num : (g ? U.noRoom(g).label : ''), st.joinedAt]);
       });
       U.downloadCSV('elevi.csv', rows);
       U.toast(`Export: ${countWord(list.length, 'elev', 'elevi')}.`);
