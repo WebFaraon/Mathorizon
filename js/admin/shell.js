@@ -31,6 +31,7 @@
       { id: 'elevi', label: 'Elevi', icon: 'users' },
       { id: 'inscriere', label: 'Înscriere', icon: 'user-plus' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
+      { id: 'inlocuiri', label: 'Înlocuiri', icon: 'replace' },
       { id: 'receptie', label: 'Recepție', icon: 'monitor' },
       { id: 'disponibilitate', label: 'Disponibilitate', icon: 'clock' },
       { id: 'analitica', label: 'Analitică', icon: 'chart-column' },

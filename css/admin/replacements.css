@@ -1,0 +1,181 @@
+/* ============================================================
+   Admin console: replacements (the assign dialog and the Înlocuiri page)
+   ============================================================
+   Station signage like the rest of the console: square corners, hairline rules, no soft shadows. The colour is the one the console already gives
+   the group state "Înlocuire" (--ax-st-inlocuire, violet), so a replacement reads the same on the board, in the list and in the register.
+   ============================================================ */
+
+/* ---------- the assign dialog ---------- */
+body.ax .rl-dlg { overscroll-behavior: contain; width: min(760px, calc(100vw - 32px)); max-width: none; max-height: min(90vh, 900px); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); font-family: var(--ax-font); }
+body.ax .rl-dlg[open] { display: flex; flex-direction: column; animation: rl-in 0.3s var(--ax-ease); }
+body.ax .rl-dlg::backdrop { background: rgba(10, 12, 15, 0.55); animation: ax-fade 0.2s ease-out; }
+body.ax .rl-dlg.is-busy { cursor: progress; }
+body.ax .rl-dlg.is-busy .rl-body { opacity: 0.6; pointer-events: none; transition: opacity 0.2s; }
+body.ax .rl-h { display: flex; align-items: center; gap: 14px; padding: 16px 20px; background: var(--ax-sign); color: var(--ax-sign-ink); }
+body.ax .rl-h__ic { display: grid; place-items: center; width: 42px; height: 42px; flex: none; background: var(--ax-st-inlocuire); color: #fff; animation: ax-icon-pop 0.5s var(--ax-ease) 0.12s backwards; }
+body.ax .rl-h__t { flex: 1; min-width: 0; }
+body.ax .rl-eye { display: block; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: var(--ax-sign-ink-2); }
+body.ax .rl-h h2 { font-size: 1.35rem; font-weight: 800; line-height: 1.2; }
+body.ax .rl-x { color: var(--ax-sign-ink); border-color: var(--ax-sign-rule); background: transparent; }
+body.ax .rl-x:hover { background: var(--ax-sign-rule); }
+body.ax .rl-who { display: flex; flex-wrap: wrap; gap: 4px 18px; padding: 10px 20px; border-bottom: 1px solid var(--ax-rule); background: var(--ax-panel-2); font-size: 0.88rem; font-weight: 600; color: var(--ax-ink-2); }
+
+body.ax .rl-body { flex: 1; min-height: 0; overflow-y: auto; padding: 4px 20px 8px; overscroll-behavior: contain; }
+body.ax .rl-sec { padding: 14px 0 16px; border-bottom: 1px solid var(--ax-rule); }
+body.ax .rl-sec:last-of-type { border-bottom: 0; }
+body.ax .rl-sec h3 { display: flex; align-items: center; gap: 10px; margin: 0 0 10px; font-size: 1rem; font-weight: 800; }
+body.ax .rl-sec h3 i { display: grid; place-items: center; width: 24px; height: 24px; background: var(--ax-ink); color: var(--ax-panel); font-size: 0.8rem; font-style: normal; font-weight: 800; }
+body.ax .rl-none { margin: 0; padding: 10px 12px; border: 1px dashed var(--ax-rule-2); font-size: 0.88rem; color: var(--ax-ink-3); }
+body.ax .rl-block { display: flex; align-items: flex-start; gap: 10px; margin: 18px 0; padding: 14px; border: 1px solid var(--ax-yellow); background: color-mix(in srgb, var(--ax-yellow) 12%, var(--ax-panel)); font-size: 0.92rem; line-height: 1.45; }
+
+/* dates: a row per lesson, a square tick like the transfer list */
+body.ax .rl-dates { display: grid; grid-template-columns: repeat(auto-fill, minmax(210px, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+body.ax .rl-dates li { animation: rl-chip 0.32s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 22ms); }
+body.ax .rl-date, body.ax .rl-t { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px 12px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
+body.ax .rl-date:hover:not(.is-off), body.ax .rl-t:hover:not(.is-off) { border-color: var(--ax-ink); background: var(--ax-hover); }
+body.ax .rl-date.is-on, body.ax .rl-t.is-on { border-color: var(--ax-ink); background: var(--ax-hi-wash); box-shadow: inset 0 0 0 1px var(--ax-ink); }
+body.ax .rl-date.is-off, body.ax .rl-t.is-off { cursor: not-allowed; background: var(--ax-panel-2); }
+body.ax .rl-in { position: absolute; inset: 0; width: 100%; height: 100%; margin: 0; opacity: 0; cursor: inherit; }
+body.ax .rl-box { display: grid; place-items: center; width: 22px; height: 22px; flex: none; border: 2px solid var(--ax-ink-3); border-radius: var(--ax-r); background: var(--ax-panel); pointer-events: none; transition: background-color 0.15s, border-color 0.15s; }
+body.ax .rl-box svg { width: 16px; height: 16px; fill: none; stroke: var(--ax-bg); stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 16; stroke-dashoffset: 16; transition: stroke-dashoffset 0.22s var(--ax-ease) 0.04s; }
+body.ax .rl-date.is-on .rl-box { border-color: var(--ax-ink); background: var(--ax-ink); }
+body.ax .rl-date.is-on .rl-box svg { stroke-dashoffset: 0; }
+body.ax .rl-date.is-off .rl-box { opacity: 0.4; }
+body.ax .rl-in:focus-visible ~ .rl-box, body.ax .rl-in:focus-visible ~ .rl-dot { outline: 2px solid var(--ax-blue); outline-offset: 2px; }
+body.ax .rl-date__d { display: grid; gap: 1px; min-width: 0; font-size: 0.9rem; }
+body.ax .rl-date__d small { font-size: 0.78rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rl-date__n { margin-left: auto; font-size: 0.74rem; font-weight: 700; color: var(--ax-st-inlocuire); text-align: right; }
+
+/* teachers: a round dot (one choice), the reason when a teacher cannot */
+body.ax .rl-ts { display: grid; gap: 6px; margin: 0; padding: 0; list-style: none; }
+body.ax .rl-ts li { animation: rl-chip 0.32s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 22ms); }
+body.ax .rl-dot { width: 20px; height: 20px; flex: none; border: 2px solid var(--ax-ink-3); border-radius: 50%; background: var(--ax-panel); pointer-events: none; transition: border-color 0.15s, background-color 0.15s, box-shadow 0.15s; }
+body.ax .rl-t.is-on .rl-dot { border-color: var(--ax-ink); background: var(--ax-ink); box-shadow: inset 0 0 0 3px var(--ax-panel); }
+body.ax .rl-t__n { display: grid; gap: 1px; min-width: 0; font-size: 0.92rem; }
+body.ax .rl-t__n small { font-size: 0.8rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .rl-t__n .rl-why { color: var(--ax-ink-2); }
+body.ax .rl-t.is-off .rl-t__n b { color: var(--ax-ink-2); }
+body.ax .rl-more { margin-top: 10px; }
+body.ax .rl-more summary { cursor: pointer; padding: 6px 0; font-size: 0.86rem; font-weight: 700; color: var(--ax-ink-2); }
+body.ax .rl-more[open] summary { margin-bottom: 6px; }
+
+/* cabinets: small plates, like the room plates of the board */
+body.ax .rl-rooms { display: flex; flex-wrap: wrap; gap: 8px; }
+body.ax .rl-room { position: relative; display: grid; justify-items: center; gap: 0; min-width: 78px; padding: 8px 12px 7px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); cursor: pointer; transition: border-color 0.15s, background-color 0.15s; }
+body.ax .rl-room b { font-size: 1.25rem; font-weight: 800; line-height: 1.1; }
+body.ax .rl-room small { font-size: 0.7rem; font-weight: 700; color: var(--ax-ink-3); }
+body.ax .rl-room:hover:not(.is-off) { border-color: var(--ax-ink); background: var(--ax-hover); }
+body.ax .rl-room.is-on { border-color: var(--ax-ink); background: var(--ax-hi-wash); box-shadow: inset 0 0 0 1px var(--ax-ink); }
+body.ax .rl-room.is-off { cursor: not-allowed; opacity: 0.5; background: var(--ax-panel-2); }
+body.ax .rl-room.is-off b { text-decoration: line-through; }
+body.ax .rl-room:has(.rl-in:focus-visible) { outline: 2px solid var(--ax-blue); outline-offset: 2px; }
+
+/* what happens */
+body.ax .rl-sum__empty { margin: 0; font-size: 0.9rem; color: var(--ax-ink-3); }
+body.ax .rl-sum__b { display: grid; gap: 8px; padding: 12px 14px; border: 1px solid var(--ax-st-inlocuire); border-left-width: 4px; background: color-mix(in srgb, var(--ax-st-inlocuire) 7%, var(--ax-panel)); animation: rl-chip 0.3s var(--ax-ease) backwards; }
+body.ax .rl-sum__b p { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--ax-ink-2); max-width: 64ch; }
+body.ax .rl-sum__b b { color: var(--ax-ink); }
+body.ax .rl-kids { display: flex; flex-wrap: wrap; gap: 6px; margin: 0; padding: 0; list-style: none; }
+body.ax .rl-kids li { padding: 3px 10px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); font-size: 0.82rem; font-weight: 700; }
+body.ax .rl-kids .rl-more-k { border-style: dashed; color: var(--ax-ink-3); }
+body.ax .rl-err { margin: 10px 0 0; font-size: 0.9rem; font-weight: 700; color: var(--ax-bad); }
+body.ax .rl-err:empty { display: none; }
+
+body.ax .rl-f { display: flex; align-items: center; justify-content: flex-end; gap: 10px; flex-wrap: wrap; padding: 12px 20px; border-top: 1px solid var(--ax-rule-2); background: var(--ax-panel-2); }
+body.ax .rl-f__s { margin: 0 auto 0 0; min-width: 0; font-size: 0.88rem; font-weight: 700; color: var(--ax-ink-2); }
+
+/* done */
+body.ax .rl-ok { display: grid; justify-items: start; gap: 8px; padding: 24px 20px; }
+body.ax .rl-ok__ic { display: grid; place-items: center; width: 44px; height: 44px; background: var(--ax-ok); animation: ax-icon-pop 0.5s var(--ax-ease) backwards; }
+body.ax .rl-ok__ic svg { width: 26px; height: 26px; fill: none; stroke: #fff; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+body.ax .rl-ok h3 { margin: 6px 0 0; font-size: 1.2rem; font-weight: 800; }
+body.ax .rl-ok p { margin: 0; max-width: 60ch; font-size: 0.94rem; line-height: 1.5; color: var(--ax-ink-2); }
+body.ax .rl-ok p b { color: var(--ax-ink); }
+body.ax .rl-ok .rl-ok__s { color: var(--ax-ink-3); }
+
+@keyframes rl-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes rl-chip { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  body.ax .rl-dlg { width: 100vw; max-height: 100dvh; height: 100dvh; border-left: 0; border-right: 0; border-radius: 0; }
+  body.ax .rl-dates { grid-template-columns: 1fr; }
+  body.ax .rl-f .ax-btn { flex: 1 1 auto; justify-content: center; }
+  body.ax .rl-f__s { flex: 1 1 100%; }
+}
+
+/* ---------- the Înlocuiri page ---------- */
+body.ax .ri-small { font-size: 1.5rem; }
+body.ax .ri-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin: 16px 0 12px; }
+body.ax .ri-n { margin-left: 6px; font-size: 0.78rem; font-weight: 800; color: var(--ax-ink-3); }
+body.ax .ri-seg button[aria-pressed="true"] .ri-n { color: inherit; opacity: 0.75; }
+body.ax .ri-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r-2); background: var(--ax-panel); }
+body.ax .ri-list li { border-top: 1px solid var(--ax-rule); animation: rl-chip 0.32s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 26ms); }
+body.ax .ri-list li:first-child { border-top: 0; }
+body.ax .ri-row { position: relative; display: grid; grid-template-columns: 112px minmax(0, 1.6fr) 90px minmax(0, 1fr) auto; align-items: center; gap: 16px; width: 100%; padding: 14px 16px 14px 18px; border: 0; background: transparent; font: inherit; color: inherit; text-align: left; cursor: pointer; transition: background-color 0.15s; }
+body.ax .ri-row::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ax-st-inlocuire); }
+body.ax .ri-row--warn::before { background: var(--ax-yellow); }
+body.ax .ri-row--bad::before { background: var(--ax-bad); }
+body.ax .ri-row--ok::before { background: var(--ax-ok); }
+body.ax .ri-row--off::before { background: var(--ax-off); }
+body.ax .ri-row:hover { background: var(--ax-hover); }
+body.ax .ri-row:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: -2px; }
+body.ax .ri-when, body.ax .ri-main, body.ax .ri-money { display: grid; gap: 2px; min-width: 0; }
+body.ax .ri-when b { font-size: 1rem; font-weight: 800; }
+body.ax .ri-main b { font-size: 0.98rem; font-weight: 800; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.ax .ri-when small, body.ax .ri-main small, body.ax .ri-money small { font-size: 0.8rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .ri-main small { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+body.ax .ri-arrow { display: inline-flex; color: var(--ax-st-inlocuire); }
+body.ax .ri-who { font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-2); }
+body.ax .ri-money b { font-size: 0.98rem; font-weight: 800; }
+body.ax .ri-chip { display: inline-block; padding: 3px 9px; border: 1px solid currentColor; font-size: 0.74rem; font-style: normal; font-weight: 800; white-space: nowrap; }
+body.ax .ri-chip--swap { color: var(--ax-st-inlocuire); }
+body.ax .ri-chip--ok { color: var(--ax-ok); }
+body.ax .ri-chip--warn { color: #8A6200; border-color: var(--ax-yellow); background: color-mix(in srgb, var(--ax-yellow) 22%, transparent); }
+body.ax .ri-chip--bad { color: var(--ax-bad); }
+body.ax .ri-chip--off { color: var(--ax-off); }
+:root[data-theme="dark"] body.ax .ri-chip--warn { color: var(--ax-yellow); }
+
+/* the drawer */
+body.ax .ri-dw { display: grid; gap: 4px; }
+body.ax .ri-dw__top { display: flex; align-items: center; gap: 10px; margin-bottom: 6px; }
+body.ax .ri-h3 { margin: 16px 0 6px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .ri-warn { color: #8A6200; font-weight: 700; }
+:root[data-theme="dark"] body.ax .ri-warn { color: var(--ax-yellow); }
+body.ax .ri-errs { display: flex; gap: 10px; align-items: flex-start; margin: 12px 0 0; padding: 12px 14px; border: 1px solid var(--ax-bad); background: color-mix(in srgb, var(--ax-bad) 8%, var(--ax-panel)); font-size: 0.9rem; line-height: 1.45; }
+body.ax .ri-errs svg { flex: none; color: var(--ax-bad); }
+body.ax .ri-dates { margin: 0; padding: 0; list-style: none; }
+body.ax .ri-dates li { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 8px 0; border-top: 1px solid var(--ax-rule); font-size: 0.9rem; }
+body.ax .ri-dates li:first-child { border-top: 0; }
+body.ax .ri-dates li.is-off span:first-child { color: var(--ax-ink-3); text-decoration: line-through; }
+body.ax .ri-cancel { display: inline-flex; align-items: center; gap: 8px; }
+body.ax .ri-cancel .ax-link { font-weight: 700; background: none; border: 0; cursor: pointer; color: var(--ax-blue); }
+body.ax .ri-cancel .ax-link:hover { text-decoration: underline; }
+body.ax .ri-sure { font-size: 0.86rem; font-weight: 700; }
+body.ax .ri-none { margin: 0; font-size: 0.9rem; color: var(--ax-ink-3); }
+body.ax .ri-lesson { margin-top: 10px; }
+body.ax .ri-lesson h4 { margin: 0 0 6px; font-size: 0.95rem; font-weight: 800; }
+body.ax .ri-lesson h4 small { margin-left: 8px; font-size: 0.8rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .ri-t th, body.ax .ri-t td { font-size: 0.86rem; }
+body.ax .ri-m--ok { color: var(--ax-ok); font-weight: 700; }
+body.ax .ri-m--warn { color: #8A6200; font-weight: 700; }
+body.ax .ri-m--bad { color: var(--ax-bad); font-weight: 700; }
+:root[data-theme="dark"] body.ax .ri-m--warn { color: var(--ax-yellow); }
+
+@media (max-width: 860px) {
+  body.ax .ri-row { grid-template-columns: minmax(0, 1fr) auto; gap: 6px 12px; }
+  body.ax .ri-when { grid-column: 1; }
+  body.ax .ri-state { grid-column: 2; grid-row: 1; justify-self: end; }
+  body.ax .ri-main { grid-column: 1 / -1; }
+  body.ax .ri-who, body.ax .ri-money { grid-column: 1 / -1; }
+}
+
+/* the board: a replacement card and the card of the group it replaces (Repartizare) */
+body.ax .rp-card--repl { border-color: var(--ax-st-inlocuire); background: color-mix(in srgb, var(--ax-st-inlocuire) 14%, var(--ax-panel)); }
+body.ax .rp-card--repl::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--ax-st-inlocuire); }
+body.ax .rp-card.is-replaced { opacity: 0.62; background-image: repeating-linear-gradient(135deg, transparent 0 7px, color-mix(in srgb, var(--ax-st-inlocuire) 14%, transparent) 7px 9px); }
+body.ax .rp-card__sub { display: block; font-size: 0.72rem; font-weight: 800; color: var(--ax-st-inlocuire); }
+
+@media (prefers-reduced-motion: reduce) {
+  body.ax .rl-dlg[open], body.ax .rl-dates li, body.ax .rl-ts li, body.ax .rl-sum__b, body.ax .ri-list li, body.ax .rl-h__ic, body.ax .rl-ok__ic { animation: none !important; }
+}
+body.ax .ri-nm { font-weight: 700; }

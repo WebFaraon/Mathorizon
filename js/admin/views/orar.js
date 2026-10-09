@@ -382,6 +382,7 @@
         <button type="button" class="ax-btn ax-btn--primary" data-tr-next ${pick.size ? '' : 'disabled'}>Alege grupa ${ico('arrow-right', 16)}</button>`
       : `<a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>
         ${regUrl ? `<a class="ax-btn ax-btn--dark" href="${esc(regUrl)}" target="_blank" rel="noopener">${ico('book-open', 16)} Arată în registru</a>` : ''}
+        ${D.readOnly() && g.status !== 'inactiv' && window.AdminReplacement ? `<button type="button" class="ax-btn" data-repl>${ico('replace', 16)} Înlocuire</button>` : ''}
         <button type="button" class="ax-btn ax-btn--primary" data-tr-start>${ico('swap', 16)} Transfer</button>`;
     const el = U.drawer({
       title: `${esc(g.subject)}, clasa ${esc(g.grade)}`,
@@ -473,6 +474,8 @@
         swapFoot();
         const sec = el.querySelector('.or-dw__kids');
         if (sec) sec.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      } else if (e.target.closest('[data-repl]')) {
+        window.AdminReplacement.open({ group: g.id, onDone: () => onChanged() });
       } else if (e.target.closest('[data-tr-cancel]')) {
         pick = null; repaintAll(); swapFoot();
       } else if (e.target.closest('[data-tr-next]')) {

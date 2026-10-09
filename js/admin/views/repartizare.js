@@ -87,10 +87,26 @@
     }
     return true;
   }
-  const dayGroups = (s, day) => D.groups.filter(g => g.days.includes(day) && pass(g, s));
+  /* Replacements (docs/inlocuiri.md), only in the week of their date: the board of a weekday is that weekday of THIS week. A lesson replaced on that date shows
+     the substitute's card (violet, his cabinet) beside the group's own card, which is marked "înlocuită" and gives no clash that day. */
+  const RPL = () => window.AdminReplacementPlan;
+  const repList = () => ((D.registry && D.registry.replacements) || []);
+  const dateOfDay = day => (RPL() ? RPL().dateOfWeekday(day, D.todayISO) : null);
+  const replacedOnDay = (gid, day) => { const iso = dateOfDay(day); return iso && RPL() && repList().length ? RPL().replacedOn(repList(), gid, iso) : null; };
+  function replGroups(day) {
+    const iso = dateOfDay(day);
+    if (!iso || !RPL() || !repList().length) return [];
+    return RPL().onDate(repList(), iso).filter(x => x.rep.base && D.group(x.rep.base) && D.teacher(x.rep.teacher)).map(({ rep, date }) => {
+      const b = D.group(rep.base);
+      return { id: 'rp~' + rep.id + '~' + date.start, _repl: true, rep, date, project: b.project, subject: b.subject, grade: b.grade, profile: b.profile, level: b.level, regime: b.regime, size: b.size, status: 'inlocuire',
+        teacher: rep.teacher, days: [day], start: date.start, duration: date.duration, room: date.cabinet ? 'c' + String(date.cabinet).replace(/\D/g, '') : null };
+    }).filter(g => !g.room || D.room(g.room));
+  }
+  const dayGroups = (s, day) => D.groups.filter(g => g.days.includes(day) && pass(g, s)).concat(replGroups(day).filter(g => pass(g, s)));
 
   function conflictInfo(day) {
-    const list = D.conflicts(day).map(c => {
+    const gone = new Set(D.groups.filter(g => replacedOnDay(g.id, day)).map(g => g.id));
+    const list = D.conflicts(day).filter(c => c.groups.filter(id => !gone.has(id)).length >= 2).map(c => {
       const gs = c.groups.map(D.group);
       const from = Math.max(...gs.map(g => g.start));
       const to = Math.min(...gs.map(g => g.start + g.duration));
@@ -207,7 +223,7 @@
 
   /* physical rooms of the day, unfiltered */
   function daySummary(day, ci) {
-    const all = D.groups.filter(g => live(g) && g.days.includes(day));
+    const all = D.groups.filter(g => live(g) && g.days.includes(day) && !replacedOnDay(g.id, day)).concat(replGroups(day));
     const inRooms = all.filter(g => g.room);
     const booked = new Set();
     inRooms.forEach(g => { for (let h = g.start; h < g.start + g.duration; h++) if (h < END) booked.add(g.room + '|' + h); });
@@ -242,7 +258,7 @@
 
   function dayStats(s, ci, d) {
     const n = dayGroups(s, d.id).length;
-    const c = d.id === s.day ? ci.list.length : D.conflicts(d.id).length;
+    const c = d.id === s.day ? ci.list.length : conflictInfo(d.id).list.length;
     return { n, c, today: d.id === isoToday() };
   }
 
@@ -318,13 +334,16 @@
   function cardHTML(g, s, lane, ci) {
     const t = D.teacher(g.teacher);
     const rc = ci.room.has(g.id), tc = ci.teacher.has(g.id);
+    const rb = replacedOnDay(g.id, s.day), rbBy = rb && D.teacher(rb.rep.teacher) ? D.teacher(rb.rep.teacher).name : 'alt profesor';
     const enr = D.enrolled(g).length;
-    const label = `${t.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}, ${statusName(g.status)}, ${enr} din ${g.size} locuri${rc ? ', cabinet dublat' : ''}${tc ? ', profesor dublat' : ''}. Deschide detaliile și mutarea.`;
+    const label = `${rb ? 'Înlocuită de ' + rbBy + ', ' : ''}${t.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}, ${statusName(g.status)}, ${enr} din ${g.size} locuri${rc ? ', cabinet dublat' : ''}${tc ? ', profesor dublat' : ''}. Deschide detaliile și mutarea.`;
     const cls = ['rp-card', 'rp-card--' + g.project, 'rp-card--st-' + g.status, 'rp-card--d' + g.duration];
     if (rc || tc) cls.push('is-clash');
     if (!live(g)) cls.push('is-off');
+    if (rb) cls.push('is-replaced');
     if (g.id === settleId) cls.push('is-settle');
     if (window.AdminRegistry && window.AdminRegistry.isSaving && window.AdminRegistry.isSaving(g.id)) cls.push('is-saving');
+    const subTag = rb ? `<span class="rp-card__sub">înlocuită de ${esc(rbBy)}</span>` : '';
     const tag = rc ? '<span class="ax-tag ax-tag--warn rp-card__tag">în conflict</span>' : tc ? '<span class="ax-tag ax-tag--warn rp-card__tag">profesor dublat</span>' : '';
     const pos = `grid-column:${g.start - FIRST + 1} / span ${Math.min(g.duration, END - g.start)};grid-row:${lane + 1}`;
     if (s.vis !== 'max') {
@@ -341,10 +360,29 @@
     const sun = g.regime === 'vara' ? `<span class="rp-card__sun" role="img" aria-label="Școala de Vară" title="Școala de Vară">${ico('sun', 16)}</span>` : '';
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
       ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
-      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>
+      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>${subTag}
       <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span></span>
       <span class="rp-card__f">${stHTML(g.status)}${g.profile ? `<span class="rp-card__p">${esc(g.profile)}</span>` : ''}</span>
       <span class="rp-card__fill${full ? ' is-full' : ''}">${seatsHTML(g)}<span class="rp-card__n"><b>${enr}</b>/${g.size}<small>${full ? 'complet' : 'elevi'}</small></span></span>
+    </button>`;
+  }
+
+  /* the substitute's card: his name, the group he takes and whose lesson it is; a click opens the replacement */
+  function replCardHTML(g, s, lane) {
+    const t = D.teacher(g.teacher), b = D.group(g.rep.base), bt = D.teacher(b.teacher);
+    const pos = `grid-column:${g.start - FIRST + 1} / span ${Math.min(g.duration, END - g.start)};grid-row:${lane + 1}`;
+    const cls = ['rp-card', 'rp-card--' + g.project, 'rp-card--repl', 'rp-card--d' + g.duration];
+    const label = `Înlocuire: ${t.name} în locul lui ${bt.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}. Deschide înlocuirea.`;
+    if (s.vis !== 'max') {
+      return `<button type="button" class="${cls.join(' ')} rp-card--c" data-repl="${esc(g.rep.id)}" style="${pos}" aria-label="${esc(label)}" title="${esc(label)}">
+        <span class="rp-card__t">${s.rows === 'prof' ? (g.room ? 'Cab. ' + D.room(g.room).num : 'Online') : esc(t.last)}</span>
+        <span class="rp-card__m"><span class="ax-grade">${esc(g.grade)}</span></span>
+      </button>`;
+    }
+    return `<button type="button" class="${cls.join(' ')}" data-repl="${esc(g.rep.id)}" style="${pos}" aria-label="${esc(label)}">
+      <span class="rp-card__top"><span class="rp-card__t">${esc(s.rows === 'prof' ? roomName(g.room) : t.name)}</span></span>
+      <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span></span>
+      <span class="rp-card__f"><span class="rp-card__sub">înlocuiește pe ${esc(bt.name)}</span></span>
     </button>`;
   }
 
@@ -401,7 +439,7 @@
       return `
         <div class="rp-row" data-row="${row.id}" data-arrive style="--i:${i};--lanes:${L.n}">
           <div class="rp-platecell">${plateHTML(row, ci)}</div>
-          <div class="rp-track">${cells}${L.sorted.map(g => cardHTML(g, s, L.lane[g.id], ci)).join('')}</div>
+          <div class="rp-track">${cells}${L.sorted.map(g => (g._repl ? replCardHTML(g, s, L.lane[g.id]) : cardHTML(g, s, L.lane[g.id], ci))).join('')}</div>
         </div>`;
     }).join('');
     const empty = !rows.length ? `<div class="ax-empty rp-board__empty"><b>${s.rows === 'cab' ? 'Niciun cabinet de afișat' : 'Niciun profesor nu predă'}</b>${filterCount(s) || s.hide ? 'Nicio grupă nu trece de filtrele alese în ziua aceasta.' : 'Nu sunt lecții în ziua aceasta.'}</div>` : '';
@@ -657,6 +695,7 @@
       const card = e.target.closest('.rp-card');
       if (!card) return;
       if (drag.justDropped) { drag.justDropped = false; return; }
+      if (card.dataset.repl) { if (window.AdminViews.inlocuiri && window.AdminViews.inlocuiri.openDetail) window.AdminViews.inlocuiri.openDetail(card.dataset.repl); return; }
       const g = D.group(card.dataset.g);
       if (!g) return;
       // a click opens the group's tab in its Google Sheets register; a group with no register yet opens the side panel (Shift+click always does)
@@ -827,7 +866,7 @@
   function wireDrag(sc, board, s) {
     board.addEventListener('pointerdown', e => {
       const card = e.target.closest('.rp-card');
-      if (!card || e.button !== 0 || e.pointerType === 'touch') return;
+      if (!card || card.dataset.repl || e.button !== 0 || e.pointerType === 'touch') return;
       const g = D.group(card.dataset.g);
       const x0 = e.clientX, y0 = e.clientY;
       const cr = card.getBoundingClientRect();

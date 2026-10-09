@@ -79,10 +79,10 @@
   }
   /* only the replacements read again (the money lines change after the registers were read: the engine runs after the sync) */
   async function refreshReplacements() {
-    if (!D.readOnly() || !lastT) return false;
+    if (!D.readOnly() || !lastT || pumping || pend.length) return false;                // a write in the queue has its guess on screen: not now
     const [replacements, replacement_items] = await replacementTables(await token());
     lastT = Object.assign({}, lastT, { replacements, replacement_items });
-    show(lastT);
+    show(lastT, { quiet: true });
     return true;
   }
 
@@ -92,10 +92,10 @@
     show(await loadTables());
     return true;
   }
-  function show(T) {
+  function show(T, opts) {
     const ds = window.AdminRegistryDataset.build(T, { today: new Date().toISOString().slice(0, 10) });
     D.useData(ds, { today: new Date() });
-    if (window.AdminShell) window.AdminShell.render();
+    if (window.AdminShell && !(opts && opts.quiet)) window.AdminShell.render();       // quiet: the page that asked repaints itself (the Înlocuiri page reads every 30 s)
   }
   /* Only some groups read again, not the whole platform: ids = groups already on screen, sheets = [{ wb, sheet }] for groups that may be new (a new tab).
      Their rows of reg_groups are replaced in the tables kept from the last read and, with opts.rows, so are their students and lessons (a payment, a status,
