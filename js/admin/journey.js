@@ -86,6 +86,24 @@
       </div>`;
   }
 
+  /* the lessons he did with a substitute, with the money that moved for each (docs/inlocuiri.md): not a group of his, so not a chapter */
+  function substitutionsHTML(J) {
+    const subs = J.substitutions || [];
+    if (!subs.length) return '';
+    const rows = subs.map(i => {
+      const moved = i.ach + i.red;
+      const money_ = i.status === 'settled'
+        ? (moved > 0 ? `${money(moved)} lei mutați din grupa lui${i.short > 0 ? `, lipseau ${money(i.short)} lei` : ''}` : `nimic mutat, lipseau ${money(i.short || i.tot)} lei`)
+        : 'se decontează';
+      return `<li>
+        <span class="jr-sub__d">${i.iso ? esc(short(i.iso)) : ''}</span>
+        <span class="jr-sub__n"><b>${i.teacher ? esc(i.teacher.name) : 'Alt profesor'}</b>${i.group ? ' în locul profesorului ' + esc(D.teacher(i.group.teacher).name) : ''}<small>${esc(MARK[i.mark] || '')}</small></span>
+        <span class="jr-sub__m">${esc(money_)}</span>
+      </li>`;
+    }).join('');
+    return `<section class="jr-sub" aria-label="Înlocuiri"><h3>Înlocuiri</h3><p>Lecții ținute de alt profesor. Elevul rămâne în grupa lui; banii unei lecții au trecut în fila profesorului care a înlocuit.</p><ul>${rows}</ul></section>`;
+  }
+
   function open(sid) {
     const J = D.journey(sid);
     if (!J) return;
@@ -120,6 +138,7 @@
         </div>
         ${J.chapters.length ? (() => { const max = Math.max(...J.chapters.map(c => c.spent), 1); return `<section class="jr-by" aria-label="Cheltuit pe grupe"><h3>Cheltuit pe grupe</h3><ul>${J.chapters.map((c, i) => `<li style="--i:${i}"><span class="jr-by__n"><b>${esc(c.g.subject)}</b> ${esc(D.teacher(c.g.teacher).name)}</span><span class="jr-by__b" aria-hidden="true"><i style="--p:${c.spent / max}"></i></span><span class="jr-by__v">${money(c.spent)} lei</span><small>${c.held} ${c.held === 1 ? 'lecție' : 'lecții'}</small></li>`).join('')}<li class="jr-by__t"><span class="jr-by__n"><b>Total</b></span><span></span><span class="jr-by__v">${money(J.totals.spent)} lei</span><small>${J.totals.held} lecții</small></li></ul></section>`; })() : ''}
         <div class="jr-tl" id="jrTl"><i class="jr-line" aria-hidden="true"></i>${body}</div>
+        ${substitutionsHTML(J)}
       </div>
       <footer class="jr-f"><span>${J.chapters.length === 1 ? 'O grupă' : J.chapters.length + ' grupe'} în parcurs</span><button type="button" class="ax-btn" data-x>Închide</button></footer>`;
     document.body.appendChild(dlg);

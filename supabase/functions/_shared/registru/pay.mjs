@@ -48,3 +48,19 @@ export function splitMoney(a, r, c) {
   }
   return { A, R, C, achC, redC, achRem: round2(A - achC), redRem: round2(R - redC), debt: round2(Math.max(0, C - total)) };
 }
+
+/* The Calculator's "Inlocuire", for one student: the hours the substitute teacher taught him (one per marked lesson row) at the price of his group's format,
+   taken from his payments and discounts in the OLD register in proportion to them, the rest staying there.
+     total = hours x price ; ach = round2(total x A / (A + R)) ; red = round2(total - ach)
+   When A + R is less than the total (not enough money) what exists is moved and the difference is "short" (it stays unpaid, the new register shows it as a
+   negative balance); with no money at all nothing moves and everything is short. Negative cells count as 0 here. */
+export function splitReplacement(a, r, price, hours = 1) {
+  const A = Math.max(0, round2(a)), R = Math.max(0, round2(r));
+  const tot = round2((Number(hours) || 0) * (Number(price) || 0)), have = round2(A + R);
+  if (!(tot > 0)) return { tot: 0, ach: 0, red: 0, short: 0, A, R };
+  if (!(have > 0)) return { tot, ach: 0, red: 0, short: tot, A, R };
+  const amount = Math.min(tot, have);
+  const ach = Math.min(A, round2(amount * (A / have)));
+  const red = round2(amount - ach);
+  return { tot, ach, red, short: round2(tot - amount), A, R };
+}

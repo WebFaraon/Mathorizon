@@ -22,6 +22,8 @@
   const WORKBOOK_COLS = 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at';
   const STUDENT_COLS = 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold';
   const LESSON_COLS = 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks';
+  const REPLACEMENT_COLS = 'id,orig_workbook,orig_sheet,repl_workbook,repl_sheet,repl_tab,status,dates,price,size,created_at,closed_at';
+  const ITEM_COLS = 'replacement_id,student_key,lesson_row,student_name,student_phone,mark,status,step,error,tries,attempt,tot,ach,red,short,settled_at';
   let stamp = null;                                   // the newest full read of any register, as of the data on screen
   const latestRead = list => list.reduce((m, w) => (w.last_full_sync_at && (!m || w.last_full_sync_at > m) ? w.last_full_sync_at : m), null);
   const read = () => { try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
@@ -61,9 +63,27 @@
       fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access),
       fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access)
     ]);
+    // read AFTER the groups: a substitute's tab that the cron has just read is always already in this list (the command saves it right after making the tab)
+    const [replacements, replacement_items] = await replacementTables(access);
     stamp = latestRead(workbooks);
-    lastT = { workbooks, groups, students, lessons };
+    lastT = { workbooks, groups, students, lessons, replacements, replacement_items };
     return lastT;
+  }
+  /* the replacements and the money lines of each; a platform without the migration simply has none */
+  async function replacementTables(access) {
+    const optional = p => p.catch(e => (/nu există încă|does not exist|schema cache/i.test(String(e && e.message)) ? [] : Promise.reject(e)));
+    return Promise.all([
+      optional(fetchAll('reg_replacements', REPLACEMENT_COLS, 'created_at.asc,id.asc', access)),
+      optional(fetchAll('reg_replacement_items', ITEM_COLS, 'replacement_id.asc,lesson_row.asc', access))
+    ]);
+  }
+  /* only the replacements read again (the money lines change after the registers were read: the engine runs after the sync) */
+  async function refreshReplacements() {
+    if (!D.readOnly() || !lastT) return false;
+    const [replacements, replacement_items] = await replacementTables(await token());
+    lastT = Object.assign({}, lastT, { replacements, replacement_items });
+    show(lastT);
+    return true;
   }
 
   /* the data read again from the registers (after a write, or on demand), without leaving the Registre mode */
@@ -389,6 +409,62 @@
     }
   }
 
+  /* A replacement: the lesson(s) of a group taught by another teacher. One command on the SUBSTITUTE's register (REPLACEMENT_CREATE): the tab of this group at
+     this teacher is made (or reused), every student copied with status Inlocuire and no money; the platform then follows his marks (registru-replace).
+     dates = [{ iso, start, duration, cabinet }]. Returns { ok, status, tab, url, replacementId, reused, msg }. */
+  async function replace({ group, teacher, dates }) {
+    try {
+      if (!D.readOnly()) throw new Error('Înlocuirile se scriu în registre doar în modul Registre.');
+      const g = D.group(group), t = D.teacher(teacher);
+      if (!g || !g._src || !g._src.wb) throw new Error('Grupa nu are un registru legat.');
+      if (!t || !t._wb) throw new Error('Profesorul nu are un registru legat.');
+      const access = await token();
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
+      const payload = { origWorkbook: g._src.wb, origSheet: g._src.sheet, dates, teacherLevel: D.tLevel(t.id) };
+      const queued = await rpc('reg_enqueue_command', access, { p_workbook: t._wb, p_sheet: 0, p_type: 'REPLACEMENT_CREATE', p_payload: payload, p_id: id });
+      const out = await call('registru-apply', access, { command_id: queued });
+      const r = (out.results || [])[0];
+      if (!r) throw new Error('Comanda nu a fost preluată (o rulează altcineva sau a fost deja aplicată). Verifică pagina Sincronizare.');
+      const ok = r.status === 'done' || r.status === 'noop';
+      if (ok) { try { await syncAfterWrite(t._wb, r.sheetId, r.tab); await refresh(); } catch (e) { /* written; the cron reads it a few minutes later */ } }
+      const url = t._ssid && r.sheetId ? `https://docs.google.com/spreadsheets/d/${t._ssid}/edit#gid=${r.sheetId}` : null;
+      return { ok, status: r.status, tab: r.tab || null, url, replacementId: r.replacementId || null, msg: r.msg || '', code: r.code || '' };
+    } catch (e) {
+      return { ok: false, status: 'failed', tab: null, url: null, msg: String((e && e.message) || e), code: 'client' };
+    }
+  }
+  /* one date of a replacement (or every date still ahead, with no iso) taken back; a lesson that has passed cannot be */
+  async function cancelReplacement(repId, iso, start) {
+    try {
+      const rep = ((D.registry && D.registry.replacements) || []).find(x => x.id === repId);
+      if (!rep) throw new Error('Înlocuirea nu mai există.');
+      const access = await token();
+      const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
+      const payload = { replacementId: repId }; if (iso) payload.iso = iso; if (start != null) payload.start = start;
+      const queued = await rpc('reg_enqueue_command', access, { p_workbook: rep._src.wb, p_sheet: 0, p_type: 'REPLACEMENT_CANCEL', p_payload: payload, p_id: id });
+      const out = await call('registru-apply', access, { command_id: queued });
+      const r = (out.results || [])[0];
+      if (!r) throw new Error('Comanda nu a fost preluată. Verifică pagina Sincronizare.');
+      const ok = r.status === 'done' || r.status === 'noop';
+      if (ok) { try { if (r.tab) await syncAfterWrite(rep._src.wb, rep._src.sheet, r.tab); await refresh(); } catch (e) { /* the cron reads it later */ } }
+      return { ok, status: r.status, msg: r.msg || '', code: r.code || '' };
+    } catch (e) {
+      return { ok: false, status: 'failed', msg: String((e && e.message) || e), code: 'client' };
+    }
+  }
+  /* run the money engine now (after the registers were read); with `retry` { replacement, key } a line that gave up is allowed to try again */
+  async function settleReplacements(retry) {
+    try {
+      const access = await token();
+      const body = retry ? { replacement_id: retry.replacement, retry_item: retry.key } : {};
+      const out = await call('registru-replace', access, body);
+      try { await refreshReplacements(); } catch (e) { /* the next poll reads it */ }
+      return { ok: true, out };
+    } catch (e) {
+      return { ok: false, msg: String((e && e.message) || e) };
+    }
+  }
+
   /* the enrolment desk: a new student in an existing group, first lesson free (status "Oră de probă") */
   async function enrol(d) {
     const m = D.manager(d.manager);
@@ -485,7 +561,7 @@
     U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
   });
 
-  window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
+  window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, refreshReplacements, replace, cancelReplacement, settleReplacements, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };
 
   // the shell paints after the sign-in: wait for it, then draw the switch and restore the saved choice
   let tries = 0;

@@ -14,6 +14,7 @@
     "import:registru": "node scripts/registru-import/run.js",
     "check:sync": "node scripts/check-sync.js",
     "check:registry": "node scripts/check-registry-dataset.js",
+    "check:replacements": "node scripts/check-replacements.js",
     "check:oauth": "node scripts/check-oauth-guard.js"
   },
   "repository": {

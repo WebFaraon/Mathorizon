@@ -128,3 +128,19 @@ body.ax .jr-f span { flex: 1; font-size: 0.86rem; font-weight: 600; color: var(-
   body.ax .jr-by, body.ax .jr-by__b i { animation: none !important; }
   body.ax .jr-by__b i { transform: scaleX(var(--p, 0)); }
 }
+
+/* the lessons done with a substitute: a list under the timeline, in the colour of the Inlocuire state */
+body.ax .jr-sub { margin: 14px 0 0; padding: 14px 16px; border: 1px solid var(--ax-rule-2); border-left: 3px solid var(--ax-st-inlocuire); background: var(--ax-panel); }
+body.ax .jr-sub h3 { margin: 0 0 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .jr-sub p { margin: 0 0 8px; font-size: 0.84rem; color: var(--ax-ink-3); max-width: 62ch; }
+body.ax .jr-sub ul { margin: 0; padding: 0; list-style: none; }
+body.ax .jr-sub li { display: grid; grid-template-columns: 110px minmax(0, 1fr) auto; align-items: baseline; gap: 12px; padding: 7px 0; border-top: 1px solid var(--ax-rule); font-size: 0.88rem; }
+body.ax .jr-sub__d { font-weight: 700; color: var(--ax-ink-2); white-space: nowrap; }
+body.ax .jr-sub__n { min-width: 0; color: var(--ax-ink-2); }
+body.ax .jr-sub__n b { color: var(--ax-ink); }
+body.ax .jr-sub__n small { display: block; font-size: 0.78rem; color: var(--ax-ink-3); }
+body.ax .jr-sub__m { text-align: right; font-weight: 700; color: var(--ax-ink); }
+@media (max-width: 640px) {
+  body.ax .jr-sub li { grid-template-columns: minmax(0, 1fr); gap: 2px; }
+  body.ax .jr-sub__m { text-align: left; }
+}

@@ -44,6 +44,18 @@ const db = {
   }
 };
 
+/* after a read of the registers: the replacements still open (a substitute's tab to follow, money to move, a tab to close) are handed to registru-replace.
+   It reads what this function has just stored, so it comes after the loop; it never fails the sync (its own run keeps its own record). */
+async function settleReplacements() {
+  try {
+    const { count } = await sb.from('reg_replacements').select('id', { count: 'exact', head: true }).eq('status', 'active');
+    if (!count) return;
+    const call = fetch(SUPABASE_URL + '/functions/v1/registru-replace', { method: 'POST', headers: { 'content-type': 'application/json', 'x-sync-secret': SECRET }, body: '{}' }).then(r => r.text()).catch(() => '');
+    const rt = (globalThis as any).EdgeRuntime;
+    if (rt && typeof rt.waitUntil === 'function') rt.waitUntil(call); else await call;
+  } catch { /* the next run tries again */ }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
@@ -95,5 +107,6 @@ Deno.serve(async (req) => {
       results.push({ workbook: wb.id, status: 'failed', error: msg });
     }
   }
+  await settleReplacements();
   return json(200, { results });
 });

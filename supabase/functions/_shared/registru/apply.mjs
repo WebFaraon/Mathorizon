@@ -19,7 +19,7 @@ const current = (book, tab, k) => { const { r, c } = parseA1(k); const x = book.
 function run(book, cmd) {
   const p = plan(book, cmd);
   if (!p.ok) return p.conflict ? { status: 'conflict', code: p.code, msg: p.msg } : { status: 'invalid', code: p.code, msg: p.msg };
-  if (p.noop) return { status: 'noop', column: p.column, writes: [] };
+  if (p.noop) return { status: 'noop', column: p.column, writes: [], info: p.info };
   if (book.hooks && book.hooks.afterPlan) book.hooks.afterPlan(book);          // tests: somebody edits the sheet right here
   // just before writing: is every cell still what the plan saw?
   const stale = p.writes.filter(x => !same(current(book, cmd.tab, x.a1), x.expect));
@@ -30,7 +30,7 @@ function run(book, cmd) {
   // read back
   const bad = p.writes.filter(x => { const now = current(book, cmd.tab, x.a1); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${current(book, cmd.tab, bad[0].a1).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
-  return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
+  return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })), info: p.info };
 }
 
 /* journal: anything with get(id) / set(id, result): a Map here, a table in the platform */
@@ -53,7 +53,7 @@ export async function applyAsync(adapter, cmd) {
   const book = await adapter.load(cmd.tab);
   const p = plan(book, cmd);
   if (!p.ok) return p.conflict ? { status: 'conflict', code: p.code, msg: p.msg } : { status: 'invalid', code: p.code, msg: p.msg };
-  if (p.noop) return { status: 'noop', column: p.column, writes: [] };
+  if (p.noop) return { status: 'noop', column: p.column, writes: [], info: p.info };
   const keys = p.writes.map(x => x.a1);
   const norm = c => ({ v: nul(c && c.v), f: (c && c.f) || null });
   const fresh = await adapter.read(cmd.tab, keys);
@@ -61,11 +61,12 @@ export async function applyAsync(adapter, cmd) {
   if (stale.length) return { status: 'conflict', code: 'changed', msg: `Celula ${stale[0].a1} a fost schimbată între timp (acum: „${norm(fresh[stale[0].a1]).v}”). Nu am scris nimic.`, cells: stale.map(x => x.a1) };
   const cells = {};
   p.writes.forEach(x => { cells[x.a1] = x.write; });
-  await adapter.write(cmd.tab, cells);
-  const after = await adapter.read(cmd.tab, keys);
+  try { await adapter.write(cmd.tab, cells); } catch (e) { return { status: 'failed', code: 'write-unknown', msg: 'Scrierea nu a răspuns: ' + String((e && e.message) || e).slice(0, 200) }; }   // it may or may not have been applied
+  let after;
+  try { after = await adapter.read(cmd.tab, keys); } catch (e) { return { status: 'failed', code: 'verify-failed', msg: 'Scrierea a răspuns, dar citirea de control a căzut: ' + String((e && e.message) || e).slice(0, 200) }; }   // written, not confirmed
   const bad = p.writes.filter(x => { const now = norm(after[x.a1]); return x.write.f ? (now.f || '') !== x.write.f : !sameVal(now.v, x.write.v) || now.f; });
   if (bad.length) return { status: 'failed', code: 'verify-failed', msg: `După scriere, celula ${bad[0].a1} are „${norm(after[bad[0].a1]).v}”, nu ce am scris.`, cells: bad.map(x => x.a1) };
-  return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })) };
+  return { status: 'done', column: p.column, writes: p.writes.map(x => ({ a1: x.a1, old: x.expect, new: x.write })), info: p.info };
 }
 
 /* SET_GROUP against a live register: the state and the schedule are written like any command (applyAsync); then, when the schedule is asked for and the tab

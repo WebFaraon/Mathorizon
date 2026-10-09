@@ -5,7 +5,11 @@
    into the same shapes the console is built on (js/admin/mock-data.js): teachers, managers, rooms, groups, students, and the
    history of a student who is in several groups (a column per group in the registers = a transfer chain here).
 
-   tables = { workbooks: [...], groups: [...], students: [...], lessons: [...] }   (rows as the database returns them)
+   tables = { workbooks: [...], groups: [...], students: [...], lessons: [...], replacements?: [...], replacement_items?: [...] }   (rows as the database returns them)
+
+   A replacement (docs/inlocuiri.md) is a tab in the substitute teacher's register. It is NOT a group of the console: it is kept out of `groups`
+   (so the schedule, the rooms and the enrolments never count it) and out of the chain of groups of a student (a replacement is never a transfer);
+   it comes back as `replacements`, and its money counts in the student's balance (`replSold`) and in his history (`replEvents`).
 
    Pure function, no browser needed: the same file is read by the console (window.AdminRegistryDataset) and by the Node check
    (scripts/check-registry-dataset.js), which proves that the demo registers give back exactly the demo console.
@@ -108,9 +112,13 @@
     const rooms = [...cabs].sort((a, b) => a - b).map(n => ({ id: 'c' + n, num: n, name: 'Cabinet ' + n, floor: n < 15 ? 1 : n < 25 ? 2 : 3, seats: 8 }));
 
     /* ---- groups ---- */
+    const replRows = (T.replacements || []).filter(r => r.status !== 'cancelled');
+    const replByTab = new Map(replRows.map(r => [r.repl_workbook + '|' + r.repl_sheet, r]));
+    const replTabRows = new Map();                                      // the tabs of the replacements, as reg_groups rows
     const groups = [], gById = new Map(), lessonsOf = {}, colsOf = {}, payOf = {}, levelsByTeacher = {};
     wbs.forEach(w => {
       (groupsByWb.get(w.id) || []).forEach(r => {
+        if (replByTab.has(w.id + '|' + r.sheet_id)) { replTabRows.set(replByTab.get(w.id + '|' + r.sheet_id).id, r); return; }
         const sl = slotsOf(r.schedule);
         const lessons = lessonsByGroupRow.get(r.id) || [];
         const dated = lessons.filter(l => l.iso && l.topic).map(l => l.iso).sort();
@@ -186,6 +194,41 @@
       payOf[g.id] = lessonsOf[g.id].map(l => l.pay);
     });
 
+    /* ---- replacements: the substitute's tab, its lines of money, and how they count for each student ---- */
+    const baseOf = new Map(groups.map(g => [g._src.wb + '|' + g._src.sheet, g]));
+    const personOfRow = row => {
+      const tk = tokens(row.name || row.student_name), ph = row.phone || row.student_phone;
+      if (ph) return (byPhone.get(ph) || []).find(p => sameName(p.tokens, tk)) || null;
+      return people.find(p => sameName(p.tokens, tk)) || null;
+    };
+    const personStudent = row => { const p = personOfRow(row); return p ? personOf.get(p) || null : null; };
+    const money = x => (x == null || x === '' ? 0 : Number(x) || 0);
+    const replacements = replRows.map(rep => {
+      const gr = replTabRows.get(rep.id), w = wbById.get(rep.repl_workbook), base = baseOf.get(rep.orig_workbook + '|' + rep.orig_sheet) || null;
+      const lessons = gr ? (lessonsByGroupRow.get(gr.id) || []).map(l => ({ row: l.row_no, iso: l.iso || null, topic: l.topic || '', marks: l.marks || {} })) : [];
+      const cols = gr ? (studentsByGroupRow.get(gr.id) || []).slice().sort((a, b) => String(a.col).length - String(b.col).length || String(a.col).localeCompare(String(b.col))).map(c => {
+        const s = personStudent(c), paid = money(c.paid), disc = money(c.discount), cost = money(c.cost);
+        return { col: c.col, name: c.name, phone: c.phone, status: c.status, paid, disc, cost, sold: c.sold == null ? Math.round((paid + disc - cost) * 100) / 100 : money(c.sold), sid: s ? s.id : null };
+      }) : [];
+      const items = (T.replacement_items || []).filter(i => i.replacement_id === rep.id).map(i => {
+        const s = personStudent(i), lesson = lessons.find(l => l.row === i.lesson_row);
+        return { rep: rep.id, key: i.student_key, row: i.lesson_row, iso: lesson && lesson.iso ? lesson.iso : null, name: i.student_name, phone: i.student_phone, sid: s ? s.id : null, mark: i.mark, status: i.status, step: i.step || null, error: i.error || null,
+          tries: i.tries || 0, attempt: i.attempt || 1, tot: money(i.tot), ach: money(i.ach), red: money(i.red), short: money(i.short), settledAt: i.settled_at || null };
+      });
+      return {
+        id: rep.id, base: base ? base.id : null, baseSrc: { wb: rep.orig_workbook, sheet: rep.orig_sheet }, teacher: tidOf.get(rep.repl_workbook) || null, baseTeacher: base ? base.teacher : null,
+        tab: rep.repl_tab || (gr && gr.tab) || '', status: rep.status, dates: (rep.dates || []).map(d => Object.assign({}, d)), price: money(rep.price), size: rep.size || (base && base.size) || null,
+        createdAt: rep.created_at || null, closedAt: rep.closed_at || null, cols, lessons, items, synced: !!gr,
+        _src: { wb: rep.repl_workbook, ssid: w ? w.spreadsheet_id : null, sheet: rep.repl_sheet, tab: rep.repl_tab || (gr && gr.tab) || '' }
+      };
+    });
+    /* the money of the lessons a student did with a substitute: the sold of his column in the substitute's tab (what he paid there minus what the lessons cost) */
+    const replSoldBy = new Map(), replEventsBy = new Map();
+    replacements.forEach(r => {
+      r.cols.forEach(c => { if (c.sid) replSoldBy.set(c.sid, Math.round(((replSoldBy.get(c.sid) || 0) + c.sold) * 100) / 100); });
+      r.items.forEach(i => { if (i.sid) (replEventsBy.get(i.sid) || replEventsBy.set(i.sid, []).get(i.sid)).push(i); });
+    });
+
     const teacherInfo = {};
     teachers.forEach(t => {
       const w = wbById.get(t._wb), td = w.teacher_data || {};
@@ -203,6 +246,11 @@
       ledger: gid => ({ lessons: lessonsOf[gid] || [], cols: colsOf[gid] || [], pay: payOf[gid] || [] }),
       /* the column of a person in a group's sheet: { col (the letter), name, phone, status, manager } as the register has it */
       columnOf: (sid, gid) => { const c = (colsOf[gid] || []).find(x => x.s.id === sid); return c ? { col: c.col, name: c.name, phone: c.phone, status: c.statusRaw, manager: c.manager } : null; },
+      replacements,
+      /* what the student owes (negative) or has ahead (positive) in the substitutes' tabs; his total balance is the groups' plus this */
+      replSold: sid => replSoldBy.get(sid) || 0,
+      /* the lines of money of his replacement lessons (for his history): { rep, iso, mark, status, ach, red, short, tot, ... } */
+      replEvents: sid => (replEventsBy.get(sid) || []).slice(),
       teacherInfo, tLevel: tid => (teacherInfo[tid] ? teacherInfo[tid].level : 4),
       payments: tid => (teacherInfo[tid] ? teacherInfo[tid].payments : []),
       summary: { workbooks: wbs.length, groups: groups.length, students: students.length, columns: enrol.length, irregular: groups.filter(g => g._irregular).length, noSchedule: groups.filter(g => !g.days.length).length }

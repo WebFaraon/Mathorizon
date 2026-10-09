@@ -7,3 +7,7 @@ verify_jwt = false
 # registru-apply checks its own access too (admin token or x-sync-secret)
 [functions.registru-apply]
 verify_jwt = false
+
+# registru-replace checks its own access too (x-sync-secret from registru-sync, or an admin token)
+[functions.registru-replace]
+verify_jwt = false

@@ -7,7 +7,7 @@
    Plain ES module (Node through require, the Supabase Edge Function through import). */
 import { colLetter, readConfig, dayNumber } from './parse.mjs';
 import { tokens } from './link.mjs';
-import { splitMoney, round2 } from './pay.mjs';
+import { splitMoney, splitReplacement, round2 } from './pay.mjs';
 
 export const FIRST_COL = 4, LAST_COL = 26, FIRST_LESSON_ROW = 9, LAST_LESSON_ROW = 198;
 const ENROLLED = new Set(['activ', 'ora de proba', 'ora de proba confirmata', 'inlocuire']);
@@ -182,6 +182,119 @@ const PLANNERS = {
       else writes.push(w(a1, snap(s, r, c), { v: null }));
     }
     return writes.length ? planOk(writes) : planOk([], { noop: true });
+  },
+
+  /* ---- Replacements (docs/inlocuiri.md): the money of one lesson taught by a substitute teacher ----
+     REPL_TAKE (the OLD register, the student's own group): works out what moves from HIS cells (never from the caller): the Calculator's Inlocuire split of
+       hours x price over his payments and discounts, and takes it out as one more minus term in each SUM. The amounts go back in `info` (and are what the
+       other register is then given). cmd: { type, tab, student: { col, name, phone }, price, hours? }
+     REPL_MONEY (either register): adds (positive) or takes out (negative) a payment and a discount of a student, as terms in the SUMs; used to give the
+       money to the substitute's tab and, when a mark is changed later, to give it back. cmd: { type, tab, student, ach, red } */
+  REPL_TAKE(book, cmd) {
+    const s = book.sheet(cmd.tab);
+    const col = locate(s, cmd.student);
+    if (!col) return NOT_FOUND();
+    const price = Number(cmd.price), hours = cmd.hours === undefined ? 1 : Number(cmd.hours);
+    if (!(price > 0) || !(hours > 0)) return invalid('price', 'Prețul sau numărul de ore nu e valid.');
+    const cA = s.get(3, col.col), cR = s.get(4, col.col), bodyA = sumBody(cA), bodyR = sumBody(cR);
+    if (bodyA === null) return invalid('cell-not-numeric', `Celula ${col.letter}3 nu e o sumă pe care o pot continua (are „${cA ? (cA.f || cA.v) : ''}”): trebuie reparată de un om.`);
+    if (bodyR === null) return invalid('cell-not-numeric', `Celula ${col.letter}4 nu e o sumă pe care o pot continua (are „${cR ? (cR.f || cR.v) : ''}”): trebuie reparată de un om.`);
+    const m = splitReplacement(s.num(3, col.col) || 0, s.num(4, col.col) || 0, price, hours);
+    const writes = [];
+    const minus = (row, body, amount) => { const term = String(amount); writes.push(w(col.letter + row, snap(s, row, col.col), { f: `SUM(${body === '0' ? '-' + term : body + '-' + term})` })); };
+    if (m.ach > 0) minus(3, bodyA, m.ach);
+    if (m.red > 0) minus(4, bodyR, m.red);
+    const info = { tot: m.tot, ach: m.ach, red: m.red, short: m.short };
+    return writes.length ? planOk(writes, { column: col.letter, info }) : planOk([], { noop: true, column: col.letter, info });
+  },
+  REPL_MONEY(book, cmd) {
+    const s = book.sheet(cmd.tab);
+    const col = locate(s, cmd.student);
+    if (!col) return NOT_FOUND();
+    const writes = [];
+    for (const [row, key] of [[3, 'ach'], [4, 'red']]) {
+      const amount = Number(cmd[key] || 0);
+      if (!Number.isFinite(amount) || Math.abs(amount) > 100000 || Math.round(amount * 100) !== amount * 100) return invalid('amount', 'Suma trebuie să aibă cel mult 2 zecimale.');
+      if (amount === 0) continue;
+      const cell = s.get(row, col.col), body = sumBody(cell);
+      if (body === null) return invalid('cell-not-numeric', `Celula ${col.letter}${row} nu e o sumă pe care o pot continua (are „${cell ? (cell.f || cell.v) : ''}”): trebuie reparată de un om.`);
+      const term = String(Math.abs(amount));
+      writes.push(w(col.letter + row, snap(s, row, col.col), { f: `SUM(${body === '0' ? (amount > 0 ? term : '-' + term) : body + (amount > 0 ? '+' : '-') + term})` }));
+    }
+    return writes.length ? planOk(writes, { column: col.letter }) : planOk([], { noop: true, column: col.letter });
+  },
+
+  /* A replacement tab that already exists for this group and teacher (docs/inlocuiri.md), brought up to date for a new replacement: the state back to
+     Inlocuire, the schedule rows of the new dates added (cabinet corrected when the slot is there already; leftover rows stay), and the students that
+     joined the base group since added in free columns with the status Inlocuire (money at 0). Students that are in the tab are not touched.
+       cmd: { type: 'REPL_TAB_UPDATE', tab, rows: [{ day, hour, cab }], students: [{ name, phone, manager, status }] } */
+  REPL_TAB_UPDATE(book, cmd, cfg) {
+    const s = book.sheet(cmd.tab);
+    if (!/^(grup|individual)/i.test(s.text(1, 1))) return invalid('not-a-group', 'Fila nu e o grupă.');
+    const STATE = 'Înlocuire';
+    if (cfg.groupState && cfg.groupState.length && !cfg.groupState.includes(STATE)) return invalid('state', `Starea „${STATE}” nu e în lista din CONFIGURARI.`);
+    if (cfg.studentStatus && cfg.studentStatus.length && !cfg.studentStatus.includes(STATE)) return invalid('status', `Statutul „${STATE}” nu e în lista din CONFIGURARI.`);
+    const writes = [];
+    if (s.text(3, 1) !== STATE) writes.push(w('A3', snap(s, 3, 1), { v: STATE }));
+
+    // schedule: what is there plus the new slots, at most six rows
+    const cur = [];
+    for (let r = 2; r <= 7; r++) { const day = dayNumber(s.text(r, 27)), hn = s.num(r, 28); if (day && hn !== null) cur.push({ day, hour: Math.round(hn * 24), cab: s.text(r, 29) }); }
+    const slots = new Map(cur.map(x => [`${x.day}|${x.hour}`, x]));
+    for (const x of (cmd.rows || [])) {
+      if (!(x.day >= 1 && x.day <= 7) || !Number.isInteger(x.hour) || x.hour < 8 || x.hour > 21) return invalid('schedule', 'Orarul înlocuirii nu e valid.');
+      if (x.cab && cfg.cabinet && cfg.cabinet.length && !cfg.cabinet.map(String).includes(String(x.cab))) return invalid('cabinet', `Cabinetul „${x.cab}” nu e în lista din CONFIGURARI.`);
+      slots.set(`${x.day}|${x.hour}`, { day: x.day, hour: x.hour, cab: x.cab == null ? '' : String(x.cab) });
+    }
+    const want = [...slots.values()].sort((a, b) => a.day - b.day || a.hour - b.hour);
+    if (want.length > 6) return invalid('schedule-full', 'Fila de înlocuire are deja orar și noile date nu mai încap (cel mult 6 ore în AA2:AC7): închide înlocuirile vechi.');
+    for (let i = 0; i < 6; i++) {
+      const r = i + 2, t = want[i], rawDay = s.text(r, 27), rawCab = s.text(r, 29), hn = s.num(r, 28);
+      if (t) {
+        if (dayNumber(rawDay) !== t.day) writes.push(w('AA' + r, snap(s, r, 27), { v: DAY_NAMES[t.day - 1] }));
+        if (hn === null || Math.round(hn * 24) !== t.hour) writes.push(w('AB' + r, snap(s, r, 28), { v: t.hour / 24 }));
+        if (rawCab !== t.cab) writes.push(w('AC' + r, snap(s, r, 29), { v: t.cab === '' ? null : t.cab }));
+      } else {
+        if (rawDay) writes.push(w('AA' + r, snap(s, r, 27), { v: null }));
+        if (hn !== null || s.text(r, 28)) writes.push(w('AB' + r, snap(s, r, 28), { v: null }));
+        if (rawCab) writes.push(w('AC' + r, snap(s, r, 29), { v: null }));
+      }
+    }
+
+    // students that are not in the tab yet: the first free columns
+    const cols = readStudents(s), taken = new Set();
+    let added = 0;
+    for (const st of (cmd.students || [])) {
+      const phone = phoneOf(st.phone), name = String(st.name || '').replace(/\s+/g, ' ').trim();
+      if (!phone || name.split(' ').length < 2) return invalid('student', 'Un elev nu are nume și telefon valide.');
+      if (locate(s, { name, phone })) continue;
+      if (cfg.manager && cfg.manager.length && st.manager && !cfg.manager.includes(st.manager)) return invalid('manager', `Managerul „${st.manager}” nu e în lista din CONFIGURARI.`);
+      const free = cols.find(x => !x.head && !x.marks && !taken.has(x.col));
+      if (!free) return invalid('no-column', 'Nu mai e nicio coloană liberă (D–Z) în fila de înlocuire.');
+      taken.add(free.col);
+      const L = free.letter, c = free.col;
+      writes.push(w(L + '1', snap(s, 1, c), { v: `${name}${phone}` }));
+      if (st.manager) writes.push(w(L + '7', snap(s, 7, c), { v: st.manager }));
+      writes.push(w(L + '8', snap(s, 8, c), { v: STATE }));
+      added++;
+    }
+    return writes.length ? planOk(writes, { info: { added } }) : planOk([], { noop: true, info: { added: 0 } });
+  },
+
+  /* The replacement is over (docs/inlocuiri.md): the tab goes to Inactiv and its schedule rows are cleared, as a teacher does when a group ends. Only a tab that
+     is still Inlocuire is closed (a person may have changed it meanwhile). cmd: { type: 'REPL_CLOSE', tab } */
+  REPL_CLOSE(book, cmd, cfg) {
+    const s = book.sheet(cmd.tab);
+    if (!/^(grup|individual)/i.test(s.text(1, 1))) return invalid('not-a-group', 'Fila nu e o grupă.');
+    if (norm(s.text(3, 1)) !== 'inlocuire') return planOk([], { noop: true });
+    if (cfg.groupState && cfg.groupState.length && !cfg.groupState.includes('Inactiv')) return invalid('state', 'Starea „Inactiv” nu e în lista din CONFIGURARI.');
+    const writes = [w('A3', snap(s, 3, 1), { v: 'Inactiv' })];
+    for (let r = 2; r <= 7; r++) {
+      if (s.text(r, 27)) writes.push(w('AA' + r, snap(s, r, 27), { v: null }));
+      if (s.num(r, 28) !== null || s.text(r, 28)) writes.push(w('AB' + r, snap(s, r, 28), { v: null }));
+      if (s.text(r, 29)) writes.push(w('AC' + r, snap(s, r, 29), { v: null }));
+    }
+    return planOk(writes);
   },
 
   /* a payment or a discount is one more term in the cell's SUM(...), the way the managers type them: =SUM(1216-608) -> =SUM(1216-608+300) */

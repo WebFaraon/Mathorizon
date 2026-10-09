@@ -533,6 +533,226 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(r2.status === 'invalid', 'availability: another tab is refused');
     }
   }
+  // ── Replacements: the Calculator's split for one student, the two money commands, the tab of the substitute ──
+  {
+    const imp = f => import('file:///' + path.join(__dirname, '..', 'supabase', 'functions', '_shared', 'registru', f).replace(/\\/g, '/'));
+    const { applyAsync } = await imp('apply.mjs');
+    const { splitReplacement } = await imp('pay.mjs');
+    const { applyReplacementCreateAsync, readOriginal, copiedStudents, replacementRows, weekdayOf } = await imp('replacement.mjs');
+
+    // the Calculator (tab Inlocuire) and the founder's example: 1 hour x 218, payments 2700, discounts 100 -> 210.21 + 7.79
+    const f1 = splitReplacement(2700, 100, 218);
+    ok(f1.ach === 210.21 && f1.red === 7.79 && f1.short === 0 && f1.tot === 218, 'replacement split: the founder example 210.21 + 7.79 = 218: ' + JSON.stringify(f1));
+    const f2 = splitReplacement(3500.5, 450, 150, 8.5);
+    ok(Math.abs(f2.ach + f2.red - 1275) < 1e-9 && f2.ach === 1129.77, 'replacement split: the Calculator sample (8.5 h x 150): ' + JSON.stringify(f2));
+    const f3 = splitReplacement(100, 50, 218);
+    ok(f3.ach === 100 && f3.red === 50 && f3.short === 68, 'replacement split: not enough money moves what exists, the rest is short: ' + JSON.stringify(f3));
+    ok(splitReplacement(0, 0, 218).short === 218 && splitReplacement(0, 0, 218).ach === 0, 'replacement split: no money at all, everything is short');
+    ok(splitReplacement(-50, 40, 218).ach === 0 && splitReplacement(-50, 40, 218).red === 40, 'replacement split: a negative cell counts as 0');
+    for (let i = 0; i < 300; i++) { const a = Math.round(Math.random() * 500000) / 100, r = Math.round(Math.random() * 100000) / 100, pr = [148, 218, 228, 248, 288, 348, 608][i % 7], h = 1 + (i % 4); const s = splitReplacement(a, r, pr, h); if (Math.abs(s.ach + s.red + s.short - s.tot) > 0.0051 || s.ach > a + 1e-9 || s.red > r + 1e-9) { ok(false, 'replacement split invariant: ' + JSON.stringify({ a, r, pr, h, s })); break; } if (i === 299) ok(true, 'replacement split: moved + short = total, never more than what the student has (300 random cases)'); }
+
+    // a small register: a tab as the teacher keeps it
+    const regTab = (cells, cfgExtra) => {
+      const spec = { 'Grupa 1': { cells }, CONFIGURARI: { hidden: true, cells: Object.assign({}, cfgCells, cfgExtra || {}) } };
+      const bk = new MemoryBook(spec, 'x.xlsx'), calls = { write: 0 };
+      return { bk, calls, load: async () => bk, read: async (tab, keys) => { const o = {}; keys.forEach(k => { const c = bk.cell(tab, k); o[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return o; }, write: async (tab, cells2) => { calls.write++; bk.set(tab, cells2); } };
+    };
+    const base = () => ({ A1: { v: 'Grup cu 6 elevi' }, A3: { v: 'Activ' }, D1: { v: 'Ionescu Ana+37369123456' }, D3: { v: 2700, f: 'sum(2700)' }, D4: { v: 100, f: 'sum(100)' }, D5: { v: 436 }, E1: { v: 'Popa Mihai+37379111222' }, E3: { v: 0, f: 'sum(0)' }, E4: { v: 0, f: 'sum(0)' } });
+    const stud = (name, phone) => ({ name, phone });
+    const take = (R, o) => applyAsync(R, Object.assign({ id: 'rt' + Math.random(), type: 'REPL_TAKE', tab: 'Grupa 1', student: stud('Ionescu Ana', '069123456'), price: 218 }, o || {}));
+    {
+      const R = regTab(base()), r = await take(R);
+      ok(r.status === 'done' && r.info.ach === 210.21 && r.info.red === 7.79 && r.info.short === 0, 'REPL_TAKE: the amounts come from his cells: ' + JSON.stringify(r.info));
+      const c = k => R.bk.cell('Grupa 1', k);
+      ok(c('D3').f === 'SUM(2700-210.21)' && c('D3').v === 2489.79 && c('D4').f === 'SUM(100-7.79)' && c('D4').v === 92.21, 'REPL_TAKE: one more minus term in each SUM, what he typed stays: ' + c('D3').f + ' ' + c('D4').f);
+      const r2 = await take(R);
+      ok(r2.status === 'done' && c('D3').f === 'SUM(2700-210.21-210.21)', 'REPL_TAKE: a second lesson takes a second term (the proportion follows what is left)');
+    }
+    {
+      const R = regTab(Object.assign(base(), { D3: { v: 100, f: 'sum(100)' }, D4: { v: 50, f: 'sum(50)' } })), r = await take(R);
+      ok(r.status === 'done' && r.info.short === 68 && R.bk.cell('Grupa 1', 'D3').v === 0 && R.bk.cell('Grupa 1', 'D4').v === 0, 'REPL_TAKE: not enough money, what exists moves, 68 is short');
+      const R0 = regTab(base()), r0 = await take(R0, { student: stud('Popa Mihai', '079111222') });
+      ok(r0.status === 'noop' && r0.info.short === 218 && R0.calls.write === 0, 'REPL_TAKE: a student with no money: nothing is written, everything is short');
+      const Rb = regTab(Object.assign(base(), { D3: { v: 'h' } })), rb = await take(Rb);
+      ok(rb.status === 'invalid' && rb.code === 'cell-not-numeric' && Rb.calls.write === 0, 'REPL_TAKE: a text in the payment cell needs a human, nothing written');
+      ok((await take(regTab(base()), { student: stud('Nimeni Nimeni', '069000000') })).code === 'not-found', 'REPL_TAKE: a student that is not in the tab is refused');
+      ok((await take(regTab(base()), { price: 0 })).code === 'price', 'REPL_TAKE: a price of 0 is refused');
+    }
+    {
+      // REPL_MONEY: gives the money to the substitute's tab and takes it back
+      const R = regTab(base()), m = (o) => applyAsync(R, Object.assign({ id: 'rm' + Math.random(), type: 'REPL_MONEY', tab: 'Grupa 1', student: stud('Popa Mihai', '079111222') }, o));
+      const r = await m({ ach: 210.21, red: 7.79 });
+      const c = k => R.bk.cell('Grupa 1', k);
+      ok(r.status === 'done' && c('E3').f === 'SUM(210.21)' && c('E4').f === 'SUM(7.79)' && c('E3').v === 210.21, 'REPL_MONEY: the first money is the first term: ' + c('E3').f);
+      const r2 = await m({ ach: -210.21, red: -7.79 });
+      ok(r2.status === 'done' && c('E3').f === 'SUM(210.21-210.21)' && c('E3').v === 0 && c('E4').v === 0, 'REPL_MONEY: taking it back leaves the sum at 0, the history in the formula');
+      ok((await m({ ach: 0, red: 0 })).status === 'noop', 'REPL_MONEY: nothing to move is a no-op');
+      ok((await m({ ach: 1.234 })).code === 'amount', 'REPL_MONEY: more than two decimals is refused');
+    }
+
+    // the two registers: the base teacher's group and the substitute's register
+    const reg2 = (spec, hooks) => {
+      const bk = new MemoryBook(spec, 'x.xlsx'), ids = {}; let n = 100; const calls = { duplicate: 0, batch: 0 };
+      return {
+        bk, calls,
+        tabs: async () => bk.sheetNames.map(nm => ({ title: nm, sheetId: ids[nm] || (ids[nm] = ++n), hidden: bk.data[nm].hidden })),
+        load: async () => bk,
+        read: async (tab, keys) => { const o = {}; keys.forEach(k => { const c = bk.cell(tab, k); o[k] = c ? { v: c.v, f: c.f } : { v: null }; }); return o; },
+        duplicate: async (src, title) => { calls.duplicate++; bk.addSheet(title, bk.data[src].cells); ids[title] = ++n; return { sheetId: ids[title] }; },
+        remove: async tt => bk.removeSheet(tt),
+        batchWrite: async ({ clears, cells }) => { calls.batch++; if (hooks && hooks.failBatch) throw new Error('Google 500: simulat'); clears.forEach(c2 => bk.clearRange(c2.tab, c2.range)); Object.keys(cells).forEach(tb => bk.set(tb, cells[tb])); },
+        write: async (tab, cells) => { bk.set(tab, cells); }
+      };
+    };
+    const lists = { B2: { v: 'Matematica' }, F2: { v: 'Activ' }, F3: { v: 'Înlocuire' }, F4: { v: 'Inactiv' }, G2: { v: 'Activ' }, G3: { v: 'Înlocuire' }, G4: { v: 'Transferat' }, G5: { v: 'Inactiv' }, G6: { v: 'Oră de probă' }, I2: { v: '13' }, I3: { v: '14' }, D2: { v: '9 ― 10' } };
+    const cfgR = Object.assign({}, cfgCells, lists);
+    const origTab = () => ({
+      A1: { v: 'Grup cu 6 elevi' }, A3: { v: 'Activ' }, A4: { v: 'Matematica' }, A5: { v: 'XII' }, A6: { v: '9 ― 10' }, A7: { v: 'Real' },
+      D1: { v: 'Ionescu Ana+37369123456' }, D7: { v: 'Pricinoc Ariadna' }, D8: { v: 'Activ' }, D3: { v: 2700, f: 'sum(2700)' }, D4: { v: 100, f: 'sum(100)' },
+      E1: { v: 'Popa Mihai+37379111222' }, E7: { v: 'Cerchez Cristina' }, E8: { v: 'Oră de probă' },
+      F1: { v: 'Rusu Elena+37369555444' }, F7: { v: 'Cerchez Cristina' }, F8: { v: 'Inactiv' },
+      G1: { v: 'Sula Vlad+37369777888' }, G7: { v: 'Cerchez Cristina' }, G8: { v: 'Transferat' },
+      H1: { v: 'Mîrzac Samuel+37369333444' }, H7: { v: 'Pricinoc Ariadna' }, H8: { v: 'Instabil' }
+    });
+    const orarT = () => ({ A1: { v: 'Grup cu 6 elevi' }, A3: { v: 'Starea grupului' }, A4: { v: 'Materia' }, A5: { v: 'Clasa' }, A6: { v: 'Nivelul' }, A7: { v: 'Profilul' }, D3: { v: 0, f: 'sum(0)' }, D4: { v: 0, f: 'sum(0)' }, AA9: { v: 'Nivelul Profesorului 4' } });
+    const totalCells = n => { const c = {}; for (let i = 0; i < n; i++) { const col = 6 + i; c[(col <= 26 ? String.fromCharCode(64 + col) : 'A' + String.fromCharCode(64 + col - 26)) + '4'] = { v: 'Grupa ' + i }; } return c; };
+    const pair = (o, hooks) => ({
+      from: reg2({ 'Marți/Joi 16:00-17:00': { cells: origTab() }, CONFIGURARI: { hidden: true, cells: cfgCells } }),
+      to: reg2(Object.assign({ 'Total achitări': { cells: totalCells(2) }, 'Orar 1': { cells: orarT() }, CONFIGURARI: { hidden: true, cells: (o && o.cfg) || cfgR } }, (o && o.extra) || {}), hooks)
+    });
+    const dates = [{ iso: '2026-10-15', start: 16, duration: 1, cabinet: '13' }];
+    const create = (P, o) => applyReplacementCreateAsync(P, Object.assign({ id: 'rc' + Math.random(), fromTab: 'Marți/Joi 16:00-17:00', dates, teacherLevel: 4 }, o || {}));
+    ok(weekdayOf('2026-10-15') === 4 && weekdayOf('2026-10-18') === 7 && weekdayOf('2026-10-12') === 1, 'replacement: the weekday of a date (Thursday = 4, Sunday = 7)');
+    ok(JSON.stringify(replacementRows([{ iso: '2026-10-15', start: 16, duration: 2, cabinet: '13' }, { iso: '2026-10-22', start: 16, duration: 2, cabinet: '13' }])) === JSON.stringify([{ day: 4, hour: 16, cab: '13' }, { day: 4, hour: 17, cab: '13' }]), 'replacement: two Thursdays are the same two schedule rows');
+    ok(copiedStudents(readOriginal(pair().from.bk, 'Marți/Joi 16:00-17:00')).map(s => s.name).join('|') === 'Ionescu Ana|Popa Mihai|Mîrzac Samuel', 'replacement: Inactiv and Transferat are not copied');
+    {
+      const P = pair(), r = await create(P);
+      const tab = 'Înlocuire Marți/Joi 16:00-17:00', c = k => P.to.bk.cell(tab, k) || {};
+      ok(r.status === 'done' && r.tab === tab && r.students === 3 && r.reused === false && r.totalListed, 'replacement tab: created from Orar 1 and listed in Total: ' + JSON.stringify({ s: r.status, t: r.tab, m: r.msg }));
+      ok(c('A1').v === 'Grup cu 6 elevi' && c('A3').v === 'Înlocuire' && c('A4').v === 'Matematica' && c('A5').v === 'XII' && c('A6').v === '9 ― 10' && c('A7').v === 'Real', 'replacement tab: format, state, subject, class, level, profile as the base group');
+      ok(c('D1').v === 'Ionescu Ana+37369123456' && c('E1').v === 'Popa Mihai+37379111222' && c('F1').v === 'Mîrzac Samuel+37369333444' && !c('G1').v, 'replacement tab: the three students in the first columns, written as the register writes them');
+      ok(['D', 'E', 'F'].every(L => c(L + '8').v === 'Înlocuire') && c('D7').v === 'Pricinoc Ariadna' && c('E7').v === 'Cerchez Cristina', 'replacement tab: status Înlocuire and the manager of each');
+      ok(['D', 'E', 'F'].every(L => c(L + '3').f === 'sum(0)' && c(L + '4').f === 'sum(0)'), 'replacement tab: no money at all (payments and discounts at sum(0))');
+      ok(c('AA2').v === 'Joi' && Math.abs(c('AB2').v - 16 / 24) < 1e-9 && c('AC2').v === '13' && !c('AA3').v, 'replacement tab: the schedule is the Thursday 16:00 in cabinet 13');
+      ok(c('AA9').v === 'Nivelul Profesorului 4' && P.to.bk.cell('Total achitări', 'H4').v === tab, 'replacement tab: the substitute\'s level on the rows, the name in the Total list');
+      ok(P.from.bk.cell('Marți/Joi 16:00-17:00', 'D3').f === 'sum(2700)' && P.from.bk.cell('Marți/Joi 16:00-17:00', 'D8').v === 'Activ' && P.from.calls.batch === 0, 'replacement: the base group is not touched (students stay Activ, money stays)');
+      // a second replacement of the same group by the same teacher: the same tab, brought up to date
+      P.from.bk.data['Marți/Joi 16:00-17:00'].cells.I1 = { v: 'Nou Elev+37369222111' }; P.from.bk.data['Marți/Joi 16:00-17:00'].cells.I7 = { v: 'Cerchez Cristina' }; P.from.bk.data['Marți/Joi 16:00-17:00'].cells.I8 = { v: 'Activ' };
+      P.to.bk.data[tab].cells.A3 = { v: 'Inactiv' }; delete P.to.bk.data[tab].cells.AA2; delete P.to.bk.data[tab].cells.AB2; delete P.to.bk.data[tab].cells.AC2;
+      const r2 = await create(P, { existingTab: tab, dates: [{ iso: '2026-10-22', start: 16, duration: 1, cabinet: '14' }] });
+      ok(r2.status === 'done' && r2.reused === true && c('A3').v === 'Înlocuire' && c('AA2').v === 'Joi' && c('AC2').v === '14' && c('G1').v === 'Nou Elev+37369222111' && c('G8').v === 'Înlocuire', 'replacement tab reused: state back to Înlocuire, the new schedule, the student that joined meanwhile added: ' + JSON.stringify({ s: r2.status, m: r2.msg }));
+      ok(P.to.calls.duplicate === 1, 'replacement tab reused: no second tab was made');
+      const r3 = await create(P, { existingTab: tab, dates: [{ iso: '2026-10-22', start: 16, duration: 1, cabinet: '14' }] });
+      ok(r3.status === 'noop', 'replacement tab reused: the same request again changes nothing');
+    }
+    {
+      const bad = [
+        [pair({ cfg: Object.assign({}, cfgR, { F3: { v: 'Altceva' } }) }), {}, 'state'],
+        [pair({ cfg: Object.assign({}, cfgR, { G3: { v: 'Altceva' } }) }), {}, 'status'],
+        [pair({ cfg: Object.assign({}, cfgR, { B2: { v: 'Fizica' } }) }), {}, 'subject'],
+        [pair(), { dates: [{ iso: '2026-10-15', start: 16, duration: 1, cabinet: '99' }] }, 'cabinet'],
+        [pair(), { dates: [] }, 'schedule'],
+        [pair(), { teacherLevel: 9 }, 'teacher-level'],
+        [pair({ extra: { 'Total achitări': { cells: totalCells(30) } } }), {}, 'total-full']
+      ];
+      for (const [P, o, code] of bad) { const r = await create(P, o); ok(r.status === 'invalid' && r.code === code && P.to.calls.duplicate === 0, 'replacement tab refused (' + code + '), nothing created: ' + r.status + ' ' + r.code); }
+      const P0 = pair(); P0.from.bk.data['Marți/Joi 16:00-17:00'].cells.D8 = { v: 'Inactiv' }; P0.from.bk.data['Marți/Joi 16:00-17:00'].cells.E8 = { v: 'Transferat' }; P0.from.bk.data['Marți/Joi 16:00-17:00'].cells.H8 = { v: 'Inactiv' };
+      const rn = await create(P0);
+      ok(rn.status === 'invalid' && rn.code === 'no-students' && P0.to.calls.duplicate === 0, 'replacement tab refused: no student left to copy');
+      const Pf = pair({}, { failBatch: true }), before = Pf.to.bk.sheetNames.slice(), rf = await create(Pf);
+      ok(rf.status === 'failed' && rf.code === 'replacement-failed' && JSON.stringify(Pf.to.bk.sheetNames) === JSON.stringify(before), 'replacement tab: the write fails, the new tab is deleted again, nothing is left behind');
+    }
+
+    // ── the engine: the marks of the substitute become money, in both registers, and come back when a mark changes ──
+    {
+      const { settleReplacements, itemKey } = await imp('replacement-engine.mjs');
+      const P = pair(), cr = await create(P), replTab = cr.tab, origName = 'Marți/Joi 16:00-17:00';
+      const cO = k => (P.from.bk.cell(origName, k) || {}), cN = k => (P.to.bk.cell(replTab, k) || {});
+      const journal = new Map(), calls = [];
+      let failNext = null;
+      const run = async req => {
+        if (journal.has(req.id)) return journal.get(req.id);                       // the same id answers with the first answer
+        if (failNext && (!failNext.step || req.id.includes('-' + failNext.step + '-'))) { const f = failNext; failNext = null; if (f.throws) throw new Error('căzut'); const r = { status: 'failed', code: f.code || 'google', msg: 'simulat' }; return r; }
+        const orig = req.workbook === 'O', ad = orig ? P.from : P.to, tab = orig ? origName : replTab;
+        const r = await applyAsync(ad, Object.assign({ id: req.id, type: req.type, tab }, req.payload));
+        journal.set(req.id, r); calls.push(req.type + (orig ? '@O' : '@R')); return r;
+      };
+      const students = [{ col: 'D', name: 'Ionescu Ana', phone: '+37369123456' }, { col: 'E', name: 'Popa Mihai', phone: '+37379111222' }, { col: 'F', name: 'Mîrzac Samuel', phone: '+37369333444' }];
+      const lessons = [{ row: 9, marks: {} }, { row: 10, marks: {} }];
+      const state = { items: new Map(), status: 'active' };
+      const db = {
+        replacements: async () => [{ id: 'r1', origWorkbook: 'O', origSheet: 1, replWorkbook: 'R', replSheet: 2, status: state.status, dates: [{ iso: '2026-10-15' }], price: 218 }],
+        replData: async () => ({ students, lessons }),
+        items: async () => [...state.items.values()].map(i => JSON.parse(JSON.stringify(i))),
+        saveItem: async (rep, it) => { state.items.set(it.student_key, JSON.parse(JSON.stringify(it))); },
+        setStatus: async (rep, s) => { state.status = s; }
+      };
+      const go = (today) => settleReplacements({ db, run, today: today || '2026-10-14' });
+      const item = (phone, row) => state.items.get(itemKey(phone, row)) || {};
+      const sum = L => (cO(L + '3').v || 0) + (cO(L + '4').v || 0);
+
+      let o = await go();
+      ok(o.settled === 0 && calls.length === 0 && state.items.size === 0, 'engine: no mark, nothing happens');
+      lessons[0].marks = { D: 'P', E: 'P', F: 'M' };
+      o = await go();
+      ok(o.settled === 2 && o.short === 1 && state.items.size === 2, 'engine: Prezent settles, Absent motivat does not (two lines, one of them short): ' + JSON.stringify(o));
+      ok(cO('D3').v === 2489.79 && cO('D4').v === 92.21 && cN('D3').f === 'SUM(210.21)' && cN('D4').f === 'SUM(7.79)', 'engine: the money of one lesson left the base register and arrived in the substitute\'s tab (210.21 + 7.79)');
+      ok(item('+37379111222', 9).status === 'settled' && item('+37379111222', 9).short === 218 && !cN('E3').f.includes('SUM(2') && cN('E3').v === 0, 'engine: a student with no money: settled with the whole lesson short, nothing moved');
+      ok(!state.items.has(itemKey('+37369333444', 9)), 'engine: Absent motivat leaves no line at all');
+      const n1 = calls.length; o = await go();
+      ok(calls.length === n1 && o.settled === 0, 'engine: a second run with the same marks writes nothing');
+
+      lessons[0].marks = { D: 'M', E: 'P', F: 'M' };                                   // the substitute changes Ana's mark
+      o = await go();
+      ok(o.reversed === 1 && item('+37369123456', 9).status === 'reversed' && cO('D3').v === 2700 && cO('D4').v === 100 && cN('D3').v === 0 && cN('D4').v === 0, 'engine: the mark changed after the money moved: it goes back, first out of the substitute\'s tab, then into the base register');
+      ok(cO('D3').f === 'SUM(2700-210.21+210.21)' && cN('D3').f === 'SUM(210.21-210.21)', 'engine: the history stays in the formulas (terms, not overwritten numbers)');
+      lessons[0].marks = { D: 'P', E: 'P', F: 'M' };                                   // and changes it back
+      o = await go();
+      ok(o.settled === 1 && item('+37369123456', 9).status === 'settled' && item('+37369123456', 9).attempt === 2 && cO('D3').v === 2489.79, 'engine: the mark is back: settled again as a new attempt, never twice at once');
+
+      lessons[1].marks = { D: 'A' };                                                    // a second lesson, Absent (not excused) costs too
+      const before = sum('D');
+      o = await go();
+      ok(Math.abs((before - sum('D')) - 218) < 0.0051 && Math.abs((cN('D3').v + cN('D4').v) - 436) < 0.0051, 'engine: a second lesson takes one more lesson price (218) from the base register, the tab has two');
+
+      // a step fails: it is tried again, never skipped
+      lessons[1].marks = { D: 'A', F: 'P' };
+      failNext = { step: 'take', code: 'google' };
+      o = await go();
+      ok(o.errors === 1 && item('+37369333444', 10).status === 'pending' && item('+37369333444', 10).step === 'take' && item('+37369333444', 10).tries === 1, 'engine: a failed step keeps the reason and is tried again');
+      o = await go();
+      ok(o.errors === 0 && item('+37369333444', 10).status === 'settled', 'engine: the next run finishes it');
+
+      // a fall between the two steps: it resumes at the second one, the first is not repeated
+      lessons[1].marks = { D: 'A', F: 'P', E: 'A' };
+      const takesBefore = calls.filter(c => c === 'REPL_TAKE@O').length;
+      failNext = { step: 'to', throws: true };
+      o = await go();
+      ok(item('+37379111222', 10).status === 'from-done' && o.errors === 1, 'engine: the second step fell: the line stays at from-done');
+      o = await go();
+      ok(item('+37379111222', 10).status === 'settled' && calls.filter(c => c === 'REPL_TAKE@O').length === takesBefore + 1, 'engine: the next run only does the second step (the money was taken once)');
+
+      // not known whether it wrote: nobody repeats it
+      lessons[1].marks = { D: 'A', F: 'P', E: 'A', };
+      lessons.push({ row: 11, marks: { D: 'P' } });
+      failNext = { step: 'take', code: 'verify-failed' };
+      o = await go();
+      const stuck = item('+37369123456', 11);
+      ok(stuck.status === 'pending' && stuck.tries >= 5 && /verifică registrul/.test(stuck.error), 'engine: a write that cannot be confirmed is not repeated: a person looks at the register');
+      const n2 = calls.length; await go();
+      ok(calls.length === n2, 'engine: and it stays so on the next runs');
+      lessons.pop();
+
+      // closing: only after the last date and when every line is settled or reversed
+      state.items.delete(itemKey('+37369123456', 11));
+      o = await go('2026-10-14');
+      ok(o.closed === 0 && state.status === 'active' && cN('A3').v === 'Înlocuire', 'engine: before the last date the tab stays open');
+      o = await go('2026-10-16');
+      ok(o.closed === 1 && state.status === 'closed' && cN('A3').v === 'Inactiv' && !cN('AA2').v && !cN('AB2').v, 'engine: after the last date and everything settled the tab goes Inactiv and its schedule is cleared');
+      state.status = 'cancelled'; lessons[0].marks = { D: 'P', E: 'P', F: 'P' }; const n3 = calls.length; await go('2026-10-16');
+      ok(calls.length === n3, 'engine: a cancelled replacement is left alone');
+    }
+  }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }
 })();

@@ -525,7 +525,12 @@
     const order = { enrol: 0, arrive: 0, first: 1, status: 2, last: 3, inactive: 4, moved: 4 };
     chapters.forEach(c => c.events.sort((a, b) => a.iso.localeCompare(b.iso) || order[a.kind] - order[b.kind]));
     const sum = k => Math.round(chapters.reduce((t, c) => t + c[k], 0) * 100) / 100;
-    return { student: s, chapters, links: moves, totals: { spent: sum('spent'), paid: sum('paid'), disc: sum('disc'), held: sum('held'), balance: s.balance }, since: chapters.length ? chapters[0].join : s.joinedAt };
+    // the lessons he did with a substitute: not a group of his (his group stays the base one), but they are part of his story
+    const subs = D.registry && D.registry.replEvents ? D.registry.replEvents(sid).filter(i => i.status !== 'reversed' && i.status !== 'pending').map(i => {
+      const rep = (D.registry.replacements || []).find(r => r.id === i.rep);
+      return Object.assign({}, i, { teacher: rep ? D.teacher(rep.teacher) : null, group: rep && rep.base ? D.group(rep.base) : null, url: rep && rep._src.ssid ? `https://docs.google.com/spreadsheets/d/${rep._src.ssid}/edit#gid=${rep._src.sheet}` : null });
+    }).sort((a, b) => String(a.iso || a.settledAt || '').localeCompare(String(b.iso || b.settledAt || ''))) : [];
+    return { student: s, chapters, links: moves, substitutions: subs, totals: { spent: sum('spent'), paid: sum('paid'), disc: sum('disc'), held: sum('held'), balance: s.balance }, since: chapters.length ? chapters[0].join : s.joinedAt };
   }
 
   /* ---- the ledger is the source of the balances the console shows ---- */
@@ -542,7 +547,7 @@
       marks.set(s, list);
     }));
     bal.forEach((v, s) => {
-      s.balance = v;
+      s.balance = v + (D.registry && D.registry.replSold ? D.registry.replSold(s.id) : 0);     // the money of his lessons with a substitute (docs/inlocuiri.md) is in the substitute's tab
       const last = [].concat(...marks.get(s)).filter(Boolean).slice(-3).map(mapMark);
       s.presence = s._p0.slice(0, 3 - last.length).concat(last);
     });
