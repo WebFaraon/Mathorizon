@@ -28,8 +28,8 @@ body.ax .ah-tile {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  min-height: 214px;
-  padding: 20px 22px 20px;
+  min-height: 196px;
+  padding: 20px 22px 18px;
   overflow: hidden;
   border: 1px solid var(--ax-rule);
   border-radius: var(--ax-r-2);
@@ -48,11 +48,11 @@ body.ax .ah-tile__plate { display: grid; place-items: center; width: 64px; heigh
 body.ax .ah-tile:hover .ah-tile__plate { transform: scale(1.08) rotate(-3deg); }
 body.ax .ah-tile__go { display: grid; place-items: center; width: 36px; height: 36px; border: 1px solid var(--ax-rule-2); border-radius: 50%; color: var(--ax-ink-3); transition: transform 0.25s var(--ax-ease), background-color 0.18s, color 0.18s, border-color 0.18s; }
 body.ax .ah-tile:hover .ah-tile__go { transform: translateX(4px); background: var(--ax-ink); border-color: var(--ax-ink); color: var(--ax-bg); }
-body.ax .ah-tile__t { font-size: 1.4rem; font-weight: 800; line-height: 1.1; }
-body.ax .ah-tile__d { font-size: 0.9rem; line-height: 1.4; color: var(--ax-ink-2); }
-body.ax .ah-tile__fig { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 8px; margin-top: auto; padding-top: 12px; border-top: 1px solid var(--ax-rule); }
-body.ax .ah-tile__fig b { font-size: 1.15rem; font-weight: 800; }
-body.ax .ah-tile__fig small { font-size: 0.82rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .ah-tile__t { font-size: 1.45rem; font-weight: 800; line-height: 1.1; letter-spacing: -0.01em; color: var(--ax-ink); }
+body.ax .ah-tile__fig { display: grid; align-content: end; gap: 3px; margin-top: auto; padding-top: 18px; }
+body.ax .ah-tile__fig b { font-size: 2.5rem; font-weight: 800; line-height: 1; letter-spacing: -0.02em; font-variant-numeric: tabular-nums; }
+body.ax .ah-tile__fig.is-text b { font-size: 1.5rem; letter-spacing: -0.01em; }
+body.ax .ah-tile__fig small { font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-3); }
 
 @media (max-width: 600px) {
   body.ax .ah-tile { min-height: 0; }

@@ -92,14 +92,13 @@
             <div class="ax-h2-row"><h2 class="ax-h2" id="ahHubT">Instrumente</h2></div>
             <nav class="ah-hub">
               ${tiles().map((t, i) => `
-                <a class="ah-tile" href="${t.href}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
+                <a class="ah-tile" href="${t.href}" title="${esc(t.d)}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
                   <span class="ah-tile__top">
-                    <span class="ah-tile__plate">${ico(t.icon, 28)}</span>
+                    <span class="ah-tile__plate">${ico(t.icon, 32)}</span>
                     <span class="ah-tile__go" aria-hidden="true">${ico('arrow-right', 20)}</span>
                   </span>
                   <b class="ah-tile__t">${esc(t.t)}</b>
-                  <span class="ah-tile__d">${esc(t.d)}</span>
-                  <span class="ah-tile__fig"><b>${esc(t.fig)}</b>${t.unit ? `<small>${esc(t.unit)}</small>` : ''}</span>
+                  <span class="ah-tile__fig${/^[\d\s.,%]+$/.test(t.fig) ? '' : ' is-text'}"><b>${esc(t.fig)}</b>${t.unit ? `<small>${esc(t.unit)}</small>` : ''}</span>
                 </a>`).join('')}
             </nav>
           </section>
