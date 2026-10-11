@@ -34,14 +34,15 @@
     const okFloor = r => r.floor === '' || (/^\d{1,2}$/.test(r.floor) && +r.floor <= 20);
     const dup = r => !r.gone && rows.some(o => o !== r && !o.gone && o.num === r.num && r.num !== '');
     const problem = r => !r.gone && (!okNum(r) || !okSeats(r) || !okFloor(r) || dup(r) || (r.origin !== 'reg' && r.seats === ''));
+    const shownBad = r => problem(r) && (r.origin !== 'new' || r.touched);          // a row just added is not red before it was touched
     const dirty = r => r.gone ? r.origin !== 'new' : r.origin === 'new' || r.num !== String(r.was) || r.seats !== r.was_seats || r.floor !== r.was_floor;
     const changed = () => rows.filter(dirty);
 
     function rowHTML(r, i) {
       const fixed = r.origin === 'reg' || !live, st = r.origin === 'new' ? 'nou' : r.seats === '' ? 'nesetat' : dirty(r) ? 'de salvat' : 'salvat';
       const tag = r.seats === '' ? `<span class="ax-tag ax-tag--warn">${st}</span>` : `<span class="${st === 'de salvat' || st === 'nou' ? 'rs-chg' : 'rs-ok'}">${st}</span>`;
-      return `<li class="rs-row${dirty(r) ? ' is-dirty' : ''}${problem(r) ? ' is-bad' : ''}${r.gone ? ' is-gone' : ''}" data-key="${r.key}" style="--i:${Math.min(i, 14)}">
-        <label class="rs-c rs-c--num"><span class="rs-l">Cabinet</span><input class="ax-input rs-in rs-in--num" inputmode="numeric" maxlength="3" data-k="num" value="${esc(r.num)}" ${fixed ? 'readonly tabindex="-1"' : ''} aria-label="Numărul cabinetului"></label>
+      return `<li class="rs-row${dirty(r) ? ' is-dirty' : ''}${shownBad(r) ? ' is-bad' : ''}${r.gone ? ' is-gone' : ''}" data-key="${r.key}" style="--i:${Math.min(i, 14)}">
+        <label class="rs-c rs-c--num"><span class="rs-l">Cabinet</span><input class="ax-input rs-in rs-in--num" inputmode="numeric" maxlength="3" data-k="num" value="${esc(r.num)}" ${fixed ? 'readonly tabindex="-1" title="' + (r.origin === 'reg' ? 'Numărul vine din registre (lista de cabinete și orarele grupelor)' : 'Numărul nu se schimbă în modul Demo') + '"' : ''} aria-label="Numărul cabinetului"></label>
         <label class="rs-c"><span class="rs-l">Etaj</span><input class="ax-input rs-in" inputmode="numeric" maxlength="2" data-k="floor" value="${esc(r.floor)}" ${live ? '' : 'disabled'} aria-label="Etajul cabinetului ${esc(r.num)}"></label>
         <label class="rs-c"><span class="rs-l">Locuri</span><input class="ax-input rs-in" inputmode="numeric" maxlength="2" data-k="seats" placeholder="nesetat" value="${esc(r.seats)}" ${live ? '' : 'disabled'} aria-label="Locurile cabinetului ${esc(r.num)}"></label>
         <span class="rs-s">${tag}<small>${r.origin === 'reg' ? 'din registre' : 'doar în consolă'}</small></span>
@@ -49,11 +50,15 @@
       </li>`;
     }
     const visible = () => rows.filter(r => !r.gone);
-    function paintRows(focusKey) {
-      dlg.querySelector('#rsList').innerHTML = visible().map(rowHTML).join('') || '<li class="rs-none">Niciun cabinet.</li>';
+    const listEl = () => dlg.querySelector('#rsList');
+    const stateHTML = r => { const st = r.origin === 'new' ? 'nou' : r.seats === '' ? 'nesetat' : dirty(r) ? 'de salvat' : 'salvat'; return r.seats === '' ? `<span class="ax-tag ax-tag--warn">${st}</span>` : `<span class="${st === 'de salvat' || st === 'nou' ? 'rs-chg' : 'rs-ok'}">${st}</span>`; };
+    const rowEl = r => listEl().querySelector(`[data-key="${r.key}"]`);
+    function paintRows() {                                               // only the first time: the rows come in one after the other
+      listEl().innerHTML = visible().map(rowHTML).join('') || '<li class="rs-none">Niciun cabinet.</li>';
       paintFoot();
-      if (focusKey) { const f = dlg.querySelector(`[data-key="${focusKey}"] .rs-in--num`); if (f) f.focus(); }
     }
+    function repaintRow(r) { const el = rowEl(r); if (el) el.outerHTML = rowHTML(r, 0); }
+    function emptyNote() { const l = listEl(); if (!visible().length && !l.querySelector('.rs-none')) l.innerHTML = '<li class="rs-none">Niciun cabinet.</li>'; }
     function paintFoot() {
       const n = changed().length, w = rows.some(problem), save = dlg.querySelector('[data-save]');
       dlg.querySelector('#rsSum').textContent = w ? 'Numărul e între 1 și 999 și nu se repetă; locurile între 1 și 60 (obligatorii la un cabinet adăugat aici); etajul un număr.' : n ? `${n} ${n === 1 ? 'modificare' : 'modificări'}` : '';
@@ -83,12 +88,11 @@
       const i = e.target.closest('.rs-in[data-k]');
       if (!i || i.classList.contains('rs-all')) return;
       const li = i.closest('.rs-row'), r = rows.find(x => x.key === li.dataset.key);
-      r[i.dataset.k] = i.value.trim();
+      r[i.dataset.k] = i.value.trim(); r.touched = true;
       // only the state of this row changes, the field keeps the focus
       li.classList.toggle('is-dirty', dirty(r));
-      rows.forEach(o => { const el = dlg.querySelector(`[data-key="${o.key}"]`); if (el) el.classList.toggle('is-bad', problem(o)); });
-      const st = r.origin === 'new' ? 'nou' : r.seats === '' ? 'nesetat' : dirty(r) ? 'de salvat' : 'salvat';
-      li.querySelector('.rs-s').firstElementChild.outerHTML = r.seats === '' ? `<span class="ax-tag ax-tag--warn">${st}</span>` : `<span class="${st === 'de salvat' || st === 'nou' ? 'rs-chg' : 'rs-ok'}">${st}</span>`;
+      rows.forEach(o => { const el = dlg.querySelector(`[data-key="${o.key}"]`); if (el) el.classList.toggle('is-bad', shownBad(o)); });
+      li.querySelector('.rs-s').firstElementChild.outerHTML = stateHTML(r);
       dlg.querySelector('#rsErr').textContent = '';
       paintFoot();
     });
@@ -97,19 +101,23 @@
       if (e.target.closest('[data-fill]')) {
         const v = dlg.querySelector('.rs-all').value.trim();
         if (!/^\d{1,2}$/.test(v) || +v < 1 || +v > 60) { dlg.querySelector('#rsErr').textContent = 'Scrie un număr de locuri între 1 și 60.'; return; }
-        rows.forEach(r => { if (!r.gone && r.seats === '') r.seats = v; });
-        paintRows();
+        rows.forEach(r => { if (!r.gone && r.seats === '') { r.seats = v; repaintRow(r); } });
+        paintFoot();
         return;
       }
       if (e.target.closest('[data-add]')) {
         const key = 'n' + (++seq);
-        rows.push({ key, num: '', was: null, origin: 'new', seats: '', floor: '', was_seats: '', was_floor: '', gone: false });
-        paintRows(key);
-        const list = dlg.querySelector('.rs-body'); list.scrollTop = list.scrollHeight;
+        const r = { key, num: '', was: null, origin: 'new', seats: '', floor: '', was_seats: '', was_floor: '', gone: false };
+        rows.push(r);
+        const none = listEl().querySelector('.rs-none'); if (none) none.remove();
+        listEl().insertAdjacentHTML('beforeend', rowHTML(r, 0));
+        paintFoot();
+        const el = rowEl(r); el.scrollIntoView({ block: 'nearest' });
+        const f = el.querySelector('.rs-in--num'); if (f) f.focus({ preventScroll: true });
         return;
       }
       const del = e.target.closest('[data-del]');
-      if (del) { const r = rows.find(x => x.key === del.closest('.rs-row').dataset.key); if (r.origin === 'new') rows = rows.filter(x => x !== r); else r.gone = true; paintRows(); return; }
+      if (del) { const r = rows.find(x => x.key === del.closest('.rs-row').dataset.key); if (r.origin === 'new') rows = rows.filter(x => x !== r); else r.gone = true; del.closest('.rs-row').remove(); rows.forEach(o => { const el = rowEl(o); if (el) el.classList.toggle('is-bad', shownBad(o)); }); emptyNote(); paintFoot(); return; }
       const save = e.target.closest('[data-save]');
       if (save && !save.disabled) {
         save.disabled = true; save.innerHTML = `${ico('check', 16)} Se salvează…`;
@@ -128,6 +136,8 @@
     });
     dlg.addEventListener('close', () => dlg.remove());
     paintRows();
+    listEl().classList.add('is-first');
+    setTimeout(() => listEl() && listEl().classList.remove('is-first'), 900);
     dlg.showModal();
     const first = dlg.querySelector('.rs-all') || dlg.querySelector('[data-x]');
     if (first) first.focus({ preventScroll: true });

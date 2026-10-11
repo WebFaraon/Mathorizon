@@ -48,22 +48,23 @@ body.ax .rs-fill { display: flex; align-items: center; justify-content: space-be
 body.ax .rs-fill label { display: inline-flex; align-items: center; gap: 8px; }
 /* the list: one row per cabinet (a grid, not a table, so nothing inside scrolls on its own: only the body of the dialog does) */
 body.ax .rs-list { margin: 0; padding: 0; list-style: none; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r-2); }
-body.ax .rs-row { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 34px; align-items: end; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--ax-rule); animation: rl-chip 0.3s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 18ms); }
+body.ax .rs-row { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 36px; align-items: center; gap: 12px; padding: 10px 12px; border-top: 1px solid var(--ax-rule); }
+body.ax .rs-list.is-first .rs-row { animation: rl-chip 0.3s var(--ax-ease) backwards; animation-delay: calc(var(--i, 0) * 18ms); }
 body.ax .rs-row:first-child { border-top: 0; }
 body.ax .rs-row.is-dirty { background: var(--ax-hi-wash); }
 body.ax .rs-row.is-bad .rs-in { border-color: var(--ax-bad); }
 body.ax .rs-c { display: grid; gap: 3px; margin: 0; padding: 0; background: none; }
-body.ax .rs-head { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 34px; gap: 12px; padding: 0 13px 6px 13px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
+body.ax .rs-head { display: grid; grid-template-columns: 96px 76px 84px minmax(0, 1fr) 36px; gap: 12px; padding: 0 13px 6px 13px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--ax-ink-3); }
 body.ax .rs-l { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 body.ax .rs-s .ax-tag { justify-self: start; }
 body.ax .rs-in { width: 100%; text-align: center; font-variant-numeric: tabular-nums; }
 body.ax .rs-in--num { font-weight: 800; }
-body.ax .rs-in[readonly] { border-color: transparent; background: var(--ax-panel-2); color: var(--ax-ink); cursor: default; }
+body.ax .rs-in[readonly] { border-color: transparent; background: var(--ax-panel-2); color: var(--ax-ink); cursor: not-allowed; }
 body.ax .rs-s { display: grid; gap: 1px; align-self: center; font-size: 0.8rem; font-weight: 700; white-space: nowrap; }
 body.ax .rs-s small { font-size: 0.72rem; font-weight: 600; color: var(--ax-ink-3); }
-body.ax .rs-del { align-self: center; }
+body.ax .rs-del { justify-self: end; }
 body.ax .rs-none { padding: 14px; font-size: 0.9rem; color: var(--ax-ink-3); }
-body.ax .rs-add { margin-top: 12px; }
+body.ax .rs-add { width: 100%; margin-top: 12px; justify-content: center; border-style: dashed; }
 body.ax .rs-help { margin: 8px 0 0; max-width: 60ch; font-size: 0.82rem; line-height: 1.45; color: var(--ax-ink-3); }
 body.ax .rs-ok { color: var(--ax-ok); }
 body.ax .rs-chg { color: var(--ax-blue); }
