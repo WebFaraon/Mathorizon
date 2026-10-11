@@ -535,6 +535,8 @@
   /* The registers are read into the platform by the sync (every few minutes, or "Sincronizează acum"). The console on screen follows by itself:
      every 45 seconds it asks for the time of the newest read (one small call) and, when it is newer than its own data and nobody is typing or has
      a dialog open, loads the new data. The button on the green pill does the same at once. */
+  let lastKey = 0;
+  document.addEventListener('keydown', () => { lastKey = Date.now(); }, true);
   async function poll(force) {
     if (!D.readOnly() || busy || pumping || pend.length || (document.hidden && !force)) return false;
     try {
@@ -546,9 +548,13 @@
       const rows = await res.json(), latest = rows[0] ? stampOf(rows[0]) : null;
       if (!force && (!latest || latest === stamp)) return false;
       const a = document.activeElement;
-      if (!force && (document.querySelector('dialog[open], .ax-drawer') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))) return false;   // later: not under somebody's hands
+      // later, not under somebody's hands: a dialog or a panel is open, or he is typing right now. A field that merely has the focus (the search box he clicked a minute ago) does not stop it.
+      const typing = a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && Date.now() - lastKey < 5000;
+      if (!force && (document.querySelector('dialog[open], .ax-drawer') || typing)) return false;
+      const keep = a && a.id && /^(INPUT|TEXTAREA)$/.test(a.tagName) ? { id: a.id, s: a.selectionStart, e: a.selectionEnd } : null;      // the page is drawn again: the field gets its focus back
       busy = true; paint();
       try { await refresh(); } finally { busy = false; paint(); }
+      if (keep) { const el = document.getElementById(keep.id); if (el && el !== document.activeElement) { el.focus({ preventScroll: true }); try { el.setSelectionRange(keep.s, keep.e); } catch (e) { /* not a text field */ } } }
       if (force) U.toast('Datele au fost reîncărcate din registre.');                // the automatic reads are silent: the data just follows the registers
       return true;
     } catch (e) { busy = false; paint(); return false; }
