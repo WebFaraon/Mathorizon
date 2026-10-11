@@ -47,18 +47,18 @@
     const replOpen = ((D.registry && D.registry.replacements) || []).filter(r => r.status === 'active').length;
     const activeStudents = D.students.filter(s => s.status === 'activ').length;
     return [
-      { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele cu programul, profesorul și locurile libere.', fig: nf.format(D.groups.length), unit: 'grupe' },
-      { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statutul fiecărui elev.', fig: nf.format(D.students.length), unit: 'elevi' },
-      { id: 'inscriere', href: '#inscriere', icon: 'user-plus', t: 'Înscriere', d: 'Un elev nou: grupele active care i se potrivesc sau o grupă nouă.', fig: 'Elev nou', unit: 'ora de probă gratuită' },
-      { id: 'repartizare', href: '#repartizare?day=' + day, icon: 'door', t: 'Repartizare', d: 'Cabinetele pe ore, cu mutare și verificare automată.', fig: nf.format(liveToday.length), unit: clash ? `lecții azi, ${plural(clash, 'suprapunere', 'suprapuneri')}` : 'lecții azi' },
-      { id: 'inlocuiri', href: '#inlocuiri', icon: 'replace', t: 'Înlocuiri', d: 'Lecțiile ținute de alt profesor: fila lui din registru și banii mutați.', fig: nf.format(replOpen), unit: 'în lucru' },
-      { id: 'receptie', href: '#receptie', icon: 'monitor', t: 'Recepție', d: 'Ecranul TV de la intrare: lecțiile în desfășurare și cele care urmează.', fig: nf.format(offlineToday), unit: 'lecții offline azi' },
-      { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii și cine e liber la o oră.', fig: nf.format(D.teachers.length), unit: 'profesori' },
-      { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții, tendințe și tabele încrucișate.', fig: U.pct(activeStudents, D.students.length) + '%', unit: 'elevi activi' },
-      { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri de profesor, elevi, abonamente și waitlist.', fig: 'Date reale', unit: '' },
-      { id: 'exercitii', href: 'admin-add-exercise.html', icon: 'plus', t: 'Adaugă exercițiu', d: 'Un exercițiu nou în culegere, cu barem generat.', fig: 'Culegere', unit: '' },
-      { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur: sumele împărțite proporțional.', fig: 'Transfer', unit: 'înlocuire · retur' },
-      { id: 'culegeri', href: 'admin-culegeri.html', icon: 'library', t: 'Culegeri', d: 'Culegerile existente și exercițiile din ele.', fig: 'Bibliotecă', unit: '' }
+      { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele, programul și locurile libere', fig: nf.format(D.groups.length), unit: 'grupe' },
+      { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statut', fig: nf.format(D.students.length), unit: 'elevi' },
+      { id: 'inscriere', href: '#inscriere', icon: 'user-plus', t: 'Înscriere', d: 'Un elev nou într-o grupă potrivită', fig: 'Elev nou', unit: 'ora de probă gratuită' },
+      { id: 'repartizare', href: '#repartizare?day=' + day, icon: 'door', t: 'Repartizare', d: 'Cabinetele pe ore, cu mutare', fig: nf.format(liveToday.length), unit: clash ? `lecții azi, ${plural(clash, 'suprapunere', 'suprapuneri')}` : 'lecții azi' },
+      { id: 'inlocuiri', href: '#inlocuiri', icon: 'replace', t: 'Înlocuiri', d: 'Lecțiile ținute de alt profesor', fig: nf.format(replOpen), unit: 'în lucru' },
+      { id: 'receptie', href: '#receptie', icon: 'monitor', t: 'Recepție', d: 'Ecranul TV de la intrare', fig: nf.format(offlineToday), unit: 'lecții offline azi' },
+      { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii', fig: nf.format(D.teachers.length), unit: 'profesori' },
+      { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții și tendințe', fig: U.pct(activeStudents, D.students.length) + '%', unit: 'elevi activi' },
+      { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri, abonamente și waitlist', fig: 'Date reale', unit: '' },
+      { id: 'exercitii', href: 'admin-add-exercise.html', icon: 'plus', t: 'Adaugă exercițiu', d: 'Un exercițiu nou în culegere', fig: 'Culegere', unit: '' },
+      { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur', fig: 'Transfer', unit: 'înlocuire · retur' },
+      { id: 'culegeri', href: 'admin-culegeri.html', icon: 'library', t: 'Culegeri', d: 'Culegerile și exercițiile din ele', fig: 'Bibliotecă', unit: '' }
     ];
   }
 
@@ -92,12 +92,10 @@
             <div class="ax-h2-row"><h2 class="ax-h2" id="ahHubT">Instrumente</h2></div>
             <nav class="ah-hub">
               ${tiles().map((t, i) => `
-                <a class="ah-tile" href="${t.href}" title="${esc(t.d)}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
-                  <span class="ah-tile__top">
-                    <span class="ah-tile__plate">${ico(t.icon, 32)}</span>
-                    <span class="ah-tile__go" aria-hidden="true">${ico('arrow-right', 20)}</span>
-                  </span>
+                <a class="ah-tile" href="${t.href}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
+                  <span class="ah-tile__plate">${ico(t.icon, 32)}</span>
                   <b class="ah-tile__t">${esc(t.t)}</b>
+                  <span class="ah-tile__d">${esc(t.d)}</span>
                   <span class="ah-tile__fig${/^[\d\s.,%]+$/.test(t.fig) ? '' : ' is-text'}"><b>${esc(t.fig)}</b>${t.unit ? `<small>${esc(t.unit)}</small>` : ''}</span>
                 </a>`).join('')}
             </nav>
