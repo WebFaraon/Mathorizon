@@ -15,7 +15,8 @@
     "check:sync": "node scripts/check-sync.js",
     "check:registry": "node scripts/check-registry-dataset.js",
     "check:replacements": "node scripts/check-replacements.js",
-    "check:oauth": "node scripts/check-oauth-guard.js"
+    "check:oauth": "node scripts/check-oauth-guard.js",
+    "apps-script:lists": "node scripts/registru-import/apps-script-lists.js"
   },
   "repository": {
     "type": "git",

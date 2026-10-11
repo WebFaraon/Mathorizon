@@ -752,6 +752,23 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       state.status = 'cancelled'; lessons[0].marks = { D: 'P', E: 'P', F: 'P' }; const n3 = calls.length; await go('2026-10-16');
       ok(calls.length === n3, 'engine: a cancelled replacement is left alone');
     }
+
+    // what a register's Apps Script may ask (hook.mjs): to read one register again, and nothing else
+    {
+      const { checkHookBody, sameSecret } = await imp('hook.mjs');
+      const SS = '1Abcdefghij_klmnopqrstuvwxyz-0123456789ABCD'.slice(0, 44);
+      const g = checkHookBody({ spreadsheet_id: SS, sheet_id: 12, tab: 'Marți/Joi 16:00-17:00', force: true });
+      ok(g.ok && g.kind === 'group' && g.sheetId === 12 && g.spreadsheetId === SS, 'hook: one edited tab is accepted');
+      const f = checkHookBody({ spreadsheet_id: SS, full: true });
+      ok(f.ok && f.kind === 'full', 'hook: a structure change (read the register whole) is accepted');
+      ok(!checkHookBody({ spreadsheet_id: SS, sheet_id: 1, tab: 'x', workbook_id: 'abc' }).ok, 'hook: a workbook id of ours is refused');
+      ok(!checkHookBody({ spreadsheet_id: SS, sheet_id: 1, tab: 'x', command_id: 'abc' }).ok, 'hook: a command id is refused');
+      ok(!checkHookBody({ sheet_id: 1, tab: 'x' }).ok && !checkHookBody({ spreadsheet_id: 'short', sheet_id: 1, tab: 'x' }).ok && !checkHookBody({ spreadsheet_id: SS + '!', sheet_id: 1, tab: 'x' }).ok, 'hook: a missing or odd spreadsheet id is refused');
+      ok(!checkHookBody({ spreadsheet_id: SS }).ok && !checkHookBody({ spreadsheet_id: SS, sheet_id: '1', tab: 'x' }).ok && !checkHookBody({ spreadsheet_id: SS, sheet_id: 1, tab: '  ' }).ok, 'hook: a tab edit needs a numeric sheet id and a tab');
+      ok(!checkHookBody({ spreadsheet_id: SS, full: true, sheet_id: 1, tab: 'x' }).ok, 'hook: a whole read has no tab');
+      ok(!checkHookBody(null).ok && !checkHookBody([]).ok && !checkHookBody('x').ok, 'hook: not an object is refused');
+      ok(sameSecret('abc123', 'abc123') && !sameSecret('abc123', 'abc124') && !sameSecret('abc', 'abcd') && !sameSecret('', '') && !sameSecret(null, 'x') && !sameSecret('x', undefined), 'hook: the key is compared whole, an empty key never matches');
+    }
   }
   console.log(`SYNC: ${pass} checks passed, ${fail} failed`);
   if (fail) { console.log(fails.join('\n')); process.exit(1); }

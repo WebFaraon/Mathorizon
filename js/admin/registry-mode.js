@@ -19,13 +19,15 @@
   let busy = false;
   let lastT = null;                                   // the tables as last read: a group can be replaced in them without reading everything again
   const GROUP_COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
-  const WORKBOOK_COLS = 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at';
+  const WORKBOOK_COLS_BASE = 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at';
+  let WORKBOOK_COLS = WORKBOOK_COLS_BASE + ',last_change_at';        // last_change_at: migration 20261011100000; without it the console only knows the full reads
   const STUDENT_COLS = 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold';
   const LESSON_COLS = 'group_id,row_no,date_text,iso,topic,teacher_level,teacher_pay,marks';
   const REPLACEMENT_COLS = 'id,orig_workbook,orig_sheet,repl_workbook,repl_sheet,repl_tab,status,dates,price,size,created_at,closed_at';
   const ITEM_COLS = 'replacement_id,student_key,lesson_row,student_name,student_phone,mark,status,step,error,tries,attempt,tot,ach,red,short,settled_at';
   let stamp = null;                                   // the newest full read of any register, as of the data on screen
-  const latestRead = list => list.reduce((m, w) => (w.last_full_sync_at && (!m || w.last_full_sync_at > m) ? w.last_full_sync_at : m), null);
+  const stampOf = w => [w.last_change_at, w.last_full_sync_at].filter(Boolean).sort().pop() || null;     // the newest thing known about a register
+  const latestRead = list => list.reduce((m, w) => { const s = stampOf(w); return s && (!m || s > m) ? s : m; }, null);
   const read = () => { try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
   const write = v => { try { localStorage.setItem(KEY, v); } catch (e) { /* private mode */ } };
 
@@ -55,10 +57,19 @@
       if (rows.length < PAGE) return out;
     }
   }
+  /* the registers; a platform that has not run the newest migration has no last_change_at: the same list without it, and from then on without */
+  async function fetchWorkbooks(access, filter) {
+    try { return await fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access, filter); }
+    catch (e) {
+      if (WORKBOOK_COLS === WORKBOOK_COLS_BASE || !/last_change_at|column/i.test(String(e && e.message))) throw e;
+      WORKBOOK_COLS = WORKBOOK_COLS_BASE;
+      return fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access, filter);
+    }
+  }
   async function loadTables() {
     const access = await token();
     const [workbooks, groups, students, lessons] = await Promise.all([
-      fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access),
+      fetchWorkbooks(access),
       fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access),
       fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access),
       fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access)
@@ -132,7 +143,7 @@
     if (!D.readOnly()) return false;
     if (!lastT || !ids.length) return refresh();
     const access = await token();
-    const rows = await fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access, `id=in.(${ids.join(',')})`);
+    const rows = await fetchWorkbooks(access, `id=in.(${ids.join(',')})`);
     if (rows.length !== ids.length) return refresh();
     const byId = new Map(rows.map(r => [r.id, r]));
     lastT = Object.assign({}, lastT, { workbooks: lastT.workbooks.map(w => byId.get(w.id) || w) });
@@ -528,19 +539,21 @@
     if (!D.readOnly() || busy || pumping || pend.length || (document.hidden && !force)) return false;
     try {
       const access = await token();
-      const res = await fetch(`${SUPABASE_URL}/rest/v1/reg_workbooks?select=last_full_sync_at&order=last_full_sync_at.desc.nullslast&limit=1`, { headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, Accept: 'application/json' } });
+      const get = cols => fetch(`${SUPABASE_URL}/rest/v1/reg_workbooks?select=${cols}&order=${cols.split(',').map(c => c + '.desc.nullslast').join(',')}&limit=1`, { headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + access, Accept: 'application/json' } });
+      let res = WORKBOOK_COLS === WORKBOOK_COLS_BASE ? await get('last_full_sync_at') : await get('last_change_at,last_full_sync_at');
+      if (!res.ok && WORKBOOK_COLS !== WORKBOOK_COLS_BASE) { WORKBOOK_COLS = WORKBOOK_COLS_BASE; res = await get('last_full_sync_at'); }
       if (!res.ok) return false;
-      const rows = await res.json(), latest = rows[0] && rows[0].last_full_sync_at;
+      const rows = await res.json(), latest = rows[0] ? stampOf(rows[0]) : null;
       if (!force && (!latest || latest === stamp)) return false;
       const a = document.activeElement;
       if (!force && (document.querySelector('dialog[open], .ax-drawer') || (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)))) return false;   // later: not under somebody's hands
       busy = true; paint();
       try { await refresh(); } finally { busy = false; paint(); }
-      U.toast(force ? 'Datele au fost reîncărcate din registre.' : 'Datele au fost actualizate din registre.');
+      if (force) U.toast('Datele au fost reîncărcate din registre.');                // the automatic reads are silent: the data just follows the registers
       return true;
     } catch (e) { busy = false; paint(); return false; }
   }
-  setInterval(() => poll(false), 45000);
+  setInterval(() => poll(false), 15000);
 
   async function setSource(next, quiet) {
     if (busy) return false;

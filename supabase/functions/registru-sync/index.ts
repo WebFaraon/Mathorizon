@@ -2,30 +2,39 @@
    Called by pg_cron every few minutes (header x-sync-secret) or by an admin from the console (Bearer token of an admin).
    Body (optional): { "workbook_id": "<uuid>" } to sync one register; without it, every enabled one.
    { "workbook_id", "sheet_id", "tab" }: only that group's tab is read and replaced (right after a write of the console; the cron's full read follows).
-   Secrets (supabase secrets set): GOOGLE_SA_KEY (the service account JSON, as text), REG_SYNC_SECRET (a long random string). */
+   The register's own Apps Script (apps-script/Mathorizon-sync.gs, docs/apps-script.md) calls it at every edit with the header x-hook-secret and
+   { "spreadsheet_id", "sheet_id", "tab" } (one tab) or { "spreadsheet_id", "full": true } (the structure changed). That key can ask for nothing else (hook.mjs).
+   Secrets (supabase secrets set): GOOGLE_SA_KEY (the service account JSON, as text), REG_SYNC_SECRET (a long random string), REG_HOOK_SECRET (the registers' key). */
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { syncWorkbook, syncGroup } from '../_shared/registru/sync-core.mjs';
 import { readWorkbook, readGroupTab, driveModified, QuotaError } from '../_shared/registru/google.mjs';
+import { checkHookBody, sameSecret } from '../_shared/registru/hook.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
 const SECRET = Deno.env.get('REG_SYNC_SECRET') ?? '';
+const HOOK_SECRET = Deno.env.get('REG_HOOK_SECRET') ?? '';
 const SA_KEY = Deno.env.get('GOOGLE_SA_KEY') ?? '';
 const BUDGET_MS = 100_000;                         // stop starting new registers after this: the platform limits how long a call may run
 
 const sb = createClient(SUPABASE_URL, SERVICE_KEY, { auth: { persistSession: false } });
-const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-secret', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };   // the admin console calls it from the browser
+const CORS = { 'Access-Control-Allow-Origin': '*', 'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type, x-sync-secret, x-hook-secret', 'Access-Control-Allow-Methods': 'POST, OPTIONS' };   // the admin console calls it from the browser
 const json = (status: number, body: unknown) => new Response(JSON.stringify(body), { status, headers: { ...CORS, 'content-type': 'application/json' } });
 
-async function allowed(req: Request): Promise<boolean> {
-  if (SECRET && req.headers.get('x-sync-secret') === SECRET) return true;
+/* who is asking: 'full' (the cron, the secret), 'admin' (the console), 'hook' (a register's Apps Script: it may only read one register again), or nobody */
+async function who(req: Request): Promise<'full' | 'admin' | 'hook' | null> {
+  if (SECRET && sameSecret(req.headers.get('x-sync-secret'), SECRET)) return 'full';
+  if (HOOK_SECRET && sameSecret(req.headers.get('x-hook-secret'), HOOK_SECRET)) return 'hook';
   const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
-  if (!token) return false;
+  if (!token) return null;
   const { data } = await sb.auth.getUser(token);
-  if (!data?.user) return false;
+  if (!data?.user) return null;
   const { data: p } = await sb.from('user_profiles').select('role').eq('user_id', data.user.id).maybeSingle();
-  return p?.role === 'admin';
+  return p?.role === 'admin' ? 'admin' : null;
 }
+
+/* the console asks for the newest of these to know whether to read again (migration 20261011100000; a platform without it just ignores the error) */
+const stamp = (wbId: string) => sb.from('reg_workbooks').update({ last_change_at: new Date().toISOString() }).eq('id', wbId).then(() => {}, () => {});
 
 const db = {
   async hashes(wbId: string) {
@@ -46,9 +55,11 @@ const db = {
 
 /* after a read of the registers: the replacements still open (a substitute's tab to follow, money to move, a tab to close) are handed to registru-replace.
    It reads what this function has just stored, so it comes after the loop; it never fails the sync (its own run keeps its own record). */
-async function settleReplacements() {
+async function settleReplacements(onlyIfTab?: { wb: string; sheet: number }) {
   try {
-    const { count } = await sb.from('reg_replacements').select('id', { count: 'exact', head: true }).eq('status', 'active');
+    let q = sb.from('reg_replacements').select('id', { count: 'exact', head: true });
+    q = onlyIfTab ? q.eq('repl_workbook', onlyIfTab.wb).eq('repl_sheet', onlyIfTab.sheet).in('status', ['active', 'closed']) : q.eq('status', 'active');
+    const { count } = await q;
     if (!count) return;
     const call = fetch(SUPABASE_URL + '/functions/v1/registru-replace', { method: 'POST', headers: { 'content-type': 'application/json', 'x-sync-secret': SECRET }, body: '{}' }).then(r => r.text()).catch(() => '');
     const rt = (globalThis as any).EdgeRuntime;
@@ -59,10 +70,23 @@ async function settleReplacements() {
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
-  if (!(await allowed(req))) return json(401, { error: 'not allowed' });
+  const role = await who(req);
+  if (!role) return json(401, { error: 'not allowed' });
   if (!SA_KEY) return json(500, { error: 'GOOGLE_SA_KEY is not set' });
   const key = JSON.parse(SA_KEY);
   const body = await req.json().catch(() => ({}));
+
+  /* a register's own script: what it asks is checked field by field, then turned into the same group / one-register read the console uses */
+  if (role === 'hook') {
+    const h = checkHookBody(body);
+    if (!h.ok) return json(400, { error: h.msg });
+    const { data: found } = await sb.from('reg_workbooks').select('id').eq('spreadsheet_id', h.spreadsheetId).eq('enabled', true).maybeSingle();
+    if (!found) return json(200, { results: [{ status: 'failed', error: 'registru necunoscut sau oprit' }] });
+    body.workbook_id = found.id;
+    delete body.spreadsheet_id;
+    if (h.kind === 'full') { delete body.full; body.force = true; } else { body.force = true; }
+  }
+
   let q = sb.from('reg_workbooks').select('id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at, teacher_data').eq('enabled', true);
   if (body.workbook_id) q = q.eq('id', body.workbook_id);
   const { data: books, error } = await q.order('last_synced_at', { ascending: true, nullsFirst: true });   // the longest-waiting register first
@@ -73,6 +97,7 @@ Deno.serve(async (req) => {
     if (!wb) return json(200, { results: [{ workbook: body.workbook_id, status: 'failed', error: 'registru necunoscut sau oprit' }] });
     try {
       const r = await syncGroup({ wb, sheetId: body.sheet_id, tab: String(body.tab), readTab: (id: string, sid: number, tab: string) => readGroupTab(key, id, sid, tab), db });
+      if (r.changed) { await stamp(wb.id); await settleReplacements({ wb: wb.id, sheet: Number(body.sheet_id) }); }   // a substitute's tab that changed: the money follows at once
       return json(200, { results: [{ workbook: wb.id, group: true, status: r.skipped.length ? 'partial' : 'ok', changed: r.changed, tab: r.tab }] });
     } catch (e) {
       return json(200, { results: [{ workbook: wb.id, group: true, status: 'failed', error: String((e as Error).message ?? e).slice(0, 300) }] });
@@ -94,6 +119,7 @@ Deno.serve(async (req) => {
       const status = r.skipped.length ? 'partial' : 'ok';
       await sb.from('reg_sync_runs').update({ finished_at: new Date().toISOString(), status, groups_seen: r.seen, groups_changed: r.changed, groups_skipped: r.skipped.length, detail: r }).eq('id', run.data?.id);
       await sb.from('reg_workbooks').update({ last_synced_at: new Date().toISOString(), last_status: status, last_error: null, title: r.title, teacher_name: r.teacher, drive_modified: r.modified, last_full_sync_at: new Date().toISOString(), project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher, issues: r.issues }).eq('id', wb.id);
+      await stamp(wb.id);                                  // a full read happens only when the file changed: that is a change for the console
       results.push({ workbook: wb.id, status, seen: r.seen, changed: r.changed, skipped: r.skipped.length });
     } catch (e) {
       if (e instanceof QuotaError) {                       // Google's per-minute limit: stop here, the next run continues with the longest-waiting register
