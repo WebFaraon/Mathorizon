@@ -29,14 +29,14 @@
   const PROJ_NAME = { exo: 'Examen.md Offline', exn: 'Examen.md Online', mat: 'Matematica.md' };
   const H0 = 8, H1 = 21;
 
-  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
+  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', size: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
   let S = fresh();
   try { const v = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (v && v.ng) S = Object.assign(fresh(), v); } catch (e) { /* private mode */ }
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } };
   let root = null, onResize = null;
 
   /* ---------------- what the parent said -> the query ---------------- */
-  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.fmt ? 1 : 0) + (S.prof.trim() ? 1 : 0);
+  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.fmt ? 1 : 0) + (S.size ? 1 : 0) + (S.prof.trim() ? 1 : 0);
   const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: S.level, days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, filling: S.filling });
   const plain = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   /* the teacher search: every word typed starts a word of the name */
@@ -63,6 +63,7 @@
         <div class="in-fl"><span class="ax-rail__lbl" id="inLt">Până la ora</span><select class="ax-select" data-k="to" aria-labelledby="inLt">${hourOpts(S.to, 'Oricând')}</select></div>
       </div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Oricare', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLz">Mărimea grupei</span><select class="ax-select" data-k="size" aria-labelledby="inLz">${opt('', 'Oricare', S.size)}${opt('1', 'Individual', S.size)}${[2, 3, 4, 5, 6, 8].map(n => opt(String(n), n + ' elevi', S.size)).join('')}</select></div>
       <div class="in-fl"><span class="ax-rail__lbl">Profesorul</span><div class="ax-search">${ico('search', 16)}<input id="inProfQ" class="ax-input" type="search" autocomplete="off" placeholder="Nume profesor" aria-label="Profesorul" value="${esc(S.prof)}"></div></div>
       <button type="button" class="in-clear" data-clear-wish hidden>Șterge dorințele</button>
       <button type="button" class="in-reset" data-reset>${ico('undo', 16)} Începe de la zero</button>`;
@@ -90,12 +91,13 @@
       const sel = e.target.closest('select[data-k]'); if (!sel) return;
       const k = sel.dataset.k;
       S[k] = sel.value;
+      if (k === 'size' && sel.value) S.ng.size = +sel.value;                 // a group of that size is also what a new group is made as
       if (k === 'subject') { S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
       if (k === 'grade') { if (!lyceum()) S.profile = ''; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
       save(); syncRail(); paintPane(true);
     });
     rail.addEventListener('click', e => {
-      if (e.target.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (e.target.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
       if (e.target.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); }
     });
   }
@@ -235,7 +237,7 @@
   /* ---------------- painting ---------------- */
   let lastN = -1;
   function paintPane(animate) {
-    const list = ready() ? D.enrolCandidates(query()).filter(c => profOk(D.teacher(c.g.teacher).name)) : [];
+    const list = ready() ? D.enrolCandidates(query()).filter(c => profOk(D.teacher(c.g.teacher).name) && (!S.size || c.g.size === +S.size)) : [];
     root.querySelectorAll('.in-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === S.mode)));
     const nb = root.querySelector('#inN'); nb.hidden = !ready(); nb.textContent = list.length;
     const pane = root.querySelector('#inPane');
@@ -450,7 +452,7 @@
   function wire(host) {
     host.addEventListener('click', e => {
       const t = e.target;
-      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
       if (t.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); return; }
       const mode = t.closest('[data-mode]');
       if (mode) { S.mode = mode.dataset.mode; save(); paintPane(true); return; }

@@ -22,7 +22,6 @@
       seats: r.seatsSet === false ? '' : String(r.seats), floor: String(r.floor), was_seats: r.seatsSet === false ? '' : String(r.seats), was_floor: String(r.floor), gone: false
     }));
     let seq = 0;
-    const unset = () => rows.filter(r => !r.gone && r.seats === '').length;
 
     const dlg = document.createElement('dialog');
     dlg.className = 'rs-dlg';
@@ -63,7 +62,6 @@
       const n = changed().length, w = rows.some(problem), save = dlg.querySelector('[data-save]');
       dlg.querySelector('#rsSum').textContent = w ? 'Numărul e între 1 și 999 și nu se repetă; locurile între 1 și 60 (obligatorii la un cabinet adăugat aici); etajul un număr.' : n ? `${n} ${n === 1 ? 'modificare' : 'modificări'}` : '';
       if (save) save.disabled = !live || !n || w;
-      const fill = dlg.querySelector('.rs-fill'); if (fill) fill.hidden = !unset();
     }
 
     dlg.innerHTML = `
@@ -75,7 +73,6 @@
       <div class="rs-body">
         <p class="rs-lede">Registrele spun doar numărul cabinetului, nu câte locuri are. Completează-le o dată: la o grupă nouă consola îți arată ce cabinete sunt libere și ce se potrivește ca mărime, ca un grup mic să nu ocupe un cabinet mare.</p>
         ${live ? '' : '<p class="rs-note">În modul Demo capacitățile vin odată cu datele demo și nu se pot schimba. Treci pe Registre ca să le setezi.</p>'}
-        ${live ? `<div class="rs-fill"><label>Pune <input class="ax-input rs-in rs-all" inputmode="numeric" maxlength="2" placeholder="8" aria-label="Locuri"> locuri la toate cele nesetate</label><button type="button" class="ax-btn ax-btn--sm" data-fill>Aplică</button></div>` : ''}
         <div class="rs-head" aria-hidden="true"><span>Cabinet</span><span>Etaj</span><span>Locuri</span><span>Stare</span><span></span></div>
         <ul class="rs-list" id="rsList"></ul>
         ${live ? `<button type="button" class="ax-btn rs-add" data-add>${ico('plus', 16)} Adaugă un cabinet</button>
@@ -98,13 +95,6 @@
     });
     dlg.addEventListener('click', async e => {
       if (e.target === dlg || e.target.closest('[data-x]')) { dlg.close(); return; }
-      if (e.target.closest('[data-fill]')) {
-        const v = dlg.querySelector('.rs-all').value.trim();
-        if (!/^\d{1,2}$/.test(v) || +v < 1 || +v > 60) { dlg.querySelector('#rsErr').textContent = 'Scrie un număr de locuri între 1 și 60.'; return; }
-        rows.forEach(r => { if (!r.gone && r.seats === '') { r.seats = v; repaintRow(r); } });
-        paintFoot();
-        return;
-      }
       if (e.target.closest('[data-add]')) {
         const key = 'n' + (++seq);
         const r = { key, num: '', was: null, origin: 'new', seats: '', floor: '', was_seats: '', was_floor: '', gone: false };
@@ -139,7 +129,7 @@
     listEl().classList.add('is-first');
     setTimeout(() => listEl() && listEl().classList.remove('is-first'), 900);
     dlg.showModal();
-    const first = dlg.querySelector('.rs-all') || dlg.querySelector('[data-x]');
+    const first = dlg.querySelector('.rs-in:not([readonly]):not([disabled])') || dlg.querySelector('[data-x]');
     if (first) first.focus({ preventScroll: true });
   }
 
