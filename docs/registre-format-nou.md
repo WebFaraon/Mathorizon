@@ -58,3 +58,12 @@ Mai întâi pe un registru demo (copie), apoi toate cele 27 demo, apoi cele real
 - Linkul fișierului **Google Sheets** al șablonului nou (partajat cu contul de serviciu) și al **fișierului-mamă** `1cfzsd-…` (cel puțin ca cititor pentru contul de serviciu), ca să verific formulele reale, validările și valorile tarifelor.
 - Registrele online și offline vor fi **în fișiere separate** sau în același fișier, cu `C1` diferit pe fiecare grupă?
 - Când trec registrele reale, și cine îi poate autoriza pe toți pentru `IMPORTRANGE` (contul care deține proiectul Apps Script poate face asta automat dacă are acces la ele).
+
+## Confirmat din Google Sheets real (2026-10-13, șablonul partajat cu contul de serviciu)
+
+Formulele reale sunt cele din export (aceleași diferențe, nimic în plus în fila de grupă). Detalii pe care exportul nu le arăta:
+- **`CONFIGURARI!A1` = `=IMPORTRANGE("1cfzsd-M5Ujtc8Y-FQSzmAyjJ12Cq2qAG4SgRhCCVdoQ", "CONFIGURARI!A1:V99")`** confirmat.
+- **Validări stricte în fila de grupă:** `A1` trebuie să fie din `CONFIGURARI!M2:M9` (formatele, deci inclusiv „Grup cu 10 elevi”); **`C1` doar „Offline” sau „Online”**; `A3` stări, `A4` materii, `A5` clase, `A6` nivel, `A7` profil, `D7:Z7` manageri, `D8:Z8` statut elev (nestrictă), `D9:Z198` participare. Scrierile prin API nu sunt oprite de validări, dar valorile din afara listei apar roșii în Sheets: planificatoarele noastre verifică deja listele.
+- **Protejat:** `Grup Model!C9:C198` (plata profesorului pe lecție) și foaia `CONFIGURARI`. Contul de serviciu nu le poate scrie: conversia lor se face cu contul proprietar (OAuth-ul din `_import/google-oauth-token.json`), nu cu cel de serviciu.
+- **20 de reguli de formatare condiționată** în fila de grupă (culori de statut și prezență): se păstrează la conversie, pentru că nu atingem formatarea.
+- **`Total achitări` are formule într-o singură coloană-model, `H` (rândurile 3..32), nu în 30 de coloane umplute dinainte (`F:AI`) ca în vechiul format.** Totalurile `E`, `F`, `G` adună `H4:` până la **ultima coloană a foii** (`COLUMNS(1:1)`): o grupă nouă înseamnă o coloană nouă la dreapta, copiată din modelul `H`, cu numele filei în rândul 4. Asta schimbă mecanismul de înscriere a unei file noi în `Total` (NEW_GROUP, înlocuiri): nu mai e „primul loc liber în F4:AI4”, ci „adaugă o coloană după ultima și copiază formulele”. `Sheet3` din `H4` e un nume de probă (fila `Sheet3` există goală).
