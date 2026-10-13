@@ -48,7 +48,12 @@ const imp = f => import('../../../supabase/functions/_shared/registru/' + f);
   console.log(`Grupa de bază din registrul ${FROM}: ${g0.students.length} elevi, ${payers.length} cu bani`);
 
   const toTabsBefore = await to.tabs();
-  const totalKeys = []; for (let c = 6; c <= 35; c++) totalKeys.push((c <= 26 ? String.fromCharCode(64 + c) : 'A' + String.fromCharCode(64 + c - 26)) + '4');
+  const colL = c => (c <= 26 ? String.fromCharCode(64 + c) : 'A' + String.fromCharCode(64 + c - 26));
+  // "Total achitări": the old layout lists the tabs in F4:AI4; the new one (convert-format.js) from H4 to the last column of the sheet, and a new tab is a new column
+  const probe = await to.read('Total achitări', ['F6', 'G6']);
+  const newLayout = String(probe.F6.v || '').toLowerCase() === 'online' && String(probe.G6.v || '').toLowerCase() === 'offline';
+  const widthBefore = newLayout ? await to.width('Total achitări') : 35;
+  const totalKeys = []; for (let c = newLayout ? 8 : 6; c <= widthBefore; c++) totalKeys.push(colL(c) + '4');
   const totalBefore = await to.read('Total achitări', totalKeys);
   let replTab = null;
   try {
@@ -127,6 +132,7 @@ const imp = f => import('../../../supabase/functions/_shared/registru/' + f);
     const restore = {}; rowKeys.forEach(k => { const c = keep[k]; if (c && (c.f || c.v != null)) restore[k] = c.f ? { f: c.f } : { v: c.v }; });
     await from.write(fromTab, restore);
     if (replTab) await to.remove(replTab);
+    if (newLayout) { const w = await to.width('Total achitări'); for (let c = w; c > widthBefore; c--) await to.removeColumn('Total achitări', colL(c)); }
     const clear = {}; totalKeys.forEach(k => { clear[k] = { v: totalBefore[k].v == null ? '' : totalBefore[k].v }; });
     await to.write('Total achitări', clear);
     const after = await to.tabs(), fa = await from.read(fromTab, rowKeys), ta = await to.read('Total achitări', totalKeys);

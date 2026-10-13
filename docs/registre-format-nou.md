@@ -84,3 +84,22 @@ Codul citește acum **ambele formate** (cel vechi rămâne neschimbat, 253 de ve
 
 **Ordinea de lansare:** 1) rulează migrarea în SQL Editor, 2) redeploy la `registru-sync`, `registru-apply` și `registru-replace`. Fără migrare, sincronizarea unui registru în format nou ar eșua la `reg_apply_group` (coloanele lipsesc); registrele vechi nu trimit `mode` ca valoare și nu sunt afectate.
 
+## Conversia registrelor demo (2026-10-13): făcută și verificată
+
+Script: `scripts/registru-import/google/convert-format.js` (`--test <id>` pe o copie, `--one <id>`, `--all`). Convertește **pe loc** (același id de fișier, deci Apps Script, grupele din platformă și înlocuirile rămân legate), într-un singur `batchUpdate` atomic:
+- fiecare filă de grupă: `C1` = modul (deslipit de `B1`), formulele șablonului în `A2`, `D5:Z6`, `C9:C198`, validările `A1:C1`; nimic altceva (elevi, prezențe, plăți, reduceri, teme, orar nu se ating);
+- `Total achitări` înlocuită cu cea din șablon (copiată cu `sheets.copyTo`), plățile `A3:B32` și lista filelor puse la loc de la `H4`, câte o coloană copiată din modelul `H` pentru fiecare grupă;
+- fila `Grup Model` (șablonul de grupă nouă) înainte de `CONFIGURARI`;
+- `CONFIGURARI`: tarifele și tabelele de plată (`L:V`) din șablon, **ca valori** (registrele reale vor importa foaia din fișierul-mamă cu `IMPORTRANGE`; fișierul-mamă nu e partajat cu noi, listele din `A:K` rămân cele de acum);
+- `Disponibilitate` și `Disponibilitate Vara`: rândurile „Comentariu profesorului” și „Link Google Meet”.
+
+**Capcană găsită:** `CONFIGURARI` trebuie lărgită la 22 de coloane ÎNAINTE de a copia filele din șablon; o formulă care arată spre o coloană din afara foii e ancorată la capătul foii și se mută la lărgire (prețurile citeau coloanele greșite). Scriptul lărgește întâi.
+
+Înainte și după, registrul e citit cu importatorul platformei și comparat elev cu elev (cost, sold, achitat, reducere, prezențe, date, stări, orar). Singura diferență permisă: plata profesorului pe lecție (formula nouă rotunjește la leu). Rezultat pe cele **27 de registre, 200 de grupe**: nicio diferență; plata profesorului diferă doar prin rotunjire (ex. un registru de 17 grupe: salariul total 58323,01 înainte, 58278 după). Baza de date: 200 de grupe cu `mode = offline` și prețul corect (608/348/288/248/228/218), audit complet 0 diferențe, 27 de registre `ok`. Copiile de siguranță ale formatului vechi sunt într-un folder „Backup înainte de formatul nou …” din Drive-ul proprietarului.
+
+Teste de capăt la capăt pe registre convertite: `google/new-format-e2e-local.js` (grupă nouă online / offline / de 10 din `Grup Model`, refuzul 10 offline și 8 online, plată pe elev, mutarea orarului cu redenumirea filei și a numelui din `Total`, curățare) și `google/replacement-local.js` (înlocuire între două registre convertite, banii se mută și se întorc, totul la loc).
+
+Defecte reale găsite de aceste teste și reparate în cod: `google.mjs` citea `CONFIGURARI` doar `A:K` și `Total` doar până la `AI`; citirea numelor din `Total` în afara foii dădea eroare Google (lista se citește acum pe lățimea reală a foii, `adapter.width`); redenumirea unei file după orar căuta numele doar în `F4:AI4` (`locateName` în `total.mjs` îl găsește și în aspectul nou).
+
+**Pentru registrele reale (rămas):** fișierul-mamă partajat cu contul de serviciu și cu proprietarul, `CONFIGURARI!A1` înlocuit cu `IMPORTRANGE` și autorizat o dată per registru, aceeași comandă de conversie (cu copie de siguranță automată). Modul se pune din numele fișierului (`OFFLINE`/`ONLINE`); într-un fișier cu grupe de ambele feluri `C1` se schimbă apoi de mână pe grupele online (prețul și plata se recalculează singure).
+
