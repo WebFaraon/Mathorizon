@@ -31,6 +31,7 @@ const SYNC_SECRET = (() => { try { return fs.readFileSync(path.join(root, '_impo
 const SHEETS = 'https://sheets.googleapis.com/v4/spreadsheets/';
 const DRIVE = 'https://www.googleapis.com/drive/v3/files/';
 const sleep = ms => new Promise(r => setTimeout(r, ms));
+const WIDTHS = [[2, 130], [28, 114]];          // column C and column AC of a group tab, in pixels, as in the template's "Grup Model"
 const U = { who: 'user' };
 const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 const col = n => { let s = ''; for (; n > 0; n = Math.floor((n - 1) / 26)) s = String.fromCharCode(65 + ((n - 1) % 26)) + s; return s; };
@@ -202,6 +203,7 @@ async function convert(id, log) {
       reqs.push(paste(range(m, 1, 2, 0, 1), range(s, 1, 2, 0, 1), 'PASTE_FORMULA'));                 // A2: the price per hour
       reqs.push(paste(range(m, 4, 6, 3, 26), range(s, 4, 6, 3, 26), 'PASTE_FORMULA'));               // D5:Z6: cost and lessons
       reqs.push(paste(range(m, 8, 198, 2, 3), range(s, 8, 198, 2, 3), 'PASTE_FORMULA'));             // C9:C198: the teacher's pay
+      WIDTHS.forEach(([c, px]) => reqs.push({ updateDimensionProperties: { range: { sheetId: s, dimension: 'COLUMNS', startIndex: c, endIndex: c + 1 }, properties: { pixelSize: px }, fields: 'pixelSize' } }));   // C is wide enough for the mode chip, AC as in the template
     });
     log(`5. Scriu totul într-o singură operațiune atomică (${reqs.length} cereri, ${groupTabs.length} grupe)...`);
     await api('POST', `${SHEETS}${id}:batchUpdate`, Object.assign({ body: { requests: reqs } }, U));

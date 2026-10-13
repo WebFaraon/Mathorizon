@@ -103,3 +103,5 @@ Defecte reale găsite de aceste teste și reparate în cod: `google.mjs` citea `
 
 **Pentru registrele reale (rămas):** fișierul-mamă partajat cu contul de serviciu și cu proprietarul, `CONFIGURARI!A1` înlocuit cu `IMPORTRANGE` și autorizat o dată per registru, aceeași comandă de conversie (cu copie de siguranță automată). Modul se pune din numele fișierului (`OFFLINE`/`ONLINE`); într-un fișier cu grupe de ambele feluri `C1` se schimbă apoi de mână pe grupele online (prețul și plata se recalculează singure).
 
+**Aspect (verificat prin export PDF al foilor convertite):** coloana `C` a filelor de grupă rămăsese la lățimea veche (61 px) și chipul „Online/Offline” din `C1` nu se vedea. Lățimile din șablon (`C` 130 px, `AC` 114 px) sunt acum puse pe toate cele 200 de grupe (`google/fix-widths.js`, rulat pe cele 27 de registre) și incluse în `convert-format.js` pentru registrele reale. Rândurile de înălțime, culorile, fonturile și validările din `A1:C8` sunt identice cu ale șablonului; `Total achitări` și rândurile noi din `Disponibilitate` sunt copiate direct din șablon (aspect identic).
+
