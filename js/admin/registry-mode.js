@@ -18,7 +18,8 @@
 
   let busy = false;
   let lastT = null;                                   // the tables as last read: a group can be replaced in them without reading everything again
-  const GROUP_COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
+  const GROUP_COLS_BASE = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
+  let GROUP_COLS = GROUP_COLS_BASE + ',mode,price';           // mode, price: migration 20261012100000 (the new register format); without it the console reads the groups as before
   const WORKBOOK_COLS_BASE = 'id,spreadsheet_id,title,teacher_name,project,config,teacher_data,enabled,last_full_sync_at';
   let WORKBOOK_COLS = WORKBOOK_COLS_BASE + ',last_change_at';        // last_change_at: migration 20261011100000; without it the console only knows the full reads
   const STUDENT_COLS = 'id,group_id,col,name,phone,manager,status,paid,discount,cost,sold';
@@ -66,11 +67,19 @@
       return fetchAll('reg_workbooks', WORKBOOK_COLS, 'teacher_name.asc,id.asc', access, filter);
     }
   }
+  async function fetchGroups(access, filter) {
+    try { return await fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, filter); }
+    catch (e) {
+      if (GROUP_COLS === GROUP_COLS_BASE || !/mode|price|column/i.test(String(e && e.message))) throw e;
+      GROUP_COLS = GROUP_COLS_BASE;
+      return fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, filter);
+    }
+  }
   async function loadTables() {
     const access = await token();
     const [workbooks, groups, students, lessons] = await Promise.all([
       fetchWorkbooks(access),
-      fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access),
+      fetchGroups(access),
       fetchAll('reg_students', STUDENT_COLS, 'group_id.asc,col.asc', access),
       fetchAll('reg_lessons', LESSON_COLS, 'group_id.asc,row_no.asc', access)
     ]);
@@ -120,8 +129,8 @@
     if (!lastT || (!ids.length && !sheets.length)) return refresh();
     const access = await token();
     const parts = [];
-    if (ids.length) parts.push(fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, `id=in.(${ids.join(',')})`));
-    sheets.forEach(s => parts.push(fetchAll('reg_groups', GROUP_COLS, 'workbook_id.asc,sheet_id.asc', access, `workbook_id=eq.${s.wb}&sheet_id=eq.${s.sheet}`)));
+    if (ids.length) parts.push(fetchGroups(access, `id=in.(${ids.join(',')})`));
+    sheets.forEach(s => parts.push(fetchGroups(access, `workbook_id=eq.${s.wb}&sheet_id=eq.${s.sheet}`)));
     const found = (await Promise.all(parts)).flat();
     if (found.length !== ids.length + sheets.length) return refresh();
     const gids = found.map(r => r.id), inList = `group_id=in.(${gids.join(',')})`;
@@ -403,7 +412,7 @@
       const access = await token();
       const room = fresh.room ? D.room(fresh.room) : null, m = D.manager(manager);
       const payload = {
-        group: { size: fresh.size, subject: fresh.subject, summer: fresh.regime === 'vara', grade: fresh.grade, profile: fresh.profile || null, level: fresh.level || '', days: fresh.days, start: fresh.start, duration: fresh.duration, cabinet: room ? String(room.num) : '', teacherLevel: D.tLevel(t.id), state: 'Se completează' },
+        group: { size: fresh.size, mode: (D.project(fresh.project) || {}).mode === 'offline' ? 'Offline' : 'Online', subject: fresh.subject, summer: fresh.regime === 'vara', grade: fresh.grade, profile: fresh.profile || null, level: fresh.level || '', days: fresh.days, start: fresh.start, duration: fresh.duration, cabinet: room ? String(room.num) : '', teacherLevel: D.tLevel(t.id), state: 'Se completează' },
         student: { name: `${last} ${first}`.replace(/\s+/g, ' ').trim(), phone, manager: m ? (m._reg || m.name) : '', status: 'Oră de probă' }
       };
       const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;

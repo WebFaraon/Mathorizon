@@ -14,9 +14,10 @@
 import { MemoryBook } from './memory-book.mjs';
 import { plan } from './commands.mjs';
 import { colLetter, readConfig } from './parse.mjs';
+import { sizesFor, SIZES_ALL } from './pay.mjs';
 
 export const DAY_NAMES = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
-const SIZES = [1, 2, 3, 4, 5, 6, 8];
+const SIZES = SIZES_ALL;
 const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
 const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 export const GENERAL_TABS = new Set(['total achitari', 'disponibilitate', 'disponibilitate vara', 'configurari']);
@@ -53,26 +54,26 @@ export function renamedTitle(oldTitle, sc, others) {
   return plain(title) === plain(oldTitle) ? null : title;
 }
 
-/* the template: the empty tab "Orar 1" when the register has it, else the last visible group tab (it is cleaned anyway) */
+/* the template: the empty tab "Grup Model" (new registers) or "Orar 1" (old ones) when the register has it, else the last visible group tab (it is cleaned anyway) */
+export const TEMPLATE_TABS = ['grup model', 'orar 1'];
 export function chooseTemplate(tabs, a1Of) {
-  const orar = tabs.find(t => plain(t.title) === 'orar 1');
+  const orar = tabs.find(t => TEMPLATE_TABS.includes(plain(t.title)));
   if (orar) return orar;
   const groups = tabs.filter(t => !t.hidden && !GENERAL_TABS.has(plain(t.title)));
   for (let i = groups.length - 1; i >= 0; i--) if (/^(grup|individual)/i.test(String(a1Of[groups[i].title] || ''))) return groups[i];
   return null;
 }
 
-/* the first free place for a name in the list of the Total tab (F4:AI4): { a1, index } or null when it is full */
-export function firstFree(row) {
-  for (let i = 0; i < row.length; i++) if (row[i] === '' || row[i] == null) return { a1: colLetter(6 + i) + '4', index: i };
-  return null;
-}
+/* the first free place for a name in the list of the Total tab (old layout, F4:AI4): { a1, index } or null when it is full (the new layout: total.mjs) */
+export { firstFree } from './total.mjs';
 
 export function planNewGroup({ tabs, template, config, configCells, total, cmd }) {
   const g = cmd.group || {};
   const cfg = config || {};
   const size = +g.size, days = (g.days || []).map(Number), duration = +g.duration || 1, start = +g.start;
-  if (!SIZES.includes(size)) return invalid('size', 'Formatul grupei trebuie să fie 1, 2, 3, 4, 5, 6 sau 8 elevi.');
+  if (!SIZES.includes(size)) return invalid('size', 'Formatul grupei trebuie să fie 1, 2, 3, 4, 5, 6, 8 sau 10 elevi.');
+  const mode = /^online/i.test(String(g.mode || '')) ? 'Online' : 'Offline';
+  if (cfg.newFormat && !sizesFor(mode).includes(size)) return invalid('size-mode', size === 10 ? 'Grupele de 10 elevi există doar online.' : 'Grupele de 8 elevi există doar offline.');
   const subject = String(g.subject || '').trim() + (g.summer ? ' (Vara)' : '');
   if (!g.subject) return invalid('subject', 'Materia lipsește.');
   if (cfg.subject && cfg.subject.length && !cfg.subject.some(x => plain(x) === plain(subject))) return invalid('subject', `Materia „${subject}” nu e în lista din CONFIGURARI a registrului.`);
@@ -88,14 +89,15 @@ export function planNewGroup({ tabs, template, config, configCells, total, cmd }
   const state = g.state || 'Se completează';
   if (cfg.groupState && cfg.groupState.length && !cfg.groupState.includes(state)) return invalid('state', `Starea „${state}” nu e în lista din CONFIGURARI.`);
   const tl = +g.teacherLevel;
-  if (!(tl >= 1 && tl <= 6)) return invalid('teacher-level', 'Nivelul profesorului trebuie să fie între 1 și 6.');
-  if (!template) return invalid('no-template', 'Registrul nu are nicio filă de grupă după care să se facă una nouă („Orar 1” sau o grupă existentă).');
-  if (total && total.exists && !total.free) return invalid('total-full', 'Lista de file din „Total achitări” (F4:AI4) e plină: grupa nouă nu ar intra în totaluri. Fă loc în registru.');
+  if (!(tl >= 1 && tl <= (cfg.newFormat ? 7 : 6))) return invalid('teacher-level', `Nivelul profesorului trebuie să fie între 1 și ${cfg.newFormat ? 7 : 6}.`);
+  if (!template) return invalid('no-template', 'Registrul nu are nicio filă de grupă după care să se facă una nouă („Grup Model”, „Orar 1” sau o grupă existentă).');
+  if (total && total.exists && !total.free) return invalid('total-full', `Lista de file din „Total achitări” (${total.layout === 'new' ? 'H4 până la AH4' : 'F4:AI4'}) e plină: grupa nouă nu ar intra în totaluri. Fă loc în registru.`);
 
   const title = tabTitleFor({ days, start, duration, summer: !!g.summer }, tabs.map(t => t.title));
   const cells = {};
   const put = (a1, v) => { cells[a1] = { v }; };
   put('A1', size === 1 ? 'Individual 1 elev' : `Grup cu ${size} elevi`);
+  if (cfg.newFormat) put('C1', mode);                                     // the new format: the group's mode decides its prices and the teacher's pay
   put('A3', state); put('A4', subject); put('A5', g.grade); put('A6', level || 'Nivelul'); put('A7', liceu ? g.profile : 'Profilul');
   let r = 2;
   days.slice().sort((a, b) => a - b).forEach(d => { for (let h = 0; h < duration; h++) { put('AA' + r, DAY_NAMES[d - 1]); put('AB' + r, (start + h) / 24); if (cabinet) put('AC' + r, cabinet); r++; } });
@@ -112,7 +114,7 @@ export function planNewGroup({ tabs, template, config, configCells, total, cmd }
   }
   return {
     ok: true, title, sourceTitle: template.title, clears: CLEARS.slice(), cells,
-    total: total && total.exists && total.free ? { tab: total.title, a1: total.free.a1, v: title } : null, student
+    total: total && total.exists && total.free ? { tab: total.title, a1: total.free.a1, v: title } : null, totalInfo: total || null, student
   };
 }
 

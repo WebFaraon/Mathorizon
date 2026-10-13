@@ -23,6 +23,8 @@
   const dayNames = g => g.days.map(d => D.DAYS[d - 1].name).join(' / ');
   const timeRange = (start, dur) => `${hh(start)}-${hh(start + dur)}`;
   const sizeLabel = n => (n === 1 ? 'Individual' : `Grup cu ${n} elevi`);
+  // the formats that exist in each mode (the registers' price lists): 8 students only offline, 10 only online
+  const sizesOf = project => (project === 'exo' ? [1, 2, 3, 4, 5, 6, 8] : [1, 2, 3, 4, 5, 6, 10]);
   const plural = (n, one, many) => `${n} ${n === 1 ? one : (n % 100 >= 1 && n % 100 <= 19 ? many : 'de ' + many)}`;
   const CHECK = '<svg class="in-ck" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>';
   const FMT = { offline: ['exo'], online: ['exn', 'mat'] };
@@ -217,7 +219,7 @@
       <p class="in-sub">Nicio grupă nu se potrivește? Alege un profesor care predă ${esc(S.subject)} la clasa ${esc(S.grade)} și o oră liberă de-a lui. Grupa se creează de la zero, doar cu elevul ăsta, și așteaptă să se completeze.</p>
       <div class="in-ng">
         <div class="in-f"><span class="in-l">Formatul grupei noi</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exo', 'exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>
-        <div class="in-f"><span class="in-l">Câți elevi va avea</span><div class="in-chips in-chips--n" role="radiogroup" aria-label="Dimensiunea">${[1, 2, 3, 4, 5, 6, 8].map(n => `<button type="button" class="in-chip${S.ng.size === n ? ' is-on' : ''}" data-ngs="${n}" role="radio" aria-checked="${S.ng.size === n}">${n === 1 ? 'Individual' : n}</button>`).join('')}</div></div>
+        <div class="in-f"><span class="in-l">Câți elevi va avea</span><div class="in-chips in-chips--n" role="radiogroup" aria-label="Dimensiunea">${sizesOf(S.ng.project).map(n => `<button type="button" class="in-chip${S.ng.size === n ? ' is-on' : ''}" data-ngs="${n}" role="radio" aria-checked="${S.ng.size === n}">${n === 1 ? 'Individual' : n}</button>`).join('')}</div></div>
         <div class="in-f"><span class="in-l">Durata unei lecții</span><div class="in-chips" role="radiogroup" aria-label="Durata">${[1, 2].map(n => `<button type="button" class="in-chip${S.ng.dur === n ? ' is-on' : ''}" data-ngd="${n}" role="radio" aria-checked="${S.ng.dur === n}">${n === 1 ? 'O oră' : 'Două ore'}</button>`).join('')}</div></div>
       </div>
       <div class="in-reshead"><p class="in-count"><b>${opts.length}</b> ${opts.length === 1 ? 'profesor are timp' : 'profesori au timp'}</p></div>
@@ -459,7 +461,7 @@
       if (t.closest('[data-filling]')) { S.filling = !S.filling; save(); paintPane(true); return; }
       const en = t.closest('[data-enrol]');
       if (en) { openEnrol({ group: en.dataset.enrol }); return; }
-      const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
+      const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
       const ngs = t.closest('[data-ngs]'); if (ngs) { S.ng.size = +ngs.dataset.ngs; save(); paintPane(false); return; }
       const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
       const ngt = t.closest('[data-ngt]');

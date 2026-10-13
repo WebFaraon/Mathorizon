@@ -601,7 +601,9 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
         duplicate: async (src, title) => { calls.duplicate++; bk.addSheet(title, bk.data[src].cells); ids[title] = ++n; return { sheetId: ids[title] }; },
         remove: async tt => bk.removeSheet(tt),
         batchWrite: async ({ clears, cells }) => { calls.batch++; if (hooks && hooks.failBatch) throw new Error('Google 500: simulat'); clears.forEach(c2 => bk.clearRange(c2.tab, c2.range)); Object.keys(cells).forEach(tb => bk.set(tb, cells[tb])); },
-        write: async (tab, cells) => { bk.set(tab, cells); }
+        write: async (tab, cells) => { bk.set(tab, cells); },
+        copyColumn: async (tab, from, to, r1, r2) => { calls.copyColumn = (calls.copyColumn || 0) + 1; bk.copyColumn(tab, from, to, r1, r2); },
+        removeColumn: async (tab, L) => { calls.removeColumn = (calls.removeColumn || 0) + 1; bk.removeColumn(tab, L); }
       };
     };
     const lists = { B2: { v: 'Matematica' }, F2: { v: 'Activ' }, F3: { v: 'Înlocuire' }, F4: { v: 'Inactiv' }, G2: { v: 'Activ' }, G3: { v: 'Înlocuire' }, G4: { v: 'Transferat' }, G5: { v: 'Inactiv' }, G6: { v: 'Oră de probă' }, I2: { v: '13' }, I3: { v: '14' }, D2: { v: '9 ― 10' } };
@@ -663,6 +665,68 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(rf.status === 'failed' && rf.code === 'replacement-failed' && JSON.stringify(Pf.to.bk.sheetNames) === JSON.stringify(before), 'replacement tab: the write fails, the new tab is deleted again, nothing is left behind');
     }
 
+
+    // ── the register format of 2026-10-13 (docs/registre-format-nou.md): mode C1, tariffs from CONFIGURARI, size 10, the Total list from H, a new column per group ──
+    {
+      const { parseWorkbook: pw } = require(path.join(R, 'parse'));
+      const { validate } = require(path.join(R, 'validate'));
+      const { priceFor: pf, lessonPay: lp, sizesFor: sz } = await imp('pay.mjs');
+      const { applyNewGroupAsync } = await imp('apply.mjs');
+      const cfgN = Object.assign({}, cfgR, { F5: { v: 'Se completează' }, M1: { v: 'Format Grupă' }, N1: { v: 'Nr. Maxim Elevi' }, O1: { v: 'Tarif Offline (MDL)' }, P1: { v: 'Tarif Online (MDL)' }, M2: { v: 'Individual 1 elev' }, O2: { v: 608 }, P2: { v: 548 }, M3: { v: 'Grup cu 3 elevi' }, O3: { v: 288 }, P3: { v: 258 }, M4: { v: 'Grup cu 10 elevi' }, O4: { v: 0 }, P4: { v: 108 }, R1: { v: 'Nivel Profesor' }, S1: { v: 'Bază Offline (Standard)' }, S2: { v: 165 } });
+      const totalNew = (names) => { const c = { D6: { v: 'Formatul grupului' }, E6: { v: 'Total' }, F6: { v: 'Online' }, G6: { v: 'Offline' }, F4: { v: 1, f: 'COUNTA(x)' }, G4: { v: 0, f: 'COUNTA(y)' } }; names.forEach((n, i) => { const L = String.fromCharCode(72 + i); c[L + '4'] = { v: n }; c[L + '3'] = { v: 0, f: 'IF(' + L + '$4="","",INDIRECT("\'"&' + L + '$4&"\'!C8"))' }; c[L + '1'] = { v: '', f: 'IF(' + L + '$4="","",INDIRECT("\'"&' + L + '$4&"\'!C1"))' }; }); return c; };
+      const grupModel = (o) => Object.assign({ A1: { v: 'Grup cu 3 elevi' }, A2: { v: 258, f: 'LET(x)' }, A3: { v: 'Starea grupului' }, A4: { v: 'Materia' }, A5: { v: 'Clasa' }, A6: { v: 'Nivelul' }, A7: { v: 'Profilul' }, C1: { v: 'Online' } }, o || {});
+
+      // the group tab: mode, size 10, the price its A2 shows
+      const gbook = new MemoryBook({ 'Marți 16:00-17:00': { cells: { A1: { v: 'Grup cu 10 elevi' }, A2: { v: '108 MDL/oră' }, C1: { v: 'Online' }, A3: { v: 'Activ' }, A4: { v: 'Matematica' }, A5: { v: 'XII' }, A6: { v: '9 ― 10' }, A7: { v: 'Real' }, D1: { v: 'Ionescu Ana+37369123456' }, D7: { v: 'Pricinoc Ariadna' }, D8: { v: 'Activ' }, A9: { v: '5 Octombrie' }, B9: { v: 'Funcții' }, D9: { v: 'PREZENT' } } }, CONFIGURARI: { hidden: true, cells: cfgN }, 'Total achitări': { cells: totalNew(['Marți 16:00-17:00']) } }, 'Ionescu Petru Registru EXAMEN.MD ONLINE 2026-2027.xlsx');
+      const mm = pw(gbook, {}), gg = mm.groups[0];
+      ok(gg && gg.mode === 'online' && gg.size === 10 && gg.price === 108, 'new format: C1 gives the mode, "Grup cu 10 elevi" is size 10, A2 gives the price (108)');
+      ok(mm.config.newFormat === true && mm.config.tariffOnline[2] === 108 && mm.config.tariffOffline[2] === 0 && mm.config.broken === false, 'new format: the tariffs of CONFIGURARI are read (online 10 students = 108, offline = 0)');
+      ok(mm.total.layout === 'new' && mm.total.tabs.length === 1 && mm.total.tabs[0].name === 'Marți 16:00-17:00', 'new format: the Total list starts at H, the Online / Offline counts in F4:G4 are not tab names');
+      const vmodel = validate(mm);
+      ok(!vmodel.some(i => i.code === 'format' || i.code === 'format-mode' || i.code === 'price'), 'new format: a group of 10 online with a price is valid: ' + JSON.stringify(vmodel.filter(i => ['format', 'format-mode', 'price'].includes(i.code)).map(i => i.code)));
+      const bad1 = pw(new MemoryBook({ G: { cells: Object.assign({}, gbook.data['Marți 16:00-17:00'].cells, { C1: { v: 'Offline' }, A2: { v: 'Format invalid' } }) }, CONFIGURARI: { hidden: true, cells: cfgN } }, 'x.xlsx'), {});
+      const v1 = validate(bad1).map(i => i.code);
+      ok(v1.includes('format-mode') && v1.includes('price'), 'new format: 10 students offline and a price that is not a number are errors (costs would be 0): ' + v1.join(','));
+      const brk = pw(new MemoryBook({ G: { cells: gbook.data['Marți 16:00-17:00'].cells }, CONFIGURARI: { hidden: true, cells: { A1: { v: '#REF!' }, B1: { v: 'Manager' } } } }, 'x.xlsx'), {});
+      ok(brk.config.broken === true && validate(brk).some(i => i.code === 'config-broken'), 'new format: an error in CONFIGURARI (IMPORTRANGE not allowed) is reported');
+      ok(pf(3) === 288 && pf(3, 'Online') === 258 && pf(10, 'online') === 108 && pf(10) === 0 && pf(8, 'Online') === 0, 'prices: offline and online tables');
+      ok(sz('Online').includes(10) && !sz('Online').includes(8) && sz('Offline').includes(8) && !sz('Offline').includes(10), 'formats: 8 only offline, 10 only online');
+      ok(Math.abs(lp(10, 3, 4, 'Online') - 156) < 1e-9 && Math.abs(lp(6, 6, 7, 'Offline') - 305) < 1e-9 && lp(6, 6, 9, 'Offline') === 255 && lp(6, 6, 9, 'Online') === 242, 'teacher pay: 10 students (minimum 6), level 7, the default for an unknown level');
+
+      // a new group in a register of the new format: C1, a new column in Total (copied from H), the name in row 4
+      const mkNew = (names, hooks) => reg2({ 'Total achitări': { cells: totalNew(names) }, 'Grup Model': { cells: grupModel() }, CONFIGURARI: { hidden: true, cells: cfgN } }, hooks);
+      const group = (o) => Object.assign({ size: 3, subject: 'Matematica', summer: false, grade: 'XII', profile: 'Real', level: '9 ― 10', days: [2], start: 16, duration: 1, cabinet: '14', teacherLevel: 7, state: 'Se completează', mode: 'Online' }, o || {});
+      const Rn = mkNew(['Existent 1']);
+      const rg = await applyNewGroupAsync(Rn, { id: 'ng-n1', type: 'NEW_GROUP', group: group() });
+      const cN = (tb, k) => Rn.bk.cell(tb, k) || {};
+      ok(rg.status === 'done' && rg.source === 'Grup Model' && cN(rg.tab, 'C1').v === 'Online' && cN(rg.tab, 'AA9').v === 'Nivelul Profesorului 7', 'new group (new format): made from "Grup Model", C1 = the mode, teacher level 7 is accepted: ' + JSON.stringify({ s: rg.status, c: rg.code, m: rg.msg }));
+      ok(Rn.calls.copyColumn === 1 && cN('Total achitări', 'I4').v === rg.tab && String(cN('Total achitări', 'I3').f || '').includes('I$4') && cN('Total achitări', 'H4').v === 'Existent 1', 'new group (new format): a NEW column I is copied from the model column H (formulas now point at I), the name is in I4, H is untouched');
+      // the first group goes in H itself (the model column, no copy), a placeholder "Sheet3" counts as free
+      const Rh = mkNew(['Sheet3']), rh = await applyNewGroupAsync(Rh, { id: 'ng-n2', type: 'NEW_GROUP', group: group() });
+      ok(rh.status === 'done' && !Rh.calls.copyColumn && Rh.bk.cell('Total achitări', 'H4').v === rh.tab, 'new group (new format): the first group goes in H over the "Sheet3" example, nothing is copied');
+      // a failure after the column was made: the column is taken away again
+      const Rf = mkNew(['Existent 1'], { failBatch: true }), rf = await applyNewGroupAsync(Rf, { id: 'ng-n3', type: 'NEW_GROUP', group: group() });
+      ok(rf.status === 'failed' && Rf.calls.removeColumn === 1 && !Rf.bk.cell('Total achitări', 'I4') && Rf.bk.sheetNames.length === 3, 'new group (new format): when writing fails the new tab and the new column are both taken away');
+      // formats that do not exist in a mode
+      const r8 = await applyNewGroupAsync(mkNew(['E']), { id: 'ng-n4', type: 'NEW_GROUP', group: group({ size: 8 }) }), r10 = await applyNewGroupAsync(mkNew(['E']), { id: 'ng-n5', type: 'NEW_GROUP', group: group({ size: 10, mode: 'Offline' }) });
+      ok(r8.code === 'size-mode' && r10.code === 'size-mode', 'new group (new format): 8 students online and 10 students offline are refused');
+      ok((await applyNewGroupAsync(mkNew(['E']), { id: 'ng-n6', type: 'NEW_GROUP', group: group({ size: 10 }) })).status === 'done', 'new group (new format): a group of 10 online is created');
+      // an old-format register keeps working as it did: no C1, level 7 refused
+      const Ro = reg2({ 'Total achitări': { cells: totalCells(2) }, 'Orar 1': { cells: orarT() }, CONFIGURARI: { hidden: true, cells: Object.assign({}, cfgR, { F5: { v: 'Se completează' } }) } }), ro = await applyNewGroupAsync(Ro, { id: 'ng-o1', type: 'NEW_GROUP', group: group({ teacherLevel: 7 }) });
+      ok(ro.code === 'teacher-level', 'old format: teacher level 7 does not exist there');
+      const ro2 = await applyNewGroupAsync(Ro, { id: 'ng-o2', type: 'NEW_GROUP', group: group({ teacherLevel: 4 }) });
+      ok(ro2.status === 'done' && !Ro.bk.cell(ro2.tab, 'C1') && !Ro.calls.copyColumn, 'old format: no C1 is written and no column is copied (the list is F4:AI4)');
+
+      // a replacement: the substitute's tab keeps the mode of the base group, the price is what the base A2 shows
+      const baseCells = Object.assign(origTab(), { A2: { v: '258 MDL/oră' }, C1: { v: 'Online' } });
+      const Pn = { from: reg2({ 'Marți/Joi 16:00-17:00': { cells: baseCells }, CONFIGURARI: { hidden: true, cells: cfgN } }), to: mkNew(['Existent 1']) };
+      const rr = await create(Pn);
+      const rtab = 'Înlocuire Marți/Joi 16:00-17:00';
+      ok(rr.status === 'done' && rr.price === 258 && (Pn.to.bk.cell(rtab, 'C1') || {}).v === 'Online' && Pn.to.calls.copyColumn === 1 && Pn.to.bk.cell('Total achitări', 'I4').v === rtab, 'replacement (new format): price 258 from the base A2, C1 = Online copied, a new Total column: ' + JSON.stringify({ s: rr.status, p: rr.price, m: rr.msg }));
+      const Pb = { from: reg2({ 'Marți/Joi 16:00-17:00': { cells: Object.assign(origTab(), { A2: { v: 'Format invalid' } }) }, CONFIGURARI: { hidden: true, cells: cfgN } }), to: mkNew(['Existent 1']) };
+      const rb = await create(Pb);
+      ok(rb.status === 'invalid' && rb.code === 'price' && !Pb.to.calls.copyColumn, 'replacement (new format): a base group whose price does not calculate is refused before anything is written');
+    }
     // ── the engine: the marks of the substitute become money, in both registers, and come back when a mark changes ──
     {
       const { settleReplacements, itemKey } = await imp('replacement-engine.mjs');

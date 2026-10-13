@@ -9,6 +9,7 @@
 import { plan, planTransfer } from './commands.mjs';
 import { planNewGroup, firstFree, renamedTitle, GENERAL_TABS } from './newgroup.mjs';
 import { readConfig } from './parse.mjs';
+import { readTotal, prepareTotal, undoTotal } from './total.mjs';
 import { parseA1 } from './memory-book.mjs';
 
 const nul = x => (x === undefined || x === null ? null : x);
@@ -147,20 +148,14 @@ export async function applyNewGroupAsync(adapter, cmd) {
   if (!cmd || !cmd.id) return { status: 'invalid', code: 'id', msg: 'Comanda nu are id.' };
   const tabs = await adapter.tabs();
   const norm = c => ({ v: nul(c && c.v), f: (c && c.f) || null });
-  // the template: the empty tab "Orar 1", else the last visible group tab (found by its A1, reading from the end until one matches)
+  // the template: the empty tab "Grup Model" (new registers) or "Orar 1", else the last visible group tab (found by its A1, reading from the end until one matches)
   const plainT = x => String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-  let template = tabs.find(x => plainT(x.title) === 'orar 1') || null;
+  let template = tabs.find(x => ['grup model', 'orar 1'].includes(plainT(x.title))) || null;
   if (!template) {
     const groups = tabs.filter(x => !x.hidden && !GENERAL_TABS.has(plainT(x.title)));
     for (let k = groups.length - 1; k >= 0 && !template; k--) { const a1 = (await adapter.read(groups[k].title, ['A1']))['A1']; if (/^(grup|individual)/i.test(String((a1 && a1.v) || ''))) template = groups[k]; }
   }
-  const totalTab = tabs.find(x => String(x.title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === 'total achitari');
-  let total = { exists: false };
-  if (totalTab) {
-    const keys = []; for (let c = 6; c <= 35; c++) keys.push(colName(c) + '4');
-    const row = await adapter.read(totalTab.title, keys);
-    total = { exists: true, title: totalTab.title, free: firstFree(keys.map(k => { const x = row[k]; return x && x.v != null ? x.v : ''; })) };
-  }
+  const total = await readTotal(adapter, tabs);
   const book = template ? await adapter.load(template.title) : null;
   const config = book ? readConfig(book) : {};
   const p = planNewGroup({ tabs, template, config, configCells: book && book.data.CONFIGURARI ? book.data.CONFIGURARI.cells : {}, total, cmd });
@@ -170,6 +165,7 @@ export async function applyNewGroupAsync(adapter, cmd) {
   const cellsByTab = { [p.title]: p.cells };
   if (p.total) cellsByTab[p.total.tab] = { [p.total.a1]: { v: p.total.v } };
   try {
+    if (p.total) await prepareTotal(adapter, p.totalInfo);                    // the new layout: the column of the group is made first
     await adapter.batchWrite({ clears: p.clears.map(range => ({ tab: p.title, range })), cells: cellsByTab });
     const keys = ['A1', 'A3', 'A4', 'A5', 'A6', 'AA9'];
     const after = await adapter.read(p.title, keys);
@@ -178,6 +174,7 @@ export async function applyNewGroupAsync(adapter, cmd) {
     if (p.total) { const t = await adapter.read(p.total.tab, [p.total.a1]); if (norm(t[p.total.a1]).v !== p.total.v) throw new Error('numele filei nu a ajuns în „Total achitări”'); }
   } catch (e) {
     try { await adapter.remove(p.title); } catch (e2) { /* the tab stays: said below */ }
+    if (p.total) await undoTotal(adapter, p.totalInfo);
     return { status: 'failed', code: 'new-group-failed', msg: 'Fila nouă nu a putut fi completată și a fost ștearsă: ' + String((e && e.message) || e).slice(0, 200) };
   }
   const out = { status: 'done', tab: p.title, sheetId: created.sheetId, source: p.sourceTitle, totalListed: !!p.total, column: null };

@@ -145,7 +145,7 @@ export function createAdapter(key, spreadsheetId) {
   };
   return {
     async load(tab) {
-      const [[f, v], [cf, cv]] = await two([q(tab) + '!A1:AC198', "'CONFIGURARI'!A1:K200"]);
+      const [[f, v], [cf, cv]] = await two([q(tab) + '!A1:AC198', "'CONFIGURARI'!A1:Z200"]);      // Z: the tariffs and pay tables of the new format are in L:V
       return new MemoryBook({ [tab]: { cells: toCells(f, v) }, CONFIGURARI: { hidden: true, cells: toCells(cf, cv) } }, spreadsheetId + '.xlsx');
     },
     async read(tab, keys) {
@@ -159,6 +159,27 @@ export function createAdapter(key, spreadsheetId) {
       const meta = await get(token, base + '?fields=sheets.properties(title,sheetId,hidden,index)');
       ids = Object.fromEntries(meta.sheets.map(s => [s.properties.title, s.properties.sheetId]));
       return meta.sheets.map(s => ({ title: s.properties.title, sheetId: s.properties.sheetId, hidden: !!s.properties.hidden }));
+    },
+    /* "Total achitări" of the new format: a new group is a new column, copied from the model column (formulas with their relative references, colours), to the right of the
+       last one; the sheet is widened when the column does not exist yet */
+    async copyColumn(tab, from, to, rowFrom, rowTo) {
+      const token = await accessToken(key, true);
+      const meta = await get(token, base + '?fields=sheets.properties(title,sheetId,gridProperties)');
+      const s = meta.sheets.find(x => x.properties.title === tab);
+      if (!s) throw new Error('Fila „' + tab + '” nu există în registru.');
+      const sheetId = s.properties.sheetId, cols = s.properties.gridProperties.columnCount;
+      const a = parseA1(from + '1').c - 1, b = parseA1(to + '1').c - 1;
+      const requests = [];
+      if (b >= cols) requests.push({ appendDimension: { sheetId, dimension: 'COLUMNS', length: b + 1 - cols } });
+      requests.push({ copyPaste: { source: { sheetId, startRowIndex: rowFrom - 1, endRowIndex: rowTo, startColumnIndex: a, endColumnIndex: a + 1 }, destination: { sheetId, startRowIndex: rowFrom - 1, endRowIndex: rowTo, startColumnIndex: b, endColumnIndex: b + 1 }, pasteType: 'PASTE_NORMAL', pasteOrientation: 'NORMAL' } });
+      await send(token, 'POST', base + ':batchUpdate', { requests });
+    },
+    async removeColumn(tab, letter) {
+      const token = await accessToken(key, true);
+      await this.tabs();
+      if (ids[tab] === undefined) return;
+      const b = parseA1(letter + '1').c - 1;
+      await send(token, 'POST', base + ':batchUpdate', { requests: [{ deleteDimension: { range: { sheetId: ids[tab], dimension: 'COLUMNS', startIndex: b, endIndex: b + 1 } } }] });
     },
     /* a copy of a tab (colours, dropdown chips, validations, formulas) with a new name, at the end of the visible tabs */
     async duplicate(sourceTitle, title) {

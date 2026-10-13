@@ -67,3 +67,20 @@ Formulele reale sunt cele din export (aceleași diferențe, nimic în plus în f
 - **Protejat:** `Grup Model!C9:C198` (plata profesorului pe lecție) și foaia `CONFIGURARI`. Contul de serviciu nu le poate scrie: conversia lor se face cu contul proprietar (OAuth-ul din `_import/google-oauth-token.json`), nu cu cel de serviciu.
 - **20 de reguli de formatare condiționată** în fila de grupă (culori de statut și prezență): se păstrează la conversie, pentru că nu atingem formatarea.
 - **`Total achitări` are formule într-o singură coloană-model, `H` (rândurile 3..32), nu în 30 de coloane umplute dinainte (`F:AI`) ca în vechiul format.** Totalurile `E`, `F`, `G` adună `H4:` până la **ultima coloană a foii** (`COLUMNS(1:1)`): o grupă nouă înseamnă o coloană nouă la dreapta, copiată din modelul `H`, cu numele filei în rândul 4. Asta schimbă mecanismul de înscriere a unei file noi în `Total` (NEW_GROUP, înlocuiri): nu mai e „primul loc liber în F4:AI4”, ci „adaugă o coloană după ultima și copiază formulele”. `Sheet3` din `H4` e un nume de probă (fila `Sheet3` există goală).
+
+## Răspunsurile fondatorului și adaptarea codului (pasul 1, 2026-10-13)
+
+- **Online și offline sunt în același fișier**, cu `C1` diferit pe fiecare grupă. Deci proiectul unei grupe nu mai vine din numele fișierului: vine din `C1` (`reg_groups.mode`).
+- Fișierul-mamă nu e accesibil încă; șablonul partajat e creat în ziua respectivă, deci datele lui sunt proaspete.
+
+Codul citește acum **ambele formate** (cel vechi rămâne neschimbat, 253 de verificări de sincronizare, 13892 de consolă):
+- `pay.mjs`: tabele offline și online, `priceFor(size, mode)`, `sizesFor(mode)` (8 doar offline, 10 doar online), `lessonPay(size, paying, level, mode)` cu nivel 7 și minimul garantat 6 pentru grupa de 10. Pentru un nivel necunoscut formula plătește 255 offline / 242 online (în formatul vechi plătește 0, ca până acum).
+- `parse.mjs`: `C1` (mod), `A2` (prețul pe oră, „258 MDL/oră”), `CONFIGURARI` (tarife, tabele de plată, `broken` când arată `#REF!`), `Total achitări` cu aspectul nou (coloanele `F4`/`G4` cu numărătoare nu sunt nume de file).
+- `validate.mjs`: erori noi `config-broken`, `tariffs`, `format-mode`, `price`, avertisment `mode`. Prețul se ia din `A2`, tabelul din cod e doar rezervă; plata profesorului se compară cu toleranța de 0,51 (registrele noi rotunjesc la leu întreg).
+- `total.mjs` (nou): unde se scrie numele unei file noi în `Total achitări`. Aspectul vechi: prima celulă goală din `F4:AI4`. Aspectul nou: prima coloană de la `H` fără nume (`Sheet3` de probă contează liber); dacă nu are formule, se copiază coloana-model `H` (rândurile 1..32) cu `copyColumn`, iar la eșec coloana se șterge (`removeColumn`).
+- `newgroup.mjs`, `apply.mjs`: șablonul poate fi `Grup Model` sau `Orar 1`; se scrie `C1` din modul grupei; formatul trebuie să existe în acel mod (`size-mode`); nivelul profesorului până la 7.
+- `replacement.mjs`: fila de înlocuire păstrează modul grupei de bază (`C1` copiat), prețul unei lecții e ce arată `A2` al grupei de bază (refuz `price` dacă nu e număr).
+- Platforma: migrarea `20261012100000_registre_mode_price.sql` adaugă `reg_groups.mode` și `reg_groups.price` și recreează `reg_apply_group`. Consola citește coloanele cu rezervă (fără migrare merge ca până acum), proiectul unei grupe vine din `mode`, un profesor cu grupe în ambele moduri apartine ambelor proiecte, prețul grupei (`D.rateOf`) bate tabelul, formatul de 10 apare la Înscriere doar online, cel de 8 doar offline, iar grupa nouă trimite `mode` din proiectul ales.
+
+**Ordinea de lansare:** 1) rulează migrarea în SQL Editor, 2) redeploy la `registru-sync`, `registru-apply` și `registru-replace`. Fără migrare, sincronizarea unui registru în format nou ar eșua la `reg_apply_group` (coloanele lipsesc); registrele vechi nu trimit `mode` ca valoare și nu sunt afectate.
+

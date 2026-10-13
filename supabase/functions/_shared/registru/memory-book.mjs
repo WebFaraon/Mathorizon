@@ -61,6 +61,17 @@ export class MemoryBook {
   }
   addSheet(name, cells, hidden) { this.data[name] = { hidden: !!hidden, cells: Object.fromEntries(Object.entries(cells || {}).map(([k, v]) => [k, Object.assign({}, v)])) }; if (!this.sheetNames.includes(name)) this.sheetNames.push(name); }
   removeSheet(name) { delete this.data[name]; this.sheetNames = this.sheetNames.filter(n => n !== name); }
+  /* the new "Total achitări": a column copied from the model column, formulas shifted the way the sheet shifts relative references */
+  copyColumn(name, from, to, rowFrom, rowTo) {
+    const f = parseA1(from + '1').c, tc = parseA1(to + '1').c, delta = tc - f;
+    const shift = fx => fx.replace(/(^|[^A-Za-z$!'])([A-Z]{1,2})(\$?\d+)/g, (m, pre, col, row) => { let c = 0; for (const ch of col) c = c * 26 + (ch.charCodeAt(0) - 64); return pre + colLetter(c + delta) + row; });
+    for (let r = rowFrom; r <= rowTo; r++) { const x = this.data[name].cells[from + r]; if (x) this.data[name].cells[to + r] = Object.assign({}, x, x.f ? { f: shift(x.f) } : {}); }
+    this.writes.push({ sheet: name, a1: to + rowFrom + ':' + to + rowTo, cell: { copiedFrom: from } });
+  }
+  removeColumn(name, letter) {
+    const c = parseA1(letter + '1').c;
+    Object.keys(this.data[name].cells).forEach(k => { if (parseA1(k).c === c) delete this.data[name].cells[k]; });
+  }
   clearRange(name, range) {                                   // "A9:B198": the values and formulas of a rectangle
     const [a, b] = range.split(':').map(parseA1);
     Object.keys(this.data[name].cells).forEach(k => { const p = parseA1(k); if (p.r >= a.r && p.r <= b.r && p.c >= a.c && p.c <= b.c) delete this.data[name].cells[k]; });

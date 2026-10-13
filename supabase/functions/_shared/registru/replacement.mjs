@@ -11,6 +11,8 @@ import { tokens } from './link.mjs';
 import { phoneOf, FIRST_COL, LAST_COL } from './commands.mjs';
 import { applyAsync } from './apply.mjs';
 import { priceFor } from './pay.mjs';
+import { readTotal, prepareTotal, undoTotal } from './total.mjs';
+import { TEMPLATE_TABS } from './newgroup.mjs';
 import { DAY_NAMES, CLEARS, GENERAL_TABS, firstFree } from './newgroup.mjs';
 
 const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
@@ -25,6 +27,9 @@ export function readOriginal(book, tab) {
   const size = /individual/i.test(a1) ? 1 : (/(\d+)/.exec(a1) || [])[1] ? +(/(\d+)/.exec(a1))[1] : null;
   const ph = (raw, ...placeholders) => (placeholders.includes(plain(raw)) ? '' : raw);
   const grade = s.text(5, 1), level = ph(s.text(6, 1), 'nivelul'), profile = ph(s.text(7, 1), 'profilul');
+  const mode = /^online/i.test(s.text(1, 3)) ? 'Online' : /^offline/i.test(s.text(1, 3)) ? 'Offline' : '';       // C1 of the new format
+  const pm = /^(\d+(?:[.,]\d+)?)/.exec(s.text(2, 1)), price = pm ? parseFloat(pm[1].replace(',', '.')) : null;       // A2: "258 MDL/oră"
+
   const students = [];
   for (let c = FIRST_COL; c <= LAST_COL; c++) {
     const head = s.text(1, c);
@@ -35,7 +40,7 @@ export function readOriginal(book, tab) {
     const rawName = head.replace(/[+\d][\s\S]*$/, '').replace(/\s+/g, ' ').trim();
     students.push({ col: c, letter: colLetter(c), name: rawName || name, phone, manager: s.text(7, c), status: s.text(8, c) });
   }
-  return { tab, a1, size, state: s.text(3, 1), subject: s.text(4, 1), grade, level, profile, students };
+  return { tab, a1, size, mode, price, state: s.text(3, 1), subject: s.text(4, 1), grade, level, profile, students };
 }
 
 /* who is copied: the students that are in the group now (not Inactiv, not Transferat) and that have a name and a phone the register can find again */
@@ -87,13 +92,14 @@ export function planReplacementTab({ tabs, template, config, configCells, total,
   const bad = checkLists(cfg, { subject: orig.subject, level: orig.level, rows, students });
   if (bad) return bad;
   const tl = +teacherLevel;
-  if (!(tl >= 1 && tl <= 6)) return invalid('teacher-level', 'Nivelul profesorului trebuie să fie între 1 și 6.');
-  if (!template) return invalid('no-template', 'Registrul profesorului nou nu are nicio filă de grupă după care să se facă una nouă („Orar 1” sau o grupă existentă).');
-  if (total && total.exists && !total.free) return invalid('total-full', 'Lista de file din „Total achitări” (F4:AI4) e plină: fila nouă nu ar intra în totaluri. Fă loc în registru.');
+  if (!(tl >= 1 && tl <= (cfg.newFormat ? 7 : 6))) return invalid('teacher-level', `Nivelul profesorului trebuie să fie între 1 și ${cfg.newFormat ? 7 : 6}.`);
+  if (!template) return invalid('no-template', 'Registrul profesorului nou nu are nicio filă de grupă după care să se facă una nouă („Grup Model”, „Orar 1” sau o grupă existentă).');
+  if (total && total.exists && !total.free) return invalid('total-full', `Lista de file din „Total achitări” (${total.layout === 'new' ? 'H4 până la AH4' : 'F4:AI4'}) e plină: fila nouă nu ar intra în totaluri. Fă loc în registru.`);
 
   const title = uniqueTitle(baseTitle || `Înlocuire ${orig.tab}`, tabs.map(t => t.title));
   const cells = {}, put = (a1, v) => { cells[a1] = { v }; };
   put('A1', orig.size === 1 ? 'Individual 1 elev' : `Grup cu ${orig.size} elevi`);
+  if (cfg.newFormat) put('C1', orig.mode || 'Offline');                 // the new format: the lesson keeps the mode (and so the prices) of the group it belongs to
   put('A3', REPL_STATE); put('A4', orig.subject); put('A5', orig.grade); put('A6', orig.level || 'Nivelul'); put('A7', orig.profile || 'Profilul');
   rows.forEach((r, i) => { put('AA' + (2 + i), DAY_NAMES[r.day - 1]); put('AB' + (2 + i), r.hour / 24); if (r.cab) put('AC' + (2 + i), r.cab); });
   for (let row = 9; row <= 198; row++) put('AA' + row, 'Nivelul Profesorului ' + tl);
@@ -106,7 +112,7 @@ export function planReplacementTab({ tabs, template, config, configCells, total,
   });
   return {
     ok: true, title, sourceTitle: template.title, clears: CLEARS.slice(), cells,
-    total: total && total.exists && total.free ? { tab: total.title, a1: total.free.a1, v: title } : null,
+    total: total && total.exists && total.free ? { tab: total.title, a1: total.free.a1, v: title } : null, totalInfo: total || null,
     students: students.map(s => ({ name: s.name, phone: s.phone, from: s.letter }))
   };
 }
@@ -122,8 +128,10 @@ export async function applyReplacementCreateAsync(adapters, cmd) {
   if (!origBook.sheetNames.includes(cmd.fromTab)) return { status: 'invalid', code: 'tab', msg: 'Fila grupei de bază nu mai există în registru.' };
   const orig = readOriginal(origBook, cmd.fromTab);
   const rows = replacementRows(cmd.dates);
-  const price = priceFor(orig.size);
-  if (!price) return { status: 'invalid', code: 'price', msg: 'Formatul grupei de bază nu are un preț de lecție: banii unei înlocuiri nu se pot calcula.' };
+  // the price of one lesson: what the base group's own A2 shows (it follows the register's tariffs, online or offline); the old registers' table only when A2 has none
+  const ocfg = readConfig(origBook);
+  const price = orig.price != null ? orig.price : (ocfg.newFormat ? 0 : priceFor(orig.size, orig.mode));
+  if (!price) return { status: 'invalid', code: 'price', msg: 'Grupa de bază nu are un preț de lecție (A2 nu arată un număr: format invalid, modul C1 nepotrivit sau CONFIGURARI nu se citește): banii unei înlocuiri nu se pot calcula.' };
   const students = copiedStudents(orig).map(s => ({ name: s.name, phone: s.phone, manager: s.manager, status: REPL_STATE }));
 
   // the tab exists already for this group and this teacher: bring it up to date (state, schedule, students that joined meanwhile)
@@ -134,18 +142,12 @@ export async function applyReplacementCreateAsync(adapters, cmd) {
 
   const tabs = await adapters.to.tabs();
   const plainT = x => plain(x);
-  let template = tabs.find(x => plainT(x.title) === 'orar 1') || null;
+  let template = tabs.find(x => TEMPLATE_TABS.includes(plainT(x.title))) || null;
   if (!template) {
     const groups = tabs.filter(x => !x.hidden && !GENERAL_TABS.has(plainT(x.title)));
     for (let k = groups.length - 1; k >= 0 && !template; k--) { const a1 = (await adapters.to.read(groups[k].title, ['A1']))['A1']; if (/^(grup|individual)/i.test(String((a1 && a1.v) || ''))) template = groups[k]; }
   }
-  const totalTab = tabs.find(x => plainT(x.title) === 'total achitari');
-  let total = { exists: false };
-  if (totalTab) {
-    const keys = []; for (let c = 6; c <= 35; c++) keys.push(colName(c) + '4');
-    const row = await adapters.to.read(totalTab.title, keys);
-    total = { exists: true, title: totalTab.title, free: firstFree(keys.map(k => { const x = row[k]; return x && x.v != null ? x.v : ''; })) };
-  }
+  const total = await readTotal(adapters.to, tabs);
   const book = template ? await adapters.to.load(template.title) : null;
   const config = book ? readConfig(book) : {};
   const p = planReplacementTab({ tabs, template, config, configCells: book && book.data.CONFIGURARI ? book.data.CONFIGURARI.cells : {}, total, orig, rows, teacherLevel: cmd.teacherLevel, baseTitle: cmd.title });
@@ -155,6 +157,7 @@ export async function applyReplacementCreateAsync(adapters, cmd) {
   const cellsByTab = { [p.title]: p.cells };
   if (p.total) cellsByTab[p.total.tab] = { [p.total.a1]: { v: p.total.v } };
   try {
+    if (p.total) await prepareTotal(adapters.to, p.totalInfo);
     await adapters.to.batchWrite({ clears: p.clears.map(range => ({ tab: p.title, range })), cells: cellsByTab });
     const keys = ['A1', 'A3', 'A4', 'A5', 'D1', 'D8'];
     const after = await adapters.to.read(p.title, keys);
@@ -163,6 +166,7 @@ export async function applyReplacementCreateAsync(adapters, cmd) {
     if (p.total) { const t = await adapters.to.read(p.total.tab, [p.total.a1]); if (nul(t[p.total.a1] && t[p.total.a1].v) !== p.total.v) throw new Error('numele filei nu a ajuns în „Total achitări”'); }
   } catch (e) {
     try { await adapters.to.remove(p.title); } catch (e2) { /* the tab stays: said below */ }
+    if (p.total) await undoTotal(adapters.to, p.totalInfo);
     return { status: 'failed', code: 'replacement-failed', msg: 'Fila de înlocuire nu a putut fi completată și a fost ștearsă: ' + String((e && e.message) || e).slice(0, 200) };
   }
   return { status: 'done', tab: p.title, sheetId: created.sheetId, reused: false, size: orig.size, price, students: p.students.length, rows: rows.length, source: p.sourceTitle, totalListed: !!p.total };

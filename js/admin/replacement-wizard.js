@@ -30,7 +30,7 @@
     const reps = () => ((D.registry && D.registry.replacements) || []);
     const base = D.teacher(g.teacher);
     const kids = D.studentsOf(g.id).filter(s => s.group === g.id && COPY.has(D.statusIn(s, g.id)));
-    const price = D.rateBySize(g.size);
+    const price = D.rateOf(g);
     const now = new Date(), todayIso = D.todayISO;
     // the lessons that can still be replaced: from today on (today only while the lesson has not started)
     const dates = RP.upcomingDates(g, todayIso, 6).filter(iso => iso !== todayIso || now.getHours() < g.start);

@@ -38,7 +38,7 @@ export function readConfig(book) {
   const name = book.sheetNames.find(n => plain(n) === 'configurari');
   if (!name) return out;
   const s = book.sheet(name);
-  const keys = { manager: 'manager', materia: 'subject', clasa: 'grade', nivelul: 'level', profilul: 'profile', 'starea grupului': 'groupState', 'statutul elevului': 'studentStatus', 'statut participare': 'mark', 'statut disponibilitate': 'availability', cabinetul: 'cabinet' };
+  const keys = { manager: 'manager', materia: 'subject', clasa: 'grade', nivelul: 'level', profilul: 'profile', 'starea grupului': 'groupState', 'statutul elevului': 'studentStatus', 'statut participare': 'mark', 'statut disponibilitate': 'availability', cabinetul: 'cabinet', 'format grupa': 'formats', 'nr. maxim elevi': 'maxStudents', 'nivel profesor': 'teacherLevels' };
   out.found = true;
   for (let c = 1; c <= s.cols; c++) {
     const key = keys[plain(s.text(1, c))];
@@ -47,6 +47,17 @@ export function readConfig(book) {
     for (let r = 2; r <= Math.min(s.rows, 400); r++) { const t = s.text(r, c); if (t) list.push(t); }
     out[key] = list;
   }
+  /* the tariffs of the new format (CONFIGURARI M:P and R:V, imported from the master file): numbers by row, read by the header's name */
+  const nums = h => { for (let c = 1; c <= s.cols; c++) if (plain(s.text(1, c)).startsWith(h)) { const l = []; for (let r = 2; r <= Math.min(s.rows, 40); r++) { const x = s.get(r, c); l.push(x && typeof x.v === 'number' ? x.v : null); } while (l.length && l[l.length - 1] === null) l.pop(); return l; } return null; };
+  const off = nums('tarif offline'), onl = nums('tarif online');
+  if (off || onl) {
+    out.newFormat = true;                                                       // a register in the format of 2026-10-13
+    out.tariffOffline = off || []; out.tariffOnline = onl || [];
+    out.payOffline = nums('baza offline (standard)') || []; out.payOffline8 = nums('baza offline (grup 8)') || [];
+    out.payOnline = nums('baza online (standard)') || []; out.payOnline10 = nums('baza online (grup 10)') || [];
+  }
+  // an error where the imported lists should be (IMPORTRANGE not allowed, the master file gone): "#REF!", "#N/A", "Loading..."
+  { let bad = 0; for (let c = 1; c <= Math.min(s.cols, 22); c++) for (let r = 1; r <= 3; r++) if (/^#(REF|N\/A|ERROR|NAME|VALUE)|^Loading|^Se încarcă/i.test(s.text(r, c))) bad++; out.broken = bad > 0; }
   return out;
 }
 
@@ -100,6 +111,10 @@ function parseGroup(book, name, year) {
   g.formatRaw = s.text(1, 1);
   const fm = /(\d+)/.exec(g.formatRaw);
   g.size = fm ? +fm[1] : (plain(g.formatRaw).startsWith('individual') ? 1 : null);
+  /* the new register format (2026-10-13): C1 says "Online" or "Offline"; A2 shows the price per hour that applies ("258 MDL/oră"). The old format has neither:
+     mode null (then the workbook's name tells the project) and the same A2 text ("288 MDL/Oră"). A price that is not a number means the group's costs come out 0. */
+  { const m = plain(s.text(1, 3)); g.mode = m.startsWith('online') ? 'online' : m.startsWith('offline') ? 'offline' : null; }
+  { const pm = /^(\d+(?:[.,]\d+)?)/.exec(s.text(2, 1)); g.price = pm ? parseFloat(pm[1].replace(',', '.')) : null; g.priceText = s.text(2, 1); }
   g.state = s.text(3, 1) || null;
   const subj = s.text(4, 1);
   g.subject = subj.replace(/\s*\(vara\)\s*$/i, '').trim() || null;
@@ -225,8 +240,10 @@ function parseTotal(book, name) {
     payments.push({ row: r, dateText: a, iso: m ? `${m[3]}-${m[2]}-${m[1]}` : null, sum: Number.isFinite(sum) ? sum : null });
   }
   const tabs = [];
-  for (let c = 6; c <= 40; c++) { const t = s.text(4, c); if (t) tabs.push({ col: colLetter(c), name: t }); }
-  return { sheet: name, salaryDue: s.num(1, 5), paidTotal: s.num(2, 5), earnedTotal: s.num(3, 5), payments, tabs };
+  for (let c = 6; c <= 60; c++) { const x = s.get(4, c); if (x && typeof x.v === 'number') continue; const t = s.text(4, c); if (t) tabs.push({ col: colLetter(c), name: t }); }
+  // the new layout (2026-10-13): F and G are the Online and Offline sums, the groups start at H
+  const layout = plain(s.text(6, 6)) === 'online' && plain(s.text(6, 7)) === 'offline' ? 'new' : 'old';
+  return { sheet: name, layout, salaryDue: s.num(1, 5), paidTotal: s.num(2, 5), earnedTotal: s.num(3, 5), payments, tabs };
 }
 
 export function parseWorkbook(book, opts) {

@@ -82,17 +82,22 @@
   /* What a student pays per hour, by the format of the group, as in the teachers' registers (cell A1, "Grup cu 6 elevi"):
      the price list of the sheet's formulas. 7 is not a format. Kept equal to scripts/registru-import/pay.js (check-demo-data compares them). */
   const STUDENT_RATE = { 1: 608, 2: 348, 3: 288, 4: 248, 5: 228, 6: 218, 7: 0, 8: 148 };
-  const rateBySize = n => STUDENT_RATE[+n] || STUDENT_RATE[1];
-  const rateOf = g => rateBySize(g.size);
+  /* the registers of the new format (2026-10-13) have a mode per group (cell C1) and an online table; the group's own price (cell A2) wins when the register has one */
+  const STUDENT_RATE_ONLINE = { 1: 548, 2: 328, 3: 258, 4: 228, 5: 218, 6: 198, 7: 0, 10: 108 };
+  const rateBySize = (n, mode) => (mode === 'online' ? STUDENT_RATE_ONLINE : STUDENT_RATE)[+n] || STUDENT_RATE[1];
+  const rateOf = g => (g.price != null ? g.price : rateBySize(g.size, g.mode));
 
   /* What the teacher earns for one lesson: the registers' column C formula. It depends on the group's format, on how many students are
      charged for the lesson (marked P or A; G, M, B and an empty cell are not) and on the teacher's level (1..6). Nobody charged = 0.
      Full group and the cap by level; fewer students get a share of it (a floor of 3 of 4 and 4 of 5 for groups of 4 and 5). */
-  const PAY_MAX_8 = { 1: 180, 2: 235, 3: 255, 4: 270, 5: 280, 6: 325 }, PAY_MAX = { 1: 165, 2: 215, 3: 235, 4: 255, 5: 265, 6: 305 };
-  const GUARANTEED = { 4: 3, 5: 4 };
-  function lessonPay(size, paying, level) {
+  const PAY_MAX_8 = { 1: 180, 2: 235, 3: 255, 4: 270, 5: 280, 6: 325, 7: 325 }, PAY_MAX = { 1: 165, 2: 215, 3: 235, 4: 255, 5: 265, 6: 305, 7: 305 };
+  const PAY_MAX_ONLINE = { 1: 152, 2: 206, 3: 224, 4: 242, 5: 251, 6: 260, 7: 296 }, PAY_MAX_ONLINE_10 = { 1: 170, 2: 224, 3: 242, 4: 260, 5: 279, 6: 278, 7: 314 };
+  const GUARANTEED = { 4: 3, 5: 4, 10: 6 };
+  function lessonPay(size, paying, level, mode) {
     if (!(size >= 1) || !paying) return 0;
-    const max = (size === 8 ? PAY_MAX_8 : PAY_MAX)[level] || 0;
+    const online = mode === 'online';
+    const table = online ? (size === 10 ? PAY_MAX_ONLINE_10 : PAY_MAX_ONLINE) : (size === 8 ? PAY_MAX_8 : PAY_MAX);
+    const max = table[level] || (mode === undefined ? 0 : (online ? 242 : 255));         // no mode = an old register: an unknown level pays 0, as its formula did
     const counted = Math.max(paying, GUARANTEED[size] || 0);
     let f;
     if (size === 3) f = { 1: 0.6863, 2: 0.8549, 3: 1 }[paying];
@@ -130,7 +135,7 @@
   /* The registers as the source (js/admin/registry-dataset.js): the lessons, the marks and the money are what the sheets hold. */
   function fromRegistry(g) {
     const R = D.registry.ledger(g.id);
-    const rate = rateBySize(g.size);
+    const rate = rateOf(g);
     const lessons = R.lessons.map(l => ({ date: l.iso ? parse(l.iso) : null, topic: l.topic || '', price: rate }));
     const MARKS = { P: 1, A: 1, G: 1, M: 1, B: 1 };
     const rows = R.cols.map(c => ({ s: c.s, codes: R.lessons.map((l, i) => (MARKS[c.marks[i]] ? c.marks[i] : '')), paid: c.paid, disc: c.disc }));
@@ -145,7 +150,7 @@
     if (D.registry) return fromRegistry(g);
     const b = D.base(g.id) || g;
     const r = rng(hash('g' + g.id));
-    const rate = rateBySize(b.size);
+    const rate = rateOf(b);
     const topics = topicsFor({ subject: b.subject, grade: b.grade });
 
     const from = new Date(D.today); from.setDate(from.getDate() - WINDOW_DAYS);
@@ -220,7 +225,7 @@
   function derive(g, G, ov) {
     ov = ov || {};
     // what a student pays per hour follows the group's format (individual, 3, 6 ...) unless it was set by hand
-    const rate = ov.rate || rateBySize(g.size), k = rate / G.rate;
+    const rate = ov.rate || rateOf(g), k = rate / G.rate;
     const all = G.lessons.map((l, i) => {
       const o = (ov.l || {})[i] || {};
       return mkLesson(i, o.d ? parse(o.d) : l.date, o.t != null ? o.t : l.topic, Math.round(l.price * k));
@@ -305,7 +310,7 @@
       l.paying = paying;
       l.there = there; l.expected = expected;
       l.pct = expected ? Math.round(there / expected * 100) : null;
-      l.pay = l.counted ? lessonPay(g.size, paying, tLevel(g.teacher)) : 0;
+      l.pay = l.counted ? lessonPay(g.size, paying, tLevel(g.teacher), g.mode || undefined) : 0;
       if (l.counted && G.pay && G.pay[l.oid] != null) l.pay = G.pay[l.oid];          // registers: what the sheet calculated
     });
 

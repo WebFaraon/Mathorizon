@@ -34,8 +34,12 @@
     return p === 'activ' ? 'activ' : p === 'ora de proba' ? 'proba' : p === 'ora de proba confirmata' ? 'proba_ok' : p === 'transferat' ? 'transferat' : p === 'inactiv' ? 'inactiv' : p === 'inlocuire' ? 'inlocuire' : 'activ';
   };
   const ENROLLED = new Set(['activ', 'proba', 'proba_ok', 'inlocuire', 'instabil']);
+  /* the new registers hold both modes in one file (cell C1 of every group): the group's own mode decides, the file's project only tells Matematica.md apart */
   const projectId = (wb, group) => {
     const p = plain(wb.project || wb.title || '');
+    const gm = group && plain(group.mode);
+    if (gm === 'offline') return 'exo';
+    if (gm === 'online') return p.includes('matematica.md') ? 'mat' : 'exn';
     if (p.includes('offline')) return 'exo';
     if (p.includes('online')) return 'exn';
     if (p.includes('matematica.md')) return 'mat';
@@ -126,7 +130,7 @@
         const dated = lessons.filter(l => l.iso && l.topic).map(l => l.iso).sort();
         const first = dated[0] || null;
         const g = {
-          id: r.id, project: projectId(w), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
+          id: r.id, project: projectId(w, r), mode: r.mode || null, price: r.price == null ? null : Number(r.price), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
           size: r.format_size, status: groupStatus(r.state), teacher: tidOf.get(w.id), days: sl.days, start: sl.start, duration: sl.duration, room: sl.room,
           startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, ssid: w.spreadsheet_id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular, _state: r.state || '', _cab: sl.cab
         };
@@ -136,6 +140,9 @@
         lessons.forEach(l => { if (l.teacher_level != null) lv[l.teacher_level] = (lv[l.teacher_level] || 0) + 1; });
       });
     });
+
+    // a register of the new format can hold groups of both modes: the teacher belongs to every project his groups are in
+    teachers.forEach(t => { const set = new Set(t.projects); groups.forEach(g => { if (g.teacher === t.id) set.add(g.project); }); t.projects = [...set]; });
 
     /* ---- people: one person for the columns of the same child (the same phone and name) ---- */
     const people = [], byPhone = new Map(), noPhone = [];

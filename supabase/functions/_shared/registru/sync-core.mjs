@@ -7,7 +7,7 @@ import { parseWorkbook } from './parse.mjs';
 import { linkPeople } from './link.mjs';
 import { validate, TITLES } from './validate.mjs';
 
-const KNOWN_SIZES = [1, 2, 3, 4, 5, 6, 8];
+const KNOWN_SIZES = [1, 2, 3, 4, 5, 6, 8, 10];
 const MARK_CODE = c => c.code || c.raw;
 const titleHasYear = title => /\d{4}\s*-\s*\d{4}/.test(title);
 
@@ -39,7 +39,7 @@ export async function sha256(text) {
 /* one group of the parsed model -> the payload of reg_apply_group (what is stored, nothing else) */
 export function groupPayload(g, sheetId) {
   return {
-    sheet_id: sheetId, tab: g.tab, format_size: g.size, state: g.state, subject: g.subject, summer: g.summer, grade: g.grade, level: g.level, profile: g.profile,
+    sheet_id: sheetId, tab: g.tab, format_size: g.size, mode: g.mode || null, price: g.price == null ? null : g.price, state: g.state, subject: g.subject, summer: g.summer, grade: g.grade, level: g.level, profile: g.profile,
     schedule: g.schedule.filter(s => !s.stub).map(s => ({ day: s.day, hour: s.hour, cabinet: s.cabinet })),
     cached_total_pay: g.cachedTotalPay,
     students: g.students.map(s => ({ col: s.colLetter, header_raw: s.headerRaw, name: s.name, phone: s.phone, phone_kind: s.phoneKind, manager: s.manager, status: s.status, paid: s.paid.value, discount: s.discount.value, cost: s.cached.cost, sold: s.cached.sold })),
@@ -54,7 +54,7 @@ export function workbookData(m) {
   const av = m.availability || null, avv = m.availabilitySummer || null;
   return {
     project: m.meta.project || null,
-    config: { manager: cfg.manager || [], cabinet: cfg.cabinet || [], subject: cfg.subject || [], studentStatus: cfg.studentStatus || [], groupState: cfg.groupState || [] },
+    config: { manager: cfg.manager || [], cabinet: cfg.cabinet || [], subject: cfg.subject || [], studentStatus: cfg.studentStatus || [], groupState: cfg.groupState || [], newFormat: !!cfg.newFormat, broken: !!cfg.broken },
     teacher: {
       availability: av ? { slots: av.slots, teaches: av.teaches, hours: av.hours } : null,
       availabilitySummer: avv ? { slots: avv.slots, teaches: avv.teaches, hours: avv.hours } : null,

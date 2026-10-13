@@ -4,11 +4,12 @@
      info   what the importer cleaned or inferred on its own
    Plain ES module (Node through require, the Supabase Edge Function through import). */
 import { plain, priceFor, lessonPay, ROMAN } from './parse.mjs';
+import { sizesFor } from './pay.mjs';
 
 const round2 = v => Math.round((v + Number.EPSILON) * 100) / 100;
 const near = (a, b, eps) => Math.abs(a - b) <= (eps == null ? 0.011 : eps);
 const norm = t => plain(t).replace(/[^a-z0-9]/g, '');
-const SIZES = [1, 2, 3, 4, 5, 6, 8];
+const SIZES = [1, 2, 3, 4, 5, 6, 8, 10];
 const DAY_NAME = ['', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
 const ENROLLED = s => s && !['inactiv', 'transferat'].includes(plain(s));
 
@@ -22,6 +23,8 @@ export function validate(model, linked) {
   if (!cfg.found) add('error', 'no-config', null, null, 'Lipsește fila CONFIGURARI (listele din dropdown-uri): nu pot verifica valorile.');
   if (!model.meta.yearFrom) add('error', 'no-year', null, null, 'Numele fișierului nu spune anul școlar (ex. „… 2025-2026”): nu pot deduce anul datelor de tip „4 August”.');
   else add('info', 'year-inferred', null, null, `Datele lecțiilor nu au an. Am presupus anul școlar ${model.meta.yearFrom}-${model.meta.yearTo}: septembrie-decembrie ${model.meta.yearFrom}, ianuarie-august ${model.meta.yearTo}.`);
+  if (cfg.found && cfg.broken) add('error', 'config-broken', null, null, 'CONFIGURARI arată o eroare (#REF!, #N/A) în loc de liste: importul din fișierul-mamă nu e permis registrului sau fișierul-mamă nu mai e accesibil. Fără el prețurile ies 0.');
+  else if (cfg.found && cfg.newFormat && !(cfg.tariffOffline || []).some(x => x > 0) && !(cfg.tariffOnline || []).some(x => x > 0)) add('error', 'tariffs', null, null, 'CONFIGURARI nu are tarife (coloanele „Tarif Offline” și „Tarif Online” sunt goale): costurile elevilor ies 0.');
   if (!model.total) add('warn', 'no-total', null, null, 'Lipsește fila „Total achitări”.');
   if (!model.availability) add('warn', 'no-availability', null, null, 'Lipsește fila „Disponibilitate”.');
 
@@ -52,7 +55,10 @@ export function validate(model, linked) {
   groups.forEach(g => {
     const tab = g.tab;
     if (!g.formatRaw) add('error', 'format', tab, 'A1', 'Formatul grupei (A1) e gol.');
-    else if (g.size == null || !SIZES.includes(g.size)) add('error', 'format', tab, 'A1', `Formatul „${g.formatRaw}” nu e unul din cele cunoscute (1, 2, 3, 4, 5, 6 sau 8 elevi).`);
+    else if (g.size == null || !SIZES.includes(g.size)) add('error', 'format', tab, 'A1', `Formatul „${g.formatRaw}” nu e unul din cele cunoscute (1, 2, 3, 4, 5, 6, 8 sau 10 elevi).`);
+    else if (g.mode ? !sizesFor(g.mode).includes(g.size) : false) add('error', 'format-mode', tab, 'C1', `Formatul „${g.formatRaw}” nu există în modul ${g.mode === 'online' ? 'Online (8 elevi nu e online)' : 'Offline (10 elevi nu e offline)'}: prețul grupei iese 0.`);
+    if (cfg.newFormat && g.size && g.price == null && (g.students.length || g.lessons.length)) add('error', 'price', tab, 'A2', `Prețul pe oră (A2) nu e un număr („${g.priceText || 'gol'}”): costurile elevilor ies 0. Verifică formatul (A1), modul (C1) și CONFIGURARI.`);
+    if (cfg.newFormat && g.size && !g.mode && (g.students.length || g.lessons.length)) add('warn', 'mode', tab, 'C1', 'Modul grupei (C1) e gol: se socotește Offline. Alege Online sau Offline.');
     if (!g.state) add('error', 'state', tab, 'A3', 'Starea grupei (A3) e goală.');
     else if (!inList(cfg.groupState, g.state)) add('error', 'state', tab, 'A3', `Starea „${g.state}” nu e în lista din CONFIGURARI.`);
     if (!g.subject) add('error', 'subject', tab, 'A4', 'Materia (A4) e goală.');
@@ -111,7 +117,7 @@ export function validate(model, linked) {
       // the money, worked out again with the sheet's own rules
       let cnt = 0, any = 0;
       g.lessons.forEach(l => { const m = l.marks[st.colLetter]; if (m) { any++; if (m.code === 'P' || m.code === 'A') cnt++; } });
-      const price = g.size ? priceFor(g.size) : 0;
+      const price = g.price != null ? g.price : (g.size ? priceFor(g.size, g.mode) : 0);
       const cost = round2(cnt * price), sold = round2(st.paid.value + st.discount.value - cost);
       st.calc = { cost, sold, charged: cnt, marks: any };
       if (st.cached.cost != null && !near(cost, st.cached.cost, 0.5)) add('warn', 'cost', tab, st.colLetter + '5', `Costul din registru (${st.cached.cost}) diferă de calculul meu (${cost} = ${cnt} lecții × ${price}).`);
@@ -136,8 +142,8 @@ export function validate(model, linked) {
       if (l.level != null) level.add(l.level);
       if (g.size && paying > g.size) add('warn', 'over-paying', tab, 'C' + l.row, `Rândul ${l.row}: ${paying} elevi taxați într-o grupă de ${g.size} (plata se calculează proporțional peste plafon: ${l.cachedPay}).`);
       if (hasBoth && g.size && l.level != null) {
-        const exp = paying ? lessonPay(g.size, paying, l.level) : 0;
-        if (l.cachedPay != null && !near(exp, l.cachedPay, 0.02) && paying <= g.size) add('warn', 'pay', tab, 'C' + l.row, `Rândul ${l.row}: plata din registru (${l.cachedPay}) diferă de calculul meu (${round2(exp)}).`);
+        const exp = paying ? lessonPay(g.size, paying, l.level, g.mode || (cfg.newFormat ? 'offline' : undefined)) : 0;
+        if (l.cachedPay != null && !near(exp, l.cachedPay, 0.51) && paying <= g.size) add('warn', 'pay', tab, 'C' + l.row, `Rândul ${l.row}: plata din registru (${l.cachedPay}) diferă de calculul meu (${round2(exp)}).`);
       }
     });
     if (outOfOrder > 3) add('warn', 'date-order', tab, null, `Încă ${outOfOrder - 3} lecții cu data înaintea celei de dinainte.`);
@@ -181,6 +187,7 @@ export const TITLES = {
   'no-config': 'Lipsește CONFIGURARI', 'no-year': 'Anul școlar nu se știe', 'year-inferred': 'Anul datelor a fost presupus', 'no-total': 'Lipsește Total achitări', 'no-availability': 'Lipsește Disponibilitate',
   'not-in-total': 'Grupe care nu intră în „Total achitări”', 'total-unknown-tab': '„Total achitări” citește file care nu există', 'payment-sum': 'Plăți către profesor fără sumă', 'payment-date': 'Plăți către profesor cu data scrisă ca text',
   'paid-total': 'Suma achitată nu se potrivește', 'earned-total': 'Suma pentru lecții nu se potrivește',
+  'config-broken': 'CONFIGURARI nu se citește (import din fișierul-mamă)', tariffs: 'CONFIGURARI fără tarife', 'format-mode': 'Format care nu există în acest mod', price: 'Prețul pe oră nu se calculează', mode: 'Modul grupei (Online/Offline) lipsește',
   format: 'Format de grupă invalid', state: 'Starea grupei', subject: 'Materia', grade: 'Clasa', level: 'Nivel nealeș', profile: 'Liceu fără profil', 'profile-extra': 'Profil la o clasă fără profil', note: 'Alte note', 'tab-vs-state': 'Numele filei nu se potrivește cu starea grupei',
   schedule: 'Orar', cabinet: 'Cabinet', 'outside-availability': 'Orar în afara disponibilității', 'not-in-teaches': 'Materie sau clasă nebifată la „Detalii profesor”',
   'over-size': 'Prea mulți elevi pentru formatul grupei', 'state-vs-students': 'Starea grupei nu se potrivește cu elevii', phone: 'Telefoane lipsă sau neînțelese', 'phone-cleaned': 'Telefoane aduse la forma +373XXXXXXXX', name: 'Nume neobișnuite', manager: 'Manager', status: 'Statut de elev',
