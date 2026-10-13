@@ -717,6 +717,14 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       const ro2 = await applyNewGroupAsync(Ro, { id: 'ng-o2', type: 'NEW_GROUP', group: group({ teacherLevel: 4 }) });
       ok(ro2.status === 'done' && !Ro.bk.cell(ro2.tab, 'C1') && !Ro.calls.copyColumn, 'old format: no C1 is written and no column is copied (the list is F4:AI4)');
 
+      // where a tab's name sits in the Total list (the rename of a tab that follows its schedule): the new layout starts at H, the old at F
+      {
+        const { locateName } = await imp('total.mjs');
+        const Rl = mkNew(['Existent 1', 'Existent 2']), l1 = await locateName(Rl, await Rl.tabs(), 'Existent 2'), l2 = await locateName(Rl, await Rl.tabs(), 'Nu exista');
+        ok(l1 && l1.a1 === 'I4' && l1.tab === 'Total achitări' && l2 === null, 'Total (new layout): the name of a tab is found in I4, an unknown name is not found');
+        const Rl2 = reg2({ 'Total achitări': { cells: totalCells(3) }, CONFIGURARI: { hidden: true, cells: cfgR } }), l3 = await locateName(Rl2, await Rl2.tabs(), 'Grupa 1');
+        ok(l3 && l3.a1 === 'G4', 'Total (old layout): the name of a tab is found in the F4:AI4 list (G4 for the second)');
+      }
       // a replacement: the substitute's tab keeps the mode of the base group, the price is what the base A2 shows
       const baseCells = Object.assign(origTab(), { A2: { v: '258 MDL/oră' }, C1: { v: 'Online' } });
       const Pn = { from: reg2({ 'Marți/Joi 16:00-17:00': { cells: baseCells }, CONFIGURARI: { hidden: true, cells: cfgN } }), to: mkNew(['Existent 1']) };

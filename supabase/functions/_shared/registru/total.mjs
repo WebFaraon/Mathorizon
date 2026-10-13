@@ -16,6 +16,9 @@ export function firstFree(row) {
   return null;
 }
 
+/* how many columns the tab has (a read beyond the grid is an error in Google); an adapter without it (the test books) is read up to NEW_LAST */
+const widthOf = async (adapter, title) => (adapter.width ? await adapter.width(title) : NEW_LAST);
+
 /* tabs: adapter.tabs(). Returns { exists: false } or { exists, title, layout, free: { a1, index } | null, addColumn: { from, to, rows: [1, 32] } | null } */
 export async function readTotal(adapter, tabs) {
   const tab = tabs.find(x => plain(x.title) === 'total achitari');
@@ -27,17 +30,34 @@ export async function readTotal(adapter, tabs) {
     const row = await adapter.read(tab.title, keys);
     return { exists: true, title: tab.title, layout: 'old', free: firstFree(keys.map(k => val(row[k]))), addColumn: null };
   }
+  const width = await widthOf(adapter, tab.title), last = Math.min(NEW_LAST, width);
   const keys = [];
-  for (let c = NEW_FIRST; c <= NEW_LAST; c++) keys.push(colLetter(c) + '4', colLetter(c) + '3');
-  const row = await adapter.read(tab.title, keys);
-  for (let c = NEW_FIRST; c <= NEW_LAST; c++) {
+  for (let c = NEW_FIRST; c <= last; c++) keys.push(colLetter(c) + '4', colLetter(c) + '3');
+  const row = keys.length ? await adapter.read(tab.title, keys) : {};
+  for (let c = NEW_FIRST; c <= last; c++) {
     const L = colLetter(c), name = String(val(row[L + '4'])).trim();
     if (name && !PLACEHOLDER.test(name)) continue;
     // free: the model column H is already a column of formulas; a later one needs the formulas copied unless somebody prepared it
     const hasFormulas = !!(row[L + '3'] && row[L + '3'].f);
     return { exists: true, title: tab.title, layout: 'new', free: { a1: L + '4', index: c - NEW_FIRST }, addColumn: c === NEW_FIRST || hasFormulas ? null : { from: colLetter(NEW_FIRST), to: L, rows: [1, 32] } };
   }
+  // every column of the sheet has a name: the next group is a new column to the right (the totals add up to the LAST column of the sheet)
+  if (width < NEW_LAST) { const c = width + 1, L = colLetter(c); return { exists: true, title: tab.title, layout: 'new', free: { a1: L + '4', index: c - NEW_FIRST }, addColumn: { from: colLetter(NEW_FIRST), to: L, rows: [1, 32] } }; }
   return { exists: true, title: tab.title, layout: 'new', free: null, addColumn: null };
+}
+
+/* where a tab's name is written in the list of "Total achitări" (the Total formulas find the tab by it): { tab, a1 } or null */
+export async function locateName(adapter, tabs, name) {
+  const tab = tabs.find(x => plain(x.title) === 'total achitari');
+  if (!tab) return null;
+  const probe = await adapter.read(tab.title, ['F6', 'G6']);
+  const isNew = plain(val(probe.F6)) === 'online' && plain(val(probe.G6)) === 'offline';
+  const first = isNew ? NEW_FIRST : 6, last = isNew ? Math.min(NEW_LAST, await widthOf(adapter, tab.title)) : 35;
+  const keys = []; for (let c = first; c <= last; c++) keys.push(colLetter(c) + '4');
+  if (!keys.length) return null;
+  const row = await adapter.read(tab.title, keys);
+  const at = keys.find(k => row[k] && row[k].v === name);
+  return at ? { tab: tab.title, a1: at } : null;
 }
 
 /* before the name is written: the column is made when the layout needs one */

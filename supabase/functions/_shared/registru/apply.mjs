@@ -9,7 +9,7 @@
 import { plan, planTransfer } from './commands.mjs';
 import { planNewGroup, firstFree, renamedTitle, GENERAL_TABS } from './newgroup.mjs';
 import { readConfig } from './parse.mjs';
-import { readTotal, prepareTotal, undoTotal } from './total.mjs';
+import { readTotal, prepareTotal, undoTotal, locateName } from './total.mjs';
 import { parseA1 } from './memory-book.mjs';
 
 const nul = x => (x === undefined || x === null ? null : x);
@@ -81,15 +81,8 @@ export async function applySetGroupAsync(adapter, cmd) {
     const tabs = await adapter.tabs();
     const newTitle = renamedTitle(cmd.tab, cmd.schedule, tabs.map(x => x.title).filter(x => x !== cmd.tab));
     if (!newTitle) return r;
-    const plainT = x => String(x).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().trim();
-    const totalTab = tabs.find(x => plainT(x.title) === 'total achitari');
-    let cell = null;
-    if (totalTab) {
-      const keys = []; for (let c = 6; c <= 35; c++) keys.push(colName(c) + '4');
-      const row = await adapter.read(totalTab.title, keys);
-      const at = keys.find(k => row[k] && row[k].v === cmd.tab);
-      if (at) cell = { tab: totalTab.title, a1: at, v: newTitle };
-    }
+    const at = await locateName(adapter, tabs, cmd.tab);                      // the old layout (F4:AI4) or the new one (from H4)
+    const cell = at ? { tab: at.tab, a1: at.a1, v: newTitle } : null;
     await adapter.renameTab(cmd.tab, newTitle, cell);
     const after = await adapter.tabs();
     if (!after.some(x => x.title === newTitle) || after.some(x => x.title === cmd.tab)) throw new Error('după redenumire, fila nu are noul nume');

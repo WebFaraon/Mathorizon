@@ -76,7 +76,7 @@ export async function readWorkbook(key, spreadsheetId) {
     part.forEach((t, k) => { t.values = r.valueRanges[k].values || []; });
   }
   // the general tabs: payments to the teacher, availability (regular and summer), the dropdown lists
-  const GENERAL_RANGES = { 'total achitari': 'A1:AI32', 'disponibilitate': 'A1:V15', 'disponibilitate vara': 'A1:V16', 'configurari': 'A1:K200' };
+  const GENERAL_RANGES = { 'total achitari': 'A1:BH32', 'disponibilitate': 'A1:V16', 'disponibilitate vara': 'A1:V16', 'configurari': 'A1:Z200' };      // the new format: the list of tabs of Total goes on to the right (H to BH), CONFIGURARI holds tariffs in L:V
   const general = tabs.filter(t => GENERAL_RANGES[plain(t.title)]);
   if (general.length) {
     const r = await get(token, base + '/values:batchGet?valueRenderOption=UNFORMATTED_VALUE&majorDimension=ROWS&' + general.map(t => 'ranges=' + encodeURIComponent(q(t.title) + '!' + GENERAL_RANGES[plain(t.title)])).join('&'));
@@ -153,6 +153,13 @@ export function createAdapter(key, spreadsheetId) {
       const parts = await two(keys.map(k => q(tab) + '!' + k));
       keys.forEach((k, i) => { const c = toCells(parts[i][0], parts[i][1]); out[k] = c.A1 || { v: null }; });
       return out;
+    },
+    /* the number of columns of a tab (a read beyond the grid is an error in Google) */
+    async width(tab) {
+      const token = await accessToken(key, true);
+      const meta = await get(token, base + '?fields=sheets.properties(title,gridProperties(columnCount))');
+      const s = meta.sheets.find(x => x.properties.title === tab);
+      return s ? s.properties.gridProperties.columnCount : 0;
     },
     async tabs() {
       const token = await accessToken(key, true);
