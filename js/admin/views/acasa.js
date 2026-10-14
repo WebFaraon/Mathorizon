@@ -56,7 +56,7 @@
     ];
   }
 
-  /* ---- the building, drawn as a plan, behind the greeting (preview: admin.html?viu=1) ----
+  /* ---- the building, drawn as a plan, behind the greeting ----
      Pure decoration, no data: two rows of cabinets on either side of a corridor, thin walls drawn once on arrival, doors that swing open and shut, seats that fill with the
      console's page colours, and a few small squares (a group) that walk the corridor, step into a cabinet and come back out: the cabinet tints and its door opens while they are in.
      Everything is generated here from a few numbers; it is aria-hidden, behind the content, fades out to the left and below, and stops when the tab is hidden. */

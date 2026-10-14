@@ -56,7 +56,7 @@ body.ax .ah-tile__d { max-width: 24ch; margin-top: 0; font-size: 0.86rem; line-h
 }
 body.ax .ah-att__item .ax-stat__k { padding-right: 26px; }
 
-/* ---- the building as a plan, behind the greeting (js/admin/views/acasa.js, preview with ?viu=1) ----
+/* ---- the building as a plan, behind the greeting (js/admin/views/acasa.js) ----
    Thin walls in ink, doors that swing, seats that fill with the page colours, squares that walk the corridor. Only transform and opacity move. */
 body.ax .ah-head { position: relative; }
 body.ax .ah-head__t { position: relative; z-index: 1; }
