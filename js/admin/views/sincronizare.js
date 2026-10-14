@@ -296,8 +296,35 @@
     </table></div>`;
   }
 
-  const CMD = { ADD_STUDENT: 'Elev adăugat', SET_STATUS: 'Statut schimbat', SET_MANAGER: 'Manager schimbat', ADD_PAYMENT: 'Plată adăugată', ADD_DISCOUNT: 'Reducere adăugată' };
+  /* every kind of write the console makes in a register: the name shown in the table, what it means for a person who has not seen the code, and the order of the legend */
+  const CMDS = [
+    ['ADD_STUDENT', 'Elev adăugat', 'Un elev nou a fost trecut într-o grupă, la Înscriere, cu statutul Oră de probă.'],
+    ['NEW_GROUP', 'Grupă nouă', 'S-a creat o filă nouă în registrul profesorului, cu materia, clasa, orarul, cabinetul și primul elev.'],
+    ['SET_GROUP', 'Grupă modificată', 'S-a schimbat starea sau orarul unei grupe. Dacă fila e numită după orar, ea se redenumește și ea.'],
+    ['TRANSFER', 'Transfer de elev', 'Un elev a trecut în altă grupă. Banii se împart între grupa veche și cea nouă, după formulele din Calculator.'],
+    ['SET_STATUS', 'Statut schimbat', 'Statutul unui elev s-a schimbat, de exemplu din Oră de probă în Activ.'],
+    ['SET_MANAGER', 'Manager schimbat', 'Altă persoană din echipă răspunde acum de elev.'],
+    ['ADD_PAYMENT', 'Plată adăugată', 'O plată (sau un retur) a fost scrisă la un elev, în registrul grupei lui.'],
+    ['ADD_DISCOUNT', 'Reducere adăugată', 'O reducere a fost scrisă la un elev.'],
+    ['SET_AVAILABILITY', 'Disponibilitate modificată', 'S-a schimbat orarul de disponibilitate al unui profesor sau ce materii și clase predă.'],
+    ['REPLACEMENT_CREATE', 'Înlocuire creată', 'Un profesor ține lecția unei grupe a altuia: s-a făcut fila de înlocuire în registrul lui, cu elevii copiați fără bani.'],
+    ['REPL_TAKE', 'Bani scoși pentru înlocuire', 'Banii unei lecții ținute de alt profesor au fost scoși din registrul grupei de bază, după ce elevul a fost marcat Prezent sau Absent nemotivat.'],
+    ['REPL_MONEY', 'Bani trecuți la înlocuire', 'Aceiași bani au fost puși în fila de înlocuire, la profesorul care a ținut lecția. Dacă prezența se schimbă, banii se întorc.'],
+    ['REPL_CLOSE', 'Înlocuire încheiată', 'Toate lecțiile înlocuirii au trecut: fila de înlocuire a devenit Inactivă și și-a golit orarul.'],
+    ['REPLACEMENT_CANCEL', 'Înlocuire anulată', 'O înlocuire a fost anulată înainte să înceapă.'],
+    ['REPL_TAB_UPDATE', 'Fila de înlocuire actualizată', 'Orarul sau elevii unei înlocuiri existente au fost puse la zi.']
+  ];
+  const CMD = Object.fromEntries(CMDS.map(c => [c[0], c[1]]));
   const CST = { pending: ['inlocuire', 'În așteptare'], running: ['inlocuire', 'Se scrie'], done: ['activ', 'Scris'], noop: ['activ', 'Era deja așa'], invalid: ['inactiv sy-bad', 'Refuzat'], conflict: ['completare', 'Conflict'], failed: ['inactiv sy-bad', 'Eroare'] };
+  const CST_WHY = {
+    done: 'Scrierea a fost făcută în registru și verificată prin citire înapoi.',
+    noop: 'Registrul avea deja valoarea cerută, așa că nu s-a scris nimic.',
+    invalid: 'Cererea nu respectă regulile (de exemplu un format care nu există). Mesajul spune de ce; nu s-a scris nimic.',
+    conflict: 'Registrul s-a schimbat între timp, în altă parte. Nu s-a scris nimic, ca să nu se piardă munca cuiva.',
+    failed: 'Scrierea nu a reușit (de exemplu o limită a Google). Mesajul spune ce s-a întâmplat.',
+    pending: 'Cererea așteaptă la rând.',
+    running: 'Se scrie chiar acum.'
+  };
   function commandsHTML() {
     if (!C.cmds || !C.cmds.length) return '';
     const name = id => { const w = C.books.find(x => x.id === id); return w ? (w.teacher_name || 'Registru') : 'Registru'; };
@@ -308,9 +335,23 @@
           const st = CST[c.status] || ['inactiv', c.status], who = (c.payload && (c.payload.name || (c.payload.student && c.payload.student.name))) || '';
           const r = c.result || {};
           const detail = r.msg ? `<span class="sy-note${c.status === 'failed' || c.status === 'invalid' ? ' sy-note--err' : ''}">${esc(r.msg)}</span>` : (r.column ? `<span class="ax-sub">coloana ${esc(r.column)}</span>` : '');
-          return `<tr><td class="cn-nowrap">${esc(ago(c.created_at))}</td><td>${esc(name(c.workbook_id))}</td><td><b class="ax-strong">${esc(CMD[c.type] || c.type)}</b>${who ? `<span class="ax-sub">${esc(who)}</span>` : ''}</td><td><span class="ax-st ax-st--${st[0]}"><i class="ax-st__i"></i>${esc(st[1])}</span>${detail}</td></tr>`;
+          return `<tr><td class="cn-nowrap">${esc(ago(c.created_at))}</td><td>${esc(name(c.workbook_id))}</td><td><b class="ax-strong" title="Cod tehnic: ${esc(c.type)}">${esc(CMD[c.type] || c.type)}</b>${who ? `<span class="ax-sub">${esc(who)}</span>` : ''}</td><td><span class="ax-st ax-st--${st[0]}"><i class="ax-st__i"></i>${esc(st[1])}</span>${detail}</td></tr>`;
         }).join('')}</tbody>
-      </table></div>`;
+      </table></div>
+      ${legendHTML()}`;
+  }
+
+  /* what every write and every status means, for somebody who did not build it */
+  function legendHTML() {
+    return `<details class="sy-legend">
+      <summary>Ce înseamnă scrierile și statusurile</summary>
+      <div class="sy-legend__b">
+        <table class="ax-table sy-table"><thead><tr><th>Scrierea</th><th>Ce face</th><th>Cod tehnic</th></tr></thead>
+          <tbody>${CMDS.map(c => `<tr><td><b class="ax-strong">${esc(c[1])}</b></td><td>${esc(c[2])}</td><td><code class="sy-code">${esc(c[0])}</code></td></tr>`).join('')}</tbody></table>
+        <table class="ax-table sy-table"><thead><tr><th>Status</th><th>Ce înseamnă</th></tr></thead>
+          <tbody>${Object.keys(CST_WHY).map(k => `<tr><td><span class="ax-st ax-st--${CST[k][0]}"><i class="ax-st__i"></i>${esc(CST[k][1])}</span></td><td>${esc(CST_WHY[k])}</td></tr>`).join('')}</tbody></table>
+      </div>
+    </details>`;
   }
 
   function bodyHTML() {

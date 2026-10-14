@@ -22,3 +22,14 @@ body.ax .sy-check { flex-direction: row; align-items: center; gap: 10px; }
 body.ax .sy-step { padding: 12px 14px; border: 1.5px solid var(--ax-ink); border-radius: var(--ax-r); background: var(--ax-yellow); color: var(--ax-yellow-ink); font-size: 0.86rem; line-height: 1.5; overflow-wrap: anywhere; }
 body.ax .sy-err { min-height: 1.2em; color: var(--ax-bad); font-weight: 700; font-size: 0.86rem; }
 body.ax .sy-h2 { margin: 28px 0 12px; font-size: 1.05rem; font-weight: 800; }
+
+/* the legend under "Scrieri recente": what each write and status means */
+body.ax .sy-legend { margin-top: 18px; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); }
+body.ax .sy-legend > summary { padding: 12px 16px; font-size: 0.95rem; font-weight: 800; cursor: pointer; list-style: none; display: flex; align-items: center; gap: 8px; }
+body.ax .sy-legend > summary::-webkit-details-marker { display: none; }
+body.ax .sy-legend > summary::before { content: ''; width: 8px; height: 8px; border-right: 2px solid var(--ax-ink-2); border-bottom: 2px solid var(--ax-ink-2); transform: rotate(-45deg); transition: transform 0.2s var(--ax-ease); }
+body.ax .sy-legend[open] > summary::before { transform: rotate(45deg); }
+body.ax .sy-legend__b { display: grid; gap: 18px; padding: 0 16px 16px; }
+body.ax .sy-legend td { vertical-align: top; line-height: 1.45; }
+body.ax .sy-code { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; color: var(--ax-ink-3); }
+@media (prefers-reduced-motion: reduce) { body.ax .sy-legend > summary::before { transition: none; } }
