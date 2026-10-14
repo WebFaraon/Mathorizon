@@ -693,6 +693,16 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
       ok(sz('Online').includes(10) && !sz('Online').includes(8) && sz('Offline').includes(8) && !sz('Offline').includes(10), 'formats: 8 only offline, 10 only online');
       ok(Math.abs(lp(10, 3, 4, 'Online') - 156) < 1e-9 && Math.abs(lp(6, 6, 7, 'Offline') - 305) < 1e-9 && lp(6, 6, 9, 'Offline') === 255 && lp(6, 6, 9, 'Online') === 242, 'teacher pay: 10 students (minimum 6), level 7, the default for an unknown level');
 
+      // the date cells of the new template hold real dates: Google gives a serial number (46315 = 20 October 2026), the year comes with it
+      {
+        const dbook = new MemoryBook({ 'Marți 16:00-17:00': { cells: { A1: { v: 'Grup cu 3 elevi' }, A2: { v: '258 MDL/oră' }, C1: { v: 'Online' }, A3: { v: 'Activ' }, A4: { v: 'Matematica' }, A5: { v: 'XII' }, A6: { v: '9 ― 10' }, A7: { v: 'Real' }, D1: { v: 'Ionescu Ana+37369123456' }, D7: { v: 'Pricinoc Ariadna' }, D8: { v: 'Activ' },
+          A9: { v: 46315 }, B9: { v: 'Puteri' }, D9: { v: 'PREZENT' }, A10: { v: '27 Octombrie' }, B10: { v: 'Funcții' }, D10: { v: 'PREZENT' }, A11: { v: 46327 }, B11: { v: 'Limite' }, D11: { v: 'ABSENT' } } }, CONFIGURARI: { hidden: true, cells: cfgN }, 'Total achitări': { cells: Object.assign(totalNew(['Marți 16:00-17:00']), { A3: { v: 46298 }, B3: { v: 329 } }) } }, 'Ionescu Petru Registru EXAMEN.MD ONLINE 2026-2027.xlsx');
+        const dm = pw(dbook, {}), ls = dm.groups[0].lessons;
+        ok(ls.length === 3 && ls[0].iso === '2026-10-20' && ls[0].dateText === '20 Octombrie' && ls[0].weekday === 2 && !ls[0].badDate, 'a date cell (serial 46315) is read as 20 October 2026, with its weekday: ' + JSON.stringify(ls[0] && { iso: ls[0].iso, t: ls[0].dateText }));
+        ok(ls[1].iso === '2026-10-27' && ls[2].iso === '2026-11-01' && !validate(dm).some(i => i.code === 'date'), 'a text date after it keeps its year, and a second date cell too (no "date" error)');
+        ok(dm.total.payments[0].iso === '2026-10-03' && dm.total.payments[0].dateText === '03.10.2026' && dm.total.payments[0].sum === 329, 'a payment date typed in a date cell is read too (03.10.2026)');
+      }
+
       // a new group in a register of the new format: C1, a new column in Total (copied from H), the name in row 4
       const mkNew = (names, hooks) => reg2({ 'Total achitări': { cells: totalNew(names) }, 'Grup Model': { cells: grupModel() }, CONFIGURARI: { hidden: true, cells: cfgN } }, hooks);
       const group = (o) => Object.assign({ size: 3, subject: 'Matematica', summer: false, grade: 'XII', profile: 'Real', level: '9 ― 10', days: [2], start: 16, duration: 1, cabinet: '14', teacherLevel: 7, state: 'Se completează', mode: 'Online' }, o || {});

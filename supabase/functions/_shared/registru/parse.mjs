@@ -15,6 +15,15 @@ import { priceFor, lessonPay } from './pay.mjs';
 
 export const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 export const colLetter = c => { let s = ''; for (; c > 0; c = Math.floor((c - 1) / 26)) s = String.fromCharCode(65 + ((c - 1) % 26)) + s; return s; };
+/* a date typed or picked in a date cell comes as a serial number of days since 1899-12-30 (a Date object when it was read from an .xlsx): { y, mi (0-11), d, weekday (1 = Monday), name } or null */
+const serialDate = cell => {
+  if (!cell || cell.v == null) return null;
+  const n = typeof cell.v === 'number' ? cell.v : cell.v instanceof Date ? cell.v.getTime() / 864e5 + 25569 : null;
+  if (n == null || !(n > 30000 && n < 80000)) return null;
+  const dt = new Date(Math.round((n - 25569) * 864e5));
+  const mi = dt.getUTCMonth();
+  return { y: dt.getUTCFullYear(), mi, d: dt.getUTCDate(), weekday: ((dt.getUTCDay() + 6) % 7) + 1, name: MONTHS[mi][0].toUpperCase() + MONTHS[mi].slice(1) };
+};
 const GENERAL = new Set(['total achitari', 'disponibilitate', 'disponibilitate vara', 'configurari']);
 const DAYS = { luni: 1, marti: 2, miercuri: 3, joi: 4, vineri: 5, sambata: 6, sambat: 6, duminica: 7 };
 const MONTHS = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
@@ -165,7 +174,11 @@ function parseGroup(book, name, year) {
   let seqYear = null, prevMonth = null;
   const cols = g.students.map(x => x.col);
   for (let r = FIRST_LESSON_ROW; r <= LAST_LESSON_ROW; r++) {
-    const dateText = s.text(r, 1), topic = s.text(r, 2);
+    let dateText = s.text(r, 1);
+    const topic = s.text(r, 2);
+    // the new template (2026-10-13) has a date cell in A9:A198: Google hands over a real date as a serial number (46315 = 20 October 2026), with the year in it
+    const sc = serialDate(s.get(r, 1));
+    if (sc) dateText = `${sc.d} ${sc.name}`;
     const marks = {};
     let any = false;
     cols.forEach(c => { const t = s.text(r, c); if (t) { marks[colLetter(c)] = { raw: t, code: MARK[plain(t)] || null }; any = true; } });
@@ -173,7 +186,10 @@ function parseGroup(book, name, year) {
     const lvRaw = s.text(r, 27), lm = /(\d+)\s*$/.exec(lvRaw);
     const L = { row: r, dateText, topic, marks, level: lm ? +lm[1] : null, cachedPay: s.num(r, 3), cachedPct: s.num(r, 28) };
     const m = /^(\d{1,2})\s+(.+)$/.exec(dateText);
-    if (m && MONTHS.includes(plain(m[2]))) {
+    if (sc) {
+      L.dom = sc.d; L.month = sc.mi + 1; L.year = sc.y; L.iso = `${sc.y}-${pad(sc.mi + 1)}-${pad(sc.d)}`; L.weekday = sc.weekday;
+      seqYear = sc.y; prevMonth = L.month;                                  // the rows that carry only "5 Octombrie" go on from here
+    } else if (m && MONTHS.includes(plain(m[2]))) {
       const mi = MONTHS.indexOf(plain(m[2]));
       L.dom = +m[1]; L.month = mi + 1;
       if (year) {
@@ -233,7 +249,9 @@ function parseTotal(book, name) {
   const s = book.sheet(name);
   const payments = [];
   for (let r = 3; r <= Math.min(s.rows, 80); r++) {
-    const a = s.text(r, 1), bv = s.get(r, 2);
+    let a = s.text(r, 1);
+    const bv = s.get(r, 2), sc = serialDate(s.get(r, 1));
+    if (sc) a = `${String(sc.d).padStart(2, '0')}.${String(sc.mi + 1).padStart(2, '0')}.${sc.y}`;
     if (!a && !bv) continue;
     const m = /^(\d{2})\.(\d{2})\.(\d{4})$/.exec(a);
     const sum = bv ? parseFloat(String(bv.v).replace(',', '.')) : null;
