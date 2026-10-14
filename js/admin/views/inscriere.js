@@ -38,12 +38,23 @@
   let root = null, onResize = null;
 
   /* ---------------- what the parent said -> the query ---------------- */
-  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.fmt ? 1 : 0) + (S.size ? 1 : 0) + (S.prof.trim() ? 1 : 0);
+  const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.size ? 1 : 0) + (S.prof.trim() ? 1 : 0);
   const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: S.level, days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, filling: S.filling });
   const plain = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   /* the teacher search: every word typed starts a word of the name */
   const profOk = name => { const q = plain(S.prof).split(/\s+/).filter(Boolean); if (!q.length) return true; const w = plain(name).split(/\s+/); return q.every(x => w.some(y => y.startsWith(x))); };
-  const ready = () => !!(S.subject && S.grade);
+  const ready = () => !!(S.subject && S.grade && S.fmt);        // the format (Offline / Online) is part of who the student is, not a wish
+  /* the project of a new group follows the format chosen at the top: offline is Examen.md Offline; online only asks which online project */
+  const ngProject = () => (S.fmt === 'offline' ? 'exo' : S.fmt === 'online' ? (S.ng.project === 'mat' ? 'mat' : 'exn') : 'exo');
+  function syncNg() {
+    const p = ngProject();
+    if (S.ng.project !== p) { S.ng.project = p; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; S.ng.room = ''; }
+    if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6;
+    if (S.size && !sizesOf(S.ng.project).includes(+S.size)) S.size = '';
+  }
+  const sizeOpts = () => opt('', 'Oricare', S.size) + sizesOf(ngProject()).map(n => opt(String(n), n === 1 ? 'Individual' : n + ' elevi', S.size)).join('');
+  // only the chip that was just chosen plays the pop: the whole pane is drawn again, and every chip that is on would play it too
+  const popTo = sel => { if (calm()) return; const el = root.querySelector(sel); if (el) el.classList.add('is-pop'); };
   const lyceum = () => !!S.grade && D.needsProfile(S.grade);
 
   /* ---------------- the filters on the left: a fixed rail of dropdowns ---------------- */
@@ -51,21 +62,21 @@
   function railHTML() {
     const hourOpts = (cur, any) => opt('', any, cur) + Array.from({ length: H1 - H0 + 1 }, (_, i) => H0 + i).map(h => opt(h, hh(h), cur)).join('');
     return `
-      <div class="ax-rail__head"><b>Despre elev</b></div>
+      <div class="ax-rail__head"><b>Informații generale</b></div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLs">Materia</span><select class="ax-select" data-k="subject" aria-labelledby="inLs">${D.SUBJECTS.map(x => opt(x, x, S.subject)).join('')}</select></div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLg">Clasa</span><select class="ax-select" data-k="grade" aria-labelledby="inLg">${opt('', 'Alege clasa', S.grade)}${D.GRADES.map(x => opt(x, 'Clasa ' + x, S.grade)).join('')}</select></div>
       <div class="in-prof${lyceum() ? ' is-open' : ''}" id="inProf"><div><div class="in-fl"><span class="ax-rail__lbl" id="inLp">Profilul <small>liceu</small></span><select class="ax-select" data-k="profile" aria-labelledby="inLp">${opt('', 'Alege profilul', S.profile)}${['Real', 'Uman'].map(x => opt(x, x, S.profile)).join('')}</select></div></div></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Alege formatul', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLl">Nivelul</span><select class="ax-select" data-k="level" aria-labelledby="inLl">${opt('', 'Nu știu încă', S.level)}${D.LEVELS.map(x => opt(x, 'Nivel ' + x, S.level)).join('')}</select></div>
       <div class="ax-rail__sep"></div>
-      <div class="ax-rail__head"><b>Dorințele părintelui</b></div>
+      <div class="ax-rail__head"><b>Informații suplimentare</b></div>
       <p class="in-note">Le folosești doar dacă părintele le cere.</p>
       <div data-ms="days"></div>
       <div class="in-row">
         <div class="in-fl"><span class="ax-rail__lbl" id="inLf">De la ora</span><select class="ax-select" data-k="from" aria-labelledby="inLf">${hourOpts(S.from, 'Oricând')}</select></div>
         <div class="in-fl"><span class="ax-rail__lbl" id="inLt">Până la ora</span><select class="ax-select" data-k="to" aria-labelledby="inLt">${hourOpts(S.to, 'Oricând')}</select></div>
       </div>
-      <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Oricare', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
-      <div class="in-fl"><span class="ax-rail__lbl" id="inLz">Mărimea grupei</span><select class="ax-select" data-k="size" aria-labelledby="inLz">${opt('', 'Oricare', S.size)}${opt('1', 'Individual', S.size)}${[2, 3, 4, 5, 6, 8].map(n => opt(String(n), n + ' elevi', S.size)).join('')}</select></div>
+      <div class="in-fl"><span class="ax-rail__lbl" id="inLz">Mărimea grupei</span><select class="ax-select" data-k="size" aria-labelledby="inLz">${sizeOpts()}</select></div>
       <div class="in-fl"><span class="ax-rail__lbl">Profesorul</span><div class="ax-search">${ico('search', 16)}<input id="inProfQ" class="ax-input" type="search" autocomplete="off" placeholder="Nume profesor" aria-label="Profesorul" value="${esc(S.prof)}"></div></div>
       <button type="button" class="in-clear" data-clear-wish hidden>Șterge dorințele</button>
       <button type="button" class="in-reset" data-reset>${ico('undo', 16)} Începe de la zero</button>`;
@@ -93,13 +104,14 @@
       const sel = e.target.closest('select[data-k]'); if (!sel) return;
       const k = sel.dataset.k;
       S[k] = sel.value;
+      if (k === 'fmt') { syncNg(); const sz = rail.querySelector('select[data-k="size"]'); if (sz) sz.innerHTML = sizeOpts(); }
       if (k === 'size' && sel.value) S.ng.size = +sel.value;                 // a group of that size is also what a new group is made as
       if (k === 'subject') { S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
       if (k === 'grade') { if (!lyceum()) S.profile = ''; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; }
       save(); syncRail(); paintPane(true);
     });
     rail.addEventListener('click', e => {
-      if (e.target.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (e.target.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
       if (e.target.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); }
     });
   }
@@ -113,7 +125,7 @@
     </div>`;
 
   function prompt() {
-    return `<div class="in-empty in-empty--start"><span class="in-empty__ic" aria-hidden="true">${ico('user-plus', 28)}</span><b>Începe cu clasa elevului</b><span>Alege materia și clasa, iar grupele active care se potrivesc apar aici, cu nivelul identic primul.</span></div>`;
+    return `<div class="in-empty in-empty--start"><span class="in-empty__ic" aria-hidden="true">${ico('user-plus', 28)}</span><b>Începe cu datele elevului</b><span>Alege materia, clasa și formatul (Offline sau Online), iar grupele active care se potrivesc apar aici, cu nivelul identic primul.</span></div>`;
   }
 
   function groupCard(c, i) {
@@ -203,6 +215,7 @@
 
   function newHTML() {
     if (!ready()) return prompt();
+    syncNg();
     const opts = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project }).filter(o => profOk(o.t.name));
     const sel = opts.find(o => o.t.id === S.ng.teacher);
     const offline = S.ng.project === 'exo';
@@ -218,7 +231,7 @@
     return `
       <p class="in-sub">Nicio grupă nu se potrivește? Alege un profesor care predă ${esc(S.subject)} la clasa ${esc(S.grade)} și o oră liberă de-a lui. Grupa se creează de la zero, doar cu elevul ăsta, și așteaptă să se completeze.</p>
       <div class="in-ng">
-        <div class="in-f"><span class="in-l">Formatul grupei noi</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exo', 'exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>
+        ${S.fmt === 'online' ? `<div class="in-f"><span class="in-l">Proiectul</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>` : ''}
         <div class="in-f"><span class="in-l">Câți elevi va avea</span><div class="in-chips in-chips--n" role="radiogroup" aria-label="Dimensiunea">${sizesOf(S.ng.project).map(n => `<button type="button" class="in-chip${S.ng.size === n ? ' is-on' : ''}" data-ngs="${n}" role="radio" aria-checked="${S.ng.size === n}">${n === 1 ? 'Individual' : n}</button>`).join('')}</div></div>
         <div class="in-f"><span class="in-l">Durata unei lecții</span><div class="in-chips" role="radiogroup" aria-label="Durata">${[1, 2].map(n => `<button type="button" class="in-chip${S.ng.dur === n ? ' is-on' : ''}" data-ngd="${n}" role="radio" aria-checked="${S.ng.dur === n}">${n === 1 ? 'O oră' : 'Două ore'}</button>`).join('')}</div></div>
       </div>
@@ -454,16 +467,16 @@
   function wire(host) {
     host.addEventListener('click', e => {
       const t = e.target;
-      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', fmt: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
+      if (t.closest('[data-clear-wish]')) { Object.assign(S, { days: [], from: '', to: '', size: '', prof: '' }); save(); buildRail(); paintPane(true); return; }
       if (t.closest('[data-reset]')) { S = fresh(); save(); buildRail(); paintPane(true); return; }
       const mode = t.closest('[data-mode]');
       if (mode) { S.mode = mode.dataset.mode; save(); paintPane(true); return; }
       if (t.closest('[data-filling]')) { S.filling = !S.filling; save(); paintPane(true); return; }
       const en = t.closest('[data-enrol]');
       if (en) { openEnrol({ group: en.dataset.enrol }); return; }
-      const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
-      const ngs = t.closest('[data-ngs]'); if (ngs) { S.ng.size = +ngs.dataset.ngs; save(); paintPane(false); return; }
-      const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
+      const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngp="${ngp.dataset.ngp}"]`); return; }
+      const ngs = t.closest('[data-ngs]'); if (ngs) { S.ng.size = +ngs.dataset.ngs; save(); paintPane(false); popTo(`[data-ngs="${ngs.dataset.ngs}"]`); return; }
+      const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngd="${ngd.dataset.ngd}"]`); return; }
       const ngt = t.closest('[data-ngt]');
       if (ngt) { S.ng.teacher = S.ng.teacher === ngt.dataset.ngt ? '' : ngt.dataset.ngt; S.ng.days = []; S.ng.start = null; save(); paintPane(false); return; }
       const rm = t.closest('[data-room]'); if (rm && !rm.disabled) { S.ng.room = rm.dataset.room; save(); paintPane(false); return; }
@@ -475,6 +488,7 @@
         else if (S.ng.start === h && S.ng.days.length < 3) S.ng.days = S.ng.days.concat(d);
         else { S.ng.start = h; S.ng.days = [d]; }
         save(); paintPane(false);
+        if (S.ng.start === h && S.ng.days.includes(d)) popTo(`[data-cell][data-d="${d}"][data-h="${h}"]`);          // only the cell just chosen
         const rs = root.querySelector('.in-rooms');                       // the cabinets appear under the grid: bring them into view (above the dock)
         if (rs && S.ng.start != null) rs.scrollIntoView({ block: 'center', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
         return;
