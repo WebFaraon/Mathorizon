@@ -5,8 +5,8 @@
    function fills (js/admin/registry-dataset.js turns the rows into the console's own shapes, AdminData.useData puts them in place).
    In Registre the console is read only: a write answers with the 'bm:registry-readonly' event (a toast here) and changes nothing.
 
-   The choice is remembered per browser (localStorage bm_admin_source). A failed load never leaves the console half switched:
-   it stays on the demo and says why.
+   The console starts on Registre and the switch is not shown: the demo data are only reachable with admin.html?demo=1 (then the switch appears and
+   the choice is remembered per browser, localStorage bm_admin_source). A failed load never leaves the console half switched: it stays on the demo and says why.
    ============================================================ */
 (function () {
   'use strict';
@@ -29,7 +29,8 @@
   let stamp = null;                                   // the newest full read of any register, as of the data on screen
   const stampOf = w => [w.last_change_at, w.last_full_sync_at].filter(Boolean).sort().pop() || null;     // the newest thing known about a register
   const latestRead = list => list.reduce((m, w) => { const s = stampOf(w); return s && (!m || s > m) ? s : m; }, null);
-  const read = () => { try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
+  const demoOn = /[?&]demo=1\b/.test(location.search);                 // the demo and its switch only exist behind ?demo=1
+  const read = () => { if (!demoOn) return 'registre'; try { return localStorage.getItem(KEY) === 'registre' ? 'registre' : 'demo'; } catch (e) { return 'demo'; } };
   const write = v => { try { localStorage.setItem(KEY, v); } catch (e) { /* private mode */ } };
 
   async function token() {
@@ -521,7 +522,7 @@
     const right = document.querySelector('.ax-top__right');
     if (!right) return;
     let box = document.getElementById('axSrc');
-    if (!box) {
+    if (!box && demoOn) {
       box = document.createElement('div');
       box.className = 'ax-seg ax-src';
       box.id = 'axSrc';
@@ -531,8 +532,7 @@
       right.insertBefore(box, right.firstChild);
       box.addEventListener('click', e => { const b = e.target.closest('[data-src]'); if (b) setSource(b.dataset.src); });
     }
-    box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === (reg ? 'registre' : 'demo'))));
-    box.classList.toggle('is-busy', busy);
+    if (box) { box.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.src === (reg ? 'registre' : 'demo')))); box.classList.toggle('is-busy', busy); }
     const pillEl = document.getElementById('axRegPill');
     if (pillEl) pillEl.classList.toggle('is-busy', busy);
     let pill = document.getElementById('axRegPill');
@@ -544,7 +544,7 @@
       pill.innerHTML = '<i aria-hidden="true"></i><b>Registre</b><button type="button" class="ax-regpill__r" title="Reîncarcă acum datele din registre" aria-label="Reîncarcă datele din registre"></button>';
       pill.querySelector('button').innerHTML = (window.AdminUI && window.AdminUI.ico) ? window.AdminUI.ico('refresh-cw', 14) : '↻';
       pill.querySelector('button').addEventListener('click', () => poll(true));
-      right.insertBefore(pill, box.nextSibling);
+      right.insertBefore(pill, box ? box.nextSibling : right.firstChild);
     }
   }
 
