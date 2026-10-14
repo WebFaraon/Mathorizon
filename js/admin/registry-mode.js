@@ -110,10 +110,17 @@
   /* the data read again from the registers (after a write, or on demand), without leaving the Registre mode */
   async function refresh() {
     if (!D.readOnly()) return false;
-    show(await loadTables());
+    show(await loadTables(), { skipSame: true });
     return true;
   }
+  /* what the registers hold, without the stamps that change at every read: when a new read brings the same content (a change in a tab the console does not show, a read that
+     found nothing new) there is nothing to draw again */
+  const signature = T => JSON.stringify([(T.workbooks || []).map(w => { const r = Object.assign({}, w); delete r.last_full_sync_at; delete r.last_change_at; return r; }), T.groups, T.students, T.lessons, T.replacements, T.replacement_items, T.console_rooms]);
+  let lastSig = null;
   function show(T, opts) {
+    const sig = signature(T), same = sig === lastSig;
+    lastSig = sig;
+    if (same && opts && opts.skipSame) return;
     const ds = window.AdminRegistryDataset.build(T, { today: new Date().toISOString().slice(0, 10) });
     D.useData(ds, { today: new Date() });
     if (window.AdminShell && !(opts && opts.quiet)) window.AdminShell.render();       // quiet: the page that asked repaints itself (the Înlocuiri page reads every 30 s)
@@ -578,6 +585,7 @@
     try {
       if (next === 'registre') {
         const T = await loadTables();
+        lastSig = signature(T);
         if (!T.workbooks.length || !T.groups.length) throw new Error('Încă nu e sincronizat niciun registru. Deschide pagina Sincronizare și apasă „Sincronizează acum”.');
         const ds = window.AdminRegistryDataset.build(T, { today: new Date().toISOString().slice(0, 10) });
         D.useData(ds, { today: new Date() });

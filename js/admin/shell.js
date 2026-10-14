@@ -186,6 +186,28 @@
     });
   }
 
+  /* A page drawn again on the same route (new data from the registers arrived, a filter changed) must not throw the reader back to the top: the scroll of the window, of
+     the containers that hold the page and of every scrolled box inside it (a table, a list, a side column) is put back after the new content is in. The page keeps its
+     height while it is emptied (min-height), or the browser would cut the scroll to 0 the moment the content is gone. Elements are found again by their place in the tree. */
+  const pathOf = (root, el) => { const p = []; for (let n = el; n && n !== root; n = n.parentElement) p.unshift(Array.prototype.indexOf.call(n.parentElement.children, n)); return p; };
+  const byPath = (root, p) => { let n = root; for (const i of p) { n = n && n.children[i]; } return n || null; };
+  function saveScroll(root) {
+    const boxes = [];
+    root.querySelectorAll('*').forEach(el => { if (el.scrollTop > 0 || el.scrollLeft > 0) boxes.push({ p: pathOf(root, el), t: el.scrollTop, l: el.scrollLeft }); });
+    const up = [];
+    for (let n = root; n && n !== document.documentElement; n = n.parentElement) if (n.scrollTop > 0 || n.scrollLeft > 0) up.push({ el: n, t: n.scrollTop, l: n.scrollLeft });
+    return { x: window.scrollX, y: window.scrollY, boxes, up, h: root.offsetHeight };
+  }
+  function restoreScroll(root, s) {
+    const apply = () => {
+      s.up.forEach(u => { u.el.scrollTop = u.t; u.el.scrollLeft = u.l; });
+      s.boxes.forEach(b => { const el = byPath(root, b.p); if (el) { el.scrollTop = b.t; el.scrollLeft = b.l; } });
+      if (window.scrollY !== s.y || window.scrollX !== s.x) window.scrollTo(s.x, s.y);
+    };
+    apply();
+    requestAnimationFrame(() => { apply(); root.style.minHeight = ''; });         // a second time once the layout of the new content has settled (fonts, formulas)
+  }
+
   function paint(fresh) {
     const root = document.getElementById('axView');
     if (!root || external) return;
@@ -202,6 +224,8 @@
     // pages that do not run on the generated demo data do not show the demo switch
     document.getElementById('axShell').toggleAttribute('data-nodemo', view.demo === false);
     root.classList.toggle('is-fresh', !!(fresh || changed));
+    const keep = changed ? null : saveScroll(root);
+    if (keep) root.style.minHeight = keep.h + 'px';
     root.innerHTML = '';
     try {
       view.render(root, { auth, query: U.readQuery(), rerender: () => render(false) });
@@ -209,7 +233,8 @@
       console.error(e);
       root.innerHTML = `<div class="ax-empty"><b>Pagina nu s-a putut afișa.</b>${esc(e.message)}</div>`;
     }
-    if (changed) { window.scrollTo(0, 0); root.focus({ preventScroll: true }); enter(root); }
+    if (keep) restoreScroll(root, keep);
+    if (changed) { window.scrollTo(0, 0); root.style.minHeight = ''; root.focus({ preventScroll: true }); enter(root); }
     document.getElementById('axShell').classList.remove('is-nav-open');
   }
 
