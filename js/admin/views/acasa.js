@@ -56,6 +56,57 @@
     ];
   }
 
+  /* ---- the building, drawn as a plan, behind the greeting (preview: admin.html?viu=1) ----
+     Pure decoration, no data: two rows of cabinets on either side of a corridor, thin walls drawn once on arrival, doors that swing open and shut, seats that fill with the
+     console's page colours, and a few small squares (a group) that walk the corridor, step into a cabinet and come back out: the cabinet tints and its door opens while they are in.
+     Everything is generated here from a few numbers; it is aria-hidden, behind the content, fades out to the left and below, and stops when the tab is hidden. */
+  const PLAN_ON = /[?&]viu=1\b/.test(location.search);
+  let planBooted = false, planWired = false;
+  function planHTML() {
+    // one row of seven cabinets above a corridor; the corridor's lower wall is the edge of the building
+    const X = [10, 122, 236, 340, 452, 560, 646, 710], Y0 = 6, YA = 94, YB = 134, YC = 114, GAP = 28, YIN = 62;
+    const PG = ['orar', 'elevi', 'inscriere', 'repartizare', 'inlocuiri', 'receptie', 'disponibilitate', 'analitica', 'calculator', 'culegeri', 'exercitii', 'profesori'];
+    const mid = (a, b) => Math.round((a + b) / 2);
+    const walls = [], doors = [], seats = [], tints = [], walkers = [];
+    const w = (x1, y1, x2, y2) => walls.push(`<path class="ah-pl__w" pathLength="1" d="M${x1} ${y1}L${x2} ${y2}" style="--i:${walls.length}"/>`);
+    w(10, Y0, 710, Y0); w(10, YB, 710, YB); w(10, Y0, 10, YB); w(710, Y0, 710, YB);
+    X.slice(1, -1).forEach(x => w(x, Y0, x, YA));
+    const rooms = X.slice(0, -1).map((x, i) => ({ i, x, w: X[i + 1] - x, cx: mid(x, X[i + 1]) }));
+    // the corridor's upper wall, with a gap for every door
+    let wx = 10; rooms.forEach(r => { w(wx, YA, r.cx - GAP / 2, YA); wx = r.cx + GAP / 2; }); w(wx, YA, 710, YA);
+    // which cabinets a walker visits: [cabinet, enters from the left?, seconds, delay]
+    const visits = [[1, true, 34, -6], [2, false, 38, -19], [4, false, 31, -12], [0, true, 41, -28], [5, true, 36, -23], [3, false, 33, -2]];
+    const visit = new Map(visits.map((v, n) => [v[0], { n, dur: v[2], dly: v[3] }]));
+    rooms.forEach(r => {
+      const hx = r.cx - GAP / 2, ox = (hx + GAP * Math.cos(68 * Math.PI / 180)).toFixed(1), oy = (YA - GAP * Math.sin(68 * Math.PI / 180)).toFixed(1), v = visit.get(r.i);
+      const timing = v ? `animation-name:ah-door-walk;animation-duration:${v.dur}s;animation-delay:${v.dly}s` : `animation-duration:${19 + (r.i * 7) % 17}s;animation-delay:${-((r.i * 5 + 3) % 13)}s`;
+      doors.push(`<g class="ah-pl__door"><path class="ah-pl__arc" d="M${hx + GAP} ${YA}A${GAP} ${GAP} 0 0 0 ${ox} ${oy}"/><line class="ah-pl__leaf" x1="${hx}" y1="${YA}" x2="${hx + GAP}" y2="${YA}" style="transform-origin:${hx}px ${YA}px;--a:-68deg;${timing}"/></g>`);
+      // seats: six in a block, some of them fill in turn
+      for (let a = 0; a < 2; a++) for (let c = 0; c < 3; c++) {
+        const n = r.i * 6 + a * 3 + c, color = PG[(n * 5 + 2) % PG.length], live = n % 3 !== 0, dur = 17 + (n * 7) % 19, dly = -((n * 11) % 23);
+        seats.push(`<rect class="ah-pl__s${live ? ' is-live' : ''}" x="${r.cx - 20 + c * 16}" y="${Y0 + 14 + a * 16}" width="8" height="8" rx="1" style="--c:var(--ax-c-${color});--t:${dur}s;--d:${dly}s"/>`);
+      }
+    });
+    // walkers: each follows one cabinet's tint and door (same duration and delay), so they arrive together
+    visits.forEach(([i, fromLeft, dur, dly], n) => {
+      const r = rooms[i], sx = fromLeft ? 10 : 710, ex = fromLeft ? 710 : 10, color = PG[(n * 3 + 1) % PG.length];
+      const leg1 = Math.abs(r.cx - sx), depth = YC - YIN, total = leg1 + depth * 2 + Math.abs(ex - r.cx), f1 = ((leg1 + depth) / total * 100).toFixed(2) + '%';
+      tints.push(`<rect class="ah-pl__tint" x="${r.x}" y="${Y0}" width="${r.w}" height="${YA - Y0}" style="--c:var(--ax-c-${color});--t:${dur}s;--d:${dly}s"/>`);
+      walkers.push(`<i class="ah-pl__p" style="--c:var(--ax-c-${color});--path:path('M${sx} ${YC}L${r.cx} ${YC}L${r.cx} ${YIN}L${r.cx} ${YC}L${ex} ${YC}');--f1:${f1};--t:${dur}s;--d:${dly}s"></i>`);
+    });
+    return `<div class="ah-pl${planBooted ? '' : ' is-boot'}" aria-hidden="true">
+      <svg viewBox="0 0 720 150" width="720" height="150" focusable="false">${tints.join('')}<g class="ah-pl__walls">${walls.join('')}</g>${doors.join('')}${seats.join('')}</svg>${walkers.join('')}
+    </div>`;
+  }
+  function planStart(root) {
+    const box = root.querySelector('.ah-pl'); if (!box) return;
+    planBooted = true;
+    if (!planWired) {
+      planWired = true;
+      document.addEventListener('visibilitychange', () => { const b = document.querySelector('.ah-pl'); if (b) b.classList.toggle('is-paused', document.hidden); });
+    }
+  }
+
   window.AdminViews.acasa = {
     title: 'Acasă',
     icon: 'home',
@@ -64,7 +115,8 @@
       const att = attention();
       root.innerHTML = `
         <header class="ax-head ah-head">
-          <div>
+          ${PLAN_ON ? planHTML() : ''}
+          <div class="ah-head__t">
             <p class="ah-eyebrow">${esc(new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</p>
             <h1 class="ah-title">${greeting()}, ${esc(name)}</h1>
             <p class="ax-lede">Ce are nevoie de atenție azi, și drumul spre fiecare instrument.</p>
@@ -94,6 +146,7 @@
             </nav>
           </section>
         </div>`;
+      if (PLAN_ON) planStart(root);
     }
   };
 })();
