@@ -155,6 +155,7 @@ export async function applyNewGroupAsync(adapter, cmd) {
   if (!p.ok) return { status: 'invalid', code: p.code, msg: p.msg, onStudent: !!p.onStudent };
 
   const created = await adapter.duplicate(p.sourceTitle, p.title);
+  if (adapter.boldStudentCells) { try { await adapter.boldStudentCells(p.title); } catch (e) { /* only the look of the tab */ } }
   const cellsByTab = { [p.title]: p.cells };
   if (p.total) cellsByTab[p.total.tab] = { [p.total.a1]: { v: p.total.v } };
   try {

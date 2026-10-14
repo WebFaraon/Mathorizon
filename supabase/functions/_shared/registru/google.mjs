@@ -188,6 +188,15 @@ export function createAdapter(key, spreadsheetId) {
       const b = parseA1(letter + '1').c - 1;
       await send(token, 'POST', base + ':batchUpdate', { requests: [{ deleteDimension: { range: { sheetId: ids[tab], dimension: 'COLUMNS', startIndex: b, endIndex: b + 1 } } }] });
     },
+    /* the template tab of the new format ("Grup Model") has its student cells (name D1:Z1, manager D7:Z7, status D8:Z8) in plain weight, while the teachers' tabs have them bold:
+       a tab made from it gets the same look as the others. Only the weight is set, nothing else of the cells' format changes. */
+    async boldStudentCells(tab) {
+      const token = await accessToken(key, true);
+      await this.tabs();
+      if (ids[tab] === undefined) return;
+      const rows = [[0, 1], [6, 7], [7, 8]].map(([a, b]) => ({ repeatCell: { range: { sheetId: ids[tab], startRowIndex: a, endRowIndex: b, startColumnIndex: 3, endColumnIndex: 26 }, cell: { userEnteredFormat: { textFormat: { bold: true } } }, fields: 'userEnteredFormat.textFormat.bold' } }));
+      await send(token, 'POST', base + ':batchUpdate', { requests: rows });
+    },
     /* a copy of a tab (colours, dropdown chips, validations, formulas) with a new name, at the end of the visible tabs */
     async duplicate(sourceTitle, title) {
       const token = await accessToken(key, true);

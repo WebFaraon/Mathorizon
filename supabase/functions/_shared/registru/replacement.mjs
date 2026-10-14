@@ -154,6 +154,7 @@ export async function applyReplacementCreateAsync(adapters, cmd) {
   if (!p.ok) return { status: 'invalid', code: p.code, msg: p.msg };
 
   const created = await adapters.to.duplicate(p.sourceTitle, p.title);
+  if (adapters.to.boldStudentCells) { try { await adapters.to.boldStudentCells(p.title); } catch (e) { /* only the look of the tab */ } }
   const cellsByTab = { [p.title]: p.cells };
   if (p.total) cellsByTab[p.total.tab] = { [p.total.a1]: { v: p.total.v } };
   try {

@@ -193,6 +193,8 @@ async function convert(id, log) {
     // the template's group tab, before CONFIGURARI
     reqs.push({ updateSheetProperties: { properties: { sheetId: model.sheetId, title: 'Grup Model', index: S - 1 }, fields: 'title,index' } });
     reqs.push({ updateSheetProperties: { properties: { sheetId: config.sheetId, index: S }, fields: 'index' } });
+    // the template's student cells are plain, the teachers' are bold: the model gets the bold look (tabs made from it inherit it)
+    [[0, 1], [6, 7], [7, 8]].forEach(([a, b]) => reqs.push({ repeatCell: { range: range(model.sheetId, a, b, 3, 26), cell: { userEnteredFormat: { textFormat: { bold: true } } }, fields: 'userEnteredFormat.textFormat.bold' } }));
     // every group tab
     groupTabs.forEach(g => {
       const s = g.sheetId, m = model.sheetId;
