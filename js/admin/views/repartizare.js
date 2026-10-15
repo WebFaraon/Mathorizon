@@ -221,7 +221,7 @@
       const rows = D.rooms.map(r => ({ id: r.id, kind: 'room', r, gs: gs.filter(g => g.room === r.id) }));
       // the groups made without a cabinet wait in a row of their own at the top: the director drags them onto a cabinet (or opens them) to give one
       const none = gs.filter(g => !g.room);
-      if (none.length) rows.unshift({ id: '_none', kind: 'room', none: true, r: null, gs: none });
+      if (none.length) rows.unshift({ id: '_none', kind: 'room', none: true, r: null, gs: none, capped: !s.nocab });
       return s.hide ? rows.filter(x => x.gs.length) : rows;
     }
     const byT = {};
@@ -400,7 +400,7 @@
   }
 
   function plateHTML(row, ci) {
-    if (row.none) return `<div class="rp-plate rp-plate--none" title="Grupe fără cabinet: trage-le pe un cabinet sau deschide-le"><span class="rp-plate__k">Fără</span><b class="rp-plate__n">${ico('door', 18)}</b><span class="rp-plate__m"><span>cabinet</span><span>×${row.gs.length}</span></span></div>`;
+    if (row.none) return `<div class="rp-plate rp-plate--none" title="Grupe fără cabinet: trage-le pe un cabinet sau deschide-le"><span class="rp-pn__ic" aria-hidden="true">${ico('door', 20)}</span><b class="rp-pn__t">Fără cabinet</b><span class="rp-pn__n">${row.gs.length} ${row.gs.length === 1 ? 'grupă așteaptă' : 'grupe așteaptă'}</span>${row.capped ? `<span class="rp-pn__sc"><i aria-hidden="true">${ico('chevron-down', 14)}</i>derulează</span>` : ''}</div>`;
     if (row.kind === 'room') {
       const r = row.r;
       const alert = ci.roomRows.has(r.id);
@@ -454,6 +454,7 @@
         <div class="rp-row${row.none && !s.nocab ? ' is-capped' : ''}" data-row="${row.id}" data-arrive style="--i:${i};--lanes:${L.n}">
           <div class="rp-platecell">${plateHTML(row, ci)}</div>
           <div class="rp-track">${cells}${L.sorted.map(g => (g._repl ? replCardHTML(g, s, L.lane[g.id]) : cardHTML(g, s, L.lane[g.id], ci))).join('')}</div>
+          ${row.none && row.capped ? `<button type="button" class="rp-more" tabindex="-1" aria-label="Derulează la restul grupelor fără cabinet">${ico('chevron-down', 14)} Mai multe grupe mai jos, derulează</button>` : ''}
         </div>`;
     }).join('');
     const empty = !rows.length ? `<div class="ax-empty rp-board__empty"><b>${s.rows === 'cab' ? 'Niciun cabinet de afișat' : 'Niciun profesor nu predă'}</b>${filterCount(s) || s.hide ? 'Nicio grupă nu trece de filtrele alese în ziua aceasta.' : 'Nu sunt lecții în ziua aceasta.'}</div>` : '';
@@ -708,6 +709,14 @@
       writeState(s); buildRail(); renderMain();
     }, clearFilters);
     root.querySelector('[data-goconf]').addEventListener('click', openConflicts);
+    // the top row of groups without a cabinet scrolls on its own: the pill and the fade say so, and go away at the end
+    U.$$('.rp-row.is-capped', main).forEach(row => {
+      const tr = row.querySelector('.rp-track'), more = row.querySelector('.rp-more');
+      const upd = () => { row.classList.toggle('is-end', tr.scrollTop + tr.clientHeight >= tr.scrollHeight - 2); row.classList.toggle('no-more', tr.scrollHeight <= tr.clientHeight + 2); row.classList.toggle('is-top', tr.scrollTop < 2); };
+      tr.addEventListener('scroll', upd, { passive: true });
+      if (more) more.addEventListener('click', () => tr.scrollBy({ top: Math.round(tr.clientHeight * 0.8), behavior: 'smooth' }));
+      upd();
+    });
 
     const sc = main.querySelector('#rpScroll');
     const board = main.querySelector('#rpBoard');
@@ -1091,9 +1100,7 @@
 
       <section class="rp-dr__sec" aria-labelledby="rpStT">
         <h3 class="rp-dr__h" id="rpStT">Statut</h3>
-        <div class="ax-seg rp-dr__st" role="group" aria-labelledby="rpStT">
-          ${D.GROUP_STATUS.map(x => `<button type="button" data-st="${x.id}" aria-pressed="${g.status === x.id}">${stHTML(x.id)}</button>`).join('')}
-        </div>
+        ${U.statusPicker(g.status, D.GROUP_STATUS, 'rpStT')}
       </section>
 
       <section class="rp-dr__sec rp-mv" aria-labelledby="rpMvT">

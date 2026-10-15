@@ -1076,3 +1076,20 @@ body.ax button, body.ax a, body.ax input, body.ax summary, body.ax [role="tab"] 
 .ax-sign__btn--demo { display: none; }
 @media (max-width: 960px) { .ax-sign__btn--demo { display: inline-flex; } .ax-shell[data-nodemo] .ax-sign__btn--demo { display: none; } }
 @media (max-width: 600px) { .ax-demo { display: none; } }
+
+/* ---- the status picker of a group (U.statusPicker): a list, each row a status with what it means ---- */
+body.ax .ax-sp { display: grid; gap: 8px; }
+body.ax .ax-sp__g { display: grid; border: 1px solid var(--ax-rule-2); background: var(--ax-panel); }
+body.ax .ax-sp__b { position: relative; display: grid; grid-template-columns: 22px minmax(0, 1fr) 22px; align-items: center; gap: 12px; min-height: 52px; padding: 8px 12px; border: 0; border-top: 1px solid var(--ax-rule); background: transparent; color: var(--ax-ink); text-align: left; cursor: pointer; font-family: inherit; transition: background-color 0.15s; }
+body.ax .ax-sp__b:first-child { border-top: 0; }
+body.ax .ax-sp__b:hover { background: var(--ax-hover); }
+body.ax .ax-sp__i { justify-self: center; }
+body.ax .ax-sp__t { display: grid; gap: 1px; min-width: 0; }
+body.ax .ax-sp__t b { font-size: 0.95rem; font-weight: 800; color: var(--c); }
+body.ax .ax-sp__t small { font-size: 0.78rem; font-weight: 600; line-height: 1.3; color: var(--ax-ink-3); }
+body.ax .ax-sp__ck { display: grid; place-items: center; color: var(--c); opacity: 0; transform: scale(0.6); transition: opacity 0.15s, transform 0.2s var(--ax-ease); }
+body.ax .ax-sp__b[aria-pressed="true"] { background: color-mix(in srgb, var(--c) 11%, var(--ax-panel)); box-shadow: inset 0 0 0 2px var(--c); z-index: 1; }
+body.ax .ax-sp__b[aria-pressed="true"] .ax-sp__ck { opacity: 1; transform: none; }
+body.ax .ax-sp__b:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: -2px; z-index: 2; }
+body.ax .ax-sp__n { margin: 0; font-size: 0.76rem; font-weight: 600; line-height: 1.35; color: var(--ax-ink-3); }
+@media (prefers-reduced-motion: reduce) { body.ax .ax-sp__ck { transition: none; } }

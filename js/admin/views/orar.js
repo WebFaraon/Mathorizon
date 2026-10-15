@@ -362,9 +362,7 @@
           </div>
           <section class="or-dw__sec">
             <h3 class="or-dw__h" id="orDwSt">Statutul grupei</h3>
-            <div class="ax-seg or-dw__st" role="group" aria-labelledby="orDwSt">
-              ${D.GROUP_STATUS.map(st => `<button type="button" data-st="${st.id}" aria-pressed="${g.status === st.id}">${stHTML(st.id, st.name)}</button>`).join('')}
-            </div>
+            ${U.statusPicker(g.status, D.GROUP_STATUS, 'orDwSt')}
           </section>
           <dl class="ax-dl or-dw__dl">
             <dt>Profesor</dt><dd>${esc(t.name)}<a class="or-tel" href="tel:${esc(t.phone)}">${ico('phone', 14)} ${esc(fmtPhone(t.phone))}</a></dd>

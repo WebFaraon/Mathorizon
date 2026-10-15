@@ -507,9 +507,33 @@
   const noRoom = g => { const p = window.AdminData.project(g.project); return p && p.mode === 'offline' ? { online: false, label: 'Fără cabinet', long: 'Fără cabinet în registru' } : { online: true, label: 'Online', long: 'Online, fără cabinet' }; };
   const roomPlate = (g, size) => { const n = noRoom(g); return n.online ? `<span class="or-room or-room--on${size ? ' or-room--sm' : ''}" title="Online">${ico('monitor', 16)}</span>` : `<span class="or-room or-room--none${size ? ' or-room--sm' : ''}" title="${n.long}">${ico('alert', 16)}</span>`; };
 
+  /* The status of a group, as a list to pick from: the road a group takes (Se completează, Startează, Activ), then the two other states. Every row has the status
+     dot, its name in its own colour, one line saying what it means, and a check on the current one. Buttons keep data-st and aria-pressed (the panels wire them). */
+  const GROUP_STATUS_HELP = {
+    completare: 'Se așteaptă elevii la înscriere',
+    starteaza: 'Are destui elevi: urmează ora de probă',
+    activ: 'Ține lecții, elevii au rămas',
+    inlocuire: 'Un alt profesor ține lecțiile',
+    inactiv: 'Oprită, nu mai ține lecții'
+  };
+  function statusPicker(current, list, labelId) {
+    const by = Object.fromEntries(list.map(s => [s.id, s]));
+    const row = id => by[id] ? `<button type="button" class="ax-sp__b" data-st="${esc(id)}" aria-pressed="${current === id}" style="--c: var(--ax-st-${esc(id)})">
+        <span class="ax-st ax-st--${esc(id)} ax-sp__i"><i class="ax-st__i" aria-hidden="true"></i></span>
+        <span class="ax-sp__t"><b>${esc(by[id].name)}</b><small>${esc(GROUP_STATUS_HELP[id] || '')}</small></span>
+        <span class="ax-sp__ck" aria-hidden="true">${ico('check', 18)}</span>
+      </button>` : '';
+    const flow = ['completare', 'starteaza', 'activ'], other = ['inlocuire', 'inactiv'];
+    return `<div class="ax-sp" role="group"${labelId ? ` aria-labelledby="${labelId}"` : ''}>
+      <div class="ax-sp__g">${flow.map(row).join('')}</div>
+      <div class="ax-sp__g ax-sp__g--o">${other.map(row).join('')}</div>
+      <p class="ax-sp__n">„Se completează” trece singură în „Startează” când sunt destui elevi înscriși.</p>
+    </div>`;
+  }
+
   window.AdminUI = {
     esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
-    readQuery, writeQuery, listParam, noRoom, roomPlate,
+    readQuery, writeQuery, listParam, noRoom, roomPlate, statusPicker,
     multiSelect, enhanceSelects, suggest, countUp, stagger, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };
 })();
