@@ -69,6 +69,7 @@ body.ax {
   /* group status colours: bands on cards, words in the filters */
   --ax-st-activ: #13804F;
   --ax-st-completare: #F2B300;
+  --ax-st-starteaza: #1F5FD6;
   --ax-st-inlocuire: #6B35D6;
   --ax-st-inactiv: #C62F2A;
 
@@ -121,6 +122,7 @@ body.ax {
   --ax-bad: #EE6B60;
   --ax-st-activ: #38B57A;
   --ax-st-completare: #F5C242;
+  --ax-st-starteaza: #6E9BF5;
   --ax-st-inlocuire: #A07CF2;
   --ax-st-inactiv: #EE6B60;
 
@@ -520,6 +522,8 @@ html[data-demo-sync="error"] .ax-demo b::after { content: ' · fără conexiune'
 .ax-st--activ .ax-st__i { background: currentColor; }
 .ax-st--completare { color: var(--ax-fill); }
 .ax-st--completare .ax-st__i { border: 2px solid currentColor; background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.ax-st--starteaza { color: var(--ax-st-starteaza); }
+.ax-st--starteaza .ax-st__i { border: 2px solid currentColor; background: radial-gradient(circle, currentColor 36%, transparent 40%); }
 .ax-st--inlocuire { color: var(--ax-swap); }
 .ax-st--inlocuire .ax-st__i { border-radius: 0; background: none; }
 .ax-st--inlocuire .ax-st__i::before { content: '⇄'; display: block; margin-top: -5px; font-size: 13px; line-height: 1; font-weight: 800; }
@@ -940,6 +944,7 @@ body.ax .ax-fixsplit > .ax-col { min-width: 0; }
 /* ---- status words in the filters ---- */
 .ax-ms__opt.ax-tone--activ { color: var(--ax-ok); }
 .ax-ms__opt.ax-tone--completare, .ax-ms__opt.ax-tone--proba, .ax-ms__opt.ax-tone--proba_ok, .ax-ms__opt.ax-tone--instabil { color: var(--ax-fill); }
+.ax-ms__opt.ax-tone--starteaza { color: var(--ax-st-starteaza); }
 .ax-ms__opt.ax-tone--inlocuire, .ax-ms__opt.ax-tone--transferat { color: var(--ax-swap); }
 .ax-ms__opt.ax-tone--inactiv { color: var(--ax-bad); }
 .ax-ms__opt[class*="ax-tone--"] { font-weight: 700; }

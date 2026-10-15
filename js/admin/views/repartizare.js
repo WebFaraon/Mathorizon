@@ -56,6 +56,7 @@
       q: q.q || '',
       vis: q.vis === 'c' ? 'c' : 'max',
       hide: q.hide === '1',
+      nocab: q.nocab === '1',
       focus: q.focus || null
     };
     LIST_KEYS.forEach(k => { s[k] = U.listParam(q, k); });
@@ -67,15 +68,19 @@
     o.q = s.q || null;
     o.vis = s.vis === 'c' ? 'c' : null;
     o.hide = s.hide ? '1' : null;
+    o.nocab = s.nocab ? '1' : null;
     o.focus = s.focus || null;
     U.writeQuery(o);
   }
-  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' && s.rows === 'cab' ? 0 : s[k].length), 0) + (s.q ? 1 : 0);
+  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' && s.rows === 'cab' ? 0 : s[k].length), 0) + (s.q ? 1 : 0) + (s.nocab ? 1 : 0);
 
   /* ============ data helpers ============ */
-  function pass(g, s) {
+  const noCab = g => !g.room && !_isOnline(g);
+  const _isOnline = g => U.noRoom(g).online;
+  function pass(g, s, tray) {
     if (s.st.length ? !s.st.includes(g.status) : !live(g)) return false;
-    if (s.rows === 'cab') { if (!g.room) return false; } else if (s.proj.length && !s.proj.includes(g.project)) return false;
+    if (tray || s.nocab) { if (!noCab(g)) return false; }
+    else if (s.rows === 'cab') { if (!g.room) return false; } else if (s.proj.length && !s.proj.includes(g.project)) return false;
     if (s.disc.length && !s.disc.includes(g.subject)) return false;
     if (s.cls.length && !s.cls.includes(g.grade)) return false;
     if (s.fmt.length && !s.fmt.includes(String(g.size))) return false;
@@ -176,11 +181,12 @@
      students keep their hour), then the earliest valid hour and room. */
   function propose(g, strictOnly) {
     const others = D.rooms.map(r => r.id).filter(id => id !== g.room);
-    const rooms = g.room ? [g.room].concat(others) : [null];
+    const wantRoom = !!g.room || noCab(g);                                  // a group made without a cabinet gets one proposed
+    const rooms = g.room ? [g.room].concat(others) : wantRoom ? others : [null];
     // soft: room and teacher are free, only the availability is not confirmed
     const soft = c => !c.room.length && !c.small && !c.teacher.length && !c.overflow;
     for (const accept of strictOnly ? [c => c.ok] : [c => c.ok, soft]) {
-      if (g.room) for (const r of others) if (accept(check(g, r, g.start))) return { room: r, start: g.start, soft: accept === soft };
+      if (wantRoom) for (const r of others) if (accept(check(g, r, g.start))) return { room: r, start: g.start, soft: accept === soft };
       for (let h = FIRST; h + g.duration <= END; h++) {
         for (const r of rooms) {
           if (r === g.room && h === g.start) continue;
@@ -320,6 +326,7 @@
       s[k].forEach(v => items.push({ key: k, value: v, label: lab[k](v) }));
     });
     if (s.q) items.push({ key: 'q', value: s.q, label: `Profesor: ${s.q}` });
+    if (s.nocab) items.push({ key: 'nocab', value: '1', label: 'Doar grupele fără cabinet' });
     return items;
   }
 
@@ -542,6 +549,11 @@
         <button type="button" data-vis="c" aria-pressed="${s.vis !== 'max'}">Compactă</button>
         <button type="button" data-vis="max" aria-pressed="${s.vis === 'max'}">Maximă</button>
       </div>
+      <label class="ax-switch rp-hide">
+        <input type="checkbox" id="rpNoCab"${s.nocab ? ' checked' : ''}>
+        <span class="ax-switch__t" aria-hidden="true"></span>
+        <span>Doar grupele fără cabinet<small>Cele create fără cabinet, care așteaptă să fie repartizate</small></span>
+      </label>
       <label class="ax-switch rp-hide${s.rows === 'prof' ? ' is-dis' : ''}">
         <input type="checkbox" id="rpHide"${s.hide ? ' checked' : ''}${s.rows === 'prof' ? ' disabled' : ''}>
         <span class="ax-switch__t" aria-hidden="true"></span>
@@ -598,6 +610,7 @@
       renderMain();
     }));
     rail.querySelector('#rpHide').addEventListener('change', e => { s.hide = e.target.checked; writeState(s); renderMain(); });
+    rail.querySelector('#rpNoCab').addEventListener('change', e => { s.nocab = e.target.checked; s.focus = null; writeState(s); refreshRailCount(); renderMain(); });
     rail.querySelector('#rpClear').addEventListener('click', clearFilters);
   }
   function refreshRailCount() {
@@ -610,7 +623,7 @@
   function clearFilters() {
     const s = M.s;
     LIST_KEYS.forEach(k => { s[k] = []; });
-    s.q = ''; s.focus = null;
+    s.q = ''; s.nocab = false; s.focus = null;
     writeState(s); buildRail(); renderMain();
   }
 
@@ -633,13 +646,14 @@
     root.querySelector('#rpDays').innerHTML = sideBlockHTML(s, daySummary(s.day, ci));
     main.innerHTML = `
       <div class="rp-chips rp-noprint">${U.activeChips(chips)}</div>
-      ${boardHTML(s, rows, ci)}`;
+      ${s.rows === 'cab' ? trayHTML(s) : ''}
+      ${s.rows === 'cab' && s.nocab ? '' : boardHTML(s, rows, ci)}`;
 
     wireMain(main, s, ci, chips);
 
     const sc = main.querySelector('#rpScroll');
-    if (keep && key === lastBoardKey) { sc.scrollLeft = keep.l; sc.scrollTop = keep.t; }
-    else initialScroll(sc, s, rows);
+    if (sc && keep && key === lastBoardKey) { sc.scrollLeft = keep.l; sc.scrollTop = keep.t; }
+    else if (sc) initialScroll(sc, s, rows);
     lastBoardKey = key;
     settleId = null;
 
@@ -670,6 +684,23 @@
     sc.scrollLeft = Math.max(0, (h - FIRST) * colWidth(sc));
   }
 
+  /* The cabinet rows can only hold a group that has a cabinet. The groups made without one (the manager leaves it to the director) wait here, for the day
+     that is open: each says when, whose and how full, and "Atribuie cabinet" opens it with the cabinets and their free hours. */
+  function trayHTML(s) {
+    const list = D.groups.filter(g => g.days.includes(s.day) && pass(g, s, true) && !replacedOnDay(g.id, s.day)).sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
+    const dayName = D.DAYS[s.day - 1].name;
+    if (!list.length) return s.nocab ? `<div class="in-empty rp-tray__empty"><b>Toate grupele de ${esc(dayName.toLowerCase())} au cabinet.</b><span>Nicio grupă offline nu așteaptă un cabinet în ziua aceasta.</span></div>` : '';
+    return `<section class="rp-tray rp-noprint" aria-labelledby="rpTrayT">
+      <h2 class="rp-tray__h" id="rpTrayT">Fără cabinet <b>${list.length}</b><small>${esc(dayName)}: alege un cabinet pentru fiecare, ținând cont de ce e liber la ora ei</small></h2>
+      <ul class="rp-tray__list">${list.map(g => {
+        const t = D.teacher(g.teacher), enr = D.enrolled(g).length;
+        return `<li class="rp-tray__i"><span class="rp-tray__when"><b>${range(g)}</b><small>${esc(U.daysLabel(g.days.slice().sort((a, b) => a - b)))}</small></span>
+          <span class="rp-tray__who"><b>${esc(t.name)}</b><small>${esc(g.subject)}, clasa ${esc(g.grade)}${g.level ? ', nivel ' + esc(g.level) : ''} · ${enr} din ${plural(g.size, 'loc', 'locuri')}</small></span>
+          <span class="ax-tag ax-tag--warn">Fără cabinet</span>
+          <button type="button" class="ax-btn ax-btn--sm" data-assign="${g.id}">${ico('door', 16)} Atribuie cabinet</button></li>`;
+      }).join('')}</ul></section>`;
+  }
+
   function wireMain(main, s, ci, chips) {
     const root = M.root;
     const visible = sel => U.$$(sel, root).find(x => x.offsetParent !== null);
@@ -684,9 +715,11 @@
       const nb = visible(`[data-rows="${s.rows}"]`); if (nb) nb.focus();
     }));
     U.wireActiveChips(main.querySelector('.rp-chips'), chips, it => {
-      if (it.key === 'q') s.q = ''; else s[it.key] = s[it.key].filter(v => v !== it.value);
+      if (it.key === 'q') s.q = ''; else if (it.key === 'nocab') s.nocab = false; else s[it.key] = s[it.key].filter(v => v !== it.value);
       writeState(s); buildRail(); renderMain();
     }, clearFilters);
+    U.$$('[data-assign]', main).forEach(b => b.addEventListener('click', () => openDrawer(b.dataset.assign)));
+    if (!main.querySelector('#rpBoard')) return;                       // only the tray is drawn ("only the groups without a cabinet" in the cabinet view)
     root.querySelector('[data-goconf]').addEventListener('click', openConflicts);
 
     const sc = main.querySelector('#rpScroll');
@@ -1048,6 +1081,7 @@
     const studs = D.studentsOf(g.id).slice().sort((a, b) => a.name.localeCompare(b.name, 'ro'));
     const enr = D.enrolled(g).length;
     const room = g.room && D.room(g.room);
+    const pickRoom = !!g.room || noCab(g);                                   // a group made without a cabinet can be given one here
 
     const body = `
       ${opts.conflict ? `<div class="rp-dr__alert"><span class="ax-hazard" aria-hidden="true"></span><p><b>${opts.conflict.kind === 'room' ? 'Cabinet dublat' : 'Profesor dublat'}</b> ${esc(range({ start: opts.conflict.from, duration: opts.conflict.to - opts.conflict.from }))}, cu ${esc(opts.conflict.gs.filter(x => x.id !== g.id).map(x => D.teacher(x.teacher).name + ' (' + x.subject + ' ' + x.grade + ')').join(', '))}.${proposed ? ' Am propus mai jos primul loc liber.' : ''}</p></div>` : ''}
@@ -1072,14 +1106,15 @@
 
       <section class="rp-dr__sec rp-mv" aria-labelledby="rpMvT">
         <div class="rp-dr__hrow">
-          <h3 class="rp-dr__h" id="rpMvT">Mută</h3>
+          <h3 class="rp-dr__h" id="rpMvT">${g.room ? 'Mută' : pickRoom ? 'Cabinet și oră' : 'Mută'}</h3>
           <button type="button" class="ax-btn ax-btn--sm" data-propose>${ico('sparkles', 16)} Propune primul loc liber</button>
         </div>
         <p class="rp-dr__note">Verificat pentru toate zilele grupei: ${esc(daysPhrase(g.days))}.</p>
-        ${g.room ? `
+        ${pickRoom ? `
           <label class="rp-dr__lbl" for="rpMvRoom">Cabinet</label>
           <select class="ax-select" id="rpMvRoom">
-            ${D.rooms.map(r => `<option value="${r.id}">${esc(r.name)}, ${r.seats} locuri, etajul ${r.floor}${r.id === g.room ? ' (actual)' : ''}</option>`).join('')}
+            ${g.room ? '' : '<option value="">Fără cabinet</option>'}
+            ${D.rooms.map(r => { const c0 = check(g, r.id, g.start), why = c0.room.length ? ', ocupat la ora grupei' : c0.small ? ', prea mic' : ', liber la ora grupei'; return `<option value="${r.id}">${esc(r.name)}, ${r.seats} locuri, etajul ${r.floor}${r.id === g.room ? ' (actual)' : why}</option>`; }).join('')}
           </select>` : ''}
         <span class="rp-dr__lbl" id="rpMvHL">Ora de început</span>
         <div class="rp-hrs" role="radiogroup" aria-labelledby="rpMvHL" id="rpMvH"></div>
@@ -1107,7 +1142,7 @@
     const res = dr.querySelector('#rpMvRes');
     const save = dr.querySelector('[data-save]');
     const roomSel = dr.querySelector('#rpMvRoom');
-    if (roomSel) roomSel.value = sel.room;
+    if (roomSel) roomSel.value = sel.room || '';
 
     const paint = note => {
       const tiles = [];
@@ -1134,7 +1169,8 @@
           ? `<p class="rp-mv__line is-ok">${ico('check', 16)} ${esc(where)}: liber ${esc(daysPhrase(g.days))}.</p>`
           : reasonsHTML(g, c, 'p', 'rp-mv__line is-' + (c.bad ? 'bad' : 'warn')));
       save.disabled = same;
-      save.innerHTML = `${ico('arrow-right', 16)} ${same ? 'Mută grupa' : c.ok ? 'Mută grupa' : 'Mută oricum'}`;
+      const label = !g.room && sel.room && sel.start === g.start ? 'Atribuie cabinetul' : 'Mută grupa';
+      save.innerHTML = `${ico('arrow-right', 16)} ${same ? label : c.ok ? label : label === 'Mută grupa' ? 'Mută oricum' : 'Atribuie oricum'}`;
     };
     paint(opts.propose ? proposalNote(g, proposed) : '');
 
@@ -1154,12 +1190,12 @@
       sel.start = h; paint();
       hrs.querySelector(`[data-h="${h}"]`).focus();
     });
-    if (roomSel) roomSel.addEventListener('change', () => { sel.room = roomSel.value; paint(); });
+    if (roomSel) roomSel.addEventListener('change', () => { sel.room = roomSel.value || null; paint(); });
     dr.querySelector('[data-propose]').addEventListener('click', () => {
       const pr = propose(g);
       if (!pr) { paint(proposalNote(g, null)); return; }
       sel.room = pr.room; sel.start = pr.start;
-      if (roomSel) roomSel.value = sel.room;
+      if (roomSel) roomSel.value = sel.room || '';
       paint(proposalNote(g, pr));
     });
     save.addEventListener('click', async () => {
@@ -1169,7 +1205,7 @@
         if (!yes) return;
       }
       dr.close();
-      apply(g, g.room ? { start: sel.start, room: sel.room } : { start: sel.start });
+      apply(g, pickRoom ? { start: sel.start, room: sel.room } : { start: sel.start });
     });
     U.$$('[data-st]', dr).forEach(b => b.addEventListener('click', async () => {
       if (b.dataset.st === g.status) return;

@@ -67,6 +67,27 @@ async function settleReplacements(onlyIfTab?: { wb: string; sheet: number }) {
   } catch { /* the next run tries again */ }
 }
 
+/* A group with enough enrolled students goes from "Se completează" to "Startează" by itself: a SET_GROUP command is put in the queue (the same road as every other write,
+   checked against what the register holds now: if somebody changed the state meanwhile it is refused, nothing is overwritten) and registru-apply is called to run it.
+   The command's id is made from the group and the number of students, so the same moment never queues it twice (a person who sets the state back is respected until
+   another student joins). */
+async function detId(s: string): Promise<string> {
+  const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))).map(b => b.toString(16).padStart(2, '0')).join('');
+  return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
+}
+async function queueAutoStart(wbId: string, list: { sheetId: number; tab: string; enrolled: number; need: number }[] | undefined) {
+  if (!list || !list.length) return;
+  try {
+    const rows = [];
+    for (const x of list) rows.push({ id: await detId(`autostart|${wbId}|${x.sheetId}|${x.enrolled}`), workbook_id: wbId, sheet_id: x.sheetId, type: 'SET_GROUP', payload: { state: 'Startează', expect: { state: 'Se completează' }, auto: true, enrolled: x.enrolled, need: x.need } });
+    const { error } = await sb.from('reg_commands').upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
+    if (error) return;
+    const call = fetch(SUPABASE_URL + '/functions/v1/registru-apply', { method: 'POST', headers: { 'content-type': 'application/json', 'x-sync-secret': SECRET }, body: '{}' }).then(r => r.text()).catch(() => '');
+    const rt = (globalThis as any).EdgeRuntime;
+    if (rt && typeof rt.waitUntil === 'function') rt.waitUntil(call); else await call;
+  } catch { /* the next run tries again */ }
+}
+
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') return new Response(null, { status: 204, headers: CORS });
   if (req.method !== 'POST') return json(405, { error: 'POST only' });
@@ -97,7 +118,8 @@ Deno.serve(async (req) => {
     if (!wb) return json(200, { results: [{ workbook: body.workbook_id, status: 'failed', error: 'registru necunoscut sau oprit' }] });
     try {
       const r = await syncGroup({ wb, sheetId: body.sheet_id, tab: String(body.tab), readTab: (id: string, sid: number, tab: string) => readGroupTab(key, id, sid, tab), db });
-      if (r.changed) { await stamp(wb.id); await settleReplacements({ wb: wb.id, sheet: Number(body.sheet_id) }); }   // a substitute's tab that changed: the money follows at once
+      if (r.changed) { await stamp(wb.id); await settleReplacements({ wb: wb.id, sheet: Number(body.sheet_id) }); }
+      await queueAutoStart(wb.id, (r as any).autoStart);   // a substitute's tab that changed: the money follows at once
       return json(200, { results: [{ workbook: wb.id, group: true, status: r.skipped.length ? 'partial' : 'ok', changed: r.changed, tab: r.tab }] });
     } catch (e) {
       return json(200, { results: [{ workbook: wb.id, group: true, status: 'failed', error: String((e as Error).message ?? e).slice(0, 300) }] });
@@ -120,6 +142,7 @@ Deno.serve(async (req) => {
       await sb.from('reg_sync_runs').update({ finished_at: new Date().toISOString(), status, groups_seen: r.seen, groups_changed: r.changed, groups_skipped: r.skipped.length, detail: r }).eq('id', run.data?.id);
       await sb.from('reg_workbooks').update({ last_synced_at: new Date().toISOString(), last_status: status, last_error: null, title: r.title, teacher_name: r.teacher, drive_modified: r.modified, last_full_sync_at: new Date().toISOString(), project: r.workbook.project, config: r.workbook.config, teacher_data: r.workbook.teacher, issues: r.issues }).eq('id', wb.id);
       await stamp(wb.id);                                  // a full read happens only when the file changed: that is a change for the console
+      await queueAutoStart(wb.id, (r as any).autoStart);
       results.push({ workbook: wb.id, status, seen: r.seen, changed: r.changed, skipped: r.skipped.length });
     } catch (e) {
       if (e instanceof QuotaError) {                       // Google's per-minute limit: stop here, the next run continues with the longest-waiting register

@@ -420,8 +420,8 @@
       const access = await token();
       const room = fresh.room ? D.room(fresh.room) : null, m = D.manager(manager);
       const payload = {
-        group: { size: fresh.size, mode: (D.project(fresh.project) || {}).mode === 'offline' ? 'Offline' : 'Online', subject: fresh.subject, summer: fresh.regime === 'vara', grade: fresh.grade, profile: fresh.profile || null, level: fresh.level || '', days: fresh.days, start: fresh.start, duration: fresh.duration, cabinet: room ? String(room.num) : '', teacherLevel: D.tLevel(t.id), state: 'Se completează' },
-        student: { name: `${last} ${first}`.replace(/\s+/g, ' ').trim(), phone, manager: m ? (m._reg || m.name) : '', status: 'Oră de probă' }
+        group: { size: fresh.size, mode: (D.project(fresh.project) || {}).mode === 'offline' ? 'Offline' : 'Online', subject: fresh.subject, summer: fresh.regime === 'vara', grade: fresh.grade, profile: fresh.profile || null, level: fresh.level || '', days: fresh.days, start: fresh.start, duration: fresh.duration, cabinet: room ? String(room.num) : '', teacherLevel: D.tLevel(t.id), state: fresh.size === 1 ? 'Activ' : 'Se completează' },        // an individual lesson has no trial lesson: Activ from the first lesson
+        student: { name: `${last} ${first}`.replace(/\s+/g, ' ').trim(), phone, manager: m ? (m._reg || m.name) : '', status: fresh.size === 1 ? 'Activ' : 'Oră de probă' }
       };
       const id = (window.crypto && crypto.randomUUID) ? crypto.randomUUID() : undefined;
       const queued = await rpc('reg_enqueue_command', access, { p_workbook: t._wb, p_sheet: 0, p_type: 'NEW_GROUP', p_payload: payload, p_id: id });
@@ -513,7 +513,7 @@
   /* the enrolment desk: a new student in an existing group, first lesson free (status "Oră de probă") */
   async function enrol(d) {
     const m = D.manager(d.manager);
-    return command(d.group, 'ADD_STUDENT', { name: `${d.last} ${d.first}`.replace(/\s+/g, ' ').trim(), phone: d.phone, manager: m ? (m._reg || m.name) : '', status: 'Oră de probă' });
+    return command(d.group, 'ADD_STUDENT', { name: `${d.last} ${d.first}`.replace(/\s+/g, ' ').trim(), phone: d.phone, manager: m ? (m._reg || m.name) : '', status: d.status || 'Oră de probă' });
   }
 
   function paint() {

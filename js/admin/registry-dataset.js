@@ -28,7 +28,7 @@
     const [s, l] = a.length <= b.length ? [a, b] : [b, a];
     return s.length >= 2 && s.every(t => l.includes(t));           // "Popescu Ana" is part of "Popescu Ana Maria"
   };
-  const groupStatus = s => { const p = plain(s); return p === 'activ' ? 'activ' : p === 'inactiv' ? 'inactiv' : p === 'se completeaza' || p === 'porneste' ? 'completare' : p === 'inlocuire' ? 'inlocuire' : 'activ'; };
+  const groupStatus = s => { const p = plain(s); return p === 'activ' ? 'activ' : p === 'inactiv' ? 'inactiv' : p === 'starteaza' ? 'starteaza' : p === 'se completeaza' || p === 'porneste' ? 'completare' : p === 'inlocuire' ? 'inlocuire' : 'activ'; };
   const studentStatus = s => {
     const p = plain(s);
     return p === 'activ' ? 'activ' : p === 'ora de proba' ? 'proba' : p === 'ora de proba confirmata' ? 'proba_ok' : p === 'transferat' ? 'transferat' : p === 'inactiv' ? 'inactiv' : p === 'inlocuire' ? 'inlocuire' : 'activ';

@@ -46,7 +46,7 @@
   function startsTomorrow(g) {
     const t = isoShift(1), td = isoShift(0);
     const tomorrowDay = (todayId() % 7) + 1;
-    return g.startDate === t || (g.status === 'completare' && g.startDate > td && g.startDate <= t && g.days.includes(tomorrowDay));
+    return g.startDate === t || (g.status === 'starteaza' && g.days.includes(tomorrowDay)) || (g.status === 'completare' && g.startDate > td && g.startDate <= t && g.days.includes(tomorrowDay));
   }
   const atRisk = g => g.status === 'activ' && D.freeSeats(g) >= 2;
 

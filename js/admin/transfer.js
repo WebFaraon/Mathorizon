@@ -61,7 +61,7 @@
       const seats = Array.from({ length: g.size }, (_, k) => `<i class="${k < e ? 'on' : k < e + incoming ? 'inc' : ''}"></i>`).join('');
       const lvl = `<span class="tr-b${c.sameLevel ? ' tr-b--ok' : ''}">${c.sameLevel ? 'Același nivel ' : 'Nivel '}${esc(g.level)}</span>`;
       const proj = c.sameProject ? '' : `<span class="tr-b tr-b--far">${esc(D.project(g.project).mode === 'offline' ? 'Offline' : 'Online')}</span>`;
-      const fill = g.status === 'completare' ? '<span class="tr-b">Se completează</span>' : '';
+      const fill = g.status === 'completare' ? '<span class="tr-b">Se completează</span>' : g.status === 'starteaza' ? '<span class="tr-b">Startează</span>' : '';
       return `
         <button type="button" class="tr-card${sel ? ' is-sel' : ''}${best ? ' is-best' : ''}${c.fits ? '' : ' is-off'}" role="radio" aria-checked="${sel}" data-g="${g.id}" tabindex="${sel ? 0 : -1}" style="--i:${i}"${c.fits ? '' : ' disabled'}>
           <span class="tr-card__when"><b>${esc(dayNames(g))}</b><span>${timeRange(g)}</span></span>

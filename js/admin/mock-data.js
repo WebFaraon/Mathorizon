@@ -75,6 +75,7 @@
   const GROUP_STATUS = [
     { id: 'activ', name: 'Activ' },
     { id: 'completare', name: 'Se completează' },
+    { id: 'starteaza', name: 'Startează' },                  // enough students: the next lesson is the trial lesson (the platform sets it by itself)
     { id: 'inlocuire', name: 'Înlocuire' },
     { id: 'inactiv', name: 'Inactiv' }
   ];
@@ -516,7 +517,7 @@
     const li = LEVEL_I(q.level);
     const days = q.days && q.days.length ? q.days : null, from = q.from == null ? 0 : q.from, to = q.to == null ? 24 : q.to;
     return groups.filter(g => {
-      if (g.status !== 'activ' && !(q.filling && g.status === 'completare')) return false;
+      if (g.status !== 'activ' && g.status !== 'starteaza' && !(q.filling && g.status === 'completare')) return false;
       if (g.subject !== q.subject || g.grade !== q.grade) return false;
       if (LICEU(q.grade) && q.profile && (g.profile || '') !== q.profile) return false;
       if (q.project && q.project.length && !q.project.includes(g.project)) return false;

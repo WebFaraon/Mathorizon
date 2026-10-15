@@ -31,19 +31,20 @@
   const PROJ_NAME = { exo: 'Examen.md Offline', exn: 'Examen.md Online', mat: 'Matematica.md' };
   const H0 = 8, H1 = 21;
 
-  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', level: '', days: [], from: '', to: '', fmt: '', size: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
+  const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', levels: [], days: [], from: '', to: '', fmt: '', size: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
   let S = fresh();
   try { const v = JSON.parse(sessionStorage.getItem(KEY) || 'null'); if (v && v.ng) S = Object.assign(fresh(), v); } catch (e) { /* private mode */ }
+  if (!Array.isArray(S.levels)) S.levels = S.level ? [S.level] : [];
   const save = () => { try { sessionStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { /* private mode */ } };
   let root = null, onResize = null;
 
   /* ---------------- what the parent said -> the query ---------------- */
   const wishes = () => (S.days.length ? 1 : 0) + (S.from !== '' || S.to !== '' ? 1 : 0) + (S.size ? 1 : 0) + (S.prof.trim() ? 1 : 0);
-  const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: S.level, days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, filling: S.filling });
+  const query = () => ({ subject: S.subject, grade: S.grade, profile: S.profile, level: '', days: S.days, from: S.from === '' ? null : +S.from, to: S.to === '' ? null : +S.to, project: S.fmt ? FMT[S.fmt] : null, filling: S.filling });
   const plain = t => String(t || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
   /* the teacher search: every word typed starts a word of the name */
   const profOk = name => { const q = plain(S.prof).split(/\s+/).filter(Boolean); if (!q.length) return true; const w = plain(name).split(/\s+/); return q.every(x => w.some(y => y.startsWith(x))); };
-  const ready = () => !!(S.subject && S.grade && S.fmt);        // the format (Offline / Online) is part of who the student is, not a wish
+  const ready = () => !!(S.subject && S.grade && S.fmt && S.levels.length);        // the format (Offline / Online) is part of who the student is, not a wish
   /* the project of a new group follows the format chosen at the top: offline is Examen.md Offline; online only asks which online project */
   const ngProject = () => (S.fmt === 'offline' ? 'exo' : S.fmt === 'online' ? (S.ng.project === 'mat' ? 'mat' : 'exn') : 'exo');
   function syncNg() {
@@ -52,6 +53,7 @@
     if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6;
     if (S.size && !sizesOf(S.ng.project).includes(+S.size)) S.size = '';
   }
+  const ngLevel = () => (S.levels.includes(S.ng.level) ? S.ng.level : S.levels[0] || '');
   const sizeOpts = () => opt('', 'Oricare', S.size) + sizesOf(ngProject()).map(n => opt(String(n), n === 1 ? 'Individual' : n + ' elevi', S.size)).join('');
   // only the chip that was just chosen plays the pop: the whole pane is drawn again, and every chip that is on would play it too
   const popTo = sel => { if (calm()) return; const el = root.querySelector(sel); if (el) el.classList.add('is-pop'); };
@@ -67,7 +69,7 @@
       <div class="in-fl"><span class="ax-rail__lbl" id="inLg">Clasa</span><select class="ax-select" data-k="grade" aria-labelledby="inLg">${opt('', 'Alege clasa', S.grade)}${D.GRADES.map(x => opt(x, 'Clasa ' + x, S.grade)).join('')}</select></div>
       <div class="in-prof${lyceum() ? ' is-open' : ''}" id="inProf"><div><div class="in-fl"><span class="ax-rail__lbl" id="inLp">Profilul <small>liceu</small></span><select class="ax-select" data-k="profile" aria-labelledby="inLp">${opt('', 'Alege profilul', S.profile)}${['Real', 'Uman'].map(x => opt(x, x, S.profile)).join('')}</select></div></div></div>
       <div class="in-fl"><span class="ax-rail__lbl" id="inLm">Formatul</span><select class="ax-select" data-k="fmt" aria-labelledby="inLm">${opt('', 'Alege formatul', S.fmt)}${opt('offline', 'Offline', S.fmt)}${opt('online', 'Online', S.fmt)}</select></div>
-      <div class="in-fl"><span class="ax-rail__lbl" id="inLl">Nivelul</span><select class="ax-select" data-k="level" aria-labelledby="inLl">${opt('', 'Nu știu încă', S.level)}${D.LEVELS.map(x => opt(x, 'Nivel ' + x, S.level)).join('')}</select></div>
+      <div data-ms="levels"></div>
       <div class="ax-rail__sep"></div>
       <div class="ax-rail__head"><b>Informații suplimentare</b></div>
       <p class="in-note">Le folosești doar dacă părintele le cere.</p>
@@ -93,6 +95,8 @@
     rail.innerHTML = railHTML();
     const days = U.multiSelect({ id: 'in-days', label: 'Zilele în care poate', options: D.DAYS.map(d => ({ value: String(d.id), label: d.name })), selected: S.days.map(String), onChange: v => { S.days = v.map(Number); save(); syncRail(); paintPane(true); } });
     rail.querySelector('[data-ms="days"]').replaceWith(days);
+    const lv = U.multiSelect({ id: 'in-levels', label: 'Nivelul', options: D.LEVELS.map(x => ({ value: x, label: 'Nivel ' + x })), selected: S.levels, onChange: v => { S.levels = v; save(); syncRail(); paintPane(true); } });
+    rail.querySelector('[data-ms="levels"]').replaceWith(lv);
     U.suggest(rail.querySelector('#inProfQ'), () => D.teachers.filter(t => t.subjects.includes(S.subject)).map(t => t.name).sort((a, b) => a.localeCompare(b, 'ro')));
     let tm = 0;
     rail.querySelector('#inProfQ').addEventListener('input', e => { S.prof = e.target.value; clearTimeout(tm); tm = setTimeout(() => { save(); syncRail(); paintPane(true); }, 140); });
@@ -125,13 +129,13 @@
     </div>`;
 
   function prompt() {
-    return `<div class="in-empty in-empty--start"><span class="in-empty__ic" aria-hidden="true">${ico('user-plus', 28)}</span><b>Începe cu datele elevului</b><span>Alege materia, clasa și formatul (Offline sau Online), iar grupele active care se potrivesc apar aici, cu nivelul identic primul.</span></div>`;
+    return `<div class="in-empty in-empty--start"><span class="in-empty__ic" aria-hidden="true">${ico('user-plus', 28)}</span><b>Începe cu datele elevului</b><span>Alege materia, clasa, formatul (Offline sau Online) și nivelul (poți alege mai multe), iar grupele active care se potrivesc apar aici.</span></div>`;
   }
 
   function groupCard(c, i) {
     const g = c.g, t = D.teacher(g.teacher), room = g.room ? D.room(g.room) : null;
     const seats = Array.from({ length: g.size }, (_, k) => `<i class="${k < g.size - c.free ? 'on' : ''}"></i>`).join('');
-    const lvl = S.level ? `<span class="in-b${c.sameLevel ? ' in-b--ok' : ''}">${c.sameLevel ? 'Același nivel ' : 'Nivel '}${esc(g.level)}</span>` : `<span class="in-b">Nivel ${esc(g.level)}</span>`;
+    const lvl = `<span class="in-b in-b--ok">Nivel ${esc(g.level)}</span>`;
     return `
       <button type="button" class="in-gc" data-enrol="${g.id}" style="--i:${i}" aria-label="${esc(`${t.name}, ${dayNames(g)} ${timeRange(g.start, g.duration)}, ${c.free} ${c.free === 1 ? 'loc liber' : 'locuri libere'}. Înscrie aici.`)}">
         <span class="in-gc__when"><b>${esc(dayNames(g))}</b><span>${timeRange(g.start, g.duration)}</span></span>
@@ -139,7 +143,7 @@
         <span class="in-gc__main">
           <b>${esc(t.name)}</b>
           <span>${esc(g.subject)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''} <span class="ax-line ax-line--${g.project}">${esc(D.project(g.project).short)}</span></span>
-          <span class="in-badges">${lvl}${g.status === 'completare' ? '<span class="in-b in-b--fill">Se completează</span>' : ''}${c.pop === 0 ? '<span class="in-b">Fără elevi încă</span>' : ''}</span>
+          <span class="in-badges">${lvl}${g.status === 'completare' ? '<span class="in-b in-b--fill">Se completează</span>' : g.status === 'starteaza' ? '<span class="in-b in-b--start">Startează</span>' : ''}${c.pop === 0 ? '<span class="in-b">Fără elevi încă</span>' : ''}</span>
         </span>
         <span class="in-gc__seat"><span class="ax-seats" aria-hidden="true">${seats}</span><em>${c.free === 1 ? '1 loc liber' : c.free + ' locuri libere'}</em><small>${sizeLabel(g.size)}</small></span>
         <span class="in-gc__go" aria-hidden="true">Înscrie aici ${ico('arrow-right', 16)}</span>
@@ -154,7 +158,7 @@
         <p class="in-count" aria-live="polite"><b>${list.length}</b> ${list.length === 1 ? 'grupă activă potrivită' : 'grupe active potrivite'}</p>
         <button type="button" class="in-tg" data-filling aria-pressed="${S.filling}"><span class="in-sw" aria-hidden="true"></span>Și grupele care se completează</button>
       </div>
-      <p class="in-sub">Nivelul identic primul, apoi cele mai apropiate.${wishes() ? ' Lista ține cont de dorințele părintelui.' : ''}</p>${hint}`;
+      <p class="in-sub">Doar grupele de nivelul ${esc(S.levels.slice().sort().join(' și '))}.${wishes() ? ' Lista ține cont de dorințele părintelui.' : ''}</p>${hint}`;
     if (!list.length) {
       return top + `<div class="in-empty"><span class="in-empty__ic" aria-hidden="true">${ico('search-x', 28)}</span><b>Nicio grupă activă nu se potrivește${wishes() ? ' cu aceste dorințe' : ''}.</b><span>${wishes() ? 'Relaxează o dorință a părintelui sau creează o grupă nouă.' : 'Poți crea o grupă nouă, cu elevul ăsta, la un profesor care are timp.'}</span>
         <div class="in-empty__k">${wishes() ? '<button type="button" class="ax-btn" data-clear-wish>Șterge dorințele</button>' : ''}<button type="button" class="ax-btn ax-btn--primary" data-mode="new">${ico('plus', 16)} Creează o grupă nouă</button></div></div>`;
@@ -188,7 +192,7 @@
     });
     const usable = opts.filter(o => o.free && o.fits);
     const best = usable.slice().sort((a, b) => a.r.seats - b.r.seats || a.r.num - b.r.num)[0] || null;
-    const chosen = opts.find(o => o.r.id === S.ng.room && o.free && o.fits) || best;
+    const chosen = opts.find(o => o.r.id === S.ng.room && o.free && o.fits) || null;          // nothing is picked for the manager: no cabinet is the usual answer
     return { opts, best, chosen, size, anyUnset: opts.some(o => !o.set) };
   }
   function roomsHTML(plan) {
@@ -200,15 +204,17 @@
       return `<button type="button" class="in-rm${sel ? ' is-on' : ''}${!o.free || !o.fits ? ' is-off' : ''}${best && best.r.id === o.r.id ? ' is-best' : ''}" data-room="${o.r.id}" role="radio" aria-checked="${sel}" ${o.free && o.fits ? '' : 'disabled'}${why ? ` title="${esc(why)}"` : ''}>
         <b>${o.r.num}</b><span class="in-rm__s">${o.r.seats} ${o.r.seats === 1 ? 'loc' : 'locuri'}${o.set ? '' : '?'}</span><small>${state}</small></button>`;
     };
+    const none = `<button type="button" class="in-rm in-rm--none${!chosen ? ' is-on' : ''}" data-room="" role="radio" aria-checked="${!chosen}"><b>Fără</b><span class="in-rm__s">cabinet</span><small>îl alege directorul</small></button>`;
     const spare = chosen && chosen.set ? chosen.r.seats - size : 0;
     const note = !chosen
-      ? `<p class="in-rm__note is-bad">${ico('alert', 16)} <span>Niciun cabinet liber la ora aceasta nu are ${size === 1 ? 'un loc' : size + ' locuri'}. Alege altă oră sau altă zi.</span></p>`
+      ? (best ? `<p class="in-rm__note">${ico('info', 16)} <span>Poți lăsa grupa fără cabinet: directorul îl atribuie în Repartizare, unde vede ce e liber.</span></p>`
+        : `<p class="in-rm__note is-warn">${ico('alert', 16)} <span>Niciun cabinet liber la ora aceasta nu are ${size === 1 ? 'un loc' : size + ' locuri'}. Poți crea grupa fără cabinet: directorul îl atribuie în Repartizare.</span></p>`)
       : spare >= 3 ? `<p class="in-rm__note is-warn">${ico('alert', 16)} <span>Cabinetul ${chosen.r.num} are ${chosen.r.seats} locuri pentru ${size === 1 ? 'un elev' : size + ' elevi'}: ${spare} locuri rămân goale cât timp grupa ține cabinetul.${best && best.r.id !== chosen.r.id && best.r.seats < chosen.r.seats ? ` Cabinetul ${best.r.num} (${best.r.seats} locuri) e liber la ora aceasta.` : ''}</span></p>`
       : '';
     const unset = plan.anyUnset ? `<p class="in-rm__hint">Pentru cabinetele cu <b>?</b> nu se știe câte locuri au (acum 8). <button type="button" class="ax-link" data-rooms>Setează capacitățile</button></p>` : '';
     return `<section class="in-rooms" aria-label="Cabinetul grupei">
-      <h3 class="in-rooms__h">Cabinetul <small>pentru ${size === 1 ? 'un elev' : size + ' elevi'}, ${esc(S.ng.days.slice().sort().map(d => D.DAYS[d - 1].name).join(' / '))}, ${timeRange(S.ng.start, S.ng.dur)}</small></h3>
-      <div class="in-rm__grid" role="radiogroup" aria-label="Cabinete">${opts.map(chip).join('')}</div>
+      <h3 class="in-rooms__h">Cabinetul <em class="in-opt">opțional</em> <small>pentru ${size === 1 ? 'un elev' : size + ' elevi'}, ${esc(S.ng.days.slice().sort().map(d => D.DAYS[d - 1].name).join(' / '))}, ${timeRange(S.ng.start, S.ng.dur)}</small></h3>
+      <div class="in-rm__grid" role="radiogroup" aria-label="Cabinete">${none}${opts.map(chip).join('')}</div>
       ${note}${unset}
     </section>`;
   }
@@ -223,17 +229,19 @@
     const plan = picked && offline ? roomPlan() : null;
     const room = plan && plan.chosen ? plan.chosen.r.id : null;
     const needProf = lyceum() && !S.profile;
+    const need = S.ng.dur === 1 ? 2 : 1, complete = S.ng.days.length === need;
     const bar = picked ? `
       <div class="in-dock is-on">
-        <p class="in-dock__t"><b>${esc(sel.t.name)}</b>, ${esc(S.ng.days.slice().sort().map(d => D.DAYS[d - 1].name).join(' / '))}, ${timeRange(S.ng.start, S.ng.dur)}${offline ? (room ? `, cabinetul ${D.room(room).num}` : ', <em>niciun cabinet liber</em>') : ', online'}<span>${esc(sizeLabel(S.ng.size))}, clasa ${esc(S.grade)}${S.profile && lyceum() ? ', ' + esc(S.profile) : ''}${S.level ? ', nivel ' + esc(S.level) : ''}</span></p>
-        <button type="button" class="ax-btn ax-btn--primary in-dock__go" data-create ${(offline && !room) || needProf ? 'disabled' : ''}>${ico('plus', 16)} ${needProf ? 'Alege întâi profilul' : 'Creează grupa și înscrie elevul'}</button>
+        <p class="in-dock__t"><b>${esc(sel.t.name)}</b>, ${esc(S.ng.days.slice().sort().map(d => D.DAYS[d - 1].name).join(' / '))}, ${timeRange(S.ng.start, S.ng.dur)}${offline ? (room ? `, cabinetul ${D.room(room).num}` : ', fără cabinet') : ', online'}<span>${esc(sizeLabel(S.ng.size))}, clasa ${esc(S.grade)}${S.profile && lyceum() ? ', ' + esc(S.profile) : ''}${ngLevel() ? ', nivel ' + esc(ngLevel()) : ''}</span></p>
+        <button type="button" class="ax-btn ax-btn--primary in-dock__go" data-create ${!complete || needProf ? 'disabled' : ''}>${ico('plus', 16)} ${needProf ? 'Alege întâi profilul' : !complete ? 'Alege și a doua zi, la aceeași oră' : 'Creează grupa și înscrie elevul'}</button>
       </div>` : '';
     return `
       <p class="in-sub">Nicio grupă nu se potrivește? Alege un profesor care predă ${esc(S.subject)} la clasa ${esc(S.grade)} și o oră liberă de-a lui. Grupa se creează de la zero, doar cu elevul ăsta, și așteaptă să se completeze.</p>
       <div class="in-ng">
+        ${S.levels.length > 1 ? `<div class="in-f"><span class="in-l">Nivelul grupei noi</span><div class="in-chips" role="radiogroup" aria-label="Nivelul grupei">${S.levels.slice().sort().map(l => `<button type="button" class="in-chip${ngLevel() === l ? ' is-on' : ''}" data-ngl="${esc(l)}" role="radio" aria-checked="${ngLevel() === l}">Nivel ${esc(l)}</button>`).join('')}</div></div>` : ''}
         ${S.fmt === 'online' ? `<div class="in-f"><span class="in-l">Proiectul</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>` : ''}
         <div class="in-f"><span class="in-l">Câți elevi va avea</span><div class="in-chips in-chips--n" role="radiogroup" aria-label="Dimensiunea">${sizesOf(S.ng.project).map(n => `<button type="button" class="in-chip${S.ng.size === n ? ' is-on' : ''}" data-ngs="${n}" role="radio" aria-checked="${S.ng.size === n}">${n === 1 ? 'Individual' : n}</button>`).join('')}</div></div>
-        <div class="in-f"><span class="in-l">Durata unei lecții</span><div class="in-chips" role="radiogroup" aria-label="Durata">${[1, 2].map(n => `<button type="button" class="in-chip${S.ng.dur === n ? ' is-on' : ''}" data-ngd="${n}" role="radio" aria-checked="${S.ng.dur === n}">${n === 1 ? 'O oră' : 'Două ore'}</button>`).join('')}</div></div>
+        <div class="in-f"><span class="in-l">Durata unei lecții</span><div class="in-chips" role="radiogroup" aria-label="Durata">${[1, 2].map(n => `<button type="button" class="in-chip${S.ng.dur === n ? ' is-on' : ''}" data-ngd="${n}" role="radio" aria-checked="${S.ng.dur === n}">${n === 1 ? 'O oră, în două zile' : 'Două ore, într-o zi'}</button>`).join('')}</div></div>
       </div>
       <div class="in-reshead"><p class="in-count"><b>${opts.length}</b> ${opts.length === 1 ? 'profesor are timp' : 'profesori au timp'}</p></div>
       ${opts.length ? `<ul class="in-teachers">${opts.map((o, i) => `
@@ -244,7 +252,7 @@
             <span class="in-tc__n"><b>${o.total}</b> ore libere pe săptămână</span>
             <span class="in-tc__chev" aria-hidden="true">${ico('chevron-down', 18)}</span>
           </button>
-          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">Alege ora; apasă și a doua zi, la aceeași oră, dacă grupa se întâlnește de două ori pe săptămână. Cu punct: ce a cerut părintele.</p>${gridHTML(o)}${roomsHTML(plan)}` : ''}</div></div>
+          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">${S.ng.dur === 1 ? 'Lecții de o oră, de două ori pe săptămână: alege ora într-o zi, apoi aceeași oră în altă zi.' : 'O lecție de două ore, o dată pe săptămână: alege ziua și prima oră.'} Cu punct: ce a cerut părintele.</p>${gridHTML(o)}${roomsHTML(plan)}` : ''}</div></div>
         </li>`).join('')}</ul>` : `<div class="in-empty"><span class="in-empty__ic" aria-hidden="true">${ico('search-x', 28)}</span><b>Niciun profesor nu are ore libere pentru asta.</b><span>Încearcă alt format sau scoate profesorul ales din dorințele părintelui.</span></div>`}
       ${bar}`;
   }
@@ -252,7 +260,7 @@
   /* ---------------- painting ---------------- */
   let lastN = -1;
   function paintPane(animate) {
-    const list = ready() ? D.enrolCandidates(query()).filter(c => profOk(D.teacher(c.g.teacher).name) && (!S.size || c.g.size === +S.size)) : [];
+    const list = ready() ? D.enrolCandidates(query()).filter(c => S.levels.includes(c.g.level) && profOk(D.teacher(c.g.teacher).name) && (!S.size || c.g.size === +S.size)) : [];
     root.querySelectorAll('.in-tab').forEach(b => b.setAttribute('aria-selected', String(b.dataset.mode === S.mode)));
     const nb = root.querySelector('#inN'); nb.hidden = !ready(); nb.textContent = list.length;
     const pane = root.querySelector('#inPane');
@@ -291,13 +299,14 @@
     const free = mine ? D.freeSeats(mine) : g.size;
     const seatsHTML = (extra) => Array.from({ length: g.size }, (_, k) => `<i class="${k < g.size - free ? 'on' : (extra && k === g.size - free) ? 'new' : ''}"></i>`).join('');
     const days = (g.days || []).slice().sort().map(d => D.DAYS[d - 1].name).join(' / ');
+    const solo = g.size === 1;
     const groupBlock = (extra) => `
       <div class="in-sum">
         <span class="in-sum__tag${mine ? '' : ' is-new'}">${mine ? 'Grupă existentă' : 'Grupă nouă'}</span>
         <p class="in-sum__t"><b>${esc(t.name)}</b></p>
-        <p class="in-sum__l">${esc(days)}, ${timeRange(g.start, g.duration)}${room ? `, cabinetul ${room.num}` : g.project === 'exo' ? '' : ', online'}</p>
+        <p class="in-sum__l">${esc(days)}, ${timeRange(g.start, g.duration)}${room ? `, cabinetul ${room.num}` : g.project === 'exo' ? ', fără cabinet' : ', online'}</p>
         <p class="in-sum__l">${esc(g.subject)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''}${g.level ? ', nivel ' + esc(g.level) : ''}</p>
-        <p class="in-sum__s"><span class="ax-seats" aria-hidden="true">${seatsHTML(extra)}</span> ${esc(sizeLabel(g.size))}${mine ? `, ${free === 1 ? '1 loc liber' : free + ' locuri libere'}` : ', se completează'}</p>
+        <p class="in-sum__s"><span class="ax-seats" aria-hidden="true">${seatsHTML(extra)}</span> ${esc(sizeLabel(g.size))}${mine ? `, ${free === 1 ? '1 loc liber' : free + ' locuri libere'}` : solo ? ', activă de la prima lecție' : ', se completează'}</p>
       </div>`;
     const errs = () => {
       const e = {};
@@ -318,8 +327,8 @@
             <label class="in-fld"><span>Telefonul părintelui</span><span class="in-ph"><i>+373</i><input type="tel" inputmode="numeric" data-f="phone" value="${esc(fmtPhone(st.phone))}" placeholder="69 123 456" autocomplete="off" maxlength="10"></span><small class="in-err" data-err="phone" role="alert"></small><small class="in-dup" id="inDup" hidden></small></label>
             <label class="in-fld in-fld--sel"><span>Managerul</span><select class="ax-select" data-f="mgr">${D.managers.map(m => `<option value="${m.id}"${m.id === st.mgr ? ' selected' : ''}>${esc(m.name)}</option>`).join('')}</select></label>
             <div class="in-info">
-              <p>${ico('info', 16)}<span><b>Prima lecție e gratuită.</b> Elevul apare acum în registrul profesorului cu statutul <em>Oră de probă</em>. Când părintele plătește, statutul devine <em>Activ</em>.</span></p>
-              <p class="in-chips-s"><span>Clasa ${esc(g.grade)}</span>${g.profile ? `<span>${esc(g.profile)}</span>` : ''}${S.level ? `<span>Nivel ${esc(S.level)}</span>` : ''}<span>${esc(g.subject)}</span></p>
+              <p>${ico('info', 16)}${solo ? '<span><b>Lecția individuală nu are oră de probă.</b> Elevul apare în registrul profesorului cu statutul <em>Activ</em>, iar decontarea începe de la prima lecție.</span>' : '<span><b>Prima lecție e gratuită.</b> Elevul apare acum în registrul profesorului cu statutul <em>Oră de probă</em>. Când părintele plătește, statutul devine <em>Activ</em>.</span>'}</p>
+              <p class="in-chips-s"><span>Clasa ${esc(g.grade)}</span>${g.profile ? `<span>${esc(g.profile)}</span>` : ''}${g.level ? `<span>Nivel ${esc(g.level)}</span>` : ''}<span>${esc(g.subject)}</span></p>
             </div>
             <p class="in-werr" id="inErr" role="alert"></p>
           </form>
@@ -369,7 +378,7 @@
       st.last = cap(st.last.trim()); st.first = cap(st.first.trim());
       try { localStorage.setItem(MGR_KEY, st.mgr); } catch (e) { /* private mode */ }
       const who = (window.BMAuth && window.BMAuth.displayName && window.BMAuth.displayName()) || null;
-      const base = { first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr, level: S.level || g.level || '', by: who };
+      const base = { first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr, level: g.level || '', by: who };
       const res = D.enrolStudent(mine ? Object.assign(base, { group: mine.id }) : Object.assign(base, { newGroup: fieldsG }));
       st.done = res;
       dlg.classList.add('is-ok');
@@ -387,7 +396,7 @@
       if (msg) msg.textContent = '';
       if (go) { go.disabled = true; go.dataset.label = go.innerHTML; go.textContent = mine ? 'Se scrie în registru…' : 'Se creează fila în registru…'; }
       const r = mine
-        ? await window.AdminRegistry.enrol({ group: mine.id, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr })
+        ? await window.AdminRegistry.enrol({ group: mine.id, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr, status: solo ? 'Activ' : 'Oră de probă' })
         : await window.AdminRegistry.newGroup({ fresh: fieldsG, first: st.first, last: st.last, phone: '+373' + st.phone, manager: st.mgr });
       if (!r.ok) {
         if (go) { go.disabled = false; go.innerHTML = go.dataset.label; }
@@ -411,12 +420,12 @@
           <p class="in-ok__sub"><b>${esc(st.last)} ${esc(st.first)}</b>, ${esc(G.subject)}, clasa ${esc(G.grade)}, la ${esc(tt.name)}, ${esc(dayNames(G))}, ${timeRange(G.start, G.duration)}</p>
           <ul class="in-ok__s">
             ${mine ? '' : `<li><span>${ico('book-open', 16)}</span><span>Fila <b>${esc(r.tab || '')}</b> a fost creată în registrul lui ${esc(tt.name)}, cu tot completat</span></li>
-            <li><span class="ax-st ax-st--completare"><i class="ax-st__i" aria-hidden="true"></i>Se completează</span><span>Grupa e trecută și în „Total achitări”.</span></li>`}
+            <li>${solo ? '<span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activă</span>' : '<span class="ax-st ax-st--completare"><i class="ax-st__i" aria-hidden="true"></i>Se completează</span>'}<span>Grupa e trecută și în „Total achitări”.</span></li>`}
             <li><span>${ico('user-plus', 16)}</span><span>${mine ? 'Scris în registru, coloana' : 'Elevul e în coloana'} <b>${esc(r.column || '')}</b></span></li>
-            <li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>
+            ${solo ? `<li><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ</span><span>Fără oră de probă: decontarea începe de la prima lecție</span></li>` : `<li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>`}
             <li><span>${ico('users', 16)}</span><span>Managerul elevului: <b>${esc(m ? m.name : '')}</b></span></li>
           </ul>
-          <p class="in-ok__note">Prima lecție e gratuită. Dacă greșești, corectezi direct în registru.</p>
+          <p class="in-ok__note">${solo ? 'Lecția individuală se decontează de la prima lecție.' : 'Prima lecție e gratuită.'} Dacă greșești, corectezi direct în registru.</p>
           <div class="in-ok__f">
             <button type="button" class="ax-btn ax-btn--primary" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>
             ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide în Sheets</a>` : ''}
@@ -475,6 +484,7 @@
       const en = t.closest('[data-enrol]');
       if (en) { openEnrol({ group: en.dataset.enrol }); return; }
       const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngp="${ngp.dataset.ngp}"]`); return; }
+      const ngl = t.closest('[data-ngl]'); if (ngl) { S.ng.level = ngl.dataset.ngl; save(); paintPane(false); popTo(`[data-ngl="${ngl.dataset.ngl}"]`); return; }
       const ngs = t.closest('[data-ngs]'); if (ngs) { S.ng.size = +ngs.dataset.ngs; save(); paintPane(false); popTo(`[data-ngs="${ngs.dataset.ngs}"]`); return; }
       const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngd="${ngd.dataset.ngd}"]`); return; }
       const ngt = t.closest('[data-ngt]');
@@ -485,7 +495,8 @@
       if (cell && !cell.disabled) {
         const d = +cell.dataset.d, h = +cell.dataset.h;
         if (S.ng.start === h && S.ng.days.includes(d)) { S.ng.days = S.ng.days.filter(x => x !== d); if (!S.ng.days.length) S.ng.start = null; }
-        else if (S.ng.start === h && S.ng.days.length < 3) S.ng.days = S.ng.days.concat(d);
+        else if (S.ng.start === h && S.ng.days.length < (S.ng.dur === 1 ? 2 : 1)) S.ng.days = S.ng.days.concat(d);
+        else if (S.ng.start === h && S.ng.dur === 1) S.ng.days = [S.ng.days[1], d];            // two days at most: the older pick goes
         else { S.ng.start = h; S.ng.days = [d]; }
         save(); paintPane(false);
         if (S.ng.start === h && S.ng.days.includes(d)) popTo(`[data-cell][data-d="${d}"][data-h="${h}"]`);          // only the cell just chosen
@@ -495,13 +506,12 @@
       }
       if (t.closest('[data-create]')) {
         const o = D.newGroupOptions({ subject: S.subject, grade: S.grade, project: S.ng.project }).find(x => x.t.id === S.ng.teacher);
-        if (!o || S.ng.start == null || !S.ng.days.length) return;
+        if (!o || S.ng.start == null || S.ng.days.length !== (S.ng.dur === 1 ? 2 : 1)) return;
         const days = S.ng.days.slice().sort();
         const plan = roomPlan(), room = S.ng.project === 'exo' ? (plan && plan.chosen ? plan.chosen.r.id : null) : null;
-        if (S.ng.project === 'exo' && !room) return;
         const sd = new Date(D.today); let k = 0;
         do { sd.setDate(sd.getDate() + 1); k++; } while (k < 8 && !days.includes(((sd.getDay() + 6) % 7) + 1));   // the first meeting: the trial lesson
-        openEnrol({ fresh: { project: S.ng.project, regime: 'normal', subject: S.subject, grade: S.grade, profile: lyceum() ? (S.profile || null) : null, level: S.level || '', size: S.ng.size, status: 'completare', teacher: o.t.id, days, start: S.ng.start, duration: S.ng.dur, room, startDate: D.iso(sd), createdAt: D.todayISO } });
+        openEnrol({ fresh: { project: S.ng.project, regime: 'normal', subject: S.subject, grade: S.grade, profile: lyceum() ? (S.profile || null) : null, level: ngLevel(), size: S.ng.size, status: 'completare', teacher: o.t.id, days, start: S.ng.start, duration: S.ng.dur, room, startDate: D.iso(sd), createdAt: D.todayISO } });
       }
     });
   }

@@ -703,6 +703,23 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
         ok(dm.total.payments[0].iso === '2026-10-03' && dm.total.payments[0].dateText === '03.10.2026' && dm.total.payments[0].sum === 329, 'a payment date typed in a date cell is read too (03.10.2026)');
       }
 
+      // "Se completează" turns into "Startează" by itself once enough students are enrolled (6 -> 4, 3 -> 2); the other states and individual lessons are left alone
+      {
+        const { startCheck, START_MIN } = await imp('start-rule.mjs'), { groupPayload } = await imp('sync-core.mjs');
+        const sbook = (size, state, statuses) => {
+          const cells = { A1: { v: size === 1 ? 'Individual 1 elev' : 'Grup cu ' + size + ' elevi' }, A2: { v: '288 MDL/oră' }, C1: { v: 'Offline' }, A3: { v: state }, A4: { v: 'Matematica' }, A5: { v: 'XII' }, A6: { v: '9 ― 10' }, A7: { v: 'Real' } };
+          statuses.forEach((st, i) => { const L = String.fromCharCode(68 + i); cells[L + '1'] = { v: 'Elev ' + i + '+3736900000' + i }; cells[L + '7'] = { v: 'Pricinoc Ariadna' }; cells[L + '8'] = { v: st }; });
+          return pw(new MemoryBook({ G: { cells }, CONFIGURARI: { hidden: true, cells: cfgN } }, 'x 2026-2027.xlsx'), {}).groups[0];
+        };
+        const chk = (size, state, st) => startCheck(groupPayload(sbook(size, state, st), 1));
+        ok(chk(6, 'Se completează', ['Oră de probă', 'Oră de probă', 'Oră de probă']).start === false && chk(6, 'Se completează', ['Oră de probă', 'Oră de probă', 'Oră de probă', 'Oră de probă']).start === true, 'a group of 6 starts with 4 students enrolled, not with 3');
+        ok(chk(3, 'Se completează', ['Oră de probă']).start === false && chk(3, 'Se completează', ['Oră de probă', 'Activ']).start === true, 'a group of 3 starts with 2 students enrolled, not with 1');
+        ok(chk(6, 'Se completează', ['Oră de probă', 'Oră de probă', 'Oră de probă', 'Inactiv', 'Transferat']).start === false, 'Inactiv and Transferat students do not count');
+        ok(chk(6, 'Startează', ['Activ', 'Activ', 'Activ', 'Activ', 'Activ']) === null && chk(6, 'Activ', ['Activ', 'Activ', 'Activ', 'Activ']) === null, 'a group that already starts, or is active, is not touched');
+        ok(chk(1, 'Se completează', ['Activ']) === null, 'an individual lesson has no trial lesson and no rule');
+        ok(START_MIN[6] === 4 && START_MIN[3] === 2 && START_MIN[8] === 6 && START_MIN[10] === 6, 'the minimum by size (the founder: 4 of 6, 2 of 3; the rest to be confirmed)');
+      }
+
       // a new group in a register of the new format: C1, a new column in Total (copied from H), the name in row 4
       const mkNew = (names, hooks) => reg2({ 'Total achitări': { cells: totalNew(names) }, 'Grup Model': { cells: grupModel() }, CONFIGURARI: { hidden: true, cells: cfgN } }, hooks);
       const group = (o) => Object.assign({ size: 3, subject: 'Matematica', summer: false, grade: 'XII', profile: 'Real', level: '9 ― 10', days: [2], start: 16, duration: 1, cabinet: '14', teacherLevel: 7, state: 'Se completează', mode: 'Online' }, o || {});

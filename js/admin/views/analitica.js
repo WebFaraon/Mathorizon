@@ -122,7 +122,7 @@
     const { groups, students } = m;
     const n = s => groups.filter(g => g.status === s).length;
     const today = iso(D.today), in7 = iso(addDays(D.today, 7));
-    const starting = groups.filter(g => g.status === 'completare' && g.startDate > today && g.startDate <= in7).length;
+    const starting = n('starteaza');
     const sc = s => students.filter(x => x.status === s).length;
     const act = groups.filter(g => g.status === 'activ');
     const actInAct = sum(act, g => gc(g).active);
@@ -132,7 +132,7 @@
         { tone: 'blue', icon: 'grid', k: 'Total grupe', v: nf.format(groups.length), raw: groups.length, s: 'Toate grupele din filtru, orice statut' },
         { tone: 'green', icon: 'check', k: 'Grupe active', v: nf.format(act.length), raw: act.length, s: 'Statut Activ: țin lecții' },
         { tone: 'amber', icon: 'clock', k: 'Se completează', v: nf.format(n('completare')), raw: n('completare'), s: 'Își adună încă elevii', href: withProject(st, '#orar', { status: 'completare' }) },
-        { tone: 'violet', icon: 'play', k: 'Startează', v: nf.format(starting), raw: starting, s: 'Se completează, pornesc în 7 zile', href: withProject(st, '#orar', { status: 'completare', sort: 'start' }) },
+        { tone: 'violet', icon: 'play', k: 'Startează', v: nf.format(starting), raw: starting, s: 'Au destui elevi, urmează ora de probă', href: withProject(st, '#orar', { status: 'starteaza' }) },
         { tone: 'red', icon: 'x', k: 'Grupe inactive', v: nf.format(n('inactiv')), raw: n('inactiv'), s: 'Oprite, nu mai țin lecții', href: withProject(st, '#orar', { status: 'inactiv' }) },
         { tone: 'teal', icon: 'users', k: 'Mărime medie grupă', v: dec1.format(act.length ? actInAct / act.length : 0), raw: act.length ? +(actInAct / act.length).toFixed(1) : 0, s: 'Elevi activi pe grupă activă' }
       ],

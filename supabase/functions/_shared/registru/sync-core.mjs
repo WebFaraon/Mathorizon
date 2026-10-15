@@ -6,6 +6,7 @@
 import { parseWorkbook } from './parse.mjs';
 import { linkPeople } from './link.mjs';
 import { validate, TITLES } from './validate.mjs';
+import { startCheck } from './start-rule.mjs';
 
 const KNOWN_SIZES = [1, 2, 3, 4, 5, 6, 8, 10];
 const MARK_CODE = c => c.code || c.raw;
@@ -87,7 +88,7 @@ export function packIssues(list, max = 400) {
 /* wb: { id, spreadsheet_id, title, school_year_from, drive_modified, last_full_sync_at }
    peek(spreadsheetId) -> the file's modifiedTime: when it is the same as at the last full read (and that read is under a day old) the register is not read at all, unless `force` */
 export async function syncWorkbook({ wb, read, peek, db, force }) {
-  const out = { seen: 0, changed: 0, unchanged: 0, skipped: [], pruned: 0, notes: [], full: true, modified: null };
+  const out = { seen: 0, changed: 0, unchanged: 0, skipped: [], pruned: 0, notes: [], full: true, modified: null, autoStart: [] };
   if (peek) {
     out.modified = await peek(wb.spreadsheet_id);                                 // asked BEFORE reading: an edit in between shows up as a newer time next run
     const fresh = wb.last_full_sync_at && Date.now() - Date.parse(wb.last_full_sync_at) < DAY_MS;
@@ -114,6 +115,8 @@ export async function syncWorkbook({ wb, read, peek, db, force }) {
     if (bad) { out.skipped.push({ tab: g.tab, reason: bad }); continue; }       // the previous copy of this group stays as it was
     const payload = groupPayload(g, sheetId);
     payload.content_hash = await sha256(JSON.stringify(Object.assign({}, payload, { content_hash: undefined })));
+    const sc = startCheck(payload);                                              // enough students: the group goes from "Se completează" to "Startează" by itself
+    if (sc && sc.start) out.autoStart.push({ sheetId, tab: g.tab, enrolled: sc.enrolled, need: sc.need });
     if (stored.get(String(sheetId)) === payload.content_hash) { out.unchanged++; continue; }
     await db.applyGroup(wb.id, payload);
     out.changed++;
@@ -141,7 +144,8 @@ export async function syncGroup({ wb, sheetId, tab, readTab, db }) {
   const payload = groupPayload(g, t.sheetId);
   payload.content_hash = await sha256(JSON.stringify(Object.assign({}, payload, { content_hash: undefined })));
   const stored = await db.hashes(wb.id);
-  if (stored.get(String(t.sheetId)) === payload.content_hash) return { changed: 0, unchanged: 1, skipped: [], tab: g.tab };
+  const sc = startCheck(payload), autoStart = sc && sc.start ? [{ sheetId: t.sheetId, tab: g.tab, enrolled: sc.enrolled, need: sc.need }] : [];
+  if (stored.get(String(t.sheetId)) === payload.content_hash) return { changed: 0, unchanged: 1, skipped: [], tab: g.tab, autoStart };
   await db.applyGroup(wb.id, payload);
-  return { changed: 1, unchanged: 0, skipped: [], tab: g.tab };
+  return { changed: 1, unchanged: 0, skipped: [], tab: g.tab, autoStart };
 }

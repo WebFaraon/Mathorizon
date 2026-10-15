@@ -25,7 +25,7 @@
     const risk = D.groups.filter(g => g.status === 'activ' && D.freeSeats(g) >= 2);
     const incomplete = D.groups.filter(g => g.status === 'activ' && D.freeSeats(g) === 1);
     const tomorrowDay = (todayId() % 7) + 1;
-    const startTomorrow = D.groups.filter(g => g.startDate === tomorrowISO() || (g.status === 'completare' && g.startDate > D.todayISO && g.days.includes(tomorrowDay) && g.startDate <= tomorrowISO()));
+    const startTomorrow = D.groups.filter(g => g.startDate === tomorrowISO() || (g.status === 'starteaza' && g.days.includes(tomorrowDay)) || (g.status === 'completare' && g.startDate > D.todayISO && g.days.includes(tomorrowDay) && g.startDate <= tomorrowISO()));
     const debt = D.students.filter(s => s.status === 'activ' && s.balance <= -1000);
     return [
       { k: 'Conflicte în cabinete azi', v: conflicts.length, s: conflicts.length ? 'Același cabinet sau profesor de două ori' : 'Planul de azi e curat', href: '#repartizare?day=' + todayId(), warn: conflicts.length > 0, icon: 'alert' },

@@ -65,6 +65,7 @@ body.ax .in-gc__main .ax-line { margin-left: 4px; font-size: 0.72rem; }
 body.ax .in-badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 2px; }
 body.ax .in-b { display: inline-flex; align-items: center; min-height: 22px; padding: 0 8px; border: 1px solid var(--ax-rule-2); border-radius: 1px; background: var(--ax-panel-2); font-size: 0.74rem; font-weight: 700; color: var(--ax-ink-2); }
 body.ax .in-b--ok { border-color: var(--ax-ok); background: color-mix(in srgb, var(--ax-ok) 9%, var(--ax-panel)); color: var(--ax-ok); }
+body.ax .in-b--start { border-color: var(--ax-st-starteaza); background: color-mix(in srgb, var(--ax-st-starteaza) 9%, var(--ax-panel)); color: var(--ax-st-starteaza); }
 body.ax .in-b--fill { border-color: var(--ax-fill); background: color-mix(in srgb, var(--ax-fill) 9%, var(--ax-panel)); color: var(--ax-fill); }
 body.ax .in-gc__seat { display: grid; justify-items: end; gap: 4px; }
 body.ax .in-gc__seat em { font-size: 0.82rem; font-style: normal; font-weight: 800; color: var(--ax-ink); white-space: nowrap; }
@@ -222,3 +223,5 @@ body.ax .in-werr { min-height: 1.2em; margin-top: 4px; color: var(--ax-bad); fon
 
 body.ax .in-gc__room { display: flex; align-items: center; justify-content: center; }
 body.ax .in-gc__room .ax-tag { white-space: nowrap; }
+body.ax .in-rooms__h .in-opt { margin-left: 6px; padding: 1px 7px; border: 1px solid var(--ax-rule-2); font-size: 0.7rem; font-weight: 700; font-style: normal; color: var(--ax-ink-3); vertical-align: 2px; }
+body.ax .in-rm--none b { font-size: 1rem; }
