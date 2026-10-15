@@ -1275,7 +1275,7 @@
   };
   L.teacherUrl = tid => {
     const d = D();
-    if (d && d.registry) { const t = d.teacher(tid); return t && t._ssid ? base(t._ssid) + (t._totalGid != null ? '#gid=' + t._totalGid : '') : null; }          // the main tab, "Total achitări", when the sync knows its id
+    if (d && d.registry) { const t = d.teacher(tid); return t && t._ssid ? base(t._ssid) : null; }
     const t = L.teachers[tid]; return t ? base(t.ssid) : null;
   };
 })();
