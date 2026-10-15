@@ -400,7 +400,7 @@
   }
 
   function plateHTML(row, ci) {
-    if (row.none) return `<div class="rp-plate rp-plate--none" title="Grupe fără cabinet: trage-le pe un cabinet sau deschide-le"><span class="rp-pn__ic" aria-hidden="true">${ico('door', 20)}</span><b class="rp-pn__t">Fără cabinet</b><span class="rp-pn__n">${row.gs.length} ${row.gs.length === 1 ? 'grupă așteaptă' : 'grupe așteaptă'}</span>${row.capped ? `<span class="rp-pn__sc"><i aria-hidden="true">${ico('chevron-down', 14)}</i>derulează</span>` : ''}</div>`;
+    if (row.none) return `<div class="rp-plate rp-plate--none" title="Grupe fără cabinet: trage-le pe un cabinet sau deschide-le"><span class="rp-pn__ic" aria-hidden="true">${ico('door', 20)}</span><b class="rp-pn__t">Fără cabinet</b><span class="rp-pn__n">${row.gs.length} ${row.gs.length === 1 ? 'grupă așteaptă' : 'grupe așteaptă'}</span>${row.capped ? `<button type="button" class="rp-pn__sc" data-more aria-label="Derulează la restul grupelor fără cabinet"><i aria-hidden="true">${ico('chevron-down', 14)}</i>derulează</button>` : ''}</div>`;
     if (row.kind === 'room') {
       const r = row.r;
       const alert = ci.roomRows.has(r.id);
@@ -454,7 +454,6 @@
         <div class="rp-row${row.none && !s.nocab ? ' is-capped' : ''}" data-row="${row.id}" data-arrive style="--i:${i};--lanes:${L.n}">
           <div class="rp-platecell">${plateHTML(row, ci)}</div>
           <div class="rp-track">${cells}${L.sorted.map(g => (g._repl ? replCardHTML(g, s, L.lane[g.id]) : cardHTML(g, s, L.lane[g.id], ci))).join('')}</div>
-          ${row.none && row.capped ? `<button type="button" class="rp-more" tabindex="-1" aria-label="Derulează la restul grupelor fără cabinet">${ico('chevron-down', 14)} Mai multe grupe mai jos, derulează</button>` : ''}
         </div>`;
     }).join('');
     const empty = !rows.length ? `<div class="ax-empty rp-board__empty"><b>${s.rows === 'cab' ? 'Niciun cabinet de afișat' : 'Niciun profesor nu predă'}</b>${filterCount(s) || s.hide ? 'Nicio grupă nu trece de filtrele alese în ziua aceasta.' : 'Nu sunt lecții în ziua aceasta.'}</div>` : '';
@@ -711,7 +710,7 @@
     root.querySelector('[data-goconf]').addEventListener('click', openConflicts);
     // the top row of groups without a cabinet scrolls on its own: the pill and the fade say so, and go away at the end
     U.$$('.rp-row.is-capped', main).forEach(row => {
-      const tr = row.querySelector('.rp-track'), more = row.querySelector('.rp-more');
+      const tr = row.querySelector('.rp-track'), more = row.querySelector('[data-more]');
       const upd = () => { row.classList.toggle('is-end', tr.scrollTop + tr.clientHeight >= tr.scrollHeight - 2); row.classList.toggle('no-more', tr.scrollHeight <= tr.clientHeight + 2); row.classList.toggle('is-top', tr.scrollTop < 2); };
       tr.addEventListener('scroll', upd, { passive: true });
       if (more) more.addEventListener('click', () => tr.scrollBy({ top: Math.round(tr.clientHeight * 0.8), behavior: 'smooth' }));

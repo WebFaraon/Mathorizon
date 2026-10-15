@@ -305,7 +305,7 @@
           <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span></p>
         </div>
         <div class="dp-who__keys">
-          ${window.AdminSheetLinks && window.AdminSheetLinks.teacherUrl(t.id) ? `<a class="ax-btn ax-btn--sm" href="${window.AdminSheetLinks.teacherUrl(t.id)}" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>` : ''}
+          ${window.AdminSheetLinks && window.AdminSheetLinks.teacherUrl(t.id) ? `<a class="ax-btn ax-btn--sm" href="${window.AdminSheetLinks.teacherUrl(t.id)}" target="_blank" rel="noopener" title="Deschide registrul profesorului în Google Sheets, la fila Total achitări">${ico('book-open', 16)} Registru</a>` : ''}
           ${D.readOnly() && t._wb ? `<button type="button" class="ax-btn ax-btn--sm" data-av-edit>${ico('pencil', 16)} Editează disponibilitatea</button>` : ''}
           <a class="ax-btn ax-btn--sm" href="#orar?teacher=${t.id}">Grupele în Orar ${ico('arrow-right', 16)}</a>
         </div>

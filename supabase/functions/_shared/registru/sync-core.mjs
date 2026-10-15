@@ -125,6 +125,8 @@ export async function syncWorkbook({ wb, read, peek, db, force }) {
   out.pruned = await db.prune(wb.id, keep.filter(x => x !== undefined));
   out.title = data.title; out.teacher = m.meta.teacher;
   out.workbook = workbookData(m);
+  const totalTab = data.tabs.find(x => String(x.title).normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim() === 'total achitari');
+  if (totalTab) out.workbook.teacher.totalSheetId = totalTab.sheetId;                       // the console's "Registru" button opens this tab
   return out;
 }
 
