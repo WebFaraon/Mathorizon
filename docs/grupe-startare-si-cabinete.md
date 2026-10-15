@@ -34,8 +34,9 @@ Valorile pentru formatele de 2, 4, 5, 8 și 10 elevi sunt deduse (două treimi, 
 
 ## 3. Grupă nouă: cabinetul e opțional
 - Managerul poate crea grupa **fără cabinet** (implicit). Lecția se creează în registrul profesorului, apare în Repartizare după programul ales, cu semnul **Fără cabinet**.
-- În **Repartizare** (vederea Cabinete) grupele offline fără cabinet apar într-un panou „Fără cabinet” deasupra tabelei, pe ziua deschisă, fiecare cu butonul „Atribuie cabinet”. Filtrul „Doar grupele fără cabinet” (și în vederea Profesori) afișează doar ele.
-- „Atribuie cabinet” deschide grupa cu lista cabinetelor (liber sau ocupat la ora grupei, prea mic) și orele libere; se verifică pentru **toate zilele grupei**. Alegerea se scrie în registru (`SET_GROUP`, celulele `AC` ale orarului) și apare imediat în platformă ca ocupat, deci un alt cabinet nu se mai poate suprapune; un cabinet ocupat spune de cine.
+- În **Repartizare** orarul rămâne cel clasic. O grupă offline fără cabinet are pe blocul ei o **iconiță galbenă cu o ușă, care pulsează**, și un contur punctat; în vederea Cabinete grupele astea stau într-un rând propriu **„Fără cabinet”, primul din tablă**, iar în vederea Profesori sunt în rândul profesorului lor. Filtrul „Doar grupele fără cabinet” (coloana de filtre) lasă pe tablă doar blocurile astea.
+- Directorul dă cabinetul **trăgând blocul pe un cabinet** (la aceeași oră) sau **apăsând pe bloc**, care deschide panoul cu lista cabinetelor (liber sau ocupat la ora grupei, prea mic) și orele libere.
+- Verificarea se face pentru **toate zilele grupei**. Alegerea se scrie în registru (`SET_GROUP`, celulele `AC` ale orarului) și apare imediat în platformă ca ocupat, deci un alt cabinet nu se mai poate suprapune; un cabinet ocupat spune de cine.
 
 ## 4. Programul unei grupe noi
 Regula: **ori două ore consecutive într-o zi, ori câte o oră în două zile diferite**.

@@ -566,7 +566,7 @@
     /* multi-selects */
     const count = fn => { const m = {}; D.groups.forEach(g => { const k = fn(g); if (k != null) m[k] = (m[k] || 0) + 1; }); return m; };
     const msDefs = {
-      status: { label: 'Statut grup', tone: true, opts: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })), by: g => g.status },
+      status: { label: 'Statut grup', tone: true, always: true, opts: D.GROUP_STATUS.map(x => ({ value: x.id, label: x.name })), by: g => g.status },
       subj: { label: 'Disciplină', opts: D.SUBJECTS.map(x => ({ value: x, label: x })), by: g => g.subject },
       grade: { label: 'Clasa', opts: D.GRADES.map(x => ({ value: x, label: 'Clasa ' + x })), by: g => g.grade },
       level: { label: 'Nivel de cunoștințe', opts: D.LEVELS.map(x => ({ value: x, label: 'Nivel ' + x })), by: g => g.level },
@@ -574,7 +574,7 @@
     };
     Object.entries(msDefs).forEach(([k, def]) => {
       const c = count(def.by);
-      const opts = def.opts.filter(o => c[o.value]).map(o => Object.assign({}, o, { count: c[o.value] }));
+      const opts = def.opts.filter(o => c[o.value] || def.always).map(o => Object.assign({}, o, { count: c[o.value] || 0 }));
       const ms = U.multiSelect({ id: 'or-' + k, label: def.label, options: opts, selected: s[k], tone: !!def.tone, onChange: v => { s[k] = v; update(); } });
       rail.querySelector(`[data-ms="${k}"]`).replaceWith(ms);
     });

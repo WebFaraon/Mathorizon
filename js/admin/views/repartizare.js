@@ -77,10 +77,10 @@
   /* ============ data helpers ============ */
   const noCab = g => !g.room && !_isOnline(g);
   const _isOnline = g => U.noRoom(g).online;
-  function pass(g, s, tray) {
+  function pass(g, s) {
     if (s.st.length ? !s.st.includes(g.status) : !live(g)) return false;
-    if (tray || s.nocab) { if (!noCab(g)) return false; }
-    else if (s.rows === 'cab') { if (!g.room) return false; } else if (s.proj.length && !s.proj.includes(g.project)) return false;
+    if (s.nocab && !noCab(g)) return false;                                   // "only the groups without a cabinet"
+    if (s.rows === 'cab') { if (!g.room && !noCab(g)) return false; } else if (s.proj.length && !s.proj.includes(g.project)) return false;
     if (s.disc.length && !s.disc.includes(g.subject)) return false;
     if (s.cls.length && !s.cls.includes(g.grade)) return false;
     if (s.fmt.length && !s.fmt.includes(String(g.size))) return false;
@@ -219,6 +219,9 @@
   function rowsFor(s, gs) {
     if (s.rows === 'cab') {
       const rows = D.rooms.map(r => ({ id: r.id, kind: 'room', r, gs: gs.filter(g => g.room === r.id) }));
+      // the groups made without a cabinet wait in a row of their own at the top: the director drags them onto a cabinet (or opens them) to give one
+      const none = gs.filter(g => !g.room);
+      if (none.length) rows.unshift({ id: '_none', kind: 'room', none: true, r: null, gs: none });
       return s.hide ? rows.filter(x => x.gs.length) : rows;
     }
     const byT = {};
@@ -343,19 +346,22 @@
     const rc = ci.room.has(g.id), tc = ci.teacher.has(g.id);
     const rb = replacedOnDay(g.id, s.day), rbBy = rb && D.teacher(rb.rep.teacher) ? D.teacher(rb.rep.teacher).name : 'alt profesor';
     const enr = D.enrolled(g).length;
-    const label = `${rb ? 'Înlocuită de ' + rbBy + ', ' : ''}${t.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}, ${statusName(g.status)}, ${enr} din ${g.size} locuri${rc ? ', cabinet dublat' : ''}${tc ? ', profesor dublat' : ''}. Deschide detaliile și mutarea.`;
+    const label = `${rb ? 'Înlocuită de ' + rbBy + ', ' : ''}${t.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}, ${statusName(g.status)}${noCab(g) ? ', fără cabinet' : ''}, ${enr} din ${g.size} locuri${rc ? ', cabinet dublat' : ''}${tc ? ', profesor dublat' : ''}. Deschide detaliile și mutarea.`;
     const cls = ['rp-card', 'rp-card--' + g.project, 'rp-card--st-' + g.status, 'rp-card--d' + g.duration];
     if (rc || tc) cls.push('is-clash');
     if (!live(g)) cls.push('is-off');
     if (rb) cls.push('is-replaced');
+    const nc = noCab(g) && !rb;
+    if (nc) cls.push('is-nocab');
     if (g.id === settleId) cls.push('is-settle');
     if (window.AdminRegistry && window.AdminRegistry.isSaving && window.AdminRegistry.isSaving(g.id)) cls.push('is-saving');
     const subTag = rb ? `<span class="rp-card__sub">înlocuită de ${esc(rbBy)}</span>` : '';
     const tag = rc ? '<span class="ax-tag ax-tag--warn rp-card__tag">în conflict</span>' : tc ? '<span class="ax-tag ax-tag--warn rp-card__tag">profesor dublat</span>' : '';
     const pos = `grid-column:${g.start - FIRST + 1} / span ${Math.min(g.duration, END - g.start)};grid-row:${lane + 1}`;
+    const ncIcon = nc ? `<span class="rp-card__nc" role="img" aria-label="Fără cabinet" title="Fără cabinet: deschide grupa sau trage-o pe un cabinet">${ico('door', 14)}</span>` : '';
     if (s.vis !== 'max') {
       return `<button type="button" class="${cls.join(' ')} rp-card--c" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}" title="${esc(t.name + ', ' + g.subject + ' ' + g.grade + ', ' + range(g))}">
-        ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
+        ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}${ncIcon}
         ${s.rows === 'prof'
           ? `<span class="rp-card__t">${g.room ? 'Cab. ' + D.room(g.room).num : U.noRoom(g).label}</span>`
           : `<span class="rp-card__t">${esc(t.last)} <span class="rp-card__i">${esc(t.first[0])}.</span></span>`}
@@ -366,7 +372,7 @@
     const full = enr >= g.size;
     const sun = g.regime === 'vara' ? `<span class="rp-card__sun" role="img" aria-label="Școala de Vară" title="Școala de Vară">${ico('sun', 16)}</span>` : '';
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
-      ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}
+      ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}${ncIcon}
       <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>${subTag}
       <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span></span>
       <span class="rp-card__f">${stHTML(g.status)}${g.profile ? `<span class="rp-card__p">${esc(g.profile)}</span>` : ''}</span>
@@ -394,6 +400,7 @@
   }
 
   function plateHTML(row, ci) {
+    if (row.none) return `<div class="rp-plate rp-plate--none" title="Grupe fără cabinet: trage-le pe un cabinet sau deschide-le"><span class="rp-plate__k">Fără</span><b class="rp-plate__n">${ico('door', 18)}</b><span class="rp-plate__m"><span>cabinet</span><span>×${row.gs.length}</span></span></div>`;
     if (row.kind === 'room') {
       const r = row.r;
       const alert = ci.roomRows.has(r.id);
@@ -444,7 +451,7 @@
         return `<div class="rp-cell" data-h="${h}"${busy.has(h) ? ' data-busy' : ''}${na ? ' data-na' : ''} style="grid-column:${h - FIRST + 1}"></div>`;
       }).join('');
       return `
-        <div class="rp-row" data-row="${row.id}" data-arrive style="--i:${i};--lanes:${L.n}">
+        <div class="rp-row${row.none && !s.nocab ? ' is-capped' : ''}" data-row="${row.id}" data-arrive style="--i:${i};--lanes:${L.n}">
           <div class="rp-platecell">${plateHTML(row, ci)}</div>
           <div class="rp-track">${cells}${L.sorted.map(g => (g._repl ? replCardHTML(g, s, L.lane[g.id]) : cardHTML(g, s, L.lane[g.id], ci))).join('')}</div>
         </div>`;
@@ -646,14 +653,13 @@
     root.querySelector('#rpDays').innerHTML = sideBlockHTML(s, daySummary(s.day, ci));
     main.innerHTML = `
       <div class="rp-chips rp-noprint">${U.activeChips(chips)}</div>
-      ${s.rows === 'cab' ? trayHTML(s) : ''}
-      ${s.rows === 'cab' && s.nocab ? '' : boardHTML(s, rows, ci)}`;
+      ${boardHTML(s, rows, ci)}`;
 
     wireMain(main, s, ci, chips);
 
     const sc = main.querySelector('#rpScroll');
-    if (sc && keep && key === lastBoardKey) { sc.scrollLeft = keep.l; sc.scrollTop = keep.t; }
-    else if (sc) initialScroll(sc, s, rows);
+    if (keep && key === lastBoardKey) { sc.scrollLeft = keep.l; sc.scrollTop = keep.t; }
+    else initialScroll(sc, s, rows);
     lastBoardKey = key;
     settleId = null;
 
@@ -684,23 +690,6 @@
     sc.scrollLeft = Math.max(0, (h - FIRST) * colWidth(sc));
   }
 
-  /* The cabinet rows can only hold a group that has a cabinet. The groups made without one (the manager leaves it to the director) wait here, for the day
-     that is open: each says when, whose and how full, and "Atribuie cabinet" opens it with the cabinets and their free hours. */
-  function trayHTML(s) {
-    const list = D.groups.filter(g => g.days.includes(s.day) && pass(g, s, true) && !replacedOnDay(g.id, s.day)).sort((a, b) => a.start - b.start || a.id.localeCompare(b.id));
-    const dayName = D.DAYS[s.day - 1].name;
-    if (!list.length) return s.nocab ? `<div class="in-empty rp-tray__empty"><b>Toate grupele de ${esc(dayName.toLowerCase())} au cabinet.</b><span>Nicio grupă offline nu așteaptă un cabinet în ziua aceasta.</span></div>` : '';
-    return `<section class="rp-tray rp-noprint" aria-labelledby="rpTrayT">
-      <h2 class="rp-tray__h" id="rpTrayT">Fără cabinet <b>${list.length}</b><small>${esc(dayName)}: alege un cabinet pentru fiecare, ținând cont de ce e liber la ora ei</small></h2>
-      <ul class="rp-tray__list">${list.map(g => {
-        const t = D.teacher(g.teacher), enr = D.enrolled(g).length;
-        return `<li class="rp-tray__i"><span class="rp-tray__when"><b>${range(g)}</b><small>${esc(U.daysLabel(g.days.slice().sort((a, b) => a - b)))}</small></span>
-          <span class="rp-tray__who"><b>${esc(t.name)}</b><small>${esc(g.subject)}, clasa ${esc(g.grade)}${g.level ? ', nivel ' + esc(g.level) : ''} · ${enr} din ${plural(g.size, 'loc', 'locuri')}</small></span>
-          <span class="ax-tag ax-tag--warn">Fără cabinet</span>
-          <button type="button" class="ax-btn ax-btn--sm" data-assign="${g.id}">${ico('door', 16)} Atribuie cabinet</button></li>`;
-      }).join('')}</ul></section>`;
-  }
-
   function wireMain(main, s, ci, chips) {
     const root = M.root;
     const visible = sel => U.$$(sel, root).find(x => x.offsetParent !== null);
@@ -718,8 +707,6 @@
       if (it.key === 'q') s.q = ''; else if (it.key === 'nocab') s.nocab = false; else s[it.key] = s[it.key].filter(v => v !== it.value);
       writeState(s); buildRail(); renderMain();
     }, clearFilters);
-    U.$$('[data-assign]', main).forEach(b => b.addEventListener('click', () => openDrawer(b.dataset.assign)));
-    if (!main.querySelector('#rpBoard')) return;                       // only the tray is drawn ("only the groups without a cabinet" in the cabinet view)
     root.querySelector('[data-goconf]').addEventListener('click', openConflicts);
 
     const sc = main.querySelector('#rpScroll');
@@ -731,6 +718,7 @@
       if (card.dataset.repl) { if (window.AdminViews.inlocuiri && window.AdminViews.inlocuiri.openDetail) window.AdminViews.inlocuiri.openDetail(card.dataset.repl); return; }
       const g = D.group(card.dataset.g);
       if (!g) return;
+      if (noCab(g)) { openDrawer(g.id); return; }                       // a group without a cabinet: the panel is where the cabinet is given
       // a click opens the group's tab in its Google Sheets register; a group with no register yet opens the side panel (Shift+click always does)
       const url = !e.shiftKey && window.AdminSheetLinks && window.AdminSheetLinks.groupUrl(g.id);
       if (url) window.open(url, '_blank', 'noopener'); else openDrawer(g.id);
@@ -861,8 +849,9 @@
       const yes = await confirmDialog(`Mutarea la ${room ? roomName(room) + ', ' : ''}${hh(start)} are probleme`, reasons(g, c), c);
       if (!yes) return false;
     }
-    if (D.readOnly()) return applyRegistry(g, g.room ? { start, room } : { start });
-    apply(g, g.room ? { start, room } : { start });
+    const withRoom = !!(g.room || room);                                    // a group that had no cabinet and is dropped on one gets it
+    if (D.readOnly()) return applyRegistry(g, withRoom ? { start, room } : { start });
+    apply(g, withRoom ? { start, room } : { start });
     return true;
   }
 
@@ -919,14 +908,15 @@
             const start = h;
             let st;
             if (s.rows === 'prof' && rid !== g.teacher) st = 'off';
+            else if (rid === '_none' && g.room) st = 'off';
             else {
-              const room = s.rows === 'cab' ? rid : g.room;
+              const room = s.rows === 'cab' ? (rid === '_none' ? null : rid) : g.room;
               const c = check(g, room, start);
               cache[rid + '|' + h] = c;
               st = c.bad ? 'bad' : c.clash ? 'room' : 'ok';
             }
             cell.classList.add('v-' + st);
-            const isOrigin = (s.rows === 'cab' ? rid === g.room : rid === g.teacher) && h >= g.start && h < g.start + g.duration;
+            const isOrigin = (s.rows === 'cab' ? (g.room ? rid === g.room : rid === '_none') : rid === g.teacher) && h >= g.start && h < g.start + g.duration;
             if (isOrigin) cell.classList.add('v-origin');
           });
         });
@@ -970,10 +960,12 @@
           const start = +cell.dataset.h - grab;
           if (s.rows === 'prof' && rid !== g.teacher) {
             html = `<b>Alt profesor</b><span>În rândurile Profesori grupa se mută doar pe ore, în rândul profesorului ei.</span>`;
+          } else if (rid === '_none' && g.room) {
+            html = `<b>Fără cabinet</b><span>Rândul acesta primește doar grupele care nu au cabinet.</span>`;
           } else if (start < FIRST || start + g.duration > END) {
             html = `<b>${hh(Math.max(FIRST, start))}</b><span class="is-bad">Lecția nu încape în program (08:00-21:00).</span>`;
           } else {
-            const room = s.rows === 'cab' ? rid : g.room;
+            const room = s.rows === 'cab' ? (rid === '_none' ? null : rid) : g.room;
             const c = cache[rid + '|' + start] || check(g, room, start);
             target = { room, start, c, rid };
             const tk = 't-' + (c.bad ? 'bad' : c.clash ? 'room' : 'ok');
