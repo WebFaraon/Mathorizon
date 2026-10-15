@@ -401,7 +401,7 @@
               const sub = [_grade(g.grade), g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : '', _ro(g.enrolled, 'elev', 'elevi')].filter(Boolean);
               return `
               <li class="cl-lesson cl-lesson--${st.cls}" style="--i:${i}" data-time="${t0}" data-end="${t1}">
-                <a class="cl-lesson__link" href="#rg-${g.id}">
+                <a class="cl-lesson__link" href="${g.classId ? 'class.html?id=' + g.classId : '#rg-' + g.id}">
                   <span class="cl-lesson__time">${_timeHTML(t0)}</span>
                   <span class="cl-lesson__body"><b>${BM.esc(g.subject)}</b><span>${sub.map(BM.esc).join(' · ')}</span></span>
                   <span class="cl-lesson__state">${st.text}</span>
@@ -414,49 +414,40 @@
       </section>`;
   }
 
-  /* One group of the register: when it meets (the time on a small display and the week in seven keys), what it is, how full it is and who is in it, with the
-     last lessons of each student. The status says where the group is on its way: Se completează, Startează, Activ. */
+  /* One group of the register, as small as it can be: the way to the right group has to be quick. The time on a small display, what the group is, the week in seven
+     keys, how full it is and where it stands (Se completează, Startează, Activ). The whole block opens the platform class (Sumar, Mesaje, Teme, Simulări, Catalog),
+     where the students and their statuses are; the register has its own key. */
   function regCardHTML(g, idx) {
     const days = _regDays(g), t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
     const WK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
     const week = WK.map((l, i) => `<i class="${g.days.includes(i + 1) ? 'on' : ''}" title="${DAY_ORDER[i]}">${l}</i>`).join('');
-    const tags = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile, g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet'), g.summer ? 'Vară' : ''].filter(Boolean);
+    const tags = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile, [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet')].filter(Boolean).join(' · '), g.summer ? 'Vară' : ''].filter(Boolean);
     const segs = Math.min(g.size || 0, 12), lit = g.size ? Math.min(segs, Math.round(g.enrolled / g.size * segs)) : 0;
     let hint = '';
     if (g.status.id === 'completare' && g.need) hint = g.enrolled >= g.need ? 'Are destui elevi: pornește în curând.' : `Mai trebuie ${_ro(g.need - g.enrolled, 'elev', 'elevi')} ca să pornească (minim ${g.need}).`;
     else if (g.status.id === 'starteaza') hint = 'Are destui elevi: urmează ora de probă.';
-    const shown = g.students.filter(s => s.status.enrolled), hidden = g.students.length - shown.length;
-    const mark = m => `<i class="rg-m rg-m--${m ? (m === 'P' || m === 'G' ? 'p' : m === 'M' ? 'm' : 'a') : 'n'}" title="${m ? ({ P: 'prezent', G: 'prezent, lecție gratuită', M: 'absent motivat', A: 'absent', B: 'absent la prima lecție' }[m] || m) : 'fără notă'}"></i>`;
+    const href = g.classId ? `class.html?id=${g.classId}` : (g.url || '#');
+    const ext = !g.classId && g.url ? ' target="_blank" rel="noopener"' : '';
+    const label = `${g.subject}${g.grade ? ', ' + _grade(g.grade) : ''}${days.length ? ', ' + days.join(' și ') : ''}${t0 ? ', ora ' + t0 : ''}`;
     return `
       <li class="rg-card rg-card--${g.status.id}" id="rg-${g.id}" style="--i:${idx}" data-filter-row data-days="${days.join(',')}">
-        <header class="rg-head">
-          <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? `<b>${_timeHTML(t0)}</b><small>${_timeHTML(t1)}</small>` : '<b>-</b>'}</span>
-          <div class="rg-title">
-            <h3>${BM.esc(g.subject)}</h3>
-            <p class="rg-tags">${tags.map(x => `<span>${BM.esc(x)}</span>`).join('')}</p>
-          </div>
-          <span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
-        </header>
-        <div class="rg-when">
-          <span class="rg-week" role="img" aria-label="Zilele: ${days.join(', ') || 'neprogramată'}">${week}</span>
-          <span class="rg-when__t">${days.length ? _shortDays(days) : 'fără program'}</span>
-        </div>
-        <div class="rg-seats">
-          ${g.size ? segsHTML(lit, segs) : ''}
-          <span class="rg-seats__n"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''} ${g.enrolled === 1 ? 'elev' : 'elevi'}</span>
-          ${g.lessons ? `<span class="rg-seats__m" title="Lecții ținute / prezența medie">${_ro(g.lessons, 'lecție ținută', 'lecții ținute')}${g.rate != null ? ' · ' + g.rate + '% prezență' : ''}</span>` : ''}
-        </div>
-        ${hint ? `<p class="rg-hint">${hint}</p>` : ''}
-        ${shown.length ? `<ul class="rg-students" aria-label="Elevii grupei">${shown.map(s => `
-          <li class="rg-s">
-            <span class="rg-s__dot rg-s__dot--${s.status.id}" title="${s.status.label}"></span>
-            <span class="rg-s__name"><b>${BM.esc(s.name)}</b><small>${s.status.label}${s.rate != null ? ' · ' + s.rate + '%' : ''}</small></span>
-            <span class="rg-s__marks" aria-hidden="true">${s.marks.map(mark).join('')}</span>
-          </li>`).join('')}</ul>` : '<p class="rg-empty">Niciun elev înscris încă.</p>'}
-        ${hidden ? `<p class="rg-more">+ ${hidden} ${hidden === 1 ? 'elev plecat' : 'elevi plecați'} (transferați sau inactivi), în registru.</p>` : ''}
-        <footer class="rg-foot">
-          ${g.url ? `<a class="rg-link" href="${BM.esc(g.url)}" target="_blank" rel="noopener">${icon('book-open', { size: 16 })} Registrul grupei</a>` : ''}
-        </footer>
+        <a class="rg-open" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}">
+          <span class="rg-head">
+            <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? `<b>${_timeHTML(t0)}</b><small>${_timeHTML(t1)}</small>` : '<b>-</b>'}</span>
+            <span class="rg-title">
+              <span class="rg-line"><b class="rg-name">${BM.esc(g.subject)}</b><span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span></span>
+              <span class="rg-tags">${tags.map(x => `<span>${BM.esc(x)}</span>`).join('')}</span>
+            </span>
+          </span>
+          <span class="rg-when">
+            <span class="rg-week" role="img" aria-label="Zilele: ${days.join(', ') || 'neprogramată'}">${week}</span>
+            <span class="rg-seats"${hint ? ` title="${BM.esc(hint)}"` : ''}>${g.size ? segsHTML(lit, segs) : ''}<span class="rg-seats__n"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}</span></span>
+          </span>
+        </a>
+        <span class="rg-foot">
+          ${g.code ? `<span class="rg-code" title="Cod de invitație pentru elevi"><span>Cod</span><b>${BM.esc(g.code)}</b><button type="button" class="cl-mini" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul ${BM.esc(g.code)}" title="Copiază codul"><span class="cl-mini__a">${icon('copy', { size: 14 })}</span><span class="cl-mini__b">${icon('check', { size: 14 })}</span></button></span>` : '<span></span>'}
+          ${g.url ? `<a class="rg-link" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide fila grupei în registru" aria-label="Registrul grupei">${icon('book-open', { size: 16 })} Registru</a>` : ''}
+        </span>
       </li>`;
   }
 
@@ -468,7 +459,7 @@
           <h2 id="clRegT">Grupele din registru</h2>
           <span class="cl-sect__n">${_ro(live, 'grupă', 'grupe')}${off ? ` și ${off} inactive` : ''}${_reg.syncedAt ? ' · la zi cu registrul ' + relDate(_reg.syncedAt) : ''}</span>
         </header>
-        <p class="cl-sect__sub">Sunt grupele, elevii și programul din registrul tău Google Sheets, la fel ca acolo. O schimbare făcută în registru apare aici în câteva secunde.</p>
+        <p class="cl-sect__sub">Apasă pe o grupă ca să intri în clasa ei: elevii, mesaje, teme, simulări, catalog. Programul și elevii vin din registrul tău, o schimbare de acolo apare aici în câteva secunde.</p>
         <ol class="rg-grid" id="regGrid" aria-label="Grupele din registru">${_reg.groups.map(regCardHTML).join('')}</ol>
       </section>`;
   }
@@ -478,8 +469,10 @@
   ═══════════════════════════════════════════════════════════════ */
   function _teacherCacheKey() { return 'bm_cls_t_' + BMAuth.user.id; }
 
-  function _applyTeacherUI(classes, memberCounts, aggStats) {
+  function _applyTeacherUI(allClasses, memberCounts, aggStats) {
     const hasReg = !!(_reg && _reg.groups.length);
+    /* the classes the database made for the register's groups are the cards above; here stay only the ones the teacher made by hand */
+    const classes = hasReg ? allClasses.filter(c => !c.reg_group_id) : allClasses;
     const has = classes.length > 0 || hasReg;
     setRootContent(`
       <div class="${pageClass()}">
@@ -513,7 +506,7 @@
         ${hasReg ? `
           <section class="cl-sect cl-sect--platform" aria-labelledby="clPlT">
             <header class="cl-sect__h"><h2 id="clPlT">Clase pe platformă</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
-            <p class="cl-sect__sub">Clasele cu cod de invitație: elevii intră singuri pe platformă, primesc teme și scriu în clasă. Sunt separate de grupele din registru.</p>
+            <p class="cl-sect__sub">Clasele făcute de tine aici, în afara registrului: elevii intră cu codul de invitație, primesc teme și scriu în clasă.</p>
             ${classes.length ? `
               <ol class="cl-blocks" id="classesGrid" aria-label="Clasele de pe platformă">
                 ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}

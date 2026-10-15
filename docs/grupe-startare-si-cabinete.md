@@ -47,3 +47,13 @@ Regula: **ori două ore consecutive într-o zi, ori câte o oră în două zile 
 
 ## 5. După aceste schimbări
 Redeploy: `registru-sync` (regula de startare). Consola se publică singură. La prima citire a fiecărui registru, grupele „Se completează” care au deja destui elevi trec în „Startează” (o citire forțată a tuturor registrelor le prinde pe toate deodată).
+
+## Grupele din registru devin clase pe platformă (2026-10-15)
+
+Migrarea `supabase/migrations/20261015120000_registre_clase_automate.sql` leagă fiecare grupă din registru de o clasă din `classes` (`classes.reg_group_id`), pentru registrele care au un cont de profesor legat (`reg_workbooks.owner_user_id`, setat din Sincronizare).
+
+- O grupă `Se completează`, `Startează` sau `Activ` primește o clasă cu cod de invitație propriu (generat o singură dată, nu se schimbă). `Inactiv` și `Înlocuire` nu primesc clasă; o clasă deja făcută rămâne cu elevii ei.
+- Clasa urmărește grupa: nume (`Materie · Zi/Zi2 · Ora`), clasa elevilor, nivel, online/offline, locuri, program (cel mult două zile) și profesor se actualizează la fiecare scriere în `reg_groups`.
+- Totul trece prin triggerele `reg_groups_class_sync` și `reg_workbooks_class_sync`, deci nu depinde de o redeployare: sincronizarea, grupa nouă din Înscriere (comanda NEW_GROUP) și SET_GROUP produc aceeași clasă. Un eșec în trigger doar dă avertisment, nu oprește sincronizarea.
+- Tabul Clase al profesorului arată grupele ca blocuri mici; fiecare bloc deschide clasa (`class.html?id=`), cu Sumar, Mesaje, Teme, Simulări, Catalog. „Clase pe platformă" păstrează doar clasele făcute de mână (`reg_group_id` gol).
+- Elevii din registru nu au conturi: intră în clasă cu codul. Legarea elevilor din registru de conturi nu e făcută.

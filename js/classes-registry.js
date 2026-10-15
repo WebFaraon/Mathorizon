@@ -72,6 +72,15 @@
         students.push(...await fetchAll(() => sb.from('reg_students').select('group_id,col,name,status').in('group_id', part).order('col', { ascending: true })));
         lessons.push(...await fetchAll(() => sb.from('reg_lessons').select('group_id,row_no,iso,topic,marks').in('group_id', part).order('row_no', { ascending: true })));
       }
+      /* the platform class of each group (the database makes it when the register has an account linked): where the card leads and which invite code it shows */
+      const classOf = new Map();
+      try {
+        for (const part of chunks(gids, 60)) {
+          const { data, error } = await sb.from('classes').select('id,invite_code,reg_group_id').in('reg_group_id', part);
+          if (error) throw error;
+          (data || []).forEach(c => classOf.set(c.reg_group_id, c));
+        }
+      } catch (e) { /* a platform without the newest migration: the cards open the register instead */ }
       const today = new Date().toISOString().slice(0, 10);
       const stBy = new Map(), leBy = new Map();
       students.forEach(s => { (stBy.get(s.group_id) || stBy.set(s.group_id, []).get(s.group_id)).push(s); });
@@ -93,7 +102,7 @@
         if (status.id !== 'inactiv') { held += les.length; presentAll += gp; markedAll += gt; }
         const enrolled = sts.filter(s => s.status.enrolled).length;
         return {
-          id: g.id, sheetId: g.sheet_id, tab: g.tab, size: g.format_size, mode: g.mode || null, status,
+          id: g.id, classId: (classOf.get(g.id) || {}).id || null, code: (classOf.get(g.id) || {}).invite_code || '', sheetId: g.sheet_id, tab: g.tab, size: g.format_size, mode: g.mode || null, status,
           subject: g.subject || 'Grupă', grade: g.grade || '', level: g.level || '', profile: g.profile || '', summer: !!g.summer,
           days: sl.days, start: sl.start, duration: sl.duration, cab: sl.cab,
           url: wb && wb.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + wb.spreadsheet_id + '/edit#gid=' + g.sheet_id : null,
