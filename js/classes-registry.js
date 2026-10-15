@@ -118,5 +118,15 @@
     }
   }
 
-  window.ClassesRegistry = { load, DAYS };
+  /* the link to the teacher's register, at the tab "Total achitări" (the sync keeps that tab's id), or null when the account has no register linked */
+  async function registerUrl(sb, uid) {
+    try {
+      const { data, error } = await sb.from('reg_workbooks').select('spreadsheet_id,teacher_data').eq('owner_user_id', uid).eq('enabled', true).limit(1);
+      if (error || !data || !data.length || !data[0].spreadsheet_id) return null;
+      const gid = data[0].teacher_data && data[0].teacher_data.totalSheetId;
+      return 'https://docs.google.com/spreadsheets/d/' + data[0].spreadsheet_id + '/edit' + (gid != null ? '#gid=' + gid : '');
+    } catch (e) { return null; }
+  }
+
+  window.ClassesRegistry = { load, registerUrl, DAYS };
 })();

@@ -4555,3 +4555,4 @@ body:has(#classesRoot) {
   .rg-students { grid-template-columns: 1fr; }
 }
 @media (prefers-reduced-motion: reduce) { .rg-link { transition: none; } }
+body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; filter: none; }

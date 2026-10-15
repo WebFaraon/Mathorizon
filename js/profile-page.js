@@ -562,7 +562,7 @@
           </div>
           <div class="pf-id__actions">
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
-            <!-- Registru: legătura e oprită până se decide registrul (registru.html există în continuare) -->
+            ${isTeacher || isAdmin ? `<a class="pf-key" id="btnRegistry" href="#" target="_blank" rel="noopener" aria-disabled="true" hidden>${icon('book-open', { size: 16 })} Registru</a>` : ''}
             <button class="pf-key" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
           </div>
         </div>
@@ -986,6 +986,17 @@
       inp.type = inp.type === 'password' ? 'text' : 'password';
       btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
     };
+
+    /* Registru: opens the teacher's register (Google Sheets) at the tab "Total achitări". A teacher whose account is not linked to a register yet sees the button
+       switched off, with the reason; an admin sees it only when his own account has one. */
+    const regBtn = document.getElementById('btnRegistry');
+    if (regBtn && window.ClassesRegistry) {
+      if (isTeacher) { regBtn.hidden = false; regBtn.title = 'Contul tău nu e legat încă de un registru. Spune-i administratorului.'; regBtn.addEventListener('click', e => { if (regBtn.getAttribute('aria-disabled') === 'true') e.preventDefault(); }); }
+      window.ClassesRegistry.registerUrl(sb, user.id).then(url => {
+        if (!url) return;
+        regBtn.hidden = false; regBtn.href = url; regBtn.removeAttribute('aria-disabled'); regBtn.title = 'Deschide registrul tău în Google Sheets, la fila Total achitări';
+      });
+    }
 
     /* Edit profile — teacher gets the bigger "business card" modal (bio,
        country, phone, social link too); everyone else just edits the name. */
