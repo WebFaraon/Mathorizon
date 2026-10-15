@@ -57,3 +57,13 @@ Migrarea `supabase/migrations/20261015120000_registre_clase_automate.sql` leagă
 - Totul trece prin triggerele `reg_groups_class_sync` și `reg_workbooks_class_sync`, deci nu depinde de o redeployare: sincronizarea, grupa nouă din Înscriere (comanda NEW_GROUP) și SET_GROUP produc aceeași clasă. Un eșec în trigger doar dă avertisment, nu oprește sincronizarea.
 - Tabul Clase al profesorului arată grupele ca blocuri mici; fiecare bloc deschide clasa (`class.html?id=`), cu Sumar, Mesaje, Teme, Simulări, Catalog. „Clase pe platformă" păstrează doar clasele făcute de mână (`reg_group_id` gol).
 - Elevii din registru nu au conturi: intră în clasă cu codul. Legarea elevilor din registru de conturi nu e făcută.
+
+## Alăturarea la o clasă prin cerere (2026-10-16)
+
+Migrarea `supabase/migrations/20261016100000_cereri_alaturare_clase.sql` schimbă felul în care un elev intră într-o clasă (toate clasele, nu doar cele din registru):
+
+- Elevul introduce codul în Clase și apasă „Trimite cererea" (`request_join_class`). Nu intră în clasă și nu are acces la nimic până acceptă profesorul. Un trigger pe `class_members` oprește orice inserare directă din client, indiferent de politicile RLS vechi.
+- Profesorul vede cererile în Clase („Cereri de alăturare") și ca insignă pe tabul Clase din meniu (`js/join-badge.js`, încărcat de `js/nav-loader.js`). Acceptă sau respinge (`decide_join_request`). O cerere respinsă se poate retrimite după 24 de ore; elevul își poate retrage o cerere în așteptare.
+- La acceptare, pentru o clasă făcută dintr-o grupă din registru, profesorul poate lega elevul de numele lui din registru (`class_members.reg_student_name`). Sugestia vine din asemănarea numelor, nelegată automat. Legarea se poate face și mai târziu, din coloana „Registru" din Sumar (`set_member_reg_link`).
+- Un elev legat primește din registru, la fiecare sincronizare (`reg_class_sync_people`, apelată la sfârșitul `reg_apply_group`): statutul (Transferat sau Inactiv în registru = Inactiv în clasă) și prezențele (P și G = prezent; A, M și B = absent), scrise ca sesiuni și înregistrări în Catalog. Registrul e singura sursă: o prezență pusă de mână în Catalog pentru un elev legat se rescrie la următoarea sincronizare.
+- Nu e făcută: mutarea automată a elevului în clasa altei grupe când e transferat în registru.

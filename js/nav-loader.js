@@ -125,6 +125,11 @@
       bindGuestTabToast();
       window.BM.navLoaded = true;
       document.dispatchEvent(new Event('nav:loaded'));
+      // the number of join requests waiting for a teacher, on the Clase tab (does nothing for anyone else)
+      var jb = document.createElement('script');
+      jb.src = 'js/join-badge.js';
+      jb.defer = true;
+      document.body.appendChild(jb);
     })
     .catch(function (err) {
       console.error('[nav-loader] failed to load partials/nav.html:', err);

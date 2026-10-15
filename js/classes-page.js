@@ -483,6 +483,7 @@
             <button type="button" class="cl-key cl-key--primary" id="createClassBtn">${icon('plus', { size: 16 })} Creează clasă</button>
           </div>
         </header>
+        <div id="clReqRoot"></div>
         ${hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : ''}
         ${hasReg ? statusHTML('Toate grupele', [
           { lbl: 'Grupe', tick: _reg.stats.groups },
@@ -755,6 +756,93 @@
     _reg = await regP;
     try { sessionStorage.setItem(_teacherCacheKey(), JSON.stringify({ classes, memberCounts, aggStats, reg: _reg })); } catch {}
     _applyTeacherUI(classes, memberCounts, aggStats);
+    loadJoinRequests(classes);
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     JOIN REQUESTS (teacher): a student with the code asks to join; nothing of the class is open to the student until the teacher accepts.
+     When the class is a register group, accepting can also tie the student to his name in the register (his presences and status then come from it).
+  ═══════════════════════════════════════════════════════════════ */
+  let _reqs = [];
+  const _plainName = s => String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim();
+  const _initials = s => String(s || '?').trim().split(/\s+/).slice(0, 2).map(w => w[0] || '').join('').toUpperCase() || '?';
+
+  async function loadJoinRequests(classes) {
+    const root = document.getElementById('clReqRoot');
+    if (!root || !classes.length) return;
+    const ids = classes.map(c => c.id);
+    let reqs = [], linked = [];
+    try {
+      const [r, l] = await Promise.all([
+        BMAuth.supabase.from('class_join_requests').select('id, class_id, student_id, student_name, class_name, created_at').eq('status', 'pending').in('class_id', ids).order('created_at', { ascending: true }),
+        BMAuth.supabase.from('class_members').select('class_id, reg_student_name').in('class_id', ids).not('reg_student_name', 'is', null)
+      ]);
+      reqs = r.error ? [] : (r.data || []);
+      linked = l.error ? [] : (l.data || []);
+    } catch {}
+    const taken = new Set(linked.map(x => x.class_id + '|' + _plainName(x.reg_student_name)));
+    _reqs = reqs.map(r => {
+      const g = _reg && _reg.groups ? _reg.groups.find(x => x.classId === r.class_id) : null;
+      const cands = g ? g.students.filter(s => s.status.enrolled && !taken.has(r.class_id + '|' + _plainName(s.name))) : null;
+      let best = null;
+      if (cands && cands.length) {
+        const want = new Set(_plainName(r.student_name).split(' ').filter(w => w.length > 1));
+        const scored = cands.map(s => ({ s, n: _plainName(s.name).split(' ').filter(w => want.has(w)).length })).sort((a, b) => b.n - a.n);
+        if (scored[0].n > 0 && (!scored[1] || scored[1].n < scored[0].n)) best = scored[0].s.name;
+      }
+      return { ...r, cands, best };
+    });
+    root.innerHTML = _reqs.length ? joinRequestsHTML() : '';
+    root.querySelectorAll('[data-decide]').forEach(btn => btn.addEventListener('click', () => decideRequest(btn.closest('[data-req]').dataset.req, btn.dataset.decide === 'accept', btn)));
+    if (window.BMJoinBadge) window.BMJoinBadge.set(_reqs.length);
+  }
+
+  function joinRequestsHTML() {
+    return `
+      <section class="cl-sect cl-reqs" aria-labelledby="clReqT">
+        <header class="cl-sect__h"><h2 id="clReqT">Cereri de alăturare</h2><span class="cl-sect__n">${_ro(_reqs.length, 'cerere', 'cereri')}</span></header>
+        <ul class="cl-reqlist">
+          ${_reqs.map(r => `
+            <li class="cl-req cl-req--pending" data-req="${r.id}">
+              <span class="cl-req__av" aria-hidden="true">${BM.esc(_initials(r.student_name))}</span>
+              <span class="cl-req__body">
+                <b>${BM.esc(r.student_name || 'Elev')}</b>
+                <span>vrea să intre în ${BM.esc(r.class_name || 'clasă')} · ${relDate(r.created_at)}</span>
+              </span>
+              ${r.cands ? `
+              <label class="cl-req__pick">
+                <span>Elevul din registru</span>
+                <select class="cl-req__sel" data-pick aria-label="Elevul din registru pentru ${BM.esc(r.student_name || 'elev')}">
+                  <option value="">Nu e în registru, sau nu știu</option>
+                  ${r.cands.map(s => `<option value="${BM.esc(s.name)}"${s.name === r.best ? ' selected' : ''}>${BM.esc(s.name)}</option>`).join('')}
+                </select>
+              </label>` : ''}
+              <span class="cl-req__acts">
+                <button type="button" class="cl-req__link" data-decide="reject">Respinge</button>
+                <button type="button" class="cl-key cl-key--primary" data-decide="accept">${icon('check', { size: 16 })} Acceptă</button>
+              </span>
+            </li>`).join('')}
+        </ul>
+      </section>`;
+  }
+
+  async function decideRequest(id, accept, btn) {
+    const row = document.querySelector(`[data-req="${id}"]`);
+    const reg = accept ? (row && row.querySelector('[data-pick]') ? row.querySelector('[data-pick]').value : '') : '';
+    row && row.querySelectorAll('button, select').forEach(el => { el.disabled = true; });
+    try {
+      const { data, error } = await BMAuth.supabase.rpc('decide_join_request', { p_request: id, p_accept: accept, p_reg_name: reg || null });
+      if (error) throw error;
+      const st = data && data.status;
+      if (st === 'accepted') BM.toast(reg ? 'Elevul a fost acceptat și legat de registru.' : 'Elevul a fost acceptat în clasă.', 'success');
+      else if (st === 'rejected') BM.toast('Cererea a fost respinsă.', 'info');
+      else BM.toast('Cererea fusese deja rezolvată.', 'info');
+      try { sessionStorage.removeItem(_teacherCacheKey()); } catch {}
+      renderTeacherView();
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+      row && row.querySelectorAll('button, select').forEach(el => { el.disabled = false; });
+    }
   }
 
   function teacherEmpty() {
@@ -1492,13 +1580,14 @@
     return { time: best.time, at: best.at, cls: best.cls, when: days === 0 ? 'azi' : days === 1 ? 'mâine' : DAY_SHORT[best.dayName] };
   }
 
-  function _applyStudentUI(classes) {
+  function _applyStudentUI(classes, reqs) {
+    reqs = reqs || [];
     const teachers = new Set(classes.map(c => c.teacher_name).filter(Boolean)).size;
     const next = _nextLesson(classes);
     setRootContent(`
       <div class="${pageClass()}">
         <header class="cl-head">
-          ${headInfoHTML('Introdu codul primit de la profesor și vezi grupele la care participi.')}
+          ${headInfoHTML('Introdu codul primit de la profesor și trimite o cerere de alăturare.')}
         </header>
 
         ${classes.length ? todayHTML(classes, 'elev', null) : ''}
@@ -1507,16 +1596,18 @@
           <div class="cl-join__icon">${icon('key', { size: 24 })}</div>
           <div class="cl-join__txt">
             <h2 id="clJoinTitle">Alătură-te unei clase</h2>
-            <p>Codul are 6 caractere, litere și cifre.</p>
+            <p>Codul are 6 caractere. Intri în clasă după ce profesorul îți acceptă cererea.</p>
           </div>
           <div class="cl-join__row">
             <input type="text" id="inviteCodeInput" class="cl-codeinput"
                    placeholder="ABC123" maxlength="6" autocomplete="off" autocapitalize="characters"
                    spellcheck="false" aria-label="Cod de invitație"
                    oninput="this.value = this.value.toUpperCase()">
-            <button type="button" class="cl-key cl-key--primary" id="joinClassBtn">Alătură-te</button>
+            <button type="button" class="cl-key cl-key--primary" id="joinClassBtn">Trimite cererea</button>
           </div>
         </section>
+
+        ${reqs.length ? studentRequestsHTML(reqs) : ''}
 
         ${classes.length ? statusHTML('Clasele tale', [
           { lbl: 'Clase înscrise', tick: classes.length },
@@ -1534,6 +1625,7 @@
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
     codeInput?.addEventListener('keydown', e => { if (e.key === 'Enter') joinClass(); });
+    document.querySelectorAll('[data-cancel-req]').forEach(btn => btn.addEventListener('click', () => cancelJoinRequest(btn.dataset.cancelReq)));
     document.querySelectorAll('.cl-block__leave').forEach(btn => {
       btn.addEventListener('click', () => leaveClass(btn.dataset.id, btn.dataset.name));
     });
@@ -1547,7 +1639,7 @@
     let hasCached = false;
     try {
       const cached = JSON.parse(sessionStorage.getItem(_studentCacheKey()) || 'null');
-      if (cached) { hasCached = true; _applyStudentUI(cached.classes); }
+      if (cached) { hasCached = true; _applyStudentUI(cached.classes, cached.reqs); }
     } catch {}
     if (!hasCached) setRootContent(loadingHTML());
 
@@ -1564,8 +1656,50 @@
       BM.toast('Eroare la încărcarea claselor: ' + e.message, 'error');
     }
 
-    try { sessionStorage.setItem(_studentCacheKey(), JSON.stringify({ classes })); } catch {}
-    _applyStudentUI(classes);
+    let reqs = [];
+    try {
+      const { data, error } = await BMAuth.supabase.from('class_join_requests')
+        .select('id, class_name, status, created_at, decided_at').eq('student_id', BMAuth.user.id).in('status', ['pending', 'rejected']).order('created_at', { ascending: false });
+      if (!error) reqs = data || [];
+    } catch {}
+
+    try { sessionStorage.setItem(_studentCacheKey(), JSON.stringify({ classes, reqs })); } catch {}
+    _applyStudentUI(classes, reqs);
+  }
+
+  /* the requests the student sent: waiting for the teacher, or turned down (can be sent again after a day) */
+  function studentRequestsHTML(reqs) {
+    const retry = r => {
+      const left = new Date(r.decided_at).getTime() + 86400000 - Date.now();
+      return left > 0 ? `Poți trimite din nou peste ${left > 3600000 ? Math.ceil(left / 3600000) + ' ore' : Math.max(1, Math.ceil(left / 60000)) + ' minute'}.` : 'Poți trimite din nou cererea cu codul clasei.';
+    };
+    return `
+      <section class="cl-sect cl-reqs" aria-labelledby="clMyReqT">
+        <header class="cl-sect__h"><h2 id="clMyReqT">Cererile tale</h2><span class="cl-sect__n">${_ro(reqs.length, 'cerere', 'cereri')}</span></header>
+        <ul class="cl-reqlist">
+          ${reqs.map(r => `
+            <li class="cl-req cl-req--${r.status}">
+              <span class="cl-req__dot" aria-hidden="true"></span>
+              <span class="cl-req__body">
+                <b>${BM.esc(r.class_name || 'Clasă')}</b>
+                <span>${r.status === 'pending' ? 'Așteaptă răspunsul profesorului. Nu ai acces la clasă până îți acceptă cererea.' : 'Cererea a fost respinsă. ' + retry(r)}</span>
+              </span>
+              ${r.status === 'pending' ? `<button type="button" class="cl-req__link" data-cancel-req="${r.id}">Retrage cererea</button>` : ''}
+            </li>`).join('')}
+        </ul>
+      </section>`;
+  }
+
+  async function cancelJoinRequest(id) {
+    try {
+      const { error } = await BMAuth.supabase.from('class_join_requests').delete().eq('id', id).eq('student_id', BMAuth.user.id).eq('status', 'pending');
+      if (error) throw error;
+      BM.toast('Cererea a fost retrasă.', 'info');
+      try { sessionStorage.removeItem(_studentCacheKey()); } catch {}
+      renderStudentView();
+    } catch (e) {
+      BM.toast('Eroare: ' + e.message, 'error');
+    }
   }
 
   function studentEmpty() {
@@ -1575,7 +1709,7 @@
         <div class="cl-empty">
           <div class="cl-empty__icon">${icon('library', { size: 24 })}</div>
           <h2>Nicio clasă înscrisă</h2>
-          <p>Introdu codul de invitație de mai sus pentru a te alătura primei clase.</p>
+          <p>Introdu codul de invitație de mai sus și trimite o cerere. Clasa apare aici după ce profesorul o acceptă.</p>
         </div>
       </section>
     `;
@@ -1640,45 +1774,31 @@
 
     const btn = document.getElementById('joinClassBtn');
     btn.disabled    = true;
-    btn.textContent = 'Se verifică…';
-    const reset = () => { btn.disabled = false; btn.textContent = 'Alătură-te'; };
+    btn.textContent = 'Se trimite…';
+    const reset = () => { btn.disabled = false; btn.textContent = 'Trimite cererea'; };
 
     try {
-      const { data: found, error: findErr } = await BMAuth.supabase
-        .from('classes')
-        .select('id, name, teacher_id')
-        .eq('invite_code', code)
-        .maybeSingle();
-
-      if (findErr) throw findErr;
-      if (!found) {
-        BM.toast('Cod de invitație invalid. Verifică și încearcă din nou.', 'error');
-        reset();
+      const { data, error } = await BMAuth.supabase.rpc('request_join_class', { p_code: code, p_name: BMAuth.displayName() });
+      if (error) throw error;
+      const st = (data && data.status) || '';
+      const nm = data && data.class_name ? ' „' + data.class_name + '"' : '';
+      if (st === 'pending') {
+        BM.toast('Cererea a fost trimisă. Intri în clasă' + nm + ' după ce profesorul o acceptă.', 'success');
+        if (input) input.value = '';
+        try { sessionStorage.removeItem(_studentCacheKey()); } catch {}
+        renderStudentView();
         return;
       }
-      if (found.teacher_id === BMAuth.user.id) {
-        BM.toast('Nu te poți înscrie în propria clasă.', 'error');
-        reset();
-        return;
-      }
-
-      const { error: joinErr } = await BMAuth.supabase
-        .from('class_members')
-        .insert({ class_id: found.id, student_id: BMAuth.user.id, student_name: BMAuth.displayName() });
-
-      if (joinErr) {
-        if (joinErr.code === '23505') {
-          BM.toast('Ești deja înscris în această clasă.', 'error');
-        } else {
-          throw joinErr;
-        }
-        reset();
-        return;
-      }
-
-      BM.toast('Te-ai alăturat clasei „' + found.name + '"!', 'success');
-      try { sessionStorage.removeItem(_studentCacheKey()); } catch {}
-      renderStudentView();
+      const msg = {
+        not_found: 'Cod de invitație invalid. Verifică și încearcă din nou.',
+        own_class: 'Nu te poți înscrie în propria clasă.',
+        already_member: 'Ești deja înscris în această clasă.',
+        already_pending: 'Ai trimis deja o cerere pentru această clasă. Așteaptă răspunsul profesorului.',
+        rejected_wait: 'Cererea ta a fost respinsă. Poți trimite din nou peste cel mult o zi.',
+        auth: 'Conectează-te ca să trimiți o cerere.'
+      }[st] || 'Cererea nu a putut fi trimisă.';
+      BM.toast(msg, st === 'already_pending' ? 'info' : 'error');
+      reset();
     } catch (e) {
       BM.toast('Eroare: ' + e.message, 'error');
       reset();

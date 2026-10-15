@@ -1417,3 +1417,13 @@ body:has(#classRoot) :is(.sumar-upnext__card--clickable, .teme-assignment--click
 
 /* The round back-to-top key would sit on the Trimite key while the chat is open. */
 body:has(.msg-panel) .scroll-top-btn { display: none; }
+
+/* Sumar roster of a class made from a register group: a fourth column ties the account to the student's name in the register */
+.sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: minmax(0, 1fr) 130px 200px 240px; }
+.sumar-roster__reg { width: 100%; min-width: 0; padding: 8px 11px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-bg); color: var(--k-ink); font: inherit; font-size: 0.86rem; }
+.sumar-roster__reg:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 2px; }
+.sumar-roster__noacc { display: flex; align-items: flex-start; gap: 9px; margin: 10px 0 0; padding: 10px 13px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
+.sumar-roster__noacc svg { flex: none; margin-top: 2px; }
+@media (max-width: 760px) {
+  .sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: 1fr; }
+}

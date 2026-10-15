@@ -847,9 +847,10 @@
           .then(r => r.data || [])
       ]);
       const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats } = catalogData;
+      const regInfo = await _fetchRegLink();
 
       const ctx = {
-        members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats,
+        members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats, regInfo,
         attendance:   BM.CatalogStats.attendanceStats(members, sessions, attMatrix),
         lessons:      BM.CatalogStats.lessonStats(sessions),
         homework:     BM.CatalogStats.assignmentStats(assignments),
@@ -1023,19 +1024,41 @@
      Grades/attendance stay in Catalog; this only carries two things that
      live on the roster itself: whether a student is still active in the
      group, and who their assigned manager is. Both save on change. ─── */
+  /* a class made from a register group: who the group has in the register (names only), and which student account is tied to which of them */
+  async function _fetchRegLink() {
+    if (!classData.reg_group_id || BMAuth.role !== 'profesor') return null;
+    try {
+      const [m, s] = await Promise.all([
+        BMAuth.supabase.from('class_members').select('student_id, reg_student_name').eq('class_id', classData.id),
+        BMAuth.supabase.from('reg_students').select('name, status').eq('group_id', classData.reg_group_id).order('col', { ascending: true })
+      ]);
+      if (m.error || s.error) return null;
+      const link = {};
+      (m.data || []).forEach(x => { if (x.reg_student_name) link[x.student_id] = x.reg_student_name; });
+      const names = (s.data || []).filter(x => !/^(transferat|inactiv)$/i.test(String(x.status || '').trim())).map(x => x.name);
+      return { link, names };
+    } catch (e) { return null; }
+  }
+
   function _renderSumarRoster(ctx) {
-    const { members, nameMap } = ctx;
+    const { members, nameMap, regInfo } = ctx;
+    const plain = s => String(s || '').trim().toLowerCase();
+    const taken = regInfo ? new Set(Object.values(regInfo.link).map(plain)) : new Set();
+    const noAccount = regInfo ? regInfo.names.filter(n => !taken.has(plain(n))) : [];
+    const noAccountHTML = regInfo && noAccount.length ? `
+      <p class="sumar-roster__noacc">${icon('users', { size: 16 })} <span><b>${noAccount.length === 1 ? 'Un elev din registru nu are' : noAccount.length + ' elevi din registru nu au'} cont legat:</b> ${noAccount.map(n => BM.esc(n)).join(', ')}. Intră în clasă cu codul de invitație, iar tu îi legi de nume când accepți cererea sau din coloana Registru.</span></p>` : '';
     if (!members.length) {
-      return `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev înscris încă.</div>`;
+      return `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev înscris încă.</div>${noAccountHTML}`;
     }
     return `
-      <div class="sumar-roster">
+      <div class="sumar-roster${regInfo ? ' sumar-roster--reg' : ''}">
         <div class="sumar-roster__row sumar-roster__row--head">
-          <span>Elev</span><span>Status</span><span>Manager</span>
+          <span>Elev</span><span>Status</span><span>Manager</span>${regInfo ? '<span>Registru</span>' : ''}
         </div>
         ${members.map((m, idx) => {
           const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
           const active = m.status !== 'inactiv';
+          const own = regInfo ? regInfo.link[m.student_id] || '' : '';
           return `
             <div class="sumar-roster__row">
               <div class="sumar-roster__name">
@@ -1048,9 +1071,14 @@
               </button>
               <input type="text" class="sumar-roster__manager" data-roster-manager="${m.student_id}"
                      placeholder="Atribuie manager" value="${BM.esc(m.manager_name || '')}">
+              ${regInfo ? `
+              <select class="sumar-roster__reg" data-roster-reg="${m.student_id}" data-current="${BM.esc(own)}" aria-label="Elevul din registru pentru ${BM.esc(name)}">
+                <option value="">Nelegat de registru</option>
+                ${regInfo.names.filter(n => plain(n) === plain(own) || !taken.has(plain(n))).map(n => `<option value="${BM.esc(n)}"${plain(n) === plain(own) ? ' selected' : ''}>${BM.esc(n)}</option>`).join('')}
+              </select>` : ''}
             </div>`;
         }).join('')}
-      </div>`;
+      </div>${noAccountHTML}`;
   }
 
   function _wireSumarRoster(main) {
@@ -1066,6 +1094,23 @@
             .update({ status: next }).eq('class_id', classData.id).eq('student_id', studentId);
           if (error) throw error;
         } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
+      });
+    });
+    main.querySelectorAll('[data-roster-reg]').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        const before = sel.dataset.current || '';
+        sel.disabled = true;
+        try {
+          const { data, error } = await BMAuth.supabase.rpc('set_member_reg_link', { p_class: classData.id, p_student: sel.dataset.rosterReg, p_reg_name: sel.value || null });
+          if (error) throw error;
+          sel.dataset.current = sel.value;
+          BM.toast(sel.value ? 'Elevul a fost legat de registru. Prezențele lui vin de acolo.' : 'Legătura cu registrul a fost scoasă.', 'success');
+          if (data && data.linked) { try { BM.CatalogStats.invalidate && BM.CatalogStats.invalidate(); } catch (e) {} }
+        } catch (e) {
+          sel.value = before;
+          BM.toast('Eroare: ' + e.message, 'error');
+        }
+        sel.disabled = false;
       });
     });
     main.querySelectorAll('[data-roster-manager]').forEach(input => {
