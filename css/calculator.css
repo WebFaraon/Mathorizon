@@ -4468,3 +4468,90 @@ body:has(#classesRoot) {
   .cl-lesson__link { gap: 10px; flex-wrap: wrap; }
   .cl-lesson__state { order: 3; }
 }
+
+/* ============================================================
+   classes.html: the teacher's groups from the register (js/classes-registry.js, js/classes-page.js)
+   ============================================================
+   A group is a chassis panel (not a key: it is not pressed): the time on a small display, the week in seven keys, the seats, the students with their last lessons.
+   The line along the top edge and the status word say where the group is on its way (Se completează, Startează, Activ); only ink, the primary blue and the
+   done green are used (the legend colours keep their jobs). */
+
+/* the page keeps its distance from the screen edge */
+#classesRoot .cl-page { padding-left: clamp(14px, 3.4vw, 64px); padding-right: clamp(14px, 3.4vw, 64px); }
+
+.cl-sect { display: flex; flex-direction: column; gap: 14px; }
+.cl-sect--platform { margin-top: 22px; }
+.cl-sect__h { display: flex; align-items: baseline; justify-content: space-between; flex-wrap: wrap; gap: 4px 16px; padding-bottom: 10px; border-bottom: 2px solid var(--k-ink); }
+.cl-sect__h h2 { margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.015em; }
+.cl-sect__n { font-size: 0.84rem; font-weight: 700; color: var(--k-ink-3); }
+.cl-sect__sub { margin: 0; max-width: 72ch; font-size: 0.92rem; line-height: 1.5; color: var(--k-ink-2); }
+.cl-sect__none { margin: 0; padding: 22px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; color: var(--k-ink-3); font-size: 0.92rem; }
+
+.rg-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 540px), 1fr)); gap: 24px; margin: 0; padding: 0 0 6px; list-style: none; }
+.rg-card { --st: var(--k-green); position: relative; display: flex; flex-direction: column; gap: 14px; min-width: 0; padding: 0 0 16px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-panel); scroll-margin-top: 96px; }
+.rg-card::before { content: ''; height: 5px; background: var(--st); border-radius: 2px 2px 0 0; }
+.rg-card--completare { --st: var(--k-ink-3); }
+.rg-card--starteaza { --st: var(--k-blue); }
+.rg-card--inlocuire { --st: var(--k-ink-2); }
+.rg-card--inactiv { --st: var(--k-ghost); opacity: 0.66; }
+.rg-card:target { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+.rg-card[hidden] { display: none; }
+
+.rg-head { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px; padding: 4px 18px 0; }
+.rg-time { display: grid; gap: 1px; min-width: 78px; padding: 7px 10px 6px; border-radius: 3px; background: var(--k-lcd); color: var(--k-lcd-ink); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2); font-family: var(--k-lcd-font); line-height: 1.05; text-align: center; font-variant-numeric: tabular-nums; }
+.rg-time b { font-size: 1.5rem; font-weight: 900; }
+.rg-time small { font-size: 0.82rem; font-weight: 900; opacity: 0.62; }
+.rg-title { min-width: 0; }
+.rg-title h3 { margin: 0 0 6px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; }
+.rg-tags { display: flex; flex-wrap: wrap; gap: 5px; margin: 0; padding: 0; }
+.rg-tags span { padding: 2px 8px; border: 1px solid var(--k-panel-edge); border-radius: 2px; background: var(--k-key); font-size: 0.76rem; font-weight: 700; color: var(--k-ink-2); }
+.rg-status { display: inline-flex; align-items: center; gap: 7px; font-size: 0.84rem; font-weight: 800; white-space: nowrap; color: var(--st); }
+.rg-status--inactiv { color: var(--k-ink-3); }
+.rg-status i { width: 12px; height: 12px; border: 2px solid currentColor; border-radius: 50%; }
+.rg-status--activ i { background: currentColor; }
+.rg-status--completare i { background: linear-gradient(90deg, currentColor 50%, transparent 50%); }
+.rg-status--starteaza i { background: radial-gradient(circle, currentColor 36%, transparent 40%); }
+.rg-status--inlocuire i { border-radius: 2px; }
+
+.rg-when { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 14px; padding: 0 18px; }
+.rg-week { display: inline-flex; gap: 3px; }
+.rg-week i { display: grid; place-items: center; width: 25px; height: 25px; border: 1px solid var(--k-panel-edge); border-radius: 2px; background: var(--k-bg); font-style: normal; font-size: 0.72rem; font-weight: 800; color: var(--k-ink-3); }
+.rg-week i.on { border-color: var(--k-blue); background: var(--k-blue); color: #fff; }
+.rg-when__t { font-size: 0.95rem; font-weight: 700; }
+
+.rg-seats { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 14px; padding: 0 18px; }
+.rg-seats .cl-seg { width: 132px; height: 11px; }
+.rg-seats .cl-seg i { background: var(--k-ghost); }
+.rg-seats .cl-seg i.on { background: var(--k-ink); }
+.rg-seats__n { font-size: 0.9rem; font-weight: 700; color: var(--k-ink-2); }
+.rg-seats__n b { font-size: 1.15rem; font-weight: 800; color: var(--k-ink); font-variant-numeric: tabular-nums; }
+.rg-seats__m { font-size: 0.8rem; font-weight: 600; color: var(--k-ink-3); }
+.rg-hint { margin: 0 18px; padding: 8px 11px; border: 1px solid color-mix(in srgb, var(--st) 40%, var(--k-panel-edge)); border-radius: 2px; background: color-mix(in srgb, var(--st) 8%, var(--k-panel)); font-size: 0.86rem; font-weight: 600; line-height: 1.4; }
+.rg-empty, .rg-more { margin: 0 18px; font-size: 0.86rem; color: var(--k-ink-3); }
+
+.rg-students { display: grid; grid-template-columns: repeat(auto-fill, minmax(238px, 1fr)); gap: 0 20px; margin: 0; padding: 0 18px; list-style: none; border-top: 1px solid var(--k-rule); }
+.rg-s { display: grid; grid-template-columns: 12px minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--k-rule); }
+.rg-s__dot { width: 11px; height: 11px; border: 2px solid var(--k-ink-3); border-radius: 50%; }
+.rg-s__dot--activ { border-color: var(--k-green); background: var(--k-green); }
+.rg-s__dot--proba { border-style: dashed; border-color: var(--k-blue); }
+.rg-s__dot--proba_ok { border-color: var(--k-blue); background: var(--k-blue); }
+.rg-s__name { display: grid; min-width: 0; }
+.rg-s__name b { overflow: hidden; font-size: 0.93rem; font-weight: 700; text-overflow: ellipsis; white-space: nowrap; }
+.rg-s__name small { font-size: 0.74rem; font-weight: 600; color: var(--k-ink-3); }
+.rg-s__marks { display: inline-flex; gap: 2px; }
+.rg-m { width: 7px; height: 15px; border-radius: 1px; background: var(--k-ghost); }
+.rg-m--p { background: var(--k-ink); }
+.rg-m--a { background: transparent; box-shadow: inset 0 0 0 1.5px var(--k-ink); }
+.rg-m--m { background: color-mix(in srgb, var(--k-ink) 42%, transparent); }
+
+.rg-foot { display: flex; align-items: center; gap: 12px; padding: 4px 18px 0; }
+.rg-link { display: inline-flex; align-items: center; gap: 8px; height: 38px; padding: 0 15px; border: 1px solid var(--k-panel-edge); border-radius: var(--k-r-key); background: var(--k-key); box-shadow: 0 3px 0 0 var(--k-key-edge); font-size: 0.86rem; font-weight: 700; color: var(--k-ink); text-decoration: none; transition: transform 0.1s, box-shadow 0.1s, filter 0.1s; }
+.rg-link:hover { filter: brightness(0.95); color: var(--k-ink); background: var(--k-key); }
+.rg-link:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--k-key-edge); }
+.rg-link:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+@media (max-width: 560px) {
+  .rg-head { grid-template-columns: auto minmax(0, 1fr); }
+  .rg-status { grid-column: 1 / -1; }
+  .rg-students { grid-template-columns: 1fr; }
+}
+@media (prefers-reduced-motion: reduce) { .rg-link { transition: none; } }
