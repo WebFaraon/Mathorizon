@@ -1093,3 +1093,15 @@ body.ax .ax-sp__b[aria-pressed="true"] .ax-sp__ck { opacity: 1; transform: none;
 body.ax .ax-sp__b:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: -2px; z-index: 2; }
 body.ax .ax-sp__n { margin: 0; font-size: 0.76rem; font-weight: 600; line-height: 1.35; color: var(--ax-ink-3); }
 @media (prefers-reduced-motion: reduce) { body.ax .ax-sp__ck { transition: none; } }
+
+/* ---- the invitation of a group: code, and the message to forward ---- */
+.ax-invite { display: grid; gap: 12px; padding: 14px 16px; border: 1px solid var(--ax-rule-2); border-radius: 6px; background: var(--ax-hi-wash); }
+.ax-invite__code { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ax-invite__code span { font-size: 0.82rem; font-weight: 600; color: var(--ax-ink-3); }
+.ax-invite__code b { font-family: var(--ax-mono, ui-monospace, monospace); font-size: 1.5rem; font-weight: 800; letter-spacing: 0.14em; }
+.ax-invite__keys { display: flex; flex-wrap: wrap; gap: 8px; }
+.ax-invite__note, .ax-invite--none p, .ax-invite__soon { margin: 0; font-size: 0.84rem; line-height: 1.5; color: var(--ax-ink-3); }
+.ax-invite--none { background: none; border-style: dashed; }
+.ax-invite__soon { margin: 12px 0 0; }
+.dp-who__meet { display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 600; color: var(--ax-ok, #1f7a4d); }
+.dp-who__meet.is-off { color: var(--ax-yellow-ink); }

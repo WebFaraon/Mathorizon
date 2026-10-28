@@ -168,14 +168,22 @@
       </div>`;
   }
 
+  /* the code from an invitation link (classes.html?cod=ABC123); only six letters or digits count */
+  function _inviteCode() {
+    try {
+      const c = new URLSearchParams(location.search).get('cod');
+      return c && /^[A-Za-z0-9]{6}$/.test(c) ? c.toUpperCase() : '';
+    } catch (e) { return ''; }
+  }
+
   function renderLoginPrompt() {
     setRootContent(`
       <div class="cl-page">
         <div class="cl-empty cl-empty--solo">
           <div class="cl-empty__icon">${icon('lock', { size: 24 })}</div>
           <h2>Autentificare necesară</h2>
-          <p>Trebuie să fii autentificat pentru a accesa clasele.</p>
-          <a class="cl-key cl-key--primary" href="auth.html?from=classes.html">Conectează-te</a>
+          <p>${_inviteCode() ? 'Ai primit o invitație într-o clasă. Conectează-te sau creează un cont de elev, iar codul clasei te așteaptă.' : 'Trebuie să fii autentificat pentru a accesa clasele.'}</p>
+          <a class="cl-key cl-key--primary" href="auth.html?from=${encodeURIComponent('classes.html' + location.search)}">Conectează-te</a>
         </div>
       </div>
     `);
@@ -980,6 +988,13 @@
     const joinBtn   = document.getElementById('joinClassBtn');
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
+    const invited = _inviteCode();
+    if (invited && codeInput) {
+      codeInput.value = invited;
+      const hint = document.querySelector('.cl-join__txt p');
+      if (hint) hint.textContent = 'Codul din invitația ta e completat. Apasă „Trimite cererea”; intri în clasă după ce profesorul o acceptă.';
+      joinBtn?.focus({ preventScroll: true });
+    }
     codeInput?.addEventListener('keydown', e => { if (e.key === 'Enter') joinClass(); });
     document.querySelectorAll('[data-cancel-req]').forEach(btn => btn.addEventListener('click', () => cancelJoinRequest(btn.dataset.cancelReq)));
     document.querySelectorAll('.cl-block__leave').forEach(btn => {

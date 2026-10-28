@@ -407,6 +407,7 @@
       st.done = { registry: true, res: r };
       dlg.classList.add('is-ok');
       dlg.innerHTML = doneRegistryHTML(r);
+      if (mine) U.wireInvite(dlg, D.group(mine.id) || mine);
       paintAll(false);
       dlg.querySelector('[data-another]').focus();
     }
@@ -425,6 +426,7 @@
             ${solo ? `<li><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ</span><span>Fără oră de probă: decontarea începe de la prima lecție</span></li>` : `<li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>`}
             <li><span>${ico('users', 16)}</span><span>Managerul elevului: <b>${esc(m ? m.name : '')}</b></span></li>
           </ul>
+          ${mine ? U.inviteHTML(G) : '<p class="ax-invite__soon">Codul de invitație al grupei noi apare în câteva secunde în Repartizare, la grupa nouă, și în Înscriere.</p>'}
           <p class="in-ok__note">${solo ? 'Lecția individuală se decontează de la prima lecție.' : 'Prima lecție e gratuită.'} Dacă greșești, corectezi direct în registru.</p>
           <div class="in-ok__f">
             <button type="button" class="ax-btn ax-btn--primary" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>

@@ -72,6 +72,7 @@
     opts = opts || {};
     const wbs = (T.workbooks || []).filter(w => w.enabled !== false);
     const wbById = new Map(wbs.map(w => [w.id, w]));
+    const codeOf = new Map((T.classes || []).map(c => [c.reg_group_id, c.invite_code]));        // the invite code of the class of each group
     const groupsByWb = new Map();
     (T.groups || []).forEach(g => { if (!wbById.has(g.workbook_id)) return; (groupsByWb.get(g.workbook_id) || groupsByWb.set(g.workbook_id, []).get(g.workbook_id)).push(g); });
     const studentsByGroupRow = new Map();
@@ -105,7 +106,7 @@
       });
       const GR = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
       const teach = Object.keys(teachMap).map(subject => ({ subject, grades: teachMap[subject].sort((a, b) => GR.indexOf(a) - GR.indexOf(b)) }));
-      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id, _ssid: w.spreadsheet_id, _totalGid: td.totalSheetId == null ? null : td.totalSheetId, _availHours: (td.availability && td.availability.hours && td.availability.hours.length ? td.availability.hours : [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]).slice().sort((a, b) => a - b) };
+      const t = { id: 't' + String(w.id), first, last, name: w.teacher_name || `${last} ${first}`, subjects: teach.map(x => x.subject), projects: [projectId(w)], phone: '', availability, teach, _wb: w.id, _ssid: w.spreadsheet_id, _totalGid: td.totalSheetId == null ? null : td.totalSheetId, _meet: td.meet || null, _availHours: (td.availability && td.availability.hours && td.availability.hours.length ? td.availability.hours : [9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21]).slice().sort((a, b) => a - b) };
       teachers.push(t); tidOf.set(w.id, t.id);
     });
 
@@ -130,7 +131,7 @@
         const dated = lessons.filter(l => l.iso && l.topic).map(l => l.iso).sort();
         const first = dated[0] || null;
         const g = {
-          id: r.id, project: projectId(w, r), mode: r.mode || null, price: r.price == null ? null : Number(r.price), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
+          id: r.id, code: codeOf.get(r.id) || null, project: projectId(w, r), mode: r.mode || null, price: r.price == null ? null : Number(r.price), regime: r.summer || /\(vara\)/.test(plain(r.tab)) ? 'vara' : 'normal', subject: r.subject, grade: r.grade, profile: r.profile || null, level: r.level || '',
           size: r.format_size, status: groupStatus(r.state), teacher: tidOf.get(w.id), days: sl.days, start: sl.start, duration: sl.duration, room: sl.room,
           startDate: first || opts.today || null, createdAt: first || opts.today || null, _src: { wb: w.id, ssid: w.spreadsheet_id, sheet: r.sheet_id, tab: r.tab }, _irregular: sl.irregular, _state: r.state || '', _cab: sl.cab
         };

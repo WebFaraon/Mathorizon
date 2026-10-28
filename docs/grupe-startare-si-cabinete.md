@@ -81,3 +81,13 @@ Profesorul nu mai creează grupe: în Clase nu mai există „Creează clasă", 
 - **Coduri ghicite:** 10 coduri greșite în 15 minute blochează încercările (tabelul `class_join_attempts`).
 - **Sincronizarea:** o rulare deschisă și neînchisă (funcția oprită la mijloc) este marcată `failed` de următoarea rulare (`registru-sync`, necesită redeploy).
 - Diagnostic de acces (politicile RLS vechi nu sunt în migrări): `supabase/manual/diagnostic-scurgeri.sql`.
+
+## Linkul Google Meet al profesorului (2026-10-29)
+
+Lecțiile din primele luni sunt online. Fiecare profesor are un link Meet propriu, același la toate lecțiile (creat din Meet cu „întâlnire pentru mai târziu").
+
+- **Sursa:** registrul profesorului, fila Disponibilitate, caseta D16:H16 de lângă „Link Google Meet" (A16:C16). Sincronizarea o citește la fiecare modificare, ca restul registrului (`parse.mjs` → `teacher_data.meet`). Se acceptă doar adrese `meet.google.com` (cod `abc-defg-hij`, `/lookup/...` sau poreclă); adresa `meet.google.com/new`, alt domeniu sau text se resping și apar în consolă ca „Meet: link invalid / lipsește" (`supabase/functions/_shared/registru/meet.mjs`, `npm run check:meet`).
+- **Cine îl vede:** funcția `class_meet_link` (migrarea `20261029100000_link_meet_in_clasa.sql`). Profesorul clasei și adminul oricând. Un elev **activ** al clasei doar de la 10 minute înainte de lecție până cu 10 minute înainte de sfârșitul ei, după programul grupei din registru, în ora Chișinăului. În afara ferestrei primește doar „se deschide la…". Un elev inactiv, în așteptare sau străin nu primește nimic. Ora e a serverului.
+- **În aplicație:** butonul „Intră la lecție" în antetul clasei (`js/class-page.js`), care se reactivează singur când se deschide sau se închide fereastra. Profesorul vede „Deschide sala Meet", copierea linkului și un avertisment dacă linkul lipsește.
+- **Invitația elevului:** în consolă, în Înscriere (după înscrierea într-o grupă) și în panoul grupei din Repartizare, managerul vede codul clasei și copiază mesajul gata de trimis. Mesajul conține un link `…/classes.html?cod=ABC123`: elevul se loghează sau își face cont, ajunge în Clase cu codul completat și apasă „Trimite cererea". Cererea o acceptă profesorul.
+- **Limite:** pentru lecțiile ținute de un înlocuitor se folosește linkul profesorului grupei. Conturile Gmail personale au limită de 60 de minute la ședințele cu mai mult de 2 participanți (de verificat în Meet).

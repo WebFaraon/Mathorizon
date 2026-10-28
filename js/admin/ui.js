@@ -531,8 +531,39 @@
     </div>`;
   }
 
+  /* ---- the invitation of a group: the code of its class and the message the manager forwards to the student ---- */
+  function inviteText(g) {
+    const D = window.AdminData, t = D && D.teacher ? D.teacher(g.teacher) : null;
+    const link = location.origin + '/classes.html?cod=' + g.code;
+    const when = daysLabel((g.days || []).slice().sort((a, b) => a - b)) + ', ' + hh(g.start) + ' - ' + hh(g.start + g.duration);
+    const ROM = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10, XI: 11, XII: 12 };
+    const grade = ROM[String(g.grade).trim().toUpperCase()] ? 'a ' + ROM[String(g.grade).trim().toUpperCase()] + '-a' : g.grade;
+    return `Bună ziua! Ai fost înscris la ${g.subject}, clasa ${grade}, ${when}${t ? ', cu ' + t.name : ''}.\n\n` +
+      `Ca să intri la lecții:\n1. Deschide ${link}\n2. Loghează-te sau creează un cont de elev\n3. Apasă „Trimite cererea”. Codul clasei e completat singur: ${g.code}\n\n` +
+      'Când profesorul îți acceptă cererea, în clasă apare butonul „Intră la lecție” (Google Meet). Se activează cu 10 minute înainte de lecție.';
+  }
+  function inviteHTML(g) {
+    if (!g || !g.code) return `<div class="ax-invite ax-invite--none"><p>Grupa nu are încă cod de invitație. Apare singur când contul profesorului e legat de registru (Sincronizare) și registrul a fost citit, de obicei în câteva secunde.</p></div>`;
+    return `
+      <div class="ax-invite">
+        <div class="ax-invite__code"><span>Cod de invitație al clasei</span><b>${esc(g.code)}</b></div>
+        <div class="ax-invite__keys">
+          <button type="button" class="ax-btn ax-btn--sm ax-btn--primary" data-inv="msg">${ico('copy', 16)} Copiază invitația</button>
+          <button type="button" class="ax-btn ax-btn--sm" data-inv="code">${ico('copy', 16)} Copiază codul</button>
+        </div>
+        <p class="ax-invite__note">Elevul intră în clasă cu acest cod și îl acceptă profesorul. După aceea vede butonul „Intră la lecție” (Google Meet).</p>
+      </div>`;
+  }
+  function wireInvite(root, g) {
+    root.querySelectorAll('[data-inv]').forEach(b => b.addEventListener('click', () => {
+      const text = b.dataset.inv === 'code' ? g.code : inviteText(g);
+      const ok = () => toast(b.dataset.inv === 'code' ? 'Codul a fost copiat.' : 'Invitația a fost copiată. O trimiți elevului.');
+      try { navigator.clipboard.writeText(text).then(ok, () => toast('Nu am putut copia. Codul este ' + g.code + '.', 'warn')); } catch (e) { toast('Nu am putut copia. Codul este ' + g.code + '.', 'warn'); }
+    }));
+  }
+
   window.AdminUI = {
-    esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico,
+    esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico, inviteHTML, wireInvite, inviteText,
     readQuery, writeQuery, listParam, noRoom, roomPlate, statusPicker,
     multiSelect, enhanceSelects, suggest, countUp, stagger, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };

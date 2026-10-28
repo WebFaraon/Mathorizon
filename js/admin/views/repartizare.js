@@ -1097,6 +1097,11 @@
         <dt>Regim</dt><dd>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Școala de Vară</span>' : 'Regim normal'}</dd>
       </dl>
 
+      <section class="rp-dr__sec" aria-labelledby="rpInvT">
+        <h3 class="rp-dr__h" id="rpInvT">Invitația pentru elevi</h3>
+        ${U.inviteHTML(g)}
+      </section>
+
       <section class="rp-dr__sec" aria-labelledby="rpStT">
         <h3 class="rp-dr__h" id="rpStT">Statut</h3>
         ${U.statusPicker(g.status, D.GROUP_STATUS, 'rpStT')}
@@ -1135,6 +1140,7 @@
       actions: `<button type="button" class="ax-btn" data-close>Închide</button><button type="button" class="ax-btn ax-btn--primary" data-save>${ico('arrow-right', 16)} Mută grupa</button>`
     });
     dr.classList.add('rp-drawer');
+    U.wireInvite(dr, g);
 
     const hrs = dr.querySelector('#rpMvH');
     const res = dr.querySelector('#rpMvRes');

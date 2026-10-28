@@ -12,6 +12,7 @@
    validation report can show it.
    Plain ES module (read by Node through require, and by the Supabase Edge Function through import). */
 import { priceFor, lessonPay } from './pay.mjs';
+import { normalizeMeet } from './meet.mjs';
 
 export const plain = t => String(t == null ? '' : t).normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/\s+/g, ' ').trim();
 export const colLetter = c => { let s = ''; for (; c > 0; c = Math.floor((c - 1) / 26)) s = String.fromCharCode(65 + ((c - 1) % 26)) + s; return s; };
@@ -241,7 +242,18 @@ function parseAvailability(book, name) {
     }
     break;
   }
-  return { sheet: name, slots, teaches, hours: hoursSeen };
+  return { sheet: name, slots, teaches, hours: hoursSeen, meet: readMeet(s) };
+}
+
+/* The Google Meet link: the row whose first cell says "Link Google Meet" (A16:C16), and the first filled cell of the box next to it (D16:H16). The row is looked up
+   by its label, so a register with one more row above still works; D16 is where it sits in the template. */
+function readMeet(s) {
+  let row = 0;
+  for (let r = 1; r <= Math.min(s.rows, 60); r++) { if (plain(s.text(r, 1)).includes('google meet')) { row = r; break; } }
+  if (!row) row = 16;
+  let raw = '';
+  for (let c = 4; c <= 8 && !raw; c++) raw = s.text(row, c) || '';
+  return normalizeMeet(raw);
 }
 
 /* Total achitări: what was paid to the teacher, the salary cells, the tabs it adds up */

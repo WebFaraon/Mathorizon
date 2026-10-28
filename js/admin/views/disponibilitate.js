@@ -302,7 +302,7 @@
       <div class="dp-who">
         <div>
           <h2 class="dp-who__name">${esc(t.name)}</h2>
-          <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span></p>
+          <p class="dp-who__meta"><span>${esc(t.subjects.join(', '))}</span><span class="dp-who__lines">${lines(t)}</span><span class="dp-who__ph">${ico('phone', 14)} ${esc(t.phone)}</span>${t._meet !== undefined ? `<span class="dp-who__meet${t._meet && t._meet.url ? '' : ' is-off'}" title="${t._meet && t._meet.url ? esc(t._meet.url) : 'Se scrie în registrul profesorului, fila Disponibilitate, caseta de lângă Link Google Meet'}">${ico('video', 14)} ${t._meet && t._meet.url ? 'Meet: link completat' : t._meet && t._meet.why === 'invalid' ? 'Meet: link invalid' : t._meet && t._meet.why === 'new' ? 'Meet: link „întâlnire nouă”' : 'Meet: lipsește linkul'}</span>` : ''}</p>
         </div>
         <div class="dp-who__keys">
           ${window.AdminSheetLinks && window.AdminSheetLinks.teacherUrl(t.id) ? `<a class="ax-btn ax-btn--sm" href="${window.AdminSheetLinks.teacherUrl(t.id)}" target="_blank" rel="noopener">Registrul profesorului ${ico('book-open', 16)}</a>` : ''}

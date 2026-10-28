@@ -58,6 +58,7 @@ export function workbookData(m) {
     config: { manager: cfg.manager || [], cabinet: cfg.cabinet || [], subject: cfg.subject || [], studentStatus: cfg.studentStatus || [], groupState: cfg.groupState || [], newFormat: !!cfg.newFormat, broken: !!cfg.broken },
     teacher: {
       availability: av ? { slots: av.slots, teaches: av.teaches, hours: av.hours } : null,
+      meet: av && av.meet ? { url: av.meet.url, raw: av.meet.url ? undefined : av.meet.raw || undefined, why: av.meet.why || undefined } : null,       // the teacher's Google Meet link, clean, or why there is none
       availabilitySummer: avv ? { slots: avv.slots, teaches: avv.teaches, hours: avv.hours } : null,
       payments: (tot.payments || []).filter(p => p.sum != null).map(p => ({ dateText: p.dateText, iso: p.iso, sum: p.sum })),
       salaryDue: tot.salaryDue == null ? null : tot.salaryDue, paidTotal: tot.paidTotal == null ? null : tot.paidTotal, earnedTotal: tot.earnedTotal == null ? null : tot.earnedTotal

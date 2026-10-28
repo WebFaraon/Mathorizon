@@ -87,6 +87,59 @@
     }
   }
 
+  /* ─── The Google Meet room of the teacher, in the header ─────────────────────────────────────────────────────────────
+     The link is typed once in the teacher's register and the database gives it (class_meet_link): to the teacher whenever, to an active student only from
+     10 minutes before the lesson until 10 minutes before it ends. Outside that window the button is off and says when it opens. The page asks again when
+     the window opens or closes, and when the tab comes back to the screen. */
+  let _meetTimer = null;
+  const _meetWhen = iso => new Date(iso).toLocaleString('ro-RO', { weekday: 'long', hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Chisinau' });
+  const _meetHour = iso => new Date(iso).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Chisinau' });
+
+  async function _loadMeet() {
+    const box = document.getElementById('cdMeet');
+    if (!box) return;
+    if (_meetTimer) { clearTimeout(_meetTimer); _meetTimer = null; }
+    const btn = document.getElementById('cdMeetBtn'), note = document.getElementById('cdMeetNote'), label = document.getElementById('cdMeetLabel'), copy = document.getElementById('cdMeetCopy');
+    let r = null;
+    try {
+      const { data, error } = await BMAuth.supabase.rpc('class_meet_link', { p_class: classData.id });
+      if (!error) r = data;
+    } catch (e) { /* the migration is not run yet: no block */ }
+    if (!r || r.status === 'denied') { box.hidden = true; return; }
+    const teacher = BMAuth.role === 'profesor';
+    box.hidden = false;
+    box.className = 'cd-meet cd-meet--' + r.status;
+    copy.hidden = true;
+    const again = iso => {
+      const ms = new Date(iso).getTime() - Date.now() + 1500;
+      if (ms > 0) _meetTimer = setTimeout(_loadMeet, Math.min(ms, 6 * 3600 * 1000));
+    };
+    if (r.status === 'open') {
+      btn.href = r.url; btn.removeAttribute('aria-disabled'); btn.hidden = false;
+      if (r.teacher || teacher) {
+        label.textContent = 'Deschide sala Meet';
+        note.textContent = 'Tu vezi linkul oricând. Elevii activi îl primesc cu 10 minute înainte de lecție și îl pierd cu 10 minute înainte de sfârșit.';
+        copy.hidden = false;
+        copy.onclick = () => { try { navigator.clipboard.writeText(r.url).then(() => BM.toast('Linkul Meet a fost copiat.', 'success'), () => BM.toast('Linkul este: ' + r.url, 'info')); } catch (e) { BM.toast('Linkul este: ' + r.url, 'info'); } };
+      } else {
+        label.textContent = 'Intră la lecție';
+        note.textContent = r.closes_at ? 'Sala e deschisă până la ' + _meetHour(r.closes_at) + '.' : 'Sala e deschisă.';
+        if (r.closes_at) again(r.closes_at);
+      }
+    } else if (r.status === 'closed') {
+      btn.removeAttribute('href'); btn.setAttribute('aria-disabled', 'true'); btn.hidden = false;
+      label.textContent = 'Intră la lecție';
+      note.textContent = r.opens_at ? 'Se deschide cu 10 minute înainte de lecție: ' + _meetWhen(r.opens_at) + '.' : 'Se deschide cu 10 minute înainte de lecție.';
+      if (r.opens_at) again(r.opens_at);
+    } else {                                                   // no_link
+      btn.hidden = true;
+      note.textContent = teacher
+        ? 'Linkul Meet nu e completat' + (r.why === 'invalid' ? ' corect (trebuie să înceapă cu meet.google.com)' : r.why === 'new' ? ' corect (adresa „meet.google.com/new” deschide o sală nouă la fiecare click)' : '') + '. Scrie-l în registrul tău, fila Disponibilitate, în caseta de lângă „Link Google Meet”.'
+        : 'Profesorul nu a adăugat încă linkul de lecție. Întreabă managerul tău.';
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('cdMeet')) _loadMeet(); });
+
   /* ─── Access control ────────────────────────────────────────────── */
   async function checkAccess(classId) {
     showLoading('Se verifică accesul...');
@@ -508,6 +561,12 @@
                     ${icon('eye', { size: 14 })} Vezi profilul
                   </button>
                 </div>
+                ${classData.reg_group_id ? `
+                <div class="cd-meet" id="cdMeet" hidden>
+                  <a class="cd-meet__btn" id="cdMeetBtn" target="_blank" rel="noopener noreferrer" aria-disabled="true">${icon('video', { size: 18 })} <span id="cdMeetLabel">Intră la lecție</span></a>
+                  <button type="button" class="cd-meet__copy" id="cdMeetCopy" hidden title="Copiază linkul Meet" aria-label="Copiază linkul Meet">${icon('copy', { size: 16 })}</button>
+                  <span class="cd-meet__note" id="cdMeetNote" role="status" aria-live="polite"></span>
+                </div>` : ''}
               </div>
 
               <div class="cd-header__side">
@@ -572,6 +631,7 @@
       else _openTeacherProfileModal();
     });
 
+    _loadMeet();
     _setupRealtime();
   }
 

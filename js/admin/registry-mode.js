@@ -87,8 +87,10 @@
     // read AFTER the groups: a substitute's tab that the cron has just read is always already in this list (the command saves it right after making the tab)
     const [replacements, replacement_items] = await replacementTables(access);
     const console_rooms = await fetchAll('console_rooms', 'num,seats,floor', 'num.asc', access).catch(() => []);        // optional: a platform without the migration has none
+    // the invite code of each group's class (the database makes the class when the teacher's account is tied to the register): the manager forwards it to the students
+    const classes = await fetchAll('classes', 'reg_group_id,invite_code', 'reg_group_id.asc', access, 'reg_group_id=not.is.null').catch(() => []);
     stamp = latestRead(workbooks);
-    lastT = { workbooks, groups, students, lessons, replacements, replacement_items, console_rooms };
+    lastT = { workbooks, groups, students, lessons, replacements, replacement_items, console_rooms, classes };
     return lastT;
   }
   /* the replacements and the money lines of each; a platform without the migration simply has none */
