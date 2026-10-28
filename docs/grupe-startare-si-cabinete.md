@@ -67,3 +67,7 @@ Migrarea `supabase/migrations/20261016100000_cereri_alaturare_clase.sql` schimb�
 - La acceptare, pentru o clasă făcută dintr-o grupă din registru, profesorul poate lega elevul de numele lui din registru (`class_members.reg_student_name`). Sugestia vine din asemănarea numelor, nelegată automat. Legarea se poate face și mai târziu, din coloana „Registru" din Sumar (`set_member_reg_link`).
 - Un elev legat primește din registru, la fiecare sincronizare (`reg_class_sync_people`, apelată la sfârșitul `reg_apply_group`): statutul (Transferat sau Inactiv în registru = Inactiv în clasă) și prezențele (P și G = prezent; A, M și B = absent), scrise ca sesiuni și înregistrări în Catalog. Registrul e singura sursă: o prezență pusă de mână în Catalog pentru un elev legat se rescrie la următoarea sincronizare.
 - Nu e făcută: mutarea automată a elevului în clasa altei grupe când e transferat în registru.
+
+## Clasele vin doar din registru (2026-10-28)
+
+Profesorul nu mai creează grupe: în Clase nu mai există „Creează clasă", „Clase pe platformă" și ștergerea unei clase. Grupa o face managerul sau adminul în consolă, ajunge în registrul profesorului, iar clasa o face baza de date (vezi secțiunea de mai sus). `supabase/migrations/20261028100000_clase_doar_din_registru.sql` oprește orice inserare în `classes` din client. Clasele făcute de mână înainte (fără `reg_group_id`) se șterg cu `supabase/manual/sterge-clasele-fara-registru.sql`, rulat pe rând de utilizator (stergerea cascadează mesaje, teme, simulări, catalog, membri).

@@ -27,7 +27,6 @@
   let _painted = false;
   // Invite code of the class that was just created: its row lands
   // highlighted at the top of the register.
-  let _freshCode = null;
   // The teacher's groups from his register (js/classes-registry.js), or null when the account has no register linked.
   let _reg = null;
 
@@ -120,7 +119,7 @@
         document.documentElement.style.overflow = '';
         document.body.style.overflow = '';
         // The row that opened this may be gone (deleted, left): fall back to the page's main key.
-        const back = opener && document.contains(opener) ? opener : document.querySelector('#createClassBtn, #inviteCodeInput');
+        const back = opener && document.contains(opener) ? opener : document.querySelector('#inviteCodeInput');
         if (back) back.focus({ preventScroll: true });
         resolve(result);
       };
@@ -180,14 +179,6 @@
         </div>
       </div>
     `);
-  }
-
-  /* ─── Invite code generator ────────────────────────────────────── */
-  function generateInviteCode() {
-    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) code += chars[Math.floor(Math.random() * chars.length)];
-    return code;
   }
 
   /* ─── Relative date ─────────────────────────────────────────────── */
@@ -414,14 +405,15 @@
       </section>`;
   }
 
-  /* One group of the register, as small as it can be: the way to the right group has to be quick. The time on a small display, what the group is, the week in seven
-     keys, how full it is and where it stands (Se completează, Startează, Activ). The whole block opens the platform class (Sumar, Mesaje, Teme, Simulări, Catalog),
-     where the students and their statuses are; the register has its own key. */
+  /* One group of the register. The whole block opens the platform class (Sumar, Mesaje, Teme, Simulări, Catalog), where the students and their statuses are.
+     Four rows and no boxes: when it meets (the time on a small display), what it is (subject, class, level, format, cabinet, as two plain lines), the week in seven keys,
+     where it stands (Se completează, Startează, Activ) with how full it is. The invite code and the register are a quiet footer. */
   function regCardHTML(g, idx) {
     const days = _regDays(g), t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
     const WK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
     const week = WK.map((l, i) => `<i class="${g.days.includes(i + 1) ? 'on' : ''}" title="${DAY_ORDER[i]}">${l}</i>`).join('');
-    const tags = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile, [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet')].filter(Boolean).join(' · '), g.summer ? 'Vară' : ''].filter(Boolean);
+    const what = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
+    const where = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet'), g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
     const segs = Math.min(g.size || 0, 12), lit = g.size ? Math.min(segs, Math.round(g.enrolled / g.size * segs)) : 0;
     let hint = '';
     if (g.status.id === 'completare' && g.need) hint = g.enrolled >= g.need ? 'Are destui elevi: pornește în curând.' : `Mai trebuie ${_ro(g.need - g.enrolled, 'elev', 'elevi')} ca să pornească (minim ${g.need}).`;
@@ -435,13 +427,15 @@
           <span class="rg-head">
             <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? `<b>${_timeHTML(t0)}</b><small>${_timeHTML(t1)}</small>` : '<b>-</b>'}</span>
             <span class="rg-title">
-              <span class="rg-line"><b class="rg-name">${BM.esc(g.subject)}</b><span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span></span>
-              <span class="rg-tags">${tags.map(x => `<span>${BM.esc(x)}</span>`).join('')}</span>
+              <b class="rg-name">${BM.esc(g.subject)}</b>
+              ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
+              ${where ? `<span class="rg-where">${BM.esc(where)}</span>` : ''}
             </span>
           </span>
-          <span class="rg-when">
-            <span class="rg-week" role="img" aria-label="Zilele: ${days.join(', ') || 'neprogramată'}">${week}</span>
-            <span class="rg-seats"${hint ? ` title="${BM.esc(hint)}"` : ''}>${g.size ? segsHTML(lit, segs) : ''}<span class="rg-seats__n"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}</span></span>
+          <span class="rg-week" role="img" aria-label="Zilele: ${days.join(', ') || 'neprogramată'}">${week}</span>
+          <span class="rg-state"${hint ? ` title="${BM.esc(hint)}"` : ''}>
+            <span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
+            <span class="rg-seats">${g.size ? segsHTML(lit, segs) : ''}<span class="rg-seats__n"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span></span>
           </span>
         </a>
         <span class="rg-foot">
@@ -477,10 +471,9 @@
     setRootContent(`
       <div class="${pageClass()}">
         <header class="cl-head">
-          ${headInfoHTML(hasReg ? 'Grupele tale din registru, cu elevii lor. Mai jos, clasele de pe platformă, cu cod de invitație.' : 'Aici sunt grupele tale, fiecare cu programul, cifrele ei și codul de invitație pe care îl trimiți elevilor.')}
+          ${headInfoHTML('Grupele tale, cu programul și elevii lor. Apasă pe o grupă ca să intri în clasa ei.')}
           <div class="cl-head__keys">
             ${has ? _dayFilterHTML() : ''}
-            <button type="button" class="cl-key cl-key--primary" id="createClassBtn">${icon('plus', { size: 16 })} Creează clasă</button>
           </div>
         </header>
         <div id="clReqRoot"></div>
@@ -505,14 +498,6 @@
         ${has ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
         ${hasReg ? regSectionHTML() : ''}
         ${hasReg ? `
-          <section class="cl-sect cl-sect--platform" aria-labelledby="clPlT">
-            <header class="cl-sect__h"><h2 id="clPlT">Clase pe platformă</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
-            <p class="cl-sect__sub">Clasele făcute de tine aici, în afara registrului: elevii intră cu codul de invitație, primesc teme și scriu în clasă.</p>
-            ${classes.length ? `
-              <ol class="cl-blocks" id="classesGrid" aria-label="Clasele de pe platformă">
-                ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}
-              </ol>` : `<p class="cl-sect__none">Nicio clasă pe platformă. Apasă „Creează clasă” când vrei una.</p>`}
-          </section>
           <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
             <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
             <h2>Nicio grupă în ziua selectată</h2>
@@ -527,15 +512,8 @@
             <p>Încearcă altă zi sau șterge filtrul.</p>
           </div>` : teacherEmpty()}
       </div>
-      ${createModalHTML()}
     `);
-    _freshCode = null;
-    document.querySelectorAll('#createClassBtn, #createFirstBtn').forEach(b => b.addEventListener('click', openCreateModal));
-    document.querySelectorAll('.cl-block__del').forEach(btn => {
-      btn.addEventListener('click', () => deleteClass(btn.dataset.id, btn.dataset.name));
-    });
     _wireCopyKeys();
-    _initCustomControls();
     if (has) { _wireDayFilter(); _applyDayFilter(); startTodayTicker(); }
     runStatus();
     _painted = true;
@@ -847,13 +825,12 @@
 
   function teacherEmpty() {
     return `
-      <section class="cl-sheet cl-sheet--empty" aria-label="Registrul claselor">
+      <section class="cl-sheet cl-sheet--empty" aria-label="Grupele tale">
         <div class="cl-ghosts" aria-hidden="true"><i></i><i></i><i></i></div>
         <div class="cl-empty">
           <div class="cl-empty__icon">${icon('school', { size: 24 })}</div>
-          <h2>Nicio clasă creată</h2>
-          <p>Creează prima clasă și trimite codul de invitație elevilor tăi.</p>
-          <button type="button" class="cl-key cl-key--primary" id="createFirstBtn">${icon('plus', { size: 16 })} Creează prima clasă</button>
+          <h2>Nicio grupă încă</h2>
+          <p>Grupele apar aici singure, imediat ce managerul le creează în registrul tău. Dacă ai grupe în registru și nu le vezi, cere administratorului să îți lege contul de registru.</p>
         </div>
       </section>
     `;
@@ -871,7 +848,7 @@
     const perHour = st && st.avgPresent != null ? st.avgPresent.toFixed(1) : null;
     const rate = st && st.rate != null ? st.rate : null;
     return `
-      <li class="cl-block${cls.invite_code === _freshCode ? ' cl-block--new' : ''}" style="--i:${idx}"
+      <li class="cl-block" style="--i:${idx}"
           data-id="${cls.id}" data-days="${info.days.join(',')}" data-filter-row>
         <div class="cl-block__top">
           <span class="cl-block__no">${String(idx + 1).padStart(2, '0')}</span>
@@ -880,8 +857,6 @@
             ${sub.length ? `<span class="cl-block__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
             ${cls.description ? `<span class="cl-block__desc">${BM.esc(cls.description)}</span>` : ''}
           </div>
-          <button type="button" class="cl-block__del" data-id="${cls.id}" data-name="${BM.esc(cls.name)}"
-                  aria-label="Șterge clasa ${BM.esc(info.subject)}" title="Șterge clasa">${icon('x', { size: 16 })}</button>
         </div>
 
         <div class="cl-block__meta">
@@ -934,614 +909,6 @@
         });
       });
     });
-  }
-
-  /* ─── Create modal ─────────────────────────────────────────────── */
-  function buildTimeOptions() {
-    let opts = '';
-    for (let h = 9; h <= 21; h++) {
-      const hh = String(h).padStart(2, '0');
-      opts += `<option value="${hh}:00">${hh}:00</option>`;
-      if (h < 21) opts += `<option value="${hh}:30">${hh}:30</option>`;
-    }
-    return opts;
-  }
-
-  /* The form's source of truth stays a set of native <select>s (same ids
-     as always). Materie and Ora are dressed as a dropdown (cm-sel); the
-     short lists (seats, grade, level) are dressed as a row of keys
-     (cm-keys). Both write to the select and dispatch 'change'. */
-
-  let _controlsWired = false;
-
-  function _selSync(sel) {
-    const wrap = sel.previousElementSibling;
-    if (!wrap) return;
-    if (wrap.classList.contains('cm-sel')) {
-      const opt = sel.options[sel.selectedIndex];
-      const display = wrap.querySelector('.cm-sel__display');
-      display.textContent = opt ? opt.text : '';
-      wrap.classList.toggle('is-placeholder', !sel.value);
-      wrap.querySelectorAll('.cm-sel__opt').forEach(o => {
-        const on = !!sel.value && o.dataset.value === sel.value;
-        o.classList.toggle('is-on', on);
-        o.setAttribute('aria-selected', String(on));
-      });
-    } else if (wrap.classList.contains('cm-keys')) {
-      wrap.querySelectorAll('.cm-opt').forEach(b => {
-        const on = b.dataset.value === sel.value;
-        b.classList.toggle('is-on', on);
-        b.setAttribute('aria-pressed', String(on));
-      });
-    }
-  }
-
-  function _makeSelect(sel) {
-    const wrap = document.createElement('div');
-    wrap.className = 'cm-sel is-placeholder';
-
-    const trigger = document.createElement('button');
-    trigger.type = 'button';
-    trigger.className = 'cm-sel__trigger';
-    trigger.setAttribute('aria-haspopup', 'listbox');
-    trigger.setAttribute('aria-expanded', 'false');
-    trigger.innerHTML = `<span class="cm-sel__display"></span><span class="cm-sel__arrow">${icon('chevron-down', { size: 16 })}</span>`;
-
-    const list = document.createElement('div');
-    list.className = 'cm-sel__list';
-    list.setAttribute('role', 'listbox');
-
-    [...sel.options].forEach(opt => {
-      if (!opt.value) return;
-      const item = document.createElement('div');
-      item.className = 'cm-sel__opt';
-      item.setAttribute('role', 'option');
-      item.dataset.value = opt.value;
-      item.textContent = opt.text;
-      item.addEventListener('click', e => {
-        e.stopPropagation();
-        sel.value = opt.value;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
-        _closeAllSelects();
-        trigger.focus();
-      });
-      list.appendChild(item);
-    });
-
-    wrap.appendChild(trigger);
-    wrap.appendChild(list);
-
-    trigger.addEventListener('click', e => {
-      e.stopPropagation();
-      const wasOpen = wrap.classList.contains('cm-sel--open');
-      _closeAllSelects();
-      if (!wasOpen) _openSelect(wrap, trigger, list);
-    });
-    trigger.addEventListener('keydown', e => {
-      const open = wrap.classList.contains('cm-sel--open');
-      const opts = [...list.querySelectorAll('.cm-sel__opt')];
-      if (['ArrowDown', 'ArrowUp', 'Enter', ' '].includes(e.key) && !open) {
-        e.preventDefault();
-        _openSelect(wrap, trigger, list);
-        return;
-      }
-      if (!open) return;
-      let cur = opts.findIndex(o => o.classList.contains('is-active'));
-      if (e.key === 'ArrowDown') cur = Math.min(opts.length - 1, cur + 1);
-      else if (e.key === 'ArrowUp') cur = Math.max(0, cur - 1);
-      else if (e.key === 'Enter' || e.key === ' ') {
-        e.preventDefault();
-        if (cur >= 0) opts[cur].click();
-        return;
-      } else if (e.key === 'Escape') {
-        e.preventDefault(); e.stopPropagation();
-        _closeAllSelects();
-        return;
-      } else return;
-      e.preventDefault();
-      opts.forEach(o => o.classList.remove('is-active'));
-      opts[cur].classList.add('is-active');
-      opts[cur].scrollIntoView({ block: 'nearest' });
-    });
-
-    sel.style.display = 'none';
-    sel.parentNode.insertBefore(wrap, sel);
-    _selSync(sel);
-  }
-
-  /* Fixed-position the list off the trigger's viewport rect so it escapes
-     clipping by the scrollable modal body. Flips upward if there's no
-     room below. */
-  function _openSelect(wrap, trigger, list) {
-    wrap.classList.add('cm-sel--open');
-    trigger.setAttribute('aria-expanded', 'true');
-    const rect   = trigger.getBoundingClientRect();
-    const maxH   = 232;
-    const below  = window.innerHeight - rect.bottom;
-    const openUp = below < maxH + 8 && rect.top > below;
-    list.style.left  = rect.left + 'px';
-    list.style.width = rect.width + 'px';
-    if (openUp) {
-      list.style.top    = 'auto';
-      list.style.bottom = (window.innerHeight - rect.top + 6) + 'px';
-    } else {
-      list.style.bottom = 'auto';
-      list.style.top    = (rect.bottom + 6) + 'px';
-    }
-    list.querySelectorAll('.is-active').forEach(o => o.classList.remove('is-active'));
-    list.querySelector('.is-on')?.scrollIntoView({ block: 'nearest' });
-  }
-
-  function _closeAllSelects() {
-    document.querySelectorAll('.cm-sel--open').forEach(w => {
-      w.classList.remove('cm-sel--open');
-      w.querySelector('.cm-sel__trigger')?.setAttribute('aria-expanded', 'false');
-    });
-  }
-
-  function _makeKeys(sel) {
-    const grp = document.createElement('div');
-    grp.className = 'cm-keys';
-    grp.dataset.for = sel.id;
-    grp.setAttribute('role', 'group');
-    [...sel.options].forEach(opt => {
-      if (!opt.value) return;
-      const b = document.createElement('button');
-      b.type = 'button';
-      b.className = 'cm-opt';
-      b.dataset.value = opt.value;
-      b.textContent = opt.dataset.label || opt.text;
-      b.setAttribute('aria-pressed', 'false');
-      b.addEventListener('click', () => {
-        // Pressing the lit key again lets go of it (the optional level
-        // needs that; for the required fields it just shows them empty).
-        sel.value = sel.value === opt.value ? '' : opt.value;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
-      });
-      grp.appendChild(b);
-    });
-    sel.style.display = 'none';
-    sel.parentNode.insertBefore(grp, sel);
-    _selSync(sel);
-  }
-
-  // Scrolling INSIDE an open list also fires a native 'scroll' event —
-  // since it's captured (not bubbled), a plain document-level capture
-  // listener can't tell that apart from the page/modal scrolling
-  // underneath it, and would close the list the instant you tried to
-  // scroll through its options. Ignore scrolls whose target is the list
-  // itself; only page/ancestor scrolls should close it.
-  function _onDocumentScroll(e) {
-    if (e.target?.closest && e.target.closest('.cm-sel__list')) return;
-    _closeAllSelects();
-  }
-
-  function _initCustomControls() {
-    document.querySelectorAll('.cm select[data-ui="dropdown"]').forEach(_makeSelect);
-    document.querySelectorAll('.cm select[data-ui="keys"]').forEach(_makeKeys);
-    document.querySelectorAll('.cm select').forEach(sel => sel.addEventListener('change', () => { _selSync(sel); updatePreview(); }));
-    if (!_controlsWired) {
-      _controlsWired = true;
-      document.addEventListener('click', _closeAllSelects);
-      document.addEventListener('scroll', _onDocumentScroll, true);
-    }
-  }
-
-  const FIELD_IDS = ['classMaterieInput', 'classOraInput', 'classMaxEleviInput', 'classGradeInput', 'classMathLevelInput'];
-
-  function createModalHTML() {
-    const step = (n, title, inner, field) => `
-      <section class="cm-step" data-step="${n}">
-        <h3 class="cm-step__h"><span class="cm-step__n">${n}</span>${title}</h3>
-        ${inner}
-      </section>`;
-    const fld = (key, label, inner, hint = '') => `
-      <div class="cm-field" data-field="${key}">
-        <span class="cm-label" id="cmL-${key}">${label}</span>
-        ${inner}
-        ${hint ? `<span class="cm-hint">${hint}</span>` : ''}
-      </div>`;
-    return `
-      <div class="cm" id="classesModal" style="display:none" role="dialog" aria-modal="true" aria-labelledby="cmTitle">
-        <div class="cm__backdrop" id="classesModalBackdrop"></div>
-        <div class="cm__dialog">
-          <header class="cm__head">
-            <h2 class="cm__title" id="cmTitle">Creează o clasă</h2>
-            <button type="button" class="cm__x" id="closeModalBtn" aria-label="Închide">${icon('x', { size: 18 })}</button>
-          </header>
-
-          <div class="cm__body">
-            <div class="cm__form">
-              ${step(1, 'Materie', fld('materie', 'Ce predai în această grupă?', `
-                <select id="classMaterieInput" data-ui="dropdown" aria-labelledby="cmL-materie">
-                  <option value="">Selectează materia</option>
-                  <option value="Matematică">Matematică</option>
-                  <option value="Limba Română">Limba Română</option>
-                  <option value="Istorie">Istorie</option>
-                  <option value="Geografie">Geografie</option>
-                  <option value="Chimie">Chimie</option>
-                  <option value="Limba Engleză">Limba Engleză</option>
-                  <option value="Biologie">Biologie</option>
-                </select>`))}
-
-              ${step(2, 'Program', `
-                ${fld('zi', 'Ziua lecției', `
-                  <div class="cm-days" id="classZiuaPicker" role="group" aria-labelledby="cmL-zi">
-                    ${DAY_ORDER.map(d => `<button type="button" class="cm-day" data-day="${d}" aria-pressed="false" aria-label="${d}" title="${d}">${DAY_SHORT[d]}</button>`).join('')}
-                  </div>`, 'Poți alege 2 zile dacă grupa are lecții de două ori pe săptămână.')}
-                <div class="cm-row">
-                  ${fld('ora', 'Ora', `
-                    <select id="classOraInput" data-ui="dropdown" aria-labelledby="cmL-ora">
-                      <option value="">Alege ora</option>
-                      ${buildTimeOptions()}
-                    </select>`)}
-                  ${fld('tip', 'Tip lecție', `
-                    <div class="cm-keys cm-keys--2" id="classTipPicker" role="group" aria-labelledby="cmL-tip">
-                      <button type="button" class="cm-opt cm-opt--ico" data-tip="online" aria-pressed="false">${icon('monitor', { size: 16 })} Online</button>
-                      <button type="button" class="cm-opt cm-opt--ico" data-tip="offline" aria-pressed="false">${icon('school', { size: 16 })} Offline</button>
-                    </div>`)}
-                </div>`)}
-
-              ${step(3, 'Grupa', `
-                ${fld('max', 'Număr maxim de elevi', `
-                  <select id="classMaxEleviInput" data-ui="keys" aria-labelledby="cmL-max">
-                    <option value="">Număr</option>
-                    <option value="1" data-label="1">1</option>
-                    <option value="2" data-label="2">2</option>
-                    <option value="3" data-label="3">3</option>
-                    <option value="4" data-label="4">4</option>
-                    <option value="5" data-label="5">5</option>
-                    <option value="6" data-label="6">6</option>
-                  </select>`, '1 înseamnă lecție individuală.')}
-                <div class="cm-row cm-row--grade">
-                  ${fld('grade', 'Clasa elevilor', `
-                    <select id="classGradeInput" data-ui="keys" aria-labelledby="cmL-grade">
-                      <option value="">Clasa</option>
-                      ${[5, 6, 7, 8, 9, 10, 11, 12].map(n => `<option value="a ${n}-a" data-label="${n}">a ${n}-a</option>`).join('')}
-                    </select>`)}
-                  ${fld('level', 'Nivel matematică <em>(opțional)</em>', `
-                    <select id="classMathLevelInput" data-ui="keys" aria-labelledby="cmL-level">
-                      <option value="">Nivel</option>
-                      ${['5-6', '6-7', '7-8', '9-10'].map(v => `<option value="${v}">${v}</option>`).join('')}
-                    </select>`)}
-                </div>`)}
-            </div>
-
-            <aside class="cm__preview" aria-label="Previzualizare">
-              <div class="cm-lcd">
-                <span class="cm-lcd__kicker">Previzualizare</span>
-                <div class="cm-lcd__subject" id="cmSubj"></div>
-                <div class="cm-lcd__when">
-                  <span class="cm-lcd__days" id="cmDays"></span>
-                  <span class="cm-lcd__time" id="cmTime"></span>
-                </div>
-                <div class="cm-lcd__seats">
-                  <span class="cm-slots" id="cmSlots" aria-hidden="true"></span>
-                  <span id="cmSeatsTxt"></span>
-                </div>
-                <div class="cm-lcd__tags" id="cmTags"></div>
-              </div>
-              <div class="cm-name">
-                <span>Denumire salvată</span>
-                <b id="classNamePreview">Încă necompletată</b>
-              </div>
-              <div class="cm-progress" aria-live="polite">
-                <span class="cm-progress__segs" id="cmSegs" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>
-                <span class="cm-progress__txt" id="cmProgTxt">0 din 6 completate</span>
-              </div>
-            </aside>
-          </div>
-
-          <footer class="cm__foot">
-            <button type="button" class="cl-key" id="cancelCreateBtn">Anulează</button>
-            <button type="button" class="cl-key cl-key--primary" id="confirmCreateBtn">${icon('plus', { size: 16 })} Creează clasa</button>
-          </footer>
-        </div>
-      </div>
-    `;
-  }
-
-  // Reads selection straight off the keys' DOM state rather than keeping a
-  // parallel JS array — the day picker has no hidden <select>, this *is*
-  // its source of truth. Always returned in weekday order regardless of
-  // click order, so "Marți/Joi" never renders as "Joi/Marți".
-  function _getSelectedDays() {
-    const picker = document.getElementById('classZiuaPicker');
-    if (!picker) return [];
-    const selected = [...picker.querySelectorAll('.cm-day.is-on')].map(b => b.dataset.day);
-    return DAY_ORDER.filter(d => selected.includes(d));
-  }
-
-  function _getSelectedTip() {
-    return document.getElementById('classTipPicker')?.querySelector('.cm-opt.is-on')?.dataset.tip || '';
-  }
-
-  function buildGeneratedName() {
-    const mat = document.getElementById('classMaterieInput')?.value || '';
-    const zi  = _getSelectedDays().join('/');
-    const ora = document.getElementById('classOraInput')?.value || '';
-    if (!mat && !zi && !ora) return 'Încă necompletată';
-    const parts = [mat, zi, ora].filter(Boolean);
-    return parts.join(' · ');
-  }
-
-  // Which required fields still have no answer, in the order they sit.
-  function _missingFields() {
-    const val = id => document.getElementById(id)?.value || '';
-    const miss = [];
-    if (!val('classMaterieInput')) miss.push('materie');
-    if (!_getSelectedDays().length) miss.push('zi');
-    if (!val('classOraInput')) miss.push('ora');
-    if (!_getSelectedTip()) miss.push('tip');
-    if (!val('classMaxEleviInput')) miss.push('max');
-    if (!val('classGradeInput')) miss.push('grade');
-    return miss;
-  }
-
-  // A preview line refreshes with a short blink, like a display updating.
-  function _setLine(el, text, isTime) {
-    if (!el || el.dataset.v === text) return;
-    el.dataset.v = text;
-    if (isTime) el.innerHTML = _timeHTML(text); else el.textContent = text;
-    if (reduced) return;
-    el.classList.remove('cm-tick');
-    void el.offsetWidth;
-    el.classList.add('cm-tick');
-  }
-
-  function updatePreview() {
-    const val = id => document.getElementById(id)?.value || '';
-    const days = _getSelectedDays();
-    const tip = _getSelectedTip();
-    const max = parseInt(val('classMaxEleviInput'), 10) || 0;
-    const grade = val('classGradeInput');
-    const level = val('classMathLevelInput');
-
-    const subj = document.getElementById('cmSubj');
-    _setLine(subj, val('classMaterieInput') || 'Materia');
-    subj?.classList.toggle('is-empty', !val('classMaterieInput'));
-    const daysEl = document.getElementById('cmDays');
-    _setLine(daysEl, days.length ? days.map(d => DAY_SHORT[d]).join(' · ') : 'Ziua');
-    daysEl?.classList.toggle('is-empty', !days.length);
-    const timeEl = document.getElementById('cmTime');
-    _setLine(timeEl, val('classOraInput') || '00:00', true);
-    timeEl?.classList.toggle('is-empty', !val('classOraInput'));
-
-    const slots = document.getElementById('cmSlots');
-    if (slots) {
-      const n = max || 6;
-      if (slots.children.length !== n || slots.dataset.set !== String(!!max)) {
-        slots.innerHTML = '<i></i>'.repeat(n);
-        slots.dataset.set = String(!!max);
-      }
-      slots.classList.toggle('is-empty', !max);
-    }
-    _setLine(document.getElementById('cmSeatsTxt'), max ? (max === 1 ? 'lecție individuală' : `${max} locuri`) : 'locuri');
-
-    const tags = [tip === 'online' ? 'Online' : tip === 'offline' ? 'Offline' : '', grade ? `Clasa ${grade}` : '', level ? `Nivel ${level}` : ''].filter(Boolean);
-    const tagsEl = document.getElementById('cmTags');
-    if (tagsEl) tagsEl.innerHTML = tags.length ? tags.map(t => `<span>${BM.esc(t)}</span>`).join('') : '<span class="is-empty">tip · clasă</span>';
-
-    const nameEl = document.getElementById('classNamePreview');
-    if (nameEl) nameEl.textContent = buildGeneratedName();
-
-    const missing = _missingFields();
-    const done = 6 - missing.length;
-    document.querySelectorAll('#cmSegs i').forEach((s, i) => s.classList.toggle('on', i < done));
-    const pt = document.getElementById('cmProgTxt');
-    if (pt) pt.textContent = done === 6 ? 'Gata de creat' : `${done} din 6 completate`;
-    document.querySelectorAll('.cm-field').forEach(f => {
-      const isMissing = missing.includes(f.dataset.field);
-      if (!isMissing) f.classList.remove('cm-field--missing');
-    });
-    document.querySelectorAll('.cm-step').forEach(s => {
-      const fields = [...s.querySelectorAll('.cm-field')].map(f => f.dataset.field).filter(k => k !== 'level');
-      s.classList.toggle('is-done', fields.every(k => !missing.includes(k)));
-    });
-  }
-
-  function _wireDayPicker() {
-    const picker = document.getElementById('classZiuaPicker');
-    if (!picker || picker._wired) return;
-    picker._wired = true;
-    picker.querySelectorAll('.cm-day').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const isSelected = chip.classList.contains('is-on');
-        const selectedCount = picker.querySelectorAll('.cm-day.is-on').length;
-        if (!isSelected && selectedCount >= 2) {
-          BM.toast('Poți selecta cel mult 2 zile pe săptămână.', 'info');
-          return;
-        }
-        chip.classList.toggle('is-on');
-        chip.setAttribute('aria-pressed', String(!isSelected));
-        updatePreview();
-      });
-    });
-  }
-
-  // Single-select, unlike the day picker — a lesson is either online or
-  // offline, never both.
-  function _wireTipPicker() {
-    const picker = document.getElementById('classTipPicker');
-    if (!picker || picker._wired) return;
-    picker._wired = true;
-    picker.querySelectorAll('.cm-opt').forEach(chip => {
-      chip.addEventListener('click', () => {
-        const already = chip.classList.contains('is-on');
-        picker.querySelectorAll('.cm-opt').forEach(c => { c.classList.remove('is-on'); c.setAttribute('aria-pressed', 'false'); });
-        if (!already) { chip.classList.add('is-on'); chip.setAttribute('aria-pressed', 'true'); }
-        updatePreview();
-      });
-    });
-  }
-
-  let _modalReturnFocus = null;
-  function _onModalKey(e) {
-    if (e.key === 'Escape') closeCreateModal();
-    else trapTab(e, document.querySelector('#classesModal .cm__dialog'));
-  }
-
-  function openCreateModal() {
-    const modal = document.getElementById('classesModal');
-    if (!modal) return;
-    _modalReturnFocus = document.activeElement;
-    modal.style.display = 'flex';
-    modal.classList.remove('is-closing');
-    /* Fără asta, body-ul rămâne scrollabil sub modalul fixed — pe mobil,
-       scroll-ul pe pagina din spate face ca header-ul modalului (fixed)
-       să iasă din ecran când bara de adresă a browserului se ascunde/arată. */
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    document.getElementById('closeModalBtn').onclick         = closeCreateModal;
-    document.getElementById('cancelCreateBtn').onclick       = closeCreateModal;
-    document.getElementById('classesModalBackdrop').onclick  = closeCreateModal;
-    document.getElementById('confirmCreateBtn').onclick      = confirmCreateClass;
-    document.addEventListener('keydown', _onModalKey);
-    _wireDayPicker();
-    _wireTipPicker();
-    updatePreview();
-    modal.querySelector('.cm-sel__trigger')?.focus({ preventScroll: true });
-  }
-
-  function _resetModal() {
-    FIELD_IDS.forEach(id => {
-      const el = document.getElementById(id);
-      if (el) { el.value = ''; _selSync(el); }
-    });
-    document.querySelectorAll('#classZiuaPicker .cm-day.is-on, #classTipPicker .cm-opt.is-on')
-      .forEach(c => { c.classList.remove('is-on'); c.setAttribute('aria-pressed', 'false'); });
-    document.querySelectorAll('.cm-field--missing').forEach(f => f.classList.remove('cm-field--missing'));
-    updatePreview();
-    _closeAllSelects();
-  }
-
-  function closeCreateModal() {
-    const modal = document.getElementById('classesModal');
-    if (!modal || modal.style.display === 'none') return;
-    document.removeEventListener('keydown', _onModalKey);
-    _closeAllSelects();
-    const done = () => {
-      modal.style.display = 'none';
-      modal.classList.remove('is-closing');
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-      _resetModal();
-      if (_modalReturnFocus && document.contains(_modalReturnFocus)) _modalReturnFocus.focus({ preventScroll: true });
-    };
-    if (reduced) { done(); return; }
-    modal.classList.add('is-closing');
-    setTimeout(done, 170);
-  }
-
-  async function confirmCreateClass() {
-    const name         = buildGeneratedName();
-    const materie      = document.getElementById('classMaterieInput')?.value;
-    const selectedDays = _getSelectedDays();
-    const ziua         = selectedDays.join('/');
-    const ora          = document.getElementById('classOraInput')?.value;
-    const tip       = _getSelectedTip();
-    const maxElevi  = document.getElementById('classMaxEleviInput')?.value;
-    const grade     = document.getElementById('classGradeInput')?.value;
-    const mathLevel = document.getElementById('classMathLevelInput')?.value;
-
-    const missing = _missingFields();
-    if (missing.length) {
-      // Name the first thing that is missing, and mark every empty field.
-      const msg = {
-        materie: 'Selectează materia.',
-        zi: 'Selectează ziua (cel puțin una).',
-        ora: 'Selectează ora.',
-        tip: 'Selectează tipul lecției (online sau offline).',
-        max: 'Selectează numărul maxim de elevi.',
-        grade: 'Selectează clasa elevilor.'
-      };
-      document.querySelectorAll('.cm-field').forEach(f => f.classList.toggle('cm-field--missing', missing.includes(f.dataset.field)));
-      document.querySelector('.cm-field--missing')?.scrollIntoView({ block: 'center', behavior: reduced ? 'auto' : 'smooth' });
-      BM.toast(msg[missing[0]], 'error');
-      return;
-    }
-
-    const btn = document.getElementById('confirmCreateBtn');
-    const btnHtml = btn.innerHTML;
-    btn.disabled    = true;
-    btn.textContent = 'Se creează…';
-    const restore = () => { btn.disabled = false; btn.innerHTML = btnHtml; };
-
-    let inviteCode = generateInviteCode();
-    for (let attempt = 0; attempt < 5; attempt++) {
-      try {
-        const { error } = await BMAuth.supabase
-          .from('classes')
-          .insert({
-            name,
-            teacher_id:    BMAuth.user.id,
-            teacher_name:  BMAuth.displayName(),
-            invite_code:   inviteCode,
-            max_students:  parseInt(maxElevi, 10),
-            school_grade:  grade,
-            math_level:    mathLevel || null,
-            // ISO weekday numbering (1=Luni…7=Duminică) — the structured
-            // counterpart of `name`'s "Materie · Zi[/Zi2] · Oră" text, used
-            // by the Sumar tab's "next lesson" calc. `name` itself is never
-            // parsed for this again after the one-time backfill migration.
-            schedule_days: selectedDays.map(d => DAY_ORDER.indexOf(d) + 1),
-            schedule_time: ora,
-            lesson_type:   tip
-          });
-
-        if (!error) {
-          closeCreateModal();
-          restore();
-          BM.toast('Clasa a fost creată! Cod: ' + inviteCode, 'success');
-          _freshCode = inviteCode;
-          try { sessionStorage.removeItem(_teacherCacheKey()); } catch {}
-          renderTeacherView();
-          return;
-        }
-        if (error.code === '23505') {
-          inviteCode = generateInviteCode();
-        } else {
-          throw error;
-        }
-      } catch (e) {
-        BM.toast('Eroare: ' + e.message, 'error');
-        restore();
-        return;
-      }
-    }
-
-    BM.toast('Nu s-a putut genera un cod unic. Încearcă din nou.', 'error');
-    restore();
-  }
-
-  async function deleteClass(classId, className) {
-    const ok = await showConfirm({
-      icon:        icon('trash-2', { size: 32 }),
-      danger:      true,
-      title:       'Ștergi clasa „' + BM.esc(className) + '"?',
-      message:     'Această acțiune este ireversibilă. Toți elevii înscriși vor fi scoși din clasă.',
-      confirmText: 'Șterge clasa'
-    });
-    if (!ok) return;
-    try {
-      const { error } = await BMAuth.supabase
-        .from('classes')
-        .delete()
-        .eq('id', classId)
-        .eq('teacher_id', BMAuth.user.id);
-      if (error) throw error;
-      BM.toast('Clasa a fost ștearsă.', 'info');
-      try { sessionStorage.removeItem(_teacherCacheKey()); } catch {}
-      // The row slides out before the register closes the gap.
-      const row = document.querySelector(`.cl-block[data-id="${classId}"]`);
-      if (row && !reduced) {
-        row.classList.add('cl-block--leaving');
-        await new Promise(r => setTimeout(r, 300));
-      }
-      renderTeacherView();
-    } catch (e) {
-      BM.toast('Eroare la ștergere: ' + e.message, 'error');
-    }
   }
 
   // Resolves true only when the code really reached the clipboard.
