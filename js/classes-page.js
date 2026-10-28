@@ -453,7 +453,7 @@
           <h2 id="clRegT">Grupele din registru</h2>
           <span class="cl-sect__n">${_ro(live, 'grupă', 'grupe')}${off ? ` și ${off} inactive` : ''}${_reg.syncedAt ? ' · la zi cu registrul ' + relDate(_reg.syncedAt) : ''}</span>
         </header>
-        <p class="cl-sect__sub">Apasă pe o grupă ca să intri în clasa ei: elevii, mesaje, teme, simulări, catalog. Programul și elevii vin din registrul tău, o schimbare de acolo apare aici în câteva secunde.</p>
+        <p class="cl-sect__sub">Programul și elevii vin din registrul tău; o schimbare de acolo apare aici în câteva secunde.</p>
         <ol class="rg-grid" id="regGrid" aria-label="Grupele din registru">${_reg.groups.map(regCardHTML).join('')}</ol>
       </section>`;
   }
@@ -472,9 +472,6 @@
       <div class="${pageClass()}">
         <header class="cl-head">
           ${headInfoHTML('Grupele tale, cu programul și elevii lor. Apasă pe o grupă ca să intri în clasa ei.')}
-          <div class="cl-head__keys">
-            ${has ? _dayFilterHTML() : ''}
-          </div>
         </header>
         <div id="clReqRoot"></div>
         ${hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : ''}
@@ -495,6 +492,7 @@
             ? { lbl: 'Elevi pe oră', tick: aggStats.avgPerLesson, dec: 1 }
             : { lbl: 'Elevi pe oră', val: '-' }
         ]) : ''}
+        ${has ? _dayFilterHTML() : ''}
         ${has ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
         ${hasReg ? regSectionHTML() : ''}
         ${hasReg ? `
@@ -519,77 +517,40 @@
     _painted = true;
   }
 
-  /* ── Day-of-week filter — a square key with the calendar icon next to
-     "Creează clasă"; a teacher only needs it once there are enough
-     classes that scanning the register by eye stops being faster. */
+  /* ── Day-of-week filter: the seven days as keys in a row, always in view (no panel to open). A key pressed shows only the groups that meet that day;
+     several keys add up. Today's key carries a small dot. */
+  let _clearDayFilter = () => {};
   function _dayFilterHTML() {
-    const n = _dayFilterSelected.length;
+    const today = DAY_ORDER[((new Date().getDay() + 6) % 7)];
     return `
-      <div class="cl-filter" id="clsDayFilter">
-        <button type="button" class="cl-key cl-key--square${n ? ' is-on' : ''}" id="dayFilterBtn"
-                title="Filtrează după zi" aria-label="Filtrează după zi" aria-expanded="false">
-          ${icon('calendar', { size: 18 })}
-          ${n ? '<span class="cl-filter__dot"></span>' : ''}
-        </button>
-        <div class="cl-filter__pop" id="dayFilterPop" role="dialog" aria-label="Filtrează după zi">
-          <div class="cl-filter__title">Arată doar clasele din zilele alese</div>
-          <div class="cl-filter__chips">
-            ${DAY_ORDER.map(d => `
-              <button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}">${d}</button>
-            `).join('')}
-          </div>
-          <button type="button" class="cl-link" id="dayFilterClear">Arată toate</button>
-        </div>
+      <div class="cl-days" id="clsDayFilter" role="group" aria-label="Arată grupele după zi">
+        <span class="cl-days__k">Zilele</span>
+        <span class="cl-days__keys">
+          ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}">${DAY_SHORT[d]}</button>`).join('')}
+        </span>
       </div>`;
   }
 
   function _wireDayFilter() {
-    const wrap  = document.getElementById('clsDayFilter');
-    const btn   = document.getElementById('dayFilterBtn');
-    const pop   = document.getElementById('dayFilterPop');
-    if (!wrap || !btn || !pop) return;
-
-    const setOpen = open => {
-      wrap.classList.toggle('cl-filter--open', open);
-      btn.setAttribute('aria-expanded', String(open));
-    };
-    btn.addEventListener('click', e => {
-      e.stopPropagation();
-      setOpen(!wrap.classList.contains('cl-filter--open'));
-    });
-    pop.addEventListener('click', e => e.stopPropagation());
-    // Bound once per render on the wrapper that exists now; a stale wrapper
-    // from an earlier render is detached, so the extra listeners are inert.
-    document.addEventListener('click', () => setOpen(false));
-    wrap.addEventListener('keydown', e => { if (e.key === 'Escape') { setOpen(false); btn.focus(); } });
-
+    const wrap = document.getElementById('clsDayFilter');
+    if (!wrap) return;
     const sync = () => {
-      btn.classList.toggle('is-on', _dayFilterSelected.length > 0);
-      const dot = btn.querySelector('.cl-filter__dot');
-      if (_dayFilterSelected.length && !dot) btn.insertAdjacentHTML('beforeend', '<span class="cl-filter__dot"></span>');
-      else if (!_dayFilterSelected.length && dot) dot.remove();
+      wrap.querySelectorAll('[data-day]').forEach(chip => {
+        const on = _dayFilterSelected.includes(chip.dataset.day);
+        chip.classList.toggle('is-on', on);
+        chip.setAttribute('aria-pressed', String(on));
+      });
       BM.Storage.setClassDayFilter(_dayFilterSelected);
       _applyDayFilter();
     };
-
-    pop.querySelectorAll('[data-day]').forEach(chip => {
+    wrap.querySelectorAll('[data-day]').forEach(chip => {
       chip.addEventListener('click', () => {
         const day = chip.dataset.day;
-        _dayFilterSelected = _dayFilterSelected.includes(day)
-          ? _dayFilterSelected.filter(d => d !== day)
-          : [..._dayFilterSelected, day];
-        const on = _dayFilterSelected.includes(day);
-        chip.classList.toggle('is-on', on);
-        chip.setAttribute('aria-pressed', String(on));
+        _dayFilterSelected = _dayFilterSelected.includes(day) ? _dayFilterSelected.filter(d => d !== day) : [..._dayFilterSelected, day];
         sync();
       });
     });
-
-    document.getElementById('dayFilterClear')?.addEventListener('click', () => {
-      _dayFilterSelected = [];
-      pop.querySelectorAll('.cl-chip.is-on').forEach(c => { c.classList.remove('is-on'); c.setAttribute('aria-pressed', 'false'); });
-      sync();
-    });
+    _clearDayFilter = () => { _dayFilterSelected = []; sync(); };
   }
 
   // Matches if ANY of the class's own days is among the selected filter
@@ -619,7 +580,7 @@
         bar.hidden = false;
         bar.innerHTML = `<span>Arăt <b>${visibleCount}</b> din <b>${rows.length}</b> grupe <em>(${names})</em></span>
           <button type="button" class="cl-link" id="clBarClear">Arată toate</button>`;
-        document.getElementById('clBarClear')?.addEventListener('click', () => document.getElementById('dayFilterClear')?.click());
+        document.getElementById('clBarClear')?.addEventListener('click', () => _clearDayFilter());
       } else {
         bar.hidden = true;
         bar.innerHTML = '';

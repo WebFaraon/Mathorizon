@@ -4598,3 +4598,28 @@ body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: 
 /* the number of waiting requests, on the Clase tab (js/join-badge.js) */
 .bm-reqbadge { display: inline-grid; place-items: center; min-width: 18px; height: 18px; margin-left: 7px; padding: 0 5px; border-radius: 9px; background: #BF3D29; color: #fff; font-size: 0.7rem; font-weight: 800; line-height: 1; }
 .bm-reqbadge[hidden] { display: none; }
+
+/* ---- Clase: the days of the week as keys in a row (replaces the lone calendar key and its panel) ---- */
+.cl-days { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 16px; }
+.cl-days__k { font-size: 0.86rem; font-weight: 800; color: var(--k-ink-2); }
+.cl-days__keys { display: inline-flex; flex-wrap: wrap; gap: 8px; }
+.cl-days .cl-chip { position: relative; min-width: 52px; height: 38px; padding: 0 12px; }
+.cl-chip--today::after { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--k-blue); }
+.cl-chip--today.is-on::after { background: #fff; }
+@media (max-width: 560px) {
+  .cl-days { display: grid; gap: 8px; }
+  .cl-days__keys { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; }
+  .cl-days .cl-chip { min-width: 0; padding: 0; height: 40px; font-size: 0.78rem; }
+  .cl-chip--today::after { top: 3px; right: 3px; width: 5px; height: 5px; }
+}
+
+/* phone: the display of totals reads as a list, one figure per line, so no row has more cells than another */
+@media (max-width: 560px) {
+  .cl-status[style*="--cols:5"] { grid-template-columns: minmax(0, 1fr); row-gap: 0; padding: 6px 4px; }
+  .cl-status[style*="--cols:5"] .cl-status__cell,
+  .cl-status[style*="--cols:5"] .cl-status__cell:nth-child(n+4) { grid-column: auto; flex-direction: row; align-items: center; justify-content: space-between; gap: 14px; padding: 11px 16px; border-left: none; border-top: 1px solid color-mix(in srgb, var(--k-lcd-ink) 16%, transparent); }
+  .cl-status[style*="--cols:5"] .cl-status__cell:first-child { border-top: none; }
+  .cl-status[style*="--cols:5"] .cl-status__lbl { font-size: 0.9rem; }
+  .cl-status[style*="--cols:5"] .cl-status__row { margin-top: 0; justify-content: flex-end; }
+  .cl-status[style*="--cols:5"] .cl-status__val { font-size: 1.7rem; }
+}
