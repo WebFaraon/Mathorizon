@@ -118,7 +118,7 @@
       btn.href = r.url; btn.removeAttribute('aria-disabled'); btn.hidden = false;
       if (r.teacher || teacher) {
         label.textContent = 'Deschide sala Meet';
-        note.textContent = 'Tu vezi linkul oricând. Elevii activi îl primesc cu 10 minute înainte de lecție și îl pierd cu 10 minute înainte de sfârșit.';
+        note.textContent = '';
         copy.hidden = false;
         copy.onclick = () => { try { navigator.clipboard.writeText(r.url).then(() => BM.toast('Linkul Meet a fost copiat.', 'success'), () => BM.toast('Linkul este: ' + r.url, 'info')); } catch (e) { BM.toast('Linkul este: ' + r.url, 'info'); } };
       } else {

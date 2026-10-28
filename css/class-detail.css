@@ -207,7 +207,7 @@ body:has(#classRoot) {
 
   /* The right side of the plate: the live program and (teacher) the code,
      each on a small display. */
-  .cd-header__side { display: flex; align-items: stretch; gap: 22px; flex-wrap: wrap; }
+  .cd-header__side { display: flex; align-items: stretch; align-self: flex-start; gap: 22px; flex-wrap: wrap; }      /* the displays keep their own height, whatever the left side holds */
   .cd-live,
   .cd-invite {
     display: flex;
@@ -1507,3 +1507,4 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 @media (max-width: 560px) {
   .cd-meet__btn { flex: 1 1 100%; justify-content: center; }
 }
+.cd-meet__note:empty { display: none; }
