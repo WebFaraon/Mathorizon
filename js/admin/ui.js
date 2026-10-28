@@ -540,7 +540,9 @@
     const grade = ROM[String(g.grade).trim().toUpperCase()] ? 'a ' + ROM[String(g.grade).trim().toUpperCase()] + '-a' : g.grade;
     return `Bună ziua! Ai fost înscris la ${g.subject}, clasa ${grade}, ${when}${t ? ', cu ' + t.name : ''}.\n\n` +
       `Ca să intri la lecții:\n1. Deschide ${link}\n2. Loghează-te sau creează un cont de elev\n3. Apasă „Trimite cererea”. Codul clasei e completat singur: ${g.code}\n\n` +
-      'Când profesorul îți acceptă cererea, în clasă apare butonul „Intră la lecție” (Google Meet). Se activează cu 10 minute înainte de lecție.';
+      (g.mode === 'online'
+        ? 'Când profesorul îți acceptă cererea, în clasă apare butonul „Intră la lecție” (Google Meet). Se activează cu 10 minute înainte de lecție.'
+        : 'Când profesorul îți acceptă cererea, intri în clasă: mesaje, teme și simulări.');
   }
   function inviteHTML(g) {
     if (!g || !g.code) return `<div class="ax-invite ax-invite--none"><p>Grupa nu are încă cod de invitație. Apare singur când contul profesorului e legat de registru (Sincronizare) și registrul a fost citit, de obicei în câteva secunde.</p></div>`;
@@ -551,7 +553,7 @@
           <button type="button" class="ax-btn ax-btn--sm ax-btn--primary" data-inv="msg">${ico('copy', 16)} Copiază invitația</button>
           <button type="button" class="ax-btn ax-btn--sm" data-inv="code">${ico('copy', 16)} Copiază codul</button>
         </div>
-        <p class="ax-invite__note">Elevul intră în clasă cu acest cod și îl acceptă profesorul. După aceea vede butonul „Intră la lecție” (Google Meet).</p>
+        <p class="ax-invite__note">Elevul intră în clasă cu acest cod și îl acceptă profesorul.${g.mode === 'online' ? ' După aceea vede butonul „Intră la lecție” (Google Meet).' : ''}</p>
       </div>`;
   }
   function wireInvite(root, g) {

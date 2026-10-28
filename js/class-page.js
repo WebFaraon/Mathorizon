@@ -105,7 +105,7 @@
       const { data, error } = await BMAuth.supabase.rpc('class_meet_link', { p_class: classData.id });
       if (!error) r = data;
     } catch (e) { /* the migration is not run yet: no block */ }
-    if (!r || r.status === 'denied') { box.hidden = true; return; }
+    if (!r || r.status === 'denied' || r.status === 'offline') { box.hidden = true; return; }       // only the groups with the Online format have a Meet room
     const teacher = BMAuth.role === 'profesor';
     box.hidden = false;
     box.className = 'cd-meet cd-meet--' + r.status;
