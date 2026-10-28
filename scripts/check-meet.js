@@ -18,6 +18,8 @@ const ok = (c, m) => { if (c) pass++; else { fail++; if (fails.length < 25) fail
     ['  https://meet.google.com/ABC-DEFG-HIJ?authuser=0&hs=179#x ', 'https://meet.google.com/abc-defg-hij'],
     ['http://meet.google.com/abc-defg-hij/', 'https://meet.google.com/abc-defg-hij'],
     ['https://meet.google.com/lookup/abcd1234', 'https://meet.google.com/lookup/abcd1234'],
+    ['https://meet.google.com/meet/zsv-nmei-szr', 'https://meet.google.com/meet/zsv-nmei-szr'],
+    ['meet.google.com/meet/ZSV-NMEI-SZR?authuser=1', 'https://meet.google.com/meet/zsv-nmei-szr'],
     ['https://meet.google.com/matematica-ana', 'https://meet.google.com/matematica-ana'],
     ['https://MEET.GOOGLE.COM/abc-defg-hij', 'https://meet.google.com/abc-defg-hij'],
     ['https://meet.google.com/abc-defg-hij \n', 'https://meet.google.com/abc-defg-hij']
@@ -32,7 +34,7 @@ const ok = (c, m) => { if (c) pass++; else { fail++; if (fails.length < 25) fail
     ['https://zoom.us/j/123456789', 'invalid'], ['javascript:alert(1)', 'invalid'], ['https://user:pw@meet.google.com/abc-defg-hij', 'invalid'],
     ['https://meet.google.com:8443/abc-defg-hij', 'invalid'], ['ftp://meet.google.com/abc-defg-hij', 'invalid'],
     ['abc-defg-hij', 'invalid'], ['link-ul il trimit mai tarziu', 'invalid'], ['https://meet.google.com/a', 'invalid'],
-    ['https://meet.google.com/abc/defg/hij', 'invalid'], ['https://meet.google.com/lookup/', 'invalid'], ['https://meet.google.com/<script>', 'invalid']
+    ['https://meet.google.com/abc/defg/hij', 'invalid'], ['https://meet.google.com/meet/', 'invalid'], ['https://meet.google.com/meet/altceva', 'invalid'], ['https://meet.google.com/meet/abc/defg', 'invalid'], ['https://meet.google.com/lookup/', 'invalid'], ['https://meet.google.com/<script>', 'invalid']
   ];
   bad.forEach(([raw, why]) => { const r = normalizeMeet(raw); ok(r.url === null && r.why === why, `refused (${why}): ${JSON.stringify(raw)} -> ${JSON.stringify(r)}`); });
 

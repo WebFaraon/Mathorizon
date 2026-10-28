@@ -133,9 +133,11 @@
       if (r.opens_at) again(r.opens_at);
     } else {                                                   // no_link
       btn.hidden = true;
-      note.textContent = teacher
-        ? 'Linkul Meet nu e completat' + (r.why === 'invalid' ? ' corect (trebuie să înceapă cu meet.google.com)' : r.why === 'new' ? ' corect (adresa „meet.google.com/new” deschide o sală nouă la fiecare click)' : '') + '. Scrie-l în registrul tău, fila Disponibilitate, în caseta de lângă „Link Google Meet”.'
-        : 'Profesorul nu a adăugat încă linkul de lecție. Întreabă managerul tău.';
+      if (!teacher) note.textContent = 'Profesorul nu a adăugat încă linkul de lecție. Întreabă managerul tău.';
+      else if (r.why === 'invalid') note.textContent = 'Linkul din registru nu e o adresă Google Meet (trebuie să înceapă cu meet.google.com). Corectează-l în fila Disponibilitate, în caseta de lângă „Link Google Meet”.';
+      else if (r.why === 'new') note.textContent = 'Adresa „meet.google.com/new” deschide o sală nouă la fiecare click. Folosește linkul unei întâlniri create pentru mai târziu și scrie-l în fila Disponibilitate, lângă „Link Google Meet”.';
+      else if (r.why === 'missing') note.textContent = 'Linkul Meet nu e completat. Scrie-l în registrul tău, fila Disponibilitate, în caseta de lângă „Link Google Meet”.';
+      else note.textContent = 'Linkul din registru nu a ajuns încă în platformă. Dacă l-ai scris în fila Disponibilitate, apare aici în câteva minute.';
     }
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('cdMeet')) _loadMeet(); });

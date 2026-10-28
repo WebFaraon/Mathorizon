@@ -21,10 +21,10 @@ export function normalizeMeet(raw) {
   const first = path.split('/')[1] || '';
   if (!first) return { raw: text, url: null, why: 'invalid' };
   if (REFUSED_PATHS.has(first.toLowerCase())) return { raw: text, url: null, why: first.toLowerCase() === 'new' ? 'new' : 'invalid' };
-  const code = /^\/[a-z]{3}-[a-z]{4}-[a-z]{3}$/i.test(path);
+  const code = /^\/(?:meet\/)?[a-z]{3}-[a-z]{4}-[a-z]{3}$/i.test(path);                  // meet.google.com/abc-defg-hij, and the form with /meet/ in front that Meet also gives
   const lookup = /^\/lookup\/[A-Za-z0-9_-]{4,40}$/.test(path);
   const nick = /^\/[A-Za-z0-9][A-Za-z0-9_-]{2,39}$/.test(path);
-  if (first.toLowerCase() === 'lookup' && !lookup) return { raw: text, url: null, why: 'invalid' };
+  if ((first.toLowerCase() === 'lookup' && !lookup) || (first.toLowerCase() === 'meet' && !code)) return { raw: text, url: null, why: 'invalid' };
   if (!code && !lookup && !nick) return { raw: text, url: null, why: 'invalid' };
   return { raw: text, url: 'https://meet.google.com' + (code ? path.toLowerCase() : path), why: null };
 }
