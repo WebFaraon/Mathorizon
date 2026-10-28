@@ -65,7 +65,7 @@
     if (!reqs.length) return [];
     const wids = [...new Set(reqs.map(r => r.workbook_id))], gids = reqs.map(r => r.group_id).filter(Boolean);
     const [ws, ls, ss] = await Promise.all([
-      c.from('reg_workbooks').select('id, teacher_name, owner_user_id').in('id', wids),
+      c.from('reg_workbooks').select('id, teacher_name, owner_user_id, spreadsheet_id').in('id', wids),
       c.from('telegram_links').select('user_id'),
       gids.length ? c.from('reg_students').select('group_id, col, name, phone, status, manager').in('group_id', gids).order('col', { ascending: true }) : Promise.resolve({ data: [] })
     ]);
@@ -75,7 +75,7 @@
     (ss.data || []).forEach(s => { (studs.get(s.group_id) || studs.set(s.group_id, []).get(s.group_id)).push(s); });
     return reqs.map(r => {
       const w = wb.get(r.workbook_id) || {};
-      return { r, teacher: w.teacher_name || 'Profesor', hasTelegram: !!(w.owner_user_id && linked.has(w.owner_user_id)), students: (studs.get(r.group_id) || []).filter(s => COUNTS[plain(s.status)]) };
+      return { r, teacher: w.teacher_name || 'Profesor', sheetUrl: w.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + w.spreadsheet_id + '/edit#gid=' + r.sheet_id : null, hasTelegram: !!(w.owner_user_id && linked.has(w.owner_user_id)), students: (studs.get(r.group_id) || []).filter(s => COUNTS[plain(s.status)]) };
     });
   }
 
@@ -127,11 +127,13 @@
       body = `<p class="st-line">${esc(what)} <span class="ax-sub">${esc(ago(r.manager_done_at || r.decided_at || r.created_at))}</span></p>`;
       foot = r.status !== 'cancelled' ? `<button type="button" class="ax-btn ax-btn--sm" data-mark="reopen" data-id="${r.id}">Redeschide</button>` : '';
     }
-    return `<article class="st-card st-card--${b}">${head(x)}<div class="st-card__b">${body}</div>${foot ? `<div class="st-card__f">${foot}</div>` : ''}</article>`;
+    const sheet = x.sheetUrl ? `<a class="ax-btn ax-btn--sm st-sheet" href="${esc(x.sheetUrl)}" target="_blank" rel="noopener" title="Deschide fila grupei în registrul profesorului, în Google Sheets">${ico('book-open', 16)} Deschide în Sheets</a>` : '';
+    const actions = [foot, sheet].filter(Boolean).join('');
+    return `<article class="st-card st-card--${b}">${head(x)}<div class="st-card__b">${body}</div>${actions ? `<div class="st-card__f">${actions}</div>` : ''}</article>`;
   }
   function section(title, id, list, empty) {
     return `<section class="st-sec" aria-labelledby="${id}">
-      <h2 class="st-sec__h" id="${id}">${esc(title)} <span class="st-sec__n">${list.length}</span></h2>
+      <h2 class="st-sec__h" id="${id}">${esc(title)} <span class="st-sec__n${list.length ? '' : ' is-zero'}">${list.length}</span></h2>
       ${list.length ? list.map(x => cardHTML(x, bucketOf(x))).join('') : `<p class="st-empty">${esc(empty)}</p>`}
     </section>`;
   }
@@ -149,7 +151,7 @@
       ${section('De sunat', 'stCall', by.call, 'Niciun grup confirmat de așteptat. Când un profesor confirmă startul, apare aici cu elevii de sunat.')}
       ${section('Așteaptă profesorul', 'stWait', by.waiting, 'Nicio grupă nu așteaptă un răspuns.')}
       ${section('Nu s-a confirmat', 'stNo', by.declined, 'Niciun profesor nu a refuzat startul.')}
-      <details class="st-done"><summary>Rezolvate <span class="st-sec__n">${by.done.length}</span></summary>${by.done.length ? by.done.slice(0, 40).map(x => cardHTML(x, 'done')).join('') : '<p class="st-empty">Nimic încă.</p>'}</details>`;
+      <details class="st-done"><summary>Rezolvate <span class="st-sec__n${by.done.length ? '' : ' is-zero'}">${by.done.length}</span></summary>${by.done.length ? by.done.slice(0, 40).map(x => cardHTML(x, 'done')).join('') : '<p class="st-empty">Nimic încă.</p>'}</details>`;
     if (stamp) stamp.textContent = 'Citit la ' + new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     body.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', () => { b.disabled = true; mark(b.dataset.id, b.dataset.mark); }));
   }

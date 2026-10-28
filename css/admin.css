@@ -47,6 +47,8 @@ body.ax {
   --ax-c-receptie: #5FD3C2;
   --ax-c-inscriere: #E08CE0;
   --ax-c-inlocuiri: #B79CFF;
+  --ax-c-starturi: #FF6B3D;
+  --ax-c-sincronizare: #8FA6C4;
   --ax-c-ink: #0E1114;
   --pg: var(--ax-hi);
 
@@ -735,6 +737,9 @@ body.ax-legacy .ae-detalii-grid + .cls-form-field { margin-top: 16px; }
 .ax-shell[data-view="receptie"], .ax-nav__a[data-route="receptie"] { --pg: var(--ax-c-receptie); }
 .ax-shell[data-view="inscriere"], .ax-nav__a[data-route="inscriere"] { --pg: var(--ax-c-inscriere); }
 .ax-shell[data-view="inlocuiri"], .ax-nav__a[data-route="inlocuiri"] { --pg: var(--ax-c-inlocuiri); }
+/* every route has its own colour: a key without a rule would take the colour of the page that is open */
+.ax-shell[data-view="starturi"], .ax-nav__a[data-route="starturi"] { --pg: var(--ax-c-starturi); }
+.ax-shell[data-view="sincronizare"], .ax-nav__a[data-route="sincronizare"] { --pg: var(--ax-c-sincronizare); }
 
 .ax-nav__pic { color: var(--pg); transition: background-color 0.15s, border-color 0.15s, transform 0.2s var(--ax-ease); }
 .ax-nav__a:not([aria-current]):hover .ax-nav__pic { border-color: var(--pg); background: color-mix(in srgb, var(--pg) 18%, #1C2026); transform: translateY(-1px); }
