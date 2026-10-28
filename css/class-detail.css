@@ -1467,7 +1467,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .catalog-note svg { flex: none; margin-top: 2px; }
 
 /* The Google Meet room: one key in the header, the same for the teacher and the students */
-.cd-meet { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; margin-top: 18px; }
+.cd-meet { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; width: 100%; max-width: 480px; margin-top: 18px; }      /* the width is capped: the title and the displays keep their places */
 .cd-meet[hidden] { display: none; }
 .cd-meet__btn,
 .cd-meet__btn:hover {
@@ -1496,7 +1496,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 }
 .cd-meet__copy[hidden] { display: none; }
 .cd-meet__copy:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(4px); }
-.cd-meet__note { flex: 1 1 260px; max-width: 62ch; font-size: 0.9rem; font-weight: 600; line-height: 1.45; color: var(--k-ink-2); }
+.cd-meet__note { flex: 1 1 100%; min-width: 0; font-size: 0.88rem; font-weight: 600; line-height: 1.45; color: var(--k-ink-2); }
 .cd-meet--open:not(:has(.cd-meet__copy:not([hidden]))) .cd-meet__note::before {
   content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: var(--k-green);
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-green) 55%, transparent); animation: cd-meet-pulse 1.8s ease-out infinite;
