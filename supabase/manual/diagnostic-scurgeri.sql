@@ -12,7 +12,7 @@ where schemaname = 'public'
                     'reg_workbooks', 'reg_groups', 'reg_students', 'reg_lessons', 'reg_commands', 'reg_replacements', 'user_profiles')
 order by tablename, cmd, policyname;
 
--- ===== BLOC 2: ce vede un ELEV obisnuit (unul care e intr-o singura clasa) =====
+-- ===== BLOC 2: ce vede un ELEV obisnuit (unul dintr-o singura clasa, iar daca nu exista, un elev oarecare) =====
 -- Rezultatul apare ca MESAJ DE EROARE (e intentionat: blocul se anuleaza singur, deci nu poate schimba nimic). Citesti "total" si "vede" pe fiecare tabel.
 -- Un elev ar trebui sa vada doar clasa lui; reg_* si class_join_requests / class_member_links ale altora, deloc.
 do $$
@@ -22,7 +22,9 @@ declare
   totals jsonb := '{}'::jsonb;
 begin
   select student_id into v_uid from public.class_members group by student_id having count(*) = 1 limit 1;
-  if v_uid is null then raise exception 'Nu am gasit niciun elev care sa fie intr-o singura clasa.'; end if;
+  -- nu exista elev intr-o singura clasa: se ia un elev oarecare (un strain de orice clasa; chiar cel mai important test: ce vede un strain)
+  if v_uid is null then select user_id into v_uid from public.user_profiles where role = 'elev' limit 1; end if;
+  if v_uid is null then raise exception 'Nu am gasit niciun cont de elev.'; end if;
   foreach t in array tabs loop
     begin execute format('select count(*) from public.%I', t) into n; totals := totals || jsonb_build_object(t, n);
     exception when undefined_table then totals := totals || jsonb_build_object(t, -1); end;
