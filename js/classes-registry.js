@@ -69,7 +69,7 @@
 
   async function load(sb, uid) {
     try {
-      const wq = await sb.from('reg_workbooks').select('id,spreadsheet_id,teacher_name,last_full_sync_at,teacher_data').eq('owner_user_id', uid).eq('enabled', true);
+      const wq = await sb.from('reg_workbooks').select('id,spreadsheet_id,teacher_name,last_full_sync_at,last_synced_at,teacher_data').eq('owner_user_id', uid).eq('enabled', true);
       if (wq.error || !wq.data || !wq.data.length) return null;
       const wbs = wq.data, ids = wbs.map(w => w.id), byWb = new Map(wbs.map(w => [w.id, w]));
       const COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule,synced_at';
@@ -122,7 +122,7 @@
       });
       list.sort((a, b) => (a.status.id === 'inactiv') - (b.status.id === 'inactiv') || (a.days[0] || 9) - (b.days[0] || 9) || (a.start || 0) - (b.start || 0) || a.tab.localeCompare(b.tab, 'ro'));
       const live = list.filter(g => g.status.id !== 'inactiv');
-      const newest = wbs.map(w => w.last_full_sync_at).filter(Boolean).sort().pop() || null;
+      const newest = wbs.map(w => w.last_synced_at || w.last_full_sync_at).filter(Boolean).sort().pop() || null;     // the last time the register was READ, not the last time a group changed
       return {
         groups: list, syncedAt: newest, teacherName: wbs[0].teacher_name || '',
         stamp: stampOf(groups),

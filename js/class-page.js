@@ -2465,7 +2465,8 @@
 
       const renderCatalog = () => {
         if (isTeacher) {
-          content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState);
+          content.innerHTML = (classData.reg_group_id ? `<p class="catalog-note">${icon('info', { size: 16 })} Catalogul arată notele elevilor cu cont pe platformă (teme și simulări). Prezența, tema lecției și data lecției se țin în registrul Sheets al grupei.</p>` : '') +
+            renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState);
           content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
             cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
           });

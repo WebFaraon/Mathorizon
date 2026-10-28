@@ -1462,3 +1462,6 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
   .sumar-loose__row { grid-template-columns: auto minmax(0, 1fr); }
   .sumar-loose__row .sumar-roster__reg { grid-column: 1 / -1; }
 }
+
+.catalog-note { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 14px; padding: 10px 13px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
+.catalog-note svg { flex: none; margin-top: 2px; }

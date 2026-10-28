@@ -54,9 +54,10 @@
         sb.from('class_member_links').select('student_id, reg_student_name').eq('class_id', cls.id)
       ]);
       if (g.error || !g.data) return null;
-      let url = null;
+      let url = null, readAt = null;
       try {
-        const wb = await sb.from('reg_workbooks').select('spreadsheet_id').eq('id', g.data.workbook_id).maybeSingle();
+        const wb = await sb.from('reg_workbooks').select('spreadsheet_id, last_synced_at').eq('id', g.data.workbook_id).maybeSingle();
+        if (wb.data) readAt = wb.data.last_synced_at || null;
         if (wb.data && wb.data.spreadsheet_id) url = 'https://docs.google.com/spreadsheets/d/' + wb.data.spreadsheet_id + '/edit#gid=' + g.data.sheet_id;
       } catch (e) { /* the link is a convenience */ }
 
@@ -93,7 +94,7 @@
       const enrolled = students.filter(s => s.status.enrolled).length;
       const presentPerLesson = held.length ? held.reduce((n, l) => n + students.filter(s => s.status.enrolled && PRESENT[(l.marks || {})[s.col]]).length, 0) / held.length : null;
       return {
-        group: { id: g.data.id, state: g.data.state, size: g.data.format_size || null, syncedAt: g.data.synced_at, tab: g.data.tab },
+        group: { id: g.data.id, state: g.data.state, size: g.data.format_size || null, syncedAt: readAt || g.data.synced_at, tab: g.data.tab },
         stamp: (g.data.synced_at || '') + '|' + (g.data.content_hash || ''),
         url, students, loose, enrolled,
         lessons: { count: held.length, lastDate: held.length ? held[held.length - 1].iso : null },
