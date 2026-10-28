@@ -55,7 +55,6 @@
   // Which sub-view of the teacher's Catalog tab is showing — 'note' (the
   // existing grade table) or 'prezenta' (attendance). Persists across
   // reloads the same way catalogSortState does.
-  let catalogViewMode  = 'note';
 
   /* ─── Bootstrap ─────────────────────────────────────────────────── */
   function init() {
@@ -832,6 +831,19 @@
     return new Date(y, m - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
   }
 
+  /* the register moves on its own (the teacher types in Sheets): the Sumar looks at the group's last sync stamp every half minute while it is on screen
+     and reloads only when it changed */
+  let _sumarReg = null, _sumarWatch = null;
+  function _watchSumarRegister() {
+    if (_sumarWatch) { clearInterval(_sumarWatch); _sumarWatch = null; }
+    if (!_sumarReg || !window.ClassRegistryView) return;
+    _sumarWatch = setInterval(async () => {
+      if (document.hidden || activeTab !== 'sumar' || !_sumarReg) return;
+      const now = await window.ClassRegistryView.stamp(BMAuth.supabase, classData.reg_group_id);
+      if (now && now !== _sumarReg.stamp) loadSumarTab();
+    }, 30000);
+  }
+
   async function loadSumarTab() {
     const main = document.getElementById('sumarMain');
     if (!main) return;
@@ -847,17 +859,18 @@
           .then(r => r.data || [])
       ]);
       const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats } = catalogData;
-      const regInfo = await _fetchRegLink();
+      const reg = classData.reg_group_id && window.ClassRegistryView ? await window.ClassRegistryView.load(BMAuth.supabase, classData) : null;
+      _sumarReg = reg;
 
       const ctx = {
-        members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats, regInfo,
+        members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats, reg,
         attendance:   BM.CatalogStats.attendanceStats(members, sessions, attMatrix),
         lessons:      BM.CatalogStats.lessonStats(sessions),
         homework:     BM.CatalogStats.assignmentStats(assignments),
         simulations:  BM.CatalogStats.simulationStats(sims, members, simMatrix)
       };
 
-      const attentionList = _sumarAttentionList(ctx);
+      const attentionList = reg ? _sumarAttentionFromReg(ctx) : _sumarAttentionList(ctx);
       const activity = _sumarBuildActivity(posts, ctx);
 
       main.innerHTML = `
@@ -872,7 +885,7 @@
         </section>
         <section>
           <div class="sumar-section__title">Cine are nevoie de atenție</div>
-          ${_renderSumarAttention(attentionList, members.length)}
+          ${_renderSumarAttention(attentionList, reg ? reg.enrolled : members.length)}
         </section>
         <section>
           <div class="sumar-section__title">Activitate recentă</div>
@@ -881,6 +894,7 @@
       `;
       _wireSumarMain(main);
       _wireSumarRoster(main);
+      _watchSumarRegister();
 
       const sidebar = document.getElementById('sumarSidebar');
       if (sidebar) sidebar.innerHTML = _renderClassInfoCard();
@@ -966,21 +980,24 @@
   // only two destinations behind five cards (and Catalog one tab away
   // regardless) the navigation didn't earn its keep. No data-goto-* here.
   function _renderSumarKpis(ctx) {
-    const { members, sessions, attMatrix, stats, attendance, lessons } = ctx;
-    const maxEl = classData.max_students;
-    const fillPct = maxEl ? Math.min(100, Math.round((members.length / maxEl) * 100)) : null;
+    const { members, sessions, attMatrix, stats, reg } = ctx;
+    const attendance = reg ? { classRate: reg.rate } : ctx.attendance;
+    const lessons = reg ? reg.lessons : ctx.lessons;
+    const shown = reg ? reg.enrolled : members.length;
+    const maxEl = reg && reg.group.size ? reg.group.size : classData.max_students;
+    const fillPct = maxEl ? Math.min(100, Math.round((shown / maxEl) * 100)) : null;
 
     const attTier = BM.CatalogStats.attendanceTier(attendance.classRate);
     const avgNum = stats.classAvg != null ? parseFloat(stats.classAvg) : null;
     const gradeTier = BM.CatalogStats.gradeTier(avgNum);
-    const avgPresent = BM.CatalogStats.avgPresentPerLesson(members, sessions, attMatrix);
+    const avgPresent = reg ? reg.presentPerLesson : BM.CatalogStats.avgPresentPerLesson(members, sessions, attMatrix);
 
     return `
       <div class="sumar-kpibar">
         <div class="sumar-kpi-card">
           <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('users', { size: 18 })}</span>
           <div class="sumar-kpi-card__body">
-            <div class="sumar-kpi-card__val">${members.length}${maxEl ? ' / ' + maxEl : ''}</div>
+            <div class="sumar-kpi-card__val">${shown}${maxEl ? ' / ' + maxEl : ''}</div>
             <div class="sumar-kpi-card__lbl">Elevi</div>
             ${maxEl ? `<div class="sumar-kpi-card__bar"><div class="sumar-kpi-card__bar-fill" style="width:${fillPct}%"></div></div>` : ''}
           </div>
@@ -1020,45 +1037,35 @@
       </div>`;
   }
 
-  /* ─── Toți elevii — a lightweight roster, not a Catalog replacement.
-     Grades/attendance stay in Catalog; this only carries two things that
-     live on the roster itself: whether a student is still active in the
-     group, and who their assigned manager is. Both save on change. ─── */
-  /* a class made from a register group: who the group has in the register (names only), and which student account is tied to which of them */
-  async function _fetchRegLink() {
-    if (!classData.reg_group_id || BMAuth.role !== 'profesor') return null;
-    try {
-      const [m, s] = await Promise.all([
-        BMAuth.supabase.from('class_members').select('student_id, reg_student_name').eq('class_id', classData.id),
-        BMAuth.supabase.from('reg_students').select('name, status').eq('group_id', classData.reg_group_id).order('col', { ascending: true })
-      ]);
-      if (m.error || s.error) return null;
-      const link = {};
-      (m.data || []).forEach(x => { if (x.reg_student_name) link[x.student_id] = x.reg_student_name; });
-      const names = (s.data || []).filter(x => !/^(transferat|inactiv)$/i.test(String(x.status || '').trim())).map(x => x.name);
-      return { link, names };
-    } catch (e) { return null; }
+  /* ─── Toți elevii ─────────────────────────────────────────────────────
+     A class made from a register group lists the group's students as the register has them: status, manager, when they started and when they left,
+     and whether they have an account. None of it is edited here (it is typed in Sheets). Accounts not tied to a student of the register come after,
+     for the teacher to tie. A class made by hand (no register group) keeps the old roster, where status and manager are edited here. ─── */
+  const _plainName = s => window.ClassRegistryView ? window.ClassRegistryView.plain(s) : String(s || '').trim().toLowerCase();
+
+  function _fmtDay(iso) { return iso ? _sumarShortDate(iso) : ''; }
+  function relTime(ts) {
+    const s = Math.max(0, Math.floor((Date.now() - new Date(ts)) / 1000));
+    if (s < 90) return 'acum';
+    if (s < 3600) return 'acum ' + Math.round(s / 60) + ' min';
+    if (s < 86400) return 'acum ' + Math.round(s / 3600) + ' ore';
+    return 'acum ' + Math.round(s / 86400) + ' zile';
   }
 
   function _renderSumarRoster(ctx) {
-    const { members, nameMap, regInfo } = ctx;
-    const plain = s => String(s || '').trim().toLowerCase();
-    const taken = regInfo ? new Set(Object.values(regInfo.link).map(plain)) : new Set();
-    const noAccount = regInfo ? regInfo.names.filter(n => !taken.has(plain(n))) : [];
-    const noAccountHTML = regInfo && noAccount.length ? `
-      <p class="sumar-roster__noacc">${icon('users', { size: 16 })} <span><b>${noAccount.length === 1 ? 'Un elev din registru nu are' : noAccount.length + ' elevi din registru nu au'} cont legat:</b> ${noAccount.map(n => BM.esc(n)).join(', ')}. Intră în clasă cu codul de invitație, iar tu îi legi de nume când accepți cererea sau din coloana Registru.</span></p>` : '';
+    const { members, nameMap, reg } = ctx;
+    if (reg) return _renderRegRoster(reg);
     if (!members.length) {
-      return `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev înscris încă.</div>${noAccountHTML}`;
+      return `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev înscris încă.</div>`;
     }
     return `
-      <div class="sumar-roster${regInfo ? ' sumar-roster--reg' : ''}">
+      <div class="sumar-roster">
         <div class="sumar-roster__row sumar-roster__row--head">
-          <span>Elev</span><span>Status</span><span>Manager</span>${regInfo ? '<span>Registru</span>' : ''}
+          <span>Elev</span><span>Status</span><span>Manager</span>
         </div>
         ${members.map((m, idx) => {
           const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
           const active = m.status !== 'inactiv';
-          const own = regInfo ? regInfo.link[m.student_id] || '' : '';
           return `
             <div class="sumar-roster__row">
               <div class="sumar-roster__name">
@@ -1071,17 +1078,80 @@
               </button>
               <input type="text" class="sumar-roster__manager" data-roster-manager="${m.student_id}"
                      placeholder="Atribuie manager" value="${BM.esc(m.manager_name || '')}">
-              ${regInfo ? `
-              <select class="sumar-roster__reg" data-roster-reg="${m.student_id}" data-current="${BM.esc(own)}" aria-label="Elevul din registru pentru ${BM.esc(name)}">
-                <option value="">Nelegat de registru</option>
-                ${regInfo.names.filter(n => plain(n) === plain(own) || !taken.has(plain(n))).map(n => `<option value="${BM.esc(n)}"${plain(n) === plain(own) ? ' selected' : ''}>${BM.esc(n)}</option>`).join('')}
-              </select>` : ''}
             </div>`;
         }).join('')}
-      </div>${noAccountHTML}`;
+      </div>`;
+  }
+
+  function _renderRegRoster(reg) {
+    const inGroup = reg.students.filter(s => s.status.enrolled), left = reg.students.filter(s => !s.status.enrolled);
+    const row = s => {
+      const period = s.status.enrolled
+        ? (s.first ? 'din ' + _fmtDay(s.first) : 'fără lecții încă')
+        : (s.first ? _fmtDay(s.first) + ' - ' + _fmtDay(s.last) : 'a plecat');
+      const acc = s.member
+        ? `<span class="sumar-roster__acc sumar-roster__acc--yes" title="Contul ${BM.esc(s.member.student_name || '')} este legat de acest elev">${icon('circle-check', { size: 14 })} Cont legat</span><button type="button" class="sumar-roster__unlink" data-roster-unlink="${s.member.student_id}" title="Scoate legătura cu contul">Dezleagă</button>`
+        : `<span class="sumar-roster__acc" title="Elevul intră în clasă cu codul de invitație">Fără cont</span>`;
+      return `
+        <div class="sumar-roster__row${s.status.enrolled ? '' : ' sumar-roster__row--left'}">
+          <div class="sumar-roster__name">
+            <span class="catalog-avatar">${_catalogInitials(s.name)}</span>
+            <span class="catalog-name-text">${BM.esc(s.name)}</span>
+          </div>
+          <span class="sumar-roster__chip sumar-roster__chip--${s.status.id}"><i aria-hidden="true"></i>${s.status.label}</span>
+          <span class="sumar-roster__mgr">${s.manager ? BM.esc(s.manager) : '<em>fără manager</em>'}</span>
+          <span class="sumar-roster__when">${period}</span>
+          <span class="sumar-roster__accwrap">${acc}</span>
+        </div>`;
+    };
+    const head = `<div class="sumar-roster__row sumar-roster__row--head"><span>Elev</span><span>Status</span><span>Manager</span><span>În grupă</span><span>Cont</span></div>`;
+    const loose = reg.loose.length ? `
+      <div class="sumar-loose">
+        <p class="sumar-loose__t">${icon('users', { size: 16 })} <b>${reg.loose.length === 1 ? 'Un cont' : reg.loose.length + ' conturi'} de pe platformă ${reg.loose.length === 1 ? 'nu e legat' : 'nu sunt legate'} de un elev din registru.</b> Alege cine e fiecare, ca prezențele și statutul să vină din registru.</p>
+        ${reg.loose.map(m => `
+          <div class="sumar-loose__row">
+            <span class="catalog-avatar">${_catalogInitials(m.name)}</span>
+            <span class="sumar-loose__n"><b>${BM.esc(m.name)}</b><small>${m.lost ? 'numele din registru s-a schimbat (era ' + BM.esc(m.reg_student_name) + ')' : 'cont intrat ' + BM.formatDate(m.joined_at)}</small></span>
+            <select class="sumar-roster__reg" data-roster-reg="${m.student_id}" data-current="" aria-label="Elevul din registru pentru ${BM.esc(m.name)}">
+              <option value="">Nelegat de registru</option>
+              ${reg.freeNames.map(n => `<option value="${BM.esc(n)}">${BM.esc(n)}</option>`).join('')}
+            </select>
+          </div>`).join('')}
+      </div>` : '';
+    const empty = !reg.students.length ? `<div class="sumar-attention-empty">${icon('users', { size: 20 })} Niciun elev în registrul grupei încă.</div>` : `
+      <div class="sumar-roster sumar-roster--reg">
+        ${head}
+        ${inGroup.map(row).join('')}
+        ${left.length ? `<div class="sumar-roster__sep">Au plecat din grupă</div>${left.map(row).join('')}` : ''}
+      </div>`;
+    const sync = reg.group.syncedAt ? `<p class="sumar-roster__sync">Din registru, la zi ${relTime(reg.group.syncedAt)}. O schimbare făcută în Sheets apare aici în câteva secunde.${reg.url ? ` <a href="${BM.esc(reg.url)}" target="_blank" rel="noopener">Deschide registrul grupei</a>` : ''}</p>` : '';
+    return empty + loose + sync;
   }
 
   function _wireSumarRoster(main) {
+    main.querySelectorAll('[data-roster-unlink]').forEach(btn => {
+      btn.addEventListener('click', async () => {
+        btn.disabled = true;
+        try {
+          const { error } = await BMAuth.supabase.rpc('set_member_reg_link', { p_class: classData.id, p_student: btn.dataset.rosterUnlink, p_reg_name: null });
+          if (error) throw error;
+          BM.toast('Legătura cu registrul a fost scoasă.', 'info');
+          loadSumarTab();
+        } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); btn.disabled = false; }
+      });
+    });
+    main.querySelectorAll('[data-roster-reg]').forEach(sel => {
+      sel.addEventListener('change', async () => {
+        if (!sel.value) return;
+        sel.disabled = true;
+        try {
+          const { error } = await BMAuth.supabase.rpc('set_member_reg_link', { p_class: classData.id, p_student: sel.dataset.rosterReg, p_reg_name: sel.value });
+          if (error) throw error;
+          BM.toast('Elevul a fost legat de registru.', 'success');
+          loadSumarTab();
+        } catch (e) { sel.value = ''; BM.toast('Eroare: ' + e.message, 'error'); sel.disabled = false; }
+      });
+    });
     main.querySelectorAll('[data-roster-status]').forEach(btn => {
       btn.addEventListener('click', async () => {
         const studentId = btn.dataset.rosterStatus;
@@ -1094,23 +1164,6 @@
             .update({ status: next }).eq('class_id', classData.id).eq('student_id', studentId);
           if (error) throw error;
         } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
-      });
-    });
-    main.querySelectorAll('[data-roster-reg]').forEach(sel => {
-      sel.addEventListener('change', async () => {
-        const before = sel.dataset.current || '';
-        sel.disabled = true;
-        try {
-          const { data, error } = await BMAuth.supabase.rpc('set_member_reg_link', { p_class: classData.id, p_student: sel.dataset.rosterReg, p_reg_name: sel.value || null });
-          if (error) throw error;
-          sel.dataset.current = sel.value;
-          BM.toast(sel.value ? 'Elevul a fost legat de registru. Prezențele lui vin de acolo.' : 'Legătura cu registrul a fost scoasă.', 'success');
-          if (data && data.linked) { try { BM.CatalogStats.invalidate && BM.CatalogStats.invalidate(); } catch (e) {} }
-        } catch (e) {
-          sel.value = before;
-          BM.toast('Eroare: ' + e.message, 'error');
-        }
-        sel.disabled = false;
       });
     });
     main.querySelectorAll('[data-roster-manager]').forEach(input => {
@@ -1167,6 +1220,31 @@
       if (a && a.absentLastTwo) tryAdd(m, 'Absent la ultimele 2 lecții', 'prezenta');
     });
 
+    return flagged;
+  }
+
+  /* the same four reasons, but who is absent comes from the register (every student of the group, with or without an account); grades and homework
+     are the accounts'. A student is named once, by the name he has in the register. */
+  function _sumarAttentionFromReg(ctx) {
+    const { members, nameMap, assignments, subMatrix, sims, simMatrix, homework, reg } = ctx;
+    const flagged = [], already = new Set();
+    const add = (key, name, reason, actionMode) => {
+      if (already.has(key) || flagged.length >= 4) return;
+      already.add(key);
+      flagged.push({ name, reason, actionMode });
+    };
+    const linked = new Map(reg.students.filter(s => s.member).map(s => [s.member.student_id, s]));
+    const keyOf = m => linked.has(m.student_id) ? _plainName(linked.get(m.student_id).name) : 'acc:' + m.student_id;
+    const nameOf = m => linked.has(m.student_id) ? linked.get(m.student_id).name : (nameMap[m.student_id] || 'Elev');
+    const live = reg.students.filter(s => s.status.enrolled);
+    live.forEach(s => { if (s.marked > 0 && s.rate < 60) add(_plainName(s.name), s.name, `Prezență ${s.rate}% · ${s.present} din ${s.marked} lecții`, 'registru'); });
+    members.forEach(m => {
+      const avg = BM.CatalogStats.studentAverage(m.student_id, assignments, sims, subMatrix, simMatrix);
+      if (avg != null && avg < 5) add(keyOf(m), nameOf(m), `Medie ${avg.toFixed(1)} · sub pragul de promovare`, 'note');
+    });
+    const nearest = homework.upcoming[0] || null;
+    if (nearest) members.forEach(m => { if (!(subMatrix[m.student_id] || {})[nearest.id]) add(keyOf(m), nameOf(m), `Nu a predat „${nearest.title}”`, 'teme'); });
+    live.forEach(s => { if (s.absentLastTwo) add(_plainName(s.name), s.name, 'Absent la ultimele 2 lecții', 'registru'); });
     return flagged;
   }
 
@@ -1275,16 +1353,12 @@
       main.querySelectorAll('.sumar-activity-row--more').forEach(row => row.classList.remove('sumar-activity-row--more'));
       e.target.remove();
     });
-    main.querySelectorAll('[data-goto-catalog-note]').forEach(el => el.addEventListener('click', () => {
-      catalogViewMode = 'note'; switchTab('membri');
-    }));
-    main.querySelectorAll('[data-goto-catalog-prezenta]').forEach(el => el.addEventListener('click', () => {
-      catalogViewMode = 'prezenta'; switchTab('membri');
-    }));
+    main.querySelectorAll('[data-goto-catalog-note]').forEach(el => el.addEventListener('click', () => switchTab('membri')));
     main.querySelectorAll('[data-attn-goto]').forEach(el => el.addEventListener('click', () => {
       const mode = el.dataset.attnGoto;
       if (mode === 'teme') switchTab('teme');
-      else { catalogViewMode = mode; switchTab('membri'); }
+      else if (mode === 'registru') { if (_sumarReg && _sumarReg.url) window.open(_sumarReg.url, '_blank', 'noopener'); }
+      else switchTab('membri');
     }));
     main.querySelectorAll('[data-assign-teme]').forEach(el => el.addEventListener('click', e => {
       e.stopPropagation(); openAssignmentWizard();
@@ -2370,7 +2444,7 @@
     try { await BMAuth.supabase.rpc('run_simulation_expiry_sweep'); } catch (e) {}
 
     try {
-      const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats: catalogStats } =
+      const { members, nameMap, assignments, subMatrix, sims, simMatrix, stats: catalogStats } =
         await BM.CatalogStats.fetchCatalogData(classData.id, isTeacher);
 
       // #cdContent is shared by every tab that doesn't have its own
@@ -2391,21 +2465,11 @@
 
       const renderCatalog = () => {
         if (isTeacher) {
-          content.innerHTML =
-            _renderCatalogViewToggle(catalogViewMode) +
-            (catalogViewMode === 'note'
-              ? renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState)
-              : renderCatalogAttendance(members, nameMap, sessions, attMatrix));
-          _wireCatalogViewToggle(content, renderCatalog);
-
-          if (catalogViewMode === 'note') {
-            content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
-              cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
-            });
-            _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
-          } else {
-            _wireCatalogAttendance(content, members, nameMap, sessions, attMatrix, renderCatalog);
-          }
+          content.innerHTML = renderCatalogTeacher(members, nameMap, assignments, subMatrix, catalogStats, sims, simMatrix, catalogSortState);
+          content.querySelectorAll('[data-quick-view-attempt]').forEach(cell => {
+            cell.addEventListener('click', () => openSimQuickView(cell.dataset.quickViewAttempt));
+          });
+          _wireCatalogExport(members, nameMap, assignments, subMatrix, sims, simMatrix, catalogStats, catalogSortState);
         } else {
           content.innerHTML = renderCatalogStudent(assignments, subMatrix[BMAuth.user.id] || {}, nameMap[BMAuth.user.id], sims, simMatrix[BMAuth.user.id] || {});
           _wireCsSimViewToggle(content);
@@ -2717,340 +2781,6 @@
       const wb = XLSX.utils.book_new();
       XLSX.utils.book_append_sheet(wb, ws, 'Catalog');
       XLSX.writeFile(wb, `${fileBase}.xlsx`);
-    };
-  }
-
-  /* ─── Attendance (Prezență) — teacher-only sub-view of Catalog ───────
-     A "lecție" is one class_sessions row (one dated class meeting); each
-     student gets one attendance_records row per lecție. Switching
-     catalogViewMode never refetches — sessions/attMatrix are the exact
-     objects loadMembriTab() fetched once and holds in closure; every
-     handler below mutates them in place before calling refreshFn (the
-     loadMembriTab-scoped renderCatalog), so a single save/toggle/delete
-     re-renders instantly with no round trip back to the server. ─── */
-
-  function _attendanceTier(pct) {
-    return BM.CatalogStats.attendanceTier(pct);
-  }
-
-  function _renderCatalogViewToggle(mode) {
-    return `
-      <div class="catalog-view-toggle-row">
-        <div class="cs-view-toggle cs-view-toggle--lg" id="catalogViewToggle">
-          <button type="button" class="cs-view-toggle__btn${mode === 'note' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="note">${icon('chart-column', { size: 16 })} Note</button>
-          <button type="button" class="cs-view-toggle__btn${mode === 'prezenta' ? ' cs-view-toggle__btn--active' : ''}" data-cat-view="prezenta">${icon('calendar', { size: 16 })} Prezență</button>
-        </div>
-      </div>`;
-  }
-
-  function _wireCatalogViewToggle(content, onSwitch) {
-    content.querySelector('#catalogViewToggle')?.querySelectorAll('[data-cat-view]').forEach(btn => {
-      btn.addEventListener('click', () => {
-        if (btn.dataset.catView === catalogViewMode) return;
-        catalogViewMode = btn.dataset.catView;
-        onSwitch();
-      });
-    });
-  }
-
-  // Romanian month abbreviations, index 0 = Ianuarie — used both for the
-  // date cell's label and to pick its seasonal color class below.
-  const _MONTH_ABBR = ['ian', 'feb', 'mar', 'apr', 'mai', 'iun', 'iul', 'aug', 'sep', 'oct', 'noi', 'dec'];
-
-  // Transposed like renderCatalogTeacher above: elevi run left-to-right as
-  // columns, lecții run top-to-bottom as rows — each row's label is now the
-  // lecție's title (clickable to edit) with the date broken out into its
-  // own adjacent, sticky, month-colored cell (not stacked together the way
-  // Note's temă/simulare title+date still are), and clicking a date header
-  // to edit is now clicking either of those two cells instead.
-  function renderCatalogAttendance(members, nameMap, sessions, attMatrix) {
-    const { perStudent, classRate } = BM.CatalogStats.attendanceStats(members, sessions, attMatrix);
-    const byId = {};
-    perStudent.forEach(s => { byId[s.studentId] = s; });
-    const studentStats = members.map((m, idx) => {
-      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
-      const { presentCount, recordedCount, rate } = byId[m.student_id];
-      return { m, name, presentCount, recordedCount, rate };
-    });
-
-    const studentHeaderCells = studentStats.map(s => `
-      <div class="catalog-th"><span class="catalog-th__title">${BM.esc(s.name)}</span></div>`).join('');
-
-    const bodyRows = sessions.map(s => {
-      const [y, mo, d] = s.session_date.split('-').map(Number);
-      const ds = new Date(y, mo - 1, d).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' });
-      const monthCls = _MONTH_ABBR[mo - 1];
-
-      const cells = studentStats.map(({ m }) => {
-        const status = (attMatrix[m.student_id] || {})[s.id];
-        if (status === undefined) return `<div class="catalog-td catalog-td--none" title="Fără înregistrare">-</div>`;
-        return status
-          ? `<div class="catalog-td catalog-td--grade catalog-td--hi catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Prezent, click pentru a marca absent">${icon('circle-check', { size: 16, className: 'icon--success' })}</div>`
-          : `<div class="catalog-td catalog-td--grade catalog-td--lo catalog-td--clickable" data-att-cell="${s.id}|${m.student_id}" title="Absent, click pentru a marca prezent">${icon('circle-x', { size: 16, className: 'icon--error' })}</div>`;
-      }).join('');
-
-      const recorded = members.filter(m => (attMatrix[m.student_id] || {})[s.id] !== undefined);
-      const present  = recorded.filter(m => (attMatrix[m.student_id] || {})[s.id] === true).length;
-      const pct = recorded.length ? Math.round((present / recorded.length) * 100) : null;
-      const tier = pct != null ? _attendanceTier(pct) : null;
-      const tierCls = tier ? ` catalog-td--tone-${tier}` : '';
-
-      return `
-        <div class="catalog-row">
-          <div class="catalog-td catalog-td--name catalog-td--rowlabel catalog-td--rowlabel-clickable"
-               data-edit-session="${s.id}" title="Click pentru a edita lecția">
-            <span class="catalog-th__title">${icon('calendar', { size: 16 })} ${s.title ? BM.esc(s.title) : 'Lecție'}</span>
-          </div>
-          <div class="catalog-td catalog-td--date catalog-td--date--${monthCls} catalog-td--rowlabel-clickable"
-               data-edit-session="${s.id}" title="Click pentru a edita lecția">${ds}</div>
-          ${cells}
-          <div class="catalog-td catalog-td--avg${tierCls}">${pct != null ? pct + '%' : '-'}</div>
-        </div>`;
-    }).join('');
-
-    const statsRow = sessions.length > 0 ? `
-      <div class="catalog-row catalog-row--stats">
-        <div class="catalog-td catalog-td--name catalog-td--stats-lbl">Prezență elev</div>
-        <div class="catalog-td catalog-td--date"></div>
-        ${studentStats.map(({ rate }) => {
-          const tier = rate != null ? _attendanceTier(rate) : null;
-          return `<div class="catalog-td catalog-td--stat${tier ? ' catalog-td--tone-' + tier : ''}">${rate != null ? rate + '%' : '-'}</div>`;
-        }).join('')}
-        <div class="catalog-td catalog-td--avg"></div>
-      </div>` : '';
-
-    return `
-      <div class="catalog-wrap">
-        <div class="catalog-statsbar">
-          <div class="catalog-stat-card">
-            <div class="catalog-stat-card__val">${members.length}</div>
-            <div class="catalog-stat-card__lbl">Elevi</div>
-          </div>
-          <div class="catalog-stat-card">
-            <div class="catalog-stat-card__val">${sessions.length}</div>
-            <div class="catalog-stat-card__lbl">Lecții</div>
-          </div>
-          <div class="catalog-stat-card ${classRate != null ? 'catalog-stat-card--avg' : ''}">
-            <div class="catalog-stat-card__val">${classRate != null ? classRate + '%' : '-'}</div>
-            <div class="catalog-stat-card__lbl">Prezență medie</div>
-          </div>
-        </div>
-        ${sessions.length === 0 ? `
-          <div class="cd-placeholder">
-            <div class="cd-placeholder__icon">${icon('calendar', { size: 48 })}</div>
-            <h3 class="cd-placeholder__title">Nicio lecție înregistrată</h3>
-            <p class="cd-placeholder__desc">Adaugă prima lecție ca să începi să urmărești prezența elevilor.</p>
-          </div>
-        ` : `
-          <div class="catalog-scroll">
-            <div class="catalog-table">
-              <div class="catalog-head">
-                <div class="catalog-th catalog-th--name">Lecție</div>
-                <div class="catalog-th catalog-th--date">Dată</div>
-                ${studentHeaderCells}
-                <div class="catalog-th catalog-th--avg">Prezență</div>
-              </div>
-              <div class="catalog-body">
-                ${bodyRows}
-                ${statsRow}
-              </div>
-            </div>
-          </div>
-        `}
-        <div class="catalog-toolbar catalog-toolbar--split">
-          <span class="catalog-toolbar__hint">${sessions.length > 0 ? 'Click pe o lecție pentru a o edita · click pe celulă pentru a comuta corect/greșit' : ''}</span>
-          <button class="btn btn--primary btn--sm" id="addLectieBtn">+ Adaugă lecție</button>
-        </div>
-      </div>`;
-  }
-
-  function _wireCatalogAttendance(content, members, nameMap, sessions, attMatrix, refreshFn) {
-    document.getElementById('addLectieBtn')?.addEventListener('click', () => {
-      openLectieModal(null, members, nameMap, sessions, attMatrix, refreshFn);
-    });
-    content.querySelectorAll('[data-edit-session]').forEach(th => {
-      th.addEventListener('click', () => {
-        const session = sessions.find(s => s.id === th.dataset.editSession);
-        if (session) openLectieModal(session, members, nameMap, sessions, attMatrix, refreshFn);
-      });
-    });
-    content.querySelectorAll('[data-att-cell]').forEach(cell => {
-      cell.addEventListener('click', async () => {
-        const [sessionId, studentId] = cell.dataset.attCell.split('|');
-        const next = attMatrix[studentId]?.[sessionId] !== true;
-        try {
-          const { error } = await BMAuth.supabase.from('attendance_records')
-            .upsert({ session_id: sessionId, student_id: studentId, present: next }, { onConflict: 'session_id,student_id' });
-          if (error) throw error;
-          if (!attMatrix[studentId]) attMatrix[studentId] = {};
-          attMatrix[studentId][sessionId] = next;
-          refreshFn();
-        } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
-      });
-    });
-  }
-
-  function _todayIso() { return new Date().toISOString().split('T')[0]; }
-
-  async function openLectieModal(session, members, nameMap, sessions, attMatrix, refreshFn) {
-    document.getElementById('lectieModal')?.remove();
-    const isEdit   = !!session;
-    const dateVal  = session?.session_date || _todayIso();
-    const titleVal = session?.title || '';
-
-    const rosterRows = members.map((m, idx) => {
-      const name = nameMap[m.student_id] || ('Elev ' + (idx + 1));
-      // No existing record defaults to "present" in both add and edit mode —
-      // keeps the roster binary (no ambiguous third state in the editor
-      // itself; the "—" no-record cell only ever shows in the read-only
-      // table for students who joined after a given lecție was saved).
-      const current = session ? (attMatrix[m.student_id]?.[session.id] !== false) : true;
-      return `
-        <div class="lectie-roster-row" data-student="${m.student_id}">
-          <span class="catalog-avatar">${_catalogInitials(name)}</span>
-          <span class="lectie-roster-row__name">${BM.esc(name)}</span>
-          <div class="att-row-toggle">
-            <button type="button" class="att-row-toggle__btn att-row-toggle__btn--present${current ? ' att-row-toggle__btn--active' : ''}" data-present="1">Prezent</button>
-            <button type="button" class="att-row-toggle__btn att-row-toggle__btn--absent${!current ? ' att-row-toggle__btn--active' : ''}" data-present="0">Absent</button>
-          </div>
-        </div>`;
-    }).join('');
-
-    const modal = document.createElement('div');
-    modal.id = 'lectieModal';
-    modal.className = 'classes-modal';
-    modal.innerHTML = `
-      <div class="classes-modal__backdrop"></div>
-      <div class="classes-modal__dialog lectie-dialog">
-        <div class="classes-modal__head">
-          <h3>${icon('calendar', { size: 20 })} ${isEdit ? 'Editează lecția' : 'Adaugă lecție'}</h3>
-          <button class="icon-btn" id="lectieCloseBtn">${icon('x', { size: 16 })}</button>
-        </div>
-        <div class="classes-modal__body">
-          <div class="cls-form-field">
-            <label class="cls-form-label">Data lecției *</label>
-            <input type="date" id="lectieDateInput" class="cls-form-input" max="${_todayIso()}" value="${BM.esc(dateVal)}">
-          </div>
-          <div class="cls-form-field">
-            <label class="cls-form-label">Titlul lecției</label>
-            <input type="text" id="lectieTitleInput" class="cls-form-input" placeholder="Ce ați parcurs la lecție"
-                   maxlength="120" value="${BM.esc(titleVal)}">
-          </div>
-          <div class="cls-form-field">
-            <label class="cls-form-label">Prezență elevi</label>
-            <div class="lectie-roster">${rosterRows}</div>
-          </div>
-          <div class="lectie-modal__foot">
-            ${isEdit ? `<button class="btn btn--danger btn--sm" id="lectieDeleteBtn">${icon('trash-2', { size: 16 })} Șterge lecția</button>` : '<span></span>'}
-            <button class="btn btn--primary" id="lectieSaveBtn">Salvează</button>
-          </div>
-        </div>
-      </div>`;
-    document.body.appendChild(modal);
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    const closeModal = () => {
-      modal.remove();
-      document.documentElement.style.overflow = '';
-      document.body.style.overflow = '';
-    };
-    modal.querySelector('.classes-modal__backdrop').onclick = closeModal;
-    modal.querySelector('#lectieCloseBtn').onclick = closeModal;
-
-    modal.querySelectorAll('.lectie-roster-row').forEach(row => {
-      row.querySelectorAll('.att-row-toggle__btn').forEach(btn => {
-        btn.addEventListener('click', () => {
-          row.querySelectorAll('.att-row-toggle__btn').forEach(b => b.classList.remove('att-row-toggle__btn--active'));
-          btn.classList.add('att-row-toggle__btn--active');
-        });
-      });
-    });
-
-    if (window.flatpickr) {
-      const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
-      const dateInput = document.getElementById('lectieDateInput');
-      flatpickr(dateInput, {
-        locale: window.flatpickr.l10ns?.ro || 'default',
-        dateFormat: 'Y-m-d',
-        maxDate: 'today',
-        defaultDate: dateVal,
-        disableMobile: true,
-        allowInput: false,
-        theme: isDark ? 'dark' : 'light',
-        onChange(_dates, dateStr) { dateInput.value = dateStr; }
-      });
-    }
-
-    modal.querySelector('#lectieDeleteBtn')?.addEventListener('click', async () => {
-      const ok = await showConfirmDialog({
-        icon: icon('trash-2', { size: 48, className: 'icon--error' }), title: 'Ștergi lecția?',
-        message: 'Toate înregistrările de prezență pentru această dată vor fi șterse definitiv.',
-        confirmText: 'Șterge'
-      });
-      if (!ok) return;
-      try {
-        const { error } = await BMAuth.supabase.from('class_sessions').delete().eq('id', session.id);
-        if (error) throw error;
-        const idx = sessions.findIndex(s => s.id === session.id);
-        if (idx !== -1) sessions.splice(idx, 1);
-        members.forEach(m => { if (attMatrix[m.student_id]) delete attMatrix[m.student_id][session.id]; });
-        BM.toast('Lecția a fost ștearsă.', 'info');
-        closeModal();
-        refreshFn();
-      } catch (e) { BM.toast('Eroare: ' + e.message, 'error'); }
-    });
-
-    modal.querySelector('#lectieSaveBtn').onclick = async () => {
-      const dateStr = document.getElementById('lectieDateInput').value;
-      if (!dateStr) { BM.toast('Selectează data lecției.', 'error'); return; }
-      const titleStr = document.getElementById('lectieTitleInput').value.trim() || null;
-      const btn = modal.querySelector('#lectieSaveBtn');
-      btn.disabled = true; btn.textContent = 'Se salvează…';
-
-      const statusMap = {};
-      modal.querySelectorAll('.lectie-roster-row').forEach(row => {
-        const present = row.querySelector('.att-row-toggle__btn--present').classList.contains('att-row-toggle__btn--active');
-        statusMap[row.dataset.student] = present;
-      });
-
-      try {
-        let sessionId = session?.id;
-        if (!sessionId) {
-          // Multiple lecții on the same date are allowed (some groups run
-          // two back-to-back) — no duplicate-date check here anymore.
-          const { data: newSession, error: sessErr } = await BMAuth.supabase.from('class_sessions')
-            .insert({ class_id: classData.id, created_by: BMAuth.user.id, session_date: dateStr, title: titleStr })
-            .select('id, session_date, title').single();
-          if (sessErr) throw sessErr;
-          sessionId = newSession.id;
-          sessions.push(newSession);
-          sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
-        } else if (dateStr !== session.session_date || titleStr !== (session.title || null)) {
-          const { error: updErr } = await BMAuth.supabase.from('class_sessions')
-            .update({ session_date: dateStr, title: titleStr }).eq('id', sessionId);
-          if (updErr) throw updErr;
-          session.session_date = dateStr;
-          session.title = titleStr;
-          sessions.sort((a, b) => a.session_date.localeCompare(b.session_date));
-        }
-
-        const rows = Object.entries(statusMap).map(([student_id, present]) => ({ session_id: sessionId, student_id, present }));
-        const { error: attErr } = await BMAuth.supabase.from('attendance_records')
-          .upsert(rows, { onConflict: 'session_id,student_id' });
-        if (attErr) throw attErr;
-
-        rows.forEach(r => {
-          if (!attMatrix[r.student_id]) attMatrix[r.student_id] = {};
-          attMatrix[r.student_id][sessionId] = r.present;
-        });
-
-        BM.toast(isEdit ? 'Lecția a fost actualizată.' : 'Lecția a fost adăugată.', 'success');
-        closeModal();
-        refreshFn();
-      } catch (e) {
-        BM.toast('Eroare: ' + e.message, 'error');
-        btn.disabled = false; btn.textContent = 'Salvează';
-      }
     };
   }
 

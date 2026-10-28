@@ -34,7 +34,26 @@
     } catch (e) { /* the migration is not run yet: no badge */ }
   }
 
+  let channel = null, channelFor = null;
+  function listen() {
+    const a = window.BMAuth;
+    if (!a || !a.supabase || !a.user || typeof a.supabase.channel !== 'function') return;
+    const teacher = a.role === 'profesor';
+    // the role arrives a moment after the session: a channel opened for the wrong role is closed and opened again for the right one
+    if (channel && channelFor === teacher) return;
+    if (channel) { try { a.supabase.removeChannel(channel); } catch (e) { /* closed anyway */ } channel = null; }
+    channelFor = teacher;
+    const cfg = { event: '*', schema: 'public', table: 'class_join_requests' };
+    if (!teacher) cfg.filter = 'student_id=eq.' + a.user.id;
+    try {
+      channel = a.supabase.channel('join-requests-' + a.user.id)
+        .on('postgres_changes', cfg, () => { refresh(); window.dispatchEvent(new CustomEvent('bm:join-requests-changed')); })
+        .subscribe();
+    } catch (e) { channel = null; }
+  }
+
   function start() {
+    listen();
     refresh();
     if (!timer) timer = setInterval(() => { if (!document.hidden) refresh(); }, 60000);
   }

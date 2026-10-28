@@ -71,3 +71,13 @@ Migrarea `supabase/migrations/20261016100000_cereri_alaturare_clase.sql` schimb�
 ## Clasele vin doar din registru (2026-10-28)
 
 Profesorul nu mai creează grupe: în Clase nu mai există „Creează clasă", „Clase pe platformă" și ștergerea unei clase. Grupa o face managerul sau adminul în consolă, ajunge în registrul profesorului, iar clasa o face baza de date (vezi secțiunea de mai sus). `supabase/migrations/20261028100000_clase_doar_din_registru.sql` oprește orice inserare în `classes` din client. Clasele făcute de mână înainte (fără `reg_group_id`) se șterg cu `supabase/manual/sterge-clasele-fara-registru.sql`, rulat pe rând de utilizator (stergerea cascadează mesaje, teme, simulări, catalog, membri).
+
+## Audit al sincronizării (2026-10-28)
+
+- **Catalogul** are doar notele (teme și simulări). Prezența, tema lecției și data lectiei se țin în registru; din client nu se mai poate scrie în `class_sessions` și `attendance_records` (migrarea `20261028120000_audit_sincronizare.sql`).
+- **Sumar** (clasă din grupă de registru): lista elevilor vine din registru (`js/class-registry-view.js`): statut, manager, de când e în grupă (prima lecție cu notă), când a plecat (ultima lecție, pentru Transferat sau Inactiv), cont legat sau nu. Cifrele (elevi, prezență medie, elevi pe oră, lecții ținute) sunt din registru. Conturile nelegate de un elev din registru apar separat, cu alegerea numelui. Manager și statut nu se mai editează în platformă.
+- **Reîmprospătare:** Sumar verifică ștampila ultimei sincronizări a grupei la 30 s, Clase la 45 s, și se redesenează doar dacă s-a schimbat. Cererile de alăturare vin în timp real (`class_join_requests` în publicația realtime) și actualizează insigna și lista.
+- **Legătura elev-cont** stă în `class_member_links` (vizibil doar profesorului clasei), nu în `class_members`.
+- **Coduri ghicite:** 10 coduri greșite în 15 minute blochează încercările (tabelul `class_join_attempts`).
+- **Sincronizarea:** o rulare deschisă și neînchisă (funcția oprită la mijloc) este marcată `failed` de următoarea rulare (`registru-sync`, necesită redeploy).
+- Diagnostic de acces (politicile RLS vechi nu sunt în migrări): `supabase/manual/diagnostic-scurgeri.sql`.

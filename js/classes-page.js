@@ -496,6 +496,14 @@
         ${has ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
         ${hasReg ? regSectionHTML() : ''}
         ${hasReg ? `
+          ${classes.length ? `
+          <section class="cl-sect cl-sect--platform" aria-labelledby="clOrphT">
+            <header class="cl-sect__h"><h2 id="clOrphT">Clase fără grupă în registru</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
+            <p class="cl-sect__sub">Grupa acestor clase nu mai există în registrul tău (fila a fost ștearsă sau înlocuită). Elevii lor le văd în continuare. Dacă grupa e încă activă, cere administratorului să o refacă în registru.</p>
+            <ol class="cl-blocks" id="classesGrid" aria-label="Clase fără grupă în registru">
+              ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}
+            </ol>
+          </section>` : ''}
           <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
             <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
             <h2>Nicio grupă în ziua selectată</h2>
@@ -695,8 +703,28 @@
     _reg = await regP;
     try { sessionStorage.setItem(_teacherCacheKey(), JSON.stringify({ classes, memberCounts, aggStats, reg: _reg })); } catch {}
     _applyTeacherUI(classes, memberCounts, aggStats);
+    _lastTeacherClasses = classes;
     loadJoinRequests(classes);
+    _watchRegister();
   }
+
+  /* The teacher types in Sheets; the sync writes it to the database within seconds. This page looks at the last write every 45 s while it is on screen and
+     redraws only when it moved. A join request redraws just the requests, at once (js/join-badge.js tells us). */
+  let _lastTeacherClasses = [], _regPoll = null;
+  function _watchRegister() {
+    if (_regPoll) { clearInterval(_regPoll); _regPoll = null; }
+    if (!window.ClassesRegistry || !_reg) return;
+    _regPoll = setInterval(async () => {
+      if (document.hidden || !_reg) return;
+      const now = await window.ClassesRegistry.stamp(BMAuth.supabase);
+      if (now && now !== _reg.stamp) { try { sessionStorage.removeItem(_teacherCacheKey()); } catch {} renderTeacherView(); }
+    }, 45000);
+  }
+  window.addEventListener('bm:join-requests-changed', () => {
+    if (!window.BMAuth || !BMAuth.user) return;
+    if (BMAuth.role === 'profesor') loadJoinRequests(_lastTeacherClasses);
+    else if (typeof renderStudentView === 'function') { try { sessionStorage.removeItem(_studentCacheKey()); } catch {} renderStudentView(); }
+  });
 
   /* ═══════════════════════════════════════════════════════════════
      JOIN REQUESTS (teacher): a student with the code asks to join; nothing of the class is open to the student until the teacher accepts.
@@ -714,7 +742,7 @@
     try {
       const [r, l] = await Promise.all([
         BMAuth.supabase.from('class_join_requests').select('id, class_id, student_id, student_name, class_name, created_at').eq('status', 'pending').in('class_id', ids).order('created_at', { ascending: true }),
-        BMAuth.supabase.from('class_members').select('class_id, reg_student_name').in('class_id', ids).not('reg_student_name', 'is', null)
+        BMAuth.supabase.from('class_member_links').select('class_id, reg_student_name').in('class_id', ids)
       ]);
       reqs = r.error ? [] : (r.data || []);
       linked = l.error ? [] : (l.data || []);
@@ -1123,6 +1151,7 @@
         already_member: 'Ești deja înscris în această clasă.',
         already_pending: 'Ai trimis deja o cerere pentru această clasă. Așteaptă răspunsul profesorului.',
         rejected_wait: 'Cererea ta a fost respinsă. Poți trimite din nou peste cel mult o zi.',
+        too_many: 'Prea multe coduri greșite la rând. Încearcă din nou peste 15 minute.',
         auth: 'Conectează-te ca să trimiți o cerere.'
       }[st] || 'Cererea nu a putut fi trimisă.';
       BM.toast(msg, st === 'already_pending' ? 'info' : 'error');

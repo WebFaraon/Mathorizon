@@ -1419,11 +1419,46 @@ body:has(#classRoot) :is(.sumar-upnext__card--clickable, .teme-assignment--click
 body:has(.msg-panel) .scroll-top-btn { display: none; }
 
 /* Sumar roster of a class made from a register group: a fourth column ties the account to the student's name in the register */
-.sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: minmax(0, 1fr) 130px 200px 240px; }
+.sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: minmax(0, 1.3fr) 150px minmax(0, 1fr) 150px 190px; }
 .sumar-roster__reg { width: 100%; min-width: 0; padding: 8px 11px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-bg); color: var(--k-ink); font: inherit; font-size: 0.86rem; }
 .sumar-roster__reg:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 2px; }
 .sumar-roster__noacc { display: flex; align-items: flex-start; gap: 9px; margin: 10px 0 0; padding: 10px 13px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
 .sumar-roster__noacc svg { flex: none; margin-top: 2px; }
 @media (max-width: 760px) {
   .sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: 1fr; }
+}
+
+/* Sumar roster of a register group: status, manager, period and account come from the register */
+.sumar-roster__chip { display: inline-flex; align-items: center; gap: 7px; width: fit-content; font-size: 0.82rem; font-weight: 800; color: var(--k-green); white-space: nowrap; }
+.sumar-roster__chip i { width: 10px; height: 10px; border: 2px solid currentColor; border-radius: 50%; background: currentColor; }
+.sumar-roster__chip--proba, .sumar-roster__chip--proba_ok { color: var(--k-blue); }
+.sumar-roster__chip--proba i { background: transparent; }
+.sumar-roster__chip--instabil { color: #B26A00; }
+.sumar-roster__chip--inlocuire { color: var(--k-ink-2); }
+.sumar-roster__chip--inlocuire i { border-radius: 2px; }
+.sumar-roster__chip--plecat { color: var(--k-ink-3); }
+.sumar-roster__chip--plecat i { background: transparent; }
+.sumar-roster__mgr { min-width: 0; overflow: hidden; font-size: 0.88rem; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.sumar-roster__mgr em { font-style: normal; font-weight: 500; color: var(--k-ink-3); }
+.sumar-roster__when { font-size: 0.86rem; font-weight: 600; color: var(--k-ink-2); font-variant-numeric: tabular-nums; }
+.sumar-roster__accwrap { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; }
+.sumar-roster__acc { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; font-weight: 700; color: var(--k-ink-3); }
+.sumar-roster__acc--yes { color: var(--k-green); }
+.sumar-roster__unlink { padding: 0; border: 0; background: none; color: var(--k-ink-3); font: inherit; font-size: 0.76rem; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.sumar-roster__unlink:hover { color: var(--k-red); }
+.sumar-roster__row--left { opacity: 0.62; }
+.sumar-roster__sep { padding: 8px 16px; border-bottom: 1px solid var(--k-rule); background: var(--k-bg); font-size: 0.76rem; font-weight: 800; color: var(--k-ink-3); }
+.sumar-roster__sync { margin: 10px 2px 0; font-size: 0.82rem; line-height: 1.45; color: var(--k-ink-3); }
+.sumar-roster__sync a { color: var(--k-blue); font-weight: 700; }
+.sumar-loose { margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; display: grid; gap: 10px; }
+.sumar-loose__t { display: flex; align-items: flex-start; gap: 9px; margin: 0; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
+.sumar-loose__t svg { flex: none; margin-top: 2px; }
+.sumar-loose__row { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px); align-items: center; gap: 12px; }
+.sumar-loose__n { display: grid; min-width: 0; }
+.sumar-loose__n small { font-size: 0.78rem; color: var(--k-ink-3); }
+@media (max-width: 760px) {
+  .sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: 1fr; gap: 6px; }
+  .sumar-roster--reg .sumar-roster__row--head { display: none; }
+  .sumar-loose__row { grid-template-columns: auto minmax(0, 1fr); }
+  .sumar-loose__row .sumar-roster__reg { grid-column: 1 / -1; }
 }

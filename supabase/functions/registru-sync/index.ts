@@ -126,6 +126,9 @@ Deno.serve(async (req) => {
     }
   }
 
+  // a run opened and never closed (the function was cut between the insert and the update) is marked failed, so the console counts it and nobody mistakes it for a live run
+  await sb.from('reg_sync_runs').update({ finished_at: new Date().toISOString(), status: 'failed', detail: { error: 'întrerupt: funcția s-a oprit înainte de final; registrul se citește din nou la următorul ciclu' } }).is('status', null).lt('started_at', new Date(Date.now() - 10 * 60000).toISOString());
+
   const started = Date.now(), results: unknown[] = [];
   for (const wb of books ?? []) {
     if (Date.now() - started > BUDGET_MS) { results.push({ workbook: wb.id, status: 'deferred' }); continue; }

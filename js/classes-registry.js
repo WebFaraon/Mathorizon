@@ -57,12 +57,22 @@
     return { days, start: hrs[0], duration: hrs.length, cab: cab ? String(cab) : '' };
   }
 
+  /* when the sync last wrote any group of the teacher, and how many groups there are: the page polls this and reloads only when it moved */
+  const stampOf = groups => groups.reduce((m, g) => (g.synced_at && g.synced_at > m ? g.synced_at : m), '') + '|' + groups.length;
+  async function stamp(sb) {
+    try {
+      const { data, count, error } = await sb.from('reg_groups').select('synced_at', { count: 'exact' }).order('synced_at', { ascending: false }).limit(1);
+      if (error) return null;
+      return ((data && data[0] && data[0].synced_at) || '') + '|' + (count == null ? 0 : count);
+    } catch (e) { return null; }
+  }
+
   async function load(sb, uid) {
     try {
       const wq = await sb.from('reg_workbooks').select('id,spreadsheet_id,teacher_name,last_full_sync_at,teacher_data').eq('owner_user_id', uid).eq('enabled', true);
       if (wq.error || !wq.data || !wq.data.length) return null;
       const wbs = wq.data, ids = wbs.map(w => w.id), byWb = new Map(wbs.map(w => [w.id, w]));
-      const COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule';
+      const COLS = 'id,workbook_id,sheet_id,tab,format_size,state,subject,summer,grade,level,profile,schedule,synced_at';
       let groups;
       try { groups = await fetchAll(() => sb.from('reg_groups').select(COLS + ',mode,price').in('workbook_id', ids).order('sheet_id', { ascending: true })); }
       catch (e) { groups = await fetchAll(() => sb.from('reg_groups').select(COLS).in('workbook_id', ids).order('sheet_id', { ascending: true })); }   // a platform without the newest migration
@@ -115,6 +125,7 @@
       const newest = wbs.map(w => w.last_full_sync_at).filter(Boolean).sort().pop() || null;
       return {
         groups: list, syncedAt: newest, teacherName: wbs[0].teacher_name || '',
+        stamp: stampOf(groups),
         stats: {
           groups: live.length,
           students: live.reduce((n, g) => n + g.students.filter(s => s.status.id === 'activ' || s.status.id === 'inlocuire').length, 0),
@@ -137,5 +148,5 @@
     } catch (e) { return null; }
   }
 
-  window.ClassesRegistry = { load, registerUrl, DAYS };
+  window.ClassesRegistry = { load, stamp, registerUrl, DAYS };
 })();
