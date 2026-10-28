@@ -33,3 +33,5 @@ body.ax .sy-legend__b { display: grid; gap: 18px; padding: 0 16px 16px; }
 body.ax .sy-legend td { vertical-align: top; line-height: 1.45; }
 body.ax .sy-code { font-family: ui-monospace, Consolas, monospace; font-size: 0.78rem; color: var(--ax-ink-3); }
 @media (prefers-reduced-motion: reduce) { body.ax .sy-legend > summary::before { transition: none; } }
+
+body.ax .sy-hint { margin: -6px 0 2px; font-size: 0.84rem; line-height: 1.45; color: var(--ax-ink-3); }

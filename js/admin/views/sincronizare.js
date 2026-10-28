@@ -238,12 +238,12 @@
       title: w ? 'Setările registrului' : 'Adaugă un registru',
       sub: w ? esc(w.title || w.spreadsheet_id) : 'Un registru Google Sheets al unui profesor.',
       body: `<form class="sy-form" id="syForm">
-        ${w ? '' : `<p class="sy-step"><b>Întâi:</b> în Google, partajează registrul cu <code>${esc(SA_EMAIL)}</code> ca <b>Cititor</b>. Fără asta platforma nu îl poate citi.</p>
+        ${w ? '' : `<p class="sy-step"><b>Întâi:</b> în Google, partajează registrul cu <code>${esc(SA_EMAIL)}</code> ca <b>Editor</b>, nu Cititor. Fără rolul de Editor platforma nu poate scrie în registru (înscrieri, grupe noi, statuturi), iar fără acces nu îl poate nici citi.</p>
         <label class="sy-f"><span>Link-ul sau id-ul registrului Google</span><input class="ax-input" name="sheet" required placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></label>`}
         <label class="sy-f"><span>Profesor <em>(opțional, se completează din numele fișierului)</em></span><input class="ax-input" name="teacher" value="${esc((w && w.teacher_name) || '')}" placeholder="Nume Prenume" autocomplete="off"></label>
-        <label class="sy-f"><span>Contul de profesor care îl vede <em>(opțional)</em></span>
-          <select class="ax-select" name="owner"><option value="">Doar adminul</option>${list.map(p => `<option value="${esc(p.user_id)}"${w && w.owner_user_id === p.user_id ? ' selected' : ''}>${esc(p.full_name || p.email)} · ${esc(p.email || '')}</option>`).join('')}</select></label>
-        <label class="sy-f"><span>Anul școlar începe în <em>(dacă nu se vede în numele fișierului)</em></span><input class="ax-input" name="year" inputmode="numeric" maxlength="4" value="${w && w.school_year_from ? esc(w.school_year_from) : ''}" placeholder="2025"></label>
+        <label class="sy-f"><span>Contul de profesor care îl vede</span>
+          <select class="ax-select" name="owner"${w && !w.owner_user_id ? '' : ' required'}><option value=""${w && w.owner_user_id ? '' : ' selected'} disabled hidden>Alege contul profesorului</option>${list.map(p => `<option value="${esc(p.user_id)}"${w && w.owner_user_id === p.user_id ? ' selected' : ''}>${esc(p.full_name || p.email)} · ${esc(p.email || '')}</option>`).join('')}</select></label>
+        <p class="sy-hint">Fără contul profesorului nu apar clasele lui în platformă, nici linkul Meet, nici întrebările din Telegram.</p>
         ${w ? `<label class="sy-f sy-check"><input type="checkbox" name="enabled"${w.enabled ? ' checked' : ''}> <span>Registrul se sincronizează</span></label>` : ''}
         <p class="sy-err" id="syErr" role="alert"></p>
       </form>`,
@@ -252,14 +252,14 @@
     d.querySelector('#syForm').addEventListener('submit', async ev => {
       ev.preventDefault();
       const f = new FormData(ev.target), go = d.querySelector('#syGo'), err = d.querySelector('#syErr');
-      const year = String(f.get('year') || '').trim();
-      if (year && !/^20\d\d$/.test(year)) { err.textContent = 'Anul trebuie să aibă 4 cifre, de exemplu 2025.'; return; }
+      // the account of the teacher is what ties the register to his classes, the Meet link and the Telegram bot: it is required (an old register can still be switched off without one)
+      if (!f.get('owner') && !(w && !f.get('enabled'))) { err.textContent = 'Alege contul profesorului: fără el nu apar clasele, linkul Meet și întrebările din Telegram.'; return; }
       go.disabled = true; err.textContent = '';
       try {
         let rid = id;
-        if (!w) rid = await rpc('reg_add_workbook', { p_spreadsheet: String(f.get('sheet')), p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: year ? +year : null });
+        if (!w) rid = await rpc('reg_add_workbook', { p_spreadsheet: String(f.get('sheet')), p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: null });
         else {
-          await rpc('reg_add_workbook', { p_spreadsheet: w.spreadsheet_id, p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: year ? +year : null });
+          await rpc('reg_add_workbook', { p_spreadsheet: w.spreadsheet_id, p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: null });
           await rpc('reg_update_workbook', { p_id: w.id, p_enabled: !!f.get('enabled'), p_clear_owner: !f.get('owner') });
         }
         d.close();
@@ -276,7 +276,7 @@
       <thead><tr><th>Registru</th><th>Status</th><th>Verificat</th><th>Citit complet</th><th class="ax-num">Grupe</th><th><span class="cn-vh">Acțiuni</span></th></tr></thead>
       <tbody>${C.books.map((w, i) => {
         const st = ST[statusOf(w)], skipped = w.last_status === 'partial' ? (C.skippedBy[w.id] || []) : [];
-        const hint = /403|404|permission|not found/i.test(w.last_error || '') ? `. Verifică dacă registrul e partajat cu ${esc(SA_EMAIL)} (Cititor).` : '';
+        const hint = /403|404|permission|not found/i.test(w.last_error || '') ? `. Verifică dacă registrul e partajat cu ${esc(SA_EMAIL)} (Editor).` : '';
         const note = w.last_status === 'failed' && w.last_error ? `<span class="sy-note sy-note--err">${esc(w.last_error)}${hint}</span>`
           : skipped.length ? `<span class="sy-note">${skipped.map(s => `<b>${esc(s.tab)}</b>: ${esc(s.reason)}`).join('<br>')}</span>` : '';
         const busy = syncing === w.id;
