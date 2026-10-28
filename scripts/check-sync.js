@@ -718,6 +718,23 @@ const add = (id, extra) => Object.assign({ id, type: 'ADD_STUDENT', tab: 'Grupa 
         ok(chk(6, 'Startează', ['Activ', 'Activ', 'Activ', 'Activ', 'Activ']) === null && chk(6, 'Activ', ['Activ', 'Activ', 'Activ', 'Activ']) === null, 'a group that already starts, or is active, is not touched');
         ok(chk(1, 'Se completează', ['Activ']) === null, 'an individual lesson has no trial lesson and no rule');
         ok(START_MIN[6] === 4 && START_MIN[3] === 2 && START_MIN[8] === 6 && START_MIN[10] === 6, 'the minimum by size (the founder: 4 of 6, 2 of 3; the rest to be confirmed)');
+        // every size: one student short does not start, the minimum does, more does (statuses that count: Activ, Oră de probă, Oră de probă confirmată)
+        for (const size of [2, 3, 4, 5, 6, 8, 10]) {
+          const need = START_MIN[size], sts = n => Array.from({ length: n }, (_, k) => ['Activ', 'Oră de probă', 'Oră de probă confirmată'][k % 3]);
+          const g = n => startCheck({ state: 'Se completează', format_size: size, students: sts(n).map(status => ({ status })) });
+          ok(g(need - 1).start === false && g(need).start === true && g(size).start === true && g(need).need === need && g(need).enrolled === need, `size ${size}: ${need - 1} enrolled waits, ${need} starts`);
+        }
+        ok(START_MIN[4] === 3 && START_MIN[5] === 4 && START_MIN[2] === 2, 'the minimums of 2, 4 and 5 (to be confirmed with the founder): 2 of 2, 3 of 4, 4 of 5');
+        // the sweep over the database rows: only "Se completează" groups with enough students; the others are left alone
+        {
+          const { pendingStarts } = await imp('start-rule.mjs');
+          const G = (id, state, size) => ({ id, workbook_id: 'w' + id, sheet_id: Number(id), tab: 'T' + id, state, format_size: size });
+          const S = (...st) => st.map(status => ({ status }));
+          const by = new Map([['1', S('Activ', 'Oră de probă', 'Oră de probă')], ['2', S('Activ')], ['3', S('Activ', 'Activ', 'Activ', 'Activ')], ['4', S('Activ', 'Activ', 'Activ', 'Activ')], ['5', S('Activ', 'Inactiv', 'Transferat')], ['6', S('Activ', 'Activ')]]);
+          const out = pendingStarts([G('1', 'Se completează', 4), G('2', 'Se completează', 6), G('3', 'Startează', 6), G('4', 'Activ', 6), G('5', 'Se completează', 3), G('6', 'se completeaza', 3), G('7', 'Se completează', 6)], by);
+          ok(out.length === 2 && out[0].sheetId === 1 && out[0].enrolled === 3 && out[0].need === 3 && out[1].sheetId === 6, 'the sweep finds the groups of the database that should start (size 4 with 3; size 3 with 2, any accent), not the others: ' + JSON.stringify(out));
+          ok(pendingStarts([], new Map()).length === 0 && pendingStarts(null, null).length === 0 && pendingStarts([G('7', 'Se completează', 6)], new Map()).length === 0, 'the sweep: nothing in, nothing out; a group with no students does not start');
+        }
       }
 
       // a new group in a register of the new format: C1, a new column in Total (copied from H), the name in row 4

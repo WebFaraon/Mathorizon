@@ -92,3 +92,16 @@ Lecțiile din primele luni sunt online. Fiecare profesor are un link Meet propri
 - **Invitația elevului:** în consolă, în Înscriere (după înscrierea într-o grupă) și în panoul grupei din Repartizare, managerul vede codul clasei și copiază mesajul gata de trimis. Mesajul conține un link `…/classes.html?cod=ABC123`: elevul se loghează sau își face cont, ajunge în Clase cu codul completat și apasă „Trimite cererea". Cererea o acceptă profesorul.
 - **Limite:** pentru lecțiile ținute de un înlocuitor se folosește linkul profesorului grupei. Conturile Gmail personale au limită de 60 de minute la ședințele cu mai mult de 2 participanți (de verificat în Meet).
 - **Doar grupele Online** au sala Meet (formatul din celula C1 a filei grupei). La o grupă Offline sau fără format citit, butonul nu apare nici pentru profesor, nici pentru elevi, iar invitația din consolă nu pomenește Meet (`20261029110000_meet_doar_online.sql`).
+
+## Startul grupelor și botul de Telegram (2026-10-29)
+
+**Regula (verificată pe baza reală):** o grupă „Se completează" trece singură în „Startează" când are destui elevi (Activ, Oră de probă, Oră de probă confirmată): 2 din 2, 2 din 3, 3 din 4, 4 din 5, 4 din 6, 6 din 8, 6 din 10 (`start-rule.mjs`; doar 3 din 4, 4 din 5 și 2 din 2 nu sunt confirmate de fondator). Bug găsit: o comandă de pornire eșuată (limita Google pe minut) nu se mai încerca niciodată, pentru că id-ul ei era același. Acum id-ul se schimbă la 10 minute, iar `registru-sync` mai uită și în baza de date la fiecare rulare (`pendingStarts`), deci o grupă ratată, într-un registru nemodificat, e pornită la următoarea rulare.
+
+**Botul** (`supabase/functions/telegram-bot`, logica în `_shared/telegram/bot.mjs`, `npm run check:telegram`):
+1. Profesorul își conectează contul din profil (Telegram, „Conectează Telegram"): un cod de 15 minute, deschide `t.me/<bot>?start=<cod>`.
+2. Când o grupă trece în Startează, triggerul `reg_groups_start_request` face o cerere (`group_start_requests`). Cron-ul de la fiecare minut cere botului să trimită întrebările în așteptare, doar între 08:00 și 21:00 (Chișinău): „Grupa … e gata de start. Confirmi startul?" cu butoanele Confirm și Nu confirm.
+3. Confirm: cererea devine `confirmed`. Nu confirm: botul cere motivul într-un mesaj, cererea devine `declined` cu motivul.
+4. Managerul vede totul în consolă, pagina **Starturi**: „De sunat" (cu elevii și telefoanele, buton „Am sunat elevii"), „Așteaptă profesorul" (inclusiv profesorii fără Telegram, pe care îi sună managerul), „Nu s-a confirmat" (cu motivul), „Rezolvate". Insigna de pe Starturi numără ce așteaptă managerul.
+5. O grupă care nu mai e în Startează înainte de răspuns anulează cererea. Un chat nu poate răspunde la întrebarea altui profesor.
+
+Instalare (o dată): botul din BotFather, `TELEGRAM_BOT_TOKEN` în `.env`, migrarea `20261029120000_telegram_starturi.sql`, deploy `telegram-bot` (și `registru-sync`), `node scripts/telegram-setup.js` (face webhook-ul, secretele și cron-ul în `_import/`), comanda `supabase secrets set` din `_import/telegram-secrets-command.txt`, cron-ul din `_import/cron-telegram-dispatch.sql`.

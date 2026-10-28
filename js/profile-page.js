@@ -742,9 +742,17 @@
               <span class="pf-list__name">${BM.esc(c.name || 'Clasă')}</span>
               <span class="pf-list__meta">${c.students} elev${c.students === 1 ? '' : 'i'}</span>
             </a></li>`).join('')}
-        </ul>` : '<p class="pf-note">Nu ai creat încă nicio clasă.</p>'}
+        </ul>` : '<p class="pf-note">Nu ai încă nicio clasă. Grupele tale apar aici singure, când sunt create în registrul tău.</p>'}
         <a class="pf-key pf-key--block" href="classes.html">${icon('users', { size: 16 })} Mergi la Clase</a>
       </section>`;
+
+    /* ---- Telegram: the bot asks the teacher whether he confirms the start of a group that has enough students ---- */
+    const telegramHTML = isActiveTeacher ? `
+      <section class="pf-card" id="pfTelegram">
+        <h2 class="pf-h">Telegram</h2>
+        <p class="pf-note" id="tgNote">Se verifică…</p>
+        <div id="tgBox"></div>
+      </section>` : '';
 
     /* ---- Account: password + session ---- */
     const accountHTML = `
@@ -786,7 +794,7 @@
         <div class="pf-desk__prog">${teacherStatsHTML}</div>
         <div class="pf-desk__cls">${classesHTML}</div>
         <div class="pf-desk__rev">${reviewsHTML}</div>
-        <div class="pf-desk__acc">${accountHTML}</div>
+        <div class="pf-desk__acc">${telegramHTML}${accountHTML}</div>
       </div>` : `
       <div class="pf-desk pf-desk--teacher-lite">
         <div class="pf-desk__rev">${reviewsHTML}</div>
@@ -987,6 +995,9 @@
       btn.innerHTML = icon(inp.type === 'password' ? 'eye' : 'eye-off', { size: 16 });
     };
 
+    /* Telegram: the teacher ties his account to the bot with a one-time code, from here */
+    if (isActiveTeacher) _wireTelegram(sb, user);
+
     /* Registru: opens the teacher's register (Google Sheets) at the tab "Total achitări". A teacher whose account is not linked to a register yet sees the button
        switched off, with the reason; an admin sees it only when his own account has one. */
     const regBtn = document.getElementById('btnRegistry');
@@ -1006,6 +1017,64 @@
         onSaved: freshUser => renderProfile(freshUser, sb)
       });
     });
+  }
+
+  /* ---- Telegram card (teacher) ---- */
+  async function _wireTelegram(sb, user) {
+    const note = document.getElementById('tgNote'), box = document.getElementById('tgBox');
+    if (!note || !box) return;
+    let poll = null;
+    const stop = () => { if (poll) { clearInterval(poll); poll = null; } };
+    const state = async () => {
+      const [b, l] = await Promise.all([
+        sb.from('telegram_bot').select('username').eq('id', 1).maybeSingle(),
+        sb.from('telegram_links').select('username, linked_at').eq('user_id', user.id).maybeSingle()
+      ]);
+      return { bot: b.error ? null : (b.data && b.data.username) || null, link: l.error ? null : l.data || null, missing: !!(b.error || l.error) };
+    };
+    const paint = async () => {
+      stop();
+      let s;
+      try { s = await state(); } catch (e) { s = { missing: true }; }
+      if (!s.bot || s.missing) {
+        note.textContent = 'Botul de Telegram nu e pornit încă. Când e gata, apare aici butonul de conectare.';
+        box.innerHTML = '';
+        return;
+      }
+      if (s.link) {
+        note.textContent = 'Telegram e conectat' + (s.link.username ? ' (@' + s.link.username + ')' : '') + '. Primești acolo întrebarea când o grupă a ta e gata de start și o confirmi dintr-un clic.';
+        box.innerHTML = `<button type="button" class="pf-key pf-key--block" id="tgOff">Deconectează Telegram</button>`;
+        document.getElementById('tgOff').addEventListener('click', async e => {
+          e.currentTarget.disabled = true;
+          try { await sb.rpc('telegram_unlink'); } catch (err) { /* shown again below */ }
+          paint();
+        });
+        return;
+      }
+      note.textContent = 'Conectează Telegram ca să primești acolo întrebarea când o grupă a ta e gata de start și să o confirmi dintr-un clic.';
+      box.innerHTML = `<button type="button" class="pf-key pf-key--primary pf-key--block" id="tgOn">${icon('message-circle', { size: 16 })} Conectează Telegram</button><p class="pf-note" id="tgHow" hidden></p>`;
+      document.getElementById('tgOn').addEventListener('click', async e => {
+        const btn = e.currentTarget; btn.disabled = true;
+        const how = document.getElementById('tgHow');
+        try {
+          const { data, error } = await sb.rpc('telegram_link_code');
+          if (error || !data) throw error || new Error('cod');
+          const url = 'https://t.me/' + encodeURIComponent(s.bot) + '?start=' + encodeURIComponent(data);
+          window.open(url, '_blank', 'noopener');
+          how.hidden = false;
+          how.innerHTML = 'Am deschis Telegram. Apasă <b>Start</b> acolo. Dacă nu s-a deschis, <a href="' + BM.esc(url) + '" target="_blank" rel="noopener">folosește acest link</a> (ține 15 minute).';
+          const until = Date.now() + 15 * 60 * 1000;
+          poll = setInterval(async () => {
+            if (Date.now() > until) { stop(); btn.disabled = false; return; }
+            try { const x = await state(); if (x.link) paint(); } catch (err) { /* the next try */ }
+          }, 3000);
+        } catch (err) {
+          btn.disabled = false;
+          how.hidden = false; how.textContent = 'Nu am putut face codul. Încearcă din nou peste câteva secunde.';
+        }
+      });
+    };
+    paint();
   }
 
   /* ---- INIT ---- */

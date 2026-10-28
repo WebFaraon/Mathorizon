@@ -20,3 +20,16 @@ export function startCheck(g) {
   const enrolled = (g.students || []).filter(s => COUNTS.has(plain(s.status))).length;
   return { enrolled, need, start: enrolled >= need };
 }
+
+/* The groups of the database (rows of reg_groups with the statuses of their students) that have enough students to start now, whatever the register did since.
+   A register that has not changed is not read again, so a group that missed its start (the register was busy, Google's per-minute limit, a command that failed) would
+   wait for the next edit; the sync looks at the database too, every run, and queues the start again. groups: [{ id, workbook_id, sheet_id, tab, state, format_size }],
+   studentsByGroup: Map(group id -> [{ status }]). */
+export function pendingStarts(groups, studentsByGroup) {
+  const out = [];
+  for (const g of groups || []) {
+    const sc = startCheck({ state: g.state, format_size: g.format_size, students: (studentsByGroup && studentsByGroup.get(g.id)) || [] });
+    if (sc && sc.start) out.push({ workbook: g.workbook_id, sheetId: g.sheet_id, tab: g.tab, enrolled: sc.enrolled, need: sc.need });
+  }
+  return out;
+}

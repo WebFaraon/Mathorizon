@@ -11,3 +11,6 @@ verify_jwt = false
 # registru-replace checks its own access too (x-sync-secret from registru-sync, or an admin token)
 [functions.registru-replace]
 verify_jwt = false
+
+[functions.telegram-bot]
+verify_jwt = false

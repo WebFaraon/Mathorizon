@@ -30,6 +30,7 @@
       { id: 'orar', label: 'Orar', icon: 'grid' },
       { id: 'elevi', label: 'Elevi', icon: 'users' },
       { id: 'inscriere', label: 'Înscriere', icon: 'user-plus' },
+      { id: 'starturi', label: 'Starturi', icon: 'rocket' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
       { id: 'inlocuiri', label: 'Înlocuiri', icon: 'replace' },
       { id: 'receptie', label: 'Recepție', icon: 'monitor' },

@@ -9,6 +9,7 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 import { syncWorkbook, syncGroup } from '../_shared/registru/sync-core.mjs';
 import { readWorkbook, readGroupTab, driveModified, QuotaError } from '../_shared/registru/google.mjs';
 import { checkHookBody, sameSecret } from '../_shared/registru/hook.mjs';
+import { pendingStarts } from '../_shared/registru/start-rule.mjs';
 
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')!;
 const SERVICE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -75,16 +76,32 @@ async function detId(s: string): Promise<string> {
   const h = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s)))).map(b => b.toString(16).padStart(2, '0')).join('');
   return `${h.slice(0, 8)}-${h.slice(8, 12)}-5${h.slice(13, 16)}-a${h.slice(17, 20)}-${h.slice(20, 32)}`;
 }
+/* The id changes every 10 minutes: a start that failed (Google's per-minute limit, the register busy) is queued again at the next run instead of staying failed for good,
+   and the same start is never queued twice in one run window. */
 async function queueAutoStart(wbId: string, list: { sheetId: number; tab: string; enrolled: number; need: number }[] | undefined) {
   if (!list || !list.length) return;
   try {
     const rows = [];
-    for (const x of list) rows.push({ id: await detId(`autostart|${wbId}|${x.sheetId}|${x.enrolled}`), workbook_id: wbId, sheet_id: x.sheetId, type: 'SET_GROUP', payload: { state: 'Startează', expect: { state: 'Se completează' }, auto: true, enrolled: x.enrolled, need: x.need } });
+    for (const x of list) rows.push({ id: await detId(`autostart|${wbId}|${x.sheetId}|${x.enrolled}|${Math.floor(Date.now() / 600000)}`), workbook_id: wbId, sheet_id: x.sheetId, type: 'SET_GROUP', payload: { state: 'Startează', expect: { state: 'Se completează' }, auto: true, enrolled: x.enrolled, need: x.need } });
     const { error } = await sb.from('reg_commands').upsert(rows, { onConflict: 'id', ignoreDuplicates: true });
     if (error) return;
     const call = fetch(SUPABASE_URL + '/functions/v1/registru-apply', { method: 'POST', headers: { 'content-type': 'application/json', 'x-sync-secret': SECRET }, body: '{}' }).then(r => r.text()).catch(() => '');
     const rt = (globalThis as any).EdgeRuntime;
     if (rt && typeof rt.waitUntil === 'function') rt.waitUntil(call); else await call;
+  } catch { /* the next run tries again */ }
+}
+
+async function sweepAutoStart() {
+  try {
+    const { data: gs } = await sb.from('reg_groups').select('id, workbook_id, sheet_id, tab, state, format_size').ilike('state', 'se complet%');
+    if (!gs || !gs.length) return;
+    const { data: ss } = await sb.from('reg_students').select('group_id, status').in('group_id', gs.map((g: any) => g.id));
+    const by = new Map<string, { status: string }[]>();
+    (ss ?? []).forEach((s: any) => { (by.get(s.group_id) ?? by.set(s.group_id, []).get(s.group_id)!).push({ status: s.status }); });
+    const todo = pendingStarts(gs as any[], by);
+    const perBook = new Map<string, any[]>();
+    todo.forEach(x => { (perBook.get(x.workbook) ?? perBook.set(x.workbook, []).get(x.workbook)!).push(x); });
+    for (const [wb, list] of perBook) await queueAutoStart(wb, list);
   } catch { /* the next run tries again */ }
 }
 
@@ -159,6 +176,8 @@ Deno.serve(async (req) => {
       results.push({ workbook: wb.id, status: 'failed', error: msg });
     }
   }
+  // the groups that have enough students but were never started (or whose start failed), in registers that did not change and were not read: seen from the database
+  if (!body.workbook_id) await sweepAutoStart();
   await settleReplacements();
   return json(200, { results });
 });
