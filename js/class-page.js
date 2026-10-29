@@ -376,7 +376,7 @@
      The week as seven cells, the class's own days lit, today marked, and
      a clock counting down to the next lesson in stepped seconds. It uses
      the same _nextLessonDate as the Sumar tab. */
-  const CD_WEEK = [['L', 'Luni'], ['M', 'Marți'], ['M', 'Miercuri'], ['J', 'Joi'], ['V', 'Vineri'], ['S', 'Sâmbătă'], ['D', 'Duminică']];
+  const CD_WEEK = [['Lu', 'Luni'], ['Ma', 'Marți'], ['Mi', 'Miercuri'], ['Jo', 'Joi'], ['Vi', 'Vineri'], ['Sâ', 'Sâmbătă'], ['Du', 'Duminică']];
   let _cdClockTimer = null;
 
   function _liveProgramHTML() {
@@ -7283,6 +7283,7 @@
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
           <div class="wb-fs-brand">
+            <img class="wb-fs-brand__logo" src="assets/images/MathorizonLogo.png" alt="">
             <span class="wb-fs-brand__name">Math<b>orizon</b></span>
           </div>
           ${isTeacher
@@ -7291,7 +7292,7 @@
         </div>
         <div class="wb-fs-header__right">
           <div class="wb-roster-strip" id="wbRosterStrip">
-            <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți">${icon('users', { size: 18 })}<span id="wbRosterCount">…</span></button>
+            <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți" aria-haspopup="true">${icon('users', { size: 18 })}<span class="wb-roster-btn__n" id="wbRosterCount">…</span></button>
           </div>
           <button class="icon-btn" id="tablaLiveCloseBtn" title="${isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
@@ -7366,7 +7367,12 @@
         // in THIS modal's own header markup, outside the component.
         onZoomChange: pct => {
           const el = document.getElementById('wbFsZoomLabel');
-          if (el) el.textContent = pct + '%';
+          if (!el) return;
+          const text = pct + '%';
+          if (el.textContent === text) return;
+          el.textContent = text;
+          // the display refreshes in stepped frames, never a tween
+          el.classList.remove('is-tick'); void el.offsetWidth; el.classList.add('is-tick');
         }
       });
     }
@@ -7410,9 +7416,9 @@
     if (!_tablaRosterCache.length) return `<div class="wb-roster-dropdown__empty">Niciun participant încă</div>`;
 
     function isMe(p) { return p.user_id === BMAuth.user.id; }
-    function nameOnly(p) {
+    function nameOnly(p, me) {
       const name = p.display_name || (p.role === 'profesor' ? 'Profesor' : 'Elev');
-      return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span></span>`;
+      return `<span class="wb-roster-row__name"><span>${BM.esc(name)}</span>${me ? '<span class="wb-roster-row__me">tu</span>' : ''}</span>`;
     }
     // Border is always the participant's own MARKER color (their pen/
     // stroke color on the board itself) so it doubles as "here's which
@@ -7434,11 +7440,13 @@
         ${p.locked ? icon('lock', { size: 14 }) : icon('unlock', { size: 14 })}</button>`;
     }
 
+    const n = _tablaRosterCache.length;
     return `
+      <div class="wb-roster-dropdown__head"><b>Conectați</b><span>${n}</span></div>
       ${teacher ? `
         <div class="wb-roster-row wb-roster-row--teacher${isMe(teacher) ? ' wb-roster-row--me' : ''}">
           ${avatar(teacher)}
-          ${nameOnly(teacher)}
+          ${nameOnly(teacher, isMe(teacher))}
           <span class="wb-roster-row__badge">Profesor</span>
         </div>
       ` : ''}
@@ -7447,7 +7455,7 @@
         ${students.map(p => `
           <div class="wb-roster-row${isMe(p) ? ' wb-roster-row--me' : ''}">
             ${avatar(p)}
-            ${nameOnly(p)}
+            ${nameOnly(p, isMe(p))}
             ${lockBtn(p)}
           </div>
         `).join('')}

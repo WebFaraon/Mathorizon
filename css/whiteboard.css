@@ -1,0 +1,399 @@
+/* ============================================================
+   Tablă live: the full-screen board, in the calculator world (DESIGN.md).
+   Loaded after css/style.css, so everything is scoped to .wb-fullscreen and
+   outranks the older .wb-* / .dc-* / .gfe-* rules there without deleting them
+   (those are shared with the drawing canvas and the geometry editor, which keep
+   their own look).
+
+   Top to bottom: the header is the navbar's solid blue strip (keys, a pale LCD
+   for the title and the head count); the toolbar is a chassis panel of keys, the
+   tool in use lit blue; the board's paper lies on the graph-paper ground; the
+   zoom reads out on a small LCD in the corner. Keys follow the site standard:
+   a darker bottom edge at rest, a dim on hover, a sink on press.
+   ============================================================ */
+
+.wb-fullscreen {
+  --wk-chassis: #3A5A9F;
+  --wk-edge: #2A4478;
+  --wk-key: #4665A9;
+  --wk-key-border: #5874B3;
+  --wk-key-edge: #263F72;
+  --wk-ink: #F1F4FA;
+  --wk-lit: #FFFFFF;
+  --wk-lit-ink: #2E4C8F;
+  --wk-lit-edge: #B4C1DC;
+  --wk-lcd: #D3DCC3;
+  --wk-lcd-ink: #1C2718;
+  --wk-amber: #E7D8A2;
+  --wk-amber-ink: #4A3708;
+  --wk-overlay: 0 18px 30px -12px rgba(0, 0, 0, 0.45);
+
+  background-color: var(--k-bg);
+  background-image:
+    linear-gradient(var(--k-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+  color: var(--k-ink);
+  font-family: var(--k-font);
+}
+[data-theme="dark"] .wb-fullscreen {
+  --wk-chassis: #1F2F52;
+  --wk-edge: #121C33;
+  --wk-key: #2A3C63;
+  --wk-key-border: #374A73;
+  --wk-key-edge: #0F172C;
+  --wk-ink: #DDE3F0;
+  --wk-lit: #E6EAF3;
+  --wk-lit-ink: #27427F;
+  --wk-lit-edge: #7F8DAD;
+  --wk-lcd: #B8C3A6;
+}
+
+/* ---------- header: the navbar's strip ---------- */
+.wb-fullscreen .wb-fs-header {
+  flex-wrap: nowrap;
+  gap: 14px;
+  padding: 9px 14px 10px;
+  background: var(--wk-chassis);
+  border-bottom: 1px solid var(--wk-edge);
+}
+.wb-fullscreen .wb-fs-header__left { gap: 16px; }
+.wb-fullscreen .wb-fs-header__right { gap: 10px; }
+.wb-fullscreen .wb-fs-brand { gap: 10px; }
+.wb-fullscreen .wb-fs-brand__logo { display: block; height: 34px; width: auto; }
+.wb-fullscreen .wb-fs-brand__name { top: 0; color: var(--wk-ink); font-size: 0.95rem; letter-spacing: 3px; }
+.wb-fullscreen .wb-fs-brand__name b { font-weight: 600; }
+
+/* the session title: a recessed pale LCD, words in the UI face */
+.wb-fullscreen .wb-fs-title,
+.wb-fullscreen .wb-fs-title-input {
+  height: 38px;
+  padding: 0 14px;
+  border: 1px solid var(--wk-key-edge);
+  border-radius: 3px;
+  background-color: var(--wk-lcd);
+  background-image: radial-gradient(circle at 2px 2px, rgba(28, 39, 24, 0.09) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
+  color: var(--wk-lcd-ink);
+  font-size: 0.92rem;
+  font-weight: 700;
+}
+.wb-fullscreen .wb-fs-title-input { transition: filter 0.15s ease; }
+/* the class page styles every field of the page (class-detail.css, ids in the selector); these match it and come later */
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input {
+  border: 1px solid var(--wk-key-edge);
+  border-radius: 3px;
+  background-color: var(--wk-lcd);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
+  color: var(--wk-lcd-ink);
+  font-family: var(--k-font);
+}
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input::placeholder { color: rgba(28, 39, 24, 0.6); font-weight: 600; }
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input:hover { filter: brightness(0.96); }
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input:focus { border-color: var(--wk-key-edge); outline: 2px solid var(--wk-lit); outline-offset: 2px; filter: none; }
+/* typing text on the board: the paper is white in either theme, so the field is too */
+body:has(#classRoot) > #tablaLiveModal textarea.wb-text-editor { border: none; border-radius: 0; background-color: #fff; box-shadow: none; }
+
+/* the keys on the strip: head count, close, and the corner's fullscreen key */
+body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn,
+.wb-fullscreen .wb-roster-btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 9px;
+  height: 38px; min-width: 38px; padding: 0 11px;
+  border: 1px solid var(--wk-key-border);
+  border-radius: 4px;
+  background: var(--wk-key);
+  color: var(--wk-ink);
+  box-shadow: 0 3px 0 0 var(--wk-key-edge);
+  font-family: inherit; font-size: 0.9rem; font-weight: 700;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:hover,
+.wb-fullscreen .wb-roster-btn:hover {
+  border-color: var(--wk-key-border); background: var(--wk-key); color: var(--wk-ink); filter: brightness(0.94);
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:active,
+.wb-fullscreen .wb-roster-btn:active { box-shadow: 0 0 0 0 var(--wk-key-edge); transform: translateY(3px); }
+.wb-fullscreen .wb-roster-btn--open,
+.wb-fullscreen .wb-roster-btn--open:hover {
+  border-color: var(--wk-lit-edge); background: var(--wk-lit); color: var(--wk-lit-ink); box-shadow: 0 3px 0 0 var(--wk-lit-edge);
+}
+.wb-fullscreen .wb-roster-btn--open:active { box-shadow: 0 0 0 0 var(--wk-lit-edge); }
+body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:focus-visible,
+.wb-fullscreen .wb-roster-btn:focus-visible { outline: 2px solid var(--wk-lit); outline-offset: 3px; }
+
+/* the head count is a figure on a small LCD set into the key */
+.wb-fullscreen .wb-roster-btn__n {
+  display: inline-block; min-width: 26px; padding: 3px 7px 2px; border-radius: 3px;
+  background: var(--wk-lcd); color: var(--wk-lcd-ink);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
+  font-family: var(--k-lcd-font); font-size: 1.05rem; font-weight: 900; line-height: 1.1; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+/* ---------- roster: a chassis panel that floats over the board ---------- */
+.wb-fullscreen .wb-roster-dropdown {
+  top: calc(100% + 12px);
+  width: 296px;
+  max-height: min(440px, calc(100vh - 96px));
+  padding: 0;
+  background: var(--k-panel);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  box-shadow: var(--wk-overlay);
+  color: var(--k-ink);
+  animation: wb-pop 0.18s cubic-bezier(0.16, 1, 0.3, 1) backwards;
+}
+.wb-fullscreen .wb-roster-dropdown__head {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 13px 14px 11px; border-bottom: 1px solid var(--k-rule);
+}
+.wb-fullscreen .wb-roster-dropdown__head b { font-size: 0.95rem; font-weight: 800; letter-spacing: -0.01em; }
+.wb-fullscreen .wb-roster-dropdown__head span {
+  min-width: 26px; padding: 3px 7px 2px; border-radius: 3px; text-align: right;
+  background: var(--k-lcd); color: var(--k-lcd-ink); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  font-family: var(--k-lcd-font); font-size: 1rem; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.wb-fullscreen .wb-roster-row { gap: 11px; padding: 9px 14px; border-radius: 0; border-top: 1px solid var(--k-rule); }
+.wb-fullscreen .wb-roster-dropdown__head + .wb-roster-row { border-top: none; }
+.wb-fullscreen .wb-roster-row--teacher { margin-bottom: 0; }
+.wb-fullscreen .wb-roster-row--me { background: var(--k-blue-wash); }
+.wb-fullscreen .wb-roster-dropdown__divider { display: none; }
+.wb-fullscreen .wb-roster-row__avatar { width: 32px; height: 32px; border-radius: 3px; font-size: 0.72rem; }
+.wb-fullscreen .wb-roster-row__name { align-items: center; gap: 8px; color: var(--k-ink); font-size: 0.88rem; font-weight: 700; }
+.wb-fullscreen .wb-roster-row__me,
+.wb-fullscreen .wb-roster-row__badge {
+  flex-shrink: 0; padding: 3px 7px 2px; border-radius: 3px;
+  background: var(--k-blue-wash); color: var(--k-blue);
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.2;
+}
+.wb-fullscreen .wb-roster-row__me { background: transparent; padding-left: 0; padding-right: 0; }
+.wb-fullscreen .wb-roster-row__lock {
+  width: 32px; height: 32px; border-radius: 4px;
+  border: 1px solid var(--k-panel-edge); background: var(--k-key); color: var(--k-ink-2);
+  box-shadow: 0 2px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.wb-fullscreen .wb-roster-row__lock:hover { border-color: var(--k-panel-edge); background: var(--k-key); color: var(--k-ink-2); filter: brightness(0.95); }
+.wb-fullscreen .wb-roster-row__lock:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(2px); }
+.wb-fullscreen .wb-roster-row__lock--active,
+.wb-fullscreen .wb-roster-row__lock--active:hover {
+  border-color: var(--k-red); background: color-mix(in srgb, var(--k-red) 14%, var(--k-key)); color: var(--k-red);
+}
+.wb-fullscreen .wb-roster-row__lock:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+.wb-fullscreen .wb-roster-dropdown__empty { padding: 18px 14px; color: var(--k-ink-3); font-size: 0.84rem; }
+
+/* ---------- toolbar: a chassis panel of keys ---------- */
+.wb-fullscreen .wb-toolbar {
+  gap: 8px;
+  padding: 9px 12px 12px;
+  background: var(--k-panel);
+  border-bottom: 1px solid var(--k-panel-edge);
+}
+.wb-fullscreen .wb-toolbar .dc-tool-group { gap: 6px; }
+.wb-fullscreen .wb-toolbar .dc-tool-group + .dc-tool-group {
+  margin-left: 4px; padding-left: 12px; border-left: 1px solid var(--k-rule);
+}
+
+/* every key of the board: tools, widths, actions, and the undo corner's pair */
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn, .dc-width-btn, .dc-action-btn),
+.wb-fullscreen .wb-undo-corner .dc-action-btn {
+  width: 38px; height: 38px; padding: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 4px;
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn, .dc-width-btn, .dc-action-btn):hover,
+.wb-fullscreen .wb-undo-corner .dc-action-btn:hover {
+  border-color: var(--k-panel-edge); background: var(--k-key); color: var(--k-ink); filter: brightness(0.95);
+}
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn, .dc-width-btn, .dc-action-btn):active,
+.wb-fullscreen .wb-undo-corner .dc-action-btn:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn, .dc-width-btn, .dc-action-btn):focus-visible,
+.wb-fullscreen .wb-undo-corner .dc-action-btn:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+.wb-fullscreen .wb-toolbar .dc-tool-btn svg,
+.wb-fullscreen .wb-toolbar .dc-action-btn svg,
+.wb-fullscreen .wb-undo-corner .dc-action-btn svg { width: 18px; height: 18px; }
+
+/* lit: the tool in use, the width in use, a switch that is on */
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn--active, .dc-width-btn--active, .dc-action-btn--active, .dc-inputmode-btn--stylus),
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn--active, .dc-width-btn--active, .dc-action-btn--active, .dc-inputmode-btn--stylus):hover {
+  border-color: var(--k-blue-edge); background: var(--k-blue); color: #fff; box-shadow: 0 3px 0 0 var(--k-blue-edge);
+}
+.wb-fullscreen .wb-toolbar :is(.dc-tool-btn--active, .dc-width-btn--active, .dc-action-btn--active, .dc-inputmode-btn--stylus):active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+.wb-fullscreen .wb-toolbar .dc-width-dot { background: var(--k-ink); }
+.wb-fullscreen .wb-toolbar .dc-width-btn--active .dc-width-dot { background: #fff; }
+
+/* not available: printed flat on the chassis, no edge */
+.wb-fullscreen :is(.wb-toolbar, .wb-undo-corner) .dc-action-btn:disabled,
+.wb-fullscreen :is(.wb-toolbar, .wb-undo-corner) .dc-action-btn:disabled:hover {
+  border: 1px dashed var(--k-panel-edge); background: transparent; color: var(--k-ink-3);
+  box-shadow: none; transform: none; filter: none; opacity: 0.7; cursor: not-allowed;
+}
+
+/* a student the teacher has locked: the drawing tools are printed flat, pan (pure navigation) stays a key.
+   The older stylesheet has this rule, but a stray comment before it makes the browser drop it, so it never applied. */
+.wb-fullscreen .wb-board--locked .wb-toolbar :is([data-tool]:not([data-tool="pan"]), [data-width]),
+.wb-fullscreen .wb-board--locked .wb-toolbar :is([data-tool]:not([data-tool="pan"]), [data-width]):hover {
+  border: 1px dashed var(--k-panel-edge); background: transparent; color: var(--k-ink-3);
+  box-shadow: none; transform: none; filter: none; opacity: 0.7; pointer-events: none;
+}
+.wb-fullscreen .wb-board--locked .wb-toolbar .dc-width-dot { background: var(--k-ink-3); }
+
+/* clearing your own ink is the one destructive key */
+.wb-fullscreen .wb-toolbar .dc-action-btn--danger,
+.wb-fullscreen .wb-toolbar .dc-action-btn--danger:hover { color: var(--k-red); }
+
+/* stylus mode: an annunciator on a small display */
+.wb-fullscreen .wb-toolbar .dc-mode-badge {
+  height: 28px; margin-left: 2px; padding: 0 10px; border: none; border-radius: 3px;
+  background: var(--k-lcd); color: var(--k-lcd-ink);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+}
+
+/* ---------- pickers that open from the toolbar ---------- */
+.wb-fullscreen .gfe-dropdown__panel {
+  padding: 12px;
+  background: var(--k-panel);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  box-shadow: var(--wk-overlay);
+  color: var(--k-ink);
+}
+.wb-fullscreen .gfe-dropdown--open .gfe-dropdown__panel { animation: wb-pop 0.16s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+.wb-fullscreen .gfe-dropdown__panel .gfe-shape-group { gap: 8px 4px; padding-bottom: 3px; }
+.wb-fullscreen .wb-toolbar .gfe-dropdown__trigger { width: 38px; height: 38px; padding: 0; }
+.wb-fullscreen .wb-toolbar .gfe-dropdown--open .gfe-dropdown__trigger {
+  border-color: var(--k-blue-edge); background: var(--k-blue); color: #fff; box-shadow: 0 3px 0 0 var(--k-blue-edge);
+}
+.wb-fullscreen .wb-toolbar .gfe-shape-btn { width: 38px; height: 38px; }
+
+.wb-fullscreen .wb-width-panel { gap: 12px; width: 220px; }
+.wb-fullscreen .wb-width-panel__label {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  color: var(--k-ink-2); font-size: 0.78rem; font-weight: 700;
+}
+.wb-fullscreen .wb-width-panel__label span {
+  min-width: 40px; padding: 3px 7px 2px; border-radius: 3px; text-align: right;
+  background: var(--k-lcd); color: var(--k-lcd-ink); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  font-family: var(--k-lcd-font); font-size: 1rem; font-weight: 900; line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.wb-fullscreen .wb-width-range { -webkit-appearance: none; appearance: none; height: 24px; margin: 0; background: transparent; cursor: pointer; }
+.wb-fullscreen .wb-width-range::-webkit-slider-runnable-track { height: 8px; border-radius: 1px; background: var(--k-ghost); }
+.wb-fullscreen .wb-width-range::-moz-range-track { height: 8px; border-radius: 1px; background: var(--k-ghost); }
+.wb-fullscreen .wb-width-range::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 24px; margin-top: -8px; border-radius: 3px;
+  border: 1px solid var(--k-panel-edge); background: var(--k-key); box-shadow: 0 2px 0 0 var(--k-key-edge);
+}
+.wb-fullscreen .wb-width-range::-moz-range-thumb {
+  width: 14px; height: 22px; border-radius: 3px;
+  border: 1px solid var(--k-panel-edge); background: var(--k-key); box-shadow: 0 2px 0 0 var(--k-key-edge);
+}
+.wb-fullscreen .wb-width-range:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+
+/* ---------- the board: paper on the graph-paper ground ---------- */
+.wb-fullscreen .wb-canvas-wrap { background: transparent; }
+.wb-fullscreen .wb-undo-corner {
+  top: 14px; left: 14px; gap: 8px; padding: 8px 8px 11px;
+  background: var(--k-panel);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 4px;
+  box-shadow: none;
+}
+.wb-fullscreen .wb-undo-corner .dc-action-btn { width: 36px; height: 36px; }
+
+.wb-fullscreen .wb-locked-banner {
+  gap: 10px; padding: 8px 14px;
+  background: var(--wk-amber); color: var(--wk-amber-ink);
+  border-bottom: 1px solid rgba(74, 55, 8, 0.28);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.12);
+  font-size: 0.84rem; font-weight: 700;
+}
+.wb-fullscreen .dc-input-hint {
+  padding: 9px 16px;
+  background: var(--k-panel); color: var(--k-ink);
+  border: 1px solid var(--k-panel-edge); border-radius: 3px;
+  box-shadow: var(--wk-overlay);
+  font-size: 0.82rem; font-weight: 700;
+}
+
+/* ---------- corner: the zoom on a small display, and the fullscreen key ---------- */
+.wb-fullscreen .wb-fs-corner { right: 16px; bottom: 18px; gap: 10px; }
+.wb-fullscreen .wb-fs-zoom-label {
+  min-width: 70px; padding: 6px 11px 4px; border: 1px solid var(--k-panel-edge); border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: radial-gradient(circle at 2px 2px, var(--k-lcd-ghost) 1px, transparent 1.3px);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.18);
+  color: var(--k-lcd-ink);
+  font-family: var(--k-lcd-font); font-size: 1.15rem; font-weight: 900; line-height: 1.1; text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn {
+  width: 38px; height: 38px; padding: 0;
+  border: 1px solid var(--k-panel-edge); border-radius: 4px;
+  background: var(--k-key); color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:hover { border-color: var(--k-panel-edge); background: var(--k-key); color: var(--k-ink); filter: brightness(0.95); }
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+
+/* ---------- opening the board: the loader is a row of cells that fill in steps ---------- */
+.wb-fullscreen .wb-canvas-mount .classes-loading { flex: 1; padding: 0; }
+.wb-fullscreen .wb-canvas-mount .classes-spinner {
+  position: relative; width: 78px; height: 12px; border: 0; border-radius: 0; animation: none;
+  background: repeating-linear-gradient(90deg, var(--k-ghost) 0 12px, transparent 12px 16px);
+}
+.wb-fullscreen .wb-canvas-mount .classes-spinner::after {
+  content: ''; position: absolute; inset: 0;
+  background: repeating-linear-gradient(90deg, var(--k-blue) 0 12px, transparent 12px 16px);
+  clip-path: inset(0 100% 0 0);
+  animation: wb-fill 1.2s steps(5, end) infinite;
+}
+@keyframes wb-fill { to { clip-path: inset(0 0 0 0); } }
+
+/* ---------- motion: the keys land on their edges once, as the board opens ---------- */
+@keyframes wb-pop { from { opacity: 0; transform: translateY(-6px); } }
+@keyframes wb-land { from { opacity: 0; transform: translateY(-12px); } }
+@keyframes wb-tick { 0%, 100% { opacity: 1; } 34% { opacity: 0.3; } 67% { opacity: 0.7; } }
+@media (prefers-reduced-motion: no-preference) {
+  .wb-fullscreen .wb-toolbar .dc-tool-group > * { animation: wb-land 0.42s cubic-bezier(0.16, 1, 0.3, 1) backwards; animation-delay: calc(var(--g, 0) * 60ms + 120ms); }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(2) { --g: 1; }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(3) { --g: 2; }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(4) { --g: 3; }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(5) { --g: 4; }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(6) { --g: 5; }
+  .wb-fullscreen .wb-toolbar .dc-tool-group:nth-child(n+7) { --g: 6; }
+  .wb-fullscreen .wb-fs-zoom-label.is-tick { animation: wb-tick 0.16s steps(1, end); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .wb-fullscreen .wb-canvas-mount .classes-spinner::after { animation: none; clip-path: inset(0 40% 0 0); }
+}
+
+/* ---------- phones ---------- */
+@media (max-width: 640px) {
+  .wb-fullscreen .wb-fs-header { gap: 10px; padding: 8px 10px 10px; }
+  .wb-fullscreen .wb-fs-header__left { gap: 10px; }
+  .wb-fullscreen .wb-fs-brand__name { display: none; }
+  .wb-fullscreen .wb-fs-title,
+  .wb-fullscreen .wb-fs-title-input { padding: 0 11px; font-size: 0.86rem; }
+  .wb-fullscreen .wb-roster-dropdown { position: fixed; top: 62px; right: 10px; left: 10px; width: auto; max-width: none; }
+  .wb-fullscreen .wb-toolbar { padding: 8px 10px 12px; scrollbar-width: none; }
+  .wb-fullscreen .wb-toolbar::-webkit-scrollbar { display: none; }
+  .wb-fullscreen .wb-undo-corner { top: 10px; left: 10px; }
+  .wb-fullscreen .wb-fs-corner { right: 10px; bottom: 12px; }
+}
+/* a phone turned sideways: the toolbar is a column on the right */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wb-fullscreen .wb-board .dc-toolbar { padding: 10px 8px calc(10px + env(safe-area-inset-bottom, 0px)); border-left: 1px solid var(--k-panel-edge); }
+  .wb-fullscreen .wb-board .dc-tool-group + .dc-tool-group { margin-left: 0; padding-left: 0; border-left: none; border-top: 1px solid var(--k-rule); padding-top: 10px; }
+  .wb-fullscreen .wb-fs-header { padding-top: 6px; padding-bottom: 8px; }
+  .wb-fullscreen .wb-fs-corner { right: 76px; }
+}
