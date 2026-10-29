@@ -190,13 +190,16 @@
   }
 
   /* ─── Relative date ─────────────────────────────────────────────── */
+  /* "Matematica · Luni · 12:00": each piece stays whole with its dot, so a long line breaks after a dot, never before one */
+  const _seg = s => { const a = String(s).split(' · '); return a.map((p, i) => `<i class="cl-part">${BM.esc(p)}${i < a.length - 1 ? ' ·' : ''}</i>`).join(' '); };
   function relDate(isoStr) {
     if (!isoStr) return '';
     const diff = Math.floor((Date.now() - new Date(isoStr)) / 1000);
     if (diff < 60)      return 'acum';
     if (diff < 3600)    return `acum ${Math.floor(diff / 60)} min`;
-    if (diff < 86400)   return `acum ${Math.floor(diff / 3600)} ore`;
-    if (diff < 2592000) return `acum ${Math.floor(diff / 86400)} zile`;
+    const unit = (n, one, many) => n === 1 ? `1 ${one}` : `${n}${n % 100 >= 20 || n % 100 === 0 ? ' de' : ''} ${many}`;
+    if (diff < 86400)   return `acum ${unit(Math.floor(diff / 3600), 'oră', 'ore')}`;
+    if (diff < 2592000) return `acum ${unit(Math.floor(diff / 86400), 'zi', 'zile')}`;
     return new Date(isoStr).toLocaleDateString('ro-RO', { day: 'numeric', month: 'short', year: 'numeric' });
   }
 
@@ -329,7 +332,7 @@
                   <span class="cl-lesson__time">${_timeHTML(info.time)}</span>
                   <span class="cl-lesson__body">
                     <b>${BM.esc(info.subject)}</b>
-                    <span>${sub.map(BM.esc).join(' · ')}</span>
+                    <span>${_seg(sub.join(' · '))}</span>
                   </span>
                   <span class="cl-lesson__state">${st.text}</span>
                   ${icon('chevron-right', { size: 18 })}
@@ -402,7 +405,7 @@
               <li class="cl-lesson cl-lesson--${st.cls}" style="--i:${i}" data-time="${t0}" data-end="${t1}">
                 <a class="cl-lesson__link" href="${g.classId ? 'class.html?id=' + g.classId : '#rg-' + g.id}">
                   <span class="cl-lesson__time">${_timeHTML(t0)}</span>
-                  <span class="cl-lesson__body"><b>${BM.esc(g.subject)}</b><span>${sub.map(BM.esc).join(' · ')}</span></span>
+                  <span class="cl-lesson__body"><b>${BM.esc(g.subject)}</b><span>${_seg(sub.join(' · '))}</span></span>
                   <span class="cl-lesson__state">${st.text}</span>
                   ${icon('chevron-down', { size: 18 })}
                 </a>
@@ -418,7 +421,7 @@
      where it stands (Se completează, Startează, Activ) with how full it is. The invite code and the register are a quiet footer. */
   function regCardHTML(g, idx) {
     const days = _regDays(g), t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
-    const WK = ['L', 'M', 'M', 'J', 'V', 'S', 'D'];
+    const WK = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
     const week = WK.map((l, i) => `<i class="${g.days.includes(i + 1) ? 'on' : ''}" title="${DAY_ORDER[i]}">${l}</i>`).join('');
     const what = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
     const where = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet'), g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
@@ -782,7 +785,8 @@
               <span class="cl-req__av" aria-hidden="true">${BM.esc(_initials(r.student_name))}</span>
               <span class="cl-req__body">
                 <b>${BM.esc(r.student_name || 'Elev')}</b>
-                <span>vrea să intre în ${BM.esc(r.class_name || 'clasă')} · ${relDate(r.created_at)}</span>
+                <span>vrea să intre în ${_seg(r.class_name || 'clasă')}</span>
+                <span class="cl-req__when">${relDate(r.created_at)}</span>
               </span>
               ${r.cands ? `
               <label class="cl-req__pick">
@@ -1040,6 +1044,7 @@
 
   /* the requests the student sent: waiting for the teacher, or turned down (can be sent again after a day) */
   function studentRequestsHTML(reqs) {
+    const seg = _seg;
     const retry = r => {
       const left = new Date(r.decided_at).getTime() + 86400000 - Date.now();
       return left > 0 ? `Poți trimite din nou peste ${left > 3600000 ? Math.ceil(left / 3600000) + ' ore' : Math.max(1, Math.ceil(left / 60000)) + ' minute'}.` : 'Poți trimite din nou cererea cu codul clasei.';
@@ -1049,11 +1054,11 @@
         <header class="cl-sect__h"><h2 id="clMyReqT">Cererile tale</h2><span class="cl-sect__n">${_ro(reqs.length, 'cerere', 'cereri')}</span></header>
         <ul class="cl-reqlist">
           ${reqs.map(r => `
-            <li class="cl-req cl-req--${r.status}">
-              <span class="cl-req__dot" aria-hidden="true"></span>
+            <li class="cl-req cl-req--mine cl-req--${r.status}">
+              <span class="cl-req__state"><i class="cl-req__dot" aria-hidden="true"></i>${r.status === 'pending' ? 'În așteptare' : 'Respinsă'}</span>
               <span class="cl-req__body">
-                <b>${BM.esc(r.class_name || 'Clasă')}</b>
-                <span>${r.status === 'pending' ? 'Așteaptă răspunsul profesorului. Nu ai acces la clasă până îți acceptă cererea.' : 'Cererea a fost respinsă. ' + retry(r)}</span>
+                <b>${seg(r.class_name || 'Clasă')}</b>
+                <span>${r.status === 'pending' ? `Trimisă ${relDate(r.created_at)}. Intri în clasă după ce profesorul acceptă cererea.` : 'Profesorul a respins cererea. ' + retry(r)}</span>
               </span>
               ${r.status === 'pending' ? `<button type="button" class="cl-req__link" data-cancel-req="${r.id}">Retrage cererea</button>` : ''}
             </li>`).join('')}
