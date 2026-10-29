@@ -370,8 +370,9 @@
             <dt>Cabinet</dt><dd>${room ? `${esc(room.name)}<span class="ax-sub">Etajul ${room.floor}, ${room.seats} locuri</span>` : U.noRoom(g).long}</dd>
             <dt>Grupa</dt><dd>${sizeLabel(g.size)}, clasa ${esc(g.grade)}${g.profile ? ', ' + esc(g.profile) : ''}<span class="ax-sub">Nivel de cunoștințe ${esc(g.level)}</span></dd>
             <dt>Locuri</dt><dd><span class="ax-seats" aria-hidden="true">${seats}</span> ${free ? `${free} ${free === 1 ? 'liber' : 'libere'} din ${g.size}` : 'Grupă completă'}</dd>
-            <dt>Început</dt><dd>${esc(fmtDate(g.startDate))}<span class="ax-sub">Creată pe ${esc(fmtDate(g.createdAt))}, cod ${esc(g.id.toUpperCase())}</span></dd>
+            <dt>Început</dt><dd>${esc(fmtDate(g.startDate))}<span class="ax-sub">Creată pe ${esc(fmtDate(g.createdAt))}${D.readOnly() ? '' : ', cod ' + esc(g.id.toUpperCase())}</span></dd>
           </dl>
+          ${D.readOnly() ? `<section class="or-dw__sec">${U.inviteHTML(g)}</section>` : ''}
           <section class="or-dw__sec">
             <h3 class="or-dw__h">Elevi <span class="or-dw__n">${enr} înscriși${all.length > enr ? `, ${all.length - enr} plecați` : ''}</span></h3>
             ${pick ? `<div class="tr-bar" role="status"><span><b>Transfer.</b> Bifează elevii pe care vrei să-i muți în altă grupă.</span><button type="button" class="ax-link" data-all>${pick.size === canPick.length ? 'Șterge bifele' : 'Bifează toți'}</button></div>` : ''}
@@ -397,6 +398,7 @@
       actions: footHTML()
     });
     const wireBody = () => {
+      if (D.readOnly()) U.wireInvite(el, g);
       el.querySelectorAll('[data-st]').forEach(b => b.addEventListener('click', async () => {
         if (g.status === b.dataset.st) return;
         if (D.readOnly()) {
