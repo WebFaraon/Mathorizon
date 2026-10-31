@@ -589,7 +589,7 @@ BM.postJson = async function (url, body, opts) {
   try {
     res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: Object.assign({ 'Content-Type': 'application/json' }, (opts && opts.headers) || {}),
       body: JSON.stringify(body),
       signal: controller.signal
     });

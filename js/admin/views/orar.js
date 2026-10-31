@@ -521,7 +521,6 @@
           <span class="ax-plate">${ico('grid', 24)}</span>
           <div>
             <h1 class="ax-h1">Orarul grupelor</h1>
-            <p class="ax-lede">Toate grupele cu programul, profesorul și locurile libere. Filtrele rămân în adresa paginii.</p>
           </div>
         </div>
         <div class="ax-head__keys">

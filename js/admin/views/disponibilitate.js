@@ -320,7 +320,7 @@
         <span><i class="dp-key dp-key--av"></i>Disponibil</span>
         <span><i class="dp-key dp-key--g"></i>Grupă (banda arată proiectul)</span>
         <span><i class="dp-key dp-key--out"></i>Grupă în afara disponibilității</span>
-        <span class="dp-legend__note">${ico('info', 14)} ${D.readOnly() ? 'Disponibilitatea e cea din Registrul profesorului: ce schimbi aici se scrie și acolo' : 'Disponibilitatea vine din Registrul profesorului'}</span>
+        
       </div>
       <div class="dp-grid-wrap">
         <div class="dp-grid" role="group" aria-label="Săptămâna lui ${esc(t.name)}">
@@ -372,7 +372,7 @@
       title: 'Disponibilitatea',
       sub: esc(t.name),
       body: `
-        <p class="dp-ed__note">Bifează orele în care profesorul poate preda. Se scrie în fila „Disponibilitate” din registrul lui. Poți trage cu mouse-ul peste mai multe ore.</p>
+        <p class="dp-ed__note">Bifează orele disponibile. Poți trage peste mai multe.</p>
         <div class="dp-ed" role="group" aria-label="Disponibilitatea lui ${esc(t.name)}">
           <div class="dp-ed__r dp-ed__r--hd"><span></span>${head}</div>
           ${rows}

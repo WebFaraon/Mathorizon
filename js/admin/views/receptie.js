@@ -291,7 +291,6 @@
             <span class="ax-plate">${ico('monitor', 24)}</span>
             <div>
               <h1 class="ax-h1">Recepție</h1>
-              <p class="ax-lede">Ecranul de la intrare: lecțiile din cabinete care sunt acum în desfășurare și cele care urmează. Doar grupele offline.</p>
             </div>
           </div>
         </header>

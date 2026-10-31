@@ -114,7 +114,6 @@
         <p>${plural(kids.length, 'elev', 'elevi')} ${kids.length === 1 ? 'este copiat' : 'sunt copiați'} cu statutul <b>Înlocuire</b>, cu achitări, reduceri și sold <b>0</b>. În registrul lui ${esc(base.name)} rămân <b>Activ</b>.</p>
         <ul class="rl-kids">${first}</ul>
         <p><b>Banii</b> nu se mută acum. Când ${esc(t.name)} pune prezența unui elev (<b>Prezent</b> sau <b>Absent</b>), o lecție de <b>${money(price)} lei</b> trece automat din registrul grupei în fila lui, după formulele din Calculator. La <b>Absent motivat</b> sau fără prezență nu se mută nimic.</p>
-        <p>${n === 1 ? 'O lecție' : plural(n, 'lecție', 'lecții')} apare ${n === 1 ? 'în Repartizare în ziua ei' : 'în Repartizare în zilele lor'}, iar elevii o văd în Istoric.</p>
       </div>`;
     }
 
@@ -154,7 +153,6 @@
             <li><span>${ico('wallet', 16)}</span><span>Banii se mută singuri, o lecție de <b>${money(price)} lei</b> pentru fiecare prezență pusă</span></li>
             <li><span>${ico('door', 16)}</span><span>${n === 1 ? 'Lecția apare' : 'Lecțiile apar'} în Repartizare, în săptămâna ${n === 1 ? 'ei' : 'lor'}</span></li>
           </ul>
-          <p class="in-ok__note">Elevii rămân Activ în registrul lui ${esc(base.name)}. Dacă ceva nu e cum trebuie, anulezi lecția din pagina Înlocuiri.</p>
           <div class="in-ok__f">
             <a class="ax-btn ax-btn--primary" href="#inlocuiri" data-x>${ico('replace', 16)} Vezi în Înlocuiri</a>
             ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide în Sheets</a>` : ''}

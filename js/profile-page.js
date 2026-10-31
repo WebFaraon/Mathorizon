@@ -678,7 +678,6 @@
         <div class="pf-tickets" aria-hidden="true">${ticketsHTML}</div>
         <p class="pf-note">${tokenNote}</p>
         <a class="pf-key pf-key--primary pf-key--block" href="bac.html?new=1">Pornește o simulare</a>
-        ${!isAdmin ? `<a class="pf-key pf-key--block" href="pachete.html#tokenuri">${icon('ticket', { size: 16 })} Cumpără tokenuri</a>` : ''}
       </section>`;
 
     /* ---- Teacher: one activity display, then reviews | classes | account */

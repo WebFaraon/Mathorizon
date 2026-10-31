@@ -243,7 +243,7 @@
         <label class="sy-f"><span>Profesor <em>(opțional, se completează din numele fișierului)</em></span><input class="ax-input" name="teacher" value="${esc((w && w.teacher_name) || '')}" placeholder="Nume Prenume" autocomplete="off"></label>
         <label class="sy-f"><span>Contul de profesor care îl vede</span>
           <select class="ax-select" name="owner"${w && !w.owner_user_id ? '' : ' required'}><option value=""${w && w.owner_user_id ? '' : ' selected'} disabled hidden>Alege contul profesorului</option>${list.map(p => `<option value="${esc(p.user_id)}"${w && w.owner_user_id === p.user_id ? ' selected' : ''}>${esc(p.full_name || p.email)} · ${esc(p.email || '')}</option>`).join('')}</select></label>
-        <p class="sy-hint">Fără contul profesorului nu apar clasele lui în platformă, nici linkul Meet, nici întrebările din Telegram.</p>
+        
         ${w ? `<label class="sy-f sy-check"><input type="checkbox" name="enabled"${w.enabled ? ' checked' : ''}> <span>Registrul se sincronizează</span></label>` : ''}
         <p class="sy-err" id="syErr" role="alert"></p>
       </form>`,
@@ -391,8 +391,7 @@
           <div class="ax-head__t">
             <span class="ax-plate">${ico('refresh-cw', 24)}</span>
             <div>
-              <h1 class="ax-h1">Sincronizare <span class="cn-real" title="Starea sincronizării vine din baza de date reală. Conținutul registrelor de acum este demo.">Stare reală</span></h1>
-              <p class="ax-lede">Registrele Google Sheets citite în platformă: când au fost verificate, ce s-a citit și ce nu a mers.</p>
+              <h1 class="ax-h1">Sincronizare</h1>
             </div>
           </div>
           <div class="ax-head__keys">

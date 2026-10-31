@@ -444,8 +444,7 @@
           <div class="ax-head__t">
             <span class="ax-plate">${ico('user', 24)}</span>
             <div>
-              <h1 class="ax-h1">Conturi <span class="cn-real" title="Această pagină citește și scrie în baza de date reală, nu în datele demo.">Date reale</span></h1>
-              <p class="ax-lede">Cereri de profesor, conturile elevilor cu pachetele lor și lista de așteptare.</p>
+              <h1 class="ax-h1">Conturi</h1>
             </div>
           </div>
           <div class="ax-head__keys">

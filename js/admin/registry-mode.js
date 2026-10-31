@@ -542,7 +542,7 @@
       pill = document.createElement('span');
       pill.className = 'ax-regpill';
       pill.id = 'axRegPill';
-      pill.title = 'Datele vin din registrele Google Sheets (sincronizate în platformă). Din consolă se poate înscrie un elev într-o grupă existentă; restul se schimbă în registru.';
+      pill.title = 'Date din registrele Google Sheets';
       pill.innerHTML = '<i aria-hidden="true"></i><b>Registre</b><button type="button" class="ax-regpill__r" title="Reîncarcă acum datele din registre" aria-label="Reîncarcă datele din registre"></button>';
       pill.querySelector('button').innerHTML = (window.AdminUI && window.AdminUI.ico) ? window.AdminUI.ico('refresh-cw', 14) : '↻';
       pill.querySelector('button').addEventListener('click', () => poll(true));
@@ -613,7 +613,7 @@
   document.addEventListener('bm:registry-readonly', () => {
     if (Date.now() - lastToast < 2500) return;
     lastToast = Date.now();
-    U.toast('Registrele sunt sursa datelor. De aici se poate înscrie un elev, se poate transfera și se pot schimba statutul, managerul și plățile (se scrie în registru); restul se schimbă în registru, direct în Google Sheets. În modul Demo poți încerca liber.', 'warn');
+    U.toast('Această modificare se face în registrul Google Sheets.', 'warn');
   });
 
   window.AdminRegistry = { setSource, refresh, refreshGroups, refreshWorkbooks, refreshReplacements, setRooms, replace, cancelReplacement, settleReplacements, poll, command, setGroup, studentChange, setAvailability, isSaving, enrol, transfer, newGroup, source: () => (D.readOnly() ? 'registre' : 'demo'), preferred: read };

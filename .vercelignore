@@ -9,3 +9,13 @@ fontcheck
 DESIGN.md
 PRODUCT.md
 README.md
+
+CLAUDE.md
+apps-script
+tsconfig.json
+_import
+_newExcel
+.env
+.env.*
+.playwright-mcp
+.git

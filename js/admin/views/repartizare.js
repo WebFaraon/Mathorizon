@@ -575,8 +575,7 @@
         <span><i class="rp-lg ax-hazard"></i>Cabinet dublat</span>
         <span><i class="rp-lg rp-lg--bad"></i>Profesor ocupat sau indisponibil</span>
         ${s.rows === 'prof' ? '<span><i class="rp-lg rp-lg--na"></i>În afara disponibilității</span>' + D.PROJECTS.map(p => `<span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>`).join('') : ''}
-      </div>
-      <p class="rp-rail__note">Trage o grupă cu mausul sau deschide-o (clic, Enter) și folosește „Mută". Ctrl+Z anulează ultima mutare.</p>`;
+      </div>`;
     rail.classList.toggle('is-open', wasOpen);
 
     const on = key => vals => { s[key] = vals; s.focus = null; writeState(s); refreshRailCount(); renderMain(); };

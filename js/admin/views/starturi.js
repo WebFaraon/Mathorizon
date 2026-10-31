@@ -204,7 +204,6 @@
             <span class="ax-plate">${ico('rocket', 24)}</span>
             <div>
               <h1 class="ax-h1">Starturi</h1>
-              <p class="ax-lede">Grupele care au destui elevi ca să înceapă. Botul de Telegram întreabă profesorul dacă confirmă startul; ce răspunde apare aici, iar tu suni elevii pentru prima lecție.</p>
             </div>
           </div>
           <div class="ax-head__keys"><button type="button" class="ax-btn ax-btn--sm" id="stReload">${ico('refresh-cw', 16)} Reîncarcă</button></div>

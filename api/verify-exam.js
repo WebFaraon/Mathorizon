@@ -3,6 +3,19 @@ const { GoogleGenerativeAI } = require('@google/generative-ai');
 const { generateContentWithRetry } = require('./_gemini-retry');
 const { extractJson, normalizeImageMime } = require('./_gemini-shared');
 
+const SUPABASE_URL  = 'https://tfflpivehrrzmklvcyhe.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InRmZmxwaXZlaHJyem1rbHZjeWhlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyNDUzNDMsImV4cCI6MjA5NzgyMTM0M30.-gGiOdro6z5vHC23bbKNdHppH1tf2x82GshFIGVCb6w';
+const MAX_ITEMS = 20;          // exercises on one exam sheet
+
+/* The grading spends the paid Gemini key: only a signed-in user may call it. */
+async function requireUser(req) {
+  const h = String(req.headers.authorization || '');
+  const token = h.startsWith('Bearer ') ? h.slice(7) : '';
+  if (!token) throw Object.assign(new Error('Autentifică-te ca să trimiți lucrarea la corectat.'), { status: 401 });
+  const r = await fetch(`${SUPABASE_URL}/auth/v1/user`, { headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${token}` } });
+  if (!r.ok) throw Object.assign(new Error('Sesiunea a expirat. Intră din nou în cont.'), { status: 401 });
+}
+
 // Google retired the entire Gemini 2.x generation from generateContent (404
 // "no longer available"). We initially replaced it with gemini-3-flash-preview,
 // but "-preview" models carry noticeably more restrictive rate limits than
@@ -293,16 +306,23 @@ Reguli JSON:
 }
 
 module.exports = async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin',  '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
 
   if (req.method === 'OPTIONS') { res.status(204).end(); return; }
   if (req.method !== 'POST')    { res.status(405).json({ error: 'Method not allowed' }); return; }
 
   try {
+    await requireUser(req);
+  } catch (e) {
+    res.status(e.status || 401).json({ error: e.message });
+    return;
+  }
+
+  try {
     const items = req.body;
     if (!Array.isArray(items)) throw new Error('Payload must be an array');
+    if (items.length > MAX_ITEMS) throw new Error('Prea multe exerciții într-o singură lucrare.');
 
     const results = await Promise.all(
       items.map(item =>

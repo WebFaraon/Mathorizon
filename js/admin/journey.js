@@ -101,7 +101,7 @@
         <span class="jr-sub__m">${esc(money_)}</span>
       </li>`;
     }).join('');
-    return `<section class="jr-sub" aria-label="Înlocuiri"><h3>Înlocuiri</h3><p>Lecții ținute de alt profesor. Elevul rămâne în grupa lui; banii unei lecții au trecut în fila profesorului care a înlocuit.</p><ul>${rows}</ul></section>`;
+    return `<section class="jr-sub" aria-label="Înlocuiri"><h3>Înlocuiri</h3><ul>${rows}</ul></section>`;
   }
 
   function open(sid) {

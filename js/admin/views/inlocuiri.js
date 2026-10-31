@@ -230,7 +230,6 @@
             <span class="ax-plate">${ico('replace', 24)}</span>
             <div>
               <h1 class="ax-h1">Înlocuiri</h1>
-              <p class="ax-lede">Lecțiile ținute de alt profesor: fila lui din registru, prezențele puse și banii care trec singuri din grupa de bază.</p>
             </div>
           </div>
           <div class="ax-head__keys"><button type="button" class="ax-btn" id="riReload">${ico('refresh-cw', 16)} Reîncarcă</button></div>

@@ -71,12 +71,10 @@
         <button type="button" class="ax-icon-btn rs-x" data-x aria-label="Închide">${ico('x', 18)}</button>
       </header>
       <div class="rs-body">
-        <p class="rs-lede">Registrele spun doar numărul cabinetului, nu câte locuri are. Completează-le o dată: la o grupă nouă consola îți arată ce cabinete sunt libere și ce se potrivește ca mărime, ca un grup mic să nu ocupe un cabinet mare.</p>
-        ${live ? '' : '<p class="rs-note">În modul Demo capacitățile vin odată cu datele demo și nu se pot schimba. Treci pe Registre ca să le setezi.</p>'}
+        
         <div class="rs-head" aria-hidden="true"><span>Cabinet</span><span>Etaj</span><span>Locuri</span><span>Stare</span><span></span></div>
         <ul class="rs-list" id="rsList"></ul>
-        ${live ? `<button type="button" class="ax-btn rs-add" data-add>${ico('plus', 16)} Adaugă un cabinet</button>
-        <p class="rs-help">Un cabinet nou trebuie trecut și în lista de cabinete (CONFIGURARI) din registrul profesorului, altfel registrul nu-l primește în fila unei grupe.</p>` : ''}
+        ${live ? `<button type="button" class="ax-btn rs-add" data-add>${ico('plus', 16)} Adaugă un cabinet</button>` : ''}
         <p class="rs-err" id="rsErr" role="alert"></p>
       </div>
       <footer class="rs-f"><span class="rs-f__s" id="rsSum" aria-live="polite"></span><button type="button" class="ax-btn" data-x>Închide</button>${live ? `<button type="button" class="ax-btn ax-btn--primary" data-save disabled>${ico('check', 16)} Salvează</button>` : ''}</footer>`;

@@ -385,7 +385,6 @@
       <div class="ax-panel__head an-head">
         <div>
           <h2 class="ax-h2" id="anPvT">Tabel încrucișat</h2>
-          <p class="an-def">Grupele împărțite după două criterii. Totalurile se calculează din grupe, nu din adunarea celulelor, deci gradul de ocupare rămâne corect.</p>
         </div>
         <button type="button" class="ax-btn ax-btn--sm" id="anPvCsv">${ico('download', 16)} CSV tabel</button>
       </div>
@@ -399,7 +398,7 @@
       <div class="an-pv-body">
         ${pivotTableHTML(p, st)}
         <div class="an-pv-foot">
-          <p class="an-def">${esc(p.V.label)}${p.V.pct ? ': elevi înscriși (fără inactivi și transferați) din locurile grupelor' : ''}. ${nf.format(p.gs.length)} ${p.gs.length === 1 ? 'grupă' : 'grupe'} în calcul. Punct: nicio grupă în combinația respectivă.</p>
+          <p class="an-def">${esc(p.V.label)} · ${nf.format(p.gs.length)} ${p.gs.length === 1 ? 'grupă' : 'grupe'}</p>
           ${st.heat && p.rows.length ? heatLegendHTML(p.V.pct, p.max) : ''}
         </div>
       </div>`;
@@ -621,7 +620,7 @@
           <span class="ax-plate">${ico('chart-column', 24)}</span>
           <div>
             <h1 class="ax-h1">Analitică</h1>
-            <p class="ax-lede">Forma activității: grupe, elevi, cabinete și datorii. Calculat la ${stamp}, din datele curente.</p>
+            <p class="ax-lede">Calculat la ${stamp}</p>
           </div>
         </div>
         <div class="ax-head__keys">
@@ -655,7 +654,6 @@
           <div class="ax-panel__head an-head">
             <div>
               <h2 class="ax-h2" id="anClsT">Distribuția pe clase</h2>
-              <p class="an-def">Grupe de orice statut; elevi activi și ore de probă din aceste grupe. Procentaj: partea clasei din elevii activi. Top 1-3 după elevi activi.</p>
             </div>
             ${selectHTML('anSort', 'Ordonează după', SORTS, st.sort)}
           </div>
@@ -670,7 +668,6 @@
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anSubT">Materii</h2>
-                <p class="an-def">Grad de ocupare: elevi înscriși (fără inactivi și transferați) din locurile grupelor active. Locuri libere: în grupele active.</p>
               </div>
             </div>
             ${subjectHTML(subjectRows(m))}
@@ -680,7 +677,6 @@
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anStT">Statusul elevilor</h2>
-                <p class="an-def">Fiecare elev are un singur statut. Procent din ${U.plural(m.students.length, 'elev', 'elevi')}; acțiunea duce la lista lor.</p>
               </div>
             </div>
             ${statusHTML(statusRows(m), st)}
@@ -694,7 +690,6 @@
             <div class="ax-panel__head an-head">
               <div>
                 <h2 class="ax-h2" id="anRoT">Ocuparea cabinetelor</h2>
-                <p class="an-def">Examen.md Offline, grupe fără statut Inactiv. Ore ocupate pe zi din ${SLOTS} (08:00-21:00); o oră cu două grupe se numără o dată.</p>
               </div>
             </div>
             ${roomsHTML(roomData(m, st))}
@@ -706,7 +701,6 @@
               <div class="ax-panel__head an-head">
                 <div>
                   <h2 class="ax-h2" id="anHrT">Lecții pe ore</h2>
-                  <p class="an-def">Câte lecții încep la fiecare oră, adunate pe toată săptămâna (o grupă de două ori pe săptămână dă două lecții). Fără grupele inactive.</p>
                 </div>
               </div>
               <div class="ax-panel__body">${hoursHTML(hd)}</div>
@@ -716,7 +710,6 @@
               <div class="ax-panel__head an-head">
                 <div>
                   <h2 class="ax-h2" id="anDbT">Datorii pe manageri</h2>
-                  <p class="an-def">Suma soldurilor negative ale elevilor fiecărui manager, orice statut. Deschide lista elevilor cu datorie.</p>
                 </div>
               </div>
               ${debtHTML(debtRows(m))}

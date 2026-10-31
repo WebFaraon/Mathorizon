@@ -296,7 +296,7 @@
     // Registre: the sheet charges every PREZENT / ABSENT in the column, also on a row that has no date or topic yet; say so when that is the case
     if (D.readOnly() && g) {
       const row = D.ledger(g.id).rows.find(x => x.s.id === st.id);
-      if (row && row.drift) { const diff = Math.round((row.cost - row.ownCost) * 100) / 100; note = `Registrul numără ${diff > 0 ? 'în plus' : 'în minus'} ${U.money(Math.abs(diff))} față de lecțiile cu dată și temă: ${diff > 0 ? 'are prezențe pe rânduri fără dată sau temă, pe care formula din registru le taxează.' : 'o prezență lipsește sau nu e una taxată.'} Completează data și tema în registru.`; }
+      if (row && row.drift) { const diff = Math.round((row.cost - row.ownCost) * 100) / 100; note = `Registrul numără ${diff > 0 ? 'în plus' : 'în minus'} ${U.money(Math.abs(diff))} față de lecțiile cu dată și temă.`; }
     }
     const LBL = ['Acum trei lecții', 'Penultima', 'Ultima'];
     let groupHTML;
@@ -436,7 +436,6 @@
           <span class="ax-plate">${ico('users', 24)}</span>
           <div>
             <h1 class="ax-h1">Elevi</h1>
-            <p class="ax-lede">Prezența, soldul și grupa fiecărui elev. Filtrele rămân în adresa paginii.</p>
           </div>
         </div>
         <div class="ax-head__keys">

@@ -120,7 +120,6 @@
           <div class="ah-head__t">
             <p class="ah-eyebrow">${esc(new Date().toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' }))}</p>
             <h1 class="ah-title">${greeting()}, ${esc(name)}</h1>
-            <p class="ax-lede">Ce are nevoie de atenție azi, și drumul spre fiecare instrument.</p>
           </div>
         </header>
 

@@ -41,7 +41,6 @@ const NAV_ICONS = {
   simulare:    icon('clipboard-list', { size: 16, className: 'nav__mobile-link__icon' }),
   antrenament: icon('target',         { size: 16, className: 'nav__mobile-link__icon' }),
   clase:       icon('school',         { size: 16, className: 'nav__mobile-link__icon' }),
-  pachete:     icon('package',        { size: 16, className: 'nav__mobile-link__icon' }),
   token:       icon('ticket',         { size: 16, className: 'token-widget__icon' }),
   // Reuses .token-widget__icon on purpose — the streak pill borrows
   // .token-widget's whole box/icon/count styling (see TEMPLATE below), so
@@ -85,7 +84,6 @@ const TEMPLATE = `    <div class="nav__inner container">
         <a class="nav__link" href="bac.html?new=1" data-authed-href="bac.html?new=1">Simulare</a>
         <a class="nav__link" href="training.html" data-authed-href="training.html">Antrenament</a>
         <a class="nav__link" href="classes.html" data-authed-href="classes.html">Clase</a>
-        <a class="nav__link" href="pachete.html" data-authed-href="pachete.html">Pachete</a>
       </div>
       <button class="nav__hamburger" id="navHamburger" aria-label="Meniu">
         <svg class="nav__hamburger-icon" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -129,7 +127,6 @@ const TEMPLATE = `    <div class="nav__inner container">
       <a class="nav__mobile-link" href="bac.html?new=1" data-authed-href="bac.html?new=1">\${simulare}Simulare</a>
       <a class="nav__mobile-link" href="training.html" data-authed-href="training.html">\${antrenament}Antrenament</a>
       <a class="nav__mobile-link" href="classes.html" data-authed-href="classes.html">\${clase}Clase</a>
-      <a class="nav__mobile-link" href="pachete.html" data-authed-href="pachete.html">\${pachete}Pachete</a>
       <div class="nav__mobile-divider"></div>
       <div class="nav__mobile-section-lbl">Mai multe</div>
       <button class="nav__mobile-link nav__mobile-link--action" onclick="BM.closeMobileMenu();document.getElementById('favBtn').click()">\${favorite}Exerciții favorite</button>

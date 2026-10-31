@@ -545,7 +545,7 @@
         : 'Când profesorul îți acceptă cererea, intri în clasă: mesaje, teme și simulări.');
   }
   function inviteHTML(g) {
-    if (!g || !g.code) return `<div class="ax-invite ax-invite--none"><p>Grupa nu are încă cod de invitație. Apare singur când contul profesorului e legat de registru (Sincronizare) și registrul a fost citit, de obicei în câteva secunde.</p></div>`;
+    if (!g || !g.code) return `<div class="ax-invite ax-invite--none"><p>Încă fără cod: leagă contul profesorului în Sincronizare.</p></div>`;
     return `
       <div class="ax-invite">
         <div class="ax-invite__code"><span>Cod de invitație al clasei</span><b>${esc(g.code)}</b></div>
@@ -553,7 +553,6 @@
           <button type="button" class="ax-btn ax-btn--sm ax-btn--primary" data-inv="msg">${ico('copy', 16)} Copiază invitația</button>
           <button type="button" class="ax-btn ax-btn--sm" data-inv="code">${ico('copy', 16)} Copiază codul</button>
         </div>
-        <p class="ax-invite__note">Elevul intră în clasă cu acest cod și îl acceptă profesorul.${g.mode === 'online' ? ' După aceea vede butonul „Intră la lecție” (Google Meet).' : ''}</p>
       </div>`;
   }
   function wireInvite(root, g) {

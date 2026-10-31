@@ -730,10 +730,7 @@
         showTokenDialog({
           icon: icon('lock', { size: 48 }),
           title: 'Nu mai ai ExamTokenuri',
-          body: `Ai folosit toate simulările disponibile.<br>Achiziționează ExamTokenuri pentru a continua să exersezi.`,
-          confirmLabel: 'Achiziționează tokenuri',
-          confirmClass: 'btn--primary',
-          onConfirm: () => BM.toast('Funcționalitate disponibilă în curând.', 'info'),
+          body: `Ai folosit toate simulările disponibile.`,
           cancelLabel: 'Închide'
         });
       }
@@ -767,13 +764,14 @@
         <div class="exam-start-body">${body}</div>
         <div class="bac-confirm-actions">
           <button class="btn btn--surface" id="tkn-cancel">${cancelLabel}</button>
-          <button class="btn ${confirmClass}" id="tkn-ok">${confirmLabel}</button>
+          ${confirmLabel ? `<button class="btn ${confirmClass}" id="tkn-ok">${confirmLabel}</button>` : ''}
         </div>
       </div>`;
     document.body.appendChild(ov);
     const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 220); };
     ov.querySelector('#tkn-cancel').onclick = close;
-    ov.querySelector('#tkn-ok').onclick = () => { close(); onConfirm(); };
+    const ok = ov.querySelector('#tkn-ok');
+    if (ok) ok.onclick = () => { close(); onConfirm(); };
     ov.onclick = e => { if (e.target === ov) close(); };
     requestAnimationFrame(() => ov.classList.add('open'));
   }
@@ -1704,7 +1702,8 @@
       // used to blow up as «Unexpected token 'A', "An error o"…») and applies
       // a client-side deadline instead of spinning indefinitely. The budget is
       // generous because every exercise on the sheet is graded in one request.
-      const results = await BM.postJson('/api/verify-exam', payload, { timeoutMs: 280000 });
+      const sess = window.BMAuth && BMAuth.supabase ? (await BMAuth.supabase.auth.getSession()).data.session : null;
+      const results = await BM.postJson('/api/verify-exam', payload, { timeoutMs: 280000, headers: { Authorization: 'Bearer ' + (sess ? sess.access_token : '') } });
       // Map each AI result back onto the exam slot it graded (eligibleIndices
       // was built in the same order the payload was sent), then finalize the
       // official score/grade/history from those numbers.

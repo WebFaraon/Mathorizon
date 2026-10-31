@@ -46,7 +46,6 @@
   const MODES = {
     transfer: {
       title: 'Transfer', icon: 'swap', sub: 'Elev dintr-un grup în altul',
-      lede: 'Introdu sumele din grupul vechi. Costul lecțiilor deja ținute se scade proporțional din achitări și din reduceri; restul trece în grupul nou. Când transferi un elev din Orar, banii se împart automat cu aceleași formule; calculatorul rămâne pentru verificări.',
       fields: [
         { id: 'ach', k: 'ach', label: 'Achitări', row: 'Rândul 3', hint: 'banii plătiți de elev', ex: '2808.50' },
         { id: 'red', k: 'red', label: 'Reduceri', row: 'Rândul 4', hint: 'reducerile acordate', ex: '244.00' },
@@ -57,7 +56,6 @@
     },
     inlocuire: {
       title: 'Înlocuire', icon: 'users', sub: 'Ore făcute de un înlocuitor',
-      lede: 'Introdu orele și prețul unei ore, apoi achitările și reducerile din grupul principal. Suma se împarte proporțional: o treci în foaia „Înlocuire", restul rămâne în grupul principal.',
       fields: [
         { id: 'ore', k: 'ore', label: 'Număr de ore', hint: 'orele făcute de înlocuitor', ex: '8.5' },
         { id: 'pret', k: 'pret', label: 'Preț pe oră', hint: 'tariful unei ore', ex: '150.00' },
@@ -69,7 +67,6 @@
     },
     retur: {
       title: 'Retur', icon: 'wallet', sub: 'Banii care se întorc elevului',
-      lede: 'Introdu achitările, reducerile și costul lecțiilor. Vezi ce sumă se returnează și ce valori rămân în registru, ca soldul să iasă 0.',
       fields: [
         { id: 'ach', k: 'ach', label: 'Achitări', row: 'Rândul 3', hint: 'banii plătiți de elev', ex: '2808.00' },
         { id: 'red', k: 'red', label: 'Reduceri', row: 'Rândul 4', hint: 'reducerile acordate', ex: '244.00' },
@@ -155,7 +152,7 @@
     const m = MODES[S.mode];
     return `
       <div class="cl-form__head">
-        <div><h2 class="ax-h2">${esc(m.title)}</h2><p class="cl-lede">${esc(m.lede)}</p></div>
+        <div><h2 class="ax-h2">${esc(m.title)}</h2></div>
       </div>
       <div class="cl-fields">${m.fields.map(fieldHTML).join('')}</div>
       <div class="cl-form__act">
@@ -315,7 +312,7 @@
       <div class="cl-empty" data-arrive>
         <span class="cl-empty__pic">${ico('calculator', 30)}</span>
         <h3>Rezultatul apare aici</h3>
-        <p>Completează câmpurile din stânga. Calculul se face pe loc, fără buton, iar fiecare cifră are o tastă de copiere ca s-o lipești în foaie.</p>
+        
         <button type="button" class="ax-btn" id="clSample2">${ico('lightbulb', 16)} Încearcă un exemplu</button>
         <ul>${m.fields.map(f => `<li class="cl-t--${F[f.k].tone}"><i></i>${esc(f.label)}${f.row ? ` <small>${esc(f.row.toLowerCase())}</small>` : ''}</li>`).join('')}</ul>
       </div>`;
@@ -426,7 +423,6 @@
             <span class="ax-plate">${ico('calculator', 24)}</span>
             <div>
               <h1 class="ax-h1">Calculator</h1>
-              <p class="ax-lede">Transfer, înlocuire și retur: sumele se împart proporțional între achitări și reduceri, ca în foaia de lucru.</p>
             </div>
           </div>
         </header>

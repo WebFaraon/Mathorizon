@@ -158,7 +158,7 @@
         <p class="in-count" aria-live="polite"><b>${list.length}</b> ${list.length === 1 ? 'grupă activă potrivită' : 'grupe active potrivite'}</p>
         <button type="button" class="in-tg" data-filling aria-pressed="${S.filling}"><span class="in-sw" aria-hidden="true"></span>Și grupele care se completează</button>
       </div>
-      <p class="in-sub">Doar grupele de nivelul ${esc(S.levels.slice().sort().join(' și '))}.${wishes() ? ' Lista ține cont de dorințele părintelui.' : ''}</p>${hint}`;
+      <p class="in-sub">Nivel ${esc(S.levels.slice().sort().join(' și '))}</p>${hint}`;
     if (!list.length) {
       return top + `<div class="in-empty"><span class="in-empty__ic" aria-hidden="true">${ico('search-x', 28)}</span><b>Nicio grupă activă nu se potrivește${wishes() ? ' cu aceste dorințe' : ''}.</b><span>${wishes() ? 'Relaxează o dorință a părintelui sau creează o grupă nouă.' : 'Poți crea o grupă nouă, cu elevul ăsta, la un profesor care are timp.'}</span>
         <div class="in-empty__k">${wishes() ? '<button type="button" class="ax-btn" data-clear-wish>Șterge dorințele</button>' : ''}<button type="button" class="ax-btn ax-btn--primary" data-mode="new">${ico('plus', 16)} Creează o grupă nouă</button></div></div>`;
@@ -236,7 +236,7 @@
         <button type="button" class="ax-btn ax-btn--primary in-dock__go" data-create ${!complete || needProf ? 'disabled' : ''}>${ico('plus', 16)} ${needProf ? 'Alege întâi profilul' : !complete ? 'Alege și a doua zi, la aceeași oră' : 'Creează grupa și înscrie elevul'}</button>
       </div>` : '';
     return `
-      <p class="in-sub">Nicio grupă nu se potrivește? Alege un profesor care predă ${esc(S.subject)} la clasa ${esc(S.grade)} și o oră liberă de-a lui. Grupa se creează de la zero, doar cu elevul ăsta, și așteaptă să se completeze.</p>
+      <p class="in-sub">Grupă nouă: alege profesorul și ora.</p>
       <div class="in-ng">
         ${S.levels.length > 1 ? `<div class="in-f"><span class="in-l">Nivelul grupei noi</span><div class="in-chips" role="radiogroup" aria-label="Nivelul grupei">${S.levels.slice().sort().map(l => `<button type="button" class="in-chip${ngLevel() === l ? ' is-on' : ''}" data-ngl="${esc(l)}" role="radio" aria-checked="${ngLevel() === l}">Nivel ${esc(l)}</button>`).join('')}</div></div>` : ''}
         ${S.fmt === 'online' ? `<div class="in-f"><span class="in-l">Proiectul</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>` : ''}
@@ -252,7 +252,7 @@
             <span class="in-tc__n"><b>${o.total}</b> ore libere pe săptămână</span>
             <span class="in-tc__chev" aria-hidden="true">${ico('chevron-down', 18)}</span>
           </button>
-          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">${S.ng.dur === 1 ? 'Lecții de o oră, de două ori pe săptămână: alege ora într-o zi, apoi aceeași oră în altă zi.' : 'O lecție de două ore, o dată pe săptămână: alege ziua și prima oră.'} Cu punct: ce a cerut părintele.</p>${gridHTML(o)}${roomsHTML(plan)}` : ''}</div></div>
+          <div class="in-tc__b"><div>${o.t.id === S.ng.teacher ? `<p class="in-tc__hint">${S.ng.dur === 1 ? 'Alege aceeași oră în două zile.' : 'Alege ziua și prima oră.'} Cu punct: dorința părintelui.</p>${gridHTML(o)}${roomsHTML(plan)}` : ''}</div></div>
         </li>`).join('')}</ul>` : `<div class="in-empty"><span class="in-empty__ic" aria-hidden="true">${ico('search-x', 28)}</span><b>Niciun profesor nu are ore libere pentru asta.</b><span>Încearcă alt format sau scoate profesorul ales din dorințele părintelui.</span></div>`}
       ${bar}`;
   }
@@ -426,8 +426,8 @@
             ${solo ? `<li><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ</span><span>Fără oră de probă: decontarea începe de la prima lecție</span></li>` : `<li><span class="ax-st ax-st--proba"><i class="ax-st__i" aria-hidden="true"></i>Oră de probă</span><span class="in-ok__arr" aria-hidden="true">${ico('arrow-right', 16)}</span><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Activ, după prima plată</span></li>`}
             <li><span>${ico('users', 16)}</span><span>Managerul elevului: <b>${esc(m ? m.name : '')}</b></span></li>
           </ul>
-          ${mine ? U.inviteHTML(G) : '<p class="ax-invite__soon">Codul de invitație al grupei noi apare în câteva secunde în Repartizare, la grupa nouă, și în Înscriere.</p>'}
-          <p class="in-ok__note">${solo ? 'Lecția individuală se decontează de la prima lecție.' : 'Prima lecție e gratuită.'} Dacă greșești, corectezi direct în registru.</p>
+          ${mine ? U.inviteHTML(G) : '<p class="ax-invite__soon">Codul apare în câteva secunde.</p>'}
+          <p class="in-ok__note">${solo ? 'Se plătește de la prima lecție.' : 'Prima lecție e gratuită.'}</p>
           <div class="in-ok__f">
             <button type="button" class="ax-btn ax-btn--primary" data-another>${ico('user-plus', 16)} Înscrie alt elev</button>
             ${r.url ? `<a class="ax-btn" href="${esc(r.url)}" target="_blank" rel="noopener">${ico('book-open', 16)} Deschide în Sheets</a>` : ''}
@@ -533,7 +533,6 @@
                 <span class="ax-plate">${ico('user-plus', 24)}</span>
                 <div>
                   <h1 class="ax-h1">Înscriere elev</h1>
-                  <p class="ax-lede">Notează ce spune părintele la telefon. Grupele active care se potrivesc apar pe loc, iar dacă nu există niciuna, creezi o grupă nouă.</p>
                 </div>
               </div>
             </header>
