@@ -41,7 +41,7 @@
     { group: 'Platforma', items: [
       { id: 'profesori', label: 'Conturi', icon: 'user' },
       { id: 'sincronizare', label: 'Sincronizare', icon: 'refresh-cw' },
-      { id: 'culegeri', label: 'Culegeri', icon: 'library', href: 'admin-culegeri.html' }
+      { id: 'culegeri', label: 'Culegeri', icon: 'library' }
     ] }
   ];
   const ALL = NAV.flatMap(g => g.items);

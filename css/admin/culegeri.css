@@ -1,0 +1,27 @@
+/* Admin console: Culegeri (js/admin/views/culegeri.js). Flat, one centred column. */
+body.ax .cg { max-width: 860px; margin: 0 auto; }
+body.ax .cg .ax-panel + .ax-panel { margin-top: 20px; }
+body.ax .cg-form { display: grid; gap: 18px; }
+body.ax .cg-f { display: grid; gap: 6px; font-weight: 700; font-size: 0.86rem; }
+body.ax .cg-drop {
+  display: grid; justify-items: center; gap: 4px; padding: 26px 16px; text-align: center; cursor: pointer;
+  border: 1.5px dashed var(--ax-rule-2); border-radius: var(--ax-r); background: transparent; color: var(--ax-ink);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+body.ax .cg-drop b { font-size: 0.95rem; word-break: break-word; }
+body.ax .cg-drop small { font-size: 0.8rem; font-weight: 500; color: var(--ax-ink-3); }
+body.ax .cg-drop__pic { display: grid; place-items: center; width: 44px; height: 44px; margin-bottom: 4px; border-radius: var(--ax-r); background: var(--ax-hover); color: var(--ax-ink-2); }
+body.ax .cg-drop:hover, body.ax .cg-drop.is-over { border-color: var(--pg); background: var(--ax-hover); }
+body.ax .cg-drop.is-set { border-style: solid; border-color: var(--pg); }
+body.ax .cg-drop.is-set .cg-drop__pic { background: var(--pg); color: var(--ax-ink); }
+body.ax #cgFile:focus-visible + .cg-drop { outline: 2px solid var(--ax-blue); outline-offset: 2px; }
+body.ax .cg-act { display: flex; justify-content: flex-end; }
+body.ax .cg-n { display: inline-block; margin-left: 6px; color: var(--ax-ink-3); font-weight: 700; }
+body.ax .cg-list { margin: 0; padding: 0; list-style: none; }
+body.ax .cg-row { display: flex; align-items: center; justify-content: space-between; gap: 12px 16px; flex-wrap: wrap; padding: 14px 18px; }
+body.ax .cg-row + .cg-row { border-top: 1px solid var(--ax-rule); }
+body.ax .cg-row__t { display: grid; gap: 2px; min-width: 0; }
+body.ax .cg-row__t b { font-size: 0.95rem; overflow-wrap: anywhere; }
+body.ax .cg-row__k { display: flex; gap: 8px; flex-shrink: 0; }
+body.ax .cg-del { color: var(--ax-bad); }
+body.ax .cg-del:hover { color: var(--ax-bad); }

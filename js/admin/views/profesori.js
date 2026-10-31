@@ -448,7 +448,7 @@
             </div>
           </div>
           <div class="ax-head__keys">
-            <a class="ax-btn" href="admin-culegeri.html">${ico('library', 16)} Culegeri</a>
+            <a class="ax-btn" href="#culegeri">${ico('library', 16)} Culegeri</a>
           </div>
         </header>
         <section class="ax-stats cn-stats" id="cnStats" aria-label="Pe scurt"></section>
