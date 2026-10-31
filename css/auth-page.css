@@ -524,7 +524,7 @@ body.ap [hidden] { display: none !important; }
 .ap-back:hover { color: var(--k-ink); }
 
 /* ---------- role keys ---------- */
-.ap-roles { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ap-roles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
 .ap-role {
   display: flex;
   flex-direction: column;
@@ -667,6 +667,10 @@ body.ap [hidden] { display: none !important; }
   .ap-panel { padding: 18px 16px 20px; }
   .ap-roles { gap: 8px; }
   .ap-role { padding: 10px 10px 12px; }
+}
+@media (max-width: 520px) {
+  .ap-roles { grid-template-columns: 1fr; }
+  .ap-role { min-height: 0; }
 }
 @media (max-width: 360px) {
   .ap-roles { grid-template-columns: 1fr; }

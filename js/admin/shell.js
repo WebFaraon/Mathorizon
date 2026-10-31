@@ -16,7 +16,8 @@
    shell: <body class="ax" data-ax-page="exercitii"> and their content
    inside #axLegacy is moved into the main area.
 
-   Access: only BMAuth.role === 'admin'; guests go to sign-in.
+   Access: the admin (everything) and an approved manager (only the pages in MANAGER_VIEWS); a manager who is not approved yet sees
+   a message and nothing else; guests go to sign-in. window.AdminAccess tells the views what the person may see.
    ============================================================ */
 (function () {
   'use strict';
@@ -46,6 +47,19 @@
   ];
   const ALL = NAV.flatMap(g => g.items);
 
+  /* What a manager may open (the admin opens everything). The database rights follow the same list (migration 20261101100000_rol_manager.sql). */
+  const MANAGER_VIEWS = ['acasa', 'orar', 'elevi', 'inscriere', 'starturi', 'inlocuiri', 'disponibilitate'];
+  window.AdminAccess = { role: null, status: null, ok: false, can: () => false };
+  function setAccess(a) {
+    const isAdmin = a.role === 'admin', isMgr = a.role === 'manager';
+    window.AdminAccess = {
+      role: a.role, status: a.status, manager: isMgr,
+      ok: isAdmin || (isMgr && a.status === 'active'),                                   // an approved person
+      can: id => isAdmin || (isMgr && a.status === 'active' && MANAGER_VIEWS.includes(id))
+    };
+  }
+  const canOpen = id => window.AdminAccess.can(id);
+
   const external = document.body.dataset.axPage || null;
   let auth = null;
   let current = null;
@@ -56,7 +70,7 @@
   }
 
   function navHTML(active) {
-    return NAV.map(g => `
+    return NAV.map(g => Object.assign({}, g, { items: g.items.filter(it => canOpen(it.id)) })).filter(g => g.items.length).map(g => `
       <div class="ax-sign__group">
         <div class="ax-sign__title ax-hide-folded">${esc(g.group)}</div>
         <ul class="ax-nav">
@@ -88,10 +102,10 @@
           <div class="ax-sign__foot">
             <div class="ax-sign__user">
               <span class="ax-sign__avatar">${esc(initials(name))}</span>
-              <span class="ax-hide-folded"><b>${esc(name)}</b><small>Administrator</small></span>
+              <span class="ax-hide-folded"><b>${esc(name)}</b><small>${window.AdminAccess.manager ? 'Manager' : 'Administrator'}</small></span>
             </div>
             <div class="ax-sign__row">
-              <a class="ax-sign__btn ax-sign__btn--site" href="capitole.html" data-browse title="Vezi site-ul">${ico('external', 16)}<span class="ax-btn-t">Vezi site-ul</span></a>
+              ${window.AdminAccess.manager ? '' : `<a class="ax-sign__btn ax-sign__btn--site" href="capitole.html" data-browse title="Vezi site-ul">${ico('external', 16)}<span class="ax-btn-t">Vezi site-ul</span></a>`}
               <button type="button" class="ax-sign__btn ax-sign__btn--icon" id="axTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 16)}</button>
             </div>
             <button type="button" class="ax-sign__btn ax-sign__btn--demo" id="axDemoReset2" title="Resetează datele demo">${ico('refresh-cw', 16)}<span class="ax-btn-t">Resetează datele demo</span></button>
@@ -134,7 +148,7 @@
   /* ---- router ---- */
   function routeId() {
     const id = (location.hash.slice(1).split('?')[0] || 'acasa');
-    return window.AdminViews[id] ? id : 'acasa';
+    return window.AdminViews[id] && canOpen(id) ? id : 'acasa';
   }
 
   function refreshNav(active, reveal) {
@@ -208,9 +222,34 @@
     requestAnimationFrame(() => { apply(); root.style.minHeight = ''; });         // a second time once the layout of the new content has settled (fonts, formulas)
   }
 
+  function waitingHTML() {
+    const st = window.AdminAccess.status;
+    return `<div class="ax-empty ax-wait" role="status"><b>${st === 'rejected' ? 'Cererea ta nu a fost aprobată.' : 'Contul tău așteaptă aprobarea adminului.'}</b>${st === 'rejected' ? '' : 'Pagina se deschide singură după aprobare.'}</div>`;
+  }
+  /* an account that is waiting: the page checks every 20 seconds and opens by itself once it is approved */
+  let waitTimer = 0;
+  function watchApproval() {
+    if (waitTimer || window.AdminAccess.status === 'rejected') return;
+    waitTimer = setInterval(async () => {
+      try {
+        const { data } = await auth.supabase.from('user_profiles').select('role,status').eq('user_id', auth.user.id).maybeSingle();
+        if (data && data.status === 'active') location.reload();
+        else if (data && data.status !== window.AdminAccess.status) { setAccess({ role: data.role, status: data.status }); render(false); }
+      } catch (e) { /* the next check */ }
+    }, 20000);
+  }
+
   function paint(fresh) {
     const root = document.getElementById('axView');
     if (!root || external) return;
+    if (!window.AdminAccess.ok) {
+      root.dataset.view = 'wait';
+      document.getElementById('axCrumb').textContent = 'În așteptare';
+      document.getElementById('axShell').toggleAttribute('data-nodemo', true);
+      root.innerHTML = waitingHTML();
+      watchApproval();
+      return;
+    }
     const id = routeId();
     const view = window.AdminViews[id];
     const changed = id !== current;
@@ -280,7 +319,8 @@
     });
     // "Vezi site-ul": remember for this tab that the admin wants the site,
     // so the landing redirect does not send them back here.
-    document.querySelector('[data-browse]').addEventListener('click', () => {
+    const browse = document.querySelector('[data-browse]');
+    if (browse) browse.addEventListener('click', () => {
       try { sessionStorage.setItem('bm_admin_browse', '1'); } catch (e) {}
     });
     const resetDemo = () => {
@@ -340,7 +380,7 @@
     document.body.innerHTML = `
       <div class="ax-empty" style="padding-top:18vh">
         <b>Acces interzis</b>
-        Consola este disponibilă doar pentru administratori.
+        Consola este disponibilă doar pentru administratori și manageri.
         <div style="margin-top:18px"><a class="ax-btn ax-btn--dark" href="capitole.html">Înapoi la site</a></div>
       </div>`;
   }
@@ -350,7 +390,8 @@
     auth = await waitAuth();
     if (!auth.user) { location.replace('auth.html?from=' + encodeURIComponent(location.pathname.split('/').pop() || 'admin.html')); return; }
     await waitRole(auth);
-    if (auth.role !== 'admin') { denied(); return; }
+    if (auth.role !== 'admin' && auth.role !== 'manager') { denied(); return; }
+    setAccess({ role: auth.role, status: auth.status });
 
     const legacy = document.getElementById('axLegacy');
     const loading = document.getElementById('axLoading');

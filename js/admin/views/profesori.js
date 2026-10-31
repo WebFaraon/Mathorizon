@@ -6,10 +6,11 @@
    The students' accounts are not listed here: a student's sheet in Elevi shows whether he has an account (js/admin/accounts.js).
 
    Data: Supabase RPCs (POST /rest/v1/rpc/<fn>, apikey + the admin's Bearer token), each one checks role = 'admin' in the database:
-     get_pending_professors, admin_professor_overview (get_all_professors as a fallback), set_professor_status, admin_remove_professor
+     admin_pending_accounts (teachers and managers; get_pending_professors as a fallback), admin_set_account_status (set_professor_status as a fallback),
+     admin_professor_overview (get_all_professors as a fallback), admin_remove_professor, admin_manager_overview, admin_remove_manager
    the registers' numbers come from window.AdminData (the Registre source of the console) and the waitlist through GET /api/admin/get-waitlist.
 
-   Loaded once per visit and kept in a module cache; "Reincarca" fetches again. URL: #profesori?tab=cereri|profesori|waitlist&q=
+   Loaded once per visit and kept in a module cache; "Reincarca" fetches again. URL: #profesori?tab=cereri|profesori|manageri|waitlist&q=
    ============================================================ */
 (function () {
   'use strict';
@@ -23,6 +24,7 @@
   const TABS = [
     { id: 'cereri', label: 'Cereri' },
     { id: 'profesori', label: 'Profesori' },
+    { id: 'manageri', label: 'Manageri' },
     { id: 'waitlist', label: 'Waitlist' }
   ];
   const PROF_ST = {
@@ -102,16 +104,21 @@
       return;
     }
     const waitP = loadWaitlist();
-    const [pend, over] = await Promise.allSettled([rpc('get_pending_professors'), rpc('admin_professor_overview')]);
+    const [pend0, over, mg] = await Promise.allSettled([rpc('admin_pending_accounts'), rpc('admin_professor_overview'), rpc('admin_manager_overview')]);
+    let pend = pend0;
+    if (pend.status === 'rejected') {                 // the newest migration is not run yet: the teachers' requests only
+      try { pend = { status: 'fulfilled', value: (await rpc('get_pending_professors')).map(r => Object.assign({ role: 'profesor' }, r)) }; } catch (e) { pend = { status: 'rejected', reason: e }; }
+    }
     let profs = over.status === 'fulfilled' && Array.isArray(over.value) ? over.value : null, plain = false;
     let profErr = over.status === 'rejected' ? over.reason : null;
-    if (!profs) {                                   // the newest migration is not run yet: the list without photos and numbers
+    if (!profs) {                                   // the same: the list without photos and numbers
       try { profs = await rpc('get_all_professors'); plain = true; profErr = null; } catch (e) { profErr = e; }
     }
     const failed = [];
     if (pend.status === 'rejected') failed.push({ fn: 'get_pending_professors', msg: niceError(pend.reason) });
     if (!profs) failed.push({ fn: 'get_all_professors', msg: niceError(profErr) });
-    if (failed.length === 2) {
+    if (mg.status === 'rejected') failed.push({ fn: 'admin_manager_overview', msg: /does not exist|schema cache|Could not find/i.test(String(mg.reason && mg.reason.message)) ? 'Rulează migrarea 20261101100000_rol_manager.sql.' : niceError(mg.reason) });
+    if (pend.status === 'rejected' && !profs) {
       C = { status: 'error', error: failed[0].msg, wait: C.wait };
       paint();
       await waitP; paint();
@@ -123,6 +130,7 @@
       failed,
       pending: pend.status === 'fulfilled' && Array.isArray(pend.value) ? pend.value : [],
       profs: profs || [],
+      mgrs: mg.status === 'fulfilled' && Array.isArray(mg.value) ? mg.value : [],
       plain,
       wait: C.wait
     };
@@ -143,13 +151,14 @@
   /* ---------- counts ---------- */
   const bad = fn => C.status === 'ready' && C.failed.find(f => f.fn === fn);
   // a tab whose own RPC failed shows the error instead of a misleading "nothing here"
-  const TAB_FN = { cereri: 'get_pending_professors', profesori: 'get_all_professors' };
+  const TAB_FN = { cereri: 'get_pending_professors', profesori: 'get_all_professors', manageri: 'admin_manager_overview' };
   function counts() {
     if (C.status !== 'ready') return null;
     return {
       pending: bad('get_pending_professors') ? null : C.pending.length,
       approved: bad('get_all_professors') ? null : C.profs.filter(p => p.status === 'active').length,
-      rejected: bad('get_all_professors') ? null : C.profs.filter(p => p.status === 'rejected').length,
+      managers: bad('admin_manager_overview') ? null : C.mgrs.filter(p => p.status === 'active').length,
+      rejected: bad('get_all_professors') ? null : C.profs.filter(p => p.status === 'rejected').length + C.mgrs.filter(p => p.status === 'rejected').length,
       wait9: C.wait.status === 'ready' ? C.wait.rows.filter(r => String(r.clasa) === '9').length : null,
       wait: C.wait.status === 'ready' ? C.wait.rows.length : null
     };
@@ -161,9 +170,10 @@
     const v = x => (C.status === 'loading' ? '<span class="cn-dots" aria-label="se încarcă">···</span>' : x == null ? '<span class="cn-na">n/d</span>' : nf.format(x));
     const wSub = C.wait && C.wait.status === 'error' ? 'Lista nu s-a putut încărca' : (n && n.wait != null ? `din ${plural(n.wait, 'înscriere', 'înscrieri')}` : 'Lista de pe pagina principală');
     const items = [
-      { k: 'Cereri în așteptare', v: n && n.pending, s: 'Profesori de aprobat', tab: 'cereri', warn: n && n.pending > 0, icon: 'clock' },
+      { k: 'Cereri în așteptare', v: n && n.pending, s: 'Profesori și manageri de aprobat', tab: 'cereri', warn: n && n.pending > 0, icon: 'clock' },
       { k: 'Profesori aprobați', v: n && n.approved, s: 'Conturi active', tab: 'profesori', icon: 'check' },
-      { k: 'Cereri respinse', v: n && n.rejected, s: 'Nu au acces de profesor', tab: 'profesori', icon: 'x' },
+      { k: 'Manageri aprobați', v: n && n.managers, s: 'Conturi active', tab: 'manageri', icon: 'user' },
+      { k: 'Cereri respinse', v: n && n.rejected, s: 'Fără acces', tab: 'cereri', icon: 'x' },
       { k: 'Waitlist clasa a 9-a', v: n && n.wait9, s: wSub, tab: 'waitlist', icon: 'mail' }
     ];
     return items.map((it, i) => `
@@ -177,7 +187,7 @@
   function tabCount(id) {
     if (C.status !== 'ready') return '';
     if (bad(TAB_FN[id])) return '';
-    const n = id === 'cereri' ? C.pending.length : id === 'profesori' ? C.profs.length : (C.wait.status === 'ready' ? C.wait.rows.length : null);
+    const n = id === 'cereri' ? C.pending.length : id === 'profesori' ? C.profs.length : id === 'manageri' ? C.mgrs.length : (C.wait.status === 'ready' ? C.wait.rows.length : null);
     return n == null ? '' : `<span class="ax-seg__n">${nf.format(n)}</span>`;
   }
 
@@ -199,14 +209,14 @@
   }
 
   function pendingHTML() {
-    if (!C.pending.length) return emptyHTML('Nu există cereri în așteptare.', 'Când un profesor își face cont, cererea lui apare aici.');
+    if (!C.pending.length) return emptyHTML('Nu există cereri în așteptare.', 'Cererile de profesor și de manager apar aici.');
     const list = C.pending.filter(p => match(p.full_name, p.email));
     if (!list.length) return noMatch();
     return `<ul class="cn-req">
       ${list.map((p, i) => `
         <li class="cn-req__row" data-uid="${esc(p.user_id)}" data-arrive style="--i:${i}">
           <span class="cn-ini" aria-hidden="true">${esc(initials(p.full_name))}</span>
-          <span class="cn-req__who"><b>${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span>
+          <span class="cn-req__who"><b>${esc(p.full_name || 'Fără nume')}</b> <span class="cn-role">${p.role === 'manager' ? 'Manager' : 'Profesor'}</span><span class="ax-sub">${esc(p.email || '')}</span></span>
           <span class="cn-req__when"><span class="ax-sub">Cerere trimisă</span><b>${esc(fmtDate(p.created_at)) || 'necunoscut'}</b></span>
           <span class="cn-req__keys">
             <button type="button" class="ax-btn ax-btn--primary ax-btn--sm cn-approve" data-approve="${esc(p.user_id)}">${ico('check', 16)} Aprobă</button>
@@ -286,6 +296,25 @@
     </table></div>${moreHTML(rows.length)}`;
   }
 
+  function mgrsHTML() {
+    if (!C.mgrs.length) return emptyHTML('Nu există conturi de manager.', '');
+    const list = C.mgrs.filter(p => match(p.full_name, p.email));
+    if (!list.length) return noMatch();
+    const page = list.slice(0, shown);
+    return `<div class="ax-table-wrap"><table class="ax-table cn-table">
+      <thead><tr><th>Manager</th><th>Status</th><th>Cont din</th><th></th></tr></thead>
+      <tbody>${page.map((p, i) => {
+        const st = PROF_ST[p.status] || { cls: 'inactiv', name: p.status || 'Necunoscut' };
+        return `<tr data-arrive style="--i:${i}" data-uid="${esc(p.user_id)}">
+          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
+          <td data-l="Status"><span class="ax-st ax-st--${st.cls}"><i class="ax-st__i"></i>${esc(st.name)}</span></td>
+          <td class="cn-nowrap" data-l="Cont din">${esc(fmtDate(p.created_at))}</td>
+          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove-mgr="${esc(p.user_id)}" title="Pierde accesul la consolă">${ico('trash-2', 16)} Șterge</button></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>${moreHTML(list.length)}`;
+  }
+
   function waitHTML() {
     const w = C.wait;
     if (w.status === 'loading') return loadingHTML();
@@ -311,7 +340,7 @@
     const partial = C.failed && C.failed.length ? `<div class="cn-partial" role="status"><span class="ax-hazard" aria-hidden="true"></span><span><b>Unele date lipsesc.</b> ${C.failed.map(f => `${esc(f.fn)}: ${esc(f.msg)}`).join('; ')}</span><button type="button" class="ax-link" data-reload>Reîncarcă</button></div>` : '';
     const tf = bad(TAB_FN[tab]);
     if (tf) return errorHTML(tf.msg);
-    const inner = tab === 'cereri' ? pendingHTML() : tab === 'profesori' ? profsHTML() : waitHTML();
+    const inner = tab === 'cereri' ? pendingHTML() : tab === 'profesori' ? profsHTML() : tab === 'manageri' ? mgrsHTML() : waitHTML();
     return partial + inner;
   }
 
@@ -368,6 +397,13 @@
       b.innerHTML = `${ico('trash-2', 16)} Confirmă ștergerea`;
       setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.innerHTML = `${ico('trash-2', 16)} Șterge`; } }, 4000);
     }));
+    box.querySelectorAll('[data-remove-mgr]').forEach(b => b.addEventListener('click', () => {
+      if (b.dataset.armed) { removeMgr(b.dataset.removeMgr); return; }
+      b.dataset.armed = '1';
+      b.classList.add('is-armed');
+      b.innerHTML = `${ico('trash-2', 16)} Confirmă ștergerea`;
+      setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.innerHTML = `${ico('trash-2', 16)} Șterge`; } }, 4000);
+    }));
     // a photo that does not load: the initials instead
     box.querySelectorAll('img.cn-av').forEach(im => im.addEventListener('error', () => {
       const sp = document.createElement('span');
@@ -379,23 +415,43 @@
   async function decide(uid, status) {
     const idx = C.pending.findIndex(p => p.user_id === uid);
     if (idx < 0) return;
-    const p = C.pending[idx];
-    const prof = C.profs.find(x => x.user_id === uid);
+    const p = C.pending[idx], mgr = p.role === 'manager', list = mgr ? C.mgrs : C.profs;
+    const prof = list.find(x => x.user_id === uid);
     const prevStatus = prof ? prof.status : null;
     // optimistic: take the request off the list right away
     C.pending.splice(idx, 1);
-    if (prof) prof.status = status; else C.profs.push(Object.assign({}, p, { status }));
+    if (prof) prof.status = status; else list.push(Object.assign({}, p, { status }));
     paint();
     if (window.AdminShell) window.AdminShell.refreshNav();
     try {
-      await rpc('set_professor_status', { target_user_id: uid, new_status: status });
-      U.toast(status === 'active' ? `${esc(p.full_name || 'Profesorul')} a fost aprobat.` : `Cererea lui ${esc(p.full_name || 'profesor')} a fost respinsă.`);
+      try { await rpc('admin_set_account_status', { p_user: uid, p_status: status }); }
+      catch (e) {
+        if (mgr || !/does not exist|schema cache|Could not find/i.test(String(e && e.message))) throw e;
+        await rpc('set_professor_status', { target_user_id: uid, new_status: status });      // the migration is not run yet: teachers still work
+      }
+      const who = p.full_name || (mgr ? 'Managerul' : 'Profesorul');
+      U.toast(status === 'active' ? `${esc(who)} a fost aprobat.` : `Cererea lui ${esc(who)} a fost respinsă.`);
     } catch (e) {
       C.pending.splice(idx, 0, p);
-      if (prof) prof.status = prevStatus; else C.profs = C.profs.filter(x => x.user_id !== uid);
+      if (prof) prof.status = prevStatus; else { const k = list.findIndex(x => x.user_id === uid); if (k >= 0) list.splice(k, 1); }
       paint();
       if (window.AdminShell) window.AdminShell.refreshNav();
       U.toast(`Nu s-a salvat: ${esc(niceError(e))}`, 'warn');
+    }
+  }
+
+  async function removeMgr(uid) {
+    const p = C.mgrs.find(x => x.user_id === uid);
+    if (!p) return;
+    try {
+      await rpc('admin_remove_manager', { p_user: uid });
+      C.mgrs = C.mgrs.filter(x => x.user_id !== uid);
+      C.pending = C.pending.filter(x => x.user_id !== uid);
+      paint();
+      if (window.AdminShell) window.AdminShell.refreshNav();
+      U.toast(`${esc(p.full_name || 'Managerul')} nu mai este manager.`);
+    } catch (e) {
+      U.toast(`Nu s-a șters: ${esc(niceError(e))}`, 'warn');
     }
   }
 

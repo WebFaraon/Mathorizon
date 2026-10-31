@@ -30,8 +30,9 @@ async function who(req: Request): Promise<'full' | 'admin' | 'hook' | null> {
   if (!token) return null;
   const { data } = await sb.auth.getUser(token);
   if (!data?.user) return null;
-  const { data: p } = await sb.from('user_profiles').select('role').eq('user_id', data.user.id).maybeSingle();
-  return p?.role === 'admin' ? 'admin' : null;
+  const { data: p } = await sb.from('user_profiles').select('role, status').eq('user_id', data.user.id).maybeSingle();
+  // the console's staff: the admin and an approved manager
+  return p?.role === 'admin' || (p?.role === 'manager' && p?.status === 'active') ? 'admin' : null;
 }
 
 /* the console asks for the newest of these to know whether to read again (migration 20261011100000; a platform without it just ignores the error) */

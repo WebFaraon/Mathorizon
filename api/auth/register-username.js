@@ -37,7 +37,7 @@ module.exports = async function handler(req, res) {
       return;
     }
 
-    const safeRole = role === 'profesor' ? 'profesor' : 'elev';
+    const safeRole = role === 'profesor' || role === 'manager' ? role : 'elev';
     const pseudoEmail = `${cleanUsername}@${USERNAME_DOMAIN}`;
     const admin = createClient(SUPABASE_URL, serviceKey);
 

@@ -387,7 +387,7 @@
       ? `<span class="tr-foot__n" id="trCount" aria-live="polite">${pick.size ? `<b>${pick.size}</b> ${pick.size === 1 ? 'elev ales' : 'elevi aleși'}` : 'Niciun elev ales'}</span>
         <button type="button" class="ax-btn" data-tr-cancel>Renunță</button>
         <button type="button" class="ax-btn ax-btn--primary" data-tr-next ${pick.size ? '' : 'disabled'}>Alege grupa ${ico('arrow-right', 16)}</button>`
-      : `<a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>
+      : `${!window.AdminAccess || window.AdminAccess.can('repartizare') ? `<a class="ax-btn" href="#repartizare?day=${day}&focus=${g.id}" data-go>${ico('door', 16)} Vezi în repartizare</a>` : ''}
         ${regUrl ? `<a class="ax-btn ax-btn--dark" href="${esc(regUrl)}" target="_blank" rel="noopener">${ico('book-open', 16)} Arată în registru</a>` : ''}
         ${D.readOnly() && g.status !== 'inactiv' && window.AdminReplacement ? `<button type="button" class="ax-btn" data-repl>${ico('replace', 16)} Înlocuire</button>` : ''}
         <button type="button" class="ax-btn ax-btn--primary" data-tr-start>${ico('swap', 16)} Transfer</button>`;

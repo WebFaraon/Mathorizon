@@ -327,8 +327,9 @@
         }).then(null, () => {});
       } else {
         /* Utilizator fără profil — creăm unul bazat pe user_metadata */
-        const role   = currentUser.user_metadata?.role || 'elev';
-        const status = role === 'profesor' ? 'pending' : 'active';
+        const wanted = currentUser.user_metadata?.role;
+        const role   = wanted === 'profesor' || wanted === 'manager' ? wanted : 'elev';
+        const status = role === 'elev' ? 'active' : 'pending';       // a teacher and a manager wait for the admin
         await _dbFetch('user_profiles', {
           method:  'POST',
           body:    JSON.stringify({
@@ -355,6 +356,11 @@
           location.replace('admin.html');
           return;
         }
+      }
+      // a manager works in the console only: every page of the site sends him there (the sign-in page too, it is the way in)
+      if (_userRole === 'manager') {
+        const here = (location.pathname.split('/').pop() || 'index.html');
+        if (here !== 'admin.html' && here !== 'auth.html') { location.replace('admin.html'); return; }
       }
       BM.refreshTokenWidgets();
     } catch (e) {

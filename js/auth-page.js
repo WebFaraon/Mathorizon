@@ -108,7 +108,8 @@
   };
   const ROLE_HINT = {
     elev: 'Elev: acces complet la exerciții și simulări.',
-    profesor: 'Profesor: contul se activează după aprobarea adminului.'
+    profesor: 'Profesor: contul se activează după aprobarea adminului.',
+    manager: 'Manager: doar consola, după aprobarea adminului.'
   };
 
   /* ============================================================
@@ -211,14 +212,14 @@
     /* kept only for the trip to Google and back: a choice abandoned there must not turn a later student sign-up into a teacher */
     try {
       const raw = JSON.parse(localStorage.getItem('bm_pending_role') || 'null');
-      if (raw && raw.role === 'profesor' && Date.now() - raw.at < 10 * 60 * 1000) role = 'profesor';
+      if (raw && (raw.role === 'profesor' || raw.role === 'manager') && Date.now() - raw.at < 10 * 60 * 1000) role = raw.role;
       localStorage.removeItem('bm_pending_role');
     } catch (e) { /* ignore */ }
-    if (role !== 'profesor' || !sb || !session) return;
+    if (!role || !sb || !session) return;
     try {
       const { data } = await sb.from('user_profiles').select('user_id').eq('user_id', session.user.id).maybeSingle();
       if (data) return;
-      await sb.auth.updateUser({ data: { role: 'profesor' } });
+      await sb.auth.updateUser({ data: { role } });
     } catch (e) { /* the account is made as a student; an admin can change it */ }
   }
 
@@ -231,10 +232,16 @@
     if (verdict !== 'ok') { await _refuseGoogle(verdict); return; }
     await _applyPendingRole(session);
     const explicit = _fromParam();
+    try {
+      if (session && sb) {
+        const { data: me } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
+        if (me && me.role === 'manager') { window.location.replace('admin.html'); return; }
+      }
+    } catch (e) { /* the default page below */ }
     if (!explicit && session && sb) {
       try {
         const { data } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
-        if (data && data.role === 'admin') { window.location.replace('admin.html'); return; }
+        if (data && (data.role === 'admin' || data.role === 'manager')) { window.location.replace('admin.html'); return; }
       } catch (e) { /* fall through to the default page */ }
     }
     window.location.replace(_getFrom());
@@ -518,8 +525,8 @@
     _setLoading('btnSignup', false);
     if (error) return _showMsg(_roError(error.message), true);
     LCD.hint('Cont creat.');
-    if (_role === 'profesor') {
-      _showMsg('Cont creat! Verifică emailul pentru confirmare. Contul tău de profesor va fi activat după aprobarea adminului.', false);
+    if (_role === 'profesor' || _role === 'manager') {
+      _showMsg(`Cont creat! Verifică emailul pentru confirmare. Contul tău de ${_role} va fi activat după aprobarea adminului.`, false);
     } else {
       _showMsg('Cont creat! Verifică emailul pentru confirmare, apoi conectează-te.', false);
     }
@@ -564,7 +571,7 @@
     if (!_googleOn) return _showMsg('Conectarea cu Google nu este activată încă. Folosește emailul și parola.', true);
     _fromParam();                                  // keep the page asked for across the round trip
     try { localStorage.setItem('bm_oauth_intent', JSON.stringify({ intent: _tab === 'signup' ? 'signup' : 'login', at: Date.now() })); } catch (e) { /* ignore */ }
-    try { if (_tab === 'signup' && _role === 'profesor') localStorage.setItem('bm_pending_role', JSON.stringify({ role: 'profesor', at: Date.now() })); else localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
+    try { if (_tab === 'signup' && (_role === 'profesor' || _role === 'manager')) localStorage.setItem('bm_pending_role', JSON.stringify({ role: _role, at: Date.now() })); else localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
     const g = $('authGoogle');
     if (g) { g.disabled = true; g.classList.add('is-loading'); }
     const { error } = await sb.auth.signInWithOAuth({
@@ -582,7 +589,7 @@
     /* Read initial tab + role from URL params (the landing page's route
        cards link here with both, e.g. auth.html?tab=signup&role=profesor,
        so the signup form opens with the right role already selected). */
-    if (params.get('role') === 'profesor') { _role = 'profesor'; selectRole('profesor'); }
+    if (params.get('role') === 'profesor' || params.get('role') === 'manager') { _role = params.get('role'); selectRole(_role); }
     if (tabParam === 'signup' || tabParam === 'reset') {
       /* the form shows at once, without the swap animation: the display boots straight into that mode */
       switchTab(tabParam);

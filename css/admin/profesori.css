@@ -145,3 +145,6 @@ body.ax .cn-act { text-align: right; white-space: nowrap; }
   body.ax .cn-table td.ax-num .ax-sub { display: inline; }
   body.ax .cn-act { text-align: left; padding-top: 8px; }
 }
+
+/* the kind of account on a request */
+body.ax .cn-role { display: inline-block; margin-left: 6px; padding: 1px 7px; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); font-size: 0.72rem; font-weight: 700; letter-spacing: 0.04em; text-transform: uppercase; color: var(--ax-ink-2); vertical-align: 1px; }

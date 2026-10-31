@@ -1134,3 +1134,7 @@ body.ax .ax-sp__n { margin: 0; font-size: 0.76rem; font-weight: 600; line-height
   .ax-edge:hover .ax-edge__pill, .ax-edge:focus-visible .ax-edge__pill { opacity: 1; transform: none; }
   .ax-edge:focus-visible { outline: none; }
 }
+
+/* an account that waits for the admin: the page is only this message */
+.ax-wait { padding-top: 18vh; }
+.ax-wait b { display: block; margin-bottom: 6px; font-size: 1.2rem; color: var(--ax-ink); }

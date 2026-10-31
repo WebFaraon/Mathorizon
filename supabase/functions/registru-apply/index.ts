@@ -23,8 +23,9 @@ async function allowed(req: Request): Promise<boolean> {
   if (!token) return false;
   const { data } = await sb.auth.getUser(token);
   if (!data?.user) return false;
-  const { data: p } = await sb.from('user_profiles').select('role').eq('user_id', data.user.id).maybeSingle();
-  return p?.role === 'admin';
+  const { data: p } = await sb.from('user_profiles').select('role, status').eq('user_id', data.user.id).maybeSingle();
+  // the console's staff: the admin and an approved manager
+  return p?.role === 'admin' || (p?.role === 'manager' && p?.status === 'active');
 }
 
 Deno.serve(async (req) => {

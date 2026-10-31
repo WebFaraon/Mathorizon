@@ -519,6 +519,7 @@
   }
 
   function paint() {
+    if (window.AdminAccess && !window.AdminAccess.ok) return;                       // an account that is not approved sees no data pill
     const reg = D.readOnly();
     document.documentElement.setAttribute('data-source', reg ? 'registre' : 'demo');
     const right = document.querySelector('.ax-top__right');
@@ -624,6 +625,7 @@
     if (document.getElementById('axShell')) {
       clearInterval(wait);
       paint();
+      if (window.AdminAccess && !window.AdminAccess.ok) return;                     // not approved yet: no data is read
       if (read() === 'registre') setSource('registre', true);
     } else if (++tries > 150) clearInterval(wait);
   }, 100);

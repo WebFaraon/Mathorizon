@@ -355,7 +355,7 @@
           <dt>Început</dt><dd>${esc(new Date(g.startDate + 'T00:00').toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' }))}</dd>
           <dt>Disponibil ${esc(D.DAYS[day - 1].name.toLowerCase())}</dt><dd>${(t.availability[day] || []).map(([a, b]) => range(a, b)).join(', ') || 'nu'}</dd>
         </dl>`,
-      actions: `<a class="ax-btn ax-btn--primary" href="#repartizare?day=${day}&focus=${g.id}">Vezi în repartizare ${ico('arrow-right', 16)}</a>`
+      actions: !window.AdminAccess || window.AdminAccess.can('repartizare') ? `<a class="ax-btn ax-btn--primary" href="#repartizare?day=${day}&focus=${g.id}">Vezi în repartizare ${ico('arrow-right', 16)}</a>` : ''
     });
   }
 

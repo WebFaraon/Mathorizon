@@ -27,6 +27,7 @@
     const tomorrowDay = (todayId() % 7) + 1;
     const startTomorrow = D.groups.filter(g => g.startDate === tomorrowISO() || (g.status === 'starteaza' && g.days.includes(tomorrowDay)) || (g.status === 'completare' && g.startDate > D.todayISO && g.days.includes(tomorrowDay) && g.startDate <= tomorrowISO()));
     const debt = D.students.filter(s => s.status === 'activ' && s.balance <= -1000);
+    const can = id => !window.AdminAccess || window.AdminAccess.can(id);
     return [
       { k: 'Conflicte în cabinete azi', v: conflicts.length, s: conflicts.length ? 'Același cabinet sau profesor de două ori' : 'Planul de azi e curat', href: '#repartizare?day=' + todayId(), warn: conflicts.length > 0, icon: 'alert' },
       { k: 'Risc financiar', v: risk.length, s: 'Grupe active cu 2+ locuri libere', href: '#orar?quick=risc', icon: 'wallet' },
@@ -34,12 +35,13 @@
       { k: 'Încep mâine', v: startTomorrow.length, s: 'Grupe care pornesc mâine', href: '#orar?quick=maine', icon: 'play' },
       { k: 'Datorii peste 1 000 lei', v: debt.length, s: 'Elevi activi cu sold negativ mare', href: '#elevi?sold=mare&status=activ&sort=balance', icon: 'user-x' },
       { k: 'Grupe în lucru', v: live.length, s: `din ${nf.format(D.groups.length)} grupe`, href: '#orar', icon: 'grid' }
-    ];
+    ].filter(a => can(a.href.replace('#', '').split('?')[0]));
   }
 
   /* one tile per page: the icon plate in the page colour, the name and what it is for */
   function tiles() {
     const day = todayId();
+    const can = id => !window.AdminAccess || window.AdminAccess.can(id);
     return [
       { id: 'orar', href: '#orar', icon: 'grid', t: 'Orar', d: 'Grupele, programul și locurile libere' },
       { id: 'elevi', href: '#elevi', icon: 'users', t: 'Elevi', d: 'Prezențe, sold, manager și statut' },
@@ -53,7 +55,7 @@
       { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri, profesori și waitlist' },
       { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur' },
       { id: 'culegeri', href: '#culegeri', icon: 'library', t: 'Culegeri', d: 'Culegerile și exercițiile din ele' }
-    ];
+    ].filter(t => can(t.id));
   }
 
   /* ---- the building, drawn as a plan, behind the greeting ----
