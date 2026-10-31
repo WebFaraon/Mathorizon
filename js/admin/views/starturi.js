@@ -75,7 +75,7 @@
     (ss.data || []).forEach(s => { (studs.get(s.group_id) || studs.set(s.group_id, []).get(s.group_id)).push(s); });
     return reqs.map(r => {
       const w = wb.get(r.workbook_id) || {};
-      return { r, teacher: w.teacher_name || 'Profesor', sheetUrl: w.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + w.spreadsheet_id + '/edit#gid=' + r.sheet_id : null, hasTelegram: !!(w.owner_user_id && linked.has(w.owner_user_id)), students: (studs.get(r.group_id) || []).filter(s => COUNTS[plain(s.status)]) };
+      return { r, teacher: w.teacher_name || 'Profesor', sheetUrl: w.spreadsheet_id ? 'https://docs.google.com/spreadsheets/d/' + w.spreadsheet_id + '/edit#gid=' + r.sheet_id : null, hasOwner: !!w.owner_user_id, hasTelegram: !!(w.owner_user_id && linked.has(w.owner_user_id)), students: (studs.get(r.group_id) || []).filter(s => COUNTS[plain(s.status)]) };
     });
   }
 
@@ -108,7 +108,7 @@
     let body = '', foot = '';
     if (b === 'call') {
       body = `<p class="st-line"><span class="ax-st ax-st--activ"><i class="ax-st__i" aria-hidden="true"></i>Confirmat de profesor</span> <span class="ax-sub">${esc(ago(r.decided_at))}</span></p>
-        <p class="st-note">Sună elevii și invită-i la prima lecție, cea de probă.</p>${studentsHTML(x)}`;
+        ${studentsHTML(x)}`;
       foot = `<button type="button" class="ax-btn ax-btn--primary" data-mark="done" data-id="${r.id}">${ico('circle-check', 16)} Am sunat elevii</button>`;
     } else if (b === 'declined') {
       body = `<p class="st-line"><span class="ax-st ax-st--inactiv"><i class="ax-st__i" aria-hidden="true"></i>Profesorul nu a confirmat startul</span> <span class="ax-sub">${esc(ago(r.decided_at))}</span></p>
@@ -116,26 +116,30 @@
       foot = `<button type="button" class="ax-btn" data-mark="done" data-id="${r.id}">${ico('circle-check', 16)} Am văzut</button>`;
     } else if (b === 'waiting') {
       let line;
-      if (r.status === 'awaiting_reason') line = 'Profesorul a ales să nu confirme și urmează să scrie motivul.';
-      else if (r.notified_at) line = `Întrebarea a fost trimisă în Telegram ${ago(r.notified_at)}. Profesorul nu a răspuns încă.`;
-      else if (!x.hasTelegram) line = 'Profesorul nu are Telegram conectat, deci botul nu îl poate întreba. Sună-l tu pentru confirmare.';
+      if (r.status === 'awaiting_reason') line = 'Nu confirmă; urmează motivul.';
+      else if (r.notified_at) line = `Întrebare trimisă în Telegram ${ago(r.notified_at)}, fără răspuns.`;
+      else if (!x.hasOwner) line = 'Registrul nu are un cont de profesor legat: sună-l pentru confirmare.';
+      else if (!x.hasTelegram) line = 'Profesorul nu are Telegram conectat: sună-l pentru confirmare.';
       else if (r.notify_error) line = 'Botul nu a reușit să trimită întrebarea: ' + r.notify_error;
-      else line = 'Întrebarea se trimite în câteva momente (botul scrie între 08:00 și 21:00).';
+      else line = 'Se trimite între 08:00 și 21:00.';
       body = `<p class="st-line"><span class="ax-st ax-st--completare"><i class="ax-st__i" aria-hidden="true"></i>Așteaptă profesorul</span> <span class="ax-sub">grupa a trecut în Startează ${esc(ago(r.created_at))}</span></p><p class="st-note">${esc(line)}</p>`;
     } else {
       const what = r.status === 'confirmed' ? 'Confirmat de profesor, elevii au fost sunați' : r.status === 'declined' ? 'Neconfirmat' + (r.reason ? ': ' + r.reason : '') : 'Anulat: grupa și-a schimbat statutul';
       body = `<p class="st-line">${esc(what)} <span class="ax-sub">${esc(ago(r.manager_done_at || r.decided_at || r.created_at))}</span></p>`;
       foot = r.status !== 'cancelled' ? `<button type="button" class="ax-btn ax-btn--sm" data-mark="reopen" data-id="${r.id}">Redeschide</button>` : '';
     }
-    const sheet = x.sheetUrl ? `<a class="ax-btn ax-btn--sm st-sheet" href="${esc(x.sheetUrl)}" target="_blank" rel="noopener" title="Deschide fila grupei în registrul profesorului, în Google Sheets">${ico('book-open', 16)} Deschide în Sheets</a>` : '';
+    const sheet = x.sheetUrl ? `<a class="ax-btn ax-btn--sm st-sheet" href="${esc(x.sheetUrl)}" target="_blank" rel="noopener" title="Fila grupei în Google Sheets">${ico('book-open', 16)} Deschide în Sheets</a>` : '';
     const actions = [foot, sheet].filter(Boolean).join('');
     return `<article class="st-card st-card--${b}">${head(x)}<div class="st-card__b">${body}</div>${actions ? `<div class="st-card__f">${actions}</div>` : ''}</article>`;
   }
-  function section(title, id, list, empty) {
-    return `<section class="st-sec" aria-labelledby="${id}">
-      <h2 class="st-sec__h" id="${id}">${esc(title)} <span class="st-sec__n${list.length ? '' : ' is-zero'}">${list.length}</span></h2>
-      ${list.length ? list.map(x => cardHTML(x, bucketOf(x))).join('') : `<p class="st-empty">${esc(empty)}</p>`}
-    </section>`;
+  /* a section is a block that opens and closes from its title; its number is part of the key */
+  const openSec = { stCall: true, stWait: true, stNo: true, stDone: false };
+  function section(title, id, list, empty, cap) {
+    const cards = list.slice(0, cap || list.length).map(x => cardHTML(x, bucketOf(x))).join('');
+    return `<details class="st-sec" id="${id}"${openSec[id] ? ' open' : ''}>
+      <summary class="st-sec__h"><span class="st-sec__t">${esc(title)}</span><span class="st-sec__n${list.length ? '' : ' is-zero'}">${list.length}</span><span class="st-sec__c" aria-hidden="true">${ico('chevron-down', 18)}</span></summary>
+      <div class="st-sec__b">${list.length ? cards : `<p class="st-empty">${esc(empty)}</p>`}</div>
+    </details>`;
   }
 
   function paint() {
@@ -148,10 +152,11 @@
     C.items.forEach(x => by[bucketOf(x)].push(x));
     by.call.sort((a, b) => String(b.r.decided_at || '').localeCompare(String(a.r.decided_at || '')));
     body.innerHTML = `
-      ${section('De sunat', 'stCall', by.call, 'Niciun grup confirmat de așteptat. Când un profesor confirmă startul, apare aici cu elevii de sunat.')}
+      ${section('De sunat', 'stCall', by.call, 'Niciun grup de sunat.')}
       ${section('Așteaptă profesorul', 'stWait', by.waiting, 'Nicio grupă nu așteaptă un răspuns.')}
       ${section('Nu s-a confirmat', 'stNo', by.declined, 'Niciun profesor nu a refuzat startul.')}
-      <details class="st-done"><summary>Rezolvate <span class="st-sec__n${by.done.length ? '' : ' is-zero'}">${by.done.length}</span></summary>${by.done.length ? by.done.slice(0, 40).map(x => cardHTML(x, 'done')).join('') : '<p class="st-empty">Nimic încă.</p>'}</details>`;
+      ${section('Rezolvate', 'stDone', by.done, 'Nimic rezolvat încă.', 40)}`;
+    body.querySelectorAll('details.st-sec').forEach(d => d.addEventListener('toggle', () => { openSec[d.id] = d.open; }));
     if (stamp) stamp.textContent = 'Citit la ' + new Date().toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
     body.querySelectorAll('[data-mark]').forEach(b => b.addEventListener('click', () => { b.disabled = true; mark(b.dataset.id, b.dataset.mark); }));
   }

@@ -1,26 +1,40 @@
 /* Admin console: Starturi (js/admin/views/starturi.js). Flat, like the rest of the console. */
 body.ax .st-bar { display: flex; justify-content: flex-end; margin: -4px 0 8px; }
-body.ax .st-sec { display: grid; gap: 12px; margin: 0 0 28px; }
-body.ax .st-sec__h { margin: 0; font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 10px; }
-body.ax .st-sec__n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 13px; background: var(--ax-ink); color: var(--ax-panel); font-size: 0.86rem; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; }
-body.ax .st-sec__n.is-zero { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ax-rule-2); color: var(--ax-ink-3); font-weight: 700; }
 body.ax .st-empty, body.ax .st-note { margin: 0; font-size: 0.9rem; line-height: 1.5; color: var(--ax-ink-3); }
 body.ax .st-note--bad { color: var(--ax-bad); }
-body.ax .st-card { display: grid; gap: 12px; padding: 16px 18px; border: 1px solid var(--ax-rule-2); border-left-width: 4px; border-radius: 6px; background: var(--ax-panel); }
-body.ax .st-card--call { border-left-color: var(--ax-ok); }
-body.ax .st-card--declined { border-left-color: var(--ax-bad); }
-body.ax .st-card--waiting { border-left-color: var(--ax-yellow); }
-body.ax .st-card--done { border-left-color: var(--ax-rule-2); opacity: 0.8; }
-body.ax .st-card__h { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; }
-body.ax .st-card__t { display: grid; gap: 2px; font-size: 1rem; }
-body.ax .st-card__who { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; color: var(--ax-ink-3); }
-body.ax .st-card__b { display: grid; gap: 10px; }
-body.ax .st-card__f { display: flex; flex-wrap: wrap; gap: 8px; }
 body.ax .st-line { margin: 0; display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px; font-size: 0.92rem; }
 body.ax .st-quote { margin: 0; padding: 10px 14px; border-left: 3px solid var(--ax-rule-2); background: var(--ax-hi-wash); font-size: 0.95rem; line-height: 1.5; white-space: pre-wrap; }
 body.ax .st-tel { color: var(--ax-ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--ax-rule-2); text-underline-offset: 3px; white-space: nowrap; }
 body.ax .st-tel:hover { text-decoration-color: var(--ax-ink); }
-body.ax .st-done { margin: 0 0 28px; }
-body.ax .st-done > summary { cursor: pointer; font-size: 1.05rem; font-weight: 700; padding: 6px 0 12px; display: flex; align-items: center; gap: 10px; }
-body.ax .st-done > .st-card { margin-bottom: 10px; }
 body.ax .st-sheet { display: inline-flex; align-items: center; gap: 7px; }
+
+/* Sections: a block opened and closed from its title (the whole title row is the key: hover and a chevron show it) */
+body.ax .st-sec { margin: 0 0 14px; }
+body.ax .st-sec__h {
+  display: flex; align-items: center; gap: 10px; padding: 10px 14px; list-style: none; cursor: pointer; user-select: none;
+  border: 1px solid var(--ax-rule); border-radius: var(--ax-r-2); background: var(--ax-panel);
+  transition: border-color 0.15s, background-color 0.15s;
+}
+body.ax .st-sec__h::-webkit-details-marker { display: none; }
+body.ax .st-sec__h:hover { border-color: var(--pg); background: var(--ax-hover); }
+body.ax .st-sec__h:focus-visible { outline: 2px solid var(--ax-blue); outline-offset: 2px; }
+body.ax .st-sec__t { font-size: 1.02rem; font-weight: 800; }
+body.ax .st-sec__n { display: inline-grid; place-items: center; min-width: 26px; height: 26px; padding: 0 8px; border-radius: 13px; background: var(--ax-ink); color: var(--ax-panel); font-size: 0.86rem; font-weight: 800; transition: background-color 0.15s; }
+body.ax .st-sec__n.is-zero { background: transparent; box-shadow: inset 0 0 0 1.5px var(--ax-rule-2); color: var(--ax-ink-3); }
+body.ax .st-sec__h:hover .st-sec__n { background: var(--pg); color: var(--ax-ink); box-shadow: none; }
+body.ax .st-sec__c { margin-left: auto; display: grid; place-items: center; color: var(--ax-ink-3); transition: transform 0.2s var(--ax-ease), color 0.15s; }
+body.ax .st-sec__h:hover .st-sec__c { color: var(--ax-ink); }
+body.ax .st-sec[open] > .st-sec__h .st-sec__c { transform: rotate(180deg); }
+body.ax .st-sec__b { display: grid; gap: 12px; padding-top: 12px; }
+
+/* A start card is a panel like the others: 1px edge, the status as the 2px line on top */
+body.ax .st-card { --st-c: var(--ax-rule-2); border: 1px solid var(--ax-rule); border-radius: var(--ax-r-2); background: var(--ax-panel); box-shadow: inset 0 2px 0 var(--st-c); }
+body.ax .st-card--call { --st-c: var(--ax-ok); }
+body.ax .st-card--declined { --st-c: var(--ax-bad); }
+body.ax .st-card--waiting { --st-c: var(--ax-yellow); }
+body.ax .st-card--done { opacity: 0.85; }
+body.ax .st-card__h { display: flex; align-items: flex-start; justify-content: space-between; flex-wrap: wrap; gap: 6px 16px; padding: 14px 18px; border-bottom: 1px solid var(--ax-rule); }
+body.ax .st-card__t { display: grid; gap: 2px; font-size: 1rem; }
+body.ax .st-card__who { display: inline-flex; align-items: center; gap: 6px; font-size: 0.88rem; font-weight: 600; color: var(--ax-ink-3); }
+body.ax .st-card__b { display: grid; gap: 10px; padding: 14px 18px; }
+body.ax .st-card__f { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 18px 16px; }
