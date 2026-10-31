@@ -93,12 +93,12 @@
             <div class="ax-sign__row">
               <a class="ax-sign__btn ax-sign__btn--site" href="capitole.html" data-browse title="Vezi site-ul">${ico('external', 16)}<span class="ax-btn-t">Vezi site-ul</span></a>
               <button type="button" class="ax-sign__btn ax-sign__btn--icon" id="axTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 16)}</button>
-              <button type="button" class="ax-sign__btn ax-sign__btn--icon ax-fold-btn" id="axFold" aria-label="Restrânge meniul">${ico('panel', 16)}</button>
             </div>
             <button type="button" class="ax-sign__btn ax-sign__btn--demo" id="axDemoReset2" title="Resetează datele demo">${ico('refresh-cw', 16)}<span class="ax-btn-t">Resetează datele demo</span></button>
             <button type="button" class="ax-sign__btn ax-sign__btn--out" id="axLogout" title="Deconectare">${ico('log-out', 16)}<span class="ax-btn-t">Deconectare</span></button>
           </div>
         </aside>
+        <button type="button" class="ax-edge" id="axEdge" aria-label="Restrânge meniul" aria-expanded="true" title="Restrânge meniul"><span class="ax-edge__pill">${ico('chevron-right', 14)}</span></button>
         <div class="ax-main">
           <header class="ax-top">
             <button type="button" class="ax-icon-btn ax-top__menu" id="axMenu" aria-label="Deschide meniul">${ico('menu', 18)}</button>
@@ -241,7 +241,13 @@
   function wire() {
     const shell = document.getElementById('axShell');
     try { if (localStorage.getItem('bm_ax_folded') === '1') shell.classList.add('is-folded'); } catch (e) {}
-    document.getElementById('axFold').addEventListener('click', () => {
+    const edge = document.getElementById('axEdge');
+    const edgeLabel = () => {
+      const folded = shell.classList.contains('is-folded'), t = folded ? 'Extinde meniul' : 'Restrânge meniul';
+      edge.setAttribute('aria-label', t); edge.title = t; edge.setAttribute('aria-expanded', String(!folded));
+    };
+    edgeLabel();
+    edge.addEventListener('click', () => {
       // The layout switches to its final state at once (one reflow); the movement is
       // played on transforms and on the sign panel's width only, so it stays smooth
       // even on heavy pages. Main content and the sign panel slide by the same distance.
@@ -250,6 +256,7 @@
       shell.classList.toggle('is-folded');
       const to = sign.getBoundingClientRect().width;
       try { localStorage.setItem('bm_ax_folded', shell.classList.contains('is-folded') ? '1' : '0'); } catch (e) {}
+      edgeLabel();
       if (calm() || innerWidth <= 960 || !sign.animate || from === to) return;
       const o = { duration: 340, easing: 'cubic-bezier(0.2, 0.8, 0.2, 1)' };
       shell.classList.add('is-folding');

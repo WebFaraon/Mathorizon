@@ -657,7 +657,6 @@ button.ax-stat { border: 0; text-align: left; cursor: pointer; font: inherit; co
   .ax-shell.is-folded .ax-nav__label, .ax-shell.is-folded .ax-nav__arrow { display: revert; }
   .ax-top .ax-top__menu { display: inline-grid; }
   .ax-top, .ax-view { padding-left: 16px; padding-right: 16px; }
-  .ax-fold-btn { display: none; }
 }
 @media (max-width: 600px) {
   .ax-clock small { display: none; }
@@ -1110,3 +1109,28 @@ body.ax .ax-sp__n { margin: 0; font-size: 0.76rem; font-weight: 600; line-height
 .ax-invite__soon { margin: 12px 0 0; }
 .dp-who__meet { display: inline-flex; align-items: center; gap: 6px; font-size: 0.84rem; font-weight: 600; color: var(--ax-ok, #1f7a4d); }
 .dp-who__meet.is-off { color: var(--ax-yellow-ink); }
+
+/* ---- the edge of the sign panel is the fold control: hover shows a line and a handle, a press folds or unfolds ---- */
+.ax-edge { display: none; }
+@media (min-width: 961px) {
+  .ax-edge {
+    display: block; position: fixed; z-index: 45; top: 0; bottom: 0; left: calc(var(--ax-side-w) - 8px); width: 12px;
+    padding: 0; border: 0; background: transparent; cursor: w-resize; -webkit-tap-highlight-color: transparent;
+    transition: left 0.34s var(--ax-ease);
+  }
+  .ax-shell.is-folded .ax-edge { cursor: e-resize; }
+  .ax-edge::before {
+    content: ''; position: absolute; top: 0; bottom: 0; left: 50%; width: 2px; margin-left: -1px;
+    background: var(--ax-blue); opacity: 0; transition: opacity 0.15s;
+  }
+  .ax-edge__pill {
+    position: absolute; top: 50%; left: 50%; width: 20px; height: 44px; margin: -22px 0 0 -10px;
+    display: grid; place-items: center; border-radius: var(--ax-r); background: var(--ax-blue); color: var(--ax-blue-ink);
+    opacity: 0; transform: scale(0.8); transition: opacity 0.15s, transform 0.2s var(--ax-ease);
+  }
+  .ax-edge__pill svg { transform: rotate(180deg); transition: transform 0.25s var(--ax-ease); }
+  .ax-shell.is-folded .ax-edge__pill svg { transform: none; }
+  .ax-edge:hover::before, .ax-edge:focus-visible::before { opacity: 0.9; }
+  .ax-edge:hover .ax-edge__pill, .ax-edge:focus-visible .ax-edge__pill { opacity: 1; transform: none; }
+  .ax-edge:focus-visible { outline: none; }
+}
