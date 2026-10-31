@@ -1,7 +1,7 @@
 
 /* ============================================================
-   Mathorizon, Admin "Adaugă exercițiu" full page
-   (admin-add-exercise.html). Replaces the old modal wizard
+   Mathorizon, "Adaugă exercițiu" full page
+   (adauga-exercitiu.html), only for approved teachers (an admin only opens it to edit, ?edit=). Replaces the old modal wizard
    (js/admin-exercise.js) — same photo → Gemini → editable
    review → publish flow, just laid out as one continuously
    scrollable page instead of stepped modal screens, with the
@@ -74,13 +74,16 @@
 
   document.addEventListener('DOMContentLoaded', async () => {
     const auth = await _waitForAuth();
-    if (!auth.user) { window.location.replace('auth.html?from=admin-add-exercise.html'); return; }
+    if (!auth.user) { window.location.replace('auth.html?from=adauga-exercitiu.html'); return; }
     await _waitForProfile();
 
     const loading = document.getElementById('aeLoading');
     const denied  = document.getElementById('aeDenied');
     const wrap    = document.getElementById('aeWrap');
-    if (auth.role !== 'admin') {
+    const editId = BM.getParam('edit');
+    // new exercises: approved teachers only; an admin only corrects an existing one (the Edit button on the category page)
+    const allowed = (auth.role === 'profesor' && auth.status === 'active') || (auth.role === 'admin' && !!editId);
+    if (!allowed) {
       if (loading) loading.style.display = 'none';
       if (denied)  denied.style.display  = '';
       return;
@@ -89,7 +92,6 @@
     if (loading) loading.style.display = 'none';
     if (wrap)    wrap.style.display    = '';
 
-    const editId = BM.getParam('edit');
     if (editId) {
       await _aeLoadForEdit(editId);
     } else {
@@ -694,6 +696,7 @@
       figure_data: isGeo ? (ae.figureData || null) : null,
       figure_svg:  isGeo ? (ae.figureSvg  || null) : null
     };
+    if (!ae.editId) row.created_by = window.BMAuth.user.id;
 
     const isEdit = !!ae.editId;
     const btn = document.getElementById('aeConfirmBtn');
@@ -717,9 +720,9 @@
 
       if (isEdit) {
         BM.toast('Exercițiu actualizat cu succes!', 'success');
-        setTimeout(() => { window.location.href = 'admin.html'; }, 900);
+        setTimeout(() => { window.location.href = `category.html?id=${encodeURIComponent(ae.categoryId)}&sub=${encodeURIComponent(ae.subcategoryId)}`; }, 900);
       } else {
-        BM.toast('Exercițiu adăugat cu succes! Este acum disponibil pentru toți utilizatorii.', 'success');
+        BM.toast('Exercițiu adăugat.', 'success');
         setTimeout(() => {
           window.location.href = `category.html?id=${encodeURIComponent(ae.categoryId)}&sub=${encodeURIComponent(ae.subcategoryId)}`;
         }, 900);

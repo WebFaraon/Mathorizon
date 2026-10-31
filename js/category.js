@@ -1322,7 +1322,7 @@
      BM.EXERCISES seed content isn't in custom_exercises and has no id the
      edit wizard could load. */
   window.editExercise = function(id) {
-    window.location.href = `admin-add-exercise.html?edit=${encodeURIComponent(id)}`;
+    window.location.href = `adauga-exercitiu.html?edit=${encodeURIComponent(id)}`;
   };
 
   /* ---- Refresh header progress (categorie sau subcategorie) ---- */

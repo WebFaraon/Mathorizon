@@ -448,7 +448,6 @@
             </div>
           </div>
           <div class="ax-head__keys">
-            <a class="ax-btn" href="admin-add-exercise.html">${ico('plus', 16)} Adaugă exercițiu</a>
             <a class="ax-btn" href="admin-culegeri.html">${ico('library', 16)} Culegeri</a>
           </div>
         </header>

@@ -41,7 +41,6 @@
     { group: 'Platforma', items: [
       { id: 'profesori', label: 'Conturi', icon: 'user' },
       { id: 'sincronizare', label: 'Sincronizare', icon: 'refresh-cw' },
-      { id: 'exercitii', label: 'Adaugă exercițiu', icon: 'plus', href: 'admin-add-exercise.html' },
       { id: 'culegeri', label: 'Culegeri', icon: 'library', href: 'admin-culegeri.html' }
     ] }
   ];

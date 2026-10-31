@@ -51,7 +51,6 @@
       { id: 'disponibilitate', href: '#disponibilitate', icon: 'clock', t: 'Disponibilitate', d: 'Când pot preda profesorii' },
       { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții și tendințe' },
       { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri, abonamente și waitlist' },
-      { id: 'exercitii', href: 'admin-add-exercise.html', icon: 'plus', t: 'Adaugă exercițiu', d: 'Un exercițiu nou în culegere' },
       { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur' },
       { id: 'culegeri', href: 'admin-culegeri.html', icon: 'library', t: 'Culegeri', d: 'Culegerile și exercițiile din ele' }
     ];

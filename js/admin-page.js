@@ -420,7 +420,7 @@
     // wizard, admin-exercise.js) — the geometry figure editor needs far
     // more room than a modal can give it.
     document.getElementById('openAddExerciseBtn')?.addEventListener('click', () => {
-      window.location.href = 'admin-add-exercise.html';
+      window.location.href = 'adauga-exercitiu.html';
     });
   });
 })();

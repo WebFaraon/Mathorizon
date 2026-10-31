@@ -84,7 +84,7 @@ function buildExamplesBlock(categoryId, subcategoryId) {
   }).join('\n\n');
 }
 
-async function requireAdmin(accessToken) {
+async function requireAuthor(accessToken) {
   if (!accessToken) throw new Error('missing accessToken');
 
   const userRes = await fetch(`${SUPABASE_URL}/auth/v1/user`, {
@@ -93,11 +93,13 @@ async function requireAdmin(accessToken) {
   if (!userRes.ok) throw new Error('invalid session');
   const user = await userRes.json();
 
-  const profRes = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${user.id}&select=role`, {
+  const profRes = await fetch(`${SUPABASE_URL}/rest/v1/user_profiles?user_id=eq.${user.id}&select=role,status`, {
     headers: { apikey: SUPABASE_ANON, Authorization: `Bearer ${accessToken}` }
   });
   const rows = await profRes.json();
-  if (!Array.isArray(rows) || rows[0]?.role !== 'admin') throw new Error('forbidden');
+  const p = Array.isArray(rows) ? rows[0] : null;
+  // exercises are added by approved teachers; an admin can still correct one (the analysis is optional there)
+  if (!p || !(p.role === 'admin' || (p.role === 'profesor' && p.status === 'active'))) throw new Error('forbidden');
 }
 
 function buildDuplicatesBlock(existingExercises) {
@@ -266,7 +268,7 @@ module.exports = async function handler(req, res) {
 
   try {
     const { accessToken, imageBase64, mimeType, context, existingExercises } = req.body || {};
-    await requireAdmin(accessToken);
+    await requireAuthor(accessToken);
 
     const parsed = await generateExercise({ imageBase64, mimeType, context, existingExercises });
     res.status(200).json(parsed);
