@@ -162,3 +162,9 @@ body.ax .el-reg__row label { display: flex; flex-direction: column; gap: 5px; fl
 body.ax .el-reg__row .ax-input, body.ax .el-reg__row .ax-select { font-weight: 600; color: var(--ax-ink); }
 body.ax .el-reg__msg { min-height: 1.3em; font-size: 0.84rem; font-weight: 700; color: var(--ax-ink-2); overflow-wrap: anywhere; }
 body.ax .el-reg__msg.is-bad { color: var(--ax-bad); }
+
+/* the platform account in the student's sheet */
+body.ax .el-acc { display: grid; gap: 8px; justify-items: start; }
+body.ax .el-acc__mail { font-weight: 600; color: var(--ax-ink); overflow-wrap: anywhere; }
+body.ax .el-acc__plan { display: flex; align-items: center; gap: 8px; }
+body.ax .el-acc__plan .ax-select, body.ax .el-acc__plan .ax-sel { width: auto; min-width: 132px; }

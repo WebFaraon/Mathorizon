@@ -1,25 +1,19 @@
 /* ============================================================
    Admin console: Conturi (real accounts)
    ============================================================
-   The only page of the console that reads REAL data: teacher sign-up
-   requests (approve / reject), teacher accounts with their classes,
-   student accounts with their classes and plan, and the landing-page
-   waitlist. Ported from the old js/admin-page.js.
+   The page of the console that reads REAL accounts: teacher sign-up requests (approve / reject), the teachers with what their
+   registers say about them (groups, students per lesson, lessons taught, income), removing a teacher, and the landing-page waitlist.
+   The students' accounts are not listed here: a student's sheet in Elevi shows whether he has an account (js/admin/accounts.js).
 
-   Data: Supabase RPCs (POST /rest/v1/rpc/<fn>, apikey + the admin's
-   Bearer token), each one checks role = 'admin' in the database:
-     get_pending_professors, get_all_professors, get_all_classes_admin,
-     get_all_students, get_all_student_classes_admin,
-     get_all_student_plans, set_professor_status, set_student_plan
-   and the waitlist through GET /api/admin/get-waitlist (a server route
-   with the service key behind its own admin check).
+   Data: Supabase RPCs (POST /rest/v1/rpc/<fn>, apikey + the admin's Bearer token), each one checks role = 'admin' in the database:
+     get_pending_professors, admin_professor_overview (get_all_professors as a fallback), set_professor_status, admin_remove_professor
+   the registers' numbers come from window.AdminData (the Registre source of the console) and the waitlist through GET /api/admin/get-waitlist.
 
-   Loaded once per visit and kept in a module cache; "Reîncarcă"
-   fetches again. URL: #profesori?tab=cereri|profesori|elevi|waitlist&q=
+   Loaded once per visit and kept in a module cache; "Reincarca" fetches again. URL: #profesori?tab=cereri|profesori|waitlist&q=
    ============================================================ */
 (function () {
   'use strict';
-  const U = window.AdminUI;
+  const U = window.AdminUI, D = window.AdminData;
   const { esc, ico, nf, plural } = U;
 
   // Same project and public anon key as js/auth.js and the old admin page.
@@ -29,16 +23,13 @@
   const TABS = [
     { id: 'cereri', label: 'Cereri' },
     { id: 'profesori', label: 'Profesori' },
-    { id: 'elevi', label: 'Elevi' },
     { id: 'waitlist', label: 'Waitlist' }
   ];
-  const PLANS = [{ id: 'free', name: 'Free' }, { id: 'standard', name: 'Standard' }, { id: 'premium', name: 'Premium' }];
   const PROF_ST = {
     active: { cls: 'activ', name: 'Aprobat' },
     pending: { cls: 'completare', name: 'În așteptare' },
     rejected: { cls: 'inactiv', name: 'Respins' }
   };
-  const LEVELS = { '9-10': 'Foarte bun', '7-8': 'OK', '6-7': 'Mediocru', '5-6': 'Slab' };
   const CAP = 60;
 
   /* ---------- module cache ---------- */
@@ -46,7 +37,7 @@
   let C = { status: 'idle' };
   let session = null;
   let mount = null;     // { root, ctx } of the visible render
-  let tab = 'cereri', query = '', shown = CAP, sort = { profesori: 'name', elevi: 'date' };
+  let tab = 'cereri', query = '', shown = CAP, sort = { profesori: 'name' };
 
   /* ---------- network ---------- */
   function niceError(e) {
@@ -110,31 +101,29 @@
       paint();
       return;
     }
-    const fns = ['get_pending_professors', 'get_all_professors', 'get_all_classes_admin', 'get_all_students', 'get_all_student_classes_admin', 'get_all_student_plans'];
     const waitP = loadWaitlist();
-    const out = await Promise.allSettled(fns.map(f => rpc(f)));
-    const val = i => (out[i].status === 'fulfilled' && Array.isArray(out[i].value) ? out[i].value : []);
-    const failed = out.map((r, i) => r.status === 'rejected' ? { fn: fns[i], msg: niceError(r.reason) } : null).filter(Boolean);
-    if (failed.length === fns.length) {
+    const [pend, over] = await Promise.allSettled([rpc('get_pending_professors'), rpc('admin_professor_overview')]);
+    let profs = over.status === 'fulfilled' && Array.isArray(over.value) ? over.value : null, plain = false;
+    let profErr = over.status === 'rejected' ? over.reason : null;
+    if (!profs) {                                   // the newest migration is not run yet: the list without photos and numbers
+      try { profs = await rpc('get_all_professors'); plain = true; profErr = null; } catch (e) { profErr = e; }
+    }
+    const failed = [];
+    if (pend.status === 'rejected') failed.push({ fn: 'get_pending_professors', msg: niceError(pend.reason) });
+    if (!profs) failed.push({ fn: 'get_all_professors', msg: niceError(profErr) });
+    if (failed.length === 2) {
       C = { status: 'error', error: failed[0].msg, wait: C.wait };
       paint();
       await waitP; paint();
       return;
     }
-    const plans = {};
-    val(5).forEach(r => { plans[r.user_id] = r.plan || 'free'; });
-    const classesBy = {};
-    val(2).forEach(c => { (classesBy[c.teacher_id] = classesBy[c.teacher_id] || []).push(c); });
-    const studClassesBy = {};
-    val(4).forEach(r => { (studClassesBy[r.student_id] = studClassesBy[r.student_id] || []).push(r); });
     C = {
       status: 'ready',
       loadedAt: new Date(),
       failed,
-      pending: val(0),
-      profs: val(1),
-      classesBy, studClassesBy, plans,
-      students: val(3),
+      pending: pend.status === 'fulfilled' && Array.isArray(pend.value) ? pend.value : [],
+      profs: profs || [],
+      plain,
       wait: C.wait
     };
     paint();
@@ -149,24 +138,18 @@
     const p = String(name || '').trim().split(/\s+/).filter(Boolean);
     return p.length >= 2 ? (p[0][0] + p[1][0]).toUpperCase() : (String(name || '?').slice(0, 2).toUpperCase() || '?');
   }
-  // classes.name is generated as "Materie · Zi · Oră"
-  function parseClass(c) {
-    const parts = String(c.name || c.class_name || '').split('·').map(s => s.trim());
-    return { subject: parts[0] || 'Clasă', day: parts[1] || '', time: parts[2] || '' };
-  }
   const match = (...fields) => { const q = query.trim().toLowerCase(); return !q || fields.some(f => String(f || '').toLowerCase().includes(q)); };
 
   /* ---------- counts ---------- */
   const bad = fn => C.status === 'ready' && C.failed.find(f => f.fn === fn);
   // a tab whose own RPC failed shows the error instead of a misleading "nothing here"
-  const TAB_FN = { cereri: 'get_pending_professors', profesori: 'get_all_professors', elevi: 'get_all_students' };
+  const TAB_FN = { cereri: 'get_pending_professors', profesori: 'get_all_professors' };
   function counts() {
     if (C.status !== 'ready') return null;
     return {
       pending: bad('get_pending_professors') ? null : C.pending.length,
       approved: bad('get_all_professors') ? null : C.profs.filter(p => p.status === 'active').length,
       rejected: bad('get_all_professors') ? null : C.profs.filter(p => p.status === 'rejected').length,
-      students: bad('get_all_students') ? null : C.students.length,
       wait9: C.wait.status === 'ready' ? C.wait.rows.filter(r => String(r.clasa) === '9').length : null,
       wait: C.wait.status === 'ready' ? C.wait.rows.length : null
     };
@@ -181,7 +164,6 @@
       { k: 'Cereri în așteptare', v: n && n.pending, s: 'Profesori de aprobat', tab: 'cereri', warn: n && n.pending > 0, icon: 'clock' },
       { k: 'Profesori aprobați', v: n && n.approved, s: 'Conturi active', tab: 'profesori', icon: 'check' },
       { k: 'Cereri respinse', v: n && n.rejected, s: 'Nu au acces de profesor', tab: 'profesori', icon: 'x' },
-      { k: 'Elevi înregistrați', v: n && n.students, s: 'Conturi de elev', tab: 'elevi', icon: 'users' },
       { k: 'Waitlist clasa a 9-a', v: n && n.wait9, s: wSub, tab: 'waitlist', icon: 'mail' }
     ];
     return items.map((it, i) => `
@@ -195,18 +177,17 @@
   function tabCount(id) {
     if (C.status !== 'ready') return '';
     if (bad(TAB_FN[id])) return '';
-    const n = id === 'cereri' ? C.pending.length : id === 'profesori' ? C.profs.length : id === 'elevi' ? C.students.length : (C.wait.status === 'ready' ? C.wait.rows.length : null);
+    const n = id === 'cereri' ? C.pending.length : id === 'profesori' ? C.profs.length : (C.wait.status === 'ready' ? C.wait.rows.length : null);
     return n == null ? '' : `<span class="ax-seg__n">${nf.format(n)}</span>`;
   }
 
   function loadingHTML() {
-    return `<div class="ax-panel cn-state" role="status"><b>Se încarcă conturile…</b><span>Citesc cererile, profesorii, elevii și lista de așteptare din Supabase.</span></div>`;
+    return `<div class="ax-panel cn-state" role="status"><b>Se încarcă conturile…</b></div>`;
   }
   function errorHTML(msg, title) {
     return `<div class="ax-panel cn-state cn-state--err" role="alert">
       <span class="cn-state__sign" aria-hidden="true">${ico('alert', 20)}</span>
       <b>${esc(title || 'Nu am putut încărca')}: ${esc(msg)}</b>
-      <span>Datele vin direct din baza de date reală. Verifică conexiunea și sesiunea, apoi încearcă din nou.</span>
       <button type="button" class="ax-btn ax-btn--dark ax-btn--sm" data-reload>${ico('refresh-cw', 16)} Reîncarcă</button>
     </div>`;
   }
@@ -235,79 +216,74 @@
     </ul>`;
   }
 
-  function classRows(classes) {
-    if (!classes.length) return '<span class="ax-sub">Nicio clasă creată</span>';
-    return `<ul class="cn-cls">${classes.map(c => {
-      const { subject, day, time } = parseClass(c);
-      const n = Number(c.member_count) || 0, max = Number(c.max_students) || 0;
-      const full = max && n >= max;
-      return `<li>
-        <b class="cn-cls__s">${esc(subject)}</b>
-        <span class="cn-cls__t">${esc([day, time].filter(Boolean).join(', ')) || '<span class="ax-sub">fără program</span>'}</span>
-        <span class="cn-cls__n${full ? ' ax-neg' : ''}" title="elevi înscriși${max ? ' din locuri' : ''}">${ico('users', 14)} ${nf.format(n)}${max ? '/' + nf.format(max) : ''}</span>
-        <span class="cn-cls__g">${c.school_grade ? 'cls. ' + esc(c.school_grade) : ''}</span>
-        <span class="cn-cls__l">${c.math_level ? `${esc(c.math_level)}${LEVELS[c.math_level] ? ' · ' + esc(LEVELS[c.math_level]) : ''}` : ''}</span>
-      </li>`;
-    }).join('')}</ul>`;
-  }
-
   function sortTh(group, key, label, cls) {
     const on = sort[group] === key;
     return `<th data-sort="${key}"${cls ? ` class="${cls}"` : ''}${on ? ` aria-sort="${key === 'date' || key === 'classes' ? 'descending' : 'ascending'}"` : ''}><button type="button" class="cn-th" data-sort-btn="${group}:${key}">${label}${on ? ico('chevron-down', 14) : ''}</button></th>`;
   }
 
+  /* what a teacher's registers say, from the console's Registre data: groups (all, and the active ones), lessons taught (a row with a date, a topic and at
+     least one attendance mark), students per lesson (those present, the free first lesson included, divided by the lessons taught) and the income (the cost of
+     the lessons taught, the "Consumul orelor" of the register: the sum of the cost row of every student column). null = no register tied to the account. */
+  function statsFor(p) {
+    if (!p.workbook_ids || !p.workbook_ids.length || !D || !D.readOnly || !D.readOnly() || !D.registry || !D.registry.ledger) return null;
+    const ts = D.teachers.filter(t => p.workbook_ids.includes(t._wb));
+    if (!ts.length) return null;
+    const ids = new Set(ts.map(t => t.id));
+    const gs = D.groups.filter(g => ids.has(g.teacher));
+    let lessons = 0, present = 0, income = 0;
+    gs.forEach(g => {
+      const L = D.registry.ledger(g.id);
+      L.lessons.forEach(l => {
+        if (!l.iso || !String(l.topic || '').trim()) return;
+        const codes = Object.values(l.marks || {}).filter(Boolean);
+        if (!codes.length) return;
+        lessons++;
+        present += codes.filter(c => c === 'P' || c === 'G').length;
+      });
+      L.cols.forEach(c => { income += Number(c.sheetCost) || 0; });
+    });
+    return { groups: gs.length, active: gs.filter(g => g.status === 'activ').length, lessons, avg: lessons ? present / lessons : null, income };
+  }
+  const dec1 = new Intl.NumberFormat('ro-RO', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  const NA = '<span class="ax-sub">—</span>';
+
+  function avatarHTML(p) {
+    const ini = initials(p.full_name);
+    return p.avatar_url
+      ? `<img class="cn-av" src="${esc(p.avatar_url)}" alt="" width="34" height="34" loading="lazy" data-ini="${esc(ini)}">`
+      : `<span class="cn-ini" aria-hidden="true">${esc(ini)}</span>`;
+  }
+
   function profsHTML() {
     if (!C.profs.length) return emptyHTML('Nu există conturi de profesor.', '');
     const order = { pending: 0, active: 1, rejected: 2 };
-    const list = C.profs.filter(p => match(p.full_name, p.email)).sort((a, b) => {
-      if (sort.profesori === 'classes') return (C.classesBy[b.user_id] || []).length - (C.classesBy[a.user_id] || []).length;
-      if (sort.profesori === 'status') return (order[a.status] ?? 3) - (order[b.status] ?? 3);
-      return String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ro');
+    const rows = C.profs.filter(p => match(p.full_name, p.email)).map(p => ({ p, x: C.plain ? null : statsFor(p) }));
+    const num = (r, k) => (r.x && r.x[k] != null ? r.x[k] : -1);
+    rows.sort((a, b) => {
+      if (sort.profesori === 'status') return (order[a.p.status] ?? 3) - (order[b.p.status] ?? 3);
+      if (sort.profesori === 'groups') return num(b, 'groups') - num(a, 'groups');
+      if (sort.profesori === 'lessons') return num(b, 'lessons') - num(a, 'lessons');
+      if (sort.profesori === 'income') return num(b, 'income') - num(a, 'income');
+      return String(a.p.full_name || '').localeCompare(String(b.p.full_name || ''), 'ro');
     });
-    if (!list.length) return noMatch();
-    const page = list.slice(0, shown);
+    if (!rows.length) return noMatch();
+    const page = rows.slice(0, shown);
     return `<div class="ax-table-wrap"><table class="ax-table cn-table">
-      <thead><tr>${sortTh('profesori', 'name', 'Profesor')}${sortTh('profesori', 'status', 'Status')}${sortTh('profesori', 'classes', 'Clase')}</tr></thead>
-      <tbody>${page.map((p, i) => {
+      <thead><tr>${sortTh('profesori', 'name', 'Profesor')}${sortTh('profesori', 'status', 'Status')}${sortTh('profesori', 'groups', 'Grupe', 'ax-num')}<th class="ax-num">Elevi / lecție</th>${sortTh('profesori', 'lessons', 'Lecții predate', 'ax-num')}${sortTh('profesori', 'income', 'Venit generat', 'ax-num')}<th></th></tr></thead>
+      <tbody>${page.map(({ p, x }, i) => {
         const st = PROF_ST[p.status] || { cls: 'inactiv', name: p.status || 'Necunoscut' };
-        const cls = C.classesBy[p.user_id] || [];
-        return `<tr data-arrive style="--i:${i}">
-          <td><div class="cn-who"><span class="cn-ini" aria-hidden="true">${esc(initials(p.full_name))}</span><span><b class="ax-strong">${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
+        const none = C.plain ? NA : '<span class="ax-sub" title="Contul nu are un registru legat (pagina Sincronizare)">fără registru</span>';
+        return `<tr data-arrive style="--i:${i}" data-uid="${esc(p.user_id)}">
+          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
           <td data-l="Status"><span class="ax-st ax-st--${st.cls}"><i class="ax-st__i"></i>${esc(st.name)}</span></td>
-          <td class="cn-cls-td" data-l="Clase"><div><span class="cn-cls__count">${plural(cls.length, 'clasă', 'clase')}</span>${classRows(cls)}</div></td>
+          <td class="ax-num" data-l="Grupe">${x ? `<b>${nf.format(x.groups)}</b><span class="ax-sub">${nf.format(x.active)} ${x.active === 1 ? "activă" : "active"}</span>` : none}</td>
+          <td class="ax-num" data-l="Elevi / lecție">${x && x.avg != null ? `<b>${dec1.format(x.avg)}</b>` : NA}</td>
+          <td class="ax-num" data-l="Lecții predate">${x ? `<b>${nf.format(x.lessons)}</b>` : NA}</td>
+          <td class="ax-num" data-l="Venit generat">${x ? `<b>${U.money(x.income)}</b>` : NA}</td>
+          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove="${esc(p.user_id)}" title="Pierde funcțiile de profesor; clasele trec la contul tău">${ico('trash-2', 16)} Șterge</button></td>
         </tr>`;
       }).join('')}</tbody>
-    </table></div>${moreHTML(list.length)}`;
-  }
-
-  function studentsHTML() {
-    if (!C.students.length) return emptyHTML('Nu există elevi înregistrați.', '');
-    const list = C.students.filter(s => match(s.full_name, s.email)).sort((a, b) => {
-      if (sort.elevi === 'name') return String(a.full_name || '').localeCompare(String(b.full_name || ''), 'ro');
-      if (sort.elevi === 'classes') return (C.studClassesBy[b.user_id] || []).length - (C.studClassesBy[a.user_id] || []).length;
-      return String(b.created_at || '').localeCompare(String(a.created_at || ''));
-    });
-    if (!list.length) return noMatch();
-    const page = list.slice(0, shown);
-    return `<div class="ax-table-wrap"><table class="ax-table cn-table">
-      <thead><tr>${sortTh('elevi', 'name', 'Elev')}${sortTh('elevi', 'date', 'Înscris')}${sortTh('elevi', 'classes', 'Clase')}<th>Pachet</th></tr></thead>
-      <tbody>${page.map((s, i) => {
-        const cls = C.studClassesBy[s.user_id] || [];
-        const plan = C.plans[s.user_id] || 'free';
-        return `<tr data-arrive style="--i:${i}">
-          <td><div class="cn-who"><span class="cn-ini" aria-hidden="true">${esc(initials(s.full_name))}</span><span><b class="ax-strong">${esc(s.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(s.email || '')}</span></span></div></td>
-          <td class="cn-nowrap" data-l="Înscris">${esc(fmtDate(s.created_at))}</td>
-          <td data-l="Clase">${cls.length ? `<ul class="cn-scls">${cls.map(c => {
-            const { subject, day, time } = parseClass(c);
-            return `<li title="${esc(c.teacher_name || '')}"><b>${esc(subject)}</b>${day || time ? ` <span class="ax-sub">${esc([day, time].filter(Boolean).join(', '))}</span>` : ''}${c.teacher_name ? ` <span class="ax-sub">· ${esc(c.teacher_name)}</span>` : ''}</li>`;
-          }).join('')}</ul>` : '<span class="ax-sub">Neînscris</span>'}</td>
-          <td data-l="Pachet"><label class="cn-plan"><span class="cn-vh">Pachetul lui ${esc(s.full_name || 'elev')}</span>
-            <select class="ax-select cn-plan__sel" data-plan="${esc(s.user_id)}" data-cur="${esc(plan)}">
-              ${PLANS.map(p => `<option value="${p.id}"${p.id === plan ? ' selected' : ''}>${p.name}</option>`).join('')}
-            </select></label></td>
-        </tr>`;
-      }).join('')}</tbody>
-    </table></div>${moreHTML(list.length)}`;
+    </table></div>${moreHTML(rows.length)}`;
   }
 
   function waitHTML() {
@@ -335,7 +311,7 @@
     const partial = C.failed && C.failed.length ? `<div class="cn-partial" role="status"><span class="ax-hazard" aria-hidden="true"></span><span><b>Unele date lipsesc.</b> ${C.failed.map(f => `${esc(f.fn)}: ${esc(f.msg)}`).join('; ')}</span><button type="button" class="ax-link" data-reload>Reîncarcă</button></div>` : '';
     const tf = bad(TAB_FN[tab]);
     if (tf) return errorHTML(tf.msg);
-    const inner = tab === 'cereri' ? pendingHTML() : tab === 'profesori' ? profsHTML() : tab === 'elevi' ? studentsHTML() : waitHTML();
+    const inner = tab === 'cereri' ? pendingHTML() : tab === 'profesori' ? profsHTML() : waitHTML();
     return partial + inner;
   }
 
@@ -384,7 +360,20 @@
       b.innerHTML = `${ico('x', 16)} Confirmă respingerea`;
       setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.innerHTML = `${ico('x', 16)} Respinge`; } }, 4000);
     }));
-    box.querySelectorAll('[data-plan]').forEach(s => s.addEventListener('change', () => setPlan(s)));
+    box.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => {
+      // second click confirms: the key itself asks
+      if (b.dataset.armed) { removeProf(b.dataset.remove); return; }
+      b.dataset.armed = '1';
+      b.classList.add('is-armed');
+      b.innerHTML = `${ico('trash-2', 16)} Confirmă ștergerea`;
+      setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.innerHTML = `${ico('trash-2', 16)} Șterge`; } }, 4000);
+    }));
+    // a photo that does not load: the initials instead
+    box.querySelectorAll('img.cn-av').forEach(im => im.addEventListener('error', () => {
+      const sp = document.createElement('span');
+      sp.className = 'cn-ini'; sp.setAttribute('aria-hidden', 'true'); sp.textContent = im.dataset.ini || '?';
+      im.replaceWith(sp);
+    }, { once: true }));
   }
 
   async function decide(uid, status) {
@@ -410,20 +399,19 @@
     }
   }
 
-  async function setPlan(sel) {
-    const uid = sel.dataset.plan, prev = sel.dataset.cur, next = sel.value;
-    const s = C.students.find(x => x.user_id === uid);
-    sel.disabled = true;
+  async function removeProf(uid) {
+    const p = C.profs.find(x => x.user_id === uid);
+    if (!p) return;
     try {
-      await rpc('set_student_plan', { target_user_id: uid, new_plan: next });
-      C.plans[uid] = next;
-      sel.dataset.cur = next;
-      U.toast(`Pachetul lui ${esc((s && s.full_name) || 'elev')} este acum ${esc(PLANS.find(p => p.id === next).name)}.`);
+      const r = await rpc('admin_remove_professor', { p_user: uid });
+      C.profs = C.profs.filter(x => x.user_id !== uid);
+      C.pending = C.pending.filter(x => x.user_id !== uid);
+      paint();
+      if (window.AdminShell) window.AdminShell.refreshNav();
+      const n = r && r.classes_moved;
+      U.toast(`${esc(p.full_name || 'Profesorul')} nu mai este profesor.${n ? ` ${n === 1 ? 'O clasă a trecut' : n + ' clase au trecut'} la contul tău.` : ''}`);
     } catch (e) {
-      sel.value = prev;
-      U.toast(`Pachetul nu s-a schimbat: ${esc(niceError(e))}`, 'warn');
-    } finally {
-      sel.disabled = false;
+      U.toast(`Nu s-a șters: ${esc(niceError(e))}`, 'warn');
     }
   }
 
@@ -446,9 +434,6 @@
             <div>
               <h1 class="ax-h1">Conturi</h1>
             </div>
-          </div>
-          <div class="ax-head__keys">
-            <a class="ax-btn" href="#culegeri">${ico('library', 16)} Culegeri</a>
           </div>
         </header>
         <section class="ax-stats cn-stats" id="cnStats" aria-label="Pe scurt"></section>

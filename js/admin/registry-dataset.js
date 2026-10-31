@@ -269,6 +269,8 @@
       ledger: gid => ({ lessons: lessonsOf[gid] || [], cols: colsOf[gid] || [], pay: payOf[gid] || [] }),
       /* the column of a person in a group's sheet: { col (the letter), name, phone, status, manager } as the register has it */
       columnOf: (sid, gid) => { const c = (colsOf[gid] || []).find(x => x.s.id === sid); return c ? { col: c.col, name: c.name, phone: c.phone, status: c.statusRaw, manager: c.manager } : null; },
+      /* every column of a person in the registers: [{ gid, name }] (the platform accounts are tied to a group and the name written there) */
+      columnsOf: sid => enrol.filter(e => e.person && e.person.id === sid).map(e => ({ gid: e.g.id, name: e.row.name })),
       replacements,
       /* what the student owes (negative) or has ahead (positive) in the substitutes' tabs; his total balance is the groups' plus this */
       replSold: sid => replSoldBy.get(sid) || 0,

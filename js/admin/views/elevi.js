@@ -359,6 +359,7 @@
           </section>
           <dl class="ax-dl">
             <dt>Telefon</dt><dd><a class="el-dw__tel" href="tel:${esc(st.phone)}">${ico('phone', 14)} ${esc(fmtPhone(st.phone))}</a></dd>
+            ${D.readOnly() ? '<dt>Cont Mathorizon</dt><dd data-acc><span class="ax-sub">Se verifică…</span></dd>' : ''}
             <dt>Manager</dt><dd>${mgrHTML(m)}</dd>
             <dt>Statut</dt><dd>${stHTML(st.status, statusName(D.STUDENT_STATUS, st.status))}</dd>
             <dt>Nivel</dt><dd>${esc(st.level)}</dd>
@@ -382,6 +383,26 @@
         ${regUrl ? `<a class="ax-btn ax-btn--dark" href="${esc(regUrl)}" target="_blank" rel="noopener">${ico('book-open', 16)} Arată în registru</a>` : ''}`
     });
     el.querySelectorAll('[data-go]').forEach(a => a.addEventListener('click', () => el.close()));
+    const accDD = el.querySelector('[data-acc]');
+    if (accDD && window.AdminAccounts) {
+      const cols = D.registry && D.registry.columnsOf ? D.registry.columnsOf(st.id) : [];
+      window.AdminAccounts.load().then(list => {
+        if (!accDD.isConnected) return;
+        const a = window.AdminAccounts.find(list, cols);
+        if (!a) { accDD.innerHTML = '<span class="ax-sub">Fără cont</span>'; return; }
+        const cur = a.plan || 'free';
+        accDD.innerHTML = `<span class="el-acc"><a class="el-acc__mail" href="mailto:${esc(a.email)}">${esc(a.email)}</a>
+          <label class="el-acc__plan"><span class="ax-sub">Pachet</span>
+            <select class="ax-select" data-acc-plan data-cur="${esc(cur)}">${[['free', 'Free'], ['standard', 'Standard'], ['premium', 'Premium']].map(([v, n]) => `<option value="${v}"${v === cur ? ' selected' : ''}>${n}</option>`).join('')}</select></label></span>`;
+        const sel = accDD.querySelector('[data-acc-plan]');
+        sel.addEventListener('change', async () => {
+          sel.disabled = true;
+          try { await window.AdminAccounts.setPlan(a.user_id, sel.value); sel.dataset.cur = sel.value; U.toast('Pachetul a fost schimbat.'); }
+          catch (e) { sel.value = sel.dataset.cur; U.toast('Pachetul nu s-a schimbat.', 'warn'); }
+          finally { sel.disabled = false; }
+        });
+      }).catch(() => { accDD.previousElementSibling.hidden = true; accDD.hidden = true; });
+    }
     if (col) {
       const msg = el.querySelector('[data-reg-msg]');
       const colNo = col.col.split('').reduce((a, ch) => a * 26 + ch.charCodeAt(0) - 64, 0);

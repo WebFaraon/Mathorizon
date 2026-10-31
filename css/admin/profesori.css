@@ -132,3 +132,16 @@ body.ax .cn-more { display: flex; align-items: center; gap: 12px; margin-top: 12
   body.ax .cn-req__row { padding: 12px; }
   body.ax .cn-state { padding: 20px 16px; }
 }
+
+/* teachers: photo, numbers from the registers, remove */
+body.ax .cn-av { display: block; width: 34px; height: 34px; flex-shrink: 0; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); object-fit: cover; background: var(--ax-hover); }
+body.ax .cn-table .ax-num { text-align: right; white-space: nowrap; }
+body.ax .cn-table td.ax-num b { display: block; font-size: 1rem; }
+body.ax .cn-table td.ax-num .ax-sub { text-align: right; }
+body.ax .cn-act { text-align: right; white-space: nowrap; }
+@media (max-width: 760px) {
+  body.ax .cn-table td.ax-num { text-align: left; }
+  body.ax .cn-table td.ax-num b { display: inline; margin-right: 8px; }
+  body.ax .cn-table td.ax-num .ax-sub { display: inline; }
+  body.ax .cn-act { text-align: left; padding-top: 8px; }
+}
