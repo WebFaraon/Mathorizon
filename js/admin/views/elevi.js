@@ -227,22 +227,22 @@
       const p = D.project(g.project);
       const room = g.room ? D.room(g.room) : null;
       groupCells = `
-        <td><span class="ax-strong">${esc(t.name)}</span><span class="el-proj"><span class="ax-line ax-line--${p.id}">${esc(p.short)}</span></span><span class="ax-sub">${esc(g.subject)}, ${p.mode === 'offline' ? 'offline' : 'online'}</span></td>
-        <td>
+        <td data-l="Profesor"><span class="ax-strong">${esc(t.name)}</span><span class="el-proj"><span class="ax-line ax-line--${p.id}">${esc(p.short)}</span></span><span class="ax-sub">${esc(g.subject)}, ${p.mode === 'offline' ? 'offline' : 'online'}</span></td>
+        <td data-l="Clasa">
           <span class="el-cls"><span class="ax-grade">${esc(g.grade)}</span><span class="ax-sub">${g.profile ? `<span class="el-nw">${esc(g.profile)},</span> ` : ''}<span class="el-nw">nivel ${esc(g.level)}</span></span></span>
           <span class="el-size">${sizeLabel(g.size)}</span>
           ${stHTML(g.status, statusName(D.GROUP_STATUS, g.status))}
         </td>
-        <td><b class="el-days">${g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="el-time">${timeRange(g)}${room ? `<span class="el-room">Cab. ${room.num}</span>` : ''}</span></td>`;
+        <td data-l="Orar"><b class="el-days">${g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="el-time">${timeRange(g)}${room ? `<span class="el-room">Cab. ${room.num}</span>` : ''}</span></td>`;
     } else {
       groupCells = `<td colspan="3"><span class="el-nogroup">Fără grupă</span></td>`;
     }
     return `
       <tr data-open="${st.id}" tabindex="0" data-arrive style="--i:${i}" aria-label="${esc(st.name)}">
         <td><b class="el-name">${esc(st.name)}</b><a class="el-tel" href="tel:${esc(st.phone)}">${esc(fmtPhone(st.phone))}</a></td>
-        <td>${presHTML(st.presence)}</td>
-        <td>${stHTML(st.status, statusName(D.STUDENT_STATUS, st.status))}<span class="el-mgr">${m ? `<span class="ax-mgr" data-i="${esc(initials(m.name))}" title="${esc(m.name)}">${esc(m.short)}</span>` : ''}</span></td>
-        <td class="ax-num"><span class="el-bal${st.balance < 0 ? ' ax-neg' : st.balance === 0 ? ' is-zero' : ''}">${U.money(st.balance)}</span></td>
+        <td data-l="Prezențe">${presHTML(st.presence)}</td>
+        <td data-l="Status">${stHTML(st.status, statusName(D.STUDENT_STATUS, st.status))}<span class="el-mgr">${m ? `<span class="ax-mgr" data-i="${esc(initials(m.name))}" title="${esc(m.name)}">${esc(m.short)}</span>` : ''}</span></td>
+        <td class="ax-num" data-l="Sold"><span class="el-bal${st.balance < 0 ? ' ax-neg' : st.balance === 0 ? ' is-zero' : ''}">${U.money(st.balance)}</span></td>
         ${groupCells}
         <td class="el-hist"><button type="button" class="el-hbtn" data-hist="${st.id}" aria-label="Istoricul lui ${esc(st.name)}" title="Parcursul elevului">${ico('history', 16)}<span>Istoric</span></button></td>
       </tr>`;
@@ -261,7 +261,7 @@
       </div>
       ${list.length ? `
       <div class="ax-table-wrap">
-        <table class="ax-table el-table">
+        <table class="ax-table ax-cards el-table">
           <caption class="el-vh">Elevi, ${countWord(list.length, 'elev', 'elevi')}</caption>
           <thead><tr>
             ${thHTML('name', s)}

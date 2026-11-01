@@ -99,21 +99,26 @@ body.ax .cn-plan__sel:disabled { opacity: 0.55; }
 body.ax .cn-more { display: flex; align-items: center; gap: 12px; margin-top: 12px; }
 
 @media (max-width: 900px) {
-  body.ax .cn-req__row { grid-template-columns: auto minmax(0, 1fr); }
-  body.ax .cn-req__when { grid-column: 2; flex-direction: row; gap: 6px; }
+  body.ax .cn-req__row { grid-template-columns: auto minmax(0, 1fr); row-gap: 12px; align-items: start; }
+  body.ax .cn-req__who { align-self: center; }
+  body.ax .cn-req__name { grid-column: 1 / -1; min-width: 0; }
+  body.ax .cn-req__when { grid-column: 1 / -1; flex-direction: row; align-items: baseline; gap: 8px; }
   body.ax .cn-req__keys { grid-column: 1 / -1; justify-content: flex-start; }
 }
 /* narrow: table rows become stacked signs */
-@media (max-width: 700px) {
+@media (max-width: 900px) {
   body.ax .cn-table thead { display: none; }
   body.ax .cn-table, body.ax .cn-table tbody, body.ax .cn-table tr, body.ax .cn-table td { display: block; }
   body.ax .cn-table tr { padding: 12px 14px; border-bottom: 1px solid var(--ax-rule); }
   body.ax .cn-table tr:last-child { border-bottom: 0; }
   body.ax .cn-table td { padding: 3px 0; border: 0; }
   body.ax .cn-table tbody tr:hover td { background: none; }
-  body.ax .cn-table td[data-l] { display: grid; grid-template-columns: 74px minmax(0, 1fr); gap: 10px; align-items: baseline; }
-  body.ax .cn-table td[data-l]::before { content: attr(data-l); font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+  /* label on the left (a fixed column, so every value starts at the same place), the value and its small note side by side on the right */
+  body.ax .cn-table td[data-l] { display: flex; flex-wrap: wrap; align-items: baseline; gap: 2px 10px; }
+  body.ax .cn-table td[data-l]::before { content: attr(data-l); flex: 0 0 118px; font-size: 0.7rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+  body.ax .cn-table td[data-l] > * { min-width: 0; }
   body.ax .cn-table td:first-child:not([data-l]) { padding-bottom: 8px; }
+  body.ax .cn-table td.cn-act { display: flex; flex-wrap: wrap; gap: 8px; }
   body.ax .cn-who { min-width: 0; }
   body.ax .cn-cls-td { min-width: 0; }
   body.ax .cn-cls li { display: flex; flex-wrap: wrap; gap: 2px 10px; }
@@ -124,13 +129,25 @@ body.ax .cn-more { display: flex; align-items: center; gap: 12px; margin-top: 12
   body.ax .cn-real { margin-left: 0; margin-top: 6px; vertical-align: 0; }
   body.ax .cn-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   body.ax .cn-stats .ax-stat { min-height: 92px; padding: 12px 14px; }
-  body.ax .cn-stats .ax-stat:last-child { grid-column: 1 / -1; }
+  body.ax .cn-stats .ax-stat:last-child:nth-child(odd) { grid-column: 1 / -1; }
   body.ax .cn-tabs { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); width: 100%; }
   body.ax .cn-tabs button { padding: 0 4px; }
   body.ax .cn-search { flex-basis: 100%; max-width: none; }
   body.ax .cn-stamp { margin-left: 0; }
-  body.ax .cn-req__row { padding: 12px; }
+  body.ax .cn-req__row { padding: 14px 12px; }
+  body.ax .cn-req__keys .ax-btn { flex: 1 1 130px; justify-content: center; }
   body.ax .cn-state { padding: 20px 16px; }
+}
+
+/* five tiles on a tablet: three, then two that share the row (no empty cell) */
+@media (min-width: 601px) and (max-width: 1180px) {
+  body.ax .cn-stats:has(> :nth-child(5)) { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+  body.ax .cn-stats:has(> :nth-child(5)) > .ax-stat { grid-column: span 2; }
+  body.ax .cn-stats:has(> :nth-child(5)) > .ax-stat:nth-child(n+4) { grid-column: span 3; }
+}
+@media (max-width: 420px) {
+  body.ax .cn-tabs { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  body.ax .cn-tabs button { min-height: 44px; }
 }
 
 /* teachers: photo, numbers from the registers, remove */
@@ -139,11 +156,12 @@ body.ax .cn-table .ax-num { text-align: right; white-space: nowrap; }
 body.ax .cn-table td.ax-num b { display: block; font-size: 1rem; }
 body.ax .cn-table td.ax-num .ax-sub { text-align: right; }
 body.ax .cn-act { text-align: right; white-space: nowrap; }
-@media (max-width: 760px) {
+@media (max-width: 900px) {
   body.ax .cn-table td.ax-num { text-align: left; }
+  body.ax .cn-table td.ax-num .ax-sub { text-align: left; }
   body.ax .cn-table td.ax-num b { display: inline; margin-right: 8px; }
   body.ax .cn-table td.ax-num .ax-sub { display: inline; }
-  body.ax .cn-act { text-align: left; padding-top: 8px; }
+  body.ax .cn-act { text-align: left; padding-top: 10px; }
 }
 
 /* the kind of account on a request */

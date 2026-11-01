@@ -168,3 +168,15 @@ body.ax .el-acc { display: grid; gap: 8px; justify-items: start; }
 body.ax .el-acc__mail { font-weight: 600; color: var(--ax-ink); overflow-wrap: anywhere; }
 body.ax .el-acc__plan { display: flex; align-items: center; gap: 8px; }
 body.ax .el-acc__plan .ax-select, body.ax .el-acc__plan .ax-sel { width: auto; min-width: 132px; }
+
+/* phones: each student is a card, name and history key on top */
+@media (max-width: 900px) {
+  body.ax .el-table tbody td:nth-child(1) { grid-column: 1; grid-row: 1; }
+  body.ax .el-table tbody td.el-hist { grid-column: 2; grid-row: 1; justify-self: end; width: auto; padding: 0; }
+  body.ax .el-table tbody td:nth-child(n) .el-name, body.ax .el-table tbody td:nth-child(n) .el-tel { white-space: normal; }
+}
+
+/* four figures: two by two until there is room for all four in a row (no empty cell in a row of three) */
+@media (min-width: 601px) and (max-width: 1500px) {
+  body.ax .el-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}

@@ -88,3 +88,8 @@ body.ax .ah-pl.is-boot .ah-pl__w { stroke-dasharray: 1; stroke-dashoffset: 1; an
   body.ax .ah-pl__w { stroke-dasharray: none; stroke-dashoffset: 0; }
   body.ax .ah-pl__p { display: none; }
 }
+
+/* six figures: three by three (never five and one) until the screen is wide */
+@media (min-width: 601px) and (max-width: 1500px) {
+  body.ax .ah-att { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}

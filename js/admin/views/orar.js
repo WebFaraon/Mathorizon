@@ -270,23 +270,23 @@
             <span><b class="or-days">${g._repl ? g.dates.map(x => `<span>${esc(replDay(x))}</span>`).join(' / ') : g.days.map(d => `<span>${esc(D.DAYS[d - 1].name)}</span>`).join(' / ')}</b><span class="or-time">${timeRange(g)}</span></span>
           </div>
         </td>
-        <td><span class="ax-strong">${esc(t.last)}</span> <span class="or-first">${esc(t.first)}</span></td>
-        <td>
+        <td data-l="Profesor"><span class="ax-strong">${esc(t.last)}</span> <span class="or-first">${esc(t.first)}</span></td>
+        <td data-l="Materia">
           <span class="ax-strong">${esc(g.subject)}</span>
           <span class="or-proj"><span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>${g.regime === 'vara' ? '<span class="ax-tag ax-tag--sun">Vară</span>' : ''}</span>
           <span class="ax-sub">${p.mode === 'offline' ? 'Offline' : 'Online'}${!room && p.mode === 'offline' ? ' · fără cabinet' : ''}</span>
         </td>
-        <td><span class="ax-grade">${esc(g.grade)}</span>${g.profile ? `<span class="ax-sub">${esc(g.profile)}</span>` : ''}</td>
-        <td>
+        <td data-l="Clasa"><span class="ax-grade">${esc(g.grade)}</span>${g.profile ? `<span class="ax-sub">${esc(g.profile)}</span>` : ''}</td>
+        <td data-l="Grupa">
           <span class="or-size">${sizeLabel(g.size)}</span>
           ${stHTML(g.status, statusName(D.GROUP_STATUS, g.status))}
           <span class="ax-sub">Nivel ${esc(g.level)}</span>
         </td>
-        <td class="ax-num">
+        <td class="ax-num" data-l="Locuri libere">
           ${warn ? `<span class="ax-tag ax-tag--warn" title="Risc financiar">${ico('alert', 14)}${free}</span>` : `<span class="or-free${free ? '' : ' is-zero'}">${free}</span>`}
           <span class="ax-seats or-seats" aria-hidden="true">${seats}</span>
         </td>
-        <td class="or-c-kids">
+        <td class="or-c-kids" data-l="Elevi">
           ${shown.length ? `<ul class="or-kids">${shown.map(st => `<li><span class="ax-st ax-st--${st.status}" title="${esc(statusName(D.STUDENT_STATUS, st.status))}"><i class="ax-st__i"></i></span><span class="or-kid">${esc(st.name)}</span></li>`).join('')}</ul>` : '<span class="ax-sub">Niciun elev</span>'}
           ${more > 0 ? `<span class="or-more">+${more}</span>` : ''}
         </td>
@@ -306,7 +306,7 @@
       </div>
       ${list.length ? `
       <div class="ax-table-wrap">
-        <table class="ax-table or-table">
+        <table class="ax-table ax-cards or-table">
           <caption class="or-vh">Grupele, ${countWord(list.length, 'grupă', 'grupe')}</caption>
           <thead><tr>
             ${thHTML('orar', s)}${thHTML('prof', s)}${thHTML('subj', s)}${thHTML('grade', s)}${thHTML('size', s)}${thHTML('free', s, ' class="ax-num"')}${thHTML('elevi', s)}

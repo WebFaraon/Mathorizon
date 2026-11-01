@@ -256,3 +256,9 @@ body.ax .or-kid { max-width: none; white-space: normal; overflow: visible; text-
 body.ax .or-kids li { align-items: flex-start; }
 body.ax .or-kids .ax-st__i { margin-top: 5px; }
 body.ax .or-room--none { border: 1.5px dashed var(--ax-yellow); background: color-mix(in srgb, var(--ax-yellow) 14%, transparent); color: var(--ax-ink-2); }
+
+/* phones: each group is a card, the day and time on top */
+@media (max-width: 900px) {
+  body.ax .or-table tbody td:nth-child(1) { grid-column: 1 / -1; }
+  body.ax .or-table .or-seats { justify-content: flex-start; margin-left: 0; max-width: none; }
+}

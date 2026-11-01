@@ -1138,3 +1138,23 @@ body.ax .ax-sp__n { margin: 0; font-size: 0.76rem; font-weight: 600; line-height
 /* an account that waits for the admin: the page is only this message */
 .ax-wait { padding-top: 18vh; }
 .ax-wait b { display: block; margin-bottom: 6px; font-size: 1.2rem; color: var(--ax-ink); }
+
+/* ---- phones: a long table becomes a stack of cards (one row = one card) ----
+   The table opts in with class ax-cards and puts data-l="Label" on the cells that need a label; the sort keys of the header stay as a row of small keys.
+   Each table places its cells in its own css file (grid-column on td:nth-child). */
+@media (max-width: 900px) {
+  body.ax .ax-table-wrap:has(> .ax-cards) { overflow: visible; border: 0; background: none; }
+  body.ax table.ax-cards, body.ax table.ax-cards tbody { display: block; width: 100%; min-width: 0; table-layout: auto; }
+  body.ax table.ax-cards thead { display: block; margin-bottom: 10px; }
+  body.ax table.ax-cards thead tr { display: flex; flex-wrap: wrap; gap: 6px; }
+  body.ax table.ax-cards thead th:nth-child(n) { position: static; display: block; flex: 0 0 auto; width: auto; padding: 0; border: 1px solid var(--ax-rule-2); border-radius: var(--ax-r); background: var(--ax-panel); }
+  body.ax table.ax-cards thead th:nth-child(n):not([data-sort]) { display: none; }
+  body.ax table.ax-cards thead th[aria-sort] { border-color: var(--ax-ink); }
+  body.ax table.ax-cards thead th:nth-child(n) button { width: auto; min-height: 36px; padding: 6px 8px; }
+  body.ax table.ax-cards tbody tr { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 14px; margin-bottom: 10px; padding: 12px 14px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r-2); background: var(--ax-panel); }
+  body.ax table.ax-cards tbody tr:hover { background: var(--ax-hi-wash); }
+  body.ax table.ax-cards tbody td:nth-child(n) { display: block; min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; text-align: left; white-space: normal; }
+  body.ax table.ax-cards tbody tr:hover td:nth-child(n) { background: none; box-shadow: none; }
+  body.ax table.ax-cards tbody td[colspan] { grid-column: 1 / -1; }
+  body.ax table.ax-cards tbody td[data-l]::before { content: attr(data-l); display: block; margin-bottom: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+}
