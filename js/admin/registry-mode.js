@@ -89,8 +89,10 @@
     const console_rooms = await fetchAll('console_rooms', 'num,seats,floor', 'num.asc', access).catch(() => []);        // optional: a platform without the migration has none
     // the invite code of each group's class (the database makes the class when the teacher's account is tied to the register): the manager forwards it to the students
     const classes = await fetchAll('classes', 'reg_group_id,invite_code', 'reg_group_id.asc', access, 'reg_group_id=not.is.null').catch(() => []);
+    // the approved managers of the platform, by their official name: they appear in every list of the console (optional: a platform without the migration has none)
+    const platform_managers = await rpc('staff_manager_names', access, {}).catch(() => []);
     stamp = latestRead(workbooks);
-    lastT = { workbooks, groups, students, lessons, replacements, replacement_items, console_rooms, classes };
+    lastT = { workbooks, groups, students, lessons, replacements, replacement_items, console_rooms, classes, platform_managers };
     return lastT;
   }
   /* the replacements and the money lines of each; a platform without the migration simply has none */
@@ -118,7 +120,7 @@
   }
   /* what the registers hold, without the stamps that change at every read: when a new read brings the same content (a change in a tab the console does not show, a read that
      found nothing new) there is nothing to draw again */
-  const signature = T => JSON.stringify([(T.workbooks || []).map(w => { const r = Object.assign({}, w); delete r.last_full_sync_at; delete r.last_change_at; return r; }), T.groups, T.students, T.lessons, T.replacements, T.replacement_items, T.console_rooms]);
+  const signature = T => JSON.stringify([(T.workbooks || []).map(w => { const r = Object.assign({}, w); delete r.last_full_sync_at; delete r.last_change_at; return r; }), T.groups, T.students, T.lessons, T.replacements, T.replacement_items, T.console_rooms, T.platform_managers]);
   let lastSig = null;
   function show(T, opts) {
     const sig = signature(T), same = sig === lastSig;

@@ -85,6 +85,10 @@
     const mgrNames = new Set();
     wbs.forEach(w => ((w.config && w.config.manager) || []).forEach(n => mgrNames.add(n)));
     (T.students || []).forEach(s => { if (s.manager) mgrNames.add(s.manager); });
+    // the approved managers of the platform (their official name): in every list at once; a name the registers already have is not added a second time
+    const mgrKey = n => tokens(n).join(' ');
+    const knownKeys = new Set([...mgrNames].map(mgrKey));
+    (T.platform_managers || []).forEach(r => { const n = String((r && r.name) || r || '').trim(); if (n && !knownKeys.has(mgrKey(n))) { mgrNames.add(n); knownKeys.add(mgrKey(n)); } });
     const managers = [...mgrNames].sort((a, b) => a.localeCompare(b, 'ro')).map((n, i) => { const name = mgrName(n); return { id: 'm' + (i + 1), name, short: name.split(' ')[0], tone: i, _reg: n }; });
     const mgrByReg = new Map(managers.map(m => [m._reg, m.id]));
 

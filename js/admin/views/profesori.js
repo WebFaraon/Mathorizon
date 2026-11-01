@@ -6,7 +6,8 @@
    The students' accounts are not listed here: a student's sheet in Elevi shows whether he has an account (js/admin/accounts.js).
 
    Data: Supabase RPCs (POST /rest/v1/rpc/<fn>, apikey + the admin's Bearer token), each one checks role = 'admin' in the database:
-     admin_pending_accounts (teachers and managers; get_pending_professors as a fallback), admin_set_account_status (set_professor_status as a fallback),
+     admin_pending_accounts (teachers and managers; get_pending_professors as a fallback), admin_set_account_status (with the official name; set_professor_status as a fallback),
+     admin_set_official_name, the function registru-config (the managers list of the registers),
      admin_professor_overview (get_all_professors as a fallback), admin_remove_professor, admin_manager_overview, admin_remove_manager
    the registers' numbers come from window.AdminData (the Registre source of the console) and the waitlist through GET /api/admin/get-waitlist.
 
@@ -217,6 +218,7 @@
         <li class="cn-req__row" data-uid="${esc(p.user_id)}" data-arrive style="--i:${i}">
           <span class="cn-ini" aria-hidden="true">${esc(initials(p.full_name))}</span>
           <span class="cn-req__who"><b>${esc(p.full_name || 'Fără nume')}</b> <span class="cn-role">${p.role === 'manager' ? 'Manager' : 'Profesor'}</span><span class="ax-sub">${esc(p.email || '')}</span></span>
+          <label class="cn-req__name"><span class="ax-sub">Nume oficial (Nume Prenume)</span><input class="ax-input" data-name="${esc(p.user_id)}" value="${esc(p.full_name || '')}" autocomplete="off" maxlength="80"></label>
           <span class="cn-req__when"><span class="ax-sub">Cerere trimisă</span><b>${esc(fmtDate(p.created_at)) || 'necunoscut'}</b></span>
           <span class="cn-req__keys">
             <button type="button" class="ax-btn ax-btn--primary ax-btn--sm cn-approve" data-approve="${esc(p.user_id)}">${ico('check', 16)} Aprobă</button>
@@ -284,13 +286,13 @@
         const st = PROF_ST[p.status] || { cls: 'inactiv', name: p.status || 'Necunoscut' };
         const none = C.plain ? NA : '<span class="ax-sub" title="Contul nu are un registru legat (pagina Sincronizare)">fără registru</span>';
         return `<tr data-arrive style="--i:${i}" data-uid="${esc(p.user_id)}">
-          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
+          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.official_name || p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
           <td data-l="Status"><span class="ax-st ax-st--${st.cls}"><i class="ax-st__i"></i>${esc(st.name)}</span></td>
           <td class="ax-num" data-l="Grupe">${x ? `<b>${nf.format(x.groups)}</b><span class="ax-sub">${nf.format(x.active)} ${x.active === 1 ? "activă" : "active"}</span>` : none}</td>
           <td class="ax-num" data-l="Elevi / lecție">${x && x.avg != null ? `<b>${dec1.format(x.avg)}</b>` : NA}</td>
           <td class="ax-num" data-l="Lecții predate">${x ? `<b>${nf.format(x.lessons)}</b>` : NA}</td>
           <td class="ax-num" data-l="Venit generat">${x ? `<b>${U.money(x.income)}</b>` : NA}</td>
-          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove="${esc(p.user_id)}" title="Pierde funcțiile de profesor; clasele trec la contul tău">${ico('trash-2', 16)} Șterge</button></td>
+          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm" data-rename="${esc(p.user_id)}" title="Numele oficial, cel din consolă și din registre">${ico('pencil', 16)} Nume</button> <button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove="${esc(p.user_id)}" title="Pierde funcțiile de profesor; clasele trec la contul tău">${ico('trash-2', 16)} Șterge</button></td>
         </tr>`;
       }).join('')}</tbody>
     </table></div>${moreHTML(rows.length)}`;
@@ -298,18 +300,20 @@
 
   function mgrsHTML() {
     if (!C.mgrs.length) return emptyHTML('Nu există conturi de manager.', '');
-    const list = C.mgrs.filter(p => match(p.full_name, p.email));
+    const list = C.mgrs.filter(p => match(p.full_name, p.official_name, p.email));
     if (!list.length) return noMatch();
     const page = list.slice(0, shown);
     return `<div class="ax-table-wrap"><table class="ax-table cn-table">
-      <thead><tr><th>Manager</th><th>Status</th><th>Cont din</th><th></th></tr></thead>
+      <thead><tr><th>Manager</th><th>Status</th><th title="Dacă numele e în lista de manageri din registre">Lista registrelor</th><th>Cont din</th><th></th></tr></thead>
       <tbody>${page.map((p, i) => {
         const st = PROF_ST[p.status] || { cls: 'inactiv', name: p.status || 'Necunoscut' };
+        const inList = p.status !== 'active' ? NA : p.config_synced_at ? '<span class="ax-st ax-st--activ"><i class="ax-st__i"></i>Da</span>' : `<span class="ax-st ax-st--completare"><i class="ax-st__i"></i>Lipsește</span> <button type="button" class="ax-btn ax-btn--sm" data-config>Trimite</button>`;
         return `<tr data-arrive style="--i:${i}" data-uid="${esc(p.user_id)}">
-          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
+          <td><div class="cn-who">${avatarHTML(p)}<span><b class="ax-strong">${esc(p.official_name || p.full_name || 'Fără nume')}</b><span class="ax-sub">${esc(p.email || '')}</span></span></div></td>
           <td data-l="Status"><span class="ax-st ax-st--${st.cls}"><i class="ax-st__i"></i>${esc(st.name)}</span></td>
+          <td data-l="Lista registrelor">${inList}</td>
           <td class="cn-nowrap" data-l="Cont din">${esc(fmtDate(p.created_at))}</td>
-          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove-mgr="${esc(p.user_id)}" title="Pierde accesul la consolă">${ico('trash-2', 16)} Șterge</button></td>
+          <td class="cn-act"><button type="button" class="ax-btn ax-btn--sm" data-rename="${esc(p.user_id)}" title="Numele oficial, cel din consolă și din registre">${ico('pencil', 16)} Nume</button> <button type="button" class="ax-btn ax-btn--sm cn-reject" data-remove-mgr="${esc(p.user_id)}" title="Pierde accesul la consolă">${ico('trash-2', 16)} Șterge</button></td>
         </tr>`;
       }).join('')}</tbody>
     </table></div>${moreHTML(list.length)}`;
@@ -380,7 +384,13 @@
       const [g, k] = b.dataset.sortBtn.split(':');
       sort[g] = k; paintBody();
     }));
-    box.querySelectorAll('[data-approve]').forEach(b => b.addEventListener('click', () => decide(b.dataset.approve, 'active')));
+    box.querySelectorAll('[data-approve]').forEach(b => b.addEventListener('click', () => {
+      const inp = box.querySelector(`[data-name="${b.dataset.approve}"]`), name = inp ? inp.value.replace(/\s+/g, ' ').trim() : '';
+      if (!name) { U.toast('Scrie numele oficial.', 'warn'); if (inp) inp.focus(); return; }
+      decide(b.dataset.approve, 'active', name);
+    }));
+    box.querySelectorAll('[data-rename]').forEach(b => b.addEventListener('click', () => openName(b.dataset.rename)));
+    box.querySelectorAll('[data-config]').forEach(b => b.addEventListener('click', async () => { b.disabled = true; await sendConfig(); }));
     box.querySelectorAll('[data-reject]').forEach(b => b.addEventListener('click', () => {
       // second click confirms: no native dialog, the key itself asks
       if (b.dataset.armed) { decide(b.dataset.reject, 'rejected'); return; }
@@ -412,7 +422,7 @@
     }, { once: true }));
   }
 
-  async function decide(uid, status) {
+  async function decide(uid, status, name) {
     const idx = C.pending.findIndex(p => p.user_id === uid);
     if (idx < 0) return;
     const p = C.pending[idx], mgr = p.role === 'manager', list = mgr ? C.mgrs : C.profs;
@@ -424,20 +434,83 @@
     paint();
     if (window.AdminShell) window.AdminShell.refreshNav();
     try {
-      try { await rpc('admin_set_account_status', { p_user: uid, p_status: status }); }
+      const missing = e => /does not exist|schema cache|Could not find/i.test(String(e && e.message));
+      try { await rpc('admin_set_account_status', status === 'active' ? { p_user: uid, p_status: status, p_name: name } : { p_user: uid, p_status: status }); }
       catch (e) {
-        if (mgr || !/does not exist|schema cache|Could not find/i.test(String(e && e.message))) throw e;
-        await rpc('set_professor_status', { target_user_id: uid, new_status: status });      // the migration is not run yet: teachers still work
+        if (!missing(e)) throw e;
+        try { await rpc('admin_set_account_status', { p_user: uid, p_status: status }); }       // the name migration is not run yet
+        catch (e2) {
+          if (mgr || !missing(e2)) throw e2;
+          await rpc('set_professor_status', { target_user_id: uid, new_status: status });      // neither migration is run yet: teachers still work
+        }
       }
-      const who = p.full_name || (mgr ? 'Managerul' : 'Profesorul');
+      if (status === 'active' && name) prof ? (prof.official_name = name) : (list[list.length - 1].official_name = name);
+      const who = name || p.full_name || (mgr ? 'Managerul' : 'Profesorul');
       U.toast(status === 'active' ? `${esc(who)} a fost aprobat.` : `Cererea lui ${esc(who)} a fost respinsă.`);
+      if (status === 'active' && mgr) sendConfig();
     } catch (e) {
       C.pending.splice(idx, 0, p);
       if (prof) prof.status = prevStatus; else { const k = list.findIndex(x => x.user_id === uid); if (k >= 0) list.splice(k, 1); }
       paint();
       if (window.AdminShell) window.AdminShell.refreshNav();
-      U.toast(`Nu s-a salvat: ${esc(niceError(e))}`, 'warn');
+      U.toast(`Nu s-a salvat: ${esc(nameError(e))}`, 'warn');
     }
+  }
+
+  const nameError = e => {
+    const m = String((e && e.message) || e || '');
+    if (/name taken/i.test(m)) return 'Numele există deja la alt cont.';
+    if (/name required/i.test(m)) return 'Scrie numele oficial.';
+    if (/manager has students/i.test(m)) return 'Managerul are deja elevi în registre: numele nu se poate schimba acum.';
+    return niceError(e);
+  };
+
+  /* the official name: the one shown in the console, in the classes and in the registers; the person's own profile name stays as it is */
+  function openName(uid) {
+    const p = C.profs.find(x => x.user_id === uid) || C.mgrs.find(x => x.user_id === uid);
+    if (!p) return;
+    const mgr = !!C.mgrs.find(x => x.user_id === uid);
+    const d = U.drawer({
+      title: 'Nume oficial',
+      sub: esc(p.email || ''),
+      body: `<form class="sy-form" id="cnNameForm">
+        <label class="sy-f"><span>Nume Prenume</span><input class="ax-input" name="name" required maxlength="80" value="${esc(p.official_name || p.full_name || '')}" autocomplete="off"></label>
+        <p class="sy-err" id="cnNameErr" role="alert"></p>
+      </form>`,
+      actions: '<button type="button" class="ax-btn" data-close>Renunță</button><button type="submit" form="cnNameForm" class="ax-btn ax-btn--dark" id="cnNameGo">Salvează</button>'
+    });
+    d.querySelector('#cnNameForm').addEventListener('submit', async ev => {
+      ev.preventDefault();
+      const name = String(new FormData(ev.target).get('name') || '').replace(/\s+/g, ' ').trim(), go = d.querySelector('#cnNameGo'), err = d.querySelector('#cnNameErr');
+      if (!name) { err.textContent = 'Scrie numele oficial.'; return; }
+      go.disabled = true; err.textContent = '';
+      try {
+        await rpc('admin_set_official_name', { p_user: uid, p_name: name });
+        p.official_name = name;
+        if (mgr) p.config_synced_at = null;
+        d.close(); paint();
+        U.toast('Numele a fost schimbat.');
+        if (mgr) sendConfig();
+      } catch (e) { err.textContent = nameError(e); go.disabled = false; }
+    });
+  }
+
+  /* the managers list of the registers (the master file): the function writes the approved managers there; without access it says which names to copy */
+  async function sendConfig() {
+    try {
+      let res;
+      try {
+        res = await fetch(`${SUPABASE_URL}/functions/v1/registru-config`, { method: 'POST', headers: { apikey: SUPABASE_ANON, Authorization: 'Bearer ' + ((session && session.access_token) || ''), 'Content-Type': 'application/json' }, body: '{}' });
+      } catch (e) { throw new Error('Nu s-a putut contacta serverul.'); }
+      const j = await res.json().catch(() => ({}));
+      if (res.status === 404) U.toast('Funcția registru-config nu e pusă în funcțiune.', 'warn');
+      else if (j && j.ok) U.toast(j.added && j.added.length ? `Adăugat în lista de manageri din registre: ${esc(j.added.join(', '))}.` : 'Lista de manageri din registre e la zi.');
+      else if (j && j.code === 'no-access') U.toast(`Fișierul-mamă nu e partajat cu contul de serviciu. Scrie de mână în coloana B din CONFIGURARI: ${esc((j.names || []).join(', '))}.`, 'warn');
+      else U.toast(`Lista din registre nu s-a actualizat: ${esc((j && j.error) || 'eroare de server')}`, 'warn');
+    } catch (e) {
+      U.toast(`Lista din registre nu s-a actualizat: ${esc(niceError(e))}`, 'warn');
+    }
+    try { C.mgrs = await rpc('admin_manager_overview'); paint(); } catch (e) { /* the page keeps what it had */ }
   }
 
   async function removeMgr(uid) {

@@ -17,6 +17,7 @@
     "check:telegram": "node scripts/check-telegram.js",
     "check:registry": "node scripts/check-registry-dataset.js",
     "check:replacements": "node scripts/check-replacements.js",
+    "check:managers": "node scripts/check-managers.js",
     "check:oauth": "node scripts/check-oauth-guard.js",
     "apps-script:lists": "node scripts/registru-import/apps-script-lists.js"
   },

@@ -228,7 +228,8 @@
   let profs = null;
   async function loadProfs() {
     if (profs) return profs;
-    try { profs = (await rpc('get_all_professors')).filter(p => p.status === 'active'); } catch (e) { profs = []; }
+    try { profs = (await rpc('admin_professor_overview')).filter(p => p.status === 'active'); }
+    catch (e) { try { profs = (await rpc('get_all_professors')).filter(p => p.status === 'active'); } catch (e2) { profs = []; } }
     return profs;
   }
   async function openSettings(id) {
@@ -240,9 +241,8 @@
       body: `<form class="sy-form" id="syForm">
         ${w ? '' : `<p class="sy-step"><b>Întâi:</b> în Google, partajează registrul cu <code>${esc(SA_EMAIL)}</code> ca <b>Editor</b>, nu Cititor. Fără rolul de Editor platforma nu poate scrie în registru (înscrieri, grupe noi, statuturi), iar fără acces nu îl poate nici citi.</p>
         <label class="sy-f"><span>Link-ul sau id-ul registrului Google</span><input class="ax-input" name="sheet" required placeholder="https://docs.google.com/spreadsheets/d/…" autocomplete="off"></label>`}
-        <label class="sy-f"><span>Profesor <em>(opțional, se completează din numele fișierului)</em></span><input class="ax-input" name="teacher" value="${esc((w && w.teacher_name) || '')}" placeholder="Nume Prenume" autocomplete="off"></label>
         <label class="sy-f"><span>Contul de profesor care îl vede</span>
-          <select class="ax-select" name="owner"${w && !w.owner_user_id ? '' : ' required'}><option value=""${w && w.owner_user_id ? '' : ' selected'} disabled hidden>Alege contul profesorului</option>${list.map(p => `<option value="${esc(p.user_id)}"${w && w.owner_user_id === p.user_id ? ' selected' : ''}>${esc(p.full_name || p.email)} · ${esc(p.email || '')}</option>`).join('')}</select></label>
+          <select class="ax-select" name="owner"${w && !w.owner_user_id ? '' : ' required'}><option value=""${w && w.owner_user_id ? '' : ' selected'} disabled hidden>Alege contul profesorului</option>${list.map(p => `<option value="${esc(p.user_id)}"${w && w.owner_user_id === p.user_id ? ' selected' : ''}>${esc(p.official_name || p.full_name || p.email)} · ${esc(p.email || '')}</option>`).join('')}</select></label>
         
         ${w ? `<label class="sy-f sy-check"><input type="checkbox" name="enabled"${w.enabled ? ' checked' : ''}> <span>Registrul se sincronizează</span></label>` : ''}
         <p class="sy-err" id="syErr" role="alert"></p>
@@ -257,9 +257,9 @@
       go.disabled = true; err.textContent = '';
       try {
         let rid = id;
-        if (!w) rid = await rpc('reg_add_workbook', { p_spreadsheet: String(f.get('sheet')), p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: null });
+        if (!w) rid = await rpc('reg_add_workbook', { p_spreadsheet: String(f.get('sheet')), p_teacher: null, p_owner: f.get('owner') || null, p_year: null });
         else {
-          await rpc('reg_add_workbook', { p_spreadsheet: w.spreadsheet_id, p_teacher: String(f.get('teacher') || '') || null, p_owner: f.get('owner') || null, p_year: null });
+          await rpc('reg_add_workbook', { p_spreadsheet: w.spreadsheet_id, p_teacher: null, p_owner: f.get('owner') || null, p_year: null });
           await rpc('reg_update_workbook', { p_id: w.id, p_enabled: !!f.get('enabled'), p_clear_owner: !f.get('owner') });
         }
         d.close();
