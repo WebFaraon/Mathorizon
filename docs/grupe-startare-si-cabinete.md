@@ -93,6 +93,17 @@ Lecțiile din primele luni sunt online. Fiecare profesor are un link Meet propri
 - **Limite:** pentru lecțiile ținute de un înlocuitor se folosește linkul profesorului grupei. Conturile Gmail personale au limită de 60 de minute la ședințele cu mai mult de 2 participanți (de verificat în Meet).
 - **Doar grupele Online** au sala Meet (formatul din celula C1 a filei grupei). La o grupă Offline sau fără format citit, butonul nu apare nici pentru profesor, nici pentru elevi, iar invitația din consolă nu pomenește Meet (`20261029110000_meet_doar_online.sql`).
 
+## Mutarea orei unei lecții online (2026-11-02)
+
+Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecție în plus sau o zi schimbată, profesorul folosește butonul „Schimbă ora lecțiilor" din antetul clasei (doar grupele Online). Migrarea `20261102100000_mutare_ore_lectii.sql`.
+
+- **Trei feluri de schimbare, pe o singură lecție:** mutată (altă zi sau oră, o singură dată), în plus (peste program), anulată. Orarul pe termen lung se schimbă tot în registru. Se poate reveni oricând la ora obișnuită, șterge o lecție în plus sau restabili una anulată.
+- **Cine:** profesorul grupei, direct, fără aprobare (adminul și managerul activ pot face la fel prin aceleași funcții). Elevii doar văd.
+- **Limite (decise cu fondatorul):** doar în viitor, cu cel puțin o oră înainte; și lecția care se mută sau se anulează trebuie să înceapă peste cel puțin o oră; cel mult 90 de zile în față (peste 14 zile apare un avertisment); fără suprapunere cu altă lecție a grupei; durata 1 până la 3 ore.
+- **Elevii:** fereastra Meet urmează schimbarea (se deschide la noua oră, cu 10 minute înainte; în ziua veche nu se mai deschide; o lecție anulată nu deschide nimic). Schimbarea apare în antetul clasei (următoarele 14 zile), ca mesaj în clasă și ca notificare push (tipul `message` din `send-class-push`, nu cere redeploy).
+- **Datele:** tabelul `class_lesson_changes` (doar excepțiile, scrise prin `class_lesson_set` / `class_lesson_remove`; citirea o au profesorul, personalul și elevii activi). `class_lessons` pune programul din registru și excepțiile la un loc; `class_meet_at` citește de acolo. Orele sunt ora de perete a Chișinăului.
+- **Nu face:** nu scrie nimic în registru (prezența, tema și data lecției rămân doar acolo) și nu schimbă ce vede botul de Telegram la /azi și /maine (citește tot din registru).
+
 ## Startul grupelor și botul de Telegram (2026-10-29)
 
 **Regula (verificată pe baza reală):** o grupă „Se completează" trece singură în „Startează" când are destui elevi (Activ, Oră de probă, Oră de probă confirmată): 2 din 2, 2 din 3, 3 din 4, 4 din 5, 4 din 6, 6 din 8, 6 din 10 (`start-rule.mjs`; doar 3 din 4, 4 din 5 și 2 din 2 nu sunt confirmate de fondator). Bug găsit: o comandă de pornire eșuată (limita Google pe minut) nu se mai încerca niciodată, pentru că id-ul ei era același. Acum id-ul se schimbă la 10 minute, iar `registru-sync` mai uită și în baza de date la fiecare rulare (`pendingStarts`), deci o grupă ratată, într-un registru nemodificat, e pornită la următoarea rulare.

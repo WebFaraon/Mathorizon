@@ -110,6 +110,9 @@
     box.hidden = false;
     box.className = 'cd-meet cd-meet--' + r.status;
     copy.hidden = true;
+    const editKey = document.getElementById('cdLessonsBtn');
+    if (editKey) { editKey.hidden = !(r.teacher || teacher); editKey.onclick = _openLessonsDialog; }
+    _loadLessons();
     const again = iso => {
       const ms = new Date(iso).getTime() - Date.now() + 1500;
       if (ms > 0) _meetTimer = setTimeout(_loadMeet, Math.min(ms, 6 * 3600 * 1000));
@@ -141,6 +144,246 @@
     }
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('cdMeet')) _loadMeet(); });
+
+  /* ─── Lesson changes: move one lesson, add an extra one, cancel one (online groups) ──────────────────────────────────
+     The base schedule stays in the register. Only the exceptions live here (table class_lesson_changes, functions class_lesson_set / class_lesson_remove /
+     class_upcoming_lessons): the teacher changes them directly, the Meet window follows them (class_meet_at), and the class gets a message and a push.
+     Times are wall-clock Chisinau strings "YYYY-MM-DDTHH:MM", read and shown as they are (never converted through the browser's own time zone). */
+  let _lessons = [];
+  const _pad2 = n => String(n).padStart(2, '0');
+  const _wall = s => { const m = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d)/.exec(s || ''); return m ? new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]) : null; };
+  const _wallStr = d => d.getFullYear() + '-' + _pad2(d.getMonth() + 1) + '-' + _pad2(d.getDate()) + 'T' + _pad2(d.getHours()) + ':' + _pad2(d.getMinutes());
+  const _wallPlus = (s, min) => { const d = _wall(s); d.setMinutes(d.getMinutes() + min); return _wallStr(d); };
+  const _wallDay = s => { const d = _wall(s); return d ? d.toLocaleDateString('ro-RO', { weekday: 'long', day: 'numeric', month: 'long' }) : ''; };
+  const _wallHM = s => { const d = _wall(s); return d ? d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' }) : ''; };
+  const _wallFull = s => _wallDay(s) + ', ' + _wallHM(s);
+  const _nowWall = () => new Intl.DateTimeFormat('sv-SE', { timeZone: 'Europe/Chisinau', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date()).replace(' ', 'T');
+  const _hoursWord = n => (n === 1 ? '1 oră' : n + ' ore');
+  const _cap = t => t.charAt(0).toUpperCase() + t.slice(1);
+
+  async function _loadLessons() {
+    let list = null;
+    try {
+      const { data, error } = await BMAuth.supabase.rpc('class_upcoming_lessons', { p_class: classData.id, p_days: 28 });
+      if (!error && Array.isArray(data)) list = data;
+    } catch (e) { /* the migration is not run yet: no changes shown */ }
+    _lessons = list || [];
+    _paintLessonChanges();
+    if (document.getElementById('lessonsModal')) _paintLessonsDialog();
+  }
+
+  function _changeLine(l) {
+    if (l.kind === 'moved') return 'Lecția de ' + _wallFull(l.orig_start) + ' a fost mutată: ' + _wallFull(l.start) + '.';
+    if (l.kind === 'extra') return 'Lecție în plus: ' + _wallFull(l.start) + ' (' + _hoursWord(l.hours) + ').';
+    if (l.kind === 'cancelled') return 'Lecția de ' + _wallFull(l.start) + ' a fost anulată.';
+    return '';
+  }
+
+  /* what is different from the usual schedule in the next two weeks, in the header: the same lines for the teacher and the students */
+  function _paintLessonChanges() {
+    const box = document.getElementById('cdMeetChg');
+    if (!box) return;
+    const now = _nowWall(), lim = _wallPlus(now, 14 * 24 * 60), from = _wallPlus(now, -180);
+    const ch = _lessons.filter(l => l.kind !== 'regular' && l.start >= from && l.start <= lim).slice(0, 4);
+    box.hidden = !ch.length;
+    box.innerHTML = ch.map(l => `<li class="cd-meet__chgrow cd-meet__chgrow--${l.kind}">${icon('calendar', { size: 14 })}<span>${BM.esc(_changeLine(l))}</span></li>`).join('');
+  }
+
+  const _LESSON_ERR = {
+    'too late': 'Lecția începe în mai puțin de o oră sau a trecut deja, nu mai poate fi schimbată.',
+    'too soon': 'Noua oră trebuie să fie peste cel puțin o oră de acum.',
+    'too far': 'Data e prea departe. Poți programa cel mult 90 de zile înainte.',
+    'overlap': 'Se suprapune cu altă lecție a grupei. Alege altă oră.',
+    'not allowed': 'Nu ai dreptul să schimbi lecțiile acestei clase.',
+    'not online': 'Orele se pot schimba doar la grupele online.',
+    'no lesson that day': 'În ziua aceea nu e nicio lecție în program.',
+    'bad hours': 'Lecția poate dura între 1 și 3 ore.'
+  };
+  const _lessonErr = e => {
+    const m = String((e && e.message) || e || '');
+    const k = Object.keys(_LESSON_ERR).find(x => m.includes(x));
+    if (k) return _LESSON_ERR[k];
+    if (/Could not find|schema cache|does not exist/i.test(m)) return 'Funcția nu e pusă în funcțiune în baza de date încă.';
+    return 'Nu s-a salvat: ' + m;
+  };
+
+  /* a message in the class and a push, so the students know the new time */
+  async function _announceLessonChange(text) {
+    try {
+      await BMAuth.supabase.from('class_posts').insert({
+        class_id: classData.id, author_id: BMAuth.user.id, author_name: BMAuth.displayName(),
+        author_avatar_url: BMAuth.avatarUrl() || null, title: null, content: text
+      });
+      BMPush?.sendClassPush(classData.id, 'message', { snippet: text.slice(0, 140) });
+    } catch (e) { console.warn('[lessons] announce error:', e); }
+  }
+
+  let _lsForm = null;           // { key, mode: 'move' | 'extra' } the open form
+  function _openLessonsDialog() {
+    document.getElementById('lessonsModal')?.remove();
+    _lsForm = null;
+    const modal = document.createElement('div');
+    modal.id = 'lessonsModal';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog cd-ls" role="dialog" aria-modal="true" aria-labelledby="lsTitle">
+        <div class="classes-modal__head">
+          <h3 id="lsTitle">${icon('calendar', { size: 20 })} Orarul lecțiilor online</h3>
+          <button class="icon-btn" id="lsClose" aria-label="Închide">${icon('x', { size: 16 })}</button>
+        </div>
+        <div class="classes-modal__body" id="lsBody"></div>
+      </div>`;
+    document.body.appendChild(modal);
+    document.documentElement.style.overflow = 'hidden';
+    document.body.style.overflow = 'hidden';
+    const close = () => { modal.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    modal.querySelector('.classes-modal__backdrop').onclick = close;
+    modal.querySelector('#lsClose').onclick = close;
+    _paintLessonsDialog();
+    _loadLessons();
+  }
+
+  const _lsKey = l => l.kind + '|' + (l.change || l.orig_date);
+
+  function _lessonFormHTML(l, mode) {
+    const today = _nowWall().slice(0, 10);
+    const startVal = l ? l.start : '';
+    return `<form class="cd-ls__form" data-form="1" novalidate>
+      <div class="cd-ls__fields">
+        <div class="cls-form-field"><label class="cls-form-label">Ziua</label>
+          <input type="date" name="date" class="cls-form-input" min="${today}" required value="${BM.esc(startVal.slice(0, 10))}"></div>
+        <div class="cls-form-field"><label class="cls-form-label">Ora</label>
+          <input type="time" name="time" class="cls-form-input" step="300" required value="${BM.esc(startVal.slice(11, 16))}"></div>
+        <div class="cls-form-field"><label class="cls-form-label">Durata</label>
+          <select name="hours" class="cls-form-input">${[1, 2, 3].map(h => `<option value="${h}"${h === (l ? l.hours : 1) ? ' selected' : ''}>${_hoursWord(h)}</option>`).join('')}</select></div>
+      </div>
+      <p class="cd-ls__warn" data-warn hidden>Data e peste 14 zile de acum. Verifică încă o dată ziua.</p>
+      <p class="cd-ls__err" data-err role="alert"></p>
+      <div class="cd-ls__formacts">
+        <button type="button" class="btn btn--surface btn--sm" data-act="close-form">Renunță</button>
+        <button type="submit" class="btn btn--primary btn--sm">${mode === 'extra' ? 'Adaugă lecția' : 'Salvează'}</button>
+      </div>
+    </form>`;
+  }
+
+  function _paintLessonsDialog() {
+    const body = document.getElementById('lsBody');
+    if (!body) return;
+    const now = _nowWall(), soon = _wallPlus(now, 60), from = _wallPlus(now, -180);
+    const rows = _lessons.filter(l => l.start >= from);
+    body.innerHTML = `
+      <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare. Orarul obișnuit și prezențele rămân în registru.</p>
+      ${rows.length ? `<ul class="cd-ls__list">${rows.map(l => {
+        const key = _lsKey(l);
+        const open = _lsForm && _lsForm.key === key;
+        const editable = l.kind === 'cancelled' || l.kind === 'moved' ? (l.orig_start || l.start) >= soon : l.start >= soon;
+        const moveOk = l.start >= soon;
+        const tag = l.kind === 'moved' ? `Mutată din ${_wallFull(l.orig_start)}` : l.kind === 'extra' ? 'În plus' : l.kind === 'cancelled' ? 'Anulată' : '';
+        const acts = [];
+        if (l.kind === 'regular' && moveOk) acts.push(['move', 'Mută'], ['cancel', 'Anulează']);
+        if (l.kind === 'moved') { if (moveOk) acts.push(['move', 'Mută'], ['cancel', 'Anulează']); if (editable) acts.push(['undo', 'Ora obișnuită']); }
+        if (l.kind === 'cancelled' && editable) acts.push(['undo', 'Restabilește']);
+        if (l.kind === 'extra' && moveOk) acts.push(['undo', 'Șterge']);
+        return `<li class="cd-ls__row cd-ls__row--${l.kind}" data-key="${BM.esc(key)}">
+          <div class="cd-ls__main">
+            <div class="cd-ls__when"><b>${BM.esc(_cap(_wallDay(l.start)))}</b><span>${BM.esc(_wallHM(l.start))}-${BM.esc(_wallHM(l.end))} · ${BM.esc(_hoursWord(l.hours))}</span></div>
+            ${tag ? `<span class="cd-ls__tag">${BM.esc(tag)}</span>` : ''}
+          </div>
+          ${acts.length ? `<div class="cd-ls__acts">${acts.map(([a, t]) => `<button type="button" class="cd-ls__act${a === 'cancel' || (a === 'undo' && l.kind === 'extra') ? ' cd-ls__act--warn' : ''}" data-act="${a}" data-key="${BM.esc(key)}">${t}</button>`).join('')}</div>` : ''}
+          ${open && _lsForm.mode === 'move' ? _lessonFormHTML(l, 'move') : ''}
+        </li>`;
+      }).join('')}</ul>` : `<p class="cd-ls__none">Nu sunt lecții în următoarele săptămâni. Grupa trebuie să aibă un program în registru.</p>`}
+      <div class="cd-ls__extra">
+        ${_lsForm && _lsForm.mode === 'extra' ? `<h4>Lecție în plus</h4>${_lessonFormHTML(null, 'extra')}` : `<button type="button" class="btn btn--surface btn--sm" data-act="extra">${icon('plus', { size: 14 })} Lecție în plus</button>`}
+      </div>`;
+    _wireLessonsDialog(body);
+  }
+
+  function _wireLessonsDialog(body) {
+    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
+      const act = b.dataset.act, l = _lessons.find(x => _lsKey(x) === b.dataset.key);
+      if (act === 'close-form') { _lsForm = null; _paintLessonsDialog(); return; }
+      if (act === 'extra') { _lsForm = { key: 'extra', mode: 'extra' }; _paintLessonsDialog(); document.querySelector('#lsBody .cd-ls__extra input')?.focus(); return; }
+      if (act === 'move' && l) { _lsForm = { key: _lsKey(l), mode: 'move' }; _paintLessonsDialog(); document.querySelector('#lsBody .cd-ls__row form input')?.focus(); return; }
+      if ((act === 'cancel' || (act === 'undo' && l && l.kind === 'extra')) && l) {
+        // the second tap confirms: the key itself asks
+        if (!b.dataset.armed) {
+          b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = act === 'cancel' ? 'Confirmă anularea' : 'Confirmă ștergerea';
+          setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.textContent = act === 'cancel' ? 'Anulează' : 'Șterge'; } }, 4000);
+          return;
+        }
+      }
+      if (act === 'cancel' && l) _runLessonAction(b, async () => {
+        const r = await _rpcLesson('class_lesson_set', { p_class: classData.id, p_kind: 'cancelled', p_orig: l.orig_date, p_new_start: null, p_hours: null });
+        return 'Lecția de ' + _wallFull(r.orig_start) + ' a fost anulată.';
+      });
+      if (act === 'undo' && l) _runLessonAction(b, async () => {
+        const r = await _rpcLesson('class_lesson_remove', { p_change: l.change });
+        return l.kind === 'extra' ? 'Lecția în plus de ' + _wallFull(r.new_start) + ' a fost anulată.' : 'Lecția de ' + _wallFull(r.orig_start) + ' se ține la ora obișnuită.';
+      });
+    }));
+    body.querySelectorAll('form[data-form]').forEach(f => {
+      const warn = f.querySelector('[data-warn]');
+      const check = () => {
+        const d = f.elements.date.value, lim = _wallPlus(_nowWall(), 14 * 24 * 60).slice(0, 10);
+        warn.hidden = !(d && d > lim);
+      };
+      f.elements.date.addEventListener('input', check); check();
+      f.addEventListener('submit', async ev => {
+        ev.preventDefault();
+        const err = f.querySelector('[data-err]'), go = f.querySelector('[type="submit"]');
+        const d = f.elements.date.value, t = f.elements.time.value, h = +f.elements.hours.value;
+        err.textContent = '';
+        if (!d || !t) { err.textContent = 'Alege ziua și ora.'; return; }
+        const wall = d + 'T' + t;
+        if (wall < _wallPlus(_nowWall(), 60)) { err.textContent = _LESSON_ERR['too soon']; return; }
+        const extra = _lsForm && _lsForm.mode === 'extra';
+        const l = extra ? null : _lessons.find(x => _lsKey(x) === _lsForm.key);
+        go.disabled = true;
+        try {
+          const r = await _rpcLesson('class_lesson_set', extra
+            ? { p_class: classData.id, p_kind: 'extra', p_orig: null, p_new_start: wall, p_hours: h }
+            : { p_class: classData.id, p_kind: 'moved', p_orig: l.orig_date, p_new_start: wall, p_hours: h });
+          const text = extra
+            ? 'Lecție în plus: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').'
+            : 'Lecția de ' + _wallFull(r.orig_start) + ' a fost mutată: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').';
+          _lsForm = null;
+          await _lessonsChanged(text);
+        } catch (e) { err.textContent = _lessonErr(e); go.disabled = false; }
+      });
+    });
+  }
+
+  async function _rpcLesson(fn, args) {
+    const { data, error } = await BMAuth.supabase.rpc(fn, args);
+    if (error) throw error;
+    return data;
+  }
+
+  async function _runLessonAction(btn, run) {
+    btn.disabled = true;
+    try { await _lessonsChanged(await run()); }
+    catch (e) { BM.toast(_lessonErr(e), 'error'); btn.disabled = false; }
+  }
+
+  async function _lessonsChanged(text) {
+    BM.toast('Schimbarea a fost salvată.', 'success');
+    _announceLessonChange(text);
+    await _loadLessons();
+    _loadMeet();
+  }
+
+  /* the students see a change the moment it is saved (own channel: a missing table must not break the class channel) */
+  let _lessonsChannel = null;
+  function _watchLessons() {
+    if (_lessonsChannel) BMAuth.supabase.removeChannel(_lessonsChannel);
+    _lessonsChannel = BMAuth.supabase.channel('class-lessons-' + classData.id)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'class_lesson_changes', filter: 'class_id=eq.' + classData.id }, () => _loadMeet())
+      .subscribe();
+  }
 
   /* ─── Access control ────────────────────────────────────────────── */
   async function checkAccess(classId) {
@@ -567,7 +810,9 @@
                 <div class="cd-meet" id="cdMeet" hidden>
                   <a class="cd-meet__btn" id="cdMeetBtn" target="_blank" rel="noopener noreferrer" aria-disabled="true">${icon('video', { size: 18 })} <span id="cdMeetLabel">Intră la lecție</span></a>
                   <button type="button" class="cd-meet__copy" id="cdMeetCopy" hidden title="Copiază linkul Meet" aria-label="Copiază linkul Meet">${icon('copy', { size: 16 })}</button>
+                  <button type="button" class="cd-meet__edit" id="cdLessonsBtn" hidden>${icon('calendar', { size: 16 })} Schimbă ora lecțiilor</button>
                   <span class="cd-meet__note" id="cdMeetNote" role="status" aria-live="polite"></span>
+                  <ul class="cd-meet__chg" id="cdMeetChg" hidden aria-label="Schimbări de program"></ul>
                 </div>` : ''}
               </div>
 
@@ -634,6 +879,7 @@
     });
 
     _loadMeet();
+    _watchLessons();
     _setupRealtime();
   }
 
