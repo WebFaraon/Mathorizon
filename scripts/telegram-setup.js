@@ -41,12 +41,21 @@ const tg = async (method, body) => {
   console.log('Webhook:', hook);
 
   await tg('setMyCommands', { commands: [
+    { command: 'azi', description: 'Lecțiile de azi' },
+    { command: 'maine', description: 'Lecțiile de mâine' },
+    { command: 'saptamana', description: 'Programul următoarelor 7 zile' },
+    { command: 'grupe', description: 'Grupele tale și elevii' },
+    { command: 'salariu', description: 'Cât ai câștigat și cât primești' },
+    { command: 'statistici', description: 'Lecții predate, elevi pe lecție' },
+    { command: 'inlocuiri', description: 'Cine te înlocuiește' },
+    { command: 'meet', description: 'Linkul tău Meet' },
+    { command: 'reguli', description: 'Cum pornește o grupă, statusuri, prezențe' },
+    { command: 'ajutor', description: 'Ce poate face asistentul' },
     { command: 'start', description: 'Conectează contul Mathorizon' },
-    { command: 'ajutor', description: 'Ce face botul' },
     { command: 'stop', description: 'Oprește mesajele' }
   ] });
-  await tg('setMyDescription', { description: 'Botul Mathorizon. Îți scriu când o grupă a ta e gata de start și te întreb dacă confirmi startul.' }).catch(() => {});
-  await tg('setMyShortDescription', { short_description: 'Confirmi startul grupelor tale.' }).catch(() => {});
+  await tg('setMyDescription', { description: 'Asistentul profesorilor Mathorizon: programul de azi, grupele, salariul, înlocuirile. Îți scriu și când o grupă a ta e gata de start.' }).catch(() => {});
+  await tg('setMyShortDescription', { short_description: 'Asistentul profesorilor Mathorizon.' }).catch(() => {});
 
   const r = await fetch(`${URL_}/rest/v1/telegram_bot?on_conflict=id`, { method: 'POST', headers: { apikey: SK, Authorization: 'Bearer ' + SK, 'content-type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: 1, username: me.username, set_at: new Date().toISOString() }) });
   console.log(r.ok ? 'Numele botului e în baza de date.' : 'NU am putut scrie numele botului în baza de date (' + r.status + '): rulează migrarea 20261029120000_telegram_starturi.sql și repetă scriptul.');
