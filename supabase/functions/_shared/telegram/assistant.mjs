@@ -143,12 +143,21 @@ export function dayItems(view, iso) {
   return out;
 }
 
+/* a quote block (the indented block with a bar) groups the lines of one lesson, one group, one replacement */
+const quote = lines => `<blockquote>${Array.isArray(lines) ? lines.join('\n') : lines}</blockquote>`;
+/* a table in a fixed-width block: labels on the left, values aligned on the right (the only way to line numbers up in a chat) */
+function table(rows, gap = 3) {
+  const a = Math.max(...rows.map(r => r[0].length)), b = Math.max(...rows.map(r => r[1].length));
+  return '<pre>' + rows.map(([x, y]) => esc(x.padEnd(a + gap) + y.padStart(b))).join('\n') + '</pre>';
+}
+const cap = s => s.charAt(0).toUpperCase() + s.slice(1);
+
 function itemText(view, it) {
-  const g = it.group, lines = [`🕐 <b>${hh(it.start)} – ${hh(it.end)}</b>`, `📚 ${groupName(g)}${g.level ? ` · nivel ${esc(g.level)}` : ''}`, placeText(view, g, it.slot)];
+  const g = it.group;
+  const lines = [`<b>${hh(it.start)} – ${hh(it.end)}</b> · ${groupName(g)}`, `${placeText(view, g, it.slot)}${g.level ? ` · nivel ${esc(g.level)}` : ''}`, `👥 ${studentsLine(view, g.id ? g : {})}`];
   if (it.kind === 'sub') lines.push(`🔄 Înlocuiești${it.from ? ' grupa lui ' + esc(it.from) : ' o grupă'}`);
-  lines.push(`👥 ${studentsLine(view, g.id ? g : {})}`);
-  if (stateKey(g.state) === 'starteaza' && it.kind === 'own') lines.push('🚀 Grupă care pornește: elevii vin la prima lecție, cea de probă');
-  return lines.join('\n');
+  if (stateKey(g.state) === 'starteaza' && it.kind === 'own') lines.push('🚀 Lecția de probă a unei grupe noi');
+  return quote(lines);
 }
 
 /* the next lesson from now on: { iso, item } or null (looks 21 days ahead) */
@@ -162,21 +171,19 @@ export function nextLesson(view, now) {
   return null;
 }
 
-export const NO_REGISTER = 'Contul tău nu are încă un registru legat, așa că nu am de unde să îți arăt programul. Roagă administratorul să lege registrul tău de cont.';
+export const NO_REGISTER = 'Contul tău nu are încă un registru legat. Cere administratorului să-l lege.';
 export const hasRegister = view => !!(view && view.workbooks && view.workbooks.length);
 
 export function dayText(view, now, offset) {
   const t = localNow(now), iso = addDays(t.iso, offset), label = dayName(iso, t.iso);
   const { teach, away, waiting } = dayItems(view, iso);
-  const head = `📅 <b>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</b>`;
-  const parts = [];
-  if (teach.length) parts.push(`${head} · ${plural(teach.length, 'lecție', 'lecții')}\n\n` + teach.map(it => itemText(view, it)).join('\n\n'));
-  else parts.push(`${head}\n\n🌿 ${offset === 0 ? 'Azi' : offset === 1 ? 'Mâine' : 'În ziua asta'} nu ai lecții.`);
-  if (away.length) parts.push('🔄 <b>Înlocuite</b>\n' + away.map(it => `• ${hh(it.start)} · ${groupName(it.group)}${it.by ? ` · de către ${esc(it.by)}` : ''}`).join('\n'));
-  if (waiting.length) parts.push('ℹ️ ' + waiting.map(g => `${groupName(g)} (${hh(slotsOf(g.schedule).find(s => s.day === dowOf(iso)).start)})`).join(', ') + ` ${waiting.length === 1 ? 'are program în ziua asta, dar nu a pornit încă: se completează' : 'au program în ziua asta, dar nu au pornit încă: se completează'}.`);
+  const head = `📅 <b>${esc(cap(label))}</b>`;
+  const parts = [teach.length ? `${head} · ${plural(teach.length, 'lecție', 'lecții')}\n\n` + teach.map(it => itemText(view, it)).join('\n\n') : `${head}\n\n🌿 Nicio lecție.`];
+  if (away.length) parts.push('🔄 <b>Înlocuite</b>\n' + quote(away.map(it => `${hh(it.start)} · ${groupName(it.group)}${it.by ? ` · de către ${esc(it.by)}` : ''}`)));
+  if (waiting.length) parts.push('⏳ <i>Se completează, fără lecții încă:</i> ' + waiting.map(g => `${groupName(g)} (${hh(slotsOf(g.schedule).find(s => s.day === dowOf(iso)).start)})`).join(', '));
   if (!teach.length) {
     const n = nextLesson(view, now);
-    if (n && n.iso !== iso) parts.push(`➡️ Următoarea lecție: <b>${esc(dayName(n.iso, t.iso))}, ${hh(n.item.start)}</b> · ${groupName(n.item.group)}`);
+    if (n && n.iso !== iso) parts.push(`➡️ Următoarea lecție: <b>${esc(dayName(n.iso, t.iso))} · ${hh(n.item.start)}</b>\n${groupName(n.item.group)}`);
   }
   return parts.join('\n\n');
 }
@@ -188,12 +195,11 @@ export function weekText(view, now) {
     const iso = addDays(t.iso, i), { teach, away } = dayItems(view, iso);
     total += teach.length;
     if (!teach.length && !away.length) continue;
-    const label = dayName(iso, t.iso);
-    const lines = teach.map(it => `• ${hh(it.start)}–${hh(it.end)} · ${groupName(it.group)} · ${plain(it.group.mode) === 'online' ? 'Online' : it.slot.cabinet ? 'cab. ' + esc(it.slot.cabinet) : 'fără cabinet'}${it.kind === 'sub' ? ' · înlocuire' : ''}`)
-      .concat(away.map(it => `• <s>${hh(it.start)} · ${groupName(it.group)}</s> · înlocuită${it.by ? ' de ' + esc(it.by) : ''}`));
-    blocks.push(`<b>${esc(label.charAt(0).toUpperCase() + label.slice(1))}</b>\n${lines.join('\n')}`);
+    const lines = teach.map(it => `${hh(it.start)}–${hh(it.end)} · ${groupName(it.group)} · ${plain(it.group.mode) === 'online' ? 'Online' : it.slot.cabinet ? 'cab. ' + esc(it.slot.cabinet) : 'fără cabinet'}${it.kind === 'sub' ? ' · înlocuire' : ''}`)
+      .concat(away.map(it => `<s>${hh(it.start)} · ${groupName(it.group)}</s> · înlocuită${it.by ? ' de ' + esc(it.by) : ''}`));
+    blocks.push(`<b>${esc(cap(dayName(iso, t.iso)))}</b>\n${quote(lines)}`);
   }
-  if (!blocks.length) return '📆 <b>Următoarele 7 zile</b>\n\n🌿 Nu ai lecții programate.';
+  if (!blocks.length) return '📆 <b>Următoarele 7 zile</b>\n\n🌿 Nicio lecție programată.';
   return `📆 <b>Următoarele 7 zile</b> · ${plural(total, 'lecție', 'lecții')}\n\n` + blocks.join('\n\n');
 }
 
@@ -210,6 +216,10 @@ function startNote(view, g) {
   return '';
 }
 
+const seats = (view, g) => {
+  const list = studentsOf(view, g).filter(s => isCounted(s.status)), trial = list.filter(s => plain(s.status) !== 'activ').length;
+  return `${list.length}${g.format_size ? '/' + g.format_size : ''} ${list.length === 1 ? 'elev' : 'elevi'}${trial ? ` · ${trial} la probă` : ''}`;
+};
 export function groupsText(view) {
   const gs = realGroups(view);
   if (!gs.length) return '👥 <b>Grupele tale</b>\n\nNu am găsit nicio grupă în registrul tău.';
@@ -218,12 +228,11 @@ export function groupsText(view) {
     const list = gs.filter(g => stateKey(g.state) === k);
     if (!list.length) return;
     if (k === 'inactiv') { out.push(`${STATE_ICON[k]} <b>Inactive</b> · ${list.length}`); return; }
-    out.push(`${STATE_ICON[k]} <b>${k === 'activ' ? 'Active' : k === 'starteaza' ? 'Pornesc' : 'Se completează'}</b> · ${list.length}\n` + list.map(g => {
+    out.push(`${STATE_ICON[k]} <b>${k === 'activ' ? 'Active' : k === 'starteaza' ? 'Pornesc' : 'Se completează'}</b> · ${list.length}\n` + quote(list.map(g => {
       const note = startNote(view, g);
-      return `• ${groupName(g)}\n   ${esc(whenText(g.schedule) || 'fără program')} · ${esc(studentsLine(view, g))}${g.format_size ? ` din ${g.format_size}` : ''}${note ? `\n   ↳ ${esc(note)}` : ''}`;
-    }).join('\n'));
+      return `<b>${groupName(g)}</b>\n${esc(whenText(g.schedule) || 'fără program')} · ${esc(seats(view, g))}${note ? `\n↳ ${esc(note)}` : ''}`;
+    }).join('\n\n')));
   });
-  out.push('Apasă o grupă ca să vezi elevii și detaliile.');
   return out.join('\n\n');
 }
 export function groupsKeyboard(view) {
@@ -234,38 +243,32 @@ export function groupsKeyboard(view) {
 export function groupCard(view, id, now) {
   const g = realGroups(view).find(x => x.id === id);
   if (!g) return null;
-  const k = stateKey(g.state), t = localNow(now), students = studentsOf(view, g);
-  const counted = students.filter(s => isCounted(s.status));
-  const lines = [`📚 <b>${groupName(g)}</b>`];
-  const meta = [g.level ? `nivel ${esc(g.level)}` : '', g.profile ? `profil ${esc(String(g.profile).toLowerCase())}` : '', plain(g.mode) === 'online' ? 'online' : plain(g.mode) === 'offline' ? 'la cabinet' : ''].filter(Boolean).join(' · ');
-  if (meta) lines.push(meta);
-  lines.push(`${STATE_ICON[k]} ${STATE_NAME[k] || esc(g.state || '')}`);
-  const note = startNote(view, g);
-  if (note) lines.push('↳ ' + esc(note));
-  if (k === 'starteaza') lines.push('↳ elevii vin la prima lecție, cea de probă; managerul îi sună');
+  const k = stateKey(g.state), t = localNow(now), students = studentsOf(view, g), counted = students.filter(s => isCounted(s.status));
   const slots = slotsOf(g.schedule);
-  lines.push(`\n🗓 ${esc(whenText(g.schedule) || 'fără program în registru')}`);
-  const place = placeText(view, g, slots[0]);
-  lines.push(place);
-  lines.push(`👥 ${counted.length} ${counted.length === 1 ? 'loc ocupat' : 'locuri ocupate'}${g.format_size ? ` din ${g.format_size}` : ''}`);
+  const meta = [STATE_NAME[k] || esc(g.state || ''), g.level ? `nivel ${esc(g.level)}` : '', g.profile ? `profil ${esc(String(g.profile).toLowerCase())}` : ''].filter(Boolean).join(' · ');
+  const lines = [`📚 <b>${groupName(g)}</b>`, `${STATE_ICON[k]} ${meta}`];
+  const note = startNote(view, g);
+  if (note) lines.push(`⏳ ${esc(note)}`);
+  if (k === 'starteaza') lines.push('🚀 Urmează lecția de probă; managerul sună elevii');
+  lines.push('', quote([`🗓 ${esc(whenText(g.schedule) || 'fără program în registru')}`, placeText(view, g, slots[0]), `👥 ${counted.length} ${counted.length === 1 ? 'loc ocupat' : 'locuri ocupate'}${g.format_size ? ` din ${g.format_size}` : ''}`]));
   if (counted.length) {
-    lines.push('\n<b>Elevii</b>');
-    counted.forEach((s, i) => lines.push(`${i + 1}. ${esc(s.name || 'fără nume')} · ${esc(plain(s.status) === 'activ' ? 'activ' : 'oră de probă' + (plain(s.status) === 'ora de proba confirmata' ? ' confirmată' : ''))}`));
+    lines.push('', '<b>Elevii</b>', quote(counted.map((s, i) => `${i + 1}. ${esc(s.name || 'fără nume')} · ${esc(plain(s.status) === 'activ' ? 'activ' : 'oră de probă' + (plain(s.status) === 'ora de proba confirmata' ? ' confirmată' : ''))}`)));
   }
   const other = students.length - counted.length;
-  if (other > 0) lines.push(`<i>+ ${plural(other, 'elev plecat sau transferat', 'elevi plecați sau transferați')}, nu îi arăt</i>`);
+  if (other > 0) lines.push(`<i>+ ${plural(other, 'elev plecat sau transferat', 'elevi plecați sau transferați')}</i>`);
   const done = doneLessons(view, [g.id]).sort((a, b) => a.iso.localeCompare(b.iso));
-  if (done.length) lines.push(`\n📊 ${plural(done.length, 'lecție predată', 'lecții predate')} · ultima: ${esc(dateText(done[done.length - 1].iso))}`);
-  const nx = nextOfGroup(g, t);
-  if (nx) lines.push(`➡️ Următoarea lecție: <b>${esc(dayName(nx.iso, t.iso))}, ${hh(nx.start)}</b>`);
+  const nx = nextOfGroup(g, t, view);
+  if (done.length || nx) lines.push('');
+  if (done.length) lines.push(`📊 ${plural(done.length, 'lecție predată', 'lecții predate')} · ultima: ${esc(dateText(done[done.length - 1].iso))}`);
+  if (nx) lines.push(`➡️ Următoarea lecție: <b>${esc(dayName(nx.iso, t.iso))} · ${hh(nx.start)}</b>`);
   return lines.join('\n');
 }
-function nextOfGroup(g, t) {
-  const slots = slotsOf(g.schedule);
-  if (!slots.length || !['activ', 'starteaza'].includes(stateKey(g.state))) return null;
-  for (let i = 0; i <= 14; i++) {
-    const iso = addDays(t.iso, i), s = slots.find(x => x.day === dowOf(iso) && (i > 0 || x.start * 60 > t.minutes));
-    if (s) return { iso, start: s.start };
+/* the next lesson that he really teaches: a lesson given to a replacement is skipped */
+function nextOfGroup(g, t, view) {
+  if (!['activ', 'starteaza'].includes(stateKey(g.state))) return null;
+  for (let i = 0; i <= 21; i++) {
+    const iso = addDays(t.iso, i), it = dayItems(view, iso).teach.find(x => x.kind === 'own' && x.group.id === g.id && (i > 0 || x.start * 60 > t.minutes));
+    if (it) return { iso, start: it.start };
   }
   return null;
 }
@@ -285,13 +288,10 @@ export function salaryText(view, now) {
   if (!has('earnedTotal') && !has('paidTotal') && !has('salaryDue')) return '💰 <b>Salariul tău</b>\n\nNu am găsit cifrele în foaia „Total achitări” din registrul tău.';
   const pays = tds.flatMap(d => (d.payments || []).filter(p => p && Number(p.sum))).sort((a, b) => String(b.iso || '').localeCompare(String(a.iso || ''))).slice(0, 3);
   const seen = (view.workbooks || []).map(w => w.last_synced_at).filter(Boolean).sort().pop();
-  const lines = ['💰 <b>Salariul tău</b>', '',
-    `Câștigat în total: <b>${money(sum('earnedTotal'))}</b>`,
-    `Achitat până acum: <b>${money(sum('paidTotal'))}</b>`,
-    `De primit: <b>${money(sum('salaryDue'))}</b>`];
-  if (pays.length) lines.push('', '<b>Ultimele plăți</b>', ...pays.map(p => `• ${esc(p.dateText || p.iso || '')} · ${money(p.sum)}`));
-  lines.push('', `<i>Cifrele sunt din foaia „Total achitări” a registrului tău${seen ? ', citită ' + ago(seen, now) : ''}. Ce vezi în registru e sursa.</i>`);
-  return lines.join('\n');
+  const out = ['💰 <b>Salariul tău</b>', table([['Câștigat', money(sum('earnedTotal'))], ['Achitat', money(sum('paidTotal'))], ['De primit', money(sum('salaryDue'))]])];
+  if (pays.length) out.push('<b>Ultimele plăți</b>\n' + table(pays.map(p => [String(p.dateText || p.iso || ''), money(p.sum)])));
+  if (seen) out.push(`<i>Din registrul tău, citit ${ago(seen, now)}</i>`);
+  return out.join('\n\n');
 }
 
 export function statsText(view, now) {
@@ -301,14 +301,13 @@ export function statsText(view, now) {
   const thisMonth = done.filter(l => l.iso.slice(0, 7) === month);
   const noMarks = (view.lessons || []).filter(l => l.iso && String(l.topic || '').trim() && !Object.values(l.marks || {}).some(Boolean) && l.iso <= t.iso);
   const active = gs.filter(g => ['activ', 'starteaza'].includes(stateKey(g.state))).length;
-  const lines = ['📊 <b>Cifrele tale</b>', '',
-    `Lecții predate în ${MONTHS[Number(month.slice(5)) - 1]}: <b>${thisMonth.length}</b>`,
-    `Lecții predate în total: <b>${done.length}</b>`,
-    `Elevi prezenți pe lecție, în medie: <b>${done.length ? nf1.format(present / done.length) : '—'}</b>`,
-    `Grupe: <b>${gs.length}</b> (${active} ${active === 1 ? 'activă' : 'active'})`];
-  if (noMarks.length) lines.push('', noMarks.length === 1 ? '📝 1 lecție are dată și temă, dar nu are prezențe notate în registru. Completează-le ca să conteze.' : `📝 ${noMarks.length} lecții au dată și temă, dar nu au prezențe notate în registru. Completează-le ca să conteze.`);
-  lines.push('', '<i>O lecție contează când are dată, temă și cel puțin o prezență în registru.</i>');
-  return lines.join('\n');
+  const out = ['📊 <b>Cifrele tale</b>', table([
+    [`Lecții în ${MONTHS[Number(month.slice(5)) - 1]}`, String(thisMonth.length)],
+    ['Lecții în total', String(done.length)],
+    ['Elevi pe lecție', done.length ? nf1.format(present / done.length) : '—'],
+    ['Grupe active', `${active} din ${gs.length}`]])];
+  if (noMarks.length) out.push(noMarks.length === 1 ? '📝 1 lecție are dată și temă, dar nu are prezențe notate în registru.' : `📝 ${noMarks.length} lecții au dată și temă, dar nu au prezențe notate în registru.`);
+  return out.join('\n\n');
 }
 
 /* ---------- replacements ---------- */
@@ -324,10 +323,10 @@ export function replacementsText(view, now) {
   }));
   const sort = a => a.sort((x, y) => x.iso.localeCompare(y.iso) || x.start - y.start);
   if (!mine.length && !subs.length) return '🔄 <b>Înlocuiri</b>\n\nNu ai nicio înlocuire programată.';
-  const line = (r, who) => `• ${esc(dayName(r.iso, t.iso))} · ${hh(r.start)}–${hh(r.end)} · ${r.name}${who ? ' · ' + who : ''}${r.cabinet ? ` · cab. ${esc(r.cabinet)}` : ''}`;
+  const block = (r, who) => `<b>${esc(dayName(r.iso, t.iso))} · ${hh(r.start)}–${hh(r.end)}</b>\n${r.name}${who ? ' · ' + who : ''}${r.cabinet ? ` · cab. ${esc(r.cabinet)}` : ''}`;
   const out = ['🔄 <b>Înlocuiri</b>'];
-  if (mine.length) out.push('<b>Te înlocuiește altcineva</b>\n' + sort(mine).map(r => line(r, r.other ? 'de către ' + esc(r.other) : '')).join('\n'));
-  if (subs.length) out.push('<b>Înlocuiești tu</b>\n' + sort(subs).map(r => line(r, r.from ? 'grupa lui ' + esc(r.from) : '')).join('\n'));
+  if (mine.length) out.push('<b>Te înlocuiește altcineva</b>\n' + quote(sort(mine).map(r => block(r, r.other ? 'de către ' + esc(r.other) : ''))));
+  if (subs.length) out.push('<b>Înlocuiești tu</b>\n' + quote(sort(subs).map(r => block(r, r.from ? 'grupa lui ' + esc(r.from) : ''))));
   return out.join('\n\n');
 }
 
@@ -336,47 +335,39 @@ export function meetText(view) {
   if (!hasRegister(view)) return NO_REGISTER;
   const links = (view.workbooks || []).map(w => { const m = w.teacher_data && w.teacher_data.meet; return typeof m === 'string' ? m : (m && (m.url || m.link)) || ''; }).filter(Boolean);
   const online = realGroups(view).filter(g => plain(g.mode) === 'online' && stateKey(g.state) !== 'inactiv');
-  const out = ['💻 <b>Linkul tău Meet</b>', ''];
-  if (links.length) out.push(`<a href="${esc(links[0])}">${esc(links[0])}</a>`);
-  else out.push('Nu ai încă un link Meet în registru. Scrie-l în foaia „Disponibilitate”, în rândul „Link Google Meet”, în caseta de lângă.');
-  out.push('', online.length ? `Elevii celor ${online.length} grupe online văd butonul „Intră la lecție” pe platformă, cu 10 minute înainte de lecție până cu 10 minute înainte de final.` : 'Nu ai grupe online acum, deci linkul nu apare nimănui.');
-  return out.join('\n');
+  const out = ['💻 <b>Linkul tău Meet</b>'];
+  out.push(links.length ? `<a href="${esc(links[0])}">${esc(links[0])}</a>` : 'Nu ai încă un link în registru. Scrie-l în foaia „Disponibilitate”, în rândul „Link Google Meet”.');
+  out.push(online.length ? `👥 Îl văd elevii a ${plural(online.length, 'grupă online', 'grupe online')}.` : 'Nu ai grupe online acum.');
+  return out.join('\n\n');
 }
 
 /* ---------- the rules ---------- */
-const NEED_LINE = Object.keys(START_MIN).map(Number).sort((a, b) => a - b).map(n => `• grup de ${n}: ${START_MIN[n]} elevi`).join('\n');
+const NEED_TABLE = '<pre>' + Object.keys(START_MIN).map(Number).sort((a, b) => a - b).map(n => `grup de ${String(n).padEnd(2)}  ${START_MIN[n]} elevi`).join('\n') + '</pre>';
 export const RULES = {
-  start: `🚀 <b>Când pornește o grupă</b>\n\nO grupă care se completează trece singură în „Pornește” când are destui elevi înscriși (activi, la ora de probă sau cu ora de probă confirmată):\n${NEED_LINE}\n\nLecția individuală nu are oră de probă: se plătește din prima lecție.\nCând grupa pornește, te întreb aici dacă confirmi startul, apoi managerul sună elevii pentru prima lecție.`,
-  status: '🏷 <b>Statusurile grupei</b>\n\n🟢 <b>Activă</b>: grupa merge, are lecții.\n🟠 <b>Se completează</b>: se mai înscriu elevi, lecțiile nu au început.\n🚀 <b>Pornește</b>: sunt destui elevi; urmează lecția de probă.\n⚪ <b>Inactivă</b>: nu mai are lecții.\n🔄 <b>Înlocuire</b>: fila în care predă un profesor care înlocuiește.\n\nStatusul îl schimbă managerul sau registrul, nu trebuie să-l pui tu.',
-  marks: '📝 <b>Prezențele din registru</b>\n\n<b>PREZENT</b>: elevul a fost.\n<b>ABSENT</b>: lipsă nemotivată (lecția se taxează).\n<b>ABSENT MOTIVAT</b>: lipsă motivată (nu se taxează).\n<b>PRIMA LECȚIE GRATUITĂ</b>: ora de probă, elevul a venit.\n<b>ABSENT PRIMA LECȚIE GRATUITĂ</b>: ora de probă, elevul nu a venit.\n\nData, tema și prezențele se scriu doar în registru. O lecție contează la salariu și la cifre când are dată, temă și cel puțin o prezență.',
-  schedule: '🗓 <b>Orarul unei grupe</b>\n\nO grupă are fie o lecție de două ore într-o zi, fie două lecții de o oră în zile diferite. Orele, zilele și cabinetul se schimbă din consolă sau din registru de către manager.\n\nCabinetul e opțional la o grupă nouă; grupele online nu au cabinet.'
+  start: `🚀 <b>Când pornește o grupă</b>\n\nO grupă care se completează trece singură în „Pornește” când are destui elevi înscriși (activi sau la ora de probă):\n\n${NEED_TABLE}\n\nLecția individuală nu are oră de probă.\nCând grupa pornește te întreb aici dacă confirmi, apoi managerul sună elevii.`,
+  status: '🏷 <b>Statusurile grupei</b>\n\n' + quote(['🟢 <b>Activă</b>: merge, are lecții', '🟠 <b>Se completează</b>: se mai înscriu elevi, lecțiile n-au început', '🚀 <b>Pornește</b>: sunt destui elevi, urmează lecția de probă', '⚪ <b>Inactivă</b>: nu mai are lecții', '🔄 <b>Înlocuire</b>: fila unui profesor care înlocuiește']) + '\n\nStatusul îl schimbă managerul sau registrul.',
+  marks: '📝 <b>Prezențele din registru</b>\n\n' + quote(['<b>PREZENT</b>: elevul a fost', '<b>ABSENT</b>: lipsă nemotivată, lecția se taxează', '<b>ABSENT MOTIVAT</b>: lipsă motivată, nu se taxează', '<b>PRIMA LECȚIE GRATUITĂ</b>: ora de probă, a venit', '<b>ABSENT PRIMA LECȚIE GRATUITĂ</b>: ora de probă, n-a venit']) + '\n\nData, tema și prezențele se scriu doar în registru. O lecție contează când are dată, temă și cel puțin o prezență.',
+  schedule: '🗓 <b>Orarul unei grupe</b>\n\n' + quote(['O lecție de două ore într-o zi', 'sau două lecții de o oră, în zile diferite']) + '\n\nOrele, zilele și cabinetul le schimbă managerul. Grupele online nu au cabinet.'
 };
 export const rulesKeyboard = () => ({ inline_keyboard: [[{ text: '🚀 Pornirea grupei', callback_data: 'r:start' }, { text: '🏷 Statusuri', callback_data: 'r:status' }], [{ text: '📝 Prezențe', callback_data: 'r:marks' }, { text: '🗓 Orar', callback_data: 'r:schedule' }]] });
-export const rulesIntro = '📘 <b>Reguli pe scurt</b>\n\nAlege ce vrei să știi:';
+export const rulesIntro = '📘 <b>Reguli</b>';
 
 /* ---------- help and menu ---------- */
+/* the quick keys under the message box */
 export const MENU = [['📅 Azi', '📅 Mâine'], ['👥 Grupele mele', '💰 Salariu'], ['❓ Ajutor']];
 export const menuKeyboard = () => ({ keyboard: MENU.map(r => r.map(text => ({ text }))), resize_keyboard: true, is_persistent: true });
 
-/* what the teacher may type, with or without the slash, and the buttons of the menu */
-const WORDS = { azi: 'azi', maine: 'maine', saptamana: 'saptamana', grupe: 'grupe', 'grupele mele': 'grupe', salariu: 'salariu', statistici: 'statistici', cifre: 'statistici', inlocuiri: 'inlocuiri', meet: 'meet', reguli: 'reguli', ajutor: 'ajutor', help: 'ajutor', meniu: 'ajutor' };
+/* the help: a grid of nine keys, three in a row, every key the same width, so it lines up on any phone */
+export const COMMANDS = [['azi', '📅 Azi'], ['maine', '📅 Mâine'], ['saptamana', '📆 7 zile'], ['grupe', '👥 Grupe'], ['salariu', '💰 Salariu'], ['statistici', '📊 Cifre'], ['inlocuiri', '🔄 Înlocuiri'], ['meet', '💻 Meet'], ['reguli', '📘 Reguli']];
+export const helpKeyboard = () => ({ inline_keyboard: [0, 3, 6].map(i => COMMANDS.slice(i, i + 3).map(([c, text]) => ({ text, callback_data: 'cmd:' + c }))) });
+export const helpText = '🤖 <b>Asistentul Mathorizon</b>';
+
+/* what the teacher may type, with or without the slash, and the keys of the menu */
+const WORDS = { azi: 'azi', maine: 'maine', saptamana: 'saptamana', '7 zile': 'saptamana', grupe: 'grupe', 'grupele mele': 'grupe', salariu: 'salariu', statistici: 'statistici', cifre: 'statistici', inlocuiri: 'inlocuiri', meet: 'meet', reguli: 'reguli', ajutor: 'ajutor', help: 'ajutor', meniu: 'ajutor' };
 export function commandOf(text) {
-  const t = plain(String(text || '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}️]/gu, '')).replace(/^\//, '').replace(/@\w+$/, '').trim();
+  const t = plain(String(text || '').replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\uFE0F]/gu, '')).replace(/^\//, '').replace(/@\w+$/, '').trim();
   return WORDS[t] || null;
 }
-
-export const helpText = '🤖 <b>Asistentul Mathorizon</b>\n\nÎți răspund la ce întrebai de obicei managerul:\n\n' +
-  '📅 /azi · lecțiile de azi, cu cabinet, elevi și Meet\n' +
-  '📅 /maine · lecțiile de mâine\n' +
-  '📆 /saptamana · programul următoarelor 7 zile\n' +
-  '👥 /grupe · grupele tale, elevii și câți mai trebuie ca să pornească\n' +
-  '💰 /salariu · cât ai câștigat, cât ți s-a plătit, cât primești\n' +
-  '📊 /statistici · lecțiile predate și elevii pe lecție\n' +
-  '🔄 /inlocuiri · cine te înlocuiește și pe cine înlocuiești tu\n' +
-  '💻 /meet · linkul tău Meet\n' +
-  '📘 /reguli · cum pornește o grupă, ce înseamnă statusurile și prezențele\n' +
-  '⛔ /stop · oprește mesajele\n\n' +
-  'Când o grupă a ta e gata de start, îți scriu eu și te întreb dacă confirmi.\nPentru orice altceva, vorbește cu managerul tău.';
 
 /* ---------- the question about a start, and its answers ---------- */
 export function nextOccurrence(schedule, now) {
@@ -389,21 +380,19 @@ export function nextOccurrence(schedule, now) {
   return null;
 }
 
+const groupLines = r => [`<b>${[esc(r.subject || 'Grupă'), esc(gradeText(r.grade))].filter(Boolean).join(', ')}</b>`].concat(whenText(r.schedule) ? [`🗓 ${esc(whenText(r.schedule))}`] : []);
+
 export function askText(r, counts, students, now) {
-  const when = whenText(r.schedule), names = (students || []).filter(s => s && s.name);
-  const lines = ['🚀 <b>Grupa ta e gata de start</b>', '', `📚 ${[esc(r.subject || 'Grupă'), esc(gradeText(r.grade))].filter(Boolean).join(', ')}`];
-  if (when) lines.push(`🗓 ${esc(when)}`);
-  lines.push(`👥 ${counts.enrolled} ${counts.enrolled === 1 ? 'elev înscris' : 'elevi înscriși'} din ${counts.size}${counts.need ? ` (minimul pentru start e ${counts.need})` : ''}`);
-  const shown = names.filter(s => isCounted(s.status));
-  if (shown.length) shown.forEach(s => lines.push(`   • ${esc(s.name)} · ${plain(s.status) === 'activ' ? 'activ' : 'oră de probă'}`));
+  const names = (students || []).filter(s => s && s.name && isCounted(s.status));
+  const box = groupLines(r).concat([`👥 ${counts.enrolled} ${counts.enrolled === 1 ? 'elev înscris' : 'elevi înscriși'} din ${counts.size}${counts.need ? ` (minimul pentru start e ${counts.need})` : ''}`], names.map(s => `   • ${esc(s.name)} · ${plain(s.status) === 'activ' ? 'activ' : 'oră de probă'}`));
   const nx = now ? nextOccurrence(r.schedule, now) : null;
-  if (nx) lines.push('', `➡️ Prima lecție ar fi <b>${esc(dateText(nx.iso))}, ${hh(nx.start)}</b>, cea de probă.`);
-  lines.push('', 'Dacă confirmi, managerul sună elevii și îi invită la prima lecție. Dacă nu, scrie-mi motivul și îl primește managerul.', '', '<b>Confirmi startul grupei?</b>');
-  return lines.join('\n');
+  const out = ['🚀 <b>Grupa ta e gata de start</b>', quote(box)];
+  if (nx) out.push(`➡️ Prima lecție, cea de probă: <b>${esc(dateText(nx.iso))} · ${hh(nx.start)}</b>`);
+  out.push('Confirmând, managerul sună elevii pentru prima lecție.', '<b>Confirmi startul grupei?</b>');
+  return out.join('\n\n');
 }
 export const confirmedText = (r, now) => {
-  const nx = now ? nextOccurrence(r.schedule, now) : null, when = whenText(r.schedule);
-  return `✅ <b>Ai confirmat startul grupei</b>\n\n📚 ${[esc(r.subject || 'Grupă'), esc(gradeText(r.grade))].filter(Boolean).join(', ')}${when ? '\n🗓 ' + esc(when) : ''}\n\n` +
-    `Managerul a fost anunțat și sună elevii pentru prima lecție.${nx ? `\n➡️ Prima lecție: <b>${esc(dateText(nx.iso))}, ${hh(nx.start)}</b>.` : ''}\nVezi oricând programul cu /azi sau /saptamana.`;
+  const nx = now ? nextOccurrence(r.schedule, now) : null;
+  return ['✅ <b>Ai confirmat startul grupei</b>', quote(groupLines(r)), 'Managerul a fost anunțat și sună elevii.' + (nx ? `\n➡️ Prima lecție: <b>${esc(dateText(nx.iso))} · ${hh(nx.start)}</b>` : '')].join('\n\n');
 };
-export const declinedText = r => `❌ <b>Nu ai confirmat startul grupei</b>\n\n📚 ${[esc(r.subject || 'Grupă'), esc(gradeText(r.grade))].filter(Boolean).join(', ')}${whenText(r.schedule) ? '\n🗓 ' + esc(whenText(r.schedule)) : ''}`;
+export const declinedText = r => ['❌ <b>Nu ai confirmat startul grupei</b>', quote(groupLines(r))].join('\n\n');

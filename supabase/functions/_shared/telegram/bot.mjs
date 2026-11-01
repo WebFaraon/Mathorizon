@@ -46,23 +46,39 @@ export function chunks(text, limit = MAX_LEN) {
 }
 
 const T = {
-  linked: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău Mathorizon e conectat la acest chat.\n\nCe fac pentru tine:\n• îți scriu când o grupă a ta e gata de start și te întreb dacă o confirmi;\n• îți arăt programul, grupele, salariul și înlocuirile când mă întrebi.\n\nÎncearcă /azi, /grupe sau /salariu. Toate comenzile: /ajutor. Oprești mesajele cu /stop.`,
+  linked: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău Mathorizon e conectat la acest chat.`,
   badCode: 'Codul nu mai e valabil (ține 15 minute) sau a fost deja folosit. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și folosește linkul nou.',
   notLinked: 'Acest chat nu e conectat la un cont Mathorizon. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și deschide linkul primit.',
-  hello: name => `👋 Salut${name ? ', ' + esc(name) : ''}! Sunt asistentul Mathorizon.\nÎți arăt programul, grupele și salariul, iar când o grupă a ta e gata de start te întreb dacă o confirmi.\n\nScrie /ajutor sau folosește butoanele de jos.`,
+  hello: name => `👋 Salut${name ? ', ' + esc(name) : ''}!`,
   stopped: 'Am oprit mesajele și am șters legătura cu contul tău. O poți reface oricând din profilul tău de pe Mathorizon.',
-  unknown: 'Nu am înțeles 🤔 Alege din butoanele de jos sau scrie /ajutor ca să vezi ce pot face.',
+  unknown: 'Nu am înțeles. Alege o comandă:',
   already: 'Ai răspuns deja la această întrebare.',
   notYours: 'Întrebarea aceasta nu e pentru acest cont.',
   gone: 'Grupa nu mai e în starea de start, așa că nu mai ai nimic de confirmat.',
-  askReason: 'Care e motivul? Scrie-l într-un singur mesaj și îl transmit managerului.',
-  thanksReason: reason => `Mulțumesc 🙏 Am transmis motivul managerului:\n<i>${esc(reason)}</i>`,
-  stillWaiting: 'ℹ️ Încă aștept motivul pentru care nu confirmi startul. Scrie-l într-un mesaj.',
+  askReason: 'Care e motivul? Scrie-l într-un singur mesaj.',
+  thanksReason: reason => `Mulțumesc 🙏 Am transmis motivul managerului:
+<i>${esc(reason)}</i>`,
+  stillWaiting: 'ℹ️ Încă aștept motivul pentru care nu confirmi startul.',
   noGroup: 'Grupa nu mai există în registrul tău.',
   error: 'Nu am putut citi datele acum. Încearcă din nou peste un minut.'
 };
 
 /* ---------- a message or a button press from Telegram ---------- */
+
+/* the answer to a command (a typed one or a key of the help): sent as new messages */
+async function runCommand(cmd, user, { db, say, sayAll, now }) {
+  if (cmd === 'reguli') { await say(A.rulesIntro, { reply_markup: A.rulesKeyboard() }); return; }
+  const view = await db.teacherView(user.user_id);
+  if (cmd === 'meet') await say(A.meetText(view));
+  else if (!A.hasRegister(view)) await say(A.NO_REGISTER);
+  else if (cmd === 'azi') await sayAll(A.dayText(view, now, 0));
+  else if (cmd === 'maine') await sayAll(A.dayText(view, now, 1));
+  else if (cmd === 'saptamana') await sayAll(A.weekText(view, now));
+  else if (cmd === 'grupe') await sayAll(A.groupsText(view), { reply_markup: A.groupsKeyboard(view) });
+  else if (cmd === 'salariu') await say(A.salaryText(view, now));
+  else if (cmd === 'statistici') await say(A.statsText(view, now));
+  else if (cmd === 'inlocuiri') await sayAll(A.replacementsText(view, now));
+}
 
 export async function handleUpdate(update, { db, api, now = new Date() }) {
   if (update && update.callback_query) return handleCallback(update.callback_query, { db, api, now });
@@ -79,16 +95,18 @@ export async function handleUpdate(update, { db, api, now = new Date() }) {
       if (!code) { await say(T.badCode); return { handled: true, linked: false }; }
       const u = await db.saveLink({ user_id: code.user_id, chat_id: chat, username: m.from && m.from.username || null, first_name: m.from && m.from.first_name || null });
       await say(T.linked(u && u.name || (m.from && m.from.first_name) || ''), { reply_markup: A.menuKeyboard() });
+      await say(A.helpText, { reply_markup: A.helpKeyboard() });
       return { handled: true, linked: true };
     }
     const u = await db.userByChat(chat);
     await say(u ? T.hello(u.name) : T.notLinked, u ? { reply_markup: A.menuKeyboard() } : undefined);
+    if (u) await say(A.helpText, { reply_markup: A.helpKeyboard() });
     return { handled: true };
   }
   if (/^\/stop(?:@\w+)?\s*$/i.test(text)) { await db.unlinkChat(chat); await say(T.stopped, { reply_markup: { remove_keyboard: true } }); return { handled: true, unlinked: true }; }
 
   const cmd = A.commandOf(text);
-  if (cmd === 'ajutor') { await say(A.helpText, { reply_markup: A.menuKeyboard() }); return { handled: true, command: cmd }; }
+  if (cmd === 'ajutor') { await say(A.helpText, { reply_markup: A.helpKeyboard() }); return { handled: true, command: cmd }; }
 
   const user = await db.userByChat(chat);
   if (!user) { await say(T.notLinked); return { handled: true }; }
@@ -100,25 +118,12 @@ export async function handleUpdate(update, { db, api, now = new Date() }) {
   }
 
   if (cmd) {
-    try {
-      if (cmd === 'reguli') await say(A.rulesIntro, { reply_markup: A.rulesKeyboard() });
-      else {
-        const view = await db.teacherView(user.user_id);
-        if (cmd === 'meet') await say(A.meetText(view));
-        else if (!A.hasRegister(view)) await say(A.NO_REGISTER);
-        else if (cmd === 'azi') await sayAll(A.dayText(view, now, 0));
-        else if (cmd === 'maine') await sayAll(A.dayText(view, now, 1));
-        else if (cmd === 'saptamana') await sayAll(A.weekText(view, now));
-        else if (cmd === 'grupe') await sayAll(A.groupsText(view), { reply_markup: A.groupsKeyboard(view) });
-        else if (cmd === 'salariu') await say(A.salaryText(view, now));
-        else if (cmd === 'statistici') await say(A.statsText(view, now));
-        else if (cmd === 'inlocuiri') await sayAll(A.replacementsText(view, now));
-      }
-    } catch (e) { await say(T.error); return { handled: true, command: cmd, failed: true }; }
+    try { await runCommand(cmd, user, { db, say, sayAll, now }); }
+    catch (e) { await say(T.error); return { handled: true, command: cmd, failed: true }; }
     if (waiting) await say(T.stillWaiting);
     return { handled: true, command: cmd };
   }
-  await say(T.unknown, { reply_markup: A.menuKeyboard() });
+  await say(T.unknown, { reply_markup: A.helpKeyboard() });
   return { handled: true };
 }
 
@@ -126,6 +131,18 @@ async function handleCallback(cb, { db, api, now }) {
   const chat = cb.message && cb.message.chat && cb.message.chat.id, msgId = cb.message && cb.message.message_id;
   const answer = (t) => api.answerCallbackQuery(cb.id, t);
   const data = String(cb.data || '');
+
+  // a key of the help: the command runs, the answer comes as a new message
+  const key = /^cmd:(azi|maine|saptamana|grupe|salariu|statistici|inlocuiri|meet|reguli)$/.exec(data);
+  if (key && chat) {
+    const user = await db.userByChat(chat);
+    if (!user) { await answer(T.notYours); return { handled: true }; }
+    await answer('');
+    const say = (t, extra) => api.sendMessage(chat, t, extra);
+    const sayAll = async (t, extra) => { const parts = chunks(t); for (let i = 0; i < parts.length; i++) await say(parts[i], i === parts.length - 1 ? extra : undefined); };
+    try { await runCommand(key[1], user, { db, say, sayAll, now }); } catch (e) { await say(T.error); return { handled: true, failed: true }; }
+    return { handled: true, command: key[1] };
+  }
 
   // the groups, the rules: the message itself changes, the chat stays clean
   const nav = /^(g:[0-9a-f-]{36}|gl|r:(?:start|status|marks|schedule))$/.exec(data);
