@@ -470,15 +470,22 @@
     const p = C.profs.find(x => x.user_id === uid) || C.mgrs.find(x => x.user_id === uid);
     if (!p) return;
     const mgr = !!C.mgrs.find(x => x.user_id === uid);
-    const d = U.drawer({
-      title: 'Nume oficial',
-      sub: esc(p.email || ''),
-      body: `<form class="sy-form" id="cnNameForm">
+    // a small dialog in the middle of the page: one field and a confirmation
+    const d = document.createElement('dialog');
+    d.className = 'cn-dlg';
+    d.setAttribute('aria-labelledby', 'cnNameT');
+    d.innerHTML = `<form id="cnNameForm">
+      <div class="cn-dlg__b">
+        <h2 id="cnNameT">Nume oficial</h2>
+        <span class="ax-sub">${esc(p.email || '')}</span>
         <label class="sy-f"><span>Nume Prenume</span><input class="ax-input" name="name" required maxlength="80" value="${esc(p.official_name || p.full_name || '')}" autocomplete="off"></label>
         <p class="sy-err" id="cnNameErr" role="alert"></p>
-      </form>`,
-      actions: '<button type="button" class="ax-btn" data-close>Renunță</button><button type="submit" form="cnNameForm" class="ax-btn ax-btn--dark" id="cnNameGo">Salvează</button>'
-    });
+      </div>
+      <div class="cn-dlg__a"><button type="button" class="ax-btn" data-close>Renunță</button><button type="submit" class="ax-btn ax-btn--dark" id="cnNameGo">Salvează</button></div>
+    </form>`;
+    document.body.appendChild(d);
+    d.addEventListener('close', () => d.remove());
+    d.addEventListener('click', e => { if (e.target === d || e.target.closest('[data-close]')) d.close(); });
     d.querySelector('#cnNameForm').addEventListener('submit', async ev => {
       ev.preventDefault();
       const name = String(new FormData(ev.target).get('name') || '').replace(/\s+/g, ' ').trim(), go = d.querySelector('#cnNameGo'), err = d.querySelector('#cnNameErr');
@@ -493,6 +500,8 @@
         if (mgr) sendConfig();
       } catch (e) { err.textContent = nameError(e); go.disabled = false; }
     });
+    d.showModal();
+    const inp = d.querySelector('input[name="name"]'); inp.focus(); inp.select();
   }
 
   /* the managers list of the registers (the master file): the function writes the approved managers there; without access it says which names to copy */

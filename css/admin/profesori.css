@@ -152,3 +152,11 @@ body.ax .cn-role { display: inline-block; margin-left: 6px; padding: 1px 7px; bo
 /* the official name asked at approval */
 body.ax .cn-req__name { display: grid; gap: 4px; min-width: 220px; flex: 1 1 220px; }
 body.ax .cn-req__name .ax-input { font-weight: 700; }
+
+/* the official name: a small dialog in the middle of the page */
+body.ax .cn-dlg { width: min(440px, calc(100vw - 32px)); margin: auto; padding: 0; border: 1px solid var(--ax-ink); border-radius: var(--ax-r-2); background: var(--ax-panel); color: var(--ax-ink); box-shadow: var(--ax-shadow-pop); overscroll-behavior: contain; }
+body.ax .cn-dlg[open] { animation: ax-fade 0.2s ease-out; }
+body.ax .cn-dlg::backdrop { background: rgba(10, 12, 15, 0.5); }
+body.ax .cn-dlg__b { display: grid; gap: 12px; padding: 18px 20px 6px; }
+body.ax .cn-dlg__b h2 { font-size: 1.12rem; font-weight: 800; }
+body.ax .cn-dlg__a { display: flex; justify-content: flex-end; gap: 8px; padding: 14px 20px 16px; }
