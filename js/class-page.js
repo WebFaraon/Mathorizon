@@ -145,6 +145,24 @@
   }
   document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('cdMeet')) _loadMeet(); });
 
+  /* The header is a drawing plate: the navbar blue with a fine white grid and a thin technical drawing (the trigonometric circle with its angle, a right triangle, three
+     formulas set in the display font). Pure decoration (aria-hidden), behind the content; the text is white on it (css/class-detail.css, "the plate"). */
+  const _CD_ART = `<div class="cd-art" aria-hidden="true"><svg viewBox="0 0 760 330" width="760" height="330" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g class="cd-art__fig" stroke-width="1.6">
+      <circle cx="330" cy="170" r="110"/>
+      <path class="cd-art__ax" d="M190 170H470M330 40V300" stroke-width="1.2"/>
+      <path class="cd-art__hi" d="M330 170L412 96" stroke-width="2.4"/>
+      <path class="cd-art__dash" d="M412 96V170M412 170H330" stroke-dasharray="5 6"/>
+      <path class="cd-art__hi" d="M368 170A38 38 0 0 0 360 148"/>
+      <circle class="cd-art__dot" cx="412" cy="96" r="4.5" stroke="none"/>
+      <path d="M520 290L660 290L660 210Z" stroke-width="1.4"/><path d="M648 290V278H660" stroke-width="1.2"/>
+    </g>
+    <g class="cd-art__tx">
+      <text x="425" y="92">P(cos t, sin t)</text><text x="372" y="190">t</text>
+      <text x="570" y="312">a</text><text x="672" y="255">b</text><text x="575" y="245">c</text>
+      <text x="30" y="60">sin²x + cos²x = 1</text><text x="30" y="92">Δ = b² − 4ac</text><text x="30" y="124">∫ f(x)dx = F(b)−F(a)</text>
+    </g></svg></div>`;
+
   /* ─── Lesson changes: move one lesson, add an extra one, cancel one (online groups) ──────────────────────────────────
      The base schedule stays in the register. Only the exceptions live here (table class_lesson_changes, functions class_lesson_set / class_lesson_remove /
      class_upcoming_lessons): the teacher changes them directly, the Meet window follows them (class_meet_at), and the class gets a message and a push.
@@ -912,7 +930,7 @@
 
         <!-- ── Header ─────────────────────────────────────── -->
         <div class="cd-header">
-
+          ${_CD_ART}
           <div class="container" style="position:relative;z-index:1">
             <a class="cd-back" href="classes.html">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none"
