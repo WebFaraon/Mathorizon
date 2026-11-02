@@ -3243,7 +3243,7 @@ body:has(#classesRoot) {
 /* The legacy .main colour blobs (style.css) are glass-card scenery. */
 #classesRoot::before,
 #classesRoot::after { display: none; }
-#classesRoot { max-width: min(100%, 1840px); font-family: var(--k-font); color: var(--k-ink); }
+#classesRoot { max-width: min(100%, 1760px); font-family: var(--k-font); color: var(--k-ink); }
 
 .cl-page {
   display: flex;
@@ -4480,8 +4480,10 @@ body:has(#classesRoot) {
    no colour bars: the columns do the ordering, so the eye reads down the page instead of across a wall of cards. The whole row opens the class.
    The status word keeps its shape (a full dot, a half dot, a ringed dot, a square) so it does not rest on colour alone. */
 
-/* the page keeps its distance from the screen edge */
-#classesRoot .cl-page { padding-left: clamp(16px, 5.4vw, 116px); padding-right: clamp(16px, 5.4vw, 116px); }
+/* the same distance from the screen edge as the Capitole tab (.cap-shell): 28px, 16px on a phone; the page itself adds none */
+#classesRoot { padding-left: 28px; padding-right: 28px; }
+#classesRoot .cl-page { padding-left: 0; padding-right: 0; }
+@media (max-width: 640px) { #classesRoot { padding-left: 16px; padding-right: 16px; } }
 
 .cl-sect { display: flex; flex-direction: column; gap: 14px; }
 .cl-sect--platform { margin-top: 22px; }
