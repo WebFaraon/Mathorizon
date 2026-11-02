@@ -1404,7 +1404,13 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .sumar-roster__sep { padding: 8px 16px; border-bottom: 1px solid var(--k-rule); background: var(--k-bg); font-size: 0.76rem; font-weight: 800; color: var(--k-ink-3); }
 .sumar-roster__sync { margin: 10px 2px 0; font-size: 0.82rem; line-height: 1.45; color: var(--k-ink-3); }
 .sumar-roster__sync a { color: var(--k-blue); font-weight: 700; }
-.sumar-loose { margin-top: 14px; padding: 12px 14px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; display: grid; gap: 10px; }
+/* accounts not tied to a student of the register: a real panel (solid edge, panel fill, an orange mark on the left), not a dotted outline */
+.sumar-loose { margin-top: 14px; padding: 14px 16px; border: 1px solid var(--k-panel-edge); border-left: 4px solid var(--k-orange); border-radius: 3px; background: var(--k-panel); display: grid; gap: 12px; }
+.sumar-loose .cls-csel__trigger { border-radius: var(--radius-sm); padding: 9px 12px; font-size: 0.9rem; }
+.sumar-loose .cls-csel__dropdown { border-radius: var(--radius-sm); }
+.sumar-loose .cls-csel__option:first-child, .sumar-loose .cls-csel__option:last-child { border-radius: 0; }
+/* the register roster: the Status heading starts where the status marks start */
+.sumar-roster--reg .sumar-roster__row--head span:nth-child(2) { text-align: left; }
 .sumar-loose__t { display: flex; align-items: flex-start; gap: 9px; margin: 0; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
 .sumar-loose__t svg { flex: none; margin-top: 2px; }
 .sumar-loose__row { display: grid; grid-template-columns: auto minmax(0, 1fr) minmax(180px, 260px); align-items: center; gap: 12px; }

@@ -1373,15 +1373,7 @@
     if (!main) return;
 
     try {
-      const [catalogData, posts] = await Promise.all([
-        BM.CatalogStats.fetchCatalogData(classData.id, true),
-        BMAuth.supabase.from('class_posts')
-          .select('id, title, content, author_name, created_at')
-          .eq('class_id', classData.id)
-          .order('created_at', { ascending: false })
-          .limit(5)
-          .then(r => r.data || [])
-      ]);
+      const catalogData = await BM.CatalogStats.fetchCatalogData(classData.id, true);
       const { members, nameMap, assignments, subMatrix, sims, simMatrix, sessions, attMatrix, stats } = catalogData;
       const reg = classData.reg_group_id && window.ClassRegistryView ? await window.ClassRegistryView.load(BMAuth.supabase, classData) : null;
       _sumarReg = reg;
@@ -1394,9 +1386,6 @@
         simulations:  BM.CatalogStats.simulationStats(sims, members, simMatrix)
       };
 
-      const attentionList = reg ? _sumarAttentionFromReg(ctx) : _sumarAttentionList(ctx);
-      const activity = _sumarBuildActivity(posts, ctx);
-
       main.innerHTML = `
         <section>${_renderSumarUpNext(ctx)}</section>
         <section>
@@ -1407,17 +1396,10 @@
           <div class="sumar-section__title">Toți elevii</div>
           ${_renderSumarRoster(ctx)}
         </section>
-        <section>
-          <div class="sumar-section__title">Cine are nevoie de atenție</div>
-          ${_renderSumarAttention(attentionList, reg ? reg.enrolled : members.length)}
-        </section>
-        <section>
-          <div class="sumar-section__title">Activitate recentă</div>
-          ${_renderSumarActivity(activity)}
-        </section>
       `;
       _wireSumarMain(main);
       _wireSumarRoster(main);
+      BM.initCustomSelects(main);
       _watchSumarRegister();
 
       const sidebar = document.getElementById('sumarSidebar');
@@ -1631,12 +1613,12 @@
     const head = `<div class="sumar-roster__row sumar-roster__row--head"><span>Elev</span><span>Status</span><span>Manager</span><span>În grupă</span><span>Cont</span></div>`;
     const loose = reg.loose.length ? `
       <div class="sumar-loose">
-        <p class="sumar-loose__t">${icon('users', { size: 16 })} <b>${reg.loose.length === 1 ? 'Un cont' : reg.loose.length + ' conturi'} de pe platformă ${reg.loose.length === 1 ? 'nu e legat' : 'nu sunt legate'} de un elev din registru.</b> Alege cine e fiecare, ca prezențele și statutul să vină din registru.</p>
+        <p class="sumar-loose__t">${icon('users', { size: 16 })} <span><b>${reg.loose.length === 1 ? 'Un cont' : reg.loose.length + ' conturi'} de pe platformă ${reg.loose.length === 1 ? 'nu e legat' : 'nu sunt legate'} de un elev din registru.</b> Alege cine e fiecare, ca prezențele și statutul să vină din registru.</span></p>
         ${reg.loose.map(m => `
           <div class="sumar-loose__row">
             <span class="catalog-avatar">${_catalogInitials(m.name)}</span>
             <span class="sumar-loose__n"><b>${BM.esc(m.name)}</b><small>${m.lost ? 'numele din registru s-a schimbat (era ' + BM.esc(m.reg_student_name) + ')' : 'cont intrat ' + BM.formatDate(m.joined_at)}</small></span>
-            <select class="sumar-roster__reg" data-roster-reg="${m.student_id}" data-current="" aria-label="Elevul din registru pentru ${BM.esc(m.name)}">
+            <select class="sumar-roster__reg cls-form-select" data-roster-reg="${m.student_id}" data-current="" aria-label="Elevul din registru pentru ${BM.esc(m.name)}">
               <option value="">Nelegat de registru</option>
               ${reg.freeNames.map(n => `<option value="${BM.esc(n)}">${BM.esc(n)}</option>`).join('')}
             </select>
@@ -1704,186 +1686,11 @@
     });
   }
 
-  /* ─── C. Cine are nevoie de atenție ──────────────────────────────── */
-  // Priority order matches the spec: prezență sub 60% · medie sub 5 · nu a
-  // predat tema activă · absent la ultimele 2 lecții consecutive. Each
-  // student gets exactly ONE reason (whichever criterion they hit first in
-  // that order), capped at 4 students total.
-  function _sumarAttentionList(ctx) {
-    const { members, nameMap, attendance, assignments, subMatrix, sims, simMatrix, homework } = ctx;
-    const attById = {};
-    attendance.perStudent.forEach(s => { attById[s.studentId] = s; });
-    const nearestActive = homework.upcoming[0] || null;
-
-    const flagged = [];
-    const already = new Set();
-    const tryAdd = (m, reason, actionMode) => {
-      if (already.has(m.student_id) || flagged.length >= 4) return;
-      already.add(m.student_id);
-      flagged.push({ name: nameMap[m.student_id] || 'Elev', reason, actionMode });
-    };
-
-    members.forEach(m => {
-      const a = attById[m.student_id];
-      if (a && a.recordedCount > 0 && a.rate < 60) {
-        tryAdd(m, `Prezență ${a.rate}% · ${a.presentCount} din ${a.recordedCount} lecții`, 'prezenta');
-      }
-    });
-    members.forEach(m => {
-      const avg = BM.CatalogStats.studentAverage(m.student_id, assignments, sims, subMatrix, simMatrix);
-      if (avg != null && avg < 5) tryAdd(m, `Medie ${avg.toFixed(1)} · sub pragul de promovare`, 'note');
-    });
-    if (nearestActive) {
-      members.forEach(m => {
-        const submitted = !!(subMatrix[m.student_id] || {})[nearestActive.id];
-        if (!submitted) tryAdd(m, `Nu a predat „${nearestActive.title}”`, 'teme');
-      });
-    }
-    members.forEach(m => {
-      const a = attById[m.student_id];
-      if (a && a.absentLastTwo) tryAdd(m, 'Absent la ultimele 2 lecții', 'prezenta');
-    });
-
-    return flagged;
-  }
-
-  /* the same four reasons, but who is absent comes from the register (every student of the group, with or without an account); grades and homework
-     are the accounts'. A student is named once, by the name he has in the register. */
-  function _sumarAttentionFromReg(ctx) {
-    const { members, nameMap, assignments, subMatrix, sims, simMatrix, homework, reg } = ctx;
-    const flagged = [], already = new Set();
-    const add = (key, name, reason, actionMode) => {
-      if (already.has(key) || flagged.length >= 4) return;
-      already.add(key);
-      flagged.push({ name, reason, actionMode });
-    };
-    const linked = new Map(reg.students.filter(s => s.member).map(s => [s.member.student_id, s]));
-    const keyOf = m => linked.has(m.student_id) ? _plainName(linked.get(m.student_id).name) : 'acc:' + m.student_id;
-    const nameOf = m => linked.has(m.student_id) ? linked.get(m.student_id).name : (nameMap[m.student_id] || 'Elev');
-    const live = reg.students.filter(s => s.status.enrolled);
-    live.forEach(s => { if (s.marked > 0 && s.rate < 60) add(_plainName(s.name), s.name, `Prezență ${s.rate}% · ${s.present} din ${s.marked} lecții`, 'registru'); });
-    members.forEach(m => {
-      const avg = BM.CatalogStats.studentAverage(m.student_id, assignments, sims, subMatrix, simMatrix);
-      if (avg != null && avg < 5) add(keyOf(m), nameOf(m), `Medie ${avg.toFixed(1)} · sub pragul de promovare`, 'note');
-    });
-    const nearest = homework.upcoming[0] || null;
-    if (nearest) members.forEach(m => { if (!(subMatrix[m.student_id] || {})[nearest.id]) add(keyOf(m), nameOf(m), `Nu a predat „${nearest.title}”`, 'teme'); });
-    live.forEach(s => { if (s.absentLastTwo) add(_plainName(s.name), s.name, 'Absent la ultimele 2 lecții', 'registru'); });
-    return flagged;
-  }
-
-  function _renderSumarAttention(list, memberCount) {
-    if (!list.length) {
-      const msg = memberCount === 0
-        ? 'Adaugă elevi în clasă ca să vezi aici cine are nevoie de atenție.'
-        : 'Toți elevii sunt pe drumul cel bun, nimic de semnalat.';
-      return `<div class="sumar-attention-empty">${icon('party-popper', { size: 20 })} ${msg}</div>`;
-    }
-    return `
-      <div class="sumar-attention">
-        ${list.map(f => `
-          <div class="sumar-attention-row">
-            <span class="catalog-avatar">${_catalogInitials(f.name)}</span>
-            <div class="sumar-attention-row__body">
-              <div class="sumar-attention-row__name">${BM.esc(f.name)}</div>
-              <div class="sumar-attention-row__reason">${f.reason}</div>
-            </div>
-            <span class="sumar-attention-row__action" data-attn-goto="${f.actionMode}">Vezi</span>
-          </div>
-        `).join('')}
-        <div class="sumar-see-all" data-goto-catalog-note>Vezi toți elevii</div>
-      </div>`;
-  }
-
-  /* ─── D. Activitate recentă ──────────────────────────────────────── */
-  function _sumarBuildActivity(posts, ctx) {
-    const { members, nameMap, assignments, subMatrix, sims, simMatrix } = ctx;
-    const events = [];
-
-    posts.forEach(p => {
-      const snippet = p.title || (p.content ? p.content.slice(0, 60) + (p.content.length > 60 ? '…' : '') : '');
-      events.push({
-        ts: p.created_at, icn: 'message-circle', color: 'blue',
-        text: `<strong>${BM.esc(p.author_name || 'Cineva')}</strong> a trimis un mesaj: „${BM.esc(snippet)}”`
-      });
-    });
-
-    assignments.forEach(a => {
-      if (a.created_at) events.push({
-        ts: a.created_at, icn: 'file-text', color: 'yellow',
-        text: `Temă nouă atribuită: „${BM.esc(a.title)}”`
-      });
-    });
-
-    members.forEach(m => {
-      if (m.joined_at) events.push({
-        ts: m.joined_at, icn: 'user', color: 'green',
-        text: `<strong>${BM.esc(nameMap[m.student_id] || 'Un elev')}</strong> s-a înscris în clasă`
-      });
-    });
-
-    Object.keys(subMatrix).forEach(studentId => {
-      Object.values(subMatrix[studentId]).forEach(sub => {
-        if (sub.grade_confirmed && sub.graded_at) {
-          const a = assignments.find(x => x.id === sub.assignment_id);
-          events.push({
-            ts: sub.graded_at, icn: 'star', color: 'yellow',
-            text: `<strong>${BM.esc(nameMap[studentId] || sub.student_name || 'Elev')}</strong> a primit nota ${sub.grade} la „${BM.esc(a?.title || 'o temă')}”`
-          });
-        }
-      });
-    });
-
-    Object.keys(simMatrix).forEach(studentId => {
-      Object.values(simMatrix[studentId]).forEach(att => {
-        if (att.finished_at) {
-          const s = sims.find(x => x.id === att.simulation_id);
-          events.push({
-            ts: att.finished_at, icn: 'target', color: 'teal',
-            text: `<strong>${BM.esc(nameMap[studentId] || att.student_name || 'Elev')}</strong> a finalizat simularea „${BM.esc(s?.title || '')}”`
-          });
-        }
-      });
-    });
-
-    events.sort((a, b) => new Date(b.ts) - new Date(a.ts));
-    return events.slice(0, 5);
-  }
-
-  // First 3 events always show; a 4th/5th (if any) start hidden behind
-  // "Arată mai mult" — there's no tab that shows this merged feed anywhere
-  // else in the app, so "see more" toggles in place instead of navigating.
-  function _renderSumarActivity(events) {
-    if (!events.length) return `<div class="sumar-activity-empty">Nicio activitate recentă.</div>`;
-    const exactTime = ts => new Date(ts).toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
-    return `
-      <div class="sumar-activity">
-        ${events.map((e, i) => `
-          <div class="sumar-activity-row${i >= 3 ? ' sumar-activity-row--more' : ''}">
-            <span class="sumar-icon-badge sumar-icon-badge--sm sumar-icon-badge--${e.color}">${icon(e.icn, { size: 14 })}</span>
-            <span class="sumar-activity-row__text">${e.text}</span>
-            <span class="sumar-activity-row__time">${BM.formatDate(e.ts)}<span class="sumar-activity-row__time-exact">${exactTime(e.ts)}</span></span>
-          </div>
-        `).join('')}
-      </div>
-      ${events.length > 3 ? `<button type="button" class="sumar-more-btn" data-activity-more>Arată mai mult</button>` : ''}`;
-  }
-
   /* ─── Wiring ──────────────────────────────────────────────────────── */
   function _wireSumarMain(main) {
     main.querySelectorAll('[data-goto-teme]').forEach(el => el.addEventListener('click', () => switchTab('teme')));
     main.querySelectorAll('[data-goto-simulari]').forEach(el => el.addEventListener('click', () => switchTab('simulari')));
-    main.querySelector('[data-activity-more]')?.addEventListener('click', e => {
-      main.querySelectorAll('.sumar-activity-row--more').forEach(row => row.classList.remove('sumar-activity-row--more'));
-      e.target.remove();
-    });
     main.querySelectorAll('[data-goto-catalog-note]').forEach(el => el.addEventListener('click', () => switchTab('membri')));
-    main.querySelectorAll('[data-attn-goto]').forEach(el => el.addEventListener('click', () => {
-      const mode = el.dataset.attnGoto;
-      if (mode === 'teme') switchTab('teme');
-      else if (mode === 'registru') { if (_sumarReg && _sumarReg.url) window.open(_sumarReg.url, '_blank', 'noopener'); }
-      else switchTab('membri');
-    }));
     main.querySelectorAll('[data-assign-teme]').forEach(el => el.addEventListener('click', e => {
       e.stopPropagation(); openAssignmentWizard();
     }));
