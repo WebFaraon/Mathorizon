@@ -1443,15 +1443,8 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
   border-color: var(--k-panel-edge); background: var(--k-key); color: var(--k-ink-3);
   box-shadow: 0 4px 0 0 var(--k-key-edge); filter: none; transform: none; cursor: not-allowed; pointer-events: none;
 }
-.cd-meet__copy {
-  display: grid; place-items: center; width: 46px; height: 46px; padding: 0;
-  border: 1px solid var(--k-panel-edge); border-radius: var(--k-r-key); background: var(--k-key); color: var(--k-ink);
-  box-shadow: 0 4px 0 0 var(--k-key-edge); cursor: pointer; transition: box-shadow 0.1s ease, transform 0.1s ease;
-}
-.cd-meet__copy[hidden] { display: none; }
-.cd-meet__copy:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(4px); }
 .cd-meet__note { flex: 1 1 100%; min-width: 0; font-size: 0.88rem; font-weight: 600; line-height: 1.45; color: var(--k-ink-2); }
-.cd-meet--open:not(:has(.cd-meet__copy:not([hidden]))) .cd-meet__note::before {
+.cd-meet--open .cd-meet__note::before {
   content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: var(--k-green);
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-green) 55%, transparent); animation: cd-meet-pulse 1.8s ease-out infinite;
 }
@@ -1486,7 +1479,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .cd-meet__chgrow--cancelled { border-left-color: var(--k-red); }
 /* on a phone: the Meet key and the copy key share the first row, the change key takes the second */
 @media (max-width: 560px) {
-  .cd-meet__btn { flex: 1 1 0; min-width: 0; justify-content: center; padding: 0 14px; font-size: 0.95rem; }
+  .cd-meet__btn { flex: 1 1 100%; min-width: 0; justify-content: center; padding: 0 14px; font-size: 0.95rem; }
   .cd-meet__edit { flex: 1 1 100%; }
 }
 
@@ -1594,8 +1587,8 @@ body:has(#classRoot) .cd-content--sizing { overflow-y: clip; transition: height 
 
 /* ---- the plate: the header of a class is a drawing plate (navbar blue, a fine white grid, a thin technical drawing), so it reads apart from the tabs and the content ----
    Flat colours and hairlines only (the grid is the same hairline technique as the graph paper); the texts on it are white, the keys keep their own faces. */
-body:has(#classRoot) { --cd-plate: #1B2A55; }
-[data-theme="dark"] body:has(#classRoot) { --cd-plate: #0D1731; }
+body:has(#classRoot) { --cd-plate: #4F72B8; }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: #2A4682; }
 body:has(#classRoot) .cd-header {
   position: relative;
   border-bottom: 1px solid var(--k-blue-edge);
@@ -1607,14 +1600,15 @@ body:has(#classRoot) .cd-header {
   box-shadow: 0 6px 0 0 var(--k-cover);
 }
 body:has(#classRoot) .cd-header .cd-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
-body:has(#classRoot) .cd-header .cd-art svg { position: absolute; top: 0; right: 0; width: 760px; height: 330px; max-width: none; }
+body:has(#classRoot) .cd-header .cd-art__box { position: relative; box-sizing: border-box; max-width: var(--container); height: 100%; margin: 0 auto; padding: 0 28px; }
+body:has(#classRoot) .cd-header .cd-art svg { position: absolute; top: 0; right: 28px; width: 960px; height: 330px; max-width: none; }
 /* the drawing is faint, so it never competes with the text */
-body:has(#classRoot) .cd-header .cd-art__fig { stroke: rgba(255, 255, 255, 0.2); }
+body:has(#classRoot) .cd-header .cd-art__fig { stroke: rgba(255, 255, 255, 0.26); }
 body:has(#classRoot) .cd-header .cd-art__ax { stroke: rgba(255, 255, 255, 0.14); }
 body:has(#classRoot) .cd-header .cd-art__dash { stroke: rgba(255, 255, 255, 0.2); }
 body:has(#classRoot) .cd-header .cd-art__hi { stroke: rgba(255, 255, 255, 0.42); }
 body:has(#classRoot) .cd-header .cd-art__dot { fill: rgba(255, 255, 255, 0.5); }
-body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: rgba(255, 255, 255, 0.24); stroke: none; }
+body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: rgba(255, 255, 255, 0.3); stroke: none; }
 @media (max-width: 900px) { body:has(#classRoot) .cd-header .cd-art__tx { display: none; } }
 @media (max-width: 720px) { body:has(#classRoot) .cd-header .cd-art svg { display: none; } }
 /* white on the plate */
@@ -1625,4 +1619,4 @@ body:has(#classRoot) .cd-header .cd-subject-chip,
 body:has(#classRoot) .cd-header .cd-meta__badge { color: #fff; border-color: rgba(255, 255, 255, 0.6); background: transparent; }
 body:has(#classRoot) .cd-header .cd-meet__note { color: rgba(255, 255, 255, 0.92); }
 body:has(#classRoot) .cd-header .cd-meet--no_link .cd-meet__note { border-color: rgba(255, 255, 255, 0.55); }
-body:has(#classRoot) .cd-header .cd-meet--open:not(:has(.cd-meet__copy:not([hidden]))) .cd-meet__note::before { background: #fff; }
+body:has(#classRoot) .cd-header .cd-meet--open .cd-meet__note::before { background: #fff; }

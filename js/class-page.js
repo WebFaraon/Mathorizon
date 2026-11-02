@@ -99,7 +99,7 @@
     const box = document.getElementById('cdMeet');
     if (!box) return;
     if (_meetTimer) { clearTimeout(_meetTimer); _meetTimer = null; }
-    const btn = document.getElementById('cdMeetBtn'), note = document.getElementById('cdMeetNote'), label = document.getElementById('cdMeetLabel'), copy = document.getElementById('cdMeetCopy');
+    const btn = document.getElementById('cdMeetBtn'), note = document.getElementById('cdMeetNote'), label = document.getElementById('cdMeetLabel');
     let r = null;
     try {
       const { data, error } = await BMAuth.supabase.rpc('class_meet_link', { p_class: classData.id });
@@ -109,7 +109,6 @@
     const teacher = BMAuth.role === 'profesor';
     box.hidden = false;
     box.className = 'cd-meet cd-meet--' + r.status;
-    copy.hidden = true;
     const editKey = document.getElementById('cdLessonsBtn');
     if (editKey) { editKey.hidden = !(r.teacher || teacher); editKey.onclick = _openLessonsDialog; }
     _loadLessons();
@@ -122,8 +121,6 @@
       if (r.teacher || teacher) {
         label.textContent = 'Deschide sala Meet';
         note.textContent = '';
-        copy.hidden = false;
-        copy.onclick = () => { try { navigator.clipboard.writeText(r.url).then(() => BM.toast('Linkul Meet a fost copiat.', 'success'), () => BM.toast('Linkul este: ' + r.url, 'info')); } catch (e) { BM.toast('Linkul este: ' + r.url, 'info'); } };
       } else {
         label.textContent = 'Intră la lecție';
         note.textContent = r.closes_at ? 'Sala e deschisă până la ' + _meetHour(r.closes_at) + '.' : 'Sala e deschisă.';
@@ -147,21 +144,21 @@
 
   /* The header is a drawing plate: the navbar blue with a fine white grid and a thin technical drawing (the trigonometric circle with its angle, a right triangle, three
      formulas set in the display font). Pure decoration (aria-hidden), behind the content; the text is white on it (css/class-detail.css, "the plate"). */
-  const _CD_ART = `<div class="cd-art" aria-hidden="true"><svg viewBox="0 0 760 330" width="760" height="330" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <g class="cd-art__fig" stroke-width="1.6">
+  const _CD_ART = `<div class="cd-art" aria-hidden="true"><div class="cd-art__box"><svg viewBox="-200 0 960 330" width="960" height="330" fill="none" stroke-linecap="round" stroke-linejoin="round">
+    <g class="cd-art__fig" stroke-width="1.6" transform="translate(-215 0)">
       <circle cx="330" cy="170" r="110"/>
       <path class="cd-art__ax" d="M190 170H470M330 40V300" stroke-width="1.2"/>
       <path class="cd-art__hi" d="M330 170L412 96" stroke-width="2.4"/>
       <path class="cd-art__dash" d="M412 96V170M412 170H330" stroke-dasharray="5 6"/>
       <path class="cd-art__hi" d="M368 170A38 38 0 0 0 360 148"/>
       <circle class="cd-art__dot" cx="412" cy="96" r="4.5" stroke="none"/>
-      <path d="M520 290L660 290L660 210Z" stroke-width="1.4"/><path d="M648 290V278H660" stroke-width="1.2"/>
     </g>
+    <g class="cd-art__fig" stroke-width="1.4"><path d="M560 286L690 286L690 218Z"/><path d="M678 286V274H690" stroke-width="1.2"/></g>
     <g class="cd-art__tx">
-      <text x="425" y="92">P(cos t, sin t)</text><text x="372" y="190">t</text>
-      <text x="570" y="312">a</text><text x="672" y="255">b</text><text x="575" y="245">c</text>
-      <text x="30" y="60">sin²x + cos²x = 1</text><text x="30" y="92">Δ = b² − 4ac</text><text x="30" y="124">∫ f(x)dx = F(b)−F(a)</text>
-    </g></svg></div>`;
+      <text x="157" y="190">t</text>
+      <text x="618" y="308">a</text><text x="700" y="256">b</text><text x="608" y="248">c</text>
+      <text x="270" y="236">sin²x + cos²x = 1</text><text x="270" y="262">Δ = b² − 4ac</text><text x="270" y="288">∫ f(x)dx = F(b)−F(a)</text>
+    </g></svg></div></div>`;
 
   /* ─── Lesson changes: move one lesson, add an extra one, cancel one (online groups) ──────────────────────────────────
      The base schedule stays in the register. Only the exceptions live here (table class_lesson_changes, functions class_lesson_set / class_lesson_remove /
@@ -975,8 +972,7 @@
                 ${classData.reg_group_id ? `
                 <div class="cd-meet" id="cdMeet" hidden>
                   <a class="cd-meet__btn" id="cdMeetBtn" target="_blank" rel="noopener noreferrer" aria-disabled="true">${icon('video', { size: 18 })} <span id="cdMeetLabel">Intră la lecție</span></a>
-                  <button type="button" class="cd-meet__copy" id="cdMeetCopy" hidden title="Copiază linkul Meet" aria-label="Copiază linkul Meet">${icon('copy', { size: 16 })}</button>
-                  <button type="button" class="cd-meet__edit" id="cdLessonsBtn" hidden>${icon('calendar', { size: 16 })} Schimbă ora lecțiilor</button>
+                  <button type="button" class="cd-meet__edit" id="cdLessonsBtn" hidden>${icon('calendar', { size: 16 })} Modifică lecțiile</button>
                   <span class="cd-meet__note" id="cdMeetNote" role="status" aria-live="polite"></span>
                   <ul class="cd-meet__chg" id="cdMeetChg" hidden aria-label="Schimbări de program"></ul>
                 </div>` : ''}

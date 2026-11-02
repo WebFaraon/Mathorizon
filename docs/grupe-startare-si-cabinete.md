@@ -88,14 +88,14 @@ Lecțiile din primele luni sunt online. Fiecare profesor are un link Meet propri
 
 - **Sursa:** registrul profesorului, fila Disponibilitate, caseta D16:H16 de lângă „Link Google Meet" (A16:C16). Sincronizarea o citește la fiecare modificare, ca restul registrului (`parse.mjs` → `teacher_data.meet`). Se acceptă doar adrese `meet.google.com` (cod `abc-defg-hij`, `/lookup/...` sau poreclă); adresa `meet.google.com/new`, alt domeniu sau text se resping și apar în consolă ca „Meet: link invalid / lipsește" (`supabase/functions/_shared/registru/meet.mjs`, `npm run check:meet`).
 - **Cine îl vede:** funcția `class_meet_link` (migrarea `20261029100000_link_meet_in_clasa.sql`). Profesorul clasei și adminul oricând. Un elev **activ** al clasei doar de la 10 minute înainte de lecție până cu 10 minute înainte de sfârșitul ei, după programul grupei din registru, în ora Chișinăului. În afara ferestrei primește doar „se deschide la…". Un elev inactiv, în așteptare sau străin nu primește nimic. Ora e a serverului.
-- **În aplicație:** butonul „Intră la lecție" în antetul clasei (`js/class-page.js`), care se reactivează singur când se deschide sau se închide fereastra. Profesorul vede „Deschide sala Meet", copierea linkului și un avertisment dacă linkul lipsește.
+- **În aplicație:** butonul „Intră la lecție" în antetul clasei (`js/class-page.js`), care se reactivează singur când se deschide sau se închide fereastra. Profesorul vede „Deschide sala Meet" și un avertisment dacă linkul lipsește.
 - **Invitația elevului:** în consolă, în Înscriere (după înscrierea într-o grupă) și în panoul grupei din Repartizare, managerul vede codul clasei și copiază mesajul gata de trimis. Mesajul conține un link `…/classes.html?cod=ABC123`: elevul se loghează sau își face cont, ajunge în Clase cu codul completat și apasă „Trimite cererea". Cererea o acceptă profesorul.
 - **Limite:** pentru lecțiile ținute de un înlocuitor se folosește linkul profesorului grupei. Conturile Gmail personale au limită de 60 de minute la ședințele cu mai mult de 2 participanți (de verificat în Meet).
 - **Doar grupele Online** au sala Meet (formatul din celula C1 a filei grupei). La o grupă Offline sau fără format citit, butonul nu apare nici pentru profesor, nici pentru elevi, iar invitația din consolă nu pomenește Meet (`20261029110000_meet_doar_online.sql`).
 
 ## Mutarea orei unei lecții online (2026-11-02)
 
-Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecție în plus sau o zi schimbată, profesorul folosește butonul „Schimbă ora lecțiilor" din antetul clasei (doar grupele Online). Migrarea `20261102100000_mutare_ore_lectii.sql`.
+Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecție în plus sau o zi schimbată, profesorul folosește butonul „Modifică lecțiile" din antetul clasei (doar grupele Online). Migrarea `20261102100000_mutare_ore_lectii.sql`.
 
 - **Trei feluri de schimbare, pe o singură lecție:** mutată (altă zi sau oră, o singură dată), în plus (peste program), anulată. Orarul pe termen lung se schimbă tot în registru. Se poate reveni oricând la ora obișnuită, șterge o lecție în plus sau restabili una anulată.
 - **Cine:** profesorul grupei, direct, fără aprobare (adminul și managerul activ pot face la fel prin aceleași funcții). Elevii doar văd.
