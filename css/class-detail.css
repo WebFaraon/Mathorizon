@@ -667,39 +667,42 @@ body:has(#classRoot) {
   .flux-empty h3 { font-weight: 800; letter-spacing: -0.015em; }
 
   /* ---- bubbles: hard-edged, three voices ---- */
-  .msg-bubble { border-radius: var(--k-r); }
+  .msg-bubble { gap: 14px; border-radius: var(--k-r); }
+  .msg-bubble__gutter { width: 44px; }
   .msg-bubble:hover { background: color-mix(in srgb, var(--k-blue) 5%, transparent); }
   .msg-bubble__avatar {
+    width: 44px;
+    height: 44px;
     border: 1px solid var(--k-panel-edge);
     border-radius: var(--k-r);
     background-color: var(--k-lcd);
     box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
     color: var(--k-lcd-ink);
   }
-  .msg-bubble__avatar--initials { font-family: var(--k-lcd-font); font-weight: 900; }
-  .msg-bubble__author { font-weight: 800; }
+  .msg-bubble__avatar--initials { font-family: var(--k-lcd-font); font-size: 0.92rem; font-weight: 900; }
+  .msg-bubble__author { font-size: 0.98rem; font-weight: 800; }
   .msg-bubble__role-badge {
     padding: 1px 6px;
     border: 1px solid var(--k-blue);
     border-radius: 2px;
     background: transparent;
     color: var(--k-blue);
-    font-size: 0.68rem;
+    font-size: 0.72rem;
     font-weight: 800;
     letter-spacing: 0.08em;
     text-transform: uppercase;
   }
-  .msg-bubble__time { font-variant-numeric: tabular-nums; }
+  .msg-bubble__time { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
   /* others: a key face */
   .msg-bubble__box {
-    padding: 9px 13px;
+    padding: 12px 17px;
     border: 1px solid var(--k-panel-edge);
-    border-radius: var(--k-r);
+    border-radius: 16px;
     background: var(--k-key);
     box-shadow: 0 2px 0 0 var(--k-key-edge);
     color: var(--k-ink);
   }
-  .msg-bubble__content { color: inherit; font-size: 0.92rem; }
+  .msg-bubble__content { color: inherit; font-size: 1.04rem; font-weight: 600; line-height: 1.5; }
   /* the teacher speaks on the display */
   .msg-bubble--teacher .msg-bubble__box {
     border-color: var(--k-bezel);
