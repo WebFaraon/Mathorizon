@@ -4622,13 +4622,29 @@ body:has(#classesRoot) {
   .rg-status { order: -1; }
   .rg-seats em { display: inline; }
 }
+/* phone: the hour sits beside the name, so every other line gets the full width: class and level, days and where, then status and students with the two keys at
+   the end. The class goes from the name to the second line so no name breaks in two. */
+.rg-g { display: none; }
 @media (max-width: 600px) {
-  .rg-row { grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "time main main" "time when when" "time fill acts"; }
-  .rg-sheet--student .rg-row { grid-template-areas: "time main main" "time when when" "time acts acts"; }
+  .rg-row {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-areas: "time name name" "what what what" "when when when" "fill fill acts";
+    align-items: center;
+    row-gap: 5px;
+    column-gap: 12px;
+  }
+  .rg-sheet--student .rg-row { grid-template-areas: "time name name" "what what what" "when when when" "acts acts acts"; }
+  .rg-main { display: contents; }
+  .rg-name { grid-area: name; }
+  .rg-what { grid-area: what; }
+  .rg-time { min-width: 62px; padding: 6px 6px 4px; font-size: 1.15rem; }
+  .rg-name span { display: none; }
+  .rg-g { display: inline; white-space: nowrap; font-style: normal; }
   .rg-act { min-width: 44px; height: 44px; }
-  .rg-acts { align-self: end; margin-block: -4px -8px; }
-  .rg-sheet--student .rg-acts { justify-content: flex-start; margin-block: -6px -10px; }
+  .rg-acts { align-self: center; margin-block: -6px -8px; }
+  .rg-sheet--student .rg-acts { justify-content: flex-start; margin-block: -2px -8px; }
   .rg-row .cl-block__leave { min-height: 44px; }
+  .rg-tools { display: grid; grid-template-columns: minmax(0, 1fr); justify-content: stretch; gap: 10px; }
 }
 @media (prefers-reduced-motion: reduce) { .rg-row, .rg-act { transition: none; } }
 body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: not-allowed; box-shadow: none; transform: none; filter: none; }
@@ -4690,10 +4706,15 @@ body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: 
 .cl-days .cl-chip--all { padding: 0 16px; }
 .cl-chip--today::after { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--k-blue); }
 .cl-chip--today.is-on::after { background: #fff; }
+.cl-d-s { display: none; }
+/* phone: one row of eight keys, "Toate" a little wider, the days as two letters (the same two letters as in the list) */
 @media (max-width: 560px) {
-  .cl-days { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 8px; }
-  .cl-days__keys { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; padding-left: 0; border-left: 0; }
-  .cl-days .cl-chip { min-width: 0; padding: 0; height: 44px; font-size: 0.78rem; }
-  .cl-days .cl-chip--all { padding: 0 18px; height: 40px; }
+  .cl-days { display: grid; grid-template-columns: 1.9fr repeat(7, minmax(0, 1fr)); align-items: stretch; gap: 5px; }
+  .cl-days__k { position: absolute; width: 1px; height: 1px; margin: -1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .cl-days__keys { display: contents; }
+  .cl-days .cl-chip { min-width: 0; height: 44px; padding: 0; font-size: 0.84rem; }
+  .cl-days .cl-chip--all { padding: 0; }
+  .cl-d-l { display: none; }
+  .cl-d-s { display: inline; }
   .cl-chip--today::after { top: 3px; right: 3px; width: 5px; height: 5px; }
 }

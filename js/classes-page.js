@@ -432,6 +432,7 @@
   function regRowHTML(g) {
     const t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
     const what = [g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
+    const gradeTxt = g.grade ? _grade(g.grade) : '';
     const fmt = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : '', g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
     let hint = '';
     if (g.status.id === 'completare' && g.need) hint = g.enrolled >= g.need ? 'Are destui elevi: pornește în curând.' : `Mai trebuie ${_ro(g.need - g.enrolled, 'elev', 'elevi')} ca să pornească (minim ${g.need}).`;
@@ -446,7 +447,7 @@
         <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? _timeHTML(t0) : '-'}</span>
         <span class="rg-main">
           <a class="rg-name" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>${BM.esc(g.subject)}${g.grade ? ` <span>${BM.esc(_grade(g.grade).toLowerCase())}</span>` : ''}</a>
-          ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
+          ${gradeTxt || what ? `<span class="rg-what">${gradeTxt ? `<i class="rg-g">${BM.esc(gradeTxt)}${what ? ' · ' : ''}</i>` : ''}${BM.esc(what)}</span>` : ''}
         </span>
         <span class="rg-when">
           <span class="rg-days" title="${BM.esc(_dayNames(g.days))}">${_wkText(g.days)}</span>
@@ -556,7 +557,7 @@
         <span class="cl-days__k">Zilele</span>
         <button type="button" class="cl-chip cl-chip--all${_dayFilterSelected.length ? '' : ' is-on'}" data-all aria-pressed="${!_dayFilterSelected.length}">Toate</button>
         <span class="cl-days__keys">
-          ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}">${DAY_SHORT[d]}</button>`).join('')}
+          ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}"><span class="cl-d-l">${DAY_SHORT[d]}</span><span class="cl-d-s" aria-hidden="true">${DAY_SHORT[d].slice(0, 2)}</span></button>`).join('')}
         </span>
       </div>`;
   }
@@ -1109,14 +1110,13 @@
 
   function studentRowHTML(cls) {
     const info = _classInfo(cls);
-    const what = [info.grade, info.type].filter(Boolean).join(' · ');
+    const what = [info.grade, info.type, cls.description].filter(Boolean).join(' · ');
     return `
       <li class="rg-row rg-row--student" data-id="${cls.id}">
         <span class="rg-time">${info.time ? _timeHTML(info.time) : '-'}</span>
         <span class="rg-main">
           <a class="rg-name" href="class.html?id=${cls.id}" aria-label="Deschide clasa: ${BM.esc(info.subject)}${info.days.length ? ', ' + info.days.join(', ') : ''}${info.time ? ', ora ' + BM.esc(info.time) : ''}">${BM.esc(info.subject)}</a>
           ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
-          ${cls.description ? `<span class="rg-what">${BM.esc(cls.description)}</span>` : ''}
         </span>
         <span class="rg-when">
           <span class="rg-days" title="${BM.esc(info.days.join(', '))}">${info.days.length ? info.days.map(d => DAY_SHORT[d] || d).join(', ') : '-'}</span>
