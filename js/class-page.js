@@ -105,8 +105,19 @@
       const { data, error } = await BMAuth.supabase.rpc('class_meet_link', { p_class: classData.id });
       if (!error) r = data;
     } catch (e) { /* the migration is not run yet: no block */ }
-    if (!r || r.status === 'denied' || r.status === 'offline') { box.hidden = true; return; }       // only the groups with the Online format have a Meet room
+    if (!r || r.status === 'denied') { box.hidden = true; return; }
     const teacher = BMAuth.role === 'profesor';
+    if (r.status === 'offline') {
+      // no Meet room (the group is not online): the box holds only the lesson changes. The teacher has the key to change them; a student sees the box only when there
+      // is a change to show (the lessons set that when they load)
+      box.className = 'cd-meet cd-meet--offline';
+      btn.hidden = true; note.textContent = '';
+      box.hidden = !teacher;
+      const k = document.getElementById('cdLessonsBtn');
+      if (k) { k.hidden = !(teacher || BMAuth.role === 'admin'); k.onclick = _openLessonsDialog; }
+      _loadLessons();
+      return;
+    }
     box.hidden = false;
     box.className = 'cd-meet cd-meet--' + r.status;
     const editKey = document.getElementById('cdLessonsBtn');
@@ -201,6 +212,8 @@
     const now = _nowWall(), lim = _wallPlus(now, 14 * 24 * 60), from = _wallPlus(now, -180);
     const ch = _lessons.filter(l => l.kind !== 'regular' && l.start >= from && l.start <= lim).slice(0, 4);
     box.hidden = !ch.length;
+    const meet = document.getElementById('cdMeet');
+    if (meet && meet.classList.contains('cd-meet--offline') && BMAuth.role !== 'profesor') meet.hidden = !ch.length;
     box.innerHTML = ch.map(l => `<li class="cd-meet__chgrow cd-meet__chgrow--${l.kind}">${icon('calendar', { size: 14 })}<span>${BM.esc(_changeLine(l))}</span></li>`).join('');
   }
 
@@ -210,7 +223,6 @@
     'too far': 'Data e prea departe. Poți programa cel mult 90 de zile înainte.',
     'overlap': 'Se suprapune cu altă lecție a grupei. Alege altă oră.',
     'not allowed': 'Nu ai dreptul să schimbi lecțiile acestei clase.',
-    'not online': 'Orele se pot schimba doar la grupele online.',
     'no lesson that day': 'În ziua aceea nu e nicio lecție în program.',
     'bad hours': 'Lecția poate dura între 1 și 3 ore.'
   };
@@ -394,7 +406,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog cd-ls" role="dialog" aria-modal="true" aria-labelledby="lsTitle">
         <div class="classes-modal__head">
-          <h3 id="lsTitle">${icon('calendar', { size: 20 })} Orarul lecțiilor online</h3>
+          <h3 id="lsTitle">${icon('calendar', { size: 20 })} Orarul lecțiilor</h3>
           <button class="icon-btn" id="lsClose" aria-label="Închide">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="lsBody"></div>
@@ -435,7 +447,7 @@
     const rows = _lessons.filter(l => l.start >= from);
     const key = (a, cls, t, extra) => `<button type="button" class="btn btn--sm ${cls}" data-act="${a}"${extra || ''}>${t}</button>`;
     body.innerHTML = `
-      <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare. Orarul obișnuit și prezențele rămân în registru.</p>
+      <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare. Orarul obișnuit și prezențele rămân în registru.${classData.lesson_type === 'offline' ? ' La o lecție față în față cabinetul rămâne același: verifică să fie liber la noua oră.' : ''}</p>
       ${rows.length ? `<ul class="cd-ls__list">${rows.map(l => {
         const editable = l.kind === 'cancelled' || l.kind === 'moved' ? (l.orig_start || l.start) >= soon : l.start >= soon;
         const moveOk = l.start >= soon;
@@ -966,7 +978,7 @@
                     ${icon('eye', { size: 14 })} Vezi profilul
                   </button>
                   <button type="button" class="cd-meta__teacher-viewbtn cd-meta__notif" id="cdNotifBtn" hidden>
-                    ${icon('bell', { size: 14 })} Notificări <span class="cd-meta__notif-state" id="cdNotifState"></span>
+                    ${icon('bell', { size: 14 })} Notificări
                   </button>
                 </div>
                 ${classData.reg_group_id ? `
@@ -2827,8 +2839,6 @@
     if (!ok) return;
     const on = !!(await window.BMPush?.isSubscribed());
     b.classList.toggle('is-on', on);
-    const st = document.getElementById('cdNotifState');
-    if (st) st.textContent = on ? 'pornite' : 'oprite';
   }
   let _notifWired = false;
   function _initNotifications() {
@@ -2839,9 +2849,10 @@
     window.BMPush?.init(classData.id, { prompt: BMAuth.role !== 'profesor' });
   }
 
+  /* The notifications of the class: what you get, and one switch. The switch acts at once (it asks the browser for permission when it is turned on). */
   window.cdOpenNotifInfo = async function (classId) {
     document.getElementById('notifInfoModal')?.remove();
-    const blocked    = ('Notification' in window) && Notification.permission === 'denied';
+    const blocked = ('Notification' in window) && Notification.permission === 'denied';
     const subscribed = !!(await window.BMPush?.isSubscribed());
 
     const modal = document.createElement('div');
@@ -2849,45 +2860,45 @@
     modal.className = 'classes-modal';
     modal.innerHTML = `
       <div class="classes-modal__backdrop"></div>
-      <div class="classes-modal__dialog">
+      <div class="classes-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="notifInfoT">
         <div class="classes-modal__head">
-          <h3>${icon('bell', { size: 20 })} Notificări pentru această clasă</h3>
-          <button class="icon-btn" id="notifInfoCloseBtn">${icon('x', { size: 16 })}</button>
+          <h3 id="notifInfoT">${icon('bell', { size: 20 })} Notificări pentru această clasă</h3>
+          <button class="icon-btn" id="notifInfoCloseBtn" aria-label="Închide">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
-          <p class="notif-info__p">${subscribed
-            ? 'Ai notificările activate pentru această clasă. Primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:'
-            : 'Activând notificările, primești un mesaj pe telefon/calculator (chiar și cu site-ul închis) când:'}</p>
           <ul class="notif-info__list">
-            <li>${icon('message-circle', { size: 16 })} cineva din clasă trimite un mesaj nou</li>
-            <li>${icon('file-text', { size: 16 })} profesorul adaugă o temă nouă</li>
-            <li>${icon('target', { size: 16 })} programează sau pornește o simulare</li>
+            <li>${icon('message-circle', { size: 16 })} un mesaj nou în clasă</li>
+            <li>${icon('file-text', { size: 16 })} o temă nouă</li>
+            <li>${icon('target', { size: 16 })} o simulare programată sau pornită</li>
           </ul>
-          ${subscribed
-            ? `<p class="notif-info__p">Apasă butonul de mai jos dacă vrei să oprești notificările pe acest dispozitiv.</p>`
-            : `<p class="notif-info__p">Apasă butonul de mai jos <strong>doar dacă nu primești deja notificări</strong>, de exemplu dacă ai apăsat din greșeală „Refuză" la întrebarea browserului, sau dacă vrei să le activezi pe un dispozitiv nou.</p>`}
-          ${blocked ? `
-          <p class="notif-info__p notif-info__p--warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Browserul are notificările blocate pentru acest site. Trebuie mai întâi să le permiți din setările browserului (de obicei lângă bara de adrese, iconița 🔒/ⓘ), altfel butonul de mai jos nu va avea efect.</p>` : ''}
-        </div>
-        <div class="classes-modal__foot">
-          <button class="btn btn--surface" id="notifInfoCancelBtn">Închide</button>
-          <button class="btn ${subscribed ? 'btn--danger' : 'btn--primary'}" id="notifInfoConfirmBtn">${subscribed ? 'Dezactivează notificările' : 'Activează notificările'}</button>
+          <label class="wz-toggle notif-sw${blocked ? ' is-blocked' : ''}">
+            <input type="checkbox" id="notifInfoSwitch" ${subscribed ? 'checked' : ''} ${blocked ? 'disabled' : ''}>
+            <span class="wz-toggle__track"><span class="wz-toggle__thumb"></span></span>
+            <span class="notif-sw__t">Notificări pe acest dispozitiv</span>
+          </label>
+          ${blocked ? `<p class="notif-info__p notif-info__p--warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Browserul blochează notificările pentru acest site. Permite-le din setările browserului (iconița de lângă bara de adrese).</p>` : ''}
         </div>
       </div>`;
     document.body.appendChild(modal);
-    const close = () => modal.remove();
+    const close = () => { modal.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
     modal.querySelector('.classes-modal__backdrop').onclick = close;
     modal.querySelector('#notifInfoCloseBtn').onclick = close;
-    modal.querySelector('#notifInfoCancelBtn').onclick = close;
-    modal.querySelector('#notifInfoConfirmBtn').onclick = () => {
-      close();
-      if (subscribed) {
-        window.BMPush?.unsubscribe(classId).then(ok => {
+    const sw = modal.querySelector('#notifInfoSwitch');
+    sw.onchange = async () => {
+      const want = sw.checked;
+      sw.disabled = true;
+      try {
+        if (want) await window.BMPush?.resubscribe(classId);
+        else {
+          const ok = await window.BMPush?.unsubscribe(classId);
           BM.toast(ok ? 'Notificările au fost dezactivate.' : 'Eroare la dezactivare.', ok ? 'info' : 'error');
-        });
-      } else {
-        window.BMPush?.resubscribe(classId);
-      }
+        }
+      } catch (e) { /* the real state is read below */ }
+      sw.checked = !!(await window.BMPush?.isSubscribed());      // what really happened (the browser may have refused)
+      sw.disabled = ('Notification' in window) && Notification.permission === 'denied';
+      _refreshNotifBtn();
     };
   };
 

@@ -1423,6 +1423,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 /* The Google Meet room: one key in the header, the same for the teacher and the students */
 .cd-meet { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; width: 100%; max-width: 680px; margin-top: 18px; }      /* the width is capped: the title and the displays keep their places */
 .cd-meet[hidden] { display: none; }
+.cd-meet__btn[hidden] { display: none; }
 .cd-meet__btn,
 .cd-meet__btn:hover {
   border: 1px solid var(--k-blue-edge);
@@ -1585,38 +1586,34 @@ body:has(#classRoot) .cd-content--switching { opacity: 0; transform: translateY(
 body:has(#classRoot) .cd-content--sizing { overflow-y: clip; transition: height 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.28s ease 0.04s, transform 0.28s ease 0.04s; }
 @media (prefers-reduced-motion: reduce) { body:has(#classRoot) .cd-content, body:has(#classRoot) .cd-content--sizing { transition: none; } }
 
-/* ---- the plate: the header of a class is a drawing plate (navbar blue, a fine white grid, a thin technical drawing), so it reads apart from the tabs and the content ----
-   Flat colours and hairlines only (the grid is the same hairline technique as the graph paper); the texts on it are white, the keys keep their own faces. */
-body:has(#classRoot) { --cd-plate: #4F72B8; }
-[data-theme="dark"] body:has(#classRoot) { --cd-plate: #2A4682; }
+/* ---- the plate: the header of a class is a drawing plate (a pale, quiet blue with a fine blue grid and a thin technical drawing), so it reads apart from the tabs and the content ----
+   Flat colours and hairlines only (the grid is the same hairline technique as the graph paper). The texts and the keys keep their usual look (dark ink on the pale plate, light ink in the dark theme). */
+body:has(#classRoot) { --cd-plate: #D3DEF0; }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: #1B2438; }
 body:has(#classRoot) .cd-header {
   position: relative;
-  border-bottom: 1px solid var(--k-blue-edge);
+  border-bottom: 1px solid var(--k-panel-edge);
   background-color: var(--cd-plate);
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
+    linear-gradient(color-mix(in srgb, var(--k-blue) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--k-blue) 11%, transparent) 1px, transparent 1px);
   background-size: 28px 28px;
-  box-shadow: 0 6px 0 0 var(--k-cover);
+  box-shadow: 0 6px 0 0 color-mix(in srgb, var(--k-cover) 62%, var(--cd-plate));
 }
-body:has(#classRoot) .cd-header .cd-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
+body:has(#classRoot) .cd-header .cd-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; color: var(--k-ink); }
 body:has(#classRoot) .cd-header .cd-art__box { position: relative; box-sizing: border-box; max-width: var(--container); height: 100%; margin: 0 auto; padding: 0 28px; }
 body:has(#classRoot) .cd-header .cd-art svg { position: absolute; top: 0; right: 28px; width: 960px; height: 330px; max-width: none; }
 /* the drawing is faint, so it never competes with the text */
-body:has(#classRoot) .cd-header .cd-art__fig { stroke: rgba(255, 255, 255, 0.26); }
-body:has(#classRoot) .cd-header .cd-art__ax { stroke: rgba(255, 255, 255, 0.14); }
-body:has(#classRoot) .cd-header .cd-art__dash { stroke: rgba(255, 255, 255, 0.2); }
-body:has(#classRoot) .cd-header .cd-art__hi { stroke: rgba(255, 255, 255, 0.42); }
-body:has(#classRoot) .cd-header .cd-art__dot { fill: rgba(255, 255, 255, 0.5); }
-body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: rgba(255, 255, 255, 0.3); stroke: none; }
+body:has(#classRoot) .cd-header .cd-art__fig { stroke: color-mix(in srgb, var(--k-blue) 40%, transparent); }
+body:has(#classRoot) .cd-header .cd-art__ax { stroke: color-mix(in srgb, var(--k-blue) 26%, transparent); }
+body:has(#classRoot) .cd-header .cd-art__dash { stroke: color-mix(in srgb, var(--k-blue) 36%, transparent); }
+body:has(#classRoot) .cd-header .cd-art__hi { stroke: color-mix(in srgb, var(--k-blue) 62%, transparent); }
+body:has(#classRoot) .cd-header .cd-art__dot { fill: color-mix(in srgb, var(--k-blue) 70%, transparent); }
+body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: color-mix(in srgb, var(--k-ink) 34%, transparent); stroke: none; }
 @media (max-width: 900px) { body:has(#classRoot) .cd-header .cd-art__tx { display: none; } }
 @media (max-width: 720px) { body:has(#classRoot) .cd-header .cd-art svg { display: none; } }
-/* white on the plate */
-body:has(#classRoot) .cd-header .cd-back,
-body:has(#classRoot) .cd-header .cd-title,
-body:has(#classRoot) .cd-header .cd-meta__teacher { color: #fff; }
-body:has(#classRoot) .cd-header .cd-subject-chip,
-body:has(#classRoot) .cd-header .cd-meta__badge { color: #fff; border-color: rgba(255, 255, 255, 0.6); background: transparent; }
-body:has(#classRoot) .cd-header .cd-meet__note { color: rgba(255, 255, 255, 0.92); }
-body:has(#classRoot) .cd-header .cd-meet--no_link .cd-meet__note { border-color: rgba(255, 255, 255, 0.55); }
-body:has(#classRoot) .cd-header .cd-meet--open .cd-meet__note::before { background: #fff; }
+
+/* the notification dialog: three reasons and a switch */
+.notif-sw { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-panel); cursor: pointer; font-weight: 700; }
+.notif-sw.is-blocked { opacity: 0.6; cursor: not-allowed; }
+.notif-sw__t { font-size: 0.92rem; color: var(--k-ink); }

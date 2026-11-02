@@ -95,13 +95,14 @@ Lecțiile din primele luni sunt online. Fiecare profesor are un link Meet propri
 
 ## Mutarea orei unei lecții online (2026-11-02)
 
-Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecție în plus sau o zi schimbată, profesorul folosește butonul „Modifică lecțiile" din antetul clasei (doar grupele Online). Migrarea `20261102100000_mutare_ore_lectii.sql`.
+Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecție în plus sau o zi schimbată, profesorul folosește butonul „Modifică lecțiile" din antetul clasei, la grupele Online și la cele Offline. Migrările `20261102100000_mutare_ore_lectii.sql` și `20261103100000_mutare_ore_si_offline.sql` (a doua scoate cerința „doar online”).
 
 - **Trei feluri de schimbare, pe o singură lecție:** mutată (altă zi sau oră, o singură dată), în plus (peste program), anulată. Orarul pe termen lung se schimbă tot în registru. Se poate reveni oricând la ora obișnuită, șterge o lecție în plus sau restabili una anulată.
 - **Cine:** profesorul grupei, direct, fără aprobare (adminul și managerul activ pot face la fel prin aceleași funcții). Elevii doar văd.
 - **Limite (decise cu fondatorul):** doar în viitor, cu cel puțin o oră înainte; și lecția care se mută sau se anulează trebuie să înceapă peste cel puțin o oră; cel mult 90 de zile în față (peste 14 zile apare un avertisment); fără suprapunere cu altă lecție a grupei; durata 1 până la 3 ore.
 - **Elevii:** fereastra Meet urmează schimbarea (se deschide la noua oră, cu 10 minute înainte; în ziua veche nu se mai deschide; o lecție anulată nu deschide nimic). Schimbarea apare în antetul clasei (următoarele 14 zile), ca mesaj în clasă și ca notificare push (tipul `message` din `send-class-push`, nu cere redeploy).
 - **Datele:** tabelul `class_lesson_changes` (doar excepțiile, scrise prin `class_lesson_set` / `class_lesson_remove`; citirea o au profesorul, personalul și elevii activi). `class_lessons` pune programul din registru și excepțiile la un loc; `class_meet_at` citește de acolo. Orele sunt ora de perete a Chișinăului.
+- **Grupele Offline:** aceeași fereastră și aceleași reguli, dar fără sala Meet. Platforma nu verifică dacă cabinetul e liber la noua oră (lecția rămâne în același cabinet); profesorul vede un avertisment în fereastră. Elevii văd schimbările în antet.
 - **Nu face:** nu scrie nimic în registru (prezența, tema și data lecției rămân doar acolo) și nu schimbă ce vede botul de Telegram la /azi și /maine (citește tot din registru).
 
 ## Startul grupelor și botul de Telegram (2026-10-29)
