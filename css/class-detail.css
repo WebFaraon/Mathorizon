@@ -1594,24 +1594,27 @@ body:has(#classRoot) .cd-content--sizing { overflow-y: clip; transition: height 
 
 /* ---- the plate: the header of a class is a drawing plate (navbar blue, a fine white grid, a thin technical drawing), so it reads apart from the tabs and the content ----
    Flat colours and hairlines only (the grid is the same hairline technique as the graph paper); the texts on it are white, the keys keep their own faces. */
+body:has(#classRoot) { --cd-plate: #1B2A55; }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: #0D1731; }
 body:has(#classRoot) .cd-header {
   position: relative;
   border-bottom: 1px solid var(--k-blue-edge);
-  background-color: var(--k-cover);
+  background-color: var(--cd-plate);
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.07) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.055) 1px, transparent 1px);
   background-size: 28px 28px;
-  box-shadow: 0 6px 0 0 var(--k-blue-edge);
+  box-shadow: 0 6px 0 0 var(--k-cover);
 }
 body:has(#classRoot) .cd-header .cd-art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 0; }
 body:has(#classRoot) .cd-header .cd-art svg { position: absolute; top: 0; right: 0; width: 760px; height: 330px; max-width: none; }
-body:has(#classRoot) .cd-header .cd-art__fig { stroke: rgba(255, 255, 255, 0.5); }
-body:has(#classRoot) .cd-header .cd-art__ax { stroke: rgba(255, 255, 255, 0.38); }
-body:has(#classRoot) .cd-header .cd-art__dash { stroke: rgba(255, 255, 255, 0.55); }
-body:has(#classRoot) .cd-header .cd-art__hi { stroke: #fff; }
-body:has(#classRoot) .cd-header .cd-art__dot { fill: #fff; }
-body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: rgba(255, 255, 255, 0.62); stroke: none; }
+/* the drawing is faint, so it never competes with the text */
+body:has(#classRoot) .cd-header .cd-art__fig { stroke: rgba(255, 255, 255, 0.2); }
+body:has(#classRoot) .cd-header .cd-art__ax { stroke: rgba(255, 255, 255, 0.14); }
+body:has(#classRoot) .cd-header .cd-art__dash { stroke: rgba(255, 255, 255, 0.2); }
+body:has(#classRoot) .cd-header .cd-art__hi { stroke: rgba(255, 255, 255, 0.42); }
+body:has(#classRoot) .cd-header .cd-art__dot { fill: rgba(255, 255, 255, 0.5); }
+body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font); font-size: 15px; font-weight: 700; fill: rgba(255, 255, 255, 0.24); stroke: none; }
 @media (max-width: 900px) { body:has(#classRoot) .cd-header .cd-art__tx { display: none; } }
 @media (max-width: 720px) { body:has(#classRoot) .cd-header .cd-art svg { display: none; } }
 /* white on the plate */
