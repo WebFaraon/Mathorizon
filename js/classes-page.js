@@ -427,12 +427,11 @@
      the invite code and the register are two quiet keys at the end. The end time, the profile and the hint about what is missing for a start sit in tooltips. */
   const _WK = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
   const _wkText = days => days.length ? days.map(d => _WK[d - 1]).join(', ') : '-';
+  const _gradeShort = g => (ROM[g] ? 'a ' + ROM[g] + '-a' : g || '');
   const _dayNames = days => days.map(d => DAY_ORDER[d - 1]).filter(Boolean).join(', ');
 
   function regRowHTML(g) {
     const t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
-    const what = [g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
-    const gradeTxt = g.grade ? _grade(g.grade) : '';
     const fmt = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : '', g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
     let hint = '';
     if (g.status.id === 'completare' && g.need) hint = g.enrolled >= g.need ? 'Are destui elevi: pornește în curând.' : `Mai trebuie ${_ro(g.need - g.enrolled, 'elev', 'elevi')} ca să pornească (minim ${g.need}).`;
@@ -444,20 +443,21 @@
     const dayIds = g.days.map(d => DAY_ORDER[d - 1]).filter(Boolean);
     return `
       <li class="rg-row rg-row--${g.status.id}" id="rg-${g.id}" data-filter-row data-days="${dayIds.join(',')}">
-        <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? _timeHTML(t0) : '-'}</span>
-        <span class="rg-main">
-          <a class="rg-name" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>${BM.esc(g.subject)}${g.grade ? ` <span>${BM.esc(_grade(g.grade).toLowerCase())}</span>` : ''}</a>
-          ${gradeTxt || what ? `<span class="rg-what">${gradeTxt ? `<i class="rg-g">${BM.esc(gradeTxt)}${what ? ' · ' : ''}</i>` : ''}${BM.esc(what)}</span>` : ''}
+        <span class="rg-c rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}"><b>${t0 ? _timeHTML(t0) : '-'}</b></span>
+        <a class="rg-c rg-name" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>${BM.esc(g.subject)}</a>
+        <span class="rg-what">
+          <span class="rg-c rg-cls${g.grade ? '' : ' rg-none'}">${g.grade ? `<b>${BM.esc(_gradeShort(g.grade))}</b>${g.profile ? `<small>${BM.esc(g.profile)}</small>` : ''}` : '-'}</span>
+          <span class="rg-c rg-lvl${g.level ? '' : ' rg-none'}">${g.level ? BM.esc(g.level) : '-'}</span>
         </span>
         <span class="rg-when">
-          <span class="rg-days" title="${BM.esc(_dayNames(g.days))}">${_wkText(g.days)}</span>
-          <span class="rg-fmt">${BM.esc(fmt || '-')}</span>
+          <span class="rg-c rg-days" title="${BM.esc(_dayNames(g.days))}">${_wkText(g.days)}</span>
+          <span class="rg-c rg-fmt">${BM.esc(fmt || '-')}</span>
         </span>
         <span class="rg-fill">
-          <span class="rg-seats" title="${seats}"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span>
-          <span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
+          <span class="rg-c rg-seats" title="${seats}"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span>
+          <span class="rg-c rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
         </span>
-        <span class="rg-acts">
+        <span class="rg-c rg-acts">
           ${g.code ? `<button type="button" class="rg-act rg-act--code" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul de invitație ${BM.esc(g.code)}" title="Copiază codul de invitație">
             <b>${BM.esc(g.code)}</b><span class="cl-mini__a">${icon('copy', { size: 17 })}</span><span class="cl-mini__b">${icon('check', { size: 17 })}</span></button>` : ''}
           ${g.url ? `<a class="rg-act" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei">${icon('book-open', { size: 17 })}</a>` : ''}
@@ -478,7 +478,7 @@
           <div class="cl-bar" id="clBar" hidden></div>
         </div>
         <div class="rg-sheet">
-          <div class="rg-cols" aria-hidden="true"><span>Ora</span><span>Grupa</span><span>Zile</span><span>Format</span><span>Elevi</span><span>Stare</span><span></span></div>
+          <div class="rg-cols" aria-hidden="true"><span class="rg-c rg-time">Ora</span><span class="rg-c">Disciplina</span><span class="rg-c">Clasa</span><span class="rg-c">Nivel</span><span class="rg-c">Zile</span><span class="rg-c">Format</span><span class="rg-c">Elevi</span><span class="rg-c">Stare</span><span class="rg-c"></span></div>
           <ol class="rg-list" id="regGrid" aria-label="Grupele tale">${_reg.groups.map(regRowHTML).join('')}</ol>
         </div>
         <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
@@ -998,7 +998,7 @@
           <section class="cl-sect" aria-labelledby="clMyClsT">
             <header class="cl-sect__h"><h2 id="clMyClsT">Clasele tale</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
             <div class="rg-sheet rg-sheet--student">
-              <div class="rg-cols" aria-hidden="true"><span>Ora</span><span>Clasa</span><span>Zile</span><span>Profesor</span><span></span></div>
+              <div class="rg-cols" aria-hidden="true"><span class="rg-c rg-time">Ora</span><span class="rg-c">Disciplina</span><span class="rg-c">Clasa</span><span class="rg-c">Zile</span><span class="rg-c">Format</span><span class="rg-c">Profesor</span><span class="rg-c"></span></div>
               <ol class="rg-list" id="classesGrid" aria-label="Clasele în care ești înscris">
                 ${classes.map(studentRowHTML).join('')}
               </ol>
@@ -1110,19 +1110,17 @@
 
   function studentRowHTML(cls) {
     const info = _classInfo(cls);
-    const what = [info.grade, info.type, cls.description].filter(Boolean).join(' · ');
     return `
       <li class="rg-row rg-row--student" data-id="${cls.id}">
-        <span class="rg-time">${info.time ? _timeHTML(info.time) : '-'}</span>
-        <span class="rg-main">
-          <a class="rg-name" href="class.html?id=${cls.id}" aria-label="Deschide clasa: ${BM.esc(info.subject)}${info.days.length ? ', ' + info.days.join(', ') : ''}${info.time ? ', ora ' + BM.esc(info.time) : ''}">${BM.esc(info.subject)}</a>
-          ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
-        </span>
+        <span class="rg-c rg-time"><b>${info.time ? _timeHTML(info.time) : '-'}</b></span>
+        <a class="rg-c rg-name" href="class.html?id=${cls.id}"${cls.description ? ` title="${BM.esc(cls.description)}"` : ''} aria-label="Deschide clasa: ${BM.esc(info.subject)}${info.days.length ? ', ' + info.days.join(', ') : ''}${info.time ? ', ora ' + BM.esc(info.time) : ''}">${BM.esc(info.subject)}</a>
+        <span class="rg-what"><span class="rg-c rg-cls${cls.school_grade ? '' : ' rg-none'}">${cls.school_grade ? `<b>${BM.esc(_gradeShort(cls.school_grade))}</b>` : '-'}</span></span>
         <span class="rg-when">
-          <span class="rg-days" title="${BM.esc(info.days.join(', '))}">${info.days.length ? info.days.map(d => DAY_SHORT[d] || d).join(', ') : '-'}</span>
-          <span class="rg-fmt">${BM.esc(cls.teacher_name || '-')}</span>
+          <span class="rg-c rg-days" title="${BM.esc(info.days.join(', '))}">${info.days.length ? info.days.map(d => DAY_SHORT[d] || d).join(', ') : '-'}</span>
+          <span class="rg-c rg-fmt">${BM.esc(info.type || '-')}</span>
+          <span class="rg-c rg-prof">${BM.esc(cls.teacher_name || '-')}</span>
         </span>
-        <span class="rg-acts"><button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button></span>
+        <span class="rg-c rg-acts"><button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button></span>
       </li>`;
   }
 
