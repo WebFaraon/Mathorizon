@@ -222,6 +222,12 @@
       </div>`;
   }
 
+  /* Today's lessons and the totals on one row (the totals go under on a narrow screen). */
+  function dashHTML(today, status) {
+    if (!today && !status) return '';
+    return `<div class="cl-dash${today && status ? '' : ' cl-dash--solo'}">${today}${status}</div>`;
+  }
+
   function runStatus() {
     const status = document.querySelector('.cl-status');
     if (!status) return;
@@ -407,7 +413,7 @@
                   <span class="cl-lesson__time">${_timeHTML(t0)}</span>
                   <span class="cl-lesson__body"><b>${BM.esc(g.subject)}</b><span>${_seg(sub.join(' · '))}</span></span>
                   <span class="cl-lesson__state">${st.text}</span>
-                  ${icon('chevron-down', { size: 18 })}
+                  ${icon('chevron-right', { size: 18 })}
                 </a>
               </li>`;
             }).join('')}
@@ -416,42 +422,44 @@
       </section>`;
   }
 
-  /* One group of the register. The whole block opens the platform class (Sumar, Mesaje, Teme, Simulări, Catalog), where the students and their statuses are.
-     Four rows and no boxes: when it meets (the time on a small display), what it is (subject, class, level, format, cabinet, as two plain lines), the week in seven keys,
-     where it stands (Se completează, Startează, Activ) with how full it is. The invite code and the register are a quiet footer. */
-  function regCardHTML(g, idx) {
-    const days = _regDays(g), t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
-    const WK = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
-    const week = WK.map((l, i) => `<i class="${g.days.includes(i + 1) ? 'on' : ''}" title="${DAY_ORDER[i]}">${l}</i>`).join('');
-    const what = [_grade(g.grade), g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
-    const where = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : (g.mode === 'online' ? '' : 'fără cabinet'), g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
-    const segs = Math.min(g.size || 0, 12), lit = g.size ? Math.min(segs, Math.round(g.enrolled / g.size * segs)) : 0;
+  /* One group of the register, one ruled row: when (start time on a small display), which group (name, class, level), which days, where (format, cabinet),
+     how many students, where it stands (Se completează, Startează, Activ). The whole row opens the platform class (Sumar, Mesaje, Teme, Simulări, Catalog);
+     the invite code and the register are two quiet keys at the end. The end time, the profile and the hint about what is missing for a start sit in tooltips. */
+  const _WK = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
+  const _wkText = days => days.length ? days.map(d => _WK[d - 1]).join(', ') : '-';
+  const _dayNames = days => days.map(d => DAY_ORDER[d - 1]).filter(Boolean).join(', ');
+
+  function regRowHTML(g) {
+    const t0 = g.start != null ? _hh(g.start) : '', t1 = g.start != null ? _hh(g.start + g.duration) : '';
+    const what = [g.level ? 'Nivel ' + g.level : '', g.profile].filter(Boolean).join(' · ');
+    const fmt = [g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : '', g.summer ? 'Vară' : ''].filter(Boolean).join(' · ');
     let hint = '';
     if (g.status.id === 'completare' && g.need) hint = g.enrolled >= g.need ? 'Are destui elevi: pornește în curând.' : `Mai trebuie ${_ro(g.need - g.enrolled, 'elev', 'elevi')} ca să pornească (minim ${g.need}).`;
     else if (g.status.id === 'starteaza') hint = 'Are destui elevi: urmează ora de probă.';
     const href = g.classId ? `class.html?id=${g.classId}` : (g.url || '#');
     const ext = !g.classId && g.url ? ' target="_blank" rel="noopener"' : '';
-    const label = `${g.subject}${g.grade ? ', ' + _grade(g.grade) : ''}${days.length ? ', ' + days.join(' și ') : ''}${t0 ? ', ora ' + t0 : ''}`;
+    const seats = g.size ? `${g.enrolled} din ${g.size} elevi` : _ro(g.enrolled, 'elev', 'elevi');
+    const label = `${g.subject}${g.grade ? ', ' + _grade(g.grade) : ''}${g.days.length ? ', ' + _dayNames(g.days) : ''}${t0 ? ', ora ' + t0 : ''}, ${g.status.label}, ${seats}`;
+    const dayIds = g.days.map(d => DAY_ORDER[d - 1]).filter(Boolean);
     return `
-      <li class="rg-card rg-card--${g.status.id}" id="rg-${g.id}" style="--i:${idx}" data-filter-row data-days="${days.join(',')}">
-        <a class="rg-open" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}">
-          <span class="rg-head">
-            <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? `<b>${_timeHTML(t0)}</b><small>${_timeHTML(t1)}</small>` : '<b>-</b>'}</span>
-            <span class="rg-title">
-              <b class="rg-name">${BM.esc(g.subject)}</b>
-              ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
-              ${where ? `<span class="rg-where">${BM.esc(where)}</span>` : ''}
-            </span>
-          </span>
-          <span class="rg-week" role="img" aria-label="Zilele: ${days.join(', ') || 'neprogramată'}">${week}</span>
-          <span class="rg-state"${hint ? ` title="${BM.esc(hint)}"` : ''}>
-            <span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
-            <span class="rg-seats">${g.size ? segsHTML(lit, segs) : ''}<span class="rg-seats__n"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span></span>
-          </span>
-        </a>
-        <span class="rg-foot">
-          ${g.code ? `<span class="rg-code" title="Cod de invitație pentru elevi"><span>Cod</span><b>${BM.esc(g.code)}</b><button type="button" class="cl-mini" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul ${BM.esc(g.code)}" title="Copiază codul"><span class="cl-mini__a">${icon('copy', { size: 14 })}</span><span class="cl-mini__b">${icon('check', { size: 14 })}</span></button></span>` : '<span></span>'}
-          ${g.url ? `<a class="rg-link" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide fila grupei în registru" aria-label="Registrul grupei">${icon('book-open', { size: 16 })} Registru</a>` : ''}
+      <li class="rg-row rg-row--${g.status.id}" id="rg-${g.id}" data-filter-row data-days="${dayIds.join(',')}">
+        <span class="rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}">${t0 ? _timeHTML(t0) : '-'}</span>
+        <span class="rg-main">
+          <a class="rg-name" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>${BM.esc(g.subject)}${g.grade ? ` <span>${BM.esc(_grade(g.grade).toLowerCase())}</span>` : ''}</a>
+          ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
+        </span>
+        <span class="rg-when">
+          <span class="rg-days" title="${BM.esc(_dayNames(g.days))}">${_wkText(g.days)}</span>
+          <span class="rg-fmt">${BM.esc(fmt || '-')}</span>
+        </span>
+        <span class="rg-fill">
+          <span class="rg-seats" title="${seats}"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span>
+          <span class="rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
+        </span>
+        <span class="rg-acts">
+          ${g.code ? `<button type="button" class="rg-act rg-act--code" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul de invitație ${BM.esc(g.code)}" title="Copiază codul de invitație">
+            <b>${BM.esc(g.code)}</b><span class="cl-mini__a">${icon('copy', { size: 17 })}</span><span class="cl-mini__b">${icon('check', { size: 17 })}</span></button>` : ''}
+          ${g.url ? `<a class="rg-act" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei">${icon('book-open', { size: 17 })}</a>` : ''}
         </span>
       </li>`;
   }
@@ -461,11 +469,22 @@
     return `
       <section class="cl-sect" aria-labelledby="clRegT">
         <header class="cl-sect__h">
-          <h2 id="clRegT">Grupele din registru</h2>
-          <span class="cl-sect__n">${_ro(live, 'grupă', 'grupe')}${off ? ` și ${off} inactive` : ''}${_reg.syncedAt ? ' · la zi cu registrul ' + relDate(_reg.syncedAt) : ''}</span>
+          <h2 id="clRegT">Grupele tale</h2>
+          <span class="cl-sect__n">${_ro(live, 'grupă', 'grupe')}${off ? ` și ${off} inactive` : ''}${_reg.syncedAt ? ' · actualizat ' + relDate(_reg.syncedAt) : ''}</span>
         </header>
-        <p class="cl-sect__sub">Programul și elevii vin din registrul tău; o schimbare de acolo apare aici în câteva secunde.</p>
-        <ol class="rg-grid" id="regGrid" aria-label="Grupele din registru">${_reg.groups.map(regCardHTML).join('')}</ol>
+        <div class="rg-tools">
+          ${_dayFilterHTML()}
+          <div class="cl-bar" id="clBar" hidden></div>
+        </div>
+        <div class="rg-sheet">
+          <div class="rg-cols" aria-hidden="true"><span>Ora</span><span>Grupa</span><span>Zile</span><span>Format</span><span>Elevi</span><span>Stare</span><span></span></div>
+          <ol class="rg-list" id="regGrid" aria-label="Grupele tale">${_reg.groups.map(regRowHTML).join('')}</ol>
+        </div>
+        <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
+          <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
+          <h2>Nicio grupă în ziua selectată</h2>
+          <p>Alege altă zi sau apasă „Toate”.</p>
+        </div>
       </section>`;
   }
 
@@ -482,29 +501,24 @@
     setRootContent(`
       <div class="${pageClass()}">
         <header class="cl-head">
-          ${headInfoHTML('Grupele tale, cu programul și elevii lor. Apasă pe o grupă ca să intri în clasa ei.')}
+          ${headInfoHTML('Programul și elevii din registrul tău. Apasă pe o grupă ca să intri în clasa ei.')}
         </header>
         <div id="clReqRoot"></div>
-        ${hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : ''}
-        ${hasReg ? statusHTML('Toate grupele', [
-          { lbl: 'Grupe', tick: _reg.stats.groups },
-          { lbl: 'Elevi activi', tick: _reg.stats.students },
-          { lbl: 'Lecții ținute', tick: _reg.stats.lessons },
-          _reg.stats.rate != null ? { lbl: 'Prezență medie', tick: _reg.stats.rate, suffix: '%' } : { lbl: 'Prezență medie', val: '-' },
-          _reg.stats.perLesson != null ? { lbl: 'Elevi pe oră', tick: _reg.stats.perLesson, dec: 1 } : { lbl: 'Elevi pe oră', val: '-' }
-        ]) : has && aggStats ? statusHTML('Toate grupele', [
-          { lbl: 'Grupe', tick: aggStats.totalGroups },
-          { lbl: 'Elevi activi', tick: aggStats.activeStudents },
-          { lbl: 'Lecții ținute', tick: aggStats.totalLessons },
-          aggStats.avgAttendance != null
-            ? { lbl: 'Prezență medie', tick: aggStats.avgAttendance, suffix: '%' }
-            : { lbl: 'Prezență medie', val: '-' },
-          aggStats.avgPerLesson != null
-            ? { lbl: 'Elevi pe oră', tick: aggStats.avgPerLesson, dec: 1 }
-            : { lbl: 'Elevi pe oră', val: '-' }
-        ]) : ''}
-        ${has ? _dayFilterHTML() : ''}
-        ${has ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
+        ${dashHTML(
+          hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : '',
+          hasReg ? statusHTML('Toate grupele', [
+            { lbl: 'Grupe', tick: _reg.stats.groups },
+            { lbl: 'Elevi activi', tick: _reg.stats.students },
+            { lbl: 'Lecții ținute', tick: _reg.stats.lessons },
+            _reg.stats.rate != null ? { lbl: 'Prezență medie', tick: _reg.stats.rate, suffix: '%' } : { lbl: 'Prezență medie', val: '-' }
+          ]) : has && aggStats ? statusHTML('Toate grupele', [
+            { lbl: 'Grupe', tick: aggStats.totalGroups },
+            { lbl: 'Elevi activi', tick: aggStats.activeStudents },
+            { lbl: 'Lecții ținute', tick: aggStats.totalLessons },
+            aggStats.avgAttendance != null ? { lbl: 'Prezență medie', tick: aggStats.avgAttendance, suffix: '%' } : { lbl: 'Prezență medie', val: '-' }
+          ]) : '')}
+        ${has && !hasReg ? _dayFilterHTML() : ''}
+        ${has && !hasReg ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
         ${hasReg ? regSectionHTML() : ''}
         ${hasReg ? `
           ${classes.length ? `
@@ -515,11 +529,7 @@
               ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}
             </ol>
           </section>` : ''}
-          <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
-            <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
-            <h2>Nicio grupă în ziua selectată</h2>
-            <p>Încearcă altă zi sau șterge filtrul.</p>
-          </div>` : has ? `
+          ` : has ? `
           <ol class="cl-blocks" id="classesGrid" aria-label="Clasele tale">
             ${classes.map((c, i) => teacherBlock(c, memberCounts[c.id] || 0, i, aggStats && aggStats.perClass && aggStats.perClass[c.id])).join('')}
           </ol>
@@ -544,6 +554,7 @@
     return `
       <div class="cl-days" id="clsDayFilter" role="group" aria-label="Arată grupele după zi">
         <span class="cl-days__k">Zilele</span>
+        <button type="button" class="cl-chip cl-chip--all${_dayFilterSelected.length ? '' : ' is-on'}" data-all aria-pressed="${!_dayFilterSelected.length}">Toate</button>
         <span class="cl-days__keys">
           ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}">${DAY_SHORT[d]}</button>`).join('')}
         </span>
@@ -553,7 +564,9 @@
   function _wireDayFilter() {
     const wrap = document.getElementById('clsDayFilter');
     if (!wrap) return;
+    const all = wrap.querySelector('[data-all]');
     const sync = () => {
+      if (all) { all.classList.toggle('is-on', !_dayFilterSelected.length); all.setAttribute('aria-pressed', String(!_dayFilterSelected.length)); }
       wrap.querySelectorAll('[data-day]').forEach(chip => {
         const on = _dayFilterSelected.includes(chip.dataset.day);
         chip.classList.toggle('is-on', on);
@@ -569,6 +582,7 @@
         sync();
       });
     });
+    if (all) all.addEventListener('click', () => { _dayFilterSelected = []; sync(); });
     _clearDayFilter = () => { _dayFilterSelected = []; sync(); };
   }
 
@@ -587,7 +601,7 @@
     // a list with nothing to show goes away, the others stay; and one message when nothing is left at all
     ['regGrid', 'classesGrid'].forEach(id => {
       const g = document.getElementById(id);
-      if (g) { const any = [...g.children].some(c => !c.hidden); g.hidden = !any; const sect = g.closest('.cl-sect'); if (sect) sect.hidden = !any && _dayFilterSelected.length > 0; }
+      if (g) { const any = [...g.children].some(c => !c.hidden); g.hidden = !any; const sect = id === 'regGrid' ? g.closest('.rg-sheet') : g.closest('.cl-sect'); if (sect) sect.hidden = !any && _dayFilterSelected.length > 0; }
     });
     const emptyMsg = document.getElementById('classesFilterEmpty');
     if (emptyMsg) emptyMsg.hidden = visibleCount !== 0;
@@ -597,9 +611,7 @@
       if (_dayFilterSelected.length) {
         const names = DAY_ORDER.filter(d => _dayFilterSelected.includes(d)).map(d => DAY_SHORT[d]).join(', ');
         bar.hidden = false;
-        bar.innerHTML = `<span>Arăt <b>${visibleCount}</b> din <b>${rows.length}</b> grupe <em>(${names})</em></span>
-          <button type="button" class="cl-link" id="clBarClear">Arată toate</button>`;
-        document.getElementById('clBarClear')?.addEventListener('click', () => _clearDayFilter());
+        bar.innerHTML = `<span><b>${visibleCount}</b> din <b>${rows.length}</b> grupe <em>(${names})</em></span>`;
       } else {
         bar.hidden = true;
         bar.innerHTML = '';
@@ -958,8 +970,6 @@
           ${headInfoHTML('Introdu codul primit de la profesor și trimite o cerere de alăturare.')}
         </header>
 
-        ${classes.length ? todayHTML(classes, 'elev', null) : ''}
-
         <section class="cl-join" aria-labelledby="clJoinTitle">
           <div class="cl-join__icon">${icon('key', { size: 24 })}</div>
           <div class="cl-join__txt">
@@ -977,16 +987,22 @@
 
         ${reqs.length ? studentRequestsHTML(reqs) : ''}
 
-        ${classes.length ? statusHTML('Clasele tale', [
+        ${classes.length ? dashHTML(todayHTML(classes, 'elev', null), statusHTML('Clasele tale', [
           { lbl: 'Clase înscrise', tick: classes.length },
           { lbl: 'Profesori', tick: teachers },
           next ? { lbl: 'Următoarea lecție', val: _timeHTML(next.time), unit: next.when } : { lbl: 'Următoarea lecție', val: '-' }
-        ]) : ''}
+        ])) : ''}
 
         ${classes.length === 0 ? studentEmpty() : `
-          <ol class="cl-blocks" id="classesGrid" aria-label="Clasele în care ești înscris">
-            ${classes.map((c, i) => studentBlock(c, i)).join('')}
-          </ol>`}
+          <section class="cl-sect" aria-labelledby="clMyClsT">
+            <header class="cl-sect__h"><h2 id="clMyClsT">Clasele tale</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
+            <div class="rg-sheet rg-sheet--student">
+              <div class="rg-cols" aria-hidden="true"><span>Ora</span><span>Clasa</span><span>Zile</span><span>Profesor</span><span></span></div>
+              <ol class="rg-list" id="classesGrid" aria-label="Clasele în care ești înscris">
+                ${classes.map(studentRowHTML).join('')}
+              </ol>
+            </div>
+          </section>`}
       </div>
     `);
     const joinBtn   = document.getElementById('joinClassBtn');
@@ -1091,49 +1107,23 @@
     `;
   }
 
-  function studentBlock(cls, idx) {
+  function studentRowHTML(cls) {
     const info = _classInfo(cls);
-    const sub = [info.grade, info.type].filter(Boolean);
-    const next = _nextLesson([cls]);
-    const since = Math.max(0, Math.floor((Date.now() - new Date(cls.joined_at)) / 86400000));
+    const what = [info.grade, info.type].filter(Boolean).join(' · ');
     return `
-      <li class="cl-block" style="--i:${idx}" data-id="${cls.id}">
-        <div class="cl-block__top">
-          <span class="cl-block__no">${String(idx + 1).padStart(2, '0')}</span>
-          <div class="cl-block__title">
-            <a class="cl-block__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 18 })}</a>
-            ${sub.length ? `<span class="cl-block__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
-            ${cls.description ? `<span class="cl-block__desc">${BM.esc(cls.description)}</span>` : ''}
-          </div>
-          <button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button>
-        </div>
-
-        <div class="cl-block__meta">
-          <div class="cl-field">
-            <span class="cl-field__k">Program</span>
-            <span class="cl-field__v">
-              <span>${info.days.length ? _shortDays(info.days) : '-'}</span>
-              ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
-            </span>
-          </div>
-          <div class="cl-field">
-            <span class="cl-field__k">Profesor</span>
-            <span class="cl-field__v">${BM.esc(cls.teacher_name || '-')}</span>
-          </div>
-        </div>
-
-        <div class="cl-lcd" role="group" aria-label="Cifrele grupei" style="--cols:2">
-          <div class="cl-lcd__cell">
-            <span class="cl-lcd__k">Următoarea lecție</span>
-            <span class="cl-lcd__v">${next ? `${_timeHTML(next.time)}<span class="cl-lcd__u">${next.when}</span>` : '-'}</span>
-          </div>
-          <div class="cl-lcd__cell">
-            <span class="cl-lcd__k">Înscris de</span>
-            <span class="cl-lcd__v">${since}<span class="cl-lcd__u">${since === 1 ? 'zi' : 'zile'}</span></span>
-          </div>
-        </div>
-      </li>
-    `;
+      <li class="rg-row rg-row--student" data-id="${cls.id}">
+        <span class="rg-time">${info.time ? _timeHTML(info.time) : '-'}</span>
+        <span class="rg-main">
+          <a class="rg-name" href="class.html?id=${cls.id}" aria-label="Deschide clasa: ${BM.esc(info.subject)}${info.days.length ? ', ' + info.days.join(', ') : ''}${info.time ? ', ora ' + BM.esc(info.time) : ''}">${BM.esc(info.subject)}</a>
+          ${what ? `<span class="rg-what">${BM.esc(what)}</span>` : ''}
+          ${cls.description ? `<span class="rg-what">${BM.esc(cls.description)}</span>` : ''}
+        </span>
+        <span class="rg-when">
+          <span class="rg-days" title="${BM.esc(info.days.join(', '))}">${info.days.length ? info.days.map(d => DAY_SHORT[d] || d).join(', ') : '-'}</span>
+          <span class="rg-fmt">${BM.esc(cls.teacher_name || '-')}</span>
+        </span>
+        <span class="rg-acts"><button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button></span>
+      </li>`;
   }
 
   async function joinClass() {
