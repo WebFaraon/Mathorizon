@@ -809,6 +809,14 @@
     _cdFreshTimer = setTimeout(() => { delete document.body.dataset.cdFresh; }, 1600);
   }
 
+  /* A tab opening replays the entrance of its own content only: the header, the tab bar and the LCD displays stay still (body[data-cd-tab], not data-cd-fresh). */
+  let _cdTabTimer = null;
+  function _cdMarkTab() {
+    document.body.dataset.cdTab = '1';
+    clearTimeout(_cdTabTimer);
+    _cdTabTimer = setTimeout(() => { delete document.body.dataset.cdTab; }, 1600);
+  }
+
   /* The figures on the class displays (Pulsul grupei, the Catalog totals,
      the student's cabinet) count up to their value in a few stepped frames,
      like a display refreshing, but only while a tab is freshly opened. */
@@ -851,7 +859,7 @@
         if (n.nodeType !== 1) return;
         if (n.matches(CD_CLICKABLE_SEL)) _cdMakeReachable(n);
         n.querySelectorAll(CD_CLICKABLE_SEL).forEach(_cdMakeReachable);
-        if (reduced || !document.body.dataset.cdFresh) return;
+        if (reduced || !(document.body.dataset.cdFresh || document.body.dataset.cdTab)) return;
         if (n.matches(CD_TICK_SEL)) _cdTickValue(n);
         n.querySelectorAll(CD_TICK_SEL).forEach(_cdTickValue);
       }));
@@ -1147,16 +1155,57 @@
     });
     _cdSyncTabs();
 
-    _cdMarkFresh();
+    _cdMarkTab();
     _cdChatFocusPending = true;
+    _cdSwapContent(tabId);
+  }
+
+  /* The content changes without the page blinking. The old one fades out while the box keeps its height; the new one is built while still invisible
+     (its loaders run there, so a spinner is never seen), and when it is loaded the box grows or shrinks to it and the content fades in. A tab that takes
+     longer than 1.8 s to load is shown with its loader anyway. */
+  let _cdSwapToken = 0;
+  function _cdWhenGone(els, max) {
+    return new Promise(resolve => {
+      const t0 = Date.now();
+      const tick = () => { if (els.every(e => !e.isConnected) || Date.now() - t0 > max) resolve(); else setTimeout(tick, 40); };
+      tick();
+    });
+  }
+  function _cdSwapContent(tabId) {
     const content = document.getElementById('cdContent');
-    if (content) {
-      content.classList.add('cd-content--switching');
-      setTimeout(() => {
-        content.innerHTML = renderTab(tabId);
-        content.classList.remove('cd-content--switching');
-      }, 120);
-    }
+    if (!content) return;
+    const token = ++_cdSwapToken;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) { content.innerHTML = renderTab(tabId); return; }
+    content.classList.remove('cd-content--sizing');
+    const from = content.offsetHeight;
+    content.style.height = from + 'px';
+    content.classList.add('cd-content--switching');
+    setTimeout(() => {
+      if (token !== _cdSwapToken) return;
+      content.innerHTML = renderTab(tabId);
+      const holders = [...content.querySelectorAll('.classes-loading, .cd-sidebar-shimmer')];
+      _cdWhenGone(holders, 1800).then(() => {
+        if (token !== _cdSwapToken) return;
+        content.style.height = 'auto';
+        const to = content.offsetHeight;            // the natural height of the new content
+        content.style.height = from + 'px';
+        void content.offsetHeight;
+        content.classList.add('cd-content--sizing');
+        requestAnimationFrame(() => {
+          content.style.height = to + 'px';
+          content.classList.remove('cd-content--switching');
+        });
+        let done = false;
+        const finish = () => {
+          if (done || token !== _cdSwapToken) return;
+          done = true;
+          content.classList.remove('cd-content--sizing');
+          content.style.height = '';
+        };
+        content.addEventListener('transitionend', e => { if (e.target === content && e.propertyName === 'height') finish(); });
+        setTimeout(finish, 520);
+      });
+    }, 160);
   }
 
   /* ─── Tab content ───────────────────────────────────────────────── */

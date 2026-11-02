@@ -546,6 +546,9 @@ body:has(#classRoot) {
     .cd-tab:nth-child(4) { animation-delay: 0.2s; }
     .cd-tab:nth-child(5) { animation-delay: 0.25s; }
     .cd-tab:nth-child(6) { animation-delay: 0.3s; }
+  }
+  /* the content of a tab: on the first render and every time a tab opens (the header and the tab bar above play only on the first render) */
+  body:has(#classRoot):is([data-cd-fresh], [data-cd-tab]) {
     .sumar-upnext__card,
     .sumar-kpibar,
     .sumar-roster,
@@ -1386,8 +1389,8 @@ body:has(#classRoot) {
   body:has(#classRoot) .wz-backdrop { animation: st-fade 0.2s ease-out backwards; }
   body:has(#classRoot) .confirm-dialog,
   body:has(#classRoot) .wz-dialog { animation: cm-rise 0.34s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  body:has(#classRoot)[data-cd-fresh] .cs-stats { animation: st-power 0.6s steps(6, end) 0.15s backwards, st-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards; }
-  body:has(#classRoot)[data-cd-fresh] .cs-list { animation: st-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s backwards; }
+  body:has(#classRoot):is([data-cd-fresh], [data-cd-tab]) .cs-stats { animation: st-power 0.6s steps(6, end) 0.15s backwards, st-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.15s backwards; }
+  body:has(#classRoot):is([data-cd-fresh], [data-cd-tab]) .cs-list { animation: st-rise 0.5s cubic-bezier(0.16, 1, 0.3, 1) 0.25s backwards; }
 }
 @media (prefers-reduced-motion: reduce) {
   body:has(#classRoot) :is(.teme-assignment, .csim-card, .cs-view-toggle__btn, .teme-assignment__edit, .teme-assignment__delete, .teme-assignment__publish, .teme-assignment__archive, .msg-panel__send) { transition: none; }
@@ -1635,3 +1638,9 @@ body:has(#classRoot) > .cd-tp .cd-tp__opt:hover { background: rgba(58, 107, 173,
 body:has(#classRoot) > .cd-tp .cd-tp__opt--sel,
 body:has(#classRoot) > .cd-tp .cd-tp__opt--sel:hover { background: rgba(58, 107, 173, 0.07); color: var(--accent); font-weight: 700; }
 body:has(#classRoot) .cd-ls .cd-ls__f-time input.is-open { border-color: var(--accent); }
+
+/* A tab changes with a fade, and the box eases to the height of the new tab (class-page.js _cdSwapContent). */
+body:has(#classRoot) .cd-content { transition: opacity 0.16s ease, transform 0.16s ease; }
+body:has(#classRoot) .cd-content--switching { opacity: 0; transform: translateY(6px); pointer-events: none; }
+body:has(#classRoot) .cd-content--sizing { overflow-y: clip; transition: height 0.34s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.28s ease 0.04s, transform 0.28s ease 0.04s; }
+@media (prefers-reduced-motion: reduce) { body:has(#classRoot) .cd-content, body:has(#classRoot) .cd-content--sizing { transition: none; } }
