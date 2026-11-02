@@ -950,6 +950,9 @@
                   <button type="button" class="cd-meta__teacher-viewbtn" id="cdViewTeacherBtn">
                     ${icon('eye', { size: 14 })} Vezi profilul
                   </button>
+                  <button type="button" class="cd-meta__teacher-viewbtn cd-meta__notif" id="cdNotifBtn" hidden>
+                    ${icon('bell', { size: 14 })} Notificări <span class="cd-meta__notif-state" id="cdNotifState"></span>
+                  </button>
                 </div>
                 ${classData.reg_group_id ? `
                 <div class="cd-meet" id="cdMeet" hidden>
@@ -1026,6 +1029,7 @@
     _loadMeet();
     _watchLessons();
     _setupRealtime();
+    _initNotifications();
   }
 
   /* ─── Real-time subscriptions ───────────────────────────────────── */
@@ -1929,7 +1933,6 @@
 
     _fluxReactionsByPost = reactionsByPost;
     _renderFluxPanel(posts, isTeacher);
-    BMPush?.init(classData.id);
   }
 
   function _renderFluxPanel(posts, isTeacher) {
@@ -1941,9 +1944,6 @@
         <div class="msg-panel__header">
           <span class="msg-panel__header-title">${icon('message-circle', { size: 16 })} Mesaje</span>
           <div class="msg-panel__header-actions">
-            ${('Notification' in window) ? `
-              <button class="icon-btn" id="fluxBellBtn" title="Notificări pentru clasă">${icon('bell', { size: 16 })}</button>
-            ` : ''}
             <button class="icon-btn" id="fluxFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 16 })}</button>
           </div>
         </div>
@@ -1968,7 +1968,6 @@
       </div>
     `;
 
-    document.getElementById('fluxBellBtn')?.addEventListener('click', () => cdOpenNotifInfo(classData.id));
     document.getElementById('fluxFullscreenBtn')?.addEventListener('click', _fluxToggleFullscreen);
     document.getElementById('fluxJumpBtn')?.addEventListener('click', () => _fluxScrollToBottom(true));
     document.getElementById('fluxList')?.addEventListener('scroll', _fluxOnListScroll);
@@ -2802,6 +2801,28 @@
         btn.disabled = false; btn.textContent = 'Salvează';
       }
     };
+  }
+
+  /* The notifications of the class (messages, homework, simulations): one key in the header, on every tab. It shows whether they are on and opens the dialog
+     that turns them on or off. A student is asked once, the first time the class opens on this device (js/push.js); a teacher is never asked. */
+  async function _refreshNotifBtn() {
+    const b = document.getElementById('cdNotifBtn');
+    if (!b) return;
+    const ok = ('Notification' in window) && ('serviceWorker' in navigator) && ('PushManager' in window);
+    b.hidden = !ok;
+    if (!ok) return;
+    const on = !!(await window.BMPush?.isSubscribed());
+    b.classList.toggle('is-on', on);
+    const st = document.getElementById('cdNotifState');
+    if (st) st.textContent = on ? 'pornite' : 'oprite';
+  }
+  let _notifWired = false;
+  function _initNotifications() {
+    const b = document.getElementById('cdNotifBtn');
+    if (b) b.onclick = () => cdOpenNotifInfo(classData.id);
+    _refreshNotifBtn();
+    if (!_notifWired) { _notifWired = true; document.addEventListener('bmpush:changed', _refreshNotifBtn); }
+    window.BMPush?.init(classData.id, { prompt: BMAuth.role !== 'profesor' });
   }
 
   window.cdOpenNotifInfo = async function (classId) {

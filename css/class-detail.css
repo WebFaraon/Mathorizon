@@ -809,65 +809,12 @@ body:has(#classRoot) {
   .msg-panel__hint { flex: 1 0 100%; font-size: 0.74rem; font-weight: 600; color: var(--k-ink-3); }
 }
 
-/* ---- the notification prompt: a small panel under the navbar, not a bar
-   across the bottom that would sit on top of the composer ---- */
-body:has(#classRoot) .push-prompt {
-  top: calc(var(--nav-h) + var(--cd-tabs-h, 67px) + 62px);
-  right: 28px;
-  bottom: auto;
-  left: auto;
-  width: min(430px, calc(100vw - 32px));
-  align-items: flex-start;
-  flex-wrap: wrap;
-  gap: 10px 14px;
-  padding: 16px 18px;
-  border: 1px solid var(--k-panel-edge);
-  border-radius: var(--k-r-key);
-  background: var(--k-panel);
-  box-shadow: 0 5px 0 0 var(--k-panel-edge);
-  font-family: var(--k-font);
-  animation: cd-drop 0.4s cubic-bezier(0.16, 1, 0.3, 1);
-}
-body:has(#classRoot) .push-prompt__icon {
-  align-items: center;
-  justify-content: center;
-  width: 44px;
-  height: 44px;
-  border: 1px solid var(--k-panel-edge);
-  border-radius: var(--k-r-key);
-  background: var(--k-key);
-  box-shadow: 0 3px 0 0 var(--k-key-edge);
-  color: var(--k-blue);
-}
-body:has(#classRoot) .push-prompt__text { flex: 1 1 200px; font-size: 0.88rem; font-weight: 600; color: var(--k-ink); }
-body:has(#classRoot) .push-prompt__btns { flex: 1 0 100%; }
-body:has(#classRoot) .push-prompt__yes,
-body:has(#classRoot) .push-prompt__no {
-  min-height: 38px;
-  border-radius: var(--k-r-key);
-  font-family: var(--k-font);
-  font-weight: 700;
-  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
-}
-body:has(#classRoot) .push-prompt__yes,
-body:has(#classRoot) .push-prompt__yes:hover {
-  border: 1px solid var(--k-blue-edge);
-  background: var(--k-blue);
-  color: var(--k-on-fill);
-  opacity: 1;
-}
-body:has(#classRoot) .push-prompt__yes { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
-body:has(#classRoot) .push-prompt__no,
-body:has(#classRoot) .push-prompt__no:hover {
-  border: 1px solid var(--k-panel-edge);
-  background: var(--k-key);
-  color: var(--k-ink);
-}
-body:has(#classRoot) .push-prompt__no { box-shadow: 0 3px 0 0 var(--k-key-edge); }
-body:has(#classRoot) .push-prompt__yes:hover,
-body:has(#classRoot) .push-prompt__no:hover { filter: brightness(0.95); }
-body:has(#classRoot) .push-prompt__yes:active { box-shadow: 0 0 0 0 var(--k-blue-edge); transform: translateY(3px); }
-body:has(#classRoot) .push-prompt__no:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+/* ---- the notification key in the class header: the bell, the word, and whether they are on ---- */
+.cd-meta__notif[hidden] { display: none; }
+.cd-meta__notif { display: inline-flex; align-items: center; gap: 7px; }
+.cd-meta__notif-state { font-weight: 800; color: var(--k-ink-3); }
+.cd-meta__notif.is-on .cd-meta__notif-state { color: var(--k-green); }
+.cd-meta__notif.is-on svg { color: var(--k-green); }
 
 @media (max-width: 720px) {
   body:has(#classRoot) { --cd-tabs-h: 63px; }

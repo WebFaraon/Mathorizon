@@ -31,7 +31,9 @@
     return !error;
   }
 
-  async function init(classId) {
+  /* opts.prompt: ask once, the first time this person opens this class on this device (students). Whatever the answer, it is not asked again: the bell key in the
+     class header turns the notifications on and off from then on. */
+  async function init(classId, opts) {
     if (!('serviceWorker' in navigator) || !('PushManager' in window)) return;
     if (!BMAuth.user) return;
 
@@ -52,36 +54,53 @@
         return;
       }
 
-      /* No browser subscription — show prompt unless permanently dismissed */
-      if (localStorage.getItem('push_dismissed_' + classId) === 'forever') return;
-      _showPrompt(classId, reg);
+      /* No browser subscription: ask once (never when the browser blocks notifications for the site, a prompt could not work) */
+      if (opts && opts.prompt === false) return;
+      if ('Notification' in window && Notification.permission === 'denied') return;
+      const asked = 'push_asked_' + BMAuth.user.id + '_' + classId;
+      if (localStorage.getItem(asked)) return;
+      localStorage.setItem(asked, '1');
+      setTimeout(() => _showPrompt(classId, reg), 900);
     } catch (e) {
       console.warn('[Push] init error:', e);
     }
   }
 
+  /* The one-time question: a small dialog in the middle of the page, like the other dialogs of the class. */
   function _showPrompt(classId, reg) {
-    if (document.getElementById('bmPushPrompt')) return;
+    if (document.getElementById('bmPushPrompt') || document.querySelector('.classes-modal')) return;
 
-    const bar = document.createElement('div');
-    bar.id = 'bmPushPrompt';
-    bar.className = 'push-prompt';
-    bar.innerHTML = `
-      <span class="push-prompt__icon">${icon('bell', { size: 24 })}</span>
-      <span class="push-prompt__text">Primește notificări când apare ceva nou în această clasă (mesaje, teme, simulări)</span>
-      <div class="push-prompt__btns">
-        <button class="push-prompt__yes">Activează</button>
-        <button class="push-prompt__no">Nu acum</button>
-      </div>
-    `;
-    document.body.appendChild(bar);
-
-    bar.querySelector('.push-prompt__yes').onclick = () => _subscribe(classId, reg, bar);
-    bar.querySelector('.push-prompt__no').onclick  = () => {
-      bar.remove();
-      /* Only "soft" dismiss — prompt will reappear next session */
-      sessionStorage.setItem('push_dismissed_' + classId, '1');
-    };
+    const modal = document.createElement('div');
+    modal.id = 'bmPushPrompt';
+    modal.className = 'classes-modal';
+    modal.innerHTML = `
+      <div class="classes-modal__backdrop"></div>
+      <div class="classes-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="bmPushPromptT">
+        <div class="classes-modal__head">
+          <h3 id="bmPushPromptT">${icon('bell', { size: 20 })} Vrei notificări pentru această clasă?</h3>
+          <button class="icon-btn" data-no aria-label="Închide">${icon('x', { size: 16 })}</button>
+        </div>
+        <div class="classes-modal__body">
+          <p class="notif-info__p">Primești un mesaj pe telefon sau pe calculator, chiar și cu site-ul închis, când:</p>
+          <ul class="notif-info__list">
+            <li>${icon('message-circle', { size: 16 })} cineva din clasă trimite un mesaj nou</li>
+            <li>${icon('file-text', { size: 16 })} apare o temă nouă</li>
+            <li>${icon('target', { size: 16 })} se programează sau pornește o simulare</li>
+          </ul>
+          <p class="notif-info__p">Le poți porni sau opri oricând din butonul „Notificări” din antetul clasei.</p>
+        </div>
+        <div class="classes-modal__foot">
+          <button class="btn btn--surface" data-no>Nu acum</button>
+          <button class="btn btn--primary" data-yes>Activează</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    const close = () => { modal.remove(); document.removeEventListener('keydown', onKey); };
+    const onKey = e => { if (e.key === 'Escape') close(); };
+    document.addEventListener('keydown', onKey);
+    modal.querySelector('.classes-modal__backdrop').onclick = close;
+    modal.querySelectorAll('[data-no]').forEach(b => { b.onclick = close; });
+    modal.querySelector('[data-yes]').onclick = () => { close(); _subscribe(classId, reg); };
   }
 
   async function _subscribe(classId, reg, bar) {
@@ -98,6 +117,7 @@
       });
       const ok = await _save(classId, sub);
       BM.toast(ok ? 'Notificările au fost activate!' : 'Eroare la salvarea notificărilor.', ok ? 'success' : 'error');
+      document.dispatchEvent(new CustomEvent('bmpush:changed'));
     } catch (e) {
       console.warn('[Push] subscribe error:', e);
       BM.toast('Notificările nu au putut fi activate.', 'error');
@@ -129,6 +149,7 @@
           .delete().eq('user_id', BMAuth.user.id).eq('class_id', classId).eq('endpoint', sub.endpoint);
         await sub.unsubscribe();
       }
+      document.dispatchEvent(new CustomEvent('bmpush:changed'));
       return true;
     } catch (e) {
       console.warn('[Push] unsubscribe error:', e);
