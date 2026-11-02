@@ -109,6 +109,10 @@ body:has(#classRoot) {
   .btn--danger:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
   .btn--sm { min-height: 34px; padding: 0 13px; font-size: 0.84rem; box-shadow: 0 3px 0 0 var(--k-key-edge); }
   .btn--sm:active { transform: translateY(3px); }
+  .btn--sm.btn--primary { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+  .btn--sm.btn--primary:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+  .btn--sm.btn--danger { box-shadow: 0 3px 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+  .btn--sm.btn--danger:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
   .btn[disabled] { opacity: 0.55; cursor: not-allowed; filter: none; transform: none; }
   .icon-btn,
   .icon-btn:hover {
@@ -1467,7 +1471,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .catalog-note svg { flex: none; margin-top: 2px; }
 
 /* The Google Meet room: one key in the header, the same for the teacher and the students */
-.cd-meet { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; width: 100%; max-width: 480px; margin-top: 18px; }      /* the width is capped: the title and the displays keep their places */
+.cd-meet { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 12px; width: 100%; max-width: 680px; margin-top: 18px; }      /* the width is capped: the title and the displays keep their places */
 .cd-meet[hidden] { display: none; }
 .cd-meet__btn,
 .cd-meet__btn:hover {
@@ -1504,11 +1508,9 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .cd-meet--no_link .cd-meet__note { padding: 9px 12px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; }
 @keyframes cd-meet-pulse { 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { .cd-meet--open .cd-meet__note::before { animation: none; } }
-@media (max-width: 560px) {
-  .cd-meet__btn { flex: 1 1 100%; justify-content: center; }
-}
 .cd-meet__note:empty { display: none; }
-/* Lesson changes: the key under the Meet button, what is different in the next two weeks, and the dialog where the teacher changes it */
+/* Lesson changes: the key next to the Meet button, what is different in the next two weeks, and the dialog where the teacher changes it.
+   The dialog is appended to the body, outside #classRoot, so what must beat the nested class-page rules (.btn, fields) is written with body:has(#classRoot). */
 .cd-meet__edit,
 .cd-meet__edit:hover {
   border: 1px solid var(--k-panel-edge);
@@ -1516,9 +1518,9 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
   color: var(--k-ink);
 }
 .cd-meet__edit {
-  display: inline-flex; align-items: center; gap: 8px; min-height: 46px; padding: 0 16px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 18px;
   border-radius: var(--k-r-key); box-shadow: 0 4px 0 0 var(--k-key-edge);
-  font-family: var(--k-font); font-size: 0.9rem; font-weight: 800; cursor: pointer;
+  font-family: var(--k-font); font-size: 0.92rem; font-weight: 800; cursor: pointer;
   transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
 }
 .cd-meet__edit[hidden] { display: none; }
@@ -1531,44 +1533,105 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .cd-meet__chgrow svg { flex: none; margin-top: 2px; }
 .cd-meet__chgrow--moved { border-left-color: var(--k-blue); }
 .cd-meet__chgrow--extra { border-left-color: var(--k-green); }
-.cd-meet__chgrow--cancelled { border-left-color: var(--k-red, #c0392b); }
-@media (max-width: 560px) { .cd-meet__edit { flex: 1 1 100%; justify-content: center; } }
+.cd-meet__chgrow--cancelled { border-left-color: var(--k-red); }
+/* on a phone: the Meet key and the copy key share the first row, the change key takes the second */
+@media (max-width: 560px) {
+  .cd-meet__btn { flex: 1 1 0; min-width: 0; justify-content: center; padding: 0 14px; font-size: 0.95rem; }
+  .cd-meet__edit { flex: 1 1 100%; }
+}
 
 .cd-ls.classes-modal__dialog { max-width: 620px; }
 .cd-ls__lede { margin: 0 0 14px; font-size: 0.9rem; line-height: 1.5; color: var(--k-ink-2); }
 .cd-ls__none { margin: 0 0 14px; padding: 14px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.9rem; color: var(--k-ink-2); }
 .cd-ls__list { margin: 0 0 16px; padding: 0; list-style: none; border: 1px solid var(--k-panel-edge); border-radius: 3px; }
-.cd-ls__row { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px 14px; padding: 12px 14px; border-top: 1px solid var(--k-panel-edge); border-left: 4px solid transparent; }
+.cd-ls__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 14px; padding: 12px 14px; border-top: 1px solid var(--k-panel-edge); border-left: 4px solid transparent; }
 .cd-ls__row:first-child { border-top: 0; }
 .cd-ls__row--moved { border-left-color: var(--k-blue); }
 .cd-ls__row--extra { border-left-color: var(--k-green); }
-.cd-ls__row--cancelled { border-left-color: var(--k-red, #c0392b); }
+.cd-ls__row--cancelled { border-left-color: var(--k-red); }
 .cd-ls__row--cancelled .cd-ls__when { text-decoration: line-through; color: var(--k-ink-3); }
 .cd-ls__main { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
 .cd-ls__when { display: flex; flex-wrap: wrap; gap: 2px 10px; align-items: baseline; }
 .cd-ls__when b { font-weight: 800; }
 .cd-ls__when span { font-size: 0.88rem; font-weight: 600; color: var(--k-ink-2); }
 .cd-ls__tag { font-size: 0.78rem; font-weight: 700; color: var(--k-ink-2); }
-.cd-ls__acts { display: flex; flex-wrap: wrap; gap: 6px 14px; }
-/* repeated per-row keys are plain text links, not 3D keys */
-.cd-ls__act { padding: 6px 0; border: 0; background: none; font: inherit; font-size: 0.88rem; font-weight: 800; color: var(--k-blue); cursor: pointer; text-decoration: underline; text-underline-offset: 3px; }
-.cd-ls__act:hover { color: var(--k-ink); }
-.cd-ls__act--warn { color: var(--k-red, #c0392b); }
-.cd-ls__act--warn:hover { color: var(--k-red, #c0392b); }
-.cd-ls__act.is-armed { padding: 6px 10px; border-radius: 3px; background: var(--k-red, #c0392b); color: #fff; text-decoration: none; }
-.cd-ls__act.is-armed:hover { color: #fff; }
-.cd-ls__act:disabled { opacity: 0.5; cursor: wait; }
-.cd-ls__act:focus-visible { outline: 2px solid var(--k-ink); outline-offset: 2px; }
-.cd-ls__form { flex: 1 1 100%; margin-top: 4px; padding: 12px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-panel-2, var(--k-panel)); }
-.cd-ls__fields { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; }
-.cd-ls__fields .cls-form-field { margin: 0; }
+.cd-ls__acts { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.cd-ls__extra { margin-top: 2px; }
+.cd-ls__h { margin: 0 0 8px; font-size: 0.95rem; font-weight: 800; }
+
+/* the keys of the dialog: the same keys as everywhere (bottom edge, dim on hover, sink on press); the small ones keep their colour edge */
+body:has(#classRoot) .cd-ls .btn--sm.btn--primary { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+body:has(#classRoot) .cd-ls .btn--sm.btn--primary:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+body:has(#classRoot) .cd-ls .btn--sm.btn--danger { box-shadow: 0 3px 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+body:has(#classRoot) .cd-ls .btn--sm.btn--danger:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+/* a red-edged key for the actions that take something away */
+body:has(#classRoot) .cd-ls .btn--warn,
+body:has(#classRoot) .cd-ls .btn--warn:hover {
+  border-color: color-mix(in srgb, var(--k-red) 45%, var(--k-panel-edge));
+  background: var(--k-key);
+  color: var(--k-red);
+}
+body:has(#classRoot) .cd-ls .btn--warn { box-shadow: 0 3px 0 0 color-mix(in srgb, var(--k-red) 38%, var(--k-key-edge)); }
+body:has(#classRoot) .cd-ls .btn--warn:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 38%, var(--k-key-edge)); }
+body:has(#classRoot) .cd-ls .btn[aria-expanded="true"] { background: var(--k-ghost, var(--k-key)); }
+
+/* the panels open and close with a height animation */
+.cd-ls__reveal { grid-column: 1 / -1; display: grid; grid-template-rows: 0fr; opacity: 0; min-width: 0; transition: grid-template-rows 0.32s cubic-bezier(0.2, 0.8, 0.2, 1), opacity 0.22s ease; }
+.cd-ls__reveal.is-open { grid-template-rows: 1fr; opacity: 1; }
+.cd-ls__reveal-in { min-height: 0; overflow: hidden; }
+.cd-ls__extra .cd-ls__reveal-in { padding-top: 10px; }
+@media (prefers-reduced-motion: reduce) { .cd-ls__reveal { transition: none; } }
+
+.cd-ls__form { margin: 10px 0 2px; padding: 12px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: color-mix(in srgb, var(--k-bg) 55%, var(--k-panel)); }
+.cd-ls__extra .cd-ls__form { margin-top: 0; }
+.cd-ls__fields { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr) minmax(0, 1fr); gap: 10px; align-items: start; }
+.cd-ls__fields .cls-form-field { margin: 0; min-width: 0; }
+/* the three boxes have the same height: the date, the hour and the duration (a dropdown) */
+body:has(#classRoot) .cd-ls .cd-ls__fields .cls-form-input,
+body:has(#classRoot) .cd-ls .cd-ls__fields .cls-csel__trigger {
+  box-sizing: border-box; width: 100%; height: 44px; margin: 0; padding: 0 14px;
+  font-family: inherit; font-size: 0.95rem; line-height: 1.2; cursor: pointer;
+}
+body:has(#classRoot) .cd-ls .cd-ls__fields .cls-csel__trigger { display: flex; align-items: center; }
 .cd-ls__warn { margin: 10px 0 0; font-size: 0.84rem; font-weight: 700; color: var(--k-amber, #a8620a); }
 .cd-ls__warn[hidden] { display: none; }
-.cd-ls__err { margin: 8px 0 0; min-height: 1.2em; font-size: 0.86rem; font-weight: 700; color: var(--k-red, #c0392b); }
-.cd-ls__formacts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; }
-.cd-ls__extra h4 { margin: 0 0 8px; font-size: 0.95rem; font-weight: 800; }
+.cd-ls__err { margin: 8px 0 0; min-height: 1.2em; font-size: 0.86rem; font-weight: 700; color: var(--k-red); }
+.cd-ls__formacts { display: flex; justify-content: flex-end; gap: 8px; margin-top: 10px; padding-bottom: 4px; }
+
+.cd-ls__confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; margin: 10px 0 2px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--k-red) 40%, var(--k-panel-edge)); border-radius: 3px; background: color-mix(in srgb, var(--k-red) 6%, var(--k-panel)); }
+.cd-ls__confirm p { flex: 1 1 220px; margin: 0; font-size: 0.88rem; font-weight: 700; line-height: 1.4; }
+.cd-ls__confirmacts { display: flex; gap: 8px; padding-bottom: 4px; }
+
 @media (max-width: 560px) {
+  .cd-ls__row { grid-template-columns: minmax(0, 1fr); }
+  .cd-ls__acts { justify-content: flex-start; margin-top: 10px; }
   .cd-ls__fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); }
-  .cd-ls__fields .cls-form-field:first-child { grid-column: 1 / -1; }
-  .cd-ls__formacts .btn { flex: 1; justify-content: center; }
+  .cd-ls__f-date { grid-column: 1 / -1; }
+  .cd-ls__formacts .btn, .cd-ls__confirmacts .btn { flex: 1; }
+  .cd-ls__confirmacts { flex: 1 1 100%; }
 }
+
+/* the dropdown of the dialog has the same corners as the fields next to it */
+body:has(#classRoot) .cd-ls .cls-csel__trigger { border-radius: var(--radius-sm); }
+body:has(#classRoot) .cd-ls .cls-csel__dropdown { border-radius: var(--radius-sm); }
+body:has(#classRoot) .cd-ls .cls-csel__option:first-child,
+body:has(#classRoot) .cd-ls .cls-csel__option:last-child { border-radius: 0; }
+
+/* the hour panel: two columns (hours, minutes), the look of the site's dropdown list; it sits on the body, above the dialog */
+body:has(#classRoot) > .cd-tp {
+  position: fixed; z-index: 700; display: none; grid-template-columns: 1fr 1fr; box-sizing: border-box;
+  background: var(--surface); border: 1.5px solid var(--border); border-radius: var(--radius-sm);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.14); overflow: hidden;
+}
+body:has(#classRoot) > .cd-tp.is-open { display: grid; animation: fadeSlideIn 0.14s ease; }
+[data-theme="dark"] body:has(#classRoot) > .cd-tp, body:has(#classRoot)[data-theme="dark"] > .cd-tp { box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45); }
+body:has(#classRoot) > .cd-tp .cd-tp__col { max-height: 232px; overflow-y: auto; overflow-x: hidden; scrollbar-width: thin; }
+body:has(#classRoot) > .cd-tp .cd-tp__col + .cd-tp__col { border-left: 1px solid var(--border); }
+body:has(#classRoot) > .cd-tp .cd-tp__opt {
+  display: block; width: 100%; margin: 0; padding: 9px 14px; border: 0; border-radius: 0; background: none;
+  font: inherit; font-size: 0.92rem; text-align: center; color: var(--text); cursor: pointer; transition: background 0.12s;
+}
+body:has(#classRoot) > .cd-tp .cd-tp__opt:hover { background: rgba(58, 107, 173, 0.09); color: var(--text); }
+body:has(#classRoot) > .cd-tp .cd-tp__opt--sel,
+body:has(#classRoot) > .cd-tp .cd-tp__opt--sel:hover { background: rgba(58, 107, 173, 0.07); color: var(--accent); font-weight: 700; }
+body:has(#classRoot) .cd-ls .cd-ls__f-time input.is-open { border-color: var(--accent); }

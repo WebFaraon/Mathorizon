@@ -169,7 +169,7 @@
     } catch (e) { /* the migration is not run yet: no changes shown */ }
     _lessons = list || [];
     _paintLessonChanges();
-    if (document.getElementById('lessonsModal')) _paintLessonsDialog();
+    if (document.getElementById('lessonsModal') && !document.querySelector('#lsBody .cd-ls__reveal')) _paintLessonsDialog();
   }
 
   function _changeLine(l) {
@@ -218,10 +218,160 @@
     } catch (e) { console.warn('[lessons] announce error:', e); }
   }
 
-  let _lsForm = null;           // { key, mode: 'move' | 'extra' } the open form
+  /* The panels (the form, the "are you sure") open and close with a height animation: .cd-ls__reveal goes from 0fr to 1fr rows.
+     Only the panel is touched when it opens or closes, never the whole list, so nothing jumps. The pickers are the site's own: flatpickr (like the due date of a
+     homework and the start of a simulation) and BM.makeCustomSelect (like every other dropdown). */
+  let _lsPickers = [];
+  function _lsDestroyPickers(root) {
+    _lsPickers = _lsPickers.filter(p => {
+      if (root && !root.contains(p.input)) return true;
+      try { p.destroy(); } catch (e) { /* already gone */ }
+      return false;
+    });
+  }
+
+  function _lsReveal(host, html) {
+    const el = document.createElement('div');
+    el.className = 'cd-ls__reveal';
+    el.innerHTML = `<div class="cd-ls__reveal-in">${html}</div>`;
+    host.appendChild(el);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add('is-open')));
+    return el;
+  }
+
+  function _lsConceal(el, then) {
+    if (!el || !el.isConnected) { if (then) then(); return; }
+    _lsDestroyPickers(el);
+    el.classList.remove('is-open');
+    let done = false;
+    const fin = () => { if (done) return; done = true; el.remove(); if (then) then(); };
+    el.addEventListener('transitionend', e => { if (e.target === el && e.propertyName === 'grid-template-rows') fin(); });
+    setTimeout(fin, 450);
+  }
+
+  /* one panel at a time: opening another closes the open one; tapping the same key again closes it */
+  function _lsTogglePanel(host, kind, html, onShown) {
+    const body = document.getElementById('lsBody');
+    const same = host.querySelector(':scope > .cd-ls__reveal[data-kind="' + kind + '"]');
+    body.querySelectorAll('.cd-ls__reveal').forEach(el => { if (el !== same) _lsConceal(el); });
+    body.querySelectorAll('[data-act][aria-expanded="true"]').forEach(b => b.setAttribute('aria-expanded', 'false'));
+    if (same) { _lsConceal(same); return false; }
+    const el = _lsReveal(host, html);
+    el.dataset.kind = kind;
+    if (onShown) onShown(el);
+    return true;
+  }
+
+  const _lsKey = l => l.kind + '|' + (l.change || l.orig_date);
+
+  const _MONTHS_RO = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+
+  /* the hour: a small panel with two columns (hours, minutes), built like the site's dropdowns; a tap on the hour sets it, a tap on the minutes sets them and closes */
+  function _lsTimePicker(input) {
+    const pop = document.createElement('div');
+    pop.className = 'cd-tp';
+    const col = (name, list) => `<div class="cd-tp__col" data-col="${name}">${list.map(v => `<button type="button" class="cd-tp__opt" data-v="${v}">${v}</button>`).join('')}</div>`;
+    pop.innerHTML = col('h', Array.from({ length: 24 }, (_, i) => _pad2(i))) + col('m', Array.from({ length: 12 }, (_, i) => _pad2(i * 5)));
+    let open = false;
+    const cur = () => { const m = /^(\d\d):(\d\d)$/.exec(input.value); return m ? [m[1], m[2]] : [null, null]; };
+    const mark = () => {
+      const [h, m] = cur();
+      pop.querySelectorAll('.cd-tp__opt').forEach(o => o.classList.toggle('cd-tp__opt--sel', o.dataset.v === (o.parentElement.dataset.col === 'h' ? h : m)));
+    };
+    const place = () => {
+      const r = input.getBoundingClientRect(), w = Math.max(r.width, 168), room = window.innerHeight - r.bottom;
+      pop.style.width = w + 'px';
+      pop.style.left = Math.max(8, Math.min(r.left, window.innerWidth - w - 8)) + 'px';
+      if (room < 244 && r.top > room) { pop.style.top = 'auto'; pop.style.bottom = (window.innerHeight - r.top + 5) + 'px'; }
+      else { pop.style.bottom = 'auto'; pop.style.top = (r.bottom + 5) + 'px'; }
+    };
+    const hide = () => { if (!open) return; open = false; pop.classList.remove('is-open'); input.classList.remove('is-open'); pop.remove(); };
+    const show = () => {
+      if (open) return;
+      BM._closeAllCsels();
+      document.querySelectorAll('.cd-tp').forEach(x => { if (x !== pop && x._hide) x._hide(); });
+      document.body.appendChild(pop); place(); mark();
+      open = true; pop.classList.add('is-open'); input.classList.add('is-open');
+      pop.querySelectorAll('.cd-tp__opt--sel').forEach(o => { o.parentElement.scrollTop = Math.max(0, o.offsetTop - 90); });
+    };
+    pop._hide = hide;
+    pop.addEventListener('click', e => {
+      const o = e.target.closest('.cd-tp__opt');
+      if (!o) return;
+      e.stopPropagation();
+      let [h, m] = cur();
+      const hourCol = o.parentElement.dataset.col === 'h';
+      if (hourCol) { h = o.dataset.v; m = m || '00'; } else { m = o.dataset.v; h = h || '18'; }
+      input.value = h + ':' + m;
+      mark();
+      if (!hourCol) hide();
+    });
+    input.addEventListener('click', e => { e.stopPropagation(); if (open) hide(); else show(); });
+    input.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') { e.preventDefault(); show(); } });
+    const away = e => { if (open && !pop.contains(e.target) && e.target !== input) hide(); };
+    const scrolled = e => { if (open && !pop.contains(e.target)) hide(); };       // the dialog scrolls under it
+    document.addEventListener('click', away);
+    document.addEventListener('scroll', scrolled, true);
+    _lsPickers.push({ input, destroy() { hide(); document.removeEventListener('click', away); document.removeEventListener('scroll', scrolled, true); } });
+  }
+
+  function _lessonFormHTML(l, mode) {
+    const startVal = l ? l.start : '';
+    return `<form class="cd-ls__form" data-form="${mode}" novalidate>
+      <div class="cd-ls__fields">
+        <div class="cls-form-field cd-ls__f-date"><label class="cls-form-label">Ziua</label>
+          <input type="text" name="date" class="cls-form-input" placeholder="Alege ziua" readonly value="${BM.esc(startVal.slice(0, 10))}"></div>
+        <div class="cls-form-field cd-ls__f-time"><label class="cls-form-label">Ora</label>
+          <input type="text" name="time" class="cls-form-input" placeholder="Alege ora" readonly value="${BM.esc(startVal.slice(11, 16))}"></div>
+        <div class="cls-form-field cd-ls__f-hours"><label class="cls-form-label">Durata</label>
+          <select name="hours" class="cls-form-select">${[1, 2, 3].map(h => `<option value="${h}"${h === (l ? l.hours : 1) ? ' selected' : ''}>${_hoursWord(h)}</option>`).join('')}</select></div>
+      </div>
+      <p class="cd-ls__warn" data-warn hidden>Data e peste 14 zile de acum. Verifică încă o dată ziua.</p>
+      <p class="cd-ls__err" data-err role="alert"></p>
+      <div class="cd-ls__formacts">
+        <button type="button" class="btn btn--surface btn--sm" data-act="close-panel">Renunță</button>
+        <button type="submit" class="btn btn--primary btn--sm">${mode === 'extra' ? 'Adaugă lecția' : 'Salvează'}</button>
+      </div>
+    </form>`;
+  }
+
+  /* the pickers of a freshly opened form */
+  function _lsInitForm(root) {
+    const f = root.querySelector('form');
+    if (!f) return;
+    const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+    const ro = (window.flatpickr && window.flatpickr.l10ns && window.flatpickr.l10ns.ro) || 'default';
+    const warn = f.querySelector('[data-warn]');
+    const check = () => { const d = f.elements.date.value; warn.hidden = !(d && d > _wallPlus(_nowWall(), 14 * 24 * 60).slice(0, 10)); };
+    if (window.flatpickr) {
+      const iso = d => d.getFullYear() + '-' + _pad2(d.getMonth() + 1) + '-' + _pad2(d.getDate());
+      _lsPickers.push(flatpickr(f.elements.date, {
+        locale: ro, dateFormat: 'Y-m-d', altInput: true, altFormat: 'j F Y', altInputClass: 'cls-form-input',
+        formatDate: (d, fmt) => (fmt === 'Y-m-d' ? iso(d) : d.getDate() + ' ' + _MONTHS_RO[d.getMonth()] + ' ' + d.getFullYear()),
+        minDate: _nowWall().slice(0, 10), defaultDate: f.elements.date.value || null,
+        disableMobile: true, allowInput: false, theme: dark ? 'dark' : 'light', onChange: check
+      }));
+    }
+    _lsTimePicker(f.elements.time);
+    BM.initCustomSelects(f);
+    check();
+  }
+
+  function _lsConfirmHTML(l, kind) {
+    const text = kind === 'del'
+      ? 'Ștergi lecția în plus de ' + _wallFull(l.start) + '?'
+      : 'Anulezi lecția de ' + _wallFull(l.start) + '? Elevii primesc un mesaj.';
+    return `<div class="cd-ls__confirm">
+      <p>${BM.esc(text)}</p>
+      <div class="cd-ls__confirmacts">
+        <button type="button" class="btn btn--surface btn--sm" data-act="close-panel">Renunță</button>
+        <button type="button" class="btn btn--danger btn--sm" data-act="${kind === 'del' ? 'confirm-del' : 'confirm-cancel'}">${kind === 'del' ? 'Confirmă ștergerea' : 'Confirmă anularea'}</button>
+      </div>
+    </div>`;
+  }
+
   function _openLessonsDialog() {
     document.getElementById('lessonsModal')?.remove();
-    _lsForm = null;
     const modal = document.createElement('div');
     modal.id = 'lessonsModal';
     modal.className = 'classes-modal';
@@ -237,124 +387,109 @@
     document.body.appendChild(modal);
     document.documentElement.style.overflow = 'hidden';
     document.body.style.overflow = 'hidden';
-    const close = () => { modal.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; document.removeEventListener('keydown', onKey); };
-    const onKey = e => { if (e.key === 'Escape') close(); };
-    document.addEventListener('keydown', onKey);
+    const close = () => {
+      _lsDestroyPickers();
+      modal.remove();
+      document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+      document.removeEventListener('keydown', onKey, true);
+    };
+    // Escape closes the dialog, unless a calendar or a dropdown is open (it closes that first); listened in the capture phase, before flatpickr closes its own calendar
+    const onKey = e => {
+      if (e.key !== 'Escape') return;
+      const tp = document.querySelector('.cd-tp.is-open');
+      if (tp) { tp._hide(); return; }
+      if (document.querySelector('.cls-csel--open')) { BM._closeAllCsels(); return; }
+      if (document.querySelector('.flatpickr-calendar.open')) return;
+      close();
+    };
+    document.addEventListener('keydown', onKey, true);
     modal.querySelector('.classes-modal__backdrop').onclick = close;
     modal.querySelector('#lsClose').onclick = close;
+    const body = modal.querySelector('#lsBody');
+    body.addEventListener('click', _lsClick);
+    body.addEventListener('submit', _lsSubmit);
     _paintLessonsDialog();
     _loadLessons();
-  }
-
-  const _lsKey = l => l.kind + '|' + (l.change || l.orig_date);
-
-  function _lessonFormHTML(l, mode) {
-    const today = _nowWall().slice(0, 10);
-    const startVal = l ? l.start : '';
-    return `<form class="cd-ls__form" data-form="1" novalidate>
-      <div class="cd-ls__fields">
-        <div class="cls-form-field"><label class="cls-form-label">Ziua</label>
-          <input type="date" name="date" class="cls-form-input" min="${today}" required value="${BM.esc(startVal.slice(0, 10))}"></div>
-        <div class="cls-form-field"><label class="cls-form-label">Ora</label>
-          <input type="time" name="time" class="cls-form-input" step="300" required value="${BM.esc(startVal.slice(11, 16))}"></div>
-        <div class="cls-form-field"><label class="cls-form-label">Durata</label>
-          <select name="hours" class="cls-form-input">${[1, 2, 3].map(h => `<option value="${h}"${h === (l ? l.hours : 1) ? ' selected' : ''}>${_hoursWord(h)}</option>`).join('')}</select></div>
-      </div>
-      <p class="cd-ls__warn" data-warn hidden>Data e peste 14 zile de acum. Verifică încă o dată ziua.</p>
-      <p class="cd-ls__err" data-err role="alert"></p>
-      <div class="cd-ls__formacts">
-        <button type="button" class="btn btn--surface btn--sm" data-act="close-form">Renunță</button>
-        <button type="submit" class="btn btn--primary btn--sm">${mode === 'extra' ? 'Adaugă lecția' : 'Salvează'}</button>
-      </div>
-    </form>`;
   }
 
   function _paintLessonsDialog() {
     const body = document.getElementById('lsBody');
     if (!body) return;
+    _lsDestroyPickers();
     const now = _nowWall(), soon = _wallPlus(now, 60), from = _wallPlus(now, -180);
     const rows = _lessons.filter(l => l.start >= from);
+    const key = (a, cls, t, extra) => `<button type="button" class="btn btn--sm ${cls}" data-act="${a}"${extra || ''}>${t}</button>`;
     body.innerHTML = `
       <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare. Orarul obișnuit și prezențele rămân în registru.</p>
       ${rows.length ? `<ul class="cd-ls__list">${rows.map(l => {
-        const key = _lsKey(l);
-        const open = _lsForm && _lsForm.key === key;
         const editable = l.kind === 'cancelled' || l.kind === 'moved' ? (l.orig_start || l.start) >= soon : l.start >= soon;
         const moveOk = l.start >= soon;
         const tag = l.kind === 'moved' ? `Mutată din ${_wallFull(l.orig_start)}` : l.kind === 'extra' ? 'În plus' : l.kind === 'cancelled' ? 'Anulată' : '';
         const acts = [];
-        if (l.kind === 'regular' && moveOk) acts.push(['move', 'Mută'], ['cancel', 'Anulează']);
-        if (l.kind === 'moved') { if (moveOk) acts.push(['move', 'Mută'], ['cancel', 'Anulează']); if (editable) acts.push(['undo', 'Ora obișnuită']); }
-        if (l.kind === 'cancelled' && editable) acts.push(['undo', 'Restabilește']);
-        if (l.kind === 'extra' && moveOk) acts.push(['undo', 'Șterge']);
-        return `<li class="cd-ls__row cd-ls__row--${l.kind}" data-key="${BM.esc(key)}">
+        if ((l.kind === 'regular' || l.kind === 'moved') && moveOk) acts.push(key('move', 'btn--surface', 'Mută', ' aria-expanded="false"'), key('cancel', 'btn--warn', 'Anulează', ' aria-expanded="false"'));
+        if (l.kind === 'moved' && editable) acts.push(key('undo', 'btn--surface', 'Ora obișnuită'));
+        if (l.kind === 'cancelled' && editable) acts.push(key('undo', 'btn--surface', 'Restabilește'));
+        if (l.kind === 'extra' && moveOk) acts.push(key('del', 'btn--warn', 'Șterge', ' aria-expanded="false"'));
+        return `<li class="cd-ls__row cd-ls__row--${l.kind}" data-key="${BM.esc(_lsKey(l))}">
           <div class="cd-ls__main">
             <div class="cd-ls__when"><b>${BM.esc(_cap(_wallDay(l.start)))}</b><span>${BM.esc(_wallHM(l.start))}-${BM.esc(_wallHM(l.end))} · ${BM.esc(_hoursWord(l.hours))}</span></div>
             ${tag ? `<span class="cd-ls__tag">${BM.esc(tag)}</span>` : ''}
           </div>
-          ${acts.length ? `<div class="cd-ls__acts">${acts.map(([a, t]) => `<button type="button" class="cd-ls__act${a === 'cancel' || (a === 'undo' && l.kind === 'extra') ? ' cd-ls__act--warn' : ''}" data-act="${a}" data-key="${BM.esc(key)}">${t}</button>`).join('')}</div>` : ''}
-          ${open && _lsForm.mode === 'move' ? _lessonFormHTML(l, 'move') : ''}
+          ${acts.length ? `<div class="cd-ls__acts">${acts.join('')}</div>` : ''}
         </li>`;
       }).join('')}</ul>` : `<p class="cd-ls__none">Nu sunt lecții în următoarele săptămâni. Grupa trebuie să aibă un program în registru.</p>`}
       <div class="cd-ls__extra">
-        ${_lsForm && _lsForm.mode === 'extra' ? `<h4>Lecție în plus</h4>${_lessonFormHTML(null, 'extra')}` : `<button type="button" class="btn btn--surface btn--sm" data-act="extra">${icon('plus', { size: 14 })} Lecție în plus</button>`}
+        <button type="button" class="btn btn--surface btn--sm" data-act="extra" aria-expanded="false">${icon('plus', { size: 14 })} Lecție în plus</button>
       </div>`;
-    _wireLessonsDialog(body);
   }
 
-  function _wireLessonsDialog(body) {
-    body.querySelectorAll('[data-act]').forEach(b => b.addEventListener('click', () => {
-      const act = b.dataset.act, l = _lessons.find(x => _lsKey(x) === b.dataset.key);
-      if (act === 'close-form') { _lsForm = null; _paintLessonsDialog(); return; }
-      if (act === 'extra') { _lsForm = { key: 'extra', mode: 'extra' }; _paintLessonsDialog(); document.querySelector('#lsBody .cd-ls__extra input')?.focus(); return; }
-      if (act === 'move' && l) { _lsForm = { key: _lsKey(l), mode: 'move' }; _paintLessonsDialog(); document.querySelector('#lsBody .cd-ls__row form input')?.focus(); return; }
-      if ((act === 'cancel' || (act === 'undo' && l && l.kind === 'extra')) && l) {
-        // the second tap confirms: the key itself asks
-        if (!b.dataset.armed) {
-          b.dataset.armed = '1'; b.classList.add('is-armed'); b.textContent = act === 'cancel' ? 'Confirmă anularea' : 'Confirmă ștergerea';
-          setTimeout(() => { if (b.isConnected) { delete b.dataset.armed; b.classList.remove('is-armed'); b.textContent = act === 'cancel' ? 'Anulează' : 'Șterge'; } }, 4000);
-          return;
-        }
-      }
-      if (act === 'cancel' && l) _runLessonAction(b, async () => {
-        const r = await _rpcLesson('class_lesson_set', { p_class: classData.id, p_kind: 'cancelled', p_orig: l.orig_date, p_new_start: null, p_hours: null });
-        return 'Lecția de ' + _wallFull(r.orig_start) + ' a fost anulată.';
-      });
-      if (act === 'undo' && l) _runLessonAction(b, async () => {
-        const r = await _rpcLesson('class_lesson_remove', { p_change: l.change });
-        return l.kind === 'extra' ? 'Lecția în plus de ' + _wallFull(r.new_start) + ' a fost anulată.' : 'Lecția de ' + _wallFull(r.orig_start) + ' se ține la ora obișnuită.';
-      });
-    }));
-    body.querySelectorAll('form[data-form]').forEach(f => {
-      const warn = f.querySelector('[data-warn]');
-      const check = () => {
-        const d = f.elements.date.value, lim = _wallPlus(_nowWall(), 14 * 24 * 60).slice(0, 10);
-        warn.hidden = !(d && d > lim);
-      };
-      f.elements.date.addEventListener('input', check); check();
-      f.addEventListener('submit', async ev => {
-        ev.preventDefault();
-        const err = f.querySelector('[data-err]'), go = f.querySelector('[type="submit"]');
-        const d = f.elements.date.value, t = f.elements.time.value, h = +f.elements.hours.value;
-        err.textContent = '';
-        if (!d || !t) { err.textContent = 'Alege ziua și ora.'; return; }
-        const wall = d + 'T' + t;
-        if (wall < _wallPlus(_nowWall(), 60)) { err.textContent = _LESSON_ERR['too soon']; return; }
-        const extra = _lsForm && _lsForm.mode === 'extra';
-        const l = extra ? null : _lessons.find(x => _lsKey(x) === _lsForm.key);
-        go.disabled = true;
-        try {
-          const r = await _rpcLesson('class_lesson_set', extra
-            ? { p_class: classData.id, p_kind: 'extra', p_orig: null, p_new_start: wall, p_hours: h }
-            : { p_class: classData.id, p_kind: 'moved', p_orig: l.orig_date, p_new_start: wall, p_hours: h });
-          const text = extra
-            ? 'Lecție în plus: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').'
-            : 'Lecția de ' + _wallFull(r.orig_start) + ' a fost mutată: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').';
-          _lsForm = null;
-          await _lessonsChanged(text);
-        } catch (e) { err.textContent = _lessonErr(e); go.disabled = false; }
-      });
+  function _lsClick(e) {
+    const b = e.target.closest('[data-act]');
+    if (!b || b.disabled) return;
+    const act = b.dataset.act;
+    const row = b.closest('.cd-ls__row');
+    const l = row ? _lessons.find(x => _lsKey(x) === row.dataset.key) : null;
+    const toggle = (host, kind, html, onShown) => b.setAttribute('aria-expanded', String(_lsTogglePanel(host, kind, html, onShown)));
+    if (act === 'close-panel') { _lsConceal(b.closest('.cd-ls__reveal')); document.querySelectorAll('#lsBody [aria-expanded="true"]').forEach(x => x.setAttribute('aria-expanded', 'false')); return; }
+    if (act === 'extra') { toggle(b.parentElement, 'form', `<h4 class="cd-ls__h">Lecție în plus</h4>` + _lessonFormHTML(null, 'extra'), _lsInitForm); return; }
+    if (!l) return;
+    if (act === 'move') { toggle(row, 'form', _lessonFormHTML(l, 'move'), _lsInitForm); return; }
+    if (act === 'cancel') { toggle(row, 'confirm', _lsConfirmHTML(l, 'cancel')); return; }
+    if (act === 'del') { toggle(row, 'confirm', _lsConfirmHTML(l, 'del')); return; }
+    if (act === 'confirm-cancel') _runLessonAction(b, async () => {
+      const r = await _rpcLesson('class_lesson_set', { p_class: classData.id, p_kind: 'cancelled', p_orig: l.orig_date, p_new_start: null, p_hours: null });
+      return 'Lecția de ' + _wallFull(r.orig_start) + ' a fost anulată.';
     });
+    if (act === 'confirm-del' || act === 'undo') _runLessonAction(b, async () => {
+      const r = await _rpcLesson('class_lesson_remove', { p_change: l.change });
+      return l.kind === 'extra' ? 'Lecția în plus de ' + _wallFull(r.new_start) + ' a fost anulată.' : 'Lecția de ' + _wallFull(r.orig_start) + ' se ține la ora obișnuită.';
+    });
+  }
+
+  async function _lsSubmit(e) {
+    const f = e.target.closest('form[data-form]');
+    if (!f) return;
+    e.preventDefault();
+    const err = f.querySelector('[data-err]'), go = f.querySelector('[type="submit"]');
+    const d = f.elements.date.value, t = f.elements.time.value, h = +f.elements.hours.value;
+    err.textContent = '';
+    if (!d || !t) { err.textContent = 'Alege ziua și ora.'; return; }
+    const wall = d + 'T' + t;
+    if (wall < _wallPlus(_nowWall(), 60)) { err.textContent = _LESSON_ERR['too soon']; return; }
+    const extra = f.dataset.form === 'extra';
+    const row = f.closest('.cd-ls__row');
+    const l = extra ? null : _lessons.find(x => row && _lsKey(x) === row.dataset.key);
+    if (!extra && !l) return;
+    go.disabled = true;
+    try {
+      const r = await _rpcLesson('class_lesson_set', extra
+        ? { p_class: classData.id, p_kind: 'extra', p_orig: null, p_new_start: wall, p_hours: h }
+        : { p_class: classData.id, p_kind: 'moved', p_orig: l.orig_date, p_new_start: wall, p_hours: h });
+      const text = extra
+        ? 'Lecție în plus: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').'
+        : 'Lecția de ' + _wallFull(r.orig_start) + ' a fost mutată: ' + _wallFull(r.new_start) + ' (' + _hoursWord(r.hours) + ').';
+      await _lessonsChanged(text);
+    } catch (ex) { err.textContent = _lessonErr(ex); go.disabled = false; }
   }
 
   async function _rpcLesson(fn, args) {
@@ -372,6 +507,8 @@
   async function _lessonsChanged(text) {
     BM.toast('Schimbarea a fost salvată.', 'success');
     _announceLessonChange(text);
+    document.querySelectorAll('#lsBody .cd-ls__reveal').forEach(el => el.remove());
+    _lsDestroyPickers();
     await _loadLessons();
     _loadMeet();
   }
