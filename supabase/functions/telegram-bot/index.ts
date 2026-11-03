@@ -39,6 +39,12 @@ const nameOf = async (userId: string) => {
   return (d?.official_name as string) || (d?.display_name as string) || '';
 };
 
+/* the role of an account (profesor, manager, admin): a manager is linked but has no commands yet */
+const roleOf = async (userId: string) => {
+  const { data } = await sb.from('user_profiles').select('role').eq('user_id', userId).maybeSingle();
+  return ((data as any)?.role as string) || '';
+};
+
 /* every row of a query, 1000 at a time (the API stops at 1000) */
 async function allRows(build: (from: number, to: number) => any): Promise<any[]> {
   const out: any[] = [];
@@ -59,11 +65,11 @@ const db = {
     await sb.from('telegram_links').delete().eq('chat_id', l.chat_id).neq('user_id', l.user_id);          // a chat belongs to one account
     const { error } = await sb.from('telegram_links').upsert({ ...l, linked_at: new Date().toISOString() }, { onConflict: 'user_id' });
     if (error) throw new Error(error.message);
-    return { name: await nameOf(l.user_id) };
+    return { name: await nameOf(l.user_id), role: await roleOf(l.user_id) };
   },
   async userByChat(chat: number) {
     const { data } = await sb.from('telegram_links').select('user_id').eq('chat_id', chat).maybeSingle();
-    return data ? { user_id: data.user_id as string, name: await nameOf(data.user_id as string) } : null;
+    return data ? { user_id: data.user_id as string, name: await nameOf(data.user_id as string), role: await roleOf(data.user_id as string) } : null;
   },
   async unlinkChat(chat: number) { await sb.from('telegram_links').delete().eq('chat_id', chat); },
   /* everything the assistant needs about one teacher: his registers, groups, students, lessons and replacements (see assistant.mjs) */

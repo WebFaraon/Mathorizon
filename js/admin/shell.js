@@ -44,12 +44,15 @@
       { id: 'profesori', label: 'Conturi', icon: 'user' },
       { id: 'sincronizare', label: 'Sincronizare', icon: 'refresh-cw' },
       { id: 'culegeri', label: 'Culegeri', icon: 'library' }
+    ] },
+    { group: 'Cont', items: [
+      { id: 'profil', label: 'Profil', icon: 'circle-user' }
     ] }
   ];
   const ALL = NAV.flatMap(g => g.items);
 
   /* What a manager may open (the admin opens everything). The database rights follow the same list (migration 20261101100000_rol_manager.sql). */
-  const MANAGER_VIEWS = ['acasa', 'orar', 'elevi', 'inscriere', 'starturi', 'schimbari', 'inlocuiri', 'disponibilitate'];
+  const MANAGER_VIEWS = ['acasa', 'orar', 'elevi', 'inscriere', 'starturi', 'schimbari', 'inlocuiri', 'disponibilitate', 'profil'];
   window.AdminAccess = { role: null, status: null, ok: false, can: () => false };
   function setAccess(a) {
     const isAdmin = a.role === 'admin', isMgr = a.role === 'manager';
@@ -101,10 +104,10 @@
           </a>
           <nav id="axNav">${navHTML(external || 'acasa')}</nav>
           <div class="ax-sign__foot">
-            <div class="ax-sign__user">
+            <a class="ax-sign__user" href="admin.html#profil" title="Profilul tău">
               <span class="ax-sign__avatar">${esc(initials(name))}</span>
               <span class="ax-hide-folded"><b>${esc(name)}</b><small>${window.AdminAccess.manager ? 'Manager' : 'Administrator'}</small></span>
-            </div>
+            </a>
             <div class="ax-sign__row">
               ${window.AdminAccess.manager ? '' : `<a class="ax-sign__btn ax-sign__btn--site" href="capitole.html" data-browse title="Vezi site-ul">${ico('external', 16)}<span class="ax-btn-t">Vezi site-ul</span></a>`}
               <button type="button" class="ax-sign__btn ax-sign__btn--icon" id="axTheme" aria-label="Schimbă tema">${ico(document.documentElement.getAttribute('data-theme') === 'dark' ? 'sun' : 'moon', 16)}</button>

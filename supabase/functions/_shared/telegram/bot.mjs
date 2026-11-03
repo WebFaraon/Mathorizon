@@ -49,6 +49,9 @@ const T = {
   linked: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău Mathorizon e conectat la acest chat.`,
   badCode: 'Codul nu mai e valabil (ține 15 minute) sau a fost deja folosit. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și folosește linkul nou.',
   notLinked: 'Acest chat nu e conectat la un cont Mathorizon. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și deschide linkul primit.',
+  linkedManager: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău de manager e conectat la acest chat.
+Comenzile și alertele pentru manageri nu sunt pornite încă, deocamdată nu primești nimic aici.`,
+  managerSoon: 'Contul tău de manager e conectat, dar comenzile și alertele pentru manageri nu sunt pornite încă. Poți opri legătura oricând cu /stop.',
   hello: name => `👋 Salut${name ? ', ' + esc(name) : ''}!`,
   stopped: 'Am oprit mesajele și am șters legătura cu contul tău. O poți reface oricând din profilul tău de pe Mathorizon.',
   unknown: 'Nu am înțeles. Alege o comandă:',
@@ -94,11 +97,14 @@ export async function handleUpdate(update, { db, api, now = new Date() }) {
       const code = await db.consumeLinkCode(start[1].toUpperCase());
       if (!code) { await say(T.badCode); return { handled: true, linked: false }; }
       const u = await db.saveLink({ user_id: code.user_id, chat_id: chat, username: m.from && m.from.username || null, first_name: m.from && m.from.first_name || null });
-      await say(T.linked(u && u.name || (m.from && m.from.first_name) || ''), { reply_markup: A.menuKeyboard() });
+      const who = u && u.name || (m.from && m.from.first_name) || '';
+      if (u && u.role === 'manager') { await say(T.linkedManager(who), { reply_markup: { remove_keyboard: true } }); return { handled: true, linked: true, manager: true }; }
+      await say(T.linked(who), { reply_markup: A.menuKeyboard() });
       await say(A.helpText, { reply_markup: A.helpKeyboard() });
       return { handled: true, linked: true };
     }
     const u = await db.userByChat(chat);
+    if (u && u.role === 'manager') { await say(T.managerSoon); return { handled: true, manager: true }; }
     await say(u ? T.hello(u.name) : T.notLinked, u ? { reply_markup: A.menuKeyboard() } : undefined);
     if (u) await say(A.helpText, { reply_markup: A.helpKeyboard() });
     return { handled: true };
@@ -106,10 +112,14 @@ export async function handleUpdate(update, { db, api, now = new Date() }) {
   if (/^\/stop(?:@\w+)?\s*$/i.test(text)) { await db.unlinkChat(chat); await say(T.stopped, { reply_markup: { remove_keyboard: true } }); return { handled: true, unlinked: true }; }
 
   const cmd = A.commandOf(text);
-  if (cmd === 'ajutor') { await say(A.helpText, { reply_markup: A.helpKeyboard() }); return { handled: true, command: cmd }; }
+  if (cmd === 'ajutor') {
+    const who = await db.userByChat(chat);
+    if (who && who.role === 'manager') { await say(T.managerSoon); return { handled: true, manager: true }; }
+    await say(A.helpText, { reply_markup: A.helpKeyboard() }); return { handled: true, command: cmd }; }
 
   const user = await db.userByChat(chat);
   if (!user) { await say(T.notLinked); return { handled: true }; }
+  if (user.role === 'manager') { await say(T.managerSoon); return { handled: true, manager: true }; }
   const waiting = await db.awaitingReason(chat);
   if (waiting && !cmd && !text.startsWith('/')) {
     const reason = text.slice(0, 500);

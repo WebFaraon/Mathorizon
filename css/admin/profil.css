@@ -1,0 +1,29 @@
+/* Admin console: Profil (js/admin/views/profil.js). Flat, like the rest of the console; the cards are panels with a 1px edge and the page colour as the line on top. */
+body.ax .pr-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap: 16px; align-items: start; }
+body.ax .pr-card { display: grid; gap: 14px; padding: 18px 20px 20px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r-2); background: var(--ax-panel); box-shadow: inset 0 3px 0 var(--pg); min-width: 0; }
+body.ax .pr-h { margin: 0; font-size: 1.05rem; font-weight: 800; }
+body.ax .pr-sect { margin-top: 24px; display: grid; gap: 12px; }
+body.ax .pr-note { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--ax-ink-3); }
+body.ax .pr-note--bad { color: var(--ax-bad); }
+body.ax .pr-link { color: var(--ax-ink); font-weight: 600; text-decoration: underline; text-decoration-color: var(--ax-rule-2); text-underline-offset: 3px; }
+body.ax .pr-link:hover { text-decoration-color: var(--ax-ink); }
+
+body.ax .pr-who { display: flex; align-items: center; gap: 14px; min-width: 0; }
+body.ax .pr-who > div { display: grid; gap: 2px; min-width: 0; }
+body.ax .pr-who b { font-size: 1.1rem; overflow-wrap: anywhere; }
+body.ax .pr-who .ax-sub { overflow-wrap: anywhere; }
+body.ax .pr-avatar { flex: none; display: grid; place-items: center; width: 52px; height: 52px; border-radius: var(--ax-r); background: var(--pg); color: var(--ax-c-ink); font-size: 1.1rem; font-weight: 800; }
+
+body.ax .pr-form { display: grid; gap: 10px; }
+body.ax .pr-f { display: grid; gap: 6px; font-size: 0.82rem; font-weight: 700; color: var(--ax-ink-3); }
+body.ax .pr-f .ax-input { width: 100%; font-weight: 500; color: var(--ax-ink); }
+body.ax .pr-f--ro b { padding: 9px 12px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r); background: var(--ax-panel-2); font-size: 0.95rem; font-weight: 700; color: var(--ax-ink); overflow-wrap: anywhere; }
+body.ax .pr-err { min-height: 0; font-size: 0.85rem; font-weight: 600; color: var(--ax-bad); }
+body.ax .pr-err:empty { display: none; }
+body.ax .pr-keys { display: flex; flex-wrap: wrap; gap: 8px; }
+body.ax .pr-official { display: grid; gap: 8px; padding-top: 14px; border-top: 1px solid var(--ax-rule); }
+body.ax .pr-official:empty { display: none; }
+
+/* the numbers: the cells share the row, so a short last row is wider cells and never a grey hole */
+body.ax .pr-stats { display: flex; flex-wrap: wrap; }
+body.ax .pr-stats > .ax-stat { flex: 1 1 170px; min-width: 0; }

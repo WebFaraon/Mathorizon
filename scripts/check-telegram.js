@@ -6,12 +6,12 @@ const ok = (c, m) => { if (c) pass++; else { fail++; if (fails.length < 25) fail
 
 /* a database in memory with the same methods the Edge Function gives the bot */
 function memDb() {
-  const s = { codes: new Map(), links: new Map(), requests: new Map(), groups: new Map(), students: new Map(), owners: new Map(), names: new Map(), views: new Map() };
+  const s = { codes: new Map(), links: new Map(), requests: new Map(), groups: new Map(), students: new Map(), owners: new Map(), names: new Map(), roles: new Map(), views: new Map() };
   return {
     s,
     async consumeLinkCode(code) { const c = s.codes.get(code); if (!c || c.expires < Date.now()) return null; s.codes.delete(code); return { user_id: c.user_id }; },
-    async saveLink(l) { for (const [u, x] of s.links) if (x.chat_id === l.chat_id && u !== l.user_id) s.links.delete(u); s.links.set(l.user_id, l); return { name: s.names.get(l.user_id) || '' }; },
-    async userByChat(chat) { for (const [u, x] of s.links) if (x.chat_id === chat) return { user_id: u, name: s.names.get(u) || '' }; return null; },
+    async saveLink(l) { for (const [u, x] of s.links) if (x.chat_id === l.chat_id && u !== l.user_id) s.links.delete(u); s.links.set(l.user_id, l); return { name: s.names.get(l.user_id) || '', role: s.roles.get(l.user_id) || 'profesor' }; },
+    async userByChat(chat) { for (const [u, x] of s.links) if (x.chat_id === chat) return { user_id: u, name: s.names.get(u) || '', role: s.roles.get(u) || 'profesor' }; return null; },
     async unlinkChat(chat) { for (const [u, x] of s.links) if (x.chat_id === chat) s.links.delete(u); },
     async teacherView(userId) { if (s.viewFails) throw new Error('db down'); return s.views.get(userId) || { workbooks: [], groups: [], students: [], lessons: [], replacements: [] }; },
     async request(id) { return s.requests.get(id) || null; },
@@ -440,6 +440,26 @@ function fakeApi(opts) {
     await handleUpdate(press(CHAT, 'c:' + REQ), { db: w.db, api: w.api, now });
     const done = txt(w.api.log.filter(x => x.m === 'edit').pop().text);
     ok(/^✅ Ai confirmat startul grupei\n\nMatematica, clasa a 12-a/.test(done) && /Managerul a fost anunțat și sună elevii\.\n➡️ Prima lecție: marți, 3 noiembrie · 15:00$/.test(done), 'the confirmation says what comes next: ' + done);
+  }
+
+  // ---- a manager links the account: no teacher menu, no teacher answers, only a plain note ----
+  {
+    const w = tw();
+    w.db.s.names.set('u-mgr', 'Ion Manager'); w.db.s.roles.set('u-mgr', 'manager');
+    w.db.s.codes.set('MGRCODE2', { user_id: 'u-mgr', expires: Date.now() + 60000 });
+    const msg3 = (t, chat = 4242) => ({ message: { message_id: 1, chat: { id: chat, type: 'private' }, from: { id: chat, first_name: 'Ion' }, text: t } });
+    const r1 = await handleUpdate(msg3('/start MGRCODE2'), { db: w.db, api: w.api, now });
+    const sent = w.api.log.filter(x => x.m === 'send');
+    ok(r1.linked && r1.manager && sent.length === 1 && /Ion Manager/.test(sent[0].text) && /manager e conectat/.test(sent[0].text) && /nu primești nimic/.test(sent[0].text), 'manager link: one plain message: ' + (sent[0] && sent[0].text));
+    ok(sent[0].extra && sent[0].extra.reply_markup && sent[0].extra.reply_markup.remove_keyboard === true && w.db.s.links.get('u-mgr').chat_id === 4242, 'manager link: no teacher keyboard, the link is saved');
+    for (const t of ['/azi', '/grupe', 'azi', '/ajutor', '/start', 'ceva']) {
+      const n = w.api.log.length;
+      await handleUpdate(msg3(t), { db: w.db, api: w.api, now });
+      const out = w.api.log.slice(n).filter(x => x.m === 'send');
+      ok(out.length === 1 && /comenzile și alertele pentru manageri nu sunt pornite/.test(out[0].text) && !(out[0].extra && out[0].extra.reply_markup), 'manager "' + t + '": the same short note, no teacher answer: ' + (out[0] && out[0].text));
+    }
+    await handleUpdate(msg3('/stop'), { db: w.db, api: w.api, now });
+    ok(!w.db.s.links.has('u-mgr'), 'a manager can stop the link');
   }
 
   console.log(`TELEGRAM: ${pass} checks passed, ${fail} failed`);
