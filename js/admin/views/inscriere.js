@@ -281,6 +281,22 @@
   const paintAll = animate => { syncRail(); paintPane(animate); };
 
   /* ---------------- the dialog: who is the student ---------------- */
+  /* A signed-in manager: the "Managerul" field of the dialog starts on their own official name (they can still pick a colleague). Matched like the register lists do, words in any order, no diacritics. */
+  const myMgr = { loaded: false, name: '' };
+  function loadMyManager() {
+    if (myMgr.loaded) return;
+    myMgr.loaded = true;
+    const a = window.BMAuth;
+    if (!(window.AdminAccess && window.AdminAccess.manager) || !a || !a.supabase || !a.user) return;
+    a.supabase.from('user_profiles').select('official_name').eq('user_id', a.user.id).maybeSingle().then(r => { myMgr.name = (r && r.data && r.data.official_name) || ''; }, () => { myMgr.loaded = false; });
+  }
+  const nameKey = n => plain(n).replace(/[^a-z0-9 ]/g, ' ').split(/\s+/).filter(Boolean).sort().join(' ');
+  function myManagerId() {
+    if (!myMgr.name) return '';
+    const k = nameKey(myMgr.name), m = D.managers.find(x => nameKey(x._reg || x.name) === k);
+    return m ? m.id : '';
+  }
+
   function openEnrol(target) {
     if (D.readOnly() && target.fresh && !(D.teacher(target.fresh.teacher) || {})._wb) { U.toast('Profesorul acestei grupe nu are un registru legat: grupa nouă nu se poate crea în registru.', 'warn'); return; }
     const mine = target.group ? D.group(target.group) : null;
@@ -289,7 +305,8 @@
     if (!g) return;
     const t = D.teacher(g.teacher);
     const room = g.room ? D.room(g.room) : null;
-    let mgr = ''; try { mgr = localStorage.getItem(MGR_KEY) || ''; } catch (e) { /* private mode */ }
+    let mgr = myManagerId();                            // a manager starts on themself; anyone else on the last one picked here
+    if (!mgr) { try { mgr = localStorage.getItem(MGR_KEY) || ''; } catch (e) { /* private mode */ } }
     if (!D.manager(mgr)) mgr = D.managers[0].id;
     const dlg = document.createElement('dialog');
     dlg.className = 'in-dlg';
@@ -524,6 +541,7 @@
     icon: 'user-plus',
     render(el) {
       root = el;
+      loadMyManager();
       root.innerHTML = `
         <div class="ax-fixsplit in-fix">
           <aside class="ax-rail in-rail" id="inRail" aria-label="Ce spune părintele"></aside>
