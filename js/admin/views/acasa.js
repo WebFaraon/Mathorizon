@@ -110,6 +110,28 @@
     }
   }
 
+  /* from 800 px: as many tiles per row as fit (at least 210 px each), the fewest rows, and the tiles shared out evenly over them (7 tiles in 3 rows: 3 + 2 + 2), each row filling the full width. Below 800 px the CSS columns apply. */
+  function balanceHub(hub) {
+    if (!hub || hub.dataset.bal) return;
+    hub.dataset.bal = '1';
+    const tiles = [...hub.children], total = tiles.length;
+    const fit = () => {
+      if (!hub.isConnected) return;
+      const w = hub.clientWidth;
+      if (window.innerWidth < 800 || !w) { tiles.forEach(t => t.style.removeProperty('flex-basis')); return; }
+      const max = Math.max(1, Math.floor((w + 16) / (210 + 16)));
+      const rows = Math.ceil(total / max), base = Math.floor(total / rows), extra = total % rows;
+      let i = 0;
+      for (let r = 0; r < rows; r++) {
+        const k = base + (r < extra ? 1 : 0);
+        for (let j = 0; j < k; j++, i++) tiles[i].style.flexBasis = `calc((100% - ${k - 1} * 16px) / ${k})`;
+      }
+    };
+    fit();
+    if (window.ResizeObserver) new ResizeObserver(fit).observe(hub);
+    else window.addEventListener('resize', fit);
+  }
+
   window.AdminViews.acasa = {
     title: 'Acasă',
     icon: 'home',
@@ -149,6 +171,7 @@
           </section>
         </div>`;
       if (PLAN_ON) planStart(root);
+      balanceHub(root.querySelector('.ah-hub'));
     }
   };
 })();

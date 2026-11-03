@@ -15,12 +15,11 @@ body.ax .ah-att__item.is-warn:hover { background: color-mix(in srgb, var(--ax-ye
 body.ax .ah-grid { display: block; }
 body.ax .ah-grid .ax-h2-row { margin-top: 0; }
 
-/* the hub: one tile per page, a little wider than tall, the last row centred */
-body.ax .ah-hub { --n: 1; display: flex; flex-wrap: wrap; justify-content: center; gap: 16px; }
-body.ax .ah-hub > .ah-tile { flex: 0 0 calc((100% - (var(--n) - 1) * 16px) / var(--n)); min-width: 0; }
+/* the hub: one tile per page. --n is how many fit in a row; the tiles grow to fill their row, so a short last row is wider tiles, never a lonely one beside empty space. From 800 px acasa.js sets --n so the rows come out even (7 tiles: one row, or 4 + 3, not 6 + 1) */
+body.ax .ah-hub { --n: 1; display: flex; flex-wrap: wrap; gap: 16px; }
+body.ax .ah-hub > .ah-tile { flex: 1 1 calc((100% - (var(--n) - 1) * 16px) / var(--n)); min-width: 0; }
 @media (min-width: 560px) { body.ax .ah-hub { --n: 2; } }
-/* from 800 px the tiles keep one size (a little wider than tall) and the rows are centred, instead of stretching to fill a wide screen */
-@media (min-width: 800px) { body.ax .ah-hub > .ah-tile { flex: 0 0 224px; } }
+@media (min-width: 800px) { body.ax .ah-hub { --n: 4; } }
 body.ax .ah-tile {
   position: relative;
   display: flex;
