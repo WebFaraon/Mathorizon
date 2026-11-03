@@ -105,6 +105,18 @@ Programul de bază al grupei rămâne în registru. Pentru o recuperare, o lecț
 - **Grupele Offline:** aceeași fereastră și aceleași reguli, dar fără sala Meet. Platforma nu verifică dacă cabinetul e liber la noua oră (lecția rămâne în același cabinet); profesorul vede un avertisment în fereastră. Elevii văd schimbările în antet.
 - **Nu face:** nu scrie nimic în registru (prezența, tema și data lecției rămân doar acolo) și nu schimbă ce vede botul de Telegram la /azi și /maine (citește tot din registru).
 
+## Managerii află de schimbările de lecții (2026-11-04)
+
+Orice anulare, mutare, lecție în plus sau revenire la program (profesorul desface o schimbare) intră într-un jurnal și apare în consolă, pagina **Schimbări**, cu o insignă cu numărul celor nevăzute în meniu.
+
+- **Cine primește (decis cu fondatorul):** adminul vede toate. Un manager vede schimbările grupelor în care are elevi înscriși (managerul scris în registru la elev, comparat după numele oficial; statuturile care contează: Activ, Oră de probă, Probă confirmată, Instabil, Înlocuire). O grupă de 6 elevi cu 6 manageri diferiți ajunge la toți 6; o grupă cu un singur manager ajunge la el. Fiecare are propriul „Am văzut”.
+- **Doar anunț:** nu există aprobare. Profesorul se înțelege cu elevii, managerii sunt informați.
+- **Motivul:** se cere doar la anulare (în fereastra „Modifică lecțiile”, câmp obligatoriu, cel puțin 3 litere, vizibil managerilor, nu elevilor). La mutare și la lecție în plus nu se cere.
+- **Urgent:** o schimbare nevăzută care atinge o lecție din următoarele 24 de ore are o etichetă roșie și urcă prima în listă.
+- **Elevii** primeau deja mesaj în „Mesaje” și notificare push la orice schimbare; nu s-a schimbat nimic acolo.
+- **Datele:** migrarea `20261104100000_schimbari_lectii_manageri.sql` (tabelele `lesson_change_events` și `lesson_change_seen`, funcțiile `lesson_changes_feed` / `lesson_changes_unseen` / `lesson_changes_mark`; `class_lesson_set` primește `p_reason`, iar `class_lesson_remove` scrie și el în jurnal). Jurnalul se completează în aceleași funcții prin care se face schimbarea, deci nu se poate ocoli. Insigna se reîmprospătează la 60 de secunde (fără Realtime).
+- **Încă nu:** mesaj pe Telegram pentru manageri (etapa 2: managerii își leagă Telegram din consolă, botul are comenzi separate pentru manageri).
+
 ## Startul grupelor și botul de Telegram (2026-10-29)
 
 **Regula (verificată pe baza reală):** o grupă „Se completează" trece singură în „Startează" când are destui elevi (Activ, Oră de probă, Oră de probă confirmată): 2 din 2, 2 din 3, 3 din 4, 4 din 5, 4 din 6, 6 din 8, 6 din 10 (`start-rule.mjs`; doar 3 din 4, 4 din 5 și 2 din 2 nu sunt confirmate de fondator). Bug găsit: o comandă de pornire eșuată (limita Google pe minut) nu se mai încerca niciodată, pentru că id-ul ei era același. Acum id-ul se schimbă la 10 minute, iar `registru-sync` mai uită și în baza de date la fiecare rulare (`pendingStarts`), deci o grupă ratată, într-un registru nemodificat, e pornită la următoarea rulare.

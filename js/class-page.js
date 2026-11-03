@@ -224,7 +224,8 @@
     'overlap': 'Se suprapune cu altă lecție a grupei. Alege altă oră.',
     'not allowed': 'Nu ai dreptul să schimbi lecțiile acestei clase.',
     'no lesson that day': 'În ziua aceea nu e nicio lecție în program.',
-    'bad hours': 'Lecția poate dura între 1 și 3 ore.'
+    'bad hours': 'Lecția poate dura între 1 și 3 ore.',
+    'reason required': 'Scrie motivul anulării (cel puțin 3 litere).'
   };
   const _lessonErr = e => {
     const m = String((e && e.message) || e || '');
@@ -388,8 +389,15 @@
     const text = kind === 'del'
       ? 'Ștergi lecția în plus de ' + _wallFull(l.start) + '?'
       : 'Anulezi lecția de ' + _wallFull(l.start) + '? Elevii primesc un mesaj.';
+    const reason = kind === 'del' ? '' : `<div class="cd-ls__reason">
+        <label class="cls-form-label" for="lsReason">Motivul anulării</label>
+        <input type="text" id="lsReason" name="reason" class="cls-form-input" maxlength="300" placeholder="De ce se anulează lecția?" autocomplete="off">
+        <span class="cd-ls__hint">Îl văd managerii, nu elevii.</span>
+        <div class="cd-ls__err" data-err role="alert"></div>
+      </div>`;
     return `<div class="cd-ls__confirm">
       <p>${BM.esc(text)}</p>
+      ${reason}
       <div class="cd-ls__confirmacts">
         <button type="button" class="btn btn--surface btn--sm" data-act="close-panel">Renunță</button>
         <button type="button" class="btn btn--danger btn--sm" data-act="${kind === 'del' ? 'confirm-del' : 'confirm-cancel'}">${kind === 'del' ? 'Confirmă ștergerea' : 'Confirmă anularea'}</button>
@@ -447,7 +455,7 @@
     const rows = _lessons.filter(l => l.start >= from);
     const key = (a, cls, t, extra) => `<button type="button" class="btn btn--sm ${cls}" data-act="${a}"${extra || ''}>${t}</button>`;
     body.innerHTML = `
-      <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare. Orarul obișnuit și prezențele rămân în registru.${classData.lesson_type === 'offline' ? ' La o lecție față în față cabinetul rămâne același: verifică să fie liber la noua oră.' : ''}</p>
+      <p class="cd-ls__lede">Mută sau anulează o lecție, ori adaugă una în plus. Elevii primesc un mesaj în clasă și o notificare, iar managerii elevilor sunt anunțați. Orarul obișnuit și prezențele rămân în registru.${classData.lesson_type === 'offline' ? ' La o lecție față în față cabinetul rămâne același: verifică să fie liber la noua oră.' : ''}</p>
       ${rows.length ? `<ul class="cd-ls__list">${rows.map(l => {
         const editable = l.kind === 'cancelled' || l.kind === 'moved' ? (l.orig_start || l.start) >= soon : l.start >= soon;
         const moveOk = l.start >= soon;
@@ -483,10 +491,15 @@
     if (act === 'move') { toggle(row, 'form', _lessonFormHTML(l, 'move'), _lsInitForm); return; }
     if (act === 'cancel') { toggle(row, 'confirm', _lsConfirmHTML(l, 'cancel')); return; }
     if (act === 'del') { toggle(row, 'confirm', _lsConfirmHTML(l, 'del')); return; }
-    if (act === 'confirm-cancel') _runLessonAction(b, async () => {
-      const r = await _rpcLesson('class_lesson_set', { p_class: classData.id, p_kind: 'cancelled', p_orig: l.orig_date, p_new_start: null, p_hours: null });
+    if (act === 'confirm-cancel') {
+      const panel = b.closest('.cd-ls__confirm'), input = panel && panel.querySelector('[name="reason"]'), err = panel && panel.querySelector('[data-err]');
+      const why = ((input && input.value) || '').trim();
+      if (why.length < 3) { if (err) err.textContent = _LESSON_ERR['reason required']; if (input) input.focus(); return; }
+      _runLessonAction(b, async () => {
+      const r = await _rpcLesson('class_lesson_set', { p_class: classData.id, p_kind: 'cancelled', p_orig: l.orig_date, p_new_start: null, p_hours: null, p_reason: why });
       return 'Lecția de ' + _wallFull(r.orig_start) + ' a fost anulată.';
-    });
+      });
+    }
     if (act === 'confirm-del' || act === 'undo') _runLessonAction(b, async () => {
       const r = await _rpcLesson('class_lesson_remove', { p_change: l.change });
       return l.kind === 'extra' ? 'Lecția în plus de ' + _wallFull(r.new_start) + ' a fost anulată.' : 'Lecția de ' + _wallFull(r.orig_start) + ' se ține la ora obișnuită.';

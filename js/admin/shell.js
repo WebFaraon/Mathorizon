@@ -32,6 +32,7 @@
       { id: 'elevi', label: 'Elevi', icon: 'users' },
       { id: 'inscriere', label: 'Înscriere', icon: 'user-plus' },
       { id: 'starturi', label: 'Starturi', icon: 'rocket' },
+      { id: 'schimbari', label: 'Schimbări', icon: 'calendar' },
       { id: 'repartizare', label: 'Repartizare', icon: 'door' },
       { id: 'inlocuiri', label: 'Înlocuiri', icon: 'replace' },
       { id: 'receptie', label: 'Recepție', icon: 'monitor' },
@@ -48,7 +49,7 @@
   const ALL = NAV.flatMap(g => g.items);
 
   /* What a manager may open (the admin opens everything). The database rights follow the same list (migration 20261101100000_rol_manager.sql). */
-  const MANAGER_VIEWS = ['acasa', 'orar', 'elevi', 'inscriere', 'starturi', 'inlocuiri', 'disponibilitate'];
+  const MANAGER_VIEWS = ['acasa', 'orar', 'elevi', 'inscriere', 'starturi', 'schimbari', 'inlocuiri', 'disponibilitate'];
   window.AdminAccess = { role: null, status: null, ok: false, can: () => false };
   function setAccess(a) {
     const isAdmin = a.role === 'admin', isMgr = a.role === 'manager';

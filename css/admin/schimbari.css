@@ -1,0 +1,17 @@
+/* Admin console: Schimbări (js/admin/views/schimbari.js). It reuses the cards and sections of Starturi (css/admin/starturi.css); only what is its own is here. Flat, like the rest of the console. */
+body.ax .sc-card { --st-c: var(--ax-rule-2); }
+body.ax .sc-card--bad { --st-c: var(--ax-bad); }
+body.ax .sc-card--warn { --st-c: var(--ax-yellow); }
+body.ax .sc-card--ok { --st-c: var(--ax-ok); }
+body.ax .sc-card.is-seen { opacity: 0.82; }
+body.ax .sc-what { margin: 0; font-size: 1rem; font-weight: 600; line-height: 1.45; }
+body.ax .sc-students { margin: 0; }
+body.ax .sc-students b { color: var(--ax-ink-2); }
+/* the kind of change: a dot (the shape differs, so it does not rest on colour alone) and the words */
+body.ax .sc-kind { display: inline-flex; align-items: center; gap: 8px; font-size: 0.92rem; font-weight: 800; color: var(--ax-ink); }
+body.ax .sc-kind i { flex: none; width: 11px; height: 11px; border: 2px solid var(--ax-ink-3); border-radius: 50%; }
+body.ax .sc-kind--bad i { border-color: var(--ax-bad); background: var(--ax-bad); }
+body.ax .sc-kind--warn i { border-color: var(--ax-yellow); border-radius: 2px; background: var(--ax-yellow); }
+body.ax .sc-kind--ok i { border-color: var(--ax-ok); background: var(--ax-ok); box-shadow: inset 0 0 0 2px var(--ax-panel); }
+body.ax .sc-hot { display: inline-flex; align-items: center; padding: 2px 9px; border: 1px solid var(--ax-bad); border-radius: var(--ax-r-2); color: var(--ax-bad); font-size: 0.78rem; font-weight: 800; }
+body.ax .ax-head__keys { flex-wrap: wrap; }

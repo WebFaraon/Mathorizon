@@ -1553,6 +1553,10 @@ body:has(#classRoot) .cd-ls .cd-ls__fields .cls-csel__trigger { display: flex; a
 
 .cd-ls__confirm { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 14px; margin: 10px 0 2px; padding: 12px 14px; border: 1px solid color-mix(in srgb, var(--k-red) 40%, var(--k-panel-edge)); border-radius: 3px; background: color-mix(in srgb, var(--k-red) 6%, var(--k-panel)); }
 .cd-ls__confirm p { flex: 1 1 220px; margin: 0; font-size: 0.88rem; font-weight: 700; line-height: 1.4; }
+.cd-ls__reason { flex: 1 1 100%; display: grid; gap: 6px; }
+.cd-ls__reason .cd-ls__err { margin: 0; min-height: 0; }
+.cd-ls__reason .cd-ls__err:empty { display: none; }
+.cd-ls__hint { font-size: 0.78rem; font-weight: 600; color: var(--k-ink-3); }
 .cd-ls__confirmacts { display: flex; gap: 8px; padding-bottom: 4px; }
 
 @media (max-width: 560px) {
