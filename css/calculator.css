@@ -4349,7 +4349,7 @@ body:has(#classesRoot) {
 .cl-title__name { color: var(--k-blue); }
 
 /* Today: one panel with ruled rows (no boxes inside a box), the totals display beside it. */
-.cl-dash { display: grid; grid-template-columns: minmax(0, 1fr) minmax(300px, 400px); gap: 26px 30px; align-items: stretch; }
+.cl-dash { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 26px 30px; align-items: stretch; }
 .cl-dash--solo { grid-template-columns: minmax(0, 1fr); }
 
 .cl-today {
@@ -4498,13 +4498,13 @@ body:has(#classesRoot) {
 .rg-tools .cl-bar[hidden] { display: none; }
 
 .rg-sheet {
-  --rg-cols: 88px minmax(110px, 1.1fr) 100px 70px 90px minmax(100px, 0.9fr) 76px 168px var(--rg-acts, 104px);
+  --rg-cols: 104px minmax(110px, 1.1fr) 100px 70px 90px minmax(100px, 0.9fr) 76px 168px var(--rg-acts, 104px);
   border: 1px solid var(--k-key-edge);
   border-radius: var(--k-r-key);
   background: var(--k-panel);
   box-shadow: 0 4px 0 0 var(--k-panel-edge);
 }
-.rg-sheet--student { --rg-cols: 88px minmax(140px, 1.2fr) 110px 100px 100px minmax(140px, 1fr) 140px; }
+.rg-sheet--student { --rg-cols: 104px minmax(140px, 1.2fr) 110px 100px 100px minmax(140px, 1fr) 140px; }
 .rg-sheet[hidden] { display: none; }
 @media (min-width: 1280px) { .rg-sheet { --rg-acts: 196px; } }
 
@@ -4525,13 +4525,13 @@ body:has(#classesRoot) {
 
 .rg-time b {
   display: block;
-  min-width: 62px;
-  padding: 7px 6px 5px;
+  min-width: 72px;
+  padding: 8px 10px 6px;
   border-radius: 2px;
   background: var(--k-lcd);
   box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
   font-family: var(--k-lcd-font);
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-weight: 900;
   line-height: 1;
   text-align: center;
@@ -4661,7 +4661,7 @@ body:has(#classesRoot) {
     column-gap: 12px;
   }
   .rg-sheet--student .rg-row { grid-template-areas: "time name name" "what what what" "when when when" "acts acts acts"; }
-  .rg-time b { padding: 6px 6px 4px; font-size: 1.15rem; }
+  .rg-time b { padding: 7px 10px 5px; font-size: 1.1rem; }
   .rg-act { min-width: 44px; height: 44px; }
   .rg-acts { align-self: center; margin-block: -6px -8px; }
   .rg-sheet--student .rg-acts { justify-content: flex-start; margin-block: -2px -8px; }
