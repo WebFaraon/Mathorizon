@@ -1,10 +1,12 @@
 /* ============================================================
    Admin console: Repartizare (rooms x hours)
    ============================================================
-   The room board of one day, read like a platform board: rows are the
-   eight cabinets of Examen.md Offline (or, in "Profesori" mode, the
-   teachers who teach that day in any project), columns are the hours
-   08:00-20:00. Groups are cards placed at their start hour.
+   The board of one day, read like a platform board. Two boards, chosen with
+   the keys Offline and Online: OFFLINE has the cabinets of Examen.md Offline as
+   rows (and a row for the groups that have no cabinet yet), ONLINE has the
+   teachers who give an online lesson that day as rows, each card showing the
+   hours of the lesson. Columns are the hours 08:00-20:00. Groups are cards
+   placed at their start hour. (In the code the Online board is rows = 'prof'.)
 
    Moving a group:
    - drag a card with the mouse to another cell; while dragging every
@@ -72,15 +74,16 @@
     o.focus = s.focus || null;
     U.writeQuery(o);
   }
-  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' && s.rows === 'cab' ? 0 : s[k].length), 0) + (s.q ? 1 : 0) + (s.nocab ? 1 : 0);
+  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' && s.rows === 'cab' ? 0 : s[k].length), 0) + (s.q ? 1 : 0) + (s.nocab && s.rows === 'cab' ? 1 : 0);
 
   /* ============ data helpers ============ */
   const noCab = g => !g.room && !_isOnline(g);
   const _isOnline = g => U.noRoom(g).online;
   function pass(g, s) {
     if (s.st.length ? !s.st.includes(g.status) : !live(g)) return false;
-    if (s.nocab && !noCab(g)) return false;                                   // "only the groups without a cabinet"
-    if (s.rows === 'cab') { if (!g.room && !noCab(g)) return false; } else if (s.proj.length && !s.proj.includes(g.project)) return false;
+    if (s.nocab && s.rows === 'cab' && !noCab(g)) return false;               // "only the groups without a cabinet" (Offline board)
+    if (s.rows === 'cab') { if (!g.room && !noCab(g)) return false; }          // Offline: the lessons in a cabinet and those still without one
+    else { if (!_isOnline(g)) return false; if (s.proj.length && !s.proj.includes(g.project)) return false; }   // Online: only the online lessons
     if (s.disc.length && !s.disc.includes(g.subject)) return false;
     if (s.cls.length && !s.cls.includes(g.grade)) return false;
     if (s.fmt.length && !s.fmt.includes(String(g.size))) return false;
@@ -239,7 +242,9 @@
     const used = new Set(inRooms.map(g => g.room)).size;
     const cap = D.rooms.length * NCOL;
     return {
-      lessons: all.length, inRooms: inRooms.length, online: all.length - inRooms.length,
+      lessons: all.length, inRooms: inRooms.length, online: all.filter(_isOnline).length, offline: all.filter(g => !_isOnline(g)).length, noCab: all.filter(noCab).length,
+      teachers: new Set(all.filter(_isOnline).map(g => g.teacher)).size,
+      first: all.filter(_isOnline).reduce((m, g) => Math.min(m, g.start), 99), last: all.filter(_isOnline).reduce((m, g) => Math.max(m, g.start + g.duration), 0),
       used, booked: booked.size, cap, occ: U.pct(booked.size, cap), free: cap - booked.size,
       conf: ci.list.length,
       confRoom: ci.list.filter(c => c.kind === 'room').length,
@@ -257,7 +262,7 @@
         </div>
         <div class="ax-col rp-col">
           <header class="rp-head">
-            <h1 class="ax-sr">Repartizare pe cabinete</h1>
+            <h1 class="ax-sr">Repartizare, lecții offline și online</h1>
             <div class="rp-noprint rp-daytop" id="rpDaysTop"></div>
           </header>
           <div class="rp-main" id="rpMain"></div>
@@ -285,9 +290,9 @@
           </button>`;
         }).join('')}
       </div>
-      <div class="ax-seg rp-modeseg" role="group" aria-label="Rânduri">
-        <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 18)} Cabinete</button>
-        <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('user', 18)} Profesori</button>
+      <div class="ax-seg rp-modeseg" role="group" aria-label="Tipul lecțiilor">
+        <button type="button" data-rows="cab" aria-pressed="${s.rows === 'cab'}">${ico('door', 18)} Offline</button>
+        <button type="button" data-rows="prof" aria-pressed="${s.rows === 'prof'}">${ico('monitor', 18)} Online</button>
       </div>`;
   }
 
@@ -298,10 +303,22 @@
 
   function summaryHTML(s, sum) {
     const confTxt = sum.conf ? [sum.confRoom ? plural(sum.confRoom, 'în cabinet', 'în cabinete') : '', sum.confTeacher ? plural(sum.confTeacher, 'la profesor', 'la profesori') : ''].filter(Boolean).join(', ') : 'ziua e curată';
+    if (s.rows === 'prof') {
+      const tc = sum.confTeacher;
+      return `
+      <section class="rp-sum" aria-label="Sumarul zilei, lecții online">
+        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>lecții online</small></h2>
+        <div class="rp-sum__i"><span class="rp-sum__k">Lecții online</span><b class="rp-sum__v">${nf.format(sum.online)}</b><span class="rp-sum__s">${plural(sum.teachers, 'profesor predă', 'profesori predau')}</span></div>
+        <div class="rp-sum__i"><span class="rp-sum__k">Intervalul zilei</span><b class="rp-sum__v">${sum.online ? hh(sum.first) : '-'}</b><span class="rp-sum__s">${sum.online ? 'prima lecție; ultima se termină la ' + hh(sum.last) : 'nicio lecție online'}</span></div>
+        <button type="button" class="rp-sum__i rp-sum__conf${tc ? ' is-warn' : ''}" data-goconf title="Deschide lista de suprapuneri">
+          <span class="rp-sum__k">Profesori dublați</span><b class="rp-sum__v">${tc ? ico('alert', 20) : ''}${nf.format(tc)}</b><span class="rp-sum__s">${tc ? 'în aceeași oră au două lecții' : 'nimeni nu are două lecții în aceeași oră'}</span>
+        </button>
+      </section>`;
+    }
     return `
-      <section class="rp-sum" aria-label="Sumarul zilei">
-        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>sumarul zilei</small></h2>
-        <div class="rp-sum__i"><span class="rp-sum__k">Lecții</span><b class="rp-sum__v">${nf.format(sum.lessons)}</b><span class="rp-sum__s">${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.online)} online</span></div>
+      <section class="rp-sum" aria-label="Sumarul zilei, lecții offline">
+        <h2 class="rp-sum__h">${esc(D.DAYS[s.day - 1].name)}<small>lecții offline</small></h2>
+        <div class="rp-sum__i"><span class="rp-sum__k">Lecții offline</span><b class="rp-sum__v">${nf.format(sum.offline)}</b><span class="rp-sum__s">${nf.format(sum.inRooms)} în cabinete, ${nf.format(sum.noCab)} fără cabinet</span></div>
         <div class="rp-sum__i"><span class="rp-sum__k">Cabinete</span><b class="rp-sum__v">${sum.used}<small> din ${D.rooms.length}</small></b><span class="rp-sum__s">${D.rooms.length - sum.used ? plural(D.rooms.length - sum.used, 'liber toată ziua', 'libere toată ziua') : 'toate au lecții'}</span></div>
         <div class="rp-sum__i rp-sum__i--occ"><span class="rp-sum__k">Ocupare</span><b class="rp-sum__v">${sum.occ}%</b>
           <span class="rp-sum__bar" role="img" aria-label="${sum.booked} din ${sum.cap} ore-cabinet ocupate"><i style="width:${sum.occ}%"></i></span>
@@ -329,7 +346,7 @@
       s[k].forEach(v => items.push({ key: k, value: v, label: lab[k](v) }));
     });
     if (s.q) items.push({ key: 'q', value: s.q, label: `Profesor: ${s.q}` });
-    if (s.nocab) items.push({ key: 'nocab', value: '1', label: 'Doar grupele fără cabinet' });
+    if (s.nocab && s.rows === 'cab') items.push({ key: 'nocab', value: '1', label: 'Doar grupele fără cabinet' });
     return items;
   }
 
@@ -363,17 +380,18 @@
       return `<button type="button" class="${cls.join(' ')} rp-card--c" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}" title="${esc(t.name + ', ' + g.subject + ' ' + g.grade + ', ' + range(g))}">
         ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}${ncIcon}
         ${s.rows === 'prof'
-          ? `<span class="rp-card__t">${g.room ? 'Cab. ' + D.room(g.room).num : U.noRoom(g).label}</span>`
+          ? `<span class="rp-card__t">${hh(g.start)}</span>`
           : `<span class="rp-card__t">${esc(t.last)} <span class="rp-card__i">${esc(t.first[0])}.</span></span>`}
         <span class="rp-card__m"><span class="ax-grade">${esc(g.grade)}</span>${seatsHTML(g)}</span>
       </button>`;
     }
-    const head = s.rows === 'prof' ? (g.room ? D.room(g.room).name : U.noRoom(g).label) : t.name;
+    const head = s.rows === 'prof' ? range(g) : t.name;
+    const who = s.rows === 'prof' ? `<span class="rp-card__who">${esc(t.name)}</span>` : '';
     const full = enr >= g.size;
     const sun = g.regime === 'vara' ? `<span class="rp-card__sun" role="img" aria-label="Școala de Vară" title="Școala de Vară">${ico('sun', 16)}</span>` : '';
     return `<button type="button" class="${cls.join(' ')}" data-g="${g.id}" style="${pos}" aria-label="${esc(label)}">
       ${rc || tc ? '<span class="rp-card__hz ax-hazard" aria-hidden="true"></span>' : ''}${ncIcon}
-      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>${subTag}
+      <span class="rp-card__top"><span class="rp-card__t">${esc(head)}</span>${tag || sun}</span>${who}${subTag}
       <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span></span>
       <span class="rp-card__f">${stHTML(g.status)}${g.profile ? `<span class="rp-card__p">${esc(g.profile)}</span>` : ''}</span>
       <span class="rp-card__fill${full ? ' is-full' : ''}">${seatsHTML(g)}<span class="rp-card__n"><b>${enr}</b>/${g.size}<small>${full ? 'complet' : 'elevi'}</small></span></span>
@@ -388,12 +406,12 @@
     const label = `Înlocuire: ${t.name} în locul lui ${bt.name}, ${g.subject}, clasa ${g.grade}, ${range(g)}, ${roomName(g.room)}. Deschide înlocuirea.`;
     if (s.vis !== 'max') {
       return `<button type="button" class="${cls.join(' ')} rp-card--c" data-repl="${esc(g.rep.id)}" style="${pos}" aria-label="${esc(label)}" title="${esc(label)}">
-        <span class="rp-card__t">${s.rows === 'prof' ? (g.room ? 'Cab. ' + D.room(g.room).num : 'Online') : esc(t.last)}</span>
+        <span class="rp-card__t">${s.rows === 'prof' ? hh(g.start) : esc(t.last)}</span>
         <span class="rp-card__m"><span class="ax-grade">${esc(g.grade)}</span></span>
       </button>`;
     }
     return `<button type="button" class="${cls.join(' ')}" data-repl="${esc(g.rep.id)}" style="${pos}" aria-label="${esc(label)}">
-      <span class="rp-card__top"><span class="rp-card__t">${esc(s.rows === 'prof' ? roomName(g.room) : t.name)}</span></span>
+      <span class="rp-card__top"><span class="rp-card__t">${esc(s.rows === 'prof' ? range(g) : t.name)}</span></span>${s.rows === 'prof' ? `<span class="rp-card__who">${esc(t.name)}</span>` : ''}
       <span class="rp-card__id"><span class="ax-grade">${esc(g.grade)}</span><span class="rp-card__subj">${esc(g.subject)}</span></span>
       <span class="rp-card__f"><span class="rp-card__sub">înlocuiește pe ${esc(bt.name)}</span></span>
     </button>`;
@@ -456,10 +474,10 @@
           <div class="rp-track">${cells}${L.sorted.map(g => (g._repl ? replCardHTML(g, s, L.lane[g.id]) : cardHTML(g, s, L.lane[g.id], ci))).join('')}</div>
         </div>`;
     }).join('');
-    const empty = !rows.length ? `<div class="ax-empty rp-board__empty"><b>${s.rows === 'cab' ? 'Niciun cabinet de afișat' : 'Niciun profesor nu predă'}</b>${filterCount(s) || s.hide ? 'Nicio grupă nu trece de filtrele alese în ziua aceasta.' : 'Nu sunt lecții în ziua aceasta.'}</div>` : '';
+    const empty = !rows.length ? `<div class="ax-empty rp-board__empty"><b>${s.rows === 'cab' ? 'Niciun cabinet de afișat' : 'Nicio lecție online'}</b>${filterCount(s) || s.hide ? 'Nicio grupă nu trece de filtrele alese în ziua aceasta.' : (s.rows === 'cab' ? 'Nu sunt lecții offline în ziua aceasta.' : 'Nu sunt lecții online în ziua aceasta.')}</div>` : '';
     return `
       <section class="rp-boardwrap" aria-label="Tabla zilei">
-        <p class="rp-print-t">Repartizare, ${esc(dayName)}${s.rows === 'prof' ? ', pe profesori' : ', pe cabinete'}</p>
+        <p class="rp-print-t">Repartizare, ${esc(dayName)}${s.rows === 'prof' ? ', lecții online, pe profesori' : ', lecții offline, pe cabinete'}</p>
         <div class="rp-scroll" id="rpScroll" tabindex="0" role="region" aria-label="Tabla de repartizare, ${esc(dayName)}. Derulează pe orizontală pentru toate orele.">
           <div class="rp-board ${s.vis === 'max' ? 'is-max' : 'is-c'} ${s.rows === 'prof' ? 'is-prof' : 'is-cab'}" id="rpBoard">
             ${head}
@@ -556,34 +574,34 @@
         <button type="button" data-vis="c" aria-pressed="${s.vis !== 'max'}">Compactă</button>
         <button type="button" data-vis="max" aria-pressed="${s.vis === 'max'}">Maximă</button>
       </div>
-      <label class="ax-switch rp-hide">
+      ${s.rows === 'cab' ? `<label class="ax-switch rp-hide">
         <input type="checkbox" id="rpNoCab"${s.nocab ? ' checked' : ''}>
         <span class="ax-switch__t" aria-hidden="true"></span>
         <span>Doar grupele fără cabinet<small>Cele create fără cabinet, care așteaptă să fie repartizate</small></span>
       </label>
-      <label class="ax-switch rp-hide${s.rows === 'prof' ? ' is-dis' : ''}">
-        <input type="checkbox" id="rpHide"${s.hide ? ' checked' : ''}${s.rows === 'prof' ? ' disabled' : ''}>
+      <label class="ax-switch rp-hide">
+        <input type="checkbox" id="rpHide"${s.hide ? ' checked' : ''}>
         <span class="ax-switch__t" aria-hidden="true"></span>
-        <span>Ascunde rândurile goale${s.rows === 'prof' ? '<small>Doar pentru Cabinete</small>' : ''}</span>
-      </label>
+        <span>Ascunde rândurile goale</span>
+      </label>` : ''}
       <div class="ax-rail__sep"></div>
       <button type="button" class="ax-btn rp-rail__clear" id="rpClear"${n ? '' : ' disabled'}>${ico('x', 16)} Șterge toate filtrele</button>
       <div class="ax-rail__sep"></div>
       <div class="ax-rail__lbl">Legendă</div>
       <div class="rp-legend" aria-label="Legendă">
         <span><i class="rp-lg rp-lg--free"></i>Loc liber</span>
-        <span><i class="rp-lg ax-hazard"></i>Cabinet dublat</span>
+        ${s.rows === 'cab' ? '<span><i class="rp-lg ax-hazard"></i>Cabinet dublat</span>' : '<span><i class="rp-lg ax-hazard"></i>Profesor dublat</span>'}
         <span><i class="rp-lg rp-lg--bad"></i>Profesor ocupat sau indisponibil</span>
-        ${s.rows === 'prof' ? '<span><i class="rp-lg rp-lg--na"></i>În afara disponibilității</span>' + D.PROJECTS.map(p => `<span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>`).join('') : ''}
+        ${s.rows === 'prof' ? '<span><i class="rp-lg rp-lg--na"></i>În afara disponibilității</span>' + D.PROJECTS.filter(p => p.mode !== 'offline').map(p => `<span class="ax-line ax-line--${p.id}">${esc(p.short)}</span>`).join('') : ''}
       </div>`;
     rail.classList.toggle('is-open', wasOpen);
 
     const on = key => vals => { s[key] = vals; s.focus = null; writeState(s); refreshRailCount(); renderMain(); };
     const projSlot = rail.querySelector('[data-slot="proj"]');
     if (s.rows === 'prof') {
-      projSlot.appendChild(U.multiSelect({ id: 'proj', label: 'Proiect', options: D.PROJECTS.map(p => ({ value: p.id, label: p.name })), selected: s.proj, onChange: on('proj') }));
+      projSlot.appendChild(U.multiSelect({ id: 'proj', label: 'Proiect', options: D.PROJECTS.filter(p => p.mode !== 'offline').map(p => ({ value: p.id, label: p.name })), selected: s.proj, onChange: on('proj') }));
     } else {
-      projSlot.innerHTML = `<p class="rp-rail__fixed"><span class="ax-line ax-line--exo">Examen.md Offline</span><small>Singurul proiect cu cabinete. Pentru online, alege rândurile Profesori.</small></p>`;
+      projSlot.innerHTML = `<p class="rp-rail__fixed"><span class="ax-line ax-line--exo">Examen.md Offline</span><small>Singurul proiect cu cabinete. Lecțiile online sunt la Online.</small></p>`;
     }
     const stack = rail.querySelector('[data-slot="groups"]');
     const sizes = Array.from(new Set(D.groups.map(g => g.size))).sort((a, b) => a - b);
@@ -615,8 +633,9 @@
       U.$$('[data-vis]', rail).forEach(x => x.setAttribute('aria-pressed', String(x === b)));
       renderMain();
     }));
-    rail.querySelector('#rpHide').addEventListener('change', e => { s.hide = e.target.checked; writeState(s); renderMain(); });
-    rail.querySelector('#rpNoCab').addEventListener('change', e => { s.nocab = e.target.checked; s.focus = null; writeState(s); refreshRailCount(); renderMain(); });
+    const hideSw = rail.querySelector('#rpHide'), noCabSw = rail.querySelector('#rpNoCab');          // only on the Offline board
+    if (hideSw) hideSw.addEventListener('change', e => { s.hide = e.target.checked; writeState(s); renderMain(); });
+    if (noCabSw) noCabSw.addEventListener('change', e => { s.nocab = e.target.checked; s.focus = null; writeState(s); refreshRailCount(); renderMain(); });
     rail.querySelector('#rpClear').addEventListener('click', clearFilters);
   }
   function refreshRailCount() {
@@ -699,7 +718,7 @@
     }));
     U.$$('[data-rows]', root).forEach(b => b.addEventListener('click', () => {
       if (b.dataset.rows === s.rows) return;
-      s.rows = b.dataset.rows; s.focus = null; writeState(s); buildRail(); renderMain();
+      s.rows = b.dataset.rows; s.focus = null; s.proj = []; if (s.rows === 'prof') { s.nocab = false; s.hide = false; } writeState(s); buildRail(); renderMain();
       const nb = visible(`[data-rows="${s.rows}"]`); if (nb) nb.focus();
     }));
     U.wireActiveChips(main.querySelector('.rp-chips'), chips, it => {
@@ -741,11 +760,11 @@
     const missing = () => ids.some(id => !board() || !board().querySelector(`[data-g="${id}"]`));
     if (missing()) {
       const gs = ids.map(D.group);
-      const needProf = gs.some(g => !g.room) || kind === 'teacher' && s.rows === 'prof';
+      const needProf = _isOnline(gs[0]);                                          // the online board for an online group, else the offline one
       LIST_KEYS.forEach(k => { s[k] = []; });
       s.q = ''; s.hide = false;
       if (gs.some(g => !live(g))) s.st = ['activ', 'completare', 'inlocuire', 'inactiv'];
-      if (needProf) s.rows = 'prof';
+      s.rows = needProf ? 'prof' : 'cab';
       if (!gs.every(g => g.days.includes(s.day))) s.day = gs[0].days[0];
       writeState(s); buildRail(); renderMain();
       U.toast('Filtrele au fost scoase ca să apară grupele căutate.');
@@ -966,7 +985,7 @@
           const rid = row.dataset.row;
           const start = +cell.dataset.h - grab;
           if (s.rows === 'prof' && rid !== g.teacher) {
-            html = `<b>Alt profesor</b><span>În rândurile Profesori grupa se mută doar pe ore, în rândul profesorului ei.</span>`;
+            html = `<b>Alt profesor</b><span>La lecțiile online grupa se mută doar pe ore, în rândul profesorului ei.</span>`;
           } else if (rid === '_none' && g.room) {
             html = `<b>Fără cabinet</b><span>Rândul acesta primește doar grupele care nu au cabinet.</span>`;
           } else if (start < FIRST || start + g.duration > END) {

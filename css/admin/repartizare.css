@@ -307,6 +307,7 @@ body.ax .rp-card__sun { flex: none; display: inline-flex; color: var(--ax-fill);
 body.ax .rp-card__id { display: flex; align-items: center; gap: 8px; min-width: 0; }
 body.ax .rp-card__id .ax-grade { flex: none; min-width: 34px; height: 26px; padding: 0 5px; border-width: 2px; font-size: 0.9rem; }
 body.ax .rp-card__subj { min-width: 0; overflow: hidden; font-size: 0.86rem; font-weight: 600; color: var(--ax-ink-2); text-overflow: ellipsis; white-space: nowrap; }
+body.ax .rp-card__who { overflow: hidden; font-size: 0.86rem; font-weight: 700; color: var(--ax-ink-2); text-overflow: ellipsis; white-space: nowrap; }          /* the Online board: the teacher under the hours of the lesson */
 body.ax .rp-board.is-max .rp-card__f .ax-st { font-size: 0.86rem; }
 body.ax .rp-card__fill { display: flex; align-items: center; flex-wrap: wrap; gap: 3px 9px; margin-top: auto; }
 body.ax .rp-card__fill .ax-seats i { width: 11px; height: 11px; }
