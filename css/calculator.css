@@ -4484,6 +4484,8 @@ body:has(#classesRoot) {
 #classesRoot { padding-left: 28px; padding-right: 28px; }
 #classesRoot .cl-page { padding-left: 0; padding-right: 0; }
 @media (max-width: 640px) { #classesRoot { padding-left: 16px; padding-right: 16px; } }
+/* a laptop and wider: more air between the edge of the screen and the panels (the phone and the tablet keep 16 and 28 px) */
+@media (min-width: 1024px) { #classesRoot { padding-left: clamp(40px, 3.6vw, 72px); padding-right: clamp(40px, 3.6vw, 72px); } }
 
 .cl-sect { display: flex; flex-direction: column; gap: 14px; }
 .cl-sect--platform { margin-top: 22px; }
