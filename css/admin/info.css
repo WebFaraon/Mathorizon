@@ -1,11 +1,7 @@
-/* Admin console: Info (js/admin/views/info.js). The sections reuse the opening blocks of Starturi (css/admin/starturi.css); only the steps are its own. Flat, like the rest of the console. */
-body.ax .inf-bar { margin: 0 0 16px; max-width: 520px; }
-body.ax .inf-bar .ax-search { display: block; position: relative; }
-body.ax .inf-bar .ax-input { width: 100%; }
-body.ax .inf-sec[hidden] { display: none; }
-body.ax .inf-sec .st-sec__h { flex-wrap: wrap; row-gap: 2px; }
-body.ax .inf-sub { flex: 1 1 260px; min-width: 0; font-weight: 500; }
+/* Admin console: Info (js/admin/views/info.js). The sections reuse the opening blocks of Starturi (css/admin/starturi.css); only the steps are its own. The opening and closing animation is in info.js. Flat, like the rest of the console. */
 body.ax .inf-sec .st-sec__c { margin-left: auto; }
+body.ax .inf-sec.is-closing > .st-sec__h .st-sec__c { transform: none; }
+body.ax .inf-sec .st-sec__b { box-sizing: border-box; }
 body.ax .inf-body { display: grid; gap: 14px; padding: 6px 4px 8px; max-width: 760px; }
 body.ax .inf-need { margin: 0; padding: 10px 14px; border: 1px solid var(--ax-rule); border-radius: var(--ax-r-2); background: var(--ax-hi-wash); font-size: 0.92rem; line-height: 1.5; }
 body.ax .inf-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: inf; }

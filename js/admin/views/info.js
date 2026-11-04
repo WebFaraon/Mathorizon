@@ -3,7 +3,7 @@
    ============================================================
    The longer processes written as steps, for the day someone asks "how do I add a new teacher?": a new teacher, a new manager, someone leaving,
    enrolling a student, a new group, a group ready to start, lesson changes, a register that does not sync, Telegram, the one-time setup.
-   Plain text on purpose (no code words): the founder reads it too. A search box filters the sections; #info?p=<id> opens one.
+   Plain text on purpose (no code words): the founder reads it too. #info?p=<id> opens one section. A section opens and closes with a height animation (see `wire`).
    When a process changes, change it here too (the text is in PROCESSES below).
    ============================================================ */
 (function () {
@@ -13,10 +13,10 @@
 
   const ROBOT = 'registre-sync@mathorizon-registre.iam.gserviceaccount.com';
 
-  /* id, title, what it is for, steps (each: bold start + the rest), a note, keys that open the page where the step happens */
+  /* id, title, steps (each: bold start + the rest), a note, keys that open the page where the step happens */
   const PROCESSES = [
     {
-      id: 'profesor', title: 'Adaug un profesor nou', sub: 'Cont, registru și legătura dintre ele. Durează cam 10 minute.',
+      id: 'profesor', title: 'Adaug un profesor nou',
       need: 'Ai nevoie de: contul Google al profesorului și numele lui oficial, în forma „Nume Prenume”, cum va apărea în registre.',
       steps: [
         ['Profesorul își face cont pe site.', 'La pagina de autentificare alege rolul „Profesor”. Apoi așteaptă aprobarea, nu poate face nimic până atunci.'],
@@ -31,7 +31,7 @@
       keys: [['Conturi', '#profesori'], ['Sincronizare', '#sincronizare']]
     },
     {
-      id: 'manager', title: 'Adaug un manager nou', sub: 'Cont, nume oficial și intrarea în lista de manageri a registrelor.',
+      id: 'manager', title: 'Adaug un manager nou',
       need: 'Ai nevoie de: numele oficial al managerului, în forma „Nume Prenume”. Numele nu se mai poate schimba după ce elevii îl au scris în registre, alege-l bine.',
       steps: [
         ['Managerul își face cont pe site.', 'Alege rolul „Manager” și așteaptă aprobarea. Până atunci vede doar un mesaj de așteptare.'],
@@ -45,7 +45,7 @@
       keys: [['Conturi', '#profesori']]
     },
     {
-      id: 'pleaca-profesor', title: 'Un profesor pleacă', sub: 'Ce se întâmplă cu contul, registrul și clasele lui.',
+      id: 'pleaca-profesor', title: 'Un profesor pleacă',
       steps: [
         ['Ștergi profesorul.', 'La Conturi, tab-ul „Profesori”, butonul „Șterge”. Contul lui rămâne ca cont de elev, registrele lui se dezleagă de el, iar clasele trec la admin.'],
         ['Hotărăști ce faci cu registrul.', 'Fișierul rămâne în Drive, cu tot istoricul. Îl poți muta într-un dosar de arhivă sau îl poți da altui profesor: la Sincronizare, legi registrul de contul noului profesor.'],
@@ -55,7 +55,7 @@
       keys: [['Conturi', '#profesori'], ['Sincronizare', '#sincronizare']]
     },
     {
-      id: 'pleaca-manager', title: 'Un manager pleacă', sub: 'Contul și numele lui din listele registrelor.',
+      id: 'pleaca-manager', title: 'Un manager pleacă',
       steps: [
         ['Ștergi managerul.', 'La Conturi, tab-ul „Manageri”, butonul „Șterge”. Nu mai poate intra în consolă.'],
         ['Numele lui rămâne în lista din registre.', 'Platforma nu-l scoate de acolo, iar elevii înscriși de el îl au scris. Cel mai simplu e să-l lași în listă, nu deranjează. Dacă vrei totuși să-l scoți, o faci de mână în fișierul-mamă, dar numai după ce nu-l mai are niciun elev scris.']
@@ -63,7 +63,7 @@
       keys: [['Conturi', '#profesori']]
     },
     {
-      id: 'elev', title: 'Înscriu un elev', sub: 'Pentru manageri și admin, când un părinte sună.',
+      id: 'elev', title: 'Înscriu un elev',
       steps: [
         ['Deschide Înscriere.', 'În stânga scrii ce spune părintele: materia, clasa, formatul (Offline sau Online) și nivelul. Poți alege mai multe niveluri.'],
         ['Alege grupa.', 'Apar doar grupele active care se potrivesc. Dacă nu se potrivește niciuna, tab-ul „Grupă nouă” (vezi „Creez o grupă nouă”).'],
@@ -74,7 +74,7 @@
       keys: [['Înscriere', '#inscriere']]
     },
     {
-      id: 'grupa', title: 'Creez o grupă nouă', sub: 'Din Înscriere, când nu există nicio grupă potrivită.',
+      id: 'grupa', title: 'Creez o grupă nouă',
       steps: [
         ['Înscriere, tab-ul „Grupă nouă”.', 'Alegi materia, clasa, formatul și nivelul, apoi profesorul și intervalul orar din ce propune platforma.'],
         ['Orarul respectă regula.', 'Două ore consecutive în aceeași zi, sau o oră în două zile diferite. Lecțiile individuale nu au oră de probă.'],
@@ -84,7 +84,7 @@
       keys: [['Înscriere', '#inscriere'], ['Orar', '#orar']]
     },
     {
-      id: 'start', title: 'O grupă e gata de start', sub: 'Ce se întâmplă când o grupă are destui elevi.',
+      id: 'start', title: 'O grupă e gata de start',
       steps: [
         ['Platforma întreabă profesorul.', 'Pe Telegram: „Confirmi startul grupei?”, cu elevii, prima lecție și două butoane. Mesajele se trimit doar între 08:00 și 21:00.'],
         ['Tu urmărești la Starturi.', 'Secțiunile sunt: „De sunat” (profesorul a confirmat, sună elevii), „Așteaptă profesorul”, „Nu s-a confirmat” (cu motivul scris de profesor) și „Rezolvate”.'],
@@ -94,7 +94,7 @@
       keys: [['Starturi', '#starturi']]
     },
     {
-      id: 'schimbari', title: 'Un profesor anulează, mută sau adaugă o lecție', sub: 'Cine află și ce faci tu.',
+      id: 'schimbari', title: 'Un profesor anulează, mută sau adaugă o lecție',
       steps: [
         ['Profesorul face schimbarea din clasă.', 'Butonul „Modifică lecțiile”. La anulare scrie obligatoriu motivul. Mutarea și lecția în plus nu cer motiv.'],
         ['Elevii sunt anunțați singuri.', 'Primesc un mesaj în clasă și o notificare pe telefon.'],
@@ -104,7 +104,7 @@
       keys: [['Schimbări', '#schimbari']]
     },
     {
-      id: 'sincronizare', title: 'Un registru nu se sincronizează', sub: 'Când datele din platformă nu se potrivesc cu registrul.',
+      id: 'sincronizare', title: 'Un registru nu se sincronizează',
       steps: [
         ['Deschide Sincronizare.', 'Vezi ora ultimei citiri a fiecărui registru și lista de probleme, cu link direct la celula cu pricina.'],
         ['Verifică partajarea.', `Registrul trebuie să fie partajat cu ${ROBOT} ca Editor, direct sau prin dosarul „Registre”. Dacă fișierul a fost mutat în afara dosarului, pierde accesul.`],
@@ -114,7 +114,7 @@
       keys: [['Sincronizare', '#sincronizare']]
     },
     {
-      id: 'telegram', title: 'Conectez Telegram', sub: 'Pentru profesori și manageri.',
+      id: 'telegram', title: 'Conectez Telegram',
       steps: [
         ['Intră în profil.', 'Pe site (profesor) sau în consolă, la Profil (manager). Apasă „Conectează Telegram”.'],
         ['Apasă Start în Telegram.', 'Se deschide botul MathorizonBot. Apeși Start și contul e legat. Linkul ține 15 minute.'],
@@ -124,7 +124,7 @@
       keys: [['Profilul meu', '#profil']]
     },
     {
-      id: 'invitatie', title: 'Un elev intră în clasă cu codul', sub: 'Elevii nu sunt adăugați de mână în clase.',
+      id: 'invitatie', title: 'Un elev intră în clasă cu codul',
       steps: [
         ['Dai codul.', 'Fiecare grupă are un cod de invitație. Îl găsești la Înscriere, la Orar sau la Repartizare, cu butoane pentru copierea invitației sau a codului. Îl poți trimite părintelui.'],
         ['Elevul introduce codul.', 'Pe site, la Clase, își face cont de elev și scrie codul. Trimite astfel o cerere.'],
@@ -134,7 +134,7 @@
       keys: [['Orar', '#orar']]
     },
     {
-      id: 'configurare', title: 'Prima configurare: contul companiei', sub: 'Se face o singură dată, când există contul Google al companiei.',
+      id: 'configurare', title: 'Prima configurare: contul companiei',
       steps: [
         ['Creezi dosarul „Registre”', 'în contul Google al companiei. Aici vor sta toate registrele profesorilor.'],
         ['Partajezi dosarul cu platforma.', `Adresa ${ROBOT}, ca Editor. Orice registru pus în dosar devine accesibil platformei automat.`],
@@ -150,8 +150,8 @@
   function procHTML(p, open) {
     const steps = p.steps.map(s => `<li><span class="inf-n" aria-hidden="true"></span><p><b>${esc(s[0])}</b> ${esc(s[1])}</p></li>`).join('');
     const keys = (p.keys || []).map(k => `<a class="ax-btn ax-btn--sm" href="${esc(k[1])}">${esc(k[0])} ${ico('arrow-right', 14)}</a>`).join('');
-    return `<details class="st-sec inf-sec" id="inf-${esc(p.id)}" data-text="${esc((p.title + ' ' + p.sub + ' ' + (p.need || '') + ' ' + p.steps.map(s => s.join(' ')).join(' ') + ' ' + (p.note || '')).toLowerCase())}"${open ? ' open' : ''}>
-      <summary class="st-sec__h"><span class="st-sec__t">${esc(p.title)}</span><span class="ax-sub inf-sub">${esc(p.sub)}</span><span class="st-sec__c" aria-hidden="true">${ico('chevron-down', 18)}</span></summary>
+    return `<details class="st-sec inf-sec" id="inf-${esc(p.id)}"${open ? ' open' : ''}>
+      <summary class="st-sec__h"><span class="st-sec__t">${esc(p.title)}</span><span class="st-sec__c" aria-hidden="true">${ico('chevron-down', 18)}</span></summary>
       <div class="st-sec__b"><div class="inf-body">
         ${p.need ? `<p class="inf-need">${esc(p.need)}</p>` : ''}
         <ol class="inf-steps">${steps}</ol>
@@ -161,7 +161,39 @@
     </details>`;
   }
 
-  const plain = t => String(t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  /* Opening and closing a section: the height (and the padding) of its body grows from nothing or shrinks to nothing, with a fade. The <details> is
+     only switched to closed AFTER the closing animation, so the content stays visible while it folds. A new click in the middle starts from the
+     current height. With "reduce motion" there is no animation. */
+  const EASE = 'cubic-bezier(0.2, 0.7, 0.2, 1)';
+  function wire(d) {
+    const sum = d.querySelector('summary'), body = d.querySelector('.st-sec__b');
+    const calm = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const full = () => { const cs = getComputedStyle(body); return { height: body.scrollHeight + 'px', paddingTop: cs.paddingTop, paddingBottom: cs.paddingBottom, opacity: 1 }; };
+    const none = { height: '0px', paddingTop: '0px', paddingBottom: '0px', opacity: 0 };
+    const run = (from, to, done) => {
+      if (d._anim) d._anim.cancel();
+      body.style.overflow = 'hidden';
+      const a = d._anim = body.animate([from, to], { duration: 320, easing: EASE });
+      const end = () => { if (d._anim === a) { d._anim = null; body.style.overflow = ''; if (done) done(); } };
+      a.onfinish = end;
+      a.oncancel = () => { body.style.overflow = ''; };
+    };
+    sum.addEventListener('click', e => {
+      e.preventDefault();
+      const opening = !d.open || d.classList.contains('is-closing');
+      if (calm()) { d.open = opening; d.classList.remove('is-closing'); return; }
+      const now = { height: body.offsetHeight + 'px', paddingTop: getComputedStyle(body).paddingTop, paddingBottom: getComputedStyle(body).paddingBottom, opacity: getComputedStyle(body).opacity };
+      if (opening) {
+        d.classList.remove('is-closing');
+        const wasShut = !d.open;
+        d.open = true;
+        run(wasShut ? none : now, full());
+      } else {
+        d.classList.add('is-closing');                   // the chevron turns back at once
+        run(now, none, () => { d.open = false; d.classList.remove('is-closing'); });
+      }
+    });
+  }
 
   window.AdminViews.info = {
     title: 'Info',
@@ -179,24 +211,8 @@
             </div>
           </div>
         </header>
-        <div class="inf-bar">
-          <label class="ax-search"><span class="ax-sr">Caută în pași</span>${ico('search', 16)}<input class="ax-input" id="infQ" type="search" placeholder="Caută: profesor, manager, Telegram, registru…" autocomplete="off"></label>
-        </div>
-        <div id="infList">${PROCESSES.map(p => procHTML(p, p.id === want)).join('')}</div>
-        <p class="st-empty" id="infNone" hidden>Nimic găsit. Încearcă un cuvânt mai scurt, de exemplu „manager” sau „registru”.</p>`;
-      const q = root.querySelector('#infQ'), none = root.querySelector('#infNone');
-      const filter = () => {
-        const w = plain(q.value).trim().split(/\s+/).filter(Boolean);
-        let shown = 0;
-        root.querySelectorAll('.inf-sec').forEach(d => {
-          const hit = !w.length || w.every(x => plain(d.dataset.text).includes(x));
-          d.hidden = !hit;
-          if (hit) shown++;
-          if (w.length && hit) d.open = true;
-        });
-        none.hidden = shown > 0;
-      };
-      q.addEventListener('input', filter);
+        <div id="infList">${PROCESSES.map(p => procHTML(p, p.id === want)).join('')}</div>`;
+      root.querySelectorAll('.inf-sec').forEach(wire);
       if (want) { const el = root.querySelector('#inf-' + CSS.escape(want)); if (el) setTimeout(() => el.scrollIntoView({ block: 'start' }), 60); }
     }
   };
