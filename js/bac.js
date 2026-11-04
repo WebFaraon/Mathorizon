@@ -1393,7 +1393,7 @@
     if (!status) {
       requestAnimationFrame(() => {
         const bar = document.querySelector('.res-score-bar__fill');
-        if (bar) requestAnimationFrame(() => { bar.style.width = bar.dataset.width + '%'; });
+        if (bar) requestAnimationFrame(() => { bar.style.transform = 'scaleX(' + (bar.dataset.width / 100) + ')'; });
       });
     }
   }

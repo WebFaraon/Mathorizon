@@ -175,7 +175,7 @@ body:has(#resultsView:not([style*="none"])) {
 }
 #examView .bac-sidebar__progress-count { font-size: 0.8rem; font-weight: 700; color: var(--k-ink-2); font-variant-numeric: tabular-nums; }
 #examView .bac-sidebar__track { height: 10px; border-radius: 1px; background: var(--k-ghost); }
-#examView .bac-sidebar__fill { border-radius: 1px; background: var(--k-blue); transition: width 0.5s steps(10, end); }
+#examView .bac-sidebar__fill { border-radius: 1px; background: var(--k-blue); transition: none; }   /* the rail is drawn again on every change, so the fill never animates */
 #examView .bac-sidebar__motiv { margin-top: 10px; font-size: 0.8rem; font-style: normal; font-weight: 600; line-height: 1.4; color: var(--k-ink-2); }
 #examView .bac-sidebar__section-label {
   padding: 0 2px 8px;
@@ -732,7 +732,7 @@ body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:activ
 #resultsView .res-hero--tier-c .res-hero__label { color: var(--k-ink); }
 #resultsView .res-hero--tier-d .res-hero__label { color: var(--k-red); }
 #resultsView .res-score-bar { height: 10px; max-width: 420px; margin: 14px auto 8px; border-radius: 1px; background: var(--k-ghost); }
-#resultsView .res-score-bar__fill { height: 100%; border-radius: 1px; background: var(--k-blue); transition: width 0.9s steps(20, end); }
+#resultsView .res-score-bar__fill { width: 100%; height: 100%; border-radius: 1px; background: var(--k-blue); transform: scaleX(0); transform-origin: left center; transition: transform 0.9s steps(20, end); }   /* js/bac.js sets the scale: the bar charges in 20 steps */
 #resultsView .res-hero--tier-a .res-score-bar__fill { background: var(--k-green); }
 #resultsView .res-hero--tier-d .res-score-bar__fill { background: var(--k-red); }
 #resultsView .res-score-label { font-size: 0.9rem; font-weight: 600; color: var(--k-ink-2); font-variant-numeric: tabular-nums; }
@@ -923,7 +923,6 @@ body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:activ
    Motion: the exam room powers on once; nothing else moves on its own
    ============================================================ */
 @media (prefers-reduced-motion: reduce) {
-  #examView .bac-sidebar__fill,
   #resultsView .res-score-bar__fill { transition: none; }
   #resultsView .res-hero--pending .res-hero__label::after,
   #resultsView .ai-loading__spinner { animation: none; }
