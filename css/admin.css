@@ -50,6 +50,7 @@ body.ax {
   --ax-c-starturi: #FF6B3D;
   --ax-c-schimbari: #F0B429;
   --ax-c-profil: #7FB5E8;
+  --ax-c-info: #6FD0B0;
   --ax-c-sincronizare: #8FA6C4;
   --ax-c-ink: #0E1114;
   --pg: var(--ax-hi);
@@ -744,6 +745,7 @@ body.ax-legacy .ae-detalii-grid + .cls-form-field { margin-top: 16px; }
 .ax-shell[data-view="starturi"], .ax-nav__a[data-route="starturi"] { --pg: var(--ax-c-starturi); }
 .ax-shell[data-view="schimbari"], .ax-nav__a[data-route="schimbari"] { --pg: var(--ax-c-schimbari); }
 .ax-shell[data-view="profil"], .ax-nav__a[data-route="profil"] { --pg: var(--ax-c-profil); }
+.ax-shell[data-view="info"], .ax-nav__a[data-route="info"] { --pg: var(--ax-c-info); }
 .ax-shell[data-view="sincronizare"], .ax-nav__a[data-route="sincronizare"] { --pg: var(--ax-c-sincronizare); }
 
 .ax-nav__pic { color: var(--pg); transition: background-color 0.15s, border-color 0.15s, transform 0.2s var(--ax-ease); }

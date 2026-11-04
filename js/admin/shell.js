@@ -43,7 +43,8 @@
     { group: 'Platforma', items: [
       { id: 'profesori', label: 'Conturi', icon: 'user' },
       { id: 'sincronizare', label: 'Sincronizare', icon: 'refresh-cw' },
-      { id: 'culegeri', label: 'Culegeri', icon: 'library' }
+      { id: 'culegeri', label: 'Culegeri', icon: 'library' },
+      { id: 'info', label: 'Info', icon: 'info' }
     ] },
     { group: 'Cont', items: [
       { id: 'profil', label: 'Profil', icon: 'circle-user' }

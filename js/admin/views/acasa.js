@@ -55,7 +55,8 @@
       { id: 'analitica', href: '#analitica', icon: 'chart-column', t: 'Analitică', d: 'Distribuții și tendințe' },
       { id: 'profesori', href: '#profesori', icon: 'user', t: 'Conturi', d: 'Cereri, profesori și waitlist' },
       { id: 'calculator', href: '#calculator', icon: 'calculator', t: 'Calculator', d: 'Transfer, înlocuire și retur' },
-      { id: 'culegeri', href: '#culegeri', icon: 'library', t: 'Culegeri', d: 'Culegerile și exercițiile din ele' }
+      { id: 'culegeri', href: '#culegeri', icon: 'library', t: 'Culegeri', d: 'Culegerile și exercițiile din ele' },
+      { id: 'info', href: '#info', icon: 'info', t: 'Info', d: 'Pașii proceselor mai lungi' }
     ].filter(t => can(t.id));
   }
 

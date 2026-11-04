@@ -1,0 +1,24 @@
+/* Admin console: Info (js/admin/views/info.js). The sections reuse the opening blocks of Starturi (css/admin/starturi.css); only the steps are its own. Flat, like the rest of the console. */
+body.ax .inf-bar { margin: 0 0 16px; max-width: 520px; }
+body.ax .inf-bar .ax-search { display: block; position: relative; }
+body.ax .inf-bar .ax-input { width: 100%; }
+body.ax .inf-sec[hidden] { display: none; }
+body.ax .inf-sec .st-sec__h { flex-wrap: wrap; row-gap: 2px; }
+body.ax .inf-sub { flex: 1 1 260px; min-width: 0; font-weight: 500; }
+body.ax .inf-sec .st-sec__c { margin-left: auto; }
+body.ax .inf-body { display: grid; gap: 14px; padding: 6px 4px 8px; max-width: 760px; }
+body.ax .inf-need { margin: 0; padding: 10px 14px; border-left: 3px solid var(--pg); background: var(--ax-hi-wash); font-size: 0.92rem; line-height: 1.5; }
+body.ax .inf-steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 12px; counter-reset: inf; }
+body.ax .inf-steps li { display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 12px; align-items: start; counter-increment: inf; }
+body.ax .inf-n { display: grid; place-items: center; width: 30px; height: 30px; border: 1.5px solid var(--ax-ink); border-radius: var(--ax-r); background: var(--ax-panel); font-size: 0.88rem; font-weight: 800; }
+body.ax .inf-n::before { content: counter(inf); }
+body.ax .inf-steps p { margin: 4px 0 0; font-size: 0.95rem; line-height: 1.55; overflow-wrap: anywhere; }
+body.ax .inf-steps b { font-weight: 800; }
+body.ax .inf-note { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--ax-ink-3); }
+body.ax .inf-keys { display: flex; flex-wrap: wrap; gap: 8px; }
+body.ax .inf-keys .ax-btn { display: inline-flex; align-items: center; gap: 6px; text-decoration: none; }
+@media (max-width: 600px) {
+  body.ax .inf-steps li { grid-template-columns: 26px minmax(0, 1fr); gap: 10px; }
+  body.ax .inf-n { width: 26px; height: 26px; font-size: 0.8rem; }
+}
+body.ax .inf-sec { scroll-margin-top: 76px; }
