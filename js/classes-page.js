@@ -961,6 +961,119 @@
     return { time: best.time, at: best.at, cls: best.cls, when: days === 0 ? 'azi' : days === 1 ? 'mâine' : DAY_SHORT[best.dayName] };
   }
 
+  /* ─── "Lecția ta": the next lesson of the student, with the key that opens the Meet room ───────────────────────────────────
+     student_next_lessons (migration 20261105110000) gives, per class, the nearest lesson that is not cancelled (moved and extra lessons included); an
+     online one comes with the room: open (link, until when), closed (when it opens) or no link yet. The card is one panel: the start time on the LCD, what
+     lesson it is, the key. The key is lit only while the room is open (10 minutes before the lesson until 10 minutes before its end). The card asks again
+     when the room opens or closes and when the tab comes back to the screen. The lesson is meant to be followed from a laptop (founder's rule): a phone gets a line saying so. */
+  const _NL_TZ = 'Europe/Chisinau';
+  let _nlTimer = null, _nlTick = null;
+  const _nlDay = d => d.toLocaleDateString('sv-SE', { timeZone: _NL_TZ });
+  const _nlHM = d => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: _NL_TZ });
+  const _NL_ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10, XI: 11, XII: 12 };
+  const _nlGrade = g => { const n = _NL_ROMAN[String(g || '').trim().toUpperCase()]; return n ? 'clasa a ' + n + '-a' : (g ? 'clasa ' + g : ''); };
+  function _nlWhen(d) {
+    const t = _nlDay(new Date()), x = _nlDay(d);
+    if (x === t) return 'azi';
+    if (x === _nlDay(new Date(Date.now() + 86400000))) return 'mâine';
+    const w = d.toLocaleDateString('ro-RO', { weekday: 'long', timeZone: _NL_TZ });
+    return w.charAt(0).toUpperCase() + w.slice(1);
+  }
+  function _nlLeft(ms) {
+    const m = Math.max(1, Math.ceil(ms / 60000));
+    if (m < 60) return m + (m === 1 ? ' minut' : ' minute');
+    const h = Math.floor(m / 60), r = m % 60;
+    return h + (h === 1 ? ' oră' : ' ore') + (r ? ' și ' + r + ' min' : '');
+  }
+  const _nlPhone = () => !!(window.matchMedia && (window.matchMedia('(pointer: coarse)').matches || window.matchMedia('(max-width: 820px)').matches));
+
+  function _nlState(r) {
+    if (r.mode !== 'online') return 'offline';
+    const st = r.meet && r.meet.status;
+    if (st === 'open') return 'live';
+    if (st === 'no_link') return 'nolink';
+    return 'wait';
+  }
+
+  function nextLessonHTML(rows) {
+    const r = rows[0], st = _nlState(r), start = new Date(r.start_at), end = new Date(r.end_at), m = r.meet || {};
+    const hrs = Math.max(1, Math.round((end - start) / 3600000));
+    const when = _nlWhen(start);
+    const eyebrow = { live: 'Lecția ta e deschisă acum', wait: 'Următoarea ta lecție, online', nolink: 'Următoarea ta lecție, online', offline: 'Următoarea ta lecție, offline' }[st];
+    const title = BM.esc(r.subject || 'Lecție') + (r.grade ? ', ' + BM.esc(_nlGrade(r.grade)) : '');
+    const meta = [r.teacher_name ? 'cu ' + BM.esc(r.teacher_name) : '', hrs === 1 ? '1 oră' : hrs + ' ore', _nlHM(start) + ' - ' + _nlHM(end)].filter(Boolean).join(' · ');
+    let hint = '', act = '';
+    const opens = m.opens_at ? new Date(m.opens_at) : null;
+    if (st === 'live') {
+      hint = m.closes_at ? 'Sala e deschisă până la ' + _nlHM(new Date(m.closes_at)) + '.' : 'Sala e deschisă.';
+      act = `<a class="cl-key cl-key--primary nl__go" href="${BM.esc(m.url)}" target="_blank" rel="noopener noreferrer">${icon('video', { size: 18 })} Intră la lecție</a>`;
+    } else if (st === 'wait') {
+      const left = opens ? opens - Date.now() : 0;
+      hint = opens ? 'Butonul se aprinde la ' + _nlHM(opens) + (left > 0 && left < 3 * 3600000 ? ', peste ' + _nlLeft(left) : '') + '.' : 'Butonul se aprinde cu 10 minute înainte de lecție.';
+      act = `<button type="button" class="cl-key nl__go" disabled>${icon('video', { size: 18 })} Intră la lecție</button>`;
+    } else if (st === 'nolink') {
+      hint = 'Profesorul nu a adăugat încă linkul lecției. Întreabă managerul tău.';
+      act = `<button type="button" class="cl-key nl__go" disabled>${icon('video', { size: 18 })} Intră la lecție</button>`;
+    } else {
+      hint = 'Lecția se ține în cabinet, nu e nimic de deschis aici.';
+    }
+    const laptop = (st === 'live' || st === 'wait') && _nlPhone() ? '<p class="nl__laptop">Pentru lecție folosește laptopul: profesorul împarte ecranul și lucrează pe tablă.</p>' : '';
+    const after = rows[1] && new Date(rows[1].start_at) - Date.now() < 86400000
+      ? `<p class="nl__after">După aceea: <b>${BM.esc(rows[1].subject || 'Lecție')}</b>, ${_nlWhen(new Date(rows[1].start_at))} la ${_nlHM(new Date(rows[1].start_at))}.</p>` : '';
+    const guideNew = window.BMLessonGuide && window.BMLessonGuide.isNew();
+    const how = st === 'offline' ? '' : `<button type="button" class="nl__how${guideNew ? ' is-new' : ''}" id="nlHow">${guideNew ? 'Prima dată? Vezi cum intri la lecție' : 'Cum intru la lecție?'}</button>`;
+    return `
+      <section class="nl nl--${st}" aria-labelledby="nlT">
+        <div class="nl__lcd" aria-hidden="true"><small>${BM.esc(when)}</small><b>${_nlHM(start)}</b></div>
+        <div class="nl__body">
+          <p class="nl__eyebrow"><i class="nl__led" aria-hidden="true"></i>${eyebrow}</p>
+          <h2 class="nl__title" id="nlT">${title}</h2>
+          <p class="nl__meta">${meta}</p>
+          <p class="nl__hint">${hint}</p>
+          ${laptop}${after}
+        </div>
+        <div class="nl__act">${act}${how}</div>
+      </section>`;
+  }
+
+  async function loadNextLesson() {
+    const slot = document.getElementById('nlSlot');
+    if (!slot) return;
+    if (_nlTimer) { clearTimeout(_nlTimer); _nlTimer = null; }
+    if (_nlTick) { clearInterval(_nlTick); _nlTick = null; }
+    let rows = [];
+    try {
+      const { data, error } = await BMAuth.supabase.rpc('student_next_lessons', { p_limit: 3 });
+      if (!error && Array.isArray(data)) rows = data;
+    } catch (e) { /* the migration is not run yet: no card */ }
+    const now = document.getElementById('nlSlot');
+    if (!now) return;
+    now.removeAttribute('data-loading');
+    if (!rows.length) { now.innerHTML = ''; now.hidden = true; return; }
+    now.hidden = false;
+    const paint = () => {
+      now.innerHTML = nextLessonHTML(rows);
+      const how = document.getElementById('nlHow');
+      if (how && window.BMLessonGuide) how.addEventListener('click', () => window.BMLessonGuide.open());
+    };
+    paint();
+    const r = rows[0], m = r.meet || {};
+    const at = _nlState(r) === 'live' ? m.closes_at : m.opens_at;
+    if (at) {
+      const ms = new Date(at).getTime() - Date.now() + 1500;
+      if (ms > 0) _nlTimer = setTimeout(loadNextLesson, Math.min(ms, 6 * 3600 * 1000));
+    }
+    // while the wait is short the countdown is redrawn every 30 seconds, without asking the database
+    if (_nlState(r) === 'wait' && m.opens_at && new Date(m.opens_at) - Date.now() < 3 * 3600000) {
+      _nlTick = setInterval(() => {
+        if (!document.getElementById('nlSlot')) { clearInterval(_nlTick); _nlTick = null; return; }
+        if (!document.hidden) paint();
+      }, 30000);
+    }
+  }
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('nlSlot')) loadNextLesson(); });
+  document.addEventListener('lessonguide:seen', () => { const h = document.getElementById('nlHow'); if (h) { h.classList.remove('is-new'); h.textContent = 'Cum intru la lecție?'; } });
+
   function _applyStudentUI(classes, reqs) {
     reqs = reqs || [];
     const teachers = new Set(classes.map(c => c.teacher_name).filter(Boolean)).size;
@@ -970,6 +1083,8 @@
         <header class="cl-head">
           ${headInfoHTML('Introdu codul primit de la profesor și trimite o cerere de alăturare.')}
         </header>
+
+        ${classes.length ? '<div class="nl-slot" id="nlSlot" data-loading></div>' : ''}
 
         <section class="cl-join" aria-labelledby="clJoinTitle">
           <div class="cl-join__icon">${icon('key', { size: 24 })}</div>
@@ -1009,6 +1124,7 @@
     const joinBtn   = document.getElementById('joinClassBtn');
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
+    if (classes.length) loadNextLesson();
     const invited = _inviteCode();
     if (invited && codeInput) {
       codeInput.value = invited;

@@ -120,6 +120,8 @@
     }
     box.hidden = false;
     box.className = 'cd-meet cd-meet--' + r.status;
+    const how = document.getElementById('cdMeetHow');                     // the guide for a student (a teacher knows the room)
+    if (how) { how.hidden = !!(r.teacher || teacher || BMAuth.role === 'admin') || !window.BMLessonGuide; how.onclick = () => window.BMLessonGuide && window.BMLessonGuide.open(); }
     const editKey = document.getElementById('cdLessonsBtn');
     if (editKey) { editKey.hidden = !(r.teacher || teacher); editKey.onclick = _openLessonsDialog; }
     _loadLessons();
@@ -998,6 +1000,7 @@
                 <div class="cd-meet" id="cdMeet" hidden>
                   <a class="cd-meet__btn" id="cdMeetBtn" target="_blank" rel="noopener noreferrer" aria-disabled="true">${icon('video', { size: 18 })} <span id="cdMeetLabel">Intră la lecție</span></a>
                   <button type="button" class="cd-meet__edit" id="cdLessonsBtn" hidden>${icon('calendar', { size: 16 })} Modifică lecțiile</button>
+                  <button type="button" class="cd-meet__how" id="cdMeetHow" hidden>Cum intru la lecție?</button>
                   <span class="cd-meet__note" id="cdMeetNote" role="status" aria-live="polite"></span>
                   <ul class="cd-meet__chg" id="cdMeetChg" hidden aria-label="Schimbări de program"></ul>
                 </div>` : ''}

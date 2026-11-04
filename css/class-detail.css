@@ -1630,3 +1630,12 @@ body:has(#classRoot) .cd-header .cd-art__tx text { font-family: var(--k-lcd-font
 .notif-sw { display: flex; align-items: center; gap: 12px; margin-top: 16px; padding: 12px 14px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-panel); cursor: pointer; font-weight: 700; }
 .notif-sw.is-blocked { opacity: 0.6; cursor: not-allowed; }
 .notif-sw__t { font-size: 0.92rem; color: var(--k-ink); }
+
+/* "Cum intru la lecție?" next to the key of the Meet room (a student): a plain text link, the guide is in js/lesson-guide.js */
+body:has(#classRoot) .cd-meet .cd-meet__how {
+  padding: 4px 2px; border: 0; background: none; font: inherit; font-size: 0.88rem; font-weight: 700; color: var(--k-ink-2);
+  text-decoration: underline; text-decoration-color: var(--k-rule); text-underline-offset: 3px; cursor: pointer; box-shadow: none; height: auto; min-height: 0;
+}
+body:has(#classRoot) .cd-meet .cd-meet__how[hidden] { display: none; }
+body:has(#classRoot) .cd-meet .cd-meet__how:hover { color: var(--k-ink); text-decoration-color: var(--k-ink); background: none; }
+body:has(#classRoot) .cd-meet .cd-meet__how:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }

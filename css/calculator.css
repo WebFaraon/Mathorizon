@@ -4740,3 +4740,121 @@ body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: 
   .cl-d-s { display: inline; }
   .cl-chip--today::after { top: 3px; right: 3px; width: 5px; height: 5px; }
 }
+
+/* ============================================================
+   "Lecția ta": the next lesson card of a student (js/classes-page.js nextLessonHTML) and the guide dialog
+   "Cum intru la lecție?" (js/lesson-guide.js). One panel: the start time on the LCD, what lesson it is, the key.
+   The key is lit only while the Meet room is open; before that it is grey and the hint says when it lights up.
+   ============================================================ */
+.nl-slot[hidden] { display: none; }
+.nl {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 16px 26px;
+  padding: 20px 24px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 4px 0 0 var(--k-panel-edge);
+}
+.nl--live {
+  border-color: color-mix(in srgb, var(--k-green) 60%, var(--k-panel-edge));
+  background: color-mix(in srgb, var(--k-green) 7%, var(--k-panel));
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--k-green) 60%, var(--k-panel-edge));
+}
+.nl__lcd {
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  min-width: 112px;
+  padding: 11px 14px 9px;
+  border-radius: 2px;
+  background: var(--k-lcd);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  color: var(--k-lcd-ink);
+}
+.nl__lcd small { font-family: var(--k-font); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; }
+.nl__lcd b { font-family: var(--k-lcd-font); font-size: 2.1rem; font-weight: 900; line-height: 1; font-variant-numeric: tabular-nums; }
+.nl__body { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.nl__eyebrow { display: flex; align-items: center; gap: 9px; font-size: 0.8rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--k-ink-2); }
+.nl__led { flex: none; width: 10px; height: 10px; border: 1px solid var(--k-key-edge); background: var(--k-ghost); }
+.nl--live .nl__led { border-color: color-mix(in srgb, var(--k-green) 60%, black); background: var(--k-green); }
+.nl--wait .nl__led { border-color: color-mix(in srgb, var(--k-blue) 60%, black); background: var(--k-blue); }
+.nl--live .nl__eyebrow { color: color-mix(in srgb, var(--k-green) 70%, var(--k-ink)); }
+.nl__title { font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; line-height: 1.2; overflow-wrap: anywhere; }
+.nl__meta { font-size: 0.92rem; line-height: 1.4; color: var(--k-ink-2); }
+.nl__hint { margin-top: 4px; font-size: 0.95rem; font-weight: 700; line-height: 1.4; }
+.nl__laptop, .nl__after { font-size: 0.88rem; line-height: 1.45; color: var(--k-ink-2); }
+.nl__after b { font-weight: 800; color: var(--k-ink); }
+.nl__act { display: flex; flex-direction: column; align-items: stretch; gap: 10px; min-width: 230px; }
+.nl__go { height: 54px; font-size: 1.05rem; }
+.nl__go svg { width: 20px; height: 20px; }
+.nl__how {
+  align-self: center;
+  padding: 4px 2px;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.88rem;
+  font-weight: 700;
+  color: var(--k-ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--k-rule);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+.nl__how:hover { color: var(--k-ink); text-decoration-color: var(--k-ink); }
+.nl__how:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+.nl__how.is-new { color: var(--k-blue); text-decoration-color: var(--k-blue); }
+@media (max-width: 760px) {
+  .nl { grid-template-columns: auto minmax(0, 1fr); padding: 16px; gap: 14px 16px; }
+  .nl__act { grid-column: 1 / -1; min-width: 0; }
+  .nl__lcd { min-width: 88px; padding: 9px 10px 7px; }
+  .nl__lcd b { font-size: 1.7rem; }
+  .nl__title { font-size: 1.2rem; }
+}
+
+/* the guide dialog: a short list of steps, then what to do when it does not work (the head, the close key and the foot are the .cm__ ones) */
+.lg { position: fixed; inset: 0; z-index: 1300; display: flex; align-items: center; justify-content: center; padding: 24px; font-family: var(--k-font); color: var(--k-ink); }
+.lg__backdrop { position: absolute; inset: 0; background: rgba(10, 14, 24, 0.45); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+.lg__dialog {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: min(620px, 100%);
+  max-height: min(780px, 100%);
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 6px 0 0 var(--k-panel-edge), 0 40px 70px -28px rgba(0, 0, 0, 0.6);
+}
+.lg__body { min-height: 0; padding: 18px 26px 10px; overflow-y: auto; }
+.lg__steps { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; counter-reset: lg; }
+.lg__steps li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 14px; align-items: start; counter-increment: lg; }
+.lg__n {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 2px;
+  background: var(--k-lcd);
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  font-family: var(--k-lcd-font);
+  font-size: 1rem;
+  font-weight: 900;
+  color: var(--k-lcd-ink);
+}
+.lg__n::before { content: counter(lg); }
+.lg__steps p, .lg__trouble p { margin: 3px 0 0; font-size: 0.95rem; line-height: 1.55; }
+.lg__steps b, .lg__trouble b { font-weight: 800; }
+.lg__h { margin: 22px 0 10px; padding-top: 18px; border-top: 1px solid var(--k-rule); font-size: 1.05rem; font-weight: 800; }
+.lg__trouble { margin: 0 0 8px; padding: 0; list-style: none; }
+.lg__trouble li + li { margin-top: 10px; }
+.lg__trouble p { margin: 0; color: var(--k-ink-2); }
+.lg__trouble b { color: var(--k-ink); }
+body.lg-open { overflow: hidden; }
+@media (max-width: 600px) {
+  .lg { padding: 12px; align-items: flex-end; }
+  .lg__body { padding: 14px 18px 8px; }
+}
