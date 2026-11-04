@@ -249,6 +249,8 @@ body:has(#resultsView:not([style*="none"])) {
 
 /* the narrow rail (desktop, collapsed): bare numbers on small keys */
 @media (min-width: 1025px) {
+  #examView .bac-sidebar-wrap.collapsed :is(.bac-sidebar__exam-title, .bac-sidebar__stats-grid, .bac-sidebar__progress-row, .bac-sidebar__track, .bac-sidebar__motiv, .bac-sidebar__section-label) { display: none; }
+  #examView .bac-sidebar-wrap.collapsed .bac-sidebar__header { padding: 10px 6px; border-bottom: 0; }
   #examView .bac-sidebar-wrap.collapsed .bac-sidebar__nav { gap: 8px; }
   #examView .bac-sidebar-wrap.collapsed .bac-nav-item.current { background: var(--k-blue); border-color: var(--k-blue-edge); }
   #examView .bac-sidebar-wrap.collapsed .bac-nav-item.current .bac-nav-item__short { color: #fff; }
@@ -261,8 +263,9 @@ body:has(#resultsView:not([style*="none"])) {
 
 /* the key that folds the rail */
 #examView .bac-sidebar-toggle {
-  width: 28px;
-  height: 28px;
+  right: -30px;
+  width: 24px;
+  height: 24px;
   border: 1px solid var(--k-panel-edge);
   border-radius: var(--k-r-key);
   background: var(--k-key);
@@ -297,7 +300,10 @@ body:has(#resultsView:not([style*="none"])) {
   text-transform: uppercase;
   color: var(--k-ink-2);
 }
-#examView .diff-badge { border-color: currentColor; background: transparent; }
+#examView .diff-badge.comun { color: var(--rarity-comun-text); border-color: var(--rarity-comun-border-soft); background: var(--rarity-comun-dim); }
+#examView .diff-badge.rar { color: var(--rarity-rar-text); border-color: var(--rarity-rar-border-soft); background: var(--rarity-rar-dim); }
+#examView .diff-badge.epic { color: var(--rarity-epic-text); border-color: var(--rarity-epic-border-soft); background: var(--rarity-epic-dim); }
+#examView .diff-badge.legendar { color: var(--rarity-legendar-text); border-color: var(--rarity-legendar-border-soft); background: var(--rarity-legendar-dim); }
 #examView .bac-slot-desc { font-size: 0.96rem; font-weight: 600; color: var(--k-ink-2); }
 #examView .bac-topbar-controls { gap: 12px; }
 
@@ -398,6 +404,7 @@ body.bac-exam-mode .dc-toolbar {
   border-bottom: 1px solid var(--k-rule);
   background: var(--k-panel);
 }
+body.bac-exam-mode .dc-tool-group { gap: 8px; }
 body.bac-exam-mode .dc-tool-group + .dc-tool-group { padding-left: 10px; border-left: 1px solid var(--k-rule); }
 body.bac-exam-mode .dc-tool-btn,
 body.bac-exam-mode .dc-width-btn,
@@ -468,14 +475,12 @@ body.bac-exam-mode .dc-action-btn:disabled:hover {
   filter: none;
   transform: none;
 }
-/* a colour key: the swatch is the face of the key, the active one wears the key's blue edge */
-body.bac-exam-mode .dc-color-btn { position: relative; }
-body.bac-exam-mode .dc-color-btn::before { content: ''; width: 16px; height: 16px; border-radius: 1px; background: var(--sw, currentColor); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28); }
-body.bac-exam-mode .dc-color-btn[data-color="#1a1a1a"] { --sw: #1a1a1a; }
-body.bac-exam-mode .dc-color-btn[data-color="#1d4ed8"] { --sw: #1d4ed8; }
-body.bac-exam-mode .dc-color-btn[data-color="#dc2626"] { --sw: #dc2626; }
+/* a colour key: the face of the key is the colour itself (js/drawing-canvas.js sets it), so a colour key has no second square inside; the one in use is ringed in blue */
+body.bac-exam-mode .dc-color-btn,
+body.bac-exam-mode .dc-color-btn:hover { background-clip: border-box; }
+body.bac-exam-mode .dc-color-btn::before, body.bac-exam-mode .dc-color-btn::after { content: none; }
 body.bac-exam-mode .dc-color-btn--active,
-body.bac-exam-mode .dc-color-btn--active:hover { border-color: var(--k-blue); box-shadow: 0 3px 0 0 var(--k-blue-edge), 0 0 0 1px var(--k-blue); }
+body.bac-exam-mode .dc-color-btn--active:hover { outline: 2px solid var(--k-blue); outline-offset: 2px; }
 /* the zoom reads on a small display */
 body.bac-exam-mode .dc-zoom-label {
   min-width: 52px;
@@ -651,7 +656,7 @@ body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:activ
 /* ============================================================
    The results
    ============================================================ */
-#resultsView .bac-results-wrap { max-width: 880px; padding: 32px 24px 80px; }
+#resultsView .bac-results-wrap { max-width: 1120px; padding: 32px 28px 80px; }
 
 /* the grade: a display in its bezel, then the bar and four small displays under it */
 #resultsView .res-hero {
@@ -827,13 +832,37 @@ body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:activ
 #resultsView .ai-score-pill--correct { background: transparent; color: var(--k-green); border-color: var(--k-green); }
 #resultsView .ai-score-pill--partial { background: transparent; color: var(--k-ink-2); border-color: var(--k-ink-2); }
 #resultsView .ai-score-pill--wrong { background: transparent; color: var(--k-red); border-color: var(--k-red); }
-#resultsView .ai-step { gap: 10px; font-size: 0.86rem; }
-#resultsView .ai-step__dot { width: 8px; height: 8px; border-radius: 1px; }
+#resultsView .ai-item__steps { gap: 0; margin-bottom: 14px; border: 1px solid var(--k-rule); border-radius: 3px; }
+#resultsView .ai-step {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 12px;
+  padding: 10px 12px;
+  border-top: 1px solid var(--k-rule);
+  font-size: 0.88rem;
+}
+#resultsView .ai-step:first-child { border-top: 0; }
+#resultsView .ai-step__dot { width: 8px; height: 8px; margin-top: 0.5em; border-radius: 1px; }
+#resultsView .ai-step__desc { min-width: 0; line-height: 1.55; }
+#resultsView .ai-step__desc .katex-display { margin: 8px 0; text-align: left; }
+#resultsView .ai-step__desc .katex-display > .katex { text-align: left; }
 #resultsView .ai-step--correct .ai-step__dot { background: var(--k-green); }
 #resultsView .ai-step--partial .ai-step__dot { background: var(--k-ink-3); }
 #resultsView .ai-step--wrong .ai-step__dot { background: var(--k-red); }
 #resultsView .ai-step__desc { color: var(--k-ink-2); }
-#resultsView .ai-step__pts { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+#resultsView .ai-step__pts {
+  align-self: start;
+  min-width: 52px;
+  padding: 2px 7px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  line-height: 1.5;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
 #resultsView .ai-step--correct .ai-step__pts { color: var(--k-green); }
 #resultsView .ai-step--partial .ai-step__pts { color: var(--k-ink-2); }
 #resultsView .ai-step--wrong .ai-step__pts { color: var(--k-red); }
