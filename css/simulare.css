@@ -1,0 +1,933 @@
+/* ============================================================
+   bac.html, the exam in progress, the results and the dialogs around them
+   ============================================================
+   The Simulare tab after the setup (css/calculator.css, #setupView): the exam
+   room (#examView), the results with the AI grading (#resultsView) and the
+   dialogs that sit on top of them (fullscreen warning, navigation guard,
+   finish, cancelled exam). Same world as the rest of the site: chassis panels
+   with a 1px edge and 3px corners, keys on a solid bottom edge, an LCD for what
+   must be read at a glance (the clock, the counters, the grade), the graph
+   paper behind. Loaded after style.css and calculator.css; it only restyles,
+   the markup and the behaviour are in js/bac.js.
+   The class simulation (.sim-exam-overlay, js/simulare-exam.js) shares part
+   of this markup and is deliberately NOT touched here.
+   ============================================================ */
+
+#examView, #resultsView,
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) {
+  /* the glass of a display in a warning / empty state (the navbar's counters use the same two) */
+  --sx-low: #E7D8A2;
+  --sx-low-ink: #5A4208;
+  --sx-bad: #EBC3B9;
+  --sx-bad-ink: #6E1F12;
+  --sx-lattice: radial-gradient(circle, var(--k-lcd-ghost) 0.9px, transparent 1.1px);
+  font-family: var(--k-font);
+  color: var(--k-ink);
+}
+[data-theme="dark"] #examView, [data-theme="dark"] #resultsView,
+[data-theme="dark"] :is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) {
+  --sx-low: #3B3615;
+  --sx-low-ink: #EAD580;
+  --sx-bad: #3D1B15;
+  --sx-bad-ink: #F2A794;
+}
+
+/* ---- Ground: the graph paper, as in the setup ---- */
+body:has(#examView:not([style*="none"])),
+body:has(#resultsView:not([style*="none"])) {
+  background-color: var(--k-bg);
+  background-image:
+    linear-gradient(var(--k-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
+  background-size: 28px 28px;
+}
+
+/* ---- Keys: one definition for every button of these views ---- */
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn,
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn:hover,
+:is(#examView, #resultsView) .bac-slot-btn,
+:is(#examView, #resultsView) .bac-slot-btn:hover:not(:disabled) {
+  border: 1px solid var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn,
+:is(#examView, #resultsView) .bac-slot-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 44px;
+  padding: 0 20px;
+  border-radius: var(--k-r-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1;
+  text-decoration: none;
+  white-space: nowrap;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn:hover,
+:is(#examView, #resultsView) .bac-slot-btn:hover:not(:disabled) { transform: none; filter: brightness(0.95); }
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn:active,
+:is(#examView, #resultsView) .bac-slot-btn:active:not(:disabled) { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn:focus-visible,
+:is(#examView, #resultsView) .bac-slot-btn:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn svg { width: 16px; height: 16px; flex-shrink: 0; }
+
+/* the lit key */
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.btn--primary, .btn--ai),
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.btn--primary, .btn--ai):hover,
+:is(#examView, #resultsView) .bac-slot-btn--next:not(.is-finish):not(:disabled),
+:is(#examView, #resultsView) .bac-slot-btn--next:not(.is-finish):not(:disabled):hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+}
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.btn--primary, .btn--ai),
+:is(#examView, #resultsView) .bac-slot-btn--next:not(.is-finish):not(:disabled) { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.btn--primary, .btn--ai):active,
+:is(#examView, #resultsView) .bac-slot-btn--next:not(.is-finish):not(:disabled):active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+
+/* the key that ends something (finish) */
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn--danger,
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn--danger:hover,
+:is(#examView, #resultsView) .bac-slot-btn--next.is-finish,
+:is(#examView, #resultsView) .bac-slot-btn--next.is-finish:hover:not(:disabled) {
+  border-color: color-mix(in srgb, var(--k-red) 55%, black);
+  background: var(--k-red);
+  color: #fff;
+}
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn--danger,
+:is(#examView, #resultsView) .bac-slot-btn--next.is-finish { box-shadow: 0 3px 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+:is(#examView, #resultsView, #fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn--danger:active,
+:is(#examView, #resultsView) .bac-slot-btn--next.is-finish:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+
+:is(#examView, #resultsView) .btn--lg { height: 52px; padding: 0 28px; font-size: 1rem; }
+:is(#examView, #resultsView) .bac-slot-btn:disabled,
+:is(#examView, #resultsView) .bac-slot-btn:disabled:hover {
+  opacity: 1;
+  border: 1px dashed var(--k-panel-edge);
+  background: transparent;
+  box-shadow: none;
+  color: var(--k-ink-3);
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+
+/* ============================================================
+   The exam room
+   ============================================================ */
+
+#examView .bac-exam-wrap { background: transparent; }
+
+/* ---- Left rail: the counters and the items ---- */
+#examView .bac-sidebar {
+  background: var(--k-panel);
+  border-right: 1px solid var(--k-panel-edge);
+}
+#examView .bac-sidebar__header {
+  padding: 16px 14px 14px;
+  border-bottom: 1px solid var(--k-rule);
+  background: transparent;
+}
+#examView .bac-sidebar__exam-title {
+  margin-bottom: 12px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  text-transform: none;
+  color: var(--k-ink);
+}
+#examView .bac-sidebar__stats-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 12px; }
+#examView .bac-stat-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+  padding: 7px 8px 6px;
+  border: 0;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  color: var(--k-lcd-ink);
+}
+#examView .bac-stat-chip .bac-stat-chip__val {
+  font-family: var(--k-lcd-font);
+  font-size: 1.45rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-lcd-ink);
+}
+#examView .bac-stat-chip .bac-stat-chip__lbl {
+  font-size: 0.56rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k-lcd-dim);
+}
+#examView .bac-sidebar__progress-count { font-size: 0.8rem; font-weight: 700; color: var(--k-ink-2); font-variant-numeric: tabular-nums; }
+#examView .bac-sidebar__track { height: 10px; border-radius: 1px; background: var(--k-ghost); }
+#examView .bac-sidebar__fill { border-radius: 1px; background: var(--k-blue); transition: width 0.5s steps(10, end); }
+#examView .bac-sidebar__motiv { margin-top: 10px; font-size: 0.8rem; font-style: normal; font-weight: 600; line-height: 1.4; color: var(--k-ink-2); }
+#examView .bac-sidebar__section-label {
+  padding: 0 2px 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid var(--k-rule);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--k-ink-3);
+}
+#examView .bac-sidebar__nav { gap: 8px; padding: 10px 12px 14px; }
+
+/* an item is a key; the open one is lit, a finished one carries a green check, one that has no exercise yet is printed flat */
+.bac-sidebar__nav .bac-nav-item { padding-top: 9px; padding-bottom: 9px; }
+#examView .bac-nav-item,
+#examView .bac-nav-item:hover {
+  border: 1px solid var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+#examView .bac-nav-item {
+  border-radius: var(--k-r-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+#examView .bac-nav-item:hover { transform: none; filter: brightness(0.95); }
+#examView .bac-nav-item:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+#examView .bac-nav-item:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+#examView .bac-nav-item .bac-nav-item__label { font-size: 0.88rem; font-weight: 700; color: var(--k-ink); }
+#examView .bac-nav-item .bac-nav-item__pts { font-size: 0.74rem; font-weight: 700; color: var(--k-ink-3); font-variant-numeric: tabular-nums; }
+#examView .bac-nav-item .bac-nav-item__status { color: var(--k-ink-3); }
+#examView .bac-nav-item .bac-nav-item__short { color: var(--k-ink); }
+#examView .bac-nav-item.done,
+#examView .bac-nav-item.done:hover { background: var(--k-key); border-color: var(--k-panel-edge); }
+#examView .bac-nav-item.done .bac-nav-item__status { color: var(--k-green); }
+#examView .bac-nav-item.done .bac-nav-item__short { color: var(--k-green); }
+#examView .bac-nav-item.flagged,
+#examView .bac-nav-item.flagged:hover { background: var(--k-key); border-color: var(--k-panel-edge); }
+#examView .bac-nav-item.current,
+#examView .bac-nav-item.current:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+}
+#examView .bac-nav-item.current { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+#examView .bac-nav-item.current:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+#examView .bac-nav-item.current .bac-nav-item__label,
+#examView .bac-nav-item.current .bac-nav-item__pts,
+#examView .bac-nav-item.current .bac-nav-item__status,
+#examView .bac-nav-item.current .bac-nav-item__short { color: #fff; }
+#examView .bac-nav-item.unavailable,
+#examView .bac-nav-item.unavailable:hover {
+  opacity: 1;
+  border: 1px dashed var(--k-panel-edge);
+  background: transparent;
+  box-shadow: none;
+  filter: none;
+  color: var(--k-ink-3);
+}
+#examView .bac-nav-item.unavailable .bac-nav-item__label,
+#examView .bac-nav-item.unavailable .bac-nav-item__pts,
+#examView .bac-nav-item.unavailable .bac-nav-item__short { color: var(--k-ink-3); font-weight: 600; }
+#examView .bac-nav-item.unavailable .bac-nav-item__status::before { content: ''; display: inline-block; width: 8px; height: 2px; background: var(--k-ink-3); vertical-align: middle; }
+#examView .bac-nav-flag { color: var(--k-ink-3); }
+#examView .bac-nav-flag:hover { background: var(--k-blue-wash); color: var(--k-blue); }
+#examView .bac-nav-flag.active { color: var(--k-blue); }
+#examView .bac-nav-flag.active svg { fill: currentColor; }
+#examView .bac-nav-item.current .bac-nav-flag { color: rgba(255, 255, 255, 0.72); }
+#examView .bac-nav-item.current .bac-nav-flag:hover { background: rgba(255, 255, 255, 0.16); color: #fff; }
+#examView .bac-nav-item.current .bac-nav-flag.active { color: #fff; }
+
+/* the narrow rail (desktop, collapsed): bare numbers on small keys */
+@media (min-width: 1025px) {
+  #examView .bac-sidebar-wrap.collapsed .bac-sidebar__nav { gap: 8px; }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.current { background: var(--k-blue); border-color: var(--k-blue-edge); }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.current .bac-nav-item__short { color: #fff; }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.done .bac-nav-item__short { color: var(--k-green); }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.done::after { background: var(--k-green); }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.flagged::after,
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.done.flagged::after { background: var(--k-blue); }
+  #examView .bac-sidebar-wrap.collapsed .bac-nav-item.current.flagged::after { background: #fff; }
+}
+
+/* the key that folds the rail */
+#examView .bac-sidebar-toggle {
+  width: 28px;
+  height: 28px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  color: var(--k-ink);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+#examView .bac-sidebar-toggle:hover { background: var(--k-key); border-color: var(--k-panel-edge); color: var(--k-ink); filter: brightness(0.95); }
+#examView .bac-sidebar-toggle:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(calc(-50% + 3px)); }
+#examView .bac-sidebar-toggle:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+
+/* ---- The top bar: which item, and the clock ---- */
+#examView .bac-exam-topbar {
+  gap: 14px 16px;
+  margin-bottom: 18px;
+  padding: 12px 16px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: var(--k-panel);
+}
+#examView .bac-slot-meta { gap: 10px 12px; }
+#examView .bac-slot-num { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; color: var(--k-blue); }
+#examView .bac-slot-pts,
+#examView .diff-badge {
+  padding: 3px 9px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: transparent;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--k-ink-2);
+}
+#examView .diff-badge { border-color: currentColor; background: transparent; }
+#examView .bac-slot-desc { font-size: 0.96rem; font-weight: 600; color: var(--k-ink-2); }
+#examView .bac-topbar-controls { gap: 12px; }
+
+/* the clock: a display. Amber under half an hour, red under ten minutes (the same tints as the navbar counters); it does not pulse */
+#examView .bac-topbar-controls .bac-timer,
+#examView .dc-toolbar-timer {
+  min-width: 0;
+  padding: 7px 16px 5px;
+  border: 0;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2), 0 0 0 3px var(--k-bezel);
+  font-family: var(--k-lcd-font);
+  font-size: 1.5rem;
+  font-weight: 900;
+  line-height: 1;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-lcd-ink);
+  margin: 0 3px;
+}
+#examView .bac-topbar-controls .bac-timer.warning,
+#examView .dc-toolbar-timer.warning { background-color: var(--sx-low); color: var(--sx-low-ink); border: 0; }
+#examView .bac-topbar-controls .bac-timer.danger,
+#examView .dc-toolbar-timer.danger { background-color: var(--sx-bad); color: var(--sx-bad-ink); border: 0; animation: none; }
+#examView .dc-toolbar-timer { font-size: 1.15rem; padding: 6px 12px 4px; }
+
+#examView .bac-flag-btn,
+#examView .bac-flag-btn:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  padding: 0;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+#examView .bac-flag-btn { box-shadow: 0 3px 0 0 var(--k-key-edge); cursor: pointer; transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+#examView .bac-flag-btn:hover { transform: none; filter: brightness(0.95); }
+#examView .bac-flag-btn:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+#examView .bac-flag-btn:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+#examView .bac-flag-btn.active,
+#examView .bac-flag-btn.active:hover { border-color: var(--k-blue-edge); background: var(--k-blue); color: #fff; }
+#examView .bac-flag-btn.active { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+#examView .bac-flag-btn.active:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+#examView .bac-flag-btn.active svg { fill: currentColor; }
+#examView .bac-finish-btn { height: 42px; padding: 0 18px; font-size: 0.88rem; }
+
+/* ---- The exercise: a panel, the statement centred ---- */
+#examView .bac-exercise-card,
+#examView .bac-notes-card {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: var(--k-panel);
+  box-shadow: none;
+}
+#examView .bac-exercise-card { margin-bottom: 14px; animation-fill-mode: backwards; transition: none; }
+#examView .bac-exercise-card:hover { transform: none; box-shadow: none; }
+#examView .bac-notes-card { animation-fill-mode: backwards; }
+#examView .bac-card-stripe { display: none; }
+#examView .bac-card-body { padding: 20px 28px 22px; }
+#examView .bac-card-body .bac-slot-title {
+  padding-bottom: 14px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid var(--k-rule);
+  font-size: 1.12rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+#examView .bac-card-body .bac-statement { font-size: 1rem; line-height: 1.8; color: var(--k-ink); }
+#examView .bac-unavailable { padding: 48px 20px; color: var(--k-ink-3); }
+#examView .bac-unavailable__icon { display: flex; justify-content: center; margin-bottom: 12px; color: var(--k-ink-3); opacity: 0.6; }
+#examView .bac-unavailable__t { margin: 0 0 6px; font-size: 0.98rem; font-weight: 700; color: var(--k-ink-2); }
+#examView .bac-unavailable__s { margin: 0; font-size: 0.86rem; color: var(--k-ink-3); }
+
+/* ---- The workspace: a panel with a printed head and the canvas under it ---- */
+#examView .bac-notes-header {
+  padding: 11px 16px;
+  border-bottom: 1px solid var(--k-rule);
+  background: transparent;
+}
+#examView .bac-notes-header:hover { background: var(--k-blue-wash); }
+#examView .bac-notes-icon { display: inline-flex; color: var(--k-blue); }
+#examView .bac-notes-label { font-size: 0.68rem; font-weight: 700; letter-spacing: 0.1em; color: var(--k-ink-2); }
+#examView .bac-notes-toggle { color: var(--k-ink-3); }
+#examView .bac-notes-body { padding: 14px 16px 16px; background: transparent; }
+
+/* the toolbar of the canvas (body.bac-exam-mode: the drawing widget is shared with other pages) */
+body.bac-exam-mode .dc-toolbar {
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--k-rule);
+  background: var(--k-panel);
+}
+body.bac-exam-mode .dc-tool-group + .dc-tool-group { padding-left: 10px; border-left: 1px solid var(--k-rule); }
+body.bac-exam-mode .dc-tool-btn,
+body.bac-exam-mode .dc-width-btn,
+body.bac-exam-mode .dc-color-btn,
+body.bac-exam-mode .dc-action-btn,
+body.bac-exam-mode .dc-tool-btn:hover,
+body.bac-exam-mode .dc-width-btn:hover,
+body.bac-exam-mode .dc-color-btn:hover,
+body.bac-exam-mode .dc-action-btn:hover {
+  border: 1px solid var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+body.bac-exam-mode .dc-tool-btn,
+body.bac-exam-mode .dc-width-btn,
+body.bac-exam-mode .dc-color-btn,
+body.bac-exam-mode .dc-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border-radius: var(--k-r-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body.bac-exam-mode .dc-tool-btn:hover,
+body.bac-exam-mode .dc-width-btn:hover,
+body.bac-exam-mode .dc-color-btn:hover,
+body.bac-exam-mode .dc-action-btn:hover:not(:disabled) { transform: none; filter: brightness(0.95); }
+body.bac-exam-mode .dc-tool-btn:active,
+body.bac-exam-mode .dc-width-btn:active,
+body.bac-exam-mode .dc-color-btn:active,
+body.bac-exam-mode .dc-action-btn:active:not(:disabled) { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+body.bac-exam-mode .dc-tool-btn:focus-visible,
+body.bac-exam-mode .dc-width-btn:focus-visible,
+body.bac-exam-mode .dc-color-btn:focus-visible,
+body.bac-exam-mode .dc-action-btn:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+/* the tool in use is lit blue */
+body.bac-exam-mode .dc-tool-btn--active,
+body.bac-exam-mode .dc-tool-btn--active:hover,
+body.bac-exam-mode .dc-width-btn--active,
+body.bac-exam-mode .dc-width-btn--active:hover,
+body.bac-exam-mode .dc-action-btn--active,
+body.bac-exam-mode .dc-action-btn--active:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+}
+body.bac-exam-mode .dc-tool-btn--active,
+body.bac-exam-mode .dc-width-btn--active,
+body.bac-exam-mode .dc-action-btn--active { box-shadow: 0 3px 0 0 var(--k-blue-edge); }
+body.bac-exam-mode .dc-tool-btn--active:active,
+body.bac-exam-mode .dc-width-btn--active:active,
+body.bac-exam-mode .dc-action-btn--active:active { box-shadow: 0 0 0 0 var(--k-blue-edge); }
+body.bac-exam-mode .dc-width-btn--active .dc-width-dot { background: #fff; }
+body.bac-exam-mode .dc-action-btn--danger:hover { color: var(--k-red); }
+body.bac-exam-mode .dc-action-btn:disabled,
+body.bac-exam-mode .dc-action-btn:disabled:hover {
+  border: 1px dashed var(--k-panel-edge);
+  background: transparent;
+  box-shadow: none;
+  color: var(--k-ink-3);
+  opacity: 1;
+  cursor: not-allowed;
+  filter: none;
+  transform: none;
+}
+/* a colour key: the swatch is the face of the key, the active one wears the key's blue edge */
+body.bac-exam-mode .dc-color-btn { position: relative; }
+body.bac-exam-mode .dc-color-btn::before { content: ''; width: 16px; height: 16px; border-radius: 1px; background: var(--sw, currentColor); box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.28); }
+body.bac-exam-mode .dc-color-btn[data-color="#1a1a1a"] { --sw: #1a1a1a; }
+body.bac-exam-mode .dc-color-btn[data-color="#1d4ed8"] { --sw: #1d4ed8; }
+body.bac-exam-mode .dc-color-btn[data-color="#dc2626"] { --sw: #dc2626; }
+body.bac-exam-mode .dc-color-btn--active,
+body.bac-exam-mode .dc-color-btn--active:hover { border-color: var(--k-blue); box-shadow: 0 3px 0 0 var(--k-blue-edge), 0 0 0 1px var(--k-blue); }
+/* the zoom reads on a small display */
+body.bac-exam-mode .dc-zoom-label {
+  min-width: 52px;
+  padding: 6px 8px 4px;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  font-family: var(--k-lcd-font);
+  font-size: 0.95rem;
+  font-weight: 900;
+  line-height: 1;
+  color: var(--k-lcd-ink);
+}
+body.bac-exam-mode .dc-mode-badge { border-radius: 3px; }
+body.bac-exam-mode .dc-save-indicator { border-radius: 3px; background: var(--k-panel); border-color: var(--k-panel-edge); font-weight: 700; color: var(--k-ink-2); }
+body.bac-exam-mode .dc-save-indicator__icon { color: var(--k-green); }
+body.bac-exam-mode .dc-canvas-wrap { background: transparent; }
+
+/* the exercise, floating over the maximised canvas */
+body.bac-exam-mode .dc-mini-exercise {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: var(--k-panel);
+  box-shadow: 0 24px 60px -12px rgba(0, 0, 0, 0.4);
+  font-family: var(--k-font);
+  color: var(--k-ink);
+}
+body.bac-exam-mode .dc-mini-exercise__title { font-size: 0.9rem; font-weight: 800; letter-spacing: -0.01em; color: var(--k-ink); }
+body.bac-exam-mode .dc-mini-exercise__statement { color: var(--k-ink-2); }
+
+/* a photo instead of the canvas: a printed plate to drop it on, then the preview */
+#examView .pu-dropzone {
+  border: 1px dashed var(--k-panel-edge);
+  border-radius: 3px;
+  background: transparent;
+  color: var(--k-ink-2);
+}
+#examView .pu-dropzone:hover,
+#examView .pu-dropzone:focus-visible,
+#examView .pu-dropzone--drag { border-color: var(--k-blue); background: var(--k-blue-wash); }
+#examView .pu-dropzone__icon { color: var(--k-ink-2); opacity: 1; }
+#examView .pu-dropzone__text { font-weight: 700; color: var(--k-ink); }
+#examView .pu-dropzone__hint { color: var(--k-ink-3); }
+#examView .pu-camera-btn,
+#examView .pu-camera-btn:hover {
+  border: 1px solid var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+  transform: none;
+}
+#examView .pu-camera-btn { border-radius: var(--k-r-key); box-shadow: 0 3px 0 0 var(--k-blue-edge); font-weight: 700; transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+#examView .pu-camera-btn:hover { filter: brightness(0.95); }
+#examView .pu-camera-btn:active { box-shadow: 0 0 0 0 var(--k-blue-edge); transform: translateY(3px); }
+#examView .pu-preview__img { border: 1px solid var(--k-panel-edge); border-radius: 3px; }
+#examView .pu-btn,
+#examView .pu-btn:hover {
+  border: 1px solid var(--k-panel-edge);
+  background: var(--k-key);
+  color: var(--k-ink);
+}
+#examView .pu-btn { border-radius: var(--k-r-key); box-shadow: 0 3px 0 0 var(--k-key-edge); font-weight: 700; transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+#examView .pu-btn:hover { filter: brightness(0.95); }
+#examView .pu-btn:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+#examView .pu-error { border-radius: 3px; border: 1px solid color-mix(in srgb, var(--k-red) 45%, var(--k-panel-edge)); background: transparent; color: var(--k-red); font-weight: 600; }
+
+/* ---- The bottom bar: back, the cells, forward ---- */
+#examView .bac-slot-nav {
+  gap: 16px;
+  padding: 12px 0 14px;
+  border-top: 1px solid var(--k-rule);
+  background: transparent;
+}
+#examView .bac-progress-dots { gap: 6px; }
+#examView .bac-dot {
+  width: 18px;
+  height: 8px;
+  border-radius: 1px;
+  background: var(--k-ghost);
+  transform: none;
+  opacity: 1;
+}
+#examView .bac-dot.done { background: var(--k-green); }
+#examView .bac-dot.flagged { background: var(--k-ink-3); }
+#examView .bac-dot.current { background: var(--k-blue); transform: none; box-shadow: 0 0 0 2px var(--k-panel), 0 0 0 3px var(--k-blue); }
+
+/* ============================================================
+   Dialogs over the exam: fullscreen left, navigation, finish, cancelled
+   ============================================================ */
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) {
+  background: rgba(10, 14, 24, 0.55);
+  -webkit-backdrop-filter: blur(7px);
+  backdrop-filter: blur(7px);
+}
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-box, .fs-resume-box, .nav-guard-box) {
+  max-width: 460px;
+  padding: 30px 28px 26px;
+  gap: 12px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 6px 0 0 var(--k-panel-edge), 0 34px 60px -24px rgba(0, 0, 0, 0.55);
+}
+/* the icon sits on a key of its own, as in the other dialogs of the site */
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-icon, .fs-resume-icon, .nav-guard-icon) {
+  align-items: center;
+  width: 68px;
+  height: 68px;
+  margin-bottom: 4px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 4px 0 0 var(--k-key-edge);
+  color: var(--k-blue);
+}
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-icon, .fs-resume-icon, .nav-guard-icon) svg { width: 34px; height: 34px; color: inherit; }
+#fsWarnOverlay .fs-warn-icon, #terminateModal .fs-warn-icon { color: var(--k-red); }
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-title, .nav-guard-title, .fs-resume-title) {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+  color: var(--k-ink);
+}
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-body, .nav-guard-body, .fs-resume-body) {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--k-ink-2);
+}
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-body, .nav-guard-body) strong { color: var(--k-ink); }
+:is(#fsWarnOverlay, #terminateModal) .fs-warn-strong { color: var(--k-red); }
+#navGuardModal .nav-guard-body strong:last-child { color: var(--k-red); }
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .nav-guard-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin-top: 6px; }
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .btn { margin-top: 6px; }
+:is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .nav-guard-actions .btn { margin-top: 0; }
+
+/* the dialogs of the canvas (clear all) and the ExamToken one keep the same panel */
+body:has(#examView) .bac-confirm-overlay:not(:has(.exam-start-modal)) { background: rgba(10, 14, 24, 0.55); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) {
+  padding: 28px 26px 22px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-panel);
+  box-shadow: 0 6px 0 0 var(--k-panel-edge), 0 34px 60px -24px rgba(0, 0, 0, 0.55);
+  font-family: var(--k-font);
+  color: var(--k-ink);
+}
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .bac-confirm-title { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; color: var(--k-ink); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .bac-confirm-sub { color: var(--k-ink-2); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn,
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn:hover {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 42px;
+  padding: 0 18px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  font-family: var(--k-font);
+  font-weight: 700;
+}
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn { box-shadow: 0 3px 0 0 var(--k-key-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn:hover { transform: none; filter: brightness(0.95); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger,
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:hover { border-color: color-mix(in srgb, var(--k-red) 55%, black); background: var(--k-red); color: #fff; }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger { box-shadow: 0 3px 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:active { box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-red) 55%, black); }
+
+/* ============================================================
+   The results
+   ============================================================ */
+#resultsView .bac-results-wrap { max-width: 880px; padding: 32px 24px 80px; }
+
+/* the grade: a display in its bezel, then the bar and four small displays under it */
+#resultsView .res-hero {
+  overflow: visible;
+  margin-bottom: 20px;
+  padding: 28px 24px 24px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: var(--k-panel);
+  box-shadow: none;
+}
+#resultsView .res-hero::before { display: none; }
+#resultsView .res-hero__grade {
+  display: flex;
+  align-items: baseline;
+  justify-content: center;
+  gap: 14px;
+  width: max-content;
+  max-width: 100%;
+  min-width: min(100%, 360px);
+  margin: 7px auto 0;
+  padding: 20px 32px 16px;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: 0 0 0 7px var(--k-bezel), 0 7px 0 7px color-mix(in srgb, var(--k-bezel) 70%, black), inset 0 3px 6px rgba(0, 0, 0, 0.22);
+  font-family: var(--k-lcd-font);
+  font-size: clamp(3.4rem, 9vw, 5.4rem);
+  font-weight: 900;
+  line-height: 0.95;
+  letter-spacing: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-lcd-ink);
+}
+#resultsView .res-hero--done .res-hero__grade::after {
+  content: 'din 10';
+  font-family: var(--k-font);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  color: var(--k-lcd-dim);
+}
+#resultsView .res-hero__grade--pending { gap: 0; padding: 22px 36px 20px; font-size: 1rem; }
+#resultsView .res-hero__grade--pending svg { width: 44px; height: 44px; color: var(--k-lcd-ink); }
+#resultsView .res-hero--error .res-hero__grade--pending { background-color: var(--sx-bad); }
+#resultsView .res-hero--error .res-hero__grade--pending svg { color: var(--sx-bad-ink); }
+#resultsView .res-hero__label {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin: 30px 0 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  font-size: 1.1rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+#resultsView .res-hero__label svg { flex-shrink: 0; }
+#resultsView .res-hero--pending .res-hero__label::after {
+  content: '';
+  display: inline-block;
+  width: 0.55em;
+  height: 1.05em;
+  margin-left: 6px;
+  vertical-align: -0.15em;
+  background: var(--k-ink);
+  animation: sx-cursor 1.05s steps(1) infinite;
+}
+@keyframes sx-cursor { 50% { opacity: 0; } }
+#resultsView .res-hero--error .res-hero__label { color: var(--k-red); }
+#resultsView .res-hero--tier-a .res-hero__label { color: var(--k-green); }
+#resultsView .res-hero--tier-b .res-hero__label { color: var(--k-blue); }
+#resultsView .res-hero--tier-c .res-hero__label { color: var(--k-ink); }
+#resultsView .res-hero--tier-d .res-hero__label { color: var(--k-red); }
+#resultsView .res-score-bar { height: 10px; max-width: 420px; margin: 14px auto 8px; border-radius: 1px; background: var(--k-ghost); }
+#resultsView .res-score-bar__fill { height: 100%; border-radius: 1px; background: var(--k-blue); transition: width 0.9s steps(20, end); }
+#resultsView .res-hero--tier-a .res-score-bar__fill { background: var(--k-green); }
+#resultsView .res-hero--tier-d .res-score-bar__fill { background: var(--k-red); }
+#resultsView .res-score-label { font-size: 0.9rem; font-weight: 600; color: var(--k-ink-2); font-variant-numeric: tabular-nums; }
+#resultsView .res-stats { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-top: 22px; }
+#resultsView .res-stat,
+#resultsView .res-stat:hover {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+  padding: 11px 14px 10px;
+  border: 0;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  transform: none;
+}
+#resultsView .res-stat::before, #resultsView .res-stat::after { display: none; }
+#resultsView .res-stat .res-stat__val {
+  font-family: var(--k-lcd-font);
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-lcd-ink);
+}
+#resultsView .res-stat .res-stat__lbl { font-size: 0.62rem; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--k-lcd-dim); }
+
+/* the AI grading: one panel, an item is a ruled block */
+#resultsView .ai-section { margin-top: 20px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-panel); }
+#resultsView .ai-section__intro { gap: 14px; padding: 16px 20px; border-bottom: 1px solid var(--k-rule); background: transparent; }
+#resultsView .ai-section__icon {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  color: var(--k-blue);
+}
+#resultsView .ai-section__title { font-size: 1.02rem; font-weight: 800; letter-spacing: -0.01em; color: var(--k-ink); }
+#resultsView .ai-section__desc { font-size: 0.84rem; color: var(--k-ink-2); }
+#resultsView #aiResultsSection { background: transparent; }
+
+#resultsView .ai-loading { gap: 10px; padding: 36px 24px; background: transparent; }
+#resultsView .ai-loading__spinner {
+  width: 14px;
+  height: 22px;
+  border: 0;
+  border-radius: 0;
+  background: var(--k-ink);
+  animation: sx-cursor 1.05s steps(1) infinite;
+}
+#resultsView .ai-loading__text { font-size: 0.98rem; font-weight: 700; color: var(--k-ink); }
+#resultsView .ai-loading__hint { font-size: 0.82rem; color: var(--k-ink-3); }
+
+#resultsView .ai-results { background: transparent; }
+#resultsView .ai-results__summary { align-items: center; gap: 14px; padding: 14px 20px; border-bottom: 1px solid var(--k-rule); }
+#resultsView .ai-results__summary::before { content: 'Punctaj acordat de AI'; font-size: 0.9rem; font-weight: 800; letter-spacing: -0.005em; color: var(--k-ink); }
+#resultsView .ai-results__grade {
+  display: inline-block;
+  padding: 7px 14px 5px;
+  border-radius: 3px;
+  background-color: var(--k-lcd);
+  background-image: var(--sx-lattice);
+  background-size: 4px 4px;
+  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.2);
+  font-family: var(--k-lcd-font);
+  font-size: 1.7rem;
+  font-weight: 900;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  color: var(--k-lcd-ink);
+}
+#resultsView .ai-item { padding: 18px 20px; border-bottom: 1px solid var(--k-rule); }
+#resultsView .ai-item--error { opacity: 1; }
+#resultsView .ai-item__header { margin-bottom: 12px; }
+#resultsView .ai-item__label { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; color: var(--k-ink); }
+#resultsView .ai-score-pill {
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  background: transparent;
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+#resultsView .ai-score-pill--correct { background: transparent; color: var(--k-green); border-color: var(--k-green); }
+#resultsView .ai-score-pill--partial { background: transparent; color: var(--k-ink-2); border-color: var(--k-ink-2); }
+#resultsView .ai-score-pill--wrong { background: transparent; color: var(--k-red); border-color: var(--k-red); }
+#resultsView .ai-step { gap: 10px; font-size: 0.86rem; }
+#resultsView .ai-step__dot { width: 8px; height: 8px; border-radius: 1px; }
+#resultsView .ai-step--correct .ai-step__dot { background: var(--k-green); }
+#resultsView .ai-step--partial .ai-step__dot { background: var(--k-ink-3); }
+#resultsView .ai-step--wrong .ai-step__dot { background: var(--k-red); }
+#resultsView .ai-step__desc { color: var(--k-ink-2); }
+#resultsView .ai-step__pts { font-size: 0.78rem; font-variant-numeric: tabular-nums; }
+#resultsView .ai-step--correct .ai-step__pts { color: var(--k-green); }
+#resultsView .ai-step--partial .ai-step__pts { color: var(--k-ink-2); }
+#resultsView .ai-step--wrong .ai-step__pts { color: var(--k-red); }
+/* the AI's remark: a ruled box with a label, no coloured side stripe */
+#resultsView .ai-item__feedback {
+  border: 1px solid var(--k-panel-edge);
+  border-radius: 3px;
+  background: transparent;
+  padding: 12px 14px;
+}
+#resultsView .ai-item__feedback-icon { color: var(--k-blue); }
+#resultsView .ai-item__feedback-label { font-size: 0.64rem; letter-spacing: 0.1em; color: var(--k-ink-2); }
+#resultsView .ai-item__feedback-text { font-size: 0.86rem; color: var(--k-ink-2); }
+#resultsView .ai-item--error .ai-item__feedback { border-color: color-mix(in srgb, var(--k-red) 45%, var(--k-panel-edge)); background: transparent; }
+#resultsView .ai-item--error .ai-item__feedback-icon,
+#resultsView .ai-item--error .ai-item__feedback-label { color: var(--k-red); }
+#resultsView .ai-item--error .ai-item__feedback-text { color: var(--k-ink-2); font-weight: 600; }
+#resultsView .ai-item__canvas-wrap summary {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 2px;
+  font-size: 0.86rem;
+  font-weight: 700;
+  color: var(--k-ink-2);
+  text-decoration: underline;
+  text-decoration-color: var(--k-rule);
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+#resultsView .ai-item__canvas-wrap summary:hover { color: var(--k-ink); text-decoration-color: var(--k-ink); }
+#resultsView .ai-item__canvas-wrap summary:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+#resultsView .ai-item__canvas { border: 1px solid var(--k-panel-edge); border-radius: 3px; }
+#resultsView .ai-results__disclaimer { margin: 0; padding: 14px 20px 6px; border: 0; background: transparent; font-size: 0.8rem; line-height: 1.5; text-align: left; color: var(--k-ink-3); }
+#resultsView .ai-actions { display: flex; justify-content: center; padding: 8px 20px 18px; }
+#resultsView .ai-error {
+  margin: 16px 20px 0;
+  padding: 12px 14px;
+  border: 1px solid color-mix(in srgb, var(--k-red) 45%, var(--k-panel-edge));
+  border-radius: 3px;
+  background: transparent;
+  font-size: 0.9rem;
+  line-height: 1.5;
+  color: var(--k-ink-2);
+}
+#resultsView .ai-error strong { color: var(--k-red); }
+#resultsView .ai-error ~ .ai-actions { padding-top: 16px; }
+#resultsView .res-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; margin-top: 24px; }
+
+/* ============================================================
+   Narrow screens
+   ============================================================ */
+@media (max-width: 1024px) {
+  #examView .bac-sidebar { border-right: 0; border-bottom: 1px solid var(--k-panel-edge); }
+  #examView .bac-sidebar__nav { gap: 8px; padding: 10px 12px 14px; }
+  #examView .bac-nav-item { padding: 4px; }
+  #examView .bac-nav-item.current { border-bottom-color: var(--k-blue-edge); }
+  #examView .bac-nav-item.done { border-bottom-color: var(--k-panel-edge); }
+  #examView .bac-nav-item.flagged { border-bottom-color: var(--k-panel-edge); }
+  #examView .bac-nav-item.current .bac-nav-item__short { color: #fff; }
+  #examView .bac-nav-item.done .bac-nav-item__short { color: var(--k-green); }
+  #examView .bac-nav-item.flagged .bac-nav-item__short { color: var(--k-blue); }
+  #examView .bac-exam-topbar { padding: 10px 12px; }
+  #examView .bac-topbar-controls .bac-timer { padding: 6px 12px 4px; font-size: 1.2rem; }
+  #examView .bac-finish-btn { height: 38px; padding: 0 14px; }
+  #examView .bac-slot-nav {
+    padding: 10px 16px calc(12px + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--k-panel-edge);
+    background: var(--k-panel);
+    box-shadow: none;
+  }
+  #examView .bac-slot-btn { height: 42px; padding: 0 16px; font-size: 0.84rem; }
+  #examView .bac-dot { width: 12px; }
+  #examView .bac-card-body { padding: 16px 16px 18px; }
+}
+@media (max-width: 640px) {
+  #resultsView .res-stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #resultsView .bac-results-wrap { padding: 20px 16px 64px; }
+  #resultsView .res-hero { padding: 22px 14px 18px; }
+  #resultsView .res-hero__grade { padding: 16px 20px 12px; }
+  #resultsView .ai-item { padding: 16px 14px; }
+  #resultsView .ai-section__intro { padding: 14px; }
+  #resultsView .res-actions .btn { flex: 1 1 100%; }
+  :is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) :is(.fs-warn-box, .fs-resume-box, .nav-guard-box) { padding: 24px 18px 20px; }
+}
+
+/* ============================================================
+   Motion: the exam room powers on once; nothing else moves on its own
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  #examView .bac-sidebar__fill,
+  #resultsView .res-score-bar__fill { transition: none; }
+  #resultsView .res-hero--pending .res-hero__label::after,
+  #resultsView .ai-loading__spinner { animation: none; }
+  :is(#examView, #resultsView) .btn,
+  :is(#examView, #resultsView) .bac-slot-btn,
+  #examView .bac-nav-item { transition: none; }
+}

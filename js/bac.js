@@ -198,7 +198,7 @@
         <div class="fs-resume-icon">${icon('monitor', { size: 48 })}</div>
         <div class="fs-resume-title">Revino la ecran complet</div>
         <div class="fs-resume-body">
-          Browserul a ieșit din modul ecran complet când ai deschis camera/selectorul de fișiere — e normal, nu contează ca abatere.
+          Browserul a ieșit din modul ecran complet când ai deschis camera/selectorul de fișiere: e normal, nu contează ca abatere.
         </div>
         <button class="btn btn--primary" onclick="BMBac.resumeFullscreenAfterPicker()">${icon('arrow-up', { size: 16 })} Revino la ecran complet</button>
       </div>`;
@@ -303,7 +303,7 @@
         <div class="fs-warn-body">
           Ai ieșit din fullscreen de <strong>două ori</strong> în timpul simulării.<br><br>
           Examenul a fost <strong>închis automat</strong> fără rezultate, fără notă și fără analiză.<br>
-          <span style="color:var(--red);font-weight:700">Tokenul utilizat nu va fi restituit.</span>
+          <strong class="fs-warn-strong">Tokenul utilizat nu va fi restituit.</strong>
         </div>
         <button class="btn btn--primary" onclick="
           document.getElementById('terminateModal').remove();
@@ -377,7 +377,7 @@
         <div class="nav-guard-title">Examen în desfășurare</div>
         <div class="nav-guard-body">
           Nu poți naviga în altă parte în timp ce examenul este activ.<br>
-          Finalizează simularea apăsând butonul <strong style="color:var(--red)">Finalizează</strong>.
+          Finalizează simularea apăsând butonul <strong>Finalizează</strong>.
         </div>
         <button class="btn btn--primary" onclick="document.getElementById('navGuardModal').remove()">Înapoi la examen</button>
       </div>`;
@@ -813,7 +813,7 @@
     let motiv;
     if (pct === 0)        motiv = `Mult succes la examen! ${icon('graduation-cap', { size: 16 })}`;
     else if (pct < 30)    motiv = `Bun start! Mai ai ${remaining} exerciții.`;
-    else if (pct < 60)    motiv = `Progres bun — ai completat ${pct}%.`;
+    else if (pct < 60)    motiv = `Progres bun, ai completat ${pct}%.`;
     else if (pct < 85)    motiv = `${remaining} exerciții rămase. Continuă! ${icon('dumbbell', { size: 16 })}`;
     else if (pct < 100)   motiv = `Aproape gata! Ultimele ${remaining} exerciții.`;
     else                  motiv = `Toate exercițiile completate! ${icon('party-popper', { size: 16 })}`;
@@ -835,7 +835,7 @@
 
       lastGroup = slot.group;
 
-      const statusIcon = isDone ? icon('circle-check', { size: 16 }) : isUnavailable ? '—' : '';
+      const statusIcon = isDone ? icon('circle-check', { size: 16 }) : '';
       const clickAttr  = isUnavailable ? '' : `onclick="gotoSlot(${i})"`;
       const keyAttr    = isUnavailable ? '' : `onkeydown="event.key==='Enter'&&gotoSlot(${i})"`;
       const starBtn    = isUnavailable ? '' :
@@ -846,7 +846,7 @@
       itemsHtml += `
         <div class="${cls}" role="button" tabindex="${isUnavailable ? '-1' : '0'}"
              ${clickAttr} ${keyAttr}
-             title="${slot.label} — ${slot.desc} (${slot.points}p)">
+             title="${slot.label}, ${slot.desc} (${slot.points}p)">
           <span class="bac-nav-item__status">${statusIcon}</span>
           <span class="bac-nav-item__short">${slot.label.replace('Ex. ', '')}</span>
           <span class="bac-nav-item__label">${slot.label.replace('Ex. ', 'Item ')}</span>
@@ -905,8 +905,8 @@
       <div class="bac-slot-meta">
         <span class="bac-slot-num">${slot.label}</span>
         <span class="bac-slot-pts">${slot.points} puncte</span>
-        ${item.exercise ? BM.diffBadge(item.exercise.difficulty) : ''}
-        <span class="bac-slot-desc" style="margin:0">${BM.esc(sub?.name || slot.desc)}</span>
+        ${item.exercise ? BM.rarityBadge(item.exercise.difficulty) : ''}
+        <span class="bac-slot-desc">${BM.esc(sub?.name || slot.desc)}</span>
       </div>
     `;
 
@@ -935,11 +935,11 @@
         <div class="bac-exercise-card">
           <div class="bac-card-stripe"></div>
           <div class="bac-card-body">
-            <div class="bac-slot-title">${slot.label} — ${slot.desc}</div>
+            <div class="bac-slot-title">${slot.label}, ${slot.desc}</div>
             <div class="bac-unavailable">
-              <div style="display:flex;justify-content:center;margin-bottom:12px;opacity:0.25">${icon('library', { size: 48 })}</div>
-              <p style="font-weight:600;margin-bottom:6px">Exercițiile pentru această temă vor fi adăugate \xEEn cur\xE2nd.</p>
-              <p style="font-size:0.84rem;color:var(--text-muted)">Continuă cu itemul următor.</p>
+              <div class="bac-unavailable__icon">${icon('library', { size: 48 })}</div>
+              <p class="bac-unavailable__t">Exercițiile pentru această temă vor fi adăugate în curând.</p>
+              <p class="bac-unavailable__s">Continuă cu itemul următor.</p>
             </div>
           </div>
         </div>
@@ -1220,13 +1220,13 @@
     ov.innerHTML = `
       <div class="nav-guard-box">
         <div class="nav-guard-icon">${icon('graduation-cap', { size: 48 })}</div>
-        <div class="nav-guard-title" style="color:var(--text)">Finalizezi simularea?</div>
+        <div class="nav-guard-title">Finalizezi simularea?</div>
         <div class="nav-guard-body">
           Vei fi evaluat automat de AI pe baza a ceea ce ai scris pe canvas.
           Exercițiile necompletate vor primi <strong>0 puncte</strong>.<br>
           Această acțiune este ireversibilă.
         </div>
-        <div style="display:flex;gap:10px;justify-content:center;flex-wrap:wrap">
+        <div class="nav-guard-actions">
           <button class="btn btn--surface" onclick="document.getElementById('finishConfirmModal').remove()">Înapoi la examen</button>
           <button class="btn btn--danger" onclick="
             document.getElementById('finishConfirmModal').remove();
@@ -1320,10 +1320,7 @@
     const gradeDisplay = grade.toFixed(2);
     const pctEarned = maxPts > 0 ? Math.round(earned / maxPts * 100) : 0;
 
-    const gradeColor = grade >= 9   ? 'var(--green)'
-                     : grade >= 7   ? 'var(--solved)'
-                     : grade >= 5   ? 'var(--yellow)'
-                     : 'var(--red)';
+    const tier = grade >= 9 ? 'a' : grade >= 7 ? 'b' : grade >= 5 ? 'c' : 'd';
 
     const gradeEmoji = icon(grade >= 9 ? 'trophy' : grade >= 7 ? 'target' : grade >= 5 ? 'library' : 'book-open', { size: 20 });
     const gradeLabel = grade >= 9 ? 'Excelent!' : grade >= 7 ? 'Bine!' :
@@ -1341,18 +1338,18 @@
     const unansweredCount = exam.slots.filter(item => item.exercise && !item.work).length;
 
     const heroBody = status === 'pending' ? `
-        <div class="res-hero__grade res-hero__grade--pending" style="display:flex;justify-content:center">${icon('bot', { size: 48 })}</div>
+        <div class="res-hero__grade res-hero__grade--pending">${icon('bot', { size: 48 })}</div>
         <div class="res-hero__label">Se evaluează cu AI…</div>
       ` : status === 'error' ? `
-        <div class="res-hero__grade res-hero__grade--pending" style="display:flex;justify-content:center">${icon('triangle-alert', { size: 48, className: 'icon--warning' })}</div>
+        <div class="res-hero__grade res-hero__grade--pending">${icon('triangle-alert', { size: 48 })}</div>
         <div class="res-hero__label">Evaluarea AI a eșuat</div>
       ` : `
-        <div class="res-hero__grade" style="color:${gradeColor}">${gradeDisplay}</div>
-        <div class="res-hero__label" style="color:${gradeColor}">${gradeEmoji} ${gradeLabel}</div>
+        <div class="res-hero__grade">${gradeDisplay}</div>
+        <div class="res-hero__label">${gradeEmoji} ${gradeLabel}</div>
         <div class="res-score-bar">
-          <div class="res-score-bar__fill" data-width="${pctEarned}" style="background:${gradeColor}"></div>
+          <div class="res-score-bar__fill" data-width="${pctEarned}"></div>
         </div>
-        <div class="res-score-label">${earned} din ${maxPts} puncte — ${pctEarned}%</div>
+        <div class="res-score-label">${earned} din ${maxPts} puncte, ${pctEarned}%</div>
         <div class="res-stats">
           <div class="res-stat res-stat--correct">
             <span class="res-stat__val">${correctCount}</span>
@@ -1374,7 +1371,7 @@
       `;
 
     document.getElementById('resultsContent').innerHTML = `
-      <div class="res-hero">${heroBody}</div>
+      <div class="res-hero res-hero--${status || 'done'}${status ? '' : ' res-hero--tier-' + tier}">${heroBody}</div>
 
       <div class="ai-section" id="aiSection">
         <div class="ai-section__intro">
@@ -1565,7 +1562,6 @@
     const totalAcordat = results.reduce((s, r) => s + (r.total_acordat || 0), 0);
     const totalMaxim   = examTotalMaxim || results.reduce((s, r) => s + (r.total_maxim || 0), 0);
     const pct = totalMaxim > 0 ? Math.round(totalAcordat / totalMaxim * 100) : 0;
-    const scoreColor = pct >= 90 ? 'var(--green)' : pct >= 50 ? 'var(--yellow)' : 'var(--red)';
 
     const itemsHtml = results.map((r, idx) => {
       const itemPct = r.total_maxim > 0 ? r.total_acordat / r.total_maxim : 0;
@@ -1613,11 +1609,11 @@
     return `
       <div class="ai-results">
         <div class="ai-results__summary">
-          <span class="ai-results__grade" style="color:${scoreColor}">${totalAcordat}p</span>
+          <span class="ai-results__grade">${totalAcordat}p</span>
         </div>
         <div class="ai-items">${itemsHtml}</div>
         <p class="ai-results__disclaimer">Evaluarea AI are caracter orientativ. Pot apărea inexactități în interpretarea scrisului de mână.</p>
-        <div style="text-align:center;margin-top:10px">
+        <div class="ai-actions">
           <button class="btn btn--surface" onclick="verifyExam()">${icon('refresh-cw', { size: 16 })} Reevaluează</button>
         </div>
       </div>`;
@@ -1741,7 +1737,7 @@
           <div class="ai-error">
             <strong>Evaluarea AI a eșuat.</strong><br>${BM.esc(e.message)}
           </div>
-          <div style="text-align:center;margin-top:14px">
+          <div class="ai-actions">
             <button class="btn btn--ai" onclick="verifyExam()">Reîncearcă</button>
           </div>`;
       }
