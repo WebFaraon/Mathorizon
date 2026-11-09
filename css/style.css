@@ -19487,7 +19487,7 @@ body:has(#root) {
 #nav-root .nav__logo { height: 46px; width: auto; filter: none; }
 #nav-root .nav__name { display: none; }
 @media (max-width: 640px) {
-  #nav-root .nav__brand { margin-left: 0; }
+  #nav-root .nav__brand { margin-left: 8px; }
   #nav-root .nav__logo { height: 30px; }
 }
 @media (max-width: 420px) {
