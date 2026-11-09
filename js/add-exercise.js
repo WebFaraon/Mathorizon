@@ -1,6 +1,6 @@
 
 /* ============================================================
-   Mathorizon, "Adaugă exercițiu" full page
+   Teorema, "Adaugă exercițiu" full page
    (adauga-exercitiu.html), only for approved teachers (an admin only opens it to edit, ?edit=). Replaces the old modal wizard
    (js/admin-exercise.js) — same photo → Gemini → editable
    review → publish flow, just laid out as one continuously
@@ -285,7 +285,7 @@
 
     const drop = inner.querySelector('#aeDropZone');
     if (drop) {
-      drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.background = 'rgba(58,107,173,0.08)'; });
+      drop.addEventListener('dragover', e => { e.preventDefault(); drop.style.background = 'rgba(90,49,166,0.08)'; });
       drop.addEventListener('dragleave', () => { drop.style.background = ''; });
       drop.addEventListener('drop', e => {
         e.preventDefault();

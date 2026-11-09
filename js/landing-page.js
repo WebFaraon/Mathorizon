@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Landing Page (index.html)
+   Teorema — Landing Page (index.html)
    Waitlist signup for the "Clasa a 9-a" route card — link → inline
    form → success, all within the same card, no modal/page.
    ============================================================ */

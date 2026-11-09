@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Antrenament: persistent lifetime XP + best streak
+   Teorema — Antrenament: persistent lifetime XP + best streak
    Local-first (works for guests), overridden by js/auth.js at
    login-init time to also write through to Supabase (mirrors
    BM.consumeToken's override — see js/auth.js). Training-page-only,

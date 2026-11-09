@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Auth Hint
+   Teorema — Auth Hint
    Loaded first in <head> (right after theme.js) to avoid a flash of
    the authenticated navbar (tokens/favorite/istoric) or protected
    content for a signed-out visitor. Supabase persists its session

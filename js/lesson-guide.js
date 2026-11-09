@@ -13,7 +13,7 @@
 
   const STEPS = [
     ['Folosește laptopul.', 'Profesorul împarte ecranul și lucrează pe tablă live. Pe telefon se vede prea mic și e greu de urmărit.'],
-    ['Intră în Mathorizon cu contul tău.', 'La „Clase”, sus, vezi lecția ta de azi. Cu 10 minute înainte de oră, butonul „Intră la lecție” se aprinde.'],
+    ['Intră în Teorema cu contul tău.', 'La „Clase”, sus, vezi lecția ta de azi. Cu 10 minute înainte de oră, butonul „Intră la lecție” se aprinde.'],
     ['Apasă „Intră la lecție”.', 'Se deschide Google Meet într-o filă nouă. Dacă ți se cere, apasă „Cere să participi” și așteaptă puțin: profesorul te primește. Intră cu numele tău real.'],
     ['Permite microfonul și camera.', 'Când browserul întreabă, apasă „Permite”. Ține microfonul oprit până îți spune profesorul.'],
     ['Tabla live.', 'Dacă profesorul lucrează pe tablă, o găsești în clasă, la tab-ul „Tablă”.']
@@ -22,7 +22,7 @@
     ['Butonul e gri.', 'Încă nu e ora. Se aprinde cu 10 minute înainte de lecție și se stinge cu 10 minute înainte de sfârșit.'],
     ['Scrie „Profesorul nu a adăugat linkul”.', 'Spune-i managerului tău, el îl poate completa în câteva minute.'],
     ['Nu vezi lecția în Clase.', 'Contul tău nu e încă în clasă sau nu e legat de numele tău din registru. Scrie-i profesorului.'],
-    ['Meet nu se deschide.', 'Folosește Google Chrome și nu bloca ferestrele noi (pop-up) pentru Mathorizon.'],
+    ['Meet nu se deschide.', 'Folosește Google Chrome și nu bloca ferestrele noi (pop-up) pentru Teorema.'],
     ['Ești totuși pe telefon.', 'Instalează aplicația Google Meet înainte de lecție, nu în ultimul minut.']
   ];
 

@@ -12,7 +12,7 @@ Primary: students in grade XII in Moldova/Romania preparing for the BAC math exa
 
 ## Product Purpose
 
-Mathorizon is a BAC math preparation platform: a bank of exercises (about 650) organized by chapter, type, and difficulty, each with a step-by-step official-style barem; gamified training with XP, streaks, and daily missions; AI-graded full BAC simulations; and virtual classrooms (homework, catalog, tests, chat, live whiteboard). Success means a student practices regularly and arrives at the BAC knowing how points are awarded.
+Teorema is a BAC math preparation platform: a bank of exercises (about 650) organized by chapter, type, and difficulty, each with a step-by-step official-style barem; gamified training with XP, streaks, and daily missions; AI-graded full BAC simulations; and virtual classrooms (homework, catalog, tests, chat, live whiteboard). Success means a student practices regularly and arrives at the BAC knowing how points are awarded.
 
 ## Positioning
 
@@ -32,7 +32,7 @@ Used on laptops at home and heavily on phones. Students return daily (streaks, d
 
 ## Brand Commitments
 
-- Name: Mathorizon. The existing logo (`assets/images/`) is kept.
+- Name: Teorema (centru educațional). The logo is the owl-as-O wordmark in `assets/images/teorema-*.png`; brand colors are violet #3F236E and green #7CB800.
 - Blue stays the primary brand color.
 - Dark theme must be supported and look intentional.
 

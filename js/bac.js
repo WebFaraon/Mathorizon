@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Simulare BAC
+   Teorema — Simulare BAC
    Structura oficială BAC Moldova 2022+
    ============================================================ */
 

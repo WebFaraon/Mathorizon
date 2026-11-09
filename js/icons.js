@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Icon System
+   Teorema — Icon System
    Renders Lucide-style line icons as inline SVG strings. Replaces the
    emoji/text-glyph icons used across the UI (nav, stats, buttons, admin,
    BAC simulation) with a single consistent, theme-aware icon set.

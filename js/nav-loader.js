@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Shared Nav Loader
+   Teorema — Shared Nav Loader
    Injects partials/nav.html into <nav id="nav-root"> and derives the
    active link from the URL. The outer <nav class="nav"> shell is static
    markup in every page (not injected) so it's positioned/colored by CSS

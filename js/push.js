@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Web Push Notifications
+   Teorema — Web Push Notifications
    ============================================================ */
 
 (function () {

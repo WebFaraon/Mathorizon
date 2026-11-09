@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Custom (teacher/admin-added) exercises
+   Teorema — Custom (teacher/admin-added) exercises
    Fetches admin-authored exercises from Supabase and merges
    them into BM.EXERCISES so every existing consumer that reads
    that array picks them up, with no redeploy required.

@@ -51,11 +51,11 @@ const tg = async (method, body) => {
     { command: 'meet', description: 'Linkul tău Meet' },
     { command: 'reguli', description: 'Cum pornește o grupă, statusuri, prezențe' },
     { command: 'ajutor', description: 'Ce poate face asistentul' },
-    { command: 'start', description: 'Conectează contul Mathorizon' },
+    { command: 'start', description: 'Conectează contul Teorema' },
     { command: 'stop', description: 'Oprește mesajele' }
   ] });
-  await tg('setMyDescription', { description: 'Asistentul profesorilor Mathorizon: programul de azi, grupele, salariul, înlocuirile. Îți scriu și când o grupă a ta e gata de start.' }).catch(() => {});
-  await tg('setMyShortDescription', { short_description: 'Asistentul profesorilor Mathorizon.' }).catch(() => {});
+  await tg('setMyDescription', { description: 'Asistentul profesorilor Teorema: programul de azi, grupele, salariul, înlocuirile. Îți scriu și când o grupă a ta e gata de start.' }).catch(() => {});
+  await tg('setMyShortDescription', { short_description: 'Asistentul profesorilor Teorema.' }).catch(() => {});
 
   const r = await fetch(`${URL_}/rest/v1/telegram_bot?on_conflict=id`, { method: 'POST', headers: { apikey: SK, Authorization: 'Bearer ' + SK, 'content-type': 'application/json', Prefer: 'resolution=merge-duplicates,return=minimal' }, body: JSON.stringify({ id: 1, username: me.username, set_at: new Date().toISOString() }) });
   console.log(r.ok ? 'Numele botului e în baza de date.' : 'NU am putut scrie numele botului în baza de date (' + r.status + '): rulează migrarea 20261029120000_telegram_starturi.sql și repetă scriptul.');

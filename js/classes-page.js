@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Classes Page
+   Teorema — Classes Page
    Teachers: create classes, share invite codes, manage members.
    Students: join via invite code, view/leave classes.
 

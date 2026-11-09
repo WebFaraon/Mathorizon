@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Shared Catalog/Sumar stats
+   Teorema — Shared Catalog/Sumar stats
    Single source of truth for the aggregate numbers shown in both
    class-page.js's Catalog tab (Note + Prezență) and its Sumar tab —
    medie clasă, prezență medie, număr lecții, teme active, medie per

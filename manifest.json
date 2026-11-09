@@ -1,12 +1,12 @@
 {
-  "name": "Mathorizon",
-  "short_name": "Mathorizon",
+  "name": "Teorema",
+  "short_name": "Teorema",
   "description": "Platformă de pregătire pentru BAC la matematică",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
-  "background_color": "#F6F3EC",
-  "theme_color": "#3A6BAD",
+  "background_color": "#3F236E",
+  "theme_color": "#3F236E",
   "icons": [
     {
       "src": "assets/images/icon-192.png",

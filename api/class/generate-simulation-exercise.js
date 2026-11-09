@@ -60,7 +60,7 @@ function buildPrompt(context) {
     ? ` din capitolul "${categoryName}"${subcategoryName ? `, subcapitolul "${subcategoryName}"` : ''}`
     : '';
 
-  return `Ești un profesor de matematică care pregătește un exercițiu pentru un test de clasă (platforma Mathorizon), pentru clasa: ${GRADE_LABELS[grade] || grade}${chapterBlock}. Ai primit o fotografie a unui exercițiu dintr-o culegere.
+  return `Ești un profesor de matematică care pregătește un exercițiu pentru un test de clasă (platforma Teorema), pentru clasa: ${GRADE_LABELS[grade] || grade}${chapterBlock}. Ai primit o fotografie a unui exercițiu dintr-o culegere.
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
 

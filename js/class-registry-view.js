@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon: what a class made from a register group shows (Sumar tab of class.html)
+   Teorema: what a class made from a register group shows (Sumar tab of class.html)
    ============================================================
    The register (a Google Sheet, read into reg_* by the registru-sync function) is the one source of who is in the group, their status, their manager,
    when they started and left, and every presence. The platform adds only the accounts: which student account is who in the register.

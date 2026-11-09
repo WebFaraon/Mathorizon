@@ -146,7 +146,7 @@ function buildPrompt(context, existingExercises) {
   const examplesCount = matchingExamples(categoryId, subcategoryId).length;
   const examplesBlock = buildExamplesBlock(categoryId, subcategoryId);
 
-  return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Mathorizon (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
+  return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Teorema (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
 ${geometryBlock}

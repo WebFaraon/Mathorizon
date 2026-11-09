@@ -75,8 +75,7 @@ const HEADER = `<!--
 
 const TEMPLATE = `    <div class="nav__inner container">
       <a class="nav__brand" href="capitole.html" data-authed-href="capitole.html">
-        <img class="nav__logo" src="assets/images/MathorizonLogo.png" alt="Mathorizon">
-        <span class="nav__name">Math<b>orizon</b></span>
+        <img class="nav__logo" src="assets/images/teorema-wordmark.png" alt="Teorema" width="844" height="182">
       </a>
 
       <div class="nav__links">

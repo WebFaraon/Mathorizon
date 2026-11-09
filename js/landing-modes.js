@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Landing page MODE keys (index.html)
+   Teorema — Landing page MODE keys (index.html)
    ============================================================
    The landing page is one calculator: four MODE keys (BAC, Clasa a 9-a,
    Profesor, Test) switch what the display shows and which action sits

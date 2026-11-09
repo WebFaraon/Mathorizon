@@ -184,7 +184,7 @@ function fakeApi(opts) {
   {
     const { db, api } = world(); db.s.links.set(TEACH, { chat_id: CHAT });
     await handleUpdate(msg(CHAT, '/ajutor'), { db, api, now });
-    ok(/Asistentul Mathorizon/.test(last(api).text) && last(api).extra.reply_markup.inline_keyboard.length === 3, 'help is the title and the grid of keys');
+    ok(/Asistentul Teorema/.test(last(api).text) && last(api).extra.reply_markup.inline_keyboard.length === 3, 'help is the title and the grid of keys');
     await handleUpdate(msg(CHAT, '/stop'), { db, api, now });
     ok(!db.s.links.has(TEACH) && /legătura/.test(last(api).text), '/stop unties the account');
     ok((await handleUpdate({ message: { chat: { id: -100, type: 'group' }, text: '/start' } }, { db, api, now })).handled === false, 'groups are ignored');
@@ -334,7 +334,7 @@ function fakeApi(opts) {
   // ---- the help: nine keys in a 3 x 3 grid ----
   {
     const k = A.helpKeyboard().inline_keyboard;
-    ok(k.length === 3 && k.every(r => r.length === 3) && k.flat().every(b => /^cmd:/.test(b.callback_data)) && txt(A.helpText) === '🤖 Asistentul Mathorizon', 'the help is a title and a 3 x 3 grid of keys');
+    ok(k.length === 3 && k.every(r => r.length === 3) && k.flat().every(b => /^cmd:/.test(b.callback_data)) && txt(A.helpText) === '🤖 Asistentul Teorema', 'the help is a title and a 3 x 3 grid of keys');
     ok(k.flat().map(b => b.callback_data.slice(4)).join() === 'azi,maine,saptamana,grupe,salariu,statistici,inlocuiri,meet,reguli' && A.COMMANDS.every(([c]) => A.commandOf(c) === c), 'every key is a command the bot knows');
   }
   // ---- long answers are cut at blank lines ----
@@ -364,7 +364,7 @@ function fakeApi(opts) {
     await handleUpdate(msg2('ce mai faci'), { db, api, now });
     ok(lastText(api) === 'Nu am înțeles. Alege o comandă:' && lastSend(api).extra.reply_markup.inline_keyboard.length === 3, 'free text: the grid of commands is shown');
     await handleUpdate(msg2('/ajutor'), { db, api, now });
-    ok(txt(lastText(api)) === '🤖 Asistentul Mathorizon' && lastSend(api).extra.reply_markup.inline_keyboard.length === 3, '/ajutor: the title and the grid, nothing else');
+    ok(txt(lastText(api)) === '🤖 Asistentul Teorema' && lastSend(api).extra.reply_markup.inline_keyboard.length === 3, '/ajutor: the title and the grid, nothing else');
     // a key of the help runs the command, as a new message
     api.log.length = 0;
     const k1 = await handleUpdate(press2('cmd:salariu'), { db, api, now });
@@ -411,7 +411,7 @@ function fakeApi(opts) {
     const w3 = world(); w3.db.s.codes.set('MENU2345', { user_id: TEACH, expires: Date.now() + 60000 });
     await handleUpdate({ message: { message_id: 1, chat: { id: CHAT, type: 'private' }, from: { id: CHAT, first_name: 'Ana' }, text: '/start MENU2345' } }, { db: w3.db, api: w3.api, now });
     const sends = w3.api.log.filter(x => x.m === 'send');
-    ok(txt(sends[0].text) === '✅ Gata, Ana Profesor! Contul tău Mathorizon e conectat la acest chat.' && sends[0].extra.reply_markup.keyboard[0][0].text === '📅 Azi' && txt(sends[1].text) === '🤖 Asistentul Mathorizon' && sends[1].extra.reply_markup.inline_keyboard.length === 3, 'linking: one short line, the menu keys and the grid: ' + JSON.stringify(sends.map(x => txt(x.text))));
+    ok(txt(sends[0].text) === '✅ Gata, Ana Profesor! Contul tău Teorema e conectat la acest chat.' && sends[0].extra.reply_markup.keyboard[0][0].text === '📅 Azi' && txt(sends[1].text) === '🤖 Asistentul Teorema' && sends[1].extra.reply_markup.inline_keyboard.length === 3, 'linking: one short line, the menu keys and the grid: ' + JSON.stringify(sends.map(x => txt(x.text))));
     await handleUpdate(msg2('/start'), { db: w3.db, api: w3.api, now });
     ok(txt(w3.api.log.filter(x => x.m === 'send').slice(-2)[0].text) === '👋 Salut, Ana Profesor!', '/start for a linked teacher: a greeting only');
     // /stop takes the menu away

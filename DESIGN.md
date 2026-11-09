@@ -1,72 +1,73 @@
 ---
-name: Mathorizon
+name: Teorema
 description: BAC math practice built as a scientific calculator, keys you press and an LCD that answers.
 colors:
-  chassis: "#E3E4DF"
-  panel: "#F0F1ED"
-  panel-edge: "#C3C6BD"
-  key: "#FBFBF8"
-  key-edge: "#B4B8AE"
-  rule: "#D3D6CE"
-  grid: "rgba(23, 25, 28, 0.065)"
-  ink: "#17191C"
-  ink-2: "#464B52"
-  ink-3: "#5E646B"
-  ink-soft: "#5D636A"
-  ghost: "rgba(23, 25, 28, 0.11)"
+  chassis: "#E5E3EB"
+  panel: "#F2F0F6"
+  panel-edge: "#C8C3D3"
+  key: "#FCFBFE"
+  key-edge: "#B7B1C6"
+  rule: "#D6D2E0"
+  grid: "rgba(38, 24, 72, 0.065)"
+  ink: "#1A1723"
+  ink-2: "#4A4557"
+  ink-3: "#625C72"
+  ink-soft: "#605A6E"
+  ghost: "rgba(38, 24, 72, 0.11)"
   lcd: "#C3CDB0"
   lcd-ink: "#1C2718"
   lcd-dim: "rgba(28, 39, 24, 0.66)"
   lcd-ghost: "rgba(28, 39, 24, 0.09)"
-  bezel: "#2A2E33"
-  blue: "#2F5FD0"
-  blue-edge: "#1B3A8A"
-  blue-wash: "rgba(47, 95, 208, 0.09)"
-  green: "#1D7A57"
+  bezel: "#2B2635"
+  blue: "#5A31A6"
+  blue-edge: "#3A1F70"
+  blue-wash: "rgba(90, 49, 166, 0.09)"
+  green: "#4B7A0A"
+  lime: "#7CB800"
   red: "#BF3D29"
   orange: "#DE6A1E"
   orange-ink: "#A94A0B"
-  dark-chassis: "#111316"
-  dark-panel: "#181B1F"
-  dark-panel-edge: "#2B2F35"
-  dark-key: "#23272D"
-  dark-key-edge: "#08090B"
-  dark-rule: "#262A30"
-  dark-grid: "rgba(236, 237, 233, 0.04)"
-  dark-ink: "#ECEDE9"
-  dark-ink-2: "#B5BAC0"
-  dark-ink-3: "#8D939A"
-  dark-ink-soft: "#9AA0A7"
+  dark-chassis: "#131019"
+  dark-panel: "#1B1722"
+  dark-panel-edge: "#2F2939"
+  dark-key: "#272130"
+  dark-key-edge: "#09070D"
+  dark-rule: "#2A2434"
+  dark-grid: "rgba(236, 232, 245, 0.04)"
+  dark-ink: "#EEEBF3"
+  dark-ink-2: "#BBB5C7"
+  dark-ink-3: "#928CA0"
+  dark-ink-soft: "#A09AAD"
   dark-lcd: "#141B11"
   dark-lcd-ink: "#BCE296"
-  dark-bezel: "#050607"
-  dark-blue: "#5C8CF2"
-  dark-blue-edge: "#1E3B86"
-  dark-green: "#4DBE8E"
+  dark-bezel: "#060509"
+  dark-blue: "#8B66DC"
+  dark-blue-edge: "#3F2578"
+  dark-green: "#9CCB3B"
   dark-red: "#EE7560"
   dark-orange: "#F08A3C"
   dark-orange-ink: "#F4A25F"
-  nav-chassis: "#3A5A9F"
-  nav-chassis-edge: "#2A4478"
-  nav-key: "#4665A9"
-  nav-key-border: "#5874B3"
-  nav-key-edge: "#263F72"
-  nav-ink: "#F1F4FA"
+  nav-chassis: "#3F236E"
+  nav-chassis-edge: "#2B1650"
+  nav-key: "#55358C"
+  nav-key-border: "#6A4DA0"
+  nav-key-edge: "#2A1550"
+  nav-ink: "#F5F0FB"
   nav-lit: "#FFFFFF"
-  nav-lit-ink: "#2E4C8F"
-  nav-lit-edge: "#B4C1DC"
+  nav-lit-ink: "#3F236E"
+  nav-lit-edge: "#CDBFE3"
   nav-lcd: "#D3DCC3"
   nav-lcd-low: "#E7D8A2"
   nav-lcd-empty: "#EBC3B9"
-  dark-nav-chassis: "#1F2F52"
-  dark-nav-chassis-edge: "#121C33"
-  dark-nav-key: "#2A3C63"
-  dark-nav-key-border: "#374A73"
-  dark-nav-key-edge: "#0F172C"
-  dark-nav-ink: "#DDE3F0"
-  dark-nav-lit: "#E6EAF3"
-  dark-nav-lit-ink: "#27427F"
-  dark-nav-lit-edge: "#7F8DAD"
+  dark-nav-chassis: "#2A1750"
+  dark-nav-chassis-edge: "#190E33"
+  dark-nav-key: "#3B2567"
+  dark-nav-key-border: "#4C337D"
+  dark-nav-key-edge: "#120A27"
+  dark-nav-ink: "#E5DDF3"
+  dark-nav-lit: "#ECE6F5"
+  dark-nav-lit-ink: "#3A1F66"
+  dark-nav-lit-edge: "#9486B5"
   dark-nav-lcd: "#B8C3A6"
 typography:
   display:
@@ -177,17 +178,27 @@ components:
     rounded: "{rounded.panel}"
 ---
 
-# Design System: Mathorizon
+# Design System: Teorema
 
 ## Overview
 
 **Creative North Star: "The Scientific Calculator"**
 
-Mathorizon is built as an instrument, not a brochure. Every surface is a part of a scientific calculator: pale-gray (light) or graphite (dark) chassis panels with hard 1px edges and near-square corners, keys that stand on a darker solid bottom edge and sink when pressed, and a recessed green-gray LCD that carries the numbers that matter, all laid on the site's graph-paper ground. The student reads their progress off the display and presses a chapter key to continue; the interface is operated, not browsed.
+Teorema is built as an instrument, not a brochure. Every surface is a part of a scientific calculator: pale-gray (light) or graphite (dark) chassis panels with hard 1px edges and near-square corners, keys that stand on a darker solid bottom edge and sink when pressed, and a recessed green-gray LCD that carries the numbers that matter, all laid on the site's graph-paper ground. The student reads their progress off the display and presses a chapter key to continue; the interface is operated, not browsed.
 
 Density is high and tabular. Chapters are laid out as a keypad, each exercise bank is drawn honestly as a bank strip (one segment per subcategory, sized by its exercise count, filled by the share solved), missions are segmented counters, and numerals are always tabular. Color is not decoration: four legend colors each have one job, the way function labels are printed on a real calculator. Motion is the motion of hardware: the page powers on (the LCD runs a segment test, keys land on their edges, strips fill), a key sinks, an LCD refreshes in stepped frames. Numbers never tween, and nothing glows or floats.
 
 Scope: this system currently covers the Capitole tab (`capitole.html`, the React island in `src/capitole/`), the chapter page's subchapter view (`category.html`, styled in `css/calculator.css`) and the shared navbar (`partials/nav.html`, the "NAVBAR — calculator skin" block at the end of `css/style.css`). Since then the landing page, the profile, the sign-in page (`auth.html`), the Simulare setup flow, the Clase main page, a single class (`class.html`) and its live whiteboard (`css/whiteboard.css`: a navbar-blue header with a pale LCD for the title and the head count, a chassis toolbar of keys with the tool in use lit blue, paper on the graph-paper ground, the zoom on a small LCD) have joined it; the Simulare tab after the setup (the exam in progress, its dialogs, the results with the AI grading, `css/simulare.css`) has joined as well: an item rail of keys with the open one lit blue and three small LCD counters, the clock as an LCD that turns amber under half an hour and red under ten minutes, the exercise and the workspace as chassis panels, the canvas toolbar as keys, the grade on a bezeled LCD with four small displays under it. The other tabs (Antrenament, Pachete, admin) and the class simulation (`.sim-exam-overlay`) still render the legacy look from `css/style.css`. This file describes the world those tabs are meant to move into; it does not describe their current state. Rejected by the user for this world: rounded soft-shadow cards, gradients, glass, neon, and empty minimalism.
+
+## Brand: Teorema (2026-11-09)
+
+The centre's own identity replaced the old name and blue. The logo is the word TEOREMA with an owl standing in for the O (white letters, EMA in green) and the line "centru educațional" under it, on a deep violet ground. The two brand colors are **Teorema Violet** (#3F236E, the logo's own ground) and **Teorema Green** (#7CB800, the EMA letters and the owl's beak).
+
+- **Violet takes the job blue had.** The token names stay (`--k-blue`, `--k-blue-edge`, `--k-blue-wash`, `--nk-*`, `--wk-*`, `--ap-*`) so nothing else had to move, but they now hold violet. The navbar, the sign-in side column, the whiteboard header and the profile cover are Teorema Violet itself (#3F236E; dark #2A1750), so the logo's transparent PNG sits straight on the strip and the owl's body shows the strip through it. Primary keys and lit chassis keys are a brighter violet (#5A31A6; dark #8B66DC) with the edge #3A1F70. Neutrals lean slightly toward violet (hue ~265) instead of warm or cool gray.
+- **Green is the brand green, in two shades.** `--k-green` (#4B7A0A; dark #9CCB3B) is the readable one: done marks, completed missions, the Geometrie legend. `--k-lime` (#7CB800) is the logo's own green, for the logo and decorative fills only, never for text on a light ground (2.3:1).
+- **Unchanged on purpose:** the LCD glass (green-gray, it sits well with the brand green), the rarity colors (Rar stays blue, Epic stays violet: they are game tiers, not brand), red for Analiză, orange for XP, the whiteboard pen palette, Google's own logo, and the month colors in Catalog.
+- **Assets** in `assets/images/`: `teorema-wordmark.png` (navbar, sign-in, legal pages, whiteboard header; white and green on transparent, made for violet grounds only), `teorema-logo.png` (with the tagline), `teorema-owl.png` (white owl, phone widths and the Antrenament card), `teorema-owl-ink.png` (violet owl, the faint watermark on light grounds), `icon-192/512.png`, `badge-96.png`, `favicon.svg`. They were keyed out of the founder's JPG, so they carry its resolution (the wordmark is 844 px wide); a vector original from the founder would replace them without touching the code. The old `MathorizonLogo*.png` stay until the admin console and the register move over (stage 2).
+- **Stage 2 (not done yet):** the admin console and `registru.html` still use the old blue (`--ax-*`) and the old logo.
 
 **Key Characteristics:**
 - Chassis panels: flat fills, 1px edges, 3px corners, no drop shadows, on a 28px graph-paper ground.

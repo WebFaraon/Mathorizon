@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Capitole page: the parts that are still vanilla
+   Teorema — Capitole page: the parts that are still vanilla
    ============================================================
    The page's CONTENT — hero, statistici, cardurile de capitole, banner-ul
    Simulare BAC — moved to React (src/capitole/, bundled into

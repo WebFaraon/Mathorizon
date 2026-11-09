@@ -522,7 +522,7 @@
           <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
             <span class="flip-card__rarity-badge">${rarity}</span>
             <div class="flip-card__face flip-card__face--back">
-              <img class="flip-card__logo-img" src="assets/images/MathorizonLogo.png" alt="">
+              <img class="flip-card__logo-img" src="assets/images/teorema-owl.png" alt="">
             </div>
             <div class="flip-card__face flip-card__face--front">
               ${done ? badge : ''}
@@ -1042,7 +1042,7 @@
   function fireConfetti() {
     const layer = document.getElementById('confettiLayer');
     if (!layer) return;
-    const colors = ['#3A6BAD', '#16A34A', '#D97706', '#DC2626'];
+    const colors = ['#5A31A6', '#16A34A', '#D97706', '#DC2626'];
     const particles = [];
     for (let i = 0; i < 30; i++) {
       const p = document.createElement('div');

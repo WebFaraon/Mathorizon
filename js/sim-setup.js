@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Simulare setup (bac.html), step 1 and 2 extras
+   Teorema — Simulare setup (bac.html), step 1 and 2 extras
    ============================================================
    What js/bac.js does not do for the redesigned setup flow:
    - fills the "situația ta" display with real data (finished

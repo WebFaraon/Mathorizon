@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon: the number of join requests waiting for a teacher, on the "Clase" tab of the nav.
+   Teorema: the number of join requests waiting for a teacher, on the "Clase" tab of the nav.
    A student with a class code sends a request; the teacher accepts it on the Clase page (js/classes-page.js).
    Loaded by js/nav-loader.js on every page; does nothing for anyone but a teacher.
    ============================================================ */

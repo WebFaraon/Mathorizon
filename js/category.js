@@ -90,7 +90,7 @@
     const cat  = currentCategory;
     const prog = BM.Storage.getProgressForCategory(cat.id, BM.EXERCISES);
 
-    document.title = `${cat.name} — Mathorizon`;
+    document.title = `${cat.name} — Teorema`;
 
     const header = document.getElementById('catHeader');
     if (!header) return;

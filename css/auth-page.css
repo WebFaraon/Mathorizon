@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Autentificare (auth.html), calculator world
+   Teorema — Autentificare (auth.html), calculator world
    ============================================================
    The sign-in / sign-up / reset page, built in the shared calculator
    world (DESIGN.md): the tokens (--k-*) come from css/calculator.css,
@@ -15,23 +15,23 @@
 
 body.ap {
   /* the navbar's blue, its keys and its lit key (DESIGN.md "Nav strip") */
-  --ap-cover: #3A5A9F;
-  --ap-cover-edge: #2A4478;
-  --ap-nk: #4665A9;
-  --ap-nk-b: #5874B3;
-  --ap-nk-e: #263F72;
-  --ap-nk-ink: #F1F4FA;
+  --ap-cover: #3F236E;
+  --ap-cover-edge: #2B1650;
+  --ap-nk: #55358C;
+  --ap-nk-b: #6A4DA0;
+  --ap-nk-e: #2A1550;
+  --ap-nk-ink: #F5F0FB;
   --ap-lit: #FFFFFF;
-  --ap-lit-ink: #2E4C8F;
-  --ap-lit-e: #B4C1DC;
-  --ap-side-ink: #F1F4FA;
-  --ap-side-ink-2: #D6DEF0;
+  --ap-lit-ink: #3F236E;
+  --ap-lit-e: #CDBFE3;
+  --ap-side-ink: #F5F0FB;
+  --ap-side-ink-2: #DFD6F0;
   --ap-key-on: #fff;                     /* text on a lit blue key */
   /* the legend colours as lit tints, readable on the blue column (Algebra blue, Geometrie green, Analiza red, the rest soft) */
-  --ap-lg-blue: #C9DBFF;
-  --ap-lg-green: #86E0B8;
+  --ap-lg-blue: #DCC9FF;
+  --ap-lg-green: #B6E65A;
   --ap-lg-red: #FFA08B;
-  --ap-lg-soft: #C5CCDA;
+  --ap-lg-soft: #CCC5DA;
   --ap-ease: cubic-bezier(0.16, 1, 0.3, 1);
   --ap-field: var(--k-bg);
 
@@ -49,18 +49,18 @@ body.ap {
   scrollbar-color: var(--k-panel-edge) transparent;
 }
 [data-theme="dark"] body.ap {
-  --ap-cover: #1F2F52;
-  --ap-cover-edge: #121C33;
-  --ap-nk: #2A3C63;
-  --ap-nk-b: #374A73;
-  --ap-nk-e: #0F172C;
-  --ap-nk-ink: #DDE3F0;
-  --ap-lit: #E6EAF3;
-  --ap-lit-ink: #27427F;
-  --ap-lit-e: #7F8DAD;
-  --ap-side-ink: #DDE3F0;
-  --ap-side-ink-2: #B9C4DC;
-  --ap-key-on: #0A1226;                  /* white on the dark theme's blue is under 4.5:1 */
+  --ap-cover: #2A1750;
+  --ap-cover-edge: #190E33;
+  --ap-nk: #3B2567;
+  --ap-nk-b: #4C337D;
+  --ap-nk-e: #120A27;
+  --ap-nk-ink: #E5DDF3;
+  --ap-lit: #ECE6F5;
+  --ap-lit-ink: #3A1F66;
+  --ap-lit-e: #9486B5;
+  --ap-side-ink: #E5DDF3;
+  --ap-side-ink-2: #C5B9DC;
+  --ap-key-on: #140A26;                  /* white on the dark theme's blue is under 4.5:1 */
 }
 
 /* the site forces a scrollbar on every page; this one shows it only when the form is taller than the window */
@@ -111,11 +111,10 @@ body.ap [hidden] { display: none !important; }
   text-decoration: none;
 }
 .ap-brand__logo {
-  height: 36px;
+  height: 38px;
   width: auto;
   flex: none;
   object-fit: contain;
-  filter: brightness(0) invert(1);
 }
 .ap-brand__name {
   font-family: 'Josefin Sans', sans-serif;

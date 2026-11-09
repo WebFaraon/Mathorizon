@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Class Detail Page
+   Teorema — Class Detail Page
    Routing: class.html?id=<uuid>[#tab]
    Tabs: flux | teme | simulari | membri
    ============================================================ */
@@ -935,7 +935,7 @@
     activeTab = (location.hash.replace('#', '') || defaultTab);
     if (!visibleTabs.find(t => t.id === activeTab)) activeTab = defaultTab;
 
-    document.title = BM.esc(classData.name) + ' | Mathorizon';
+    document.title = BM.esc(classData.name) + ' | Teorema';
 
     /* Split "Matematică · Miercuri · 15:30" into parts for richer display */
     const nameParts  = classData.name.split(' · ');
@@ -7584,8 +7584,8 @@
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
           <div class="wb-fs-brand">
-            <img class="wb-fs-brand__logo" src="assets/images/MathorizonLogo.png" alt="">
-            <span class="wb-fs-brand__name">Math<b>orizon</b></span>
+            <img class="wb-fs-brand__logo wb-fs-brand__logo--word" src="assets/images/teorema-wordmark.png" alt="Teorema">
+            <img class="wb-fs-brand__logo wb-fs-brand__logo--owl" src="assets/images/teorema-owl.png" alt="Teorema">
           </div>
           ${isTeacher
             ? `<input class="wb-fs-title-input" id="wbTitleInput" type="text" maxlength="60" value="${BM.esc(session.title)}" placeholder="Titlul tablei" title="Redenumește tabla">`

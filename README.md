@@ -1,4 +1,4 @@
-# Mathorizon
+# Teorema
 
 Platformă de pregătire pentru BAC la matematică.
 
@@ -16,7 +16,7 @@ npm start
 La pornire, terminalul afișează URL-ul de deschis și confirmă că API-ul e activ:
 
 ```
-  Mathorizon dev server
+  Teorema dev server
   → open:  http://localhost:8080
   → API:   enabled  (all /api/* routes are live on this port)
 ```

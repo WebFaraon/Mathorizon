@@ -572,7 +572,7 @@ body.bac-exam-mode .dc-mini-exercise__statement { color: var(--k-ink-2); }
    Dialogs over the exam: fullscreen left, navigation, finish, cancelled
    ============================================================ */
 :is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) {
-  background: rgba(10, 14, 24, 0.55);
+  background: rgba(15, 10, 24, 0.55);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
 }
@@ -618,7 +618,7 @@ body.bac-exam-mode .dc-mini-exercise__statement { color: var(--k-ink-2); }
 :is(#fsWarnOverlay, #fsResumeOverlay, #navGuardModal, #terminateModal, #finishConfirmModal) .nav-guard-actions .btn { margin-top: 0; }
 
 /* the dialogs of the canvas (clear all) and the ExamToken one keep the same panel */
-body:has(#examView) .bac-confirm-overlay:not(:has(.exam-start-modal)) { background: rgba(10, 14, 24, 0.55); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+body:has(#examView) .bac-confirm-overlay:not(:has(.exam-start-modal)) { background: rgba(15, 10, 24, 0.55); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
 body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) {
   padding: 28px 26px 22px;
   border: 1px solid var(--k-panel-edge);

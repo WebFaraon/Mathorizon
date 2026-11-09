@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Authentication (Supabase)
+   Teorema — Authentication (Supabase)
    Manages session state and profile button across all pages.
    Auth forms live in auth.html / profile actions in profile.html
    ============================================================ */

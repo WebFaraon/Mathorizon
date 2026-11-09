@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Simulări: student exam-taking screen
+   Teorema — Simulări: student exam-taking screen
    The exam itself renders as a fixed, full-viewport overlay appended
    directly to <body> (with fullscreen + navbar-hiding enforcement,
    same convention as the real BAC simulator) — deliberately NOT

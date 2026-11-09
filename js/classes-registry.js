@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon: the teacher's groups, read from the register
+   Teorema: the teacher's groups, read from the register
    ============================================================
    The register of a teacher (a Google Sheet, read into the platform's reg_* tables by the registru-sync function) is the source of his groups, students and lessons.
    load(supabase, userId) returns everything the Clase page needs about them, already shaped, or null when the account has no register linked.

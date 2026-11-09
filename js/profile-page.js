@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Profile Page (profile.html)
+   Teorema — Profile Page (profile.html)
    ============================================================ */
 
 (function () {

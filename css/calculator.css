@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — calculator world: shared tokens
+   Teorema — calculator world: shared tokens
    ============================================================
    The design tokens of the scientific-calculator world (see DESIGN.md),
    shared by every page built in it: capitole.html (React island,
@@ -13,34 +13,39 @@
   --k-lcd-font: 'Doto', monospace;
   --k-math-font: 'KaTeX_Main', 'Cambria Math', 'Times New Roman', serif;
 
-  --k-bg: #E3E4DF;
-  --k-panel: #F0F1ED;
-  --k-panel-edge: #C3C6BD;
-  --k-key: #FBFBF8;
-  --k-key-edge: #B4B8AE;
-  --k-rule: #D3D6CE;
-  --k-grid: rgba(23, 25, 28, 0.065);
+  /* Neutrals lean a touch toward the brand violet (hue ~265), so the
+     chassis reads as Teorema's and not as a generic gray. */
+  --k-bg: #E5E3EB;
+  --k-panel: #F2F0F6;
+  --k-panel-edge: #C8C3D3;
+  --k-key: #FCFBFE;
+  --k-key-edge: #B7B1C6;
+  --k-rule: #D6D2E0;
+  --k-grid: rgba(38, 24, 72, 0.065);
 
-  --k-ink: #17191C;
-  --k-ink-2: #464B52;
-  --k-ink-3: #5E646B;
-  --k-ghost: rgba(23, 25, 28, 0.11);
+  --k-ink: #1A1723;
+  --k-ink-2: #4A4557;
+  --k-ink-3: #625C72;
+  --k-ghost: rgba(38, 24, 72, 0.11);
 
   --k-lcd: #C3CDB0;
   --k-lcd-ink: #1C2718;
   --k-lcd-dim: rgba(28, 39, 24, 0.66);
   --k-lcd-ghost: rgba(28, 39, 24, 0.09);
-  --k-bezel: #2A2E33;
-  --k-cover: #3A5A9F;
+  --k-bezel: #2B2635;
+  --k-cover: #3F236E;
 
-  --k-blue: #2F5FD0;
-  --k-blue-edge: #1B3A8A;
-  --k-blue-wash: rgba(47, 95, 208, 0.09);
-  --k-green: #1D7A57;
+  --k-blue: #5A31A6;
+  --k-blue-edge: #3A1F70;
+  --k-blue-wash: rgba(90, 49, 166, 0.09);
+  /* Brand green. --k-green is the readable shade (done marks, Geometrie);
+     --k-lime is the logo's own green, for fills and accents only. */
+  --k-green: #4B7A0A;
+  --k-lime: #7CB800;
   --k-red: #BF3D29;
   --k-orange: #DE6A1E;
   --k-orange-ink: #A94A0B;
-  --k-ink-soft: #5D636A;
+  --k-ink-soft: #605A6E;
 
   --k-r: 3px;
   --k-r-key: 4px;
@@ -49,35 +54,36 @@
 }
 
 [data-theme="dark"] {
-  --k-bg: #111316;
-  --k-panel: #181B1F;
-  --k-panel-edge: #2B2F35;
-  --k-key: #23272D;
-  --k-key-edge: #08090B;
-  --k-rule: #262A30;
-  --k-grid: rgba(236, 237, 233, 0.04);
+  --k-bg: #131019;
+  --k-panel: #1B1722;
+  --k-panel-edge: #2F2939;
+  --k-key: #272130;
+  --k-key-edge: #09070D;
+  --k-rule: #2A2434;
+  --k-grid: rgba(236, 232, 245, 0.04);
 
-  --k-ink: #ECEDE9;
-  --k-ink-2: #B5BAC0;
-  --k-ink-3: #8D939A;
-  --k-ghost: rgba(236, 237, 233, 0.09);
+  --k-ink: #EEEBF3;
+  --k-ink-2: #BBB5C7;
+  --k-ink-3: #928CA0;
+  --k-ghost: rgba(236, 232, 245, 0.09);
 
   /* Backlit at night: dark glass, pale green segments. */
   --k-lcd: #141B11;
   --k-lcd-ink: #BCE296;
   --k-lcd-dim: rgba(188, 226, 150, 0.62);
   --k-lcd-ghost: rgba(188, 226, 150, 0.07);
-  --k-bezel: #050607;
-  --k-cover: #1F3160;
+  --k-bezel: #060509;
+  --k-cover: #2A1750;
 
-  --k-blue: #5C8CF2;
-  --k-blue-edge: #1E3B86;
-  --k-blue-wash: rgba(92, 140, 242, 0.12);
-  --k-green: #4DBE8E;
+  --k-blue: #8B66DC;
+  --k-blue-edge: #3F2578;
+  --k-blue-wash: rgba(139, 102, 220, 0.12);
+  --k-green: #9CCB3B;
+  --k-lime: #8CC81E;
   --k-red: #EE7560;
   --k-orange: #F08A3C;
   --k-orange-ink: #F4A25F;
-  --k-ink-soft: #9AA0A7;
+  --k-ink-soft: #A09AAD;
 }
 
 /* Page ground: the calculator's chassis on graph paper, not the site's
@@ -101,7 +107,7 @@ body:has(.landing-main) {
    in css/style.css, including their dark-theme variants. Each exercise is
    a key; the empty state is a small LCD reading. */
 body .overlay {
-  background: rgba(12, 16, 26, 0.46);
+  background: rgba(17, 12, 26, 0.46);
   transition: opacity 0.25s ease;
 }
 
@@ -1130,7 +1136,7 @@ body:has(#catHeader) .filter-chip.active .rc-pips i.on { background: #fff; }
 /* The page behind an open exercise is blurred out, so nothing on it
    competes with the exercise. */
 body:has(#catHeader) .rarity-modal .classes-modal__backdrop {
-  background: rgba(12, 16, 26, 0.42);
+  background: rgba(17, 12, 26, 0.42);
   backdrop-filter: blur(7px) saturate(0.85);
   -webkit-backdrop-filter: blur(7px) saturate(0.85);
 }
@@ -1974,7 +1980,7 @@ body:has(#profileContent) .pf-card .auth-eye { color: var(--k-ink-3); }
 
 /* ---- Edit / confirm modals ---- */
 body:has(#profileContent) .prof-modal-overlay {
-  background: rgba(12, 16, 26, 0.42);
+  background: rgba(17, 12, 26, 0.42);
   backdrop-filter: blur(6px);
   -webkit-backdrop-filter: blur(6px);
 }
@@ -3126,7 +3132,7 @@ body:has(#setupView:not([style*="none"])) {
 /* ---- ExamToken dialog (only the token one: .exam-start-modal; the same
    .bac-confirm-* classes serve other dialogs elsewhere) ---- */
 .bac-confirm-overlay:has(.exam-start-modal) {
-  background: rgba(10, 14, 24, 0.42);
+  background: rgba(15, 10, 24, 0.42);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
 }
@@ -3872,7 +3878,7 @@ body:has(#classesRoot) {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: rgba(10, 14, 24, 0.42);
+  background: rgba(15, 10, 24, 0.42);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
 }
@@ -3921,7 +3927,7 @@ body:has(#classesRoot) {
 .cm__backdrop {
   position: absolute;
   inset: 0;
-  background: rgba(10, 14, 24, 0.45);
+  background: rgba(15, 10, 24, 0.45);
   -webkit-backdrop-filter: blur(7px);
   backdrop-filter: blur(7px);
 }
@@ -4819,7 +4825,7 @@ body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: 
 
 /* the guide dialog: a short list of steps, then what to do when it does not work (the head, the close key and the foot are the .cm__ ones) */
 .lg { position: fixed; inset: 0; z-index: 1300; display: flex; align-items: center; justify-content: center; padding: 24px; font-family: var(--k-font); color: var(--k-ink); }
-.lg__backdrop { position: absolute; inset: 0; background: rgba(10, 14, 24, 0.45); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
+.lg__backdrop { position: absolute; inset: 0; background: rgba(15, 10, 24, 0.45); -webkit-backdrop-filter: blur(7px); backdrop-filter: blur(7px); }
 .lg__dialog {
   position: relative;
   display: flex;

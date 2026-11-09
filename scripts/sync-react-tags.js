@@ -2,7 +2,7 @@
 'use strict';
 
 /* ============================================================
-   Mathorizon — links the built React island into capitole.html
+   Teorema — links the built React island into capitole.html
    ============================================================
    The Capitole page body is a React bundle (see vite.config.ts), but the
    page itself is still a hand-written .html file. Vite content-hashes the

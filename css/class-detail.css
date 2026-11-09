@@ -1285,7 +1285,7 @@ body:has(#classRoot) {
   /* ---- dialogs: a panel with hard edges on a blurred backdrop ---- */
   .confirm-overlay,
   .wz-backdrop {
-    background: rgba(10, 14, 24, 0.45);
+    background: rgba(15, 10, 24, 0.45);
     -webkit-backdrop-filter: blur(7px);
     backdrop-filter: blur(7px);
   }
@@ -1355,7 +1355,7 @@ body:has(#classRoot) {
 }
 
 /* Dark theme: the lit blue is lighter, so the text on it is dark ink (white on it is 3.2:1). */
-html[data-theme="dark"] body:has(#classRoot) { --k-on-fill: #0B1020; }
+html[data-theme="dark"] body:has(#classRoot) { --k-on-fill: #130B20; }
 
 /* Clickable panels and cells reached with the keyboard. */
 body:has(#classRoot) :is(.sumar-upnext__card--clickable, .teme-assignment--clickable, .csim-card--clickable, .catalog-td--clickable, .catalog-th--clickable, .catalog-th--sortable, .catalog-td--rowlabel-clickable, .cd-info-card__detail--clickable):focus-visible {
@@ -1588,9 +1588,9 @@ body:has(#classRoot) > .cd-tp .cd-tp__opt {
   display: block; width: 100%; margin: 0; padding: 9px 14px; border: 0; border-radius: 0; background: none;
   font: inherit; font-size: 0.92rem; text-align: center; color: var(--text); cursor: pointer; transition: background 0.12s;
 }
-body:has(#classRoot) > .cd-tp .cd-tp__opt:hover { background: rgba(58, 107, 173, 0.09); color: var(--text); }
+body:has(#classRoot) > .cd-tp .cd-tp__opt:hover { background: rgba(90, 49, 166, 0.09); color: var(--text); }
 body:has(#classRoot) > .cd-tp .cd-tp__opt--sel,
-body:has(#classRoot) > .cd-tp .cd-tp__opt--sel:hover { background: rgba(58, 107, 173, 0.07); color: var(--accent); font-weight: 700; }
+body:has(#classRoot) > .cd-tp .cd-tp__opt--sel:hover { background: rgba(90, 49, 166, 0.07); color: var(--accent); font-weight: 700; }
 body:has(#classRoot) .cd-ls .cd-ls__f-time input.is-open { border-color: var(--accent); }
 
 /* A tab changes with a fade, and the box eases to the height of the new tab (class-page.js _cdSwapContent). */
@@ -1601,8 +1601,8 @@ body:has(#classRoot) .cd-content--sizing { overflow-y: clip; transition: height 
 
 /* ---- the plate: the header of a class is a drawing plate (a pale, quiet blue with a fine blue grid and a thin technical drawing), so it reads apart from the tabs and the content ----
    Flat colours and hairlines only (the grid is the same hairline technique as the graph paper). The texts and the keys keep their usual look (dark ink on the pale plate, light ink in the dark theme). */
-body:has(#classRoot) { --cd-plate: #D3DEF0; }
-[data-theme="dark"] body:has(#classRoot) { --cd-plate: #1B2438; }
+body:has(#classRoot) { --cd-plate: #DDD6EE; }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: #231C3A; }
 body:has(#classRoot) .cd-header {
   position: relative;
   border-bottom: 1px solid var(--k-panel-edge);

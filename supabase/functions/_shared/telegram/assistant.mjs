@@ -360,7 +360,7 @@ export const menuKeyboard = () => ({ keyboard: MENU.map(r => r.map(text => ({ te
 /* the help: a grid of nine keys, three in a row, every key the same width, so it lines up on any phone */
 export const COMMANDS = [['azi', '📅 Azi'], ['maine', '📅 Mâine'], ['saptamana', '📆 7 zile'], ['grupe', '👥 Grupe'], ['salariu', '💰 Salariu'], ['statistici', '📊 Cifre'], ['inlocuiri', '🔄 Înlocuiri'], ['meet', '💻 Meet'], ['reguli', '📘 Reguli']];
 export const helpKeyboard = () => ({ inline_keyboard: [0, 3, 6].map(i => COMMANDS.slice(i, i + 3).map(([c, text]) => ({ text, callback_data: 'cmd:' + c }))) });
-export const helpText = '🤖 <b>Asistentul Mathorizon</b>';
+export const helpText = '🤖 <b>Asistentul Teorema</b>';
 
 /* what the teacher may type, with or without the slash, and the keys of the menu */
 const WORDS = { azi: 'azi', maine: 'maine', saptamana: 'saptamana', '7 zile': 'saptamana', grupe: 'grupe', 'grupele mele': 'grupe', salariu: 'salariu', statistici: 'statistici', cifre: 'statistici', inlocuiri: 'inlocuiri', meet: 'meet', reguli: 'reguli', ajutor: 'ajutor', help: 'ajutor', meniu: 'ajutor' };

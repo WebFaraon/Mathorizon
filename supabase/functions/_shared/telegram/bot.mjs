@@ -7,7 +7,7 @@
    Function supabase/functions/telegram-bot/index.ts gives it the real ones.
 
    The start question:
-     teacher   /start CODE            -> his Mathorizon account is tied to this chat (the code comes from his profile page, valid 15 minutes)
+     teacher   /start CODE            -> his Teorema account is tied to this chat (the code comes from his profile page, valid 15 minutes)
      bot       "<group> is ready to start. Do you confirm?"   [Confirm] [Do not confirm]
      teacher   Confirm                -> status confirmed: the manager sees it in the console and calls the students for the trial lesson
      teacher   Do not confirm         -> the bot asks for the reason; the next message is the reason: status declined, the manager sees it
@@ -46,14 +46,14 @@ export function chunks(text, limit = MAX_LEN) {
 }
 
 const T = {
-  linked: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău Mathorizon e conectat la acest chat.`,
-  badCode: 'Codul nu mai e valabil (ține 15 minute) sau a fost deja folosit. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și folosește linkul nou.',
-  notLinked: 'Acest chat nu e conectat la un cont Mathorizon. Intră pe Mathorizon, la profilul tău, apasă „Conectează Telegram” și deschide linkul primit.',
+  linked: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău Teorema e conectat la acest chat.`,
+  badCode: 'Codul nu mai e valabil (ține 15 minute) sau a fost deja folosit. Intră pe Teorema, la profilul tău, apasă „Conectează Telegram” și folosește linkul nou.',
+  notLinked: 'Acest chat nu e conectat la un cont Teorema. Intră pe Teorema, la profilul tău, apasă „Conectează Telegram” și deschide linkul primit.',
   linkedManager: name => `✅ <b>Gata${name ? ', ' + esc(name) : ''}!</b> Contul tău de manager e conectat la acest chat.
 Comenzile și alertele pentru manageri nu sunt pornite încă, deocamdată nu primești nimic aici.`,
   managerSoon: 'Contul tău de manager e conectat, dar comenzile și alertele pentru manageri nu sunt pornite încă. Poți opri legătura oricând cu /stop.',
   hello: name => `👋 Salut${name ? ', ' + esc(name) : ''}!`,
-  stopped: 'Am oprit mesajele și am șters legătura cu contul tău. O poți reface oricând din profilul tău de pe Mathorizon.',
+  stopped: 'Am oprit mesajele și am șters legătura cu contul tău. O poți reface oricând din profilul tău de pe Teorema.',
   unknown: 'Nu am înțeles. Alege o comandă:',
   already: 'Ai răspuns deja la această întrebare.',
   notYours: 'Întrebarea aceasta nu e pentru acest cont.',

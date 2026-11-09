@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Theme Toggle (light / dark)
+   Teorema — Theme Toggle (light / dark)
    Loaded first in <head> to avoid flash of wrong theme.
    ============================================================ */
 (function () {

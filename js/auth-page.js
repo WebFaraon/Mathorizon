@@ -1,5 +1,5 @@
 /* ============================================================
-   Mathorizon — Auth Page (auth.html)
+   Teorema — Auth Page (auth.html)
    Standalone — does NOT depend on auth.js timing
    The look is the calculator world (css/auth-page.css); this file holds
    the behaviour: Supabase sign-in / sign-up / reset, Google, the role,

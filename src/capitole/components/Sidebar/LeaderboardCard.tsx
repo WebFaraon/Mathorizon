@@ -11,12 +11,12 @@ interface LeaderboardCardProps {
 }
 
 /**
- * Every student on Mathorizon, ranked by lifetime XP (see hooks/useLeaderboard.ts
+ * Every student on Teorema, ranked by lifetime XP (see hooks/useLeaderboard.ts
  * and supabase/migrations/..._xp_leaderboard_all_students.sql — it's a real,
  * complete roster, not a top-N cut or a placeholder list). Not "who's online
  * right now": the site has no site-wide presence tracking, only per-session
  * Realtime channels (exam/whiteboard) — this is the nearest real signal to
- * "students doing well on Mathorizon" that exists today.
+ * "students doing well on Teorema" that exists today.
  *
  * A section inside RightColumn's shared .cap-sidebar-panel now, not its own
  * bordered card — see MissionsCard's own comment for why. --cap-card-color
