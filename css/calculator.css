@@ -3098,12 +3098,12 @@ body:has(#setupView:not([style*="none"])) {
 .st-tips__list {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 0 32px;
+  gap: 16px 18px;
   margin: 0;
   padding: 0;
   list-style: none;
 }
-.st-tip { display: flex; flex-direction: column; gap: 3px; padding: 13px 0; border-top: 1px solid var(--k-rule); }
+.st-tip { display: flex; flex-direction: column; gap: 6px; padding: 14px 16px 15px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); }
 .st-tip__title { display: flex; align-items: center; gap: 9px; font-size: 0.9rem; font-weight: 800; }
 .st-tip__title svg { flex-shrink: 0; width: 16px; height: 16px; color: var(--k-blue); }
 .st-tip__desc { padding-left: 25px; font-size: 0.84rem; line-height: 1.45; color: var(--k-ink-2); }
@@ -4524,7 +4524,7 @@ body:has(#classesRoot) {
 .cl-sect__h h2 { margin: 0; font-size: 1.3rem; font-weight: 800; letter-spacing: -0.015em; }
 .cl-sect__n { font-size: 0.84rem; font-weight: 700; color: var(--k-ink-3); }
 .cl-sect__sub { margin: 0; max-width: 72ch; font-size: 0.92rem; line-height: 1.5; color: var(--k-ink-2); }
-.cl-sect__none { margin: 0; padding: 22px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; color: var(--k-ink-3); font-size: 0.92rem; }
+.cl-sect__none { margin: 0; padding: 22px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); color: var(--k-ink-3); font-size: 0.92rem; }
 
 .rg-tools { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px 24px; }
 .rg-tools .cl-bar { margin: 0; }
@@ -4903,7 +4903,7 @@ body.lg-open { overflow: hidden; }
       Lime face, dark ink (white on lime is 2.3:1), a darker green edge.
    2. LEDs: a lit square (the open tab in the navbar, a type that is armed,
       a switch that is on).
-   3. The marker under the accent line of a page title, drawn once.
+   3. The "you are here" plate: a small lime plate (the "tu" on the leaderboard).
    4. The browser's own surfaces: text selection, caret, scrollbars.
    --k-go / --k-go-edge / --k-go-ink hold the key; --k-lime the raw green.
    ============================================================ */
@@ -4969,14 +4969,79 @@ body:has(#classRoot) .cd-meet__btn:hover {
 #nav-root .nav__mobile-link--active { position: relative; }
 #nav-root .nav__mobile-link--active::after { position: absolute; right: 16px; top: 50%; margin-top: -3px; }
 
-/* 3. The marker under an accent line, drawn once after the line has risen */
-.ld-title__line--accent > span {
-  background: linear-gradient(var(--k-lime), var(--k-lime)) no-repeat 0 90% / 100% 0.18em;
+/* ---- Lit keys carry a lime LED ----
+   Every key that is pressed in (the open tab, the chosen mode, an active filter)
+   has a small lime square lit in its top right corner, the same one the open
+   navbar tab has. One rule, one place; it never changes a key's size. */
+.cap-grade-switch__option--active,
+.cap-tabbar__btn--active,
+body:has(#catHeader) .filter-bar .filter-chip.active,
+.cd-tab--active,
+.ld-mode.is-on,
+.cl-key--square.is-on,
+.cl-chip.is-on,
+.ap-mode--on,
+.ap-role--on,
+#setupView .st-method__key.selected,
+.an-key[aria-pressed="true"] { position: relative; }
+.cap-grade-switch__option--active::after,
+.cap-tabbar__btn--active::after,
+body:has(#catHeader) .filter-bar .filter-chip.active::after,
+.cd-tab--active::after,
+.ld-mode.is-on::after,
+.cl-key--square.is-on::after,
+.cl-chip.is-on::after,
+.ap-mode--on::after,
+.ap-role--on::after,
+#setupView .st-method__key.selected::after,
+.an-key[aria-pressed="true"]::after {
+  content: '';
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--k-lime);
+  box-shadow: 0 0 0 1px rgba(30, 60, 0, 0.5);
+  pointer-events: none;
 }
-@media (prefers-reduced-motion: no-preference) {
-  .ld-title__line--accent > span { animation: ld-rise 0.75s 0.09s cubic-bezier(0.16, 1, 0.3, 1) backwards, k-mark 0.7s 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+
+/* The current page in the breadcrumb of a chapter */
+body:has(#catHeader) .subcat-bc__current { display: inline-flex; align-items: center; gap: 9px; }
+body:has(#catHeader) .subcat-bc__current::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--k-lime);
+  box-shadow: 0 0 0 1px rgba(30, 60, 0, 0.5);
 }
-@keyframes k-mark { from { background-size: 0% 0.18em; } }
+
+/* ---- The power LED on every main display ----
+   A real calculator has a small light on its body. Each big bezeled display
+   has a lime one set into the lower lip of its frame. */
+.ld-lcd { position: relative; }
+.cap-lcd::after,
+.ch-lcd::after,
+.ld-lcd::after,
+.st-status::after,
+.cl-status::after,
+.ap-lcd::after,
+.an-lcd--big::after,
+.an-lcd--level::after,
+.an-lcd--res::after {
+  content: '';
+  position: absolute;
+  right: 28px;
+  bottom: -11px;
+  width: 10px;
+  height: 4px;
+  border-radius: 1px;
+  background: var(--k-lime);
+  box-shadow: 0 0 0 1px rgba(20, 40, 0, 0.6);
+  pointer-events: none;
+}
 
 /* 4. Browser surfaces */
 html { scrollbar-color: color-mix(in srgb, var(--k-blue) 40%, var(--k-panel-edge)) var(--k-bg); }

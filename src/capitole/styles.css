@@ -75,16 +75,6 @@
   color: var(--k-blue);
 }
 
-/* The marker under the accent line (brand green), drawn once after the line rises. */
-.cap-hero__line--accent > span {
-  background: linear-gradient(var(--k-lime), var(--k-lime)) no-repeat 0 90% / 100% 0.18em;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cap-hero__line--accent > span {
-    animation: cap-line-up 0.7s 90ms cubic-bezier(0.16, 1, 0.3, 1) both, cap-mark 0.7s 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards;
-  }
-}
-@keyframes cap-mark { from { background-size: 0% 0.18em; } }
 
 /* Each line of the title rises out of its own mask on load. */
 .cap-hero__line {
@@ -1022,11 +1012,15 @@ a.cap-key__face:focus-visible {
 
 .cap-leaderboard__you {
   margin-left: 6px;
+  padding: 2px 6px 1px;
+  border-radius: 2px;
+  background: var(--k-lime);
+  box-shadow: 0 2px 0 0 var(--k-go-edge);
   font-size: 0.6rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
-  color: var(--k-blue);
+  color: var(--k-go-ink);
 }
 
 .cap-leaderboard__xp {

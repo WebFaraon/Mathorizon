@@ -1379,7 +1379,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 .sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: minmax(0, 1.3fr) 150px minmax(0, 1fr) 150px 190px; }
 .sumar-roster__reg { width: 100%; min-width: 0; padding: 8px 11px; border: 1px solid var(--k-panel-edge); border-radius: 3px; background: var(--k-bg); color: var(--k-ink); font: inherit; font-size: 0.86rem; }
 .sumar-roster__reg:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 2px; }
-.sumar-roster__noacc { display: flex; align-items: flex-start; gap: 9px; margin: 10px 0 0; padding: 10px 13px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
+.sumar-roster__noacc { display: flex; align-items: flex-start; gap: 9px; margin: 10px 0 0; padding: 10px 13px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
 .sumar-roster__noacc svg { flex: none; margin-top: 2px; }
 @media (max-width: 760px) {
   .sumar-roster.sumar-roster--reg .sumar-roster__row { grid-template-columns: 1fr; }
@@ -1426,7 +1426,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
   .sumar-loose__row .sumar-roster__reg { grid-column: 1 / -1; }
 }
 
-.catalog-note { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 14px; padding: 10px 13px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
+.catalog-note { display: flex; align-items: flex-start; gap: 9px; margin: 0 0 14px; padding: 10px 13px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); font-size: 0.86rem; line-height: 1.45; color: var(--k-ink-2); }
 .catalog-note svg { flex: none; margin-top: 2px; }
 
 /* The Google Meet room: one key in the header, the same for the teacher and the students */
@@ -1458,7 +1458,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
   content: ''; display: inline-block; width: 9px; height: 9px; margin-right: 8px; border-radius: 50%; background: var(--k-green);
   box-shadow: 0 0 0 0 color-mix(in srgb, var(--k-green) 55%, transparent); animation: cd-meet-pulse 1.8s ease-out infinite;
 }
-.cd-meet--no_link .cd-meet__note { padding: 9px 12px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; }
+.cd-meet--no_link .cd-meet__note { padding: 9px 12px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); }
 @keyframes cd-meet-pulse { 70% { box-shadow: 0 0 0 9px transparent; } 100% { box-shadow: 0 0 0 0 transparent; } }
 @media (prefers-reduced-motion: reduce) { .cd-meet--open .cd-meet__note::before { animation: none; } }
 .cd-meet__note:empty { display: none; }
@@ -1495,7 +1495,7 @@ body:has(.msg-panel) .scroll-top-btn { display: none; }
 
 .cd-ls.classes-modal__dialog { max-width: 620px; }
 .cd-ls__lede { margin: 0 0 14px; font-size: 0.9rem; line-height: 1.5; color: var(--k-ink-2); }
-.cd-ls__none { margin: 0 0 14px; padding: 14px; border: 1px dashed var(--k-panel-edge); border-radius: 3px; font-size: 0.9rem; color: var(--k-ink-2); }
+.cd-ls__none { margin: 0 0 14px; padding: 14px; border: 1px solid var(--k-off-border); border-radius: 3px; background: var(--k-off-face); box-shadow: 0 3px 0 0 var(--k-off-edge); font-size: 0.9rem; color: var(--k-ink-2); }
 .cd-ls__list { margin: 0 0 16px; padding: 0; list-style: none; border: 1px solid var(--k-panel-edge); border-radius: 3px; }
 .cd-ls__row { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: center; gap: 0 14px; padding: 12px 14px; border-top: 1px solid var(--k-panel-edge); border-left: 4px solid transparent; }
 .cd-ls__row:first-child { border-top: 0; }

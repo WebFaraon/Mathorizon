@@ -133,6 +133,12 @@
     };
     const none = document.getElementById('anNone');
     if (none) none.onclick = () => { selectedSubcats.clear(); refreshChapters(); updateSummary(); };
+    const fold = document.getElementById('anFold');
+    if (fold) fold.onclick = () => {
+      const open = fold.dataset.state !== 'open';
+      document.querySelectorAll('.an-chap:not(.an-chap--soon)').forEach(sec => setChapterOpen(sec, open));
+    };
+    updateFoldAll();
 
     updateSummary();
     bootDisplay();
@@ -180,42 +186,73 @@
     return out;
   }
 
+  /* Chapters are accordions: open by default, a student who does not need one
+     folds it away. The head still shows what is chosen (a count, a line and
+     one segment per type), so nothing is hidden when it is folded. */
+  const openCats = new Set(['algebra', 'geometrie']);
+
+  function updateFoldAll() {
+    const b = document.getElementById('anFold');
+    if (!b) return;
+    const allOpen = BM.CATEGORIES.filter(c => UNLOCKED_CATS.has(c.id)).every(c => openCats.has(c.id));
+    b.dataset.state = allOpen ? 'open' : 'closed';
+    const label = b.querySelector('[data-label]');
+    if (label) label.textContent = allOpen ? 'Restrânge tot' : 'Extinde tot';
+  }
+
+  function setChapterOpen(sec, open) {
+    sec.classList.toggle('an-chap--closed', !open);
+    const t = sec.querySelector('.an-fold');
+    if (t) {
+      t.setAttribute('aria-expanded', String(open));
+      t.setAttribute('aria-label', (open ? 'Restrânge ' : 'Extinde ') + sec.dataset.name);
+    }
+    if (open) openCats.add(sec.dataset.cat); else openCats.delete(sec.dataset.cat);
+    updateFoldAll();
+  }
+
   function renderChapterBlock(cat, i) {
     const locked = !UNLOCKED_CATS.has(cat.id);
     const sec = document.createElement('section');
     sec.className = 'an-chap' + (locked ? ' an-chap--soon' : '');
     sec.dataset.cat = cat.id;
+    sec.dataset.name = cat.name;
     sec.id = `cat-item-${cat.id}`;
     sec.style.setProperty('--i', i);
 
     if (locked) {
       sec.innerHTML = `
         <header class="an-chap__head">
-          <span class="an-tile">${cat.symbol}</span>
-          <div><h3 class="an-chap__name">${BM.esc(cat.name)}</h3></div>
+          <span class="an-tile"><span class="an-tile__s">${cat.symbol}</span></span>
+          <div class="an-chap__txt"><h3 class="an-chap__name">${BM.esc(cat.name)}</h3></div>
           <span class="an-soon">${icon('lock', { size: 16 })} În curând</span>
         </header>`;
       sec.onclick = () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info');
       return sec;
     }
 
+    const open = openCats.has(cat.id);
+    if (!open) sec.classList.add('an-chap--closed');
     const total = BM.EXERCISES.filter(e => e.categoryId === cat.id).length;
+    sec.dataset.total = total;
     sec.innerHTML = `
       <header class="an-chap__head">
-        <span class="an-tile">${cat.symbol}</span>
-        <div>
+        <span class="an-tile"><span class="an-tile__s">${cat.symbol}</span></span>
+        <div class="an-chap__txt">
           <h3 class="an-chap__name">${BM.esc(cat.name)}</h3>
-          <p class="an-chap__meta">${cat.subcategories.length} tipuri · ${total} exerciții</p>
+          <p class="an-chap__meta" data-meta></p>
+          <div class="an-picks" data-picks aria-hidden="true">${cat.subcategories.map(() => '<i></i>').join('')}</div>
         </div>
-        <div class="an-chap__right">
-          <span class="an-count" data-count>0/${cat.subcategories.length}</span>
-          <div class="an-chap__acts">
-            <button type="button" class="an-text" data-act="all">Tot</button>
-            <button type="button" class="an-text" data-act="none">Nimic</button>
-          </div>
-        </div>
+        <span class="an-count" data-count>0/${cat.subcategories.length}</span>
+        <button type="button" class="an-key an-fold" aria-expanded="${open}" aria-label="${open ? 'Restrânge' : 'Extinde'} ${BM.esc(cat.name)}">${icon('chevron-down', { size: 20 })}</button>
       </header>
-      <div class="an-chap__grid"></div>`;
+      <div class="an-chap__body"><div class="an-chap__inner">
+        <div class="an-chap__bar">
+          <button type="button" class="an-key an-key--sm" data-act="all">${icon('check', { size: 16 })} Alege tot</button>
+          <button type="button" class="an-key an-key--sm" data-act="none">${icon('x', { size: 16 })} Golește</button>
+        </div>
+        <div class="an-chap__grid"></div>
+      </div></div>`;
 
     const grid = sec.querySelector('.an-chap__grid');
     cat.subcategories.forEach((sub, j) => {
@@ -225,13 +262,14 @@
       btn.dataset.id = sub.id;
       btn.style.setProperty('--j', Math.min(j, 16));
       btn.innerHTML = `
-        <span class="an-sub__sym">${sub.symbol}</span>
+        <span class="an-sub__sym"><span>${sub.symbol}</span></span>
         <span class="an-sub__name">${BM.esc(sub.name)}</span>
         <span class="an-sub__n" title="Exerciții disponibile cu filtrul curent de raritate">0</span>
         <span class="an-sub__led" aria-hidden="true"></span>`;
       btn.onclick = () => toggleSubcat(sub.id);
       grid.appendChild(btn);
     });
+    sec.querySelector('.an-chap__head').onclick = () => setChapterOpen(sec, sec.classList.contains('an-chap--closed'));
     sec.querySelector('[data-act="all"]').onclick = () => {
       cat.subcategories.forEach(s => { if (subcatExerciseCount(s) > 0) selectedSubcats.add(s.id); });
       refreshChapters(); updateSummary();
@@ -248,19 +286,28 @@
       if (!UNLOCKED_CATS.has(cat.id)) return;
       const sec = document.getElementById(`cat-item-${cat.id}`);
       if (!sec) return;
-      let sel = 0;
-      cat.subcategories.forEach(sub => {
+      let sel = 0, picked = 0;
+      const picks = sec.querySelectorAll('[data-picks] i');
+      cat.subcategories.forEach((sub, j) => {
         const btn = sec.querySelector(`.an-sub[data-id="${sub.id}"]`);
         if (!btn) return;
         const n = subcatExerciseCount(sub);
         const on = selectedSubcats.has(sub.id) && n > 0;
-        if (on) sel++;
+        if (on) { sel++; picked += n; }
         btn.disabled = n === 0;
         btn.setAttribute('aria-pressed', on ? 'true' : 'false');
         btn.querySelector('.an-sub__n').textContent = n;
+        if (picks[j]) { picks[j].classList.toggle('on', on); picks[j].classList.toggle('off', n === 0); }
       });
       const c = sec.querySelector('[data-count]');
       if (c) c.textContent = `${sel}/${cat.subcategories.length}`;
+      const meta = sec.querySelector('[data-meta]');
+      if (meta) {
+        meta.textContent = sel > 0
+          ? `${sel} din ${cat.subcategories.length} tipuri alese · ${picked} exerciții`
+          : `${cat.subcategories.length} tipuri · ${sec.dataset.total} exerciții`;
+        meta.classList.toggle('is-on', sel > 0);
+      }
     });
   }
 
@@ -381,7 +428,7 @@
     const subIds = effectiveSubcats();
 
     const blank = msg => {
-      setText('anFig', '--'); setText('anMin', '--'); setText('anSubs', subIds.length); setText('anBonus', '--'); setText('anPool', 0);
+      setText('anFig', '0'); setText('anMin', '--'); setText('anSubs', subIds.length); setText('anBonus', '--'); setText('anPool', 0);
       showSummary(msg, true);
       startBtn.disabled = true;
       setAnnunciators(false);

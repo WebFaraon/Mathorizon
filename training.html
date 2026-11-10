@@ -38,11 +38,23 @@
         <div class="an-main__in">
 
           <header class="an-head">
-            <h1 class="an-title">
-              <span class="an-title__mask"><span class="an-title__l">Antrenament</span></span>
-              <span class="an-title__mask"><span class="an-title__l an-title__l--acc"><span>pe măsura ta</span></span></span>
-            </h1>
-            <p class="an-lede">Alegi tipurile de exerciții, raritatea și cronometrul. Rezolvi carte după carte, iar fiecare răspuns bun îți aduce XP.</p>
+            <div class="an-head__txt">
+              <h1 class="an-title"><span class="an-title__mask"><span class="an-title__l">Antrenament <span class="an-title__acc">pe măsura ta</span></span></span></h1>
+              <p class="an-lede">Alegi tipurile de exerciții, raritatea și cronometrul. Rezolvi carte după carte, iar fiecare răspuns bun îți aduce XP.</p>
+            </div>
+
+            <!-- The level is what you come back for: it gets the biggest display on the page. -->
+            <div class="an-lcd an-lcd--level" role="group" aria-label="Nivelul tău" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament (100 XP pe nivel)">
+              <div class="an-lv__fig"><span class="an-lv__lbl">Nivel</span><b data-training-level>1</b></div>
+              <div class="an-lv__main">
+                <div class="an-lvl__bar an-lvl__bar--xl"><i data-training-level-fill style="width:0%"></i></div>
+                <div class="an-lv__row"><span data-training-level-xp>0 / 100 XP</span><span class="an-lv__next" data-training-level-next></span></div>
+                <dl class="an-lv__stats">
+                  <div><dt>XP total</dt><dd data-training-total-xp>0</dd></div>
+                  <div><dt>Record serie</dt><dd data-training-best-streak>0</dd></div>
+                </dl>
+              </div>
+            </div>
           </header>
 
           <!-- The display reads the session as you build it. -->
@@ -71,22 +83,13 @@
             <p class="an-lcd__line" id="configSummaryText">Alege cel puțin un tip de exerciții.</p>
           </div>
 
-          <div class="an-me">
-            <div class="an-chip" title="XP câștigat din răspunsuri corecte în Antrenament, 100 XP pe nivel"><b data-training-total-xp>0</b><span>XP total</span></div>
-            <div class="an-chip" title="Cel mai lung șir de răspunsuri corecte la rând, din orice sesiune"><b data-training-best-streak>0</b><span>Record serie</span></div>
-            <div class="an-lvl" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament">
-              <span class="an-lvl__t">Nivel <span data-training-level>1</span></span>
-              <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
-              <span class="an-lvl__xp" data-training-level-xp>0 / 100 XP</span>
-            </div>
-          </div>
-
           <section class="an-sect">
             <header class="an-sect__head">
               <h2>Ce vrei să exersezi</h2>
               <div class="an-sect__acts">
-                <button type="button" class="an-text" id="anAll">Alege tot</button>
-                <button type="button" class="an-text" id="anNone">Golește</button>
+                <button type="button" class="an-key an-key--sm" id="anAll"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Alege tot</button>
+                <button type="button" class="an-key an-key--sm" id="anNone"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg> Golește</button>
+                <button type="button" class="an-key an-key--sm" id="anFold" data-state="open"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg> <span data-label>Restrânge tot</span></button>
               </div>
             </header>
             <div class="an-chapters" id="chapterList"><!-- built by js/training.js --></div>

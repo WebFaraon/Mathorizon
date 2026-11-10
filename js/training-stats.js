@@ -67,6 +67,9 @@ window.BM = window.BM || {};
     document.querySelectorAll('[data-training-level-xp]').forEach(el => {
       el.textContent = `${level.xpIntoLevel} / ${level.xpForNextLevel} XP`;
     });
+    document.querySelectorAll('[data-training-level-next]').forEach(el => {
+      el.textContent = `încă ${level.xpForNextLevel - level.xpIntoLevel} XP până la nivelul ${level.level + 1}`;
+    });
     document.querySelectorAll('[data-training-level-fill]').forEach(el => {
       el.style.width = `${Math.round(level.pct * 100)}%`;
     });
