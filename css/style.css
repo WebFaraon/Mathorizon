@@ -19487,11 +19487,14 @@ body:has(#root) {
 #nav-root .nav__logo { height: 46px; width: auto; filter: none; }
 #nav-root .nav__name { display: none; }
 @media (max-width: 640px) {
-  #nav-root .nav__brand { margin-left: 8px; }
+  #nav-root .nav__brand { margin-left: 18px; }
   #nav-root .nav__logo { height: 30px; }
 }
 @media (max-width: 420px) {
   #nav-root .nav__logo { height: 26px; }
+}
+@media (max-width: 350px) {
+  #nav-root .nav__logo { height: 22px; }
 }
 
 #nav-root .nav__links { gap: 12px; }
