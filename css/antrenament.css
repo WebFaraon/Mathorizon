@@ -308,6 +308,7 @@ html[data-theme="dark"] .an-key--danger, html[data-theme="dark"] .an-key--danger
   height: 100%;
   width: 0;
   background: var(--k-orange);
+  contain: layout paint;
   transition: width 0.5s steps(20, end);
 }
 .an-lvl__bar::after {
@@ -1035,7 +1036,7 @@ html[data-theme="dark"] .an-card--bad .an-res-tile { color: #1A0905; }
 .an-res__keys .an-key { width: 100%; height: 48px; }
 @media (prefers-reduced-motion: no-preference) {
   .an-res .an-plate { animation: an-deal 0.5s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  .an-res .an-plate__owl { animation: an-owl 0.7s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+  .an-res .an-plate__owl { animation: an-owl 0.7s 0.3s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
   .an-res .an-lcd--res { animation: an-power 0.62s 0.2s steps(6, end) backwards; }
   .an-res .an-tape { animation: an-deal 0.5s 0.15s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
   .an-res .an-tape__row { animation: an-fade 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; animation-delay: calc(var(--i, 0) * 60ms + 400ms); }

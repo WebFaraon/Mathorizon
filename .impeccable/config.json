@@ -312,6 +312,24 @@
         ],
         "createdAt": "2026-10-09T12:03:37.554Z",
         "reason": "assistant: the graph-paper ground is the calculator world's own ground (DESIGN.md Flat Chassis Rule)"
+      },
+      {
+        "rule": "border-accent-on-rounded",
+        "value": "*",
+        "files": [
+          "css/antrenament.css"
+        ],
+        "createdAt": "2026-11-10T21:28:14.140Z",
+        "reason": "design system: chapter plates and the exercise dialog carry a 4-6px legend top rule on 3px corners, same as the category modal; decided in this round, not asked of the user"
+      },
+      {
+        "rule": "layout-transition",
+        "value": "*",
+        "files": [
+          "css/antrenament.css"
+        ],
+        "createdAt": "2026-11-10T21:28:14.224Z",
+        "reason": "the 12px level bar fills in 20 stepped frames; its width is written by shared js/training-stats.js, the bar is contained (layout paint), cost is negligible; decided in this round, not asked of the user"
       }
     ]
   }
