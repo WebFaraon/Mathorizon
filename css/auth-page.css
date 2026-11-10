@@ -282,7 +282,7 @@ body.ap [hidden] { display: none !important; }
 .ap-chap__r:hover .ap-chap__strip > i { filter: brightness(1.12); }
 /* not on the platform yet: printed flat, a dashed plate, as on the Capitole keypad */
 .ap-chap__r--soon .ap-chap__n, .ap-chap__r--soon .ap-chap__sym { color: var(--ap-side-ink-2); opacity: 0.8; }
-.ap-chap__soon { padding: 2px 6px; border: 1px dashed color-mix(in srgb, var(--ap-side-ink) 45%, transparent); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ap-side-ink-2); }
+.ap-chap__soon { padding: 2px 6px; border: 1px solid color-mix(in srgb, var(--ap-side-ink) 30%, transparent); background: color-mix(in srgb, var(--ap-side-ink) 10%, transparent); box-shadow: 0 2px 0 0 color-mix(in srgb, #000 28%, transparent); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ap-side-ink-2); }
 
 .ap-feats { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; max-width: 460px; }
 .ap-feats li { display: flex; align-items: flex-start; gap: 12px; font-size: 0.92rem; line-height: 1.45; color: var(--ap-side-ink-2); }
@@ -572,10 +572,10 @@ body.ap [hidden] { display: none !important; }
 .ap-legal a:hover { color: var(--k-blue); }
 .ap-google { width: 100%; height: 46px; }
 /* the provider is not on in this project yet: printed flat, as the not-yet-available things are elsewhere in the world */
-.ap-google.is-off, .ap-google.is-off:hover { background: transparent; border-style: dashed; box-shadow: none; color: var(--k-ink-3); filter: none; cursor: not-allowed; }
+.ap-google.is-off, .ap-google.is-off:hover { background: var(--k-off-face); border-color: var(--k-off-border); box-shadow: 0 3px 0 0 var(--k-off-edge); color: var(--k-ink-3); filter: none; cursor: not-allowed; }
 .ap-google.is-off:active { transform: none; }
 .ap-google.is-off svg { opacity: 0.45; }
-.ap-google.is-off::after { content: 'în curând'; padding: 2px 6px; border: 1px dashed var(--k-panel-edge); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
+.ap-google.is-off::after { content: 'în curând'; padding: 2px 6px; border: 1px solid var(--k-off-border); background: var(--k-key); box-shadow: 0 2px 0 0 var(--k-off-edge); border-radius: 2px; font-size: 0.6rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; }
 .ap-google.is-loading { opacity: 0.7; cursor: progress; }
 
 /* ================= motion: only when the person allows it ================= */

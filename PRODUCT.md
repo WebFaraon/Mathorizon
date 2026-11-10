@@ -33,7 +33,7 @@ Used on laptops at home and heavily on phones. Students return daily (streaks, d
 ## Brand Commitments
 
 - Name: Teorema (centru educațional). The logo is the owl-as-O wordmark in `assets/images/teorema-*.png`; brand colors are violet #3F236E and green #7CB800.
-- Blue stays the primary brand color.
+- Violet (#3F236E, deeper for the chrome, #5A31A6 for keys) is the primary brand color; green (#7CB800) is the GO key and the LEDs. Blue is gone, except the Rar rarity.
 - Dark theme must be supported and look intentional.
 
 ## Evidence on Hand

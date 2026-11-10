@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="google" content="notranslate">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Antrenament Rapid — Teorema</title>
+  <title>Antrenament | Teorema</title>
   <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
   <link rel="manifest" href="/manifest.json">
   <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
@@ -15,180 +15,173 @@
   <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/calculator.css">
+  <link rel="stylesheet" href="css/antrenament.css">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
 </head>
-<body class="training-page">
+<body class="an an-boot">
 
   <!-- NAVBAR -->
   <nav class="nav" id="nav-root"></nav>
   <script src="js/icons.js"></script>
   <script src="js/nav-loader.js"></script>
 
-  <!-- LAYOUT: single surface, two states (config <-> HUD), toggled via
-       .training-layout--session on the root (see js/training.js). -->
-  <div class="training-layout" id="trainingLayout">
+  <!-- One page, two states: the setup (a keypad of chapters + the control rail)
+       and the session (a display bar + a board of cards, then the results).
+       js/training.js toggles them through #configContent / #trainingHud. -->
+  <main class="an-page" id="trainingLayout">
 
-    <!-- The panel holds both states (config <-> HUD), toggled via
-         js/training.js's collapseConfigPanel()/expandConfigPanel(). It carries
-         no visual styling of its own anymore — state 1 is a full hero page
-         (.tr-setup-page, same two-column pattern as bac.html's setup screen:
-         dark hero left with title/stats/picks, structured white panel right),
-         state 2 is the slim HUD bar. -->
-    <div class="training-panel" id="configPanel">
+    <!-- ===== SETUP ===== -->
+    <div class="an-setup" id="configContent">
+      <div class="an-main">
+        <div class="an-main__in">
 
-      <!-- ===== Config body (state 1) — mirrors bac.html's .bac-setup-page ===== -->
-      <div class="training-config-content" id="configContent">
-        <div class="tr-setup-page">
+          <header class="an-head">
+            <h1 class="an-title">
+              <span class="an-title__mask"><span class="an-title__l">Antrenament</span></span>
+              <span class="an-title__mask"><span class="an-title__l an-title__l--acc"><span>pe măsura ta</span></span></span>
+            </h1>
+            <p class="an-lede">Alegi tipurile de exerciții, raritatea și cronometrul. Rezolvi carte după carte, iar fiecare răspuns bun îți aduce XP.</p>
+          </header>
 
-          <!-- LEFT: hero — identity, lifetime stats, the actual picks, start CTA -->
-          <div class="tr-setup-left">
-            <div class="tr-setup-deco" aria-hidden="true">
-              <span style="--sz:130px;--t:4%;--l:66%">x²</span>
-              <span style="--sz:100px;--t:52%;--l:4%">∑</span>
-              <span style="--sz:150px;--t:64%;--l:72%">√</span>
-              <span style="--sz:90px;--t:14%;--l:20%">π</span>
-              <span style="--sz:110px;--t:78%;--l:32%">Δ</span>
-              <span style="--sz:75px;--t:30%;--l:80%">∞</span>
+          <!-- The display reads the session as you build it. -->
+          <div class="an-lcd an-lcd--big" id="anLcd" role="status" aria-live="polite">
+            <div class="an-ann-row">
+              <span class="an-ann is-on">XII</span>
+              <span class="an-ann" data-ann="comun">C</span>
+              <span class="an-ann" data-ann="rar">R</span>
+              <span class="an-ann" data-ann="epic">E</span>
+              <span class="an-ann" data-ann="legendar">L</span>
+              <span class="an-ann" data-ann="timer">CRONO</span>
+              <span class="an-ann" data-ann="written">SCRIS</span>
+              <span class="an-ann" data-ann="mcq">VARIANTE</span>
+              <span class="an-ann" data-ann="unsolved">NEREZOLVATE</span>
+              <span class="an-ann an-ann--go" data-ann="go">GATA</span>
             </div>
+            <div class="an-lcd__row">
+              <div class="an-lcd__fig"><b id="anFig">10</b><span class="an-lcd__unit">exerciții în sesiune</span></div>
+              <dl class="an-lcd__meta">
+                <div><dt>Durată aprox.</dt><dd id="anMin">15 min</dd></div>
+                <div><dt>Tipuri</dt><dd id="anSubs">0</dd></div>
+                <div><dt>Bonus XP</dt><dd id="anBonus">0%</dd></div>
+                <div><dt>În bancă</dt><dd id="anPool">0</dd></div>
+              </dl>
+            </div>
+            <p class="an-lcd__line" id="configSummaryText">Alege cel puțin un tip de exerciții.</p>
+          </div>
 
-            <div class="tr-setup-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></svg> Sesiune adaptată ție</div>
-            <h1 class="tr-setup-title">Antrenament <em>Rapid</em></h1>
-            <div class="tr-setup-rule"></div>
-            <p class="tr-setup-desc">Alege câte exerciții, ce raritate și din ce capitole, apoi generează un mini-test adaptat ție.</p>
+          <div class="an-me">
+            <div class="an-chip" title="XP câștigat din răspunsuri corecte în Antrenament, 100 XP pe nivel"><b data-training-total-xp>0</b><span>XP total</span></div>
+            <div class="an-chip" title="Cel mai lung șir de răspunsuri corecte la rând, din orice sesiune"><b data-training-best-streak>0</b><span>Record serie</span></div>
+            <div class="an-lvl" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament">
+              <span class="an-lvl__t">Nivel <span data-training-level>1</span></span>
+              <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
+              <span class="an-lvl__xp" data-training-level-xp>0 / 100 XP</span>
+            </div>
+          </div>
 
-            <div class="tr-setup-chips">
-              <div class="tr-chip tr-chip--amber" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament">
-                <div class="tr-chip__val" data-training-level>1</div>
-                <div class="tr-chip__lbl">Nivel</div>
+          <section class="an-sect">
+            <header class="an-sect__head">
+              <h2>Ce vrei să exersezi</h2>
+              <div class="an-sect__acts">
+                <button type="button" class="an-text" id="anAll">Alege tot</button>
+                <button type="button" class="an-text" id="anNone">Golește</button>
               </div>
-              <div class="tr-chip tr-chip--blue" title="XP câștigat din răspunsuri corecte în Antrenament — 100 XP pe nivel">
-                <div class="tr-chip__val" data-training-total-xp>0</div>
-                <div class="tr-chip__lbl">XP total</div>
-              </div>
-              <div class="tr-chip tr-chip--teal" title="Cel mai lung șir de răspunsuri corecte la rând, din orice sesiune">
-                <div class="tr-chip__val" data-training-best-streak>0</div>
-                <div class="tr-chip__lbl">Streak</div>
-              </div>
-            </div>
+            </header>
+            <div class="an-chapters" id="chapterList"><!-- built by js/training.js --></div>
+          </section>
 
-            <div class="tr-setup-group">
-              <div class="config-label">Număr de exerciții</div>
-              <div class="config-chips" id="countChips"></div>
-            </div>
+        </div>
+      </div>
 
-            <div class="tr-setup-group">
-              <div class="config-label">Dificultate</div>
-              <div class="config-chips" id="diffChips"></div>
-            </div>
-
-            <div class="tr-setup-group">
-              <div class="config-label">Cronometru</div>
-              <div class="config-chips" id="timerChips"></div>
-            </div>
-
-            <button id="startBtn" class="tr-start-btn" onclick="startTraining()">
-              <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 15v5s3.03-.55 4-2c1.08-1.62 0-5 0-5"></path><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2c.71-.84.7-2.13-.09-2.91a2.18 2.18 0 0 0-2.91-.09"></path><path d="M9 12a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.4 22.4 0 0 1-4 2z"></path><path d="M9 12H4s.55-3.03 2-4c1.62-1.08 5 .05 5 .05"></path></svg> Începe Antrenamentul
+      <aside class="an-rail" aria-label="Setările sesiunii">
+        <div class="an-rail__in">
+          <div class="an-settings">
+            <h2 class="an-rail__title">Setările sesiunii</h2>
+            <div class="an-field"><div class="an-field__lbl">Număr de exerciții</div><div class="an-keys" id="countChips"></div></div>
+            <div class="an-field"><div class="an-field__lbl">Raritate</div><div class="an-keys" id="diffChips"></div></div>
+            <div class="an-field"><div class="an-field__lbl">Cronometru</div><div class="an-keys an-keys--col" id="timerChips"></div></div>
+            <div class="an-field"><div class="an-field__lbl">Tip de răspuns</div><div class="an-keys" id="typeChips"></div></div>
+            <div class="an-field" id="extraSettings"></div>
+          </div>
+          <div class="an-start">
+            <button id="startBtn" class="an-go" type="button" onclick="startTraining()">
+              <span class="an-go__led" aria-hidden="true"></span>
+              Începe antrenamentul
+              <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
             </button>
-            <div class="tr-setup-summary" id="configSummaryText">Configurează sesiunea mai sus.</div>
-          </div>
-
-          <!-- RIGHT: structured panels — chapters/subcategories, extra settings -->
-          <div class="tr-setup-right">
-            <div class="tr-panel">
-              <div class="tr-panel__head">Capitole și subcapitole</div>
-              <div class="tr-panel__body">
-                <div class="config-chapter-list" id="chapterList"></div>
-              </div>
-            </div>
-            <div class="tr-panel">
-              <div class="tr-panel__head">Setări suplimentare</div>
-              <div class="tr-panel__body">
-                <div class="config-extra-grid" id="extraSettings"></div>
-              </div>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      <!-- ===== HUD body (state 2) — hidden until session starts ===== -->
-      <div class="training-hud" id="trainingHud" hidden>
-        <div class="session-progress-ring">
-          <svg viewBox="0 0 80 80" width="78" height="78">
-            <circle cx="40" cy="40" r="34" fill="none" stroke="rgba(0,0,0,0.10)" stroke-width="7"/>
-            <circle cx="40" cy="40" r="34" fill="none" stroke="var(--accent)" stroke-width="7"
-                    stroke-dasharray="213.6" stroke-dashoffset="213.6"
-                    stroke-linecap="round" transform="rotate(-90 40 40)" id="sessionProgressRing"
-                    style="transition:stroke-dashoffset 0.5s cubic-bezier(0.4,0,0.2,1)"/>
-          </svg>
-          <span class="session-progress-ring__label">
-            <span class="session-progress-ring__caption">progres</span>
-            <span id="sessionCounter">0 / 10</span>
-          </span>
-        </div>
-
-        <div class="session-hud" id="sessionHud">
-          <div class="session-hud__streak" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
-            <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg> <span id="hudStreakVal">0</span></span>
-            <span class="session-hud__sub">record: <span data-training-best-streak>0</span></span>
-          </div>
-          <div class="session-hud__xp" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
-            <span class="session-hud__main"><svg class="icon icon-16 icon-num" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.525 2.295a.53.53 0 0 1 .95 0l2.31 4.679a2.123 2.123 0 0 0 1.595 1.16l5.166.756a.53.53 0 0 1 .294.904l-3.736 3.638a2.123 2.123 0 0 0-.611 1.878l.882 5.14a.53.53 0 0 1-.771.56l-4.618-2.428a2.122 2.122 0 0 0-1.973 0L6.396 21.01a.53.53 0 0 1-.77-.56l.881-5.139a2.122 2.122 0 0 0-.611-1.879L2.16 9.795a.53.53 0 0 1 .294-.906l5.165-.755a2.122 2.122 0 0 0 1.597-1.16z"></path></svg> <span id="hudXpVal">0</span> XP</span>
-            <span class="session-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
+            <p class="an-start__hint" id="anHint">Alege cel puțin un tip de exerciții.</p>
           </div>
         </div>
+      </aside>
+    </div>
 
-        <div class="session-level">
-          <div class="session-level__top">
-            <span class="session-level__label">Nivel <span data-training-level>1</span></span>
-            <span class="session-level__xp" data-training-level-xp>0 / 100 XP</span>
+    <!-- ===== SESSION: display bar ===== -->
+    <div class="an-hud" id="trainingHud" hidden>
+      <div class="an-hud__in">
+        <div class="an-lcd an-lcd--hud" id="sessionHud">
+          <div class="an-hud__cell">
+            <span class="an-hud__lbl">Cărți rezolvate</span>
+            <span class="an-hud__val"><b id="sessionCounter">0 / 10</b></span>
+            <div class="an-segs" id="sessionSegs"></div>
           </div>
-          <div class="session-level__bar">
-            <div class="session-level__fill" data-training-level-fill style="width:0%"></div>
+          <div class="an-hud__cell" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
+            <span class="an-hud__lbl">Serie</span>
+            <span class="an-hud__val"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg><b id="hudStreakVal">0</b></span>
+            <span class="an-hud__sub">record: <span data-training-best-streak>0</span></span>
+          </div>
+          <div class="an-hud__cell" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
+            <span class="an-hud__lbl">XP sesiune</span>
+            <span class="an-hud__val"><b id="hudXpVal">0</b><small>XP</small></span>
+            <span class="an-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
+          </div>
+          <div class="an-hud__cell">
+            <span class="an-hud__lbl">Nivel <span data-training-level>1</span></span>
+            <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
+            <span class="an-hud__sub" data-training-level-xp>0 / 100 XP</span>
           </div>
         </div>
-
-        <button class="btn btn--surface btn--sm training-hud__abandon" id="abandonBtn" onclick="trConfirmAbandon()">Renunță la sesiune</button>
+        <button class="an-key" id="abandonBtn" type="button" onclick="trConfirmAbandon()">Renunță</button>
       </div>
     </div>
 
-    <!-- Board / results -->
-    <div class="training-main" id="trainingMain">
-      <div class="flip-board" id="flipBoard">
-        <div class="flip-grid" id="flipGrid"><!-- Populated by training.js --></div>
+    <!-- ===== SESSION: board / results ===== -->
+    <div class="an-session" id="trainingMain">
+      <div class="an-board" id="flipBoard" hidden>
+        <header class="an-board__head">
+          <h2>Alege o carte</h2>
+          <p>Fiecare carte e un exercițiu. Le poți rezolva în orice ordine, iar una rezolvată se poate redeschide ca să-i vezi rezolvarea.</p>
+        </header>
+        <div class="an-cards" id="flipGrid"><!-- built by js/training.js --></div>
       </div>
-
-      <div id="resultsView" class="training-results"><!-- Populated by training.js on finish --></div>
+      <div id="resultsView" class="an-results"><!-- built by js/training.js on finish --></div>
     </div>
 
-  </div>
+  </main>
 
-  <!-- Reveal overlay (opens when a card is picked, or to review a solved one) -->
-  <div class="reveal-overlay" id="revealOverlay">
-    <div class="reveal-modal" id="revealModal"><!-- Populated by training.js --></div>
+  <!-- Reveal dialog (opens when a card is picked, or to review a solved one) -->
+  <div class="an-overlay" id="revealOverlay">
+    <div class="an-modal" id="revealModal" role="dialog" aria-modal="true"><!-- built by js/training.js --></div>
   </div>
 
   <!-- Confetti layer -->
   <div id="confettiLayer"></div>
 
-  <!-- Plan paywall — shown instead of trainingLayout for elevi without
-       Standard/Premium (see the plan-gate script below). Hidden by
-       default so it never flashes before the role/plan check resolves. -->
-  <div class="training-paywall container" id="trainingPaywall" style="display:none">
-    <div class="training-paywall__icon"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
-    <span class="plan-teaser-badge"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.017 2.814a1 1 0 0 1 1.966 0l1.051 5.558a2 2 0 0 0 1.594 1.594l5.558 1.051a1 1 0 0 1 0 1.966l-5.558 1.051a2 2 0 0 0-1.594 1.594l-1.051 5.558a1 1 0 0 1-1.966 0l-1.051-5.558a2 2 0 0 0-1.594-1.594l-5.558-1.051a1 1 0 0 1 0-1.966l5.558-1.051a2 2 0 0 0 1.594-1.594z"></path><path d="M20 2v4"></path><path d="M22 4h-4"></path><circle cx="4" cy="20" r="2"></circle></svg> Pachet Standard</span>
-    <h2 class="training-paywall__title">Antrenament rapid</h2>
-    <p class="training-paywall__sub">Disponibil cu pachetul Standard.</p>
-  </div>
+  <!-- Plan gate: shown instead of the page for students without the package. -->
+  <section class="an-paywall" id="trainingPaywall">
+    <div class="an-paywall__box">
+      <div class="an-tile"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg></div>
+      <h2>Antrenament rapid</h2>
+      <p>Disponibil cu pachetul Standard.</p>
+    </div>
+  </section>
 
   <!-- TOAST -->
   <div class="toast-container" id="toastContainer"></div>
-
   <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg></button>
 
-  <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/contrib/auto-render.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
   <script src="js/data.js"></script>
@@ -209,7 +202,7 @@
       function applyGate() {
         if (window.BMAuth?.role === 'elev' && window.BMAuth?.plan === 'free') {
           document.getElementById('trainingLayout').style.display = 'none';
-          document.getElementById('trainingPaywall').style.display = '';
+          document.getElementById('trainingPaywall').style.display = 'grid';
         }
       }
       if (window.BMAuth?.role) applyGate();

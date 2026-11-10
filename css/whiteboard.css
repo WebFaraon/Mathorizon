@@ -233,16 +233,16 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:focus-visible,
 /* not available: printed flat on the chassis, no edge */
 .wb-fullscreen :is(.wb-toolbar, .wb-undo-corner) .dc-action-btn:disabled,
 .wb-fullscreen :is(.wb-toolbar, .wb-undo-corner) .dc-action-btn:disabled:hover {
-  border: 1px dashed var(--k-panel-edge); background: transparent; color: var(--k-ink-3);
-  box-shadow: none; transform: none; filter: none; opacity: 0.7; cursor: not-allowed;
+  border: 1px solid var(--k-off-border); background: var(--k-off-face); color: var(--k-ink-3);
+  box-shadow: 0 3px 0 0 var(--k-off-edge); transform: none; filter: none; opacity: 0.85; cursor: not-allowed;
 }
 
 /* a student the teacher has locked: the drawing tools are printed flat, pan (pure navigation) stays a key.
    The older stylesheet has this rule, but a stray comment before it makes the browser drop it, so it never applied. */
 .wb-fullscreen .wb-board--locked .wb-toolbar :is([data-tool]:not([data-tool="pan"]), [data-width]),
 .wb-fullscreen .wb-board--locked .wb-toolbar :is([data-tool]:not([data-tool="pan"]), [data-width]):hover {
-  border: 1px dashed var(--k-panel-edge); background: transparent; color: var(--k-ink-3);
-  box-shadow: none; transform: none; filter: none; opacity: 0.7; pointer-events: none;
+  border: 1px solid var(--k-off-border); background: var(--k-off-face); color: var(--k-ink-3);
+  box-shadow: 0 3px 0 0 var(--k-off-edge); transform: none; filter: none; opacity: 0.85; pointer-events: none;
 }
 .wb-fullscreen .wb-board--locked .wb-toolbar .dc-width-dot { background: var(--k-ink-3); }
 

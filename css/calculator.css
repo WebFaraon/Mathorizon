@@ -42,10 +42,21 @@
      --k-lime is the logo's own green, for fills and accents only. */
   --k-green: #4B7A0A;
   --k-lime: #7CB800;
+  /* The GO key, the "=" of this calculator: the one key per screen that starts or commits.
+     Lime face with dark ink (white on lime is 2.3:1). */
+  --k-go: #7CB800;
+  --k-go-edge: #4C7A00;
+  --k-go-ink: #14200A;
   --k-red: #BF3D29;
   --k-orange: #DE6A1E;
   --k-orange-ink: #A94A0B;
   --k-ink-soft: #605A6E;
+
+  /* A key that cannot be pressed yet: same body and the same bottom edge as
+     a live key, only a tone down. It keeps its volume, it just does not move. */
+  --k-off-face: #ECEAF1;
+  --k-off-edge: #CFCBDA;
+  --k-off-border: #D2CEDD;
 
   --k-r: 3px;
   --k-r-key: 4px;
@@ -80,10 +91,17 @@
   --k-blue-wash: rgba(139, 102, 220, 0.12);
   --k-green: #9CCB3B;
   --k-lime: #8CC81E;
+  --k-go: #8CC81E;
+  --k-go-edge: #3F6B00;
+  --k-go-ink: #101A06;
   --k-red: #EE7560;
   --k-orange: #F08A3C;
   --k-orange-ink: #F4A25F;
   --k-ink-soft: #A09AAD;
+
+  --k-off-face: #1F1A27;
+  --k-off-edge: #0C0A10;
+  --k-off-border: #2A2434;
 }
 
 /* Page ground: the calculator's chassis on graph paper, not the site's
@@ -709,15 +727,18 @@ a.deck__face:focus-visible {
 
 /* Nothing published yet: printed flat, dashed, no stack. */
 .deck--soon .deck__face {
-  border-style: dashed;
-  background: transparent;
+  border-color: var(--k-off-border);
+  background: var(--k-off-face);
+  box-shadow: 0 4px 0 0 var(--k-off-edge);
 }
 .deck--soon .deck__symbol,
 .deck--soon .deck__name,
 .deck--soon .deck__desc { color: var(--k-ink-3); }
 .deck__soon {
   padding: 3px 8px;
-  border: 1px solid var(--k-panel-edge);
+  border: 1px solid var(--k-off-border);
+  background: var(--k-key);
+  box-shadow: 0 2px 0 0 var(--k-off-edge);
   border-radius: var(--k-r);
   font-size: 0.6rem;
   font-weight: 800;
@@ -1234,9 +1255,10 @@ body:has(#catHeader) .rarity-modal__barem-title {
   color: var(--k-ink-3);
 }
 body:has(#catHeader) .rarity-modal__barem-gate {
-  border: 1px dashed var(--k-panel-edge);
+  border: 1px solid var(--k-off-border);
   border-radius: var(--k-r);
-  background: transparent;
+  background: var(--k-off-face);
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
 }
 body:has(#catHeader) .rarity-modal__barem-gate-icon {
   border-radius: var(--k-r);
@@ -1839,8 +1861,10 @@ body:has(#profileContent) .pf-stars .prof-star--filled { color: inherit; }
   align-items: flex-start;
   gap: 14px;
   padding: 18px 20px;
-  border: 1px dashed var(--k-panel-edge);
+  border: 1px solid var(--k-off-border);
   border-radius: var(--k-r-key);
+  background: var(--k-off-face);
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
 }
 .pf-empty p { max-width: 60ch; font-size: 0.9rem; line-height: 1.55; color: var(--k-ink-2); }
 
@@ -1886,9 +1910,10 @@ body:has(#profileContent) .pf-stars .prof-star--filled { color: inherit; }
   color: #fff;
 }
 .pf-ticket--none {
-  background: transparent;
-  outline: 1px dashed var(--k-panel-edge);
+  background: var(--k-off-face);
+  outline: 1px solid var(--k-off-border);
   outline-offset: -1px;
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
 }
 .pf-ticket--none::after { border-top-color: var(--k-panel-edge); }
 .pf-ticket-more {
@@ -2225,9 +2250,9 @@ body:has(.landing-main) .ld-key--block { width: 100%; }
 body:has(.landing-main) .ld-key--off,
 body:has(.landing-main) .ld-key--off:hover,
 body:has(.landing-main) .ld-key--off:active {
-  border-style: dashed;
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--k-off-border);
+  background: var(--k-off-face);
+  box-shadow: 0 4px 0 0 var(--k-off-edge);
   color: var(--k-ink-3);
   cursor: not-allowed;
   filter: none;
@@ -4866,3 +4891,95 @@ body.lg-open { overflow: hidden; }
   .lg { padding: 12px; align-items: flex-end; }
   .lg__body { padding: 14px 18px 8px; }
 }
+
+/* ============================================================
+   Brand green: where the lime lives
+   ============================================================
+   Violet is the chassis and the key you have pressed in. Lime (the green
+   of EMA in the logo) has four jobs and no others:
+   1. THE GO KEY, the "=" of this calculator: the one key on a screen that
+      starts or commits (Începe pregătirea, Conectare, Intră la lecție,
+      Trimite cererea, Acceptă, Selectează simularea, Începe antrenamentul).
+      Lime face, dark ink (white on lime is 2.3:1), a darker green edge.
+   2. LEDs: a lit square (the open tab in the navbar, a type that is armed,
+      a switch that is on).
+   3. The marker under the accent line of a page title, drawn once.
+   4. The browser's own surfaces: text selection, caret, scrollbars.
+   --k-go / --k-go-edge / --k-go-ink hold the key; --k-lime the raw green.
+   ============================================================ */
+
+/* 1. GO keys */
+body:has(.landing-main) .ld-key--primary,
+body:has(.landing-main) .ld-key--primary:hover {
+  border-color: var(--k-go-edge);
+  background: var(--k-go);
+  color: var(--k-go-ink);
+}
+body:has(.landing-main) .ld-key--primary { box-shadow: 0 4px 0 0 var(--k-go-edge); }
+body:has(.landing-main) .ld-key--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+
+body.ap .ap-key--primary,
+body.ap .ap-key--primary:hover {
+  border-color: var(--k-go-edge);
+  background: var(--k-go);
+  color: var(--k-go-ink);
+}
+body.ap .ap-key--primary { box-shadow: 0 3px 0 0 var(--k-go-edge); }
+body.ap .ap-key--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+body.ap .ap-key--primary:disabled,
+body.ap .ap-key--primary[aria-busy="true"] { filter: none; }
+
+#setupView .st-key--primary,
+#setupView .st-key--primary:hover {
+  border-color: var(--k-go-edge);
+  background: var(--k-go);
+  color: var(--k-go-ink);
+}
+#setupView .st-key--primary { box-shadow: 0 4px 0 0 var(--k-go-edge); }
+#setupView .st-key--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+
+.cl-key--primary,
+.cl-key--primary:hover {
+  border-color: var(--k-go-edge);
+  background: var(--k-go);
+  color: var(--k-go-ink);
+}
+.cl-key--primary { box-shadow: 0 4px 0 0 var(--k-go-edge); }
+.cl-key--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+
+body:has(#classRoot) .cd-meet__btn,
+body:has(#classRoot) .cd-meet__btn:hover {
+  border-color: var(--k-go-edge);
+  background: var(--k-go);
+  color: var(--k-go-ink);
+}
+
+/* 2. LEDs on the navbar: the open tab has a lime square lit */
+#nav-root .nav__link--active::before,
+#nav-root .nav__mobile-link--active::after {
+  content: '';
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 1px;
+  background: var(--k-lime);
+  box-shadow: 0 0 0 1px rgba(40, 70, 0, 0.55);
+}
+#nav-root .nav__link--active::before { margin-right: 9px; }
+#nav-root .nav__mobile-link--active { position: relative; }
+#nav-root .nav__mobile-link--active::after { position: absolute; right: 16px; top: 50%; margin-top: -3px; }
+
+/* 3. The marker under an accent line, drawn once after the line has risen */
+.ld-title__line--accent > span {
+  background: linear-gradient(var(--k-lime), var(--k-lime)) no-repeat 0 90% / 100% 0.18em;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .ld-title__line--accent > span { animation: ld-rise 0.75s 0.09s cubic-bezier(0.16, 1, 0.3, 1) backwards, k-mark 0.7s 0.6s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+}
+@keyframes k-mark { from { background-size: 0% 0.18em; } }
+
+/* 4. Browser surfaces */
+html { scrollbar-color: color-mix(in srgb, var(--k-blue) 40%, var(--k-panel-edge)) var(--k-bg); }
+::selection { background: var(--k-lime); color: #14200A; }
+input, textarea { caret-color: var(--k-blue); }
+input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--k-blue); }

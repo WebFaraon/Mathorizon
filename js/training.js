@@ -1,5 +1,5 @@
 /* ============================================================
-   BACMath — Training Page Logic
+   Teorema: Antrenament (training.html) logic
    ============================================================ */
 
 (function() {
@@ -65,76 +65,101 @@
   function init() {
     renderConfig();
     BM.initScrollTop();
+    setTimeout(() => document.body.classList.remove('an-boot'), 2600);
   }
 
-  /* ---- Render config panel ---- */
+  /* ---- Render config ---- */
+  const RARITY_KEYS = [
+    { id: 'all',      label: 'Toate',    pips: 0 },
+    { id: 'usor',     label: 'Comun',    r: 'comun',    pips: 1 },
+    { id: 'mediu',    label: 'Rar',      r: 'rar',      pips: 2 },
+    { id: 'dificil',  label: 'Epic',     r: 'epic',     pips: 3 },
+    { id: 'legendar', label: 'Legendar', r: 'legendar', pips: 4 }
+  ];
+  const RARITY_NAME = { comun: 'Comun', rar: 'Rar', epic: 'Epic', legendar: 'Legendar' };
+  const RARITY_PIPS = { comun: 1, rar: 2, epic: 3, legendar: 4 };
+
+  function pipsHtml(n) {
+    if (!n) return '';
+    return `<span class="an-pips" aria-hidden="true">${[1, 2, 3, 4].map(i => `<i${i <= n ? ' class="on"' : ''}></i>`).join('')}</span>`;
+  }
+
+  /* A segmented group of keys: one is pressed in at a time. Built once;
+     a click only flips aria-pressed, so nothing re-renders or replays. */
+  function buildKeyGroup(box, items, isOn, onPick) {
+    if (!box) return;
+    box.innerHTML = '';
+    items.forEach(it => {
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'an-key';
+      if (it.r) btn.dataset.r = it.r;
+      btn.innerHTML = it.html;
+      if (it.title) btn.title = it.title;
+      btn.setAttribute('aria-pressed', isOn(it) ? 'true' : 'false');
+      btn.onclick = () => {
+        onPick(it);
+        box.querySelectorAll('.an-key').forEach((b, i) => b.setAttribute('aria-pressed', items[i] === it ? 'true' : 'false'));
+        updateSummary();
+      };
+      box.appendChild(btn);
+    });
+  }
+
   function renderConfig() {
-    /* Count chips */
-    const countBox = document.getElementById('countChips');
-    if (countBox) {
-      [5, 10, 15, 20].forEach(n => {
-        const btn = document.createElement('button');
-        btn.className = 'config-chip' + (n === selectedCount ? ' selected' : '');
-        btn.textContent = n;
-        btn.onclick = () => {
-          selectedCount = n;
-          countBox.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          updateSummary();
-        };
-        countBox.appendChild(btn);
-      });
-    }
-
-    /* Difficulty chips */
-    const diffBox = document.getElementById('diffChips');
-    if (diffBox) {
-      [
-        { id: 'all',      label: 'Toate' },
-        { id: 'usor',     label: 'Comun',    cls: 'config-chip--comun' },
-        { id: 'mediu',    label: 'Rar',      cls: 'config-chip--rar' },
-        { id: 'dificil',  label: 'Epic',     cls: 'config-chip--epic' },
-        { id: 'legendar', label: 'Legendar', cls: 'config-chip--legendar' }
-      ].forEach(d => {
-        const btn = document.createElement('button');
-        btn.className = 'config-chip' + (d.cls ? ` ${d.cls}` : '') + (d.id === selectedDiff ? ' selected' : '');
-        btn.textContent = d.label;
-        btn.onclick = () => {
-          selectedDiff = d.id;
-          diffBox.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
-          btn.classList.add('selected');
-          renderChapterList(); // per-subcategory exercise counts depend on the difficulty filter
-          updateSummary();
-        };
-        diffBox.appendChild(btn);
-      });
-    }
-
+    buildKeyGroup(
+      document.getElementById('countChips'),
+      [5, 10, 15, 20].map(n => ({ n, html: String(n) })),
+      it => it.n === selectedCount,
+      it => { selectedCount = it.n; }
+    );
+    buildKeyGroup(
+      document.getElementById('diffChips'),
+      RARITY_KEYS.map(d => Object.assign({}, d, { html: `${pipsHtml(d.pips)}${d.label}` })),
+      it => it.id === selectedDiff,
+      it => { selectedDiff = it.id; refreshChapters(); } // per-type counts depend on the rarity filter
+    );
     renderChapterList();
     renderTimerChips();
+    renderTypeChips();
     renderExtraSettings();
+
+    const all = document.getElementById('anAll');
+    if (all) all.onclick = () => {
+      BM.CATEGORIES.forEach(c => {
+        if (UNLOCKED_CATS.has(c.id)) c.subcategories.forEach(s => { if (subcatExerciseCount(s) > 0) selectedSubcats.add(s.id); });
+      });
+      refreshChapters(); updateSummary();
+    };
+    const none = document.getElementById('anNone');
+    if (none) none.onclick = () => { selectedSubcats.clear(); refreshChapters(); updateSummary(); };
+
     updateSummary();
+    bootDisplay();
   }
 
-  /* Rebuilds only the chapter/subcategory picker — called whenever a
-     subcategory selection changes. Kept separate from renderConfig() so the
-     count/difficulty chips (built once, append-only) never get re-appended
-     and duplicated. */
+  /* The display runs its segment test once, then shows the real readout. */
+  function bootDisplay() {
+    if (reduceMotion()) return;
+    ['anFig', 'anSubs', 'anBonus', 'anPool'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = '88'; });
+    const min = document.getElementById('anMin'); if (min) min.textContent = '88 min';
+    document.querySelectorAll('#anLcd .an-ann').forEach(a => a.classList.add('is-on'));
+    setTimeout(updateSummary, 560);
+  }
+
+  /* Chapters are built once; toggling a type only refreshes counts and
+     pressed states in place (so the entrance never replays). */
   function renderChapterList() {
     const chList = document.getElementById('chapterList');
     if (!chList) return;
     chList.innerHTML = '';
-    BM.CATEGORIES.forEach(cat => chList.appendChild(renderChapterBlock(cat)));
-  }
-
-  function chapterSelectedCount(cat) {
-    return cat.subcategories.filter(s => selectedSubcats.has(s.id)).length;
+    BM.CATEGORIES.forEach((cat, i) => chList.appendChild(renderChapterBlock(cat, i)));
+    refreshChapters();
   }
 
   /* Number of exercises available for this subcategory under the current
-     difficulty filter — a live preview so the student can see where the
-     exercises actually are before picking subcategories, not just after
-     hitting Start (see updateSummary's "niciun exercițiu disponibil"). */
+     rarity filter: a live preview, so the student sees where the exercises
+     are before pressing Start. */
   function subcatExerciseCount(sub) {
     let n = 0;
     BM.EXERCISES.forEach(e => {
@@ -145,185 +170,150 @@
     return n;
   }
 
-  function renderChapterBlock(cat) {
-    const locked = !UNLOCKED_CATS.has(cat.id);
-    const expanded = !locked && expandedCats.has(cat.id);
-    const wrap = document.createElement('div');
-    wrap.className = 'config-chapter-block';
-
-    const item = document.createElement('div');
-    const selCount = locked ? 0 : chapterSelectedCount(cat);
-    item.className = 'config-chapter-item'
-      + (locked ? ' config-chapter-item--locked' : '')
-      + (selCount > 0 ? ' selected' : '')
-      + (expanded ? ' expanded' : '');
-    item.id = `cat-item-${cat.id}`;
-    item.innerHTML = `
-      <span class="config-chapter-icon" style="color:${cat.color}">${cat.symbol}</span>
-      <span class="config-chapter-name">${BM.esc(cat.name)}</span>
-      ${locked
-        ? `<span class="config-chapter-lock">${icon('lock', { size: 16 })}</span><span class="config-chapter-soon">În curând</span>`
-        : `<span class="config-chapter-subcount">${selCount}/${cat.subcategories.length}</span>
-           <button type="button" class="config-chapter-chevron" aria-label="${expanded ? 'Restrânge' : 'Extinde'} ${BM.esc(cat.name)}">${icon('chevron-down', { size: 16 })}</button>`}
-    `;
-    /* Only the lock toast is wired on the row itself — select-all/clear-all
-       stays the explicit buttons' job (a whole-row click doing the same
-       thing was surprising, see below); the chevron is its own separate
-       affordance purely for expand/collapse, so it can't collide with that. */
-    item.onclick = locked
-      ? () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info')
-      : null;
-    wrap.appendChild(item);
-
-    if (!locked) {
-      const panel = renderSubcatPanel(cat);
-      panel.classList.toggle('collapsed', !expanded);
-      wrap.appendChild(panel);
-
-      const chevron = item.querySelector('.config-chapter-chevron');
-      chevron.onclick = e => {
-        e.stopPropagation();
-        const nowExpanded = !expandedCats.has(cat.id);
-        if (nowExpanded) expandedCats.add(cat.id); else expandedCats.delete(cat.id);
-        item.classList.toggle('expanded', nowExpanded);
-        panel.classList.toggle('collapsed', !nowExpanded);
-      };
-    }
-    return wrap;
-  }
-
-  function renderSubcatPanel(cat) {
-    const panel = document.createElement('div');
-    panel.className = 'config-subcat-panel';
-    panel.id = `subcat-panel-${cat.id}`;
-
-    const actions = document.createElement('div');
-    actions.className = 'config-subcat-actions';
-    actions.innerHTML = `
-      <button type="button" class="config-subcat-action config-subcat-action--select">${icon('check', { size: 16 })} Selectează tot</button>
-      <button type="button" class="config-subcat-action config-subcat-action--clear">${icon('x', { size: 16 })} Deselectează tot</button>
-    `;
-    const [selectAllBtn, clearAllBtn] = actions.querySelectorAll('button');
-    selectAllBtn.onclick = e => { e.stopPropagation(); cat.subcategories.forEach(s => selectedSubcats.add(s.id)); renderChapterList(); updateSummary(); };
-    clearAllBtn.onclick  = e => { e.stopPropagation(); clearAllSubcats(cat); };
-    panel.appendChild(actions);
-
-    const grid = document.createElement('div');
-    grid.className = 'config-subcat-grid';
-    cat.subcategories.forEach(sub => {
-      const chip = document.createElement('div');
-      const isSel = selectedSubcats.has(sub.id);
-      chip.className = 'config-subcat-chip' + (isSel ? ' selected' : '');
-      chip.innerHTML = `
-        <span class="config-subcat-icon" style="color:${sub.color}">${sub.symbol}</span>
-        <span class="config-subcat-name">${BM.esc(sub.name)}</span>
-        <span class="config-subcat-count" title="Exerciții disponibile cu filtrul curent de raritate">${subcatExerciseCount(sub)}</span>
-        <span class="config-subcat-check">${icon('check', { size: 16 })}</span>
-      `;
-      chip.onclick = e => { e.stopPropagation(); toggleSubcat(sub.id, cat); };
-      grid.appendChild(chip);
+  /* Selected types that actually hold an exercise under the current filter. */
+  function effectiveSubcats() {
+    const out = [];
+    BM.CATEGORIES.forEach(cat => {
+      if (!UNLOCKED_CATS.has(cat.id)) return;
+      cat.subcategories.forEach(s => { if (selectedSubcats.has(s.id) && subcatExerciseCount(s) > 0) out.push(s.id); });
     });
-    panel.appendChild(grid);
-
-    return panel;
+    return out;
   }
 
-  /* Free to go down to zero — the live summary + disabled Start button
-     (updateSummary) already tell the student when nothing's selected,
-     so blocking it here too was just a second, confusing "no-op" version
-     of that same guard. */
-  function toggleSubcat(id, cat) {
-    if (selectedSubcats.has(id)) {
-      selectedSubcats.delete(id);
-    } else {
-      selectedSubcats.add(id);
+  function renderChapterBlock(cat, i) {
+    const locked = !UNLOCKED_CATS.has(cat.id);
+    const sec = document.createElement('section');
+    sec.className = 'an-chap' + (locked ? ' an-chap--soon' : '');
+    sec.dataset.cat = cat.id;
+    sec.id = `cat-item-${cat.id}`;
+    sec.style.setProperty('--i', i);
+
+    if (locked) {
+      sec.innerHTML = `
+        <header class="an-chap__head">
+          <span class="an-tile">${cat.symbol}</span>
+          <div><h3 class="an-chap__name">${BM.esc(cat.name)}</h3></div>
+          <span class="an-soon">${icon('lock', { size: 16 })} În curând</span>
+        </header>`;
+      sec.onclick = () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info');
+      return sec;
     }
-    renderChapterList();
-    updateSummary();
-  }
 
-  function clearAllSubcats(cat) {
-    cat.subcategories.forEach(s => selectedSubcats.delete(s.id));
-    renderChapterList();
-    updateSummary();
-  }
+    const total = BM.EXERCISES.filter(e => e.categoryId === cat.id).length;
+    sec.innerHTML = `
+      <header class="an-chap__head">
+        <span class="an-tile">${cat.symbol}</span>
+        <div>
+          <h3 class="an-chap__name">${BM.esc(cat.name)}</h3>
+          <p class="an-chap__meta">${cat.subcategories.length} tipuri · ${total} exerciții</p>
+        </div>
+        <div class="an-chap__right">
+          <span class="an-count" data-count>0/${cat.subcategories.length}</span>
+          <div class="an-chap__acts">
+            <button type="button" class="an-text" data-act="all">Tot</button>
+            <button type="button" class="an-text" data-act="none">Nimic</button>
+          </div>
+        </div>
+      </header>
+      <div class="an-chap__grid"></div>`;
 
-  /* ---- D. Extra settings: timer / answer type / unsolved-only ----
-     Built once (like the count/difficulty chips) with in-place class
-     toggling on click, rather than a full re-render per change. */
-  /* Timer chips live in the hero (left panel, next to count/difficulty),
-     not in the "Setări suplimentare" panel — built separately so
-     renderExtraSettings() below can target a different container. */
-  function renderTimerChips() {
-    const timerChips = document.getElementById('timerChips');
-    if (!timerChips) return;
-    timerChips.innerHTML = '';
-    [
-      { id: 'none',    label: 'Fără' },
-      { id: 'relaxed', label: 'Relaxat · +20% XP' },
-      { id: 'strict',  label: 'Contra timp · +50% XP' }
-    ].forEach(t => {
+    const grid = sec.querySelector('.an-chap__grid');
+    cat.subcategories.forEach((sub, j) => {
       const btn = document.createElement('button');
       btn.type = 'button';
-      btn.className = 'config-chip' + (t.id === selectedTimerMode ? ' selected' : '');
-      btn.textContent = t.label;
-      if (t.id !== 'none') btn.title = 'Timpul variază pe exercițiu, în funcție de raritate și capitol.';
-      btn.onclick = () => {
-        selectedTimerMode = t.id;
-        timerChips.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        updateSummary();
-      };
-      timerChips.appendChild(btn);
+      btn.className = 'an-sub';
+      btn.dataset.id = sub.id;
+      btn.style.setProperty('--j', Math.min(j, 16));
+      btn.innerHTML = `
+        <span class="an-sub__sym">${sub.symbol}</span>
+        <span class="an-sub__name">${BM.esc(sub.name)}</span>
+        <span class="an-sub__n" title="Exerciții disponibile cu filtrul curent de raritate">0</span>
+        <span class="an-sub__led" aria-hidden="true"></span>`;
+      btn.onclick = () => toggleSubcat(sub.id);
+      grid.appendChild(btn);
     });
+    sec.querySelector('[data-act="all"]').onclick = () => {
+      cat.subcategories.forEach(s => { if (subcatExerciseCount(s) > 0) selectedSubcats.add(s.id); });
+      refreshChapters(); updateSummary();
+    };
+    sec.querySelector('[data-act="none"]').onclick = () => {
+      cat.subcategories.forEach(s => selectedSubcats.delete(s.id));
+      refreshChapters(); updateSummary();
+    };
+    return sec;
+  }
+
+  function refreshChapters() {
+    BM.CATEGORIES.forEach(cat => {
+      if (!UNLOCKED_CATS.has(cat.id)) return;
+      const sec = document.getElementById(`cat-item-${cat.id}`);
+      if (!sec) return;
+      let sel = 0;
+      cat.subcategories.forEach(sub => {
+        const btn = sec.querySelector(`.an-sub[data-id="${sub.id}"]`);
+        if (!btn) return;
+        const n = subcatExerciseCount(sub);
+        const on = selectedSubcats.has(sub.id) && n > 0;
+        if (on) sel++;
+        btn.disabled = n === 0;
+        btn.setAttribute('aria-pressed', on ? 'true' : 'false');
+        btn.querySelector('.an-sub__n').textContent = n;
+      });
+      const c = sec.querySelector('[data-count]');
+      if (c) c.textContent = `${sel}/${cat.subcategories.length}`;
+    });
+  }
+
+  function toggleSubcat(id) {
+    if (selectedSubcats.has(id)) selectedSubcats.delete(id); else selectedSubcats.add(id);
+    refreshChapters();
+    updateSummary();
+  }
+
+  /* ---- Timer, answer type, unsolved-only ---- */
+  function renderTimerChips() {
+    buildKeyGroup(
+      document.getElementById('timerChips'),
+      [
+        { id: 'none',    html: '<span>Fără</span>' },
+        { id: 'relaxed', html: '<span>Relaxat</span><em class="an-bonus">+20% XP</em>', title: 'Timpul variază pe exercițiu, în funcție de raritate și capitol.' },
+        { id: 'strict',  html: '<span>Contra timp</span><em class="an-bonus">+50% XP</em>', title: 'Timpul variază pe exercițiu, în funcție de raritate și capitol.' }
+      ],
+      it => it.id === selectedTimerMode,
+      it => { selectedTimerMode = it.id; }
+    );
+  }
+
+  function renderTypeChips() {
+    buildKeyGroup(
+      document.getElementById('typeChips'),
+      [
+        { id: 'mixed',   html: 'Mixt' },
+        { id: 'written', html: 'Scris' },
+        { id: 'mcq',     html: 'Variante' }
+      ],
+      it => it.id === selectedAnswerType,
+      it => { selectedAnswerType = it.id; }
+    );
   }
 
   function renderExtraSettings() {
     const box = document.getElementById('extraSettings');
     if (!box) return;
     box.innerHTML = '';
-
-    const typeRow = document.createElement('div');
-    typeRow.className = 'config-extra-row';
-    const typeLabel = document.createElement('span');
-    typeLabel.className = 'config-extra-row__label';
-    typeLabel.textContent = 'Tip de răspuns';
-    typeRow.appendChild(typeLabel);
-    const typeChips = document.createElement('div');
-    typeChips.className = 'config-chips';
-    [
-      { id: 'mixed',   label: 'Mixt' },
-      { id: 'written', label: 'Doar scriere' },
-      { id: 'mcq',     label: 'Doar variante multiple' }
-    ].forEach(t => {
-      const btn = document.createElement('button');
-      btn.type = 'button';
-      btn.className = 'config-chip' + (t.id === selectedAnswerType ? ' selected' : '');
-      btn.textContent = t.label;
-      btn.onclick = () => {
-        selectedAnswerType = t.id;
-        typeChips.querySelectorAll('.config-chip').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        updateSummary();
-      };
-      typeChips.appendChild(btn);
-    });
-    typeRow.appendChild(typeChips);
-    box.appendChild(typeRow);
-
-    const toggleRow = document.createElement('div');
-    toggleRow.className = 'config-extra-row';
-    const toggle = document.createElement('button');
-    toggle.type = 'button';
-    toggle.className = 'config-toggle' + (unsolvedOnly ? ' on' : '');
-    toggle.innerHTML = `<span class="config-toggle__switch"></span> Doar exerciții nerezolvate`;
-    toggle.onclick = () => {
+    const sw = document.createElement('button');
+    sw.type = 'button';
+    sw.className = 'an-switch' + (unsolvedOnly ? ' on' : '');
+    sw.setAttribute('role', 'switch');
+    sw.setAttribute('aria-checked', String(unsolvedOnly));
+    sw.innerHTML = '<span class="an-switch__slot"><span class="an-switch__knob"></span></span><span>Doar exerciții nerezolvate</span>';
+    sw.onclick = () => {
       unsolvedOnly = !unsolvedOnly;
-      toggle.classList.toggle('on', unsolvedOnly);
+      sw.classList.toggle('on', unsolvedOnly);
+      sw.setAttribute('aria-checked', String(unsolvedOnly));
       updateSummary();
     };
-    toggleRow.appendChild(toggle);
-    box.appendChild(toggleRow);
+    box.appendChild(sw);
   }
 
   /* An exercise is answered by typed input when its solution has a short,
@@ -353,33 +343,60 @@
     return bySubcat;
   }
 
-  /* ---- E. Live summary + start-button validation ---- */
-  function updateSummary() {
-    const textEl = document.getElementById('configSummaryText');
-    const startBtn = document.getElementById('startBtn');
-    if (!textEl || !startBtn) return;
+  /* ---- Live summary + start-key validation ---- */
+  function setText(id, value) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const s = String(value);
+    if (el.textContent === s) return;
+    el.textContent = s;
+    if (!reduceMotion()) { el.classList.remove('an-strobe'); void el.offsetWidth; el.classList.add('an-strobe'); }
+  }
 
-    if (selectedSubcats.size === 0) {
-      textEl.textContent = 'Selectează cel puțin un subcapitol pentru a începe.';
-      textEl.classList.add('config-summary-text--invalid');
+  function setAnnunciators(go) {
+    const on = {
+      comun:    selectedDiff === 'all' || selectedDiff === 'usor',
+      rar:      selectedDiff === 'all' || selectedDiff === 'mediu',
+      epic:     selectedDiff === 'all' || selectedDiff === 'dificil',
+      legendar: selectedDiff === 'all' || selectedDiff === 'legendar',
+      timer:    selectedTimerMode !== 'none',
+      written:  selectedAnswerType === 'written',
+      mcq:      selectedAnswerType === 'mcq',
+      unsolved: unsolvedOnly,
+      go
+    };
+    document.querySelectorAll('#anLcd [data-ann]').forEach(el => el.classList.toggle('is-on', !!on[el.dataset.ann]));
+  }
+
+  function showSummary(text, bad) {
+    const line = document.getElementById('configSummaryText');
+    const hint = document.getElementById('anHint');
+    if (line) { line.textContent = text; line.classList.toggle('is-bad', !!bad); }
+    if (hint) { hint.textContent = text; hint.classList.toggle('is-bad', !!bad); }
+  }
+
+  function updateSummary() {
+    const startBtn = document.getElementById('startBtn');
+    if (!startBtn) return;
+    const subIds = effectiveSubcats();
+
+    const blank = msg => {
+      setText('anFig', '--'); setText('anMin', '--'); setText('anSubs', subIds.length); setText('anBonus', '--'); setText('anPool', 0);
+      showSummary(msg, true);
       startBtn.disabled = true;
-      return;
-    }
+      setAnnunciators(false);
+    };
+
+    if (subIds.length === 0) { blank('Alege cel puțin un tip de exerciții.'); return; }
 
     const pool = buildPool();
     const available = Object.values(pool).reduce((sum, arr) => sum + arr.length, 0);
+    if (available === 0) { blank('Niciun exercițiu cu aceste filtre. Încearcă alte setări.'); return; }
 
-    if (available === 0) {
-      textEl.textContent = 'Niciun exercițiu disponibil cu aceste filtre — încearcă alte setări.';
-      textEl.classList.add('config-summary-text--invalid');
-      startBtn.disabled = true;
-      return;
-    }
-
-    textEl.classList.remove('config-summary-text--invalid');
     startBtn.disabled = false;
 
-    const diffLabels = { all: 'toate rarităților', usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' };
+    const diffLabels = { all: 'toate raritățile', usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' };
+    const timerLabels = { none: 'fără cronometru', relaxed: 'cronometru relaxat', strict: 'contra timp' };
     const willRun = Math.min(selectedCount, available);
     let perExerciseMin = 1.5;
     if (selectedTimerMode !== 'none') {
@@ -390,43 +407,45 @@
       }
     }
     const minutes = Math.max(1, Math.round(willRun * perExerciseMin));
-    const subCount = selectedSubcats.size;
+    const bonus = Math.round((TIMER_XP_BONUS[selectedTimerMode] - 1) * 100);
 
-    let text = `${willRun} exerciții · ${diffLabels[selectedDiff]} · ${subCount} subcapitol${subCount === 1 ? '' : 'e'} · ~${minutes} min`;
-    if (selectedTimerMode !== 'none') {
-      text += ` · +${Math.round((TIMER_XP_BONUS[selectedTimerMode] - 1) * 100)}% XP cronometrat`;
-    }
-    if (willRun < selectedCount) text += ` (doar ${available} disponibile din ${selectedCount} cerute)`;
-    textEl.textContent = text;
+    setText('anFig', willRun);
+    setText('anMin', `${minutes} min`);
+    setText('anSubs', subIds.length);
+    setText('anBonus', `+${bonus}%`);
+    setText('anPool', available);
+
+    let text = `${willRun} exerciții · ${diffLabels[selectedDiff]} · ${timerLabels[selectedTimerMode]}`;
+    if (willRun < selectedCount) text += `. Ai cerut ${selectedCount}, dar sunt doar ${available} disponibile`;
+    showSummary(text + '.', false);
+    setAnnunciators(true);
   }
 
-  /* ---- Config panel <-> HUD morph ---- */
+  /* ---- Setup <-> session ---- */
   function collapseConfigPanel() {
-    const panel = document.getElementById('configPanel');
-    if (reduceMotion()) {
-      document.getElementById('configContent').hidden = true;
-      document.getElementById('trainingHud').hidden = false;
-      panel.classList.add('training-panel--collapsed');
-      return Promise.resolve();
-    }
+    const setup = document.getElementById('configContent');
+    const hud = document.getElementById('trainingHud');
+    const board = document.getElementById('flipBoard');
+    window.scrollTo(0, 0);
+    const finish = () => {
+      setup.hidden = true;
+      setup.classList.remove('an-setup--out');
+      hud.hidden = false;
+      board.hidden = false;
+    };
+    if (reduceMotion()) { finish(); return Promise.resolve(); }
     return new Promise(resolve => {
-      panel.classList.add('training-panel--collapsing');
-      setTimeout(() => {
-        document.getElementById('configContent').hidden = true;
-        document.getElementById('trainingHud').hidden = false;
-        panel.classList.remove('training-panel--collapsing');
-        panel.classList.add('training-panel--collapsed');
-        setTimeout(resolve, 300);
-      }, 450);
+      setup.classList.add('an-setup--out');
+      setTimeout(() => { finish(); resolve(); }, 260);
     });
   }
 
   function expandConfigPanel() {
-    const panel = document.getElementById('configPanel');
-    document.getElementById('trainingLayout').classList.remove('training-layout--session');
+    document.getElementById('trainingLayout').classList.remove('an-page--session');
     document.getElementById('trainingHud').hidden = true;
+    document.getElementById('flipBoard').hidden = true;
     document.getElementById('configContent').hidden = false;
-    panel.classList.remove('training-panel--collapsed', 'training-panel--collapsing');
+    window.scrollTo(0, 0);
   }
 
   /* ---- Start training ---- */
@@ -472,11 +491,10 @@
     missedSubcats    = new Set();
     pendingSolvedIds = new Set();
 
-    document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
     document.getElementById('resultsView').innerHTML = '';
     closeRevealOverlay(true);
-    document.getElementById('trainingLayout').classList.add('training-layout--session');
+    document.getElementById('trainingLayout').classList.add('an-page--session');
 
     collapseConfigPanel().then(() => {
       renderHud();
@@ -493,42 +511,41 @@
 
   function renderFlipGrid(dealAnimation) {
     const total = cardStates.length;
-    document.getElementById('sessionCounter').textContent = `${revealedCount} / ${total}`;
-    const ring = document.getElementById('sessionProgressRing');
-    if (ring) {
-      const circumference = 213.6; // 2 * PI * r(34), matches training.html's ring
-      const pct = total ? revealedCount / total : 0;
-      ring.style.strokeDashoffset = String(circumference * (1 - pct));
+    const counter = document.getElementById('sessionCounter');
+    if (counter) counter.textContent = `${revealedCount} / ${total}`;
+    const segs = document.getElementById('sessionSegs');
+    if (segs) {
+      segs.innerHTML = cardStates.map(cs =>
+        `<i class="${cs.status === 'correct' ? 'ok' : cs.status === 'incorrect' ? 'bad' : cs.status === 'ungraded' ? 'skip' : ''}"></i>`
+      ).join('');
     }
 
     const grid = document.getElementById('flipGrid');
     if (!grid) return;
     grid.innerHTML = cardStates.map((cs, i) => {
-      const done    = cs.status !== 'hidden';
+      const done     = cs.status !== 'hidden';
       const ungraded = cs.status === 'ungraded';
-      const good    = cs.status === 'correct';
-      const rarity  = BM.RARITY_BY_DIFF[cs.ex.difficulty] || 'comun';
-      const badge = ungraded
-        ? `<span class="flip-card__result-badge flip-card__result-badge--neutral">—</span>`
-        : `<span class="flip-card__result-badge flip-card__result-badge--${good ? 'good' : 'bad'}">${icon(good ? 'circle-check' : 'circle-x', { size: 16 })}</span>`;
-      const detail = (done && !ungraded)
-        ? `<div class="flip-card__result-detail">${cs.ex.puncteTotal ? `${good ? cs.ex.puncteTotal : 0}/${cs.ex.puncteTotal}p · ` : ''}<strong>+${cs.xpGain || 0} XP</strong></div>`
-        : '';
-      const dealStyle = dealAnimation
-        ? ` style="animation:card-up-in 0.4s cubic-bezier(0.22,1,0.36,1) both;animation-delay:${reduceMotion() ? 0 : i * 60}ms"`
-        : '';
+      const good     = cs.status === 'correct';
+      const rarity   = BM.RARITY_BY_DIFF[cs.ex.difficulty] || 'comun';
+      const band     = `<div class="an-card__band"><span>${RARITY_NAME[rarity]}</span>${pipsHtml(RARITY_PIPS[rarity])}</div>`;
+      const tone     = !done ? '' : ungraded ? ' an-card--skip' : good ? ' an-card--good' : ' an-card--bad';
+      const tile     = ungraded ? '<span aria-hidden="true">·</span>' : icon(good ? 'check' : 'x', { size: 28 });
+      const pts      = (done && !ungraded && cs.ex.puncteTotal) ? `<span class="an-card__pts">${good ? cs.ex.puncteTotal : 0}/${cs.ex.puncteTotal}p</span>` : '';
+      const xp       = (done && !ungraded) ? `<span class="an-card__xp">+${cs.xpGain || 0} XP</span>` : '';
       return `
-        <div class="flip-card${done ? ' flip-card--done' : ''}" data-idx="${i}" data-rarity="${rarity}" onclick="trOpenCard(${i})"${dealStyle}>
-          <div class="flip-card__inner${done ? ' flip-card--flipped' : ''}">
-            <span class="flip-card__rarity-badge">${rarity}</span>
-            <div class="flip-card__face flip-card__face--back">
-              <img class="flip-card__logo-img" src="assets/images/teorema-owl.png" alt="">
+        <div class="an-card${done ? ' an-card--done' : ''}${tone}${dealAnimation ? ' an-card--deal' : ''}" data-idx="${i}" data-rarity="${rarity}" style="--i:${Math.min(i, 14)}"
+             role="button" tabindex="0" aria-label="Cartea ${i + 1}, ${RARITY_NAME[rarity]}${done ? (ungraded ? ', rezolvare văzută' : good ? ', corect' : ', greșit') : ''}"
+             onclick="trOpenCard(${i})" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();trOpenCard(${i});}">
+          <div class="an-card__inner${done ? ' an-card--flipped' : ''}">
+            <div class="an-card__face an-card__face--back">
+              ${band}
+              <div class="an-card__emblem"></div>
+              <div class="an-card__foot"><span class="an-no">#${String(i + 1).padStart(2, '0')}</span></div>
             </div>
-            <div class="flip-card__face flip-card__face--front">
-              ${done ? badge : ''}
-              <div class="flip-card__front-content">
-                <span class="flip-card__num">#${i + 1}</span>
-                ${detail}
+            <div class="an-card__face an-card__face--front">
+              ${band}
+              <div class="an-card__res">
+                ${done ? `<span class="an-res-tile">${tile}</span>${xp}${pts}<span class="an-card__again">Vezi rezolvarea</span>` : ''}
               </div>
             </div>
           </div>
@@ -541,24 +558,24 @@
     if (!cs || activeCardIndex !== null) return;
     activeCardIndex = idx;
 
-    /* Already solved — reopen read-only, to review the solution, not to
-       answer again. No flip animation needed, it's already face-up. */
+    /* Already solved: reopen read-only, to review the solution, not to
+       answer again. No flip needed, it is already face up. */
     if (cs.status !== 'hidden') {
       renderRevealOverlay(idx, true);
       return;
     }
 
-    const cardEl = document.querySelector(`.flip-card[data-idx="${idx}"]`);
+    const cardEl = document.querySelector(`.an-card[data-idx="${idx}"]`);
     if (!cardEl) { renderRevealOverlay(idx, false); return; }
 
-    cardEl.classList.add('flip-card--selecting');
+    cardEl.classList.add('an-card--selecting');
     setTimeout(() => {
-      cardEl.querySelector('.flip-card__inner').classList.add('flip-card--flipped');
+      cardEl.querySelector('.an-card__inner').classList.add('an-card--flipped');
       setTimeout(() => renderRevealOverlay(idx, false), 480);
     }, 200);
   };
 
-  /* ---- Reveal overlay ---- */
+  /* ---- Reveal dialog ---- */
   function renderRevealOverlay(idx, reviewMode) {
     document.body.style.overflow = 'hidden';
     const cs = cardStates[idx];
@@ -573,25 +590,22 @@
     BM.bindExplanationToggles(modal);
     modal.dataset.rarity = rarity;
 
-    /* Timer sits at the end of the badge row (flex, margin-left:auto), not
-       absolutely positioned — a corner overlay risked colliding with the
-       category/subcategory badges on a narrow card; this way it just wraps
-       to its own line if the row's already full. Only shown when running
-       (never in review mode — the card's already been answered). */
+    /* The timer sits at the end of the legend row (never in review mode:
+       the card has been answered already). */
     const timerHtml = (!reviewMode && selectedTimerMode !== 'none')
-      ? `<span class="reveal-timer bac-timer" id="revealTimer" title="Timp rămas — răspunsurile cronometrate primesc un bonus de XP"></span>`
+      ? `<span class="an-timer" id="revealTimer" title="Timp rămas. Răspunsurile cronometrate primesc un bonus de XP."></span>`
       : '';
 
     const headHtml = `
-      <div class="ex-card__meta" style="margin-bottom:10px">
-        <span class="reveal-modal__rarity-badge">${rarity}</span>
+      <div class="an-m-meta">
+        <span class="an-legend an-legend--r">${pipsHtml(RARITY_PIPS[rarity])}${RARITY_NAME[rarity]}</span>
         ${BM.pointsBadge(ex.puncteTotal, ex.puncteEstimat)}
-        <span class="type-badge">${BM.esc(sub?.name || ex.subcategoryId)}</span>
-        ${cat ? `<span class="type-badge" style="background:${cat.color}1a;color:${cat.color}">${BM.esc(cat.name)}</span>` : ''}
+        <span class="an-legend">${BM.esc(sub?.name || ex.subcategoryId)}</span>
+        ${cat ? `<span class="an-legend">${BM.esc(cat.name)}</span>` : ''}
         ${timerHtml}
       </div>
-      <div class="reveal-title">${BM.esc(ex.title)}</div>
-      <div class="reveal-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
+      <h2 class="an-m-title">${BM.esc(ex.title)}</h2>
+      <div class="an-m-statement math-content" id="revealStatement">${BM.trustedNl2br(ex.statement)}</div>
       ${BM.renderExerciseFigure(ex)}
     `;
 
@@ -600,17 +614,17 @@
       const bannerHtml = cs.status === 'ungraded'
         ? ''
         : isCorrect
-          ? `<div class="reveal-result-banner reveal-result-banner--correct">${icon('circle-check', { size: 16 })} Corect! <strong>+${cs.xpGain || 0} XP</strong></div>`
-          : `<div class="reveal-result-banner reveal-result-banner--incorrect">${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: $${BM.esc(cs.correctAnswerText || '')}$</div>`;
+          ? `<div class="an-banner an-banner--ok">Corect! <strong>+${cs.xpGain || 0} XP</strong></div>`
+          : `<div class="an-banner an-banner--bad">Greșit. Răspunsul corect: $${BM.esc(cs.correctAnswerText || '')}$</div>`;
       modal.innerHTML = `
         ${headHtml}
         ${bannerHtml}
         ${buildSolutionBlockHtml(ex, false)}
-        <div style="text-align:right;margin-top:14px">
-          <button class="btn btn--primary" id="revealContinueBtn">Închide</button>
+        <div class="an-m-foot">
+          <button class="an-key an-key--primary an-key--lg" type="button" id="revealContinueBtn">Închide</button>
         </div>
       `;
-      modal.scrollTop = 0; // innerHTML swap doesn't reset scroll on its own — without this a modal reopened after a scrolled-down close (e.g. review mode right after grading) would render already scrolled past its own header.
+      modal.scrollTop = 0; // an innerHTML swap does not reset scroll on its own
       BM.renderMath(modal);
       BM.fitDisplayMath(modal);
       document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
@@ -626,15 +640,15 @@
       <div id="revealAnswerZone">
         ${expected
           ? `
-          <div class="reveal-answer-row">
-            <input type="text" id="revealAnswerInput" class="cls-form-input reveal-answer-input" placeholder="Scrie răspunsul tău aici…" autocomplete="off">
-            <button class="btn btn--primary" id="revealSubmitBtn">Verifică răspunsul</button>
+          <div class="an-answer">
+            <input type="text" id="revealAnswerInput" class="an-input" placeholder="Scrie răspunsul tău aici…" autocomplete="off" autocapitalize="off" spellcheck="false">
+            <button class="an-go an-go--sm" type="button" id="revealSubmitBtn">Verifică răspunsul</button>
           </div>`
-          : `<div class="reveal-mcq-loading"><span class="reveal-mcq-spinner"></span> Se generează opțiunile…</div>`}
+          : `<div class="an-load"><i></i><i></i><i></i> Se generează opțiunile…</div>`}
       </div>
       <div id="revealResultZone"></div>
     `;
-    modal.scrollTop = 0; // see the scroll-reset note in the review-mode branch above
+    modal.scrollTop = 0;
 
     BM.renderMath(modal);
     BM.fitDisplayMath(modal);
@@ -656,45 +670,42 @@
   }
 
   /* Wrong-answer solution reveal: a real, points-tagged progressive barem
-     when ex.barem exists (only ~47% of Algebră today — see barem-coverage
-     investigation), otherwise the full solution at once under a distinct
-     label, so the fallback never pretends to be a stepped barem it doesn't
-     have. Also used, non-staggered, for the "Vezi rezolvarea" reveal on a
-     correct answer and for reopening a solved card in review mode. */
+     when ex.barem exists, otherwise the full solution at once under a
+     distinct label, so the fallback never pretends to be a stepped barem it
+     does not have. Also used, non-staggered, for the "Vezi rezolvarea"
+     reveal on a correct answer and for reopening a solved card. */
   function buildSolutionBlockHtml(ex, staggered) {
     if (Array.isArray(ex.barem) && ex.barem.length) {
       const withExpl = ex.barem.filter(step => step.explicatie).length;
       const steps = ex.barem.map((step, i) => {
         const delay = (staggered && !reduceMotion()) ? i * 220 : 0;
-        const ptsCls = ex.baremEstimat ? ' reveal-step__points--estimat' : '';
-        const ptsTitle = ex.baremEstimat ? ' title="Punctaj estimat de AI — neconfirmat oficial"' : '';
-        // The explanation stays closed until the student asks for it (see the
-        // BM.explParts block in js/utils.js); only the criterion and its points
-        // are visible by default. It's a sibling of the criterion, not nested
-        // in it, so the button can sit between them.
+        const ptsTitle = ex.baremEstimat ? ' title="Punctaj estimat de AI, neconfirmat oficial"' : '';
+        // The explanation stays closed until the student asks for it (see
+        // BM.explParts in js/utils.js); only the criterion and its points
+        // are visible by default.
         let expl = '';
         if (step.explicatie) {
           const p = BM.explParts();
           expl = `
-            <div class="reveal-step__expl-row">${p.button}</div>
-            <div class="reveal-step__detail math-content" ${p.panelAttrs}>${BM.trustedNl2br(step.explicatie)}</div>`;
+            <div class="an-step__expl-row">${p.button}</div>
+            <div class="an-step__detail math-content" ${p.panelAttrs}>${BM.trustedNl2br(step.explicatie)}</div>`;
         }
         return `
-          <div class="reveal-step" data-expl-step style="animation-delay:${delay}ms">
-            <div class="reveal-step__head">
-              <span class="reveal-step__num">Pasul ${i + 1}</span>
-              <span class="reveal-step__points${ptsCls}"${ptsTitle}>${step.puncte_maxime}p${ex.baremEstimat ? ' ?' : ''}</span>
+          <div class="an-step" data-expl-step style="animation-delay:${delay}ms">
+            <div class="an-step__head">
+              <span class="an-step__num">Pasul ${i + 1}</span>
+              <span class="an-step__pts"${ptsTitle}>${step.puncte_maxime}p${ex.baremEstimat ? ' ?' : ''}</span>
             </div>
-            <div class="reveal-step__crit math-content">${BM.trustedNl2br(step.descriere)}</div>${expl}
+            <div class="an-step__crit math-content">${BM.trustedNl2br(step.descriere)}</div>${expl}
           </div>`;
       }).join('');
       // With a single explanation, that step's own button does the same job.
       const toolbar = withExpl >= 2 ? `<header class="expl-toolbar">${BM.explToggleAllHtml()}</header>` : '';
-      return `<div class="reveal-steps" data-expl-scope>${toolbar}${steps}</div>`;
+      return `<div class="an-steps" data-expl-scope>${toolbar}${steps}</div>`;
     }
     return `
-      <div class="reveal-solution-label">Rezolvare completă</div>
-      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>`;
+      <div class="an-sol-label">Rezolvare completă</div>
+      <div class="an-sol math-content">${BM.trustedNl2br(ex.solution)}</div>`;
   }
 
   /* ---- MCQ answer zone (replaces the old self-report flow) ----
@@ -765,10 +776,11 @@
     const zone = document.getElementById('revealAnswerZone');
     if (!zone) return;
     zone.innerHTML = `
-      <div class="reveal-mcq-options">
+      <div class="an-opts">
         ${options.map((opt, i) => `
-          <button class="reveal-mcq-option" data-idx="${i}" onclick="trSelectMcqOption(${idx},${i})">
-            <span class="reveal-mcq-option__math math-content">${opt}</span>
+          <button class="an-opt" type="button" data-idx="${i}" onclick="trSelectMcqOption(${idx},${i})">
+            <span class="an-opt__l">${'ABCD'[i] || i + 1}</span>
+            <span class="an-opt__m math-content">${opt}</span>
           </button>`).join('')}
       </div>
     `;
@@ -776,18 +788,18 @@
   }
 
   /* guestNoSession: true when the fallback is shown because the student
-     isn't logged in (rather than a genuine generation failure) — softer
+     is not logged in (rather than a genuine generation failure): softer
      copy inviting login instead of implying something broke. */
   function renderMcqFallback(idx, guestNoSession) {
     const ex = cardStates[idx].ex;
     const zone = document.getElementById('revealAnswerZone');
     if (!zone) return;
     zone.innerHTML = `
-      <p class="reveal-selfcheck-hint">${guestNoSession
-        ? `${icon('lock', { size: 16 })} Conectează-te pentru variante multiple generate automat — deocamdată, iată soluția:`
-        : `${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Nu am putut genera variante de răspuns acum — iată soluția:`}</p>
-      <div class="reveal-solution math-content">${BM.trustedNl2br(ex.solution)}</div>
-      <button class="btn btn--surface btn--full" id="revealUnderstoodBtn">Am înțeles, continuă</button>
+      <p class="an-hint">${guestNoSession
+        ? `${icon('lock', { size: 16 })} Conectează-te pentru variante multiple generate automat. Deocamdată, iată soluția:`
+        : `${icon('triangle-alert', { size: 16 })} Nu am putut genera variante de răspuns acum. Iată soluția:`}</p>
+      <div class="an-sol math-content">${BM.trustedNl2br(ex.solution)}</div>
+      <div class="an-m-foot"><button class="an-key an-key--primary an-key--lg" type="button" id="revealUnderstoodBtn">Am înțeles, continuă</button></div>
     `;
     BM.renderMath(zone);
     document.getElementById('revealUnderstoodBtn').onclick = () => trAcknowledgeNoGrade(idx);
@@ -806,7 +818,11 @@
   window.trSelectMcqOption = function(idx, chosenIndex) {
     const cs = cardStates[idx];
     if (cs.status !== 'hidden') return;
-    document.querySelectorAll('.reveal-mcq-option').forEach(btn => { btn.disabled = true; });
+    document.querySelectorAll('.an-opt').forEach((btn, i) => {
+      btn.disabled = true;
+      if (i === cs._mcqCorrectIndex) btn.classList.add('is-right');
+      else if (i === chosenIndex) btn.classList.add('is-wrong');
+    });
     const isCorrect = chosenIndex === cs._mcqCorrectIndex;
     gradeCard(idx, isCorrect);
   };
@@ -854,7 +870,7 @@
     const safe = Math.max(0, timerRemaining);
     const m = Math.floor(safe / 60);
     const s = safe % 60;
-    el.textContent = `${m}:${String(s).padStart(2, '0')}`;
+    el.innerHTML = `${m}<span class="an-colon">:</span>${String(s).padStart(2, '0')}`;
     el.classList.toggle('warning', timerRemaining <= 15 && timerRemaining > 7);
     el.classList.toggle('danger', timerRemaining <= 7);
   }
@@ -870,7 +886,7 @@
     if (input) input.disabled = true;
     const submitBtn = document.getElementById('revealSubmitBtn');
     if (submitBtn) submitBtn.disabled = true;
-    document.querySelectorAll('.reveal-mcq-option').forEach(btn => { btn.disabled = true; });
+    document.querySelectorAll('.an-opt').forEach((btn, i) => { btn.disabled = true; if (i === cs._mcqCorrectIndex) btn.classList.add('is-right'); });
     gradeCard(idx, false);
   }
 
@@ -909,28 +925,28 @@
     const answerZone = document.getElementById('revealAnswerZone');
 
     if (isCorrect) {
-      /* Solution isn't forced on a correct answer — available on demand via
-         "Vezi rezolvarea", per the design (don't bury the win under a wall
-         of text the student didn't ask for). */
+      /* The solution is not forced on a correct answer: available on demand
+         via "Vezi rezolvarea" (do not bury the win under a wall of text the
+         student did not ask for). */
       resultZone.innerHTML = `
-        <div class="reveal-result-banner reveal-result-banner--correct">${icon('circle-check', { size: 16 })} Corect! <strong>+${xpGain} XP</strong></div>
-        <button class="btn btn--surface btn--full" id="revealShowSolutionBtn">${icon('book-open', { size: 16 })} Vezi rezolvarea</button>
+        <div class="an-banner an-banner--ok">Corect! <strong>+${xpGain} XP</strong></div>
+        <button class="an-key an-key--wide" type="button" id="revealShowSolutionBtn">${icon('book-open', { size: 16 })} Vezi rezolvarea</button>
         <div id="revealSolutionZone" hidden></div>
       `;
     } else {
       /* Wrong answers reveal the solution immediately, progressively when a
          real barem exists (see buildSolutionBlockHtml). The correct-answer
-         text is LaTeX (e.g. "\frac{5}{2}") — must be $-delimited or
+         text is LaTeX (e.g. "\frac{5}{2}"): it must be $-delimited or
          BM.renderMath (which only recognizes $/$$) leaves it raw. */
       resultZone.innerHTML = `
-        <div class="reveal-result-banner reveal-result-banner--incorrect">${icon('circle-x', { size: 16 })} Greșit — răspunsul corect: $${BM.esc(correctAnswerText || '')}$</div>
+        <div class="an-banner an-banner--bad">Greșit. Răspunsul corect: $${BM.esc(correctAnswerText || '')}$</div>
         ${buildSolutionBlockHtml(ex, true)}
       `;
     }
     BM.renderMath(resultZone);
     resultZone.insertAdjacentHTML('beforeend', `
-      <div style="text-align:right;margin-top:14px">
-        <button class="btn btn--primary" id="revealContinueBtn">Continuă</button>
+      <div class="an-m-foot">
+        <button class="an-key an-key--primary an-key--lg" type="button" id="revealContinueBtn">Continuă</button>
       </div>
     `);
     document.getElementById('revealContinueBtn').onclick = () => closeRevealOverlay();
@@ -943,9 +959,9 @@
         document.getElementById('revealShowSolutionBtn').remove();
       };
     }
-    if (answerZone) {
-      const row = mcqPath ? answerZone.querySelector('.reveal-mcq-options') : answerZone.querySelector('.reveal-answer-row');
-      if (row) row.style.opacity = '0.5';
+    if (answerZone && !mcqPath) {
+      const row = answerZone.querySelector('.an-answer');
+      if (row) row.style.opacity = '0.55';
     }
 
     /* Update the grid card underneath so it flips-revealed with its difficulty color when we return */
@@ -967,19 +983,19 @@
   /* ---- Abandon session ---- */
   window.trConfirmAbandon = function() {
     const ov = document.createElement('div');
-    ov.className = 'bac-confirm-overlay';
+    ov.className = 'an-overlay';
     ov.innerHTML = `
-      <div class="bac-confirm-modal" role="dialog" aria-modal="true">
-        <div class="bac-confirm-icon">${icon('triangle-alert', { size: 36, className: 'icon--warning' })}</div>
-        <div class="bac-confirm-title">Renunți la sesiunea curentă?</div>
-        <p class="bac-confirm-sub">Vei pierde tot progresul acestei sesiuni — XP-ul câștigat, streak-ul și exercițiile rezolvate până acum nu se salvează.</p>
-        <div class="bac-confirm-actions">
-          <button class="btn btn--surface" id="abandon-cancel">Înapoi</button>
-          <button class="btn btn--danger" id="abandon-ok">Renunță</button>
+      <div class="an-dialog" role="dialog" aria-modal="true">
+        <div class="an-tile">${icon('triangle-alert', { size: 22 })}</div>
+        <h3>Renunți la sesiunea curentă?</h3>
+        <p>Pierzi progresul acestei sesiuni. XP-ul câștigat, seria și exercițiile rezolvate până acum nu se salvează.</p>
+        <div class="an-dialog__keys">
+          <button class="an-key" type="button" id="abandon-cancel">Înapoi</button>
+          <button class="an-key an-key--danger" type="button" id="abandon-ok">Renunță</button>
         </div>
       </div>`;
     document.body.appendChild(ov);
-    const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 220); };
+    const close = () => { ov.classList.remove('open'); setTimeout(() => ov.remove(), 260); };
     ov.querySelector('#abandon-cancel').onclick = close;
     ov.querySelector('#abandon-ok').onclick = () => { close(); restartTraining(); };
     ov.onclick = e => { if (e.target === ov) close(); };
@@ -993,16 +1009,15 @@
     if (streakEl) {
       streakEl.textContent = currentStreak;
       const wrap = document.getElementById('hudStreak');
-      wrap.classList.remove('session-hud__streak--pulse');
+      wrap.classList.remove('an-pulse');
       void wrap.offsetWidth;
-      wrap.classList.add('session-hud__streak--pulse');
+      wrap.classList.add('an-pulse');
     }
     if (xpEl) xpEl.textContent = sessionXp;
     BM.Training.refreshWidgets();
   }
 
-  /* Floating "+N XP" that pops up next to the XP pill and a quick pulse on
-     the level bar fill — the "animation when you collect XP" ask. */
+  /* A floating "+N XP" over the XP cell: the "animation when you collect XP". */
   function animateXpGain(amount) {
     if (!amount || amount <= 0) return;
     const xpEl = document.getElementById('hudXp');
@@ -1012,12 +1027,6 @@
       popup.textContent = `+${amount} XP`;
       xpEl.appendChild(popup);
       popup.addEventListener('animationend', () => popup.remove());
-    }
-    const fill = document.querySelector('[data-training-level-fill]');
-    if (fill) {
-      fill.classList.remove('session-level__fill--pulse');
-      void fill.offsetWidth;
-      fill.classList.add('session-level__fill--pulse');
     }
   }
 
@@ -1042,7 +1051,7 @@
   function fireConfetti() {
     const layer = document.getElementById('confettiLayer');
     if (!layer) return;
-    const colors = ['#5A31A6', '#16A34A', '#D97706', '#DC2626'];
+    const colors = ['#5A31A6', '#7CB800', '#B4D95C', '#8B66DC', '#DE6A1E'];
     const particles = [];
     for (let i = 0; i < 30; i++) {
       const p = document.createElement('div');
@@ -1306,14 +1315,14 @@
   function animateCountUp(el, target) {
     if (!el) return;
     if (reduceMotion() || target <= 0) { el.textContent = target; return; }
-    const duration = 800;
-    const start = performance.now();
-    function tick(now) {
-      const t = Math.min(1, (now - start) / duration);
-      el.textContent = Math.round(target * t);
-      if (t < 1) requestAnimationFrame(tick);
-    }
-    requestAnimationFrame(tick);
+    /* An LCD figure refreshes in stepped frames, it does not glide. */
+    const steps = 10;
+    let n = 0;
+    const timer = setInterval(() => {
+      n++;
+      el.textContent = Math.round(target * n / steps);
+      if (n >= steps) clearInterval(timer);
+    }, 70);
   }
 
   function animateLevelBar(xpBefore, xpAfter, leveledUp) {
@@ -1337,20 +1346,20 @@
     }
     requestAnimationFrame(() => {
       if (!leveledUp) {
-        fill.style.transition = 'width 0.8s cubic-bezier(0.22,1,0.36,1)';
+        fill.style.transition = 'width 0.8s steps(20, end)';
         set(levelAfter, (xpAfter % perLevel) / perLevel);
         return;
       }
       // Crossed at least one level mid-session: fill to 100%, snap to 0%,
       // then fill to the new in-level amount — reads as "leveled up" even
       // when more than one level was crossed in a single session.
-      fill.style.transition = 'width 0.5s cubic-bezier(0.22,1,0.36,1)';
+      fill.style.transition = 'width 0.5s steps(20, end)';
       set(levelBefore, 1);
       setTimeout(() => {
         fill.style.transition = 'none';
         set(levelAfter, 0);
         void fill.offsetWidth;
-        fill.style.transition = 'width 0.5s cubic-bezier(0.22,1,0.36,1)';
+        fill.style.transition = 'width 0.5s steps(20, end)';
         set(levelAfter, (xpAfter % perLevel) / perLevel);
       }, 550);
     });
@@ -1387,14 +1396,11 @@
     const levelAfter  = Math.floor(xpNow / perLevel) + 1;
     const leveledUp = levelAfter > levelBefore;
 
-    document.getElementById('flipBoard').style.display = 'none';
+    document.getElementById('flipBoard').hidden = true;
     const resView = document.getElementById('resultsView');
     resView.classList.add('active');
+    window.scrollTo(0, 0);
 
-    // Named resultIcon, not icon — this function is inside the same
-    // closure as every other call to the global icon() below; a local
-    // `icon` here would shadow it.
-    const resultIcon = icon(pct >= 80 ? 'party-popper' : pct >= 50 ? 'dumbbell' : 'library', { size: 48 });
     const title  = pct >= 80 ? 'Excelent!' : pct >= 50 ? 'Bine!' : 'Continuă să exersezi!';
     const sub    = pct >= 80
       ? 'Ai rezolvat majoritatea exercițiilor. Ești pe drumul cel bun!'
@@ -1406,86 +1412,89 @@
     const secs = elapsed % 60;
     const timeStr = mins > 0 ? `${mins}m ${secs}s` : `${secs}s`;
 
-    /* Per-subcategory breakdown — the "unde ai mers bine, unde ai greșit" ask */
+    /* Per-subcategory breakdown: where it went well, where it did not. One
+       strip segment per card of that type. */
     const bySub = {};
     cardStates.forEach(cs => {
       const key = cs.ex.subcategoryId;
-      if (!bySub[key]) bySub[key] = { correct: 0, total: 0, ex: cs.ex };
+      if (!bySub[key]) bySub[key] = { correct: 0, total: 0, ex: cs.ex, marks: [] };
       bySub[key].total++;
       if (cs.status === 'correct') bySub[key].correct++;
+      bySub[key].marks.push(cs.status === 'correct' ? 'ok' : cs.status === 'incorrect' ? 'bad' : '');
     });
-    const breakdownRows = Object.values(bySub).map(s => {
+    const breakdownRows = Object.values(bySub).map((s, i) => {
       const sub = BM.getSubcategoryById(s.ex.categoryId, s.ex.subcategoryId);
       const name = sub?.name || s.ex.subcategoryId;
       const scoreCls = s.correct === s.total ? 'good' : s.correct === 0 ? 'bad' : 'mixed';
-      return `<div class="results-breakdown__row"><span>${BM.esc(name)}</span><span class="results-breakdown__score results-breakdown__score--${scoreCls}">${s.correct}/${s.total}</span></div>`;
+      return `
+        <div class="an-tape__row" style="--i:${Math.min(i, 10)}">
+          <span class="an-tape__name">${BM.esc(name)}</span>
+          <span class="an-tape__score an-tape__score--${scoreCls}">${s.correct}/${s.total}</span>
+          <div class="an-tape__strip">${s.marks.map(m => `<i class="${m}"></i>`).join('')}</div>
+        </div>`;
     }).join('');
 
     resView.innerHTML = `
-      ${isPerfect ? `
-      <div class="results-perfect-banner">${icon('award', { size: 16 })} Sesiune perfectă! Ai rezolvat toate exercițiile corect.</div>` : ''}
-      ${newRecord ? `
-      <div class="results-record-banner">${icon('trophy', { size: 16 })} Record nou de streak: ${bestStreakSession} răspunsuri corecte la rând!</div>` : ''}
-      ${leveledUp ? `
-      <div class="results-record-banner">${icon('trophy', { size: 16 })} Nivel nou: ${levelAfter}!</div>` : ''}
+      <div class="an-res">
+        <div class="an-res__main">
+          <section class="an-plate">
+            <div class="an-plate__owl" role="img" aria-label="Bufnița Teorema"></div>
+            <h2 class="an-plate__title">${title}</h2>
+            <p class="an-plate__sub">${sub}</p>
+            <div class="an-plate__tags">
+              ${isPerfect ? '<span class="an-tag">Sesiune perfectă</span>' : ''}
+              ${newRecord ? `<span class="an-tag">Record nou de serie: ${bestStreakSession}</span>` : ''}
+              ${leveledUp ? `<span class="an-tag">Nivel nou: ${levelAfter}</span>` : ''}
+            </div>
+          </section>
 
-      <div class="results-header">
-        <div class="results-icon">${resultIcon}</div>
-        <div class="results-title">${title}</div>
-        <div class="results-subtitle">${sub}</div>
-      </div>
+          <div class="an-lcd an-lcd--res" role="group" aria-label="Scorul sesiunii">
+            <div class="an-ann-row">
+              <span class="an-ann is-on">SESIUNE</span>
+              <span class="an-ann${isPerfect ? ' is-on' : ''}">PERFECT</span>
+              <span class="an-ann${newRecord ? ' is-on' : ''}">RECORD</span>
+              <span class="an-ann${leveledUp ? ' is-on' : ''}">NIVEL +</span>
+            </div>
+            <div class="an-lcd__row">
+              <div class="an-lcd__fig"><b>${pct}%</b><span class="an-lcd__unit">${solved} din ${total} rezolvate</span></div>
+            </div>
+            <dl class="an-res__nums">
+              <div><dt>XP câștigat</dt><dd id="resultsXpCount">0</dd></div>
+              <div><dt>Serie maximă</dt><dd>${bestStreakSession}</dd></div>
+              <div><dt>Timp total</dt><dd>${timeStr}</dd></div>
+              <div><dt>Cărți</dt><dd>${total}</dd></div>
+            </dl>
+          </div>
 
-      <div class="results-stats">
-        <div class="result-stat">
-          <div class="result-stat__num" style="color:var(--green)">${solved}</div>
-          <div class="result-stat__lbl">Rezolvate</div>
+          <div class="an-res__lvl">
+            <div class="an-lvl">
+              <span class="an-lvl__t">Nivel <span id="resultsLevelLabel">${levelBefore}</span></span>
+              <div class="an-lvl__bar"><i id="resultsLevelFill" style="width:0%"></i></div>
+              <span class="an-lvl__xp" id="resultsLevelXp"></span>
+            </div>
+          </div>
         </div>
-        <div class="result-stat">
-          <div class="result-stat__num">${total}</div>
-          <div class="result-stat__lbl">Total</div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat__num" style="color:var(--accent-light)">${pct}%</div>
-          <div class="result-stat__lbl">Scor</div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat__num" id="resultsXpCount" style="color:var(--yellow)">0</div>
-          <div class="result-stat__lbl">XP câștigat</div>
-        </div>
-        <div class="result-stat">
-          <div class="result-stat__num" style="color:var(--icon-gamify)">${icon('flame', { size: 16, className: 'icon-num' })} ${bestStreakSession}</div>
-          <div class="result-stat__lbl">Streak maxim</div>
-        </div>
-      </div>
 
-      <div class="session-level" style="max-width:none;margin:0 auto 24px">
-        <div class="session-level__top">
-          <span class="session-level__label">Nivel <span id="resultsLevelLabel">${levelBefore}</span></span>
-          <span class="session-level__xp" id="resultsLevelXp"></span>
-        </div>
-        <div class="session-level__bar"><div class="session-level__fill" id="resultsLevelFill" style="width:0%"></div></div>
-      </div>
-
-      <div class="results-breakdown">
-        <div class="results-breakdown__title">Defalcare pe subcapitole</div>
-        ${breakdownRows}
-      </div>
-
-      <div style="text-align:center;color:var(--text-muted);font-size:0.9rem;margin-bottom:28px">
-        ${icon('timer', { size: 16 })} Timp total: ${timeStr}
-      </div>
-
-      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
-        ${missedSubcats.size > 0 ? `
-        <button class="btn btn--surface btn--lg" onclick="repeatMistakes()">
-          ${icon('refresh-cw', { size: 20 })} Repetă greșelile
-        </button>` : ''}
-        <button class="btn btn--primary btn--lg" onclick="restartTraining()">
-          ${icon('refresh-cw', { size: 20 })} Sesiune nouă
-        </button>
-        <a class="btn btn--surface btn--lg" href="capitole.html">
-          ${icon('arrow-left', { size: 16 })} Înapoi la capitole
-        </a>
+        <aside class="an-res__side">
+          <section class="an-tape">
+            <h3 class="an-tape__title">Defalcare pe tipuri</h3>
+            ${breakdownRows}
+          </section>
+          <div class="an-res__keys">
+            <button class="an-go" type="button" style="--i:0" onclick="restartTraining()">
+              <span class="an-go__led" aria-hidden="true"></span>
+              Sesiune nouă
+              ${icon('refresh-cw', { size: 20 })}
+            </button>
+            ${missedSubcats.size > 0 ? `
+            <button class="an-key" type="button" style="--i:1" onclick="repeatMistakes()">
+              ${icon('refresh-cw', { size: 16 })} Repetă greșelile
+            </button>` : ''}
+            <a class="an-key" style="--i:2" href="capitole.html">
+              ${icon('arrow-left', { size: 16 })} Înapoi la capitole
+            </a>
+          </div>
+        </aside>
       </div>
     `;
 
@@ -1502,6 +1511,7 @@
   window.repeatMistakes = function() {
     if (missedSubcats.size === 0) return;
     selectedSubcats = new Set(missedSubcats);
+    refreshChapters();
     startTraining();
   };
 
@@ -1519,12 +1529,11 @@
     missedSubcats = new Set();
     pendingSolvedIds = new Set();
 
-    document.getElementById('flipBoard').style.display = '';
     document.getElementById('resultsView').classList.remove('active');
     document.getElementById('resultsView').innerHTML = '';
 
     expandConfigPanel();
-    renderChapterList();
+    refreshChapters();
     updateSummary();
   };
 

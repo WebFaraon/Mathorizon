@@ -110,9 +110,9 @@ body:has(#resultsView:not([style*="none"])) {
 :is(#examView, #resultsView) .bac-slot-btn:disabled,
 :is(#examView, #resultsView) .bac-slot-btn:disabled:hover {
   opacity: 1;
-  border: 1px dashed var(--k-panel-edge);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--k-off-border);
+  background: var(--k-off-face);
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
   color: var(--k-ink-3);
   cursor: not-allowed;
   filter: none;
@@ -229,9 +229,9 @@ body:has(#resultsView:not([style*="none"])) {
 #examView .bac-nav-item.unavailable,
 #examView .bac-nav-item.unavailable:hover {
   opacity: 1;
-  border: 1px dashed var(--k-panel-edge);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--k-off-border);
+  background: var(--k-off-face);
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
   filter: none;
   color: var(--k-ink-3);
 }
@@ -466,9 +466,9 @@ body.bac-exam-mode .dc-width-btn--active .dc-width-dot { background: #fff; }
 body.bac-exam-mode .dc-action-btn--danger:hover { color: var(--k-red); }
 body.bac-exam-mode .dc-action-btn:disabled,
 body.bac-exam-mode .dc-action-btn:disabled:hover {
-  border: 1px dashed var(--k-panel-edge);
-  background: transparent;
-  box-shadow: none;
+  border: 1px solid var(--k-off-border);
+  background: var(--k-off-face);
+  box-shadow: 0 3px 0 0 var(--k-off-edge);
   color: var(--k-ink-3);
   opacity: 1;
   cursor: not-allowed;
