@@ -396,3 +396,184 @@ html body.pm:has(#catHeader) .deck__soon {
   box-shadow: none;
   color: var(--pm-ink-2);
 }
+
+/* ==========================================================================
+   Capitole (capitole.html, the React island). Same language as the category
+   page; the hero LCD and the small LCD readouts stay calculator displays.
+   `class="pm"` is on this page's <body>; #root exists only here.
+   ========================================================================== */
+
+/* ---- Grade keys ---- */
+html body.pm:has(#root) .cap-grade-switch__option {
+  height: 38px;
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+}
+html body.pm:has(#root) .cap-grade-switch__option--active,
+html body.pm:has(#root) .cap-grade-switch__option--active:hover {
+  border-color: var(--pm-violet);
+  background: var(--pm-violet);
+  color: #fff;
+}
+html body.pm:has(#root) .cap-grade-switch__option--active { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#root) .cap-grade-switch__option--active:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+html body.pm:has(#root) .cap-grade-switch__option--soon,
+html body.pm:has(#root) .cap-grade-switch__option--soon:hover,
+html body.pm:has(#root) .cap-grade-switch__option--soon:active {
+  border-color: var(--pm-line);
+  background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  color: var(--pm-ink-2);
+}
+
+/* ---- Chapter keys ---- */
+html body.pm:has(#root) .cap-key { padding-bottom: 5px; }
+html body.pm:has(#root) .cap-key__face,
+html body.pm:has(#root) a.cap-key__face:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 18px;
+  background: var(--pm-face);
+  color: inherit;
+}
+html body.pm:has(#root) .cap-key__face {
+  padding: 18px 20px 16px;
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#root) a.cap-key__face:active {
+  box-shadow: 0 0 0 0 var(--pm-edge);
+  transform: translateY(5px);
+}
+html body.pm:has(#root) a.cap-key__face:focus-visible { outline: 2px solid var(--pm-violet); outline-offset: 3px; }
+html body.pm:has(#root) .cap-key__symbol {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: auto;
+  min-width: 56px;
+  height: 56px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--pm-violet);
+  color: #fff;
+  font-size: 1.7rem;
+}
+html body.pm:has(#root) .cap-key__legend { color: var(--pm-key-ink); }
+html body.pm:has(#root) .cap-key__name { color: var(--pm-ink); }
+html body.pm:has(#root) .cap-key__desc { color: var(--pm-ink-2); }
+html body.pm:has(#root) .cap-strip { height: 12px; gap: 4px; }
+html body.pm:has(#root) .cap-strip__seg { min-width: 8px; border-radius: 6px; background: var(--pm-track); }
+html body.pm:has(#root) .cap-key__foot { border-top: 1.5px solid var(--pm-line); }
+html body.pm:has(#root) .cap-key__count { color: var(--pm-ink-2); }
+html body.pm:has(#root) .cap-key__count b { color: var(--pm-ink); }
+html body.pm:has(#root) .cap-key__percent { color: var(--pm-key-ink); }
+html body.pm:has(#root) .cap-key--soon .cap-key__face {
+  border-color: var(--pm-line);
+  background: var(--pm-tint);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#root) .cap-key--soon .cap-key__symbol { background: var(--pm-line-2); color: var(--pm-ink-2); }
+html body.pm:has(#root) .cap-key--soon .cap-key__name,
+html body.pm:has(#root) .cap-key--soon .cap-key__desc { color: var(--pm-ink-2); }
+html body.pm:has(#root) .cap-key__soon {
+  border: 0;
+  border-radius: 999px;
+  background: var(--pm-face);
+  box-shadow: none;
+  color: var(--pm-ink-2);
+}
+
+/* ---- Side panels (the rails are flush on wide screens, rounded when stacked) ---- */
+html body.pm:has(#root) .cap-sidebar-panel,
+html body.pm:has(#root) .cap-profile-panel { border-color: var(--pm-line); }
+@media (max-width: 1179.98px) {
+  html body.pm:has(#root) .cap-sidebar-panel,
+  html body.pm:has(#root) .cap-profile-panel { border-radius: 18px; overflow: hidden; }
+}
+html body.pm:has(#root) .cap-profile-avatar {
+  border-radius: 20px;
+  background: var(--pm-violet);
+  box-shadow: 0 0 0 1.5px var(--pm-line);
+}
+html body.pm:has(#root) .cap-profile-stat__val { border-radius: 10px; }
+html body.pm:has(#root) .cap-profile-xpbar { border-radius: 10px; }
+html body.pm:has(#root) .cap-profile-xpbar__seg { border-radius: 3px; }
+html body.pm:has(#root) .cap-profile-achievements-empty {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 12px;
+  background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#root) .cap-profile-achievements-empty__icon,
+html body.pm:has(#root) .cap-profile-achievements-empty p { color: var(--pm-ink-2); }
+html body.pm:has(#root) .cap-sidebar-divider,
+html body.pm:has(#root) .cap-profile-divider { background: var(--pm-line); }
+
+/* ---- Buttons ---- */
+html body.pm:has(#root) .cap-btn,
+html body.pm:has(#root) .cap-btn:hover {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#root) .cap-btn { box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#root) .cap-btn:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm:has(#root) .cap-btn--primary,
+html body.pm:has(#root) .cap-btn--primary:hover {
+  border-color: var(--pm-violet);
+  background: var(--pm-violet);
+  color: #fff;
+}
+html body.pm:has(#root) .cap-btn--primary { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#root) .cap-btn--primary:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+
+/* ---- Missions and leaderboard ---- */
+html body.pm:has(#root) .cap-mission__check-empty {
+  width: 16px;
+  height: 16px;
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 5px;
+  background: var(--pm-face);
+}
+html body.pm:has(#root) .cap-mission__cell { height: 8px; border-radius: 4px; background: var(--pm-track); }
+html body.pm:has(#root) .cap-mission__cell--on { background: var(--pm-violet); }
+html body.pm:has(#root) .cap-mission--done .cap-mission__cell--on { background: var(--pm-lime); }
+html body.pm:has(#root) .cap-leaderboard__avatar { border-radius: 10px; }
+
+/* ---- Phone tab bar ---- */
+html body.pm:has(#root) .cap-tabbar__btn {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#root) .cap-tabbar__btn:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm:has(#root) .cap-tabbar__btn--active {
+  border-color: var(--pm-violet);
+  background: var(--pm-violet);
+  color: #fff;
+  box-shadow: 0 3px 0 0 var(--pm-violet-edge);
+}
+html body.pm:has(#root) .cap-tabbar__btn--active:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+
+/* ---- Leaderboard and follow dialogs ---- */
+html body.pm:has(#root) .cap-leaderboard-modal,
+html body.pm:has(#root) .cap-follow-modal {
+  overflow: hidden;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#root) .cap-leaderboard-modal .classes-modal__head,
+html body.pm:has(#root) .cap-follow-modal .classes-modal__head { border-bottom-color: var(--pm-line); }
+html body.pm:has(#root) .cap-leaderboard-modal__close,
+html body.pm:has(#root) .cap-leaderboard-modal__close:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#root) .cap-leaderboard-modal__close { box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#root) .cap-leaderboard-modal__close:active { box-shadow: 0 0 0 0 var(--pm-edge); }
