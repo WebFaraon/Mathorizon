@@ -5348,7 +5348,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   opacity: 0.1;
   pointer-events: none;
 }
-[data-theme="dark"] .session-header::after { opacity: 0.1; background-image: url('/assets/images/teorema-owl.png'); }
+[data-theme="dark"] .session-header::after { opacity: 0.1; background-image: url('/assets/images/teorema-owl.svg'); }
 @media (max-width: 760px) {
   .session-header::after { display: none; }
 }
@@ -5793,7 +5793,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   border-color: var(--rarity-legendar-b);
   font-weight: 800;
 }
-/* Logo watermark — assets/images/teorema-owl.png is white line-art on a
+/* Logo watermark — assets/images/teorema-owl.svg is white line-art on a
    transparent background (same file the navbar uses), which is why it was
    invisible at low opacity against a plain white/near-white card: nothing
    for a near-white mark to contrast against. Sitting on the rarity gradient

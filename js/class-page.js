@@ -7584,8 +7584,8 @@
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
           <div class="wb-fs-brand">
-            <img class="wb-fs-brand__logo wb-fs-brand__logo--word" src="assets/images/teorema-wordmark.png" alt="Teorema">
-            <img class="wb-fs-brand__logo wb-fs-brand__logo--owl" src="assets/images/teorema-owl.png" alt="Teorema">
+            <img class="wb-fs-brand__logo wb-fs-brand__logo--word" src="assets/images/teorema-wordmark.svg" alt="Teorema">
+            <img class="wb-fs-brand__logo wb-fs-brand__logo--owl" src="assets/images/teorema-owl.svg" alt="Teorema">
           </div>
           ${isTeacher
             ? `<input class="wb-fs-title-input" id="wbTitleInput" type="text" maxlength="60" value="${BM.esc(session.title)}" placeholder="Titlul tablei" title="Redenumește tabla">`

@@ -715,7 +715,7 @@ html[data-theme="dark"] .an-key--danger, html[data-theme="dark"] .an-key--danger
   background: url('../assets/images/teorema-owl-ink.png') center / auto 62% no-repeat;
   opacity: 0.9;
 }
-html[data-theme="dark"] .an-card__emblem { background-image: url('../assets/images/teorema-owl.png'); opacity: 0.85; }
+html[data-theme="dark"] .an-card__emblem { background-image: url('../assets/images/teorema-owl.svg'); opacity: 0.85; }
 .an-card__foot { display: flex; justify-content: center; padding: 0 0 14px; }
 .an-no {
   min-width: 56px;
@@ -1012,7 +1012,7 @@ html[data-theme="dark"] .an-card--bad .an-res-tile { color: #1A0905; }
   background: var(--k-cover);
   color: #F5F0FB;
 }
-.an-plate__owl { grid-row: 1 / span 3; width: 112px; height: 118px; background: url('../assets/images/teorema-owl.png') center / contain no-repeat; }
+.an-plate__owl { grid-row: 1 / span 3; width: 112px; height: 118px; background: url('../assets/images/teorema-owl.svg') center / contain no-repeat; }
 .an-plate__title { margin: 0; font-size: clamp(1.7rem, 2.6vw, 2.3rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.025em; }
 .an-plate__sub { margin: 0; max-width: 52ch; font-size: 0.98rem; line-height: 1.5; color: #DFD6F0; }
 .an-plate__tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
