@@ -1,0 +1,151 @@
+/* ==========================================================================
+   The Teorema owl on the pages (2026-11-11), see js/owl.js
+   ========================================================================== */
+
+:root {
+  --ow-line: var(--pm-line-2, var(--bx-line, #C9BFE0));
+  --ow-edge: var(--pm-edge, var(--bx-edge, #CFC6E3));
+  --ow-face: var(--pm-face, var(--ax-panel, #FFFFFF));
+  --ow-tint: var(--pm-tint, var(--bx-tint, #EDE7F8));
+  --ow-ink: var(--pm-ink, var(--ax-ink, #1E1631));
+  --ow-ink-2: var(--pm-ink-2, var(--ax-ink-2, #5B4F74));
+  --ow-violet: var(--pm-violet, var(--bx-violet, #3F236E));
+  --ow-key-ink: var(--pm-key-ink, var(--bx-key-ink, #3F236E));
+  --ow-lime: var(--pm-lime, var(--bx-lime, #7BB403));
+}
+
+/* the owl itself: a box with the proportions of the drawing, filled by script */
+.owl { display: block; flex: none; width: var(--ow, 140px); aspect-ratio: 300 / 270; pointer-events: none; }
+.owl svg { display: block; width: 100%; height: 100%; overflow: visible; }
+.owl--xs { --ow: 84px; }
+.owl--sm { --ow: 108px; }
+.owl--md { --ow: 140px; }
+.owl--lg { --ow: 190px; }
+.owl.is-owl { animation: owl-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+.owl[data-owl="wrong"].is-owl { animation: owl-in 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) backwards, owl-shake 0.7s ease 0.5s; }
+@keyframes owl-in { from { opacity: 0; transform: translateY(14px) scale(0.7); } }
+@keyframes owl-shake { 0%, 100% { transform: none; } 20% { transform: rotate(-5deg); } 45% { transform: rotate(4deg); } 70% { transform: rotate(-2deg); } }
+
+/* the round spinners of the site become the owl once it is ready (until then the ring turns) */
+.owl--spin.is-owl {
+  width: var(--ow, 130px);
+  height: auto;
+  aspect-ratio: 300 / 270;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  animation: none;
+  margin-left: auto;
+  margin-right: auto;
+}
+.owl--spin.is-owl::before,
+.owl--spin.is-owl::after { content: none; }
+.ai-loading__spinner.owl--spin.is-owl { --ow: 150px; }
+
+/* an owl that perches on the top edge of a panel (the parent is position: relative) */
+.owl--perch { position: absolute; right: clamp(18px, 6%, 56px); bottom: 100%; margin-bottom: -20px; z-index: 2; --ow: 130px; }
+
+/* an empty state: the owl and a few words */
+.owl-empty { display: flex; align-items: center; justify-content: center; gap: 6px 14px; flex-wrap: wrap; text-align: left; }
+.owl-empty .owl { margin: -14px -8px -14px -14px; }
+.owl-empty--col { flex-direction: column; text-align: center; gap: 0; }
+.owl-empty--col .owl { margin: -10px 0 -4px; }
+
+/* the encouragement after a wrong answer */
+.owl-wrong {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 2px 0 10px;
+  padding: 4px 18px 4px 4px;
+  border: 1.5px solid var(--ow-line);
+  border-radius: 18px;
+  background: var(--ow-tint);
+  box-shadow: 0 3px 0 0 var(--ow-edge);
+  animation: owl-rise 0.45s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+.owl-wrong .owl { margin: -10px -6px -10px -12px; --ow: 120px; }
+.owl-wrong__t { display: grid; gap: 2px; min-width: 0; }
+.owl-wrong__t b { font-size: 1.15rem; font-weight: 800; line-height: 1.2; color: var(--ow-ink); }
+.owl-wrong__t span { font-size: 0.92rem; line-height: 1.4; color: var(--ow-ink-2); }
+@keyframes owl-rise { from { opacity: 0; transform: translateY(8px); } }
+
+/* the sleeping owl after 22:00 */
+.owl-night {
+  position: fixed;
+  right: 22px;
+  bottom: 22px;
+  z-index: 900;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0 8px;
+  width: min(430px, calc(100vw - 32px));
+  padding: 8px 20px 18px 6px;
+  border: 1.5px solid var(--ow-line);
+  border-radius: 22px;
+  background: var(--ow-face);
+  color: var(--ow-ink);
+  box-shadow: 0 6px 0 0 var(--ow-edge), 0 24px 48px -18px rgba(30, 22, 49, 0.45);
+  opacity: 0;
+  transform: translateY(26px) scale(0.97);
+  transition: opacity 0.5s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.owl-night.is-in { opacity: 1; transform: none; }
+.owl-night.is-out { opacity: 0; transform: translateY(20px) scale(0.97); transition-duration: 0.35s; }
+.owl-night .owl { --ow: 130px; margin: -6px -10px -10px -12px; grid-row: 1 / span 2; }
+.owl-night__t { display: grid; gap: 4px; padding-top: 12px; }
+.owl-night__t small { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ow-ink-2); }
+.owl-night__t b { font-size: 1.12rem; font-weight: 800; line-height: 1.25; }
+.owl-night__t span { font-size: 0.86rem; line-height: 1.4; color: var(--ow-ink-2); }
+.owl-night__x,
+.owl-night__x:hover {
+  grid-column: 2;
+  justify-self: start;
+  margin-top: 10px;
+  min-height: 38px;
+  padding: 0 16px;
+  border: 1.5px solid var(--ow-line);
+  border-radius: 10px;
+  background: var(--ow-face);
+  color: var(--ow-key-ink);
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  box-shadow: 0 3px 0 0 var(--ow-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.owl-night__x:hover { filter: brightness(0.95); }
+.owl-night__x:active { box-shadow: 0 0 0 0 var(--ow-edge); transform: translateY(3px); }
+@media (max-width: 560px) {
+  .owl-night { right: 16px; left: 16px; bottom: 16px; width: auto; }
+  .owl-night .owl { --ow: 104px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .owl.is-owl, .owl[data-owl="wrong"].is-owl, .owl-wrong { animation: none; }
+  .owl-night, .owl-night.is-out { transition: none; transform: none; }
+}
+
+/* Antrenament: the hint under the start key when the choice is empty */
+.an-start__hint.is-bad { display: flex; align-items: center; gap: 4px; }
+.an-start__hint.is-bad .owl { --ow: 84px; margin: -14px -8px -14px -14px; }
+.an-start__hint-t { min-width: 0; }
+/* Clase: the empty "today" strip, and the class's empty message list */
+.cl-today__empty.owl-empty { justify-content: flex-start; }
+.cl-today__empty.owl-empty > div { display: grid; gap: 2px; }
+.flux-empty__icon .owl { margin: -12px auto -6px; }
+/* the AI check of the Simulare results */
+.res-hero__grade--pending .owl { margin: -16px auto -8px; }
+/* auth: the owl perches on the sign-in panel */
+.ap-panel { position: relative; }
+/* the class pages show their loader as a small display with no spinner: the owl comes above it */
+body:has(#classRoot) .classes-loading:has(.owl--spin.is-owl) { flex-direction: column; align-items: center; gap: 2px; padding: 44px 0; }
+body:has(#classRoot) .classes-spinner.owl--spin.is-owl { display: block; --ow: 150px; margin-bottom: -6px; }
+/* phones: the perched owl gets its own room above the display, so it never covers a key */
+@media (max-width: 720px) {
+  .ld-figures:has(> .owl--perch) { margin-top: 58px; }
+  .owl--perch { --ow: 112px; right: 14px; margin-bottom: -18px; }
+  .ap-panel:has(> .owl--perch) { margin-top: 52px; }
+}

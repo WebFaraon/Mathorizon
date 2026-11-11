@@ -419,7 +419,14 @@
     const line = document.getElementById('configSummaryText');
     const hint = document.getElementById('anHint');
     if (line) { line.textContent = text; line.classList.toggle('is-bad', !!bad); }
-    if (hint) { hint.textContent = text; hint.classList.toggle('is-bad', !!bad); }
+    if (hint) {
+      hint.classList.toggle('is-bad', !!bad);
+      if (bad) {               // an empty choice: the owl waits, attentive, next to the words
+        let t = hint.querySelector('.an-start__hint-t');
+        if (!t) { hint.innerHTML = '<span class="owl owl--sm" data-owl="idle" aria-hidden="true"></span><span class="an-start__hint-t"></span>'; t = hint.querySelector('.an-start__hint-t'); }
+        t.textContent = text;
+      } else { hint.textContent = text; }
+    }
   }
 
   function updateSummary() {
@@ -985,7 +992,9 @@
          real barem exists (see buildSolutionBlockHtml). The correct-answer
          text is LaTeX (e.g. "\frac{5}{2}"): it must be $-delimited or
          BM.renderMath (which only recognizes $/$$) leaves it raw. */
+      const _oops = [['Aproape!', 'Mai încearcă, data viitoare iese.'], ['Nu-i nimic.', 'Așa se învață: acum știi cum se face.'], ['Aproape!', 'Uită-te la rezolvare și o prinzi.'], ['Fiecare greșeală te apropie.', 'Citește pașii și continuă.']][cardStates.filter(c => c.status === 'incorrect').length % 4];
       resultZone.innerHTML = `
+        <div class="owl-wrong"><span class="owl owl--sm" data-owl="wrong" aria-hidden="true"></span><div class="owl-wrong__t"><b>${_oops[0]}</b><span>${_oops[1]}</span></div></div>
         <div class="an-banner an-banner--bad">Greșit. Răspunsul corect: $${BM.esc(correctAnswerText || '')}$</div>
         ${buildSolutionBlockHtml(ex, true)}
       `;

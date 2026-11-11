@@ -92,7 +92,7 @@
       const fa = facts(a), fb = facts(b), da = (fa.live[0] || a.dates[0] || {}).iso || '', db = (fb.live[0] || b.dates[0] || {}).iso || '';
       return (fb.attention - fa.attention) || (filter === 'done' ? db.localeCompare(da) : da.localeCompare(db));
     });
-    if (!all.length) return `<div class="ax-empty"><b>Nicio înlocuire încă.</b>Deschide o grupă din Orar și apasă „Înlocuire”: alegi lecțiile, profesorul și cabinetul, iar fila apare singură în registrul lui.</div>`;
+    if (!all.length) return `<div class="ax-empty owl-empty owl-empty--col"><span class="owl owl--md" data-owl="idle" aria-hidden="true"></span><b>Nicio înlocuire încă.</b>Deschide o grupă din Orar și apasă „Înlocuire”: alegi lecțiile, profesorul și cabinetul, iar fila apare singură în registrul lui.</div>`;
     if (!shown.length) return `<div class="ax-empty"><b>Nimic în această listă.</b>${filter === 'attention' ? 'Nicio înlocuire nu are nevoie de atenție.' : 'Schimbă filtrul de mai sus.'}</div>`;
     return `<ul class="ri-list">${shown.map(rowHTML).join('')}</ul>`;
   }

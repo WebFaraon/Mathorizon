@@ -346,9 +346,10 @@
               </li>`;
             }).join('')}
           </ol>` : `
-          <div class="cl-today__empty">
-            <b>Nu sunt lecții programate pentru azi.</b>
-            ${nextText ? `<span>${nextText}</span>` : ''}
+          <div class="cl-today__empty owl-empty">
+            <span class="owl owl--sm" data-owl="idle" aria-hidden="true"></span>
+            <div><b>Nu sunt lecții programate pentru azi.</b>
+            ${nextText ? `<span>${nextText}</span>` : ''}</div>
           </div>`}
       </section>`;
   }

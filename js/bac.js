@@ -1338,7 +1338,7 @@
     const unansweredCount = exam.slots.filter(item => item.exercise && !item.work).length;
 
     const heroBody = status === 'pending' ? `
-        <div class="res-hero__grade res-hero__grade--pending">${icon('bot', { size: 48 })}</div>
+        <div class="res-hero__grade res-hero__grade--pending"><span class="owl owl--md" data-owl="verify" aria-hidden="true"></span></div>
         <div class="res-hero__label">Se evaluează cu AI…</div>
       ` : status === 'error' ? `
         <div class="res-hero__grade res-hero__grade--pending">${icon('triangle-alert', { size: 48 })}</div>
