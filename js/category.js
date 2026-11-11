@@ -72,10 +72,6 @@
 
     allExercises = BM.EXERCISES.filter(e => e.categoryId === catId);
 
-    /* Premium keys and frames (css/premium.css): pilot on Calcul Algebric only.
-       To widen it, change this one condition. */
-    document.body.classList.toggle('pm', catId === 'algebra' && BM.getParam('sub') === 'calcul-algebric');
-
     renderHeader();
     initPanelBtns();
     BM.Storage.recordVisit();
@@ -201,8 +197,16 @@
   /* ============================================================
      VIEW: Subcategory Cards
      ============================================================ */
+  /* Premium keys and frames (css/premium.css): pilot on Calcul Algebric only.
+     The views switch in place (no reload), so the class follows the view, not
+     the address. To widen the pilot, change this one condition. */
+  function updateSkin() {
+    document.body.classList.toggle('pm', currentCategory?.id === 'algebra' && currentSubcat === 'calcul-algebric');
+  }
+
   function showCardsView() {
     currentSubcat = null;
+    updateSkin();
     const cardsEl = document.getElementById('subcatCardsSection');
     const exEl    = document.getElementById('exercisesSection');
     switchView(exEl, cardsEl, () => {
@@ -335,6 +339,7 @@
      ============================================================ */
   function showExercisesView(subcatId) {
     currentSubcat = subcatId;
+    updateSkin();
     statusFilter  = 'all';
     diffFilter    = 'all';
     const cardsEl = document.getElementById('subcatCardsSection');
