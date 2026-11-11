@@ -7,7 +7,9 @@
    ============================================================ */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-html { font-size: 16px; scroll-behavior: smooth; overflow-y: scroll; }
+/* No blue flash on touch (Android browsers paint one over the tapped element);
+   the keys already show their own press. Inherited by everything below. */
+html { font-size: 16px; scroll-behavior: smooth; overflow-y: scroll; -webkit-tap-highlight-color: transparent; }
 
 body {
   font-family: var(--font-ui);
