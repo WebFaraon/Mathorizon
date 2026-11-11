@@ -580,3 +580,113 @@ body.ax.ax-brand .jr-f { border-top-width: 1.5px; }
 /* every filter rail: the small segmented keys (lesson format, profile, absences...) fill the rail with air between them, as in Orar */
 body.ax.ax-brand .ax-rail .ax-seg:not(.or-seg) { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 10px; width: 100%; padding-bottom: 3px; }
 body.ax.ax-brand .ax-rail .ax-seg:not(.or-seg) button { min-width: 0; min-height: 44px; }
+
+/* ---------- 9. round three (2026-11-11): Înlocuiri, the group panel ---------- */
+
+/* the list of replacements: the coloured bar is a short rounded mark inside the row, not a strip that fights the rounded frame */
+body.ax.ax-brand .ri-list { border: 1.5px solid var(--ax-rule); border-radius: 18px; overflow: hidden; }
+body.ax.ax-brand .ri-row { padding-left: 26px; }
+body.ax.ax-brand .ri-row::before { left: 10px; top: 14px; bottom: 14px; width: 5px; border-radius: 999px; }
+body.ax.ax-brand .ri-row:hover { background: var(--ax-hi-wash); }
+body.ax.ax-brand .ri-chip { padding: 4px 12px; border-width: 1.5px; border-radius: 999px; }
+
+/* the assign dialog: keys, not hairline boxes */
+body.ax.ax-brand .rl-h__ic { border-radius: 12px; background: var(--bx-lime); color: var(--bx-lime-ink); box-shadow: 0 3px 0 0 var(--bx-lime-edge); }
+body.ax.ax-brand .rl-sec { border-bottom-width: 1.5px; }
+body.ax.ax-brand .rl-sec h3 i { width: 26px; height: 26px; border-radius: 8px; background: var(--bx-violet); color: #FFFFFF; box-shadow: 0 2px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .rl-dates,
+body.ax.ax-brand .rl-rooms { gap: 12px; }
+body.ax.ax-brand .rl-ts { gap: 12px; }
+body.ax.ax-brand .rl-date,
+body.ax.ax-brand .rl-t,
+body.ax.ax-brand .rl-room,
+body.ax.ax-brand .rl-date:hover:not(.is-off),
+body.ax.ax-brand .rl-t:hover:not(.is-off),
+body.ax.ax-brand .rl-room:hover:not(.is-off) {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 12px;
+  background: var(--ax-panel);
+  box-shadow: 0 3px 0 0 var(--bx-edge);
+}
+body.ax.ax-brand .rl-date,
+body.ax.ax-brand .rl-t,
+body.ax.ax-brand .rl-room { transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .rl-date:hover:not(.is-off),
+body.ax.ax-brand .rl-t:hover:not(.is-off),
+body.ax.ax-brand .rl-room:hover:not(.is-off) { filter: brightness(0.96); }
+body.ax.ax-brand .rl-date:active:not(.is-off),
+body.ax.ax-brand .rl-t:active:not(.is-off),
+body.ax.ax-brand .rl-room:active:not(.is-off) { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .rl-date.is-on,
+body.ax.ax-brand .rl-t.is-on,
+body.ax.ax-brand .rl-room.is-on,
+body.ax.ax-brand .rl-date.is-on:hover,
+body.ax.ax-brand .rl-t.is-on:hover,
+body.ax.ax-brand .rl-room.is-on:hover { border-color: var(--bx-violet); background: var(--bx-tint); box-shadow: 0 3px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .rl-date.is-off,
+body.ax.ax-brand .rl-t.is-off,
+body.ax.ax-brand .rl-room.is-off { background: var(--ax-panel-2); box-shadow: 0 3px 0 0 var(--bx-edge); filter: none; }
+body.ax.ax-brand .rl-box { border-radius: 7px; border-color: var(--bx-line); }
+body.ax.ax-brand .rl-date.is-on .rl-box { border-color: var(--bx-violet); background: var(--bx-violet); }
+body.ax.ax-brand .rl-box svg { stroke: #FFFFFF; }
+body.ax.ax-brand .rl-dot { border-color: var(--bx-line); }
+body.ax.ax-brand .rl-t.is-on .rl-dot { border-color: var(--bx-violet); background: var(--bx-violet); box-shadow: inset 0 0 0 3px var(--bx-tint); }
+body.ax.ax-brand .rl-block { border-radius: 14px; border-width: 1.5px; }
+body.ax.ax-brand .rl-none { border-radius: 14px; }
+body.ax.ax-brand .rl-f { border-top-width: 1.5px; }
+
+/* the group panel: the status keys are separate keys, the lit one in its own colour */
+body.ax.ax-brand .ax-sp { gap: 14px; }
+body.ax.ax-brand .ax-sp__g { gap: 10px; border: 0; background: none; }
+body.ax.ax-brand .ax-sp__b,
+body.ax.ax-brand .ax-sp__b:hover {
+  border: 1.5px solid var(--bx-line);
+  border-top: 1.5px solid var(--bx-line);
+  border-radius: 12px;
+  background: var(--ax-panel);
+  box-shadow: 0 3px 0 0 var(--bx-edge);
+  transform: none;
+}
+body.ax.ax-brand .ax-sp__b { transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ax-sp__b:hover { filter: brightness(0.96); }
+body.ax.ax-brand .ax-sp__b:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .ax-sp__b[aria-pressed="true"],
+body.ax.ax-brand .ax-sp__b[aria-pressed="true"]:hover {
+  border-color: var(--c);
+  background: color-mix(in srgb, var(--c) 12%, var(--ax-panel));
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--c) 60%, #1E1631);
+}
+
+/* the students of a group: each one is a card; status, last three lessons and balance sit in the same columns on every card */
+body.ax.ax-brand .or-dw__kids { display: grid; gap: 12px; border-top: 0; }
+body.ax.ax-brand .or-dw__kid {
+  grid-template-columns: 136px 74px minmax(0, 1fr);
+  align-items: center;
+  gap: 8px 12px;
+  padding: 12px 16px;
+  border: 1.5px solid var(--ax-rule-2);
+  border-radius: 14px;
+  background: var(--ax-panel);
+  box-shadow: 0 3px 0 0 var(--bx-edge);
+}
+body.ax.ax-brand .or-dw__who { grid-column: 1 / -1; display: flex; align-items: baseline; justify-content: space-between; gap: 4px 12px; flex-wrap: wrap; }
+body.ax.ax-brand .or-dw__who b { display: inline; }
+body.ax.ax-brand .or-dw__sta { grid-column: 1; min-width: 0; }
+body.ax.ax-brand .or-dw__pr { grid-column: 2; }
+body.ax.ax-brand .or-dw__bal { grid-column: 3; grid-row: auto; align-self: center; justify-self: end; }
+body.ax.ax-brand .or-dw__w { grid-column: 1 / -1; }
+body.ax.ax-brand .or-dw__kid.is-gone { background: var(--ax-panel-2); }
+body.ax.ax-brand .or-dw__kids.is-picking .or-dw__kid { padding-left: 46px; }
+body.ax.ax-brand .or-dw__kids.is-picking .or-dw__kid .tr-in,
+body.ax.ax-brand .or-dw__kids.is-picking .or-dw__kid .tr-box { left: 14px; top: 14px; }
+body.ax.ax-brand .tr-box { border-radius: 7px; border-color: var(--bx-line); }
+body.ax.ax-brand .is-pick.is-on .tr-box { border-color: var(--bx-violet); background: var(--bx-violet); }
+body.ax.ax-brand .or-dw__kids.is-picking .or-dw__kid.is-pick.is-on { border-color: var(--bx-violet); background: var(--bx-tint); }
+@media (max-width: 600px) {
+  body.ax.ax-brand .or-dw__kid { grid-template-columns: 124px 70px minmax(0, 1fr); }
+  body.ax.ax-brand .or-dw__bal { grid-column: 3; text-align: right; }
+}
+@media (min-width: 861px) {
+  body.ax.ax-brand .ri-row { grid-template-columns: 112px minmax(0, 1.6fr) 90px minmax(0, 1fr) 116px; }
+}
+body.ax.ax-brand .ri-state { justify-self: end; }

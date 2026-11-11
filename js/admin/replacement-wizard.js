@@ -102,21 +102,6 @@
       return `<div class="rl-rooms" role="radiogroup" aria-label="Cabinet">${online}${chips}</div>`;
     }
 
-    function sumHTML() {
-      if (blocker) return '';
-      const t = chosenTeacher();
-      if (!t || !st.dates.size) return '<p class="rl-sum__empty">Alege lecțiile și profesorul: aici vezi ce se întâmplă în registru.</p>';
-      const n = st.dates.size;
-      const first = kids.slice(0, 8).map(s => `<li>${esc(s.name)}</li>`).join('') + (kids.length > 8 ? `<li class="rl-more-k">încă ${kids.length - 8}</li>` : '');
-      const reuse = reps().some(r => r.base === g.id && r.teacher === t.id && r.status !== 'cancelled');
-      return `<div class="rl-sum__b">
-        <p><b>În registrul lui ${esc(t.name)}</b> ${reuse ? 'fila acestei grupe există deja: se aduce la zi, cu lecțiile noi în orar.' : 'se creează o filă nouă pentru această grupă, cu starea <b>Înlocuire</b>.'}</p>
-        <p>${plural(kids.length, 'elev', 'elevi')} ${kids.length === 1 ? 'este copiat' : 'sunt copiați'} cu statutul <b>Înlocuire</b>, cu achitări, reduceri și sold <b>0</b>. În registrul lui ${esc(base.name)} rămân <b>Activ</b>.</p>
-        <ul class="rl-kids">${first}</ul>
-        <p><b>Banii</b> nu se mută acum. Când ${esc(t.name)} pune prezența unui elev (<b>Prezent</b> sau <b>Absent</b>), o lecție de <b>${money(price)} lei</b> trece automat din registrul grupei în fila lui, după formulele din Calculator. La <b>Absent motivat</b> sau fără prezență nu se mută nimic.</p>
-      </div>`;
-    }
-
     function footHTML() {
       const t = chosenTeacher(), r = chosenRoom();
       const line = st.busy ? '' : blocker ? '' : !st.dates.size ? 'Alege cel puțin o lecție.' : !t ? 'Alege profesorul.' : !roomReady() ? 'Alege cabinetul.'
@@ -133,7 +118,6 @@
           <section class="rl-sec"><h3><i>1</i> Ce lecții se înlocuiesc</h3><div id="rlDates">${datesHTML()}</div></section>
           <section class="rl-sec"><h3><i>2</i> Cine predă</h3><div id="rlTeachers">${teachersHTML()}</div></section>
           <section class="rl-sec"><h3><i>3</i> În ce cabinet</h3><div id="rlRooms">${roomsHTML()}</div></section>
-          <section class="rl-sec rl-sum" aria-label="Ce se întâmplă"><h3><i>4</i> Ce se întâmplă</h3><div id="rlSumBox">${sumHTML()}</div></section>
           <p class="rl-err" id="rlErr" role="alert">${esc(st.err)}</p>
         </div>
         <footer class="rl-f" id="rlFoot">${footHTML()}</footer>`;
@@ -165,7 +149,7 @@
     /* a choice repaints only what it can change: the dates never touch the teachers' list unless they change who can come, a room never touches the teachers */
     function paintTeachers() { const d = $('.rl-more'); if (d) st.moreOpen = d.open; $('#rlTeachers').innerHTML = teachersHTML(); }
     function paintRooms() { $('#rlRooms').innerHTML = roomsHTML(); }
-    function paintTail() { $('#rlSumBox').innerHTML = sumHTML(); $('#rlFoot').innerHTML = footHTML(); $('#rlErr').textContent = st.err; }
+    function paintTail() { $('#rlFoot').innerHTML = footHTML(); $('#rlErr').textContent = st.err; }
     const markOn = sel => dlg.querySelectorAll(sel).forEach(l => { const i = l.querySelector('input'); l.classList.toggle('is-on', !!(i && i.checked)); });
     function pickDefaultRoom() {
       if (!st.teacher) { st.room = undefined; return; }

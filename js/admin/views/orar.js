@@ -342,7 +342,7 @@
               <li class="or-dw__kid${out ? ' is-gone' : ''}${tick ? ' is-pick' : ''}${on ? ' is-on' : ''}" style="--i:${i}" data-sid="${st.id}">
                 ${tick ? `<input type="checkbox" class="tr-in" ${on ? 'checked' : ''} aria-label="${esc(st.name)}"><span class="tr-box" aria-hidden="true"><svg viewBox="0 0 16 16"><path d="m3.5 8.5 3 3 6-7"/></svg></span>` : ''}
                 <span class="or-dw__who"><b>${esc(st.name)}</b><a href="tel:${esc(st.phone)}">${esc(fmtPhone(st.phone))}</a></span>
-                <span class="or-dw__stc">${stHTML(stOf(st), statusName(D.STUDENT_STATUS, stOf(st)))}${presHTML(st.presence)}</span>${where(st) ? `<span class="or-dw__w">${where(st)}</span>` : ''}
+                <span class="or-dw__sta">${stHTML(stOf(st), statusName(D.STUDENT_STATUS, stOf(st)))}</span><span class="or-dw__pr">${presHTML(st.presence)}</span>${where(st) ? `<span class="or-dw__w">${where(st)}</span>` : ''}
                 <span class="or-dw__bal${D.soldIn(st, g.id) < 0 ? ' ax-neg' : ''}">${U.money(D.soldIn(st, g.id))}</span>
               </li>`;
     };
