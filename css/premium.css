@@ -729,3 +729,37 @@ html body.pm:has(#profileContent) :is(.pf-card .auth-input, .prof-modal .auth-in
   background: var(--pm-face);
   box-shadow: none;
 }
+
+/* ==========================================================================
+   Start page (index.html, the signed-out landing) and sign-in / sign-up (auth.html)
+   ==========================================================================
+   Same remap of the calculator tokens as the other pages. Both pages write
+   some radii as the --k-r token the LCDs also use, so the displays are set
+   back to their small corner below. */
+html body.pm:has(.landing-main),
+html body.pm.ap {
+  --k-r: 10px;
+  --k-r-key: 10px;
+  --k-key: var(--pm-face);
+  --k-key-edge: var(--pm-edge);
+  --k-panel-edge: var(--pm-panel-edge);
+  --k-rule: var(--pm-line);
+  --k-blue: var(--pm-violet);
+  --k-blue-edge: var(--pm-violet-edge);
+  --k-blue-wash: var(--pm-tint);
+}
+/* Frames: the big panels 18px; the field and the key line 1.5px. */
+html body.pm:has(.landing-main) .ld-calc,
+html body.pm.ap .ap-panel { border-radius: 18px; }
+html body.pm:has(.landing-main) :is(.ld-key, .ld-mode, .ld-action, .ld-input),
+html body.pm.ap :is(.ap-key, .ap-mode, .ap-role, .ap-eye, .ap-input) { border-width: 1.5px; }
+html body.pm.ap .ap-input,
+html body.pm:has(.landing-main) .ld-input {
+  border-color: var(--pm-line-2);
+  background: var(--pm-face);
+  box-shadow: none;
+}
+html body.pm.ap .ap-msg { border-radius: 12px; }
+/* LCD displays keep a small corner. */
+html body.pm:has(.landing-main) .ld-lcd,
+html body.pm.ap .ap-lcd { border-radius: 4px; }

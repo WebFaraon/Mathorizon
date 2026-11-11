@@ -17,10 +17,11 @@
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/calculator.css">
   <link rel="stylesheet" href="css/auth-page.css">
+  <link rel="stylesheet" href="css/premium.css">
   <script src="js/theme.js"></script>
   <script src="js/page-transition.js"></script>
 </head>
-<body class="auth-pg ap ap-boot">
+<body class="auth-pg ap ap-boot pm">
 
   <div class="ap-layout">
 
@@ -119,7 +120,8 @@
           <div class="ap-field">
             <div class="ap-label-row">
               <label class="ap-label" for="sEmail" id="sContactLabel">Email</label>
-              <button type="button" class="ap-link ap-link--sm" id="toggleUsernameBtn" onclick="toggleUsernameMode()">Nu am email, folosesc un nume de utilizator</button>
+              <!-- Hidden for now (2026-11-11): sign-up with a username instead of an e-mail. Remove `hidden` to bring it back; login by username still works. -->
+              <button type="button" class="ap-link ap-link--sm" id="toggleUsernameBtn" onclick="toggleUsernameMode()" hidden>Nu am email, folosesc un nume de utilizator</button>
             </div>
             <input class="ap-input" id="sEmail" type="email" placeholder="adresa@email.com" autocomplete="email" autocapitalize="none" spellcheck="false" required aria-describedby="usernameHint">
             <p class="ap-hint" id="usernameHint" hidden>Vei folosi acest nume ca să te conectezi: doar litere mici, cifre sau „_” (3-20 de caractere).</p>
