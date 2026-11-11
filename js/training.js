@@ -223,7 +223,7 @@
     if (locked) {
       sec.innerHTML = `
         <header class="an-chap__head">
-          <span class="an-tile"><span class="an-tile__s">${cat.symbol}</span></span>
+          <span class="an-tile${cat.emblem ? ' an-tile--emblem' : ''}"><span class="an-tile__s">${cat.emblem ? BM.chapterEmblem(cat, 56) : cat.symbol}</span></span>
           <div class="an-chap__txt"><h3 class="an-chap__name">${BM.esc(cat.name)}</h3></div>
           <span class="an-soon">${icon('lock', { size: 16 })} În curând</span>
         </header>`;
@@ -237,7 +237,7 @@
     sec.dataset.total = total;
     sec.innerHTML = `
       <header class="an-chap__head">
-        <span class="an-tile"><span class="an-tile__s">${cat.symbol}</span></span>
+        <span class="an-tile${cat.emblem ? ' an-tile--emblem' : ''}"><span class="an-tile__s">${cat.emblem ? BM.chapterEmblem(cat, 56) : cat.symbol}</span></span>
         <div class="an-chap__txt">
           <h3 class="an-chap__name">${BM.esc(cat.name)}</h3>
           <p class="an-chap__meta" data-meta></p>

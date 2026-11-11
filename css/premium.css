@@ -911,3 +911,26 @@ html body.pm .wb-fullscreen .wb-roster-row__avatar { border-radius: 8px; }
 html body.pm .wb-fullscreen :is(.wb-roster-row__me, .wb-roster-row__badge, .wb-toolbar .dc-mode-badge, .wb-width-panel__label span, .dc-input-hint) { border-radius: 999px; }
 html body.pm .wb-fullscreen :is(.wb-fs-title, .wb-fs-zoom-label, .wb-roster-btn__n) { border-radius: 4px; }
 html body.pm:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input { border-radius: 4px; }
+
+/* ==========================================================================
+   Chapter emblems (2026-11-11): the four violet tiles of the Logo Kit (assets/images/chapters/*.svg)
+   replace the math glyph of a chapter: scales, triangle with an eye, the parabola, the tree with eyes.
+   js/data.js gives every chapter `emblem`; BM.chapterEmblem(cat, px) builds the <img>.
+   ========================================================================== */
+.chap-emblem { display: block; flex: none; border-radius: 22.5%; }
+.chap-emblem-cell { display: inline-grid; place-items: center; flex: none; width: 30px; height: 30px; }
+.chap-emblem-cell .chap-emblem { width: 30px; height: 30px; }
+/* Capitole: the card */
+html body.pm:has(#root) .cap-key__emblem { display: block; flex: none; width: 64px; height: 64px; border-radius: 22.5%; box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+@media (max-width: 520px) { html body.pm:has(#root) .cap-key__emblem { width: 56px; height: 56px; } }
+/* the chapter page: the key at the head */
+html body.pm:has(#catHeader) .ch__key.ch__key--emblem { width: auto; min-width: 0; height: auto; padding: 0; border: 0; background: none; box-shadow: none; overflow: visible; }
+html body.pm:has(#catHeader) .ch__key--emblem .chap-emblem { width: clamp(58px, 7vw, 76px); height: clamp(58px, 7vw, 76px); box-shadow: 0 4px 0 0 var(--pm-violet-edge); }
+/* Antrenament: the chapter tiles */
+.an-chap .an-tile.an-tile--emblem { width: 56px; height: 56px; padding: 0; border: 0; background: none; box-shadow: none; }
+.an-tile--emblem .an-tile__s { display: block; line-height: 0; }
+.an-tile--emblem .chap-emblem { width: 56px; height: 56px; box-shadow: 0 3px 0 0 var(--pm-violet-edge, #1F1035); }
+.an-chap--soon .an-tile--emblem .chap-emblem { opacity: 0.5; filter: grayscale(0.35); box-shadow: none; }
+/* the list next to the sign-in page */
+.ap-chap__sym--emblem { display: grid; place-items: center; }
+.ap-chap__sym--emblem .chap-emblem { width: 30px; height: 30px; }

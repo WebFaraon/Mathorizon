@@ -68,7 +68,7 @@
     return `
       <div class="panel-ex-item" data-cat="${ex.categoryId}"
            onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-        <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
+        <span class="chap-emblem-cell">${BM.chapterEmblem(cat, 30)}</span>
         <div class="panel-ex-item__info">
           <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
           <div class="panel-ex-item__meta">

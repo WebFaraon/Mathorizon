@@ -104,7 +104,7 @@
     header.innerHTML = `
       <div class="container">
         <div class="ch">
-          <div class="ch__key" aria-hidden="true">${cat.symbol}</div>
+          <div class="ch__key${cat.emblem ? ' ch__key--emblem' : ''}" aria-hidden="true">${cat.emblem ? BM.chapterEmblem(cat, 76) : cat.symbol}</div>
           <div class="ch__titles">
             <div class="ch__line"><h1 class="ch__name">${BM.esc(cat.name)}</h1></div>
             <p class="ch__desc">${BM.esc(cat.description)}</p>
@@ -233,6 +233,7 @@
     const descEl = header.querySelector('.ch__desc');
     if (nameEl) nameEl.textContent = sub.name;
     if (iconEl) {
+      iconEl.classList.remove('ch__key--emblem');
       iconEl.innerHTML = sub.symbol;
       iconEl.style.setProperty('--icon-color', sub.color);
     }
@@ -248,7 +249,8 @@
     const descEl = header.querySelector('.ch__desc');
     if (nameEl) nameEl.textContent = cat.name;
     if (iconEl) {
-      iconEl.innerHTML = cat.symbol;
+      iconEl.classList.toggle('ch__key--emblem', !!cat.emblem);
+      iconEl.innerHTML = cat.emblem ? BM.chapterEmblem(cat, 76) : cat.symbol;
       iconEl.style.setProperty('--icon-color', cat.color);
     }
     if (descEl) descEl.textContent = cat.description;
@@ -1406,7 +1408,7 @@
         const cat = BM.getCategoryById(ex.categoryId);
         return `
           <div class="panel-ex-item" data-cat="${ex.categoryId}" onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-            <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
+            <span class="chap-emblem-cell">${BM.chapterEmblem(cat, 30)}</span>
             <div class="panel-ex-item__info">
               <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
               <div class="panel-ex-item__meta">${BM.esc(cat?.name || '')} · ${BM.rarityBadge(ex.difficulty)}</div>

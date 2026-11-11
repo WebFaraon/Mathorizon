@@ -34,6 +34,8 @@ export interface BMCategory {
    * stacked (.sym-nb in css/style.css). That's why it's rendered as markup.
    */
   symbol: string;
+  /** The chapter's emblem (an SVG tile of the Logo Kit); shown instead of the glyph when present. */
+  emblem?: string;
   gradient: string;
   /** The chapter's accent color — the per-card color coding the design keeps. */
   color: string;

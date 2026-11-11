@@ -111,8 +111,8 @@
       return `
         <div class="search-result-item"
              onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-          <span class="sri-badge" style="background:${cat?.color}1a;color:${cat?.color}">
-            ${cat?.symbol || '?'}
+          <span class="sri-badge" style="${cat?.emblem ? 'background:none;padding:0' : `background:${cat?.color}1a;color:${cat?.color}`}">
+            ${BM.chapterEmblem(cat, 36)}
           </span>
           <div class="sri-text">
             <div class="sri-title">${BM.esc(ex.title)}${ex._custom ? ` <span class="type-badge type-badge--custom" title="Adăugat din panoul admin">${icon('sparkles', { size: 16 })}</span>` : ''}</div>
@@ -193,7 +193,7 @@
     return `
       <div class="panel-ex-item" data-cat="${ex.categoryId}"
            onclick="BM.gotoCategory('${ex.categoryId}', '${ex.subcategoryId}', '${ex.id}')">
-        <span style="font-size:1.3rem">${cat?.symbol || '?'}</span>
+        <span class="chap-emblem-cell">${BM.chapterEmblem(cat, 30)}</span>
         <div class="panel-ex-item__info">
           <div class="panel-ex-item__title">${BM.esc(ex.title)}</div>
           <div class="panel-ex-item__meta">

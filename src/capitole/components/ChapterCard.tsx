@@ -95,11 +95,15 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
       <div className="cap-key__main">
         {/* Markup, not text: a chapter symbol can carry .sym-nb markup for
             stacked indices (combinatorics' Cᵏₙ) — see lib/bm-types.ts. */}
-        <span
-          className="cap-key__symbol"
-          aria-hidden="true"
-          dangerouslySetInnerHTML={{ __html: category.symbol }}
-        />
+        {category.emblem ? (
+          <img className="cap-key__emblem" src={category.emblem} alt="" width={64} height={64} decoding="async" />
+        ) : (
+          <span
+            className="cap-key__symbol"
+            aria-hidden="true"
+            dangerouslySetInnerHTML={{ __html: category.symbol }}
+          />
+        )}
         <div className="cap-key__text">
           <h3 className="cap-key__name">{category.name}</h3>
           <p className="cap-key__desc">{category.tagline || category.description}</p>

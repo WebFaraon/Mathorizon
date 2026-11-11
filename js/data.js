@@ -7,7 +7,7 @@ window.BM = window.BM || {};
 
 BM.CATEGORIES = [
   {
-    id: 'algebra', name: 'Algebră', symbol: 'α',
+    id: 'algebra', name: 'Algebră', symbol: 'α', emblem: 'assets/images/chapters/algebra.svg',
     gradient: 'linear-gradient(135deg,#7c3aed,#4f46e5)', color: '#7c3aed',
     description: 'Ecuații, inecuații, polinoame, numere complexe, exponențiale, logaritmi, trigonometrie',
     tagline: 'Bazele algebrice de care ai nevoie la orice alt capitol.',
@@ -27,7 +27,7 @@ BM.CATEGORIES = [
     ]
   },
   {
-    id: 'geometrie', name: 'Geometrie', symbol: '△',
+    id: 'geometrie', name: 'Geometrie', symbol: '△', emblem: 'assets/images/chapters/geometrie.svg',
     gradient: 'linear-gradient(135deg,#be185d,#9d174d)', color: '#ec4899',
     description: 'Geometrie plană și în spațiu',
     tagline: 'Vizualizează și rezolvă orice problemă de geometrie.',
@@ -37,7 +37,7 @@ BM.CATEGORIES = [
     ]
   },
   {
-    id: 'analiza', name: 'Analiză Matematică', symbol: '∫',
+    id: 'analiza', name: 'Analiză Matematică', symbol: '∫', emblem: 'assets/images/chapters/analiza.svg',
     gradient: 'linear-gradient(135deg,#d97706,#92400e)', color: '#f59e0b',
     description: 'Limite, derivate, integrale, șiruri și progresii',
     tagline: 'Studiul funcțiilor, pas cu pas, până la stăpânire.',
@@ -50,7 +50,7 @@ BM.CATEGORIES = [
     ]
   },
   {
-    id: 'combinatorica', name: 'Combinatorică și Probabilitate', symbol: 'C<span class="sym-nb"><sup>k</sup><sub>n</sub></span>',
+    id: 'combinatorica', name: 'Combinatorică și Probabilitate', emblem: 'assets/images/chapters/combinatorica.svg', symbol: 'C<span class="sym-nb"><sup>k</sup><sub>n</sub></span>',
     gradient: 'linear-gradient(135deg,#059669,#065f46)', color: '#10b981',
     description: 'Permutări, aranjamente, combinări, probabilitate și statistică',
     tagline: 'Numărători, șanse și gândire logică pentru BAC.',
@@ -7012,6 +7012,10 @@ BM.getExerciseCount = function(categoryId, subcategoryId) {
   ).length;
 };
 BM.getCategoryById    = id => BM.CATEGORIES.find(c => c.id === id);
+/* the emblem of a chapter (the four violet tiles of the Logo Kit); a chapter without one shows its symbol */
+BM.chapterEmblem = (cat, px, cls) => (cat && cat.emblem)
+  ? `<img class="chap-emblem${cls ? ' ' + cls : ''}" src="${cat.emblem}" alt="" width="${px || 48}" height="${px || 48}" decoding="async">`
+  : ((cat && cat.symbol) || '?');
 BM.getSubcategoryById = (catId, subId) => {
   const cat = BM.getCategoryById(catId);
   return cat ? cat.subcategories.find(s => s.id === subId) : null;

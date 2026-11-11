@@ -129,7 +129,7 @@
     BM.EXERCISES.forEach(e => { byCat[e.categoryId] = (byCat[e.categoryId] || 0) + 1; bySub[e.subcategoryId] = (bySub[e.subcategoryId] || 0) + 1; });
     ul.innerHTML = BM.CATEGORIES.map(c => {
       const n = byCat[c.id] || 0, lg = LEGEND[c.id] || 'var(--ap-lg-soft)';
-      const sym = `<span class="ap-chap__sym" aria-hidden="true">${c.symbol || ''}</span>`;
+      const sym = `<span class="ap-chap__sym${c.emblem ? ' ap-chap__sym--emblem' : ''}" aria-hidden="true">${c.emblem ? BM.chapterEmblem(c, 30) : (c.symbol || '')}</span>`;
       if (!n) return `<li class="ap-chap__r ap-chap__r--soon" style="--lg:${lg}" data-say="${_esc(c.name)}: în curând.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__soon">în curând</span></li>`;
       const subs = (c.subcategories || []).filter(s => bySub[s.id]);
       const strip = subs.map((s, j) => `<i style="--w:${bySub[s.id]};--j:${j}"></i>`).join('');
