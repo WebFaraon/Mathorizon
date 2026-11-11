@@ -42,7 +42,7 @@
   var CSS = [
     'html.tw-on::before{content:"";position:fixed;inset:0;z-index:2147483000;background:' + VIOLET + '}',
     'html[data-theme="dark"].tw-on::before{background:' + VIOLET_DARK + '}',
-    '.tw{position:fixed;inset:0;z-index:2147483002;display:grid;place-items:center;padding:24px;background:' + VIOLET + ';color:#fff;font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;opacity:0;transition:opacity .28s ease;cursor:progress}',
+    '.tw{position:fixed;inset:0;z-index:2147483002;display:grid;place-items:center;padding:24px;background:' + VIOLET + ';color:#fff;font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;opacity:0;transition:opacity .28s ease;cursor:progress;touch-action:none;overscroll-behavior:none}',
     'html[data-theme="dark"] .tw{background:' + VIOLET_DARK + '}',
     '.tw.is-in,.tw.tw--resume{opacity:1}',
     '.tw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}',
@@ -55,6 +55,8 @@
     '.tw__bar{width:min(260px,64vw);height:8px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}',
     '.tw__bar i{display:block;width:100%;height:100%;border-radius:999px;background:#7BB403;transform-origin:left center;transform:scaleX(0);will-change:transform}',
     '.tw.is-out{opacity:0;pointer-events:none;transition-duration:' + OUT_MS + 'ms}',
+    /* while the panel is up nothing under it can be scrolled or dragged */
+    'html.tw-lock,html.tw-lock body{overflow:hidden!important}',
     '.tw.is-out .tw__center{transform:translateY(-10px) scale(1.04)}'
   ];
   var MOTION = [
@@ -131,6 +133,7 @@
         '<div class="tw__bar" aria-hidden="true"><i></i></div>' +
       '</div>';
     (opts.into || document.body).appendChild(el);
+    root.classList.add('tw-lock');
     var c = { el: el, owl: null, bar: el.querySelector('.tw__bar i'), hi: el.querySelector('.tw__hi'), p: opts.resume ? 1 : 0, max: 0.86,
               finishing: false, onFull: null, raf: 0, t0: Date.now(), mode: opts.mode, name: opts.name || '' };
     c.bar.style.transform = 'scaleX(' + c.p + ')';
@@ -166,6 +169,7 @@
     if (!c) return;
     cancelAnimationFrame(c.raf);
     function gone() {
+      root.classList.remove('tw-lock');
       if (c.owl && window.TeoremaMascot) TeoremaMascot.dispose(c.owl);
       if (c.el.parentNode) c.el.parentNode.removeChild(c.el);
       if (then) then();
@@ -300,6 +304,17 @@
      frame the browser paints on this page is the frame the sign-in page was showing: no empty violet, no pop.
      <html> may hold it before <body> exists (it is position:fixed, so it takes no room). The owl needs
      js/mascot.js first, so it is written into the page stream right here and executes before the parser goes on. */
+  /* On a phone, Chrome widens the layout viewport (to twice the screen here) while the page is still loading and its
+     unfinished layout is wider than the screen; a panel painted in that window then sits in the bottom-right corner of
+     the real screen and the page can be dragged sideways. Pinning the minimum scale to 1 for the time the panel is up
+     stops the widening; the original value is put back when the panel leaves. */
+  var vpMeta = document.querySelector('meta[name="viewport"]'), vpOrig = null;
+  if (vpMeta && !/minimum-scale/.test(vpMeta.getAttribute('content') || '')) {
+    vpOrig = vpMeta.getAttribute('content') || '';
+    vpMeta.setAttribute('content', vpOrig + ', minimum-scale=1');
+  }
+  function restoreViewport() { if (vpMeta && vpOrig !== null) { vpMeta.setAttribute('content', vpOrig); vpOrig = null; } }
+
   var panel = null;
   function mount() {
     if (panel) return;
@@ -327,7 +342,7 @@
       if ((enough && Date.now() - born > 250) || Date.now() - born > 4000) {
         clearInterval(timer);
         cur = null;
-        dispose(c, dropNote);                  // the note goes only when the panel does
+        dispose(c, function () { restoreViewport(); dropNote(); });   // the note goes only when the panel does
       }
     }, 90);
   }
