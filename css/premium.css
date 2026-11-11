@@ -681,3 +681,51 @@ html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathsf {
   font-style: normal;
 }
 html body.pm:has(#examView) :is(#examView, #resultsView) .katex { font-size: 1.1em; }
+
+/* ==========================================================================
+   Profile (profile.html): the plate, the keys, the edit dialog, the cards
+   ==========================================================================
+   Same remap of the calculator tokens as Clase and Simulare. #profileContent
+   exists only on this page. */
+html body.pm:has(#profileContent) {
+  --k-r: 10px;
+  --k-r-key: 10px;
+  --k-key: var(--pm-face);
+  --k-key-edge: var(--pm-edge);
+  --k-panel-edge: var(--pm-panel-edge);
+  --k-rule: var(--pm-line);
+  --k-blue: var(--pm-violet);
+  --k-blue-edge: var(--pm-violet-edge);
+  --k-blue-wash: var(--pm-tint);
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/* Frames: the plate and the cards 18px, small notices 12px, the dialogs 22px. */
+html body.pm:has(#profileContent) :is(.pf-plate, .pf-card, .pf-skel) { border-radius: 18px; }
+html body.pm:has(#profileContent) :is(.pf-notice, .pf-empty, .pf-country__pop, .pf-ticket) { border-radius: 12px; }
+html body.pm:has(#profileContent) .pf-plate { overflow: hidden; }
+html body.pm:has(#profileContent) .prof-modal {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-panel-edge);
+}
+/* The avatar tile, as on Capitole. */
+html body.pm:has(#profileContent) .pf-avatar .prof-avatar-lg { border-radius: 20px; }
+/* Keys and fields: the same 1.5px line as the premium keys. */
+html body.pm:has(#profileContent) :is(.pf-key, .pf-cover-edit, .pf-avatar-edit, .prof-modal__actions .btn) { border-width: 1.5px; }
+html body.pm:has(#profileContent) :is(.pf-card .auth-input, .prof-modal .auth-input, .pf-country__trigger, .pf-country__search) {
+  border-width: 1.5px;
+  border-color: var(--pm-line-2);
+}
+/* LCD displays keep a small corner. */
+html body.pm:has(#profileContent) :is(.pf-lcd, .pf-counter) { border-radius: 4px; }
+
+/* Fields: white face, no recessed shadow, as the answer field of the exercise card. */
+html body.pm:has(#profileContent) :is(.pf-card .auth-input, .prof-modal .auth-input, .prof-modal textarea, .pf-country__trigger, .pf-country__search) {
+  background: var(--pm-face);
+  box-shadow: none;
+}
