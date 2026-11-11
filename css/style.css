@@ -19893,3 +19893,42 @@ body:has(#root) {
 
 /* formulas typeset lazily (js/category.js lazyMath): hidden until KaTeX has run, so raw $$ source never shows */
 .math-pending { visibility: hidden; }
+
+/* ============================================================
+   NAVBAR — premium keys (2026-11-11)
+   ============================================================
+   Same corner and border language as the rest of the premium pages
+   (css/premium.css): 10px keys with a 1.5px border, 10px for the counters
+   that sit between them. Colours, edges, hover (dims) and press (sinks) are
+   the ones above and are not touched; this block only rounds and thickens.
+   Last in the file on purpose, so it wins every tie with the rules above. */
+#nav-root .nav__link,
+#nav-root .nav-icon-btn,
+#nav-root .theme-btn,
+#nav-root .nav__hamburger,
+#nav-root .nav-profile-btn,
+#nav-root .nav__guest-login,
+#nav-root .nav__link--active,
+#nav-root .nav__link--active:hover,
+#nav-root .nav__guest-signup,
+#nav-root .nav__guest-signup:hover,
+#nav-root .nav-profile-btn--cta,
+#nav-root .nav-profile-btn--cta:hover {
+  border-width: 1.5px;
+  border-radius: 10px;
+}
+#nav-root .token-widget {
+  border-width: 1.5px;
+  border-radius: 10px;
+}
+#nav-root .nav-profile-avatar,
+#nav-root .nav-profile-initials { border-radius: 8px; }
+@media (max-width: 1150px) {
+  #nav-root .nav__mobile-link,
+  #nav-root .nav__mobile-link--active,
+  #nav-root .nav__mobile-link--active:hover {
+    border-width: 1.5px;
+    border-radius: 10px;
+  }
+  #nav-root .nav__mobile-menu #themeBtn { border-radius: 10px; }
+}
