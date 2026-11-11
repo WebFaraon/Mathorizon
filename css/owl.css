@@ -149,3 +149,14 @@ body:has(#classRoot) .classes-spinner.owl--spin.is-owl { display: block; --ow: 1
   .owl--perch { --ow: 112px; right: 14px; margin-bottom: -18px; }
   .ap-panel:has(> .owl--perch) { margin-top: 52px; }
 }
+
+/* ---------- the swap between Conectare and Înregistrare (switchTab in js/auth-page.js) ---------- */
+.ap-mode { transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.12s ease, transform 0.12s ease, filter 0.15s ease; }
+.ap-panel.is-resizing { transition: height 0.5s cubic-bezier(0.4, 0, 0.2, 1); overflow: visible; clip-path: inset(-160px -24px -10px -24px); }
+@media (prefers-reduced-motion: no-preference) {
+  .ap-form.is-out { opacity: 0; transform: translateX(calc(var(--ap-dx, 1) * -16px)); transition: opacity 0.15s ease, transform 0.15s ease; pointer-events: none; }
+  .ap-form.is-in { animation: ap-slide 0.42s cubic-bezier(0.22, 1, 0.36, 1) backwards; }
+}
+@keyframes ap-slide { from { opacity: 0; transform: translateX(calc(var(--ap-dx, 1) * 22px)); } }
+/* the owl perched on the panel needs room above it (the panel can be taller than the screen) */
+.ap-panel:has(> .owl--perch) { margin-top: 64px; }

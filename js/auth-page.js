@@ -14,6 +14,7 @@
 
   let sb        = null;
   let _tab      = 'login';
+  let _swapT1 = 0, _swapT2 = 0;   // the timers of the form swap (switchTab)
   let _role     = 'elev';
   let _usernameMode = false;
   let _quietFocus = false;
@@ -318,15 +319,42 @@
     if (divider) divider.style.display = isReset ? 'none' : '';
     if (google)  google.style.display  = isReset ? 'none' : '';
 
-    if (prevEl) prevEl.style.display = 'none';
-    if (nextEl) {
+    /* the swap is a small show: the old form slides out and fades, the panel eases to the height of the new one, the new form
+       slides in from the side the key points to and its fields land one after the other */
+    const panel = $('apPanel');
+    const calm = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const finishSwap = () => {
+      clearTimeout(_swapT1); clearTimeout(_swapT2);
+      document.querySelectorAll('.ap-form').forEach(f => f.classList.remove('is-out'));
+      if (panel) { panel.classList.remove('is-resizing'); panel.style.height = ''; }
+    };
+    const h0 = panel ? panel.getBoundingClientRect().height : 0;    // the height now, before anything changes
+    finishSwap();                                    // a quick second press ends the first show at once
+    const show = () => {
+      if (prevEl) prevEl.style.display = 'none';
+      if (!nextEl) return;
       nextEl.style.display = '';
+      if (calm || !panel) { nextEl.classList.remove('is-in'); void nextEl.offsetWidth; nextEl.classList.add('is-in'); setTimeout(() => nextEl.classList.remove('is-in'), 600); return; }
+      panel.style.height = 'auto';
+      const h1 = panel.offsetHeight;                 // the natural height of the new form
+      panel.style.height = h0 + 'px';
+      void panel.offsetHeight;
+      panel.classList.add('is-resizing');
+      panel.style.height = h1 + 'px';
+      nextEl.style.setProperty('--ap-dx', dir);
       nextEl.classList.remove('is-in'); void nextEl.offsetWidth; nextEl.classList.add('is-in');
-      setTimeout(() => nextEl.classList.remove('is-in'), 600);
-    }
+      _swapT2 = setTimeout(() => { nextEl.classList.remove('is-in'); panel.classList.remove('is-resizing'); panel.style.height = ''; }, 560);
+    };
+    const order = ['login', 'signup', 'reset'];
+    const dir = order.indexOf(tab) > order.indexOf(prev) ? 1 : -1;
+    if (prevEl && !calm && prevEl.style.display !== 'none') {
+      prevEl.style.setProperty('--ap-dx', dir);
+      prevEl.classList.add('is-out');
+      _swapT1 = setTimeout(() => { prevEl.classList.remove('is-out'); show(); }, 150);
+    } else show();
     LCD.mode(tab);
     /* the cursor goes to the first field, but the display keeps its greeting: it prints a field's rule only when the person goes there */
-    setTimeout(() => { const f = $({ login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab]); if (f) { _quietFocus = true; f.focus(); _quietFocus = false; } }, 40);
+    setTimeout(() => { if (_tab !== tab) return; const f = $({ login: 'lEmail', signup: 'sName', reset: 'rEmail' }[tab]); if (f) { _quietFocus = true; f.focus({ preventScroll: true }); _quietFocus = false; } }, 220);
 
     _clearMsg();
     const url = new URL(window.location.href);
