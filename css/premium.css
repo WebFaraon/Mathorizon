@@ -1,16 +1,14 @@
 /* ==========================================================================
-   Premium keys and frames (pilot, 2026-11-11)
+   Premium keys and frames (2026-11-11)
 
    Adapted from the exercise card of the Teorema Logo Kit: 10px keys with a
    1.5px quiet violet border and a solid bottom edge, 18px cards, 12px
    windows on graph paper, a violet band with lime rarity pips, pill tags.
    The motion stays as it was: hover only dims, press sinks onto the edge.
 
-   Pilot scope: only the category page of "Calcul Algebric" (Algebra).
-   js/category.js puts class "pm" on <body> for that page alone; every rule
-   here starts with `html body.pm:has(#catHeader)` so it beats the calculator
-   rules of the same page and touches nothing else. To widen the pilot later,
-   change the one condition in js/category.js.
+   Scope: the category page (every chapter and subchapter). js/category.js puts
+   class "pm" on <body>; every rule here starts with `html body.pm:has(#catHeader)`
+   so it beats the calculator rules of the same page and touches nothing else.
    ========================================================================== */
 
 body.pm {
