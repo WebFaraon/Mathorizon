@@ -225,7 +225,18 @@
 
   // An admin with no explicit destination lands in the admin console.
   let _redirecting = false;
-  async function _redirect(session) {
+  /* The greeting after a real sign-in (js/welcome.js): a violet panel with the owl, then the platform. Not for a visit with a session that was already there. */
+  function _go(url, welcome, session) {
+    if (welcome && window.TeoremaWelcome) {
+      const md = (session && session.user && session.user.user_metadata) || {};
+      const first = String(md.full_name || md.name || md.username || '').trim().split(/\s+/)[0] || '';
+      window.TeoremaWelcome.go(url, { name: first, mode: _tab === 'signup' ? 'signup' : 'login' });
+    } else {
+      window.location.replace(url);
+    }
+  }
+
+  async function _redirect(session, welcome) {
     if (_redirecting) return;
     _redirecting = true;
     const verdict = await _oauthGuard(session);
@@ -235,16 +246,16 @@
     try {
       if (session && sb) {
         const { data: me } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
-        if (me && me.role === 'manager') { window.location.replace('admin.html'); return; }
+        if (me && me.role === 'manager') { _go('admin.html', welcome, session); return; }
       }
     } catch (e) { /* the default page below */ }
     if (!explicit && session && sb) {
       try {
         const { data } = await sb.from('user_profiles').select('role').eq('user_id', session.user.id).maybeSingle();
-        if (data && (data.role === 'admin' || data.role === 'manager')) { window.location.replace('admin.html'); return; }
+        if (data && (data.role === 'admin' || data.role === 'manager')) { _go('admin.html', welcome, session); return; }
       } catch (e) { /* fall through to the default page */ }
     }
-    window.location.replace(_getFrom());
+    _go(_getFrom(), welcome, session);
   }
 
   /* ---- Message helpers ---- */
@@ -574,6 +585,7 @@
     try { if (_tab === 'signup' && (_role === 'profesor' || _role === 'manager')) localStorage.setItem('bm_pending_role', JSON.stringify({ role: _role, at: Date.now() })); else localStorage.removeItem('bm_pending_role'); } catch (e) { /* ignore */ }
     const g = $('authGoogle');
     if (g) { g.disabled = true; g.classList.add('is-loading'); }
+    try { sessionStorage.setItem('teorema_oauth_welcome', String(Date.now())); } catch (e) { /* ignore */ }
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
       options: { redirectTo: window.location.origin + '/auth.html' }
@@ -618,12 +630,18 @@
 
     /* If already logged in, redirect immediately */
     const { data: { session } } = await sb.auth.getSession();
-    if (session) { _redirect(session); return; }
+    if (session) {
+      /* Back from Google a moment ago counts as a sign-in; a visit with an old session does not. */
+      let fromGoogle = false;
+      try { const t = Number(sessionStorage.getItem('teorema_oauth_welcome')); sessionStorage.removeItem('teorema_oauth_welcome'); fromGoogle = !!t && Date.now() - t < 10 * 60 * 1000; } catch (e) { /* ignore */ }
+      _redirect(session, fromGoogle);
+      return;
+    }
 
     /* Listen for auth state changes (handles OAuth hash) */
     sb.auth.onAuthStateChange((event, session) => {
       if ((event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') && session) {
-        _redirect(session);
+        _redirect(session, event === 'SIGNED_IN');
       }
     });
   });
