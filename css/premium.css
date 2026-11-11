@@ -934,3 +934,187 @@ html body.pm:has(#catHeader) .ch__key--emblem .chap-emblem { width: clamp(58px, 
 /* the list next to the sign-in page */
 .ap-chap__sym--emblem { display: grid; place-items: center; }
 .ap-chap__sym--emblem .chap-emblem { width: 30px; height: 30px; }
+
+/* ==========================================================================
+   Class dialogs in the brand style (2026-11-11): the homework wizard ("Temă nouă"), the simulation wizard,
+   the exercise picker ("Adaugă exercițiu"), the saved templates, and every other .classes-modal of the class page.
+   22px frame with a quiet violet line and a solid edge, 3D keys, round-cornered fields and cards, a violet
+   selection with a lime LED. Scope: html body.pm:has(#classRoot), so it beats class-detail.css.
+   ========================================================================== */
+html body.pm:has(#classRoot) {
+  --cm-line: var(--pm-line-2);
+  --cm-edge: var(--pm-edge);
+}
+
+/* ---- the frame ---- */
+html body.pm:has(#classRoot) .wz-backdrop,
+html body.pm:has(#classRoot) .classes-modal__backdrop { background: rgba(30, 22, 49, 0.5); -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px); }
+html body.pm:has(#classRoot) .wz-dialog,
+html body.pm:has(#classRoot) .classes-modal__dialog {
+  border: 1.5px solid var(--cm-line);
+  border-radius: 22px;
+  background: var(--pm-paper);
+  box-shadow: 0 6px 0 0 var(--cm-edge), 0 30px 60px -26px rgba(30, 22, 49, 0.5);
+  overflow: hidden;
+}
+html body.pm:has(#classRoot) .wz-head,
+html body.pm:has(#classRoot) .classes-modal__head { background: var(--pm-face); border-bottom: 1.5px solid var(--pm-line); }
+html body.pm:has(#classRoot) .wz-foot,
+html body.pm:has(#classRoot) .classes-modal__foot { background: var(--pm-face); border-top: 1.5px solid var(--pm-line); }
+html body.pm:has(#classRoot) .wz-head__title,
+html body.pm:has(#classRoot) .classes-modal__head h3 { color: var(--pm-ink); font-weight: 800; letter-spacing: -0.015em; }
+html body.pm:has(#classRoot) .classes-modal__head h3 { display: flex; align-items: center; gap: 10px; }
+html body.pm:has(#classRoot) .classes-modal__head h3 svg { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .wz-subtitle { color: var(--pm-ink-2); }
+
+/* ---- the three steps ---- */
+html body.pm:has(#classRoot) .wz-step-dot {
+  position: relative;
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--cm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--cm-edge);
+  color: var(--pm-ink-2);
+  font-family: inherit;
+  font-weight: 800;
+  transition: background-color 0.25s ease, border-color 0.25s ease, color 0.25s ease, box-shadow 0.2s ease;
+}
+html body.pm:has(#classRoot) .wz-step-dot--active { border-color: var(--pm-violet); background: var(--pm-violet); box-shadow: 0 3px 0 0 var(--pm-violet-edge); color: #fff; }
+html body.pm:has(#classRoot) .wz-step-dot--active::after { content: ''; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 1px; background: var(--pm-lime); }
+html body.pm:has(#classRoot) .wz-step-dot--done { border-color: var(--pm-lime-edge); background: var(--pm-lime); box-shadow: 0 3px 0 0 var(--pm-lime-edge); color: var(--pm-lime-ink); }
+html body.pm:has(#classRoot) .wz-step-line { height: 2px; border-radius: 2px; background: var(--pm-line); }
+html body.pm:has(#classRoot) .wz-step-label { color: var(--pm-ink-2); font-weight: 700; }
+
+/* ---- the choice of what the homework is made of ---- */
+html body.pm:has(#classRoot) .wz-type-grid { gap: 14px; }
+html body.pm:has(#classRoot) .wz-type-card {
+  position: relative;
+  border: 1.5px solid var(--cm-line);
+  border-radius: 18px;
+  background: var(--pm-face);
+  color: var(--pm-ink);
+  box-shadow: 0 4px 0 0 var(--cm-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, background-color 0.2s ease, border-color 0.2s ease;
+}
+html body.pm:has(#classRoot) .wz-type-card:not([disabled]):hover { border-color: var(--cm-line); background: var(--pm-face); filter: brightness(0.97); transform: none; }
+html body.pm:has(#classRoot) .wz-type-card:not([disabled]):active { box-shadow: 0 0 0 0 var(--cm-edge); transform: translateY(4px); }
+html body.pm:has(#classRoot) .wz-type-card__icon { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .wz-type-card__label { color: var(--pm-ink); font-weight: 800; }
+html body.pm:has(#classRoot) .wz-type-card__desc { color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .wz-type-card--selected,
+html body.pm:has(#classRoot) .wz-type-card--selected:hover { border-color: var(--pm-violet); background: var(--pm-tint); box-shadow: 0 4px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#classRoot) .wz-type-card--selected::after { content: ''; position: absolute; top: 10px; right: 10px; width: 7px; height: 7px; border-radius: 2px; background: var(--pm-lime); box-shadow: 0 0 0 1px rgba(30, 60, 0, 0.35); }
+html body.pm:has(#classRoot) .wz-type-card--soon,
+html body.pm:has(#classRoot) .wz-type-card--soon:hover { background: var(--pm-paper); border-color: var(--pm-line); box-shadow: 0 4px 0 0 var(--pm-line); color: var(--pm-ink-2); opacity: 0.85; }
+html body.pm:has(#classRoot) .wz-type-card__badge { border-radius: 999px; background: var(--pm-lav); color: var(--pm-violet); font-weight: 800; }
+
+/* ---- fields ---- */
+html body.pm:has(#classRoot) .cls-form-label { color: var(--pm-ink-2); font-weight: 800; letter-spacing: 0.08em; }
+html body.pm:has(#classRoot) .cls-form-input {
+  min-height: 46px;
+  border: 1.5px solid var(--cm-line);
+  border-radius: 12px;
+  background: var(--pm-face);
+  color: var(--pm-ink);
+  box-shadow: none;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+html body.pm:has(#classRoot) .cls-form-input::placeholder { color: var(--pm-ink-2); opacity: 0.7; }
+html body.pm:has(#classRoot) .cls-form-input:hover { border-color: var(--pm-violet); }
+html body.pm:has(#classRoot) .cls-form-input:focus { border-color: var(--pm-violet); box-shadow: 0 0 0 3px var(--pm-tint); outline: none; }
+html body.pm:has(#classRoot) textarea.cls-form-input { border-radius: 14px; }
+html body.pm:has(#classRoot) .cls-form-hint { color: var(--pm-ink-2); }
+
+/* radios and the switch */
+html body.pm:has(#classRoot) .wz-radio__dot { width: 22px; height: 22px; border: 1.5px solid var(--cm-line); background: var(--pm-face); }
+html body.pm:has(#classRoot) .wz-radio input:checked ~ .wz-radio__dot { border-color: var(--pm-violet); background: var(--pm-face); }
+html body.pm:has(#classRoot) .wz-radio input:checked ~ .wz-radio__dot::after { background: var(--pm-violet); }
+html body.pm:has(#classRoot) .wz-vis-row { gap: 12px; }
+html body.pm:has(#classRoot) .wz-toggle__track { border: 1.5px solid var(--cm-line); background: var(--pm-track); }
+html body.pm:has(#classRoot) .wz-toggle__thumb { background: #fff; box-shadow: 0 2px 0 0 var(--cm-edge); }
+html body.pm:has(#classRoot) .wz-toggle input:checked ~ .wz-toggle__track { border-color: var(--pm-violet); background: var(--pm-violet); }
+
+/* the class chip and the "soon" note */
+html body.pm:has(#classRoot) .wz-class-badge,
+html body.pm:has(#classRoot) .sim-wz-class-badge { border: 1.5px solid var(--cm-line); border-radius: 12px; background: var(--pm-tint); color: var(--pm-key-ink); box-shadow: 0 3px 0 0 var(--cm-edge); }
+html body.pm:has(#classRoot) .wz-soon-msg { border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--cm-edge); }
+
+/* files, exercises and items inside the wizards */
+html body.pm:has(#classRoot) .wz-upload-drop { border: 1.5px dashed var(--cm-line); border-radius: 18px; background: var(--pm-face); }
+html body.pm:has(#classRoot) .wz-upload-drop:hover,
+html body.pm:has(#classRoot) .wz-upload-drop--over { border-color: var(--pm-violet); background: var(--pm-tint); }
+html body.pm:has(#classRoot) .wz-upload-drop__icon { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .wz-file-item,
+html body.pm:has(#classRoot) .wz-item,
+html body.pm:has(#classRoot) .wz-exercise-item,
+html body.pm:has(#classRoot) .sim-wz-item { border: 1.5px solid var(--cm-line); border-radius: 14px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--cm-edge); }
+html body.pm:has(#classRoot) .wz-item__idx,
+html body.pm:has(#classRoot) .sim-wz-item__idx,
+html body.pm:has(#classRoot) .wz-exercise-item__num { border-radius: 8px; background: var(--pm-violet); color: #fff; }
+
+/* the exercise picker: tabs as keys, rarity as 3D pills, results as cards */
+html body.pm:has(#classRoot) .sim-picker-tabs { gap: 10px; padding: 4px 4px 12px; border-bottom: 1.5px solid var(--pm-line); }
+html body.pm:has(#classRoot) .sim-picker-tab,
+html body.pm:has(#classRoot) .sim-picker-tab:hover {
+  padding: 9px 16px;
+  border: 1.5px solid var(--cm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+  box-shadow: 0 3px 0 0 var(--cm-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+html body.pm:has(#classRoot) .sim-picker-tab:hover { filter: brightness(0.96); }
+html body.pm:has(#classRoot) .sim-picker-tab:active { box-shadow: 0 0 0 0 var(--cm-edge); transform: translateY(3px); }
+html body.pm:has(#classRoot) .sim-picker-tab--active,
+html body.pm:has(#classRoot) .sim-picker-tab--active:hover { border-color: var(--pm-violet); background: var(--pm-violet); color: #fff; box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#classRoot) .sim-diff-chips { gap: 10px; padding-bottom: 4px; }
+html body.pm:has(#classRoot) .diff-chip { padding: 7px 16px; border-width: 1.5px; opacity: 1; background: var(--pm-face); box-shadow: 0 3px 0 0 currentColor; transition: box-shadow 0.1s ease, transform 0.1s ease, background-color 0.2s ease; }
+html body.pm:has(#classRoot) .diff-chip:hover { opacity: 1; filter: brightness(0.96); }
+html body.pm:has(#classRoot) .diff-chip:active { box-shadow: 0 0 0 0 currentColor; transform: translateY(3px); }
+html body.pm:has(#classRoot) .diff-chip--active { box-shadow: 0 3px 0 0 currentColor; }
+html body.pm:has(#classRoot) .sim-opt-row { border: 1.5px solid var(--cm-line); border-radius: 12px; background: var(--pm-face); }
+html body.pm:has(#classRoot) .sim-opt-row:has(.sim-opt-row__radio:checked) { border-color: var(--pm-violet); background: var(--pm-tint); }
+html body.pm:has(#classRoot) .sim-opt-row__letter { border-radius: 8px; }
+html body.pm:has(#classRoot) .sim-opt-row__radio { accent-color: var(--pm-violet); }
+
+/* the saved templates */
+html body.pm:has(#classRoot) .sim-tpl-list { gap: 14px; }
+html body.pm:has(#classRoot) .sim-tpl-row {
+  border: 1.5px solid var(--cm-line);
+  border-radius: 16px;
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--cm-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+html body.pm:has(#classRoot) .sim-tpl-row:hover { border-color: var(--cm-line); background: var(--pm-face); filter: brightness(0.97); transform: none; }
+html body.pm:has(#classRoot) .sim-tpl-row:active { box-shadow: 0 0 0 0 var(--cm-edge); transform: translateY(4px); }
+html body.pm:has(#classRoot) .sim-tpl-row__icon { border: 1.5px solid var(--cm-line); border-radius: 12px; background: var(--pm-tint); color: var(--pm-violet); }
+html body.pm:has(#classRoot) .sim-tpl-row__title { color: var(--pm-ink); font-weight: 800; }
+html body.pm:has(#classRoot) .sim-tpl-row__meta { color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .sim-tpl-row__grade { border: 1.5px solid var(--cm-line); border-radius: 999px; background: var(--pm-tint); color: var(--pm-key-ink); font-weight: 800; }
+html body.pm:has(#classRoot) .sim-tpl-row__delete,
+html body.pm:has(#classRoot) .sim-tpl-row__delete:hover {
+  border: 1.5px solid var(--cm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+  box-shadow: 0 3px 0 0 var(--cm-edge);
+}
+html body.pm:has(#classRoot) .sim-tpl-row__delete:hover { filter: brightness(0.95); color: #B3261E; }
+html body.pm:has(#classRoot) .sim-tpl-row__delete:active { box-shadow: 0 0 0 0 var(--cm-edge); transform: translateY(3px); }
+html body.pm:has(#classRoot) .sim-tpl-already-note { border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint); }
+
+/* the calendar of the due date */
+html body.pm:has(#classRoot) .flatpickr-calendar { border: 1.5px solid var(--cm-line); border-radius: 18px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--cm-edge), 0 24px 48px -20px rgba(30, 22, 49, 0.4); }
+html body.pm:has(#classRoot) .flatpickr-day { border-radius: 10px; }
+html body.pm:has(#classRoot) .flatpickr-day.selected,
+html body.pm:has(#classRoot) .flatpickr-day.selected:hover { border-color: var(--pm-violet); background: var(--pm-violet); color: #fff; }
+html body.pm:has(#classRoot) .flatpickr-day.today:not(.selected) { border-color: var(--pm-lime); }
+
+@media (prefers-reduced-motion: reduce) {
+  html body.pm:has(#classRoot) .wz-step-dot { transition: none; }
+}
+html body.pm:has(#classRoot) select.cls-form-input { background-color: var(--pm-face); }
