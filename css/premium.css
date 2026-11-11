@@ -29,6 +29,7 @@ body.pm {
   --pm-lime-edge: #4F7A00;
   --pm-lime-ink: #1E1631;
   --pm-lav: #CFC4E8;
+  --pm-track: #E3DDF0;
 }
 [data-theme="dark"] body.pm {
   --pm-violet: #6C47BC;
@@ -48,6 +49,7 @@ body.pm {
   --pm-lime-edge: #3F6B00;
   --pm-lime-ink: #101A06;
   --pm-lav: #B9AAD8;
+  --pm-track: #33264D;
 }
 
 /* ---- Primary key: back to the chapter ---- */
@@ -327,4 +329,70 @@ html body.pm:has(#catHeader) .ch__key {
   background: var(--pm-face);
   box-shadow: 0 4px 0 0 var(--pm-edge);
   color: var(--pm-key-ink);
+}
+
+/* ---- Subchapter decks (chapter view) ----
+   Same 18px corner everywhere: the face and every card of the stack under it.
+   The stack keeps the rarity colours: green, blue, purple. */
+html body.pm:has(#catHeader) .deck__face,
+html body.pm:has(#catHeader) a.deck__face:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 18px;
+  background: var(--pm-face);
+  color: inherit;
+}
+html body.pm:has(#catHeader) .deck__face { padding: 18px 18px 16px; }
+html body.pm:has(#catHeader) a.deck__face:active { transform: translateY(5px); }
+html body.pm:has(#catHeader) a.deck__face:focus-visible { outline: 2px solid var(--pm-violet); outline-offset: 3px; }
+html body.pm:has(#catHeader) .deck__card {
+  border-radius: 18px;
+  border: 1.5px solid color-mix(in srgb, var(--rc) 70%, var(--pm-line));
+  background: color-mix(in srgb, var(--rc) 24%, var(--pm-face));
+}
+html body.pm:has(#catHeader) .deck__symbol {
+  display: grid;
+  place-items: center;
+  min-width: 52px;
+  height: 52px;
+  padding: 0 10px;
+  border-radius: 14px;
+  background: var(--pm-violet);
+  color: #fff;
+  font-size: 1.45rem;
+}
+html body.pm:has(#catHeader) .deck__pct { color: var(--pm-key-ink); }
+html body.pm:has(#catHeader) .deck__name { color: var(--pm-ink); }
+html body.pm:has(#catHeader) .deck__desc,
+html body.pm:has(#catHeader) .deck__foot { color: var(--pm-ink-2); }
+html body.pm:has(#catHeader) .deck__foot b { color: var(--pm-ink); }
+html body.pm:has(#catHeader) .deck__strip { height: 10px; gap: 4px; }
+html body.pm:has(#catHeader) .deck__seg { border-radius: 5px; background: var(--pm-track); }
+html body.pm:has(#catHeader) .deck__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--pm-ink-2);
+  font-variant-numeric: tabular-nums;
+}
+html body.pm:has(#catHeader) .deck__lg { display: inline-flex; align-items: center; gap: 6px; white-space: nowrap; }
+html body.pm:has(#catHeader) .deck__lg i { flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--rc); }
+html body.pm:has(#catHeader) .deck__lg--comun { --rc: var(--r-comun); }
+html body.pm:has(#catHeader) .deck__lg--rar { --rc: var(--r-rar); }
+html body.pm:has(#catHeader) .deck__lg--epic { --rc: var(--r-epic); }
+html body.pm:has(#catHeader) .deck__lg--legendar { --rc: var(--r-legendar); }
+/* Not published yet. */
+html body.pm:has(#catHeader) .deck--soon .deck__face {
+  border: 1.5px solid var(--pm-line);
+  background: var(--pm-tint);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#catHeader) .deck--soon .deck__symbol { background: var(--pm-line-2); color: var(--pm-ink-2); }
+html body.pm:has(#catHeader) .deck__soon {
+  border: 0;
+  border-radius: 999px;
+  background: var(--pm-face);
+  box-shadow: none;
+  color: var(--pm-ink-2);
 }

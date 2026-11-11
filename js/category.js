@@ -285,6 +285,9 @@
           <span class="deck__seg-fill"></span>
         </span>`).join('');
 
+      const legend = present.map(r =>
+        `<span class="deck__lg deck__lg--${r}"><i></i>${BM.rarityLabel[r]} ${rar[r].solved}/${rar[r].total}</span>`).join('');
+
       const face = `
           <span class="deck__top">
             <span class="deck__symbol" aria-hidden="true">${sub.symbol}</span>
@@ -294,6 +297,7 @@
           ${sub.description ? `<span class="deck__desc">${BM.esc(sub.description)}</span>` : ''}
           ${empty ? '' : `
             <span class="deck__strip">${strip}</span>
+            <span class="deck__legend">${legend}</span>
             <span class="deck__foot"><b>${done}</b>/${count} exerciții</span>`}`;
 
       return `
