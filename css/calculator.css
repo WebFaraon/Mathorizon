@@ -1045,6 +1045,23 @@ html:not([data-theme="dark"]) body:has(#catHeader) .rarity-card__statement {
 }
 body:has(#catHeader) .rarity-card__statement-inner { color: var(--k-ink); }
 
+/* Formulas on the cards: Space Grotesk, upright, as in the Teorema Logo Kit
+   (Produs tab). Only the letters, digits and signs change font: KaTeX still
+   draws fractions, roots, integrals and brackets with its own glyphs. The
+   exercise dialog keeps the standard KaTeX look. Space Grotesk is loaded by
+   category.html; KaTeX_Main stays as fallback for symbols it lacks. */
+body:has(#catHeader) .rarity-card__statement-formula .katex,
+body:has(#catHeader) .rarity-card__statement-formula .katex .mathnormal,
+body:has(#catHeader) .rarity-card__statement-formula .katex .mathit,
+body:has(#catHeader) .rarity-card__statement-formula .katex .mathrm,
+body:has(#catHeader) .rarity-card__statement-formula .katex .mathbf,
+body:has(#catHeader) .rarity-card__statement-formula .katex .textrm,
+body:has(#catHeader) .rarity-card__statement-formula .katex .mathsf {
+  font-family: 'Space Grotesk', KaTeX_Main, sans-serif;
+  font-style: normal;
+}
+body:has(#catHeader) .rarity-card__statement-formula .katex { font-size: 1.1em; }
+
 /* Locked (package restriction): flat, no edge, lock over a blur. */
 body:has(#catHeader) .rarity-card--locked,
 body:has(#catHeader) .rarity-card--locked:hover {

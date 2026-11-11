@@ -249,6 +249,7 @@ A neutral warm-gray chassis with ink text, one green-gray LCD, four saturated le
 **Display Font:** Plus Jakarta Sans, via the site's `--font-ui` (with system-ui, sans-serif)
 **Body Font:** Plus Jakarta Sans
 **Label/Mono Font:** Doto (weights 600-900), for LCD numerals only
+**Formula Font (2026-11-11):** Space Grotesk (400 to 700), upright, only for the formulas on the exercise cards of the category page (`.rarity-card__statement-formula`, rules in `css/calculator.css` after `.rarity-card__statement-inner`), as in the Teorema Logo Kit. KaTeX still draws fractions, roots, integrals and brackets; the exercise dialog keeps the standard KaTeX look.
 **Math Legend Font:** KaTeX_Main (with Cambria Math, Times New Roman), for chapter symbols
 
 **Character:** The site's own geometric sans at heavy weight (800) for key legends and titles, tightly tracked, paired with dot-matrix display numerals. The pairing reads as the printing on a calculator body next to the digits on its screen.
