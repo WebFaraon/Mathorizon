@@ -1,176 +1,318 @@
 /* ============================================================
    Teorema: the welcome after sign-in
    ============================================================
-   After a real sign-in (e-mail, sign-up or Google) the whole screen is covered by a violet
-   panel: the Teorema owl, the same one as in the Logo Kit (js/mascot.js), greets in its happy
-   pose, and a slider fills as if the materials were loading. After about a second the panel
-   fades away and the platform is there. Same for every role.
+   One violet panel hides everything between pressing "Conectare" / "Creează cont" and
+   the platform being ready: the Teorema owl (the one of the Logo Kit, js/mascot.js) greets in
+   its happy pose and a slider fills as if the materials were loading.
 
-   How it hangs together:
-   - js/auth-page.js calls TeoremaWelcome.go(url, { name, mode }) instead of redirecting at once:
-     it leaves a short-lived note in sessionStorage, fades a violet cover over the sign-in page,
-     and then goes to the destination.
-   - This file is loaded in the <head> of every page a sign-in can land on. If the note is there
-     it paints a violet panel before anything else (a pseudo-element of <html>, so there is no
-     flash of the page), builds the greeting as soon as <body> exists, and removes it again.
-     The note is read once and deleted, so a reload never plays it twice, and it expires after
-     three minutes.
-   - With "reduce motion" the panel stays for a moment and goes without animation.
-   Plain script, no dependencies; js/mascot.js is fetched only when the greeting plays.
+   1. THE SIGN-IN PAGE. The panel goes up the moment the key is pressed, before the network
+      answers (js/auth-page.js: TeoremaWelcome.start). A wrong password, or a sign-up that waits
+      for an e-mail, takes it away again (cancel) and the form is where it was.
+   2. WARM-UP. When the sign-in succeeds, the page that is next (Capitole, or the console) is
+      loaded in a hidden frame while the slider crawls. The frame goes through whatever the page
+      does on its own (checking the account, sending an admin or a manager to the console), so the
+      page we finally go to is already known and its files are cached. The sign-in page is never
+      reloaded meanwhile.
+   3. THE HAND-OVER. When the frame has settled and the slider has had its moment, the slider
+      fills and the browser goes to the page. The page paints the same violet panel before
+      anything else (a pseudo-element of <html>, no flash), keeps it until it has settled itself,
+      then fades it away. If the page reloads while the panel is up, the note that says "the
+      welcome is running" is still there (it is removed only when the panel leaves), so the panel
+      comes back at once instead of the blink showing.
+
+   Same for every role. With "reduce motion" there is no animation, only the panel.
+   Plain script; js/mascot.js is fetched when the panel is first needed.
    ============================================================ */
 (function () {
   'use strict';
 
-  var KEY = 'teorema_welcome';
-  var TTL = 3 * 60 * 1000;
-  var FILL_MS = 700;          // the slider
-  var OUT_MS = 380;           // the panel leaving
+  var KEY = 'teorema_welcome';          // the note between pages (sessionStorage)
+  var NOTE_TTL = 25 * 1000;             // a note older than this is stale
+  var MAX_LOADS = 4;                    // the panel comes back after at most this many reloads
+  var MIN_SHOW = 900;                   // the owl is on screen at least this long
+  var WARM_MAX = 6000;                  // never wait longer for the warm-up
+  var OUT_MS = 380;
   var root = document.documentElement;
   var RM = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+  var inFrame = false;
+  try { inFrame = window.top !== window.self; } catch (e) { inFrame = true; }
 
   var VIOLET = '#3F236E', VIOLET_DARK = '#2A1750';
 
   var CSS = [
-    /* the instant panel, painted before the body exists */
     'html.tw-on::before{content:"";position:fixed;inset:0;z-index:2147483000;background:' + VIOLET + '}',
     'html[data-theme="dark"].tw-on::before{background:' + VIOLET_DARK + '}',
-    /* the cover that fades in over the sign-in page */
-    '.tw-cover{position:fixed;inset:0;z-index:2147483001;background:' + VIOLET + ';opacity:0;transition:opacity .32s ease;pointer-events:all}',
-    'html[data-theme="dark"] .tw-cover{background:' + VIOLET_DARK + '}',
-    '.tw-cover.is-on{opacity:1}',
-    /* the greeting */
-    '.tw{position:fixed;inset:0;z-index:2147483002;display:grid;place-items:center;padding:24px;background:' + VIOLET + ';color:#fff;font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;opacity:1;transition:opacity ' + OUT_MS + 'ms ease}',
+    '.tw{position:fixed;inset:0;z-index:2147483002;display:grid;place-items:center;padding:24px;background:' + VIOLET + ';color:#fff;font-family:"Plus Jakarta Sans",system-ui,-apple-system,"Segoe UI",sans-serif;opacity:0;transition:opacity .28s ease;cursor:progress}',
     'html[data-theme="dark"] .tw{background:' + VIOLET_DARK + '}',
+    '.tw.is-in,.tw.tw--resume{opacity:1}',
     '.tw::before{content:"";position:absolute;inset:0;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:28px 28px;pointer-events:none}',
     '.tw__center{position:relative;display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;max-width:92vw;transition:transform ' + OUT_MS + 'ms cubic-bezier(.4,0,.2,1)}',
-    '.tw__owl{width:min(250px,60vw)}',
+    '.tw__owl{width:min(250px,60vw);min-height:120px}',
     '.tw__owl svg{display:block;width:100%;height:auto;overflow:visible}',
-    '.tw__hi{margin:6px 0 0;font-size:clamp(1.45rem,4.6vw,2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15}',
+    '.tw__hi{margin:6px 0 0;font-size:clamp(1.45rem,4.6vw,2rem);font-weight:800;letter-spacing:-.02em;line-height:1.15;transition:opacity .22s ease}',
+    '.tw__hi.is-swap{opacity:0}',
     '.tw__sub{margin:0;font-size:.95rem;font-weight:600;color:rgba(255,255,255,.72)}',
     '.tw__bar{width:min(260px,64vw);height:8px;margin-top:10px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden}',
-    '.tw__bar i{display:block;width:100%;height:100%;border-radius:999px;background:#7BB403;transform-origin:left center;transform:scaleX(0)}',
-    '.tw.is-out{opacity:0;pointer-events:none}',
+    '.tw__bar i{display:block;width:100%;height:100%;border-radius:999px;background:#7BB403;transform-origin:left center;transform:scaleX(0);will-change:transform}',
+    '.tw.is-out{opacity:0;pointer-events:none;transition-duration:' + OUT_MS + 'ms}',
     '.tw.is-out .tw__center{transform:translateY(-10px) scale(1.04)}'
   ];
   var MOTION = [
     '@keyframes twPop{from{opacity:0;transform:translateY(26px) scale(.7)}}',
     '@keyframes twUp{from{opacity:0;transform:translateY(14px)}}',
-    '@keyframes twFill{from{transform:scaleX(0)}to{transform:scaleX(1)}}',
-    '.tw__owl{animation:twPop .75s cubic-bezier(.16,1,.3,1) backwards}',
-    '.tw__hi{animation:twUp .6s .12s cubic-bezier(.16,1,.3,1) backwards}',
-    '.tw__sub{animation:twUp .6s .2s cubic-bezier(.16,1,.3,1) backwards}',
-    '.tw__bar{animation:twUp .5s .28s cubic-bezier(.16,1,.3,1) backwards}',
-    '.tw__bar i{animation:twFill ' + FILL_MS + 'ms .15s cubic-bezier(.45,0,.2,1) forwards}'
+    '.tw:not(.tw--resume) .tw__owl{animation:twPop .75s cubic-bezier(.16,1,.3,1) backwards}',
+    '.tw:not(.tw--resume) .tw__hi{animation:twUp .6s .1s cubic-bezier(.16,1,.3,1) backwards}',
+    '.tw:not(.tw--resume) .tw__sub{animation:twUp .6s .18s cubic-bezier(.16,1,.3,1) backwards}',
+    '.tw:not(.tw--resume) .tw__bar{animation:twUp .5s .26s cubic-bezier(.16,1,.3,1) backwards}'
   ];
 
-  function addStyle(text) {
+  var styled = false;
+  function ensureStyle() {
+    if (styled) return;
+    styled = true;
     var st = document.createElement('style');
     st.setAttribute('data-teorema-welcome', '');
-    st.textContent = text;
+    st.textContent = CSS.join('\n') + (RM ? '' : '\n' + MOTION.join('\n'));
     (document.head || root).appendChild(st);
   }
 
-  /* ---------- the note between pages ---------- */
-  function arm(opts) {
-    try { sessionStorage.setItem(KEY, JSON.stringify({ t: Date.now(), name: (opts && opts.name) || '', mode: (opts && opts.mode) || 'login' })); } catch (e) { /* no storage: no greeting */ }
-  }
-  function takeNote() {
-    try {
-      var raw = sessionStorage.getItem(KEY);
-      if (!raw) return null;
-      sessionStorage.removeItem(KEY);
-      var n = JSON.parse(raw);
-      return n && Date.now() - n.t < TTL ? n : null;
-    } catch (e) { return null; }
-  }
-
-  /* ---------- the sign-in page: cover, then go ---------- */
-  function go(url, opts) {
-    arm(opts);
-    function leave() { window.location.replace(url); }
-    if (RM || !document.body) { leave(); return; }
-    addStyle(CSS.join('\n'));
-    var cover = document.createElement('div');
-    cover.className = 'tw-cover';
-    document.body.appendChild(cover);
-    void cover.offsetWidth;                  // so the fade has a start
-    cover.classList.add('is-on');
-    setTimeout(leave, 340);
-  }
-
-  /* the sign-in page itself never plays the greeting */
-  var onAuthPage = /\/auth\.html$/.test(location.pathname);
-  window.TeoremaWelcome = { arm: arm, go: go };
-  if (onAuthPage) return;
-
-  var note = takeNote();
-  if (!note) return;
-
-  /* ---------- the destination: greeting ---------- */
-  addStyle(CSS.join('\n') + (RM ? '' : '\n' + MOTION.join('\n')));
-  root.classList.add('tw-on');
-
-  var bodyReady = false, mascotReady = false, shown = false;
-  var script = document.createElement('script');
+  /* ---------- the mascot, fetched once ---------- */
+  var mascotState = 0, mascotWaiters = [];      // 0 not asked, 1 loading, 2 ready (or failed)
   var base = (function () {
     var cur = document.currentScript && document.currentScript.src;
     return cur ? cur.replace(/welcome\.js(\?.*)?$/, '') : 'js/';
   })();
-  script.src = base + 'mascot.js';
-  script.onload = function () { mascotReady = true; tryShow(); };
-  script.onerror = function () { mascotReady = true; tryShow(); };      // greet without the owl rather than not at all
-  (document.head || root).appendChild(script);
-  setTimeout(function () { mascotReady = true; tryShow(); }, 1500);      // the owl is late: do not hold the page
-
-  function waitForBody() {
-    if (document.body) { bodyReady = true; tryShow(); return; }
-    var mo = new MutationObserver(function () {
-      if (document.body) { mo.disconnect(); bodyReady = true; tryShow(); }
-    });
-    mo.observe(root, { childList: true });
+  function withMascot(cb) {
+    if (mascotState === 2 || window.TeoremaMascot) { cb(); return; }
+    mascotWaiters.push(cb);
+    if (mascotState === 1) return;
+    mascotState = 1;
+    var s = document.createElement('script');
+    s.src = base + 'mascot.js';
+    function done() { mascotState = 2; var w = mascotWaiters; mascotWaiters = []; w.forEach(function (f) { f(); }); }
+    s.onload = done; s.onerror = done;          // no owl rather than no panel
+    (document.head || root).appendChild(s);
   }
-  waitForBody();
 
-  function greeting() {
-    var name = (note.name || '').trim();
-    var word = note.mode === 'signup' ? 'Bine ai venit' : 'Bine ai revenit';
+  /* ---------- the note between pages ---------- */
+  function writeNote(n) { try { sessionStorage.setItem(KEY, JSON.stringify(n)); } catch (e) { /* no storage: no hand-over */ } }
+  function readNote() {
+    try {
+      var raw = sessionStorage.getItem(KEY);
+      if (!raw) return null;
+      var n = JSON.parse(raw);
+      if (!n || Date.now() - n.t > NOTE_TTL) { sessionStorage.removeItem(KEY); return null; }
+      return n;
+    } catch (e) { return null; }
+  }
+  function dropNote() { try { sessionStorage.removeItem(KEY); } catch (e) { /* ignore */ } }
+
+  /* ---------- the panel ---------- */
+  var cur = null;
+
+  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
+  function greetingText(name, mode) {
+    var word = mode === 'signup' ? 'Bine ai venit' : 'Bine ai revenit';
+    name = (name || '').trim();
     return name ? word + ', ' + name + '!' : word + '!';
   }
 
-  function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
-
-  function tryShow() {
-    if (shown || !bodyReady || !mascotReady) return;
-    shown = true;
+  function build(opts) {
+    ensureStyle();
     var el = document.createElement('div');
-    el.className = 'tw';
+    el.className = 'tw' + (opts.resume ? ' tw--resume' : '');
     el.setAttribute('role', 'status');
     el.setAttribute('aria-live', 'polite');
     el.innerHTML =
       '<div class="tw__center">' +
-        '<div class="tw__owl" id="twOwl"></div>' +
-        '<h2 class="tw__hi">' + esc(greeting()) + '</h2>' +
+        '<div class="tw__owl"></div>' +
+        '<h2 class="tw__hi">' + esc(greetingText(opts.name, opts.mode)) + '</h2>' +
         '<p class="tw__sub">Se încarcă materialele…</p>' +
         '<div class="tw__bar" aria-hidden="true"><i></i></div>' +
       '</div>';
     document.body.appendChild(el);
-    root.classList.remove('tw-on');           // the real panel is up; the instant one can go
-
-    var owl = null;
-    if (window.TeoremaMascot) {
-      try { owl = new TeoremaMascot.Mascot(el.querySelector('#twOwl'), { mood: 'happy', theme: 'dark' }); } catch (e) { owl = null; }
-    }
-
-    function leave() {
-      if (RM) { finish(); return; }
-      el.classList.add('is-out');
-      setTimeout(finish, OUT_MS + 60);
-    }
-    function finish() {
-      if (owl && window.TeoremaMascot) TeoremaMascot.dispose(owl);
-      if (el.parentNode) el.parentNode.removeChild(el);
-    }
-    setTimeout(leave, RM ? 600 : FILL_MS + 180);
-    setTimeout(finish, 5000);                 // never stuck
+    var c = { el: el, owl: null, bar: el.querySelector('.tw__bar i'), hi: el.querySelector('.tw__hi'), p: opts.resume ? 1 : 0, max: 0.86,
+              finishing: false, onFull: null, raf: 0, t0: Date.now(), mode: opts.mode, name: opts.name || '' };
+    c.bar.style.transform = 'scaleX(' + c.p + ')';
+    withMascot(function () {
+      if (!c.el.parentNode || !window.TeoremaMascot) return;
+      try { c.owl = new TeoremaMascot.Mascot(c.el.querySelector('.tw__owl'), { mood: 'happy', theme: 'dark' }); } catch (e) { c.owl = null; }
+    });
+    if (!opts.resume) { void el.offsetWidth; el.classList.add('is-in'); }
+    return c;
   }
+
+  function tick() {
+    var c = cur;
+    if (!c) return;
+    if (RM) {
+      c.bar.style.transform = 'scaleX(' + (c.finishing ? 1 : 0.9) + ')';
+      if (c.finishing) { c.finishing = false; if (c.onFull) c.onFull(); }
+      return;
+    }
+    if (c.finishing) c.p = Math.min(1, c.p + (1 - c.p) * 0.2 + 0.006);
+    else c.p += (c.max - c.p) * 0.022;
+    c.bar.style.transform = 'scaleX(' + c.p.toFixed(4) + ')';
+    if (c.finishing && c.p >= 0.999) {
+      c.bar.style.transform = 'scaleX(1)';
+      c.finishing = false;
+      if (c.onFull) c.onFull();
+      return;
+    }
+    c.raf = requestAnimationFrame(tick);
+  }
+
+  function dispose(c, then) {
+    if (!c) return;
+    cancelAnimationFrame(c.raf);
+    function gone() {
+      if (c.owl && window.TeoremaMascot) TeoremaMascot.dispose(c.owl);
+      if (c.el.parentNode) c.el.parentNode.removeChild(c.el);
+      if (then) then();
+    }
+    if (RM) { gone(); return; }
+    c.el.classList.add('is-out');
+    setTimeout(gone, OUT_MS + 60);
+  }
+
+  /* ---------- API for the sign-in page ---------- */
+  function start(opts) {
+    opts = opts || {};
+    if (cur) return cur;
+    if (!document.body) return null;
+    cur = build({ mode: opts.mode, name: opts.name, resume: false });
+    if (!RM) cur.raf = requestAnimationFrame(tick); else tick();
+    return cur;
+  }
+
+  /* the sign-in did not lead anywhere (wrong password, a sign-up waiting for an e-mail): the form is back */
+  function cancel() {
+    var c = cur;
+    cur = null;
+    root.classList.remove('tw-on');
+    dispose(c);
+  }
+
+  function setName(name) {
+    if (!cur || !name || cur.name === name) return;
+    cur.name = name;
+    var h = cur.hi;
+    h.classList.add('is-swap');
+    setTimeout(function () { h.textContent = greetingText(name, cur && cur.mode); h.classList.remove('is-swap'); }, RM ? 0 : 200);
+  }
+
+  /* load the next page in a hidden frame and wait until it has settled; cb gets the address it ended on.
+     Only Capitole and the console: a class page would ask the student about notifications inside the hidden frame. */
+  function warm(url, cb) {
+    var path = String(url).split(/[?#]/)[0].split('/').pop();
+    if (path !== 'capitole.html' && path !== 'admin.html') { cb(url); return; }
+    var fr = document.createElement('iframe');
+    fr.setAttribute('aria-hidden', 'true');
+    fr.tabIndex = -1;
+    fr.style.cssText = 'position:fixed;left:-10000px;top:0;width:1280px;height:800px;border:0;visibility:hidden;pointer-events:none';
+    var finished = false, lastPath = '', stableSince = 0, timer = 0;
+    function end(final) {
+      if (finished) return;
+      finished = true;
+      clearInterval(timer);
+      cb(final || url);
+      setTimeout(function () { if (fr.parentNode) fr.parentNode.removeChild(fr); }, 1500);   // after the hand-over has started
+    }
+    var born = Date.now();
+    timer = setInterval(function () {
+      if (Date.now() - born > WARM_MAX) { end(url); return; }
+      try {
+        var w = fr.contentWindow, d = fr.contentDocument;
+        if (!w || !d || d.readyState !== 'complete') { stableSince = 0; return; }
+        var here = w.location.pathname.split('/').pop() + w.location.search;
+        var known = w._bmAuthReady && w.BMAuth && (w.BMAuth.role || !w.BMAuth.user);
+        if (!known || d.documentElement.classList.contains('bm-auth-pending')) { stableSince = 0; return; }
+        if (here !== lastPath) { lastPath = here; stableSince = Date.now(); return; }
+        if (Date.now() - stableSince > 450) end(w.location.pathname.split('/').pop() + w.location.search + w.location.hash);
+      } catch (e) { end(url); }
+    }, 90);
+    document.body.appendChild(fr);
+    fr.src = url;
+  }
+
+  /* the sign-in succeeded: warm the next page, fill the slider, hand over */
+  function finish(url, info) {
+    info = info || {};
+    var c = cur || start({ mode: info.mode, name: info.name });
+    if (!c) { window.location.replace(url); return; }
+    if (info.name) setName(info.name);
+    var warmed = false, shown = false, address = url;
+    function ready() {
+      if (!warmed || !shown) return;
+      c.finishing = true;
+      c.onFull = function () {
+        writeNote({ t: Date.now(), name: c.name, mode: c.mode, resume: true, loads: 0 });
+        setTimeout(function () { window.location.replace(address); }, RM ? 0 : 140);
+      };
+      if (RM) tick(); else { cancelAnimationFrame(c.raf); c.raf = requestAnimationFrame(tick); }
+    }
+    setTimeout(function () { shown = true; ready(); }, Math.max(0, MIN_SHOW - (Date.now() - c.t0)));
+    warm(url, function (final) { address = final; warmed = true; ready(); });
+  }
+
+  window.TeoremaWelcome = { start: start, cancel: cancel, setName: setName, finish: finish };
+
+  if (inFrame) return;                         // the warm-up frame never plays the panel
+
+  /* ---------- the sign-in page: back from Google ---------- */
+  var onAuthPage = /\/auth\.html$/.test(location.pathname);
+  if (onAuthPage) {
+    var fromGoogle = false;
+    try {
+      var t = Number(sessionStorage.getItem('teorema_oauth_welcome'));
+      fromGoogle = !!t && Date.now() - t < 10 * 60 * 1000 && /access_token=|[?&]code=/.test(location.hash + location.search);
+    } catch (e) { fromGoogle = false; }
+    if (fromGoogle) {
+      var intent = 'login';
+      try { intent = (JSON.parse(localStorage.getItem('bm_oauth_intent') || '{}').intent) === 'signup' ? 'signup' : 'login'; } catch (e) { /* login */ }
+      ensureStyle();
+      root.classList.add('tw-on');
+      waitForBody(function () { withMascot(function () { start({ mode: intent }); root.classList.remove('tw-on'); }); });
+    } else {
+      /* warm the mascot while the person types, so the panel has its owl the instant the key is pressed */
+      document.addEventListener('DOMContentLoaded', function () { setTimeout(function () { withMascot(function () {}); }, 300); });
+    }
+    return;
+  }
+
+  /* ---------- the destination: keep the panel until the page has settled ---------- */
+  var note = readNote();
+  if (!note || !note.resume) return;
+  if ((note.loads || 0) >= MAX_LOADS) { dropNote(); return; }
+  note.loads = (note.loads || 0) + 1;
+  writeNote(note);
+
+  ensureStyle();
+  root.classList.add('tw-on');
+
+  function waitForBody(cb) {
+    if (document.body) { cb(); return; }
+    var mo = new MutationObserver(function () { if (document.body) { mo.disconnect(); cb(); } });
+    mo.observe(root, { childList: true });
+  }
+
+  waitForBody(function () {
+    var born = Date.now();
+    var c = build({ mode: note.mode, name: note.name, resume: true });
+    cur = c;
+    root.classList.remove('tw-on');            // the real panel is up
+    var settledAt = 0;
+    var timer = setInterval(function () {
+      var ok = document.readyState === 'complete' && window._bmAuthReady && window.BMAuth && (window.BMAuth.role || !window.BMAuth.user)
+               && !root.classList.contains('bm-auth-pending');
+      if (ok && !settledAt) settledAt = Date.now();
+      if (!ok) settledAt = 0;
+      var enough = settledAt && Date.now() - settledAt > 350;
+      if ((enough && Date.now() - born > 250) || Date.now() - born > 4000) {
+        clearInterval(timer);
+        cur = null;
+        dispose(c, dropNote);                  // the note goes only when the panel does
+      }
+    }, 90);
+  });
 })();

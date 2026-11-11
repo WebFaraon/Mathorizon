@@ -225,12 +225,12 @@
 
   // An admin with no explicit destination lands in the admin console.
   let _redirecting = false;
-  /* The greeting after a real sign-in (js/welcome.js): a violet panel with the owl, then the platform. Not for a visit with a session that was already there. */
+  /* The welcome after a real sign-in (js/welcome.js): the violet panel with the owl is already up (it went up when the key was pressed); it warms the next page in the background, fills its slider and hands over. Not for a visit with a session that was already there. */
   function _go(url, welcome, session) {
     if (welcome && window.TeoremaWelcome) {
       const md = (session && session.user && session.user.user_metadata) || {};
       const first = String(md.full_name || md.name || md.username || '').trim().split(/\s+/)[0] || '';
-      window.TeoremaWelcome.go(url, { name: first, mode: _tab === 'signup' ? 'signup' : 'login' });
+      window.TeoremaWelcome.finish(url, { name: first, mode: _tab === 'signup' ? 'signup' : 'login' });
     } else {
       window.location.replace(url);
     }
@@ -240,7 +240,7 @@
     if (_redirecting) return;
     _redirecting = true;
     const verdict = await _oauthGuard(session);
-    if (verdict !== 'ok') { await _refuseGoogle(verdict); return; }
+    if (verdict !== 'ok') { if (window.TeoremaWelcome) window.TeoremaWelcome.cancel(); await _refuseGoogle(verdict); return; }
     await _applyPendingRole(session);
     const explicit = _fromParam();
     try {
@@ -481,9 +481,10 @@
     }
     const email = raw.includes('@') ? raw : `${raw.toLowerCase()}@${USERNAME_DOMAIN}`;
     _setLoading('btnLogin', true);
+    if (window.TeoremaWelcome) window.TeoremaWelcome.start({ mode: 'login' });      // the panel goes up at once, before the network answers
     const { error } = await sb.auth.signInWithPassword({ email, password: pass });
     _setLoading('btnLogin', false);
-    if (error) return _showMsg(_roError(error.message), true);
+    if (error) { if (window.TeoremaWelcome) window.TeoremaWelcome.cancel(); return _showMsg(_roError(error.message), true); }
   }
   window.onLogin = onLogin;
 
@@ -529,12 +530,15 @@
     }
 
     _setLoading('btnSignup', true);
-    const { error } = await sb.auth.signUp({
+    if (window.TeoremaWelcome) window.TeoremaWelcome.start({ mode: 'signup' });
+    const { data: signUpData, error } = await sb.auth.signUp({
       email: contact, password: pass,
       options: { data: { full_name: name, role: _role } }
     });
     _setLoading('btnSignup', false);
-    if (error) return _showMsg(_roError(error.message), true);
+    if (error) { if (window.TeoremaWelcome) window.TeoremaWelcome.cancel(); return _showMsg(_roError(error.message), true); }
+    /* no session yet = the account waits for the e-mail: nothing to welcome, the message is shown on the form */
+    if (!(signUpData && signUpData.session) && window.TeoremaWelcome) window.TeoremaWelcome.cancel();
     LCD.hint('Cont creat.');
     if (_role === 'profesor' || _role === 'manager') {
       _showMsg(`Cont creat! Verifică emailul pentru confirmare. Contul tău de ${_role} va fi activat după aprobarea adminului.`, false);
@@ -630,6 +634,7 @@
 
     /* If already logged in, redirect immediately */
     const { data: { session } } = await sb.auth.getSession();
+    if (!session) { try { sessionStorage.removeItem('teorema_oauth_welcome'); } catch (e) { /* ignore */ } if (window.TeoremaWelcome) window.TeoremaWelcome.cancel(); }
     if (session) {
       /* Back from Google a moment ago counts as a sign-in; a visit with an old session does not. */
       let fromGoogle = false;
