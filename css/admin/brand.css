@@ -767,3 +767,100 @@ body.ax.ax-brand .rc-elapsed { border-radius: 999px; }
 body.ax.ax-brand .rc-prog { margin: 0 1.7em; margin-top: 0.9em; height: 0.5em; background: none; }
 body.ax.ax-brand .rc-prog[hidden] { border-radius: 999px; }
 body.ax.ax-brand .or-sign__name { padding-right: 26px; }
+
+/* ---------- 11. round five (2026-11-11): enrol dialog, group dock, success owl, register checks ---------- */
+
+/* the enrol dialog */
+body.ax.ax-brand .in-dlg__ic { border-radius: 12px; background: var(--bx-lime); color: var(--bx-lime-ink); box-shadow: 0 3px 0 0 var(--bx-lime-edge); }
+body.ax.ax-brand .in-sum { border: 1.5px solid var(--bx-line); border-radius: 16px; background: var(--ax-panel-2); box-shadow: 0 3px 0 0 var(--bx-edge); padding: 18px; }
+body.ax.ax-brand .in-sum__tag { padding: 3px 12px; border: 1.5px solid var(--bx-line); border-radius: 999px; background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .in-sum__tag.is-new { border-color: var(--bx-lime); background: color-mix(in srgb, var(--bx-lime) 18%, var(--ax-panel)); color: var(--ax-ink); }
+body.ax.ax-brand .in-sum__s { border-top-width: 1.5px; }
+body.ax.ax-brand .ax-seats i { border-radius: 3px; }
+body.ax.ax-brand .in-fld input,
+body.ax.ax-brand .in-ph { border: 1.5px solid var(--bx-line); border-radius: 10px; }
+body.ax.ax-brand .in-fld input { min-height: 48px; }
+body.ax.ax-brand .in-ph { overflow: hidden; }
+body.ax.ax-brand .in-fld input:focus,
+body.ax.ax-brand .in-ph:focus-within { border-color: var(--bx-violet); box-shadow: 0 0 0 3px var(--bx-tint); }
+body.ax.ax-brand .in-ph input:focus { box-shadow: none; }
+body.ax.ax-brand .in-ph i { border-right-width: 1.5px; border-right-color: var(--bx-line); background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .in-info { border: 1.5px solid var(--ax-rule); border-radius: 14px; background: var(--ax-panel-2); }
+body.ax.ax-brand .in-dup { border-radius: 12px; border-width: 1.5px; }
+body.ax.ax-brand .in-dlg__f { border-top-width: 1.5px; }
+
+/* the strip that creates a new group: a plate with the group, and the one GO key of the screen */
+body.ax.ax-brand .in-dock {
+  gap: 18px;
+  padding: 14px 14px 14px 22px;
+  border: 1.5px solid var(--bx-line);
+  border-radius: 18px;
+  background: var(--ax-panel);
+  color: var(--ax-ink);
+  box-shadow: 0 5px 0 0 var(--bx-edge), 0 18px 36px -18px rgba(30, 22, 49, 0.45);
+}
+body.ax.ax-brand .in-dock__t b { color: var(--ax-ink); }
+body.ax.ax-brand .in-dock__t span { color: var(--ax-ink-3); opacity: 1; }
+body.ax.ax-brand .in-dock__t em { color: var(--ax-bad); }
+body.ax.ax-brand .in-dock__go,
+body.ax.ax-brand .in-dock__go:hover {
+  border-color: var(--bx-lime-edge);
+  background: var(--bx-lime);
+  color: var(--bx-lime-ink);
+  box-shadow: 0 3px 0 0 var(--bx-lime-edge);
+}
+body.ax.ax-brand .in-dock__go:active { box-shadow: 0 0 0 0 var(--bx-lime-edge); transform: translateY(3px); }
+body.ax.ax-brand .in-dock__go[disabled],
+body.ax.ax-brand .in-dock__go[disabled]:hover { border-color: var(--bx-line); background: var(--ax-panel-2); color: var(--ax-ink-3); box-shadow: 0 3px 0 0 var(--bx-edge); transform: none; }
+
+/* the owl on every success panel (js/admin/owl-ok.js) */
+body.ax .ok-owl { position: relative; width: 112px; height: 101px; margin-bottom: 4px; transform-origin: 50% 50%; transition: transform 0.85s cubic-bezier(0.65, 0, 0.2, 1); }
+body.ax .ok-owl__m { width: 100%; height: 100%; }
+body.ax .ok-owl__m svg { display: block; width: 100%; height: 100%; overflow: visible; }
+body.ax .is-owl-stage .ok-owl { transform: translateY(var(--ok-dy, 0px)) scale(1.75); z-index: 3; }
+body.ax .is-owl-stage .ok-owl:not(.is-in) { opacity: 0; }
+body.ax .is-owl-stage .ok-owl.is-in { animation: ok-owl-pop 0.62s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+body.ax .ok-owl::before {
+  content: '';
+  position: absolute;
+  left: 50%; top: 50%;
+  width: 96px; height: 96px;
+  margin: -48px 0 0 -48px;
+  border-radius: 50%;
+  border: 3px solid var(--bx-lime, #7BB403);
+  opacity: 0;
+  pointer-events: none;
+}
+body.ax .is-owl-stage .ok-owl.is-in::before { animation: ok-ring 1.1s ease-out 0.25s backwards; }
+body.ax .is-owl-stage > *:not(.ok-owl) { animation: none !important; visibility: hidden; }
+@keyframes ok-owl-pop { from { transform: translateY(var(--ok-dy, 0px)) scale(0.2) rotate(-8deg); opacity: 0; } 60% { opacity: 1; } }
+@keyframes ok-ring { from { transform: scale(0.5); opacity: 0.7; } to { transform: scale(2.1); opacity: 0; } }
+@keyframes ok-fade { from { opacity: 0; } }
+body.ax .in-ok__x,
+body.ax .tr-ok__x { animation: ok-fade 0.4s ease 0.35s backwards; }
+@media (prefers-reduced-motion: reduce) {
+  body.ax .ok-owl, body.ax .ok-owl::before { animation: none !important; transition: none; }
+}
+
+/* what the checks found in a register: a card per kind, the message once, the cells as links */
+body.ax.ax-brand .sy-issuelist { display: grid; gap: 14px; }
+body.ax.ax-brand .sy-h { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 14px 0 0; padding: 0 2px; font-size: 0.78rem; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ax-ink-2); }
+body.ax.ax-brand .sy-h:first-child { margin-top: 0; }
+body.ax.ax-brand .sy-h b { min-width: 26px; padding: 2px 9px; border-radius: 999px; background: var(--bx-tint); color: var(--bx-key-ink); font-size: 0.78rem; letter-spacing: 0; text-align: center; }
+body.ax.ax-brand .sy-h--error b { background: color-mix(in srgb, var(--ax-bad) 16%, var(--ax-panel)); color: var(--ax-bad); }
+body.ax.ax-brand .sy-h--warn b { background: color-mix(in srgb, var(--ax-yellow) 30%, var(--ax-panel)); color: var(--ax-ink); }
+body.ax.ax-brand .sy-kind { margin: 0; padding: 14px 16px 16px; border: 1.5px solid var(--ax-rule-2); border-radius: 16px; background: var(--ax-panel); box-shadow: 0 3px 0 0 var(--bx-edge); }
+body.ax.ax-brand .sy-kind--error { border-left: 1.5px solid var(--ax-rule-2); box-shadow: 0 3px 0 0 color-mix(in srgb, var(--ax-bad) 45%, var(--bx-edge)); }
+body.ax.ax-brand .sy-kind__h { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+body.ax.ax-brand .sy-kind__h b { font-size: 1rem; font-weight: 800; line-height: 1.25; }
+body.ax.ax-brand .sy-kind__n { flex: none; min-width: 26px; padding: 2px 9px; border-radius: 999px; background: var(--ax-panel-2); border: 1.5px solid var(--ax-rule-2); font-size: 0.78rem; font-weight: 800; text-align: center; color: var(--ax-ink-2); }
+body.ax.ax-brand .sy-kind__help { margin: 6px 0 0; font-size: 0.84rem; line-height: 1.45; color: var(--ax-ink-3); }
+body.ax.ax-brand .sy-grp { margin-top: 12px; padding-top: 12px; border-top: 1.5px solid var(--ax-rule); }
+body.ax.ax-brand .sy-grp__m { margin: 0 0 8px; font-size: 0.88rem; line-height: 1.45; color: var(--ax-ink); }
+body.ax.ax-brand .sy-cells { display: flex; flex-wrap: wrap; gap: 8px; }
+body.ax.ax-brand .sy-cell a,
+body.ax.ax-brand .sy-cell { font-size: 0.8rem; font-weight: 700; }
+body.ax.ax-brand .sy-cell a { display: inline-block; padding: 4px 11px; border: 1.5px solid var(--bx-line); border-radius: 999px; background: var(--bx-tint); color: var(--bx-key-ink); text-decoration: none; }
+body.ax.ax-brand .sy-cell a:hover { filter: brightness(0.95); }
+body.ax.ax-brand .in-opt { padding: 2px 10px; border: 1.5px solid var(--bx-line); border-radius: 999px; background: var(--bx-tint); color: var(--bx-key-ink); font-style: normal; }
+body.ax.ax-brand .in-rm__note { border: 1.5px solid var(--ax-rule-2); border-radius: 14px; }

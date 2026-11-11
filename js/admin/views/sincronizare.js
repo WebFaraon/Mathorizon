@@ -209,12 +209,26 @@
       const label = [i.tab, i.cell].filter(Boolean).join(' ');
       return sid != null ? `<a href="${sheetUrl(w.spreadsheet_id)}#gid=${sid}${i.cell ? '&range=' + encodeURIComponent(i.cell) : ''}" target="_blank" rel="noopener">${esc(label)}</a>` : esc(label);
     };
+    /* one line of "what is this and what to do" for the checks people meet most */
+    const HELP = {
+      cabinet: 'Orarul filei nu spune în ce cabinet se ține lecția. Se scrie în coloana AC a orarului. O grupă online nu are nevoie de cabinet.',
+      manager: 'Numele managerului din fila grupei trebuie să fie în lista din CONFIGURARI, altfel elevul nu se leagă de contul managerului.',
+      schedule: 'Orarul din colțul filei (coloanele AA, AB, AC) nu se poate citi: ziua sau ora sunt scrise greșit sau lipsesc.',
+      weekday: 'Lecții cu data într-o zi care nu e în orar. Ori data a fost scrisă greșit, ori lecția a fost mutată.',
+      phone: 'Telefonul elevului lipsește sau nu are forma 69 123 456.',
+      'two-active': 'Același elev apare Activ în două grupe. Într-una trebuie să fie Inactiv sau Transferat.'
+    };
     const section = (level, head) => {
       const keys = Object.keys(byCode).filter(k => k.startsWith(level + ':'));
       if (!keys.length) return '';
-      return `<h3 class="sy-h">${esc(head)}</h3>` + keys.map(k => {
+      const nLevel = keys.reduce((t, k) => t + (I.byCode[k] || byCode[k].length), 0);
+      return `<h3 class="sy-h sy-h--${level}"><span>${esc(head)}</span><b>${nf.format(nLevel)}</b></h3>` + keys.map(k => {
         const items = byCode[k], code = k.split(':')[1], total = I.byCode[k] || items.length;
-        return `<section class="sy-kind"><b>${esc((I.titles && I.titles[code]) || code)} <span class="ax-sub">(${nf.format(total)})</span></b><ul>${items.slice(0, 25).map(i => `<li>${cell(i)}: ${esc(i.msg)}</li>`).join('')}</ul>${total > 25 ? `<span class="ax-sub">… și încă ${nf.format(total - 25)}</span>` : ''}</section>`;
+        // the same message is written once; the cells it is about sit under it as links
+        const byMsg = new Map();
+        items.forEach(i => { if (!byMsg.has(i.msg)) byMsg.set(i.msg, []); byMsg.get(i.msg).push(i); });
+        const groups = [...byMsg.entries()].slice(0, 30).map(([msg, list]) => `<div class="sy-grp"><p class="sy-grp__m">${esc(msg)}</p><div class="sy-cells">${list.slice(0, 40).map(i => `<span class="sy-cell">${cell(i)}</span>`).join('')}${list.length > 40 ? `<span class="ax-sub">… și încă ${nf.format(list.length - 40)}</span>` : ''}</div></div>`).join('');
+        return `<section class="sy-kind sy-kind--${level}"><header class="sy-kind__h"><b>${esc((I.titles && I.titles[code]) || code)}</b><span class="sy-kind__n">${nf.format(total)}</span></header>${HELP[code] ? `<p class="sy-kind__help">${esc(HELP[code])}</p>` : ''}${groups}${total > items.length ? `<p class="ax-sub">… și încă ${nf.format(total - items.length)} neafișate</p>` : ''}</section>`;
       }).join('');
     };
     U.drawer({

@@ -83,7 +83,7 @@ export function validate(model, linked) {
       if (!sl.day) add('error', 'schedule', tab, 'AA' + sl.row, `Ziua „${sl.dayRaw}” nu se înțelege.`);
       else days.add(sl.day);
       if (sl.hour == null) add('error', 'schedule', tab, 'AB' + sl.row, 'Ora lipsește sau nu e o oră.');
-      if (!sl.cabinet && plain(g.state) !== 'inactiv') add('warn', 'cabinet', tab, 'AC' + sl.row, 'Cabinetul lipsește.');
+      if (!sl.cabinet && plain(g.state) !== 'inactiv' && !(g.mode === 'online' || (!g.mode && /online/i.test(model.meta.project || '')))) add('warn', 'cabinet', tab, 'AC' + sl.row, 'Cabinetul lipsește.');   // an online group has no cabinet
       else if (sl.cabinet && cfg.cabinet && !inList(cfg.cabinet, sl.cabinet)) add('warn', 'cabinet', tab, 'AC' + sl.row, `Cabinetul „${sl.cabinet}” nu e în lista din CONFIGURARI.`);
       if (plain(g.state) !== 'inactiv' && sl.day && sl.hour != null) {
         const k = `${sl.day}|${sl.hour}`;
