@@ -1,0 +1,302 @@
+/* ==========================================================================
+   Premium keys and frames (pilot, 2026-11-11)
+
+   Adapted from the exercise card of the Teorema Logo Kit: 10px keys with a
+   1.5px quiet violet border and a solid bottom edge, 18px cards, 12px
+   windows on graph paper, a violet band with lime rarity pips, pill tags.
+   The motion stays as it was: hover only dims, press sinks onto the edge.
+
+   Pilot scope: only the category page of "Calcul Algebric" (Algebra).
+   js/category.js puts class "pm" on <body> for that page alone; every rule
+   here starts with `html body.pm:has(#catHeader)` so it beats the calculator
+   rules of the same page and touches nothing else. To widen the pilot later,
+   change the one condition in js/category.js.
+   ========================================================================== */
+
+body.pm {
+  --pm-violet: #3F236E;
+  --pm-violet-edge: #1F1035;
+  --pm-band: #3F236E;
+  --pm-key-ink: #3F236E;
+  --pm-ink: #1E1631;
+  --pm-ink-2: #5B4F74;
+  --pm-line: #DDD6EA;
+  --pm-line-2: #C9BFE0;
+  --pm-edge: #CFC6E3;
+  --pm-face: #FFFFFF;
+  --pm-tint: #EDE7F8;
+  --pm-paper: #F5F3FA;
+  --pm-grid: #E9E4F2;
+  --pm-lime: #7BB403;
+  --pm-lime-edge: #4F7A00;
+  --pm-lime-ink: #1E1631;
+  --pm-lav: #CFC4E8;
+}
+[data-theme="dark"] body.pm {
+  --pm-violet: #6C47BC;
+  --pm-violet-edge: #2A1752;
+  --pm-band: #33225A;
+  --pm-key-ink: #D5C6F5;
+  --pm-ink: #ECE7F6;
+  --pm-ink-2: #A99DC2;
+  --pm-line: #3A2E52;
+  --pm-line-2: #4A3C68;
+  --pm-edge: #0F0A18;
+  --pm-face: #241B35;
+  --pm-tint: #33264D;
+  --pm-paper: #1B1428;
+  --pm-grid: #2A2040;
+  --pm-lime: #8CC81E;
+  --pm-lime-edge: #3F6B00;
+  --pm-lime-ink: #101A06;
+  --pm-lav: #B9AAD8;
+}
+
+/* ---- Primary key: back to the chapter ---- */
+html body.pm:has(#catHeader) .subcat-bc__back,
+html body.pm:has(#catHeader) .subcat-bc__back:hover {
+  border: 1.5px solid var(--pm-violet);
+  border-radius: 10px;
+  background: var(--pm-violet);
+  color: #fff;
+}
+html body.pm:has(#catHeader) .subcat-bc__back { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .subcat-bc__back:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+
+/* ---- Filter keys ---- */
+html body.pm:has(#catHeader) .filter-bar .filter-chip,
+html body.pm:has(#catHeader) .filter-bar .filter-chip:hover {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#catHeader) .filter-bar .filter-chip { box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#catHeader) .filter-bar .filter-chip:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+/* Rarity keys keep their rarity colour on the label only. */
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary),
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary):hover {
+  border-color: var(--pm-line-2);
+  color: var(--rc-ink);
+}
+html body.pm:has(#catHeader) .filter-bar .filter-chip.active,
+html body.pm:has(#catHeader) .filter-bar .filter-chip.active:hover {
+  border-color: var(--pm-violet);
+  background: var(--pm-violet);
+  color: #fff;
+}
+html body.pm:has(#catHeader) .filter-bar .filter-chip.active { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .filter-bar .filter-chip.active:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active,
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active:hover {
+  border-color: color-mix(in srgb, var(--rc) 70%, black);
+  background: var(--rc);
+  color: #fff;
+}
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active {
+  box-shadow: 0 3px 0 0 color-mix(in srgb, var(--rc) 60%, black);
+}
+html body.pm:has(#catHeader) .filter-bar .filter-chip:is(.easy, .medium, .hard, .legendary).active:active {
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 60%, black);
+}
+
+/* ---- Card ---- */
+html body.pm:has(#catHeader) .rarity-card,
+html body.pm:has(#catHeader) .rarity-card:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 18px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 color-mix(in srgb, var(--rc) 42%, var(--pm-edge));
+}
+html body.pm:has(#catHeader) .rarity-card:active:not(:has(.rarity-card__actions:active)) {
+  transform: translateY(5px);
+  box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 42%, var(--pm-edge));
+}
+/* Solved: the whole card edge goes lime, as the exercise card does. */
+html body.pm:has(#catHeader) .rarity-card.solved,
+html body.pm:has(#catHeader) .rarity-card.solved:hover {
+  border-color: var(--pm-lime);
+  box-shadow: 0 5px 0 0 var(--pm-lime);
+}
+html body.pm:has(#catHeader) .rarity-card.solved:active:not(:has(.rarity-card__actions:active)) {
+  box-shadow: 0 0 0 0 var(--pm-lime);
+}
+@media (prefers-reduced-motion: no-preference) {
+  html body.pm:has(#catHeader) .rarity-card.rarity-card--opening { animation: pm-press 0.24s cubic-bezier(0.16, 1, 0.3, 1); }
+}
+@keyframes pm-press {
+  40% { transform: translateY(5px); box-shadow: 0 0 0 0 transparent; }
+}
+html body.pm:has(#catHeader) .rarity-card:focus-visible { outline: 2px solid var(--pm-violet); outline-offset: 3px; }
+
+/* Band: violet, rarity pips and label in lime. */
+html body.pm:has(#catHeader) .rc-band {
+  height: 34px;
+  border-bottom: 0;
+  background: var(--pm-band);
+  color: var(--pm-lime);
+}
+html body.pm:has(#catHeader) .rc-no { color: var(--pm-lav); }
+html body.pm:has(#catHeader) .rc-done { color: var(--pm-lime); }
+html body.pm:has(#catHeader) .rc-band .rc-pips i { border-radius: 50%; background: rgba(255, 255, 255, 0.24); }
+html body.pm:has(#catHeader) .rc-band .rc-pips i.on { background: var(--pm-lime); }
+
+html body.pm:has(#catHeader) .rarity-card__title { color: var(--pm-ink); }
+html body.pm:has(#catHeader) .rarity-card__source { color: var(--pm-ink-2); }
+
+/* Points: a soft pill. */
+html body.pm:has(#catHeader) .rarity-card__tags .points-badge,
+html body.pm:has(#catHeader) .rarity-modal__meta .points-badge,
+html body.pm:has(#catHeader) .rarity-modal__meta .type-badge {
+  height: 26px;
+  padding: 0 11px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--pm-tint);
+  color: var(--pm-key-ink);
+}
+
+/* Favorite / solved keys. */
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn,
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn:hover {
+  width: 34px;
+  height: 34px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn { box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(3px); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active,
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active:hover {
+  border-color: var(--pm-violet);
+  background: var(--pm-violet);
+  color: var(--pm-lime);
+}
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.fav.active svg { fill: var(--pm-lime); stroke: var(--pm-lime); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active,
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active:hover {
+  border-color: var(--pm-lime);
+  background: var(--pm-lime);
+  color: var(--pm-lime-ink);
+}
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active { box-shadow: 0 3px 0 0 var(--pm-lime-edge); }
+html body.pm:has(#catHeader) .rarity-card__actions .ex-action-btn.solved.active:active { box-shadow: 0 0 0 0 var(--pm-lime-edge); }
+
+/* Formula window: graph paper, 12px. */
+html body.pm:has(#catHeader) .rarity-card__statement,
+html body.pm:has(#catHeader) .rarity-modal__statement {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 12px;
+  background-color: var(--pm-paper);
+  background-image:
+    linear-gradient(var(--pm-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--pm-grid) 1px, transparent 1px);
+  background-size: 20px 20px;
+  box-shadow: none;
+  color: var(--pm-ink);
+}
+
+/* ---- Exercise dialog ---- */
+html body.pm:has(#catHeader) .rarity-modal .classes-modal__dialog.rarity-modal__dialog {
+  overflow: hidden;
+  border: 1.5px solid var(--pm-line);
+  border-top: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+  color: var(--pm-ink);
+}
+html body.pm:has(#catHeader) .rarity-modal__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 0;
+  background: var(--pm-band);
+}
+html body.pm:has(#catHeader) .rarity-modal .rarity-badge {
+  position: static;
+  padding: 0;
+  background: transparent;
+  font-size: 0.74rem;
+  letter-spacing: 0.14em;
+  color: var(--pm-lime);
+}
+html body.pm:has(#catHeader) .rarity-modal .rarity-badge .rc-pips i { border-radius: 50%; background: rgba(255, 255, 255, 0.24); }
+html body.pm:has(#catHeader) .rarity-modal .rarity-badge .rc-pips i.on { background: var(--pm-lime); }
+
+html body.pm:has(#catHeader) #rarityModalClose,
+html body.pm:has(#catHeader) #rarityModalClose:hover,
+html body.pm:has(#catHeader) .rarity-modal__nav,
+html body.pm:has(#catHeader) .rarity-modal__nav:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#catHeader) #rarityModalClose,
+html body.pm:has(#catHeader) .rarity-modal__nav { box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#catHeader) #rarityModalClose:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm:has(#catHeader) .rarity-modal__nav:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+
+html body.pm:has(#catHeader) .rarity-modal__title { color: var(--pm-ink); }
+
+html body.pm:has(#catHeader) .rarity-modal__barem-btn,
+html body.pm:has(#catHeader) .rarity-modal__barem-btn:hover {
+  border: 1.5px solid var(--pm-violet);
+  border-radius: 10px;
+  background: var(--pm-violet);
+  color: #fff;
+}
+html body.pm:has(#catHeader) .rarity-modal__barem-btn { box-shadow: 0 3px 0 0 var(--pm-violet-edge); }
+html body.pm:has(#catHeader) .rarity-modal__barem-btn:active { box-shadow: 0 0 0 0 var(--pm-violet-edge); }
+
+html body.pm:has(#catHeader) .rarity-modal__barem-gate {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 12px;
+  background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#catHeader) .rarity-modal__barem-gate-icon {
+  border-radius: 8px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm:has(#catHeader) .rarity-step__num {
+  border-radius: 7px;
+  background: var(--pm-lime);
+  color: var(--pm-lime-ink);
+}
+html body.pm:has(#catHeader) .rarity-step__pts {
+  border-radius: 6px;
+  border-color: var(--pm-lime);
+  color: var(--pm-key-ink);
+}
+
+/* ---- Phone filter dropdowns ---- */
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__trigger {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__trigger:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__arrow { color: var(--pm-ink-2); }
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__dropdown {
+  overflow: hidden;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option { color: var(--pm-ink); }
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option:hover { background: var(--pm-tint); }
+html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option--sel {
+  background: var(--pm-tint);
+  color: var(--pm-key-ink);
+}

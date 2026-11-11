@@ -72,6 +72,10 @@
 
     allExercises = BM.EXERCISES.filter(e => e.categoryId === catId);
 
+    /* Premium keys and frames (css/premium.css): pilot on Calcul Algebric only.
+       To widen it, change this one condition. */
+    document.body.classList.toggle('pm', catId === 'algebra' && BM.getParam('sub') === 'calcul-algebric');
+
     renderHeader();
     initPanelBtns();
     BM.Storage.recordVisit();
