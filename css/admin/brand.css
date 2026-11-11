@@ -690,3 +690,80 @@ body.ax.ax-brand .or-dw__kids.is-picking .or-dw__kid.is-pick.is-on { border-colo
   body.ax.ax-brand .ri-row { grid-template-columns: 112px minmax(0, 1.6fr) 90px minmax(0, 1fr) 116px; }
 }
 body.ax.ax-brand .ri-state { justify-self: end; }
+
+/* ---------- 10. round four (2026-11-11): Transfer, the Orar selections, Recepție ---------- */
+
+/* Transfer dialog */
+body.ax.ax-brand .tr-h__ic { border-radius: 12px; background: var(--bx-lime); color: var(--bx-lime-ink); box-shadow: 0 3px 0 0 var(--bx-lime-edge); }
+body.ax.ax-brand .tr-bar { border: 1.5px solid var(--bx-line); border-radius: 14px; background: var(--bx-tint); box-shadow: 0 3px 0 0 var(--bx-edge); }
+body.ax.ax-brand .tr-bar b { color: var(--bx-key-ink); }
+body.ax.ax-brand .tr-who { border-bottom-width: 1.5px; }
+body.ax.ax-brand .tr-kids li { border: 1.5px solid var(--bx-line); border-radius: 12px; box-shadow: 0 2px 0 0 var(--bx-edge); }
+body.ax.ax-brand .tr-kids li i { border-radius: 8px; background: var(--bx-violet); }
+body.ax.ax-brand .tr-b { min-height: 24px; padding: 0 10px; border-width: 1.5px; border-radius: 999px; }
+body.ax.ax-brand .tr-b--best { border-color: var(--bx-violet); background: var(--bx-violet); color: #FFFFFF; }
+body.ax.ax-brand .tr-money { border-top-width: 1.5px; }
+body.ax.ax-brand .tr-f { border-top-width: 1.5px; }
+
+/* Orar: the five selections are keys, each its own, with a small bump when pressed */
+body.ax.ax-brand .or-signs__row { gap: 12px; border: 0; border-radius: 0; background: none; overflow: visible; padding-bottom: 4px; }
+body.ax.ax-brand .or-sign,
+body.ax.ax-brand .or-sign:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 16px;
+  background: var(--ax-panel);
+  color: var(--ax-ink);
+  transform: none;
+}
+body.ax.ax-brand .or-sign { box-shadow: 0 4px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, background-color 0.2s ease, border-color 0.2s ease; }
+body.ax.ax-brand .or-sign:hover { filter: brightness(0.96); }
+body.ax.ax-brand .or-sign:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(4px); }
+body.ax.ax-brand .or-sign:focus-visible { outline-offset: 3px; }
+@media (min-width: 601px) {
+  body.ax.ax-brand .or-sign { padding: 18px 16px 14px; }
+}
+body.ax.ax-brand .or-sign__band { border-radius: 3px; }
+body.ax.ax-brand .or-sign__pic { border-radius: 8px; }
+body.ax.ax-brand .or-sign__here { top: 10px; right: 10px; width: 22px; height: 22px; border-radius: 7px; background: var(--bx-lime); color: var(--bx-lime-ink); }
+body.ax.ax-brand .or-sign[aria-pressed="true"],
+body.ax.ax-brand .or-sign[aria-pressed="true"]:hover { border-color: var(--bx-violet); background: var(--bx-violet); color: #FFFFFF; box-shadow: 0 4px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .or-sign[aria-pressed="true"]:active { box-shadow: 0 0 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__name,
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__v b { color: #FFFFFF; }
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__sub,
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__v,
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__of { color: rgba(255, 255, 255, 0.82); }
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__pic { background: var(--bx-lime); color: var(--bx-lime-ink); }
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__band { outline: 1.5px solid #FFFFFF; }
+body.ax.ax-brand .or-sign--exo[aria-pressed="true"] .or-sign__band { background: #B79BF0; }
+@keyframes or-bump { 0% { transform: translateY(4px) scale(0.985); } 40% { transform: translateY(-2px) scale(1.035); } 72% { transform: translateY(0) scale(0.99); } 100% { transform: none; } }
+@keyframes or-tick { 0% { transform: scale(0) rotate(-40deg); } 60% { transform: scale(1.25) rotate(6deg); } 100% { transform: none; } }
+body.ax.ax-brand .or-sign.is-bump { animation: or-bump 0.46s cubic-bezier(0.34, 1.4, 0.64, 1); }
+body.ax.ax-brand .or-sign.is-bump[aria-pressed="true"] .or-sign__here { animation: or-tick 0.42s cubic-bezier(0.34, 1.56, 0.64, 1) 0.06s backwards; }
+@media (prefers-reduced-motion: reduce) {
+  body.ax.ax-brand .or-sign.is-bump,
+  body.ax.ax-brand .or-sign.is-bump .or-sign__here { animation: none; }
+}
+
+/* Recepție: the board is a brand frame, the lesson cards are keys with a solid edge */
+body.ax.ax-brand .rc-wrap { border: 1.5px solid var(--bx-line); border-radius: 22px; overflow-y: hidden; box-shadow: 0 6px 0 0 var(--bx-edge); }
+body.ax.ax-brand .rc-wrap:fullscreen { border-radius: 0; box-shadow: none; }
+body.ax.ax-brand .rc-card {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 18px;
+  box-shadow: 0 0.28em 0 0 var(--bx-edge);
+}
+body.ax.ax-brand .ax-shell:not([data-tv]) .rc-card { transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ax-shell:not([data-tv]) .rc-card:hover { border-color: var(--bx-line); transform: none; filter: brightness(0.97); }
+body.ax.ax-brand .ax-shell:not([data-tv]) .rc-card:active { transform: translateY(0.28em); box-shadow: 0 0 0 0 var(--bx-edge); }
+body.ax.ax-brand .rc-plate { border-radius: 0.9em; box-shadow: 0 0.18em 0 0 #12091F; }
+body.ax.ax-brand .rc-sign { border-radius: 0.7em; box-shadow: 0 0.16em 0 0 color-mix(in srgb, var(--kc) 55%, #1E1631); }
+body.ax.ax-brand .rc-grade { border-width: 1.5px; border-color: var(--bx-line); border-radius: 0.7em; background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .rc-grade i { color: var(--ax-ink-3); }
+body.ax.ax-brand .rc-meta { border-top-width: 1.5px; }
+body.ax.ax-brand .rc-prog,
+body.ax.ax-brand .rc-seg,
+body.ax.ax-brand .rc-elapsed { border-radius: 999px; }
+body.ax.ax-brand .rc-prog { margin: 0 1.7em; margin-top: 0.9em; height: 0.5em; background: none; }
+body.ax.ax-brand .rc-prog[hidden] { border-radius: 999px; }
+body.ax.ax-brand .or-sign__name { padding-right: 26px; }

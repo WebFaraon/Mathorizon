@@ -617,7 +617,11 @@
       const key = b.dataset.project ? `[data-project="${b.dataset.project}"]` : `[data-quick="${b.dataset.quick}"]`;
       update();
       const again = signs.querySelector(key);
-      if (again) again.focus();
+      if (again) {
+        again.focus();
+        again.classList.add('is-bump');   // a small bump when a selection is pressed (css/admin/brand.css)
+        again.addEventListener('animationend', ev => { if (ev.target === again) again.classList.remove('is-bump'); }, { once: true });
+      }
     });
 
     /* table: sort, open, more */
