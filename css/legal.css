@@ -30,6 +30,7 @@ body.lg { display: flex; flex-direction: column; background: var(--k-bg); }
     linear-gradient(var(--k-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
   background-size: 28px 28px;
+  background-attachment: fixed;
 }
 
 .lg-doc {

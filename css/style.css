@@ -19,6 +19,9 @@ body {
     linear-gradient(rgba(100, 82, 55, 0.11) 1px, transparent 1px),
     linear-gradient(90deg, rgba(100, 82, 55, 0.11) 1px, transparent 1px);
   background-size: 28px 28px;
+  /* The graph paper stays still while the page scrolls; every page that
+     restyles the ground (calculator world, class page) inherits this. */
+  background-attachment: fixed;
   color: var(--text);
   line-height: 1.55;
   min-height: 100vh;

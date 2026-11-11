@@ -62,7 +62,7 @@ body:has(#classRoot) {
     linear-gradient(var(--k-grid) 1px, transparent 1px),
     linear-gradient(90deg, var(--k-grid) 1px, transparent 1px);
   background-size: 28px 28px;
-  background-attachment: scroll;
+  background-attachment: fixed;
 
   /* ---- keys (the same mechanic as every other page) ---- */
   .btn,
