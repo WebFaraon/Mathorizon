@@ -100,8 +100,9 @@
       <div class="ax-shell" id="axShell">
         <aside class="ax-sign" aria-label="Navigare consolă">
           <a class="ax-sign__brand" href="admin.html#acasa">
-            <img class="ax-sign__logo" src="assets/images/MathorizonLogo-mark.png" alt="" width="312" height="165">
-            <span class="ax-hide-folded"><b>MATHORIZON</b><small>Consolă de<br>administrare</small></span>
+            <img class="ax-sign__wordmark" src="assets/images/teorema-wordmark.svg" alt="Teorema" width="316" height="65">
+            <img class="ax-sign__owl" src="assets/images/teorema-owl.svg" alt="Teorema" width="40" height="42">
+            <span class="ax-hide-folded"><small>Consolă de<br>administrare</small></span>
           </a>
           <nav id="axNav">${navHTML(external || 'acasa')}</nav>
           <div class="ax-sign__foot">

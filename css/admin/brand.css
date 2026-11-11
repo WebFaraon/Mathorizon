@@ -1,0 +1,482 @@
+/* ============================================================
+   Admin console in the Teorema brand (2026-11-11)
+   ============================================================
+   Loaded LAST in admin.html and scoped to body.ax.ax-brand, so nothing else that
+   uses css/admin.css (registru.html) changes. The founder asked for the brand colours
+   (violet and green) and for keys and frames exactly as on the rest of the site
+   (css/premium.css): 10px keys with a 1.5px quiet violet line and a solid edge under
+   them, 18px panels, a hover that only dims, a press that sinks onto the edge.
+   Nothing here changes what a page does; it recolours, rounds and aligns.
+
+   1. tokens   2. sign panel and top bar   3. keys   4. fields and selects
+   5. panels, tables, drawer, toasts   6. page headers and tiles   7. the views
+   ============================================================ */
+
+/* ---------- 1. tokens ---------- */
+body.ax.ax-brand {
+  --ax-bg: #F1EEF7;
+  --ax-panel: #FFFFFF;
+  --ax-panel-2: #F6F3FB;
+  --ax-rule: #E3DDF0;
+  --ax-rule-2: #CFC6E3;
+  --ax-ink: #1E1631;
+  --ax-ink-2: #4A3F63;
+  --ax-ink-3: #635878;
+  --ax-hover: #EEE9F8;
+
+  --ax-sign: #3F236E;
+  --ax-sign-ink: #F5F0FB;
+  --ax-sign-ink-2: #CBBFE3;
+  --ax-sign-rule: rgba(255, 255, 255, 0.16);
+
+  --ax-hi: #7BB403;               /* "you are here", selection, today: the brand green */
+  --ax-hi-ink: #1E1631;
+  --ax-hi-wash: #EAF3D2;
+
+  /* one tint per page, brand hues only: lavender and green, all light enough for dark ink */
+  --ax-c-acasa: #B6D86B;
+  --ax-c-orar: #C9B7F2;
+  --ax-c-elevi: #A6D43A;
+  --ax-c-repartizare: #B79BF0;
+  --ax-c-disponibilitate: #C3E07A;
+  --ax-c-analitica: #CDBDF4;
+  --ax-c-profesori: #B79BF0;
+  --ax-c-exercitii: #A6D43A;
+  --ax-c-culegeri: #C9B7F2;
+  --ax-c-calculator: #B6D86B;
+  --ax-c-receptie: #CDBDF4;
+  --ax-c-inscriere: #A6D43A;
+  --ax-c-inlocuiri: #B79BF0;
+  --ax-c-starturi: #C3E07A;
+  --ax-c-schimbari: #C9B7F2;
+  --ax-c-profil: #B6D86B;
+  --ax-c-info: #CDBDF4;
+  --ax-c-sincronizare: #A6D43A;
+  --ax-c-ink: #1E1631;
+
+  --ax-blue: #3F236E;             /* the main action: brand violet */
+  --ax-blue-ink: #FFFFFF;
+  --ax-blue-wash: #EDE7F8;
+
+  --ax-line-exo: #5A31A6;
+  --ax-line-exn: #7BB403;
+  --ax-line-mat: #B79BF0;
+
+  --ax-ok: #3F7A00;
+  --ax-off: #8A8499;
+  --ax-swap: #6C47BC;
+
+  --ax-st-activ: #3F7A00;
+  --ax-st-starteaza: #55358C;
+  --ax-st-inlocuire: #8B66DC;
+
+  /* keys, as in css/premium.css */
+  --bx-violet: #3F236E;
+  --bx-violet-edge: #1F1035;
+  --bx-edge: #CFC6E3;
+  --bx-line: #C9BFE0;
+  --bx-key-ink: #3F236E;
+  --bx-lime: #7BB403;
+  --bx-lime-edge: #4F7A00;
+  --bx-lime-ink: #1E1631;
+  --bx-tint: #EDE7F8;
+
+  --ax-r: 10px;
+  --ax-r-2: 18px;
+  --ax-shadow-pop: 0 5px 0 var(--bx-edge), 0 18px 36px -14px rgba(30, 22, 49, 0.35);
+
+  background-color: var(--ax-bg);
+  background-image:
+    linear-gradient(rgba(38, 24, 72, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(38, 24, 72, 0.055) 1px, transparent 1px);
+  background-size: 28px 28px;
+  background-attachment: fixed;
+}
+[data-theme="dark"] body.ax.ax-brand {
+  --ax-bg: #140E20;
+  --ax-panel: #1D1530;
+  --ax-panel-2: #241A3A;
+  --ax-rule: #2F2548;
+  --ax-rule-2: #43375F;
+  --ax-ink: #ECE7F6;
+  --ax-ink-2: #BDB2D4;
+  --ax-ink-3: #9A8FB3;
+  --ax-hover: #2A1F44;
+
+  --ax-sign: #2A1750;
+  --ax-sign-rule: rgba(255, 255, 255, 0.14);
+
+  --ax-hi: #8CC81E;
+  --ax-hi-ink: #101A06;
+  --ax-hi-wash: #232F12;
+
+  --ax-blue: #6C47BC;
+  --ax-blue-ink: #FFFFFF;
+  --ax-blue-wash: #2E2150;
+
+  --ax-line-exo: #A78BDB;
+  --ax-line-exn: #8CC81E;
+  --ax-line-mat: #D5C6F5;
+
+  --ax-ok: #8CC81E;
+  --ax-off: #8F86A6;
+  --ax-swap: #A78BDB;
+  --ax-st-activ: #8CC81E;
+  --ax-st-starteaza: #A78BDB;
+  --ax-st-inlocuire: #C9B7F2;
+
+  --bx-violet: #6C47BC;
+  --bx-violet-edge: #2A1752;
+  --bx-edge: #0F0A18;
+  --bx-line: #4A3C68;
+  --bx-key-ink: #D5C6F5;
+  --bx-lime: #8CC81E;
+  --bx-lime-edge: #3F6B00;
+  --bx-lime-ink: #101A06;
+  --bx-tint: #33264D;
+
+  --ax-shadow-pop: 0 5px 0 var(--bx-edge), 0 18px 36px -14px rgba(0, 0, 0, 0.7);
+  background-image:
+    linear-gradient(rgba(236, 232, 245, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(236, 232, 245, 0.04) 1px, transparent 1px);
+}
+body.ax.ax-brand :focus-visible { outline: 2px solid var(--bx-violet); outline-offset: 2px; }
+[data-theme="dark"] body.ax.ax-brand :focus-visible { outline-color: var(--bx-lime); }
+
+/* ---------- 2. sign panel and top bar ---------- */
+body.ax.ax-brand .ax-sign__brand { gap: 10px; padding: 4px 6px 18px; flex-direction: column; align-items: flex-start; }
+body.ax.ax-brand .ax-sign__wordmark { display: block; width: 168px; max-width: 100%; height: auto; }
+body.ax.ax-brand .ax-sign__brand small { margin-top: 0; color: var(--ax-sign-ink-2); }
+body.ax.ax-brand .ax-sign__owl { display: none; width: 40px; height: auto; }
+body.ax.ax-brand .ax-shell.is-folded .ax-sign__brand { align-items: center; }
+body.ax.ax-brand .ax-shell.is-folded .ax-sign__wordmark { display: none; }
+body.ax.ax-brand .ax-shell.is-folded .ax-sign__owl { display: block; }
+body.ax.ax-brand .ax-sign__title { color: var(--ax-sign-ink-2); }
+
+body.ax.ax-brand .ax-nav { gap: 6px; }
+body.ax.ax-brand .ax-nav__a { border-radius: 12px; }
+body.ax.ax-brand .ax-nav__a:hover { background: rgba(255, 255, 255, 0.09); }
+body.ax.ax-brand .ax-nav__pic {
+  border: 1.5px solid rgba(255, 255, 255, 0.22);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.08);
+}
+body.ax.ax-brand .ax-nav__a:not([aria-current]):hover .ax-nav__pic { border-color: var(--pg); background: rgba(255, 255, 255, 0.14); }
+/* you are here: the lit key of the site navbar, white with an edge, its tile violet with a lime icon */
+body.ax.ax-brand .ax-nav__a[aria-current="page"] {
+  background: #FFFFFF;
+  color: #3F236E;
+  box-shadow: 0 3px 0 0 #CDBFE3;
+  margin-bottom: 3px;
+}
+body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__pic { border-color: #3F236E; background: #3F236E; color: var(--bx-lime); }
+body.ax.ax-brand .ax-nav__n { border-radius: 999px; background: var(--bx-lime); color: var(--bx-lime-ink); }
+body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__n { background: #3F236E; color: #FFFFFF; }
+body.ax.ax-brand .ax-sign__user { border-radius: 12px; }
+body.ax.ax-brand .ax-sign__avatar { border-radius: 10px; background: rgba(255, 255, 255, 0.14); }
+
+/* the keys on the violet panel are the navbar's keys */
+body.ax.ax-brand .ax-sign__btn {
+  border: 1.5px solid #6A4DA0;
+  border-radius: 10px;
+  background: #55358C;
+  color: #F5F0FB;
+  box-shadow: 0 3px 0 0 #2A1550;
+  min-height: 38px;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body.ax.ax-brand .ax-sign__btn:hover { background: #55358C; border-color: #6A4DA0; color: #F5F0FB; transform: none; filter: brightness(0.94); }
+body.ax.ax-brand .ax-sign__btn:active { box-shadow: 0 0 0 0 #2A1550; transform: translateY(3px); }
+
+body.ax.ax-brand .ax-top { border-bottom: 1.5px solid var(--ax-rule); background: color-mix(in srgb, var(--ax-bg) 88%, transparent); backdrop-filter: blur(6px); }
+body.ax.ax-brand .ax-top__crumb b::before,
+body.ax.ax-brand .ax-rail__head b::before,
+body.ax.ax-brand .ax-h2-row .ax-h2::before { background: var(--bx-lime); border-radius: 2px; box-shadow: 0 0 0 1px rgba(30, 60, 0, 0.35); }
+body.ax.ax-brand .ax-demo { border: 1.5px solid var(--ax-rule-2); border-radius: 10px; background: var(--ax-panel); }
+body.ax.ax-brand .ax-demo button { border-radius: 8px; background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .ax-clock b { color: var(--ax-ink); }
+
+/* ---------- 3. keys ---------- */
+body.ax.ax-brand .ax-btn,
+body.ax.ax-brand .ax-btn:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .ax-btn {
+  min-height: 40px;
+  box-shadow: 0 3px 0 0 var(--bx-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body.ax.ax-brand .ax-btn--sm { min-height: 34px; }
+body.ax.ax-brand .ax-btn:hover { filter: brightness(0.95); }
+body.ax.ax-brand .ax-btn:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .ax-btn--primary,
+body.ax.ax-brand .ax-btn--primary:hover,
+body.ax.ax-brand .ax-btn--dark,
+body.ax.ax-brand .ax-btn--dark:hover {
+  border-color: var(--bx-violet);
+  background: var(--bx-violet);
+  color: #FFFFFF;
+}
+body.ax.ax-brand .ax-btn--primary,
+body.ax.ax-brand .ax-btn--dark { box-shadow: 0 3px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .ax-btn--primary:active,
+body.ax.ax-brand .ax-btn--dark:active { box-shadow: 0 0 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .ax-btn[disabled] { box-shadow: 0 3px 0 0 var(--bx-edge); filter: none; transform: none; }
+
+body.ax.ax-brand .ax-icon-btn,
+body.ax.ax-brand .ax-icon-btn:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .ax-icon-btn { box-shadow: 0 3px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ax-icon-btn:hover { filter: brightness(0.95); }
+body.ax.ax-brand .ax-icon-btn:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+
+body.ax.ax-brand .ax-chip-x,
+body.ax.ax-brand .ax-chip-x:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 999px;
+  background: var(--bx-tint);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .ax-chip-x { box-shadow: 0 2px 0 0 var(--bx-edge); }
+body.ax.ax-brand .ax-chip-x:hover { filter: brightness(0.95); }
+body.ax.ax-brand .ax-chip-x:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(2px); }
+body.ax.ax-brand .ax-link { color: var(--bx-key-ink); }
+[data-theme="dark"] body.ax.ax-brand .ax-link { color: #C9B7F2; }
+
+/* segmented switches (days, views): separate keys, the pressed one lit violet with a lime LED */
+body.ax.ax-brand .ax-seg { display: inline-flex; flex-wrap: wrap; gap: 6px; border: 0; border-radius: 0; background: none; overflow: visible; }
+body.ax.ax-brand .ax-seg button,
+body.ax.ax-brand .ax-seg button:hover,
+body.ax.ax-brand .ax-seg button:first-child {
+  position: relative;
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .ax-seg button { min-height: 38px; box-shadow: 0 3px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ax-seg button:hover { filter: brightness(0.95); }
+body.ax.ax-brand .ax-seg button:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .ax-seg button[aria-pressed="true"],
+body.ax.ax-brand .ax-seg button[aria-pressed="true"]:hover {
+  border-color: var(--bx-violet);
+  background: var(--bx-violet);
+  color: #FFFFFF;
+}
+body.ax.ax-brand .ax-seg button[aria-pressed="true"] { box-shadow: 0 3px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .ax-seg button[aria-pressed="true"]::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 1px;
+  background: var(--bx-lime);
+}
+body.ax.ax-brand .ax-switch input:checked + .ax-switch__t { background: var(--bx-violet); }
+
+/* ---------- 4. fields and selects ---------- */
+body.ax.ax-brand .ax-input,
+body.ax.ax-brand .ax-select {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  min-height: 40px;
+}
+body.ax.ax-brand .ax-input:hover { border-color: var(--bx-violet); }
+body.ax.ax-brand .ax-input:focus { border-color: var(--bx-violet); box-shadow: 0 0 0 3px var(--bx-tint); }
+[data-theme="dark"] body.ax.ax-brand .ax-input:hover,
+[data-theme="dark"] body.ax.ax-brand .ax-input:focus { border-color: #8B66DC; }
+
+body.ax.ax-brand .ax-sel__btn,
+body.ax.ax-brand .ax-sel__btn:hover,
+body.ax.ax-brand .ax-ms__btn,
+body.ax.ax-brand .ax-ms__btn:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--ax-ink);
+}
+body.ax.ax-brand .ax-sel__btn,
+body.ax.ax-brand .ax-ms__btn { min-height: 40px; box-shadow: 0 3px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ax-sel__btn:hover,
+body.ax.ax-brand .ax-ms__btn:hover { filter: brightness(0.96); }
+body.ax.ax-brand .ax-sel__btn:active,
+body.ax.ax-brand .ax-ms__btn:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .ax-sel.is-set .ax-sel__btn,
+body.ax.ax-brand .ax-ms.is-set .ax-ms__btn { border-color: var(--bx-violet); background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .ax-sel.is-open .ax-sel__btn,
+body.ax.ax-brand .ax-ms.is-open .ax-ms__btn { border-color: var(--bx-violet); }
+body.ax.ax-brand .ax-sel__pop,
+body.ax.ax-brand .ax-ms__list { border: 1.5px solid var(--bx-line); border-radius: 14px; background: var(--ax-panel); box-shadow: var(--ax-shadow-pop); overflow: hidden; }
+body.ax.ax-brand .ax-sel__opt.is-on,
+body.ax.ax-brand .ax-sel__opt.is-act { background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .ax-ms__opt.is-on .ax-ms__box { border-color: var(--bx-violet); background: var(--bx-violet); }
+
+/* ---------- 5. panels, tables, drawer, toasts ---------- */
+body.ax.ax-brand .ax-panel,
+body.ax.ax-brand .ax-table-wrap { border: 1.5px solid var(--ax-rule); border-radius: 18px; background: var(--ax-panel); }
+body.ax.ax-brand .ax-table-wrap { overflow-x: auto; }
+body.ax.ax-brand .ax-panel__head { box-shadow: none; border-bottom: 1.5px solid var(--ax-rule); border-radius: 18px 18px 0 0; }
+body.ax.ax-brand .ax-table th { background: var(--ax-panel-2); border-bottom: 1.5px solid var(--ax-rule-2); color: var(--ax-ink-3); }
+body.ax.ax-brand .ax-table th[aria-sort] { color: var(--ax-ink); box-shadow: inset 0 -3px 0 var(--bx-lime); }
+body.ax.ax-brand .ax-table tbody tr:hover td { background: var(--ax-hi-wash); }
+body.ax.ax-brand .ax-table tbody tr:hover td:first-child { box-shadow: inset 4px 0 0 var(--bx-lime); }
+body.ax.ax-brand .ax-tag { border-radius: 999px; }
+
+body.ax.ax-brand .ax-drawer__panel { border-left: 1.5px solid var(--ax-rule-2); border-radius: 22px 0 0 22px; box-shadow: -5px 0 0 var(--bx-edge), -24px 0 48px -24px rgba(30, 22, 49, 0.4); overflow: hidden; }
+body.ax.ax-brand .ax-drawer__scrim { background: rgba(30, 22, 49, 0.46); backdrop-filter: blur(5px); }
+body.ax.ax-brand .ax-toast { border: 1.5px solid var(--ax-rule-2); border-radius: 14px; box-shadow: 0 4px 0 0 var(--bx-edge), 0 14px 28px -12px rgba(30, 22, 49, 0.35); }
+
+/* ---------- 6. page headers and tiles ---------- */
+body.ax.ax-brand .ax-plate { border-radius: 14px; box-shadow: 0 3px 0 0 color-mix(in srgb, var(--pg) 55%, #1E1631); }
+body.ax.ax-brand .ax-stat { border: 1.5px solid var(--ax-rule); border-radius: 18px; box-shadow: inset 0 4px 0 var(--bx-violet), 0 4px 0 0 var(--bx-edge); background: var(--ax-panel); }
+body.ax.ax-brand a.ax-stat:hover,
+body.ax.ax-brand button.ax-stat:hover { box-shadow: inset 0 4px 0 var(--bx-violet), 0 4px 0 0 var(--bx-edge); filter: brightness(0.97); }
+body.ax.ax-brand a.ax-stat:active,
+body.ax.ax-brand button.ax-stat:active { box-shadow: inset 0 4px 0 var(--bx-violet), 0 0 0 0 var(--bx-edge); transform: translateY(4px); }
+[data-theme="dark"] body.ax.ax-brand .ax-stat { box-shadow: inset 0 4px 0 #8B66DC, 0 4px 0 0 var(--bx-edge); }
+
+/* the counters were one joined strip; now each is its own tile */
+body.ax.ax-brand .ax-stats { gap: 14px; border: 0; border-radius: 0; background: none; overflow: visible; }
+body.ax.ax-brand .ax-stat { background: var(--ax-panel); }
+body.ax.ax-brand .ax-stat.is-warn,
+body.ax.ax-brand .ah-att__item.is-warn { background: var(--ax-yellow); }
+
+/* ---------- 7. the views, page by page ---------- */
+
+/* Acasă: the hub tiles are keys (hover dims, press sinks) */
+body.ax.ax-brand .ah-tile,
+body.ax.ax-brand .ah-tile:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 18px;
+  background: var(--ax-panel);
+  transform: none;
+}
+body.ax.ax-brand .ah-tile { box-shadow: 0 5px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .ah-tile:hover { filter: brightness(0.96); }
+body.ax.ax-brand .ah-tile:hover::before { height: 4px; opacity: 1; }
+body.ax.ax-brand .ah-tile:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(5px); }
+body.ax.ax-brand .ah-tile:hover .ah-tile__plate { transform: none; }
+body.ax.ax-brand .ah-tile::before { display: none; }
+body.ax.ax-brand .ah-tile__plate { border-radius: 16px; box-shadow: 0 3px 0 0 color-mix(in srgb, var(--pg) 55%, #1E1631); }
+
+/* "pressed" and "on" states that were near-black become the brand violet with a lime LED */
+body.ax.ax-brand .dp-ed__c[aria-pressed="true"],
+body.ax.ax-brand .el-seg--sold button[aria-pressed="true"],
+body.ax.ax-brand .in-chip.is-on,
+body.ax.ax-brand .in-chip.is-on:hover,
+body.ax.ax-brand .or-seg--days button[aria-pressed="true"],
+body.ax.ax-brand .or-dw__st button[aria-pressed="true"],
+body.ax.ax-brand .rc-tools .ax-btn[aria-pressed="true"] {
+  border-color: var(--bx-violet);
+  background: var(--bx-violet);
+  color: #FFFFFF;
+}
+body.ax.ax-brand .or-dw__st button[aria-pressed="true"] .ax-st { color: #FFFFFF; }
+body.ax.ax-brand .rl-date.is-on,
+body.ax.ax-brand .rl-t.is-on { border-color: var(--bx-violet); box-shadow: inset 0 0 0 1px var(--bx-violet); }
+body.ax.ax-brand .rl-date.is-on .rl-box { border-color: var(--bx-violet); background: var(--bx-violet); }
+body.ax.ax-brand .dp-t[aria-pressed="true"] { border-color: var(--bx-violet); background: var(--bx-tint); }
+body.ax.ax-brand .rp-dr__st button[aria-pressed="true"] { box-shadow: inset 0 0 0 2px var(--bx-violet); }
+body.ax.ax-brand .rp-days button[aria-pressed="true"] .rp-days__n,
+body.ax.ax-brand .rp-days button[aria-pressed="true"] .rp-days__c,
+body.ax.ax-brand .rp-days button[aria-pressed="true"] .rp-days__c em { color: var(--ax-c-ink); }
+body.ax.ax-brand .cl-tab[aria-selected="true"] { box-shadow: 5px 0 0 var(--bx-violet); }
+
+/* chart palette of Analitică: brand hues, with the warm and the red kept for meaning */
+body.ax.ax-brand {
+  --an-indigo: #5A31A6;
+  --an-green: #6FA300;
+  --an-ochre: #E0A800;
+  --an-orchid: #B79BF0;
+  --an-brick: #D9534F;
+  --an-steel: #3F236E;
+}
+[data-theme="dark"] body.ax.ax-brand {
+  --an-indigo: #A78BDB;
+  --an-green: #8CC81E;
+  --an-ochre: #E8B83C;
+  --an-orchid: #D5C6F5;
+  --an-brick: #EE7560;
+  --an-steel: #7E5FC8;
+}
+
+/* Repartizare: the day keys take the page tint when pressed, with dark ink */
+body.ax.ax-brand .rp-days button[aria-pressed="true"],
+body.ax.ax-brand .rp-days button[aria-pressed="true"]:hover {
+  border-color: var(--bx-violet);
+  background: var(--pg);
+  color: var(--ax-c-ink);
+}
+body.ax.ax-brand .rp-days button[aria-pressed="true"]::after { display: none; }
+body.ax.ax-brand .rp-days button:not([aria-pressed="true"]):hover { background: var(--ax-panel); }
+
+/* cards and forms: no coloured strip across the top, the frame says enough */
+body.ax.ax-brand .cl-form,
+body.ax.ax-brand .cl-card--new,
+body.ax.ax-brand .pr-card { box-shadow: none; }
+body.ax.ax-brand .cl-form,
+body.ax.ax-brand .pr-card,
+body.ax.ax-brand .cl-card { border: 1.5px solid var(--ax-rule); border-radius: 18px; }
+/* empty states are plates with volume, not dashed outlines (dashed stays where it means "off" or "not yet", in the timetable) */
+body.ax.ax-brand .cl-empty,
+body.ax.ax-brand .in-empty,
+body.ax.ax-brand .tr-empty,
+body.ax.ax-brand .rl-none,
+body.ax.ax-brand .rs-note,
+body.ax.ax-brand .ax-invite--none {
+  border: 1.5px solid var(--ax-rule);
+  border-radius: 14px;
+  background: var(--ax-panel-2);
+  box-shadow: 0 3px 0 0 var(--bx-edge);
+}
+body.ax.ax-brand .cl-empty,
+body.ax.ax-brand .in-empty { border-radius: 18px; }
+body.ax.ax-brand .rs-add,
+body.ax.ax-brand .rs-add:hover { border-style: solid; }
+
+/* hover only dims, nothing lifts, grows or tilts: the rule of the whole site */
+body.ax.ax-brand .cl-tab:hover,
+body.ax.ax-brand .cl-copy:hover,
+body.ax.ax-brand .dp-blk:hover,
+body.ax.ax-brand .in-gc:hover,
+body.ax.ax-brand .in-rm:hover:not(:disabled),
+body.ax.ax-brand .tr-card:hover:not([disabled]),
+body.ax.ax-brand .ax-shell:not([data-tv]) .rc-card:hover,
+body.ax.ax-brand .in-cell:hover:not(:disabled),
+body.ax.ax-brand .ax-nav__a:not([aria-current]):hover .ax-nav__pic { transform: none; }
+body.ax.ax-brand .cl-tab:hover .cl-tab__pic { transform: none; }
+body.ax.ax-brand .cl-tab,
+body.ax.ax-brand .in-gc,
+body.ax.ax-brand .in-rm,
+body.ax.ax-brand .tr-card {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 14px;
+  background: var(--ax-panel);
+  box-shadow: 0 4px 0 0 var(--bx-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body.ax.ax-brand .cl-tab:hover,
+body.ax.ax-brand .in-gc:hover,
+body.ax.ax-brand .in-rm:hover:not(:disabled),
+body.ax.ax-brand .tr-card:hover:not([disabled]) { border-color: var(--bx-line); background: var(--ax-panel); filter: brightness(0.96); }
+body.ax.ax-brand .cl-tab:active,
+body.ax.ax-brand .in-gc:active,
+body.ax.ax-brand .in-rm:active:not(:disabled),
+body.ax.ax-brand .tr-card:active:not([disabled]) { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(4px); }
+body.ax.ax-brand .cl-tab[aria-selected="true"],
+body.ax.ax-brand .cl-tab[aria-selected="true"]:hover { border-color: var(--bx-violet); background: var(--pg); color: var(--ax-c-ink); box-shadow: 0 4px 0 0 var(--bx-violet-edge); margin-right: 0; }
+body.ax.ax-brand .cl-tab[aria-selected="true"] .cl-tab__pic { background: var(--bx-violet); color: var(--bx-lime); }
