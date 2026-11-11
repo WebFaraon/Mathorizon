@@ -74,7 +74,7 @@
     o.focus = s.focus || null;
     U.writeQuery(o);
   }
-  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' && s.rows === 'cab' ? 0 : s[k].length), 0) + (s.q ? 1 : 0) + (s.nocab && s.rows === 'cab' ? 1 : 0);
+  const filterCount = s => LIST_KEYS.reduce((t, k) => t + (k === 'proj' ? 0 : s[k].length), 0) + (s.q ? 1 : 0) + (s.nocab && s.rows === 'cab' ? 1 : 0);
 
   /* ============ data helpers ============ */
   const noCab = g => !g.room && !_isOnline(g);
@@ -83,7 +83,7 @@
     if (s.st.length ? !s.st.includes(g.status) : !live(g)) return false;
     if (s.nocab && s.rows === 'cab' && !noCab(g)) return false;               // "only the groups without a cabinet" (Offline board)
     if (s.rows === 'cab') { if (!g.room && !noCab(g)) return false; }          // Offline: the lessons in a cabinet and those still without one
-    else { if (!_isOnline(g)) return false; if (s.proj.length && !s.proj.includes(g.project)) return false; }   // Online: only the online lessons
+    else { if (!_isOnline(g)) return false; }   // Online: only the online lessons (one online project, so no project filter)
     if (s.disc.length && !s.disc.includes(g.subject)) return false;
     if (s.cls.length && !s.cls.includes(g.grade)) return false;
     if (s.fmt.length && !s.fmt.includes(String(g.size))) return false;
@@ -342,7 +342,7 @@
       reg: v => (v === 'vara' ? 'Școala de Vară' : 'Regim normal')
     };
     LIST_KEYS.forEach(k => {
-      if (k === 'proj' && s.rows === 'cab') return;
+      if (k === 'proj') return;   // there is one project per board, no project filter
       s[k].forEach(v => items.push({ key: k, value: v, label: lab[k](v) }));
     });
     if (s.q) items.push({ key: 'q', value: s.q, label: `Profesor: ${s.q}` });
@@ -561,8 +561,6 @@
         <span class="rp-rail__n">${n ? `<span class="ax-ms__count">${n}</span>` : ''}</span>
         <button type="button" class="ax-link rp-rail__tg" aria-expanded="${wasOpen}" aria-controls="rpRail">${wasOpen ? 'Ascunde' : 'Arată filtrele'}</button>
       </div>
-      <div class="ax-rail__lbl">Sursa datelor</div>
-      <div data-slot="proj"></div>
       <div class="ax-rail__lbl">Grupe</div>
       <div class="rp-rail__stack" data-slot="groups"></div>
       <p class="rp-rail__note">Grupele inactive apar doar dacă le alegi la Statut grup.</p>
@@ -597,12 +595,6 @@
     rail.classList.toggle('is-open', wasOpen);
 
     const on = key => vals => { s[key] = vals; s.focus = null; writeState(s); refreshRailCount(); renderMain(); };
-    const projSlot = rail.querySelector('[data-slot="proj"]');
-    if (s.rows === 'prof') {
-      projSlot.appendChild(U.multiSelect({ id: 'proj', label: 'Proiect', options: D.PROJECTS.filter(p => p.mode !== 'offline').map(p => ({ value: p.id, label: p.name })), selected: s.proj, onChange: on('proj') }));
-    } else {
-      projSlot.innerHTML = `<p class="rp-rail__fixed"><span class="ax-line ax-line--exo">Teorema Offline</span><small>Singurul proiect cu cabinete. Lecțiile online sunt la Online.</small></p>`;
-    }
     const stack = rail.querySelector('[data-slot="groups"]');
     const sizes = Array.from(new Set(D.groups.map(g => g.size))).sort((a, b) => a - b);
     [

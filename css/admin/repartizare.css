@@ -18,8 +18,6 @@ body.ax .rp-rail__n .ax-ms__count { display: inline-block; }
 body.ax .rp-rail__tg { display: none; }
 body.ax .rp-rail__stack { display: flex; flex-direction: column; gap: 8px; }
 body.ax .rp-rail__note { padding: 0 2px; font-size: 0.76rem; line-height: 1.4; color: var(--ax-ink-3); }
-body.ax .rp-rail__fixed { display: flex; flex-direction: column; gap: 4px; padding: 9px 11px; border: 1px dashed var(--ax-rule-2); border-radius: var(--ax-r); }
-body.ax .rp-rail__fixed small { font-size: 0.76rem; line-height: 1.35; color: var(--ax-ink-3); }
 body.ax .rp-vis { display: flex; }
 body.ax .rp-vis button { flex: 1; }
 body.ax .rp-hide { align-items: flex-start; padding: 4px 2px; }

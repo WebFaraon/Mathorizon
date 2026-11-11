@@ -24,7 +24,7 @@ body.ax.ax-brand {
   --ax-ink-3: #635878;
   --ax-hover: #EEE9F8;
 
-  --ax-sign: #3F236E;
+  --ax-sign: #2C1952;
   --ax-sign-ink: #F5F0FB;
   --ax-sign-ink-2: #CBBFE3;
   --ax-sign-rule: rgba(255, 255, 255, 0.16);
@@ -103,7 +103,7 @@ body.ax.ax-brand {
   --ax-ink-3: #9A8FB3;
   --ax-hover: #2A1F44;
 
-  --ax-sign: #2A1750;
+  --ax-sign: #1B0F36;
   --ax-sign-rule: rgba(255, 255, 255, 0.14);
 
   --ax-hi: #8CC81E;
@@ -480,3 +480,103 @@ body.ax.ax-brand .tr-card:active:not([disabled]) { box-shadow: 0 0 0 0 var(--bx-
 body.ax.ax-brand .cl-tab[aria-selected="true"],
 body.ax.ax-brand .cl-tab[aria-selected="true"]:hover { border-color: var(--bx-violet); background: var(--pg); color: var(--ax-c-ink); box-shadow: 0 4px 0 0 var(--bx-violet-edge); margin-right: 0; }
 body.ax.ax-brand .cl-tab[aria-selected="true"] .cl-tab__pic { background: var(--bx-violet); color: var(--bx-lime); }
+
+
+/* ---------- 8. round two (2026-11-11): filters, chips, dialogs, the student's journey ---------- */
+
+/* Orar filters: the Real/Uman, seats and day keys were squeezed into one thin strip; now they fill the rail, one row of keys or two, with air between them */
+body.ax.ax-brand .or-seg { display: grid; width: 100%; gap: 10px; padding-bottom: 3px; background: none; overflow: visible; }
+body.ax.ax-brand .or-seg--fill { grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr); }
+body.ax.ax-brand .or-seg--days { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; background: none; overflow: visible; }
+body.ax.ax-brand .or-seg button,
+body.ax.ax-brand .or-seg button:hover,
+body.ax.ax-brand .or-seg button:first-child { min-width: 0; min-height: 44px; padding: 0 6px; font-size: 0.9rem; font-weight: 700; }
+body.ax.ax-brand .or-seg--days button,
+body.ax.ax-brand .or-seg--days button:hover { min-height: 44px; border-left-width: 1.5px; }
+body.ax.ax-brand .or-seg--days button:not([aria-pressed="true"]),
+body.ax.ax-brand .or-seg--days button:not([aria-pressed="true"]):hover { background: var(--ax-panel); }
+body.ax.ax-brand .or-seg--days button[aria-pressed="true"],
+body.ax.ax-brand .or-seg--days button[aria-pressed="true"]:hover { background: var(--bx-violet); color: #FFFFFF; }
+body.ax.ax-brand .or-seg button[aria-pressed="true"],
+body.ax.ax-brand .or-seg button[aria-pressed="true"]:hover { border-color: var(--bx-violet); background: var(--bx-violet); color: #FFFFFF; }
+
+/* Repartizare: the seven day keys are all the same size */
+body.ax.ax-brand .rp-days { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; width: min(100%, 960px); }
+body.ax.ax-brand .rp-days button { width: 100%; min-width: 0; }
+
+/* the chips of Înscriere (group size, lesson length, level, teacher): the same key as everywhere */
+body.ax.ax-brand .in-chips { gap: 10px; padding-bottom: 3px; }
+body.ax.ax-brand .in-chip,
+body.ax.ax-brand .in-chip:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .in-chip { position: relative; min-height: 42px; padding: 0 18px; box-shadow: 0 3px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .in-chip:hover { filter: brightness(0.95); }
+body.ax.ax-brand .in-chip:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(3px); }
+body.ax.ax-brand .in-chip.is-on,
+body.ax.ax-brand .in-chip.is-on:hover { box-shadow: 0 3px 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .in-chip.is-on:active { box-shadow: 0 0 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .in-chip.is-on::after { content: ''; position: absolute; top: 5px; right: 5px; width: 5px; height: 5px; border-radius: 1px; background: var(--bx-lime); }
+body.ax.ax-brand .in-chips-s span { padding: 3px 11px; border: 1.5px solid var(--bx-line); border-radius: 999px; background: var(--bx-tint); color: var(--bx-key-ink); }
+body.ax.ax-brand .in-cell { border-radius: 6px; }
+
+/* dialogs: one frame for all of them (18 to 22px corners, a quiet violet line, a solid edge) */
+body.ax.ax-brand .in-dlg,
+body.ax.ax-brand .jr-dlg,
+body.ax.ax-brand .rl-dlg,
+body.ax.ax-brand .rp-dlg,
+body.ax.ax-brand .rs-dlg,
+body.ax.ax-brand .tr-dlg,
+body.ax.ax-brand .cn-dlg {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 6px 0 0 var(--bx-edge), 0 28px 60px -20px rgba(30, 22, 49, 0.5);
+}
+body.ax.ax-brand .in-dlg::backdrop,
+body.ax.ax-brand .jr-dlg::backdrop,
+body.ax.ax-brand .rl-dlg::backdrop,
+body.ax.ax-brand .rp-dlg::backdrop,
+body.ax.ax-brand .rs-dlg::backdrop,
+body.ax.ax-brand .tr-dlg::backdrop,
+body.ax.ax-brand .cn-dlg::backdrop { background: rgba(30, 22, 49, 0.5); backdrop-filter: blur(5px); }
+
+/* the student's journey (Elevi > Istoric) */
+body.ax.ax-brand .el-hbtn,
+body.ax.ax-brand .el-hbtn:hover {
+  border: 1.5px solid var(--bx-line);
+  border-radius: 10px;
+  background: var(--ax-panel);
+  color: var(--bx-key-ink);
+  transform: none;
+}
+body.ax.ax-brand .el-hbtn { box-shadow: 0 2px 0 0 var(--bx-edge); transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease; }
+body.ax.ax-brand .el-hbtn:hover { filter: brightness(0.95); }
+body.ax.ax-brand .el-hbtn:active { box-shadow: 0 0 0 0 var(--bx-edge); transform: translateY(2px); }
+body.ax.ax-brand .jr-h__ic { border-radius: 12px; background: var(--bx-lime); color: var(--bx-lime-ink); box-shadow: 0 3px 0 0 var(--bx-lime-edge); }
+body.ax.ax-brand .jr-sum { border-bottom: 1.5px solid var(--ax-rule); }
+body.ax.ax-brand .jr-sum__k > div { border: 1.5px solid var(--ax-rule); border-radius: 14px; box-shadow: 0 3px 0 0 var(--bx-edge); }
+body.ax.ax-brand .jr-by,
+body.ax.ax-brand .jr-sub { border: 1.5px solid var(--ax-rule); border-radius: 18px; }
+body.ax.ax-brand .jr-card { border: 1.5px solid var(--ax-rule); border-radius: 18px; overflow: hidden; box-shadow: 0 4px 0 0 var(--bx-edge); }
+body.ax.ax-brand .jr-ch:hover .jr-card,
+body.ax.ax-brand .jr-ch.is-now .jr-card { border-color: var(--bx-violet); }
+body.ax.ax-brand .jr-ch__h { border-bottom-width: 1.5px; }
+body.ax.ax-brand .jr-pin { border-radius: 12px; border-width: 2px; }
+body.ax.ax-brand .jr-spent { border: 1.5px solid var(--bx-line); border-radius: 12px; background: var(--bx-tint); }
+body.ax.ax-brand .jr-e__n { border-radius: 8px; }
+body.ax.ax-brand .jr-link__c { border-radius: 14px; }
+body.ax.ax-brand .jr-by__b,
+body.ax.ax-brand .jr-bar { border-radius: 999px; }
+body.ax.ax-brand .jr-by__b i,
+body.ax.ax-brand .jr-bar i { background: var(--bx-violet); border-radius: 999px; }
+body.ax.ax-brand .jr-money { border-top-width: 1.5px; }
+body.ax.ax-brand .jr-f { border-top-width: 1.5px; }
+
+/* every filter rail: the small segmented keys (lesson format, profile, absences...) fill the rail with air between them, as in Orar */
+body.ax.ax-brand .ax-rail .ax-seg:not(.or-seg) { display: grid; grid-template-columns: repeat(auto-fit, minmax(56px, 1fr)); gap: 10px; width: 100%; padding-bottom: 3px; }
+body.ax.ax-brand .ax-rail .ax-seg:not(.or-seg) button { min-width: 0; min-height: 44px; }
