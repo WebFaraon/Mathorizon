@@ -763,3 +763,151 @@ html body.pm.ap .ap-msg { border-radius: 12px; }
 /* LCD displays keep a small corner. */
 html body.pm:has(.landing-main) .ld-lcd,
 html body.pm.ap .ap-lcd { border-radius: 4px; }
+
+/* ==========================================================================
+   Antrenament (training.html): display, chapter keypad, rail, cards, dialogs
+   ==========================================================================
+   Same remap of the calculator tokens as the other pages. The big displays
+   keep their small corner (set back below). */
+html body.pm.an {
+  --k-r: 10px;
+  --k-r-key: 10px;
+  --k-key: var(--pm-face);
+  --k-key-edge: var(--pm-edge);
+  --k-panel-edge: var(--pm-panel-edge);
+  --k-rule: var(--pm-line);
+  --k-blue: var(--pm-violet);
+  --k-blue-edge: var(--pm-violet-edge);
+  --k-blue-wash: var(--pm-tint);
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/* Frames by size: chapter panels, cards and dialogs large; notices and tapes 12px; LCDs 4px. */
+html body.pm.an :is(.an-chap, .an-card__face, .an-plate, .an-banner, .an-paywall__box) { border-radius: 18px; }
+html body.pm.an :is(.an-modal, .an-dialog) { border-radius: 22px; }
+html body.pm.an :is(.an-lvl, .an-soon, .an-steps, .an-sol, .an-m-statement, .an-tape, .an-res__lvl, .an-res-tile, .an-step .reveal-step__detail, .an-step__detail) { border-radius: 12px; }
+html body.pm.an :is(.an-lcd, .an-count, .an-no, .an-timer) { border-radius: 4px; }
+html body.pm.an .an-tag { border-radius: 999px; }
+/* Keys, tiles and fields: the 1.5px line. */
+html body.pm.an :is(.an-key, .an-go, .an-tile, .an-sub, .an-switch__slot, .an-opt, .an-input) { border-width: 1.5px; }
+html body.pm.an .an-input { border-color: var(--pm-line-2); background: var(--pm-face); box-shadow: none; }
+/* Formulas in the cards and the exercise dialog: the same font as the category page. */
+html body.pm.an .katex,
+html body.pm.an .katex .mathnormal,
+html body.pm.an .katex .mathit,
+html body.pm.an .katex .mathrm,
+html body.pm.an .katex .mathbf,
+html body.pm.an .katex .textrm,
+html body.pm.an .katex .mathsf {
+  font-family: 'Space Grotesk', KaTeX_Main, sans-serif;
+  font-style: normal;
+}
+html body.pm.an .katex { font-size: 1.1em; }
+
+/* Labels in the exercise dialog: pills. */
+html body.pm.an :is(.an-legend, .an-modal .points-badge, .an-step__num) { border-width: 1.5px; border-radius: 999px; }
+
+/* ==========================================================================
+   The simulation inside a class (js/simulare-exam.js, the overlay on class.html)
+   ==========================================================================
+   Its markup shares the bac-* classes with the exam of Simulare but is styled
+   by the legacy rules of style.css. The tokens come from the class page
+   remap; here its own keys, cards and labels get the premium shape. The
+   hover keeps its dim, the press sinks onto the edge. */
+html body.pm .sim-exam-overlay .sim-key,
+html body.pm .sim-exam-overlay .sim-key:hover {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+}
+html body.pm .sim-exam-overlay .sim-key {
+  height: 48px;
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+html body.pm .sim-exam-overlay .sim-key:hover { filter: brightness(0.95); }
+html body.pm .sim-exam-overlay .sim-key:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(3px); }
+html body.pm .sim-exam-overlay .sim-key--danger,
+html body.pm .sim-exam-overlay .sim-key--danger:hover { color: var(--k-red); }
+html body.pm .sim-exam-overlay .sim-key--power,
+html body.pm .sim-exam-overlay .sim-key--power:hover { border-color: var(--pm-violet); color: var(--pm-violet); }
+[data-theme="dark"] html body.pm .sim-exam-overlay .sim-key--power,
+[data-theme="dark"] html body.pm .sim-exam-overlay .sim-key--power:hover { color: var(--pm-key-ink); }
+
+html body.pm .sim-exam-overlay .sim-answer-input {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+}
+html body.pm .sim-exam-overlay .sim-answer-input:focus { border-color: var(--pm-violet); }
+
+/* Multiple-choice cards */
+html body.pm .sim-exam-overlay .sim-option-card,
+html body.pm .sim-exam-overlay .sim-option-card:hover {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm .sim-exam-overlay .sim-option-card--selected,
+html body.pm .sim-exam-overlay .sim-option-card--selected:hover {
+  border-color: var(--pm-violet);
+  background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-violet-edge);
+}
+html body.pm .sim-exam-overlay .sim-option-card__letter { border-radius: 8px; }
+
+/* Panels, item list, navigation, timer, finish */
+html body.pm .sim-exam-overlay .bac-exercise-card { border-radius: 18px; }
+html body.pm .sim-exam-overlay .bac-nav-item { border-radius: 10px; }
+html body.pm .sim-exam-overlay .bac-slot-btn,
+html body.pm .sim-exam-overlay .bac-slot-btn:hover { border-width: 1.5px; border-radius: 10px; }
+html body.pm .sim-exam-overlay .bac-timer { border-width: 1.5px; }
+html body.pm .sim-exam-overlay .bac-finish-btn,
+html body.pm .sim-exam-overlay .bac-finish-btn:hover { border-radius: 10px; }
+html body.pm .sim-exam-overlay .confirm-dialog {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  box-shadow: 0 5px 0 0 var(--pm-panel-edge);
+}
+html body.pm .sim-exam-overlay :is(.fs-resume-box) { border-radius: 22px; }
+html body.pm .sim-exam-overlay .katex,
+html body.pm .sim-exam-overlay .katex .mathnormal,
+html body.pm .sim-exam-overlay .katex .mathit,
+html body.pm .sim-exam-overlay .katex .mathrm,
+html body.pm .sim-exam-overlay .katex .mathbf,
+html body.pm .sim-exam-overlay .katex .textrm,
+html body.pm .sim-exam-overlay .katex .mathsf {
+  font-family: 'Space Grotesk', KaTeX_Main, sans-serif;
+  font-style: normal;
+}
+html body.pm .sim-exam-overlay .katex { font-size: 1.1em; }
+
+/* ==========================================================================
+   Tablă live (the full-screen board on class.html)
+   ==========================================================================
+   whiteboard.css writes its corners by hand (3px / 4px) and the id-level
+   rules of the class page outrank it, so the rules here use the same
+   id-level scope. The toolbar classes (.dc-*, .gfe-*) are shared with the
+   drawing canvas and the geometry editor, so everything stays under
+   .wb-fullscreen. Colours, hover and press are not touched. */
+html body.pm:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn,
+html body.pm .wb-fullscreen .wb-roster-btn,
+html body.pm .wb-fullscreen .wb-toolbar :is(.dc-tool-btn, .dc-width-btn, .dc-action-btn),
+html body.pm .wb-fullscreen .wb-undo-corner .dc-action-btn,
+html body.pm:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn {
+  border-width: 1.5px;
+  border-radius: 10px;
+}
+/* Panels: the toolbar groups' pop-ups, the roster, the undo corner */
+html body.pm .wb-fullscreen :is(.wb-roster-dropdown, .gfe-dropdown__panel, .wb-undo-corner) { border-radius: 14px; }
+html body.pm .wb-fullscreen .wb-roster-row__lock { border-radius: 8px; }
+html body.pm .wb-fullscreen .wb-roster-row__avatar { border-radius: 8px; }
+/* Labels: pills; LCDs keep a small corner */
+html body.pm .wb-fullscreen :is(.wb-roster-row__me, .wb-roster-row__badge, .wb-toolbar .dc-mode-badge, .wb-width-panel__label span, .dc-input-hint) { border-radius: 999px; }
+html body.pm .wb-fullscreen :is(.wb-fs-title, .wb-fs-zoom-label, .wb-roster-btn__n) { border-radius: 4px; }
+html body.pm:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input { border-radius: 4px; }
