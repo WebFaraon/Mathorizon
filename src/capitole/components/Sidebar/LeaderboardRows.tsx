@@ -41,7 +41,7 @@ export function LeaderboardRows({ rows, currentUserId, variant = 'compact' }: Le
               {row.avatarUrl ? (
                 <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
               ) : (
-                initialsFor(row.displayName)
+                <img src="assets/images/avatar-owl.svg" alt="" />
               )}
             </span>
             <span className="cap-leaderboard__name">
@@ -68,7 +68,7 @@ export function LeaderboardRows({ rows, currentUserId, variant = 'compact' }: Le
             {row.avatarUrl ? (
               <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
             ) : (
-              initialsFor(row.displayName)
+              <img src="assets/images/avatar-owl.svg" alt="" />
             )}
           </span>
           <span className="cap-leaderboard__main">

@@ -83,7 +83,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
           {snapshot.avatarUrl ? (
             <img src={snapshot.avatarUrl} alt="" referrerPolicy="no-referrer" />
           ) : (
-            <span>{snapshot.initials}</span>
+            <img src="assets/images/avatar-owl.svg" alt="" />
           )}
         </div>
 

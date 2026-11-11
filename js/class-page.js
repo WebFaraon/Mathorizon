@@ -756,7 +756,7 @@
               <div class="prof-avatar-lg">
                 ${profile.avatar_url
                   ? `<img src="${BM.esc(profile.avatar_url)}" alt="${name}" class="prof-avatar-img">`
-                  : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+                  : `<img src="${BM.DEFAULT_AVATAR}" alt="${name}" class="prof-avatar-img">`}
               </div>
             </div>
             <div class="prof-bizcard-info">
@@ -985,7 +985,7 @@
                 <div class="cd-meta">
                   <span class="cd-meta__teacher">
                     <span class="cd-teacher-avatar" id="cdTeacherAvatar">
-                      <span class="cd-teacher-avatar__initials">${BM.esc(teacherInitials)}</span>
+                      <img src="${BM.DEFAULT_AVATAR}" alt="">
                     </span>
                     Profesor: ${BM.esc(classData.teacher_name)}
                   </span>
@@ -1912,12 +1912,7 @@
     if (post.author_avatar_url) {
       return `<img class="msg-bubble__avatar" src="${BM.esc(post.author_avatar_url)}" alt="">`;
     }
-    const name    = post.author_name || '?';
-    const words   = name.trim().split(/\s+/);
-    const initials = words.length >= 2
-      ? (words[0][0] + words[words.length - 1][0]).toUpperCase()
-      : name.slice(0, 2).toUpperCase();
-    return `<span class="msg-bubble__avatar msg-bubble__avatar--initials">${initials}</span>`;
+    return `<img class="msg-bubble__avatar" src="${BM.DEFAULT_AVATAR}" alt="">`;
   }
 
   function _fluxMessageHTML(post, grouped) {
@@ -7729,9 +7724,7 @@
       const name = p.display_name || '??';
       const initials = BM.esc(name.trim().slice(0, 2).toUpperCase());
       const style = `border-color:${BM.esc(p.color)}`;
-      return p.avatar_url
-        ? `<span class="wb-roster-row__avatar" style="${style}"><img src="${BM.esc(p.avatar_url)}" alt=""></span>`
-        : `<span class="wb-roster-row__avatar" style="${style};background:${BM.esc(p.color)}">${initials}</span>`;
+      return `<span class="wb-roster-row__avatar" style="${style}"><img src="${BM.esc(p.avatar_url || BM.DEFAULT_AVATAR)}" alt=""></span>`;
     }
     function lockBtn(p) {
       if (!isTeacher) return '';

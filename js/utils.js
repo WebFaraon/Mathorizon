@@ -3,6 +3,8 @@
    ============================================================ */
 
 window.BM = window.BM || {};
+/* the picture of everyone who has not set a profile photo: the violet Teorema owl (never the initials) */
+BM.DEFAULT_AVATAR = 'assets/images/avatar-owl.svg';
 
 /* ---- Hamburger menu ----
    Bound on 'nav:loaded' (dispatched by js/nav-loader.js), not

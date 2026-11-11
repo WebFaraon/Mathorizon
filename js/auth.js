@@ -481,9 +481,7 @@
       const name = _displayName();
       btn.classList.remove('nav-profile-btn--cta');
       btn.classList.add('nav-profile-btn--pill');
-      btn.innerHTML = av
-        ? `<img src="${av}" alt="${BM.esc(name)}" class="nav-profile-avatar"><span class="nav-profile-name">${BM.esc(name)}</span>`
-        : `<span class="nav-profile-initials">${BM.esc(_initials())}</span><span class="nav-profile-name">${BM.esc(name)}</span>`;
+      btn.innerHTML = `<img src="${BM.esc(av || BM.DEFAULT_AVATAR)}" alt="${BM.esc(name)}" class="nav-profile-avatar"><span class="nav-profile-name">${BM.esc(name)}</span>`;
       btn.title   = name;
       btn.onclick = () => { window.location.href = 'profile.html'; };
     } else {

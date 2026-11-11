@@ -549,7 +549,7 @@
             <div class="prof-avatar-lg">
               ${avatarUrl
                 ? `<img src="${avatarUrl}" alt="${BM.esc(name)}" class="prof-avatar-img">`
-                : `<span class="prof-avatar-initials">${BM.esc(initials)}</span>`}
+                : `<img src="${BM.DEFAULT_AVATAR}" alt="${BM.esc(name)}" class="prof-avatar-img">`}
             </div>
             <label class="pf-avatar-edit" title="Schimbă poza de profil">
               ${icon('camera', { size: 16 })}
