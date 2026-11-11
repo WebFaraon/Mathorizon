@@ -224,7 +224,6 @@ body.ax .rp-plate__lines { display: flex; gap: 4px; margin-top: 6px; }
 body.ax .rp-plate__lines i { width: 24px; height: 6px; border-radius: 1px; }
 body.ax .rp-pl--exo { background: var(--ax-line-exo); }
 body.ax .rp-pl--exn { background: var(--ax-line-exn); }
-body.ax .rp-pl--mat { background: var(--ax-line-mat); }
 body.ax .rp-board.is-c .rp-plate--t .rp-plate__lines { margin-top: 2px; }
 
 /* hour cells (drop targets) */
@@ -266,10 +265,8 @@ body.ax .rp-card {
 }
 body.ax .rp-card--exo { --c: var(--ax-line-exo); }
 body.ax .rp-card--exn { --c: var(--ax-line-exn); }
-body.ax .rp-card--mat { --c: var(--ax-line-mat); }
 body.ax .rp-card--exo { --pc: var(--ax-line-exo); }
 body.ax .rp-card--exn { --pc: var(--ax-line-exn); }
-body.ax .rp-card--mat { --pc: var(--ax-line-mat); }
 /* the band on top is the group status; in the teacher view the project is a coloured left edge */
 body.ax .rp-card--st-activ { --c: var(--ax-st-activ); }
 body.ax .rp-card--st-completare { --c: var(--ax-st-completare); }
@@ -429,7 +426,6 @@ body.ax .rp-conf__g { --c: var(--ax-ink-3); position: relative; display: flex; f
 body.ax .rp-conf__g::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--c); }
 body.ax .rp-conf__g--exo { --c: var(--ax-line-exo); }
 body.ax .rp-conf__g--exn { --c: var(--ax-line-exn); }
-body.ax .rp-conf__g--mat { --c: var(--ax-line-mat); }
 body.ax .rp-conf__g b { font-size: 0.84rem; font-weight: 800; }
 body.ax .rp-conf__g span { color: var(--ax-ink-3); }
 body.ax .rp-conf__act { display: flex; gap: 6px; }

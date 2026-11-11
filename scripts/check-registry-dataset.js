@@ -164,7 +164,7 @@ ok(JSON.stringify(again) === JSON.stringify(demo), 'the demo console is exactly 
     rows[0].mode = 'online'; rows[0].price = 258; rows[0].format_size = 3; rows[1].mode = 'offline'; rows[1].price = 288; rows[1].format_size = 3;
     D.useData(RD.build(T3, { today: '2026-10-05' }), { today: new Date(2026, 9, 5) });
     const a = D.group(rows[0].id), b = D.group(rows[1].id);
-    ok(a && b && a.project === 'exn' && b.project === 'exo' && a.mode === 'online' && a.price === 258, 'new format: the group mode decides the project (online -> Examen Online, offline -> Examen Offline) and keeps its price');
+    ok(a && b && a.project === 'exn' && b.project === 'exo' && a.mode === 'online' && a.price === 258, 'new format: the group mode decides the project (online -> Teorema Online, offline -> Teorema Offline) and keeps its price');
     ok(D.teacher(a.teacher).projects.includes('exn') && D.teacher(a.teacher).projects.includes('exo'), 'new format: a teacher with groups of both modes belongs to both projects');
     ok(D.rateOf(a) === 258 && D.rateOf(b) === 288 && D.rateBySize(10, 'online') === 108 && D.rateBySize(3, 'online') === 258, 'new format: the price of the register wins, the online table is the fallback');
     D.useDemo();

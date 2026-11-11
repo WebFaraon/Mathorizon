@@ -14,6 +14,7 @@ body.ax .or-signs__row {
   overflow: hidden;
   flex: 1;
 }
+body.ax .or-signs__row--2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }   /* the two projects: Teorema Offline and Teorema Online */
 body.ax .or-sign {
   --c: var(--ax-ink);
   position: relative;
@@ -36,7 +37,6 @@ body.ax .or-sign:hover { background: var(--ax-panel-2); }
 body.ax .or-sign:focus-visible { outline-offset: -3px; }
 body.ax .or-sign--exo { --c: var(--ax-line-exo); }
 body.ax .or-sign--exn { --c: var(--ax-line-exn); }
-body.ax .or-sign--mat { --c: var(--ax-line-mat); }
 body.ax .or-sign__line { display: flex; align-items: center; gap: 7px; }
 body.ax .or-sign__band { flex-shrink: 0; width: 16px; height: 7px; border-radius: 1px; background: var(--c); }
 body.ax .or-sign__pic {

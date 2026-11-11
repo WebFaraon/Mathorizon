@@ -3,7 +3,7 @@
    ============================================================
    Every group on one board: when it meets, who teaches it, the
    project line, the grade, its status and the seats still free.
-   Quick signs on top (the three projects, financial risk, groups
+   Quick signs on top (the two projects, financial risk, groups
    with one free seat, groups that start tomorrow), a filter rail on
    the left, everything kept in the address (#orar?quick=risc&...),
    so the links from Acasă land on a ready selection.
@@ -193,7 +193,7 @@
     return `
       <div class="or-signs__grp">
         <h2 class="or-signs__t">Proiecte</h2>
-        <div class="or-signs__row">${proj}</div>
+        <div class="or-signs__row or-signs__row--2">${proj}</div>
       </div>
       <div class="or-signs__grp">
         <h2 class="or-signs__t">Selecții rapide</h2>

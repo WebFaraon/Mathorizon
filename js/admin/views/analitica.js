@@ -7,7 +7,7 @@
      - distribution by grade (table + bar chart)
      - subjects (occupancy of active groups) and student statuses
      - a pivot table (two criteria x one value, optional shading)
-     - room occupancy (Examen.md Offline, rooms x days)
+     - room occupancy (Teorema Offline, rooms x days)
      - lessons per starting hour (SVG column chart)
      - debts per manager
    Page filters (project, teacher, regime) and the pivot settings live
@@ -433,7 +433,7 @@
     return { rows, dayT, total: sum(rows, x => x.total) };
   }
   function roomsHTML(rd) {
-    if (!rd) return `<div class="ax-empty"><b>Fără cabinete în acest proiect</b>Doar Examen.md Offline ține lecții în cabinete. Alege „Toate proiectele” sau Examen.md Offline.</div>`;
+    if (!rd) return `<div class="ax-empty"><b>Fără cabinete în acest proiect</b>Doar Teorema Offline ține lecții în cabinete. Alege „Toate proiectele” sau Teorema Offline.</div>`;
     const cap = SLOTS * 7, capDay = SLOTS * D.rooms.length;
     return `
       <div class="ax-table-wrap an-wrap">

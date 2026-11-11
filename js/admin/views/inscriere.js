@@ -27,8 +27,8 @@
   const sizesOf = project => (project === 'exo' ? [1, 2, 3, 4, 5, 6, 8] : [1, 2, 3, 4, 5, 6, 10]);
   const plural = (n, one, many) => `${n} ${n === 1 ? one : (n % 100 >= 1 && n % 100 <= 19 ? many : 'de ' + many)}`;
   const CHECK = '<svg class="in-ck" viewBox="0 0 16 16" aria-hidden="true"><path d="m3.5 8.5 3 3 6-7"/></svg>';
-  const FMT = { offline: ['exo'], online: ['exn', 'mat'] };
-  const PROJ_NAME = { exo: 'Examen.md Offline', exn: 'Examen.md Online', mat: 'Matematica.md' };
+  const FMT = { offline: ['exo'], online: ['exn'] };
+  const PROJ_NAME = { exo: 'Teorema Offline', exn: 'Teorema Online' };
   const H0 = 8, H1 = 21;
 
   const fresh = () => ({ subject: 'Matematica', grade: '', profile: '', levels: [], days: [], from: '', to: '', fmt: '', size: '', prof: '', filling: false, mode: 'exist', ng: { project: 'exo', size: 6, dur: 1, teacher: '', days: [], start: null, room: '' } });
@@ -45,8 +45,8 @@
   /* the teacher search: every word typed starts a word of the name */
   const profOk = name => { const q = plain(S.prof).split(/\s+/).filter(Boolean); if (!q.length) return true; const w = plain(name).split(/\s+/); return q.every(x => w.some(y => y.startsWith(x))); };
   const ready = () => !!(S.subject && S.grade && S.fmt && S.levels.length);        // the format (Offline / Online) is part of who the student is, not a wish
-  /* the project of a new group follows the format chosen at the top: offline is Examen.md Offline; online only asks which online project */
-  const ngProject = () => (S.fmt === 'offline' ? 'exo' : S.fmt === 'online' ? (S.ng.project === 'mat' ? 'mat' : 'exn') : 'exo');
+  /* the project of a new group follows the format chosen at the top: offline is Teorema Offline, online is Teorema Online */
+  const ngProject = () => (S.fmt === 'online' ? 'exn' : 'exo');
   function syncNg() {
     const p = ngProject();
     if (S.ng.project !== p) { S.ng.project = p; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; S.ng.room = ''; }
@@ -239,7 +239,6 @@
       <p class="in-sub">Grupă nouă: alege profesorul și ora.</p>
       <div class="in-ng">
         ${S.levels.length > 1 ? `<div class="in-f"><span class="in-l">Nivelul grupei noi</span><div class="in-chips" role="radiogroup" aria-label="Nivelul grupei">${S.levels.slice().sort().map(l => `<button type="button" class="in-chip${ngLevel() === l ? ' is-on' : ''}" data-ngl="${esc(l)}" role="radio" aria-checked="${ngLevel() === l}">Nivel ${esc(l)}</button>`).join('')}</div></div>` : ''}
-        ${S.fmt === 'online' ? `<div class="in-f"><span class="in-l">Proiectul</span><div class="in-chips" role="radiogroup" aria-label="Proiectul">${['exn', 'mat'].map(p => `<button type="button" class="in-chip${S.ng.project === p ? ' is-on' : ''}" data-ngp="${p}" role="radio" aria-checked="${S.ng.project === p}">${esc(PROJ_NAME[p])}</button>`).join('')}</div></div>` : ''}
         <div class="in-f"><span class="in-l">Câți elevi va avea</span><div class="in-chips in-chips--n" role="radiogroup" aria-label="Dimensiunea">${sizesOf(S.ng.project).map(n => `<button type="button" class="in-chip${S.ng.size === n ? ' is-on' : ''}" data-ngs="${n}" role="radio" aria-checked="${S.ng.size === n}">${n === 1 ? 'Individual' : n}</button>`).join('')}</div></div>
         <div class="in-f"><span class="in-l">Durata unei lecții</span><div class="in-chips" role="radiogroup" aria-label="Durata">${[1, 2].map(n => `<button type="button" class="in-chip${S.ng.dur === n ? ' is-on' : ''}" data-ngd="${n}" role="radio" aria-checked="${S.ng.dur === n}">${n === 1 ? 'O oră, în două zile' : 'Două ore, într-o zi'}</button>`).join('')}</div></div>
       </div>
@@ -502,7 +501,6 @@
       if (t.closest('[data-filling]')) { S.filling = !S.filling; save(); paintPane(true); return; }
       const en = t.closest('[data-enrol]');
       if (en) { openEnrol({ group: en.dataset.enrol }); return; }
-      const ngp = t.closest('[data-ngp]'); if (ngp) { S.ng.project = ngp.dataset.ngp; if (!sizesOf(S.ng.project).includes(S.ng.size)) S.ng.size = 6; S.ng.teacher = ''; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngp="${ngp.dataset.ngp}"]`); return; }
       const ngl = t.closest('[data-ngl]'); if (ngl) { S.ng.level = ngl.dataset.ngl; save(); paintPane(false); popTo(`[data-ngl="${ngl.dataset.ngl}"]`); return; }
       const ngs = t.closest('[data-ngs]'); if (ngs) { S.ng.size = +ngs.dataset.ngs; save(); paintPane(false); popTo(`[data-ngs="${ngs.dataset.ngs}"]`); return; }
       const ngd = t.closest('[data-ngd]'); if (ngd) { S.ng.dur = +ngd.dataset.ngd; S.ng.days = []; S.ng.start = null; save(); paintPane(false); popTo(`[data-ngd="${ngd.dataset.ngd}"]`); return; }

@@ -63,9 +63,8 @@
   const HOURS = Array.from({ length: 13 }, (_, i) => 8 + i); // 08:00 .. 20:00 starts
 
   const PROJECTS = [
-    { id: 'exo', name: 'Examen.md Offline', short: 'Examen Offline', mode: 'offline' },
-    { id: 'exn', name: 'Examen.md Online', short: 'Examen Online', mode: 'online' },
-    { id: 'mat', name: 'Matematica.md', short: 'Matematica.md', mode: 'online' }
+    { id: 'exo', name: 'Teorema Offline', short: 'Teorema Offline', mode: 'offline' },
+    { id: 'exn', name: 'Teorema Online', short: 'Teorema Online', mode: 'online' }
   ];
 
   const SUBJECTS = ['Matematica', 'L.română', 'Fizica', 'Istoria', 'Chimie', 'Biologie', 'Engleza', 'Geografie'];
@@ -112,16 +111,16 @@
 
   /* ---- teachers ---- */
   const teacherSpecs = [
-    ['Victor', 'Sîrbu', ['Matematica'], ['exo', 'mat']], ['Nichita', 'Suhina', ['Matematica', 'Fizica'], ['exo']],
+    ['Victor', 'Sîrbu', ['Matematica'], ['exo', 'exn']], ['Nichita', 'Suhina', ['Matematica', 'Fizica'], ['exo']],
     ['Victor', 'Zinenco', ['Fizica'], ['exo', 'exn']], ['Aurelian', 'Tihon', ['Matematica'], ['exo', 'exn']],
-    ['Dragoș', 'Bivol', ['Matematica'], ['exo', 'mat']], ['Diana', 'Dementieva', ['L.română'], ['exo', 'exn']],
-    ['Iana', 'Matvei', ['Matematica'], ['exo', 'mat']], ['Gabriel', 'Rîbca', ['Matematica'], ['exo']],
+    ['Dragoș', 'Bivol', ['Matematica'], ['exo', 'exn']], ['Diana', 'Dementieva', ['L.română'], ['exo', 'exn']],
+    ['Iana', 'Matvei', ['Matematica'], ['exo', 'exn']], ['Gabriel', 'Rîbca', ['Matematica'], ['exo']],
     ['Nicolae', 'Sîrbu', ['Matematica'], ['exo', 'exn']], ['Victor', 'Pîrțac', ['Fizica'], ['exo']],
-    ['Viorica', 'Pîrpît', ['Matematica'], ['mat']], ['Irina', 'Jalenco', ['Matematica'], ['mat', 'exn']],
-    ['Doina', 'Motruc', ['Matematica'], ['mat']], ['Amelia', 'Adam', ['Istoria'], ['exn', 'exo']],
-    ['Vlad', 'Sula', ['Matematica'], ['exo', 'mat']], ['Maxim', 'Cuzeac', ['Matematica'], ['mat']],
-    ['Ilie', 'Cernatîschi', ['Matematica'], ['mat', 'exn']], ['Elena', 'Grebincea', ['Matematica'], ['mat']],
-    ['Victorina', 'Harabari', ['Matematica'], ['mat', 'exo']], ['Ana', 'Rusu', ['L.română'], ['exo', 'exn']],
+    ['Viorica', 'Pîrpît', ['Matematica'], ['exn']], ['Irina', 'Jalenco', ['Matematica'], ['exn']],
+    ['Doina', 'Motruc', ['Matematica'], ['exn']], ['Amelia', 'Adam', ['Istoria'], ['exn', 'exo']],
+    ['Vlad', 'Sula', ['Matematica'], ['exo', 'exn']], ['Maxim', 'Cuzeac', ['Matematica'], ['exn']],
+    ['Ilie', 'Cernatîschi', ['Matematica'], ['exn']], ['Elena', 'Grebincea', ['Matematica'], ['exn']],
+    ['Victorina', 'Harabari', ['Matematica'], ['exn', 'exo']], ['Ana', 'Rusu', ['L.română'], ['exo', 'exn']],
     ['Maria', 'Popa', ['Chimie'], ['exo', 'exn']], ['Corina', 'Lungu', ['Biologie'], ['exo', 'exn']],
     ['Tatiana', 'Munteanu', ['Engleza'], ['exn', 'exo']], ['Sergiu', 'Țurcanu', ['Geografie', 'Istoria'], ['exo']],
     ['Mihaela', 'Cojocaru', ['L.română'], ['exn', 'exo']], ['Petru', 'Guțu', ['Fizica', 'Matematica'], ['exn', 'exo']],
@@ -156,8 +155,8 @@
   const teacherBusy = {};
   const N_GROUPS = 196;
   for (let i = 0; i < N_GROUPS; i++) {
-    const project = weighted([['exo', 46], ['exn', 28], ['mat', 26]]);
-    const subject = project === 'mat' ? 'Matematica' : weighted([['Matematica', 52], ['L.română', 14], ['Fizica', 9], ['Istoria', 6], ['Chimie', 5], ['Biologie', 5], ['Engleza', 6], ['Geografie', 3]]);
+    const project = weighted([['exo', 46], ['exn', 54]]);
+    const subject = weighted([['Matematica', 52], ['L.română', 14], ['Fizica', 9], ['Istoria', 6], ['Chimie', 5], ['Biologie', 5], ['Engleza', 6], ['Geografie', 3]]);
     const pool = teachers.filter(t => t.subjects.includes(subject) && t.projects.includes(project));
     const teacher = pick(pool.length ? pool : teachers.filter(t => t.subjects.includes(subject)));
     const grade = weighted([['II', 2], ['III', 2], ['IV', 3], ['V', 6], ['VI', 8], ['VII', 9], ['VIII', 10], ['IX', 22], ['X', 7], ['XI', 8], ['XII', 23]]);
@@ -653,7 +652,7 @@
   /* the story students: the first matching students, far apart, get a deterministic past (dates are days before the demo day) */
   function buildSeeds() {
     const back = n => iso(addDays(today, -n));
-    const live = s => s.group && s.status === 'activ' && idx.groups[s.group] && idx.groups[s.group].status === 'activ' && s.joinedAt < back(75) && enrolled(idx.groups[s.group]).includes(s);
+    const live = s => s.group && s.status === 'activ' && idx.groups[s.group] && idx.groups[s.group].status === 'activ' && s.joinedAt < back(75) && idx.groups[s.group].startDate < back(75) && enrolled(idx.groups[s.group]).includes(s);
     const hasPast = g => (baseBy[g.id] || []).length > 0;          // its lessons exist (a group with no base students has no history)
     let at = 1000, taken = 0;
     const add = (s, from, to, daysAgo) => {

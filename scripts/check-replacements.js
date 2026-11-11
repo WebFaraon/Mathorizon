@@ -10,11 +10,11 @@ const RP = require(path.join(__dirname, '..', 'js', 'admin', 'replacement-plan.j
 let pass = 0, fail = 0;
 const ok = (c, m) => { if (c) pass++; else { fail++; console.log('  !! ' + m); } };
 
-const wbA = { id: 'wA', spreadsheet_id: 'ssA', title: 'Registru A', teacher_name: 'Ionescu Maria', enabled: true, project: 'Examen.md Offline', config: { manager: ['Cerchez Cristina'], cabinet: ['13', '14', '15'] },
+const wbA = { id: 'wA', spreadsheet_id: 'ssA', title: 'Registru A', teacher_name: 'Ionescu Maria', enabled: true, project: 'Teorema Offline', config: { manager: ['Cerchez Cristina'], cabinet: ['13', '14', '15'] },
   teacher_data: { availability: { slots: { 2: [16], 4: [16] }, teaches: { Matematica: ['XII'] }, hours: [16, 17] } } };
-const wbB = { id: 'wB', spreadsheet_id: 'ssB', title: 'Registru B', teacher_name: 'Popescu Dan', enabled: true, project: 'Examen.md Offline', config: { cabinet: ['13', '14', '15'] },
+const wbB = { id: 'wB', spreadsheet_id: 'ssB', title: 'Registru B', teacher_name: 'Popescu Dan', enabled: true, project: 'Teorema Offline', config: { cabinet: ['13', '14', '15'] },
   teacher_data: { availability: { slots: { 4: [15, 16, 17, 18] }, teaches: { Matematica: ['XII', 'XI'] }, hours: [15, 16, 17, 18] } } };
-const wbC = { id: 'wC', spreadsheet_id: 'ssC', title: 'Registru C', teacher_name: 'Rusu Elena', enabled: true, project: 'Examen.md Offline', config: {},
+const wbC = { id: 'wC', spreadsheet_id: 'ssC', title: 'Registru C', teacher_name: 'Rusu Elena', enabled: true, project: 'Teorema Offline', config: {},
   teacher_data: { availability: { slots: { 4: [16] }, teaches: { Fizica: ['XII'] }, hours: [16] } } };
 const sched = [{ day: 2, hour: 16, cabinet: '13' }, { day: 4, hour: 16, cabinet: '13' }];
 const gBase = { id: 'g1', workbook_id: 'wA', sheet_id: 11, tab: 'Marți/Joi 16:00-17:00', format_size: 3, state: 'Activ', subject: 'Matematica', summer: false, grade: 'XII', level: '9 ― 10', profile: 'Real', schedule: sched };

@@ -2,7 +2,7 @@
    Admin console: Repartizare (rooms x hours)
    ============================================================
    The board of one day, read like a platform board. Two boards, chosen with
-   the keys Offline and Online: OFFLINE has the cabinets of Examen.md Offline as
+   the keys Offline and Online: OFFLINE has the cabinets of Teorema Offline as
    rows (and a row for the groups that have no cabinet yet), ONLINE has the
    teachers who give an online lesson that day as rows, each card showing the
    hours of the lesson. Columns are the hours 08:00-20:00. Groups are cards
@@ -601,7 +601,7 @@
     if (s.rows === 'prof') {
       projSlot.appendChild(U.multiSelect({ id: 'proj', label: 'Proiect', options: D.PROJECTS.filter(p => p.mode !== 'offline').map(p => ({ value: p.id, label: p.name })), selected: s.proj, onChange: on('proj') }));
     } else {
-      projSlot.innerHTML = `<p class="rp-rail__fixed"><span class="ax-line ax-line--exo">Examen.md Offline</span><small>Singurul proiect cu cabinete. Lecțiile online sunt la Online.</small></p>`;
+      projSlot.innerHTML = `<p class="rp-rail__fixed"><span class="ax-line ax-line--exo">Teorema Offline</span><small>Singurul proiect cu cabinete. Lecțiile online sunt la Online.</small></p>`;
     }
     const stack = rail.querySelector('[data-slot="groups"]');
     const sizes = Array.from(new Set(D.groups.map(g => g.size))).sort((a, b) => a - b);

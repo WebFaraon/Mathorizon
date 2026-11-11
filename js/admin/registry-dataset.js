@@ -34,15 +34,14 @@
     return p === 'activ' ? 'activ' : p === 'ora de proba' ? 'proba' : p === 'ora de proba confirmata' ? 'proba_ok' : p === 'transferat' ? 'transferat' : p === 'inactiv' ? 'inactiv' : p === 'inlocuire' ? 'inlocuire' : 'activ';
   };
   const ENROLLED = new Set(['activ', 'proba', 'proba_ok', 'inlocuire', 'instabil']);
-  /* the new registers hold both modes in one file (cell C1 of every group): the group's own mode decides, the file's project only tells Matematica.md apart */
+  /* two projects only: Teorema Offline ('exo') and Teorema Online ('exn'). The group's own mode (cell C1 of every group) decides; the file's project / title is the fallback */
   const projectId = (wb, group) => {
     const p = plain(wb.project || wb.title || '');
     const gm = group && plain(group.mode);
     if (gm === 'offline') return 'exo';
-    if (gm === 'online') return p.includes('matematica.md') ? 'mat' : 'exn';
+    if (gm === 'online') return 'exn';
     if (p.includes('offline')) return 'exo';
-    if (p.includes('online')) return 'exn';
-    if (p.includes('matematica.md')) return 'mat';
+    if (p.includes('online') || p.includes('matematica.md')) return 'exn';
     return 'exo';
   };
   const mgrName = n => { const t = String(n || '').trim().split(/\s+/); return t.length > 1 ? t.slice(1).join(' ') + ' ' + t[0] : String(n || ''); };   // "Cerchez Cristina" -> "Cristina Cerchez"
