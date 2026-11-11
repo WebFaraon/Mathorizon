@@ -106,11 +106,11 @@ html body.pm:has(#catHeader) .rarity-card:hover {
   border: 1.5px solid var(--pm-line);
   border-radius: 18px;
   background: var(--pm-face);
-  box-shadow: 0 5px 0 0 color-mix(in srgb, var(--rc) 42%, var(--pm-edge));
+  box-shadow: 0 5px 0 0 var(--pm-edge);
 }
 html body.pm:has(#catHeader) .rarity-card:active:not(:has(.rarity-card__actions:active)) {
   transform: translateY(5px);
-  box-shadow: 0 0 0 0 color-mix(in srgb, var(--rc) 42%, var(--pm-edge));
+  box-shadow: 0 0 0 0 var(--pm-edge);
 }
 /* Solved: the whole card edge goes lime, as the exercise card does. */
 html body.pm:has(#catHeader) .rarity-card.solved,
@@ -298,5 +298,35 @@ html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option { color: var
 html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option:hover { background: var(--pm-tint); }
 html body.pm:has(#catHeader) .filter-bar__selects .cls-csel__option--sel {
   background: var(--pm-tint);
+  color: var(--pm-key-ink);
+}
+
+/* ---- Breadcrumb strip: taller, every piece on one centre line ---- */
+html body.pm:has(#catHeader) .subcat-bc__inner { height: 68px; }
+html body.pm:has(#catHeader) .subcat-bc__back { height: 42px; padding: 0 18px; }
+/* The arrow is drawn with borders, not a font glyph, so it sits exactly on
+   the centre line (the glyph sat low). */
+html body.pm:has(#catHeader) .subcat-bc__sep {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  margin: 0 6px 0 2px;
+  border-top: 2px solid var(--pm-ink-2);
+  border-right: 2px solid var(--pm-ink-2);
+  border-radius: 1px;
+  font-size: 0;
+  transform: rotate(45deg);
+}
+@media (max-width: 640px) {
+  html body.pm:has(#catHeader) .subcat-bc__inner { height: 60px; }
+  html body.pm:has(#catHeader) .subcat-bc__back { height: 38px; padding: 0 12px; }
+}
+
+/* ---- Chapter symbol key (ax) ---- */
+html body.pm:has(#catHeader) .ch__key {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
   color: var(--pm-key-ink);
 }

@@ -1062,6 +1062,19 @@ body:has(#catHeader) .rarity-card__statement-formula .katex .mathsf {
 }
 body:has(#catHeader) .rarity-card__statement-formula .katex { font-size: 1.1em; }
 
+/* The same formula font inside the open exercise and its barem. */
+body:has(#catHeader) .rarity-modal .katex,
+body:has(#catHeader) .rarity-modal .katex .mathnormal,
+body:has(#catHeader) .rarity-modal .katex .mathit,
+body:has(#catHeader) .rarity-modal .katex .mathrm,
+body:has(#catHeader) .rarity-modal .katex .mathbf,
+body:has(#catHeader) .rarity-modal .katex .textrm,
+body:has(#catHeader) .rarity-modal .katex .mathsf {
+  font-family: 'Space Grotesk', KaTeX_Main, sans-serif;
+  font-style: normal;
+}
+body:has(#catHeader) .rarity-modal .katex { font-size: 1.1em; }
+
 /* Locked (package restriction): flat, no edge, lock over a blur. */
 body:has(#catHeader) .rarity-card--locked,
 body:has(#catHeader) .rarity-card--locked:hover {
