@@ -628,3 +628,56 @@ html body.pm:has(#classRoot) :is(.cd-subject-chip, .cd-meta__badge) {
 /* The LCD displays stay calculator displays: a small corner, as on Capitole. */
 html body.pm:has(#classRoot) :is(.cd-live, .cd-invite, .sumar-kpibar, .catalog-statsbar, .cs-stats),
 html body.pm:has(#classesRoot) :is(.cl-status, .cl-lcd, .cm-lcd, .cl-codeinput, .cl-loading__lcd) { border-radius: 4px; }
+
+/* ==========================================================================
+   Simulare (bac.html): the setup, the exam room, the results and their dialogs
+   ==========================================================================
+   Built on the calculator tokens, like Clase: one remap on <body> and the
+   keys, panels, tickets, tabs and dialogs of the page follow. The LCD
+   displays keep a small corner. */
+html body.pm:has(#examView) {
+  --k-r: 10px;
+  --k-r-key: 10px;
+  --k-key: var(--pm-face);
+  --k-key-edge: var(--pm-edge);
+  --k-panel-edge: var(--pm-panel-edge);
+  --k-rule: var(--pm-line);
+  --k-blue: var(--pm-violet);
+  --k-blue-edge: var(--pm-violet-edge);
+  --k-blue-wash: var(--pm-tint);
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+}
+
+/* Panels, tags, small displays: the radii that simulare.css and the setup
+   write by hand (3px), sorted by what each one is. */
+html body.pm:has(#examView) :is(.bac-exercise-card, .bac-notes-card, .res-hero, .ai-section) { border-radius: 18px; }
+html body.pm:has(#examView) :is(.bac-exam-topbar, .st-tip) { border-radius: 14px; }
+html body.pm:has(#examView) :is(.ai-item__steps, .ai-item__feedback, .ai-item__canvas, .pu-dropzone, .pu-preview__img, .dc-mini-exercise) { border-radius: 12px; }
+html body.pm:has(#examView) :is(.pu-error, .ai-error, .st-method__icon) { border-radius: 10px; }
+/* tags: pills */
+html body.pm:has(#examView) :is(.bac-slot-pts, .diff-badge, .st-lvl, .dc-mode-badge, .dc-save-indicator, .ai-score-pill, .ai-step__pts) {
+  border-width: 1.5px;
+  border-radius: 999px;
+}
+/* progress: round the ends */
+html body.pm:has(#examView) :is(.bac-sidebar__track, .bac-sidebar__fill, .res-score-bar, .res-score-bar__fill) { border-radius: 999px; }
+html body.pm:has(#examView) .bac-dot { border-radius: 4px; }
+/* LCD displays keep a small corner, the small chips a slightly larger one */
+html body.pm:has(#examView) :is(.bac-timer, .dc-toolbar-timer, .res-hero__grade, .ai-results__grade, .st-status, .st-fields) { border-radius: 4px; }
+html body.pm:has(#examView) :is(.bac-stat-chip, .res-stat, .dc-zoom-label, .st-total span:last-child) { border-radius: 6px; }
+
+/* Exercise formulas: the card and dialog font, here too. */
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathnormal,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathit,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathrm,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathbf,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .textrm,
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex .mathsf {
+  font-family: 'Space Grotesk', KaTeX_Main, sans-serif;
+  font-style: normal;
+}
+html body.pm:has(#examView) :is(#examView, #resultsView) .katex { font-size: 1.1em; }
