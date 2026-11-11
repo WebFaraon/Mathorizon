@@ -30,6 +30,7 @@ body.pm {
   --pm-lime-ink: #1E1631;
   --pm-lav: #CFC4E8;
   --pm-track: #E3DDF0;
+  --pm-panel-edge: #CFC6E3;
 }
 [data-theme="dark"] body.pm {
   --pm-violet: #6C47BC;
@@ -50,6 +51,7 @@ body.pm {
   --pm-lime-ink: #101A06;
   --pm-lav: #B9AAD8;
   --pm-track: #33264D;
+  --pm-panel-edge: #3A2E52;
 }
 
 /* ---- Primary key: back to the chapter ---- */
@@ -577,3 +579,52 @@ html body.pm:has(#root) .cap-leaderboard-modal__close:hover {
 }
 html body.pm:has(#root) .cap-leaderboard-modal__close { box-shadow: 0 3px 0 0 var(--pm-edge); }
 html body.pm:has(#root) .cap-leaderboard-modal__close:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+
+/* ==========================================================================
+   Clase (classes.html) and the inside of a class (class.html)
+   ==========================================================================
+   These two pages are built on the calculator tokens (--k-*), so the corner,
+   the quiet violet line, the edge under the keys and the primary violet are
+   remapped once, on <body>, and every component of the pages follows: keys,
+   tabs, fields, panels, dialogs, the wizards. Declared on the same element as
+   class-detail.css's own remap (--border, --accent...), which reads these
+   tokens, so the whole chain follows. The LCD displays keep their small corner
+   (set back below). Hover and press are untouched. */
+html body.pm:has(#classesRoot),
+html body.pm:has(#classRoot) {
+  --k-r: 10px;
+  --k-r-key: 10px;
+  --k-key: var(--pm-face);
+  --k-key-edge: var(--pm-edge);
+  --k-panel-edge: var(--pm-panel-edge);
+  --k-rule: var(--pm-line);
+  --k-blue: var(--pm-violet);
+  --k-blue-edge: var(--pm-violet-edge);
+  --k-blue-wash: var(--pm-tint);
+}
+
+/* The legacy class components (cards, dialogs, wizards, tables) read these radii and shadows. */
+html body.pm:has(#classRoot) {
+  --radius-sm: 8px;
+  --radius: 10px;
+  --radius-lg: 14px;
+  --radius-xl: 18px;
+  --shadow: 0 5px 0 0 var(--pm-panel-edge);
+  --shadow-sm: 0 3px 0 0 var(--pm-panel-edge);
+  --shadow-card: 0 4px 0 0 var(--pm-panel-edge);
+}
+
+/* Keys: the same 1.5px line as the premium keys elsewhere. */
+html body.pm:has(#classRoot) :is(.btn, .icon-btn, .cd-tab, .cd-meta__teacher-viewbtn, .cd-invite__copy),
+html body.pm:has(#classesRoot) :is(.cl-key, .cl-chip, .cl-mini) { border-width: 1.5px; }
+
+/* Header tags: pills. */
+html body.pm:has(#classRoot) :is(.cd-subject-chip, .cd-meta__badge) {
+  padding: 3px 11px;
+  border-width: 1.5px;
+  border-radius: 999px;
+}
+
+/* The LCD displays stay calculator displays: a small corner, as on Capitole. */
+html body.pm:has(#classRoot) :is(.cd-live, .cd-invite, .sumar-kpibar, .catalog-statsbar, .cs-stats),
+html body.pm:has(#classesRoot) :is(.cl-status, .cl-lcd, .cm-lcd, .cl-codeinput, .cl-loading__lcd) { border-radius: 4px; }
