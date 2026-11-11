@@ -130,7 +130,7 @@
         '<p class="tw__sub">Se încarcă materialele…</p>' +
         '<div class="tw__bar" aria-hidden="true"><i></i></div>' +
       '</div>';
-    document.body.appendChild(el);
+    (opts.into || document.body).appendChild(el);
     var c = { el: el, owl: null, bar: el.querySelector('.tw__bar i'), hi: el.querySelector('.tw__hi'), p: opts.resume ? 1 : 0, max: 0.86,
               finishing: false, onFull: null, raf: 0, t0: Date.now(), mode: opts.mode, name: opts.name || '' };
     c.bar.style.transform = 'scaleX(' + c.p + ')';
@@ -280,7 +280,7 @@
     return;
   }
 
-  /* ---------- the destination: keep the panel until the page has settled ---------- */
+  /* ---------- the destination: the same panel, in the very first frame ---------- */
   var note = readNote();
   if (!note || !note.resume) return;
   if ((note.loads || 0) >= MAX_LOADS) { dropNote(); return; }
@@ -288,7 +288,7 @@
   writeNote(note);
 
   ensureStyle();
-  root.classList.add('tw-on');
+  root.classList.add('tw-on');                 // violet from the first instant, even before the panel below exists
 
   function waitForBody(cb) {
     if (document.body) { cb(); return; }
@@ -296,12 +296,28 @@
     mo.observe(root, { childList: true });
   }
 
-  waitForBody(function () {
-    var born = Date.now();
-    var c = build({ mode: note.mode, name: note.name, resume: true });
-    cur = c;
-    root.classList.remove('tw-on');            // the real panel is up
-    var settledAt = 0;
+  /* The panel is built NOW, from inside <head>, with the owl, the greeting and the full slider, so the first
+     frame the browser paints on this page is the frame the sign-in page was showing: no empty violet, no pop.
+     <html> may hold it before <body> exists (it is position:fixed, so it takes no room). The owl needs
+     js/mascot.js first, so it is written into the page stream right here and executes before the parser goes on. */
+  var panel = null;
+  function mount() {
+    if (panel) return;
+    panel = build({ mode: note.mode, name: note.name, resume: true, into: document.body || root });
+    cur = panel;
+    root.classList.remove('tw-on');
+    settle(panel);
+  }
+  window.TeoremaWelcome._mount = mount;
+  if (document.readyState === 'loading' && !window.TeoremaMascot) {
+    document.write('<script src="' + base + 'mascot.js"><\/script><script>window.TeoremaWelcome._mount()<\/script>');
+  } else {
+    withMascot(mount);
+  }
+
+  /* keep the panel until the page has settled (account known, nothing left to redraw), then fade it away */
+  function settle(c) {
+    var born = Date.now(), settledAt = 0;
     var timer = setInterval(function () {
       var ok = document.readyState === 'complete' && window._bmAuthReady && window.BMAuth && (window.BMAuth.role || !window.BMAuth.user)
                && !root.classList.contains('bm-auth-pending');
@@ -314,5 +330,5 @@
         dispose(c, dropNote);                  // the note goes only when the panel does
       }
     }, 90);
-  });
+  }
 })();
