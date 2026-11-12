@@ -97,7 +97,7 @@
   // unrealistically fast to see it thin out" — a curve is more forgiving of
   // FAST_SPEED being not-quite-right than chasing an exact threshold is.
   var VW_CURVE      = 0.55;
-  var VW_SMOOTHING  = 0.35; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
+  var VW_SMOOTHING  = 0.22; // 0..1, how fast width chases the new target (see _widthFromVelocity) — lower = smoother but laggier
 
   // Text tool (see _startTextEditor) — the box auto-sizes to its own
   // content (both width and height) up to TEXT_MAX_WIDTH, past which it
@@ -254,28 +254,22 @@
   // fabric.Path, so a stroke never visibly "snaps" from smooth to jagged
   // the instant it's finalized.
   function smoothPathString(points) {
-    // A stationary tap (highlighter, or any non-variable-width freehand
-    // tool) — a lone point has no segment to draw, but "M x y L x y" (a
-    // zero-length line back to itself) still renders as a dot thanks to
-    // strokeLineCap:'round' on the committed fabric.Path (see
-    // _addObjectIfNew), same trick drawSmoothStroke's own 1-point branch
-    // uses via ctx.arc for the live preview — this just reaches the same
-    // visual result through a stroked path instead of a filled circle.
+    // A stationary tap (highlighter, pencil): "M x y L x y" with round caps is a dot.
     if (points.length === 1) {
-      return 'M ' + points[0].x + ' ' + points[0].y + ' L ' + points[0].x + ' ' + points[0].y;
+      return 'M ' + _r2(points[0].x) + ' ' + _r2(points[0].y) + ' L ' + _r2(points[0].x) + ' ' + _r2(points[0].y);
     }
     if (points.length < 2) return null;
     if (points.length === 2) {
-      return 'M ' + points[0].x + ' ' + points[0].y + ' L ' + points[1].x + ' ' + points[1].y;
+      return 'M ' + _r2(points[0].x) + ' ' + _r2(points[0].y) + ' L ' + _r2(points[1].x) + ' ' + _r2(points[1].y);
     }
-    var d = 'M ' + points[0].x + ' ' + points[0].y;
+    var d = 'M ' + _r2(points[0].x) + ' ' + _r2(points[0].y);
     for (var i = 1; i < points.length - 1; i++) {
       var mx = (points[i].x + points[i + 1].x) / 2;
       var my = (points[i].y + points[i + 1].y) / 2;
-      d += ' Q ' + points[i].x + ' ' + points[i].y + ' ' + mx + ' ' + my;
+      d += ' Q ' + _r2(points[i].x) + ' ' + _r2(points[i].y) + ' ' + _r2(mx) + ' ' + _r2(my);
     }
     var last = points[points.length - 1];
-    d += ' L ' + last.x + ' ' + last.y;
+    d += ' L ' + _r2(last.x) + ' ' + _r2(last.y);
     return d;
   }
 
@@ -347,10 +341,11 @@
   // Blended toward the raw speed-implied width (VW_SMOOTHING) rather than
   // jumping straight to it — raw per-sample speed from real pointer input
   // is noisy enough that an unsmoothed line visibly stutters in thickness.
-  function _widthFromVelocity(baseWidth, prevPt, pt) {
+  function _widthFromVelocity(baseWidth, prevPt, pt, scale) {
     if (!prevPt) return baseWidth;
     var dt = Math.max(1, pt.t - prevPt.t); // ms; floored so a duplicate-timestamp sample can't divide by zero
-    var speed = dist(prevPt, pt) / dt; // logical units / ms
+    // screen pixels per ms (not logical units): the same hand speed gives the same pen thickness at any zoom and on any screen size
+    var speed = dist(prevPt, pt) * (scale || 1) / dt;
     var t = (speed - VW_SLOW_SPEED) / (VW_FAST_SPEED - VW_SLOW_SPEED);
     t = Math.pow(Math.max(0, Math.min(1, t)), VW_CURVE);
     var targetW = baseWidth * (VW_MAX_MULT - t * (VW_MAX_MULT - VW_MIN_MULT));
@@ -358,93 +353,88 @@
     return prevW + (targetW - prevW) * VW_SMOOTHING;
   }
 
-  // Shared geometry for the pen's variable-width ink: each point carries
-  // its own .w (see _widthFromVelocity), so a single canvas lineWidth can't
-  // draw it — instead every segment becomes its own filled quad (one edge
-  // offset half its start point's width, the other half its end point's,
-  // perpendicular to the segment), plus a filled circle at every point to
-  // round over the seam between adjacent quads (which generally don't line
-  // up edge-to-edge once the path turns or the width changes). Filling
-  // every piece as ONE path in a single fill() call is what makes the
-  // overlaps invisible — nonzero winding just unions them — which only
-  // holds up at globalAlpha 1; this is why variable width stays pen-only
-  // (opacity 1) and never highlighter (semi-transparent, which would show
-  // every overlap as a darker blotch). Returned as data rather than drawn
-  // directly so the same math backs both the live canvas preview
-  // (drawVariableWidthStroke) and the committed SVG path
-  // (variableWidthPathString) — a stroke must look pixel-identical the
-  // instant it's finalized, same reasoning as smoothPathString/
-  // drawSmoothStroke's own split above.
-  function _strokeOutlinePieces(points) {
-    var quads = [], circles = [];
-    for (var i = 0; i < points.length - 1; i++) {
-      var p0 = points[i], p1 = points[i + 1];
-      var w0 = p0.w == null ? 2 : p0.w, w1 = p1.w == null ? 2 : p1.w;
-      var dx = p1.x - p0.x, dy = p1.y - p0.y;
-      var len = Math.sqrt(dx * dx + dy * dy) || 1;
-      var nx = -dy / len, ny = dx / len;
-      quads.push({
-        a: { x: p0.x + nx * w0 / 2, y: p0.y + ny * w0 / 2 },
-        b: { x: p1.x + nx * w1 / 2, y: p1.y + ny * w1 / 2 },
-        c: { x: p1.x - nx * w1 / 2, y: p1.y - ny * w1 / 2 },
-        d: { x: p0.x - nx * w0 / 2, y: p0.y - ny * w0 / 2 }
-      });
+  /* ---------------------------------------------------------------------------------------------
+     Ink geometry v2 (2026-11-12). The pen is ONE smooth closed outline per stroke, built from the
+     kept points of the gesture: the points are low-pass filtered (a 1-2-1 average, endpoints pinned),
+     the width follows the speed but is smoothed again along the stroke, the two sides of the ribbon are
+     offset along the averaged tangent and joined with quadratic curves through their midpoints, and the
+     two ends are true semicircles. The previous version was a union of one quad and one circle per raw
+     point: lumpy at any zoom (each point's own width made a bump) and a path of thousands of subpaths
+     that took tens of milliseconds to rasterize. This one is a few hundred commands and the edges are
+     curves, so it stays smooth at 1000% zoom. The live preview paints the very same path string
+     through Path2D, so a stroke never changes shape when it is committed.
+     --------------------------------------------------------------------------------------------- */
+  function _r2(v) { return Math.round(v * 100) / 100; }
+
+  // 1-2-1 low-pass over x and y (endpoints pinned so a stroke still ends where the pointer did).
+  // withWidth: the pen's width channel gets extra passes, since a noisy width is what made the
+  // old outline bumpy. Returns the same array when there is nothing to smooth.
+  function smoothInkPoints(points, passes, withWidth) {
+    var n = points.length;
+    if (n < 3) return points;
+    var pts = points, p, i, out;
+    for (p = 0; p < passes; p++) {
+      out = [pts[0]];
+      for (i = 1; i < n - 1; i++) {
+        var a = pts[i - 1], b = pts[i], c = pts[i + 1];
+        var o = { x: (a.x + 2 * b.x + c.x) / 4, y: (a.y + 2 * b.y + c.y) / 4 };
+        if (b.w != null) o.w = (a.w + 2 * b.w + c.w) / 4;
+        out.push(o);
+      }
+      out.push(pts[n - 1]);
+      pts = out;
     }
-    for (var j = 0; j < points.length; j++) {
-      circles.push({ cx: points[j].x, cy: points[j].y, r: (points[j].w == null ? 2 : points[j].w) / 2 });
+    if (withWidth && pts[0].w != null) {
+      for (p = 0; p < 3; p++) {
+        out = [pts[0]];
+        for (i = 1; i < n - 1; i++) {
+          out.push({ x: pts[i].x, y: pts[i].y, w: (pts[i - 1].w + 2 * pts[i].w + pts[i + 1].w) / 4 });
+        }
+        out.push(pts[n - 1]);
+        pts = out;
+      }
     }
-    return { quads: quads, circles: circles };
+    return pts;
   }
 
-  // Live preview of an in-progress (or another viewer's live) pen stroke —
-  // see drawSmoothStroke above for the fixed-width equivalent every other
-  // tool still uses.
-  function drawVariableWidthStroke(ctx, points, color) {
-    if (!points.length) return;
-    var pieces = _strokeOutlinePieces(points);
+  // The pen's outline as an SVG path string (also what Path2D paints for the live preview).
+  function inkOutline(points) {
+    if (!points.length) return null;
+    var pts = smoothInkPoints(points, 2, true);
+    var n = pts.length, i;
+    function half(p) { return (p.w == null ? 2 : p.w) / 2; }
+    if (n === 1) return circlePathString(_r2(pts[0].x), _r2(pts[0].y), _r2(half(pts[0])));
+    var L = [], R = [];
+    for (i = 0; i < n; i++) {
+      var a = pts[i > 0 ? i - 1 : 0], b = pts[i < n - 1 ? i + 1 : n - 1];
+      var dx = b.x - a.x, dy = b.y - a.y, len = Math.sqrt(dx * dx + dy * dy) || 1;
+      var nx = -dy / len, ny = dx / len, h = half(pts[i]);
+      L.push({ x: pts[i].x + nx * h, y: pts[i].y + ny * h });
+      R.push({ x: pts[i].x - nx * h, y: pts[i].y - ny * h });
+    }
+    function f(q) { return _r2(q.x) + ' ' + _r2(q.y); }
+    function mid(a2, b2) { return _r2((a2.x + b2.x) / 2) + ' ' + _r2((a2.y + b2.y) / 2); }
+    var hEnd = _r2(half(pts[n - 1])), hStart = _r2(half(pts[0]));
+    var d = 'M ' + f(L[0]);
+    for (i = 1; i < n - 1; i++) d += ' Q ' + f(L[i]) + ' ' + mid(L[i], L[i + 1]);
+    d += ' L ' + f(L[n - 1]);
+    d += ' A ' + hEnd + ' ' + hEnd + ' 0 0 0 ' + f(R[n - 1]);
+    for (i = n - 2; i >= 1; i--) d += ' Q ' + f(R[i]) + ' ' + mid(R[i], R[i - 1]);
+    d += ' L ' + f(R[0]);
+    d += ' A ' + hStart + ' ' + hStart + ' 0 0 0 ' + f(L[0]) + ' Z';
+    return d;
+  }
+
+  // Live preview of the pen: the same path string as the committed object, painted with Path2D.
+  function drawInkPath(ctx, d, color) {
     ctx.save();
     ctx.fillStyle = color;
-    ctx.beginPath();
-    pieces.quads.forEach(function (q) {
-      ctx.moveTo(q.a.x, q.a.y);
-      ctx.lineTo(q.b.x, q.b.y);
-      ctx.lineTo(q.c.x, q.c.y);
-      ctx.lineTo(q.d.x, q.d.y);
-      ctx.closePath();
-    });
-    pieces.circles.forEach(function (c) {
-      ctx.moveTo(c.cx + c.r, c.cy);
-      // anticlockwise=true: see circlePathString's own comment on why this
-      // has to wind the same direction as the quads, not canvas's default.
-      ctx.arc(c.cx, c.cy, c.r, 0, Math.PI * 2, true);
-    });
-    ctx.fill();
+    ctx.fill(new Path2D(d));
     ctx.restore();
   }
 
-  // Committed counterpart of drawVariableWidthStroke — an SVG path string
-  // for the fabric.Path this stroke becomes (see _commitStroke/
-  // _addObjectIfNew), filled rather than stroked. Circles are real SVG arcs
-  // (see circlePathString) rather than the "curves are many-segment
-  // straight-line approximations" convention SHAPE_DEFS's own circle/
-  // ellipse stamps use elsewhere in this file — those are drawn once at a
-  // fixed, known size, but a pen stroke's joint circles can end up any
-  // size depending on how the stroke was drawn, and a fixed segment count
-  // that looks fine at one size reads as an obviously faceted polygon at
-  // another (see circlePathString's own comment).
-  function variableWidthPathString(points) {
-    if (!points.length) return null;
-    // _strokeOutlinePieces already degrades to "just the one join circle,
-    // no quads" for a single point — see its own quad loop — so there's no
-    // separate 1-point case to special-case here.
-    var pieces = _strokeOutlinePieces(points);
-    var d = pieces.quads.map(function (q) {
-      return 'M ' + q.a.x + ' ' + q.a.y + ' L ' + q.b.x + ' ' + q.b.y +
-             ' L ' + q.c.x + ' ' + q.c.y + ' L ' + q.d.x + ' ' + q.d.y + ' Z';
-    }).join(' ');
-    d += ' ' + pieces.circles.map(function (c) { return circlePathString(c.cx, c.cy, c.r); }).join(' ');
-    return d.trim();
-  }
+  // Kept for the callers that still ask for "the committed path of a variable-width stroke".
+  function variableWidthPathString(points) { return inkOutline(points); }
 
   // The white "eye"-shaped gaps in the first cut of this were exactly this:
   // fill() with the default nonzero rule treats overlapping shapes as ADDING
@@ -967,7 +957,7 @@
     this._userId    = opts.userId;
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
-    this._tool      = 'pen'; // 'pen' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
+    this._tool      = 'pen'; // 'pen' | 'pencil' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
     // 'any' (default) | 'pen' (stylus-only — a finger/mouse pans instead of
     // drawing/interacting, same convention and shared localStorage key as
     // js/drawing-canvas.js's own toggle — see _isInputAllowed).
@@ -1147,7 +1137,8 @@
   // — one consistent visual language across every drawing surface in the
   // app (the CSS classes are already deliberately shared, see the note on
   // .wb-board in css/style.css).
-  var PEN_ICON         = '<path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4Z"/>';
+  var PEN_ICON         = '<path d="m12 19 7-7 3 3-7 7-3-3z"/><path d="m18 13-1.5-7.5L2 2l3.5 14.5L13 18l5-5z"/><path d="m2 2 7.586 7.586"/><circle cx="11" cy="11" r="2"/>';
+  var PENCIL_ICON      = '<path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/>';
   var HIGHLIGHTER_ICON = '<path d="M4 20h4l10.5-10.5-4-4L4 16v4Z"/><path d="m13.5 6.5 4 4"/>';
   var ERASER_ICON      = '<path d="m7 21-4.3-4.3c-1-1-1-2.5 0-3.4l9.6-9.6c1-1 2.5-1 3.4 0l5.6 5.6c1 1 1 2.5 0 3.4L13 21"/><path d="M22 21H7"/><path d="m5 11 9 9"/>';
 
@@ -1307,7 +1298,8 @@
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
         '</div>' +
         '<div class="dc-tool-group">' +
-          toolBtn('pen', PEN_ICON, 'Stilou (P)') +
+          toolBtn('pen', PEN_ICON, 'Pix: grosimea liniei se subțiază cu viteza (P)') +
+          toolBtn('pencil', PENCIL_ICON, 'Creion: aceeași grosime, indiferent de viteză (C)') +
           toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
           toolBtn('text', TEXT_ICON, 'Text (T)') +
         '</div>' +
@@ -1458,7 +1450,7 @@
       tool === 'eraser' ? ERASER_CURSOR :
       tool === 'pan' ? 'grab' :
       tool === 'select' ? 'default' :
-      tool === 'pen' ? penCursor(this._color, Math.max(6, this._width * this._scale)) :
+      (tool === 'pen' || tool === 'pencil') ? penCursor(this._color, Math.max(6, this._width * this._scale)) :
       tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
       tool === 'text' ? TEXT_CURSOR :
       CROSSHAIR_CURSOR; // line / dashed-line / arrow
@@ -1710,6 +1702,8 @@
         self.redo();
       } else if (e.key === 'p' || e.key === 'P') {
         self._setTool('pen');
+      } else if (e.key === 'c' || e.key === 'C') {
+        self._setTool('pencil');
       } else if (e.key === 'h' || e.key === 'H') {
         self._setTool('highlighter');
       } else if (e.key === 't' || e.key === 'T') {
@@ -1745,6 +1739,14 @@
       // (see the contrast note on that class for why it's fixed-white,
       // never theme-linked).
     });
+
+    // While a zoom gesture is shown by scaling the already-painted bitmaps (see _gestureTransform), a render at the new camera would land in
+    // a canvas that still carries the CSS transform and jump; it is held back and the settle render paints everything once.
+    var fcSelf = this, baseRequest = fabric.StaticCanvas.prototype.requestRenderAll;
+    this._fabricCanvas.requestRenderAll = function () {
+      if (fcSelf._gestureXform) return this;
+      return baseRequest.call(this);
+    };
 
     // Overlay canvas: raw 2D context, captures every pointer event, renders
     // only the in-progress stroke (mine + everyone else's). A sibling of
@@ -1826,7 +1828,8 @@
     var vw = this._canvasWrap.clientWidth  || 800;
     var vh = this._canvasWrap.clientHeight || 600;
     var baseScale = Math.min(vw / LOGICAL_W, vh / LOGICAL_H);
-    var dpr = Math.min(global.devicePixelRatio || 1, MAX_DPR);
+    // one device-pixel ratio for all three layers = Fabric's own retina scaling: a pan is then an exact whole-pixel shift on each of them
+    var dpr = this._fabricCanvas.getRetinaScaling ? this._fabricCanvas.getRetinaScaling() : Math.min(global.devicePixelRatio || 1, MAX_DPR);
 
     // Re-center on whatever logical point was centered before (preserving
     // the user's own zoom factor, this._zoom) rather than resetting the
@@ -1871,6 +1874,7 @@
     // growing with zoom, see this method's own comment above.
     this._fabricCanvas.setDimensions({ width: vw, height: vh });
 
+    this._rend = null;          // sizes changed: whatever was painted is gone, the next sync is a full render
     this._syncViewport();
   };
 
@@ -1909,27 +1913,133 @@
     });
   };
 
+  /* How the board is repainted when the camera moves (2026-11-12):
+       - a PAN keeps the pixels already painted: the canvases are shifted by a whole number of device pixels and only the thin strip
+         that came into view is painted (grid and strokes alike) - the cost of a pan frame no longer depends on how much is on the board;
+       - a ZOOM on a heavy board (many strokes in view) is shown by scaling the painted bitmaps with a CSS transform while the wheel or
+         the pinch keeps going, and the board is repainted sharp once it stops (130 ms). On a light board it is repainted every step;
+       - anything else (first paint, resize, big jumps) is a full render.
+     The pan always lands on whole device pixels (this._panX/_panY are snapped here), which is what makes the shift exact. */
+  var HEAVY_SCENE_CMDS = 3500;   // path commands in view above which a zoom is shown by scaling the bitmaps
+
   Whiteboard.prototype._syncViewport = function () {
-    this._fabricCanvas.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
-    // setViewportTransform only self-triggers a render when renderOnAddRemove
-    // is on, which this canvas deliberately keeps off (see _initFabric) —
-    // every other call site here already does its own requestRenderAll()
-    // for the same reason, this is just that same convention applied to pan/zoom.
-    this._fabricCanvas.requestRenderAll();
-    this._redrawGrid();
+    var dpr = this._dpr;
+    this._panX = Math.round(this._panX * dpr) / dpr;
+    this._panY = Math.round(this._panY * dpr) / dpr;
+    var fc = this._fabricCanvas, r = this._rend;
+    fc.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
+
+    var sameCanvas = r && r.vw === this._viewportW && r.vh === this._viewportH && r.dpr === dpr;
+    if (!sameCanvas) {
+      this._fullRender();
+    } else if (r.scale !== this._scale) {
+      // a zoom step
+      if (this._gestureXform || this._sceneCost() > HEAVY_SCENE_CMDS) this._gestureTransform();
+      else this._fullRender();
+    } else if (this._gestureXform) {
+      // zoom stopped moving but its settle render is still waiting, and the camera moved again (a pan): settle now
+      this._fullRender();
+    } else {
+      var dx = Math.round((this._panX - r.panX) * dpr), dy = Math.round((this._panY - r.panY) * dpr);
+      if (dx || dy) {
+        var W = this._gridEl.width, H = this._gridEl.height;
+        if (Math.abs(dx) > W * 0.6 || Math.abs(dy) > H * 0.6) this._fullRender();
+        else this._blitPan(dx, dy);
+      }
+    }
+
     this._dirty = true;
-    // Keeps the text tool's live editing <textarea> (a plain position:fixed
-    // DOM element, with no idea on its own that the board underneath just
-    // panned/zoomed) visually anchored to its actual spot on the BOARD
-    // rather than frozen at whatever screen pixel it first appeared at.
-    // A no-op call when nothing's being edited (see its own guard).
+    // Keeps the text tool's live editing <textarea> anchored to its spot on the BOARD
     if (this._textEditing) this._repositionTextEditor();
-    // The pen cursor's own on-screen size (see penCursor) is the picked
-    // width AT THE CURRENT ZOOM — keeps it an accurate preview of the
-    // actual stroke size through a zoom change too, not just on tool
-    // switch/width change. Cheap even when the tool isn't pen (every other
-    // branch is a plain string, no SVG work).
+    // The pen cursor's own on-screen size is the picked width AT THE CURRENT ZOOM
     this._updateCursor();
+  };
+
+  // Path commands of the objects that intersect the current view: a cheap stand-in for "how long would a full repaint take".
+  Whiteboard.prototype._sceneCost = function () {
+    var s = this._scale, x0 = -this._panX / s, y0 = -this._panY / s;
+    var x1 = x0 + (this._viewportW || 0) / s, y1 = y0 + (this._viewportH || 0) / s, cost = 0;
+    this._fabricCanvas.getObjects().forEach(function (o) {
+      var b = o.getBoundingRect(true);
+      if (b.left > x1 || b.left + b.width < x0 || b.top > y1 || b.top + b.height < y0) return;
+      cost += o.path ? o.path.length : 30;
+    });
+    return cost;
+  };
+
+  // Everything repainted at the current camera; the camera the canvases now show is remembered in this._rend.
+  Whiteboard.prototype._fullRender = function () {
+    clearTimeout(this._gestureTimer);
+    this._fabricCanvas.renderAll();      // synchronous, so a CSS transform can be dropped in the very same task, with no flash of the old bitmap
+    this._redrawGrid();
+    this._clearGestureTransform();
+    this._rend = { scale: this._scale, panX: this._panX, panY: this._panY, vw: this._viewportW, vh: this._viewportH, dpr: this._dpr };
+  };
+
+  // Shifts the painted pixels of the grid and stroke layers by (dx,dy) device pixels and paints only the strip that came into view.
+  Whiteboard.prototype._blitPan = function (dx, dy) {
+    var gridEl = this._gridEl, fabEl = this._fabricEl, W = gridEl.width, H = gridEl.height;
+    var g = this._gridCtx, f = this._fabricCanvas.getContext();
+    [[g, gridEl], [f, fabEl]].forEach(function (pair) {
+      var c = pair[0];
+      c.save();
+      c.setTransform(1, 0, 0, 1, 0, 0);
+      c.globalCompositeOperation = 'copy';   // replaces the bitmap with its shifted self; the newly exposed strips come out transparent
+      c.drawImage(pair[1], dx, dy);
+      c.restore();
+    });
+    var strips = [];
+    if (dx > 0) strips.push({ x: 0, y: 0, w: dx, h: H }); else if (dx < 0) strips.push({ x: W + dx, y: 0, w: -dx, h: H });
+    if (dy > 0) strips.push({ x: 0, y: 0, w: W, h: dy }); else if (dy < 0) strips.push({ x: 0, y: H + dy, w: W, h: -dy });
+    for (var i = 0; i < strips.length; i++) {
+      this._redrawGrid(strips[i]);
+      this._renderFabricRect(strips[i]);
+    }
+    this._rend.panX = this._panX;
+    this._rend.panY = this._panY;
+    // when the pan stops, one exact full render replaces the shifted pixels (a few anti-aliased edge pixels may differ from a fresh paint)
+    var self = this;
+    clearTimeout(this._panSettleTimer);
+    this._panSettleTimer = setTimeout(function () { if (!self._destroyed && !self._gestureXform) self._fullRender(); }, 220);
+  };
+
+  // Paints the objects that touch a device-pixel rectangle of the stroke layer, clipped to it.
+  Whiteboard.prototype._renderFabricRect = function (r) {
+    var fc = this._fabricCanvas, ctx = fc.getContext(), v = fc.viewportTransform, k = 1 / this._dpr;
+    var cx = r.x * k, cy = r.y * k, cw = r.w * k, ch = r.h * k;
+    var lx0 = (cx - v[4]) / v[0] - 2, ly0 = (cy - v[5]) / v[3] - 2, lx1 = (cx + cw - v[4]) / v[0] + 2, ly1 = (cy + ch - v[5]) / v[3] + 2;
+    ctx.save();
+    ctx.beginPath();
+    ctx.rect(cx, cy, cw, ch);
+    ctx.clip();
+    ctx.clearRect(cx, cy, cw, ch);
+    ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
+    fc.getObjects().forEach(function (o) {
+      if (o.visible === false) return;
+      var b = o.getBoundingRect(true);
+      var pad = (o.strokeWidth || 0) * (o.scaleX || 1);
+      if (b.left - pad > lx1 || b.left + b.width + pad < lx0 || b.top - pad > ly1 || b.top + b.height + pad < ly0) return;
+      o.render(ctx);
+    });
+    ctx.restore();
+  };
+
+  // A zoom step shown by scaling the bitmaps painted at this._rend's camera (cheap, composited by the GPU); repainted sharp once it stops.
+  Whiteboard.prototype._gestureTransform = function () {
+    var r = this._rend, k = this._scale / r.scale;
+    var tx = this._panX - k * r.panX, ty = this._panY - k * r.panY;
+    var m = 'matrix(' + k + ',0,0,' + k + ',' + tx + ',' + ty + ')';
+    [this._gridEl, this._fabricEl].forEach(function (el) { el.style.transformOrigin = '0 0'; el.style.transform = m; });
+    // the fabric wrapper element Fabric creates around its canvas must not clip the scaled bitmap away from the layer stack
+    this._gestureXform = true;
+    var self = this;
+    clearTimeout(this._gestureTimer);
+    this._gestureTimer = setTimeout(function () { if (!self._destroyed) { self._gestureXform = false; self._fullRender(); self._fabricCanvas.requestRenderAll(); self._dirty = true; } }, 130);
+  };
+
+  Whiteboard.prototype._clearGestureTransform = function () {
+    this._gestureXform = false;
+    [this._gridEl, this._fabricEl].forEach(function (el) { if (el.style.transform) { el.style.transform = ''; el.style.transformOrigin = ''; } });
   };
 
   // Keeps the board from being panned/zoomed away into empty space with
@@ -1976,24 +2086,29 @@
   // are — those redraw every frame during a whole gesture regardless, so
   // batching them earns its keep; a plain rect-and-some-lines redraw here
   // and there doesn't need it.
-  Whiteboard.prototype._redrawGrid = function () {
+  Whiteboard.prototype._redrawGrid = function (rect) {
     var ctx = this._gridCtx;
     var el  = this._gridEl;
+    var r = rect || { x: 0, y: 0, w: el.width, h: el.height };   // device pixels
+    ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(0, 0, el.width, el.height);
+    if (rect) { ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip(); }
+    ctx.clearRect(r.x, r.y, r.w, r.h);
     var s = this._scale * this._dpr;
-    ctx.setTransform(s, 0, 0, s, this._panX * this._dpr, this._panY * this._dpr);
+    var pxDev = this._panX * this._dpr, pyDev = this._panY * this._dpr;
+    ctx.setTransform(s, 0, 0, s, pxDev, pyDev);
+    // only the part of the board that is on screen (or in the strip being repainted) is ever painted: at 1000% zoom the whole
+    // 1400x900 board is 14000x9000 px, and drawing every line of it (the first version did) is what made panning with the grid on crawl
+    var vx0 = Math.max(0, (r.x - pxDev) / s), vx1 = Math.min(LOGICAL_W, (r.x + r.w - pxDev) / s);
+    var vy0 = Math.max(0, (r.y - pyDev) / s), vy1 = Math.min(LOGICAL_H, (r.y + r.h - pyDev) / s);
     ctx.fillStyle = '#ffffff';
-    ctx.fillRect(0, 0, LOGICAL_W, LOGICAL_H);
-    if (!this._gridOn) return;
+    ctx.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
+    if (!this._gridOn || vx1 <= vx0 || vy1 <= vy0) { ctx.restore(); return; }
     var lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
 
-    // Build the list of steps from level 0 (coarsest, fixed — see
-    // this._gridBaseStep) down to however fine a level is still visible at
-    // the current zoom — each level is the previous one's step divided by
-    // MINOR_GRID_SUBDIVISIONS, so every line at every level sits at a fixed
-    // logical position that never shifts as zoom changes; only whether a
-    // given (always-the-same) line is currently faded in changes.
+    // Levels: level 0 is the coarsest step (fixed in logical units, see this._gridBaseStep), every next one is the previous
+    // divided by MINOR_GRID_SUBDIVISIONS, down to what is still visible at the current zoom. Every line of every level sits
+    // at a fixed logical position, so lines never jump while zooming; a finer level just fades in.
     var baseStep = this._gridBaseStep || niceGridStep(Math.min(GRID_CELL_TARGET_PX_MAX, 32) / this._scale);
     var steps = [baseStep];
     for (var i = 1; i < GRID_MAX_LEVELS; i++) {
@@ -2002,10 +2117,7 @@
       steps.push(nextStep);
     }
 
-    // Drawn finest-first, coarsest-last, so level 0 (and any other
-    // already-fully-faded-in level) paints on top at full opacity wherever
-    // its lines coincide with a finer level's — same reasoning the old
-    // two-tier version used, just generalized to N levels.
+    // finest first, coarsest last, so the coarse lines paint on top at full strength where they coincide
     for (var lvl = steps.length - 1; lvl >= 0; lvl--) {
       var step = steps[lvl];
       var opacity;
@@ -2020,10 +2132,13 @@
       ctx.strokeStyle = 'rgba(20,16,8,' + opacity + ')';
       ctx.lineWidth = lineWidth;
       ctx.beginPath();
-      for (var x = 0; x <= LOGICAL_W; x += step) { ctx.moveTo(x, 0); ctx.lineTo(x, LOGICAL_H); }
-      for (var y = 0; y <= LOGICAL_H; y += step) { ctx.moveTo(0, y); ctx.lineTo(LOGICAL_W, y); }
+      var k0 = Math.ceil(vx0 / step), k1 = Math.floor(vx1 / step);
+      for (var kx = k0; kx <= k1; kx++) { var x = kx * step; ctx.moveTo(x, vy0); ctx.lineTo(x, vy1); }
+      k0 = Math.ceil(vy0 / step); k1 = Math.floor(vy1 / step);
+      for (var ky = k0; ky <= k1; ky++) { var y = ky * step; ctx.moveTo(vx0, y); ctx.lineTo(vx1, y); }
       ctx.stroke();
     }
+    ctx.restore();
   };
 
   // clientX/clientY (viewport coordinates), when given, keep whatever
@@ -2327,11 +2442,12 @@
       // it just starts at the plain picked width — .t is still stamped so
       // the SECOND point (first pointermove) has something to measure
       // speed against. See _widthFromVelocity.
-      var startPt = isPen ? { x: pos.x, y: pos.y, t: (global.performance || Date).now(), w: effWidth } : pos;
+      var startT = (global.performance || Date).now();
+      var startPt = isPen ? { x: pos.x, y: pos.y, t: startT, w: effWidth } : pos;
       var strokeId = genId();
       self._activePtrs[e.pointerId] = {
         strokeId: strokeId, points: [startPt], pending: [startPt], lastSentAt: 0, lastSentPos: null,
-        width: effWidth, opacity: effOpacity, isPen: isPen
+        width: effWidth, opacity: effOpacity, isPen: isPen, lastT: startT, lastRaw: null
       };
       self._liveStrokes.set('m:' + strokeId, { points: [startPt], color: self._color, width: effWidth, opacity: effOpacity });
       self._dirty = true;
@@ -2424,14 +2540,16 @@
         st.points[1] = pos;
         st.pending = st.points.slice();
       } else {
-        var newPt = pos;
-        if (st.isPen) {
-          var prevPt = st.points[st.points.length - 1];
-          newPt = { x: pos.x, y: pos.y, t: (global.performance || Date).now() };
-          newPt.w = _widthFromVelocity(st.width, prevPt, newPt);
+        // every sample the browser had (a 120+ Hz mouse or a stylus reports several per event) feeds the stroke, so a fast
+        // flick is not drawn as a few long chords; samples closer than ~1 screen px to the last kept one are dropped
+        var evs = (e.getCoalescedEvents && e.getCoalescedEvents()) || [];
+        if (!evs.length) evs = [e];
+        var nowT = (global.performance || Date).now();
+        for (var ci = 0; ci < evs.length; ci++) {
+          var cpos = evs[ci] === e ? pos : self._getPos(evs[ci]);
+          self._addFreehandPoint(st, cpos, st.lastT + (nowT - st.lastT) * (ci + 1) / evs.length);
         }
-        st.points.push(newPt);
-        st.pending.push(newPt);
+        st.lastT = nowT;
       }
       self._liveStrokes.get('m:' + st.strokeId).points = st.points;
       self._dirty = true;
@@ -2503,6 +2621,7 @@
         self._persistObjectScale(st.objId, finalScale);
         return;
       }
+      if (!st.shape && st.lastRaw) self._addFreehandPoint(st, st.lastRaw.pos, st.lastRaw.t, true); // the stroke ends exactly where the pointer did
       self._flush(st);
       self._send('stroke:end', { strokeId: st.strokeId });
       // Deliberately NOT deleting the live-stroke entry here — the overlay
@@ -2585,6 +2704,23 @@
     });
   };
 
+  // One freehand sample: kept only if it moved at least INK_MIN_STEP_PX screen pixels (always kept when force is set), with the
+  // pen's speed-based width computed against the last KEPT point. The newest raw sample is remembered so the stroke can end on it.
+  var INK_MIN_STEP_PX = 1.2;
+  Whiteboard.prototype._addFreehandPoint = function (st, cpos, t, force) {
+    var prev = st.points[st.points.length - 1];
+    st.lastRaw = { pos: cpos, t: t };
+    var d = dist(prev, cpos);
+    if (force ? d < 0.001 : d < INK_MIN_STEP_PX / this._scale) return;
+    var pt = cpos;
+    if (st.isPen) {
+      pt = { x: cpos.x, y: cpos.y, t: t };
+      pt.w = _widthFromVelocity(st.width, prev, pt, this._scale);
+    }
+    st.points.push(pt);
+    st.pending.push(pt);
+  };
+
   Whiteboard.prototype._maybeFlush = function (st) {
     var now = (global.performance || Date).now();
     var last = st.points[st.points.length - 1];
@@ -2647,8 +2783,10 @@
     // understands a plain M/Q/L stroke, not this fill's many M/L/Z
     // subpaths) — see that fallback chain's own comment.
     var isVariableWidth = !shape && points.length && points[0].w != null;
+    // freehand rows are stored compact: 2 decimals, no timestamps (a 90-point pen stroke used to weigh ~39 KB in the database)
+    if (isVariableWidth) points = points.map(function (q) { return { x: _r2(q.x), y: _r2(q.y), w: _r2(q.w) }; });
     var path = shape ? straightPathString(start, end, shape)
-      : isVariableWidth ? variableWidthPathString(points) : smoothPathString(points);
+      : isVariableWidth ? inkOutline(points) : smoothPathString(smoothInkPoints(points, 2));
     var dashArray = shape === 'dashed-line' ? [width * 3, width * 2.4] : null;
     var self = this;
     var gen  = this._clearGen; // see the field comment in the constructor
@@ -2666,7 +2804,7 @@
     // distToPolyline's comment on why every consumer expects this nested
     // "array of subpaths" shape uniformly rather than some flat, some not.
     var json = isVariableWidth
-      ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: [points], clientStrokeId: liveKey ? liveKey.slice(2) : null }
+      ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: [points], v: 2, clientStrokeId: liveKey ? liveKey.slice(2) : null }
       : { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null };
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
@@ -2692,15 +2830,31 @@
         self._dirty = true;
         return;
       }
-      self._addObjectIfNew(res.data, [points]);
+      var newObj = self._addObjectIfNew(res.data, [points]);
       // A new stroke invalidates whatever was on the redo stack — standard
       // undo/redo semantics (matches drawing-canvas.js's own _undo/_redo).
       self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
       self._myRedoStack = [];
       self._updateUndoRedoButtons();
       self._dirty = true;
-      self._fabricCanvas.requestRenderAll();
+      self._paintNewObject(newObj);
     });
+  };
+
+  // A new object is painted straight onto the committed layer instead of re-rendering the whole board: with a lesson's worth of
+  // strokes on it, a full render on every release was the hitch that made the board stutter right after writing.
+  // A render already queued will include it anyway, so nothing is painted twice that matters.
+  Whiteboard.prototype._paintNewObject = function (obj) {
+    var fc = this._fabricCanvas;
+    if (!obj || fc.isRendering || this._gestureXform) return;
+    try {
+      var ctx = fc.getContext(), v = fc.viewportTransform;
+      if (obj.isOnScreen && !obj.isOnScreen()) return;
+      ctx.save();
+      ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
+      obj.render(ctx);
+      ctx.restore();
+    } catch (err) { fc.requestRenderAll(); }
   };
 
   // Toolbar shape picker (SHAPE_DEFS) — unlike a drawn stroke, there's no
@@ -3070,8 +3224,8 @@
         // object gets added, so a remote viewer never sees the stroke blink
         // out during the commit round-trip either.
         if (cid) { self._liveStrokes.delete('r:' + cid); self._dirty = true; }
-        self._addObjectIfNew(p.new);
-        self._fabricCanvas.requestRenderAll();
+        var added = self._addObjectIfNew(p.new);
+        if (added) self._paintNewObject(added);
       })
       .on('postgres_changes', {
         event: 'UPDATE', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
@@ -3194,7 +3348,7 @@
   // strokes loaded from history, parsePathPoints reconstructs an
   // approximation instead; see that function's own comment for why.
   Whiteboard.prototype._addObjectIfNew = function (row, rawPoints) {
-    if (!row || this._committedIds.has(row.id)) return;
+    if (!row || this._committedIds.has(row.id)) return null;
     this._committedIds.add(row.id);
     var j = row.fabric_json || {};
     // center, not fabric's default top-left, on BOTH branches below — a
@@ -3220,7 +3374,13 @@
       // Variable-width pen strokes (see _commitStroke) are a FILLED
       // outline, not a stroked centerline — j.fill is only ever set for
       // those, never alongside j.stroke.
-      obj = new fabric.Path(j.path, {
+      // Pen strokes saved before the smooth outline existed (no v:2) are rebuilt from their stored centerline, so an old board
+      // gets the clean, light geometry too instead of the lumpy thousand-subpath ribbon they were committed with.
+      var pathD = j.path;
+      if (j.fill && !j.isShape && j.v !== 2 && j.centerline && j.centerline[0] && j.centerline[0].length && j.centerline[0][0].w != null) {
+        pathD = inkOutline(j.centerline[0].filter(function (q, qi, arr) { return qi === 0 || qi === arr.length - 1 || dist(q, arr[qi - 1]) >= 0.4; })) || j.path;
+      }
+      obj = new fabric.Path(pathD, {
         stroke: j.fill ? null : j.stroke,
         strokeWidth: j.strokeWidth,
         strokeDashArray: j.strokeDashArray || null, // dashed-line tool only — see _commitStroke
@@ -3282,6 +3442,7 @@
       this._myObjectScales.set(row.id, scale);
       this._myObjectsJson.set(row.id, j);
     }
+    return obj;
   };
 
   Whiteboard.prototype._removeObjectById = function (id) {
@@ -3305,8 +3466,14 @@
       .then(function (res) {
         if (self._destroyed) return;
         if (res.error) { console.error('[Whiteboard] load failed', res.error); return; }
-        (res.data || []).forEach(function (row) { self._addObjectIfNew(row); });
-        self._fabricCanvas.requestRenderAll();
+        var rows = res.data || [], at = 0;
+        (function slice() {
+          if (self._destroyed) return;
+          var stop = Math.min(rows.length, at + 25);
+          for (; at < stop; at++) self._addObjectIfNew(rows[at]);
+          self._fabricCanvas.requestRenderAll();
+          if (at < rows.length) setTimeout(slice, 0);
+        })();
       });
   };
 
@@ -3665,6 +3832,7 @@
       btn.title = on ? 'Ascunde grila' : 'Arată grila';
     }
     this._redrawGrid();
+    if (this._gestureXform) this._fullRender();
   };
 
   /* ---- Render loop (overlay only — Fabric renders itself on demand) ---- */
@@ -3691,9 +3859,15 @@
       // carrying .w (set in _bindPointerEvents' pen branch and, for
       // someone else's live stroke, round-tripped through the broadcast
       // payload unchanged) — no separate flag needed on the entry itself.
-      if (st.shape) drawStraightStroke(ctx, st.points[0], st.points[st.points.length - 1], st.color, st.width, st.opacity, st.shape);
-      else if (st.points.length && st.points[0].w != null) drawVariableWidthStroke(ctx, st.points, st.color);
-      else drawSmoothStroke(ctx, st.points, st.color, st.width, st.opacity);
+      if (st.shape) { drawStraightStroke(ctx, st.points[0], st.points[st.points.length - 1], st.color, st.width, st.opacity, st.shape); return; }
+      if (!st.points.length) return;
+      // the smoothed geometry is rebuilt only when a point was added since the last frame
+      if (!st._ink || st._inkN !== st.points.length) {
+        st._inkN = st.points.length;
+        st._ink = st.points[0].w != null ? inkOutline(st.points) : smoothInkPoints(st.points, 2);
+      }
+      if (st.points[0].w != null) drawInkPath(ctx, st._ink, st.color);
+      else drawSmoothStroke(ctx, st._ink, st.color, st.width, st.opacity);
     });
     this._drawSelectionOverlay(ctx);
   };
@@ -3837,6 +4011,8 @@
     if (this._panRafId) cancelAnimationFrame(this._panRafId);
     clearTimeout(this._resizeTimer);
     clearTimeout(this._hintTimer);
+    clearTimeout(this._panSettleTimer);
+    clearTimeout(this._gestureTimer);
     if (this._ro) this._ro.disconnect();
     if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);
     if (this._shapeDocClickHandler) document.removeEventListener('click', this._shapeDocClickHandler);
