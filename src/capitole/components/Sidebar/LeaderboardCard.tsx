@@ -7,6 +7,8 @@ interface LeaderboardCardProps {
   rows: LeaderboardRow[];
   ready: boolean;
   currentUserId: string | null;
+  /** How many rows the rail's preview shows (RightColumn fits it to the window); the modal always has them all. */
+  maxRows?: number;
 }
 
 /**
@@ -28,7 +30,7 @@ interface LeaderboardCardProps {
  * in styles.css); the "Leaderboard" button opens LeaderboardModal with the
  * same rows, unclipped, for the full roster.
  */
-export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardProps) {
+export function LeaderboardCard({ rows, ready, currentUserId, maxRows = 4 }: LeaderboardCardProps) {
   const [modalOpen, setModalOpen] = useState(false);
 
   if (!ready) {
@@ -49,7 +51,7 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
           </p>
         ) : (
           <>
-            <LeaderboardRows rows={rows} currentUserId={currentUserId} />
+            <LeaderboardRows rows={rows.slice(0, maxRows)} currentUserId={currentUserId} />
             <button
               type="button"
               className="cap-btn cap-btn--block"

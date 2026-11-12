@@ -35,6 +35,8 @@
   --cap-tabbar-h: 62px;
   --cap-section-gap: 28px;
   --cap-rail: 340px;
+  /* the right rail (two cards) is a little wider than the profile rail */
+  --cap-rail-right: clamp(340px, 28vw, 410px);
 }
 
 .cap-shell {
@@ -346,7 +348,7 @@
     /* Both rails are position:fixed (out of flow); these margins reserve
        their width plus the row gap by hand. */
     margin-left: calc(var(--cap-rail) + 24px);
-    margin-right: calc(var(--cap-rail) + 24px);
+    margin-right: calc(var(--cap-rail-right) + 24px);
     padding-top: 6px;
   }
 
@@ -366,7 +368,7 @@
     scrollbar-color: var(--k-panel-edge) transparent;
   }
   .cap-col-left { left: 0; }
-  .cap-col-right { right: 0; }
+  .cap-col-right { right: 0; width: var(--cap-rail-right); }
 
   /* The profile panel fills its rail and loses the outer edge that now sits on
      the viewport edge — it reads as the chassis' side panel. The right rail
@@ -733,6 +735,18 @@ a.cap-key__face:focus-visible {
   gap: 10px;
   font-size: 1.12rem;
 }
+/* Both cards must fit the rail without scrolling, so the spacing inside them is on the tight side, and tighter still on short windows. */
+.cap-side-card .cap-sidebar-section { gap: 10px; padding: 16px 18px 18px; }
+.cap-side-card .cap-missions__list { gap: 11px; }
+.cap-side-card .cap-mission__body { gap: 4px; }
+.cap-side-card .cap-leaderboard__row { padding-top: 6px; padding-bottom: 6px; }
+@media (min-width: 1180px) and (max-height: 820px) {
+  .cap-side-card .cap-sidebar-section { gap: 6px; padding: 12px 16px 14px; }
+  .cap-side-card .cap-missions__list { gap: 7px; }
+  .cap-side-card .cap-side-title__img { width: 46px; height: 46px; margin: -6px 0 -6px -4px; }
+  .cap-side-card .cap-mission__body { gap: 2px; }
+  .cap-col-right { padding-top: 12px; gap: 12px; }
+}
 
 /* ---- 4a. Misiunile zilei ---- */
 .cap-missions__list {
@@ -831,15 +845,17 @@ a.cap-key__face:focus-visible {
 }
 
 .cap-mission__reward {
-  width: 15px;
-  height: 15px;
+  /* the illustrated gift (assets/images/gamification/cadou); the negative margin keeps the row as tall as it was */
+  width: 34px;
+  height: 34px;
   flex-shrink: 0;
-  color: var(--k-ink-3);
-  opacity: 0.55;
+  margin: -10px -3px -10px 0;
+  opacity: 0.9;
+  filter: grayscale(0.35);
 }
 .cap-mission--done .cap-mission__reward {
-  color: var(--k-orange);
   opacity: 1;
+  filter: none;
 }
 /* A finished mission: its check draws itself, then the reward it paid out
    pops once. */
@@ -885,10 +901,8 @@ a.cap-key__face:focus-visible {
 /* The rail's preview caps at ~5 rows (scrollable, scrollbar hidden);
    LeaderboardModal renders the same rows outside the section, unclipped. */
 .cap-sidebar-section .cap-leaderboard__list {
-  max-height: 272px;
-  overflow-y: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
+  /* no cap here: RightColumn passes only as many rows as fit the window (at most 4) */
+  overflow: hidden;
 }
 .cap-sidebar-section .cap-leaderboard__list::-webkit-scrollbar {
   display: none;

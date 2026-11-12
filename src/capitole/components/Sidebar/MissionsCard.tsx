@@ -1,5 +1,5 @@
 import { useReducedMotion } from 'framer-motion';
-import { CircleCheck, Gift } from 'lucide-react';
+import { CircleCheck } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
 
 interface MissionsCardProps {
@@ -56,9 +56,10 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
                     />
                   ))}
                 </span>
-                <Gift
+                <img
                   className={`cap-mission__reward${mission.done ? ' cap-mission__reward--done' : ''}`}
-                  aria-hidden="true"
+                  src="assets/images/gamification/cadou-mini.svg"
+                  alt=""
                 />
               </span>
               <span className="cap-mission__count">{mission.progress} / {mission.target}</span>
