@@ -7259,11 +7259,10 @@
                     <div class="csim-card__row">
                       <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
                       <span class="csim-card__meta-item">${icon('calendar', { size: 16 })} ${formatTablaDateTime(s.started_at)}</span>
-                      ${isTeacher ? `
-                        <div class="csim-card__actions">
-                          <button class="teme-assignment__delete" data-tabla-delete="${s.id}" data-tabla-title="${BM.esc(s.title)}" title="Șterge">${icon('x', { size: 16 })}</button>
-                        </div>
-                      ` : ''}
+                      <div class="csim-card__actions">
+                        <button class="btn btn--surface btn--sm wb-view-btn" data-tabla-view="${s.id}">${icon('eye', { size: 16 })} Vezi tabla</button>
+                        ${isTeacher ? `<button class="teme-assignment__delete" data-tabla-delete="${s.id}" data-tabla-title="${BM.esc(s.title)}" title="Șterge">${icon('x', { size: 16 })}</button>` : ''}
+                      </div>
                     </div>
                   </div>`).join('')}
               </div>
@@ -7275,6 +7274,11 @@
       document.getElementById('tablaEndBtn')?.addEventListener('click', () => endWhiteboard(live.id));
       document.getElementById('tablaJoinBtn')?.addEventListener('click', () => openWhiteboardLiveView(live));
       document.getElementById('tablaSwitchBtn')?.addEventListener('click', () => switchWhiteboard(elsewhereLive));
+      content.querySelectorAll('[data-tabla-view]').forEach(btn => btn.addEventListener('click', e => {
+        e.stopPropagation();
+        const s = tablaCache.find(x => x.id === btn.dataset.tablaView);
+        if (s) openWhiteboardLiveView(s, { readOnly: true });
+      }));
       if (isTeacher) {
         content.querySelectorAll('[data-tabla-delete]').forEach(btn => btn.addEventListener('click', e => {
           e.stopPropagation();
@@ -7394,6 +7398,7 @@
 
   /* ─── Live roster modal ──────────────────────────────────────────── */
   let _openTablaSessionId  = null;
+  let _tablaViewOnly       = false;   // the open board is the replay of a finished lesson
   let _reloadTablaLiveTimer = null;
   let _openWhiteboardInstance = null;
   // Last-fetched roster — _refreshTablaRoster is the only writer; the
@@ -7408,6 +7413,11 @@
   // (c) the teacher renaming the session, which every other open viewer
   // (including the teacher's own other tab/device) should pick up live.
   function _debouncedTablaLive(e) {
+    if (_tablaViewOnly) {              // a replay: only a rename is followed, nothing else
+      const label = document.getElementById('wbTitleLabel');
+      if (label && e?.new && e.new.id === _openTablaSessionId && e.new.title) label.textContent = e.new.title;
+      return;
+    }
     if (e?.new && _openTablaSessionId && e.new.id === _openTablaSessionId) {
       if (e.new.status === 'ended') {
         BM.toast('Tabla a fost încheiată de profesor.', 'info');
@@ -7446,6 +7456,7 @@
   // other participant joining/leaving/getting (un)locked still updates the
   // avatar strip for everyone watching.
   function _onParticipantChange(e) {
+    if (_tablaViewOnly) return;
     if (e?.new && _openTablaSessionId && e.new.session_id === _openTablaSessionId &&
         BMAuth.user && e.new.user_id === BMAuth.user.id && _openWhiteboardInstance) {
       _openWhiteboardInstance.setLocked(!!e.new.locked);
@@ -7491,6 +7502,7 @@
     document.getElementById('tablaLiveModal')?.remove();
     document.body.classList.remove('wb-fullscreen-active');
     _openTablaSessionId = null;
+    _tablaViewOnly = false;
     document.removeEventListener('fullscreenchange', _onWbFullscreenChange);
     document.removeEventListener('webkitfullscreenchange', _onWbFullscreenChange);
     // Undoes the student-only auto-request in openWhiteboardLiveView, or a
@@ -7552,7 +7564,7 @@
   // count actually changes here.
   function _leaveTablaLiveModal() {
     const sessionId = _openTablaSessionId;
-    if (sessionId) {
+    if (sessionId && !_tablaViewOnly) {
       BMAuth.supabase.from('whiteboard_participants')
         .delete().eq('session_id', sessionId).eq('user_id', BMAuth.user.id)
         .then(() => {}, () => {});
@@ -7565,16 +7577,18 @@
   // class page, which is already sitting on the Tablă tab underneath. That
   // means "leaving the lesson" naturally lands back exactly there with no
   // routing of its own needed.
-  async function openWhiteboardLiveView(session) {
+  async function openWhiteboardLiveView(session, opts) {
     if (!session) return;
+    const viewOnly = !!(opts && opts.readOnly);      // the replay of a finished lesson: look only, for the teacher and for the students
     _closeTablaLiveModal();
     _openTablaSessionId = session.id;
+    _tablaViewOnly = viewOnly;
     document.body.classList.add('wb-fullscreen-active');
 
-    const isTeacher = BMAuth.role === 'profesor';
+    const isTeacher = BMAuth.role === 'profesor' && !viewOnly;
     const modal = document.createElement('div');
     modal.id = 'tablaLiveModal';
-    modal.className = 'wb-fullscreen';
+    modal.className = 'wb-fullscreen' + (viewOnly ? ' wb-fullscreen--view' : '');
     modal.innerHTML = `
       <div class="wb-fs-header">
         <div class="wb-fs-header__left">
@@ -7587,10 +7601,11 @@
             : `<span class="wb-fs-title" id="wbTitleLabel">${BM.esc(session.title)}</span>`}
         </div>
         <div class="wb-fs-header__right">
-          <div class="wb-roster-strip" id="wbRosterStrip">
+          ${viewOnly ? `<span class="wb-fs-viewtag">${icon('eye', { size: 16 })} Doar vizualizare${session.started_at ? '<span class="wb-fs-viewtag__d"> · ' + BM.esc(formatTablaDateTime(session.started_at)) + '</span>' : ''}</span>` : ''}
+          <div class="wb-roster-strip" id="wbRosterStrip"${viewOnly ? ' hidden' : ''}>
             <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți" aria-haspopup="true">${icon('users', { size: 18 })}<span class="wb-roster-btn__n" id="wbRosterCount">…</span></button>
           </div>
-          <button class="icon-btn" id="tablaLiveCloseBtn" title="${isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
+          <button class="icon-btn" id="tablaLiveCloseBtn" title="${viewOnly ? 'Închide' : isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>
       </div>
       <div id="wbCanvasMount" class="wb-canvas-mount">
@@ -7617,7 +7632,7 @@
     // gesture. Best-effort: unsupported (iOS Safari has no Fullscreen API
     // for arbitrary elements) or denied just silently no-ops — the CSS
     // overlay is already the fallback, not a broken state.
-    if (!isTeacher) {
+    if (!isTeacher && !viewOnly) {
       var requestFs = modal.requestFullscreen || modal.webkitRequestFullscreen;
       if (requestFs) {
         try {
@@ -7630,18 +7645,22 @@
 
     let myColor = BMAuth.role === 'profesor' ? '#111827' : null;
     let myLocked = false;
-    try {
-      const { data: participant, error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
-        p_session_id: session.id, p_display_name: BMAuth.displayName(), p_avatar_url: BMAuth.avatarUrl()
-      });
-      if (joinError) throw joinError;
-      myColor = participant?.color || myColor;
-      myLocked = !!participant?.locked;
-    } catch (e) {
-      BM.toast('Nu s-a putut intra în tablă: ' + e.message, 'error');
-    }
+    if (viewOnly) {
+      myColor = '#111827';                 // nobody joins a finished board: no roster row is written, no one is told
+    } else {
+      try {
+        const { data: participant, error: joinError } = await BMAuth.supabase.rpc('join_whiteboard_session', {
+          p_session_id: session.id, p_display_name: BMAuth.displayName(), p_avatar_url: BMAuth.avatarUrl()
+        });
+        if (joinError) throw joinError;
+        myColor = participant?.color || myColor;
+        myLocked = !!participant?.locked;
+      } catch (e) {
+        BM.toast('Nu s-a putut intra în tablă: ' + e.message, 'error');
+      }
 
-    await _refreshTablaRoster(session.id);
+      await _refreshTablaRoster(session.id);
+    }
 
     // Mount the canvas only after a successful join — _openTablaSessionId
     // can have changed (modal closed/reopened) while the RPC above was
@@ -7656,6 +7675,7 @@
         userId: BMAuth.user.id,
         userColor: myColor,
         locked: myLocked,
+        readOnly: viewOnly,
         isTeacher: isTeacher,
         gridOn: !!session.grid_enabled,
         // The toolbar itself no longer shows this (see whiteboard.js) —

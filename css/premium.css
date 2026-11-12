@@ -1118,3 +1118,32 @@ html body.pm:has(#classRoot) .flatpickr-day.today:not(.selected) { border-color:
   html body.pm:has(#classRoot) .wz-step-dot { transition: none; }
 }
 html body.pm:has(#classRoot) select.cls-form-input { background-color: var(--pm-face); }
+
+/* ==========================================================================
+   Tablă live: a smaller emblem in the hero, and the replay of a finished lesson ("Vezi tabla", 2026-11-11)
+   ========================================================================== */
+html body.pm:has(#classRoot) .wb-hero__icon { width: 64px; height: 64px; padding: 0; border-radius: 16px; display: grid; place-items: center; }
+html body.pm:has(#classRoot) .wb-hero__icon svg { width: 30px !important; height: 30px !important; max-width: none; }
+html body.pm:has(#classRoot) .wb-view-btn { white-space: nowrap; }
+html body.pm:has(#classRoot) .csim-card__actions { display: flex; align-items: center; gap: 10px; margin-left: auto; }
+
+/* the replay: no toolbar, no undo, no banner; only the paper, pan and zoom */
+.wb-board--readonly .wb-toolbar,
+.wb-board--readonly .wb-undo-corner,
+.wb-board--readonly .wb-locked-banner,
+.wb-board--readonly .dc-input-hint { display: none !important; }
+.wb-fullscreen--view .wb-fs-corner .wb-fs-zoom-label { display: inline-block; }
+.wb-fs-viewtag {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 14px;
+  border: 1.5px solid var(--pm-line-2, #C9BFE0);
+  border-radius: 999px;
+  background: var(--pm-tint, #EDE7F8);
+  color: var(--pm-key-ink, #3F236E);
+  font-size: 0.82rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+@media (max-width: 720px) { .wb-fs-viewtag { padding: 6px 10px; font-size: 0.74rem; } .wb-fs-viewtag__d { display: none; } }

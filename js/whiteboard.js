@@ -976,7 +976,10 @@
     // setLocked(), wired live from js/class-page.js's roster subscription.
     // Blocks starting anything new; a stroke already mid-gesture when the
     // lock lands is left to finish rather than yanked away mid-draw.
-    this._locked    = !!opts.locked;
+    // readOnly: the replay of a finished lesson (js/class-page.js, "Vezi tabla"). Nothing can be written (it is the locked
+    // state, for good), nothing is listened to (the board is finished), the toolbar is hidden and only pan and zoom work.
+    this._readOnly  = !!opts.readOnly;
+    this._locked    = !!opts.locked || this._readOnly;
     this._isTeacher = !!opts.isTeacher;
     this._gridOn    = !!opts.gridOn;
     // Zoom is now shown OUTSIDE this component entirely (see
@@ -1091,9 +1094,13 @@
     this._bindToolbar();
     this._bindPointerEvents();
     this._bindKeyboard();
-    this._connectRealtime();
+    if (!this._readOnly) this._connectRealtime();
     this._loadExisting();
     this._startLoop();
+    if (this._readOnly) {
+      this._wrap.classList.add('wb-board--readonly');
+      this._setTool('pan');
+    }
   }
 
   /* ---- DOM ---- */
@@ -1692,6 +1699,7 @@
   Whiteboard.prototype._bindKeyboard = function () {
     var self = this;
     this._keyHandler = function (e) {
+      if (self._readOnly) return;     // a replay: no shortcuts, no undo
       var t = document.activeElement;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
@@ -3625,7 +3633,7 @@
   // nicety (an instant, friendly block) on top of a real one, not the only
   // thing standing between a locked student and the board.
   Whiteboard.prototype.setLocked = function (locked) {
-    this._locked = !!locked;
+    this._locked = !!locked || this._readOnly;
     this._applyLockedUi();
     // Re-derive the cursor for whatever tool is currently selected — see
     // _setTool's own locked branch. Harmless no-op call otherwise (same
@@ -3634,7 +3642,7 @@
   };
 
   Whiteboard.prototype._applyLockedUi = function () {
-    if (this._wrap) this._wrap.classList.toggle('wb-board--locked', this._locked);
+    if (this._wrap) this._wrap.classList.toggle('wb-board--locked', this._locked && !this._readOnly);
   };
 
   // Called both locally (the teacher's own click, for instant feedback —
