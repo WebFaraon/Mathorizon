@@ -19967,7 +19967,7 @@ html.bm-leaving body > *:not(#nav-root):not(script):not(style):not(link):not(.bm
 }
 /* the new page's content comes in once it has loaded */
 html.bm-revealing body > *:not(#nav-root):not(script):not(style):not(link):not(.bm-leave) {
-  transition: opacity 0.26s ease !important;
+  transition: opacity 0.32s ease !important;
 }
 .bm-leave__bar {
   width: 168px;

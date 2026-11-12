@@ -39,6 +39,7 @@
     d.innerHTML = loaderHTML();
     document.body.appendChild(d);
     requestAnimationFrame(function () { d.classList.add('is-on'); });
+    try { sessionStorage.setItem('bm_leaving', Date.now() + ':1'); } catch (e) { /* ignore */ }   // the next page then starts with the owl too
   }
 
   // the same owl and bar on the old page (while the next one loads) and on the new page (while it starts), so the two
@@ -58,50 +59,116 @@
     if (root.classList.contains('bm-leaving')) return;
     window.addEventListener('beforeunload', askGuard);
     root.classList.add('bm-leaving');
-    try { sessionStorage.setItem('bm_leaving', String(Date.now())); } catch (e) { /* no storage: the new page just has no loader */ }
+    try { sessionStorage.setItem('bm_leaving', Date.now() + ':0'); } catch (e) { /* no storage: the new page just has no loader */ }
     waitTimer = setTimeout(showLoader, 350);
     // a navigation that never happens (a download, a blocked redirect) must not leave the page faded for good
     safeTimer = setTimeout(clearLeaving, 15000);
   }
 
-  // The new page of a change this script started: its content stays hidden behind the same owl until the page has loaded,
-  // then fades in. (The first paint of a page is mostly empty: its content is built by script a moment later.)
-  var booting = false;
+  // The new page of a change this script started: its content stays hidden until the page is built and still, then ALL of
+  // it fades in together (a page builds itself in steps, and showing the steps looked jerky). If that takes longer than a
+  // moment, or the old page was already showing the owl, the owl is shown meanwhile.
+  var booting = false, bootLoader = false;
   try {
-    var ts = +sessionStorage.getItem('bm_leaving');
+    var parts = String(sessionStorage.getItem('bm_leaving') || '').split(':');
     sessionStorage.removeItem('bm_leaving');
-    booting = !!ts && Date.now() - ts < 20000;
+    booting = !!+parts[0] && Date.now() - +parts[0] < 20000;
+    bootLoader = parts[1] === '1';
   } catch (e) { /* ignore */ }
   if (booting) {
     root.classList.add('bm-leaving');
-    var bootEl = null;
-    var addBoot = function () {
-      if (bootEl || !document.body) return;
+    var bootEl = null, owlAt = 0, started = Date.now(), lastChange = Date.now(), loaded = false, finished = false;
+    var showBoot = function () {
+      if (bootEl || finished || !document.body) return;
       bootEl = document.createElement('div');
       bootEl.className = 'bm-leave bm-leave--boot is-on';
       bootEl.innerHTML = loaderHTML();
       document.body.appendChild(bootEl);
+      owlAt = Date.now();
+    };
+    // The page's own entrance effects (cards dealt one after the other, numbers powering up) are timed from the moment the
+    // elements were built, i.e. while they are still hidden. They are finished off here, so the page comes in as ONE piece.
+    var settleMotion = function () {
+      if (!document.getAnimations) return;
+      document.getAnimations().forEach(function (a) {
+        try {
+          var tm = a.effect && a.effect.getComputedTiming && a.effect.getComputedTiming();
+          var tg = a.effect && a.effect.target;
+          if (!tm || tm.iterations === Infinity) return;
+          if (tg && tg.closest && (tg.closest('.bm-leave') || tg.closest('#nav-root'))) return;
+          a.finish();
+        } catch (err) { /* an animation that cannot be finished simply plays on */ }
+      });
     };
     var bootDone = function () {
-      if (!bootEl && !root.classList.contains('bm-leaving')) return;
+      if (finished) return;
+      finished = true;
+      settleMotion();
       root.classList.add('bm-revealing');
       root.classList.remove('bm-leaving');
-      if (bootEl) { bootEl.classList.remove('is-on'); var gone = bootEl; setTimeout(function () { if (gone.parentNode) gone.parentNode.removeChild(gone); }, 320); }
-      setTimeout(function () { root.classList.remove('bm-revealing'); }, 380);
+      if (bootEl) { bootEl.classList.remove('is-on'); var gone = bootEl; setTimeout(function () { if (gone.parentNode) gone.parentNode.removeChild(gone); }, 340); }
+      setTimeout(function () { root.classList.remove('bm-revealing'); }, 420);
       bootEl = null;
+      if (watcher) watcher.disconnect();
     };
-    if (document.body) addBoot();
+    // anything still loading on screen: the pages' own spinners and skeletons
+    var BUSY = '.classes-loading, .classes-spinner, .ai-loading, .ai-loading__spinner, .cap-card-skeleton, .cap-sidebar-section--skeleton, [aria-busy="true"]';
+    var busyNow = function () {
+      var list = document.querySelectorAll(BUSY);
+      for (var i = 0; i < list.length; i++) { if (list[i].getClientRects().length && !list[i].closest('.bm-leave')) return true; }
+      return false;
+    };
+    var watcher = null;
+    if (window.MutationObserver) {
+      watcher = new MutationObserver(function (muts) {
+        for (var i = 0; i < muts.length; i++) {
+          var m = muts[i], t = m.target;
+          if (m.type === 'characterData') continue;   // typed text, counters: the page does these on purpose, over time
+          if (m.type === 'childList') {
+            var onlyText = true, k;
+            for (k = 0; k < m.addedNodes.length; k++) if (m.addedNodes[k].nodeType !== 3) onlyText = false;
+            for (k = 0; k < m.removedNodes.length; k++) if (m.removedNodes[k].nodeType !== 3) onlyText = false;
+            if (onlyText) continue;
+          }
+          if (t.nodeType === 1 && t.closest && (t.closest('#nav-root') || t.closest('.bm-leave'))) continue;
+          lastChange = Date.now(); return;
+        }
+      });
+      watcher.observe(root, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['class', 'style', 'hidden'] });
+    }
+    // requests still on their way (the data the page shows): a page is "calm" only when none are, so numbers and lists do not pop in after the reveal
+    var inflight = 0;
+    if (window.fetch) {
+      var realFetch = window.fetch;
+      window.fetch = function () {
+        inflight++;
+        var done = function () { inflight--; lastChange = Date.now(); };
+        var pr;
+        try { pr = realFetch.apply(this, arguments); } catch (err) { done(); throw err; }
+        return pr.then(function (r) { done(); return r; }, function (err) { done(); throw err; });
+      };
+    }
+    var tick = function () {
+      if (finished) return;
+      var now = Date.now();
+      if (!bootEl && (bootLoader || now - started > 260)) showBoot();
+      var authOk = window._bmAuthReady === true || !document.querySelector('script[src*="auth.js"]');   // pages un-hide their content once the session is known
+      var calm = authOk && now - lastChange >= 160 && inflight === 0 && !busyNow();
+      var owlLongEnough = !bootEl || now - owlAt >= 420;
+      if ((loaded && calm && owlLongEnough) || now - started > 2600) { bootDone(); return; }
+      setTimeout(tick, 50);
+    };
+    window.addEventListener('load', function () { loaded = true; lastChange = Date.now(); });
+    if (document.body) { if (bootLoader) showBoot(); }
     else {
-      var bmo = new MutationObserver(function () { if (document.body) { bmo.disconnect(); addBoot(); } });
+      var bmo = new MutationObserver(function () { if (document.body) { bmo.disconnect(); if (bootLoader) showBoot(); } });
       bmo.observe(root, { childList: true });
     }
-    var started = Date.now();
-    window.addEventListener('load', function () { setTimeout(bootDone, Math.max(60, 380 - (Date.now() - started))); });
-    setTimeout(bootDone, 6000);
+    tick();
   }
 
   // coming back with the browser's Back button can restore this page from memory, still faded
-  window.addEventListener('pageshow', clearLeaving);
+  window.addEventListener('pageshow', function (e) { if (e.persisted) clearLeaving(); });
 
   function sameOriginPage(u) {
     try {
@@ -139,6 +206,17 @@
       var h = localStorage.getItem(NAV_KEY);
       if (!h || nav.firstElementChild) return;
       nav.innerHTML = h;
+      // the profile button and the counters as they were last seen (same width as the real ones), so the navbar does not
+      // re-flow when the real ones arrive a moment later
+      var guest = root.classList.contains('bm-guest');
+      var pill = localStorage.getItem(guest ? 'bm_nav_pill_guest' : 'bm_nav_pill_user');
+      var btn = nav.querySelector('#navProfileBtn');
+      if (pill && btn) { var tmp = document.createElement('div'); tmp.innerHTML = pill; var nb = tmp.firstElementChild; if (nb) btn.replaceWith(nb); }
+      var cnt = JSON.parse(localStorage.getItem('bm_nav_counts_v1') || 'null');
+      if (cnt && !guest) {
+        nav.querySelectorAll('[data-token-count]').forEach(function (el) { if (cnt.t != null) el.textContent = cnt.t; });
+        nav.querySelectorAll('[data-streak-count]').forEach(function (el) { if (cnt.s != null) el.textContent = cnt.s; });
+      }
       var cur = location.pathname.split('/').pop() || 'index.html';
       if (cur === 'class.html') cur = 'classes.html';
       nav.querySelectorAll('.nav__link[href], .nav__mobile-link[href]').forEach(function (a) {
@@ -146,6 +224,18 @@
       });
     } catch (err) { /* storage blocked: nav-loader fetches it */ }
   }
+  // remember the real profile button and counters when the page is left
+  window.addEventListener('pagehide', function () {
+    try {
+      var b = document.getElementById('navProfileBtn');
+      if (b && b.firstElementChild) {
+        var isPill = b.classList.contains('nav-profile-btn--pill'), isCta = b.classList.contains('nav-profile-btn--cta');
+        if (isPill || isCta) localStorage.setItem(isPill ? 'bm_nav_pill_user' : 'bm_nav_pill_guest', b.outerHTML);
+      }
+      var t = document.querySelector('[data-token-count]'), st = document.querySelector('[data-streak-count]');
+      if (t && st && t.textContent !== '\u2014' && st.textContent !== '\u2014') localStorage.setItem('bm_nav_counts_v1', JSON.stringify({ t: t.textContent, s: st.textContent }));
+    } catch (err) { /* ignore */ }
+  });
   var navEl = document.getElementById('nav-root');
   if (navEl) prefillNav(navEl);
   else {

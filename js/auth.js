@@ -475,6 +475,10 @@
   function _updateProfileBtn() {
     const btn = document.getElementById('navProfileBtn');
     if (!btn) return;
+    // A visitor who looks signed in (token present) but whose session is not confirmed yet keeps the profile button as it is
+    // (js/transitions.js puts the last seen one in): painting the "Conectare" button for a moment would shift the whole navbar.
+    // bmauth:ready (below) repaints it once the real answer is known.
+    if (!currentUser && document.documentElement.classList.contains('bm-auth-pending')) return;
 
     if (currentUser) {
       const av   = _avatarUrl();
@@ -502,6 +506,7 @@
   // than a same-origin partial fetch) but this re-syncs in case that race
   // ever goes the other way.
   BM.onNavReady(_updateProfileBtn);
+  document.addEventListener('bmauth:ready', _updateProfileBtn);   // after auth-hint.js's own listener has cleared bm-auth-pending
 
   /* ============================================================
      PUBLIC API

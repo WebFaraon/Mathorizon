@@ -33,6 +33,13 @@ global.window = {};
 require(path.join(__dirname, '..', 'js', 'icons.js'));
 const icon = global.window.icon;
 
+// The wordmark and the two counter icons are embedded as data URIs: the navbar is painted at the very first frame of
+// every page, and an <img> that has to be requested would arrive a moment later (an empty gap where the logo goes).
+function dataUri(rel) {
+  const buf = fs.readFileSync(path.join(__dirname, '..', rel));
+  return 'data:image/svg+xml;base64,' + buf.toString('base64');
+}
+
 // The 7 icons used in the nav. Edit these (name/size/className) to
 // change what the nav shows, then re-run this script — never hand-edit
 // the <svg> markup in partials/nav.html.
@@ -42,11 +49,11 @@ const NAV_ICONS = {
   antrenament: icon('target',         { size: 16, className: 'nav__mobile-link__icon' }),
   clase:       icon('school',         { size: 16, className: 'nav__mobile-link__icon' }),
   // The two counters carry the illustrated Teorema icons (assets/images/gamification), not line icons.
-  token:       '<img class="token-widget__icon token-widget__img" src="assets/images/gamification/tokenuri-mini.svg" width="24" height="24" alt="">',
+  token:       '<img class="token-widget__icon token-widget__img" src="' + dataUri('assets/images/gamification/tokenuri-mini.svg') + '" width="24" height="24" alt="">',
   // Reuses .token-widget__icon on purpose — the streak pill borrows
   // .token-widget's whole box/icon/count styling (see TEMPLATE below), so
   // its icon needs the exact same sizing class, not a lookalike.
-  streak:      '<img class="token-widget__icon token-widget__img" src="assets/images/gamification/streak-mini.svg" width="24" height="24" alt="">',
+  streak:      '<img class="token-widget__icon token-widget__img" src="' + dataUri('assets/images/gamification/streak-mini.svg') + '" width="24" height="24" alt="">',
   theme:       icon('moon',           { size: 20 }),
   favorite:    icon('heart',          { size: 16, className: 'nav__mobile-link__icon' }),
   history:     icon('clock',          { size: 16, className: 'nav__mobile-link__icon' }),
@@ -76,7 +83,7 @@ const HEADER = `<!--
 
 const TEMPLATE = `    <div class="nav__inner container">
       <a class="nav__brand" href="capitole.html" data-authed-href="capitole.html">
-        <img class="nav__logo" src="assets/images/teorema-wordmark.svg" alt="Teorema" width="316" height="65">
+        <img class="nav__logo" src="${dataUri('assets/images/teorema-wordmark.svg')}" alt="Teorema" width="316" height="65">
       </a>
 
       <div class="nav__links">
