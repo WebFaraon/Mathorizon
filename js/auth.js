@@ -346,6 +346,17 @@
       document.dispatchEvent(new CustomEvent('bmauth:profile', {
         detail: { role: _userRole, status: _userStatus, plan: _userPlan }
       }));
+      // a student who has not picked a nickname and a class yet gets the wizard (js/onboarding.js decides, on calm pages only)
+      let onbDone = false;
+      try { onbDone = localStorage.getItem('bm_onb_' + currentUser.id) === '1'; } catch (e) {}
+      if (_userRole === 'elev' && !onbDone) {
+        if (window.BMOnboarding) window.BMOnboarding.maybe();
+        else if (!document.querySelector('script[src*="js/onboarding.js"]')) {
+          const ob = document.createElement('script');
+          ob.src = 'js/onboarding.js';
+          document.body.appendChild(ob);
+        }
+      }
       // The admin's home is the console: the default landing pages send an
       // admin there, unless they chose "Vezi site-ul" in this tab.
       if (_userRole === 'admin') {

@@ -559,6 +559,7 @@
           <div class="pf-id__main">
             <h1 class="pf-name">${BM.esc(name)}</h1>
             <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}</p>
+            ${role === 'elev' ? `<p class="pf-nick" id="pfNick" hidden></p>` : ''}
           </div>
           <div class="pf-id__actions">
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
@@ -1011,6 +1012,31 @@
 
     /* Edit profile — teacher gets the bigger "business card" modal (bio,
        country, phone, social link too); everyone else just edits the name. */
+    /* Elev: @nickname si clasa, cu cheia de schimbare (wizardul din js/onboarding.js) */
+    const nickEl = document.getElementById('pfNick');
+    if (nickEl) {
+      const paintNick = (nickname, grade) => {
+        if (!nickname && !grade) { nickEl.hidden = true; return; }
+        const roman = ['', '', '', '', '', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        nickEl.innerHTML = (nickname ? `<b>@${BM.esc(nickname)}</b>` : '') + (nickname && grade ? ' · ' : '') + (grade ? `Clasa a ${roman[grade] || grade}-a` : '') +
+          ` <button type="button" class="pf-nick__chg" id="pfNickChg">Schimbă</button>`;
+        nickEl.hidden = false;
+        document.getElementById('pfNickChg')?.addEventListener('click', () => {
+          const go = () => window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname, grade });
+          if (window.BMOnboarding) go();
+          else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
+        });
+      };
+      let ln = '', lg = 0;
+      try { ln = localStorage.getItem('bm_nickname') || ''; lg = parseInt(localStorage.getItem('bm_grade') || '0', 10) || 0; } catch (e) { /* ignore */ }
+      paintNick(ln, lg);
+      try {
+        const r = await sb.rpc('my_student_profile');
+        if (r && r.data) paintNick(r.data.nickname || '', r.data.grade || 0);
+      } catch (e) { /* migratia nu e rulata inca: linia ramane ascunsa */ }
+      document.addEventListener('bm:onboarded', ev => paintNick(ev.detail.nickname, ev.detail.grade));
+    }
+
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {
       _showEditBizcardProfileModal({
         name, bio, countryCode, phone, socialUrl, isTeacher, sb,

@@ -31,6 +31,8 @@ const LIMIT = 500;
 interface LeaderboardRpcRow {
   user_id: string;
   display_name: string;
+  /** Set by the student's onboarding wizard; shown as @nickname in the board. Absent until the nickname migration is run. */
+  nickname?: string | null;
   avatar_url: string | null;
   total_xp: number;
   best_streak: number;
@@ -77,7 +79,7 @@ export function useLeaderboard(): LeaderboardState {
         const rpcRows = (data ?? []) as LeaderboardRpcRow[];
         const rows: LeaderboardRow[] = rpcRows.map((row) => ({
           userId: row.user_id,
-          displayName: row.display_name,
+          displayName: row.nickname ? '@' + row.nickname : row.display_name,
           avatarUrl: row.avatar_url,
           totalXp: row.total_xp,
           bestStreak: row.best_streak,

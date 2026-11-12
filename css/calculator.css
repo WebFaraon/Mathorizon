@@ -5078,3 +5078,8 @@ html { scrollbar-color: color-mix(in srgb, var(--k-blue) 40%, var(--k-panel-edge
 ::selection { background: var(--k-lime); color: #14200A; }
 input, textarea { caret-color: var(--k-blue); }
 input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--k-blue); }
+
+.pf-nick { margin: 4px 0 0; font-size: 0.9rem; font-weight: 600; color: var(--k-ink-2, #5B4F74); }
+.pf-nick b { color: var(--k-ink, #1E1631); font-weight: 800; }
+.pf-nick__chg { margin-left: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
+.pf-nick__chg:hover { color: var(--k-ink, #1E1631); }
