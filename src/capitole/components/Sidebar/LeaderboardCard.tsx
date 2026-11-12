@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Trophy } from 'lucide-react';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { LeaderboardRows } from './LeaderboardRows';
 import { LeaderboardModal } from './LeaderboardModal';
@@ -40,7 +39,7 @@ export function LeaderboardCard({ rows, ready, currentUserId }: LeaderboardCardP
     <>
       <div className="cap-sidebar-section">
         <h2 className="cap-side-title">
-          <Trophy className="cap-side-title__icon cap-side-title__icon--xp" aria-hidden="true" />
+          <img className="cap-side-title__img" src="assets/images/gamification/leaderboard.svg" alt="" />
           Top elevi · XP
         </h2>
 

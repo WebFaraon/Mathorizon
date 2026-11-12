@@ -1,5 +1,5 @@
 import { useReducedMotion } from 'framer-motion';
-import { CircleCheck, Gift, ListChecks } from 'lucide-react';
+import { CircleCheck, Gift } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
 
 interface MissionsCardProps {
@@ -30,7 +30,7 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
   return (
     <div className="cap-sidebar-section">
       <h2 className="cap-side-title">
-        <ListChecks className="cap-side-title__icon" aria-hidden="true" />
+        <img className="cap-side-title__img" src="assets/images/gamification/misiuni.svg" alt="" />
         Misiunile zilei
       </h2>
       <ul className="cap-missions__list">

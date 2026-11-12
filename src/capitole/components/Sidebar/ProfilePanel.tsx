@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Flame, Trophy, Zap, ClipboardList, Award } from 'lucide-react';
+import { Flame, Trophy, Zap, ClipboardList } from 'lucide-react';
 import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
@@ -163,7 +163,7 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
         <div className="cap-profile-section">
           <h4 className="cap-profile-section__title">Realizări</h4>
           <div className="cap-profile-achievements-empty">
-            <Award className="cap-profile-achievements-empty__icon" aria-hidden="true" />
+            <img className="cap-profile-achievements-empty__icon" src="assets/images/gamification/realizari.svg" alt="" />
             <p>Realizările vor apărea aici în curând.</p>
           </div>
         </div>

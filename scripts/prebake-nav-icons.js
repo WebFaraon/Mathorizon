@@ -41,11 +41,12 @@ const NAV_ICONS = {
   simulare:    icon('clipboard-list', { size: 16, className: 'nav__mobile-link__icon' }),
   antrenament: icon('target',         { size: 16, className: 'nav__mobile-link__icon' }),
   clase:       icon('school',         { size: 16, className: 'nav__mobile-link__icon' }),
-  token:       icon('ticket',         { size: 16, className: 'token-widget__icon' }),
+  // The two counters carry the illustrated Teorema icons (assets/images/gamification), not line icons.
+  token:       '<img class="token-widget__icon token-widget__img" src="assets/images/gamification/tokenuri-mini.svg" width="24" height="24" alt="">',
   // Reuses .token-widget__icon on purpose — the streak pill borrows
   // .token-widget's whole box/icon/count styling (see TEMPLATE below), so
   // its icon needs the exact same sizing class, not a lookalike.
-  streak:      icon('flame',          { size: 16, className: 'token-widget__icon' }),
+  streak:      '<img class="token-widget__icon token-widget__img" src="assets/images/gamification/streak-mini.svg" width="24" height="24" alt="">',
   theme:       icon('moon',           { size: 20 }),
   favorite:    icon('heart',          { size: 16, className: 'nav__mobile-link__icon' }),
   history:     icon('clock',          { size: 16, className: 'nav__mobile-link__icon' }),

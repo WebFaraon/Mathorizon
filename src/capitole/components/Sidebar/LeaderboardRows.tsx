@@ -1,4 +1,3 @@
-import { Flame } from 'lucide-react';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 
 /** Same rule js/auth.js's _initials() uses for the nav profile pill, so a
@@ -80,7 +79,7 @@ export function LeaderboardRows({ rows, currentUserId, variant = 'compact' }: Le
               <span className="cap-leaderboard__level">Nivel {row.level}</span>
               {row.bestStreak > 0 && (
                 <span className="cap-leaderboard__streak">
-                  <Flame aria-hidden="true" />
+                  <img src="assets/images/gamification/streak-mini.svg" alt="" />
                   {row.bestStreak}
                 </span>
               )}

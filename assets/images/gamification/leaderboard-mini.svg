@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<path d="M40 34H27C27 56 35 62 47 64" fill="none" stroke="#E0A800" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M88 34H101C101 56 93 62 81 64" fill="none" stroke="#E0A800" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M38 18H90V50C90 70 78 82 64 82C50 82 38 70 38 50Z" fill="#E0A800" transform="translate(0 5)"/>
+<path d="M38 18H90V50C90 70 78 82 64 82C50 82 38 70 38 50Z" fill="#FFD23F"/>
+<path d="M46 26V50C46 62 52 71 60 74" fill="none" stroke="#FFE98A" stroke-width="6" stroke-linecap="round" opacity=".9"/>
+<path d="M64.00 33.00L67.41 41.31L76.36 41.98L69.52 47.79L71.64 56.52L64.00 51.80L56.36 56.52L58.48 47.79L51.64 41.98L60.59 41.31Z" fill="#FFFFFF" stroke="#E0A800" stroke-width="2.6" stroke-linejoin="round"/>
+<rect x="56" y="82" width="16" height="12" fill="#E0A800"/>
+<rect x="30" y="98" width="68" height="18" rx="7" fill="#4C7A00"/><rect x="30" y="94" width="68" height="18" rx="7" fill="#7BB403"/>
+<rect x="40" y="101" width="48" height="5" rx="2.5" fill="#A6DB2E" opacity=".8"/>
+</svg>

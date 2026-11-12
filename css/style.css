@@ -19593,6 +19593,7 @@ body:has(#root) {
   box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
 }
 #nav-root .token-widget__icon { color: var(--nk-lcd-ink); opacity: 0.75; }
+#nav-root .token-widget__img { width: 24px; height: 24px; flex: none; opacity: 1; margin-left: -4px; }
 #nav-root .token-widget__count {
   font-family: 'Doto', monospace;
   font-size: 1.2rem;
