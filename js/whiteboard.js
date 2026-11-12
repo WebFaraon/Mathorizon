@@ -1078,6 +1078,9 @@
     // resize needs the OLD size too (see _applySize).
     this._viewportW = null;
     this._viewportH = null;
+    this._panDirX = 0;   // last direction the camera moved in (decides on which side the painted layers get more room)
+    this._panDirY = 0;
+    this._dragObjs = null; // objects being moved/resized: drawn on the overlay while the committed layer is painted without them
 
     this._build(container);
     this._initFabric();
@@ -1862,17 +1865,27 @@
     this._clampCamera();
 
     var self = this;
-    [this._gridEl, this._fabricEl, this._overlayEl].forEach(function (el) {
-      el.style.width  = vw + 'px';
-      el.style.height = vh + 'px';
-      el.width  = Math.round(vw * self._dpr);
-      el.height = Math.round(vh * self._dpr);
+    // The grid and stroke layers are BIGGER than the viewport (by OVERSCAN, shared between both sides): a pan then only moves the
+    // already painted layers with a CSS transform, and a layer is repainted only when the viewport is about to leave it
+    this._cw = Math.ceil(vw * (1 + OVERSCAN));
+    this._ch = Math.ceil(vh * (1 + OVERSCAN));
+    [[this._gridEl, this._cw, this._ch], [this._overlayEl, vw, vh]].forEach(function (a) {
+      var el = a[0];
+      el.style.width  = a[1] + 'px';
+      el.style.height = a[2] + 'px';
+      el.width  = Math.round(a[1] * self._dpr);
+      el.height = Math.round(a[2] * self._dpr);
     });
+    this._gridEl.style.right = 'auto';
+    this._gridEl.style.bottom = 'auto';
+    this._gridEl.style.willChange = 'transform';
     // Fabric applies its OWN (uncapped, automatic) retina scaling on top
     // of these CSS dimensions — safe to leave uncapped now that the
     // backing store this produces is pinned to the viewport instead of
     // growing with zoom, see this method's own comment above.
-    this._fabricCanvas.setDimensions({ width: vw, height: vh });
+    this._fabricCanvas.setDimensions({ width: this._cw, height: this._ch });
+    var wEl = this._fabricCanvas.wrapperEl;
+    if (wEl) { wEl.style.position = 'absolute'; wEl.style.zIndex = '1'; wEl.style.willChange = 'transform'; wEl.style.pointerEvents = 'none'; }
 
     this._rend = null;          // sizes changed: whatever was painted is gone, the next sync is a full render
     this._syncViewport();
@@ -1914,20 +1927,23 @@
   };
 
   /* How the board is repainted when the camera moves (2026-11-12):
-       - a PAN keeps the pixels already painted: the canvases are shifted by a whole number of device pixels and only the thin strip
-         that came into view is painted (grid and strokes alike) - the cost of a pan frame no longer depends on how much is on the board;
-       - a ZOOM on a heavy board (many strokes in view) is shown by scaling the painted bitmaps with a CSS transform while the wheel or
-         the pinch keeps going, and the board is repainted sharp once it stops (130 ms). On a light board it is repainted every step;
-       - anything else (first paint, resize, big jumps) is a full render.
-     The pan always lands on whole device pixels (this._panX/_panY are snapped here), which is what makes the shift exact. */
-  var HEAVY_SCENE_CMDS = 3500;   // path commands in view above which a zoom is shown by scaling the bitmaps
+       - the grid and the strokes live on two layers bigger than the viewport (OVERSCAN). A PAN does not paint anything: both layers are
+         moved by a CSS transform (a whole number of device pixels, done by the GPU). Only when the viewport is about to leave the
+         painted area are they repainted, from scratch, with more room on the side the pan is heading to. Nothing is ever patched
+         piece by piece, so no seams can show;
+       - a ZOOM on a heavy board (many strokes in view) is shown by scaling the painted layers with the same CSS transform while the
+         wheel or the pinch keeps going, and the board is repainted sharp once it stops (130 ms). On a light board it is repainted
+         at every step;
+       - anything else (first paint, resize) is a full repaint.
+     this._rend is the camera the layers were painted at; the layers' CSS offset (ox, oy) and transform say where they are now. */
+  var HEAVY_SCENE_CMDS = 3500;   // path commands in view above which a zoom is shown by scaling the layers
+  var OVERSCAN = 0.6;            // extra layer size, as a fraction of the viewport, per axis (both sides together)
 
   Whiteboard.prototype._syncViewport = function () {
     var dpr = this._dpr;
     this._panX = Math.round(this._panX * dpr) / dpr;
     this._panY = Math.round(this._panY * dpr) / dpr;
-    var fc = this._fabricCanvas, r = this._rend;
-    fc.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
+    var r = this._rend;
 
     var sameCanvas = r && r.vw === this._viewportW && r.vh === this._viewportH && r.dpr === dpr;
     if (!sameCanvas) {
@@ -1936,19 +1952,23 @@
       // a zoom step
       if (this._gestureXform || this._sceneCost() > HEAVY_SCENE_CMDS) this._gestureTransform();
       else this._fullRender();
-    } else if (this._gestureXform) {
-      // zoom stopped moving but its settle render is still waiting, and the camera moved again (a pan): settle now
-      this._fullRender();
     } else {
-      var dx = Math.round((this._panX - r.panX) * dpr), dy = Math.round((this._panY - r.panY) * dpr);
-      if (dx || dy) {
-        var W = this._gridEl.width, H = this._gridEl.height;
-        if (Math.abs(dx) > W * 0.6 || Math.abs(dy) > H * 0.6) this._fullRender();
-        else this._blitPan(dx, dy);
+      var tx = this._panX - r.panX, ty = this._panY - r.panY;
+      if (this._gestureXform) {
+        this._gestureTransform();
+      } else {
+        // the viewport must stay inside the painted layers after the shift, else they are repainted around the new camera first
+        var L = r.ox + tx, T = r.oy + ty;
+        if (tx) this._panDirX = tx > 0 ? 1 : -1;
+        if (ty) this._panDirY = ty > 0 ? 1 : -1;
+        if (L > 0 || T > 0 || L + this._cw < this._viewportW || T + this._ch < this._viewportH) this._fullRender();
+        else this._applyLayerXform(1, tx, ty);
       }
     }
 
     this._dirty = true;
+    // the overlay (live strokes, selection, a dragged object) is painted at the current camera right away, so it never trails the layers
+    if (this._liveStrokes.size || this._selectedIds.size || this._dragObjs) { this._redrawOverlay(); this._dirty = false; }
     // Keeps the text tool's live editing <textarea> anchored to its spot on the BOARD
     if (this._textEditing) this._repositionTextEditor();
     // The pen cursor's own on-screen size is the picked width AT THE CURRENT ZOOM
@@ -1967,79 +1987,47 @@
     return cost;
   };
 
-  // Everything repainted at the current camera; the camera the canvases now show is remembered in this._rend.
+  // Where the layers sit and how they are stretched: k scales them about their own top-left corner, (tx,ty) moves them.
+  Whiteboard.prototype._applyLayerXform = function (k, tx, ty) {
+    var m = (k === 1 && !tx && !ty) ? '' : 'matrix(' + k + ',0,0,' + k + ',' + tx + ',' + ty + ')';
+    var els = [this._gridEl, this._fabricCanvas.wrapperEl];
+    for (var i = 0; i < els.length; i++) {
+      if (!els[i]) continue;
+      els[i].style.transformOrigin = '0 0';
+      els[i].style.transform = m;
+    }
+  };
+
+  // Everything repainted around the current camera; the camera the layers now show is remembered in this._rend.
+  // The layers get more room on the side the camera has been moving towards, so a long pan needs few repaints.
   Whiteboard.prototype._fullRender = function () {
     clearTimeout(this._gestureTimer);
-    this._fabricCanvas.renderAll();      // synchronous, so a CSS transform can be dropped in the very same task, with no flash of the old bitmap
+    var dpr = this._dpr, vw = this._viewportW, vh = this._viewportH;
+    var exX = this._cw - vw, exY = this._ch - vh;
+    // content moving right (pan growing) uncovers the left side: more room on the left
+    var mx = exX * (this._panDirX > 0 ? 0.75 : this._panDirX < 0 ? 0.25 : 0.5);
+    var my = exY * (this._panDirY > 0 ? 0.75 : this._panDirY < 0 ? 0.25 : 0.5);
+    var ox = -Math.round(mx * dpr) / dpr, oy = -Math.round(my * dpr) / dpr;
+    this._rend = { scale: this._scale, panX: this._panX, panY: this._panY, ox: ox, oy: oy, vw: vw, vh: vh, dpr: dpr };
+    var fc = this._fabricCanvas;
+    fc.setViewportTransform([this._scale, 0, 0, this._scale, this._panX - ox, this._panY - oy]);
+    this._gridEl.style.left = ox + 'px'; this._gridEl.style.top = oy + 'px';
+    if (fc.wrapperEl) { fc.wrapperEl.style.left = ox + 'px'; fc.wrapperEl.style.top = oy + 'px'; }
+    this._gestureXform = false;
+    this._applyLayerXform(1, 0, 0);
+    fc.renderAll();      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
     this._redrawGrid();
-    this._clearGestureTransform();
-    this._rend = { scale: this._scale, panX: this._panX, panY: this._panY, vw: this._viewportW, vh: this._viewportH, dpr: this._dpr };
   };
 
-  // Shifts the painted pixels of the grid and stroke layers by (dx,dy) device pixels and paints only the strip that came into view.
-  Whiteboard.prototype._blitPan = function (dx, dy) {
-    var gridEl = this._gridEl, fabEl = this._fabricEl, W = gridEl.width, H = gridEl.height;
-    var g = this._gridCtx, f = this._fabricCanvas.getContext();
-    [[g, gridEl], [f, fabEl]].forEach(function (pair) {
-      var c = pair[0];
-      c.save();
-      c.setTransform(1, 0, 0, 1, 0, 0);
-      c.globalCompositeOperation = 'copy';   // replaces the bitmap with its shifted self; the newly exposed strips come out transparent
-      c.drawImage(pair[1], dx, dy);
-      c.restore();
-    });
-    var strips = [];
-    if (dx > 0) strips.push({ x: 0, y: 0, w: dx, h: H }); else if (dx < 0) strips.push({ x: W + dx, y: 0, w: -dx, h: H });
-    if (dy > 0) strips.push({ x: 0, y: 0, w: W, h: dy }); else if (dy < 0) strips.push({ x: 0, y: H + dy, w: W, h: -dy });
-    for (var i = 0; i < strips.length; i++) {
-      this._redrawGrid(strips[i]);
-      this._renderFabricRect(strips[i]);
-    }
-    this._rend.panX = this._panX;
-    this._rend.panY = this._panY;
-    // when the pan stops, one exact full render replaces the shifted pixels (a few anti-aliased edge pixels may differ from a fresh paint)
-    var self = this;
-    clearTimeout(this._panSettleTimer);
-    this._panSettleTimer = setTimeout(function () { if (!self._destroyed && !self._gestureXform) self._fullRender(); }, 220);
-  };
-
-  // Paints the objects that touch a device-pixel rectangle of the stroke layer, clipped to it.
-  Whiteboard.prototype._renderFabricRect = function (r) {
-    var fc = this._fabricCanvas, ctx = fc.getContext(), v = fc.viewportTransform, k = 1 / this._dpr;
-    var cx = r.x * k, cy = r.y * k, cw = r.w * k, ch = r.h * k;
-    var lx0 = (cx - v[4]) / v[0] - 2, ly0 = (cy - v[5]) / v[3] - 2, lx1 = (cx + cw - v[4]) / v[0] + 2, ly1 = (cy + ch - v[5]) / v[3] + 2;
-    ctx.save();
-    ctx.beginPath();
-    ctx.rect(cx, cy, cw, ch);
-    ctx.clip();
-    ctx.clearRect(cx, cy, cw, ch);
-    ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
-    fc.getObjects().forEach(function (o) {
-      if (o.visible === false) return;
-      var b = o.getBoundingRect(true);
-      var pad = (o.strokeWidth || 0) * (o.scaleX || 1);
-      if (b.left - pad > lx1 || b.left + b.width + pad < lx0 || b.top - pad > ly1 || b.top + b.height + pad < ly0) return;
-      o.render(ctx);
-    });
-    ctx.restore();
-  };
-
-  // A zoom step shown by scaling the bitmaps painted at this._rend's camera (cheap, composited by the GPU); repainted sharp once it stops.
+  // A zoom step shown by scaling the layers painted at this._rend's camera (cheap, composited by the GPU); repainted sharp once it stops.
   Whiteboard.prototype._gestureTransform = function () {
     var r = this._rend, k = this._scale / r.scale;
-    var tx = this._panX - k * r.panX, ty = this._panY - k * r.panY;
-    var m = 'matrix(' + k + ',0,0,' + k + ',' + tx + ',' + ty + ')';
-    [this._gridEl, this._fabricEl].forEach(function (el) { el.style.transformOrigin = '0 0'; el.style.transform = m; });
-    // the fabric wrapper element Fabric creates around its canvas must not clip the scaled bitmap away from the layer stack
+    var tx = (k - 1) * r.ox + this._panX - k * r.panX, ty = (k - 1) * r.oy + this._panY - k * r.panY;
+    this._applyLayerXform(k, tx, ty);
     this._gestureXform = true;
     var self = this;
     clearTimeout(this._gestureTimer);
-    this._gestureTimer = setTimeout(function () { if (!self._destroyed) { self._gestureXform = false; self._fullRender(); self._fabricCanvas.requestRenderAll(); self._dirty = true; } }, 130);
-  };
-
-  Whiteboard.prototype._clearGestureTransform = function () {
-    this._gestureXform = false;
-    [this._gridEl, this._fabricEl].forEach(function (el) { if (el.style.transform) { el.style.transform = ''; el.style.transformOrigin = ''; } });
+    this._gestureTimer = setTimeout(function () { if (!self._destroyed) { self._fullRender(); self._dirty = true; } }, 130);
   };
 
   // Keeps the board from being panned/zoomed away into empty space with
@@ -2086,21 +2074,21 @@
   // are — those redraw every frame during a whole gesture regardless, so
   // batching them earns its keep; a plain rect-and-some-lines redraw here
   // and there doesn't need it.
-  Whiteboard.prototype._redrawGrid = function (rect) {
+  Whiteboard.prototype._redrawGrid = function () {
     var ctx = this._gridCtx;
     var el  = this._gridEl;
-    var r = rect || { x: 0, y: 0, w: el.width, h: el.height };   // device pixels
+    // painted at the camera the layer was last repainted at (this._rend), around the layer's own offset in the viewport
+    var rc = this._rend || { scale: this._scale, panX: this._panX, panY: this._panY, ox: 0, oy: 0 };
     ctx.save();
     ctx.setTransform(1, 0, 0, 1, 0, 0);
-    if (rect) { ctx.beginPath(); ctx.rect(r.x, r.y, r.w, r.h); ctx.clip(); }
-    ctx.clearRect(r.x, r.y, r.w, r.h);
-    var s = this._scale * this._dpr;
-    var pxDev = this._panX * this._dpr, pyDev = this._panY * this._dpr;
+    ctx.clearRect(0, 0, el.width, el.height);
+    var s = rc.scale * this._dpr;
+    var pxDev = (rc.panX - rc.ox) * this._dpr, pyDev = (rc.panY - rc.oy) * this._dpr;
     ctx.setTransform(s, 0, 0, s, pxDev, pyDev);
-    // only the part of the board that is on screen (or in the strip being repainted) is ever painted: at 1000% zoom the whole
+    // only the part of the board that is on the layer is ever painted: at 1000% zoom the whole
     // 1400x900 board is 14000x9000 px, and drawing every line of it (the first version did) is what made panning with the grid on crawl
-    var vx0 = Math.max(0, (r.x - pxDev) / s), vx1 = Math.min(LOGICAL_W, (r.x + r.w - pxDev) / s);
-    var vy0 = Math.max(0, (r.y - pyDev) / s), vy1 = Math.min(LOGICAL_H, (r.y + r.h - pyDev) / s);
+    var vx0 = Math.max(0, -pxDev / s), vx1 = Math.min(LOGICAL_W, (el.width - pxDev) / s);
+    var vy0 = Math.max(0, -pyDev / s), vy1 = Math.min(LOGICAL_H, (el.height - pyDev) / s);
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
     if (!this._gridOn || vx1 <= vx0 || vy1 <= vy0) { ctx.restore(); return; }
@@ -2109,11 +2097,11 @@
     // Levels: level 0 is the coarsest step (fixed in logical units, see this._gridBaseStep), every next one is the previous
     // divided by MINOR_GRID_SUBDIVISIONS, down to what is still visible at the current zoom. Every line of every level sits
     // at a fixed logical position, so lines never jump while zooming; a finer level just fades in.
-    var baseStep = this._gridBaseStep || niceGridStep(Math.min(GRID_CELL_TARGET_PX_MAX, 32) / this._scale);
+    var baseStep = this._gridBaseStep || niceGridStep(Math.min(GRID_CELL_TARGET_PX_MAX, 32) / rc.scale);
     var steps = [baseStep];
     for (var i = 1; i < GRID_MAX_LEVELS; i++) {
       var nextStep = steps[i - 1] / MINOR_GRID_SUBDIVISIONS;
-      if (nextStep * this._scale < MINOR_GRID_FADE_MIN_PX) break;
+      if (nextStep * rc.scale < MINOR_GRID_FADE_MIN_PX) break;
       steps.push(nextStep);
     }
 
@@ -2124,7 +2112,7 @@
       if (lvl === 0) {
         opacity = MAJOR_GRID_OPACITY;
       } else {
-        var stepPx = step * this._scale;
+        var stepPx = step * rc.scale;
         var t = Math.max(0, Math.min(1, (stepPx - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX)));
         opacity = MINOR_GRID_OPACITY * t;
         if (opacity <= 0) continue;
@@ -2492,6 +2480,12 @@
         return;
       }
       if (st.moving) {
+        // a plain click that wiggles a pixel must not take the objects off the committed layer
+        if (!st.dragLayerOn) {
+          if (dist(pos, st.dragStart) * self._scale < 3) return;
+          st.dragLayerOn = true;
+          self._beginDragLayer(st.objIds);
+        }
         // One shared (groupDx,groupDy) applied on top of each object's OWN
         // starting offset — a rigid group translation, so objects that
         // already sat at different individual offsets (from an earlier,
@@ -2520,6 +2514,7 @@
         // the shape's own center now vs. at the start of the drag — clamped
         // so a wild swipe can't invert the shape (crossing through 0) or
         // blow it up past readability.
+        if (!st.dragLayerOn) { st.dragLayerOn = true; self._beginDragLayer([st.objId]); }
         var newDist = Math.max(1, dist(st.center, pos));
         var newScale = Math.max(0.15, Math.min(6, st.startScale * (newDist / st.startDist)));
         self._setObjectScale(st.objId, newScale);
@@ -2602,6 +2597,7 @@
       }
       if (st.moving) {
         el.style.cursor = 'default';
+        if (st.dragLayerOn) self._endDragLayer();
         // Unthrottled — the throttled broadcasts during the drag may have
         // skipped the very last point, and this is the one every other
         // viewer needs to land on exactly.
@@ -2615,6 +2611,7 @@
       }
       if (st.resizing) {
         el.style.cursor = 'default';
+        if (st.dragLayerOn) self._endDragLayer();
         var finalScale = self._myObjectScales.get(st.objId) || 1;
         var fOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
         self._send('object:move', { moves: [{ id: st.objId, offsetX: fOff.dx, offsetY: fOff.dy, scale: finalScale }] });
@@ -2673,6 +2670,7 @@
           return { id: id, offsetX: so.dx, offsetY: so.dy };
         });
         self._dirty = true;
+        if (st.dragLayerOn) self._endDragLayer();
         self._send('object:move', { moves: revertMoves });
         return;
       }
@@ -2680,6 +2678,7 @@
         el.style.cursor = 'default';
         self._setObjectScale(st.objId, st.startScale);
         self._dirty = true;
+        if (st.dragLayerOn) self._endDragLayer();
         var cOff = self._myObjectOffsets.get(st.objId) || { dx: 0, dy: 0 };
         self._send('object:move', { moves: [{ id: st.objId, offsetX: cOff.dx, offsetY: cOff.dy, scale: st.startScale }] });
         return;
@@ -2926,6 +2925,12 @@
   // is just breathing room for the caret at the end of the widest line
   // (measureText alone would put it flush against the edge).
   var TEXT_WIDTH_PAD = 10;
+  var TEXT_LINE_HEIGHT = 1.3;       // the editor's CSS line-height (.wb-text-editor), and about what Fabric's own line height comes to
+  var TEXT_SCREEN_TARGET_PX = 56;   // a new text is about this tall on the screen at any zoom, within [TEXT_MIN_FONT, TEXT_DEFAULT_FONT_SIZE] logical
+  var TEXT_MIN_FONT = 10;
+  Whiteboard.prototype._defaultTextSize = function () {
+    return Math.round(Math.max(TEXT_MIN_FONT, Math.min(TEXT_DEFAULT_FONT_SIZE, TEXT_SCREEN_TARGET_PX / this._scale)));
+  };
   Whiteboard.prototype._clampTextWidth = function (text, fontSizeLogical) {
     return Math.min(Math.max(measureTextWidth(text, fontSizeLogical) + TEXT_WIDTH_PAD, TEXT_MIN_WIDTH), TEXT_MAX_WIDTH);
   };
@@ -2944,8 +2949,9 @@
     var ta = editing.ta;
     var w = this._clampTextWidth(ta.value, editing.fontSize);
     var wrapRect = this._canvasWrap.getBoundingClientRect();
-    ta.style.left = (wrapRect.left + this._panX + editing.topLeft.x * this._scale) + 'px';
-    ta.style.top  = (wrapRect.top  + this._panY + editing.topLeft.y * this._scale) + 'px';
+    // minus what the editor's own padding and the committed text's drawing offset add, so the typed glyphs sit where the final text will
+    ta.style.left = (wrapRect.left + this._panX + editing.topLeft.x * this._scale - 5) + 'px';
+    ta.style.top  = (wrapRect.top  + this._panY + editing.topLeft.y * this._scale - 2) + 'px';
     ta.style.width = (w * editing.scale * this._scale) + 'px';
     ta.style.fontSize = (editing.fontSize * editing.scale * this._scale) + 'px';
     ta.style.height = 'auto';
@@ -2963,7 +2969,7 @@
   Whiteboard.prototype._startTextEditor = function (pos, existingObj) {
     if (this._textEditing) this._finishTextEditor(false); // finish whatever was already open first
     var self = this;
-    var fontSize = TEXT_DEFAULT_FONT_SIZE, color = this._color, scale = 1;
+    var fontSize = this._defaultTextSize(), color = this._color, scale = 1;
     var initialText = '', topLeft;
     if (existingObj) {
       var j = this._myObjectsJson.get(existingObj.data.id) || {};
@@ -2989,7 +2995,8 @@
       this._dirty = true;
       this._fabricCanvas.requestRenderAll();
     } else {
-      topLeft = pos;
+      // the first line sits centered on the click, and its left edge on it: the text starts exactly under the pointer
+      topLeft = { x: pos.x, y: pos.y - fontSize * TEXT_LINE_HEIGHT / 2 };
     }
 
     var ta = document.createElement('textarea');
@@ -3366,7 +3373,7 @@
       obj = new fabric.Textbox(j.text || '', {
         left: j.left, top: j.top, width: j.textWidth, fontSize: j.fontSize,
         fontFamily: TEXT_FONT_FAMILY, fill: j.color, editable: false,
-        selectable: false, evented: false, objectCaching: true,
+        selectable: false, evented: false, objectCaching: false, // no cached bitmap: text stays sharp at any zoom
         originX: 'center', originY: 'center',
         data: { id: row.id, ownerId: row.created_by, isShape: false, isText: true }
       });
@@ -3648,7 +3655,30 @@
     var scale = this._myObjectScales.get(objId) || 1;
     obj.set({ left: natural.left + dx, top: natural.top + dy, scaleX: scale, scaleY: scale });
     obj.setCoords();
+    if (this._dragObjs && this._dragObjs.indexOf(obj) >= 0) { this._dirty = true; return; } // drawn on the overlay, nothing else to repaint
     this._fabricCanvas.requestRenderAll();
+  };
+
+  // While objects are moved or resized they are taken off the committed layer (painted once without them) and drawn on the
+  // overlay at every frame: a drag then costs a few objects per frame, however much else is on the board.
+  Whiteboard.prototype._beginDragLayer = function (ids) {
+    var objs = [], self = this;
+    ids.forEach(function (id) { var o = self._objectsById.get(id); if (o) objs.push(o); });
+    if (!objs.length) return;
+    this._dragObjs = objs;
+    objs.forEach(function (o) { o.visible = false; });
+    this._fullRender();
+  };
+
+  Whiteboard.prototype._endDragLayer = function () {
+    var objs = this._dragObjs;
+    if (!objs) return;
+    this._dragObjs = null;
+    objs.forEach(function (o) { o.visible = true; });
+    if (this._destroyed) return;
+    this._fabricCanvas.renderAll();   // back on the committed layer in the same task that the overlay stops drawing them
+    this._redrawOverlay();
+    this._dirty = false;
   };
 
   // Resize handle drag (see _drawSelectionOverlay for the handle itself and
@@ -3831,8 +3861,7 @@
       btn.classList.toggle('dc-action-btn--active', on);
       btn.title = on ? 'Ascunde grila' : 'Arată grila';
     }
-    this._redrawGrid();
-    if (this._gestureXform) this._fullRender();
+    if (this._gestureXform) this._fullRender(); else this._redrawGrid();
   };
 
   /* ---- Render loop (overlay only — Fabric renders itself on demand) ---- */
@@ -3854,6 +3883,16 @@
     ctx.clearRect(0, 0, el.width, el.height);
     var s = this._scale * this._dpr;
     ctx.setTransform(s, 0, 0, s, this._panX * this._dpr, this._panY * this._dpr);
+    if (this._dragObjs) {
+      var fcv = this._fabricCanvas, skip = fcv.skipOffscreen;
+      fcv.skipOffscreen = false;   // the layer's own view is not the camera the overlay is painted at
+      this._dragObjs.forEach(function (o) {
+        o.visible = true;
+        try { o.render(ctx); } catch (err) { /* a half-built object must not stop the frame */ }
+        o.visible = false;
+      });
+      fcv.skipOffscreen = skip;
+    }
     this._liveStrokes.forEach(function (st) {
       // A variable-width pen stroke is recognizable by its own points
       // carrying .w (set in _bindPointerEvents' pen branch and, for
