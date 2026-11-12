@@ -368,18 +368,21 @@
   .cap-col-left { left: 0; }
   .cap-col-right { right: 0; }
 
-  /* The panels fill their rail and lose the outer edge that now sits on
-     the viewport edge — they read as the chassis' side panels. */
-  .cap-profile-panel,
-  .cap-sidebar-panel {
+  /* The profile panel fills its rail and loses the outer edge that now sits on
+     the viewport edge — it reads as the chassis' side panel. The right rail
+     holds two separate cards instead (.cap-side-card), with room around them. */
+  .cap-profile-panel {
     flex: 1 1 auto;
     min-height: 0;
     border-radius: 0;
     border-top: none;
     border-bottom: none;
+    border-left: none;
   }
-  .cap-profile-panel { border-left: none; }
-  .cap-sidebar-panel { border-right: none; }
+  .cap-col-right {
+    padding: 18px 16px 24px;
+    box-sizing: border-box;
+  }
 }
 
 /* ---- 3. KEYPAD (chapters) --------------------------------------------- */
@@ -674,26 +677,15 @@ a.cap-key__face:focus-visible {
 
 /* ---- 4. SIDE PANELS (shared) ------------------------------------------ */
 .cap-profile-panel,
-.cap-sidebar-panel {
+.cap-side-card {
   display: flex;
   flex-direction: column;
   background: var(--k-panel);
   border: 1px solid var(--k-panel-edge);
   border-radius: var(--k-r);
 }
-
-.cap-sidebar-panel {
-  min-height: 0;
-  overflow-y: auto;
-}
-.cap-sidebar-panel > * {
+.cap-side-card > * {
   flex-shrink: 0;
-}
-
-.cap-sidebar-divider {
-  height: 1px;
-  margin: 0 20px;
-  background: var(--k-rule);
 }
 
 .cap-sidebar-section {
@@ -732,10 +724,14 @@ a.cap-key__face:focus-visible {
 .cap-side-title__icon--xp { color: var(--k-orange); }
 /* The illustrated icons (assets/images/gamification) sit a little larger than the line icons did. */
 .cap-side-title__img {
-  width: 34px;
-  height: 34px;
+  width: 56px;
+  height: 56px;
   flex-shrink: 0;
-  margin: -6px 0 -6px -5px;
+  margin: -8px 0 -8px -6px;
+}
+.cap-side-card .cap-side-title {
+  gap: 10px;
+  font-size: 1.12rem;
 }
 
 /* ---- 4a. Misiunile zilei ---- */

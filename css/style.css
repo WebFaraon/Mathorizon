@@ -19584,37 +19584,38 @@ body:has(#root) {
   border-left-color: rgba(255, 255, 255, 0.16);
 }
 
-/* Token and streak counters: a small classic LCD (pale green-gray glass,
-   dark dot-matrix digits) set into the strip. */
+/* Token and streak counters: not keys but wells sunk into the strip. No bottom edge standing out, no shadow outside;
+   the depth is inside (a dark top inset, a thin lit lip below), in a deeper violet than the strip. */
+#nav-root { --nk-well: #2A1550; --nk-well-edge: #20103F; }
+[data-theme="dark"] #nav-root { --nk-well: #190E33; --nk-well-edge: #120A27; }
 #nav-root .token-widget {
-  border: 1px solid var(--nk-key-edge);
-  border-radius: 3px;
-  background: var(--nk-lcd);
-  box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.22);
+  border: 1.5px solid var(--nk-well-edge);
+  border-radius: 10px;
+  background: var(--nk-well);
+  box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5), inset 0 -1px 0 rgba(255, 255, 255, 0.05), 0 1px 0 rgba(255, 255, 255, 0.09);
 }
-#nav-root .token-widget__icon { color: var(--nk-lcd-ink); opacity: 0.75; }
+#nav-root .token-widget__icon { color: var(--nk-ink); opacity: 0.85; }
 #nav-root .token-widget__img { width: 24px; height: 24px; flex: none; opacity: 1; margin-left: -4px; }
 #nav-root .token-widget__count {
-  font-family: 'Doto', monospace;
-  font-size: 1.2rem;
-  font-weight: 900;
-  color: var(--nk-lcd-ink);
+  font-family: var(--font-ui, 'Plus Jakarta Sans', system-ui, sans-serif);
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #FFFFFF;
   text-shadow: none;
 }
 #nav-root .token-widget__label {
-  font-size: 0.6rem;
+  font-size: 0.62rem;
   font-weight: 800;
   letter-spacing: 0.1em;
-  color: rgba(28, 39, 24, 0.62);
+  color: rgba(229, 221, 243, 0.66);
 }
-/* Low / empty: the glass itself takes the warning tint. */
-#nav-root .token-widget--low { background: #E7D8A2; border-color: #7A5E0B; }
-#nav-root .token-widget--low .token-widget__count,
-#nav-root .token-widget--low .token-widget__icon { color: #4A3806; }
-#nav-root .token-widget--empty { background: #EBC3B9; border-color: #7A2414; }
-#nav-root .token-widget--empty .token-widget__count,
-#nav-root .token-widget--empty .token-widget__icon { color: #5C1509; }
-#nav-root .token-widget--empty .token-widget__label { color: rgba(92, 21, 9, 0.7); }
+/* Low / empty: the well itself takes the warning tint. */
+#nav-root .token-widget--low { background: #3E2A12; border-color: #5E4410; }
+#nav-root .token-widget--low .token-widget__count { color: #FFD23F; text-shadow: none; }
+#nav-root .token-widget--low .token-widget__label { color: rgba(255, 210, 63, 0.75); }
+#nav-root .token-widget--empty { background: #4A1630; border-color: #6E2040; }
+#nav-root .token-widget--empty .token-widget__count { color: #FFB3C1; }
+#nav-root .token-widget--empty .token-widget__label { color: rgba(255, 179, 193, 0.75); }
 #nav-root .token-widget--empty .token-widget__icon { filter: none; }
 
 #nav-root .nav-profile-name { color: var(--nk-ink); }

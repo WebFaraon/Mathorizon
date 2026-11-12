@@ -485,11 +485,16 @@ html body.pm:has(#root) .cap-key__soon {
 }
 
 /* ---- Side panels (the rails are flush on wide screens, rounded when stacked) ---- */
-html body.pm:has(#root) .cap-sidebar-panel,
 html body.pm:has(#root) .cap-profile-panel { border-color: var(--pm-line); }
 @media (max-width: 1179.98px) {
-  html body.pm:has(#root) .cap-sidebar-panel,
   html body.pm:has(#root) .cap-profile-panel { border-radius: 18px; overflow: hidden; }
+}
+/* The right rail: two separate cards, each framed like a key face, with its own solid edge. */
+html body.pm:has(#root) .cap-side-card {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 18px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
 }
 html body.pm:has(#root) .cap-profile-avatar {
   border-radius: 20px;
