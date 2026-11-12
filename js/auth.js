@@ -363,7 +363,7 @@
         const page = (location.pathname.split('/').pop() || 'index.html');
         let browsing = false;
         try { browsing = sessionStorage.getItem('bm_admin_browse') === '1'; } catch (e) {}
-        if (!browsing && (page === 'capitole.html' || page === 'index.html' || page === '')) {
+        if (!browsing && (page === 'capitole.html' || page === 'parcurs.html' || page === 'index.html' || page === '')) {
           location.replace('admin.html');
           return;
         }

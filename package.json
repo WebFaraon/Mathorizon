@@ -13,6 +13,7 @@
     "check:demo": "node scripts/check-demo-data.js",
     "import:registru": "node scripts/registru-import/run.js",
     "check:sync": "node scripts/check-sync.js",
+    "check:parcurs": "node scripts/check-parcurs.mjs",
     "check:meet": "node scripts/check-meet.js",
     "check:telegram": "node scripts/check-telegram.js",
     "check:registry": "node scripts/check-registry-dataset.js",

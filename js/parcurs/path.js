@@ -1,0 +1,308 @@
+/* ============================================================
+   Parcurs: pagina cu drumul lecțiilor (parcurs.html).
+   Capitol > secțiune (o temă din tabelul fondatorului) > cerculețe (subteme, câte 4 lecții) > testul secțiunii.
+   Un cerculeț se deschide după ce termini pe cel dinainte; inelul din jurul lui arată câte lecții din cele 4 sunt făcute.
+   Clasa vine din contul elevului (wizardul de la conectare). Deocamdată există conținut doar pentru clasa a 7-a.
+   ============================================================ */
+(function () {
+  'use strict';
+  var PM = window.PM, C = window.PCONTENT, Prog = window.Parcurs;
+  var root = document.getElementById('ppRoot');
+  var CLS = C.CLASS7;
+  var ROMAN = { 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X', 11: 'XI', 12: 'XII' };
+  var reduce = function () { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; };
+  var esc = PM.esc;
+
+  var ICON = {
+    book: '<path d="M3 5.5C5 4.5 8 4.5 12 6.5c4-2 7-2 9-1v13c-2-1-5-1-9 1-4-2-7-2-9-1z"/><path d="M12 6.5v13"/>',
+    scale: '<path d="M12 4v16M6 20h12M5 7h14"/><path d="M5 7l-3 7a3 3 0 0 0 6 0zM19 7l-3 7a3 3 0 0 0 6 0z"/>',
+    axis: '<rect x="2.5" y="8.5" width="19" height="7" rx="1.8"/><path d="M7 8.5v3.5M11 8.5v2.5M15 8.5v3.5M19 8.5v2.5"/>',
+    decimal: '<text x="12" y="16.5" text-anchor="middle" font-size="11.5" font-weight="800" fill="currentColor" stroke="none" font-family="Plus Jakarta Sans, sans-serif">0,5</text>',
+    repeat: '<path d="M20 11a8 8 0 0 0-14-4M4 5v4h4M4 13a8 8 0 0 0 14 4M20 19v-4h-4"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    paren: '<path d="M8 4c-3 4-3 12 0 16M16 4c3 4 3 12 0 16"/>',
+    times: '<path d="M6 6l12 12M18 6L6 18"/>',
+    signs: '<text x="12" y="17" text-anchor="middle" font-size="15" font-weight="800" fill="currentColor" stroke="none" font-family="Plus Jakarta Sans, sans-serif">±</text>',
+    divide: '<circle cx="12" cy="6" r="1.3"/><circle cx="12" cy="18" r="1.3"/><path d="M5 12h14"/>',
+    order: '<path d="M4 7h16M4 12h10M4 17h6"/>',
+    check: '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+    lock: '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    chev: '<path d="M6 9l6 6 6-6"/>',
+    list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
+    bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
+    close: '<path d="M6 6l12 12M18 6L6 18"/>'
+  };
+  var svg = function (n, cls) { return '<svg viewBox="0 0 24 24" class="' + (cls || 'ic') + '" aria-hidden="true">' + (ICON[n] || ICON.book) + '</svg>'; };
+  var ZIG = [0, 84, 128, 84, 0, -84, -128, -84];
+
+  /* ---------- clasa elevului ---------- */
+  function grade() {
+    try { var g = parseInt(localStorage.getItem('bm_grade') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ }
+    return 0;
+  }
+  var viewGrade = 0;
+
+  /* ---------- stare ---------- */
+  function totalsOf(sec) {
+    var lessons = 0, done = 0;
+    sec.circles.forEach(function (c) { c.lessons.forEach(function (l) { lessons++; if (Prog.isDone(l.id)) done++; }); });
+    return { lessons: lessons, done: done, testDone: Prog.isDone(sec.testId) };
+  }
+  function circleDone(c) { return c.lessons.every(function (l) { return Prog.isDone(l.id); }); }
+  function circleCount(c) { return c.lessons.filter(function (l) { return Prog.isDone(l.id); }).length; }
+  function currentNodeId() {
+    var f = C.flat(), i;
+    for (i = 0; i < f.length; i++) if (!Prog.isDone(f[i].id)) return f[i].id;
+    return null;
+  }
+  /* cercul/nodul curent: primul care nu e terminat */
+  function curCircleOrTest() {
+    var id = currentNodeId(); if (!id) return null;
+    var n = C.findNode(id);
+    return n.kind === 'test' ? { test: n.section } : { circle: n.circle, lesson: n.lesson };
+  }
+
+  /* ---------- desen ---------- */
+  var RING_R = 41, RING_LEN = 2 * Math.PI * RING_R;
+  function ring(frac) {
+    return '<svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="' + RING_R + '"/><circle class="ring-fg" cx="50" cy="50" r="' + RING_R + '" style="stroke-dasharray:' + RING_LEN.toFixed(1) + ';stroke-dashoffset:' + (RING_LEN * (1 - frac)).toFixed(1) + '" transform="rotate(-90 50 50)"/></svg>';
+  }
+
+  function nodeHTML(kind, state, idx, o) {
+    var dx = ZIG[idx % ZIG.length], inner, label;
+    if (kind === 'test') { inner = '<img src="assets/images/gamification/cadou' + (state === 'lock' ? '-mini' : '') + '.svg" alt="">'; label = 'Testul secțiunii'; }
+    else if (state === 'done') { inner = svg('check'); label = o.title; }
+    else { inner = svg(o.icon); label = o.title; }
+    var frac = kind === 'test' ? (state === 'done' ? 1 : 0) : o.count / 4;
+    var h = '<div class="nw" style="--dx:' + dx + '"' + (dx < 0 ? ' data-neg="1"' : '') + ' data-id="' + esc(o.id) + '" data-state="' + state + '">';
+    h += '<button class="nd ' + state + (kind === 'test' ? ' test' : '') + '" type="button" aria-label="' + esc(label) + (state === 'lock' ? ', blocat' : state === 'done' ? ', terminat' : '') + '" data-node="' + esc(o.id) + '">';
+    if (kind !== 'test' || state === 'cur') h += ring(state === 'done' ? 1 : frac);
+    h += '<span class="face">' + inner + '</span>';
+    if (state === 'cur') h += '<span class="go-tag">ÎNCEPE</span>';
+    h += '</button>';
+    if (state === 'cur') h += '<div class="owlw"><div class="owl" data-owl="idle"></div></div>';
+    h += '</div>';
+    return h;
+  }
+
+  function sectionHTML(sec, sIdx, cur) {
+    var t = totalsOf(sec), secDone = t.testDone, anyDone = t.done > 0;
+    var isCurSec = cur && ((cur.circle && cur.circle.section === sec) || cur.test === sec);
+    var state = secDone ? 'done' : isCurSec ? 'cur' : 'lock';
+    var pips = '', i;
+    sec.circles.forEach(function (c) { pips += '<i class="' + (circleDone(c) ? 'on' : circleCount(c) ? 'half' : '') + '"></i>'; });
+    pips += '<i class="test ' + (secDone ? 'on' : '') + '"></i>';
+    var h = '<section class="pp-sec" id="' + sec.id + '" data-sec="' + sec.id + '" data-state="' + state + '">';
+    h += '<div class="unit ' + (state === 'lock' ? 'dim' : '') + '"><div class="unit__tx"><small>CAPITOLUL ' + sec.chapter.n + ', SECȚIUNEA ' + sec.n + '</small><h2>' + esc(PM.plain(sec.title)) + '</h2><div class="pr" aria-hidden="true">' + pips + '</div></div>';
+    if (state === 'cur' && !anyDone) h += '<button class="unit__key" type="button" data-skip="' + sec.id + '">' + svg('bolt') + 'SARI PESTE</button>';
+    else if (state === 'done') h += '<span class="unit__tag">' + svg('check') + 'TERMINATĂ</span>';
+    else if (state === 'lock') h += '<span class="unit__tag">' + svg('lock') + 'BLOCATĂ</span>';
+    h += '</div><div class="path">';
+    var idx = 0;
+    sec.circles.forEach(function (c) {
+      var cd = circleDone(c), cnt = circleCount(c);
+      var st = cd ? 'done' : (cur && cur.circle === c) ? 'cur' : 'lock';
+      h += nodeHTML('circle', st, idx++, { id: c.id_full, title: c.title, icon: c.icon, count: cnt });
+    });
+    var tst = secDone ? 'done' : (cur && cur.test === sec) ? 'cur' : 'lock';
+    h += nodeHTML('test', tst, idx++, { id: sec.testId, title: sec.short, count: 0 });
+    h += '</div></section>';
+    return h;
+  }
+
+  function upcomingHTML() {
+    var ch = CLS.chapters[0];
+    var rows = ch.upcoming.map(function (t, i) { return '<li><span class="sn">' + (ch.sections.length + i + 1) + '</span><b>' + esc(t) + '</b>' + svg('lock', 'ic lk') + '</li>'; }).join('');
+    return '<section class="pp-soon"><div class="pp-soon__h"><small>URMEAZĂ ÎN CAPITOLUL ' + ch.n + '</small><h3>Se pregătesc încă ' + ch.upcoming.length + ' secțiuni</h3></div><ol>' + rows + '</ol></section>';
+  }
+
+  function railHTML(cur) {
+    var total = 0, done = 0;
+    CLS.chapters.forEach(function (k) { k.sections.forEach(function (s) { var t = totalsOf(s); total += t.lessons + 1; done += t.done + (t.testDone ? 1 : 0); }); });
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var next = '';
+    if (cur) {
+      var isT = !!cur.test, title = isT ? 'Testul secțiunii' : cur.circle.title, sub = isT ? cur.test.short : 'Lecția ' + cur.lesson.n + ' din 4 · ' + cur.lesson.title;
+      var id = isT ? cur.test.testId : cur.lesson.id;
+      next = '<div class="pp-card pp-next"><small>CONTINUĂ DE AICI</small><h3>' + esc(title) + '</h3><p>' + esc(sub) + '</p><a class="go" href="lectie.html?l=' + esc(id) + '">' + (done ? 'CONTINUĂ' : 'ÎNCEPE') + '</a></div>';
+    } else next = '<div class="pp-card pp-next"><small>FELICITĂRI</small><h3>Ai terminat tot ce e gata</h3><p>Secțiunile noi apar pe măsură ce sunt scrise.</p></div>';
+    return '<aside class="pp-rail" aria-label="Progres">' + next +
+      '<div class="pp-card pp-stat"><small>PROGRESUL TĂU</small><div class="pp-stat__row"><b>' + pct + '%</b><span>' + done + ' din ' + total + ' lecții și teste</span></div><div class="pp-bar"><i style="width:' + pct + '%"></i></div></div>' +
+      '<div class="pp-card pp-tip"><div class="owl" data-owl="idle"></div><p><b>Sfat:</b> fă măcar o lecție pe zi. Seria ta crește, iar numerele încep să se lege între ele.</p></div></aside>';
+  }
+
+  /* ---------- randare ---------- */
+  function render() {
+    var g = viewGrade || grade() || 7;
+    var cur = curCircleOrTest();
+    var h = '<div class="pp-top"><div class="pp-chips"><button class="pk" type="button" id="ppClass">' + 'Clasa a ' + ROMAN[g] + '-a' + svg('chev') + '</button></div><button class="pk sm" type="button" id="ppAll">' + svg('list') + 'Toate secțiunile</button></div>';
+    if (g !== 7) {
+      h += '<div class="pp-main"><div class="pp-soonclass"><div class="owl" data-owl="idle"></div><h2>Parcursul clasei a ' + ROMAN[g] + '-a se pregătește</h2><p>Lucrăm la lecțiile pentru această clasă. Deocamdată este gata clasa a 7-a, ca să vezi cum arată un parcurs.</p><div class="pp-soonclass__act"><button class="go" type="button" id="ppSee7">VEZI CLASA A 7-A</button><a class="pk sm" href="capitole.html">Exerciții</a></div></div></div>';
+      root.innerHTML = h; bindTop(); return;
+    }
+    h += '<div class="pp-grid"><div class="pp-main">';
+    h += '<div class="pp-chap"><span>CAPITOLUL 1 · ' + esc(CLS.chapters[0].title.toUpperCase()) + '</span></div>';
+    CLS.chapters[0].sections.forEach(function (s, i) { h += sectionHTML(s, i, cur); });
+    h += upcomingHTML();
+    h += '<p class="pp-note">Conținut în verificare: textele și exercițiile sunt validate de echipă înainte să fie definitive.</p>';
+    h += '</div>' + railHTML(cur) + '</div>';
+    root.innerHTML = h;
+    bindTop(); bindPath();
+    if (window.OwlSite && window.OwlSite.scan) { try { window.OwlSite.scan(root); } catch (e) { /* ignore */ } }
+  }
+
+  /* ---------- popup-ul unui nod ---------- */
+  var openPop = null;
+  function closePop() { if (openPop) { var p = openPop; openPop = null; p.classList.remove('on'); setTimeout(function () { p.remove(); }, 160); } }
+  function popHTML(id) {
+    var n = C.findNode(id) || null, h = '';
+    var c = findCircle(id);
+    if (c) {
+      var cnt = circleCount(c), done = cnt === 4, curL = c.lessons[Math.min(cnt, 3)];
+      var st = nodeState(c);
+      if (st === 'lock') return '<small>BLOCAT</small><h3>' + esc(c.title) + '</h3><p class="pp-pop__p">Termină mai întâi cerculețele de mai sus ca să-l deschizi.</p>';
+      if (done) {
+        h = '<small>CERCULEȚ TERMINAT</small><h3>' + esc(c.title) + '</h3><div class="pp-pop__ls">';
+        c.lessons.forEach(function (l) { h += '<a class="ls done" href="lectie.html?l=' + l.id + '"><span class="st">' + svg('check') + '</span><b>' + l.n + '. ' + esc(l.title) + '</b><em>Repetă</em></a>'; });
+        return h + '</div>';
+      }
+      h = '<small>LECȚIA ' + curL.n + ' DIN 4</small><h3>' + esc(c.title) + '</h3><p class="pp-pop__p"><b>' + esc(curL.title) + '</b>' + (curL.n === 1 ? ': începe cu explicația, apoi exersezi.' : curL.n === 2 ? ': exersezi ce ai învățat.' : curL.n === 3 ? ': exerciții mai grele, cu probleme.' : ': cele mai grele, ca să fii sigur.') + '</p>';
+      h += '<div class="meta"><span>7 exerciții</span><span>circa 5 min</span><span>până la +70 XP</span></div><a class="gob" href="lectie.html?l=' + curL.id + '">ÎNCEPE LECȚIA</a>';
+      if (cnt > 0) { h += '<div class="pp-pop__ls small">'; c.lessons.forEach(function (l) { if (Prog.isDone(l.id)) h += '<a class="ls done" href="lectie.html?l=' + l.id + '"><span class="st">' + svg('check') + '</span><b>' + l.n + '. ' + esc(l.title) + '</b><em>Repetă</em></a>'; }); h += '</div>'; }
+      return h;
+    }
+    var sec = CLS.chapters[0].sections.filter(function (s) { return s.testId === id; })[0];
+    if (sec) {
+      var ts = Prog.isDone(sec.testId) ? 'done' : (currentNodeId() === sec.testId ? 'cur' : 'lock');
+      if (ts === 'lock') return '<small>BLOCAT</small><h3>Testul secțiunii</h3><p class="pp-pop__p">Se deschide după ce termini toate cerculețele secțiunii.</p>';
+      return '<small>' + (ts === 'done' ? 'TEST TRECUT' : 'TESTUL SECȚIUNII') + '</small><h3>' + esc(sec.short) + '</h3><p class="pp-pop__p">Zece exerciții din toată secțiunea, de la mediu la greu.</p><div class="meta"><span>10 exerciții</span><span>circa 8 min</span>' + (ts === 'done' ? '' : '<span>până la +100 XP</span>') + '</div><a class="gob" href="lectie.html?l=' + sec.testId + '">' + (ts === 'done' ? 'REPETĂ TESTUL' : 'ÎNCEPE TESTUL') + '</a>';
+    }
+    return '';
+  }
+  function findCircle(id) {
+    var out = null;
+    CLS.chapters.forEach(function (k) { k.sections.forEach(function (s) { s.circles.forEach(function (c) { if (c.id_full === id) out = c; }); }); });
+    return out;
+  }
+  function nodeState(c) { if (circleDone(c)) return 'done'; var cur = curCircleOrTest(); return cur && cur.circle === c ? 'cur' : 'lock'; }
+
+  function showPop(nw, id) {
+    closePop();
+    var html = popHTML(id); if (!html) return;
+    var pop = document.createElement('div');
+    pop.className = 'pp-pop'; pop.setAttribute('role', 'dialog'); pop.innerHTML = html;
+    nw.appendChild(pop); openPop = pop;
+    var r = pop.getBoundingClientRect(), shift = 0, margin = 12;
+    if (r.left < margin) shift = margin - r.left;
+    else if (r.right > window.innerWidth - margin) shift = (window.innerWidth - margin) - r.right;
+    pop.style.setProperty('--sx', shift + 'px');
+    requestAnimationFrame(function () { pop.classList.add('on'); });
+    var first = pop.querySelector('a.gob'); if (first) first.focus({ preventScroll: true });
+  }
+
+  /* ---------- evenimente ---------- */
+  function bindTop() {
+    var cls = document.getElementById('ppClass');
+    if (cls) cls.onclick = function () {
+      var go = function () { window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname: localStorage.getItem('bm_nickname') || '', grade: grade() || 7 }); };
+      if (window.BMOnboarding) go(); else { var s = document.createElement('script'); s.src = 'js/onboarding.js'; s.onload = go; document.body.appendChild(s); }
+    };
+    var all = document.getElementById('ppAll'); if (all) all.onclick = openAll;
+    var see = document.getElementById('ppSee7'); if (see) see.onclick = function () { viewGrade = 7; render(); };
+  }
+  function bindPath() {
+    root.querySelectorAll('.nd').forEach(function (b) {
+      b.onclick = function (e) { e.stopPropagation(); var nw = b.closest('.nw'); if (openPop && openPop.parentNode === nw) { closePop(); return; } showPop(nw, b.dataset.node); };
+    });
+    root.querySelectorAll('[data-skip]').forEach(function (b) { b.onclick = function () { skipAsk(b.dataset.skip); }; });
+  }
+  document.addEventListener('click', function (e) { if (openPop && !openPop.contains(e.target)) closePop(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { closePop(); closeDlg(); } });
+
+  /* ---------- dialoguri ---------- */
+  var dlg = null;
+  function closeDlg() { if (!dlg) return; var d = dlg; dlg = null; d.classList.remove('on'); setTimeout(function () { d.remove(); }, 200); }
+  function dialog(html, cls) {
+    closeDlg();
+    dlg = document.createElement('div'); dlg.className = 'pp-dlg ' + (cls || ''); dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true');
+    dlg.innerHTML = '<div class="pp-dlg__card">' + html + '</div>';
+    dlg.addEventListener('click', function (e) { if (e.target === dlg) closeDlg(); });
+    document.body.appendChild(dlg);
+    requestAnimationFrame(function () { dlg && dlg.classList.add('on'); });
+    return dlg;
+  }
+  function openAll() {
+    var ch = CLS.chapters[0], cur = curCircleOrTest(), h = '<div class="pp-dlg__h"><h2>Toate secțiunile</h2><button class="pk sm x" type="button" data-x aria-label="Închide">' + svg('close') + '</button></div><p class="pp-dlg__sub">Clasa a 7-a · Capitolul ' + ch.n + ': ' + esc(ch.title) + '</p><div class="pp-all">';
+    ch.sections.forEach(function (s) {
+      var t = totalsOf(s), pct = Math.round((t.done + (t.testDone ? 1 : 0)) / (t.lessons + 1) * 100);
+      var st = t.testDone ? 'done' : (cur && ((cur.circle && cur.circle.section === s) || cur.test === s)) ? 'cur' : 'lock';
+      h += '<button type="button" class="ur ' + st + '" data-goto="' + s.id + '"><span class="st">' + (st === 'done' ? svg('check') : st === 'cur' ? svg('bolt') : svg('lock')) + '</span><span class="tx"><b>' + esc(PM.plain(s.title)) + '</b><small>' + s.circles.length + ' cerculețe + test</small></span><span class="bar"><i style="width:' + pct + '%"></i></span><span class="pc">' + pct + '%</span></button>';
+    });
+    ch.upcoming.forEach(function (t, i) { h += '<div class="ur lock static"><span class="st">' + svg('lock') + '</span><span class="tx"><b>' + esc(t) + '</b><small>În pregătire</small></span></div>'; });
+    h += '</div>';
+    var d = dialog(h, 'wide');
+    d.querySelector('[data-x]').onclick = closeDlg;
+    d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); var el = document.getElementById(b.dataset.goto); if (el) el.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth', block: 'start' }); }; });
+  }
+  function skipAsk(secId) {
+    var sec = CLS.chapters[0].sections.filter(function (s) { return s.id === secId; })[0]; if (!sec) return;
+    var d = dialog('<div class="owl" data-owl="idle"></div><h2>Test de nivel</h2><p>Știi deja „' + esc(PM.plain(sec.short)) + '”? Rezolvă <b>10 exerciții</b> și, dacă ai cel puțin <b>8 corecte</b>, secțiunea se marchează ca terminată și treci mai departe.</p><p class="pp-dlg__small">Greșelile nu se repetă la final. Dacă nu ieși, mergi normal prin cerculețe.</p><div class="pp-dlg__act"><a class="go" href="lectie.html?l=' + sec.skipId + '">ÎNCEPE TESTUL</a><button class="pk" type="button" data-x>Nu acum</button></div>', 'small');
+    d.querySelector('[data-x]').onclick = closeDlg;
+    if (window.OwlSite && window.OwlSite.scan) { try { window.OwlSite.scan(d); } catch (e) { /* ignore */ } }
+  }
+
+  /* ---------- după o lecție: animațiile de întoarcere ---------- */
+  function celebrate() {
+    var id = null; try { id = sessionStorage.getItem('parcurs_celebrate'); sessionStorage.removeItem('parcurs_celebrate'); } catch (e) { /* ignore */ }
+    var target = null;
+    if (id) {
+      var n = C.findNode(id);
+      var cid = n ? (n.kind === 'test' ? n.id : n.circle.id_full) : null;
+      target = cid && root.querySelector('.nw[data-id="' + cid + '"]');
+    }
+    var cur = root.querySelector('.nw .nd.cur');
+    var focus = target || cur;
+    if (focus) setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'auto' }); }, 30);
+    if (!id || reduce()) return;
+    if (target) {
+      var fg = target.querySelector('.ring-fg'), nd = target.querySelector('.nd');
+      if (fg && nd) {
+        var final = fg.style.strokeDashoffset;
+        var n2 = C.findNode(id), circ = n2 && n2.circle;
+        var was = circ ? Math.max(0, circleCount(circ) - 1) : 0;
+        fg.style.transition = 'none'; fg.style.strokeDashoffset = (RING_LEN * (1 - was / 4)).toFixed(1);
+        setTimeout(function () { fg.style.transition = 'stroke-dashoffset .9s cubic-bezier(.3,.8,.2,1)'; fg.style.strokeDashoffset = final; }, 350);
+        nd.classList.add('celebrate');
+      }
+    }
+    if (cur && cur !== (target && target.querySelector('.nd'))) { cur.classList.add('unlock'); }
+  }
+
+  /* ---------- pornire ---------- */
+  function start() {
+    var g = grade();
+    var after = function () { render(); celebrate(); };
+    var done = false, once = function () { if (done) return; done = true; after(); };
+    Promise.all([Prog.ready(), gradeFromDb()]).then(once, once);
+    setTimeout(once, 1800);
+  }
+  function gradeFromDb() {
+    if (grade()) return Promise.resolve();
+    var sb = window.BMAuth && window.BMAuth.supabase;
+    if (!sb) return Promise.resolve();
+    return Promise.resolve(sb.rpc('my_student_profile')).then(function (r) {
+      var p = r && r.data;
+      if (p && p.grade) { try { localStorage.setItem('bm_grade', String(p.grade)); if (p.nickname) localStorage.setItem('bm_nickname', p.nickname); } catch (e) { /* ignore */ } }
+    }, function () {});
+  }
+
+  document.addEventListener('bm:onboarded', function () { viewGrade = 0; render(); });
+  document.addEventListener('parcurs:changed', function () { /* redesenăm doar când pagina nu e în mijlocul unei animații */ });
+  window.addEventListener('pageshow', function (e) { if (e.persisted) { render(); celebrate(); } });
+
+  /* wizardul poate lipsi (dacă migrarea nu a fost rulată): pagina merge pe clasa a 7-a */
+  var begin = function () { start(); };
+  if (window._bmAuthReady) begin(); else document.addEventListener('bmauth:ready', begin, { once: true });
+  setTimeout(function () { if (!root.querySelector('.pp-top') && !root.querySelector('.pp-grid')) begin(); }, 2500);
+})();

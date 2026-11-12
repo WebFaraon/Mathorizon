@@ -6482,8 +6482,8 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
   .nav__right .nav-icon-btn { display: none; }
 }
 
-/* Nav hamburger — below 860px */
-@media (max-width: 860px) {
+/* Nav hamburger — below 1040px */
+@media (max-width: 1110px) {
   .nav__links     { display: none; }
   .nav__hamburger { display: flex; order: 99; }
   .nav__right     { margin-left: auto; order: 98; }

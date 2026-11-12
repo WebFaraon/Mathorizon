@@ -209,7 +209,7 @@
      Only Capitole and the console: a class page would ask the student about notifications inside the hidden frame. */
   function warm(url, cb) {
     var path = String(url).split(/[?#]/)[0].split('/').pop();
-    if (path !== 'capitole.html' && path !== 'admin.html') { cb(url); return; }
+    if (path !== 'capitole.html' && path !== 'parcurs.html' && path !== 'admin.html') { cb(url); return; }
     var fr = document.createElement('iframe');
     fr.setAttribute('aria-hidden', 'true');
     fr.tabIndex = -1;

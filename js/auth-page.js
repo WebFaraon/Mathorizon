@@ -166,9 +166,9 @@
     return from || null;
   }
   function _getFrom() {
-    const from = _fromParam() || 'capitole.html';
+    const from = _fromParam() || 'parcurs.html';
     try { sessionStorage.removeItem('bm_auth_from'); } catch (e) { /* ignore */ }
-    return from.startsWith('http') || from.startsWith('//') ? 'capitole.html' : from;
+    return from.startsWith('http') || from.startsWith('//') ? 'parcurs.html' : from;
   }
 
   /* A teacher who chose Profesor and then Google: Google cannot carry the role, so it is kept here and written to the new account

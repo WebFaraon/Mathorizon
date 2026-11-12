@@ -28,10 +28,10 @@
        landing page), and again once the real session is confirmed in
        case the hint's localStorage guess was wrong. */
     if (document.documentElement.classList.contains('bm-authed')) {
-      location.replace('capitole.html');
+      location.replace('parcurs.html');
     }
     document.addEventListener('bmauth:ready', function (e) {
-      if (e.detail && e.detail.user) location.replace('capitole.html');
+      if (e.detail && e.detail.user) location.replace('parcurs.html');
     });
   </script>
 </head>

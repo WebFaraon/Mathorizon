@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ro" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Parcurs | Teorema</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@600..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/calculator.css">
+  <link rel="stylesheet" href="css/premium.css">
+  <link rel="stylesheet" href="css/owl.css">
+  <link rel="stylesheet" href="css/parcurs.css">
+  <script src="js/owl.js"></script>
+  <script src="js/theme.js"></script>
+  <script src="js/transitions.js"></script>
+  <script src="js/auth-hint.js"></script>
+  <script src="js/welcome.js"></script>
+  <script>
+    /* Pagină protejată: un vizitator nelogat ajunge la pagina de start înainte să se deseneze ceva. */
+    BM.__protectedRoute = true;
+    BM.requireAuthOrRedirect();
+  </script>
+</head>
+<body class="pm pp" data-owl-night>
+
+  <div class="bm-auth-veil" aria-hidden="true"></div>
+
+  <!-- NAVBAR -->
+  <nav class="nav" id="nav-root"></nav>
+  <script src="js/icons.js"></script>
+  <script src="js/nav-loader.js"></script>
+
+  <!-- CONTENT: desenat de js/parcurs/path.js -->
+  <div class="pp-shell" id="ppRoot">
+    <div class="pp-loading" role="status" data-owl="load"><span>Se încarcă parcursul</span></div>
+  </div>
+
+  <div class="toast-container" id="toastContainer"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/training-stats.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/panels.js"></script>
+  <script src="js/parcurs/lib.js"></script>
+  <script src="js/parcurs/gens.js"></script>
+  <script src="js/parcurs/content7.js"></script>
+  <script src="js/parcurs/progress.js"></script>
+  <script src="js/parcurs/path.js"></script>
+</body>
+</html>

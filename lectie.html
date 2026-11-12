@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="ro" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Lecție | Teorema</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/premium.css">
+  <link rel="stylesheet" href="css/owl.css">
+  <link rel="stylesheet" href="css/lectie.css">
+  <script src="js/theme.js"></script>
+  <script src="js/transitions.js"></script>
+  <script src="js/auth-hint.js"></script>
+  <script>
+    /* Pagină protejată: un vizitator nelogat ajunge la pagina de start înainte să se deseneze ceva. */
+    BM.__protectedRoute = true;
+    BM.requireAuthOrRedirect();
+    /* pagina nu are bară de navigare: scripturile comune așteaptă totuși BM.onNavReady */
+    BM.onNavReady = BM.onNavReady || function () {};
+  </script>
+  <script src="js/mascot.js"></script>
+</head>
+<body class="pm lz" data-lesson-page>
+
+  <header class="lz-top">
+    <button class="lz-x" id="lzExit" type="button" aria-label="Ieși din lecție" title="Ieși din lecție">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <div class="lz-prog" role="progressbar" aria-label="Progres lecție" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0" id="lzProg"><i id="lzBar"></i></div>
+    <div class="lz-combo" id="lzCombo" hidden title="Răspunsuri corecte la rând"><img src="assets/images/gamification/streak-mini.svg" alt="" width="20" height="20"><b>0</b></div>
+    <div class="lz-xp" title="Puncte câștigate în lecție"><img src="assets/images/gamification/realizari-mini.svg" alt="" width="22" height="22"><b id="lzXp">0</b><span>XP</span></div>
+  </header>
+
+  <main class="lz-main" id="lzMain" aria-live="polite"></main>
+
+  <footer class="lz-foot" id="lzFoot">
+    <div class="lz-foot__in">
+      <div class="lz-fb" id="lzFb" hidden>
+        <div class="lz-fb__owl owl" id="lzFbOwl"></div>
+        <div class="lz-fb__tx"><b id="lzFbTitle"></b><span id="lzFbText"></span></div>
+      </div>
+      <button class="lz-hint" id="lzHint" type="button" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2.1h5c0-.9.4-1.6 1-2.1A6 6 0 0 0 12 3z"/></svg>Indiciu</button>
+      <button class="lz-skip" id="lzSkip" type="button">Nu știu</button>
+      <button class="lz-go" id="lzGo" type="button" disabled>Verifică</button>
+    </div>
+  </footer>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <script src="js/training-stats.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/parcurs/lib.js"></script>
+  <script src="js/parcurs/gens.js"></script>
+  <script src="js/parcurs/visuals.js"></script>
+  <script src="js/parcurs/content7.js"></script>
+  <script src="js/parcurs/progress.js"></script>
+  <script src="js/parcurs/engine.js"></script>
+</body>
+</html>

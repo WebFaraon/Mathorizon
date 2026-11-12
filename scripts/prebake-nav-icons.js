@@ -44,6 +44,7 @@ function dataUri(rel) {
 // change what the nav shows, then re-run this script — never hand-edit
 // the <svg> markup in partials/nav.html.
 const NAV_ICONS = {
+  parcurs:     icon('route',          { size: 16, className: 'nav__mobile-link__icon' }),
   capitole:    icon('library',        { size: 16, className: 'nav__mobile-link__icon' }),
   simulare:    icon('clipboard-list', { size: 16, className: 'nav__mobile-link__icon' }),
   antrenament: icon('target',         { size: 16, className: 'nav__mobile-link__icon' }),
@@ -82,12 +83,13 @@ const HEADER = `<!--
 `;
 
 const TEMPLATE = `    <div class="nav__inner container">
-      <a class="nav__brand" href="capitole.html" data-authed-href="capitole.html">
+      <a class="nav__brand" href="parcurs.html" data-authed-href="parcurs.html">
         <img class="nav__logo" src="${dataUri('assets/images/teorema-wordmark.svg')}" alt="Teorema" width="316" height="65">
       </a>
 
       <div class="nav__links">
-        <a class="nav__link" href="capitole.html" data-authed-href="capitole.html">Capitole</a>
+        <a class="nav__link" href="parcurs.html" data-authed-href="parcurs.html">Parcurs</a>
+        <a class="nav__link" href="capitole.html" data-authed-href="capitole.html">Exerciții</a>
         <a class="nav__link" href="bac.html?new=1" data-authed-href="bac.html?new=1">Simulare</a>
         <a class="nav__link" href="training.html" data-authed-href="training.html">Antrenament</a>
         <a class="nav__link" href="classes.html" data-authed-href="classes.html">Clase</a>
@@ -130,7 +132,8 @@ const TEMPLATE = `    <div class="nav__inner container">
       </div>
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="capitole.html" data-authed-href="capitole.html">\${capitole}Capitole</a>
+      <a class="nav__mobile-link" href="parcurs.html" data-authed-href="parcurs.html">\${parcurs}Parcurs</a>
+      <a class="nav__mobile-link" href="capitole.html" data-authed-href="capitole.html">\${capitole}Exerciții</a>
       <a class="nav__mobile-link" href="bac.html?new=1" data-authed-href="bac.html?new=1">\${simulare}Simulare</a>
       <a class="nav__mobile-link" href="training.html" data-authed-href="training.html">\${antrenament}Antrenament</a>
       <a class="nav__mobile-link" href="classes.html" data-authed-href="classes.html">\${clase}Clase</a>
