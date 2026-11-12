@@ -19934,3 +19934,63 @@ body:has(#root) {
   }
   #nav-root .nav__mobile-menu #themeBtn { border-radius: 10px; }
 }
+
+/* ============================================================
+   Page changes (2026-11-13), see js/transitions.js
+   ============================================================ */
+/* cross-document view transitions: the old page fades into the new one, the navbar stays put */
+@view-transition { navigation: auto; }
+#nav-root { view-transition-name: site-nav; }
+::view-transition-group(site-nav) { animation: none; }
+::view-transition-old(site-nav) { display: none; }
+::view-transition-new(site-nav) { animation: none; mix-blend-mode: normal; }
+::view-transition-old(root) { animation-duration: 240ms; animation-timing-function: ease; }
+::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: ease; }
+
+/* the moment a link is followed the old content fades out (the navbar does not) */
+html.bm-leaving body > *:not(#nav-root):not(script):not(style):not(link):not(.bm-leave) {
+  opacity: 0 !important;
+  transition: opacity 0.18s ease !important;
+  pointer-events: none;
+}
+/* a slow next page: the owl in the middle with a sliding bar */
+.bm-leave {
+  position: fixed;
+  inset: var(--nav-h, 72px) 0 0 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.28s ease;
+}
+.bm-leave.is-on { opacity: 1; }
+.bm-leave__owl { --ow: 132px; }
+.bm-leave__bar {
+  width: 168px;
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(63, 35, 110, 0.14);
+}
+[data-theme="dark"] .bm-leave__bar { background: rgba(255, 255, 255, 0.16); }
+.bm-leave__bar i {
+  display: block;
+  width: 42%;
+  height: 100%;
+  border-radius: 999px;
+  background: #7BB403;
+  animation: bm-leave-slide 1.15s cubic-bezier(0.45, 0, 0.35, 1) infinite;
+}
+@keyframes bm-leave-slide {
+  from { transform: translateX(-110%); }
+  to { transform: translateX(260%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  html.bm-leaving body > *:not(#nav-root):not(.bm-leave) { transition: none !important; }
+  .bm-leave__bar i { animation-duration: 2.4s; }
+}

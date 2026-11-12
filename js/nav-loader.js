@@ -114,15 +114,30 @@
     });
   }
 
+  // The navbar markup of the last visit is put in at once, so every page has its navbar from the very first paint (a page
+  // change used to show a bare strip until the fetch below came back). The fetch still runs: it refreshes the copy when
+  // the partial changed, and 'nav:loaded' is dispatched after it, exactly as before, so every module binds at the same moment.
+  var NAV_CACHE_KEY = 'bm_nav_html_v1';
+  var cachedNav = null;
+  try { cachedNav = localStorage.getItem(NAV_CACHE_KEY); } catch (e) { /* storage blocked: fetch only */ }
+  if (cachedNav) {
+    if (!navRoot.firstElementChild) navRoot.innerHTML = cachedNav;   // js/transitions.js may have put it in already, before the first paint
+    refreshNav();
+    bindGuestTabToast();
+  }
+
   fetch('partials/nav.html')
     .then(function (res) {
       if (!res.ok) throw new Error('HTTP ' + res.status);
       return res.text();
     })
     .then(function (html) {
-      navRoot.innerHTML = html;
-      refreshNav();
-      bindGuestTabToast();
+      try { localStorage.setItem(NAV_CACHE_KEY, html); } catch (e) { /* ignore */ }
+      if (html !== cachedNav) {      // first visit, or the partial changed
+        navRoot.innerHTML = html;
+        refreshNav();
+        bindGuestTabToast();
+      }
       window.BM.navLoaded = true;
       document.dispatchEvent(new Event('nav:loaded'));
       // the number of join requests waiting for a teacher, on the Clase tab (does nothing for anyone else)
