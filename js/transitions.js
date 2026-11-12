@@ -36,9 +36,15 @@
     d.className = 'bm-leave';
     d.setAttribute('role', 'status');
     d.setAttribute('aria-label', 'Se încarcă');
-    d.innerHTML = '<div class="bm-leave__owl owl" data-owl="load"></div><div class="bm-leave__bar"><i></i></div>';
+    d.innerHTML = loaderHTML();
     document.body.appendChild(d);
     requestAnimationFrame(function () { d.classList.add('is-on'); });
+  }
+
+  // the same owl and bar on the old page (while the next one loads) and on the new page (while it starts), so the two
+  // cross-fade into each other without a jump; drawn by css alone, since nothing else is loaded yet at that moment
+  function loaderHTML() {
+    return '<div class="bm-leave__img"></div><div class="bm-leave__bar"><i></i></div>';
   }
 
   // A page that asks "leave this page?" (an exam in progress) must not sit faded behind that question: the last
@@ -52,9 +58,46 @@
     if (root.classList.contains('bm-leaving')) return;
     window.addEventListener('beforeunload', askGuard);
     root.classList.add('bm-leaving');
+    try { sessionStorage.setItem('bm_leaving', String(Date.now())); } catch (e) { /* no storage: the new page just has no loader */ }
     waitTimer = setTimeout(showLoader, 350);
     // a navigation that never happens (a download, a blocked redirect) must not leave the page faded for good
     safeTimer = setTimeout(clearLeaving, 15000);
+  }
+
+  // The new page of a change this script started: its content stays hidden behind the same owl until the page has loaded,
+  // then fades in. (The first paint of a page is mostly empty: its content is built by script a moment later.)
+  var booting = false;
+  try {
+    var ts = +sessionStorage.getItem('bm_leaving');
+    sessionStorage.removeItem('bm_leaving');
+    booting = !!ts && Date.now() - ts < 20000;
+  } catch (e) { /* ignore */ }
+  if (booting) {
+    root.classList.add('bm-leaving');
+    var bootEl = null;
+    var addBoot = function () {
+      if (bootEl || !document.body) return;
+      bootEl = document.createElement('div');
+      bootEl.className = 'bm-leave bm-leave--boot is-on';
+      bootEl.innerHTML = loaderHTML();
+      document.body.appendChild(bootEl);
+    };
+    var bootDone = function () {
+      if (!bootEl && !root.classList.contains('bm-leaving')) return;
+      root.classList.add('bm-revealing');
+      root.classList.remove('bm-leaving');
+      if (bootEl) { bootEl.classList.remove('is-on'); var gone = bootEl; setTimeout(function () { if (gone.parentNode) gone.parentNode.removeChild(gone); }, 320); }
+      setTimeout(function () { root.classList.remove('bm-revealing'); }, 380);
+      bootEl = null;
+    };
+    if (document.body) addBoot();
+    else {
+      var bmo = new MutationObserver(function () { if (document.body) { bmo.disconnect(); addBoot(); } });
+      bmo.observe(root, { childList: true });
+    }
+    var started = Date.now();
+    window.addEventListener('load', function () { setTimeout(bootDone, Math.max(60, 380 - (Date.now() - started))); });
+    setTimeout(bootDone, 6000);
   }
 
   // coming back with the browser's Back button can restore this page from memory, still faded
@@ -115,7 +158,7 @@
   }
 
   // Without cross-document view transitions the new page fades in on its own (everything but the navbar).
-  if (!canVT) {
+  if (!canVT && !booting) {
     var enter = function () {
       if (!document.body || !document.body.animate) return;
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
