@@ -56,13 +56,13 @@
 /* the hole is the OVAL of the whole puck (top face + its side, 70 x 78), so the ring hugs the edge everywhere; 7px thick */
 .nd .rim i { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(ellipse 35px 39px at 50% 50%, transparent 99.2%, #000 100%); mask: radial-gradient(ellipse 35px 39px at 50% 50%, transparent 99.2%, #000 100%); }
 .nd .rim .rim-a { background: var(--ra); }
-.nd .rim .rim-b { background: var(--rb); transform: translateY(6px); }
+.nd .rim .rim-b { display: none; }   /* the ring is flat: no side edge */
 .nd .ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transform: translateY(-4px); }
 .nd .ring-bg { display: none; }   /* no grey outline around the circles */
 .nd .ring.z .ring-fg { opacity: 0; }
 .nd.done .ring { display: none; }
 .nd .ring-fg { fill: none; stroke: var(--pm-lime); stroke-width: 5; stroke-linecap: round; transition: stroke-dashoffset 0.6s ease; }
-.nd .face { position: relative; width: 70px; height: 70px; margin-top: -8px; border-radius: 50%; display: grid; place-items: center; background: var(--b); box-shadow: 0 8px 0 var(--e), inset 0 3px 0 rgba(255, 255, 255, 0.34), inset 0 -3px 0 rgba(0, 0, 0, 0.14); color: #fff; transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease; }
+.nd .face { position: relative; width: 70px; height: 70px; margin-top: -8px; border-radius: 50%; display: grid; place-items: center; background: var(--b); box-shadow: 0 8px 0 var(--e), inset 0 -3px 0 rgba(0, 0, 0, 0.14); color: #fff; transition: transform 0.08s ease, box-shadow 0.08s ease, filter 0.15s ease; }
 /* a puck seen from the side: the thick edge below, diagonal glare on the top face and a spark that glints (open nodes only) */
 .nd .face::before { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; background: linear-gradient(135deg, transparent 0 17%, rgba(255, 255, 255, 0.30) 17% 33%, transparent 33% 41%, rgba(255, 255, 255, 0.16) 41% 49%, transparent 49%); }
 .nd .face::after { content: ""; position: absolute; top: 9px; right: 10px; width: 15px; height: 15px; pointer-events: none; background: #fff; clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: pp-glint 2.8s ease-in-out infinite; }
@@ -71,8 +71,8 @@
 .nd.lock .face::after { display: none; }
 @keyframes pp-glint { 0%, 55%, 100% { transform: scale(0.6) rotate(0); opacity: 0.55; } 75% { transform: scale(1.15) rotate(20deg); opacity: 1; } }
 /* only the nodes you can open react: a locked one stays still */
-.nd:not(.lock):hover .face { transform: translateY(-2px); box-shadow: 0 10px 0 var(--e), inset 0 3px 0 rgba(255, 255, 255, 0.34), inset 0 -3px 0 rgba(0, 0, 0, 0.14); filter: brightness(1.07); }
-.nd:not(.lock):active .face { transform: translateY(6px); box-shadow: 0 2px 0 var(--e), inset 0 3px 0 rgba(255, 255, 255, 0.34), inset 0 -3px 0 rgba(0, 0, 0, 0.14); filter: none; }
+.nd:not(.lock):hover .face { transform: translateY(-2px); box-shadow: 0 10px 0 var(--e), inset 0 -3px 0 rgba(0, 0, 0, 0.14); filter: brightness(1.07); }
+.nd:not(.lock):active .face { transform: translateY(6px); box-shadow: 0 2px 0 var(--e), inset 0 -3px 0 rgba(0, 0, 0, 0.14); filter: none; }
 .nd.lock { cursor: default; }
 .nd .face .ic { filter: drop-shadow(0 2px 0 rgba(0, 0, 0, 0.22)); width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
 .nd .face img { width: 38px; height: 38px; }
@@ -86,7 +86,7 @@
 .nd.test .face { border-radius: 21px; width: 68px; height: 63px; margin-top: -8px; }
 .nd.test.cur { --b: var(--pm-lav, #E7DEF8); --e: #2C1952; }
 .nd.test.cur .face { background: var(--pm-tint); box-shadow: 0 8px 0 var(--pm-violet), 0 0 0 4px var(--pm-lime); }
-.nd.test.done .face { background: var(--pm-lime); box-shadow: 0 8px 0 #4C7A00, inset 0 3px 0 rgba(255, 255, 255, 0.34); }
+.nd.test.done .face { background: var(--pm-lime); box-shadow: 0 8px 0 #4C7A00; }
 .nd.test.lock .face { background: var(--pm-track); }
 .nd:focus-visible .face { outline: 3px solid var(--pm-violet); outline-offset: 5px; }
 .go-tag { position: absolute; left: 50%; top: -40px; transform: translateX(-50%); padding: 7px 16px; border-radius: 12px; background: var(--pm-lime); color: #14200A; font-weight: 800; font-size: 13px; letter-spacing: 0.08em; box-shadow: 0 4px 0 var(--pm-lime-edge); white-space: nowrap; animation: pp-bob 1.8s ease-in-out infinite; pointer-events: none; }
