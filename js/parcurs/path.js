@@ -90,6 +90,15 @@
 
   /* ---------- desen ---------- */
   var RING_R = 46, RING_LEN = 2 * Math.PI * RING_R;
+  /* inel cu grosime lipit de cerculețul curent: patru segmente, câte unul pe lecție (cele făcute sunt verzi), cu partea laterală vizibilă ca la cerculeț */
+  function rimGrad(n, on, off) {
+    var s = [], i, c, a, b;
+    for (i = 0; i < 4; i++) { c = i < n ? on : off; a = i * 90 + 5; b = (i + 1) * 90 - 5; s.push('transparent ' + (i * 90) + 'deg ' + a + 'deg', c + ' ' + a + 'deg ' + b + 'deg', 'transparent ' + b + 'deg ' + ((i + 1) * 90) + 'deg'); }
+    return 'conic-gradient(' + s.join(',') + ')';
+  }
+  function rim(n) {
+    return '<span class="rim" aria-hidden="true" style="--ra:' + rimGrad(n, 'var(--rim-on)', 'var(--rim-off)') + ';--rb:' + rimGrad(n, 'var(--rim-on-e)', 'var(--rim-off-e)') + '"><i class="rim-b"></i><i class="rim-a"></i></span>';
+  }
   function ring(frac) {
     return '<svg class="ring' + (frac > 0 ? '' : ' z') + '" viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="' + RING_R + '"/><circle class="ring-fg" cx="50" cy="50" r="' + RING_R + '" style="stroke-dasharray:' + RING_LEN.toFixed(1) + ';stroke-dashoffset:' + (RING_LEN * (1 - frac)).toFixed(1) + '" transform="rotate(-90 50 50)"/></svg>';
   }
@@ -102,7 +111,7 @@
     var frac = kind === 'test' ? (state === 'done' ? 1 : 0) : o.count / 4;
     var h = '<div class="nw" style="--dx:' + dx + '"' + (dx < 0 ? ' data-neg="1"' : '') + ' data-id="' + esc(o.id) + '" data-state="' + state + '">';
     h += '<button class="nd ' + state + (kind === 'test' ? ' test' : '') + '" type="button" aria-label="' + esc(label) + (state === 'lock' ? ', blocat' : state === 'done' ? ', terminat' : '') + '" data-node="' + esc(o.id) + '">';
-    if (kind !== 'test' || state === 'cur') h += ring(state === 'done' ? 1 : frac);
+    if (kind !== 'test' && state === 'cur') h += rim(o.count || 0);
     h += '<span class="face">' + inner + '</span>';
     if (state === 'cur') h += '<span class="go-tag">ÎNCEPE</span>';
     h += '</button>';

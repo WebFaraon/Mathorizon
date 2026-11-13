@@ -50,6 +50,12 @@
 .nw:has(.pp-pop) { z-index: 8; }
 .nw[data-state="cur"] { margin-top: 32px; z-index: 4; }
 .nd { position: relative; width: 96px; height: 96px; padding: 0; border: 0; background: none; cursor: pointer; display: grid; place-items: center; -webkit-tap-highlight-color: transparent; }
+.nd { --rim-on: #7BB403; --rim-on-e: #4C7A00; --rim-off: var(--pm-line-2); --rim-off-e: var(--pm-edge); }
+/* ring flush with the edge of the violet face, a puck of its own: top face + side below (center = face center) */
+.nd .rim { position: absolute; left: 50%; top: 44px; width: 84px; height: 84px; transform: translate(-50%, -50%); pointer-events: none; }
+.nd .rim i { position: absolute; inset: 0; border-radius: 50%; -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 7px)); mask: radial-gradient(farthest-side, transparent calc(100% - 7px), #000 calc(100% - 7px)); }
+.nd .rim .rim-a { background: var(--ra); }
+.nd .rim .rim-b { background: var(--rb); transform: translateY(6px); }
 .nd .ring { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; transform: translateY(-4px); }
 .nd .ring-bg { display: none; }   /* no grey outline around the circles */
 .nd .ring.z .ring-fg { opacity: 0; }

@@ -70,6 +70,7 @@
     queue = steps.map(function (_, i) { return i; });
     total = L.exercises.length; doneCount = 0; xp = 0; firstOk = 0; tries = {}; hinted = false; streak = 0; bestStreak = 0; started = Date.now();
     xpEl.textContent = '0'; combo.hidden = true;
+    var xpBox = $('.lz-xp'); if (xpBox) xpBox.hidden = noXp();
     document.title = (L.kind === 'lesson' ? L.circle + ' · ' + L.title : L.title) + ' | Teorema';
     setProgress(); next();
   }
@@ -161,6 +162,8 @@
 
   /* ---------- exerciții ---------- */
   /* bufnița se potrivește cu tipul de cartonaș: citește la explicații, scrie când trebuie să scrii, poartă ochelari când alegi sau cauți */
+  /* profesorii, managerii și adminii pot face lecțiile, dar nu primesc XP din ele (XP-ul lor vine din altceva) */
+  function noXp() { var r = window.BMAuth && window.BMAuth.role; return !!r && r !== 'elev'; }
   function lookFor(t) {
     if (t === 'learn') return { book: true, glasses: true };
     if (t === 'num' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
@@ -388,12 +391,12 @@
     tries[cur] = (tries[cur] || 0) + 1;
     if (right) {
       var gain = firstTime && !hinted ? 10 : 5;
-      if (L.kind !== 'skip') xp += gain;
+      if (L.kind !== 'skip' && !noXp()) xp += gain;
       if (firstTime && !hinted) firstOk++;
       streak++; bestStreak = Math.max(bestStreak, streak);
       doneCount++; setProgress();
       xpEl.textContent = String(xp);
-      if (L.kind !== 'skip') { var x = $('.lz-xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); floatXp('+' + gain); }
+      if (L.kind !== 'skip' && !noXp()) { var x = $('.lz-xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); floatXp('+' + gain); }
       if (streak >= 3) { combo.hidden = false; combo.querySelector('b').textContent = streak; PV.pop(combo); }
       sparks(ctl.okEl && ctl.okEl());
       streakShow(streak);
@@ -411,7 +414,11 @@
   /* 3, 5, 7, 10... corecte la rând: bufnița cu flacără pe tot ecranul, câteva secunde, apoi lecția merge mai departe */
   var STREAK_AT = { 3: 'corecte la rând!', 5: 'la rând! Ești în formă!', 7: 'la rând! Ești în flăcări!', 10: 'la rând! Neoprit!', 15: 'la rând! Incredibil!', 20: 'la rând! Maestru!' };
   function streakShow(n) {
-    if (!STREAK_AT[n] || document.querySelector('.lz-streak')) return;
+    if (!STREAK_AT[n]) return;
+    setTimeout(function () { streakNow(n); }, reduce() ? 500 : 950);   /* întâi se vede răspunsul corect, apoi vine animația */
+  }
+  function streakNow(n) {
+    if (document.querySelector('.lz-streak')) return;
     var ov = h('div', 'lz-streak'), ow = h('div', 'owl lz-streak__owl');
     ov.setAttribute('role', 'status');
     ov.appendChild(ow);
@@ -486,7 +493,7 @@
     var sec = Math.round((Date.now() - started) / 1000), mm = Math.floor(sec / 60), ss = ('0' + (sec % 60)).slice(-2);
     var exN = L.exercises.length, pct = Math.round(firstOk / exN * 100);
     if (L.kind === 'skip') return endSkip(exN, pct);
-    var res = Prog.complete(L.id, { pct: pct, xp: xp }), awarded = res.first ? res.xpGiven : 0;
+    var res = Prog.complete(L.id, { pct: pct, xp: noXp() ? 0 : xp }), awarded = res.first ? res.xpGiven : 0;
     if (awarded > 0 && window.BM && BM.Training && BM.Training.addXp) { try { BM.Training.addXp(awarded); } catch (e) { /* ignore */ } }
     try { if (window.BM && BM.Storage && BM.Storage.updateStreak) BM.Storage.updateStreak(); } catch (e) { /* ignore */ }
     try { sessionStorage.setItem('parcurs_celebrate', L.id); } catch (e) { /* ignore */ }
@@ -501,7 +508,7 @@
       el.appendChild(h('h1', '', title));
       el.appendChild(h('p', '', PM.esc(lead)));
       var st = h('div', 'lz-stats');
-      st.innerHTML = '<div><b id="lzSXp">+0</b><span>' + (replay ? 'XP (repetare: 0)' : 'XP') + '</span></div><div><b id="lzSPct">0%</b><span>din prima</span></div><div><b>' + mm + ':' + ss + '</b><span>timp</span></div>';
+      st.innerHTML = '<div><b id="lzSXp">+0</b><span>' + (noXp() ? 'XP (nu se acordă)' : replay ? 'XP (repetare: 0)' : 'XP') + '</span></div><div><b id="lzSPct">0%</b><span>din prima</span></div><div><b>' + mm + ':' + ss + '</b><span>timp</span></div>';
       el.appendChild(st);
       if (circle) {
         var pips = '', i;
@@ -514,7 +521,7 @@
       el.appendChild(cont); el.appendChild(again);
     }, function () {
       owl($('#lzEndOwl'), pct >= 70 ? 'happy' : 'happy');
-      countUp($('#lzSXp'), replay ? 0 : awarded, 900, '+'); countUp($('#lzSPct'), pct, 900); $('#lzSPct').textContent = pct + '%';
+      countUp($('#lzSXp'), replay || noXp() ? 0 : awarded, 900, '+'); countUp($('#lzSPct'), pct, 900); $('#lzSPct').textContent = pct + '%';
       var t0 = performance.now(); (function tick(t) { var p = Math.min(1, (t - t0) / 900), e = $('#lzSPct'); if (!e) return; e.textContent = Math.round(pct * (1 - Math.pow(1 - p, 3))) + '%'; if (p < 1) requestAnimationFrame(tick); })(t0);
       var big = $('#lzEndOwl'); if (!reduce()) { for (var i = 0; i < 18; i++) setTimeout(function () { sparks(big); }, i * 60); }
     });

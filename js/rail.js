@@ -184,7 +184,7 @@
     requestAnimationFrame(function () { d.classList.add('on'); });
   }
   document.addEventListener('click', function (e) {
-    var b = e.target.closest && e.target.closest('#appRail [data-follow]');
+    var b = e.target.closest && e.target.closest('#appRail [data-follow], #appRailMount [data-follow]');
     if (b) follow(b.getAttribute('data-follow'));
   });
 
