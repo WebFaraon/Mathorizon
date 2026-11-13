@@ -1639,3 +1639,12 @@ body:has(#classRoot) .cd-meet .cd-meet__how {
 body:has(#classRoot) .cd-meet .cd-meet__how[hidden] { display: none; }
 body:has(#classRoot) .cd-meet .cd-meet__how:hover { color: var(--k-ink); text-decoration-color: var(--k-ink); background: none; }
 body:has(#classRoot) .cd-meet .cd-meet__how:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+
+/* telefon: bara de scris mesaje e mai mică, o singură linie, fără textul de deasupra (rămâne pentru cititoarele de ecran) */
+@media (max-width: 600px) {
+  body:has(#classRoot) .msg-panel__composer { padding: 8px 10px 10px; gap: 0; }
+  body:has(#classRoot) .msg-panel__label { position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  body:has(#classRoot) .msg-panel__row { gap: 8px; }
+  body:has(#classRoot) .msg-panel__input { min-height: 42px; padding: 9px 12px; font-size: 0.92rem; }
+  body:has(#classRoot) .msg-panel__send { min-height: 42px; padding: 0 14px; font-size: 0.88rem; }
+}

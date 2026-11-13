@@ -5039,6 +5039,7 @@ body:has(#catHeader) .subcat-bc__current::before {
    A real calculator has a small light on its body. Each big bezeled display
    has a lime one set into the lower lip of its frame. */
 .ld-lcd { position: relative; }
+.cl-status, .st-status { position: relative; }   /* so its power LED sits on the display, not at the bottom of the page */
 .cap-lcd::after,
 .ch-lcd::after,
 .ld-lcd::after,

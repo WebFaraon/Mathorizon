@@ -1807,9 +1807,9 @@
           <label class="msg-panel__label" for="fluxComposerInput">Scrie un mesaj clasei</label>
           <div class="msg-panel__row">
             <textarea id="fluxComposerInput" class="msg-panel__input" rows="1" maxlength="4000"
-                      placeholder="Scrie aici și apasă Trimite…"></textarea>
+                      placeholder="Scrie un mesaj…"></textarea>
             <button type="submit" class="msg-panel__send" id="fluxSendBtn" disabled title="Trimite">
-              <span>Trimite</span>${icon('arrow-up', { size: 18 })}
+              <span>Trimite</span>
             </button>
           </div>
           <span class="msg-panel__hint">Enter trimite, Shift + Enter trece pe rândul următor</span>

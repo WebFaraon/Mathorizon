@@ -10,6 +10,9 @@
   }
   html[data-theme="dark"].bm-authed #bnav { --bn-face: #241B35; --bn-tint: #33264D; --bn-line: #3A2E52; --bn-line2: #4A3C68; --bn-edge: #0F0A18; }
   html.bnav-off #bnav { display: none !important; }
+  /* bara rămâne nemișcată: fără elasticul de la capătul paginii și pe propriul strat de desenare */
+  html.bm-authed:not(.bnav-off), html.bm-authed:not(.bnav-off) body { overscroll-behavior-y: none; }
+  html.bm-authed #bnav { transform: translateZ(0); will-change: transform; backface-visibility: hidden; }
 
   /* indicatorul: o cheie ușor colorată care alunecă la tabul curent */
   #bnav .bn-ind { position: absolute; left: 6px; top: 8px; width: calc((100% - 12px) / 7); height: 54px; border: 1.5px solid var(--bn-line2); border-radius: 16px; background: var(--bn-tint); box-shadow: 0 3px 0 var(--bn-edge); transform: translateX(calc(var(--i, 0) * 100%)); pointer-events: none; }
@@ -38,7 +41,7 @@
   html.bm-authed #nav-root .nav__right .nav-icon-btn,
   html.bm-authed #nav-root .nav__right .theme-btn,
   html.bm-authed #nav-root .nav__mobile-menu { display: none !important; }
-  html.bm-authed #nav-root .nav__right { margin-left: auto; display: flex; align-items: center; gap: 8px; order: 1; }
+  html.bm-authed #nav-root .nav__right { margin-left: auto; display: flex; align-items: center; gap: 8px; order: 1; border-left: 0 !important; padding-left: 0 !important; }
   html.bm-authed #nav-root .nav__right .token-widget { display: inline-flex; }
   html.bm-authed #nav-root .nav__right .token-widget__label { display: none; }
 }

@@ -851,6 +851,21 @@ html body.pm:has(#profileContent) .pf-realname { color: var(--pm-ink-2); opacity
   html body.pm:has(#profileContent) .pf-spec__cell { padding: 10px 14px; }
 }
 
+/* The cards of the profile get the solid edge like every other card; the account facts are information, not keys, so they stay flat. */
+html body.pm:has(#profileContent) .pf-card {
+  border: 1.5px solid var(--pm-line);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#profileContent) .pf-desk__acc { display: flex; flex-direction: column; gap: 24px; }
+html body.pm:has(#profileContent) .pf-spec__cell {
+  border: 1px solid var(--pm-line);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--pm-violet) 6%, var(--pm-face));
+  box-shadow: none;
+}
+html body.pm:has(#profileContent) .pf-spec dt { font-size: 0.7rem; letter-spacing: 0.04em; }
+html body.pm:has(#profileContent) .pf-spec dd { font-size: 0.88rem; font-weight: 700; }
+
 /* LCD displays keep a small corner. */
 html body.pm:has(#profileContent) :is(.pf-lcd, .pf-counter) { border-radius: 4px; }
 
