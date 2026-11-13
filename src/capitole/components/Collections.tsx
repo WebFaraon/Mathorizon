@@ -1,5 +1,4 @@
 import { useEffect, useState } from 'react';
-import { Heart, History, Target, ChevronRight } from 'lucide-react';
 
 type Kind = 'fav' | 'hist' | 'mis';
 
@@ -31,10 +30,10 @@ function readCounts(): Counts {
   };
 }
 
-const ROWS: { kind: Kind; title: string; text: string; Icon: typeof Heart; tone: string }[] = [
-  { kind: 'fav', title: 'Favorite', text: 'Exercițiile pe care le-ai marcat cu inimioară.', Icon: Heart, tone: 'rose' },
-  { kind: 'hist', title: 'Istoric rezolvări', text: 'Ce ai rezolvat în ultima vreme.', Icon: History, tone: 'violet' },
-  { kind: 'mis', title: 'Greșelile mele', text: 'Exercițiile la care ai greșit și nu le-ai reluat încă.', Icon: Target, tone: 'amber' }
+const ROWS: { kind: Kind; title: string; text: string; icon: string }[] = [
+  { kind: 'fav', title: 'Favorite', text: 'Exercițiile pe care le-ai marcat cu inimioară.', icon: 'assets/images/collections/favorite.svg' },
+  { kind: 'hist', title: 'Istoric rezolvări', text: 'Ce ai rezolvat în ultima vreme.', icon: 'assets/images/collections/istoric.svg' },
+  { kind: 'mis', title: 'Greșelile mele', text: 'Exercițiile la care ai greșit și nu le-ai reluat încă.', icon: 'assets/images/collections/greseli.svg' }
 ];
 
 /** "30+" past 30, so a long list does not stretch the badge. */
@@ -67,21 +66,17 @@ export function Collections() {
     <section className="cap-coll" aria-labelledby="capCollTitle">
       <h2 className="cap-sec-title" id="capCollTitle">Colecțiile tale</h2>
       <div className="cap-coll__list">
-        {ROWS.map(({ kind, title, text, Icon, tone }) => (
-          <button
-            key={kind}
-            type="button"
-            className={`cap-coll__row cap-coll__row--${tone}`}
-            onClick={() => window.BMCollections?.[kind]?.()}
-          >
-            <span className="cap-coll__icon" aria-hidden="true"><Icon /></span>
-            <span className="cap-coll__text">
-              <b>{title}</b>
-              <small>{text}</small>
-            </span>
-            <span className={`cap-coll__count${counts[kind] === 0 ? ' is-zero' : ''}`}>{badge(counts[kind])}</span>
-            <ChevronRight className="cap-coll__go" aria-hidden="true" />
-          </button>
+        {ROWS.map(({ kind, title, text, icon }) => (
+          <div className="cap-coll__item" key={kind}>
+            {counts[kind] > 0 && <span className="cap-coll__count">{badge(counts[kind])}</span>}
+            <button type="button" className="cap-coll__card" onClick={() => window.BMCollections?.[kind]?.()}>
+              <span className="cap-coll__text">
+                <b>{title}</b>
+                <small>{text}</small>
+              </span>
+              <img className="cap-coll__art" src={icon} alt="" width={96} height={96} decoding="async" />
+            </button>
+          </div>
         ))}
       </div>
     </section>
