@@ -10,7 +10,9 @@ import { useLeaderboard } from './hooks/useLeaderboard';
 import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
 
 /**
- * Everything on capitole.html below the shared navbar.
+ * Everything on capitole.html below the shared navbar. The same shell also serves
+ * parcurs.html (body data-page="parcurs"): the two rails stay, and the middle column is
+ * an empty #ppRoot that js/parcurs/path.js fills with the path of lessons.
  *
  * Deliberately NOT in here: the navbar itself, the Favorite/Istoric side
  * panels and the back-to-top button. Those are opened from the navbar, which
@@ -44,6 +46,7 @@ export function App() {
   const { missions, ready: missionsReady } = useMissions();
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
+  const isPath = document.body.dataset.page === 'parcurs';
   const [mobileTab, setMobileTab] = useState<MobileTab>('capitole');
   // The chapter key (or bank-strip segment) under the pointer or keyboard
   // focus: the LCD in the hero reads it out instead of the whole-bank total.
@@ -63,8 +66,14 @@ export function App() {
           />
 
           <div className="cap-col cap-col-middle">
-            <Hero stats={stats} readout={readout} />
-            <ChaptersSection chapters={chapters} ready={ready} onReadout={setReadout} />
+            {isPath ? (
+              <div id="ppRoot" className="pp-root" />
+            ) : (
+              <>
+                <Hero stats={stats} readout={readout} />
+                <ChaptersSection chapters={chapters} ready={ready} onReadout={setReadout} />
+              </>
+            )}
           </div>
 
           <RightColumn
@@ -77,7 +86,7 @@ export function App() {
         </div>
       </div>
 
-      <MobileTabBar active={mobileTab} onChange={setMobileTab} />
+      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Parcurs' : 'Capitole'} />
     </div>
   );
 }

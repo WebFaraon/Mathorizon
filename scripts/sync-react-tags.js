@@ -23,7 +23,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const MANIFEST = path.join(ROOT, 'assets', 'react', '.vite', 'manifest.json');
-const PAGE = path.join(ROOT, 'capitole.html');
+const PAGES = ['capitole.html', 'parcurs.html'];
 /* Path the browser requests — relative, like every other asset reference in
    these pages, so it resolves the same at /capitole.html and at /capitole. */
 const PUBLIC_DIR = 'assets/react';
@@ -39,13 +39,13 @@ function fail(message) {
 }
 
 /** Replaces everything between `<!-- NAME:START -->` and `<!-- NAME:END -->`. */
-function replaceBlock(html, name, inner) {
+function replaceBlock(html, name, inner, page) {
   const pattern = new RegExp(
     `(<!--\\s*${name}:START\\s*-->)[\\s\\S]*?(<!--\\s*${name}:END\\s*-->)`
   );
   if (!pattern.test(html)) {
     fail(
-      `capitole.html has no "${name}:START / ${name}:END" block.\n` +
+      `${page} has no "${name}:START / ${name}:END" block.\n` +
       `  Add the marker comments back before running this — without them the\n` +
       `  built bundle has nothing to attach to and the page renders empty.`
     );
@@ -69,11 +69,14 @@ const cssTags = (entry.css || [])
    runs after those have executed. */
 const jsTag = `  <script type="module" src="${PUBLIC_DIR}/${entry.file}"></script>`;
 
-let html = fs.readFileSync(PAGE, 'utf8');
-html = replaceBlock(html, MARKERS.css, cssTags || '  <!-- (no css emitted) -->');
-html = replaceBlock(html, MARKERS.js, jsTag);
-fs.writeFileSync(PAGE, html);
+PAGES.forEach((page) => {
+  const file = path.join(ROOT, page);
+  let html = fs.readFileSync(file, 'utf8');
+  html = replaceBlock(html, MARKERS.css, cssTags || '  <!-- (no css emitted) -->', page);
+  html = replaceBlock(html, MARKERS.js, jsTag, page);
+  fs.writeFileSync(file, html);
+});
 
-console.log('  [sync-react-tags] capitole.html updated:');
+console.log('  [sync-react-tags] ' + PAGES.join(' and ') + ' updated:');
 (entry.css || []).forEach((file) => console.log(`    css  ${PUBLIC_DIR}/${file}`));
 console.log(`    js   ${PUBLIC_DIR}/${entry.file}`);

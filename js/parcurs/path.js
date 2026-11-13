@@ -7,7 +7,7 @@
 (function () {
   'use strict';
   var PM = window.PM, C = window.PCONTENT, Prog = window.Parcurs;
-  var root = document.getElementById('ppRoot');
+  var root = null;   /* #ppRoot: îl pune insula React (coloana din mijloc), deci îl căutăm după ce apare */
   var CLS = C.CLASS7;
   var ROMAN = { 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X', 11: 'XI', 12: 'XII' };
   var reduce = function () { return window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches; };
@@ -81,7 +81,7 @@
     h += '<span class="face">' + inner + '</span>';
     if (state === 'cur') h += '<span class="go-tag">ÎNCEPE</span>';
     h += '</button>';
-    if (state === 'cur') h += '<div class="owlw"><div class="owl" data-owl="idle"></div></div>';
+    if (state === 'cur') h += '<div class="owlw"><img class="owl-tile" src="assets/images/avatar-owl.svg" alt="" width="88" height="88"></div>';
     h += '</div>';
     return h;
   }
@@ -117,36 +117,29 @@
     return '<section class="pp-soon"><div class="pp-soon__h"><small>URMEAZĂ ÎN CAPITOLUL ' + ch.n + '</small><h3>Se pregătesc încă ' + ch.upcoming.length + ' secțiuni</h3></div><ol>' + rows + '</ol></section>';
   }
 
-  function railHTML(cur) {
+  function progressPct() {
     var total = 0, done = 0;
-    CLS.chapters.forEach(function (k) { k.sections.forEach(function (s) { var t = totalsOf(s); total += t.lessons + 1; done += t.done + (t.testDone ? 1 : 0); }); });
-    var pct = total ? Math.round(done / total * 100) : 0;
-    var next = '';
-    if (cur) {
-      var isT = !!cur.test, title = isT ? 'Testul secțiunii' : cur.circle.title, sub = isT ? cur.test.short : 'Lecția ' + cur.lesson.n + ' din 4 · ' + cur.lesson.title;
-      var id = isT ? cur.test.testId : cur.lesson.id;
-      next = '<div class="pp-card pp-next"><small>CONTINUĂ DE AICI</small><h3>' + esc(title) + '</h3><p>' + esc(sub) + '</p><a class="go" href="lectie.html?l=' + esc(id) + '">' + (done ? 'CONTINUĂ' : 'ÎNCEPE') + '</a></div>';
-    } else next = '<div class="pp-card pp-next"><small>FELICITĂRI</small><h3>Ai terminat tot ce e gata</h3><p>Secțiunile noi apar pe măsură ce sunt scrise.</p></div>';
-    return '<aside class="pp-rail" aria-label="Progres">' + next +
-      '<div class="pp-card pp-stat"><small>PROGRESUL TĂU</small><div class="pp-stat__row"><b>' + pct + '%</b><span>' + done + ' din ' + total + ' lecții și teste</span></div><div class="pp-bar"><i style="width:' + pct + '%"></i></div></div>' +
-      '<div class="pp-card pp-tip"><div class="owl" data-owl="idle"></div><p><b>Sfat:</b> fă măcar o lecție pe zi. Seria ta crește, iar numerele încep să se lege între ele.</p></div></aside>';
+    CLS.chapters.forEach(function (k) { k.sections.forEach(function (sec) { var t = totalsOf(sec); total += t.lessons + 1; done += t.done + (t.testDone ? 1 : 0); }); });
+    return { pct: total ? Math.round(done / total * 100) : 0, done: done, total: total };
   }
 
   /* ---------- randare ---------- */
   function render() {
+    if (!root) return;
     var g = viewGrade || grade() || 7;
     var cur = curCircleOrTest();
-    var h = '<div class="pp-top"><div class="pp-chips"><button class="pk" type="button" id="ppClass">' + 'Clasa a ' + ROMAN[g] + '-a' + svg('chev') + '</button></div><button class="pk sm" type="button" id="ppAll">' + svg('list') + 'Toate secțiunile</button></div>';
+    var pr = progressPct();
+    var h = '<div class="pp-top"><div class="pp-chips"><button class="pk" type="button" id="ppClass">' + 'Clasa a ' + ROMAN[g] + '-a' + svg('chev') + '</button>' + (g === 7 ? '<span class="pp-pct" title="' + pr.done + ' din ' + pr.total + ' lecții și teste"><i style="--p:' + pr.pct + '%"></i><b>' + pr.pct + '%</b></span>' : '') + '</div><button class="pk sm" type="button" id="ppAll">' + svg('list') + 'Toate secțiunile</button></div>';
     if (g !== 7) {
       h += '<div class="pp-main"><div class="pp-soonclass"><div class="owl" data-owl="idle"></div><h2>Parcursul clasei a ' + ROMAN[g] + '-a se pregătește</h2><p>Lucrăm la lecțiile pentru această clasă. Deocamdată este gata clasa a 7-a, ca să vezi cum arată un parcurs.</p><div class="pp-soonclass__act"><button class="go" type="button" id="ppSee7">VEZI CLASA A 7-A</button><a class="pk sm" href="capitole.html">Exerciții</a></div></div></div>';
       root.innerHTML = h; bindTop(); return;
     }
-    h += '<div class="pp-grid"><div class="pp-main">';
+    h += '<div class="pp-main">';
     h += '<div class="pp-chap"><span>CAPITOLUL 1 · ' + esc(CLS.chapters[0].title.toUpperCase()) + '</span></div>';
     CLS.chapters[0].sections.forEach(function (s, i) { h += sectionHTML(s, i, cur); });
     h += upcomingHTML();
     h += '<p class="pp-note">Conținut în verificare: textele și exercițiile sunt validate de echipă înainte să fie definitive.</p>';
-    h += '</div>' + railHTML(cur) + '</div>';
+    h += '</div>';
     root.innerHTML = h;
     bindTop(); bindPath();
     if (window.OwlSite && window.OwlSite.scan) { try { window.OwlSite.scan(root); } catch (e) { /* ignore */ } }
@@ -302,7 +295,18 @@
   window.addEventListener('pageshow', function (e) { if (e.persisted) { render(); celebrate(); } });
 
   /* wizardul poate lipsi (dacă migrarea nu a fost rulată): pagina merge pe clasa a 7-a */
-  var begin = function () { start(); };
-  if (window._bmAuthReady) begin(); else document.addEventListener('bmauth:ready', begin, { once: true });
-  setTimeout(function () { if (!root.querySelector('.pp-top') && !root.querySelector('.pp-grid')) begin(); }, 2500);
+  var started = false;
+  var begin = function () { if (started) return; started = true; start(); };
+  function whenRoot(cb) {
+    var tries = 0;
+    (function look() {
+      root = document.getElementById('ppRoot');
+      if (root) return cb();
+      if (tries++ < 200) requestAnimationFrame(look);
+    })();
+  }
+  whenRoot(function () {
+    if (window._bmAuthReady) begin(); else document.addEventListener('bmauth:ready', begin, { once: true });
+    setTimeout(begin, 2500);
+  });
 })();

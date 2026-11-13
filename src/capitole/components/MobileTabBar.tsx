@@ -4,6 +4,8 @@ import type { MobileTab } from '../lib/mobile-tabs';
 interface MobileTabBarProps {
   active: MobileTab;
   onChange: (tab: MobileTab) => void;
+  /** Label of the middle tab: "Capitole" on capitole.html, "Parcurs" on parcurs.html. */
+  middleLabel?: string;
 }
 
 const TABS: { key: MobileTab; label: string; Icon: typeof User }[] = [
@@ -21,10 +23,12 @@ const TABS: { key: MobileTab; label: string; Icon: typeof User }[] = [
  * regardless of which tab is active, so switching back to one never
  * shows a stale/reloading state.
  */
-export function MobileTabBar({ active, onChange }: MobileTabBarProps) {
+export function MobileTabBar({ active, onChange, middleLabel }: MobileTabBarProps) {
   return (
     <nav className="cap-tabbar" aria-label="Navigare rapidă">
-      {TABS.map(({ key, label, Icon }) => (
+      {TABS.map(({ key, label: baseLabel, Icon }) => {
+        const label = key === 'capitole' && middleLabel ? middleLabel : baseLabel;
+        return (
         <button
           key={key}
           type="button"
@@ -35,7 +39,8 @@ export function MobileTabBar({ active, onChange }: MobileTabBarProps) {
           <Icon className="cap-tabbar__icon" aria-hidden="true" />
           <span className="cap-tabbar__label">{label}</span>
         </button>
-      ))}
+        );
+      })}
     </nav>
   );
 }
