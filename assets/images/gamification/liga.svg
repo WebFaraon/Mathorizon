@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+<path d="M64 12L100 24V60C100 86 84 104 64 116C44 104 28 86 28 60V24Z" fill="#8F85AE" stroke="#8F85AE" stroke-width="6" stroke-linejoin="round" transform="translate(0 5)"/>
+<path d="M64 12L100 24V60C100 86 84 104 64 116C44 104 28 86 28 60V24Z" fill="#C9C1E0" stroke="#C9C1E0" stroke-width="6" stroke-linejoin="round"/>
+<path d="M40 36V60C40 78 50 92 62 100" fill="none" stroke="#EFEAF8" stroke-width="5" stroke-linecap="round" opacity=".85"/>
+<path d="M64.00 40.00L69.40 52.44L82.90 53.60L72.70 62.50L75.70 75.70L64.00 68.80L52.30 75.70L55.30 62.50L45.10 53.60L58.60 52.44Z" fill="#FFFFFF" stroke="#8F85AE" stroke-width="3" stroke-linejoin="round"/>
+</svg>

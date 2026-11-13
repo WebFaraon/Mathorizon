@@ -4984,20 +4984,7 @@ body:has(#classRoot) .cd-meet__btn:hover {
   color: var(--k-go-ink);
 }
 
-/* 2. LEDs on the navbar: the open tab has a lime square lit */
-#nav-root .nav__link--active::before,
-#nav-root .nav__mobile-link--active::after {
-  content: '';
-  flex: none;
-  width: 7px;
-  height: 7px;
-  border-radius: 1px;
-  background: var(--k-lime);
-  box-shadow: 0 0 0 1px rgba(40, 70, 0, 0.55);
-}
-#nav-root .nav__link--active::before { margin-right: 9px; }
-#nav-root .nav__mobile-link--active { position: relative; }
-#nav-root .nav__mobile-link--active::after { position: absolute; right: 16px; top: 50%; margin-top: -3px; }
+/* 2. The open navbar tab used to carry a lime LED; it is gone (it changed the tab's width). The open tab is the lit white key alone. */
 
 /* ---- Lit keys carry a lime LED ----
    Every key that is pressed in (the open tab, the chosen mode, an active filter)

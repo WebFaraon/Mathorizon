@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { Flame, Trophy, Zap, ClipboardList } from 'lucide-react';
+import { ClipboardList } from 'lucide-react';
 import { useProfileSnapshot } from '../../hooks/useProfileSnapshot';
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 import { EASE_OUT } from '../../lib/motion';
@@ -13,7 +13,6 @@ interface ProfilePanelProps {
 }
 
 const XP_PER_LEVEL_FALLBACK = 100;
-const XP_SEGMENTS = 20;
 
 const ROLE_LABEL: Record<'elev' | 'profesor' | 'admin', string> = {
   elev: 'Elev',
@@ -68,7 +67,6 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
   const level = Math.floor(totalXp / xpPerLevel) + 1;
   const xpIntoLevel = totalXp % xpPerLevel;
   const xpPct = Math.round((xpIntoLevel / xpPerLevel) * 100);
-  const litSegments = Math.round((xpPct / 100) * XP_SEGMENTS);
 
   const roleLabel = snapshot.role ? ROLE_LABEL[snapshot.role] : null;
 
@@ -115,44 +113,56 @@ export function ProfilePanel({ leaderboardRows, leaderboardReady, currentUserId 
               {xpIntoLevel} / {xpPerLevel} XP
             </span>
           </div>
-          {/* Segmented like an LCD bar graph: one cell per 5% of the level. */}
-          <div
-            className="cap-profile-xpbar"
-            role="progressbar"
-            aria-valuenow={xpPct}
-            aria-valuemin={0}
-            aria-valuemax={100}
-            aria-label={`Nivel ${level}: ${xpPct}%`}
-          >
-            {Array.from({ length: XP_SEGMENTS }, (_, i) => (
-              <i
-                key={i}
-                className={i < litSegments ? 'cap-profile-xpbar__seg cap-profile-xpbar__seg--on' : 'cap-profile-xpbar__seg'}
-                style={{ '--i': i } as React.CSSProperties}
-              />
-            ))}
+          {/* A fat rounded bar with depth: sunken track, lime fill with a glossy highlight and a darker lower edge, the next level on a coin at its end. */}
+          <div className="cap-xp">
+            <div
+              className="cap-xp__track"
+              role="progressbar"
+              aria-valuenow={xpPct}
+              aria-valuemin={0}
+              aria-valuemax={100}
+              aria-label={`Nivel ${level}: ${xpPct}%`}
+            >
+              <i className="cap-xp__fill" style={{ '--xp': `${xpPct}%` } as React.CSSProperties} />
+            </div>
+            <span className="cap-xp__next" title={`Următorul nivel: ${level + 1}`}>
+              {level + 1}
+            </span>
           </div>
         </div>
 
         <div className="cap-profile-section">
           <h4 className="cap-profile-section__title">Statistici</h4>
-          <div className="cap-profile-stats">
-            <div className="cap-profile-stat">
-              <Flame className="cap-profile-stat__icon" aria-hidden="true" />
-              <span className="cap-profile-stat__val">{snapshot.dailyStreak}</span>
-              <span className="cap-profile-stat__label">zile la rând</span>
+          <div className="cap-ps">
+            <div className="cap-ps__card">
+              <img className="cap-ps__icon" src="assets/images/gamification/streak-mini.svg" alt="" />
+              <div className="cap-ps__tx">
+                <b>{snapshot.dailyStreak}</b>
+                <span>{snapshot.dailyStreak === 1 ? 'zi la rând' : 'zile la rând'}</span>
+              </div>
             </div>
-            <div className="cap-profile-stat">
-              <Zap className="cap-profile-stat__icon cap-profile-stat__icon--xp" aria-hidden="true" />
-              <span className="cap-profile-stat__val">{totalXp}</span>
-              <span className="cap-profile-stat__label">XP total</span>
+            <div className="cap-ps__card">
+              <img className="cap-ps__icon" src="assets/images/gamification/xp-mini.svg" alt="" />
+              <div className="cap-ps__tx">
+                <b>{totalXp}</b>
+                <span>XP total</span>
+              </div>
             </div>
-            <div className="cap-profile-stat">
-              <Trophy className="cap-profile-stat__icon cap-profile-stat__icon--rank" aria-hidden="true" />
-              <span className="cap-profile-stat__val">
-                {!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}
-              </span>
-              <span className="cap-profile-stat__label">în clasament</span>
+            {/* The leagues are not built yet: the card is here so the place is reserved. */}
+            <div className="cap-ps__card cap-ps__card--soon">
+              <span className="cap-ps__tag">ÎN CURÂND</span>
+              <img className="cap-ps__icon" src="assets/images/gamification/liga.svg" alt="" />
+              <div className="cap-ps__tx">
+                <b>Ligi</b>
+                <span>Liga curentă</span>
+              </div>
+            </div>
+            <div className="cap-ps__card">
+              <img className="cap-ps__icon" src="assets/images/gamification/leaderboard-mini.svg" alt="" />
+              <div className="cap-ps__tx">
+                <b>{!leaderboardReady ? '…' : myRow ? `#${myRow.rank}` : '—'}</b>
+                <span>în clasament</span>
+              </div>
             </div>
           </div>
         </div>
