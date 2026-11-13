@@ -347,27 +347,23 @@
     min-width: 0;
     /* Both rails are position:fixed (out of flow); these margins reserve
        their width plus the row gap by hand. */
-    margin-left: calc(var(--cap-rail) + 24px);
+    /* the left rail's width is carried by body[data-rail] (css/rail.css); only the right rail is reserved here */
+    margin-left: 0;
     margin-right: calc(var(--cap-rail-right) + 24px);
     padding-top: 6px;
   }
 
-  /* Rails fixed to the viewport, flush to its edges, full height below
-     the navbar. Fixed rather than sticky: sticky fights the sitewide
-     body overflow rules (see body:has(#root) in css/style.css). */
-  .cap-col-left, .cap-col-right {
+  /* The right rail is fixed to the viewport, full height below the navbar. Fixed rather than sticky: sticky fights
+     the sitewide body overflow rules (see body:has(#root) in css/style.css). The left rail (#appRail) is placed by css/rail.css. */
+  .cap-col-right {
     position: fixed;
     top: var(--nav-h, 72px);
     width: var(--cap-rail);
     height: calc(100vh - var(--nav-h, 72px));
     height: calc(100dvh - var(--nav-h, 72px));
-    overflow-y: auto;
-    overflow-x: hidden;
+    overflow: hidden;
     z-index: 5;
-    scrollbar-width: thin;
-    scrollbar-color: var(--k-panel-edge) transparent;
   }
-  .cap-col-left { left: 0; }
   .cap-col-right { right: 0; width: var(--cap-rail-right); }
 
   /* The profile panel fills its rail and loses the outer edge that now sits on
@@ -384,6 +380,13 @@
   .cap-col-right {
     padding: 18px 16px 24px;
     box-sizing: border-box;
+  }
+  /* If the window is too short for both cards, each card shrinks and scrolls inside itself instead of leaving the screen. */
+  .cap-col-right.cap-col > .cap-side-card {
+    flex: 0 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
   }
 }
 
@@ -1669,125 +1672,3 @@ a.cap-key__face:focus-visible {
   .cap-key:not(.cap-key--soon):hover .cap-key__symbol,
   .cap-strip__seg:hover { transform: none; }
 }
-
-/* ---- Profile rail: XP bar with depth + Duolingo-style statistic cards (2026-11-13) ----
-   Tokens come from premium.css (--pm-*), which has a dark variant, so both themes work. */
-.cap-xp {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-.cap-xp__track {
-  position: relative;
-  flex: 1;
-  height: 20px;
-  border-radius: 999px;
-  background: var(--pm-track, #E3DDF0);
-  /* sunken: shadow inside at the top, a light lip at the bottom */
-  box-shadow: inset 0 3px 4px rgba(30, 22, 49, 0.22), 0 2px 0 rgba(255, 255, 255, 0.7);
-  overflow: hidden;
-}
-[data-theme="dark"] .cap-xp__track { box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(255, 255, 255, 0.06); }
-.cap-xp__fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: var(--xp, 0%);
-  min-width: 0;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #B6E83A 0%, #8FC90A 55%, #7BB403 100%);
-  /* darker lower edge and a light rim, like a key lit from above */
-  box-shadow: inset 0 -4px 0 rgba(60, 100, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
-  transform-origin: left center;
-}
-/* glossy strip on the upper half */
-.cap-xp__fill::after {
-  content: "";
-  position: absolute;
-  left: 8px;
-  right: 8px;
-  top: 3px;
-  height: 5px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.5);
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cap-xp__fill { animation: cap-xp-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.35s backwards; }
-}
-@keyframes cap-xp-grow { from { width: 0; } }
-.cap-xp__next {
-  flex: none;
-  width: 34px;
-  height: 34px;
-  border-radius: 50%;
-  display: grid;
-  place-items: center;
-  background: var(--pm-violet, #3F236E);
-  color: #fff;
-  font-weight: 800;
-  font-size: 0.95rem;
-  font-variant-numeric: tabular-nums;
-  border: 3px solid #FFD23F;
-  box-shadow: 0 3px 0 #C99600, inset 0 2px 0 rgba(255, 255, 255, 0.25);
-}
-
-.cap-ps {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 10px;
-}
-.cap-ps__card {
-  position: relative;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  min-width: 0;
-  padding: 12px 12px 12px 10px;
-  border: 2px solid var(--pm-line, #DDD6EA);
-  border-bottom-width: 4px;
-  border-radius: 16px;
-  background: var(--pm-face, #fff);
-}
-.cap-ps__icon { flex: none; width: 34px; height: 34px; }
-.cap-ps__tx { display: flex; flex-direction: column; min-width: 0; line-height: 1.15; }
-.cap-ps__tx b {
-  font-size: 1.3rem;
-  font-weight: 800;
-  font-variant-numeric: tabular-nums;
-  color: var(--pm-ink, var(--k-ink));
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cap-ps__tx span {
-  margin-top: 2px;
-  font-size: 0.72rem;
-  font-weight: 700;
-  color: var(--pm-ink-2, var(--k-ink-3));
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.cap-ps__card--soon .cap-ps__icon { filter: saturate(0.7); opacity: 0.85; }
-.cap-ps__card--soon .cap-ps__tx b { color: var(--pm-ink-2, var(--k-ink-3)); }
-.cap-ps__tag {
-  position: absolute;
-  top: -9px;
-  right: 8px;
-  padding: 2px 7px;
-  border-radius: 6px;
-  background: var(--pm-ink-2, #5B4F74);
-  color: #fff;
-  font-size: 0.56rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-}
-@media (prefers-reduced-motion: no-preference) {
-  .cap-ps__card { animation: cap-ps-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  .cap-ps__card:nth-child(1) { animation-delay: 0.3s; }
-  .cap-ps__card:nth-child(2) { animation-delay: 0.36s; }
-  .cap-ps__card:nth-child(3) { animation-delay: 0.42s; }
-  .cap-ps__card:nth-child(4) { animation-delay: 0.48s; }
-}
-@keyframes cap-ps-in { from { opacity: 0; transform: translateY(8px); } }

@@ -117,7 +117,7 @@
   // The navbar markup of the last visit is put in at once, so every page has its navbar from the very first paint (a page
   // change used to show a bare strip until the fetch below came back). The fetch still runs: it refreshes the copy when
   // the partial changed, and 'nav:loaded' is dispatched after it, exactly as before, so every module binds at the same moment.
-  var NAV_CACHE_KEY = 'bm_nav_html_v2';
+  var NAV_CACHE_KEY = 'bm_nav_html_v3';
   var cachedNav = null;
   try { cachedNav = localStorage.getItem(NAV_CACHE_KEY); } catch (e) { /* storage blocked: fetch only */ }
   if (cachedNav) {

@@ -59,11 +59,7 @@ export function App() {
           className="cap-three-col"
           style={{ '--cap-tab-index': MOBILE_TAB_INDEX[mobileTab] } as React.CSSProperties}
         >
-          <LeftColumn
-            leaderboardRows={leaderboardRows}
-            leaderboardReady={leaderboardReady}
-            currentUserId={currentUserId}
-          />
+          <LeftColumn />
 
           <div className="cap-col cap-col-middle">
             {isPath ? (
@@ -86,7 +82,7 @@ export function App() {
         </div>
       </div>
 
-      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Parcurs' : 'Capitole'} />
+      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Învață' : 'Capitole'} />
     </div>
   );
 }

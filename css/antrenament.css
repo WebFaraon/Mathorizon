@@ -1142,3 +1142,9 @@ html[data-theme="dark"] .an-card--bad .an-res-tile { color: #1A0905; }
   .an-hud__cell { padding: 9px 12px 10px; }
   .an-hud__val, .an-hud__val b { font-size: 1.35rem; }
 }
+
+/* The profile rail (css/rail.css) takes ~340px of the width on wide screens, so the header stacks earlier than the viewport alone suggests. */
+@media (min-width: 1180px) and (max-width: 1699px) {
+  html.bm-authed body.an .an-head,
+  html.has-rail body.an .an-head { grid-template-columns: minmax(0, 1fr); grid-template-areas: "title" "lede" "level"; }
+}

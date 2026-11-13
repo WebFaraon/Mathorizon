@@ -200,7 +200,7 @@
 
   // The navbar of the last visit is put in the moment its (empty) element is parsed, before the first paint, so the new
   // page never shows a bare strip where the navbar goes. js/nav-loader.js keeps the copy fresh.
-  var NAV_KEY = 'bm_nav_html_v2';
+  var NAV_KEY = 'bm_nav_html_v3';
   function prefillNav(nav) {
     try {
       var h = localStorage.getItem(NAV_KEY);

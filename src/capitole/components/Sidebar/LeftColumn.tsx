@@ -1,28 +1,8 @@
-import { ProfilePanel } from './ProfilePanel';
-import type { LeaderboardRow } from '../../hooks/useLeaderboard';
-
-interface LeftColumnProps {
-  leaderboardRows: LeaderboardRow[];
-  leaderboardReady: boolean;
-  currentUserId: string | null;
-}
-
 /**
- * Left rail — a single profile panel (photo, cover, level/XP, streak,
- * leaderboard rank), full column height, flush to the viewport's left edge
- * at the 3-column breakpoint (see .cap-col-left's breakout rule in
- * styles.css). Replaced the old ContinueCard/NudgeCard/SimulareBannerCard
- * stack, which duplicated information the chapter grid right next to it
- * already showed.
+ * Left rail. The profile card itself is drawn by js/rail.js (the same card on every page of the site, so it
+ * stays put when the tab changes), into this <aside id="appRail">. React only keeps the place: in the phone and stacked
+ * layouts it is the "Profil" pane, on wide screens rail.css fixes it to the left of the viewport.
  */
-export function LeftColumn({ leaderboardRows, leaderboardReady, currentUserId }: LeftColumnProps) {
-  return (
-    <aside className="cap-col cap-col-left" aria-label="Profilul tău">
-      <ProfilePanel
-        leaderboardRows={leaderboardRows}
-        leaderboardReady={leaderboardReady}
-        currentUserId={currentUserId}
-      />
-    </aside>
-  );
+export function LeftColumn() {
+  return <aside id="appRail" className="cap-col cap-col-left" aria-label="Profilul tău" />;
 }

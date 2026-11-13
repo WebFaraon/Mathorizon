@@ -88,7 +88,7 @@ const TEMPLATE = `    <div class="nav__inner container">
       </a>
 
       <div class="nav__links">
-        <a class="nav__link" href="parcurs.html" data-authed-href="parcurs.html">Parcurs</a>
+        <a class="nav__link" href="parcurs.html" data-authed-href="parcurs.html">Învață</a>
         <a class="nav__link" href="capitole.html" data-authed-href="capitole.html">Exerciții</a>
         <a class="nav__link" href="bac.html?new=1" data-authed-href="bac.html?new=1">Simulare</a>
         <a class="nav__link" href="training.html" data-authed-href="training.html">Antrenament</a>
@@ -132,7 +132,7 @@ const TEMPLATE = `    <div class="nav__inner container">
       </div>
     </div>
     <div class="nav__mobile-menu" id="navMobileMenu">
-      <a class="nav__mobile-link" href="parcurs.html" data-authed-href="parcurs.html">\${parcurs}Parcurs</a>
+      <a class="nav__mobile-link" href="parcurs.html" data-authed-href="parcurs.html">\${parcurs}Învață</a>
       <a class="nav__mobile-link" href="capitole.html" data-authed-href="capitole.html">\${capitole}Exerciții</a>
       <a class="nav__mobile-link" href="bac.html?new=1" data-authed-href="bac.html?new=1">\${simulare}Simulare</a>
       <a class="nav__mobile-link" href="training.html" data-authed-href="training.html">\${antrenament}Antrenament</a>

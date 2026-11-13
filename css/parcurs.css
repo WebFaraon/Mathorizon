@@ -2,7 +2,7 @@
    Parcurs (parcurs.html): drumul lecțiilor, în stilul Teorema (taste 3D, violet și verde).
    Tokenurile --pm-* vin din premium.css și au variantă pentru tema închisă.
    ============================================================ */
-.pp-root { width: 100%; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink); padding: 0 0 90px; }
+.pp-root { width: 100%; padding-top: 26px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink); padding-bottom: 90px; }
 .pp-loading { display: grid; place-items: center; gap: 12px; min-height: 50vh; font-weight: 700; color: var(--pm-ink-2); }
 
 /* bară de sus: clasa și lista de secțiuni */
