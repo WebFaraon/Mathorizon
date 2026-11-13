@@ -101,7 +101,8 @@ body.lz {
   font-weight: 800;
   color: var(--lz-no);
 }
-.lz-xp b { font-size: 1.15rem; font-variant-numeric: tabular-nums; }
+.lz-xp img { width: 34px; height: 34px; }
+.lz-xp b { font-size: 1.3rem; font-variant-numeric: tabular-nums; }
 .lz-xp > span { font-size: 0.78rem; letter-spacing: 0.06em; }
 .lz-xp.bump { animation: lz-bump 0.45s cubic-bezier(0.16, 1, 0.3, 1); }
 @keyframes lz-bump { 0% { transform: scale(1); } 40% { transform: scale(1.22); } 100% { transform: scale(1); } }
@@ -706,3 +707,15 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 /* matematica din lecții: fontul formulelor din capitole (Space Grotesk), ca la exercițiile din Exersare */
 .mt, .fr, sup, .lz-inp, .lz-key, .lz-eq, .lz-row .eqs, .bx { font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: lining-nums; }
 .lz-learn__owl { --ow: 150px; margin: -10px auto -14px; }
+
+/* serie de corecte: ecran plin cu bufnița cu flacără */
+.lz-streak { position: fixed; inset: 0; z-index: 4000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; padding: 24px; text-align: center; background: var(--pm-paper); animation: lz-st-in 0.28s ease both; cursor: pointer; }
+.lz-streak.out { animation: lz-st-out 0.3s ease both; pointer-events: none; }
+.lz-streak .lz-streak__owl { --ow: 250px; animation: lz-st-pop 0.7s cubic-bezier(0.2, 1.5, 0.4, 1) 0.05s backwards; }
+.lz-streak b { margin-top: -26px; font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif; font-size: clamp(3.6rem, 16vw, 5.4rem); font-weight: 700; line-height: 1; color: var(--pm-violet); animation: lz-st-num 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.25s backwards; }
+.lz-streak h2 { margin: 6px 0 0; font-size: clamp(1.3rem, 5vw, 1.9rem); font-weight: 800; color: var(--pm-ink); animation: lz-st-in 0.4s ease 0.4s backwards; }
+@keyframes lz-st-in { from { opacity: 0; } to { opacity: 1; } }
+@keyframes lz-st-out { to { opacity: 0; } }
+@keyframes lz-st-pop { 0% { transform: translateY(40px) scale(0.5); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@keyframes lz-st-num { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: none; opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .lz-streak, .lz-streak .lz-streak__owl, .lz-streak b, .lz-streak h2 { animation: none; } }

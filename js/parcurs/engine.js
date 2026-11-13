@@ -396,6 +396,7 @@
       if (L.kind !== 'skip') { var x = $('.lz-xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); floatXp('+' + gain); }
       if (streak >= 3) { combo.hidden = false; combo.querySelector('b').textContent = streak; PV.pop(combo); }
       sparks(ctl.okEl && ctl.okEl());
+      streakShow(streak);
     } else {
       streak = 0; combo.hidden = true;
       if (!L.noRetry) { queue.push(cur); total++; setProgress(); }
@@ -406,6 +407,26 @@
     showFeedback(right, giveUp);
   }
   var wrongCount_ = 0;
+
+  /* 3, 5, 7, 10... corecte la rând: bufnița cu flacără pe tot ecranul, câteva secunde, apoi lecția merge mai departe */
+  var STREAK_AT = { 3: 'corecte la rând!', 5: 'la rând! Ești în formă!', 7: 'la rând! Ești în flăcări!', 10: 'la rând! Neoprit!', 15: 'la rând! Incredibil!', 20: 'la rând! Maestru!' };
+  function streakShow(n) {
+    if (!STREAK_AT[n] || document.querySelector('.lz-streak')) return;
+    var ov = h('div', 'lz-streak'), ow = h('div', 'owl lz-streak__owl');
+    ov.setAttribute('role', 'status');
+    ov.appendChild(ow);
+    ov.appendChild(h('b', '', String(n)));
+    ov.appendChild(h('h2', '', n === 3 ? '3 corecte la rând!' : n + ' ' + STREAK_AT[n]));
+    document.body.appendChild(ov);
+    var o = owl(ow, 'streak');
+    var gone = false, end = function () {
+      if (gone) return; gone = true;
+      ov.classList.add('out');
+      setTimeout(function () { try { if (o) window.TeoremaMascot.dispose(o); } catch (e) { /* gone */ } ov.remove(); }, reduce() ? 0 : 320);
+    };
+    ov.onclick = end;
+    setTimeout(end, reduce() ? 1300 : 2100);
+  }
 
   function showFeedback(right, giveUp) {
     setFoot(right ? 'ok' : 'no');

@@ -43,7 +43,30 @@
     try { var g = parseInt(localStorage.getItem(isStudent() ? 'bm_grade' : 'bm_grade_view') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ }
     return 0;
   }
-  var viewGrade = 0;
+  /* clasa pe care o privesti acum: elevul poate vedea o alta clasa fara sa-si schimbe clasa din cont (bm_grade_view ramane si dupa o lectie) */
+  function viewOf() { try { var g = parseInt(localStorage.getItem('bm_grade_view') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ } return 0; }
+  function setView(n) { try { if (n) localStorage.setItem('bm_grade_view', String(n)); else localStorage.removeItem('bm_grade_view'); } catch (e) { /* ignore */ } }
+
+  /* derulare doar pe containerul care deruleaza pe verticala: scrollIntoView muta si containerele taiate (overflow) ale paginii, de aici decalajele */
+  function scrollerOf(el) {
+    for (var p = el.parentElement; p && p !== document.body && p !== document.documentElement; p = p.parentElement) {
+      var cs = getComputedStyle(p);
+      if (/(auto|scroll)/.test(cs.overflowY) && p.scrollHeight > p.clientHeight + 1) return p;
+    }
+    return document.scrollingElement || document.documentElement;
+  }
+  function revealIn(el, o) {
+    o = o || {};
+    var sc = scrollerOf(el), isDoc = sc === document.scrollingElement || sc === document.documentElement;
+    var vt = isDoc ? 0 : sc.getBoundingClientRect().top, vb = isDoc ? window.innerHeight : sc.getBoundingClientRect().bottom;
+    var top = vt + (o.padTop || 0), bot = vb - (o.padBottom || 0), r = el.getBoundingClientRect(), d = 0;
+    if (o.mode === 'center') d = (r.top + r.height / 2) - (top + bot) / 2;
+    else if (o.mode === 'start') d = r.top - top;
+    else { if (r.bottom > bot) d = r.bottom - bot; if (o.keep) { var kr = o.keep.getBoundingClientRect(); if (kr.top - d < top + 8) d = kr.top - (top + 8); } else if (r.top - d < top) d = r.top - top; }
+    if (Math.abs(d) < 2) return;
+    var cur = isDoc ? (window.pageYOffset || sc.scrollTop) : sc.scrollTop, opt = { top: Math.max(0, cur + d), behavior: o.smooth && !reduce() ? 'smooth' : 'auto' };
+    if (isDoc) window.scrollTo(opt); else sc.scrollTo(opt);
+  }
 
   /* ---------- stare ---------- */
   function totalsOf(sec) {
@@ -66,9 +89,9 @@
   }
 
   /* ---------- desen ---------- */
-  var RING_R = 41, RING_LEN = 2 * Math.PI * RING_R;
+  var RING_R = 46, RING_LEN = 2 * Math.PI * RING_R;
   function ring(frac) {
-    return '<svg class="ring" viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="' + RING_R + '"/><circle class="ring-fg" cx="50" cy="50" r="' + RING_R + '" style="stroke-dasharray:' + RING_LEN.toFixed(1) + ';stroke-dashoffset:' + (RING_LEN * (1 - frac)).toFixed(1) + '" transform="rotate(-90 50 50)"/></svg>';
+    return '<svg class="ring' + (frac > 0 ? '' : ' z') + '" viewBox="0 0 100 100" aria-hidden="true"><circle class="ring-bg" cx="50" cy="50" r="' + RING_R + '"/><circle class="ring-fg" cx="50" cy="50" r="' + RING_R + '" style="stroke-dasharray:' + RING_LEN.toFixed(1) + ';stroke-dashoffset:' + (RING_LEN * (1 - frac)).toFixed(1) + '" transform="rotate(-90 50 50)"/></svg>';
   }
 
   function nodeHTML(kind, state, idx, o) {
@@ -128,7 +151,7 @@
   /* ---------- randare ---------- */
   function render() {
     if (!root) return;
-    var g = viewGrade || grade() || 7;
+    var g = viewOf() || grade() || 7;
     var cur = curCircleOrTest();
     var pr = progressPct();
     var canPick = true;
@@ -191,14 +214,17 @@
     var pop = document.createElement('div');
     pop.className = 'pp-pop'; pop.setAttribute('role', 'dialog'); pop.innerHTML = html;
     nw.appendChild(pop); openPop = pop;
-    var r = pop.getBoundingClientRect(), shift = 0, margin = 12;
-    if (r.left < margin) shift = margin - r.left;
-    else if (r.right > window.innerWidth - margin) shift = (window.innerWidth - margin) - r.right;
+    /* limitele sunt ale panoului care deruleaza (el taie ce iese din el), nu doar ale ferestrei */
+    var paneEl = nw.closest('.cap-col-middle'), pr = paneEl ? paneEl.getBoundingClientRect() : { left: 0, right: window.innerWidth };
+    var minL = Math.max(0, pr.left), maxR = Math.min(window.innerWidth, pr.right);
+    var r = pop.getBoundingClientRect(), shift = 0, margin = 10;
+    if (r.left < minL + margin) shift = minL + margin - r.left;
+    else if (r.right > maxR - margin) shift = (maxR - margin) - r.right;
     pop.style.setProperty('--sx', shift + 'px');
     requestAnimationFrame(function () { pop.classList.add('on'); });
     var first = pop.querySelector('a.gob'); if (first) first.focus({ preventScroll: true });
     /* panoul trebuie sa se vada complet: daca iese din ecran (pe telefon, sub bara de jos), pagina deruleaza pana il arata */
-    var settle = function () { if (openPop === pop) pop.scrollIntoView({ block: 'nearest', behavior: reduce() ? 'auto' : 'smooth' }); };
+    var settle = function () { if (openPop === pop) revealIn(pop, { mode: 'nearest', padBottom: 16, keep: nw, smooth: true }); };
     setTimeout(settle, 60); setTimeout(settle, 320);
   }
 
@@ -209,7 +235,7 @@
       classAsk();
     };
     var all = document.getElementById('ppAll'); if (all) all.onclick = openAll;
-    var see = document.getElementById('ppSee7'); if (see) see.onclick = function () { viewGrade = 7; render(); };
+    var see = document.getElementById('ppSee7'); if (see) see.onclick = function () { setView(7); render(); };
   }
   function bindPath() {
     root.querySelectorAll('.nd').forEach(function (b) {
@@ -243,11 +269,11 @@
     h += '</div>';
     var d = dialog(h, 'wide');
     d.querySelector('[data-x]').onclick = closeDlg;
-    d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); var el = document.getElementById(b.dataset.goto); if (el) el.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth', block: 'start' }); }; });
+    d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); var el = document.getElementById(b.dataset.goto); if (el) revealIn(el, { mode: 'start', padTop: 96, smooth: true }); }; });
   }
   /* doar clasa, fara nickname: elevul poate trece oricând de la o clasă la alta */
   function classAsk() {
-    var g = viewGrade || grade() || 7;
+    var g = viewOf() || grade() || 7;
     var keys = [5, 6, 7, 8, 9, 10, 11, 12].map(function (n) {
       return '<button type="button" class="pp-g' + (n === g ? ' on' : '') + '" data-g="' + n + '"><b>' + ROMAN[n] + '</b><span>clasa a ' + n + '-a</span></button>';
     }).join('');
@@ -256,10 +282,10 @@
     d.querySelectorAll('[data-g]').forEach(function (b) {
       b.onclick = function () {
         var n = +b.dataset.g;
-        try { localStorage.setItem(isStudent() ? 'bm_grade' : 'bm_grade_view', String(n)); } catch (e) { /* ignore */ }
+        if (isStudent()) { try { localStorage.setItem('bm_grade', String(n)); } catch (e) { /* ignore */ } setView(0); } else setView(n);
         var sb = isStudent() && window.BMAuth && window.BMAuth.supabase;
         if (sb) { try { Promise.resolve(sb.rpc('set_student_grade', { p_grade: n })).then(function () {}, function () {}); } catch (e) { /* migrarea poate lipsi: clasa ramane in browser */ } }
-        viewGrade = 0; closeDlg(); render();
+        closeDlg(); render();
         var top = root && root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0);
       };
     });
@@ -282,10 +308,11 @@
     }
     var cur = root.querySelector('.nw .nd.cur');
     var focus = target || cur;
-    if (focus) setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'auto' }); }, 30);
+    if (focus) setTimeout(function () { revealIn(focus, { mode: 'center' }); }, 30);
     if (!id || reduce()) return;
     if (target) {
       var fg = target.querySelector('.ring-fg'), nd = target.querySelector('.nd');
+      if (fg && fg.parentNode) fg.parentNode.classList.remove('z');
       if (fg && nd) {
         var final = fg.style.strokeDashoffset;
         var n2 = C.findNode(id), circ = n2 && n2.circle;
@@ -316,7 +343,7 @@
     }, function () {});
   }
 
-  document.addEventListener('bm:onboarded', function () { viewGrade = 0; render(); });
+  document.addEventListener('bm:onboarded', function () { setView(0); render(); });
   document.addEventListener('parcurs:changed', function () { /* redesenăm doar când pagina nu e în mijlocul unei animații */ });
   window.addEventListener('pageshow', function (e) { if (e.persisted) { render(); celebrate(); } });
 
