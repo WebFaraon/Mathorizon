@@ -11,7 +11,7 @@
   html[data-theme="dark"].bm-authed #bnav { --bn-face: #241B35; --bn-tint: #33264D; --bn-line: #3A2E52; --bn-line2: #4A3C68; --bn-edge: #0F0A18; }
   html.bnav-off #bnav { display: none !important; }
   /* bara rămâne nemișcată: fără elasticul de la capătul paginii și pe propriul strat de desenare */
-  html.bm-authed:not(.bnav-off), html.bm-authed:not(.bnav-off) body { overscroll-behavior-y: none; }
+  html.bm-authed:not(.bnav-off) { overscroll-behavior-y: none; }   /* only the page itself: on body it would stop touch scrolling from reaching the page */
   html.bm-authed #bnav { transform: translateZ(0); will-change: transform; backface-visibility: hidden; }
 
   /* indicatorul: o cheie ușor colorată care alunecă la tabul curent */
