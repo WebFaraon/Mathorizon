@@ -190,3 +190,24 @@
   .go-tag, .nd.celebrate .face, .nd.unlock .face { animation: none; }
   .pp-pop, .pp-dlg, .pp-dlg__card { transition: none; }
 }
+
+/* the "class" window: only the class, nothing else to fill in */
+.pp-dlg.small .pp-dlg__h { width: 100%; }
+.pp-grades { width: 100%; display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin-top: 4px; }
+.pp-g { display: flex; flex-direction: column; align-items: center; gap: 1px; padding: 12px 4px 9px; border: 2px solid var(--pm-line); border-bottom-width: 5px; border-radius: 16px; background: var(--pm-face); color: var(--pm-ink); font: inherit; cursor: pointer; transition: transform 0.08s ease, background 0.12s ease; }
+.pp-g b { font-size: 1.25rem; font-weight: 800; }
+.pp-g span { font-size: 0.64rem; font-weight: 700; color: var(--pm-ink-2); }
+.pp-g:hover { background: var(--pm-tint); }
+.pp-g:active { transform: translateY(2px); border-bottom-width: 3px; }
+.pp-g.on { background: var(--pm-violet); border-color: var(--pm-violet); color: #fff; }
+.pp-g.on span { color: rgba(255, 255, 255, 0.8); }
+@media (max-width: 420px) { .pp-g span { display: none; } }
+
+/* hover on the green key: dims, like every key on the site (colours restated so no older rule can swap them) */
+.go:hover, a.go:hover, .pp-pop .gob:hover { filter: brightness(0.93); }
+.pp-pop .gob:hover { background: var(--k-go, #7CB800); color: var(--k-go-ink, #14200A); }
+/* the two keys of the "path is being prepared" plate: same height, same bottom edge */
+.pp-soonclass__act { align-items: flex-start; }
+.pp-soonclass__act .go, .pp-soonclass__act .pk { box-sizing: border-box; height: 54px; padding: 0 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.92rem; margin: 0; }
+.pp-soonclass__act .go { height: 50px; margin-bottom: 4px; }
+.pp-soonclass__act .pk { height: 54px; }

@@ -202,8 +202,7 @@
     var cls = document.getElementById('ppClass');
     if (cls) cls.onclick = function () {
       var rl = window.BMAuth && window.BMAuth.role; if (rl && rl !== 'elev') return;   /* clasa se alege doar la elevi */
-      var go = function () { window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname: localStorage.getItem('bm_nickname') || '', grade: grade() || 7 }); };
-      if (window.BMOnboarding) go(); else { var s = document.createElement('script'); s.src = 'js/onboarding.js'; s.onload = go; document.body.appendChild(s); }
+      classAsk();
     };
     var all = document.getElementById('ppAll'); if (all) all.onclick = openAll;
     var see = document.getElementById('ppSee7'); if (see) see.onclick = function () { viewGrade = 7; render(); };
@@ -241,6 +240,25 @@
     var d = dialog(h, 'wide');
     d.querySelector('[data-x]').onclick = closeDlg;
     d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); var el = document.getElementById(b.dataset.goto); if (el) el.scrollIntoView({ behavior: reduce() ? 'auto' : 'smooth', block: 'start' }); }; });
+  }
+  /* doar clasa, fara nickname: elevul poate trece oricând de la o clasă la alta */
+  function classAsk() {
+    var g = viewGrade || grade() || 7;
+    var keys = [5, 6, 7, 8, 9, 10, 11, 12].map(function (n) {
+      return '<button type="button" class="pp-g' + (n === g ? ' on' : '') + '" data-g="' + n + '"><b>' + ROMAN[n] + '</b><span>clasa a ' + n + '-a</span></button>';
+    }).join('');
+    var d = dialog('<div class="pp-dlg__h"><h2>Alege clasa</h2><button class="pk sm x" type="button" data-x aria-label="Închide">' + svg('close') + '</button></div><p class="pp-dlg__sub">Parcursul de lecții se schimbă după clasa aleasă.</p><div class="pp-grades">' + keys + '</div>', 'small');
+    d.querySelector('[data-x]').onclick = closeDlg;
+    d.querySelectorAll('[data-g]').forEach(function (b) {
+      b.onclick = function () {
+        var n = +b.dataset.g;
+        try { localStorage.setItem('bm_grade', String(n)); } catch (e) { /* ignore */ }
+        var sb = window.BMAuth && window.BMAuth.supabase;
+        if (sb) { try { Promise.resolve(sb.rpc('set_student_grade', { p_grade: n })).then(function () {}, function () {}); } catch (e) { /* migrarea poate lipsi: clasa ramane in browser */ } }
+        viewGrade = 0; closeDlg(); render();
+        var top = root && root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0);
+      };
+    });
   }
   function skipAsk(secId) {
     var sec = CLS.chapters[0].sections.filter(function (s) { return s.id === secId; })[0]; if (!sec) return;

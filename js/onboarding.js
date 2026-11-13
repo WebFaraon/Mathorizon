@@ -73,7 +73,7 @@
     var role0 = window.BMAuth && window.BMAuth.role;
     if (role0 && role0 !== 'elev') return;
     css();
-    state = { step: 0, nick: opts.nickname || '', grade: opts.grade || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
+    state = { step: 0, nick: opts.nickname || '', grade: opts.grade || null, lockedUntil: opts.lockedUntil || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
     try { state.name = (window.BMAuth && window.BMAuth.displayName && window.BMAuth.displayName()) || ''; } catch (e) { /* ignore */ }
     el = document.createElement('div');
     el.className = 'ob';
@@ -85,6 +85,7 @@
   }
 
   function dots() {
+    if (state.edit) return '';
     var out = '';
     for (var i = 0; i < 3; i++) out += '<i class="' + (i < state.step ? 'done' : i === state.step ? 'on' : '') + '"></i>';
     return '<div class="ob-dots" aria-hidden="true">' + out + '</div>';
@@ -93,13 +94,19 @@
   function render() {
     if (!el) return;
     var s = state, h = '';
-    if (s.step === 0) {
+    if (s.step === 0 && s.edit && s.lockedUntil && Date.parse(s.lockedUntil) > Date.now()) {
+      var d = new Date(s.lockedUntil), when = d.toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
+      h = '<div class="ob-owl owl" id="obOwl"></div><h2>Nickname-ul e blocat</h2>' +
+        '<p>Nickname-ul se poate schimba o dată la 60 de zile. Îl poți schimba din <b>' + when + '</b>.</p>' +
+        '<div class="ob-fld ob-fld--ro"><span class="at">@</span><input type="text" value="' + s.nick.replace(/"/g, '') + '" readonly aria-label="Nickname-ul tău"></div>' +
+        '<div class="ob-act"><button class="ob-go" id="obX2" type="button">Am înțeles</button></div>';
+    } else if (s.step === 0) {
       h = '<div class="ob-owl owl" id="obOwl"></div><h2>' + (s.edit ? 'Schimbă nickname-ul' : 'Bine ai venit la Teorema!') + '</h2>' +
-        '<p>Alege un <b>nickname</b>. Așa te văd ceilalți elevi în clasament. Numele tău real rămâne în clasele tale, nickname-ul se vede doar în clasament.</p>' +
+        '<p>Alege un <b>nickname</b>. Așa te văd ceilalți elevi în clasament. Numele tău real rămâne în clasele tale, nickname-ul se vede doar în clasament.' + (s.edit ? ' După ce îl schimbi, îl poți schimba din nou abia peste 60 de zile.' : '') + '</p>' +
         '<label class="ob-fld" for="obNick"><span class="at">@</span><input id="obNick" type="text" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="nickname" value="' + s.nick.replace(/"/g, '') + '"></label>' +
         '<div class="ob-st" id="obSt" role="status"></div>' +
         '<div class="ob-sug" id="obSug"></div>' +
-        '<div class="ob-act"><button class="ob-go" id="obNext" type="button" disabled>Continuă</button></div>' +
+        '<div class="ob-act"><button class="ob-go" id="obNext" type="button" disabled>' + (s.edit ? 'Salvează' : 'Continuă') + '</button></div>' +
         (s.edit ? '<button class="ob-link" id="obX" type="button">Renunță</button>' : '<button class="ob-link" id="obLater" type="button">Mai târziu</button>');
     } else if (s.step === 1) {
       h = '<div class="ob-owl owl" id="obOwl"></div><h2>În ce clasă ești?</h2>' +
@@ -161,6 +168,7 @@
 
   function bind() {
     var s = state, nx = $('#obNext');
+    if (s.step === 0 && !nx) { var x2 = $('#obX2'); if (x2) x2.onclick = close; return; }
     if (s.step === 0) {
       var inp = $('#obNick');
       inp.addEventListener('input', check);
@@ -169,7 +177,7 @@
       sug.addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) { inp.value = b.getAttribute('data-s'); check(); inp.focus(); } });
       if (s.nick) check();
       setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }, 350);
-      nx.onclick = function () { s.step = 1; render(); };
+      nx.onclick = function () { if (s.edit) { s.grade = s.grade || +(localStorage.getItem('bm_grade') || 0) || 7; save(); } else { s.step = 1; render(); } };
       var lt = $('#obLater'); if (lt) lt.onclick = function () { try { sessionStorage.setItem('bm_onb_later', '1'); } catch (e) { /* ignore */ } close(); };
       var xx = $('#obX'); if (xx) xx.onclick = close;
     } else if (s.step === 1) {
@@ -198,12 +206,14 @@
       if (r.error || !d || !d.ok) {
         if (b) b.disabled = false;
         var e = d && d.error;
+        if (e === 'locked') { s.lockedUntil = d.until; s.step = 0; render(); return; }
         if (e === 'taken' || e === 'invalid' || e === 'reserved') { s.step = 0; render(); setStatus('bad', MSG[e]); return; }
         if (er) er.textContent = 'Nu s-a putut salva. Reîncearcă peste un moment.';
         return;
       }
       try { localStorage.setItem('bm_grade', String(d.grade)); localStorage.setItem('bm_nickname', d.nickname); localStorage.setItem('bm_onb_' + uid(), '1'); } catch (e2) { /* ignore */ }
       document.dispatchEvent(new CustomEvent('bm:onboarded', { detail: { nickname: d.nickname, grade: d.grade } }));
+      if (s.edit) { try { sessionStorage.removeItem('bm_rail_rank'); } catch (e3) { /* ignore */ } }
       close();
     }, function () { s.saving = false; if (b) b.disabled = false; if (er) er.textContent = 'Nu s-a putut salva. Reîncearcă peste un moment.'; });
   }

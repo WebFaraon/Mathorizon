@@ -1014,16 +1014,16 @@
        country, phone, social link too); everyone else just edits the name. */
     /* Elev: @nickname si clasa, cu cheia de schimbare (wizardul din js/onboarding.js) */
     const nickEl = document.getElementById('pfNick');
-    let studentConfirmed = false;
+    let studentConfirmed = false, nickLockedUntil = null;
     if (nickEl) {
       const paintNick = (nickname, grade) => {
         if (!nickname && !grade) { nickEl.hidden = true; return; }
         const roman = ['', '', '', '', '', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
         nickEl.innerHTML = (nickname ? `<b>@${BM.esc(nickname)}</b>` : '') + (nickname && grade ? ' · ' : '') + (grade ? `Clasa a ${roman[grade] || grade}-a` : '') +
-          ` <button type="button" class="pf-nick__chg" id="pfNickChg">Schimbă</button>`;
+          ` <button type="button" class="pf-nick__chg" id="pfNickChg">Schimbă nickname-ul</button>`;
         nickEl.hidden = false;
         document.getElementById('pfNickChg')?.addEventListener('click', () => {
-          const go = () => window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname, grade });
+          const go = () => window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname, grade, lockedUntil: nickLockedUntil });
           if (window.BMOnboarding) go();
           else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
         });
@@ -1031,10 +1031,10 @@
       /* doar pentru elevi, si doar dupa ce serverul confirma rolul (rolul din browser poate fi necunoscut o clipa) */
       try {
         const r = await sb.rpc('my_student_profile');
-        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; paintNick(r.data.nickname || '', r.data.grade || 0); }
+        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; nickLockedUntil = r.data.locked_until || null; paintNick(r.data.nickname || '', r.data.grade || 0); }
         else nickEl.remove();
       } catch (e) { nickEl.remove(); /* migratia nu e rulata inca sau nu e elev */ }
-      document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) paintNick(ev.detail.nickname, ev.detail.grade); });
+      document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) { nickLockedUntil = new Date(Date.now() + 60 * 864e5).toISOString(); paintNick(ev.detail.nickname, ev.detail.grade); } });
     }
 
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {

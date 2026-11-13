@@ -16,7 +16,9 @@
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
   var state = { rank: null, rankXp: null, nick: '', nickRole: null, mounted: false };
   var scheduled = false;
+  var IC = window.RAIL_ICONS || { streak: 'assets/images/gamification/streak-mini.svg', xp: 'assets/images/gamification/xp-mini.svg', liga: 'assets/images/gamification/liga.svg', trophy: 'assets/images/gamification/leaderboard-mini.svg', medal: 'assets/images/gamification/realizari.svg', owl: 'assets/images/avatar-owl.svg' };
   var seeded = false;
+  var bootAt = Date.now();
   var sig = function (str) { var h = 5381, i; for (i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return String(h); };
 
   function wants() { return document.body && document.body.hasAttribute('data-rail'); }
@@ -58,7 +60,7 @@
     var BM = window.BM || {};
     var months = '';
     try { months = u.created_at ? new Intl.DateTimeFormat('ro-RO', { month: 'long', year: 'numeric' }).format(new Date(u.created_at)) : ''; } catch (e) { /* ignore */ }
-    var role = A.role || null;
+    var role = A.role || state.cachedRole || null;
     return {
       name: A.displayName ? A.displayName() : '',
       username: (u.user_metadata && (u.user_metadata.username || u.user_metadata.user_name)) || '',
@@ -66,7 +68,8 @@
       cover: (u.user_metadata && u.user_metadata.custom_cover_url) || null,
       role: role,
       since: months,
-      xp: (BM.Training && BM.Training.getTotalXp && BM.Training.getTotalXp()) || 0,
+      /* not every page loads training-stats.js: the XP total is read from the same key it uses */
+      xp: (BM.Training && BM.Training.getTotalXp && BM.Training.getTotalXp()) || (function () { try { return Math.max(0, parseInt(localStorage.getItem('bm_training_total_xp') || '0', 10) || 0); } catch (e) { return 0; } })(),
       streak: (BM.Storage && BM.Storage.getStreak && (BM.Storage.getStreak() || {}).count) || 0,
       perLevel: (BM.Training && BM.Training.XP_PER_LEVEL) || 100
     };
@@ -104,7 +107,7 @@
     var big = isStudent && state.nick ? '@' + state.nick : s.name;
     var small = isStudent && state.nick ? s.name : s.username;
     var rankTxt = state.rank != null ? '#' + state.rank : (isStudent ? '—' : '—');
-    var avatar = s.avatar || (window.BM && window.BM.DEFAULT_AVATAR) || 'assets/images/avatar-owl.svg';
+    var avatar = s.avatar || IC.owl;
     var cover = s.cover ? ' style="background-image:url(\'' + esc(s.cover) + '\')"' : '';
     return '<div class="rl-card">' +
       '<div class="rl-cover"' + cover + '></div>' +
@@ -118,13 +121,13 @@
           '<div class="rl-xp"><div class="rl-xp__track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Nivel ' + level + ': ' + pct + '%"><i class="rl-xp__fill" style="--xp:' + pct + '%"></i></div><span class="rl-xp__next" title="Următorul nivel: ' + (level + 1) + '">' + (level + 1) + '</span></div></div>' +
         '<h4 class="rl-h">Statistici</h4>' +
         '<div class="rl-ps">' +
-          '<div class="rl-ps__card"><img src="assets/images/gamification/streak-mini.svg" alt=""><div><b>' + s.streak + '</b><span>' + (s.streak === 1 ? 'zi la rând' : 'zile la rând') + '</span></div></div>' +
-          '<div class="rl-ps__card"><img src="assets/images/gamification/xp-mini.svg" alt=""><div><b>' + xpShown + '</b><span>XP total</span></div></div>' +
-          '<div class="rl-ps__card rl-ps__card--soon"><span class="rl-ps__tag">ÎN CURÂND</span><img src="assets/images/gamification/liga.svg" alt=""><div><b>Ligi</b><span>Liga curentă</span></div></div>' +
-          '<div class="rl-ps__card"><img src="assets/images/gamification/leaderboard-mini.svg" alt=""><div><b>' + rankTxt + '</b><span>în clasament</span></div></div>' +
+          '<div class="rl-ps__card"><img src="' + IC.streak + '" alt=""><div><b>' + s.streak + '</b><span>' + (s.streak === 1 ? 'zi la rând' : 'zile la rând') + '</span></div></div>' +
+          '<div class="rl-ps__card"><img src="' + IC.xp + '" alt=""><div><b>' + xpShown + '</b><span>XP total</span></div></div>' +
+          '<div class="rl-ps__card rl-ps__card--soon"><span class="rl-ps__tag">ÎN CURÂND</span><img src="' + IC.liga + '" alt=""><div><b>Ligi</b><span>Liga curentă</span></div></div>' +
+          '<div class="rl-ps__card"><img src="' + IC.trophy + '" alt=""><div><b>' + rankTxt + '</b><span>în clasament</span></div></div>' +
         '</div>' +
         '<h4 class="rl-h">Realizări</h4>' +
-        '<div class="rl-ach"><img src="assets/images/gamification/realizari.svg" alt=""><p>Realizările vor apărea aici în curând.</p></div>' +
+        '<div class="rl-ach"><img src="' + IC.medal + '" alt=""><p>Realizările vor apărea aici în curând.</p></div>' +
         (isStudent ? '<a class="rl-btn" href="profile.html#simulari-bac"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>Simulările tale anterioare</a>' : '') +
       '</div></div>';
   }
@@ -148,9 +151,11 @@
       seeded = true;
       try {
         var c = JSON.parse(localStorage.getItem('bm_rail_html_v1') || 'null');
-        if (c && c.u === window.BMAuth.user.id && c.x) { state.nick = c.x.nick || ''; state.nickRole = c.x.nickRole || null; state.rank = c.x.rank == null ? null : c.x.rank; state.rankXp = c.x.rankXp == null ? null : c.x.rankXp; }
+        if (c && c.u === window.BMAuth.user.id && c.x) { state.hadCache = true; state.cachedRole = c.x.role || null; state.nick = c.x.nick || ''; state.nickRole = c.x.nickRole || null; state.rank = c.x.rank == null ? null : c.x.rank; state.rankXp = c.x.rankXp == null ? null : c.x.rankXp; }
       } catch (e) { /* ignore */ }
     }
+    /* until the role is known (profile still loading) the cached card stays: the first live draw would miss the role chip and blink */
+    if ((!window.BMAuth.role || !state.synced) && state.hadCache && Date.now() - bootAt < 4000) { setTimeout(schedule, 400); return; }
     var markup = html(s), mark = sig(markup);
     [h, m].forEach(function (host) {
       if (!host) return;
@@ -160,7 +165,7 @@
       var nb = host.querySelector('.rl-body'); if (nb && top) nb.scrollTop = top;
     });
     if (h) document.documentElement.classList.add('has-rail');
-    try { localStorage.setItem('bm_rail_html_v1', JSON.stringify({ u: window.BMAuth.user.id, html: markup, sig: mark, x: { nick: state.nick, nickRole: state.nickRole, rank: state.rank, rankXp: state.rankXp } })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('bm_rail_html_v1', JSON.stringify({ u: window.BMAuth.user.id, html: markup, sig: mark, x: { role: s.role, nick: state.nick, nickRole: state.nickRole, rank: state.rank, rankXp: state.rankXp } })); } catch (e) { /* ignore */ }
     if (!state.extrasDone) loadExtras();
   }
   function schedule() { if (scheduled) return; scheduled = true; requestAnimationFrame(render); }
@@ -192,7 +197,7 @@
     schedule();
   }
   ['bmauth:ready', 'bmauth:synced', 'bmauth:profile', 'bmauth:streak-updated', 'bm:onboarded', 'nav:loaded'].forEach(function (ev) {
-    document.addEventListener(ev, function () { if (ev === 'bm:onboarded') { try { state.nick = localStorage.getItem('bm_nickname') || ''; } catch (e) { /* ignore */ } state.nickRole = 'elev'; } schedule(); });
+    document.addEventListener(ev, function () { if (ev === 'bmauth:synced') state.synced = true; if (ev === 'bm:onboarded') { try { state.nick = localStorage.getItem('bm_nickname') || ''; } catch (e) { /* ignore */ } state.nickRole = 'elev'; } schedule(); });
   });
   window.addEventListener('focus', function () { if (document.visibilityState === 'visible') { state.rank = state.rank; schedule(); } });
   window.addEventListener('storage', schedule);

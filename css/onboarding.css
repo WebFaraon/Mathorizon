@@ -185,3 +185,6 @@ html.ob-open { overflow: hidden; }
 @media (prefers-reduced-motion: reduce) {
   .ob, .ob-card { transition: none; }
 }
+
+.ob-fld--ro { opacity: 0.7; }
+.ob-fld--ro input { cursor: default; }
