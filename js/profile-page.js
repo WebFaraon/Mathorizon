@@ -238,6 +238,14 @@
               <input class="auth-input" id="editName" type="text" maxlength="60" required value="${BM.esc(name)}">
             </div>
           </div>
+          ${_nickInfo && _nickInfo.nickname ? `
+          <div class="auth-field" style="margin-bottom:16px">
+            <span class="auth-label">Nickname</span>
+            <div class="pf-nickrow">
+              <span class="pf-nickrow__val" id="editNickVal"><b>@${BM.esc(_nickInfo.nickname)}</b></span>
+              <button type="button" class="pf-nickrow__key" id="editNickBtn">Schimbă nickname-ul</button>
+            </div>
+          </div>` : ''}
           <div class="auth-field" style="margin-bottom:16px">
             <label class="auth-label" for="editBio">Despre mine</label>
             <div class="auth-input-wrap">
@@ -287,6 +295,7 @@
     requestAnimationFrame(() => ov.classList.add('prof-modal-overlay--in'));
 
     const close = () => {
+      document.removeEventListener('bm:onboarded', onNick);
       ov.classList.remove('prof-modal-overlay--in');
       setTimeout(() => { ov.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; }, 180);
     };
@@ -294,6 +303,14 @@
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
     const getCountryCode = _mountCountryPicker(ov.querySelector('#editCountry'), countryCode);
+    /* Schimbarea nickname-ului sta aici, in fereastra de editare (deasupra ei) */
+    const onNick = ev => { const v = ov.querySelector('#editNickVal'); if (v && ev.detail && ev.detail.nickname) v.innerHTML = '<b>@' + BM.esc(ev.detail.nickname) + '</b>'; };
+    document.addEventListener('bm:onboarded', onNick);
+    ov.querySelector('#editNickBtn')?.addEventListener('click', () => {
+      const go = () => window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname: _nickInfo && _nickInfo.nickname, grade: _nickInfo && _nickInfo.grade, lockedUntil: _nickLocked });
+      if (window.BMOnboarding) go();
+      else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
+    });
     document.getElementById('editName')?.focus();
 
     function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
@@ -461,7 +478,23 @@
   }
 
   /* ---- Render profile ---- */
+  /* Un singur desen odata: daca profilul se redeseneaza cat timp unul e in lucru
+     (rolul soseste in paralel), al doilea asteapta. Altfel ambele puneau
+     ascultatori pe aceleasi chei si "Editeaza profilul" deschidea doua ferestre. */
+  let _renderBusy = false, _renderAgain = null;
+  /* @nickname, clasa si blocarea (doar elev); citite de fereastra "Editeaza profilul" */
+  let _nickInfo = null, _nickLocked = null;
   async function renderProfile(user, sb) {
+    if (_renderBusy) { _renderAgain = [user, sb]; return; }
+    _renderBusy = true;
+    try { await _renderProfileOnce(user, sb); }
+    finally {
+      _renderBusy = false;
+      if (_renderAgain) { const [u, s2] = _renderAgain; _renderAgain = null; renderProfile(u, s2); }
+    }
+  }
+
+  async function _renderProfileOnce(user, sb) {
     const content  = document.getElementById('profileContent');
     const skeleton = document.getElementById('profileSkeleton');
     if (!content || !skeleton) return;
@@ -557,9 +590,14 @@
             </label>
           </div>
           <div class="pf-id__main">
-            <h1 class="pf-name">${BM.esc(name)}</h1>
-            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}</p>
-            ${role === 'elev' ? `<p class="pf-nick" id="pfNick" hidden></p>` : ''}
+            ${(() => {
+              /* elev: @nickname mare si bold, numele real mic si estompat (nickname-ul vine din cache pana raspunde serverul) */
+              let cn = '';
+              if (role === 'elev') { try { cn = localStorage.getItem('bm_nickname') || ''; } catch (e) { /* ignore */ } }
+              return `<h1 class="pf-name${cn ? ' pf-name--nick' : ''}" id="pfName">${cn ? '@' + BM.esc(cn) : BM.esc(name)}</h1>` +
+                (role === 'elev' ? `<p class="pf-realname" id="pfRealName"${cn ? '' : ' hidden'}>${BM.esc(name)}</p>` : '');
+            })()}
+            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}${role === 'elev' ? `<span class="pf-nick" id="pfNick" hidden></span>` : ''}</p>
           </div>
           <div class="pf-id__actions">
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
@@ -1017,24 +1055,21 @@
     let studentConfirmed = false, nickLockedUntil = null;
     if (nickEl) {
       const paintNick = (nickname, grade) => {
-        if (!nickname && !grade) { nickEl.hidden = true; return; }
+        _nickInfo = { nickname, grade };
+        const nameEl = document.getElementById('pfName'), realEl = document.getElementById('pfRealName');
+        if (nickname && nameEl) { nameEl.textContent = '@' + nickname; nameEl.classList.add('pf-name--nick'); if (realEl) realEl.hidden = false; }
+        if (!grade) { nickEl.hidden = true; return; }
         const roman = ['', '', '', '', '', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
-        nickEl.innerHTML = (nickname ? `<b>@${BM.esc(nickname)}</b>` : '') + (nickname && grade ? ' · ' : '') + (grade ? `Clasa a ${roman[grade] || grade}-a` : '') +
-          ` <button type="button" class="pf-nick__chg" id="pfNickChg">Schimbă nickname-ul</button>`;
+        nickEl.textContent = `· Clasa a ${roman[grade] || grade}-a`;
         nickEl.hidden = false;
-        document.getElementById('pfNickChg')?.addEventListener('click', () => {
-          const go = () => window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname, grade, lockedUntil: nickLockedUntil });
-          if (window.BMOnboarding) go();
-          else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
-        });
       };
       /* doar pentru elevi, si doar dupa ce serverul confirma rolul (rolul din browser poate fi necunoscut o clipa) */
       try {
         const r = await sb.rpc('my_student_profile');
-        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; nickLockedUntil = r.data.locked_until || null; paintNick(r.data.nickname || '', r.data.grade || 0); }
+        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; nickLockedUntil = r.data.locked_until || null; _nickLocked = nickLockedUntil; paintNick(r.data.nickname || '', r.data.grade || 0); }
         else nickEl.remove();
       } catch (e) { nickEl.remove(); /* migratia nu e rulata inca sau nu e elev */ }
-      document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) { nickLockedUntil = new Date(Date.now() + 60 * 864e5).toISOString(); paintNick(ev.detail.nickname, ev.detail.grade); } });
+      document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) { nickLockedUntil = new Date(Date.now() + 60 * 864e5).toISOString(); _nickLocked = nickLockedUntil; paintNick(ev.detail.nickname, ev.detail.grade); } });
     }
 
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {

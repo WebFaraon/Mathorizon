@@ -5066,7 +5066,12 @@ html { scrollbar-color: color-mix(in srgb, var(--k-blue) 40%, var(--k-panel-edge
 input, textarea { caret-color: var(--k-blue); }
 input[type="checkbox"], input[type="radio"], input[type="range"], progress { accent-color: var(--k-blue); }
 
-.pf-nick { margin: 4px 0 0; font-size: 0.9rem; font-weight: 600; color: var(--k-ink-2, #5B4F74); }
-.pf-nick b { color: var(--k-ink, #1E1631); font-weight: 800; }
-.pf-nick__chg { margin-left: 6px; padding: 0; border: 0; background: none; color: inherit; font: inherit; font-weight: 700; text-decoration: underline; cursor: pointer; }
-.pf-nick__chg:hover { color: var(--k-ink, #1E1631); }
+.pf-nick { font-weight: 600; color: var(--k-ink-2, #5B4F74); }
+/* Student: the @nickname is the title, the real name sits under it, small and faded. */
+.pf-name--nick { font-size: clamp(1.9rem, 3.2vw, 2.6rem); font-weight: 800; letter-spacing: -0.032em; }
+.pf-realname { margin: 4px 0 0; font-size: 0.95rem; font-weight: 500; color: var(--k-ink-3, #8a7fa3); overflow-wrap: anywhere; }
+/* The nickname row inside the "Editează profilul" dialog. */
+.pf-nickrow { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.pf-nickrow__val { font-size: 1rem; font-weight: 700; color: var(--k-ink, #1E1631); overflow-wrap: anywhere; }
+.pf-nickrow__key { height: 38px; padding: 0 16px; border: 1px solid var(--k-panel-edge); border-radius: 10px; background: var(--k-key); color: var(--k-ink); box-shadow: 0 3px 0 0 var(--k-key-edge); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: box-shadow 0.1s ease, transform 0.1s ease; }
+.pf-nickrow__key:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }

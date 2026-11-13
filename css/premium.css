@@ -726,6 +726,37 @@ html body.pm:has(#profileContent) :is(.pf-card .auth-input, .prof-modal .auth-in
   border-width: 1.5px;
   border-color: var(--pm-line-2);
 }
+/* The account's facts (E-mail, Membru din, Autentificare...) as rounded boxes, framed like the other cards. */
+html body.pm:has(#profileContent) .pf-spec {
+  gap: 12px;
+  padding: 16px 20px;
+  border-top: 1.5px solid var(--pm-line);
+  border-bottom: 0;
+}
+html body.pm:has(#profileContent) .pf-spec__cell {
+  padding: 12px 18px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#profileContent) .pf-spec dt { color: var(--pm-ink-2); }
+html body.pm:has(#profileContent) .pf-spec dd { color: var(--pm-ink); }
+html body.pm:has(#profileContent) .pf-nickrow__key {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 10px;
+  background: var(--pm-face);
+  color: var(--pm-key-ink);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#profileContent) .pf-nickrow__key:hover { background: var(--pm-face); color: var(--pm-key-ink); filter: brightness(0.96); }
+html body.pm:has(#profileContent) .pf-nickrow__key:active { box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm:has(#profileContent) .pf-realname { color: var(--pm-ink-2); opacity: 0.8; }
+@media (max-width: 720px) {
+  html body.pm:has(#profileContent) .pf-spec { padding: 12px 14px; gap: 10px; }
+  html body.pm:has(#profileContent) .pf-spec__cell { padding: 10px 14px; }
+}
+
 /* LCD displays keep a small corner. */
 html body.pm:has(#profileContent) :is(.pf-lcd, .pf-counter) { border-radius: 4px; }
 

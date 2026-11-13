@@ -12,7 +12,7 @@ html.ob-open { overflow: hidden; }
   --ob-limeE: var(--pm-lime-edge, #4F7A00);
   position: fixed;
   inset: 0;
-  z-index: 2000;
+  z-index: 9500; /* above the profile dialog (9000), which can open it */
   display: grid;
   place-items: center;
   padding: 16px;
