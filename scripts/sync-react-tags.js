@@ -23,7 +23,7 @@ const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
 const MANIFEST = path.join(ROOT, 'assets', 'react', '.vite', 'manifest.json');
-const PAGES = ['capitole.html', 'parcurs.html'];
+const PAGES = ['capitole.html', 'parcurs.html', 'misiuni.html'];
 /* Path the browser requests — relative, like every other asset reference in
    these pages, so it resolves the same at /capitole.html and at /capitole. */
 const PUBLIC_DIR = 'assets/react';

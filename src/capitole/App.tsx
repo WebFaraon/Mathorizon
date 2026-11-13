@@ -3,7 +3,6 @@ import { ClassChips, READY_GRADES } from './components/ClassChips';
 import { Collections } from './components/Collections';
 import { SoonPlate } from './components/SoonPlate';
 import { ChaptersSection } from './components/ChaptersSection';
-import { MobileTabBar } from './components/MobileTabBar';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
 import { useCapitoleData } from './hooks/useCapitoleData';
@@ -59,8 +58,10 @@ export function App() {
   const { missions, ready: missionsReady } = useMissions();
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
-  const isPath = document.body.dataset.page === 'parcurs';
-  const [mobileTab, setMobileTab] = useState<MobileTab>('capitole');
+  const page = document.body.dataset.page;
+  const isPath = page === 'parcurs';
+  /* On a phone the tabs are separate pages (the bottom bar, js/bnav.js): Misiuni is the right-hand column on its own page, the others show the middle column. */
+  const mobileTab: MobileTab = page === 'misiuni' ? 'sidebar' : 'capitole';
   const [grade, setGrade] = useState<number>(readGrade);
   const pickGrade = (g: number) => {
     setGrade(g);
@@ -79,7 +80,7 @@ export function App() {
           <div className="cap-col cap-col-middle">
             {isPath ? (
               <div id="ppRoot" className="pp-root" />
-            ) : (
+            ) : page === 'misiuni' ? null : (
               <>
                 <ClassChips value={grade} onChange={pickGrade} />
                 {READY_GRADES.includes(grade) ? (
@@ -105,7 +106,6 @@ export function App() {
         </div>
       </div>
 
-      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Învață' : 'Exerciții'} />
     </div>
   );
 }

@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ro" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Misiuni | Teorema</title>
+  <meta name="description" content="Misiunile zilei și clasamentul elevilor.">
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/assets/images/icon-192.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Doto:wght@600..900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Josefin+Sans:wght@500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/bnav.css">
+  <link rel="stylesheet" href="css/calculator.css">
+  <link rel="stylesheet" href="css/premium.css">
+  <link rel="stylesheet" href="css/owl.css">
+  <script src="js/owl.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+  <script>
+    /* Misiunile sunt o pagină doar pentru telefon (bara de jos); pe laptop sunt în coloana din dreapta a paginii Învață. */
+    if (window.innerWidth > 600) location.replace("parcurs.html");
+  </script>
+  <script src="js/theme.js"></script>
+  <script src="js/transitions.js"></script>
+  <script src="js/welcome.js"></script>
+  <script src="js/auth-hint.js"></script>
+  <script src="js/bnav.js"></script>
+  <script>
+    /* Protected route — redirect signed-out visitors to the public landing
+       before anything paints (see js/auth-hint.js). Corrected again once
+       the real session is confirmed, in case the synchronous guess was
+       wrong (stale/expired token). */
+    BM.__protectedRoute = true;
+    BM.requireAuthOrRedirect();
+  </script>
+
+  <!-- Stylesheet of the React island below (see #root). Loaded last so it
+       wins ties against css/style.css without !important.
+       GENERATED — do not hand-edit; `npm run build:react` rewrites it. -->
+  <!-- REACT-ISLAND-CSS:START -->
+  <link rel="stylesheet" href="assets/react/capitole-CzouhWMi.css">
+  <!-- REACT-ISLAND-CSS:END -->
+</head>
+<body class="pm" data-page="misiuni">
+
+  <!-- AUTH-PENDING VEIL — covers the page while a synchronous "authed"
+       guess (see js/auth-hint.js) is still unconfirmed, so a stale token's
+       brief verification window never flashes real dashboard content. -->
+  <div class="bm-auth-veil" aria-hidden="true"></div>
+
+  <!-- NAVBAR — shared by all five tabs, still vanilla. Not part of the
+       React migration: the other four tabs are unmigrated and load the
+       exact same markup from partials/nav.html. -->
+  <nav class="nav" id="nav-root"></nav>
+  <script src="js/icons.js"></script>
+  <script src="js/nav-loader.js"></script>
+
+  <!-- ============================================================
+       REACT ISLAND — everything below the navbar: hero, statistici,
+       cardurile de capitole, banner-ul Simulare BAC.
+       Source in src/capitole/, mounted by the module script at the
+       bottom of this file. Nothing else on the page is React yet.
+       ============================================================ -->
+  <div id="root"></div>
+
+  <!-- TOAST -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- OVERLAY -->
+  <div class="overlay" id="overlay" onclick="BM.closeAllPanels()"></div>
+
+  <!-- PANEL: Favorite
+       Opened from the navbar (favBtn), which is shared with the unmigrated
+       tabs — so this panel and the one below stay vanilla markup driven by
+       js/app.js, outside the React island. -->
+  <aside class="panel" id="panel-fav">
+    <div class="panel__head">
+      <h3>Exerciții Favorite</h3>
+      <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide" aria-label="Închide"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+    </div>
+    <div class="panel__body" id="favList">
+      <div class="empty-state">
+        <div class="empty-icon"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg></div>
+        <p>Niciun exercițiu favorit încă.</p>
+        <p class="text-muted">Apasă <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9.5a5.5 5.5 0 0 1 9.591-3.676.56.56 0 0 0 .818 0A5.49 5.49 0 0 1 22 9.5c0 2.29-1.5 4-3 5.5l-5.492 5.313a2 2 0 0 1-3 .019L5 15c-1.5-1.5-3-3.2-3-5.5"></path></svg> pe un exercițiu pentru a-l adăuga.</p>
+      </div>
+    </div>
+  </aside>
+
+  <!-- PANEL: Istoric -->
+  <aside class="panel" id="panel-hist">
+    <div class="panel__head">
+      <h3>Istoric Rezolvări</h3>
+      <div style="display:flex;gap:6px;align-items:center">
+        <button class="btn btn--surface" onclick="clearHistory()" title="Șterge istoricul">Șterge tot</button>
+        <button class="icon-btn" onclick="BM.closeAllPanels()" title="Închide" aria-label="Închide"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg></button>
+      </div>
+    </div>
+    <div class="panel__body" id="histList">
+      <div class="empty-state">
+        <div class="empty-icon"><svg class="icon icon-48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"></circle><path d="M12 6v6l4 2"></path></svg></div>
+        <p>Nu ai rezolvat niciun exercițiu.</p>
+        <p class="text-muted">Exercițiile rezolvate vor apărea aici.</p>
+      </div>
+    </div>
+  </aside>
+
+  <button class="scroll-top-btn" id="scrollTopBtn" aria-label="Înapoi sus" title="Înapoi sus"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m5 12 7-7 7 7"></path><path d="M12 19V5"></path></svg></button>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+  <script src="js/data.js"></script>
+  <script src="js/custom-exercises.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/utils.js"></script>
+  <!-- Not just for training.html: defines BM.Training (lifetime XP),
+       which js/auth.js overrides at init to also write through to
+       Supabase (same pattern as BM.consumeToken) — needed here so the
+       sidebar's daily-missions card can grant real XP through the same
+       path training.html itself uses, instead of a second, parallel one. -->
+  <script src="js/training-stats.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/app.js"></script>
+
+  <!-- React island entry. type="module" makes it run after every classic
+       script above, so window.BM (data.js/storage.js/utils.js/auth.js) is
+       already there when it mounts.
+       GENERATED — do not hand-edit; `npm run build:react` rewrites it. -->
+  <!-- REACT-ISLAND-JS:START -->
+  <script type="module" src="assets/react/capitole-C-MbCcxm.js"></script>
+  <!-- REACT-ISLAND-JS:END -->
+</body>
+</html>

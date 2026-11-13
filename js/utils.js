@@ -778,6 +778,8 @@ document.addEventListener('bmauth:streak-updated', BM.refreshStreakWidgets);
     // tokenWidget/streakWidget — guests have neither) at a different
     // breakpoint — skip here so the two don't fight over the same themeBtn.
     if (document.documentElement.classList.contains('bm-guest')) return;
+    /* telefon, cont conectat: seria și tokenurile rămân sus; taburile sunt în bara de jos (js/bnav.js), nu mai există meniul din colț */
+    return;
     if (matches === inMobile) return;
     const tokenWidget  = document.getElementById('tokenWidget');
     const streakWidget = document.getElementById('streakWidget');

@@ -32,7 +32,7 @@
 :root {
   /* The fixed bottom tab bar's own height, phone widths only (section 8) —
      .cap-mobile-viewport's height calc needs the exact same number. */
-  --cap-tabbar-h: 62px;
+  --cap-tabbar-h: 70px;   /* the phone bottom bar (css/bnav.css) */
   --cap-section-gap: 28px;
   --cap-rail: 340px;
   /* the right rail (two cards) is a little wider than the profile rail */

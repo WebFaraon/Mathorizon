@@ -1,0 +1,44 @@
+/* Bara de jos de pe telefon: 7 taburi, doar imagini. Se vede doar pe telefon (<= 600px) și doar pentru un cont conectat. Vezi js/bnav.js. */
+#bnav { display: none; }
+@media (max-width: 600px) {
+  :root { --bnav-h: 70px; }
+  html.bm-authed #bnav {
+    --bn-face: #FFFFFF; --bn-tint: #EDE7F8; --bn-line: #DDD6EA; --bn-line2: #C9BFE0; --bn-edge: #CFC6E3;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
+    display: flex; height: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px)); padding: 8px 6px env(safe-area-inset-bottom, 0px);
+    background: var(--bn-face); border-top: 1.5px solid var(--bn-line);
+  }
+  html[data-theme="dark"].bm-authed #bnav { --bn-face: #241B35; --bn-tint: #33264D; --bn-line: #3A2E52; --bn-line2: #4A3C68; --bn-edge: #0F0A18; }
+  html.bnav-off #bnav { display: none !important; }
+
+  /* indicatorul: o cheie ușor colorată care alunecă la tabul curent */
+  #bnav .bn-ind { position: absolute; left: 6px; top: 8px; width: calc((100% - 12px) / 7); height: 54px; border: 1.5px solid var(--bn-line2); border-radius: 16px; background: var(--bn-tint); box-shadow: 0 3px 0 var(--bn-edge); transform: translateX(calc(var(--i, 0) * 100%)); pointer-events: none; }
+  #bnav .bn-ind.go { transition: transform 0.38s cubic-bezier(0.3, 1.35, 0.5, 1); }
+  #bnav.bn-none .bn-ind { display: none; }
+  #bnav .bn-b { position: relative; z-index: 1; flex: 1; min-width: 0; height: 54px; display: flex; align-items: center; justify-content: center; text-decoration: none; -webkit-tap-highlight-color: transparent; }
+  #bnav .bn-b img { width: 34px; height: 34px; object-fit: contain; filter: saturate(0.85); transition: transform 0.18s cubic-bezier(0.3, 1.5, 0.5, 1), filter 0.2s ease; }
+  #bnav .bn-b.on img { transform: scale(1.14); filter: none; }
+  #bnav .bn-b:active img { transform: translateY(2px) scale(0.92); }
+  #bnav .bn-b:focus-visible { outline: 2px solid #3F236E; outline-offset: -2px; border-radius: 16px; }
+  @media (max-width: 360px) { #bnav .bn-b img { width: 30px; height: 30px; } }
+  @media (prefers-reduced-motion: reduce) { #bnav .bn-ind.go, #bnav .bn-b img { transition: none; } }
+
+  /* pagina nu mai trece pe sub bară */
+  html.bm-authed:not(.bnav-off) body:not(:has(#root)) { padding-bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px)); }
+  html.bm-authed:not(.bnav-off) .scroll-top-btn { bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px) + 14px); }
+  html.bm-authed:not(.bnav-off) .toast-container { bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px) + 12px); }
+
+  /* panoul de mesaje din clasă se măsoară până la bară, ca să rămână vizibilă căsuța în care scrii */
+  html.bm-authed:not(.bnav-off) body:has(#classRoot) .msg-panel { height: calc(100dvh - var(--nav-h) - var(--cd-tabs-h) - 28px - var(--bnav-h) - env(safe-area-inset-bottom, 0px)); }
+
+  /* sus: sigla, seria de zile și tokenurile; fără poză de profil și fără butonul de meniu (taburile sunt jos) */
+  html.bm-authed #nav-root .nav__hamburger,
+  html.bm-authed #nav-root .nav-profile-btn,
+  html.bm-authed #nav-root .nav__links,
+  html.bm-authed #nav-root .nav__right .nav-icon-btn,
+  html.bm-authed #nav-root .nav__right .theme-btn,
+  html.bm-authed #nav-root .nav__mobile-menu { display: none !important; }
+  html.bm-authed #nav-root .nav__right { margin-left: auto; display: flex; align-items: center; gap: 8px; order: 1; }
+  html.bm-authed #nav-root .nav__right .token-widget { display: inline-flex; }
+  html.bm-authed #nav-root .nav__right .token-widget__label { display: none; }
+}

@@ -821,6 +821,7 @@
              </form>`}
         <div class="pf-session">
           <p class="pf-note">Ultima autentificare: ${_formatDate(user.last_sign_in_at)}</p>
+          <button class="pf-key pf-key--block" id="btnTheme" type="button"></button>
           <button class="pf-key pf-key--danger pf-key--block" id="btnLogout">${icon('log-out', { size: 16 })} Deconectare</button>
         </div>
       </section>`;
@@ -880,6 +881,16 @@
         }
       });
     };
+    /* Tema (pe telefon nu mai e butonul din navbar): cheie în cardul Cont */
+    const themeBtn = document.getElementById('btnTheme');
+    if (themeBtn) {
+      const paintTheme = () => {
+        const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+        themeBtn.innerHTML = `${icon(dark ? 'sun' : 'moon', { size: 16 })} ${dark ? 'Treci la tema deschisă' : 'Treci la tema închisă'}`;
+      };
+      paintTheme();
+      themeBtn.addEventListener('click', () => { BM.toggleTheme(); setTimeout(paintTheme, 50); });
+    }
     document.getElementById('btnLogout')?.addEventListener('click', _doLogout);
 
     document.getElementById('btnClearHist')?.addEventListener('click', async () => {
