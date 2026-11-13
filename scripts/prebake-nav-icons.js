@@ -102,6 +102,7 @@ const TEMPLATE = `    <div class="nav__inner container">
         </svg>
       </button>
       <div class="nav__right">
+        <button class="nav-class-btn" id="navClassBtn" type="button" aria-haspopup="dialog" aria-label="Alege clasa" title="Alege clasa"><span class="nav-class-btn__t" data-class-label></span><svg class="nav-class-btn__c" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
           \${token}
           <span class="token-widget__count" data-token-count>—</span>

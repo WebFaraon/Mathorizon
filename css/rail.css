@@ -1,7 +1,6 @@
 /* ============================================================
-   Panoul de profil din stânga (js/rail.js). Același cadru ca "Misiunile zilei" și "Top elevi": colțuri de 18px, chenar
-   fin, margine plină dedesubt. Fix sub navbar, la aceeași înălțime cu cardul din dreapta, și nu iese niciodată din ecran:
-   când nu încap toate datele, derulează cardul pe dinăuntru.
+   Cardul de profil (js/rail.js) din pagina de profil: sub antet apar urmăriri, nivel, statistici și realizări.
+   Același cadru ca "Misiunile zilei" și "Top elevi": colțuri de 18px, chenar fin, margine plină dedesubt.
    Culorile vin din tokenurile --pm-* (premium.css), cu variantă pentru tema închisă.
    ============================================================ */
 :root {
@@ -11,7 +10,7 @@
   --rail-bottom: 24px;
 }
 
-#appRail, #appRailMount { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink, #1E1631); min-width: 0; }
+#appRailMount { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink, #1E1631); min-width: 0; }
 .rl-card {
   position: relative;
   display: flex;
@@ -25,40 +24,6 @@
 }
 .rl-skel { min-height: 260px; animation: rl-pulse 1.2s ease-in-out infinite alternate; }
 @keyframes rl-pulse { from { opacity: 0.55; } to { opacity: 1; } }
-
-/* ---- wide screens: fixed to the left, flush with the right rail ---- */
-@media (min-width: 1180px) {
-  html.bm-authed body[data-rail]:not([data-rail="mount"]),
-  html.has-rail body[data-rail]:not([data-rail="mount"]) { padding-left: calc(var(--rail-w) + var(--rail-gap) * 2); }
-  html body #appRail {
-    position: fixed;
-    left: var(--rail-gap);
-    top: calc(var(--nav-h, 72px) + var(--rail-top));
-    bottom: auto;
-    width: var(--rail-w);
-    /* a definite height, so the card inside can be clamped to it; the empty part under the card lets clicks through */
-    height: calc(100vh - var(--nav-h, 72px) - var(--rail-top) - var(--rail-bottom));
-    height: calc(100dvh - var(--nav-h, 72px) - var(--rail-top) - var(--rail-bottom));
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    padding: 0;
-    overflow: visible;
-    z-index: 5;
-  }
-  html body #appRail .rl-card { max-height: 100%; pointer-events: auto; }
-}
-/* in the simulation proper (exam or results) the rail steps aside */
-html.rail-off #appRail { display: none !important; }
-@media (min-width: 1180px) {
-  html.rail-off.bm-authed body[data-rail]:not([data-rail="mount"]),
-  html.rail-off.has-rail body[data-rail]:not([data-rail="mount"]) { padding-left: 0; }
-  #appRailMount { display: none; }
-}
-/* narrower screens: only the pages with a Profil pane (Exerciții, Învață) show the card, in that pane */
-@media (max-width: 1179.98px) {
-  #appRail.app-rail { display: none; }
-}
 
 .rl-cover { flex: none; height: 78px; background-color: var(--pm-violet, #3F236E); background-size: cover; background-position: center; }
 .rl-avatar {
@@ -147,15 +112,12 @@ html.rail-off #appRail { display: none !important; }
 .rl-dlg__b p { margin: 0; font-weight: 700; }
 .rl-dlg__b span { display: block; margin-top: 4px; font-size: 0.82rem; font-weight: 600; color: var(--pm-ink-2, #5B4F74); }
 
-/* Pagina de profil, pe telefon: sub antet apare restul cardului (urmăriri, nivel, statistici, realizări), fără identitatea care e deja deasupra */
-.pf-railmount { display: none; }
-@media (max-width: 600px) {
-  body[data-rail="mount"] .pf-railmount { display: block; margin: 16px 0 4px; }
-  body[data-rail="mount"] .pf-railmount .rl-cover,
-  body[data-rail="mount"] .pf-railmount .rl-avatar,
-  body[data-rail="mount"] .pf-railmount .rl-name,
-  body[data-rail="mount"] .pf-railmount .rl-user,
-  body[data-rail="mount"] .pf-railmount .rl-meta { display: none; }
-  body[data-rail="mount"] .pf-railmount .rl-body { padding-top: 6px; overflow: visible; }
-  body[data-rail="mount"] .pf-railmount .rl-follow { margin-top: 6px; }
-}
+/* Pagina de profil: sub antet apare restul cardului (urmăriri, nivel, statistici, realizări), fără identitatea care e deja deasupra */
+.pf-railmount { display: block; margin: 16px 0 4px; }
+.pf-railmount .rl-cover,
+.pf-railmount .rl-avatar,
+.pf-railmount .rl-name,
+.pf-railmount .rl-user,
+.pf-railmount .rl-meta { display: none; }
+.pf-railmount .rl-body { padding-top: 6px; overflow: visible; }
+.pf-railmount .rl-follow { margin-top: 6px; }

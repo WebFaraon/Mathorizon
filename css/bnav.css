@@ -1,7 +1,27 @@
-/* Bara de jos de pe telefon: 7 taburi, doar imagini. Se vede doar pe telefon (<= 600px) și doar pentru un cont conectat. Vezi js/bnav.js. */
+/* ============================================================
+   Navigarea principală a unui cont conectat (js/bnav.js, js/classpick.js). Se vede doar pentru cine e conectat
+   (html.bm-authed); cine nu e conectat păstrează navbarul de sus.
+   - Telefon (până la 600px): bara de jos, 7 taburi, doar poze.
+   - De la 601px în sus: panou lateral în stânga, cu sigla deasupra și taburile cu nume (sub 1180px doar poze).
+     Panoul are aceeași distanță față de marginea de sus și de jos a ecranului (--sb-gap, pe înălțimea ecranului
+     fiecărui dispozitiv). Navbarul de sus devine un rând subțire: butonul clasei, seria de zile și tokenurile.
+   ============================================================ */
 #bnav { display: none; }
+
+:root {
+  --bnav-h: 70px;
+  --sb-gap: 14px;                                   /* distanța panoului față de marginea de sus, de jos și din stânga */
+  --sb-edge-h: 5px;                                 /* grosimea marginii pline de sub panou: intră în distanța de jos */
+  --sb-w: 84px;
+  --sb-off: calc(var(--sb-w) + var(--sb-gap) * 2);  /* cât ia panoul din lățimea ecranului: pagina începe după el */
+  --strip-h: 60px;                                  /* înălțimea rândului de sus (nu mai e navbar) */
+}
+@media (min-width: 1180px) { :root { --sb-w: 232px; } }
+
+html.bnav-off #bnav { display: none !important; }
+
+/* ---------------- telefon: bara de jos ---------------- */
 @media (max-width: 600px) {
-  :root { --bnav-h: 70px; }
   html.bm-authed #bnav {
     --bn-face: #FFFFFF; --bn-tint: #EDE7F8; --bn-line: #DDD6EA; --bn-line2: #C9BFE0; --bn-edge: #CFC6E3;
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 300;
@@ -9,11 +29,11 @@
     background: var(--bn-face); border-top: 1.5px solid var(--bn-line);
   }
   html[data-theme="dark"].bm-authed #bnav { --bn-face: #241B35; --bn-tint: #33264D; --bn-line: #3A2E52; --bn-line2: #4A3C68; --bn-edge: #0F0A18; }
-  html.bnav-off #bnav { display: none !important; }
   /* bara rămâne nemișcată: fără elasticul de la capătul paginii și pe propriul strat de desenare */
   html.bm-authed:not(.bnav-off) { overscroll-behavior-y: none; }   /* only the page itself: on body it would stop touch scrolling from reaching the page */
   html.bm-authed #bnav { transform: translateZ(0); will-change: transform; backface-visibility: hidden; }
 
+  #bnav .bn-brand, #bnav .bn-t { display: none; }
   /* indicatorul: o cheie ușor colorată care alunecă la tabul curent */
   #bnav .bn-ind { position: absolute; left: 6px; top: 8px; width: calc((100% - 12px) / 7); height: 54px; border: 1.5px solid var(--bn-line2); border-radius: 16px; background: var(--bn-tint); box-shadow: 0 3px 0 var(--bn-edge); transform: translateX(calc(var(--i, 0) * 100%)); pointer-events: none; }
   #bnav .bn-ind.go { transition: transform 0.38s cubic-bezier(0.3, 1.35, 0.5, 1); }
@@ -35,13 +55,148 @@
   html.bm-authed:not(.bnav-off) body:has(#classRoot) .msg-panel { height: calc(100dvh - var(--nav-h) - var(--cd-tabs-h) - 28px - var(--bnav-h) - env(safe-area-inset-bottom, 0px)); }
 
   /* sus: sigla, seria de zile și tokenurile; fără poză de profil și fără butonul de meniu (taburile sunt jos) */
-  html.bm-authed #nav-root .nav__hamburger,
-  html.bm-authed #nav-root .nav-profile-btn,
-  html.bm-authed #nav-root .nav__links,
-  html.bm-authed #nav-root .nav__right .nav-icon-btn,
-  html.bm-authed #nav-root .nav__right .theme-btn,
-  html.bm-authed #nav-root .nav__mobile-menu { display: none !important; }
   html.bm-authed #nav-root .nav__right { margin-left: auto; display: flex; align-items: center; gap: 8px; order: 1; border-left: 0 !important; padding-left: 0 !important; }
   html.bm-authed #nav-root .nav__right .token-widget { display: inline-flex; }
   html.bm-authed #nav-root .nav__right .token-widget__label { display: none; }
+}
+
+/* ---------------- de la 601px: panou lateral + rând de sus ---------------- */
+/* cu navigarea în panou, bara de sus nu mai are taburi, meniu, profil, favorite, istoric sau temă (sunt în panou și în profil) */
+html.bm-authed #nav-root .nav__hamburger,
+html.bm-authed #nav-root .nav-profile-btn,
+html.bm-authed #nav-root .nav__links,
+html.bm-authed #nav-root .nav__right .nav-icon-btn,
+html.bm-authed #nav-root .nav__right .theme-btn,
+html.bm-authed #nav-root .nav__mobile-menu { display: none !important; }
+.nav-class-btn { display: none; }
+
+@media (min-width: 601px) {
+  html.bm-authed:not(.bnav-off) #bnav {
+    --sb-face: #3F236E; --sb-line: #5A3C92; --sb-edge: #2A1550; --sb-lit: #5A31A6; --sb-lit-edge: #2E1861; --sb-ink: #FFFFFF; --sb-ink2: #D9CFF0;
+    position: fixed; z-index: 300;
+    left: var(--sb-gap); top: var(--sb-gap); bottom: calc(var(--sb-gap) + var(--sb-edge-h));   /* sus și jos, aceeași distanță față de ecran */
+    width: var(--sb-w);
+    display: flex; flex-direction: column; gap: 6px;
+    padding: 12px 12px 14px;
+    overflow-y: auto; overflow-x: hidden; scrollbar-width: none;
+    background: var(--sb-face); border: 1.5px solid var(--sb-line); border-radius: 18px;
+    box-shadow: 0 var(--sb-edge-h) 0 var(--sb-edge);
+    font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  }
+  html[data-theme="dark"].bm-authed:not(.bnav-off) #bnav { --sb-face: #2A1750; --sb-line: #44296F; --sb-edge: #170C2E; --sb-lit: #4B2A91; --sb-lit-edge: #1E0F42; }
+  html.bm-authed:not(.bnav-off) #bnav::-webkit-scrollbar { display: none; }
+  #bnav .bn-ind { display: none; }
+
+  /* sigla stă deasupra taburilor, pe aceeași linie din stânga cu pozele lor */
+  #bnav .bn-brand { flex: none; display: flex; align-items: center; justify-content: flex-start; padding: 10px 10px 16px; margin: 0 0 4px; border-bottom: 1.5px solid rgba(255, 255, 255, 0.1); text-decoration: none; }
+  #bnav .bn-logo { display: block; width: min(100%, 170px); height: auto; }
+  #bnav .bn-mark { display: none; }
+
+  #bnav .bn-b {
+    flex: none; position: relative; display: flex; align-items: center; gap: 14px; min-height: 54px; padding: 8px 12px;
+    border: 1.5px solid transparent; border-radius: 14px; color: var(--sb-ink); text-decoration: none; -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.14s ease, transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  #bnav .bn-b img { flex: none; width: 34px; height: 34px; object-fit: contain; }
+  #bnav .bn-t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.98rem; font-weight: 700; letter-spacing: 0.01em; color: var(--sb-ink); }
+  #bnav .bn-b:hover { background: rgba(255, 255, 255, 0.09); color: var(--sb-ink); }
+  #bnav .bn-b.on, #bnav .bn-b.on:hover { background: var(--sb-lit); border-color: rgba(255, 255, 255, 0.24); box-shadow: 0 3px 0 var(--sb-lit-edge); color: var(--sb-ink); }
+  #bnav .bn-b:active { transform: translateY(2px); }
+  #bnav .bn-b.on:active { box-shadow: 0 1px 0 var(--sb-lit-edge); }
+  #bnav .bn-b:focus-visible, #bnav .bn-brand:focus-visible { outline: 2px solid #B6E83A; outline-offset: 2px; }
+
+  /* pagina începe după panou; în sala de examen (html.bnav-off) panoul nu există și pagina e întreagă */
+  html.bm-authed:not(.bnav-off) body { padding-left: var(--sb-off); }
+  html.bm-authed:not(.bnav-off) .scroll-top-btn { right: 18px; }
+
+  /* ---- rândul de sus: butonul clasei, seria de zile, tokenurile ---- */
+  html.bm-authed:not(.bnav-off) body:not(.bac-exam-mode) { --nav-h-fixed: var(--strip-h); --nav-h: var(--strip-h); }
+  /* rândul de sus nu mai e o bară: stă pe fundalul paginii, fără fundal propriu, și se duce odată cu pagina (nu trece peste conținut) */
+  html.bm-authed:not(.bnav-off) #nav-root {
+    position: absolute; left: var(--sb-off); right: 0; top: 0; height: var(--strip-h);
+    background: none; -webkit-backdrop-filter: none; backdrop-filter: none; border-bottom: 0; box-shadow: none;
+  }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__inner { max-width: none; width: 100%; margin: 0; padding: 0 22px 0 0; justify-content: flex-end; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__brand { display: none !important; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right { margin: 0; padding: 0; gap: 10px; border: 0 !important; }
+
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn {
+    order: 0; display: inline-flex; align-items: center; gap: 8px; height: 40px; padding: 0 12px 0 15px; margin-right: 8px;
+    border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+    box-shadow: 0 3px 0 var(--pm-edge, #CFC6E3); font: inherit; font-size: 0.9rem; font-weight: 800; line-height: 1; cursor: pointer;
+    -webkit-tap-highlight-color: transparent; transition: background-color 0.12s ease, transform 0.08s ease, box-shadow 0.08s ease;
+  }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn:hover { background: var(--pm-tint, #EDE7F8); color: var(--pm-ink, #1E1631); border-color: var(--pm-line, #DDD6EA); }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--pm-edge, #CFC6E3); }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn[aria-expanded="true"] { background: var(--pm-tint, #EDE7F8); }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn:focus-visible { outline: 2px solid #5A31A6; outline-offset: 2px; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn__c { flex: none; transition: transform 0.16s ease; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn[aria-expanded="true"] .nav-class-btn__c { transform: rotate(180deg); }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn__t:empty { min-width: 6.4em; }
+
+  /* seria de zile și tokenurile: fără chenar, doar poza și numărul */
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #streakWidget { order: 1; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget { order: 2; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget {
+    display: inline-flex; align-items: center; gap: 6px; height: 40px; padding: 0 4px;
+    background: none; border: 0; border-radius: 0; box-shadow: none; cursor: default;
+  }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget__label { display: none; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget__img { width: 30px; height: 30px; margin: 0; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget .token-widget__count,
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #streakWidget .token-widget__count { font-size: 1.15rem; font-weight: 800; text-shadow: none; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #streakWidget .token-widget__count { color: #D9690A; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget .token-widget__count { color: #A87400; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget.token-widget--low .token-widget__count { color: #B8620A; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget.token-widget--empty .token-widget__count { color: #C2253F; }
+  html[data-theme="dark"].bm-authed:not(.bnav-off) #nav-root .nav__right #streakWidget .token-widget__count { color: #FFA45C; }
+  html[data-theme="dark"].bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget .token-widget__count { color: #FFD23F; }
+  html[data-theme="dark"].bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget.token-widget--low .token-widget__count { color: #FFB27A; }
+  html[data-theme="dark"].bm-authed:not(.bnav-off) #nav-root .nav__right #tokenWidget.token-widget--empty .token-widget__count { color: #FF8FA3; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget--low,
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget--empty { background: none; border: 0; }
+
+  /* clasa se alege de sus, o singură dată: cheile de clasă din Învață și Exerciții nu mai apar */
+  html.bm-authed:not(.bnav-off) #ppClass,
+  html.bm-authed:not(.bnav-off) .cap-grades { display: none !important; }
+}
+
+/* ---- fereastra mică de alegere a clasei (js/classpick.js) ---- */
+.cp-pop {
+  position: fixed; z-index: 3500; width: 330px; max-width: calc(100vw - 24px); padding: 16px 16px 18px;
+  border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 18px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+  box-shadow: 0 5px 0 var(--pm-edge, #CFC6E3); font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+  opacity: 0; transform: translateY(-6px); transition: opacity 0.14s ease, transform 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.cp-pop.on { opacity: 1; transform: none; }
+[data-theme="dark"] .cp-pop { background: #241B35; border-color: #3A2E52; box-shadow: 0 5px 0 #0F0A18; color: #F1EBFB; }
+.cp-pop__h { margin: 0; font-size: 1.05rem; font-weight: 800; }
+.cp-pop__s { margin: 3px 0 12px; font-size: 0.78rem; font-weight: 600; line-height: 1.35; color: var(--pm-ink-2, #5B4F74); }
+[data-theme="dark"] .cp-pop__s { color: #BFB2DA; }
+.cp-pop__g { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
+.cp-k {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; min-height: 58px; padding: 6px 2px;
+  border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+  box-shadow: 0 3px 0 var(--pm-edge, #CFC6E3); font: inherit; cursor: pointer; transition: background-color 0.12s ease, transform 0.08s ease, box-shadow 0.08s ease;
+}
+[data-theme="dark"] .cp-k { background: #2E2244; border-color: #46385F; box-shadow: 0 3px 0 #0F0A18; color: #F1EBFB; }
+.cp-k b { font-size: 1.12rem; font-weight: 800; line-height: 1; }
+.cp-k span { font-size: 0.6rem; font-weight: 700; color: var(--pm-ink-2, #5B4F74); white-space: nowrap; }
+[data-theme="dark"] .cp-k span { color: #BFB2DA; }
+.cp-k:hover { background: var(--pm-tint, #EDE7F8); }
+[data-theme="dark"] .cp-k:hover { background: #3A2D55; }
+.cp-k:active { transform: translateY(3px); box-shadow: 0 0 0 var(--pm-edge, #CFC6E3); }
+.cp-k.on, .cp-k.on:hover { background: #5A31A6; border-color: #5A31A6; box-shadow: 0 3px 0 #2E1861; color: #fff; }
+.cp-k.on span { color: rgba(255, 255, 255, 0.82); }
+.cp-k:focus-visible { outline: 2px solid #5A31A6; outline-offset: 2px; }
+@media (prefers-reduced-motion: reduce) { .cp-pop, .cp-k, #bnav .bn-b { transition: none; } }
+
+/* ---- panou îngust (601 - 1179px): doar poze, sigla devine bufnița ---- */
+@media (min-width: 601px) and (max-width: 1179.98px) {
+  html.bm-authed:not(.bnav-off) #bnav { padding: 10px 8px 12px; align-items: stretch; }
+  #bnav .bn-t { display: none; }
+  #bnav .bn-b { justify-content: center; padding: 8px 0; }
+  #bnav .bn-brand { justify-content: center; padding: 6px 0 12px; }
+  #bnav .bn-logo { display: none; }
+  #bnav .bn-mark { display: block; width: 40px; height: 40px; object-fit: contain; }
 }

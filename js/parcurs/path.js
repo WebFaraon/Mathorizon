@@ -45,7 +45,7 @@
   }
   /* clasa pe care o privesti acum: elevul poate vedea o alta clasa fara sa-si schimbe clasa din cont (bm_grade_view ramane si dupa o lectie) */
   function viewOf() { try { var g = parseInt(localStorage.getItem('bm_grade_view') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ } return 0; }
-  function setView(n) { try { if (n) localStorage.setItem('bm_grade_view', String(n)); else localStorage.removeItem('bm_grade_view'); } catch (e) { /* ignore */ } }
+  function setView(n) { try { if (n) localStorage.setItem('bm_grade_view', String(n)); else localStorage.removeItem('bm_grade_view'); } catch (e) { /* ignore */ } if (window.BMGrade) window.BMGrade.paint(); }
 
   /* derulare doar pe containerul care deruleaza pe verticala: scrollIntoView muta si containerele taiate (overflow) ale paginii, de aici decalajele */
   function scrollerOf(el) {
@@ -294,7 +294,7 @@
         if (isStudent()) { try { localStorage.setItem('bm_grade', String(n)); } catch (e) { /* ignore */ } setView(0); } else setView(n);
         var sb = isStudent() && window.BMAuth && window.BMAuth.supabase;
         if (sb) { try { Promise.resolve(sb.rpc('set_student_grade', { p_grade: n })).then(function () {}, function () {}); } catch (e) { /* migrarea poate lipsi: clasa ramane in browser */ } }
-        closeDlg(); render();
+        closeDlg(); render(); if (window.BMGrade) window.BMGrade.paint();
         var top = root && root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0);
       };
     });
@@ -353,6 +353,8 @@
   }
 
   document.addEventListener('bm:onboarded', function () { setView(0); render(); });
+  /* clasa se poate schimba si din butonul din randul de sus (js/classpick.js) */
+  window.addEventListener('bm:grade', function () { render(); var top = root && root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0); });
   document.addEventListener('parcurs:changed', function () { /* redesenăm doar când pagina nu e în mijlocul unei animații */ });
   window.addEventListener('pageshow', function (e) { if (e.persisted) { render(); celebrate(); } });
 

@@ -6,5 +6,7 @@ declare global {
     BM?: BMGlobal;
     /** Set up by js/auth.js — see lib/bm-types.ts. */
     BMAuth?: BMAuthGlobal;
+    /** Clasa aleasă pentru tot site-ul, set up by js/classpick.js (butonul din rândul de sus). */
+    BMGrade?: { get(): number; set(n: number): void };
   }
 }

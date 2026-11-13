@@ -13,5 +13,10 @@ const rows = tabs.map((t) => `    '${t}': 'data:image/svg+xml;base64,${fs.readFi
 const re = /(  var ICON = \{\r?\n)[\s\S]*?(\r?\n  \};)/;
 if (!re.test(js)) { console.error('ICON table not found in js/bnav.js'); process.exit(1); }
 js = js.replace(re, (_, a, b) => a + rows.join(',' + nl) + b);
+/* the brand pictures of the side panel: wordmark (wide) and the owl mark (narrow panel) */
+const uri = (f) => 'data:image/svg+xml;base64,' + fs.readFileSync(path.join(root, 'assets', 'images', f)).toString('base64');
+const reB = /(  var BRAND = \{\r?\n)[\s\S]*?(\r?\n  \};)/;
+if (!reB.test(js)) { console.error('BRAND table not found in js/bnav.js'); process.exit(1); }
+js = js.replace(reB, (_, a, b) => a + `    'logo': '${uri('teorema-wordmark.svg')}',` + nl + `    'mark': '${uri('teorema-owl.svg')}'` + b);
 fs.writeFileSync(file, js);
 console.log('js/bnav.js updated');

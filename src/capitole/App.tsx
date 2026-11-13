@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ClassChips, READY_GRADES } from './components/ClassChips';
 import { Collections } from './components/Collections';
 import { SoonPlate } from './components/SoonPlate';
@@ -10,15 +10,15 @@ import { useMissions } from './hooks/useMissions';
 import { useLeaderboard } from './hooks/useLeaderboard';
 import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
 
-const GRADE_KEY = 'bm_ex_grade';
-
-/** Last class picked on the hub; the one class with exercises until more arrive. */
+/** The class picked for the whole site (the button in the top row, js/classpick.js); the same one drives Învață. */
 function readGrade(): number {
+  const g = window.BMGrade?.get();
+  if (g && g >= 5 && g <= 12) return g;
   try {
-    const g = parseInt(localStorage.getItem(GRADE_KEY) || '', 10);
-    if (g >= 5 && g <= 12) return g;
+    const v = parseInt(localStorage.getItem('bm_grade_view') || localStorage.getItem('bm_grade') || '', 10);
+    if (v >= 5 && v <= 12) return v;
   } catch { /* ignore */ }
-  return READY_GRADES[0];
+  return 7;
 }
 
 /**
@@ -65,8 +65,14 @@ export function App() {
   const [grade, setGrade] = useState<number>(readGrade);
   const pickGrade = (g: number) => {
     setGrade(g);
-    try { localStorage.setItem(GRADE_KEY, String(g)); } catch { /* private mode */ }
+    window.BMGrade?.set(g);
   };
+  /* the class can also change from the button in the top row */
+  useEffect(() => {
+    const on = () => setGrade(readGrade());
+    window.addEventListener('bm:grade', on);
+    return () => window.removeEventListener('bm:grade', on);
+  }, []);
 
   return (
     <div className="cap-shell">
