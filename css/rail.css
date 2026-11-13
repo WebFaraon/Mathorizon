@@ -78,7 +78,7 @@ html.rail-off #appRail { display: none !important; }
 .rl-body > * { flex-shrink: 0; }
 
 /* identity: nickname big and bold, user name small and faded (like Duolingo) */
-.rl-name { margin: 12px 0 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.015em; line-height: 1.15; color: var(--pm-ink, #1E1631); }
+.rl-name { margin: 12px 0 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.015em; line-height: 1.3; padding-bottom: 2px; color: var(--pm-ink, #1E1631); }
 .rl-user { margin: 3px 0 0; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 0.9rem; font-weight: 600; color: var(--pm-ink-2, #5B4F74); opacity: 0.75; }
 .rl-meta { display: flex; align-items: center; flex-wrap: wrap; gap: 6px 10px; margin: 8px 0 0; font-size: 0.78rem; font-weight: 600; color: var(--pm-ink-2, #5B4F74); }
 .rl-role { padding: 2px 8px; border-radius: 6px; background: var(--pm-tint, #EDE7F8); color: var(--pm-key-ink, #3F236E); font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; }
@@ -111,8 +111,8 @@ html.rail-off #appRail { display: none !important; }
 [data-theme="dark"] .rl-xp__track { box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(255, 255, 255, 0.06); }
 .rl-xp__fill { position: absolute; left: 0; top: 0; bottom: 0; width: var(--xp, 0%); border-radius: 999px; background: linear-gradient(180deg, #B6E83A 0%, #8FC90A 55%, #7BB403 100%); box-shadow: inset 0 -4px 0 rgba(60, 100, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55); }
 .rl-xp__fill::after { content: ""; position: absolute; left: 8px; right: 8px; top: 3px; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.5); }
-@media (prefers-reduced-motion: no-preference) { .rl-xp__fill { animation: rl-grow 0.9s cubic-bezier(0.22, 1, 0.36, 1) 0.2s backwards; } }
-@keyframes rl-grow { from { width: 0; } }
+/* no entrance animation: the card is the same on every page and must not replay when the tab changes */
+.rl-xp__fill { transition: width 0.6s ease; }
 .rl-xp__next { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; background: var(--pm-violet, #3F236E); color: #fff; font-weight: 800; font-size: 0.95rem; font-variant-numeric: tabular-nums; border: 3px solid #FFD23F; box-shadow: 0 3px 0 #C99600, inset 0 2px 0 rgba(255, 255, 255, 0.25); }
 
 .rl-h { margin: 22px 0 10px; font-size: 0.98rem; font-weight: 800; color: var(--pm-ink, #1E1631); }
@@ -133,14 +133,6 @@ html.rail-off #appRail { display: none !important; }
 .rl-btn svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
 .rl-btn:hover { background: var(--pm-tint, #EDE7F8); color: var(--pm-key-ink, #3F236E); }
 .rl-btn:active { transform: translateY(2px); border-bottom-width: 2px; }
-
-@media (prefers-reduced-motion: no-preference) {
-  .rl-ps__card { animation: rl-in 0.4s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
-  .rl-ps__card:nth-child(2) { animation-delay: 0.05s; }
-  .rl-ps__card:nth-child(3) { animation-delay: 0.1s; }
-  .rl-ps__card:nth-child(4) { animation-delay: 0.15s; }
-}
-@keyframes rl-in { from { opacity: 0; transform: translateY(8px); } }
 
 /* the "following" window (there are no follow relations yet: an honest empty state) */
 .rl-dlg { position: fixed; inset: 0; z-index: 3000; display: grid; place-items: center; padding: 16px; background: rgba(30, 22, 49, 0.55); -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px); opacity: 0; transition: opacity 0.18s ease; }

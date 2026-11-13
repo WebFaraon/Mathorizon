@@ -1152,3 +1152,11 @@ html body.pm:has(#classRoot) .csim-card__actions { display: flex; align-items: c
   white-space: nowrap;
 }
 @media (max-width: 720px) { .wb-fs-viewtag { padding: 6px 10px; font-size: 0.74rem; } .wb-fs-viewtag__d { display: none; } }
+
+/* Top elevi: every row is a rounded cell, so the highlight of your own row and the hover fit the rest of the card. */
+html body.pm:has(#root) .cap-leaderboard__row {
+  border-bottom: none;
+  border-radius: 12px;
+  margin: 0 8px 2px;
+}
+html body.pm:has(#root) .cap-leaderboard__row--you { border-radius: 12px; }

@@ -16,6 +16,8 @@
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
   var state = { rank: null, rankXp: null, nick: '', nickRole: null, mounted: false };
   var scheduled = false;
+  var seeded = false;
+  var sig = function (str) { var h = 5381, i; for (i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return String(h); };
 
   function wants() { return document.body && document.body.hasAttribute('data-rail'); }
   function hostEl() { return document.getElementById('appRail'); }
@@ -141,15 +143,24 @@
     var all = document.querySelectorAll('#appRail');
     for (var i = 1; i < all.length; i++) all[i].remove();
     if (!hasUser) { if (h && !h.firstChild) h.innerHTML = skeleton(); if (m && !m.firstChild) m.innerHTML = skeleton(); return; }
-    var markup = html(s);
+    /* the first draw continues from what the cached card showed (nickname, rank), so nothing flickers when the page changes */
+    if (!seeded) {
+      seeded = true;
+      try {
+        var c = JSON.parse(localStorage.getItem('bm_rail_html_v1') || 'null');
+        if (c && c.u === window.BMAuth.user.id && c.x) { state.nick = c.x.nick || ''; state.nickRole = c.x.nickRole || null; state.rank = c.x.rank == null ? null : c.x.rank; state.rankXp = c.x.rankXp == null ? null : c.x.rankXp; }
+      } catch (e) { /* ignore */ }
+    }
+    var markup = html(s), mark = sig(markup);
     [h, m].forEach(function (host) {
       if (!host) return;
+      if (host.getAttribute('data-sig') === mark) return;          /* the same card is already there: leave it alone */
       var keep = host.querySelector('.rl-body'), top = keep ? keep.scrollTop : 0;
-      host.innerHTML = markup;
+      host.innerHTML = markup; host.setAttribute('data-sig', mark);
       var nb = host.querySelector('.rl-body'); if (nb && top) nb.scrollTop = top;
     });
     if (h) document.documentElement.classList.add('has-rail');
-    try { localStorage.setItem('bm_rail_html_v1', JSON.stringify({ u: window.BMAuth.user.id, html: markup })); } catch (e) { /* ignore */ }
+    try { localStorage.setItem('bm_rail_html_v1', JSON.stringify({ u: window.BMAuth.user.id, html: markup, sig: mark, x: { nick: state.nick, nickRole: state.nickRole, rank: state.rank, rankXp: state.rankXp } })); } catch (e) { /* ignore */ }
     if (!state.extrasDone) loadExtras();
   }
   function schedule() { if (scheduled) return; scheduled = true; requestAnimationFrame(render); }
