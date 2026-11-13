@@ -850,8 +850,10 @@
     content.innerHTML = `
       ${noticeHTML}
       ${plateHTML}
+      <aside class="pf-railmount" id="appRailMount" aria-label="Nivel și statistici"></aside>
       ${bodyHTML}
     `;
+    if (window.BMRail) window.BMRail.refresh();
 
     skeleton.style.display = 'none';
     content.style.display  = '';

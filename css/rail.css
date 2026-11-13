@@ -28,8 +28,8 @@
 
 /* ---- wide screens: fixed to the left, flush with the right rail ---- */
 @media (min-width: 1180px) {
-  html.bm-authed body[data-rail],
-  html.has-rail body[data-rail] { padding-left: calc(var(--rail-w) + var(--rail-gap) * 2); }
+  html.bm-authed body[data-rail]:not([data-rail="mount"]),
+  html.has-rail body[data-rail]:not([data-rail="mount"]) { padding-left: calc(var(--rail-w) + var(--rail-gap) * 2); }
   html body #appRail {
     position: fixed;
     left: var(--rail-gap);
@@ -51,8 +51,8 @@
 /* in the simulation proper (exam or results) the rail steps aside */
 html.rail-off #appRail { display: none !important; }
 @media (min-width: 1180px) {
-  html.rail-off.bm-authed body[data-rail],
-  html.rail-off.has-rail body[data-rail] { padding-left: 0; }
+  html.rail-off.bm-authed body[data-rail]:not([data-rail="mount"]),
+  html.rail-off.has-rail body[data-rail]:not([data-rail="mount"]) { padding-left: 0; }
   #appRailMount { display: none; }
 }
 /* narrower screens: only the pages with a Profil pane (Exerciții, Învață) show the card, in that pane */
@@ -146,3 +146,16 @@ html.rail-off #appRail { display: none !important; }
 .rl-dlg__b { padding: 18px 18px 26px; text-align: center; }
 .rl-dlg__b p { margin: 0; font-weight: 700; }
 .rl-dlg__b span { display: block; margin-top: 4px; font-size: 0.82rem; font-weight: 600; color: var(--pm-ink-2, #5B4F74); }
+
+/* Pagina de profil, pe telefon: sub antet apare restul cardului (urmăriri, nivel, statistici, realizări), fără identitatea care e deja deasupra */
+.pf-railmount { display: none; }
+@media (max-width: 600px) {
+  body[data-rail="mount"] .pf-railmount { display: block; margin: 16px 0 4px; }
+  body[data-rail="mount"] .pf-railmount .rl-cover,
+  body[data-rail="mount"] .pf-railmount .rl-avatar,
+  body[data-rail="mount"] .pf-railmount .rl-name,
+  body[data-rail="mount"] .pf-railmount .rl-user,
+  body[data-rail="mount"] .pf-railmount .rl-meta { display: none; }
+  body[data-rail="mount"] .pf-railmount .rl-body { padding-top: 6px; overflow: visible; }
+  body[data-rail="mount"] .pf-railmount .rl-follow { margin-top: 6px; }
+}

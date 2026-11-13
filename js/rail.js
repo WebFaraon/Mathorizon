@@ -29,6 +29,7 @@
     var h = hostEl();
     if (h) return h;
     if (window.innerWidth < MIN || document.documentElement.classList.contains('rail-off')) return null;
+    if (document.body.getAttribute('data-rail') === 'mount') return null;   /* pagina de profil: cardul apare doar in coloana de pe telefon */
     h = document.createElement('aside');
     h.id = 'appRail'; h.className = 'app-rail'; h.setAttribute('aria-label', 'Profilul tău');
     document.body.insertBefore(h, document.body.firstChild);
