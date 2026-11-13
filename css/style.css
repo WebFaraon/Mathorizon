@@ -19927,11 +19927,15 @@ body:has(#root) {
 ::view-transition-group(site-nav) { animation: none; }
 ::view-transition-old(site-nav) { display: none; }
 ::view-transition-new(site-nav) { animation: none; mix-blend-mode: normal; }
+#appRail { view-transition-name: app-rail; }
+::view-transition-group(app-rail) { animation: none; }
+::view-transition-old(app-rail) { display: none; }
+::view-transition-new(app-rail) { animation: none; mix-blend-mode: normal; }
 ::view-transition-old(root) { animation-duration: 240ms; animation-timing-function: ease; }
 ::view-transition-new(root) { animation-duration: 240ms; animation-timing-function: ease; }
 
 /* the moment a link is followed the old content fades out (the navbar does not) */
-html.bm-leaving body > *:not(#nav-root):not(script):not(style):not(link):not(.bm-leave) {
+html.bm-leaving body > *:not(#nav-root):not(#appRail):not(script):not(style):not(link):not(.bm-leave) {
   opacity: 0 !important;
   transition: opacity 0.18s ease !important;
   pointer-events: none;
@@ -19966,7 +19970,7 @@ html.bm-leaving body > *:not(#nav-root):not(script):not(style):not(link):not(.bm
   45% { transform: translateY(-9px); }
 }
 /* the new page's content comes in once it has loaded */
-html.bm-revealing body > *:not(#nav-root):not(script):not(style):not(link):not(.bm-leave) {
+html.bm-revealing body > *:not(#nav-root):not(#appRail):not(script):not(style):not(link):not(.bm-leave) {
   transition: opacity 0.32s ease !important;
 }
 .bm-leave__bar {
@@ -19991,8 +19995,8 @@ html.bm-revealing body > *:not(#nav-root):not(script):not(style):not(link):not(.
 }
 @media (prefers-reduced-motion: reduce) {
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
-  html.bm-leaving body > *:not(#nav-root):not(.bm-leave) { transition: none !important; }
+  html.bm-leaving body > *:not(#nav-root):not(#appRail):not(.bm-leave) { transition: none !important; }
   .bm-leave__bar i { animation-duration: 2.4s; }
   .bm-leave__img { animation: none; }
-  html.bm-revealing body > *:not(#nav-root):not(.bm-leave) { transition: none !important; }
+  html.bm-revealing body > *:not(#nav-root):not(#appRail):not(.bm-leave) { transition: none !important; }
 }

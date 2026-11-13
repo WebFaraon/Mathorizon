@@ -11,7 +11,7 @@
   --rail-bottom: 24px;
 }
 
-#appRail { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink, #1E1631); min-width: 0; }
+#appRail, #appRailMount { font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink, #1E1631); min-width: 0; }
 .rl-card {
   position: relative;
   display: flex;
@@ -48,7 +48,14 @@
   }
   html body #appRail .rl-card { max-height: 100%; pointer-events: auto; }
 }
-/* narrower screens: only the pages that put the rail in a column show it */
+/* in the simulation proper (exam or results) the rail steps aside */
+html.rail-off #appRail { display: none !important; }
+@media (min-width: 1180px) {
+  html.rail-off.bm-authed body[data-rail],
+  html.rail-off.has-rail body[data-rail] { padding-left: 0; }
+  #appRailMount { display: none; }
+}
+/* narrower screens: only the pages with a Profil pane (Exerciții, Învață) show the card, in that pane */
 @media (max-width: 1179.98px) {
   #appRail.app-rail { display: none; }
 }

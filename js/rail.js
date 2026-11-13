@@ -19,20 +19,34 @@
 
   function wants() { return document.body && document.body.hasAttribute('data-rail'); }
   function hostEl() { return document.getElementById('appRail'); }
+  function mountEl() { return document.getElementById('appRailMount'); }   /* coloana "Profil" de pe telefon (React, Exerciții și Învață) */
 
   function ensureHost() {
     var h = hostEl();
     if (h) return h;
-    if (window.innerWidth < MIN) return null;
+    if (window.innerWidth < MIN || document.documentElement.classList.contains('rail-off')) return null;
     h = document.createElement('aside');
     h.id = 'appRail'; h.className = 'app-rail'; h.setAttribute('aria-label', 'Profilul tău');
-    document.body.appendChild(h);
+    document.body.insertBefore(h, document.body.firstChild);
     return h;
   }
   function dropHost() {
     var h = hostEl();
-    if (h && h.classList.contains('app-rail')) h.remove();
+    if (h) h.remove();
     document.documentElement.classList.remove('has-rail');
+  }
+
+  /* in simularea propriu-zisa (examen sau rezultate) panoul dispare, ca sa nu distraga */
+  function examOpen() {
+    var ids = ['examView', 'resultsView'];
+    for (var i = 0; i < ids.length; i++) { var e = document.getElementById(ids[i]); if (e && e.style.display !== 'none' && getComputedStyle(e).display !== 'none') return true; }
+    return false;
+  }
+  function watchExam() {
+    ['examView', 'resultsView'].forEach(function (id) {
+      var e = document.getElementById(id); if (!e) return;
+      new MutationObserver(schedule).observe(e, { attributes: true, attributeFilter: ['style', 'class'] });
+    });
   }
 
   /* ---- date ---- */
@@ -116,14 +130,26 @@
   function render() {
     scheduled = false;
     if (!wants()) return;
-    var h = ensureHost();
-    if (!h) return;
-    var s = snapshot();
-    if (!s || (window.BMAuth && window.BMAuth.role === 'manager')) { if (!h.firstChild) h.innerHTML = skeleton(); return; }
-    var keep = h.querySelector('.rl-body'), top = keep ? keep.scrollTop : 0;
-    h.innerHTML = html(s);
-    var nb = h.querySelector('.rl-body'); if (nb && top) nb.scrollTop = top;
-    document.documentElement.classList.add('has-rail');
+    var off = examOpen();
+    document.documentElement.classList.toggle('rail-off', off);
+    var s = snapshot(), role = window.BMAuth && window.BMAuth.role;
+    var hasUser = !!s && role !== 'manager';
+    var m = mountEl();
+    if (off) { var hh = hostEl(); if (hh) hh.remove(); document.documentElement.classList.remove('has-rail'); }
+    var h = off ? null : ensureHost();
+    /* more than one #appRail (an old cached one next to a fresh one) would stack two cards: keep the first */
+    var all = document.querySelectorAll('#appRail');
+    for (var i = 1; i < all.length; i++) all[i].remove();
+    if (!hasUser) { if (h && !h.firstChild) h.innerHTML = skeleton(); if (m && !m.firstChild) m.innerHTML = skeleton(); return; }
+    var markup = html(s);
+    [h, m].forEach(function (host) {
+      if (!host) return;
+      var keep = host.querySelector('.rl-body'), top = keep ? keep.scrollTop : 0;
+      host.innerHTML = markup;
+      var nb = host.querySelector('.rl-body'); if (nb && top) nb.scrollTop = top;
+    });
+    if (h) document.documentElement.classList.add('has-rail');
+    try { localStorage.setItem('bm_rail_html_v1', JSON.stringify({ u: window.BMAuth.user.id, html: markup })); } catch (e) { /* ignore */ }
     if (!state.extrasDone) loadExtras();
   }
   function schedule() { if (scheduled) return; scheduled = true; requestAnimationFrame(render); }
@@ -151,6 +177,7 @@
     if (!wants()) return;
     /* aproape sigur autentificat (indiciul din auth-hint): rezervam loc din prima, ca pagina sa nu sara */
     if (document.documentElement.classList.contains('bm-authed') && window.innerWidth >= MIN) { var h = ensureHost(); if (h && !h.firstChild) h.innerHTML = skeleton(); }
+    watchExam();
     schedule();
   }
   ['bmauth:ready', 'bmauth:synced', 'bmauth:profile', 'bmauth:streak-updated', 'bm:onboarded', 'nav:loaded'].forEach(function (ev) {

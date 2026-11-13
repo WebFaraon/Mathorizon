@@ -55,6 +55,7 @@
         localStorage.setItem(BM.TOKEN_KEY, '0');
         localStorage.removeItem('bm_solved');
         localStorage.removeItem('bm_streak');
+        localStorage.removeItem('bm_rail_html_v1');
         localStorage.removeItem('bm_favorites');
         localStorage.removeItem('bm_history');
         localStorage.removeItem('bac-history');

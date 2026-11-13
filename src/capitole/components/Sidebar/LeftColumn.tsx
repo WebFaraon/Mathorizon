@@ -1,8 +1,8 @@
 /**
- * Left rail. The profile card itself is drawn by js/rail.js (the same card on every page of the site, so it
- * stays put when the tab changes), into this <aside id="appRail">. React only keeps the place: in the phone and stacked
- * layouts it is the "Profil" pane, on wide screens rail.css fixes it to the left of the viewport.
+ * Left rail. On wide screens the profile card is the fixed panel of js/rail.js (the same on every tab, drawn into
+ * <aside id="appRail"> in <body>), so this column is hidden by css/rail.css. In the stacked and phone layouts it is the
+ * "Profil" pane: rail.js draws the same card into this <aside id="appRailMount">.
  */
 export function LeftColumn() {
-  return <aside id="appRail" className="cap-col cap-col-left" aria-label="Profilul tău" />;
+  return <aside id="appRailMount" className="cap-col cap-col-left" aria-label="Profilul tău" />;
 }

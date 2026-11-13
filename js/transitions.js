@@ -95,7 +95,7 @@
           var tm = a.effect && a.effect.getComputedTiming && a.effect.getComputedTiming();
           var tg = a.effect && a.effect.target;
           if (!tm || tm.iterations === Infinity) return;
-          if (tg && tg.closest && (tg.closest('.bm-leave') || tg.closest('#nav-root'))) return;
+          if (tg && tg.closest && (tg.closest('.bm-leave') || tg.closest('#nav-root') || tg.closest('#appRail'))) return;
           a.finish();
         } catch (err) { /* an animation that cannot be finished simply plays on */ }
       });
@@ -130,7 +130,7 @@
             for (k = 0; k < m.removedNodes.length; k++) if (m.removedNodes[k].nodeType !== 3) onlyText = false;
             if (onlyText) continue;
           }
-          if (t.nodeType === 1 && t.closest && (t.closest('#nav-root') || t.closest('.bm-leave'))) continue;
+          if (t.nodeType === 1 && t.closest && (t.closest('#nav-root') || t.closest('#appRail') || t.closest('.bm-leave'))) continue;
           lastChange = Date.now(); return;
         }
       });
@@ -253,7 +253,7 @@
       if (!document.body || !document.body.animate) return;
       if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
       Array.prototype.forEach.call(document.body.children, function (el) {
-        if (el.id === 'nav-root' || /^(SCRIPT|STYLE|LINK)$/.test(el.tagName)) return;
+        if (el.id === 'nav-root' || el.id === 'appRail' || /^(SCRIPT|STYLE|LINK)$/.test(el.tagName)) return;
         el.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 280, easing: 'ease' });
       });
     };
