@@ -4561,7 +4561,7 @@ body:has(#classesRoot) {
 .rg-tools .cl-bar[hidden] { display: none; }
 
 .rg-sheet {
-  --rg-cols: 104px minmax(110px, 1.1fr) 100px 70px 90px minmax(100px, 0.9fr) 76px 168px var(--rg-acts, 104px);
+  --rg-cols: 96px minmax(120px, 1.2fr) 84px 86px 62px minmax(76px, 0.8fr) 72px 156px var(--rg-acts, 104px);
   border: 1px solid var(--k-key-edge);
   border-radius: var(--k-r-key);
   background: var(--k-panel);
@@ -4569,7 +4569,7 @@ body:has(#classesRoot) {
 }
 .rg-sheet--student { --rg-cols: 104px minmax(140px, 1.2fr) 110px 100px 100px minmax(140px, 1fr) 140px; }
 .rg-sheet[hidden] { display: none; }
-@media (min-width: 1280px) { .rg-sheet { --rg-acts: 196px; } }
+@media (min-width: 1400px) { .rg-sheet { --rg-acts: 196px; } }
 
 .rg-cols,
 .rg-row { display: grid; grid-template-columns: var(--rg-cols); }
@@ -4653,7 +4653,7 @@ body:has(#classesRoot) {
 .rg-act svg { flex: none; width: 18px; height: 18px; }
 .rg-act b { display: none; font-family: var(--k-lcd-font); font-size: 0.98rem; font-weight: 900; letter-spacing: 0.08em; color: var(--k-ink-2); }
 .rg-act:hover b { color: var(--k-ink); }
-@media (min-width: 1280px) { .rg-act--code { padding: 0 10px; } .rg-act--code b { display: inline; } }
+@media (min-width: 1400px) { .rg-act--code { padding: 0 10px; } .rg-act--code b { display: inline; } }
 .rg-act .cl-mini__a, .rg-act .cl-mini__b { display: inline-flex; }
 .rg-act .cl-mini__b { display: none; }
 .rg-act.is-done, .rg-act.is-done:hover, .rg-act.is-done b { color: var(--k-green); border-color: var(--k-green); }

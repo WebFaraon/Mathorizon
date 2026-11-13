@@ -634,6 +634,43 @@ html body.pm:has(#classRoot) :is(.cd-subject-chip, .cd-meta__badge) {
 html body.pm:has(#classRoot) :is(.cd-live, .cd-invite, .sumar-kpibar, .catalog-statsbar, .cs-stats),
 html body.pm:has(#classesRoot) :is(.cl-status, .cl-lcd, .cm-lcd, .cl-codeinput, .cl-loading__lcd) { border-radius: 4px; }
 
+/* The groups table (Clase tab): the sheet is gone, every group is its own rounded card with the frame of the other
+   cards (1.5px line, solid edge), and the column names sit on a rounded plate. */
+html body.pm:has(#classesRoot) .rg-sheet {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+html body.pm:has(#classesRoot) .rg-list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 4px; }
+html body.pm:has(#classesRoot) .rg-row,
+html body.pm:has(#classesRoot) .rg-row:first-child,
+html body.pm:has(#classesRoot) .rg-row:last-child {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  overflow: hidden;
+}
+html body.pm:has(#classesRoot) .rg-row:nth-child(even of :not([hidden])) { background: var(--pm-face); }
+html body.pm:has(#classesRoot) .rg-row:hover,
+html body.pm:has(#classesRoot) .rg-row:target { background: color-mix(in srgb, var(--pm-violet) 6%, var(--pm-face)); }
+html body.pm:has(#classesRoot) .rg-row:has(.rg-name:focus-visible) { outline: 2px solid var(--pm-violet); outline-offset: 2px; }
+html body.pm:has(#classesRoot) .rg-time b { border-radius: 4px; }
+@media (min-width: 1001px) {
+  html body.pm:has(#classesRoot) .rg-cols {
+    margin-bottom: 12px;
+    border: 1.5px solid var(--pm-line);
+    border-bottom: 1.5px solid var(--pm-line);
+    border-radius: 14px;
+    background: var(--pm-tint);
+    color: var(--pm-ink-2);
+    overflow: hidden;
+  }
+  html body.pm:has(#classesRoot) .rg-c { border-left-color: var(--pm-line); }
+  html body.pm:has(#classesRoot) .rg-c.rg-time { border-left: 0; }
+}
+
 /* ==========================================================================
    Simulare (bac.html): the setup, the exam room, the results and their dialogs
    ==========================================================================
