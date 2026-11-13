@@ -46,11 +46,15 @@
   function slug(s) {
     return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
   }
-  function suggestions(name) {
-    var first = slug(String(name || '').trim().split(/\s+/)[0]);
-    if (first.length < 3) first = 'elev';
-    var r = function () { return String(Math.floor(10 + Math.random() * 90)); };
-    return [first + r(), first + '_' + r(), 'elev_' + first.slice(0, 8)].map(function (x) { return x.slice(0, 20); });
+  /* idei construite din ce a scris elevul: aceeasi litere, cu cifre sau cu un semn intre ele (stabile, nu se schimba la fiecare tasta) */
+  function suggestions(typed) {
+    var base = slug(typed).replace(/^[0-9]+/, '').slice(0, 14);
+    if (base.length < 2) return [];
+    var h = 7, i;
+    for (i = 0; i < base.length; i++) h = (h * 31 + base.charCodeAt(i)) % 9973;
+    var n = function (k) { return String(10 + ((h * (k + 3)) % 90)); };
+    var out = [base + n(0), base + '_' + n(1), base + '.' + n(2)];
+    return out.map(function (x) { return x.slice(0, 20); }).filter(function (x) { return RE.test(x) && x !== typed; });
   }
 
   var el = null, state = null;
@@ -65,6 +69,9 @@
   function open(opts) {
     opts = opts || {};
     if (el) return;
+    /* nickname-ul si clasa sunt doar pentru elevi: un profesor, un manager sau un admin nu vad wizardul */
+    var role0 = window.BMAuth && window.BMAuth.role;
+    if (role0 && role0 !== 'elev') return;
     css();
     state = { step: 0, nick: opts.nickname || '', grade: opts.grade || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
     try { state.name = (window.BMAuth && window.BMAuth.displayName && window.BMAuth.displayName()) || ''; } catch (e) { /* ignore */ }
@@ -122,12 +129,20 @@
     var nx = $('#obNext'); if (nx) nx.disabled = kind !== 'ok';
   }
 
+  /* ideile apar abia dupa ce elevul a scris ceva si dispar cand numele ales e liber */
+  function showIdeas(v, ok) {
+    var sug = $('#obSug'); if (!sug) return;
+    var list = ok ? [] : suggestions(v);
+    sug.innerHTML = list.length ? '<span>Idei:</span>' + list.map(function (x) { return '<button type="button" data-s="' + x + '">@' + x + '</button>'; }).join('') : '';
+  }
+
   function check() {
     var inp = $('#obNick'); if (!inp) return;
     var v = inp.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
     if (v !== inp.value) inp.value = v;
     state.nick = v;
     clearTimeout(state.timer);
+    showIdeas(v);
     if (!v) { setStatus('', ''); return; }
     if (!RE.test(v)) { setStatus('bad', v.length < 3 ? 'Încă puțin: minim 3 caractere.' : MSG.invalid); return; }
     setStatus('wait', 'Verific…');
@@ -139,6 +154,7 @@
         if (r.error) { setStatus('bad', 'Nu pot verifica acum. Reîncearcă.'); return; }
         var k = r.data;
         setStatus(k === 'ok' ? 'ok' : 'bad', MSG[k] || MSG.invalid);
+        showIdeas(mine, k === 'ok');
       }, function () { if (el) setStatus('bad', 'Nu pot verifica acum. Reîncearcă.'); });
     }, 320);
   }
@@ -150,10 +166,7 @@
       inp.addEventListener('input', check);
       inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && nx && !nx.disabled) nx.click(); });
       var sug = $('#obSug');
-      if (!s.edit || !s.nick) {
-        sug.innerHTML = '<span>Idei:</span>' + suggestions(s.name).map(function (x) { return '<button type="button" data-s="' + x + '">@' + x + '</button>'; }).join('');
-        sug.addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) { inp.value = b.getAttribute('data-s'); check(); inp.focus(); } });
-      }
+      sug.addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) { inp.value = b.getAttribute('data-s'); check(); inp.focus(); } });
       if (s.nick) check();
       setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }, 350);
       nx.onclick = function () { s.step = 1; render(); };

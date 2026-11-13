@@ -129,7 +129,10 @@
     var g = viewGrade || grade() || 7;
     var cur = curCircleOrTest();
     var pr = progressPct();
-    var h = '<div class="pp-top"><div class="pp-chips"><button class="pk" type="button" id="ppClass">' + 'Clasa a ' + ROMAN[g] + '-a' + svg('chev') + '</button>' + (g === 7 ? '<span class="pp-pct" title="' + pr.done + ' din ' + pr.total + ' lecții și teste"><i style="--p:' + pr.pct + '%"></i><b>' + pr.pct + '%</b></span>' : '') + '</div><button class="pk sm" type="button" id="ppAll">' + svg('list') + 'Toate secțiunile</button></div>';
+    var role = window.BMAuth && window.BMAuth.role, canPick = !role || role === 'elev';
+    var h = '<div class="pp-top"><button class="pk' + (canPick ? '' : ' static') + '" type="button" id="ppClass"' + (canPick ? '' : ' tabindex="-1"') + '>' + 'Clasa a ' + ROMAN[g] + '-a' + (canPick ? svg('chev') : '') + '</button>' +
+      (g === 7 ? '<span class="pp-pct" title="' + pr.done + ' din ' + pr.total + ' lecții și teste"><i style="--p:' + pr.pct + '%"></i><b>' + pr.pct + '%</b></span>' : '') +
+      '<button class="pk sm" type="button" id="ppAll">' + svg('list') + '<span class="pp-lg">Toate secțiunile</span><span class="pp-sm">Secțiuni</span></button></div>';
     if (g !== 7) {
       h += '<div class="pp-main"><div class="pp-soonclass"><div class="owl" data-owl="idle"></div><h2>Parcursul clasei a ' + ROMAN[g] + '-a se pregătește</h2><p>Lucrăm la lecțiile pentru această clasă. Deocamdată este gata clasa a 7-a, ca să vezi cum arată un parcurs.</p><div class="pp-soonclass__act"><button class="go" type="button" id="ppSee7">VEZI CLASA A 7-A</button><a class="pk sm" href="capitole.html">Exerciții</a></div></div></div>';
       root.innerHTML = h; bindTop(); return;
@@ -198,6 +201,7 @@
   function bindTop() {
     var cls = document.getElementById('ppClass');
     if (cls) cls.onclick = function () {
+      var rl = window.BMAuth && window.BMAuth.role; if (rl && rl !== 'elev') return;   /* clasa se alege doar la elevi */
       var go = function () { window.BMOnboarding && window.BMOnboarding.open({ edit: true, nickname: localStorage.getItem('bm_nickname') || '', grade: grade() || 7 }); };
       if (window.BMOnboarding) go(); else { var s = document.createElement('script'); s.src = 'js/onboarding.js'; s.onload = go; document.body.appendChild(s); }
     };

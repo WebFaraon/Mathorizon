@@ -6,7 +6,7 @@
 .pp-loading { display: grid; place-items: center; gap: 12px; min-height: 50vh; font-weight: 700; color: var(--pm-ink-2); }
 
 /* bară de sus: clasa și lista de secțiuni */
-.pp-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
+.pp-top { display: flex; align-items: center; justify-content: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
 .pk { height: 46px; padding: 0 18px; display: inline-flex; align-items: center; gap: 10px; border: 1.5px solid var(--pm-line); border-bottom-width: 4px; border-radius: 14px; background: var(--pm-face); color: var(--pm-ink); font: inherit; font-size: 15px; font-weight: 800; cursor: pointer; text-decoration: none; transition: transform 0.08s ease, border-bottom-width 0.08s ease; }
 .pk:hover { background: var(--pm-tint); color: var(--pm-ink); }
 .pk:active { transform: translateY(3px); border-bottom-width: 1px; }
@@ -117,7 +117,10 @@
 .pp-note { margin: 18px 0 0; text-align: center; font-size: 0.82rem; font-weight: 600; color: var(--pm-ink-2); }
 
 /* procentul de lângă clasă */
-.pp-chips { display: flex; align-items: center; gap: 12px; }
+.pk { white-space: nowrap; }
+.pk.static { cursor: default; pointer-events: none; }
+#ppAll { margin-left: auto; }
+.pp-sm { display: none; }
 .pp-pct { display: inline-flex; align-items: center; gap: 9px; height: 42px; padding: 0 14px; border: 1.5px solid var(--pm-line); border-bottom-width: 4px; border-radius: 14px; background: var(--pm-face); font-weight: 800; font-size: 14px; font-variant-numeric: tabular-nums; }
 .pp-pct i { display: block; width: 54px; height: 9px; border-radius: 5px; background: linear-gradient(90deg, var(--pm-lime) var(--p), var(--pm-track) var(--p)); }
 
@@ -173,7 +176,13 @@
   .owl-tile { width: 64px; height: 64px; border-radius: 16px; }
   .owlw { right: calc(100% + 4px); top: 18px; width: 64px; }
   .nw[data-neg][data-state="cur"] .owlw { left: calc(100% + 4px); }
-  .pp-pct i { width: 36px; }
+  .pp-top { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .pp-top .pk { justify-content: center; min-width: 0; }
+  #ppAll { margin-left: 0; }
+  .pp-lg { display: none; }
+  .pp-sm { display: inline; }
+  .pp-pct { grid-column: 1 / -1; order: 3; width: 100%; box-sizing: border-box; justify-content: space-between; gap: 14px; }
+  .pp-pct i { flex: 1; width: auto; }
   .ur .bar { display: none; }
   .pp-dlg__card { padding: 18px; }
 }

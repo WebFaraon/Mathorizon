@@ -1014,6 +1014,7 @@
        country, phone, social link too); everyone else just edits the name. */
     /* Elev: @nickname si clasa, cu cheia de schimbare (wizardul din js/onboarding.js) */
     const nickEl = document.getElementById('pfNick');
+    let studentConfirmed = false;
     if (nickEl) {
       const paintNick = (nickname, grade) => {
         if (!nickname && !grade) { nickEl.hidden = true; return; }
@@ -1027,14 +1028,13 @@
           else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
         });
       };
-      let ln = '', lg = 0;
-      try { ln = localStorage.getItem('bm_nickname') || ''; lg = parseInt(localStorage.getItem('bm_grade') || '0', 10) || 0; } catch (e) { /* ignore */ }
-      paintNick(ln, lg);
+      /* doar pentru elevi, si doar dupa ce serverul confirma rolul (rolul din browser poate fi necunoscut o clipa) */
       try {
         const r = await sb.rpc('my_student_profile');
-        if (r && r.data) paintNick(r.data.nickname || '', r.data.grade || 0);
-      } catch (e) { /* migratia nu e rulata inca: linia ramane ascunsa */ }
-      document.addEventListener('bm:onboarded', ev => paintNick(ev.detail.nickname, ev.detail.grade));
+        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; paintNick(r.data.nickname || '', r.data.grade || 0); }
+        else nickEl.remove();
+      } catch (e) { nickEl.remove(); /* migratia nu e rulata inca sau nu e elev */ }
+      document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) paintNick(ev.detail.nickname, ev.detail.grade); });
     }
 
     document.getElementById('btnEditProfile')?.addEventListener('click', () => {
