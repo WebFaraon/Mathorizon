@@ -20,9 +20,9 @@
   var NOT = ['Nu chiar.', 'Aproape!', 'Hai să vedem.'];
 
   var owls = [], fbOwl = null;
-  function owl(host, mood) {
+  function owl(host, mood, look) {
     if (!window.TeoremaMascot || !host) return null;
-    try { var o = new window.TeoremaMascot.Mascot(host, { mood: mood, theme: themeOf() }); owls.push(o); return o; } catch (e) { return null; }
+    try { var o = new window.TeoremaMascot.Mascot(host, { mood: mood, theme: themeOf(), look: look || {} }); owls.push(o); return o; } catch (e) { return null; }
   }
   function dropOwls() { owls.forEach(function (o) { try { window.TeoremaMascot.dispose(o); } catch (e) { /* gone */ } }); owls = []; }
 
@@ -124,6 +124,7 @@
   }
   function learnCard(pg, idx, n, animate) {
     var card = h('div', 'lz-learn'), dots = '';
+    var lo = h('div', 'owl lz-learn__owl'); lo.id = 'lzLearnOwl'; card.appendChild(lo);
     card.appendChild(h('h2', '', m(pg.title)));
     card.appendChild(h('p', '', m(pg.p)));
     var v = visual(pg); if (v) { var box = h('div', 'lz-vis'); box.appendChild(v.el); card.appendChild(box); }
@@ -148,16 +149,23 @@
       el.appendChild(meta);
       el.appendChild(learnCard(pg, learnPage, pages.length, true));
     };
-    if (first) swap(build);
+    var learnOwl = function () { owl($('#lzLearnOwl'), 'idle', lookFor('learn')); };
+    if (first) swap(build, learnOwl);
     else {
       var old = main.firstElementChild;
-      var show = function () { dropOwls(); main.innerHTML = ''; var el = h('section', 'lz-step'); build(el); main.appendChild(el); window.scrollTo(0, 0); };
+      var show = function () { dropOwls(); main.innerHTML = ''; var el = h('section', 'lz-step'); build(el); main.appendChild(el); window.scrollTo(0, 0); learnOwl(); };
       if (old && !reduce()) { old.classList.add('out'); setTimeout(show, 160); } else show();
     }
     go.textContent = learnPage === pages.length - 1 ? 'Am înțeles' : 'Continuă';
   }
 
   /* ---------- exerciții ---------- */
+  /* bufnița se potrivește cu tipul de cartonaș: citește la explicații, scrie când trebuie să scrii, poartă ochelari când alegi sau cauți */
+  function lookFor(t) {
+    if (t === 'learn') return { book: true, glasses: true };
+    if (t === 'num' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
+    return { glasses: true };
+  }
   function head(sp) {
     var f = document.createDocumentFragment();
     var meta = h('div', 'lz-meta');
@@ -182,7 +190,7 @@
       var v = visOf(sp); if (v) { var vb = h('div', 'lz-vis'); vb.appendChild(v); el.appendChild(vb); }
       if (sp.eq) { var eq = h('div', 'lz-eq', m(sp.eq)); eq.id = 'lzEq'; el.appendChild(eq); }
       ctl = BUILD[sp.t](sp, el);
-    }, function () { owl($('#lzQ'), step.rar === 2 ? 'think' : 'idle'); setGo(ctl && ctl.canCheck()); if (ctl && ctl.focus) setTimeout(ctl.focus, 420); });
+    }, function () { owl($('#lzQ'), step.rar === 2 ? 'think' : 'idle', lookFor(step.t)); setGo(ctl && ctl.canCheck()); if (ctl && ctl.focus) setTimeout(ctl.focus, 420); });
   }
 
   var BUILD = {};
@@ -278,9 +286,9 @@
 
   BUILD.num = function (sp, el) {
     var wrap = h('div', 'lz-num'), row = h('div', 'lz-num-row'), inp = h('input', 'lz-inp'), keys = h('div', 'lz-keys'), msg = h('div', 'lz-msg');
-    inp.type = 'text'; inp.id = 'lzInp'; inp.setAttribute('inputmode', 'decimal'); inp.autocomplete = 'off'; inp.autocapitalize = 'off'; inp.spellcheck = false; inp.placeholder = '?';
+    inp.type = 'text'; inp.id = 'lzInp'; inp.setAttribute('inputmode', 'text'); inp.setAttribute('enterkeyhint', 'done'); inp.autocomplete = 'off'; inp.autocapitalize = 'off'; inp.spellcheck = false;
     inp.setAttribute('aria-label', 'Răspunsul tău');
-    var sym = { int: ['−'], dec: ['−', ','], frac: ['−', '/'], per: ['−', ',', '(', ')'], any: ['−', ',', '/'] }[sp.form || 'any'] || ['−'];
+    var sym = { int: [], dec: [','], frac: ['/'], per: [',', '(', ')'], any: [',', '/'] }[sp.form || 'any'] || [];
     sym.forEach(function (c) {
       var k = h('button', 'lz-key', c); k.type = 'button'; k.setAttribute('aria-label', { '−': 'minus', ',': 'virgulă', '/': 'linie de fracție', '(': 'paranteză deschisă', ')': 'paranteză închisă' }[c]);
       k.onmousedown = function (e) { e.preventDefault(); };
@@ -289,7 +297,7 @@
     });
     row.appendChild(inp);
     if (sp.unit) row.appendChild(h('span', 'lz-unit', PM.esc(sp.unit)));
-    wrap.appendChild(keys); wrap.appendChild(row); wrap.appendChild(msg); el.appendChild(wrap);
+    if (sym.length) wrap.appendChild(keys); wrap.appendChild(row); wrap.appendChild(msg); el.appendChild(wrap);
     inp.oninput = function () { setGo(inp.value.trim() !== ''); msg.textContent = ''; inp.classList.remove('bad'); };
     inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); if (!go.disabled) go.click(); } };
     function verdict() {

@@ -138,7 +138,7 @@ body.lz {
 
 /* owl + bubble */
 .lz-ask { display: flex; align-items: center; gap: 14px; }
-.lz-ask .owl { --ow: 96px; flex: none; }
+.lz-ask .owl { --ow: 118px; flex: none; margin: -8px -6px -10px -10px; }
 .lz-bubble {
   position: relative;
   padding: 13px 16px;
@@ -457,7 +457,7 @@ body.lz {
   .lz-xp { min-width: 0; }
   .lz-xp span { display: none; }
   .lz-main { padding: 6px 14px 260px; }
-  .lz-ask .owl { --ow: 76px; }
+  .lz-ask .owl { --ow: 92px; margin: -6px -4px -8px -8px; }
   .lz-bubble { font-size: 0.98rem; }
   .lz-foot__in { padding: 12px 14px; min-height: 96px; gap: 10px; flex-wrap: wrap; }
   .lz-go { min-width: 120px; padding: 13px 18px; }
@@ -476,7 +476,7 @@ body.lz {
    Parcurs (lecțiile reale): scrierea matematică, desene interactive, tipuri noi de exerciții, efecte
    ============================================================ */
 /* fracții scrise pe verticală și căsuța goală */
-.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; margin: 0 0.12em; line-height: 1.15; font-size: 0.92em; }
+.fr { display: inline-flex; flex-direction: column; align-items: center; vertical-align: middle; position: relative; top: -0.07em; margin: 0 0.12em; line-height: 1.15; font-size: 0.92em; }
 .fr > i { font-style: normal; padding: 0 0.22em; text-align: center; }
 .fr > i:first-child { border-bottom: 0.09em solid currentColor; padding-bottom: 0.06em; }
 .fr > i:last-child { padding-top: 0.06em; }
@@ -702,3 +702,7 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 .lz-ans.row .lz-tile { align-self: auto; }
 .lz-ans.row:empty::before { flex: 1 1 100%; }
 .lz-fb__tx .fr { font-size: 0.9em; }
+
+/* matematica din lecții: fontul formulelor din capitole (Space Grotesk), ca la exercițiile din Exersare */
+.mt, .fr, sup, .lz-inp, .lz-key, .lz-eq, .lz-row .eqs, .bx { font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: lining-nums; }
+.lz-learn__owl { --ow: 150px; margin: -10px auto -14px; }

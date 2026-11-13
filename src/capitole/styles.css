@@ -1879,7 +1879,9 @@ a.cap-key__face:focus-visible {
   .cap-grades { grid-template-columns: repeat(4, minmax(0, 1fr)); }
 }
 @media (max-width: 640px) {
-  .cap-col-middle > .cap-grades:first-child { margin-top: 18px; }
+  .cap-col-middle > .cap-grades:first-child { margin-top: 0; }
+  /* phone: the middle pane starts closer to the navbar (desktop keeps its gap) */
+  .cap-three-col > .cap-col-middle { padding-top: 10px; }
   .cap-grades__key { height: 52px; }
   .cap-coll__card { min-height: 104px; padding: 16px 112px 16px 18px; }
   .cap-coll__art { width: 80px; height: 80px; right: 10px; }

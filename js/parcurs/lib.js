@@ -101,13 +101,25 @@
 
   /* ---- scrierea în HTML ---- */
   function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  /* tot ce e matematică (numere, zecimale, 0,(3), 3/4, x, =, +, −, ×, ÷, paranteze) primește <span class="mt">, ca să se scrie cu fontul formulelor din capitole (Space Grotesk) */
+  var NUM = '\\d+(?:,(?:\\d+(?:\\(\\d+\\))?|\\(\\d+\\)))?';
+  var ATOM = '(?:' + NUM + '(?:\\/' + NUM + ')?|(?<![\\p{L}\\d])[xyznk](?![\\p{L}])|[=+−×÷·≤≥≈≠()]|&lt;|&gt;)';
+  var RUN = null;
+  try { RUN = new RegExp(ATOM + '(?:[ \\u00a0]?' + ATOM + ')*', 'gu'); } catch (e) { RUN = null; }
+  function mathify(s) {
+    if (!RUN) return s;
+    return s.split(/(<[^>]*>)/).map(function (seg) {
+      if (seg.charAt(0) === '<') return seg;
+      return seg.replace(RUN, function (r) { return /[\d=+−×÷·≤≥≈≠xyznk]|&lt;|&gt;/.test(r) ? '<span class="mt">' + r + '</span>' : r; });
+    }).join('');
+  }
   function m(src) {
     var s = esc(src == null ? '' : src);
     s = s.replace(/\{([^{}\/]+)\/([^{}]+)\}/g, function (_, a, b) { return '<span class="fr"><i>' + a + '</i><i>' + b + '</i></span>'; });
     s = s.replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>').replace(/\^(−?\w)/g, '<sup>$1</sup>');
     s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[\[([^\]]+)\]\]/g, '<mark>$1</mark>');
     s = s.replace(/▢/g, '<span class="bx" aria-label="loc gol"></span>');
-    return s;
+    return mathify(s);
   }
   /* aceeași scriere fără HTML, pentru titluri și aria */
   function plain(src) {

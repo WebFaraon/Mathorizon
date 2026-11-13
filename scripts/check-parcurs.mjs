@@ -40,7 +40,7 @@ check(PM.fmtDec(PM.F(7, 4)) === '1,75', 'fmtDec 7/4');
 check(PM.parseAnswer('abc') === null && PM.parseAnswer('') === null && PM.parseAnswer('1/0') === null, 'parse invalid');
 check(PM.parseAnswer('−3/4').f.n === -3 && PM.parseAnswer('3/−4').f.n === -3, 'parse minus forms');
 check(PM.parseAnswer('6/8').reduced === false && PM.parseAnswer('3/4').reduced === true && PM.parseAnswer('-3/4').reduced === true, 'reduced flag');
-check(PM.m('{3/4}').includes('class="fr"') && PM.m('x^2').includes('<sup>2</sup>') && !PM.m('<b>').includes('<b>'), 'markup');
+check(PM.m('{3/4}').includes('class="fr"') && /<sup>(<span class="mt">)?2/.test(PM.m('x^2')) && !PM.m('<b>').includes('<b>'), 'markup');
 
 /* ---------- mic evaluator pentru expresii scrise cu fracții, ca să verificăm răspunsurile ---------- */
 function evalExpr(src) {
