@@ -34,11 +34,13 @@
     close: '<path d="M6 6l12 12M18 6L6 18"/>'
   };
   var svg = function (n, cls) { return '<svg viewBox="0 0 24 24" class="' + (cls || 'ic') + '" aria-hidden="true">' + (ICON[n] || ICON.book) + '</svg>'; };
-  var ZIG = [0, 84, 128, 84, 0, -84, -128, -84];
+  var ZIG = [0, 70, 108, 70, 0, -70, -108, -70];
 
   /* ---------- clasa elevului ---------- */
+  /* elevul isi are clasa din wizard (bm_grade); profesorul si adminul doar privesc un parcurs la alegere (bm_grade_view), fara sa schimbe nimic in cont */
+  function isStudent() { var r = window.BMAuth && window.BMAuth.role; return !r || r === 'elev'; }
   function grade() {
-    try { var g = parseInt(localStorage.getItem('bm_grade') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ }
+    try { var g = parseInt(localStorage.getItem(isStudent() ? 'bm_grade' : 'bm_grade_view') || '', 10); if (g >= 5 && g <= 12) return g; } catch (e) { /* ignore */ }
     return 0;
   }
   var viewGrade = 0;
@@ -129,7 +131,7 @@
     var g = viewGrade || grade() || 7;
     var cur = curCircleOrTest();
     var pr = progressPct();
-    var role = window.BMAuth && window.BMAuth.role, canPick = !role || role === 'elev';
+    var canPick = true;
     var h = '<div class="pp-top"><button class="pk' + (canPick ? '' : ' static') + '" type="button" id="ppClass"' + (canPick ? '' : ' tabindex="-1"') + '>' + 'Clasa a ' + ROMAN[g] + '-a' + (canPick ? svg('chev') : '') + '</button>' +
       (g === 7 ? '<span class="pp-pct" title="' + pr.done + ' din ' + pr.total + ' lecții și teste"><i style="--p:' + pr.pct + '%"></i><b>' + pr.pct + '%</b></span>' : '') +
       '<button class="pk sm" type="button" id="ppAll">' + svg('list') + '<span class="pp-lg">Toate secțiunile</span><span class="pp-sm">Secțiuni</span></button></div>';
@@ -195,13 +197,15 @@
     pop.style.setProperty('--sx', shift + 'px');
     requestAnimationFrame(function () { pop.classList.add('on'); });
     var first = pop.querySelector('a.gob'); if (first) first.focus({ preventScroll: true });
+    /* panoul trebuie sa se vada complet: daca iese din ecran (pe telefon, sub bara de jos), pagina deruleaza pana il arata */
+    var settle = function () { if (openPop === pop) pop.scrollIntoView({ block: 'nearest', behavior: reduce() ? 'auto' : 'smooth' }); };
+    setTimeout(settle, 60); setTimeout(settle, 320);
   }
 
   /* ---------- evenimente ---------- */
   function bindTop() {
     var cls = document.getElementById('ppClass');
     if (cls) cls.onclick = function () {
-      var rl = window.BMAuth && window.BMAuth.role; if (rl && rl !== 'elev') return;   /* clasa se alege doar la elevi */
       classAsk();
     };
     var all = document.getElementById('ppAll'); if (all) all.onclick = openAll;
@@ -252,8 +256,8 @@
     d.querySelectorAll('[data-g]').forEach(function (b) {
       b.onclick = function () {
         var n = +b.dataset.g;
-        try { localStorage.setItem('bm_grade', String(n)); } catch (e) { /* ignore */ }
-        var sb = window.BMAuth && window.BMAuth.supabase;
+        try { localStorage.setItem(isStudent() ? 'bm_grade' : 'bm_grade_view', String(n)); } catch (e) { /* ignore */ }
+        var sb = isStudent() && window.BMAuth && window.BMAuth.supabase;
         if (sb) { try { Promise.resolve(sb.rpc('set_student_grade', { p_grade: n })).then(function () {}, function () {}); } catch (e) { /* migrarea poate lipsi: clasa ramane in browser */ } }
         viewGrade = 0; closeDlg(); render();
         var top = root && root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0);

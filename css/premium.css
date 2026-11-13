@@ -671,6 +671,63 @@ html body.pm:has(#classesRoot) .rg-time b { border-radius: 4px; }
   html body.pm:has(#classesRoot) .rg-c.rg-time { border-left: 0; }
 }
 
+/* Group rows and today's lessons: hover dims and tints, press sinks, like every key on the site. */
+html body.pm:has(#classesRoot) .rg-row {
+  transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+html body.pm:has(#classesRoot) .rg-row:hover {
+  border-color: var(--pm-line-2);
+  background: color-mix(in srgb, var(--pm-violet) 9%, var(--pm-face));
+  filter: brightness(0.985);
+}
+html body.pm:has(#classesRoot) .rg-row:active:not(:has(.rg-acts :active)) {
+  box-shadow: 0 0 0 0 var(--pm-edge);
+  transform: translateY(3px);
+}
+
+/* Today's lessons: no big panel, every lesson is its own card; the title and the count sit on a rounded plate. */
+html body.pm:has(#classesRoot) .cl-today {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+  gap: 12px;
+}
+html body.pm:has(#classesRoot) .cl-today__head {
+  padding: 12px 18px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-tint);
+}
+html body.pm:has(#classesRoot) .cl-today__list { display: flex; flex-direction: column; gap: 12px; padding-bottom: 4px; }
+html body.pm:has(#classesRoot) .cl-lesson,
+html body.pm:has(#classesRoot) .cl-lesson + .cl-lesson {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  overflow: hidden;
+  transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+html body.pm:has(#classesRoot) .cl-lesson:last-child .cl-lesson__link { border-radius: 0; }
+html body.pm:has(#classesRoot) .cl-lesson:hover {
+  border-color: var(--pm-line-2);
+  background: color-mix(in srgb, var(--pm-violet) 9%, var(--pm-face));
+  filter: brightness(0.985);
+}
+html body.pm:has(#classesRoot) .cl-lesson:active {
+  box-shadow: 0 0 0 0 var(--pm-edge);
+  transform: translateY(3px);
+}
+html body.pm:has(#classesRoot) .cl-lesson__link:hover { background: transparent; }
+html body.pm:has(#classesRoot) .cl-today__empty {
+  flex: none;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 14px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+
 /* ==========================================================================
    Simulare (bac.html): the setup, the exam room, the results and their dialogs
    ==========================================================================
