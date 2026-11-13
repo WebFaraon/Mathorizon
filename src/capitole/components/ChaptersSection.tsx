@@ -1,28 +1,26 @@
 import { ChapterCard } from './ChapterCard';
-import type { ChapterView, Readout } from '../hooks/useCapitoleData';
+import type { ChapterView } from '../hooks/useCapitoleData';
 
 interface ChaptersSectionProps {
   chapters: ChapterView[];
   ready: boolean;
-  /** Reports the key under the pointer/focus to the hero's LCD (null on leave). */
-  onReadout: (readout: Readout | null) => void;
 }
 
 /** How many skeletons to show while the Supabase merge settles. */
 const SKELETON_COUNT = 4;
 
-/**
- * The keypad: one key per chapter. No visible heading, the LCD right
- * above already says what these are; aria-label keeps the section
- * announced for screen readers.
- */
-export function ChaptersSection({ chapters, ready, onReadout }: ChaptersSectionProps) {
+/** The LCD that used to read these keys out is gone from the hub: nothing to report to. */
+const NO_READOUT = () => {};
+
+/** "Exersează pe capitole": one key per chapter, progress printed on each. */
+export function ChaptersSection({ chapters, ready }: ChaptersSectionProps) {
   return (
-    <section className="cap-chapters" aria-label="Capitole">
-      <div className="cap-grid" onMouseLeave={() => onReadout(null)}>
+    <section className="cap-chapters" aria-labelledby="capChapTitle">
+      <h2 className="cap-sec-title" id="capChapTitle">Exersează pe capitole</h2>
+      <div className="cap-grid">
         {ready
           ? chapters.map((chapter, index) => (
-              <ChapterCard key={chapter.category.id} chapter={chapter} index={index} onReadout={onReadout} />
+              <ChapterCard key={chapter.category.id} chapter={chapter} index={index} onReadout={NO_READOUT} />
             ))
           : Array.from({ length: SKELETON_COUNT }, (_, i) => (
               <div className="cap-card-skeleton" key={i} aria-hidden="true" />

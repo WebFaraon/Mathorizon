@@ -37,6 +37,7 @@
     history.replaceState(null, '', location.pathname);
     if (p === 'fav')  openFavorites();
     if (p === 'hist') openHistory();
+    if (p === 'mis')  openMistakes();
   }
 
   /* ---- Search ----
@@ -176,8 +177,34 @@
     BM.openPanel('hist');
   }
 
+  function openMistakes() {
+    const list = document.getElementById('misList');
+    if (!list) return;
+    const map = BM.Storage.getMistakes ? BM.Storage.getMistakes() : {};
+    const rows = Object.keys(map)
+      .map(id => ({ ex: BM.EXERCISES.find(e => e.id === id), m: map[id] }))
+      .filter(r => r.ex)
+      .sort((a, b) => b.m.ts - a.m.ts);
+
+    if (rows.length === 0) {
+      list.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">${icon('target', { size: 48 })}</div>
+          <p>Nicio greșeală de reluat.</p>
+          <p class="text-muted">Exercițiile la care greșești în Antrenament apar aici, până răspunzi corect.</p>
+        </div>`;
+    } else {
+      list.innerHTML = rows.map(r => renderPanelItem(r.ex, r.m.ts)).join('');
+    }
+    BM.openPanel('mis');
+  }
+
+  /* The Exerciții hub (React) opens the same panels as the navbar keys. */
+  window.BMCollections = { fav: openFavorites, hist: openHistory, mis: openMistakes };
+
   window.clearHistory = function() {
     BM.Storage.clearHistory();
+    document.dispatchEvent(new CustomEvent('bm:collections-changed'));
     const list = document.getElementById('histList');
     if (list) list.innerHTML = `
       <div class="empty-state">

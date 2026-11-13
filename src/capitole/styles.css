@@ -1672,3 +1672,208 @@ a.cap-key__face:focus-visible {
   .cap-key:not(.cap-key--soon):hover .cap-key__symbol,
   .cap-strip__seg:hover { transform: none; }
 }
+
+/* ---- 8. EXERCIȚII HUB: class keys, section titles, collections ------------ */
+.cap-sec-title {
+  margin: 0 0 12px;
+  font-family: var(--k-font);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: var(--k-ink);
+}
+
+/* The hub opens straight on the class keys, no title above. */
+.cap-col-middle > .cap-grades:first-child { margin-top: 30px; }
+.cap-chapters { padding-top: 26px; }
+
+.cap-grades {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.cap-grades__key {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1px;
+  min-width: 0;
+  height: 54px;
+  padding: 0 4px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.cap-grades__key:hover {
+  background: var(--k-key);
+  color: var(--k-ink);
+  filter: brightness(0.96);
+}
+.cap-grades__key:active {
+  box-shadow: 0 0 0 0 var(--k-key-edge);
+  transform: translateY(3px);
+}
+.cap-grades__small {
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+.cap-grades__num {
+  font-size: 1.05rem;
+  font-weight: 800;
+  line-height: 1.1;
+}
+.cap-grades__key.is-soon:not(.is-on) .cap-grades__num { opacity: 0.6; }
+
+.cap-grades__key.is-on,
+.cap-grades__key.is-on:hover {
+  border-color: var(--k-blue-edge);
+  background: var(--k-blue);
+  color: #fff;
+  box-shadow: 0 3px 0 0 var(--k-blue-edge);
+}
+.cap-grades__key.is-on:active {
+  box-shadow: 0 0 0 0 var(--k-blue-edge);
+}
+.cap-grades__key.is-on::after {
+  content: '';
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 6px;
+  height: 6px;
+  border-radius: 1px;
+  background: var(--k-lime, #7cb800);
+}
+.cap-shell .cap-grades__key:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
+
+/* A class with no exercises yet. */
+.cap-soonplate {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 20px 22px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 var(--k-edge) 0 0 var(--k-key-edge);
+}
+.cap-soonplate__text { display: flex; flex-direction: column; gap: 4px; min-width: 220px; flex: 1; }
+.cap-soonplate__text b { font-size: 0.98rem; font-weight: 800; color: var(--k-ink); }
+.cap-soonplate__text span { font-size: 0.84rem; color: var(--k-ink-2, var(--k-ink)); opacity: 0.8; }
+.cap-soonplate__keys { display: flex; flex-wrap: wrap; gap: 10px; }
+.cap-soonplate__key {
+  display: inline-flex;
+  align-items: center;
+  height: 40px;
+  padding: 0 16px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  color: var(--k-ink);
+  box-shadow: 0 3px 0 0 var(--k-key-edge);
+  font-family: var(--k-font);
+  font-size: 0.84rem;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+.cap-soonplate__key:hover { background: var(--k-key); color: var(--k-ink); filter: brightness(0.95); }
+.cap-soonplate__key:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+.cap-soonplate__key--go,
+.cap-soonplate__key--go:hover {
+  border-color: var(--k-go-edge, var(--k-blue-edge));
+  background: var(--k-go, var(--k-blue));
+  color: var(--k-go-ink, #fff);
+  box-shadow: 0 3px 0 0 var(--k-go-edge, var(--k-blue-edge));
+}
+.cap-soonplate__key--go:active { box-shadow: 0 0 0 0 var(--k-go-edge, var(--k-blue-edge)); }
+
+/* Colecțiile tale: ruled rows in one panel. */
+.cap-coll { padding-top: 30px; }
+.cap-coll__list {
+  display: flex;
+  flex-direction: column;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 var(--k-edge) 0 0 var(--k-key-edge);
+  overflow: hidden;
+}
+.cap-coll__row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  padding: 14px 18px;
+  border: 0;
+  border-top: 1px solid var(--k-panel-edge);
+  background: transparent;
+  color: var(--k-ink);
+  font-family: var(--k-font);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+.cap-coll__row:first-child { border-top: 0; }
+.cap-coll__row:hover { background: color-mix(in srgb, var(--k-blue) 7%, transparent); color: var(--k-ink); }
+.cap-coll__icon {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 1px solid var(--k-panel-edge);
+  border-radius: var(--k-r-key);
+  background: var(--k-key);
+  box-shadow: 0 2px 0 0 var(--k-key-edge);
+  color: var(--ic);
+}
+.cap-coll__icon svg { width: 20px; height: 20px; }
+.cap-coll__row--rose { --ic: #d64a73; }
+.cap-coll__row--violet { --ic: var(--k-blue); }
+.cap-coll__row--amber { --ic: #d98a00; }
+.cap-coll__text { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; }
+.cap-coll__text b { font-size: 0.95rem; font-weight: 800; }
+.cap-coll__text small { font-size: 0.78rem; opacity: 0.7; line-height: 1.35; }
+.cap-coll__count {
+  flex: none;
+  min-width: 34px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--k-blue) 14%, transparent);
+  color: var(--k-blue);
+  font-size: 0.8rem;
+  font-weight: 800;
+  text-align: center;
+}
+.cap-coll__count.is-zero { background: transparent; color: var(--k-ink); opacity: 0.45; }
+.cap-coll__go { flex: none; width: 18px; height: 18px; opacity: 0.45; }
+.cap-coll__row:hover .cap-coll__go { opacity: 0.9; transform: translateX(2px); }
+.cap-coll__go { transition: transform 0.15s ease, opacity 0.15s ease; }
+.cap-shell .cap-coll__row:focus-visible { outline: 2px solid var(--k-blue); outline-offset: -2px; }
+
+@media (max-width: 900px) {
+  .cap-grades { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .cap-col-middle > .cap-grades:first-child { margin-top: 18px; }
+  .cap-grades__key { height: 50px; }
+  .cap-coll__text small { display: none; }
+  .cap-coll__row { padding: 12px 14px; }
+  .cap-soonplate { padding: 16px; }
+  .cap-soonplate__key { flex: 1; justify-content: center; }
+}

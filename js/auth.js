@@ -183,6 +183,28 @@
       return nowFav;
     };
 
+    /* Greșelile mele: upsert/delete direct în DB (tabelul poate lipsi: ignorăm erorile) */
+    const _origAddMistake = BM.Storage.addMistake;
+    BM.Storage.addMistake = function (id) {
+      _origAddMistake(id);
+      if (currentUser) {
+        const m = BM.Storage.getMistakes()[id] || { n: 1, ts: Date.now() };
+        _dbFetch('user_mistakes', {
+          method: 'POST',
+          body: JSON.stringify({ user_id: currentUser.id, exercise_id: id, wrong_count: m.n, last_at: m.ts }),
+          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
+        }).catch(() => {});
+      }
+    };
+    const _origRemoveMistake = BM.Storage.removeMistake;
+    BM.Storage.removeMistake = function (id) {
+      const had = _origRemoveMistake(id);
+      if (had && currentUser) {
+        _dbFetch(`user_mistakes?user_id=eq.${currentUser.id}&exercise_id=eq.${id}`, { method: 'DELETE' }).catch(() => {});
+      }
+      return had;
+    };
+
     /* Override BM.Storage.addToHistory — upsert direct în DB */
     const _origAddToHistory = BM.Storage.addToHistory;
     BM.Storage.addToHistory = function (exerciseId) {
@@ -434,6 +456,16 @@
       );
       if (Array.isArray(dbHist)) {
         try { localStorage.setItem('bm_history', JSON.stringify(dbHist.map(r => ({ id: r.exercise_id, ts: r.ts })))); } catch {}
+      }
+
+      /* ---- Greșelile mele (tabel opțional) ---- */
+      const dbMis = await _dbFetch(
+        `user_mistakes?select=exercise_id,wrong_count,last_at&user_id=eq.${uid}&order=last_at.desc&limit=500`
+      ).catch(() => null);
+      if (Array.isArray(dbMis)) {
+        const mm = {};
+        dbMis.forEach(r => { mm[r.exercise_id] = { n: r.wrong_count, ts: r.last_at }; });
+        try { localStorage.setItem('bm_mistakes', JSON.stringify(mm)); } catch {}
       }
 
       /* ---- Simulări BAC ---- */

@@ -1,13 +1,26 @@
 import { useState } from 'react';
-import { Hero } from './components/Hero';
+import { ClassChips, READY_GRADES } from './components/ClassChips';
+import { Collections } from './components/Collections';
+import { SoonPlate } from './components/SoonPlate';
 import { ChaptersSection } from './components/ChaptersSection';
 import { MobileTabBar } from './components/MobileTabBar';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
-import { useCapitoleData, type Readout } from './hooks/useCapitoleData';
+import { useCapitoleData } from './hooks/useCapitoleData';
 import { useMissions } from './hooks/useMissions';
 import { useLeaderboard } from './hooks/useLeaderboard';
 import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
+
+const GRADE_KEY = 'bm_ex_grade';
+
+/** Last class picked on the hub; the one class with exercises until more arrive. */
+function readGrade(): number {
+  try {
+    const g = parseInt(localStorage.getItem(GRADE_KEY) || '', 10);
+    if (g >= 5 && g <= 12) return g;
+  } catch { /* ignore */ }
+  return READY_GRADES[0];
+}
 
 /**
  * Everything on capitole.html below the shared navbar. The same shell also serves
@@ -23,7 +36,7 @@ import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
  * navbar) and running the full height of the page — not just alongside the
  * chapter grid like the previous single right-hand sidebar did:
  *   - left:   profile panel (photo, cover, level/XP, streak, leaderboard rank)
- *   - middle: hero (title, LCD readout, grade keys) → chapter keypad
+ *   - middle (Exerciții): class keys → chapters → Colecțiile tale
  *   - right:  daily missions → XP leaderboard
  * .cap-col-middle carries `order: -1` at narrow-but-not-phone widths (see
  * styles.css) so it's what appears first when the three collapse into one
@@ -42,15 +55,17 @@ import { MOBILE_TAB_INDEX, type MobileTab } from './lib/mobile-tabs';
  * tab you switch back to is never stale or re-loading.
  */
 export function App() {
-  const { stats, chapters, ready } = useCapitoleData();
+  const { chapters, ready } = useCapitoleData();
   const { missions, ready: missionsReady } = useMissions();
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
   const isPath = document.body.dataset.page === 'parcurs';
   const [mobileTab, setMobileTab] = useState<MobileTab>('capitole');
-  // The chapter key (or bank-strip segment) under the pointer or keyboard
-  // focus: the LCD in the hero reads it out instead of the whole-bank total.
-  const [readout, setReadout] = useState<Readout | null>(null);
+  const [grade, setGrade] = useState<number>(readGrade);
+  const pickGrade = (g: number) => {
+    setGrade(g);
+    try { localStorage.setItem(GRADE_KEY, String(g)); } catch { /* private mode */ }
+  };
 
   return (
     <div className="cap-shell">
@@ -66,8 +81,16 @@ export function App() {
               <div id="ppRoot" className="pp-root" />
             ) : (
               <>
-                <Hero stats={stats} readout={readout} />
-                <ChaptersSection chapters={chapters} ready={ready} onReadout={setReadout} />
+                <ClassChips value={grade} onChange={pickGrade} />
+                {READY_GRADES.includes(grade) ? (
+                  <ChaptersSection chapters={chapters} ready={ready} />
+                ) : (
+                  <section className="cap-chapters" aria-label="Capitole">
+                    <h2 className="cap-sec-title">Exersează pe capitole</h2>
+                    <SoonPlate grade={grade} onPickReady={pickGrade} />
+                  </section>
+                )}
+                <Collections />
               </>
             )}
           </div>
@@ -82,7 +105,7 @@ export function App() {
         </div>
       </div>
 
-      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Învață' : 'Capitole'} />
+      <MobileTabBar active={mobileTab} onChange={setMobileTab} middleLabel={isPath ? 'Învață' : 'Exerciții'} />
     </div>
   );
 }

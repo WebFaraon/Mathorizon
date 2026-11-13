@@ -964,9 +964,11 @@
       /* Staged, not committed — see pendingSolvedIds/finishSession. Abandoning
          mid-session must discard this, so nothing writes through here. */
       if (!BM.Storage.isSolved(ex.id)) pendingSolvedIds.add(ex.id);
+      BM.Storage.removeMistake?.(ex.id);
     } else {
       currentStreak = 0;
       missedSubcats.add(ex.subcategoryId);
+      BM.Storage.addMistake?.(ex.id);
     }
 
     const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);

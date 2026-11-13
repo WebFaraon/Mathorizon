@@ -14,6 +14,7 @@ BM.Storage = (function() {
     solved:     'bm_solved',
     favorites:  'bm_favorites',
     history:    'bm_history',
+    mistakes:   'bm_mistakes',
     streak:     'bm_streak',
     lastVisit:  'bm_last_visit',
     bestCombo:  'bm_training_best_combo',
@@ -50,6 +51,7 @@ BM.Storage = (function() {
       // sync for every exercise solved from category/training pages (the
       // only place this ran was on capitole.html, via its own direct call to
       // BM.Storage.updateStreak()).
+      BM.Storage.removeMistake(id);
       BM.Storage.addToHistory(id);
       BM.Storage.updateStreak();
       return true;
@@ -86,6 +88,21 @@ BM.Storage = (function() {
   }
 
   function clearHistory() { set(KEY.history, []); }
+
+  /* ---- Mistakes (Greșelile mele): { exerciseId: { n, ts } } ---- */
+  function getMistakes() { return get(KEY.mistakes) || {}; }
+  function addMistake(id) {
+    const m = getMistakes();
+    m[id] = { n: ((m[id] && m[id].n) || 0) + 1, ts: Date.now() };
+    set(KEY.mistakes, m);
+  }
+  function removeMistake(id) {
+    const m = getMistakes();
+    if (!m[id]) return false;
+    delete m[id];
+    set(KEY.mistakes, m);
+    return true;
+  }
 
   /* ---- Streak ---- */
   function getStreak() {
@@ -157,6 +174,7 @@ BM.Storage = (function() {
     getSolved, isSolved, toggleSolved,
     getFavorites, isFavorite, toggleFavorite,
     getHistory, addToHistory, clearHistory,
+    getMistakes, addMistake, removeMistake,
     getStreak, updateStreak,
     getBestCombo, setBestCombo,
     getClassDayFilter, setClassDayFilter,
