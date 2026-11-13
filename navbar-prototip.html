@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="ro" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>Bară de jos (prototip) | Teorema</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/navbar-prototip.css">
+</head>
+<body class="np">
+  <!-- Prototip: nu e legat de nicăieri și nu atinge baza de date. Arată o bară de jos pentru telefon cu toate cele 7 taburi, doar cu imagini. -->
+  <main class="stage">
+    <div class="phone" id="phone">
+      <header class="ph-top">
+        <img class="ph-logo" src="assets/images/teorema-wordmark.svg" alt="Teorema">
+        <span class="ph-pill"><img src="assets/images/gamification/xp-mini.svg" alt="" width="20" height="20"><b>240</b></span>
+      </header>
+
+      <div class="ph-screen" id="screen">
+        <section class="scr" data-screen="profil" hidden>
+          <h1>Profil</h1>
+          <div class="card prof">
+            <img class="prof__av" src="assets/images/avatar-owl.svg" alt="" width="64" height="64">
+            <div><b class="prof__nick">@mihai_t7</b><span class="muted">Mihai Țurcanu</span></div>
+          </div>
+          <div class="grid2">
+            <div class="card stat"><b>5</b><span>zile la rând</span></div>
+            <div class="card stat"><b>240</b><span>XP total</span></div>
+            <div class="card stat"><b>Nivel 3</b><span>40 / 100 XP</span></div>
+            <div class="card stat"><b>#12</b><span>în clasament</span></div>
+          </div>
+        </section>
+
+        <section class="scr" data-screen="invata" hidden>
+          <div class="chips"><span class="chip">Clasa a VII-a</span><span class="chip chip--soft">9%</span></div>
+          <div class="unit"><small>CAPITOLUL 1, SECȚIUNEA 1</small><b>Numere raționale. Numere zecimale</b></div>
+          <div class="path">
+            <i class="pk pk--done" style="--dx:0px"></i>
+            <i class="pk pk--cur" style="--dx:40px"></i>
+            <i class="pk" style="--dx:70px"></i>
+            <i class="pk" style="--dx:40px"></i>
+          </div>
+        </section>
+
+        <section class="scr" data-screen="exercitii" hidden>
+          <div class="grades"><i>V</i><i>VI</i><i>VII</i><i>VIII</i><i>IX</i><i>X</i><i>XI</i><i class="on">XII</i></div>
+          <h2>Exersează pe capitole</h2>
+          <div class="card ch"><img src="assets/images/chapters/algebra.svg" alt="" width="52" height="52"><div><b>Algebră</b><span class="muted">0/614 rezolvate</span></div></div>
+          <div class="card ch"><img src="assets/images/chapters/geometrie.svg" alt="" width="52" height="52"><div><b>Geometrie</b><span class="muted">În curând</span></div></div>
+          <h2>Colecțiile tale</h2>
+          <div class="card col"><b>Favorite</b><img src="assets/images/collections/favorite.svg" alt="" width="54" height="54"></div>
+        </section>
+
+        <section class="scr" data-screen="simulare" hidden>
+          <h1>Simulare BAC</h1>
+          <div class="card sim">
+            <img src="assets/images/tabs/simulare.svg" alt="" width="84" height="84">
+            <b>Examen cu timer</b><span class="muted">3 ore, notă automată</span>
+            <button type="button" class="go">PORNEȘTE</button>
+          </div>
+          <div class="card muted-card">Nicio simulare terminată încă.</div>
+        </section>
+
+        <section class="scr" data-screen="antrenament" hidden>
+          <h1>Antrenament</h1>
+          <div class="grid2">
+            <div class="card key"><img src="assets/images/chapters/algebra.svg" alt="" width="44" height="44"><b>Algebră</b></div>
+            <div class="card key"><img src="assets/images/chapters/geometrie.svg" alt="" width="44" height="44"><b>Geometrie</b></div>
+            <div class="card key"><img src="assets/images/chapters/analiza.svg" alt="" width="44" height="44"><b>Analiză</b></div>
+            <div class="card key"><img src="assets/images/chapters/combinatorica.svg" alt="" width="44" height="44"><b>Combinatorică</b></div>
+          </div>
+          <button type="button" class="go go--wide">ÎNCEPE ANTRENAMENTUL</button>
+        </section>
+
+        <section class="scr" data-screen="clase" hidden>
+          <h1>Clase</h1>
+          <div class="card row"><span class="lcd">17:00</span><div><b>Algebră</b><span class="muted">Clasa 12 · Offline · 1/4</span></div></div>
+          <div class="card row"><span class="lcd">18:00</span><div><b>Matematică</b><span class="muted">Clasa 12 · Offline · 3/6</span></div></div>
+          <div class="card row"><span class="lcd">16:00</span><div><b>Matematică</b><span class="muted">Clasa 9 · Offline · 1/4</span></div></div>
+        </section>
+
+        <section class="scr" data-screen="misiuni" hidden>
+          <h1>Misiunile zilei</h1>
+          <div class="card mis"><b>Rezolvă 3 exerciții</b><em>+15 XP</em><i class="bar"><u style="width:66%"></u></i></div>
+          <div class="card mis"><b>Rezolvă 5 exerciții</b><em>+20 XP</em><i class="bar"><u style="width:20%"></u></i></div>
+          <div class="card mis"><b>Rezolvă 8 exerciții</b><em>+30 XP</em><i class="bar"><u style="width:0"></u></i></div>
+        </section>
+      </div>
+
+      <nav class="tb" id="tb" role="tablist" aria-label="Navigare principală">
+        <i class="tb-ind" id="tbInd" aria-hidden="true"></i>
+        <button type="button" role="tab" class="tb-b" data-tab="profil" data-l="Profil" aria-label="Profil" title="Profil"><img src="assets/images/tabs/profil.svg" alt=""><span>Profil</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="invata" data-l="Învață" aria-label="Învață" title="Învață"><img src="assets/images/tabs/invata.svg" alt=""><span>Învață</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="exercitii" data-l="Exerciții" aria-label="Exerciții" title="Exerciții"><img src="assets/images/tabs/exercitii.svg" alt=""><span>Exerciții</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="simulare" data-l="Simulare" aria-label="Simulare" title="Simulare"><img src="assets/images/tabs/simulare.svg" alt=""><span>Simulare</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="antrenament" data-l="Antrenament" aria-label="Antrenament" title="Antrenament"><img src="assets/images/tabs/antrenament.svg" alt=""><span>Antrenament</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="clase" data-l="Clase" aria-label="Clase" title="Clase"><img src="assets/images/tabs/clase.svg" alt=""><span>Clase</span></button>
+        <button type="button" role="tab" class="tb-b" data-tab="misiuni" data-l="Misiuni" aria-label="Misiuni" title="Misiuni"><img src="assets/images/tabs/misiuni.svg" alt=""><span>Misiuni</span></button>
+      </nav>
+    </div>
+
+    <aside class="ctl">
+      <h2>Prototip: bară de jos</h2>
+      <p>Apasă pe orice tab. Pe un telefon real pagina umple tot ecranul.</p>
+      <label><input type="checkbox" id="optDark"> Temă închisă</label>
+      <label><input type="checkbox" id="optLabel"> Numele tabului activ sub imagine</label>
+    </aside>
+  </main>
+  <script src="js/navbar-prototip.js"></script>
+</body>
+</html>
