@@ -542,9 +542,6 @@ html body.pm:has(#root) .cap-mission__check-empty {
   border-radius: 5px;
   background: var(--pm-face);
 }
-html body.pm:has(#root) .cap-mission__cell { height: 8px; border-radius: 4px; background: var(--pm-track); }
-html body.pm:has(#root) .cap-mission__cell--on { background: var(--pm-violet); }
-html body.pm:has(#root) .cap-mission--done .cap-mission__cell--on { background: var(--pm-lime); }
 html body.pm:has(#root) .cap-leaderboard__avatar { border-radius: 10px; }
 
 /* ---- Phone tab bar ---- */

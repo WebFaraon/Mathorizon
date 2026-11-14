@@ -95,10 +95,14 @@ export function useMissions(): MissionsState {
     };
 
     void run();
+    // The path's progress may arrive later from the database (Parcurs.ready) or change when a lesson is finished.
+    (window as unknown as { Parcurs?: { ready(): Promise<unknown> } }).Parcurs?.ready().then(() => { if (!cancelled) void run(); }, () => {});
+    document.addEventListener('parcurs:changed', run);
     document.addEventListener('bmauth:synced', run);
     document.addEventListener('bmauth:streak-updated', run);
     return () => {
       cancelled = true;
+      document.removeEventListener('parcurs:changed', run);
       document.removeEventListener('bmauth:synced', run);
       document.removeEventListener('bmauth:streak-updated', run);
     };

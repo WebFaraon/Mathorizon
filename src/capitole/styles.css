@@ -1892,3 +1892,91 @@ a.cap-key__face:focus-visible {
   .cap-soonplate__keys { flex-direction: column; width: 100%; }
   .cap-soonplate__key { justify-content: center; white-space: nowrap; }
 }
+
+
+/* ============================================================
+   9. MISIUNI: bare 3D (ca bara de XP din profil) și pagina Misiuni
+   ============================================================ */
+/* the cells of the missions in the rail: small sunken wells, filled ones lime with light on top and a darker lower edge */
+.cap-mission__cells { gap: 4px; }
+.cap-mission__cell {
+  height: 12px; border-radius: 999px; background: var(--pm-track, #E3DDF0);
+  box-shadow: inset 0 2px 3px rgba(30, 22, 49, 0.22), 0 1px 0 rgba(255, 255, 255, 0.7);
+}
+[data-theme="dark"] .cap-mission__cell { box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.5), 0 1px 0 rgba(255, 255, 255, 0.06); }
+.cap-mission__cell--on, .cap-mission--done .cap-mission__cell--on {
+  position: relative; background: linear-gradient(180deg, #B6E83A 0%, #8FC90A 55%, #7BB403 100%);
+  box-shadow: inset 0 -3px 0 rgba(60, 100, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.cap-mission__cell--on::after { content: ""; position: absolute; left: 4px; right: 4px; top: 2px; height: 3px; border-radius: 999px; background: rgba(255, 255, 255, 0.5); }
+
+/* the page */
+.ms-page { display: flex; flex-direction: column; gap: 0; max-width: 780px; padding-top: 6px; font-family: 'Plus Jakarta Sans', system-ui, sans-serif; color: var(--pm-ink, #1E1631); }
+.ms-banner {
+  position: relative; display: flex; align-items: center; justify-content: space-between; gap: 16px; overflow: hidden;
+  padding: 26px 30px; border-radius: 22px; background: var(--pm-violet, #3F236E); box-shadow: 0 5px 0 #2C1952; color: #fff;
+}
+.ms-banner::before, .ms-banner::after { content: ""; position: absolute; right: 40px; top: 50%; border-radius: 50%; border: 22px solid rgba(255, 255, 255, 0.06); pointer-events: none; }
+.ms-banner::before { width: 250px; height: 250px; margin-top: -125px; }
+.ms-banner::after { width: 140px; height: 140px; margin-top: -70px; right: 95px; border-width: 18px; border-color: rgba(124, 184, 0, 0.18); }
+.ms-banner__tx { position: relative; z-index: 1; min-width: 0; }
+.ms-banner h1 { margin: 0; font-size: 1.75rem; font-weight: 800; letter-spacing: -0.01em; color: #fff; }
+.ms-banner p { margin: 8px 0 0; max-width: 34ch; font-size: 0.98rem; font-weight: 600; line-height: 1.45; color: #D6CCEE; }
+.ms-banner__owl { position: relative; z-index: 1; flex: none; margin: -14px 6px -22px 0; }
+.ms-banner__owl .owl { --ow: 150px; }
+
+.ms-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 30px 0 4px; }
+.ms-head h2 { margin: 0; font-size: 1.35rem; font-weight: 800; color: var(--pm-ink, #1E1631); }
+.ms-timer { display: inline-flex; align-items: center; gap: 6px; padding: 5px 12px; border-radius: 999px; background: var(--pm-tint, #EDE7F8); color: #B0510A; font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .ms-timer { color: #FFB27A; }
+.ms-timer svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.ms-sum { margin: 0 0 14px; font-size: 0.86rem; font-weight: 700; color: var(--pm-ink-2, #5B4F74); }
+
+.ms-list { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.ms-card {
+  display: flex; align-items: center; gap: 16px; padding: 16px 18px;
+  border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 18px; background: var(--pm-face, #fff); box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3);
+}
+.ms-card__ico { flex: none; width: 54px; height: 54px; }
+.ms-card__body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
+.ms-card__row { display: flex; align-items: baseline; justify-content: space-between; gap: 10px; }
+.ms-card__title { font-size: 1.08rem; font-weight: 800; color: var(--pm-ink, #1E1631); }
+.ms-card__xp { flex: none; font-size: 0.86rem; font-weight: 800; color: #B0510A; font-variant-numeric: tabular-nums; }
+[data-theme="dark"] .ms-card__xp { color: #FFB27A; }
+.ms-bar {
+  position: relative; height: 24px; border-radius: 999px; background: var(--pm-track, #E3DDF0); overflow: hidden;
+  box-shadow: inset 0 3px 4px rgba(30, 22, 49, 0.22), 0 2px 0 rgba(255, 255, 255, 0.7);
+}
+[data-theme="dark"] .ms-bar { box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.5), 0 2px 0 rgba(255, 255, 255, 0.06); }
+.ms-bar i {
+  position: absolute; left: 0; top: 0; bottom: 0; min-width: 0; border-radius: 999px; transition: width 0.6s ease;
+  background: linear-gradient(180deg, #B6E83A 0%, #8FC90A 55%, #7BB403 100%); box-shadow: inset 0 -4px 0 rgba(60, 100, 0, 0.55), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+.ms-bar i::after { content: ""; position: absolute; left: 8px; right: 8px; top: 4px; height: 5px; border-radius: 999px; background: rgba(255, 255, 255, 0.5); }
+.ms-bar i[style*="width: 0%"] { display: none; }
+.ms-bar span { position: absolute; inset: 0; display: grid; place-items: center; font-size: 0.74rem; font-weight: 800; color: var(--pm-ink-2, #5B4F74); font-variant-numeric: tabular-nums; }
+.ms-card--done .ms-bar span { color: #14200A; }
+.ms-card__gift { flex: none; width: 46px; height: 46px; opacity: 0.8; filter: grayscale(0.4); }
+.ms-card__gift.is-done { opacity: 1; filter: none; }
+.ms-card--done { border-color: #7CB800; }
+
+.ms-soon { display: flex; align-items: center; gap: 14px; margin-top: 14px; padding: 16px 18px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 18px; background: var(--pm-tint, #EDE7F8); color: var(--pm-ink-2, #5B4F74); }
+.ms-soon svg { flex: none; width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; opacity: 0.7; }
+.ms-soon b { display: block; font-size: 1rem; font-weight: 800; color: var(--pm-ink, #1E1631); }
+.ms-soon span { display: block; margin-top: 2px; font-size: 0.86rem; font-weight: 600; }
+
+/* Top elevi: in the right rail on laptops; on a phone there is no rail, so it sits under the missions */
+.ms-lb { display: none; margin-top: 22px; }
+@media (max-width: 640px) {
+  .ms-page { padding: 4px 14px 24px; }
+  .ms-lb { display: block; }
+  .ms-banner { padding: 20px 20px; }
+  .ms-banner h1 { font-size: 1.4rem; }
+  .ms-banner p { font-size: 0.9rem; }
+  .ms-banner__owl .owl { --ow: 104px; }
+  .ms-banner__owl { margin: -8px 0 -14px 0; }
+  .ms-card { gap: 12px; padding: 14px; }
+  .ms-card__ico { width: 44px; height: 44px; }
+  .ms-card__gift { width: 38px; height: 38px; }
+  .ms-card__title { font-size: 1rem; }
+}

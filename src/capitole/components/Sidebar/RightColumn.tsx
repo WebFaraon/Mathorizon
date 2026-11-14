@@ -12,6 +12,8 @@ interface RightColumnProps {
   leaderboardRows: LeaderboardRow[];
   leaderboardReady: boolean;
   currentUserId: string | null;
+  /** The Misiuni page shows the missions in its own middle column, so the rail keeps only Top elevi. */
+  hideMissions?: boolean;
 }
 
 /**
@@ -26,7 +28,8 @@ export function RightColumn({
   missionsReady,
   leaderboardRows,
   leaderboardReady,
-  currentUserId
+  currentUserId,
+  hideMissions = false
 }: RightColumnProps) {
   const prefersReducedMotion = useReducedMotion();
   const asideRef = useRef<HTMLElement | null>(null);
@@ -60,14 +63,16 @@ export function RightColumn({
 
   return (
     <aside className="cap-col cap-col-right" aria-label="Misiuni și clasament" ref={asideRef}>
-      <motion.div
-        className="cap-side-card"
-        initial={prefersReducedMotion ? undefined : { opacity: 0, x: 28 }}
-        animate={{ opacity: 1, x: 0 }}
-        transition={{ duration: 0.42, ease: EASE_OUT }}
-      >
-        <MissionsCard missions={missions} ready={missionsReady} />
-      </motion.div>
+      {!hideMissions && (
+        <motion.div
+          className="cap-side-card"
+          initial={prefersReducedMotion ? undefined : { opacity: 0, x: 28 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.42, ease: EASE_OUT }}
+        >
+          <MissionsCard missions={missions} ready={missionsReady} />
+        </motion.div>
+      )}
       <motion.div
         className="cap-side-card"
         initial={prefersReducedMotion ? undefined : { opacity: 0, x: 28 }}

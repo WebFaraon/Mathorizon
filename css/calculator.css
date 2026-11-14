@@ -5083,3 +5083,10 @@ input[type="checkbox"], input[type="radio"], input[type="range"], progress { acc
 .pf-nickrow__val { font-size: 1rem; font-weight: 700; color: var(--k-ink, #1E1631); overflow-wrap: anywhere; }
 .pf-nickrow__key { height: 38px; padding: 0 16px; border: 1px solid var(--k-panel-edge); border-radius: 10px; background: var(--k-key); color: var(--k-ink); box-shadow: 0 3px 0 0 var(--k-key-edge); font: inherit; font-size: 0.85rem; font-weight: 700; cursor: pointer; transition: box-shadow 0.1s ease, transform 0.1s ease; }
 .pf-nickrow__key:active { box-shadow: 0 0 0 0 var(--k-key-edge); transform: translateY(3px); }
+
+/* ---- Clase: conținutul începe cu un pătrățel mai sus; cheia registrului are iconița ei ilustrată ---- */
+.cl-page { padding-top: 0; margin-top: -4px; }
+@media (max-width: 820px) { .cl-page { margin-top: 0; } }
+.rg-act__ico { display: block; width: 36px; height: 36px; transition: transform 0.1s ease; }
+.rg-act--reg:hover .rg-act__ico, a.rg-act:hover .rg-act__ico { transform: translateY(-1px) scale(1.06); }
+.rg-act:active .rg-act__ico { transform: translateY(1px) scale(0.96); }

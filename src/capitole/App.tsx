@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { ClassChips, READY_GRADES } from './components/ClassChips';
 import { Collections } from './components/Collections';
 import { SoonPlate } from './components/SoonPlate';
+import { MissionsPage } from './components/MissionsPage';
 import { ChaptersSection } from './components/ChaptersSection';
 import { LeftColumn } from './components/Sidebar/LeftColumn';
 import { RightColumn } from './components/Sidebar/RightColumn';
@@ -60,8 +61,8 @@ export function App() {
   const currentUserId = window.BMAuth?.user?.id ?? null;
   const page = document.body.dataset.page;
   const isPath = page === 'parcurs';
-  /* On a phone the tabs are separate pages (the bottom bar, js/bnav.js): Misiuni is the right-hand column on its own page, the others show the middle column. */
-  const mobileTab: MobileTab = page === 'misiuni' ? 'sidebar' : 'capitole';
+  /* On a phone the tabs are separate pages (the bottom bar, js/bnav.js); each one shows the middle column (Misiuni is its own page there too). */
+  const mobileTab: MobileTab = 'capitole';
   const [grade, setGrade] = useState<number>(readGrade);
   const pickGrade = (g: number) => {
     setGrade(g);
@@ -86,7 +87,9 @@ export function App() {
           <div className="cap-col cap-col-middle">
             {isPath ? (
               <div id="ppRoot" className="pp-root" />
-            ) : page === 'misiuni' ? null : (
+            ) : page === 'misiuni' ? (
+              <MissionsPage missions={missions} ready={missionsReady} leaderboardRows={leaderboardRows} leaderboardReady={leaderboardReady} currentUserId={currentUserId} />
+            ) : (
               <>
                 <ClassChips value={grade} onChange={pickGrade} />
                 {READY_GRADES.includes(grade) ? (
@@ -108,6 +111,7 @@ export function App() {
             leaderboardRows={leaderboardRows}
             leaderboardReady={leaderboardReady}
             currentUserId={currentUserId}
+            hideMissions={page === 'misiuni'}
           />
         </div>
       </div>

@@ -461,7 +461,7 @@
         <span class="rg-c rg-acts">
           ${g.code ? `<button type="button" class="rg-act rg-act--code" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul de invitație ${BM.esc(g.code)}" title="Copiază codul de invitație">
             <b>${BM.esc(g.code)}</b><span class="cl-mini__a">${icon('copy', { size: 17 })}</span><span class="cl-mini__b">${icon('check', { size: 17 })}</span></button>` : ''}
-          ${g.url ? `<a class="rg-act" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei">${icon('book-open', { size: 17 })}</a>` : ''}
+          ${g.url ? `<a class="rg-act" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei"><img class="rg-act__ico" src="assets/images/class/registru.svg" alt="" width="36" height="36"></a>` : ''}
         </span>
       </li>`;
   }
