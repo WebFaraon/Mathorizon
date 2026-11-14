@@ -17,7 +17,7 @@
   --strip-h: 60px;                                  /* înălțimea rândului de sus (nu mai e navbar) */
 }
 @media (min-width: 1180px) { :root { --sb-w: 256px; } }
-@media (min-width: 601px) { :root { --strip-h: 86px; } }   /* laptop și tabletă: rândul de sus stă la înălțimea mijlocului blocului cu sigla din panou (centrul la 56px), iar pagina începe sub el */
+@media (min-width: 601px) { :root { --strip-h: 78px; } }   /* laptop și tabletă: rândul de sus stă la înălțimea mijlocului blocului cu sigla din panou (centrul la 56px), iar pagina începe sub el */
 
 html.bnav-off #bnav { display: none !important; }
 
@@ -188,7 +188,7 @@ html.bm-authed:not(.bnav-off) .cap-grades { display: none !important; }
 /* laptop și tabletă: rândul începe după panou, cu elementele în dreapta; sigla e în panou */
 @media (min-width: 601px) {
   html.bm-authed:not(.bnav-off) #nav-root { left: var(--sb-off); }
-  html.bm-authed:not(.bnav-off) #nav-root .nav__inner { padding: 36px 22px 0 0; justify-content: flex-end; align-items: flex-start; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav__inner { padding: 28px 22px 0 0; justify-content: flex-end; align-items: flex-start; }
   html.bm-authed:not(.bnav-off) #nav-root .nav__brand { display: none !important; }
 }
 
