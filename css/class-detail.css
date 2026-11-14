@@ -1648,3 +1648,21 @@ body:has(#classRoot) .cd-meet .cd-meet__how:focus-visible { outline: 2px solid v
   body:has(#classRoot) .msg-panel__input { min-height: 42px; padding: 9px 12px; font-size: 0.92rem; }
   body:has(#classRoot) .msg-panel__send { min-height: 42px; padding: 0 14px; font-size: 0.88rem; }
 }
+
+
+/* the plate is a rounded block with a frame and a solid edge like the other cards (it used to run edge to edge, square);
+   the side margin is taken out of the inner padding so the texts stay on the same line as the tabs under it */
+html body:has(#classRoot) .cd-header {
+  margin: 8px 14px 0;
+  border: 1.5px solid color-mix(in srgb, var(--pm-violet, #3F236E) 30%, var(--cd-plate));
+  border-radius: 22px;
+  overflow: hidden;
+  box-shadow: 0 5px 0 0 color-mix(in srgb, var(--pm-violet, #3F236E) 38%, var(--cd-plate));
+}
+html body:has(#classRoot) .cd-header > .container { padding-inline: 14px; }
+html body:has(#classRoot) .cd-header .cd-art__box { padding: 0 14px; }
+html body:has(#classRoot) .cd-header .cd-art svg { right: 14px; }
+@media (max-width: 600px) {
+  html body:has(#classRoot) .cd-header { margin: 6px 8px 0; border-radius: 18px; }
+  html body:has(#classRoot) .cd-header > .container { padding-inline: 12px; }
+}

@@ -196,7 +196,7 @@ html.bm-authed:not(.bnav-off) .cap-grades { display: none !important; }
 .nav-class-btn__ring { display: none; }
 html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn.nav-sec-btn { display: none; }
 html.bm-authed:not(.bnav-off) .pp-top { display: none; }
-html.bm-authed:not(.bnav-off)[data-pp] #nav-root .nav-class-btn.nav-sec-btn { display: inline-flex; padding: 0 15px 0 12px; }
+html.bm-authed:not(.bnav-off)[data-pp] #nav-root .nav-class-btn.nav-sec-btn { display: inline-flex; padding: 0 15px 0 12px; order: -1; margin-right: 0; }   /* primul din rând: așa nu se mută butonul clasei când apare/dispare */
 html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn__ring {
   flex: none; position: relative; display: grid; place-items: center; width: 32px; height: 32px; margin-left: -6px; border-radius: 50%;
   background: conic-gradient(var(--pm-lime, #7CB800) var(--pp-deg, 0deg), var(--pm-track, #E3DDF0) 0);

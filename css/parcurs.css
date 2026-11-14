@@ -240,3 +240,13 @@
 @media (min-width: 601px) and (max-width: 1179.98px) {
   html.bm-authed .unit { top: 66px; }
 }
+
+/* laptop și tabletă: fără rândul de chei din pagină (progresul și Secțiuni sunt sus), conținutul începe mai sus; antetul de secțiune e mai îngust ca să nu stea peste butonul clasei */
+@media (min-width: 601px) {
+  html.bm-authed .pp-root { padding-top: 0; }
+  html.bm-authed .pp-chap { margin-top: 0; }
+}
+@media (min-width: 1180px) {
+  /* cât intră rândul de sus (Secțiuni, clasa, serie, tokenuri) peste coloana de mijloc: ~424px minus lățimea coloanei din dreapta */
+  html.bm-authed .unit, html.bm-authed .pp-chap { margin-right: max(0px, calc(424px - var(--cap-rail-right, 410px))); }
+}
