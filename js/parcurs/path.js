@@ -157,6 +157,20 @@
     return { pct: total ? Math.round(done / total * 100) : 0, done: done, total: total };
   }
 
+  /* progresul (inel verde pe butonul clasei) si butonul Sectiuni stau in randul de sus al site-ului (de la 601px; pe telefon raman in pagina) */
+  function publishTop(g, pr) {
+    var de = document.documentElement;
+    de.setAttribute('data-pp', '1');
+    try {
+      if (g === 7) {
+        de.setAttribute('data-pp-pct', String(pr.pct)); de.style.setProperty('--pp-deg', Math.round(pr.pct * 3.6) + 'deg');
+        localStorage.setItem('bm_pp_pct', String(pr.pct));
+      } else { de.removeAttribute('data-pp-pct'); localStorage.removeItem('bm_pp_pct'); }
+    } catch (e) { /* ignore */ }
+    if (window.BMGrade) window.BMGrade.paint();
+  }
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('#navSecBtn')) openAll(); });
+
   /* ---------- randare ---------- */
   function render() {
     if (!root) return;
@@ -164,6 +178,7 @@
     var cur = curCircleOrTest();
     var pr = progressPct();
     var canPick = true;
+    publishTop(g, pr);
     var h = '<div class="pp-top"><button class="pk' + (canPick ? '' : ' static') + '" type="button" id="ppClass"' + (canPick ? '' : ' tabindex="-1"') + '>' + 'Clasa a ' + ROMAN[g] + '-a' + (canPick ? svg('chev') : '') + '</button>' +
       (g === 7 ? '<span class="pp-pct" title="' + pr.done + ' din ' + pr.total + ' lecții și teste"><i style="--p:' + pr.pct + '%"></i><b>' + pr.pct + '%</b></span>' : '') +
       '<button class="pk sm" type="button" id="ppAll">' + svg('list') + '<span class="pp-lg">Toate secțiunile</span><span class="pp-sm">Secțiuni</span></button></div>';

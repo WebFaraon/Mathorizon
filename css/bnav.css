@@ -84,8 +84,8 @@ html.bm-authed #nav-root .nav__mobile-menu { display: none !important; }
   #bnav .bn-ind { display: none; }
 
   /* sigla stă deasupra taburilor, pe un bloc violet, pe aceeași linie din stânga cu pozele lor */
-  #bnav .bn-brand { flex: none; display: flex; align-items: center; justify-content: flex-start; padding: 10px 14px 9px; margin: 0 0 10px; border-radius: 14px; background: var(--sb-logo); box-shadow: 0 3px 0 var(--sb-logo-edge); text-decoration: none; }
-  #bnav .bn-logo { display: block; width: min(100%, 164px); height: auto; }
+  #bnav .bn-brand { flex: none; display: flex; align-items: center; justify-content: center; padding: 11px 14px 10px; margin: 0 0 10px; border-radius: 14px; background: var(--sb-logo); box-shadow: 0 3px 0 var(--sb-logo-edge); text-decoration: none; }
+  #bnav .bn-logo { display: block; width: min(100%, 176px); height: auto; margin: 0 auto; }
   #bnav .bn-mark { display: none; }
 
   #bnav .bn-b {
@@ -189,6 +189,26 @@ html.bm-authed:not(.bnav-off) .cap-grades { display: none !important; }
   html.bm-authed:not(.bnav-off) #nav-root { left: var(--sb-off); }
   html.bm-authed:not(.bnav-off) #nav-root .nav__inner { padding: 0 22px 0 0; justify-content: flex-end; }
   html.bm-authed:not(.bnav-off) #nav-root .nav__brand { display: none !important; }
+}
+
+
+/* progres pe butonul clasei (inel verde cu procentul) si butonul Secțiuni: doar pe Învață, de la 601px; pe telefon rămân în pagină */
+.nav-class-btn__ring { display: none; }
+html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn.nav-sec-btn { display: none; }
+@media (min-width: 601px) {
+  html.bm-authed:not(.bnav-off) .pp-top { display: none; }
+  html.bm-authed:not(.bnav-off)[data-pp] #nav-root .nav-class-btn.nav-sec-btn { display: inline-flex; padding: 0 15px 0 12px; }
+  html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn__ring {
+    flex: none; position: relative; display: grid; place-items: center; width: 32px; height: 32px; margin-left: -6px; border-radius: 50%;
+    background: conic-gradient(var(--pm-lime, #7CB800) var(--pp-deg, 0deg), var(--pm-track, #E3DDF0) 0);
+  }
+  html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn__ring::before { content: ""; position: absolute; inset: 4px; border-radius: 50%; background: var(--pm-face, #fff); }
+  html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn__ring b { position: relative; font-size: 0.52rem; font-weight: 800; letter-spacing: -0.04em; color: var(--pm-ink, #1E1631); font-variant-numeric: tabular-nums; }
+  html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn:not(.nav-sec-btn) { padding-left: 12px; }
+}
+@media (min-width: 601px) and (max-width: 900px) {
+  html.bm-authed:not(.bnav-off) #nav-root .nav-sec-btn__t { display: none; }
+  html.bm-authed:not(.bnav-off)[data-pp] #nav-root .nav-class-btn.nav-sec-btn { padding: 0 12px; }
 }
 
 /* ---- fereastra mică de alegere a clasei (js/classpick.js) ---- */

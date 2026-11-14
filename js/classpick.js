@@ -37,6 +37,8 @@
     var t = label();
     var els = document.querySelectorAll('[data-class-label]');
     for (var i = 0; i < els.length; i++) if (els[i].textContent !== t) els[i].textContent = t;
+    var pc = document.documentElement.getAttribute('data-pp-pct'), pn = document.querySelectorAll('[data-pp-num]');
+    for (var k = 0; k < pn.length; k++) { var pt = pc == null ? '' : pc + '%'; if (pn[k].textContent !== pt) pn[k].textContent = pt; }
     var sh = document.querySelectorAll('[data-class-short]'), r = ROMAN[get()];
     for (var j = 0; j < sh.length; j++) if (sh[j].textContent !== r) sh[j].textContent = r;
   }

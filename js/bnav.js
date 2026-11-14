@@ -36,6 +36,12 @@
   };
   var file = (location.pathname.split('/').pop() || 'index.html').toLowerCase().replace(/\.html$/, '');
   var active = PAGE[file] || '';
+  /* pe Invata, butonul Sectiuni si inelul de progres din randul de sus apar din primul cadru (ultima valoare e tinuta de js/parcurs/path.js) */
+  if (file === 'parcurs') {
+    var de0 = document.documentElement;
+    de0.setAttribute('data-pp', '1');
+    try { var pc0 = parseInt(localStorage.getItem('bm_pp_pct'), 10); if (pc0 >= 0) { de0.setAttribute('data-pp-pct', String(pc0)); de0.style.setProperty('--pp-deg', Math.round(pc0 * 3.6) + 'deg'); } } catch (e) { /* ignore */ }
+  }
   var idx = -1, i;
   for (i = 0; i < TABS.length; i++) if (TABS[i][0] === active) idx = i;
 

@@ -24,7 +24,7 @@
 
 /* secțiune: banda violet se lipește sus când derulezi */
 .pp-sec { position: relative; margin-bottom: 26px; }
-.unit { position: sticky; top: 8px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border-radius: 18px; background: var(--pm-violet); color: #fff; box-shadow: 0 5px 0 var(--pm-violet-edge); }
+.unit { position: sticky; top: var(--sb-gap, 14px); z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border-radius: 18px; background: var(--pm-violet); color: #fff; box-shadow: 0 5px 0 var(--pm-violet-edge); }
 .unit small { display: block; font-size: 10.5px; letter-spacing: 0.12em; font-weight: 800; color: #D6CCEE; }
 .unit h2 { margin: 3px 0 0; font-size: 18px; font-weight: 800; line-height: 1.25; color: #fff; }
 .unit .pr { display: flex; gap: 4px; margin-top: 10px; }

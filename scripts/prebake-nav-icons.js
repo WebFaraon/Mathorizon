@@ -102,7 +102,8 @@ const TEMPLATE = `    <div class="nav__inner container">
         </svg>
       </button>
       <div class="nav__right">
-        <button class="nav-class-btn" id="navClassBtn" type="button" aria-haspopup="dialog" aria-label="Alege clasa" title="Alege clasa"><span class="nav-class-btn__t" data-class-label></span><span class="nav-class-btn__s" data-class-short></span><svg class="nav-class-btn__c" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="nav-class-btn" id="navClassBtn" type="button" aria-haspopup="dialog" aria-label="Alege clasa" title="Alege clasa"><span class="nav-class-btn__ring" aria-hidden="true"><b data-pp-num></b></span><span class="nav-class-btn__t" data-class-label></span><span class="nav-class-btn__s" data-class-short></span><svg class="nav-class-btn__c" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+        <button class="nav-class-btn nav-sec-btn" id="navSecBtn" type="button" aria-label="Toate secțiunile" title="Toate secțiunile"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span class="nav-sec-btn__t">Secțiuni</span></button>
         <div class="token-widget" id="tokenWidget" title="ExamTokenuri disponibile">
           \${token}
           <span class="token-widget__count" data-token-count>—</span>
