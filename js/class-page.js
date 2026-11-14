@@ -1888,7 +1888,7 @@
   function _fluxEmptyHTML() {
     return `
       <div class="flux-empty">
-        <div class="flux-empty__icon"><span class="owl owl--md" data-owl="idle" aria-hidden="true"></span></div>
+        <div class="flux-empty__icon"><span class="owl owl--md" data-owl="idle" data-owl-theme="dark" aria-hidden="true"></span></div>
         <h3>Niciun mesaj încă</h3>
         <p>Fiți primul care scrie ceva clasei.</p>
       </div>

@@ -4792,6 +4792,13 @@ body:has(#profileContent) .pf-key[aria-disabled="true"] { opacity: 0.5; cursor: 
 .cl-chip--today::after { content: ''; position: absolute; top: 4px; right: 4px; width: 6px; height: 6px; border-radius: 50%; background: var(--k-blue); }
 .cl-chip--today.is-on::after { background: #fff; }
 .cl-d-s { display: none; }
+.cl-d-f { display: none; }
+/* on a laptop the day keys carry the whole name (Luni, Marți ...); a tablet keeps three letters, a phone two */
+@media (min-width: 900px) {
+  .cl-d-l { display: none; }
+  .cl-d-f { display: inline; }
+  .cl-days .cl-chip { min-width: 0; padding: 0 16px; }
+}
 /* phone: one row of eight keys, "Toate" a little wider, the days as two letters (the same two letters as in the list) */
 @media (max-width: 560px) {
   .cl-days { display: grid; grid-template-columns: 1.9fr repeat(7, minmax(0, 1fr)); align-items: stretch; gap: 5px; }

@@ -1666,3 +1666,36 @@ html body:has(#classRoot) .cd-header .cd-art svg { right: 14px; }
   html body:has(#classRoot) .cd-header { margin: 6px 8px 0; border-radius: 18px; }
   html body:has(#classRoot) .cd-header > .container { padding-inline: 12px; }
 }
+
+
+/* ---- round two of the class page (2026-11-14) ---- */
+/* the plate: no grid behind it (it never lined up with the grid of the page), more air between its frame and what is inside */
+html body:has(#classRoot) .cd-header { background-image: none; padding: 30px 0 34px; }
+html body:has(#classRoot) .cd-header > .container { padding-inline: 32px; }
+html body:has(#classRoot) .cd-header .cd-art__box { padding: 0 32px; }
+html body:has(#classRoot) .cd-header .cd-art svg { right: 32px; }
+@media (max-width: 600px) {
+  html body:has(#classRoot) .cd-header { padding: 22px 0 24px; }
+  html body:has(#classRoot) .cd-header > .container { padding-inline: 20px; }
+}
+
+/* the tab bar of a class: a rounded bar inside the page (it was a square strip with a line to the edges) */
+html body:has(#classRoot) .cd-tabs-wrap {
+  margin: 14px 14px 0;
+  border: 1.5px solid var(--pm-line, var(--k-panel-edge));
+  border-radius: 18px;
+  background: var(--pm-tint, var(--k-bg));
+  box-shadow: 0 4px 0 0 var(--pm-edge, var(--k-panel-edge));
+  top: calc(var(--nav-h) + 6px);
+}
+html body:has(#classRoot) .cd-tabs-wrap > .container { padding-inline: 14px; }
+html body:has(#classRoot) .cd-tabs { padding-block: 10px 12px; }
+@media (max-width: 600px) { html body:has(#classRoot) .cd-tabs-wrap { margin: 10px 8px 0; border-radius: 16px; } }
+
+/* the empty message list: the owl sits on a violet tile, small enough to fit with room around it */
+html body:has(#classRoot) .flux-empty__icon {
+  width: 84px; height: 84px; border-radius: 20px; opacity: 1;
+  border-color: #2A1550; background: #3F236E; box-shadow: 0 4px 0 #2A1550;
+}
+[data-theme="dark"] html body:has(#classRoot) .flux-empty__icon, html[data-theme="dark"] body:has(#classRoot) .flux-empty__icon { background: #2A1750; border-color: #170C2E; box-shadow: 0 4px 0 #170C2E; }
+html body:has(#classRoot) .flux-empty__icon .owl { --ow: 54px; margin: 0 auto; }

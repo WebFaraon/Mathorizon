@@ -558,7 +558,7 @@
         <span class="cl-days__k">Zilele</span>
         <button type="button" class="cl-chip cl-chip--all${_dayFilterSelected.length ? '' : ' is-on'}" data-all aria-pressed="${!_dayFilterSelected.length}">Toate</button>
         <span class="cl-days__keys">
-          ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}"><span class="cl-d-l">${DAY_SHORT[d]}</span><span class="cl-d-s" aria-hidden="true">${DAY_SHORT[d].slice(0, 2)}</span></button>`).join('')}
+          ${DAY_ORDER.map(d => `<button type="button" class="cl-chip${_dayFilterSelected.includes(d) ? ' is-on' : ''}${d === today ? ' cl-chip--today' : ''}" data-day="${d}" aria-pressed="${_dayFilterSelected.includes(d)}" aria-label="${d}${d === today ? ' (azi)' : ''}" title="${d}${d === today ? ', azi' : ''}"><span class="cl-d-f">${d}</span><span class="cl-d-l">${DAY_SHORT[d]}</span><span class="cl-d-s" aria-hidden="true">${DAY_SHORT[d].slice(0, 2)}</span></button>`).join('')}
         </span>
       </div>`;
   }

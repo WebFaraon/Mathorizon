@@ -653,8 +653,7 @@ html body.pm:has(#classesRoot) .rg-row:last-child {
   overflow: hidden;
 }
 html body.pm:has(#classesRoot) .rg-row:nth-child(even of :not([hidden])) { background: var(--pm-face); }
-html body.pm:has(#classesRoot) .rg-row:hover,
-html body.pm:has(#classesRoot) .rg-row:target { background: color-mix(in srgb, var(--pm-violet) 6%, var(--pm-face)); }
+html body.pm:has(#classesRoot) .rg-row:target { background: color-mix(in srgb, var(--pm-violet) 9%, var(--pm-face)); }
 html body.pm:has(#classesRoot) .rg-row:has(.rg-name:focus-visible) { outline: 2px solid var(--pm-violet); outline-offset: 2px; }
 html body.pm:has(#classesRoot) .rg-time b { border-radius: 4px; }
 @media (min-width: 1001px) {
