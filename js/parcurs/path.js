@@ -116,8 +116,8 @@
     if (state === 'cur') h += '<span class="go-tag">ÎNCEPE</span>';
     h += '</button>';
     if (state === 'cur') h += '<div class="owlw"><img class="owl-tile" src="assets/images/avatar-owl.svg" alt="" width="88" height="88"></div>';
-    /* din când în când, pe partea opusă nodului, o scenă cu bufnița (js/parcurs/scenes.js); nu lângă nodul curent */
-    if (window.PMScenes && state !== 'cur' && o.scene) h += window.PMScenes.html(dx > 0 ? -1 : dx < 0 ? 1 : (o.scene % 2 ? 1 : -1));
+    /* la fiecare al doilea nod, pe partea opusă nodului, o scenă cu bufnița (js/parcurs/scenes.js); nu lângă nodul curent */
+    if (window.PMScenes && state !== 'cur' && o.scene) h += window.PMScenes.html(dx);
     h += '</div>';
     return h;
   }
@@ -139,11 +139,11 @@
     sec.circles.forEach(function (c) {
       var cd = circleDone(c), cnt = circleCount(c);
       var st = cd ? 'done' : (cur && cur.circle === c) ? 'cur' : 'lock';
-      h += nodeHTML('circle', st, idx, { id: c.id_full, title: c.title, icon: c.icon, count: cnt, scene: idx % 3 === 2 ? idx : 0 });
+      h += nodeHTML('circle', st, idx, { id: c.id_full, title: c.title, icon: c.icon, count: cnt, scene: idx % 2 === 0 ? 1 : 0 });
       idx++;
     });
     var tst = secDone ? 'done' : (cur && cur.test === sec) ? 'cur' : 'lock';
-    h += nodeHTML('test', tst, idx++, { id: sec.testId, title: sec.short, count: 0 });
+    h += nodeHTML('test', tst, idx, { id: sec.testId, title: sec.short, count: 0, scene: idx % 2 === 0 ? 1 : 0 }); idx++;
     h += '</div></section>';
     return h;
   }

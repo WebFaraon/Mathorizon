@@ -15,7 +15,6 @@
   var main = $('#lzMain'), foot = $('#lzFoot'), go = $('#lzGo'), skip = $('#lzSkip'), hintBtn = $('#lzHint');
   var fb = $('#lzFb'), fbT = $('#lzFbTitle'), fbX = $('#lzFbText'), bar = $('#lzBar'), xpEl = $('#lzXp'), prog = $('#lzProg'), combo = $('#lzCombo');
 
-  var RAR = ['COMUN', 'RAR', 'EPIC'];
   var OKT = ['Corect!', 'Bravo!', 'Exact!', 'Foarte bine!', 'Perfect!'];
   var NOT = ['Nu chiar.', 'Aproape!', 'Hai să vedem.'];
 
@@ -172,7 +171,7 @@
   function head(sp) {
     var f = document.createDocumentFragment();
     var meta = h('div', 'lz-meta');
-    meta.innerHTML = '<span class="lz-chip r' + sp.rar + '">' + RAR[sp.rar] + '</span><span>' + PM.esc(L.grade + ' · ' + L.circle) + '</span>';
+    meta.innerHTML = '<span>' + PM.esc(L.grade + ' · ' + L.circle) + '</span>';
     var ask = h('div', 'lz-ask'), ow = h('div', 'owl'); ow.id = 'lzQ';
     ask.appendChild(ow); ask.appendChild(h('div', 'lz-bubble', m(sp.q)));
     f.appendChild(meta); f.appendChild(ask);
@@ -287,7 +286,55 @@
     };
   };
 
+  /* răspuns de tip fracție: chiar forma fracției, cu două casete goale (sus și jos) pe care elevul le completează pe rând */
+  BUILD.frac = function (sp, el) {
+    var wrap = h('div', 'lz-num lz-frac'), msg = h('div', 'lz-msg'), neg = false;
+    var sign = h('button', 'lz-sgn', '−'); sign.type = 'button'; sign.setAttribute('aria-pressed', 'false'); sign.setAttribute('aria-label', 'semn minus'); sign.title = 'Semn minus';
+    var col = h('div', 'lz-fcol'), top = h('input', 'lz-fin'), line = h('i', 'lz-fbar'), bot = h('input', 'lz-fin');
+    [top, bot].forEach(function (i, k) {
+      i.type = 'text'; i.setAttribute('inputmode', 'numeric'); i.setAttribute('pattern', '[0-9]*'); i.maxLength = 6; i.autocomplete = 'off'; i.spellcheck = false;
+      i.setAttribute('aria-label', k ? 'Numitorul' : 'Numărătorul'); i.setAttribute('enterkeyhint', k ? 'done' : 'next');
+      i.addEventListener('input', function () { i.value = i.value.replace(/\D/g, '').slice(0, 6); refresh(); });
+      i.addEventListener('focus', function () { try { i.select(); } catch (e) { /* ignore */ } });
+    });
+    top.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); bot.focus(); } });
+    bot.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowUp') { e.preventDefault(); top.focus(); return; }
+      if (e.key === 'Enter') { e.preventDefault(); if (!go.disabled) go.click(); else if (!top.value) top.focus(); }
+    });
+    sign.onclick = function () { if (phase !== 'answer') return; neg = !neg; sign.classList.toggle('on', neg); sign.setAttribute('aria-pressed', neg ? 'true' : 'false'); PV.pop(sign); refresh(); };
+    col.appendChild(top); col.appendChild(line); col.appendChild(bot);
+    var row = h('div', 'lz-frow'); row.appendChild(sign); row.appendChild(col);
+    wrap.appendChild(row); wrap.appendChild(msg); el.appendChild(wrap);
+    function filled() { return top.value !== '' && bot.value !== ''; }
+    function refresh() { setGo(filled()); msg.textContent = ''; top.classList.remove('bad'); bot.classList.remove('bad'); }
+    function text() { return (neg ? '-' : '') + top.value + '/' + bot.value; }
+    function bad(t, which) {
+      msg.textContent = t; which.classList.add('bad'); which.classList.remove('shake'); void which.offsetWidth; which.classList.add('shake');
+      return null;
+    }
+    return {
+      canCheck: filled,
+      isRight: function () {
+        if (+bot.value === 0) return bad('Numitorul nu poate fi 0.', bot);
+        var p = PM.parseAnswer(text());
+        if (!p) return bad('Completează numărătorul și numitorul cu numere întregi.', top);
+        var right = PM.eq(p.f, sp.a);
+        if (right && sp.reduced && !p.reduced) return bad('Valoarea e bună, dar fracția se mai poate simplifica. Simplific-o până la capăt.', top);
+        return right;
+      },
+      mark: function (right) {
+        [top, bot].forEach(function (i) { i.readOnly = true; i.classList.add(right ? 'ok' : 'no'); }); line.classList.add(right ? 'ok' : 'no');
+        sign.disabled = true; sign.classList.add('off');
+      },
+      focus: function () { try { top.focus({ preventScroll: true }); } catch (e) { top.focus(); } },
+      okEl: function () { return col; },
+      answerText: function () { return PM.fmtF(sp.a); }
+    };
+  };
+
   BUILD.num = function (sp, el) {
+    if (sp.form === 'frac') return BUILD.frac(sp, el);
     var wrap = h('div', 'lz-num'), row = h('div', 'lz-num-row'), inp = h('input', 'lz-inp'), keys = h('div', 'lz-keys'), msg = h('div', 'lz-msg');
     inp.type = 'text'; inp.id = 'lzInp'; inp.setAttribute('inputmode', 'text'); inp.setAttribute('enterkeyhint', 'done'); inp.autocomplete = 'off'; inp.autocapitalize = 'off'; inp.spellcheck = false;
     inp.setAttribute('aria-label', 'Răspunsul tău');
@@ -399,6 +446,7 @@
       if (L.kind !== 'skip' && !noXp()) { var x = $('.lz-xp'); x.classList.remove('bump'); void x.offsetWidth; x.classList.add('bump'); floatXp('+' + gain); }
       if (streak >= 3) { combo.hidden = false; combo.querySelector('b').textContent = streak; PV.pop(combo); }
       sparks(ctl.okEl && ctl.okEl());
+      if (window.BMSfx) window.BMSfx.play('correct');
       streakShow(streak);
     } else {
       streak = 0; combo.hidden = true;

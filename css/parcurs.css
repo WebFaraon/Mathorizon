@@ -19,8 +19,10 @@
 .pp-main { min-width: 0; position: relative; }
 
 /* capitol */
-.pp-chap { display: flex; align-items: center; gap: 14px; margin: 4px 0 14px; color: var(--pm-ink-2); font-weight: 800; font-size: 12px; letter-spacing: 0.12em; }
-.pp-chap::before, .pp-chap::after { content: ""; flex: 1; height: 2px; background: var(--pm-line); }
+.pp-chap { display: flex; align-items: center; gap: 16px; margin: 6px 0 18px; color: var(--pm-key-ink, #3F236E); font-weight: 800; font-size: 16px; letter-spacing: 0.1em; line-height: 1.25; text-align: center; }
+.pp-chap > span { flex: 0 1 auto; }
+.pp-chap::before, .pp-chap::after { content: ""; flex: 1 1 24px; height: 4px; border-radius: 3px; background: color-mix(in srgb, var(--pm-violet, #3F236E) 30%, var(--pm-line)); }
+@media (max-width: 520px) { .pp-chap { gap: 10px; font-size: 13.5px; letter-spacing: 0.07em; } }
 
 /* secțiune: banda violet se lipește sus când derulezi */
 .pp-sec { position: relative; margin-bottom: 26px; }
@@ -256,9 +258,10 @@
    Scene cu bufnița pe marginile hărții (js/parcurs/scenes.js): personaje care fac câte ceva, în buclă, ca la Duolingo.
    Apar doar când coloana are loc, se mișcă doar cât sunt pe ecran și se opresc la "reduce motion".
    ============================================================ */
-.scn { display: none; position: absolute; left: 50%; top: 50%; width: 150px; height: 140px; margin: -74px 0 0 -75px; z-index: 0; pointer-events: none;
-  transform: translateX(calc((var(--sx) - var(--dx)) * var(--k, 1px))); }
-@container (min-width: 600px) { .scn { display: block; } }
+.scn { --s: 0.66; display: block; position: absolute; left: 50%; top: 50%; width: 150px; height: 140px; margin: -74px 0 0 -75px; z-index: 0; pointer-events: none;
+  transform: translateX(calc(var(--side) * (50cqw - 62px) - var(--dx) * var(--k, 1px))) scale(var(--s)); }
+/* laptop și tabletă: mărime întreagă, mai departe de drum; pe telefon scena e mai mică și stă la marginea coloanei */
+@container (min-width: 600px) { .scn { --s: 1; transform: translateX(calc((var(--sx) - var(--dx)) * var(--k, 1px))); } }
 .scn__shadow { position: absolute; left: 50%; bottom: 6px; width: 104px; height: 22px; margin-left: -52px; border-radius: 50%; background: var(--pm-track, #E3DDF0); opacity: 0.85; }
 .scn__owl { position: absolute; left: 50%; bottom: 16px; width: 120px; margin-left: -60px; transform-origin: 50% 90%; }
 .scn__owl .owl { --ow: 120px; margin: 0; }
@@ -314,4 +317,42 @@
 .scn--write .l3 { animation-delay: 1.8s; }
 @keyframes scn-draw { 0% { stroke-dashoffset: 60; } 22%, 78% { stroke-dashoffset: 0; } 100% { stroke-dashoffset: -60; } }
 
-@media (prefers-reduced-motion: reduce) { .scn, .scn *, .scn__sym, .scn__cf { animation: none !important; } .scn__sym, .scn__cf { display: none; } .scn--write .ln { stroke-dashoffset: 0; } }
+/* cafea: aburul urcă din cană, bufnița se apleacă spre ea */
+.scn--coffee .scn__mug { right: 6px; bottom: 6px; width: 50px; z-index: 2; }
+.scn--coffee .scn__steam { right: 8px; bottom: 50px; width: 42px; z-index: 2; }
+.scn--coffee .scn__owl { left: 44%; animation: scn-sip 4.4s ease-in-out infinite; }
+@keyframes scn-sip { 0%, 40%, 100% { transform: rotate(0); } 55%, 75% { transform: rotate(5deg) translateX(4px); } }
+.scn--coffee .st { stroke-dasharray: 90; stroke-dashoffset: 90; opacity: 0; animation: scn-steam 3.2s ease-in-out infinite; }
+.scn--coffee .st2 { animation-delay: 0.7s; }
+.scn--coffee .st3 { animation-delay: 1.4s; }
+@keyframes scn-steam { 0% { stroke-dashoffset: 90; opacity: 0; } 25% { opacity: 0.9; } 70% { stroke-dashoffset: 0; opacity: 0.6; } 100% { stroke-dashoffset: -40; opacity: 0; } }
+
+/* salut: balonul apare și dispare, bufnița se leagănă vesel */
+.scn--wave .scn__owl { animation: scn-wave 2.4s ease-in-out infinite; }
+@keyframes scn-wave { 0%, 100% { transform: rotate(-5deg) translateY(0); } 25% { transform: rotate(5deg) translateY(-4px); } 50% { transform: rotate(-5deg) translateY(0); } 75% { transform: rotate(5deg) translateY(-4px); } }
+.scn__say { position: absolute; left: 50%; top: -6px; padding: 6px 12px; border: 2px solid var(--pm-line, #DDD6EA); border-bottom-width: 4px; border-radius: 14px; background: var(--pm-face, #fff); color: var(--pm-key-ink, #3F236E); font: 800 15px 'Plus Jakarta Sans', system-ui, sans-serif; white-space: nowrap; transform-origin: 20% 100%; animation: scn-say 4.8s ease-in-out infinite; z-index: 2; }
+.scn__say::after { content: ""; position: absolute; left: 18px; bottom: -11px; width: 12px; height: 12px; background: var(--pm-face, #fff); border-right: 2px solid var(--pm-line, #DDD6EA); border-bottom: 2px solid var(--pm-line, #DDD6EA); transform: rotate(45deg) skew(8deg, 8deg); border-radius: 0 0 4px 0; }
+.scn__say { margin-left: -20px; }
+@keyframes scn-say { 0%, 8% { transform: scale(0); opacity: 0; } 18%, 70% { transform: scale(1); opacity: 1; } 82%, 100% { transform: scale(0.6); opacity: 0; } }
+
+/* stele: sclipesc în jurul bufniței care se uită la ele */
+.scn--stars .scn__stars { left: 50%; top: -8px; width: 150px; margin-left: -75px; }
+.scn--stars .scn__owl { animation: scn-look 6s ease-in-out infinite; }
+@keyframes scn-look { 0%, 100% { transform: rotate(-3deg); } 30% { transform: rotate(4deg) translateY(-2px); } 60% { transform: rotate(-1deg); } }
+.scn--stars .tw { animation: scn-twinkle 2.6s ease-in-out infinite; transform-origin: center; transform-box: fill-box; }
+.scn--stars .tw2 { animation-delay: 0.7s; }
+.scn--stars .tw3 { animation-delay: 1.3s; }
+.scn--stars .tw4 { animation-delay: 1.9s; }
+
+/* muzică: notele urcă, bufnița dă din cap în ritm */
+.scn--music .scn__owl { animation: scn-bob 1.2s ease-in-out infinite; }
+@keyframes scn-bob { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-7px) rotate(4deg); } }
+.scn__note { position: absolute; bottom: 92px; font: 800 24px 'Space Grotesk', 'Plus Jakarta Sans', sans-serif; opacity: 0; animation: scn-note 3.6s ease-out infinite; }
+.scn__note.n1 { left: 8px; color: #FF8A12; animation-delay: 0s; }
+.scn__note.n2 { left: 112px; color: #7BB403; animation-delay: 1.2s; }
+.scn__note.n3 { left: 60px; color: #7C58D1; animation-delay: 2.4s; }
+@keyframes scn-note { 0% { transform: translate(0, 18px) rotate(-12deg) scale(0.7); opacity: 0; } 15% { opacity: 1; } 100% { transform: translate(var(--nx, 10px), -46px) rotate(14deg) scale(1.1); opacity: 0; } }
+.scn__note.n2 { --nx: -12px; }
+.scn__note.n3 { --nx: 6px; }
+
+@media (prefers-reduced-motion: reduce) { .scn, .scn *, .scn__sym, .scn__cf, .scn__note, .scn__say { animation: none !important; } .scn__sym, .scn__cf, .scn__note { display: none; } .scn--coffee .st { stroke-dashoffset: 0; opacity: 0.7; } .scn--write .ln { stroke-dashoffset: 0; } }

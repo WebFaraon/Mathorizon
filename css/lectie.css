@@ -124,18 +124,8 @@ body.lz {
 @keyframes lz-out { to { opacity: 0; transform: translateY(-8px); } }
 
 .lz-meta { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 0.78rem; font-weight: 700; color: var(--pm-ink-2); }
-.lz-chip {
-  padding: 3px 11px;
-  border-radius: 999px;
-  background: var(--pm-tint);
-  color: var(--pm-key-ink);
-  font-weight: 800;
-  letter-spacing: 0.04em;
-}
-.lz-chip.r1 { background: #E5F5BF; color: #3F6A00; }
-.lz-chip.r2 { background: #EADCFF; color: #5B2FB3; }
-[data-theme="dark"] .lz-chip.r1 { background: #2A3A14; color: #B5E36A; }
-[data-theme="dark"] .lz-chip.r2 { background: #35254F; color: #D5C6F5; }
+/* eticheta "Învață" de pe paginile cu explicații */
+.lz-chip { padding: 3px 11px; border-radius: 999px; background: var(--pm-tint); color: var(--pm-key-ink); font-weight: 800; letter-spacing: 0.04em; }
 
 /* owl + bubble */
 .lz-ask { display: flex; align-items: center; gap: 14px; }
@@ -720,3 +710,61 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 @keyframes lz-st-num { 0% { transform: scale(0.3); opacity: 0; } 100% { transform: none; opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .lz-streak, .lz-streak .lz-streak__owl, .lz-streak b, .lz-streak h2 { animation: none; } }
 .lz-xp[hidden] { display: none; }
+
+/* ---- butoanele de jos (Indiciu, Nu știu, Verifică): aceeași înălțime, aceleași efecte ca la celelalte butoane ----
+   în repaus: margine de jos plină; hover: doar se estompează sau se tintează; apăsat: se afundă */
+.lz-foot .lz-hint, .lz-foot .lz-skip, .lz-foot .lz-go {
+  box-sizing: border-box; height: 52px; margin-top: 0; margin-bottom: 0; padding: 0 20px;
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  border-radius: 14px; font: inherit; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1;
+  cursor: pointer; -webkit-tap-highlight-color: transparent;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease, filter 0.12s ease, color 0.12s ease;
+}
+.lz-foot .lz-hint, .lz-foot .lz-skip {
+  border: 2px solid var(--pm-line); background: var(--pm-face); color: var(--pm-ink-2); box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3);
+}
+.lz-foot .lz-hint:hover:not(:disabled), .lz-foot .lz-skip:hover:not(:disabled) {
+  border: 2px solid var(--pm-line); background: var(--pm-tint); color: var(--pm-key-ink); box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3);
+}
+.lz-foot .lz-hint:active:not(:disabled), .lz-foot .lz-skip:active:not(:disabled) {
+  transform: translateY(4px); box-shadow: 0 0 0 var(--pm-edge, #CFC6E3); border-bottom-width: 2px;
+}
+.lz-foot .lz-hint.used { border-color: var(--pm-lime); color: var(--pm-key-ink); }
+.lz-foot .lz-hint.used:hover:not(:disabled) { border-color: var(--pm-lime); }
+.lz-foot .lz-hint:disabled { opacity: 0.55; cursor: default; }
+.lz-foot .lz-go { border: 0; padding: 0 26px; font-size: 0.95rem; }
+.lz-foot .lz-go:hover:not(:disabled) { background: var(--k-go, #7CB800); color: var(--k-go-ink, #14200A); filter: brightness(0.93); }
+.lz-foot.no .lz-go:hover:not(:disabled) { background: var(--lz-orange); color: #fff; filter: brightness(0.93); }
+.lz-foot .lz-go:active:not(:disabled) { filter: none; }
+.lz-foot .lz-go:disabled { opacity: 0.85; }
+@media (max-width: 520px) { .lz-foot .lz-hint, .lz-foot .lz-skip { padding: 0 14px; } .lz-foot .lz-go { padding: 0 18px; } }
+
+/* ---- răspuns ca fracție: două casete (sus și jos) cu linia de fracție între ele ---- */
+.lz-frac { align-items: center; gap: 12px; }
+.lz-frow { display: flex; align-items: center; justify-content: center; gap: 16px; }
+.lz-fcol { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: min(188px, 50vw); }
+.lz-fin {
+  width: 100%; box-sizing: border-box; height: 64px; padding: 0 10px; text-align: center;
+  border: 2px solid var(--pm-line); border-bottom-width: 5px; border-radius: 16px; background: var(--pm-face); color: var(--pm-ink);
+  font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; caret-color: var(--pm-violet);
+  transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
+}
+.lz-fin:hover:not(:focus):not(.ok):not(.no) { border-color: var(--pm-violet); }
+.lz-fin:focus, .lz-fin:focus-visible { outline: none; border-color: var(--pm-violet); box-shadow: 0 0 0 4px rgba(91, 47, 179, 0.16); }
+.lz-fin.bad { border-color: var(--lz-no-line); }
+.lz-fin.ok { border-color: var(--lz-ok-line); background: var(--lz-ok-bg); box-shadow: none; }
+.lz-fin.no { border-color: var(--lz-no-line); background: var(--lz-no-bg); box-shadow: none; }
+.lz-fbar { display: block; height: 5px; border-radius: 3px; background: var(--pm-ink); transition: background 0.15s ease; }
+.lz-fbar.ok { background: var(--lz-ok-line); }
+.lz-fbar.no { background: var(--lz-no-line); }
+.lz-sgn {
+  flex: none; width: 52px; height: 52px; padding: 0; border: 2px solid var(--pm-line); border-bottom-width: 4px; border-radius: 14px;
+  background: var(--pm-face); color: var(--pm-ink); font-size: 1.7rem; font-weight: 800; line-height: 1; cursor: pointer;
+  transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+}
+.lz-sgn:hover:not(:disabled):not(.on) { background: var(--pm-tint); }
+.lz-sgn.on { border-color: var(--pm-violet); background: var(--pm-tint); color: var(--pm-key-ink); }
+.lz-sgn:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 2px; }
+.lz-sgn.off { opacity: 0.45; cursor: default; }
+.mt, .fr, sup, .lz-inp, .lz-key, .lz-eq, .lz-row .eqs, .bx, .lz-fin, .lz-sgn { font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: lining-nums; }
+.lz-fin, .lz-sgn { font-weight: 800; }
