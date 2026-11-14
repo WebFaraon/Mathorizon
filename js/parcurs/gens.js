@@ -59,12 +59,12 @@
     if (kind === 'N') { x = String(R.pick([0, 3, 7, 12, 25, 40])); set = 0; why = x + ' este număr natural, deci intră în ℕ (și, mai departe, în ℤ și în ℚ).'; }
     else if (kind === 'Z') { x = '−' + R.int(2, 15); set = 1; why = x + ' are minus și nu are parte fracționară: e număr întreg, dar nu natural. Cea mai mică mulțime este ℤ.'; }
     else { x = R.pick(['{3/4}', '−{1/2}', '0,25', '1,5', '{7/3}', '−0,8', '{5/6}']); set = 2; why = x + ' nu este întreg. Se scrie ca fracție, deci cea mai mică mulțime care îl conține este ℚ.'; }
-    return { t: 'mc', q: 'În care este cea mai mică mulțime care conține numărul?', eq: x, opts: ['ℕ (naturale)', 'ℤ (întregi)', 'ℚ (raționale)'], a: set, fixed: true, why: why,
+    return { t: 'mc', q: R.pick(['În care este cea mai mică mulțime care conține numărul?', 'Care este cea mai mică mulțime de numere din care face parte numărul?', 'Din care este cea mai mică mulțime de numere face parte numărul?']), eq: x, opts: ['ℕ (naturale)', 'ℤ (întregi)', 'ℚ (raționale)'], a: set, fixed: true, why: why,
       hint: 'ℕ: 0, 1, 2… ℤ: adaugă și numerele negative. ℚ: adaugă și fracțiile.' };
   };
   G.intAsFrac = function (R, lvl) {
     var n = R.int(1, 9) * (lvl > 0 && R.bool(0.4) ? -1 : 1), b = R.int(2, 9);
-    return { t: 'num', q: 'Ce număr lipsește de la numărător?', eq: int(n) + ' = {▢/' + b + '}', a: F(n * b), form: 'int',
+    return { t: 'num', q: R.pick(['Ce număr lipsește de la numărător?', 'Completează căsuța goală.', 'Scrie numărul care lipsește, ca egalitatea să fie adevărată.', 'Găsește numărătorul care lipsește.']), eq: int(n) + ' = {▢/' + b + '}', a: F(n * b), form: 'int',
       why: 'Orice număr întreg are numitorul 1: ' + int(n) + ' = {' + int(n) + '/1}. Amplificăm cu ' + b + ': {' + int(n) + '·' + b + '/1·' + b + '} = {' + int(n * b) + '/' + b + '}.',
       hint: 'Amplifică fracția {' + int(n) + '/1} cu ' + b + '.' };
   };
@@ -86,12 +86,12 @@
       if (i === posIdx) return R.bool() ? '{' + a + '/' + b + '}' : '{−' + a + '/−' + b + '}';
       return R.pick(['{−' + a + '/' + b + '}', '{' + a + '/−' + b + '}', '−{' + a + '/' + b + '}']);
     });
-    return { t: 'mc', q: 'Care dintre numere este pozitiv?', opts: opts, a: posIdx, why: 'O fracție e pozitivă când are două minusuri (se anulează) sau niciunul. Celelalte au exact un minus, deci sunt negative.', hint: 'Numără minusurile: unul singur face numărul negativ.' };
+    return { t: 'mc', q: R.pick(['Care dintre numere este pozitiv?', 'Alege numărul pozitiv.', 'Doar unul dintre numere este mai mare decât 0. Care?']), opts: opts, a: posIdx, why: 'O fracție e pozitivă când are două minusuri (se anulează) sau niciunul. Celelalte au exact un minus, deci sunt negative.', hint: 'Numără minusurile: unul singur face numărul negativ.' };
   };
   G.fracToInt = function (R, lvl) {
     var d = R.int(2, tier(lvl, 5, 9, 12)), k = R.int(2, tier(lvl, 6, 9, 12)), s = (lvl > 0 && R.bool()) ? -1 : 1;
     var n = s * k * d;
-    return { t: 'num', q: 'Scrie numărul ca întreg.', eq: raw(n, d), a: F(s * k), form: 'int', why: raw(n, d) + ' înseamnă ' + int(n) + ' : ' + d + ' = ' + int(s * k) + '.', hint: 'Fracția e o împărțire: numărător : numitor.' };
+    return { t: 'num', q: R.pick(['Scrie numărul ca întreg.', 'Efectuează împărțirea și scrie rezultatul.', 'Ce număr întreg este egal cu fracția?']), eq: raw(n, d), a: F(s * k), form: 'int', why: raw(n, d) + ' înseamnă ' + int(n) + ' : ' + d + ' = ' + int(s * k) + '.', hint: 'Fracția e o împărțire: numărător : numitor.' };
   };
   G.shareWord = function (R) {
     var a = R.int(2, 5), b = R.int(a + 1, 8), what = R.pick(['kg de mere', 'kg de nuci', 'litri de suc']);
@@ -119,7 +119,7 @@
   /* ================= 1.2 Fracții echivalente ================= */
   G.equivFill = function (R, lvl) {
     var b = R.int(2, tier(lvl, 6, 9, 12)), a = R.int(1, b + 2), k = R.int(2, tier(lvl, 5, 8, 12));
-    return { t: 'num', q: 'Ce număr lipsește de la numărător?', eq: '{' + a + '/' + b + '} = {▢/' + (b * k) + '}', a: F(a * k), form: 'int',
+    return { t: 'num', q: R.pick(['Ce număr lipsește de la numărător?', 'Completează căsuța goală.', 'Scrie numărul care lipsește, ca egalitatea să fie adevărată.', 'Găsește numărătorul care lipsește.']), eq: '{' + a + '/' + b + '} = {▢/' + (b * k) + '}', a: F(a * k), form: 'int',
       why: 'Numitorul s-a înmulțit cu ' + k + ' (' + b + '·' + k + ' = ' + (b * k) + '), deci înmulțim și numărătorul: ' + a + '·' + k + ' = ' + (a * k) + '.', hint: 'Câte ori s-a mărit numitorul? La fel se mărește numărătorul.' };
   };
   G.amplify = function (R, lvl) {
@@ -130,7 +130,7 @@
   };
   G.simplifyFull = function (R, lvl) {
     var f = pickFrac(R, 2, tier(lvl, 6, 10, 13), true), k = R.int(tier(lvl, 2, 3, 6), tier(lvl, 5, 8, 14)), N = f.n * k, D = f.d * k, g = gcd(N, D);
-    return { t: 'num', q: 'Simplifică fracția până devine ireductibilă.', eq: '{' + N + '/' + D + '}', a: f, form: 'frac', reduced: true,
+    return { t: 'num', q: R.pick(['Simplifică fracția până devine ireductibilă.', 'Scrie fracția în forma ei cea mai simplă.', 'Simplifică fracția până când nu se mai poate.', 'Adu fracția la forma ireductibilă.']), eq: '{' + N + '/' + D + '}', a: f, form: 'frac', reduced: true,
       why: 'Cel mai mare divizor comun al lui ' + N + ' și ' + D + ' este ' + g + '. {' + N + ':' + g + '/' + D + ':' + g + '} = {' + f.n + '/' + f.d + '}.', hint: 'Împarte numărătorul și numitorul la același număr, cât timp se poate.' };
   };
   G.isIrreducible = function (R, lvl) {
@@ -255,7 +255,7 @@
     else if (lvl === 1) { x = R.int(1, 99); sh = 100; if (x % 10 === 0) x++; }
     else { x = R.int(101, 499); sh = 100; if (x % 10 === 0) x++; }
     var f = F(x, sh), g = gcd(x, sh);
-    return { t: 'num', q: 'Scrie numărul ca fracție ireductibilă.', eq: fd(f), a: f, form: 'frac', reduced: true, why: fd(f) + ' = {' + x + '/' + sh + '}' + (g > 1 ? ' = {' + x + ':' + g + '/' + sh + ':' + g + '} = ' + fs(f) : '') + '.', hint: 'Numărul de zecimale spune câte zerouri are numitorul: 10, 100…' };
+    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplific-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: fd(f), a: f, form: 'frac', reduced: true, why: fd(f) + ' = {' + x + '/' + sh + '}' + (g > 1 ? ' = {' + x + ':' + g + '/' + sh + ':' + g + '} = ' + fs(f) : '') + '.', hint: 'Numărul de zecimale spune câte zerouri are numitorul: 10, 100…' };
   };
   var DECPAIRS = [[F(1, 2), '0,5'], [F(1, 4), '0,25'], [F(3, 4), '0,75'], [F(1, 5), '0,2'], [F(2, 5), '0,4'], [F(3, 5), '0,6'], [F(1, 8), '0,125'], [F(3, 8), '0,375'], [F(1, 10), '0,1'], [F(7, 10), '0,7'], [F(9, 20), '0,45'], [F(7, 20), '0,35'], [F(1, 20), '0,05'], [F(3, 25), '0,12'], [F(4, 5), '0,8'], [F(5, 4), '1,25'], [F(3, 2), '1,5']];
   G.matchDec = function (R, lvl) {
@@ -314,7 +314,7 @@
     var d = R.pick(tier(lvl, [3, 9], [6, 11, 12], [7, 12, 15, 18])), n;
     do { n = R.int(1, d - 1); } while (!coprime(n, d));
     var f = F(n, d);
-    return { t: 'num', q: 'Scrie fracția ca zecimală periodică, cu perioada între paranteze.', eq: fs(f), a: f, form: 'per', why: 'Împărțim ' + f.n + ' la ' + f.d + ' și găsim ' + fd(f) + '.', hint: 'Exemplu de scriere: 0,(3) sau 0,8(3).' };
+    return { t: 'num', q: R.pick(['Scrie fracția ca zecimală periodică, cu perioada între paranteze.', 'Împarte numărătorul la numitor și scrie rezultatul ca număr zecimal periodic.', 'Transformă fracția în număr zecimal periodic.']), eq: fs(f), a: f, form: 'per', why: 'Împărțim ' + f.n + ' la ' + f.d + ' și găsim ' + fd(f) + '.', hint: 'Exemplu de scriere: 0,(3) sau 0,8(3).' };
   };
   G.periodLen = function (R, lvl) {
     var preL = R.int(0, tier(lvl, 0, 1, 2)), perL = R.int(tier(lvl, 1, 1, 2), tier(lvl, 2, 3, 3));
@@ -345,7 +345,7 @@
       var p = R.int(1, 8), q = R.int(0, 8); if (q === p) q = (q + 1) % 9; s = '0,' + p + '(' + q + ')'; f = F(parseInt('' + p + q, 10) - p, 90);
       why = 'Notăm x = ' + s + '. Atunci 10x = ' + p + ',(' + q + ') și 100x = ' + p + q + ',(' + q + '). Scădem: 90x = ' + (parseInt('' + p + q, 10) - p) + ', deci x = ' + fs(f) + '.';
     }
-    return { t: 'num', q: 'Scrie numărul ca fracție ireductibilă.', eq: s, a: f, form: 'frac', reduced: true, why: why, hint: 'Pentru 0,(a): numărătorul e perioada, numitorul e tot atâtea cifre de 9.' };
+    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplific-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: s, a: f, form: 'frac', reduced: true, why: why, hint: 'Pentru 0,(a): numărătorul e perioada, numitorul e tot atâtea cifre de 9.' };
   };
   G.finiteMulti = function (R) {
     var items = [], seen = {}, g = 0;
@@ -690,7 +690,7 @@
     return { t: 'bug', q: 'Care linie conține greșeala?', lines: [a + ' + ' + b + ' · ' + c, '= ' + (a + b) + ' · ' + c, '= ' + w], bad: 1, why: 'Înmulțirea se face înaintea adunării: ' + b + ' · ' + c + ' = ' + (b * c) + ', apoi ' + a + ' + ' + (b * c) + ' = ' + (a + b * c) + '.', hint: 'Ce operație are prioritate?' };
   };
 
-  var out = { G: G, tier: tier };
+  var out = { G: G, tier: tier, helpers: { mcS: mcS, pickFrac: pickFrac, fr: fr, int: int, intp: intp, coprime: coprime } };
   root.PG = out;
   if (typeof module !== 'undefined' && module.exports) module.exports = out;
 })(typeof window !== 'undefined' ? window : globalThis);

@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
   var PM = (typeof module !== 'undefined' && module.exports) ? require('./lib.js') : root.PM;
-  var PG = (typeof module !== 'undefined' && module.exports) ? require('./gens.js') : root.PG;
+  var PG = (typeof module !== 'undefined' && module.exports) ? (require('./gens.js'), require('./gens2.js'), require('./gens.js')) : root.PG;
   var G = PG.G;
 
   var LESSON_TITLES = ['Învață', 'Exersează', 'Aplică', 'Provocare'];
@@ -22,19 +22,29 @@
       { id: 'c1', title: 'Ce sunt numerele raționale', icon: 'book',
         learn: [
           { title: 'O fracție este o împărțire', p: 'Fracția **{3/4}** înseamnă **3 : 4**: numărătorul se împarte la numitor. Schimbă numerele și vezi cum se mișcă fracția.', bar: { d: 4, n: 3, ctl: true, dec: true } },
-          { title: 'Numerele raționale', p: 'Un număr **rațional** se poate scrie ca fracție {a/b}, unde **a** și **b** sunt numere întregi și **b ≠ 0**. Mulțimea lor se notează **ℚ**. Atinge un număr și vezi în ce mulțimi intră.', sets: ['5', '−3', '{3/4}', '0,2', '−1,5'] },
-          { title: 'Întregii sunt și ei raționali', p: 'Orice număr întreg se scrie ca fracție cu numitorul 1. De aceea **ℕ ⊂ ℤ ⊂ ℚ**: fiecare mulțime o conține pe cea dinainte.', rows: ['5 = {5/1}', '−3 = {−3/1}', '0 = {0/1}', '0,2 = {2/10}'] },
+          { title: 'Numerele raționale', p: 'Un număr **rațional** se poate scrie sub forma {m/n}, unde **m** este număr întreg (m ∈ ℤ), iar **n** este număr natural nenul (n ∈ ℕ*). Mulțimea lor se notează **ℚ**. Atinge un număr și vezi în ce mulțimi intră.', sets: ['5', '−3', '{3/4}', '0,2', '−1,5'] },
+          { title: 'Întregii sunt și ei raționali', p: 'Orice număr întreg se scrie ca fracție cu numitorul 1. De aceea **ℕ ⊂ ℤ ⊂ ℚ**: fiecare mulțime o conține pe cea dinainte. Cu ℕ* notăm numerele naturale nenule: 1, 2, 3…, deci ℕ* ⊂ ℕ.', rows: ['5 = {5/1}', '−3 = {−3/1}', '0 = {0/1}', '0,2 = {2/10}'] },
           { title: 'Unde punem minusul', p: 'La o fracție, minusul poate sta în fața ei, la numărător sau la numitor. **Valoarea rămâne aceeași.** Două minusuri se anulează.', rows: ['−{3/4} = {−3/4} = {3/−4}', '{−3/−4} = {3/4}'] }
         ],
-        pools: [['smallestSet', 'intAsFrac', 'signForms', 'fracToInt'], ['whichPositive', 'multiInts', 'shareWord', 'statement', 'intAsFrac', 'fracToInt'], ['signForms', 'multiInts', 'statement', 'whichPositive']] },
+        pools: [['smallestSet', 'intAsFrac', 'signForms', 'fracToInt', 'pickSet'], ['whichPositive', 'multiInts', 'shareWord', 'statement', 'intAsFrac', 'fracToInt', 'pickSet', 'writeMN'], ['signForms', 'multiInts', 'statement', 'whichPositive', 'pickSet', 'writeMN']] },
       { id: 'c2', title: 'Fracții echivalente și simplificare', icon: 'scale',
         learn: [
           { title: 'Aceeași parte, alte numere', p: 'Cele trei bare au aceeași parte colorată. Fracțiile **{1/2}**, **{2/4}** și **{4/8}** au aceeași valoare: se numesc **echivalente**.', bars: [[2, 1], [4, 2], [8, 4]] },
           { title: 'Amplificarea', p: 'Înmulțim numărătorul și numitorul cu **același număr nenul**. Valoarea fracției nu se schimbă.', rows: ['{2/3} = {2·4/3·4}', '{2/3} = {8/12}'] },
           { title: 'Simplificarea', p: 'Împărțim numărătorul și numitorul la **același număr** (un divizor comun).', rows: ['{18/24} = {18:6/24:6}', '{18/24} = {3/4}'] },
           { title: 'Fracția ireductibilă', p: 'Când numărătorul și numitorul nu mai au niciun divizor comun în afară de 1, fracția este **ireductibilă**: nu se mai poate simplifica.', rows: ['{3/4} este ireductibilă', '{6/8} nu este: se simplifică prin 2'] }
+        ,
+          { title: 'Produsele în cruce', p: 'Două fracții {a/b} și {c/d} sunt **echivalente** dacă **a · d = b · c**. Înmulțim „în cruce” și comparăm rezultatele.', rows: ['{2/5} ▢ {4/10}', '2 · 10 = 20 și 5 · 4 = 20', '20 = 20, deci {2/5} = {4/10}', '{3/4} ▢ {5/6}: 3 · 6 = 18, 4 · 5 = 20, deci nu sunt egale'] }
         ],
-        pools: [['barShade', 'equivFill', 'amplify', 'simplifyFull'], ['barEquiv', 'equivFill', 'simplifyFull', 'isIrreducible', 'equalPair', 'amplify'], ['simplifyFull', 'bugSimplify', 'isIrreducible', 'equalPair', 'barEquiv']] },
+        pools: [['barShade', 'equivFill', 'amplify', 'simplifyFull', 'equivFill2', 'tfEquiv'], ['barEquiv', 'equivFill', 'simplifyFull', 'isIrreducible', 'equalPair', 'amplify', 'tfEquiv', 'matchEquiv', 'equivFill2'], ['simplifyFull', 'bugSimplify', 'isIrreducible', 'equalPair', 'barEquiv', 'tfEquiv', 'matchEquiv', 'equivFill2']] },
+      { id: 'c6', title: 'Fracții supraunitare și numere mixte', icon: 'divide',
+        learn: [
+          { title: 'Subunitare, echiunitare, supraunitare', p: 'După cum comparăm numărătorul cu numitorul, o fracție este **subunitară** (mai mică decât 1), **echiunitară** (egală cu 1) sau **supraunitară** (mai mare decât 1). Exemple: {3/5} este subunitară, {5/5} este echiunitară, {7/4} este supraunitară (vezi-o pe bare).', bars: [[4, 4], [4, 3]], rows: ['{3/5} < 1', '{5/5} = 1', '{7/4} > 1'] },
+          { title: 'Scoatem întregii din fracție', p: 'La o fracție supraunitară **împărțim** numărătorul la numitor. Câtul sunt **întregii**, restul devine **numărătorul**, iar numitorul rămâne.', rows: ['{17/5}', '17 : 5 = 3, rest 2', '{17/5} = 3{2/5}'] },
+          { title: 'Introducem întregii în fracție', p: 'Înmulțim **întregii cu numitorul** și adunăm numărătorul. Rezultatul este noul numărător.', rows: ['4{1/3} = {4·3+1/3}', '= {13/3}', '6{2/5} = {6·5+2/5} = {32/5}'] },
+          { title: 'Numerele mixte negative', p: 'Minusul din fața unui număr mixt se aplică **întregului număr**. Calculăm cu valorile pozitive, apoi punem minusul.', rows: ['−{11/3} = −3{2/3}', '−2{1/4} = −{9/4}', '−2{1/4} este între −3 și −2'] }
+        ],
+        pools: [['fracKind', 'toMixed', 'fromMixed', 'mixedMc'], ['toMixed', 'fromMixed', 'mixedMc', 'fracKind', 'writeMN', 'mixedBug'], ['toMixed', 'fromMixed', 'writeMN', 'mixedBug', 'mixedMc']] },
       { id: 'c3', title: 'Axa numerelor și compararea', icon: 'axis',
         learn: [
           { title: 'Numerele pe axă', p: 'Pe axă, numerele cresc spre **dreapta**. Atinge axa și vezi ce număr indică punctul.', axis: { min: -2, max: 2, sub: 4, tap: true } },
@@ -48,17 +58,38 @@
           { title: 'Zecimalele sunt fracții cu 10, 100…', p: 'Prima cifră după virgulă înseamnă zecimi, a doua sutimi. Colorează părțile și vezi cum se citește.', bar: { d: 10, n: 7, ctl: true, dec: true, lockD: true } },
           { title: 'Fracție în număr zecimal', p: 'Amplificăm până când numitorul devine 10, 100 sau 1000.', rows: ['{3/4} = {3·25/4·25}', '{3/4} = {75/100} = 0,75'] },
           { title: 'Număr zecimal în fracție', p: 'Numărul de zecimale arată câte zerouri are numitorul. Apoi simplificăm.', rows: ['0,6 = {6/10} = {3/5}', '2,25 = {225/100} = {9/4}'] },
-          { title: 'Nu toate se termină', p: 'Dacă fracția ireductibilă are la numitor doar factorii primi **2** și **5**, scrierea zecimală se termină. Altfel, urmează ceva nou.', rows: ['{3/8}: 8 = 2·2·2, deci 0,375', '{1/3}: 3 nu e nici 2, nici 5, deci ?'] }
+          { title: 'Nu toate se termină', p: 'Dacă fracția ireductibilă are la numitor doar factorii primi **2** și **5**, scrierea zecimală se termină. Altfel, urmează ceva nou.', rows: ['{3/8}: 8 = 2·2·2, deci 0,375', '{1/3}: 3 nu e nici 2, nici 5, deci ?'] },
+          { title: 'Cum citim un număr zecimal', p: 'Partea întreagă se citește cu **întregi**, apoi partea zecimală cu numele ultimei cifre: **zecimi**, **sutimi**, **miimi**.', rows: ['15,027 = 15{27/1000}', '„cincisprezece întregi și douăzeci și șapte de miimi”', '3,5 = „trei întregi și cinci zecimi”', '0,25 = „douăzeci și cinci de sutimi”'] },
+          { title: 'Numerele mixte în zecimale', p: 'Avem două metode. **Metoda 1:** transformăm doar fracția în zecimal și adunăm întregii. **Metoda 2:** introducem întregii în fracție și împărțim.', rows: ['8{3/4}: {3/4} = 3 : 4 = 0,75', '8{3/4} = 8 + 0,75 = 8,75', '8{3/4} = {8·4+3/4} = {35/4}', '35 : 4 = 8,75'] }
         ],
-        pools: [['fracToDec', 'decToFrac', 'matchDec', 'decFracMc'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec', 'decFracMc', 'matchDec'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec']] },
+        pools: [['fracToDec', 'decToFrac', 'matchDec', 'decFracMc', 'readDec', 'decDigit'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec', 'decFracMc', 'matchDec', 'mixedToDec', 'readDec', 'decDigit'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec', 'mixedToDec', 'decToMixed', 'readDec']] },
       { id: 'c5', title: 'Numere zecimale periodice', icon: 'repeat',
         learn: [
           { title: 'O împărțire care nu se termină', p: 'Împărțim 1 la 3. Apasă „Mai departe” și urmărește resturile.', div: { n: 1, d: 3 } },
           { title: 'Perioada', p: 'Cifra sau grupul de cifre care se repetă se numește **perioadă**. O scriem între paranteze.', rows: ['{1/3} = 0,333… = 0,([[3]])', '{5/6} = 0,8333… = 0,8([[3]])', '{4/11} = 0,3636… = 0,([[36]])'] },
           { title: 'Finită sau periodică?', p: 'Simplificăm fracția. Dacă numitorul are doar factorii **2** și **5**, zecimala este **finită**. Altfel este **periodică**.', rows: ['{7/20}: 20 = 2·2·5, deci finită', '{5/12}: 12 = 2·2·3, deci periodică'] },
-          { title: 'De la periodic la fracție', p: 'La 0,(a): numărătorul este perioada, iar numitorul are tot atâtea cifre de 9 câte cifre are perioada.', rows: ['0,(7) = {7/9}', '0,(36) = {36/99} = {4/11}', 'x = 0,(7) → 10x = 7,(7) → 9x = 7'] }
+          { title: 'De la periodic la fracție', p: 'La 0,(a): numărătorul este perioada, iar numitorul are tot atâtea cifre de 9 câte cifre are perioada.', rows: ['0,(7) = {7/9}', '0,(36) = {36/99} = {4/11}', 'x = 0,(7) → 10x = 7,(7) → 9x = 7'] },
+          { title: 'Simplu sau mixt', p: 'Dacă perioada începe chiar **după virgulă**, numărul este periodic **simplu**. Dacă între virgulă și perioadă sunt cifre care nu se repetă, este periodic **mixt**. Primele două numere de mai jos sunt simple, ultimele două sunt mixte.', rows: ['2,([[8]])', '35,([[21]])', '0,[[7]]([[23]])', '6,[[25]]([[3]])'] },
+          { title: 'Cum se citește perioada', p: 'După partea întreagă (și după partea neperiodică, la cele mixte) citim perioada și spunem **„în perioadă”**.', rows: ['2,(45) = „doi întregi și patruzeci și cinci în perioadă”', '1,(3) = „un întreg și trei în perioadă”', '0,4(09) = „zero întregi, patru zecimi și zero nouă în perioadă”'] }
         ],
-        pools: [['isPeriodic', 'decExpansion', 'perToFrac', 'periodLen'], ['decExpansion', 'isPeriodic', 'decTyped', 'perToFrac', 'periodLen', 'finiteMulti'], ['decTyped', 'perToFrac', 'nthDigit', 'finiteMulti', 'periodLen']] }
+        pools: [['isPeriodic', 'periodKind', 'periodDigits', 'decExpansion', 'periodLen'], ['periodKind', 'periodDigits', 'divPeriod', 'decExpansion', 'readPeriodic', 'finiteMulti', 'periodLen'], ['divPeriod', 'decTyped', 'classifyDec', 'nthDigit', 'periodDigits', 'readPeriodic', 'perToFrac']] },
+      { id: 'c7', title: 'Periodice simple în fracții', icon: 'repeat',
+        learn: [
+          { title: 'Fracții cu 9, 99, 999', p: 'Fracțiile cu numitorul **9, 99 sau 999** dau numere periodice simple: perioada este numărătorul, scris cu atâtea cifre câte nouări are numitorul.', rows: ['{2/9} = 0,2222… = 0,([[2]])', '{11/99} = 0,1111… = 0,([[11]])', '{5/999} = 0,005005… = 0,([[005]])'] },
+          { title: 'De la periodic la fracție', p: 'La un număr periodic simplu cu **0 întregi**: numărătorul este **perioada**, iar numitorul are **tot atâtea cifre de 9** câte cifre are perioada.', rows: ['0,(7) = {7/9}', '0,(15) = {15/99} = {5/33}', '0,(17) = {17/99}'] },
+          { title: 'Când întregul nu e 0', p: 'Dacă partea întreagă este diferită de 0, **adunăm** întregul cu fracția obținută din partea zecimală.', rows: ['2,(05) = 2 + 0,(05)', '= 2 + {5/99} = 2{5/99}', '= {2·99+5/99} = {203/99}', '1,(235) = 1{235/999} = {1234/999}'] },
+          { title: 'Pașii, pe scurt', p: '**1.** Separăm partea întreagă. **2.** Perioada deasupra, cifre de 9 dedesubt. **3.** Simplificăm fracția până devine ireductibilă.', rows: ['0,(36) = {36/99}', '= {36:9/99:9} = {4/11}'] }
+        ],
+        pools: [['perNines', 'perSimple0', 'perSimpleMc', 'fracToPerSimple'], ['perSimple0', 'perSimpleInt', 'perSimpleMc', 'fracToPerSimple', 'perNines', 'perSimpleBug'], ['perSimple0', 'perSimpleInt', 'perSimpleBug', 'perSimpleMc', 'fracToPerSimple']] },
+      { id: 'c8', title: 'Periodice mixte în fracții', icon: 'link',
+        learn: [
+          { title: 'Neperiodică și perioadă', p: 'La un număr periodic **mixt**, între virgulă și perioadă sunt cifre care nu se repetă: **partea neperiodică**. În 0,2(35), partea neperiodică este **2** și perioada este **35**. În 0,16(2), partea neperiodică este **16** și perioada este **2**.', rows: ['0,[[2]]([[35]])', '0,[[16]]([[2]])', '0,[[7]]([[23]])'] },
+          { title: 'Metoda I: mutăm virgula', p: 'Împărțim la 10 (sau 100…), ca să rămână un număr periodic simplu, pe care știm să-l transformăm.', rows: ['0,1(16) = {1,(16)/10}', '1,(16) = 1{16/99} = {115/99}', '{115/99} : 10 = {115/990}'] },
+          { title: 'Metoda a II-a: regula', p: '**Numărător:** numărul format din partea neperiodică urmată de perioadă, minus partea neperiodică. **Numitor:** cifre de 9 cât perioada, urmate de zerouri cât partea neperiodică.', rows: ['0,2(35) = {235−[[2]]/990} = {233/990}', '0,16(2) = {162−[[16]]/900} = {146/900}', '{146/900} = {73/450}'] },
+          { title: 'Cu partea întreagă', p: 'Ca la periodicele simple: separăm partea întreagă, transformăm partea zecimală, apoi le adunăm.', rows: ['5,3(01) = 5 + 0,3(01)', '= 5 + {301−3/990} = 5 + {298/990}', '= 5{149/495} = {2624/495}'] },
+          { title: 'Orice număr rațional', p: 'Orice număr rațional se scrie **și ca fracție ireductibilă, și ca număr zecimal** (finit sau periodic). Felul zecimalei depinde de numitorul fracției ireductibile. {3/8} se termină (finit), {4/11} este periodic simplu, iar {5/12} este periodic mixt.', rows: ['{3/8} = 0,375', '{4/11} = 0,(36)', '{5/12} = 0,41(6)'] }
+        ],
+        pools: [['perMixedFill', 'perMixedMc', 'perMixedFrac', 'rationalForms'], ['perMixedFrac', 'perMixedFill', 'perMixedMc', 'perMixedBug', 'classifyDec'], ['perMixedFrac', 'perMixedBug', 'perMixedMc', 'classifyDec', 'rationalForms', 'perSimpleInt']] }
     ]
   };
 
@@ -185,16 +216,22 @@
     var ok = best.filter(function (n) { return n !== last; });
     return R.pick(ok.length ? ok : best);
   }
-  function makeSet(R, pools, tiers) {
+  /* cheia unui exercițiu: generatorul, textul și conținutul (variantele, liniile, perechile), ca să recunoaștem același exercițiu a doua oară */
+  function specKey(nm, spec) {
+    return nm + '|' + (spec.q || '') + '|' + (spec.eq || '') + '|' + JSON.stringify(spec.opts || spec.tiles || spec.lines || spec.pairs || spec.a || '');
+  }
+  /* mem (opțional): {has(key), add(key)}; cheile exercițiilor văzute de elev în ultimele lecții, ca să nu se repete și între lecții */
+  function makeSet(R, pools, tiers, mem) {
     var used = {}, seen = {}, last = null, out = [], i;
     for (i = 0; i < tiers.length; i++) {
-      var t = tiers[i], names = pools[i % pools.length][t], spec = null, tries = 0, nm;
-      while (tries++ < 12) {
+      var t = tiers[i], names = pools[i % pools.length][t], spec = null, tries = 0, nm, key;
+      while (tries++ < 24) {
         nm = pickFrom(R, names, used, last);
         spec = G[nm](R, t);
-        var key = nm + '|' + (spec.q || '') + '|' + (spec.eq || '');
-        if (!seen[key]) { seen[key] = 1; break; }
+        key = specKey(nm, spec);
+        if (!seen[key] && !(mem && mem.has(key) && tries < 20)) break;
       }
+      seen[key] = 1; if (mem) mem.add(key);
       used[nm] = (used[nm] || 0) + 1; last = nm;
       spec.rar = t; spec.gen = nm;
       out.push(spec);
@@ -202,7 +239,7 @@
     return out;
   }
   /* întoarce {kind, title, sub, learn, exercises, xpMax} pentru o lecție, test sau test de sărit */
-  function build(id, R) {
+  function build(id, R, mem) {
     R = R || PM.rng();
     var m = /^r7\.(s\d)\.(c\d)\.l(\d)$/.exec(id), sec, circ;
     if (m) {
@@ -211,7 +248,7 @@
       if (!circ) return null;
       var n = +m[3], tiers = PLAN[n];
       return { id: id, kind: 'lesson', n: n, title: LESSON_TITLES[n - 1], circle: circ.title, section: sec.title, grade: CLASS7.title,
-        learn: n === 1 ? circ.learn : null, exercises: makeSet(R, [circ.pools], tiers), xpMax: tiers.length * XP_FIRST };
+        learn: n === 1 ? circ.learn : null, exercises: makeSet(R, [circ.pools], tiers, mem), xpMax: tiers.length * XP_FIRST };
     }
     m = /^r7\.(s\d)\.(test|skip)$/.exec(id);
     if (m) {
@@ -222,7 +259,8 @@
       var circles = sec.circles, exs = [], used = {}, last = null, seen = {};
       TEST_TIERS.forEach(function (t, i) {
         var c = circles[i % circles.length], names = c.pools[t], spec = null, tries = 0, nm;
-        while (tries++ < 12) { nm = pickFrom(R, names, used, last); spec = G[nm](R, t); var key = nm + '|' + spec.q + '|' + (spec.eq || ''); if (!seen[key]) { seen[key] = 1; break; } }
+        var key; while (tries++ < 24) { nm = pickFrom(R, names, used, last); spec = G[nm](R, t); key = specKey(nm, spec); if (!seen[key] && !(mem && mem.has(key) && tries < 20)) break; }
+        seen[key] = 1; if (mem) mem.add(key);
         used[nm] = (used[nm] || 0) + 1; last = nm; spec.rar = t; spec.gen = nm; exs.push(spec);
       });
       return { id: id, kind: m[2], n: 0, title: m[2] === 'test' ? 'Testul secțiunii' : 'Test de nivel', circle: sec.short, section: sec.title, grade: CLASS7.title, learn: null,

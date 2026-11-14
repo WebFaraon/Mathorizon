@@ -51,10 +51,26 @@
     setTimeout(go_, 3500);
   }
 
+  /* exercițiile văzute de elev în ultimele lecții (cheie scurtă pe cont, în browser): lecția nouă încearcă să nu le repete */
+  function seenMemory() {
+    var uid = (window.BMAuth && BMAuth.user && BMAuth.user.id) || 'anon', KEY = 'bm_parcurs_seen_v1_' + uid, arr = [], set = {};
+    try { arr = JSON.parse(localStorage.getItem(KEY) || '[]') || []; } catch (e) { arr = []; }
+    arr.forEach(function (k) { set[k] = 1; });
+    var hash = function (str) { var h = 5381, i; for (i = 0; i < str.length; i++) h = ((h << 5) + h + str.charCodeAt(i)) | 0; return (h >>> 0).toString(36); };
+    return {
+      has: function (k) { return !!set[hash(k)]; },
+      add: function (k) {
+        var x = hash(k); if (set[x]) return; set[x] = 1; arr.push(x);
+        if (arr.length > 260) arr.splice(0, arr.length - 260);
+        try { localStorage.setItem(KEY, JSON.stringify(arr)); } catch (e) { /* ignore */ }
+      }
+    };
+  }
+
   function begin() {
     if (!allowed(lessonId)) { location.replace('parcurs.html'); return; }
     replay = Prog.isDone(lessonId) && !/\.skip$/.test(lessonId);
-    L = C.build(lessonId, PM.rng());
+    L = C.build(lessonId, PM.rng(), seenMemory());
     /* doar pentru verificări: ?g=cmp:1 înlocuiește exercițiile cu 7 din același generator (nivelul după două puncte) */
     var forced = params.get('g');
     if (forced && window.PG && window.PG.G[forced.split(':')[0]]) {
@@ -165,7 +181,7 @@
   function noXp() { var r = window.BMAuth && window.BMAuth.role; return !!r && r !== 'elev'; }
   function lookFor(t) {
     if (t === 'learn') return { book: true, glasses: true };
-    if (t === 'num' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
+    if (t === 'num' || t === 'mixed' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
     return { glasses: true };
   }
   function head(sp) {
@@ -238,7 +254,7 @@
   };
 
   BUILD.multi = function (sp, el) {
-    var on = {}, box = h('div', 'lz-opts multi'), btns = [];
+    var on = {}, box = h('div', 'lz-opts multi' + (sp.opts.length > 5 ? ' grid' : '')), btns = [];
     el.appendChild(h('div', 'lz-note', 'Pot fi mai multe răspunsuri corecte.'));
     sp.opts.forEach(function (o, i) {
       var b = h('button', 'lz-op', '<span class="k"></span><span class="t">' + m(o) + '</span>'); b.type = 'button'; b.setAttribute('aria-pressed', 'false');
@@ -331,6 +347,46 @@
       focus: function () { try { top.focus({ preventScroll: true }); } catch (e) { top.focus(); } },
       okEl: function () { return col; },
       answerText: function () { return PM.fmtF(sp.a); }
+    };
+  };
+
+  /* răspuns ca număr mixt: o casetă pentru întregi (poate avea minus) și fracția, cu două casete, alături */
+  BUILD.mixed = function (sp, el) {
+    var wrap = h('div', 'lz-num lz-mixed'), msg = h('div', 'lz-msg'), row = h('div', 'lz-mrow');
+    var whole = h('input', 'lz-fin lz-fwhole'), col = h('div', 'lz-fcol'), top = h('input', 'lz-fin'), line = h('i', 'lz-fbar'), bot = h('input', 'lz-fin');
+    var ins = [whole, top, bot], names = ['Întregii', 'Numărătorul', 'Numitorul'];
+    ins.forEach(function (i, k) {
+      i.type = 'text'; i.maxLength = 7; i.autocomplete = 'off'; i.spellcheck = false;
+      i.setAttribute('inputmode', k === 0 ? 'text' : 'numeric'); i.setAttribute('enterkeyhint', k === 2 ? 'done' : 'next'); i.setAttribute('aria-label', names[k]);
+      i.addEventListener('input', function () {
+        var v = i.value.replace(/[−–]/g, '-');
+        i.value = (k === 0 && v.charAt(0) === '-' ? '-' : '') + v.replace(/[^0-9]/g, '');
+        refresh();
+      });
+      i.addEventListener('focus', function () { try { i.select(); } catch (e) { /* ignore */ } });
+      i.addEventListener('keydown', function (e) {
+        if (e.key === 'Enter') { e.preventDefault(); if (k < 2) ins[k + 1].focus(); else if (!go.disabled) go.click(); }
+        else if (e.key === 'ArrowDown' && k === 1) { e.preventDefault(); bot.focus(); }
+        else if (e.key === 'ArrowUp' && k === 2) { e.preventDefault(); top.focus(); }
+      });
+    });
+    col.appendChild(top); col.appendChild(line); col.appendChild(bot);
+    row.appendChild(whole); row.appendChild(col); wrap.appendChild(row); wrap.appendChild(msg); el.appendChild(wrap);
+    function filled() { return /^-?\d+$/.test(whole.value) && /^\d+$/.test(top.value) && /^\d+$/.test(bot.value); }
+    function refresh() { setGo(filled()); msg.textContent = ''; ins.forEach(function (i) { i.classList.remove('bad'); }); }
+    function bad(t, which) { msg.textContent = t; which.classList.add('bad'); which.classList.remove('shake'); void which.offsetWidth; which.classList.add('shake'); return null; }
+    return {
+      canCheck: filled,
+      isRight: function () {
+        var w = parseInt(whole.value, 10), n = parseInt(top.value, 10), d = parseInt(bot.value, 10);
+        if (d === 0) return bad('Numitorul nu poate fi 0.', bot);
+        if (n >= d) return bad('La un număr mixt, fracția trebuie să fie subunitară: numărătorul mai mic decât numitorul.', top);
+        return w === sp.a.w && n === sp.a.n && d === sp.a.d;
+      },
+      mark: function (right) { ins.forEach(function (i) { i.readOnly = true; i.classList.add(right ? 'ok' : 'no'); }); line.classList.add(right ? 'ok' : 'no'); },
+      focus: function () { try { whole.focus({ preventScroll: true }); } catch (e) { whole.focus(); } },
+      okEl: function () { return row; },
+      answerText: function () { return (sp.a.w < 0 ? '−' : '') + Math.abs(sp.a.w) + '{' + sp.a.n + '/' + sp.a.d + '}'; }
     };
   };
 

@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const PM = require('../js/parcurs/lib.js');
 const { G } = require('../js/parcurs/gens.js');
+require('../js/parcurs/gens2.js');   /* generatoarele pentru secțiunea 1, adăugate în același G */
 let content = null;
 try { content = require('../js/parcurs/content7.js'); } catch (e) { /* conținutul poate lipsi la început */ }
 
@@ -54,8 +55,13 @@ function evalExpr(src) {
       const [a, b] = body.split('/'); const ev = (t) => evalExpr(t);
       return PM.div(ev(a.replace(/-/g, '−')), ev(b.replace(/-/g, '−')));
     }
+    /* zecimală periodică: 0,(3)  2,(05)  0,2(35) */
+    const mp = /^\d+,\d*\(\d+\)/.exec(s.slice(i)); if (mp) { i += mp[0].length; return PM.parseAnswer(mp[0]).f; }
     const m = /^\d+(,\d+)?/.exec(s.slice(i)); if (!m) throw new Error('număr la ' + s.slice(i));
-    i += m[0].length; return PM.parseAnswer(m[0]).f;
+    i += m[0].length; const whole = PM.parseAnswer(m[0]).f;
+    /* număr mixt: 4{1/3} = 4 + 1/3 (semnul minus din față se aplică întregului număr mixt) */
+    if (s[i] === '{' && !m[1]) { const j = s.indexOf('}', i), body = s.slice(i + 1, j); i = j + 1; const [a, b] = body.split('/'); return PM.add(whole, PM.div(evalExpr(a), evalExpr(b))); }
+    return whole;
   }
   function un() { if (s[i] === '-') { i++; return PM.neg(un()); } if (s[i] === '+') { i++; return un(); } return num(); }
   function mul() { let v = un(); while (s[i] === '*' || s[i] === ':') { const o = s[i++]; const r = un(); v = o === '*' ? PM.mul(v, r) : PM.div(v, r); } return v; }
@@ -85,6 +91,11 @@ function validate(name, lvl, seed, sp) {
     const shown = sp.form === 'dec' ? PM.fmtDec(sp.a) : sp.form === 'per' ? PM.fmtDec(sp.a) : PM.fmtRaw(sp.a.n, sp.a.d).replace(/[{}]/g, '');
     const p = PM.parseAnswer(shown); check(p && PM.eq(p.f, sp.a), tag + ' răspunsul nu se poate scrie: ' + shown);
     if (sp.eq && !/▢/.test(sp.eq)) { const v = valOf(sp.eq); if (v) check(PM.eq(v, sp.a), tag + ' expresia ' + sp.eq + ' = ' + PM.fmtDec(v) + ' dar răspunsul ' + PM.fmtDec(sp.a)); }
+  } else if (sp.t === 'mixed') {
+    const a = sp.a;
+    check(a && Number.isInteger(a.w) && Number.isInteger(a.n) && Number.isInteger(a.d) && a.w !== 0 && a.n > 0 && a.n < a.d && PM.gcd(a.n, a.d) === 1, tag + ' mixed a');
+    if (sp.eq) { const v = valOf(sp.eq); const mv = PM.F((a.w < 0 ? -1 : 1) * (Math.abs(a.w) * a.d + a.n), a.d); if (v) check(PM.eq(v, mv), tag + ' expresia ' + sp.eq + ' dar răspunsul ' + a.w + ' ' + a.n + '/' + a.d); else check(false, tag + ' eq nu se poate evalua: ' + sp.eq); }
+    else check(/\{\d+\/\d+\}/.test(sp.q), tag + ' fără eq și fără fracție în text');
   } else if (sp.t === 'multi') {
     check(sp.ans.length > 0 && sp.ans.length < sp.opts.length && sp.ans.every((i) => i >= 0 && i < sp.opts.length), tag + ' multi');
   } else if (sp.t === 'order') {
