@@ -238,7 +238,7 @@
 
 /* sub 1180px nu e coloana din dreapta: rândul fix de sus (clasa, serie, tokenuri) trece peste lățimea paginii, deci antetul lipit stă chiar sub el */
 @media (min-width: 601px) and (max-width: 1179.98px) {
-  html.bm-authed .unit { top: 66px; }
+  html.bm-authed .unit { top: calc(var(--strip-h) - 2px); }
 }
 
 /* laptop și tabletă: fără rândul de chei din pagină (progresul și Secțiuni sunt sus), conținutul începe mai sus; antetul de secțiune e mai îngust ca să nu stea peste butonul clasei */

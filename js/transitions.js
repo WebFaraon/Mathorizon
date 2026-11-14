@@ -14,6 +14,26 @@
       empty or frozen.
    4. Links the visitor is about to follow are fetched ahead of time (speculation rules, where supported).
    ============================================================ */
+/* Caches that belong to ONE account (nickname, class, progress ring, navbar pill and counters, profile card, the lists of the exercises) must never be shown to another account
+   signed in on the same browser. The owner is remembered (bm_cache_uid); when the session in the browser belongs to someone else, those caches are dropped before the first paint.
+   If the owner was never recorded, only the identity caches go (the exercise lists are written through to the server, so they come back at the next sync). */
+(function () {
+  try {
+    var raw = localStorage.getItem('sb-tfflpivehrrzmklvcyhe-auth-token');
+    var uid = raw && JSON.parse(raw) && JSON.parse(raw).user && JSON.parse(raw).user.id;
+    if (!uid) return;
+    var last = localStorage.getItem('bm_cache_uid');
+    if (last !== uid) {
+      ['bm_nickname', 'bm_grade', 'bm_grade_view', 'bm_pp_pct', 'bm_nav_pill_user', 'bm_nav_counts_v1', 'bm_rail_html_v1'].forEach(function (k) { localStorage.removeItem(k); });
+      if (last) {
+        ['bm_solved', 'bm_streak', 'bm_favorites', 'bm_history', 'bac-history', 'bm_mistakes', 'bm_training_total_xp', 'bm_training_best_streak_persist'].forEach(function (k) { localStorage.removeItem(k); });
+        localStorage.setItem('bac_exam_tokens', '0');
+      }
+      localStorage.setItem('bm_cache_uid', uid);
+    }
+  } catch (e) { /* storage blocked */ }
+})();
+
 (function () {
   'use strict';
   var root = document.documentElement;

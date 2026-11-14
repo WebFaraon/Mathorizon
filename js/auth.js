@@ -56,6 +56,7 @@
         localStorage.removeItem('bm_solved');
         localStorage.removeItem('bm_streak');
         localStorage.removeItem('bm_rail_html_v1');
+        ['bm_nickname', 'bm_grade', 'bm_grade_view', 'bm_pp_pct', 'bm_nav_pill_user', 'bm_nav_counts_v1', 'bm_mistakes', 'bm_cache_uid'].forEach(k => localStorage.removeItem(k));
         localStorage.removeItem('bm_favorites');
         localStorage.removeItem('bm_history');
         localStorage.removeItem('bac-history');
