@@ -16,7 +16,7 @@
   --sb-off: calc(var(--sb-w) + var(--sb-gap) * 2);  /* cât ia panoul din lățimea ecranului: pagina începe după el */
   --strip-h: 60px;                                  /* înălțimea rândului de sus (nu mai e navbar) */
 }
-@media (min-width: 1180px) { :root { --sb-w: 232px; } }
+@media (min-width: 1180px) { :root { --sb-w: 256px; } }
 
 html.bnav-off #bnav { display: none !important; }
 

@@ -6290,25 +6290,33 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 }
 
 .toast {
-  padding: 10px 14px;
-  border-radius: var(--radius-sm);
-  font-size: 0.83rem;
-  font-weight: 600;
-  background: var(--card);
-  border: 1.5px solid var(--border);
-  border-left: 3px solid var(--border);
-  box-shadow: var(--shadow);
-  max-width: 290px;
+  padding: 11px 16px 11px 12px;
+  border-radius: 16px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.35;
+  background: var(--pm-face, var(--card));
+  border: 1.5px solid var(--pm-line, var(--border));
+  box-shadow: 0 4px 0 var(--pm-edge, var(--border));
+  max-width: 340px;
   animation: slideInToast 0.2s ease;
   pointer-events: all;
   display: flex;
   align-items: center;
-  gap: 7px;
-  color: var(--text);
+  gap: 12px;
+  color: var(--pm-ink, var(--text));
+  --tt-bg: #EDE7F8; --tt-ink: #5A31A6;
 }
-.toast.success { border-left-color: var(--green); }
-.toast.error   { border-left-color: var(--red); }
-.toast.info    { border-left-color: var(--accent); }
+/* the icon sits on a small rounded chip tinted by the kind of message */
+.toast > span:first-child { flex: none; width: 32px; height: 32px; display: grid; place-items: center; border-radius: 10px; background: var(--tt-bg); color: var(--tt-ink); }
+.toast > span:first-child .icon { color: inherit !important; }
+.toast.success { --tt-bg: #E3F3C2; --tt-ink: #4B7A0A; }
+.toast.error   { --tt-bg: #FBE0E4; --tt-ink: #C2253F; }
+.toast.info    { --tt-bg: #EDE7F8; --tt-ink: #5A31A6; }
+[data-theme="dark"] .toast { background: var(--pm-face, #241B35); border-color: var(--pm-line, #3A2E52); box-shadow: 0 4px 0 var(--pm-edge, #0F0A18); color: var(--pm-ink, #F1EBFB); }
+[data-theme="dark"] .toast.success { --tt-bg: #2A3A12; --tt-ink: #B6E83A; }
+[data-theme="dark"] .toast.error   { --tt-bg: #3E1722; --tt-ink: #FF8FA3; }
+[data-theme="dark"] .toast.info    { --tt-bg: #33264D; --tt-ink: #CDBFF0; }
 .toast.hiding  { animation: slideOutToast 0.2s ease forwards; }
 
 /* Toast carrying an inline action link (BM.toast opts.link) — a bit wider
@@ -6316,7 +6324,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 .toast--action { max-width: 340px; }
 .toast__msg { flex: 1; }
 .toast__link {
-  color: var(--accent);
+  color: var(--pm-key-ink, var(--accent));
   font-weight: 700;
   text-decoration: underline;
   white-space: nowrap;

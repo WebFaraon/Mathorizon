@@ -24,10 +24,10 @@
 
 /* secțiune: banda violet se lipește sus când derulezi */
 .pp-sec { position: relative; margin-bottom: 26px; }
-.unit { position: sticky; top: 98px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 10px 16px; border-radius: 16px; background: var(--pm-violet); color: #fff; box-shadow: 0 5px 0 var(--pm-violet-edge); }
+.unit { position: sticky; top: 8px; z-index: 6; display: flex; align-items: center; justify-content: space-between; gap: 14px; padding: 18px 20px; border-radius: 18px; background: var(--pm-violet); color: #fff; box-shadow: 0 5px 0 var(--pm-violet-edge); }
 .unit small { display: block; font-size: 10.5px; letter-spacing: 0.12em; font-weight: 800; color: #D6CCEE; }
-.unit h2 { margin: 2px 0 0; font-size: 16px; font-weight: 800; line-height: 1.25; color: #fff; }
-.unit .pr { display: flex; gap: 4px; margin-top: 7px; }
+.unit h2 { margin: 3px 0 0; font-size: 18px; font-weight: 800; line-height: 1.25; color: #fff; }
+.unit .pr { display: flex; gap: 4px; margin-top: 10px; }
 .unit .pr i { width: 24px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.22); }
 .unit .pr i.half { background: linear-gradient(90deg, var(--pm-lime) 50%, rgba(255, 255, 255, 0.22) 50%); }
 .unit .pr i.on { background: var(--pm-lime); }
@@ -235,3 +235,8 @@
 .pp-soonclass__act .go, .pp-soonclass__act .pk { box-sizing: border-box; height: 54px; padding: 0 26px; display: inline-flex; align-items: center; justify-content: center; font-size: 0.92rem; margin: 0; }
 .pp-soonclass__act .go { height: 50px; margin-bottom: 4px; }
 .pp-soonclass__act .pk { height: 54px; }
+
+/* sub 1180px nu e coloana din dreapta: rândul fix de sus (clasa, serie, tokenuri) trece peste lățimea paginii, deci antetul lipit stă chiar sub el */
+@media (min-width: 601px) and (max-width: 1179.98px) {
+  html.bm-authed .unit { top: 66px; }
+}
