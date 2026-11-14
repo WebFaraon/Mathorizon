@@ -1699,3 +1699,22 @@ html body:has(#classRoot) .flux-empty__icon {
 }
 [data-theme="dark"] html body:has(#classRoot) .flux-empty__icon, html[data-theme="dark"] body:has(#classRoot) .flux-empty__icon { background: #2A1750; border-color: #170C2E; box-shadow: 0 4px 0 #170C2E; }
 html body:has(#classRoot) .flux-empty__icon .owl { --ow: 54px; margin: 0 auto; }
+
+
+/* ---- round three of the class page (2026-11-14) ---- */
+/* the content is as wide as the plate and the tab bar (they sit 14px in from the page edge): messages, cards and tables line up with them */
+html body:has(#classRoot) #cdContent { margin-inline: -14px; }
+@media (max-width: 600px) { html body:has(#classRoot) #cdContent { margin-inline: -20px; } }
+/* the tab bar is not fixed: it scrolls with the page */
+html body:has(#classRoot) .cd-tabs-wrap { position: static; }
+/* messages: the same frame as the other blocks */
+html body:has(#classRoot) .msg-panel {
+  border: 1.5px solid var(--pm-line, var(--k-panel-edge));
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 5px 0 0 var(--pm-edge, var(--k-panel-edge));
+}
+/* "Vezi profilul" and "Notificări": only the illustrated icon on a key */
+html body:has(#classRoot) .cd-meta__ibtn { width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 14px; }
+html body:has(#classRoot) .cd-meta__ibtn img { display: block; width: 30px; height: 30px; pointer-events: none; }
+html body:has(#classRoot) .cd-meta__notif:not(.is-on) img { filter: grayscale(0.9) opacity(0.65); }

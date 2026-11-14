@@ -989,11 +989,11 @@
                     </span>
                     Profesor: ${BM.esc(classData.teacher_name)}
                   </span>
-                  <button type="button" class="cd-meta__teacher-viewbtn" id="cdViewTeacherBtn">
-                    ${icon('eye', { size: 14 })} Vezi profilul
+                  <button type="button" class="cd-meta__teacher-viewbtn cd-meta__ibtn" id="cdViewTeacherBtn" aria-label="Vezi profilul" title="Vezi profilul">
+                    <img src="assets/images/class/vezi-profil.svg" alt="" width="30" height="30">
                   </button>
-                  <button type="button" class="cd-meta__teacher-viewbtn cd-meta__notif" id="cdNotifBtn" hidden>
-                    ${icon('bell', { size: 14 })} Notificări
+                  <button type="button" class="cd-meta__teacher-viewbtn cd-meta__ibtn cd-meta__notif" id="cdNotifBtn" aria-label="Notificări" title="Notificări" hidden>
+                    <img src="assets/images/class/notificari.svg" alt="" width="30" height="30">
                   </button>
                 </div>
                 ${classData.reg_group_id ? `

@@ -1299,3 +1299,18 @@ html body.pm:has(#root) .cap-leaderboard__row {
   margin: 0 8px 2px;
 }
 html body.pm:has(#root) .cap-leaderboard__row--you { border-radius: 12px; }
+
+
+/* ---- the bar at the top of a chapter or a subchapter: a rounded bar inside the page, like the other blocks (it was a square strip with lines to the edges) ---- */
+html:not([data-theme="dark"]) body:has(#catHeader) .subcat-breadcrumb,
+html[data-theme="dark"] body:has(#catHeader) .subcat-breadcrumb {
+  margin: 14px 14px 0;
+  border: 1.5px solid #DDD6EA;
+  border-radius: 18px;
+  background: #EDE7F8;
+  box-shadow: 0 4px 0 0 #CFC6E3;
+  top: calc(var(--nav-h) + 6px);
+}
+html[data-theme="dark"] body:has(#catHeader) .subcat-breadcrumb { border-color: #3A2E52; background: #2E2244; box-shadow: 0 4px 0 0 #0F0A18; }
+html body:has(#catHeader) .subcat-breadcrumb > .container { max-width: none; padding-inline: 8px; }
+html body:has(#catHeader) .subcat-breadcrumb .subcat-bc__inner { padding-inline: 8px; }

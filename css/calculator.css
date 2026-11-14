@@ -4584,7 +4584,7 @@ body:has(#classesRoot) {
 .rg-row:hover, .rg-row:target { background: var(--k-blue-wash); }
 .rg-row:has(.rg-name:focus-visible) { outline: 2px solid var(--k-blue); outline-offset: -2px; }
 .rg-row[hidden] { display: none; }
-.rg-row--inactiv { opacity: 0.7; }
+.rg-row--inactiv > *:not(.rg-acts) { opacity: 0.62; }   /* the card keeps its face and its hover; only what is written on it is dimmed */
 
 .rg-time b {
   display: block;
