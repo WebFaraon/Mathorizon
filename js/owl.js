@@ -47,7 +47,8 @@
     withMascot(function () {
       if (!el.isConnected || el.__owl || !window.TeoremaMascot) return;
       try {
-        var m = new window.TeoremaMascot.Mascot(el, { mood: mood, theme: el.getAttribute('data-owl-theme') || theme() });
+        var look = {}; (el.getAttribute('data-owl-look') || '').split(',').forEach(function (k) { k = k.trim(); if (k) look[k] = 1; });   /* data-owl-look="book,glasses" */
+        var m = new window.TeoremaMascot.Mascot(el, { mood: mood, theme: el.getAttribute('data-owl-theme') || theme(), look: look });
         el.__owl = m; owls.push(m);
         el.classList.add('is-owl');
       } catch (e) { /* the element stays empty */ }
