@@ -1,6 +1,6 @@
 /* ============================================================
    Clasa aleasă, o singură dată pentru tot site-ul (Învață și Exerciții).
-   Butonul "Clasa a VII-a" din rândul de sus (laptop și tabletă) deschide o fereastră mică cu clasele V-XII. Alegerea se
+   Butonul "Clasa a VII-a" din rândul de sus (telefon, tabletă și laptop) deschide o fereastră mică cu clasele V-XII. Alegerea se
    ține în browser și o citesc ambele pagini, deci nu mai trebuie schimbată din două locuri.
 
    - Elevul schimbă clasa lui reală (bm_grade, plus set_student_grade în baza de date, ca în fereastra de pe Învață).
@@ -37,6 +37,8 @@
     var t = label();
     var els = document.querySelectorAll('[data-class-label]');
     for (var i = 0; i < els.length; i++) if (els[i].textContent !== t) els[i].textContent = t;
+    var sh = document.querySelectorAll('[data-class-short]'), r = ROMAN[get()];
+    for (var j = 0; j < sh.length; j++) if (sh[j].textContent !== r) sh[j].textContent = r;
   }
 
   /* ---- fereastra de alegere ---- */
