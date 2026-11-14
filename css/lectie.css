@@ -741,12 +741,11 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 
 /* ---- răspuns ca fracție: două casete (sus și jos) cu linia de fracție între ele ---- */
 .lz-frac { align-items: center; gap: 12px; }
-.lz-frow { display: flex; align-items: center; justify-content: center; gap: 16px; }
-.lz-fcol { display: flex; flex-direction: column; align-items: stretch; gap: 10px; width: min(188px, 50vw); }
+.lz-fcol { display: flex; flex-direction: column; align-items: stretch; gap: 8px; width: min(112px, 36vw); }
 .lz-fin {
-  width: 100%; box-sizing: border-box; height: 64px; padding: 0 10px; text-align: center;
-  border: 2px solid var(--pm-line); border-bottom-width: 5px; border-radius: 16px; background: var(--pm-face); color: var(--pm-ink);
-  font-size: 1.9rem; font-weight: 800; font-variant-numeric: tabular-nums; caret-color: var(--pm-violet);
+  width: 100%; box-sizing: border-box; height: 50px; padding: 0 8px; text-align: center;
+  border: 2px solid var(--pm-line); border-bottom-width: 4px; border-radius: 14px; background: var(--pm-face); color: var(--pm-ink);
+  font-size: 1.5rem; font-weight: 800; font-variant-numeric: tabular-nums; caret-color: var(--pm-violet);
   transition: border-color 0.12s ease, background 0.12s ease, box-shadow 0.12s ease;
 }
 .lz-fin:hover:not(:focus):not(.ok):not(.no) { border-color: var(--pm-violet); }
@@ -754,17 +753,43 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 .lz-fin.bad { border-color: var(--lz-no-line); }
 .lz-fin.ok { border-color: var(--lz-ok-line); background: var(--lz-ok-bg); box-shadow: none; }
 .lz-fin.no { border-color: var(--lz-no-line); background: var(--lz-no-bg); box-shadow: none; }
-.lz-fbar { display: block; height: 5px; border-radius: 3px; background: var(--pm-ink); transition: background 0.15s ease; }
+.lz-fbar { display: block; height: 4px; border-radius: 3px; background: var(--pm-ink); transition: background 0.15s ease; }
 .lz-fbar.ok { background: var(--lz-ok-line); }
 .lz-fbar.no { background: var(--lz-no-line); }
-.lz-sgn {
-  flex: none; width: 52px; height: 52px; padding: 0; border: 2px solid var(--pm-line); border-bottom-width: 4px; border-radius: 14px;
-  background: var(--pm-face); color: var(--pm-ink); font-size: 1.7rem; font-weight: 800; line-height: 1; cursor: pointer;
-  transition: transform 0.08s ease, background 0.12s ease, border-color 0.12s ease;
+.mt, .fr, sup, .lz-inp, .lz-key, .lz-eq, .lz-row .eqs, .bx, .lz-fin { font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: lining-nums; }
+.lz-fin { font-weight: 800; }
+
+/* Indiciu și Nu știu dispar după răspuns: regula de mai sus pentru display le-ar fi ținut vizibile chiar și cu atributul hidden */
+.lz-foot .lz-hint[hidden], .lz-foot .lz-skip[hidden] { display: none; }
+
+/* fereastra "Ieși din lecție?": cele două chei au aceeași înălțime */
+.lz-dlg__act { align-items: stretch; }
+.lz-dlg__act .lz-go, .lz-dlg__act .lz-out {
+  box-sizing: border-box; height: 52px; margin: 0; padding: 0 22px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 14px; font: inherit; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; line-height: 1; cursor: pointer;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease, filter 0.12s ease;
 }
-.lz-sgn:hover:not(:disabled):not(.on) { background: var(--pm-tint); }
-.lz-sgn.on { border-color: var(--pm-violet); background: var(--pm-tint); color: var(--pm-key-ink); }
-.lz-sgn:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 2px; }
-.lz-sgn.off { opacity: 0.45; cursor: default; }
-.mt, .fr, sup, .lz-inp, .lz-key, .lz-eq, .lz-row .eqs, .bx, .lz-fin, .lz-sgn { font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; font-style: normal; font-variant-numeric: lining-nums; }
-.lz-fin, .lz-sgn { font-weight: 800; }
+.lz-dlg__act .lz-go { flex: 1; border: 0; }
+.lz-dlg__act .lz-go:hover { background: var(--k-go, #7CB800); color: var(--k-go-ink, #14200A); filter: brightness(0.93); }
+.lz-dlg__act .lz-go:active { transform: translateY(4px); box-shadow: 0 0 0 var(--k-go-edge, #4C7A00); filter: none; }
+.lz-dlg__act .lz-out { flex: none; border: 2px solid var(--pm-line); background: var(--pm-face); color: var(--pm-ink-2); box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3); }
+.lz-dlg__act .lz-out:hover { border: 2px solid var(--pm-line); background: var(--pm-tint); color: var(--pm-key-ink); box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3); }
+.lz-dlg__act .lz-out:active { transform: translateY(4px); box-shadow: 0 0 0 var(--pm-edge, #CFC6E3); }
+
+/* explicația de după răspuns: titlu, răspunsul corect pe un rând, apoi fiecare frază pe rândul ei; calculele se văd mai mari */
+.lz-foot__in { max-width: 760px; }
+.lz-fb { align-items: flex-start; }
+.lz-fb__tx { min-width: 0; }
+.lz-fb__tx b { margin-bottom: 4px; }
+.lz-fb__tx > span { font-size: 0.95rem; line-height: 1.45; }
+.lz-fb__ans { display: flex !important; align-items: center; flex-wrap: wrap; gap: 4px 12px; margin: 2px 0 8px; font-weight: 800; }
+.lz-fb__ans b { display: inline-flex; align-items: center; margin: 0; padding: 3px 14px; border-radius: 12px; background: var(--pm-face); border: 2px solid var(--lz-no-line); font-size: 1.25rem; color: var(--pm-ink); }
+.lz-fb__why { display: flex !important; flex-direction: column; gap: 5px; }
+.lz-fb__why .ln { display: block; }
+.lz-fb__why .ln.calc { font-size: 1.12rem; font-weight: 800; padding: 3px 0; }
+.lz-fb__why .ln .fr { font-size: 0.95em; }
+.lz-fb__again { display: block !important; margin-top: 6px; font-weight: 800; opacity: 0.85; }
+@media (max-width: 520px) {
+  .lz-fb__tx > span { font-size: 0.9rem; }
+  .lz-fb__why .ln.calc { font-size: 1.02rem; }
+}

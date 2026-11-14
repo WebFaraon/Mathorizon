@@ -288,13 +288,18 @@
 
   /* răspuns de tip fracție: chiar forma fracției, cu două casete goale (sus și jos) pe care elevul le completează pe rând */
   BUILD.frac = function (sp, el) {
-    var wrap = h('div', 'lz-num lz-frac'), msg = h('div', 'lz-msg'), neg = false;
-    var sign = h('button', 'lz-sgn', '−'); sign.type = 'button'; sign.setAttribute('aria-pressed', 'false'); sign.setAttribute('aria-label', 'semn minus'); sign.title = 'Semn minus';
+    var wrap = h('div', 'lz-num lz-frac'), msg = h('div', 'lz-msg');
     var col = h('div', 'lz-fcol'), top = h('input', 'lz-fin'), line = h('i', 'lz-fbar'), bot = h('input', 'lz-fin');
     [top, bot].forEach(function (i, k) {
-      i.type = 'text'; i.setAttribute('inputmode', 'numeric'); i.setAttribute('pattern', '[0-9]*'); i.maxLength = 6; i.autocomplete = 'off'; i.spellcheck = false;
-      i.setAttribute('aria-label', k ? 'Numitorul' : 'Numărătorul'); i.setAttribute('enterkeyhint', k ? 'done' : 'next');
-      i.addEventListener('input', function () { i.value = i.value.replace(/\D/g, '').slice(0, 6); refresh(); });
+      i.type = 'text'; i.maxLength = 7; i.autocomplete = 'off'; i.spellcheck = false;
+      /* sus poate fi și minus (tastatura completă pe telefon), jos doar cifre */
+      i.setAttribute('inputmode', k ? 'numeric' : 'text'); i.setAttribute('enterkeyhint', k ? 'done' : 'next');
+      i.setAttribute('aria-label', k ? 'Numitorul' : 'Numărătorul');
+      i.addEventListener('input', function () {
+        var v = i.value.replace(/[−–]/g, '-');
+        i.value = (k === 0 && v.charAt(0) === '-' ? '-' : '') + v.replace(/[^0-9]/g, '');
+        refresh();
+      });
       i.addEventListener('focus', function () { try { i.select(); } catch (e) { /* ignore */ } });
     });
     top.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === 'ArrowDown') { e.preventDefault(); bot.focus(); } });
@@ -302,13 +307,10 @@
       if (e.key === 'ArrowUp') { e.preventDefault(); top.focus(); return; }
       if (e.key === 'Enter') { e.preventDefault(); if (!go.disabled) go.click(); else if (!top.value) top.focus(); }
     });
-    sign.onclick = function () { if (phase !== 'answer') return; neg = !neg; sign.classList.toggle('on', neg); sign.setAttribute('aria-pressed', neg ? 'true' : 'false'); PV.pop(sign); refresh(); };
     col.appendChild(top); col.appendChild(line); col.appendChild(bot);
-    var row = h('div', 'lz-frow'); row.appendChild(sign); row.appendChild(col);
-    wrap.appendChild(row); wrap.appendChild(msg); el.appendChild(wrap);
-    function filled() { return top.value !== '' && bot.value !== ''; }
+    wrap.appendChild(col); wrap.appendChild(msg); el.appendChild(wrap);
+    function filled() { return /^-?\d+$/.test(top.value) && bot.value !== ''; }
     function refresh() { setGo(filled()); msg.textContent = ''; top.classList.remove('bad'); bot.classList.remove('bad'); }
-    function text() { return (neg ? '-' : '') + top.value + '/' + bot.value; }
     function bad(t, which) {
       msg.textContent = t; which.classList.add('bad'); which.classList.remove('shake'); void which.offsetWidth; which.classList.add('shake');
       return null;
@@ -317,7 +319,7 @@
       canCheck: filled,
       isRight: function () {
         if (+bot.value === 0) return bad('Numitorul nu poate fi 0.', bot);
-        var p = PM.parseAnswer(text());
+        var p = PM.parseAnswer(top.value + '/' + bot.value);
         if (!p) return bad('Completează numărătorul și numitorul cu numere întregi.', top);
         var right = PM.eq(p.f, sp.a);
         if (right && sp.reduced && !p.reduced) return bad('Valoarea e bună, dar fracția se mai poate simplifica. Simplific-o până la capăt.', top);
@@ -325,7 +327,6 @@
       },
       mark: function (right) {
         [top, bot].forEach(function (i) { i.readOnly = true; i.classList.add(right ? 'ok' : 'no'); }); line.classList.add(right ? 'ok' : 'no');
-        sign.disabled = true; sign.classList.add('off');
       },
       focus: function () { try { top.focus({ preventScroll: true }); } catch (e) { top.focus(); } },
       okEl: function () { return col; },
@@ -488,13 +489,16 @@
     skip.hidden = true; hintBtn.hidden = true;
     fb.hidden = false;
     fbT.textContent = right ? (streak >= 3 && streak % 3 === 0 ? 'Serie de ' + streak + '!' : OKT[Math.floor(Math.random() * OKT.length)]) : (giveUp ? 'Nu-i nimic.' : NOT[Math.floor(Math.random() * NOT.length)]);
-    var txt = step.why || '';
+    var txt = step.why || '', html = '';
     if (!right) {
-      if (ctl.answerText) txt = 'Răspunsul corect: ' + ctl.answerText() + '. ' + txt;
-      if (ctl.extra && ctl.extra()) txt = ctl.extra() + ' ' + txt;
-      else if (!L.noRetry) txt += ' O mai încercăm la final.';
+      if (ctl.answerText) html += '<span class="lz-fb__ans">Răspunsul corect<b>' + m(ctl.answerText()) + '</b></span>';
+      if (ctl.extra && ctl.extra()) html += '<span class="lz-fb__why"><span class="ln">' + m(ctl.extra()) + '</span></span>';
     }
-    fbX.innerHTML = m(txt);
+    /* explicația, o frază pe rând; un rând care e doar calcul (începe cu o fracție sau o cifră) se vede mai mare */
+    var parts = txt.split(/(?<=[.!?])\s+/).filter(function (x) { return x.trim(); });
+    if (parts.length) html += '<span class="lz-fb__why">' + parts.map(function (x) { var calc = /^[{\d−-]/.test(x); return '<span class="ln' + (calc ? ' calc' : '') + '">' + m(calc ? x.replace(/\.$/, '') : x) + '</span>'; }).join('') + '</span>';
+    if (!right && !L.noRetry && !(ctl.extra && ctl.extra())) html += '<span class="lz-fb__again">O mai încercăm la final.</span>';
+    fbX.innerHTML = html;
     var host = $('#lzFbOwl'); host.innerHTML = '';
     if (fbOwl) { try { window.TeoremaMascot.dispose(fbOwl); } catch (e) { /* gone */ } }
     fbOwl = owl(host, right ? 'happy' : 'wrong');

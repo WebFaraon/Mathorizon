@@ -268,12 +268,6 @@
 .scn__prop { position: absolute; display: block; }
 .scn:not(.is-in) *, .scn:not(.is-in) { animation-play-state: paused !important; }
 
-/* citește, pe un morman de cărți */
-.scn--read .scn__books { left: 50%; bottom: 8px; width: 112px; margin-left: -56px; z-index: 0; }
-.scn--read .scn__owl { bottom: 52px; animation: scn-sway 5s ease-in-out infinite; }
-@keyframes scn-sway { 0%, 100% { transform: rotate(-3deg); } 50% { transform: rotate(3deg); } }
-.scn--read .scn__shadow { bottom: 2px; width: 120px; margin-left: -60px; }
-
 /* doarme, sub lună */
 .scn--sleep .scn__moon { right: -4px; top: -8px; width: 74px; animation: scn-float 6s ease-in-out infinite; }
 .scn--sleep .scn__cush { left: 50%; bottom: 4px; width: 118px; margin-left: -59px; }
