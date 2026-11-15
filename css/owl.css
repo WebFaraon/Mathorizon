@@ -160,3 +160,7 @@ body:has(#classRoot) .classes-spinner.owl--spin.is-owl { display: block; --ow: 1
 @keyframes ap-slide { from { opacity: 0; transform: translateX(calc(var(--ap-dx, 1) * 22px)); } }
 /* the owl perched on the panel needs room above it (the panel can be taller than the screen) */
 .ap-panel:has(> .owl--perch) { margin-top: 64px; }
+
+/* the bar under the owl of the class pages' loaders (same as the page change); until the owl is in, only the ring turns */
+.classes-loading:not(:has(.is-owl)) .bm-leave__bar { display: none; }
+.classes-loading .bm-leave__bar { margin-top: 12px; }

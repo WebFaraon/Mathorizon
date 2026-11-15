@@ -163,7 +163,7 @@
     return `
       <div class="cl-page">
         <div class="cl-loading" role="status">
-          <span class="cl-loading__lcd">Se încarcă<i></i></span>
+          <div class="bm-leave__img"></div><div class="bm-leave__bar"><i></i></div><span class="cl-loading__sr">Se încarcă</span>
         </div>
       </div>`;
   }

@@ -64,6 +64,9 @@
     var host = el.parentNode, p = host && host.querySelector('p, .ai-loading__text');
     var txt = (p && p.textContent) || (host && host.textContent) || '';
     el.setAttribute('data-owl', /\bAI\b|analiz|evalu|verific|Gemini/i.test(txt) ? 'verify' : 'load');
+    if (host && host.classList && host.classList.contains('classes-loading') && !host.querySelector('.bm-leave__bar')) {
+      el.insertAdjacentHTML('afterend', '<div class="bm-leave__bar" aria-hidden="true"><i></i></div>');   // the same sliding bar as on a page change
+    }
     el.classList.add('owl--spin');       // the size comes with .is-owl, once the owl is in (the ring turns until then)
     hydrate(el);
   }

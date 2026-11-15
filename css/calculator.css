@@ -3898,7 +3898,8 @@ body:has(#classesRoot) {
 .cl-codeinput:focus { outline: none; box-shadow: 0 0 0 4px var(--k-blue), inset 0 3px 6px rgba(0, 0, 0, 0.22); }
 
 /* ---- Loading ---- */
-.cl-loading { display: flex; justify-content: center; padding: 110px 0; }
+.cl-loading { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 22px; padding: 90px 0; }
+.cl-loading__sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
 .cl-loading__lcd {
   display: inline-block;
   margin: 7px;
