@@ -68,12 +68,27 @@
     }
     return null;
   }
-  document.addEventListener('pointerdown', function (e) {
-    if (e.pointerType === 'mouse' && e.button !== 0) return;
+  /* mouse: la apăsare, ca să se audă pe loc. Deget: abia când degetul se ridică fără să fi alunecat, ca un scroll care pornește de pe un buton
+     (sau o atingere anulată de browser) să nu scoată niciun sunet */
+  var touch = null;
+  function target(e) {
     var t = e.target && e.target.nodeType === 1 ? pressable(e.target) : null;
-    if (!t) { wake(); return; }
-    if (t.disabled || t.getAttribute('aria-disabled') === 'true' || t.closest('[data-nosound]')) return;
-    play('click');
+    if (!t || t.disabled || t.getAttribute('aria-disabled') === 'true' || t.closest('[data-nosound]')) return null;
+    return t;
+  }
+  document.addEventListener('pointerdown', function (e) {
+    if (e.pointerType === 'mouse') { if (e.button !== 0) return; if (target(e)) play('click'); else wake(); return; }
+    touch = { id: e.pointerId, x: e.clientX, y: e.clientY, ok: !!target(e) };
+    wake();
+  }, true);
+  document.addEventListener('pointermove', function (e) {
+    if (touch && e.pointerId === touch.id && (Math.abs(e.clientX - touch.x) > 8 || Math.abs(e.clientY - touch.y) > 8)) touch.ok = false;
+  }, { capture: true, passive: true });
+  document.addEventListener('pointercancel', function (e) { if (touch && e.pointerId === touch.id) touch = null; }, true);
+  document.addEventListener('pointerup', function (e) {
+    if (!touch || e.pointerId !== touch.id) return;
+    var ok = touch.ok; touch = null;
+    if (ok && target(e)) play('click');
   }, true);
   /* unele telefoane (iPhone) deblochează sunetul abia la ridicarea degetului */
   ['touchend', 'click', 'keydown'].forEach(function (ev) { document.addEventListener(ev, wake, { capture: true, passive: true }); });

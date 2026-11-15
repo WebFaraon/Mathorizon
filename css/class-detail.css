@@ -1718,3 +1718,40 @@ html body:has(#classRoot) .msg-panel {
 html body:has(#classRoot) .cd-meta__ibtn { width: 46px; height: 46px; padding: 0; justify-content: center; border-radius: 14px; }
 html body:has(#classRoot) .cd-meta__ibtn img { display: block; width: 30px; height: 30px; pointer-events: none; }
 html body:has(#classRoot) .cd-meta__notif:not(.is-on) img { filter: grayscale(0.9) opacity(0.65); }
+
+
+/* ---- class page on a phone, round four (2026-11-15) ---- */
+/* the content lines up with the plate and the tab bar (8px from the screen edge; it ran past both edges, so the card frames were cut off) */
+@media (max-width: 600px) { html body:has(#classRoot) #cdContent { margin-inline: -4px; } }
+
+/* messages in "ecran complet": a real full-screen layer over everything (navbar, side or bottom bar, class tabs), not just a taller panel */
+html.bm-authed:not(.bnav-off) body:has(#classRoot) .msg-panel.msg-panel--fullscreen,
+html body:has(#classRoot) .msg-panel--fullscreen {
+  position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 3000; width: auto; height: 100vh; height: 100dvh; min-height: 0; max-height: none; margin: 0; box-sizing: border-box;
+  border: 0; border-radius: 0; box-shadow: none; padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+body.flux-fs #bnav, body.flux-fs #nav-root, body.flux-fs .scroll-top-btn { display: none !important; }
+body.flux-fs .cd-header, body.flux-fs .cd-tabs-wrap { visibility: hidden; }
+
+/* the teacher, "Vezi profilul" and the bell on ONE row on a phone */
+@media (max-width: 600px) {
+  html body:has(#classRoot) .cd-meta { flex-wrap: nowrap; align-items: center; gap: 10px; }
+  html body:has(#classRoot) .cd-meta__teacher { flex: 1 1 auto; min-width: 0; display: flex; align-items: center; gap: 10px; font-size: 0.9rem; line-height: 1.25; }
+  html body:has(#classRoot) .cd-teacher-avatar { flex: none; width: 46px; height: 46px; }
+  html body:has(#classRoot) .cd-meta__ibtn { flex: none; width: 42px; height: 42px; border-radius: 13px; }
+  html body:has(#classRoot) .cd-meta__ibtn img { width: 26px; height: 26px; }
+}
+
+/* Sumar, "Toți elevii" of a register group on a phone: a card per student, two short lines instead of five stacked ones */
+@media (max-width: 760px) {
+  html body:has(#classRoot) .sumar-roster.sumar-roster--reg .sumar-roster__row--head { display: none; }
+  html body:has(#classRoot) .sumar-roster.sumar-roster--reg .sumar-roster__row:not(.sumar-roster__row--head) {
+    display: grid; grid-template-columns: minmax(0, 1fr) auto; grid-template-areas: "name chip" "mgr when" "acc acc";
+    align-items: center; gap: 8px 12px; padding: 14px 14px 12px;
+  }
+  html body:has(#classRoot) .sumar-roster--reg .sumar-roster__name { grid-area: name; min-width: 0; }
+  html body:has(#classRoot) .sumar-roster--reg .sumar-roster__chip { grid-area: chip; justify-self: end; }
+  html body:has(#classRoot) .sumar-roster--reg .sumar-roster__mgr { grid-area: mgr; min-width: 0; }
+  html body:has(#classRoot) .sumar-roster--reg .sumar-roster__when { grid-area: when; justify-self: end; text-align: right; white-space: nowrap; }
+  html body:has(#classRoot) .sumar-roster--reg .sumar-roster__accwrap { grid-area: acc; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--pm-line, var(--k-panel-edge)); }
+}

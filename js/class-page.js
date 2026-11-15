@@ -1872,6 +1872,7 @@
     btn.title = _fluxFullscreen ? 'Ieși din ecran complet' : 'Ecran complet';
     document.documentElement.style.overflow = _fluxFullscreen ? 'hidden' : '';
     document.body.style.overflow = _fluxFullscreen ? 'hidden' : '';
+    document.body.classList.toggle('flux-fs', _fluxFullscreen);
   }
 
   function _fluxEscHandler(e) {
