@@ -1,13 +1,12 @@
 /* ============================================================
-   Teorema — pagini juridice (confidentialitate.html, termeni.html)
+   Teorema: pagini juridice (confidentialitate.html, termeni.html)
    ============================================================
-   Aceeasi lume ca pagina de autentificare: bara albastra a navbarului
-   sus, hartie milimetrica, un singur document pe un panou plat.
-   Se incarca dupa css/auth-page.css (de la care preia cheile si tokenii
-   --ap-*) si e scoped pe body.lg.
+   Aceeasi lume ca pagina de autentificare: bara violet sus, hartie milimetrica, un document pe un card cu rama si muchie.
+   Se incarca dupa css/auth-page.css si css/premium.css, scoped pe body.legal.
+   (Clasa corpului era "lg", dar calculator.css are un .lg { position: fixed } pentru ferestre: pagina nu putea fi derulata.)
    ============================================================ */
 
-body.lg { display: flex; flex-direction: column; background: var(--k-bg); }
+body.legal { display: flex; flex-direction: column; min-height: 100vh; min-height: 100dvh; background: var(--k-bg); }
 
 .lg-top {
   display: flex;
@@ -24,7 +23,7 @@ body.lg { display: flex; flex-direction: column; background: var(--k-bg); }
 
 .lg-main {
   flex: 1;
-  padding: clamp(20px, 4vw, 48px) clamp(16px, 4vw, 40px) 64px;
+  padding: clamp(20px, 4vw, 48px) clamp(14px, 4vw, 40px) 64px;
   background-color: var(--k-bg);
   background-image:
     linear-gradient(var(--k-grid) 1px, transparent 1px),
@@ -34,33 +33,57 @@ body.lg { display: flex; flex-direction: column; background: var(--k-bg); }
 }
 
 .lg-doc {
-  max-width: 820px;
+  max-width: 840px;
   margin: 0 auto;
-  background: var(--k-panel);
-  border: 1px solid var(--k-panel-edge);
-  border-radius: var(--k-r);
-  color: var(--k-ink);
+  overflow: hidden;
+  background: var(--pm-face);
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+  color: var(--pm-ink);
 }
-.lg-head { padding: clamp(20px, 4vw, 36px) clamp(20px, 4vw, 40px) 20px; border-bottom: 1px solid var(--k-rule); }
-.lg-title { margin: 0; font-size: clamp(1.75rem, 2.5vw, 2.25rem); font-weight: 800; line-height: 1.12; letter-spacing: -0.028em; text-wrap: balance; }
-.lg-meta { margin: 10px 0 0; font-size: 0.86rem; font-weight: 600; color: var(--k-ink-2); }
-.lg-lede { margin: 16px 0 0; max-width: 62ch; font-size: 1rem; line-height: 1.6; color: var(--k-ink-2); }
+
+/* the head: the owl on its tile, the title, the date as a pill, a short line, the two documents as keys */
+.lg-head {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  gap: 18px 22px;
+  padding: clamp(22px, 4vw, 36px) clamp(20px, 4vw, 40px) 24px;
+  background: var(--pm-tint);
+  border-bottom: 1.5px solid var(--pm-line);
+}
+.lg-badge { display: block; width: 76px; height: 76px; border-radius: 22px; box-shadow: 0 4px 0 0 #2C1952; }
+.lg-kicker { margin: 0 0 4px; font-size: 0.72rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pm-ink-2); }
+.lg-title { margin: 0; font-size: clamp(1.7rem, 2.6vw, 2.3rem); font-weight: 800; line-height: 1.1; letter-spacing: -0.028em; color: var(--pm-ink); text-wrap: balance; }
+.lg-meta { margin: 10px 0 0; }
+.lg-pill {
+  display: inline-block; padding: 4px 12px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-face);
+  font-size: 0.78rem; font-weight: 700; color: var(--pm-ink-2);
+}
+.lg-lede { grid-column: 1 / -1; margin: 0; max-width: 62ch; font-size: 1rem; line-height: 1.6; color: var(--pm-ink-2); }
 
 /* the two documents are two keys */
-.lg-switch { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 18px; }
-.lg-switch .ap-mode { display: inline-flex; align-items: center; justify-content: center; height: 40px; padding: 0 16px; text-decoration: none; font-size: 0.86rem; }
+.lg-switch { grid-column: 1 / -1; display: flex; gap: 10px; flex-wrap: wrap; }
+.lg-switch .ap-mode { display: inline-flex; align-items: center; justify-content: center; height: 42px; padding: 0 18px; text-decoration: none; font-size: 0.88rem; }
 
-.lg-body { padding: 8px clamp(20px, 4vw, 40px) clamp(24px, 4vw, 40px); }
-.lg-body section { padding: 22px 0 4px; }
-.lg-body section + section { border-top: 1px solid var(--k-rule); margin-top: 18px; }
-.lg-body h2 { margin: 0 0 10px; font-size: 1.12rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; }
-.lg-body p, .lg-body li { max-width: 68ch; font-size: 0.96rem; line-height: 1.65; color: var(--k-ink); }
+/* the text: numbered sections */
+.lg-body { counter-reset: lg; padding: 8px clamp(20px, 4vw, 40px) clamp(24px, 4vw, 40px); }
+.lg-body section { counter-increment: lg; padding: 24px 0 6px; }
+.lg-body section + section { border-top: 1.5px solid var(--pm-line); margin-top: 18px; }
+.lg-body h2 { display: flex; align-items: center; gap: 12px; margin: 0 0 12px; font-size: 1.15rem; font-weight: 800; line-height: 1.25; letter-spacing: -0.01em; color: var(--pm-ink); }
+.lg-body h2::before {
+  content: counter(lg, decimal-leading-zero); flex: none; display: grid; place-items: center; min-width: 34px; height: 34px; padding: 0 6px; border-radius: 11px;
+  background: var(--pm-violet); box-shadow: 0 3px 0 0 #2C1952; color: #fff; font-size: 0.78rem; font-weight: 800; letter-spacing: 0.02em;
+}
+.lg-body p, .lg-body li { max-width: 68ch; font-size: 0.97rem; line-height: 1.7; color: var(--pm-ink); }
 .lg-body p { margin: 0 0 12px; }
 .lg-body ul { margin: 0 0 12px; padding-left: 1.2em; }
-.lg-body li { margin-bottom: 6px; }
-.lg-body li::marker { color: var(--k-ink-3); }
+.lg-body li { margin-bottom: 7px; }
+.lg-body li::marker { color: var(--pm-violet); }
 .lg-body strong { font-weight: 800; }
-.lg-body a { color: var(--k-blue); text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+.lg-body a { color: var(--pm-violet); font-weight: 700; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+[data-theme="dark"] .lg-body a { color: #C9B6F5; }
 .lg-body a:hover { text-decoration-thickness: 2px; }
 
 /* what we process: a printed sheet, hairline grid */
@@ -82,20 +105,28 @@ body.lg { display: flex; flex-direction: column; background: var(--k-bg); }
   color: var(--k-orange-ink);
 }
 
-.lg-foot { padding: 14px clamp(20px, 4vw, 40px); border-top: 1px solid var(--k-rule); font-size: 0.82rem; font-weight: 600; color: var(--k-ink-3); }
+.lg-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px 24px; flex-wrap: wrap; padding: 18px clamp(20px, 4vw, 40px);
+  background: var(--ap-cover); color: var(--ap-side-ink-2); font-size: 0.84rem; font-weight: 600;
+}
+.lg-foot__logo { height: 28px; width: auto; }
+.lg-foot a { color: #fff; text-decoration: underline; text-decoration-thickness: 1px; text-underline-offset: 3px; }
 
 @media (max-width: 520px) {
   .lg-top .ap-brand__logo { height: 30px; }
-  .lg-top .ap-brand__name { font-size: 0.86rem; letter-spacing: 4px; }
   .lg-top .ap-side__keys .ap-key--nav span { display: none; }
   .lg-top .ap-side__keys .ap-key--nav:not(.ap-key--sq) { width: 38px; padding: 0; }
+  .lg-head { grid-template-columns: 1fr; gap: 14px; }
+  .lg-badge { width: 60px; height: 60px; border-radius: 18px; }
+  .lg-switch .ap-mode { flex: 1 1 100%; }
+  .lg-body h2 { gap: 10px; font-size: 1.05rem; }
   .lg-sheet th, .lg-sheet td { display: block; width: auto; padding: 8px 12px; }
   .lg-sheet th { padding-bottom: 0; }
   .lg-sheet tr + tr > th { border-top: 1px solid var(--k-rule); }
   .lg-sheet tr + tr > td { border-top: 0; }
 }
 @media print {
-  .lg-top, .lg-switch { display: none; }
-  body.lg, .lg-main { background: #fff; }
-  .lg-doc { border: 0; }
+  .lg-top, .lg-switch, .lg-foot { display: none; }
+  body.legal, .lg-main { background: #fff; }
+  .lg-doc { border: 0; box-shadow: none; }
 }
