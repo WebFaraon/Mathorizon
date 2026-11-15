@@ -1,0 +1,128 @@
+/* ============================================================
+   Panoul lateral al consolei, in aceeasi limba ca panoul din stanga al site-ului (css/bnav.css):
+   alb, rotunjit, rama fina si muchie solida jos, sigla pe un bloc violet, taburi cu iconite ilustrate,
+   cel deschis e o cheie usor colorata cu muchie, apasarea coboara. Lista de taburi se deruleaza,
+   sigla si zona de jos raman pe loc. Se incarca dupa brand.css.
+   ============================================================ */
+body.ax.ax-brand .ax-sign {
+  --sd-face: #FFFFFF; --sd-tint: #EDE7F8; --sd-line: #DDD6EA; --sd-line2: #C9BFE0; --sd-edge: #CFC6E3;
+  --sd-ink: #1E1631; --sd-ink2: #5B4F74; --sd-logo: #3F236E; --sd-logo-edge: #2A1550;
+}
+[data-theme="dark"] body.ax.ax-brand .ax-sign {
+  --sd-face: #241B35; --sd-tint: #33264D; --sd-line: #3A2E52; --sd-line2: #4A3C68; --sd-edge: #0F0A18;
+  --sd-ink: #F1EBFB; --sd-ink2: #B5A9CE; --sd-logo: #2A1750; --sd-logo-edge: #130A26;
+}
+
+/* the column holds the floating panel: 14px of air all round, the edge counts in the bottom gap */
+@media (min-width: 961px) {
+  body.ax.ax-brand .ax-shell { grid-template-columns: 284px minmax(0, 1fr); --ax-side-w: 284px; }
+  body.ax.ax-brand .ax-shell.is-folded { grid-template-columns: 100px minmax(0, 1fr); --ax-side-w: 100px; }
+  body.ax.ax-brand .ax-edge { left: calc(var(--ax-side-w) - 22px); }
+}
+body.ax.ax-brand .ax-sign {
+  top: 14px; margin: 14px 14px 19px; height: calc(100vh - 33px); height: calc(100dvh - 33px);
+  padding: 12px 12px 12px;
+  overflow: hidden;
+  background: var(--sd-face); color: var(--sd-ink);
+  border: 1.5px solid var(--sd-line); border-radius: 22px;
+  box-shadow: 0 5px 0 var(--sd-edge);
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* the logo on a violet block, the line of the console under it */
+body.ax.ax-brand .ax-sign__brand { flex: none; display: block; padding: 0; margin: 0 0 4px; border: 0; }
+body.ax.ax-brand .ax-sign__logoblk {
+  display: flex; align-items: center; justify-content: center; padding: 11px 14px 10px; border-radius: 14px;
+  background: var(--sd-logo); box-shadow: 0 3px 0 var(--sd-logo-edge);
+}
+body.ax.ax-brand .ax-sign__wordmark { width: min(100%, 176px); }
+body.ax.ax-brand .ax-sign__brand > span.ax-hide-folded { display: block; }
+body.ax.ax-brand .ax-sign__brand small {
+  display: block; margin: 0; padding: 10px 6px 4px; text-align: center; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--sd-ink2);
+}
+
+/* the list scrolls, the logo above it and the account below it stay put */
+body.ax.ax-brand #axNav {
+  flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: hidden; margin: 0 -6px; padding: 6px 6px 26px;
+  scrollbar-width: thin; scrollbar-color: var(--sd-line2) transparent;
+  -webkit-mask-image: linear-gradient(to bottom, transparent 0, #000 8px, #000 calc(100% - 26px), transparent 100%); mask-image: linear-gradient(to bottom, transparent 0, #000 8px, #000 calc(100% - 26px), transparent 100%);
+}
+body.ax.ax-brand #axNav::-webkit-scrollbar { width: 6px; }
+body.ax.ax-brand #axNav::-webkit-scrollbar-thumb { background: var(--sd-line2); border-radius: 999px; }
+body.ax.ax-brand .ax-sign__group { margin-top: 12px; }
+body.ax.ax-brand .ax-sign__title { padding: 0 10px 6px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; color: var(--sd-ink2); }
+body.ax.ax-brand .ax-nav { gap: 4px; }
+
+/* a tab: the illustrated icon and the name; hover tints, the open one is a key with an edge, a press sinks it */
+body.ax.ax-brand .ax-nav__a,
+body.ax.ax-brand .ax-nav__a:hover {
+  min-height: 54px; padding: 8px 12px; gap: 14px; border: 1.5px solid transparent; border-radius: 14px; background: none; box-shadow: none; margin-bottom: 0;
+  color: var(--sd-ink); font-size: 0.98rem; font-weight: 700; letter-spacing: 0.01em;
+  transition: background-color 0.14s ease, transform 0.08s ease, box-shadow 0.08s ease;
+}
+body.ax.ax-brand .ax-nav__a:hover { background: color-mix(in srgb, var(--sd-tint) 55%, transparent); }
+body.ax.ax-brand .ax-nav__a[aria-current="page"],
+body.ax.ax-brand .ax-nav__a[aria-current="page"]:hover {
+  background: var(--sd-tint); border-color: var(--sd-line2); box-shadow: 0 3px 0 var(--sd-edge); color: var(--sd-ink); font-weight: 800; margin-bottom: 3px;
+}
+body.ax.ax-brand .ax-nav__a:active { transform: translateY(2px); }
+body.ax.ax-brand .ax-nav__a[aria-current="page"]:active { box-shadow: 0 1px 0 var(--sd-edge); }
+body.ax.ax-brand .ax-nav__a:focus-visible { outline: 2px solid #5A31A6; outline-offset: 2px; }
+[data-theme="dark"] body.ax.ax-brand .ax-nav__a:focus-visible { outline-color: #C9B6F5; }
+body.ax.ax-brand .ax-nav__pic,
+body.ax.ax-brand .ax-nav__a:not([aria-current]):hover .ax-nav__pic,
+body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__pic {
+  display: block; flex: none; width: 34px; height: 34px; border: 0; border-radius: 0; background: none; transform: none; color: inherit;
+}
+body.ax.ax-brand .ax-nav__img { display: block; width: 34px; height: 34px; object-fit: contain; filter: saturate(0.85); }
+body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__img { filter: none; }
+body.ax.ax-brand .ax-nav__label { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+body.ax.ax-brand .ax-nav__arrow { display: none !important; }
+body.ax.ax-brand .ax-nav__n { margin-left: auto; min-width: 24px; padding: 2px 8px; border-radius: 999px; background: var(--bx-lime, #7BB403); color: var(--bx-lime-ink, #1E1631); font-size: 0.74rem; font-weight: 800; }
+body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__n { background: #3F236E; color: #fff; }
+[data-theme="dark"] body.ax.ax-brand .ax-nav__a[aria-current="page"] .ax-nav__n { background: #6C47BC; }
+
+/* the account and the keys at the bottom */
+body.ax.ax-brand .ax-sign__foot { flex: none; margin-top: 0; padding-top: 12px; border-top: 1.5px solid var(--sd-line); gap: 8px; }
+body.ax.ax-brand .ax-sign__user { gap: 12px; padding: 6px 8px; border-radius: 14px; color: var(--sd-ink); }
+body.ax.ax-brand a.ax-sign__user:hover { background: color-mix(in srgb, var(--sd-tint) 55%, transparent); }
+body.ax.ax-brand .ax-sign__avatar { width: 38px; height: 38px; border-radius: 12px; background: var(--sd-logo); color: #fff; box-shadow: 0 3px 0 var(--sd-logo-edge); font-size: 0.86rem; }
+body.ax.ax-brand .ax-sign__user b { font-size: 0.9rem; font-weight: 800; color: var(--sd-ink); }
+body.ax.ax-brand .ax-sign__user small { font-size: 0.74rem; font-weight: 700; color: var(--sd-ink2); }
+body.ax.ax-brand .ax-sign__btn,
+body.ax.ax-brand .ax-sign__btn:hover {
+  min-height: 40px; border: 1.5px solid var(--sd-line); border-radius: 12px; background: var(--sd-face); color: var(--sd-ink);
+  box-shadow: 0 3px 0 var(--sd-edge); font-size: 0.84rem; font-weight: 800; filter: none; transform: none;
+}
+body.ax.ax-brand .ax-sign__btn:hover { background: var(--sd-tint); }
+body.ax.ax-brand .ax-sign__btn:active { transform: translateY(3px); box-shadow: 0 0 0 var(--sd-edge); }
+body.ax.ax-brand .ax-sign__btn--out { color: #B3203A; }
+[data-theme="dark"] body.ax.ax-brand .ax-sign__btn--out { color: #FF8FA3; }
+body.ax.ax-brand .ax-sign__btn--icon { flex: 0 0 40px; }
+
+/* folded: only the pictures, centred */
+@media (min-width: 961px) {
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign { padding-left: 10px; padding-right: 10px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__logoblk { padding: 9px 0; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__owl { width: 34px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__brand > span.ax-hide-folded { display: none; }
+  body.ax.ax-brand .ax-shell.is-folded #axNav { margin: 0 -4px; padding: 0 4px 26px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a,
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a:hover { width: 52px; min-height: 52px; padding: 8px; gap: 0; justify-content: center; margin-inline: auto; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__n { position: absolute; top: -4px; right: -6px; min-width: 0; padding: 0 5px; font-size: 0.62rem; line-height: 17px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__group + .ax-sign__group { margin-top: 10px; padding-top: 10px; border-top: 1.5px solid var(--sd-line); }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__avatar { width: 40px; height: 40px; }
+}
+
+/* phones and small tablets: the panel is a drawer, floating like on a laptop */
+@media (max-width: 960px) {
+  body.ax.ax-brand .ax-sign {
+    left: 10px; top: 10px; bottom: 15px; margin: 0; height: auto; width: min(300px, calc(100vw - 20px));
+    transform: translateX(calc(-100% - 24px));
+  }
+  body.ax.ax-brand .ax-shell.is-nav-open .ax-sign { transform: none; }
+}
+@media (prefers-reduced-motion: reduce) { body.ax.ax-brand .ax-nav__a { transition: none; } }
+
+/* the page itself is focused after a route change (for screen readers): it must not draw a ring, which now shows as a line next to the floating panel */
+body.ax.ax-brand .ax-view:focus, body.ax.ax-brand .ax-view:focus-visible { outline: none; }

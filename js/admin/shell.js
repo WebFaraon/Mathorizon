@@ -84,7 +84,7 @@
             const n = v && v.badge ? v.badge() : null;
             const href = it.href || ('admin.html#' + it.id);
             return `<li><a class="ax-nav__a" href="${href}" data-route="${it.id}"${it.id === active ? ' aria-current="page"' : ''} title="${esc(it.label)}">
-              <span class="ax-nav__pic">${ico(it.icon, 18)}</span>
+              <span class="ax-nav__pic"><img class="ax-nav__img" src="assets/images/admin/${it.id}.svg" alt="" width="34" height="34" decoding="async"></span>
               <span class="ax-nav__label">${esc(it.label)}</span>
               ${n ? `<span class="ax-nav__n" aria-label="${n} de rezolvat">${n}</span>` : ''}
               <span class="ax-nav__arrow">${ico('arrow-right', 16)}</span>
@@ -100,9 +100,11 @@
       <div class="ax-shell" id="axShell">
         <aside class="ax-sign" aria-label="Navigare consolă">
           <a class="ax-sign__brand" href="admin.html#acasa">
-            <img class="ax-sign__wordmark" src="assets/images/teorema-wordmark.svg" alt="Teorema" width="316" height="65">
-            <img class="ax-sign__owl" src="assets/images/teorema-owl.svg" alt="Teorema" width="40" height="42">
-            <span class="ax-hide-folded"><small>Consolă de<br>administrare</small></span>
+            <span class="ax-sign__logoblk">
+              <img class="ax-sign__wordmark" src="assets/images/teorema-wordmark.svg" alt="Teorema" width="316" height="65">
+              <img class="ax-sign__owl" src="assets/images/teorema-owl.svg" alt="Teorema" width="40" height="42">
+            </span>
+            <span class="ax-hide-folded"><small>Consolă de administrare</small></span>
           </a>
           <nav id="axNav">${navHTML(external || 'acasa')}</nav>
           <div class="ax-sign__foot">
