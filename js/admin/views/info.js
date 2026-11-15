@@ -204,7 +204,7 @@
       root.innerHTML = `
         <header class="ax-head">
           <div class="ax-head__t">
-            <span class="ax-plate">${ico('info', 24)}</span>
+            <span class="ax-plate">${window.AdminUI.pic('info', 56)}</span>
             <div>
               <h1 class="ax-h1">Info</h1>
               <p class="ax-sub">Pașii proceselor mai lungi, ca să nu trebuiască să-ți amintești. Dacă un pas nu mai seamănă cu ce vezi pe ecran, spune-i celui care întreține platforma.</p>

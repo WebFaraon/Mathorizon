@@ -126,3 +126,38 @@ body.ax.ax-brand .ax-sign__btn--icon { flex: 0 0 40px; }
 
 /* the page itself is focused after a route change (for screen readers): it must not draw a ring, which now shows as a line next to the floating panel */
 body.ax.ax-brand .ax-view:focus, body.ax.ax-brand .ax-view:focus-visible { outline: none; }
+
+/* ---------- the same illustrated icons on the pages: the header of every page and the tiles of Acasă ---------- */
+body.ax.ax-brand .ax-plate { width: 58px; height: 58px; border-radius: 0; background: none; box-shadow: none; }
+body.ax.ax-brand .ax-pic { display: block; width: 100%; height: 100%; object-fit: contain; }
+body.ax.ax-brand .ax-plate .ax-pic { width: 58px; height: 58px; }
+body.ax.ax-brand .rp-head .ax-plate { width: 42px; height: 42px; }
+body.ax.ax-brand .ah-tile__plate { width: 72px; height: 72px; margin-bottom: 6px; border-radius: 0; background: none; box-shadow: none; transition: transform 0.18s cubic-bezier(0.3, 1.5, 0.5, 1); }
+body.ax.ax-brand .ah-tile__plate .ax-pic { width: 72px; height: 72px; }
+body.ax.ax-brand .ah-tile:hover .ah-tile__plate { transform: translateY(-3px) scale(1.06); }
+body.ax.ax-brand .ah-tile:active .ah-tile__plate { transform: scale(0.95); }
+@media (prefers-reduced-motion: reduce) { body.ax.ax-brand .ah-tile__plate { transition: none; } }
+
+/* ---------- the folded panel: a perfect square logo, everything centred on one axis, no visible scrollbar ---------- */
+body.ax.ax-brand #axNav { scrollbar-width: none; -ms-overflow-style: none; }
+body.ax.ax-brand #axNav::-webkit-scrollbar { display: none; width: 0; height: 0; }
+@media (min-width: 961px) {
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign { padding-left: 10px; padding-right: 10px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__brand { display: flex; justify-content: center; padding: 0; margin-bottom: 8px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__logoblk { flex: none; width: 48px; height: 48px; padding: 0; border-radius: 14px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__owl { width: 30px; height: auto; }
+  body.ax.ax-brand .ax-shell.is-folded #axNav { margin: 0; padding: 4px 0 26px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__group { display: flex; flex-direction: column; align-items: center; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav { align-items: center; width: 100%; gap: 6px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav > li { display: flex; justify-content: center; width: 100%; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a,
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a:hover,
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a[aria-current="page"] { box-sizing: border-box; flex: none; width: 46px; height: 46px; min-height: 0; padding: 0; gap: 0; justify-content: center; margin: 0 0 3px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-nav__a .ax-nav__img { width: 32px; height: 32px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__foot { align-items: center; padding-top: 10px; gap: 8px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__user { width: auto; padding: 0; gap: 0; justify-content: center; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__avatar { width: 44px; height: 44px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__row { flex-direction: column; align-items: center; width: 100%; gap: 8px; }
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__btn,
+  body.ax.ax-brand .ax-shell.is-folded .ax-sign__btn:hover { flex: none; width: 44px; height: 44px; min-height: 0; padding: 0; gap: 0; justify-content: center; }
+}

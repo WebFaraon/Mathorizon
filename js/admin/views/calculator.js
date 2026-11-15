@@ -420,7 +420,7 @@
       root.innerHTML = `
         <header class="ax-head cl-head">
           <div class="ax-head__t">
-            <span class="ax-plate">${ico('calculator', 24)}</span>
+            <span class="ax-plate">${window.AdminUI.pic('calculator', 56)}</span>
             <div>
               <h1 class="ax-h1">Calculator</h1>
             </div>

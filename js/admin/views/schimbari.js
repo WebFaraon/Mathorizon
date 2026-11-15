@@ -174,7 +174,7 @@
       root.innerHTML = `
         <header class="ax-head">
           <div class="ax-head__t">
-            <span class="ax-plate">${ico('calendar', 24)}</span>
+            <span class="ax-plate">${window.AdminUI.pic('schimbari', 56)}</span>
             <div>
               <h1 class="ax-h1">Schimbări</h1>
               <p class="ax-sub">Lecții anulate, mutate sau în plus, la grupele cu elevii tăi.</p>

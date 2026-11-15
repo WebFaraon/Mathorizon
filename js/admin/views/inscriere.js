@@ -546,7 +546,7 @@
           <div class="ax-col">
             <header class="ax-head in-head">
               <div class="ax-head__t">
-                <span class="ax-plate">${ico('user-plus', 24)}</span>
+                <span class="ax-plate">${window.AdminUI.pic('inscriere', 56)}</span>
                 <div>
                   <h1 class="ax-h1">Înscriere elev</h1>
                 </div>

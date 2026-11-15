@@ -164,7 +164,7 @@
             <nav class="ah-hub">
               ${tiles().map((t, i) => `
                 <a class="ah-tile" href="${t.href}" data-arrive style="--i:${i};--pg:var(--ax-c-${t.id})">
-                  <span class="ah-tile__plate">${ico(t.icon, 32)}</span>
+                  <span class="ah-tile__plate">${window.AdminUI.pic(t.id, 68)}</span>
                   <b class="ah-tile__t">${esc(t.t)}</b>
                   <span class="ah-tile__d">${esc(t.d)}</span>
                 </a>`).join('')}

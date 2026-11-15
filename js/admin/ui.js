@@ -564,8 +564,14 @@
     }));
   }
 
+  /* the illustrated icon of a console page (assets/images/admin/<id>.svg, made by scripts/make-admin-icons.py) */
+  function pic(id, size) {
+    size = size || 40;
+    return `<img class="ax-pic" src="assets/images/admin/${id}.svg" alt="" width="${size}" height="${size}" decoding="async">`;
+  }
+
   window.AdminUI = {
-    esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico, inviteHTML, wireInvite, inviteText,
+    esc, $, $$, nf, money, pct, hh, plural, daysLabel, ico, pic, inviteHTML, wireInvite, inviteText,
     readQuery, writeQuery, listParam, noRoom, roomPlate, statusPicker,
     multiSelect, enhanceSelects, suggest, countUp, stagger, activeChips, wireActiveChips, drawer, toast, downloadCSV
   };

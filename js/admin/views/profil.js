@@ -200,7 +200,7 @@
       root.innerHTML = `
         <header class="ax-head">
           <div class="ax-head__t">
-            <span class="ax-plate">${ico('circle-user', 24)}</span>
+            <span class="ax-plate">${window.AdminUI.pic('profil', 56)}</span>
             <div>
               <h1 class="ax-h1">Profil</h1>
               <p class="ax-sub">Contul tău, Telegram${isMgr() ? ' și numerele elevilor tăi' : ''}.</p>
