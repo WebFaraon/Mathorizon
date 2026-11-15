@@ -1874,3 +1874,13 @@ html body:has(#classRoot) .cd-header {
     linear-gradient(90deg, color-mix(in srgb, var(--pm-violet, #3F236E) 5%, transparent) 1px, transparent 1px);
 }
 html body:has(#classRoot) .cd-header .cd-art { opacity: 0.45; }
+
+
+/* ---- round six (2026-11-15): illustrated icons on the two keys, a smaller "Clase" key ---- */
+html body:has(#classRoot) .cd-keyico { display: block; flex: none; width: 26px; height: 26px; }
+html body:has(#classRoot) .cd-meet__btn { gap: 8px; padding-left: 16px; }
+html body:has(#classRoot) .cd-meet__edit { gap: 8px; padding-left: 12px; }
+html body:has(#classRoot) .cd-header .cd-back,
+html body:has(#classRoot) .cd-header .cd-back:hover { height: 34px; gap: 6px; padding: 0 13px 0 9px; border-radius: 11px; font-size: 0.72rem; box-shadow: 0 3px 0 0 var(--pm-edge, var(--k-panel-edge)); }
+html body:has(#classRoot) .cd-header .cd-back:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge, var(--k-panel-edge)); }
+html body:has(#classRoot) .cd-header .cd-back svg { width: 12px; height: 12px; }

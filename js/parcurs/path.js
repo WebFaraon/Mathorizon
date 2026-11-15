@@ -31,7 +31,8 @@
     chev: '<path d="M6 9l6 6 6-6"/>',
     list: '<path d="M8 6h12M8 12h12M8 18h12M4 6h.01M4 12h.01M4 18h.01"/>',
     bolt: '<path d="M13 3L5 13h6l-1 8 8-10h-6z"/>',
-    close: '<path d="M6 6l12 12M18 6L6 18"/>'
+    close: '<path d="M6 6l12 12M18 6L6 18"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>'
   };
   var svg = function (n, cls) { return '<svg viewBox="0 0 24 24" class="' + (cls || 'ic') + '" aria-hidden="true">' + (ICON[n] || ICON.book) + '</svg>'; };
   var ZIG = [0, 70, 108, 70, 0, -70, -108, -70];
@@ -154,10 +155,61 @@
     return '<section class="pp-soon"><div class="pp-soon__h"><small>URMEAZĂ ÎN CAPITOLUL ' + ch.n + '</small><h3>Se pregătesc încă ' + ch.upcoming.length + ' secțiuni</h3></div><ol>' + rows + '</ol></section>';
   }
 
+  /* progresul clasei: lecțiile și testele făcute, față de tot ce are clasa (inclusiv secțiunile încă în pregătire, numărate ca cele scrise) */
   function progressPct() {
     var total = 0, done = 0;
-    CLS.chapters.forEach(function (k) { k.sections.forEach(function (sec) { var t = totalsOf(sec); total += t.lessons + 1; done += t.done + (t.testDone ? 1 : 0); }); });
+    CLS.chapters.forEach(function (k) {
+      var t = 0, d = 0;
+      k.sections.forEach(function (sec) { var x = totalsOf(sec); t += x.lessons + 1; d += x.done + (x.testDone ? 1 : 0); });
+      var avg = k.sections.length ? t / k.sections.length : 0;
+      total += t + (k.upcoming ? k.upcoming.length * avg : 0); done += d;
+    });
+    total = Math.round(total);
     return { pct: total ? Math.round(done / total * 100) : 0, done: done, total: total };
+  }
+
+  /* ---------- capitolele (ecranul „Capitole”, ca în Duolingo) ----------
+     Un capitol întreg e un drum care trece prin toate secțiunile lui; de la un capitol la altul nu se trece pe același drum.
+     Doar capitolul curent (primul neterminat) se poate deschide; cele terminate se pot recapitula; celelalte sunt blocate. */
+  var SOON_CHAPTERS = [2, 3];   /* capitole care urmează, încă fără conținut (apar blocate) */
+  function ppView() {
+    try { if (sessionStorage.getItem('parcurs_celebrate')) return 'path'; return sessionStorage.getItem('bm_pp_view') === 'chapters' ? 'chapters' : 'path'; } catch (e) { return 'path'; }
+  }
+  function setPPView(v) { try { sessionStorage.setItem('bm_pp_view', v); } catch (e) { /* ignore */ } }
+  function chapterStats(ch) {
+    var total = 0, done = 0, secs = ch.sections.length, allTests = true;
+    ch.sections.forEach(function (sec) { var t = totalsOf(sec); total += t.lessons + 1; done += t.done + (t.testDone ? 1 : 0); if (!t.testDone) allTests = false; });
+    var up = ch.upcoming ? ch.upcoming.length : 0, avg = secs ? total / secs : 0, all = total + up * avg;
+    return { pct: all ? Math.round(done / all * 100) : 0, finished: allTests && !up, count: secs + up };
+  }
+  function chaptersHTML() {
+    var h = '<div class="pp-main pp-chaps"><div class="pp-chaps__h"><h2>Capitole</h2><p>Clasa a 7-a</p></div>', gotCur = false;
+    CLS.chapters.forEach(function (ch) {
+      var st = chapterStats(ch);
+      if (st.finished) {
+        h += '<article class="ch ch--done"><div class="ch__tx"><h3>Capitolul ' + ch.n + '</h3><span class="ch__ok">' + svg('check') + 'FINALIZAT!</span></div><button type="button" class="pk ch__rev" data-chapter="' + ch.n + '">RECAPITULARE</button></article>';
+      } else if (!gotCur) {
+        gotCur = true;
+        var names = ch.sections.map(function (s) { return PM.plain(s.short).toLowerCase(); });
+        var more = ch.upcoming && ch.upcoming.length ? ' și încă ' + ch.upcoming.length + ' teme' : '';
+        h += '<article class="ch ch--cur"><div class="ch__tx"><small>CAPITOLUL ' + ch.n + ' · ' + st.count + ' SECȚIUNI</small><h3>' + esc(ch.title) + '</h3>' +
+          '<div class="ch__barrow"><div class="ch__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + st.pct + '"><i style="width:' + st.pct + '%"></i></div><b>' + st.pct + '%</b></div>' +
+          '<button type="button" class="go ch__go" data-chapter="' + ch.n + '">' + (st.pct > 0 ? 'CONTINUĂ' : 'ÎNCEPE') + '</button></div>' +
+          '<div class="ch__side"><p class="ch__bubble">' + esc(names.join(', ')) + more + '.</p><div class="owl ch__owl" data-owl="idle" data-owl-theme="dark"></div></div></article>';
+      }
+    });
+    SOON_CHAPTERS.forEach(function (n) {
+      h += '<article class="ch ch--lock"><div class="ch__tx"><h3>Capitolul ' + n + '</h3><span class="ch__lk">' + svg('lock') + 'Se pregătește</span></div></article>';
+    });
+    return h + '<p class="pp-note">Un capitol se deschide după ce îl termini pe cel dinainte.</p></div>';
+  }
+  function bindChapters() {
+    root.querySelectorAll('[data-chapter]').forEach(function (b) {
+      b.onclick = function () {
+        setPPView('path'); render(); celebrate();
+        var top = root.closest('.cap-col-middle'); if (top) top.scrollTop = 0;
+      };
+    });
   }
 
   /* progresul (inel verde pe butonul clasei) si butonul Sectiuni stau in randul de sus al site-ului (de la 601px; pe telefon raman in pagina) */
@@ -189,7 +241,13 @@
       h += '<div class="pp-main"><div class="pp-soonclass"><div class="owl" data-owl="idle"></div><h2>Parcursul clasei a ' + ROMAN[g] + '-a se pregătește</h2><p>Lucrăm la lecțiile pentru această clasă. Deocamdată este gata clasa a 7-a, ca să vezi cum arată un parcurs.</p><div class="pp-soonclass__act"><button class="go" type="button" id="ppSee7">VEZI CLASA A 7-A</button><a class="pk sm" href="capitole.html">Exerciții</a></div></div></div>';
       root.innerHTML = h; bindTop(); return;
     }
+    if (ppView() === 'chapters') {
+      h += chaptersHTML(); root.innerHTML = h; bindTop(); bindChapters();
+      if (window.OwlSite && window.OwlSite.scan) { try { window.OwlSite.scan(root); } catch (e) { /* ignore */ } }
+      return;
+    }
     h += '<div class="pp-main">';
+    h += '<div class="pp-backrow"><button type="button" class="pk sm pp-back" id="ppBack">' + svg('back') + 'Capitole</button></div>';
     h += '<div class="pp-chap"><span>CAPITOLUL 1 · ' + esc(CLS.chapters[0].title.toUpperCase()) + '</span></div>';
     if (window.PMScenes) window.PMScenes.reset();
     CLS.chapters[0].sections.forEach(function (s, i) { h += sectionHTML(s, i, cur); });
@@ -198,6 +256,7 @@
     h += '</div>';
     root.innerHTML = h;
     bindTop(); bindPath(); if (window.PMScenes) window.PMScenes.mount(root);
+    var back = document.getElementById('ppBack'); if (back) back.onclick = function () { setPPView('chapters'); render(); var top = root.closest('.cap-col-middle'); if (top) top.scrollTop = 0; else window.scrollTo(0, 0); };
     if (window.OwlSite && window.OwlSite.scan) { try { window.OwlSite.scan(root); } catch (e) { /* ignore */ } }
   }
 
@@ -297,7 +356,7 @@
     h += '</div>';
     var d = dialog(h, 'wide');
     d.querySelector('[data-x]').onclick = closeDlg;
-    d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); var el = document.getElementById(b.dataset.goto); if (el) revealIn(el, { mode: 'start', padTop: 96, smooth: true }); }; });
+    d.querySelectorAll('[data-goto]').forEach(function (b) { b.onclick = function () { closeDlg(); if (ppView() !== 'path') { setPPView('path'); render(); } var el = document.getElementById(b.dataset.goto); if (el) revealIn(el, { mode: 'start', padTop: 96, smooth: true }); }; });
   }
   /* doar clasa, fara nickname: elevul poate trece oricând de la o clasă la alta */
   function classAsk() {
