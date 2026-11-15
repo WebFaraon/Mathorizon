@@ -1755,3 +1755,44 @@ body.flux-fs .cd-header, body.flux-fs .cd-tabs-wrap { visibility: hidden; }
   html body:has(#classRoot) .sumar-roster--reg .sumar-roster__when { grid-area: when; justify-self: end; text-align: right; white-space: nowrap; }
   html body:has(#classRoot) .sumar-roster--reg .sumar-roster__accwrap { grid-area: acc; display: flex; align-items: center; flex-wrap: wrap; gap: 8px; padding-top: 6px; border-top: 1px dashed var(--pm-line, var(--k-panel-edge)); }
 }
+
+
+/* ---- class header, round five (2026-11-15) ---- */
+/* the three chips are gone (subject is in the title, the role is known, the format is in the info panel): the back key gets its air back */
+html body:has(#classRoot) .cd-header .cd-back { margin-bottom: 20px; }
+
+/* "Clase": a key, not a word with an arrow */
+html body:has(#classRoot) .cd-header .cd-back,
+html body:has(#classRoot) .cd-header .cd-back:hover {
+  display: inline-flex; align-items: center; gap: 8px; height: 42px; padding: 0 16px 0 12px;
+  border: 1.5px solid var(--pm-line, var(--k-panel-edge)); border-radius: 13px; background: var(--pm-face, #fff);
+  box-shadow: 0 4px 0 0 var(--pm-edge, var(--k-panel-edge)); color: var(--pm-key-ink, var(--k-ink)); text-decoration: none;
+  font-size: 0.82rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, background 0.12s ease;
+}
+html body:has(#classRoot) .cd-header .cd-back:hover { background: var(--pm-tint, var(--k-key)); gap: 8px; }
+html body:has(#classRoot) .cd-header .cd-back:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge, var(--k-panel-edge)); }
+html body:has(#classRoot) .cd-header .cd-back svg { opacity: 1; }
+
+/* the Meet key: the brand green with a dark GREEN edge (it was the violet-black one) */
+html body:has(#classRoot) .cd-meet__btn,
+html body:has(#classRoot) .cd-meet__btn:hover {
+  border: 1px solid var(--k-go-edge, #4C7A00); background: var(--k-go, #7CB800); color: var(--k-go-ink, #14200A);
+}
+html body:has(#classRoot) .cd-meet__btn { box-shadow: 0 4px 0 0 var(--k-go-edge, #4C7A00); }
+html body:has(#classRoot) .cd-meet__btn:active { box-shadow: 0 0 0 0 var(--k-go-edge, #4C7A00); }
+html body:has(#classRoot) .cd-meet__btn:hover { filter: brightness(0.94); }
+
+/* the grid is back on the violet plate, faint (it is the same graph paper as the page, but only just visible) */
+html body:has(#classRoot) .cd-header {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--pm-violet, #3F236E) 11%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--pm-violet, #3F236E) 11%, transparent) 1px, transparent 1px);
+  background-size: 21px 21px;
+  background-position: -1px -1px;
+}
+
+/* phone: the title (discipline, day and hour) in ONE line, smaller type only here */
+@media (max-width: 600px) {
+  html body:has(#classRoot) .cd-title { font-size: clamp(1.1rem, 5.8vw, 1.55rem); line-height: 1.15; letter-spacing: -0.025em; }
+}

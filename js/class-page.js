@@ -966,19 +966,6 @@
 
             <div class="cd-header__body">
               <div class="cd-header__info">
-                <div class="cd-subject-row">
-                  <span class="cd-subject-chip">${BM.esc(subject)}</span>
-                  ${isTeacher
-                    ? `<span class="cd-meta__badge cd-meta__badge--teacher">Profesor</span>`
-                    : `<span class="cd-meta__badge cd-meta__badge--student">Elev</span>`
-                  }
-                  ${classData.lesson_type ? `
-                    <span class="cd-meta__badge cd-meta__badge--${classData.lesson_type}">
-                      ${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 16 })}
-                      ${classData.lesson_type === 'online' ? 'Online' : 'Offline'}
-                    </span>
-                  ` : ''}
-                </div>
                 <div class="cd-title-wrap">
                   <h1 class="cd-title">${BM.esc(classData.name)}</h1>
                 </div>
@@ -2543,6 +2530,12 @@
           <span class="cd-info-card__detail-icon">${icon('users', { size: 16 })}</span>
           <span class="cd-info-card__detail-lbl">Mărime grupă</span>
           <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `${maxEl} elevi`}</span>
+        </div>` : ''}
+        ${classData.lesson_type ? `
+        <div class="cd-info-card__detail">
+          <span class="cd-info-card__detail-icon">${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 16 })}</span>
+          <span class="cd-info-card__detail-lbl">Format</span>
+          <span class="cd-info-card__detail-val">${classData.lesson_type === 'online' ? 'Online' : 'Offline'}</span>
         </div>` : ''}
         <div class="cd-info-card__detail cd-info-card__detail--clickable" id="nivelDetailRow" title="Click pentru a schimba nivelul grupei">
           <span class="cd-info-card__detail-icon">${icon('chart-column', { size: 16 })}</span>
