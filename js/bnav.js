@@ -42,6 +42,13 @@
     de0.setAttribute('data-pp', '1');
     try { var pc0 = parseInt(localStorage.getItem('bm_pp_pct'), 10); if (pc0 >= 0) { de0.setAttribute('data-pp-pct', String(pc0)); de0.style.setProperty('--pp-deg', Math.round(pc0 * 3.6) + 'deg'); } } catch (e) { /* ignore */ }
   }
+  /* pagina de start, pentru cine nu are cont: aceeasi navigare ca la un cont conectat (panoul, bara de jos, placa de sus), dar taburile nu duc nicaieri:
+     arata un mesaj ca trebuie conectare. Clasa html.bm-gnav tine minte asta (doar cat timp vizitatorul e oaspete) */
+  var de1 = document.documentElement;
+  var gShell = file === 'index';
+  function syncG() { if (gShell) de1.classList.toggle('bm-gnav', de1.classList.contains('bm-guest')); }
+  syncG();
+  if (gShell) new MutationObserver(syncG).observe(de1, { attributes: true, attributeFilter: ['class'] });
   var idx = -1, i;
   for (i = 0; i < TABS.length; i++) if (TABS[i][0] === active) idx = i;
 
@@ -53,12 +60,18 @@
     nav.id = 'bnav'; nav.setAttribute('aria-label', 'Navigare principală');
     var h = '<i class="bn-ind" aria-hidden="true"></i>';
     /* sigla stă doar în panoul lateral (laptop și tabletă); pe telefon bara e doar cu poze */
-    h += '<a class="bn-brand" href="parcurs.html" aria-label="Teorema"><img class="bn-logo" src="' + BRAND.logo + '" alt="Teorema" decoding="sync"><img class="bn-mark" src="' + BRAND.mark + '" alt="" decoding="sync"></a>';
+    h += '<a class="bn-brand" href="' + (gShell ? 'index.html' : 'parcurs.html') + '" aria-label="Teorema"><img class="bn-logo" src="' + BRAND.logo + '" alt="Teorema" decoding="sync"><img class="bn-mark" src="' + BRAND.mark + '" alt="" decoding="sync"></a>';
     TABS.forEach(function (t, n) {
       h += '<a class="bn-b' + (n === idx ? ' on' : '') + '" href="' + t[1] + '" data-tab="' + t[0] + '" aria-label="' + t[2] + '" title="' + t[2] + '"' + (n === idx ? ' aria-current="page"' : '') + '>' +
         '<img src="' + ICON[t[0]] + '" alt="" width="34" height="34" decoding="sync"><span class="bn-t">' + t[2] + '</span></a>';
     });
     nav.innerHTML = h;
+    nav.addEventListener('click', function (e) {
+      var a = e.target.closest && e.target.closest('.bn-b');
+      if (!a || !de1.classList.contains('bm-guest')) return;
+      e.preventDefault();
+      if (window.BM && window.BM.toast) window.BM.toast('Loghează-te ca să ai acces la restul funcțiilor.', 'info', 4000, { id: 'guestNavToast', closable: true, link: { href: 'auth.html', label: 'Conectare' } });
+    });
     var ind = nav.firstChild;
     var from = prev >= 0 && prev !== idx ? prev : idx;
     nav.style.setProperty('--i', String(Math.max(0, from)));

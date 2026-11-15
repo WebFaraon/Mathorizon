@@ -1935,3 +1935,12 @@ html body:has(#classRoot) .cd-tab--active::after { content: none; display: none;
 html body:has(#classRoot) .wz-toggle__track { box-sizing: border-box; width: 44px; height: 26px; border-radius: 13px; }
 html body:has(#classRoot) .wz-toggle__thumb { top: 50%; left: 3px; width: 18px; height: 18px; margin-top: -9px; box-shadow: 0 2px 0 0 var(--cm-edge, #CFC6E3); }
 html body:has(#classRoot) .wz-toggle input:checked ~ .wz-toggle__track .wz-toggle__thumb { transform: translateX(18px); }
+
+
+/* the Meet key while the room is closed: grey and flat (it stays green only when the room is really open) */
+html body:has(#classRoot) .cd-meet__btn[aria-disabled="true"],
+html body:has(#classRoot) .cd-meet__btn[aria-disabled="true"]:hover {
+  border: 1px solid var(--pm-line, var(--k-panel-edge)); background: var(--pm-tint, var(--k-key)); color: var(--pm-ink-2, var(--k-ink-3));
+  box-shadow: 0 4px 0 0 var(--pm-edge, var(--k-key-edge)); filter: none; transform: none; cursor: not-allowed; pointer-events: none;
+}
+html body:has(#classRoot) .cd-meet__btn[aria-disabled="true"] .cd-keyico { filter: grayscale(1) opacity(0.55); }

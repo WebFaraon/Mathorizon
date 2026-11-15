@@ -831,6 +831,7 @@ document.addEventListener('bmauth:streak-updated', BM.refreshStreakWidgets);
 
   function apply(matches) {
     if (matches === inMobile) return;
+    if (document.documentElement.classList.contains('bm-gnav')) return;   // the landing page's panel layout keeps both keys in the top plate
     const signup = document.getElementById('navGuestSignup');
     const menu   = document.getElementById('navMobileMenu');
     if (!signup || !menu) return;
@@ -868,7 +869,7 @@ document.addEventListener('bmauth:streak-updated', BM.refreshStreakWidgets);
     const isGuest = document.documentElement.classList.contains('bm-guest');
     const themeBtn = document.getElementById('themeBtn');
     const menu      = document.getElementById('navMobileMenu');
-    if (!isGuest || !themeBtn || !menu) {
+    if (!isGuest || !themeBtn || !menu || document.documentElement.classList.contains('bm-gnav')) {
       if (inMobile && anchor) {
         anchor.replaceWith(themeBtn);
         anchor = null;

@@ -142,7 +142,7 @@
     } else if (r.status === 'closed') {
       btn.removeAttribute('href'); btn.setAttribute('aria-disabled', 'true'); btn.hidden = false;
       label.textContent = 'Intră la lecție';
-      note.textContent = r.opens_at ? 'Se deschide cu 10 minute înainte de lecție: ' + _meetWhen(r.opens_at) + '.' : 'Se deschide cu 10 minute înainte de lecție.';
+      note.textContent = '';                                   // the rule (opens 10 minutes before) is written in the guide
       if (r.opens_at) again(r.opens_at);
     } else {                                                   // no_link
       btn.hidden = true;
