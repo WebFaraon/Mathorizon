@@ -1884,3 +1884,35 @@ html body:has(#classRoot) .cd-header .cd-back,
 html body:has(#classRoot) .cd-header .cd-back:hover { height: 34px; gap: 6px; padding: 0 13px 0 9px; border-radius: 11px; font-size: 0.72rem; box-shadow: 0 3px 0 0 var(--pm-edge, var(--k-panel-edge)); }
 html body:has(#classRoot) .cd-header .cd-back:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge, var(--k-panel-edge)); }
 html body:has(#classRoot) .cd-header .cd-back svg { width: 12px; height: 12px; }
+
+
+/* ---- round seven (2026-11-15): loader, dialog icon, invite icon, equal tabs, one paler violet ---- */
+/* the loaders of the class pages are the owl with the sliding bar only: the text stays for screen readers (it used to sit on a display, on top of the owl) */
+html body:has(#classRoot) .classes-loading:not(.wb-fullscreen .classes-loading) { flex-direction: column; align-items: center; gap: 22px; padding: 70px 0; }
+html body:has(#classRoot) .classes-loading:not(.wb-fullscreen .classes-loading) p {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; background: none; box-shadow: none;
+}
+html body:has(#classRoot) .classes-loading:not(.wb-fullscreen .classes-loading) p::after { content: none; }
+html body:has(#classRoot) .classes-loading .bm-leave__bar { margin-top: 0; }
+
+/* the dialog "Orarul lecțiilor": the illustrated icon in the corner of the title */
+html body:has(#classRoot) .cd-keyico--head { width: 30px; height: 30px; vertical-align: -9px; margin-right: 6px; }
+
+/* the invite card: the illustrated ticket instead of the violet tile */
+html body:has(#classRoot) .cd-invite__ico { display: block; flex: none; width: 38px; height: 38px; }
+
+/* the header plate and the tab bar are the same pale violet, with the same frame and edge */
+body:has(#classRoot) { --cd-plate: #E9E3F6; }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: #231C3A; }
+html body:has(#classRoot) .cd-tabs-wrap {
+  background: var(--cd-plate);
+  border: 1.5px solid color-mix(in srgb, var(--pm-violet, #3F236E) 30%, var(--cd-plate));
+  box-shadow: 0 4px 0 0 color-mix(in srgb, var(--pm-violet, #3F236E) 38%, var(--cd-plate));
+}
+
+/* every key of the tab bar has the same height and the same minimum width (the open one is lit, not bigger) */
+html body:has(#classRoot) .cd-tab {
+  box-sizing: border-box; height: 46px; min-height: 46px; min-width: 112px; padding: 0 20px;
+  display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
+}
+@media (max-width: 600px) { html body:has(#classRoot) .cd-tab { height: 42px; min-height: 42px; min-width: 0; padding: 0 16px; } }

@@ -158,7 +158,7 @@
   /* The header is a drawing plate: the navbar blue with a fine white grid and a thin technical drawing (the trigonometric circle with its angle, a right triangle, three
      formulas set in the display font). Pure decoration (aria-hidden), behind the content; the text is white on it (css/class-detail.css, "the plate"). */
   const _CD_ART = `<div class="cd-art" aria-hidden="true"><div class="cd-art__box"><svg viewBox="-200 0 960 330" width="960" height="330" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <g class="cd-art__fig" stroke-width="1.6" transform="translate(-215 0)">
+    <g class="cd-art__fig" stroke-width="1.6" transform="translate(-215 -44)">
       <circle cx="330" cy="170" r="110"/>
       <path class="cd-art__ax" d="M190 170H470M330 40V300" stroke-width="1.2"/>
       <path class="cd-art__hi" d="M330 170L412 96" stroke-width="2.4"/>
@@ -168,9 +168,9 @@
     </g>
     <g class="cd-art__fig" stroke-width="1.4"><path d="M560 286L690 286L690 218Z"/><path d="M678 286V274H690" stroke-width="1.2"/></g>
     <g class="cd-art__tx">
-      <text x="157" y="190">t</text>
+      <text x="157" y="146">t</text>
       <text x="618" y="308">a</text><text x="700" y="256">b</text><text x="608" y="248">c</text>
-      <text x="270" y="236">sin²x + cos²x = 1</text><text x="270" y="262">Δ = b² − 4ac</text><text x="270" y="288">∫ f(x)dx = F(b)−F(a)</text>
+      <text x="270" y="180">sin²x + cos²x = 1</text><text x="270" y="206">Δ = b² − 4ac</text><text x="270" y="232">∫ f(x)dx = F(b)−F(a)</text>
     </g></svg></div></div>`;
 
   /* ─── Lesson changes: move one lesson, add an extra one, cancel one (online groups) ──────────────────────────────────
@@ -416,7 +416,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog cd-ls" role="dialog" aria-modal="true" aria-labelledby="lsTitle">
         <div class="classes-modal__head">
-          <h3 id="lsTitle">${icon('calendar', { size: 20 })} Orarul lecțiilor</h3>
+          <h3 id="lsTitle"><img class="cd-keyico cd-keyico--head" src="assets/images/class/program.svg" alt="" width="30" height="30"> Orarul lecțiilor</h3>
           <button class="icon-btn" id="lsClose" aria-label="Închide">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body" id="lsBody"></div>
@@ -998,7 +998,7 @@
                 ${isTeacher ? `
                   <div class="cd-invite">
                     <div class="cd-invite__head">
-                      <span class="cd-live__ic" aria-hidden="true">${icon('ticket', { size: 18 })}</span>
+                      <img class="cd-invite__ico" src="assets/images/class/cod.svg" alt="" width="38" height="38">
                       <span class="cd-invite__label">Cod invitație</span>
                     </div>
                     <div class="cd-invite__row">
@@ -7148,8 +7148,8 @@
   /* ─── Helpers ───────────────────────────────────────────────────── */
   function showLoading(msg) {
     document.getElementById('classRoot').innerHTML = `
-      <div class="classes-loading">
-        <div class="classes-spinner"></div>
+      <div class="classes-loading" role="status">
+        <div class="bm-leave__img"></div><div class="bm-leave__bar"><i></i></div>
         <p>${msg || 'Se încarcă...'}</p>
       </div>
     `;
