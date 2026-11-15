@@ -1796,3 +1796,73 @@ html body:has(#classRoot) .cd-header {
 @media (max-width: 600px) {
   html body:has(#classRoot) .cd-title { font-size: clamp(1.1rem, 5.8vw, 1.55rem); line-height: 1.15; letter-spacing: -0.025em; }
 }
+
+
+/* ---- the two displays of the plate (Program, Cod invitație) in the style of the site (2026-11-15) ----
+   white rounded cards with a solid edge, a violet icon tile, day keys, and the numerals on a small dark-violet LCD with lime digits */
+html body:has(#classRoot) :is(.cd-live, .cd-invite) {
+  margin: 0; padding: 16px 18px 18px; gap: 14px;
+  border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 22px;
+  background: var(--pm-face, #fff); background-image: none;
+  box-shadow: 0 5px 0 0 var(--pm-edge, #CFC6E3); color: var(--pm-ink, #1E1631);
+}
+html body:has(#classRoot) .cd-live { min-width: 300px; }
+html body:has(#classRoot) .cd-invite { min-width: 250px; }
+html body:has(#classRoot) .cd-live__head, html body:has(#classRoot) .cd-invite__head { display: flex; align-items: center; justify-content: flex-start; gap: 10px; }
+html body:has(#classRoot) .cd-live__ic {
+  flex: none; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px;
+  background: var(--pm-violet, #3F236E); color: #fff; box-shadow: 0 3px 0 #2C1952;
+}
+html body:has(#classRoot) .cd-live__ic svg { width: 18px; height: 18px; }
+html body:has(#classRoot) :is(.cd-live__k, .cd-invite__label) { font-size: 1rem; font-weight: 800; color: var(--pm-ink, #1E1631); opacity: 1; }
+html body:has(#classRoot) .cd-live__next .cd-live__k { font-size: 0.82rem; font-weight: 700; color: var(--pm-ink-2, #5B4F74); }
+
+/* the format: a pill with a lime LED (online) or a grey one (offline) */
+html body:has(#classRoot) .cd-live__type { margin-left: auto; padding: 4px 11px; border-radius: 999px; background: #E5F5BF; color: #3F6A00; font-size: 0.7rem; letter-spacing: 0.1em; }
+html body:has(#classRoot) .cd-live__type i { width: 8px; height: 8px; border: 0; border-radius: 2px; background: #7CB800; }
+html body:has(#classRoot) .cd-live__type--offline { background: var(--pm-tint, #EDE7F8); color: var(--pm-ink-2, #5B4F74); }
+html body:has(#classRoot) .cd-live__type--offline i { background: transparent; border: 2px solid currentColor; }
+[data-theme="dark"] html body:has(#classRoot) .cd-live__type:not(.cd-live__type--offline), html[data-theme="dark"] body:has(#classRoot) .cd-live__type:not(.cd-live__type--offline) { background: #2A3A14; color: #B5E36A; }
+
+/* the days: keys, the lesson days pressed in violet, today with a lime dot */
+html body:has(#classRoot) .cd-week { gap: 6px; }
+html body:has(#classRoot) .cd-week__d {
+  position: relative; height: 36px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 11px;
+  background: var(--pm-tint, #EDE7F8); color: var(--pm-ink-2, #5B4F74); font-size: 0.82rem; font-weight: 800;
+}
+html body:has(#classRoot) .cd-week__d.is-on { border-color: #2C1952; background: var(--pm-violet, #3F236E); color: #fff; box-shadow: 0 3px 0 #2C1952; }
+html body:has(#classRoot) .cd-week__d.is-today { box-shadow: none; }
+html body:has(#classRoot) .cd-week__d.is-on.is-today { box-shadow: 0 3px 0 #2C1952; }
+html body:has(#classRoot) .cd-week__d.is-today::after { content: ""; position: absolute; top: -4px; right: -4px; width: 10px; height: 10px; border-radius: 3px; background: #7CB800; border: 2px solid var(--pm-face, #fff); }
+
+/* the countdown and the code: a small dark-violet LCD with lime digits */
+html body:has(#classRoot) .cd-live__clock, html body:has(#classRoot) .cd-invite__code {
+  display: inline-block; padding: 7px 13px; border-radius: 11px; color: #B6E83A;
+  background-color: #2C1952; background-image: radial-gradient(circle, rgba(182, 232, 58, 0.13) 0.9px, transparent 1.1px); background-size: 4px 4px;
+  box-shadow: inset 0 3px 6px rgba(0, 0, 0, 0.45), 0 1px 0 rgba(255, 255, 255, 0.5);
+}
+[data-theme="dark"] html body:has(#classRoot) .cd-live__clock, [data-theme="dark"] html body:has(#classRoot) .cd-invite__code,
+html[data-theme="dark"] body:has(#classRoot) .cd-live__clock, html[data-theme="dark"] body:has(#classRoot) .cd-invite__code { background-color: #150C2B; }
+html body:has(#classRoot) .cd-live__clock { font-size: 1.3rem; }
+html body:has(#classRoot) .cd-live__clock small { color: #B6E83A; opacity: 0.75; }
+html body:has(#classRoot) .cd-invite__row { gap: 12px; }
+html body:has(#classRoot) .cd-invite__code { flex: 1 1 auto; text-align: center; font-size: 1.75rem; letter-spacing: 0.16em; padding: 10px 14px 10px 18px; }
+
+/* the copy key: a white 3D key that sinks */
+html body:has(#classRoot) .cd-invite__copy,
+html body:has(#classRoot) .cd-invite__copy:hover {
+  border: 1.5px solid var(--pm-line, #DDD6EA); background: var(--pm-face, #fff); color: var(--pm-key-ink, #3F236E);
+}
+html body:has(#classRoot) .cd-invite__copy { flex: none; width: 48px; height: 48px; border-radius: 14px; box-shadow: 0 4px 0 0 var(--pm-edge, #CFC6E3); }
+html body:has(#classRoot) .cd-invite__copy:hover { background: var(--pm-tint, #EDE7F8); filter: none; }
+html body:has(#classRoot) .cd-invite__copy:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge, #CFC6E3); }
+html body:has(#classRoot) .cd-invite__hint { font-size: 0.8rem; font-weight: 600; color: var(--pm-ink-2, #5B4F74); opacity: 1; }
+
+@media (max-width: 600px) {
+  html body:has(#classRoot) :is(.cd-live, .cd-invite) { padding: 14px 14px 16px; border-radius: 18px; }
+  html body:has(#classRoot) .cd-live, html body:has(#classRoot) .cd-invite { min-width: 0; }
+  html body:has(#classRoot) .cd-week__d { height: 38px; }
+  html body:has(#classRoot) .cd-invite__code { font-size: 1.5rem; }
+}
+html body.pm:has(#classRoot) :is(.cd-live, .cd-invite) { border-radius: 22px; }
+@media (max-width: 600px) { html body.pm:has(#classRoot) :is(.cd-live, .cd-invite) { border-radius: 18px; } }

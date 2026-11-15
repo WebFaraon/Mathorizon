@@ -809,6 +809,7 @@
     return `
       <div class="cd-live" role="group" aria-label="Program">
         <div class="cd-live__head">
+          <span class="cd-live__ic" aria-hidden="true">${icon('calendar', { size: 18 })}</span>
           <span class="cd-live__k">Program</span>
           ${type ? `<span class="cd-live__type cd-live__type--${type}"><i></i>${type === 'online' ? 'Online' : 'Offline'}</span>` : ''}
         </div>
@@ -997,7 +998,10 @@
                 ${_liveProgramHTML()}
                 ${isTeacher ? `
                   <div class="cd-invite">
-                    <span class="cd-invite__label">Cod invitație</span>
+                    <div class="cd-invite__head">
+                      <span class="cd-live__ic" aria-hidden="true">${icon('ticket', { size: 18 })}</span>
+                      <span class="cd-invite__label">Cod invitație</span>
+                    </div>
                     <div class="cd-invite__row">
                       <span class="cd-invite__code">${classData.invite_code}</span>
                       <button class="cd-invite__copy" onclick="cdCopyCode('${classData.invite_code}')"
