@@ -267,3 +267,26 @@ html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn:not(.nav-sec
   #bnav .bn-brand { padding: 8px 0; justify-content: center; }
   #bnav .bn-mark { display: block; width: 36px; height: 36px; object-fit: contain; }
 }
+
+
+/* ---- rândul de sus pe o placă (2026-11-15) ----
+   Clasa, Secțiuni, seria de zile și tokenurile stau pe o placă cu ramă și muchie, ca să se vadă bine când conținutul derulează pe sub ele */
+html.bm-authed:not(.bnav-off) #nav-root .nav__right {
+  gap: 18px; padding: 7px 18px 7px 8px; border-radius: 18px !important;
+  border: 1.5px solid var(--pm-line, #DDD6EA) !important; background: var(--pm-face, #fff);
+  box-shadow: 0 4px 0 var(--pm-edge, #CFC6E3); pointer-events: auto;
+}
+html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn { margin-right: 0; padding: 0 15px 0 14px; }
+html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn__c { display: none; }
+html.bm-authed:not(.bnav-off) #nav-root .nav__right .token-widget { text-shadow: none; }
+html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn:not(.nav-sec-btn) { padding-left: 12px; }
+@media (max-width: 600px) {
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right { gap: 8px; padding: 5px 10px 5px 5px; border-radius: 15px !important; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn { padding: 0 10px; margin-right: 0; }
+  html.bm-authed:not(.bnav-off)[data-pp-pct] #nav-root .nav-class-btn:not(.nav-sec-btn) { padding-left: 7px; }
+  html.bm-authed:not(.bnav-off)[data-pp] #nav-root .nav-class-btn.nav-sec-btn { margin-right: 0; }
+}
+@media (max-width: 359.98px) {
+  html.bm-authed:not(.bnav-off) #nav-root .nav__right { gap: 5px; padding: 4px 7px 4px 4px; }
+  html.bm-authed:not(.bnav-off) #nav-root .nav-class-btn { padding: 0 8px; }
+}

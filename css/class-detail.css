@@ -1916,3 +1916,22 @@ html body:has(#classRoot) .cd-tab {
   display: inline-flex; align-items: center; justify-content: center; white-space: nowrap;
 }
 @media (max-width: 600px) { html body:has(#classRoot) .cd-tab { height: 42px; min-height: 42px; min-width: 0; padding: 0 16px; } }
+
+
+/* ---- round eight (2026-11-15) ---- */
+/* the drawing is centred on the height of the plate; no triangle; the invite card sits a little further left */
+html body:has(#classRoot) .cd-header .cd-art svg { top: 50%; transform: translateY(-50%); right: 56px; }
+@media (min-width: 900px) { html body:has(#classRoot) .cd-header__side { margin-right: 56px; } }
+
+/* the teacher: a small label over the name, so the row is as tall as the photo and the keys instead of one lonely line */
+html body:has(#classRoot) .cd-teacher-txt { display: flex; flex-direction: column; justify-content: center; gap: 3px; min-width: 0; line-height: 1.15; }
+html body:has(#classRoot) .cd-teacher-txt small { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-ink-2, #5B4F74); }
+html body:has(#classRoot) .cd-teacher-txt b { font-size: 1.08rem; font-weight: 800; color: var(--pm-ink, #1E1631); overflow-wrap: anywhere; }
+
+/* the open tab: no green light in its corner */
+html body:has(#classRoot) .cd-tab--active::after { content: none; display: none; }
+
+/* the switch of the notification dialog: the knob is centred in its track */
+html body:has(#classRoot) .wz-toggle__track { box-sizing: border-box; width: 44px; height: 26px; border-radius: 13px; }
+html body:has(#classRoot) .wz-toggle__thumb { top: 50%; left: 3px; width: 18px; height: 18px; margin-top: -9px; box-shadow: 0 2px 0 0 var(--cm-edge, #CFC6E3); }
+html body:has(#classRoot) .wz-toggle input:checked ~ .wz-toggle__track .wz-toggle__thumb { transform: translateX(18px); }

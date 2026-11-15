@@ -18,7 +18,7 @@
   function num(k) { try { var g = parseInt(localStorage.getItem(k) || '', 10); return g >= 5 && g <= 12 ? g : 0; } catch (e) { return 0; } }
   function isStudent() { var r = window.BMAuth && window.BMAuth.role; return !r || r === 'elev'; }
   function get() { return num('bm_grade_view') || (isStudent() ? num('bm_grade') : 0) || 7; }
-  function label(n) { return 'Clasa a ' + ROMAN[n || get()] + '-a'; }
+  function label(n) { return 'Clasa ' + (n || get()); }
 
   function set(n) {
     n = +n;
@@ -39,7 +39,7 @@
     for (var i = 0; i < els.length; i++) if (els[i].textContent !== t) els[i].textContent = t;
     var pc = document.documentElement.getAttribute('data-pp-pct'), pn = document.querySelectorAll('[data-pp-num]');
     for (var k = 0; k < pn.length; k++) { var pt = pc == null ? '' : pc + '%'; if (pn[k].textContent !== pt) pn[k].textContent = pt; }
-    var sh = document.querySelectorAll('[data-class-short]'), r = ROMAN[get()];
+    var sh = document.querySelectorAll('[data-class-short]'), r = String(get());
     for (var j = 0; j < sh.length; j++) if (sh[j].textContent !== r) sh[j].textContent = r;
   }
 

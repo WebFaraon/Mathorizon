@@ -158,7 +158,7 @@
   /* The header is a drawing plate: the navbar blue with a fine white grid and a thin technical drawing (the trigonometric circle with its angle, a right triangle, three
      formulas set in the display font). Pure decoration (aria-hidden), behind the content; the text is white on it (css/class-detail.css, "the plate"). */
   const _CD_ART = `<div class="cd-art" aria-hidden="true"><div class="cd-art__box"><svg viewBox="-200 0 960 330" width="960" height="330" fill="none" stroke-linecap="round" stroke-linejoin="round">
-    <g class="cd-art__fig" stroke-width="1.6" transform="translate(-215 -44)">
+    <g class="cd-art__fig" stroke-width="1.6" transform="translate(-215 0)">
       <circle cx="330" cy="170" r="110"/>
       <path class="cd-art__ax" d="M190 170H470M330 40V300" stroke-width="1.2"/>
       <path class="cd-art__hi" d="M330 170L412 96" stroke-width="2.4"/>
@@ -166,11 +166,9 @@
       <path class="cd-art__hi" d="M368 170A38 38 0 0 0 360 148"/>
       <circle class="cd-art__dot" cx="412" cy="96" r="4.5" stroke="none"/>
     </g>
-    <g class="cd-art__fig" stroke-width="1.4"><path d="M560 286L690 286L690 218Z"/><path d="M678 286V274H690" stroke-width="1.2"/></g>
     <g class="cd-art__tx">
-      <text x="157" y="146">t</text>
-      <text x="618" y="308">a</text><text x="700" y="256">b</text><text x="608" y="248">c</text>
-      <text x="270" y="180">sin²x + cos²x = 1</text><text x="270" y="206">Δ = b² − 4ac</text><text x="270" y="232">∫ f(x)dx = F(b)−F(a)</text>
+      <text x="157" y="190">t</text>
+      <text x="270" y="224">sin²x + cos²x = 1</text><text x="270" y="250">Δ = b² − 4ac</text><text x="270" y="276">∫ f(x)dx = F(b)−F(a)</text>
     </g></svg></div></div>`;
 
   /* ─── Lesson changes: move one lesson, add an extra one, cancel one (online groups) ──────────────────────────────────
@@ -975,7 +973,7 @@
                     <span class="cd-teacher-avatar" id="cdTeacherAvatar">
                       <img src="${BM.DEFAULT_AVATAR}" alt="">
                     </span>
-                    Profesor: ${BM.esc(classData.teacher_name)}
+                    <span class="cd-teacher-txt"><small>Profesor</small><b>${BM.esc(classData.teacher_name)}</b></span>
                   </span>
                   <button type="button" class="cd-meta__teacher-viewbtn cd-meta__ibtn" id="cdViewTeacherBtn" aria-label="Vezi profilul" title="Vezi profilul">
                     <img src="assets/images/class/vezi-profil.svg" alt="" width="30" height="30">
@@ -2677,7 +2675,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog" role="dialog" aria-modal="true" aria-labelledby="notifInfoT">
         <div class="classes-modal__head">
-          <h3 id="notifInfoT">${icon('bell', { size: 20 })} Notificări pentru această clasă</h3>
+          <h3 id="notifInfoT"><img class="cd-keyico cd-keyico--head" src="assets/images/class/notificari.svg" alt="" width="30" height="30"> Notificări pentru această clasă</h3>
           <button class="icon-btn" id="notifInfoCloseBtn" aria-label="Închide">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
