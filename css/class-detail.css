@@ -1866,3 +1866,11 @@ html body:has(#classRoot) .cd-invite__hint { font-size: 0.8rem; font-weight: 600
 }
 html body.pm:has(#classRoot) :is(.cd-live, .cd-invite) { border-radius: 22px; }
 @media (max-width: 600px) { html body.pm:has(#classRoot) :is(.cd-live, .cd-invite) { border-radius: 18px; } }
+
+/* the grid and the drawing on the violet plate are quieter, so they never compete with the texts and the cards */
+html body:has(#classRoot) .cd-header {
+  background-image:
+    linear-gradient(color-mix(in srgb, var(--pm-violet, #3F236E) 5%, transparent) 1px, transparent 1px),
+    linear-gradient(90deg, color-mix(in srgb, var(--pm-violet, #3F236E) 5%, transparent) 1px, transparent 1px);
+}
+html body:has(#classRoot) .cd-header .cd-art { opacity: 0.45; }
