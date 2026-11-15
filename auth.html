@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="css/calculator.css">
   <link rel="stylesheet" href="css/auth-page.css">
   <link rel="stylesheet" href="css/premium.css">
+  <link rel="stylesheet" href="css/auth-stage.css">
   <link rel="stylesheet" href="css/owl.css">
   <script src="js/owl.js"></script>
   <script src="js/theme.js"></script>
@@ -45,37 +46,35 @@
       </div>
 
       <div class="ap-side__body">
-        <h1 class="ap-title"><span class="ap-title__l1"><span>Pregătire BAC</span></span><span class="ap-title__l2"><span class="ap-title__hit">la matematică.</span></span></h1>
-        <p class="ap-sub">Singura platformă adaptată pentru bacalaureatul din Moldova: exerciții, antrenament și simulări reale.</p>
+        <h1 class="ap-title"><span class="ap-title__l1"><span>Matematică pas cu pas</span></span><span class="ap-title__l2"><span class="ap-title__hit">din clasa a V-a la BAC.</span></span></h1>
+        <p class="ap-sub">Lecții scurte, exerciții, simulări și clase live, într-un singur loc.</p>
 
-        <!-- The display: annunciators, a typed line that talks you through the form, and the real figures of the site -->
-        <div class="ap-lcd ap-lcd--boot" id="apLcd" aria-hidden="true">
-          <div class="ap-lcd__ann">
-            <span class="ap-lcd__a ap-lcd__a--on" data-ann="login">Conectare</span>
-            <span class="ap-lcd__a" data-ann="signup">Înregistrare</span>
-            <span class="ap-lcd__a" data-ann="reset">Resetare</span>
-            <span class="ap-lcd__sp"></span>
-            <span class="ap-lcd__a" data-ann="elev">Elev</span>
-            <span class="ap-lcd__a" data-ann="profesor">Profesor</span>
-            <span class="ap-lcd__a" data-ann="manager">Manager</span>
+        <!-- The stage: the owl talks in a bubble (the mode, the rule of the field you are in, then what the platform has), a small path of
+             lessons fills node by node, and four chips light in turn. All decoration (aria-hidden); js/auth-page.js drives it. -->
+        <div class="ap-stage" id="apStage" aria-hidden="true">
+          <div class="ap-card">
+            <div class="ap-card__top">
+              <span class="owl ap-owl" data-owl="idle"></span>
+              <div class="ap-bubble"><span id="apLine"></span></div>
+            </div>
+            <div class="ap-path" id="apPath">
+              <i class="ap-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>
+              <i class="ap-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>
+              <i class="ap-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>
+              <i class="ap-n"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"><path d="m5 12.5 4.5 4.5L19 7.5"/></svg></i>
+              <i class="ap-n ap-n--end"><svg viewBox="0 0 24 24" fill="currentColor"><path d="m12 3 2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.4 6.6 19.5l1.2-6L3.3 9.3l6.1-.7Z"/></svg></i>
+            </div>
+            <div class="ap-xp"><b>XP</b><span class="ap-xp__t"><i id="apXpFill"></i></span><em id="apXpGain">+10 XP</em></div>
           </div>
-          <div class="ap-lcd__line"><span id="apLine"></span><i class="ap-lcd__cur"></i></div>
-          <div class="ap-lcd__res">
-            <div class="ap-lcd__fig" id="apFig1"><b id="apFigA">888</b><span id="apUnitA">exerciții</span></div>
-            <div class="ap-lcd__fig ap-lcd__fig--sm" id="apFig2"><b id="apFigB">88</b><span id="apUnitB">capitole</span></div>
-          </div>
+          <ul class="ap-chips" id="apChips">
+            <li data-say="Lecții scurte, câte un pas pe zi, pentru clasele V–XII."><img src="assets/images/tabs/invata.svg" alt="" width="30" height="30"><span>Învață pas cu pas</span></li>
+            <li data-say="Exerciții cu barem oficial pe fiecare pas, ca la examen."><img src="assets/images/tabs/exercitii.svg" alt="" width="30" height="30"><span>Exerciții cu barem</span></li>
+            <li data-say="Simulări BAC de 3 ore, cu notă automată."><img src="assets/images/tabs/simulare.svg" alt="" width="30" height="30"><span>Simulări BAC</span></li>
+            <li data-say="Clase cu profesorul tău: teme, catalog, mesaje și tablă live."><img src="assets/images/tabs/clase.svg" alt="" width="30" height="30"><span>Clase live</span></li>
+          </ul>
         </div>
-
-        <!-- what is inside: the chapters of the bank at their real sizes, filled by script from BM.CATEGORIES / BM.EXERCISES -->
-        <ul class="ap-chap" id="apChap" aria-label="Capitolele din bancă"></ul>
-
-        <ul class="ap-feats">
-          <li>Barem pas cu pas la fiecare exercițiu, ca la examen.</li>
-          <li>Antrenament cu cronometru și feedback instant.</li>
-          <li>Simulare BAC: 12 exerciții, 3 ore, notă automată.</li>
-          <li>Clase virtuale cu teme, catalog, mesaje și tablă.</li>
-        </ul>
       </div>
+      <div class="ap-fl" aria-hidden="true"><span>π</span><span>∑</span><span>√x</span><span>x²</span><span>∫</span><span>Δ</span><span>%</span></div>
     </aside>
 
     <!-- RIGHT: the panel on graph paper -->
@@ -120,7 +119,7 @@
         <form id="fSignup" class="ap-form" style="display:none" novalidate onsubmit="onSignup(event)">
           <div class="ap-field">
             <label class="ap-label" for="sName">Nume complet</label>
-            <input class="ap-input" id="sName" type="text" placeholder="Ion Popescu" autocomplete="name" required>
+            <input class="ap-input" id="sName" type="text" placeholder="Ion Popescu" autocomplete="name" autocapitalize="words" maxlength="60" required>
           </div>
           <div class="ap-field">
             <div class="ap-label-row">
@@ -154,27 +153,23 @@
           <div class="ap-field">
             <span class="ap-label" id="roleLabel">Rol</span>
             <div class="ap-roles" id="roleSelect" role="group" aria-labelledby="roleLabel">
-              <button type="button" class="ap-role ap-role--on" data-role="elev" onclick="selectRole('elev')" aria-pressed="true">
-                <span class="ap-role__ico"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 6 4 14"></path><path d="M12 6v14"></path><path d="M8 8v12"></path><path d="M4 4v16"></path></svg></span>
+              <button type="button" class="ap-role ap-role--on" data-role="elev" onclick="selectRole('elev')" aria-pressed="true" title="Elev: lecții, exerciții și simulări BAC">
+                <img class="ap-role__ico" src="assets/images/roles/elev.svg" alt="" width="46" height="46">
                 <span class="ap-role__n">Elev</span>
-                <span class="ap-role__d">Acces complet la exerciții și simulări BAC</span>
               </button>
-              <button type="button" class="ap-role" data-role="profesor" onclick="selectRole('profesor')" aria-pressed="false">
-                <span class="ap-role__ico"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 3h20"></path><path d="M21 3v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V3"></path><path d="m7 21 5-5 5 5"></path></svg></span>
-                <span class="ap-role__n">Profesor <i class="ap-led ap-led--amber ap-led--wait" aria-hidden="true"></i></span>
-                <span class="ap-role__d">Necesită aprobare din partea adminului</span>
+              <button type="button" class="ap-role" data-role="profesor" onclick="selectRole('profesor')" aria-pressed="false" title="Profesor: contul se activează după aprobarea adminului">
+                <img class="ap-role__ico" src="assets/images/roles/profesor.svg" alt="" width="46" height="46">
+                <span class="ap-role__n">Profesor</span>
               </button>
-              <button type="button" class="ap-role" data-role="manager" onclick="selectRole('manager')" aria-pressed="false">
-                <span class="ap-role__ico"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect width="20" height="14" x="2" y="7" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg></span>
-                <span class="ap-role__n">Manager <i class="ap-led ap-led--amber ap-led--wait" aria-hidden="true"></i></span>
-                <span class="ap-role__d">Doar consola de administrare, după aprobare</span>
+              <button type="button" class="ap-role" data-role="manager" onclick="selectRole('manager')" aria-pressed="false" title="Manager: doar consola de administrare, după aprobare">
+                <img class="ap-role__ico" src="assets/images/roles/manager.svg" alt="" width="46" height="46">
+                <span class="ap-role__n">Manager</span>
               </button>
             </div>
           </div>
           <button type="submit" class="ap-key ap-key--primary ap-submit" id="btnSignup">
             <span class="ap-key__t">Creează cont</span><span class="ap-dots" aria-hidden="true"><i></i><i></i><i></i></span>
           </button>
-          <p class="ap-terms"><span>La înregistrare primești <strong>3 ExamTokenuri</strong> gratuite</span> <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z"></path><path d="M13 5v2"></path><path d="M13 17v2"></path><path d="M13 11v2"></path></svg></p>
         </form>
 
         <!-- RESET FORM -->

@@ -373,7 +373,7 @@
       // a student who has not picked a nickname and a class yet gets the wizard (js/onboarding.js decides, on calm pages only)
       let onbDone = false;
       try { onbDone = localStorage.getItem('bm_onb_' + currentUser.id) === '1'; } catch (e) {}
-      if (_userRole === 'elev' && !onbDone) {
+      if ((_userRole === 'elev' || _userRole === 'profesor') && !onbDone) {
         if (window.BMOnboarding) window.BMOnboarding.maybe();
         else if (!document.querySelector('script[src*="js/onboarding.js"]')) {
           const ob = document.createElement('script');

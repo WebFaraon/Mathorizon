@@ -11,7 +11,7 @@
   if (window.BMOnboarding) return;
 
   var RE = /^[a-z0-9][a-z0-9_.]{1,18}[a-z0-9]$/;
-  var CALM = /(^\/$|index\.html|capitole\.html|category\.html|classes\.html|training\.html|profile\.html)$/;
+  var CALM = /(^\/$|index\.html|parcurs\.html|misiuni\.html|capitole\.html|category\.html|classes\.html|training\.html|profile\.html)$/;
   var GRADES = [
     [5, 'V', 'clasa a 5-a'], [6, 'VI', 'clasa a 6-a'], [7, 'VII', 'clasa a 7-a'], [8, 'VIII', 'clasa a 8-a'],
     [9, 'IX', 'clasa a 9-a'], [10, 'X', 'clasa a 10-a'], [11, 'XI', 'clasa a 11-a'], [12, 'XII', 'clasa a 12-a']
@@ -69,11 +69,11 @@
   function open(opts) {
     opts = opts || {};
     if (el) return;
-    /* nickname-ul si clasa sunt doar pentru elevi: un profesor, un manager sau un admin nu vad wizardul */
-    var role0 = window.BMAuth && window.BMAuth.role;
-    if (role0 && role0 !== 'elev') return;
+    /* nickname-ul (si clasa, doar la elevi) e pentru elevi si profesori: un manager sau un admin nu vad wizardul */
+    var role0 = opts.role || (window.BMAuth && window.BMAuth.role);
+    if (role0 && role0 !== 'elev' && role0 !== 'profesor') return;
     css();
-    state = { step: 0, nick: opts.nickname || '', grade: opts.grade || null, lockedUntil: opts.lockedUntil || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
+    state = { teacher: role0 === 'profesor', step: 0, nick: opts.nickname || '', grade: opts.grade || null, lockedUntil: opts.lockedUntil || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
     try { state.name = (window.BMAuth && window.BMAuth.displayName && window.BMAuth.displayName()) || ''; } catch (e) { /* ignore */ }
     el = document.createElement('div');
     el.className = 'ob';
@@ -85,7 +85,7 @@
   }
 
   function dots() {
-    if (state.edit) return '';
+    if (state.edit || state.teacher) return '';
     var out = '';
     for (var i = 0; i < 3; i++) out += '<i class="' + (i < state.step ? 'done' : i === state.step ? 'on' : '') + '"></i>';
     return '<div class="ob-dots" aria-hidden="true">' + out + '</div>';
@@ -102,11 +102,11 @@
         '<div class="ob-act"><button class="ob-go" id="obX2" type="button">Am înțeles</button></div>';
     } else if (s.step === 0) {
       h = '<div class="ob-owl owl" id="obOwl"></div><h2>' + (s.edit ? 'Schimbă nickname-ul' : 'Bine ai venit la Teorema!') + '</h2>' +
-        '<p>Alege un <b>nickname</b>. Așa te văd ceilalți elevi în clasament. Numele tău real rămâne în clasele tale, nickname-ul se vede doar în clasament.' + (s.edit ? ' După ce îl schimbi, îl poți schimba din nou abia peste 60 de zile.' : '') + '</p>' +
+        '<p>' + (s.teacher ? 'Alege un <b>nickname</b>. Apare în profilul tău. Numele tău real rămâne în clase, în registre și în catalog.' : 'Alege un <b>nickname</b>. Apare în profilul tău și în clasament. Numele tău real rămâne în clase, în registre și în catalog.') + (s.edit ? ' După ce îl schimbi, îl poți schimba din nou abia peste 60 de zile.' : '') + '</p>' +
         '<label class="ob-fld" for="obNick"><span class="at">@</span><input id="obNick" type="text" maxlength="20" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="nickname" value="' + s.nick.replace(/"/g, '') + '"></label>' +
         '<div class="ob-st" id="obSt" role="status"></div>' +
         '<div class="ob-sug" id="obSug"></div>' +
-        '<div class="ob-act"><button class="ob-go" id="obNext" type="button" disabled>' + (s.edit ? 'Salvează' : 'Continuă') + '</button></div>' +
+        '<div class="ob-act"><button class="ob-go" id="obNext" type="button" disabled>' + (s.edit || s.teacher ? 'Salvează' : 'Continuă') + '</button></div>' +
         (s.edit ? '<button class="ob-link" id="obX" type="button">Renunță</button>' : '<button class="ob-link" id="obLater" type="button">Mai târziu</button>');
     } else if (s.step === 1) {
       h = '<div class="ob-owl owl" id="obOwl"></div><h2>În ce clasă ești?</h2>' +
@@ -177,7 +177,7 @@
       sug.addEventListener('click', function (e) { var b = e.target.closest('[data-s]'); if (b) { inp.value = b.getAttribute('data-s'); check(); inp.focus(); } });
       if (s.nick) check();
       setTimeout(function () { try { inp.focus({ preventScroll: true }); } catch (e) { inp.focus(); } }, 350);
-      nx.onclick = function () { if (s.edit) { s.grade = s.grade || +(localStorage.getItem('bm_grade') || 0) || 7; save(); } else { s.step = 1; render(); } };
+      nx.onclick = function () { if (s.teacher) { save(); } else if (s.edit) { s.grade = s.grade || +(localStorage.getItem('bm_grade') || 0) || 7; save(); } else { s.step = 1; render(); } };
       var lt = $('#obLater'); if (lt) lt.onclick = function () { try { sessionStorage.setItem('bm_onb_later', '1'); } catch (e) { /* ignore */ } close(); };
       var xx = $('#obX'); if (xx) xx.onclick = close;
     } else if (s.step === 1) {
@@ -200,7 +200,7 @@
     var s = state, c = sb(), b = $('#obSave'), er = $('#obErr');
     if (s.saving || !c) return;
     s.saving = true; if (b) b.disabled = true;
-    c.rpc('complete_student_onboarding', { p_nickname: s.nick, p_grade: s.grade }).then(function (r) {
+    c.rpc('complete_student_onboarding', { p_nickname: s.nick, p_grade: s.teacher ? null : s.grade }).then(function (r) {
       s.saving = false;
       var d = r && r.data;
       if (r.error || !d || !d.ok) {
@@ -211,7 +211,7 @@
         if (er) er.textContent = 'Nu s-a putut salva. Reîncearcă peste un moment.';
         return;
       }
-      try { localStorage.setItem('bm_grade', String(d.grade)); localStorage.setItem('bm_nickname', d.nickname); localStorage.setItem('bm_onb_' + uid(), '1'); } catch (e2) { /* ignore */ }
+      try { if (d.grade) localStorage.setItem('bm_grade', String(d.grade)); localStorage.setItem('bm_nickname', d.nickname); localStorage.setItem('bm_onb_' + uid(), '1'); } catch (e2) { /* ignore */ }
       document.dispatchEvent(new CustomEvent('bm:onboarded', { detail: { nickname: d.nickname, grade: d.grade } }));
       if (s.edit) { try { sessionStorage.removeItem('bm_rail_rank'); } catch (e3) { /* ignore */ } }
       close();
@@ -226,10 +226,10 @@
     c.rpc('my_student_profile').then(function (r) {
       var p = r && r.data;
       if (r.error || !p) return;                       // migrarea nu e rulata inca, sau nu are profil
-      if (p.role !== 'elev') return;
+      if (p.role !== 'elev' && p.role !== 'profesor') return;
       if (p.onboarded) { try { localStorage.setItem('bm_onb_' + uid(), '1'); } catch (e) { /* ignore */ } }
       if (p.grade) { try { localStorage.setItem('bm_grade', String(p.grade)); if (p.nickname) localStorage.setItem('bm_nickname', p.nickname); } catch (e) { /* ignore */ } }
-      if (!p.onboarded) open({ nickname: p.nickname || '', grade: p.grade || null });
+      if (!p.onboarded) open({ nickname: p.nickname || '', grade: p.grade || null, role: p.role });
     }, function () { /* in tacere */ });
   }
 

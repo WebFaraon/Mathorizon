@@ -1,0 +1,186 @@
+/* ============================================================
+   Autentificare, runda din 2026-11-15 (auth.html). Se incarca dupa premium.css.
+   - tastele Conectare / Inregistrare si rolurile: aceleasi chei 3D ca in restul site-ului (14px, rama 1.5px, muchie 4px)
+   - panoul de inregistrare incape intr-un ecran (fara texte sub roluri, fara randul cu tokenuri)
+   - coloana din stanga: bufnita care vorbeste, drumul de lectii, patru placute, simboluri care plutesc
+   ============================================================ */
+
+/* ---------- the two mode keys and the role keys ---------- */
+html body.pm.ap .ap-modes { gap: 12px; margin-bottom: 18px; }
+html body.pm.ap .ap-mode,
+html body.pm.ap .ap-mode:hover,
+html body.pm.ap .ap-mode:focus-visible {
+  box-sizing: border-box; height: 48px; border: 1.5px solid var(--pm-line); border-radius: 14px;
+  background: var(--pm-face); color: var(--pm-ink-2); font-weight: 800; filter: none; transform: none;
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm.ap .ap-mode:hover { background: var(--pm-tint); color: var(--pm-ink); }
+html body.pm.ap .ap-mode:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm.ap .ap-mode--on,
+html body.pm.ap .ap-mode--on:hover {
+  background: var(--pm-violet); border-color: #2C1952; color: #fff; transform: none; box-shadow: 0 4px 0 0 #2C1952;
+}
+html body.pm.ap .ap-mode--on:active { transform: translateY(4px); box-shadow: 0 0 0 0 #2C1952; }
+html body.pm.ap .ap-mode--on::after { content: none; }
+
+html body.pm.ap :is(.ap-key, .ap-google) { border-radius: 14px; }
+html body.pm.ap .ap-key--nav { border-radius: 12px; }
+html body.pm.ap .ap-input { border-radius: 12px; }
+
+html body.pm.ap .ap-roles { gap: 10px; }
+html body.pm.ap .ap-role,
+html body.pm.ap .ap-role:hover {
+  box-sizing: border-box; flex-direction: column; align-items: center; justify-content: center; gap: 6px; min-height: 0; padding: 10px 8px 11px;
+  border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-face); color: var(--pm-ink); filter: none; transform: none;
+  box-shadow: 0 4px 0 0 var(--pm-edge); text-align: center;
+}
+html body.pm.ap .ap-role:hover { background: var(--pm-tint); }
+html body.pm.ap .ap-role:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm.ap .ap-role--on,
+html body.pm.ap .ap-role--on:hover {
+  background: var(--pm-violet); border-color: #2C1952; color: #fff; transform: none; box-shadow: 0 4px 0 0 #2C1952;
+}
+html body.pm.ap .ap-role--on:active { transform: translateY(4px); box-shadow: 0 0 0 0 #2C1952; }
+html body.pm.ap .ap-role::after { content: none; }
+html body.pm.ap .ap-role__ico {
+  display: block; width: 52px; height: 52px; padding: 3px; border-radius: 14px; background: var(--pm-tint); object-fit: contain; color: inherit;
+}
+html body.pm.ap .ap-role--on .ap-role__ico { background: #fff; }
+html body.pm.ap .ap-role__n { font-size: 0.92rem; font-weight: 800; color: inherit; }
+
+/* ---------- the panel: everything of the sign-up form on one screen ---------- */
+@media (min-width: 900px) and (max-height: 940px) {
+  html body.pm.ap .ap-main { padding-block: 16px; }
+  html body.pm.ap .ap-panel { padding: 16px 22px 18px; }
+  html body.pm.ap .ap-panel:has(> .owl--perch) { margin-top: 44px; }
+  html body.pm.ap .ap-panel > .owl--perch { --ow: 104px; }
+  html body.pm.ap .ap-modes { margin-bottom: 12px; }
+  html body.pm.ap .ap-mode { height: 44px; }
+  html body.pm.ap .ap-form { gap: 10px; }
+  html body.pm.ap .ap-field { gap: 4px; }
+  html body.pm.ap .ap-input { height: 42px; }
+  html body.pm.ap .ap-eye { top: 3px; }
+  html body.pm.ap .ap-submit { height: 46px; }
+  html body.pm.ap .ap-or { margin: 12px 0 10px; }
+  html body.pm.ap .ap-google { height: 44px; }
+  html body.pm.ap .ap-legal { margin-top: 10px; }
+  html body.pm.ap .ap-role__ico { width: 44px; height: 44px; }
+  html body.pm.ap .ap-role, html body.pm.ap .ap-role:hover { padding: 8px 6px 9px; gap: 4px; }
+}
+@media (min-width: 900px) and (max-height: 820px) {
+  html body.pm.ap .ap-input { height: 40px; }
+  html body.pm.ap .ap-form { gap: 8px; }
+  html body.pm.ap .ap-label { font-size: 0.78rem; }
+  html body.pm.ap .ap-role__ico { width: 38px; height: 38px; }
+  html body.pm.ap .ap-role__n { font-size: 0.86rem; }
+}
+
+/* ---------- the left column ---------- */
+html body.pm.ap .ap-side { position: sticky; }
+html body.pm.ap .ap-side__top, html body.pm.ap .ap-side__body { position: relative; z-index: 1; }
+html body.pm.ap .ap-side__body { gap: 16px; justify-content: center; }
+html body.pm.ap .ap-title { font-size: clamp(1.7rem, 2.55vw, 2.45rem); }
+html body.pm.ap .ap-title__hit { display: inline-block; white-space: nowrap; padding: 0.02em 0.22em 0.08em; -webkit-box-decoration-break: clone; box-decoration-break: clone; line-height: 1.3; }
+html body.pm.ap .ap-title__l2 { padding-bottom: 0.24em; }
+
+.ap-stage { position: relative; width: 100%; max-width: 470px; display: flex; flex-direction: column; gap: 16px; }
+.ap-card {
+  display: flex; flex-direction: column; gap: 14px; padding: 14px 16px 18px;
+  background: var(--pm-face); color: var(--pm-ink); border: 1.5px solid var(--pm-line); border-radius: 22px; box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+.ap-card__top { display: flex; align-items: center; gap: 14px; }
+.ap-owl { --ow: 96px; flex: none; margin: -2px 0; }
+.ap-bubble {
+  position: relative; flex: 1; min-width: 0; min-height: 84px; display: flex; align-items: center; padding: 12px 15px;
+  background: var(--pm-tint); border: 1.5px solid var(--pm-line); border-radius: 16px;
+  font-size: 0.94rem; font-weight: 700; line-height: 1.4; color: var(--pm-ink);
+}
+.ap-bubble::before {
+  content: ""; position: absolute; left: -8px; top: 50%; width: 14px; height: 14px; margin-top: -7px;
+  background: var(--pm-tint); border-left: 1.5px solid var(--pm-line); border-bottom: 1.5px solid var(--pm-line); border-radius: 0 0 0 4px; transform: rotate(45deg);
+}
+
+.ap-path { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 14px 4px 10px; }
+.ap-path::before { content: ""; position: absolute; left: 26px; right: 26px; top: 50%; border-top: 3px dotted var(--pm-line-2); }
+.ap-n {
+  position: relative; z-index: 1; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%;
+  background: var(--pm-tint); border: 1.5px solid var(--pm-line); box-shadow: 0 4px 0 0 var(--pm-edge); color: transparent;
+  transition: background-color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, color 0.2s ease;
+}
+.ap-n svg { width: 20px; height: 20px; }
+.ap-n:nth-child(odd) { top: 5px; }
+.ap-n:nth-child(even) { top: -7px; }
+.ap-n.now { background: var(--pm-violet); border-color: #2C1952; box-shadow: 0 4px 0 0 #2C1952; }
+.ap-n.done { background: var(--pm-lime); border-color: var(--pm-lime-edge); box-shadow: 0 4px 0 0 var(--pm-lime-edge); color: #14200A; }
+.ap-n--end { border-radius: 14px; }
+.ap-n--end.done { background: #FFD23F; border-color: #C98600; box-shadow: 0 4px 0 0 #C98600; color: #7A4A00; }
+
+.ap-xp { display: flex; align-items: center; gap: 10px; }
+.ap-xp b { font-size: 0.72rem; font-weight: 800; letter-spacing: 0.1em; color: var(--pm-ink-2); }
+.ap-xp__t { flex: 1; height: 14px; border-radius: 999px; background: var(--pm-track); box-shadow: inset 0 2px 3px rgba(0, 0, 0, 0.14); overflow: hidden; }
+.ap-xp__t i { display: block; width: 100%; height: 100%; border-radius: 999px; background: var(--pm-lime); box-shadow: inset 0 -3px 0 rgba(0, 0, 0, 0.16); transform-origin: left; transform: scaleX(0); transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1); }
+.ap-xp em { min-width: 3.9em; font-size: 0.8rem; font-style: normal; font-weight: 800; text-align: right; color: var(--pm-lime-edge); opacity: 0; }
+[data-theme="dark"] .ap-xp em { color: #B6E83A; }
+
+.ap-chips { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.ap-chips li {
+  display: flex; align-items: center; gap: 10px; min-height: 54px; padding: 8px 12px; border-radius: 14px;
+  background: var(--ap-nk); border: 1.5px solid var(--ap-nk-b); box-shadow: 0 4px 0 0 var(--ap-nk-e); color: var(--ap-nk-ink);
+  font-size: 0.86rem; font-weight: 800; line-height: 1.2;
+  transition: background-color 0.25s ease, color 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease, transform 0.25s ease;
+}
+.ap-chips li.on { background: var(--ap-lit); border-color: var(--ap-lit-e); color: var(--ap-lit-ink); box-shadow: 0 4px 0 0 var(--ap-lit-e); transform: translateY(-2px); }
+.ap-chips img { flex: none; display: block; width: 30px; height: 30px; }
+
+/* math symbols drifting up the column behind everything */
+.ap-fl { position: absolute; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; }
+.ap-fl span {
+  position: absolute; bottom: -50px; left: calc(var(--x, 10) * 1%); font-family: var(--k-math-font, serif); font-size: var(--s, 30px); font-weight: 700; color: #fff; opacity: 0;
+}
+.ap-fl span:nth-child(1) { --x: 6;  --s: 34px; --d: 19s; --w: 0s; }
+.ap-fl span:nth-child(2) { --x: 24; --s: 26px; --d: 23s; --w: 4s; }
+.ap-fl span:nth-child(3) { --x: 42; --s: 30px; --d: 21s; --w: 9s; }
+.ap-fl span:nth-child(4) { --x: 58; --s: 36px; --d: 25s; --w: 2s; }
+.ap-fl span:nth-child(5) { --x: 74; --s: 28px; --d: 20s; --w: 12s; }
+.ap-fl span:nth-child(6) { --x: 88; --s: 32px; --d: 24s; --w: 6s; }
+.ap-fl span:nth-child(7) { --x: 33; --s: 24px; --d: 27s; --w: 15s; }
+
+@keyframes ap-say { from { opacity: 0; transform: translateY(6px); } }
+@keyframes ap-hop { 0%, 100% { transform: none; } 40% { transform: translateY(-9px); } }
+@keyframes ap-gain { 0% { opacity: 0; transform: translateY(6px) scale(0.8); } 25% { opacity: 1; transform: none; } 75% { opacity: 1; } 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes ap-nowpulse { 50% { transform: translateY(-4px); } }
+@keyframes ap-float { 0% { transform: translateY(0) rotate(-8deg); opacity: 0; } 12% { opacity: 0.14; } 80% { opacity: 0.14; } 100% { transform: translateY(-105vh) rotate(10deg); opacity: 0; } }
+@media (prefers-reduced-motion: no-preference) {
+  .ap-bubble.is-in span { animation: ap-say 0.34s cubic-bezier(0.16, 1, 0.3, 1) backwards; }
+  .ap-stage.is-hop .ap-owl { animation: ap-hop 0.5s ease; }
+  .ap-n.now { animation: ap-nowpulse 1.1s ease-in-out infinite; }
+  .ap-xp em.is-pop { animation: ap-gain 1.1s ease; }
+  .ap-fl span { animation: ap-float var(--d, 22s) linear var(--w, 0s) infinite; }
+  .ap-boot .ap-stage { animation: ap-in 0.55s var(--ap-ease) 0.3s backwards; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ap-xp em { opacity: 0; }
+}
+
+/* a short screen: the path and the XP bar go first, then the chips */
+@media (min-width: 900px) and (max-height: 860px) { .ap-xp { display: none; } .ap-sub { display: none; } }
+@media (min-width: 900px) and (max-height: 740px) { .ap-chips { display: none; } }
+
+/* below 900px the column is a compact header: title, the owl with its bubble and the four chips in a row */
+@media (max-width: 899px) {
+  html body.pm.ap .ap-side__body { gap: 12px; padding-top: 16px; }
+  .ap-stage { max-width: 520px; gap: 12px; }
+  .ap-card { padding: 12px 14px 14px; gap: 0; }
+  .ap-path, .ap-xp { display: none; }
+  .ap-owl { --ow: 80px; }
+  .ap-bubble { min-height: 72px; font-size: 0.9rem; }
+  .ap-chips { grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .ap-chips li { flex-direction: column; justify-content: center; gap: 4px; min-height: 66px; padding: 7px 4px; text-align: center; font-size: 0.66rem; }
+  .ap-chips img { width: 28px; height: 28px; }
+}
+@media (max-width: 520px) {
+  html body.pm.ap .ap-side { padding-bottom: 18px; }
+  .ap-chips li { font-size: 0.62rem; }
+  html body.pm.ap .ap-roles { grid-template-columns: repeat(3, 1fr); gap: 8px; }
+  html body.pm.ap .ap-role__ico { width: 46px; height: 46px; }
+}

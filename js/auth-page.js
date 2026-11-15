@@ -25,75 +25,70 @@
   const FORMS = { login: 'fLogin', signup: 'fSignup', reset: 'fReset' };
 
   /* ============================================================
-     The display. Annunciators say where you are (mode, role), a typed
-     line prints a greeting and then the rule of the field you are in,
-     and the figures are the site's real ones (never counted up: an LCD
-     refreshes). Same grammar as the Capitole display.
+     The stage on the left: the owl talks you through the form in a speech bubble (a short line for the mode, then the rule of the field you
+     are in) and, when you are not in a field, tells what the platform has: the four chips light one after the other, each with its line.
+     A small path of lessons fills node by node, the XP bar follows. Same API as the old display (mode, hint, home, role, boot).
      ============================================================ */
   const LCD = (function () {
-    const box = $('apLcd'), line = $('apLine');
-    const PHRASE = { login: 'Bine ai revenit.', signup: 'Creează-ți contul.', reset: 'Resetează parola.' };
-    let timer = 0, booted = false;
+    const line = $('apLine'), bubble = line && line.parentNode, stage = $('apStage');
+    const chips = Array.prototype.slice.call(document.querySelectorAll('#apChips li'));
+    const PHRASE = {
+      login: 'Bine ai revenit! Hai să continuăm de unde ai rămas.',
+      signup: 'Creează-ți contul și pornim de la prima lecție.',
+      reset: 'Nicio grijă. Îți trimitem un link pe email.'
+    };
+    let idx = -1, rot = 0, wait = 0, held = false;
 
-    const total = () => (window.BM && BM.EXERCISES ? BM.EXERCISES.length : 0);
-    const chapters = () => (window.BM && BM.CATEGORIES ? BM.CATEGORIES.length : 0);
-
-    function type(text) {
-      if (!line) return;
-      clearInterval(timer);
+    function say(text) {
+      if (!line || !text) return;
       if (reduceMotion()) { line.textContent = text; return; }
-      line.textContent = '';
-      let i = 0;
-      timer = setInterval(() => {
-        i++;
-        line.textContent = text.slice(0, i);
-        if (i >= text.length) clearInterval(timer);
-      }, 22);
+      bubble.classList.remove('is-in'); void bubble.offsetWidth;
+      line.textContent = text;
+      bubble.classList.add('is-in');
+      if (stage) { stage.classList.remove('is-hop'); void stage.offsetWidth; stage.classList.add('is-hop'); }
     }
-    function refreshFrames() {
-      if (!box || reduceMotion()) return;
-      box.classList.remove('ap-lcd--refresh');
-      void box.offsetWidth;
-      box.classList.add('ap-lcd--refresh');
+    function light(i) { chips.forEach((c, k) => c.classList.toggle('on', k === i)); }
+    function tick() {
+      if (held || !chips.length) return;
+      idx = (idx + 1) % chips.length;
+      light(idx);
+      say(chips[idx].dataset.say);
     }
-    function figures(mode) {
-      const put = (id, v) => { const el = $(id); if (el) el.textContent = v; };
-      if (mode === 'signup') {
-        put('apFigA', '3');          put('apUnitA', 'ExamTokenuri gratuite');
-        put('apFigB', total() || ''); put('apUnitB', 'exerciții');
-      } else {
-        put('apFigA', total() || ''); put('apUnitA', 'exerciții');
-        put('apFigB', chapters() || ''); put('apUnitB', 'capitole');
-      }
+    function start() { stop(); if (!reduceMotion()) rot = setInterval(tick, 4300); }
+    function stop() { clearInterval(rot); clearTimeout(wait); }
+    function resumeLater(ms) { held = true; clearTimeout(wait); wait = setTimeout(() => { held = false; start(); }, ms); }
+
+    /* the path of lessons: nodes fill one by one, the bar grows, "+10 XP" pops, then it starts over */
+    const nodes = Array.prototype.slice.call(document.querySelectorAll('#apPath .ap-n')), fill = $('apXpFill'), gain = $('apXpGain');
+    let step = 0, pathT = 0;
+    function paintPath() {
+      nodes.forEach((n, k) => { n.classList.toggle('done', k < step); n.classList.toggle('now', k === step); });
+      if (fill) fill.style.transform = 'scaleX(' + (step / nodes.length) + ')';
     }
-    function annunciators(mode) {
-      if (!box) return;
-      box.querySelectorAll('[data-ann]').forEach(a => {
-        const k = a.dataset.ann;
-        a.classList.toggle('ap-lcd__a--on', k === mode || (mode === 'signup' && k === _role));
-      });
+    function pathTick() {
+      step++;
+      if (step > nodes.length) { step = 0; paintPath(); return; }
+      paintPath();
+      if (gain) { gain.classList.remove('is-pop'); void gain.offsetWidth; gain.classList.add('is-pop'); }
     }
+    function startPath() {
+      if (!nodes.length) return;
+      if (reduceMotion()) { step = 2; paintPath(); return; }
+      step = 0; paintPath();
+      pathT = setInterval(pathTick, 1250);
+    }
+
     return {
-      /* power-on: the segment test (eights), then the real readout */
       boot(mode) {
-        if (!box) return;
-        const done = () => {
-          booted = true;
-          box.classList.remove('ap-lcd--boot');
-          figures(mode); annunciators(mode); type(PHRASE[mode]);
-        };
-        if (reduceMotion()) { done(); return; }
-        setTimeout(done, 600);
+        say(PHRASE[mode]);
+        startPath();
+        resumeLater(3800);
       },
-      mode(mode) {
-        if (!booted) return;
-        figures(mode); annunciators(mode); refreshFrames(); type(PHRASE[mode]);
-      },
-      role() { if (booted) annunciators(_tab); },
-      hint(text) { if (booted && text) type(text); },
-      home() { if (booted) type(PHRASE[_tab]); },
-      /* the bank can grow after custom exercises load: show the settled number */
-      figuresNow() { if (booted) { figures(_tab); refreshFrames(); } }
+      mode(mode) { say(PHRASE[mode]); light(-1); resumeLater(3800); },
+      role() {},
+      hint(text) { if (!text) return; stop(); held = true; light(-1); say(text); },
+      home() { say(PHRASE[_tab]); resumeLater(3000); },
+      figuresNow() {}
     };
   })();
 
@@ -101,59 +96,17 @@
   const HINT = {
     lEmail: 'Email sau nume de utilizator.',
     lPass:  'Parola contului tău.',
-    sName:  'Numele tău complet.',
+    sName:  'Nume și prenume, doar litere.',
     sEmail: () => (_usernameMode ? '3-20 caractere: litere mici, cifre sau _.' : 'Adresa unde primești confirmarea.'),
     sPass:  'Minim 8 caractere.',
     sConf:  'Repetă aceeași parolă.',
     rEmail: 'Emailul contului tău.'
   };
   const ROLE_HINT = {
-    elev: 'Elev: acces complet la exerciții și simulări.',
+    elev: 'Elev: lecții, exerciții și simulări BAC.',
     profesor: 'Profesor: contul se activează după aprobarea adminului.',
     manager: 'Manager: doar consola, după aprobarea adminului.'
   };
-
-  /* ============================================================
-     The chapters of the bank, drawn from the real data: one strip per
-     chapter, one segment per type of item, sized by its exercise count
-     (the same bank strip as on Capitole). A chapter with no exercises is
-     printed flat, "în curând". Pointing at a row makes the display read it.
-     ============================================================ */
-  const LEGEND = { algebra: 'var(--ap-lg-blue)', geometrie: 'var(--ap-lg-green)', analiza: 'var(--ap-lg-red)' };   // the legend colours, by chapter (lit tints for the blue column)
-  const _esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
-  const _pl = (n, one, many) => `${n} ${n === 1 ? one : many}`;
-  function renderChapters() {
-    const ul = $('apChap');
-    if (!ul || !window.BM || !BM.CATEGORIES || !BM.EXERCISES) return;
-    const byCat = {}, bySub = {};
-    BM.EXERCISES.forEach(e => { byCat[e.categoryId] = (byCat[e.categoryId] || 0) + 1; bySub[e.subcategoryId] = (bySub[e.subcategoryId] || 0) + 1; });
-    ul.innerHTML = BM.CATEGORIES.map(c => {
-      const n = byCat[c.id] || 0, lg = LEGEND[c.id] || 'var(--ap-lg-soft)';
-      const sym = `<span class="ap-chap__sym${c.emblem ? ' ap-chap__sym--emblem' : ''}" aria-hidden="true">${c.emblem ? BM.chapterEmblem(c, 30) : (c.symbol || '')}</span>`;
-      if (!n) return `<li class="ap-chap__r ap-chap__r--soon" style="--lg:${lg}" data-say="${_esc(c.name)}: în curând.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__soon">în curând</span></li>`;
-      const subs = (c.subcategories || []).filter(s => bySub[s.id]);
-      const strip = subs.map((s, j) => `<i style="--w:${bySub[s.id]};--j:${j}"></i>`).join('');
-      return `<li class="ap-chap__r" style="--lg:${lg}" data-say="${_esc(c.name)}: ${_pl(n, 'exercițiu', 'exerciții')} în ${_pl(subs.length, 'tip', 'tipuri')}.">${sym}<span class="ap-chap__n">${_esc(c.name)}</span><span class="ap-chap__c">${n}</span><span class="ap-chap__strip" aria-hidden="true">${strip}</span></li>`;
-    }).join('');
-  }
-  function _wireChapters() {
-    const ul = $('apChap');
-    if (!ul) return;
-    ul.addEventListener('pointerover', e => { const r = e.target.closest('.ap-chap__r'); if (r && r.dataset.say) LCD.hint(r.dataset.say); });
-    ul.addEventListener('pointerleave', () => {
-      const a = document.activeElement, h = a && HINT[a.id];
-      if (h) LCD.hint(typeof h === 'function' ? h() : h); else LCD.home();
-    });
-  }
-
-  /* ---- Exercise count: same BM.EXERCISES source capitole.html uses, so
-     this page never drifts from the real total. Waits on custom
-     exercises so it lands on the settled number. ---- */
-  function _watchBank() {
-    if (!window.BM || !BM.EXERCISES) return;
-    const ready = BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve();
-    ready.then(() => { LCD.figuresNow(); renderChapters(); }).catch(() => {});
-  }
 
   /* The page the person came for (?from=...). Google takes the browser away and brings it back to auth.html without the query,
      so it is kept for that round trip in sessionStorage. */
@@ -516,6 +469,22 @@
   }
   window.onLogin = onLogin;
 
+  /* Numele complet: doar litere (cu diacritice), spatiu, cratima si apostrof; cel putin doua cuvinte de cate doua litere */
+  const NAME_BAD = /[^\p{L}\s'’-]/gu;
+  function _cleanName(v) { return v.replace(NAME_BAD, '').replace(/\s{2,}/g, ' ').replace(/^[\s'’-]+/, ''); }
+  function _validName(v) {
+    const words = v.trim().split(/\s+/);
+    return words.length >= 2 && words.every(w => /^\p{L}[\p{L}'’-]*\p{L}$/u.test(w));
+  }
+  function _wireName() {
+    const inp = $('sName');
+    if (!inp) return;
+    inp.addEventListener('input', () => {
+      const c = _cleanName(inp.value);
+      if (c !== inp.value) { const pos = inp.selectionStart - (inp.value.length - c.length); inp.value = c; try { inp.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } }
+    });
+  }
+
   async function onSignup(e) {
     e.preventDefault();
     _clearMsg(); _clearInvalid($('fSignup'));
@@ -528,6 +497,7 @@
       _markInvalid([!name && 'sName', !contact && 'sEmail', !pass && 'sPass', !conf && 'sConf'].filter(Boolean));
       return _showMsg('Completează toate câmpurile.', true);
     }
+    if (!_validName(name)) { _markInvalid(['sName']); return _showMsg('Scrie numele complet, nume și prenume, doar cu litere (fără cifre, simboluri sau puncte).', true); }
     if (pass.length < 8) { _markInvalid(['sPass']); return _showMsg('Parola trebuie să aibă cel puțin 8 caractere.', true); }
     if (pass !== conf)   { _markInvalid(['sConf']); return _showMsg('Parolele nu coincid.', true); }
 
@@ -649,11 +619,8 @@
     }
     _checkGoogle();
     LCD.boot(_tab);
-    renderChapters();
-    _watchBank();
-    _wireChapters();
     setTimeout(() => document.body.classList.remove('ap-boot'), 2600);
-    _wireModeKeys(); _wirePassword(); _wireCaps(); _wireHints();
+    _wireModeKeys(); _wirePassword(); _wireCaps(); _wireHints(); _wireName();
   });
 
   document.addEventListener('DOMContentLoaded', async () => {

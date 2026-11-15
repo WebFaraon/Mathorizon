@@ -593,11 +593,11 @@
             ${(() => {
               /* elev: @nickname mare si bold, numele real mic si estompat (nickname-ul vine din cache pana raspunde serverul) */
               let cn = '';
-              if (role === 'elev') { try { cn = localStorage.getItem('bm_nickname') || ''; } catch (e) { /* ignore */ } }
+              if (role === 'elev' || role === 'profesor') { try { cn = localStorage.getItem('bm_nickname') || ''; } catch (e) { /* ignore */ } }
               return `<h1 class="pf-name${cn ? ' pf-name--nick' : ''}" id="pfName">${cn ? '@' + BM.esc(cn) : BM.esc(name)}</h1>` +
-                (role === 'elev' ? `<p class="pf-realname" id="pfRealName"${cn ? '' : ' hidden'}>${BM.esc(name)}</p>` : '');
+                ((role === 'elev' || role === 'profesor') ? `<p class="pf-realname" id="pfRealName"${cn ? '' : ' hidden'}>${BM.esc(name)}</p>` : '');
             })()}
-            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}${role === 'elev' ? `<span class="pf-nick" id="pfNick" hidden></span>` : ''}</p>
+            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}${(role === 'elev' || role === 'profesor') ? `<span class="pf-nick" id="pfNick" hidden></span>` : ''}</p>
           </div>
           <div class="pf-id__actions">
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
@@ -1079,7 +1079,7 @@
       /* doar pentru elevi, si doar dupa ce serverul confirma rolul (rolul din browser poate fi necunoscut o clipa) */
       try {
         const r = await sb.rpc('my_student_profile');
-        if (r && r.data && r.data.role === 'elev') { studentConfirmed = true; nickLockedUntil = r.data.locked_until || null; _nickLocked = nickLockedUntil; paintNick(r.data.nickname || '', r.data.grade || 0); }
+        if (r && r.data && (r.data.role === 'elev' || r.data.role === 'profesor')) { studentConfirmed = true; nickLockedUntil = r.data.locked_until || null; _nickLocked = nickLockedUntil; paintNick(r.data.nickname || '', r.data.grade || 0); }
         else nickEl.remove();
       } catch (e) { nickEl.remove(); /* migratia nu e rulata inca sau nu e elev */ }
       document.addEventListener('bm:onboarded', ev => { if (studentConfirmed) { nickLockedUntil = new Date(Date.now() + 60 * 864e5).toISOString(); _nickLocked = nickLockedUntil; paintNick(ev.detail.nickname, ev.detail.grade); } });
