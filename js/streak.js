@@ -17,20 +17,20 @@
       d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); iso = S.isoDate(d);
       on = info.days.indexOf(iso) !== -1; today = i === 0;
       week += '<div class="stk-d' + (on ? ' on' : '') + (today ? ' today' : '') + '"><span>' + (today ? 'Azi' : NAMES[(d.getDay() + 6) % 7]) + '</span><i>' +
-        (on ? '<svg viewBox="0 0 20 20" width="18" height="18" aria-hidden="true"><path d="M4.5 10.5 8.5 14.5 15.5 6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</i></div>';
+        (on ? '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><path d="M4.5 10.5 8.5 14.5 15.5 6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</i></div>';
     }
     var title = n > 0 ? 'Serie de ' + zile(n) : 'Nicio serie încă';
     var sub = n === 0 ? 'Termină o lecție în Învață ca să începi o serie.' : info.doneToday ? 'Ai făcut o lecție azi. Revino mâine ca seria să crească.' : 'Fă o lecție azi ca să nu pierzi seria.';
     var since = '';
     if (n > 0 && info.startDate) { var p = info.startDate.split('-'); since = 'Începută pe ' + Number(p[2]) + ' ' + MONTHS[Number(p[1]) - 1]; }
     var foot = info.doneToday
-      ? '<div class="stk-ok"><i><svg viewBox="0 0 20 20" width="16" height="16" aria-hidden="true"><path d="M4.5 10.5 8.5 14.5 15.5 6" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg></i>Seria de azi e salvată</div>'
+      ? '<div class="stk-ok"><img src="assets/images/gamification/bifa.svg" alt="" width="26" height="26">Seria de azi e salvată</div>'
       : '<a class="stk-go" href="parcurs.html">Începe o lecție</a>';
     return '<div class="stk__head"><div class="stk__t"><h2>' + esc(title) + '</h2><p>' + esc(sub) + '</p></div>' +
       '<img src="assets/images/gamification/streak.svg" alt="" width="84" height="84"></div>' +
       '<div class="stk__week">' + week + '</div>' +
       '<div class="stk__body">' + (since ? '<div class="stk-since">' + esc(since) + '</div>' : '') +
-      '<div class="stk-rule">Seria crește când termini o lecție din Învață. Intrarea pe site nu o mărește.</div>' + foot + '</div>';
+      foot + '</div>';
   }
 
   function place() {

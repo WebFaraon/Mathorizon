@@ -324,3 +324,9 @@ html.bm-gnav #nav-root .nav__guest-signup:active { transform: translateY(3px); b
   html.bm-gnav #nav-root .nav__right .theme-btn { width: 36px; height: 36px; border-radius: 11px; }
 }
 html.bm-gnav #nav-root .nav__right .nav__guest-signup { display: inline-flex; }
+
+/* flacăra seriei e apăsabilă: hover discret (o tentă în jurul ei, fără să mute nimic) și apăsare mică */
+html:is(.bm-authed, .bm-gnav):not(.bnav-off) #nav-root .nav__right #streakWidget { cursor: pointer; border-radius: 12px; transition: background 0.14s ease, box-shadow 0.14s ease, transform 0.08s ease; }
+html:is(.bm-authed, .bm-gnav):not(.bnav-off) #nav-root .nav__right #streakWidget:hover,
+html:is(.bm-authed, .bm-gnav):not(.bnav-off) #nav-root .nav__right #streakWidget[aria-expanded="true"] { background: var(--pm-tint, #EDE7F8); box-shadow: 0 0 0 4px var(--pm-tint, #EDE7F8); }
+html:is(.bm-authed, .bm-gnav):not(.bnav-off) #nav-root .nav__right #streakWidget:active { transform: scale(0.96); }
