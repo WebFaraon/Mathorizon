@@ -224,6 +224,10 @@
      phone, social link; avatar/cover have their own hover-edit affordances).
      Used by every role now — this used to be teacher-only, back when only
      the teacher header displayed these fields. */
+  const _NAME_BAD = /[^\p{L}\s'’-]/gu;
+  const _cleanName = v => v.replace(_NAME_BAD, '').replace(/\s{2,}/g, ' ').replace(/^[\s'’-]+/, '');
+  const _validName = v => { const w = v.trim().split(/\s+/); return w.length >= 2 && w.every(x => /^\p{L}[\p{L}'’-]*\p{L}$/u.test(x)); };
+
   function _showEditBizcardProfileModal({ name, bio, countryCode, phone, socialUrl, isTeacher, sb, onSaved }) {
     const ov = document.createElement('div');
     ov.className = 'prof-modal-overlay';
@@ -303,6 +307,12 @@
     ov.addEventListener('click', e => { if (e.target === ov) close(); });
     ov.querySelector('[data-action="cancel"]').addEventListener('click', close);
     const getCountryCode = _mountCountryPicker(ov.querySelector('#editCountry'), countryCode);
+    /* the full name takes only letters (with diacritics), spaces, hyphen and apostrophe, like on sign-up */
+    const nameIn = ov.querySelector('#editName');
+    if (nameIn) nameIn.addEventListener('input', () => {
+      const c = _cleanName(nameIn.value);
+      if (c !== nameIn.value) { const pos = nameIn.selectionStart - (nameIn.value.length - c.length); nameIn.value = c; try { nameIn.setSelectionRange(pos, pos); } catch (e) { /* ignore */ } }
+    });
     /* Schimbarea nickname-ului sta aici, in fereastra de editare (deasupra ei) */
     const onNick = ev => { const v = ov.querySelector('#editNickVal'); if (v && ev.detail && ev.detail.nickname) v.innerHTML = '<b>@' + BM.esc(ev.detail.nickname) + '</b>'; };
     document.addEventListener('bm:onboarded', onNick);
@@ -311,7 +321,8 @@
       if (window.BMOnboarding) go();
       else { const sc = document.createElement('script'); sc.src = 'js/onboarding.js'; sc.onload = go; document.body.appendChild(sc); }
     });
-    document.getElementById('editName')?.focus();
+    /* the keyboard must not jump up on a phone: the first field is focused only with a mouse on a wide screen */
+    if (!(window.matchMedia && (matchMedia('(pointer: coarse)').matches || matchMedia('(max-width: 900px)').matches))) document.getElementById('editName')?.focus();
 
     function onEsc(e) { if (e.key === 'Escape') { close(); document.removeEventListener('keydown', onEsc); } }
     document.addEventListener('keydown', onEsc);
@@ -332,6 +343,7 @@
       const newPhone    = document.getElementById('editPhone')?.value.trim() || '';
       const newSocial   = document.getElementById('editSocial')?.value.trim() || '';
       if (!newName) return showMsg('Numele nu poate fi gol.', true);
+      if (newName !== name && !_validName(newName)) return showMsg('Scrie numele complet, nume și prenume, doar cu litere (fără cifre, simboluri sau puncte).', true);
       if (newSocial && !/^https?:\/\//i.test(newSocial)) return showMsg('Link-ul trebuie să înceapă cu http:// sau https://.', true);
 
       const btn = document.getElementById('btnSaveProfile');
@@ -558,15 +570,15 @@
         : { text: 'Elev', led: '' };
 
     const specCells = [
-      country   && ['Țară', `<span class="pf-country-val">${_flagImg(countryCode)}${BM.esc(country)}</span>`],
-      email     && ['E-mail', BM.esc(email), true],
-      phone     && ['Telefon', BM.esc(phone)],
-      socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, true],
+      country   && ['Țară', `<span class="pf-country-val">${_flagImg(countryCode)}${BM.esc(country)}</span>`, false, 'tara'],
+      email     && ['E-mail', BM.esc(email), true, 'email'],
+      phone     && ['Telefon', BM.esc(phone), false, 'telefon'],
+      socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, true, 'link'],
       isTeacher && ['Rating', reviewsData.count
         ? `${reviewsData.avg.toFixed(1)} din 5, ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}`
-        : 'Fără recenzii încă'],
-      ['Membru din', memberSince],
-      ['Autentificare', isGoogle ? 'Cont Google' : 'E-mail și parolă']
+        : 'Fără recenzii încă', false, 'rating'],
+      ['Membru din', memberSince, false, 'membru'],
+      ['Autentificare', isGoogle ? 'Cont Google' : 'E-mail și parolă', false, 'autentificare']
     ].filter(Boolean);
 
     const plateHTML = `
@@ -607,7 +619,7 @@
           </div>
         </div>
         <dl class="pf-spec">
-          ${specCells.map(([label, value, wide]) => `<div class="pf-spec__cell${wide ? ' pf-spec__cell--wide' : ''}"><dt>${label}</dt><dd>${value}</dd></div>`).join('')}
+          ${specCells.map(([label, value, wide, ico]) => `<div class="pf-spec__cell${wide ? ' pf-spec__cell--wide' : ''}">${ico ? `<img class="pf-spec__ico" src="assets/images/profile/${ico}.svg" alt="" width="46" height="46" decoding="async">` : ''}<dt>${label}</dt><dd>${value}</dd></div>`).join('')}
         </dl>
         <p class="pf-bio${bio ? '' : ' pf-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
       </section>`;

@@ -255,9 +255,9 @@
         <input type="file" id="aeFileInput" class="wz-file-input" accept="image/jpeg,image/png,image/heic,image/heif">
         <div id="aeUploadInner"></div>
       </div>
-      <div style="display:flex;gap:10px;margin-top:14px;align-items:center">
+      <div class="ae-photo-keys">
         <button class="btn btn--surface btn--sm" id="aeReplacePhoto" style="display:none">Schimbă fotografia</button>
-        <button class="btn btn--primary" id="aeAnalyzeBtn">Analizează cu AI ${icon('arrow-right', { size: 16 })}</button>
+        <button class="btn btn--primary ae-go" id="aeAnalyzeBtn">Analizează cu AI ${icon('arrow-right', { size: 16 })}</button>
       </div>
     `;
     _aeRenderUploadInner(body);
@@ -347,8 +347,23 @@
     // a static "Se analizează…" gave no way to tell "still thinking" from
     // "hung", which is why a slow run felt like a broken one.
     const startedAt = Date.now();
+    // the owl thinks in the analysis card while the AI works
+    const aBody = document.getElementById('aeAnalysisBody');
+    aBody.innerHTML = `
+      <div class="ae-think" role="status" aria-live="polite">
+        <span class="owl ae-think__owl" data-owl="think" data-owl-look="glasses" aria-hidden="true"></span>
+        <div class="ae-think__t">
+          <b>Mă gândesc la exercițiu…</b>
+          <span>Citesc enunțul din poză, construiesc baremul și îmi verific răspunsul. Durează câteva zeci de secunde.</span>
+          <div class="ae-think__bar" aria-hidden="true"><i></i></div>
+          <em id="aeThinkTime">0 s</em>
+        </div>
+      </div>`;
+    aBody.scrollIntoView({ behavior: 'smooth', block: 'center' });
     const tick = () => {
-      analyzeBtn.innerHTML = `Se analizează… ${Math.round((Date.now() - startedAt) / 1000)}s<span class="btn-loading-spin"></span>`;
+      const sec = Math.round((Date.now() - startedAt) / 1000);
+      analyzeBtn.innerHTML = `Se analizează… ${sec}s`;
+      const tt = document.getElementById('aeThinkTime'); if (tt) tt.textContent = sec + ' s';
     };
     tick();
     const ticker = setInterval(tick, 1000);
@@ -384,6 +399,8 @@
       // Longer than the default toast: quota/timeout messages are a full
       // sentence and are useless if they vanish before they're read.
       BM.toast('Eroare la analiza AI: ' + e.message, 'error', 8000);
+      if (ae.aiResult) _aeRenderAnalysis();
+      else aBody.innerHTML = '<p class="cls-form-hint">Analizează o fotografie mai sus pentru a vedea rezultatul aici.</p>';
     } finally {
       clearInterval(ticker);
       analyzeBtn.disabled = false;
@@ -398,17 +415,17 @@
     const alts = r.metode_alternative || [];
 
     body.innerHTML = `
-      <button class="btn btn--surface btn--sm" id="aeRegenerate" style="margin-bottom:16px">${icon('refresh-cw', { size: 16 })} Regenerează</button>
+      <button class="btn btn--surface btn--sm ae-regen" id="aeRegenerate">${icon('refresh-cw', { size: 16 })} Regenerează</button>
 
       <div id="aeMismatchBanner"></div>
 
       ${r.duplicat?.este_duplicat ? `
-      <div style="padding:12px 14px;border:1px solid #f59e0b;border-radius:10px;background:rgba(245,158,11,0.08);color:#f59e0b;margin-bottom:16px;font-size:0.88rem">
+      <div class="ae-note ae-note--warn">
         ${icon('triangle-alert', { size: 16 })} Posibil duplicat al exercițiului „${BM.esc(r.duplicat.titlu_similar || '')}". Verifică înainte de a confirma.
       </div>` : ''}
 
       ${r.verificat === false ? `
-      <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
+      <div class="ae-note ae-note--bad">
         ${icon('triangle-alert', { size: 16 })} AI-ul nu și-a putut confirma singur răspunsul final la verificare, recalculează manual înainte de a confirma.
       </div>` : ''}
 
@@ -611,7 +628,7 @@
     const sum = _aeBaremSum();
     const mismatch = ae.punctajTotal && sum !== Number(ae.punctajTotal);
     el.innerHTML = mismatch ? `
-      <div style="padding:12px 14px;border:1px solid #ef4444;border-radius:10px;background:rgba(239,68,68,0.08);color:#ef4444;margin-bottom:16px;font-size:0.88rem">
+      <div class="ae-note ae-note--bad">
         ${icon('triangle-alert', { size: 16 })} Suma pașilor din barem (${sum}) nu corespunde cu punctajul declarat (${ae.punctajTotal}p).
       </div>` : '';
   }
