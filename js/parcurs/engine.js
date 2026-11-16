@@ -523,7 +523,7 @@
     setTimeout(function () { streakNow(n); }, reduce() ? 500 : 950);   /* întâi se vede răspunsul corect, apoi vine animația */
   }
   function streakNow(n) {
-    if (document.querySelector('.lz-streak')) return;
+    if (document.querySelector('.lz-streak') || document.body.classList.contains('lz-ended')) return;
     var ov = h('div', 'lz-streak'), ow = h('div', 'owl lz-streak__owl');
     ov.setAttribute('role', 'status');
     ov.appendChild(ow);
@@ -596,6 +596,7 @@
   }
   function end() {
     foot.style.display = 'none';
+    document.body.classList.add('lz-ended');
     bar.style.width = '100%';
     combo.hidden = true;
     var sec = Math.round((Date.now() - started) / 1000), mm = Math.floor(sec / 60), ss = ('0' + (sec % 60)).slice(-2);
@@ -603,7 +604,15 @@
     if (L.kind === 'skip') return endSkip(exN, pct);
     var res = Prog.complete(L.id, { pct: pct, xp: noXp() ? 0 : xp }), awarded = res.first ? res.xpGiven : 0;
     if (awarded > 0 && window.BM && BM.Training && BM.Training.addXp) { try { BM.Training.addXp(awarded); } catch (e) { /* ignore */ } }
-    try { if (window.BM && BM.Storage && BM.Storage.updateStreak) BM.Storage.updateStreak(); } catch (e) { /* ignore */ }
+    /* Seria crește doar din lecții (elevi); prima lecție a zilei o face să crească și arată ecranul cu flacăra. */
+    var streakBefore = 0, streakBumped = false;
+    try {
+      if (!noXp() && window.BM && BM.Storage && BM.Storage.updateStreak) {
+        streakBefore = BM.Storage.getStreak().count;
+        streakBumped = !!BM.Storage.updateStreak();
+        if (streakBumped) document.dispatchEvent(new CustomEvent('bmauth:streak-updated'));
+      }
+    } catch (e) { /* ignore */ }
     try { sessionStorage.setItem('parcurs_celebrate', L.id); } catch (e) { /* ignore */ }
 
     var node_ = C.findNode(L.id), circle = node_ && node_.circle, doneIn = circle ? circle.lessons.filter(function (l) { return Prog.isDone(l.id); }).length : 0;
@@ -611,13 +620,17 @@
     var title = sectionDone ? 'Secțiune terminată!' : circleDone ? 'Cerculeț terminat!' : L.kind === 'lesson' ? 'Lecție terminată!' : 'Gata!';
     var lead = sectionDone ? 'Ai trecut testul secțiunii. Următoarea secțiune se deschide.' : circleDone ? 'Ai terminat toate cele 4 lecții din „' + L.circle + '”. Următorul cerculeț e deblocat.' : pct === 100 ? 'Nicio greșeală din prima. Excelent!' : 'Greșelile au revenit la final și le-ai corectat.';
     swap(function (el) {
-      el.className = 'lz-step lz-end';
-      var o = h('div', 'owl'); o.id = 'lzEndOwl'; el.appendChild(o);
-      el.appendChild(h('h1', '', title));
+      el.className = 'lz-step lz-end lz-done';
+      var stage = h('div', 'lz-stage'); var o = h('div', 'owl'); o.id = 'lzEndOwl'; stage.appendChild(o); stage.appendChild(h('i', 'lz-floor')); el.appendChild(stage);
+      var t = h('h1', 'lz-done__t', sectionDone ? 'Secțiune completă!' : circleDone ? 'Cerculeț complet!' : L.kind === 'lesson' ? 'Lecție completă!' : 'Gata!');
+      el.appendChild(t);
       el.appendChild(h('p', '', PM.esc(lead)));
-      var st = h('div', 'lz-stats');
-      st.innerHTML = '<div><b id="lzSXp">+0</b><span>' + (noXp() ? 'XP (nu se acordă)' : replay ? 'XP (repetare: 0)' : 'XP') + '</span></div><div><b id="lzSPct">0%</b><span>din prima</span></div><div><b>' + mm + ':' + ss + '</b><span>timp</span></div>';
+      var tag = pct === 100 ? 'Perfect!' : pct >= 80 ? 'Bravo!' : 'Corecte';
+      var st = h('div', 'lz-sc2');
+      st.innerHTML = '<div class="lz-sc lz-sc--xp"><em>XP total</em><div><img src="assets/images/gamification/xp-mini.svg" alt="" width="30" height="30"><b id="lzSXp">0</b></div></div>' +
+        '<div class="lz-sc lz-sc--ok"><em>' + tag + '</em><div><svg viewBox="0 0 32 32" width="30" height="30" aria-hidden="true"><circle cx="15" cy="17" r="11" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="15" cy="17" r="6" fill="none" stroke="currentColor" stroke-width="3"/><circle cx="15" cy="17" r="2" fill="currentColor"/><path d="M15 17 L26 6" stroke="currentColor" stroke-width="3" stroke-linecap="round"/><path d="M22 4 L28 4 L28 10 Z" fill="currentColor"/></svg><b id="lzSPct">0%</b></div></div>';
       el.appendChild(st);
+      if (noXp() || replay) el.appendChild(h('p', 'lz-note', noXp() ? 'Contul tău nu primește XP din lecții.' : 'Ai mai făcut lecția aceasta, de aceea nu primești XP din nou.'));
       if (circle) {
         var pips = '', i;
         for (i = 0; i < circle.lessons.length; i++) pips += '<i class="' + (i < doneIn ? 'on' : '') + (i === doneIn - 1 && !replay ? ' new' : '') + '"></i>';
@@ -625,16 +638,50 @@
         el.appendChild(sk);
       }
       var again = h('button', 'lz-link', 'Mai exersează o dată'); again.type = 'button'; again.onclick = function () { location.reload(); };
-      var cont = h('button', 'lz-go lz-end-go', 'Continuă'); cont.type = 'button'; cont.id = 'lzDone'; cont.onclick = function () { location.href = 'parcurs.html'; };
+      var cont = h('button', 'lz-go lz-end-go', 'Continuă'); cont.type = 'button'; cont.id = 'lzDone';
+      cont.onclick = function () { if (streakBumped) showStreak(streakBefore); else location.href = 'parcurs.html'; };
       el.appendChild(cont); el.appendChild(again);
     }, function () {
-      owl($('#lzEndOwl'), pct >= 70 ? 'happy' : 'happy');
-      countUp($('#lzSXp'), replay || noXp() ? 0 : awarded, 900, '+'); countUp($('#lzSPct'), pct, 900); $('#lzSPct').textContent = pct + '%';
-      var t0 = performance.now(); (function tick(t) { var p = Math.min(1, (t - t0) / 900), e = $('#lzSPct'); if (!e) return; e.textContent = Math.round(pct * (1 - Math.pow(1 - p, 3))) + '%'; if (p < 1) requestAnimationFrame(tick); })(t0);
+      owl($('#lzEndOwl'), 'happy');
+      var xpTo = (replay || noXp()) ? 0 : awarded;
+      var t0 = performance.now();
+      (function tick(t) {
+        var p = Math.min(1, (t - t0) / 900), k = reduce() ? 1 : 1 - Math.pow(1 - p, 3), e = $('#lzSPct'), x = $('#lzSXp');
+        if (!e || !x) return;
+        e.textContent = Math.round(pct * k) + '%'; x.textContent = Math.round(xpTo * k);
+        if (p < 1) requestAnimationFrame(tick);
+      })(t0);
       var big = $('#lzEndOwl'); if (!reduce()) { for (var i = 0; i < 18; i++) setTimeout(function () { sparks(big); }, i * 60); }
     });
   }
+
+  /* ---------- ecranul seriei (prima lecție a zilei) ---------- */
+  function showStreak(before) {
+    var info = BM.Storage.getStreakInfo(), n = info.count;
+    var names = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
+    /* ultimele 7 zile, azi în dreapta: se vede de când a pornit seria */
+    var now = new Date(), week = '', i, d, iso;
+    for (i = 6; i >= 0; i--) {
+      d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i); iso = BM.Storage.isoDate(d);
+      var on = info.days.indexOf(iso) !== -1, isToday = i === 0;
+      week += '<div class="lz-wd' + (on ? ' on' : '') + (isToday ? ' today' : '') + '"><span>' + (isToday ? 'Azi' : names[(d.getDay() + 6) % 7]) + '</span><i>' + (on ? '<svg viewBox="0 0 20 20" width="20" height="20" aria-hidden="true"><path d="M4.5 10.5 8.5 14.5 15.5 6" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>' : '') + '</i></div>';
+    }
+    swap(function (el) {
+      el.className = 'lz-step lz-end lz-streakp';
+      var fl = h('div', 'lz-fl'); fl.innerHTML = '<span class="lz-fl__glow"></span><img src="assets/images/gamification/streak.svg" alt="" width="170" height="170">'; el.appendChild(fl);
+      var num = h('div', 'lz-sn'); num.setAttribute('aria-live', 'polite'); num.innerHTML = '<b id="lzSn">' + (reduce() ? n : before) + '</b>'; el.appendChild(num);
+      el.appendChild(h('div', 'lz-sl', n === 1 ? 'prima zi din serie' : n + ' zile în serie'));
+      var card = h('div', 'lz-wk'); card.innerHTML = '<div class="lz-wk__days">' + week + '</div><p>Exersează zilnic, altfel ți se va reseta seria!</p>'; el.appendChild(card);
+      var cont = h('button', 'lz-go lz-end-go', 'Continuă'); cont.type = 'button'; cont.onclick = function () { location.href = 'parcurs.html'; }; el.appendChild(cont);
+    }, function (el) {
+      var sn = $('#lzSn'); if (!sn || reduce()) return;
+      setTimeout(function () {
+        sn.classList.add('roll'); sn.textContent = n;
+      }, 650);
+    });
+  }
   function endSkip(exN, pct) {
+    document.body.classList.add('lz-ended');
     var right = exN - wrongCount_, pass = right >= L.passAt;
     var sec = C.findNode(L.id.replace(/\.skip$/, '.test'));
     if (pass && sec) {

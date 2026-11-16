@@ -153,8 +153,8 @@
     /* Override BM.Storage.updateStreak — upsert direct în DB */
     const _origUpdateStreak = BM.Storage.updateStreak;
     BM.Storage.updateStreak = function () {
-      _origUpdateStreak();
-      if (currentUser) {
+      const bumped = _origUpdateStreak();
+      if (bumped && currentUser) {
         const s = BM.Storage.getStreak();
         _dbFetch('user_streak', {
           method: 'POST',
@@ -162,6 +162,7 @@
           headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
         }).catch(() => {});
       }
+      return bumped;
     };
 
     /* Override BM.Storage.toggleFavorite — upsert/delete direct în DB */
@@ -595,32 +596,8 @@
     }
   };
 
-  /* ============================================================
-     DAILY STREAK — bump once per calendar day. Runs on every page
-     (this file loads everywhere), not just the homepage, so a day
-     only used to count as "visited" if the user opened capitole.html
-     or solved an exercise there — every other page load silently
-     skipped the bump and broke the "consecutive days" chain even on
-     days the user genuinely logged in.
-     Waits for the sync to resolve (or confirmation there's no
-     session) before bumping — bumping immediately would race the
-     override installed above and get clobbered once _syncProgress
-     restores yesterday's row from the DB ("DB e sursa de adevăr").
-     ============================================================ */
-  (function () {
-    let done = false;
-    const run = () => {
-      if (done) return;
-      done = true;
-      BM.Storage.updateStreak();
-      document.dispatchEvent(new CustomEvent('bmauth:streak-updated'));
-    };
-    document.addEventListener('bmauth:synced', run, { once: true });
-    document.addEventListener('bmauth:ready', (e) => {
-      if (!e.detail?.user) run(); // no session → nothing will sync, safe now
-    }, { once: true });
-    setTimeout(run, 2500);
-  })();
+  /* Seria zilnică nu mai crește la intrarea pe pagină: crește doar când se termină o lecție din Învață
+     (js/parcurs/engine.js). Widgetul din navbar se repictează la bmauth:synced. */
 
   document.addEventListener('DOMContentLoaded', init);
 })();

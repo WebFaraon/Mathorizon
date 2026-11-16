@@ -746,10 +746,30 @@ BM.refreshStreakWidgets = function () {
   });
   const w = document.getElementById('streakWidget');
   if (!w) return;
+  if (!w.hasAttribute('role')) { w.setAttribute('role', 'button'); w.setAttribute('tabindex', '0'); w.setAttribute('aria-haspopup', 'dialog'); w.setAttribute('aria-expanded', 'false'); }
   w.title = n > 0
     ? `${n} ${n === 1 ? 'zi consecutivă' : 'zile consecutive'}`
     : 'Fără zile consecutive încă';
 };
+
+/* Apăsarea pe flacără deschide fereastra seriei (js/streak.js + css/streak.css, încărcate la prima apăsare). */
+BM.openStreak = function (anchor) {
+  const show = () => window.BMStreak && window.BMStreak.toggle(anchor);
+  if (window.BMStreak) return show();
+  if (!document.getElementById('bmStreakCss')) {
+    const l = document.createElement('link'); l.id = 'bmStreakCss'; l.rel = 'stylesheet'; l.href = 'css/streak.css'; document.head.appendChild(l);
+  }
+  const sc = document.createElement('script'); sc.src = 'js/streak.js'; sc.onload = show; document.head.appendChild(sc);
+};
+document.addEventListener('click', (e) => {
+  const w = e.target.closest && e.target.closest('#streakWidget');
+  if (w) BM.openStreak(w);
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key !== 'Enter' && e.key !== ' ') return;
+  const w = e.target.closest && e.target.closest('#streakWidget');
+  if (w) { e.preventDefault(); BM.openStreak(w); }
+});
 
 document.addEventListener('DOMContentLoaded', BM.refreshStreakWidgets);
 document.addEventListener('nav:loaded', BM.refreshStreakWidgets);

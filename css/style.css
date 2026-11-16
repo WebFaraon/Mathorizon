@@ -20012,3 +20012,6 @@ html.bm-revealing body > *:not(#nav-root):not(#appRail):not(#bnav):not(script):n
   .bm-leave__img { animation: none; }
   html.bm-revealing body > *:not(#nav-root):not(#appRail):not(#bnav):not(.bm-leave) { transition: none !important; }
 }
+
+#streakWidget { cursor: pointer; }
+#streakWidget:focus-visible { outline: 2px solid var(--pm-violet, #3F236E); outline-offset: 3px; border-radius: 12px; }

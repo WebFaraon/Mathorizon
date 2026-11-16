@@ -803,3 +803,62 @@ button.pc:active { transform: translateY(2px); border-bottom-width: 2px; }
 /* alegere multiplă cu multe numere: două coloane */
 .lz-opts.multi.grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 11px; }
 .lz-opts.multi.grid .lz-op { padding-left: 12px; padding-right: 12px; }
+
+/* ---- Lecție completă (stil Duolingo, cu bufnița) și ecranul seriei (2026-11-17) ---- */
+.lz-done { gap: 14px; padding-top: 4px; }
+.lz-stage { position: relative; display: flex; justify-content: center; padding-top: 8px; }
+.lz-stage .owl { --ow: 200px; position: relative; z-index: 1; animation: lz-hop 1.1s cubic-bezier(0.3, 1.5, 0.5, 1) 0.15s backwards; }
+.lz-floor { position: absolute; left: 50%; bottom: 2px; width: 150px; height: 9px; border-radius: 9px; background: var(--pm-track); transform: translateX(-50%); }
+@keyframes lz-hop { 0% { transform: translateY(46px) scale(0.6); opacity: 0; } 55% { transform: translateY(-22px) scale(1.06); opacity: 1; } 78% { transform: translateY(4px); } 100% { transform: none; } }
+.lz-done__t { margin: 6px 0 0; font-size: 2.1rem; font-weight: 800; letter-spacing: -0.02em; color: #E7A100; animation: lz-rise 0.5s ease 0.55s backwards; }
+html[data-theme="dark"] .lz-done__t { color: #FFC93C; }
+@keyframes lz-rise { from { transform: translateY(14px); opacity: 0; } to { transform: none; opacity: 1; } }
+.lz-sc2 { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; margin-top: 6px; animation: lz-rise 0.5s ease 0.75s backwards; }
+.lz-sc { --c: #FFC800; width: 160px; border: 2px solid var(--c); border-radius: 18px; background: var(--pm-face); overflow: hidden; box-shadow: 0 4px 0 color-mix(in srgb, var(--c) 70%, #000 0%); }
+.lz-sc > em { display: block; padding: 6px 8px 5px; background: var(--c); color: #fff; font-style: normal; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.lz-sc > div { display: flex; align-items: center; justify-content: center; gap: 8px; padding: 18px 8px; color: var(--c); }
+.lz-sc b { font-size: 1.7rem; font-weight: 800; font-variant-numeric: tabular-nums; color: var(--c); }
+.lz-sc--xp { --c: #F2B200; }
+.lz-sc--ok { --c: #5BA300; }
+.lz-sc--ok > em { background: var(--k-go, #7CB800); color: var(--k-go-ink, #1F3300); }
+html[data-theme="dark"] .lz-sc--ok { --c: #9BD33B; }
+.lz-note { font-size: 0.82rem; }
+.lz-done .lz-skill { animation: lz-rise 0.5s ease 0.9s backwards; }
+.lz-done .lz-end-go { animation: lz-rise 0.5s ease 1s backwards; }
+
+.lz-streakp { gap: 6px; padding-top: 10px; }
+.lz-fl { position: relative; display: flex; justify-content: center; align-items: flex-end; }
+.lz-fl img { position: relative; z-index: 1; animation: lz-flame 1s cubic-bezier(0.3, 1.5, 0.5, 1) 0.1s backwards; transform-origin: 50% 90%; }
+.lz-fl__glow { position: absolute; left: 50%; bottom: -4px; width: 120px; height: 34px; border-radius: 50%; background: #FFE9A8; transform: translateX(-50%); animation: lz-rise 0.6s ease 0.3s backwards; }
+html[data-theme="dark"] .lz-fl__glow { background: #5A4416; }
+@keyframes lz-flame { 0% { transform: scale(0.2) translateY(30px); opacity: 0; } 60% { transform: scale(1.12); opacity: 1; } 100% { transform: scale(1); } }
+.lz-sn { height: 120px; overflow: hidden; display: flex; justify-content: center; margin-top: 10px; }
+.lz-sn b { display: block; font-size: 6.6rem; line-height: 120px; font-weight: 800; color: #FF9600; animation: lz-rise 0.5s ease 0.5s backwards; }
+.lz-sn b.roll { animation: lz-roll 0.55s cubic-bezier(0.2, 1.3, 0.4, 1) backwards; }
+@keyframes lz-roll { from { transform: translateY(100%); opacity: 0; } to { transform: none; opacity: 1; } }
+.lz-sl { font-size: 1.6rem; font-weight: 800; color: #FF9600; margin-top: -4px; animation: lz-rise 0.5s ease 0.7s backwards; }
+.lz-wk { width: min(440px, 100%); margin-top: 16px; border: 2px solid var(--pm-line); border-radius: 20px; background: var(--pm-face); box-shadow: 0 4px 0 var(--pm-line); overflow: hidden; animation: lz-rise 0.5s ease 0.85s backwards; }
+.lz-wk__days { display: flex; justify-content: space-around; padding: 16px 10px 14px; }
+.lz-wd { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.lz-wd span { font-size: 0.85rem; font-weight: 800; color: var(--pm-ink-2); }
+.lz-wd i { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 50%; background: var(--pm-track); }
+.lz-wd.today span { color: #FF9600; }
+.lz-wd.on i { background: #FF9600; }
+.lz-wd.on.today i { animation: lz-check 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 1.1s backwards; }
+@keyframes lz-check { from { transform: scale(0.2); } to { transform: scale(1); } }
+.lz-wk p { margin: 0; padding: 14px 16px 16px; border-top: 2px solid var(--pm-line); max-width: none; color: var(--pm-ink-2); font-weight: 600; font-size: 0.95rem; }
+.lz-streakp .lz-end-go { margin-top: 22px; animation: lz-rise 0.5s ease 1s backwards; }
+@media (max-width: 560px) {
+  .lz-stage .owl { --ow: 160px; }
+  .lz-done__t { font-size: 1.75rem; }
+  .lz-sc { width: 146px; }
+  .lz-fl img { width: 140px; height: 140px; }
+  .lz-sn { height: 96px; } .lz-sn b { font-size: 5.2rem; line-height: 96px; }
+  .lz-wd i { width: 36px; height: 36px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .lz-stage .owl, .lz-done__t, .lz-sc2, .lz-done .lz-skill, .lz-done .lz-end-go, .lz-fl img, .lz-fl__glow, .lz-sn b, .lz-sl, .lz-wk, .lz-wd.on.today i, .lz-streakp .lz-end-go { animation: none !important; }
+}
+
+/* pe ecranele de final antetul (X, bara, XP) dispare: lecția e deja salvată */
+body.lz-ended .lz-top { visibility: hidden; }

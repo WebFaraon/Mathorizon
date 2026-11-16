@@ -53,7 +53,7 @@ BM.Storage = (function() {
       // BM.Storage.updateStreak()).
       BM.Storage.removeMistake(id);
       BM.Storage.addToHistory(id);
-      BM.Storage.updateStreak();
+      /* Seria nu mai crește din exerciții: doar din lecțiile din Învață (vezi updateStreak). */
       return true;
     }
   }
@@ -104,8 +104,11 @@ BM.Storage = (function() {
     return true;
   }
 
-  /* ---- Streak ---- */
-  function getStreak() {
+  /* ---- Streak ----
+     Seria crește DOAR când elevul termină o lecție din Învață (js/parcurs/engine.js
+     apelează updateStreak). Intrarea pe site, exercițiile din Capitole și Antrenament
+     nu o mai ating. O serie cu ultima zi mai veche decât ieri s-a pierdut: se arată 0. */
+  function _rawStreak() {
     const s = get(KEY.streak);
     if (!s) return { count: 0, lastDate: null };
     /* Normalize legacy toDateString() format ("Tue Jun 24 2026") → ISO ("2026-06-24") */
@@ -115,21 +118,38 @@ BM.Storage = (function() {
     }
     return s;
   }
+  function _yesterday() { return _isoDate(new Date(Date.now() - 86400000)); }
+  function getStreak() {
+    const s = _rawStreak();
+    if (!s.lastDate || !(s.count > 0)) return { count: 0, lastDate: s.lastDate || null };
+    if (s.lastDate === _isoDate() || s.lastDate === _yesterday()) return s;
+    return { count: 0, lastDate: s.lastDate };   /* seria s-a rupt */
+  }
 
+  /* Returnează true dacă seria a crescut ACUM (prima lecție a zilei), false dacă azi era deja numărată. */
   function updateStreak() {
     const today = _isoDate();
-    const s = getStreak();
+    const s = _rawStreak();
 
-    if (s.lastDate === today) return;
+    if (s.lastDate === today && s.count > 0) return false;
 
-    const yesterday = _isoDate(new Date(Date.now() - 86400000));
-    if (s.lastDate === yesterday) {
-      s.count += 1;
-    } else {
-      s.count = 1;
-    }
+    s.count = (s.lastDate === _yesterday() && s.count > 0) ? s.count + 1 : 1;
     s.lastDate = today;
     set(KEY.streak, s);
+    return true;
+  }
+
+  /* Zilele seriei curente: de la prima zi până la ultima, toate consecutive. */
+  function getStreakInfo() {
+    const s = getStreak();
+    const today = _isoDate();
+    const out = { count: s.count, lastDate: s.lastDate, doneToday: s.count > 0 && s.lastDate === today, startDate: null, days: [], today: today };
+    if (s.count > 0 && s.lastDate) {
+      const [y, m, d] = s.lastDate.split('-').map(Number);
+      for (let i = s.count - 1; i >= 0; i--) out.days.push(_isoDate(new Date(y, m - 1, d - i)));
+      out.startDate = out.days[0];
+    }
+    return out;
   }
 
   /* ---- Stats ---- */
@@ -175,7 +195,7 @@ BM.Storage = (function() {
     getFavorites, isFavorite, toggleFavorite,
     getHistory, addToHistory, clearHistory,
     getMistakes, addMistake, removeMistake,
-    getStreak, updateStreak,
+    getStreak, updateStreak, getStreakInfo, isoDate: _isoDate,
     getBestCombo, setBestCombo,
     getClassDayFilter, setClassDayFilter,
     getStats, getProgressForCategory,
