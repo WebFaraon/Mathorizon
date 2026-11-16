@@ -1944,3 +1944,39 @@ html body:has(#classRoot) .cd-meet__btn[aria-disabled="true"]:hover {
   box-shadow: 0 4px 0 0 var(--pm-edge, var(--k-key-edge)); filter: none; transform: none; cursor: not-allowed; pointer-events: none;
 }
 html body:has(#classRoot) .cd-meet__btn[aria-disabled="true"] .cd-keyico { filter: grayscale(1) opacity(0.55); }
+
+
+/* ---- round nine (2026-11-16): smaller tab keys, white cards with a violet edge, the notice of unlinked accounts redone ---- */
+html body:has(#classRoot) .cd-tab { height: 40px; min-height: 40px; min-width: 96px; padding: 0 16px; font-size: 0.9rem; border-radius: 12px; }
+@media (max-width: 600px) { html body:has(#classRoot) .cd-tab { height: 38px; min-height: 38px; min-width: 0; padding: 0 14px; } }
+
+/* the cards of the class tabs: a white face (the violet tint was too much), only the solid edge stays violet */
+html body.pm:has(#classRoot) :is(.sumar-upnext__card, .sumar-roster, .sumar-attention, .cd-info-card, .cd-sidebar-widget, .sumar-loose, .teme-assignment, .csim-card) {
+  background: var(--pm-face);
+}
+html body.pm:has(#classRoot) :is(.sumar-upnext__card, .sumar-roster, .sumar-attention, .cd-info-card, .cd-sidebar-widget) {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 18px;
+}
+
+/* the notice "Un cont de pe platformă nu e legat de un elev din registru": a card in the site style, the warning in an orange tile instead of a bar on the frame */
+html body.pm:has(#classRoot) .sumar-loose {
+  margin-top: 18px; padding: 18px 20px; gap: 14px;
+  border: 1.5px solid var(--pm-line); border-left-width: 1.5px; border-radius: 18px;
+  background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .sumar-loose__t { align-items: center; gap: 12px; font-size: 0.9rem; line-height: 1.45; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .sumar-loose__t > b, html body.pm:has(#classRoot) .sumar-loose__t b { color: var(--pm-ink); }
+html body.pm:has(#classRoot) .sumar-loose__t > svg {
+  box-sizing: content-box; flex: none; width: 18px; height: 18px; margin: 0; padding: 9px;
+  border-radius: 12px; background: #FF8A12; color: #fff; box-shadow: 0 3px 0 0 #C9520A;
+}
+html body.pm:has(#classRoot) .sumar-loose__row {
+  padding: 12px 14px; border: 1.5px solid var(--pm-line); border-radius: 14px;
+  background: color-mix(in srgb, var(--pm-violet) 5%, var(--pm-face));
+}
+html body.pm:has(#classRoot) .sumar-loose .sumar-roster__reg,
+html body.pm:has(#classRoot) .sumar-loose .cls-csel__trigger {
+  min-height: 44px; border: 1.5px solid var(--pm-line-2); border-radius: 12px; background: var(--pm-face); font-weight: 700;
+}
+html body.pm:has(#classRoot) .sumar-loose .cls-csel__dropdown { border-radius: 12px; }
