@@ -181,3 +181,65 @@ body.ax.ax-brand #axNav::-webkit-scrollbar { display: none; width: 0; height: 0;
   body.ax.ax-brand .ax-shell.is-folded #axNav { margin: 0 -9px; padding: 8px 9px 26px; }
   body.ax.ax-brand .ax-shell.is-folded .ax-nav__n { top: -3px; right: -5px; }
 }
+
+/* ============================================================
+   No top bar any more; the filter columns are floating blocks like the navigation panel
+   ============================================================ */
+body.ax.ax-brand { --ax-top-h: 0px; }
+@media (min-width: 961px) {
+  body.ax.ax-brand .ax-top { display: none; }
+  body.ax.ax-brand .ax-view { padding-top: 20px; }
+}
+/* phone and small tablet: only the key that opens the panel, floating, no bar */
+@media (max-width: 960px) {
+  body.ax.ax-brand .ax-top { position: fixed; top: 10px; left: 10px; z-index: 60; min-height: 0; padding: 0; border: 0; background: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+  body.ax.ax-brand .ax-top .ax-top__menu {
+    display: inline-grid; place-items: center; width: 46px; height: 46px; padding: 0; border: 1.5px solid #DDD6EA; border-radius: 14px;
+    background: #fff; color: #1E1631; box-shadow: 0 4px 0 #CFC6E3;
+  }
+  [data-theme="dark"] body.ax.ax-brand .ax-top .ax-top__menu { border-color: #3A2E52; background: #241B35; color: #F1EBFB; box-shadow: 0 4px 0 #0F0A18; }
+  body.ax.ax-brand .ax-top .ax-top__menu:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+  body.ax.ax-brand .ax-view { padding-top: 68px; }
+}
+
+/* the data status (demo / registers) moved from the bar into the panel's bottom area */
+body.ax.ax-brand .ax-sign__foot .ax-top__right { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; width: 100%; margin: 0; }
+body.ax.ax-brand .ax-sign__foot .ax-top__right:not(:has(*)) { display: none; }
+body.ax.ax-brand .ax-sign__foot .ax-demo, body.ax.ax-brand .ax-sign__foot .ax-regpill, body.ax.ax-brand .ax-sign__foot .ax-src { width: 100%; box-sizing: border-box; justify-content: space-between; }
+body.ax.ax-brand .ax-sign__foot .ax-regpill { justify-content: center; gap: 10px; border: 1.5px solid var(--sd-line); background: var(--sd-tint); color: var(--sd-ink); }
+body.ax.ax-brand .ax-sign__foot .ax-demo { border-color: var(--sd-line); background: var(--sd-tint); color: var(--sd-ink); }
+@media (min-width: 961px) { body.ax.ax-brand .ax-shell.is-folded .ax-sign__foot .ax-top__right { display: none; } }
+
+/* ---- the filter columns: same tokens, frame, edge and height as the navigation panel ---- */
+body.ax.ax-brand .ax-rail, body.ax.ax-brand .rp-side {
+  --sd-face: #FFFFFF; --sd-tint: #EDE7F8; --sd-line: #DDD6EA; --sd-line2: #C9BFE0; --sd-edge: #CFC6E3; --sd-ink: #1E1631; --sd-ink2: #5B4F74;
+}
+[data-theme="dark"] body.ax.ax-brand .ax-rail, [data-theme="dark"] body.ax.ax-brand .rp-side {
+  --sd-face: #241B35; --sd-tint: #33264D; --sd-line: #3A2E52; --sd-line2: #4A3C68; --sd-edge: #0F0A18; --sd-ink: #F1EBFB; --sd-ink2: #B5A9CE;
+}
+body.ax.ax-brand .ax-rail,
+body.ax.ax-brand .ax-fixsplit > .rp-side {
+  background: var(--sd-face); border: 1.5px solid var(--sd-line); border-radius: 22px; box-shadow: 0 5px 0 var(--sd-edge);
+  scrollbar-width: none; -ms-overflow-style: none;
+}
+body.ax.ax-brand .ax-rail::-webkit-scrollbar, body.ax.ax-brand .ax-fixsplit > .rp-side::-webkit-scrollbar { display: none; }
+body.ax.ax-brand .ax-fixsplit > .rp-side .ax-rail { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+@media (min-width: 1181px) {
+  body.ax.ax-brand .ax-fixsplit > .ax-rail,
+  body.ax.ax-brand .ax-fixsplit > .rp-side {
+    top: 14px; bottom: 19px; height: auto; padding: 16px 16px 20px;
+    border: 1.5px solid var(--sd-line); border-right: 1.5px solid var(--sd-line); border-radius: 22px;
+  }
+}
+@media (max-width: 1180px) {
+  body.ax.ax-brand .ax-rail { top: 14px; }
+}
+
+/* Orar: the project cards and the quick selections each get a full row unless the screen is really wide (they were squeezed side by side, titles broke letter by letter) */
+@media (min-width: 1181px) and (max-width: 1799px) {
+  body.ax.ax-brand .ax-fixsplit .or-signs { grid-template-columns: minmax(0, 1fr); gap: 16px; }
+}
+
+/* the demo badge in the panel: one calm line, the reset key is already below */
+body.ax.ax-brand .ax-sign__foot .ax-demo { padding: 6px 10px; flex-wrap: wrap; justify-content: center; text-align: center; gap: 4px 8px; font-size: 0.74rem; }
+body.ax.ax-brand .ax-sign__foot .ax-demo button { display: none; }

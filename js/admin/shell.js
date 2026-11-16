@@ -108,6 +108,12 @@
           </a>
           <nav id="axNav">${navHTML(external || 'acasa')}</nav>
           <div class="ax-sign__foot">
+            <div class="ax-top__right" id="axStatus">
+              ${external ? '' : `<span class="ax-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${window.AdminData.fingerprint}">
+                <i aria-hidden="true"></i><b>Date demo</b>
+                <button type="button" id="axDemoReset">Resetează</button>
+              </span>`}
+            </div>
             <a class="ax-sign__user" href="admin.html#profil" title="Profilul tău">
               <span class="ax-sign__avatar">${esc(initials(name))}</span>
               <span class="ax-hide-folded"><b>${esc(name)}</b><small>${window.AdminAccess.manager ? 'Manager' : 'Administrator'}</small></span>
@@ -124,21 +130,16 @@
         <div class="ax-main">
           <header class="ax-top">
             <button type="button" class="ax-icon-btn ax-top__menu" id="axMenu" aria-label="Deschide meniul">${ico('menu', 18)}</button>
-            <div class="ax-top__crumb"><span>Consolă</span>${ico('chevron-right', 16)}<b id="axCrumb"></b></div>
-            <div class="ax-top__right">
-              ${external ? '' : `<span class="ax-demo" title="Date demo, generate în browser. Punctul verde: modificările se văd și pe celelalte dispozitive conectate. Galben: rămân doar pe acest dispozitiv. Set de date: ${window.AdminData.fingerprint}">
-                <i aria-hidden="true"></i><b>Date demo</b>
-                <button type="button" id="axDemoReset">Resetează</button>
-              </span>`}
-              <div class="ax-clock" aria-live="off"><b id="axTime"></b><small id="axDate"></small></div>
-            </div>
           </header>
           <main class="ax-view" id="axView" tabindex="-1"></main>
         </div>
       </div>`;
   }
 
-  /* ---- clock ---- */
+  /* the page name used to sit in the top bar, which is gone: only the tab title keeps it */
+  function setCrumb(t) { const c = document.getElementById('axCrumb'); if (c) c.textContent = t; }
+
+  /* ---- clock (the clock is no longer drawn; kept harmless) ---- */
   function tick() {
     const now = new Date();
     const t = document.getElementById('axTime');
@@ -252,7 +253,7 @@
     if (!root || external) return;
     if (!window.AdminAccess.ok) {
       root.dataset.view = 'wait';
-      document.getElementById('axCrumb').textContent = 'În așteptare';
+      setCrumb('În așteptare');
       document.getElementById('axShell').toggleAttribute('data-nodemo', true);
       root.innerHTML = waitingHTML();
       watchApproval();
@@ -262,8 +263,8 @@
     const view = window.AdminViews[id];
     const changed = id !== current;
     current = id;
-    document.title = (view.title || 'Consolă') + ' | Mathorizon admin';
-    document.getElementById('axCrumb').textContent = view.title || '';
+    document.title = (view.title || 'Consolă') + ' | Teorema admin';
+    setCrumb(view.title || '');
     refreshNav();
     root.dataset.view = id;
     document.getElementById('axShell').dataset.view = id;
@@ -409,7 +410,7 @@
     document.body.prepend(holder.firstElementChild);
     if (external) {
       const item = ALL.find(i => i.id === external);
-      document.getElementById('axCrumb').textContent = item ? item.label : '';
+      setCrumb(item ? item.label : '');
       const view = document.getElementById('axView');
       view.dataset.view = external;
       document.getElementById('axShell').setAttribute('data-nodemo', '');
