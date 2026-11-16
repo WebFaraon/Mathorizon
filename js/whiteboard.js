@@ -805,7 +805,7 @@
       // back corner's 3 edges are dropped entirely rather than dashed;
       // at this icon's tiny size a dash pattern just read as visual noise,
       // not as "these are hidden".
-      icon: '<path d="M4 10 14 10 14 20 4 20Z"/><path d="M9 5 19 5 19 15"/><path d="M4 10 9 5"/><path d="M14 10 19 5"/><path d="M14 20 19 15"/>',
+      icon: '<path d="M3 9H15V21H3Z"/><path d="M9 4H21V16"/><path d="M3 9 9 4"/><path d="M15 9 21 4"/><path d="M15 21 21 16"/><path d="M3 21 9 16 9 4" stroke-dasharray="0.1 2.6"/><path d="M9 16H21" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         // Equal-side front face (a real square — the old hw=80/hh=65 made
         // the front face, and so the whole cube, visibly a squashed box)
@@ -831,7 +831,7 @@
     },
     'piramida-patrata': {
       label: 'Piramidă (bază pătrată)',
-      icon: '<path d="M4 18 20 18"/><path d="M12 3 4 18"/><path d="M12 3 20 18"/><path d="M12 3 12 13"/><path d="M12 13 4 18"/><path d="M12 13 20 18"/>',
+      icon: '<path d="M3 21H15"/><path d="M15 21 21 16"/><path d="M12 3 3 21"/><path d="M12 3 15 21"/><path d="M12 3 21 16"/><path d="M21 16H9L3 21" stroke-dasharray="0.1 2.6"/><path d="M12 3 9 16" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         var hw = 88, dx = 57, dy = 39, topY = cy - 99, botY = cy + 57; // scaled to match the other 3D bodies' size — see the 2D shapes' own comment on the same pass
         var p0 = { x: cx - hw, y: botY }, p1 = { x: cx + hw - dx, y: botY }, p2 = { x: cx + hw, y: botY - dy }, p3 = { x: cx - hw + dx, y: botY - dy };
@@ -851,7 +851,7 @@
       // Last segment was "M12 13 20 18" — a transposed-coordinate typo that
       // sent it to (20,18) instead of the base's actual right corner
       // (18,20), drawing a stray crossed line instead of connecting to it.
-      icon: '<path d="M4 20 18 20"/><path d="M12 3 4 20"/><path d="M12 3 18 20"/><path d="M12 3 12 13"/><path d="M12 13 4 20"/><path d="M12 13 18 20"/>',
+      icon: '<path d="M3 20H21"/><path d="M12 3 3 20"/><path d="M12 3 21 20"/><path d="M21 20 12 15 3 20" stroke-dasharray="0.1 2.6"/><path d="M12 3V15" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         var hw = 86, baseY = cy + 65, backY = cy + 30, topY = cy - 96; // scaled to match the other 3D bodies' size
         var p0 = { x: cx - hw, y: baseY }, p1 = { x: cx + hw, y: baseY }, p2 = { x: cx, y: backY }, apex = { x: cx, y: topY };
@@ -877,7 +877,7 @@
     // own center.
     con: {
       label: 'Con',
-      icon: '<path d="M4.5 18a7.5 2 0 0 0 15 0"/><path d="M4.5 18a7.5 2 0 0 1 15 0"/><path d="M12 4 4.5 18"/><path d="M12 4 19.5 18"/>',
+      icon: '<path d="M3 19a9 3 0 0 0 18 0"/><path d="M12 3 3 19"/><path d="M12 3 21 19"/><path d="M3 19a9 3 0 0 1 18 0" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         var rx = 82, ry = 23, apexY = cy - 92, baseY = cy + 53; // scaled to match the other 3D bodies' size
         var front = ellipseArcPts(cx, baseY, rx, ry, 0, Math.PI, 24);
@@ -890,7 +890,7 @@
     },
     cilindru: {
       label: 'Cilindru',
-      icon: '<path d="M4.5 7a7.5 2 0 0 0 15 0a7.5 2 0 0 0 -15 0"/><path d="M4.5 17a7.5 2 0 0 0 15 0"/><path d="M4.5 17a7.5 2 0 0 1 15 0"/><path d="M4.5 7v10"/><path d="M19.5 7v10"/>',
+      icon: '<path d="M3 6a9 3 0 1 0 18 0 9 3 0 1 0-18 0"/><path d="M3 6V19"/><path d="M21 6V19"/><path d="M3 19a9 3 0 0 0 18 0"/><path d="M3 19a9 3 0 0 1 18 0" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         var rx = 80, ry = 21, topY = cy - 66, botY = cy + 66; // scaled to match the other 3D bodies' size
         // The top rim is fully visible — you're looking down onto the
@@ -912,7 +912,7 @@
     },
     sfera: {
       label: 'Sferă',
-      icon: '<circle cx="12" cy="12" r="8.5"/><path d="M3.8 14.5C6.5 16.3 17.5 16.3 20.2 14.5"/><path d="M3.8 9.6C6.5 7.8 17.5 7.8 20.2 9.6"/>',
+      icon: '<circle cx="12" cy="12" r="9.5"/><path d="M2.5 12a9.5 3.2 0 0 0 19 0"/><path d="M2.5 12a9.5 3.2 0 0 1 19 0" stroke-dasharray="0.1 2.6"/>',
       build: function (cx, cy) {
         var r = 83; // scaled to match the other 3D bodies' size
         // The outline circle is the sphere's silhouette — always fully
@@ -1254,12 +1254,12 @@
 
   // ONE key for every geometric figure and body (iDroo style): a big panel with "Forme 2D" and "Corpuri 3D", large buttons.
   // Same .gfe-dropdown / .gfe-shape-btn markup as before, so the generic open/close and _insertShape keep working.
-  var FIGURES_ICON = '<circle cx="8" cy="8.5" r="4.6"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.2"/><path d="M13.5 21 17.7 12.5 22 21Z"/>';
+  var FIGURES_ICON = '<path d="M12 4 21 20H3Z"/>';
   function figuresDropdown() {
     function grid(ids) {
       return '<div class="wb-figs-grid">' + ids.map(function (id) {
         return '<button type="button" class="dc-tool-btn gfe-shape-btn wb-fig" data-shape="' + id + '" title="' + SHAPE_DEFS[id].label + '" aria-label="' + SHAPE_DEFS[id].label + '">' +
-          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + SHAPE_DEFS[id].icon + '</svg></button>';
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">' + SHAPE_DEFS[id].icon + '</svg></button>';
       }).join('') + '</div>';
     }
     return '<div class="gfe-dropdown wb-figs-dd">' +
@@ -1495,15 +1495,19 @@
     // ISN'T about marking the board), and every drawing tool its own
     // glyph cursor — see haloCursor's own comment above for why each
     // gets its own rather than one shared crosshair.
-    this._overlayEl.style.cursor =
+    var cur =
       (this._locked && tool !== 'pan') ? 'not-allowed' :
       tool === 'eraser' ? ERASER_CURSOR :
       tool === 'pan' ? 'grab' :
       tool === 'select' ? 'default' :
-      (tool === 'pen' || tool === 'pencil') ? penCursor(this._color, Math.max(6, this._width * this._scale)) :
+      (tool === 'pen' || tool === 'pencil') ? penCursor(this._color, Math.max(6, Math.round(this._width * this._scale))) :
       tool === 'highlighter' ? HIGHLIGHTER_CURSOR :
       tool === 'text' ? TEXT_CURSOR :
       CROSSHAIR_CURSOR; // line / dashed-line / arrow
+    // the pen's picture cursor is not set again while it is already the one showing (another gesture may have put 'grabbing' there)
+    if ((tool === 'pen' || tool === 'pencil') && cur === this._cursorStr && this._overlayEl.style.cursor.indexOf('url(') === 0) return;
+    this._cursorStr = cur;
+    this._overlayEl.style.cursor = cur;
   };
 
   /* ---- Input mode (stylus-only vs. any input) — same convention as
@@ -1975,8 +1979,12 @@
     if (!sameCanvas) {
       this._fullRender();
     } else if (r.scale !== this._scale) {
-      // a zoom step
-      if (this._gestureXform || this._sceneCost() > HEAVY_SCENE_CMDS) this._gestureTransform();
+      // a zoom step. Steps that follow each other quickly (a fast wheel or a pinch) only scale the painted layers and the board is
+      // repainted once, when they stop; a lone step, or a light board, repaints at once.
+      var nowT = (global.performance && performance.now) ? performance.now() : Date.now();
+      var rapid = this._lastZoomAt && nowT - this._lastZoomAt < 140;
+      this._lastZoomAt = nowT;
+      if (this._gestureXform || rapid || this._sceneCost() > HEAVY_SCENE_CMDS) this._gestureTransform();
       else this._fullRender();
     } else {
       var tx = this._panX - r.panX, ty = this._panY - r.panY;
@@ -1997,12 +2005,25 @@
     if (this._liveStrokes.size || this._selectedIds.size || this._dragObjs) { this._redrawOverlay(); this._dirty = false; }
     // Keeps the text tool's live editing <textarea> anchored to its spot on the BOARD
     if (this._textEditing) this._repositionTextEditor();
-    // The pen cursor's own on-screen size is the picked width AT THE CURRENT ZOOM
-    this._updateCursor();
+    // The pen cursor's own on-screen size is the picked width AT THE CURRENT ZOOM. A new cursor picture at every wheel step makes
+    // the browser decode an image per frame, so it is refreshed once the zoom settles.
+    if (this._tool === 'pen' || this._tool === 'pencil') {
+      clearTimeout(this._cursorTimer);
+      var selfC = this;
+      this._cursorTimer = setTimeout(function () { if (!selfC._destroyed) selfC._updateCursor(); }, 110);
+    }
   };
 
   // Path commands of the objects that intersect the current view: a cheap stand-in for "how long would a full repaint take".
   Whiteboard.prototype._sceneCost = function () {
+    var nowT = (global.performance && performance.now) ? performance.now() : Date.now();
+    var cc = this._costCache, n = this._fabricCanvas.getObjects().length;
+    if (cc && cc.n === n && nowT - cc.t < 250) return cc.cost;     // a burst of zoom steps asks again every frame
+    var cost = this._sceneCostNow();
+    this._costCache = { t: nowT, n: n, cost: cost };
+    return cost;
+  };
+  Whiteboard.prototype._sceneCostNow = function () {
     var s = this._scale, x0 = -this._panX / s, y0 = -this._panY / s;
     var x1 = x0 + (this._viewportW || 0) / s, y1 = y0 + (this._viewportH || 0) / s, cost = 0;
     this._fabricCanvas.getObjects().forEach(function (o) {
@@ -2905,6 +2926,7 @@
     var path = visible.map(function (pts) {
       return pts.map(function (p, i) { return (i === 0 ? 'M ' : 'L ') + p.x + ' ' + p.y; }).join(' ');
     }).join(' ');
+    var visPath = path;   // the solid edges only, before the dashes of the hidden ones are added
     if (hidden.length) {
       // Same visual dash rhythm as the dashed-line tool (width*3 on, *2.4
       // off) for one consistent "this means dashed" language everywhere on
@@ -2924,6 +2946,16 @@
     // visible one.
     var centerline = visible.concat(hidden);
     var self = this;
+    var shapeJson = { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: null, opacity: 1, centerline: centerline, isShape: true };
+    if (hidden.length) {
+      // the hidden edges stay stored as plain polylines (plus the visible part of the path and the dash rhythm), so a resize can
+      // lay the dashes out again at the same on-screen length instead of stretching them (see _rebuildDashes)
+      var r2 = function (n) { return Math.round(n * 100) / 100; };
+      shapeJson.vpath = visPath;
+      shapeJson.hidden = hidden.map(function (pts) { return pts.map(function (p) { return { x: r2(p.x), y: r2(p.y) }; }); });
+      shapeJson.dashOn = width * 3;
+      shapeJson.dashOff = width * 2.4;
+    }
     this._supabase.from('whiteboard_objects').insert({
       session_id: this._sessionId,
       class_id:   this._classId,
@@ -2931,7 +2963,7 @@
       kind: 'stroke',
       // isShape marks this for the resize handle in _drawSelectionOverlay/
       // _bindPointerEvents — freehand ink and lines never get one.
-      fabric_json: { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: null, opacity: 1, centerline: centerline, isShape: true }
+      fabric_json: shapeJson
     }).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) { console.error('[Whiteboard] shape insert failed', res.error); return; }
@@ -3421,6 +3453,7 @@
         fill: j.fill || null,
         strokeLineCap: 'round',
         strokeLineJoin: 'round',
+        strokeUniform: !!j.isShape,   // a resized figure keeps the line width it was drawn with (the dashes of a body are laid out again, see _rebuildDashes)
         selectable: false,
         evented: false,
         // objectCaching:true (Fabric's own default) was tried here for pan
@@ -3442,7 +3475,8 @@
         objectCaching: false,
         originX: 'center',
         originY: 'center',
-        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false }
+        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false,
+                hidden: j.hidden || null, vpath: j.vpath || null, dashOn: j.dashOn || 0, dashOff: j.dashOff || 0, dashScale: 1 }
       });
     }
     // Natural position captured BEFORE applying any stored move offset —
@@ -3458,6 +3492,7 @@
     if (offsetX || offsetY || scale !== 1) {
       obj.set({ left: obj.left + offsetX, top: obj.top + offsetY, scaleX: scale, scaleY: scale });
       obj.setCoords();
+      this._rebuildDashes(obj, scale);
     }
     this._fabricCanvas.add(obj);
     this._objectsById.set(row.id, obj);
@@ -3575,8 +3610,34 @@
   // oversized around a shrunk-down shape, barely-there around a blown-up
   // one. Multiplying the whole band (base + padding) by the object's own
   // current scale keeps it matching what's actually drawn at any size.
+  // How much of an object's resize shows in its line width: a freehand stroke grows with it, a figure (strokeUniform) does not.
+  Whiteboard.prototype._inkScale = function (objId) {
+    var o = this._objectsById.get(objId);
+    return (o && o.data && o.data.isShape) ? 1 : (this._myObjectScales.get(objId) || 1);
+  };
+
+  // A 3D body's hidden edges are dashes baked into its path. When the body is resized the dashes must not stretch with it: they are
+  // laid out again so that, once the object's scale is applied, they keep the on-screen length they were drawn with (and more of
+  // them appear on a bigger body). The visible edges and the line width (strokeUniform) are untouched.
+  Whiteboard.prototype._rebuildDashes = function (obj, scale) {
+    var d = obj && obj.data;
+    if (!d || !d.hidden || !d.vpath) return;
+    if (Math.abs((d.dashScale || 1) - scale) < 0.004) return;
+    var on = d.dashOn / scale, off = d.dashOff / scale;
+    var str = d.vpath + ' ' + d.hidden.map(function (pts) {
+      return dashedPolylineSegments(pts, on, off).map(function (seg) {
+        return 'M ' + seg[0].x + ' ' + seg[0].y + ' L ' + seg[1].x + ' ' + seg[1].y;
+      }).join(' ');
+    }).join(' ');
+    var left = obj.left, top = obj.top;
+    obj._setPath(str, { left: left, top: top });   // the box of the figure does not change (every extreme point is on a solid edge), so it stays centred
+    obj.set({ left: left, top: top });
+    obj.dirty = true;
+    d.dashScale = scale;
+  };
+
   Whiteboard.prototype._hitTolerance = function (objId, strokeWidth, pad) {
-    var scale = this._myObjectScales.get(objId) || 1;
+    var scale = this._inkScale(objId);
     return ((strokeWidth || 2) / 2 + pad) * scale;
   };
 
@@ -3680,6 +3741,7 @@
     // already has instead of silently resetting it to 1 on the next move.
     var scale = this._myObjectScales.get(objId) || 1;
     obj.set({ left: natural.left + dx, top: natural.top + dy, scaleX: scale, scaleY: scale });
+    this._rebuildDashes(obj, scale);
     obj.setCoords();
     if (this._dragObjs && this._dragObjs.indexOf(obj) >= 0) { this._dirty = true; return; } // drawn on the overlay, nothing else to repaint
     this._fabricCanvas.requestRenderAll();
@@ -4014,7 +4076,7 @@
       // Scaled by the object's own resize factor for the same reason
       // _hitTolerance is — see its own comment — or a shrunk shape's halo
       // stays frozen at its original size and comically swallows it whole.
-      var haloScale = self._myObjectScales.get(id) || 1;
+      var haloScale = self._inkScale(id);
       var haloWidth = ((obj.strokeWidth || 2) + 3) * haloScale;
       subpaths.forEach(function (pts) {
         drawHaloSeg(ctx, pts, 'rgba(37,99,235,0.45)', haloWidth, 1);

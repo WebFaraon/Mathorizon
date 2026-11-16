@@ -7767,7 +7767,11 @@
           if (el.textContent === text) return;
           el.textContent = text;
           // the display refreshes in stepped frames, never a tween
-          el.classList.remove('is-tick'); void el.offsetWidth; el.classList.add('is-tick');
+          // restarted with the Web Animations API: the old remove / offsetWidth / add trick forced a layout of the page at every zoom step
+          if (el.animate && !(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)) {
+            if (el._tick) el._tick.cancel();
+            el._tick = el.animate([{ opacity: 1 }, { opacity: 0.3, offset: 0.34 }, { opacity: 0.7, offset: 0.67 }, { opacity: 1 }], { duration: 160, easing: 'steps(1, end)' });
+          }
         }
       });
     }
