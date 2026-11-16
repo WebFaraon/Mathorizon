@@ -12,6 +12,7 @@
   let selectedTimerMode = 'none';    // 'none' | 'relaxed' | 'strict'
   let selectedAnswerType = 'mixed';  // 'mixed' | 'written' | 'mcq'
   let unsolvedOnly      = false;
+  let mistakeIds        = null;      // Set of exercise ids while the "Greșelile mele" training is picked (the wizard), else null
 
   let sessionExercises  = [];   // [ex, ex, ...] for the current session
   let cardStates        = [];   // parallel array: { ex, status: 'hidden'|'correct'|'incorrect'|'ungraded', xpGain, correctAnswerText }
@@ -106,7 +107,7 @@
     });
   }
 
-  function renderConfig() {
+  function renderCountDiff() {
     buildKeyGroup(
       document.getElementById('countChips'),
       [5, 10, 15, 20].map(n => ({ n, html: String(n) })),
@@ -119,6 +120,10 @@
       it => it.id === selectedDiff,
       it => { selectedDiff = it.id; refreshChapters(); } // per-type counts depend on the rarity filter
     );
+  }
+
+  function renderConfig() {
+    renderCountDiff();
     renderChapterList();
     renderTimerChips();
     renderTypeChips();
@@ -141,7 +146,7 @@
     updateFoldAll();
 
     updateSummary();
-    bootDisplay();
+    wzInit();
   }
 
   /* The display runs its segment test once, then shows the real readout. */
@@ -170,6 +175,7 @@
     let n = 0;
     BM.EXERCISES.forEach(e => {
       if (e.subcategoryId !== sub.id) return;
+      if (mistakeIds && !mistakeIds.has(e.id)) return;
       if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
       n++;
     });
@@ -378,6 +384,7 @@
     const bySubcat = {};
     BM.EXERCISES.forEach(e => {
       if (!selectedSubcats.has(e.subcategoryId)) return;
+      if (mistakeIds && !mistakeIds.has(e.id)) return;
       if (selectedDiff !== 'all' && e.difficulty !== selectedDiff) return;
       if (unsolvedOnly && BM.Storage.isSolved(e.id)) return;
       if (selectedAnswerType !== 'mixed') {
@@ -388,6 +395,169 @@
       (bySubcat[e.subcategoryId] = bySubcat[e.subcategoryId] || []).push(e);
     });
     return bySubcat;
+  }
+
+  /* ====================================================================
+     The wizard (2026-11-16): the setup is one question at a time, guided by the owl.
+       0 Felul     rapid / greșelile mele / alege tu
+       1 Tipuri    chapters and types (skipped for "Greșelile mele")
+       2 Câte      how many, how rare, only unsolved
+       3 Cum       timer and answer type
+       4 Gata      the summary and the lime start key
+     All the settings are the same variables as before; only how they are asked changed.
+     ==================================================================== */
+  const WZ_LAST = 4;
+  const WZ_TEXT = [
+    { t: 'Salut! Ce antrenament vrei azi?', s: 'Alege cum vrei să exersezi.', mood: 'happy' },
+    { t: 'Ce vrei să exersezi?', s: 'Bifează unul sau mai multe tipuri de exerciții.', mood: 'think' },
+    { t: 'Câte exerciții, cât de rare?', s: 'Mai multe exerciții înseamnă mai mult XP câștigat.', mood: 'idle' },
+    { t: 'Cum vrei să fie sesiunea?', s: 'Cu cronometru primești XP în plus.', mood: 'think' },
+    { t: 'Gata! Sesiunea ta e pregătită.', s: 'Verifică și apasă pe butonul verde.', mood: 'happy' }
+  ];
+  const wz = { step: 0, hist: [0], mode: null, ready: false };
+
+  function wzEl(id) { return document.getElementById(id); }
+  function wzOwlMood(m) {
+    const el = wzEl('wzOwl');
+    if (!el) return;
+    if (el.__owl && el.__owl.setMood) el.__owl.setMood(m); else el.setAttribute('data-owl', m);
+  }
+  function wzMistakeSet() {
+    let m = {};
+    try { m = BM.Storage.getMistakes() || {}; } catch (e) { m = {}; }
+    const have = new Set(BM.EXERCISES.map(e => e.id));
+    return new Set(Object.keys(m).filter(id => have.has(id)));
+  }
+
+  /* Puts every key group, switch and chapter list back in line with the variables (after a preset such as "Rapid"). */
+  function wzSyncControls() {
+    renderCountDiff();
+    renderTimerChips();
+    renderTypeChips();
+    renderExtraSettings();
+    refreshChapters();
+    updateSummary();
+  }
+
+  /* The "Greșelile mele" card shows how many there are, and is off when there are none. */
+  function wzMistakeCard() {
+    const n = wzMistakeSet().size;
+    const mm = wzEl('wzModeMistakes'), mn = wzEl('wzMistakesN');
+    if (mn) mn.textContent = n ? (n === 1 ? '1 exercițiu la care ai greșit, de reluat.' : n + ' exerciții la care ai greșit, de reluat.') : 'Nu ai nicio greșeală de reluat. Bravo!';
+    if (mm) { mm.disabled = n === 0; mm.dataset.n = String(n); }
+  }
+
+  function wzInit() {
+    const box = wzEl('wzCard');
+    if (!box || wz.ready) return;
+    wz.ready = true;
+    wzMistakeCard();
+    document.addEventListener('bmauth:synced', wzMistakeCard);   // the account's own list arrives after the page
+    document.querySelectorAll('.wz-mode').forEach(b => { b.onclick = () => wzPickMode(b.dataset.mode); });
+    wzEl('wzNext').onclick = () => wzForward();
+    wzEl('wzBack').onclick = () => wzBack();
+    wzGo(0, { instant: true });
+  }
+
+  function wzPickMode(mode) {
+    wz.mode = mode;
+    document.getElementById('configContent').classList.toggle('wz--mistakes', mode === 'mistakes');
+    if (mode === 'quick') {
+      mistakeIds = null;
+      selectedSubcats = new Set();
+      BM.CATEGORIES.forEach(c => { if (UNLOCKED_CATS.has(c.id)) c.subcategories.forEach(s => selectedSubcats.add(s.id)); });
+      selectedCount = 10; selectedDiff = 'all'; selectedTimerMode = 'none'; selectedAnswerType = 'mixed'; unsolvedOnly = false;
+      wzSyncControls();
+      wzGo(WZ_LAST);
+    } else if (mode === 'mistakes') {
+      mistakeIds = wzMistakeSet();
+      selectedSubcats = new Set();
+      BM.EXERCISES.forEach(e => { if (mistakeIds.has(e.id)) selectedSubcats.add(e.subcategoryId); });
+      selectedDiff = 'all'; unsolvedOnly = false;
+      selectedCount = 10;   // fewer mistakes than that: the session simply holds all of them
+      wzSyncControls();
+      wzGo(2);
+    } else {
+      mistakeIds = null;
+      selectedSubcats = new Set();
+      selectedDiff = 'all'; unsolvedOnly = false;
+      wzSyncControls();
+      wzGo(1);
+    }
+  }
+
+  function wzForward() {
+    if (wz.step === 1 && effectiveSubcats().length === 0) return;
+    if (wz.step < WZ_LAST) wzGo(wz.step + 1);
+  }
+  function wzBack() {
+    if (wz.hist.length > 1) { wz.hist.pop(); wzGo(wz.hist[wz.hist.length - 1], { back: true, keepHist: true }); }
+  }
+
+  function wzGo(n, o) {
+    o = o || {};
+    if (n === 0) wzMistakeCard();
+    if (o.reset) { wz.hist = [0]; wz.mode = null; mistakeIds = null; document.getElementById('configContent').classList.remove('wz--mistakes'); wzSyncControls(); }
+    const prev = wz.step;
+    wz.step = n;
+    if (!o.keepHist && !o.reset) wz.hist.push(n);
+    const steps = document.querySelectorAll('.wz-step');
+    steps.forEach(el => {
+      const on = Number(el.dataset.step) === n;
+      el.hidden = !on;
+      if (on && !o.instant && !reduceMotion() && el.animate) {
+        el.animate([{ opacity: 0, transform: 'translateX(' + (o.back ? -28 : 28) + 'px)' }, { opacity: 1, transform: 'none' }], { duration: 300, easing: 'cubic-bezier(0.16, 1, 0.3, 1)' });
+      }
+    });
+    document.querySelectorAll('#wzSteps li').forEach(li => {
+      const i = Number(li.dataset.s);
+      li.classList.toggle('is-now', i === n);
+      li.classList.toggle('is-done', i < n && !(wz.mode === 'mistakes' && i === 1));
+      li.classList.toggle('is-skip', wz.mode === 'mistakes' && i === 1);
+    });
+    // the owl: a new mood, a hop and a new line in the bubble
+    const tx = WZ_TEXT[n];
+    wzOwlMood(tx.mood);
+    const bt = wzEl('wzBubbleT'), bs = wzEl('wzBubbleS'), bub = wzEl('wzBubble');
+    if (bt) bt.textContent = n === 2 && wz.mode === 'mistakes' ? 'Să le luăm de la capăt' : tx.t;
+    if (bs) bs.textContent = n === 2 && wz.mode === 'mistakes' ? 'Alege câte greșeli reiei acum.' : tx.s;
+    if (!o.instant && !reduceMotion()) {
+      const box = wzEl('wzOwlBox');
+      if (box && box.animate) box.animate([{ transform: 'translateY(0) rotate(0)' }, { transform: 'translateY(-18px) rotate(-5deg)', offset: 0.4 }, { transform: 'translateY(0) rotate(2deg)', offset: 0.75 }, { transform: 'none' }], { duration: 480, easing: 'ease-out' });
+      if (bub && bub.animate) bub.animate([{ opacity: 0, transform: 'translateX(-10px) scale(0.96)' }, { opacity: 1, transform: 'none' }], { duration: 320, easing: 'cubic-bezier(0.34, 1.4, 0.64, 1)' });
+    }
+    wzRefresh();
+    if (!o.instant && prev !== n) {
+      const guide = document.querySelector('.wz-guide');
+      if (guide && guide.getBoundingClientRect().top < 0) window.scrollTo({ top: 0, behavior: reduceMotion() ? 'auto' : 'smooth' });
+    }
+  }
+
+  /* Keys of the footer, the chips of the summary, the picked line: refreshed with every change. */
+  function wzRefresh() {
+    const n = wz.step;
+    const back = wzEl('wzBack'), next = wzEl('wzNext'), start = wzEl('startBtn'), hint = wzEl('anHint');
+    if (!back || !next || !start) return;
+    back.hidden = n === 0;
+    next.hidden = n === 0 || n === WZ_LAST;
+    start.hidden = n !== WZ_LAST;
+    if (hint) hint.hidden = n === 0 || n === WZ_LAST;
+    const subs = effectiveSubcats().length;
+    next.disabled = n === 1 && subs === 0;
+    const picked = wzEl('wzPicked');
+    if (picked) picked.textContent = subs === 0 ? 'Niciun tip ales' : (subs === 1 ? '1 tip ales' : subs + ' tipuri alese');
+    if (n === 1 && hint && subs === 0) { hint.textContent = 'Alege cel puțin un tip de exerciții.'; hint.classList.add('is-bad'); }
+    const chips = wzEl('wzChips');
+    if (chips) {
+      const rar = { all: 'Toate raritățile', usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' }[selectedDiff];
+      const tm = { none: 'Fără cronometru', relaxed: 'Cronometru relaxat', strict: 'Contra timp' }[selectedTimerMode];
+      const ty = { mixed: 'Răspuns mixt', written: 'Doar scris', mcq: 'Doar variante' }[selectedAnswerType];
+      const list = [];
+      if (mistakeIds) list.push('Greșelile mele');
+      list.push(rar, tm, ty);
+      if (unsolvedOnly) list.push('Doar nerezolvate');
+      chips.innerHTML = list.map(t => '<span>' + BM.esc(t) + '</span>').join('');
+    }
   }
 
   /* ---- Live summary + start-key validation ---- */
@@ -419,14 +589,7 @@
     const line = document.getElementById('configSummaryText');
     const hint = document.getElementById('anHint');
     if (line) { line.textContent = text; line.classList.toggle('is-bad', !!bad); }
-    if (hint) {
-      hint.classList.toggle('is-bad', !!bad);
-      if (bad) {               // an empty choice: the owl waits, attentive, next to the words
-        let t = hint.querySelector('.an-start__hint-t');
-        if (!t) { hint.innerHTML = '<span class="owl owl--sm" data-owl="idle" aria-hidden="true"></span><span class="an-start__hint-t"></span>'; t = hint.querySelector('.an-start__hint-t'); }
-        t.textContent = text;
-      } else { hint.textContent = text; }
-    }
+    if (hint) { hint.textContent = bad ? text : ''; hint.classList.toggle('is-bad', !!bad); }
   }
 
   function updateSummary() {
@@ -439,6 +602,7 @@
       showSummary(msg, true);
       startBtn.disabled = true;
       setAnnunciators(false);
+      wzRefresh();
     };
 
     if (subIds.length === 0) { blank('Alege cel puțin un tip de exerciții.'); return; }
@@ -448,6 +612,7 @@
     if (available === 0) { blank('Niciun exercițiu cu aceste filtre. Încearcă alte setări.'); return; }
 
     startBtn.disabled = false;
+    wzRefresh();
 
     const diffLabels = { all: 'toate raritățile', usor: 'Comun', mediu: 'Rar', dificil: 'Epic', legendar: 'Legendar' };
     const timerLabels = { none: 'fără cronometru', relaxed: 'cronometru relaxat', strict: 'contra timp' };
@@ -473,6 +638,7 @@
     if (willRun < selectedCount) text += `. Ai cerut ${selectedCount}, dar sunt doar ${available} disponibile`;
     showSummary(text + '.', false);
     setAnnunciators(true);
+    wzRefresh(willRun, minutes, bonus, available, subIds.length);
   }
 
   /* ---- Setup <-> session ---- */
@@ -499,6 +665,7 @@
     document.getElementById('trainingHud').hidden = true;
     document.getElementById('flipBoard').hidden = true;
     document.getElementById('configContent').hidden = false;
+    wzGo(0, { instant: true, reset: true });
     window.scrollTo(0, 0);
   }
 

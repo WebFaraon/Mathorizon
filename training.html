@@ -20,6 +20,7 @@
   <link rel="stylesheet" href="css/antrenament.css">
   <link rel="stylesheet" href="css/premium.css">
   <link rel="stylesheet" href="css/owl.css">
+  <link rel="stylesheet" href="css/antrenament-wiz.css">
   <script src="js/owl.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
@@ -42,92 +43,121 @@
        js/training.js toggles them through #configContent / #trainingHud. -->
   <main class="an-page" id="trainingLayout">
 
-    <!-- ===== SETUP ===== -->
-    <div class="an-setup" id="configContent">
-      <div class="an-main">
-        <div class="an-main__in">
+    <!-- ===== SETUP: a wizard, one question at a time (js/training.js, wizard block) ===== -->
+    <div class="an-setup an-wz" id="configContent">
+      <div class="wz">
 
-          <header class="an-head">
-            <div class="an-head__txt">
-              <h1 class="an-title"><span class="an-title__mask"><span class="an-title__l">Antrenament <span class="an-title__acc">pe măsura ta</span></span></span></h1>
-              <p class="an-lede">Alegi tipurile de exerciții, raritatea și cronometrul. Rezolvi carte după carte, iar fiecare răspuns bun îți aduce XP.</p>
+        <header class="wz-top">
+          <h1 class="wz-title">Antrenament</h1>
+          <!-- The level is what you come back for. -->
+          <div class="wz-level" role="group" aria-label="Nivelul tău" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament (100 XP pe nivel)">
+            <div class="wz-level__n"><small>Nivel</small><b data-training-level>1</b></div>
+            <div class="wz-level__main">
+              <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
+              <div class="wz-level__row"><span data-training-level-xp>0 / 100 XP</span><span class="wz-level__next" data-training-level-next></span></div>
             </div>
+            <dl class="wz-level__stats">
+              <div><dt>XP total</dt><dd data-training-total-xp>0</dd></div>
+              <div><dt>Record serie</dt><dd data-training-best-streak>0</dd></div>
+            </dl>
+          </div>
+        </header>
 
-            <!-- The level is what you come back for: it gets the biggest display on the page. -->
-            <div class="an-lcd an-lcd--level" role="group" aria-label="Nivelul tău" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament (100 XP pe nivel)">
-              <div class="an-lv__fig"><span class="an-lv__lbl">Nivel</span><b data-training-level>1</b></div>
-              <div class="an-lv__main">
-                <div class="an-lvl__bar an-lvl__bar--xl"><i data-training-level-fill style="width:0%"></i></div>
-                <div class="an-lv__row"><span data-training-level-xp>0 / 100 XP</span><span class="an-lv__next" data-training-level-next></span></div>
-                <dl class="an-lv__stats">
-                  <div><dt>XP total</dt><dd data-training-total-xp>0</dd></div>
-                  <div><dt>Record serie</dt><dd data-training-best-streak>0</dd></div>
-                </dl>
-              </div>
-            </div>
-          </header>
+        <!-- The owl guides: a bubble that changes with every step. -->
+        <div class="wz-guide">
+          <div class="wz-owl" id="wzOwlBox"><div class="owl" id="wzOwl" data-owl="happy" aria-hidden="true"></div></div>
+          <div class="wz-bubble" id="wzBubble" role="status" aria-live="polite"><b id="wzBubbleT"></b><span id="wzBubbleS"></span></div>
+        </div>
 
-          <!-- The display reads the session as you build it. -->
-          <div class="an-lcd an-lcd--big" id="anLcd" role="status" aria-live="polite">
-            <div class="an-ann-row">
-              <span class="an-ann is-on">XII</span>
-              <span class="an-ann" data-ann="comun">C</span>
-              <span class="an-ann" data-ann="rar">R</span>
-              <span class="an-ann" data-ann="epic">E</span>
-              <span class="an-ann" data-ann="legendar">L</span>
-              <span class="an-ann" data-ann="timer">CRONO</span>
-              <span class="an-ann" data-ann="written">SCRIS</span>
-              <span class="an-ann" data-ann="mcq">VARIANTE</span>
-              <span class="an-ann" data-ann="unsolved">NEREZOLVATE</span>
-              <span class="an-ann an-ann--go" data-ann="go">GATA</span>
+        <ol class="wz-steps" id="wzSteps" aria-label="Pașii">
+          <li data-s="0"><i></i><span>Felul</span></li>
+          <li data-s="1"><i></i><span>Tipuri</span></li>
+          <li data-s="2"><i></i><span>Câte</span></li>
+          <li data-s="3"><i></i><span>Cum</span></li>
+          <li data-s="4"><i></i><span>Gata</span></li>
+        </ol>
+
+        <section class="wz-card" id="wzCard">
+
+          <!-- 0: what kind of training -->
+          <div class="wz-step" data-step="0">
+            <div class="wz-modes">
+              <button type="button" class="wz-mode" data-mode="quick">
+                <img src="assets/images/antrenament/rapid.svg" alt="" width="64" height="64">
+                <span class="wz-mode__t">Antrenament rapid</span>
+                <span class="wz-mode__s">10 exerciții din toate capitolele, fără cronometru. Pornești imediat.</span>
+              </button>
+              <button type="button" class="wz-mode" data-mode="mistakes" id="wzModeMistakes">
+                <img src="assets/images/antrenament/greseli.svg" alt="" width="64" height="64">
+                <span class="wz-mode__t">Greșelile mele</span>
+                <span class="wz-mode__s" id="wzMistakesN">Exerciții la care ai greșit și vrei să le reiei.</span>
+              </button>
+              <button type="button" class="wz-mode" data-mode="custom">
+                <img src="assets/images/antrenament/personalizat.svg" alt="" width="64" height="64">
+                <span class="wz-mode__t">Alege tu</span>
+                <span class="wz-mode__s">Tipuri, raritate, cronometru: setezi totul, pas cu pas.</span>
+              </button>
             </div>
-            <div class="an-lcd__row">
-              <div class="an-lcd__fig"><b id="anFig">10</b><span class="an-lcd__unit">exerciții în sesiune</span></div>
-              <dl class="an-lcd__meta">
+          </div>
+
+          <!-- 1: which chapters / types -->
+          <div class="wz-step" data-step="1" hidden>
+            <div class="wz-bar">
+              <span class="wz-bar__t" id="wzPicked">Niciun tip ales</span>
+              <span class="wz-bar__acts">
+                <button type="button" class="an-key an-key--sm" id="anAll"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Alege tot</button>
+                <button type="button" class="an-key an-key--sm" id="anNone"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg> Golește</button>
+              </span>
+            </div>
+            <div class="an-chapters" id="chapterList"><!-- built by js/training.js --></div>
+          </div>
+
+          <!-- 2: how many, how rare -->
+          <div class="wz-step" data-step="2" hidden>
+            <div class="an-field"><div class="an-field__lbl">Număr de exerciții</div><div class="an-keys" id="countChips"></div></div>
+            <div class="an-field" id="wzRarity"><div class="an-field__lbl">Raritate</div><div class="an-keys" id="diffChips"></div></div>
+            <div class="an-field" id="extraSettings"></div>
+          </div>
+
+          <!-- 3: timer and answer type -->
+          <div class="wz-step" data-step="3" hidden>
+            <div class="an-field"><div class="an-field__lbl">Cronometru</div><div class="an-keys an-keys--col" id="timerChips"></div></div>
+            <div class="an-field"><div class="an-field__lbl">Tip de răspuns</div><div class="an-keys" id="typeChips"></div></div>
+          </div>
+
+          <!-- 4: the summary -->
+          <div class="wz-step" data-step="4" hidden>
+            <div class="wz-sum">
+              <div class="wz-sum__fig"><b id="anFig">10</b><span>exerciții în sesiune</span></div>
+              <div class="wz-sum__chips" id="wzChips"></div>
+              <dl class="wz-sum__meta">
                 <div><dt>Durată aprox.</dt><dd id="anMin">15 min</dd></div>
                 <div><dt>Tipuri</dt><dd id="anSubs">0</dd></div>
                 <div><dt>Bonus XP</dt><dd id="anBonus">0%</dd></div>
                 <div><dt>În bancă</dt><dd id="anPool">0</dd></div>
               </dl>
+              <p class="wz-sum__line" id="configSummaryText">Alege cel puțin un tip de exerciții.</p>
             </div>
-            <p class="an-lcd__line" id="configSummaryText">Alege cel puțin un tip de exerciții.</p>
           </div>
 
-          <section class="an-sect">
-            <header class="an-sect__head">
-              <h2>Ce vrei să exersezi</h2>
-              <div class="an-sect__acts">
-                <button type="button" class="an-key an-key--sm" id="anAll"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"></path></svg> Alege tot</button>
-                <button type="button" class="an-key an-key--sm" id="anNone"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"></path><path d="m6 6 12 12"></path></svg> Golește</button>
-                <button type="button" class="an-key an-key--sm" id="anFold" data-state="open"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m7 15 5 5 5-5"></path><path d="m7 9 5-5 5 5"></path></svg> <span data-label>Restrânge tot</span></button>
-              </div>
-            </header>
-            <div class="an-chapters" id="chapterList"><!-- built by js/training.js --></div>
-          </section>
+        </section>
 
-        </div>
+        <footer class="wz-nav" id="wzNav">
+          <button type="button" class="an-key an-key--lg wz-back" id="wzBack" hidden>
+            <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 18-6-6 6-6"></path></svg> Înapoi
+          </button>
+          <p class="wz-nav__hint" id="anHint"></p>
+          <button type="button" class="an-key an-key--lg an-key--primary wz-next" id="wzNext" hidden>
+            Continuă <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
+          </button>
+          <button id="startBtn" class="an-go wz-start" type="button" onclick="startTraining()" hidden>
+            <span class="an-go__led" aria-hidden="true"></span>
+            Începe antrenamentul
+            <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
+          </button>
+        </footer>
+
       </div>
-
-      <aside class="an-rail" aria-label="Setările sesiunii">
-        <div class="an-rail__in">
-          <div class="an-settings">
-            <h2 class="an-rail__title">Setările sesiunii</h2>
-            <div class="an-field"><div class="an-field__lbl">Număr de exerciții</div><div class="an-keys" id="countChips"></div></div>
-            <div class="an-field"><div class="an-field__lbl">Raritate</div><div class="an-keys" id="diffChips"></div></div>
-            <div class="an-field"><div class="an-field__lbl">Cronometru</div><div class="an-keys an-keys--col" id="timerChips"></div></div>
-            <div class="an-field"><div class="an-field__lbl">Tip de răspuns</div><div class="an-keys" id="typeChips"></div></div>
-            <div class="an-field" id="extraSettings"></div>
-          </div>
-          <div class="an-start">
-            <button id="startBtn" class="an-go" type="button" onclick="startTraining()">
-              <span class="an-go__led" aria-hidden="true"></span>
-              Începe antrenamentul
-              <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-            </button>
-            <p class="an-start__hint" id="anHint">Alege cel puțin un tip de exerciții.</p>
-          </div>
-        </div>
-      </aside>
     </div>
 
     <!-- ===== SESSION: display bar ===== -->
