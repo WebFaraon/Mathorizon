@@ -459,7 +459,7 @@
       animate($('.pf-card, .pf-section'), { opacity: [0, 1], y: [12, 0] }, { duration: 0.45, ease, delay: stagger(0.08, { startDelay: 0.22 }) });
       animate($('.pf-lcd__val'), { opacity: [0.1, 1] }, { duration: 0.18, ease: 'linear', delay: stagger(0.1, { startDelay: 0.45 }) });
       animate($('.pf-lcd__bar i'), { clipPath: ['inset(0 100% 0 0)', 'inset(0 0% 0 0)'] }, { duration: 0.8, ease, delay: 0.6 });
-      animate($('.pf-ticket, .pf-ticket-more'), { opacity: [0, 1], y: [-12, 0], rotate: [-8, 0] }, { duration: 0.4, ease, delay: stagger(0.07, { startDelay: 0.4 }) });
+      animate($('.pf-tok__ico, .pf-tok__more'), { opacity: [0, 1], y: [-12, 0], rotate: [-8, 0] }, { duration: 0.4, ease, delay: stagger(0.07, { startDelay: 0.4 }) });
       const tape = root.querySelector('.pf-tape__paper');
       if (tape) {
         inView(tape, () => {
@@ -571,9 +571,9 @@
 
     const specCells = [
       country   && ['Țară', `<span class="pf-country-val">${_flagImg(countryCode)}${BM.esc(country)}</span>`, false, 'tara'],
-      email     && ['E-mail', BM.esc(email), true, 'email'],
+      email     && ['E-mail', BM.esc(email), false, 'email'],
       phone     && ['Telefon', BM.esc(phone), false, 'telefon'],
-      socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, true, 'link'],
+      socialUrl && ['Link', `<a href="${BM.esc(socialUrl)}" target="_blank" rel="noopener noreferrer">${BM.esc(socialDisplay)}</a>`, false, 'link'],
       isTeacher && ['Rating', reviewsData.count
         ? `${reviewsData.avg.toFixed(1)} din 5, ${reviewsData.count} recenzi${reviewsData.count === 1 ? 'e' : 'i'}`
         : 'Fără recenzii încă', false, 'rating'],
@@ -640,38 +640,8 @@
         </div>
       </div>` : '';
 
-    /* ---- Student progress: one display, four fields ---- */
-    const progressHTML = `
-      <section class="pf-section">
-        <h2 class="pf-h">Progresul tău</h2>
-        <div class="pf-lcd">
-          <div class="pf-lcd__cell pf-lcd__cell--wide">
-            <span class="pf-lcd__lbl">Exerciții rezolvate</span>
-            <span class="pf-lcd__val">${stats.solvedCount}<small>/${stats.total}</small></span>
-            <span class="pf-lcd__bar" aria-hidden="true"><i style="width:${stats.percent}%"></i></span>
-            <span class="pf-lcd__sub">${stats.percent}% din bancă</span>
-          </div>
-          <div class="pf-lcd__cell">
-            <span class="pf-lcd__lbl">Nivel</span>
-            <span class="pf-lcd__val">${level}</span>
-            <span class="pf-lcd__sub">${xpInto}/${perLevel} XP</span>
-          </div>
-          <div class="pf-lcd__cell">
-            <span class="pf-lcd__lbl">Zile la rând</span>
-            <span class="pf-lcd__val">${streak}</span>
-            <span class="pf-lcd__sub">${totalXp} XP total</span>
-          </div>
-          <div class="pf-lcd__cell">
-            <span class="pf-lcd__lbl">Cea mai bună notă</span>
-            <span class="pf-lcd__val">${bestGrade != null ? bestGrade.toFixed(2) : '0.00'}</span>
-            <span class="pf-lcd__sub">${hist.length} simulăr${hist.length === 1 ? 'e' : 'i'}</span>
-          </div>
-        </div>
-      </section>`;
-
-    /* ---- BAC history as a printing calculator's paper tape. Grades under
-       5 print in red, the way these printers print negative numbers. ---- */
-    const tapeRows = hist.map(entry => {
+    /* ---- Simulations: one white card, the title inside it, one row per finished simulation (grades under 5 in rose) ---- */
+    const simRows = hist.map(entry => {
       const when = new Date(entry.ts);
       const d  = when.toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
       const t  = when.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit' });
@@ -679,55 +649,51 @@
       const dM = Math.floor((entry.durationSec % 3600) / 60);
       const g  = Number(entry.grade);
       return `
-        <div class="pf-tape__entry">
-          <div class="pf-tape__line pf-tape__line--meta"><span>${d}</span><span>${t}</span></div>
-          <div class="pf-tape__line"><span>Puncte</span><span>${entry.earned}/${entry.maxPts}</span></div>
-          <div class="pf-tape__line"><span>Timp</span><span>${dH}h ${pad(dM)}m</span></div>
-          <div class="pf-tape__line pf-tape__line--grade${g < 5 ? ' pf-tape__line--neg' : ''}"><span>Notă</span><span>${g.toFixed(2)}</span></div>
-        </div>`;
+        <li class="pf-sim">
+          <span class="pf-sim__when"><b>${d}</b><small>${t}</small></span>
+          <span class="pf-sim__meta">${entry.earned}/${entry.maxPts} puncte<small>${dH}h ${pad(dM)}m</small></span>
+          <b class="pf-sim__grade${g < 5 ? ' is-neg' : ''}">${g.toFixed(2)}</b>
+        </li>`;
     }).join('');
 
     const tapeHTML = `
-      <section class="pf-section" id="simulari-bac">
+      <section class="pf-card pf-sims" id="simulari-bac">
         <div class="pf-h-row">
-          <h2 class="pf-h">Simulări BAC</h2>
+          <h2 class="pf-h">Simulări</h2>
           ${hist.length ? '<button class="pf-key pf-key--sm" id="btnClearHist">Șterge istoricul</button>' : ''}
         </div>
         ${hist.length ? `
-        <div class="pf-tape">
-          <div class="pf-tape__paper">
-            <div class="pf-tape__line pf-tape__line--head"><span>Simulări finalizate</span><span>${hist.length}</span></div>
-            ${tapeRows}
-            <div class="pf-tape__line pf-tape__line--total"><span>Media notelor</span><span>${avgGrade.toFixed(2)}</span></div>
-          </div>
-        </div>` : `
+        <p class="pf-sims__sum"><span><b>${hist.length}</b> ${hist.length === 1 ? 'simulare finalizată' : 'simulări finalizate'}</span><span>media notelor <b>${avgGrade.toFixed(2)}</b></span></p>
+        <ol class="pf-sim-list">${simRows}</ol>` : `
         <div class="pf-empty">
-          <p>Nicio simulare finalizată încă. Prima ta simulare apare aici, tipărită, imediat ce o termini.</p>
+          <span class="owl owl--sm" data-owl="idle" aria-hidden="true"></span>
+          <p>Nicio simulare finalizată încă. Prima ta simulare apare aici imediat ce o termini.</p>
           <a class="pf-key pf-key--primary" href="bac.html?new=1">Pornește prima simulare</a>
         </div>`}
       </section>`;
 
-    /* ---- Exam tokens as tickets ---- */
+    /* ---- Exam tokens: the number, then the token pictures ---- */
     const MAX_TICKETS = 5;
+    const TOKEN_ICO = '<img class="pf-tok__ico" src="assets/images/gamification/tokenuri.svg" alt="" width="54" height="54" decoding="async">';
     const ticketsHTML = isAdmin
-      ? '<span class="pf-ticket pf-ticket--wide"><b>∞</b></span>'
+      ? '<span class="pf-tok__inf">∞</span>'
       : tokens === 0
-        ? '<span class="pf-ticket pf-ticket--none"></span>'
-        : Array.from({ length: Math.min(tokens, MAX_TICKETS) }, () => '<span class="pf-ticket"></span>').join('')
-          + (tokens > MAX_TICKETS ? `<span class="pf-ticket-more">+${tokens - MAX_TICKETS}</span>` : '');
+        ? '<span class="pf-tok__none">Niciun token</span>'
+        : Array.from({ length: Math.min(tokens, MAX_TICKETS) }, () => TOKEN_ICO).join('')
+          + (tokens > MAX_TICKETS ? `<span class="pf-tok__more">+${tokens - MAX_TICKETS}</span>` : '');
     const tokenNote = isAdmin
-      ? 'Cont admin: simulări BAC nelimitate.'
-      : tokens === 0 ? 'Nu mai ai tokenuri. O simulare BAC costă un token.'
-      : tokens === 1 ? 'Ultimul token: încă o simulare BAC.'
-      : `Ajung pentru ${tokens} simulări BAC.`;
+      ? 'Cont admin: simulări nelimitate.'
+      : tokens === 0 ? 'Nu mai ai tokenuri. O simulare costă un token.'
+      : tokens === 1 ? 'Ultimul token: încă o simulare.'
+      : `Ajung pentru ${tokens} simulări.`;
 
     const tokensHTML = `
-      <section class="pf-card">
+      <section class="pf-card pf-tok">
         <div class="pf-h-row">
           <h2 class="pf-h">ExamTokenuri</h2>
           <span class="pf-counter${!isAdmin && tokens <= 1 ? ' pf-counter--low' : ''}">${isAdmin ? '∞' : tokens}</span>
         </div>
-        <div class="pf-tickets" aria-hidden="true">${ticketsHTML}</div>
+        <div class="pf-tok__row" aria-hidden="true">${ticketsHTML}</div>
         <p class="pf-note">${tokenNote}</p>
         <a class="pf-key pf-key--primary pf-key--block" href="bac.html?new=1">Pornește o simulare</a>
       </section>`;
@@ -852,8 +818,7 @@
         <div class="pf-desk__rev">${reviewsHTML}</div>
         <div class="pf-desk__acc">${accountHTML}</div>
       </div>`) : `
-      <div class="pf-desk${isAdmin ? ' pf-desk--noprog' : ''}">
-        ${isAdmin ? '' : `<div class="pf-desk__prog">${progressHTML}</div>`}
+      <div class="pf-desk pf-desk--noprog">
         <div class="pf-desk__tape">${tapeHTML}</div>
         <div class="pf-desk__tok">${tokensHTML}</div>
         <div class="pf-desk__acc">${accountHTML}</div>

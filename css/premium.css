@@ -1424,3 +1424,51 @@ body:has(#catHeader) .subcat-bc__current::before {
   flex: none; box-sizing: border-box; width: 10px; height: 10px; border: 1.5px solid rgba(30, 60, 0, 0.55); border-radius: 3px; box-shadow: none;
 }
 body:has(#catHeader) .ch-lcd::after { content: none; display: none; }
+
+/* ==========================================================================
+   Profil (2026-11-17): the account facts in one row when they are few, the simulations and the tokens as two white cards (no display, no paper tape)
+   ========================================================================== */
+html body.pm:has(#profileContent) .pf-spec { grid-template-columns: repeat(auto-fit, minmax(270px, 1fr)); }
+
+html body.pm:has(#profileContent) .pf-desk--noprog { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1fr); }
+@media (max-width: 1100px) {
+  html body.pm:has(#profileContent) .pf-desk--noprog { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); grid-template-areas: "tape tok" "tape acc"; }
+}
+@media (max-width: 720px) {
+  html body.pm:has(#profileContent) .pf-desk--noprog { grid-template-columns: minmax(0, 1fr); grid-template-areas: "tok" "tape" "acc"; }
+}
+
+html body.pm:has(#profileContent) :is(.pf-sims, .pf-tok) { padding: 20px 20px 22px; border-radius: 22px; }
+html body.pm:has(#profileContent) :is(.pf-sims, .pf-tok) .pf-h-row { margin-bottom: 14px; }
+html body.pm:has(#profileContent) :is(.pf-sims, .pf-tok) .pf-h { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+
+/* simulations */
+.pf-sims__sum { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 4px 14px; margin: 0 0 12px; padding: 10px 14px; border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint); font-size: 0.9rem; font-weight: 600; color: var(--pm-ink-2); }
+.pf-sims__sum b { color: var(--k-ink); font-weight: 800; }
+.pf-sims__sum span b { color: var(--pm-violet); }
+html[data-theme="dark"] .pf-sims__sum span b { color: #CDBBF2; }
+.pf-sim-list { display: flex; flex-direction: column; gap: 8px; margin: 0; padding: 0; list-style: none; max-height: 420px; overflow-y: auto; padding-bottom: 4px; }
+.pf-sim { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) auto; align-items: center; gap: 10px; padding: 10px 12px; border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); }
+.pf-sim small { display: block; margin-top: 1px; font-size: 0.74rem; font-weight: 600; color: var(--pm-ink-2); }
+.pf-sim__when b, .pf-sim__meta { font-size: 0.9rem; font-weight: 800; }
+.pf-sim__grade { min-width: 58px; padding: 6px 12px; border-radius: 999px; background: #E7F6C9; border: 1.5px solid #B8DB78; color: #3F6A00; font-size: 0.95rem; text-align: center; font-variant-numeric: tabular-nums; }
+.pf-sim__grade.is-neg { background: #FDE3DE; border-color: #F2B2A6; color: #B03A28; }
+html[data-theme="dark"] .pf-sim__grade { background: #25351A; border-color: #4C7A1A; color: #B6E83A; }
+html[data-theme="dark"] .pf-sim__grade.is-neg { background: #3C1F1B; border-color: #7A3A30; color: #FFB4A6; }
+html body.pm:has(#profileContent) .pf-sims .pf-empty { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; padding: 14px 16px 16px; border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-tint); }
+html body.pm:has(#profileContent) .pf-sims .pf-empty p { margin: 0; font-size: 0.92rem; line-height: 1.5; color: var(--pm-ink-2); }
+html body.pm:has(#profileContent) .pf-sims .pf-empty .owl { --ow: 72px; width: 72px; height: 72px; margin: -8px 0 -6px -8px; }
+
+/* tokens */
+html body.pm:has(#profileContent) .pf-counter {
+  min-width: 40px; padding: 5px 14px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); box-shadow: 0 2px 0 0 var(--pm-edge);
+  font-family: var(--k-font); font-size: 1rem; font-weight: 800; text-align: center; color: var(--pm-violet);
+}
+html[data-theme="dark"] body.pm:has(#profileContent) .pf-counter { color: #CDBBF2; }
+html body.pm:has(#profileContent) .pf-counter--low { background: #FFF1DC; border-color: #F5D2A0; color: #B0510A; box-shadow: 0 2px 0 0 #F0C48A; }
+.pf-tok__row { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 4px; min-height: 58px; margin: 0 0 12px; padding: 8px 12px; border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-tint); }
+.pf-tok__ico { display: block; width: 54px; height: 54px; }
+.pf-tok__more { margin-left: 4px; font-size: 1rem; font-weight: 800; color: var(--pm-violet); }
+.pf-tok__none { font-size: 0.9rem; font-weight: 700; color: var(--pm-ink-2); }
+.pf-tok__inf { font-size: 2rem; font-weight: 800; line-height: 1; color: var(--pm-violet); }
+html[data-theme="dark"] :is(.pf-tok__more, .pf-tok__inf) { color: #CDBBF2; }
