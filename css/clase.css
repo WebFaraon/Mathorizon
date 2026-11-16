@@ -1,0 +1,209 @@
+/* ============================================================
+   Teorema: Clase (classes.html), the student's page, 2026-11-17
+   ============================================================
+   Short and calm: the owl and the greeting, THE next lesson, the classes as
+   cards, a quiet box for a new code. No LCD, no totals, no repeated times.
+   New classes start with ce- (student); the next-lesson card keeps its .nl
+   names (restyled here). Rules start with html body.pm so they win over
+   css/calculator.css and css/premium.css.
+   ============================================================ */
+
+html body.pm .ce-page { gap: 22px; max-width: 980px; padding-top: 26px; }
+
+/* ---------- the owl and the greeting ---------- */
+.ce-hero { display: flex; align-items: center; gap: 14px; }
+.ce-hero__owl { flex: none; --ow: 112px; width: 112px; height: 112px; }
+.ce-hero__txt { display: flex; flex-direction: column; gap: 4px; min-width: 0; }
+.ce-date { font-size: 0.78rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-ink-2); }
+.ce-title { margin: 0; font-size: clamp(1.8rem, 3vw, 2.5rem); font-weight: 800; line-height: 1.08; letter-spacing: -0.03em; color: var(--k-ink); overflow-wrap: anywhere; }
+.ce-title span { color: var(--pm-violet); }
+html[data-theme="dark"] .ce-title span { color: #CDBBF2; }
+.ce-lede { margin: 2px 0 0; font-size: 1rem; line-height: 1.5; color: var(--pm-ink-2); }
+
+/* ---------- THE next lesson ---------- */
+html body.pm:has(#classesRoot) .nl {
+  grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px 22px; padding: 20px 22px;
+  border: 1.5px solid var(--pm-line); border-radius: 22px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classesRoot) .nl--live { border-color: #9FD03A; background: #F3FAE3; box-shadow: 0 5px 0 0 #8FC02A; }
+html[data-theme="dark"] body.pm:has(#classesRoot) .nl--live { background: #1F2D14; border-color: #4C7A1A; box-shadow: 0 5px 0 0 #121B09; }
+html body.pm:has(#classesRoot) .nl__lcd {
+  min-width: 104px; padding: 12px 14px 11px; border-radius: 18px; background: var(--pm-violet); box-shadow: 0 4px 0 0 var(--pm-violet-edge); color: #fff; gap: 2px;
+}
+html body.pm:has(#classesRoot) .nl__lcd small { font-size: 0.66rem; letter-spacing: 0.12em; opacity: 0.85; }
+html body.pm:has(#classesRoot) .nl__lcd b { font-family: var(--k-font); font-size: 1.9rem; font-weight: 800; letter-spacing: -0.03em; }
+html body.pm:has(#classesRoot) .nl__eyebrow { font-size: 0.7rem; letter-spacing: 0.1em; color: var(--pm-ink-2); }
+html body.pm:has(#classesRoot) .nl__led { width: 10px; height: 10px; border: 0; border-radius: 50%; background: var(--pm-lav); }
+html body.pm:has(#classesRoot) .nl--live .nl__led { background: #7BB403; box-shadow: 0 0 0 4px rgba(123, 180, 3, 0.25); }
+html body.pm:has(#classesRoot) .nl--wait .nl__led { background: var(--pm-violet); }
+html body.pm:has(#classesRoot) .nl--live .nl__eyebrow { color: #4F7A00; }
+html[data-theme="dark"] body.pm:has(#classesRoot) .nl--live .nl__eyebrow { color: #B6E83A; }
+html body.pm:has(#classesRoot) .nl__title { font-size: 1.5rem; }
+html body.pm:has(#classesRoot) .nl__hint { font-size: 0.9rem; font-weight: 600; color: var(--pm-ink-2); }
+html body.pm:has(#classesRoot) .nl__go { height: 54px; border-radius: 14px; font-size: 1.02rem; }
+html body.pm:has(#classesRoot) .nl--live .nl__go, html body.pm:has(#classesRoot) .nl--live .nl__go:hover {
+  border-color: var(--k-go-edge); background: var(--k-go); color: var(--k-go-ink); box-shadow: 0 4px 0 0 var(--k-go-edge);
+}
+html body.pm:has(#classesRoot) .nl__go[disabled], html body.pm:has(#classesRoot) .nl__go[disabled]:hover {
+  border-color: var(--pm-line); background: var(--pm-tint); color: var(--pm-ink-2); box-shadow: 0 4px 0 0 var(--pm-edge); opacity: 0.9;
+}
+html body.pm:has(#classesRoot) .nl__how { font-size: 0.84rem; color: var(--pm-violet); text-decoration-color: color-mix(in srgb, var(--pm-violet) 40%, transparent); }
+html[data-theme="dark"] body.pm:has(#classesRoot) .nl__how { color: #CDBBF2; }
+
+/* ---------- requests waiting for the teacher ---------- */
+html body.pm:has(#classesRoot) .cl-reqs { margin: 0; }
+html body.pm:has(#classesRoot) .cl-reqs .cl-sect__h { margin: 0 0 10px; padding: 0; border: 0; }
+html body.pm:has(#classesRoot) .cl-reqs .cl-sect__h h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+html body.pm:has(#classesRoot) .cl-req--mine .cl-req__link {
+  height: 40px; padding: 0 16px; border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); color: var(--k-ink); font-weight: 800;
+}
+html body.pm:has(#classesRoot) .cl-req--mine .cl-req__link:hover { background: var(--pm-tint); color: var(--k-ink); text-decoration: none; }
+html body.pm:has(#classesRoot) .cl-req--mine .cl-req__link:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(3px); }
+html body.pm:has(#classesRoot) .cl-req--mine {
+  border: 1.5px solid var(--pm-line); border-left-width: 1.5px; border-radius: 18px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge); padding: 14px 16px; opacity: 1;
+}
+html body.pm:has(#classesRoot) .cl-req--mine .cl-req__state { font-size: 0.7rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; padding: 5px 12px; border-radius: 999px; background: var(--pm-tint); }
+
+/* ---------- the classes as cards ---------- */
+.ce-sect { display: flex; flex-direction: column; gap: 12px; }
+.ce-h { margin: 0; font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+.ce-list { display: flex; flex-direction: column; gap: 14px; margin: 0; padding: 0; list-style: none; }
+.ce-card {
+  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 14px 20px; padding: 16px 20px 16px 16px;
+  border: 1.5px solid var(--pm-line); border-radius: 20px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+.ce-card__ico img { display: block; width: 64px; height: 64px; }
+.ce-card__main { display: flex; flex-direction: column; gap: 9px; min-width: 0; }
+.ce-card__name { display: flex; align-items: center; flex-wrap: wrap; gap: 4px 10px; color: var(--k-ink); text-decoration: none; }
+.ce-card__name b { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.02em; }
+.ce-card__name em { padding: 3px 11px; border-radius: 999px; background: var(--pm-tint); border: 1.5px solid var(--pm-line); font-style: normal; font-size: 0.74rem; font-weight: 800; color: var(--pm-violet); }
+html[data-theme="dark"] .ce-card__name em { color: #CDBBF2; }
+.ce-facts { display: flex; flex-wrap: wrap; gap: 8px; margin: 0; padding: 0; list-style: none; }
+.ce-facts li { display: inline-flex; align-items: center; gap: 7px; padding: 6px 12px 6px 10px; border-radius: 999px; background: var(--pm-tint); font-size: 0.84rem; font-weight: 700; color: var(--k-ink); }
+.ce-facts svg { flex: none; width: 16px; height: 16px; color: var(--pm-violet); }
+html[data-theme="dark"] .ce-facts svg { color: #CDBBF2; }
+.ce-card__act { display: flex; flex-direction: column; align-items: stretch; gap: 4px; }
+
+html body.pm .ce-key {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 48px; padding: 0 20px; border: 1.5px solid var(--pm-line); border-radius: 14px;
+  background: var(--pm-face); color: var(--k-ink); box-shadow: 0 4px 0 0 var(--pm-edge); font-family: var(--k-font); font-size: 0.95rem; font-weight: 800; white-space: nowrap; text-decoration: none; cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, background 0.15s ease;
+}
+html body.pm .ce-key:hover { background: var(--pm-tint); color: var(--k-ink); }
+html body.pm .ce-key:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(4px); }
+html body.pm .ce-key:focus-visible { outline: 2px solid var(--pm-violet); outline-offset: 3px; }
+html body.pm .ce-key svg { width: 16px; height: 16px; }
+html body.pm .ce-key--go, html body.pm .ce-key--go:hover { border-color: var(--k-go-edge); background: var(--k-go); color: var(--k-go-ink); box-shadow: 0 4px 0 0 var(--k-go-edge); }
+html body.pm .ce-key--go:hover { filter: brightness(0.94); }
+html body.pm .ce-key--go:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+html body.pm .ce-key[disabled] { opacity: 0.6; cursor: progress; }
+.ce-leave { padding: 6px 4px; border: 0; background: none; font: inherit; font-size: 0.8rem; font-weight: 700; color: var(--pm-ink-2); text-align: center; cursor: pointer; }
+.ce-leave:hover { color: var(--k-red); text-decoration: underline; }
+.ce-card--leaving { opacity: 0; transform: translateX(16px); transition: opacity 0.25s, transform 0.25s; }
+
+/* ---------- the box for a code ---------- */
+html body.pm:has(#classesRoot) .ce-join {
+  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px 24px; padding: 18px 20px;
+  border: 1.5px solid var(--pm-line); border-radius: 20px; background: var(--pm-tint); box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+.ce-join__txt h2 { margin: 0; font-size: 1.02rem; font-weight: 800; }
+html body.pm .ce-join__txt p { margin: 2px 0 0; font-size: 0.86rem; color: var(--pm-ink-2); }
+.ce-join__row { display: flex; align-items: center; gap: 12px; }
+html body.pm .ce-code {
+  width: 148px; height: 48px; padding: 0 14px; border: 1.5px solid var(--pm-line-2); border-radius: 14px; background: var(--pm-face); box-shadow: inset 0 2px 3px rgba(30, 22, 49, 0.1);
+  font-family: var(--k-font); font-size: 1.15rem; font-weight: 800; letter-spacing: 0.22em; text-align: center; text-transform: uppercase; color: var(--k-ink);
+}
+html body.pm .ce-code::placeholder { color: var(--pm-ink-2); opacity: 0.45; letter-spacing: 0.22em; }
+html body.pm .ce-code:focus { outline: 0; border-color: var(--pm-violet); box-shadow: 0 0 0 3px color-mix(in srgb, var(--pm-violet) 22%, transparent); }
+
+/* a student with no class: the box is the page */
+html body.pm:has(#classesRoot) .ce-join--first {
+  flex-direction: column; align-items: center; gap: 14px; padding: 26px 22px 28px; text-align: center; background: var(--pm-face);
+  border-radius: 24px; box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+.ce-join__owl { --ow: 120px; width: 120px; height: 120px; margin: -10px 0 -6px; }
+.ce-join--first h2 { margin: 0; font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; }
+.ce-steps { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 0; padding: 0; list-style: none; }
+.ce-steps li { display: inline-flex; align-items: center; gap: 10px; padding: 8px 16px 8px 8px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); font-size: 0.86rem; font-weight: 700; }
+.ce-steps b { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: var(--pm-violet); color: #fff; font-size: 0.8rem; box-shadow: 0 2px 0 0 var(--pm-violet-edge); }
+.ce-join--first .ce-join__txt { text-align: center; }
+.ce-join--first .ce-join__row { justify-content: center; margin-top: 4px; }
+.ce-join--first .ce-code { width: 170px; height: 54px; font-size: 1.3rem; }
+.ce-join--first .ce-key { height: 54px; }
+
+/* ---------- narrow ---------- */
+@media (max-width: 700px) {
+  html body.pm .ce-page { gap: 18px; padding-top: 14px; }
+  .ce-hero { gap: 6px; align-items: flex-end; }
+  .ce-hero__owl { --ow: 84px; width: 84px; height: 84px; }
+  .ce-title { font-size: 1.6rem; }
+  .ce-lede { font-size: 0.9rem; }
+  html body.pm:has(#classesRoot) .nl { grid-template-columns: auto minmax(0, 1fr); padding: 16px; gap: 14px; border-radius: 20px; }
+  html body.pm:has(#classesRoot) .nl__lcd { min-width: 80px; padding: 10px 10px 9px; border-radius: 16px; }
+  html body.pm:has(#classesRoot) .nl__lcd b { font-size: 1.5rem; }
+  html body.pm:has(#classesRoot) .nl__title { font-size: 1.2rem; }
+  .ce-card { grid-template-columns: auto minmax(0, 1fr); padding: 14px; gap: 12px 14px; border-radius: 18px; }
+  .ce-card__ico { align-self: start; }
+  .ce-card__ico img { width: 52px; height: 52px; }
+  .ce-card__name b { font-size: 1.15rem; }
+  .ce-card__act { grid-column: 1 / -1; flex-direction: row; align-items: center; justify-content: space-between; gap: 12px; }
+  .ce-card__act .ce-key { flex: 1; }
+  html body.pm:has(#classesRoot) .ce-join { flex-direction: column; align-items: stretch; padding: 16px; }
+  .ce-join__row { width: 100%; }
+  html body.pm .ce-code { flex: 1; width: auto; min-width: 0; }
+  html body.pm:has(#classesRoot) .ce-join--first { align-items: center; }
+  .ce-join--first .ce-join__row { width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) { .ce-card--leaving { transition: none; } }
+
+/* ============================================================
+   The teacher's page (same afternoon): no LCD, same blocks
+   ============================================================ */
+/* times: a tinted pill with plain figures, never a display */
+html body.pm:has(#classesRoot) :is(.rg-time b, .cl-lesson__time) {
+  min-width: 0; padding: 8px 12px; border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-tint); box-shadow: 0 2px 0 0 var(--pm-edge);
+  font-family: var(--k-font); font-size: 1rem; font-weight: 800; letter-spacing: -0.01em; color: var(--pm-violet);
+}
+html[data-theme="dark"] body.pm:has(#classesRoot) :is(.rg-time b, .cl-lesson__time) { color: #CDBBF2; }
+html body.pm:has(#classesRoot) :is(.rg-time b, .cl-lesson__time) .cl-colon { font-family: inherit; top: 0; }
+
+/* today: a heading and cards, no plate with a title */
+html body.pm:has(#classesRoot) .cl-today__head { padding: 0 2px; border: 0; background: none; border-radius: 0; }
+html body.pm:has(#classesRoot) .cl-today__head h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+html body.pm:has(#classesRoot) .cl-today__led { display: none; }
+html body.pm:has(#classesRoot) .cl-today__count { padding: 4px 12px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); font-size: 0.74rem; font-weight: 800; color: var(--pm-ink-2); }
+html body.pm:has(#classesRoot) .cl-lesson__state { padding: 5px 12px; border-radius: 999px; background: var(--pm-tint); font-size: 0.78rem; font-weight: 800; }
+html body.pm:has(#classesRoot) .cl-lesson--now .cl-lesson__state { background: #E7F6C9; color: #3F6A00; }
+html[data-theme="dark"] body.pm:has(#classesRoot) .cl-lesson--now .cl-lesson__state { background: #25351A; color: #B6E83A; }
+html body.pm:has(#classesRoot) .cl-today__empty { align-items: center; flex-direction: row; gap: 12px; padding: 16px 18px; border: 1.5px solid var(--pm-line); border-radius: 18px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge); }
+html body.pm:has(#classesRoot) .cl-today__empty > div { display: flex; flex-direction: column; gap: 2px; }
+
+/* the requests of students waiting for the teacher */
+html body.pm:has(#classesRoot) .cl-req {
+  border: 1.5px solid var(--pm-line); border-left-width: 1.5px; border-radius: 18px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge); padding: 14px 16px;
+}
+html body.pm:has(#classesRoot) .cl-req__av { width: 42px; height: 42px; border-radius: 50%; background: var(--pm-violet); box-shadow: 0 2px 0 0 var(--pm-violet-edge); color: #fff; font-family: var(--k-font); font-size: 0.9rem; font-weight: 800; }
+html body.pm:has(#classesRoot) .cl-req__sel { height: 42px; border: 1.5px solid var(--pm-line-2); border-radius: 12px; background: var(--pm-face); }
+html body.pm:has(#classesRoot) .cl-req--pending .cl-req__link {
+  height: 42px; padding: 0 16px; border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); color: var(--k-ink); font-weight: 800;
+}
+html body.pm:has(#classesRoot) .cl-req--pending .cl-req__link:hover { background: var(--pm-tint); text-decoration: none; color: var(--k-ink); }
+html body.pm:has(#classesRoot) .cl-req--pending .cl-req__link:active { box-shadow: none; transform: translateY(3px); }
+html body.pm:has(#classesRoot) .cl-req--pending [data-decide="accept"], html body.pm:has(#classesRoot) .cl-req--pending [data-decide="accept"]:hover {
+  height: 42px; border-radius: 12px; border-color: var(--k-go-edge); background: var(--k-go); color: var(--k-go-ink); box-shadow: 0 3px 0 0 var(--k-go-edge);
+}
+
+/* the section headings of the list of groups */
+html body.pm:has(#classesRoot) .cl-sect__h { padding-bottom: 6px; border-bottom: 0; }
+html body.pm:has(#classesRoot) .cl-sect__h h2 { font-size: 1.15rem; font-weight: 800; letter-spacing: -0.015em; }
+
+/* hand-made classes (no group in the register): a white card, no display */
+html body.pm:has(#classesRoot) .cl-block {
+  display: flex; flex-direction: column; gap: 12px; padding: 18px 20px; border: 1.5px solid var(--pm-line); border-radius: 20px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classesRoot) .cl-block:hover { transform: none; box-shadow: 0 5px 0 0 var(--pm-edge); background: color-mix(in srgb, var(--pm-violet) 6%, var(--pm-face)); }
+html body.pm:has(#classesRoot) .cl-blocks { display: flex; flex-direction: column; gap: 14px; }
+html body.pm:has(#classesRoot) .cl-block__top { display: block; margin: 0; padding: 0; border: 0; background: none; }
+html body.pm:has(#classesRoot) .cl-block__meta { padding: 0; border: 0; }
+html body.pm:has(#classesRoot) .cl-chipcode { padding: 6px 12px; border: 1.5px solid var(--pm-line); border-radius: 10px; background: var(--pm-tint); font-family: var(--k-font); font-weight: 800; letter-spacing: 0.16em; color: var(--k-ink); }
+html body.pm:has(#classesRoot) .cl-block .ce-facts li:not(:has(svg)) { padding-left: 12px; }

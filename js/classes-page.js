@@ -502,23 +502,9 @@
     const has = classes.length > 0 || hasReg;
     setRootContent(`
       <div class="${pageClass()}">
-        <header class="cl-head">
-          ${headInfoHTML('Programul și elevii din registrul tău. Apasă pe o grupă ca să intri în clasa ei.')}
-        </header>
+        ${teacherHeroHTML(hasReg ? _ro(_reg.stats.groups, 'grupă', 'grupe') + ' · ' + _ro(_reg.stats.students, 'elev activ', 'elevi activi') : has ? _ro(classes.length, 'clasă', 'clase') : 'Aici apar grupele tale după ce registrul e legat de cont.')}
         <div id="clReqRoot"></div>
-        ${dashHTML(
-          hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : '',
-          hasReg ? statusHTML('Toate grupele', [
-            { lbl: 'Grupe', tick: _reg.stats.groups },
-            { lbl: 'Elevi activi', tick: _reg.stats.students },
-            { lbl: 'Lecții ținute', tick: _reg.stats.lessons },
-            _reg.stats.rate != null ? { lbl: 'Prezență medie', tick: _reg.stats.rate, suffix: '%' } : { lbl: 'Prezență medie', val: '-' }
-          ]) : has && aggStats ? statusHTML('Toate grupele', [
-            { lbl: 'Grupe', tick: aggStats.totalGroups },
-            { lbl: 'Elevi activi', tick: aggStats.activeStudents },
-            { lbl: 'Lecții ținute', tick: aggStats.totalLessons },
-            aggStats.avgAttendance != null ? { lbl: 'Prezență medie', tick: aggStats.avgAttendance, suffix: '%' } : { lbl: 'Prezență medie', val: '-' }
-          ]) : '')}
+        ${hasReg ? regTodayHTML() : has ? todayHTML(classes, 'profesor', memberCounts) : ''}
         ${has && !hasReg ? _dayFilterHTML() : ''}
         ${has && !hasReg ? `<div class="cl-bar" id="clBar" hidden></div>` : ''}
         ${hasReg ? regSectionHTML() : ''}
@@ -866,7 +852,6 @@
       <li class="cl-block" style="--i:${idx}"
           data-id="${cls.id}" data-days="${info.days.join(',')}" data-filter-row>
         <div class="cl-block__top">
-          <span class="cl-block__no">${String(idx + 1).padStart(2, '0')}</span>
           <div class="cl-block__title">
             <a class="cl-block__link" href="class.html?id=${cls.id}">${BM.esc(info.subject)}${icon('chevron-right', { size: 18 })}</a>
             ${sub.length ? `<span class="cl-block__sub">${sub.map(t => `<span>${BM.esc(t)}</span>`).join('')}</span>` : ''}
@@ -874,14 +859,13 @@
           </div>
         </div>
 
+        <ul class="ce-facts">
+          <li>${_SI.cal}<span>${[info.days.length ? _shortDays(info.days) : '', info.time].filter(Boolean).join(' · ') || '-'}</span></li>
+          <li>${_SI.user}<span>${memberCount}${max ? ' din ' + max : ''} ${memberCount === 1 ? 'elev' : 'elevi'}${full ? ', complet' : ''}</span></li>
+          ${rate != null ? `<li><span>Prezență ${rate}%</span></li>` : ''}
+        </ul>
+
         <div class="cl-block__meta">
-          <div class="cl-field">
-            <span class="cl-field__k">Program</span>
-            <span class="cl-field__v">
-              <span>${info.days.length ? _shortDays(info.days) : '-'}</span>
-              ${info.time ? `<span class="cl-time">${_timeHTML(info.time)}</span>` : ''}
-            </span>
-          </div>
           <div class="cl-field">
             <span class="cl-field__k">Cod de invitație</span>
             <span class="cl-field__v cl-block__code">
@@ -890,24 +874,6 @@
                 <span class="cl-mini__a">${icon('copy', { size: 16 })}</span><span class="cl-mini__b">${icon('check', { size: 16 })}</span>
               </button>
             </span>
-          </div>
-        </div>
-
-        <div class="cl-lcd" role="group" aria-label="Cifrele grupei" style="--cols:3">
-          <div class="cl-lcd__cell">
-            <span class="cl-lcd__k">Elevi${full ? ' <em>complet</em>' : ''}</span>
-            <span class="cl-lcd__v">${memberCount}${max ? `<small>/${max}</small>` : ''}</span>
-            ${max ? segsHTML(seatsLit, segs) : '<span class="cl-lcd__hint">fără limită</span>'}
-          </div>
-          <div class="cl-lcd__cell" title="Media elevilor prezenți la o oră">
-            <span class="cl-lcd__k">Elevi pe oră</span>
-            <span class="cl-lcd__v">${perHour != null ? perHour : '-'}</span>
-            <span class="cl-lcd__hint">${lessons ? `la ${lessons} ${lessons === 1 ? 'oră' : 'ore'}` : 'fără ore încă'}</span>
-          </div>
-          <div class="cl-lcd__cell" title="Prezența medie a grupei">
-            <span class="cl-lcd__k">Prezență</span>
-            <span class="cl-lcd__v">${rate != null ? rate + '<small>%</small>' : '-'}</span>
-            ${rate != null ? segsHTML(Math.round(rate / 10), 10) : '<span class="cl-lcd__hint">fără ore încă</span>'}
           </div>
         </div>
       </li>
@@ -1075,61 +1041,131 @@
   document.addEventListener('visibilitychange', () => { if (!document.hidden && document.getElementById('nlSlot')) loadNextLesson(); });
   document.addEventListener('lessonguide:seen', () => { const h = document.getElementById('nlHow'); if (h) { h.classList.remove('is-new'); h.textContent = 'Cum intru la lecție?'; } });
 
+  /* ─── The student's page (2026-11-17) ────────────────────────────────────────────────────────────────────────────
+     A student has one class, two at most: the page is short. The owl and the greeting, THE next lesson (one card, the only place that says when it is),
+     the requests waiting for a teacher, the classes as cards (when, with whom, one key to open them), and, at the end, the box for a new code. A student
+     with no class sees the same box as the main thing, with the three steps to follow. No totals, no list of today's lessons: they said the same thing. */
+  const _SI = {
+    cal: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3v4M16 3v4M3.5 10.5h17"/></svg>',
+    video: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="6.5" width="12.5" height="11" rx="3"/><path d="m15.5 11 5-3v8l-5-3"/></svg>',
+    pin: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 21s7-6.2 7-11.5A7 7 0 0 0 5 9.5C5 14.8 12 21 12 21Z"/><circle cx="12" cy="9.5" r="2.5"/></svg>',
+    user: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-3.8 3.9-6 7.5-6s6.7 2.2 7.5 6"/></svg>',
+    arrow: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>'
+  };
+
+  function studentHeroHTML(classes, reqs) {
+    const name = BM.esc((window.BMAuth && BMAuth.displayName && BMAuth.displayName()) || '');
+    const lede = classes.length ? 'Aici găsești lecția ta următoare și clasele tale.'
+      : reqs.some(r => r.status === 'pending') ? 'Cererea ta a plecat. Ajungi în clasă după ce profesorul o acceptă.' : 'Hai să te alăturăm unei clase.';
+    return `
+      <header class="ce-hero">
+        ${classes.length ? '<span class="owl ce-hero__owl" data-owl="idle" aria-hidden="true"></span>' : ''}
+        <div class="ce-hero__txt">
+          <span class="ce-date">${_todayLabel()}</span>
+          <h1 class="ce-title">${_greeting()}${name ? `, <span>${name}</span>` : ''}</h1>
+          <p class="ce-lede">${lede}</p>
+        </div>
+      </header>`;
+  }
+
+  /* The box for a code: a quiet row under the classes, or, for a student with no class, the main thing on the page. */
+  function studentJoinHTML(hasClasses) {
+    const field = `
+      <div class="ce-join__row">
+        <input type="text" id="inviteCodeInput" class="ce-code" placeholder="ABC123" maxlength="6" autocomplete="off" autocapitalize="characters"
+               spellcheck="false" aria-label="Cod de invitație" oninput="this.value = this.value.toUpperCase()">
+        <button type="button" class="ce-key${hasClasses ? '' : ' ce-key--go'}" id="joinClassBtn">Trimite cererea</button>
+      </div>`;
+    if (hasClasses) return `
+      <section class="cl-join ce-join" aria-labelledby="clJoinTitle">
+        <div class="cl-join__txt ce-join__txt">
+          <h2 id="clJoinTitle">Ai un cod nou?</h2>
+          <p>Scrie codul primit de la profesor. Intri în clasă după ce îți acceptă cererea.</p>
+        </div>
+        ${field}
+      </section>`;
+    return `
+      <section class="cl-join ce-join ce-join--first" aria-labelledby="clJoinTitle">
+        <span class="owl ce-join__owl" data-owl="idle" aria-hidden="true"></span>
+        <h2 id="clJoinTitle">Nu ești încă într-o clasă</h2>
+        <ol class="ce-steps">
+          <li><b>1</b><span>Cere profesorului codul clasei</span></li>
+          <li><b>2</b><span>Scrie-l mai jos</span></li>
+          <li><b>3</b><span>Profesorul te acceptă și gata</span></li>
+        </ol>
+        <div class="cl-join__txt ce-join__txt"><p>Codul are 6 caractere, litere și cifre.</p></div>
+        ${field}
+      </section>`;
+  }
+
+  function studentCardHTML(cls) {
+    const info = _classInfo(cls);
+    const when = [info.days.join(', '), info.time].filter(Boolean).join(' · ');
+    const mode = info.type === 'Online' ? _SI.video : _SI.pin;
+    return `
+      <li class="ce-card" data-id="${cls.id}">
+        <a class="ce-card__ico" href="class.html?id=${cls.id}" tabindex="-1" aria-hidden="true"><img src="assets/images/tabs/clase.svg" alt="" width="64" height="64"></a>
+        <div class="ce-card__main">
+          <a class="ce-card__name" href="class.html?id=${cls.id}"${cls.description ? ` title="${BM.esc(cls.description)}"` : ''}>
+            <b>${BM.esc(info.subject)}</b>${cls.school_grade ? `<em>${BM.esc(_gradeShort(cls.school_grade))}</em>` : ''}
+          </a>
+          <ul class="ce-facts">
+            ${when ? `<li>${_SI.cal}<span>${BM.esc(when)}</span></li>` : ''}
+            ${info.type ? `<li>${mode}<span>${BM.esc(info.type)}</span></li>` : ''}
+            ${cls.teacher_name ? `<li>${_SI.user}<span>${BM.esc(cls.teacher_name)}</span></li>` : ''}
+          </ul>
+        </div>
+        <div class="ce-card__act">
+          <a class="ce-key" href="class.html?id=${cls.id}">Deschide clasa ${_SI.arrow}</a>
+          <button type="button" class="cl-block__leave ce-leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button>
+        </div>
+      </li>`;
+  }
+
+  /* the teacher's greeting: the owl, the date, the name and one plain line with the counts (no display with totals) */
+  function teacherHeroHTML(lede) {
+    const name = BM.esc((window.BMAuth && BMAuth.displayName && BMAuth.displayName()) || '');
+    return `
+      <header class="ce-hero">
+        <span class="owl ce-hero__owl" data-owl="idle" aria-hidden="true"></span>
+        <div class="ce-hero__txt">
+          <span class="ce-date">${_todayLabel()}</span>
+          <h1 class="ce-title">${_greeting()}${name ? `, <span>${name}</span>` : ''}</h1>
+          <p class="ce-lede">${lede}</p>
+        </div>
+      </header>`;
+  }
+
   function _applyStudentUI(classes, reqs) {
     reqs = reqs || [];
-    const teachers = new Set(classes.map(c => c.teacher_name).filter(Boolean)).size;
-    const next = _nextLesson(classes);
+    const has = classes.length > 0;
     setRootContent(`
-      <div class="${pageClass()}">
-        <header class="cl-head">
-          ${headInfoHTML('Introdu codul primit de la profesor și trimite o cerere de alăturare.')}
-        </header>
+      <div class="${pageClass()} ce-page">
+        ${studentHeroHTML(classes, reqs)}
 
-        ${classes.length ? '<div class="nl-slot" id="nlSlot" data-loading></div>' : ''}
-
-        <section class="cl-join" aria-labelledby="clJoinTitle">
-          <div class="cl-join__icon">${icon('key', { size: 24 })}</div>
-          <div class="cl-join__txt">
-            <h2 id="clJoinTitle">Alătură-te unei clase</h2>
-            <p>Codul are 6 caractere. Intri în clasă după ce profesorul îți acceptă cererea.</p>
-          </div>
-          <div class="cl-join__row">
-            <input type="text" id="inviteCodeInput" class="cl-codeinput"
-                   placeholder="ABC123" maxlength="6" autocomplete="off" autocapitalize="characters"
-                   spellcheck="false" aria-label="Cod de invitație"
-                   oninput="this.value = this.value.toUpperCase()">
-            <button type="button" class="cl-key cl-key--primary" id="joinClassBtn">Trimite cererea</button>
-          </div>
-        </section>
+        ${has ? '<div class="nl-slot" id="nlSlot" data-loading></div>' : ''}
 
         ${reqs.length ? studentRequestsHTML(reqs) : ''}
 
-        ${classes.length ? dashHTML(todayHTML(classes, 'elev', null), statusHTML('Clasele tale', [
-          { lbl: 'Clase înscrise', tick: classes.length },
-          { lbl: 'Profesori', tick: teachers },
-          next ? { lbl: 'Următoarea lecție', val: _timeHTML(next.time), unit: next.when } : { lbl: 'Următoarea lecție', val: '-' }
-        ])) : ''}
+        ${has ? `
+          <section class="ce-sect" aria-labelledby="clMyClsT">
+            <h2 class="ce-h" id="clMyClsT">${classes.length === 1 ? 'Clasa ta' : 'Clasele tale'}</h2>
+            <ol class="ce-list" id="classesGrid" aria-label="Clasele în care ești înscris">
+              ${classes.map(studentCardHTML).join('')}
+            </ol>
+          </section>` : ''}
 
-        ${classes.length === 0 ? studentEmpty() : `
-          <section class="cl-sect" aria-labelledby="clMyClsT">
-            <header class="cl-sect__h"><h2 id="clMyClsT">Clasele tale</h2><span class="cl-sect__n">${_ro(classes.length, 'clasă', 'clase')}</span></header>
-            <div class="rg-sheet rg-sheet--student">
-              <div class="rg-cols" aria-hidden="true"><span class="rg-c rg-time">Ora</span><span class="rg-c">Disciplina</span><span class="rg-c">Clasa</span><span class="rg-c">Zile</span><span class="rg-c">Format</span><span class="rg-c">Profesor</span><span class="rg-c"></span></div>
-              <ol class="rg-list" id="classesGrid" aria-label="Clasele în care ești înscris">
-                ${classes.map(studentRowHTML).join('')}
-              </ol>
-            </div>
-          </section>`}
+        ${studentJoinHTML(has)}
       </div>
     `);
     const joinBtn   = document.getElementById('joinClassBtn');
     const codeInput = document.getElementById('inviteCodeInput');
     joinBtn?.addEventListener('click', joinClass);
-    if (classes.length) loadNextLesson();
+    if (has) loadNextLesson();
     const invited = _inviteCode();
     if (invited && codeInput) {
       codeInput.value = invited;
-      const hint = document.querySelector('.cl-join__txt p');
+      const hint = document.querySelector('.ce-join__txt p');
       if (hint) hint.textContent = 'Codul din invitația ta e completat. Apasă „Trimite cererea”; intri în clasă după ce profesorul o acceptă.';
       joinBtn?.focus({ preventScroll: true });
     }
@@ -1138,8 +1174,6 @@
     document.querySelectorAll('.cl-block__leave').forEach(btn => {
       btn.addEventListener('click', () => leaveClass(btn.dataset.id, btn.dataset.name));
     });
-    if (classes.length) startTodayTicker();
-    runStatus();
     _painted = true;
   }
 
@@ -1212,35 +1246,6 @@
     }
   }
 
-  function studentEmpty() {
-    return `
-      <section class="cl-sheet cl-sheet--empty" aria-label="Clasele în care ești înscris">
-        <div class="cl-ghosts" aria-hidden="true"><i></i><i></i><i></i></div>
-        <div class="cl-empty">
-          <div class="cl-empty__icon">${icon('library', { size: 24 })}</div>
-          <h2>Nicio clasă înscrisă</h2>
-          <p>Introdu codul de invitație de mai sus și trimite o cerere. Clasa apare aici după ce profesorul o acceptă.</p>
-        </div>
-      </section>
-    `;
-  }
-
-  function studentRowHTML(cls) {
-    const info = _classInfo(cls);
-    return `
-      <li class="rg-row rg-row--student" data-id="${cls.id}">
-        <span class="rg-c rg-time"><b>${info.time ? _timeHTML(info.time) : '-'}</b></span>
-        <a class="rg-c rg-name" href="class.html?id=${cls.id}"${cls.description ? ` title="${BM.esc(cls.description)}"` : ''} aria-label="Deschide clasa: ${BM.esc(info.subject)}${info.days.length ? ', ' + info.days.join(', ') : ''}${info.time ? ', ora ' + BM.esc(info.time) : ''}">${BM.esc(info.subject)}</a>
-        <span class="rg-what"><span class="rg-c rg-cls${cls.school_grade ? '' : ' rg-none'}">${cls.school_grade ? `<b>${BM.esc(_gradeShort(cls.school_grade))}</b>` : '-'}</span></span>
-        <span class="rg-when">
-          <span class="rg-c rg-days" title="${BM.esc(info.days.join(', '))}">${info.days.length ? info.days.map(d => DAY_SHORT[d] || d).join(', ') : '-'}</span>
-          <span class="rg-c rg-fmt">${BM.esc(info.type || '-')}</span>
-          <span class="rg-c rg-prof">${BM.esc(cls.teacher_name || '-')}</span>
-        </span>
-        <span class="rg-c rg-acts"><button type="button" class="cl-block__leave" data-id="${cls.id}" data-name="${BM.esc(cls.name)}">Ieși din clasă</button></span>
-      </li>`;
-  }
-
   async function joinClass() {
     const input = document.getElementById('inviteCodeInput');
     const code  = input?.value.trim().toUpperCase();
@@ -1305,9 +1310,9 @@
       if (error) throw error;
       BM.toast('Ai ieșit din clasă.', 'info');
       try { sessionStorage.removeItem(_studentCacheKey()); } catch {}
-      const row = document.querySelector(`.cl-block[data-id="${classId}"]`);
+      const row = document.querySelector(`.ce-card[data-id="${classId}"]`);
       if (row && !reduced) {
-        row.classList.add('cl-block--leaving');
+        row.classList.add('ce-card--leaving');
         await new Promise(r => setTimeout(r, 300));
       }
       renderStudentView();
