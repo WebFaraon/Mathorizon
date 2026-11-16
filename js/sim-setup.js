@@ -34,13 +34,14 @@
     set('stBest', grades.length ? Math.max(...grades).toFixed(2) : '-.--');
     set('stTokens', isAdmin ? '∞' : String(tokens));
 
-    const note = isAdmin ? 'Cont admin: pornești fără să consumi tokenuri.'
-      : tokens <= 0 ? 'Nu mai ai ExamTokenuri. O simulare costă un token.'
-      : `O simulare costă 1 ExamToken. Ai ${tokens}, îți rămân ${tokens - 1} după pornire.`;
+    /* The cost of a simulation is told by the confirmation dialog, so the note next to the start key
+       only speaks before a method is picked, or when there are no tokens left. */
+    const noTokens = !isAdmin && tokens <= 0;
     document.querySelectorAll('[data-token-note]').forEach(el => {
-      el.dataset.base = note;
-      if (!el.dataset.picked) el.textContent = 'Alege mai întâi cum vei răspunde.';
-      else el.textContent = note;
+      el.dataset.noTokens = noTokens ? '1' : '';
+      if (noTokens) { el.textContent = 'Nu mai ai ExamTokenuri. O simulare costă un token.'; el.hidden = false; }
+      else if (!el.dataset.picked) { el.textContent = 'Alege mai întâi cum vei răspunde.'; el.hidden = false; }
+      else el.hidden = true;
     });
   }
 
@@ -48,7 +49,7 @@
   function methodPicked() {
     document.querySelectorAll('[data-token-note]').forEach(el => {
       el.dataset.picked = '1';
-      el.textContent = el.dataset.base || el.textContent;
+      el.hidden = !el.dataset.noTokens;
     });
   }
 

@@ -728,7 +728,7 @@
         });
       } else {
         showTokenDialog({
-          icon: icon('lock', { size: 48 }),
+          icon: TOKEN_IMG,
           title: 'Nu mai ai ExamTokenuri',
           body: `Ai folosit toate simulările disponibile.`,
           cancelLabel: 'Închide'
@@ -738,13 +738,11 @@
     }
 
     showTokenDialog({
-      icon: icon('ticket', { size: 48 }),
+      icon: TOKEN_IMG,
       title: 'Pornești simularea BAC?',
-      body: `Dacă confirmi, <strong>1 ExamToken</strong> va fi scăzut din contul tău.
-             Vei rămâne cu <strong>${tokens - 1}</strong> token${tokens - 1 === 1 ? '' : 'uri'}.
-             <br><br>
-             <span class="exam-start-warn">${icon('triangle-alert', { size: 16, className: 'icon--warning' })} Dacă ieși din pagină în timpul examenului, tokenul nu va fi restituit.</span>`,
-      confirmLabel: `${icon('rocket', { size: 16 })} Pornește examenul`,
+      body: `Se scade <strong>1 ExamToken</strong> din contul tău. Rămâi cu <strong>${tokens - 1}</strong> token${tokens - 1 === 1 ? '' : 'uri'}.
+             <span class="exam-start-warn">${icon('triangle-alert', { size: 18, className: 'icon--warning' })}<span>Dacă ieși din pagină în timpul examenului, tokenul nu se restituie.</span></span>`,
+      confirmLabel: 'Pornește examenul',
       confirmClass: 'btn--primary',
       onConfirm: () => {
         if (!BM.consumeToken()) return;
@@ -753,6 +751,8 @@
       cancelLabel: 'Anulează'
     });
   };
+
+  const TOKEN_IMG = '<img src="assets/images/gamification/tokenuri.svg" alt="" width="88" height="88">';
 
   function showTokenDialog({ icon, title, body, confirmLabel, confirmClass, onConfirm, cancelLabel }) {
     const ov = document.createElement('div');

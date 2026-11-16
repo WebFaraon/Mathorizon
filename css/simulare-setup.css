@@ -102,10 +102,7 @@ html body.pm #setupView .st-setup { padding-top: 22px; }
 html body.pm .st-h { font-size: 1.15rem; margin-bottom: 14px; }
 .st-setup__grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
 .st-setup__left { position: static; }
-@container (min-width: 980px) {
-  .st-setup__grid { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 30px; }
-  .st-setup__left { position: sticky; top: calc(var(--nav-h, 72px) + 16px); }
-}
+html body.pm #setupView .st-setup { max-width: 780px; }
 html body.pm #setupView .st-ticket--open { cursor: default; }
 html body.pm #setupView .st-ticket--open .st-fields { margin-bottom: 24px; }
 html body.pm #setupView .st-ticket--open .st-ticket__title { margin-top: 22px; }
@@ -203,3 +200,39 @@ html[data-theme="dark"] body.pm .st-tip__title svg { color: #CDBBF2; }
   .st-tips__list { grid-template-columns: minmax(0, 1fr); }
 }
 @media (prefers-reduced-motion: reduce) { .st-ticket__ico { transition: none; } }
+
+/* ---------- the note next to the start key, the start key, the token dialog (2026-11-17) ---------- */
+html body.pm .st-start__note[hidden] { display: none; }
+html body.pm #setupView .st-start-key { height: 56px; font-size: 1.02rem; }
+
+html body.pm .bac-confirm-overlay:has(.exam-start-modal) { background: rgba(14, 10, 24, 0.5); }
+html body.pm .exam-start-modal.bac-confirm-modal {
+  max-width: 420px; padding: 24px 24px 22px; border: 1.5px solid var(--pm-line); border-radius: 24px; background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge), 0 28px 60px -14px rgba(14, 10, 24, 0.5); text-align: center;
+}
+html body.pm .exam-start-modal .bac-confirm-icon { width: auto; height: auto; margin: -4px auto 4px; border: 0; background: none; box-shadow: none; }
+html body.pm .exam-start-modal .bac-confirm-icon img { display: block; width: 88px; height: 88px; }
+html body.pm .exam-start-modal .bac-confirm-title { margin: 0 0 8px; font-size: 1.4rem; font-weight: 800; letter-spacing: -0.02em; }
+html body.pm .exam-start-modal .exam-start-body { font-size: 0.98rem; line-height: 1.5; color: var(--pm-ink-2); }
+html body.pm .exam-start-modal .exam-start-body strong { color: var(--k-ink); font-weight: 800; }
+html body.pm .exam-start-modal .exam-start-warn {
+  display: flex; align-items: flex-start; gap: 10px; margin: 16px 0 0; padding: 11px 14px; text-align: left;
+  border: 1.5px solid #F5D2A0; border-radius: 14px; background: #FFF1DC; color: #8A4A0C; font-size: 0.84rem; line-height: 1.4; font-weight: 600;
+}
+html body.pm .exam-start-modal .exam-start-warn svg { flex: none; margin-top: 1px; }
+html[data-theme="dark"] body.pm .exam-start-modal .exam-start-warn { background: #3A2A1C; border-color: #5A4128; color: #FFB27A; }
+html body.pm .exam-start-modal .bac-confirm-actions { display: flex; gap: 12px; margin-top: 20px; }
+html body.pm .exam-start-modal .bac-confirm-actions .btn { flex: 1; height: 52px; padding: 0 14px; border-radius: 14px; font-size: 0.98rem; font-weight: 800; justify-content: center; }
+html body.pm .exam-start-modal .bac-confirm-actions .btn, html body.pm .exam-start-modal .bac-confirm-actions .btn:hover {
+  border: 1.5px solid var(--pm-line); background: var(--pm-face); color: var(--k-ink);
+}
+html body.pm .exam-start-modal .bac-confirm-actions .btn { box-shadow: 0 4px 0 0 var(--pm-edge); }
+html body.pm .exam-start-modal .bac-confirm-actions .btn:hover { background: var(--pm-tint); filter: none; }
+html body.pm .exam-start-modal .bac-confirm-actions .btn:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(4px); }
+html body.pm .exam-start-modal .bac-confirm-actions .btn--primary, html body.pm .exam-start-modal .bac-confirm-actions .btn--primary:hover {
+  border-color: var(--k-go-edge); background: var(--k-go); color: var(--k-go-ink);
+}
+html body.pm .exam-start-modal .bac-confirm-actions .btn--primary { box-shadow: 0 4px 0 0 var(--k-go-edge); }
+html body.pm .exam-start-modal .bac-confirm-actions .btn--primary:hover { filter: brightness(0.94); }
+html body.pm .exam-start-modal .bac-confirm-actions .btn--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+html body.pm .st-tips { margin-top: 14px; }
