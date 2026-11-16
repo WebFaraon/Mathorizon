@@ -1416,3 +1416,11 @@ html body.pm:has(#classesRoot) .cl-chip--today.is-on::after { content: none; dis
   html body.pm:has(#classesRoot) .rg-cols { margin-bottom: 16px; box-shadow: 0 4px 0 0 var(--pm-edge); }
 }
 html body.pm:has(#classesRoot) .cl-today__head { box-shadow: 0 4px 0 0 var(--pm-edge); margin-bottom: 4px; }
+
+/* ---- Chapter and subchapter pages (2026-11-16): the green square before the page name is no longer clipped on the left (its ring was a box-shadow, which the
+   name's overflow:hidden cut; it is a real border now), and the lime light above the bar is gone ---- */
+body:has(#catHeader) .subcat-bc__current { padding-left: 1px; }
+body:has(#catHeader) .subcat-bc__current::before {
+  flex: none; box-sizing: border-box; width: 10px; height: 10px; border: 1.5px solid rgba(30, 60, 0, 0.55); border-radius: 3px; box-shadow: none;
+}
+body:has(#catHeader) .ch-lcd::after { content: none; display: none; }
