@@ -182,7 +182,7 @@ body.lz {
   cursor: pointer;
   transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
 }
-.lz-op:hover:not(:disabled) { background: var(--pm-tint); }
+.lz-op:hover:not(:disabled):not(.sel):not(.ok):not(.no) { background: color-mix(in srgb, var(--pm-tint) 38%, var(--pm-face)); }
 .lz-op:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 3px; margin-bottom: 2px; }
 .lz-op .k {
   flex: none;
@@ -276,8 +276,8 @@ body.lz {
   cursor: pointer;
   font-variant-numeric: tabular-nums;
 }
-.lz-ln i { font-style: normal; flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--pm-tint); color: var(--pm-key-ink); font-size: 0.8rem; display: grid; place-items: center; font-weight: 800; }
-.lz-ln:hover:not(:disabled) { background: var(--pm-tint); }
+.lz-ln > i { font-style: normal; flex: none; width: 26px; height: 26px; border-radius: 8px; background: var(--pm-tint); color: var(--pm-key-ink); font-size: 0.8rem; display: grid; place-items: center; font-weight: 800; }
+.lz-ln:hover:not(:disabled):not(.sel):not(.ok):not(.no) { background: color-mix(in srgb, var(--pm-tint) 38%, var(--pm-face)); }
 .lz-ln.sel { border-color: var(--pm-violet); background: var(--pm-tint); }
 .lz-ln.ok { border-color: var(--lz-ok-line); background: var(--lz-ok-bg); }
 .lz-ln.no { border-color: var(--lz-no-line); background: var(--lz-no-bg); }
