@@ -21,6 +21,10 @@
   <link rel="stylesheet" href="css/premium.css">
   <link rel="stylesheet" href="css/owl.css">
   <link rel="stylesheet" href="css/antrenament-wiz.css">
+  <link rel="stylesheet" href="css/antrenament-session.css">
+  <!-- REACT-ISLAND-CSS:START -->
+  <link rel="stylesheet" href="assets/react/capitole-DqrKHIb8.css">
+  <!-- REACT-ISLAND-CSS:END -->
   <script src="js/owl.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
@@ -31,7 +35,7 @@
   <script src="js/classpick.js"></script>
   <script src="js/welcome.js"></script>
 </head>
-<body class="an an-boot pm" data-owl-night>
+<body class="an an-boot pm" data-owl-night data-page="antrenament">
 
   <!-- NAVBAR -->
   <nav class="nav" id="nav-root"></nav>
@@ -41,6 +45,7 @@
   <!-- One page, two states: the setup (a keypad of chapters + the control rail)
        and the session (a display bar + a board of cards, then the results).
        js/training.js toggles them through #configContent / #trainingHud. -->
+  <div id="root" data-rail-only></div>
   <main class="an-page" id="trainingLayout">
 
     <!-- ===== SETUP: a wizard, one question at a time (js/training.js, wizard block) ===== -->
@@ -53,7 +58,7 @@
           <div class="wz-level" role="group" aria-label="Nivelul tău" title="Nivelul contului tău, calculat din XP-ul total câștigat în Antrenament (100 XP pe nivel)">
             <div class="wz-level__n"><small>Nivel</small><b data-training-level>1</b></div>
             <div class="wz-level__main">
-              <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
+              <div class="an-xp"><div class="an-xp__track"><i data-training-level-fill style="width:0%"></i></div><span class="an-xp__coin" data-coin-next>2</span></div>
               <div class="wz-level__row"><span data-training-level-xp>0 / 100 XP</span><span class="wz-level__next" data-training-level-next></span></div>
             </div>
             <dl class="wz-level__stats">
@@ -150,42 +155,50 @@
           <button type="button" class="an-key an-key--lg an-key--primary wz-next" id="wzNext" hidden>
             Continuă <svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m9 18 6-6-6-6"></path></svg>
           </button>
-          <button id="startBtn" class="an-go wz-start" type="button" onclick="startTraining()" hidden>
-            <span class="an-go__led" aria-hidden="true"></span>
-            Începe antrenamentul
-            <svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="6 3 20 12 6 21 6 3"></polygon></svg>
-          </button>
+          <button id="startBtn" class="an-go wz-start" type="button" onclick="startTraining()" hidden>Începe antrenamentul</button>
         </footer>
 
       </div>
     </div>
 
-    <!-- ===== SESSION: display bar ===== -->
+    <!-- ===== SESSION: the round's plate (keys, icons, the owl; no LCD) ===== -->
     <div class="an-hud" id="trainingHud" hidden>
       <div class="an-hud__in">
-        <div class="an-lcd an-lcd--hud" id="sessionHud">
-          <div class="an-hud__cell">
-            <span class="an-hud__lbl">Cărți rezolvate</span>
-            <span class="an-hud__val"><b id="sessionCounter">0 / 10</b></span>
+        <div class="an-hs" id="sessionHud">
+          <div class="an-hs__owl"><span class="owl" id="hudOwl" data-owl="idle" aria-hidden="true"></span></div>
+          <div class="an-hs__cell an-hs__cell--prog">
+            <img class="an-hs__ico" src="assets/images/antrenament/carti.svg" alt="" width="44" height="44">
+            <div class="an-hs__tx">
+              <span class="an-hs__lbl">Cărți rezolvate</span>
+              <b class="an-hs__val" id="sessionCounter">0 / 10</b>
+            </div>
             <div class="an-segs" id="sessionSegs"></div>
           </div>
-          <div class="an-hud__cell" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
-            <span class="an-hud__lbl">Serie</span>
-            <span class="an-hud__val"><svg class="icon icon-16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3q1 4 4 6.5t3 5.5a1 1 0 0 1-14 0 5 5 0 0 1 1-3 1 1 0 0 0 5 0c0-2-1.5-3-1.5-5q0-2 2.5-4"></path></svg><b id="hudStreakVal">0</b></span>
-            <span class="an-hud__sub">record: <span data-training-best-streak>0</span></span>
+          <div class="an-hs__cell" id="hudStreak" title="Răspunsuri corecte la rând, sesiunea curentă / cel mai bun record al contului">
+            <img class="an-hs__ico" src="assets/images/gamification/streak-mini.svg" alt="" width="44" height="44">
+            <div class="an-hs__tx">
+              <span class="an-hs__lbl">Serie</span>
+              <b class="an-hs__val" id="hudStreakVal">0</b>
+              <span class="an-hs__sub">record: <span data-training-best-streak>0</span></span>
+            </div>
           </div>
-          <div class="an-hud__cell" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
-            <span class="an-hud__lbl">XP sesiune</span>
-            <span class="an-hud__val"><b id="hudXpVal">0</b><small>XP</small></span>
-            <span class="an-hud__sub">total: <span data-training-total-xp>0</span> XP</span>
+          <div class="an-hs__cell" id="hudXp" title="XP câștigat în această sesiune / XP total acumulat pe cont">
+            <img class="an-hs__ico" src="assets/images/gamification/xp-mini.svg" alt="" width="44" height="44">
+            <div class="an-hs__tx">
+              <span class="an-hs__lbl">XP sesiune</span>
+              <b class="an-hs__val"><span id="hudXpVal">0</span><small>XP</small></b>
+              <span class="an-hs__sub">total: <span data-training-total-xp>0</span> XP</span>
+            </div>
           </div>
-          <div class="an-hud__cell">
-            <span class="an-hud__lbl">Nivel <span data-training-level>1</span></span>
-            <div class="an-lvl__bar"><i data-training-level-fill style="width:0%"></i></div>
-            <span class="an-hud__sub" data-training-level-xp>0 / 100 XP</span>
+          <div class="an-hs__cell an-hs__cell--lvl">
+            <div class="an-hs__lv"><small>Nivel</small><b data-training-level>1</b></div>
+            <div class="an-hs__tx">
+              <div class="an-xp"><div class="an-xp__track"><i data-training-level-fill style="width:0%"></i></div><span class="an-xp__coin" data-coin-next>2</span></div>
+              <span class="an-hs__sub" data-training-level-xp>0 / 100 XP</span>
+            </div>
           </div>
         </div>
-        <button class="an-key" id="abandonBtn" type="button" onclick="trConfirmAbandon()">Renunță</button>
+        <button class="an-key an-hs__quit" id="abandonBtn" type="button" onclick="trConfirmAbandon()">Renunță</button>
       </div>
     </div>
 
@@ -233,8 +246,13 @@
   <script src="js/utils.js"></script>
   <script src="js/training-stats.js"></script>
   <script src="js/auth.js"></script>
+  <script src="js/parcurs/progress.js"></script>
   <script src="js/panels.js"></script>
   <script src="js/training.js"></script>
+  <!-- the right rail (Misiunile zilei, Top elevi) is the React island of Capitole, in "rail only" mode -->
+  <!-- REACT-ISLAND-JS:START -->
+  <script type="module" src="assets/react/capitole-J1OC8Jf7.js"></script>
+  <!-- REACT-ISLAND-JS:END -->
 
   <script>
     /* Plan gate — Antrenament is a Standard/Premium feature. Only gates

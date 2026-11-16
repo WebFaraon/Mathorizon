@@ -2012,3 +2012,12 @@ a.cap-key__face:focus-visible {
   box-sizing: content-box; width: 16px; height: 16px; padding: 5px; border-radius: 50%; background: #FF8A12; box-shadow: 0 2px 0 #C9520A;
   stroke: #fff; stroke-width: 2.6;
 }
+
+/* ---- Antrenament: the rail alone (training.html, body data-page="antrenament") ----
+   The fixed right rail only shows from 1180px; below that the page has no room for it, and a phone does not need it.
+   While a session runs the board takes the width, so the rail steps aside. */
+.cap-shell--rail { display: none; padding: 0; max-width: none; }
+@media (min-width: 1180px) {
+  .cap-shell--rail { display: block; }
+  body:has(.an-page--session) .cap-shell--rail { display: none; }
+}

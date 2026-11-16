@@ -1143,6 +1143,7 @@
     sessionXp += xpGain; // session-local only until finishSession() commits it
     renderHud();
     animateXpGain(xpGain);
+    hudOwlMood(isCorrect ? 'happy' : 'wrong', true);
 
     const resultZone = document.getElementById('revealResultZone');
     const answerZone = document.getElementById('revealAnswerZone');
@@ -1152,7 +1153,7 @@
          via "Vezi rezolvarea" (do not bury the win under a wall of text the
          student did not ask for). */
       resultZone.innerHTML = `
-        <div class="an-banner an-banner--ok">Corect! <strong>+${xpGain} XP</strong></div>
+        <div class="owl-ok"><span class="owl owl--sm" data-owl="happy" aria-hidden="true"></span><div class="owl-ok__t"><b>Corect!</b><span>Bravo, continuă tot așa.</span></div><span class="owl-ok__xp">+${xpGain} XP</span></div>
         <button class="an-key an-key--wide" type="button" id="revealShowSolutionBtn">${icon('book-open', { size: 16 })} Vezi rezolvarea</button>
         <div id="revealSolutionZone" hidden></div>
       `;
@@ -1228,6 +1229,29 @@
   };
 
   /* ---- HUD ---- */
+  /* The coin at the end of every level bar shows the NEXT level. */
+  function syncCoins() {
+    try {
+      const n = BM.Training.getLevelInfo().level + 1;
+      document.querySelectorAll('[data-coin-next]').forEach(el => { el.textContent = n; });
+    } catch (e) { /* no level yet */ }
+  }
+  if (BM.Training && BM.Training.refreshWidgets) {
+    const _rw = BM.Training.refreshWidgets;
+    BM.Training.refreshWidgets = function () { _rw.apply(this, arguments); syncCoins(); };
+    syncCoins();
+  }
+
+  /* The little owl on the round's plate reacts to each answer, then goes back to watching. */
+  let hudOwlTimer = null;
+  function hudOwlMood(m, back) {
+    const el = document.getElementById('hudOwl');
+    if (!el) return;
+    if (el.__owl && el.__owl.setMood) el.__owl.setMood(m); else el.setAttribute('data-owl', m);
+    clearTimeout(hudOwlTimer);
+    if (back) hudOwlTimer = setTimeout(() => hudOwlMood('idle'), 2600);
+  }
+
   function renderHud() {
     const streakEl = document.getElementById('hudStreakVal');
     const xpEl     = document.getElementById('hudXpVal');

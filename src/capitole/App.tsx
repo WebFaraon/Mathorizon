@@ -75,6 +75,21 @@ export function App() {
     return () => window.removeEventListener('bm:grade', on);
   }, []);
 
+  /* training.html: only the right rail (Misiunile zilei + Top elevi), fixed on wide screens and hidden below them. */
+  if (page === 'antrenament') {
+    return (
+      <div className="cap-shell cap-shell--rail">
+        <RightColumn
+          missions={missions}
+          missionsReady={missionsReady}
+          leaderboardRows={leaderboardRows}
+          leaderboardReady={leaderboardReady}
+          currentUserId={currentUserId}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className="cap-shell">
       <div className="cap-mobile-viewport">

@@ -213,3 +213,31 @@ html:is(.bm-authed, .bm-gnav):not(.bnav-off) .wz-nav { bottom: calc(var(--bnav-h
 @media (prefers-reduced-motion: reduce) {
   .wz-mode, .wz-mode img, .wz-steps i::after { transition: none; }
 }
+
+/* ---------- additions of 2026-11-17 ---------- */
+/* the right rail (Misiunile zilei, Top elevi) is fixed from 1180px: the wizard keeps clear of it */
+@media (min-width: 1180px) {
+  body.an:not(:has(.an-page--session)) .an-page { margin-right: calc(var(--cap-rail-right, 380px) + 8px); }
+}
+
+/* back, next and start are the same key height */
+html body.pm.an .wz-nav .an-key--lg, html body.pm.an .wz-nav .an-go { height: 54px; box-sizing: border-box; }
+html body.pm.an .wz-start { min-width: 260px; padding: 0 28px; justify-content: center; white-space: nowrap; letter-spacing: 0; }
+
+/* chapter heads: the emblem is 56px, the column was 46px (title and count ran into each other on a phone) */
+html body.pm.an .an-chap__head { grid-template-columns: 56px minmax(0, 1fr) auto auto; gap: 14px; }
+html body.pm.an .an-chap--soon .an-chap__head { grid-template-columns: 56px minmax(0, 1fr) auto; }
+html body.pm.an .an-count {
+  min-width: 0; padding: 7px 13px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); background-image: none;
+  box-shadow: 0 2px 0 0 var(--pm-edge); color: var(--pm-ink-2); font-family: var(--k-font); font-weight: 800; font-size: 0.86rem; text-align: center;
+}
+@media (max-width: 600px) {
+  html body.pm.an .an-chap__head { gap: 12px; padding: 14px; }
+  html body.pm.an .an-chap__name { font-size: 1rem; }
+  html body.pm.an .an-chap__meta { font-size: 0.74rem; }
+  html body.pm.an .an-count { padding: 5px 10px; font-size: 0.8rem; }
+  html body.pm.an .an-fold { width: 36px; height: 36px; }
+  html body.pm.an .an-chap--soon .an-chap__head { grid-template-columns: 56px minmax(0, 1fr); }
+  html body.pm.an .an-chap--soon .an-chap__head > :last-child { grid-column: 2; justify-self: start; }
+  html body.pm.an .wz-nav .wz-start { min-width: 0; flex: 1; padding: 0 16px; }
+}
