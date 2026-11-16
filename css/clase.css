@@ -213,3 +213,8 @@ html body.pm:has(#classesRoot) .cl-block .ce-facts li:not(:has(svg)) { padding-l
   body[data-rail-on] #classesRoot { padding-right: calc(var(--cap-rail-right, 380px) + 8px); box-sizing: border-box; }
 }
 html body.pm:has(#classesRoot) .nl__act { min-width: 200px; }
+
+/* "Lecțiile tale de azi": titlul și chipul "N lecții" stau pe un rând fără linie dedesubt (o umbră solidă veche trecea pe sub chip și îl suprapunea) */
+html body.pm:has(#classesRoot) .cl-today__head { box-shadow: none; margin-bottom: 0; padding: 0 2px 2px; min-height: 34px; align-items: center; }
+html body.pm:has(#classesRoot) .cl-today__head h2 { line-height: 1.2; }
+html body.pm:has(#classesRoot) .cl-today__count { line-height: 1.2; }

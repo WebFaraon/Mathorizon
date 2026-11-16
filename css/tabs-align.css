@@ -1,0 +1,36 @@
+/* Aceeași poziție a conținutului în toate tab-urile principale (Învață, Exerciții, Simulare, Antrenament, Clase, Misiuni, Profil)
+   de la 601px în sus: --pg-x de la panoul din stânga, --pg-y de la rândul de sus. Se încarcă ULTIMUL în fiecare pagină. */
+:root { --pg-x: 28px; --pg-y: 16px; }
+
+@media (min-width: 601px) {
+  /* Învață, Exerciții, Misiuni (insula React): coloana din mijloc */
+  .cap-three-col { padding-top: 0; }
+  .cap-three-col > .cap-col-middle { padding-top: var(--pg-y); }
+  .ms-page { padding-top: 0; }
+  .cap-chapters { padding-top: 0; }
+  .pp-backrow { margin-top: 0; }
+  .pp-root, html.bm-authed .pp-root { padding-top: 0; }
+
+  /* Simulare */
+  html body.pm #setupView .st-choose, html body.pm #setupView .st-setup { padding-left: 0; padding-right: 0; padding-top: 0; }
+  html body.pm #setupView { padding: var(--pg-y) var(--pg-x) 0; box-sizing: border-box; }
+
+  /* Antrenament */
+  html body.pm.an .wz { padding: 0; }
+  html body.pm.an #configContent { padding: var(--pg-y) var(--pg-x) 0; box-sizing: border-box; }
+
+  /* Clase */
+  html body.pm #classesRoot { padding-top: var(--pg-y); padding-left: var(--pg-x); }
+  html body.pm #classesRoot .cl-page, html body.pm #classesRoot .ce-page { padding-top: 0; margin-top: 0; }
+
+  /* pe ecrane late conținutul stă tot lipit de panou, nu centrat */
+  html body.pm.an .wz, html body.pm #classesRoot .cl-page, html body.pm #classesRoot .ce-page { margin-left: 0; margin-right: 0; }
+
+  /* Profil */
+  html body.pm .main:has(#profileContent) { margin-left: 0; margin-right: 0; }
+  html body.pm .main:has(#profileContent) { padding-top: var(--pg-y); padding-left: var(--pg-x); }
+}
+@media (min-width: 1180px) {
+  /* coloana stângă a insulei React e goală aici: nu mai împinge mijlocul cu golul dintre coloane */
+  .cap-three-col > .cap-col-middle { margin-left: -24px; }
+}
