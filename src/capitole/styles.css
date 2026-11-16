@@ -1968,7 +1968,7 @@ a.cap-key__face:focus-visible {
 /* Top elevi: in the right rail on laptops; on a phone there is no rail, so it sits under the missions */
 .ms-lb { display: none; margin-top: 22px; }
 @media (max-width: 640px) {
-  .ms-page { padding: 4px 14px 24px; }
+  .ms-page { padding: 4px 0 24px; }
   .ms-lb { display: block; }
   .ms-banner { padding: 20px 20px; }
   .ms-banner h1 { font-size: 1.4rem; }
@@ -1979,4 +1979,36 @@ a.cap-key__face:focus-visible {
   .ms-card__ico { width: 44px; height: 44px; }
   .ms-card__gift { width: 38px; height: 38px; }
   .ms-card__title { font-size: 1rem; }
+}
+
+
+/* ---- Misiunile zilei (2026-11-16): a header with the icon and the title side by side, an illustrated tick, no strikethrough ---- */
+.cap-side-head { display: flex; align-items: center; gap: 12px; }
+.cap-side-head__img { width: 54px; height: 54px; flex: none; }
+.cap-side-head__tx { min-width: 0; }
+.cap-side-head__t { margin: 0; font-family: var(--k-font); font-size: 1.2rem; font-weight: 800; letter-spacing: -0.01em; line-height: 1.15; color: var(--k-ink); }
+.cap-side-head__s { margin: 3px 0 0; font-size: 0.78rem; font-weight: 700; color: var(--k-ink-3); }
+.cap-mission { align-items: center; gap: 12px; }
+.cap-mission__check { width: 26px; height: 26px; margin-top: 0; align-self: flex-start; margin-top: 1px; }
+.cap-mission__check img { display: block; width: 26px; height: 26px; }
+.cap-mission--done .cap-mission__title { color: var(--k-ink); text-decoration: none; }
+.cap-mission__title { font-size: 0.92rem; font-weight: 700; }
+.cap-mission__xp { font-size: 0.82rem; }
+@media (prefers-reduced-motion: no-preference) {
+  .cap-mission--done .cap-mission__check img { animation: cap-reward-pop 0.42s cubic-bezier(0.16, 1, 0.3, 1) 0.35s both; }
+}
+@media (min-width: 1180px) and (max-height: 820px) {
+  .cap-side-head__img { width: 44px; height: 44px; }
+  .cap-side-head__t { font-size: 1.08rem; }
+}
+
+/* the time left: a white pill with a solid edge and an orange clock, readable on the grey page (it was a pale tint with orange text) */
+.ms-timer {
+  gap: 8px; padding: 5px 14px 5px 6px; border: 1.5px solid var(--pm-line, #DDD6EA); background: var(--pm-face, #fff);
+  box-shadow: 0 3px 0 var(--pm-edge, #CFC6E3); color: var(--pm-ink, #1E1631); font-size: 0.86rem;
+}
+[data-theme="dark"] .ms-timer { color: var(--pm-ink, #F1EBFB); }
+.ms-timer svg {
+  box-sizing: content-box; width: 16px; height: 16px; padding: 5px; border-radius: 50%; background: #FF8A12; box-shadow: 0 2px 0 #C9520A;
+  stroke: #fff; stroke-width: 2.6;
 }

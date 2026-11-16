@@ -1,5 +1,4 @@
 import { useReducedMotion } from 'framer-motion';
-import { CircleCheck } from 'lucide-react';
 import type { MissionProgress } from '../../lib/missions';
 
 interface MissionsCardProps {
@@ -29,15 +28,18 @@ export function MissionsCard({ missions, ready }: MissionsCardProps) {
 
   return (
     <div className="cap-sidebar-section">
-      <h2 className="cap-side-title">
-        <img className="cap-side-title__img" src="assets/images/gamification/misiuni.svg" alt="" />
-        Misiunile zilei
-      </h2>
+      <div className="cap-side-head">
+        <img className="cap-side-head__img" src="assets/images/gamification/misiuni.svg" alt="" />
+        <div className="cap-side-head__tx">
+          <h2 className="cap-side-head__t">Misiunile zilei</h2>
+          <p className="cap-side-head__s">{missions.filter((m) => m.done).length} din {missions.length} terminate azi</p>
+        </div>
+      </div>
       <ul className="cap-missions__list">
         {missions.map((mission) => (
           <li className={`cap-mission${mission.done ? ' cap-mission--done' : ''}`} key={mission.key}>
             <span className="cap-mission__check" aria-hidden="true">
-              {mission.done ? <CircleCheck /> : <span className="cap-mission__check-empty" />}
+              <img src={mission.done ? 'assets/images/gamification/bifa.svg' : 'assets/images/gamification/bifa-gol.svg'} alt="" />
             </span>
             <span className="cap-mission__body">
               <span className="cap-mission__row">
