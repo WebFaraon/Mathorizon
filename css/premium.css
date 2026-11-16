@@ -1379,3 +1379,32 @@ html body.pm:has(#profileContent) .prof-modal-overlay .prof-modal { margin: auto
   html body.pm:has(#profileContent) .prof-modal .prof-modal__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
   html body.pm:has(#profileContent) .prof-modal .prof-modal__actions .btn { width: 100%; }
 }
+
+/* ==========================================================================
+   Profil (2026-11-16): the plate on top and every card are white with the solid edge; the teacher's cards sit in two columns without a hole
+   ========================================================================== */
+html body.pm:has(#profileContent) .pf-plate {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+  margin-bottom: 8px;
+}
+html body.pm:has(#profileContent) .pf-cover { border-bottom: 1.5px solid var(--pm-line); }
+html body.pm:has(#profileContent) .pf-card { background: var(--pm-face); border-radius: 22px; }
+html body.pm:has(#profileContent) .pf-desk { padding-bottom: 6px; }
+
+/* teacher: classes and reviews stacked on the left, Telegram and Cont stacked on the right (before: three columns, the short middle one left a hole) */
+@media (min-width: 721px) {
+  html body.pm:has(#profileContent) .pf-desk--teacher {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    grid-template-areas:
+      "prog prog"
+      "cls  acc"
+      "rev  acc";
+    grid-template-rows: auto auto 1fr;
+    row-gap: 24px;
+  }
+  html body.pm:has(#profileContent) .pf-desk--teacher .pf-desk__cls,
+  html body.pm:has(#profileContent) .pf-desk--teacher .pf-desk__rev { align-self: start; }
+}
