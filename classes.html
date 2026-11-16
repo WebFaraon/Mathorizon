@@ -19,6 +19,9 @@
   <link rel="stylesheet" href="css/premium.css">
   <link rel="stylesheet" href="css/owl.css">
   <link rel="stylesheet" href="css/clase.css">
+  <!-- REACT-ISLAND-CSS:START -->
+  <link rel="stylesheet" href="assets/react/capitole-CaY13gd5.css">
+  <!-- REACT-ISLAND-CSS:END -->
   <script src="js/owl.js"></script>
   <script src="js/theme.js"></script>
   <script src="js/transitions.js"></script>
@@ -28,12 +31,15 @@
   <script src="js/classpick.js"></script>
   <script src="js/welcome.js"></script>
 </head>
-<body class="pm" data-owl-night>
+<body class="pm" data-owl-night data-page="clase">
 
   <!-- NAVBAR -->
   <nav class="nav" id="nav-root"></nav>
   <script src="js/icons.js"></script>
   <script src="js/nav-loader.js"></script>
+
+  <!-- the right rail (Misiunile zilei, Top elevi): the React island of Capitole in "rail only" mode, shown to students on a laptop -->
+  <div id="root" data-rail-only></div>
 
   <!-- CONTENT: rendered entirely by classes-page.js -->
   <div class="main container" id="classesRoot">
@@ -56,7 +62,11 @@
   <script src="js/auth.js"></script>
   <script src="js/panels.js"></script>
   <script src="js/classes-registry.js"></script>
+  <script src="js/parcurs/progress.js"></script>
   <script src="js/lesson-guide.js"></script>
   <script src="js/classes-page.js"></script>
+  <!-- REACT-ISLAND-JS:START -->
+  <script type="module" src="assets/react/capitole-CmSxHMAj.js"></script>
+  <!-- REACT-ISLAND-JS:END -->
 </body>
 </html>

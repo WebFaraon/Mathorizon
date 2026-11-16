@@ -496,6 +496,7 @@
   function _teacherCacheKey() { return 'bm_cls_t_' + BMAuth.user.id; }
 
   function _applyTeacherUI(allClasses, memberCounts, aggStats) {
+    document.body.removeAttribute('data-rail-on');
     const hasReg = !!(_reg && _reg.groups.length);
     /* the classes the database made for the register's groups are the cards above; here stay only the ones the teacher made by hand */
     const classes = hasReg ? allClasses.filter(c => !c.reg_group_id) : allClasses;
@@ -938,7 +939,7 @@
   const _nlDay = d => d.toLocaleDateString('sv-SE', { timeZone: _NL_TZ });
   const _nlHM = d => d.toLocaleTimeString('ro-RO', { hour: '2-digit', minute: '2-digit', timeZone: _NL_TZ });
   const _NL_ROMAN = { I: 1, II: 2, III: 3, IV: 4, V: 5, VI: 6, VII: 7, VIII: 8, IX: 9, X: 10, XI: 11, XII: 12 };
-  const _nlGrade = g => { const n = _NL_ROMAN[String(g || '').trim().toUpperCase()]; return n ? 'clasa a ' + n + '-a' : (g ? 'clasa ' + g : ''); };
+  const _nlGrade = g => { const n = _NL_ROMAN[String(g || '').trim().toUpperCase()]; return n ? 'clasa a ' + n + '\u2011a' : (g ? 'clasa ' + g : ''); };
   function _nlWhen(d) {
     const t = _nlDay(new Date()), x = _nlDay(d);
     if (x === t) return 'azi';
@@ -1138,6 +1139,7 @@
 
   function _applyStudentUI(classes, reqs) {
     reqs = reqs || [];
+    document.body.setAttribute('data-rail-on', '');   // the right rail (missions, top) is for students
     const has = classes.length > 0;
     setRootContent(`
       <div class="${pageClass()} ce-page">

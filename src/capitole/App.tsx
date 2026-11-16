@@ -76,7 +76,7 @@ export function App() {
   }, []);
 
   /* training.html and bac.html (the Simulare setup): only the right rail (Misiunile zilei + Top elevi), fixed on wide screens and hidden below them. */
-  if (page === 'antrenament' || page === 'bac') {
+  if (page === 'antrenament' || page === 'bac' || page === 'clase') {
     return (
       <div className="cap-shell cap-shell--rail">
         <RightColumn

@@ -2022,4 +2022,6 @@ a.cap-key__face:focus-visible {
   body:has(.an-page--session) .cap-shell--rail { display: none; }
   /* Simulare: only while the setup is showing (the exam and the results take the whole width) */
   body:has(#setupView[style*="none"]) .cap-shell--rail { display: none; }
+  /* Clase: only for a student (js/classes-page.js sets data-rail-on while the student's page is drawn) */
+  body[data-page="clase"]:not([data-rail-on]) .cap-shell--rail { display: none; }
 }

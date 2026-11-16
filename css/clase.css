@@ -207,3 +207,9 @@ html body.pm:has(#classesRoot) .cl-block__top { display: block; margin: 0; paddi
 html body.pm:has(#classesRoot) .cl-block__meta { padding: 0; border: 0; }
 html body.pm:has(#classesRoot) .cl-chipcode { padding: 6px 12px; border: 1.5px solid var(--pm-line); border-radius: 10px; background: var(--pm-tint); font-family: var(--k-font); font-weight: 800; letter-spacing: 0.16em; color: var(--k-ink); }
 html body.pm:has(#classesRoot) .cl-block .ce-facts li:not(:has(svg)) { padding-left: 12px; }
+
+/* the right rail (Misiunile zilei, Top elevi) takes its width out of the student's page on a laptop */
+@media (min-width: 1180px) {
+  body[data-rail-on] #classesRoot { padding-right: calc(var(--cap-rail-right, 380px) + 8px); box-sizing: border-box; }
+}
+html body.pm:has(#classesRoot) .nl__act { min-width: 200px; }
