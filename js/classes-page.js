@@ -673,8 +673,9 @@
   }
 
   async function renderTeacherView() {
-    /* Show cached content immediately if available */
+    /* Show cached content immediately if available (not right after the wizard sent a request: that draw must come from fresh data) */
     let hasCached = false;
+    try { if (sessionStorage.getItem('bm_join_sent')) sessionStorage.removeItem(_studentCacheKey()); } catch {}
     try {
       const cached = JSON.parse(sessionStorage.getItem(_teacherCacheKey()) || 'null');
       if (cached) { hasCached = true; _reg = cached.reg || null; _applyTeacherUI(cached.classes, cached.memberCounts, cached.aggStats); }
@@ -1137,15 +1138,36 @@
       </header>`;
   }
 
+  /* the student just sent a request from the first-sign-in wizard (js/onboarding.js): say it plainly, once */
+  function sentBannerHTML(req) {
+    const nm = req.class_name ? ' „' + BM.esc(req.class_name) + '”' : '';
+    return `
+      <section class="ce-sent" role="status" aria-live="polite">
+        <span class="ce-sent__ico"><img src="assets/images/gamification/bifa.svg" alt="" width="46" height="46"></span>
+        <div class="ce-sent__txt">
+          <h2>Cererea a fost trimisă!</h2>
+          <p>Profesorul clasei${nm} a primit-o chiar acum. Când o acceptă, clasa apare aici singură, fără să reîncarci pagina.</p>
+        </div>
+        <span class="ce-sent__wait"><i aria-hidden="true"></i>Așteaptă răspunsul profesorului</span>
+      </section>`;
+  }
+
   function _applyStudentUI(classes, reqs) {
     reqs = reqs || [];
     document.body.setAttribute('data-rail-on', '');   // the right rail (missions, top) is for students
     const has = classes.length > 0;
+    const hasPending = reqs.some(r => r.status === 'pending');
+    let sent = null;
+    try {
+      if (sessionStorage.getItem('bm_join_sent')) { sessionStorage.removeItem('bm_join_sent'); sent = reqs.find(r => r.status === 'pending') || null; }
+    } catch {}
     setRootContent(`
       <div class="${pageClass()} ce-page">
         ${studentHeroHTML(classes, reqs)}
 
         ${has ? '<div class="nl-slot" id="nlSlot" data-loading></div>' : ''}
+
+        ${sent ? sentBannerHTML(sent) : ''}
 
         ${reqs.length ? studentRequestsHTML(reqs) : ''}
 
@@ -1157,7 +1179,7 @@
             </ol>
           </section>` : ''}
 
-        ${studentJoinHTML(has)}
+        ${studentJoinHTML(has || hasPending)}
       </div>
     `);
     const joinBtn   = document.getElementById('joinClassBtn');
@@ -1180,8 +1202,9 @@
   }
 
   async function renderStudentView() {
-    /* Show cached content immediately if available */
+    /* Show cached content immediately if available (not right after the wizard sent a request: that draw must come from fresh data) */
     let hasCached = false;
+    try { if (sessionStorage.getItem('bm_join_sent')) sessionStorage.removeItem(_studentCacheKey()); } catch {}
     try {
       const cached = JSON.parse(sessionStorage.getItem(_studentCacheKey()) || 'null');
       if (cached) { hasCached = true; _applyStudentUI(cached.classes, cached.reqs); }

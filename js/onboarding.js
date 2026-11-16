@@ -57,6 +57,19 @@
     return out.map(function (x) { return x.slice(0, 20); }).filter(function (x) { return RE.test(x) && x !== typed; });
   }
 
+  /* codul dintr-un link de invitatie (classes.html?cod=ABC123), daca elevul a venit de acolo */
+  function inviteFromUrl() {
+    try { var c = new URLSearchParams(location.search).get('cod'); return c && /^[A-Za-z0-9]{6}$/.test(c) ? c.toUpperCase() : ''; } catch (e) { return ''; }
+  }
+  var JOIN_MSG = {
+    not_found: 'Nu găsesc nicio clasă cu acest cod. Verifică literele și cifrele și încearcă din nou.',
+    own_class: 'Nu te poți înscrie în propria clasă.',
+    already_member: 'Ești deja în această clasă.',
+    rejected_wait: 'Cererea ta a fost respinsă. Poți trimite din nou peste cel mult o zi.',
+    too_many: 'Prea multe coduri greșite la rând. Încearcă din nou peste 15 minute.',
+    auth: 'Conectează-te ca să trimiți o cerere.'
+  };
+
   var el = null, state = null;
 
   function close() {
@@ -73,7 +86,7 @@
     var role0 = opts.role || (window.BMAuth && window.BMAuth.role);
     if (role0 && role0 !== 'elev' && role0 !== 'profesor') return;
     css();
-    state = { teacher: role0 === 'profesor', step: 0, nick: opts.nickname || '', grade: opts.grade || null, lockedUntil: opts.lockedUntil || null, status: '', edit: !!opts.edit, timer: 0, saving: false, name: '' };
+    state = { teacher: role0 === 'profesor', step: 0, nick: opts.nickname || '', grade: opts.grade || null, lockedUntil: opts.lockedUntil || null, status: '', edit: !!opts.edit, timer: 0, saving: false, saved: false, sending: false, code: inviteFromUrl(), name: '' };
     try { state.name = (window.BMAuth && window.BMAuth.displayName && window.BMAuth.displayName()) || ''; } catch (e) { /* ignore */ }
     el = document.createElement('div');
     el.className = 'ob';
@@ -115,14 +128,16 @@
         '<div class="ob-gr-lbl">LICEU</div><div class="ob-gr">' + GRADES.slice(5).map(gk).join('') + '</div>' +
         '<div class="ob-act"><button class="ob-back" id="obBack" type="button">Înapoi</button><button class="ob-go" id="obNext" type="button"' + (s.grade ? '' : ' disabled') + '>Continuă</button></div>';
     } else {
-      var gl = GRADES.filter(function (g) { return g[0] === s.grade; })[0];
-      h = '<div class="ob-owl owl" id="obOwl"></div><h2>' + (s.edit ? 'Gata, am salvat' : 'Totul e gata') + ', <span class="nk">@' + s.nick + '</span>!</h2>' +
-        '<p>Parcursul tău pornește de la <b>' + (gl ? gl[2] : '') + '</b>. Sub fiecare lecție terminată se luminează un nod și bufnița înaintează odată cu tine.</p>' +
+      h = '<div class="ob-owl owl" id="obOwl"></div><h2>Vrei să intri într-o clasă?</h2>' +
+        '<p>Dacă profesorul ți-a dat <b>codul clasei</b>, scrie-l aici. Profesorul primește cererea pe loc și, când o acceptă, clasa apare la tine. Nu ai codul acum? Îl poți scrie oricând în fila <b>Clase</b>.</p>' +
+        '<label class="ob-code" for="obCode"><img src="assets/images/class/cod.svg" alt="" width="34" height="34"><input id="obCode" type="text" maxlength="6" autocomplete="off" autocapitalize="characters" spellcheck="false" inputmode="text" placeholder="ABC123" aria-label="Codul clasei" value="' + s.code + '"></label>' +
         '<div class="ob-err" id="obErr" role="alert"></div>' +
-        '<div class="ob-act"><button class="ob-back" id="obBack" type="button">Înapoi</button><button class="ob-go" id="obSave" type="button">' + (s.edit ? 'Salvează' : 'Începe') + '</button></div>';
+        '<div class="ob-act ob-act--join"><button class="ob-skip" id="obSkip" type="button">Nu acum, închide</button><button class="ob-go" id="obSend" type="button"' + (s.code.length === 6 ? '' : ' disabled') + '>Trimite cererea</button></div>' +
+        '<button class="ob-link" id="obBack" type="button">Înapoi</button>';
     }
-    el.innerHTML = '<div class="ob-card">' + dots() + h + '</div>';
+    el.innerHTML = '<div class="ob-card' + (s.step === 2 && !s.edit && !s.teacher ? ' ob-card--join' : '') + '">' + dots() + h + '</div>';
     owl($('#obOwl'), s.step === 2 ? 'happy' : s.step === 1 ? 'think' : 'idle');
+    if (s.step === 2) { var cin = $('#obCode'); if (cin) setTimeout(function () { try { cin.focus({ preventScroll: true }); } catch (e) { cin.focus(); } }, 380); }
     bind();
   }
   function gk(g) {
@@ -171,6 +186,7 @@
     if (s.step === 0 && !nx) { var x2 = $('#obX2'); if (x2) x2.onclick = close; return; }
     if (s.step === 0) {
       var inp = $('#obNick');
+      inp.addEventListener('input', function () { s.saved = false; });
       inp.addEventListener('input', check);
       inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && nx && !nx.disabled) nx.click(); });
       var sug = $('#obSug');
@@ -183,7 +199,7 @@
     } else if (s.step === 1) {
       el.querySelectorAll('.ob-g').forEach(function (b) {
         b.onclick = function () {
-          s.grade = +b.getAttribute('data-g');
+          s.grade = +b.getAttribute('data-g'); s.saved = false;
           el.querySelectorAll('.ob-g').forEach(function (o) { o.classList.toggle('on', o === b); });
           nx.disabled = false;
         };
@@ -191,31 +207,93 @@
       $('#obBack').onclick = function () { s.step = 0; render(); };
       nx.onclick = function () { s.step = 2; render(); };
     } else {
+      var cin = $('#obCode'), send = $('#obSend');
+      cin.addEventListener('input', function () {
+        var v = cin.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+        if (v !== cin.value) cin.value = v;
+        s.code = v; send.disabled = v.length !== 6;
+        var er = $('#obErr'); if (er) er.textContent = '';
+      });
+      cin.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !send.disabled) send.click(); });
       $('#obBack').onclick = function () { s.step = 1; render(); };
-      $('#obSave').onclick = save;
+      $('#obSkip').onclick = skipJoin;
+      send.onclick = sendJoin;
     }
   }
 
-  function save() {
-    var s = state, c = sb(), b = $('#obSave'), er = $('#obErr');
-    if (s.saving || !c) return;
-    s.saving = true; if (b) b.disabled = true;
+  /* salveaza nickname-ul si clasa (o singura data); cb(true) cand sunt salvate */
+  function persist(cb) {
+    var s = state, c = sb();
+    var bad = function () { var m = 'Nu s-a putut salva. Reîncearcă peste un moment.', er = $('#obErr'); if (er) er.textContent = m; else if ($('#obSt')) setStatus('bad', m); };
+    if (s.saved) return cb(true);
+    if (!c) { bad(); return cb(false); }
     c.rpc('complete_student_onboarding', { p_nickname: s.nick, p_grade: s.teacher ? null : s.grade }).then(function (r) {
-      s.saving = false;
       var d = r && r.data;
       if (r.error || !d || !d.ok) {
-        if (b) b.disabled = false;
         var e = d && d.error;
-        if (e === 'locked') { s.lockedUntil = d.until; s.step = 0; render(); return; }
-        if (e === 'taken' || e === 'invalid' || e === 'reserved') { s.step = 0; render(); setStatus('bad', MSG[e]); return; }
-        if (er) er.textContent = 'Nu s-a putut salva. Reîncearcă peste un moment.';
-        return;
+        if (e === 'locked') { s.lockedUntil = d.until; s.step = 0; render(); return cb(false); }
+        if (e === 'taken' || e === 'invalid' || e === 'reserved') { s.step = 0; render(); setStatus('bad', MSG[e]); return cb(false); }
+        bad();
+        return cb(false);
       }
       try { if (d.grade) localStorage.setItem('bm_grade', String(d.grade)); localStorage.setItem('bm_nickname', d.nickname); localStorage.setItem('bm_onb_' + uid(), '1'); } catch (e2) { /* ignore */ }
+      s.saved = true;
       document.dispatchEvent(new CustomEvent('bm:onboarded', { detail: { nickname: d.nickname, grade: d.grade } }));
+      cb(true);
+    }, function () { bad(); cb(false); });
+  }
+
+  /* „Nu acum, închide”: profilul se salveaza si wizardul se inchide */
+  function skipJoin() {
+    var s = state, b = $('#obSkip'), g = $('#obSend');
+    if (s.sending) return;
+    s.sending = true; if (b) b.disabled = true; if (g) g.disabled = true;
+    persist(function (ok) {
+      s.sending = false;
+      if (!el) return;
+      if (!ok) { if (b) b.disabled = false; if (g) g.disabled = s.code.length !== 6; return; }
+      close();
+      if (window.BM && BM.toast) BM.toast('Gata! Te poți alătura unei clase oricând din fila Clase.', 'info', 4200);
+    });
+  }
+
+  /* „Trimite cererea”: profilul se salveaza, cererea pleaca la profesor, iar elevul ajunge in Clase unde vede ca asteapta raspunsul */
+  function sendJoin() {
+    var s = state, c = sb(), er = $('#obErr'), b = $('#obSend'), k = $('#obSkip');
+    if (s.sending || s.code.length !== 6) return;
+    s.sending = true; b.disabled = true; k.disabled = true; b.textContent = 'Se trimite…'; if (er) er.textContent = '';
+    var undo = function (msg) {
+      s.sending = false; if (!el) return;
+      b.textContent = 'Trimite cererea'; b.disabled = s.code.length !== 6; k.disabled = false;
+      var e2 = $('#obErr'); if (e2) e2.textContent = msg || '';
+    };
+    persist(function (ok) {
+      if (!ok) return undo('');
+      if (!c) return undo('Nu pot trimite acum. Reîncearcă.');
+      c.rpc('request_join_class', { p_code: s.code, p_name: (window.BMAuth && BMAuth.displayName && BMAuth.displayName()) || '' }).then(function (r) {
+        if (r.error) return undo('Cererea nu a putut fi trimisă. Reîncearcă peste un moment.');
+        var d = r.data || {}, st = d.status || '';
+        if (st === 'pending' || st === 'already_pending') {
+          try { sessionStorage.setItem('bm_join_sent', JSON.stringify({ name: d.class_name || '', at: Date.now() })); } catch (e3) { /* ignore */ }
+          close();
+          location.href = 'classes.html';
+          return;
+        }
+        undo(JOIN_MSG[st] || 'Cererea nu a putut fi trimisă.');
+      }, function () { undo('Cererea nu a putut fi trimisă. Verifică conexiunea și reîncearcă.'); });
+    });
+  }
+
+  function save() {
+    var s = state, b = $('#obSave');
+    if (s.saving) return;
+    s.saving = true; if (b) b.disabled = true;
+    persist(function (ok) {
+      s.saving = false;
+      if (!ok) { if (b) b.disabled = false; return; }
       if (s.edit) { try { sessionStorage.removeItem('bm_rail_rank'); } catch (e3) { /* ignore */ } }
       close();
-    }, function () { s.saving = false; if (b) b.disabled = false; if (er) er.textContent = 'Nu s-a putut salva. Reîncearcă peste un moment.'; });
+    });
   }
 
   /* Porneste wizardul daca elevul nu l-a facut inca. */

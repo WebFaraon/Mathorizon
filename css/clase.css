@@ -218,3 +218,23 @@ html body.pm:has(#classesRoot) .nl__act { min-width: 200px; }
 html body.pm:has(#classesRoot) .cl-today__head { box-shadow: none; margin-bottom: 0; padding: 0 2px 2px; min-height: 34px; align-items: center; }
 html body.pm:has(#classesRoot) .cl-today__head h2 { line-height: 1.2; }
 html body.pm:has(#classesRoot) .cl-today__count { line-height: 1.2; }
+
+/* cererea trimisă din wizard: un card clar, cu bifa ilustrată și starea de așteptare (2026-11-17) */
+html body.pm:has(#classesRoot) .ce-sent {
+  display: flex; align-items: center; gap: 16px; flex-wrap: wrap; padding: 18px 20px;
+  border: 1.5px solid #B5DB6E; border-radius: 22px; background: var(--pm-face); box-shadow: 0 5px 0 0 #A5CC5B;
+  animation: ce-sent-in 0.5s cubic-bezier(0.2, 1.2, 0.4, 1) backwards;
+}
+html[data-theme="dark"] body.pm:has(#classesRoot) .ce-sent { border-color: #4C7A00; box-shadow: 0 5px 0 0 #2E4A00; }
+@keyframes ce-sent-in { from { transform: translateY(14px) scale(0.97); opacity: 0; } to { transform: none; opacity: 1; } }
+.ce-sent__ico { flex: none; display: grid; place-items: center; width: 60px; height: 60px; border-radius: 18px; background: #EAF6D2; }
+html[data-theme="dark"] .ce-sent__ico { background: #25351A; }
+.ce-sent__ico img { animation: ce-sent-pop 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) 0.2s backwards; }
+@keyframes ce-sent-pop { from { transform: scale(0.2) rotate(-20deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.ce-sent__txt { flex: 1 1 260px; min-width: 0; }
+.ce-sent__txt h2 { margin: 0 0 4px; font-size: 1.2rem; font-weight: 800; letter-spacing: -0.015em; }
+html body.pm .ce-sent__txt p { margin: 0; font-size: 0.92rem; line-height: 1.5; color: var(--pm-ink-2); }
+.ce-sent__wait { flex: none; display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; border-radius: 999px; background: var(--pm-tint); font-size: 0.78rem; font-weight: 800; color: var(--pm-ink-2); }
+.ce-sent__wait i { width: 9px; height: 9px; border-radius: 50%; background: var(--k-go, #7CB800); animation: ce-sent-pulse 1.4s ease-in-out infinite; }
+@keyframes ce-sent-pulse { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(0.6); opacity: 0.45; } }
+@media (prefers-reduced-motion: reduce) { .ce-sent, .ce-sent__ico img, .ce-sent__wait i { animation: none; } }

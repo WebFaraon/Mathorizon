@@ -34,6 +34,22 @@
     } catch (e) { /* the migration is not run yet: no badge */ }
   }
 
+  /* a short message the moment something happens, on whatever page the person is: the teacher gets a new request, the student gets the answer */
+  function tell(payload, teacher) {
+    if (!payload || !window.BM || typeof BM.toast !== 'function') return;
+    const n = payload.new || {};
+    const here = /classes\.html$/.test(location.pathname);
+    if (teacher && payload.eventType === 'INSERT' && n.status === 'pending') {
+      BM.toast((n.student_name || 'Un elev') + ' vrea să intre în ' + (n.class_name ? '„' + n.class_name + '”' : 'clasa ta') + '.', 'info', 7000,
+        here ? { id: 'bmJoinToast' } : { id: 'bmJoinToast', link: { href: 'classes.html', label: 'Vezi cererea' } });
+    } else if (!teacher && payload.eventType === 'UPDATE' && n.status === 'accepted') {
+      BM.toast('Profesorul ți-a acceptat cererea' + (n.class_name ? ' pentru „' + n.class_name + '”' : '') + '. Ești în clasă!', 'success', 8000,
+        here ? { id: 'bmJoinToast' } : { id: 'bmJoinToast', link: { href: 'classes.html', label: 'Deschide Clase' } });
+    } else if (!teacher && payload.eventType === 'UPDATE' && n.status === 'rejected') {
+      BM.toast('Profesorul nu a acceptat cererea' + (n.class_name ? ' pentru „' + n.class_name + '”' : '') + '.', 'info', 7000, { id: 'bmJoinToast' });
+    }
+  }
+
   let channel = null, channelFor = null;
   function listen() {
     const a = window.BMAuth;
@@ -47,7 +63,7 @@
     if (!teacher) cfg.filter = 'student_id=eq.' + a.user.id;
     try {
       channel = a.supabase.channel('join-requests-' + a.user.id)
-        .on('postgres_changes', cfg, () => { refresh(); window.dispatchEvent(new CustomEvent('bm:join-requests-changed')); })
+        .on('postgres_changes', cfg, (payload) => { refresh(); tell(payload, teacher); window.dispatchEvent(new CustomEvent('bm:join-requests-changed')); })
         .subscribe();
     } catch (e) { channel = null; }
   }

@@ -188,3 +188,34 @@ html.ob-open { overflow: hidden; }
 
 .ob-fld--ro { opacity: 0.7; }
 .ob-fld--ro input { cursor: default; }
+
+/* ---- pasul „Vrei să intri într-o clasă?” (2026-11-17) ---- */
+.ob-card--join { gap: 12px; }
+.ob-code {
+  display: flex; align-items: center; gap: 12px; width: min(340px, 100%); margin-top: 6px; padding: 8px 16px 8px 14px;
+  border: 2px solid var(--ob-line); border-bottom-width: 5px; border-radius: 18px; background: var(--ob-face);
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.ob-code:hover { background: color-mix(in srgb, var(--ob-tint) 40%, var(--ob-face)); }
+.ob-code:focus-within { border-color: var(--ob-v); background: var(--ob-face); }
+.ob-code img { flex: none; }
+.ob-code input {
+  flex: 1; min-width: 0; padding: 8px 0; border: 0; outline: 0; background: transparent; color: var(--ob-ink);
+  font: inherit; font-size: 1.7rem; font-weight: 800; letter-spacing: 0.22em; text-transform: uppercase; text-align: center;
+}
+.ob-code input::placeholder { color: var(--ob-ink2); opacity: 0.4; letter-spacing: 0.22em; }
+.ob-act--join { justify-content: center; flex-wrap: wrap; margin-top: 4px; }
+.ob-act--join .ob-go { margin-left: 0; flex: 1 1 200px; }
+.ob-skip {
+  flex: 1 1 160px; padding: 14px 18px; border: 2px solid var(--ob-line); border-bottom-width: 4px; border-radius: 14px; background: var(--ob-face); color: var(--ob-ink2);
+  font: inherit; font-size: 0.85rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; cursor: pointer;
+  transition: background 0.14s ease, transform 0.08s ease, border-bottom-width 0.08s ease;
+}
+.ob-skip:hover:not(:disabled) { background: color-mix(in srgb, var(--ob-tint) 55%, var(--ob-face)); }
+.ob-skip:active:not(:disabled) { transform: translateY(2px); border-bottom-width: 2px; }
+.ob-skip:disabled { opacity: 0.6; cursor: default; }
+@media (max-width: 480px) {
+  .ob-code input { font-size: 1.45rem; }
+  .ob-act--join { flex-direction: column-reverse; }
+  .ob-act--join .ob-go, .ob-skip { flex: none; width: 100%; }
+}
