@@ -1980,3 +1980,37 @@ html body.pm:has(#classRoot) .sumar-loose .cls-csel__trigger {
   min-height: 44px; border: 1.5px solid var(--pm-line-2); border-radius: 12px; background: var(--pm-face); font-weight: 700;
 }
 html body.pm:has(#classRoot) .sumar-loose .cls-csel__dropdown { border-radius: 12px; }
+
+
+/* ---- Tablă live (2026-11-16): the hero is a white card in the site style, the illustrated board icon, the "Activă" tag as a pill, the rename dialog ---- */
+html body.pm:has(#classRoot) .wb-hero {
+  background: var(--pm-face); border: 1.5px solid var(--pm-line); border-radius: 22px; box-shadow: 0 5px 0 0 var(--pm-edge);
+  gap: 20px; padding: 20px 24px;
+}
+html body.pm:has(#classRoot) .wb-hero__icon {
+  width: 72px; height: 72px; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none;
+}
+html body.pm:has(#classRoot) .wb-hero__icon .cd-keyico { width: 72px !important; height: 72px !important; }
+html body.pm:has(#classRoot) .wb-hero__title { display: flex; align-items: center; gap: 12px; }
+/* the tag: a lime pill with an LED, no more flat square */
+html body.pm:has(#classRoot) .wb-hero__title .sim-badge--activa {
+  display: inline-flex; align-items: center; gap: 7px; height: 28px; padding: 0 12px 0 10px;
+  border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); box-shadow: 0 2px 0 0 var(--pm-edge);
+  font-size: 0.72rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-key-ink, var(--pm-violet));
+}
+html body.pm:has(#classRoot) .wb-hero__title .sim-badge--activa::before {
+  content: ''; width: 9px; height: 9px; border-radius: 50%; background: #7CB800; box-shadow: 0 0 0 3px color-mix(in srgb, #7CB800 28%, transparent);
+}
+html body.pm:has(#classRoot) .teme-empty__icon:has(.cd-keyico--tabla) { background: none; border: 0; box-shadow: none; width: auto; height: auto; }
+html body.pm:has(#classRoot) .cd-keyico--tabla { display: inline-block; vertical-align: middle; }
+html body.pm:has(#classRoot) .btn .cd-keyico--tabla { margin: -4px 2px -4px -4px; }
+
+/* the dialog that asks for a new name when the board's name is already taken */
+.confirm-dialog--ask .wb-ask__input {
+  box-sizing: border-box; width: 100%; margin-top: 14px; height: 48px; padding: 0 14px;
+  border: 1.5px solid var(--pm-line-2, #C9BFE0); border-radius: 12px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631); font: inherit; font-weight: 700;
+}
+.confirm-dialog--ask .wb-ask__input:focus { outline: 2px solid var(--pm-violet, #3F236E); outline-offset: 1px; }
+.confirm-dialog--ask .wb-ask__input.is-bad { border-color: #C0392B; }
+.confirm-dialog--ask .wb-ask__err { margin: 8px 0 0; font-size: 0.86rem; font-weight: 700; color: #C0392B; }
+.confirm-dialog--ask .wb-ask__err[hidden] { display: none; }

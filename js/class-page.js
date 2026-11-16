@@ -14,12 +14,15 @@
   // includes it, so they can neither see nor reach it via a typed/bookmarked
   // #sumar hash — renderPage() falls that back to 'flux' the same way any
   // other unknown hash already does.
+  // the illustrated board icon (assets/images/class/tabla.svg, made by scripts/make-tabla-icon.py)
+  const tablaIco = (px) => `<img class="cd-keyico cd-keyico--tabla" src="assets/images/class/tabla.svg" alt="" width="${px}" height="${px}" style="width:${px}px;height:${px}px">`;
+
   const TABS = [
     { id: 'sumar',    label: 'Sumar',     icon: icon('chart-column', { size: 16 }), teacherOnly: true },
     { id: 'flux',     label: 'Mesaje',    icon: icon('message-circle', { size: 16 }) },
     { id: 'teme',     label: 'Teme',      icon: icon('file-text', { size: 16 }) },
     { id: 'simulari', label: 'Simulări',  icon: icon('target', { size: 16 }) },
-    { id: 'tabla',    label: 'Tablă',     icon: icon('presentation', { size: 16 }) },
+    { id: 'tabla',    label: 'Tablă',     icon: tablaIco(16) },
     { id: 'membri',   label: 'Membri',    icon: icon('users', { size: 16 }) }
   ];
 
@@ -7164,7 +7167,7 @@
   function tablaEmpty(isTeacher) {
     return `
       <div class="teme-empty">
-        <div class="teme-empty__icon">${icon('presentation', { size: 48 })}</div>
+        <div class="teme-empty__icon">${tablaIco(56)}</div>
         <h3>${isTeacher ? 'Nicio tablă pornită încă' : 'Nicio tablă live momentan'}</h3>
         <p>${isTeacher
           ? 'Pornește o tablă live ca elevii din clasă să se poată alătura.'
@@ -7218,13 +7221,13 @@
           // enough on a phone already, and "end the lesson" is a
           // deliberate, considered action anyway, not something needed
           // mid-drawing.
-          ? `<button class="btn btn--primary" id="tablaOpenBtn">${icon('presentation', { size: 16 })} Deschide tabla</button>` +
+          ? `<button class="btn btn--primary" id="tablaOpenBtn">${tablaIco(24)} Deschide tabla</button>` +
             `<button class="btn btn--surface" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>`
           : elsewhereLive
             ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă, apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă, comută aici</button>`
-            : `<button class="btn btn--primary" id="tablaStartBtn">${icon('presentation', { size: 16 })} Pornește tablă live</button>`;
+            : `<button class="btn btn--primary" id="tablaStartBtn">${tablaIco(24)} Pornește tablă live</button>`;
       } else if (live) {
-        heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${icon('presentation', { size: 16 })} Intră în tablă</button>`;
+        heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${tablaIco(24)} Intră în tablă</button>`;
       }
 
       // #cdContent is shared by every tab that doesn't have its own
@@ -7234,7 +7237,7 @@
 
       content.innerHTML = `
         <div class="wb-hero">
-          <div class="wb-hero__icon">${icon('presentation', { size: 28 })}</div>
+          <div class="wb-hero__icon">${tablaIco(64)}</div>
           <div class="wb-hero__body">
             <h3 class="wb-hero__title">Tablă live${live ? ' <span class="sim-badge sim-badge--activa">Activă</span>' : ''}</h3>
             <p class="wb-hero__desc">${isTeacher
@@ -7333,9 +7336,10 @@
     const btn = document.getElementById('tablaSwitchBtn');
     if (btn) { btn.disabled = true; btn.textContent = 'Se comută…'; }
     try {
-      const { error: endErr } = await BMAuth.supabase.from('whiteboard_sessions')
-        .update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', elsewhereLive.id);
-      if (endErr) throw endErr;
+      const { data: other, error: otherErr } = await BMAuth.supabase.from('whiteboard_sessions')
+        .select('id, class_id, title').eq('id', elsewhereLive.id).single();
+      if (otherErr) throw otherErr;
+      if (!(await _finishBoard(other, elsewhereLive.className))) { await loadTablaTab(); return; }
 
       const { data, error } = await BMAuth.supabase.from('whiteboard_sessions')
         .insert({ class_id: classData.id, created_by: BMAuth.user.id })
@@ -7351,17 +7355,95 @@
     }
   }
 
-  async function endWhiteboard(id) {
-    const ok = await showConfirmDialog({
-      icon: icon('square', { size: 48 }), title: 'Încheie tabla live?',
-      message: 'Sesiunea se va încheia pentru toți participanții.',
-      confirmText: 'Încheie'
+  /* A closed board must have a name nobody else in the class has: the history would be a list of identical "Tablă live".
+     (The database refuses it too, see supabase/migrations/20261116100000_tabla_titlu_unic.sql.) */
+  const _normBoardTitle = t => String(t || '').trim().replace(/\s+/g, ' ').toLocaleLowerCase('ro');
+  async function _boardTitleTaken(classId, title, exceptId) {
+    const { data, error } = await BMAuth.supabase.from('whiteboard_sessions')
+      .select('id, title').eq('class_id', classId).eq('status', 'ended');
+    if (error) throw error;
+    const n = _normBoardTitle(title);
+    return (data || []).some(r => r.id !== exceptId && _normBoardTitle(r.title) === n);
+  }
+
+  // A small dialog that asks for a new name; it stays open until the name is free. Resolves with the name or null.
+  function askBoardTitle({ title, classId, exceptId, className }) {
+    return new Promise(resolve => {
+      const overlay = document.createElement('div');
+      overlay.className = 'confirm-overlay';
+      overlay.innerHTML = `
+        <div class="confirm-dialog confirm-dialog--ask" role="dialog" aria-modal="true" aria-labelledby="wbAskT">
+          <div class="confirm-dialog__body">
+            <div class="confirm-dialog__icon">${tablaIco(56)}</div>
+            <div class="confirm-dialog__title" id="wbAskT">Există deja o tablă cu această denumire</div>
+            <p class="confirm-dialog__msg">${className ? 'În „' + BM.esc(className) + '" ' : 'În această clasă '}există deja o tablă încheiată numită „${BM.esc(title)}". Alege o denumire nouă ca să poți încheia tabla.</p>
+            <input class="wb-ask__input" id="wbAskInput" type="text" maxlength="80" autocomplete="off" placeholder="Denumirea tablei" value="${BM.esc(title)}" aria-label="Denumirea tablei">
+            <p class="wb-ask__err" id="wbAskErr" role="alert" hidden></p>
+          </div>
+          <div class="confirm-dialog__foot">
+            <button class="btn btn--surface" id="wbAskNo">Anulează</button>
+            <button class="btn btn--primary" id="wbAskYes">Salvează și încheie</button>
+          </div>
+        </div>`;
+      const input = overlay.querySelector('#wbAskInput'), err = overlay.querySelector('#wbAskErr'), yes = overlay.querySelector('#wbAskYes');
+      const close = v => { overlay.remove(); document.documentElement.style.overflow = ''; document.body.style.overflow = ''; resolve(v); };
+      const fail = msg => { err.textContent = msg; err.hidden = false; input.classList.add('is-bad'); input.focus(); };
+      async function submit() {
+        const v = input.value.trim().replace(/\s+/g, ' ');
+        err.hidden = true; input.classList.remove('is-bad');
+        if (v.length < 2) return fail('Scrie o denumire de cel puțin 2 litere.');
+        yes.disabled = true;
+        try {
+          if (await _boardTitleTaken(classId, v, exceptId)) { yes.disabled = false; return fail('Există deja o tablă cu această denumire. Alege alta.'); }
+        } catch (e) { yes.disabled = false; return fail('Nu am putut verifica denumirea: ' + e.message); }
+        close(v);
+      }
+      overlay.addEventListener('click', e => { if (e.target === overlay) close(null); });
+      overlay.querySelector('#wbAskNo').addEventListener('click', () => close(null));
+      yes.addEventListener('click', submit);
+      input.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); submit(); } else if (e.key === 'Escape') close(null); });
+      input.addEventListener('input', () => { err.hidden = true; input.classList.remove('is-bad'); });
+      document.documentElement.style.overflow = 'hidden';
+      document.body.style.overflow = 'hidden';
+      document.body.appendChild(overlay);
+      input.focus(); input.select();
     });
-    if (!ok) return;
+  }
+
+  // Ends a board: if its name is already used by a closed board of the class, the teacher must pick another one first.
+  // Returns true when the board was ended.
+  async function _finishBoard(session, className) {
+    let title = session.title;
+    const taken = await _boardTitleTaken(session.class_id, title, session.id);
+    if (taken) {
+      const nt = await askBoardTitle({ title, classId: session.class_id, exceptId: session.id, className });
+      if (!nt) return false;
+      title = nt;
+    }
+    const { error } = await BMAuth.supabase.from('whiteboard_sessions')
+      .update({ title, status: 'ended', ended_at: new Date().toISOString() }).eq('id', session.id);
+    if (error) {
+      if (/whiteboard_title_taken/.test(error.message || '')) throw new Error('Există deja o tablă cu această denumire. Alege alta.');
+      throw error;
+    }
+    session.title = title;
+    return true;
+  }
+
+  async function endWhiteboard(id) {
+    const session = tablaCache.find(s => s.id === id) || { id, class_id: classData.id, title: '' };
     try {
-      const { error } = await BMAuth.supabase.from('whiteboard_sessions')
-        .update({ status: 'ended', ended_at: new Date().toISOString() }).eq('id', id);
-      if (error) throw error;
+      // a name already used: the rename dialog replaces the plain confirmation
+      const taken = await _boardTitleTaken(session.class_id, session.title, session.id);
+      if (!taken) {
+        const ok = await showConfirmDialog({
+          icon: icon('square', { size: 48 }), title: 'Încheie tabla live?',
+          message: 'Sesiunea se va încheia pentru toți participanții.',
+          confirmText: 'Încheie'
+        });
+        if (!ok) return;
+      }
+      if (!(await _finishBoard(session, ''))) return;
       BM.toast('Tabla a fost încheiată.', 'info');
       _closeTablaLiveModal();
       await loadTablaTab();
