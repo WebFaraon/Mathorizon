@@ -116,11 +116,11 @@ I['info'] = svg(
 
 I['risc'] = svg(
     sh('<circle cx="28" cy="15" r="10"/>', GOLD, GOLDE, 2) + fill('<circle cx="28" cy="15" r="6" fill-opacity="0"/>', GOLDE) +
-    '<path d="M28 9.5v11M24.6 12.4c0-2.4 6.8-2.4 6.8 0s-6.8 1.8-6.8 4.2 6.8 2.4 6.8 0" fill="none" stroke="%s" stroke-width="2.2" stroke-linecap="round"/>' % GOLDE +
+    '<path d="M28 6.8v16.4" fill="none" stroke="%s" stroke-width="2" stroke-linecap="round"/><path d="M31.3 11.2C31.3 8.4 24.8 8.4 24.8 12.1C24.8 15.6 31.3 14.4 31.3 17.9C31.3 21.6 24.8 21.6 24.8 18.7" fill="none" stroke="%s" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/>' % (GOLDE, GOLDE) +
     sh('<rect x="5" y="22" width="48" height="34" rx="9"/>', V2, VE) +
     fill('<path d="M5 31a9 9 0 0 1 9-9h30a9 9 0 0 1 9 9v2H5Z"/>', V3) +
         sh('<path d="M46 31L58 53H34Z" stroke-linejoin="round" stroke-width="5" stroke="%s"/>' % ORG, ORG, ORGE, 2) +
-    '<path d="M46 38.5v8" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' + fill('<circle cx="46" cy="49.5" r="2"/>', '#fff'))
+    '<path d="M46 37.5v5.5" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>' + fill('<circle cx="46" cy="50" r="2"/>', '#fff'))
 I['incomplete'] = svg(
     sh('<circle cx="17" cy="20" r="8"/>', GOLD, GOLDE) + sh('<path d="M2 50Q2 33 17 33Q32 33 32 50Z"/>', V2, VE) +
     sh('<circle cx="40" cy="20" r="8"/>', GOLD, GOLDE) + sh('<path d="M25 50Q25 33 40 33Q55 33 55 50Z"/>', LIME, LIMEE) +
