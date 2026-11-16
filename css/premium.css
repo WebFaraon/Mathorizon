@@ -1408,3 +1408,11 @@ html body.pm:has(#profileContent) .pf-desk { padding-bottom: 6px; }
   html body.pm:has(#profileContent) .pf-desk--teacher .pf-desk__cls,
   html body.pm:has(#profileContent) .pf-desk--teacher .pf-desk__rev { align-self: start; }
 }
+
+/* Clase (2026-11-16): no lime/blue dot in the corner of the selected day keys or "Toate"; the column header plate and the "Lecțiile de azi" plate have the solid 3D edge like the rows */
+html body.pm:has(#classesRoot) .cl-chip.is-on::after,
+html body.pm:has(#classesRoot) .cl-chip--today.is-on::after { content: none; display: none; }
+@media (min-width: 1001px) {
+  html body.pm:has(#classesRoot) .rg-cols { margin-bottom: 16px; box-shadow: 0 4px 0 0 var(--pm-edge); }
+}
+html body.pm:has(#classesRoot) .cl-today__head { box-shadow: 0 4px 0 0 var(--pm-edge); margin-bottom: 4px; }
