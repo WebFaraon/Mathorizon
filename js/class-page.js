@@ -7673,6 +7673,7 @@
             <img class="wb-fs-brand__logo wb-fs-brand__logo--word" src="assets/images/teorema-wordmark.svg" alt="Teorema">
             <img class="wb-fs-brand__logo wb-fs-brand__logo--owl" src="assets/images/teorema-owl.svg" alt="Teorema">
           </div>
+          <div class="wb-fs-undo" id="wbUndoMount"></div>
           ${isTeacher
             ? `<input class="wb-fs-title-input" id="wbTitleInput" type="text" maxlength="60" value="${BM.esc(session.title)}" placeholder="Titlul tablei" title="Redenumește tabla">`
             : `<span class="wb-fs-title" id="wbTitleLabel">${BM.esc(session.title)}</span>`}
@@ -7753,6 +7754,7 @@
         userColor: myColor,
         locked: myLocked,
         readOnly: viewOnly,
+        undoMount: document.getElementById('wbUndoMount'),
         isTeacher: isTeacher,
         gridOn: !!session.grid_enabled,
         // The toolbar itself no longer shows this (see whiteboard.js) —

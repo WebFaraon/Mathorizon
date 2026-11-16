@@ -957,6 +957,8 @@
     this._userId    = opts.userId;
     this._color     = opts.userColor;
     this._width     = WIDTH_PRESETS[0];
+    this._penPreset = 'pen';          // which of the three writing presets the single pen key stands for: 'pen' | 'pencil' | 'highlighter'
+    this._undoMount = opts.undoMount || null;   // where undo/redo live (next to the logo in the header of js/class-page.js); null = a corner over the canvas
     this._tool      = 'pen'; // 'pen' | 'pencil' | 'highlighter' | 'eraser' | 'select' | 'line' | 'dashed-line' | 'arrow' | 'pan'
     // 'any' (default) | 'pen' (stylus-only — a finger/mouse pans instead of
     // drawing/interacting, same convention and shared localStorage key as
@@ -1250,36 +1252,68 @@
     return '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + inner + '</svg>';
   }
 
-  // "Forme 2D" / "Corpuri 3D" — same .gfe-dropdown/.gfe-shape-btn markup and
-  // interaction the geometry configurator's own shape picker uses (see
-  // js/geometry-figure-editor.js), reused as-is (that CSS is already
-  // page-generic, not scoped to that editor) so this reads as "the same
-  // shape tool, just inside the whiteboard" rather than a new one to learn.
-  // No chevron next to the glyph (gfe's own trigger has one) — two icons
-  // sharing one 38px-tall button forces both smaller than a single glyph
-  // gets to be, which is exactly what made this trigger read as noticeably
-  // punier than every plain one-icon button beside it in the toolbar.
-  //
-  // cols is picked per call so the grid comes out exactly full — a fixed
-  // column count for both panels left the LAST row of whichever list isn't
-  // a multiple of it short a button or two, which read as a stray empty
-  // gap on the panel's own right edge. 14 shapes / 2 cols = 7 full rows;
-  // 6 bodies / 3 cols = 2 full rows — both chosen as actual divisors of
-  // their own list length, not one shared guess.
-  function shapeDropdown(triggerIconId, title, ids, cols) {
-    var GAP = 4, BTN = 38;
-    var panelWidth = cols * BTN + (cols - 1) * GAP;
-    return '<div class="gfe-dropdown">' +
-      '<button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="' + title + '" aria-haspopup="true" aria-expanded="false">' +
-        shapeIcon24(SHAPE_DEFS[triggerIconId].icon) +
+  // ONE key for every geometric figure and body (iDroo style): a big panel with "Forme 2D" and "Corpuri 3D", large buttons.
+  // Same .gfe-dropdown / .gfe-shape-btn markup as before, so the generic open/close and _insertShape keep working.
+  var FIGURES_ICON = '<circle cx="8" cy="8.5" r="4.6"/><rect x="3" y="14.5" width="7.5" height="6.5" rx="1.2"/><path d="M13.5 21 17.7 12.5 22 21Z"/>';
+  function figuresDropdown() {
+    function grid(ids) {
+      return '<div class="wb-figs-grid">' + ids.map(function (id) {
+        return '<button type="button" class="dc-tool-btn gfe-shape-btn wb-fig" data-shape="' + id + '" title="' + SHAPE_DEFS[id].label + '" aria-label="' + SHAPE_DEFS[id].label + '">' +
+          '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + SHAPE_DEFS[id].icon + '</svg></button>';
+      }).join('') + '</div>';
+    }
+    return '<div class="gfe-dropdown wb-figs-dd">' +
+      '<button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Figuri și corpuri geometrice" aria-label="Figuri și corpuri geometrice" aria-haspopup="true" aria-expanded="false">' +
+        shapeIcon24(FIGURES_ICON) +
       '</button>' +
-      '<div class="gfe-dropdown__panel">' +
-        '<div class="dc-tool-group gfe-shape-group" style="width:' + panelWidth + 'px">' +
-          ids.map(function (id) {
-            return '<button type="button" class="dc-tool-btn gfe-shape-btn" data-shape="' + id + '" title="' + SHAPE_DEFS[id].label + '">' + shapeIcon24(SHAPE_DEFS[id].icon) + '</button>';
+      '<div class="gfe-dropdown__panel wb-figs-panel">' +
+        '<div class="wb-figs-sec"><b>Forme 2D</b>' + grid(SHAPE_IDS_2D) + '</div>' +
+        '<div class="wb-figs-sec"><b>Corpuri 3D</b>' + grid(SHAPE_IDS_3D) + '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  // The writing key's panel: the three presets (pen, pencil, marker) and the brush size in px.
+  var PEN_PRESETS = [
+    { id: 'pen', label: 'Pix', icon: PEN_ICON, title: 'Pix: grosimea liniei se subțiază cu viteza (P)' },
+    { id: 'pencil', label: 'Creion', icon: PENCIL_ICON, title: 'Creion: aceeași grosime, indiferent de viteză (C)' },
+    { id: 'highlighter', label: 'Marker', icon: HIGHLIGHTER_ICON, title: 'Marker (H)' }
+  ];
+  function penPanelHTML() {
+    return '<div class="gfe-dropdown wb-pen-dd" id="wbPenDd">' +
+      '<div class="gfe-dropdown__panel wb-pen-panel">' +
+        '<div class="wb-pen-presets" role="group" aria-label="Tipul de scriere">' +
+          PEN_PRESETS.map(function (pr, i) {
+            return '<button type="button" class="wb-preset' + (i === 0 ? ' wb-preset--active' : '') + '" data-preset="' + pr.id + '" title="' + pr.title + '">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round">' + pr.icon + '</svg><span>' + pr.label + '</span></button>';
           }).join('') +
         '</div>' +
+        '<div class="wb-pen-size">' +
+          '<div class="wb-pen-size__head"><span>Grosime</span><b class="wb-pen-size__v"><span id="wbWidthCustomVal">' + WIDTH_PRESETS[0] + '</span> px</b></div>' +
+          '<div class="wb-pen-size__row">' +
+            WIDTH_PRESETS.map(function (w, i) {
+              var dotSize = 4 + i * 4;
+              return '<button type="button" class="dc-width-btn' + (i === 0 ? ' dc-width-btn--active' : '') + '" data-width="' + w + '" title="' + w + ' px">' +
+                '<span class="dc-width-dot" style="width:' + dotSize + 'px;height:' + dotSize + 'px"></span></button>';
+            }).join('') +
+            '<input type="range" class="wb-width-range" id="wbWidthCustomRange" min="' + WIDTH_MIN + '" max="' + WIDTH_MAX + '" step="0.5" value="' + WIDTH_PRESETS[0] + '" aria-label="Grosime în pixeli">' +
+          '</div>' +
+          '<div class="wb-pen-size__sample" aria-hidden="true"><i id="wbWidthSample"></i></div>' +
+        '</div>' +
       '</div>' +
+    '</div>';
+  }
+
+  // Undo / redo: next to the logo in the header of the live view (iDroo style), so they never cover the board.
+  // Without a mount (any other page that embeds the board) they float in the corner of the canvas as before.
+  function undoHTML() {
+    return '<div class="wb-undo-corner" id="wbUndoCorner">' +
+      '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+      '</button>' +
+      '<button type="button" class="dc-action-btn" id="wbRedoBtn" title="Reface (Ctrl+Y)" disabled>' +
+        '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
+      '</button>' +
     '</div>';
   }
 
@@ -1301,38 +1335,19 @@
           toolBtn('eraser', ERASER_ICON, 'Radieră — șterge ce am desenat eu (E)') +
         '</div>' +
         '<div class="dc-tool-group">' +
-          toolBtn('pen', PEN_ICON, 'Pix: grosimea liniei se subțiază cu viteza (P)') +
-          toolBtn('pencil', PENCIL_ICON, 'Creion: aceeași grosime, indiferent de viteză (C)') +
-          toolBtn('highlighter', HIGHLIGHTER_ICON, 'Marker (H)') +
+          '<button type="button" class="dc-tool-btn dc-tool-btn--active wb-penkey" id="wbPenKey" data-tool="pen" aria-haspopup="true" aria-expanded="false" title="Scriere: pix, creion, marker și grosimea (P)">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + PEN_ICON + '</svg>' +
+          '</button>' +
           toolBtn('text', TEXT_ICON, 'Text (T)') +
+          penPanelHTML() +
         '</div>' +
         '<div class="dc-tool-group">' +
-          toolBtn('line', LINE_ICON, 'Linie dreaptă') +
-          toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată') +
-          toolBtn('arrow', ARROW_ICON, 'Săgeată') +
+          toolBtn('line', LINE_ICON, 'Linie dreaptă (apasă din nou pentru grosime)') +
+          toolBtn('dashed-line', DASHED_LINE_ICON, 'Linie punctată (apasă din nou pentru grosime)') +
+          toolBtn('arrow', ARROW_ICON, 'Săgeată (apasă din nou pentru grosime)') +
         '</div>' +
         '<div class="dc-tool-group">' +
-          shapeDropdown('patrat', 'Forme 2D', SHAPE_IDS_2D, 2) +
-          shapeDropdown('cub', 'Corpuri 3D', SHAPE_IDS_3D, 3) +
-        '</div>' +
-        '<div class="dc-tool-group">' +
-          WIDTH_PRESETS.map(function (w, i) {
-            var dotSize = 3 + i * 3;
-            return '<button type="button" class="dc-width-btn' + (i === 0 ? ' dc-width-btn--active' : '') +
-              '" data-width="' + w + '" title="Grosime linie (apasă din nou pentru grosime personalizată)">' +
-              '<span class="dc-width-dot" style="width:' + dotSize + 'px;height:' + dotSize + 'px"></span></button>';
-          }).join('') +
-          // Not a real .gfe-dropdown__trigger — clicking any of the 3
-          // preset buttons ABOVE while it's already the active one is what
-          // opens this (see the widthBtn branch in _bindToolbar), so there's
-          // no separate visible trigger of its own, just the (initially
-          // hidden) panel positioned under whichever button was clicked.
-          '<div class="gfe-dropdown wb-width-dd" id="wbWidthCustomDd">' +
-            '<div class="gfe-dropdown__panel wb-width-panel">' +
-              '<label class="wb-width-panel__label" for="wbWidthCustomRange">Grosime personalizată: <span id="wbWidthCustomVal">' + WIDTH_PRESETS[0] + '</span></label>' +
-              '<input type="range" class="wb-width-range" id="wbWidthCustomRange" min="' + WIDTH_MIN + '" max="' + WIDTH_MAX + '" step="0.5" value="' + WIDTH_PRESETS[0] + '">' +
-            '</div>' +
-          '</div>' +
+          figuresDropdown() +
         '</div>' +
         // Stylus-only toggle — same markup/classes (.dc-inputmode-btn,
         // .dc-mode-badge) as js/drawing-canvas.js's own, reused as-is (that
@@ -1360,11 +1375,6 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + GRID_ICON + '</svg>' +
           '</button>' +
         '</div>' : '') +
-        '<div class="dc-tool-group dc-tool-group--right">' +
-          '<button type="button" class="dc-action-btn dc-action-btn--danger" id="wbClearMineBtn" title="Șterge ce am desenat eu">' +
-            (global.icon ? global.icon('trash-2', { size: 16 }) : '×') +
-          '</button>' +
-        '</div>' +
       '</div>' +
       '<div class="wb-canvas-outer" id="wbCanvasOuter">' +
         '<div class="wb-locked-banner" id="wbLockedBanner">' +
@@ -1374,19 +1384,7 @@
         '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
           '<canvas class="wb-grid-canvas" id="wbGridCanvas"></canvas>' +
           '<canvas id="wbFabricCanvas"></canvas>' +
-          // Floating over the canvas' own top-left corner (GoodNotes-style —
-          // easy to reach one-handed on a phone/tablet without a trip all
-          // the way to the toolbar) rather than in the toolbar itself, which
-          // is what these used to sit in — see _bindToolbar's own undo-
-          // corner listener and _updateUndoRedoButtons for the rest.
-          '<div class="wb-undo-corner" id="wbUndoCorner">' +
-            '<button type="button" class="dc-action-btn" id="wbUndoBtn" title="Anulează (Ctrl+Z)" disabled>' +
-              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
-            '</button>' +
-            '<button type="button" class="dc-action-btn" id="wbRedoBtn" title="Reface (Ctrl+Y)" disabled>' +
-              '<svg class="dc-icon-mirror" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + UNDO_ICON + '</svg>' +
-            '</button>' +
-          '</div>' +
+          (this._undoMount ? '' : undoHTML()) +
           // Transient hint shown when a blocked input tries to draw/interact
           // while stylus-only mode is on — same markup/class/copy as
           // js/drawing-canvas.js's own (.wb-canvas-wrap is already
@@ -1395,6 +1393,8 @@
         '</div>' +
       '</div>';
     container.appendChild(wrap);
+    if (this._undoMount) this._undoMount.innerHTML = undoHTML();
+    this._undoEl = (this._undoMount || wrap).querySelector('#wbUndoCorner');
 
     this._wrap       = wrap;
     this._toolbarEl  = wrap.querySelector('.wb-toolbar');
@@ -1425,10 +1425,57 @@
       this._dirty = true;
     }
     this._tool = tool;
+    if (tool === 'pen' || tool === 'pencil' || tool === 'highlighter') this._setPenPreset(tool);
+    // the writing options (presets, size) belong to the drawing tools only: pointer, pan, eraser and text close them
+    if (tool !== 'pen' && tool !== 'pencil' && tool !== 'highlighter' && tool !== 'line' && tool !== 'dashed-line' && tool !== 'arrow') this._closeShapeDropdowns();
     this._toolbarEl.querySelectorAll('[data-tool]').forEach(function (b) {
       b.classList.toggle('dc-tool-btn--active', b.dataset.tool === tool);
     });
     this._updateCursor();
+  };
+
+  // The single writing key shows whichever of the three presets is current (icon and shortcut); the panel marks it too.
+  Whiteboard.prototype._setPenPreset = function (preset) {
+    this._penPreset = preset;
+    var key = this._toolbarEl.querySelector('#wbPenKey');
+    if (key) {
+      key.dataset.tool = preset;
+      var pr = PEN_PRESETS.filter(function (x) { return x.id === preset; })[0];
+      var svg = key.querySelector('svg');
+      if (pr && svg) svg.innerHTML = pr.icon;
+    }
+    this._toolbarEl.querySelectorAll('[data-preset]').forEach(function (b) {
+      b.classList.toggle('wb-preset--active', b.dataset.preset === preset);
+    });
+  };
+
+  // Width: the three round presets, the slider, the value in px and a sample line all show the same number.
+  Whiteboard.prototype._syncWidthUi = function () {
+    var w = this._width, txt = String(+w.toFixed(1));
+    this._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
+      b.classList.toggle('dc-width-btn--active', parseFloat(b.dataset.width) === w);
+    });
+    var range = this._toolbarEl.querySelector('#wbWidthCustomRange');
+    if (range && parseFloat(range.value) !== w) range.value = w;
+    var val = this._toolbarEl.querySelector('#wbWidthCustomVal');
+    if (val) val.textContent = txt;
+    var sample = this._toolbarEl.querySelector('#wbWidthSample');
+    if (sample) sample.style.height = Math.max(1, w) + 'px';
+    this._updateCursor();
+  };
+
+  // Opens (or closes) the writing panel under an anchor key. withPresets: the pen family also shows the three presets;
+  // a line / arrow shows only the size.
+  Whiteboard.prototype._toggleToolPanel = function (anchor, withPresets) {
+    var dd = this._toolbarEl.querySelector('#wbPenDd');
+    var wasOpen = dd.classList.contains('gfe-dropdown--open');
+    this._closeShapeDropdowns();
+    if (wasOpen) return;
+    dd.classList.add('gfe-dropdown--open');
+    dd.classList.toggle('wb-pen-dd--sizeonly', !withPresets);
+    this._syncWidthUi();
+    this._positionDropdownPanel(dd.querySelector('.gfe-dropdown__panel'), anchor.getBoundingClientRect());
+    anchor.setAttribute('aria-expanded', 'true');
   };
 
   // Split out of _setTool so the pen's own cursor (see penCursor above) can
@@ -1528,6 +1575,8 @@
       var trigger = dd.querySelector('.gfe-dropdown__trigger');
       if (trigger) trigger.setAttribute('aria-expanded', 'false');
     });
+    var pk = this._toolbarEl.querySelector('#wbPenKey');
+    if (pk) pk.setAttribute('aria-expanded', 'false');
   };
 
   // Clamps a just-opened .gfe-dropdown__panel to the viewport on both axes.
@@ -1562,25 +1611,6 @@
     panel.style.top  = top + 'px';
   };
 
-  // #wbWidthCustomDd has no .gfe-dropdown__trigger of its own — the width
-  // preset button that was clicked a second time (see the widthBtn branch
-  // above) IS the trigger, passed in as btn — so it's positioned/opened
-  // here instead of through the generic ddTrigger click branch that handles
-  // the shape dropdowns. _closeShapeDropdowns() still closes it the same
-  // way, since that just queries .gfe-dropdown--open generically.
-  Whiteboard.prototype._toggleCustomWidthPanel = function (btn) {
-    var dd = this._toolbarEl.querySelector('#wbWidthCustomDd');
-    var wasOpen = dd.classList.contains('gfe-dropdown--open');
-    this._closeShapeDropdowns();
-    if (wasOpen) return; // the click that got us here was the "close it again" click
-    dd.classList.add('gfe-dropdown--open');
-    var panel = dd.querySelector('.gfe-dropdown__panel');
-    this._positionDropdownPanel(panel, btn.getBoundingClientRect());
-    var range = dd.querySelector('#wbWidthCustomRange');
-    range.value = this._width;
-    dd.querySelector('#wbWidthCustomVal').textContent = this._width;
-  };
-
   Whiteboard.prototype._bindToolbar = function () {
     var self = this;
     // Custom-width slider (see _toggleCustomWidthPanel) — a plain direct
@@ -1589,8 +1619,7 @@
     // one of these, not a set of buttons to match by selector.
     this._toolbarEl.querySelector('#wbWidthCustomRange').addEventListener('input', function () {
       self._width = parseFloat(this.value);
-      self._toolbarEl.querySelector('#wbWidthCustomVal').textContent = this.value;
-      self._updateCursor(); // the pen cursor's own size tracks the picked width live — see penCursor
+      self._syncWidthUi(); // the dots, the value in px, the sample line and the pen cursor all follow
     });
     this._toolbarEl.addEventListener('click', function (e) {
       var ddTrigger = e.target.closest('.gfe-dropdown__trigger');
@@ -1612,33 +1641,30 @@
         self._closeShapeDropdowns();
         return;
       }
+      var penKey    = e.target.closest('#wbPenKey');
+      var presetBtn = e.target.closest('[data-preset]');
       var toolBtnEl = e.target.closest('[data-tool]');
       var widthBtn  = e.target.closest('[data-width]');
-      var clearBtn  = e.target.closest('#wbClearMineBtn');
       var gridBtn   = e.target.closest('#wbGridBtn');
       var inputModeBtn = e.target.closest('#wbInputModeBtn');
-      if (toolBtnEl) {
-        self._setTool(toolBtnEl.dataset.tool);
-        self._closeShapeDropdowns();
-      } else if (widthBtn) {
-        // A second click on the ALREADY-active preset opens the custom
-        // slider instead of just re-selecting the same preset — and
-        // crucially does NOT touch self._width first, so it starts the
-        // slider from whatever's actually active (which might already be a
-        // custom value from a previous open of this same panel) rather
-        // than snapping back to the preset's own round number.
-        if (widthBtn.classList.contains('dc-width-btn--active')) {
-          self._toggleCustomWidthPanel(widthBtn);
+      if (penKey) {
+        // the single writing key: first press selects the current preset and opens its options, a press while it is
+        // already the tool shows or hides them
+        if (self._tool !== 'pen' && self._tool !== 'pencil' && self._tool !== 'highlighter') self._setTool(self._penPreset);
+        self._toggleToolPanel(penKey, true);
+      } else if (presetBtn) {
+        self._setTool(presetBtn.dataset.preset);      // the panel stays open so the size can be set next
+      } else if (toolBtnEl) {
+        var t = toolBtnEl.dataset.tool;
+        if ((t === 'line' || t === 'dashed-line' || t === 'arrow') && self._tool === t) {
+          self._toggleToolPanel(toolBtnEl, false);     // a second press on a line tool: its size
         } else {
-          self._width = parseInt(widthBtn.dataset.width, 10);
-          self._toolbarEl.querySelectorAll('.dc-width-btn').forEach(function (b) {
-            b.classList.toggle('dc-width-btn--active', b === widthBtn);
-          });
+          self._setTool(t);
           self._closeShapeDropdowns();
-          self._updateCursor(); // the pen cursor's own size tracks the picked width live — see penCursor
         }
-      } else if (clearBtn) {
-        self._clearMine();
+      } else if (widthBtn) {
+        self._width = parseFloat(widthBtn.dataset.width);
+        self._syncWidthUi();
       } else if (gridBtn) {
         // Teacher-only (see _build) — a global session setting, not a
         // per-viewer one, so this both applies locally right away AND
@@ -1664,7 +1690,7 @@
     // in the toolbar (see _build) — a separate small listener rather than
     // folded into the delegated one above, since that one's scoped to
     // this._toolbarEl specifically and these buttons are no longer inside it.
-    this._wrap.querySelector('#wbUndoCorner').addEventListener('click', function (e) {
+    this._undoEl.addEventListener('click', function (e) {
       var undoBtn = e.target.closest('#wbUndoBtn');
       var redoBtn = e.target.closest('#wbRedoBtn');
       if (undoBtn && !undoBtn.disabled) self.undo();
@@ -3814,8 +3840,8 @@
     // this._wrap, not this._toolbarEl — these buttons now float over the
     // canvas in their own corner (see _build/#wbUndoCorner) rather than
     // living in the toolbar.
-    var undoBtn = this._wrap.querySelector('#wbUndoBtn');
-    var redoBtn = this._wrap.querySelector('#wbRedoBtn');
+    var undoBtn = this._undoEl && this._undoEl.querySelector('#wbUndoBtn');
+    var redoBtn = this._undoEl && this._undoEl.querySelector('#wbRedoBtn');
     if (undoBtn) undoBtn.disabled = !this._myStrokeHistory.length;
     if (redoBtn) redoBtn.disabled = !this._myRedoStack.length;
   };
@@ -4058,6 +4084,7 @@
     if (this._shapeScrollCloseHandler) global.removeEventListener('scroll', this._shapeScrollCloseHandler, true);
     if (this._channel) this._supabase.removeChannel(this._channel);
     if (this._fabricCanvas) this._fabricCanvas.dispose();
+    if (this._undoMount) this._undoMount.innerHTML = '';
     if (this._wrap && this._wrap.parentNode) this._wrap.parentNode.removeChild(this._wrap);
   };
 
