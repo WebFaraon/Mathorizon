@@ -15,7 +15,7 @@
   // #sumar hash — renderPage() falls that back to 'flux' the same way any
   // other unknown hash already does.
   // the illustrated board icon (assets/images/class/tabla.svg, made by scripts/make-tabla-icon.py)
-  const tablaIco = (px) => `<img class="cd-keyico cd-keyico--tabla" src="assets/images/class/tabla.svg" alt="" width="${px}" height="${px}" style="width:${px}px;height:${px}px">`;
+  const tablaIco = (px, light) => `<img class="cd-keyico cd-keyico--tabla" src="assets/images/class/tabla${light ? '-light' : ''}.svg" alt="" width="${px}" height="${px}" style="width:${px}px;height:${px}px">`;
 
   const TABS = [
     { id: 'sumar',    label: 'Sumar',     icon: icon('chart-column', { size: 16 }), teacherOnly: true },
@@ -7221,13 +7221,13 @@
           // enough on a phone already, and "end the lesson" is a
           // deliberate, considered action anyway, not something needed
           // mid-drawing.
-          ? `<button class="btn btn--primary" id="tablaOpenBtn">${tablaIco(24)} Deschide tabla</button>` +
+          ? `<button class="btn btn--primary" id="tablaOpenBtn">${tablaIco(24, true)} Deschide tabla</button>` +
             `<button class="btn btn--surface" id="tablaEndBtn">${icon('square', { size: 16 })} Încheie</button>`
           : elsewhereLive
             ? `<button class="btn btn--surface" id="tablaSwitchBtn" title="Ai o tablă activă în altă clasă, apasă ca să o închei și să pornești una aici.">${icon('refresh-cw', { size: 16 })} Tablă activă în altă clasă, comută aici</button>`
-            : `<button class="btn btn--primary" id="tablaStartBtn">${tablaIco(24)} Pornește tablă live</button>`;
+            : `<button class="btn btn--primary" id="tablaStartBtn">${tablaIco(24, true)} Pornește tablă live</button>`;
       } else if (live) {
-        heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${tablaIco(24)} Intră în tablă</button>`;
+        heroAction = `<button class="btn btn--primary" id="tablaJoinBtn">${tablaIco(24, true)} Intră în tablă</button>`;
       }
 
       // #cdContent is shared by every tab that doesn't have its own
