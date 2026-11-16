@@ -1,0 +1,205 @@
+/* ============================================================
+   Teorema: Simulare, the setup (bac.html #setupView), 2026-11-17
+   ============================================================
+   No LCD any more: the student's figures are three white cards with an
+   illustrated icon, the tickets are white blocks with the solid edge, the
+   exam's three figures are small plates, the two ways of answering are
+   cards (the chosen one lights violet), the structure of the exam is a
+   white card and the lime key starts the exam. The owl introduces the page.
+   On a laptop the right rail (Misiunile zilei, Top elevi) is the React island
+   of Capitole in "rail only" mode (src/capitole/App.tsx). Rules start with
+   html body.pm #setupView so they win over css/calculator.css.
+   The exam and results views are not touched.
+   ============================================================ */
+
+/* the rail on the right (1180px and up) takes its width out of the page */
+@media (min-width: 1180px) {
+  body:has(#setupView:not([style*="none"])) #setupView { margin-right: calc(var(--cap-rail-right, 380px) + 8px); }
+}
+html body.pm #setupView { container-type: inline-size; }
+
+/* ---------- keys ---------- */
+html body.pm #setupView .st-key, html body.pm #setupView .st-key:hover {
+  border: 1.5px solid var(--pm-line); background: var(--pm-face); color: var(--k-ink);
+}
+html body.pm #setupView .st-key { border-radius: 14px; box-shadow: 0 4px 0 0 var(--pm-edge); }
+html body.pm #setupView .st-key:hover { background: var(--pm-tint); filter: none; }
+html body.pm #setupView .st-key:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(4px); }
+html body.pm #setupView .st-key--primary, html body.pm #setupView .st-key--primary:hover {
+  border-color: var(--k-go-edge); background: var(--k-go); color: var(--k-go-ink);
+}
+html body.pm #setupView .st-key--primary { box-shadow: 0 4px 0 0 var(--k-go-edge); height: 54px; font-size: 1rem; }
+html body.pm #setupView .st-key--primary:hover { filter: brightness(0.94); }
+html body.pm #setupView .st-key--primary:active { box-shadow: 0 0 0 0 var(--k-go-edge); }
+html body.pm #setupView .st-key--sm { height: 40px; }
+html body.pm #setupView .st-key[disabled], html body.pm #setupView .st-key[disabled]:hover, html body.pm #setupView .st-key[disabled]:active {
+  border-color: var(--pm-line); background: var(--pm-tint); box-shadow: 0 4px 0 0 var(--pm-edge); color: var(--pm-ink-2); opacity: 0.85; transform: none; filter: none;
+}
+
+/* ---------- step 1: header, the student's figures, the tickets ---------- */
+html body.pm #setupView .st-choose { gap: 24px; padding-top: 28px; }
+.st-hero { display: flex; align-items: center; gap: 6px; margin: 0 0 16px; }
+.st-hero__owl { flex: none; --ow: 96px; width: 96px; height: 96px; }
+.st-hero__bubble {
+  position: relative; display: flex; flex-direction: column; gap: 3px; padding: 13px 18px;
+  border: 1.5px solid var(--pm-line); border-radius: 18px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+.st-hero__bubble::before { content: ""; position: absolute; left: -8px; top: 50%; width: 14px; height: 14px; margin-top: -7px; transform: rotate(45deg); border-left: 1.5px solid var(--pm-line); border-bottom: 1.5px solid var(--pm-line); border-bottom-left-radius: 4px; background: var(--pm-face); }
+.st-hero__bubble b { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.01em; }
+.st-hero__bubble span { font-size: 0.86rem; color: var(--pm-ink-2); }
+
+html body.pm .st-status {
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; margin: 0; padding: 0;
+  border-radius: 0; background: none; box-shadow: none; animation: none; color: var(--k-ink);
+}
+html body.pm .st-status__cell {
+  flex-direction: row; align-items: center; gap: 14px; padding: 16px 18px; border: 1.5px solid var(--pm-line); border-radius: 20px;
+  background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm .st-status__ico { flex: none; width: 52px; height: 52px; }
+.st-status__tx { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html body.pm .st-status__lbl { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; opacity: 1; color: var(--k-ink-3); }
+html body.pm .st-status__val {
+  margin: 0; font-family: var(--k-font); font-size: 2rem; font-weight: 800; letter-spacing: -0.03em; line-height: 1.1; color: var(--k-ink);
+}
+
+html body.pm #setupView .st-tickets { gap: 22px; }
+html body.pm #setupView .st-ticket {
+  border: 1.5px solid var(--pm-line); border-radius: 22px; background: var(--pm-face);
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm #setupView .st-ticket--blue { --legend: var(--pm-violet); }
+html body.pm #setupView .st-ticket--green { --legend: #5E8E00; }
+html[data-theme="dark"] body.pm #setupView .st-ticket--blue { --legend: #B7A0F0; }
+html[data-theme="dark"] body.pm #setupView .st-ticket--green { --legend: #A8D84A; }
+html body.pm #setupView .st-ticket { box-shadow: 0 5px 0 0 var(--pm-edge); }
+html body.pm #setupView .st-choose .st-ticket:hover { --lift: -3px; }
+html body.pm #setupView .st-choose .st-ticket:active:not(:has(.st-key:active)) { --lift: 3px; box-shadow: 0 2px 0 0 var(--pm-edge); }
+html body.pm .st-ticket__top {
+  padding: 12px 24px; border-bottom: 1.5px solid var(--pm-line); background: color-mix(in srgb, var(--legend) 11%, var(--pm-face));
+  font-size: 0.74rem; letter-spacing: 0.1em; text-transform: uppercase;
+}
+.st-ticket__ico { position: absolute; right: 22px; top: 58px; width: 84px; height: 84px; pointer-events: none; transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+.st-ticket:hover .st-ticket__ico { transform: translateY(-4px) rotate(-5deg) scale(1.05); }
+html body.pm .st-ticket__title { margin-right: 100px; font-size: clamp(1.35rem, 2vw, 1.8rem); }
+html body.pm .st-status::after { display: none; }
+html body.pm .st-ticket__desc { margin-right: 24px; }
+html body.pm .st-perf { border-top: 2px dashed var(--pm-line-2); }
+html body.pm .st-perf::before, html body.pm .st-perf::after { display: none; }
+html body.pm .st-fields {
+  grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin: 20px 24px 0; padding: 0; border-radius: 0; background: none; box-shadow: none; color: var(--k-ink);
+}
+html body.pm .st-fields > div {
+  display: flex; flex-direction: column; gap: 2px; padding: 10px 12px 11px; border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm .st-fields dt { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; opacity: 1; color: var(--k-ink-3); }
+html body.pm .st-fields dd { margin: 0; font-family: var(--k-font); font-size: 1.5rem; font-weight: 800; letter-spacing: -0.02em; color: var(--k-ink); }
+html body.pm #setupView .st-ticket > .st-key { width: calc(100% - 48px); margin: 22px 24px 26px; }
+
+/* ---------- step 2 ---------- */
+html body.pm #setupView .st-setup { padding-top: 22px; }
+html body.pm .st-h { font-size: 1.15rem; margin-bottom: 14px; }
+.st-setup__grid { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+.st-setup__left { position: static; }
+@container (min-width: 980px) {
+  .st-setup__grid { grid-template-columns: minmax(0, 460px) minmax(0, 1fr); gap: 30px; }
+  .st-setup__left { position: sticky; top: calc(var(--nav-h, 72px) + 16px); }
+}
+html body.pm #setupView .st-ticket--open { cursor: default; }
+html body.pm #setupView .st-ticket--open .st-fields { margin-bottom: 24px; }
+html body.pm #setupView .st-ticket--open .st-ticket__title { margin-top: 22px; }
+
+html body.pm .st-method {
+  padding: 20px 20px 22px; border: 1.5px solid var(--pm-line); border-radius: 22px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm #setupView .st-method__key {
+  position: relative; gap: 14px; padding: 12px 14px; border: 1.5px solid var(--pm-line); border-radius: 18px; background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm #setupView .st-method__key:hover { background: var(--pm-tint); filter: none; }
+html body.pm #setupView .st-method__key:active { box-shadow: 0 0 0 0 var(--pm-edge); transform: translateY(4px); }
+html body.pm .st-method__icon { width: 52px; height: 52px; border: 0; border-radius: 0; background: none; box-shadow: none; }
+html body.pm .st-method__icon img { width: 52px; height: 52px; display: block; }
+html body.pm .st-method__text b { font-size: 1rem; }
+html body.pm .st-method__text small { font-size: 0.82rem; color: var(--pm-ink-2); }
+html body.pm #setupView .st-method__key.selected, html body.pm #setupView .st-method__key.selected:hover {
+  border-color: var(--pm-violet-edge); background: var(--pm-violet); color: #fff;
+}
+html body.pm #setupView .st-method__key.selected { box-shadow: 0 2px 0 0 var(--pm-violet-edge); transform: translateY(2px); }
+html body.pm #setupView .st-method__key.selected .st-method__icon { background: none; border: 0; }
+html body.pm #setupView .st-method__key.selected .st-method__text small { color: rgba(255, 255, 255, 0.82); }
+html body.pm #setupView .st-method__key.selected::after {
+  content: ""; flex: none; margin-left: auto; width: 28px; height: 28px; border-radius: 50%; background: #8FC90A; box-shadow: 0 2px 0 0 #4F7A00;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='3.6' stroke-linecap='round' stroke-linejoin='round'><path d='M5 12.5l4.5 4.5L19 7'/></svg>");
+  background-repeat: no-repeat; background-position: center; background-size: 16px;
+}
+html body.pm .st-start__note { padding: 10px 14px; border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint); font-size: 0.84rem; font-weight: 600; color: var(--pm-ink-2); }
+
+html body.pm .st-sheet {
+  padding: 22px 24px 22px; border: 1.5px solid var(--pm-line); border-radius: 22px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm .st-rows__head {
+  padding: 9px 14px; margin-bottom: 4px; border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-tint);
+  font-size: 0.66rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase;
+}
+html body.pm .st-row { padding: 12px 14px; border-bottom: 1.5px solid var(--pm-line); align-items: center; }
+html body.pm .st-row:last-child { border-bottom: 0; }
+html body.pm .st-row__num { color: var(--pm-violet); }
+html[data-theme="dark"] body.pm .st-row__num { color: #CDBBF2; }
+html body.pm .st-lvl {
+  padding: 4px 11px; border: 1.5px solid color-mix(in srgb, currentColor 40%, var(--pm-line)); border-radius: 999px;
+  background: color-mix(in srgb, currentColor 11%, var(--pm-face)); font-size: 0.66rem;
+}
+html body.pm .st-row__pts { font-size: 0.98rem; }
+html body.pm .st-total { margin-top: 12px; padding: 14px 14px 0; border-top: 1.5px dashed var(--pm-line-2); font-size: 1.05rem; }
+html body.pm .st-total span:last-child {
+  padding: 7px 16px; border-radius: 999px; background: var(--pm-violet); box-shadow: 0 3px 0 0 var(--pm-violet-edge); color: #fff;
+  font-family: var(--k-font); font-size: 1.05rem; font-weight: 800;
+}
+html body.pm .st-tip {
+  padding: 16px 18px 17px; border: 1.5px solid var(--pm-line); border-radius: 18px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm .st-tip__title svg { color: var(--pm-violet); }
+html[data-theme="dark"] body.pm .st-tip__title svg { color: #CDBBF2; }
+
+/* ---------- narrow: the rail is gone below 1180px, the layout follows the page width ---------- */
+@media (max-width: 1179px) { .st-tips__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 900px) { .st-tips__list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@container (max-width: 700px) {
+  .st-tickets { grid-template-columns: minmax(0, 1fr); }
+  .st-tips__list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 700px) {
+  html body.pm #setupView .st-choose { padding: 14px 16px 40px; gap: 18px; }
+  html body.pm #setupView .st-setup { padding: 14px 16px 40px; }
+  .st-hero__owl { --ow: 72px; width: 72px; height: 72px; }
+  .st-hero__bubble { padding: 10px 14px; border-radius: 16px; }
+  .st-hero__bubble b { font-size: 0.96rem; }
+  .st-hero__bubble span { font-size: 0.8rem; }
+  .st-title { font-size: 1.85rem; }
+  .st-lede { font-size: 0.95rem; }
+  html body.pm .st-status { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+  html body.pm .st-status__cell { flex-direction: column; align-items: flex-start; gap: 8px; padding: 12px 12px 14px; border-radius: 16px; box-shadow: 0 4px 0 0 var(--pm-edge); }
+  html body.pm .st-status__ico { width: 40px; height: 40px; }
+  html body.pm .st-status__lbl { font-size: 0.6rem; letter-spacing: 0.02em; }
+  html body.pm .st-status__val { font-size: 1.5rem; }
+  .st-ticket__ico { width: 64px; height: 64px; right: 14px; top: 54px; }
+  html body.pm .st-ticket__title { margin: 18px 90px 0 18px; font-size: 1.45rem; }
+  html body.pm .st-ticket__desc { margin: 8px 18px 20px; }
+  html body.pm .st-ticket__top { padding: 10px 18px; }
+  html body.pm .st-fields { margin: 18px 18px 0; gap: 8px; }
+  html body.pm .st-fields > div { padding: 8px 10px 9px; }
+  html body.pm .st-fields dd { font-size: 1.25rem; }
+  html body.pm #setupView .st-ticket > .st-key { width: calc(100% - 36px); margin: 18px 18px 22px; white-space: normal; height: auto; min-height: 54px; padding: 10px 16px; }
+  html body.pm .st-method, html body.pm .st-sheet { padding: 16px 14px 18px; border-radius: 18px; }
+  html body.pm #setupView .st-method__key { padding: 10px 12px; }
+  html body.pm .st-rows__head { display: none; }
+  html body.pm .st-row {
+    grid-template-columns: auto minmax(0, 1fr) auto; grid-template-areas: "n l p" "d d d"; gap: 6px 10px; padding: 12px 4px;
+  }
+  .st-row__num { grid-area: n; } .st-lvl { grid-area: l; } .st-row__pts { grid-area: p; } .st-row__desc { grid-area: d; }
+  html body.pm .st-total { padding: 14px 4px 0; }
+  .st-tips__list { grid-template-columns: minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { .st-ticket__ico { transition: none; } }

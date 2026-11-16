@@ -20,6 +20,10 @@
   <link rel="stylesheet" href="css/simulare.css">
   <link rel="stylesheet" href="css/premium.css">
   <link rel="stylesheet" href="css/owl.css">
+  <link rel="stylesheet" href="css/simulare-setup.css">
+  <!-- REACT-ISLAND-CSS:START -->
+  <link rel="stylesheet" href="assets/react/capitole-CGGgWS4t.css">
+  <!-- REACT-ISLAND-CSS:END -->
   <script src="js/owl.js"></script>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
   <script src="js/theme.js"></script>
@@ -30,7 +34,7 @@
   <script src="js/classpick.js"></script>
   <script src="js/welcome.js"></script>
 </head>
-<body class="pm">
+<body class="pm" data-page="bac">
 
   <!-- Hover zone: peeks the navbar back in during exam mode -->
   <div class="bac-nav-hover-zone" id="navHoverZone"></div>
@@ -39,6 +43,9 @@
   <nav class="nav" id="nav-root"></nav>
   <script src="js/icons.js"></script>
   <script src="js/nav-loader.js"></script>
+
+  <!-- the right rail (Misiunile zilei, Top elevi) is the React island of Capitole, in "rail only" mode -->
+  <div id="root" data-rail-only></div>
 
   <!-- SETUP VIEW -->
   <div id="setupView">
@@ -49,19 +56,24 @@
          still drives simChoose, selectSimType, backToChoose. -->
     <div class="st-choose" id="simChoose">
       <header class="st-head">
+        <div class="st-hero">
+          <span class="owl st-hero__owl" data-owl="idle" aria-hidden="true"></span>
+          <div class="st-hero__bubble"><b>Gata de examen?</b><span>Alege simularea și vezi cum te descurci.</span></div>
+        </div>
         <h1 class="st-title">Simulare de examen</h1>
         <p class="st-lede">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Alegi examenul, apoi cum vei răspunde, iar la final îți primești nota.</p>
       </header>
 
-      <div class="st-status st-boot" role="group" aria-label="Situația ta">
-        <div class="st-status__cell"><span class="st-status__lbl">Simulări finalizate</span><span class="st-status__val" id="stCount">0</span></div>
-        <div class="st-status__cell"><span class="st-status__lbl">Cea mai bună notă</span><span class="st-status__val" id="stBest">-.--</span></div>
-        <div class="st-status__cell"><span class="st-status__lbl">ExamTokenuri</span><span class="st-status__val" id="stTokens">0</span></div>
+      <div class="st-status" role="group" aria-label="Situația ta">
+        <div class="st-status__cell"><img class="st-status__ico" src="assets/images/tabs/simulare.svg" alt="" width="52" height="52"><div class="st-status__tx"><span class="st-status__lbl">Simulări finalizate</span><span class="st-status__val" id="stCount">0</span></div></div>
+        <div class="st-status__cell"><img class="st-status__ico" src="assets/images/gamification/leaderboard-mini.svg" alt="" width="52" height="52"><div class="st-status__tx"><span class="st-status__lbl">Cea mai bună notă</span><span class="st-status__val" id="stBest">-.--</span></div></div>
+        <div class="st-status__cell"><img class="st-status__ico" src="assets/images/gamification/tokenuri-mini.svg" alt="" width="52" height="52"><div class="st-status__tx"><span class="st-status__lbl">ExamTokenuri</span><span class="st-status__val" id="stTokens">0</span></div></div>
       </div>
 
       <div class="st-tickets">
       <article class="st-ticket st-ticket--blue" id="simCardBac" data-exam="bac">
         <div class="st-ticket__top"><span>Clasa a XII-a</span></div>
+        <img class="st-ticket__ico" src="assets/images/roles/elev.svg" alt="" width="84" height="84">
         <h2 class="st-ticket__title">Simulare BAC <span>Matematică</span></h2>
         <p class="st-ticket__desc">Lucrezi 3 ore, ca la examenul real. La final te autoevaluezi și primești nota.</p>
         <div class="st-perf" aria-hidden="true"></div>
@@ -70,6 +82,7 @@
       </article>
       <article class="st-ticket st-ticket--green" id="simCardNatl" data-exam="natl">
         <div class="st-ticket__top"><span>Clasa a IX-a</span></div>
+        <img class="st-ticket__ico" src="assets/images/tabs/exercitii.svg" alt="" width="84" height="84">
         <h2 class="st-ticket__title">Evaluare Națională <span>Clasa a IX-a</span></h2>
         <p class="st-ticket__desc">Lucrezi 2 ore, ca la examenul real. La final te autoevaluezi și primești nota.</p>
         <div class="st-perf" aria-hidden="true"></div>
@@ -92,6 +105,7 @@
         <div class="st-setup__left">
           <article class="st-ticket st-ticket--blue st-ticket--open" data-exam="bac">
             <div class="st-ticket__top"><span>BAC Moldova, structura oficială 2022+</span></div>
+            <img class="st-ticket__ico" src="assets/images/roles/elev.svg" alt="" width="84" height="84">
             <h1 class="st-ticket__title">Simulare BAC <span>Matematică</span></h1>
             <p class="st-ticket__desc">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Lucrezi 3 ore ca la examenul real. La final te autoevaluezi și primești nota.</p>
             <div class="st-perf" aria-hidden="true"></div>
@@ -102,11 +116,11 @@
             <h2 class="st-h" id="bacMethodLbl">Cum vei rezolva exercițiile?</h2>
             <div class="st-method__keys" id="bacMethodGrid">
               <button class="st-method__key" type="button" data-method="canvas" aria-pressed="false" onclick="selectAnswerMethod('canvas')">
-                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
+                <span class="st-method__icon"><img src="assets/images/simulare/canvas.svg" alt="" width="52" height="52"></span>
                 <span class="st-method__text"><b>Canvas digital</b><small>Scrie direct în aplicație cu mouse, stylus sau deget</small></span>
               </button>
               <button class="st-method__key" type="button" data-method="photo" aria-pressed="false" onclick="selectAnswerMethod('photo')">
-                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
+                <span class="st-method__icon"><img src="assets/images/simulare/poze.svg" alt="" width="52" height="52"></span>
                 <span class="st-method__text"><b>Încarcă poze</b><small>Rezolvă pe foaie și încarcă poza rezolvării</small></span>
               </button>
             </div>
@@ -234,6 +248,7 @@
         <div class="st-setup__left">
           <article class="st-ticket st-ticket--green st-ticket--open" data-exam="natl">
             <div class="st-ticket__top"><span>Evaluare Națională, clasa a IX-a</span></div>
+            <img class="st-ticket__ico" src="assets/images/tabs/exercitii.svg" alt="" width="84" height="84">
             <h1 class="st-ticket__title">Evaluare Națională <span>Clasa a IX-a</span></h1>
             <p class="st-ticket__desc">12 exerciții generate aleator, câte unul per tip, fără repetare de teme. Lucrezi 2 ore ca la examenul real. La final te autoevaluezi și primești nota.</p>
             <div class="st-perf" aria-hidden="true"></div>
@@ -244,11 +259,11 @@
             <h2 class="st-h" id="natlMethodLbl">Cum vei rezolva exercițiile?</h2>
             <div class="st-method__keys" id="natlMethodGrid">
               <button class="st-method__key" type="button" data-method="canvas" aria-pressed="false" onclick="selectAnswerMethod('canvas')">
-                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z"></path><path d="m15 5 4 4"></path></svg></span>
+                <span class="st-method__icon"><img src="assets/images/simulare/canvas.svg" alt="" width="52" height="52"></span>
                 <span class="st-method__text"><b>Canvas digital</b><small>Scrie direct în aplicație cu mouse, stylus sau deget</small></span>
               </button>
               <button class="st-method__key" type="button" data-method="photo" aria-pressed="false" onclick="selectAnswerMethod('photo')">
-                <span class="st-method__icon"><svg class="icon icon-20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.997 4a2 2 0 0 1 1.76 1.05l.486.9A2 2 0 0 0 18.003 7H20a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V9a2 2 0 0 1 2-2h1.997a2 2 0 0 0 1.759-1.048l.489-.904A2 2 0 0 1 10.004 4z"></path><circle cx="12" cy="13" r="3"></circle></svg></span>
+                <span class="st-method__icon"><img src="assets/images/simulare/poze.svg" alt="" width="52" height="52"></span>
                 <span class="st-method__text"><b>Încarcă poze</b><small>Rezolvă pe foaie și încarcă poza rezolvării</small></span>
               </button>
             </div>
@@ -546,7 +561,11 @@
   <script src="js/custom-exercises.js"></script>
   <script src="js/drawing-canvas.js"></script>
   <script src="js/photo-upload.js"></script>
+  <script src="js/parcurs/progress.js"></script>
   <script src="js/sim-setup.js"></script>
   <script src="js/bac.js"></script>
+  <!-- REACT-ISLAND-JS:START -->
+  <script type="module" src="assets/react/capitole-CRxK78fL.js"></script>
+  <!-- REACT-ISLAND-JS:END -->
 </body>
 </html>

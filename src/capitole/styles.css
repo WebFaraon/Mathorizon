@@ -2020,4 +2020,6 @@ a.cap-key__face:focus-visible {
 @media (min-width: 1180px) {
   .cap-shell--rail { display: block; }
   body:has(.an-page--session) .cap-shell--rail { display: none; }
+  /* Simulare: only while the setup is showing (the exam and the results take the whole width) */
+  body:has(#setupView[style*="none"]) .cap-shell--rail { display: none; }
 }

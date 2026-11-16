@@ -48,7 +48,7 @@ html.bnav-off #bnav { display: none !important; }
   @media (prefers-reduced-motion: reduce) { #bnav .bn-ind.go, #bnav .bn-b img { transition: none; } }
 
   /* pagina nu mai trece pe sub bară */
-  html:is(.bm-authed, .bm-gnav):not(.bnav-off) body:not(:has(#root)) { padding-bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px)); }
+  html:is(.bm-authed, .bm-gnav):not(.bnav-off) body:not(:has(#root:not([data-rail-only]))) { padding-bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px)); }
   html:is(.bm-authed, .bm-gnav):not(.bnav-off) .scroll-top-btn { bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px) + 14px); }
   html:is(.bm-authed, .bm-gnav):not(.bnav-off) .toast-container { bottom: calc(var(--bnav-h) + env(safe-area-inset-bottom, 0px) + 12px); }
 

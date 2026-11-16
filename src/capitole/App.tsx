@@ -75,8 +75,8 @@ export function App() {
     return () => window.removeEventListener('bm:grade', on);
   }, []);
 
-  /* training.html: only the right rail (Misiunile zilei + Top elevi), fixed on wide screens and hidden below them. */
-  if (page === 'antrenament') {
+  /* training.html and bac.html (the Simulare setup): only the right rail (Misiunile zilei + Top elevi), fixed on wide screens and hidden below them. */
+  if (page === 'antrenament' || page === 'bac') {
     return (
       <div className="cap-shell cap-shell--rail">
         <RightColumn
