@@ -51,9 +51,9 @@
   const atRisk = g => g.status === 'activ' && D.freeSeats(g) >= 2;
 
   const QUICK = {
-    risc: { label: 'Risc financiar', sub: 'Grupe active cu 2+ locuri libere', icon: 'wallet', test: atRisk },
-    incomplete: { label: 'Active incomplete', sub: 'Grupe active cu 1 loc liber', icon: 'users', test: g => g.status === 'activ' && D.freeSeats(g) === 1 },
-    maine: { label: 'Încep mâine', sub: 'Pornesc sau au prima lecție mâine', icon: 'play', test: startsTomorrow }
+    risc: { label: 'Risc financiar', sub: 'Grupe active cu 2+ locuri libere', icon: 'wallet', pic: 'risc', test: atRisk },
+    incomplete: { label: 'Active incomplete', sub: 'Grupe active cu 1 loc liber', icon: 'users', pic: 'incomplete', test: g => g.status === 'activ' && D.freeSeats(g) === 1 },
+    maine: { label: 'Încep mâine', sub: 'Pornesc sau au prima lecție mâine', icon: 'play', pic: 'maine', test: startsTomorrow }
   };
 
   const LISTS = ['project', 'dur', 'status', 'subj', 'grade', 'level', 'size', 'profile', 'seats', 'days'];
@@ -63,7 +63,7 @@
     subj: { label: 'Materia', def: 'asc', key: g => norm(g.subject) },
     grade: { label: 'Clasa', def: 'asc', key: g => D.GRADES.indexOf(g.grade) },
     size: { label: 'Grupă', def: 'asc', key: g => g.size },
-    free: { label: 'Locuri libere', def: 'desc', key: g => freeOf(g) },
+    free: { label: 'Locuri libere', th: 'Locuri', def: 'desc', key: g => freeOf(g) },
     elevi: { label: 'Elevi', def: 'desc', key: g => kidsOf(g).length },
     // no column of its own: used by links (#orar?status=completare&sort=start)
     start: { label: 'Data de început', def: 'asc', key: g => g.startDate }
@@ -184,7 +184,7 @@
       const on = s.quick === id;
       return `
         <button type="button" class="or-sign or-sign--q${id === 'risc' ? ' or-sign--warn' : ''}" data-quick="${id}" aria-pressed="${on}">
-          <span class="or-sign__name"><span class="or-sign__pic" aria-hidden="true">${ico(q.icon, 14)}</span>${esc(q.label)}</span>
+          <span class="or-sign__name"><span class="or-sign__pic" aria-hidden="true">${U.pic(q.pic, 40)}</span>${esc(q.label)}</span>
           <span class="or-sign__sub">${esc(q.sub)}</span>
           <span class="or-sign__v"><b>${nf.format(n)}</b> ${n === 1 ? 'grupă' : 'grupe'}</span>
           <span class="or-sign__here" aria-hidden="true">${ico('check', 14)}</span>
@@ -241,7 +241,7 @@
     const on = s.sort === k;
     const icon = on ? ico(s.dir === 'asc' ? 'chevron-up' : 'chevron-down', 14) : ico('sort', 14);
     return `<th data-sort="${k}"${on ? ` aria-sort="${s.dir === 'asc' ? 'ascending' : 'descending'}"` : ''}${extra || ''}>
-      <button type="button" class="or-sort${on ? ' is-on' : ''}">${esc(SORTS[k].label)}${icon}</button></th>`;
+      <button type="button" class="or-sort${on ? ' is-on' : ''}">${esc(SORTS[k].th || SORTS[k].label)}${icon}</button></th>`;
   }
 
   const replDay = iso => { const d = new Date(iso + 'T12:00:00'); return `${D.DAYS[((d.getDay() + 6) % 7)].short} ${d.getDate()} ${D.MONTHS[d.getMonth()].slice(0, 3)}`; };

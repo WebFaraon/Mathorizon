@@ -243,3 +243,108 @@ body.ax.ax-brand .ax-fixsplit > .rp-side .ax-rail { border: 0; border-radius: 0;
 /* the demo badge in the panel: one calm line, the reset key is already below */
 body.ax.ax-brand .ax-sign__foot .ax-demo { padding: 6px 10px; flex-wrap: wrap; justify-content: center; text-align: center; gap: 4px 8px; font-size: 0.74rem; }
 body.ax.ax-brand .ax-sign__foot .ax-demo button { display: none; }
+
+/* ---------- Orar (2026-11-16): bigger card titles, illustrated icons, the groups as separate cells ---------- */
+
+/* the five cards: bigger titles, the illustrated icon without a tile */
+body.ax.ax-brand .or-signs__t { margin-bottom: 10px; font-size: 0.82rem; }
+body.ax.ax-brand .or-sign__name { gap: 10px; font-size: 1.14rem; line-height: 1.2; }
+body.ax.ax-brand .or-sign__sub { font-size: 0.86rem; }
+body.ax.ax-brand .or-sign__pic,
+body.ax.ax-brand .or-sign[aria-pressed="true"] .or-sign__pic { width: 42px; height: 42px; margin: -4px 0 -4px -2px; border-radius: 0; background: none; color: inherit; }
+body.ax.ax-brand .or-sign__pic .ax-pic { width: 42px; height: 42px; transition: transform 0.2s cubic-bezier(0.34, 1.56, 0.64, 1); }
+body.ax.ax-brand .or-sign:hover .or-sign__pic .ax-pic { transform: rotate(-6deg) scale(1.08); }
+@media (prefers-reduced-motion: reduce) { body.ax.ax-brand .or-sign:hover .or-sign__pic .ax-pic { transform: none; } }
+@media (max-width: 600px) {
+  body.ax.ax-brand .or-sign__pic { display: block; width: 36px; height: 36px; margin: -4px 10px -4px 0; }
+  body.ax.ax-brand .or-sign__pic .ax-pic { width: 36px; height: 36px; }
+  body.ax.ax-brand .or-sign__name { font-size: 1.06rem; }
+  body.ax.ax-brand .or-sign__name, body.ax.ax-brand .or-sign__sub { grid-column: 1; }
+}
+
+/* the groups table: no table any more. A detached header plate with sort keys, then one cell (card) per group */
+body.ax.ax-brand .ax-table-wrap:has(> .or-table) { overflow: visible; border: 0; border-radius: 0; background: none; }
+body.ax.ax-brand .or-table {
+  --or-cols: minmax(0, 18fr) minmax(0, 15fr) minmax(0, 16fr) minmax(0, 8fr) minmax(0, 12fr) minmax(0, 10fr) minmax(0, 21fr);
+  --or-gap: 12px; --or-pad: 18px;
+  display: block; width: 100%; min-width: 0; table-layout: auto; border-collapse: separate;
+}
+body.ax.ax-brand .or-table thead { display: block; margin-bottom: 16px; }
+body.ax.ax-brand .or-table thead tr {
+  display: grid; grid-template-columns: var(--or-cols); column-gap: var(--or-gap); align-items: center;
+  padding: 9px var(--or-pad);
+  border: 1.5px solid var(--bx-line); border-radius: 16px; background: var(--bx-tint); box-shadow: 0 4px 0 0 var(--bx-edge);
+}
+body.ax.ax-brand .or-table th,
+body.ax.ax-brand .or-table th:nth-child(n) { display: block; width: auto; min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; color: var(--bx-key-ink); }
+body.ax.ax-brand .or-table th[aria-sort] { box-shadow: none; }
+body.ax.ax-brand .or-sort {
+  position: relative; width: auto; max-width: none; margin: 0 -9px; padding: 8px 9px; gap: 4px;
+  border: 1.5px solid transparent; border-radius: 11px; font-size: 0.7rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--bx-key-ink);
+  transition: background-color 0.15s ease, box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease;
+}
+body.ax.ax-brand .or-sort:hover { background: color-mix(in srgb, var(--bx-violet) 10%, transparent); }
+body.ax.ax-brand .or-sort:active { transform: translateY(1px); }
+body.ax.ax-brand .or-sort.is-on {
+  border-color: var(--bx-violet); background: var(--bx-violet); color: #FFFFFF; box-shadow: 0 3px 0 0 var(--bx-violet-edge);
+}
+body.ax.ax-brand .or-sort.is-on:hover { background: var(--bx-violet); filter: brightness(1.08); }
+body.ax.ax-brand .or-sort.is-on:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--bx-violet-edge); }
+body.ax.ax-brand .or-sort .ax-ico { opacity: 0.55; }
+body.ax.ax-brand .or-sort:not(.is-on) .ax-ico { display: none; }
+body.ax.ax-brand .or-sort:not(.is-on):hover .ax-ico, body.ax.ax-brand .or-sort:not(.is-on):focus-visible .ax-ico { display: inline-block; }
+body.ax.ax-brand .or-sort.is-on .ax-ico { opacity: 1; color: var(--bx-lime); }
+body.ax.ax-brand .or-table th.ax-num .or-sort { justify-content: flex-start; text-align: left; white-space: nowrap; }
+body.ax.ax-brand .or-table th.ax-num { justify-self: end; }
+
+body.ax.ax-brand .or-table tbody { display: flex; flex-direction: column; gap: 14px; width: 100%; padding-bottom: 6px; }
+body.ax.ax-brand .or-table tbody tr {
+  display: grid; grid-template-columns: var(--or-cols); column-gap: var(--or-gap); align-items: start;
+  padding: 18px var(--or-pad); margin: 0;
+  border: 1.5px solid var(--bx-line); border-radius: 18px; background: var(--ax-panel); box-shadow: 0 4px 0 0 var(--bx-edge);
+  cursor: pointer;
+  transition: box-shadow 0.1s ease, transform 0.1s ease, filter 0.15s ease, background-color 0.2s ease;
+}
+body.ax.ax-brand .or-table tbody tr:hover { background: var(--ax-hi-wash); filter: brightness(0.98); }
+body.ax.ax-brand .or-table tbody tr:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--bx-edge); }
+body.ax.ax-brand .or-table tbody tr:focus-visible { outline: 2px solid var(--bx-violet); outline-offset: 3px; }
+body.ax.ax-brand .or-table tbody tr:focus-visible td,
+body.ax.ax-brand .or-table tbody tr:hover td,
+body.ax.ax-brand .or-table tbody tr:hover td:first-child { background: none; box-shadow: none; }
+body.ax.ax-brand .or-table tbody td,
+body.ax.ax-brand .or-table tbody td:nth-child(n) { display: block; min-width: 0; padding: 0; border: 0; background: none; }
+body.ax.ax-brand .or-table td.ax-num { justify-self: end; text-align: right; }
+body.ax.ax-brand .or-table td.or-c-kids { min-width: 0; }
+body.ax.ax-brand .or-table tbody tr[data-arrive] { animation-fill-mode: backwards; }
+
+/* between 901 and 1280 px the page is narrow: each cell has two lines (when, teacher, subject, class / group, seats, students), the header keys spread over its plate */
+@media (min-width: 901px) and (max-width: 1280px) {
+  body.ax.ax-brand .or-table { --or-gap: 18px; --or-pad: 20px; }
+  body.ax.ax-brand .or-table thead tr { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 6px 8px; padding: 9px 12px; }
+  body.ax.ax-brand .or-table th.ax-num { justify-self: auto; }
+  body.ax.ax-brand .or-table tbody tr { grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 0.7fr); row-gap: 16px; }
+  body.ax.ax-brand .or-table tbody td.or-c-kids { grid-column: span 2; }
+  body.ax.ax-brand .or-table tbody td.ax-num { justify-self: start; text-align: left; }
+  body.ax.ax-brand .or-table .or-seats { justify-content: flex-start; margin-left: 0; max-width: none; }
+  body.ax.ax-brand .or-table tbody td[data-l]::before { content: attr(data-l); display: block; margin-bottom: 4px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ax-ink-3); }
+}
+
+/* phones: the same keys and edge on the cards the generic rules make */
+@media (max-width: 900px) {
+  body.ax.ax-brand table.ax-cards.or-table thead { margin-bottom: 12px; }
+  body.ax.ax-brand table.ax-cards.or-table thead tr { display: flex; flex-wrap: wrap; gap: 8px; padding: 0; border: 0; background: none; box-shadow: none; }
+  body.ax.ax-brand table.ax-cards.or-table thead th:nth-child(n) { border: 0; border-radius: 0; background: none; }
+  body.ax.ax-brand table.ax-cards.or-table .or-sort {
+    width: auto; min-height: 38px; margin: 0; padding: 6px 12px; border: 1.5px solid var(--bx-line); border-radius: 12px;
+    background: var(--ax-panel); color: var(--bx-key-ink); box-shadow: 0 3px 0 0 var(--bx-edge);
+  }
+  body.ax.ax-brand table.ax-cards.or-table .or-sort.is-on { border-color: var(--bx-violet); background: var(--bx-violet); color: #FFFFFF; box-shadow: 0 3px 0 0 var(--bx-violet-edge); }
+  body.ax.ax-brand table.ax-cards.or-table .or-sort:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--bx-edge); }
+  body.ax.ax-brand table.ax-cards.or-table tbody { display: block; padding-bottom: 0; }
+  body.ax.ax-brand table.ax-cards.or-table tbody tr {
+    margin-bottom: 14px; padding: 16px 16px; border: 1.5px solid var(--bx-line); border-radius: 18px; box-shadow: 0 4px 0 0 var(--bx-edge);
+    grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 14px; row-gap: 14px; align-items: start;
+  }
+  body.ax.ax-brand table.ax-cards.or-table tbody tr:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--bx-edge); }
+  body.ax.ax-brand table.ax-cards.or-table td.ax-num { justify-self: start; text-align: left; }
+}
