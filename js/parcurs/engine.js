@@ -44,7 +44,7 @@
   function boot() {
     if (!C.build(lessonId, PM.rng(1))) { location.replace('parcurs.html'); return; }
     var done = false;
-    var go_ = function () { if (done) return; done = true; begin(); };
+    var go_ = function () { if (done) return; done = true; whenRole(begin); };
     /* întâi contul (progresul se ține pe cont), apoi progresul din baza de date */
     var afterAuth = function () { Prog.ready().then(go_, go_); };
     if (window._bmAuthReady) afterAuth(); else document.addEventListener('bmauth:ready', afterAuth, { once: true });
@@ -178,7 +178,21 @@
   /* ---------- exerciții ---------- */
   /* bufnița se potrivește cu tipul de cartonaș: citește la explicații, scrie când trebuie să scrii, poartă ochelari când alegi sau cauți */
   /* profesorii, managerii și adminii pot face lecțiile, dar nu primesc XP din ele (XP-ul lor vine din altceva) */
-  function noXp() { var r = window.BMAuth && window.BMAuth.role; return !!r && r !== 'elev'; }
+  /* XP și serie primesc DOAR elevii al căror rol e confirmat. Un cont conectat al cărui rol nu a ajuns încă nu primește nimic
+     (rolul vine din baza de date, după pornirea paginii; înainte, un profesor era tratat ca elev până atunci). */
+  function noXp() {
+    var A = window.BMAuth;
+    if (!A || !A.user) return false;           // fără cont, lecția merge ca până acum (nu se scrie nimic pe cont)
+    return A.role !== 'elev';
+  }
+  /* așteaptă rolul contului (cel mult 3 secunde), apoi pornește */
+  function whenRole(cb) {
+    var A = window.BMAuth, fin = false;
+    var go = function () { if (fin) return; fin = true; document.removeEventListener('bmauth:profile', go); cb(); };
+    if (!A || !A.user || A.role) return go();
+    document.addEventListener('bmauth:profile', go);
+    setTimeout(go, 3000);
+  }
   function lookFor(t) {
     if (t === 'learn') return { book: true, glasses: true };
     if (t === 'num' || t === 'mixed' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
@@ -643,12 +657,12 @@
       el.appendChild(cont); el.appendChild(again);
     }, function () {
       owl($('#lzEndOwl'), 'happy');
-      var xpTo = (replay || noXp()) ? 0 : awarded;
+      var xpTo = (replay || noXp()) ? 0 : (+awarded || 0);
       var t0 = performance.now();
       (function tick(t) {
-        var p = Math.min(1, (t - t0) / 900), k = reduce() ? 1 : 1 - Math.pow(1 - p, 3), e = $('#lzSPct'), x = $('#lzSXp');
+        var p = Math.max(0, Math.min(1, (t - t0) / 900)), k = reduce() ? 1 : 1 - Math.pow(1 - p, 3), e = $('#lzSPct'), x = $('#lzSXp');
         if (!e || !x) return;
-        e.textContent = Math.round(pct * k) + '%'; x.textContent = Math.round(xpTo * k);
+        e.textContent = (Math.round(pct * k) || 0) + '%'; x.textContent = String(Math.round(xpTo * k) || 0);
         if (p < 1) requestAnimationFrame(tick);
       })(t0);
       var big = $('#lzEndOwl'); if (!reduce()) { for (var i = 0; i < 18; i++) setTimeout(function () { sparks(big); }, i * 60); }
