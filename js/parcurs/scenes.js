@@ -15,7 +15,7 @@
   var MOON = '<svg class="scn__prop scn__moon" viewBox="0 0 120 70" aria-hidden="true">' +
     '<path d="M86 8A26 26 0 1 0 100 52A22 22 0 0 1 86 8Z" fill="#E0A800" transform="translate(0 3)"/><path d="M86 8A26 26 0 1 0 100 52A22 22 0 0 1 86 8Z" fill="#FFD23F"/>' +
     '<g class="tw"><path d="M18 18Q18.8 21.2 22 22Q18.8 22.8 18 26Q17.2 22.8 14 22Q17.2 21.2 18 18Z" fill="#7BB403"/></g><g class="tw tw2"><path d="M104 40Q104.7 42.3 107 43Q104.7 43.7 104 46Q103.3 43.7 101 43Q103.3 42.3 104 40Z" fill="#5B2FB3"/></g></svg>';
-  var CUSHION = '<svg class="scn__prop scn__cush" viewBox="0 0 120 40" aria-hidden="true"><ellipse cx="60" cy="24" rx="52" ry="14" fill="#2C1952" transform="translate(0 4)"/><ellipse cx="60" cy="24" rx="52" ry="14" fill="#5B2FB3"/><ellipse cx="60" cy="20" rx="34" ry="7" fill="#7C58D1"/></svg>';
+  var CUSHION = '<svg class="scn__prop scn__cush" viewBox="0 0 120 48" aria-hidden="true"><ellipse cx="60" cy="24" rx="52" ry="14" fill="#2C1952" transform="translate(0 4)"/><ellipse cx="60" cy="24" rx="52" ry="14" fill="#5B2FB3"/><ellipse cx="60" cy="20" rx="34" ry="7" fill="#7C58D1"/></svg>';
   var SYM = '<span class="scn__sym s1">π</span><span class="scn__sym s2">∑</span><span class="scn__sym s3">√</span><span class="scn__sym s4">x²</span>';
   var PAPER = '<svg class="scn__prop scn__paper" viewBox="0 0 90 100" aria-hidden="true">' +
     '<rect x="8" y="6" width="74" height="88" rx="9" fill="#CFC4E8" transform="translate(0 4)"/><rect x="8" y="6" width="74" height="88" rx="9" fill="#FFFFFF" stroke="#CFC4E8" stroke-width="2"/>' +

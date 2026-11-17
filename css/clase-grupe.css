@@ -155,3 +155,7 @@ html body.pm:has(#classesRoot) .cl-lesson--done .gc__time, html body.pm:has(#cla
   html body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link { padding: 12px 4px 12px 12px; }
   html body.pm:has(#classesRoot) .cl-lesson.gc .gc__time b { font-size: 1.08rem; }
 }
+
+/* hovering a lesson card of today: only the chevron moves (calculator.css moved EVERY icon inside the link to the right) */
+html body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link:hover .gc__f svg { transform: none; color: var(--pm-violet); }
+html[data-theme="dark"] body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link:hover .gc__f svg { color: #CDBBF2; }

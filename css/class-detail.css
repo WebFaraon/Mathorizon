@@ -2014,3 +2014,16 @@ html body.pm:has(#classRoot) .btn .cd-keyico--tabla { margin: -4px 2px -4px -4px
 .confirm-dialog--ask .wb-ask__input.is-bad { border-color: #C0392B; }
 .confirm-dialog--ask .wb-ask__err { margin: 8px 0 0; font-size: 0.86rem; font-weight: 700; color: #C0392B; }
 .confirm-dialog--ask .wb-ask__err[hidden] { display: none; }
+
+/* ---- 2026-11-18: the header plate and the tab bar of a class are WHITE, with the violet 3D edge of the cards below ---- */
+body:has(#classRoot) { --cd-plate: var(--pm-face, #FFFFFF); }
+[data-theme="dark"] body:has(#classRoot) { --cd-plate: var(--pm-face, #241B35); }
+html body:has(#classRoot) .cd-header,
+html body:has(#classRoot) .cd-tabs-wrap {
+  background-color: var(--pm-face, #FFFFFF);
+  border: 1.5px solid var(--pm-line, #DDD6EA);
+  box-shadow: 0 5px 0 0 var(--pm-edge, #CFC6E3);
+}
+html body:has(#classRoot) .cd-tabs-wrap { box-shadow: 0 4px 0 0 var(--pm-edge, #CFC6E3); }
+/* the keys on the white plate keep a tinted face, so they do not melt into it */
+html body:has(#classRoot) .cd-tab:not(.cd-tab--active) { background: var(--pm-tint, #EDE7F8); }
