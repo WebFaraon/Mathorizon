@@ -4,7 +4,8 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 const PM = require('../js/parcurs/lib.js');
 const { G } = require('../js/parcurs/gens.js');
-require('../js/parcurs/gens2.js');   /* generatoarele pentru secțiunea 1, adăugate în același G */
+require('../js/parcurs/gens2.js');
+require('../js/parcurs/gens3.js');   /* exercițiile interactive */   /* generatoarele pentru secțiunea 1, adăugate în același G */
 let content = null;
 try { content = require('../js/parcurs/content7.js'); } catch (e) { /* conținutul poate lipsi la început */ }
 
@@ -112,6 +113,41 @@ function validate(name, lvl, seed, sp) {
     if (sp.start) check(PM.val(sp.start) >= sp.min && PM.val(sp.start) <= sp.max, tag + ' axis start');
   } else if (sp.t === 'bar') {
     check(sp.n >= 1 && sp.n <= sp.d && sp.d <= 14, tag + ' bar');
+  } else if (sp.t === 'bins') {
+    const n = sp.items.length;
+    check(sp.bins.length === 3 && n >= 5 && n <= 8 && new Set(sp.items.map((i) => i.t)).size === n, tag + ' bins structură');
+    check(sp.items.every((i) => Number.isInteger(i.b) && i.b >= 0 && i.b < sp.bins.length), tag + ' bins index');
+    check(new Set(sp.items.map((i) => i.b)).size >= 2, tag + ' bins: toate cardurile într-o singură cutie');
+    sp.items.forEach((i) => {
+      const v = valOf(i.t); check(v, tag + ' bins valoare ' + i.t); if (!v) return;
+      if (sp.kind === 'sets') check(i.b === (v.d !== 1 ? 2 : v.n >= 0 ? 0 : 1), tag + ' bins sets ' + i.t + ' în cutia ' + i.b);
+      else if (sp.kind === 'frac') { const m = /^\{(\d+)\/(\d+)\}$/.exec(i.t); check(m && i.b === (+m[1] < +m[2] ? 0 : +m[1] === +m[2] ? 1 : 2), tag + ' bins frac ' + i.t); }
+      else { const inf = PM.decInfo(v), k = inf.per === '' ? 0 : inf.pre === '' ? 1 : 2; check(i.b === k, tag + ' bins zecimale ' + i.t + ' în cutia ' + i.b + ' dar ' + k); }
+    });
+  } else if (sp.t === 'rank') {
+    check(sp.tiles.length >= 3 && sp.tiles.length <= 6 && new Set(sp.tiles).size === sp.tiles.length, tag + ' rank tiles');
+    const vs = sp.tiles.map(valOf), asc = sp.dir !== 'desc';
+    if (vs.every((v) => v)) for (let i = 1; i < vs.length; i++) check(asc ? PM.cmp(vs[i - 1], vs[i]) < 0 : PM.cmp(vs[i - 1], vs[i]) > 0, tag + ' rank ordine: ' + sp.tiles.join(' , '));
+    else check(false, tag + ' rank valori');
+  } else if (sp.t === 'slice') {
+    if (sp.mode === 'make') check(sp.n >= 1 && sp.n < sp.d && sp.d <= 12, tag + ' slice make');
+    else check(sp.ex[1] <= 12 && sp.ex[1] !== sp.b && sp.a < sp.b && PM.eq(PM.F(sp.ex[0], sp.ex[1]), PM.F(sp.a, sp.b)), tag + ' slice equiv');
+  } else if (sp.t === 'zoom') {
+    const inside = (f) => PM.val(f) >= sp.lo && PM.val(f) <= sp.lo + 1 + 1e-9;
+    if (sp.mode === 'find') check(1000 % sp.target.d === 0 && inside(sp.target) && PM.val(sp.target) > sp.lo, tag + ' zoom find ' + sp.target.n + '/' + sp.target.d);
+    else check(100 % sp.A.d === 0 && 100 % sp.B.d === 0 && PM.cmp(sp.A, sp.B) < 0 && inside(sp.A) && inside(sp.B), tag + ' zoom between');
+  } else if (sp.t === 'rem') {
+    let r = sp.r0, first = {}, at = 0; first[r] = 0;
+    check(sp.q0 === Math.floor(sp.n / sp.d) && sp.r0 === sp.n % sp.d && sp.rows.length === sp.at, tag + ' rem antet');
+    for (let i = 1; i <= 40 && !at; i++) {
+      const x = r * 10, dg = Math.floor(x / sp.d), rr = x % sp.d, row = sp.rows[i - 1];
+      check(row && row.x === x && row.dg === dg && row.r === rr, tag + ' rem rând ' + i);
+      if (first[rr] !== undefined) { at = i; check(first[rr] === sp.first, tag + ' rem primul'); }
+      first[rr] = i; r = rr;
+    }
+    check(at === sp.at && at <= 9, tag + ' rem repetiție la ' + at + ' dar ' + sp.at);
+  } else if (sp.t === 'wholes') {
+    check(sp.d >= 2 && sp.d <= 8 && sp.n > sp.d && sp.n % sp.d !== 0 && Math.ceil(sp.n / sp.d) <= 3, tag + ' wholes ' + sp.n + '/' + sp.d);
   } else check(false, tag + ' tip necunoscut ' + sp.t);
 }
 let count = 0;

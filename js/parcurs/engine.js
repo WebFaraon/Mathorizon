@@ -1,7 +1,7 @@
 /* ============================================================
    Parcurs: lecția de pe ecran (lectie.html?l=<id>). Un exercițiu pe ecran, explicație înainte de exerciții (lecția 1 a fiecărui cerculeț),
    indiciu la cerere, greșelile revin la final, 10 XP din prima și 5 la a doua încercare, mici animații la fiecare pas.
-   Tipuri de exerciții: mc, num, multi, order, bug, match, axis, bar (vezi gens.js).
+   Tipuri de exerciții: mc, num, multi, order, bug, match, axis, bar (vezi gens.js) și cele interactive bins, rank, slice, zoom, rem, wholes (gens3.js, desenate în inter.js).
    Conținutul vine din js/parcurs/content7.js, desenele din visuals.js, progresul din progress.js.
    ============================================================ */
 (function () {
@@ -195,7 +195,7 @@
   }
   function lookFor(t) {
     if (t === 'learn') return { book: true, glasses: true };
-    if (t === 'num' || t === 'mixed' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar') return { pencil: true };
+    if (t === 'num' || t === 'mixed' || t === 'order' || t === 'match' || t === 'axis' || t === 'bar' || t === 'slice' || t === 'rem') return { pencil: true };
     return { glasses: true };
   }
   function head(sp) {
@@ -226,6 +226,8 @@
   }
 
   var BUILD = {};
+  /* puntea spre exercițiile interactive din js/parcurs/inter.js (încărcat după acest fișier) */
+  window.PLZ = { BUILD: BUILD, phase: function () { return phase; }, setGo: function (on) { setGo(on); } };
 
   BUILD.mc = function (sp, el) {
     var sel = null, box = h('div', 'lz-opts' + (sp.big ? ' big' : '')), btns = [];

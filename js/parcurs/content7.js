@@ -7,7 +7,7 @@
 (function (root) {
   'use strict';
   var PM = (typeof module !== 'undefined' && module.exports) ? require('./lib.js') : root.PM;
-  var PG = (typeof module !== 'undefined' && module.exports) ? (require('./gens.js'), require('./gens2.js'), require('./gens.js')) : root.PG;
+  var PG = (typeof module !== 'undefined' && module.exports) ? (require('./gens.js'), require('./gens2.js'), require('./gens3.js'), require('./gens.js')) : root.PG;
   var G = PG.G;
 
   var LESSON_TITLES = ['Învață', 'Exersează', 'Aplică', 'Provocare'];
@@ -26,7 +26,7 @@
           { title: 'Întregii sunt și ei raționali', p: 'Orice număr întreg se scrie ca fracție cu numitorul 1. De aceea **ℕ ⊂ ℤ ⊂ ℚ**: fiecare mulțime o conține pe cea dinainte. Cu ℕ* notăm numerele naturale nenule: 1, 2, 3…, deci ℕ* ⊂ ℕ.', rows: ['5 = {5/1}', '−3 = {−3/1}', '0 = {0/1}', '0,2 = {2/10}'] },
           { title: 'Unde punem minusul', p: 'La o fracție, minusul poate sta în fața ei, la numărător sau la numitor. **Valoarea rămâne aceeași.** Două minusuri se anulează.', rows: ['−{3/4} = {−3/4} = {3/−4}', '{−3/−4} = {3/4}'] }
         ],
-        pools: [['smallestSet', 'intAsFrac', 'signForms', 'fracToInt', 'pickSet'], ['whichPositive', 'multiInts', 'shareWord', 'statement', 'intAsFrac', 'fracToInt', 'pickSet', 'writeMN'], ['signForms', 'multiInts', 'statement', 'whichPositive', 'pickSet', 'writeMN']] },
+        pools: [['smallestSet', 'intAsFrac', 'signForms', 'fracToInt', 'pickSet', 'binsSets'], ['whichPositive', 'multiInts', 'shareWord', 'statement', 'intAsFrac', 'fracToInt', 'pickSet', 'writeMN', 'binsSets'], ['signForms', 'multiInts', 'statement', 'whichPositive', 'pickSet', 'writeMN', 'binsSets']] },
       { id: 'c2', title: 'Fracții echivalente și simplificare', icon: 'scale',
         learn: [
           { title: 'Aceeași parte, alte numere', p: 'Cele trei bare au aceeași parte colorată. Fracțiile **{1/2}**, **{2/4}** și **{4/8}** au aceeași valoare: se numesc **echivalente**.', bars: [[2, 1], [4, 2], [8, 4]] },
@@ -36,7 +36,7 @@
         ,
           { title: 'Produsele în cruce', p: 'Două fracții {a/b} și {c/d} sunt **echivalente** dacă **a · d = b · c**. Înmulțim „în cruce” și comparăm rezultatele.', rows: ['{2/5} ▢ {4/10}', '2 · 10 = 20 și 5 · 4 = 20', '20 = 20, deci {2/5} = {4/10}', '{3/4} ▢ {5/6}: 3 · 6 = 18, 4 · 5 = 20, deci nu sunt egale'] }
         ],
-        pools: [['barShade', 'equivFill', 'amplify', 'simplifyFull', 'equivFill2', 'tfEquiv'], ['barEquiv', 'equivFill', 'simplifyFull', 'isIrreducible', 'equalPair', 'amplify', 'tfEquiv', 'matchEquiv', 'equivFill2'], ['simplifyFull', 'bugSimplify', 'isIrreducible', 'equalPair', 'barEquiv', 'tfEquiv', 'matchEquiv', 'equivFill2']] },
+        pools: [['barShade', 'sliceMake', 'equivFill', 'amplify', 'simplifyFull', 'equivFill2', 'tfEquiv'], ['barEquiv', 'sliceMake', 'sliceEquiv', 'equivFill', 'simplifyFull', 'isIrreducible', 'equalPair', 'amplify', 'tfEquiv', 'matchEquiv', 'equivFill2'], ['simplifyFull', 'bugSimplify', 'isIrreducible', 'equalPair', 'sliceEquiv', 'barEquiv', 'tfEquiv', 'matchEquiv', 'equivFill2']] },
       { id: 'c6', title: 'Fracții supraunitare și numere mixte', icon: 'divide',
         learn: [
           { title: 'Subunitare, echiunitare, supraunitare', p: 'După cum comparăm numărătorul cu numitorul, o fracție este **subunitară** (mai mică decât 1), **echiunitară** (egală cu 1) sau **supraunitară** (mai mare decât 1). Exemple: {3/5} este subunitară, {5/5} este echiunitară, {7/4} este supraunitară (vezi-o pe bare).', bars: [[4, 4], [4, 3]], rows: ['{3/5} < 1', '{5/5} = 1', '{7/4} > 1'] },
@@ -44,7 +44,7 @@
           { title: 'Introducem întregii în fracție', p: 'Înmulțim **întregii cu numitorul** și adunăm numărătorul. Rezultatul este noul numărător.', rows: ['4{1/3} = {4·3+1/3}', '= {13/3}', '6{2/5} = {6·5+2/5} = {32/5}'] },
           { title: 'Numerele mixte negative', p: 'Minusul din fața unui număr mixt se aplică **întregului număr**. Calculăm cu valorile pozitive, apoi punem minusul.', rows: ['−{11/3} = −3{2/3}', '−2{1/4} = −{9/4}', '−2{1/4} este între −3 și −2'] }
         ],
-        pools: [['fracKind', 'toMixed', 'fromMixed', 'mixedMc'], ['toMixed', 'fromMixed', 'mixedMc', 'fracKind', 'writeMN', 'mixedBug'], ['toMixed', 'fromMixed', 'writeMN', 'mixedBug', 'mixedMc']] },
+        pools: [['fracKind', 'binsKind', 'wholesFill', 'toMixed', 'fromMixed', 'mixedMc'], ['wholesFill', 'toMixed', 'fromMixed', 'mixedMc', 'binsKind', 'fracKind', 'writeMN', 'mixedBug'], ['wholesFill', 'toMixed', 'fromMixed', 'writeMN', 'mixedBug', 'mixedMc']] },
       { id: 'c3', title: 'Axa numerelor și compararea', icon: 'axis',
         learn: [
           { title: 'Numerele pe axă', p: 'Pe axă, numerele cresc spre **dreapta**. Atinge axa și vezi ce număr indică punctul.', axis: { min: -2, max: 2, sub: 4, tap: true } },
@@ -52,7 +52,7 @@
           { title: 'Cum comparăm', p: 'Orice număr negativ este mai mic decât orice număr pozitiv. La două numere negative, **mai mare este cel mai apropiat de 0**.', rows: ['−5 < −2 < 0 < 3', '−{3/4} < −{1/4}'] },
           { title: 'Fracții cu numitori diferiți', p: 'Le aducem la același numitor și comparăm numărătorii.', rows: ['{3/4} ▢ {5/6}', '{3/4} = {9/12} și {5/6} = {10/12}', '{9/12} < {10/12}, deci {3/4} < {5/6}'] }
         ],
-        pools: [['axisRead', 'axisPlace', 'cmp', 'opposite'], ['axisPlace', 'axisRead', 'cmp', 'sortRat', 'opposite'], ['axisPlace', 'cmp', 'sortRat', 'between', 'axisRead']] },
+        pools: [['axisRead', 'axisPlace', 'cmp', 'opposite', 'rankRat'], ['axisPlace', 'axisRead', 'cmp', 'sortRat', 'rankRat', 'opposite'], ['axisPlace', 'cmp', 'rankRat', 'between', 'zoomBetween', 'axisRead']] },
       { id: 'c4', title: 'Fracții zecimale', icon: 'decimal',
         learn: [
           { title: 'Zecimalele sunt fracții cu 10, 100…', p: 'Prima cifră după virgulă înseamnă zecimi, a doua sutimi. Colorează părțile și vezi cum se citește.', bar: { d: 10, n: 7, ctl: true, dec: true, lockD: true } },
@@ -62,7 +62,7 @@
           { title: 'Cum citim un număr zecimal', p: 'Partea întreagă se citește cu **întregi**, apoi partea zecimală cu numele ultimei cifre: **zecimi**, **sutimi**, **miimi**.', rows: ['15,027 = 15{27/1000}', '„cincisprezece întregi și douăzeci și șapte de miimi”', '3,5 = „trei întregi și cinci zecimi”', '0,25 = „douăzeci și cinci de sutimi”'] },
           { title: 'Numerele mixte în zecimale', p: 'Avem două metode. **Metoda 1:** transformăm doar fracția în zecimal și adunăm întregii. **Metoda 2:** introducem întregii în fracție și împărțim.', rows: ['8{3/4}: {3/4} = 3 : 4 = 0,75', '8{3/4} = 8 + 0,75 = 8,75', '8{3/4} = {8·4+3/4} = {35/4}', '35 : 4 = 8,75'] }
         ],
-        pools: [['fracToDec', 'decToFrac', 'matchDec', 'decFracMc', 'readDec', 'decDigit'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec', 'decFracMc', 'matchDec', 'mixedToDec', 'readDec', 'decDigit'], ['fracToDec', 'decToFrac', 'cmpDec', 'orderDec', 'mixedToDec', 'decToMixed', 'readDec']] },
+        pools: [['fracToDec', 'decToFrac', 'zoomFind', 'matchDec', 'decFracMc', 'readDec', 'decDigit'], ['fracToDec', 'zoomFind', 'decToFrac', 'cmpDec', 'rankDec', 'decFracMc', 'matchDec', 'mixedToDec', 'readDec', 'decDigit'], ['fracToDec', 'zoomFind', 'zoomBetween', 'decToFrac', 'cmpDec', 'rankDec', 'mixedToDec', 'decToMixed', 'readDec']] },
       { id: 'c5', title: 'Numere zecimale periodice', icon: 'repeat',
         learn: [
           { title: 'O împărțire care nu se termină', p: 'Împărțim 1 la 3. Apasă „Mai departe” și urmărește resturile.', div: { n: 1, d: 3 } },
@@ -72,7 +72,7 @@
           { title: 'Simplu sau mixt', p: 'Dacă perioada începe chiar **după virgulă**, numărul este periodic **simplu**. Dacă între virgulă și perioadă sunt cifre care nu se repetă, este periodic **mixt**. Primele două numere de mai jos sunt simple, ultimele două sunt mixte.', rows: ['2,([[8]])', '35,([[21]])', '0,[[7]]([[23]])', '6,[[25]]([[3]])'] },
           { title: 'Cum se citește perioada', p: 'După partea întreagă (și după partea neperiodică, la cele mixte) citim perioada și spunem **„în perioadă”**.', rows: ['2,(45) = „doi întregi și patruzeci și cinci în perioadă”', '1,(3) = „un întreg și trei în perioadă”', '0,4(09) = „zero întregi, patru zecimi și zero nouă în perioadă”'] }
         ],
-        pools: [['isPeriodic', 'periodKind', 'periodDigits', 'decExpansion', 'periodLen'], ['periodKind', 'periodDigits', 'divPeriod', 'decExpansion', 'readPeriodic', 'finiteMulti', 'periodLen'], ['divPeriod', 'decTyped', 'classifyDec', 'nthDigit', 'periodDigits', 'readPeriodic', 'perToFrac']] },
+        pools: [['isPeriodic', 'periodKind', 'remRepeat', 'binsDec', 'periodDigits', 'decExpansion', 'periodLen'], ['remRepeat', 'periodKind', 'binsDec', 'periodDigits', 'divPeriod', 'decExpansion', 'readPeriodic', 'finiteMulti', 'periodLen'], ['remRepeat', 'divPeriod', 'binsDec', 'decTyped', 'classifyDec', 'nthDigit', 'periodDigits', 'readPeriodic', 'perToFrac']] },
       { id: 'c7', title: 'Periodice simple în fracții', icon: 'repeat',
         learn: [
           { title: 'Fracții cu 9, 99, 999', p: 'Fracțiile cu numitorul **9, 99 sau 999** dau numere periodice simple: perioada este numărătorul, scris cu atâtea cifre câte nouări are numitorul.', rows: ['{2/9} = 0,2222… = 0,([[2]])', '{11/99} = 0,1111… = 0,([[11]])', '{5/999} = 0,005005… = 0,([[005]])'] },
@@ -80,7 +80,7 @@
           { title: 'Când întregul nu e 0', p: 'Dacă partea întreagă este diferită de 0, **adunăm** întregul cu fracția obținută din partea zecimală.', rows: ['2,(05) = 2 + 0,(05)', '= 2 + {5/99} = 2{5/99}', '= {2·99+5/99} = {203/99}', '1,(235) = 1{235/999} = {1234/999}'] },
           { title: 'Pașii, pe scurt', p: '**1.** Separăm partea întreagă. **2.** Perioada deasupra, cifre de 9 dedesubt. **3.** Simplificăm fracția până devine ireductibilă.', rows: ['0,(36) = {36/99}', '= {36:9/99:9} = {4/11}'] }
         ],
-        pools: [['perNines', 'perSimple0', 'perSimpleMc', 'fracToPerSimple'], ['perSimple0', 'perSimpleInt', 'perSimpleMc', 'fracToPerSimple', 'perNines', 'perSimpleBug'], ['perSimple0', 'perSimpleInt', 'perSimpleBug', 'perSimpleMc', 'fracToPerSimple']] },
+        pools: [['perNines', 'binsDec', 'perSimple0', 'perSimpleMc', 'fracToPerSimple'], ['perSimple0', 'perSimpleInt', 'binsDec', 'perSimpleMc', 'fracToPerSimple', 'perNines', 'perSimpleBug'], ['perSimple0', 'perSimpleInt', 'perSimpleBug', 'perSimpleMc', 'fracToPerSimple']] },
       { id: 'c8', title: 'Periodice mixte în fracții', icon: 'link',
         learn: [
           { title: 'Neperiodică și perioadă', p: 'La un număr periodic **mixt**, între virgulă și perioadă sunt cifre care nu se repetă: **partea neperiodică**. În 0,2(35), partea neperiodică este **2** și perioada este **35**. În 0,16(2), partea neperiodică este **16** și perioada este **2**.', rows: ['0,[[2]]([[35]])', '0,[[16]]([[2]])', '0,[[7]]([[23]])'] },
@@ -89,7 +89,7 @@
           { title: 'Cu partea întreagă', p: 'Ca la periodicele simple: separăm partea întreagă, transformăm partea zecimală, apoi le adunăm.', rows: ['5,3(01) = 5 + 0,3(01)', '= 5 + {301−3/990} = 5 + {298/990}', '= 5{149/495} = {2624/495}'] },
           { title: 'Orice număr rațional', p: 'Orice număr rațional se scrie **și ca fracție ireductibilă, și ca număr zecimal** (finit sau periodic). Felul zecimalei depinde de numitorul fracției ireductibile. {3/8} se termină (finit), {4/11} este periodic simplu, iar {5/12} este periodic mixt.', rows: ['{3/8} = 0,375', '{4/11} = 0,(36)', '{5/12} = 0,41(6)'] }
         ],
-        pools: [['perMixedFill', 'perMixedMc', 'perMixedFrac', 'rationalForms'], ['perMixedFrac', 'perMixedFill', 'perMixedMc', 'perMixedBug', 'classifyDec'], ['perMixedFrac', 'perMixedBug', 'perMixedMc', 'classifyDec', 'rationalForms', 'perSimpleInt']] }
+        pools: [['perMixedFill', 'perMixedMc', 'perMixedFrac', 'rationalForms'], ['perMixedFrac', 'perMixedFill', 'perMixedMc', 'perMixedBug', 'binsDec', 'classifyDec'], ['perMixedFrac', 'perMixedBug', 'perMixedMc', 'binsDec', 'classifyDec', 'rationalForms', 'perSimpleInt']] }
     ]
   };
 
