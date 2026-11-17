@@ -16,7 +16,7 @@
   html body.pm #setupView { padding: var(--pg-y) var(--pg-x) 0; box-sizing: border-box; }
 
   /* Antrenament */
-  html body.pm.an .wz { padding: 0; }
+  html body.pm.an .wz { padding: 0 0 64px; }   /* sub butoanele Înapoi și Continuă rămâne aer la capătul paginii */
   html body.pm.an #configContent { padding: var(--pg-y) var(--pg-x) 0; box-sizing: border-box; }
 
   /* Clase */

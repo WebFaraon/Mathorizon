@@ -231,7 +231,7 @@
         <header class="an-chap__head">
           <span class="an-tile${cat.emblem ? ' an-tile--emblem' : ''}"><span class="an-tile__s">${cat.emblem ? BM.chapterEmblem(cat, 56) : cat.symbol}</span></span>
           <div class="an-chap__txt"><h3 class="an-chap__name">${BM.esc(cat.name)}</h3></div>
-          <span class="an-soon">${icon('lock', { size: 16 })} În curând</span>
+          <span class="an-soon">În curând<img src="assets/images/path/lacat.svg" alt="" width="34" height="34"></span>
         </header>`;
       sec.onclick = () => BM.toast('Exercițiile pentru acest capitol vor fi disponibile în curând.', 'info');
       return sec;
@@ -254,6 +254,7 @@
       </header>
       <div class="an-chap__body"><div class="an-chap__inner">
         <div class="an-chap__bar">
+          <span class="an-chap__lbl">Tipuri de exerciții</span>
           <button type="button" class="an-key an-key--sm" data-act="all">${icon('check', { size: 16 })} Alege tot</button>
           <button type="button" class="an-key an-key--sm" data-act="none">${icon('x', { size: 16 })} Golește</button>
         </div>
@@ -306,7 +307,7 @@
         if (picks[j]) { picks[j].classList.toggle('on', on); picks[j].classList.toggle('off', n === 0); }
       });
       const c = sec.querySelector('[data-count]');
-      if (c) c.textContent = `${sel}/${cat.subcategories.length}`;
+      if (c) { c.textContent = `${sel}/${cat.subcategories.length}`; c.classList.toggle('is-on', sel > 0); }
       const meta = sec.querySelector('[data-meta]');
       if (meta) {
         meta.textContent = sel > 0

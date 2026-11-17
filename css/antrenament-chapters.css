@@ -1,0 +1,135 @@
+/* ============================================================
+   Teorema: Antrenament, pasul "Tipuri" (2026-11-18)
+   Capitolele sunt carduri albe în limba site-ului (1.5px, 20px, margine solidă dedesubt), cu un "slider" 3D al tipurilor alese; fiecare tip
+   e un rând cu un comutator 3D (se aprinde în verde când e ales); capitolele care urmează au lacătul ilustrat. Se încarcă după antrenament-wiz.css.
+   ============================================================ */
+html body.pm.an .an-chapters { gap: 16px; }
+
+/* ---- cardul unui capitol ---- */
+html body.pm.an .an-chap {
+  --acc: var(--pm-violet, #3F236E);
+  border: 1.5px solid var(--pm-line);
+  border-top: 1.5px solid var(--pm-line);
+  border-radius: 20px;
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+  overflow: hidden;
+}
+html body.pm.an .an-chap__head { padding: 16px 18px; transition: background 0.15s ease; }
+html body.pm.an .an-chap:not(.an-chap--soon) > .an-chap__head:hover { background: color-mix(in srgb, var(--pm-tint) 38%, var(--pm-face)); }
+html body.pm.an .an-chap__name { font-size: 1.14rem; font-weight: 800; letter-spacing: -0.015em; color: var(--pm-ink); }
+html body.pm.an .an-chap__meta { margin: 3px 0 0; font-size: 0.8rem; font-weight: 600; color: var(--pm-ink-2); }
+html body.pm.an .an-chap__meta.is-on { color: var(--pm-violet); font-weight: 800; }
+html[data-theme="dark"] body.pm.an .an-chap__meta.is-on { color: #CDBBF2; }
+
+/* emblema capitolului: ea își are deja tile-ul în imagine, nu mai primește o casetă în plus */
+html body.pm.an .an-tile--emblem { width: 56px; height: 56px; border: 0; border-radius: 14px; background: none; box-shadow: none; }
+html body.pm.an .an-tile--emblem img { width: 56px; height: 56px; display: block; }
+
+/* "slider"-ul tipurilor alese: o pistă adâncită cu un segment pe tip, aprins verde când tipul e ales */
+html body.pm.an .an-picks { gap: 4px; height: 10px; max-width: 380px; margin-top: 10px; padding: 2px; border-radius: 999px; background: var(--pm-tint); box-shadow: inset 0 2px 3px rgba(31, 16, 53, 0.16); box-sizing: content-box; }
+html body.pm.an .an-picks i { height: 10px; border-radius: 999px; background: color-mix(in srgb, var(--pm-line) 70%, transparent); transition: background 0.2s ease, box-shadow 0.2s ease; }
+html body.pm.an .an-picks i.on { background: var(--k-lime, #7CB800); box-shadow: inset 0 -3px 0 rgba(60, 100, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+html body.pm.an .an-picks i.off { opacity: 0.35; }
+
+/* câte tipuri sunt alese: pastilă; lime când ai ales ceva */
+html body.pm.an .an-count { transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease; }
+html body.pm.an .an-count.is-on { background: #EAF6D2; border-color: #B5DB6E; color: #3F6A00; box-shadow: 0 2px 0 0 #A5CC5B; }
+html[data-theme="dark"] body.pm.an .an-count.is-on { background: #25351A; border-color: #4C7A00; color: #B6E83A; box-shadow: 0 2px 0 0 #2E4A00; }
+
+/* cheia care desface capitolul */
+html body.pm.an .an-fold { width: 42px; height: 42px; border: 1.5px solid var(--pm-line); border-radius: 13px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); color: var(--pm-ink); transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease; }
+html body.pm.an .an-fold:hover { background: color-mix(in srgb, var(--pm-tint) 55%, var(--pm-face)); border-color: var(--pm-line); color: var(--pm-ink); }
+html body.pm.an .an-fold:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
+
+/* ---- corpul capitolului ---- */
+html body.pm.an .an-chap__inner { padding: 0 18px; }
+html body.pm.an .an-chap__bar {
+  align-items: center; justify-content: space-between; gap: 10px; margin: 0 0 14px; padding: 10px 12px 10px 16px;
+  border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint);
+}
+html body.pm.an .an-chap__lbl { margin-right: auto; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm.an .an-chap__grid { grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; padding-bottom: 20px; }
+
+/* ---- un tip: un rând cu comutator ---- */
+html body.pm.an .an-sub {
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  gap: 10px;
+  height: 62px;
+  padding: 0 14px 0 10px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 16px;
+  background: var(--pm-face);
+  color: var(--pm-ink);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  transform: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.08s ease, transform 0.08s ease;
+}
+html body.pm.an .an-sub:hover { background: color-mix(in srgb, var(--pm-tint) 38%, var(--pm-face)); border-color: var(--pm-line); color: var(--pm-ink); filter: none; transform: none; }
+html body.pm.an .an-sub:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm.an .an-sub__sym { width: 42px; height: 42px; border-radius: 12px; background: var(--pm-tint); box-shadow: 0 2px 0 0 var(--pm-edge); color: var(--pm-violet); font-size: 0.86rem; font-weight: 800; letter-spacing: -0.03em; overflow: hidden; transition: background 0.15s ease, color 0.15s ease; }
+html[data-theme="dark"] body.pm.an .an-sub__sym { color: #CDBBF2; }
+html body.pm.an .an-sub__name { font-size: 0.9rem; font-weight: 700; color: var(--pm-ink); }
+html body.pm.an .an-sub__n { min-width: 34px; padding: 3px 9px; border-radius: 999px; background: var(--pm-tint); font-size: 0.74rem; font-weight: 800; text-align: center; color: var(--pm-ink-2); }
+
+/* comutatorul 3D (era LED-ul din colț): pistă adâncită, buton alb care alunecă */
+html body.pm.an .an-sub__led {
+  position: relative; top: auto; right: auto; width: 48px; height: 28px; border-radius: 999px;
+  background: var(--pm-track); box-shadow: inset 0 2px 3px rgba(31, 16, 53, 0.22); transition: background 0.18s ease;
+}
+html body.pm.an .an-sub__led::after {
+  content: ""; position: absolute; top: 3px; left: 3px; width: 22px; height: 22px; border-radius: 50%;
+  background: #fff; box-shadow: 0 2px 0 0 rgba(31, 16, 53, 0.28); transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.5, 1);
+}
+/* ales: rândul se tintează, simbolul devine violet, comutatorul verde */
+html body.pm.an .an-sub[aria-pressed="true"],
+html body.pm.an .an-sub[aria-pressed="true"]:hover {
+  border-color: var(--pm-violet); background: color-mix(in srgb, var(--pm-tint) 70%, var(--pm-face)); color: var(--pm-ink);
+}
+html body.pm.an .an-sub[aria-pressed="true"] { box-shadow: 0 3px 0 0 var(--pm-violet-edge, #1F1035); transform: none; }
+html body.pm.an .an-sub[aria-pressed="true"]:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-violet-edge, #1F1035); }
+html body.pm.an .an-sub[aria-pressed="true"] .an-sub__sym { background: var(--pm-violet); color: #fff; box-shadow: 0 2px 0 0 var(--pm-violet-edge, #1F1035); }
+html body.pm.an .an-sub[aria-pressed="true"] .an-sub__n { color: var(--pm-violet); background: var(--pm-face); opacity: 1; }
+html[data-theme="dark"] body.pm.an .an-sub[aria-pressed="true"] .an-sub__n { color: #CDBBF2; }
+html body.pm.an .an-sub[aria-pressed="true"] .an-sub__led { background: var(--k-lime, #7CB800); box-shadow: inset 0 2px 3px rgba(31, 60, 0, 0.3); }
+html body.pm.an .an-sub[aria-pressed="true"] .an-sub__led::after { transform: translateX(20px); }
+/* nimic sub filtrul curent: rând stins, comutator blocat */
+html body.pm.an .an-sub:disabled,
+html body.pm.an .an-sub:disabled:hover,
+html body.pm.an .an-sub:disabled:active {
+  border-color: var(--pm-line); background: color-mix(in srgb, var(--pm-track) 55%, var(--pm-face)); color: var(--pm-ink-2); box-shadow: 0 3px 0 0 var(--pm-line); transform: none; filter: none; opacity: 0.75; cursor: not-allowed;
+}
+html body.pm.an .an-sub:disabled .an-sub__sym { background: var(--pm-track); color: var(--pm-ink-2); box-shadow: none; }
+html body.pm.an .an-sub:disabled .an-sub__led::after { background: color-mix(in srgb, #fff 70%, var(--pm-track)); box-shadow: none; }
+
+/* ---- capitolele care urmează: carduri stinse, cu lacătul ilustrat ---- */
+html body.pm.an .an-chap--soon {
+  border-color: var(--pm-line); border-top-color: var(--pm-line); background: color-mix(in srgb, var(--pm-track) 62%, var(--pm-face)); box-shadow: 0 4px 0 0 var(--pm-line); cursor: not-allowed;
+}
+html body.pm.an .an-chap--soon .an-tile--emblem img { filter: grayscale(0.85) opacity(0.65); }
+html body.pm.an .an-chap--soon .an-chap__name { color: var(--pm-ink-2); }
+html body.pm.an .an-chap--soon .an-chap__head { padding: 16px 18px; }
+html body.pm.an .an-soon {
+  gap: 10px; padding: 5px 8px 5px 14px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: color-mix(in srgb, var(--pm-face) 75%, transparent); box-shadow: none;
+  color: var(--pm-ink-2); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.1em;
+}
+html body.pm.an .an-soon img { width: 34px; height: 34px; display: block; margin: -4px -2px -4px 0; }
+
+/* ---- comutatorul "Doar exerciții nerezolvate" (pasul Câte) în aceeași limbă ---- */
+html body.pm.an .an-switch { gap: 14px; padding: 12px 14px; border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); color: var(--pm-ink); font-size: 0.92rem; font-weight: 700; transition: background 0.15s ease; }
+html body.pm.an .an-switch:hover { background: color-mix(in srgb, var(--pm-tint) 38%, var(--pm-face)); }
+html body.pm.an .an-switch__slot { width: 48px; height: 28px; border: 0; border-radius: 999px; background: var(--pm-track); box-shadow: inset 0 2px 3px rgba(31, 16, 53, 0.22); transition: background 0.18s ease; }
+html body.pm.an .an-switch__knob { top: 3px; left: 3px; width: 22px; height: 22px; border: 0; border-radius: 50%; background: #fff; box-shadow: 0 2px 0 0 rgba(31, 16, 53, 0.28); transition: transform 0.22s cubic-bezier(0.34, 1.4, 0.5, 1); }
+html body.pm.an .an-switch.on .an-switch__slot { background: var(--k-lime, #7CB800); border: 0; box-shadow: inset 0 2px 3px rgba(31, 60, 0, 0.3); }
+html body.pm.an .an-switch.on .an-switch__knob { transform: translateX(20px); }
+
+@media (max-width: 600px) {
+  html body.pm.an .an-chap { border-radius: 18px; }
+  html body.pm.an .an-chap__grid { grid-template-columns: minmax(0, 1fr); }
+  html body.pm.an .an-chap__bar { padding: 8px 10px 8px 14px; }
+  html body.pm.an .an-picks { max-width: none; }
+  html body.pm.an .an-soon { padding: 4px 6px 4px 11px; font-size: 0.64rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.pm.an .an-sub__led::after, html body.pm.an .an-switch__knob, html body.pm.an .an-picks i { transition: none; }
+}

@@ -1,0 +1,129 @@
+/* ============================================================
+   Teorema: Clase (profesor), lista grupelor ca și carduri (2026-11-18)
+   Nu mai e un tabel cu coloane: fiecare grupă e un card alb în limba site-ului (1.5px, 20px, margine solidă), cu ora pe o plăcuță, numele cu clasa și nivelul,
+   trei date cu iconiță mică (unde, ce zile, câți elevi, cu un indicator), starea ca pastilă. UN singur comportament la hover și la apăsare pentru toate grupele.
+   ============================================================ */
+html body.pm .gc-wrap { margin-top: 4px; }
+html body.pm .gc-list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 14px; }
+
+html body.pm .gc {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 20px;
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.08s ease, transform 0.08s ease;
+}
+html body.pm .gc[hidden] { display: none !important; }
+/* același hover pentru fiecare grupă, oricare ar fi starea ei: o tentă ușoară și un contur ceva mai violet */
+html body.pm .gc:hover { background: color-mix(in srgb, var(--pm-tint) 42%, var(--pm-face)); border-color: color-mix(in srgb, var(--pm-violet) 26%, var(--pm-line)); }
+html body.pm .gc:has(.gc__main:active) { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+html body.pm .gc:has(.gc__main:focus-visible) { outline: 2px solid var(--pm-violet); outline-offset: 3px; }
+
+html body.pm .gc__main {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) auto 26px;
+  align-items: center;
+  gap: 16px;
+  min-width: 0;
+  padding: 14px 6px 14px 14px;
+  color: inherit;
+  text-decoration: none;
+  outline: none;
+}
+html body.pm .gc__main:hover { color: inherit; text-decoration: none; }
+
+/* ora, pe o plăcuță, cu zilele dedesubt */
+html body.pm .gc__time {
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 74px;
+  border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-tint); box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm .gc__time b { font-size: 1.28rem; line-height: 1; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--pm-violet); }
+html body.pm .gc__time b .cl-colon { font-family: inherit; top: 0; }
+html body.pm .gc__time small { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pm-ink-2); }
+html[data-theme="dark"] body.pm .gc__time b { color: #CDBBF2; }
+
+html body.pm .gc__body { min-width: 0; }
+html body.pm .gc__top { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 9px; }
+html body.pm .gc__name { font-size: 1.14rem; font-weight: 800; letter-spacing: -0.015em; color: var(--pm-ink); }
+html body.pm .gc__tag { padding: 3px 10px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-face); font-size: 0.72rem; font-weight: 800; color: var(--pm-ink-2); white-space: nowrap; }
+html body.pm .gc__tag--cls { background: var(--pm-tint); border-color: transparent; color: var(--pm-violet); }
+html[data-theme="dark"] body.pm .gc__tag--cls { color: #CDBBF2; }
+
+html body.pm .gc__facts { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 20px; margin-top: 9px; }
+html body.pm .gc__f { display: inline-flex; align-items: center; gap: 7px; font-size: 0.85rem; font-weight: 600; color: var(--pm-ink-2); min-width: 0; }
+html body.pm .gc__f svg { flex: none; width: 17px; height: 17px; color: var(--pm-violet); opacity: 0.85; }
+html[data-theme="dark"] body.pm .gc__f svg { color: #CDBBF2; }
+html body.pm .gc__f b { font-weight: 800; color: var(--pm-ink); font-variant-numeric: tabular-nums; }
+/* câți elevi din câte locuri: un mic indicator adâncit, cu umplere verde */
+html body.pm .gc__meter { flex: none; width: 60px; height: 8px; padding: 0; border-radius: 999px; background: var(--pm-tint); box-shadow: inset 0 2px 3px rgba(31, 16, 53, 0.18); overflow: hidden; }
+html body.pm .gc__meter i { display: block; height: 100%; min-width: 8px; border-radius: 999px; background: var(--k-lime, #7CB800); box-shadow: inset 0 -2px 0 rgba(60, 100, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
+
+/* starea: o pastilă cu LED, aceeași formă pentru toate */
+html body.pm .gc__status {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 136px; box-sizing: border-box; padding: 7px 13px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-face);
+  font-size: 0.78rem; font-weight: 800; white-space: nowrap; color: var(--pm-ink-2);
+}
+html body.pm .gc__status i { width: 9px; height: 9px; border-radius: 50%; background: #A89BC4; }
+html body.pm .gc__status--activ { background: #EAF6D2; border-color: #B5DB6E; color: #3F6A00; }
+html body.pm .gc__status--activ i { background: #6BB000; }
+html body.pm .gc__status--completare { background: #FFF1DC; border-color: #F2C98A; color: #9A5400; }
+html body.pm .gc__status--completare i { background: #F29A1A; }
+html body.pm .gc__status--starteaza { background: var(--pm-tint); border-color: color-mix(in srgb, var(--pm-violet) 30%, var(--pm-line)); color: var(--pm-violet); }
+html body.pm .gc__status--starteaza i { background: var(--pm-violet); }
+html body.pm .gc__status--inlocuire { background: #FDE8EC; border-color: #F2B6C2; color: #A8203B; }
+html body.pm .gc__status--inlocuire i { background: #E0405E; }
+html body.pm .gc__status--inactiv i { background: #B9B1CC; }
+html[data-theme="dark"] body.pm .gc__status--activ { background: #25351A; border-color: #4C7A00; color: #B6E83A; }
+html[data-theme="dark"] body.pm .gc__status--completare { background: #3A2A12; border-color: #7A5418; color: #FFC878; }
+html[data-theme="dark"] body.pm .gc__status--starteaza { color: #CDBBF2; }
+html[data-theme="dark"] body.pm .gc__status--inlocuire { background: #3A1822; border-color: #7A2F42; color: #FFA6B8; }
+
+html body.pm .gc__go { display: grid; place-items: center; width: 26px; color: var(--pm-ink-2); transition: transform 0.15s ease; }
+html body.pm .gc__go svg { width: 20px; height: 20px; }
+html body.pm .gc:hover .gc__go { transform: translateX(3px); }
+
+/* o grupă inactivă: doar conținutul se estompează, cardul rămâne la fel (același hover) */
+html body.pm .gc--inactiv .gc__time, html body.pm .gc--inactiv .gc__body { opacity: 0.6; }
+
+/* cheile de la capăt: codul de invitație și registrul */
+html body.pm .gc__acts { display: flex; align-items: center; justify-content: flex-end; gap: 10px; min-width: 292px; padding: 0 16px 0 6px; }   /* lățime fixă: starea și săgeata stau pe aceeași linie la toate grupele, chiar dacă una nu are cod */
+html body.pm .gc__code {
+  display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 12px 0 8px; border: 1.5px solid var(--pm-line); border-radius: 13px; background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge); color: var(--pm-ink); cursor: pointer; transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease;
+}
+html body.pm .gc__code:hover { background: color-mix(in srgb, var(--pm-tint) 55%, var(--pm-face)); border-color: var(--pm-line); color: var(--pm-ink); }
+html body.pm .gc__code:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm .gc__code b { font-family: var(--k-lcd-font, 'Doto', monospace); font-size: 0.98rem; font-weight: 900; letter-spacing: 0.1em; }
+html body.pm .gc__code .cl-mini__a, html body.pm .gc__code .cl-mini__b { display: inline-flex; color: var(--pm-ink-2); }
+html body.pm .gc__code .cl-mini__b { display: none; color: #3F6A00; }
+html body.pm .gc__code.is-done .cl-mini__a { display: none; }
+html body.pm .gc__code.is-done .cl-mini__b { display: inline-flex; }
+html body.pm .gc__code img { flex: none; display: block; }
+html body.pm .gc__reg { display: grid; place-items: center; width: 44px; height: 44px; border: 1.5px solid var(--pm-line); border-radius: 13px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge); transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease; }
+html body.pm .gc__reg:hover { background: color-mix(in srgb, var(--pm-tint) 55%, var(--pm-face)); }
+html body.pm .gc__reg:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
+html body.pm .gc__reg img { display: block; }
+
+/* mai îngust: cheile coboară sub card, pe un rând; sub 700px și starea trece sub nume */
+@media (max-width: 1280px) {
+  html body.pm .gc { grid-template-columns: minmax(0, 1fr); }
+  html body.pm .gc__acts { min-width: 0; padding: 10px 0 14px; margin: 0 14px; border-top: 1.5px dashed var(--pm-line); justify-content: flex-start; }
+  html body.pm .gc__acts:empty { display: none; }
+}
+@media (max-width: 760px) {
+  html body.pm .gc__main { grid-template-columns: 70px minmax(0, 1fr) 22px; gap: 12px; padding: 12px 4px 12px 12px; }
+  html body.pm .gc__time { height: 66px; border-radius: 14px; }
+  html body.pm .gc__time b { font-size: 1.08rem; }
+  html body.pm .gc__status { grid-column: 2; grid-row: 2; justify-self: start; }
+  html body.pm .gc__go { grid-column: 3; grid-row: 1; }
+  html body.pm .gc__name { font-size: 1.04rem; }
+  html body.pm .gc__facts { gap: 6px 14px; }
+  html body.pm .gc__f { font-size: 0.8rem; }
+}
+@media (prefers-reduced-motion: reduce) {
+  html body.pm .gc, html body.pm .gc__go, html body.pm .gc__code, html body.pm .gc__reg { transition: none; }
+}

@@ -442,26 +442,35 @@
     const seats = g.size ? `${g.enrolled} din ${g.size} elevi` : _ro(g.enrolled, 'elev', 'elevi');
     const label = `${g.subject}${g.grade ? ', ' + _grade(g.grade) : ''}${g.days.length ? ', ' + _dayNames(g.days) : ''}${t0 ? ', ora ' + t0 : ''}, ${g.status.label}, ${seats}`;
     const dayIds = g.days.map(d => DAY_ORDER[d - 1]).filter(Boolean);
+    /* the group as a card (2026-11-18): the time on a tile, the name with its class and level, three facts with a small icon (where, which days, how many
+       students with a meter), the state as a pill; the whole card opens the class, the code and the register are two keys at the right */
+    const pct = g.size ? Math.min(100, Math.round(g.enrolled / g.size * 100)) : 0;
+    const where = fmt || 'Format nespecificat';
+    const whereIco = g.mode === 'online' ? _SI.video : _SI.pin;
+    const dayLong = g.days.length ? g.days.map(d => DAY_ORDER[d - 1]).filter(Boolean).join(', ') : 'Zile nespecificate';
     return `
-      <li class="rg-row rg-row--${g.status.id}" id="rg-${g.id}" data-filter-row data-days="${dayIds.join(',')}">
-        <span class="rg-c rg-time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}"><b>${t0 ? _timeHTML(t0) : '-'}</b></span>
-        <a class="rg-c rg-name" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>${BM.esc(g.subject)}</a>
-        <span class="rg-what">
-          <span class="rg-c rg-cls${g.grade ? '' : ' rg-none'}">${g.grade ? `<b>${BM.esc(_gradeShort(g.grade))}</b>${g.profile ? `<small>${BM.esc(g.profile)}</small>` : ''}` : '-'}</span>
-          <span class="rg-c rg-lvl${g.level ? '' : ' rg-none'}">${g.level ? BM.esc(g.level) : '-'}</span>
-        </span>
-        <span class="rg-when">
-          <span class="rg-c rg-days" title="${BM.esc(_dayNames(g.days))}">${_wkText(g.days)}</span>
-          <span class="rg-c rg-fmt">${BM.esc(fmt || '-')}</span>
-        </span>
-        <span class="rg-fill">
-          <span class="rg-c rg-seats" title="${seats}"><b>${g.enrolled}</b>${g.size ? `/${g.size}` : ''}<em> ${g.enrolled === 1 ? 'elev' : 'elevi'}</em></span>
-          <span class="rg-c rg-status rg-status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
-        </span>
-        <span class="rg-c rg-acts">
-          ${g.code ? `<button type="button" class="rg-act rg-act--code" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul de invitație ${BM.esc(g.code)}" title="Copiază codul de invitație">
-            <b>${BM.esc(g.code)}</b><span class="cl-mini__a">${icon('copy', { size: 17 })}</span><span class="cl-mini__b">${icon('check', { size: 17 })}</span></button>` : ''}
-          ${g.url ? `<a class="rg-act" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei"><img class="rg-act__ico" src="assets/images/class/registru.svg" alt="" width="36" height="36"></a>` : ''}
+      <li class="gc gc--${g.status.id}" id="rg-${g.id}" data-filter-row data-days="${dayIds.join(',')}">
+        <a class="gc__main" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>
+          <span class="gc__time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}"><b>${t0 ? _timeHTML(t0) : '-'}</b><small>${BM.esc(_wkText(g.days))}</small></span>
+          <span class="gc__body">
+            <span class="gc__top">
+              <b class="gc__name">${BM.esc(g.subject)}</b>
+              ${g.grade ? `<span class="gc__tag gc__tag--cls">${BM.esc(_gradeShort(g.grade))}${g.profile ? ' · ' + BM.esc(g.profile) : ''}</span>` : ''}
+              ${g.level ? `<span class="gc__tag">Nivel ${BM.esc(g.level)}</span>` : ''}
+            </span>
+            <span class="gc__facts">
+              <span class="gc__f">${whereIco}<span>${BM.esc(where)}</span></span>
+              <span class="gc__f">${_SI.cal}<span>${BM.esc(dayLong)}</span></span>
+              <span class="gc__f gc__seats" title="${seats}">${_SI.user}<span><b>${g.enrolled}</b>${g.size ? ` din ${g.size}` : ''} ${g.enrolled === 1 ? 'elev' : 'elevi'}</span>${g.size ? `<span class="gc__meter" aria-hidden="true"><i style="width:${pct}%"></i></span>` : ''}</span>
+            </span>
+          </span>
+          <span class="gc__status gc__status--${g.status.id}"><i aria-hidden="true"></i>${g.status.label}</span>
+          <span class="gc__go" aria-hidden="true">${_SI.arrow}</span>
+        </a>
+        <span class="gc__acts">
+          ${g.code ? `<button type="button" class="gc__code" data-copy="${BM.esc(g.code)}" aria-label="Copiază codul de invitație ${BM.esc(g.code)}" title="Copiază codul de invitație">
+            <img src="assets/images/class/cod.svg" alt="" width="26" height="26"><b>${BM.esc(g.code)}</b><span class="cl-mini__a">${icon('copy', { size: 16 })}</span><span class="cl-mini__b">${icon('check', { size: 16 })}</span></button>` : ''}
+          ${g.url ? `<a class="gc__reg" href="${BM.esc(g.url)}" target="_blank" rel="noopener" title="Deschide registrul grupei" aria-label="Deschide registrul grupei"><img src="assets/images/class/registru.svg" alt="" width="34" height="34"></a>` : ''}
         </span>
       </li>`;
   }
@@ -478,9 +487,8 @@
           ${_dayFilterHTML()}
           <div class="cl-bar" id="clBar" hidden></div>
         </div>
-        <div class="rg-sheet">
-          <div class="rg-cols" aria-hidden="true"><span class="rg-c rg-time">Ora</span><span class="rg-c">Disciplina</span><span class="rg-c">Clasa</span><span class="rg-c">Nivel</span><span class="rg-c">Zile</span><span class="rg-c">Format</span><span class="rg-c">Elevi</span><span class="rg-c">Stare</span><span class="rg-c"></span></div>
-          <ol class="rg-list" id="regGrid" aria-label="Grupele tale">${_reg.groups.map(regRowHTML).join('')}</ol>
+        <div class="gc-wrap">
+          <ol class="gc-list" id="regGrid" aria-label="Grupele tale">${_reg.groups.map(regRowHTML).join('')}</ol>
         </div>
         <div class="cl-empty cl-empty--solo cl-empty--panel" id="classesFilterEmpty" hidden>
           <div class="cl-empty__icon">${icon('search-x', { size: 24 })}</div>
@@ -590,7 +598,7 @@
     // a list with nothing to show goes away, the others stay; and one message when nothing is left at all
     ['regGrid', 'classesGrid'].forEach(id => {
       const g = document.getElementById(id);
-      if (g) { const any = [...g.children].some(c => !c.hidden); g.hidden = !any; const sect = id === 'regGrid' ? g.closest('.rg-sheet') : g.closest('.cl-sect'); if (sect) sect.hidden = !any && _dayFilterSelected.length > 0; }
+      if (g) { const any = [...g.children].some(c => !c.hidden); g.hidden = !any; const sect = id === 'regGrid' ? g.closest('.gc-wrap') : g.closest('.cl-sect'); if (sect) sect.hidden = !any && _dayFilterSelected.length > 0; }
     });
     const emptyMsg = document.getElementById('classesFilterEmpty');
     if (emptyMsg) emptyMsg.hidden = visibleCount !== 0;
