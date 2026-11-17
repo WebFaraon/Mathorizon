@@ -407,14 +407,26 @@
           <ol class="cl-today__list">
             ${lessons.map((g, i) => {
               const t0 = _hh(g.start), t1 = _hh(g.start + g.duration), st = _lessonState(t0, t1);
-              const sub = [_grade(g.grade), g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') : '', g.cab ? 'Cab. ' + g.cab : '', _ro(g.enrolled, 'elev', 'elevi')].filter(Boolean);
+              const where = g.mode ? (g.mode === 'online' ? 'Online' : 'Offline') + (g.cab ? ' · Cab. ' + g.cab : '') : 'Format nespecificat';
+              const whereIco = g.mode === 'online' ? _SI.video : _SI.pin;
+              /* same card as the group list below (2026-11-18): time tile, name with class and level, facts, a state pill that follows the clock */
               return `
-              <li class="cl-lesson cl-lesson--${st.cls}" style="--i:${i}" data-time="${t0}" data-end="${t1}">
-                <a class="cl-lesson__link" href="${g.classId ? 'class.html?id=' + g.classId : '#rg-' + g.id}">
-                  <span class="cl-lesson__time">${_timeHTML(t0)}</span>
-                  <span class="cl-lesson__body"><b>${BM.esc(g.subject)}</b><span>${_seg(sub.join(' · '))}</span></span>
-                  <span class="cl-lesson__state">${st.text}</span>
-                  ${icon('chevron-right', { size: 18 })}
+              <li class="cl-lesson gc cl-lesson--${st.cls}" style="--i:${i}" data-time="${t0}" data-end="${t1}">
+                <a class="cl-lesson__link gc__main" href="${g.classId ? 'class.html?id=' + g.classId : '#rg-' + g.id}">
+                  <span class="gc__time" title="${t0} - ${t1}"><b>${_timeHTML(t0)}</b></span>
+                  <span class="gc__body">
+                    <span class="gc__top">
+                      <b class="gc__name">${BM.esc(g.subject)}</b>
+                      ${g.grade ? `<span class="gc__tag gc__tag--cls">${BM.esc(_gradeShort(g.grade))}${g.profile ? ' · ' + BM.esc(g.profile) : ''}</span>` : ''}
+                      ${g.level ? `<span class="gc__tag">Nivel ${BM.esc(g.level)}</span>` : ''}
+                    </span>
+                    <span class="gc__facts">
+                      <span class="gc__f">${whereIco}<span>${BM.esc(where)}</span></span>
+                      <span class="gc__f">${_SI.user}<span><b>${g.enrolled}</b> ${g.enrolled === 1 ? 'elev' : 'elevi'}</span></span>
+                    </span>
+                  </span>
+                  <span class="cl-lesson__state gc__status">${st.text}</span>
+                  <span class="gc__go" aria-hidden="true">${_SI.arrow}</span>
                 </a>
               </li>`;
             }).join('')}
@@ -451,7 +463,7 @@
     return `
       <li class="gc gc--${g.status.id}" id="rg-${g.id}" data-filter-row data-days="${dayIds.join(',')}">
         <a class="gc__main" href="${BM.esc(href)}"${ext} aria-label="Deschide grupa: ${BM.esc(label)}"${hint ? ` title="${BM.esc(hint)}"` : ''}>
-          <span class="gc__time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}"><b>${t0 ? _timeHTML(t0) : '-'}</b><small>${BM.esc(_wkText(g.days))}</small></span>
+          <span class="gc__time" title="${t0 && t1 ? t0 + ' - ' + t1 : ''}"><b>${t0 ? _timeHTML(t0) : '-'}</b></span>
           <span class="gc__body">
             <span class="gc__top">
               <b class="gc__name">${BM.esc(g.subject)}</b>

@@ -38,12 +38,11 @@ html body.pm .gc__main:hover { color: inherit; text-decoration: none; }
 
 /* ora, pe o plăcuță, cu zilele dedesubt */
 html body.pm .gc__time {
-  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 3px; height: 74px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center; height: 58px;
   border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-tint); box-shadow: 0 3px 0 0 var(--pm-edge);
 }
 html body.pm .gc__time b { font-size: 1.28rem; line-height: 1; font-weight: 800; letter-spacing: -0.01em; font-variant-numeric: tabular-nums; color: var(--pm-violet); }
 html body.pm .gc__time b .cl-colon { font-family: inherit; top: 0; }
-html body.pm .gc__time small { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.05em; text-transform: uppercase; color: var(--pm-ink-2); }
 html[data-theme="dark"] body.pm .gc__time b { color: #CDBBF2; }
 
 html body.pm .gc__body { min-width: 0; }
@@ -62,25 +61,32 @@ html body.pm .gc__f b { font-weight: 800; color: var(--pm-ink); font-variant-num
 html body.pm .gc__meter { flex: none; width: 60px; height: 8px; padding: 0; border-radius: 999px; background: var(--pm-tint); box-shadow: inset 0 2px 3px rgba(31, 16, 53, 0.18); overflow: hidden; }
 html body.pm .gc__meter i { display: block; height: 100%; min-width: 8px; border-radius: 999px; background: var(--k-lime, #7CB800); box-shadow: inset 0 -2px 0 rgba(60, 100, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.5); }
 
-/* starea: o pastilă cu LED, aceeași formă pentru toate */
+/* starea: o pastilă cu LED aprins (cu halou), margine solidă dedesubt în culoarea ei, aceeași formă pentru toate */
 html body.pm .gc__status {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-width: 136px; box-sizing: border-box; padding: 7px 13px; border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-face);
-  font-size: 0.78rem; font-weight: 800; white-space: nowrap; color: var(--pm-ink-2);
+  --st-bg: #F1EEF8; --st-line: #D6CFE6; --st-edge: #C4BBDA; --st-ink: #5B4F78; --st-led: #A89BC4;
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-width: 144px; height: 38px; box-sizing: border-box; padding: 0 16px 0 14px;
+  border: 1.5px solid var(--st-line); border-radius: 999px; background: var(--st-bg); box-shadow: 0 3px 0 0 var(--st-edge);
+  font-size: 0.8rem; font-weight: 800; letter-spacing: 0.005em; white-space: nowrap; color: var(--st-ink);
 }
-html body.pm .gc__status i { width: 9px; height: 9px; border-radius: 50%; background: #A89BC4; }
-html body.pm .gc__status--activ { background: #EAF6D2; border-color: #B5DB6E; color: #3F6A00; }
-html body.pm .gc__status--activ i { background: #6BB000; }
-html body.pm .gc__status--completare { background: #FFF1DC; border-color: #F2C98A; color: #9A5400; }
-html body.pm .gc__status--completare i { background: #F29A1A; }
-html body.pm .gc__status--starteaza { background: var(--pm-tint); border-color: color-mix(in srgb, var(--pm-violet) 30%, var(--pm-line)); color: var(--pm-violet); }
-html body.pm .gc__status--starteaza i { background: var(--pm-violet); }
-html body.pm .gc__status--inlocuire { background: #FDE8EC; border-color: #F2B6C2; color: #A8203B; }
-html body.pm .gc__status--inlocuire i { background: #E0405E; }
-html body.pm .gc__status--inactiv i { background: #B9B1CC; }
-html[data-theme="dark"] body.pm .gc__status--activ { background: #25351A; border-color: #4C7A00; color: #B6E83A; }
-html[data-theme="dark"] body.pm .gc__status--completare { background: #3A2A12; border-color: #7A5418; color: #FFC878; }
-html[data-theme="dark"] body.pm .gc__status--starteaza { color: #CDBBF2; }
-html[data-theme="dark"] body.pm .gc__status--inlocuire { background: #3A1822; border-color: #7A2F42; color: #FFA6B8; }
+html body.pm .gc__status i, html body.pm .cl-lesson .gc__status::before {
+  content: ''; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--st-led);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-led) 24%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.55);
+}
+html body.pm .gc__status--activ, html body.pm .cl-lesson--now .gc__status { --st-bg: #EEF8D9; --st-line: #BFE07A; --st-edge: #A5CF55; --st-ink: #3A6200; --st-led: #6BB000; }
+html body.pm .gc__status--completare { --st-bg: #FFF3E0; --st-line: #F5CE91; --st-edge: #EDB866; --st-ink: #94500A; --st-led: #F29A1A; }
+html body.pm .gc__status--starteaza, html body.pm .cl-lesson--soon .gc__status { --st-bg: #EFE9FB; --st-line: #CDBFEC; --st-edge: #B9A8E2; --st-ink: #4B2A86; --st-led: #6B3FC4; }
+html body.pm .gc__status--inlocuire { --st-bg: #FDEBEF; --st-line: #F4BBC7; --st-edge: #EA9DAE; --st-ink: #A01E3A; --st-led: #E0405E; }
+html body.pm .gc__status--inactiv, html body.pm .cl-lesson--done .gc__status { --st-bg: #F4F2F8; --st-line: #DDD7EA; --st-edge: #CDC6DE; --st-ink: #6F668A; --st-led: #B9B1CC; }
+html[data-theme="dark"] body.pm .gc__status { --st-bg: #2A2240; --st-line: #3D3360; --st-edge: #1B1530; --st-ink: #CFC6E6; --st-led: #8F84AE; }
+html[data-theme="dark"] body.pm .gc__status--activ, html[data-theme="dark"] body.pm .cl-lesson--now .gc__status { --st-bg: #25351A; --st-line: #4C7A00; --st-edge: #2F4A0A; --st-ink: #B6E83A; --st-led: #9BD33B; }
+html[data-theme="dark"] body.pm .gc__status--completare { --st-bg: #3A2A12; --st-line: #7A5418; --st-edge: #2A1C0A; --st-ink: #FFC878; --st-led: #F2A93B; }
+html[data-theme="dark"] body.pm .gc__status--starteaza, html[data-theme="dark"] body.pm .cl-lesson--soon .gc__status { --st-bg: #2E2350; --st-line: #4D3C85; --st-edge: #1F1638; --st-ink: #D8C8FA; --st-led: #A98BEF; }
+html[data-theme="dark"] body.pm .gc__status--inlocuire { --st-bg: #3A1822; --st-line: #7A2F42; --st-edge: #2A1018; --st-ink: #FFA6B8; --st-led: #F2677F; }
+html[data-theme="dark"] body.pm .gc__status--inactiv, html[data-theme="dark"] body.pm .cl-lesson--done .gc__status { --st-bg: #262033; --st-line: #3A3252; --st-edge: #1A1526; --st-ink: #9C93B5; --st-led: #6F668A; }
+@media (prefers-reduced-motion: no-preference) {
+  html body.pm .gc__status--activ i, html body.pm .cl-lesson--now .gc__status::before { animation: gc-led 2.2s ease-in-out infinite; }
+}
+@keyframes gc-led { 0%, 100% { box-shadow: 0 0 0 3px color-mix(in srgb, var(--st-led) 24%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.55); } 50% { box-shadow: 0 0 0 5px color-mix(in srgb, var(--st-led) 12%, transparent), inset 0 1px 0 rgba(255, 255, 255, 0.55); } }
 
 html body.pm .gc__go { display: grid; place-items: center; width: 26px; color: var(--pm-ink-2); transition: transform 0.15s ease; }
 html body.pm .gc__go svg { width: 20px; height: 20px; }
@@ -116,7 +122,7 @@ html body.pm .gc__reg img { display: block; }
 }
 @media (max-width: 760px) {
   html body.pm .gc__main { grid-template-columns: 70px minmax(0, 1fr) 22px; gap: 12px; padding: 12px 4px 12px 12px; }
-  html body.pm .gc__time { height: 66px; border-radius: 14px; }
+  html body.pm .gc__time { height: 52px; border-radius: 14px; }
   html body.pm .gc__time b { font-size: 1.08rem; }
   html body.pm .gc__status { grid-column: 2; grid-row: 2; justify-self: start; }
   html body.pm .gc__go { grid-column: 3; grid-row: 1; }
@@ -126,4 +132,26 @@ html body.pm .gc__reg img { display: block; }
 }
 @media (prefers-reduced-motion: reduce) {
   html body.pm .gc, html body.pm .gc__go, html body.pm .gc__code, html body.pm .gc__reg { transition: none; }
+}
+
+/* Lecțiile de azi: același card ca o grupă (2026-11-18). Stările (urmează, acum, încheiată) vin din ceas și schimbă clasa cl-lesson--*. */
+html body.pm:has(#classesRoot) .cl-today__list { gap: 14px; padding-bottom: 6px; }
+html body.pm:has(#classesRoot) .cl-lesson.gc,
+html body.pm:has(#classesRoot) .cl-lesson.gc + .cl-lesson.gc {
+  border: 1.5px solid var(--pm-line); border-radius: 20px; background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge); overflow: visible; filter: none;
+  transition: background 0.15s ease, border-color 0.15s ease, box-shadow 0.08s ease, transform 0.08s ease;
+}
+html body.pm:has(#classesRoot) .cl-lesson.gc:hover { background: color-mix(in srgb, var(--pm-tint) 42%, var(--pm-face)); border-color: color-mix(in srgb, var(--pm-violet) 26%, var(--pm-line)); filter: none; }
+html body.pm:has(#classesRoot) .cl-lesson.gc:active { transform: none; box-shadow: 0 4px 0 0 var(--pm-edge); }
+html body.pm:has(#classesRoot) .cl-lesson.gc:has(.gc__main:active) { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+html body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link { min-height: 0; padding: 14px 6px 14px 14px; border-radius: 20px; background: transparent; }
+html body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link:hover { background: transparent; color: inherit; }
+html body.pm:has(#classesRoot) .cl-lesson.gc .gc__go svg { color: var(--pm-ink-2); transform: none; }
+html body.pm:has(#classesRoot) .cl-lesson.gc .gc__time b { min-width: 0; padding: 0; border: 0; background: none; box-shadow: none; border-radius: 0; font-size: 1.28rem; color: var(--pm-violet); }
+html[data-theme="dark"] body.pm:has(#classesRoot) .cl-lesson.gc .gc__time b { color: #CDBBF2; }
+html body.pm:has(#classesRoot) .cl-lesson.gc .gc__status { padding: 0 16px 0 14px; background: var(--st-bg); font-size: 0.8rem; }
+html body.pm:has(#classesRoot) .cl-lesson--done .gc__time, html body.pm:has(#classesRoot) .cl-lesson--done .gc__body { opacity: 0.6; }
+@media (max-width: 760px) {
+  html body.pm:has(#classesRoot) .cl-lesson.gc .cl-lesson__link { padding: 12px 4px 12px 12px; }
+  html body.pm:has(#classesRoot) .cl-lesson.gc .gc__time b { font-size: 1.08rem; }
 }
