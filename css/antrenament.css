@@ -712,7 +712,7 @@ html[data-theme="dark"] .an-key--danger, html[data-theme="dark"] .an-key--danger
 .an-card__emblem {
   flex: 1;
   margin: 12px 0 0;
-  background: url('../assets/images/teorema-owl-ink.png') center / auto 62% no-repeat;
+  background: url('../assets/images/teorema-owl-solid.svg') center / auto 62% no-repeat;
   opacity: 0.9;
 }
 html[data-theme="dark"] .an-card__emblem { background-image: url('../assets/images/teorema-owl.svg'); opacity: 0.85; }
