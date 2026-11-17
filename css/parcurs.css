@@ -407,3 +407,37 @@
   .ch__go { width: 100%; }
   .ch--done { flex-wrap: wrap; }
 }
+
+/* ---- ecranul Capitole, runda 2 (2026-11-17): fundal cu desen în cardul violet, lista de teme, lacăt ilustrat ---- */
+.ch--cur { overflow: hidden; isolation: isolate; }
+.ch__art { position: absolute; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; background-image: linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px); background-size: 28px 28px; }
+.ch__art-ring { position: absolute; right: -90px; top: -80px; }
+.ch__art-wave { position: absolute; left: -20px; bottom: 0; }
+.ch__sym { position: absolute; font-family: 'Space Grotesk', 'Plus Jakarta Sans', system-ui, sans-serif; font-weight: 700; color: #fff; line-height: 1; white-space: nowrap; }
+.ch__sp { position: absolute; display: block; line-height: 0; }
+.ch--cur > .ch__tx, .ch--cur > .ch__side { position: relative; z-index: 1; }
+.ch__side { width: 250px; gap: 0; align-items: stretch; }
+.ch__owl { --ow: 92px; align-self: flex-end; margin: 0 6px -22px 0; position: relative; z-index: 2; }
+.ch__topics { position: relative; padding: 13px 15px 14px; border-radius: 18px; background: #fff; color: #1E1631; box-shadow: 0 4px 0 rgba(15, 5, 35, 0.35); }
+.ch__topics > small { display: block; margin-bottom: 9px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.14em; color: #7A6D96; }
+.ch__topics ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.ch__topics li { display: flex; align-items: center; gap: 10px; font-size: 0.9rem; font-weight: 700; line-height: 1.25; }
+.ch__topics li i { flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 8px; background: #EDE7F8; color: #3F236E; font-style: normal; font-size: 0.78rem; font-weight: 800; }
+.ch__topics li.is-cur i { background: #3F236E; color: #fff; }
+.ch__topics li.is-done i { background: #7CB800; color: #fff; }
+.ch__topics li i .ic { width: 14px; height: 14px; stroke-width: 3.4; }
+.ch__more { display: flex; align-items: center; gap: 8px; margin: 11px 0 0; padding-top: 11px; border-top: 1.5px dashed #DDD6EA; font-size: 0.8rem; font-weight: 700; color: #7A6D96; }
+.ch__more img { flex: none; }
+html[data-theme="dark"] .ch__topics { background: #F4F0FB; }
+
+.ch--lock { gap: 14px; }
+.ch__lk { display: inline-flex; align-self: flex-start; padding: 6px 14px; border-radius: 999px; background: color-mix(in srgb, var(--pm-face) 70%, transparent); border: 1.5px solid var(--pm-line); opacity: 1; font-size: 0.74rem; letter-spacing: 0.1em; }
+.ch__padlock { flex: none; width: 60px; height: 60px; margin-right: 2px; }
+
+@media (max-width: 600px) {
+  .ch__side { width: 100%; flex-direction: column; align-items: stretch; justify-content: flex-start; }
+  .ch__owl { --ow: 72px; order: 0; align-self: flex-end; margin: 0 8px -18px 0; }
+  .ch__topics { width: 100%; }
+  .ch__padlock { width: 48px; height: 48px; }
+}
+@media (prefers-reduced-motion: reduce) { .ch__art * { animation: none; } }

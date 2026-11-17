@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <!-- lacat in limba bufnitei: forma plina, margine de jos mai inchisa, luminita -->
+  <path d="M21 32V22a11 11 0 0 1 22 0v10" fill="none" stroke="#8D80B2" stroke-width="7.5" stroke-linecap="round"/>
+  <path d="M21 32V22a11 11 0 0 1 22 0v10" fill="none" stroke="#B1A5D2" stroke-width="4" stroke-linecap="round" transform="translate(0 -1)"/>
+  <rect x="11" y="30" width="42" height="30" rx="10" fill="#7468A0"/>
+  <rect x="11" y="28" width="42" height="29" rx="10" fill="#B8ADD8"/>
+  <rect x="15" y="31" width="34" height="6" rx="3" fill="#D5CCEA"/>
+  <circle cx="32" cy="42" r="5" fill="#5F5389"/>
+  <rect x="29.5" y="43" width="5" height="9" rx="2.5" fill="#5F5389"/>
+  <path d="M52 14l1.6 3.6L57 19l-3.4 1.4L52 24l-1.6-3.6L47 19l3.4-1.4z" fill="#fff" opacity=".85"/>
+</svg>

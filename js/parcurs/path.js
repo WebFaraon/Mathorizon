@@ -182,6 +182,20 @@
     var up = ch.upcoming ? ch.upcoming.length : 0, avg = secs ? total / secs : 0, all = total + up * avg;
     return { pct: all ? Math.round(done / all * 100) : 0, finished: allTests && !up, count: secs + up };
   }
+  /* fundalul cardului violet: caroiaj fin, un cerc trigonometric cu unghi (sus în dreapta), curbe jos, formule cu radicali și fracții, scântei verzi.
+     Formulele și scânteile sunt puse cu procente, ca să se împrăștie la fel pe card și pe laptop, și pe telefon. */
+  function chArt() {
+    var g = [[63, 6, 54, -8, '√x', 0.2], [43, 80, 46, 10, 'π', 0.18], [88, 82, 40, 0, '½', 0.2], [80, 44, 34, 8, 'x²', 0.17], [31, 88, 28, -6, '0,(3)', 0.16], [3, 6, 32, -10, '±', 0.15], [47, 5, 26, 6, '∛8', 0.15], [70, 62, 28, 0, '3/4', 0.15]];
+    var st = [[92, 52, 16, 0.85], [5, 84, 11, 0.6], [58, 93, 12, 0.7], [37, 12, 11, 0.55]];
+    var star = function (px) { var r = px; return '<svg viewBox="-12 -12 24 24" width="' + r + '" height="' + r + '" aria-hidden="true"><path d="M0 -11l3 8l8 3l-8 3l-3 8l-3 -8l-8 -3l8 -3z" fill="#B6E83A"/></svg>'; };
+    var h = '<div class="ch__art" aria-hidden="true">' +
+      '<svg class="ch__art-ring" viewBox="0 0 300 300" width="300" height="300" fill="none" stroke="#fff" stroke-linecap="round"><circle cx="170" cy="130" r="118" stroke-opacity=".16" stroke-width="2"/><circle cx="170" cy="130" r="76" stroke-opacity=".14" stroke-width="2" stroke-dasharray="3 9"/><path d="M170 130L250 70" stroke-opacity=".3" stroke-width="2.5"/><path d="M170 130H300" stroke-opacity=".2" stroke-width="2"/><path d="M218 130a48 48 0 0 0-14-34" stroke="#B6E83A" stroke-opacity=".8" stroke-width="3"/><circle cx="250" cy="70" r="6" fill="#B6E83A" stroke="none"/></svg>' +
+      '<svg class="ch__art-wave" viewBox="0 0 360 120" width="360" height="120" fill="none" stroke="#fff" stroke-linecap="round"><path d="M-10 118c80-60 170-60 250 0" stroke-opacity=".14" stroke-width="2"/><path d="M-10 142c90-72 190-72 280 0" stroke-opacity=".1" stroke-width="2"/></svg>';
+    g.forEach(function (x) { h += '<b class="ch__sym" style="left:' + x[0] + '%;top:' + x[1] + '%;font-size:' + x[2] + 'px;opacity:' + x[5] + ';transform:rotate(' + x[3] + 'deg)">' + x[4] + '</b>'; });
+    st.forEach(function (x) { h += '<i class="ch__sp" style="left:' + x[0] + '%;top:' + x[1] + '%;opacity:' + x[3] + '">' + star(x[2]) + '</i>'; });
+    return h + '</div>';
+  }
+
   function chaptersHTML() {
     var h = '<div class="pp-main pp-chaps"><div class="pp-chaps__h"><h2>Capitole</h2><p>Clasa a 7-a</p></div>', gotCur = false;
     CLS.chapters.forEach(function (ch) {
@@ -190,16 +204,21 @@
         h += '<article class="ch ch--done"><div class="ch__tx"><h3>Capitolul ' + ch.n + '</h3><span class="ch__ok">' + svg('check') + 'FINALIZAT!</span></div><button type="button" class="pk ch__rev" data-chapter="' + ch.n + '">RECAPITULARE</button></article>';
       } else if (!gotCur) {
         gotCur = true;
-        var names = ch.sections.map(function (s) { return PM.plain(s.short).toLowerCase(); });
-        var more = ch.upcoming && ch.upcoming.length ? ' și încă ' + ch.upcoming.length + ' teme' : '';
-        h += '<article class="ch ch--cur"><div class="ch__tx"><small>CAPITOLUL ' + ch.n + ' · ' + st.count + ' SECȚIUNI</small><h3>' + esc(ch.title) + '</h3>' +
+        var firstOpen = true, rows = ch.sections.map(function (s, i) {
+          var done = totalsOf(s).testDone, cls = done ? ' is-done' : (firstOpen ? ' is-cur' : '');
+          if (!done) firstOpen = false;
+          return '<li class="' + cls.trim() + '"><i>' + (done ? svg('check') : (i + 1)) + '</i><span>' + esc(PM.plain(s.short)) + '</span></li>';
+        }).join('');
+        var up = ch.upcoming && ch.upcoming.length ? ch.upcoming.length : 0;
+        var more = up ? '<p class="ch__more"><img src="assets/images/path/lacat.svg" alt="" width="22" height="22">' + up + (up === 1 ? ' temă în pregătire' : ' teme în pregătire') + '</p>' : '';
+        h += '<article class="ch ch--cur">' + chArt() + '<div class="ch__tx"><small>CAPITOLUL ' + ch.n + ' · ' + st.count + ' SECȚIUNI</small><h3>' + esc(ch.title) + '</h3>' +
           '<div class="ch__barrow"><div class="ch__bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + st.pct + '"><i style="width:' + st.pct + '%"></i></div><b>' + st.pct + '%</b></div>' +
           '<button type="button" class="go ch__go" data-chapter="' + ch.n + '">' + (st.pct > 0 ? 'CONTINUĂ' : 'ÎNCEPE') + '</button></div>' +
-          '<div class="ch__side"><p class="ch__bubble">' + esc(names.join(', ')) + more + '.</p><div class="owl ch__owl" data-owl="idle" data-owl-theme="dark"></div></div></article>';
+          '<div class="ch__side"><div class="owl ch__owl" data-owl="idle" data-owl-theme="dark"></div><div class="ch__topics"><small>TEME</small><ol>' + rows + '</ol>' + more + '</div></div></article>';
       }
     });
     SOON_CHAPTERS.forEach(function (n) {
-      h += '<article class="ch ch--lock"><div class="ch__tx"><h3>Capitolul ' + n + '</h3><span class="ch__lk">' + svg('lock') + 'Se pregătește</span></div></article>';
+      h += '<article class="ch ch--lock"><div class="ch__tx"><h3>Capitolul ' + n + '</h3><span class="ch__lk">Se pregătește</span></div><img class="ch__padlock" src="assets/images/path/lacat.svg" alt="" width="60" height="60"></article>';
     });
     return h + '<p class="pp-note">Un capitol se deschide după ce îl termini pe cel dinainte.</p></div>';
   }
