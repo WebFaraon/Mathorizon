@@ -90,11 +90,30 @@
         state.rank = mine ? mine.rank : null; state.rankXp = mine ? mine.total_xp : null;
         try { sessionStorage.setItem('bm_rail_rank', JSON.stringify({ u: u.id, t: Date.now(), rank: state.rank, xp: state.rankXp })); } catch (e) { /* ignore */ }
       }, function () { /* in tacere */ });
-    }).then(function () { state.loading = false; schedule(); }, function () { state.loading = false; });
+    }).then(function () { state.loading = false; var s2 = snapshot(); if (s2) loadAch(s2, (state.nickRole || s2.role) === 'elev'); schedule(); }, function () { state.loading = false; });
   }
 
   /* ---- desen ---- */
   function skeleton() { return '<div class="rl-card rl-skel" aria-hidden="true"></div>'; }
+
+  /* Realizări: medaliile pentru elevi si pentru profesori vin din js/achievements.js (managerii si adminii nu au) */
+  function achRole(s, isStudent) {
+    if (isStudent) return 'elev';
+    var r = state.nickRole || s.role;
+    return r === 'profesor' || r === 'admin' ? 'profesor' : null;
+  }
+  function achHTML(s, isStudent) {
+    var B = window.BMAch, r = achRole(s, isStudent);
+    if (!B || !r) return '';
+    return B.section(r, state.ach && state.ach.role === r ? state.ach.st : B.local(r));
+  }
+  function loadAch(s, isStudent) {
+    var B = window.BMAch, r = achRole(s, isStudent);
+    if (!B || !r || state.achBusy) return;
+    state.achBusy = true;
+    B.load(r).then(function (st) { state.ach = { role: r, st: st }; B.check(r, st); }, function () { /* in tacere */ })
+      .then(function () { state.achBusy = false; schedule(); });
+  }
 
   function html(s) {
     var level = Math.floor(s.xp / s.perLevel) + 1, into = s.xp % s.perLevel, pct = Math.round(into / s.perLevel * 100);
@@ -123,8 +142,7 @@
           '<div class="rl-ps__card rl-ps__card--soon"><span class="rl-ps__tag">ÎN CURÂND</span><img src="' + IC.liga + '" alt=""><div><b>Ligi</b><span>Liga curentă</span></div></div>' +
           '<div class="rl-ps__card"><img src="' + IC.trophy + '" alt=""><div><b>' + rankTxt + '</b><span>în clasament</span></div></div>' +
         '</div>' +
-        '<h4 class="rl-h">Realizări</h4>' +
-        '<div class="rl-ach"><img src="' + IC.medal + '" alt=""><p>Realizările vor apărea aici în curând.</p></div>' +
+        achHTML(s, isStudent) +
         (isStudent ? '<a class="rl-btn" href="profile.html#simulari-bac"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2M12 11h4M12 16h4M8 11h.01M8 16h.01"/></svg>Simulările tale anterioare</a>' : '') +
       '</div></div>';
   }
