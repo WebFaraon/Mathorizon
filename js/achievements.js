@@ -1,12 +1,11 @@
 /* ============================================================
-   Realizări (2026-11-18): insignele din Teorema Logo Kit (fila Realizări), separate pentru elevi și pentru profesori.
-   Fiecare realizare e o insignă cu raritate (Comun, Rar, Epic, Legendar), forma depinde de categorie. Cele care nu se pot calcula încă
-   apar blocate cu mențiunea "În curând" (`soon`). Nu se dă XP pentru realizări (se decide mai târziu).
-   Nimic nu se salvează separat: ce e câștigat se calculează din activitatea de pe platformă. În browser se țin doar ce a văzut omul deja
-   (ca mesajul "Realizare nouă" să apară o singură dată) și cea mai lungă serie.
+   Realizări (2026-11-18): fiecare realizare are UN nume și mai multe niveluri de insignă (Bronz, Argint, Aur, Diamant, Mitic), într-un singur loc.
+   Insigna e a nivelului cel mai înalt atins; pe măsură ce crește progresul, se schimbă în nivelul următor. În mijlocul insignei e iconița reală din
+   aplicație (foc, tablă, teme, simulări, elevi...). Separate pentru elevi și pentru profesori. Cele care nu se pot calcula încă sunt blocate "În curând".
+   Nu se dă XP pentru realizări (se decide mai târziu). Nimic nu se salvează separat: nivelul se calculează din activitate; în browser se țin doar
+   nivelurile văzute (ca mesajul "Realizare nouă" să apară o singură dată) și cea mai lungă serie.
 
-   Insignele desenate: assets/images/ach/<id>.svg și <id>-blocat.svg, generate din `DEFS` de scripts/make-ach-badges.mjs
-   (aceeași funcție ca în kit; cele de profesor au pictograme noi în același stil).
+   Insignele: assets/images/ach/<id>-1..5.svg (Bronz..Mitic) și <id>-blocat.svg, generate din `DEFS` de scripts/make-ach-badges.mjs.
    API: BMAch.local(role), BMAch.load(role), BMAch.section(role, stats), BMAch.open(role), BMAch.check(role, stats), BMAch.DEFS
    ============================================================ */
 (function () {
@@ -15,82 +14,58 @@
   if (root.BMAch) return;
 
   var IMG = 'assets/images/ach/';
-  var RN = ['Comun', 'Rar', 'Epic', 'Legendar'];
+  var LV = ['Bronz', 'Argint', 'Aur', 'Diamant', 'Mitic'];
   var esc = function (s) { return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); };
 
+  /* "1 exercițiu", "5 exerciții", "20 de exerciții" */
+  function ro(n, one, many) {
+    n = Math.round(n);
+    if (n === 1) return '1 ' + one;
+    var m = n % 100;
+    return n + (m === 0 || m >= 20 ? ' de ' : ' ') + many;
+  }
+
   /* ---- ce se poate câștiga ----
-     c = categoria, shape = hex | round | shield, r = raritatea 0..3, ico / txt = pictograma și numărul de pe insignă,
-     stat = cifra din care se calculează, goal = pragul, soon = încă nu se poate calcula */
-  function d(c, shape, r, ico, txt, id, name, desc, stat, goal, extra) {
-    var o = { id: id, c: c, shape: shape, r: r, ico: ico, txt: txt, name: name, desc: desc, stat: stat, goal: goal };
+     id, name, img = iconița reală din aplicație (sau ico = pictogramă din kit), stat = cifra din care se calculează,
+     tiers = pragurile celor 5 niveluri, desc = textul unui prag, shape = hex | round, soon = încă nu se poate calcula */
+  function d(id, name, icon, stat, tiers, desc, extra) {
+    var o = { id: id, name: name, stat: stat, tiers: tiers, desc: desc, shape: 'hex' };
+    if (/\.svg$/.test(icon)) o.img = icon; else o.ico = icon;
     if (extra) for (var k in extra) o[k] = extra[k];
     return o;
   }
-  var soon = { soon: true };
-  var CHAPS = ['Funcții', 'Derivate', 'Probabilități', 'Geometrie', 'Trigonometrie', 'Logaritmi'];
-  var SLUG = ['functii', 'derivate', 'probabilitati', 'geometrie', 'trigonometrie', 'logaritmi'];
-
-  var CAT = {
-    elev: ['Capitole', 'Serie', 'Exerciții', 'Măiestrie', 'Comunitate', 'Speciale'],
-    profesor: ['Serie', 'Teme', 'Simulări', 'Tabla live', 'Elevi', 'Comunicare', 'Conținut', 'Speciale']
-  };
+  function soonD(id, name, icon, text, extra) { var o = d(id, name, icon, '', [], null, extra); o.soon = true; o.text = text; return o; }
+  var I = 'assets/images/';
+  var streakTiers = [3, 30, 90, 180, 365];
 
   var DEFS = {
-    elev: [].concat(
-      CHAPS.map(function (n, k) { return d(0, 'shield', 1, null, '', 'cap-' + SLUG[k], 'Insigna ' + n, 'Termină capitolul „' + n + '” cu cel puțin 80%.', '', 100, { soon: true, owl: true, picto: k }); }),
-      [
-        d(1, 'hex', 0, 'flame', '3', 'serie-3', 'Trei la rând', 'Exersează 3 zile la rând.', 'streak', 3),
-        d(1, 'hex', 0, 'flame', '7', 'serie-7', 'O săptămână', 'Exersează 7 zile la rând.', 'streak', 7),
-        d(1, 'hex', 1, 'flame', '30', 'serie-30', 'Luna de foc', 'Exersează 30 de zile la rând.', 'streak', 30),
-        d(1, 'hex', 2, 'flame', '100', 'serie-100', 'Sută de zile', 'Exersează 100 de zile la rând.', 'streak', 100),
-        d(1, 'hex', 3, 'flame', '365', 'serie-365', 'Un an cu bufnița', 'Exersează 365 de zile la rând.', 'streak', 365),
-        d(2, 'hex', 0, 'tick', '1', 'ex-1', 'Primul pas', 'Rezolvă primul exercițiu.', 'solved', 1),
-        d(2, 'hex', 0, 'tick', '25', 'ex-25', 'Încălzire', 'Rezolvă 25 de exerciții.', 'solved', 25),
-        d(2, 'hex', 1, 'tick', '100', 'ex-100', 'Sută', 'Rezolvă 100 de exerciții.', 'solved', 100),
-        d(2, 'hex', 2, 'tick', '500', 'ex-500', 'Maraton', 'Rezolvă 500 de exerciții.', 'solved', 500),
-        d(2, 'hex', 3, 'tick', '1000', 'ex-1000', 'Mia', 'Rezolvă 1000 de exerciții.', 'solved', 1000),
-        d(3, 'round', 1, 'target', '', 'fara-greseli', 'Fără greșeli', 'Termină o lecție fără nicio greșeală.', 'perfect', 1),
-        d(3, 'round', 1, 'bolt', '', 'fulger', 'Fulger', 'Rezolvă 5 exerciții corect în mai puțin de un minut.', '', 1, soon),
-        d(3, 'round', 0, 'moon', '', 'noapte', 'Bufnița de noapte', 'Exersează după ora 22:00.', 'night', 1),
-        d(3, 'round', 0, 'sun', '', 'matinal', 'Matinal', 'Exersează înainte de ora 7:00.', 'early', 1),
-        d(3, 'round', 1, 'clock', '', 'prima-sim', 'Prima simulare', 'Termină prima simulare de BAC.', 'sims', 1),
-        d(3, 'round', 2, 'ten', '', 'nota-10', 'Nota 10', 'Obține nota 10 la o simulare de BAC.', 'grade10', 1),
-        d(3, 'round', 1, 'bulb', '', 'fara-indicii', 'Fără indicii', 'Rezolvă 10 exerciții fără să ceri indiciu.', '', 10, soon),
-        d(4, 'round', 0, 'star', '', 'prima-liga', 'Prima ligă', 'Intră într-o ligă săptămânală.', '', 1, soon),
-        d(4, 'round', 2, 'crown', '', 'liga-aur', 'Liga Aur', 'Ajunge în Liga Aur.', '', 1, soon),
-        d(4, 'round', 2, 'trophy', '', 'locul-1', 'Locul 1', 'Termină o săptămână pe primul loc.', '', 1, soon),
-        d(4, 'round', 0, 'friends', '', 'invita', 'Invită un prieten', 'Un prieten își face cont cu invitația ta.', '', 1, soon),
-        d(5, 'round', 2, 'collector', '', 'colectionar', 'Colecționar', 'Obține toate insignele de capitol.', '', 6, soon),
-        d(5, 'round', 3, 'cap', '', 'absolvent', 'Absolvent', 'Termină toate capitolele cu minim 90%.', '', 1, soon),
-        d(5, 'round', 3, 'owlwise', '', 'bufnita-intelepta', 'Bufnița înțeleaptă', 'Ajunge la nivelul maxim.', '', 1, soon)
-      ]),
+    elev: [
+      d('serie', 'Serie', I + 'gamification/streak.svg', 'streak', streakTiers, function (n) { return 'Exersează ' + ro(n, 'zi', 'zile') + ' la rând'; }),
+      d('exercitii', 'Rezolvitor', I + 'tabs/exercitii.svg', 'solved', [10, 100, 300, 600, 1000], function (n) { return 'Rezolvă ' + ro(n, 'exercițiu', 'exerciții'); }),
+      d('lectii', 'Explorator', I + 'tabs/invata.svg', 'lessons', [5, 25, 60, 120, 250], function (n) { return 'Termină ' + ro(n, 'lecție', 'lecții') + ' în Învață'; }),
+      d('fara-greseli', 'Fără greșeli', I + 'gamification/bifa.svg', 'perfect', [1, 10, 30, 70, 150], function (n) { return 'Termină ' + ro(n, 'lecție', 'lecții') + ' fără nicio greșeală'; }),
+      d('noapte', 'Bufnița de noapte', 'moon', 'night', [1, 5, 15, 40, 100], function (n) { return 'Termină ' + ro(n, 'lecție', 'lecții') + ' după ora 22:00'; }),
+      d('matinal', 'Matinal', 'sun', 'early', [1, 5, 15, 40, 100], function (n) { return 'Termină ' + ro(n, 'lecție', 'lecții') + ' înainte de ora 7:00'; }),
+      d('simulari', 'Pregătit de examen', I + 'tabs/simulare.svg', 'sims', [1, 3, 10, 25, 50], function (n) { return 'Termină ' + ro(n, 'simulare', 'simulări'); }),
+      d('nota', 'Nota mare', I + 'profile/rating.svg', 'grade', [5, 7, 8, 9, 10], function (n) { return 'Obține nota ' + n + ' la o simulare'; }, { shape: 'round', fmt: 'grade' }),
+      d('teme', 'Temeinic', I + 'class/teme.svg', 'homework', [1, 10, 30, 75, 150], function (n) { return 'Predă ' + ro(n, 'temă', 'teme'); }),
+      soonD('capitole', 'Maestru de capitole', I + 'chapters/algebra.svg', 'Termină capitolele cu cel puțin 80%.'),
+      soonD('ligi', 'Ligi', I + 'gamification/liga.svg', 'Urcă în ligile săptămânale.', { shape: 'round' }),
+      soonD('locul-1', 'Locul 1', I + 'gamification/leaderboard.svg', 'Termină săptămâni pe primul loc în ligă.', { shape: 'round' }),
+      soonD('prieteni', 'Invită prieteni', I + 'roles/elev.svg', 'Prietenii tăi își fac cont cu invitația ta.'),
+      soonD('fulger', 'Fulger', I + 'gamification/xp.svg', 'Rezolvă 5 exerciții corect în mai puțin de un minut.', { shape: 'round' }),
+      soonD('fara-indicii', 'Fără indicii', 'bulb', 'Rezolvă exerciții fără să ceri indiciu.', { shape: 'round' })
+    ],
     profesor: [
-      d(0, 'hex', 0, 'flame', '3', 'p-serie-3', 'Prezent', 'Intră pe platformă 3 zile la rând.', 'streak', 3),
-      d(0, 'hex', 0, 'flame', '7', 'p-serie-7', 'O săptămână', 'Intră pe platformă 7 zile la rând.', 'streak', 7),
-      d(0, 'hex', 1, 'flame', '30', 'p-serie-30', 'Luna de foc', 'Intră pe platformă 30 de zile la rând.', 'streak', 30),
-      d(0, 'hex', 2, 'flame', '100', 'p-serie-100', 'Sută de zile', 'Intră pe platformă 100 de zile la rând.', 'streak', 100),
-      d(1, 'hex', 0, 'sheet', '1', 'p-teme-1', 'Prima temă', 'Dă prima temă unei clase.', 'hw', 1),
-      d(1, 'hex', 1, 'sheet', '10', 'p-teme-10', 'Teme la zi', 'Dă 10 teme elevilor.', 'hw', 10),
-      d(1, 'hex', 2, 'sheet', '30', 'p-teme-30', 'Mentor de teme', 'Dă 30 de teme elevilor.', 'hw', 30),
-      d(1, 'hex', 3, 'sheet', '100', 'p-teme-100', 'Sută de teme', 'Dă 100 de teme elevilor.', 'hw', 100),
-      d(2, 'round', 0, 'clock', '', 'p-sim-1', 'Prima simulare', 'Creează prima simulare pentru o clasă.', 'sims', 1),
-      d(2, 'round', 1, 'clock', '', 'p-sim-5', 'Pregătitor', 'Creează 5 simulări.', 'sims', 5),
-      d(2, 'round', 2, 'clock', '', 'p-sim-15', 'Arhitect de simulări', 'Creează 15 simulări.', 'sims', 15),
-      d(3, 'round', 0, 'board', '', 'p-tabla-1', 'Prima tablă', 'Pornește prima tablă live.', 'boards', 1),
-      d(3, 'round', 1, 'board', '', 'p-tabla-5', 'La tablă', 'Pornește 5 table live.', 'boards', 5),
-      d(3, 'round', 2, 'board', '', 'p-tabla-20', 'Maestru al tablei', 'Pornește 20 de table live.', 'boards', 20),
-      d(4, 'hex', 0, 'friends', '5', 'p-elevi-5', 'Prima grupă', 'Ai 5 elevi în clasele tale.', 'students', 5),
-      d(4, 'hex', 1, 'friends', '20', 'p-elevi-20', 'Clasă plină', 'Ai 20 de elevi în clasele tale.', 'students', 20),
-      d(4, 'hex', 2, 'friends', '50', 'p-elevi-50', 'Mulți elevi', 'Ai 50 de elevi în clasele tale.', 'students', 50),
-      d(4, 'hex', 3, 'friends', '100', 'p-elevi-100', 'Sută de elevi', 'Ai 100 de elevi în clasele tale.', 'students', 100),
-      d(5, 'round', 0, 'chat', '', 'p-mesaje-5', 'Primele mesaje', 'Scrie 5 mesaje în clasele tale.', 'msgs', 5),
-      d(5, 'round', 1, 'chat', '', 'p-mesaje-50', 'Aproape de elevi', 'Scrie 50 de mesaje în clasele tale.', 'msgs', 50),
-      d(5, 'round', 2, 'chat', '', 'p-mesaje-300', 'Mereu aproape', 'Scrie 300 de mesaje în clasele tale.', 'msgs', 300),
-      d(6, 'hex', 0, 'library', '1', 'p-ex-1', 'Prima problemă', 'Adaugă primul exercițiu în culegere.', 'ex', 1),
-      d(6, 'hex', 1, 'library', '10', 'p-ex-10', 'Autor', 'Adaugă 10 exerciții în culegere.', 'ex', 10),
-      d(6, 'hex', 2, 'library', '50', 'p-ex-50', 'Biblioteca ta', 'Adaugă 50 de exerciții în culegere.', 'ex', 50),
-      d(7, 'round', 1, 'tick', '', 'p-catalog', 'Catalog la zi', 'Ține catalogul la zi, o lună la rând.', '', 1, soon),
-      d(7, 'round', 2, 'star', '', 'p-recenzie', 'Cinci stele', 'Primește o recenzie de 5 stele de la un elev.', '', 1, soon)
+      d('p-serie', 'Prezență', I + 'gamification/streak.svg', 'streak', streakTiers, function (n) { return 'Intră pe platformă ' + ro(n, 'zi', 'zile') + ' la rând'; }),
+      d('p-teme', 'Mentor de teme', I + 'class/teme.svg', 'hw', [1, 10, 30, 100, 300], function (n) { return 'Dă ' + ro(n, 'temă', 'teme') + ' elevilor'; }),
+      d('p-simulari', 'Pregătitor de examene', I + 'class/simulari.svg', 'sims', [1, 5, 15, 40, 100], function (n) { return 'Creează ' + ro(n, 'simulare', 'simulări'); }),
+      d('p-tabla', 'La tablă', I + 'class/tabla-light.svg', 'boards', [1, 5, 20, 60, 150], function (n) { return 'Pornește ' + ro(n, 'tablă live', 'table live'); }),
+      d('p-elevi', 'Clase pline', I + 'admin/elevi.svg', 'students', [5, 20, 50, 100, 250], function (n) { return 'Ai ' + ro(n, 'elev', 'elevi') + ' înscriși în clasele tale'; }),
+      d('p-mesaje', 'Aproape de elevi', 'chat', 'msgs', [10, 100, 300, 1000, 3000], function (n) { return 'Scrie ' + ro(n, 'mesaj', 'mesaje') + ' în clasele tale'; }),
+      d('p-exercitii', 'Autor de exerciții', I + 'tabs/exercitii.svg', 'ex', [1, 10, 50, 150, 400], function (n) { return 'Adaugă ' + ro(n, 'exercițiu', 'exerciții') + ' în culegere'; }),
+      soonD('p-catalog', 'Catalog la zi', I + 'class/registru.svg', 'Ține catalogul la zi, lună după lună.', { shape: 'round' }),
+      soonD('p-recenzii', 'Cinci stele', I + 'profile/rating.svg', 'Primește recenzii de 5 stele de la elevi.', { shape: 'round' })
     ]
   };
 
@@ -111,22 +86,22 @@
     st.streak = best;
     var solved = (BM.Storage && BM.Storage.getSolved) ? BM.Storage.getSolved() : lsJSON('bm_solved', {});
     st.solved = Object.keys(solved || {}).filter(function (k) { return solved[k]; }).length;
-    /* lecțiile din Învață: nota 100% si ora la care s-au terminat prima dată */
-    var prog = lsJSON('bm_parcurs_v1_' + uid(), {}), perfect = 0, night = 0, early = 0;
+    /* lecțiile din Învață: câte, câte cu nota 100% și câte s-au terminat prima dată noaptea sau dimineața (ora locală) */
+    var prog = lsJSON('bm_parcurs_v1_' + uid(), {}), lessons = 0, perfect = 0, night = 0, early = 0;
     Object.keys(prog).forEach(function (k) {
       var r = prog[k];
       if (!/^r\d+\.s\d+\.c\d+\.l\d+$/.test(k) || !r || r.via === 'skip') return;
+      lessons++;
       if ((r.pct || 0) >= 100) perfect++;
       var h = r.at ? new Date(r.at).getHours() : -1;
       if (h >= 22 || (h >= 0 && h < 4)) night++; else if (h >= 4 && h < 7) early++;
     });
-    st.perfect = perfect; st.night = night; st.early = early;
+    st.lessons = lessons; st.perfect = perfect; st.night = night; st.early = early;
     var hist = lsJSON('bac-history', []);
     st.sims = Array.isArray(hist) ? hist.length : 0;
-    var g = Array.isArray(hist) ? hist.reduce(function (m, h) { var x = Number(h && h.grade); return isNaN(x) ? m : Math.max(m, x); }, 0) : 0;
-    st.grade10 = g >= 9.995 ? 1 : 0;
-    st.hw = 0; st.boards = 0; st.students = 0; st.msgs = 0; st.ex = 0;
-    var c = lsJSON('bm_ach2_db_' + uid(), null);     /* ultimele cifre din baza de date, ca prima desenare să nu pornească de la zero */
+    st.grade = Array.isArray(hist) ? hist.reduce(function (m, h) { var x = Number(h && h.grade); return isNaN(x) ? m : Math.max(m, x); }, 0) : 0;
+    st.homework = 0; st.hw = 0; st.boards = 0; st.students = 0; st.msgs = 0; st.ex = 0;
+    var c = lsJSON('bm_ach3_db_' + uid(), null);     /* ultimele cifre din baza de date, ca prima desenare să nu pornească de la zero */
     if (c && c.v) Object.keys(c.v).forEach(function (k) { st[k] = Math.max(st[k] || 0, c.v[k] || 0); });
     return st;
   }
@@ -141,12 +116,14 @@
     var sb = A() && A().supabase, id = uid();
     if (!sb || !id) return Promise.resolve({});
     if (role === 'elev') {
-      return Promise.resolve().then(function () { return sb.from('simulation_attempts').select('grade_10,status').eq('student_id', id).eq('status', 'finalizata'); })
-        .then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; })
-        .then(function (rows) {
-          var best = 0; rows.forEach(function (x) { var g = Number(x.grade_10); if (!isNaN(g)) best = Math.max(best, g); });
-          return { dbSims: rows.length, dbGrade: best };
-        });
+      return Promise.all([
+        count('homework_submissions', 'student_id', id),
+        Promise.resolve().then(function () { return sb.from('simulation_attempts').select('grade_10,status').eq('student_id', id).eq('status', 'finalizata'); })
+          .then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data : []; }, function () { return []; })
+      ]).then(function (a) {
+        var best = 0; a[1].forEach(function (x) { var g = Number(x.grade_10); if (!isNaN(g)) best = Math.max(best, g); });
+        return { homework: a[0], dbSims: a[1].length, dbGrade: best };
+      });
     }
     return Promise.all([
       Promise.resolve().then(function () { return sb.from('classes').select('id').eq('teacher_id', id); }).then(function (r) { return r && !r.error && Array.isArray(r.data) ? r.data.map(function (x) { return x.id; }) : []; }, function () { return []; }),
@@ -164,42 +141,45 @@
 
   function load(role) {
     role = setOf(role);
-    var key = 'bm_ach2_stats_' + uid(), cached = null;
+    var key = 'bm_ach3_stats_' + uid(), cached = null;
     try { cached = JSON.parse(sessionStorage.getItem(key) || 'null'); } catch (e) { /* ignore */ }
     if (cached && cached.role === role && Date.now() - cached.t < 120000) { last[role] = cached.v; return Promise.resolve(cached.v); }
     return fromDb(role).then(function (db) {
       var st = local(role);
       if (role === 'elev') {
+        st.homework = db.homework || 0;
         /* simulările din browser si cele din baza de date sunt aceleasi, nu se adună */
         st.sims = Math.max(st.sims || 0, db.dbSims || 0);
-        if ((db.dbGrade || 0) >= 9.995) st.grade10 = 1;
+        st.grade = Math.max(st.grade || 0, db.dbGrade || 0);
       } else {
         ['students', 'hw', 'sims', 'boards', 'msgs', 'ex'].forEach(function (k) { st[k] = db[k] || 0; });
       }
-      var persist = {}; ['students', 'hw', 'boards', 'msgs', 'ex', 'sims'].forEach(function (k) { persist[k] = st[k]; });
-      if (role !== 'elev') try { localStorage.setItem('bm_ach2_db_' + uid(), JSON.stringify({ v: persist })); } catch (e) { /* ignore */ }
-      try { sessionStorage.setItem(key, JSON.stringify({ role: role, t: Date.now(), v: st })); } catch (e) { /* ignore */ }
+      var persist = {}; ['homework', 'students', 'hw', 'boards', 'msgs', 'ex'].forEach(function (k) { persist[k] = st[k]; });
+      try { localStorage.setItem('bm_ach3_db_' + uid(), JSON.stringify({ v: persist })); sessionStorage.setItem(key, JSON.stringify({ role: role, t: Date.now(), v: st })); } catch (e) { /* ignore */ }
       last[role] = st;
       return st;
     }, function () { var st = local(role); last[role] = st; return st; });
   }
 
-  /* ---- ce e câștigat ---- */
+  /* ---- nivelurile ---- */
   function evaluate(role, st) {
     return DEFS[setOf(role)].map(function (x) {
-      var v = x.soon ? 0 : (Number(st[x.stat]) || 0);
-      var got = !x.soon && v >= x.goal;
-      return { d: x, v: v, got: got, soon: !!x.soon, pct: x.soon ? 0 : Math.min(100, Math.round(Math.min(v, x.goal) / x.goal * 100)) };
+      var v = x.soon ? 0 : (Number(st[x.stat]) || 0), level = 0;
+      x.tiers.forEach(function (t, i) { if (v >= t) level = i + 1; });
+      var next = x.soon || level >= x.tiers.length ? null : x.tiers[level];
+      return { d: x, v: v, level: level, soon: !!x.soon, max: !x.soon && level >= x.tiers.length,
+        next: next, pct: next ? Math.min(100, Math.round(v / next * 100)) : (x.soon ? 0 : 100) };
     });
   }
   function totals(ev) {
     var t = { earned: 0, total: 0, soon: 0 };
-    ev.forEach(function (x) { if (x.soon) t.soon++; else { t.total++; if (x.got) t.earned++; } });
+    ev.forEach(function (x) { if (x.soon) t.soon++; else { t.total += x.d.tiers.length; t.earned += x.level; } });
     return t;
   }
+  var shown = function (x, v) { return x.d.fmt === 'grade' ? (Math.round(v * 100) / 100).toString().replace('.', ',') : String(Math.round(v)); };
 
   function badge(x, px, extra) {
-    var file = IMG + x.d.id + (x.got ? '' : '-blocat') + '.svg';
+    var file = IMG + x.d.id + (x.level > 0 ? '-' + x.level : '-blocat') + '.svg';
     return '<img class="am-b' + (extra ? ' ' + extra : '') + '" src="' + file + '" alt="" width="' + px + '" height="' + Math.round(px * 140 / 120) + '" decoding="async" loading="lazy">';
   }
 
@@ -207,61 +187,57 @@
   function section(role, st) {
     role = setOf(role);
     var ev = evaluate(role, st), tt = totals(ev);
-    var open = ev.filter(function (x) { return !x.soon && !x.got; }).sort(function (a, b) { return b.pct - a.pct || a.d.goal - b.d.goal; })[0];
+    var open = ev.filter(function (x) { return !x.soon && !x.max; }).sort(function (a, b) { return b.pct - a.pct || a.next - b.next; })[0];
     var goal = open
       ? '<div class="am-next"><div class="am-next__m">' + badge(open, 56) + '</div><div class="am-next__t">' +
-          '<small>Următoarea țintă</small><b>' + esc(open.d.name) + '</b><span>' + esc(open.d.desc) + '</span>' +
+          '<small>Următoarea țintă</small><b>' + esc(open.d.name) + '</b><span>Nivel ' + LV[open.level] + ': ' + esc(open.d.desc(open.next)) + '</span>' +
           '<div class="am-bar" role="progressbar" aria-valuenow="' + open.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + open.pct + '%"></i></div>' +
-          '<em>' + Math.round(open.v) + ' / ' + open.d.goal + '</em></div></div>'
-      : '<div class="am-next am-next--done"><div class="am-next__t"><b>Ai toate realizările disponibile</b><span>Mai vin altele în curând.</span></div></div>';
-    var got = ev.filter(function (x) { return x.got; }).sort(function (a, b) { return b.d.r - a.d.r || b.d.goal - a.d.goal; });
+          '<em>' + shown(open, open.v) + ' / ' + open.next + '</em></div></div>'
+      : '<div class="am-next am-next--done"><div class="am-next__t"><b>Ai toate nivelurile disponibile</b><span>Mai vin altele în curând.</span></div></div>';
+    var got = ev.filter(function (x) { return x.level > 0; }).sort(function (a, b) { return b.level - a.level; });
     var show = got.slice(0, 6), more = got.length - show.length;
     var row = show.map(function (x) {
-      return '<button type="button" class="am-chip" data-ach-open="' + role + '" title="' + esc(x.d.name + ' (' + RN[x.d.r] + ')') + '">' + badge(x, 46) + '</button>';
+      return '<button type="button" class="am-chip" data-ach-open="' + role + '" title="' + esc(x.d.name + ' (' + LV[x.level - 1] + ')') + '">' + badge(x, 46) + '</button>';
     }).join('') + (more > 0 ? '<button type="button" class="am-chip am-chip--more" data-ach-open="' + role + '">+' + more + '</button>' : '');
     return '<h4 class="rl-h rl-h--ach">Realizări <span class="am-count"><b>' + tt.earned + '</b> din ' + tt.total + '</span></h4>' +
       '<div class="am-box">' + goal + (row ? '<div class="am-row">' + row + '</div>' : '') + '</div>' +
       '<button type="button" class="rl-btn am-open" data-ach-open="' + role + '"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.2L7 22l5-3 5 3-1.5-7.8"/></svg>Toate realizările</button>';
   }
 
-  /* ---- fereastra cu toate ---- */
+  /* ---- fereastra cu toate: o insignă pe realizare, cu nivelurile ei ---- */
   function open(role) {
     role = setOf(role);
-    var st = last[role] || local(role), ev = evaluate(role, st), tt = totals(ev), cats = CAT[role];
-    var pct = tt.total ? Math.round(tt.earned / tt.total * 100) : 0, cur = -1;
+    var st = last[role] || local(role), ev = evaluate(role, st), tt = totals(ev);
+    var pct = tt.total ? Math.round(tt.earned / tt.total * 100) : 0;
     var dlg = document.createElement('div');
     dlg.className = 'am-dlg'; dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true'); dlg.setAttribute('aria-label', 'Realizări');
-    var used = {}; ev.forEach(function (x) { used[x.d.c] = 1; });
-    var chips = '<button type="button" class="am-cat" data-c="-1" aria-pressed="true">Toate</button>' + cats.map(function (n, i) { return used[i] ? '<button type="button" class="am-cat" data-c="' + i + '" aria-pressed="false">' + esc(n) + '</button>' : ''; }).join('');
-    dlg.innerHTML = '<div class="am-dlg__card"><div class="am-dlg__h"><div><h2>Realizările tale</h2><p>' + (role === 'elev' ? 'Insigne pentru obiceiuri bune: serii, exerciții, simulări.' : 'Insigne pentru ce faci cu elevii tăi: teme, simulări, tablă, clase.') + '</p></div>' +
-      '<button type="button" class="am-dlg__x" aria-label="Închide"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
-      '<div class="am-dlg__sum"><span><b>' + tt.earned + '</b> din ' + tt.total + '</span><div class="am-bar am-bar--lg"><i style="width:' + pct + '%"></i></div>' + (tt.soon ? '<small>+ ' + tt.soon + ' în curând</small>' : '') + '</div>' +
-      '<div class="am-cats" role="group" aria-label="Categorie">' + chips + '</div><ul class="am-list" id="amList"></ul></div>';
-    function draw() {
-      /* obținutele întâi, apoi cele în lucru, la urmă cele "în curând" (în rest, ordinea din listă) */
-      var rank = function (x) { return x.got ? 0 : x.soon ? 2 : 1; };
-      var list = ev.filter(function (x) { return cur < 0 || x.d.c === cur; }).map(function (x, i) { return { x: x, i: i }; })
-        .sort(function (a, b) { return rank(a.x) - rank(b.x) || a.i - b.i; }).map(function (o) { return o.x; });
-      dlg.querySelector('#amList').innerHTML = list.map(function (x) {
-        return '<li class="am-card' + (x.got ? ' is-got' : '') + (x.soon ? ' is-soon' : '') + '">' + badge(x, 84) +
-          '<div class="am-card__b"><b>' + esc(x.d.name) + '</b><span class="am-r am-r' + x.d.r + '">' + RN[x.d.r] + '</span>' +
-          '<p>' + esc(x.d.desc) + '</p>' +
-          (x.soon ? '<span class="am-soon">În curând</span>'
-            : x.got ? '<span class="am-done">Obținută</span>'
-            : '<div class="am-bar" role="progressbar" aria-valuenow="' + x.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + x.pct + '%"></i></div><em>' + Math.round(x.v) + ' / ' + x.d.goal + '</em>') +
-          '</div></li>';
+    /* cele în lucru întâi, apoi cele care n-au început, la urmă cele "în curând" */
+    var rank = function (x) { return x.soon ? 2 : x.level > 0 || x.v > 0 ? 0 : 1; };
+    var list = ev.map(function (x, i) { return { x: x, i: i }; }).sort(function (a, b) { return rank(a.x) - rank(b.x) || a.i - b.i; }).map(function (o) { return o.x; });
+    var cards = list.map(function (x) {
+      var pips = x.d.tiers.map(function (t, i) {
+        return '<span class="am-pip am-lv' + i + (i < x.level ? ' is-on' : '') + '" title="' + LV[i] + '"><b>' + t + '</b><small>' + LV[i] + '</small></span>';
       }).join('');
-    }
+      var body = x.soon
+        ? '<p>' + esc(x.d.text) + '</p><span class="am-soon">În curând</span>'
+        : x.max
+          ? '<p>Nivel maxim atins. Felicitări!</p><div class="am-pips">' + pips + '</div>'
+          : '<p>' + (x.level ? 'Următorul nivel: ' : 'Primul nivel: ') + '<b>' + LV[x.level] + '</b>. ' + esc(x.d.desc(x.next)) + '</p>' +
+            '<div class="am-bar" role="progressbar" aria-valuenow="' + x.pct + '" aria-valuemin="0" aria-valuemax="100"><i style="width:' + x.pct + '%"></i></div><em>' + shown(x, x.v) + ' / ' + x.next + '</em><div class="am-pips">' + pips + '</div>';
+      return '<li class="am-card' + (x.soon ? ' is-soon' : '') + (x.max ? ' is-max' : '') + '">' + badge(x, 96) +
+        '<div class="am-card__b"><div class="am-card__h"><b>' + esc(x.d.name) + '</b>' +
+        (x.soon ? '' : '<span class="am-r ' + (x.level ? 'am-lv' + (x.level - 1) : 'am-lvx') + '">' + (x.level ? LV[x.level - 1] : 'Blocată') + '</span>') + '</div>' + body + '</div></li>';
+    }).join('');
+    dlg.innerHTML = '<div class="am-dlg__card"><div class="am-dlg__h"><div><h2>Realizările tale</h2><p>' + (role === 'elev' ? 'Fiecare realizare are cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.' : 'Insigne pentru ce faci cu elevii tăi, în cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.') + '</p></div>' +
+      '<button type="button" class="am-dlg__x" aria-label="Închide"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
+      '<div class="am-dlg__sum"><span><b>' + tt.earned + '</b> din ' + tt.total + ' niveluri</span><div class="am-bar am-bar--lg"><i style="width:' + pct + '%"></i></div>' + (tt.soon ? '<small>+ ' + tt.soon + ' în curând</small>' : '') + '</div>' +
+      '<ul class="am-list">' + cards + '</ul></div>';
     var close = function () { dlg.classList.remove('on'); setTimeout(function () { dlg.remove(); document.documentElement.style.overflow = ''; }, 180); document.removeEventListener('keydown', esck); };
     var esck = function (e) { if (e.key === 'Escape') close(); };
-    dlg.addEventListener('click', function (e) {
-      if (e.target === dlg || e.target.closest('.am-dlg__x')) return close();
-      var b = e.target.closest('.am-cat');
-      if (b) { cur = parseInt(b.getAttribute('data-c'), 10); [].forEach.call(dlg.querySelectorAll('.am-cat'), function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); }); draw(); }
-    });
+    dlg.addEventListener('click', function (e) { if (e.target === dlg || e.target.closest('.am-dlg__x')) close(); });
     document.addEventListener('keydown', esck);
     document.documentElement.style.overflow = 'hidden';
-    document.body.appendChild(dlg); draw();
+    document.body.appendChild(dlg);
     requestAnimationFrame(function () { dlg.classList.add('on'); });
   }
 
@@ -270,17 +246,19 @@
     if (b) open(b.getAttribute('data-ach-open'));
   });
 
-  /* ---- "Realizare nouă": o singură dată pentru fiecare insignă (prima vizită doar le memorează) ---- */
+  /* ---- "Realizare nouă": o singură dată pentru fiecare nivel (prima vizită doar le memorează) ---- */
   function check(role, st) {
     role = setOf(role);
-    var key = 'bm_ach_seen_v2_' + uid(), all = lsJSON(key, {}), mine = Array.isArray(all[role]) ? all[role] : null;
-    var now = evaluate(role, st).filter(function (x) { return x.got; });
-    if (mine && root.BM && root.BM.toast) {
-      now.forEach(function (x) { if (mine.indexOf(x.d.id) < 0) root.BM.toast('Realizare nouă: ' + x.d.name + ' (' + RN[x.d.r] + ')', 'success', 4800); });
-    }
-    all[role] = now.map(function (x) { return x.d.id; });
+    var key = 'bm_ach_seen_v3_' + uid(), all = lsJSON(key, {}), mine = all[role] && typeof all[role] === 'object' ? all[role] : null;
+    var now = {};
+    evaluate(role, st).forEach(function (x) {
+      if (x.level < 1) return;
+      now[x.d.id] = x.level;
+      if (mine && root.BM && root.BM.toast && x.level > (mine[x.d.id] || 0)) root.BM.toast('Realizare nouă: ' + x.d.name + ', nivel ' + LV[x.level - 1], 'success', 4800);
+    });
+    all[role] = now;
     try { localStorage.setItem(key, JSON.stringify(all)); } catch (e) { /* ignore */ }
   }
 
-  root.BMAch = { local: local, load: load, section: section, open: open, check: check, evaluate: evaluate, DEFS: DEFS, CAT: CAT, RN: RN };
+  root.BMAch = { local: local, load: load, section: section, open: open, check: check, evaluate: evaluate, DEFS: DEFS, LV: LV };
 })();

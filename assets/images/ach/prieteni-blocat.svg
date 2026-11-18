@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 140" role="img" aria-label="Invită prieteni"><defs><linearGradient id="pb276r" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#EAE6F3"/><stop offset=".48" stop-color="#B1A7CA"/><stop offset="1" stop-color="#EAE6F3"/></linearGradient><radialGradient id="pb276f" cx=".5" cy=".28" r=".85"><stop offset="0" stop-color="#F1EEF8"/><stop offset="1" stop-color="#D6CFE6"/></radialGradient><linearGradient id="pb276g" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity="0.55"/><stop offset=".5" stop-color="#fff" stop-opacity="0"/></linearGradient><clipPath id="pb276c"><path d="M60 16L103 41V95L60 120L17 95V41Z"/></clipPath></defs><path d="M60 5L113 35V101L60 131L7 101V35Z" fill="url(#pb276r)" stroke="#B1A7CA" stroke-width="1.6" stroke-linejoin="round"/><path d="M60 5L113 35V101L60 131L7 101V35Z" fill="none" stroke="#fff" stroke-opacity="0.7" stroke-width="1.2" stroke-linejoin="round" transform="translate(60 66) scale(.965) translate(-60 -66)"/><path d="M60 16L103 41V95L60 120L17 95V41Z" fill="rgba(60,40,100,.18)" stroke="rgba(60,40,100,.18)" stroke-width="5" stroke-linejoin="round"/><path d="M60 16L103 41V95L60 120L17 95V41Z" fill="url(#pb276f)"/><g clip-path="url(#pb276c)"><path d="M60 16L103 41V95L60 120L17 95V41Z" fill="none" stroke="#fff" stroke-opacity="0.5" stroke-width="5"/><path d="M-10 36L130 -4V44L-10 104Z" fill="#fff" opacity="0.25"/></g><defs><filter id="achGray"><feColorMatrix type="saturate" values="0"/></filter></defs><g transform="translate(35 41) scale(0.7813) translate(0 0)" filter="url(#achGray)" opacity=".55">
+<path d="M16 32V44Q32 55 48 44V32L32 40Z" fill="#2C1952" transform="translate(0 3)"/>
+<path d="M16 32V44Q32 55 48 44V32L32 40Z" fill="#3F236E"/>
+<path d="M32 12L59 25L32 38L5 25Z" fill="#2C1952" transform="translate(0 4)"/>
+<path d="M32 12L59 25L32 38L5 25Z" fill="#7C58D1"/>
+<path d="M32 12L59 25L32 25L5 25Z" fill="#9B7BE6" opacity=".55"/>
+<path d="M32 25L55 28V44" fill="none" stroke="#E0A800" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 2)"/>
+<path d="M32 25L55 28V44" fill="none" stroke="#FFD23F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+<circle cx="55" cy="47" r="4.4" fill="#E0A800" transform="translate(0 2)"/>
+<circle cx="55" cy="47" r="4.4" fill="#FFD23F"/>
+<circle cx="32" cy="25" r="3.2" fill="#7BB403" stroke="#4F7A00" stroke-width="1.2"/>
+<path d="M10 9l1.3 2.9 2.9 1.3-2.9 1.3L10 17.4l-1.3-2.9-2.9-1.3 2.9-1.3Z" fill="#B49AE8"/>
+<path d="M53 8l1 2.2 2.2 1-2.2 1L53 14.4l-1-2.2-2.2-1 2.2-1Z" fill="#FF8A12"/>
+</g><path d="M60 16L103 41V95L60 120L17 95V41Z" fill="url(#pb276g)"/><g transform="translate(97 108)"><circle r="12.5" fill="#8E84A8" stroke="#fff" stroke-width="2"/><rect x="-5.5" y="-2" width="11" height="8.5" rx="2" fill="#fff"/><path d="M-3.2 -2V-5.2A3.2 3.2 0 0 1 3.2 -5.2V-2" fill="none" stroke="#fff" stroke-width="2"/></g></svg>
