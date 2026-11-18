@@ -105,9 +105,10 @@ BM.Storage = (function() {
   }
 
   /* ---- Streak ----
-     Seria crește DOAR când elevul termină o lecție din Învață (js/parcurs/engine.js
-     apelează updateStreak). Intrarea pe site, exercițiile din Capitole și Antrenament
-     nu o mai ating. O serie cu ultima zi mai veche decât ieri s-a pierdut: se arată 0. */
+     Seria unui ELEV crește DOAR când termină o lecție din Învață (js/parcurs/engine.js
+     apelează updateStreak). Seria unui profesor, manager sau admin crește când intră pe site
+     (o dată pe zi, din js/auth.js, după sincronizare). Exercițiile din Capitole și Antrenament
+     nu o ating. O serie cu ultima zi mai veche decât ieri s-a pierdut: se arată 0. */
   function _rawStreak() {
     const s = get(KEY.streak);
     if (!s) return { count: 0, lastDate: null };

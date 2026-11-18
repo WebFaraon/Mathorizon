@@ -44,6 +44,9 @@
           await _syncTokens();
           await _syncProgress();
           await _syncTrainingStats();
+          /* Seria unui profesor, manager sau admin crește doar intrând pe site (o dată pe zi); elevul trebuie să termine o lecție în Învață
+             (js/parcurs/engine.js). Se face după ce seria din cont a fost citită, ca să nu fie suprascrisă. */
+          if (_userRole && _userRole !== 'elev') { try { BM.Storage.updateStreak(); } catch (e) { /* ignore */ } }
           document.dispatchEvent(new CustomEvent('bmauth:synced', { detail: { user: currentUser } }));
         }
       }
