@@ -998,35 +998,30 @@
               <div class="cd-header__side">
                 ${isTeacher ? `
                   <div class="cd-invite">
-                    <div class="cd-invite__head">
-                      <img class="cd-invite__ico" src="assets/images/class/cod.svg" alt="" width="38" height="38">
+                    <img class="cd-invite__ico" src="assets/images/class/cod.svg" alt="" width="38" height="38">
+                    <div class="cd-invite__txt">
                       <span class="cd-invite__label">Cod invitație</span>
-                    </div>
-                    <div class="cd-invite__row">
                       <span class="cd-invite__code">${classData.invite_code}</span>
-                      <button class="cd-invite__copy" onclick="cdCopyCode('${classData.invite_code}')"
-                              title="Copiază codul" aria-label="Copiază codul">${icon('copy', { size: 16 })}</button>
                     </div>
-                    <div class="cd-invite__hint">Partajează cu elevii</div>
+                    <button class="cd-invite__copy" onclick="cdCopyCode('${classData.invite_code}')"
+                            title="Copiază codul și trimite-l elevilor" aria-label="Copiază codul">${icon('copy', { size: 16 })}</button>
                   </div>
                 ` : ''}
               </div>
             </div>
           </div>
-        </div>
-
-        <!-- ── Tab bar (sticky) ───────────────────────────── -->
-        <div class="cd-tabs-wrap" id="cdTabsWrap">
-          <div class="container">
-            <nav class="cd-tabs" role="tablist">
-              ${visibleTabs.map(t => `
-                <button class="cd-tab${t.id === activeTab ? ' cd-tab--active' : ''}"
-                        data-tab="${t.id}" role="tab"
-                        aria-selected="${t.id === activeTab}">
-                  ${_tabLabel(t)}
-                </button>
-              `).join('')}
-            </nav>
+          <div class="cd-tabs-wrap" id="cdTabsWrap">
+            <div class="container">
+              <nav class="cd-tabs" role="tablist">
+                ${visibleTabs.map(t => `
+                  <button class="cd-tab${t.id === activeTab ? ' cd-tab--active' : ''}"
+                          data-tab="${t.id}" role="tab"
+                          aria-selected="${t.id === activeTab}">
+                    ${_tabLabel(t)}
+                  </button>
+                `).join('')}
+              </nav>
+            </div>
           </div>
         </div>
 
@@ -2299,12 +2294,21 @@
 
     temeCache = assignments;
 
+    const _ts = BM.CatalogStats.assignmentStats(assignments);
+    const _temeSub = assignments.length === 0 ? 'Nicio temă încă'
+      : `${_ts.total} ${_ts.total === 1 ? 'temă' : 'teme'}${_ts.active ? ` · ${_ts.active} ${_ts.active === 1 ? 'activă' : 'active'}` : ''}${_ts.overdue ? ` · ${_ts.overdue} ${_ts.overdue === 1 ? 'expirată' : 'expirate'}` : ''}`;
     container.innerHTML = `
-      ${isTeacher ? `
+      <div class="cr-bar">
+        <div class="cr-bar__txt">
+          <h2 class="cr-bar__title">Teme</h2>
+          <p class="cr-bar__sub">${_temeSub}</p>
+        </div>
+        ${isTeacher ? `
         <div class="teme-toolbar">
           <button class="btn btn--primary" id="newAssignmentBtn">+ Temă Nouă</button>
         </div>
-      ` : ''}
+        ` : ''}
+      </div>
       <div class="teme-list${assignments.length === 0 ? ' teme-list--empty' : ''}" id="temeList">
         ${assignments.length === 0
           ? temeEmpty(isTeacher)
@@ -4745,12 +4749,21 @@
       simCache = simList;
       const visible = isTeacher ? simList : simList.filter(s => s.status !== 'programata');
 
+      const _simActive = visible.filter(s => s.status === 'activa').length;
+      const _simSub = visible.length === 0 ? 'Nicio simulare încă'
+        : `${visible.length} ${visible.length === 1 ? 'simulare' : 'simulări'}${_simActive ? ` · ${_simActive} ${_simActive === 1 ? 'activă' : 'active'}` : ''}`;
       content.innerHTML = `
-        ${isTeacher ? `
+        <div class="cr-bar">
+          <div class="cr-bar__txt">
+            <h2 class="cr-bar__title">Simulări</h2>
+            <p class="cr-bar__sub">${_simSub}</p>
+          </div>
+          ${isTeacher ? `
           <div class="teme-toolbar sim-toolbar">
-            <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
             <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">${icon('clipboard-list', { size: 16 })} Șabloane</button>
+            <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
           </div>` : ''}
+        </div>
         <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
           ${visible.length === 0
             ? simEmpty(isTeacher)

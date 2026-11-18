@@ -1,0 +1,666 @@
+/* ==========================================================================
+   Class page refresh (2026-11-18)
+   One layer for the header, the tab bar and the five tabs (Sumar, Mesaje, Teme,
+   Simulari, Catalog). Markup, ids, handlers and data are unchanged: this is only
+   arrangement and look. Everything is white cards with the 1.5px frame, 18-22px
+   corners and the solid edge; no LCD panels, no flat grey boxes.
+   Loaded LAST in class.html, every rule scoped `html body.pm:has(#classRoot)`.
+   ========================================================================== */
+
+html body.pm:has(#classRoot) {
+  --cr-gap: 14px;
+  --cr-r: 18px;
+}
+
+/* ---------------------------------------------------------------- header --- */
+/* one card: the title block on top, the tab bar as its bottom strip */
+html body.pm:has(#classRoot) .cd-header {
+  margin: 8px 14px 0;
+  padding: 0;
+  min-height: 0;
+  background: var(--pm-face);
+  background-image: none;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+  overflow: hidden;
+}
+html body.pm:has(#classRoot) .cd-header > .container {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "back . side" "info info info";
+  grid-template-rows: auto auto;
+  align-content: start;
+  min-height: 0;
+  align-items: center;
+  column-gap: 16px;
+  row-gap: 16px;
+  max-width: none;
+  margin: 0;
+  padding: 26px 32px 24px;
+}
+html body.pm:has(#classRoot) .cd-header .cd-back { grid-area: back; justify-self: start; }
+html body.pm:has(#classRoot) .cd-header__body { display: contents; }
+html body.pm:has(#classRoot) .cd-header__side { display: contents; }
+html body.pm:has(#classRoot) .cd-header__info {
+  grid-area: info;
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px 12px;
+  min-width: 0;
+  margin: 0;
+}
+html body.pm:has(#classRoot) .cd-title-wrap { flex: 1 0 100%; min-width: 0; margin: 0; }
+html body.pm:has(#classRoot) .cd-title {
+  margin: 0;
+  font-size: clamp(1.65rem, 1.2rem + 1.4vw, 2.3rem);
+  line-height: 1.1;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--pm-ink);
+}
+
+/* the drawing: only the circle, far right, behind the invite card, very faint */
+html body.pm:has(#classRoot) .cd-header .cd-art__tx { display: none; }
+html body.pm:has(#classRoot) .cd-header .cd-art { opacity: 0.4; }
+html body.pm:has(#classRoot) .cd-header .cd-art svg {
+  top: 40%;
+  right: -430px;
+  transform: translateY(-50%);
+}
+
+/* back key */
+html body.pm:has(#classRoot) .cd-header .cd-back {
+  height: 34px;
+  padding: 0 14px 0 10px;
+}
+
+/* teacher: one tinted pill with the photo, then the two icon keys */
+html body.pm:has(#classRoot) .cd-meta { display: flex; align-items: center; gap: 10px; margin: 0; flex: 0 0 auto; }
+html body.pm:has(#classRoot) .cd-meta__teacher {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 5px 18px 5px 5px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 16px;
+  background: var(--pm-tint);
+}
+html body.pm:has(#classRoot) .cd-teacher-avatar { width: 40px; height: 40px; border-radius: 12px; }
+html body.pm:has(#classRoot) .cd-teacher-txt { display: flex; flex-direction: column; gap: 1px; line-height: 1.15; }
+html body.pm:has(#classRoot) .cd-teacher-txt small { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .cd-teacher-txt b { font-size: 1rem; font-weight: 800; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .cd-meta__ibtn { width: 42px; height: 42px; border-radius: 13px; }
+html body.pm:has(#classRoot) .cd-meta__ibtn img { width: 26px; height: 26px; }
+
+/* the lesson keys sit at the right of the same row, the note under them is a quiet plate across the whole width */
+html body.pm:has(#classRoot) .cd-meta { margin-right: auto; }
+html body.pm:has(#classRoot) .cd-meet { display: contents; }
+html body.pm:has(#classRoot) .cd-meet[hidden] { display: none; }
+html body.pm:has(#classRoot) .cd-meet__btn,
+html body.pm:has(#classRoot) .cd-meet__edit { order: 5; }
+html body.pm:has(#classRoot) .cd-meet__how { order: 6; }
+html body.pm:has(#classRoot) .cd-meet__note {
+  flex: 1 0 100%;
+  order: 9;
+  margin: 0;
+  padding: 10px 14px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 12px;
+  background: var(--pm-tint);
+  text-align: left;
+  font-size: 0.86rem;
+  line-height: 1.45;
+  font-weight: 600;
+  color: var(--pm-ink-2);
+}
+html body.pm:has(#classRoot) .cd-meet__note:empty { display: none; }
+html body.pm:has(#classRoot) .cd-meet__chg { flex: 1 0 100%; order: 10; margin: 0; }
+
+/* invite code: a compact tinted card at the top right, plain bold letters (no LCD) */
+html body.pm:has(#classRoot) .cd-invite {
+  grid-area: side;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 12px;
+  width: auto;
+  min-width: 0;
+  margin: 0;
+  padding: 8px 8px 8px 14px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 16px;
+  background: var(--pm-tint);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .cd-invite__ico { width: 34px; height: 34px; flex: 0 0 auto; }
+html body.pm:has(#classRoot) .cd-invite__txt { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+html body.pm:has(#classRoot) .cd-invite__label { font-size: 0.66rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .cd-invite__code {
+  display: block;
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+  font-family: 'Space Grotesk', 'Plus Jakarta Sans', sans-serif;
+  font-size: 1.3rem;
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: 0.16em;
+  color: var(--pm-violet);
+}
+html body.pm:has(#classRoot) .cd-invite__code::before,
+html body.pm:has(#classRoot) .cd-invite__code::after { content: none; }
+html body.pm:has(#classRoot) .cd-invite__copy { flex: 0 0 auto; width: 42px; height: 42px; border-radius: 13px; }
+
+/* the tab bar: the bottom strip of the same card */
+html body.pm:has(#classRoot) .cd-tabs-wrap {
+  position: relative;
+  top: 0;
+  z-index: 1;
+  margin: 0;
+  border: 0;
+  border-top: 1.5px solid var(--pm-line);
+  border-radius: 0;
+  background: var(--pm-tint);
+  box-shadow: none;
+}
+html body.pm:has(#classRoot) .cd-tabs-wrap > .container { max-width: none; margin: 0; padding: 12px 32px; }
+html body.pm:has(#classRoot) .cd-tabs { padding: 0; gap: 8px; }
+html body.pm:has(#classRoot) .cd-tab {
+  background: var(--pm-face);
+  color: var(--pm-ink);
+  border: 1.5px solid var(--pm-line);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .cd-tab:hover:not(.cd-tab--active) { background: var(--pm-face); color: var(--pm-violet); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) .cd-tab.cd-tab--active {
+  background: var(--pm-violet);
+  color: #fff;
+  border-color: var(--pm-violet-edge);
+  box-shadow: 0 3px 0 0 var(--pm-violet-edge);
+}
+
+@media (max-width: 900px) {
+  html body.pm:has(#classRoot) .cd-header > .container { padding: 20px 20px 20px; }
+  html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 10px 14px; }
+  html body.pm:has(#classRoot) .cd-header .cd-art svg { right: -520px; }
+}
+@media (max-width: 720px) {
+  html body.pm:has(#classRoot) .cd-header > .container { grid-template-areas: "back side" "info info"; grid-template-columns: auto 1fr; }
+  html body.pm:has(#classRoot) .cd-invite { justify-self: end; }
+  html body.pm:has(#classRoot) .cd-meta { margin-right: 0; flex: 1 0 100%; }
+}
+@media (max-width: 600px) {
+  html body.pm:has(#classRoot) .cd-header { margin: 6px 8px 0; border-radius: 18px; }
+  html body.pm:has(#classRoot) .cd-header > .container { padding: 16px 16px 16px; row-gap: 12px; }
+  html body.pm:has(#classRoot) .cd-title { font-size: clamp(1.15rem, 5.6vw, 1.55rem); }
+  html body.pm:has(#classRoot) .cd-invite { padding: 6px 6px 6px 10px; gap: 8px; }
+  html body.pm:has(#classRoot) .cd-invite__ico { width: 28px; height: 28px; }
+  html body.pm:has(#classRoot) .cd-invite__code { font-size: 1.05rem; }
+  html body.pm:has(#classRoot) .cd-invite__copy { width: 36px; height: 36px; }
+  html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 8px 10px; }
+}
+
+/* the content lines up with the header card */
+html body.pm:has(#classRoot) #cdContent { margin-top: 18px; }
+
+/* --------------------------------------------------------- shared bits --- */
+/* heading bar of a tab (Teme, Simulari): title and a plain count line at the left, the keys at the right */
+html body.pm:has(#classRoot) .cr-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 0 0 var(--cr-gap);
+  padding: 14px 18px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .cr-bar__txt { min-width: 0; }
+html body.pm:has(#classRoot) .cr-bar__title { margin: 0; font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; color: var(--pm-ink); line-height: 1.2; }
+html body.pm:has(#classRoot) .cr-bar__sub { margin: 2px 0 0; font-size: 0.86rem; font-weight: 600; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .cr-bar .teme-toolbar { display: flex; align-items: center; gap: 10px; margin: 0; padding: 0; flex-wrap: wrap; }
+
+/* the lime key is the one commit key of Teme and Simulari */
+html body.pm:has(#classRoot) .cr-bar #newAssignmentBtn,
+html body.pm:has(#classRoot) .cr-bar #newSimBtn {
+  background: var(--k-go, #7CB800);
+  color: var(--k-go-ink, #1E1631);
+  border: 1.5px solid var(--k-go-edge, #4F7A00);
+  border-radius: 14px;
+  box-shadow: 0 4px 0 0 var(--k-go-edge, #4F7A00);
+  min-height: 44px;
+  padding: 0 20px;
+  font-weight: 800;
+}
+html body.pm:has(#classRoot) .cr-bar #newAssignmentBtn:hover,
+html body.pm:has(#classRoot) .cr-bar #newSimBtn:hover { background: var(--k-go, #7CB800); color: var(--k-go-ink, #1E1631); filter: brightness(0.96); }
+html body.pm:has(#classRoot) .cr-bar #newAssignmentBtn:active,
+html body.pm:has(#classRoot) .cr-bar #newSimBtn:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--k-go-edge, #4F7A00); }
+html body.pm:has(#classRoot) .cr-bar #simFromTemplateBtn { min-height: 44px; border-radius: 14px; }
+
+/* sections inside Sumar: a heading with a rule, not a small square */
+html body.pm:has(#classRoot) .sumar-section__title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 12px;
+  font-size: 1.02rem;
+  font-weight: 800;
+  letter-spacing: -0.005em;
+  text-transform: none;
+  color: var(--pm-ink);
+}
+html body.pm:has(#classRoot) .sumar-section__title::before { content: none; display: none; }
+html body.pm:has(#classRoot) .sumar-section__title::after { content: ''; flex: 1; height: 1.5px; border-radius: 2px; background: var(--pm-line); }
+html body.pm:has(#classRoot) .sumar-main > section + section { margin-top: 26px; }
+
+/* icon tiles */
+html body.pm:has(#classRoot) .sumar-icon-badge {
+  width: 44px; height: 44px; flex: 0 0 auto; display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--pm-line); border-radius: 13px; background: var(--pm-tint); color: var(--pm-violet);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .sumar-icon-badge--yellow { background: #FFF3CF; color: #8A5A00; border-color: #F0DFA2; box-shadow: 0 3px 0 0 #E7D08A; }
+html body.pm:has(#classRoot) .sumar-icon-badge--green { background: #E6F4C9; color: #3F6B00; border-color: #CFE5A0; box-shadow: 0 3px 0 0 #B8D580; }
+html body.pm:has(#classRoot) .sumar-icon-badge--teal { background: #D8F1F0; color: #0E6B67; border-color: #B5E0DE; box-shadow: 0 3px 0 0 #98CFCC; }
+[data-theme="dark"] html body.pm:has(#classRoot) .sumar-icon-badge--yellow, html[data-theme="dark"] body:has(#classRoot) .sumar-icon-badge--yellow { background: #3D3217; color: #F3CD6B; border-color: #54451F; box-shadow: 0 3px 0 0 #0F0A18; }
+[data-theme="dark"] html body.pm:has(#classRoot) .sumar-icon-badge--green, html[data-theme="dark"] body:has(#classRoot) .sumar-icon-badge--green { background: #243417; color: #B6E36B; border-color: #34491F; box-shadow: 0 3px 0 0 #0F0A18; }
+[data-theme="dark"] html body.pm:has(#classRoot) .sumar-icon-badge--teal, html[data-theme="dark"] body:has(#classRoot) .sumar-icon-badge--teal { background: #15343A; color: #7ED8D2; border-color: #1F4A50; box-shadow: 0 3px 0 0 #0F0A18; }
+
+/* ----------------------------------------------------------------- Sumar --- */
+html body.pm:has(#classRoot) .cd-tab-layout { gap: var(--cr-gap); }
+html body.pm:has(#classRoot) .sumar-upnext { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--cr-gap); }
+html body.pm:has(#classRoot) .sumar-upnext__card {
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 16px 18px 18px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+  min-height: 0;
+}
+html body.pm:has(#classRoot) .sumar-upnext__body { min-width: 0; display: flex; flex-direction: column; gap: 4px; }
+html body.pm:has(#classRoot) .sumar-upnext__lbl { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .sumar-upnext__val { font-size: 1.05rem; font-weight: 800; line-height: 1.25; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .sumar-upnext__val--muted { color: var(--pm-ink-2); font-weight: 700; }
+html body.pm:has(#classRoot) .sumar-upnext__sub { font-size: 0.84rem; line-height: 1.4; font-weight: 600; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .sumar-upnext__action {
+  align-self: flex-start;
+  margin-top: 6px;
+  padding: 4px 12px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: 999px;
+  background: var(--pm-tint);
+  color: var(--pm-violet);
+  font-size: 0.8rem;
+  font-weight: 800;
+}
+html body.pm:has(#classRoot) .sumar-upnext__card--clickable { cursor: pointer; transition: transform .12s ease, box-shadow .12s ease, background-color .15s ease; }
+html body.pm:has(#classRoot) .sumar-upnext__card--clickable:hover { background: color-mix(in srgb, var(--pm-tint) 45%, var(--pm-face)); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) .sumar-upnext__card--clickable:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+
+/* Pulsul grupei: five white cards, each with its tile, a big figure and a sunken meter */
+html body.pm:has(#classRoot) .sumar-kpibar {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: var(--cr-gap);
+  margin: 0;
+  padding: 0;
+  max-width: none;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  color: var(--pm-ink);
+  animation: none;
+}
+html body.pm:has(#classRoot) .sumar-kpi-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 16px 16px 16px;
+  border: 1.5px solid var(--pm-line);
+  border-left: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-icon-badge { display: inline-flex; width: 38px; height: 38px; border-radius: 12px; }
+html body.pm:has(#classRoot) .sumar-kpi-card__body { width: 100%; display: flex; flex-direction: column; gap: 4px; }
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__val {
+  order: 1;
+  font-family: inherit;
+  font-size: 1.7rem;
+  font-weight: 800;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  color: var(--pm-ink);
+  font-variant-numeric: tabular-nums;
+}
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__lbl { order: 2; font-size: 0.82rem; font-weight: 700; color: var(--pm-ink-2); opacity: 1; }
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__sub { order: 4; font-size: 0.76rem; font-weight: 600; color: var(--pm-ink-2); opacity: 1; }
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__bar {
+  order: 3; height: 10px; margin: 6px 0 2px; border-radius: 6px;
+  background: var(--pm-track); box-shadow: inset 0 2px 0 rgba(31, 16, 53, 0.12);
+  overflow: hidden;
+}
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__bar-fill {
+  height: 100%; border-radius: 6px; background: var(--pm-lime);
+  box-shadow: inset 0 3px 0 rgba(255, 255, 255, 0.35), inset 0 -2px 0 var(--pm-lime-edge);
+}
+
+/* students list: a header plate and one rounded row per student */
+html body.pm:has(#classRoot) .sumar-roster {
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  box-shadow: none;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+html body.pm:has(#classRoot) .sumar-roster__row {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 16px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  padding: 10px 16px;
+  align-items: center;
+}
+html body.pm:has(#classRoot) .sumar-roster__row + .sumar-roster__row { border-top: 1.5px solid var(--pm-line); }
+html body.pm:has(#classRoot) .sumar-roster__row--head {
+  padding: 8px 16px;
+  background: var(--pm-tint);
+  border-color: var(--pm-line);
+  box-shadow: none;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--pm-ink-2);
+}
+html body.pm:has(#classRoot) .sumar-roster__row--head > * { font-size: inherit; font-weight: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; }
+html body.pm:has(#classRoot) .sumar-roster__row--left { opacity: 0.75; }
+html body.pm:has(#classRoot) .sumar-roster__sep { margin: 8px 2px 0; font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .sumar-roster__sync { margin: 12px 4px 0; font-size: 0.84rem; color: var(--pm-ink-2); }
+
+/* the right column: info card and widgets as the same white cards */
+html body.pm:has(#classRoot) .cd-info-card,
+html body.pm:has(#classRoot) .cd-sidebar-widget {
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .cd-sidebar-widget__title { font-size: 0.74rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .cd-info-card__detail { border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-tint); }
+
+/* --------------------------------------------------------------- Mesaje --- */
+html body.pm:has(#classRoot) .msg-panel {
+  background: var(--pm-face);
+  border: 1.5px solid var(--pm-line);
+  border-radius: 22px;
+  box-shadow: 0 5px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .msg-panel__header {
+  padding: 14px 18px;
+  border-bottom: 1.5px solid var(--pm-line);
+  background: var(--pm-face);
+}
+html body.pm:has(#classRoot) .msg-panel__header-title { font-size: 1.05rem; font-weight: 800; letter-spacing: -0.005em; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .msg-panel__header-title::after,
+html body.pm:has(#classRoot) .msg-panel__header-title::before { content: none; display: none; }
+html body.pm:has(#classRoot) .msg-panel__header-title svg { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .msg-panel__header-actions .icon-btn { width: 40px; height: 40px; border-radius: 12px; }
+html body.pm:has(#classRoot) .msg-panel__list {
+  background: var(--pm-paper);
+  background-image: none;
+  padding: 18px 18px 8px;
+}
+html body.pm:has(#classRoot) .msg-bubble__author { font-weight: 800; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .msg-bubble__time { color: var(--pm-ink-2); font-weight: 600; }
+html body.pm:has(#classRoot) .msg-bubble__avatar { border-radius: 12px; }
+html body.pm:has(#classRoot) .msg-bubble__box {
+  border: 1.5px solid var(--pm-line);
+  border-radius: 6px 16px 16px 16px;
+  background: var(--pm-face);
+  box-shadow: 0 3px 0 0 var(--pm-edge);
+  color: var(--pm-ink);
+}
+html body.pm:has(#classRoot) .msg-bubble--teacher .msg-bubble__box { background: var(--pm-tint); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) .msg-bubble--mine .msg-bubble__box { background: color-mix(in srgb, var(--pm-violet) 10%, var(--pm-face)); border-color: color-mix(in srgb, var(--pm-violet) 28%, var(--pm-line)); }
+html body.pm:has(#classRoot) .msg-bubble__role-badge { border-radius: 999px; background: var(--pm-violet); color: #fff; border: 0; }
+html body.pm:has(#classRoot) .msg-panel__composer {
+  padding: 12px 16px 14px;
+  border-top: 1.5px solid var(--pm-line);
+  background: var(--pm-face);
+}
+html body.pm:has(#classRoot) .msg-panel__input {
+  border: 1.5px solid var(--pm-line-2);
+  border-radius: 14px;
+  background: var(--pm-paper);
+  color: var(--pm-ink);
+}
+html body.pm:has(#classRoot) .msg-panel__input:focus { outline: none; border-color: var(--pm-violet); background: var(--pm-face); }
+html body.pm:has(#classRoot) .msg-panel__send {
+  border-radius: 14px;
+  background: var(--k-go, #7CB800);
+  color: var(--k-go-ink, #1E1631);
+  border: 1.5px solid var(--k-go-edge, #4F7A00);
+  box-shadow: 0 4px 0 0 var(--k-go-edge, #4F7A00);
+  font-weight: 800;
+}
+html body.pm:has(#classRoot) .msg-panel__send:disabled { background: var(--pm-tint); color: var(--pm-ink-2); border-color: var(--pm-line); box-shadow: 0 4px 0 0 var(--pm-edge); opacity: 1; }
+html body.pm:has(#classRoot) .msg-panel__send:not(:disabled):active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--k-go-edge, #4F7A00); }
+html body.pm:has(#classRoot) .msg-panel__hint { color: var(--pm-ink-2); }
+
+/* ----------------------------------------------------------------- Teme --- */
+html body.pm:has(#classRoot) .teme-list { display: flex; flex-direction: column; gap: var(--cr-gap); }
+html body.pm:has(#classRoot) .teme-assignment {
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+  overflow: hidden;
+  transition: transform .12s ease, box-shadow .12s ease, background-color .15s ease;
+}
+html body.pm:has(#classRoot) .teme-assignment--clickable:hover { background: color-mix(in srgb, var(--pm-tint) 40%, var(--pm-face)); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) .teme-assignment--clickable:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+html body.pm:has(#classRoot) .teme-assignment__main { padding: 18px 20px 16px; }
+html body.pm:has(#classRoot) .teme-assignment__title { font-size: 1.12rem; font-weight: 800; letter-spacing: -0.01em; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .teme-assignment__title::before,
+html body.pm:has(#classRoot) .teme-assignment__top::before,
+html body.pm:has(#classRoot) .cd-sidebar-widget__title::before { content: none; display: none; }
+html body.pm:has(#classRoot) .teme-assignment--overdue { opacity: 1; }
+html body.pm:has(#classRoot) .teme-assignment__type-icon { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .teme-block-chip {
+  border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint); color: var(--pm-ink); font-weight: 700; padding: 3px 10px;
+}
+html body.pm:has(#classRoot) .teme-assignment__desc { color: var(--pm-ink-2); }
+html body.pm:has(#classRoot) .teme-assignment__footer {
+  padding: 12px 20px;
+  border-top: 1.5px solid var(--pm-line);
+  background: color-mix(in srgb, var(--pm-tint) 55%, var(--pm-face));
+}
+html body.pm:has(#classRoot) .teme-assignment__footer-left { gap: 10px; flex-wrap: wrap; }
+html body.pm:has(#classRoot) .teme-assignment__due {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 12px; border-radius: 999px; border-width: 1.5px; font-weight: 800; font-size: 0.78rem; letter-spacing: 0.04em; text-transform: uppercase;
+}
+html body.pm:has(#classRoot) .teme-assignment__date,
+html body.pm:has(#classRoot) .teme-sub-counter { color: var(--pm-ink-2); font-weight: 600; }
+html body.pm:has(#classRoot) .teme-assignment__actions { gap: 8px; }
+html body.pm:has(#classRoot) .teme-assignment__edit,
+html body.pm:has(#classRoot) .teme-assignment__delete,
+html body.pm:has(#classRoot) .teme-assignment__archive,
+html body.pm:has(#classRoot) .teme-assignment__publish {
+  min-width: 40px; height: 40px; border-radius: 12px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 12px;
+}
+html body.pm:has(#classRoot) .teme-assignment__edit,
+html body.pm:has(#classRoot) .teme-assignment__delete { padding: 0; width: 40px; }
+html body.pm:has(#classRoot) .teme-assignment__cta { padding: 10px 20px; border-top: 1.5px dashed var(--pm-line); color: var(--pm-ink-2); font-weight: 700; font-size: 0.86rem; }
+html body.pm:has(#classRoot) .teme-draft-badge { border-radius: 999px; }
+
+/* empty states: the card with a tile icon and a short line */
+html body.pm:has(#classRoot) .teme-empty,
+html body.pm:has(#classRoot) .cd-placeholder {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px;
+  padding: 44px 24px 46px;
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .teme-empty__icon,
+html body.pm:has(#classRoot) .cd-placeholder__icon {
+  width: 76px; height: 76px; margin: 0 0 6px; display: inline-flex; align-items: center; justify-content: center;
+  border: 1.5px solid var(--pm-line); border-radius: 20px; background: var(--pm-tint); color: var(--pm-violet);
+  box-shadow: 0 4px 0 0 var(--pm-edge); opacity: 1;
+}
+html body.pm:has(#classRoot) .teme-empty h3,
+html body.pm:has(#classRoot) .cd-placeholder__title { margin: 0; font-size: 1.15rem; font-weight: 800; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .teme-empty p,
+html body.pm:has(#classRoot) .cd-placeholder__desc { margin: 0; max-width: 40ch; color: var(--pm-ink-2); font-weight: 600; }
+
+/* ------------------------------------------------------------- Simulari --- */
+html body.pm:has(#classRoot) .sim-list { display: flex; flex-direction: column; gap: var(--cr-gap); }
+html body.pm:has(#classRoot) .csim-card {
+  border: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r);
+  background: var(--pm-face);
+  box-shadow: 0 4px 0 0 var(--pm-edge);
+  transition: transform .12s ease, box-shadow .12s ease, background-color .15s ease;
+}
+html body.pm:has(#classRoot) .csim-card--clickable:hover { background: color-mix(in srgb, var(--pm-tint) 40%, var(--pm-face)); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) .csim-card--clickable:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+html body.pm:has(#classRoot) .csim-card__row {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px; padding: 16px 20px;
+}
+html body.pm:has(#classRoot) .csim-card__title { margin: 0; flex: 1 1 220px; min-width: 0; font-size: 1.08rem; font-weight: 800; letter-spacing: -0.01em; color: var(--pm-ink); }
+html body.pm:has(#classRoot) .csim-card__meta-item {
+  display: inline-flex; align-items: center; gap: 6px; padding: 4px 11px;
+  border: 1.5px solid var(--pm-line); border-radius: 999px; background: var(--pm-tint);
+  font-size: 0.8rem; font-weight: 700; color: var(--pm-ink);
+}
+html body.pm:has(#classRoot) .csim-card__meta-item svg { color: var(--pm-violet); }
+html body.pm:has(#classRoot) .csim-card__actions { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+html body.pm:has(#classRoot) .csim-card__actions .btn { min-height: 40px; border-radius: 12px; }
+html body.pm:has(#classRoot) .csim-card__actions .teme-assignment__edit,
+html body.pm:has(#classRoot) .csim-card__actions .teme-assignment__delete { width: 40px; height: 40px; min-width: 40px; border-radius: 12px; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+html body.pm:has(#classRoot) .csim-card__actions .btn--primary { background: var(--k-go, #7CB800); color: var(--k-go-ink, #1E1631); border: 1.5px solid var(--k-go-edge, #4F7A00); box-shadow: 0 4px 0 0 var(--k-go-edge, #4F7A00); font-weight: 800; }
+html body.pm:has(#classRoot) .csim-card__actions .btn--primary:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--k-go-edge, #4F7A00); }
+html body.pm:has(#classRoot) .sim-badge { border-radius: 999px; border-width: 1.5px; padding: 4px 12px; font-weight: 800; font-size: 0.74rem; letter-spacing: 0.05em; text-transform: uppercase; }
+
+/* -------------------------------------------------------------- Catalog --- */
+html body.pm:has(#classRoot) .catalog-note {
+  display: flex; align-items: flex-start; gap: 10px; margin: 0 0 var(--cr-gap); padding: 12px 16px;
+  border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-tint);
+  color: var(--pm-ink-2); font-size: 0.88rem; line-height: 1.45; font-weight: 600;
+}
+html body.pm:has(#classRoot) .catalog-note svg { flex: 0 0 auto; margin-top: 2px; color: var(--pm-violet); }
+html body.pm:has(#classRoot) .catalog-wrap {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: "stats tools" "table table";
+  gap: var(--cr-gap);
+  align-items: start;
+}
+html body.pm:has(#classRoot) .catalog-wrap > .catalog-statsbar { grid-area: stats; }
+html body.pm:has(#classRoot) .catalog-wrap > .catalog-toolbar { grid-area: tools; align-self: stretch; display: flex; align-items: flex-start; gap: 10px; margin: 0; padding: 0; }
+html body.pm:has(#classRoot) .catalog-wrap > .catalog-scroll,
+html body.pm:has(#classRoot) .catalog-wrap > .cd-placeholder { grid-area: table; }
+html body.pm:has(#classRoot) .catalog-statsbar {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--cr-gap);
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  border-radius: 0;
+  background: none;
+  background-image: none;
+  box-shadow: none;
+  animation: none;
+}
+html body.pm:has(#classRoot) .catalog-stat-card,
+html body.pm:has(#classRoot) .catalog-stat-card--avg {
+  display: flex; flex-direction: column; gap: 4px; padding: 14px 18px 16px;
+  border: 1.5px solid var(--pm-line); border-left: 1.5px solid var(--pm-line);
+  border-radius: var(--cr-r); background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge);
+}
+html body.pm:has(#classRoot) .catalog-stat-card__val,
+html body.pm:has(#classRoot) .catalog-stat-card--avg .catalog-stat-card__val {
+  order: 1; font-family: inherit; font-size: 1.8rem; font-weight: 800; line-height: 1.05; letter-spacing: -0.02em; color: var(--pm-ink); font-variant-numeric: tabular-nums;
+}
+html body.pm:has(#classRoot) .catalog-stat-card__lbl { order: 2; font-size: 0.84rem; font-weight: 700; color: var(--pm-ink-2); opacity: 1; }
+html body.pm:has(#classRoot) .catalog-toolbar .btn { min-height: 44px; border-radius: 14px; }
+
+/* the grades table: a white card, header on a tint plate, rows with a hairline */
+html body.pm:has(#classRoot) .catalog-scroll {
+  border: 1.5px solid var(--pm-line); border-radius: var(--cr-r); background: var(--pm-face); box-shadow: 0 4px 0 0 var(--pm-edge); overflow: auto;
+}
+html body.pm:has(#classRoot) .catalog-table { border: 0; border-radius: 0; box-shadow: none; background: transparent; }
+html body.pm:has(#classRoot) .catalog-head { background: var(--pm-tint); border-bottom: 1.5px solid var(--pm-line); }
+html body.pm:has(#classRoot) .catalog-th { font-size: 0.8rem; font-weight: 800; color: var(--pm-ink); background: transparent; border-color: var(--pm-line); }
+html body.pm:has(#classRoot) .catalog-row { border-color: var(--pm-line); }
+html body.pm:has(#classRoot) .catalog-td { border-color: var(--pm-line); color: var(--pm-ink); }
+html body.pm:has(#classRoot) .catalog-th__date { color: var(--pm-ink-2); font-weight: 600; }
+html body.pm:has(#classRoot) .catalog-body .catalog-row .catalog-td:not(.catalog-td--grade) { background: var(--pm-face); }
+html body.pm:has(#classRoot) .catalog-body .catalog-row .catalog-td--name,
+html body.pm:has(#classRoot) .catalog-body .catalog-row .catalog-td--avg { background: color-mix(in srgb, var(--pm-tint) 45%, var(--pm-face)); }
+html body.pm:has(#classRoot) .catalog-row--stats .catalog-td { background: var(--pm-tint); }
+html body.pm:has(#classRoot) .catalog-row--stats { background: var(--pm-tint); border-top: 1.5px solid var(--pm-line); }
+
+/* --------------------------------------------------- tablets and phones --- */
+@media (max-width: 1100px) {
+  html body.pm:has(#classRoot) .sumar-kpibar { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 760px) {
+  html body.pm:has(#classRoot) .sumar-upnext { grid-template-columns: 1fr; }
+  html body.pm:has(#classRoot) .sumar-kpibar { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  html body.pm:has(#classRoot) .sumar-kpi-card { padding: 14px; }
+  html body.pm:has(#classRoot) .sumar-kpi-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
+  html body.pm:has(#classRoot) .sumar-kpi-card .sumar-kpi-card__val { font-size: 1.45rem; }
+  html body.pm:has(#classRoot) .catalog-wrap { grid-template-columns: 1fr; grid-template-areas: "stats" "tools" "table"; }
+  html body.pm:has(#classRoot) .catalog-statsbar { gap: 10px; }
+  html body.pm:has(#classRoot) .catalog-stat-card { padding: 12px 12px 14px; }
+  html body.pm:has(#classRoot) .catalog-stat-card__val { font-size: 1.4rem; }
+  html body.pm:has(#classRoot) .cr-bar { padding: 12px 14px; }
+  html body.pm:has(#classRoot) .cr-bar .teme-toolbar { width: 100%; }
+  html body.pm:has(#classRoot) .cr-bar .teme-toolbar .btn { flex: 1 1 0; justify-content: center; }
+  html body.pm:has(#classRoot) .csim-card__row { padding: 14px 16px; }
+  html body.pm:has(#classRoot) .csim-card__actions { margin-left: 0; width: 100%; flex-wrap: wrap; }
+  html body.pm:has(#classRoot) .teme-assignment__main { padding: 14px 16px 12px; }
+  html body.pm:has(#classRoot) .teme-assignment__footer { padding: 10px 16px; }
+}
+
+/* when the two columns collapse, the side cards go UNDER the content (they were on top and pushed the list down) */
+@media (max-width: 960px) {
+  html body.pm:has(#classRoot) .cd-tab-layout > .cd-sidebar { order: 2; }
+  html body.pm:has(#classRoot) .cd-tab-layout { display: grid; grid-template-columns: minmax(0, 1fr); }
+}
+
+/* the student's hint line under a homework card: a tint strip, violet on hover (it was violet with unreadable grey text) */
+html body.pm:has(#classRoot) .teme-assignment__cta {
+  padding: 11px 20px;
+  border-top: 1.5px solid var(--pm-line);
+  background: var(--pm-tint);
+  color: var(--pm-violet);
+  font-weight: 800;
+  font-size: 0.86rem;
+  transition: background-color .15s ease, color .15s ease;
+}
+html body.pm:has(#classRoot) .teme-assignment__cta svg { color: inherit; }
+html body.pm:has(#classRoot) .teme-assignment--clickable:hover .teme-assignment__cta { background: var(--pm-violet); color: #fff; }
