@@ -34,6 +34,9 @@
   // differently for each role — a full class roster for the teacher vs. just
   // your own progress for a student — so its tab label is role-aware even
   // though the id/hash stays "membri" for routing.
+  /* illustrated icons of the class page (assets/images/class/*.svg, made by scripts/make-class-icons.py) */
+  const crIco = (name, px) => `<img class="cr-ico cr-ico--${name}" src="assets/images/class/${name}.svg" alt="" width="${px}" height="${px}">`;
+
   function _tabLabel(t) {
     if (t.id === 'membri') return BMAuth.role === 'profesor' ? 'Catalog' : 'Cabinet Personal';
     return t.label;
@@ -1424,7 +1427,7 @@
     const next = _nextLessonDate(classData.schedule_days, classData.schedule_time);
     const lessonCard = `
       <div class="sumar-upnext__card">
-        <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('calendar', { size: 18 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('lectie', 46)}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Următoarea lecție</div>
           ${next
@@ -1447,7 +1450,7 @@
     }
     const temeCard = `
       <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-teme>
-        <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('file-text', { size: 18 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('teme', 46)}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Teme</div>
           ${temeBody}
@@ -1473,7 +1476,7 @@
     }
     const simCard = `
       <div class="sumar-upnext__card sumar-upnext__card--clickable" data-goto-simulari>
-        <span class="sumar-icon-badge sumar-icon-badge--teal">${icon('target', { size: 18 })}</span>
+        <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('simulari', 46)}</span>
         <div class="sumar-upnext__body">
           <div class="sumar-upnext__lbl">Simulări</div>
           ${simBody}
@@ -2299,6 +2302,7 @@
       : `${_ts.total} ${_ts.total === 1 ? 'temă' : 'teme'}${_ts.active ? ` · ${_ts.active} ${_ts.active === 1 ? 'activă' : 'active'}` : ''}${_ts.overdue ? ` · ${_ts.overdue} ${_ts.overdue === 1 ? 'expirată' : 'expirate'}` : ''}`;
     container.innerHTML = `
       <div class="cr-bar">
+        ${crIco('teme', 44)}
         <div class="cr-bar__txt">
           <h2 class="cr-bar__title">Teme</h2>
           <p class="cr-bar__sub">${_temeSub}</p>
@@ -2356,7 +2360,7 @@
   function temeEmpty(isTeacher) {
     return `
       <div class="teme-empty">
-        <div class="teme-empty__icon">${icon('file-text', { size: 48 })}</div>
+        <div class="teme-empty__icon">${crIco('teme', 64)}</div>
         <h3>${isTeacher ? 'Nicio temă creată' : 'Nicio temă disponibilă'}</h3>
         <p>${isTeacher
           ? 'Adaugă prima temă pentru elevii din clasă.'
@@ -2437,6 +2441,7 @@
            data-id="${a.id}">
         <div class="teme-assignment__main">
           <div class="teme-assignment__top">
+            ${crIco('teme', 34)}
             <h3 class="teme-assignment__title">${BM.esc(a.title)}</h3>
             ${isTeacher && a.visibility === 'draft' ? `<span class="teme-draft-badge" title="Vizibilă doar ție, elevii nu o văd până o publici">${icon('eye-off', { size: 16 })} Draft</span>` : ''}
             <span class="teme-assignment__type-icon">${typeIcon}</span>
@@ -2506,7 +2511,9 @@
       'engleză':        icon('languages', { size: 32 }),
       'franceză':       icon('languages', { size: 32 })
     };
-    const subjectIcon = subjectIcons[subject.toLowerCase()] || icon('library', { size: 32 });
+    // Matematică has its own illustrated icon; the other subjects keep the line icons
+    const isMath = /^matematic/i.test(subject.trim());
+    const subjectIcon = isMath ? crIco('matematica', 52) : (subjectIcons[subject.toLowerCase()] || icon('library', { size: 32 }));
 
     // No text qualifier ("Foarte bun"/"Slab" etc) on the badge — only the
     // numeric range is shown, so a student never sees a value-judgement
@@ -2558,7 +2565,7 @@
       <div class="cd-info-card">
         <div class="cd-info-card__strip"></div>
         <div class="cd-info-card__inner">
-          <div class="cd-info-card__main">
+          <div class="cd-info-card__main${isMath ? ' cd-info-card__main--pic' : ''}">
             <div class="cd-info-card__icon">${subjectIcon}</div>
             <div class="cd-info-card__subject">${BM.esc(subject)}</div>
             ${schedule ? `<div class="cd-info-card__schedule">${icon('calendar', { size: 16 })} ${BM.esc(schedule)}</div>` : ''}
@@ -2688,8 +2695,8 @@
         <div class="classes-modal__body">
           <ul class="notif-info__list">
             <li>${icon('message-circle', { size: 16 })} un mesaj nou în clasă</li>
-            <li>${icon('file-text', { size: 16 })} o temă nouă</li>
-            <li>${icon('target', { size: 16 })} o simulare programată sau pornită</li>
+            <li>${crIco('teme', 22)} o temă nouă</li>
+            <li>${crIco('simulari', 22)} o simulare programată sau pornită</li>
           </ul>
           <label class="wz-toggle notif-sw${blocked ? ' is-blocked' : ''}">
             <input type="checkbox" id="notifInfoSwitch" ${subscribed ? 'checked' : ''} ${blocked ? 'disabled' : ''}>
@@ -2730,7 +2737,7 @@
       <div class="cd-sidebar-widget">
         <div class="cd-sidebar-widget__title">Rezumat Teme</div>
         <div class="cd-sidebar-stat">
-          <span class="cd-sidebar-stat__icon">${icon('file-text', { size: 16 })}</span>
+          <span class="cd-sidebar-stat__icon">${crIco('teme', 22)}</span>
           <span>${total} ${total === 1 ? 'temă' : 'teme'} total</span>
         </div>
         ${active > 0 ? `
@@ -2981,7 +2988,7 @@
       const ds = col.kind === 'assignment'
         ? col.date.toLocaleDateString('ro-RO', { day: 'numeric', month: 'short' })
         : _simColDate(col.ref);
-      const kindIcon = col.kind === 'assignment' ? icon('file-text', { size: 16 }) : icon('target', { size: 16 });
+      const kindIcon = col.kind === 'assignment' ? crIco('teme', 20) : crIco('simulari', 20);
 
       return `
         <div class="catalog-row">
@@ -3185,7 +3192,7 @@
 
     const noteRows = sortedNotes.map(n => {
       const ds = new Date(n.dateIso).toLocaleDateString('ro-RO', { day: 'numeric', month: 'long', year: 'numeric' });
-      const rowIcon = n.type === 'simulare' ? icon('target', { size: 16 }) : icon('file-text', { size: 16 });
+      const rowIcon = n.type === 'simulare' ? crIco('simulari', 20) : crIco('teme', 20);
 
       let gradeEl = '';
       if (n.status === 'none') {
@@ -4754,6 +4761,7 @@
         : `${visible.length} ${visible.length === 1 ? 'simulare' : 'simulări'}${_simActive ? ` · ${_simActive} ${_simActive === 1 ? 'activă' : 'active'}` : ''}`;
       content.innerHTML = `
         <div class="cr-bar">
+          ${crIco('simulari', 44)}
           <div class="cr-bar__txt">
             <h2 class="cr-bar__title">Simulări</h2>
             <p class="cr-bar__sub">${_simSub}</p>
@@ -4816,7 +4824,7 @@
   function simEmpty(isTeacher) {
     return `
       <div class="teme-empty">
-        <div class="teme-empty__icon">${icon('target', { size: 48 })}</div>
+        <div class="teme-empty__icon">${crIco('simulari', 64)}</div>
         <h3>${isTeacher ? 'Nicio simulare creată' : 'Nicio simulare disponibilă'}</h3>
         <p>${isTeacher ? 'Creează prima simulare pentru clasă.' : 'Profesorul nu a pornit nicio simulare încă.'}</p>
       </div>`;
@@ -4827,6 +4835,7 @@
     return `
       <div class="csim-card csim-card--clickable" data-id="${s.id}">
         <div class="csim-card__row">
+          ${crIco('simulari', 34)}
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
           <span class="csim-card__meta-item">${icon('calendar', { size: 16 })} ${formatSimDateTime(s.scheduled_at)}</span>
@@ -4858,6 +4867,7 @@
     return `
       <div class="csim-card" data-id="${s.id}">
         <div class="csim-card__row">
+          ${crIco('simulari', 34)}
           <h3 class="csim-card__title">${BM.esc(s.title)}</h3>
           ${simStatusBadge(s.status)}
           <span class="csim-card__meta-item">${icon('timer', { size: 16 })} ${s.time_limit_minutes} min</span>
@@ -4966,7 +4976,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-live-dialog">
         <div class="classes-modal__head">
-          <h3>${icon('target', { size: 20 })} ${BM.esc(s.title)}</h3>
+          <h3>${crIco('simulari', 26)} ${BM.esc(s.title)}</h3>
           <div style="display:flex;gap:6px;align-items:center">
             <button class="icon-btn" id="simLiveItemsBtn" title="Vezi exercițiile">${icon('clipboard-list', { size: 20 })}</button>
             <button class="icon-btn" id="simLiveCloseBtn">${icon('x', { size: 16 })}</button>

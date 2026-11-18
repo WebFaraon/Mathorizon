@@ -66,9 +66,11 @@ html body.pm:has(#classRoot) .cd-title {
 html body.pm:has(#classRoot) .cd-header .cd-art__tx { display: none; }
 html body.pm:has(#classRoot) .cd-header .cd-art { opacity: 0.4; }
 html body.pm:has(#classRoot) .cd-header .cd-art svg {
-  top: 40%;
-  right: -430px;
-  transform: translateY(-50%);
+  top: 108px;
+  left: calc(50% - 315px);
+  right: auto;
+  transform: translateY(-50%) scale(0.82);
+  transform-origin: 315px 50%;
 }
 
 /* back key */
@@ -186,7 +188,7 @@ html body.pm:has(#classRoot) .cd-tab.cd-tab--active {
 @media (max-width: 900px) {
   html body.pm:has(#classRoot) .cd-header > .container { padding: 20px 20px 20px; }
   html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 10px 14px; }
-  html body.pm:has(#classRoot) .cd-header .cd-art svg { right: -520px; }
+  html body.pm:has(#classRoot) .cd-header .cd-art svg { top: 100px; }
 }
 @media (max-width: 720px) {
   html body.pm:has(#classRoot) .cd-header > .container { grid-template-areas: "back side" "info info"; grid-template-columns: auto 1fr; }
@@ -706,3 +708,58 @@ html body.pm:has(#classRoot) .sumar-roster,
 html body.pm:has(#classRoot) .sumar-roster--reg,
 html body.pm:has(#classRoot) .sim-list,
 html body.pm:has(#classRoot) .teme-list { overflow: visible; }
+
+
+/* ---- illustrated icons of the class page (2026-11-18) ---- */
+html body.pm:has(#classRoot) .cr-ico { display: block; flex: 0 0 auto; object-fit: contain; }
+html body.pm:has(#classRoot) .sumar-icon-badge--pic {
+  width: 52px; height: 52px; border: 0; background: none; box-shadow: none; border-radius: 0; margin: -3px 0 0 -3px;
+}
+html body.pm:has(#classRoot) .sumar-icon-badge--pic .cr-ico { width: 52px; height: 52px; }
+html body.pm:has(#classRoot) .sumar-upnext__card--clickable:hover .cr-ico { transform: translateY(-2px); }
+html body.pm:has(#classRoot) .sumar-upnext__card .cr-ico { transition: transform .15s ease; }
+
+/* heading bars: icon, then title and count, the keys at the far right */
+html body.pm:has(#classRoot) .cr-bar { flex-wrap: nowrap; gap: 14px; }
+html body.pm:has(#classRoot) .cr-bar > .cr-ico { width: 44px; height: 44px; }
+html body.pm:has(#classRoot) .cr-bar__txt { margin-right: auto; }
+@media (max-width: 760px) {
+  html body.pm:has(#classRoot) .cr-bar { flex-wrap: wrap; }
+  html body.pm:has(#classRoot) .cr-bar > .cr-ico { width: 38px; height: 38px; }
+  html body.pm:has(#classRoot) .cr-bar__txt { flex: 1 1 0; }
+}
+
+/* empty cards: the icon stands alone (no tile behind it) */
+html body.pm:has(#classRoot) .teme-empty__icon:has(.cr-ico) { width: auto; height: auto; margin: 0 0 4px; border: 0; background: none; box-shadow: none; border-radius: 0; }
+html body.pm:has(#classRoot) .teme-empty__icon .cr-ico { width: 72px; height: 72px; }
+
+/* cards: a small icon before the title */
+html body.pm:has(#classRoot) .teme-assignment__top { align-items: center; gap: 12px; }
+html body.pm:has(#classRoot) .teme-assignment__top > .cr-ico { width: 34px; height: 34px; }
+html body.pm:has(#classRoot) .csim-card__row > .cr-ico { width: 34px; height: 34px; }
+@media (max-width: 600px) { html body.pm:has(#classRoot) .csim-card__row > .cr-ico { width: 30px; height: 30px; } html body.pm:has(#classRoot) .csim-card__title { flex: 1 1 120px; } }
+
+/* inside lines of text, tables and lists */
+html body.pm:has(#classRoot) .catalog-th__title .cr-ico,
+html body.pm:has(#classRoot) .cs-row .cr-ico,
+html body.pm:has(#classRoot) li > .cr-ico { display: inline-block; vertical-align: -5px; margin-right: 4px; }
+html body.pm:has(#classRoot) .cd-sidebar-stat__icon { display: inline-flex; align-items: center; }
+html body.pm:has(#classRoot) .cd-sidebar-stat__icon .cr-ico { width: 22px; height: 22px; }
+html body.pm:has(#classRoot) h3 > .cr-ico { display: inline-block; vertical-align: -7px; margin-right: 6px; }
+
+/* the subject card in the right column: the Matematica icon at the left, the name and the lesson time to its right (a shorter card) */
+html body.pm:has(#classRoot) .cd-info-card__inner { padding: 16px 16px 14px; }
+html body.pm:has(#classRoot) .cd-info-card__main--pic {
+  display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center;
+  padding-bottom: 12px; margin-bottom: 2px;
+}
+html body.pm:has(#classRoot) .cd-info-card__main--pic .cd-info-card__icon {
+  grid-row: 1 / span 2; width: 60px; height: 60px; margin: 0; border: 0; background: none; box-shadow: none; border-radius: 0;
+}
+html body.pm:has(#classRoot) .cd-info-card__main--pic .cd-info-card__icon .cr-ico { width: 60px; height: 60px; }
+html body.pm:has(#classRoot) .cd-info-card__main--pic .cd-info-card__subject { align-self: end; margin: 0; font-size: 1.15rem; }
+html body.pm:has(#classRoot) .cd-info-card__main--pic .cd-info-card__schedule { align-self: start; }
+html body.pm:has(#classRoot) .csim-card__title { flex: 1 1 110px; }
+html body.pm:has(#classRoot) .csim-card { padding: 0; }
+html body.pm:has(#classRoot) .csim-card__row { padding: 12px 18px; }
+html body.pm:has(#classRoot) .csim-card__title, html body.pm:has(#classRoot) .teme-assignment__title { text-wrap: balance; }
