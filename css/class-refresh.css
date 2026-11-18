@@ -834,3 +834,15 @@ html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn {
 }
 html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn:hover:not(:disabled) { background: var(--k-go, #7CB800); color: var(--k-go-ink, #1E1631); filter: brightness(0.96); }
 html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--k-go-edge, #4F7A00); }
+
+/* ---- the saved boards on a phone: title, date, then the two keys on their own row (they overlapped the date) ---- */
+@media (max-width: 600px) {
+  html body.pm:has(#classRoot) .wb-history .csim-card__row {
+    display: grid; grid-template-columns: minmax(0, 1fr); row-gap: 10px; align-items: center; padding: 14px 14px 14px 16px;
+  }
+  html body.pm:has(#classRoot) .wb-history .csim-card__title { grid-column: 1; grid-row: 1; min-width: 0; flex: none; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__meta-item { grid-column: 1; grid-row: 2; justify-self: start; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__actions { position: static; inset: auto; grid-column: 1; grid-row: 3; display: flex; gap: 10px; width: 100%; margin: 0; padding: 0; flex-wrap: nowrap; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__actions .wb-view-btn { flex: 1 1 auto; justify-content: center; min-height: 42px; height: 42px; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__actions .teme-assignment__delete { flex: none; width: 42px; height: 42px; min-width: 42px; }
+}

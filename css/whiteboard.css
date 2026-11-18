@@ -499,3 +499,100 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:focus-visible { out
   .wb-fullscreen .wb-toolbar .wb-figs-panel .wb-fig { height: 72px; }
   .wb-fullscreen .wb-toolbar .wb-figs-panel .wb-fig svg { width: 44px; height: 44px; }
 }
+
+
+/* ============================================================
+   Round (2026-11-18): no LCD on the board, a calmer phone.
+   The title, the head count, the zoom and the size value are plain plates now (no dot grid, no pixel font); the stylus mode is a lime dot on its key
+   (the text badge was cut in the narrow column and waited for the toolbar's entrance delay before it showed); the figures panel scrolls on a phone;
+   and on a phone the corner key hides the whole top strip (class wb-fullscreen--immersive on the modal, see _toggleWbFullscreen in js/class-page.js).
+   ============================================================ */
+
+/* the session title: a frosted plate on the violet strip */
+html body .wb-fullscreen .wb-fs-title,
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input {
+  height: 36px; padding: 0 14px; border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 12px;
+  background: rgba(255, 255, 255, 0.1); background-image: none; box-shadow: none;
+  color: #fff; font-family: var(--k-font, inherit); font-size: 0.92rem; font-weight: 800; letter-spacing: 0;
+}
+html body .wb-fullscreen .wb-fs-title { display: inline-flex; align-items: center; }
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input::placeholder { color: rgba(255, 255, 255, 0.55); font-weight: 600; }
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input:hover { background: rgba(255, 255, 255, 0.14); filter: none; }
+body:has(#classRoot) > #tablaLiveModal input.wb-fs-title-input:focus { background: rgba(255, 255, 255, 0.16); border-color: rgba(255, 255, 255, 0.4); outline: 2px solid var(--k-go, #7CB800); outline-offset: 2px; }
+
+/* the keys of the strip: a little smaller; the head count is a plain pill */
+body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn,
+.wb-fullscreen .wb-roster-btn { height: 36px; min-width: 36px; border-radius: 12px; }
+.wb-fullscreen .wb-roster-btn { padding: 0 8px 0 11px; gap: 8px; }
+.wb-fullscreen .wb-roster-btn__n {
+  min-width: 24px; padding: 2px 8px; border-radius: 999px; background: rgba(255, 255, 255, 0.18); color: #fff; box-shadow: none;
+  font-family: inherit; font-size: 0.84rem; font-weight: 800; line-height: 1.35; text-align: center;
+}
+.wb-fullscreen .wb-roster-btn--open .wb-roster-btn__n { background: rgba(58, 31, 102, 0.12); color: var(--wk-lit-ink, #3A1F66); }
+
+/* the zoom and the fullscreen key: a white plate and a white key, with the solid edge of the cards */
+.wb-fullscreen .wb-fs-zoom-label {
+  min-width: 62px; padding: 8px 12px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px;
+  background: var(--pm-face, #fff); background-image: none; box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3);
+  color: var(--pm-ink, #1E1631); font-family: inherit; font-size: 0.88rem; font-weight: 800; line-height: 1.1; text-align: center;
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn {
+  width: 36px; height: 36px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+  box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3);
+}
+body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:hover { background: var(--pm-face, #fff); border-color: var(--pm-line-2, #C9BFE0); color: var(--pm-ink, #1E1631); filter: none; }
+
+/* the size value in the writing panel */
+.wb-fullscreen .wb-pen-size__v {
+  min-width: 0; padding: 3px 11px; border-radius: 999px; background: var(--pm-tint, #EDE7F8); color: var(--pm-violet, #3F236E); box-shadow: none;
+  font-family: inherit; font-size: 0.82rem; font-weight: 800; line-height: 1.3; text-align: center;
+}
+
+/* stylus mode: the key is lit and wears a lime dot; the words stay for screen readers only (no delay, nothing cut) */
+.wb-fullscreen .wb-toolbar .dc-mode-badge, .wb-fullscreen .wb-toolbar .dc-mode-badge--show {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; animation: none;
+}
+.wb-fullscreen .wb-toolbar .dc-inputmode-btn { position: relative; }
+.wb-fullscreen .wb-toolbar .dc-inputmode-btn--stylus::after {
+  content: ''; position: absolute; top: 2px; right: 2px; width: 9px; height: 9px; border-radius: 50%; box-sizing: border-box;
+  background: var(--k-go, #7CB800); border: 1.5px solid #fff; box-shadow: 0 0 0 1px rgba(31, 16, 53, 0.25);
+}
+
+/* the figures panel: it scrolls with a finger and never covers the toolbar column */
+.wb-fullscreen .wb-figs-panel { touch-action: pan-y; overscroll-behavior: contain; -webkit-overflow-scrolling: touch; }
+@media (max-width: 640px) {
+  .wb-fullscreen .wb-figs-panel { max-height: calc(100dvh - 130px); }
+}
+@media (orientation: landscape) and (max-height: 500px) {
+  .wb-fullscreen .wb-figs-panel { width: min(470px, calc(100vw - 92px)); max-height: calc(100dvh - 16px); padding: 10px 10px 8px; }
+  .wb-fullscreen .wb-figs-grid { grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 6px; }
+  .wb-fullscreen .wb-toolbar .wb-figs-panel .wb-fig { height: 56px; }
+  .wb-fullscreen .wb-toolbar .wb-figs-panel .wb-fig svg { width: 34px; height: 34px; }
+  .wb-fullscreen .wb-figs-sec + .wb-figs-sec { margin-top: 10px; }
+  .wb-fullscreen .wb-figs-sec > b { margin-bottom: 6px; }
+}
+
+/* the phone's immersive mode: no top strip at all, only undo and redo float over the board */
+@media (max-width: 640px), (orientation: landscape) and (max-height: 500px) {
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-header {
+    position: absolute; top: calc(8px + env(safe-area-inset-top, 0px)); left: calc(8px + env(safe-area-inset-left, 0px)); z-index: 40;
+    width: auto; padding: 0; gap: 0; background: transparent; border: 0; pointer-events: none;
+  }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-header > .wb-fs-header__right,
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-brand,
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-title,
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-title-input { display: none; }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo { pointer-events: auto; }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo .wb-undo-corner { gap: 6px; }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo .wb-undo-corner .dc-action-btn {
+    width: 38px; height: 38px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+    box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3);
+  }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo .wb-undo-corner .dc-action-btn:hover { background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631); border-color: var(--pm-line-2, #C9BFE0); }
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo .wb-undo-corner .dc-action-btn:disabled,
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-undo .wb-undo-corner .dc-action-btn:disabled:hover { background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631); border-color: var(--pm-line, #DDD6EA); box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3); opacity: 0.45; }
+}
+/* portrait phone, immersive: the tool row is at the top, so undo and redo wait in the bottom-left corner (zoom and fullscreen are bottom-right) */
+@media (max-width: 640px) and (orientation: portrait) {
+  .wb-fullscreen.wb-fullscreen--immersive .wb-fs-header { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 10px; }
+}

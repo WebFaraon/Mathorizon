@@ -7622,7 +7622,24 @@
   // browser, or just never fired because the click that opened the modal
   // wasn't itself the gesture requesting it) — this button is the manual
   // fallback for both cases, not just a teacher-only control.
+  /* On a phone the corner key also hides the whole top strip (logo, title, head count, close; only undo and redo stay, floating over the
+     board), so the board gets the room (2026-11-18). It works without the browser's Fullscreen API too (iOS has none for elements):
+     the state is the class wb-fullscreen--immersive on the modal. Tablets and laptops keep the plain Fullscreen API behaviour. */
+  const _wbPhone = () => !!(window.matchMedia && matchMedia('(max-width: 640px), (orientation: landscape) and (max-height: 500px)').matches);
+  function _wbImmersive() { return !!document.getElementById('tablaLiveModal')?.classList.contains('wb-fullscreen--immersive'); }
   function _toggleWbFullscreen(modal) {
+    const phone = _wbPhone();
+    if (phone) {
+      const on = !modal.classList.contains('wb-fullscreen--immersive');
+      modal.classList.toggle('wb-fullscreen--immersive', on);
+      if (!on && document.fullscreenElement) (document.exitFullscreen ? document.exitFullscreen() : Promise.resolve()).catch(function () {});
+      if (on && !document.fullscreenElement) {
+        var rq = modal.requestFullscreen || modal.webkitRequestFullscreen;
+        if (rq) { try { var pr = rq.call(modal); if (pr && typeof pr.catch === 'function') pr.catch(function () {}); } catch (e) {} }
+      }
+      _onWbFullscreenChange();
+      return;
+    }
     if (document.fullscreenElement) {
       (document.exitFullscreen ? document.exitFullscreen() : Promise.resolve()).catch(function () {});
       return;
@@ -7634,14 +7651,14 @@
       if (fsPromise && typeof fsPromise.catch === 'function') fsPromise.catch(function () {});
     } catch (e) {}
   }
-
-  // Keeps the button's icon/title in sync regardless of how fullscreen was
-  // entered/exited — this button, the student-only auto-request, or the
-  // browser's own Escape/F11 handling all land here the same way.
   function _onWbFullscreenChange() {
     var btn = document.getElementById('wbFullscreenBtn');
     if (!btn) return;
-    var isFs = !!document.fullscreenElement;
+    var modal = document.getElementById('tablaLiveModal');
+    // leaving the browser's fullscreen by the system gesture also leaves the immersive state of a phone
+    if (modal && !document.fullscreenElement && modal.classList.contains('wb-fullscreen--immersive') && modal._wbWasFs) modal.classList.remove('wb-fullscreen--immersive');
+    if (modal) modal._wbWasFs = !!document.fullscreenElement;
+    var isFs = _wbPhone() ? _wbImmersive() : !!document.fullscreenElement;
     btn.innerHTML = icon(isFs ? 'minimize' : 'maximize', { size: 18 });
     btn.title = isFs ? 'Ieși din ecran complet' : 'Ecran complet';
   }

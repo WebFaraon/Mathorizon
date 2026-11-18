@@ -1710,7 +1710,12 @@
       if (!self._toolbarEl.contains(e.target)) self._closeShapeDropdowns();
     };
     document.addEventListener('click', this._shapeDocClickHandler);
-    this._shapeScrollCloseHandler = function () { self._closeShapeDropdowns(); };
+    this._shapeScrollCloseHandler = function (e) {
+      // the panel itself scrolls (the figures panel on a phone): that must not close it
+      var t = e && e.target;
+      if (t && t.nodeType === 1 && t.closest && t.closest('.gfe-dropdown__panel')) return;
+      self._closeShapeDropdowns();
+    };
     global.addEventListener('scroll', this._shapeScrollCloseHandler, true);
   };
 
