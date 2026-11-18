@@ -2593,13 +2593,13 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog">
         <div class="classes-modal__head">
-          <h3>${icon('chart-column', { size: 20 })} Nivel matematică</h3>
+          <h3>${crIco('nivel', 34)} Nivel matematică</h3>
           <button class="icon-btn" id="nivelCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
           <p class="wz-subtitle">Nivelul grupei se poate schimba în timp, actualizează-l oricând nu mai reflectă realitatea.</p>
           <div class="cls-day-picker" id="nivelPicker">
-            ${levels.map(l => `<button type="button" class="cls-day-chip${l === current ? ' cls-day-chip--sel' : ''}" data-level="${l}">${l}</button>`).join('')}
+            ${levels.map(l => `<button type="button" class="cls-day-chip${l === current ? ' cls-day-chip--sel' : ''}" data-level="${l}"><span>${l}</span></button>`).join('')}
           </div>
         </div>
         <div class="classes-modal__foot">

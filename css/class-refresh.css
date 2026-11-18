@@ -751,7 +751,7 @@ html body.pm:has(#classRoot) h3 > .cr-ico { display: inline-block; vertical-alig
 html body.pm:has(#classRoot) .cd-info-card__inner { padding: 16px 16px 14px; }
 html body.pm:has(#classRoot) .cd-info-card__main--pic {
   display: grid; grid-template-columns: auto minmax(0, 1fr); grid-template-rows: auto auto; column-gap: 14px; row-gap: 2px; align-items: center;
-  padding-bottom: 12px; margin-bottom: 2px;
+  padding-bottom: 6px; margin-bottom: 0;
 }
 html body.pm:has(#classRoot) .cd-info-card__main--pic .cd-info-card__icon {
   grid-row: 1 / span 2; width: 60px; height: 60px; margin: 0; border: 0; background: none; box-shadow: none; border-radius: 0;
@@ -776,3 +776,61 @@ html body.pm:has(#classRoot) .classes-modal h3 > .cr-ico--sablon { vertical-alig
 html body.pm:has(#classRoot) .cr-ico--plus { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.12)); }
 html body.pm:has(#classRoot) .classes-modal p .cr-ico,
 html body.pm:has(#classRoot) .classes-modal .wz-subtitle .cr-ico { display: inline-block; vertical-align: -6px; margin: 0 2px; }
+
+/* ---- phone and level (2026-11-18) ---- */
+/* on a phone the general info card of the class comes FIRST in Sumar (it was at the very bottom) */
+@media (max-width: 960px) {
+  html body.pm:has(#classRoot) .cd-tab-layout > #sumarSidebar { order: -1; }
+}
+
+/* the level: a pill in its own colour (it was a pixel-font square with a rectangular frame) */
+html body.pm:has(#classRoot) .cd-level-badge {
+  display: inline-flex; align-items: center; gap: 7px; padding: 4px 13px 4px 11px; border: 1.5px solid transparent; border-radius: 999px;
+  font-family: inherit; font-size: 0.84rem; font-weight: 800; letter-spacing: 0.01em; line-height: 1.2; white-space: nowrap;
+}
+html body.pm:has(#classRoot) .cd-level-badge::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 50%; background: currentColor; box-shadow: 0 0 0 3px color-mix(in srgb, currentColor 20%, transparent); }
+html body.pm:has(#classRoot) .cd-level--green { background: #EAF6D2; border-color: #C9E394; color: #3D6B00; }
+html body.pm:has(#classRoot) .cd-level--blue { background: #EFE9FB; border-color: #D3C6EE; color: #4B2A86; }
+html body.pm:has(#classRoot) .cd-level--amber { background: #FFF3E0; border-color: #F5D39B; color: #94500A; }
+html body.pm:has(#classRoot) .cd-level--red { background: #FDEBEF; border-color: #F4C1CC; color: #A01E3A; }
+html[data-theme="dark"] body.pm:has(#classRoot) .cd-level--green { background: #25351A; border-color: #3F6B00; color: #B6E83A; }
+html[data-theme="dark"] body.pm:has(#classRoot) .cd-level--blue { background: #2E2350; border-color: #4D3C85; color: #D8C8FA; }
+html[data-theme="dark"] body.pm:has(#classRoot) .cd-level--amber { background: #3A2A12; border-color: #7A5418; color: #FFC878; }
+html[data-theme="dark"] body.pm:has(#classRoot) .cd-level--red { background: #3A1822; border-color: #7A2F42; color: #FFA6B8; }
+html body.pm:has(#classRoot) .cd-info-card__detail-val--muted { font-weight: 700; color: var(--pm-violet); }
+html body.pm:has(#classRoot) #nivelDetailRow { cursor: pointer; }
+
+/* the "Nivel matematică" dialog: illustrated icon, four level keys in two columns, the lime key to save */
+html body.pm:has(#classRoot) #nivelModal .classes-modal__head h3 { display: flex; align-items: center; gap: 12px; }
+html body.pm:has(#classRoot) #nivelModal .classes-modal__head h3 .cr-ico { vertical-align: 0; margin: 0; }
+html body.pm:has(#classRoot) #nivelModal .wz-subtitle { margin: 0 0 16px; color: var(--pm-ink-2); font-weight: 600; line-height: 1.5; }
+html body.pm:has(#classRoot) #nivelPicker { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip {
+  position: relative; display: flex; align-items: center; justify-content: center; gap: 10px; height: 60px; padding: 0 16px; width: 100%; min-width: 0;
+  border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-face); color: var(--pm-ink);
+  font-size: 1.2rem; font-weight: 800; letter-spacing: 0.01em; box-shadow: 0 4px 0 0 var(--pm-edge); cursor: pointer; filter: none;
+  transition: background 0.15s ease, transform 0.08s ease, box-shadow 0.08s ease, border-color 0.15s ease;
+}
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip::before { content: ''; flex: none; width: 10px; height: 10px; border-radius: 50%; background: #9A8FB8; box-shadow: 0 0 0 3px rgba(154, 143, 184, 0.22); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip[data-level="9-10"]::before { background: #6BB000; box-shadow: 0 0 0 3px rgba(107, 176, 0, 0.22); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip[data-level="7-8"]::before { background: #6B3FC4; box-shadow: 0 0 0 3px rgba(107, 63, 196, 0.22); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip[data-level="6-7"]::before { background: #F29A1A; box-shadow: 0 0 0 3px rgba(242, 154, 26, 0.22); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip[data-level="5-6"]::before { background: #E0405E; box-shadow: 0 0 0 3px rgba(224, 64, 94, 0.22); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip:hover { background: color-mix(in srgb, var(--pm-tint) 55%, var(--pm-face)); color: var(--pm-ink); border-color: var(--pm-line-2); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip:active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip--sel,
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip--sel:hover {
+  background: var(--pm-violet); border-color: var(--pm-violet-edge); color: #fff; box-shadow: 0 4px 0 0 var(--pm-violet-edge);
+}
+html body.pm:has(#classRoot) #nivelPicker .cls-day-chip--sel::after {
+  content: ''; position: absolute; top: -7px; right: -7px; width: 22px; height: 22px; box-sizing: border-box; border-radius: 50%;
+  background: var(--k-go, #7CB800) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M6.5 12.5l3.6 3.6 7.4-8' fill='none' stroke='%231E1631' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / 14px no-repeat;
+  border: 1.5px solid var(--k-go-edge, #4F7A00); box-shadow: 0 2px 0 var(--k-go-edge, #4F7A00);
+}
+html body.pm:has(#classRoot) #nivelModal .classes-modal__foot { gap: 12px; }
+html body.pm:has(#classRoot) #nivelModal .classes-modal__foot .btn { flex: 1 1 0; height: 50px; min-height: 50px; border-radius: 14px; font-weight: 800; justify-content: center; }
+html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn {
+  background: var(--k-go, #7CB800); color: var(--k-go-ink, #1E1631); border: 1.5px solid var(--k-go-edge, #4F7A00); box-shadow: 0 4px 0 0 var(--k-go-edge, #4F7A00);
+}
+html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn:hover:not(:disabled) { background: var(--k-go, #7CB800); color: var(--k-go-ink, #1E1631); filter: brightness(0.96); }
+html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn:active:not(:disabled) { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--k-go-edge, #4F7A00); }

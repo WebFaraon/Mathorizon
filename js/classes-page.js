@@ -421,8 +421,8 @@
                       ${g.level ? `<span class="gc__tag">Nivel ${BM.esc(g.level)}</span>` : ''}
                     </span>
                     <span class="gc__facts">
-                      <span class="gc__f">${whereIco}<span>${BM.esc(where)}</span></span>
-                      <span class="gc__f">${_SI.user}<span><b>${g.enrolled}</b> ${g.enrolled === 1 ? 'elev' : 'elevi'}</span></span>
+                      <span class="gc__f gc__f--where">${whereIco}<span>${BM.esc(where)}</span></span>
+                      <span class="gc__f gc__f--users">${_SI.user}<span><b>${g.enrolled}</b> ${g.enrolled === 1 ? 'elev' : 'elevi'}</span></span>
                     </span>
                   </span>
                   <span class="cl-lesson__state gc__status">${st.text}</span>
@@ -471,8 +471,8 @@
               ${g.level ? `<span class="gc__tag">Nivel ${BM.esc(g.level)}</span>` : ''}
             </span>
             <span class="gc__facts">
-              <span class="gc__f">${whereIco}<span>${BM.esc(where)}</span></span>
-              <span class="gc__f">${_SI.cal}<span>${BM.esc(dayLong)}</span></span>
+              <span class="gc__f gc__f--where">${whereIco}<span>${BM.esc(where)}</span></span>
+              <span class="gc__f gc__f--days">${_SI.cal}<span>${BM.esc(dayLong)}</span></span>
               <span class="gc__f gc__seats" title="${seats}">${_SI.user}<span><b>${g.enrolled}</b>${g.size ? ` din ${g.size}` : ''} ${g.enrolled === 1 ? 'elev' : 'elevi'}</span>${g.size ? `<span class="gc__meter" aria-hidden="true"><i style="width:${pct}%"></i></span>` : ''}</span>
             </span>
           </span>

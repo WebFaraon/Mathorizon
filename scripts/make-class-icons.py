@@ -74,6 +74,16 @@ mat = svg(
     ''.join(fill('<rect x="%g" y="%g" width="2" height="%g" rx="1"/>' % (x, 50, h), V1) for x, h in [(35, 5), (40, 3.4), (45, 5), (50, 3.4), (55, 5)]) +
     sh('<circle cx="14" cy="52" r="7"/>', LIME, LIMEE, 2) + line('M14 48.5v7M10.5 52h7', '#fff', 2.8) + spark(53, 11, '#fff', 0.9))
 
-for name, body in (('lectie', lectie), ('teme', teme), ('simulari', simulari), ('matematica', mat), ('plus', plus), ('sablon', sablon)):
+# Nivel: three ascending bars (violet, lime, gold) on a floor line, a star on the tallest
+nivel = svg(
+    sh('<rect x="7" y="38" width="14" height="20" rx="4.5"/>', V3, VE, 3) +
+    sh('<rect x="25" y="26" width="14" height="32" rx="4.5"/>', LIME, LIMEE, 3) +
+    sh('<rect x="43" y="12" width="14" height="46" rx="4.5"/>', GOLD, GOLDE, 3) +
+    fill('<rect x="10.5" y="42" width="3" height="9" rx="1.5"/>', VL) +
+    fill('<rect x="28.5" y="30" width="3" height="14" rx="1.5"/>', '#C8E67A') +
+    fill('<rect x="46.5" y="16" width="3" height="20" rx="1.5"/>', '#FFF1B8') +
+    spark(15, 20, VL) + spark(33, 11, LAV, 0.8))
+
+for name, body in (('lectie', lectie), ('nivel', nivel), ('teme', teme), ('simulari', simulari), ('matematica', mat), ('plus', plus), ('sablon', sablon)):
     open(os.path.join(OUT, name + '.svg'), 'w', encoding='utf-8').write(body)
     print(name + '.svg')
