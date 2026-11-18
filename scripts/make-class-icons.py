@@ -34,15 +34,36 @@ teme = svg(
     '<path d="M55 44L61 50L58 53L52 47Z" fill="%s"/>' % ORG +
     '<path d="M40 64L42 58L47 63Z" fill="%s"/>' % V1 + spark(57, 14, VL))
 
-# Simulari: a target with the arrow in the middle
+# Simulari: a target with a clean arrow (shaft, two feathers and a nock), drawn along one axis and turned
+def arrow(color, feather):
+    return ('<g transform="translate(29 36) rotate(-45)">' +
+            '<path d="M3 0H34" fill="none" stroke="%s" stroke-width="4" stroke-linecap="round"/>' % color +
+            '<path d="M18 0l3-5.4h5.2L23.2 0z" fill="%s"/><path d="M18 0l3 5.4h5.2L23.2 0z" fill="%s"/>' % (feather, feather) +
+            '</g>')
 simulari = svg(
     sh('<circle cx="29" cy="36" r="25"/>', V2, VE) +
     fill('<circle cx="29" cy="36" r="18.5"/>', WH) +
     fill('<circle cx="29" cy="36" r="12"/>', V3) +
     fill('<circle cx="29" cy="36" r="6"/>', GOLD) +
-    st('M31 34L55 10', LIME, LIMEE, 4.6, 2) +
-    line('M54 11L48.5 9.5', LIME, 3.4) + line('M54 11L55.5 5', LIME, 3.4) + line('M56 9L61 7.5', LIME, 3.4) +
+    '<g transform="translate(0 2)">%s</g>' % arrow(LIMEE, ORGE) + arrow(LIME, ORG) +
     spark(10, 10, VL))
+
+# Plus: a gold coin with a bold plus (for "new" keys)
+plus = svg(
+    sh('<circle cx="32" cy="31" r="26"/>', GOLD, GOLDE, 4) +
+    '<path d="M13 22Q22 8 40 10" fill="none" stroke="#FFF1B8" stroke-width="3.4" stroke-linecap="round"/>' +
+    '<path d="M32 19V43M20 31H44" fill="none" stroke="#9A5B00" stroke-width="8" stroke-linecap="round" transform="translate(0 1.6)" opacity="0.35"/>' +
+    '<path d="M32 19V43M20 31H44" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>')
+
+# Sablon: two stacked sheets, a violet header band, rows and a gold bookmark
+sablon = svg(
+    '<g transform="rotate(9 32 34)">' + sh('<rect x="14" y="8" width="36" height="46" rx="8"/>', LAV, '#A99AD2') + '</g>' +
+    sh('<rect x="9" y="12" width="40" height="47" rx="8"/>', WH, WHE) +
+    fill('<path d="M9 21a9 9 0 0 1 9-9h22a9 9 0 0 1 9 9v5H9Z"/>', V2) +
+    fill('<rect x="15" y="33" width="8" height="6" rx="2"/>', LIME) + line('M28 36h14', LAV, 3.6) +
+    fill('<rect x="15" y="43" width="8" height="6" rx="2"/>', GOLD) + line('M28 46h10', LAV, 3.6) +
+    '<path d="M41 3h12v19l-6-4.5L41 22Z" fill="%s" transform="translate(0 2)"/>' % GOLDE +
+    '<path d="M41 3h12v19l-6-4.5L41 22Z" fill="%s"/>' % GOLD)
 
 # Matematica: a violet tile with a white pi, a gold ruler along the bottom and a lime plus
 mat = svg(
@@ -53,6 +74,6 @@ mat = svg(
     ''.join(fill('<rect x="%g" y="%g" width="2" height="%g" rx="1"/>' % (x, 50, h), V1) for x, h in [(35, 5), (40, 3.4), (45, 5), (50, 3.4), (55, 5)]) +
     sh('<circle cx="14" cy="52" r="7"/>', LIME, LIMEE, 2) + line('M14 48.5v7M10.5 52h7', '#fff', 2.8) + spark(53, 11, '#fff', 0.9))
 
-for name, body in (('lectie', lectie), ('teme', teme), ('simulari', simulari), ('matematica', mat)):
+for name, body in (('lectie', lectie), ('teme', teme), ('simulari', simulari), ('matematica', mat), ('plus', plus), ('sablon', sablon)):
     open(os.path.join(OUT, name + '.svg'), 'w', encoding='utf-8').write(body)
     print(name + '.svg')

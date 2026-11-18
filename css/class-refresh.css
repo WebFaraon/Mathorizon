@@ -763,3 +763,16 @@ html body.pm:has(#classRoot) .csim-card__title { flex: 1 1 110px; }
 html body.pm:has(#classRoot) .csim-card { padding: 0; }
 html body.pm:has(#classRoot) .csim-card__row { padding: 12px 18px; }
 html body.pm:has(#classRoot) .csim-card__title, html body.pm:has(#classRoot) .teme-assignment__title { text-wrap: balance; }
+
+/* gold plus and template icons inside keys */
+html body.pm:has(#classRoot) :is(.cr-bar .btn, #wzAddExerciseBtn, #simWzAddExerciseBtn, .sim-tpl-btn) { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+html body.pm:has(#classRoot) .sumar-upnext__action { display: inline-flex; align-items: center; gap: 6px; padding-left: 8px; }
+html body.pm:has(#classRoot) .cr-ico--plus { width: 1.5em; height: 1.5em; }
+html body.pm:has(#classRoot) .sumar-upnext__action .cr-ico--plus { width: 20px; height: 20px; margin: 0; }
+html body.pm:has(#classRoot) .cr-bar .btn .cr-ico--plus { width: 24px; height: 24px; margin-left: -4px; }
+html body.pm:has(#classRoot) .sim-tpl-btn .cr-ico--sablon { width: 26px; height: 26px; margin-left: -2px; }
+html body.pm:has(#classRoot) [data-sim-save-template] .cr-ico--sablon { width: 28px; height: 28px; }
+html body.pm:has(#classRoot) .classes-modal h3 > .cr-ico--sablon { vertical-align: -8px; }
+html body.pm:has(#classRoot) .cr-ico--plus { filter: drop-shadow(0 1px 0 rgba(0, 0, 0, 0.12)); }
+html body.pm:has(#classRoot) .classes-modal p .cr-ico,
+html body.pm:has(#classRoot) .classes-modal .wz-subtitle .cr-ico { display: inline-block; vertical-align: -6px; margin: 0 2px; }

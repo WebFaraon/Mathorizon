@@ -1440,7 +1440,7 @@
     if (homework.active === 0) {
       temeBody = `
         <div class="sumar-upnext__val sumar-upnext__val--muted">Nicio temă activă</div>
-        <span class="sumar-upnext__action" data-assign-teme>+ Atribuie una</span>`;
+        <span class="sumar-upnext__action" data-assign-teme>${crIco('plus', 20)} Atribuie una</span>`;
     } else {
       const nearest = homework.upcoming[0];
       const notDone = nearest ? members.filter(m => !(subMatrix[m.student_id] || {})[nearest.id]).length : 0;
@@ -1461,7 +1461,7 @@
     if (simulations.activeCount === 0) {
       simBody = `
         <div class="sumar-upnext__val sumar-upnext__val--muted">Nicio simulare activă</div>
-        <span class="sumar-upnext__action" data-assign-sim>+ Creează una</span>`;
+        <span class="sumar-upnext__action" data-assign-sim>${crIco('plus', 20)} Creează una</span>`;
     } else if (simulations.activeCount === 1) {
       const only = simulations.active[0];
       simBody = `
@@ -2309,7 +2309,7 @@
         </div>
         ${isTeacher ? `
         <div class="teme-toolbar">
-          <button class="btn btn--primary" id="newAssignmentBtn">+ Temă Nouă</button>
+          <button class="btn btn--primary" id="newAssignmentBtn">${crIco('plus', 24)} Temă Nouă</button>
         </div>
         ` : ''}
       </div>
@@ -4307,7 +4307,7 @@
               <div class="wz-exercise-item__preview math-content" data-preview-wz-ex="${i}" hidden>${BM.trustedNl2br(it.statement)}</div>
             </div>`).join('') : `<p class="cls-form-hint">Niciun exercițiu adăugat încă.</p>`}
         </div>
-        <button type="button" class="btn btn--surface" id="wzAddExerciseBtn">+ Adaugă exerciții din culegere</button>`;
+        <button type="button" class="btn btn--surface" id="wzAddExerciseBtn">${crIco('plus', 22)} Adaugă exerciții din culegere</button>`;
     };
 
     const cfg = {
@@ -4768,8 +4768,8 @@
           </div>
           ${isTeacher ? `
           <div class="teme-toolbar sim-toolbar">
-            <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">${icon('clipboard-list', { size: 16 })} Șabloane</button>
-            <button class="btn btn--primary" id="newSimBtn">+ Simulare Nouă</button>
+            <button class="btn btn--surface sim-tpl-btn" id="simFromTemplateBtn">${crIco('sablon', 26)} Șabloane</button>
+            <button class="btn btn--primary" id="newSimBtn">${crIco('plus', 24)} Simulare Nouă</button>
           </div>` : ''}
         </div>
         <div class="sim-list${visible.length === 0 ? ' sim-list--empty' : ''}">
@@ -4846,7 +4846,7 @@
             ${s.status === 'activa'     ? `<button class="btn btn--surface btn--sm" data-sim-end="${s.id}">${icon('square', { size: 16 })} Încheie</button>` : ''}
             ${s.status === 'incheiata'  ? `<button class="btn btn--surface btn--sm" data-sim-reopen="${s.id}">${icon('refresh-cw', { size: 16 })} Redeschide</button>` : ''}
             ${s.status === 'programata' ? `<button class="teme-assignment__edit" data-sim-edit="${s.id}" title="Editează">${icon('pencil', { size: 16 })}</button>` : ''}
-            <button class="teme-assignment__edit" data-sim-save-template="${s.id}" title="Salvează ca șablon">${icon('clipboard-list', { size: 16 })}</button>
+            <button class="teme-assignment__edit" data-sim-save-template="${s.id}" title="Salvează ca șablon" aria-label="Salvează ca șablon">${crIco('sablon', 26)}</button>
             <button class="teme-assignment__delete" data-sim-delete="${s.id}" data-sim-title="${BM.esc(s.title)}" title="Șterge">${icon('x', { size: 16 })}</button>
           </div>
         </div>
@@ -5410,7 +5410,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog">
         <div class="classes-modal__head">
-          <h3>${icon('clipboard-list', { size: 20 })} Salvează ca șablon</h3>
+          <h3>${crIco('sablon', 28)} Salvează ca șablon</h3>
           <button class="icon-btn" id="simSaveTplCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body">
@@ -5521,7 +5521,7 @@
       <div class="classes-modal__backdrop"></div>
       <div class="classes-modal__dialog sim-tpl-dialog">
         <div class="classes-modal__head">
-          <h3>${icon('clipboard-list', { size: 20 })} Șabloane salvate</h3>
+          <h3>${crIco('sablon', 28)} Șabloane salvate</h3>
           <button class="icon-btn" id="simTplCloseBtn">${icon('x', { size: 16 })}</button>
         </div>
         <div class="classes-modal__body sim-tpl-body" id="simTplBody">
@@ -5552,7 +5552,7 @@
 
     if (!document.getElementById('simTplBody')) return; // modal closed while the query was in flight
     if (!templates || !templates.length) {
-      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul ${icon('clipboard-list', { size: 16 })} de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
+      body.innerHTML = `<p class="wz-subtitle">Nu ai niciun șablon salvat încă. Folosește butonul ${crIco('sablon', 22)} de pe o simulare existentă pentru a o salva ca șablon reutilizabil.</p>`;
       return;
     }
     // school_grade is a snapshot of the class the template was saved from
@@ -5843,7 +5843,7 @@
               </div>
             </div>`).join('')}
       </div>
-      <button class="btn btn--surface" id="simWzAddExerciseBtn" style="margin-top:14px">+ Adaugă exercițiu</button>`;
+      <button class="btn btn--surface" id="simWzAddExerciseBtn" style="margin-top:14px">${crIco('plus', 22)} Adaugă exercițiu</button>`;
   }
 
   function _simWzBindStep2(body) {
