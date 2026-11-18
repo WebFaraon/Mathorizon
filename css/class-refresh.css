@@ -664,3 +664,45 @@ html body.pm:has(#classRoot) .teme-assignment__cta {
 }
 html body.pm:has(#classRoot) .teme-assignment__cta svg { color: inherit; }
 html body.pm:has(#classRoot) .teme-assignment--clickable:hover .teme-assignment__cta { background: var(--pm-violet); color: #fff; }
+
+/* ---- fixes after the first look (2026-11-18, later) ---- */
+/* the tab keys sit in a row that scrolls sideways (overflow-x), which also clips downwards: the solid edge under each key was cut.
+   Room under the keys inside the row fixes it (the strip gives the same space back above). */
+html body.pm:has(#classRoot) .cd-tabs { padding: 2px 3px 7px; margin: 0 -3px; }
+html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 10px 32px 4px; }
+@media (max-width: 900px) { html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 8px 14px 3px; } }
+@media (max-width: 600px) { html body.pm:has(#classRoot) .cd-tabs-wrap > .container { padding: 8px 10px 3px; } }
+
+/* "nothing here yet" cards: Teme, Simulări and Catalog are the same card, full width, same height */
+html body.pm:has(#classRoot) .teme-list--empty,
+html body.pm:has(#classRoot) .sim-list--empty { display: block; width: 100%; max-width: none; margin: 0; padding: 0; }
+html body.pm:has(#classRoot) :is(.teme-list--empty, .sim-list--empty) > .teme-empty,
+html body.pm:has(#classRoot) .catalog-wrap > .cd-placeholder {
+  width: 100%; max-width: none; margin: 0; box-sizing: border-box; min-height: 250px; justify-content: center;
+}
+
+/* the saved boards of Tablă: slim rows, not tall cards */
+html body.pm:has(#classRoot) .wb-history .sim-list { gap: 10px; }
+html body.pm:has(#classRoot) .wb-history .csim-card { border-radius: 14px; box-shadow: 0 3px 0 0 var(--pm-edge); }
+html body.pm:has(#classRoot) .wb-history .csim-card__row { padding: 8px 12px 8px 16px; gap: 8px 10px; min-height: 0; }
+html body.pm:has(#classRoot) .wb-history .csim-card__title { flex: 1 1 140px; font-size: 0.96rem; }
+html body.pm:has(#classRoot) .wb-history .csim-card__meta-item { padding: 3px 10px; font-size: 0.76rem; }
+html body.pm:has(#classRoot) .wb-history .csim-card__actions .btn,
+html body.pm:has(#classRoot) .wb-history .csim-card__actions .teme-assignment__delete { min-height: 36px; height: 36px; border-radius: 11px; }
+html body.pm:has(#classRoot) .wb-history .csim-card__actions .teme-assignment__delete { width: 36px; min-width: 36px; }
+html body.pm:has(#classRoot) .wb-history__title { margin: 4px 2px 8px; }
+@media (max-width: 600px) {
+  html body.pm:has(#classRoot) .wb-history .csim-card__row { padding: 10px 12px; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__title { flex: 1 0 100%; }
+  html body.pm:has(#classRoot) .wb-history .csim-card__actions { margin-left: auto; width: auto; flex-wrap: nowrap; }
+  html body.pm:has(#classRoot) :is(.teme-list--empty, .sim-list--empty) > .teme-empty,
+  html body.pm:has(#classRoot) .catalog-wrap > .cd-placeholder { min-height: 200px; padding: 30px 18px; }
+}
+
+/* containers that clipped the solid edge of the last card or row */
+html body.pm:has(#classRoot) .teme-feed,
+html body.pm:has(#classRoot) .sumar-main,
+html body.pm:has(#classRoot) .sumar-roster,
+html body.pm:has(#classRoot) .sumar-roster--reg,
+html body.pm:has(#classRoot) .sim-list,
+html body.pm:has(#classRoot) .teme-list { overflow: visible; }
