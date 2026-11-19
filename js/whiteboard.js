@@ -1427,6 +1427,10 @@
             '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + PEN_ICON + '</svg>' +
           '</button>' +
           toolBtn('text', TEXT_ICON, 'Text (T)') +
+          (!this._readOnly && global.WBMath ?
+            '<button type="button" class="dc-tool-btn" id="wbMathBtn" title="Ecuații și simboluri matematice (M). Dublu clic pe o formulă o modifică" aria-label="Ecuații și simboluri matematice">' +
+              '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 13h3l3.2 7L15 4h6"/><path d="m11.5 11 5 6m0-6-5 6"/></svg>' +
+            '</button>' : '') +
           penPanelHTML() +
         '</div>' +
         '<div class="dc-tool-group">' +
@@ -1509,6 +1513,11 @@
     this._inputHint  = wrap.querySelector('#wbInputHint');
     this._applyLockedUi();
     this._applyInputMode(); // reflect the persisted preference in the UI
+    // the equation editor's libraries (about 1 MB compressed) are fetched quietly a few seconds after the board opens, so the first press of the key is quick
+    if (!this._readOnly && global.WBMath && !(global.navigator && navigator.connection && navigator.connection.saveData)) {
+      var selfW = this;
+      setTimeout(function () { if (!selfW._destroyed) global.WBMath.ready().catch(function () {}); }, 4000);
+    }
   };
 
   Whiteboard.prototype._setTool = function (tool) {
@@ -1746,8 +1755,12 @@
       var widthBtn  = e.target.closest('[data-width]');
       var gridBtn   = e.target.closest('#wbGridBtn');
       var filesBtn  = e.target.closest('#wbFilesBtn');
+      var mathBtn   = e.target.closest('#wbMathBtn');
       var inputModeBtn = e.target.closest('#wbInputModeBtn');
-      if (filesBtn) {
+      if (mathBtn) {
+        self._closeShapeDropdowns();
+        self._openMath(null);
+      } else if (filesBtn) {
         self._closeShapeDropdowns();
         if (self._onOpenFiles) self._onOpenFiles();
       } else if (penKey) {
@@ -1830,6 +1843,7 @@
     this._keyHandler = function (e) {
       if (e.ctrlKey && e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); self._togglePerf(); return; }
       if (self._readOnly) return;     // a replay: no shortcuts, no undo
+      if (self._math) return;         // the equation editor is open: typing belongs to it
       var t = document.activeElement;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey) {
@@ -1846,6 +1860,8 @@
         self._setTool('highlighter');
       } else if (e.key === 't' || e.key === 'T') {
         self._setTool('text');
+      } else if ((e.key === 'm' || e.key === 'M') && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        self._openMath(null);
       } else if (e.key === 'q' || e.key === 'Q') {
         self._setTool('select');
       } else if (e.key === 'w' || e.key === 'W') {
@@ -2116,6 +2132,7 @@
     if (this._liveStrokes.size || this._selectedIds.size || this._dragObjs) { this._redrawOverlay(); this._dirty = false; }
     // Keeps the text tool's live editing <textarea> anchored to its spot on the BOARD
     if (this._textEditing) this._repositionTextEditor();
+    if (this._math) this._math.reposition();
     // The pen cursor's own on-screen size is the picked width AT THE CURRENT ZOOM. A new cursor picture at every wheel step makes
     // the browser decode an image per frame, so it is refreshed once the zoom settles.
     if (this._tool === 'pen' || this._tool === 'pencil') {
@@ -2948,7 +2965,22 @@
       if (target && target.data.isText) {
         e.preventDefault();
         self._startTextEditor(null, target);
+      } else if (target && target.data.isMath) {
+        e.preventDefault();
+        self._openMath(target);
       }
+    });
+    // a double tap with a finger or a stylus (touch screens do not always send dblclick): opens the equation editor on a formula
+    var lastTap = { t: 0, x: 0, y: 0 };
+    el.addEventListener('pointerup', function (e) {
+      if (e.pointerType !== 'touch' && e.pointerType !== 'pen') return;
+      if (self._tool !== 'select' || self._locked) return;
+      var now = Date.now(), pos = self._getPos(e);
+      if (now - lastTap.t < 380 && dist(pos, lastTap) * self._scale < 26) {
+        lastTap.t = 0;
+        var tg = self._findMyObjectAt(pos);
+        if (tg && tg.data.isMath) self._openMath(tg);
+      } else lastTap = { t: now, x: pos.x, y: pos.y };
     });
   };
 
@@ -3168,6 +3200,68 @@
       });
       self._dirty = true;
       if (shapeObj) self._paintNewObject(shapeObj);
+    });
+  };
+
+  // Equation editor (js/wb-math.js): a keyboard of mathematical structures and a live formula that can be dragged into place; the
+  // finished formula is ONE vector object (a filled path, like pen ink) stored as a normal 'stroke' row, so every other client, the replay,
+  // undo, move, resize and erase need nothing new. isMath keeps the LaTeX so the owner can open it again (double click / double tap).
+  Whiteboard.prototype._openMath = function (existingObj) {
+    if (this._readOnly || this._locked || !global.WBMath || this._destroyed) return;
+    if (this._textEditing) this._finishTextEditor(false);
+    if (this._math) { if (!existingObj) return; this._math.close(false); }
+    var opts = { color: this._color };
+    if (existingObj) {
+      var id = existingObj.data.id, j = this._myObjectsJson.get(id) || {}, b = this._myObjectBounds(id);
+      if (!j.latex || !b) return;
+      opts.latex = j.latex; opts.replaceId = id; opts.color = j.fill || this._color;
+      opts.fs = (j.fs || this._defaultTextSize()) * (this._myObjectScales.get(id) || 1);
+      opts.center = { x: (b.minX + b.maxX) / 2, y: (b.minY + b.maxY) / 2 };
+      existingObj.visible = false;
+      this._mathHidden = existingObj;
+      this._selectedIds = new Set();
+      this._dirty = true;
+      this._fabricCanvas.requestRenderAll();
+    }
+    this._mathPrevTool = this._tool;
+    this._setTool('pan');    // while the editor is open the board only moves and zooms: a tap must not draw under the keyboard
+    var btn = this._toolbarEl && this._toolbarEl.querySelector('#wbMathBtn');
+    if (btn) btn.classList.add('is-open');
+    global.WBMath.open(this, opts).catch(function () {});
+  };
+  Whiteboard.prototype._mathClosed = function (committed) {
+    var btn = this._toolbarEl && this._toolbarEl.querySelector('#wbMathBtn');
+    if (btn) btn.classList.remove('is-open');
+    if (this._mathHidden) { this._mathHidden.visible = true; this._mathHidden = null; if (this._fabricCanvas) this._fabricCanvas.requestRenderAll(); }
+    if (this._destroyed) return;
+    if (!committed) this._setTool(this._mathPrevTool && this._mathPrevTool !== 'pan' ? this._mathPrevTool : 'select');
+  };
+  Whiteboard.prototype._mathCommit = function (o) {
+    var self = this;
+    if (this._destroyed || this._readOnly || this._locked || !global.WBMath) return;
+    var probe = global.WBMath.toPath(o.latex, o.fs, 0, 0);
+    if (!probe || !probe.d) return;
+    var p = global.WBMath.toPath(o.latex, o.fs, o.cx - probe.w / 2, o.cy - probe.h / 2);
+    if (!p || !p.d) return;
+    var rr = function (n) { return Math.round(n * 100) / 100; };
+    var centerline = rectCenterline(rr(o.cx), rr(o.cy), rr(probe.w), rr(probe.h));
+    var json = { path: p.d, fill: o.color || this._color, strokeWidth: 0, opacity: 1, centerline: centerline, isShape: true, isMath: true, latex: p.latex, fs: rr(o.fs) };
+    if (o.replaceId) this._deleteObjects([o.replaceId]);
+    this._supabase.from('whiteboard_objects').insert(this._rowBase('stroke', json)).select().single().then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] equation insert failed', res.error); if (global.BM && BM.toast) BM.toast('Formula nu s-a putut salva. Încearcă din nou.', 'error'); return; }
+      var obj = self._addObjectIfNew(res.data, centerline);
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: res.data.kind, fabric_json: res.data.fabric_json });
+        self._myRedoStack = [];
+        self._updateUndoRedoButtons();
+      });
+      self._dirty = true;
+      if (obj) self._paintNewObject(obj);
+      // the new formula is selected, so it can be moved or resized right away
+      self._selectedIds = new Set([res.data.id]);
+      self._setTool('select');
+      self._dirty = true;
     });
   };
 
@@ -3720,7 +3814,7 @@
         objectCaching: false,
         originX: 'center',
         originY: 'center',
-        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false, boardKey: tb.key,
+        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false, isMath: !!j.isMath, boardKey: tb.key,
                 hidden: j.hidden || null, vpath: j.vpath || null, dashOn: j.dashOn || 0, dashOff: j.dashOff || 0, dashScale: 1 }
       });
     }
@@ -3963,7 +4057,7 @@
       // Text reads as a filled block, not a thin outline — anywhere inside
       // its own box is "on" it, the same reasoning _findMyObjectAt below
       // uses for its own isText branch.
-      if (obj.data.isText) {
+      if (obj.data.isText || obj.data.isMath) {
         var b = self._myObjectBounds(obj.data.id);
         if (b && pointInRect(pos, b)) { hitIds.push(obj.data.id); self._erasedThisDrag.add(obj.data.id); }
         return;
@@ -3998,7 +4092,7 @@
       // inside its box should grab it, not just within a few px of its
       // (invisible) edge the way distToPolyline's tolerance works for
       // everything else below.
-      if (obj.data.isText || obj.data.isImage) {
+      if (obj.data.isText || obj.data.isImage || obj.data.isMath) {
         var b = this._myObjectBounds(obj.data.id);
         if (b && pointInRect(pos, b)) return obj;
         continue;
@@ -4670,6 +4764,7 @@
   Whiteboard.prototype.setBoard = function (key, studentColor) {
     key = key || COMMON_KEY;
     if (this._destroyed || key === this._board.key) return true;
+    if (this._math) this._math.close(false);   // a formula in the making belongs to the board it was started on
     var b = this._boards.get(key);
     if (!b) {
       if (key === COMMON_KEY || !this._multi) return false;
@@ -4767,6 +4862,7 @@
     // this._wrap, so removing _wrap alone would leave it (and its closure
     // over `self`) dangling forever otherwise.
     if (this._textEditing) this._finishTextEditor(true);
+    if (this._math) { try { this._math.close(false); } catch (e) {} }
     if (this._rafId) cancelAnimationFrame(this._rafId);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     if (this._panRafId) cancelAnimationFrame(this._panRafId);
