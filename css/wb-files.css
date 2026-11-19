@@ -101,3 +101,17 @@
   .wbf__use { font-size: 0.78rem; padding: 0 6px; }
 }
 @media (prefers-reduced-motion: reduce) { .wbf, .wbf__card { transition: none; } .wbf__pgimg[data-loaded="0"] { animation: none; } }
+
+/* the gold plus of the site on the green key, the preview of a picture */
+.wbf__plus { display: block; flex: none; width: 24px; height: 24px; }
+.wbf__go:has(.wbf__plus) { padding-left: 14px; }
+.wbf__thumb { cursor: zoom-in; }
+.wbf__eye {
+  position: absolute; left: 8px; right: 8px; bottom: 8px; display: flex; align-items: center; justify-content: center; gap: 6px; padding: 6px 8px; border-radius: 10px;
+  background: rgba(30, 22, 49, 0.82); color: #fff; font-style: normal; font-size: 0.74rem; font-weight: 800; opacity: 0; transform: translateY(4px); transition: opacity 0.12s ease, transform 0.12s ease; pointer-events: none;
+}
+.wbf__eye svg { width: 16px; height: 16px; }
+.wbf__thumb:hover .wbf__eye, .wbf__thumb:focus-visible .wbf__eye { opacity: 1; transform: none; }
+@media (hover: none) { .wbf__eye { opacity: 1; transform: none; } }
+.wbf__prev { display: grid; place-items: center; min-height: 280px; padding: 12px; border: 1.5px solid var(--wbf-line); border-radius: 18px; background: var(--wbf-tint); }
+.wbf__prev img { display: block; max-width: 100%; max-height: min(64dvh, 640px); width: auto; height: auto; object-fit: contain; border-radius: 10px; background: #fff; box-shadow: 0 2px 0 var(--wbf-edge); }

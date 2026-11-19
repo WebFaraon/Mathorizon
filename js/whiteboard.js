@@ -1177,6 +1177,7 @@
     this._bindToolbar();
     this._bindPointerEvents();
     this._bindKeyboard();
+    try { if (localStorage.getItem('wb_perf') === '1') this._togglePerf(); } catch (e) {}
     this._startBoards();
     this._startLoop();
     if (this._readOnly) {
@@ -1827,6 +1828,7 @@
   Whiteboard.prototype._bindKeyboard = function () {
     var self = this;
     this._keyHandler = function (e) {
+      if (e.ctrlKey && e.altKey && (e.key === 'p' || e.key === 'P')) { e.preventDefault(); self._togglePerf(); return; }
       if (self._readOnly) return;     // a replay: no shortcuts, no undo
       var t = document.activeElement;
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return;
@@ -2000,8 +2002,12 @@
     var self = this;
     // The grid and stroke layers are BIGGER than the viewport (by OVERSCAN, shared between both sides): a pan then only moves the
     // already painted layers with a CSS transform, and a layer is repainted only when the viewport is about to leave it
-    this._cw = Math.ceil(vw * (1 + OVERSCAN));
-    this._ch = Math.ceil(vh * (1 + OVERSCAN));
+    // ...but never more than a pixel budget: on a big or retina screen two layers of 20 million pixels each (80 MB apiece) are what
+    // slows panning down, not the strokes
+    var vpPx = vw * vh * this._dpr * this._dpr;
+    var ov = Math.max(OVERSCAN_MIN, Math.min(OVERSCAN, Math.sqrt(LAYER_PIXEL_BUDGET / Math.max(1, vpPx)) - 1));
+    this._cw = Math.ceil(vw * (1 + ov));
+    this._ch = Math.ceil(vh * (1 + ov));
     [[this._gridEl, this._cw, this._ch], [this._overlayEl, vw, vh]].forEach(function (a) {
       var el = a[0];
       el.style.width  = a[1] + 'px';
@@ -2071,6 +2077,8 @@
      this._rend is the camera the layers were painted at; the layers' CSS offset (ox, oy) and transform say where they are now. */
   var HEAVY_SCENE_CMDS = 3500;   // path commands in view above which a zoom is shown by scaling the layers
   var OVERSCAN = 0.6;            // extra layer size, as a fraction of the viewport, per axis (both sides together)
+  var OVERSCAN_MIN = 0.22;       // ...never less than this
+  var LAYER_PIXEL_BUDGET = 14e6; // device pixels of one painted layer (grid, strokes): the overscan shrinks on big and retina screens to stay under it
 
   Whiteboard.prototype._syncViewport = function () {
     var dpr = this._dpr;
@@ -2171,111 +2179,36 @@
     var all = fc._objects, vis = [], v = fc.viewportTransform;
     var lay = { x0: -v[4] / v[0], y0: -v[5] / v[3], x1: (fc.width - v[4]) / v[0], y1: (fc.height - v[5]) / v[3] };
     for (var oi = 0; oi < all.length; oi++) if (boxesTouch(objBox(all[oi]), lay)) vis.push(all[oi]);
-    var skip = fc.skipOffscreen;
+    var skip = fc.skipOffscreen, tp0 = performance.now();
     fc._objects = vis; fc.skipOffscreen = false;
     try { fc.renderAll(); }      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
     finally { fc._objects = all; fc.skipOffscreen = skip; }
+    var tp1 = performance.now();
     this._redrawGrid();
+    if (this._perfEl) this._perfNote(tp1 - tp0, performance.now() - tp1, vis.length, all.length);
   };
 
-  /* Dirty regions (2026-11-20). Most changes on a board touch a small part of it: an object is erased, undone, moved or dropped back
-     after a drag, a text changes. Repainting the WHOLE committed layer for each of them (hundreds of milliseconds on a full board) was the
-     freeze you felt at the end of a drag or on an erase. Now only the box that changed is cleared and the objects that touch it are painted
-     again, in their normal order, clipped to that box (pixel aligned, so the result is the same as a full repaint). A change that is large
-     (a big box, or many objects in it) falls back to the full repaint. */
-  Whiteboard.prototype._invalidateBoxes = function (boxes) {
-    if (this._bg || !boxes || !boxes.length) return;
-    var self = this;
-    this._pendingBoxes = (this._pendingBoxes || []).concat(boxes);
-    if (this._boxRaf) return;
-    this._boxRaf = requestAnimationFrame(function () {
-      self._boxRaf = null;
-      var list = self._pendingBoxes || [];
-      self._pendingBoxes = [];
-      if (!self._destroyed && list.length) self._renderBoxes(list);
-    });
+  // A small readout for finding out what is slow on a given machine (Ctrl + Alt + P shows or hides it): the last full repaint split into
+  // strokes and grid, the painted layer in megapixels, how many objects were painted of how many, and the frame rate.
+  Whiteboard.prototype._togglePerf = function () {
+    if (this._perfEl) { this._perfEl.remove(); this._perfEl = null; try { localStorage.removeItem('wb_perf'); } catch (e) {} return; }
+    var el = document.createElement('div');
+    el.className = 'wb-perf';
+    this._canvasWrap.appendChild(el);
+    this._perfEl = el;
+    this._perfLast = null;
+    try { localStorage.setItem('wb_perf', '1'); } catch (e) {}
+    this._perfRender();
   };
-
-  // Repaint these board boxes on the committed layer, now.
-  Whiteboard.prototype._renderBoxes = function (boxes) {
-    if (this._destroyed || !boxes.length) return;
-    if (this._gestureXform) return;                         // the layers are scaled during a zoom: the settle repaint redraws everything
-    if (!this._rend) { this._fabricCanvas.requestRenderAll(); return; }
-    var u = unionBoxes(boxes), fc = this._fabricCanvas, v = fc.viewportTransform;
-    var area = (u.x1 - u.x0) * (u.y1 - u.y0) * v[0] * v[3], layerArea = fc.width * fc.height;
-    var list = fc._objects, n = 0;
-    for (var i = 0; i < list.length; i++) if (list[i].visible && boxesTouch(objBox(list[i]), u)) n++;
-    if (area > layerArea * 0.45 || n > 350) { this._fullRender(); return; }
-    this._renderRegion(u);
+  Whiteboard.prototype._perfNote = function (fabricMs, gridMs, painted, total) {
+    this._perfLast = { fabric: fabricMs, grid: gridMs, painted: painted, total: total, n: ((this._perfLast && this._perfLast.n) || 0) + 1 };
+    this._perfRender();
   };
-
-  Whiteboard.prototype._renderRegion = function (u) {
-    var fc = this._fabricCanvas, ctx = fc.getContext(), v = fc.viewportTransform, r = fc.getRetinaScaling ? fc.getRetinaScaling() : 1;
-    // the box in the layer's own device pixels, widened a pixel each way
-    var dx0 = Math.max(0, Math.floor((u.x0 * v[0] + v[4]) * r) - 1), dy0 = Math.max(0, Math.floor((u.y0 * v[3] + v[5]) * r) - 1);
-    var dx1 = Math.min(Math.round(fc.width * r), Math.ceil((u.x1 * v[0] + v[4]) * r) + 1), dy1 = Math.min(Math.round(fc.height * r), Math.ceil((u.y1 * v[3] + v[5]) * r) + 1);
-    var w = dx1 - dx0, h = dy1 - dy0;
-    if (w <= 0 || h <= 0) return;
-    var reg = { x0: (dx0 / r - v[4]) / v[0], y0: (dy0 / r - v[5]) / v[3], x1: (dx1 / r - v[4]) / v[0], y1: (dy1 / r - v[5]) / v[3] };
-    // The objects of the box are painted on a small canvas of exactly that size (the same device transform, only shifted by whole pixels), then
-    // swapped in for the old pixels. A clip on the main canvas would make the browser anti-alias edges differently from a full repaint.
-    var tmp = this._regionCanvas || (this._regionCanvas = document.createElement('canvas'));
-    if (tmp.width < w || tmp.height < h) { tmp.width = Math.max(tmp.width, w); tmp.height = Math.max(tmp.height, h); }
-    var tx = tmp.getContext('2d');
-    tx.setTransform(1, 0, 0, 1, 0, 0);
-    tx.clearRect(0, 0, tmp.width, tmp.height);
-    tx.setTransform(r * v[0], r * v[1], r * v[2], r * v[3], r * v[4] - dx0, r * v[5] - dy0);
-    var list = fc._objects;
-    for (var i = 0; i < list.length; i++) {
-      var o = list[i];
-      if (!o.visible || !boxesTouch(objBox(o), reg)) continue;
-      try { o.render(tx); } catch (err) { /* a half-built object must not stop the repaint */ }
-    }
-    ctx.save();
-    ctx.setTransform(1, 0, 0, 1, 0, 0);
-    ctx.clearRect(dx0, dy0, w, h);
-    ctx.drawImage(tmp, 0, 0, w, h, dx0, dy0, w, h);
-    ctx.restore();
-  };
-
-  // Where the layers sit and how they are stretched: k scales them about their own top-left corner, (tx,ty) moves them.
-  Whiteboard.prototype._applyLayerXform = function (k, tx, ty) {
-    var m = (k === 1 && !tx && !ty) ? '' : 'matrix(' + k + ',0,0,' + k + ',' + tx + ',' + ty + ')';
-    var els = [this._gridEl, this._fabricCanvas.wrapperEl];
-    for (var i = 0; i < els.length; i++) {
-      if (!els[i]) continue;
-      els[i].style.transformOrigin = '0 0';
-      els[i].style.transform = m;
-    }
-  };
-
-  // Everything repainted around the current camera; the camera the layers now show is remembered in this._rend.
-  // The layers get more room on the side the camera has been moving towards, so a long pan needs few repaints.
-  Whiteboard.prototype._fullRender = function () {
-    clearTimeout(this._gestureTimer);
-    var dpr = this._dpr, vw = this._viewportW, vh = this._viewportH;
-    var exX = this._cw - vw, exY = this._ch - vh;
-    // content moving right (pan growing) uncovers the left side: more room on the left
-    var mx = exX * (this._panDirX > 0 ? 0.75 : this._panDirX < 0 ? 0.25 : 0.5);
-    var my = exY * (this._panDirY > 0 ? 0.75 : this._panDirY < 0 ? 0.25 : 0.5);
-    var ox = -Math.round(mx * dpr) / dpr, oy = -Math.round(my * dpr) / dpr;
-    this._rend = { scale: this._scale, panX: this._panX, panY: this._panY, ox: ox, oy: oy, vw: vw, vh: vh, dpr: dpr };
-    var fc = this._fabricCanvas;
-    fc.setViewportTransform([this._scale, 0, 0, this._scale, this._panX - ox, this._panY - oy]);
-    this._gridEl.style.left = ox + 'px'; this._gridEl.style.top = oy + 'px';
-    if (fc.wrapperEl) { fc.wrapperEl.style.left = ox + 'px'; fc.wrapperEl.style.top = oy + 'px'; }
-    this._gestureXform = false;
-    this._applyLayerXform(1, 0, 0);
-    // only what touches the painted layer is handed to Fabric (a cheap box test per object; Fabric's own off-screen test costs a matrix
-    // calculation per object, which is most of a repaint when most of the board is out of view)
-    var all = fc._objects, vis = [], v = fc.viewportTransform;
-    var lay = { x0: -v[4] / v[0], y0: -v[5] / v[3], x1: (fc.width - v[4]) / v[0], y1: (fc.height - v[5]) / v[3] };
-    for (var oi = 0; oi < all.length; oi++) if (boxesTouch(objBox(all[oi]), lay)) vis.push(all[oi]);
-    var skip = fc.skipOffscreen;
-    fc._objects = vis; fc.skipOffscreen = false;
-    try { fc.renderAll(); }      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
-    finally { fc._objects = all; fc.skipOffscreen = skip; }
-    this._redrawGrid();
+  Whiteboard.prototype._perfRender = function () {
+    if (!this._perfEl) return;
+    var l = this._perfLast, mp = (this._cw * this._ch * this._dpr * this._dpr / 1e6).toFixed(1);
+    this._perfEl.textContent = (l ? 'repictare ' + Math.round(l.fabric + l.grid) + ' ms (linii ' + Math.round(l.fabric) + ', grila ' + Math.round(l.grid) + ') x' + l.n + ' · ' + l.painted + '/' + l.total + ' obiecte' : 'repictare: nimic încă') +
+      ' · strat ' + mp + ' MP · ' + Math.round(this._dpr * 100) / 100 + 'x · ' + (this._fps || 0) + ' fps' + (this._maxGap ? ' · cel mai lung cadru ' + this._maxGap + ' ms' : '');
   };
 
   /* Dirty regions (2026-11-20). Most changes on a board touch a small part of it: an object is erased, undone, moved or dropped back
@@ -2338,7 +2271,7 @@
     this._gestureXform = true;
     var self = this;
     clearTimeout(this._gestureTimer);
-    this._gestureTimer = setTimeout(function () { if (!self._destroyed) { self._fullRender(); self._dirty = true; } }, 130);
+    this._gestureTimer = setTimeout(function () { if (!self._destroyed) { self._fullRender(); self._dirty = true; } }, 100);
   };
 
   // Keeps the board from being panned/zoomed away into empty space with
@@ -2403,7 +2336,12 @@
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(vx0, vy0, vx1 - vx0, vy1 - vy0);
     if (!this._gridOn || vx1 <= vx0 || vy1 <= vy0) { ctx.restore(); return; }
-    var lineWidth = 1 / s; // a true single DEVICE pixel at any zoom, never thickening/blurring as zoom grows
+    // The lines are drawn in DEVICE pixels, each snapped to a whole pixel (crisp, one device pixel wide at any zoom). A line at a fractional
+    // position is anti-aliased over two pixels and costs about three times as much to paint, which was most of a repaint at high zoom.
+    // The pan is a whole number of device pixels, so a line is always at the same place relative to the board.
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    var dY0 = Math.round(vy0 * s + pyDev), dY1 = Math.round(vy1 * s + pyDev), dX0 = Math.round(vx0 * s + pxDev), dX1 = Math.round(vx1 * s + pxDev);
+    var lineWidth = 1;
 
     // Levels: level 0 is the coarsest step (fixed in logical units, see this._gridBaseStep), every next one is the previous
     // divided by MINOR_GRID_SUBDIVISIONS, down to what is still visible at the current zoom. Every line of every level sits
@@ -2432,9 +2370,9 @@
       ctx.lineWidth = lineWidth;
       ctx.beginPath();
       var k0 = Math.ceil(vx0 / step), k1 = Math.floor(vx1 / step);
-      for (var kx = k0; kx <= k1; kx++) { var x = kx * step; ctx.moveTo(x, vy0); ctx.lineTo(x, vy1); }
+      for (var kx = k0; kx <= k1; kx++) { var xd = Math.round(kx * step * s + pxDev) + 0.5; ctx.moveTo(xd, dY0); ctx.lineTo(xd, dY1); }
       k0 = Math.ceil(vy0 / step); k1 = Math.floor(vy1 / step);
-      for (var ky = k0; ky <= k1; ky++) { var y = ky * step; ctx.moveTo(vx0, y); ctx.lineTo(vx1, y); }
+      for (var ky = k0; ky <= k1; ky++) { var yd = Math.round(ky * step * s + pyDev) + 0.5; ctx.moveTo(dX0, yd); ctx.lineTo(dX1, yd); }
       ctx.stroke();
     }
     ctx.restore();
@@ -4371,8 +4309,14 @@
 
   Whiteboard.prototype._startLoop = function () {
     var self = this;
-    function tick() {
+    function tick(now) {
       if (self._destroyed) return;
+      if (self._perfEl) {
+        if (self._tickLast) { var gap = now - self._tickLast; if (gap > (self._gapMaxNow || 0)) self._gapMaxNow = gap; self._tickN = (self._tickN || 0) + 1; }
+        self._tickLast = now;
+        if (!self._tickWin) self._tickWin = now;
+        if (now - self._tickWin >= 1000) { self._fps = Math.round(self._tickN * 1000 / (now - self._tickWin)); self._maxGap = Math.round(self._gapMaxNow || 0); self._tickN = 0; self._gapMaxNow = 0; self._tickWin = now; self._perfRender(); }
+      }
       if (self._dirty) { self._redrawOverlay(); self._dirty = false; }
       self._rafId = requestAnimationFrame(tick);
     }

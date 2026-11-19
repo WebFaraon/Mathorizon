@@ -77,7 +77,7 @@
       var cls = 'wb-bt' + (on ? ' is-on' : '') + (live[key] ? ' is-live' : '') + (news[key] && !on ? ' has-news' : '') + (extra && extra.off ? ' is-off' : '');
       return '<button type="button" class="' + cls + '" role="tab" aria-selected="' + on + '" data-board="' + esc(key) + '" title="' + esc(label) + '">' +
         (avatar ? '<span class="wb-bt__ph"><img src="' + esc(avatar) + '" alt=""></span>'
-          : '<span class="wb-bt__ico">' + (key === COMMON ? ico('users', 16) : ico('user', 16)) + '</span>') +
+          : '<span class="wb-bt__ico"><img src="assets/images/' + (key === COMMON ? 'admin/elevi' : 'tabs/profil') + '.svg" alt=""></span>') +
         '<span class="wb-bt__t">' + esc(label) + '</span><i class="wb-bt__dot"></i></button>';
     }
 
@@ -101,7 +101,7 @@
           '<button type="button" class="wb-bnav wb-bnav--r" data-step="1" title="Elevul următor (Alt + →)" aria-label="Elevul următor">' + ico('chevron-right', 18) + '</button>' +
           // phones: one key with the name of the open student (opens the list)
           '<button type="button" class="wb-bpick" id="wbBoardPick" aria-haspopup="true">' +
-            (cur ? '<span class="wb-bt__ph"><img src="' + esc(cur.avatar) + '" alt=""></span>' : '<span class="wb-bt__ico">' + ico('user', 16) + '</span>') +
+            (cur ? '<span class="wb-bt__ph"><img src="' + esc(cur.avatar) + '" alt=""></span>' : '<span class="wb-bt__ico"><img src="assets/images/tabs/profil.svg" alt=""></span>') +
             '<span class="wb-bt__t">' + esc(cur ? cur.name : 'Elevi') + '</span>' + ico('chevron-down', 16) + '</button>';
       } else {
         // a student's replay: the shared board and, when there is one, their own

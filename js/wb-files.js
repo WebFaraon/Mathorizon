@@ -125,7 +125,7 @@
       titleEl.textContent = 'Fișierele mele';
       subEl.textContent = insertMode ? 'Alege ce pui pe tablă, sau încarcă un fișier nou' : 'Imagini și PDF-uri pe care le poți pune pe tablă';
       body.innerHTML = '<div class="wbf__bar">' +
-          '<button type="button" class="wbf__go" id="wbfUp">' + ico('plus', 18) + '<span>Încarcă fișiere</span></button>' +
+          '<button type="button" class="wbf__go" id="wbfUp"><img class="wbf__plus" src="assets/images/class/plus.svg" alt=""><span>Încarcă fișiere</span></button>' +
           '<span class="wbf__hint">Imagini și PDF-uri, până la 25 MB fiecare</span>' +
         '</div><div class="wbf__grid" id="wbfGrid"></div>';
       body.querySelector('#wbfUp').addEventListener('click', function () { if (!busy) fileInput.click(); });
@@ -145,9 +145,10 @@
         var t = thumbs[f.id];
         var meta = (isPdf ? 'PDF' + (f.pages ? ' · ' + f.pages + (f.pages === 1 ? ' pagină' : ' pagini') : '') : 'Imagine') + ' · ' + fmtSize(f.size || 0);
         return '<div class="wbf__item" data-id="' + esc(f.id) + '">' +
-          '<button type="button" class="wbf__thumb" data-act="use" aria-label="' + (insertMode ? 'Pune pe tablă: ' : 'Deschide: ') + esc(f.name) + '">' +
+          '<button type="button" class="wbf__thumb" data-act="view" aria-label="' + (isPdf ? 'Vezi paginile: ' : 'Previzualizează: ') + esc(f.name) + '">' +
             (t ? '<img src="' + esc(t) + '" alt="" loading="lazy">' : '<span class="wbf__ph">' + ico(isPdf ? 'file-text' : 'image', 30) + '</span>') +
             (isPdf ? '<i class="wbf__tag">PDF</i>' : '') +
+            '<i class="wbf__eye">' + ico('eye', 16) + '<span>' + (isPdf ? 'Vezi paginile' : 'Previzualizare') + '</span></i>' +
           '</button>' +
           '<div class="wbf__meta"><b title="' + esc(f.name) + '">' + esc(f.name) + '</b><span>' + esc(meta) + '</span></div>' +
           '<div class="wbf__acts">' +
@@ -163,10 +164,11 @@
       var item = act.closest('.wbf__item');
       var f = item && files.filter(function (x) { return x.id === item.getAttribute('data-id'); })[0];
       if (!f) return;
-      if (act.getAttribute('data-act') === 'del') return askDelete(f, item);
+      var what = act.getAttribute('data-act');
+      if (what === 'del') return askDelete(f, item);
+      if (what === 'view') return f.kind === 'pdf' ? openPdf(f) : previewImage(f);
       if (f.kind === 'pdf') return openPdf(f);
       if (insertMode) return placeImage(f);
-      toast('Imaginea e în bibliotecă. O pui pe tablă din tablă, cu cheia cu imagine.', 'info');
     });
 
     /* ----- upload ----- */
@@ -310,6 +312,32 @@
         setBusy(false);
         if (ok !== false) close();
       }, function () { setBusy(false); });
+    }
+
+    /* ----- a picture, big ----- */
+    function previewImage(f) {
+      pdfFile = f;                       // "back" and Esc return to the list (the same state as the page picker)
+      backBtn.hidden = false;
+      titleEl.textContent = f.name;
+      subEl.textContent = (f.width && f.height ? f.width + ' × ' + f.height + ' px · ' : '') + fmtSize(f.size || 0);
+      body.innerHTML = '<div class="wbf__prev"><div class="wbf__loading"><div class="classes-spinner"></div><span>Se încarcă imaginea…</span></div></div>';
+      if (insertMode) {
+        foot.hidden = false;
+        foot.innerHTML = '<span class="wbf__prog">Așa va arăta pe tablă</span><button type="button" class="wbf__go" id="wbfPlaceOne"><img class="wbf__plus" src="assets/images/class/plus.svg" alt=""><span>Pune pe tablă</span></button>';
+        foot.querySelector('#wbfPlaceOne').addEventListener('click', function () { if (!busy) placeImage(f); });
+      } else foot.hidden = true;
+      sb.storage.from(BUCKET).createSignedUrl(f.path, 3600).then(function (r) {
+        if (closed || pdfFile !== f) return;
+        if (r.error || !r.data) throw (r.error || new Error('fără adresă'));
+        var im = new Image();
+        im.alt = f.name;
+        im.onload = function () { if (closed || pdfFile !== f) return; var box = body.querySelector('.wbf__prev'); if (box) { box.innerHTML = ''; box.appendChild(im); } };
+        im.onerror = function () { var box = body.querySelector('.wbf__prev'); if (box) box.innerHTML = '<div class="wbf__empty"><b>Imaginea nu s-a putut încărca</b></div>'; };
+        im.src = r.data.signedUrl;
+      }).catch(function (err) {
+        var box = body.querySelector('.wbf__prev');
+        if (box) box.innerHTML = '<div class="wbf__empty"><b>Imaginea nu s-a putut încărca</b><span>' + esc(err && err.message || err) + '</span></div>';
+      });
     }
 
     /* ----- PDF: pick pages ----- */

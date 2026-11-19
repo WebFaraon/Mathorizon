@@ -7725,7 +7725,7 @@
         <div class="wb-fs-header__right">
           ${viewOnly ? `<span class="wb-fs-viewtag">${icon('eye', { size: 16 })} Doar vizualizare${session.started_at ? '<span class="wb-fs-viewtag__d"> · ' + BM.esc(formatTablaDateTime(session.started_at)) + '</span>' : ''}</span>` : ''}
           <div class="wb-roster-strip" id="wbRosterStrip"${viewOnly ? ' hidden' : ''}>
-            <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți" aria-haspopup="true">${icon('users', { size: 18 })}<span class="wb-roster-btn__n" id="wbRosterCount">…</span></button>
+            <button type="button" class="wb-roster-btn" id="wbRosterBtn" title="Participanți" aria-haspopup="true"><img class="wb-roster-ico" src="assets/images/admin/elevi.svg" alt=""><span class="wb-roster-btn__n" id="wbRosterCount">…</span></button>
           </div>
           <button class="icon-btn" id="tablaLiveCloseBtn" title="${viewOnly ? 'Închide' : isTeacher ? 'Închide (tabla rămâne live pentru elevi)' : 'Ieși din tablă'}">${icon('x', { size: 16 })}</button>
         </div>

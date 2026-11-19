@@ -698,3 +698,89 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:hover { background:
 @media (orientation: landscape) and (max-height: 500px) {
   .wb-fullscreen.wb-fullscreen--immersive.wb-has-boards .wb-fs-header { top: calc(48px + env(safe-area-inset-top, 0px)); }
 }
+
+/* the performance readout (Ctrl + Alt + P), for finding out what is slow on a machine */
+.wb-fullscreen .wb-perf {
+  position: absolute; left: 10px; bottom: 10px; z-index: 30; max-width: calc(100% - 140px); padding: 6px 10px; border-radius: 10px; pointer-events: none;
+  background: rgba(30, 22, 49, 0.88); color: #E5DDF3; font: 700 0.72rem/1.35 ui-monospace, Menlo, Consolas, monospace;
+}
+
+
+/* ============================================================
+   Round (2026-11-20, later): the strip of boards wears the keys of the toolbar (white keys with a solid edge, the open one pressed in with a
+   lime LED), the corner and header plates share ONE radius (premium.css forced 4px on them with a stronger selector), the people key has
+   the illustrated students icon, and the "Conectați" panel is a card in the site style (no LCD).
+   ============================================================ */
+html body.pm .wb-fullscreen .wb-boards { padding: 8px 14px 12px; gap: 10px; }
+html body.pm .wb-fullscreen :is(.wb-bt, .wb-bpick, .wb-bnav) {
+  border: 1.5px solid #fff; border-radius: 12px; background: #fff; color: var(--wk-lit-ink, #3A1F66);
+  box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.3); font-weight: 800;
+}
+html body.pm .wb-fullscreen :is(.wb-bt, .wb-bpick, .wb-bnav):hover { background: #F1ECFA; border-color: #F1ECFA; color: var(--wk-lit-ink, #3A1F66); }
+html body.pm .wb-fullscreen :is(.wb-bt, .wb-bpick, .wb-bnav):active { transform: translateY(3px); box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.3); }
+html body.pm .wb-fullscreen .wb-bt.is-on {
+  background: #1B0F36; border-color: rgba(255, 255, 255, 0.3); color: #fff; box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.55); transform: translateY(2px);
+}
+html body.pm .wb-fullscreen .wb-bt.is-on:hover { background: #1B0F36; border-color: rgba(255, 255, 255, 0.3); color: #fff; }
+html body.pm .wb-fullscreen .wb-bt.is-on::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 3px; background: var(--k-go, #7CB800); box-shadow: 0 0 0 2px rgba(124, 184, 0, 0.3); margin-right: -2px; }
+html body.pm .wb-fullscreen .wb-bt.is-off:not(.is-on) { opacity: 1; color: #7A6B96; }
+html body.pm .wb-fullscreen .wb-bt.is-off:not(.is-on) .wb-bt__ph { opacity: 0.55; }
+html body.pm .wb-fullscreen .wb-bt__ico { width: 26px; height: 26px; }
+html body.pm .wb-fullscreen .wb-bt__ico img { display: block; width: 26px; height: 26px; object-fit: contain; }
+html body.pm .wb-fullscreen .wb-bt__ph { width: 26px; height: 26px; border-radius: 9px; }
+html body.pm .wb-fullscreen .wb-bpick svg:last-child { opacity: 1; color: var(--wk-lit-ink, #3A1F66); }
+html body.pm .wb-fullscreen .wb-boards__sep { background: rgba(255, 255, 255, 0.25); }
+/* the lane's keys have a solid edge under them: room for it, so the scroll box does not cut it */
+html body.pm .wb-fullscreen .wb-boards__lane { padding-bottom: 6px; margin-bottom: -6px; }
+
+/* header and corner plates: one radius for all */
+html body.pm .wb-fullscreen .wb-fs-corner .wb-fs-zoom-label { border-radius: 12px; }
+html body.pm:has(#classRoot) > #tablaLiveModal .wb-fs-header input.wb-fs-title-input,
+html body.pm .wb-fullscreen .wb-fs-header .wb-fs-title { border-radius: 12px; }
+html body.pm:has(#classRoot) > #tablaLiveModal .wb-fs-header :is(.icon-btn, .wb-roster-btn),
+html body.pm:has(#classRoot) > #tablaLiveModal .wb-fs-corner .wb-fs-fullscreen-btn,
+html body.pm .wb-fullscreen .wb-fs-header .wb-roster-btn { border-radius: 12px; }
+html body.pm .wb-fullscreen .wb-fs-header .wb-roster-btn__n { border-radius: 999px; }
+html body.pm .wb-fullscreen .wb-roster-ico { display: block; width: 26px; height: 26px; flex: none; object-fit: contain; }
+html body.pm .wb-fullscreen .wb-roster-btn { padding: 0 8px 0 7px; gap: 7px; }
+
+/* the "Conectați" panel */
+html body.pm .wb-fullscreen .wb-roster-dropdown {
+  width: min(330px, calc(100vw - 20px)); padding: 8px; overflow: visible; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 18px;
+  background: var(--pm-face, #fff); box-shadow: 0 5px 0 0 var(--pm-edge, #CFC6E3), 0 20px 40px rgba(20, 10, 40, 0.3); color: var(--pm-ink, #1E1631);
+}
+html body.pm .wb-fullscreen .wb-roster-dropdown__head { display: flex; align-items: center; justify-content: space-between; padding: 6px 8px 10px; border: 0; background: none; }
+html body.pm .wb-fullscreen .wb-roster-dropdown__head b { font-size: 1.02rem; font-weight: 800; color: var(--pm-ink, #1E1631); }
+html body.pm .wb-fullscreen .wb-roster-dropdown__head span {
+  min-width: 0; padding: 3px 11px; border: 0; border-radius: 999px; background: var(--pm-tint, #EDE7F8); background-image: none; box-shadow: none;
+  color: var(--pm-violet, #3F236E); font-family: inherit; font-size: 0.82rem; font-weight: 800; letter-spacing: 0; text-decoration: none; line-height: 1.3;
+}
+html body.pm .wb-fullscreen .wb-roster-row {
+  gap: 11px; margin-top: 6px; padding: 8px 10px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 14px; background: var(--pm-face, #fff);
+  box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3);
+}
+html body.pm .wb-fullscreen .wb-roster-dropdown__head + .wb-roster-row { border-top: 1.5px solid var(--pm-line, #DDD6EA); margin-top: 0; }
+html body.pm .wb-fullscreen .wb-roster-row--teacher { background: var(--pm-tint, #EDE7F8); }
+html body.pm .wb-fullscreen .wb-roster-row--me { border-color: var(--k-go, #7CB800); background: color-mix(in srgb, var(--k-go, #7CB800) 12%, var(--pm-face, #fff)); }
+html body.pm .wb-fullscreen .wb-roster-row__avatar { width: 38px; height: 38px; flex: none; border: 3px solid var(--pm-line, #DDD6EA); border-radius: 13px; overflow: hidden; background: var(--pm-violet, #3F236E); }
+html body.pm .wb-fullscreen .wb-roster-row__avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+html body.pm .wb-fullscreen .wb-roster-row__name { min-width: 0; flex: 1; gap: 8px; color: var(--pm-ink, #1E1631); font-size: 0.92rem; font-weight: 800; }
+html body.pm .wb-fullscreen .wb-roster-row__name > span:first-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+html body.pm .wb-fullscreen .wb-roster-row__me {
+  flex: none; padding: 2px 8px; border-radius: 999px; background: var(--k-go, #7CB800); box-shadow: 0 2px 0 0 var(--k-go-edge, #4E7A00); color: var(--k-go-ink, #fff);
+  font-size: 0.62rem; font-weight: 800; letter-spacing: 0.1em; text-transform: uppercase;
+}
+html body.pm .wb-fullscreen .wb-roster-row__badge {
+  flex: none; padding: 3px 10px; border-radius: 999px; background: var(--pm-violet, #3F236E); color: #fff; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: none;
+}
+html body.pm .wb-fullscreen .wb-roster-row__lock {
+  flex: none; display: grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 12px;
+  background: var(--pm-face, #fff); color: var(--pm-ink-2, #5B4F74); box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3);
+}
+html body.pm .wb-fullscreen .wb-roster-row__lock:hover { background: var(--pm-tint, #EDE7F8); color: var(--pm-ink, #1E1631); border-color: var(--pm-line, #DDD6EA); }
+html body.pm .wb-fullscreen .wb-roster-row__lock:active { transform: translateY(3px); box-shadow: none; }
+html body.pm .wb-fullscreen .wb-roster-row__lock--active, html body.pm .wb-fullscreen .wb-roster-row__lock--active:hover { background: #DC2626; border-color: #B91C1C; color: #fff; box-shadow: 0 3px 0 0 #7F1D1D; }
+html body.pm .wb-fullscreen .wb-roster-dropdown__empty { padding: 16px 10px; color: var(--pm-ink-2, #5B4F74); font-size: 0.86rem; font-weight: 700; }
+@media (max-width: 640px) {
+  html body.pm .wb-fullscreen .wb-roster-dropdown { width: auto; }
+}
