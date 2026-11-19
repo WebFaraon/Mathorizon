@@ -41,7 +41,16 @@ window.BM = window.BM || {};
     return { level, xpIntoLevel, xpForNextLevel: perLevel, pct: xpIntoLevel / perLevel };
   };
 
+  /* XP primesc DOAR elevii al căror rol e confirmat. Profesorii, managerii și adminii nu primesc XP de nicăieri (alte căi vor veni mai târziu);
+     un cont conectat al cărui rol nu a ajuns încă nu primește nimic. Fără cont, XP-ul rămâne doar în browser, ca până acum. */
+  BM.Training.xpAllowed = function () {
+    const A = window.BMAuth;
+    if (!A || !A.user) return true;
+    return A.role === 'elev';
+  };
+
   BM.Training.addXp = function (amount) {
+    if (!BM.Training.xpAllowed()) return BM.Training.getTotalXp();
     const n = Math.max(0, (BM.Training.getTotalXp() + (Number(amount) || 0)));
     localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
     BM.Training.refreshWidgets();

@@ -1139,7 +1139,7 @@
       BM.Storage.addMistake?.(ex.id);
     }
 
-    const xpGain = calcXp(ex.difficulty, isCorrect, currentStreak);
+    const xpGain = (BM.Training.xpAllowed && !BM.Training.xpAllowed()) ? 0 : calcXp(ex.difficulty, isCorrect, currentStreak);
     cs.xpGain = xpGain;
     sessionXp += xpGain; // session-local only until finishSession() commits it
     renderHud();

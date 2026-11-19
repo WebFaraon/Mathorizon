@@ -68,7 +68,11 @@ export function useMissions(): MissionsState {
       // day, mission_key) is what prevents a double payout, so there's no
       // benefit to racing them, only risk of a rare double-insert if two
       // finished in the same tick.
+      // Only a confirmed student is paid (teachers, managers and admins get no XP from anything for now). With the role not known yet
+      // nothing is claimed: the claim row would be written and the XP refused, and the student would lose it. The run repeats on bmauth:profile.
+      const payable = auth?.role === 'elev';
       for (const mission of progress) {
+        if (!payable) break;
         if (!mission.done || claimedKeys.has(mission.key)) continue;
         try {
           const { error } = await sb
@@ -99,11 +103,13 @@ export function useMissions(): MissionsState {
     (window as unknown as { Parcurs?: { ready(): Promise<unknown> } }).Parcurs?.ready().then(() => { if (!cancelled) void run(); }, () => {});
     document.addEventListener('parcurs:changed', run);
     document.addEventListener('bmauth:synced', run);
+    document.addEventListener('bmauth:profile', run);
     document.addEventListener('bmauth:streak-updated', run);
     return () => {
       cancelled = true;
       document.removeEventListener('parcurs:changed', run);
       document.removeEventListener('bmauth:synced', run);
+      document.removeEventListener('bmauth:profile', run);
       document.removeEventListener('bmauth:streak-updated', run);
     };
   }, []);

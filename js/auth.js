@@ -103,6 +103,8 @@
        sau de blocarea UI-ului dacă rețeaua e proastă). */
     if (BM.Training) {
       BM.Training.addXp = function (amount) {
+        /* doar elevii confirmați primesc XP (vezi BM.Training.xpAllowed în training-stats.js) */
+        if (currentUser && _userRole !== 'elev') return BM.Training.getTotalXp();
         const n = Math.max(0, BM.Training.getTotalXp() + (Number(amount) || 0));
         localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
         BM.Training.refreshWidgets();
