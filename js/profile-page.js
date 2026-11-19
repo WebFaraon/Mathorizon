@@ -615,6 +615,7 @@
             ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
             ${isTeacher || isAdmin ? `<a class="pf-key" id="btnRegistry" href="#" target="_blank" rel="noopener" aria-disabled="true" hidden>${icon('book-open', { size: 16 })} Registru</a>` : ''}
             ${isActiveTeacher ? `<a class="pf-key" href="adauga-exercitiu.html">${icon('plus', { size: 16 })} Adaugă exercițiu</a>` : ''}
+            ${isActiveTeacher ? `<button type="button" class="pf-key" id="btnWbFiles">${icon('image', { size: 16 })} Fișierele tablei</button>` : ''}
             <button class="pf-key" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
           </div>
         </div>
@@ -1026,6 +1027,11 @@
 
     /* Telegram: the teacher ties his account to the bot with a one-time code, from here */
     if (isActiveTeacher) _wireTelegram(sb, user);
+
+    /* The teacher's files for the live board (pictures, PDFs): uploaded ahead of time here, put on the board from the board itself */
+    document.getElementById('btnWbFiles')?.addEventListener('click', () => {
+      if (window.WBFiles) window.WBFiles.open({ supabase: sb, userId: user.id, mode: 'manage' });
+    });
 
     /* Registru: opens the teacher's register (Google Sheets) at the tab "Total achitări". A teacher whose account is not linked to a register yet sees the button
        switched off, with the reason; an admin sees it only when his own account has one. */

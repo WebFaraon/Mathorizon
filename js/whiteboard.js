@@ -122,6 +122,40 @@
   var MIN_ZOOM = 1;
   var MAX_ZOOM = 10;
 
+  /* Several boards in one session (2026-11-20): the shared board (key 'c', everyone writes) and one private board per student
+     (key = the student's user id; only that student and the teacher see it, both write). Each board owns its objects, its undo
+     history, its live strokes and its camera; the Whiteboard keeps ONE toolbar, ONE set of canvases and swaps the active board's
+     data in (see _swapIn / _inBoard), so a board that is not on screen costs no painting at all. */
+  var COMMON_KEY = 'c';
+  var TEACHER_ON_STUDENT_COLOR = '#DC2626';   // the teacher's corrections on a student's board, so they read apart from the student's own ink
+  // ...but red is also close to the first student's own colour (#e11d48, see join_whiteboard_session), so the colour is chosen per student:
+  // the first of these that is clearly different from the ink the student writes with
+  var CORRECTION_COLORS = ['#DC2626', '#2563EB', '#16A34A', '#7C3AED', '#EA580C'];
+  function hexRgb(h) { var m = /^#?([0-9a-f]{6})$/i.exec(h || ''); if (!m) return null; var n = parseInt(m[1], 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; }
+  function pickCorrectionColor(studentColor) {
+    var sc = hexRgb(studentColor);
+    if (!sc) return CORRECTION_COLORS[0];
+    var best = CORRECTION_COLORS[0], bestD = -1;
+    for (var i = 0; i < CORRECTION_COLORS.length; i++) {
+      var c = hexRgb(CORRECTION_COLORS[i]);
+      var d = Math.sqrt(Math.pow(c[0] - sc[0], 2) + Math.pow(c[1] - sc[1], 2) + Math.pow(c[2] - sc[2], 2));
+      if (d >= 150) return CORRECTION_COLORS[i];
+      if (d > bestD) { bestD = d; best = CORRECTION_COLORS[i]; }
+    }
+    return best;
+  }
+  var MAX_LOADED_STUDENT_BOARDS = 4;          // the teacher's memory of other students' boards; the least recently used one is dropped (reloaded when opened again)
+  // the per-board fields of a Whiteboard (swapped as a set)
+  var BOARD_KEYS = ['_liveStrokes', '_committedIds', '_objectsById', '_myPathPoints', '_objectNaturalPos', '_myObjectOffsets',
+    '_myObjectScales', '_myObjectsJson', '_selectedIds', '_myStrokeHistory', '_myRedoStack', '_clearGen', '_dragObjs', '_remoteDragObjs', '_imgPending'];
+  function newBoardData() {
+    return {
+      _liveStrokes: new Map(), _committedIds: new Set(), _objectsById: new Map(), _myPathPoints: new Map(),
+      _objectNaturalPos: new Map(), _myObjectOffsets: new Map(), _myObjectScales: new Map(), _myObjectsJson: new Map(),
+      _selectedIds: new Set(), _myStrokeHistory: [], _myRedoStack: [], _clearGen: 0, _dragObjs: null, _remoteDragObjs: null, _imgPending: new Map(), _fcObjects: []
+    };
+  }
+
   function dist(a, b) {
     var dx = a.x - b.x, dy = a.y - b.y;
     return Math.sqrt(dx * dx + dy * dy);
@@ -929,6 +963,53 @@
   var SHAPE_IDS_2D = ['patrat', 'tri-echilateral', 'tri-isoscel', 'tri-dreptunghic', 'trapez', 'paralelogram', 'romb', 'pentagon', 'hexagon', 'octagon', 'stea', 'cerc', 'patrat-rotunjit', 'semicerc'];
   var SHAPE_IDS_3D = ['cub', 'piramida-patrata', 'piramida-triunghiulara', 'con', 'cilindru', 'sfera'];
 
+  /* Where an object is, in board units (cached in obj.data.bb, dropped whenever the object moves or changes). Everything that needs "which objects
+     are near here" (culling, the dirty-region repaint, hit tests) reads this instead of asking Fabric to recompute coordinates. */
+  function objBox(o) {
+    var d = o.data;
+    if (d && d.bb) return d.bb;
+    var r = o.getBoundingRect(true, true), pad = (o.strokeWidth || 0) + 4;
+    var bb = { x0: r.left - pad, y0: r.top - pad, x1: r.left + r.width + pad, y1: r.top + r.height + pad };
+    if (d) d.bb = bb;
+    return bb;
+  }
+  function boxesTouch(a, b) { return !(a.x0 > b.x1 || a.x1 < b.x0 || a.y0 > b.y1 || a.y1 < b.y0); }
+  function unionBoxes(list) {
+    var u = { x0: Infinity, y0: Infinity, x1: -Infinity, y1: -Infinity };
+    for (var i = 0; i < list.length; i++) {
+      var b = list[i];
+      if (b.x0 < u.x0) u.x0 = b.x0; if (b.y0 < u.y0) u.y0 = b.y0;
+      if (b.x1 > u.x1) u.x1 = b.x1; if (b.y1 > u.y1) u.y1 = b.y1;
+    }
+    return u;
+  }
+
+  /* Pictures on the board (kind 'image'): files of the teacher's library (bucket wb-files, private). A picture is read through a signed
+     address and decoded ONCE per path; every object that shows it shares the decoded element. */
+  var IMG_BUCKET = 'wb-files';
+  var imgCache = new Map();
+  function loadBoardImage(supabase, path) {
+    var hit = imgCache.get(path);
+    if (hit) return hit;
+    var pr = supabase.storage.from(IMG_BUCKET).createSignedUrl(path, 3600).then(function (r) {
+      if (r.error || !r.data) throw (r.error || new Error('no signed url'));
+      return new Promise(function (resolve, reject) {
+        var im = new Image();
+        im.crossOrigin = 'anonymous';
+        im.onload = function () { resolve(im); };
+        im.onerror = function () { reject(new Error('image failed to load')); };
+        im.src = r.data.signedUrl;
+      });
+    });
+    pr.catch(function () { imgCache.delete(path); });
+    imgCache.set(path, pr);
+    return pr;
+  }
+  function rectCenterline(cx, cy, w, h) {
+    var hw = w / 2, hh = h / 2;
+    return [[{ x: cx - hw, y: cy - hh }, { x: cx + hw, y: cy - hh }, { x: cx + hw, y: cy + hh }, { x: cx - hw, y: cy + hh }, { x: cx - hw, y: cy - hh }]];
+  }
+
   /**
    * @param {HTMLElement} container - mounted into this element (emptied first? no — caller owns that)
    * @param {object} opts
@@ -1084,13 +1165,19 @@
     this._panDirY = 0;
     this._dragObjs = null; // objects being moved/resized: drawn on the overlay while the committed layer is painted without them
 
+    this._sessionLocked = !!opts.locked;           // the teacher's lock on this participant (applies to the shared board only, see _recomputeLocked)
+    this._baseColor = opts.userColor;
+    this._onBoardChange   = typeof opts.onBoardChange === 'function' ? opts.onBoardChange : null;
+    this._onBoardsReady   = typeof opts.onBoardsReady === 'function' ? opts.onBoardsReady : null;
+    this._onBoardActivity = typeof opts.onBoardActivity === 'function' ? opts.onBoardActivity : null;
+    this._onOpenFiles     = typeof opts.onOpenFiles === 'function' ? opts.onOpenFiles : null;
     this._build(container);
     this._initFabric();
+    this._initBoards();
     this._bindToolbar();
     this._bindPointerEvents();
     this._bindKeyboard();
-    if (!this._readOnly) this._connectRealtime();
-    this._loadExisting();
+    this._startBoards();
     this._startLoop();
     if (this._readOnly) {
       this._wrap.classList.add('wb-board--readonly');
@@ -1365,6 +1452,13 @@
           '</button>' +
           '<span class="dc-mode-badge" role="status">Mod stilou activ</span>' +
         '</div>' +
+        // The teacher's files (pictures, PDFs): a library opened from here, js/wb-files.js
+        (this._isTeacher && !this._readOnly && this._onOpenFiles ?
+        '<div class="dc-tool-group">' +
+          '<button type="button" class="dc-tool-btn" id="wbFilesBtn" title="Fișiere, imagini și PDF-uri" aria-label="Fișiere, imagini și PDF-uri">' +
+            '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="m21 16-4.6-4.6a1.5 1.5 0 0 0-2.1 0L5 20"/></svg>' +
+          '</button>' +
+        '</div>' : '') +
         // Grid ON/OFF is a global, teacher-controlled session setting (see
         // setGridEnabled) — a student never gets this button at all, not
         // just a disabled one, so their toolbar doesn't imply a control
@@ -1379,7 +1473,7 @@
       '<div class="wb-canvas-outer" id="wbCanvasOuter">' +
         '<div class="wb-locked-banner" id="wbLockedBanner">' +
           (global.icon ? global.icon('lock', { size: 16 }) : '') +
-          '<span>Profesorul a blocat temporar scrisul tău pe această tablă</span>' +
+          '<span>Profesorul a blocat temporar scrisul tău pe tabla comună. Tabla ta rămâne a ta.</span>' +
         '</div>' +
         '<div class="wb-canvas-wrap" id="wbCanvasWrap">' +
           '<canvas class="wb-grid-canvas" id="wbGridCanvas"></canvas>' +
@@ -1650,8 +1744,12 @@
       var toolBtnEl = e.target.closest('[data-tool]');
       var widthBtn  = e.target.closest('[data-width]');
       var gridBtn   = e.target.closest('#wbGridBtn');
+      var filesBtn  = e.target.closest('#wbFilesBtn');
       var inputModeBtn = e.target.closest('#wbInputModeBtn');
-      if (penKey) {
+      if (filesBtn) {
+        self._closeShapeDropdowns();
+        if (self._onOpenFiles) self._onOpenFiles();
+      } else if (penKey) {
         // the single writing key: first press selects the current preset and opens its options, a press while it is
         // already the tool shows or hides them
         if (self._tool !== 'pen' && self._tool !== 'pencil' && self._tool !== 'highlighter') self._setTool(self._penPreset);
@@ -2022,20 +2120,21 @@
   // Path commands of the objects that intersect the current view: a cheap stand-in for "how long would a full repaint take".
   Whiteboard.prototype._sceneCost = function () {
     var nowT = (global.performance && performance.now) ? performance.now() : Date.now();
-    var cc = this._costCache, n = this._fabricCanvas.getObjects().length;
+    var cc = this._costCache, n = this._fabricCanvas._objects.length;
     if (cc && cc.n === n && nowT - cc.t < 250) return cc.cost;     // a burst of zoom steps asks again every frame
     var cost = this._sceneCostNow();
     this._costCache = { t: nowT, n: n, cost: cost };
     return cost;
   };
   Whiteboard.prototype._sceneCostNow = function () {
-    var s = this._scale, x0 = -this._panX / s, y0 = -this._panY / s;
-    var x1 = x0 + (this._viewportW || 0) / s, y1 = y0 + (this._viewportH || 0) / s, cost = 0;
-    this._fabricCanvas.getObjects().forEach(function (o) {
-      var b = o.getBoundingRect(true);
-      if (b.left > x1 || b.left + b.width < x0 || b.top > y1 || b.top + b.height < y0) return;
+    var s = this._scale, view = { x0: -this._panX / s, y0: -this._panY / s }, cost = 0;
+    view.x1 = view.x0 + (this._viewportW || 0) / s; view.y1 = view.y0 + (this._viewportH || 0) / s;
+    var list = this._fabricCanvas._objects;
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i];
+      if (!boxesTouch(objBox(o), view)) continue;
       cost += o.path ? o.path.length : 30;
-    });
+    }
     return cost;
   };
 
@@ -2067,8 +2166,168 @@
     if (fc.wrapperEl) { fc.wrapperEl.style.left = ox + 'px'; fc.wrapperEl.style.top = oy + 'px'; }
     this._gestureXform = false;
     this._applyLayerXform(1, 0, 0);
-    fc.renderAll();      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
+    // only what touches the painted layer is handed to Fabric (a cheap box test per object; Fabric's own off-screen test costs a matrix
+    // calculation per object, which is most of a repaint when most of the board is out of view)
+    var all = fc._objects, vis = [], v = fc.viewportTransform;
+    var lay = { x0: -v[4] / v[0], y0: -v[5] / v[3], x1: (fc.width - v[4]) / v[0], y1: (fc.height - v[5]) / v[3] };
+    for (var oi = 0; oi < all.length; oi++) if (boxesTouch(objBox(all[oi]), lay)) vis.push(all[oi]);
+    var skip = fc.skipOffscreen;
+    fc._objects = vis; fc.skipOffscreen = false;
+    try { fc.renderAll(); }      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
+    finally { fc._objects = all; fc.skipOffscreen = skip; }
     this._redrawGrid();
+  };
+
+  /* Dirty regions (2026-11-20). Most changes on a board touch a small part of it: an object is erased, undone, moved or dropped back
+     after a drag, a text changes. Repainting the WHOLE committed layer for each of them (hundreds of milliseconds on a full board) was the
+     freeze you felt at the end of a drag or on an erase. Now only the box that changed is cleared and the objects that touch it are painted
+     again, in their normal order, clipped to that box (pixel aligned, so the result is the same as a full repaint). A change that is large
+     (a big box, or many objects in it) falls back to the full repaint. */
+  Whiteboard.prototype._invalidateBoxes = function (boxes) {
+    if (this._bg || !boxes || !boxes.length) return;
+    var self = this;
+    this._pendingBoxes = (this._pendingBoxes || []).concat(boxes);
+    if (this._boxRaf) return;
+    this._boxRaf = requestAnimationFrame(function () {
+      self._boxRaf = null;
+      var list = self._pendingBoxes || [];
+      self._pendingBoxes = [];
+      if (!self._destroyed && list.length) self._renderBoxes(list);
+    });
+  };
+
+  // Repaint these board boxes on the committed layer, now.
+  Whiteboard.prototype._renderBoxes = function (boxes) {
+    if (this._destroyed || !boxes.length) return;
+    if (this._gestureXform) return;                         // the layers are scaled during a zoom: the settle repaint redraws everything
+    if (!this._rend) { this._fabricCanvas.requestRenderAll(); return; }
+    var u = unionBoxes(boxes), fc = this._fabricCanvas, v = fc.viewportTransform;
+    var area = (u.x1 - u.x0) * (u.y1 - u.y0) * v[0] * v[3], layerArea = fc.width * fc.height;
+    var list = fc._objects, n = 0;
+    for (var i = 0; i < list.length; i++) if (list[i].visible && boxesTouch(objBox(list[i]), u)) n++;
+    if (area > layerArea * 0.45 || n > 350) { this._fullRender(); return; }
+    this._renderRegion(u);
+  };
+
+  Whiteboard.prototype._renderRegion = function (u) {
+    var fc = this._fabricCanvas, ctx = fc.getContext(), v = fc.viewportTransform, r = fc.getRetinaScaling ? fc.getRetinaScaling() : 1;
+    // the box in the layer's own device pixels, widened a pixel each way
+    var dx0 = Math.max(0, Math.floor((u.x0 * v[0] + v[4]) * r) - 1), dy0 = Math.max(0, Math.floor((u.y0 * v[3] + v[5]) * r) - 1);
+    var dx1 = Math.min(Math.round(fc.width * r), Math.ceil((u.x1 * v[0] + v[4]) * r) + 1), dy1 = Math.min(Math.round(fc.height * r), Math.ceil((u.y1 * v[3] + v[5]) * r) + 1);
+    var w = dx1 - dx0, h = dy1 - dy0;
+    if (w <= 0 || h <= 0) return;
+    var reg = { x0: (dx0 / r - v[4]) / v[0], y0: (dy0 / r - v[5]) / v[3], x1: (dx1 / r - v[4]) / v[0], y1: (dy1 / r - v[5]) / v[3] };
+    // The objects of the box are painted on a small canvas of exactly that size (the same device transform, only shifted by whole pixels), then
+    // swapped in for the old pixels. A clip on the main canvas would make the browser anti-alias edges differently from a full repaint.
+    var tmp = this._regionCanvas || (this._regionCanvas = document.createElement('canvas'));
+    if (tmp.width < w || tmp.height < h) { tmp.width = Math.max(tmp.width, w); tmp.height = Math.max(tmp.height, h); }
+    var tx = tmp.getContext('2d');
+    tx.setTransform(1, 0, 0, 1, 0, 0);
+    tx.clearRect(0, 0, tmp.width, tmp.height);
+    tx.setTransform(r * v[0], r * v[1], r * v[2], r * v[3], r * v[4] - dx0, r * v[5] - dy0);
+    var list = fc._objects;
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i];
+      if (!o.visible || !boxesTouch(objBox(o), reg)) continue;
+      try { o.render(tx); } catch (err) { /* a half-built object must not stop the repaint */ }
+    }
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(dx0, dy0, w, h);
+    ctx.drawImage(tmp, 0, 0, w, h, dx0, dy0, w, h);
+    ctx.restore();
+  };
+
+  // Where the layers sit and how they are stretched: k scales them about their own top-left corner, (tx,ty) moves them.
+  Whiteboard.prototype._applyLayerXform = function (k, tx, ty) {
+    var m = (k === 1 && !tx && !ty) ? '' : 'matrix(' + k + ',0,0,' + k + ',' + tx + ',' + ty + ')';
+    var els = [this._gridEl, this._fabricCanvas.wrapperEl];
+    for (var i = 0; i < els.length; i++) {
+      if (!els[i]) continue;
+      els[i].style.transformOrigin = '0 0';
+      els[i].style.transform = m;
+    }
+  };
+
+  // Everything repainted around the current camera; the camera the layers now show is remembered in this._rend.
+  // The layers get more room on the side the camera has been moving towards, so a long pan needs few repaints.
+  Whiteboard.prototype._fullRender = function () {
+    clearTimeout(this._gestureTimer);
+    var dpr = this._dpr, vw = this._viewportW, vh = this._viewportH;
+    var exX = this._cw - vw, exY = this._ch - vh;
+    // content moving right (pan growing) uncovers the left side: more room on the left
+    var mx = exX * (this._panDirX > 0 ? 0.75 : this._panDirX < 0 ? 0.25 : 0.5);
+    var my = exY * (this._panDirY > 0 ? 0.75 : this._panDirY < 0 ? 0.25 : 0.5);
+    var ox = -Math.round(mx * dpr) / dpr, oy = -Math.round(my * dpr) / dpr;
+    this._rend = { scale: this._scale, panX: this._panX, panY: this._panY, ox: ox, oy: oy, vw: vw, vh: vh, dpr: dpr };
+    var fc = this._fabricCanvas;
+    fc.setViewportTransform([this._scale, 0, 0, this._scale, this._panX - ox, this._panY - oy]);
+    this._gridEl.style.left = ox + 'px'; this._gridEl.style.top = oy + 'px';
+    if (fc.wrapperEl) { fc.wrapperEl.style.left = ox + 'px'; fc.wrapperEl.style.top = oy + 'px'; }
+    this._gestureXform = false;
+    this._applyLayerXform(1, 0, 0);
+    // only what touches the painted layer is handed to Fabric (a cheap box test per object; Fabric's own off-screen test costs a matrix
+    // calculation per object, which is most of a repaint when most of the board is out of view)
+    var all = fc._objects, vis = [], v = fc.viewportTransform;
+    var lay = { x0: -v[4] / v[0], y0: -v[5] / v[3], x1: (fc.width - v[4]) / v[0], y1: (fc.height - v[5]) / v[3] };
+    for (var oi = 0; oi < all.length; oi++) if (boxesTouch(objBox(all[oi]), lay)) vis.push(all[oi]);
+    var skip = fc.skipOffscreen;
+    fc._objects = vis; fc.skipOffscreen = false;
+    try { fc.renderAll(); }      // synchronous, so the old transform is dropped in the very same task, with no flash of the old bitmap
+    finally { fc._objects = all; fc.skipOffscreen = skip; }
+    this._redrawGrid();
+  };
+
+  /* Dirty regions (2026-11-20). Most changes on a board touch a small part of it: an object is erased, undone, moved or dropped back
+     after a drag, a text changes. Repainting the WHOLE committed layer for each of them (hundreds of milliseconds on a full board) was the
+     freeze you felt at the end of a drag or on an erase. Now only the box that changed is cleared and the objects that touch it are painted
+     again, in their normal order, clipped to that box (pixel aligned, so the result is the same as a full repaint). A change that is large
+     (a big box, or many objects in it) falls back to the full repaint. */
+  Whiteboard.prototype._invalidateBoxes = function (boxes) {
+    if (this._bg || !boxes || !boxes.length) return;
+    var self = this;
+    this._pendingBoxes = (this._pendingBoxes || []).concat(boxes);
+    if (this._boxRaf) return;
+    this._boxRaf = requestAnimationFrame(function () {
+      self._boxRaf = null;
+      var list = self._pendingBoxes || [];
+      self._pendingBoxes = [];
+      if (!self._destroyed && list.length) self._renderBoxes(list);
+    });
+  };
+
+  // Repaint these board boxes on the committed layer, now.
+  Whiteboard.prototype._renderBoxes = function (boxes) {
+    if (this._destroyed || !boxes.length) return;
+    if (this._gestureXform) return;                         // the layers are scaled during a zoom: the settle repaint redraws everything
+    if (!this._rend) { this._fabricCanvas.requestRenderAll(); return; }
+    var u = unionBoxes(boxes), fc = this._fabricCanvas, v = fc.viewportTransform;
+    var area = (u.x1 - u.x0) * (u.y1 - u.y0) * v[0] * v[3], layerArea = fc.width * fc.height;
+    var list = fc._objects, n = 0;
+    for (var i = 0; i < list.length; i++) if (list[i].visible && boxesTouch(objBox(list[i]), u)) n++;
+    if (area > layerArea * 0.45 || n > 350) { this._fullRender(); return; }
+    this._renderRegion(u);
+  };
+
+  Whiteboard.prototype._renderRegion = function (u) {
+    var fc = this._fabricCanvas, ctx = fc.getContext(), v = fc.viewportTransform, r = fc.getRetinaScaling ? fc.getRetinaScaling() : 1;
+    // the box in the layer's own pixels, widened a pixel each way and snapped to whole device pixels
+    var dx0 = Math.max(0, Math.floor((u.x0 * v[0] + v[4]) * r) - 1), dy0 = Math.max(0, Math.floor((u.y0 * v[3] + v[5]) * r) - 1);
+    var dx1 = Math.min(Math.round(fc.width * r), Math.ceil((u.x1 * v[0] + v[4]) * r) + 1), dy1 = Math.min(Math.round(fc.height * r), Math.ceil((u.y1 * v[3] + v[5]) * r) + 1);
+    if (dx1 <= dx0 || dy1 <= dy0) return;
+    var rx = dx0 / r, ry = dy0 / r, rw = (dx1 - dx0) / r, rh = (dy1 - dy0) / r;
+    var reg = { x0: (rx - v[4]) / v[0], y0: (ry - v[5]) / v[3], x1: (rx + rw - v[4]) / v[0], y1: (ry + rh - v[5]) / v[3] };
+    var list = fc._objects;
+    ctx.save();
+    ctx.beginPath(); ctx.rect(rx, ry, rw, rh); ctx.clip();
+    ctx.clearRect(rx, ry, rw, rh);
+    ctx.transform(v[0], v[1], v[2], v[3], v[4], v[5]);
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i];
+      if (!o.visible || !boxesTouch(objBox(o), reg)) continue;
+      try { o.render(ctx); } catch (err) { /* a half-built object must not stop the repaint */ }
+    }
+    ctx.restore();
   };
 
   // A zoom step shown by scaling the layers painted at this._rend's camera (cheap, composited by the GPU); repainted sharp once it stops.
@@ -2857,13 +3116,7 @@
     var json = isVariableWidth
       ? { path: path, fill: this._color, strokeWidth: width, opacity: opacity, centerline: [points], v: 2, clientStrokeId: liveKey ? liveKey.slice(2) : null }
       : { path: path, stroke: this._color, strokeWidth: width, strokeDashArray: dashArray, opacity: opacity, clientStrokeId: liveKey ? liveKey.slice(2) : null };
-    this._supabase.from('whiteboard_objects').insert({
-      session_id: this._sessionId,
-      class_id:   this._classId,
-      created_by: this._userId,
-      kind: 'stroke',
-      fabric_json: json
-    }).select().single().then(function (res) {
+    this._supabase.from('whiteboard_objects').insert(this._rowBase('stroke', json)).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) {
         console.error('[Whiteboard] commit failed', res.error);
@@ -2884,9 +3137,12 @@
       var newObj = self._addObjectIfNew(res.data, [points]);
       // A new stroke invalidates whatever was on the redo stack — standard
       // undo/redo semantics (matches drawing-canvas.js's own _undo/_redo).
-      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
-      self._myRedoStack = [];
-      self._updateUndoRedoButtons();
+      // On the board the stroke belongs to, which may no longer be the one on screen.
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: res.data.kind, fabric_json: res.data.fabric_json });
+        self._myRedoStack = [];
+        self._updateUndoRedoButtons();
+      });
       self._dirty = true;
       self._paintNewObject(newObj);
     });
@@ -2897,7 +3153,8 @@
   // A render already queued will include it anyway, so nothing is painted twice that matters.
   Whiteboard.prototype._paintNewObject = function (obj) {
     var fc = this._fabricCanvas;
-    if (!obj || fc.isRendering || this._gestureXform) return;
+    if (!obj || this._bg || fc.isRendering || this._gestureXform) return;
+    if (obj.data && obj.data.boardKey && obj.data.boardKey !== this._board.key) return;   // it landed on a board that is not on screen
     try {
       var ctx = fc.getContext(), v = fc.viewportTransform;
       if (obj.isOnScreen && !obj.isOnScreen()) return;
@@ -2961,23 +3218,18 @@
       shapeJson.dashOn = width * 3;
       shapeJson.dashOff = width * 2.4;
     }
-    this._supabase.from('whiteboard_objects').insert({
-      session_id: this._sessionId,
-      class_id:   this._classId,
-      created_by: this._userId,
-      kind: 'stroke',
-      // isShape marks this for the resize handle in _drawSelectionOverlay/
-      // _bindPointerEvents — freehand ink and lines never get one.
-      fabric_json: shapeJson
-    }).select().single().then(function (res) {
+    // isShape marks this for the resize handle in _drawSelectionOverlay/_bindPointerEvents — freehand ink and lines never get one.
+    this._supabase.from('whiteboard_objects').insert(this._rowBase('stroke', shapeJson)).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) { console.error('[Whiteboard] shape insert failed', res.error); return; }
-      self._addObjectIfNew(res.data, centerline);
-      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
-      self._myRedoStack = [];
-      self._updateUndoRedoButtons();
+      var shapeObj = self._addObjectIfNew(res.data, centerline);
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: res.data.kind, fabric_json: res.data.fabric_json });
+        self._myRedoStack = [];
+        self._updateUndoRedoButtons();
+      });
       self._dirty = true;
-      self._fabricCanvas.requestRenderAll();
+      if (shapeObj) self._paintNewObject(shapeObj);
     });
   };
 
@@ -3176,12 +3428,7 @@
       { x: center.x - hw, y: center.y - hh }
     ]];
     var self = this;
-    this._supabase.from('whiteboard_objects').insert({
-      session_id: this._sessionId,
-      class_id:   this._classId,
-      created_by: this._userId,
-      kind: 'text',
-      fabric_json: {
+    this._supabase.from('whiteboard_objects').insert(this._rowBase('text', {
         isText: true, text: text, left: center.x, top: center.y,
         textWidth: width, textHeight: height, fontSize: fontSize, color: this._color,
         // A Textbox has no SVG path string the way every other object does
@@ -3191,16 +3438,17 @@
         // parsePathPoints(j.path) with no j.path to parse. Same rectangle
         // as the local centerline just above.
         centerline: centerline
-      }
-    }).select().single().then(function (res) {
+    })).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) { console.error('[Whiteboard] text insert failed', res.error); return; }
-      self._addObjectIfNew(res.data, centerline);
-      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
-      self._myRedoStack = [];
-      self._updateUndoRedoButtons();
+      var textObj = self._addObjectIfNew(res.data, centerline);
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: res.data.kind, fabric_json: res.data.fabric_json });
+        self._myRedoStack = [];
+        self._updateUndoRedoButtons();
+      });
       self._dirty = true;
-      self._fabricCanvas.requestRenderAll();
+      if (textObj) self._paintNewObject(textObj);
     });
   };
 
@@ -3232,8 +3480,10 @@
 
     // width must be re-applied to the live Fabric object too — it's the
     // Textbox's own wrap boundary (see _addObjectIfNew), not just bookkeeping.
+    var oldBox = objBox(obj);
     obj.set({ text: text, width: width, left: center.x, top: center.y });
     obj.setCoords();
+    obj.data.bb = null;
     this._objectNaturalPos.set(objId, { left: center.x, top: center.y });
     this._myObjectOffsets.set(objId, { dx: 0, dy: 0 });
     // Unscaled half-extents — _myTranslatedPoints re-applies `scale` itself
@@ -3247,7 +3497,7 @@
     ]];
     this._myPathPoints.set(objId, centerline);
     this._dirty = true;
-    this._fabricCanvas.requestRenderAll();
+    this._invalidateBoxes([oldBox, objBox(obj)]);
 
     var newJson = Object.assign({}, json, { text: text, left: center.x, top: center.y, textWidth: width, textHeight: height, offsetX: 0, offsetY: 0, centerline: centerline });
     this._supabase.from('whiteboard_objects').update({ fabric_json: newJson }).eq('id', objId)
@@ -3260,41 +3510,28 @@
   /* ---- Realtime ---- */
 
   Whiteboard.prototype._connectRealtime = function () {
-    var self = this;
-    this._channel = this._supabase
-      .channel('whiteboard-' + this._sessionId, { config: { broadcast: { self: false } } })
-      .on('broadcast', { event: 'stroke:point' }, function (msg) { self._onRemotePoint(msg.payload); })
-      .on('broadcast', { event: 'stroke:end' },   function (msg) { self._onRemoteStrokeEnd(msg.payload); })
-      .on('broadcast', { event: 'stroke:cancel' }, function (msg) { self._liveStrokes.delete('r:' + msg.payload.strokeId); self._dirty = true; })
-      // Live, ephemeral drag position(s) from the "select" tool — same
-      // Broadcast-not-persisted channel as a stroke's own in-progress
-      // points, see _bindPointerEvents' 'moving' branch. Batched (one or
-      // more {id,offsetX,offsetY} moves per message) since dragging a
-      // multi-selection moves every selected object in the same gesture.
-      // Applies to ANY object regardless of whose it is, since a REMOTE
-      // participant is the one dragging THEIR OWN object(s) here —
-      // _setObjectOffset doesn't care about ownership, only
-      // _findMyObjectAt (my own hit-testing) does.
-      .on('broadcast', { event: 'object:move' }, function (msg) {
-        // m.scale is only ever present for a resize-handle drag (see
-        // _bindPointerEvents' 'resizing' branch) — update it first so the
-        // very same _setObjectOffset call below picks up the new scale
-        // together with position, both taking effect as one transform.
-        (msg.payload.moves || []).forEach(function (m) {
-          if (m.scale != null) self._myObjectScales.set(m.id, m.scale);
-          self._setObjectOffset(m.id, m.offsetX, m.offsetY);
-        });
-      })
+    var self = this, common = this._boards.get(COMMON_KEY);
+    // The shared channel: live strokes of the shared board (Broadcast) and the durable feed of EVERY board's rows (postgres_changes).
+    // The feed is private by itself: row level security only lets a student receive the shared board and their own, and the teacher all.
+    var ch = this._supabase.channel('whiteboard-' + this._sessionId, { config: { broadcast: { self: false } } });
+    this._bindLiveEvents(ch, common);
+    ch
       .on('postgres_changes', {
         event: 'INSERT', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
       }, function (p) {
-        var cid = p.new.fabric_json && p.new.fabric_json.clientStrokeId;
+        var row = p.new, b = self._boardForRow(row);
+        // someone wrote on a student's board: the teacher's tab for that student lights up, even when that board is not open
+        if (row.board_owner && row.created_by !== self._userId && self._onBoardActivity) self._onBoardActivity(row.board_owner);
+        if (!b) return;
+        var cid = row.fabric_json && row.fabric_json.clientStrokeId;
         // Same swap-not-delete trick as the local drawer's own finish() —
         // retire the remote live-preview entry in the SAME tick the real
         // object gets added, so a remote viewer never sees the stroke blink
         // out during the commit round-trip either.
-        if (cid) { self._liveStrokes.delete('r:' + cid); self._dirty = true; }
-        var added = self._addObjectIfNew(p.new);
+        var added = self._inBoard(b, function () {
+          if (cid) { this._liveStrokes.delete('r:' + cid); if (b === this._board) this._dirty = true; }
+          return this._addObjectIfNew(row);
+        });
         if (added) self._paintNewObject(added);
       })
       .on('postgres_changes', {
@@ -3302,7 +3539,11 @@
       }, function (p) { self._applyObjectUpdate(p.new); })
       .on('postgres_changes', {
         event: 'DELETE', schema: 'public', table: 'whiteboard_objects', filter: 'session_id=eq.' + this._sessionId
-      }, function (p) { self._removeObjectById(p.old && p.old.id); self._fabricCanvas.requestRenderAll(); })
+      }, function (p) {
+        var id = p.old && p.old.id, ob = id && self._idBoard.get(id);
+        if (!ob) return;
+        self._removeObjectById(id);   // repaints just the box it covered
+      })
       .subscribe(function (status, err) {
         if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
           console.error('[Whiteboard] realtime channel', status, err);
@@ -3318,11 +3559,55 @@
         // client's socket happened to be reconnecting at that exact moment.
         // SUBSCRIBED fires again after every such reconnect (not just the
         // very first connect), so reconciling here — including on that very
-        // first call, briefly racing _loadExisting's own fetch, which is
+        // first call, briefly racing the first load's own fetch, which is
         // harmless since _addObjectIfNew already de-dupes by id — closes
         // that gap without the user ever needing to know it happened.
-        if (status === 'SUBSCRIBED') self._reconcileObjects();
+        if (status === 'SUBSCRIBED') self._reconcileAll();
       });
+    common.channel = ch;
+    if (this._board === common) this._channel = ch;
+  };
+
+  // The live (ephemeral) traffic of one board: the points of a stroke in progress and drags. Only the board that is on screen shows
+  // them; a board in the background gets the finished result through the durable feed instead.
+  Whiteboard.prototype._bindLiveEvents = function (ch, b) {
+    var self = this;
+    function onScreen() { return b === self._board && !self._destroyed; }
+    ch.on('broadcast', { event: 'stroke:point' }, function (msg) { if (onScreen()) self._onRemotePoint(msg.payload); })
+      .on('broadcast', { event: 'stroke:end' },   function (msg) { if (onScreen()) self._onRemoteStrokeEnd(msg.payload); })
+      .on('broadcast', { event: 'stroke:cancel' }, function (msg) { if (onScreen()) { self._liveStrokes.delete('r:' + msg.payload.strokeId); self._dirty = true; } })
+      // Live, ephemeral drag position(s) from the "select" tool — same
+      // Broadcast-not-persisted channel as a stroke's own in-progress
+      // points, see _bindPointerEvents' 'moving' branch. Batched (one or
+      // more {id,offsetX,offsetY} moves per message) since dragging a
+      // multi-selection moves every selected object in the same gesture.
+      // Applies to ANY object regardless of whose it is, since a REMOTE
+      // participant is the one dragging THEIR OWN object(s) here —
+      // _setObjectOffset doesn't care about ownership, only
+      // _findMyObjectAt (my own hit-testing) does.
+      .on('broadcast', { event: 'object:move' }, function (msg) {
+        if (!onScreen()) return;
+        // m.scale is only ever present for a resize-handle drag (see
+        // _bindPointerEvents' 'resizing' branch) — update it first so the
+        // very same _setObjectOffset call below picks up the new scale
+        // together with position, both taking effect as one transform.
+        self._onRemoteMoves(msg.payload.moves || []);
+      });
+  };
+
+  // The private channel of a student's board (only that student and the teacher may join, see wb_topic_allowed in the migration).
+  // If it cannot be joined the board still works: the other side then sees finished strokes (durable feed) instead of live ones.
+  Whiteboard.prototype._connectBoardChannel = function (b) {
+    if (b.channel || b.isCommon || this._readOnly || this._destroyed || !this._multi) return;
+    var self = this;
+    var ch = this._supabase.channel('wbp:' + this._sessionId + ':' + b.ownerId, { config: { private: true, broadcast: { self: false } } });
+    this._bindLiveEvents(ch, b);
+    ch.subscribe(function (status, err) {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') console.warn('[Whiteboard] private channel', status, err);
+      if (status === 'SUBSCRIBED' && b.loaded) self._reconcileBoard(b);
+    });
+    b.channel = ch;
+    if (b === this._board) this._channel = ch;
   };
 
   // Safety net under the best-effort realtime push above: re-derives local
@@ -3330,32 +3615,36 @@
   // INSERT/DELETE this client should have seen actually arrived. Cheap (ids
   // only) and non-destructive to anything genuinely still current — only
   // touches objects that have actually drifted out of sync.
-  Whiteboard.prototype._reconcileObjects = function () {
+  Whiteboard.prototype._reconcileAll = function () {
     var self = this;
-    this._supabase.from('whiteboard_objects').select('id').eq('session_id', this._sessionId)
+    this._boards.forEach(function (b) { if (b.loaded) self._reconcileBoard(b); });
+  };
+  Whiteboard.prototype._reconcileBoard = function (b) {
+    var self = this;
+    this._boardFilter(this._supabase.from('whiteboard_objects').select('id').eq('session_id', this._sessionId), b)
       .then(function (res) {
-        if (self._destroyed || res.error) return;
+        if (self._destroyed || res.error || b.evicted) return;
         var serverIds = {};
         (res.data || []).forEach(function (r) { serverIds[r.id] = true; });
-        // A local object the server no longer has — its DELETE never made it
-        // to this client (see the comment at the SUBSCRIBED callback above).
-        self._fabricCanvas.getObjects().slice().forEach(function (obj) {
-          if (obj.data && obj.data.id && !serverIds[obj.data.id]) self._removeObjectById(obj.data.id);
+        var missingIds = [];
+        self._inBoard(b, function () {
+          // A local object the server no longer has — its DELETE never made it to this client (see the SUBSCRIBED callback above).
+          this._fabricCanvas._objects.slice().forEach(function (obj) {
+            if (obj.data && obj.data.id && !serverIds[obj.data.id]) self._removeObjectById(obj.data.id);
+          });
+          // The reverse case — a row the server has that this client missed entirely (a dropped INSERT).
+          missingIds = Object.keys(serverIds).filter(function (id) { return !self._committedIds.has(id); });
         });
-        // The reverse case — a row the server has that this client missed
-        // entirely (a dropped INSERT) — fetched and added the same way
-        // _loadExisting hydrates the board initially.
-        var missingIds = Object.keys(serverIds).filter(function (id) { return !self._committedIds.has(id); });
+        if (b === self._board) self._fabricCanvas.requestRenderAll();
         if (missingIds.length) {
           self._supabase.from('whiteboard_objects').select('*').in('id', missingIds)
             .order('seq', { ascending: true })
             .then(function (res2) {
-              if (self._destroyed || res2.error) return;
-              (res2.data || []).forEach(function (row) { self._addObjectIfNew(row); });
-              self._fabricCanvas.requestRenderAll();
+              if (self._destroyed || res2.error || b.evicted) return;
+              self._inBoard(b, function () { (res2.data || []).forEach(function (row) { self._addObjectIfNew(row); }); });
+              if (b === self._board) self._fabricCanvas.requestRenderAll();
             });
         }
-        self._fabricCanvas.requestRenderAll();
       });
   };
 
@@ -3382,14 +3671,19 @@
   // position rather than wherever the object currently sits.
   Whiteboard.prototype._applyObjectUpdate = function (row) {
     if (!row) return;
-    var j = row.fabric_json || {};
-    var dx = j.offsetX || 0, dy = j.offsetY || 0;
-    this._myObjectScales.set(row.id, j.scale || 1);
-    this._setObjectOffset(row.id, dx, dy);
-    if (row.created_by === this._userId) {
-      this._myObjectOffsets.set(row.id, { dx: dx, dy: dy });
-      this._myObjectsJson.set(row.id, j);
-    }
+    var self = this, b = this._boardForRow(row);
+    if (!b) return;
+    this._inBoard(b, function () {
+      var j = row.fabric_json || {};
+      if (this._imgPending.has(row.id)) this._imgPending.set(row.id, j);   // a picture still loading takes it when it is ready
+      var dx = j.offsetX || 0, dy = j.offsetY || 0;
+      this._myObjectScales.set(row.id, j.scale || 1);
+      this._setObjectOffset(row.id, dx, dy);
+      if (row.created_by === this._userId) {
+        this._myObjectOffsets.set(row.id, { dx: dx, dy: dy });
+        this._myObjectsJson.set(row.id, j);
+      }
+    });
   };
 
   // 'end' means the finished object is already on its way as a committed
@@ -3418,9 +3712,17 @@
   // strokes loaded from history, parsePathPoints reconstructs an
   // approximation instead; see that function's own comment for why.
   Whiteboard.prototype._addObjectIfNew = function (row, rawPoints) {
-    if (!row || this._committedIds.has(row.id)) return null;
+    if (!row) return null;
+    // The row belongs to one board: add it there even when another one is on screen now (an insert that resolved after a switch,
+    // a remote insert for a board that is not shown). A board this client does not hold is ignored (see _boardForRow).
+    var tb = this._boardForRow(row);
+    if (!tb) return null;
+    if (tb !== this._dataBoard) return this._inBoard(tb, function () { return this._addObjectIfNew(row, rawPoints); });
+    if (this._committedIds.has(row.id)) return null;
     this._committedIds.add(row.id);
+    this._idBoard.set(row.id, tb);
     var j = row.fabric_json || {};
+    if (j.isImage) { this._addImageObject(row, tb); return null; }   // the picture joins the board when it has loaded
     // center, not fabric's default top-left, on BOTH branches below — a
     // shape/text's resize handle (see _drawSelectionOverlay/
     // _bindPointerEvents) scales it around its own middle, which needs
@@ -3438,7 +3740,7 @@
         fontFamily: TEXT_FONT_FAMILY, fill: j.color, editable: false,
         selectable: false, evented: false, objectCaching: false, // no cached bitmap: text stays sharp at any zoom
         originX: 'center', originY: 'center',
-        data: { id: row.id, ownerId: row.created_by, isShape: false, isText: true }
+        data: { id: row.id, ownerId: row.created_by, isShape: false, isText: true, boardKey: tb.key }
       });
     } else {
       // Variable-width pen strokes (see _commitStroke) are a FILLED
@@ -3480,7 +3782,7 @@
         objectCaching: false,
         originX: 'center',
         originY: 'center',
-        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false,
+        data: { id: row.id, ownerId: row.created_by, isShape: !!j.isShape, isText: false, boardKey: tb.key,
                 hidden: j.hidden || null, vpath: j.vpath || null, dashOn: j.dashOn || 0, dashOff: j.dashOff || 0, dashScale: 1 }
       });
     }
@@ -3518,8 +3820,83 @@
     return obj;
   };
 
+  // A picture row: load the file, then build the Fabric object on its own board. Pictures sit under all ink (after the pictures
+  // already there), so writing and drawing always show over a worksheet.
+  Whiteboard.prototype._addImageObject = function (row, tb) {
+    var self = this, j0 = row.fabric_json || {};
+    tb.data._imgPending.set(row.id, j0);
+    loadBoardImage(this._supabase, j0.src).then(function (im) {
+      if (self._destroyed || tb.evicted) return;
+      self._inBoard(tb, function () {
+        var j = this._imgPending.get(row.id) || j0;     // an update (a move) that arrived while it was loading
+        this._imgPending.delete(row.id);
+        if (!this._committedIds.has(row.id)) return;    // erased or undone in the meantime
+        var offsetX = j.offsetX || 0, offsetY = j.offsetY || 0, scale = j.scale || 1;
+        var base = (j.width || im.naturalWidth) / im.naturalWidth;
+        var obj = new fabric.Image(im, {
+          left: j.left, top: j.top, originX: 'center', originY: 'center', scaleX: base, scaleY: base,
+          selectable: false, evented: false, objectCaching: false,
+          data: { id: row.id, ownerId: row.created_by, isShape: false, isText: false, isImage: true, baseScale: base, boardKey: tb.key }
+        });
+        this._objectNaturalPos.set(row.id, { left: obj.left, top: obj.top });
+        if (offsetX || offsetY || scale !== 1) obj.set({ left: obj.left + offsetX, top: obj.top + offsetY, scaleX: base * scale, scaleY: base * scale });
+        obj.setCoords();
+        var list = this._fabricCanvas._objects, n = 0;
+        while (n < list.length && list[n].data && list[n].data.isImage) n++;
+        this._fabricCanvas.insertAt(obj, n);
+        this._objectsById.set(row.id, obj);
+        if (row.created_by === this._userId) {
+          this._myPathPoints.set(row.id, j.centerline && j.centerline.length ? j.centerline : rectCenterline(j.left, j.top, j.width || im.naturalWidth, j.height || im.naturalHeight));
+          this._myObjectOffsets.set(row.id, { dx: offsetX, dy: offsetY });
+          this._myObjectScales.set(row.id, scale);
+          this._myObjectsJson.set(row.id, j);
+        }
+        if (this._autoSelect === row.id && tb === this._board) {   // just inserted by me: ready to move or resize
+          this._autoSelect = null;
+          this._selectedIds = new Set([row.id]);
+          this._setTool('select');
+        }
+        this._dirty = true;
+        if (tb === this._board) this._invalidateBoxes([objBox(obj)]);
+      });
+    }).catch(function (err) { console.warn('[Whiteboard] picture not shown', err); });
+  };
+
+  // What the teacher is looking at, in board units: the centre and the size of the visible part (for placing a picture).
+  Whiteboard.prototype.getViewInfo = function () {
+    var s = this._scale || 1;
+    var x0 = Math.max(0, -this._panX / s), y0 = Math.max(0, -this._panY / s);
+    var x1 = Math.min(LOGICAL_W, (this._viewportW - this._panX) / s), y1 = Math.min(LOGICAL_H, (this._viewportH - this._panY) / s);
+    return { cx: (x0 + x1) / 2, cy: (y0 + y1) / 2, w: x1 - x0, h: y1 - y0, boardW: LOGICAL_W, boardH: LOGICAL_H };
+  };
+
+  // Puts one picture on the board on screen. spec: {src (path in wb-files), width, height (board units), left, top (its centre)}.
+  Whiteboard.prototype.insertImage = function (spec) {
+    var self = this;
+    if (this._locked || this._readOnly) return Promise.resolve(null);
+    var json = { isImage: true, src: spec.src, width: Math.round(spec.width), height: Math.round(spec.height), left: Math.round(spec.left), top: Math.round(spec.top), name: spec.name || null,
+      centerline: rectCenterline(Math.round(spec.left), Math.round(spec.top), Math.round(spec.width), Math.round(spec.height)) };
+    var b = this._dataBoard;
+    return this._supabase.from('whiteboard_objects').insert(this._rowBase('image', json)).select().single().then(function (res) {
+      if (self._destroyed) return null;
+      if (res.error) { console.error('[Whiteboard] picture insert failed', res.error); if (global.BM && BM.toast) BM.toast('Nu s-a putut pune imaginea: ' + res.error.message, 'error'); return null; }
+      if (b === self._board) self._autoSelect = res.data.id;
+      self._addObjectIfNew(res.data);
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: 'image', fabric_json: res.data.fabric_json });
+        self._myRedoStack = [];
+        self._updateUndoRedoButtons();
+      });
+      return res.data;
+    });
+  };
+
   Whiteboard.prototype._removeObjectById = function (id) {
     if (!id) return;
+    var ob = this._idBoard.get(id);
+    if (ob && ob !== this._dataBoard) { this._inBoard(ob, function () { this._removeObjectById(id); }); return; }
+    this._idBoard.delete(id);
+    this._imgPending.delete(id);
     this._committedIds.delete(id);
     this._myPathPoints.delete(id);
     this._objectNaturalPos.delete(id);
@@ -3529,25 +3906,10 @@
     if (this._selectedIds.delete(id)) this._dirty = true; // drop its now-stale highlight box too
     var obj = this._objectsById.get(id);
     this._objectsById.delete(id);
-    if (obj) this._fabricCanvas.remove(obj);
-  };
-
-  Whiteboard.prototype._loadExisting = function () {
-    var self = this;
-    this._supabase.from('whiteboard_objects').select('*').eq('session_id', this._sessionId)
-      .order('seq', { ascending: true })
-      .then(function (res) {
-        if (self._destroyed) return;
-        if (res.error) { console.error('[Whiteboard] load failed', res.error); return; }
-        var rows = res.data || [], at = 0;
-        (function slice() {
-          if (self._destroyed) return;
-          var stop = Math.min(rows.length, at + 25);
-          for (; at < stop; at++) self._addObjectIfNew(rows[at]);
-          self._fabricCanvas.requestRenderAll();
-          if (at < rows.length) setTimeout(slice, 0);
-        })();
-      });
+    if (obj) {
+      if (obj.visible) this._invalidateBoxes([objBox(obj)]);   // only the box it covered is repainted
+      this._fabricCanvas.remove(obj);
+    }
   };
 
   Whiteboard.prototype._clearMine = function () {
@@ -3618,7 +3980,7 @@
   // How much of an object's resize shows in its line width: a freehand stroke grows with it, a figure (strokeUniform) does not.
   Whiteboard.prototype._inkScale = function (objId) {
     var o = this._objectsById.get(objId);
-    return (o && o.data && o.data.isShape) ? 1 : (this._myObjectScales.get(objId) || 1);
+    return (o && o.data && (o.data.isShape || o.data.isImage)) ? 1 : (this._myObjectScales.get(objId) || 1);
   };
 
   // A 3D body's hidden edges are dashes baked into its path. When the body is resized the dashes must not stretch with it: they are
@@ -3654,9 +4016,12 @@
   Whiteboard.prototype._eraseAt = function (pos) {
     var self = this;
     var hitIds = [];
-    this._fabricCanvas.getObjects().forEach(function (obj) {
+    this._fabricCanvas._objects.forEach(function (obj) {
       if (!obj.data || obj.data.ownerId !== self._userId) return;
       if (self._erasedThisDrag.has(obj.data.id)) return;
+      var bb = objBox(obj);   // far from the pointer: no need to measure the stroke at all
+      if (pos.x < bb.x0 - 12 || pos.x > bb.x1 + 12 || pos.y < bb.y0 - 12 || pos.y > bb.y1 + 12) return;
+      if (obj.data.isImage) return;   // a swipe of the eraser over a worksheet must rub out the writing, not the picture (select it and press Delete)
       // Text reads as a filled block, not a thin outline — anywhere inside
       // its own box is "on" it, the same reasoning _findMyObjectAt below
       // uses for its own isText branch.
@@ -3684,16 +4049,18 @@
   // client-side-only restriction (the move UPDATE's own RLS policy
   // enforces it server-side too).
   Whiteboard.prototype._findMyObjectAt = function (pos) {
-    var objs = this._fabricCanvas.getObjects();
+    var objs = this._fabricCanvas._objects;
     for (var i = objs.length - 1; i >= 0; i--) {
       var obj = objs[i];
       if (!obj.data || obj.data.ownerId !== this._userId) continue;
+      var bb0 = objBox(obj);
+      if (pos.x < bb0.x0 - 12 || pos.x > bb0.x1 + 12 || pos.y < bb0.y0 - 12 || pos.y > bb0.y1 + 12) continue;
       // Text reads as a filled block of glyphs, not a thin unfilled
       // outline the way every shape/stroke here is — clicking anywhere
       // inside its box should grab it, not just within a few px of its
       // (invisible) edge the way distToPolyline's tolerance works for
       // everything else below.
-      if (obj.data.isText) {
+      if (obj.data.isText || obj.data.isImage) {
         var b = this._myObjectBounds(obj.data.id);
         if (b && pointInRect(pos, b)) return obj;
         continue;
@@ -3745,22 +4112,65 @@
     // way none of them need to change to keep whatever scale a shape
     // already has instead of silently resetting it to 1 on the next move.
     var scale = this._myObjectScales.get(objId) || 1;
-    obj.set({ left: natural.left + dx, top: natural.top + dy, scaleX: scale, scaleY: scale });
+    var baseS = (obj.data && obj.data.baseScale) || 1;   // a picture's own size ratio (shown size / file size)
+    var oldBox = (this._bg || !obj.visible) ? null : objBox(obj);
+    obj.set({ left: natural.left + dx, top: natural.top + dy, scaleX: scale * baseS, scaleY: scale * baseS });
     this._rebuildDashes(obj, scale);
     obj.setCoords();
+    if (obj.data) obj.data.bb = null;
+    if (this._bg) return;   // a board that is not on screen: nothing to paint, it is painted when it is opened
     if (this._dragObjs && this._dragObjs.indexOf(obj) >= 0) { this._dirty = true; return; } // drawn on the overlay, nothing else to repaint
-    this._fabricCanvas.requestRenderAll();
+    if (oldBox) this._invalidateBoxes([oldBox, objBox(obj)]);   // only the old and the new place are repainted
   };
 
   // While objects are moved or resized they are taken off the committed layer (painted once without them) and drawn on the
   // overlay at every frame: a drag then costs a few objects per frame, however much else is on the board.
+  // Another participant's drag (live positions arrive as Broadcast): the same trick, so a remote drag does not repaint the whole
+  // board for every message either. The objects leave the committed layer at the first message and come back 300 ms after the last.
+  Whiteboard.prototype._onRemoteMoves = function (moves) {
+    var self = this, need = [];
+    moves.forEach(function (m) {
+      if (m.scale != null) self._myObjectScales.set(m.id, m.scale);
+      var o = self._objectsById.get(m.id);
+      if (o && (!self._dragObjs || self._dragObjs.indexOf(o) < 0)) need.push(o);
+    });
+    if (need.length) {
+      var needBoxes = need.map(objBox);
+      need.forEach(function (o) { o.visible = false; });
+      this._dragObjs = (this._dragObjs || []).concat(need);
+      this._remoteDragObjs = (this._remoteDragObjs || []).concat(need);
+      this._renderBoxes(needBoxes);
+    }
+    moves.forEach(function (m) { self._setObjectOffset(m.id, m.offsetX, m.offsetY); });
+    this._dirty = true;
+    clearTimeout(this._remoteDragTimer);
+    this._remoteDragTimer = setTimeout(function () { self._endRemoteDrag(); }, 300);
+  };
+
+  Whiteboard.prototype._endRemoteDrag = function () {
+    clearTimeout(this._remoteDragTimer);
+    var objs = this._remoteDragObjs;
+    if (!objs) return;
+    this._remoteDragObjs = null;
+    if (this._dragObjs) {
+      this._dragObjs = this._dragObjs.filter(function (o) { return objs.indexOf(o) < 0; });
+      if (!this._dragObjs.length) this._dragObjs = null;
+    }
+    objs.forEach(function (o) { o.visible = true; });
+    if (this._destroyed) return;
+    this._renderBoxes(objs.map(objBox));
+    this._dirty = true;
+  };
+
   Whiteboard.prototype._beginDragLayer = function (ids) {
+    this._endRemoteDrag();
     var objs = [], self = this;
     ids.forEach(function (id) { var o = self._objectsById.get(id); if (o) objs.push(o); });
     if (!objs.length) return;
+    var boxes = objs.map(objBox);
     this._dragObjs = objs;
     objs.forEach(function (o) { o.visible = false; });
-    this._fullRender();
+    this._renderBoxes(boxes);       // just the place they leave is repainted, not the whole board
   };
 
   Whiteboard.prototype._endDragLayer = function () {
@@ -3769,7 +4179,7 @@
     this._dragObjs = null;
     objs.forEach(function (o) { o.visible = true; });
     if (this._destroyed) return;
-    this._fabricCanvas.renderAll();   // back on the committed layer in the same task that the overlay stops drawing them
+    this._renderBoxes(objs.map(objBox));   // back on the committed layer (only where they landed) in the same task that the overlay stops drawing them
     this._redrawOverlay();
     this._dirty = false;
   };
@@ -3849,7 +4259,7 @@
     ids.forEach(function (id) { self._removeObjectById(id); });
     this._myStrokeHistory = this._myStrokeHistory.filter(function (h) { return ids.indexOf(h.id) === -1; });
     this._updateUndoRedoButtons();
-    this._fabricCanvas.requestRenderAll();
+    // (each removed object repaints just the box it covered, see _removeObjectById)
     // The selection halo/resize handle live on the OVERLAY canvas, which
     // only repaints when _dirty is set (see _redrawOverlay) — requestRenderAll
     // above is Fabric's own canvas, a different layer entirely. Unconditional
@@ -3876,7 +4286,6 @@
     this._myRedoStack.push(entry);
     this._updateUndoRedoButtons();
     this._removeObjectById(entry.id);
-    this._fabricCanvas.requestRenderAll();
     this._supabase.from('whiteboard_objects').delete().eq('id', entry.id).then(function (res) {
       if (res.error) console.error('[Whiteboard] undo failed', res.error);
     });
@@ -3890,16 +4299,15 @@
     var entry = this._myRedoStack.pop();
     this._updateUndoRedoButtons();
     var self = this;
-    this._supabase.from('whiteboard_objects').insert({
-      session_id: this._sessionId, class_id: this._classId, created_by: this._userId,
-      kind: 'stroke', fabric_json: entry.fabric_json
-    }).select().single().then(function (res) {
+    this._supabase.from('whiteboard_objects').insert(this._rowBase(entry.kind || 'stroke', entry.fabric_json)).select().single().then(function (res) {
       if (self._destroyed) return;
       if (res.error) { console.error('[Whiteboard] redo failed', res.error); return; }
-      self._addObjectIfNew(res.data);
-      self._myStrokeHistory.push({ id: res.data.id, fabric_json: res.data.fabric_json });
-      self._updateUndoRedoButtons();
-      self._fabricCanvas.requestRenderAll();
+      var redoObj = self._addObjectIfNew(res.data);
+      self._inBoard(self._boardForRow(res.data), function () {
+        self._myStrokeHistory.push({ id: res.data.id, kind: res.data.kind, fabric_json: res.data.fabric_json });
+        self._updateUndoRedoButtons();
+      });
+      if (redoObj) self._paintNewObject(redoObj);
     });
   };
 
@@ -3907,6 +4315,7 @@
     // this._wrap, not this._toolbarEl — these buttons now float over the
     // canvas in their own corner (see _build/#wbUndoCorner) rather than
     // living in the toolbar.
+    if (this._bg) return;
     var undoBtn = this._undoEl && this._undoEl.querySelector('#wbUndoBtn');
     var redoBtn = this._undoEl && this._undoEl.querySelector('#wbRedoBtn');
     if (undoBtn) undoBtn.disabled = !this._myStrokeHistory.length;
@@ -3923,7 +4332,8 @@
   // nicety (an instant, friendly block) on top of a real one, not the only
   // thing standing between a locked student and the board.
   Whiteboard.prototype.setLocked = function (locked) {
-    this._locked = !!locked || this._readOnly;
+    this._sessionLocked = !!locked;
+    this._recomputeLocked();
     this._applyLockedUi();
     // Re-derive the cursor for whatever tool is currently selected — see
     // _setTool's own locked branch. Harmless no-op call otherwise (same
@@ -4017,7 +4427,7 @@
     if (this._selectedIds.size !== 1) return null;
     var id = this._selectedIds.values().next().value;
     var obj = this._objectsById.get(id);
-    if (!obj || !(obj.data.isShape || obj.data.isText)) return null;
+    if (!obj || !(obj.data.isShape || obj.data.isText || obj.data.isImage)) return null;
     var subpaths = this._myTranslatedPoints(id);
     if (!subpaths || !subpaths.length) return null;
     // The bounding BOX's own bottom-right corner can land in empty space
@@ -4077,7 +4487,7 @@
       // input — running THOSE through the curve-fit smoothing every other
       // stroke type still uses below rounded off every sharp corner, which
       // was the "hitbox lines are curved, not on the real edge" bug.
-      var drawHaloSeg = (obj.data.isShape || obj.data.isText) ? drawPolylineStroke : drawSmoothStroke;
+      var drawHaloSeg = (obj.data.isShape || obj.data.isText || obj.data.isImage) ? drawPolylineStroke : drawSmoothStroke;
       // Scaled by the object's own resize factor for the same reason
       // _hitTolerance is — see its own comment — or a shrunk shape's halo
       // stays frozen at its original size and comically swallows it whole.
@@ -4127,6 +4537,281 @@
     }
   };
 
+
+  /* ---- Boards: the shared one and one private board per student ---- */
+
+  Whiteboard.prototype._initBoards = function () {
+    this._boards   = new Map();     // key -> board
+    this._idBoard  = new Map();     // object id -> the board it lives on (a delete only carries the id)
+    this._multi    = false;         // true once the database knows private boards (migration 20261120100000)
+    var common = this._makeBoard(null);
+    this._board = common;           // the board on screen
+    this._dataBoard = common;       // the board whose data is in the per-board fields right now (differs from _board only inside _inBoard)
+    this._bg = false;
+    this._swapIn(common);
+    this._color = common.color;
+    this._recomputeLocked();
+  };
+
+  Whiteboard.prototype._makeBoard = function (ownerId) {
+    var isCommon = !ownerId;
+    // the teacher writes in another colour on a student's board, so a correction reads apart from the student's own ink
+    var color = (!isCommon && this._isTeacher && ownerId !== this._userId) ? TEACHER_ON_STUDENT_COLOR : this._baseColor;
+    var b = {
+      key: isCommon ? COMMON_KEY : ownerId, ownerId: ownerId || null, isCommon: isCommon, color: color,
+      data: newBoardData(), cam: null, loaded: false, loading: false, channel: null, lastUsed: 0, evicted: false
+    };
+    this._boards.set(b.key, b);
+    return b;
+  };
+
+  // The board a row belongs to. null = a board this client does not hold (the teacher's student boards are created when opened).
+  Whiteboard.prototype._boardForRow = function (row) {
+    var owner = row && row.board_owner;
+    if (!owner) return this._boards.get(COMMON_KEY);
+    var b = this._boards.get(owner);
+    if (b) return b;
+    if (this._readOnly || (owner === this._userId && !this._isTeacher)) return this._getBoard(owner, true);
+    return null;
+  };
+
+  Whiteboard.prototype._getBoard = function (ownerId, create) {
+    var key = ownerId || COMMON_KEY;
+    var b = this._boards.get(key);
+    if (b || !create) return b || null;
+    b = this._makeBoard(ownerId);
+    if (!this._readOnly) this._connectBoardChannel(b);
+    return b;
+  };
+
+  // WHERE the per-board fields live: copy a board's data into `this`, or stash `this` back into the board.
+  Whiteboard.prototype._swapIn = function (b) {
+    var d = b.data, i;
+    for (i = 0; i < BOARD_KEYS.length; i++) this[BOARD_KEYS[i]] = d[BOARD_KEYS[i]];
+    this._fabricCanvas._objects = d._fcObjects;
+  };
+  Whiteboard.prototype._swapOut = function (b) {
+    var d = b.data, i;
+    for (i = 0; i < BOARD_KEYS.length; i++) d[BOARD_KEYS[i]] = this[BOARD_KEYS[i]];
+    d._fcObjects = this._fabricCanvas._objects;
+  };
+  // Runs fn with board b's data in place (not painting anything when b is not the board on screen) and puts everything back.
+  Whiteboard.prototype._inBoard = function (b, fn) {
+    if (!b || b === this._dataBoard) return fn.call(this);
+    var cur = this._dataBoard, wasBg = this._bg;
+    this._swapOut(cur); this._swapIn(b); this._dataBoard = b; this._bg = (b !== this._board);
+    try { return fn.call(this); }
+    finally { this._swapOut(b); this._swapIn(cur); this._dataBoard = cur; this._bg = wasBg; }
+  };
+
+  Whiteboard.prototype._boardFilter = function (q, b) {
+    if (b.ownerId) return q.eq('board_owner', b.ownerId);
+    return this._multi ? q.is('board_owner', null) : q;
+  };
+
+  // The columns every new row needs; a private board's rows carry its owner (the shared board's rows omit it, so an old database works too).
+  Whiteboard.prototype._rowBase = function (kind, json) {
+    var r = { session_id: this._sessionId, class_id: this._classId, created_by: this._userId, kind: kind, fabric_json: json };
+    var b = this._dataBoard;
+    if (b && b.ownerId) r.board_owner = b.ownerId;
+    return r;
+  };
+
+  // The participant lock (the teacher blocks a student) applies to the shared board only; a student's own board stays theirs.
+  Whiteboard.prototype._recomputeLocked = function () {
+    this._locked = this._readOnly || (this._board.isCommon && this._sessionLocked);
+  };
+
+  Whiteboard.prototype._startBoards = function () {
+    var self = this;
+    if (!this._readOnly) this._connectRealtime();
+    // does the database know private boards yet?
+    this._supabase.from('whiteboard_objects').select('board_owner').limit(1).then(function (res) {
+      if (self._destroyed) return;
+      self._multi = !res.error;
+      // a student always has a board of their own (empty until they write on it)
+      if (self._multi && !self._isTeacher && !self._readOnly) self._getBoard(self._userId, true);
+      if (self._onBoardsReady && !self._readOnly) self._onBoardsReady(self._multi);
+    });
+    this._loadFirst();
+  };
+
+  // The first load. A student (and the replay of a finished lesson) gets everything the row security lets them see in one go and the
+  // rows are sorted into boards; the teacher loads the shared board now and a student's board when it is opened.
+  Whiteboard.prototype._loadFirst = function () {
+    var self = this, common = this._boards.get(COMMON_KEY);
+    var base = function () { return self._supabase.from('whiteboard_objects').select('*').eq('session_id', self._sessionId); };
+    if (this._isTeacher && !this._readOnly) {
+      common.loading = true;
+      base().is('board_owner', null).order('seq', { ascending: true }).then(function (res) {
+        if (self._destroyed) return;
+        if (res.error) {
+          // an older database without private boards: no board_owner column, everything is the shared board
+          return base().order('seq', { ascending: true }).then(function (res2) {
+            common.loading = false;
+            if (self._destroyed) return;
+            if (res2.error) { console.error('[Whiteboard] load failed', res2.error); return; }
+            common.loaded = true;
+            self._addRowsSliced(common, res2.data || []);
+          });
+        }
+        common.loading = false; common.loaded = true;
+        self._addRowsSliced(common, res.data || []);
+      });
+      return;
+    }
+    base().order('seq', { ascending: true }).then(function (res) {
+      if (self._destroyed) return;
+      if (res.error) { console.error('[Whiteboard] load failed', res.error); return; }
+      var rows = res.data || [], groups = new Map();
+      rows.forEach(function (row) {
+        var b = self._boardForRow(row);
+        if (!b) return;
+        if (!groups.has(b)) groups.set(b, []);
+        groups.get(b).push(row);
+      });
+      common.loaded = true;
+      var chain = Promise.resolve();
+      // the board on screen first
+      [common].concat(Array.from(groups.keys()).filter(function (b) { return b !== common; })).forEach(function (b) {
+        b.loaded = true;
+        chain = chain.then(function () { return self._addRowsSliced(b, groups.get(b) || []); });
+      });
+      if (self._readOnly && self._onBoardsReady) self._onBoardsReady(true);
+    });
+  };
+
+  // A board's rows (the teacher opening a student's board the first time, or again after it was dropped from memory).
+  Whiteboard.prototype._loadBoard = function (b) {
+    if (b.loaded || b.loading) return;
+    var self = this;
+    b.loading = true;
+    this._boardFilter(this._supabase.from('whiteboard_objects').select('*').eq('session_id', this._sessionId), b)
+      .order('seq', { ascending: true }).then(function (res) {
+        b.loading = false;
+        if (self._destroyed || b.evicted) return;
+        if (res.error) { console.error('[Whiteboard] board load failed', res.error); return; }
+        b.loaded = true;
+        self._addRowsSliced(b, res.data || []);
+      });
+  };
+
+  // Objects are added in slices so a heavy board never freezes the page while it loads.
+  Whiteboard.prototype._addRowsSliced = function (b, rows) {
+    var self = this, at = 0;
+    return new Promise(function (resolve) {
+      (function slice() {
+        if (self._destroyed || b.evicted) return resolve();
+        var stop = Math.min(rows.length, at + 25);
+        self._inBoard(b, function () { for (; at < stop; at++) this._addObjectIfNew(rows[at]); });
+        // a big board is painted every ~250 ms while it loads (and once at the end), not after every slice
+        var nowT = Date.now();
+        if (b === self._board && (at >= rows.length || !self._lastLoadPaint || nowT - self._lastLoadPaint > 250)) { self._lastLoadPaint = nowT; self._fabricCanvas.requestRenderAll(); }
+        if (at < rows.length) setTimeout(slice, 0); else resolve();
+      })();
+    });
+  };
+
+  Whiteboard.prototype.supportsBoards = function () { return !!this._multi; };
+  Whiteboard.prototype.getBoardKey = function () { return this._board.key; };
+  Whiteboard.prototype.getBoards = function () {
+    var out = [];
+    this._boards.forEach(function (b) { out.push({ key: b.key, ownerId: b.ownerId, isCommon: b.isCommon, loaded: b.loaded, loading: b.loading, color: b.color }); });
+    return out;
+  };
+
+  // Shows another board: the shared one (null / 'c') or a student's (their user id). The teacher may open any student's board, a
+  // student only their own. The board on screen is stashed (its camera too) and the other's data is put in place: nothing is repainted
+  // for the boards that stay in the background.
+  Whiteboard.prototype.setBoard = function (key, studentColor) {
+    key = key || COMMON_KEY;
+    if (this._destroyed || key === this._board.key) return true;
+    var b = this._boards.get(key);
+    if (!b) {
+      if (key === COMMON_KEY || !this._multi) return false;
+      if (!this._isTeacher && key !== this._userId && !this._readOnly) return false;
+      b = this._getBoard(key, true);
+    }
+    if (studentColor) b.studentColor = studentColor;
+    this._activate(b);
+    return true;
+  };
+
+  // The ink a student writes with, read from what they already wrote on their board (when the roster does not say)
+  Whiteboard.prototype._inferStudentColor = function (b) {
+    var list = b.data._fcObjects;
+    for (var i = 0; i < list.length; i++) {
+      var o = list[i];
+      if (o.data && o.data.ownerId === b.ownerId) {
+        var c = typeof o.stroke === 'string' ? o.stroke : (typeof o.fill === 'string' ? o.fill : null);
+        if (c && hexRgb(c)) return c;
+      }
+    }
+    return null;
+  };
+
+  Whiteboard.prototype._activate = function (b) {
+    var self = this, prev = this._board;
+    // whatever is half done on the old board ends first: a typed text is saved there, strokes in the air are cancelled
+    if (this._textEditing) this._finishTextEditor(false);
+    this._endRemoteDrag();
+    Object.keys(this._activePtrs).forEach(function (pid) {
+      var st = self._activePtrs[pid];
+      if (st.strokeId) { self._liveStrokes.delete('m:' + st.strokeId); self._send('stroke:cancel', { strokeId: st.strokeId }); }
+    });
+    this._activePtrs = {};
+    this._activeRubberBand = null;
+    this._touchPositions = {};
+    this._pinching = false;
+    clearTimeout(this._gestureTimer);
+    // the camera is kept per board, as the centre of the view and the zoom, so it survives a window resize in between
+    var vw = this._viewportW || 1, vh = this._viewportH || 1;
+    prev.cam = { zoom: this._zoom, cx: (vw / 2 - this._panX) / this._scale, cy: (vh / 2 - this._panY) / this._scale };
+    this._swapOut(prev);
+    this._board = b; this._dataBoard = b; this._bg = false;
+    this._swapIn(b);
+    this._channel = b.channel || null;
+    if (!b.isCommon && this._isTeacher && b.ownerId !== this._userId) b.color = pickCorrectionColor(b.studentColor || this._inferStudentColor(b));
+    this._color = b.color;
+    b.lastUsed = Date.now();
+    this._recomputeLocked();
+    this._applyLockedUi();
+    // camera of the new board
+    var c = b.cam;
+    this._zoom = c ? c.zoom : MIN_ZOOM;
+    this._scale = this._baseScale * this._zoom;
+    if (c) { this._panX = vw / 2 - c.cx * this._scale; this._panY = vh / 2 - c.cy * this._scale; }
+    else { this._panX = 0; this._panY = 0; }
+    this._clampCamera();
+    this._rend = null;
+    this._costCache = null;
+    this._pendingBoxes = [];     // repaints queued for the board that just left the screen
+    this._gestureXform = false;
+    this._syncViewport();
+    this._updateZoomUi();
+    this._dirty = true;
+    this._updateUndoRedoButtons();
+    if (this._overlayEl) this._setTool(this._tool);   // the pen cursor wears this board's colour
+    if (b.ownerId && !this._readOnly) { this._connectBoardChannel(b); this._loadBoard(b); }
+    this._evictBoards();
+    if (this._onBoardChange) this._onBoardChange(b.key);
+  };
+
+  // The teacher keeps a few students' boards in memory; the least recently used one is dropped (it is loaded again when opened).
+  Whiteboard.prototype._evictBoards = function () {
+    var self = this, list = [];
+    this._boards.forEach(function (b) { if (b.ownerId && b !== self._board && b.ownerId !== self._userId && (b.loaded || b.loading)) list.push(b); });
+    if (list.length <= MAX_LOADED_STUDENT_BOARDS || this._readOnly) return;
+    list.sort(function (x, y) { return x.lastUsed - y.lastUsed; });
+    list.slice(0, list.length - MAX_LOADED_STUDENT_BOARDS).forEach(function (b) {
+      b.data._fcObjects.forEach(function (o) { if (o.data && o.data.id) self._idBoard.delete(o.data.id); });
+      if (b.channel) { try { self._supabase.removeChannel(b.channel); } catch (e) {} b.channel = null; }
+      b.data = newBoardData(); b.loaded = false; b.loading = false; b.cam = null;
+      b.evicted = true;
+      self._boards.delete(b.key);
+    });
+  };
+
   /* ---- Teardown ---- */
 
   Whiteboard.prototype.destroy = function () {
@@ -4149,7 +4834,10 @@
     if (this._keyHandler) global.removeEventListener('keydown', this._keyHandler);
     if (this._shapeDocClickHandler) document.removeEventListener('click', this._shapeDocClickHandler);
     if (this._shapeScrollCloseHandler) global.removeEventListener('scroll', this._shapeScrollCloseHandler, true);
-    if (this._channel) this._supabase.removeChannel(this._channel);
+    var selfD = this;
+    if (this._boards) this._boards.forEach(function (b) { if (b.channel) { try { selfD._supabase.removeChannel(b.channel); } catch (e) {} b.channel = null; } });
+    this._channel = null;
+    clearTimeout(this._remoteDragTimer);
     if (this._fabricCanvas) this._fabricCanvas.dispose();
     if (this._undoMount) this._undoMount.innerHTML = '';
     if (this._wrap && this._wrap.parentNode) this._wrap.parentNode.removeChild(this._wrap);

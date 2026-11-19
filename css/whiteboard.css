@@ -596,3 +596,105 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:hover { background:
 @media (max-width: 640px) and (orientation: portrait) {
   .wb-fullscreen.wb-fullscreen--immersive .wb-fs-header { top: auto; bottom: calc(12px + env(safe-area-inset-bottom, 0px)); left: 10px; }
 }
+
+
+/* ============================================================
+   Round (2026-11-20): the strip of boards under the header (js/wb-boards.js) and the "board" cursor colour.
+   The shared board + one private board per student. Tabs are keys of the strip: the open one is white with a solid edge;
+   a lime dot says "writes now" (pulses) or "wrote while you were elsewhere".
+   ============================================================ */
+.wb-fullscreen .wb-boards {
+  position: relative; z-index: 6; flex: none; display: flex; align-items: center; gap: 8px; min-width: 0;
+  padding: 7px 14px 11px; border-bottom: 1px solid var(--wk-edge, #190E33);
+  background: color-mix(in srgb, #fff 7%, var(--wk-chassis, #2A1750));
+}
+.wb-fullscreen .wb-boards[hidden] { display: none; }
+.wb-fullscreen .wb-boards__lane { display: flex; align-items: center; gap: 8px; min-width: 0; padding: 0 2px 4px; margin-bottom: -4px; }
+.wb-fullscreen .wb-boards__lane#wbBoardsLane { flex: 0 1 auto; overflow-x: auto; overflow-y: hidden; scrollbar-width: none; scroll-behavior: smooth; overscroll-behavior-x: contain; }
+.wb-fullscreen .wb-boards__lane#wbBoardsLane::-webkit-scrollbar { display: none; }
+.wb-fullscreen .wb-boards__sep { flex: none; width: 1px; height: 22px; background: rgba(255, 255, 255, 0.22); }
+.wb-fullscreen .wb-boards__empty { padding: 0 6px; color: rgba(255, 255, 255, 0.7); font-size: 0.82rem; font-weight: 700; white-space: nowrap; }
+
+.wb-fullscreen .wb-bt, .wb-fullscreen .wb-bpick {
+  position: relative; flex: none; display: inline-flex; align-items: center; gap: 8px; height: 36px; max-width: 200px; margin: 0; padding: 0 13px 0 7px;
+  border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(255, 255, 255, 0.09); color: #fff;
+  font: 800 0.86rem/1 var(--k-font, 'Plus Jakarta Sans', system-ui, sans-serif); letter-spacing: 0; cursor: pointer;
+  transition: background 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+}
+.wb-fullscreen .wb-bt:hover, .wb-fullscreen .wb-bpick:hover { background: rgba(255, 255, 255, 0.17); border-color: rgba(255, 255, 255, 0.32); color: #fff; }
+.wb-fullscreen .wb-bt:active, .wb-fullscreen .wb-bpick:active { transform: translateY(2px); }
+.wb-fullscreen .wb-bt:focus-visible, .wb-fullscreen .wb-bpick:focus-visible, .wb-fullscreen .wb-bnav:focus-visible { outline: 2px solid var(--k-go, #7CB800); outline-offset: 2px; }
+.wb-fullscreen .wb-bt.is-on { background: #fff; border-color: #fff; color: var(--wk-lit-ink, #3A1F66); box-shadow: 0 3px 0 0 rgba(0, 0, 0, 0.3); }
+.wb-fullscreen .wb-bt.is-on:hover { background: #fff; border-color: #fff; color: var(--wk-lit-ink, #3A1F66); }
+.wb-fullscreen .wb-bt.is-off:not(.is-on) { opacity: 0.62; }
+.wb-fullscreen .wb-bt__ph { flex: none; display: block; width: 24px; height: 24px; overflow: hidden; border-radius: 8px; background: #3F236E; }
+.wb-fullscreen .wb-bt__ph img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.wb-fullscreen .wb-bt__ico { flex: none; display: grid; place-items: center; width: 24px; height: 24px; }
+.wb-fullscreen .wb-bt__ico svg { width: 17px; height: 17px; }
+.wb-fullscreen .wb-bt__t { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wb-fullscreen .wb-bt__dot { display: none; flex: none; width: 9px; height: 9px; margin-left: -2px; border-radius: 50%; background: var(--k-go, #7CB800); box-shadow: 0 0 0 2px rgba(124, 184, 0, 0.35); }
+.wb-fullscreen .wb-bt.has-news .wb-bt__dot, .wb-fullscreen .wb-bt.is-live .wb-bt__dot { display: block; }
+.wb-fullscreen .wb-bt.is-live .wb-bt__dot { animation: wb-bt-pulse 1s ease-in-out infinite; }
+@keyframes wb-bt-pulse { 50% { box-shadow: 0 0 0 5px rgba(124, 184, 0, 0.1); transform: scale(0.82); } }
+
+.wb-fullscreen .wb-bnav {
+  flex: none; display: inline-grid; place-items: center; width: 36px; height: 36px; margin: 0; padding: 0;
+  border: 1.5px solid rgba(255, 255, 255, 0.2); border-radius: 12px; background: rgba(255, 255, 255, 0.09); color: #fff; cursor: pointer;
+  transition: background 0.12s ease, transform 0.08s ease;
+}
+.wb-fullscreen .wb-bnav:hover { background: rgba(255, 255, 255, 0.17); color: #fff; }
+.wb-fullscreen .wb-bnav:active { transform: translateY(2px); }
+.wb-fullscreen .wb-bpick { display: none; flex: 1 1 auto; min-width: 0; max-width: none; padding-right: 10px; }
+.wb-fullscreen .wb-bpick .wb-bt__t { flex: 1 1 auto; text-align: left; }
+.wb-fullscreen .wb-bpick svg:last-child { flex: none; width: 16px; height: 16px; opacity: 0.8; }
+
+.wb-fullscreen .wb-boards__note {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; max-width: 40%; margin-left: auto; padding-left: 10px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: rgba(255, 255, 255, 0.78); font-size: 0.8rem; font-weight: 700;
+}
+.wb-fullscreen .wb-boards__note:empty { display: none; }
+.wb-fullscreen .wb-boards__sw { flex: none; width: 12px; height: 12px; border-radius: 4px; border: 2px solid #fff; box-sizing: border-box; }
+/* a lane with a teacher's tabs takes the room, the note sits to its right only when there is plenty */
+@media (max-width: 1100px) { .wb-fullscreen .wb-boards__note { display: none; } }
+
+/* the list of students on a phone */
+.wb-fullscreen .wb-bsheet {
+  position: fixed; z-index: 3200; left: 10px; right: 10px; top: 112px; max-height: min(62dvh, 460px); display: flex; flex-direction: column; overflow: hidden;
+  border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 20px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631);
+  box-shadow: 0 5px 0 0 var(--pm-edge, #CFC6E3), 0 18px 40px rgba(20, 10, 40, 0.35);
+}
+.wb-bsheet__h { display: flex; align-items: center; justify-content: space-between; padding: 12px 16px 8px; font-size: 0.78rem; letter-spacing: 0.06em; text-transform: uppercase; color: var(--pm-ink-2, #5B4F74); }
+.wb-bsheet__h b { font-weight: 800; }
+.wb-bsheet__h span { padding: 2px 9px; border-radius: 999px; background: var(--pm-tint, #EDE7F8); font-weight: 800; }
+.wb-bsheet__list { overflow-y: auto; padding: 0 8px 10px; display: flex; flex-direction: column; gap: 6px; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
+.wb-bs { display: flex; align-items: center; gap: 10px; width: 100%; min-height: 52px; padding: 6px 12px 6px 8px; border: 1.5px solid var(--pm-line, #DDD6EA); border-radius: 14px; background: var(--pm-face, #fff); color: var(--pm-ink, #1E1631); text-align: left; cursor: pointer; font: 800 0.92rem/1.2 var(--k-font, inherit); box-shadow: 0 3px 0 0 var(--pm-edge, #CFC6E3); }
+.wb-bs:active { transform: translateY(2px); box-shadow: none; }
+.wb-bs.is-on { border-color: var(--pm-violet, #3F236E); background: var(--pm-tint, #EDE7F8); }
+.wb-bs.is-off { opacity: 0.7; }
+.wb-bs .wb-bt__ph { width: 36px; height: 36px; border-radius: 12px; }
+.wb-bs__n { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wb-bs__st { flex: none; font-size: 0.74rem; font-weight: 700; color: var(--pm-ink-2, #5B4F74); }
+.wb-bs .wb-bt__dot { display: none; flex: none; width: 10px; height: 10px; border-radius: 50%; background: var(--k-go, #7CB800); }
+.wb-bs.has-news .wb-bt__dot { display: block; }
+
+/* phones: the shared board, previous / next student and one key with the name of the open student */
+@media (max-width: 640px) {
+  .wb-fullscreen .wb-boards { gap: 6px; padding: 6px 10px 10px; }
+  .wb-fullscreen .wb-boards__lane#wbBoardsLane, .wb-fullscreen .wb-boards__sep { display: none; }
+  .wb-fullscreen .wb-bpick { display: inline-flex; }
+  .wb-fullscreen .wb-bt { height: 36px; padding: 0 11px 0 6px; max-width: 150px; }
+  .wb-fullscreen .wb-boards__lane:not(#wbBoardsLane) { flex: 1 1 auto; }
+  .wb-fullscreen .wb-boards__lane:not(#wbBoardsLane) .wb-bt { flex: 1 1 0; justify-content: center; max-width: none; }
+}
+/* a phone turned sideways: a thinner strip */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wb-fullscreen .wb-boards { padding: 4px 10px 8px; }
+  .wb-fullscreen .wb-bt, .wb-fullscreen .wb-bpick, .wb-fullscreen .wb-bnav { height: 30px; font-size: 0.8rem; }
+  .wb-fullscreen .wb-bnav { width: 30px; }
+  .wb-fullscreen .wb-bt__ph, .wb-fullscreen .wb-bt__ico { width: 20px; height: 20px; }
+  .wb-fullscreen .wb-bsheet { top: 92px; left: auto; right: 10px; width: min(380px, 60vw); max-height: calc(100dvh - 104px); }
+}
+/* immersive phone: the strip stays (it is how a board is switched); undo and redo float just under it */
+@media (orientation: landscape) and (max-height: 500px) {
+  .wb-fullscreen.wb-fullscreen--immersive.wb-has-boards .wb-fs-header { top: calc(48px + env(safe-area-inset-top, 0px)); }
+}

@@ -7501,6 +7501,7 @@
   let _tablaViewOnly       = false;   // the open board is the replay of a finished lesson
   let _reloadTablaLiveTimer = null;
   let _openWhiteboardInstance = null;
+  let _wbBoardsCtl = null;            // the strip of boards (js/wb-boards.js): shared board + one private board per student
   // Last-fetched roster — _refreshTablaRoster is the only writer; the
   // dropdown (see _toggleRosterDropdown) reads from this instead of
   // fetching its own copy, so opening it never races the same roster
@@ -7597,6 +7598,9 @@
   }
 
   function _closeTablaLiveModal() {
+    document.querySelectorAll('.wbf').forEach(n => n.remove());   // the files dialog of the board
+    _wbBoardsCtl?.destroy();
+    _wbBoardsCtl = null;
     _openWhiteboardInstance?.destroy();
     _openWhiteboardInstance = null;
     document.getElementById('tablaLiveModal')?.remove();
@@ -7786,6 +7790,13 @@
     const mount = document.getElementById('wbCanvasMount');
     if (mount && _openTablaSessionId === session.id && myColor) {
       mount.innerHTML = '';
+      // the teacher's list of boards: every student of the class (a replay also needs the names)
+      const teacherView = BMAuth.role === 'profesor';
+      const membersP = teacherView
+        ? BMAuth.supabase.from('class_members').select('student_id, student_name').eq('class_id', classData.id)
+            .then(r => (r.data || []).filter(m => m.student_id !== BMAuth.user.id).map(m => ({ id: m.student_id, name: m.student_name })), () => [])
+        : Promise.resolve([]);
+      let boardsCtl = null;
       _openWhiteboardInstance = new Whiteboard(mount, {
         supabase: BMAuth.supabase,
         sessionId: session.id,
@@ -7797,6 +7808,20 @@
         undoMount: document.getElementById('wbUndoMount'),
         isTeacher: isTeacher,
         gridOn: !!session.grid_enabled,
+        // boards: the shared one and a private one per student (js/wb-boards.js draws the strip that switches between them)
+        onBoardChange: key => { boardsCtl?.onChange(key); },
+        onBoardsReady: supported => { boardsCtl?.ready(supported); },
+        onBoardActivity: ownerId => { boardsCtl?.activity(ownerId); },
+        // the teacher's files (pictures, PDFs): a library of their own, put on whichever board is on screen
+        onOpenFiles: isTeacher ? () => {
+          const wbi = _openWhiteboardInstance;
+          if (!wbi || !window.WBFiles) return;
+          window.WBFiles.open({
+            supabase: BMAuth.supabase, userId: BMAuth.user.id, mode: 'insert',
+            getView: () => wbi.getViewInfo(),
+            insert: async specs => { for (const sp of specs) { if (!await wbi.insertImage(sp)) return false; } BM.toast(specs.length > 1 ? 'Paginile sunt pe tablă.' : 'Imaginea e pe tablă.', 'success'); return true; }
+          });
+        } : null,
         // The toolbar itself no longer shows this (see whiteboard.js) —
         // it now sits next to the fullscreen button instead, which lives
         // in THIS modal's own header markup, outside the component.
@@ -7814,6 +7839,13 @@
           }
         }
       });
+      const wbNow = _openWhiteboardInstance, members = await membersP;
+      if (wbNow && _openWhiteboardInstance === wbNow && window.WBBoards) {
+        boardsCtl = _wbBoardsCtl = window.WBBoards.mount({
+          modal, wb: wbNow, isTeacher, isTeacherReplay: teacherView && viewOnly, readOnly: viewOnly, myId: BMAuth.user.id, members,
+          getRoster: () => _tablaRosterCache, defaultAvatar: BM.DEFAULT_AVATAR
+        });
+      }
     }
   }
 
@@ -7826,6 +7858,7 @@
         .order('joined_at', { ascending: true });
       if (error) throw error;
       _tablaRosterCache = rows || [];
+      _wbBoardsCtl?.refresh();
       const countEl = document.getElementById('wbRosterCount');
       if (countEl) countEl.textContent = _tablaRosterCache.length;
       const btn = document.getElementById('wbRosterBtn');
