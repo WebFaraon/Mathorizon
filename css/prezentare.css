@@ -20,8 +20,8 @@ img { display: block; max-width: 100%; }
 button { font: inherit; color: inherit; }
 
 /* ---------- scena ---------- */
-#viewport { position: fixed; inset: 0; display: grid; place-items: center; }
-#stage { position: relative; width: 1920px; height: 1080px; flex: none; transform-origin: center center; }
+#viewport { position: fixed; inset: 0; overflow: hidden; }
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; margin: -540px 0 0 -960px; transform-origin: center center; }
 .slide { position: absolute; inset: 0; padding: 84px 110px 96px; opacity: 0; visibility: hidden; transform: translateX(40px); transition: opacity .38s ease, transform .38s ease, visibility 0s .38s; }
 .slide.is-on { opacity: 1; visibility: visible; transform: none; transition: opacity .38s ease, transform .38s ease; }
 .slide.is-past { transform: translateX(-40px); }
@@ -197,7 +197,7 @@ body.hud-on #hud { opacity: 1; }
   @page { size: 1920px 1080px; margin: 0; }
   html, body { overflow: visible; height: auto; background: #fff; }
   #viewport { position: static; display: block; }
-  #stage { transform: none !important; width: 1920px; height: auto; }
+  #stage { position: relative; left: auto; top: auto; margin: 0; transform: none !important; width: 1920px; height: auto; }
   .slide { position: relative; width: 1920px; height: 1080px; opacity: 1 !important; visibility: visible !important; transform: none !important; page-break-after: always; break-after: page; overflow: hidden; }
   .rv { opacity: 1 !important; transform: none !important; }
   #hud, #progress, #map { display: none !important; }
