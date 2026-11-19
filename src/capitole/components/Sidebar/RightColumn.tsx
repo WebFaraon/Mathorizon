@@ -33,26 +33,41 @@ export function RightColumn({
 }: RightColumnProps) {
   const prefersReducedMotion = useReducedMotion();
   const asideRef = useRef<HTMLElement | null>(null);
-  // Rows of the leaderboard preview: at most 4, fewer when the window is too short for both cards to fit without scrolling.
-  const [maxRows, setMaxRows] = useState(4);
+  // Places shown after the podium in the leaderboard card: 2 when there is room, fewer on a short window.
+  const [maxRows, setMaxRows] = useState(2);
+  const rowH = useRef(0);
+  const dataRef = useRef({ rows: leaderboardRows, me: currentUserId });
+  dataRef.current = { rows: leaderboardRows, me: currentUserId };
 
   useEffect(() => {
     const aside = asideRef.current;
     if (!aside) return;
     const fit = () => {
-      if (getComputedStyle(aside).position !== 'fixed') { setMaxRows(4); return; }   // stacked layouts scroll with the page
-      const list = aside.querySelector<HTMLElement>('.cap-leaderboard__list');
-      const first = list && (list.children[0] as HTMLElement | undefined);
-      if (!list || !first) return;
-      const rowH = first.offsetHeight || 1;
+      if (getComputedStyle(aside).position !== 'fixed') { setMaxRows(2); return; }   // stacked layouts scroll with the page
+      const list = aside.querySelector<HTMLElement>('.lb-list');
+      const first = list && (list.querySelector('.lb-row') as HTMLElement | null);
+      if (first && first.offsetHeight) rowH.current = first.offsetHeight + 6;
+      const h = rowH.current || 56;
       const cs = getComputedStyle(aside);
       const avail = aside.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
       const cards = Array.from(aside.querySelectorAll<HTMLElement>('.cap-side-card'));
       const gap = parseFloat(cs.rowGap) || 0;
-      // everything the cards take except the rows themselves, plus the 5px edge under the last card
-      const used = cards.reduce((n, c) => n + c.offsetHeight, 0) + gap * Math.max(0, cards.length - 1) + 8;
-      const space = avail - (used - list.offsetHeight);
-      setMaxRows(Math.max(2, Math.min(4, Math.floor(space / rowH))));
+      // everything the cards take except the rows of the list, plus the 5px edge under the last card
+      // the missions card shrinks and scrolls on a short window, so its content height counts, but at most 330px (it gives way to the podium card before the places after the podium do)
+      const used = cards.reduce((n, c) => n + (c.querySelector('.lb-card') ? c.offsetHeight : Math.min(c.scrollHeight, 330)), 0) + gap * Math.max(0, cards.length - 1) + 8;
+      const inList = aside.querySelectorAll('.lb-list--card .lb-row, .lb-list--card .lb-gap').length;
+      const base = used - inList * h - (inList ? 8 : 0);
+      // the largest number of places after the podium whose rows (plus your own, when you are further down) still fit
+      const all = dataRef.current.rows;
+      const meId = dataRef.current.me;
+      const me = meId ? all.find((r) => r.userId === meId) : undefined;
+      let best = 0;
+      for (const m of [2, 1]) {
+        const shownPlaces = Math.min(m, Math.max(0, all.length - 3));
+        const need = shownPlaces + (me && me.rank > 3 + shownPlaces ? 1 : 0);
+        if (base + need * h + (need ? 8 : 0) <= avail) { best = m; break; }
+      }
+      setMaxRows(best);
     };
     fit();
     const ro = new ResizeObserver(fit);

@@ -1,93 +1,113 @@
 import type { LeaderboardRow } from '../../hooks/useLeaderboard';
 
-/** Same rule js/auth.js's _initials() uses for the nav profile pill, so a
-    student without a photo gets the identical fallback everywhere on the
-    site instead of a second, different-looking placeholder here. */
-export function initialsFor(name: string): string {
-  const parts = name.split(/\s+/).filter(Boolean);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return name.slice(0, 2).toUpperCase() || '?';
+const IMG = 'assets/images/gamification/';
+
+/** 1250 -> "1.250" (Romanian grouping), so long totals stay readable. */
+export function fmtXp(n: number): string {
+  return n.toLocaleString('ro-RO');
 }
 
-interface LeaderboardRowsProps {
-  rows: LeaderboardRow[];
-  currentUserId: string | null;
-  /** 'compact' (default): the card's stacked name+meta layout, capped
-      height. 'table': LeaderboardModal's real Loc/Elev/Nivel/XP columns,
-      one cell each, lined up under its own header row — see styles.css. */
-  variant?: 'compact' | 'table';
-}
-
-/**
- * The row list itself — shared between LeaderboardCard (a handful of rows,
- * capped height, hidden scrollbar, 'compact' variant) and LeaderboardModal
- * (every row, full height, 'table' variant) so the two never drift into
- * showing different information for the same student. Which one caps the
- * height is a CSS concern scoped to .cap-side-card .cap-leaderboard__list,
- * not something this component decides — see styles.css.
- */
-export function LeaderboardRows({ rows, currentUserId, variant = 'compact' }: LeaderboardRowsProps) {
-  if (variant === 'table') {
-    return (
-      <ol className="cap-leaderboard__list cap-leaderboard__list--table">
-        {rows.map((row) => (
-          <li
-            key={row.userId}
-            className={`cap-leaderboard__row cap-leaderboard__row--table${row.userId === currentUserId ? ' cap-leaderboard__row--you' : ''}`}
-          >
-            <span className="cap-leaderboard__rank">{row.rank}</span>
-            <span className="cap-leaderboard__avatar" aria-hidden="true">
-              {row.avatarUrl ? (
-                <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
-              ) : (
-                <img src="assets/images/avatar-owl.svg" alt="" />
-              )}
-            </span>
-            <span className="cap-leaderboard__name">
-              {row.displayName}
-              {row.userId === currentUserId && <span className="cap-leaderboard__you">Tu</span>}
-            </span>
-            <span className="cap-leaderboard__level">{row.level}</span>
-            <span className="cap-leaderboard__xp">{row.totalXp} XP</span>
-          </li>
-        ))}
-      </ol>
-    );
-  }
-
+function Avatar({ row, className }: { row: LeaderboardRow; className: string }) {
   return (
-    <ol className="cap-leaderboard__list">
-      {rows.map((row) => (
-        <li
-          key={row.userId}
-          className={`cap-leaderboard__row${row.userId === currentUserId ? ' cap-leaderboard__row--you' : ''}`}
-        >
-          <span className="cap-leaderboard__rank">{row.rank}</span>
-          <span className="cap-leaderboard__avatar" aria-hidden="true">
-            {row.avatarUrl ? (
-              <img src={row.avatarUrl} alt="" referrerPolicy="no-referrer" />
-            ) : (
-              <img src="assets/images/avatar-owl.svg" alt="" />
-            )}
-          </span>
-          <span className="cap-leaderboard__main">
-            <span className="cap-leaderboard__name">
-              {row.displayName}
-              {row.userId === currentUserId && <span className="cap-leaderboard__you">Tu</span>}
+    <span className={className} aria-hidden="true">
+      <img
+        src={row.avatarUrl || 'assets/images/avatar-owl.svg'}
+        alt=""
+        referrerPolicy="no-referrer"
+        onError={(e) => {
+          const img = e.currentTarget;
+          if (!img.src.endsWith('avatar-owl.svg')) img.src = 'assets/images/avatar-owl.svg';
+        }}
+      />
+    </span>
+  );
+}
+
+/** Streak pill: flame + days in a row. Hidden when the database does not return the daily streak yet. */
+function Streak({ row }: { row: LeaderboardRow }) {
+  if (row.streak === null) return null;
+  return (
+    <span className={`lb-streak${row.streak > 0 ? ' is-on' : ''}`} title={`Serie de ${row.streak} zile`}>
+      <img src={`${IMG}streak-mini.svg`} alt="" />
+      {row.streak}
+    </span>
+  );
+}
+
+function Xp({ row }: { row: LeaderboardRow }) {
+  return (
+    <span className="lb-xp">
+      <img src={`${IMG}xp-mini.svg`} alt="" />
+      {fmtXp(row.totalXp)}
+      <small>XP</small>
+    </span>
+  );
+}
+
+function Crown() {
+  return (
+    <svg className="lb-crown" viewBox="0 0 40 28" aria-hidden="true">
+      <path d="M4 22 L2 6 L12 13 L20 2 L28 13 L38 6 L36 22 Z" fill="#F5B921" stroke="#B37A06" strokeWidth="2" strokeLinejoin="round" />
+      <rect x="4" y="22" width="32" height="5" rx="2" fill="#E29A0C" stroke="#B37A06" strokeWidth="2" />
+      <circle cx="20" cy="15" r="2.4" fill="#fff" opacity=".85" />
+    </svg>
+  );
+}
+
+/** Top three on a podium: 2nd, 1st, 3rd, each with photo, name, XP and streak. */
+export function Podium({ rows, currentUserId, big = false }: { rows: LeaderboardRow[]; currentUserId: string | null; big?: boolean }) {
+  const by = (rank: number) => rows.find((r) => r.rank === rank) ?? rows[rank - 1];
+  const order = [by(2), by(1), by(3)].filter(Boolean) as LeaderboardRow[];
+  if (order.length === 0) return null;
+  return (
+    <ol className={`lb-podium${big ? ' lb-podium--big' : ''}`}>
+      {order.map((row) => {
+        const place = row.rank <= 3 ? row.rank : order.indexOf(row) + 1;
+        const you = row.userId === currentUserId;
+        return (
+          <li key={row.userId} className={`lb-pod lb-pod--${place}${you ? ' is-you' : ''}`}>
+            {place === 1 && <Crown />}
+            <span className="lb-pod__who">
+              <Avatar row={row} className="lb-pod__avatar" />
+              <b className="lb-pod__name" title={row.displayName}>{row.displayName}</b>
+              {you && <span className="lb-you">Tu</span>}
             </span>
-            <span className="cap-leaderboard__meta">
-              <span className="cap-leaderboard__level">Nivel {row.level}</span>
-              {row.bestStreak > 0 && (
-                <span className="cap-leaderboard__streak">
-                  <img src="assets/images/gamification/streak-mini.svg" alt="" />
-                  {row.bestStreak}
-                </span>
-              )}
+            <Xp row={row} />
+            <Streak row={row} />
+            <span className="lb-pod__step" aria-label={`Locul ${row.rank}`}>
+              <span>{row.rank}</span>
             </span>
-          </span>
-          <span className="cap-leaderboard__xp">{row.totalXp} XP</span>
-        </li>
-      ))}
+          </li>
+        );
+      })}
     </ol>
+  );
+}
+
+/** One ranked row: place, photo, name and level, streak, total XP. */
+export function LbRow({ row, you }: { row: LeaderboardRow; you: boolean }) {
+  return (
+    <li className={`lb-row${you ? ' is-you' : ''}`}>
+      <span className="lb-row__rank">{row.rank}</span>
+      <Avatar row={row} className="lb-row__avatar" />
+      <span className="lb-row__main">
+        <b className="lb-row__name" title={row.displayName}>
+          <span className="lb-t">{row.displayName}</span>
+          {you && <span className="lb-you">Tu</span>}
+        </b>
+        <small className="lb-row__lvl">Nivel {row.level}</small>
+      </span>
+      <Streak row={row} />
+      <Xp row={row} />
+    </li>
+  );
+}
+
+/** Three dots between the visible places and your own row, when places are skipped. */
+export function LbGap() {
+  return (
+    <li className="lb-gap" aria-hidden="true">
+      <i /><i /><i />
+    </li>
   );
 }

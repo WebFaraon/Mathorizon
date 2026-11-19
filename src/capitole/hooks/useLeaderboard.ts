@@ -9,6 +9,8 @@ export interface LeaderboardRow {
   avatarUrl: string | null;
   totalXp: number;
   bestStreak: number;
+  /** Daily streak (days in a row), from the 20261119 migration; null when the database does not return it yet. */
+  streak: number | null;
   rank: number;
   /** floor(totalXp / XP_PER_LEVEL) + 1 — same formula js/training-stats.js
       uses for the student's own level, read from BM.Training.XP_PER_LEVEL
@@ -36,6 +38,8 @@ interface LeaderboardRpcRow {
   avatar_url: string | null;
   total_xp: number;
   best_streak: number;
+  /** Daily streak, present after migration 20261119100000. */
+  streak?: number | null;
   rank: number;
 }
 
@@ -83,6 +87,7 @@ export function useLeaderboard(): LeaderboardState {
           avatarUrl: row.avatar_url,
           totalXp: row.total_xp,
           bestStreak: row.best_streak,
+          streak: typeof row.streak === 'number' ? row.streak : null,
           rank: row.rank,
           level: Math.floor(row.total_xp / xpPerLevel) + 1
         }));
