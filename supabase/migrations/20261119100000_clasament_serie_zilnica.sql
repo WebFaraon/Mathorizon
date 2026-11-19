@@ -36,7 +36,7 @@ begin
       )::integer as rank,
       up.nickname,
       -- seria e vie doar daca ultima zi e azi sau ieri (la fel ca getStreak() din site)
-      case when us.last_date >= v_today - 1 then coalesce(us.count, 0) else 0 end::integer as streak
+      case when us.last_date::date >= v_today - 1 then coalesce(us.count, 0) else 0 end::integer as streak
     from public.user_profiles up
     left join public.training_stats ts on ts.user_id = up.user_id
     left join public.user_streak us on us.user_id = up.user_id
