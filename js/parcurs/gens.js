@@ -59,7 +59,7 @@
     if (kind === 'N') { x = String(R.pick([0, 3, 7, 12, 25, 40])); set = 0; why = x + ' este număr natural, deci intră în ℕ (și, mai departe, în ℤ și în ℚ).'; }
     else if (kind === 'Z') { x = '−' + R.int(2, 15); set = 1; why = x + ' are minus și nu are parte fracționară: e număr întreg, dar nu natural. Cea mai mică mulțime este ℤ.'; }
     else { x = R.pick(['{3/4}', '−{1/2}', '0,25', '1,5', '{7/3}', '−0,8', '{5/6}']); set = 2; why = x + ' nu este întreg. Se scrie ca fracție, deci cea mai mică mulțime care îl conține este ℚ.'; }
-    return { t: 'mc', q: R.pick(['În care este cea mai mică mulțime care conține numărul?', 'Care este cea mai mică mulțime de numere din care face parte numărul?', 'Din care este cea mai mică mulțime de numere face parte numărul?']), eq: x, opts: ['ℕ (naturale)', 'ℤ (întregi)', 'ℚ (raționale)'], a: set, fixed: true, why: why,
+    return { t: 'mc', q: R.pick(['Care este cea mai mică mulțime care conține numărul?', 'Care este cea mai mică mulțime de numere din care face parte numărul?', 'Numărul face parte din mai multe mulțimi. Care este cea mai mică dintre ele?']), eq: x, opts: ['ℕ (naturale)', 'ℤ (întregi)', 'ℚ (raționale)'], a: set, fixed: true, why: why,
       hint: 'ℕ: 0, 1, 2… ℤ: adaugă și numerele negative. ℚ: adaugă și fracțiile.' };
   };
   G.intAsFrac = function (R, lvl) {
@@ -153,7 +153,7 @@
   };
   G.barShade = function (R, lvl) {
     var d = R.int(3, tier(lvl, 6, 8, 10)), n = R.int(1, d - 1);
-    return { t: 'bar', q: 'Colorează {' + n + '/' + d + '} din bară. Atinge părțile.', d: d, n: n, why: 'Bara are ' + d + ' părți egale. {' + n + '/' + d + '} înseamnă ' + n + ' părți colorate din ' + d + '.', hint: 'Numitorul spune câte părți are bara, numărătorul câte colorezi.' };
+    return { t: 'bar', q: 'Colorează {' + n + '/' + d + '} din bară. Atinge părțile.', d: d, n: n, why: 'Bara are ' + d + ' părți egale. {' + n + '/' + d + '} înseamnă ' + n + (n === 1 ? ' parte colorată' : ' părți colorate') + ' din ' + d + '.', hint: 'Numitorul spune câte părți are bara, numărătorul câte colorezi.' };
   };
   G.barEquiv = function (R, lvl) {
     var d = R.pick(tier(lvl, [6, 8], [8, 10, 12], [12, 12, 10])), divs = [], i;
@@ -196,7 +196,8 @@
       why: 'Între două numere întregi sunt ' + c.sub + ' părți egale. ' + fs(p) + ' se află la ' + Math.abs(p.n * c.sub / p.d) + (Math.abs(p.n * c.sub / p.d) === 1 ? ' parte' : ' părți') + ' de 0' + (p.n < 0 ? ', spre stânga' : ', spre dreapta') + '.', hint: 'Împarte fiecare unitate în ' + c.sub + ' părți egale.' };
   };
   G.opposite = function (R, lvl) {
-    var f = lvl === 0 ? F(R.int(1, 12) * R.sign()) : lvl === 1 ? pickFrac(R, 2, 9, false) : F(R.int(11, 99) * R.sign(), 10);
+    var dn = R.int(11, 99); if (dn % 10 === 0) dn++;
+    var f = lvl === 0 ? F(R.int(1, 12) * R.sign()) : lvl === 1 ? pickFrac(R, 2, 9, false) : F(dn * R.sign(), 10);
     if (lvl === 1 && R.bool()) f = PM.neg(f);
     var o = PM.neg(f);
     if (lvl === 2) return { t: 'num', q: 'Scrie opusul numărului ' + fd(f) + ' ca număr zecimal.', a: o, form: 'dec', why: 'Opusul are aceeași distanță față de 0, dar semn schimbat: ' + fd(o) + '.', hint: 'Opusul lui x este −x.' };
@@ -247,7 +248,7 @@
     while (!coprime(n, d) || n === d) n = R.int(1, tier(lvl, d - 1, d - 1, d * 2));
     var m = 1; while (Math.pow(10, m) % d !== 0) m++;
     var k = Math.pow(10, m) / d, f = F(n, d);
-    return { t: 'num', q: 'Scrie fracția ca număr zecimal.', eq: fr(n, d), a: f, form: 'dec', why: 'Amplificăm până la numitorul ' + Math.pow(10, m) + ': {' + n + '·' + k + '/' + d + '·' + k + '} = {' + (n * k) + '/' + Math.pow(10, m) + '} = ' + fd(f) + '.', hint: 'Caută un număr cu care înmulțești numitorul ca să obții 10, 100 sau 1000.' };
+    return { t: 'num', q: 'Scrie fracția ca număr zecimal.', eq: fr(n, d), a: f, form: 'dec', why: (k === 1 ? 'Numitorul este deja ' + Math.pow(10, m) + ': {' + n + '/' + d + '} = ' + fd(f) + '.' : 'Amplificăm până la numitorul ' + Math.pow(10, m) + ': {' + n + '·' + k + '/' + d + '·' + k + '} = {' + (n * k) + '/' + Math.pow(10, m) + '} = ' + fd(f) + '.'), hint: 'Caută un număr cu care înmulțești numitorul ca să obții 10, 100 sau 1000.' };
   };
   G.decToFrac = function (R, lvl) {
     var x, sh;
@@ -255,7 +256,7 @@
     else if (lvl === 1) { x = R.int(1, 99); sh = 100; if (x % 10 === 0) x++; }
     else { x = R.int(101, 499); sh = 100; if (x % 10 === 0) x++; }
     var f = F(x, sh), g = gcd(x, sh);
-    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplific-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: fd(f), a: f, form: 'frac', reduced: true, why: fd(f) + ' = {' + x + '/' + sh + '}' + (g > 1 ? ' = {' + x + ':' + g + '/' + sh + ':' + g + '} = ' + fs(f) : '') + '.', hint: 'Numărul de zecimale spune câte zerouri are numitorul: 10, 100…' };
+    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplifică-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: fd(f), a: f, form: 'frac', reduced: true, why: fd(f) + ' = {' + x + '/' + sh + '}' + (g > 1 ? ' = {' + x + ':' + g + '/' + sh + ':' + g + '} = ' + fs(f) : '') + '.', hint: 'Numărul de zecimale spune câte zerouri are numitorul: 10, 100…' };
   };
   var DECPAIRS = [[F(1, 2), '0,5'], [F(1, 4), '0,25'], [F(3, 4), '0,75'], [F(1, 5), '0,2'], [F(2, 5), '0,4'], [F(3, 5), '0,6'], [F(1, 8), '0,125'], [F(3, 8), '0,375'], [F(1, 10), '0,1'], [F(7, 10), '0,7'], [F(9, 20), '0,45'], [F(7, 20), '0,35'], [F(1, 20), '0,05'], [F(3, 25), '0,12'], [F(4, 5), '0,8'], [F(5, 4), '1,25'], [F(3, 2), '1,5']];
   G.matchDec = function (R, lvl) {
@@ -345,7 +346,7 @@
       var p = R.int(1, 8), q = R.int(0, 8); if (q === p) q = (q + 1) % 9; s = '0,' + p + '(' + q + ')'; f = F(parseInt('' + p + q, 10) - p, 90);
       why = 'Notăm x = ' + s + '. Atunci 10x = ' + p + ',(' + q + ') și 100x = ' + p + q + ',(' + q + '). Scădem: 90x = ' + (parseInt('' + p + q, 10) - p) + ', deci x = ' + fs(f) + '.';
     }
-    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplific-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: s, a: f, form: 'frac', reduced: true, why: why, hint: 'Pentru 0,(a): numărătorul e perioada, numitorul e tot atâtea cifre de 9.' };
+    return { t: 'num', q: R.pick(['Scrie numărul ca fracție ireductibilă.', 'Transformă numărul în fracție și simplifică-o până la capăt.', 'Care este fracția ireductibilă egală cu numărul?']), eq: s, a: f, form: 'frac', reduced: true, why: why, hint: 'Pentru 0,(a): numărătorul e perioada, numitorul e tot atâtea cifre de 9.' };
   };
   G.finiteMulti = function (R) {
     var items = [], seen = {}, g = 0;
@@ -453,7 +454,7 @@
   G.mixWord = function (R, lvl) {
     var p = pairFor(R, Math.max(lvl, 1)), s = PM.add(p[0], p[1]), thing = R.pick([['apă', 'suc', 'litri'], ['făină', 'zahăr', 'kg'], ['lapte', 'apă', 'litri']]);
     return { t: 'num', q: 'Într-un vas sunt ' + fr(p[2], p[3]) + ' ' + (thing[2] === 'kg' ? 'kg' : 'l') + ' de ' + thing[0] + '. Se adaugă ' + fr(p[4], p[5]) + ' ' + (thing[2] === 'kg' ? 'kg' : 'l') + ' de ' + thing[1] + '. Cât e în total? Scrie fracția ireductibilă.', a: s, form: 'frac', reduced: true,
-      why: fr(p[2], p[3]) + ' + ' + fr(p[4], p[5]) + ' = ' + fs(s) + '.', hint: 'Aduceți la numitor comun.' };
+      why: fr(p[2], p[3]) + ' + ' + fr(p[4], p[5]) + ' = ' + fs(s) + '.', hint: 'Adu fracțiile la același numitor.' };
   };
 
   /* ================= 2.3 Numere cu semne diferite ================= */
@@ -480,7 +481,7 @@
     var a = R.int(-4, 4), b = R.int(-6, 6); if (b === 0) b = 3;
     while (Math.abs(a + b) > 8 || a + b === a) { a = R.int(-4, 4); b = R.int(-6, 6); if (b === 0) b = 2; }
     return { t: 'axis', q: 'Pornești de la ' + int(a) + ' și te muți cu ' + int(b) + '. Mută punctul unde ajungi.', min: -8, max: 8, sub: 1, target: F(a + b), start: F(a),
-      why: int(a) + ' + ' + intp(b) + ' = ' + int(a + b) + '. ' + (b > 0 ? 'Adunând un număr pozitiv, mergem spre dreapta.' : 'Adunând un număr negativ, mergem spre stânga.'), hint: (b > 0 ? 'Spre dreapta' : 'Spre stânga') + ', ' + Math.abs(b) + ' pași.' };
+      why: int(a) + ' + ' + intp(b) + ' = ' + int(a + b) + '. ' + (b > 0 ? 'Adunând un număr pozitiv, mergem spre dreapta.' : 'Adunând un număr negativ, mergem spre stânga.'), hint: (b > 0 ? 'Spre dreapta' : 'Spre stânga') + ', ' + Math.abs(b) + (Math.abs(b) === 1 ? ' pas.' : ' pași.') };
   };
   G.addFracSign = function (R, lvl) {
     var p = pairFor(R, tier(lvl, 1, 1, 2)), A = PM.neg(p[0]), B = p[1], sub = lvl === 2, r = sub ? PM.sub(A, B) : PM.add(A, B);
@@ -522,7 +523,7 @@
     var minus = R.bool(), r = minus ? PM.sub(a, PM.sub(b, c)) : PM.add(a, PM.sub(b, c));
     var sa = fs(a), sb = fs(b), sc = fs(c);
     return { t: 'num', q: 'Calculează. Scrie fracția ireductibilă.', eq: sa + (minus ? ' − (' : ' + (') + sb + ' − ' + sc + ')', a: r, form: 'frac', reduced: true,
-      why: 'Întâi paranteza: ' + sb + ' − ' + sc + ' = ' + fs(PM.sub(b, c)) + '. Apoi ' + sa + (minus ? ' − ' : ' + ') + fs(PM.sub(b, c)) + ' = ' + fs(r) + '.', hint: 'Calculează întâi paranteza.' };
+      why: 'Întâi paranteza: ' + sb + ' − ' + sc + ' = ' + fs(PM.sub(b, c)) + '. Apoi ' + sa + (minus ? ' − ' : ' + ') + (PM.sub(b, c).n < 0 ? '(' + fs(PM.sub(b, c)) + ')' : fs(PM.sub(b, c))) + ' = ' + fs(r) + '.', hint: 'Calculează întâi paranteza.' };
   };
   G.removeParens = function (R) {
     var inner = R.pick(['+', '−']), outer = R.pick(['+', '−']), flip = outer === '−';
@@ -537,7 +538,7 @@
   };
   G.balanceWord = function (R) {
     var d = R.int(2, 9) * 10, p = R.int(15, 40) * 10, c = R.int(1, 8) * 10 + 5, r = -d + p - c;
-    return { t: 'num', q: 'Pe un cont ești în minus cu ' + d + ' lei (adică −' + d + '). Depui ' + p + ' lei, apoi plătești ' + c + ' lei. Cât ai acum pe cont? (negativ = datorie)', a: F(r), form: 'int', unit: 'lei', why: int(-d) + ' + ' + p + ' − ' + c + ' = ' + int(r) + ' lei.', hint: 'Depunerea se adună, plata se scade.' };
+    return { t: 'num', q: 'Pe un cont ești în minus cu ' + PM.pl(d, 'leu', 'lei') + ' (adică −' + d + '). Depui ' + PM.pl(p, 'leu', 'lei') + ', apoi plătești ' + PM.pl(c, 'leu', 'lei') + '. Cât ai acum pe cont? (un număr negativ înseamnă datorie)', a: F(r), form: 'int', unit: 'lei', why: int(-d) + ' + ' + p + ' − ' + c + ' = ' + (r < 0 ? '−' : '') + PM.pl(Math.abs(r), 'leu', 'lei') + '.', hint: 'Depunerea se adună, plata se scade.' };
   };
 
   /* ================= 3.1 Înmulțirea ================= */
@@ -567,8 +568,12 @@
     return { t: 'num', q: 'Calculează.', eq: fr(a, b) + ' · ' + N, a: F(a * k), form: 'int', why: fr(a, b) + ' · ' + N + ' = {' + a + '·' + N + '/' + b + '} = {' + (a * N) + '/' + b + '} = ' + (a * k) + '.', hint: 'Simplifică numitorul cu numărul întreg.' };
   };
   G.wordPart = function (R, lvl) {
-    var b = R.pick([3, 4, 5, 8]), a = R.int(1, b - 1), k = R.int(2, 6), N = b * k, who = R.pick([['O clasă are', 'elevi', 'sunt băieți', 'băieți'], ['O carte are', 'pagini', 'au fost citite', 'pagini citite'], ['Un autobuz are', 'locuri', 'sunt ocupate', 'locuri ocupate']]);
-    return { t: 'num', q: who[0] + ' ' + N + ' ' + who[1] + '. ' + fr(a, b) + ' dintre ele ' + who[2] + '. Câte sunt ' + who[3] + '?', a: F(a * k), form: 'int', why: fr(a, b) + ' din ' + N + ' = ' + N + ' : ' + b + ' · ' + a + ' = ' + k + ' · ' + a + ' = ' + (a * k) + '.', hint: 'Fracția dintr-un număr: împarte la numitor, înmulțește cu numărătorul.' };
+    var b = R.pick([3, 4, 5, 8]), a = R.int(1, b - 1), k = R.int(2, 6), N = b * k;
+    var who = R.pick([
+      { s: 'O clasă are', one: 'elev', many: 'elevi', part: 'dintre ei sunt băieți', ask: 'Câți sunt băieți?' },
+      { s: 'O carte are', one: 'pagină', many: 'pagini', part: 'dintre ele au fost citite', ask: 'Câte pagini au fost citite?' },
+      { s: 'Un autobuz are', one: 'loc', many: 'locuri', part: 'dintre ele sunt ocupate', ask: 'Câte locuri sunt ocupate?' }]);
+    return { t: 'num', q: who.s + ' ' + PM.pl(N, who.one, who.many) + '. ' + fr(a, b) + ' ' + who.part + '. ' + who.ask, a: F(a * k), form: 'int', why: fr(a, b) + ' din ' + N + ' = ' + N + ' : ' + b + ' · ' + a + ' = ' + k + ' · ' + a + ' = ' + (a * k) + '.', hint: 'Fracția dintr-un număr: împarte la numitor, înmulțește cu numărătorul.' };
   };
   G.bugMul = function (R) {
     var a = R.int(1, 4), b = R.int(2, 6), c = R.int(1, 4), d = R.int(2, 6);
@@ -682,8 +687,8 @@
     var dd = R.pick(divs.length ? divs : [2]), cc = R.int(1, dd - 1);
     if (rest % dd !== 0) { dd = 1; cc = 1; }
     var used2 = rest / dd * cc, left = rest - used2;
-    return { t: 'num', q: 'Într-un bidon sunt ' + total + ' litri. Dimineața se toarnă ' + fr(a, b) + ' din bidon, iar seara ' + fr(cc, dd) + ' din ce a rămas. Câți litri rămân?', a: F(left), form: 'int', unit: 'litri',
-      why: 'Dimineața: ' + fr(a, b) + ' din ' + total + ' = ' + (total * a / b) + ' l, rămân ' + rest + ' l. Seara: ' + fr(cc, dd) + ' din ' + rest + ' = ' + used2 + ' l. Rămân ' + rest + ' − ' + used2 + ' = ' + left + ' litri.', hint: 'Calculează pe rând: mai întâi cât rămâne după prima turnare.' };
+    return { t: 'num', q: 'Într-un bidon sunt ' + PM.pl(total, 'litru', 'litri') + '. Dimineața se folosește ' + fr(a, b) + ' din bidon, iar seara ' + fr(cc, dd) + ' din ce a rămas. Câți litri rămân?', a: F(left), form: 'int', unit: 'litri',
+      why: 'Dimineața: ' + fr(a, b) + ' din ' + total + ' = ' + (total * a / b) + ' l, rămân ' + rest + ' l. Seara: ' + fr(cc, dd) + ' din ' + rest + ' = ' + used2 + ' l. Rămân ' + rest + ' − ' + used2 + ' = ' + PM.pl(left, 'litru', 'litri') + '.', hint: 'Calculează pe rând: mai întâi cât rămâne după prima turnare.' };
   };
   G.bugOrder = function (R) {
     var a = R.int(2, 9), b = R.int(2, 9), c = R.int(2, 9), w = (a + b) * c;

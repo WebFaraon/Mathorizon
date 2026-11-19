@@ -110,11 +110,26 @@
     if (!RUN) return s;
     return s.split(/(<[^>]*>)/).map(function (seg) {
       if (seg.charAt(0) === '<') return seg;
-      return seg.replace(RUN, function (r) { return /[\d=+−×÷·≤≥≈≠xyznk]|&lt;|&gt;/.test(r) ? '<span class="mt">' + r + '</span>' : r; });
+      return seg.replace(RUN, function (r) {
+        if (!/[\d=+−×÷·≤≥≈≠xyznk]|&lt;|&gt;/.test(r)) return r;
+        /* un calcul lung se poate rupe înaintea semnului „=” (nu în mijlocul unui termen) */
+        return r.split(/ (?=(?:=|≈|≠|&lt;|&gt;|≤|≥) )/).map(function (x) { return '<span class="mt">' + x + '</span>'; }).join(' ');
+      });
     }).join('');
+  }
+  /* 1 pas, 5 pași, 20 de pași: „de” apare de la 20 în sus (și la 100, 200...), nu la 101 sau 115 */
+  function pl(n, one, many) {
+    n = Math.round(n);
+    if (n === 1) return '1 ' + one;
+    var r = Math.abs(n) % 100;
+    return n + (r === 0 || r >= 20 ? ' de ' : ' ') + many;
   }
   function m(src) {
     var s = esc(src == null ? '' : src);
+    /* fără spațiu înaintea semnelor de punctuație: „1/2 ?” devine „1/2?”, „3 + 4 .” devine „3 + 4.” */
+    s = s.replace(/\s+([?!])/g, '$1').replace(/\s+\.(?=\s|$)/g, '.');
+    /* număr mixt (8{3/4}): întregul și fracția formează o singură unitate, care nu se rupe la capăt de rând */
+    s = s.replace(/(\d+)\{([^{}\/]+)\/([^{}]+)\}/g, function (_, w, a, b) { return '<span class="mx">' + w + '<span class="fr"><i>' + a + '</i><i>' + b + '</i></span></span>'; });
     s = s.replace(/\{([^{}\/]+)\/([^{}]+)\}/g, function (_, a, b) { return '<span class="fr"><i>' + a + '</i><i>' + b + '</i></span>'; });
     s = s.replace(/\^\{([^{}]+)\}/g, '<sup>$1</sup>').replace(/\^(−?\w)/g, '<sup>$1</sup>');
     s = s.replace(/\*\*([^*]+)\*\*/g, '<b>$1</b>').replace(/\[\[([^\]]+)\]\]/g, '<mark>$1</mark>');
@@ -141,7 +156,62 @@
     return R;
   }
 
-  var PM = { gcd: gcd, lcm: lcm, F: F, add: add, sub: sub, mul: mul, div: div, neg: neg, abs: abs, eq: eq, cmp: cmp, val: val,
+
+  /* ---- doar în browser: aranjarea textului cu fracții ----
+     glue: o fracție (sau un număr mixt) rămâne în același rând cu cuvântul dinaintea ei și cu semnul de punctuație de după ea
+     ("între 1/3 și 1/2 ?" nu se mai rupe în „și” / „1/2” / „?”).
+     fit: o expresie sau un rând de calcul care nu încape în lățime se micșorează puțin; dacă tot nu încape, se lasă să treacă pe rândul următor. */
+  function glue(root) {
+    if (typeof document === 'undefined' || !root) return;
+    var units = root.querySelectorAll('.fr, .mx');
+    for (var i = 0; i < units.length; i++) {
+      var u = units[i];
+      if (u.closest('.nwg') || (u.classList.contains('fr') && u.parentNode.classList && u.parentNode.classList.contains('mx'))) continue;
+      var par = u.parentNode, prev = u.previousSibling, next = u.nextSibling, wrap = document.createElement('span'), pre = null;
+      wrap.className = 'nwg';
+      /* ce era înaintea fracției: ultimul cuvânt din text sau elementul matematic dinainte (cu spațiul dintre ele) */
+      var shortEl = function (n) { return n && n.nodeType === 1 && (n.textContent || '').length <= 9; };
+      if (prev && prev.nodeType === 3 && /^\s*$/.test(prev.nodeValue) && shortEl(prev.previousSibling)) { pre = [prev.previousSibling, prev]; }
+      else if (prev && prev.nodeType === 3 && !/^\s*$/.test(prev.nodeValue)) {
+        var mt = /(\S+\s*)$/.exec(prev.nodeValue);
+        if (mt) { var cut = prev.nodeValue.length - mt[1].length; var tail = prev.nodeValue.slice(cut); prev.nodeValue = prev.nodeValue.slice(0, cut); pre = [document.createTextNode(tail)]; }
+      } else if (shortEl(prev)) pre = [prev];
+      par.insertBefore(wrap, u);
+      if (pre) pre.forEach(function (n) { wrap.appendChild(n); });
+      wrap.appendChild(u);
+      if (next && next.nodeType === 3) {
+        var mp = /^(\s?[?.,;:!)\]”]+)/.exec(next.nodeValue);
+        if (mp) { next.nodeValue = next.nodeValue.slice(mp[1].length); wrap.appendChild(document.createTextNode(mp[1])); }
+      } else if (next && next.nodeType === 1 && /^\s?[?.,;:!)\]”]+$/.test(next.textContent || '')) wrap.appendChild(next);
+      /* „3/5 + 1/4 ?”: o expresie cu operator între fracții rămâne într-un singur rând, dacă încape în lățimea textului */
+      var hasOp = pre && pre.some(function (n) { return n.nodeType === 1 && /^[=+−×÷·<>≤≥]/.test((n.textContent || '').trim()); });
+      if (hasOp) {
+        var pg = wrap.previousSibling; while (pg && pg.nodeType === 3 && /^\s*$/.test(pg.nodeValue)) pg = pg.previousSibling;
+        if (pg && pg.nodeType === 1 && pg.classList.contains('nwg')) {
+          var cs = getComputedStyle(par), avail = par.clientWidth - (parseFloat(cs.paddingLeft) || 0) - (parseFloat(cs.paddingRight) || 0);
+          if (pg.getBoundingClientRect().width + wrap.getBoundingClientRect().width + 14 <= avail) {
+            var between = pg.nextSibling;
+            while (between && between !== wrap) { var nx = between.nextSibling; pg.appendChild(between); between = nx; }
+            while (wrap.firstChild) pg.appendChild(wrap.firstChild);
+            wrap.parentNode.removeChild(wrap);
+          }
+        }
+      }
+    }
+  }
+  function fit(root) {
+    if (typeof document === 'undefined' || !root) return;
+    var els = root.querySelectorAll('.lz-eq, .lz-row:not(.txt):not(.lbl)');
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      el.style.whiteSpace = 'nowrap'; el.style.fontSize = '';
+      var base = parseFloat(getComputedStyle(el).fontSize) || 16, fs = base, guard = 0;
+      while (el.scrollWidth > el.clientWidth + 1 && fs > base * 0.6 && guard++ < 24) { fs *= 0.95; el.style.fontSize = fs + 'px'; }
+      if (el.scrollWidth > el.clientWidth + 1) { el.style.whiteSpace = ''; el.style.fontSize = ''; }
+    }
+  }
+
+  var PM = { pl: pl, glue: glue, fit: fit, gcd: gcd, lcm: lcm, F: F, add: add, sub: sub, mul: mul, div: div, neg: neg, abs: abs, eq: eq, cmp: cmp, val: val,
     decInfo: decInfo, fmtDec: fmtDec, isFiniteDec: isFinite_, fmtF: fmtF, fmtRaw: fmtRaw, par: par, parseAnswer: parseAnswer, m: m, plain: plain, esc: esc, rng: rng };
   root.PM = PM;
   if (typeof module !== 'undefined' && module.exports) module.exports = PM;

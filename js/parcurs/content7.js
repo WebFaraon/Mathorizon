@@ -21,7 +21,7 @@
     circles: [
       { id: 'c1', title: 'Ce sunt numerele raționale', icon: 'book',
         learn: [
-          { title: 'O fracție este o împărțire', p: 'Fracția **{3/4}** înseamnă **3 : 4**: numărătorul se împarte la numitor. Schimbă numerele și vezi cum se mișcă fracția.', bar: { d: 4, n: 3, ctl: true, dec: true } },
+          { title: 'O fracție este o împărțire', p: 'Fracția **{3/4}** înseamnă **3 : 4**, adică trei împărțit la patru (semnul „:” se citește „împărțit la”). Numărătorul se împarte la numitor. Schimbă numerele și vezi cum se mișcă fracția.', bar: { d: 4, n: 3, ctl: true, dec: true } },
           { title: 'Numerele raționale', p: 'Un număr **rațional** se poate scrie sub forma {m/n}, unde **m** este număr întreg (m ∈ ℤ), iar **n** este număr natural nenul (n ∈ ℕ*). Mulțimea lor se notează **ℚ**. Atinge un număr și vezi în ce mulțimi intră.', sets: ['5', '−3', '{3/4}', '0,2', '−1,5'] },
           { title: 'Întregii sunt și ei raționali', p: 'Orice număr întreg se scrie ca fracție cu numitorul 1. De aceea **ℕ ⊂ ℤ ⊂ ℚ**: fiecare mulțime o conține pe cea dinainte. Cu ℕ* notăm numerele naturale nenule: 1, 2, 3…, deci ℕ* ⊂ ℕ.', rows: ['5 = {5/1}', '−3 = {−3/1}', '0 = {0/1}', '0,2 = {2/10}'] },
           { title: 'Unde punem minusul', p: 'La o fracție, minusul poate sta în fața ei, la numărător sau la numitor. **Valoarea rămâne aceeași.** Două minusuri se anulează.', rows: ['−{3/4} = {−3/4} = {3/−4}', '{−3/−4} = {3/4}'] }
@@ -32,9 +32,9 @@
           { title: 'Aceeași parte, alte numere', p: 'Cele trei bare au aceeași parte colorată. Fracțiile **{1/2}**, **{2/4}** și **{4/8}** au aceeași valoare: se numesc **echivalente**.', bars: [[2, 1], [4, 2], [8, 4]] },
           { title: 'Amplificarea', p: 'Înmulțim numărătorul și numitorul cu **același număr nenul**. Valoarea fracției nu se schimbă.', rows: ['{2/3} = {2·4/3·4}', '{2/3} = {8/12}'] },
           { title: 'Simplificarea', p: 'Împărțim numărătorul și numitorul la **același număr** (un divizor comun).', rows: ['{18/24} = {18:6/24:6}', '{18/24} = {3/4}'] },
-          { title: 'Fracția ireductibilă', p: 'Când numărătorul și numitorul nu mai au niciun divizor comun în afară de 1, fracția este **ireductibilă**: nu se mai poate simplifica.', rows: ['{3/4} este ireductibilă', '{6/8} nu este: se simplifică prin 2'] }
+          { title: 'Fracția ireductibilă', p: 'Când numărătorul și numitorul nu mai au niciun divizor comun în afară de 1, fracția este **ireductibilă**: nu se mai poate simplifica.', rows: ['{3/4} este ireductibilă', '{6/8} nu este ireductibilă', 'Se simplifică prin 2: {6/8} = {3/4}'] }
         ,
-          { title: 'Produsele în cruce', p: 'Două fracții {a/b} și {c/d} sunt **echivalente** dacă **a · d = b · c**. Înmulțim „în cruce” și comparăm rezultatele.', rows: ['{2/5} ▢ {4/10}', '2 · 10 = 20 și 5 · 4 = 20', '20 = 20, deci {2/5} = {4/10}', '{3/4} ▢ {5/6}: 3 · 6 = 18, 4 · 5 = 20, deci nu sunt egale'] }
+          { title: 'Produsele în cruce', p: 'Două fracții {a/b} și {c/d} sunt **echivalente** dacă **a · d = b · c**. Înmulțim „în cruce” și comparăm rezultatele.', rows: ['# Sunt egale {2/5} și {4/10}?', '2 · 10 = 20 și 5 · 4 = 20', '20 = 20, deci {2/5} = {4/10}', '# Sunt egale {3/4} și {5/6}?', '3 · 6 = 18 și 4 · 5 = 20', '18 ≠ 20, deci {3/4} ≠ {5/6}'] }
         ],
         pools: [['barShade', 'sliceMake', 'equivFill', 'amplify', 'simplifyFull', 'equivFill2', 'tfEquiv'], ['barEquiv', 'sliceMake', 'sliceEquiv', 'equivFill', 'simplifyFull', 'isIrreducible', 'equalPair', 'amplify', 'tfEquiv', 'matchEquiv', 'equivFill2'], ['simplifyFull', 'bugSimplify', 'isIrreducible', 'equalPair', 'sliceEquiv', 'barEquiv', 'tfEquiv', 'matchEquiv', 'equivFill2']] },
       { id: 'c6', title: 'Fracții supraunitare și numere mixte', icon: 'divide',
@@ -50,7 +50,7 @@
           { title: 'Numerele pe axă', p: 'Pe axă, numerele cresc spre **dreapta**. Atinge axa și vezi ce număr indică punctul.', axis: { min: -2, max: 2, sub: 4, tap: true } },
           { title: 'Opusul unui număr', p: 'Numerele **{3/4}** și **−{3/4}** sunt **opuse**: au aceeași distanță față de 0, dar de părți diferite. Atinge axa și vezi perechea.', axis: { min: -2, max: 2, sub: 4, tap: true, mirror: true } },
           { title: 'Cum comparăm', p: 'Orice număr negativ este mai mic decât orice număr pozitiv. La două numere negative, **mai mare este cel mai apropiat de 0**.', rows: ['−5 < −2 < 0 < 3', '−{3/4} < −{1/4}'] },
-          { title: 'Fracții cu numitori diferiți', p: 'Le aducem la același numitor și comparăm numărătorii.', rows: ['{3/4} ▢ {5/6}', '{3/4} = {9/12} și {5/6} = {10/12}', '{9/12} < {10/12}, deci {3/4} < {5/6}'] }
+          { title: 'Fracții cu numitori diferiți', p: 'Le aducem la același numitor și comparăm numărătorii.', rows: ['# Care este mai mare, {3/4} sau {5/6}?', '{3/4} = {9/12} și {5/6} = {10/12}', '{9/12} < {10/12}, deci {3/4} < {5/6}'] }
         ],
         pools: [['axisRead', 'axisPlace', 'cmp', 'opposite', 'rankRat'], ['axisPlace', 'axisRead', 'cmp', 'sortRat', 'rankRat', 'opposite'], ['axisPlace', 'cmp', 'rankRat', 'between', 'zoomBetween', 'axisRead']] },
       { id: 'c4', title: 'Fracții zecimale', icon: 'decimal',
@@ -58,17 +58,17 @@
           { title: 'Zecimalele sunt fracții cu 10, 100…', p: 'Prima cifră după virgulă înseamnă zecimi, a doua sutimi. Colorează părțile și vezi cum se citește.', bar: { d: 10, n: 7, ctl: true, dec: true, lockD: true } },
           { title: 'Fracție în număr zecimal', p: 'Amplificăm până când numitorul devine 10, 100 sau 1000.', rows: ['{3/4} = {3·25/4·25}', '{3/4} = {75/100} = 0,75'] },
           { title: 'Număr zecimal în fracție', p: 'Numărul de zecimale arată câte zerouri are numitorul. Apoi simplificăm.', rows: ['0,6 = {6/10} = {3/5}', '2,25 = {225/100} = {9/4}'] },
-          { title: 'Nu toate se termină', p: 'Dacă fracția ireductibilă are la numitor doar factorii primi **2** și **5**, scrierea zecimală se termină. Altfel, urmează ceva nou.', rows: ['{3/8}: 8 = 2·2·2, deci 0,375', '{1/3}: 3 nu e nici 2, nici 5, deci ?'] },
+          { title: 'Nu toate se termină', p: 'Dacă numitorul fracției ireductibile are doar factorii primi **2** și **5**, scrierea zecimală se termină. Altfel, cifrele se repetă la nesfârșit (numere periodice, pe care le învățăm mai departe).', rows: ['# Exemplul 1', '{3/8} are numitorul 8 = 2 · 2 · 2', 'Are doar factorul 2, deci se termină', '{3/8} = 0,375', '# Exemplul 2', '{1/3} are numitorul 3', '3 nu este nici 2, nici 5', 'deci nu se termină: {1/3} = 0,333…'] },
           { title: 'Cum citim un număr zecimal', p: 'Partea întreagă se citește cu **întregi**, apoi partea zecimală cu numele ultimei cifre: **zecimi**, **sutimi**, **miimi**.', rows: ['15,027 = 15{27/1000}', '„cincisprezece întregi și douăzeci și șapte de miimi”', '3,5 = „trei întregi și cinci zecimi”', '0,25 = „douăzeci și cinci de sutimi”'] },
-          { title: 'Numerele mixte în zecimale', p: 'Avem două metode. **Metoda 1:** transformăm doar fracția în zecimal și adunăm întregii. **Metoda 2:** introducem întregii în fracție și împărțim.', rows: ['8{3/4}: {3/4} = 3 : 4 = 0,75', '8{3/4} = 8 + 0,75 = 8,75', '8{3/4} = {8·4+3/4} = {35/4}', '35 : 4 = 8,75'] }
+          { title: 'Numerele mixte în zecimale', p: 'Avem două metode, care dau același rezultat. **Metoda 1:** transformăm doar fracția în număr zecimal și adunăm întregii. **Metoda 2:** introducem întregii în fracție, apoi împărțim numărătorul la numitor.', rows: ['# Metoda 1', '{3/4} = 3 : 4 = 0,75', '8{3/4} = 8 + 0,75 = 8,75', '# Metoda 2', '8{3/4} = {8·4+3/4} = {35/4}', '{35/4} = 35 : 4 = 8,75'] }
         ],
         pools: [['fracToDec', 'decToFrac', 'zoomFind', 'matchDec', 'decFracMc', 'readDec', 'decDigit'], ['fracToDec', 'zoomFind', 'decToFrac', 'cmpDec', 'rankDec', 'decFracMc', 'matchDec', 'mixedToDec', 'readDec', 'decDigit'], ['fracToDec', 'zoomFind', 'zoomBetween', 'decToFrac', 'cmpDec', 'rankDec', 'mixedToDec', 'decToMixed', 'readDec']] },
       { id: 'c5', title: 'Numere zecimale periodice', icon: 'repeat',
         learn: [
           { title: 'O împărțire care nu se termină', p: 'Împărțim 1 la 3. Apasă „Mai departe” și urmărește resturile.', div: { n: 1, d: 3 } },
           { title: 'Perioada', p: 'Cifra sau grupul de cifre care se repetă se numește **perioadă**. O scriem între paranteze.', rows: ['{1/3} = 0,333… = 0,([[3]])', '{5/6} = 0,8333… = 0,8([[3]])', '{4/11} = 0,3636… = 0,([[36]])'] },
-          { title: 'Finită sau periodică?', p: 'Simplificăm fracția. Dacă numitorul are doar factorii **2** și **5**, zecimala este **finită**. Altfel este **periodică**.', rows: ['{7/20}: 20 = 2·2·5, deci finită', '{5/12}: 12 = 2·2·3, deci periodică'] },
-          { title: 'De la periodic la fracție', p: 'La 0,(a): numărătorul este perioada, iar numitorul are tot atâtea cifre de 9 câte cifre are perioada.', rows: ['0,(7) = {7/9}', '0,(36) = {36/99} = {4/11}', 'x = 0,(7) → 10x = 7,(7) → 9x = 7'] },
+          { title: 'Finită sau periodică?', p: 'Simplificăm fracția. Dacă numitorul are doar factorii **2** și **5**, zecimala este **finită**. Altfel este **periodică**.', rows: ['# Exemplul 1', '{7/20} are numitorul 20 = 2 · 2 · 5', 'Are doar factorii 2 și 5, deci este finită', '# Exemplul 2', '{5/12} are numitorul 12 = 2 · 2 · 3', 'Apare factorul 3, deci este periodică'] },
+          { title: 'De la periodic la fracție', p: 'La 0,(a): numărătorul este perioada, iar numitorul are tot atâtea cifre de 9 câte cifre are perioada.', rows: ['0,(7) = {7/9}', '0,(36) = {36/99} = {4/11}', '# Cum aflăm fracția, cu x', 'x = 0,(7)', '10x = 7,(7)', '10x − x = 7,(7) − 0,(7)', '9x = 7, deci x = {7/9}'] },
           { title: 'Simplu sau mixt', p: 'Dacă perioada începe chiar **după virgulă**, numărul este periodic **simplu**. Dacă între virgulă și perioadă sunt cifre care nu se repetă, este periodic **mixt**. Primele două numere de mai jos sunt simple, ultimele două sunt mixte.', rows: ['2,([[8]])', '35,([[21]])', '0,[[7]]([[23]])', '6,[[25]]([[3]])'] },
           { title: 'Cum se citește perioada', p: 'După partea întreagă (și după partea neperiodică, la cele mixte) citim perioada și spunem **„în perioadă”**.', rows: ['2,(45) = „doi întregi și patruzeci și cinci în perioadă”', '1,(3) = „un întreg și trei în perioadă”', '0,4(09) = „zero întregi, patru zecimi și zero nouă în perioadă”'] }
         ],
@@ -107,8 +107,8 @@
       { id: 'c2', title: 'Numitor comun', icon: 'link',
         learn: [
           { title: 'Părți de mărimi diferite', p: '{1/2} și {1/3} au părți diferite, nu le putem număra împreună. Le tăiem în părți egale: șesimi.', bars: [[2, 1], [3, 1], [6, 3], [6, 2], [6, 5]] },
-          { title: 'Numitorul comun', p: 'Alegem cel mai mic multiplu comun al numitorilor, apoi amplificăm fiecare fracție.', rows: ['{1/2} + {1/3}', '2 și 3: numitor comun 6', '{1/2} = {3/6} și {1/3} = {2/6}', '{3/6} + {2/6} = {5/6}'] },
-          { title: 'Un exemplu mai mare', p: 'Rezultatul poate fi mai mare decât 1. Îl lăsăm ca fracție.', rows: ['{3/4} + {5/6}', 'cel mai mic multiplu comun al lui 4 și 6 este 12', '{9/12} + {10/12} = {19/12}'] },
+          { title: 'Numitorul comun', p: 'Alegem cel mai mic multiplu comun al numitorilor, apoi amplificăm fiecare fracție.', rows: ['{1/2} + {1/3}', 'Numitorul comun este 6', '{1/2} = {3/6} și {1/3} = {2/6}', '{3/6} + {2/6} = {5/6}'] },
+          { title: 'Un exemplu mai mare', p: 'Rezultatul poate fi mai mare decât 1. Îl lăsăm ca fracție.', rows: ['{3/4} + {5/6}', 'Numitorul comun al lui 4 și 6 este 12', '{9/12} + {10/12} = {19/12}'] },
           { title: 'Scăderea, la fel', p: 'Același numitor întâi, apoi scădem numărătorii.', rows: ['{5/6} − {1/4}', '{10/12} − {3/12} = {7/12}'] }
         ],
         pools: [['lcmQ', 'ampCommon', 'addDiff', 'addDiffMc'], ['addDiff', 'subDiff', 'stepOrder', 'bugAdd', 'mixWord'], ['addDiff', 'subDiff', 'bugAdd', 'mixWord', 'lcmQ']] },
@@ -153,7 +153,7 @@
       { id: 'c3', title: 'Împărțirea. Inversul unui număr', icon: 'divide',
         learn: [
           { title: 'Inversul unui număr', p: 'Inversul lui **{3/4}** este **{4/3}**. Produsul dintre un număr și inversul lui este 1.', rows: ['{3/4} · {4/3} = 1', '5 · {1/5} = 1', '0 nu are invers'] },
-          { title: 'Împărțirea este o înmulțire', p: '**a : b = a · inversul lui b.** Inversăm doar al doilea număr, cel din dreapta semnului „:”.', rows: ['{2/3} : {4/5} = {2/3} · {5/4}', '= {10/12} = {5/6}'] },
+          { title: 'Împărțirea este o înmulțire', p: '**a : b = a · inversul lui b.** Inversăm doar al doilea număr, cel din dreapta semnului de împărțire.', rows: ['{2/3} : {4/5} = {2/3} · {5/4}', '= {10/12} = {5/6}'] },
           { title: 'Semnele', p: 'Regula semnelor este aceeași ca la înmulțire.', rows: ['(−12) : 4 = −3', '(−12) : (−4) = 3'] },
           { title: 'Numere zecimale', p: 'Înmulțim deîmpărțitul și împărțitorul cu 10, 100… ca împărțitorul să devină număr întreg.', rows: ['3,6 : 0,4 = 36 : 4', '= 9'] }
         ],
@@ -162,7 +162,7 @@
         learn: [
           { title: 'Ordinea operațiilor', p: '**1.** Parantezele. **2.** Înmulțirile și împărțirile, de la stânga la dreapta. **3.** Adunările și scăderile, de la stânga la dreapta.', rows: ['2 + 3 · 4 = 2 + 12 = 14', '(2 + 3) · 4 = 5 · 4 = 20'] },
           { title: 'Cu fracții', p: 'Aceeași ordine, indiferent de tipul numerelor.', rows: ['{1/2} + {2/3} · {3/4}', '= {1/2} + {1/2}', '= 1'] },
-          { title: 'Probleme în doi pași', p: 'Calculăm pe rând și notăm cât a rămas după fiecare pas.', rows: ['Un bidon de 20 l', 'Dimineața: {1/4} din 20 = 5 l, rămân 15 l', 'Seara: {2/5} din 15 = 6 l, rămân 9 l'] }
+          { title: 'Probleme în doi pași', p: 'Calculăm pe rând și notăm cât a rămas după fiecare pas.', rows: ['# Un bidon are 20 l', 'Dimineața se folosește {1/4} din 20 = 5 l', 'Rămân 20 − 5 = 15 l', 'Seara se folosește {2/5} din 15 = 6 l', 'Rămân 15 − 6 = 9 l'] }
         ],
         pools: [['orderInt', 'orderFrac', 'stepOrderCalc'], ['orderInt', 'orderFrac', 'parMix', 'bugOrder', 'stepOrderCalc'], ['orderFrac', 'orderInt', 'word2', 'parMix', 'bugOrder']] }
     ]

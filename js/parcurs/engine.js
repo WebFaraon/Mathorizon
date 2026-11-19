@@ -105,6 +105,7 @@
       var el = h('section', 'lz-step');
       build(el);
       main.appendChild(el);
+      PM.glue(el); PM.fit(el);
       window.scrollTo(0, 0);
       after && after(el);
     };
@@ -147,7 +148,10 @@
     if (pg.rows) {
       var board = h('div', 'lz-board');
       pg.rows.forEach(function (r, i) {
-        var row = h('div', 'lz-row', m(r));
+        /* „# Text” = titlu mic de grup; un rând cu cuvinte (nu doar calcul) se scrie mai mic, ca text */
+        var lbl = /^#\s/.test(r), body = lbl ? r.replace(/^#\s+/, '') : r;
+        var txt = !lbl && /[A-Za-zĂÂÎȘȚăâîșț]{3,}/.test(body.replace(/\*\*|\[\[|\]\]|\{[^{}]*\}/g, ''));
+        var row = h('div', 'lz-row' + (lbl ? ' lbl' : txt ? ' txt' : ''), m(body));
         if (animate) row.style.animationDelay = (150 + i * 170) + 'ms'; else row.style.animation = 'none';
         board.appendChild(row);
       });
@@ -169,7 +173,7 @@
     if (first) swap(build, learnOwl);
     else {
       var old = main.firstElementChild;
-      var show = function () { dropOwls(); main.innerHTML = ''; var el = h('section', 'lz-step'); build(el); main.appendChild(el); window.scrollTo(0, 0); learnOwl(); };
+      var show = function () { dropOwls(); main.innerHTML = ''; var el = h('section', 'lz-step'); build(el); main.appendChild(el); PM.glue(el); PM.fit(el); window.scrollTo(0, 0); learnOwl(); };
       if (old && !reduce()) { old.classList.add('out'); setTimeout(show, 160); } else show();
     }
     go.textContent = learnPage === pages.length - 1 ? 'Am înțeles' : 'Continuă';
@@ -570,7 +574,7 @@
     var parts = txt.split(/(?<=[.!?])\s+/).filter(function (x) { return x.trim(); });
     if (parts.length) html += '<span class="lz-fb__why">' + parts.map(function (x) { var calc = /^[{\d−-]/.test(x); return '<span class="ln' + (calc ? ' calc' : '') + '">' + m(calc ? x.replace(/\.$/, '') : x) + '</span>'; }).join('') + '</span>';
     if (!right && !L.noRetry && !(ctl.extra && ctl.extra())) html += '<span class="lz-fb__again">O mai încercăm la final.</span>';
-    fbX.innerHTML = html;
+    fbX.innerHTML = html; PM.glue(fbX);
     var host = $('#lzFbOwl'); host.innerHTML = '';
     if (fbOwl) { try { window.TeoremaMascot.dispose(fbOwl); } catch (e) { /* gone */ } }
     fbOwl = owl(host, right ? 'happy' : 'wrong');

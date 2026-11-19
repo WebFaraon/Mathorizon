@@ -140,7 +140,7 @@
     }
     var text = form === 'frac' ? fs(f) : fd(f), dec = fd(f);
     var tenths = Math.floor(f.n * 10 / f.d), zooms = tier(lvl, 0, 1, 2);
-    var why = (form === 'frac' ? fs(f) + ' = ' + dec + '. ' : '') + dec + ' se află ' + (zooms === 0 ? 'la ' + (tenths % 10) + ' zecimi după ' + Math.floor(f.n / f.d) + '.' : 'între ' + fd(F(tenths, 10)) + ' și ' + fd(F(tenths + 1, 10)) + '. Mărim acest interval, care are 10 părți egale (sutimi)' + (zooms >= 2 ? ', apoi mărim încă o dată (miimi)' : '') + ' și numărăm diviziunile.');
+    var why = (form === 'frac' ? fs(f) + ' = ' + dec + '. ' : '') + dec + ' se află ' + (zooms === 0 ? 'la ' + (tenths % 10 === 1 ? 'o zecime' : (tenths % 10) + ' zecimi') + ' după ' + Math.floor(f.n / f.d) + '.' : 'între ' + fd(F(tenths, 10)) + ' și ' + fd(F(tenths + 1, 10)) + '. Mărim acest interval, care are 10 părți egale (sutimi)' + (zooms >= 2 ? ', apoi mărim încă o dată (miimi)' : '') + ' și numărăm diviziunile.');
     return { t: 'zoom', mode: 'find', lo: Math.floor(f.n / f.d), target: f, q: 'Găsește pe axă numărul ' + text + '. Atinge un interval ca să-l mărești, apoi atinge punctul.',
       why: why, hint: zooms === 0 ? 'Numără zecimile de la ' + Math.floor(f.n / f.d) + '.' : 'Citește zecimile, apoi mărește intervalul și citește sutimile.' };
   };

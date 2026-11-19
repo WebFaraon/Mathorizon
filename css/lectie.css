@@ -998,3 +998,22 @@ body.lz-ended .lz-top { visibility: hidden; }
 .lz-circle .cnt { display: block; margin-top: 4px; color: var(--pm-ink-2); font-size: 0.82rem; font-weight: 800; font-variant-numeric: tabular-nums; }
 .lz-wholes__left { color: var(--pm-ink-2); font-size: 0.95rem; font-weight: 700; text-align: center; }
 .lz-wholes__left b { color: var(--pm-ink); }
+
+
+/* ============================================================
+   Aranjarea textului matematic (2026-11-19): pe telefon nimic nu se rupe urât
+   - rândurile de calcul din explicații sunt text care curge (nu un rând flex cu fiecare bucată separată), centrat
+   - o fracție rămâne în rând cu cuvântul dinaintea ei și cu semnul de punctuație de după (.nwg, făcut în js/parcurs/lib.js glue)
+   - numărul mixt (întreg + fracție) e o singură unitate (.mx); o expresie de calcul nu se rupe la jumătate (.mt)
+   ============================================================ */
+.mt, .nwg, .mx { white-space: nowrap; }
+.mx { display: inline-flex; align-items: center; vertical-align: middle; gap: 0.08em; }
+.mx > .fr { margin: 0 0.1em; top: 0; }
+.lz-board .lz-row { display: block; text-align: center; line-height: 1.65; gap: 0; padding: 0 2px; }
+.lz-board .lz-row .fr { vertical-align: middle; }
+.lz-board .lz-row.txt { font-size: clamp(1.02rem, 4.2vw, 1.25rem); font-weight: 700; line-height: 1.6; color: var(--pm-ink); }
+.lz-board .lz-row.txt .mt, .lz-board .lz-row.txt .fr, .lz-board .lz-row.txt .mx { font-size: 1.12em; }
+.lz-board .lz-row.lbl { font-size: 1.02rem; font-weight: 800; color: var(--pm-key-ink); margin-top: 8px; padding: 0 4px; text-align: left; line-height: 1.5; }
+.lz-board .lz-row.lbl .mt, .lz-board .lz-row.lbl .fr, .lz-board .lz-row.lbl .mx { font-size: 1.08em; }
+.lz-board .lz-row.lbl:first-child { margin-top: 0; }
+.lz-bubble, .lz-learn p { overflow-wrap: break-word; }

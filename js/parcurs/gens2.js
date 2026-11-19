@@ -229,8 +229,8 @@
     var whole = digs.slice(0, wl).join(''), dec = digs.slice(wl).join(''), shown = whole + ',' + dec;
     var opts = []; for (var e = wl - 1; e >= 1; e--) opts.push(e); opts.push(0); for (var k = 1; k <= pl; k++) opts.push(-k);
     var pos = R.pick(opts), digit = pos >= 0 ? +whole[wl - 1 - pos] : +dec[-pos - 1];
-    return { t: 'num', q: R.pick(['Care este cifra ' + DPLACE[pos] + ' a numărului ' + shown + ' ?', 'În numărul ' + shown + ', ce cifră stă la ' + DPLACE[pos] + ' ?']), a: F(digit), form: 'int',
-      why: 'În ' + shown + ' avem: ' + whole.split('').map(function (c, i) { return c + ' ' + DPLACE[wl - 1 - i]; }).join(', ') + ', ' + dec.split('').map(function (c, i) { return c + ' ' + DPLACE[-(i + 1)]; }).join(', ') + '. Cifra ' + DPLACE[pos] + ' este ' + digit + '.', hint: 'Mergi din virgulă: întâi zecimi, apoi sutimi, apoi miimi. Spre stânga: unități, zeci.' };
+    return { t: 'num', q: R.pick(['Care este cifra ' + DPLACE[pos] + ' din numărul ' + shown + '?', 'În numărul ' + shown + ', care este cifra ' + DPLACE[pos] + '?']), a: F(digit), form: 'int',
+      why: 'În ' + shown + ': ' + whole.split('').map(function (c, i) { return 'cifra ' + DPLACE[wl - 1 - i] + ' este ' + c; }).join(', ') + ', ' + dec.split('').map(function (c, i) { return 'cifra ' + DPLACE[-(i + 1)] + ' este ' + c; }).join(', ') + '. Deci cifra ' + DPLACE[pos] + ' este ' + digit + '.', hint: 'Mergi din virgulă: întâi zecimi, apoi sutimi, apoi miimi. Spre stânga: unități, zeci.' };
   };
 
   /* ---------- zecimale periodice: perioada, tipul, citirea ---------- */
