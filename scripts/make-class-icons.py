@@ -2,7 +2,7 @@
 """Iconitele paginii unei clase, in limbajul bufnitei (o muchie solida mai inchisa sub fiecare forma):
 lectie.svg (Urmatoarea lectie), teme.svg, simulari.svg si matematica.svg (disciplina Matematica) in assets/images/class/.
 Foloseste uneltele din scripts/make-admin-icons.py. Rulare din radacina: python3 scripts/make-class-icons.py"""
-import os
+import os, math
 here = os.path.dirname(__file__)
 src = open(os.path.join(here, 'make-admin-icons.py'), encoding='utf-8').read()
 exec(src[:src.index('I = {}')])
@@ -84,6 +84,100 @@ nivel = svg(
     fill('<rect x="46.5" y="16" width="3" height="20" rx="1.5"/>', '#FFF1B8') +
     spark(15, 20, VL) + spark(33, 11, LAV, 0.8))
 
-for name, body in (('lectie', lectie), ('nivel', nivel), ('teme', teme), ('simulari', simulari), ('matematica', mat), ('plus', plus), ('sablon', sablon)):
+# ---- Pulsul grupei, cardul clasei, mesaje si tipurile de teme (2026-11-19) ----
+def star(cx, cy, R, r, color):
+    pts = []
+    for i in range(10):
+        a = -math.pi / 2 + i * math.pi / 5
+        rr = R if i % 2 == 0 else r
+        pts.append('%.2f,%.2f' % (cx + rr * math.cos(a), cy + rr * math.sin(a)))
+    return '<polygon points="%s" fill="%s" stroke="%s" stroke-width="1.6" stroke-linejoin="round"/>' % (' '.join(pts), color, color)
+
+def bust(cx, cy, head, body, edge, hc=GOLD, he=GOLDE):
+    """a person: a round head and a rounded body, both with their solid edge"""
+    return (sh('<path d="M%g %gv-2a%g %g 0 0 1 %g 0v2Z"/>' % (cx - 11, cy + 22, 11, 11, 22), body, edge, 2) +
+            sh('<circle cx="%g" cy="%g" r="6.6"/>' % (cx, cy + 4), hc, he, 2))
+
+# Prezenta medie: a roster sheet with two people rows and a lime check badge
+prezenta = svg(
+    sh('<rect x="8" y="9" width="42" height="49" rx="9"/>', WH, WHE) +
+    sh('<rect x="19" y="4" width="20" height="11" rx="4.5"/>', V2, VE, 2) + fill('<circle cx="29" cy="9.5" r="2"/>', VL) +
+    ''.join(fill('<circle cx="18" cy="%g" r="3.8"/>' % y, c) + line('M26 %gh16' % y, LAV, 3.6) for y, c in [(26, GOLD), (38, V3), (50, GOLD)]) +
+    sh('<circle cx="47" cy="45" r="13"/>', LIME, LIMEE, 3) +
+    line('M40.5 45l5 5L54 40', '#fff', 4.4) + spark(55, 9, VL))
+
+# Media elevilor pe ora: a clock behind two people
+elevi_ora = svg(
+    sh('<circle cx="40" cy="27" r="21"/>', V2, VE) +
+    fill('<circle cx="40" cy="27" r="16.2"/>', WH) +
+    ''.join(fill('<rect x="%g" y="%g" width="%g" height="%g" rx="1.2"/>' % r, VL) for r in [(38.8, 13, 2.4, 4.2), (38.8, 37.8, 2.4, 4.2), (26, 25.8, 4.2, 2.4), (49.8, 25.8, 4.2, 2.4)]) +
+    line('M40 27V17', V1, 3.6) + line('M40 27L47 31', ORG, 3.6) + fill('<circle cx="40" cy="27" r="2.8"/>', V1) +
+    bust(12, 32, 0, V2, VE) + bust(32, 36, 0, LIME, LIMEE) + spark(9, 15, VL, 0.8))
+
+# Medie clasa: a report sheet with three bars and a gold star badge
+medie = svg(
+    sh('<rect x="7" y="10" width="44" height="48" rx="9"/>', WH, WHE) +
+    sh('<rect x="12" y="41" width="8" height="12" rx="3"/>', V3, VE, 2) +
+    sh('<rect x="23" y="33" width="8" height="20" rx="3"/>', LIME, LIMEE, 2) +
+    sh('<rect x="34" y="26" width="8" height="27" rx="3"/>', GOLD, GOLDE, 2) +
+    sh('<circle cx="50" cy="14" r="11.5"/>', ORG, ORGE, 3) + star(50, 14, 7, 3.2, '#fff') + spark(10, 7, VL))
+
+# Marime grupa: three people in a row, the middle one in front
+marime = svg(
+    bust(14, 22, 0, LIME, LIMEE) + bust(50, 22, 0, ORG, ORGE) + bust(32, 20, 0, V2, VE) + spark(55, 8, VL, 0.9))
+
+# Format: a building (offline) behind a monitor (online)
+format_ = svg(
+    sh('<rect x="6" y="20" width="26" height="38" rx="5"/>', WH, WHE) +
+    ''.join(fill('<rect x="%g" y="%g" width="5" height="5" rx="1.5"/>' % (x, y), c) for x, y, c in [(11, 26, GOLD), (21, 26, V3), (11, 36, V3), (21, 36, GOLD)]) +
+    fill('<rect x="14" y="47" width="10" height="11" rx="2.5"/>', V2) +
+    sh('<rect x="26" y="9" width="35" height="25" rx="6"/>', V2, VE) +
+    fill('<rect x="30" y="13" width="27" height="17" rx="3"/>', V1) +
+    fill('<path d="M39 17.5L48 21.5L39 25.5Z"/>', LIME) +
+    sh('<rect x="38" y="38" width="12" height="5" rx="2"/>', LAV, '#A99AD2', 2) + spark(58, 44, VL))
+
+# Mesaje: a violet chat bubble with three lines, a lime bubble behind
+mesaje = svg(
+    sh('<path d="M34 34a7 7 0 0 1 7-7h13a7 7 0 0 1 7 7v10a7 7 0 0 1-7 7h-1v8l-8-8h-4a7 7 0 0 1-7-7Z"/>', LIME, LIMEE) +
+    sh('<path d="M6 15a8 8 0 0 1 8-8h26a8 8 0 0 1 8 8v19a8 8 0 0 1-8 8H27L16 52v-10h-2a8 8 0 0 1-8-8Z"/>', V2, VE) +
+    line('M15 17h24', '#fff', 3.8) + line('M15 25h24', VL, 3.8) + line('M15 33h13', VL, 3.8) + spark(56, 10, VL))
+
+# Tip tema: text, a sheet with a big T and two lines
+tip_text = svg(
+    sh('<rect x="10" y="5" width="44" height="54" rx="9"/>', WH, WHE) +
+    line('M20 19H44', V2, 6) + line('M32 19V37', V2, 6) +
+    line('M19 46H45', LAV, 3.8) + line('M19 53H35', LAV, 3.8) + spark(55, 8, VL))
+
+# Tip tema: PDF, a sheet with a folded corner and an orange band
+def letters():
+    g = ('<g fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" transform="translate(17.5 40.5)">'
+         '<path d="M0 0v9M0 0h4a2.9 2.9 0 0 1 0 5.8H0"/>'
+         '<path d="M10.5 0v9h2.2a4.5 4.5 0 0 0 0-9Z"/>'
+         '<path d="M22 9V0h5.6M22 4.4h4.3"/></g>')
+    return g
+tip_pdf = svg(
+    sh('<path d="M14 5h24l14 14v33a7 7 0 0 1-7 7H14a7 7 0 0 1-7-7V12a7 7 0 0 1 7-7Z"/>', WH, WHE) +
+    fill('<path d="M38 5l14 14H44a6 6 0 0 1-6-6Z"/>', LAV) +
+    sh('<rect x="12" y="33" width="38" height="20" rx="5"/>', ORG, ORGE, 2) + letters() +
+    line('M15 20h14', LAV, 3.6) + line('M15 27h9', LAV, 3.6) + spark(56, 8, VL))
+
+# Tip tema: images, a framed picture with a sun and two hills
+tip_imagini = svg(
+    '<defs><clipPath id="im"><rect x="9" y="12" width="46" height="40" rx="8"/></clipPath></defs>' +
+    sh('<rect x="7" y="10" width="50" height="44" rx="10"/>', WH, WHE) +
+    '<g clip-path="url(#im)">' + fill('<rect x="9" y="12" width="46" height="40" rx="8"/>', '#D9CDF3') +
+    fill('<circle cx="42" cy="25" r="6.5"/>', GOLD) +
+    fill('<path d="M5 56L22 31L38 56Z"/>', V3) + fill('<path d="M24 56L41 38L60 56Z"/>', LIME) + '</g>' + spark(55, 8, VL))
+
+# Tip tema: AI import, a robot head with an antenna and two sparks
+tip_ai = svg(
+    line('M32 12V6', V1, 3.4) + sh('<circle cx="32" cy="6" r="4"/>', LIME, LIMEE, 2) +
+    sh('<rect x="3" y="28" width="7" height="14" rx="3.5"/>', GOLD, GOLDE, 2) + sh('<rect x="54" y="28" width="7" height="14" rx="3.5"/>', GOLD, GOLDE, 2) +
+    sh('<rect x="9" y="13" width="46" height="40" rx="14"/>', V2, VE) +
+    fill('<rect x="14" y="20" width="36" height="26" rx="9"/>', V1) +
+    fill('<circle cx="24" cy="32" r="4.4"/>', LIME) + fill('<circle cx="40" cy="32" r="4.4"/>', LIME) +
+    line('M26 41h12', VL, 3) + spark(56, 10, '#FFF1B8', 0.9) + spark(8, 56, VL, 0.8))
+
+for name, body in (('lectie', lectie), ('nivel', nivel), ('teme', teme), ('simulari', simulari), ('matematica', mat), ('plus', plus), ('sablon', sablon), ('prezenta', prezenta), ('elevi-ora', elevi_ora), ('medie', medie), ('marime', marime), ('format', format_), ('mesaje', mesaje), ('tip-text', tip_text), ('tip-pdf', tip_pdf), ('tip-imagini', tip_imagini), ('tip-ai', tip_ai)):
     open(os.path.join(OUT, name + '.svg'), 'w', encoding='utf-8').write(body)
     print(name + '.svg')

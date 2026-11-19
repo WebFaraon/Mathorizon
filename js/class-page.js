@@ -35,7 +35,7 @@
   // your own progress for a student — so its tab label is role-aware even
   // though the id/hash stays "membri" for routing.
   /* illustrated icons of the class page (assets/images/class/*.svg, made by scripts/make-class-icons.py) */
-  const crIco = (name, px) => `<img class="cr-ico cr-ico--${name}" src="assets/images/class/${name}.svg" alt="" width="${px}" height="${px}">`;
+  const crIco = (name, px) => `<img class="cr-ico cr-ico--${name.replace('/', '-')}" src="assets/images/${name.indexOf('/') > -1 ? name : 'class/' + name}.svg" alt="" width="${px}" height="${px}">`;
 
   function _tabLabel(t) {
     if (t.id === 'membri') return BMAuth.role === 'profesor' ? 'Catalog' : 'Cabinet Personal';
@@ -1506,7 +1506,7 @@
     return `
       <div class="sumar-kpibar">
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('users', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('admin/elevi', 46)}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${shown}${maxEl ? ' / ' + maxEl : ''}</div>
             <div class="sumar-kpi-card__lbl">Elevi</div>
@@ -1514,7 +1514,7 @@
           </div>
         </div>
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('circle-check', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('prezenta', 46)}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val${attTier ? ' catalog-td--tone-' + attTier : ''}">${attendance.classRate != null ? attendance.classRate + '%' : '-'}</div>
             <div class="sumar-kpi-card__lbl">Prezență medie</div>
@@ -1522,7 +1522,7 @@
           </div>
         </div>
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--green">${icon('trending-up', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('elevi-ora', 46)}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${avgPresent != null ? avgPresent.toFixed(2) : '-'}</div>
             <div class="sumar-kpi-card__lbl">Media elevilor / oră</div>
@@ -1530,7 +1530,7 @@
           </div>
         </div>
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--yellow">${icon('chart-column', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('medie', 46)}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val${gradeTier ? ' catalog-td--tone-' + gradeTier : ''}">${stats.classAvg || '-'}</div>
             <div class="sumar-kpi-card__lbl">Medie clasă</div>
@@ -1538,7 +1538,7 @@
           </div>
         </div>
         <div class="sumar-kpi-card">
-          <span class="sumar-icon-badge sumar-icon-badge--blue">${icon('clipboard-list', { size: 18 })}</span>
+          <span class="sumar-icon-badge sumar-icon-badge--pic">${crIco('tabs/clase', 46)}</span>
           <div class="sumar-kpi-card__body">
             <div class="sumar-kpi-card__val">${lessons.count}</div>
             <div class="sumar-kpi-card__lbl">Lecții ținute</div>
@@ -1780,7 +1780,7 @@
     container.innerHTML = `
       <div class="msg-panel">
         <div class="msg-panel__header">
-          <span class="msg-panel__header-title">${icon('message-circle', { size: 16 })} Mesaje</span>
+          <span class="msg-panel__header-title">${crIco('mesaje', 30)} Mesaje</span>
           <div class="msg-panel__header-actions">
             <button class="icon-btn" id="fluxFullscreenBtn" title="Ecran complet">${icon('maximize', { size: 16 })}</button>
           </div>
@@ -2210,12 +2210,12 @@
   ═══════════════════════════════════════════════════════════════ */
 
   const WZ_TYPES = [
-    { id: 'text',      icon: icon('file-text', { size: 24 }), label: 'Text',           desc: 'Instrucțiuni, explicații' },
-    { id: 'pdf',       icon: icon('file', { size: 24 }),      label: 'PDF / Document',  desc: 'Fișă, manual, referat' },
-    { id: 'image',     icon: icon('image', { size: 24 }),     label: 'Imagini',         desc: 'Poze, scheme, diagrame' },
-    { id: 'link',      icon: icon('link', { size: 24 }),      label: 'Link extern',     desc: 'Site, articol, resursă' },
-    { id: 'exercise',  icon: icon('library', { size: 24 }),   label: 'Exerciții',       desc: 'Din culegere, doar enunț' },
-    { id: 'ai_import', icon: icon('bot', { size: 24 }),       label: 'Import AI',       desc: 'Din poză sau PDF', soon: true },
+    { id: 'text',      icon: crIco('tip-text', 52), label: 'Text',           desc: 'Instrucțiuni, explicații' },
+    { id: 'pdf',       icon: crIco('tip-pdf', 52),      label: 'PDF / Document',  desc: 'Fișă, manual, referat' },
+    { id: 'image',     icon: crIco('tip-imagini', 52),     label: 'Imagini',         desc: 'Poze, scheme, diagrame' },
+    { id: 'link',      icon: crIco('profile/link', 52),      label: 'Link extern',     desc: 'Site, articol, resursă' },
+    { id: 'exercise',  icon: crIco('admin/culegeri', 52),   label: 'Exerciții',       desc: 'Din culegere, doar enunț' },
+    { id: 'ai_import', icon: crIco('tip-ai', 52),       label: 'Import AI',       desc: 'Din poză sau PDF', soon: true },
   ];
 
   async function loadTemeTab() {
@@ -2536,24 +2536,24 @@
       <div class="cd-info-card__details">
         ${grade ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">${icon('graduation-cap', { size: 16 })}</span>
+          <span class="cd-info-card__detail-icon">${crIco('roles/elev', 34)}</span>
           <span class="cd-info-card__detail-lbl">Clasa</span>
           <span class="cd-info-card__detail-val">${BM.esc(grade)}</span>
         </div>` : ''}
         ${maxEl ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">${icon('users', { size: 16 })}</span>
+          <span class="cd-info-card__detail-icon">${crIco('marime', 34)}</span>
           <span class="cd-info-card__detail-lbl">Mărime grupă</span>
           <span class="cd-info-card__detail-val">${maxEl === 1 ? 'Individual' : `${maxEl} elevi`}</span>
         </div>` : ''}
         ${classData.lesson_type ? `
         <div class="cd-info-card__detail">
-          <span class="cd-info-card__detail-icon">${icon(classData.lesson_type === 'online' ? 'monitor' : 'school', { size: 16 })}</span>
+          <span class="cd-info-card__detail-icon">${crIco('format', 34)}</span>
           <span class="cd-info-card__detail-lbl">Format</span>
           <span class="cd-info-card__detail-val">${classData.lesson_type === 'online' ? 'Online' : 'Offline'}</span>
         </div>` : ''}
         <div class="cd-info-card__detail cd-info-card__detail--clickable" id="nivelDetailRow" title="Click pentru a schimba nivelul grupei">
-          <span class="cd-info-card__detail-icon">${icon('chart-column', { size: 16 })}</span>
+          <span class="cd-info-card__detail-icon">${crIco('nivel', 34)}</span>
           <span class="cd-info-card__detail-lbl">Nivel</span>
           ${lvl
             ? `<span class="cd-level-badge ${lvl.cls}">${BM.esc(classData.math_level)}</span>`

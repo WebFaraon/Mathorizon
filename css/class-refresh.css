@@ -846,3 +846,20 @@ html body.pm:has(#classRoot) #nivelModal #nivelSaveBtn:active:not(:disabled) { t
   html body.pm:has(#classRoot) .wb-history .csim-card__actions .wb-view-btn { flex: 1 1 auto; justify-content: center; min-height: 42px; height: 42px; }
   html body.pm:has(#classRoot) .wb-history .csim-card__actions .teme-assignment__delete { flex: none; width: 42px; height: 42px; min-width: 42px; }
 }
+
+/* ---- iconite ilustrate: Pulsul grupei, cardul clasei, Mesaje, tipurile de teme (2026-11-19) ---- */
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-icon-badge--pic { width: 52px; height: 52px; border: 0; background: none; box-shadow: none; border-radius: 0; margin: -4px 0 0 -4px; }
+html body.pm:has(#classRoot) .sumar-kpi-card .sumar-icon-badge--pic .cr-ico { width: 52px; height: 52px; }
+html body.pm:has(#classRoot) .cd-info-card__detail-icon { display: inline-flex; align-items: center; justify-content: center; width: 34px; height: 34px; flex: none; margin: -5px 0; }
+html body.pm:has(#classRoot) .cd-info-card__detail-icon .cr-ico { width: 34px; height: 34px; }
+html body.pm:has(#classRoot) .msg-panel__header-title { display: inline-flex; align-items: center; gap: 8px; }
+html body.pm:has(#classRoot) .msg-panel__header-title .cr-ico { width: 30px; height: 30px; margin: -3px 0; }
+/* empty messages: a bigger tile and a bigger owl */
+html body.pm:has(#classRoot) .flux-empty__icon { width: 124px; height: 124px; border-radius: 30px; box-shadow: 0 6px 0 #2A1550; }
+html body.pm:has(#classRoot) .flux-empty__icon .owl { --ow: 88px; }
+[data-theme="dark"] html body.pm:has(#classRoot) .flux-empty__icon, html[data-theme="dark"] body.pm:has(#classRoot) .flux-empty__icon { box-shadow: 0 6px 0 #170C2E; }
+/* the six types of a homework */
+html body.pm:has(#classRoot) .wz-type-card__icon { display: flex; align-items: center; justify-content: center; height: 54px; margin-bottom: 2px; }
+html body.pm:has(#classRoot) .wz-type-card__icon .cr-ico { width: 52px; height: 52px; transition: transform .15s ease; }
+html body.pm:has(#classRoot) .wz-type-card:not([disabled]):hover .cr-ico { transform: translateY(-2px); }
+html body.pm:has(#classRoot) .wz-type-card--soon .cr-ico { filter: grayscale(0.85); opacity: 0.55; }

@@ -722,7 +722,8 @@ html body.pm .wb-fullscreen .wb-bt.is-on {
   background: #1B0F36; border-color: rgba(255, 255, 255, 0.3); color: #fff; box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.55); transform: translateY(2px);
 }
 html body.pm .wb-fullscreen .wb-bt.is-on:hover { background: #1B0F36; border-color: rgba(255, 255, 255, 0.3); color: #fff; }
-html body.pm .wb-fullscreen .wb-bt.is-on::before { content: ''; flex: none; width: 8px; height: 8px; border-radius: 3px; background: var(--k-go, #7CB800); box-shadow: 0 0 0 2px rgba(124, 184, 0, 0.3); margin-right: -2px; }
+/* the open tab has no lime LED (it is the pressed, dark key); the activity dot of the others is hidden on it too */
+html body.pm .wb-fullscreen .wb-bt.is-on .wb-bt__dot { display: none; }
 html body.pm .wb-fullscreen .wb-bt.is-off:not(.is-on) { opacity: 1; color: #7A6B96; }
 html body.pm .wb-fullscreen .wb-bt.is-off:not(.is-on) .wb-bt__ph { opacity: 0.55; }
 html body.pm .wb-fullscreen .wb-bt__ico { width: 26px; height: 26px; }
