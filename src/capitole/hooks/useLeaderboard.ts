@@ -22,6 +22,8 @@ export interface LeaderboardState {
   rows: LeaderboardRow[];
   /** False until the RPC call has settled (success or failure). */
   ready: boolean;
+  /** True when the database call itself failed (not when the board is simply empty). */
+  failed?: boolean;
 }
 
 /** Every elev account (see supabase/migrations/..._xp_leaderboard_all_students.sql),
@@ -78,7 +80,7 @@ export function useLeaderboard(): LeaderboardState {
 
       try {
         const { data, error } = await sb.rpc('get_xp_leaderboard', { p_limit: LIMIT });
-        if (error) throw error;
+        if (error) { console.error('[leaderboard] get_xp_leaderboard failed:', error.message || error); throw error; }
         const xpPerLevel = window.BM?.Training?.XP_PER_LEVEL ?? 100;
         const rpcRows = (data ?? []) as LeaderboardRpcRow[];
         const rows: LeaderboardRow[] = rpcRows.map((row) => ({
@@ -91,11 +93,12 @@ export function useLeaderboard(): LeaderboardState {
           rank: row.rank,
           level: Math.floor(row.total_xp / xpPerLevel) + 1
         }));
+        (window as unknown as Record<string, unknown>).__bmLbFailed = false;
         if (!cancelled) setState({ rows, ready: true });
       } catch {
-        // Offline / RPC not reachable — an empty leaderboard renders as
-        // "nothing to show yet" (see LeaderboardCard), not an error banner.
-        if (!cancelled) setState({ rows: [], ready: true });
+        // Offline / RPC failed: the card says it could not load (see LeaderboardCard), not "be the first".
+        (window as unknown as Record<string, unknown>).__bmLbFailed = true;   // read by LeaderboardCard
+        if (!cancelled) setState({ rows: [], ready: true, failed: true });
       }
     };
 

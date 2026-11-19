@@ -44,7 +44,9 @@ export function LeaderboardCard({ rows, ready, currentUserId, maxRows = 2 }: Lea
 
         {rows.length === 0 ? (
           <p className="cap-leaderboard__empty">
-            Fii primul din clasament: rezolvă exerciții la Antrenament ca să câștigi XP.
+            {(window as unknown as Record<string, unknown>).__bmLbFailed
+              ? 'Clasamentul nu se poate încărca acum. Încearcă din nou puțin mai târziu.'
+              : 'Fii primul din clasament: rezolvă exerciții la Antrenament ca să câștigi XP.'}
           </p>
         ) : (
           <>
