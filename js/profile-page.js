@@ -581,11 +581,13 @@
       ['Autentificare', isGoogle ? 'Cont Google' : 'E-mail și parolă', false, 'autentificare']
     ].filter(Boolean);
 
+    const btnIco = (n, px = 24) => `<img class="pf-key__ico" src="assets/images/profile/btn-${n}.svg" alt="" width="${px}" height="${px}" decoding="async">`;
+
     const plateHTML = `
       <section class="pf-plate" aria-label="Profil">
         <div class="prof-cover pf-cover${coverUrl ? '' : ' prof-cover--placeholder'}"${coverUrl ? ` style="background-image:url('${coverUrl}')"` : ''}>
           <label class="pf-cover-edit" title="Schimbă imaginea de copertă">
-            ${icon('camera', { size: 16 })}<span>Copertă</span>
+            ${btnIco('camera', 22)}<span>Copertă</span>
             <input type="file" id="coverInput" accept="image/*" hidden>
           </label>
         </div>
@@ -597,7 +599,7 @@
                 : `<img src="${BM.DEFAULT_AVATAR}" alt="${BM.esc(name)}" class="prof-avatar-img">`}
             </div>
             <label class="pf-avatar-edit" title="Schimbă poza de profil">
-              ${icon('camera', { size: 16 })}
+              ${btnIco('camera', 22)}
               <input type="file" id="avatarInput" accept="image/*" hidden>
             </label>
           </div>
@@ -609,14 +611,14 @@
               return `<h1 class="pf-name${cn ? ' pf-name--nick' : ''}" id="pfName">${cn ? '@' + BM.esc(cn) : BM.esc(name)}</h1>` +
                 ((role === 'elev' || role === 'profesor') ? `<p class="pf-realname" id="pfRealName"${cn ? '' : ' hidden'}>${BM.esc(name)}</p>` : '');
             })()}
-            <p class="pf-role">${roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}${(role === 'elev' || role === 'profesor') ? `<span class="pf-nick" id="pfNick" hidden></span>` : ''}</p>
+            <p class="pf-role">${roleLine.led === 'green' ? `<img class="pf-tick" src="assets/images/gamification/bifa.svg" alt="" width="22" height="22" decoding="async">` : roleLine.led ? `<span class="pf-led pf-led--${roleLine.led}" aria-hidden="true"></span>` : ''}${roleLine.text}${(role === 'elev' || role === 'profesor') ? `<span class="pf-nick" id="pfNick" hidden></span>` : ''}</p>
           </div>
           <div class="pf-id__actions">
-            ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${icon('settings', { size: 16 })} Panou admin</a>` : ''}
-            ${isTeacher || isAdmin ? `<a class="pf-key" id="btnRegistry" href="#" target="_blank" rel="noopener" aria-disabled="true" hidden>${icon('book-open', { size: 16 })} Registru</a>` : ''}
-            ${isActiveTeacher ? `<a class="pf-key" href="adauga-exercitiu.html">${icon('plus', { size: 16 })} Adaugă exercițiu</a>` : ''}
-            ${isActiveTeacher ? `<button type="button" class="pf-key" id="btnWbFiles">${icon('image', { size: 16 })} Fișierele tablei</button>` : ''}
-            <button class="pf-key" id="btnEditProfile">${icon('pencil', { size: 16 })} Editează profilul</button>
+            ${isAdmin ? `<a href="admin.html" class="pf-key pf-key--primary">${btnIco('admin')} Panou admin</a>` : ''}
+            ${isTeacher || isAdmin ? `<a class="pf-key" id="btnRegistry" href="#" target="_blank" rel="noopener" aria-disabled="true" hidden>${btnIco('registru')} Registru</a>` : ''}
+            ${isActiveTeacher ? `<a class="pf-key" href="adauga-exercitiu.html">${btnIco('exercitiu')} Adaugă exercițiu</a>` : ''}
+            ${isActiveTeacher ? `<button type="button" class="pf-key" id="btnWbFiles">${btnIco('biblioteca')} Biblioteca</button>` : ''}
+            <button class="pf-key" id="btnEditProfile">${btnIco('editeaza')} Editează profilul</button>
           </div>
         </div>
         <dl class="pf-spec">
@@ -1036,11 +1038,18 @@
     /* Registru: opens the teacher's register (Google Sheets) at the tab "Total achitări". A teacher whose account is not linked to a register yet sees the button
        switched off, with the reason; an admin sees it only when his own account has one. */
     const regBtn = document.getElementById('btnRegistry');
+    /* the keys of the plate: when their count is odd the last visible one takes the whole row (a 2 x 2 grid on a phone) */
+    const balanceActions = () => {
+      const keys = [...document.querySelectorAll('.pf-id__actions > .pf-key')].filter(k => !k.hidden);
+      keys.forEach(k => k.classList.remove('is-wide'));
+      if (keys.length % 2 === 1) keys[keys.length - 1].classList.add('is-wide');
+    };
+    balanceActions();
     if (regBtn && window.ClassesRegistry) {
-      if (isTeacher) { regBtn.hidden = false; regBtn.title = 'Contul tău nu e legat încă de un registru. Spune-i administratorului.'; regBtn.addEventListener('click', e => { if (regBtn.getAttribute('aria-disabled') === 'true') e.preventDefault(); }); }
+      if (isTeacher) { regBtn.hidden = false; balanceActions(); regBtn.title = 'Contul tău nu e legat încă de un registru. Spune-i administratorului.'; regBtn.addEventListener('click', e => { if (regBtn.getAttribute('aria-disabled') === 'true') e.preventDefault(); }); }
       window.ClassesRegistry.registerUrl(sb, user.id).then(url => {
         if (!url) return;
-        regBtn.hidden = false; regBtn.href = url; regBtn.removeAttribute('aria-disabled'); regBtn.title = 'Deschide registrul tău în Google Sheets, la fila Total achitări';
+        regBtn.hidden = false; balanceActions(); regBtn.href = url; regBtn.removeAttribute('aria-disabled'); regBtn.title = 'Deschide registrul tău în Google Sheets, la fila Total achitări';
       });
     }
 

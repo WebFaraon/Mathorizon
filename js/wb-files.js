@@ -75,10 +75,10 @@
     var root = document.createElement('div');
     root.className = 'wbf';
     root.innerHTML =
-      '<div class="wbf__card" role="dialog" aria-modal="true" aria-label="Fișierele mele">' +
+      '<div class="wbf__card" role="dialog" aria-modal="true" aria-label="Biblioteca">' +
         '<div class="wbf__head">' +
           '<button type="button" class="wbf__back" id="wbfBack" hidden aria-label="Înapoi la fișiere">' + ico('chevron-left', 20) + '</button>' +
-          '<div class="wbf__title"><h2 id="wbfTitle">Fișierele mele</h2><p id="wbfSub">Imagini și PDF-uri pentru tablă</p></div>' +
+          '<div class="wbf__title"><h2 id="wbfTitle">Biblioteca</h2><p id="wbfSub">Imagini și PDF-uri pentru tablă</p></div>' +
           '<button type="button" class="wbf__x" id="wbfClose" aria-label="Închide">' + ico('x', 18) + '</button>' +
         '</div>' +
         '<div class="wbf__body" id="wbfBody"></div>' +
@@ -122,7 +122,7 @@
     function showList() {
       pdfDoc = null; pdfFile = null; picked = new Set();
       backBtn.hidden = true; foot.hidden = true;
-      titleEl.textContent = 'Fișierele mele';
+      titleEl.textContent = 'Biblioteca';
       subEl.textContent = insertMode ? 'Alege ce pui pe tablă, sau încarcă un fișier nou' : 'Imagini și PDF-uri pe care le poți pune pe tablă';
       body.innerHTML = '<div class="wbf__bar">' +
           '<button type="button" class="wbf__go" id="wbfUp"><img class="wbf__plus" src="assets/images/class/plus.svg" alt=""><span>Încarcă fișiere</span></button>' +
