@@ -2054,7 +2054,7 @@
     var ov = Math.max(OVERSCAN_MIN, Math.min(OVERSCAN, Math.sqrt(LAYER_PIXEL_BUDGET / Math.max(1, vpPx)) - 1));
     this._cw = Math.ceil(vw * (1 + ov));
     this._ch = Math.ceil(vh * (1 + ov));
-    [[this._layA, this._cw, this._ch], [this._layB, this._cw, this._ch], [this._overlayEl, vw, vh]].forEach(function (a) {
+    [[this._layA, this._cw, this._ch], [this._layB, this._cw, this._ch], [this._gridEl, vw, vh], [this._overlayEl, vw, vh]].forEach(function (a) {
       var el = a[0];
       el.style.width  = a[1] + 'px';
       el.style.height = a[2] + 'px';
@@ -2136,35 +2136,157 @@
       wrap.insertBefore(c, self._overlayEl);
       return c;
     }
-    this._layA = mk(1); this._layB = mk(0);
+    this._layA = mk(2); this._layB = mk(1);
     this._layB.style.display = 'none';
     this._front = this._layA; this._ghost = this._layB; this._ghostOn = false;
     this._tl = null; this._grend = null;
     this._queue = []; this._qset = new Set(); this._tilePool = [];
-    if (this._gridEl) this._gridEl.style.display = 'none';
+    if (this._gridEl) { this._gridEl.style.cssText = 'position:absolute;left:0;top:0;right:auto;bottom:auto;z-index:3;pointer-events:none;'; }
+    this._overlayEl.style.zIndex = '4';
     var wEl = this._fabricCanvas && this._fabricCanvas.wrapperEl;
     if (wEl) wEl.style.display = 'none';
   };
 
-  // the paint level for scale ps: grid steps and their opacities are fixed for it
-  Whiteboard.prototype._tlMake = function (ps) {
-    var steps = [niceGridStep((this._gridTargetPx || 32) / ps)];
-    for (var i = 1; i < GRID_MAX_LEVELS; i++) {
-      var nextStep = steps[i - 1] / MINOR_GRID_SUBDIVISIONS;
-      if (nextStep * ps < MINOR_GRID_FADE_MIN_PX) break;
-      steps.push(nextStep);
+
+  /* The overview (2026-11-21): a small bitmap of ALL the ink on the board, at low resolution (at most OV_MAX pixels a side), always kept complete and
+     shown under the tile layers. It is what you see wherever the sharp tiles have not been painted yet: after a fast zoom out the old layer shrinks
+     into a rectangle and the rest of the screen would be empty until tiles arrive, now it shows the whole board, blurry, at once (the way iDroo always
+     shows everything). It follows the camera with a CSS transform only. It is built a few objects per frame, and kept up to date: a new object is
+     painted onto it, a change repaints the box it touched, anything bigger rebuilds it (the old one stays on screen until the new one is ready). */
+  var OV_MAX = 2560;      // pixels per side of the overview bitmap
+  var OV_MAX_S = 2;       // ...and never more than this many pixels per board unit
+  var OV_HIDE_K = 8;      // when the screen scale is this many times the overview's, the tiles are certainly there and the blurry picture is hidden
+
+  Whiteboard.prototype._ovBounds = function () {
+    var list = this._fabricCanvas._objects, u = null;
+    for (var i = 0; i < list.length; i++) {
+      var b = objBox(list[i]);
+      if (!u) u = { x0: b.x0, y0: b.y0, x1: b.x1, y1: b.y1 };
+      else { if (b.x0 < u.x0) u.x0 = b.x0; if (b.y0 < u.y0) u.y0 = b.y0; if (b.x1 > u.x1) u.x1 = b.x1; if (b.y1 > u.y1) u.y1 = b.y1; }
     }
-    var ops = steps.map(function (step, lvl) {
-      if (lvl === 0) return MAJOR_GRID_OPACITY;
-      var t = Math.max(0, Math.min(1, (step * ps - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX)));
-      return MINOR_GRID_OPACITY * t;
-    });
-    return { ps: ps, S: ps * this._dpr, tiles: new Map(), steps: steps, ops: ops, gridOn: !!this._gridOn };
+    if (!u) return null;
+    var pad = 24;
+    u.x0 = Math.max(WORLD.x0, u.x0 - pad); u.y0 = Math.max(WORLD.y0, u.y0 - pad); u.x1 = Math.min(WORLD.x1, u.x1 + pad); u.y1 = Math.min(WORLD.y1, u.y1 + pad);
+    if (u.x1 - u.x0 < 60) u.x1 = u.x0 + 60;
+    if (u.y1 - u.y0 < 60) u.y1 = u.y0 + 60;
+    return u;
+  };
+
+  // does a layer, as it is stretched now, cover the whole viewport?
+  Whiteboard.prototype._layerCovers = function (r) {
+    if (!r) return false;
+    var x = xfFor(r, this._scale, this._panX, this._panY);
+    var l = r.ox + x.tx, t = r.oy + x.ty;
+    return l <= 0.5 && t <= 0.5 && l + x.k * this._cw >= this._viewportW - 0.5 && t + x.k * this._ch >= this._viewportH - 0.5;
+  };
+
+  Whiteboard.prototype._ovXf = function () {
+    var ov = this._ov;
+    if (!ov) return;
+    var k = this._scale / ov.s;
+    // the blurry picture is only needed where the sharp layers have a hole: when the front layer covers the viewport and is complete (or the ghost
+    // under it covers the viewport while it fills in) it is hidden, which also saves the browser a layer to composite
+    var covered = this._layerCovers(this._rend) && (!this._queue.length || (this._ghostOn && this._layerCovers(this._grend)));
+    if (k > OV_HIDE_K || covered) { ov.cv.style.display = 'none'; return; }
+    ov.cv.style.display = '';
+    ov.cv.style.transform = 'matrix(' + k + ',0,0,' + k + ',' + (this._panX + ov.x0 * this._scale) + ',' + (this._panY + ov.y0 * this._scale) + ')';
+  };
+
+  Whiteboard.prototype._ovSwap = function (ov) {
+    var old = this._ov;
+    if (old && old.cv.parentNode) old.cv.parentNode.removeChild(old.cv);
+    this._ov = ov;
+    if (!ov) return;
+    var c = ov.cv;
+    c.className = 'wb-ov-canvas';
+    c.style.cssText = 'position:absolute;left:0;top:0;right:auto;bottom:auto;z-index:0;pointer-events:none;transform-origin:0 0;width:' + ov.w + 'px;height:' + ov.h + 'px;';
+    this._canvasWrap.insertBefore(c, this._layA);
+    this._ovXf();
+  };
+
+  // Builds the overview from scratch, a few objects per frame; a newer call replaces one that is still running.
+  Whiteboard.prototype._ovBuild = function () {
+    if (this._destroyed || this._bg) return;
+    var self = this, b = this._ovBounds();
+    var job = this._ovJob = {};
+    this._ovBuilding = job;
+    if (!b) { this._ovBuilding = null; this._ovSwap(null); return; }
+    var w = b.x1 - b.x0, h = b.y1 - b.y0, s = Math.min(OV_MAX / w, OV_MAX / h, OV_MAX_S);
+    var cv = document.createElement('canvas');
+    cv.width = Math.max(1, Math.ceil(w * s)); cv.height = Math.max(1, Math.ceil(h * s));
+    var ctx = cv.getContext('2d');
+    ctx.setTransform(s, 0, 0, s, -b.x0 * s, -b.y0 * s);
+    var list = this._fabricCanvas._objects.slice(), i = 0, board = this._board;
+    function slice() {
+      if (self._destroyed || self._ovJob !== job || self._board !== board) return;
+      var t0 = performance.now();
+      while (i < list.length) {
+        var o = list[i++];
+        if (o.visible && boxesTouch(objBox(o), b)) self._tlPaintObj(ctx, o, s);
+        if ((i & 7) === 0 && performance.now() - t0 > 5) break;
+      }
+      if (i < list.length) requestAnimationFrame(slice);
+      else { self._ovBuilding = null; self._ovSwap({ cv: cv, x0: b.x0, y0: b.y0, x1: b.x1, y1: b.y1, s: s, w: cv.width, h: cv.height }); }
+    }
+    slice();
+  };
+
+  // Rebuild soon (debounced: a burst of changes, or rows arriving while a board loads, start it once).
+  Whiteboard.prototype._ovInvalidateAll = function () {
+    if (this._destroyed) return;
+    var self = this;
+    this._ovJob = {}; this._ovBuilding = null;   // a build in progress is out of date
+    clearTimeout(this._ovTimer);
+    this._ovTimer = setTimeout(function () { self._ovTimer = null; self._ovBuild(); }, 160);
+  };
+
+  Whiteboard.prototype._ovClear = function () {
+    clearTimeout(this._ovTimer); this._ovTimer = null; this._ovJob = {}; this._ovBuilding = null;
+    this._ovSwap(null);
+  };
+
+  // A change inside these board boxes: repaint that part of the overview (or rebuild it when the change is large).
+  Whiteboard.prototype._ovRegion = function (boxes) {
+    var ov = this._ov;
+    if (this._bg || this._ovTimer) return;               // a rebuild is already coming
+    if (this._ovBuilding) { this._ovInvalidateAll(); return; }   // it would miss this change: start over
+    if (!ov) return;
+    var u = unionBoxes(boxes), s = ov.s;
+    if (u.x0 < ov.x0 || u.y0 < ov.y0 || u.x1 > ov.x1 || u.y1 > ov.y1) { this._ovInvalidateAll(); return; }   // grew past the picture
+    if ((u.x1 - u.x0) * (u.y1 - u.y0) > (ov.x1 - ov.x0) * (ov.y1 - ov.y0) * 0.3) { this._ovInvalidateAll(); return; }
+    var ctx = ov.cv.getContext('2d'), list = this._fabricCanvas._objects;
+    var rx = Math.floor((u.x0 - ov.x0) * s) - 1, ry = Math.floor((u.y0 - ov.y0) * s) - 1, rw = Math.ceil((u.x1 - u.x0) * s) + 3, rh = Math.ceil((u.y1 - u.y0) * s) + 3;
+    var reg = { x0: ov.x0 + rx / s, y0: ov.y0 + ry / s, x1: ov.x0 + (rx + rw) / s, y1: ov.y0 + (ry + rh) / s };
+    ctx.save();
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.beginPath(); ctx.rect(rx, ry, rw, rh); ctx.clip();
+    ctx.clearRect(rx, ry, rw, rh);
+    ctx.setTransform(s, 0, 0, s, -ov.x0 * s, -ov.y0 * s);
+    for (var i = 0; i < list.length; i++) { var o = list[i]; if (o.visible && boxesTouch(objBox(o), reg)) this._tlPaintObj(ctx, o, s); }
+    ctx.restore();
+  };
+
+  // A new object goes on top: painted onto the overview, or the overview is rebuilt when the object lies outside it.
+  Whiteboard.prototype._ovAdd = function (obj) {
+    var ov = this._ov;
+    if (this._bg || this._ovTimer) return;
+    if (this._ovBuilding) { this._ovInvalidateAll(); return; }
+    var b = objBox(obj);
+    if (!ov || b.x0 < ov.x0 || b.y0 < ov.y0 || b.x1 > ov.x1 || b.y1 > ov.y1) { this._ovInvalidateAll(); return; }
+    var ctx = ov.cv.getContext('2d');
+    ctx.setTransform(ov.s, 0, 0, ov.s, -ov.x0 * ov.s, -ov.y0 * ov.s);
+    this._tlPaintObj(ctx, obj, ov.s);
+  };
+
+  // a paint level: the scale the tiles are painted at
+  Whiteboard.prototype._tlMake = function (ps) {
+    return { ps: ps, S: ps * this._dpr, tiles: new Map() };
   };
 
   // Everything forgotten and composed again around the camera (first paint, resize, another board). No ghost: there is nothing to show under it.
   Whiteboard.prototype._tlReset = function () {
     clearTimeout(this._gestureTimer);
+    if (this._ovFor !== this._board) { this._ovFor = this._board; this._ovClear(); this._ovInvalidateAll(); }   // another board: its own overview
     this._gestureXform = false;
     this._queue = []; this._qset = new Set();
     this._ghostOn = false; this._grend = null;
@@ -2187,6 +2309,7 @@
   Whiteboard.prototype._applyXforms = function () {
     if (this._rend) setXf(this._front, xfFor(this._rend, this._scale, this._panX, this._panY));
     if (this._ghostOn && this._grend) setXf(this._ghost, xfFor(this._grend, this._scale, this._panX, this._panY));
+    this._ovXf();
   };
 
   // The range of tiles (at the current level) under the front layer.
@@ -2210,7 +2333,7 @@
       this._tlFlattenGhost();
       var tmp = this._front; this._front = this._ghost; this._ghost = tmp;
       this._grend = this._rend; this._ghostOn = true;
-      this._ghost.style.zIndex = 0; this._ghost.style.display = '';
+      this._ghost.style.zIndex = 1; this._ghost.style.display = '';
     }
     if (newLevel) {
       var old = this._tl;
@@ -2226,7 +2349,7 @@
     var ox = -Math.round(mx * dpr) / dpr, oy = -Math.round(my * dpr) / dpr;
     this._rend = { scale: tl.ps, panX: this._panX, panY: this._panY, ox: ox, oy: oy, vw: vw, vh: vh, dpr: dpr };
     var f = this._front;
-    f.style.zIndex = 1; f.style.display = '';
+    f.style.zIndex = 2; f.style.display = '';
     f.style.left = ox + 'px'; f.style.top = oy + 'px';
     var ctx = f.getContext('2d');
     ctx.setTransform(1, 0, 0, 1, 0, 0);
@@ -2260,10 +2383,11 @@
   };
 
   Whiteboard.prototype._tlDrained = function () {
-    if (!this._ghostOn) return;
+    if (!this._ghostOn) { this._ovXf(); return; }
     this._ghostOn = false; this._grend = null;
     this._ghost.style.display = 'none';
     this._ghost.style.transform = '';
+    this._ovXf();
     var c = this._ghost.getContext('2d');
     c.setTransform(1, 0, 0, 1, 0, 0); c.clearRect(0, 0, this._ghost.width, this._ghost.height);
   };
@@ -2273,6 +2397,7 @@
     if (this._qset.has(key)) return;
     this._qset.add(key);
     this._queue.push({ tx: tx, ty: ty });
+    if (this._queue.length === 1) this._ovXf();     // tiles are missing now: the overview may be needed
     this._tlKick();
   };
   Whiteboard.prototype._tlKick = function () {
@@ -2357,19 +2482,32 @@
     if (thin) o.strokeWidth = oldSw;
   };
 
-  // The grid lines of one tile, in device pixels, each snapped to a whole pixel (crisp, one pixel wide at any zoom). They sit at fixed board
-  // positions, so neighbouring tiles agree and nothing moves while panning.
-  Whiteboard.prototype._tlGrid = function (ctx, tx, ty, tl) {
-    var S = tl.S, ox = tx * TILE, oy = ty * TILE;
-    var wx0 = ox / S, wx1 = (ox + TILE) / S, wy0 = oy / S, wy1 = (oy + TILE) / S;
+  /* The grid is its own layer (a canvas the size of the viewport, above the tiles, below the live strokes) drawn again at every camera change, at the
+     LIVE scale: so it is exact and crisp while zooming and panning, whatever the tiles or the ghost layer below are doing. Lines sit on a fixed
+     ladder of steps (2 x 5^n board units), each step fades in as its spacing on screen grows from a few pixels to a comfortable size, so cells split
+     into finer ones as you zoom in and merge as you zoom out (every line is at a fixed board position, nothing jumps). One path per step, every line
+     snapped to a whole device pixel. */
+  var GRID_LADDER = [];
+  for (var gn = -3; gn <= 8; gn++) GRID_LADDER.push(2 * Math.pow(5, gn));
+  Whiteboard.prototype._gridDraw = function () {
+    var el = this._gridEl, ctx = this._gridCtx;
+    if (!el || !ctx || this._destroyed) return;
+    ctx.setTransform(1, 0, 0, 1, 0, 0);
+    ctx.clearRect(0, 0, el.width, el.height);
+    if (!this._gridOn) return;
+    var dpr = this._dpr, sc = this._scale, S = sc * dpr, px0 = this._panX * dpr, py0 = this._panY * dpr, W = el.width, H = el.height;
+    var wx0 = -this._panX / sc, wx1 = (this._viewportW - this._panX) / sc, wy0 = -this._panY / sc, wy1 = (this._viewportH - this._panY) / sc;
     ctx.lineWidth = 1;
-    for (var lvl = tl.steps.length - 1; lvl >= 0; lvl--) {      // finest first, the coarse lines paint on top
-      var op = tl.ops[lvl]; if (op <= 0) continue;
-      var step = tl.steps[lvl];
+    for (var i = 0; i < GRID_LADDER.length; i++) {            // finest first, the coarse lines paint on top
+      var step = GRID_LADDER[i], px = step * sc;
+      if (px < MINOR_GRID_FADE_MIN_PX) continue;
+      var t = Math.max(0, Math.min(1, (px - MINOR_GRID_FADE_MIN_PX) / (MINOR_GRID_FADE_MAX_PX - MINOR_GRID_FADE_MIN_PX)));
+      var op = (px >= 24 ? MAJOR_GRID_OPACITY : MINOR_GRID_OPACITY) * t;
+      if (op <= 0.004) continue;
       ctx.strokeStyle = 'rgba(20,16,8,' + op + ')';
       ctx.beginPath();
-      for (var kx = Math.ceil(wx0 / step), kx1 = Math.floor(wx1 / step); kx <= kx1; kx++) { var xd = Math.round(kx * step * S) - ox + 0.5; if (xd < 0 || xd > TILE) continue; ctx.moveTo(xd, 0); ctx.lineTo(xd, TILE); }
-      for (var ky = Math.ceil(wy0 / step), ky1 = Math.floor(wy1 / step); ky <= ky1; ky++) { var yd = Math.round(ky * step * S) - oy + 0.5; if (yd < 0 || yd > TILE) continue; ctx.moveTo(0, yd); ctx.lineTo(TILE, yd); }
+      for (var kx = Math.ceil(wx0 / step), kx1 = Math.floor(wx1 / step); kx <= kx1; kx++) { var xd = Math.round(kx * step * S + px0) + 0.5; ctx.moveTo(xd, 0); ctx.lineTo(xd, H); }
+      for (var ky = Math.ceil(wy0 / step), ky1 = Math.floor(wy1 / step); ky <= ky1; ky++) { var yd = Math.round(ky * step * S + py0) + 0.5; ctx.moveTo(0, yd); ctx.lineTo(W, yd); }
       ctx.stroke();
     }
   };
@@ -2389,7 +2527,6 @@
     ctx.globalAlpha = 1;
     ctx.fillStyle = '#ffffff';
     ctx.fillRect(0, 0, TILE, TILE);
-    if (tl.gridOn) this._tlGrid(ctx, tx, ty, tl);
     var m = 3 / S, reg = { x0: tx * TILE / S - m, y0: ty * TILE / S - m, x1: (tx + 1) * TILE / S + m, y1: (ty + 1) * TILE / S + m };
     ctx.setTransform(S, 0, 0, S, -tx * TILE, -ty * TILE);
     var list = this._fabricCanvas._objects;
@@ -2440,8 +2577,8 @@
       self._staleRaf = null;
       var tl = self._tl;
       if (self._destroyed || self._bg || !tl || !self._rend) return;
+      self._ovInvalidateAll();
       if (self._gestureXform) return;               // a settle is coming: it paints everything at the new scale anyway
-      tl.gridOn = !!self._gridOn;
       tl.tiles.forEach(function (t) { t.stale = true; });
       var a = self._tlArea();
       for (var ty = a.ty0; ty <= a.ty1; ty++) for (var tx = a.tx0; tx <= a.tx1; tx++) self._tlEnqueue(tx, ty);
@@ -2474,6 +2611,7 @@
 
   Whiteboard.prototype._renderBoxes = function (boxes) {
     if (this._destroyed || this._bg || !boxes.length) return;
+    this._ovRegion(boxes);
     if (this._gestureXform || !this._tl || !this._rend) return;     // the layers are scaled during a zoom: the settle paints everything
     var tiles = this._tlTilesFor(unionBoxes(boxes)), now = tiles.length <= 8;
     for (var i = 0; i < tiles.length; i++) {
@@ -2485,8 +2623,10 @@
 
   // A new object goes on top of everything: it is painted onto the tiles it touches (and onto the front layer) instead of repainting them.
   Whiteboard.prototype._paintNewObject = function (obj) {
-    if (!obj || this._bg || this._gestureXform || !this._tl || !this._rend) return;
+    if (!obj || this._bg) return;
     if (obj.data && obj.data.boardKey && obj.data.boardKey !== this._board.key) return;   // it landed on a board that is not on screen
+    if (!(obj.data && obj.data.isImage)) this._ovAdd(obj);
+    if (this._gestureXform || !this._tl || !this._rend) return;
     if (obj.data && obj.data.isImage) { this._invalidateBoxes([objBox(obj)]); return; }   // pictures lie under the ink
     var tl = this._tl, S = tl.S, b = objBox(obj), tiles = this._tlTilesFor(b);
     for (var i = 0; i < tiles.length; i++) {
@@ -2507,6 +2647,7 @@
     this._camAt = performance.now();
     var r = this._rend;
     this._fabricCanvas.setViewportTransform([this._scale, 0, 0, this._scale, this._panX, this._panY]);
+    this._gridDraw();
 
     var sameCanvas = r && r.vw === this._viewportW && r.vh === this._viewportH && r.dpr === dpr;
     if (!sameCanvas) {
@@ -4593,7 +4734,7 @@
       btn.classList.toggle('dc-action-btn--active', on);
       btn.title = on ? 'Ascunde grila' : 'Arată grila';
     }
-    this._tlStaleAll();
+    this._gridDraw();
   };
 
   /* ---- Render loop (overlay only — Fabric renders itself on demand) ---- */
@@ -5063,6 +5204,7 @@
     if (this._rafId) cancelAnimationFrame(this._rafId);
     if (this._zoomRafId) cancelAnimationFrame(this._zoomRafId);
     if (this._pumpRaf) cancelAnimationFrame(this._pumpRaf);
+    clearTimeout(this._ovTimer); this._ovJob = {};
     if (this._staleRaf) cancelAnimationFrame(this._staleRaf);
     clearTimeout(this._gestureTimer);
     if (this._panRafId) cancelAnimationFrame(this._panRafId);
