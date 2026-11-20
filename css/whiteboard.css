@@ -220,6 +220,10 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:focus-visible,
 .wb-fullscreen .wb-toolbar .dc-tool-btn svg,
 .wb-fullscreen .wb-toolbar .dc-action-btn svg,
 .wb-fullscreen .wb-undo-corner .dc-action-btn svg { width: 18px; height: 18px; }
+/* the toolbar icons are one family: 1.8 line, 20px (the shape icons of the figures panel and the undo keys keep their own weight) */
+.wb-fullscreen .wb-toolbar .dc-tool-btn:not(.wb-fig) > svg,
+.wb-fullscreen .wb-toolbar .dc-action-btn > svg { width: 20px; height: 20px; stroke-width: 1.8; }
+.wb-fullscreen .wb-toolbar .wb-preset svg { stroke-width: 1.8; }
 
 /* lit: the tool in use, the width in use, a switch that is on */
 .wb-fullscreen .wb-toolbar :is(.dc-tool-btn--active, .dc-width-btn--active, .dc-action-btn--active, .dc-inputmode-btn--stylus),
@@ -299,7 +303,7 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-header .icon-btn:focus-visible,
 .wb-fullscreen .wb-width-range:focus-visible { outline: 2px solid var(--k-blue); outline-offset: 3px; }
 
 /* ---------- the board: paper on the graph-paper ground ---------- */
-.wb-fullscreen .wb-canvas-wrap { background: transparent; }
+.wb-fullscreen .wb-canvas-wrap { background: #fff; }   /* the board is endless and white: what a tile has not painted yet shows paper, not the ground */
 .wb-fullscreen .wb-undo-corner {
   top: 14px; left: 14px; gap: 8px; padding: 8px 8px 11px;
   background: var(--k-panel);
@@ -413,7 +417,7 @@ body:has(#classRoot) > #tablaLiveModal .wb-fs-fullscreen-btn:focus-visible { out
 .wb-fullscreen .wb-toolbar .dc-tool-group > :is(.dc-tool-btn, .dc-action-btn),
 .wb-fullscreen .wb-toolbar .dc-tool-group > .gfe-dropdown > .gfe-dropdown__trigger { width: 32px; height: 32px; }
 .wb-fullscreen .wb-toolbar .dc-tool-group > :is(.dc-tool-btn, .dc-action-btn) svg,
-.wb-fullscreen .wb-toolbar .dc-tool-group > .gfe-dropdown > .gfe-dropdown__trigger svg { width: 16px; height: 16px; }
+.wb-fullscreen .wb-toolbar .dc-tool-group > .gfe-dropdown > .gfe-dropdown__trigger svg { width: 20px; height: 20px; color: inherit; stroke-width: 1.8; }
 .wb-fullscreen .wb-toolbar .dc-mode-badge { height: 24px; }
 
 /* the writing key: the icon of the current preset and a tiny corner that says "options" */

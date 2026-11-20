@@ -300,13 +300,13 @@
 
     /* ----- put a picture on the board ----- */
     function fitSize(w, h, maxW, maxH) { var k = Math.min(maxW / w, maxH / h, 1.6); return { w: w * k, h: h * k }; }
-    function clampCentre(c, size, board) { return Math.min(Math.max(c, size / 2 + 12), board - size / 2 - 12); }
+    function clampCentre(c, size, board, free) { return free ? c : Math.min(Math.max(c, size / 2 + 12), board - size / 2 - 12); }
 
     function placeImage(f) {
       if (!opts.insert) return;
       var v = (opts.getView && opts.getView()) || { cx: 700, cy: 450, w: 1400, h: 900, boardW: 1400, boardH: 900 };
       var sz = fitSize(f.width || 800, f.height || 600, Math.min(v.w * 0.7, 980), Math.min(v.h * 0.8, 720));
-      var spec = { src: f.path, width: sz.w, height: sz.h, left: clampCentre(v.cx, sz.w, v.boardW), top: clampCentre(v.cy, sz.h, v.boardH), name: f.name };
+      var spec = { src: f.path, width: sz.w, height: sz.h, left: clampCentre(v.cx, sz.w, v.boardW, v.free), top: clampCentre(v.cy, sz.h, v.boardH, v.free), name: f.name };
       setBusy(true, 'Se pune pe tablă…');
       Promise.resolve(opts.insert([spec])).then(function (ok) {
         setBusy(false);
@@ -436,12 +436,13 @@
         var v = (opts.getView && opts.getView()) || { cx: 700, cy: 450, w: 1400, h: 900, boardW: 1400, boardH: 900 };
         var cols = Math.min(specs.length, 3), rows = Math.ceil(specs.length / cols), gap = 28;
         var aspect = specs[0].nat.h / specs[0].nat.w;
-        var pw = Math.min(560, (v.boardW - 60 - gap * (cols - 1)) / cols);
+        var bw = v.free ? v.w : v.boardW, bh = v.free ? v.h : v.boardH;   // an endless board: the pages are laid out in what the teacher is looking at
+        var pw = Math.min(560, (bw - 60 - gap * (cols - 1)) / cols);
         var ph = pw * aspect;
-        var k = Math.min(1, (v.boardH - 60 - gap * (rows - 1)) / (rows * ph));
+        var k = Math.min(1, (bh - 60 - gap * (rows - 1)) / (rows * ph));
         pw *= k; ph *= k;
         var totalW = cols * pw + (cols - 1) * gap, totalH = rows * ph + (rows - 1) * gap;
-        var x0 = Math.min(Math.max(v.cx - totalW / 2, 20), v.boardW - totalW - 20), y0 = Math.min(Math.max(v.cy - totalH / 2, 20), v.boardH - totalH - 20);
+        var x0 = v.free ? v.cx - totalW / 2 : Math.min(Math.max(v.cx - totalW / 2, 20), v.boardW - totalW - 20), y0 = v.free ? v.cy - totalH / 2 : Math.min(Math.max(v.cy - totalH / 2, 20), v.boardH - totalH - 20);
         var out = specs.map(function (s, i) {
           var c = i % cols, r = Math.floor(i / cols);
           var h2 = pw * (s.nat.h / s.nat.w);

@@ -349,7 +349,7 @@
 
   function Editor(wb, opts) {
     this.wb = wb; this.o = opts || {};
-    this.fs = this.o.fs || Math.round(Math.max(12, Math.min(80, 40 / wb._scale)));   // about 40 screen px tall at any zoom
+    this.fs = this.o.fs || Math.round(Math.max(1, Math.min(80, 40 / wb._scale)));   // about 40 screen px tall at any zoom
     this.color = this.o.color || wb._color || '#1a1a1a';
     this.latex = '';
     this.res = null;
