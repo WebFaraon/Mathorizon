@@ -19,6 +19,7 @@
       var all = document.body.classList.contains('all');
       rvOf(i).forEach(function (el, k) { el.classList.toggle('on', all || i < cur || (i === cur && k < step)); });
     });
+    document.body.classList.toggle('on-intro', slides[cur].classList.contains('s-intro'));
     bar.style.width = ((cur + 1) / slides.length * 100) + '%';
     cnt.textContent = (cur + 1) + ' / ' + slides.length;
     try { history.replaceState(null, '', '#' + (cur + 1)); } catch (e) {}
