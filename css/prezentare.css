@@ -416,3 +416,70 @@ body.hud-on #hud { opacity: 1; }
 @media print { .s-intro { overflow: hidden; background: var(--pm-band); } .s-intro::before { inset: 0; } .s-intro .tg-cycle span:first-child { opacity: 1; } }
 @media (prefers-reduced-motion: reduce) { .s-intro .tg-cycle span:first-child { opacity: 1; } }
 body.on-intro #progress { opacity: 0; transition: opacity .3s; }
+
+/* ---------- filme scurte in bucla (tabla, exercitii interactive) ---------- */
+video.vid { display: block; width: 100%; height: auto; background: var(--pm-face); }
+.frame video.vid { width: 100%; height: auto; }
+.s-pic .frame video.vid { width: auto; max-width: 100%; height: auto; max-height: 812px; margin: 0 auto; object-fit: contain; }
+.s-duo .frame video.vid { width: 100%; height: auto; }
+.s-duo .fix .frame video.vid { width: 100%; height: auto; max-height: var(--h, 560px); object-fit: contain; }
+
+/* ---------- indicatorul de parte (Elev / Profesor / Manager) ---------- */
+.sec { position: absolute; z-index: 6; top: 22px; left: 50%; transform: translateX(-50%); display: flex; gap: 10px; padding: 6px; border-radius: 20px; background: color-mix(in srgb, var(--pm-face) 82%, transparent); border: 2px solid var(--pm-line); box-shadow: 0 4px 0 var(--pm-edge); backdrop-filter: blur(6px); }
+.sec span { display: inline-flex; align-items: center; gap: 10px; height: 40px; padding: 0 20px; border-radius: 14px; font-size: 20px; font-weight: 800; letter-spacing: .02em; color: var(--pm-ink-2); }
+.sec span i { width: 12px; height: 12px; border-radius: 4px; background: var(--pm-line-2); }
+.sec span.on { background: var(--pm-violet); color: #fff; box-shadow: 0 4px 0 var(--pm-violet-edge); }
+.sec span.on i { background: var(--pm-lime); box-shadow: 0 2px 0 var(--pm-lime-edge); }
+.s-hero .sec { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.2); box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+.s-hero .sec span { color: rgba(255,255,255,.7); }
+.s-hero .sec span.on { background: rgba(255,255,255,.2); color: #fff; box-shadow: 0 4px 0 rgba(0,0,0,.25); }
+
+/* ---------- tranzitii mai line ---------- */
+.slide { transform: translateX(48px) scale(.99); transition: opacity .55s cubic-bezier(.22, .7, .2, 1), transform .55s cubic-bezier(.22, .7, .2, 1), visibility 0s .55s; }
+.slide.is-on { transform: none; transition: opacity .55s cubic-bezier(.22, .7, .2, 1), transform .55s cubic-bezier(.22, .7, .2, 1); }
+.slide.is-past { transform: translateX(-48px) scale(.99); }
+.rv { transform: translateY(24px); transition: opacity .55s cubic-bezier(.22, .7, .2, 1), transform .55s cubic-bezier(.22, .7, .2, 1); }
+
+/* ---------- slide: ce rezolvam ---------- */
+.s-prob { display: flex; flex-direction: column; padding-top: 96px; }
+.s-prob .hd, .s-road .hd { margin-bottom: 8px; }
+.s-prob h2, .s-road h2 { font-size: 80px; line-height: 1.02; letter-spacing: -.03em; white-space: nowrap; }
+.prs { display: grid; gap: 22px; margin-top: 18px; }
+.prh, .pr { display: grid; grid-template-columns: 1fr 130px 1fr; align-items: center; }
+.prh span { font-size: 24px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; color: var(--pm-ink-2); padding-left: 8px; }
+.prh span:last-child { color: var(--pm-violet); }
+:root[data-theme="dark"] .prh span:last-child { color: var(--pm-lime); }
+.pc { display: flex; align-items: center; gap: 26px; min-height: 132px; padding: 18px 30px 18px 22px; border-radius: 26px; border: 2px solid var(--pm-line); background: var(--pm-face); box-shadow: 0 8px 0 var(--pm-edge); }
+.pc img { width: 92px; height: 92px; flex: none; }
+.pc b { font-size: 38px; font-weight: 800; line-height: 1.12; }
+.pc.bad { background: color-mix(in srgb, var(--pm-rose) 9%, var(--pm-face)); border-color: color-mix(in srgb, var(--pm-rose) 36%, var(--pm-line)); box-shadow: 0 8px 0 color-mix(in srgb, var(--pm-rose) 28%, var(--pm-edge)); }
+.pc.bad img { filter: saturate(.55); opacity: .88; }
+.pc.bad b { color: var(--pm-ink-2); }
+.pc.good { background: color-mix(in srgb, var(--pm-lime) 15%, var(--pm-face)); border-color: var(--pm-lime); box-shadow: 0 8px 0 var(--pm-lime-edge); }
+.pa { display: grid; place-items: center; color: var(--pm-lime); }
+.pa svg { width: 100px; height: 34px; }
+
+/* ---------- slide: ce urmeaza ---------- */
+.s-road { display: flex; flex-direction: column; padding-top: 96px; }
+.rdm { display: grid; grid-template-columns: repeat(3, 1fr); gap: 34px; margin-top: 22px; }
+.rd { background: var(--pm-face); border: 2px solid var(--pm-line); border-radius: 30px; box-shadow: 0 10px 0 var(--pm-edge); padding: 28px 30px 30px; }
+.rdh { display: flex; align-items: center; gap: 18px; margin-bottom: 20px; }
+.rdh i { width: 30px; height: 30px; border-radius: 9px; background: var(--pm-lime); box-shadow: 0 4px 0 var(--pm-lime-edge); flex: none; }
+.rdh h3 { margin: 0; font-size: 50px; font-weight: 800; letter-spacing: -.02em; line-height: 1; }
+.rdh small { display: inline-block; margin-top: 8px; font-size: 21px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--pm-ink-2); }
+.rd ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 14px; }
+.rd li { display: flex; align-items: center; gap: 20px; background: var(--pm-tint); border: 2px solid var(--pm-line); border-radius: 20px; padding: 13px 20px 13px 16px; }
+.rd li img { width: 68px; height: 68px; flex: none; }
+.rd li b { font-size: 32px; font-weight: 800; line-height: 1.12; }
+.rd.acum { border-color: var(--pm-lime); box-shadow: 0 10px 0 var(--pm-lime-edge); background: color-mix(in srgb, var(--pm-lime) 8%, var(--pm-face)); }
+.rd.acum li { background: color-mix(in srgb, var(--pm-lime) 16%, var(--pm-face)); border-color: color-mix(in srgb, var(--pm-lime) 50%, var(--pm-line)); }
+.rd.curand .rdh i { background: var(--pm-violet); box-shadow: 0 4px 0 var(--pm-violet-edge); }
+.rd.curand { border-color: color-mix(in srgb, var(--pm-violet) 45%, var(--pm-line)); box-shadow: 0 10px 0 color-mix(in srgb, var(--pm-violet) 55%, var(--pm-edge)); }
+.rd.tarziu .rdh i { background: var(--pm-line-2); box-shadow: 0 4px 0 var(--pm-edge); }
+.rd.tarziu li img { filter: saturate(.5); opacity: .8; }
+.rd.tarziu li b { color: var(--pm-ink-2); }
+@media print { .sec { backdrop-filter: none; } video.vid { background: #fff; } }
+.sec { top: 14px; padding: 4px; border-radius: 16px; gap: 6px; }
+.sec span { height: 32px; padding: 0 16px; font-size: 18px; border-radius: 12px; gap: 8px; }
+.sec span i { width: 10px; height: 10px; border-radius: 3px; }
+@media print { .s-intro .sp, .s-intro .rg, .s-intro .ri { display: none !important; } }

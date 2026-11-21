@@ -19,6 +19,14 @@
       var all = document.body.classList.contains('all');
       rvOf(i).forEach(function (el, k) { el.classList.toggle('on', all || i < cur || (i === cur && k < step)); });
     });
+    slides.forEach(function (sl, i) {
+      var vs = sl.querySelectorAll('video');
+      for (var k = 0; k < vs.length; k++) {
+        var v = vs[k];
+        if (i === cur && !document.body.classList.contains('all')) { if (!v.dataset.on) { v.dataset.on = '1'; try { v.currentTime = 0; } catch (e) {} } var pr = v.play(); if (pr && pr.catch) pr.catch(function () {}); }
+        else if (v.dataset.on) { v.pause(); delete v.dataset.on; }
+      }
+    });
     document.body.classList.toggle('on-intro', slides[cur].classList.contains('s-intro'));
     bar.style.width = ((cur + 1) / slides.length * 100) + '%';
     cnt.textContent = (cur + 1) + ' / ' + slides.length;
@@ -103,4 +111,13 @@
   // ?toate sau ?print: toate punctele sunt vizibile (pentru PDF)
   if (/[?&](toate|print)\b/.test(location.search)) { step = 999; document.body.classList.add('all'); slides.forEach(function (s) { s.querySelectorAll('.rv').forEach(function (e) { e.classList.add('on'); }); }); }
   paint();
+  window.addEventListener('load', function () { slides.forEach(function (sl) { var vs = sl.querySelectorAll('video'); for (var k = 0; k < vs.length; k++) vs[k].preload = 'auto'; }); });
+  // la tiparire (?toate) filmele sunt inlocuite cu ultimul cadru, ca PDF-ul sa arate rezultatul
+  if (document.body.classList.contains('all')) {
+    Array.prototype.forEach.call(document.querySelectorAll('video'), function (v) {
+      var pr = v.getAttribute('poster') || '';
+      Array.prototype.forEach.call(v.querySelectorAll('source'), function (src) { src.parentNode.removeChild(src); });
+      v.setAttribute('poster', pr.replace(/\.jpg$/, '-end.jpg')); v.load();
+    });
+  }
 })();
