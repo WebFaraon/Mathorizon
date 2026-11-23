@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="ro" translate="no">
+<head>
+  <meta charset="UTF-8">
+  <meta name="google" content="notranslate">
+  <meta name="robots" content="noindex">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Ordin de plată (machetă) | Teorema</title>
+  <link rel="icon" type="image/svg+xml" href="assets/images/favicon.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/ordin-plata.css?v=1">
+</head>
+<body>
+
+<div class="op-app">
+
+  <!-- Partea managerului: ce completează -->
+  <aside class="op-form" aria-label="Pregătește ordinul">
+    <h1>Ordin de plată nou</h1>
+    <p class="op-form__hint">Machetă. Datele sunt de exemplu, nimic nu se salvează.</p>
+
+    <label>Elev
+      <select id="fElev">
+        <option>Andrei M.</option>
+        <option>Maria P.</option>
+        <option>Daniel R.</option>
+      </select>
+    </label>
+    <label>Cine plătește
+      <input id="fPlatitor" type="text" value="Ion Popescu" autocomplete="off">
+    </label>
+    <label>Grupa
+      <input id="fGrupa" type="text" value="Matematica, clasa a 9-a, Luni și Joi 17:00" autocomplete="off">
+    </label>
+    <div class="op-form__row">
+      <label>Suma (lei)
+        <input id="fSuma" type="text" inputmode="decimal" value="1200" autocomplete="off">
+      </label>
+      <label>Valabil până la
+        <input id="fData" type="date" value="2026-12-05">
+      </label>
+    </div>
+    <label>Perioada
+      <input id="fPerioada" type="text" value="decembrie 2026, 8 lecții" autocomplete="off">
+    </label>
+    <label>Link MIA
+      <input id="fLink" type="text" value="https://exemplu.md/mia/…" autocomplete="off">
+      <small>Linkul creat deja. Se lipește aici.</small>
+    </label>
+
+    <div class="op-form__keys">
+      <button type="button" class="op-key op-key--go" id="bPrint">Descarcă PDF</button>
+      <button type="button" class="op-key" id="bCopy">Copiază linkul</button>
+    </div>
+  </aside>
+
+  <!-- Documentul -->
+  <main class="op-stage">
+    <article class="op-doc" id="doc" aria-label="Ordin de plată">
+
+      <header class="op-head">
+        <div class="op-brand">
+          <img src="assets/images/teorema-wordmark.svg" alt="Teorema" height="30">
+        </div>
+        <div class="op-meta">
+          <b>Ordin de plată</b>
+          <span>Nr. <i id="oNr">2026-0001</i></span>
+          <span>Emis la <i id="oEmis">23 noiembrie 2026</i></span>
+        </div>
+      </header>
+
+      <section class="op-amount">
+        <span class="op-lbl">Suma de plată</span>
+        <div class="op-amount__n"><b id="oSuma">1 200,00</b><em>lei</em></div>
+        <span class="op-until">Plătește până la <i id="oData">5 decembrie 2026</i></span>
+      </section>
+
+      <section class="op-grid">
+        <div class="op-card">
+          <span class="op-lbl">Plătitor</span>
+          <b id="oPlatitor">Ion Popescu</b>
+          <span>Elev: <i id="oElev">Andrei M.</i></span>
+          <span id="oGrupa">Matematica, clasa a 9-a, Luni și Joi 17:00</span>
+        </div>
+        <div class="op-card">
+          <span class="op-lbl">Beneficiar</span>
+          <b class="op-todo">[Denumirea firmei]</b>
+          <span>IDNO: <i class="op-todo">[IDNO]</i></span>
+          <span>Banca: <i class="op-todo">[Banca]</i></span>
+          <span>IBAN: <i class="op-todo">[IBAN]</i></span>
+        </div>
+      </section>
+
+      <section class="op-card op-purpose">
+        <span class="op-lbl">Scopul plății</span>
+        <b id="oScop">Plata lecțiilor de matematică, elev Andrei M., grupa Matematica, clasa a 9-a, Luni și Joi 17:00, decembrie 2026, 8 lecții</b>
+      </section>
+
+      <section class="op-pay">
+        <div class="op-pay__txt">
+          <span class="op-lbl op-lbl--on">Plătește în 3 pași</span>
+          <ol>
+            <li>Apasă butonul sau scanează codul.</li>
+            <li>Se deschide aplicația băncii tale.</li>
+            <li>Verifică suma și confirmă plata prin MIA.</li>
+          </ol>
+          <a class="op-pay__btn" id="oBtn" href="#" onclick="return false">Plătește prin MIA</a>
+        </div>
+        <div class="op-qr">
+          <svg id="oQr" viewBox="0 0 29 29" shape-rendering="crispEdges" role="img" aria-label="Cod QR de exemplu"></svg>
+          <span>Cod de exemplu, nu se scanează</span>
+        </div>
+      </section>
+
+      <footer class="op-foot">
+        <span>Acest document nu este factură fiscală.</span>
+        <span class="op-todo">[Contact: telefon, e-mail]</span>
+      </footer>
+
+    </article>
+  </main>
+
+</div>
+
+<script src="js/ordin-plata-prototip.js?v=1"></script>
+</body>
+</html>
