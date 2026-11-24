@@ -1687,6 +1687,14 @@ a.cap-key__face:focus-visible {
   color: var(--pm-ink);
 }
 
+.cap-sec-note {
+  margin: -6px 0 14px;
+  font-size: 0.92rem;
+  font-weight: 500;
+  line-height: 1.4;
+  color: var(--pm-ink-2);
+}
+
 /* The hub opens straight on the class keys, no title above. */
 .cap-col-middle > .cap-grades:first-child { margin-top: 30px; }
 .cap-chapters { padding-top: 26px; }
@@ -2153,3 +2161,6 @@ a.cap-key__face:focus-visible {
 .cap-col-right .cap-side-card:has(.lb-card) { flex-shrink: 0; }
 .cap-col-right .cap-side-card:not(:has(.lb-card)) { min-height: 0; overflow: hidden auto; scrollbar-width: none; }
 .cap-col-right .cap-side-card:not(:has(.lb-card))::-webkit-scrollbar { display: none; }
+
+/* Clasa a 9-a: the number of an exam item on its key (plain sans, not the serif maths glyph of a chapter) */
+.cap-key__symbol--num { font-family: var(--k-font); font-weight: 800; letter-spacing: -0.02em; }

@@ -13,12 +13,16 @@ export interface CapitoleData {
 const EMPTY: CapitoleData = { stats: null, chapters: [], ready: false };
 
 /** Snapshot of everything this page shows, straight out of the BM globals. */
-function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
+function readSnapshot(grade: number): Omit<CapitoleData, 'ready'> | null {
   const bm = window.BM;
   const storage = bm?.Storage;
-  const categories = bm?.CATEGORIES;
-  const exercises = bm?.EXERCISES;
-  if (!storage || !categories || !exercises) return null;
+  /* The chapters of the picked class: the 12 exam items for class 9, the BAC chapters otherwise. */
+  const categories = bm?.categoriesForGrade ? bm.categoriesForGrade(grade) : bm?.CATEGORIES;
+  const allExercises = bm?.EXERCISES;
+  if (!storage || !categories || !allExercises) return null;
+  /* Only this class's exercises count (totals, progress, last worked), so the two banks never mix. */
+  const catIds = new Set(categories.map((c) => c.id));
+  const exercises = allExercises.filter((ex) => catIds.has(ex.categoryId));
 
   const solved = storage.getSolved();
 
@@ -78,7 +82,7 @@ function readSnapshot(): Omit<CapitoleData, 'ready'> | null {
  * idempotent and cheap, and it keeps the numbers correct if a sync ever
  * resolves twice (e.g. a second account signing in without a reload).
  */
-export function useCapitoleData(): CapitoleData {
+export function useCapitoleData(grade: number): CapitoleData {
   const [data, setData] = useState<CapitoleData>(EMPTY);
 
   useEffect(() => {
@@ -86,7 +90,7 @@ export function useCapitoleData(): CapitoleData {
 
     const refresh = (ready: boolean) => {
       if (cancelled) return;
-      const snapshot = readSnapshot();
+      const snapshot = readSnapshot(grade);
       if (!snapshot) return;
       setData({ ...snapshot, ready });
     };
@@ -106,7 +110,7 @@ export function useCapitoleData(): CapitoleData {
       document.removeEventListener('bmauth:synced', onSynced);
       document.removeEventListener('bmauth:streak-updated', onSynced);
     };
-  }, []);
+  }, [grade]);
 
   return data;
 }

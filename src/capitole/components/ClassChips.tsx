@@ -1,6 +1,7 @@
 /** Classes shown on the Exerciții hub. Only the ones in READY have exercises yet. */
 export const GRADES = [5, 6, 7, 8, 9, 10, 11, 12] as const;
-export const READY_GRADES: readonly number[] = [12];
+/* Clasa a 9-a: itemii examenului (ex1 ... ex12). Clasa a 12-a: capitolele de BAC. */
+export const READY_GRADES: readonly number[] = [9, 12];
 
 const ROMAN: Record<number, string> = { 5: 'V', 6: 'VI', 7: 'VII', 8: 'VIII', 9: 'IX', 10: 'X', 11: 'XI', 12: 'XII' };
 

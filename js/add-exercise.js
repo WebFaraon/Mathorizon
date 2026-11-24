@@ -165,10 +165,21 @@
     }
   }
 
+  /* Clasa a 9-a nu are capitole: banca ei se împarte pe cei 12 iteme ai examenului (BM.CATEGORIES_9, fiecare cu o subcategorie ascunsă).
+     Clasa a 12-a (BAC) rămâne cu capitolele și subcapitolele de până acum. */
+  const _aeIs9    = () => ae.grade === '9';
+  const _aeCats   = () => (_aeIs9() ? BM.CATEGORIES_9 : BM.CATEGORIES);
+  /* itemii de geometrie (2, 8, 10) au și ei editorul de figură, ca geometria de la BAC */
+  function _aeIsGeo() {
+    const c = BM.getCategoryById(ae.categoryId);
+    return ae.categoryId === 'geometrie' || Boolean(c && c.flat && c.legend === 'geometrie');
+  }
+
   /* ---- §1 Detalii ---- */
   function _aeRenderDetalii() {
     const body = document.getElementById('aeDetaliiBody');
     const cat  = BM.getCategoryById(ae.categoryId);
+    const flat = Boolean(cat && cat.flat);
     const subs = cat ? cat.subcategories : [];
     body.innerHTML = `
       <div class="ae-detalii-grid">
@@ -180,13 +191,13 @@
           </select>
         </div>
         <div class="cls-form-field">
-          <label class="cls-form-label">Capitol *</label>
+          <label class="cls-form-label">${_aeIs9() ? 'Item *' : 'Capitol *'}</label>
           <select id="aeCategory" class="cls-form-input cls-form-select">
-            <option value="">Alege capitolul…</option>
-            ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${ae.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+            <option value="">${_aeIs9() ? 'Alege itemul…' : 'Alege capitolul…'}</option>
+            ${_aeCats().map(c => `<option value="${c.id}" ${ae.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.flat ? `${c.name} · ${c.topic} (${c.points} p)` : c.name)}</option>`).join('')}
           </select>
         </div>
-        <div class="cls-form-field">
+        <div class="cls-form-field"${flat || _aeIs9() ? ' hidden' : ''}>
           <label class="cls-form-label">Subcapitol *</label>
           <select id="aeSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
             <option value="">${cat ? 'Alege subcapitolul…' : 'Alege mai întâi capitolul'}</option>
@@ -208,13 +219,31 @@
         <span class="cls-form-hint">Punctajul oficial al exercițiului, AI-ul va construi baremul să însumeze exact atât.</span>
       </div>`;
 
-    body.querySelector('#aeGrade').onchange       = e => { ae.grade = e.target.value; };
+    body.querySelector('#aeGrade').onchange       = e => {
+      ae.grade = e.target.value;
+      /* itemul ales sau capitolul ales nu mai e valabil dacă s-a schimbat clasa: se alege din nou */
+      if (!_aeCats().some(c => c.id === ae.categoryId)) {
+        ae.categoryId = ''; ae.subcategoryId = '';
+        if (ae._autoPts && ae.punctajTotal === ae._autoPts) { ae.punctajTotal = ''; ae._autoPts = ''; }
+      }
+      _aeRenderDetalii();
+      _aeUpdateGeoVisibility();
+    };
     body.querySelector('#aeDifficulty').onchange  = e => { ae.difficulty = e.target.value; };
     body.querySelector('#aeSubcategory').onchange = e => { ae.subcategoryId = e.target.value; };
     body.querySelector('#aePunctajTotal').oninput = e => { ae.punctajTotal = e.target.value; _aeUpdateMismatchBanner(); _aeUpdateConfirmState(); };
     body.querySelector('#aeCategory').onchange = e => {
       ae.categoryId = e.target.value;
       ae.subcategoryId = '';
+      const picked = BM.getCategoryById(ae.categoryId);
+      if (picked && picked.flat) {
+        /* un item are o singură subcategorie, ascunsă: se alege singură, iar punctajul propus e al itemului (se poate schimba) */
+        ae.subcategoryId = picked.subcategories[0].id;
+        /* punctajul propus e al itemului; dacă profesorul și-a scris deja altul, rămâne al lui */
+        if (!ae.punctajTotal || ae.punctajTotal === ae._autoPts) { ae.punctajTotal = String(picked.points || ''); ae._autoPts = ae.punctajTotal; }
+      } else if (ae._autoPts && ae.punctajTotal === ae._autoPts) {
+        ae.punctajTotal = ''; ae._autoPts = '';
+      }
       _aeRenderDetalii();
       _aeUpdateGeoVisibility();
     };
@@ -224,7 +253,7 @@
 
   /* ---- §2 Desenează figura (Geometrie only) ---- */
   function _aeUpdateGeoVisibility() {
-    const isGeo = ae.categoryId === 'geometrie';
+    const isGeo = _aeIsGeo();
     const card  = document.getElementById('aeGeoCard');
     card.style.display = isGeo ? '' : 'none';
 
@@ -382,7 +411,7 @@
         context: {
           grade: ae.grade,
           categoryId: ae.categoryId, categoryName: cat?.name || ae.categoryId,
-          subcategoryId: ae.subcategoryId, subcategoryName: sub?.name || ae.subcategoryId,
+          subcategoryId: ae.subcategoryId, subcategoryName: (cat && cat.flat) ? cat.topic : (sub?.name || ae.subcategoryId),
           difficulty: ae.difficulty,
           punctajTotal: Number(ae.punctajTotal) || undefined
         }
@@ -687,7 +716,7 @@
       r.metode_alternative.forEach(m => solutionParts.push(`**${m.nume}.** ${m.descriere}`));
     }
 
-    const isGeo = ae.categoryId === 'geometrie';
+    const isGeo = _aeIsGeo();
     if (isGeo && aeGeoEditor) {
       ae.figureSvg = await aeGeoEditor.exportFigureSvg();
       // exportFigureSvg() resolves '' for a canvas with nothing drawn on

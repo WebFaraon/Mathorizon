@@ -61,10 +61,35 @@
   }
 
   /* ---- Init ---- */
-  const UNLOCKED_CATS = new Set(['algebra', 'geometrie']);
+  const UNLOCKED_CATS = new Set(['algebra', 'geometrie', 'clasa9']);
+
+  /* The chapters a pupil trains on follow the class. Class 9 has no chapters: its exam is 12 items, so the page shows ONE
+     chapter, "Examenul de clasa a 9-a", whose types are the items (the symbol is the item's number, the name its theme).
+     Every other class keeps the BAC chapters. The two banks never mix: an item's exercises have their own subcategory ids. */
+  function grade9Chapter() {
+    return {
+      id: 'clasa9', name: 'Examenul de clasa a 9-a', symbol: '9', color: '#6C47BC', virtual: true,
+      description: '12 iteme, 50 de puncte',
+      subcategories: BM.CATEGORIES_9.map(c => ({ id: c.subcategories[0].id, name: c.topic, symbol: c.symbol, color: c.color, description: c.description }))
+    };
+  }
+  let _chaptersGrade = null, _chapters = null;
+  function trainingChapters() {
+    const g9 = BM.currentGrade && BM.currentGrade() === 9;
+    if (_chapters && _chaptersGrade === g9) return _chapters;
+    _chaptersGrade = g9;
+    _chapters = g9 ? [grade9Chapter()] : BM.CATEGORIES;
+    return _chapters;
+  }
 
   function init() {
     renderConfig();
+    /* the class can change from the button in the top row: the chapters (BAC) or the 12 items (class 9) follow it, with a clean choice */
+    window.addEventListener('bm:grade', () => {
+      if (document.querySelector('.an-page--session')) return;
+      selectedSubcats = new Set(); mistakeIds = null;
+      renderConfig();
+    });
     BM.initScrollTop();
     setTimeout(() => document.body.classList.remove('an-boot'), 2600);
   }
@@ -131,7 +156,7 @@
 
     const all = document.getElementById('anAll');
     if (all) all.onclick = () => {
-      BM.CATEGORIES.forEach(c => {
+      trainingChapters().forEach(c => {
         if (UNLOCKED_CATS.has(c.id)) c.subcategories.forEach(s => { if (subcatExerciseCount(s) > 0) selectedSubcats.add(s.id); });
       });
       refreshChapters(); updateSummary();
@@ -164,7 +189,7 @@
     const chList = document.getElementById('chapterList');
     if (!chList) return;
     chList.innerHTML = '';
-    BM.CATEGORIES.forEach((cat, i) => chList.appendChild(renderChapterBlock(cat, i)));
+    trainingChapters().forEach((cat, i) => chList.appendChild(renderChapterBlock(cat, i)));
     refreshChapters();
   }
 
@@ -185,7 +210,7 @@
   /* Selected types that actually hold an exercise under the current filter. */
   function effectiveSubcats() {
     const out = [];
-    BM.CATEGORIES.forEach(cat => {
+    trainingChapters().forEach(cat => {
       if (!UNLOCKED_CATS.has(cat.id)) return;
       cat.subcategories.forEach(s => { if (selectedSubcats.has(s.id) && subcatExerciseCount(s) > 0) out.push(s.id); });
     });
@@ -195,12 +220,12 @@
   /* Chapters are accordions: open by default, a student who does not need one
      folds it away. The head still shows what is chosen (a count, a line and
      one segment per type), so nothing is hidden when it is folded. */
-  const openCats = new Set(['algebra', 'geometrie']);
+  const openCats = new Set(['algebra', 'geometrie', 'clasa9']);
 
   function updateFoldAll() {
     const b = document.getElementById('anFold');
     if (!b) return;
-    const allOpen = BM.CATEGORIES.filter(c => UNLOCKED_CATS.has(c.id)).every(c => openCats.has(c.id));
+    const allOpen = trainingChapters().filter(c => UNLOCKED_CATS.has(c.id)).every(c => openCats.has(c.id));
     b.dataset.state = allOpen ? 'open' : 'closed';
     const label = b.querySelector('[data-label]');
     if (label) label.textContent = allOpen ? 'Restrânge tot' : 'Extinde tot';
@@ -239,7 +264,8 @@
 
     const open = openCats.has(cat.id);
     if (!open) sec.classList.add('an-chap--closed');
-    const total = BM.EXERCISES.filter(e => e.categoryId === cat.id).length;
+    const subIds = new Set(cat.subcategories.map(s => s.id));
+    const total = BM.EXERCISES.filter(e => cat.virtual ? subIds.has(e.subcategoryId) : e.categoryId === cat.id).length;
     sec.dataset.total = total;
     sec.innerHTML = `
       <header class="an-chap__head">
@@ -289,7 +315,7 @@
   }
 
   function refreshChapters() {
-    BM.CATEGORIES.forEach(cat => {
+    trainingChapters().forEach(cat => {
       if (!UNLOCKED_CATS.has(cat.id)) return;
       const sec = document.getElementById(`cat-item-${cat.id}`);
       if (!sec) return;
@@ -426,7 +452,10 @@
   function wzMistakeSet() {
     let m = {};
     try { m = BM.Storage.getMistakes() || {}; } catch (e) { m = {}; }
-    const have = new Set(BM.EXERCISES.map(e => e.id));
+    /* only the exercises of the class the page follows (class 9: its items, otherwise the BAC chapters) */
+    const subs = new Set();
+    trainingChapters().forEach(c => c.subcategories.forEach(s => subs.add(s.id)));
+    const have = new Set(BM.EXERCISES.filter(e => subs.has(e.subcategoryId)).map(e => e.id));
     return new Set(Object.keys(m).filter(id => have.has(id)));
   }
 
@@ -466,7 +495,7 @@
     if (mode === 'quick') {
       mistakeIds = null;
       selectedSubcats = new Set();
-      BM.CATEGORIES.forEach(c => { if (UNLOCKED_CATS.has(c.id)) c.subcategories.forEach(s => selectedSubcats.add(s.id)); });
+      trainingChapters().forEach(c => { if (UNLOCKED_CATS.has(c.id)) c.subcategories.forEach(s => selectedSubcats.add(s.id)); });
       selectedCount = 10; selectedDiff = 'all'; selectedTimerMode = 'none'; selectedAnswerType = 'mixed'; unsolvedOnly = false;
       wzSyncControls();
       wzGo(WZ_LAST);

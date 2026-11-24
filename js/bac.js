@@ -578,7 +578,8 @@
   }
 
   function _buildLectiePool(grade) {
-    const all = BM.EXERCISES || [];
+    /* itemii clasei a 9-a (ex1 ... ex12) au banca lor: nu intră în examenul de lecție, care ia din capitolele BAC */
+    const all = (BM.EXERCISES || []).filter(e => !(BM.isGrade9Category && BM.isGrade9Category(e.categoryId)));
     const easy   = all.filter(e => e.difficulty === 'usor');
     const medium = all.filter(e => e.difficulty === 'mediu');
     const hard   = all.filter(e => e.difficulty === 'dificil');

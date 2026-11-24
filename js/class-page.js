@@ -6255,17 +6255,19 @@
     if (simPicker.useBacTaxonomy) {
       const cat  = BM.getCategoryById(simPicker.categoryId);
       const subs = cat ? cat.subcategories : [];
+      /* Clasa a 9-a nu are capitole: examenul are 12 iteme (BM.CATEGORIES_9), fiecare cu o subcategorie ascunsă. */
+      const is9  = simPicker.gradeCode === '9';
       return `
         <div class="sim-picker-bank-grid">
           <div class="sim-picker-bank-col">
             <div class="cls-form-field">
-              <label class="cls-form-label">Capitol</label>
+              <label class="cls-form-label">${is9 ? 'Item' : 'Capitol'}</label>
               <select id="simPickCategory" class="cls-form-input cls-form-select">
-                <option value="">Toate capitolele</option>
-                ${BM.CATEGORIES.map(c => `<option value="${c.id}" ${simPicker.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.name)}</option>`).join('')}
+                <option value="">${is9 ? 'Alege itemul' : 'Toate capitolele'}</option>
+                ${(is9 ? BM.CATEGORIES_9 : BM.CATEGORIES).map(c => `<option value="${c.id}" ${simPicker.categoryId === c.id ? 'selected' : ''}>${BM.esc(c.flat ? `${c.name} · ${c.topic}` : c.name)}</option>`).join('')}
               </select>
             </div>
-            <div class="cls-form-field">
+            <div class="cls-form-field"${is9 ? ' hidden' : ''}>
               <label class="cls-form-label">Subcapitol</label>
               <select id="simPickSubcategory" class="cls-form-input cls-form-select" ${!cat ? 'disabled' : ''}>
                 <option value="">Toate subcapitolele</option>
@@ -6301,6 +6303,8 @@
       catSel.onchange = e => {
         simPicker.categoryId = e.target.value;
         simPicker.subcategoryId = '';
+        const picked = BM.getCategoryById(simPicker.categoryId);
+        if (picked && picked.flat) simPicker.subcategoryId = picked.subcategories[0].id;   // un item are o singură subcategorie, ascunsă
         _simPickerRenderBody();
       };
     }

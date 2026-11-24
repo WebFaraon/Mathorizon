@@ -1503,3 +1503,6 @@ html body.pm:has(#profileContent) .pf-avatar-edit .pf-key__ico { width: 26px; he
   html body.pm:has(#profileContent) .pf-id__actions > .pf-key[hidden] { display: none; }
   html body.pm:has(#profileContent) .pf-id__actions > .pf-key.is-wide { grid-column: 1 / -1; }
 }
+
+/* Clasa a 9-a: the number of an exam item on the key of its page (plain sans, not the serif maths glyph of a chapter) */
+html body.pm .ch__key--num { font-family: var(--k-font, 'Plus Jakarta Sans', sans-serif); font-weight: 800; letter-spacing: -0.02em; }

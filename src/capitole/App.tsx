@@ -55,7 +55,8 @@ function readGrade(): number {
  * tab you switch back to is never stale or re-loading.
  */
 export function App() {
-  const { chapters, ready } = useCapitoleData();
+  const [grade, setGrade] = useState<number>(readGrade);
+  const { chapters, ready } = useCapitoleData(grade);
   const { missions, ready: missionsReady } = useMissions();
   const { rows: leaderboardRows, ready: leaderboardReady } = useLeaderboard();
   const currentUserId = window.BMAuth?.user?.id ?? null;
@@ -63,7 +64,6 @@ export function App() {
   const isPath = page === 'parcurs';
   /* On a phone the tabs are separate pages (the bottom bar, js/bnav.js); each one shows the middle column (Misiuni is its own page there too). */
   const mobileTab: MobileTab = 'capitole';
-  const [grade, setGrade] = useState<number>(readGrade);
   const pickGrade = (g: number) => {
     setGrade(g);
     window.BMGrade?.set(g);

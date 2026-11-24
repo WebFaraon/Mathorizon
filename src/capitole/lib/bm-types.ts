@@ -42,6 +42,13 @@ export interface BMCategory {
   description: string;
   tagline?: string;
   subcategories: BMSubcategory[];
+  /** Clasa a 9-a: an item of the exam (ex1 ... ex12) is a flat category, one hidden subcategory with the same id (js/data.js, BM.CATEGORIES_9). */
+  flat?: boolean;
+  /** The theme of an exam item, and the points it is worth. */
+  topic?: string;
+  points?: number;
+  /** Which chapter colour it borrows (algebra, geometrie, analiza). */
+  legend?: string;
 }
 
 /** Only the fields this page needs; a real exercise has many more. */
@@ -87,6 +94,8 @@ export interface BMStorage {
 
 export interface BMGlobal {
   CATEGORIES?: BMCategory[];
+  /** The chapters of a class: the 12 exam items for class 9, the BAC chapters otherwise. */
+  categoriesForGrade?: (grade: number | string) => BMCategory[];
   EXERCISES?: BMExercise[];
   Storage?: BMStorage;
   /** Resolves once js/custom-exercises.js has merged the Supabase rows into EXERCISES. */

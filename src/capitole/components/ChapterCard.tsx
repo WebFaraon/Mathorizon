@@ -23,6 +23,8 @@ const LEGEND: Record<string, string> = {
   geometrie: 'var(--k-green)',
   analiza: 'var(--k-red)'
 };
+/** An exam item of class 9 borrows the colour of its theme (algebra, geometry, functions). */
+const legendOf = (category: { id: string; legend?: string }) => LEGEND[category.id] ?? (category.legend ? LEGEND[category.legend] : undefined);
 
 /** Each key lands this long after the previous one on first view. */
 const LAND_STAGGER_MS = 70;
@@ -78,7 +80,10 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
   const ref = useRef<HTMLDivElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.3 });
 
-  const names = category.subcategories.map((sub) => sub.name);
+  /* An item of class 9 has one hidden subcategory: its theme and its points are printed instead of the types. */
+  const names = category.flat
+    ? [category.topic ?? '', `${category.points ?? 0} ${category.points === 1 ? 'punct' : 'puncte'}`].filter(Boolean)
+    : category.subcategories.map((sub) => sub.name);
   const [tagsRef, fitted] = useFittedTags(names.length);
   // A counter that hides exactly one name costs the same room as the name.
   const shownTags = names.length - fitted === 1 ? names.length : fitted;
@@ -86,7 +91,7 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
   const done = !locked && progress.percent >= 100;
 
   const keyStyle = {
-    '--legend': LEGEND[category.id] ?? 'var(--k-ink-soft)',
+    '--legend': legendOf(category) ?? 'var(--k-ink-soft)',
     '--land-delay': `${index * LAND_STAGGER_MS}ms`
   } as React.CSSProperties;
 
@@ -99,7 +104,7 @@ export function ChapterCard({ chapter, index, onReadout }: ChapterCardProps) {
           <img className="cap-key__emblem" src={category.emblem} alt="" width={64} height={64} decoding="async" />
         ) : (
           <span
-            className="cap-key__symbol"
+            className={`cap-key__symbol${category.flat ? ' cap-key__symbol--num' : ''}`}
             aria-hidden="true"
             dangerouslySetInnerHTML={{ __html: category.symbol }}
           />

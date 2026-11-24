@@ -23,7 +23,8 @@
     'calcul-algebric', 'polinoame', 'complexe',
     'inec-rationale', 'ec-irationale', 'ec-exp', 'ec-log', 'inec-log', 'inec-exp', 'trigonometrie',
     'geo-plana', 'geo-spatiu',
-    'limite', 'derivate', 'integrale', 'siruri', 'progresii'
+    'limite', 'derivate', 'integrale', 'siruri', 'progresii',
+    'ex1', 'ex2', 'ex3', 'ex4', 'ex5', 'ex6', 'ex7', 'ex8', 'ex9', 'ex10', 'ex11', 'ex12'   // clasa a 9-a: itemii examenului
   ]);
 
   /* ---- Fav / solved action-button icons (SVG, not font glyphs — a plain
@@ -82,6 +83,9 @@
     const subParam = BM.getParam('sub');
     if (subParam) {
       showExercisesView(subParam);
+    } else if (currentCategory.flat) {
+      /* un item de clasa a 9-a are o singură subcategorie ascunsă: se deschide direct pe exerciții */
+      showExercisesView(currentCategory.subcategories[0].id);
     } else {
       showCardsView();
     }
@@ -100,11 +104,11 @@
     // Chapter legend color for the whole page (css/calculator.css maps
     // body[data-cat] to --legend), the same color the chapter's key has
     // on Capitole. The data file's per-subcategory colors are not used.
-    document.body.dataset.cat = cat.id;
+    document.body.dataset.cat = cat.legend || cat.id;
     header.innerHTML = `
       <div class="container">
         <div class="ch">
-          <div class="ch__key${cat.emblem ? ' ch__key--emblem' : ''}" aria-hidden="true">${cat.emblem ? BM.chapterEmblem(cat, 76) : cat.symbol}</div>
+          <div class="ch__key${cat.emblem ? ' ch__key--emblem' : ''}${cat.flat ? ' ch__key--num' : ''}" aria-hidden="true">${cat.emblem ? BM.chapterEmblem(cat, 76) : cat.symbol}</div>
           <div class="ch__titles">
             <div class="ch__line"><h1 class="ch__name">${BM.esc(cat.name)}</h1></div>
             <p class="ch__desc">${BM.esc(cat.description)}</p>
@@ -226,6 +230,7 @@
   /* ---- Header helpers: swap between category and subcategory ---- */
   function updateHeaderForSubcat(sub) {
     if (!sub) return;
+    if (currentCategory && currentCategory.flat) return;   // itemul își păstrează titlul și cifra
     const header = document.getElementById('catHeader');
     if (!header) return;
     const nameEl = header.querySelector('.ch__name');
@@ -359,6 +364,7 @@
   }
 
   window.goBackToCards = function() {
+    if (currentCategory && currentCategory.flat) { window.location.href = 'capitole.html'; return; }
     showCardsView();
   };
 
@@ -366,6 +372,20 @@
     const cat = currentCategory;
     const el  = document.getElementById('subcatBreadcrumb');
     if (!el) return;
+    if (cat.flat) {
+      el.innerHTML = `
+      <div class="container">
+        <div class="subcat-bc__inner">
+          <button class="subcat-bc__back" onclick="goBackToCards()">
+            ${icon('arrow-left', { size: 16 })} Exerciții
+          </button>
+          <span class="subcat-bc__sep">›</span>
+          <span class="subcat-bc__current">${BM.esc(cat.name)} · ${BM.esc(cat.topic || '')}</span>
+        </div>
+      </div>
+    `;
+      return;
+    }
     el.innerHTML = `
       <div class="container">
         <div class="subcat-bc__inner">

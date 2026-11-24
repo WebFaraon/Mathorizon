@@ -56,6 +56,10 @@ const model  = genAI.getGenerativeModel({
 
 const GRADE_LABELS = { '9': 'a IX-a', 'bac': 'a XII-a (BAC)' };
 
+// Clasa a 9-a: examenul nu are capitole, are 12 iteme (ex1 ... ex12, js/data.js BM.CATEGORIES_9). Itemii 2, 8 și 10 sunt de geometrie
+// (în plan simplu, în plan, în spațiu): la ei fotografia poate avea o figură, care se desenează de mână ca la geometria de BAC.
+const GRADE9_GEOMETRY_ITEMS = new Set(['ex2', 'ex8', 'ex10']);
+
 // Real, hand-transcribed BAC Moldova baremuri, tagged per categoryId/subcategoryId
 // (see js/data.js for the id list) — used as few-shot style examples so Gemini
 // matches the official granularity/phrasing. Filtered per-request to the
@@ -140,20 +144,22 @@ function buildPrompt(context, existingExercises) {
   const totalBlock = punctajTotal
     ? `Profesorul a indicat deja că acest exercițiu este notat cu EXACT ${punctajTotal} puncte — este punctajul oficial, nu-l ghici tu. Împarte baremul astfel încât suma puncte_maxime din pasi_barem să fie EXACT ${punctajTotal}, nu altă valoare.`
     : `Estimează punctajul total ca într-un barem oficial BAC Moldova.`;
-  const geometryBlock = categoryId === 'geometrie'
+  const isGrade9 = grade === '9';
+  const isGeometry = categoryId === 'geometrie' || (isGrade9 && GRADE9_GEOMETRY_ITEMS.has(categoryId));
+  const geometryBlock = isGeometry
     ? GEOMETRY_FIGURE_IGNORE_BLOCK + '\n' + GEOMETRY_SPECIAL_ANGLE_BLOCK
     : '';
   const examplesCount = matchingExamples(categoryId, subcategoryId).length;
   const examplesBlock = buildExamplesBlock(categoryId, subcategoryId);
 
-  return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Teorema (BAC Moldova). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, capitolul "${categoryName}", subcapitolul "${subcategoryName}", dificultate "${difficulty}".
+  return `Ești un profesor de matematică care pregătește un exercițiu nou pentru platforma Teorema (${isGrade9 ? 'examenul de clasa a IX-a din Moldova' : 'BAC Moldova'}). Ai primit o fotografie a unui exercițiu de matematică, pentru clasa: ${GRADE_LABELS[grade] || grade}, ${isGrade9 ? `${categoryName} al examenului, tema "${subcategoryName}"` : `capitolul "${categoryName}", subcapitolul "${subcategoryName}"`}, dificultate "${difficulty}".
 
 Transcrie exercițiul din imagine EXACT, folosind notație LaTeX cu $...$ (inline) și $$...$$ (block) — nu folosi alte delimitatoare.
 ${geometryBlock}
 
 ${totalBlock}
 
-IATĂ ${examplesCount} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (transcrise manual din documente oficiale) — construiește baremul noului exercițiu EXACT în acest stil: fiecare pas combină explicația și calculul matematic într-un singur câmp "descriere" (nu le separa), punctajul se împarte pe pași de calcul logici, nu pe fiecare linie:
+IATĂ ${examplesCount} EXEMPLE REALE DE BAREME OFICIALE BAC MOLDOVA (transcrise manual din documente oficiale)${isGrade9 ? ' — atenție, exercițiul tău este de clasa a IX-a, deci mai simplu decât cele de BAC: păstrează stilul și gradul de detaliu al baremului, dar nu folosi metode din liceu (limite, derivate, logaritmi) și rezolvă cu ce se predă la gimnaziu' : ''} — construiește baremul noului exercițiu EXACT în acest stil: fiecare pas combină explicația și calculul matematic într-un singur câmp "descriere" (nu le separa), punctajul se împarte pe pași de calcul logici, nu pe fiecare linie:
 
 ${examplesBlock}
 

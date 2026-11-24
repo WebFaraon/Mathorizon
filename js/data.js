@@ -7011,7 +7011,40 @@ BM.getExerciseCount = function(categoryId, subcategoryId) {
     (!subcategoryId || e.subcategoryId === subcategoryId)
   ).length;
 };
-BM.getCategoryById    = id => BM.CATEGORIES.find(c => c.id === id);
+/* ---- Clasa a 9-a: examenul are 12 iteme, fiecare cu altă temă și alt punctaj (50 de puncte în total).
+   Nu are capitole, deci banca se împarte pe iteme: categoria ex1 ... ex12. Fiecare item e o categorie "plată":
+   are o singură subcategorie ascunsă, cu același id (exercițiile se salvează cu category_id = subcategory_id = exN),
+   iar pagina lui se deschide direct pe exerciții. `legend` = culoarea de capitol după temă (algebră, geometrie, funcții).
+   Lista BM.CATEGORIES (clasa a 12-a, BAC) nu se atinge: nimic din ea nu vede itemii și invers. ---- */
+BM.CATEGORIES_9 = [
+  { n: 1,  topic: 'Calcul algebric',               points: 3, legend: 'algebra',   desc: 'Adunări, scăderi, ridicări la putere, fracții și numere negative.' },
+  { n: 2,  topic: 'Geometrie simplă',              points: 2, legend: 'geometrie', desc: 'Un exercițiu simplu de geometrie. La examen valorează 2 puncte, uneori 3.' },
+  { n: 3,  topic: 'Ecuații de gradul 2',           points: 3, legend: 'algebra',   desc: 'Ecuații de gradul 2.' },
+  { n: 4,  topic: 'Rapoarte și procente',          points: 5, legend: 'algebra',   desc: 'Probleme cu rapoarte și procente.' },
+  { n: 5,  topic: 'Funcții',                       points: 2, legend: 'analiza',   desc: 'Funcții de gradul 1 sau de gradul 2.' },
+  { n: 6,  topic: 'Inecuații de gradul 1',         points: 4, legend: 'algebra',   desc: 'Inecuații de gradul 1.' },
+  { n: 7,  topic: 'Calcul cu radicali',            points: 6, legend: 'algebra',   desc: 'Calcul mai complicat: radicali, puteri, raționalizări și amplificări.' },
+  { n: 8,  topic: 'Geometrie în plan',             points: 5, legend: 'geometrie', desc: 'Probleme de geometrie în plan.' },
+  { n: 9,  topic: 'Sisteme de ecuații',            points: 5, legend: 'algebra',   desc: 'Sisteme de ecuații.' },
+  { n: 10, topic: 'Geometrie în spațiu',           points: 5, legend: 'geometrie', desc: 'Probleme de geometrie în spațiu.' },
+  { n: 11, topic: 'Rapoarte algebrice',            points: 6, legend: 'algebra',   desc: 'Rapoarte algebrice cu domeniul de valori admisibile și ecuații cu fracții.' },
+  { n: 12, topic: 'Funcții cu parametru',          points: 4, legend: 'analiza',   desc: 'Funcții cu parametru, de gradul 1 sau de gradul 2.' }
+].map(it => ({
+  id: 'ex' + it.n, name: 'Itemul ' + it.n, symbol: String(it.n), color: '#6C47BC',
+  gradient: 'linear-gradient(135deg,#6C47BC,#3F236E)',
+  description: it.desc,
+  grade: '9', flat: true, topic: it.topic, points: it.points, legend: it.legend,
+  subcategories: [{ id: 'ex' + it.n, name: 'Itemul ' + it.n, symbol: String(it.n), color: '#6C47BC', description: it.desc }]
+}));
+BM.getCategoryById    = id => BM.CATEGORIES.find(c => c.id === id) || BM.CATEGORIES_9.find(c => c.id === id);
+/* Lista de capitole a unei clase: 9 are itemii examenului, orice altă clasă pregătită (acum 12) are capitolele BAC. */
+BM.categoriesForGrade = g => String(g) === '9' ? BM.CATEGORIES_9 : BM.CATEGORIES;
+/* Clasa pe care o urmărește pagina: elevul și-o alege (bm_grade), profesorul și adminul doar o privesc (bm_grade_view). */
+BM.currentGrade = () => {
+  try { const v = parseInt(localStorage.getItem('bm_grade_view') || localStorage.getItem('bm_grade') || '', 10); return v >= 5 && v <= 12 ? v : null; }
+  catch (e) { return null; }
+};
+BM.isGrade9Category = id => /^ex([1-9]|1[0-2])$/.test(String(id || ''));
 /* the emblem of a chapter (the four violet tiles of the Logo Kit); a chapter without one shows its symbol */
 BM.chapterEmblem = (cat, px, cls) => (cat && cat.emblem)
   ? `<img class="chap-emblem${cls ? ' ' + cls : ''}" src="${cat.emblem}" alt="" width="${px || 48}" height="${px || 48}" decoding="async">`
