@@ -137,8 +137,32 @@
     }
   ];
 
-  // Active slot definitions — SLOTS for BAC, overridden for lectie exam
+  /* ----------------------------------------------------------------
+     EVALUAREA NAȚIONALĂ, clasa a 9-a: 12 iteme, 50 de puncte.
+     Itemul N ia un exercițiu din banca itemului N (subcategoria exN, js/data.js
+     BM.CATEGORIES_9), de orice raritate, cu punctajul itemului. Banca se completează
+     pe parcurs: un item fără exerciții rămâne "indisponibil" (ca la BAC) și nu intră
+     în punctajul maxim, ca nota să nu scadă din cauza unui item care nu există încă.
+  ---------------------------------------------------------------- */
+  function natlSlots() {
+    return (BM.CATEGORIES_9 || []).map(c => ({
+      id: c.id, label: 'Item ' + c.symbol, points: c.points, group: c.symbol,
+      desc: c.topic,
+      pools: [{ subcat: c.id, diff: ['usor', 'mediu', 'dificil', 'legendar'] }]
+    }));
+  }
+  const slotsFor = type => (type === 'natl' ? natlSlots() : SLOTS);
+
+  // Active slot definitions — SLOTS for BAC, natlSlots() for Evaluarea Națională, overridden for lectie exam
   let _slotDefs = SLOTS;
+
+  // The points the exam is marked out of: all of them for BAC, only the items that got an
+  // exercise for Evaluarea Națională (its bank is still being filled in).
+  function _maxPoints() {
+    const natl = exam && exam.examType === 'natl';
+    return _slotDefs.reduce((sum, slot, i) => sum + ((natl && !(exam.slots[i] && exam.slots[i].exercise)) ? 0 : slot.points), 0);
+  }
+  const _examTitle = () => (exam && exam.examType === 'natl' ? 'Evaluare Națională' : 'Simulare BAC');
 
   /* ---- Answer extraction utilities ---- */
   /* ---- State ---- */
@@ -384,10 +408,25 @@
     document.body.appendChild(ov);
   }
 
+  /* Evaluarea Națională: banca itemilor se completează pe parcurs, deci elevul vede de la început
+     la câți din cei 12 iteme sunt exerciții acum (un item fără exerciții se sare). */
+  function updateNatlAvail() {
+    const el = document.getElementById('natlAvail');
+    if (!el) return;
+    const slots = natlSlots();
+    const n = slots.filter(slot => BM.EXERCISES.some(e => e.subcategoryId === slot.pools[0].subcat)).length;
+    const pts = slots.reduce((sum, slot) => sum + (BM.EXERCISES.some(e => e.subcategoryId === slot.pools[0].subcat) ? slot.points : 0), 0);
+    el.textContent = n >= slots.length
+      ? 'Toți cei 12 iteme au exerciții.'
+      : `Acum sunt exerciții la ${n} din cei 12 iteme (${pts} din 50 de puncte). Restul se adaugă pe parcurs și nota se calculează doar din itemii primiți.`;
+    el.hidden = false;
+  }
+
   /* ---- Init ---- */
   function init() {
     timerEl = document.getElementById('navTimer');
     updateTimerDisplay(DURATION);
+    if (BM.customExercisesReady) BM.customExercisesReady().then(updateNatlAvail); else updateNatlAvail();
 
     // ?new=1 from homepage → always reset to setup
     const params = new URLSearchParams(window.location.search);
@@ -419,6 +458,7 @@
         else if (exam.phase === 'done') { _showRestoredResults(); }
         else doFinish();
       } else {
+        _slotDefs = exam.examType === 'natl' ? natlSlots() : SLOTS;
         if (exam.phase === 'exam') {
           showExamView();
           startTimer();
@@ -649,10 +689,10 @@
   /* ================================================================
      GENERATE EXAM — no-repeat per subcategory
   ================================================================ */
-  function generateExam() {
+  function generateExam(simType) {
     const usedSubcats = new Set();
 
-    return SLOTS.map(slot => {
+    return slotsFor(simType).map(slot => {
       const shuffledPools = BM.shuffle([...slot.pools]);
 
       for (const pool of shuffledPools) {
@@ -690,8 +730,9 @@
     // be drawn into a slot. Without this, generateExam() could run before the
     // merge lands and silently leave slots empty (see [[bac-simulation-exam-structure]]).
     if (BM.customExercisesReady) await BM.customExercisesReady();
+    _slotDefs = slotsFor(simType);
     exam = {
-      slots: generateExam(),
+      slots: generateExam(simType),
       startTs: Date.now(),
       endTs: null,
       phase: 'exam',
@@ -707,7 +748,17 @@
     _navGuardOn_fn();
   }
 
-  window.startExam = function (simType) {
+  window.startExam = async function (simType) {
+    // Evaluarea Națională: banca itemilor se completează pe parcurs. Fără niciun exercițiu nu pornește,
+    // și nu se ia niciun token (verificarea e înainte de dialogul cu tokenul).
+    if (simType === 'natl') {
+      if (BM.customExercisesReady) await BM.customExercisesReady();
+      const any = natlSlots().some(slot => BM.EXERCISES.some(e => e.subcategoryId === slot.pools[0].subcat));
+      if (!any) {
+        if (BM.toast) BM.toast('Exercițiile pentru Evaluarea Națională se adaugă în curând. Revino puțin mai târziu.', 'info');
+        return;
+      }
+    }
     const tokens    = BM.getTokens();
     const loggedIn  = !!window.BMAuth?.user;
 
@@ -740,7 +791,7 @@
 
     showTokenDialog({
       icon: TOKEN_IMG,
-      title: 'Pornești simularea BAC?',
+      title: simType === 'natl' ? 'Pornești Evaluarea Națională?' : 'Pornești simularea BAC?',
       body: `Se scade <strong>1 ExamToken</strong> din contul tău. Rămâi cu <strong>${tokens - 1}</strong> token${tokens - 1 === 1 ? '' : 'uri'}.
              <span class="exam-start-warn">${icon('triangle-alert', { size: 18, className: 'icon--warning' })}<span>Dacă ieși din pagină în timpul examenului, tokenul nu se restituie.</span></span>`,
       confirmLabel: 'Pornește examenul',
@@ -849,8 +900,8 @@
              ${clickAttr} ${keyAttr}
              title="${slot.label}, ${slot.desc} (${slot.points}p)">
           <span class="bac-nav-item__status">${statusIcon}</span>
-          <span class="bac-nav-item__short">${slot.label.replace('Ex. ', '')}</span>
-          <span class="bac-nav-item__label">${slot.label.replace('Ex. ', 'Item ')}</span>
+          <span class="bac-nav-item__short">${slot.label.replace(/^(Ex\.|Item)\s*/, '')}</span>
+          <span class="bac-nav-item__label">${slot.label.replace(/^(Ex\.|Item)\s*/, 'Item ')}</span>
           <span class="bac-nav-item__pts">${slot.points}p</span>
           ${starBtn}
         </div>
@@ -859,7 +910,7 @@
 
     nav.innerHTML = `
       <div class="bac-sidebar__header">
-        <div class="bac-sidebar__exam-title">Simulare BAC</div>
+        <div class="bac-sidebar__exam-title">${_examTitle()}</div>
         <div class="bac-sidebar__stats-grid">
           <div class="bac-stat-chip bac-stat-chip--done">
             <span class="bac-stat-chip__val">${doneCount}</span>
@@ -907,7 +958,7 @@
         <span class="bac-slot-num">${slot.label}</span>
         <span class="bac-slot-pts">${slot.points} puncte</span>
         ${item.exercise ? BM.rarityBadge(item.exercise.difficulty) : ''}
-        <span class="bac-slot-desc">${BM.esc(sub?.name || slot.desc)}</span>
+        <span class="bac-slot-desc">${BM.esc(exam.examType === 'natl' ? slot.desc : (sub?.name || slot.desc))}</span>
       </div>
     `;
 
@@ -981,7 +1032,8 @@
         }
       } else if (dcMount && window.DrawingCanvas) {
         const _cur = current;
-        const isGeo = ex.subcategoryId === 'geo-plana' || ex.subcategoryId === 'geo-spatiu';
+        const isGeo = ex.subcategoryId === 'geo-plana' || ex.subcategoryId === 'geo-spatiu' ||
+                      (BM.CATEGORIES_9 || []).some(c => c.id === ex.subcategoryId && c.legend === 'geometrie');   // itemii 2, 8, 10 de clasa a 9-a
         _activeAnswerWidget = new DrawingCanvas(dcMount, {
           onSave: function (dataUrl) { saveWork(_cur, dataUrl); },
           initialData: item.work || null,
@@ -1315,7 +1367,7 @@
   // failed, or omitted for the final render once scores are in (item.score is
   // null on every graded slot until _runAiVerification() fills it in).
   function renderResults(status) {
-    const maxPts = _slotDefs.reduce((s, slot) => s + slot.points, 0);
+    const maxPts = _maxPoints();
     const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
     const grade  = maxPts > 0 ? (earned / maxPts * 10) : 0;
     const gradeDisplay = grade.toFixed(2);
@@ -1672,6 +1724,7 @@
           // conditions for logs/radicals, extraneous-root checks, etc.) that
           // apply regardless of whether this exercise has a transcribed barem.
           subcategoryId:   item.exercise.subcategoryId || '',
+          examType:        exam.examType || 'bac',
           // Official BAC barem for this exercise, when transcribed — overrides
           // the auto-derived equal split so Gemini grades against the exact
           // per-step criteria instead of guessing the point breakdown.
@@ -1714,7 +1767,7 @@
 
       renderResults();
       section = document.getElementById('aiResultsSection');
-      const examTotalMaxim = _slotDefs.reduce((s, sl) => s + (sl.points || 0), 0);
+      const examTotalMaxim = _maxPoints();
       if (section) {
         section.innerHTML = renderAiResultsHTML(results, examTotalMaxim, images);
         if (window.renderMathInElement) {
@@ -1763,13 +1816,14 @@
   ================================================================ */
   function saveToHistory() {
     try {
-      const maxPts = _slotDefs.reduce((s, slot) => s + slot.points, 0);
+      const maxPts = _maxPoints();
       const earned = exam.slots.reduce((s, item) => s + (item.score || 0), 0);
       const durationSec = exam.endTs
         ? Math.floor((exam.endTs - exam.startTs) / 1000)
         : _examDurationSec();
       const entry = {
         ts: Date.now(),
+        examType: exam.examType || 'bac',
         grade: parseFloat((earned / maxPts * 10).toFixed(2)),
         earned,
         maxPts,
@@ -1820,9 +1874,10 @@
                          : 'var(--red)';
         const dH = Math.floor(entry.durationSec / 3600);
         const dM = Math.floor((entry.durationSec % 3600) / 60);
+        const natlEntry = entry.examType === 'natl' || (entry.breakdown && entry.breakdown[0] && /^Item\b/.test(entry.breakdown[0].label || ''));
         return `
           <div class="bac-hist-item">
-            <div class="bac-hist-item__date">${date}</div>
+            <div class="bac-hist-item__date">${date}${natlEntry ? '<small class="bac-hist-item__tag"> · Clasa a 9-a</small>' : ''}</div>
             <div class="bac-hist-item__pts">${entry.earned}/${entry.maxPts}p</div>
             <div class="bac-hist-item__time">${dH}h ${pad(dM)}m</div>
             <div class="bac-hist-item__grade" style="color:${gradeColor}">${entry.grade.toFixed(2)}</div>

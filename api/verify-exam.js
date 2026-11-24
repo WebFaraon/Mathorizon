@@ -126,8 +126,10 @@ async function verifyItem(item) {
   const {
     canvasBase64, enunt, solutieOficiala,
     puncteMaxime, label, barem: baremFixed, baremEstimat,
-    raspunsCorect, subcategoryId, mimeType
+    raspunsCorect, subcategoryId, mimeType, examType
   } = item;
+  // the exam being graded, named in the prompt (Evaluarea Națională, clasa a 9-a, or BAC)
+  const examName = examType === 'natl' ? 'examene de clasa a IX-a din Moldova' : 'examene BAC Moldova';
   // answer sheets arrive as PNG from the drawing canvas, JPEG from a photo
   const imageMimeType = normalizeImageMime(mimeType, 'image/png');
 
@@ -182,7 +184,7 @@ Verifică ÎN IMAGINE dacă elevul a ajuns la acest rezultat (sau o formă echiv
     // criterion, whether the student demonstrated it; it never writes or
     // rewrites the criterion wording, so the displayed barem is identical
     // for every student instead of being re-described each time.
-    const prompt = `Ești un corector strict de examene BAC Moldova. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
+    const prompt = `Ești un corector strict de ${examName}. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
 
 REGULI CRITICE — CITEȘTE CU ATENȚIE:
 1. Citește cu atenție FIECARE calcul din imagine. Verifică dacă rezultatele numerice sunt corecte.
@@ -248,7 +250,7 @@ Returnează EXCLUSIV un obiect JSON valid (fără alt text, fără markdown), cu
 Identifică în imagine EXACT ${nrPasi} pași și evaluează fiecare.`
     : `\nÎmparte punctajul de ${puncteMaxime}p între pașii logici pe care îi identifici în imagine.`;
 
-  const prompt = `Ești un corector strict de examene BAC Moldova. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
+  const prompt = `Ești un corector strict de ${examName}. Evaluezi EXCLUSIV ceea ce este SCRIS ÎN IMAGINE.
 
 REGULI CRITICE — CITEȘTE CU ATENȚIE:
 1. Citește cu atenție FIECARE calcul din imagine. Verifică dacă rezultatele numerice sunt corecte.
