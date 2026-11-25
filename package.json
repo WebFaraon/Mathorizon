@@ -20,7 +20,10 @@
     "check:replacements": "node scripts/check-replacements.js",
     "check:managers": "node scripts/check-managers.js",
     "check:oauth": "node scripts/check-oauth-guard.js",
-    "apps-script:lists": "node scripts/registru-import/apps-script-lists.js"
+    "apps-script:lists": "node scripts/registru-import/apps-script-lists.js",
+    "load:live": "node scripts/load-test/realtime.mjs",
+    "load:rest": "node scripts/load-test/rest.mjs",
+    "load:selftest": "node scripts/load-test/selftest.mjs"
   },
   "repository": {
     "type": "git",

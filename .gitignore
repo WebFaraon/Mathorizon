@@ -17,3 +17,7 @@ assets/react/.vite/
 
 # Registers imported for checking (they hold real names and phones)
 _import/
+
+# Teste de incarcare: jetoane de test si rezultate
+scripts/load-test/.tokens.json
+scripts/load-test/rezultat-*.json
