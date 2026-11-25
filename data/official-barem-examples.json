@@ -1483,5 +1483,29 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrala produsului x·f(x), prin părți",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\to \\mathbb{R}$, $f(x) = e^{2x} - 2x^2$.\n\nCalculați:\n$$\\int_{0}^{1} x\\, f(x)\\, dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "Determinarea unei primitive a funcției $h(x) = 2x^3$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea unei primitive a funcției $u(x) = xe^{2x}$",
+        "puncte_maxime": 4
+      },
+      {
+        "nr": 3,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{\\frac{e^2 - 1}{4}}$",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]
