@@ -1654,7 +1654,7 @@
     /* Commit everything staged during the session — the only place any of
        this actually gets written to storage/DB (see gradeCard/pendingSolvedIds
        above). Must run before xpNow/getBestStreak are read below. */
-    if (sessionXp > 0) BM.Training.addXp(sessionXp);
+    if (sessionXp > 0) BM.Training.addXp(sessionXp, 'antrenament');
     pendingSolvedIds.forEach(id => { if (!BM.Storage.isSolved(id)) BM.Storage.toggleSolved(id); });
     if (bestStreakSession > 0) {
       if (bestStreakSession > BM.Storage.getBestCombo()) BM.Storage.setBestCombo(bestStreakSession);

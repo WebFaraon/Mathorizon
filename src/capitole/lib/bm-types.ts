@@ -102,7 +102,8 @@ export interface BMGlobal {
   customExercisesReady?: () => Promise<unknown>;
   gotoCategory?: (categoryId: string, subcategoryId?: string, exerciseId?: string) => void;
   Training?: {
-    addXp(amount: number): number;
+    addXp(amount: number, source?: string, ref?: string): number;
+    setTotalXp?(n: number): number;
     /** XP needed per level (js/training-stats.js) — level = floor(xp / this) + 1.
         Read here rather than hardcoded so the leaderboard's level column
         (useLeaderboard.ts) can never drift from Antrenament's own math. */

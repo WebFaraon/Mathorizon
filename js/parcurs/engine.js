@@ -623,7 +623,7 @@
     var exN = L.exercises.length, pct = Math.round(firstOk / exN * 100);
     if (L.kind === 'skip') return endSkip(exN, pct);
     var res = Prog.complete(L.id, { pct: pct, xp: noXp() ? 0 : xp }), awarded = res.first ? res.xpGiven : 0;
-    if (awarded > 0 && window.BM && BM.Training && BM.Training.addXp) { try { BM.Training.addXp(awarded); } catch (e) { /* ignore */ } }
+    if (awarded > 0 && window.BM && BM.Training && BM.Training.addXp) { try { BM.Training.addXp(awarded, 'lectie', String(L.id)); } catch (e) { /* ignore */ } }
     /* Seria crește doar din lecții (elevi); prima lecție a zilei o face să crească și arată ecranul cu flacăra. */
     var streakBefore = 0, streakBumped = false;
     try {

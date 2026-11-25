@@ -19,10 +19,9 @@ export interface MissionsState {
  * the SAME authenticated Supabase client js/auth.js already holds, not a
  * second session of our own.
  *
- * The actual XP grant reuses BM.Training.addXp() (js/training-stats.js,
- * loaded on this page specifically for this — see capitole.html) instead
- * of writing to training_stats directly, so it goes through the exact
- * same local+DB write every other XP award on the site already uses.
+ * The reward itself is granted on the server (rpc claim_mission, migration
+ * 20261125110000): fixed sums, once per day per mission. The browser only
+ * shows the new total (BM.Training.setTotalXp).
  */
 export function useMissions(): MissionsState {
   const [state, setState] = useState<MissionsState>({ missions: [], ready: false });
@@ -75,19 +74,16 @@ export function useMissions(): MissionsState {
         if (!payable) break;
         if (!mission.done || claimedKeys.has(mission.key)) continue;
         try {
-          const { error } = await sb
-            .from('user_daily_mission_claims')
-            .insert({ user_id: uid, day: iso, mission_key: mission.key, xp_awarded: mission.xpReward });
-          // A unique-violation here means another tab/load already claimed
-          // it between our read and this insert — not an error worth
-          // surfacing, just skip the XP grant below.
-          if (!error) {
-            window.BM?.Training?.addXp(mission.xpReward);
-            claimedKeys.add(mission.key);
+          // The reward is granted by the server (claim_mission): fixed sums, once per day per mission, students only.
+          // Nothing is written from here directly any more (the three tables are read-only for the browser).
+          const { data, error } = await sb.rpc('claim_mission', { p_key: mission.key, p_day: iso });
+          const res = data as { ok?: boolean; total?: number } | null;
+          if (!error && res && res.ok && typeof res.total === 'number') {
+            window.BM?.Training?.setTotalXp?.(res.total);
           }
+          if (!error) claimedKeys.add(mission.key);
         } catch {
-          // Same reasoning as the read above — don't block the rest of the
-          // page on a gamification side-effect failing.
+          // Same reasoning as the read above: don't block the rest of the page on a gamification side-effect failing.
         }
       }
 

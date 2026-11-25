@@ -97,23 +97,32 @@
       return true;
     };
 
-    /* Override BM.Training.addXp/reportBestStreak — PATCH direct în DB
-       (fire-and-forget, ca toate celelalte override-uri din acest fișier —
-       XP-ul de antrenament e o statistică cosmetică, nu are nevoie de retry
-       sau de blocarea UI-ului dacă rețeaua e proastă). */
+    /* Override BM.Training.addXp/reportBestStreak. XP-ul îl acordă SERVERUL (funcția award_xp, cu plafoane; browserul nu mai poate scrie
+       în training_stats). Aici se pune doar o valoare locală imediată, apoi se aliniază la totalul întors de server (dacă serverul a refuzat,
+       de exemplu din cauza plafonului, totalul local revine la cel real). `source` e 'lectie' (cu `ref` = lecția, plătește o singură dată)
+       sau 'antrenament'. */
     if (BM.Training) {
-      BM.Training.addXp = function (amount) {
-        /* doar elevii confirmați primesc XP (vezi BM.Training.xpAllowed în training-stats.js) */
-        if (currentUser && _userRole !== 'elev') return BM.Training.getTotalXp();
-        const n = Math.max(0, BM.Training.getTotalXp() + (Number(amount) || 0));
+      BM.Training.setTotalXp = function (n) {
+        n = Math.max(0, Number(n) || 0);
         localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
         BM.Training.refreshWidgets();
-        if (currentUser) {
-          _dbFetch(`training_stats?user_id=eq.${currentUser.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ total_xp: n, updated_at: new Date().toISOString() }),
-            headers: { 'Prefer': 'return=minimal' }
-          }).catch(() => {});
+        return n;
+      };
+
+      BM.Training.addXp = function (amount, source, ref) {
+        /* doar elevii confirmați primesc XP (vezi BM.Training.xpAllowed în training-stats.js) */
+        if (currentUser && _userRole !== 'elev') return BM.Training.getTotalXp();
+        amount = Math.max(0, Math.floor(Number(amount) || 0));
+        const n = Math.max(0, BM.Training.getTotalXp() + amount);
+        localStorage.setItem(BM.Training.TOTAL_XP_KEY, String(n));
+        BM.Training.refreshWidgets();
+        if (currentUser && amount > 0 && sb) {
+          Promise.resolve(sb.rpc('award_xp', { p_amount: amount, p_source: source || 'antrenament', p_ref: ref || null }))
+            .then(function (r) {
+              const d = r && r.data;
+              if (d && typeof d.total === 'number') BM.Training.setTotalXp(d.total);
+            })
+            .catch(function () {});
         }
         return n;
       };
@@ -123,12 +132,8 @@
         if (!(streakValue > current)) return current;
         localStorage.setItem(BM.Training.BEST_STREAK_KEY, String(streakValue));
         BM.Training.refreshWidgets();
-        if (currentUser) {
-          _dbFetch(`training_stats?user_id=eq.${currentUser.id}`, {
-            method: 'PATCH',
-            body: JSON.stringify({ best_streak: streakValue, updated_at: new Date().toISOString() }),
-            headers: { 'Prefer': 'return=minimal' }
-          }).catch(() => {});
+        if (currentUser && sb) {
+          Promise.resolve(sb.rpc('report_best_streak', { p_value: Math.floor(streakValue) })).catch(function () {});
         }
         return streakValue;
       };
@@ -155,17 +160,19 @@
       return nowSolved;
     };
 
-    /* Override BM.Storage.updateStreak — upsert direct în DB */
+    /* Override BM.Storage.updateStreak: seria se crește pe server (funcția bump_streak, o singură dată pe zi, după ziua din Chișinău);
+       valoarea locală se aliniază la ce întoarce serverul. */
     const _origUpdateStreak = BM.Storage.updateStreak;
     BM.Storage.updateStreak = function () {
       const bumped = _origUpdateStreak();
-      if (bumped && currentUser) {
-        const s = BM.Storage.getStreak();
-        _dbFetch('user_streak', {
-          method: 'POST',
-          body: JSON.stringify({ user_id: currentUser.id, count: s.count, last_date: s.lastDate }),
-          headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
-        }).catch(() => {});
+      if (bumped && currentUser && sb) {
+        Promise.resolve(sb.rpc('bump_streak')).then(function (r) {
+          const d = r && r.data;
+          if (d && typeof d.count === 'number') {
+            try { localStorage.setItem('bm_streak', JSON.stringify({ count: d.count, lastDate: d.last_date })); } catch (e) {}
+            document.dispatchEvent(new CustomEvent('bmauth:streak-updated'));
+          }
+        }).catch(function () {});
       }
       return bumped;
     };
@@ -294,12 +301,9 @@
         BM.Training.refreshWidgets();
         return;
       }
-      /* Niciun rând — utilizator nou, inserăm un rând implicit */
-      await _dbFetch('training_stats', {
-        method: 'POST',
-        body: JSON.stringify({ user_id: currentUser.id, total_xp: 0, best_streak: 0 }),
-        headers: { 'Prefer': 'resolution=merge-duplicates,return=minimal' }
-      });
+      /* Niciun rând: utilizator nou. Rândul îl creează serverul la prima acordare de XP. */
+      localStorage.setItem(BM.Training.TOTAL_XP_KEY, '0');
+      localStorage.setItem(BM.Training.BEST_STREAK_KEY, '0');
       BM.Training.refreshWidgets();
     } catch (e) {
       console.error('[BMAuth] syncTrainingStats error:', e.message);
@@ -441,12 +445,7 @@
         try { localStorage.setItem('bm_streak', JSON.stringify({ count: dbStreak.count, lastDate: dbStreak.last_date })); } catch {}
       } else {
         try { localStorage.setItem('bm_streak', JSON.stringify({ count: 0, lastDate: null })); } catch {}
-        /* Utilizator nou — inițializează rândul în DB ca să nu apară valori greșite */
-        _dbFetch('user_streak', {
-          method: 'POST',
-          body: JSON.stringify({ user_id: uid, count: 0, last_date: null }),
-          headers: { 'Prefer': 'resolution=ignore-duplicates,return=minimal' }
-        }).catch(() => {});
+        /* Utilizator nou: rândul îl creează serverul la prima creștere a seriei. */
       }
 
       /* ---- Favorite ---- */
