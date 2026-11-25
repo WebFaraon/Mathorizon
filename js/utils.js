@@ -172,16 +172,91 @@ BM.esc = function(str) {
     .replace(/"/g, '&quot;');
 };
 
-/* ---- Newlines to <br> — versiune TRUSTED (fără escape, pentru date din data.js) ---- */
+/* ---- Sanitizer: exercise text and figures are written by teachers and shown to other people's browsers.
+   Without this, a teacher account could store <img onerror=...> in a statement and run code for every student who opens it
+   (and read their session from localStorage). Parsing happens in a <template>, which never runs scripts or loads images.
+   HTML: a small allowlist of tags (formatting, lists, tables, images, links); anything else is unwrapped to its text.
+   SVG (figures): everything except script-like elements, event handlers and non-local references. ---- */
+(function () {
+  var HTML_OK = { B:1, STRONG:1, I:1, EM:1, U:1, SUB:1, SUP:1, SMALL:1, BR:1, SPAN:1, DIV:1, P:1, UL:1, OL:1, LI:1, CODE:1, PRE:1,
+                  BLOCKQUOTE:1, HR:1, TABLE:1, THEAD:1, TBODY:1, TR:1, TD:1, TH:1, IMG:1, A:1, H3:1, H4:1 };
+  var HTML_ATTR = { 'class':1, colspan:1, rowspan:1, alt:1, width:1, height:1, src:1, href:1, title:1 };
+  var SVG_DROP = /^(script|foreignobject|iframe|object|embed|link|meta|animate|animatemotion|animatetransform|set|a|use|image|style|handler|listener)$/i;
+  function okUrl(v, imgOnly) {
+    v = String(v || '').replace(/[\u0000- ]+/g, '');
+    if (/^(https?:|\/(?!\/)|\.\/|\.\.\/|assets\/|#)/i.test(v) || /^[a-z0-9_.\/-]+$/i.test(v)) return !(imgOnly && /^#/.test(v));
+    if (/^data:image\/(png|jpe?g|gif|webp);base64,/i.test(v)) return true;
+    return !imgOnly && /^mailto:/i.test(v);
+  }
+  function cleanHtmlNode(parent) {
+    Array.prototype.slice.call(parent.childNodes).forEach(function (n) {
+      if (n.nodeType === 3) return;
+      if (n.nodeType !== 1) { parent.removeChild(n); return; }
+      var tag = n.tagName.toUpperCase();
+      if (!HTML_OK[tag]) {
+        // unknown or dangerous: keep only harmless text (script, style, iframe... are dropped with their content)
+        if (/^(SCRIPT|STYLE|IFRAME|OBJECT|EMBED|SVG|MATH|LINK|META|FORM|INPUT|BUTTON|TEXTAREA|SELECT|BASE|TEMPLATE|NOSCRIPT)$/.test(tag)) { parent.removeChild(n); return; }
+        cleanHtmlNode(n);
+        while (n.firstChild) parent.insertBefore(n.firstChild, n);
+        parent.removeChild(n);
+        return;
+      }
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var k = a.name.toLowerCase();
+        if (!HTML_ATTR[k]) { n.removeAttribute(a.name); return; }
+        if ((k === 'src' && !okUrl(a.value, true)) || (k === 'href' && !okUrl(a.value, false))) n.removeAttribute(a.name);
+      });
+      if (tag === 'A') { n.setAttribute('rel', 'noopener noreferrer'); n.setAttribute('target', '_blank'); }
+      cleanHtmlNode(n);
+    });
+  }
+  BM.sanitizeHtml = function (html) {
+    html = String(html == null ? '' : html);
+    if (html.indexOf('<') === -1) return html;               // no tag can exist: nothing to clean (the common case)
+    var t = document.createElement('template');
+    t.innerHTML = html;
+    cleanHtmlNode(t.content);
+    return t.innerHTML;
+  };
+  function cleanSvgNode(parent) {
+    Array.prototype.slice.call(parent.childNodes).forEach(function (n) {
+      if (n.nodeType === 3 || n.nodeType === 4) return;
+      if (n.nodeType !== 1) { parent.removeChild(n); return; }
+      if (SVG_DROP.test(n.localName)) { parent.removeChild(n); return; }
+      Array.prototype.slice.call(n.attributes).forEach(function (a) {
+        var k = a.name.toLowerCase(), v = a.value;
+        if (/^on/.test(k)) { n.removeAttribute(a.name); return; }
+        if (/href$/.test(k) && !/^#/.test(v)) { n.removeAttribute(a.name); return; }
+        if (/javascript:|expression\(|@import|data:text|<script/i.test(v)) { n.removeAttribute(a.name); return; }
+        if (/url\(/i.test(v) && !/^\s*url\(\s*['"]?#[^)]*\)\s*$/i.test(v) && k !== 'style') { n.removeAttribute(a.name); return; }
+        if (k === 'style' && /url\(\s*(?!['"]?#)/i.test(v)) n.removeAttribute(a.name);
+      });
+      cleanSvgNode(n);
+    });
+  }
+  BM.sanitizeSvg = function (svg) {
+    svg = String(svg == null ? '' : svg);
+    if (!svg) return '';
+    var t = document.createElement('template');
+    t.innerHTML = svg;
+    cleanSvgNode(t.content);
+    return t.innerHTML;
+  };
+})();
+
+/* ---- Newlines to <br>, for exercise text (statements, solutions, barem). The text is written by teachers, so it goes
+   through BM.sanitizeHtml: formatting and math stay, scripts and event handlers are removed. ---- */
 BM.trustedNl2br = function(str) {
   /* Convertim \n la <br>, dar NUMAI în afara blocurilor $$ ... $$ */
+  str = String(str == null ? '' : str);
   const parts = str.split(/([ \t]*\$\$[\s\S]*?\$\$[ \t]*)/g);
-  return parts.map((p, i) => {
+  const out = parts.map((p, i) => {
     if (i % 2 === 1) return p;           /* bloc $$...$$ — lăsat intact */
     return p
       .replace(/\n/g, '<br>')
       .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
   }).join('');
+  return BM.sanitizeHtml(out);
 };
 
 /* ---- Geometry figure (hand-drawn, admin-authored SVG) shown next to an
@@ -190,7 +265,7 @@ BM.trustedNl2br = function(str) {
    the page's live theme — see js/geometry-figure-editor.js's export. ---- */
 BM.renderExerciseFigure = function(ex) {
   if (!ex || !ex.figureSvg) return '';
-  return `<div class="bac-exercise-figure">${ex.figureSvg}</div>`;
+  return `<div class="bac-exercise-figure">${BM.sanitizeSvg(ex.figureSvg)}</div>`;
 };
 
 /* ---- Newlines to <br> ---- */

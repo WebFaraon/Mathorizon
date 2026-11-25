@@ -22,12 +22,12 @@ module.exports = async function handler(req, res) {
       res.status(400).json({ error: 'Numele de utilizator trebuie să aibă 3-20 caractere: litere mici, cifre sau „_”.' });
       return;
     }
-    if (!cleanName) {
-      res.status(400).json({ error: 'Numele complet este obligatoriu.' });
+    if (!cleanName || cleanName.length > 100) {
+      res.status(400).json({ error: 'Numele complet este obligatoriu (cel mult 100 de caractere).' });
       return;
     }
-    if (!password || String(password).length < 8) {
-      res.status(400).json({ error: 'Parola trebuie să aibă cel puțin 8 caractere.' });
+    if (!password || String(password).length < 8 || String(password).length > 72) {
+      res.status(400).json({ error: 'Parola trebuie să aibă între 8 și 72 de caractere.' });
       return;
     }
 
@@ -55,12 +55,14 @@ module.exports = async function handler(req, res) {
 
     if (error) {
       const isDuplicate = /already.*registered|already been registered/i.test(error.message || '');
-      res.status(400).json({ error: isDuplicate ? 'Acest nume de utilizator este deja folosit.' : error.message });
+      if (!isDuplicate) console.error('[register-username]', error.message);
+      res.status(400).json({ error: isDuplicate ? 'Acest nume de utilizator este deja folosit.' : 'Contul nu a putut fi creat. Încearcă din nou sau alege altă parolă.' });
       return;
     }
 
     res.status(200).json({ ok: true, email: pseudoEmail });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('[register-username]', e && e.message);
+    res.status(500).json({ error: 'Eroare de server. Încearcă din nou.' });
   }
 };

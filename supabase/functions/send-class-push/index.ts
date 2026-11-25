@@ -129,7 +129,39 @@ serve(async (req) => {
   if (req.method !== 'POST')   return new Response('Method not allowed', { status: 405 });
 
   try {
-    const { class_id, type, teacher_name, exclude_user_id, extra } = await req.json();
+    const body = await req.json();
+    const { class_id, type, exclude_user_id } = body;
+    let { teacher_name, extra } = body;
+
+    /* Who is calling? The function used to trust the body, so anyone holding the public anon key could push any text to any
+       class. Now: a real signed-in user (not the anon key), who belongs to that class (its teacher, a member, or an admin);
+       only the teacher or an admin may announce homework and simulations; the name shown is the caller's own. */
+    const token = (req.headers.get('authorization') ?? '').replace(/^Bearer\s+/i, '');
+    const sbAdmin = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const { data: ud } = token ? await sbAdmin.auth.getUser(token) : { data: null };
+    const caller = ud?.user;
+    if (!caller || typeof class_id !== 'string') {
+      return new Response(JSON.stringify({ error: 'not allowed' }), { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const [{ data: cls }, { data: mem }, { data: prof }] = await Promise.all([
+      sbAdmin.from('classes').select('teacher_id').eq('id', class_id).maybeSingle(),
+      sbAdmin.from('class_members').select('id').eq('class_id', class_id).eq('student_id', caller.id).limit(1),
+      sbAdmin.from('user_profiles').select('role, status').eq('user_id', caller.id).maybeSingle(),
+    ]);
+    const isAdmin = prof?.role === 'admin';
+    const isTeacher = !!cls && cls.teacher_id === caller.id;
+    const isMember = !!mem && mem.length > 0;
+    const teacherOnly = type === 'assignment' || type === 'simulare_scheduled' || type === 'simulare_started';
+    if (!cls || !(isAdmin || isTeacher || (isMember && !teacherOnly))) {
+      return new Response(JSON.stringify({ error: 'forbidden' }), { status: 403, headers: { ...corsHeaders, 'Content-Type': 'application/json' } });
+    }
+    const md = (caller.user_metadata ?? {}) as Record<string, unknown>;
+    teacher_name = String(md.full_name ?? md.name ?? teacher_name ?? 'Profesor').replace(/[\u0000-\u001f]/g, ' ').slice(0, 60);
+    extra = {
+      snippet:   typeof extra?.snippet === 'string'   ? extra.snippet.slice(0, 140)   : undefined,
+      sim_title: typeof extra?.sim_title === 'string' ? extra.sim_title.slice(0, 120) : undefined,
+      when:      typeof extra?.when === 'string'      ? extra.when.slice(0, 80)       : undefined,
+    };
 
     const labels: Record<string, { title: string; body: string }> = {
       message: {
@@ -148,7 +180,7 @@ serve(async (req) => {
     };
     const msg = labels[type] ?? labels.message;
 
-    const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    const sb = sbAdmin;
     let query = sb.from('push_subscriptions').select('subscription').eq('class_id', class_id);
     if (exclude_user_id) query = query.neq('user_id', exclude_user_id);
     const { data: subs, error } = await query;

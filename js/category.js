@@ -710,7 +710,7 @@
          back to the plain formula/text preview exactly like algebra cards. */
       const previewBox = hasFigure
         ? `<div class="rarity-card__statement">
-             <div class="rarity-card__figure-thumb">${ex.figureSvg}</div>
+             <div class="rarity-card__figure-thumb">${BM.sanitizeSvg(ex.figureSvg)}</div>
            </div>`
         : `<div class="rarity-card__statement">
              <div class="rarity-card__statement-inner">
