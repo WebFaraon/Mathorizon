@@ -84,25 +84,65 @@ Reguli stricte:
 - NU genera doi distractori identici sau echivalenți matematic între ei sau cu răspunsul corect (aceeași valoare scrisă altfel) — cele 4 variante trebuie să fie distincte ca valoare.
 - Răspunsurile (corect + cele 3 greșite) trebuie să fie scurte — expresii LaTeX brute, nu propoziții.
 
-Pentru fiecare distractor, completează și "reason" cu o notă scurtă (internă, nu se arată elevului) despre ce greșeală modelează.`;
+Pentru fiecare distractor, completează și "reason" cu o notă scurtă (internă, nu se arată elevului) despre ce greșeală modelează.
+
+FORMATUL RĂSPUNSULUI: răspunde DOAR cu un obiect JSON, cu exact aceste chei (în engleză, exact cum sunt scrise aici, nu le traduce și nu le redenumi):
+{
+  "correctAnswer": "răspunsul corect, LaTeX brut",
+  "distractors": [
+    { "value": "răspuns greșit 1, LaTeX brut", "reason": "greșeala modelată" },
+    { "value": "răspuns greșit 2, LaTeX brut", "reason": "greșeala modelată" },
+    { "value": "răspuns greșit 3, LaTeX brut", "reason": "greșeala modelată" }
+  ]
+}
+În valorile JSON, fiecare backslash din LaTeX se scrie dublu (de exemplu "\\\\frac{1}{2}", "\\\\sqrt{3}").`;
+}
+
+// Gemini sometimes still renames a key ("raspuns_corect", "distractori") or
+// gives the distractors as plain strings; read those shapes too instead of
+// throwing the whole answer away.
+function pick(obj, names) {
+  for (const n of names) if (obj && obj[n] != null && obj[n] !== '') return obj[n];
+  return undefined;
+}
+
+function normalizeMcq(parsed) {
+  const root = Array.isArray(parsed) ? (parsed[0] || {}) : (parsed || {});
+  const correct = pick(root, ['correctAnswer', 'correct_answer', 'correct', 'raspuns_corect', 'raspunsCorect', 'raspuns', 'answer']);
+  const rawD = pick(root, ['distractors', 'distractori', 'wrongAnswers', 'wrong_answers', 'raspunsuri_gresite', 'greșite', 'options']);
+  const list = Array.isArray(rawD) ? rawD : [];
+  return {
+    correctAnswer: correct == null ? '' : String(correct).trim(),
+    distractors: list
+      .map(d => (d && typeof d === 'object')
+        ? { value: String(pick(d, ['value', 'valoare', 'answer', 'raspuns', 'text']) ?? '').trim(), reason: String(pick(d, ['reason', 'motiv', 'explicatie']) ?? '') }
+        : { value: String(d ?? '').trim(), reason: '' })
+      .filter(d => d.value)
+  };
 }
 
 async function generateMcqOptions({ statement, solution, barem }) {
   const prompt = buildPrompt({ statement, solution, barem });
   const result = await generateContentWithRetry(model, [{ text: prompt }]);
 
-  const parsed = extractJson(result.response.text().trim());
-  return {
-    correctAnswer: String(parsed?.correctAnswer ?? ''),
-    distractors: (Array.isArray(parsed?.distractors) ? parsed.distractors : [])
-      .filter(d => d && typeof d === 'object')
-      .map(d => ({ value: String(d.value ?? ''), reason: String(d.reason ?? '') }))
-  };
+  const raw = extractJson(result.response.text().trim());
+  const out = normalizeMcq(raw);
+  if (!isValidMcq(out)) {
+    // Keys only, never the content: enough to see in the logs what shape came back.
+    console.error('[generate-mcq-options] unusable shape, keys:',
+      Array.isArray(raw) ? 'array' : Object.keys(raw || {}).join(','),
+      'distractors:', out.distractors.length);
+  }
+  return out;
 }
 
 function isValidMcq(parsed) {
-  const distractorValues = (parsed.distractors || []).map(d => d.value);
-  return !!parsed.correctAnswer && distractorValues.length === 3 && distractorValues.every(v => v);
+  const values = (parsed.distractors || []).map(d => d.value);
+  if (!parsed.correctAnswer || values.length < 3) return false;
+  // The three wrong answers must differ from each other and from the right one.
+  const norm = s => String(s).replace(/\s+/g, '');
+  const all = [parsed.correctAnswer, ...values.slice(0, 3)].map(norm);
+  return new Set(all).size === 4;
 }
 
 // Gemini occasionally follows the JSON shape correctly but leaves a field
