@@ -1054,14 +1054,14 @@
   }
 
   var TOOLBAR_HTML = `
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Alege">
       <div class="dc-tool-group">
         <button class="dc-tool-btn dc-tool-btn--active" data-tool="select" title="Selectează / mută (Q)">${_gfeIcon(TOOL_ICONS.select)}</button>
         <button class="dc-tool-btn" data-tool="pan" title="Mișcă vizualizarea — utilă la zoom (W)">${_gfeIcon(TOOL_ICONS.pan)}</button>
         <button class="dc-tool-btn" data-tool="eraser" title="Radieră — apasă și trage peste elemente pentru a le șterge (E)">${_gfeIcon(TOOL_ICONS.eraser)}</button>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Forme 2D">
       <div class="gfe-dropdown">
         <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Forme 2D — alege o formă" aria-haspopup="true" aria-expanded="false">
           ${_gfeIcon(SHAPE_ICONS['tri-oarecare'])}${_gfeIcon(TOOL_ICONS.chevron)}
@@ -1074,7 +1074,7 @@
         </div>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Corpuri 3D">
       <div class="gfe-dropdown">
         <button type="button" class="dc-tool-btn gfe-dropdown__trigger" title="Corpuri 3D — alege un corp" aria-haspopup="true" aria-expanded="false">
           ${_gfeIcon(SHAPE_ICONS.cub)}${_gfeIcon(TOOL_ICONS.chevron)}
@@ -1087,24 +1087,24 @@
         </div>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Linii">
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="segment" title="Segment continuu">${_gfeIcon(TOOL_ICONS.segment)}</button>
         <button class="dc-tool-btn" data-tool="segment-dashed" title="Segment punctat">${_gfeIcon(TOOL_ICONS['segment-dashed'])}</button>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Unghiuri">
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="right-angle" title="Unghi drept">${_gfeIcon(TOOL_ICONS['right-angle'])}</button>
         <button class="dc-tool-btn" data-tool="arc" title="Arc unghi">${_gfeIcon(TOOL_ICONS.arc)}</button>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Text">
       <div class="dc-tool-group">
         <button class="dc-tool-btn" data-tool="text" title="Etichetă text">${_gfeIcon(TOOL_ICONS.text)}</button>
       </div>
     </div>
-    <div class="gfe-tool-section">
+    <div class="gfe-tool-section" data-lbl="Culoare">
       <div class="dc-tool-group">
         <button class="dc-color-btn dc-color-btn--active" data-color="" data-adaptive title="Culoare implicită" aria-label="Culoare implicită"></button>
         <button class="dc-color-btn" data-color="#dc2626" style="background:#dc2626" title="Roșu" aria-label="Culoare roșu"></button>
@@ -1114,7 +1114,7 @@
         <button class="dc-color-btn" data-color="#7c3aed" style="background:#7c3aed" title="Violet" aria-label="Culoare violet"></button>
       </div>
     </div>
-    <div class="gfe-tool-section gfe-tool-section--actions">
+    <div class="gfe-tool-section gfe-tool-section--actions" data-lbl="Vedere">
       <div class="dc-tool-group">
         <button class="dc-action-btn" id="gfe-zoomout-btn" title="Micșorează">${_dcIcon(DC_ICONS.zoomOut)}</button>
         <span class="dc-zoom-label" id="gfe-zoom-label">100%</span>
@@ -1122,6 +1122,10 @@
         <button class="dc-action-btn" id="gfe-fit-btn" title="Potrivește la ecran">${_dcIcon(DC_ICONS.fit)}</button>
         <button class="dc-action-btn" id="gfe-grid-btn" title="Arată grila">${_dcIcon(DC_ICONS.grid)}</button>
         <button class="dc-action-btn" id="gfe-snapgrid-btn" title="Activează alinierea la grilă">${_dcIcon(DC_ICONS.snapGrid)}</button>
+      </div>
+    </div>
+    <div class="gfe-tool-section gfe-tool-section--history" data-lbl="Istoric">
+      <div class="dc-tool-group">
         <button class="dc-action-btn" id="gfe-undo-btn" title="Anulează (Ctrl+Z)">${_dcIcon(DC_ICONS.undo)}</button>
         <button class="dc-action-btn" id="gfe-redo-btn" title="Reface (Ctrl+Y)">${_dcIcon(DC_ICONS.undo, 'dc-icon-mirror')}</button>
         <button class="dc-action-btn dc-action-btn--danger" id="gfe-clear-btn" title="Șterge tot">${_dcIcon(DC_ICONS.trash)}</button>

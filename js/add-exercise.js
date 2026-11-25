@@ -472,7 +472,7 @@
       <div class="cls-form-field ae-section">
         <label class="cls-form-label">Barem</label>
         <div id="aeBaremRows"></div>
-        <button class="btn btn--surface btn--sm" id="aeAddBaremStep" style="margin-top:8px">+ Adaugă pas</button>
+        <button class="btn btn--surface btn--sm ae-add" id="aeAddBaremStep" style="margin-top:14px"><img class="ae-plus" src="assets/images/class/plus.svg" width="24" height="24" alt="" decoding="async"> Adaugă pas</button>
       </div>
 
       <div class="cls-form-field ae-section">
@@ -492,7 +492,7 @@
       <div class="cls-form-field ae-section">
         <label class="cls-form-label">Metode alternative</label>
         <div id="aeAltRows"></div>
-        <button class="btn btn--surface btn--sm" id="aeAddAltMethod" style="margin-top:8px">+ Adaugă metodă</button>
+        <button class="btn btn--surface btn--sm ae-add" id="aeAddAltMethod" style="margin-top:14px"><img class="ae-plus" src="assets/images/class/plus.svg" width="24" height="24" alt="" decoding="async"> Adaugă metodă</button>
       </div>
     `;
 

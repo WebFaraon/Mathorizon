@@ -4,27 +4,38 @@
    Se încarcă după premium.css; totul e scoped pe body.ae (body.pm are tokenii --pm-*).
    ============================================================ */
 body.ae .main::before, body.ae .main::after { display: none; }
-body.ae .ae-page-wrap { max-width: 1040px; padding: 22px 20px 70px; }
+body.ae .ae-page-wrap { max-width: 1240px; margin: 0; padding: 0 0 70px; }
+/* aceeași poziție a conținutului ca în taburile principale: --pg-x de la panoul din stânga, --pg-y de la rândul de sus (css/tabs-align.css) */
+@media (min-width: 601px) {
+  html body.pm.ae .main.ae-main { max-width: none; margin-left: 0; margin-right: 0; padding: calc(var(--pg-y) - 3px) var(--pg-x) 0; }
+}
+@media (max-width: 600px) {
+  html body.pm.ae .main.ae-main { padding-left: 14px; padding-right: 14px; }
+}
 
 /* ---------- top: back key and title ---------- */
 body.ae .ae-top { display: flex; align-items: center; flex-wrap: wrap; gap: 14px; margin-bottom: 24px; }
 body.ae .ae-title { flex: 1 1 auto; margin: 0; font-size: clamp(1.6rem, 3vw, 2.1rem); font-weight: 800; letter-spacing: -0.02em; color: var(--pm-ink); }
 
 /* ---------- keys ---------- */
-body.ae .ae-page-wrap .btn,
-body.ae .ae-page-wrap .btn:hover,
-body.ae .ae-page-wrap .btn:focus-visible {
-  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px;
+body.ae .ae-page-wrap .btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 46px; padding: 0 20px; box-sizing: border-box;
   border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-face); color: var(--pm-key-ink);
   box-shadow: 0 4px 0 0 var(--pm-edge); font-size: 0.92rem; font-weight: 800; filter: none; transform: none;
   transition: background-color 0.12s ease, box-shadow 0.08s ease, transform 0.08s ease;
 }
+/* hover and focus restate only colours: never size, padding or position */
+body.ae .ae-page-wrap .btn:hover,
+body.ae .ae-page-wrap .btn:focus-visible {
+  border-color: var(--pm-line); color: var(--pm-key-ink); box-shadow: 0 4px 0 0 var(--pm-edge); filter: none; transform: none;
+}
 body.ae .ae-page-wrap .btn:hover { background: var(--pm-tint); }
 body.ae .ae-page-wrap .btn:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge); }
-body.ae .ae-page-wrap .btn--sm { min-height: 40px; padding: 0 16px; border-radius: 12px; }
+body.ae .ae-page-wrap .btn--sm, body.ae .ae-page-wrap .btn--sm:hover { min-height: 40px; padding: 0 16px; border-radius: 12px; }
 body.ae .ae-page-wrap .btn:disabled { opacity: 0.6; cursor: progress; }
 body.ae .ae-page-wrap .btn--primary,
-body.ae .ae-page-wrap .btn--primary:hover {
+body.ae .ae-page-wrap .btn--primary:hover,
+body.ae .ae-page-wrap .btn--primary:focus-visible {
   min-height: 52px; padding: 0 26px; border-color: var(--pm-lime-edge); background: var(--pm-lime); color: var(--pm-lime-ink); box-shadow: 0 4px 0 0 var(--pm-lime-edge);
 }
 body.ae .ae-page-wrap .btn--primary:hover { background: color-mix(in srgb, var(--pm-lime) 90%, #fff); }
@@ -35,9 +46,12 @@ body.ae .ae-page-wrap .btn--danger-outline:hover { background: #FDF0F2; }
 body.ae .ae-page-wrap .btn--danger-outline:active { box-shadow: 0 0 0 0 #E6B3BE; }
 [data-theme="dark"] body.ae .ae-page-wrap .btn--danger-outline,
 [data-theme="dark"] body.ae .ae-page-wrap .btn--danger-outline:hover { border-color: #5B2A36; color: #FF8FA3; box-shadow: 0 4px 0 0 #2A1218; background: var(--pm-face); }
-body.ae .ae-top .ae-back { min-height: 46px; padding: 0 16px; }
+body.ae .ae-top .ae-back, body.ae .ae-top .ae-back:hover, body.ae .ae-top .ae-back:focus-visible { min-height: 46px; padding: 0 18px 0 14px; }
+body.ae .ae-top .ae-back:active { transform: translateY(4px); box-shadow: 0 0 0 0 var(--pm-edge); }
+body.ae .ae-top { margin-top: 0; }
 body.ae .ae-photo-keys { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 18px; align-items: center; }
 body.ae .ae-regen { margin-bottom: 18px; }
+body.ae .ae-plus { flex: none; display: block; width: 24px; height: 24px; margin-left: -4px; }
 body.ae .ae-confirm { display: flex; justify-content: flex-end; margin: 24px 0 0; }
 
 /* ---------- section cards ---------- */
@@ -55,7 +69,7 @@ body.ae .ae-page-wrap .prof-card__icon {
 body.ae .ae-page-wrap .prof-card__title { font-size: 0.84rem; font-weight: 800; letter-spacing: 0.1em; color: var(--pm-ink); }
 body.ae .ae-page-wrap .prof-card__body { padding: 24px; }
 @media (max-width: 600px) {
-  body.ae .ae-page-wrap { padding: 14px 12px 60px; }
+  body.ae .ae-page-wrap { padding: 8px 0 60px; }
   body.ae .ae-page-wrap .prof-card__head { padding: 14px 16px; }
   body.ae .ae-page-wrap .prof-card__body { padding: 18px 16px; }
 }
@@ -160,21 +174,97 @@ body.ae .ae-verif__toggle:hover { color: var(--pm-key-ink); background: var(--pm
 body.ae .ae-verif__toggle:active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
 body.ae .ae-verif__body { border: 1.5px solid var(--pm-line); border-radius: 12px; background: var(--pm-face); color: var(--pm-ink); }
 
-/* ---------- geometry: the drawing canvas ---------- */
+/* ---------- geometry: the drawing configurator ----------
+   Toolbar: every group is its own plate with a small label, keys are the site's 3D keys (46px, 24px icons), the 2D shapes and the 3D bodies
+   are laid out in the open (no drop-downs) and the toolbar wraps instead of scrolling sideways. The canvas is tall and framed like a card. */
+body.ae #aeGeoCard .prof-card__body { padding: 20px 22px 24px; }
+body.ae .ae-geo-editor .gfe-wrap { overflow: visible; border: 0; border-radius: 0; background: transparent; }
 body.ae .ae-geo-editor .gfe-toolbar {
-  gap: 8px; padding: 10px 12px; border: 1.5px solid var(--pm-line); border-bottom: 0; border-radius: 18px 18px 0 0; background: var(--pm-tint); box-shadow: none;
+  position: static; display: flex; flex-wrap: wrap; align-items: stretch; gap: 12px 12px; overflow: visible; box-sizing: border-box;
+  padding: 16px; border: 1.5px solid var(--pm-line); border-bottom: 0; border-radius: 20px 20px 0 0; background: var(--pm-tint); box-shadow: none;
 }
+body.ae .ae-geo-editor .gfe-tool-section,
+body.ae .ae-geo-editor .gfe-tool-section + .gfe-tool-section {
+  position: relative; display: flex; flex-direction: column; align-items: flex-start; flex: 0 1 auto; min-width: 0; max-width: 100%; box-sizing: border-box; gap: 9px; height: auto; margin: 0; padding: 10px 12px 12px;
+  border: 1.5px solid var(--pm-line); border-radius: 16px; background: var(--pm-face); box-shadow: 0 3px 0 0 var(--pm-edge);
+}
+body.ae .ae-geo-editor .gfe-tool-section::before {
+  content: attr(data-lbl); padding-left: 2px; font-size: 0.64rem; font-weight: 800; letter-spacing: 0.1em; line-height: 1; text-transform: uppercase; color: var(--pm-ink-2);
+}
+body.ae .ae-geo-editor .gfe-tool-section .dc-tool-group {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 0; padding: 0; border: 0; background: none;
+}
+/* the shape pickers are always open */
+body.ae .ae-geo-editor .gfe-dropdown { display: block; position: static; max-width: 100%; min-width: 0; }
+body.ae .ae-geo-editor .gfe-dropdown__trigger { display: none !important; }
+body.ae .ae-geo-editor .gfe-dropdown__panel {
+  display: block !important; position: static !important; inset: auto !important; padding: 0; border: 0; border-radius: 0; background: none; box-shadow: none; animation: none;
+}
+body.ae .ae-geo-editor .gfe-dropdown__panel .gfe-shape-group { max-width: none; }
+
+/* the 3D keys */
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn, .gfe-shape-btn),
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn, .gfe-shape-btn):hover {
+  display: grid; place-items: center; box-sizing: border-box; width: 46px; height: 46px; min-height: 46px; padding: 0; margin: 0;
+  border: 1.5px solid var(--pm-line); border-radius: 13px; background: var(--pm-face); color: var(--pm-key-ink); box-shadow: 0 4px 0 0 var(--pm-edge); cursor: pointer;
+  transition: background-color 0.12s ease, box-shadow 0.08s ease, transform 0.08s ease;
+}
+body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn,
+body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn:hover { width: 52px; height: 52px; min-height: 52px; }
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn) svg { width: 24px; height: 24px; display: block; }
+body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn svg { width: 30px; height: 30px; display: block; }
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn, .gfe-shape-btn):hover { background: var(--pm-tint); }
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn, .gfe-shape-btn):active { transform: translateY(3px); box-shadow: 0 1px 0 0 var(--pm-edge); }
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn, .dc-action-btn, .gfe-shape-btn):focus-visible { outline: 2px solid var(--pm-violet); outline-offset: 2px; }
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn--active, .dc-action-btn--active, .gfe-shape-btn.dc-tool-btn--active, .gfe-shape-btn.active),
+body.ae .ae-geo-editor .gfe-toolbar :is(.dc-tool-btn--active, .dc-action-btn--active, .gfe-shape-btn.dc-tool-btn--active, .gfe-shape-btn.active):hover {
+  border-color: #2C1952; background: var(--pm-violet); color: #fff; box-shadow: 0 4px 0 0 #2C1952;
+}
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn:disabled,
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn:disabled:hover { opacity: 0.4; cursor: default; background: var(--pm-face); box-shadow: 0 2px 0 0 var(--pm-edge); transform: none; }
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger,
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger:hover { border-color: #EBC3CB; color: #B3203A; box-shadow: 0 4px 0 0 #E6B3BE; }
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger:hover { background: #FDF0F2; }
+body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger:active { box-shadow: 0 1px 0 0 #E6B3BE; }
+[data-theme="dark"] body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger,
+[data-theme="dark"] body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger:hover { border-color: #5B2A36; color: #FF8FA3; box-shadow: 0 4px 0 0 #2A1218; }
+[data-theme="dark"] body.ae .ae-geo-editor .gfe-toolbar .dc-action-btn--danger:hover { background: #2A1218; }
+
+/* zoom value: a quiet plate between the two zoom keys */
+body.ae .ae-geo-editor .gfe-toolbar .dc-zoom-label {
+  display: grid; place-items: center; box-sizing: border-box; min-width: 64px; height: 46px; padding: 0 8px; border: 1.5px solid var(--pm-line); border-radius: 12px;
+  background: var(--pm-tint); color: var(--pm-ink); font-size: 0.9rem; font-weight: 800; font-variant-numeric: tabular-nums; box-shadow: inset 0 2px 0 rgba(30, 22, 49, 0.06);
+}
+
+/* colours: round swatches with a solid edge, the chosen one wears a violet ring */
+body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn {
+  width: 34px; height: 34px; min-width: 34px; padding: 0; border: 3px solid var(--pm-face); border-radius: 50%;
+  box-shadow: 0 0 0 1.5px var(--pm-line), 0 3px 0 0 rgba(30, 22, 49, 0.22); cursor: pointer; transform: none;
+  transition: box-shadow 0.1s ease;
+}
+body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn:hover { transform: none; box-shadow: 0 0 0 2px var(--pm-violet), 0 3px 0 0 rgba(30, 22, 49, 0.22); }
+body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn--active,
+body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn--active:hover { transform: none; box-shadow: 0 0 0 3px var(--pm-violet), 0 3px 0 0 rgba(30, 22, 49, 0.22); }
+[data-theme="dark"] body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn--active,
+[data-theme="dark"] body.ae .ae-geo-editor .gfe-toolbar .dc-color-btn--active:hover { box-shadow: 0 0 0 3px #C9B6F5, 0 3px 0 0 rgba(0, 0, 0, 0.4); }
+body.ae .ae-geo-editor .gfe-tool-section[data-lbl="Culoare"] .dc-tool-group { gap: 10px; min-height: 46px; }
+
+/* the canvas: a tall card with its own edge */
 body.ae .ae-geo-editor .gfe-canvas-wrap {
-  border: 1.5px solid var(--pm-line); border-radius: 0 0 18px 18px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge); overflow: hidden;
+  height: clamp(560px, 80vh, 860px); min-height: 560px; overflow: hidden;
+  border: 1.5px solid var(--pm-line); border-radius: 0 0 20px 20px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge);
 }
-body.ae .ae-geo-editor .gfe-tool-section { border-left: 0; padding: 0 10px 0 0; margin-right: 2px; border-right: 1.5px solid var(--pm-line); }
-body.ae .ae-geo-editor .gfe-tool-section:last-child { border-right: 0; }
-body.ae .ae-geo-editor :is(.dc-tool, .gfe-shape-btn, .gfe-dropdown__trigger, .gfe-tick-btn, .dc-btn, .dc-undo-btn) {
-  border: 1.5px solid var(--pm-line); border-radius: 11px; background: var(--pm-face); color: var(--pm-key-ink); box-shadow: 0 3px 0 0 var(--pm-edge); min-height: 38px; transition: background-color 0.12s ease, box-shadow 0.08s ease, transform 0.08s ease;
+@media (max-width: 760px) {
+  body.ae #aeGeoCard .prof-card__body { padding: 14px 12px 18px; }
+  body.ae .ae-geo-editor .gfe-toolbar { gap: 10px; padding: 12px; }
+  body.ae .ae-geo-editor .gfe-tool-section { padding: 9px 10px 10px; flex: 1 1 100%; }
+  body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn, body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn:hover { width: 46px; height: 46px; min-height: 46px; }
+  body.ae .ae-geo-editor .gfe-toolbar .gfe-shape-btn svg { width: 28px; height: 28px; }
+  body.ae .ae-geo-editor .gfe-canvas-wrap { height: 56vh; min-height: 420px; }
 }
-body.ae .ae-geo-editor :is(.dc-tool, .gfe-shape-btn, .gfe-dropdown__trigger, .gfe-tick-btn, .dc-btn, .dc-undo-btn):hover { background: var(--pm-tint); color: var(--pm-key-ink); }
-body.ae .ae-geo-editor :is(.dc-tool, .gfe-shape-btn, .gfe-dropdown__trigger, .gfe-tick-btn, .dc-btn, .dc-undo-btn):active { transform: translateY(3px); box-shadow: 0 0 0 0 var(--pm-edge); }
-body.ae .ae-geo-editor :is(.dc-tool--active, .dc-tool.active, .gfe-tick-btn--active, .gfe-shape-btn.active, .gfe-dropdown--open .gfe-dropdown__trigger) {
-  background: var(--pm-violet); border-color: #2C1952; color: #fff; box-shadow: 0 3px 0 0 #2C1952;
+
+/* ---------- LaTeX fields: a clean code font instead of the browser's default monospace ---------- */
+body.ae textarea.cls-form-input, body.ae .ae-barem-row textarea, body.ae .ae-alt-row textarea {
+  font-family: ui-monospace, 'SF Mono', 'JetBrains Mono', Menlo, Consolas, 'Liberation Mono', monospace; font-size: 0.88rem; font-weight: 500; line-height: 1.55; letter-spacing: 0;
 }
-body.ae .ae-geo-editor .gfe-dropdown__panel { border: 1.5px solid var(--pm-line); border-radius: 14px; background: var(--pm-face); box-shadow: 0 5px 0 0 var(--pm-edge), 0 12px 26px rgba(30, 22, 49, 0.14); }
+body.ae .ae-regen { margin-bottom: 20px; }
