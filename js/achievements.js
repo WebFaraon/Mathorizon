@@ -199,9 +199,9 @@
     var row = show.map(function (x) {
       return '<button type="button" class="am-chip" data-ach-open="' + role + '" title="' + esc(x.d.name + ' (' + LV[x.level - 1] + ')') + '">' + badge(x, 46) + '</button>';
     }).join('') + (more > 0 ? '<button type="button" class="am-chip am-chip--more" data-ach-open="' + role + '">+' + more + '</button>' : '');
-    return '<h4 class="rl-h rl-h--ach">Realizări <span class="am-count"><b>' + tt.earned + '</b> din ' + tt.total + '</span></h4>' +
+    return '<h4 class="rl-h rl-h--ach"><img class="am-hico" src="assets/images/gamification/realizari.svg" alt="" width="38" height="38" decoding="async">Realizări <span class="am-count"><b>' + tt.earned + '</b> din ' + tt.total + '</span></h4>' +
       '<div class="am-box">' + goal + (row ? '<div class="am-row">' + row + '</div>' : '') + '</div>' +
-      '<button type="button" class="rl-btn am-open" data-ach-open="' + role + '"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="9" r="6"/><path d="M8.5 14.2L7 22l5-3 5 3-1.5-7.8"/></svg>Toate realizările</button>';
+      '<button type="button" class="rl-btn am-open" data-ach-open="' + role + '"><img class="am-bico" src="assets/images/gamification/realizari-mini.svg" alt="" width="26" height="26" decoding="async">Toate realizările</button>';
   }
 
   /* ---- fereastra cu toate: o insignă pe realizare, cu nivelurile ei ---- */
@@ -228,7 +228,7 @@
         '<div class="am-card__b"><div class="am-card__h"><b>' + esc(x.d.name) + '</b>' +
         (x.soon ? '' : '<span class="am-r ' + (x.level ? 'am-lv' + (x.level - 1) : 'am-lvx') + '">' + (x.level ? LV[x.level - 1] : 'Blocată') + '</span>') + '</div>' + body + '</div></li>';
     }).join('');
-    dlg.innerHTML = '<div class="am-dlg__card"><div class="am-dlg__h"><div><h2>Realizările tale</h2><p>' + (role === 'elev' ? 'Fiecare realizare are cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.' : 'Insigne pentru ce faci cu elevii tăi, în cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.') + '</p></div>' +
+    dlg.innerHTML = '<div class="am-dlg__card"><div class="am-dlg__h"><img class="am-dlg__ico" src="assets/images/gamification/realizari.svg" alt="" width="52" height="52" decoding="async"><div><h2>Realizările tale</h2><p>' + (role === 'elev' ? 'Fiecare realizare are cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.' : 'Insigne pentru ce faci cu elevii tăi, în cinci niveluri: Bronz, Argint, Aur, Diamant și Mitic.') + '</p></div>' +
       '<button type="button" class="am-dlg__x" aria-label="Închide"><svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>' +
       '<div class="am-dlg__sum"><span><b>' + tt.earned + '</b> din ' + tt.total + ' niveluri</span><div class="am-bar am-bar--lg"><i style="width:' + pct + '%"></i></div>' + (tt.soon ? '<small>+ ' + tt.soon + ' în curând</small>' : '') + '</div>' +
       '<ul class="am-list">' + cards + '</ul></div>';

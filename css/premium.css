@@ -1506,3 +1506,22 @@ html body.pm:has(#profileContent) .pf-avatar-edit .pf-key__ico { width: 26px; he
 
 /* Clasa a 9-a: the number of an exam item on the key of its page (plain sans, not the serif maths glyph of a chapter) */
 html body.pm .ch__key--num { font-family: var(--k-font, 'Plus Jakarta Sans', sans-serif); font-weight: 800; letter-spacing: -0.02em; }
+
+/* ============================================================
+   Profil: "Detalii cont" (2026-11-26). Țara, e-mailul, telefonul, ratingul, data înscrierii și felul de autentificare nu sunt ce contează
+   într-o aplicație de învățat: stau la sfârșitul paginii, într-un card liniștit, cu iconițe mici și text mic.
+   ============================================================ */
+html body.pm:has(#profileContent) .pf-about { margin-top: 28px; padding: 20px 22px 22px; }
+html body.pm:has(#profileContent) .pf-about .pf-h { margin: 0 0 14px; font-size: 1.05rem; }
+.pf-facts { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px 14px; }
+.pf-fact { display: flex; align-items: center; gap: 11px; min-width: 0; padding: 9px 12px; border: 1px solid var(--pm-line, #DDD6EA); border-radius: 12px; background: var(--pm-tint, #EDE7F8); }
+.pf-fact__ico { flex: none; display: block; width: 28px; height: 28px; }
+.pf-fact__t { display: flex; flex-direction: column; min-width: 0; line-height: 1.2; }
+.pf-fact__t small { font-size: 0.64rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pm-ink-2, #5B4F74); }
+.pf-fact__t b { margin-top: 2px; font-size: 0.86rem; font-weight: 700; color: var(--pm-ink, #1E1631); overflow-wrap: anywhere; }
+.pf-fact__t b a { color: var(--pm-key-ink, #3F236E); text-decoration: underline; text-underline-offset: 3px; }
+.pf-fact__t b .pf-country-val { display: inline-flex; align-items: center; gap: 6px; }
+@media (max-width: 600px) {
+  html body.pm:has(#profileContent) .pf-about { padding: 16px 14px 16px; }
+  .pf-facts { grid-template-columns: minmax(0, 1fr); gap: 8px; }
+}

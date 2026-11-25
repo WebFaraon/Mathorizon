@@ -87,3 +87,17 @@
   .am-list { grid-template-columns: 1fr; padding: 4px 16px 20px; }
 }
 @media (prefers-reduced-motion: reduce) { .am-dlg, .am-dlg__card { transition: none; } }
+
+/* icoana ilustrată a realizărilor (2026-11-26): în titlu, pe cheia "Toate realizările" și în fereastră */
+.rl-h--ach { align-items: center; justify-content: flex-start; gap: 10px; }
+.am-hico { flex: none; display: block; width: 38px; height: 38px; }
+.rl-h--ach .am-count { margin-left: 4px; padding: 3px 10px; border-radius: 999px; background: var(--pm-tint, #EDE7F8); font-size: 0.8rem; }
+.am-bico { flex: none; display: block; width: 26px; height: 26px; }
+.rl-btn.am-open { gap: 10px; }
+.am-dlg__ico { flex: none; display: block; width: 52px; height: 52px; margin-top: -2px; }
+.am-dlg__h > div:not(.am-dlg__x) { flex: 1; min-width: 0; }
+@media (min-width: 1000px) {
+  /* pe un ecran lat: ținta în stânga, insignele câștigate în dreapta */
+  .pf-railmount .am-box { display: grid; grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr); align-items: center; gap: 0 22px; }
+  .pf-railmount .am-box .am-row { margin-top: 0; padding: 0 0 0 22px; border-top: 0; border-left: 1.5px dashed var(--pm-line, #DDD6EA); align-content: center; gap: 8px; }
+}

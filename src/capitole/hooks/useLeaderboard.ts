@@ -12,9 +12,7 @@ export interface LeaderboardRow {
   /** Daily streak (days in a row), from the 20261119 migration; null when the database does not return it yet. */
   streak: number | null;
   rank: number;
-  /** floor(totalXp / XP_PER_LEVEL) + 1 — same formula js/training-stats.js
-      uses for the student's own level, read from BM.Training.XP_PER_LEVEL
-      rather than a second hardcoded 100 so the two can't drift apart. */
+  /** Level for totalXp, from BM.Training.levelFromXp (the growing curve in js/training-stats.js), so the board and the profile agree. */
   level: number;
 }
 
@@ -81,7 +79,7 @@ export function useLeaderboard(): LeaderboardState {
       try {
         const { data, error } = await sb.rpc('get_xp_leaderboard', { p_limit: LIMIT });
         if (error) { console.error('[leaderboard] get_xp_leaderboard failed:', error.message || error); throw error; }
-        const xpPerLevel = window.BM?.Training?.XP_PER_LEVEL ?? 100;
+        const levelOf = (xp: number): number => window.BM?.Training?.levelFromXp?.(xp) ?? Math.floor(xp / 100) + 1;
         const rpcRows = (data ?? []) as LeaderboardRpcRow[];
         const rows: LeaderboardRow[] = rpcRows.map((row) => ({
           userId: row.user_id,
@@ -91,7 +89,7 @@ export function useLeaderboard(): LeaderboardState {
           bestStreak: row.best_streak,
           streak: typeof row.streak === 'number' ? row.streak : null,
           rank: row.rank,
-          level: Math.floor(row.total_xp / xpPerLevel) + 1
+          level: levelOf(row.total_xp)
         }));
         (window as unknown as Record<string, unknown>).__bmLbFailed = false;
         if (!cancelled) setState({ rows, ready: true });

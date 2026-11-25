@@ -1605,41 +1605,42 @@
   }
 
   function animateLevelBar(xpBefore, xpAfter, leveledUp) {
-    const perLevel = BM.Training.XP_PER_LEVEL;
     const fill = document.getElementById('resultsLevelFill');
     const label = document.getElementById('resultsLevelLabel');
     const xpLbl = document.getElementById('resultsLevelXp');
     if (!fill || !label || !xpLbl) return;
-    const levelBefore = Math.floor(xpBefore / perLevel) + 1;
-    const levelAfter  = Math.floor(xpAfter / perLevel) + 1;
-    const set = (level, pct) => {
+    const before = BM.Training.levelAt(xpBefore), after = BM.Training.levelAt(xpAfter);
+    const levelBefore = before.level, levelAfter = after.level;
+    /* the bar of a level is as long as that level asks for (the curve grows), so the label always reads "so far / needed" */
+    const set = (level, pct, info) => {
+      info = info || BM.Training.levelAt(BM.Training.xpAtLevel(level));
       label.textContent = level;
-      xpLbl.textContent = `${Math.round(pct * perLevel)} / ${perLevel} XP`;
+      xpLbl.textContent = `${Math.round(pct * info.xpForNextLevel)} / ${info.xpForNextLevel} XP`;
       fill.style.width = `${Math.round(pct * 100)}%`;
     };
-    set(levelBefore, (xpBefore % perLevel) / perLevel);
+    set(levelBefore, before.pct, before);
 
     if (reduceMotion()) {
-      set(levelAfter, (xpAfter % perLevel) / perLevel);
+      set(levelAfter, after.pct, after);
       return;
     }
     requestAnimationFrame(() => {
       if (!leveledUp) {
         fill.style.transition = 'width 0.8s steps(20, end)';
-        set(levelAfter, (xpAfter % perLevel) / perLevel);
+        set(levelAfter, after.pct, after);
         return;
       }
       // Crossed at least one level mid-session: fill to 100%, snap to 0%,
       // then fill to the new in-level amount — reads as "leveled up" even
       // when more than one level was crossed in a single session.
       fill.style.transition = 'width 0.5s steps(20, end)';
-      set(levelBefore, 1);
+      set(levelBefore, 1, before);
       setTimeout(() => {
         fill.style.transition = 'none';
-        set(levelAfter, 0);
+        set(levelAfter, 0, after);
         void fill.offsetWidth;
         fill.style.transition = 'width 0.5s steps(20, end)';
-        set(levelAfter, (xpAfter % perLevel) / perLevel);
+        set(levelAfter, after.pct, after);
       }, 550);
     });
   }
@@ -1670,9 +1671,8 @@
     const newRecord = bestStreakSession > 0 && bestStreakSession >= allTimeBest;
 
     const xpNow = BM.Training.getTotalXp();
-    const perLevel = BM.Training.XP_PER_LEVEL;
-    const levelBefore = Math.floor(xpAtSessionStart / perLevel) + 1;
-    const levelAfter  = Math.floor(xpNow / perLevel) + 1;
+    const levelBefore = BM.Training.levelFromXp(xpAtSessionStart);
+    const levelAfter  = BM.Training.levelFromXp(xpNow);
     const leveledUp = levelAfter > levelBefore;
 
     document.getElementById('flipBoard').hidden = true;

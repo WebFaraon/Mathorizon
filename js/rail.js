@@ -68,7 +68,7 @@
       /* not every page loads training-stats.js: the XP total is read from the same key it uses */
       xp: (BM.Training && BM.Training.getTotalXp && BM.Training.getTotalXp()) || (function () { try { return Math.max(0, parseInt(localStorage.getItem('bm_training_total_xp') || '0', 10) || 0); } catch (e) { return 0; } })(),
       streak: (BM.Storage && BM.Storage.getStreak && (BM.Storage.getStreak() || {}).count) || 0,
-      perLevel: (BM.Training && BM.Training.XP_PER_LEVEL) || 100
+      perLevel: 100   /* doar pentru cazul în care curba din training-stats.js lipsește */
     };
   }
 
@@ -115,10 +115,18 @@
       .then(function () { state.achBusy = false; schedule(); });
   }
 
+  /* nivelul vine din curba care crește (js/training-stats.js): de la un nivel la următorul trebuie tot mai mult XP */
+  function levelOf(xp, per) {
+    var T = window.BM && window.BM.Training;
+    if (T && T.levelAt) return T.levelAt(xp);
+    return { level: Math.floor(xp / per) + 1, xpIntoLevel: xp % per, xpForNextLevel: per, pct: (xp % per) / per };
+  }
+  /* insigna mare a nivelului: un hexagon violet cu margine plină dedesubt, ca insignele de realizări */
+  var BADGE = '<svg class="rl-badge__svg" viewBox="0 0 120 134" aria-hidden="true"><polygon class="rl-badge__edge" points="60,14 110,43 110,95 60,124 10,95 10,43" stroke-linejoin="round" stroke-width="12"/><polygon class="rl-badge__face" points="60,6 110,35 110,87 60,116 10,87 10,35" stroke-linejoin="round" stroke-width="12"/><polygon class="rl-badge__ring" points="60,17 100,40 100,82 60,105 20,82 20,40" fill="none" stroke-linejoin="round" stroke-width="3"/></svg>';
+
   function html(s) {
-    var level = Math.floor(s.xp / s.perLevel) + 1, into = s.xp % s.perLevel, pct = Math.round(into / s.perLevel * 100);
     var xpShown = Math.max(s.xp, state.rankXp != null ? state.rankXp : 0);
-    level = Math.floor(xpShown / s.perLevel) + 1; into = xpShown % s.perLevel; pct = Math.round(into / s.perLevel * 100);
+    var L = levelOf(xpShown, s.perLevel), level = L.level, into = L.xpIntoLevel, need = L.xpForNextLevel, pct = Math.round(L.pct * 100);
     var isStudent = (state.nickRole || s.role) === 'elev';
     var big = isStudent && state.nick ? '@' + state.nick : s.name;
     var small = isStudent && state.nick ? s.name : s.username;
@@ -132,9 +140,16 @@
         '<h3 class="rl-name" title="' + esc(big) + '">' + esc(big) + '</h3>' +
         (small && small !== big ? '<p class="rl-user">' + esc(small) + '</p>' : '') +
         '<p class="rl-meta">' + (ROLE[s.role] ? '<span class="rl-role">' + ROLE[s.role] + '</span>' : '') + (s.since ? '<span>S-a alăturat în ' + esc(s.since) + '</span>' : '') + '</p>' +
-        '<div class="rl-follow"><button type="button" data-follow="following">Urmărești <b>0</b></button><button type="button" data-follow="followers"><b>0</b> urmăritori</button></div>' +
-        '<div class="rl-level"><div class="rl-level__head"><span>Nivel ' + level + '</span><span class="rl-level__xp">' + into + ' / ' + s.perLevel + ' XP</span></div>' +
-          '<div class="rl-xp"><div class="rl-xp__track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Nivel ' + level + ': ' + pct + '%"><i class="rl-xp__fill" style="--xp:' + pct + '%"></i></div><span class="rl-xp__next" title="Următorul nivel: ' + (level + 1) + '">' + (level + 1) + '</span></div></div>' +
+        '<div class="rl-hero">' +
+          '<div class="rl-hero__top">' +
+            '<div class="rl-badge" role="img" aria-label="Nivelul tău: ' + level + '">' + BADGE + '<span class="rl-badge__in"><b>' + level + '</b></span></div>' +
+            '<div class="rl-hero__t"><p class="rl-hero__k">Nivelul tău</p>' +
+              '<p class="rl-hero__xp"><b>' + into + '</b><span> / ' + need + ' XP</span></p>' +
+              '<p class="rl-hero__more">Mai ai ' + (need - into) + ' XP până la nivelul ' + (level + 1) + '</p></div>' +
+            '<div class="rl-follow"><button type="button" data-follow="following">Urmărești <b>0</b></button><button type="button" data-follow="followers"><b>0</b> urmăritori</button></div>' +
+          '</div>' +
+          '<div class="rl-xp"><div class="rl-xp__track" role="progressbar" aria-valuenow="' + pct + '" aria-valuemin="0" aria-valuemax="100" aria-label="Nivel ' + level + ': ' + pct + '%"><i class="rl-xp__fill" style="--xp:' + pct + '%"></i></div><span class="rl-xp__next" title="Următorul nivel: ' + (level + 1) + '">' + (level + 1) + '</span></div>' +
+        '</div>' +
         '<h4 class="rl-h">Statistici</h4>' +
         '<div class="rl-ps">' +
           '<div class="rl-ps__card"><img src="' + IC.streak + '" alt=""><div><b>' + s.streak + '</b><span>' + (s.streak === 1 ? 'zi la rând' : 'zile la rând') + '</span></div></div>' +

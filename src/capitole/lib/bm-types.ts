@@ -108,6 +108,8 @@ export interface BMGlobal {
         Read here rather than hardcoded so the leaderboard's level column
         (useLeaderboard.ts) can never drift from Antrenament's own math. */
     XP_PER_LEVEL?: number;
+    /** Level for a total XP, from the growing curve in js/training-stats.js (one place for the whole site). */
+    levelFromXp?(xp: number): number;
     /** js/training-stats.js — lifetime XP, DB-synced by js/auth.js. Source
         for the profile panel's level/XP bar when the leaderboard row for
         this user isn't available yet (see useProfileSnapshot.ts). */

@@ -550,9 +550,6 @@
     await (BM.customExercisesReady ? BM.customExercisesReady() : Promise.resolve());
     const stats    = BM.Storage.getStats(BM.EXERCISES || []);
     const totalXp  = BM.Training?.getTotalXp?.() ?? 0;
-    const perLevel = BM.Training?.XP_PER_LEVEL ?? 100;
-    const level    = Math.floor(totalXp / perLevel) + 1;
-    const xpInto   = totalXp % perLevel;
     const streak   = BM.Storage.getStreak?.().count || 0;
     const grades   = hist.map(h => Number(h.grade)).filter(g => !Number.isNaN(g));
     const bestGrade = grades.length ? Math.max(...grades) : null;
@@ -621,10 +618,17 @@
             <button class="pf-key" id="btnEditProfile">${btnIco('editeaza')} Editează profilul</button>
           </div>
         </div>
-        <dl class="pf-spec">
-          ${specCells.map(([label, value, wide, ico]) => `<div class="pf-spec__cell${wide ? ' pf-spec__cell--wide' : ''}">${ico ? `<img class="pf-spec__ico" src="assets/images/profile/${ico}.svg" alt="" width="46" height="46" decoding="async">` : ''}<dt>${label}</dt><dd>${value}</dd></div>`).join('')}
-        </dl>
         <p class="pf-bio${bio ? '' : ' pf-bio--empty'}">${bio ? BM.esc(bio) : 'Adaugă o scurtă descriere despre tine din „Editează profilul”.'}</p>
+      </section>`;
+
+    /* Datele de cont (țară, e-mail, telefon ...) nu sunt ce contează într-o aplicație de învățat: stau jos, liniștite, într-un card mic.
+       Sus, sub nume, vin nivelul, seria, XP-ul și realizările (cardul din js/rail.js). */
+    const aboutHTML = `
+      <section class="pf-card pf-about" aria-label="Detalii cont">
+        <h2 class="pf-h">Detalii cont</h2>
+        <ul class="pf-facts">
+          ${specCells.map(([label, value, wide, ico]) => `<li class="pf-fact">${ico ? `<img class="pf-fact__ico" src="assets/images/profile/${ico}.svg" alt="" width="28" height="28" decoding="async">` : ''}<span class="pf-fact__t"><small>${label}</small><b>${value}</b></span></li>`).join('')}
+        </ul>
       </section>`;
 
     const noticeHTML = isTeacher && status === 'pending' ? `
@@ -832,6 +836,7 @@
       ${plateHTML}
       <aside class="pf-railmount" id="appRailMount" aria-label="Nivel și statistici"></aside>
       ${bodyHTML}
+      ${aboutHTML}
     `;
     if (window.BMRail) window.BMRail.refresh();
 
