@@ -1018,6 +1018,22 @@
     }
   }
 
+  /* An option comes back as raw LaTeX ("-\\frac{3}{5}"): KaTeX only renders what sits
+     between $...$, so it has to be wrapped, or the student sees the code. An
+     option the model wrote as plain words ("Nu are soluții") stays text. */
+  function mcqOptionHtml(opt) {
+    // \dfrac, so fractions are as big as the other options (\frac is set small)
+    const raw = String(opt == null ? '' : opt).trim().replace(/\\frac\b/g, '\\dfrac');
+    if (!raw) return '';
+    if (raw.includes('$')) return BM.esc(raw);
+    if (raw.includes('\\text{')) return '$' + BM.esc(raw) + '$';
+    const probe = raw
+      .replace(/\\[a-zA-Z]+/g, '')
+      .replace(/\b(log|lg|ln|sin|cos|tg|ctg|tan|cot|lim|arcsin|arccos|arctg|arcctg|min|max|mod|det|sqrt|frac|infty|pi|ori)\b/g, '');
+    if (/[A-Za-zĂÂÎȘȚăâîșț]{3,}/.test(probe)) return BM.esc(raw);
+    return '$' + BM.esc(raw) + '$';
+  }
+
   function renderMcqOptions(idx, data) {
     const cs = cardStates[idx];
     const options = BM.shuffle([data.correctAnswer, ...data.distractors]);
@@ -1031,7 +1047,7 @@
         ${options.map((opt, i) => `
           <button class="an-opt" type="button" data-idx="${i}" onclick="trSelectMcqOption(${idx},${i})">
             <span class="an-opt__l">${'ABCD'[i] || i + 1}</span>
-            <span class="an-opt__m math-content">${opt}</span>
+            <span class="an-opt__m math-content">${mcqOptionHtml(opt)}</span>
           </button>`).join('')}
       </div>
     `;

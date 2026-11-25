@@ -95,6 +95,7 @@ FORMATUL RĂSPUNSULUI: răspunde DOAR cu un obiect JSON, cu exact aceste chei (�
     { "value": "răspuns greșit 3, LaTeX brut", "reason": "greșeala modelată" }
   ]
 }
+Dacă un răspuns este un text (de exemplu "Nu are soluții reale"), scrie-l cu \\text{...}; altfel scrie doar LaTeX, fără $.
 În valorile JSON, fiecare backslash din LaTeX se scrie dublu (de exemplu "\\\\frac{1}{2}", "\\\\sqrt{3}").`;
 }
 

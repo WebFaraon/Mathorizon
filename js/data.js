@@ -73,7 +73,7 @@ BM.EXERCISES = [
     id: 'ca-001', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-o putere',
+    title: 'Radical de ordinul 3 dintr-o putere',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{25^{1{,}5} - 61}$$',
     solution: '**Pasul 1.** Calculăm $25^{1{,}5}$:\n$$25^{1{,}5} = 25^{\\frac{3}{2}} = \\left(5^2\\right)^{\\frac{3}{2}} = 5^3 = 125$$\n\n**Pasul 2.** Scădem și extragem radicalul:\n$$\\sqrt[3]{125 - 61} = \\sqrt[3]{64} = \\sqrt[3]{4^3}$$\n\n$$\\boxed{4}$$',
     barem: [
@@ -114,7 +114,7 @@ BM.EXERCISES = [
     id: 'ca-004', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Putere cu exponent logaritm și radical de ordin 3',
+    title: 'Putere cu exponent logaritm și radical de ordinul 3',
     statement: 'Calculați valoarea expresiei:\n$$2^{\\log_{0{,}5} 2} + 5\\sqrt[3]{0{,}008}$$',
     solution: '**Pasul 1.** Calculăm exponentul — $0{,}5 = 2^{-1}$:\n$$\\log_{2^{-1}} 2 = \\frac{1}{-1} = -1 \\Rightarrow 2^{-1} = \\frac{1}{2}$$\n\n**Pasul 2.** Radicalul:\n$$0{,}008 = \\frac{8}{1000} = \\frac{1}{125} = \\frac{1}{5^3} \\Rightarrow \\sqrt[3]{0{,}008} = \\frac{1}{5}$$\n\n**Pasul 3.** Suma:\n$$\\frac{1}{2} + 5 \\cdot \\frac{1}{5} = \\frac{1}{2} + 1 = \\boxed{\\frac{3}{2}}$$',
     barem: [
@@ -314,7 +314,7 @@ BM.EXERCISES = [
     id: 'ca-018', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-un număr negativ și putere',
+    title: 'Radical de ordinul 3 dintr-un număr negativ și putere',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-0{,}125} + 16^{-0{,}25}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\sqrt[3]{-0{,}125} = \\sqrt[3]{-\\frac{1}{8}} = -\\frac{1}{2}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$16^{-0{,}25} = 16^{-\\frac{1}{4}} = (2^4)^{-\\frac{1}{4}} = 2^{-1} = \\frac{1}{2}$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$-\\frac{1}{2} + \\frac{1}{2} = 0$$\n$$\\boxed{0}$$',
     barem: [
@@ -342,7 +342,7 @@ BM.EXERCISES = [
     id: 'ca-020', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-un număr mixt',
+    title: 'Radical de ordinul 3 dintr-un număr mixt',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-4\\dfrac{17}{27}} + 36^{-0{,}5}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$-4\\frac{17}{27} = -\\frac{125}{27} = -\\frac{5^3}{3^3} \\Rightarrow \\sqrt[3]{-4\\frac{17}{27}} = -\\frac{5}{3}$$ \n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$36^{-0{,}5} = \\frac{1}{\\sqrt{36}} = \\frac{1}{6}$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-\\frac{5}{3} + \\frac{1}{6} = -\\frac{10}{6} + \\frac{1}{6} = -\\frac{9}{6} = \\boxed{-\\frac{3}{2}}$$',
     barem: [
@@ -369,7 +369,7 @@ BM.EXERCISES = [
     id: 'ca-022', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Putere cu exponent logaritm zecimal și radical de ordin 5',
+    title: 'Putere cu exponent logaritm zecimal și radical de ordinul 5',
     statement: 'Calculați valoarea expresiei:\n$$100^{\\lg 2} + \\sqrt[5]{-243}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$100^{\\lg 2} = (10^2)^{\\lg 2} = 10^{2\\lg 2} = 10^{\\lg 4} = 4$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\sqrt[5]{-243} = \\sqrt[5]{(-3)^5} = -3$$\n\n**Pasul 3.** Determinarea valorii expresiei: $$4 + (-3) = \\boxed{1}$$',
     barem: [
@@ -526,7 +526,7 @@ BM.EXERCISES = [
     id: 'ca-033', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Logaritmi cu baze radical și rezultate negative',
+    title: 'Logaritmi cu baze sub formă de radical și rezultate negative',
     statement: 'Calculați valoarea expresiei:\n$$\\log_3 \\frac{1}{27} + \\log_{\\sqrt{2}} \\frac{1}{8}$$',
     solution: '**Pasul 1.** Calcularea valorii primului termen: $$\\log_3 \\frac{1}{27} = \\log_3 3^{-3} = -3$$\n\n**Pasul 2.** Calcularea valorii celui de-al doilea termen: $$\\log_{\\sqrt{2}} \\frac{1}{8} = \\log_{2^{1/2}} 2^{-3} = \\frac{-3}{\\frac{1}{2}} = -6$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei: $$-3 + (-6) = \\boxed{-9}$$',
     barem: [
@@ -540,7 +540,7 @@ BM.EXERCISES = [
     id: 'ca-034', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 din 0,008 și fracție la putere negativă',
+    title: 'Radical de ordinul 3 din 0,008 și fracție la putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$0{,}008^{\\frac{1}{3}} + \\left(\\frac{25}{16}\\right)^{-0{,}5}$$',
     solution: '**Pasul 1.** Calcularea valorii primei puteri:\n$$0{,}008^{\\frac{1}{3}} = \\left(\\frac{8}{1000}\\right)^{\\frac{1}{3}} = \\left(\\left(\\frac{2}{10}\\right)^3\\right)^{\\frac{1}{3}} = \\frac{2}{10} = \\frac{1}{5}$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua puteri:\n$$\\left(\\frac{25}{16}\\right)^{-0{,}5} = \\left(\\frac{25}{16}\\right)^{-\\frac{1}{2}} = \\left(\\frac{16}{25}\\right)^{\\frac{1}{2}} = \\sqrt{\\frac{16}{25}} = \\frac{4}{5}$$\n\n**Pasul 3.** Determinarea valorii expresiei, egală cu $1$:\n$$\\frac{1}{5} + \\frac{4}{5} = \\frac{5}{5} = \\boxed{1}$$',
     barem: [
@@ -554,7 +554,7 @@ BM.EXERCISES = [
     id: 'ca-035', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-o fracție negativă',
+    title: 'Radical de ordinul 3 dintr-o fracție negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} - 3^{-1}$$',
     solution: '**Pasul 1.** Simplificarea primei părți a expresiei: $$\\sqrt[3]{-\\dfrac{0{,}008}{0{,}027}} = \\sqrt[3]{-\\dfrac{8}{27}} = -\\dfrac{2}{3}$$**Pasul 2.** Calcularea valorii celei de-a doua părți a expresiei: $$3^{-1} = \\dfrac{1}{3}$$**Pasul 3.** Determinarea valorii finale a expresiei: $$-\\dfrac{2}{3} - \\dfrac{1}{3} = \\boxed{-1}$$',
     barem: [
@@ -642,7 +642,7 @@ BM.EXERCISES = [
     id: 'ca-041', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 din fracție și putere negativă',
+    title: 'Radical de ordinul 3 din fracție și putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{\\dfrac{8}{27}} + 0{,}5\\left(\\dfrac{3}{2}\\right)^{-1}$$',
     solution: '**Pasul 1.** Calcularea primei părți a expresiei:\n$$\\sqrt[3]{\\frac{8}{27}} = \\sqrt[3]{\\frac{2^3}{3^3}} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celei de-a doua părți a expresiei:\n$$0{,}5\\left(\\frac{3}{2}\\right)^{-1} = \\frac{1}{2} \\cdot \\frac{2}{3} = \\frac{1}{3}$$\n\n**Pasul 3.** Determinarea valorii finale a expresiei:\n$$\\frac{2}{3} + \\frac{1}{3} = \\boxed{1}$$',
     barem: [
@@ -700,7 +700,7 @@ BM.EXERCISES = [
     id: 'ca-045', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical de ordin 5 dintr-un produs cu puteri',
+    title: 'Radical de ordinul 5 dintr-un produs cu puteri',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[5]{27^{\\frac{2}{3}}\\left(\\frac{9}{32}\\right)^{-1}}$$',
     solution: '**Pasul 1.** Calcularea valorii primei părți a expresiei: $$27^{2/3} = (3^3)^{2/3} = 3^2 = 9$$\n\n**Pasul 2.** Calcularea valorii celei de-a doua părți a expresiei: $$\\left(\\frac{9}{32}\\right)^{-1} = \\frac{32}{9}$$\n\n**Pasul 3.** Efectuarea înmulțirii sub radical și simplificarea: $$9 \\cdot \\frac{32}{9} = 32 = 2^5$$\n\n**Pasul 4.** Determinarea valorii finale a expresiei: $$\\sqrt[5]{2^5} = \\boxed{2}$$',
     barem: [
@@ -715,7 +715,7 @@ BM.EXERCISES = [
     id: 'ca-046', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-un produs cu putere negativă',
+    title: 'Radical de ordinul 3 dintr-un produs cu putere negativă',
     statement: 'Calculați valoarea expresiei:\n$$\\sqrt[3]{-243\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2}}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului cu putere negativă: $$\\left(\\frac{3}{\\sqrt{8}}\\right)^{-2} = \\left(\\frac{\\sqrt{8}}{3}\\right)^2 = \\frac{8}{9}$$ \n\n**Pasul 2.** Efectuarea înmulțirii: $$-243 \\cdot \\frac{8}{9} = -27 \\cdot 8 = -216$$ \n\n**Pasul 3.** Determinarea valorii expresiei: $$\\sqrt[3]{-216} = \\sqrt[3]{(-6)^3} = \\boxed{-6}$$',
     barem: [
@@ -973,7 +973,7 @@ BM.EXERCISES = [
     id: 'ca-064', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Produs de radicali conjugați cu iradical în interior',
+    title: 'Produs de radicali conjugați cu radical în interior',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt{\\sqrt{65}-7}\\cdot\\sqrt{\\sqrt{65}+7}$$',
     solution: '**Pasul 1.** Aplicarea proprietății radicalilor și a formulei diferenței de pătrate:$$E = \\sqrt{(\\sqrt{65}-7)(\\sqrt{65}+7)} = \\sqrt{(\\sqrt{65})^2 - 7^2}$$\n\n**Pasul 2.** Efectuarea calculelor sub radical:$$\\sqrt{65 - 49} = \\sqrt{16}$$\n\n**Pasul 3.** Determinarea valorii expresiei:$$E = \\boxed{4}$$',
     barem: [
@@ -2136,7 +2136,7 @@ BM.EXERCISES = [
     id: 'ca-112', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Media aritmetică a doi logaritmi cu baze radicale',
+    title: 'Media aritmetică a doi logaritmi cu baze sub formă de radical',
     statement: 'Calculați media aritmetică a expresiilor:\n$$E = \\dfrac{\\log_{\\sqrt[3]{16}} 2 + \\dfrac{2}{\\log_8 4}}{2}$$',
     solution: '**Pasul 1.** Calcularea valorii termenului $\\log_{\\sqrt[3]{16}} 2$: $$\\log_{\\sqrt[3]{16}} 2 = \\log_{2^{\\frac{4}{3}}} 2 = \\frac{3}{4}$$ \n\n**Pasul 2.** Calcularea valorii termenului $\\frac{2}{\\log_8 4}$: $$\\log_8 4 = \\log_{2^3} 2^2 = \\frac{2}{3} \\Rightarrow \\frac{2}{\\log_8 4} = \\frac{2}{\\frac{2}{3}} = 3$$ \n\n**Pasul 3.** Determinarea valorii finale a expresiei E: $$E = \\frac{\\frac{3}{4} + 3}{2} = \\frac{\\frac{15}{4}}{2} = \\boxed{\\dfrac{15}{8}}$$',
     barem: [
@@ -2512,7 +2512,7 @@ BM.EXERCISES = [
     id: 'ca-176', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Produs de puteri negative ale unui zecimal și unei fracții',
+    title: 'Produs de puteri negative ale unui număr zecimal și unei fracții',
     statement: 'Calculați valoarea expresiei:\n$$E = (0{,}4)^{-2} \\cdot \\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}}$$',
     solution: '**Pasul 1.** Calcularea primului factor:\n$$(0{,}4)^{-2} = \\left(\\frac{2}{5}\\right)^{-2} = \\left(\\frac{5}{2}\\right)^2 = \\frac{25}{4}$$\n\n**Pasul 2.** Calcularea celui de-al doilea factor, prin rescrierea bazei ca o putere a treia:\n$$\\left(\\frac{125}{8}\\right)^{-\\frac{2}{3}} = \\left[\\left(\\frac{5}{2}\\right)^3\\right]^{-\\frac{2}{3}} = \\left(\\frac{5}{2}\\right)^{-2} = \\left(\\frac{2}{5}\\right)^2 = \\frac{4}{25}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = \\frac{25}{4}\\cdot\\frac{4}{25} = \\boxed{1}$$',
     barem: [
@@ -2540,7 +2540,7 @@ BM.EXERCISES = [
     id: 'ca-178', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'dificil', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-un raport de puteri cu exponent irațional',
+    title: 'Radical de ordinul 3 dintr-un raport de puteri cu exponent irațional',
     statement: 'Calculați valoarea expresiei $\\sqrt[3]{a}$, unde\n$$a = 2^{(\\sqrt{2}+1)^2} : 2^{2\\sqrt{2}}$$',
     solution: '**Pasul 1.** Dezvoltarea pătratului din exponent:\n$$(\\sqrt{2}+1)^2 = 2 + 2\\sqrt{2} + 1 = 3 + 2\\sqrt{2}$$\n\n**Pasul 2.** Aplicarea regulii de împărțire a puterilor cu aceeași bază:\n$$a = 2^{3+2\\sqrt{2}} : 2^{2\\sqrt{2}} = 2^{3+2\\sqrt{2}-2\\sqrt{2}} = 2^3 = 8$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$\\sqrt[3]{a} = \\sqrt[3]{8} = \\boxed{2}$$',
     barem: [
@@ -2554,7 +2554,7 @@ BM.EXERCISES = [
     id: 'ca-179', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Diferență de radicali de ordin 3 cu semn schimbat',
+    title: 'Diferență de radicali de ordinul 3 cu semn schimbat',
     statement: 'Calculați valoarea expresiei:\n$$E = -\\left[\\sqrt[3]{\\frac{8}{27}} - \\sqrt[3]{\\frac{125}{27}}\\right]$$',
     solution: '**Pasul 1.** Calcularea primului radical:\n$$\\sqrt[3]{\\frac{8}{27}} = \\frac{2}{3}$$\n\n**Pasul 2.** Calcularea celui de-al doilea radical:\n$$\\sqrt[3]{\\frac{125}{27}} = \\frac{5}{3}$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = -\\left(\\frac{2}{3} - \\frac{5}{3}\\right) = -\\left(-1\\right) = \\boxed{1}$$',
     barem: [
@@ -2568,7 +2568,7 @@ BM.EXERCISES = [
     id: 'ca-180', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-o diferență cu putere de exponent zecimal negativ',
+    title: 'Radical de ordinul 3 dintr-o diferență cu putere de exponent zecimal negativ',
     statement: 'Calculați valoarea expresiei:\n$$E = \\sqrt[3]{4 - 5\\cdot 32^{-0{,}6}}$$',
     solution: '**Pasul 1.** Calcularea valorii puterii cu exponent zecimal negativ:\n$$32^{-0{,}6} = 32^{-\\frac{3}{5}} = \\left(2^5\\right)^{-\\frac{3}{5}} = 2^{-3} = \\frac{1}{8}$$\n\n**Pasul 2.** Calcularea expresiei de sub radical:\n$$4 - 5\\cdot\\frac{1}{8} = 4 - \\frac{5}{8} = \\frac{27}{8}$$\n\n**Pasul 3.** Determinarea valorii expresiei, prin extragerea radicalului de ordinul 3:\n$$E = \\sqrt[3]{\\frac{27}{8}} = \\boxed{\\frac{3}{2}}$$',
     barem: [
@@ -2637,7 +2637,7 @@ BM.EXERCISES = [
     id: 'ca-185', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical de ordin 3 dintr-o putere plus putere cu exponent logaritmic irațional — verificare număr natural',
+    title: 'Radical de ordinul 3 dintr-o putere plus putere cu exponent logaritmic irațional — verificare număr natural',
     statement: 'Arătați că numărul:\n$$a = \\sqrt[3]{16^{\\frac{3}{4}}} + 9^{\\log_3 \\sqrt{19}}$$\neste natural.',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$\\sqrt[3]{16^{\\frac{3}{4}}} = \\sqrt[3]{\\left(2^4\\right)^{\\frac{3}{4}}} = \\sqrt[3]{2^3} = 2$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$9^{\\log_3 \\sqrt{19}} = \\left(3^2\\right)^{\\log_3 \\sqrt{19}} = 3^{2\\log_3 \\sqrt{19}} = \\left(\\sqrt{19}\\right)^2 = 19$$\n\n**Pasul 3.** Determinarea valorii expresiei și verificarea că este natural:\n$$a = 2 + 19 = \\boxed{21 \\in \\mathbb{N}}$$',
     barem: [
@@ -2777,7 +2777,7 @@ BM.EXERCISES = [
     id: 'ca-195', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Putere cu exponent logaritmic plus logaritm minus radical de ordin 3 — verificare număr întreg',
+    title: 'Putere cu exponent logaritmic plus logaritm minus radical de ordinul 3 — verificare număr întreg',
     statement: 'Arătați că numărul:\n$$a = 2^{\\log_8 27} + \\log_{\\frac{1}{5}} 25 - \\sqrt[3]{125}$$\neste întreg.',
     solution: '**Pasul 1.** Calcularea primului termen:\n$$2^{\\log_8 27} = 2^{\\log_{2^3} 3^3} = 2^{\\log_2 3} = 3$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$\\log_{\\frac{1}{5}} 25 = \\log_{5^{-1}} 5^2 = -2$$\n\n**Pasul 3.** Calcularea radicalului:\n$$\\sqrt[3]{125} = 5$$\n\n**Pasul 4.** Determinarea valorii expresiei și verificarea că este întreg:\n$$a = 3 - 2 - 5 = \\boxed{-4 \\in \\mathbb{Z}}$$',
     barem: [
@@ -2960,7 +2960,7 @@ BM.EXERCISES = [
     id: 'ca-208', categoryId: 'algebra', subcategoryId: 'calcul-algebric',
     puncteTotal: 5,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Putere cu exponent inversul unui logaritm minus radical de ordin 6',
+    title: 'Putere cu exponent inversul unui logaritm minus radical de ordinul 6',
     statement: 'Calculați valoarea expresiei:\n$$E = 25^{\\frac{1}{\\log_2 5}} - 64^{\\frac{1}{6}}$$',
     solution: '**Pasul 1.** Transformarea exponentului primului termen și calcularea valorii sale:\n$$\\frac{1}{\\log_2 5} = \\log_5 2 \\Rightarrow 25^{\\log_5 2} = \\left(5^2\\right)^{\\log_5 2} = 2^2 = 4$$\n\n**Pasul 2.** Calcularea celui de-al doilea termen:\n$$64^{\\frac{1}{6}} = \\left(2^6\\right)^{\\frac{1}{6}} = 2$$\n\n**Pasul 3.** Determinarea valorii expresiei:\n$$E = 4 - 2 = \\boxed{2}$$',
     barem: [
@@ -3240,7 +3240,7 @@ BM.EXERCISES = [
     id: 'rat-in-026', categoryId: 'algebra', subcategoryId: 'inec-rationale',
     puncteTotal: 8,
     difficulty: 'dificil', source: 'Culegere de matematică, clasa a XI-a',
-    title: 'Inecuație cu logaritm la numărător și radical de trinăm pătratic la numitor',
+    title: 'Inecuație cu logaritm la numărător și radical de trinom pătratic la numitor',
     statement: 'Să se rezolve în $\\mathbb{R}$ inecuația\n$$\\frac{2-4\\cdot\\log_9 x}{\\sqrt{2x^2-x-6}} \\geq 0$$',
     solution: '**Domeniu:** $x > 0$ și $2x^2-x-6 > 0$.\n\n$2x^2-x-6 = 0$: $\\Delta = 1+48 = 49$, rădăcini $x = \\frac{1\\pm7}{4}$, deci $x_1 = -\\frac{3}{2}$, $x_2 = 2$.\n\n$2x^2-x-6 > 0 \\iff x < -\\tfrac{3}{2}$ sau $x > 2$. Cu $x > 0$: **domeniu** $= (2,\\,+\\infty)$.\n\n**Numitorul** $> 0$ mereu în domeniu.\n\n**Numărătorul** $2-4\\log_9 x \\geq 0 \\iff \\log_9 x \\leq \\tfrac{1}{2} \\iff x \\leq 9^{1/2} = 3$.\n\nFracție $\\geq 0$ iff numărător $\\geq 0$ (numitor pozitiv): $x \\in (2,\\,+\\infty)$ și $x \\leq 3$.\n\n$$\\boxed{x \\in (2,\\,3]}$$'
   },
@@ -5675,7 +5675,7 @@ BM.EXERCISES = [
     id: 'ira-003', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical imbriocat — două ridicări succesive la pătrat',
+    title: 'Radical imbricat — două ridicări succesive la pătrat',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2+\\sqrt{3-x}} = \\sqrt{x+1}$.',
     solution: 'D.V.A.: $x \\leq 3$ și $x \\geq -1$. Domeniu inițial: $[-1, 3]$.\n\nRidicăm la pătrat:\n$$2+\\sqrt{3-x} = x+1 \\Rightarrow \\sqrt{3-x} = x-1$$\nD.V.A. suplimentar: $x-1 \\geq 0 \\Rightarrow x \\geq 1$. Domeniu restrâns: $[1, 3]$.\n\nRidicăm din nou la pătrat:\n$$3-x = (x-1)^2 = x^2-2x+1 \\Rightarrow x^2-x-2 = 0 \\Rightarrow (x-2)(x+1) = 0$$\n$x=-1$ (respins, $\\notin [1, 3]$) sau $x=2 \\in [1, 3]$.\n\nVerificare $x=2$: $\\sqrt{2+\\sqrt{1}} = \\sqrt{3} = \\sqrt{3}$ ✓\n$$\\boxed{x = 2}$$'
   },
@@ -5715,7 +5715,7 @@ BM.EXERCISES = [
     id: 'ira-008', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical egal cu expresie liniară — o soluție extransă',
+    title: 'Radical egal cu expresie liniară — o soluție străină',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația: $\\sqrt{x-1} = x-3$.',
     solution: 'D.V.A.: $x-1 \\geq 0 \\Rightarrow x \\geq 1$ și $x-3 \\geq 0 \\Rightarrow x \\geq 3$. Domeniu: $x \\geq 3$.\n\nRidicăm la pătrat:\n$$x-1 = (x-3)^2 = x^2-6x+9 \\Rightarrow x^2-7x+10 = 0 \\Rightarrow (x-2)(x-5) = 0$$\n$x=2$ (respins, $<3$) sau $x=5 \\geq 3$.\n\nVerificare $x=5$: $\\sqrt{4}=2=5-3$ ✓\n$$\\boxed{x = 5}$$'
   },
@@ -5803,7 +5803,7 @@ BM.EXERCISES = [
     id: 'ira-019', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical imbriocat simplu — soluție unică',
+    title: 'Radical imbricat simplu — soluție unică',
     statement: 'Rezolvați în mulțimea $\\mathbb{R}$ ecuația $\\sqrt{7-\\sqrt{x+1}} = 2$.',
     solution: 'D.V.A.: $x+1 \\geq 0 \\Rightarrow x \\geq -1$ și $7-\\sqrt{x+1} \\geq 0 \\Rightarrow \\sqrt{x+1} \\leq 7 \\Rightarrow x \\leq 48$.\n\nRidicăm la pătrat:\n$$7-\\sqrt{x+1} = 4 \\Rightarrow \\sqrt{x+1} = 3$$\nRidicăm din nou la pătrat:\n$$x+1 = 9 \\Rightarrow x = 8$$\n\nVerificare: $\\sqrt{7-\\sqrt{9}} = \\sqrt{7-3} = \\sqrt{4} = 2$ ✓\n$$\\boxed{x = 8}$$'
   },
@@ -5819,7 +5819,7 @@ BM.EXERCISES = [
     id: 'ira-021', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Două radicale egale — reducere prin ridicare la pătrat',
+    title: 'Doi radicali egali — reducere prin ridicare la pătrat',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{x^3-3x-1} = \\sqrt{x-1}$.',
     solution: 'D.V.A.: $x-1 \\geq 0 \\Rightarrow x \\geq 1$ și $x^3-3x-1 \\geq 0$ (verificat pentru soluțiile candidate).\n\nRidicăm la pătrat (ambii membri sunt $\\geq 0$):\n$$x^3-3x-1 = x-1 \\Rightarrow x^3-4x = 0 \\Rightarrow x(x-2)(x+2) = 0$$\nCandidați: $x=0$ (respins, $<1$), $x=-2$ (respins, $<1$), $x=2$ ✓.\n\nVerificare $x=2$: $\\sqrt{8-6-1} = \\sqrt{1} = 1 = \\sqrt{2-1}$ ✓\n$$\\boxed{x = 2}$$'
   },
@@ -5835,7 +5835,7 @@ BM.EXERCISES = [
     id: 'ira-023', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Produs de radicale egal cu constantă',
+    title: 'Produs de radicali egal cu constantă',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{-x} \\cdot \\sqrt{-5x+12} = 3$.',
     solution: 'D.V.A.: $-x \\geq 0 \\Rightarrow x \\leq 0$ și $-5x+12 \\geq 0 \\Rightarrow x \\leq \\dfrac{12}{5}$. Domeniu: $x \\leq 0$.\n\n$\\sqrt{(-x)(-5x+12)} = 3$. Ridicăm la pătrat:\n$$(-x)(-5x+12) = 9 \\Rightarrow 5x^2-12x-9 = 0$$\n$$\\Delta = 144+180 = 324,\\quad \\sqrt{\\Delta} = 18$$\n$$x = \\frac{12 \\pm 18}{10}: \\quad x_1 = 3 \\text{ (respins, }> 0\\text{)},\\quad x_2 = -\\frac{3}{5} \\text{ ✓}$$\n\nVerificare $x=-\\dfrac{3}{5}$: $\\sqrt{\\tfrac{3}{5}} \\cdot \\sqrt{3+12} = \\sqrt{\\tfrac{3}{5} \\cdot 15} = \\sqrt{9} = 3$ ✓\n$$\\boxed{x = -\\dfrac{3}{5}}$$'
   },
@@ -5859,7 +5859,7 @@ BM.EXERCISES = [
     id: 'ira-026', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Diferență de radicale — ridicare la pătrat de două ori',
+    title: 'Diferență de radicali — ridicare la pătrat de două ori',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{2x} = \\sqrt{x-1}+1$.',
     solution: 'D.V.A.: $2x \\geq 0 \\Rightarrow x \\geq 0$ și $x-1 \\geq 0 \\Rightarrow x \\geq 1$. Domeniu: $x \\geq 1$.\n\nRidicăm la pătrat:\n$$2x = (\\sqrt{x-1}+1)^2 = (x-1)+2\\sqrt{x-1}+1 = x+2\\sqrt{x-1}$$\n$$x = 2\\sqrt{x-1}$$\nRidicăm din nou la pătrat:\n$$x^2 = 4(x-1) \\Rightarrow x^2-4x+4 = 0 \\Rightarrow (x-2)^2 = 0 \\Rightarrow x = 2 \\text{ ✓}$$\n\nVerificare $x=2$: $\\sqrt{4} = 2$ și $\\sqrt{1}+1 = 2$ ✓\n$$\\boxed{x = 2}$$'
   },
@@ -5867,7 +5867,7 @@ BM.EXERCISES = [
     id: 'ira-027', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Produs nul cu radical și polinoam de gradul 2',
+    title: 'Produs nul cu radical și polinom de gradul 2',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{1-x}\\,(x^2+7x-18) = 0$.',
     solution: 'D.V.A.: $1-x \\geq 0 \\Rightarrow x \\leq 1$.\n\nProdul este nul dacă cel puțin un factor este zero:\n\n**Cazul 1:** $\\sqrt{1-x} = 0 \\Rightarrow x = 1 \\leq 1$ ✓\n\n**Cazul 2:** $x^2+7x-18 = 0$\n$$\\Delta = 49+72 = 121,\\quad x = \\frac{-7 \\pm 11}{2}$$\n$x_1 = 2$ (respins, $> 1$) sau $x_2 = -9 \\leq 1$ ✓\n\nVerificare $x=-9$: $\\sqrt{1-(-9)} = \\sqrt{10} \\neq 0$ și $81-63-18=0$ ✓\n$$\\boxed{x \\in \\{-9,\\; 1\\}}$$'
   },
@@ -5875,7 +5875,7 @@ BM.EXERCISES = [
     id: 'ira-028', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'mediu', source: 'BAC — Algebră',
-    title: 'Radical cu polinoam pătratic egal cu expresie liniară',
+    title: 'Radical cu polinom pătratic egal cu expresie liniară',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3x^2-x} = 3+x$.',
     solution: 'D.V.A.: $x(3x-1) \\geq 0 \\Rightarrow x \\leq 0$ sau $x \\geq \\dfrac{1}{3}$. Și $3+x \\geq 0 \\Rightarrow x \\geq -3$. Domeniu: $x \\in [-3,\\, 0] \\cup \\left[\\dfrac{1}{3},\\, +\\infty\\right)$.\n\nRidicăm la pătrat:\n$$3x^2-x = (3+x)^2 = 9+6x+x^2 \\Rightarrow 2x^2-7x-9 = 0$$\n$$(2x-9)(x+1) = 0 \\Rightarrow x = \\dfrac{9}{2} \\text{ sau } x = -1$$\n\nVerificare $x=\\dfrac{9}{2}$: $\\sqrt{3 \\cdot \\tfrac{81}{4}-\\tfrac{9}{2}} = \\sqrt{\\tfrac{225}{4}} = \\dfrac{15}{2} = 3+\\dfrac{9}{2}$ ✓\nVerificare $x=-1$: $\\sqrt{3+1} = 2 = 3-1$ ✓\n$$\\boxed{x \\in \\left\\{-1,\\; \\dfrac{9}{2}\\right\\}}$$'
   },
@@ -5955,7 +5955,7 @@ BM.EXERCISES = [
     id: 'ira-038', categoryId: 'algebra', subcategoryId: 'ec-irationale',
     puncteTotal: 8,
     difficulty: 'usor', source: 'BAC — Algebră',
-    title: 'Radical din polinoam pătratic egal cu 1',
+    title: 'Radical din polinom pătratic egal cu 1',
     statement: 'Rezolvați în $\\mathbb{R}$ ecuația $\\sqrt{3-2x^2} = 1$.',
     solution: 'D.V.A.: $3-2x^2 \\geq 0 \\Rightarrow x^2 \\leq \\dfrac{3}{2} \\Rightarrow x \\in \\left[-\\dfrac{\\sqrt{6}}{2},\\, \\dfrac{\\sqrt{6}}{2}\\right]$.\n\nRidicăm la pătrat:\n$$3-2x^2 = 1 \\Rightarrow 2x^2 = 2 \\Rightarrow x^2 = 1 \\Rightarrow x = \\pm 1$$\n\nVerificăm că $|{\\pm 1}| = 1 \\leq \\dfrac{\\sqrt{6}}{2} \\approx 1.22$ ✓\n\nVerificare: $\\sqrt{3-2} = \\sqrt{1} = 1$ ✓\n$$\\boxed{x \\in \\{-1,\\; 1\\}}$$'
   },
