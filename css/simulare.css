@@ -845,7 +845,7 @@ body:has(#examView) .bac-confirm-modal:not(.exam-start-modal) .btn--danger:activ
 #resultsView .ai-step:first-child { border-top: 0; }
 #resultsView .ai-step__dot { width: 8px; height: 8px; margin-top: 0.5em; border-radius: 1px; }
 #resultsView .ai-step__desc { min-width: 0; line-height: 1.55; }
-#resultsView .ai-step__desc .katex-display { margin: 8px 0; text-align: left; }
+#resultsView .ai-step__desc .katex-display { margin: -4px 0; padding-block: 12px; text-align: left; }
 #resultsView .ai-step__desc .katex-display > .katex { text-align: left; }
 #resultsView .ai-step--correct .ai-step__dot { background: var(--k-green); }
 #resultsView .ai-step--partial .ai-step__dot { background: var(--k-ink-3); }

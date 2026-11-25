@@ -97,4 +97,6 @@ Forma corectă cu conținut subțire nu ajută un elev. Regulile de formă împi
 
 ## Regulă pentru CSS, nu pentru conținut
 
+**Formulele `$$...$$` nu se taie sus sau jos (2026-11-26).** `.math-content .katex-display` are `overflow-x: auto`, deci și axa verticală taie. Fontul formulelor din dialogul exercițiului este Space Grotesk (`css/calculator.css`), ale cărui cifre sunt mai înalte decât presupune KaTeX, așa că vârful numărătorilor, exponenților și limitelor se pierdea (până la 8 px, 63 din 187 de formule la an-int-001..006). Soluția: `padding-block: 12px` pe `.katex-display`, cu marginea redusă cu aceeași valoare (`style.css`, `simulare.css`). Dacă schimbi fontul formulelor, remăsoară: la fiecare `.katex`, cerneala textului nu trebuie să iasă din cel mai apropiat strămoș cu `overflow-y` diferit de `visible`.
+
 Dacă modifici layoutul modalului (`.rarity-step`, `.rarity-step__detail`), rulează lintul. O cutie cu `flex-basis: 100%` **plus** `margin-left` iese din pas cu marginea respectivă, iar `overflow-x: hidden` o taie în tăcere. A fost deja o dată bug: ultimii 38px ai fiecărei linii lipseau pe tabletă și desktop. Se vedea doar dacă măsurai față de modal, nu față de cutia elementului.
