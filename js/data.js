@@ -7216,6 +7216,19 @@ BM.EXERCISES = [
       { descriere: "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{1 - \\frac{2}{e}}$", puncte_maxime: 2, explicatie: "Notăm primitiva $G(x) = x\\ln x - x$. Deoarece $\\ln 1 = 0$ și $\\ln(e^{-1}) = -1$, calculăm valorile în capete:\n$$G(1) = 1 \\cdot 0 - 1 = -1$$\n$$G\\left(\\tfrac{1}{e}\\right) = -\\tfrac{1}{e} - \\tfrac{1}{e} = -\\tfrac{2}{e}$$\nAplicăm formula Newton-Leibniz pentru a calcula integrala:\n$$\\begin{aligned} &\\int_{\\frac{1}{e}}^{1} \\ln x\\,dx = G(1) - G\\left(\\tfrac{1}{e}\\right) \\\\ &= -1 - \\left(-\\tfrac{2}{e}\\right) \\\\ &= -1 + \\tfrac{2}{e} \\end{aligned}$$\nAria este opusul integralei determinate:\n$$\\mathcal{A}_{fig} = -\\left(-1 + \\tfrac{2}{e}\\right) = 1 - \\tfrac{2}{e}$$" }
     ]
   },
+  {
+    id: 'an-int-026', categoryId: 'analiza', subcategoryId: 'integrale',
+    puncteTotal: 8,
+    difficulty: 'mediu', source: 'BAC Moldova',
+    title: 'Integrala unei funcții raționale cu modul în logaritm',
+    statement: 'Fie funcția $f\\colon \\mathbb{R} \\setminus \\{3\\} \\to \\mathbb{R}$, $f(x) = \\frac{x^2}{x-3}$.\n\nCalculați:\n$$\\int_{0}^{2} f(x)\\,dx$$',
+    solution: '**Pasul 1.** Scrierea funcției prin împărțire.\nScriem $x^2 = (x-3)(x+3) + 9$, deoarece $(x-3)(x+3) = x^2 - 9$. Deci\n$$f(x) = \\frac{(x-3)(x+3) + 9}{x-3} = x + 3 + \\frac{9}{x-3}$$\n\n**Pasul 2.** Determinarea unei primitive.\nFolosim formulele $\\int x^n\\,dx = \\frac{x^{n+1}}{n+1}$ și $\\int \\frac{1}{x+a}\\,dx = \\ln|x+a| + C$. Primitiva lui $x + 3$ este $\\frac{x^2}{2} + 3x$, iar primitiva lui $\\frac{9}{x-3}$ este $9\\ln|x-3|$ (constanta $9$ iese în fața integralei).\nPe $[0; 2]$ avem $x - 3 < 0$, deci $|x-3| = 3 - x$ și\n$$F(x) = \\frac{x^2}{2} + 3x + 9\\ln(3-x)$$\n\n**Pasul 3.** Aplicarea formulei Newton-Leibniz.\n$F(2) = \\frac{4}{2} + 6 + 9\\ln 1 = 2 + 6 + 0 = 8$ și $F(0) = 0 + 0 + 9\\ln 3 = 9\\ln 3$.\n$$\\int_{0}^{2} f(x)\\,dx = F(2) - F(0) = 8 - 9\\ln 3$$\n\n$$\\boxed{8 - 9\\ln 3}$$',
+    barem: [
+      { descriere: "$f(x) = x + 3 + \\frac{9}{x-3}$", puncte_maxime: 2, explicatie: "Efectuăm împărțirea numărătorului $x^2$ la numitorul $x - 3$. Adăugăm și scădem $9$ la numărător pentru a restrânge formula de calcul prescurtat:\n$$\\begin{aligned}\nx^2 &= x^2 - 9 + 9 \\\\\n&= (x-3)(x+3) + 9\n\\end{aligned}$$\nSeparăm fracția în două componente:\n$$\\begin{aligned}\nf(x) &= \\frac{(x-3)(x+3) + 9}{x-3} \\\\\n&= x + 3 + \\frac{9}{x-3}\n\\end{aligned}$$" },
+      { descriere: "Determinarea unei primitive a funcției $f$", puncte_maxime: 4, explicatie: "Integrăm pe rând fiecare termen al funcției descompuse:\n$$\\int x\\,dx = \\frac{x^2}{2}$$\n$$\\int 3\\,dx = 3x$$\n$$\\int \\frac{9}{x-3}\\,dx = 9\\ln|x-3|$$\nPe intervalul $[0, 2]$ avem $x - 3 < 0$, deci $|x-3| = 3 - x$. Obținem primitiva:\n$$F(x) = \\frac{x^2}{2} + 3x + 9\\ln(3-x)$$" },
+      { descriere: "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{8 - 9\\ln 3}$", puncte_maxime: 2, explicatie: "Calculăm valoarea primitivei în limita superioară $x = 2$, folosind $\\ln 1 = 0$:\n$$\\begin{aligned}\nF(2) &= \\frac{2^2}{2} + 3\\cdot 2 + 9\\ln(3-2) \\\\\n&= 2 + 6 + 9\\ln 1 \\\\\n&= 8\n\\end{aligned}$$\nCalculăm valoarea primitivei în limita inferioară $x = 0$:\n$$\\begin{aligned}\nF(0) &= \\frac{0^2}{2} + 3\\cdot 0 + 9\\ln(3-0) \\\\\n&= 0 + 0 + 9\\ln 3 \\\\\n&= 9\\ln 3\n\\end{aligned}$$\nAplicăm formula Newton-Leibniz:\n$$\\begin{aligned}\n&\\int_{0}^{2} f(x)\\,dx \\\\\n&= F(2) - F(0) \\\\\n&= 8 - 9\\ln 3\n\\end{aligned}$$" }
+    ]
+  },
 
   /* ============================================================
      ANALIZĂ — Șiruri

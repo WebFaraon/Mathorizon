@@ -1979,5 +1979,29 @@
       }
     ],
     "subcategoryId": "integrale"
+  },
+  {
+    "categoryId": "analiza",
+    "titlu": "Integrala unei funcții raționale cu modul în logaritm",
+    "enunt": "Fie funcția $f\\colon \\mathbb{R} \\setminus \\{3\\} \\to \\mathbb{R}$, $f(x) = \\frac{x^2}{x-3}$.\n\nCalculați:\n$$\\int_{0}^{2} f(x)\\,dx$$",
+    "punctaj_total": 8,
+    "pasi": [
+      {
+        "nr": 1,
+        "descriere": "$f(x) = x + 3 + \\frac{9}{x-3}$",
+        "puncte_maxime": 2
+      },
+      {
+        "nr": 2,
+        "descriere": "Determinarea unei primitive a funcției $f$",
+        "puncte_maxime": 4
+      },
+      {
+        "nr": 3,
+        "descriere": "Aplicarea formulei Newton-Leibniz și obținerea valorii integralei, egală cu $\\boxed{8 - 9\\ln 3}$",
+        "puncte_maxime": 2
+      }
+    ],
+    "subcategoryId": "integrale"
   }
 ]
