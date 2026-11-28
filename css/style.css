@@ -3859,6 +3859,7 @@ html:not([data-theme="dark"]) .rarity-card__statement {
    true, untruncated size to work with. */
 .rarity-card__statement-formula.math-content .katex-display {
   margin: 0;
+  padding-block: 0;
   overflow: visible;
 }
 /* .math-content .katex-display .katex further down this file caps this at
@@ -4282,7 +4283,7 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
    Both detail blocks carry .math-content on themselves (not on an ancestor),
    hence the compound form. */
 .rarity-step__detail.math-content .katex-display,
-.reveal-step__detail.math-content .katex-display { margin: 8px 0; }
+.reveal-step__detail.math-content .katex-display { margin: -4px 0; }
 
 /* trustedNl2br turns the newlines around a $$...$$ block into <br>s, and each
    one opens a blank line on top of the block's own margin. KaTeX's
@@ -6406,8 +6407,17 @@ html:not([data-theme="dark"]) .rarity-modal__statement {
 
 .math-content .katex { font-size: 1.08em; }
 
+/* overflow-x:auto forces overflow-y to clip, and a display formula's glyphs
+   (fraction numerators, exponents, integral limits) reach 3-5px above and
+   below the line box, so with a tight box the tops of digits were cut off
+   (measured on an-int-001..006: 3.6px top, up to 5.3px bottom with the KaTeX
+   fonts; up to 8.3px top with Space Grotesk, the formula font in the exercise
+   dialog, see calculator.css, whose glyphs are taller than KaTeX's metrics
+   assume). The padding gives the clip box room; the margin is reduced by the
+   same amount so the spacing around the formula is unchanged. */
 .math-content .katex-display {
-  margin: 12px 0;
+  margin: 0;
+  padding-block: 12px;
   overflow-x: auto;
   overflow-y: hidden;
 }

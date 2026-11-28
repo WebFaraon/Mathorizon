@@ -31,6 +31,14 @@ Regulile de mai jos sunt aceleași pe care le primește Gemini la generare și p
 3. Scrie exact ce ai citit: `node scripts/generate-barem-explicatii.js --id <id> --apply --from-log <fișierul din pasul 2>`. Fără `--from-log`, `--apply` face o cerere nouă către Gemini, iar răspunsurile nu sunt deterministe nici la temperatură 0, deci ai scrie altceva decât ai verificat. Cu `--from-log` textul trece din nou prin ambele verificări și se scrie identic.
 4. Verifică tot: `npm run lint:explicatii`. Trebuie să iasă `OK`.
 
+**Lecții din lotul an-int-008..025 (2026-11-26, exerciții luate de pe ance.gov.md):**
+
+- `solution` este adevărul pe care îl citește Gemini. Dacă acolo o formulă doar se numește (integrare prin părți, `∫u^n du`, `∫1/(x+a) dx`) sau un coeficient apare fără derivare (`e^(2x)/2`), explicația le sare și ea. Scrie formula și derivarea în `solution`, apoi generează.
+- Lintul din generator măsoară cu `css/style.css` și fonturile KaTeX. În dialogul exercițiului formulele sunt însă în Space Grotesk (`css/calculator.css`), mai lat, deci lintul e optimist. Verificarea de încredere e în pagina reală (`category.html`), la 320 px: pentru fiecare `.katex-display`, `scrollWidth / clientWidth` trebuie să fie cel mult 1,17 (cel mult 15% micșorare), iar cerneala textului nu trebuie să iasă din cel mai apropiat strămoș cu `overflow-y` diferit de `visible`.
+- Gemini scrie des formule de 40 de caractere pe un rând (`F(x) = x ln(x+1) - x + ln(x+1) - x²/4 + C`). Se sparg în `aligned` (forma a sau b, un singur `&` pe rând, rândurile următoare încep cu `&=`). Un rând de continuare `&\quad ...` nu trece de lint.
+- Nu pune în `descriere` un răspuns încadrat (`\boxed`) lung, dacă baremul oficial nu îl are în textul pasului: ca expresie în rând nu se rupe pe rânduri și iese din ecran pe telefon.
+- La un item de barem cu mai multe subpuncte, imaginea decupată după eticheta „10." poate tăia primele rânduri ale subitemului: verifică ca punctele pașilor să facă exact 8.
+
 Generatorul retrimite singur lui Gemini încălcările găsite, de cel mult 3 ori, și scrie doar un răspuns care a trecut de reguli. Dacă un exercițiu e respins de 3 ori, nu se scrie nimic pentru el și mesajul spune ce regulă a picat.
 
 ## Reguli de formă (verificate automat)
@@ -96,5 +104,7 @@ Forma corectă cu conținut subțire nu ajută un elev. Regulile de formă împi
 `BM.fitDisplayMath` (`js/utils.js`) rămâne ca plasă de siguranță pe site, dar lintul o dezactivează: verifică ce ar trebui să facă ea doar în cazuri rare.
 
 ## Regulă pentru CSS, nu pentru conținut
+
+**Formulele `$$...$$` nu se taie sus sau jos (2026-11-26).** `.math-content .katex-display` are `overflow-x: auto`, deci și axa verticală taie. Fontul formulelor din dialogul exercițiului este Space Grotesk (`css/calculator.css`), ale cărui cifre sunt mai înalte decât presupune KaTeX, așa că vârful numărătorilor, exponenților și limitelor se pierdea (până la 8 px, 63 din 187 de formule la an-int-001..006). Soluția: `padding-block: 12px` pe `.katex-display`, cu marginea redusă cu aceeași valoare (`style.css`, `simulare.css`). Dacă schimbi fontul formulelor, remăsoară: la fiecare `.katex`, cerneala textului nu trebuie să iasă din cel mai apropiat strămoș cu `overflow-y` diferit de `visible`.
 
 Dacă modifici layoutul modalului (`.rarity-step`, `.rarity-step__detail`), rulează lintul. O cutie cu `flex-basis: 100%` **plus** `margin-left` iese din pas cu marginea respectivă, iar `overflow-x: hidden` o taie în tăcere. A fost deja o dată bug: ultimii 38px ai fiecărei linii lipseau pe tabletă și desktop. Se vedea doar dacă măsurai față de modal, nu față de cutia elementului.
