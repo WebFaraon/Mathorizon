@@ -591,10 +591,14 @@
       if (next === 'registre') {
         const T = await loadTables();
         lastSig = signature(T);
-        if (!T.workbooks.length || !T.groups.length) throw new Error('Încă nu e sincronizat niciun registru. Deschide pagina Sincronizare și apasă „Sincronizează acum”.');
+        const empty = !T.workbooks.length || !T.groups.length;
+        // Only behind ?demo=1 may the console fall back on the built-in demo data. Everywhere else an empty platform shows EMPTY pages,
+        // never invented students and groups (they were mistaken for real ones).
+        if (empty && demoOn) throw new Error('Încă nu e sincronizat niciun registru. Deschide pagina Sincronizare și apasă „Sincronizează acum”.');
         const ds = window.AdminRegistryDataset.build(T, { today: new Date().toISOString().slice(0, 10) });
         D.useData(ds, { today: new Date() });
-        if (!quiet) U.toast(`Registre: ${ds.summary.workbooks} registre, ${ds.summary.groups} grupe, ${ds.summary.students} elevi. Consola e doar pentru citire.`);
+        if (empty) { if (!quiet) U.toast('Încă nu e sincronizat niciun registru. Adaugă unul din pagina Sincronizare.', 'warn'); }
+        else if (!quiet) U.toast(`Registre: ${ds.summary.workbooks} registre, ${ds.summary.groups} grupe, ${ds.summary.students} elevi. Consola e doar pentru citire.`);
       } else {
         D.useDemo();
         if (!quiet) U.toast('Date demo.');
@@ -604,7 +608,14 @@
       return true;
     } catch (e) {
       U.toast(`Nu am trecut pe ${next === 'registre' ? 'Registre' : 'Demo'}: ${U.esc(String((e && e.message) || e))}`, 'warn');
-      if (next === 'registre') write('demo');
+      if (next === 'registre' && demoOn) write('demo');
+      else if (next === 'registre') {
+        // not in demo mode: a failed read leaves empty pages (and the message above), not the built-in demo data
+        try {
+          D.useData(window.AdminRegistryDataset.build({ workbooks: [], groups: [], students: [], lessons: [], replacements: [], replacement_items: [], console_rooms: [], classes: [], platform_managers: [] }, { today: new Date().toISOString().slice(0, 10) }), { today: new Date() });
+          if (window.AdminShell) window.AdminShell.render();
+        } catch (e2) { /* keep whatever is on screen */ }
+      }
       return false;
     } finally {
       busy = false; paint();

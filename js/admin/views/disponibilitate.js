@@ -539,6 +539,10 @@
   function paintMain(scrollToWeek) {
     const box = rootEl.querySelector('#dpMain');
     rootEl.querySelectorAll('#dpMode button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === S.mode)));
+    if (!D.teachers.length) {                                    // nothing synced yet: an empty page, not an error
+      box.innerHTML = '<div class="ax-empty"><b>Niciun profesor încă</b>Disponibilitatea apare după ce adaugi primul registru, din pagina Sincronizare.</div>';
+      return;
+    }
     if (S.mode === 'all') {
       box.innerHTML = allHTML();
       wireFilters('dpA', paintAll);

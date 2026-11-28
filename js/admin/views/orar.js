@@ -315,6 +315,7 @@
         </table>
       </div>
       ${rest > 0 ? `<div class="or-morebar"><button type="button" class="ax-btn" data-more>Arată încă ${nf.format(Math.min(PER, rest))}</button><span class="ax-sub">${nf.format(rows.length)} afișate din ${nf.format(list.length)}</span></div>` : ''}`
+      : !D.groups.length ? `<div class="ax-panel ax-empty"><b>Încă nu e nicio grupă.</b>Grupele apar după ce adaugi primul registru, din pagina Sincronizare.</div>`
       : `<div class="ax-panel ax-empty"><b>Nicio grupă nu se potrivește filtrelor.</b>Scoate unul dintre filtre sau pornește de la zero.<div class="or-empty-k"><button type="button" class="ax-btn" data-clearall>Șterge toate filtrele</button></div></div>`}`;
   }
 
